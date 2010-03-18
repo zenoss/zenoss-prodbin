@@ -117,7 +117,7 @@
         },{
             "text": "DataPointItemSelector.js",
             "path": "resources/js/zenoss/form/"
-        }, {
+        },{
             "text": "ContextMenu.js",
             "path": "resources/js/zenoss/"
         },{
@@ -125,6 +125,9 @@
             "path": "resources/js/zenoss/form/"
         },{
             "text": "rrdtype.js",
+            "path": "resources/js/zenoss/form/"
+        },{
+            "text": "UpDownField.js",
             "path": "resources/js/zenoss/form/"
         }]
     }],

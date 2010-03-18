@@ -63,7 +63,6 @@ var componentCard = {
 
 var deviceInformation = {
     xtype: 'fieldset',
-    collapsible: true,
     layout: 'column',
     title: _t('Device Information'),
     defaults: {

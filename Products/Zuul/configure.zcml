@@ -127,120 +127,6 @@
              factory=".marshalling.TreeNodeMarshaller"
              />
 
-    <!-- Tree node adapters -->
-    <adapter factory=".infos.process.ProcessNode"
-             for=".interfaces.IProcessEntity"
-             provides=".interfaces.IProcessNode"/>
-
-    <adapter factory=".infos.service.ServiceNode"
-             for=".interfaces.IServiceEntity"
-             provides=".interfaces.IServiceNode"/>
-
-    <adapter factory=".infos.device.DeviceOrganizerNode"
-             for="Products.ZenModel.DeviceOrganizer.DeviceOrganizer"
-             provides=".interfaces.IDeviceOrganizerNode"/>
-
-    <adapter factory=".infos.template.TemplateNode"
-             for="Products.ZenModel.RRDTemplate.RRDTemplate"
-             provides=".interfaces.ITemplateNode"/>
-
-    <adapter factory=".infos.template.TemplateLeaf"
-             for="Products.ZenModel.RRDTemplate.RRDTemplate"
-             provides=".interfaces.ITemplateLeaf"/>
-
-    <adapter factory=".infos.template.RRDDataSourceInfo"
-             for="Products.ZenModel.RRDDataSource.RRDDataSource"
-             provides=".interfaces.IRRDDataSourceInfo"/>
-
-    <adapter factory=".infos.template.BasicDataSourceInfo"
-             for="Products.ZenModel.BasicDataSource.BasicDataSource"
-             provides=".interfaces.IBasicDataSourceInfo"/>
-    
-    <adapter factory=".infos.template.DataPointInfo"
-             for="Products.ZenModel.RRDDataPoint.RRDDataPoint"
-             provides=".interfaces.IDataPointInfo"/>
-
-    <adapter factory=".infos.template.ThresholdInfo"
-             for="Products.ZenModel.ThresholdClass.ThresholdClass"
-             provides=".interfaces.IThresholdInfo"/>
-
-    <adapter factory=".infos.template.MinMaxThresholdInfo"
-             for="Products.ZenModel.MinMaxThreshold.MinMaxThreshold"
-             provides=".interfaces.IMinMaxThresholdInfo"/>
-
-    <adapter factory=".infos.template.GraphInfo"
-             for="Products.ZenModel.GraphDefinition.GraphDefinition"
-             provides=".interfaces.IGraphInfo"/>
-
-    <adapter provides=".interfaces.IInfo"
-             for=".interfaces.IProcessEntity"
-             factory=".infos.process.ProcessInfo"
-             />
-
-    <adapter factory=".infos.command.UserCommandInfo"
-             for="Products.ZenModel.UserCommand.UserCommand"
-             provides=".interfaces.IUserCommandInfo"/>
-    
-    <adapter provides=".interfaces.IInfo"
-             for=".interfaces.IRRDDataSourceInfo"
-             factory=".infos.template.RRDDataSourceInfo"
-             />
-    
-    <adapter provides=".interfaces.IInfo"
-             for=".interfaces.IComponent"
-             factory=".infos.component.ComponentInfo"
-             />
-
-    <adapter factory=".infos.service.ServiceInfo"
-             provides=".interfaces.IServiceInfo"
-             for="Products.ZenModel.ServiceClass.ServiceClass"
-             />
-
-    <adapter provides=".interfaces.IIpNetworkInfo"
-             for="Products.ZenModel.IpNetwork.IpNetwork"
-             factory=".infos.network.IpNetworkInfo"
-             />
-
-    <adapter provides=".interfaces.IIpAddressInfo"
-             for="Products.ZenModel.IpAddress.IpAddress"
-             factory=".infos.network.IpAddressInfo"
-             />
-
-    <adapter provides=".interfaces.IDeviceInfo"
-             for=".interfaces.IDevice"
-             factory=".infos.device.DeviceInfo"
-             />
-
-    <adapter provides=".interfaces.IDeviceOrganizerInfo"
-             for="Products.ZenModel.DeviceOrganizer.DeviceOrganizer"
-             factory=".infos.device.DeviceOrganizerInfo"
-             />
-
-    <adapter provides=".interfaces.IInfo"
-             for="Products.ZenModel.ZenModelRM.ZenModelRM"
-             factory=".infos.InfoBase"
-             />
-
-    <adapter provides=".interfaces.IEventInfo"
-             for=".interfaces.IEventEntity"
-             factory=".infos.event.EventInfo"
-             />
-    
-             
-    <adapter provides=".interfaces.IComponentInfo"
-             for="Products.ZenModel.OSComponent.OSComponent"
-             factory=".infos.component.ComponentInfo"
-             />
-
-    <adapter provides=".interfaces.IComponentInfo"
-             for="Products.ZenModel.HWComponent.HWComponent"
-             factory=".infos.component.ComponentInfo"
-             />
-
-    <adapter provides=".interfaces.IIpInterfaceInfo"
-             for="Products.ZenModel.IpInterface.IpInterface"
-             factory=".infos.component.IpInterfaceInfo"
-             />
 
     <adapter provides=".interfaces.ICatalogTool"
              for="*"
@@ -251,5 +137,6 @@
     <include package=".catalog"/>
     <include package=".search"/>
     <include package=".form"/>
+    <include package=".infos"/>
 
 </configure>

@@ -48,4 +48,20 @@ ZF.getGeneratedForm = function(uid, callback, router) {
     });
 }
 
+ZF.AutoFormCombo = Ext.extend(Ext.form.ComboBox, {
+     constructor: function(config) {
+         config = Ext.applyIf(config||{}, {
+             editable: false,
+             forceSelection: true,
+             autoSelect: true,
+             triggerAction: 'all',
+             mode: 'local',
+             store: config.values || []
+         });
+         Zenoss.form.AutoFormCombo.superclass.constructor.call(this, config);
+     }
+
+});
+Ext.reg('autoformcombo', ZF.AutoFormCombo);
+
 })();

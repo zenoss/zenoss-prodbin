@@ -1,0 +1,106 @@
+<!--
+###########################################################################
+#
+# This program is part of Zenoss Core, an open source monitoring platform.
+# Copyright (C) 2009, Zenoss Inc.
+#
+# This program is free software; you can redistribute it and/or modify it
+# under the terms of the GNU General Public License version 2 as published by
+# the Free Software Foundation.
+#
+# For complete information please visit: http://www.zenoss.com/oss/
+#
+###########################################################################
+-->
+
+<configure xmlns="http://namespaces.zope.org/zope"
+           xmlns:five="http://namespaces.zope.org/five">
+
+    <!-- Tree node adapters -->
+    <adapter factory=".process.ProcessNode"
+             for="..interfaces.IProcessEntity"
+             provides="..interfaces.IProcessNode"/>
+
+    <adapter factory=".service.ServiceNode"
+             for="..interfaces.IServiceEntity"
+             provides="..interfaces.IServiceNode"/>
+
+    <adapter factory=".device.DeviceOrganizerNode"
+             for="Products.ZenModel.DeviceOrganizer.DeviceOrganizer"
+             provides="..interfaces.IDeviceOrganizerNode"/>
+
+    <adapter factory=".template.TemplateNode"
+             for="Products.ZenModel.RRDTemplate.RRDTemplate"
+             provides="..interfaces.ITemplateNode"/>
+
+    <adapter factory=".template.TemplateLeaf"
+             for="Products.ZenModel.RRDTemplate.RRDTemplate"
+             provides="..interfaces.ITemplateLeaf"/>
+
+    <adapter factory=".template.RRDDataSourceInfo"
+             for="Products.ZenModel.RRDDataSource.RRDDataSource"
+             provides="..interfaces.IRRDDataSourceInfo"/>
+    
+    <adapter factory=".template.DataPointInfo"
+             for="Products.ZenModel.RRDDataPoint.RRDDataPoint"
+             provides="..interfaces.IDataPointInfo"/>
+
+    <adapter factory=".template.ThresholdInfo"
+             for="Products.ZenModel.ThresholdClass.ThresholdClass"
+             provides="..interfaces.IThresholdInfo"/>
+
+    <adapter factory=".template.MinMaxThresholdInfo"
+             for="Products.ZenModel.MinMaxThreshold.MinMaxThreshold"
+             provides="..interfaces.IMinMaxThresholdInfo"/>
+
+    <adapter factory=".template.GraphInfo"
+             for="Products.ZenModel.GraphDefinition.GraphDefinition"
+             provides="..interfaces.IGraphInfo"/>
+
+    <adapter provides="..interfaces.IInfo"
+             for="..interfaces.IProcessEntity"
+             factory=".process.ProcessInfo"
+             />
+
+    <adapter factory=".command.UserCommandInfo"
+             for="Products.ZenModel.UserCommand.UserCommand"
+             provides="..interfaces.IUserCommandInfo"/>
+
+    <adapter provides="..interfaces.IInfo"
+             for="..interfaces.IComponent"
+             factory=".component.ComponentInfo"
+             />
+
+    <adapter factory=".service.ServiceInfo"
+             provides="..interfaces.IServiceInfo"
+             for="Products.ZenModel.ServiceClass.ServiceClass"
+             />
+
+    <adapter provides="..interfaces.IDeviceInfo"
+             for="..interfaces.IDevice"
+             factory=".device.DeviceInfo"
+             />
+
+    <adapter provides="..interfaces.IDeviceOrganizerInfo"
+             for="Products.ZenModel.DeviceOrganizer.DeviceOrganizer"
+             factory=".device.DeviceOrganizerInfo"
+             />
+
+    <adapter provides="..interfaces.IInfo"
+             for="Products.ZenModel.ZenModelRM.ZenModelRM"
+             factory=".InfoBase"
+             />
+
+    <adapter provides="..interfaces.IEventInfo"
+             for="..interfaces.IEventEntity"
+             factory=".event.EventInfo"
+             />
+
+    <adapter provides="..interfaces.IIpNetworkInfo"
+             for="Products.ZenModel.IpNetwork.IpNetwork"
+             factory=".network.IpNetworkInfo"
+             />
+
+<include package=".component"/>
+
+</configure>

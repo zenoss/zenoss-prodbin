@@ -1,0 +1,64 @@
+<!--
+###########################################################################
+#
+# This program is part of Zenoss Core, an open source monitoring platform.
+# Copyright (C) 2010, Zenoss Inc.
+#
+# This program is free software; you can redistribute it and/or modify it
+# under the terms of the GNU General Public License version 2 as published by
+# the Free Software Foundation.
+#
+# For complete information please visit: http://www.zenoss.com/oss/
+#
+###########################################################################
+-->
+
+<configure xmlns="http://namespaces.zope.org/zope"
+           xmlns:five="http://namespaces.zope.org/five">
+
+    <include package="zope.app.schema" file="meta.zcml"/>
+
+    <adapter provides="...interfaces.IComponentInfo"
+             for="Products.ZenModel.OSComponent.OSComponent"
+             factory=".ComponentInfo"
+             />
+
+    <adapter provides="...interfaces.IComponentInfo"
+             for="Products.ZenModel.HWComponent.HWComponent"
+             factory=".ComponentInfo"
+             />
+
+    <adapter provides="...interfaces.IIpInterfaceInfo"
+             for="Products.ZenModel.IpInterface.IpInterface"
+             factory=".ipinterface.IpInterfaceInfo"
+             />
+
+    <adapter provides="...interfaces.IOSProcessInfo"
+             for="Products.ZenModel.OSProcess.OSProcess"
+             factory=".osprocess.OSProcessInfo"
+             />
+
+    <adapter provides="...interfaces.IFileSystemInfo"
+             for="Products.ZenModel.FileSystem.FileSystem"
+             factory=".filesystem.FileSystemInfo"
+             />
+
+    <adapter provides="...interfaces.IIpServiceInfo"
+             for="Products.ZenModel.IpService.IpService"
+             factory=".ipservice.IpServiceInfo"
+             />
+
+    <vocabulary factory=".ipservice.serviceIpAddressesVocabulary"
+                name="serviceIpAddresses"/>
+
+    <adapter provides="...interfaces.IWinServiceInfo"
+             for="Products.ZenModel.WinService.WinService"
+             factory=".winservice.WinServiceInfo"
+             />
+
+    <adapter provides="...interfaces.IIpRouteEntryInfo"
+             for="Products.ZenModel.IpRouteEntry.IpRouteEntry"
+             factory=".iprouteentry.IpRouteEntryInfo"
+             />
+
+</configure>

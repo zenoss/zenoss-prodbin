@@ -12,7 +12,7 @@
 ###########################################################################
 
 from zope.schema._field import Text as ZSText, TextLine, Bool, Int, Float
-from zope.schema._field import Tuple, List, Password
+from zope.schema._field import Tuple, List, Password, Choice as ZSChoice
 
 class FieldMixin(object):
     """
@@ -38,7 +38,9 @@ TextLine = _mixedIn(TextLine, xtype='textarea')
 Bool = _mixedIn(Bool, xtype='checkbox')
 Int = _mixedIn(Int, xtype='numberfield')
 Float = _mixedIn(Float, xtype='numberfield')
-Tuple = _mixedIn(Tuple, xtype='itemselector')
-List = _mixedIn(List, xtype='itemselector')
+Tuple = _mixedIn(Tuple, xtype='textarea')
+List = _mixedIn(List, xtype='textarea')
+Choice = _mixedIn(ZSChoice, xtype='autoformcombo')
+MultiChoice = _mixedIn(ZSChoice, xtype='itemselector')
 Password = _mixedIn(Password, xtype='textfield')
 Entity = _mixedIn(ZSText, xtype='linkfield')

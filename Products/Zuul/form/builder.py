@@ -13,8 +13,10 @@
 
 import operator
 import zope.schema
-from zope.interface import implements, providedBy
 from zope.component import adapts
+from zope.interface import implements, providedBy
+from zope.schema.vocabulary import getVocabularyRegistry
+from zope.schema.vocabulary import VocabularyRegistryError
 from Products.Zuul.form.interfaces import IFormBuilder
 from Products.Zuul.interfaces import IInfo
 
@@ -28,6 +30,7 @@ FIELDKEYS = (
     'order',
     'group'
 )
+
 
 def _dict(field):
     """
@@ -45,6 +48,7 @@ def _fieldset(name, items):
         'title': name,
         'items': map(_item, items)
     }
+
 
 def _item(item):
     """
@@ -64,15 +68,18 @@ def _item(item):
     checked = False
     if xtype == 'linkfield':
         value = getattr(value, 'uid', value)
-    if xtype == 'checkbox':
-        checked = value
-    return {
+    field = {
         'xtype': xtype,
         'fieldLabel': item['title'],
         'name': item['name'],
-        'value': value,
-        'checked': checked
+        'value': value
     }
+    if xtype in ('autoformcombo', 'itemselector'):
+        field['values'] = item['values']
+    if xtype=='checkbox':
+        field['checked'] = value
+    return field
+
 
 class FormBuilder(object):
     implements(IFormBuilder)
@@ -80,6 +87,17 @@ class FormBuilder(object):
 
     def __init__(self, context):
         self.context = context
+
+    def vocabulary(self, field):
+        vocabulary = field.vocabulary
+        if vocabulary is None:
+            reg = getVocabularyRegistry()
+            try:
+                vocabulary = reg.get(self.context, field.vocabularyName)
+            except VocabularyRegistryError:
+                raise ValueError("Can't get values from vocabulary %s" %
+                                 field.vocabularyName)
+        return [(t.value, t.token) for t in vocabulary._terms]
 
     def fields(self):
         d = {}
@@ -89,6 +107,8 @@ class FormBuilder(object):
                 c = _dict(v)
                 c['name'] = k
                 c['value'] = getattr(self.context, k, None)
+                if c['xtype'] in ('autoformcombo', 'itemselector'):
+                    c['values'] = self.vocabulary(v)
                 d[k] = c
         return d
 
