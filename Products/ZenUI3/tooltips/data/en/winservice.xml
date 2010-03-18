@@ -2,33 +2,34 @@
 <view>
   <tooltip>
     <target>inheritedCheckbox</target>
-
-    <html><span style="font-weight: bold;">Inherited</span><br />By default, this
+    <title>Inherited</title>
+    <anchor>left</anchor>
+    <html>By default, this
     option is selected for all nodes below the Windows Services node. When selected,
     the node will inherit monitoring choices from its parent. </html>
   </tooltip>
 
   <tooltip>
     <target>monitorCheckbox</target>
-
-    <html><span style="font-weight: bold;">Enabled</span><br />When selected,
-    monitoring choices are individually enabled for this node. (The node does
+    <title>Enabled</title>
+    <anchor>left</anchor>
+    <html>When selected, monitoring choices are individually enabled for this node. (The node does
     not inherit monitoring choices from its parent.) To select this option,
     you must first deselect the Inherited option.</html>
   </tooltip>
 
   <tooltip>
     <target>eventSeverityCombo</target>
-
-    <html><span style="font-weight: bold;">Event Severity</span><br />Select an
-    event severity (Critical, Error, Warning, Info, or Debug) if you have selected the Enabled option.
+    <title>Event Severity</title>
+    <anchor>left</anchor>
+    <html>Select an event severity (Critical, Error, Warning, Info, or Debug) if you have selected the Enabled option.
     This severity level is applied to the event created when the Windows service fails.</html>
   </tooltip>
 
   <tooltip>
     <target>service_keys_TextBox</target>
-
-    <html><span style="font-weight: bold;">Service Keys</span><br />Optionally, add associated service keys or a description.</html>
+    <title>Service Keys</title>
+    <html>Optionally, add associated service keys or a description.</html>
   </tooltip>
 
   
