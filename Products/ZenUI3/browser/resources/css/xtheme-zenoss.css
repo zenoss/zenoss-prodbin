@@ -222,7 +222,7 @@ ul.x-tab-strip-bottom{
 }
 /* Buttons */
 
-.x-btn {
+.x-btn-text {
     font-family:helvetica,tahoma,sans-serif;
     text-transform: uppercase;
 }
@@ -346,8 +346,12 @@ ul.x-tab-strip-bottom{
 .x-toolbar.subselect-head .x-btn {
     height: 24px;
     margin-bottom: 7px;
+}
+
+.x-toolbar.subselect-head .x-btn-text {
     text-transform: uppercase;
 }
+
 .x-toolbar.subselect-head button {
     color: #fff;
 }
@@ -432,7 +436,7 @@ ul.x-tab-strip-bottom{
     height: 4px;
 }
 
-.x-toolbar .x-btn {
+.x-toolbar .x-btn-text {
     text-transform: none;
 }
 .x-toolbar.largetoolbar .x-btn {
@@ -1387,6 +1391,9 @@ body.x-body-masked .x-window-mc, body.x-body-masked .x-window-plain .x-window-mc
 
 .x-grid3-filter .x-btn {
     height: 26px;
+}
+
+.x-grid3-filter .x-btn-text {
     text-transform: none;
 }
 
