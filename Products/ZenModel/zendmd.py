@@ -193,6 +193,7 @@ def _customStuff():
     _CUSTOMSTUFF = locals()
     return _CUSTOMSTUFF
 
+
 class ZenCompleter(Completer):
     """
     Provides the abiility to specify *just* the zendmd-specific 
@@ -230,6 +231,19 @@ class ZenCompleter(Completer):
        'manage_before', 'manage_after',
        'manage_acquired',
     ]
+
+    current_prompt = ''
+    def complete(self, text, state):
+        # Don't show all objects if we're typing in code
+        if self.current_prompt == sys.ps2:
+            if state == 0:
+                if text == '':
+                    return '    '
+            else:
+                return None
+
+        return Completer.complete(self, text, state)
+
 
     def global_matches(self, text):
         """
@@ -275,9 +289,10 @@ class HistoryConsole(code.InteractiveConsole):
     def __init__(self, locals=None, filename="<console>",
                  histfile=zenPath('.pyhistory')):
         code.InteractiveConsole.__init__(self, locals, filename)
+        self.completer = None
         if readline is not None:
-            completer = ZenCompleter(locals)
-            readline.set_completer(completer.complete)
+            self.completer = ZenCompleter(locals)
+            readline.set_completer(self.completer.complete)
             readline.parse_and_bind("tab: complete")
         self.init_history(histfile)
 
@@ -292,6 +307,12 @@ class HistoryConsole(code.InteractiveConsole):
 
     def save_history(self, histfile):
         readline.write_history_file(histfile)
+
+    def raw_input(self, prompt=""):
+        if self.completer:
+            self.completer.current_prompt = prompt
+        return code.InteractiveConsole.raw_input(self, prompt)
+
 
 if __name__=="__main__":
     # Do we want to connect to a database other than the one specified in
