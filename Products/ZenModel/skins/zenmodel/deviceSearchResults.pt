@@ -14,6 +14,9 @@
         objects python: here.searchDevices(query, request);
         batch python: here.ZenTableManager.getBatch(tableName,objects);
         tabletitle string:Results">
+
+        <input type="hidden" name="query" tal:attributes="value query">
+
         <tal:block metal:use-macro="here/zenuimacros/macros/zentable">
 
         <!--====Optional titlebar slots=============
