@@ -80,12 +80,13 @@ ZC.Browser = Ext.extend(Zenoss.VerticalBrowsePanel, {
                     directFn: config.directFn,
                     style: 'overflow-y: scroll',
                     border: false,
-                    bodyStyle: 'border-right: 1px solid gray'
-                    //uid: config.uid
+                    bodyStyle: 'border-right: 1px solid gray',
+                    contextUid: config.uid
                 }),
                 new ZC.ComponentGridPanel({
                     ref: 'compSelect',
                     componentType: 'NotAComponentType',
+                    contextUid: config.uid,
                     fields: ['name', 'uid'],
                     bodyStyle: 'border-right: 1px solid gray',
                     columns: [{

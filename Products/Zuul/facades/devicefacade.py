@@ -102,7 +102,7 @@ class DeviceFacade(TreeFacade):
         result = []
         for compType in d:
             # Number of components
-            count = len(d[compType])
+            compCount = len(d[compType])
             # Severity counts
             where = []
             vals = []
@@ -128,7 +128,7 @@ class DeviceFacade(TreeFacade):
                     break
             else:
                 sev = 'clear'
-            result.append({'type':compType, 'count':count, 'severity':sev})
+            result.append({'type':compType, 'count':compCount, 'severity':sev})
         return result
 
     def deleteDevices(self, uids):
