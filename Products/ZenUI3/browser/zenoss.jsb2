@@ -132,6 +132,9 @@
         },{
             "text": "UpDownField.js",
             "path": "resources/js/zenoss/form/"
+        },{
+            "text": "alias.js",
+            "path": "resources/js/zenoss/form/"
         }]
     }],
     "resources": []

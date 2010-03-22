@@ -113,7 +113,7 @@ class BasicDataSource(RRDDataSource.SimpleRRDDataSource):
                 try:
                     REQUEST.form['oid'] = checkOid(oid)
                 except ValueError:
-                    messaging.IMessageSender(self).sendToBrowser(
+                    messaging.IMessagSeender(self).sendToBrowser(
                         'Invalid OID',
                         "%s is an invalid OID." % oid,
                         priority=messaging.WARNING
@@ -123,13 +123,97 @@ class BasicDataSource(RRDDataSource.SimpleRRDDataSource):
         return RRDDataSource.SimpleRRDDataSource.zmanage_editProperties(
                                                                 self, REQUEST)
 
+    def testDataSourceAgainstDevice(self, testDevice, REQUEST, write, errorLog):
+        """
+        Does the majority of the logic for testing a datasource against the device
+        @param string testDevice The id of the device we are testing
+        @param Dict REQUEST the browers request
+        @param Function write The output method we are using to stream the result of the command
+        @parma Function errorLog The output method we are using to report errors
+        """ 
+        out = REQUEST.RESPONSE
+        # Determine which device to execute against
+        device = None
+        if testDevice:
+            # Try to get specified device
+            device = self.findDevice(testDevice)
+            if not device:
+                errorLog(
+                    'No device found',
+                    'Cannot find device matching %s.' % testDevice,
+                    priority=messaging.WARNING
+                )
+                return self.callZenScreen(REQUEST)
+        elif hasattr(self, 'device'):
+            # ds defined on a device, use that device
+            device = self.device()
+        elif hasattr(self, 'getSubDevicesGen'):
+            # ds defined on a device class, use any device from the class
+            try:
+                device = self.getSubDevicesGen().next()
+            except StopIteration:
+                # No devices in this class, bail out
+                pass
+        if not device:
+            errorLog(
+                'No Testable Device',
+                'Cannot determine a device against which to test.',
+                priority=messaging.WARNING
+            )
+            return self.callZenScreen(REQUEST)
+
+        # Get the command to run
+        command = None
+        if self.sourcetype=='COMMAND':
+            command = self.getCommand(device, REQUEST.get('commandTemplate'))
+        elif self.sourcetype=='SNMP':
+            snmpinfo = copy(device.getSnmpConnInfo().__dict__)
+            # use the oid from the request or our existing one
+            snmpinfo['oid'] = REQUEST.get('oid', self.getDescription())
+            command = snmptemplate % snmpinfo
+        else:
+            errorLog(
+                'Test Failed',
+                'Unable to test %s datasources' % self.sourcetype,
+                priority=messaging.WARNING
+            )
+            return self.callZenScreen(REQUEST)
+        if not command:
+            errorLog(
+                'Test Failed',
+                'Unable to create test command.',
+                priority=messaging.WARNING
+            )
+            return self.callZenScreen(REQUEST)
+        header = ''
+        footer = ''
+        # Render
+        if REQUEST.get('renderTemplate', True):
+            header, footer = self.commandTestOutput().split('OUTPUT_TOKEN')
+            
+        out.write(str(header))
+            
+        write("Executing command\n%s\n   against %s" % (command, device.id))
+        write('')
+        start = time.time()
+        try:
+            executeStreamCommand(command, write)
+        except:
+            import sys
+            write('exception while executing command')
+            write('type: %s  value: %s' % tuple(sys.exc_info()[:2]))
+        write('')
+        write('')
+        write('DONE in %s seconds' % long(time.time() - start))
+        out.write(str(footer))
+                
     security.declareProtected('Change Device', 'manage_testDataSource')
     def manage_testDataSource(self, testDevice, REQUEST):
         ''' Test the datasource by executing the command and outputting the
         non-quiet results.
         '''
+        # set up the output method for our test
         out = REQUEST.RESPONSE
-
         def write(lines):
             ''' Output (maybe partial) result text.
             '''
@@ -147,77 +231,13 @@ class BasicDataSource(RRDDataSource.SimpleRRDDataSource):
                     l = cgi.escape(l)
                     l = l.replace('\n', endLine + startLine)
                     out.write(startLine + l + endLine)
-
-        # Determine which device to execute against
-        device = None
-        if testDevice:
-            # Try to get specified device
-            device = self.findDevice(testDevice)
-            if not device:
-                messaging.IMessageSender(self).sendToBrowser(
-                    'No device found',
-                    'Cannot find device matching %s.' % testDevice,
-                    priority=messaging.WARNING
-                )
-                return self.callZenScreen(REQUEST)
-        elif hasattr(self, 'device'):
-            # ds defined on a device, use that device
-            device = self.device()
-        elif hasattr(self, 'getSubDevicesGen'):
-            # ds defined on a device class, use any device from the class
-            try:
-                device = self.getSubDevicesGen().next()
-            except StopIteration:
-                # No devices in this class, bail out
-                pass
-        if not device:
-            messaging.IMessageSender(self).sendToBrowser(
-                'No Testable Device',
-                'Cannot determine a device against which to test.',
-                priority=messaging.WARNING
-            )
-            return self.callZenScreen(REQUEST)
-
-        # Get the command to run
-        command = None
-        if self.sourcetype=='COMMAND':
-            command = self.getCommand(device)
-        elif self.sourcetype=='SNMP':
-            snmpinfo = copy(device.getSnmpConnInfo().__dict__)
-            snmpinfo['oid'] = self.getDescription()
-            command = snmptemplate % snmpinfo
-        else:
-            messaging.IMessageSender(self).sendToBrowser(
-                'Test Failed',
-                'Unable to test %s datasources' % self.sourcetype,
-                priority=messaging.WARNING
-            )
-            return self.callZenScreen(REQUEST)
-        if not command:
-            messaging.IMessageSender(self).sendToBrowser(
-                'Test Failed',
-                'Unable to create test command.',
-                priority=messaging.WARNING
-            )
-            return self.callZenScreen(REQUEST)
-
-        # Render
-        header, footer = self.commandTestOutput().split('OUTPUT_TOKEN')
-        out.write(str(header))
-
-        write("Executing command\n%s\n   against %s" % (command, device.id))
-        write('')
-        start = time.time()
-        try:
-            executeStreamCommand(command, write)
-        except:
-            import sys
-            write('exception while executing command')
-            write('type: %s  value: %s' % tuple(sys.exc_info()[:2]))
-        write('')
-        write('')
-        write('DONE in %s seconds' % long(time.time() - start))
-        out.write(str(footer))
+                    
+        # use our input and output to call the testDataSource Method
+        errorLog = messaging.IMessageSender(self).sendToBrowser
+        return self.testDataSourceAgainstDevice(testDevice,
+                                                REQUEST,
+                                                write,
+                                                errorLog)
 
     def parsers(self):
         from Products.DataCollector.Plugins import loadParserPlugins

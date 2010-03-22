@@ -104,8 +104,8 @@ class IDataPointInfo(IInfo):
     rrdmin = schema.Text(title=_t(u"RRD Minimum"))
     rrdmax = schema.Text(title=_t(u"RRD Maximum"))
     isrow = schema.Bool(title=_t(u"Read Only"))
-    alias = schema.Text(title=_t(u"Alias"),
-                        readonly=True)
+    aliases = schema.Text(title=_t(u"Alias"),
+                        xtype="alias")
     
     
 class IThresholdInfo(IInfo):
@@ -133,6 +133,10 @@ class IMinMaxThresholdInfo(IThresholdInfo):
                              xtype="eventclass", order=8)
     escalateCount = schema.Int(title=_t(u"Escalate Count"), order=9) 
 
+class IDataPointAlias(IInfo):
+    """
+    Adapts the RRDDataPointAlias
+    """
     
 class IGraphInfo(IInfo):
     """
@@ -218,3 +222,4 @@ class ITemplateFacade(IFacade):
         to the device class or device uniquely identified by the targetUid
         parameter.
         """
+        

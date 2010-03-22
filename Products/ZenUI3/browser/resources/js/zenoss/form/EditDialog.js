@@ -55,7 +55,7 @@
                 width: 610,
                 formId: config.id + 'editDataSourcesDialogForm',
                 modal: true,
-                height: 670,
+                height: 970,
                 autoHeight: true,
                 constrain: true,
                 items: items,
@@ -64,7 +64,8 @@
                     text: _t('Save'),
                     handler: function () {
                         var form = that.editForm.form,
-                            values = form.getValues();                        
+                            values = form.getValues();
+                        
                         values.uid = record.id;
                         config.directFn(values, config.saveHandler);
                     }

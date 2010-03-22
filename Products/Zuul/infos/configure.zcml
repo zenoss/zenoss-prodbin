@@ -36,14 +36,10 @@
     <adapter factory=".template.TemplateLeaf"
              for="Products.ZenModel.RRDTemplate.RRDTemplate"
              provides="..interfaces.ITemplateLeaf"/>
-
+    
     <adapter factory=".template.RRDDataSourceInfo"
              for="Products.ZenModel.RRDDataSource.RRDDataSource"
              provides="..interfaces.IRRDDataSourceInfo"/>
-    
-    <adapter factory=".template.DataPointInfo"
-             for="Products.ZenModel.RRDDataPoint.RRDDataPoint"
-             provides="..interfaces.IDataPointInfo"/>
 
     <adapter factory=".template.ThresholdInfo"
              for="Products.ZenModel.ThresholdClass.ThresholdClass"
@@ -57,6 +53,18 @@
              for="Products.ZenModel.GraphDefinition.GraphDefinition"
              provides="..interfaces.IGraphInfo"/>
 
+    <adapter factory=".template.DataPointInfo"
+             for="Products.ZenModel.RRDDataPoint.RRDDataPoint"
+             provides="..interfaces.IDataPointInfo"/>
+    
+    <adapter factory=".template.BasicDataSourceInfo"
+             for="Products.ZenModel.BasicDataSource.BasicDataSource"
+             provides="..interfaces.IBasicDataSourceInfo"/>
+    
+    <adapter factory=".template.DataPointAliasInfo"
+             for="Products.ZenModel.RRDDataPointAlias.RRDDataPointAlias"
+             provides="..interfaces.IDataPointAlias"/>
+    
     <adapter provides="..interfaces.IInfo"
              for="..interfaces.IProcessEntity"
              factory=".process.ProcessInfo"

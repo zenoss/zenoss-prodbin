@@ -17,14 +17,15 @@
 
 var router, dataSourcesId, graphsId, resetCombo, addThreshold, 
     addMetricToGraph, showAddToGraphDialog, override, overrideHtml1,
-    overrideHtml2, showOverrideDialog;
+    overrideHtml2, showOverrideDialog, editDataSourcesId;
 
 Ext.ns('Zenoss');
 
 router = Zenoss.remote.TemplateRouter;
 dataSourcesId = 'dataSourceTreeGrid';
 graphsId = 'graphGrid';
-
+editDataSourcesId = "editDataSource";
+     
 resetCombo = function(combo, uid) {
     combo.clearValue();
     combo.getStore().setBaseParam('uid', uid);
@@ -182,7 +183,7 @@ showAddToGraphDialog = function() {
         resetCombo(combo, templateUid);
         Ext.getCmp('submit').disable();
     } else {
-        Ext.Msg.alert('Error', 'You must select a datapoint.');
+        Ext.Msg.alert('Error', 'You must select a metric.');
     }
 };
      
@@ -303,7 +304,9 @@ showOverrideDialog = function() {
  * Edit DataSource/DataPoint functionality
  *
  */
+     
 
+     
 /**
  * Closes the edit dialog and updates the store of the datasources. 
  * This is called after the router request to save the edit dialog
@@ -320,6 +323,51 @@ function closeEditDialog(response) {
         dialog.hide();
     }
 }
+
+/**
+ * Event handler for when a user wants to test a datasource
+ * against a specific device.
+ **/
+function testDataSource() {
+    var cmp = Ext.getCmp(editDataSourcesId),
+        values = cmp.editForm.form.getValues(),
+        win, testDevice, data;
+    
+    testDevice = values.testDevice;
+    // turn values into a GET string
+    data = Ext.urlEncode(values);
+    
+    win = new Zenoss.CommandWindow({
+        uids: testDevice,
+        panel: 'panel',
+        command: _t('Test Data Source'),
+        autoLoad: {
+            url: values.uid + '/test_datasource?' + data
+        }
+    });
+        
+    win.show();
+}
+
+/**
+ * Used when we save the data grid, it needs to 
+ * explicitly get the "Alias" value and turn it into a
+ * list before going back to the server
+ **/
+function submitDataPointForm (values, callback) {
+    // will always have only one alias form
+    var aliases = Ext.getCmp(editDataSourcesId).findByType('alias'),
+        alias;
+
+    // assert that we have one exactly one alias form
+    if (aliases.length < 1) {
+        throw "The DataPoint(metric) form does not have an alias field, it should have only one";
+    }
+    
+    alias = aliases[0];
+    values.aliases = alias.getValue();
+    router.setInfo(values, callback);
+}
      
 /**
  * Event handler for editing a specific datasource or
@@ -331,17 +379,20 @@ function editDataSourceOrPoint() {
         attributes,
         isDataPoint = false,
         params;
+    
     // make sure they selected something
     if (!selectedNode) {
-        Ext.Msg.alert('Error', 'You must select a datasource or datapoint.');
+        Ext.Msg.alert(_t('Error'), _t('You must select a data source or metric.'));
         return;
     }
-    
     attributes = selectedNode.attributes;
+    
     // find out if we are editing a datasource or a datapoint
     if (attributes.leaf) {
         isDataPoint = true;
     }
+    
+    // parameters for the router call    
     params = {
         uid: attributes.uid  
     };
@@ -353,13 +404,34 @@ function editDataSourceOrPoint() {
         config.record = response.record;
         config.items = response.form;
         config.xtype = "editdialog";
-        config.id = "editDataSources";
+        config.id = editDataSourcesId;
         config.isDataPoint = isDataPoint;
         if (isDataPoint) {
-            config.title = _t('Edit DataPoint');
-            config.directFn = router.setInfo;
+            config.title = _t('Edit Metric');
+            config.directFn = submitDataPointForm;
         }else{
-            config.title = _t('Edit DataSource');
+            // add the test against device panel
+            config.items.push({
+               xtype:'panel',
+               columnWidth: 0.5,
+               baseCls: 'test-against-device',
+               hidden: Zenoss.Security.doesNotHavePermission('Run Commands'),
+               title: _t('Test Against a Device'),
+               items:[{
+                   xtype: 'hidden',
+                   name: 'uid',
+                   value: response.record.id
+               },{
+                   xtype: 'textfield',
+                   fieldLabel: _t('Device Name'),
+                   id: 'testDevice',
+                   name: 'testDevice'
+               },{
+                   xtype: 'button',
+                   text: 'Test',
+                   handler: testDataSource
+               }]});
+            config.title = _t('Edit Data Source');
             config.directFn = router.setInfo;;
         }
         
@@ -375,6 +447,7 @@ function editDataSourceOrPoint() {
         router.getDataSourceDetails(params, displayEditDialog);
     }
 }
+     
 /**
  * @class Zenoss.DataSourceTreeGrid
  * @extends Ext.ux.tree.TreeGrid

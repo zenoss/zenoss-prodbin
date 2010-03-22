@@ -171,6 +171,14 @@
     permission="zenoss.RunCommands"
     />
 
+<browser:page
+    class=".command.TestDataSourceView"
+    name="test_datasource"
+    for="Products.ZenModel.RRDDataSource.SimpleRRDDataSource"
+    permission="zenoss.RunCommands"
+    />
+
+
 <include package=".eventconsole"/>
 <include package=".search"/>
 

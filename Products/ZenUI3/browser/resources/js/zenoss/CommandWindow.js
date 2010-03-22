@@ -14,7 +14,12 @@
 */
 
 (function(){
-
+     
+/**********************************************************************
+ *
+ * Command Panel 
+ *
+ */
 var formTpl = new Ext.Template(
     '<form name="commandform" method="POST" action="{target}/run_command">',
     '<textarea style="visibility:hidden" name="data">',
@@ -40,6 +45,11 @@ Zenoss.CommandPanel = Ext.extend(Zenoss.IFramePanel, {
 
 Ext.reg('commandpanel', Zenoss.CommandPanel);
 
+/**********************************************************************
+ *
+ *  Command Window
+ *
+ */  
 Zenoss.CommandWindow = Ext.extend(Ext.Window, {
     constructor: function(config) {
         this.cpanel = Ext.id();
@@ -66,10 +76,12 @@ Zenoss.CommandWindow = Ext.extend(Ext.Window, {
             items: {
                 border: false,
                 id: this.cpanel,
-                xtype: 'commandpanel',
+                // default to command panel
+                xtype: config.panel || 'commandpanel',
                 uids: config.uids,
                 target: config.target,
                 command: config.command,
+                autoLoad: config.autoLoad,
                 parentWindow: this
             }
         });

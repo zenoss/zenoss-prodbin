@@ -73,3 +73,25 @@ class CommandView(StreamingView):
                        target.id)
             self.write('Type: %s   Value: %s' % tuple(sys.exc_info()[:2]))
 
+            
+class TestDataSourceView(StreamingView):
+    """
+    Accepts a post with data in of the command to be tested against a device
+    """
+
+    def stream(self):
+        """
+        Called by the parent class, this method asks the datasource
+        to test itself.
+        """
+        request = self.request
+        context = self.context
+        request['renderTemplate'] = False
+        return context.testDataSourceAgainstDevice(request.get('testDevice'), request, self.write, self.reportError)
+        
+    def reportError(self, title, body, priority=None, image=None):
+        """
+        If something goes wrong, just display it in the command output (as opposed to a browser message)
+        """
+        error = "<b>%s</b><p>%s</p>" % (title, body)
+        return self.write(error)

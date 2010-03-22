@@ -15,7 +15,9 @@ from Acquisition import aq_parent
 from Products.Zuul.infos import InfoBase, ProxyProperty
 from Products.Zuul.utils import severityId
 from Products.Zuul.interfaces.template import IRRDDataSourceInfo, IDataPointInfo, \
-    IMinMaxThresholdInfo, IThresholdInfo, ISNMPDataSourceInfo, IBasicDataSourceInfo, ICommandDataSourceInfo
+    IMinMaxThresholdInfo, IThresholdInfo, ISNMPDataSourceInfo, IBasicDataSourceInfo, \
+    ICommandDataSourceInfo, IDataPointAlias
+
 
 class TemplateNode(InfoBase):
     
@@ -211,9 +213,34 @@ class DataPointInfo(InfoBase):
     def type(self):
         return self._object.rrdtype
 
-    @property
-    def alias(self):
-        return self._object.getAliasNames()
+    # alias
+    def _setAliases(self, value):
+        """
+        Receives a list of Dictionaries of the form
+        [{ 'id': id, 'formula': formula}] Each dictionary
+        will form a new Alias
+        """
+        # get and remove all existing aliases
+        for alias in self._getAliases():
+            self._object.removeAlias(alias.name)
+
+        # add each alias
+        for alias in value:
+            if alias.has_key('id') and alias.has_key('formula') and alias['id']:
+                self._object.addAlias(alias['id'], alias['formula'])
+        
+    def _getAliases(self):
+        """
+        Returns a generator of all the DataAliases
+        associated with this DataPoint
+        """
+        aliases = []
+        for alias in self._object.aliases():
+            aliases.append(IDataPointAlias(alias))
+            
+        return aliases
+
+    aliases = property(_getAliases, _setAliases)
     
     @property
     def leaf(self):
@@ -222,6 +249,8 @@ class DataPointInfo(InfoBase):
     @property
     def availableRRDTypes(self):
         """
+        Returns a list of all valid RRD Types. This is used as the
+        store for which this particular object's rrdtype is selected
         """
         return self._object.rrdtypes
 
@@ -230,6 +259,24 @@ class DataPointInfo(InfoBase):
     isrow = ProxyProperty('isrow')
     rrdmin = ProxyProperty('rrdmin')
     rrdmax = ProxyProperty('rrdmax')
+
+    
+class DataPointAliasInfo(InfoBase):
+    implements(IDataPointAlias)
+    """
+    """
+    @property
+    def id(self):
+        return '/'.join( self._object.getPrimaryPath() )
+
+    @property
+    def name(self):
+        return self._object.getId()
+
+    @property
+    def formula(self):
+        return self._object.formula
+
     
 class ThresholdInfo(InfoBase):
     implements(IThresholdInfo)
