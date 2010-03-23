@@ -26,6 +26,11 @@
         namespace="Zenoss.remote"
         />
 
+    <adapter factory=".routers.DefaultQuickSearchResultSnippet"
+        provides=".interfaces.IQuickSearchResultSnippet"
+        for=".interfaces.ISearchResult"
+        />
+
     <adapter factory=".facades.SearchFacade"
         provides=".interfaces.ISearchFacade"
         for="*"
@@ -35,5 +40,6 @@
     <utility factory=".facades.DefaultQueryParser"
         provides=".interfaces.ISearchQueryParser"
         />
+
         
 </configure>

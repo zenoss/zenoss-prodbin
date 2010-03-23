@@ -11,9 +11,38 @@
 #
 ######################################################################
 
+from zope.interface import implements
+from zope.component import adapts
 from Products.ZenUtils.Ext import DirectRouter
 from Products import Zuul
+from Products.Zuul.search import ISearchResult
+from Products.Zuul.search import IQuickSearchResultSnippet
 
+class DefaultQuickSearchResultSnippet(object):
+    implements(IQuickSearchResultSnippet)
+    adapts(ISearchResult)
+
+    def __init__(self, result):
+        self._result = result
+
+    @property
+    def category(self):
+        return self._result.category
+
+    @property
+    def content(self):
+        template = '<table><td class="icon"><img src="%s"/>' + \
+                   '</td><td class="excerpt">%s</td></table>'
+        return template % ( self._result.icon, self._result.excerpt)
+
+    @property
+    def url(self):
+        return self._result.url
+
+    @property
+    def popout(self):
+        return False
+    
 
 class SearchRouter(DirectRouter):
 
@@ -27,8 +56,12 @@ class SearchRouter(DirectRouter):
     def getLiveResults(self, query):
         facade = self._getFacade()
         results = facade.getQuickSearchResults(query)
-        self._addAllResultsLink( results )
-        return {'results': sorted(Zuul.marshal(results),
+        snippets = []
+        for result in results:
+            snippet = IQuickSearchResultSnippet( result )
+            snippets.append( snippet )
+        #self._addAllResultsLink( results )
+        return {'results': sorted(Zuul.marshal(snippets),
             lambda x, y: cmp(x['category'], y['category']))}
 
     def noProvidersPresent(self):

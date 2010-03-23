@@ -53,7 +53,7 @@ class ISearchProvider(Interface):
         """
 
 
-class ISearchResult(IMarshallable):
+class ISearchResult(Interface):
     """
     Implement this interface to allow objects to appear in search results.
     """
@@ -83,3 +83,14 @@ class ISearchFacade(IFacade):
         Return true if there are no providers
         """
 
+
+class IQuickSearchResultSnippet(IMarshallable):
+    """
+    Represents the snippet of html that will be placed in the right side of
+    the quick search drop down for a search result.
+    """
+    category = Attribute("Search category of the represented object")
+    content = Attribute("The content of the search result drop down")
+    url = Attribute("Link to the represented object")
+    popout = Attribute("True/false whether to open link in new window")
+    

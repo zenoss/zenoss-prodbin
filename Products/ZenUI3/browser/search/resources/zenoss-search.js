@@ -1,5 +1,9 @@
 Ext.onReady(function(){
 
+if ( Ext.get('searchbox-container') == null ) {
+            return
+            }
+else {
     new Zenoss.SearchField(
         {
             renderTo: 'searchbox-container',
@@ -7,7 +11,7 @@ Ext.onReady(function(){
             id: 'searchbox-query',
             fieldClass: 'searchbox-query',
             name: 'query',
-            width: 120
+            width: 150
         }
     );
 
@@ -16,7 +20,7 @@ Ext.onReady(function(){
         directFn: Zenoss.remote.SearchRouter.getLiveResults,
         root: 'results',
         idProperty: 'url',
-        fields: [ 'url', 'category', 'excerpt', 'icon' ]
+        fields: [ 'url', 'content', 'popout', 'category' ]
     });
 
     // Custom rendering Template
@@ -24,10 +28,8 @@ Ext.onReady(function(){
         '<tpl for=".">',
         '<table class="search-result"><tr class="x-combo-list-item">',
         '<th><tpl if="values.category && (xindex == 1 || parent[xindex - 2].category != values.category)">{category}</tpl></th>',
-        '<td class="icon"><img src="{icon}"/></td>',
-        '<td class="excerpt">{excerpt}</td>',
-        '</tpl>'
-    );
+        '<td colspan="2">{content}</td>',
+        '</tpl>' );
 
 Zenoss.env.search = new Ext.form.ComboBox({
         store: ds,
@@ -45,10 +47,18 @@ Zenoss.env.search = new Ext.form.ComboBox({
         listeners: {
             select: function(box,record){
                 if (record.get('url') != '') {
-                    window.location =
-                        String.format('{0}', record.data.url);
+                    if (record.get('popout')) {
+                        window.open( String.format('{0}',record.data.url ),
+                                     record.data.url,
+                                     'status=1,width=600,height=500' );
+                    }
+                    else {
+                        window.location =
+                            String.format('{0}', record.data.url);
+                    }
                 }
             }
         }
     });
+  }
 });
