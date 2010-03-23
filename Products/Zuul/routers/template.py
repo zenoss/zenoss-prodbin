@@ -164,3 +164,9 @@ class TemplateRouter(DirectRouter):
         facade = self._getFacade()
         facade.copyTemplate(uid, targetUid)
         return {'success': True}
+
+    @require('Manage DMD')
+    def addGraphDefinition(self, templateUid, graphDefinitionId):
+        facade = self._getFacade()
+        facade.addGraphDefinition(templateUid, graphDefinitionId)
+        return {'success': True}

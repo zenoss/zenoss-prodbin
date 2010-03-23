@@ -223,3 +223,8 @@ class ITemplateFacade(IFacade):
         parameter.
         """
         
+    def addGraphDefinition(templateUid, graphDefinitionId):
+        """
+        Add a graph definition to the monitoring template uniquely identified
+        by the templateUid parameter.
+        """

@@ -265,6 +265,10 @@ class TemplateFacade(ZuulFacade):
             copy = template._getCopy(container)
             container._setObject(copy.id, copy)
 
+    def addGraphDefinition(self, templateUid, graphDefinitionId):
+        template = self._getTemplate(templateUid)
+        template.manage_addGraphDefinition(graphDefinitionId)
+
     def _getCatalog(self, uid):
         obj = self._getObject(uid)
         return ICatalogTool(obj)
