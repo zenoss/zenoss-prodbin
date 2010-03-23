@@ -134,6 +134,8 @@ var hwManufacturers = {
 
 var hwProduct = {
     xtype: 'combo',
+    minListWidth: 250,
+    resizable: true,
     name: 'hwProductName',
     fieldLabel: _t('HW Product'),
     id: 'hwproductcombo',
@@ -176,6 +178,8 @@ var osManufacturers = {
 
 var osProduct = {
     xtype: 'combo',
+    minListWidth: 250,
+    resizable: true,
     name: 'osProductName',
     id: 'osproductcombo',
     fieldLabel: _t('OS Product'),
@@ -197,6 +201,8 @@ var osProduct = {
 
 var deviceClassCombo = {
     xtype: 'combo',
+    minListWidth: 250,
+    resizable: true,
     width: 160,    
     name: 'deviceClass',
     fieldLabel: _t('Device Class'),
