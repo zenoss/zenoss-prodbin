@@ -18,6 +18,7 @@ import os.path
 import code
 import atexit
 import logging
+from subprocess import Popen, PIPE
 from optparse import OptionParser
 try:
     import readline
@@ -99,6 +100,8 @@ def _customStuff():
     find  = dmd.Devices.findDevice
     devices = dmd.Devices
     me = find(socket.getfqdn())
+    shell_stdout = []
+    shell_stderr = []
 
     def reindex():
         sync()
@@ -189,6 +192,73 @@ def _customStuff():
         for handler in log.handlers:
             if isinstance(handler, logging.StreamHandler):
                 handler.setLevel(level)
+
+    def sh(cmd, interactive=True):
+        """
+        Execute a shell command.  If interactive is False, then
+        direct the contents of stdout into shell_stdout and the
+        output of stderr into shell_stderr.
+
+        @parameter cmd: shell command to execute
+        @type cmd: string
+        @parameter interactive: show outut to the screen or not
+        @type interactive: boolean
+        """
+        if interactive:
+            proc = Popen(cmd, shell=True)
+        else:
+            proc = Popen(cmd, stdout=PIPE, stderr=PIPE, shell=True)
+        output, errors = proc.communicate()
+        proc.wait()
+        if not interactive:
+            output = output.split('\n')[:-1]
+            errors = errors.split('\n')[:-1]
+            _CUSTOMSTUFF['shell_stdout'] = output
+            _CUSTOMSTUFF['shell_stderr'] = errors
+        return output, errors
+
+    def edit(file=None, start=None, end=None, lines=30):
+        """
+        Use the value of the EDITOR environment variable to
+        edit a file.  Defaults to the original Unix IDE -- vi.
+
+        @parameter file: name of file to edit -- defaults to a temp file
+        @type file: string
+        @parameter start: Line number to start printing
+        @type start: integer
+        @parameter end: Line number to finish printing
+        @type end: integer
+        @parameter lines: number of lines to show if no end
+        @type lines: integer
+        """
+        editor = os.environ.get('EDITOR', 'vi')
+        isNewFile = True
+        isTmpName = False
+        if file == None:
+            isTmpName = True
+            file = os.tempnam()
+            fp = open(file, 'w')
+        elif os.path.exists(file):
+            isNewFile = False
+        else:
+            fp = open(file, 'w')
+
+        if isNewFile and readline is not None:
+            maxHistLength = readline.get_current_history_length()
+            if start is None:
+                start = maxHistLength
+            if end is None:
+                end = maxHistLength - lines
+            if start < end:
+                end, start = start, end
+            for i in range(end, start):
+                fp.write(readline.get_history_item(i) + '\n')
+            fp.close()
+
+        sh('%s %s' % (editor, file))
+        execfile(file, globals(), _CUSTOMSTUFF)
+        if isTmpName:
+            os.unlink(file)
 
     _CUSTOMSTUFF = locals()
     return _CUSTOMSTUFF
@@ -312,6 +382,15 @@ class HistoryConsole(code.InteractiveConsole):
         if self.completer:
             self.completer.current_prompt = prompt
         return code.InteractiveConsole.raw_input(self, prompt)
+
+    def runsource(self, source, filename):
+        if source and source[0] == '!':
+            self.locals['sh'](source[1:])
+            return False
+        elif source and source[0] == '|':
+            self.locals['sh'](source[1:], interactive=False)
+            return False
+        return code.InteractiveConsole.runsource(self, source, filename)
 
 
 if __name__=="__main__":
