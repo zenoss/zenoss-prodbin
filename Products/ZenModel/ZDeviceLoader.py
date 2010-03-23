@@ -180,7 +180,7 @@ class DeviceCreationJob(ShellCommandJob):
                  osManufacturer="", osProductName="", locationPath="",
                  groupPaths=[], systemPaths=[], performanceMonitor="localhost",
                  discoverProto="snmp", priority=3, manageIp="",
-                 zProperties=None):
+                 zProperties=None, title=None):
 
         # Store device name for later finding
         self.deviceName = deviceName
@@ -203,7 +203,8 @@ class DeviceCreationJob(ShellCommandJob):
                           locationPath = locationPath,
                           groupPaths = groupPaths,
                           systemPaths = systemPaths,
-                          priority = priority)
+                          priority = priority,
+                          title= title)
 
         # Set up the job, passing in a blank command (gets set later)
         super(DeviceCreationJob, self).__init__(jobid, '')

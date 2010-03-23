@@ -209,8 +209,11 @@ class DeviceFacade(TreeFacade):
         elif isinstance(target, DeviceClass):
             self._dmd.Devices.moveDevices(targetname,[dev.id for dev in devs])
 
-    def addDevice(self, deviceName, deviceClass, snmpCommunity="", snmpPort=161,
-                  useAutoDiscover=False, collector='localhost'):
+    def addDevice(self, deviceName, deviceClass, title, snmpCommunity="", snmpPort=161,
+                  useAutoDiscover=False, collector='localhost', rackSlot=0, 
+                  productionState=1000, comments="", hwManufacturer="", 
+                  hwProductName="", osManufacturer="", osProductName="", 
+                  priority = 3, tag="", serialNumber=""):
         zProps = dict(zSnmpCommunity=snmpCommunity,
                            zSnmpPort=snmpPort)
         discoverProtocol = useAutoDiscover and "Auto" or "none"
@@ -219,5 +222,16 @@ class DeviceFacade(TreeFacade):
                                                devicePath=deviceClass,
                                                performanceMonitor=collector,
                                                discoverProto='Auto',
-                                               zProperties = zProps)
+                                               zProperties=zProps,
+                                               rackSlot=rackSlot, 
+                                               productionState=productionState, 
+                                               comments=comments, 
+                                               hwManufacturer=hwManufacturer,
+                                               hwProductName=hwProductName, 
+                                               osManufacturer=osManufacturer,
+                                               osProductName=osProductName, 
+                                               priority=priority, 
+                                               tag=tag,
+                                               serialNumber=serialNumber,
+                                               title=title)
         return jobStatus

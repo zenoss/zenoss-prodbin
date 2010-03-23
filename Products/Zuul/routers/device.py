@@ -261,14 +261,45 @@ class DeviceRouter(TreeRouter):
         deviceClasses = self.context.dmd.Devices.getOrganizerNames(addblank=True)
         result = [{'name': name} for name in deviceClasses];
         return DirectResponse(deviceClasses=result, totalCount=len(result))
+    
+    def getManufacturerNames(self, **data):
+        names = self.context.dmd.Manufacturers.getManufacturerNames()
+        result = [{'name': name} for name in names];
+        return DirectResponse(manufacturers=result, totalCount=len(result))
+    
+    def getHardwareProductNames(self, manufacturer = '', **data):
+        manufacturers = self.context.dmd.Manufacturers
+        names = manufacturers.getProductNames(manufacturer, 'HardwareClass')
+        result = [{'name': name} for name in names];
+        return DirectResponse(productNames=result, totalCount=len(result))
 
-    def addDevice(self, deviceName, deviceClass, snmpCommunity="", snmpPort=161,
-                  useAutoDiscover= True, collector='localhost'):
+    def getOSProductNames(self, manufacturer = '', **data):
+        manufacturers = self.context.dmd.Manufacturers
+        names = manufacturers.getProductNames(manufacturer, 'OS')
+        result = [{'name': name} for name in names];
+        return DirectResponse(productNames=result, totalCount=len(result))
+
+    def addDevice(self, deviceName, deviceClass, title, snmpCommunity="", snmpPort=161,
+                  useAutoDiscover= True, collector='localhost',  rackSlot=0, 
+                  productionState=1000, comments="", hwManufacturer="", 
+                  hwProductName="", osManufacturer="", osProductName="", 
+                  priority = 3, tag="", serialNumber=""):
         jobStatus = self._getFacade().addDevice(deviceName, 
                                                deviceClass, 
+                                               title,
                                                snmpCommunity, 
                                                snmpPort,
                                                useAutoDiscover,
-                                               collector)
+                                               collector, 
+                                               rackSlot, 
+                                               productionState, 
+                                               comments, 
+                                               hwManufacturer,
+                                               hwProductName, 
+                                               osManufacturer,
+                                               osProductName, 
+                                               priority, 
+                                               tag,
+                                               serialNumber)
         return DirectResponse(jobId=jobStatus.id)
         

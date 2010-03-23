@@ -181,56 +181,20 @@ Zenoss.FormDialog = Ext.extend(Ext.Window, {
     }
 });
 
-Zenoss.DirectSubmitFormDialog = Ext.extend(Ext.Window, {
+
+Zenoss.dialog.CloseDialog = new Ext.extend(Ext.Window, {
     constructor: function(config) {
-        var buttons;
-        if (config.buttons){
-            buttons = config.buttons;
-            delete config['buttons'];
-        }
-        var form = new Ext.form.FormPanel({
-            listeners: {
-                beforeDestroy: function(component){
-                    if (Ext.isDefined(component.refOwner)) {
-                        component.refOwner.destroy();
-                    }
-                }
-            },
-            api: config.api,
-            paramOrder: config.paramOrder,
-            ref: 'childPanel',
-            buttonAlign: 'left',
-            buttons: buttons,
-            border: false,
-            id: config.formId,
-            minWidth: 300,
-            labelAlign: 'top',
-            autoScroll:true,
-            labelSeparator: ' ',
-            bodyStyle: {
-                'padding-left': '5%'
-            },
-            defaults: {
-                xtype: 'textfield',
-                anchor: '85%',
-                border: false
-            },
-            items: config.items,
-            html: config.html,
-            monitorValid: config.monitorValid || false
-        });
-        config.items = form;
         Ext.applyIf(config, {
-            autoHeight: true,
             width: 310,
             plain: true,
             buttonAlign: 'left',
             padding: 10,
             modal: true
         });
-        Zenoss.DirectSubmitFormDialog.superclass.constructor.call(this, config);
+        Zenoss.dialog.CloseDialog.superclass.constructor.call(this, config);
     }
 });
+
 
 /**
  * @class Zenoss.HideFormDialog

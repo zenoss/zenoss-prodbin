@@ -53,6 +53,187 @@ REMOTE.getCollectors({}, function(d){
     Zenoss.env.COLLECTORS = collectors;
 });
 
+Zenoss.devices.PriorityCombo = Ext.extend(Ext.form.ComboBox, {
+    constructor: function(config) {
+        config = Ext.apply(config || {}, {
+            fieldLabel: _t('Priority'),
+            mode: 'local',
+            store: new Ext.data.ArrayStore({
+                data: Zenoss.env.PRIORITIES,
+                fields: ['name', 'value']
+            }),
+            valueField: 'value',
+            displayField: 'name',
+            forceSelection: true,
+            editable: false,
+            autoSelect: true,
+            triggerAction: 'all'
+        });
+        Zenoss.devices.PriorityCombo.superclass.constructor.call(this, config)
+    }
+});
+
+Ext.reg('PriorityCombo', Zenoss.devices.PriorityCombo);
+
+
+Zenoss.devices.ProductionStateCombo = Ext.extend(Ext.form.ComboBox, {
+    constructor: function(config) {
+        config = Ext.apply(config || {}, {
+            fieldLabel: _t('Production State'),
+            mode: 'local',
+            store: new Ext.data.ArrayStore({
+                data: Zenoss.env.PRODUCTION_STATES,
+                fields: ['name', 'value']
+            }),
+            valueField: 'value',
+            displayField: 'name',
+            forceSelection: true,
+            editable: false,
+            autoSelect: true,
+            triggerAction: 'all'
+        })
+        Zenoss.devices.ProductionStateCombo.superclass.constructor.call(this, config);
+        
+    }
+});
+
+Ext.reg('ProductionStateCombo', Zenoss.devices.ProductionStateCombo);
+
+resetCombo = function(combo, manufacturer) {
+    combo.clearValue();
+    combo.getStore().setBaseParam('manufacturer', manufacturer);
+    delete combo.lastQuery;
+    //combo.doQuery(combo.allQuery, true);
+};
+
+var manufacturerDataStore = new Ext.data.DirectStore({
+        id: 'manufacturersStore',
+        root: 'manufacturers',
+        totalProperty: 'totalCount',
+        fields: ['name'],
+        directFn: REMOTE.getManufacturerNames
+    });
+
+var hwManufacturers = {
+    xtype: 'combo',
+    name: 'hwManufacturer',
+    fieldLabel: _t('HW Manufacturer'),
+    store: manufacturerDataStore,
+    triggerAction: 'all',
+    selectOnFocus: true,
+    valueField: 'name',
+    displayField: 'name',
+    forceSelection: true,
+    editable: false,
+    width: 160,
+    listeners: {'select': function(combo, record, index){
+        productCombo = Ext.getCmp('hwproductcombo');
+        resetCombo(productCombo, record.data.name);
+    }}
+};
+
+var hwProduct = {
+    xtype: 'combo',
+    name: 'hwProductName',
+    fieldLabel: _t('HW Product'),
+    id: 'hwproductcombo',
+    store: new Ext.data.DirectStore({
+        id: 'hwProductsStore',
+        root: 'productNames',
+        totalProperty: 'totalCount',
+        fields: ['name'],
+        directFn: REMOTE.getHardwareProductNames,
+        listener:{'beforeload': function(store, options) {
+            console.log('load options', options)
+        }}
+    }),
+    triggerAction: 'all',
+    selectOnFocus: true,
+    valueField: 'name',
+    displayField: 'name',
+    forceSelection: true,
+    editable: false,
+    width: 160
+};
+
+var osManufacturers = {
+    xtype: 'combo',
+    name: 'osManufacturer',
+    fieldLabel: _t('OS Manufacturer'),
+    store: manufacturerDataStore,
+    triggerAction: 'all',
+    selectOnFocus: true,
+    valueField: 'name',
+    displayField: 'name',
+    forceSelection: true,
+    editable: false,
+    width: 160,
+    listeners: {'select': function(combo, record, index){
+        productCombo = Ext.getCmp('osproductcombo');
+        resetCombo(productCombo, record.data.name);
+    }}
+};
+
+var osProduct = {
+    xtype: 'combo',
+    name: 'osProductName',
+    id: 'osproductcombo',
+    fieldLabel: _t('OS Product'),
+    store: new Ext.data.DirectStore({
+        id: 'osProductsStore',
+        root: 'productNames',
+        totalProperty: 'totalCount',
+        fields: ['name'],
+        directFn: REMOTE.getOSProductNames
+    }),
+    triggerAction: 'all',
+    selectOnFocus: true,
+    valueField: 'name',
+    displayField: 'name',
+    forceSelection: true,
+    editable: false,
+    width: 160
+};
+
+var deviceClassCombo = {
+    xtype: 'combo',
+    width: 160,    
+    name: 'deviceClass',
+    fieldLabel: _t('Device Class'),
+    id: 'add-device_class',
+    store: new Ext.data.DirectStore({
+        id: 'deviceClassStore',
+        root: 'deviceClasses',
+                totalProperty: 'totalCount',
+        fields: ['name'],
+        directFn: REMOTE.getDeviceClasses
+    }),
+    triggerAction: 'all',
+    selectOnFocus: true,
+    valueField: 'name',
+    displayField: 'name',
+    forceSelection: true,
+    editable: false,
+    allowBlank: false,
+    listeners: {
+        'afterrender': function(component) {
+            var selnode = treesm.getSelectedNode();
+            var type = Zenoss.types.type(selnode.attributes.uid);
+                    var isclass = type === 'DeviceClass';
+            if(selnode.attributes.uid === "/zport/dmd/Devices" ){
+                //root node doesn't have a path attr
+                component.setValue('/');
+            }
+            else if (isclass) {
+                var path = selnode.attributes.path;
+                path = path.replace(/^Devices/,'');
+                component.setValue(path);
+            }
+            
+        }
+    }
+};
+
 function setDeviceButtonsDisabled(bool){
     Zenoss.devices.deleteDevices.setDisabled(bool);
     Ext.getCmp('commands-menu').setDisabled(bool);
@@ -224,18 +405,9 @@ Ext.apply(Zenoss.devices, {
                 width: 310,
                 height: 150,
                 items: [{
-                    xtype: 'combo',
+                    xtype: 'ProductionStateCombo',
                     fieldLabel: _t('Select a production state'),
                     id: 'prodstate',
-                    mode: 'local',
-                    store: new Ext.data.ArrayStore({
-                        data: Zenoss.env.PRODUCTION_STATES,
-                        fields: ['name', 'value']
-                    }),
-                    valueField: 'value',
-                    displayField: 'name',
-                    forceSelection: true,
-                    editable: false,
                     listeners: {
                         'select': function(){
                             Ext.getCmp('prodstateok').enable();
@@ -270,18 +442,9 @@ Ext.apply(Zenoss.devices, {
                 width: 310,
                 height: 150,
                 items: [{
-                    xtype: 'combo',
+                    xtype: 'PriorityCombo',
                     id: 'priority',
                     fieldLabel: _t('Select a priority'),
-                    mode: 'local',
-                    store: new Ext.data.ArrayStore({
-                        data: Zenoss.env.PRIORITIES,
-                        fields: ['name', 'value']
-                    }),
-                    valueField: 'value',
-                    displayField: 'name',
-                    forceSelection: true,
-                    editable: false,
                     listeners: {
                         'select': function(){
                             Ext.getCmp('priorityok').enable();
@@ -423,91 +586,191 @@ Ext.apply(Zenoss.devices, {
         text: _t('Add a Single Device') + '...',
         id: 'addsingledevice-item',
         permissions: 'Manage DMD',
-        handler: function(btn, e) {
-            var selnode = treesm.getSelectedNode(),
-                isclass = Zenoss.types.type(selnode.attributes.uid)=='DeviceClass',
-                grpText = selnode.attributes.text.text;
-                var win = new Zenoss.DirectSubmitFormDialog({
-                    formPanelButtons: true,
-                    formId: 'myform',
+        handler: function() {
+            var selnode = treesm.getSelectedNode();
+            var isclass = Zenoss.types.type(selnode.attributes.uid) == 'DeviceClass';
+            var grpText = selnode.attributes.text.text;
+            var win = new Zenoss.dialog.CloseDialog({
+                width: 800,
+                title: _t('Add a Single Device'),
+                items: [{
+                    xtype: 'form',
+                    buttonAlign: 'left',
                     monitorValid: true,
-                    title: _t('Add a Single Device'),
-                    modal: true,
+                    labelAlign: 'top',
+                    footerStyle: 'padding-left: 0',
+                    border: false,
+                    ref: 'childPanel',
+                    listeners: {
+                        beforeDestroy: function(component) {
+                            if (Ext.isDefined(component.refOwner)) {
+                                component.refOwner.destroy();
+                            }
+                        }
+                    },
                     items: [{
-                        xtype: 'textfield',
-                        name: 'deviceName',
-                        fieldLabel: _t('Name or IP'),
-                        id: "add-device-name",
-                        allowBlank: false
+                        xtype: 'panel',
+                        layout: 'column',
+                        border: false,
+                        items: [{
+                            columnWidth: 0.5,
+                            border: false,
+                            layout: 'form',
+                            items: [{
+                                xtype: 'textfield',
+                                name: 'deviceName',
+                                fieldLabel: _t('Name or IP'),
+                                id: "add-device-name",
+                                allowBlank: false
+                            }, deviceClassCombo, {
+                                xtype: 'combo',
+                                width: 160,
+                                name: 'collector',
+                                fieldLabel: _t('Collector'),
+                                id: 'add-device-collector',
+                                mode: 'local',
+                                store: new Ext.data.ArrayStore({
+                                    data: Zenoss.env.COLLECTORS,
+                                    fields: ['name']
+                                }),
+                                valueField: 'name',
+                                displayField: 'name',
+                                forceSelection: true,
+                                editable: false,
+                                allowBlank: false,
+                                triggerAction: 'all',
+                                selectOnFocus: true,
+                                listeners: {
+                                    'afterrender': function(component) {
+                                        var index = component.store.find('name', 'localhost');
+                                        if (index >= 0) {
+                                            component.setValue('localhost');
+                                        }
+                                    }
+                                }
+                            }, {
+                                xtype: 'checkbox',
+                                name: 'useAutoDiscover',
+                                fieldLabel: _t('Auto Discover'),
+                                id: 'add-device-protocol',
+                                checked: true
+                            }]
+                        }, {
+                            columnWidth: 0.5,
+                            layout: 'form',
+                            border: false,
+                            items: [{
+                                xtype: 'textfield',
+                                name: 'title',
+                                fieldLabel: _t('Title')
+                            }, {
+                                xtype: 'ProductionStateCombo',
+                                name: 'productionState',
+                                minListWidth: 160,
+                                id: 'production-combo',
+                                width: 160,
+                                allowBlank: false,
+                                listeners: {
+                                    'afterrender': function(component) {
+                                        var index = component.store.find('value', '1000');
+                                        if (index >= 0) {
+                                            component.setValue('1000');
+                                        }
+                                    }
+                                }
+                            }, {
+                                xtype: 'PriorityCombo',
+                                name: 'priority',
+                                minListWidth: 160,
+                                width: 160,
+                                allowBlank: false,
+                                listeners: {
+                                    'afterrender': function(component) {
+                                        var index = component.store.find('value', '3');
+                                        if (index >= 0) {
+                                            component.setValue('3');
+                                        }
+                                    }
+                                }
+                            }]
+                        }]
                     }, {
-                        xtype: 'combo',
-                        name: 'deviceClass',
-                        fieldLabel: _t('Device Class'),
-                        id: 'add-device_class',
-                        store: new Ext.data.DirectStore({
-                            id: 'deviceClassStore',
-                            root: 'deviceClasses',
-                            totalProperty: 'totalCount',
-                            fields: ['name'],
-                            directFn: REMOTE.getDeviceClasses
-                        }),
-                        triggerAction: 'all',
-                        selectOnFocus: true,
-                        valueField: 'name',
-                        displayField: 'name',
-                        forceSelection: true,
-                        editable: false,
-                        allowBlank: false,
+                        xtype: 'panel',
+                        border: false,
+                        html: '<a href="#">More...</a>',
+                        toggleAttrs: function() {
+                            var attrs = Ext.getCmp('add_attrs');
+                            if (attrs.collapsed) {
+                                attrs.expand();
+                                this.body.update('<a href="#">Less</a>');
+                            }
+                            else {
+                                attrs.collapse();
+                                this.body.update('<a href="#">More...</a>');
+                            }
+                        },
                         listeners: {
-                            'render': function(component) {
-                                var selnode = treesm.getSelectedNode();
-                                var type = Zenoss.types.type(selnode.attributes.uid);
-                                var isclass = type === 'DeviceClass';
-                                if(selnode.attributes.uid === "/zport/dmd/Devices" ){
-                                    //root node doesn't have a path attr
-                                    component.setValue('/');
-                                }
-                                else if (isclass) {
-                                    var path = selnode.attributes.path;
-                                    path = path.replace(/^Devices/,'');
-                                    component.setValue(path);
-                                }
+                            'afterrender': function(component) {
+                                var el = component.getEl();
+                                el.on('click', this.toggleAttrs, component);
                             }
                         }
                     }, {
-                        xtype: 'combo',
-                        name: 'collector',
-                        fieldLabel: _t('Collector'),
-                        id: 'add-device-collector',
-                        mode: 'local',
-                        store: new Ext.data.ArrayStore({
-                            data: Zenoss.env.COLLECTORS,
-                            fields: ['name']
-                        }),
-                        valueField: 'name',
-                        displayField: 'name',
-                        forceSelection: true,
-                        editable: false,
-                        allowBlank: false
-                     },{
-                        xtype: 'checkbox',
-                        name: 'useAutoDiscover',
-                        fieldLabel: _t('Auto Discover'),
-                        id: 'add-device-protocol',
-                        checked: true
-                     },{
-                         xtype: 'textfield',
-                         name: 'snmpCommunity',
-                         fieldLabel:'Snmp Community'
-                     },{
-                         xtype:'numberfield',
-                         name: 'snmpPort',
-                         fieldLabel: 'Snmp Port',
-                         allowNegative: false,
-                         allowDecimals: false,
-                         maxValue: 65535
-                     }
-                    ],
+                        id: 'add_attrs',
+                        collapsible: true,
+                        collapsed: true,
+                        hideCollapseTool: true,
+                        hideLabel: true,
+                        xtype: 'panel',
+                        border: false,
+                        layout: 'column',
+                        items: [{
+                            columnWidth: 0.33,
+                            layout: 'form',
+                            border: false,
+                            items: [{
+                                xtype: 'textfield',
+                                name: 'snmpCommunity',
+                                fieldLabel: _t('Snmp Community')
+                            }, {
+                                xtype: 'numberfield',
+                                name: 'snmpPort',
+                                fieldLabel: _t('Snmp Port'),
+                                value: 161,
+                                allowBlank: false,
+                                allowNegative: false,
+                                allowDecimals: false,
+                                maxValue: 65535
+                            }, {
+                                xtype: 'textfield',
+                                name: 'tag',
+                                fieldLabel: _t('Tag Number')
+                            }, {
+                                xtype: 'textfield',
+                                name: 'rackSlot',
+                                fieldLabel: _t('Rack Slot')
+                            }, {
+                                xtype: 'textfield',
+                                name: 'serialNumber',
+                                fieldLabel: _t('Serial Number')
+                            }]
+                        }, {
+                            columnWidth: 0.33,
+                            layout: 'form',
+                            border: false,
+                            items: [hwManufacturers, hwProduct, osManufacturers, osProduct]
+                        }, {
+                            columnWidth: 0.34,
+                            layout: 'form',
+                            border: false,
+                            items: [{
+                                xtype: 'textarea',
+                                name: 'comments',
+                                width: '200',
+                                fieldLabel: _t('Comments')
+                            }]
+                        }]
+                    }],
                     buttons: [{
                         xtype: 'DialogButton',
                         id: 'addsingledevice-submit',
@@ -515,38 +778,35 @@ Ext.apply(Zenoss.devices, {
                         formBind: true,
                         handler: function(b) {
                             var form = b.ownerCt.ownerCt.getForm();
-                            var opts = form.getValues();
-                            Zenoss.remote.DeviceRouter.addDevice(opts, 
-                            function(response) {
+                            var opts = form.getFieldValues(true);
+                            Zenoss.remote.DeviceRouter.addDevice(opts, function(response) {
                                 var success = response.success;
-                                if (success){
-                                    var dialog = 
-                                    new Zenoss.dialog.SimpleMessageDialog({
+                                if (success) {
+                                    var dialog = new Zenoss.dialog.SimpleMessageDialog({
                                         message: 'Add Device Job submitted',
                                         buttons: [{
-                                            xtype:'DialogButton',
+                                            xtype: 'DialogButton',
                                             text: _t('OK')
-                                        },{
-                                            xtype:'button',
+                                        }, {
+                                            xtype: 'button',
                                             text: _t('View Job Log'),
-                                            handler: function(){
-                                                var url = 
-                                                '/zport/dmd/JobManager/jobs/' +
-                                                response.jobId +'/viewlog';
+                                            handler: function() {
+                                                var url = '/zport/dmd/JobManager/jobs/' +
+                                                response.jobId +
+                                                '/viewlog';
                                                 window.location = url;
                                             }
-                                        }
-                                        ]
+                                        }]
                                     });
                                     dialog.show();
                                 }
                                 var jobId = response.jobId;
                                 Zenoss.message('add device submitted', success);
                             });
-                            
                         }
                     }, Zenoss.dialog.CANCEL]
-                });
+                }]
+            });
             win.show();
         }
     }),
