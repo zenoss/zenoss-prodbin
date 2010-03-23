@@ -80,7 +80,7 @@
   <tooltip>
     <target>adddevice-button</target>
     <title>Add Devices</title>
-    <html>Click to add a device in the selected device class.</html>
+    <html>Select to add a single or multiple devices.</html>
   </tooltip>
 
   <tooltip>
@@ -102,6 +102,7 @@
 
   <tooltip>
     <target>commands-menu</target>
+    <title>Commands</title>
     <anchor>left</anchor>
     <html>Select one or more devices, and then select a command to run in the interface.</html>
   </tooltip>
