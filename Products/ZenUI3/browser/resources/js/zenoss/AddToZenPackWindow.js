@@ -40,6 +40,8 @@ Zenoss.AddToZenPackWindow = Ext.extend(Ext.Window, {
                 border: false,
                 frame: false,
                 labelWidth: 100,
+                labelAlign: 'top',
+                buttonAlign: 'left',
                 items: [{
                     fieldLabel: _t('Zen Pack'),
                     name: 'zpname',
@@ -61,11 +63,6 @@ Zenoss.AddToZenPackWindow = Ext.extend(Ext.Window, {
                     id: 'zpcombobox'
                 }],
                 buttons: [{
-                    text: _t('Cancel'),
-                    handler: function () {
-                        Ext.getCmp('addToZenPackWindow').hide();
-                    }
-                }, {
                     text: _t('Submit'),
                     formBind: true,
                     handler: function () {
@@ -81,6 +78,11 @@ Zenoss.AddToZenPackWindow = Ext.extend(Ext.Window, {
                                 Ext.getCmp('addToZenPackWindow').hide();
                             }
                         );
+                    }
+                },{
+                    text: _t('Cancel'),
+                    handler: function () {
+                        Ext.getCmp('addToZenPackWindow').hide();
                     }
                 }]
             }]

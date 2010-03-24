@@ -1034,144 +1034,6 @@ True
 </object>
 <object id='Edit' module='Products.ZenModel.ZenMenu' class='ZenMenu'>
 <tomanycont id='zenMenuItems'>
-<object id='setGroups' module='Products.ZenModel.ZenMenuItem' class='ZenMenuItem'>
-<property type="text" id="description" mode="w" >
-Set Groups...
-</property>
-<property type="text" id="action" mode="w" >
-dialog_setGroups_global
-</property>
-<property type="boolean" id="isglobal" mode="w" >
-True
-</property>
-<property type="lines" id="permissions" mode="w" >
-('Change Device',)
-</property>
-<property type="lines" id="allowed_classes" mode="w" >
-['DeviceClass', 'DeviceGroup', 'Location', 'System']
-</property>
-<property type="boolean" id="isdialog" mode="w" >
-True
-</property>
-<property type="float" id="ordering" mode="w" >
-40.0
-</property>
-</object>
-<object id='setLocation' module='Products.ZenModel.ZenMenuItem' class='ZenMenuItem'>
-<property type="text" id="description" mode="w" >
-Set Location...
-</property>
-<property type="text" id="action" mode="w" >
-dialog_setLocation_global
-</property>
-<property type="boolean" id="isglobal" mode="w" >
-True
-</property>
-<property type="lines" id="permissions" mode="w" >
-('Change Device',)
-</property>
-<property type="lines" id="allowed_classes" mode="w" >
-['DeviceClass', 'DeviceGroup', 'Location', 'System']
-</property>
-<property type="boolean" id="isdialog" mode="w" >
-True
-</property>
-<property type="float" id="ordering" mode="w" >
-20.0
-</property>
-</object>
-<object id='setPerformanceMonitor' module='Products.ZenModel.ZenMenuItem' class='ZenMenuItem'>
-<property type="text" id="description" mode="w" >
-Set Perf Monitor...
-</property>
-<property type="text" id="action" mode="w" >
-dialog_setPerformanceMonitor_global
-</property>
-<property type="boolean" id="isglobal" mode="w" >
-True
-</property>
-<property type="lines" id="permissions" mode="w" >
-('Change Device',)
-</property>
-<property type="lines" id="allowed_classes" mode="w" >
-['DeviceClass', 'DeviceGroup', 'Location', 'System']
-</property>
-<property type="boolean" id="isdialog" mode="w" >
-True
-</property>
-<property type="float" id="ordering" mode="w" >
-15.0
-</property>
-</object>
-<object id='setPriority' module='Products.ZenModel.ZenMenuItem' class='ZenMenuItem'>
-<property type="text" id="description" mode="w" >
-Set Priority...
-</property>
-<property type="text" id="action" mode="w" >
-dialog_setPriority_global
-</property>
-<property type="boolean" id="isglobal" mode="w" >
-True
-</property>
-<property type="lines" id="permissions" mode="w" >
-('Change Device',)
-</property>
-<property type="lines" id="allowed_classes" mode="w" >
-['DeviceClass', 'DeviceGroup', 'Location', 'System']
-</property>
-<property type="boolean" id="isdialog" mode="w" >
-True
-</property>
-<property type="float" id="ordering" mode="w" >
-70.0
-</property>
-</object>
-<object id='setProductionState' module='Products.ZenModel.ZenMenuItem' class='ZenMenuItem'>
-<property type="text" id="description" mode="w" >
-Set Production State...
-</property>
-<property type="text" id="action" mode="w" >
-dialog_setProductionState_global
-</property>
-<property type="boolean" id="isglobal" mode="w" >
-True
-</property>
-<property type="lines" id="permissions" mode="w" >
-('Change Device Production State',)
-</property>
-<property type="lines" id="allowed_classes" mode="w" >
-['DeviceClass', 'DeviceGroup', 'Location', 'System']
-</property>
-<property type="boolean" id="isdialog" mode="w" >
-True
-</property>
-<property type="float" id="ordering" mode="w" >
-80.0
-</property>
-</object>
-<object id='setSystems' module='Products.ZenModel.ZenMenuItem' class='ZenMenuItem'>
-<property type="text" id="description" mode="w" >
-Set Systems...
-</property>
-<property type="text" id="action" mode="w" >
-dialog_setSystems_global
-</property>
-<property type="boolean" id="isglobal" mode="w" >
-True
-</property>
-<property type="lines" id="permissions" mode="w" >
-('Change Device',)
-</property>
-<property type="lines" id="allowed_classes" mode="w" >
-['DeviceClass', 'DeviceGroup', 'Location', 'System']
-</property>
-<property type="boolean" id="isdialog" mode="w" >
-True
-</property>
-<property type="float" id="ordering" mode="w" >
-30.0
-</property>
-</object>
 </tomanycont>
 </object>
 <object id='EventMapping_list' module='Products.ZenModel.ZenMenu' class='ZenMenu'>
@@ -2264,29 +2126,6 @@ True
 </object>
 <object id='Manage' module='Products.ZenModel.ZenMenu' class='ZenMenu'>
 <tomanycont id='zenMenuItems'>
-<object id='addDevice' module='Products.ZenModel.ZenMenuItem' class='ZenMenuItem'>
-<property type="text" id="description" mode="w" >
-Add Device...
-</property>
-<property type="text" id="action" mode="w" >
-dialog_addDevice
-</property>
-<property type="boolean" id="isglobal" mode="w" >
-True
-</property>
-<property type="lines" id="permissions" mode="w" >
-('Manage DMD',)
-</property>
-<property type="lines" id="allowed_classes" mode="w" >
-['DeviceClass']
-</property>
-<property type="boolean" id="isdialog" mode="w" >
-True
-</property>
-<property type="float" id="ordering" mode="w" >
-90.0
-</property>
-</object>
 <object id='changeClass' module='Products.ZenModel.ZenMenuItem' class='ZenMenuItem'>
 <property type="text" id="description" mode="w" >
 Change Class...
@@ -2356,29 +2195,6 @@ True
 4.0
 </property>
 </object>
-<object id='lockDevices' module='Products.ZenModel.ZenMenuItem' class='ZenMenuItem'>
-<property type="text" id="description" mode="w" >
-Lock Devices...
-</property>
-<property type="text" id="action" mode="w" >
-dialog_lockDevices
-</property>
-<property type="boolean" id="isglobal" mode="w" >
-True
-</property>
-<property type="lines" id="permissions" mode="w" >
-('Manage Device',)
-</property>
-<property type="lines" id="allowed_classes" mode="w" >
-['DeviceClass']
-</property>
-<property type="boolean" id="isdialog" mode="w" >
-True
-</property>
-<property type="float" id="ordering" mode="w" >
-86.0
-</property>
-</object>
 <object id='lockObject' module='Products.ZenModel.ZenMenuItem' class='ZenMenuItem'>
 <property type="text" id="description" mode="w" >
 Lock...
@@ -2425,29 +2241,6 @@ False
 88.0
 </property>
 </object>
-<object id='pushConfig' module='Products.ZenModel.ZenMenuItem' class='ZenMenuItem'>
-<property type="text" id="description" mode="w" >
-Push Changes
-</property>
-<property type="text" id="action" mode="w" >
-pushConfig
-</property>
-<property type="boolean" id="isglobal" mode="w" >
-True
-</property>
-<property type="lines" id="permissions" mode="w" >
-('Manage Device',)
-</property>
-<property type="lines" id="allowed_classes" mode="w" >
-['DeviceClass', 'Device']
-</property>
-<property type="boolean" id="isdialog" mode="w" >
-False
-</property>
-<property type="float" id="ordering" mode="w" >
-10.0
-</property>
-</object>
 <object id='pushConfig_os' module='Products.ZenModel.ZenMenuItem' class='ZenMenuItem'>
 <property type="text" id="description" mode="w" >
 Push Changes
@@ -2492,52 +2285,6 @@ True
 </property>
 <property type="float" id="ordering" mode="w" >
 30.0
-</property>
-</object>
-<object id='resetCommunity' module='Products.ZenModel.ZenMenuItem' class='ZenMenuItem'>
-<property type="text" id="description" mode="w" >
-Reset Community
-</property>
-<property type="text" id="action" mode="w" >
-manage_snmpCommunity
-</property>
-<property type="boolean" id="isglobal" mode="w" >
-True
-</property>
-<property type="lines" id="permissions" mode="w" >
-('Manage Device',)
-</property>
-<property type="lines" id="allowed_classes" mode="w" >
-['Device', 'OperatingSystem', 'DeviceClass']
-</property>
-<property type="boolean" id="isdialog" mode="w" >
-False
-</property>
-<property type="float" id="ordering" mode="w" >
-12.0
-</property>
-</object>
-<object id='resetIp' module='Products.ZenModel.ZenMenuItem' class='ZenMenuItem'>
-<property type="text" id="description" mode="w" >
-Reset IP...
-</property>
-<property type="text" id="action" mode="w" >
-dialog_resetIp
-</property>
-<property type="boolean" id="isglobal" mode="w" >
-True
-</property>
-<property type="lines" id="permissions" mode="w" >
-('Admin Device',)
-</property>
-<property type="lines" id="allowed_classes" mode="w" >
-['Device', 'OperatingSystem', 'DeviceClass']
-</property>
-<property type="boolean" id="isdialog" mode="w" >
-True
-</property>
-<property type="float" id="ordering" mode="w" >
-50.0
 </property>
 </object>
 </tomanycont>
@@ -4371,29 +4118,6 @@ True
 80.0
 </property>
 </object>
-<object id='clearMapCache' module='Products.ZenModel.ZenMenuItem' class='ZenMenuItem'>
-<property type="text" id="description" mode="w" >
-Clear Geocode Cache
-</property>
-<property type="text" id="action" mode="w" >
-clearGeocodeCache
-</property>
-<property type="boolean" id="isglobal" mode="w" >
-True
-</property>
-<property type="lines" id="permissions" mode="w" >
-('Manage DMD',)
-</property>
-<property type="lines" id="allowed_classes" mode="w" >
-['Location']
-</property>
-<property type="boolean" id="isdialog" mode="w" >
-False
-</property>
-<property type="float" id="ordering" mode="w" >
-80.0
-</property>
-</object>
 <object id='discoverMyNetwork' module='Products.ZenModel.ZenMenuItem' class='ZenMenuItem'>
 <property type="text" id="description" mode="w" >
 Discover Devices
@@ -4995,4 +4719,5 @@ True
 </tomanycont>
 </object>
 </tomanycont>
-</object></objects>
+</object>
+</objects>

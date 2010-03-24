@@ -78,13 +78,25 @@ Zenoss.ContextConfigureMenu = Ext.extend( Ext.Button,{
     },
     /**
      * private
+     * handler for add to zenpack menu item; displays dialog
+     * @param {Object} uid
+     */
+     addToZenPackHandler: function(e) {
+       if (!this.addtozenpack) {
+                this.addtozenpack = new Zenoss.AddToZenPackWindow();
+            }
+            this.addtozenpack.setTarget(this.contextId);
+            this.addtozenpack.show();
+    },
+    /**
+     * private
      * gets the menu items to be displayed
      * @param {Object} uid
      */
     getMenuItems: function(uid){
         var callback = function(provider, response){
-            //get statically defined menu items
             var menuItems = [];
+            //get statically defined menu items
             if (this.menuItems.length !== 0) {
                 menuItems = menuItems.concat(this.menuItems);
             }
@@ -104,6 +116,10 @@ Zenoss.ContextConfigureMenu = Ext.extend( Ext.Button,{
             }
             //add all menus and set handlers if needed
             Ext.each(menuItems, function(item){
+                //add to zenpack has a different/new handler
+                if (item.id === 'addtozenpack'){
+                    item.handler = this.addToZenPackHandler.createDelegate(this);
+                }
                 if (!Ext.isDefined(item.handler)) {
                     item.handler = this.defaultHandler.createDelegate(this);
                 }

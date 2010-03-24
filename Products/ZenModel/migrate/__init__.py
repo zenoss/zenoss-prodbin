@@ -131,7 +131,6 @@ import removeStatusMonitor
 import maintwindowcatalog
 import devicepathindex
 import twotwoindexing
-import clearmapcachemenuitem
 import addMonitorColumn
 import networkindexes
 import pagecommand
@@ -198,4 +197,4 @@ import globalcatalog
 import zNmapPortscanOptions
 import removeCiscoHSRP
 import WinEventlogClause
-
+import MenuCleanup
