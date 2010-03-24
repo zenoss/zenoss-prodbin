@@ -222,9 +222,14 @@ class ITemplateFacade(IFacade):
         to the device class or device uniquely identified by the targetUid
         parameter.
         """
-        
+
     def addGraphDefinition(templateUid, graphDefinitionId):
         """
         Add a graph definition to the monitoring template uniquely identified
         by the templateUid parameter.
+        """
+
+    def deleteGraphDefinition(uid):
+        """
+        Delete the graph definition uniquely identified by the uid parameter.
         """

@@ -170,3 +170,9 @@ class TemplateRouter(DirectRouter):
         facade = self._getFacade()
         facade.addGraphDefinition(templateUid, graphDefinitionId)
         return {'success': True}
+
+    @require('Manage DMD')
+    def deleteGraphDefinition(self, uid):
+        facade = self._getFacade()
+        facade.deleteGraphDefinition(uid)
+        return {'success': True}

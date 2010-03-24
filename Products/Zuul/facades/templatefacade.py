@@ -269,6 +269,11 @@ class TemplateFacade(ZuulFacade):
         template = self._getTemplate(templateUid)
         template.manage_addGraphDefinition(graphDefinitionId)
 
+    def deleteGraphDefinition(self, uid):
+        graphDefinition = self._getGraphDefinition(uid)
+        template = graphDefinition.rrdTemplate()
+        template.manage_deleteGraphDefinitions((graphDefinition.id,))
+
     def _getCatalog(self, uid):
         obj = self._getObject(uid)
         return ICatalogTool(obj)
@@ -277,6 +282,12 @@ class TemplateFacade(ZuulFacade):
         obj = self._getObject(uid)
         if not isinstance(obj, RRDTemplate):
             raise Exception('Cannot find RRDTemplate at "%s".')
+        return obj
+
+    def _getGraphDefinition(self, uid):
+        obj = self._getObject(uid)
+        if not isinstance(obj, GraphDefinition):
+            raise Exception('Cannot find GraphDefinition at "%s".')
         return obj
 
     def _getObject(self, uid):
