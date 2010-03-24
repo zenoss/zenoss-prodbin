@@ -1,5 +1,8 @@
 Ext.onReady(function(){
 
+// If there is no searchbox-container, then we will not attempt to render
+// the searchbox.  No context windows such as the event detail popout have
+// no searchbox-container
 if ( Ext.get('searchbox-container') == null ) {
             return
             }

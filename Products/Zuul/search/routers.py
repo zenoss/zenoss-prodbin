@@ -19,6 +19,11 @@ from Products.Zuul.search import ISearchResult
 from Products.Zuul.search import IQuickSearchResultSnippet
 
 class DefaultQuickSearchResultSnippet(object):
+    """
+    Default representation of quick search results.  Converts icon and excerpt
+    values from search results into html content for the drop-down combo
+    box.
+    """
     implements(IQuickSearchResultSnippet)
     adapts(ISearchResult)
 
@@ -47,6 +52,9 @@ class DefaultQuickSearchResultSnippet(object):
     
 
 class SearchRouter(DirectRouter):
+    """
+    UI specific code for the search functionality.
+    """
 
     def _getFacade(self):
         return Zuul.getFacade('search', self.context)
@@ -56,6 +64,9 @@ class SearchRouter(DirectRouter):
         pass
 
     def getLiveResults(self, query):
+        """
+        Returns IQuickSearchResult snippets for the results of the query.
+        """
         facade = self._getFacade()
         results = facade.getQuickSearchResults(query)
         snippets = []
