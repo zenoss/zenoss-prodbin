@@ -20,15 +20,15 @@ Zenoss.ConsoleBar = Ext.extend(Zenoss.LargeToolbar, {
     constructor: function(config) {
         var title = config.title || 'Title';
         delete config.title;
-        config = Ext.applyIf(config||{}, {
+        config = Ext.apply(config||{}, {
             cls: 'largetoolbar consolebar',
             height: 35,
             items: [{
                 xtype: 'tbtext',
                 text: title
-            }].concat(config.items||[]).concat([{
-                xtype: 'tbfill'
             },{
+                xtype: 'tbfill'
+            }].concat(config.items||[]).concat(['-',{
                 iconCls: 'expand',
                 ref: 'togglebutton',
                 handler: function() {

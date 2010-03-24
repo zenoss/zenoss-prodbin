@@ -17,6 +17,8 @@
 
 var ZC = Ext.ns('Zenoss.component');
 
+var ZEvActions = Zenoss.events.EventPanelToolbarActions;
+
 Zenoss.nav.register({
     Component: [{
         nodeType: 'subselect',
@@ -48,7 +50,17 @@ Zenoss.nav.register({
                 var panel = target.add({
                     id: cardid,
                     xtype: 'SimpleEventGridPanel',
-                    columns: Zenoss.env.COLUMN_DEFINITIONS
+                    columns: Zenoss.env.COLUMN_DEFINITIONS,
+                    tbar: {
+                        cls: 'largetoolbar consolebar',
+                        height: 32,
+                        items: [{
+                            xtype: 'tbfill'
+                        }, ZEvActions.acknowledge,
+                           ZEvActions.close,
+                           ZEvActions.newwindow
+                        ]
+                    }
                 });
             }
             showPanel();

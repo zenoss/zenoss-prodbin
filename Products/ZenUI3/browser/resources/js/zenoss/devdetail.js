@@ -165,13 +165,16 @@ var hwosInformation = {
     }]
 };
 
+
+var ZEvActions = Zenoss.events.EventPanelToolbarActions;
+
 var overview = {
     id: 'device_overview',
     layout: 'border',
     border: false,
     defaults: {border:false},
     items: [{
-        id: 'detail_panel',
+        id: 'overview_detail_panel',
         region: 'center',
         xtype: 'form',
         border: false,
@@ -257,16 +260,33 @@ var overview = {
         listeners: {
             render: function(me) {
                 me.setContext(UID);
+            },
+            collapse: function(me) {
+                ZEvActions.acknowledge.hide();
+                ZEvActions.close.hide();
+                ZEvActions.newwindow.hide();
+            },
+            beforeexpand: function(me) {
+                ZEvActions.acknowledge.show();
+                ZEvActions.close.show();
+                ZEvActions.newwindow.show();
             }
         },
         collapsed: true,
         tbar: {
             xtype: 'consolebar',
-            title: 'Events'
+            title: _t('Event Console'),
+            items: [
+                ZEvActions.acknowledge,
+                ZEvActions.close,
+                ZEvActions.newwindow
+            ]
         },
         columns: Zenoss.env.COLUMN_DEFINITIONS
     }]
 };
+
+
 
 Ext.getCmp('center_panel').add({
     id: 'center_panel_container',

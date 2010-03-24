@@ -309,7 +309,7 @@ ul.x-tab-strip-bottom{
     border-color:#abc;
     background:#f0f4f5 url(../img/xtheme-zenoss/toolbar/bg.gif) repeat-x top left;
 }
-.x-toolbar.largetoolbar{
+.largetoolbar{
     background-color: #a6a6a6;
     background-image: url();
     border-top: 1px solid #b8b8b8;
@@ -324,7 +324,7 @@ ul.x-tab-strip-bottom{
     background-image: url(../img/xtheme-zenoss/toolbar/bg-subselect.png);
     line-height: 37px;
 }
-.x-toolbar.largetoolbar button,
+.largetoolbar button,
 .x-toolbar button,
 .x-toolbar .xtb-text {
     font-family: helvetica,sans-serif;
@@ -439,7 +439,7 @@ ul.x-tab-strip-bottom{
 .x-toolbar .x-btn-text {
     text-transform: none;
 }
-.x-toolbar.largetoolbar .x-btn {
+.largetoolbar .x-btn {
     height: 26px;
     text-transform: none;
 }
@@ -550,13 +550,13 @@ ul.x-tab-strip-bottom{
     background-position: -20px -32px;
 }
 
-.x-toolbar.largetoolbar .xtb-sep{
+.largetoolbar .xtb-sep{
     height: 40px;
     padding: 0 4px;
     background-image:url(../img/xtheme-zenoss/toolbar/tb-sep.png);
 }
 
-.x-toolbar.largetoolbar.devdetailbar .xtb-sep{
+.largetoolbar.devdetailbar .xtb-sep{
     height: 50px;
     padding: 0 4px;
     margin-top: 0px;
@@ -1548,4 +1548,3 @@ body.x-body-masked .x-window-mc, body.x-body-masked .x-window-plain .x-window-mc
     border-bottom: 1px solid gray;
     width: 95%;
 }
-

@@ -14,7 +14,7 @@
  */
 (function(){
 
-Ext.ns('Zenoss');
+Ext.ns('Zenoss.events');
 
 /**
  * @class Zenoss.EventPanelSelectionModel
@@ -306,11 +306,21 @@ Zenoss.SimpleEventGridPanel = Ext.extend(Ext.ux.grid.livegrid.GridPanel, {
             autoExpandColumn: 'summary',
             view: new Ext.ux.grid.livegrid.GridView({
                 nearLimit: 20,
-            loadMask: {msg: 'Loading. Please wait...'},
+                rowHeight: 10,
+                emptyText: _t('No events'),
+                loadMask: {msg: 'Loading. Please wait...'},
                 listeners: {
                     beforeBuffer: function(view, ds, idx, len, total, opts){
                         opts.params.uid = view._context;
                     }
+                },
+                getRowClass: function(record, index) {
+                    var stateclass = record.get('eventState')=='New' ?
+                                        'unacknowledged':'acknowledged',
+                        sev = Zenoss.util.convertSeverity(record.get('severity')),
+                        rowColors = Ext.state.Manager.get('rowcolor'),
+                        sevclass = rowColors ? sev + ' rowcolor' : '';
+                    return stateclass + ' ' + sevclass;
                 }
             })
         }); // Ext.applyIf
@@ -341,6 +351,66 @@ Zenoss.EventRainbow = Ext.extend(Ext.Toolbar.TextItem, {
 });
 
 Ext.reg('eventrainbow', Zenoss.EventRainbow);
+
+Zenoss.events.EventPanelToolbarActions = {
+    acknowledge: new Zenoss.Action({
+        //text: _t('Acknowledge'),
+        iconCls: 'acknowledge',
+        permission: 'Manage Events',
+        handler: function(btn) {
+            var grid = this.ownerCt.ownerCt,
+                sm = grid.getSelectionModel(),
+                selected = sm.getSelections(),
+                evids = Ext.pluck(selected, 'id');
+            Zenoss.remote.EventsRouter.acknowledge(
+                {evids:evids},
+                function(provider, response){
+                    var view = grid.getView();
+                    view.updateLiveRows(view.rowIndex, true, true);
+                }
+            );
+        }
+    }),
+    close: new Zenoss.Action({
+        //text: _t('Close'),
+        iconCls: 'close',
+        permission: 'Manage Events',
+        handler: function(btn) {
+            var grid = this.ownerCt.ownerCt,
+                sm = grid.getSelectionModel(),
+                selected = sm.getSelections(),
+                evids = Ext.pluck(selected, 'id');
+            Zenoss.remote.EventsRouter.close(
+                {evids:evids},
+                function(provider, response){
+                    var view = grid.getView();
+                    view.updateLiveRows(view.rowIndex, true, true);
+                }
+            );
+        }
+    }),
+    newwindow: new Zenoss.Action({
+        //text: _t('Open in new window'),
+        iconCls: 'newwindow',
+        permission: 'View',
+        handler: function(btn) {
+            var grid = this.ownerCt.ownerCt,
+                curState = Ext.state.Manager.get('evconsole') || {},
+                filters = curState.filters || {},
+                opts = filters.options || {},
+                pat = /devices\/([^\/]+)(\/.*\/([^\/]+)$)?/,
+                matches = grid.view._context.match(pat),
+                st, url;
+            opts.device = matches[1];
+            opts.component = matches[3];
+            filters.options = opts;
+            curState.filters = filters;
+            st = Zenoss.util.base64.encode(Ext.encode(curState));
+            url = '/zport/dmd/Events/evconsole?state=' + st;
+            window.open(url, '_newtab', "");
+        }
+    })
+}
 
 
 })(); // end of function namespace scoping

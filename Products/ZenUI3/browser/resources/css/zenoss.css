@@ -558,3 +558,6 @@ table.search-result {
 .consolebar table.x-btn {
     margin-top: -1px;
 }
+.consolebar .xtb-sep{
+    height: 25px;
+}
