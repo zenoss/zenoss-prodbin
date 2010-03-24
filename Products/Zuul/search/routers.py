@@ -29,11 +29,13 @@ class DefaultQuickSearchResultSnippet(object):
     def category(self):
         return self._result.category
 
+    defaultTemplate = '<table>' + \
+                          '<td class="icon">%s</td>' + \
+                          '<td class="excerpt">%s</td>' + \
+                      '</table>'
     @property
     def content(self):
-        template = '<table><td class="icon"><img src="%s"/>' + \
-                   '</td><td class="excerpt">%s</td></table>'
-        return template % ( self._result.icon, self._result.excerpt)
+        return self.defaultTemplate % ( self._result.icon, self._result.excerpt)
 
     @property
     def url(self):
