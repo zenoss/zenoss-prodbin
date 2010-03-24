@@ -551,3 +551,10 @@ table.search-result {
     border-top: 1px solid gray;
     background: #f5f9fd url();
 }
+.consolebar .xtb-text {
+    font-size: 13px;
+    margin-top: 1px;
+}
+.consolebar table.x-btn {
+    margin-top: -1px;
+}

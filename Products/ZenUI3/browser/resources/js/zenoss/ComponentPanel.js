@@ -33,6 +33,26 @@ Zenoss.nav.register({
                 target.layout.setActiveItem(uid);
             }
         }
+    },{
+        nodeType: 'subselect',
+        id: 'Events',
+        text: _t('Events'),
+        action: function(node, target) {
+            var uid = node.parentNode.id,
+                cardid = uid + '_events',
+                showPanel = function() {
+                    target.layout.setActiveItem(cardid);
+                    target.layout.activeItem.setContext(uid);
+                };
+            if (!(cardid in target.items.keys)) {
+                var panel = target.add({
+                    id: cardid,
+                    xtype: 'SimpleEventGridPanel',
+                    columns: Zenoss.env.COLUMN_DEFINITIONS
+                });
+            }
+            showPanel();
+        }
     }]
 });
 

@@ -22,6 +22,7 @@
 <script tal:content='string:
     Zenoss.env.device_uid = "${context/absolute_url_path}";
 '></script>
+<tal:block tal:content="structure provider:jssnippets"/>
 <script src="/++resource++zenui/js/zenoss/devdetail.js"></script>
 </tal:block>
 </tal:block> <!-- metal:use-macro="context/page_macros/base-new" -->

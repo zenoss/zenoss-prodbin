@@ -316,7 +316,7 @@ ul.x-tab-strip-bottom{
     border-bottom: 1px solid #949494;
     padding-left: 6px;
 }
-.x-toolbar.largetoolbar  table.x-btn {
+.largetoolbar  table.x-btn {
     margin: 0 2px;
     margin-top: -3px;
 }
@@ -1221,6 +1221,12 @@ body.x-body-masked .x-window-mc, body.x-body-masked .x-window-plain .x-window-mc
 .ext-safari .x-btn-text-icon .x-btn-center .x-btn-text {
     padding: 2px 6px 2px 20px;
 }
+
+.ext-chrome .x-btn button {
+    padding-left: 0;
+    padding-right: 0;
+}
+
 .x-btn-text-icon .x-btn-center .x-btn-text {
     background-position: 0 -1px ;
 }
@@ -1369,6 +1375,16 @@ body.x-body-masked .x-window-mc, body.x-body-masked .x-window-plain .x-window-mc
 .x-toolbar .x-btn-click .unacknowledge  { background-position: 0 -1422px; }
 .x-toolbar .x-btn-over .unacknowledge   { background-position: 0 -1422px; }
 .x-toolbar .x-btn-disabled .unacknowledge{background-position: 0 -1440px; }
+
+.x-toolbar .x-btn .collapse             { background-position: 0 -1458px; }
+.x-toolbar .x-btn-click .collapse       { background-position: 0 -1476px; }
+.x-toolbar .x-btn-over .collapse        { background-position: 0 -1476px; }
+.x-toolbar .x-btn-disabled .collapse    { background-position: 0 -1494px; }
+
+.x-toolbar .x-btn .expand               { background-position: 0 -1512px; }
+.x-toolbar .x-btn-click .expand         { background-position: 0 -1530px; }
+.x-toolbar .x-btn-over .expand          { background-position: 0 -1530px; }
+.x-toolbar .x-btn-disabled .expand      { background-position: 0 -1548px; }
 
 .x-toolbar .x-btn .filter {
     background-image: url(../img/xtheme-zenoss/icon/filter.png);

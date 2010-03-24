@@ -252,10 +252,19 @@ var overview = {
         region: 'south',
         id: 'bottom_detail_panel',
         split: true,
-        layout: 'fit',
+        xtype: 'SimpleEventGridPanel',
         height: 250,
-        collapseMode: 'mini',
-        collapsed: true
+        listeners: {
+            render: function(me) {
+                me.setContext(UID);
+            }
+        },
+        collapsed: true,
+        tbar: {
+            xtype: 'consolebar',
+            title: 'Events'
+        },
+        columns: Zenoss.env.COLUMN_DEFINITIONS
     }]
 };
 

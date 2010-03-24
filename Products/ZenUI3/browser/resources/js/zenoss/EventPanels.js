@@ -23,7 +23,7 @@ Ext.ns('Zenoss');
  */
 Zenoss.EventPanelSelectionModel = Ext.extend(Zenoss.ExtraHooksSelectionModel, {
     selectState: null,
-    badIds: new Array(),
+    badIds: [],
     initEvents: function(){
         Zenoss.EventPanelSelectionModel.superclass.initEvents.call(this);
         this.on('beforerowselect', this.handleBeforeRowSelect, this);
@@ -115,7 +115,7 @@ Zenoss.EventPanelSelectionModel = Ext.extend(Zenoss.ExtraHooksSelectionModel, {
                 this.deselectRow(i);
             }
         }
-        this.badIds = new Array();
+        this.badIds = [];
         Zenoss.EventPanelSelectionModel.superclass.clearSelections.apply(this, arguments);
     },
     onRefresh: function(){
@@ -228,17 +228,21 @@ Zenoss.SimpleEventColumnModel = Ext.extend(Ext.grid.ColumnModel, {
             columns: [{
                 dataIndex: 'severity',
                 header: _t('Severity'),
+                width: 60,
                 id: 'severity',
-                renderer: Zenoss.util.convertSeverity
+                renderer: Zenoss.util.render_severity
             }, {
-                dataIndex: 'device_title',
-                header: _t('Device')
+                dataIndex: 'device',
+                header: _t('Device'),
+                renderer: Zenoss.render.linkFromGrid
             }, {
                 dataIndex: 'component',
-                header: _t('Component')
+                header: _t('Component'),
+                renderer: Zenoss.render.linkFromGrid
             }, {
                 dataIndex: 'eventClass',
-                header: _t('Event Class')
+                header: _t('Event Class'),
+                renderer: Zenoss.render.linkFromGrid
             }, {
                 dataIndex: 'summary',
                 header: _t('Summary'),
@@ -275,7 +279,12 @@ Ext.reg('FullEventColumnModel', Zenoss.FullEventColumnModel);
  */
 Zenoss.SimpleEventGridPanel = Ext.extend(Ext.ux.grid.livegrid.GridPanel, {
     constructor: function(config){
-    var store = {xtype:'EventStore'};
+        var store = {xtype:'EventStore'},
+            cmConfig = {};
+        if (Ext.isDefined(config.columns)) {
+            cmConfig.columns = config.columns;
+        }
+        var cm = new Zenoss.SimpleEventColumnModel(cmConfig);
         if (!Ext.isEmpty(config.directFn)) {
             Ext.apply(store, {
                 proxy: new Ext.data.DirectProxy({
@@ -291,9 +300,8 @@ Zenoss.SimpleEventGridPanel = Ext.extend(Ext.ux.grid.livegrid.GridPanel, {
             stateful: true,
             border: false,
             rowSelectorDepth: 5,
-            autoExpandColumn: 'summary',
             store: store,
-            cm: Ext.create({xtype: 'SimpleEventColumnModel'}),
+            cm: cm,
             sm: new Zenoss.EventPanelSelectionModel(),
             autoExpandColumn: 'summary',
             view: new Ext.ux.grid.livegrid.GridView({

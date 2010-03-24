@@ -33,7 +33,7 @@ class EventsRouter(DirectRouter):
                 uid = self.context
             events = self.api.query(limit, start, sort, dir, params, uid, criteria,
                                    history)
-            return {'events':events['data'], 
+            return {'events':events['data'],
                     'totalCount': events['total'],
                     'asof': time.time() }
         except OperationalError, oe:
@@ -42,7 +42,7 @@ class EventsRouter(DirectRouter):
         except Exception, e:
             message = e.__class__.__name__ + ' ' + str(e)
             return DirectResponse.fail(message)
-        
+
     @require('View History')
     def queryHistory(self, limit, start, sort, dir, params):
         return self.query(limit, start, sort, dir, params, history=True)
