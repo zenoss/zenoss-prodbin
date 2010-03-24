@@ -1,4 +1,3 @@
-
 ###########################################################################
 #
 # This program is part of Zenoss Core, an open source monitoring platform.
@@ -51,8 +50,12 @@ class TemplateFacadeTest(BaseTestCase):
         # need the actual template
         template = self.template
         dsOptions = template.getDataSourceOptions()
-        datasource = template.manage_addRRDDataSource('testDataSource',
-                                                      dsOptions[0][1])
+        datasource = self.facade.addDataSource(
+            self.uid,
+            'testDataSource',
+            dsOptions[0][0]
+        )
+        
         datasource.sourcetype = 'COMMAND'
         return datasource
 
@@ -61,8 +64,8 @@ class TemplateFacadeTest(BaseTestCase):
         returns a newly created dummy datapoint
         """
         source = self._createDummyDataSource()
-        return source.manage_addRRDDataPoint('testDataPoint')
-    
+        return self.facade.addDataPoint(source.absolute_url_path(), 'testDataPoint')
+            
     def testCanAddThreshold(self):
         """ Verify that we can add a dummy threshold
         """

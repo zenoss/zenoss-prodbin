@@ -53,14 +53,6 @@ class TemplateRouter(DirectRouter):
         msg = "Deleted node '%s'" % uid
         return {'success': True, 'msg': msg}
 
-    def getDataSources(self, id):
-        """
-        Get the data sources for the RRD template identified by uid.
-        """
-        facade = self._getFacade()
-        dataSources = facade.getDataSources(id)
-        return Zuul.marshal(dataSources)
-
     def getThresholds(self, uid):
         """
         Get the thresholds for the RRD template identified by uid.
@@ -79,6 +71,31 @@ class TemplateRouter(DirectRouter):
         # turn the threshold into a dictionary
         data =  Zuul.marshal(dict(record=thresholdDetails, form=form))
         return data
+
+    def addDataPoint(self, dataSourceUid, name):
+        """
+        Given a datasource uid and a name, this creates a new datapoint
+        """
+        facade = self._getFacade()
+        facade.addDataPoint(dataSourceUid, name)
+        return {'success': True}
+    
+    def addDataSource(self, templateUid, name, type):
+        """
+        Adds a new datasource designated by "name" to the template path
+        specified by the templateUid
+        """
+        facade = self._getFacade()
+        facade.addDataSource(templateUid, name, type)
+        return {'success': True}
+        
+    def getDataSources(self, id):
+        """
+        Get the data sources for the RRD template identified by uid.
+        """
+        facade = self._getFacade()
+        dataSources = facade.getDataSources(id)
+        return Zuul.marshal(dataSources)
 
     def getDataSourceDetails(self, uid):
         """
@@ -102,8 +119,6 @@ class TemplateRouter(DirectRouter):
     
     @require('Manage DMD')
     def setInfo(self, **data):
-        """
-        """
         uid = data['uid']
         del data['uid']
         data['enabled'] = data.has_key('enabled')
@@ -128,6 +143,11 @@ class TemplateRouter(DirectRouter):
     def getThresholdTypes(self, query):
         facade = self._getFacade()
         data = facade.getThresholdTypes()
+        return {'success': True, 'data': data}
+
+    def getDataSourceTypes(self, query):
+        facade = self._getFacade()
+        data = facade.getDataSourceTypes()
         return {'success': True, 'data': data}
 
     def getGraphs(self, uid, query=None):

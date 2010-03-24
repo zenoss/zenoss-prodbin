@@ -165,6 +165,48 @@ class TemplateFacade(ZuulFacade):
         # don't show the "selected one" in the list of avaialble
         info.allDataPoints = [point for point in template.getRRDDataPointNames() if not point in info.dataPoints]
         return info
+
+    def addDataPoint(self, dataSourceUid, name):
+        """
+        Adds a datapoint to the datasource specified by the UID
+        @param string dataSourceUid unique identifier of a datasource
+        @parma string name 
+        """
+        datasource = self._getObject(dataSourceUid)
+        return datasource.manage_addRRDDataPoint(name)
+    
+    def addDataSource(self, templateUid, name, type):
+        """
+        Adds a datasource to a template
+        @param string templateUid unique identifier of the template
+        @param string name name of our datasource
+        @param string type must be a valid datasource type (see RRDTemplate getDataSourceOptions)
+        """
+        template = self._getObject(templateUid)
+        
+        # get our option information based on the string type inputed
+        selectedOption = None
+        options = template.getDataSourceOptions() # comes back in a (name, typeinformation) tuple
+        for option in options:
+            if option[0] == type:
+                selectedOption = option[1]
+                
+        if selectedOption is None:
+            raise "%s is not a valid DataSource Type" % type
+        
+        # create the datasource and return it
+        datasource = template.manage_addRRDDataSource(name, selectedOption)
+        return datasource
+    
+    def getDataSourceTypes(self):
+        """
+        @returns [] List of all of the datasource types (in string form)
+        """
+        data = []
+        template = self._dmd.Devices.rrdTemplates.Device
+        for name, dsOption in template.getDataSourceOptions():
+            data.append({'type': name})
+        return data
     
     def getThresholdTypes(self):
         data = []
