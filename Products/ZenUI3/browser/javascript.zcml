@@ -45,14 +45,28 @@
                /++resource++extjs/treegrid/TreeGridLoader.js
                /++resource++extjs/treegrid/TreeGridColumns.js
                /++resource++extjs/treegrid/TreeGrid.js
-               extdirect.js
-               zenoss-all.js
-               i18n.js"
+               extdirect.js"
         weight="4"
         manager=".interfaces.IJavaScriptSrcManager"
         class=".javascript.JavaScriptSrcBundleViewlet"
         permission="zope2.Public"
         />
 
+<browser:viewlet
+        name="zenoss-all"
+        weight="5"
+        manager=".interfaces.IJavaScriptSrcManager"
+        class=".javascript.ZenossAllJs"
+        permission="zope2.Public"
+        />
+
+<browser:viewlet
+        name="i18njs"
+        paths="i18n.js"
+        weight="6"
+        manager=".interfaces.IJavaScriptSrcManager"
+        class=".javascript.JavaScriptSrcBundleViewlet"
+        permission="zope2.Public"
+        />
 
 </configure>

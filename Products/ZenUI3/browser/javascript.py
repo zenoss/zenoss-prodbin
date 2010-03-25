@@ -20,6 +20,7 @@ from Products.ZenUI3.browser.interfaces import IJavaScriptSrcViewlet,\
     IJavaScriptBundleViewlet, IJavaScriptSrcManager
 from Products.Five.viewlet.viewlet import ViewletBase
 from Products.ZenUI3.navigation.manager import WeightOrderedViewletManager
+from Products.ZenModel.ZVersion import VERSION
 
 SCRIPT_TAG_SRC_TEMPLATE = '<script type="text/javascript" src="%s"></script>\n'
 
@@ -63,6 +64,11 @@ class ExtBaseJs(JavaScriptSrcViewlet):
             self.path = "/++resource++extjs/adapters/ext/ext-base-debug.js"
         else:
             self.path = "/++resource++extjs/adapters/ext/ext-base.js"
+
+class ZenossAllJs(JavaScriptSrcViewlet):
+    zope.interface.implements(IJavaScriptSrcViewlet)
+    def update(self):
+        self.path = '%s?v=%s' % ("zenoss-all.js", VERSION)
 
 class ExtAllJs(JavaScriptSrcViewlet):
     zope.interface.implements(IJavaScriptSrcViewlet)
