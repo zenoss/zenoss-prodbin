@@ -76,6 +76,13 @@ var deviceInformation = {
             name: 'name',
             fieldLabel: _t('Host Name')
         },{
+            xtype: 'inheritfield',
+            id: 'myinheritfield',
+            items: [{
+                xtype: 'textfield',
+                fieldLabel: 'Value'
+            }]
+        },{
             name: 'deviceClass',
             fieldLabel: _t('Device Class')
         },{
