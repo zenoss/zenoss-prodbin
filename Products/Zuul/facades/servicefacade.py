@@ -20,7 +20,8 @@ from Products.ZenModel.ServiceOrganizer import ServiceOrganizer
 from Products.Zuul.facades import TreeFacade
 from Products.Zuul.utils import unbrain
 from Products.Zuul.interfaces import ITreeFacade, IServiceFacade
-from Products.Zuul.interfaces import IInfo, ICatalogTool
+from Products.Zuul.interfaces import IServiceOrganizerNode, IInfo, ICatalogTool
+from Products.Zuul.infos.service import ServiceOrganizerNode
 from Products.Zuul.tree import SearchResults
 from Acquisition import aq_base
 
@@ -47,6 +48,10 @@ class ServiceFacade(TreeFacade):
 
     def _getSecondaryParent(self, obj):
         return obj.serviceclass()
+
+    def getOrganizerTree(self, id):
+        obj = self._getObject(id)
+        return ServiceOrganizerNode(obj)
 
     def getParentInfo(self, uid=None):
         obj = self._getObject(uid)

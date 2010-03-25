@@ -16,6 +16,8 @@
 <tal:block metal:use-macro="context/page_macros/masterdetailsplit2">
 
   <tal:block metal:fill-slot="script_layout">
+    <script src="/++resource++zenui/js/zenoss/service/grid.js"></script>
+    <script src="/++resource++zenui/js/zenoss/service/tree.js"></script>
     <script src="/++resource++zenui/js/zenoss/service/nav.js"></script>
     <script src="/++resource++zenui/js/zenoss/service/detailform.js"></script>
     <script src="/++resource++zenui/js/zenoss/service/detailgrid.js"></script>

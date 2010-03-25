@@ -146,7 +146,7 @@ Ext.onReady( function() {
 
     zs.monitoringFieldSet = {
         xtype: 'ColumnFieldSet',
-        title: _t('Monitoringasdf'),
+        title: _t('Monitoring'),
         __inner_items__: [
             {
                 items: zs.acquiredCheckbox

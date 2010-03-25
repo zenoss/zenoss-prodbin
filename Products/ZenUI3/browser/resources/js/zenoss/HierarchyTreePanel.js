@@ -75,7 +75,7 @@ Zenoss.HierarchyTreeNodeUI = Ext.extend(Ext.tree.TreeNodeUI, {
             this.textNode.innerHTML = this.buildNodeText(node);
         }
     },
-    
+
     getDDHandles : function(){
         // include the child span nodes of the text node as drop targets
         var ddHandles, spans;
@@ -141,9 +141,9 @@ Zenoss.HierarchyTreePanel = Ext.extend(Ext.tree.TreePanel, {
             arguments);
         this.initTreeDialogs(this, config);
     },
-                                           
+
     initTreeDialogs: function(tree, config) {
-    
+
         new Zenoss.HideFormDialog({
             id: 'addNodeDialog',
             title: _t('Add Tree Node'),
@@ -168,40 +168,23 @@ Zenoss.HierarchyTreePanel = Ext.extend(Ext.tree.TreePanel, {
             }]
         });
 
-        // the delete message is somewhat janky but pretty much if it is not
-        // defined in the object's config then the "DefaultMessage" will be used "
-        var message = '<span id="deleteMessage">' + config.deleteMessage +
-            '</span>';
         tree.deleteDialog = new Zenoss.MessageDialog({
             id: 'deleteNodeDialog',
             title: _t('Delete Tree Node'),
-            message: message,
-            defaultMessage:  _t('The selected node will be deleted'),
+            message: _t('The selected node will be deleted'),
             width:330,
             okHandler: function(){
                 tree.deleteSelectedNode();
             },
             setDeleteMessage: function(msg){
+                // this remains for backward compatibility
                 if (msg === null) {
-                    msg = this.defaultMessage;
+                    msg = this.config.message;
                 }
-                this.msg = msg;
-                var span = Ext.getDom('deleteMessage');
-                if (span){
-                    span.innerHTML = msg;
-                }
+                this.setText(msg);
             }
         });
-        
-    },
-    setCorrectDeleteMessage: function() {
-        var dialog = Ext.getCmp('deleteNodeDialog');
-        
-        // if the delete message was not declared in the definition
-        if (Ext.isEmpty(dialog.msg)){
-            dialog.msg = dialog.defaultMessage;
-        }
-        dialog.setDeleteMessage(dialog.msg);
+
     },
     buttonClickHandler: function(buttonId) {
         switch(buttonId) {
@@ -210,7 +193,6 @@ Zenoss.HierarchyTreePanel = Ext.extend(Ext.tree.TreePanel, {
                 break;
             case 'deleteButton':
                 Ext.getCmp('deleteNodeDialog').show();
-                this.setCorrectDeleteMessage();
                 break;
             default:
                 break;
@@ -340,8 +322,8 @@ Zenoss.HierarchyTreePanel = Ext.extend(Ext.tree.TreePanel, {
             if (result.success) {
                 var nodeConfig = response.result.nodeConfig;
                 var node = tree.getLoader().createNode(nodeConfig);
-                // if you don't call expand on the parentNode you will get a 
-                // javascript error that does not make sense on the callback 
+                // if you don't call expand on the parentNode you will get a
+                // javascript error that does not make sense on the callback
                 parentNode.expand();
                 parentNode.appendChild(node);
                 node.select();

@@ -36,23 +36,29 @@ class ServiceRouter(TreeRouter):
 
     @require('Manage DMD')
     def addNode(self, type, contextUid, id, posQuery=None):
+
         result = super(ServiceRouter, self).addNode(type, contextUid, id)
         if 'msg' in result:
             raise Exception(result['msg'])
-        newUid = result['nodeConfig']['uid']
 
-        q = dict(limit=None, start=0, sort=None, dir=None, params=None,
-                 uid=contextUid, criteria=())
-        q.update(posQuery)
-        allinfos = self.api.getList(**q)
+        if type=='Class':
+            newUid = result['nodeConfig']['uid']
 
-        newIndex = None
-        for iobj, pos in izip(allinfos, count()):
-            if iobj.uid == newUid:
-                newIndex = pos
-                break
+            q = dict(limit=None, start=0, sort=None, dir=None, params=None,
+                     uid=contextUid, criteria=())
+            q.update(posQuery)
+            if isinstance(q['params'], basestring):
+                q['params'] = unjson(q['params'])
 
-        result['newIndex'] = newIndex
+            allinfos = self.api.getList(**q)
+
+            newIndex = None
+            for iobj, pos in izip(allinfos, count()):
+                if iobj.uid == newUid:
+                    newIndex = pos
+                    break
+
+            result['newIndex'] = newIndex
         return result
 
     def query(self, limit=None, start=None, sort=None, dir=None, params=None,
@@ -76,6 +82,14 @@ class ServiceRouter(TreeRouter):
         tree = self.api.getTree(id)
         data = Zuul.marshal(tree)
         return data['children']
+
+    def getOrganizerTree(self, id):
+        tree = self.api.getOrganizerTree(id)
+        data = Zuul.marshal(tree)
+        if data.has_key('children'):
+            return data['children']
+        else:
+            return {}
 
     def getInfo(self, uid, keys=None):
         service = self.api.getInfo(uid)

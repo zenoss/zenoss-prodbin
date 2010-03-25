@@ -144,7 +144,7 @@ ul.x-tab-strip-bottom{
     float:none !important;
 }
 .x-form-text, textarea.x-form-field{
-    border:1px solid #9ab; 
+    border:1px solid #9ab;
 }
 .x-trigger-wrap-focus .x-form-trigger{
     border-bottom:1px solid #4a7192;
@@ -196,7 +196,7 @@ ul.x-tab-strip-bottom{
     background:white;
     position:relative; /* for calculating scroll offsets */
     zoom:1;
-    overflow:auto;  
+    overflow:auto;
 }
 .ux-mselect-item{
     padding:2px;
@@ -210,12 +210,12 @@ ul.x-tab-strip-bottom{
     cursor:pointer;
 }
 
-.x-view-drag-insert-above { 
-    border-top:1px dotted #3366cc; 
-} 
-.x-view-drag-insert-below { 
-    border-bottom:1px dotted #3366cc; 
-} 
+.x-view-drag-insert-above {
+    border-top:1px dotted #3366cc;
+}
+.x-view-drag-insert-below {
+    border-bottom:1px dotted #3366cc;
+}
 
 .x-fieldset-bwrap {
     background-color:white;
@@ -246,11 +246,11 @@ ul.x-tab-strip-bottom{
     color:#fff;
 }
 
-.x-btn-tl i, .x-btn-ml i, .x-btn-bl i, .x-btn-tr i, .x-btn-mr i, .x-btn-br i { 
-    width: 2px; 
+.x-btn-tl i, .x-btn-ml i, .x-btn-bl i, .x-btn-tr i, .x-btn-mr i, .x-btn-br i {
+    width: 2px;
 }
-.x-btn-tl, .x-btn-ml, .x-btn-bl, .x-btn-tr, .x-btn-mr, .x-btn-br { 
-    width: 2px; 
+.x-btn-tl, .x-btn-ml, .x-btn-bl, .x-btn-tr, .x-btn-mr, .x-btn-br {
+    width: 2px;
     background-image:url(../img/xtheme-zenoss/button/btn-sprite.png);
 }
 .x-btn-tc, .x-btn-mc, .x-btn-bc {
@@ -356,10 +356,10 @@ ul.x-tab-strip-bottom{
     color: #fff;
 }
 
-.x-toolbar.subselect-head .x-btn-tl, .x-toolbar.subselect-head .x-btn-tr, 
-.x-toolbar.subselect-head .x-btn-tc, .x-toolbar.subselect-head .x-btn-ml, 
+.x-toolbar.subselect-head .x-btn-tl, .x-toolbar.subselect-head .x-btn-tr,
+.x-toolbar.subselect-head .x-btn-tc, .x-toolbar.subselect-head .x-btn-ml,
 .x-toolbar.subselect-head .x-btn-mr, .x-toolbar.subselect-head .x-btn-mc,
-.x-toolbar.subselect-head .x-btn-bl, .x-toolbar.subselect-head .x-btn-br, 
+.x-toolbar.subselect-head .x-btn-bl, .x-toolbar.subselect-head .x-btn-br,
 .x-toolbar.subselect-head .x-btn-bc {
     background-image:url(../img/xtheme-zenoss/toolbar/tb-subselect-btn-sprite.png);
 }
@@ -367,25 +367,25 @@ ul.x-tab-strip-bottom{
 .x-toolbar.subselect-head .x-btn-bl, .x-toolbar.subselect-head .x-btn-bc,
 .x-toolbar.subselect-head .x-btn-br,
 .x-toolbar.subselect-head .x-btn-tl, .x-toolbar.subselect-head .x-btn-tc,
-.x-toolbar.subselect-head .x-btn-tr, .x-toolbar.subselect-head .x-btn-mr, 
+.x-toolbar.subselect-head .x-btn-tr, .x-toolbar.subselect-head .x-btn-mr,
 .x-toolbar.subselect-head .x-btn-ml, .x-toolbar.subselect-head .x-btn-mc,{
     background-image:url(../img/xtheme-zenoss/toolbar/tb-subselect-btn-sprite.png) !important;
 }
 
-.x-toolbar.subselect-head .x-btn.toleft .x-btn-tl i, 
-.x-toolbar.subselect-head .x-btn.toleft .x-btn-bl i, 
+.x-toolbar.subselect-head .x-btn.toleft .x-btn-tl i,
+.x-toolbar.subselect-head .x-btn.toleft .x-btn-bl i,
 .x-toolbar.subselect-head .x-btn.toleft .x-btn-ml i,
-.x-toolbar.subselect-head .x-btn.toright .x-btn-tr i, 
-.x-toolbar.subselect-head .x-btn.toright .x-btn-br i, 
+.x-toolbar.subselect-head .x-btn.toright .x-btn-tr i,
+.x-toolbar.subselect-head .x-btn.toright .x-btn-br i,
 .x-toolbar.subselect-head .x-btn.toright .x-btn-mr i {
     width: 16px;
 }
 
-.x-toolbar.subselect-head .x-btn.toleft .x-btn-tl, 
-.x-toolbar.subselect-head .x-btn.toleft .x-btn-bl, 
+.x-toolbar.subselect-head .x-btn.toleft .x-btn-tl,
+.x-toolbar.subselect-head .x-btn.toleft .x-btn-bl,
 .x-toolbar.subselect-head .x-btn.toleft .x-btn-ml,
-.x-toolbar.subselect-head .x-btn.toright .x-btn-tr, 
-.x-toolbar.subselect-head .x-btn.toright .x-btn-br, 
+.x-toolbar.subselect-head .x-btn.toright .x-btn-tr,
+.x-toolbar.subselect-head .x-btn.toright .x-btn-br,
 .x-toolbar.subselect-head .x-btn.toright .x-btn-mr {
     background-image: url(../img/xtheme-zenoss/toolbar/tb-subselect-btn-arrows.png) !important;
 }
@@ -505,47 +505,47 @@ ul.x-tab-strip-bottom{
     color:#1b579a;
 }
 .x-toolbar .x-btn-click .x-btn-tl,
-.x-toolbar .x-btn-pressed .x-btn-tl, 
+.x-toolbar .x-btn-pressed .x-btn-tl,
 .x-toolbar .x-btn-menu-active .x-btn-tl {
     background-position: -16px 0;
 }
-.x-toolbar .x-btn-click .x-btn-tc, 
-.x-toolbar .x-btn-pressed .x-btn-tc, 
+.x-toolbar .x-btn-click .x-btn-tc,
+.x-toolbar .x-btn-pressed .x-btn-tc,
 .x-toolbar .x-btn-menu-active .x-btn-tc {
     background-position: 0 -16px;
 }
-.x-toolbar .x-btn-click .x-btn-tr, 
-.x-toolbar .x-btn-pressed .x-btn-tr, 
+.x-toolbar .x-btn-click .x-btn-tr,
+.x-toolbar .x-btn-pressed .x-btn-tr,
 .x-toolbar .x-btn-menu-active .x-btn-tr {
     background-position: -20px 0;
 }
 .x-toolbar .x-btn-click .x-btn-bl,
-.x-toolbar .x-btn-pressed .x-btn-bl, 
+.x-toolbar .x-btn-pressed .x-btn-bl,
 .x-toolbar .x-btn-menu-active .x-btn-bl {
     background-position: -16px -4px;
 }
-.x-toolbar .x-btn-click .x-btn-bc, 
-.x-toolbar .x-btn-pressed .x-btn-bc, 
+.x-toolbar .x-btn-click .x-btn-bc,
+.x-toolbar .x-btn-pressed .x-btn-bc,
 .x-toolbar .x-btn-menu-active .x-btn-bc {
     background-position: 0 -28px;
 }
-.x-toolbar .x-btn-click .x-btn-br, 
-.x-toolbar .x-btn-pressed .x-btn-br, 
+.x-toolbar .x-btn-click .x-btn-br,
+.x-toolbar .x-btn-pressed .x-btn-br,
 .x-toolbar .x-btn-menu-active .x-btn-br {
     background-position: -20px -4px;
 }
 .x-toolbar .x-btn-click .x-btn-ml,
-.x-toolbar .x-btn-pressed .x-btn-ml, 
+.x-toolbar .x-btn-pressed .x-btn-ml,
 .x-toolbar .x-btn-menu-active .x-btn-ml {
     background-position: -16px -32px;
 }
-.x-toolbar .x-btn-click .x-btn-mc, 
-.x-toolbar .x-btn-pressed .x-btn-mc, 
+.x-toolbar .x-btn-click .x-btn-mc,
+.x-toolbar .x-btn-pressed .x-btn-mc,
 .x-toolbar .x-btn-menu-active .x-btn-mc {
     background-position: 0 -162px;
 }
-.x-toolbar .x-btn-click .x-btn-mr, 
-.x-toolbar .x-btn-pressed .x-btn-mr, 
+.x-toolbar .x-btn-click .x-btn-mr,
+.x-toolbar .x-btn-pressed .x-btn-mr,
 .x-toolbar .x-btn-menu-active .x-btn-mr {
     background-position: -20px -32px;
 }
@@ -616,7 +616,7 @@ ul.x-tab-strip-bottom{
     color: white;
 }
 .x-grid3-header{
-    background:#f9f9f9 url(../img/xtheme-zenoss/grid/grid3-hrow.png) repeat-x 0 top;
+    background:#bdbdbd url(../img/xtheme-zenoss/grid/grid3-hrow.png) repeat-x 0 top;
 }
 td.x-grid3-hd {
     border-right-color: #979797;
@@ -1214,7 +1214,7 @@ body.x-body-masked .x-window-mc, body.x-body-masked .x-window-plain .x-window-mc
 
 
 
-/* 
+/*
  * ICONS
  */
 
@@ -1478,47 +1478,47 @@ body.x-body-masked .x-window-mc, body.x-body-masked .x-window-plain .x-window-mc
     color:#1b579a;
 }
 .x-grid3-filter .x-btn-click .x-btn-tl,
-.x-grid3-filter .x-btn-pressed .x-btn-tl, 
+.x-grid3-filter .x-btn-pressed .x-btn-tl,
 .x-grid3-filter .x-btn-menu-active .x-btn-tl {
     background-position: -16px 0;
 }
-.x-grid3-filter .x-btn-click .x-btn-tc, 
-.x-grid3-filter .x-btn-pressed .x-btn-tc, 
+.x-grid3-filter .x-btn-click .x-btn-tc,
+.x-grid3-filter .x-btn-pressed .x-btn-tc,
 .x-grid3-filter .x-btn-menu-active .x-btn-tc {
     background-position: 0 -16px;
 }
-.x-grid3-filter .x-btn-click .x-btn-tr, 
-.x-grid3-filter .x-btn-pressed .x-btn-tr, 
+.x-grid3-filter .x-btn-click .x-btn-tr,
+.x-grid3-filter .x-btn-pressed .x-btn-tr,
 .x-grid3-filter .x-btn-menu-active .x-btn-tr {
     background-position: -20px 0;
 }
 .x-grid3-filter .x-btn-click .x-btn-bl,
-.x-grid3-filter .x-btn-pressed .x-btn-bl, 
+.x-grid3-filter .x-btn-pressed .x-btn-bl,
 .x-grid3-filter .x-btn-menu-active .x-btn-bl {
     background-position: -16px -4px;
 }
-.x-grid3-filter .x-btn-click .x-btn-bc, 
-.x-grid3-filter .x-btn-pressed .x-btn-bc, 
+.x-grid3-filter .x-btn-click .x-btn-bc,
+.x-grid3-filter .x-btn-pressed .x-btn-bc,
 .x-grid3-filter .x-btn-menu-active .x-btn-bc {
     background-position: 0 -28px;
 }
-.x-grid3-filter .x-btn-click .x-btn-br, 
-.x-grid3-filter .x-btn-pressed .x-btn-br, 
+.x-grid3-filter .x-btn-click .x-btn-br,
+.x-grid3-filter .x-btn-pressed .x-btn-br,
 .x-grid3-filter .x-btn-menu-active .x-btn-br {
     background-position: -20px -4px;
 }
 .x-grid3-filter .x-btn-click .x-btn-ml,
-.x-grid3-filter .x-btn-pressed .x-btn-ml, 
+.x-grid3-filter .x-btn-pressed .x-btn-ml,
 .x-grid3-filter .x-btn-menu-active .x-btn-ml {
     background-position: -16px -32px;
 }
-.x-grid3-filter .x-btn-click .x-btn-mc, 
-.x-grid3-filter .x-btn-pressed .x-btn-mc, 
+.x-grid3-filter .x-btn-click .x-btn-mc,
+.x-grid3-filter .x-btn-pressed .x-btn-mc,
 .x-grid3-filter .x-btn-menu-active .x-btn-mc {
     background-position: 0 -162px;
 }
-.x-grid3-filter .x-btn-click .x-btn-mr, 
-.x-grid3-filter .x-btn-pressed .x-btn-mr, 
+.x-grid3-filter .x-btn-click .x-btn-mr,
+.x-grid3-filter .x-btn-pressed .x-btn-mr,
 .x-grid3-filter .x-btn-menu-active .x-btn-mr {
     background-position: -20px -32px;
 }

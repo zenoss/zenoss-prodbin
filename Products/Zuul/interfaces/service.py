@@ -27,6 +27,10 @@ class IServiceNode(ITreeNode):
     """
     Marker interface for providing a Service node in a Service tree.
     """
+class IServiceOrganizerNode(ITreeNode):
+    """
+    Marker interface for providing a Service node in a Service tree.
+    """
 
 class IServiceEntity(Interface):
     """
@@ -35,7 +39,7 @@ class IServiceEntity(Interface):
 
 class IServiceInfo(IInfo):
     """
-    Represents a single ProcessClass instance.
+    Represents a single ServiceClass instance.
     """
     name = Attribute('The name of the service')
     description = Attribute('A description of the service')
@@ -45,7 +49,7 @@ class IServiceInfo(IInfo):
 
 class IServiceOrganizerInfo(IInfo):
     """
-    Represents a single ProcessOrganizer instance.
+    Represents a single ServiceOrganizer instance.
     """
     name = Attribute('The name of the service')
     description = Attribute('A description of the service')

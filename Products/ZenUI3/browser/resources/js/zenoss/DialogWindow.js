@@ -95,10 +95,8 @@ Zenoss.MessageDialog = Ext.extend(BaseDialog, {
     constructor: function(config) {
         Ext.applyIf(config, {
             layout: 'fit',
-            items: {
-                border: false,
-                html: config.message
-            },
+            border: false,
+            items: [ { xtype: 'label', text: config.message } ],
             buttons: [
                 {
                     xtype: 'HideDialogButton',
@@ -112,6 +110,9 @@ Zenoss.MessageDialog = Ext.extend(BaseDialog, {
             ]
         });
         Zenoss.MessageDialog.superclass.constructor.call(this, config);
+    },
+    setText: function(text) {
+        this.form.items.items[0].setText(text);
     }
 });
 
@@ -119,7 +120,7 @@ Zenoss.MessageDialog = Ext.extend(BaseDialog, {
  * @class Zenoss.dialog.SimpleMessageDialog
  * @extends BaseDialog
  * A modal dialog window with Zenoss styling and a fit layout. No buttons are
- * included 
+ * included
  * @constructor
  */
 Zenoss.dialog.SimpleMessageDialog = Ext.extend(BaseDialog, {
@@ -250,18 +251,9 @@ Zenoss.SmartFormDialog = Ext.extend(Zenoss.FormDialog, {
                 Ext.each(me.form.getForm().items.items, function(field){
                     field.setValue(null);
                 });
-            },
-            show: function(me) {
-                var first = me.form.getForm().items.items[0];
-                if (first)
-                {
-                    // TODO: there is currently a bug in our tooltips
-                    // that causes this to lose focus after it momentarily
-                    // gains focus.
-                    first.focus();
-                }
             }
         });
+
         this.listeners = config.listeners;
 
         config = Ext.applyIf(config, {
@@ -278,10 +270,17 @@ Zenoss.SmartFormDialog = Ext.extend(Zenoss.FormDialog, {
                 key: Ext.EventObject.ENTER,
                 handler: handleEnterKey,
                 scope: this
-            }
+            },
+            modal: true,
+            closeAction: 'hide'
         });
 
+        config.items.unshift({ xtype: 'label' });
+
         Zenoss.SmartFormDialog.superclass.constructor.call(this, config);
+    },
+    setText: function(text) {
+        this.form.items.items[0].setText(text);
     }
 });
 
@@ -309,9 +308,9 @@ Zenoss.HideFitDialog = Ext.extend(Ext.Window, {
 });
 
 /**
- * Works in conjunction with Zenoss.dialog.DialogFormPanel. Loads a formPanel 
- * with ID diynamic-dialog-panel and submits the form on the panel when the 
- * submit button on this dialog is pressed. 
+ * Works in conjunction with Zenoss.dialog.DialogFormPanel. Loads a formPanel
+ * with ID diynamic-dialog-panel and submits the form on the panel when the
+ * submit button on this dialog is pressed.
  */
 Zenoss.dialog.DynamicDialog = Ext.extend(BaseDialog, {
     initEvents: function(){
@@ -345,11 +344,11 @@ Zenoss.dialog.DynamicDialog = Ext.extend(BaseDialog, {
         form.submit({
             params: params,
             success: function(form, action){
-                var msg = this.title + ' finished successfully'; 
+                var msg = this.title + ' finished successfully';
                 Zenoss.message(msg, true);
             }.createDelegate(this),
             failure: function(form, action){
-                var msg = this.title + ' had errors'; 
+                var msg = this.title + ' had errors';
                 Zenoss.message(msg, false);
                 }
         });
@@ -361,7 +360,7 @@ Zenoss.dialog.DynamicDialog = Ext.extend(BaseDialog, {
  */
 Zenoss.dialog.DialogFormPanel = Ext.extend(Ext.form.FormPanel, {
     /**
-     * whether or not the result of submitting the form associated with this 
+     * whether or not the result of submitting the form associated with this
      * panel will return a json result. Default true
      */
     jsonResult: true,
@@ -370,7 +369,7 @@ Zenoss.dialog.DialogFormPanel = Ext.extend(Ext.form.FormPanel, {
      */
     submitName: null,
     /**
-     * name of an existing from to be submitted; if not defined a new form 
+     * name of an existing from to be submitted; if not defined a new form
      * will be created.  Primarily used for backwards compatibility so existing
      * dialog forms don't have to be entirely rewritten.
      */
@@ -385,7 +384,7 @@ Zenoss.dialog.DialogFormPanel = Ext.extend(Ext.form.FormPanel, {
     },
     /**
      * private; override from base class so that a basic form can be created
-     * to point at an existing from if configured and also set a different 
+     * to point at an existing from if configured and also set a different
      * response reader if expected result from submit is not JSON
      */
     createForm: function(){

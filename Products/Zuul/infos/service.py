@@ -17,9 +17,8 @@ from zope.interface import implements
 from Products.Zuul import getFacade
 from Products.Zuul.tree import TreeNode
 from Products.Zuul.infos import InfoBase
-from Products.Zuul.interfaces import IServiceEntity
-from Products.Zuul.interfaces import IServiceInfo
-from Products.Zuul.interfaces import IServiceNode
+from Products.Zuul.interfaces import IServiceEntity, IServiceInfo
+from Products.Zuul.interfaces import IServiceNode, IServiceOrganizerNode
 from Products.Zuul.interfaces import ICatalogTool
 from Products.ZenModel.ServiceClass import ServiceClass
 from Products.ZenModel.ServiceOrganizer import ServiceOrganizer
@@ -57,6 +56,23 @@ class ServiceNode(TreeNode):
     @property
     def leaf(self):
         return 'serviceclasses' in self.uid
+
+class ServiceOrganizerNode(ServiceNode):
+    implements(IServiceOrganizerNode)
+    adapts(ServiceOrganizer)
+
+    def __init__(self, brain):
+        super(ServiceOrganizerNode, self).__init__(brain)
+
+    @property
+    def children(self):
+        cat = ICatalogTool(self._object)
+        orgs = cat.search(ServiceOrganizer, paths=(self.uid,), depth=1)
+        return imap(ServiceOrganizerNode, orgs)
+
+    @property
+    def leaf(self):
+        return False
 
 class ServiceInfo(InfoBase):
     implements(IServiceInfo)

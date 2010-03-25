@@ -394,7 +394,7 @@ Zenoss.FilterGridView = Ext.extend(Ext.ux.grid.livegrid.GridView, {
         Ext.each(this.filters, function(ob){
             ob.reset();
         }, this);
-        this.updateLiveRows(this.rowIndex, true, true);
+        this.updateLiveRows(this.rowIndex, true, true, false);
     },
     setFiltersDisplayed: function(bool) {
         // For now, always show the filters The rest of the filter-hiding
@@ -431,7 +431,7 @@ Zenoss.FilterGridView = Ext.extend(Ext.ux.grid.livegrid.GridView, {
             p.value = '';
             buf[buf.length] = ct.apply(p);
         }
-        rp.tsyle = 'width:'+this.getTotalWidth()+';';
+        rp.tstyle = 'width:'+this.getTotalWidth()+';';
         rp.cols = buf.length;
         rp.cells = buf.join("");
         //rp.display = this.displayFilters?'':'style="display:none"'
@@ -471,7 +471,8 @@ Zenoss.FilterGridView = Ext.extend(Ext.ux.grid.livegrid.GridView, {
             id = 'filtergrid-' + fieldid;
             config = this.cm.config[i].filter;
             if (config===false) {
-                config = {xtype: 'panel', getValue: function(){}};
+                config = {xtype: 'panel', reset: function(){},
+                          getValue: function(){}};
                 this.filters[this.filters.length] = Ext.create(config);
                 continue;
             } else if (!config) {
@@ -1403,8 +1404,8 @@ Zenoss.util.getExtControlType = function(fieldId, type) {
     if (Ext.ComponentMgr.isRegistered(fieldId)) {
         return fieldId;
     }
-    
-    // check our conversions defined above     
+
+    // check our conversions defined above
     if (customControls[fieldId]) {
         return customControls[fieldId];
     }
