@@ -143,7 +143,11 @@ class IGraphInfo(IInfo):
     Adapts GraphDefinition.
     """
 
-    
+class IGraphPointInfo(IInfo):
+    """
+    Adapts GraphPoint.
+    """
+
 class ITemplateFacade(IFacade):
     """
     A facade for monitoring templates.
@@ -232,4 +236,18 @@ class ITemplateFacade(IFacade):
     def deleteGraphDefinition(uid):
         """
         Delete the graph definition uniquely identified by the uid parameter.
+        """
+
+    def getGraphPoints(uid):
+        """
+        Fetch the graph points (data points, thresholds, and custom)
+        associated with the GraphDefinition that is uniquely identified by the
+        uid parameter.
+        """
+
+    def addThresholdToGraph(graphUid, thresholdUid):
+        """
+        Add the ThresholdClass uniquely identified by the thresholdUid
+        parameter as a ThresholdGraphPoint on the GraphDefinition uniquely
+        identified by the graphUid parameter.
         """

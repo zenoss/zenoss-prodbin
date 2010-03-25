@@ -15,11 +15,20 @@
 
 (function(){
 
-var router, addGraphDefinition, deleteGraphDefinition;
+var router, getSelectedTemplate, getSelectedGraphDefinition, 
+    addGraphDefinition, deleteGraphDefinition, addThresholdToGraph;
 
 Ext.ns('Zenoss', 'Zenoss.templates');
 
 router = Zenoss.remote.TemplateRouter;
+
+getSelectedTemplate = function() {
+    return Ext.getCmp('templateTree').getSelectionModel().getSelectedNode();
+};
+
+getSelectedGraphDefinition = function() {
+    return Ext.getCmp('graphGrid').getSelectionModel().getSelected();
+};
 
 addGraphDefinition = function(){
     var templateSelectionModel, params, callback;
@@ -45,10 +54,10 @@ new Zenoss.HideFormDialog({
             allowBlank: false,
             listeners: {
                 invalid: function(){
-                    Ext.getCmp('submit').disable();
+                    Ext.getCmp('addGraphDefinitionSubmit').disable();
                 },
                 valid: function(){
-                    Ext.getCmp('submit').enable();
+                    Ext.getCmp('addGraphDefinitionSubmit').enable();
                 }
             }
         }
@@ -61,7 +70,7 @@ new Zenoss.HideFormDialog({
     buttons: [
     {
         xtype: 'HideDialogButton',
-        id: 'submit',
+        id: 'addGraphDefinitionSubmit',
         text: _t('Submit'),
         disabled: true,
         handler: function(button, event) {
@@ -76,10 +85,11 @@ new Zenoss.HideFormDialog({
 deleteGraphDefinition = function() {
     var params, callback;
     params = {
-        uid: Ext.getCmp('graphGrid').getSelectionModel().getSelected().id
+        uid: getSelectedGraphDefinition().id
     };
     callback = function(provider, response) {
         Ext.getCmp('deleteGraphDefinitionButton').disable();
+        Ext.getCmp('graphDefinitionMenuButton').disable();
         Ext.getCmp('graphGrid').getStore().reload();
     };
     router.deleteGraphDefinition(params, callback);
@@ -88,9 +98,191 @@ deleteGraphDefinition = function() {
 new Zenoss.MessageDialog({
     id: 'deleteGraphDefinitionDialog',
     title: _t('Delete Graph Definition'),
+    // the message is generated dynamically
     okHandler: function(){
         deleteGraphDefinition();
     }
+});
+
+new Zenoss.MessageDialog({
+    id: 'addDataPointToGraphDialog',
+    title: _t('Add Data Point'),
+    message: 'Not implemented yet.'
+});
+
+addThresholdToGraph = function() {
+    var params, callback;
+    params = {
+        graphUid: getSelectedGraphDefinition().id,
+        thresholdUid: Ext.getCmp('addThresholdToGraphCombo').getValue()
+    };
+    callback = function() {
+        Ext.getCmp('graphPointGrid').getStore().reload();
+    };
+    router.addThresholdToGraph(params, callback);
+};
+
+new Zenoss.HideFormDialog({
+    id: 'addThresholdToGraphDialog',
+    title: _t('Add Threshold'),
+    items: {
+        xtype: 'combo',
+        id: 'addThresholdToGraphCombo',
+        fieldLabel: _t('Threshold'),
+        valueField: 'uid',
+        displayField: 'name',
+        triggerAction: 'all',
+        selectOnFocus: true,
+        forceSelection: true,
+        editable: false,
+        allowBlank: false,
+        listeners: {
+            invalid: function(){
+                Ext.getCmp('addThresholdToGraphSubmit').disable();
+            },
+            valid: function(){
+                Ext.getCmp('addThresholdToGraphSubmit').enable();
+            }
+        },
+        store: {
+            xtype: 'directstore',
+            directFn: router.getThresholds,
+            fields: ['uid', 'name']
+        }
+    },
+    listeners: {
+        show: function() {
+            var combo, uid;
+            combo = Ext.getCmp('addThresholdToGraphCombo');
+            combo.reset();
+            Ext.getCmp('addThresholdToGraphSubmit').disable();
+            uid = getSelectedTemplate().attributes.uid;
+            combo.getStore().setBaseParam('uid', uid);
+            delete combo.lastQuery;
+            combo.doQuery(combo.allQuery, true);
+        }
+    },
+    buttons: [
+    {
+        xtype: 'HideDialogButton',
+        id: 'addThresholdToGraphSubmit',
+        text: _t('Submit'),
+        disabled: true,
+        handler: function(button, event) {
+            addThresholdToGraph();
+        }
+    }, {
+        xtype: 'HideDialogButton',
+        text: _t('Cancel')
+    }]
+    
+});
+
+new Zenoss.MessageDialog({
+    id: 'addCustomToGraphDialog',
+    title: _t('Add Custom Graph Point'),
+    message: 'Not implemented yet.'
+});
+
+
+Zenoss.GraphPointStore = Ext.extend(Ext.data.DirectStore, {
+    constructor: function(config){
+        Ext.applyIf(config, {
+            directFn: router.getGraphPoints,
+            fields: ['name', 'type', 'description'],
+            root: 'data'
+        });
+        Zenoss.GraphPointStore.superclass.constructor.call(this, config);
+    }
+});
+Ext.reg('graphpointstore', Zenoss.GraphPointStore);
+
+new Ext.menu.Menu({
+    id: 'graphPointMenu',
+    items: [{
+        xtype: 'menuitem',
+        text: _t('Data Point'),
+        handler: function(){
+            Ext.getCmp('addDataPointToGraphDialog').show();
+        }
+    }, {
+        xtype: 'menuitem',
+        text: _t('Threshold'),
+        handler: function(){
+            Ext.getCmp('addThresholdToGraphDialog').show();
+        }
+    }, {
+        xtype: 'menuitem',
+        text: _t('Custom Graph Point'),
+        handler: function(){
+            Ext.getCmp('addCustomToGraphDialog').show();
+        }
+    }]
+});
+
+new Zenoss.HideFitDialog({
+    id: 'manageGraphPointsDialog',
+    title: _t('Manage Graph Points'),
+    items: [{
+        xtype: 'grid',
+        id: 'graphPointGrid',
+        autoExpandColumn: 'description',
+        store: {xtype: 'graphpointstore'},
+        columns: [
+            {dataIndex: 'name', header: _t('Name'), width: 150},
+            {dataIndex: 'type', header: _t('Type'), width: 150},
+            {dataIndex: 'description', header: _t('Description'), id: 'description'}
+        ],
+        tbar: [{
+            xtype: 'button',
+            id: 'addGraphPointButton',
+            iconCls: 'add',
+            tooltip: _t('Add Graph Point'),
+            menu: 'graphPointMenu'
+        }, {
+            xtype: 'button',
+            id: 'deleteGraphPointButton',
+            iconCls: 'delete',
+            tooltip: _t('Delete Graph Point'),
+            disabled: true,
+            handler: function() {
+                Ext.getCmp('deleteGraphPointDialog').show();
+            }
+        }]
+    }],
+    buttons: [
+    {
+        xtype: 'HideDialogButton',
+        text: _t('Close')
+    }]
+});
+
+new Zenoss.MessageDialog({
+    id: 'viewGraphDefinitionDialog',
+    title: _t('View and Edit Graph Definition'),
+    message: 'This will allow the user to edit 9 fields that show up in the old UI.'
+});
+
+new Ext.menu.Menu({
+    id: 'graphDefinitionMenu',
+    items: [{
+        xtype: 'menuitem',
+        text: _t('Manage Graph Points'),
+        handler: function(){
+            var uid, store;
+            uid = getSelectedGraphDefinition().id;
+            Ext.getCmp('manageGraphPointsDialog').show();
+            store = Ext.getCmp('graphPointGrid').getStore();
+            store.setBaseParam('uid', uid);
+            store.load();
+        }
+    }, {
+        xtype: 'menuitem',
+        text: _t('View and Edit Details'),
+        handler: function(){
+            Ext.getCmp('viewGraphDefinitionDialog').show();
+        }
+    }]
 });
 
 Zenoss.templates.GraphGrid = Ext.extend(Ext.grid.GridPanel, {
@@ -103,9 +295,11 @@ Zenoss.templates.GraphGrid = Ext.extend(Ext.grid.GridPanel, {
                 listeners: {
                     rowdeselect: function() {
                         Ext.getCmp('deleteGraphDefinitionButton').disable();
+                        Ext.getCmp('graphDefinitionMenuButton').disable();
                     },
                     rowselect: function() {
                         Ext.getCmp('deleteGraphDefinitionButton').enable();
+                        Ext.getCmp('graphDefinitionMenuButton').enable();
                     }
                 }
             }),
@@ -131,12 +325,18 @@ Zenoss.templates.GraphGrid = Ext.extend(Ext.grid.GridPanel, {
                 handler: function() {
                     var msg, name, html, dialog;
                     msg = _t("Are you sure you want to remove {0}? There is no undo.");
-                    name = Ext.getCmp('graphGrid').getSelectionModel().getSelected().data.name;
+                    name = getSelectedGraphDefinition().data.name;
                     html = String.format(msg, name);
                     dialog = Ext.getCmp('deleteGraphDefinitionDialog');
                     dialog.show();
-                    dialog.update(html);
+                    dialog.getComponent('message').update(html);
                 }
+            }, {
+                id: 'graphDefinitionMenuButton',
+                xtype: 'button',
+                iconCls: 'customize',
+                menu: 'graphDefinitionMenu',
+                disabled: true
             }]
         });
         Zenoss.templates.GraphGrid.superclass.constructor.call(this, config);

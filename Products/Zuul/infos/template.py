@@ -365,3 +365,12 @@ class GraphInfo(InfoBase):
     def width(self):
         return self._object.width
     
+class GraphPointInfo(InfoBase):
+    
+    @property
+    def type(self):
+        return self._object.getType()
+
+    @property
+    def description(self):
+        return self._object.getDescription()

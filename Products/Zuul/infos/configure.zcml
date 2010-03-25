@@ -53,6 +53,10 @@
              for="Products.ZenModel.GraphDefinition.GraphDefinition"
              provides="..interfaces.IGraphInfo"/>
 
+    <adapter factory=".template.GraphPointInfo"
+             for="Products.ZenModel.GraphPoint.GraphPoint"
+             provides="..interfaces.IGraphPointInfo"/>
+
     <adapter factory=".template.DataPointInfo"
              for="Products.ZenModel.RRDDataPoint.RRDDataPoint"
              provides="..interfaces.IDataPointInfo"/>

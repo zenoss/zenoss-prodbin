@@ -96,7 +96,11 @@ Zenoss.MessageDialog = Ext.extend(BaseDialog, {
         Ext.applyIf(config, {
             layout: 'fit',
             border: false,
-            items: [ { xtype: 'label', text: config.message } ],
+            items: [{
+                xtype: 'label',
+                id: 'message',
+                text: config.message
+            }],
             buttons: [
                 {
                     xtype: 'HideDialogButton',
@@ -209,8 +213,7 @@ Zenoss.HideFormDialog = Ext.extend(BaseDialog, {
     constructor: function(config) {
         Ext.applyIf(config, {
             layout: 'form',
-            labelAlign: 'top',
-            labelSeparator: ' '
+            labelAlign: 'top'
         });
         Zenoss.HideFormDialog.superclass.constructor.call(this, config);
     }

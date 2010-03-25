@@ -17,7 +17,7 @@ from Acquisition import aq_parent
 from zope.interface import implements
 from Products.ZenUtils.Utils import prepId
 from Products.Zuul.interfaces import ITemplateFacade, ICatalogTool, ITemplateNode, IRRDDataSourceInfo, \
-    IDataPointInfo, IThresholdInfo, IGraphInfo, IInfo, ITemplateLeaf
+    IDataPointInfo, IThresholdInfo, IGraphInfo, IInfo, ITemplateLeaf, IGraphPointInfo
 from Products.Zuul.infos.template import SNMPDataSourceInfo, CommandDataSourceInfo
 from Products.Zuul.utils import unbrain, safe_hasattr as hasattr
 from Products.Zuul.facades import ZuulFacade
@@ -316,6 +316,17 @@ class TemplateFacade(ZuulFacade):
         template = graphDefinition.rrdTemplate()
         template.manage_deleteGraphDefinitions((graphDefinition.id,))
 
+    def getGraphPoints(self, uid):
+        graphDefinition = self._getGraphDefinition(uid)
+        graphPoints = graphDefinition.getGraphPoints()
+        for graphPoint in graphPoints:
+            yield IGraphPointInfo(graphPoint)
+
+    def addThresholdToGraph(self, graphUid, thresholdUid):
+        graphDefinition = self._getGraphDefinition(graphUid)
+        thresholdClass = self._getThresholdClass(thresholdUid)
+        graphDefinition.manage_addThresholdGraphPoints((thresholdClass.id,))
+
     def _getCatalog(self, uid):
         obj = self._getObject(uid)
         return ICatalogTool(obj)
@@ -323,13 +334,19 @@ class TemplateFacade(ZuulFacade):
     def _getTemplate(self, uid):
         obj = self._getObject(uid)
         if not isinstance(obj, RRDTemplate):
-            raise Exception('Cannot find RRDTemplate at "%s".')
+            raise Exception('Cannot find RRDTemplate at "%s".' % uid)
+        return obj
+
+    def _getThresholdClass(self, uid):
+        obj = self._getObject(uid)
+        if not isinstance(obj, ThresholdClass):
+            raise Exception('Cannot find ThresholdClass at "%s".' % uid)
         return obj
 
     def _getGraphDefinition(self, uid):
         obj = self._getObject(uid)
         if not isinstance(obj, GraphDefinition):
-            raise Exception('Cannot find GraphDefinition at "%s".')
+            raise Exception('Cannot find GraphDefinition at "%s".' % uid)
         return obj
 
     def _getObject(self, uid):

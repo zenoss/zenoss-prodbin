@@ -53,7 +53,7 @@ class TemplateRouter(DirectRouter):
         msg = "Deleted node '%s'" % uid
         return {'success': True, 'msg': msg}
 
-    def getThresholds(self, uid):
+    def getThresholds(self, uid, query=''):
         """
         Get the thresholds for the RRD template identified by uid.
         """
@@ -195,4 +195,16 @@ class TemplateRouter(DirectRouter):
     def deleteGraphDefinition(self, uid):
         facade = self._getFacade()
         facade.deleteGraphDefinition(uid)
+        return {'success': True}
+
+    def getGraphPoints(self, uid):
+        facade = self._getFacade()
+        graphPoints = facade.getGraphPoints(uid)
+        return {'success': True,
+                'data': Zuul.marshal(graphPoints)
+                }
+
+    def addThresholdToGraph(self, graphUid, thresholdUid):
+        facade = self._getFacade()
+        facade.addThresholdToGraph(graphUid, thresholdUid)
         return {'success': True}
