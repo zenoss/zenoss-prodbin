@@ -109,7 +109,7 @@
 
 <browser:page
     template="templates/network.pt"
-    name="network"
+    name="networks"
     for="*"
     permission="zenoss.View"
     />

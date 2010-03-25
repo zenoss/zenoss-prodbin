@@ -113,8 +113,8 @@
             />
 
         <browser:viewlet
-            name="Network"
-            url="/zport/dmd/network"
+            name="Networks"
+            url="/zport/dmd/networks"
             weight="2"
             parentItem="IT Infrastructure"
             manager="..navigation.interfaces.ISecondaryNavigationMenu"

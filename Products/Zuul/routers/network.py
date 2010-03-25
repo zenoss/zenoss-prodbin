@@ -57,16 +57,25 @@ class NetworkRouter(DirectRouter):
                 'text': text }
 
     def getInfo(self, uid, keys=None):
-        service = self.api.getInfo(uid)
-        data = Zuul.marshal(service, keys)
+        network = self.api.getInfo(uid)
+        data = Zuul.marshal(network, keys)
         disabled = not Zuul.checkPermission('Manage DMD')
         return {'data': data, 'disabled': disabled, 'success': True}
 
     def setInfo(self, **data):
         if not Zuul.checkPermission('Manage DMD'):
             raise Exception('You do not have permission to save changes.')
-        service = self.api.getInfo(data['uid'])
-        Zuul.unmarshal(data, service)
+
+        network = self.api.getInfo(data['uid'])
+
+        for field in data.keys():
+            if field.startswith('isInherit') or \
+                field in ['autoDiscover', 'drawMapLinks']:
+                    data[field] = data[field] == 'on'
+            if field == 'defaultNetworkTree':
+                data[field] = [int(x) for x in data[field].split()]
+
+        Zuul.unmarshal(data, network)
         return {'success': True}
 
     def getIpAddresses(self, uid, start=0, params=None, limit=50, sort='name',

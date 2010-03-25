@@ -100,14 +100,14 @@ Ext.getCmp('master_panel').add(network_tree);
 
 statusRenderer = function (statusNum) {
     var color = 'red',
-        desc = 'Down';
+        desc = _t('Down');
     if (statusNum == 0) {
         color = 'green';
-        desc = 'Up';
+        desc = _t('Up');
     }
     else if (statusNum == 5) {
         color = 'gray';
-        desc = 'N/A';
+        desc = _t('N/A');
     }
     return '<span style="color:' + color + '">' + desc + '</span>';
 }
@@ -201,13 +201,72 @@ Ext.getCmp('bottom_detail_panel').add(ipAddressGrid);
 //********************************************
 // Network form
 //********************************************
-saveForm = function() {
-    alert('save description -- disabled (debug)');
+
+// *** Form functions
+var saveForm = function() {
+    var form, values, inheritableCheckboxes;
+
+    form = Ext.getCmp('networkForm').getForm();
+    values = Ext.apply({
+        uid: Ext.getCmp('networkForm').contextUid
+    }, form.getValues());
+
+    // make sure all checkboxes are represented in setInfo call
+    values = Ext.apply({
+        isInheritAutoDiscover: 'off',
+        isInheritDefaultNetworkTree: 'off',
+        isInheritDrawMapLinks: 'off',
+        isInheritIcon: 'off',
+        isInheritPingFailThresh: 'off'
+    }, values);
+
+    inheritableCheckboxes = {
+        isInheritAutoDiscover: 'autoDiscover',
+        isInheritDrawMapLinks: 'drawMapLinks'
+    };
+
+    for (var x in inheritableCheckboxes) {
+        if (values[x] == 'off') {
+            var ic = {};
+            ic[inheritableCheckboxes[x]] = 'off';
+            values = Ext.applyIf(values, ic);
+        }
+    }
+
+    // Submit the form.
+    form.api.submit(values);
+
+    // form reload makes isDirty return false (and updates any changed props)
+    form.load({ params: {uid: Ext.getCmp('networkForm').contextUid} });
 }
 
-resetForm = function() {
+var resetForm = function() {
     Ext.getCmp('networkForm').getForm().reset();
 }
+
+var defaultNetworkTreeTransform = function () {
+    var dnt = Ext.getCmp('configDefaultNetworkTreeTextArea');
+    dnt.setValue(dnt.originalValue.replace(',','\n'));
+};
+
+var inheritedHandlerGen = function(configPropFormItem) {
+    return function (checkbox, checked) {
+        var confPropItem = Ext.getCmp(configPropFormItem);
+        confPropItem.setDisabled(checked);
+
+        if (checked) {
+            Zenoss.remote.NetworkRouter.getInfo({
+                uid: Ext.getCmp('networkForm').contextUid,
+                keys: [confPropItem.name]
+            }, function (provider, response) {
+                confPropItem.setValue(response.result.data[confPropItem.name]);
+                defaultNetworkTreeTransform();
+            });
+        }
+    };
+};
+
+// *** Form field declarations
 
 var addressDisplayField = {
     xtype: 'displayfield',
@@ -226,14 +285,90 @@ var ipcountDisplayField = {
 }
 
 var descriptionTextField = {
-    xtype: 'textfield',
-    id: 'descriptionTextField',
+    xtype: 'textarea',
+    id: 'descriptionTextArea',
     fieldLabel: _t('Description'),
     name: 'description',
+    grow: true,
     width: "100%"
 };
 
-formItems = {
+// *** Configuration Properties
+
+var configPropsFieldSet = {
+    xtype: 'fieldset',
+    id: 'configPropsFieldSet',
+    title: _t('Configuration Properties'),
+    border: false,
+    defaults: {
+        layout: 'form',
+        border: false,
+        labelSeparator: ' ',
+        bodyStyle: 'padding-left: 15px'
+    },
+    items: [ {
+            xtype: 'checkbox',
+            id: 'inheritAutoDiscoverCheckbox',
+            fieldLabel: _t('Inherit Auto Discover'),
+            name: 'isInheritAutoDiscover',
+            handler: inheritedHandlerGen('configAutoDiscoverCheckbox')
+        }, {
+            xtype: 'checkbox',
+            id: 'configAutoDiscoverCheckbox',
+            fieldLabel: _t('Auto Discover'),
+            name: 'autoDiscover'
+        }, {
+            xtype: 'checkbox',
+            id: 'inheritDefaultNetworkTreeCheckbox',
+            fieldLabel: _t('Inherit Default Network Tree'),
+            name: 'isInheritDefaultNetworkTree',
+            handler: inheritedHandlerGen('configDefaultNetworkTreeTextArea')
+        }, {
+            xtype: 'textarea',
+            id: 'configDefaultNetworkTreeTextArea',
+            fieldLabel: _t('Default Network Tree'),
+            name: 'defaultNetworkTree',
+            width: '100%',
+            grow: true
+        }, {
+            xtype: 'checkbox',
+            id: 'inheritDrawMapLinksCheckbox',
+            fieldLabel: _t('Inherit Draw Map Links'),
+            name: 'isInheritDrawMapLinks',
+            handler: inheritedHandlerGen('configDrawMapLinksCheckbox')
+        }, {
+            xtype: 'checkbox',
+            id: 'configDrawMapLinksCheckbox',
+            fieldLabel: _t('Draw Map Links'),
+            name: 'drawMapLinks'
+        }, {
+            xtype: 'checkbox',
+            id: 'inheritIconCheckbox',
+            fieldLabel: _t('Inherit Icon Path'),
+            name: 'isInheritIcon',
+            handler: inheritedHandlerGen('configIconTextField')
+        }, {
+            xtype: 'textfield',
+            id: 'configIconTextField',
+            fieldLabel: _t('Icon Path'),
+            name: 'icon',
+            width: '100%'
+        }, {
+            xtype: 'checkbox',
+            id: 'inheritPingFailThreshCheckbox',
+            fieldLabel: _t('Inherit Ping Fail Threshold'),
+            name: 'isInheritPingFailThresh',
+            handler: inheritedHandlerGen('configPingFailThreshNumField')
+        }, {
+            xtype: 'numberfield',
+            id: 'configPingFailThreshNumField',
+            fieldLabel: _t('Ping Fail Threshold'),
+            name: 'pingFailThresh'
+        }
+    ]
+}; // configPropsFieldSet
+
+var formItems = {
     layout: 'column',
     border: false,
     defaults: {
@@ -243,11 +378,14 @@ formItems = {
         labelSeparator: ' ',
         columnWidth: 0.5
     },
-    items: [ {items: [addressDisplayField, ipcountDisplayField,
-                      descriptionTextField] } ]
+    items: [ 
+        {items: [addressDisplayField, ipcountDisplayField,
+                descriptionTextField]},
+        {items: [configPropsFieldSet]}
+    ]
 };
 
-formConfig = {
+var formConfig = {
     xtype: 'form',
     id: 'networkForm',
     paramsAsHash: true,
@@ -271,6 +409,18 @@ formConfig = {
     api: {
         load: Zenoss.remote.NetworkRouter.getInfo,
         submit: Zenoss.remote.NetworkRouter.setInfo
+    },
+    listeners: {
+        actioncomplete: function (form, action) {
+            var isRootNode = (action.result.data.id == 'Networks');
+            Ext.each(Ext.getCmp('configPropsFieldSet').items.items,
+                function(item, index, allItems) {
+                    if (item.id.indexOf('inherit') === 0)
+                        Ext.getCmp(item.id).setDisabled(isRootNode);
+                }
+            );
+            defaultNetworkTreeTransform();
+        }
     }
 };
 
