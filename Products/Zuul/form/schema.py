@@ -18,11 +18,11 @@ class FieldMixin(object):
     """
     A mixin providing extra attributes to zope.schema.
     """
-    def __init__(self, xtype=None, order=None, group=None, vtype=None, 
+    def __init__(self, xtype=None, order=None, group=None, vtype=None, decimalPrecision=2, 
                  *args, **kwargs):
         super(FieldMixin, self).__init__(*args, **kwargs)
         l = locals()
-        for f in ('xtype', 'order', 'group', 'vtype'):
+        for f in ('xtype', 'order', 'group', 'vtype', 'decimalPrecision'):
             value = l[f]
             if value is not None:
                 setattr(self, f, value)

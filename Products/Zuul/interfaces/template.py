@@ -121,7 +121,8 @@ class IThresholdInfo(IInfo):
     severity = schema.Text(title=_t(u"Severity"),
                            xtype="severity", order=4)
     enabled = schema.Bool(title=_t(u"Enabled"), order=5)
-
+    eventClass = schema.Text(title=_t(u"Event Class"),
+                             xtype="eventclass", order=8)
     
 class IMinMaxThresholdInfo(IThresholdInfo):
     """
@@ -129,8 +130,7 @@ class IMinMaxThresholdInfo(IThresholdInfo):
     """
     minval = schema.Int(title=_t(u"Minimum Value"), order=6)
     maxval = schema.Int(title=u"Maximum Value", order=7)
-    eventClass = schema.Text(title=_t(u"Event Class"),
-                             xtype="eventclass", order=8)
+    
     escalateCount = schema.Int(title=_t(u"Escalate Count"), order=9) 
 
 class IDataPointAlias(IInfo):

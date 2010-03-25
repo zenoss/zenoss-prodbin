@@ -30,6 +30,9 @@
         }, {
             "text": "Tooltips.js",
             "path": "resources/js/zenoss/"
+        },{
+            "text": "vtypes.js",
+            "path": "resources/js/zenoss/"
         }, {
             "text": "HistoryManager.js",
             "path": "resources/js/zenoss/"

@@ -28,7 +28,9 @@ FIELDKEYS = (
     'description',
     'readonly',
     'order',
-    'group'
+    'group',
+    'decimalPrecision',
+    'vtype'
 )
 
 
@@ -65,15 +67,17 @@ def _item(item):
     else:
         xtype = item['xtype']
     value = item['value']
-    checked = False
     if xtype == 'linkfield':
         value = getattr(value, 'uid', value)
     field = {
         'xtype': xtype,
         'fieldLabel': item['title'],
         'name': item['name'],
-        'value': value
+        'value': value,
+        'vtype': item['vtype']
     }
+    if xtype == 'numberfield':
+        field['decimalPrecision'] = item['decimalPrecision']
     if xtype in ('autoformcombo', 'itemselector'):
         field['values'] = item['values']
     if xtype=='checkbox':
