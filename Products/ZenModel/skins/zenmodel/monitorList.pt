@@ -1,4 +1,4 @@
-<tal:block metal:use-macro="here/templates/macros/page3">
+<tal:block metal:use-macro="here/page_macros/old-new">
 <tal:block metal:fill-slot="contentPane">
 
 <form method="post" 
@@ -49,7 +49,7 @@
     </tr>
     <tal:block tal:repeat="mon batch">
     <tr tal:define="odd repeat/mon/odd"
-        tal:attributes="class python:test(odd, 'odd', 'even')">
+        tal:attributes="class python:odd and 'odd' or 'even'">
       <td class="tablevalues" colspan="1" bgcolor="#ffffff">
         <input tal:condition="here/isManager"
                type="checkbox" name="ids:list" 

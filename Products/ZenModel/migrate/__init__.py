@@ -198,3 +198,4 @@ import zNmapPortscanOptions
 import removeCiscoHSRP
 import WinEventlogClause
 import MenuCleanup
+import removeTemplateMenuItem

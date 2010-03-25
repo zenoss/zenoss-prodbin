@@ -211,9 +211,20 @@
         />
 
     <browser:viewlet
+        name="Collectors"
+        url="/zport/dmd/Monitors"
+        weight="2"
+        parentItem="Advanced"
+        manager="..navigation.interfaces.ISecondaryNavigationMenu"
+        class="..navigation.menuitem.SecondaryNavigationMenuItem"
+        permission="zope2.Public"
+        layer="zenossNav"
+        />
+
+    <browser:viewlet
         name="MIBs"
         url="/zport/dmd/Mibs"
-        weight="2"
+        weight="3"
         parentItem="Advanced"
         manager="..navigation.interfaces.ISecondaryNavigationMenu"
         class="..navigation.menuitem.SecondaryNavigationMenuItem"

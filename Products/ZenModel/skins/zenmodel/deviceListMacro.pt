@@ -74,7 +74,7 @@
                 type="checkbox" name="deviceNames:list" 
                 tal:attributes="value device/getRelationshipManagerId"/>
             <a class="tablevalues" href="_" 
-                tal:attributes="href device/getDeviceUrl"
+                tal:attributes="href python:device.getDeviceUrl() + '/devicedetail'"
                 tal:content="device/titleOrId">device
             </a>
         </td>
@@ -125,7 +125,7 @@
 <tr tal:repeat="device batch">
     <td class="tablevalues" align="left">
         <a class="tablevalues" href="_" 
-            tal:attributes="href device/getDeviceUrl"
+            tal:attributes="href python:device.getDeviceUrl() + '/devicedetail'"
             tal:content="device/titleOrId">device
         </a>
     </td>
@@ -192,7 +192,7 @@
 	<tr tal:repeat="device batch">
 		<td class="tablevalues" align="left">
             <a class="tablevalues" href="_" 
-                tal:attributes="href device/getDeviceUrl"
+                tal:attributes="href python:device.getDeviceUrl() + '/devicedetail'"
                 tal:content="device/id">device
             </a>
         </td>
