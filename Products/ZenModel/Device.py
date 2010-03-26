@@ -314,7 +314,7 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable,
 #                , 'permissions'   : (ZEN_VIEW, )
 #                },
                 { 'id'            : 'perfServer'
-                , 'name'          : 'Perf'
+                , 'name'          : 'Graphs'
                 , 'action'        : 'viewDevicePerformance'
                 , 'permissions'   : (ZEN_VIEW, )
                 },

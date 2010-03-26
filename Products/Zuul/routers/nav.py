@@ -23,7 +23,7 @@ class DetailNavRouter(DirectRouter):
             return not menu.isdialog
         items = filter(filterFn, self._getMenuItems(menuIds, ob))
         return items
-    
+
     def _getDialogMenuItems(self, menuIds, ob):
         def filterFn(menu):
             return menu.isdialog

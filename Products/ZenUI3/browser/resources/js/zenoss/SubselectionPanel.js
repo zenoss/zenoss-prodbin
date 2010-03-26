@@ -188,7 +188,9 @@ Ext.tree.TreePanel.nodeTypes.subselect = Zenoss.SubselectionNode;
 
 Zenoss.SubselectionPanel = Ext.extend(Ext.Panel, {
     constructor: function(config) {
+        var id = config.id || Ext.id();
         Ext.applyIf(config, {
+            id: id,
             layout: 'fit',
             border: false,
             bodyStyle: { 'margin-top' : 10 },
@@ -210,7 +212,7 @@ Zenoss.SubselectionPanel = Ext.extend(Ext.Panel, {
                         scope: this
                     }
                 }),
-                id: 'subselecttreepanel',
+                id: 'subselecttreepanel' + id,
                 border: false,
                 rootVisible: false,
                 root : {nodeType: 'node'}            }]
@@ -219,7 +221,7 @@ Zenoss.SubselectionPanel = Ext.extend(Ext.Panel, {
     },
     initComponent: function() {
         Zenoss.SubselectionPanel.superclass.initComponent.call(this);
-        this.treepanel = Ext.getCmp('subselecttreepanel');
+        this.treepanel = Ext.getCmp('subselecttreepanel' + this.id);
     },
     setContext: function(uid) {
         var type = Zenoss.types.type(uid),
@@ -293,7 +295,9 @@ Zenoss.DetailNavPanel = Ext.extend(Zenoss.SubselectionPanel,{
      */
     panelConfigMap: null,
     constructor: function(config) {
+        var id = config.id || Ext.id();
         Ext.applyIf(config, {
+            id: id,
             layout: 'fit',
             border: false,
             bodyStyle: { 'margin-top' : 10 },
@@ -309,7 +313,7 @@ Zenoss.DetailNavPanel = Ext.extend(Zenoss.SubselectionPanel,{
                         scope: this
                     }
                 }),
-                id: 'subselecttreepanel',
+                id: 'subselecttreepanel' + id,
                 border: false,
                 rootVisible: false,
                 root : {nodeType: 'node'}

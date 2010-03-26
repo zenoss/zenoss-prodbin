@@ -292,8 +292,9 @@ Zenoss.SimpleEventGridPanel = Ext.extend(Ext.ux.grid.livegrid.GridPanel, {
                 })
             });
         }
+        var id = config.id || Ext.id();
         Ext.applyIf(config, {
-            id: 'eventGrid',
+            id: 'eventGrid' + id,
             stripeRows: true,
             stateId: Zenoss.env.EVENTSGRID_STATEID || 'default_eventsgrid',
             enableDragDrop: false,

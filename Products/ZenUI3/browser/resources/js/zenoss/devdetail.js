@@ -315,20 +315,47 @@ Ext.getCmp('center_panel').add({
         id: 'master_panel',
         width: 275,
         items: [{
-            xtype: 'treepanel',
-            border: false,
-            selModel: new Ext.tree.DefaultSelectionModel({
-                listeners: {
-                    selectionchange: function(sm, node){
-                        var target = Ext.getCmp('detail_card_panel');
-                        node.attributes.action(node, target);
-                    }
+            xtype: 'detailnav',
+            target: 'detail_card_panel',
+            menuIds: ['More','Add','TopLevel','Manage'],
+            listeners:{
+                render: function(panel) {
+                    this.setContext(UID);
                 }
-            }),
-            rootVisible: false,
-            root: {
-                nodeType: 'async',
-                children: Zenoss.nav.Device
+            },
+            filterNav: function(navpanel, config){
+                //nav items to be excluded
+                var excluded = [
+                    'status',
+                    'os',
+                    'edit',
+                    'events',
+                    'resetcommunity',
+                    'pushconfig',
+                    'modeldevice',
+                    'historyevents'
+                ];
+                return (excluded.indexOf(config.id)==-1);
+            },
+            onGetNavConfig: function(contextId) {
+                return Zenoss.nav.Device;
+            },
+            onSelectionChange: function(detailNav, node) {
+                var target = Ext.getCmp('detail_card_panel'),
+                    action = node.attributes.action || function(node, target) {
+                        var id = node.attributes.id;
+                        if (!(id in target.items.map)) {
+                            var config = detailNav.panelConfigMap[id];
+                            Ext.applyIf(config, {refreshOnContextChange: true});
+                            if(config) {
+                                target.add(config);
+                                target.doLayout();
+                            }
+                        }
+                        target.items.map[node.attributes.id].setContext(detailNav.contextId);
+                        target.layout.setActiveItem(node.attributes.id);
+                    };
+                action(node, target);
             }
         }]
     },{

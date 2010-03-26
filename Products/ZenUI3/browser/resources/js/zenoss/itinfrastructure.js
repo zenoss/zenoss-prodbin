@@ -69,7 +69,7 @@ Zenoss.devices.PriorityCombo = Ext.extend(Ext.form.ComboBox, {
             autoSelect: true,
             triggerAction: 'all'
         });
-        Zenoss.devices.PriorityCombo.superclass.constructor.call(this, config)
+        Zenoss.devices.PriorityCombo.superclass.constructor.call(this, config);
     }
 });
 
@@ -91,7 +91,7 @@ Zenoss.devices.ProductionStateCombo = Ext.extend(Ext.form.ComboBox, {
             editable: false,
             autoSelect: true,
             triggerAction: 'all'
-        })
+        });
         Zenoss.devices.ProductionStateCombo.superclass.constructor.call(this, config);
         
     }
@@ -99,7 +99,7 @@ Zenoss.devices.ProductionStateCombo = Ext.extend(Ext.form.ComboBox, {
 
 Ext.reg('ProductionStateCombo', Zenoss.devices.ProductionStateCombo);
 
-resetCombo = function(combo, manufacturer) {
+var resetCombo = function(combo, manufacturer) {
     combo.clearValue();
     combo.getStore().setBaseParam('manufacturer', manufacturer);
     delete combo.lastQuery;
@@ -127,7 +127,7 @@ var hwManufacturers = {
     editable: false,
     width: 160,
     listeners: {'select': function(combo, record, index){
-        productCombo = Ext.getCmp('hwproductcombo');
+        var productCombo = Ext.getCmp('hwproductcombo');
         resetCombo(productCombo, record.data.name);
     }}
 };
@@ -146,7 +146,7 @@ var hwProduct = {
         fields: ['name'],
         directFn: REMOTE.getHardwareProductNames,
         listener:{'beforeload': function(store, options) {
-            console.log('load options', options)
+            console.log('load options', options);
         }}
     }),
     triggerAction: 'all',
@@ -171,7 +171,7 @@ var osManufacturers = {
     editable: false,
     width: 160,
     listeners: {'select': function(combo, record, index){
-        productCombo = Ext.getCmp('osproductcombo');
+        var productCombo = Ext.getCmp('osproductcombo');
         resetCombo(productCombo, record.data.name);
     }}
 };
@@ -990,7 +990,7 @@ Ext.getCmp('center_panel').add({
             html: 'some other stuff',
             menuIds: ['More','Add','TopLevel','Manage'],
             listeners:{
-                navloaded: function( detailNavPanel, navConfig){
+                navloaded: function (detailNavPanel, navConfig){
                     if (navConfig.id != 'device_grid'){
                         var config = detailNavPanel.panelConfigMap[navConfig.id];
                         Ext.applyIf(config, {refreshOnContextChange: true});

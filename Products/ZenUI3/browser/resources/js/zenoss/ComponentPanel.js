@@ -25,7 +25,7 @@ Zenoss.nav.register({
         id: 'Overview',
         text: _t('Overview'),
         action: function(node, target) {
-            var uid = node.parentNode.id;
+            var uid = node.ownerTree.ownerCt.contextId;
             if (!(uid in target.items.keys)) {
                 Zenoss.form.getGeneratedForm(uid, function(config){
                     target.add(Ext.apply({id:uid}, config));
@@ -40,7 +40,7 @@ Zenoss.nav.register({
         id: 'Events',
         text: _t('Events'),
         action: function(node, target) {
-            var uid = node.parentNode.id,
+            var uid = node.ownerTree.ownerCt.contextId,
                 cardid = uid + '_events',
                 showPanel = function() {
                     target.layout.setActiveItem(cardid);
@@ -127,10 +127,47 @@ ZC.Browser = Ext.extend(Zenoss.VerticalBrowsePanel, {
                         header: _t('Name')
                     }]
                 }),{
-                    xtype: 'treepanel',
+                    xtype: 'detailnav',
                     ref: 'compNav',
+                    autoHeight: true,
+                    autoScroll: true,
+                    containerScroll: true,
                     border: false,
-                    style: 'overflow-y: scroll',
+                    menuIds: [],
+                    onGetNavConfig: function(contextId) {
+                        return Zenoss.nav.Component;
+                    },
+                    filterNav: function(navpanel, config){
+                        //nav items to be excluded
+                        var excluded = [
+                            'status',
+                            'events',
+                            'resetcommunity',
+                            'pushconfig',
+                            'objtemplates',
+                            'modeldevice',
+                            'historyevents'
+                        ];
+                        return (excluded.indexOf(config.id)==-1);
+                    },
+                    onSelectionChange: function(detailNav, node) {
+                        var target = Ext.getCmp('component_detail_panel'),
+                            action = node.attributes.action || function(node, target) {
+                                var id = node.attributes.id;
+                                if (!(id in target.items.map)) {
+                                    var config = detailNav.panelConfigMap[id];
+                                    Ext.applyIf(config, {refreshOnContextChange: true});
+                                    if(config) {
+                                        target.add(config);
+                                        target.doLayout();
+                                    }
+                                }
+                                target.items.map[node.attributes.id].setContext(detailNav.contextId);
+                                target.layout.setActiveItem(node.attributes.id);
+                            };
+                        action(node, target);
+                    },
+                    /*
                     selModel: new Ext.tree.DefaultSelectionModel({
                         listeners: {
                             selectionchange: function(sm, node){
@@ -154,10 +191,13 @@ ZC.Browser = Ext.extend(Zenoss.VerticalBrowsePanel, {
                             this.getRootNode().firstChild.select();
                         } catch(e) { }
                     },
+                    */
                     clearContext: function() {
+                        /*
                         this.setRootNode({
                             nodeType: 'node'
                         });
+                        */
                     }
                 }
             ]
