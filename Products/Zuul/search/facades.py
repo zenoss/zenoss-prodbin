@@ -30,7 +30,7 @@ class ParsedQuery(object):
     """
     implements(IParsedQuery)
 
-    def __init__(self, _operators, _keywords):
+    def __init__(self, _operators={}, _keywords=[]):
         self.operators = _operators
         self.keywords = _keywords
 
@@ -138,21 +138,36 @@ class SearchFacade(ZuulFacade):
 
         return filter( keepResult, results )
 
-    def _getSearchResults(self, query, maxResultsPerProvider=None,
+    def _getSearchResults(self, query, maxResults=None,
                           maxResultsPerCategory=None):
+        """
+        The actual implementation of querying each provider.  This consists
+        of parsing the query, sending it to the providers, and limiting
+        the results if necessary.
+
+        @param query The raw query string
+        @param maxResults The maximum number of results to be returned
+        @param maxResultsPerCategory The maximum number of results to be
+                                     returned of any one category
+        """
         parser = self._getParser()
         parsedQuery = parser.parse( query )
-        operators = parsedQuery.operators
-        keywords = parsedQuery.keywords
 
         results = []
         for adapter in self._getProviders():
-            providerResults = adapter.getSearchResults(operators, keywords)
-            if maxResultsPerProvider is not None:
-                results.extend( providerResults[:maxResultsPerProvider] )
-            else:
+            # Go ahead and look for maxResults from each provider.  This may
+            # artificially limit the number of results for an individual
+            # category, but most algorithms will do some sort of artificial
+            # limiting unless the queries are performed in concert.
+            providerResults = adapter.getSearchResults( parsedQuery,
+                                                        maxResults )
+            if providerResults:
                 results.extend( providerResults )
+            if maxResults is not None and len( results ) > maxResults:
+                break
 
+        if results is not None:
+            results = results[:maxResults]
         results.sort( lambda x,y: cmp(x.excerpt,y.excerpt) )
 
         if maxResultsPerCategory is not None:
@@ -171,7 +186,8 @@ class SearchFacade(ZuulFacade):
         """
         return self._getSearchResults( query )
 
-    def getQuickSearchResults(self, query):
+    def getQuickSearchResults(self, query, maxResults=None,
+                              maxResultsPerCategory=None):
         """
         Execute the query against registered search providers, returning
         abbreviated results for display in the quick search drop-down list.
@@ -179,7 +195,9 @@ class SearchFacade(ZuulFacade):
         @param query query string
         @rtype list of ISearchResult-implementing objects
         """
-        return self._getSearchResults(query, None, 5)
+        return self._getSearchResults(query,
+                                      maxResults,
+                                      maxResultsPerCategory )
 
     def noProvidersPresent(self):
         """

@@ -40,16 +40,17 @@ class ISearchProvider(Interface):
     Implement this interface to provide search results.
     """
 
-    def getSearchResults(operators={}, keywords=()):
+    def getSearchResults(parsedQuery, maxResults):
         """
-        Returns a list of ISearchResult objects based on the operators and keywords
-        parameters.
+        Returns a list of ISearchResult objects based on the given
+        IParsedQuery.
         """
 
-    def getQuickSearchResults(operators={}, keywords=()):
+    def getQuickSearchResults(parsedQuery, maxResults):
         """
-        Returns a list of ISearchResult objects based on the operators and keywords
-        parameters.
+        Returns a list of ISearchResult objects based on the given
+        IParsedQuery.  These ISearchResults may be only partially filled
+        out.
         """
 
 
@@ -68,7 +69,8 @@ class ISearchFacade(IFacade):
     """
     Interface for a search facade.
     """
-    def getQuickSearchResults(self, queryString):
+    def getQuickSearchResults(self, queryString, maxResults,
+                              maxResultsPerCategory):
         """
         Query for items, return ISearchInfo objects
         """

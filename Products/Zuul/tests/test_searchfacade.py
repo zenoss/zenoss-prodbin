@@ -43,7 +43,7 @@ class DummyProvider(object):
     def __init__(self, obj):
         pass
 
-    def getSearchResults(self,operators,keywords):
+    def getSearchResults(self,parsedQuery,maxResults=None):
         return search_results
 
 def createResultsFromRange( max, category='test' ):
@@ -77,28 +77,28 @@ class TestSearchFacade(BaseTestCase):
     def testGetQuickSearchResults(self):
         global search_results
         facade = SearchFacade(self.dmd)
-        search_results = createResultsFromRange(9)
-        results = facade.getQuickSearchResults( "testquery" )
-        # Should only have 5 results
+        search_results = createResultsFromRange(20)
+        results = facade.getQuickSearchResults( "testquery", 10 )
+        # Should only have 10 results
         dummyIds = [result.id for result in results
                     if isinstance(result, DummyResult)]
-        self.assertEquals( set(range(1,6)), set(dummyIds) )
+        self.assertEquals( set(range(1,11)), set(dummyIds) )
 
     def testGetSearchResults(self):
         global search_results
         facade = SearchFacade(self.dmd)
-        search_results = createResultsFromRange(7)
+        search_results = createResultsFromRange(25)
         results = facade.getSearchResults( "testquery" )
         dummyIds = [result.id for result in results
                     if isinstance(result, DummyResult)]
-        self.assertEquals( set(range(1,8)), set(dummyIds) )
+        self.assertEquals( set(range(1,26)), set(dummyIds) )
 
     def testCategoryCountFilter(self):
         global search_results
         search_results = createResultsFromRange(8,'cat1')
         search_results.extend( createResultsFromRange(7,'cat2') )
         facade = SearchFacade(self.dmd)
-        results = facade.getQuickSearchResults( "testquery" )
+        results = facade.getQuickSearchResults( "testquery", 20, 5 )
         cat1Ids = [result.id for result in results if result.category == 'cat1']
         cat2Ids = [result.id for result in results if result.category == 'cat2']
         self.assertEquals( set(range(1,6)), set(cat1Ids) )

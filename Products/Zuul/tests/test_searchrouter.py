@@ -32,10 +32,11 @@ class DummyFacade(object):
     def __init__(self,dmd):
         pass
 
-    def getSearchResults( self, query ):
+    def getQuickSearchResults( self, query, maxResults=None,
+                          maxResultsPerCategory=None ):
         return search_results
 
-    def getQuickSearchResults(self, query):
+    def getSearchResults(self, query):
         return search_results
 
 class DummySearchResult(object):

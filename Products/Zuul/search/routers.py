@@ -51,6 +51,9 @@ class DefaultQuickSearchResultSnippet(object):
         return False
     
 
+_MAX_RESULTS_PER_QUERY=100
+_MAX_RESULTS_PER_CATEGORY=10
+
 class SearchRouter(DirectRouter):
     """
     UI specific code for the search functionality.
@@ -68,7 +71,9 @@ class SearchRouter(DirectRouter):
         Returns IQuickSearchResult snippets for the results of the query.
         """
         facade = self._getFacade()
-        results = facade.getQuickSearchResults(query)
+        results = facade.getQuickSearchResults(query,
+                                               _MAX_RESULTS_PER_QUERY,
+                                               _MAX_RESULTS_PER_CATEGORY)
         snippets = []
         for result in results:
             snippet = IQuickSearchResultSnippet( result )
