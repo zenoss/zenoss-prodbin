@@ -16,16 +16,77 @@ Ext.ns('Zenoss.Network');
 
 Ext.onReady(function () {
 
+//********************************************
+// Add/remove sub-network buttons and dialog
+//********************************************
+
+var addNetworkDialogSubmit = function(values)
+{
+    var tree = Ext.getCmp('networks');
+
+    tree.router.addNode({newSubnet: values.addNetworkTextfield},
+        function(data) {
+            if (data.success) {
+                tree.getRootNode().reload(
+                    function() {
+//                        tree.expandAll();
+//                        tree.collapseAll();
+//                        tree.expandPath(
+//                            tree.getNodeById(data.newNode.id).getPath());
+                    }
+                );
+            }
+        }
+    );
+};
+
+var deleteNetworkDialogSubmit = function()
+{
+    var tree = Ext.getCmp('networks'),
+        node = tree.getSelectionModel().getSelectedNode(),
+        parentNode = node.parentNode,
+        uid = node.attributes.uid;
+
+    tree.router.deleteNode({uid:uid},
+        function(data) {
+            if (data.success) {
+                tree.getRootNode().reload(
+                    function() {
+                        tree.getNodeById(parentNode.id).select();
+                    }
+                );
+            }
+        }
+    );
+};
+
+var addNetworkDialog = new Zenoss.SmartFormDialog({
+    id: 'addNetworkDialog',
+    title: _t('Add a Subnetwork'),
+    items: [{
+        xtype: 'textfield',
+        id: 'addNetworkTextfield',
+        fieldLabel: _t('Network / Subnet mask'),
+        allowBlank: false
+    }],
+    saveHandler: addNetworkDialogSubmit
+});
+
+var deleteNetworkDialog = new Zenoss.MessageDialog({
+    id: 'deleteNetworkDialog',
+    title: _t('Delete Subnetwork'),
+    message: _t('The selected subnetwork will be deleted.'),
+    okHandler: deleteNetworkDialogSubmit
+});
+
 // Adds a network or sub-network
-addNetwork = function(e) {
-    alert('add subnetwork -- disabled (debug)');
+addNetwork = function() {
+    addNetworkDialog.show();
 }
 
-/*
- * Delete a network or subnetwork
- */
-deleteNetwork = function(e) {
-    alert('del subnetwork -- disabled (debug)');
+// Delete a network or subnetwork
+deleteNetwork = function() {
+    deleteNetworkDialog.show();
 }
 
 //********************************************
@@ -73,8 +134,11 @@ Zenoss.NetworkTreePanel = Ext.extend(Zenoss.HierarchyTreePanel, {
 var treesm = new Ext.tree.DefaultSelectionModel({
     listeners: {
         'selectionchange': function (sm, newnode) {
+            if (!newnode) return;
             Ext.getCmp('networkForm').setContext(newnode.attributes.uid);
             Ext.getCmp('ipAddressGrid').setContext(newnode.attributes.uid);
+            Ext.getCmp('deleteNetworkButton').setDisabled(
+                (newnode.attributes.id == 'Network') );
         }
     }
 });
@@ -242,6 +306,7 @@ var saveForm = function() {
 
 var resetForm = function() {
     Ext.getCmp('networkForm').getForm().reset();
+    defaultNetworkTreeTransform();
 }
 
 var defaultNetworkTreeTransform = function () {
@@ -309,7 +374,7 @@ var configPropsFieldSet = {
     items: [ {
             xtype: 'checkbox',
             id: 'inheritAutoDiscoverCheckbox',
-            fieldLabel: _t('Inherit Auto Discover'),
+            fieldLabel: _t('Inherit?'),
             name: 'isInheritAutoDiscover',
             handler: inheritedHandlerGen('configAutoDiscoverCheckbox')
         }, {
@@ -320,7 +385,7 @@ var configPropsFieldSet = {
         }, {
             xtype: 'checkbox',
             id: 'inheritDefaultNetworkTreeCheckbox',
-            fieldLabel: _t('Inherit Default Network Tree'),
+            fieldLabel: _t('Inherit?'),
             name: 'isInheritDefaultNetworkTree',
             handler: inheritedHandlerGen('configDefaultNetworkTreeTextArea')
         }, {
@@ -333,7 +398,7 @@ var configPropsFieldSet = {
         }, {
             xtype: 'checkbox',
             id: 'inheritDrawMapLinksCheckbox',
-            fieldLabel: _t('Inherit Draw Map Links'),
+            fieldLabel: _t('Inherit?'),
             name: 'isInheritDrawMapLinks',
             handler: inheritedHandlerGen('configDrawMapLinksCheckbox')
         }, {
@@ -344,7 +409,7 @@ var configPropsFieldSet = {
         }, {
             xtype: 'checkbox',
             id: 'inheritIconCheckbox',
-            fieldLabel: _t('Inherit Icon Path'),
+            fieldLabel: _t('Inherit?'),
             name: 'isInheritIcon',
             handler: inheritedHandlerGen('configIconTextField')
         }, {
@@ -356,7 +421,7 @@ var configPropsFieldSet = {
         }, {
             xtype: 'checkbox',
             id: 'inheritPingFailThreshCheckbox',
-            fieldLabel: _t('Inherit Ping Fail Threshold'),
+            fieldLabel: _t('Inherit?'),
             name: 'isInheritPingFailThresh',
             handler: inheritedHandlerGen('configPingFailThreshNumField')
         }, {
@@ -437,14 +502,14 @@ Ext.getCmp('top_detail_panel').add(networkForm);
 //********************************************
 
 Ext.getCmp('footer_bar').add({
-    id: 'add-button',
+    id: 'addNetworkButton',
     tooltip: _t('Add a subnetwork'),
     iconCls: 'add',
     handler: addNetwork
 });
 
 Ext.getCmp('footer_bar').add({
-    id: 'delete-button',
+    id: 'deleteNetworkButton',
     tooltip: _t('Delete a subnetwork'),
     iconCls: 'delete',
     handler: deleteNetwork

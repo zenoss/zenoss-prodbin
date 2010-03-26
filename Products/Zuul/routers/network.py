@@ -12,7 +12,7 @@
 ###########################################################################
 
 import logging
-from Products.ZenUtils.Ext import DirectRouter
+from Products.ZenUtils.Ext import DirectRouter, DirectResponse
 from Products.Zuul.decorators import require
 from Products.ZenUtils.json import unjson
 from Products import Zuul
@@ -23,6 +23,21 @@ class NetworkRouter(DirectRouter):
     def __init__(self, context, request):
         super(NetworkRouter, self).__init__(context, request)
         self.api = Zuul.getFacade('network')
+
+    @require('Manage DMD')
+    def addNode(self, newSubnet):
+        try:
+            newNet = self.context.dmd.Networks.createNet(newSubnet)
+            node = self._createTreeNode(newNet)
+            return DirectResponse.succeed(newNode=node)
+        except Exception, e:
+            return DirectResponse.fail(str(e))
+
+    @require('Manage DMD')
+    def deleteNode(self, uid):
+        toDel = self.context.dmd.restrictedTraverse(uid)
+        toDel.getParentNode().zmanage_delObjects([toDel.titleOrId()])
+        return DirectResponse.succeed(tree=self.getTree())
 
     def getTree(self, id='/zport/dmd/Networks'):
         return self._getNetworkTree(self.context.dmd.restrictedTraverse(id))
@@ -62,10 +77,8 @@ class NetworkRouter(DirectRouter):
         disabled = not Zuul.checkPermission('Manage DMD')
         return {'data': data, 'disabled': disabled, 'success': True}
 
+    @require('Manage DMD')
     def setInfo(self, **data):
-        if not Zuul.checkPermission('Manage DMD'):
-            raise Exception('You do not have permission to save changes.')
-
         network = self.api.getInfo(data['uid'])
 
         for field in data.keys():
