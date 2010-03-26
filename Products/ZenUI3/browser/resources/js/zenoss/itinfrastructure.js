@@ -784,7 +784,7 @@ Ext.apply(Zenoss.devices, {
                         formBind: true,
                         handler: function(b) {
                             var form = b.ownerCt.ownerCt.getForm();
-                            var opts = form.getFieldValues(true);
+                            var opts = form.getFieldValues();
                             Zenoss.remote.DeviceRouter.addDevice(opts, function(response) {
                                 var success = response.success;
                                 if (success) {
@@ -990,7 +990,7 @@ Ext.getCmp('center_panel').add({
             html: 'some other stuff',
             menuIds: ['More','Add','TopLevel','Manage'],
             listeners:{
-                navloaded: function (detailNavPanel, navConfig){
+                navloaded: function( detailNavPanel, navConfig){
                     if (navConfig.id != 'device_grid'){
                         var config = detailNavPanel.panelConfigMap[navConfig.id];
                         Ext.applyIf(config, {refreshOnContextChange: true});

@@ -279,7 +279,7 @@ class DeviceRouter(TreeRouter):
         result = [{'name': name} for name in names];
         return DirectResponse(productNames=result, totalCount=len(result))
 
-    def addDevice(self, deviceName, deviceClass, title, snmpCommunity="", snmpPort=161,
+    def addDevice(self, deviceName, deviceClass, title=None, snmpCommunity="", snmpPort=161,
                   useAutoDiscover= True, collector='localhost',  rackSlot=0, 
                   productionState=1000, comments="", hwManufacturer="", 
                   hwProductName="", osManufacturer="", osProductName="", 

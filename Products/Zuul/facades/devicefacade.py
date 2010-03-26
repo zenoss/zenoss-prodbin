@@ -209,11 +209,11 @@ class DeviceFacade(TreeFacade):
         elif isinstance(target, DeviceClass):
             self._dmd.Devices.moveDevices(targetname,[dev.id for dev in devs])
 
-    def addDevice(self, deviceName, deviceClass, title, snmpCommunity="", snmpPort=161,
-                  useAutoDiscover=False, collector='localhost', rackSlot=0, 
-                  productionState=1000, comments="", hwManufacturer="", 
-                  hwProductName="", osManufacturer="", osProductName="", 
-                  priority = 3, tag="", serialNumber=""):
+    def addDevice(self, deviceName, deviceClass, title=None, snmpCommunity="", 
+                  snmpPort=161, useAutoDiscover=False, collector='localhost', 
+                  rackSlot=0, productionState=1000, comments="", 
+                  hwManufacturer="", hwProductName="", osManufacturer="", 
+                  osProductName="", priority = 3, tag="", serialNumber=""):
         zProps = dict(zSnmpCommunity=snmpCommunity,
                            zSnmpPort=snmpPort)
         discoverProtocol = useAutoDiscover and "Auto" or "none"
