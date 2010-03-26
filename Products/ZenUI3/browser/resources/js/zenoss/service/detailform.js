@@ -207,10 +207,17 @@ Ext.onReady( function() {
         }
     };
 
+    clearForm = function(form) {
+        q = {};
+        Ext.each(form.items.items, function(i){ q[i.id] = null} );
+        form.setValues(q);
+    }
+
     zs.initForm = function() {
         var serviceForm = new Ext.form.FormPanel(zs.formConfig);
         serviceForm.setContext = function(uid) {
                 this.contextUid = uid;
+                clearForm(this.getForm());
                 this.load({ params: {uid: uid} });
             }.createDelegate(serviceForm);
         Ext.getCmp('top_detail_panel').add(serviceForm);

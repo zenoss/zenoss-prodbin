@@ -16,7 +16,7 @@ from Products.Zuul.routers import TreeRouter
 from Products.Zuul.decorators import require
 from Products.ZenUtils.Ext import DirectResponse
 from Products.ZenUtils.json import unjson
-from itertools import izip, count
+from itertools import enumerate
 
 class ServiceRouter(TreeRouter):
 
@@ -53,7 +53,7 @@ class ServiceRouter(TreeRouter):
             allinfos = self.api.getList(**q)
 
             newIndex = None
-            for iobj, pos in izip(allinfos, count()):
+            for iobj, pos in enumerate(allinfos):
                 if iobj.uid == newUid:
                     newIndex = pos
                     break
@@ -86,7 +86,7 @@ class ServiceRouter(TreeRouter):
     def getOrganizerTree(self, id):
         tree = self.api.getOrganizerTree(id)
         data = Zuul.marshal(tree)
-        if data.has_key('children'):
+        if 'children' in data:
             return data['children']
         else:
             return {}

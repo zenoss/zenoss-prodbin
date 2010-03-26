@@ -158,14 +158,13 @@ Ext.onReady( function() {
         if (uid) {
             Ext.MessageBox.show({
                 title: 'Delete Node',
-                msg: 'The selected node will be deleted:\n' + uid,
+                msg: 'The selected node will be deleted: ' + uid,
                 fn: function(buttonid){
                     if (buttonid=='ok') {
                         zs.deleteDialogSubmit();
                     }
                 },
-                buttons: Ext.MessageBox.OKCANCEL,
-                multiline: true
+                buttons: Ext.MessageBox.OKCANCEL
             });
         }
         else {
