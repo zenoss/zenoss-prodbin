@@ -40,8 +40,7 @@ import cPickle
 from exceptions import EOFError, IOError
 
 import Globals
-from twisted.internet import reactor
-from Products.ZenUtils.Driver import drive
+from twisted.internet import defer, reactor
 from Products.ZenUtils.Timeout import timeout
 from Products.ZenEvents.ZenEventClasses import Error, Warning, Info, \
     Debug
@@ -132,6 +131,13 @@ class CaptureReplay(object):
 
         Note that this calls the Twisted stop() method
         """
+        if hasattr(self, 'configure'):
+            d = self.configure()
+            d.addCallback(self._replayAll)
+        else:
+            self._replayAll()
+
+    def _replayAll(self, ignored):
         # Note what you are about to see below is a direct result of optparse
         # adding in the arguments *TWICE* each time --replayFilePrefix is used.
         import glob
