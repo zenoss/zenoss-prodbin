@@ -1,0 +1,38 @@
+<project name="Login" default="Report" basedir="../../">
+	<description>
+			General JUnit ant script
+	</description>
+	<property name="src" value="Testcases/src/loc/zenoss/testcases/Login" />
+	<property name="Results" value="Results" />
+	<property name="lib" value="lib" />
+	<property name="classes" value="Testcases/bin" />
+	<property name="test" value="loc.zenoss.testcases.Login.LoginScenarios" />
+	
+	
+	<path id="TestCases.classpath">
+	  <pathelement location="${classes}" />
+	  <pathelement location="." />
+	  <pathelement location="lib/CommonFramework.jar"/>
+	  <pathelement location="lib/junit-4.4.jar"/>
+      <pathelement location="lib/selenium-java-client-driver.jar"/>
+	</path>
+	
+	<target name="JUnitTest">    
+		<junit fork="yes" printsummary="withOutAndErr">
+			<sysproperty key="Env.Browser" value="${Browser}"/>
+		            <formatter type="xml"/>
+					<test name="${test}" todir="${Results}" />
+					
+		            <classpath refid="TestCases.classpath"/>
+		        </junit>
+	</target>
+	
+	<target name="Report" depends="JUnitTest">
+		<junitreport todir="${Results}">
+			    <fileset dir="${Results}">
+			      <include name="TEST-*.xml" />
+			    </fileset>
+		     <report todir="${Results}/HTML" />
+	 	</junitreport>
+	</target>
+</project>

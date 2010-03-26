@@ -1,0 +1,39 @@
+<project name="TestSuite_FullTestRun" default="ExecuteAllTests" basedir="../../">
+	<description>
+			This is the full test run
+			This executes all the testcases for the Zenoss Box
+			This test run takes more than 2 hours to complete
+	</description>
+	
+	<property name="Browser" value="FF 3.5 on W2K3" />
+	<property name="Username" value="admin" />
+	<property name="Password" value="zenoss" />
+	<property name="TargetMachine" value="MAchine" />
+	<property name="SSHUser" value="root" />
+	<property name="SSHPass" value="password" />
+	<property name="ZenossBuild" value="590" />
+	<property name="ZenossVersion" value="2.5.2" />
+	<property name="buildLocation" value="/releases/2.5.2/all/" />
+	
+	<property name="SeleniumServerHost" value="localhost" />
+	<property name="SeleniumServerPort" value="4444" />
+	
+	<target name="CompileAll" >
+		<ant antfile="Testcases/Ant/build.xml"/>
+   </target>
+    
+    
+   
+   <!-- This is the main target -->
+   <target name="ExecuteAllTests"  depends="CompileAll">
+   		
+    	 <!--
+    	 	<ant antfile="Testcases/Ant/Testcase_InstallZenoss.xml" />
+    	 
+    	 -->
+   	<ant antfile="Testcases/Ant/Testcase_Login.xml" />
+    </target>
+    
+   
+   
+</project>
