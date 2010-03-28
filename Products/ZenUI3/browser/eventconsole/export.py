@@ -22,7 +22,7 @@ import StringIO
 from Products.Five.browser import BrowserView
 
 from Products.ZenModel.ZenModelBase import ZenModelBase
-from Products.ZenUtils.json import unjson
+from Products.ZenUtils.jsonutils import unjson
 
 from interfaces import IEventManagerProxy
 

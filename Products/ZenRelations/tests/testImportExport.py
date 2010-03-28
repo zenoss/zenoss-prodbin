@@ -152,12 +152,12 @@ class ImportTest(ZenRelationsBaseTest):
     def testImportSkip(self):
         """test skipping vmware relations that are not relevant to the 
         standard device class"""
-        self.failIf(hasattr(self.app, 'dev'))
-        im = NoLoginImportRM(self.app)
+        self.failIf(hasattr(self.dmd, 'dev'))
+        im = NoLoginImportRM(self.dmd)
         infile = StringIO.StringIO(objwithskip)
         im.loadObjectFromXML(infile)
-        self.assert_(self.app.dev)
-        self.failIf(hasattr(self.app.dev, 'guestDevices'))
+        self.assert_(self.dmd.dev)
+        self.failIf(hasattr(self.dmd.dev, 'guestDevices'))
 
 def test_suite():
     from unittest import TestSuite, makeSuite

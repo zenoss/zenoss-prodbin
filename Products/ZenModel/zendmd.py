@@ -90,6 +90,10 @@ def _customStuff():
             user = app.zport.acl_users.getUserById(username)
         user = user.__of__(utool)
         newSecurityManager(None, user)
+        from AccessControl.Implementation import setImplementation
+        #Chip's pitched battle against segfault.
+        #import pdb;pdb.set_trace()
+        #setImplementation('PYTHON')
 
     login('admin')
 

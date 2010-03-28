@@ -12,7 +12,7 @@
 ###########################################################################
 from zope import interface
 from Products.Five.viewlet.manager import ViewletManagerBase
-from Products.ZenUtils.json import json
+from Products.ZenUtils.jsonutils import json
 from Products.Five.viewlet import viewlet
 from interfaces import ISecurityManager, IPermissionsDeclarationViewlet
 from AccessControl import getSecurityManager

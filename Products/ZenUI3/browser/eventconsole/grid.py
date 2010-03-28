@@ -19,7 +19,7 @@ _ = MessageFactory('zenoss')
 from Products.Five.browser import BrowserView
 from Products.Five.browser.pagetemplatefile import ViewPageTemplateFile
 
-from Products.ZenUtils.json import json
+from Products.ZenUtils.jsonutils import json, unjson
 from Products.ZenUI3.utils.javascript import JavaScriptSnippet
 from Products.ZenUI3.browser.eventconsole.columns import COLUMN_CONFIG
 from Products.Zuul import getFacade
@@ -27,14 +27,10 @@ from Products.Zuul import getFacade
 
 class EventConsoleView(BrowserView):
     __call__ = ViewPageTemplateFile('console.pt')
-    # Need an id so the tabs can tell what's going on
-    __call__.id = 'viewEvents'
 
 
 class HistoryConsoleView(BrowserView):
     __call__ = ViewPageTemplateFile('historyconsole.pt')
-    # Need an id so the tabs can tell what's going on
-    __call__.id = 'viewHistoryEvents'
 
 
 def column_config(fields, request=None):

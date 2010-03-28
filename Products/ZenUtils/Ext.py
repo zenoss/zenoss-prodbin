@@ -15,7 +15,7 @@
 
 import transaction
 
-from Products.ZenUtils.json import json, unjson
+from Products.ZenUtils.jsonutils import json, unjson
 from Products.ZenUtils.extdirect.zope.router import ZopeDirectRouter
 from Products.ZenUtils.extdirect.router import DirectResponse
 

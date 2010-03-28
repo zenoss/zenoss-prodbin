@@ -11,7 +11,7 @@
 #
 ###########################################################################
 import types
-from Products.ZenUtils.json import json
+from Products.ZenUtils.jsonutils import json
 
 negativeModes = (
     '!',    # is not

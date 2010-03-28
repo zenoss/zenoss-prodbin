@@ -21,7 +21,7 @@ from AccessControl import ClassSecurityInfo
 
 from OFS.Folder import Folder
 
-from simplejson import dumps
+from json import dumps
 from Products.CMFCore.utils import getToolByName
 from Products.ZCatalog.ZCatalog import manage_addZCatalog
 from Products.ZenUtils.Search import makeCaseInsensitiveFieldIndex

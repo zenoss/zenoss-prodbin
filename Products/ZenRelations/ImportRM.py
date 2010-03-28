@@ -21,7 +21,7 @@ parse and construct an XML document.
 Descriptions of the XML document format can be found in the
 Developers Guide.
 """
-
+import Globals
 import sys
 import os
 import types
@@ -42,7 +42,7 @@ from Products.ZenUtils.Utils import getObjByPath
 
 from Products.ZenModel.interfaces import IZenDocProvider
 from Products.ZenRelations.Exceptions import *
-from zope.app.container.contained import ObjectMovedEvent
+from Products.Zuul.catalog.events import IndexingEvent
 
 _STRING_PROPERTY_TYPES = ( 'string', 'text', 'password' )
 
@@ -184,7 +184,7 @@ for a ZenPack.
         """
         Function called when the parser finds the starting element
         in the XML file.
-        
+
         @param name: name of the ending element
         @type name: string
         """
@@ -195,7 +195,7 @@ for a ZenPack.
 
         if name in ('object', 'tomany', 'tomanycont'):
             obj = self.objstack.pop()
-            notify(ObjectMovedEvent(obj, obj, obj.id, obj, obj.id))
+            notify(IndexingEvent(obj))
             if hasattr(aq_base(obj), 'index_object'):
                obj.index_object()
             if self.rootpath == obj.getPrimaryId():

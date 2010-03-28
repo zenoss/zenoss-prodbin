@@ -16,7 +16,7 @@ import os.path
 from xml.dom import minidom
 from zope.i18n.negotiator import negotiator
 from Products.Five.browser import BrowserView
-from Products.ZenUtils.json import json
+from Products.ZenUtils.jsonutils import json
 
 
 _datapath = os.path.join(os.path.dirname(__file__), 'data')

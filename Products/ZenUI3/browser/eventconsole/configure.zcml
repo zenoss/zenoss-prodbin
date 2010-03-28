@@ -14,7 +14,7 @@
         manager="...navigation.interfaces.ISecondaryNavigationMenu"
         class="...navigation.menuitem.SecondaryNavigationMenuItem"
         permission="zope2.Public"
-        layer="zenossNav"
+        layer="...navigation.interfaces.IZenossNav"
         />
 
     <adapter

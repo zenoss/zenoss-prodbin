@@ -88,7 +88,7 @@ class PluginLoader(pb.Copyable, pb.RemoteCopy):
         self.modPath = modPath
         self.pluginName = modPath.split(lastModName + '.')[-1]
         self.importer = importer
-                    
+
     def create(self):
         """
         Load and compile the code contained in the given plugin
@@ -107,7 +107,8 @@ class PluginLoader(pb.Copyable, pb.RemoteCopy):
                 import traceback
                 log.debug(traceback.format_exc())
                 raise PluginImportError(
-                    plugin=self.modPath, traceback=traceback.format_exc() )
+                    plugin=self.modPath,
+                    traceback=traceback.format_exc().splitlines())
         finally:
             try:
                 sys.path.remove(self.package)
@@ -143,22 +144,23 @@ class OsWalker(object):
 class CoreImporter(pb.Copyable, pb.RemoteCopy):
     
     def importPlugin(self, package, modPath):
+        fp = None
         # Load the plugins package using its path as the name to 
         # avoid conflicts. slashes in the name are OK when using
         # the imp module.
-        plugin_pkg = imp.find_module('.', [package])
-        imp.load_module(package, *plugin_pkg)
-        # Import the module, using the plugins package
-        #
-        # Equivalent to, for example: 
-        #   from mypackage.zenoss.snmp import DeviceMap
-        #
-        clsname = modPath.split('.')[-1]
-        mod = __import__(package + '.' + modPath, 
-                         globals(),
-                         locals(),
-                         [clsname])
-        # get the class
+        parts = modPath.split('.')
+        # class name is same as module name
+        clsname = parts[-1]
+        path = package
+        try:
+            for partNo in range(1,len(parts)+1):
+                part = parts[partNo-1]
+                fp, path, description = imp.find_module(part,[path])
+                modSubPath = '.'.join(parts[:partNo])
+                mod = imp.load_module(modSubPath, fp, path, description)
+        finally:
+            if fp:
+                fp.close()
         return getattr(mod, clsname)
         
 pb.setUnjellyableForClass(CoreImporter, CoreImporter)

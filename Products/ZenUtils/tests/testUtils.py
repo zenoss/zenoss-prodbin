@@ -18,7 +18,7 @@ from zope.testing.doctestunit import DocTestSuite
 def test_suite():
     warnings.filterwarnings( 'ignore' )
     suite = DocTestSuite('Products.ZenUtils.Utils')
-    jsonsuite = DocTestSuite('Products.ZenUtils.json')
+    jsonsuite = DocTestSuite('Products.ZenUtils.jsonutils')
     guidsuite = DocTestSuite('Products.ZenUtils.guid')
     iputilsuite = DocTestSuite('Products.ZenUtils.IpUtil')
     return unittest.TestSuite([suite, jsonsuite, guidsuite, iputilsuite])

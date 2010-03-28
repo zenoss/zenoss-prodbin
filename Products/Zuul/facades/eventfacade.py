@@ -13,7 +13,7 @@
 
 from zope.event import notify
 from zope.interface import implements
-from Products.ZenUI3.utils.json import unjson
+from Products.ZenUtils.jsonutils import unjson
 from Products.Zuul.utils import resolve_context
 from Products.Zuul.facades import ZuulFacade
 from Products.Zuul.interfaces import IEventEvent

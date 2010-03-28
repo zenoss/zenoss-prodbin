@@ -30,7 +30,7 @@ import DateTime
 from Products.ZenModel.ZenossSecurity import *
 
 from Products.ZenUtils.ObjectCache import ObjectCache
-from Products.ZenUtils.json import unjson
+from Products.ZenUtils.jsonutils import unjson
 
 from ZEvent import ZEvent
 from EventDetail import EventDetail

@@ -19,7 +19,7 @@ See http://zestyping.livejournal.com/157957.html for more info and
 the code is available from http://zesty.ca/python/
 """
 
-from uuid.uuid import uuid1, uuid3, uuid4, uuid5
+from uuid import uuid1, uuid3, uuid4, uuid5
 
 # Dictionary of known UUID types
 known_uuid_types= {

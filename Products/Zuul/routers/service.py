@@ -15,7 +15,7 @@ from Products import Zuul
 from Products.Zuul.routers import TreeRouter
 from Products.Zuul.decorators import require
 from Products.ZenUtils.Ext import DirectResponse
-from Products.ZenUtils.json import unjson
+from Products.ZenUtils.jsonutils import unjson
 
 class ServiceRouter(TreeRouter):
 

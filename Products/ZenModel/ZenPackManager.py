@@ -307,14 +307,14 @@ class ZenPackManager(ZenModelRM):
         """
         Return a list of the zenoss.net projects.
         """
-        import simplejson
+        import json
         import Products.ZenUtils.DotNetCommunication as DotNetCommunication
         userSettings = self.dmd.ZenUsers.getUserSettings()
         session = DotNetCommunication.getDotNetSession(
                     userSettings.zenossNetUser,
                     userSettings.zenossNetPassword)
         projects = session.retrieve('projectList')
-        projects = simplejson.loads(projects)
+        projects = json.loads(projects)
         return projects
 
 

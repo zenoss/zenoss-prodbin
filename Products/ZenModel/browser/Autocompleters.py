@@ -14,7 +14,7 @@
 from Products.CMFCore.utils import getToolByName
 from Products.Five.browser import BrowserView
 from Products.ZenModel.DeviceOrganizer import DeviceOrganizer
-from Products.ZenUtils.json import json
+from Products.ZenUtils.jsonutils import json
 from Products.ZenUtils.Utils import formreq, getObjByPath
 from Products.AdvancedQuery import Eq, MatchGlob
 

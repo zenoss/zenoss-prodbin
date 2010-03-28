@@ -12,7 +12,7 @@
         <link rel="stylesheet" type="text/css"
             href="/zport/dmd/yui/assets/skins/sam/skin.css"/>
         <link rel="stylesheet" type="text/css" 
-            href="extjs/resources/css/ext-all.css"/>
+            href="++resource++extjs/resources/css/ext-all.css"/>
         <link rel="stylesheet" type="text/css"
             href="/zport/quickstart.css"/>
         <style tal:condition="python:here.dmd.getProductName()!='core'">
@@ -23,8 +23,8 @@
         <style>legend {width: 100%} legend span
             {display:block;margin-left:-23px} </style>
         <![endif]-->
-        <script type="text/javascript" src="extjs/adapters/ext/ext-base.js"></script>
-        <script type="text/javascript" src="extjs/ext-all.js"></script>
+        <script type="text/javascript" src="++resource++extjs/adapters/ext/ext-base.js"></script>
+        <script type="text/javascript" src="++resource++extjs/ext-all.js"></script>
     </head>
     <body><div class="yui-skin-sam">
 

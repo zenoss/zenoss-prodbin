@@ -12,7 +12,7 @@
 ###########################################################################
 import os
 import re
-import simplejson
+import json
 import logging
 import Globals
 from Products.Five.browser import BrowserView
@@ -54,7 +54,7 @@ def get_js_file_list(pkg='Zenoss Application'):
     jsb = open(JSBFILE)
     paths = []
     try:
-        cfg = simplejson.load(jsb)
+        cfg = json.load(jsb)
         for p in cfg['pkgs']:
             if p['name']==pkg:
                 for f in p['fileIncludes']:
@@ -62,7 +62,7 @@ def get_js_file_list(pkg='Zenoss Application'):
                     paths.append(path + f['text'])
     finally:
         jsb.close()
-    return paths
+    return [ str(path) for path in paths ]
 
 
 class ZenossJavaScript(BrowserView):
@@ -94,5 +94,5 @@ class ZenossJavaScript(BrowserView):
         """
         Redirect to the minified file containing all Zenoss js.
         """
-        self.request.RESPONSE.redirect('/zenui/js/deploy/zenoss-compiled.js')
+        self.request.RESPONSE.redirect('/++resource++zenui/js/deploy/zenoss-compiled.js')
 

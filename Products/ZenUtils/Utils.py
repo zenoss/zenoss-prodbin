@@ -45,7 +45,7 @@ from Acquisition import aq_inner, aq_parent
 from ZServer.HTTPServer import zhttp_channel
 
 from Products.ZenUtils.Exceptions import ZenPathError, ZentinelException
-from Products.ZenUtils.json import json as _json, unjson
+from Products.ZenUtils.jsonutils import json as _json, unjson
 
 class HtmlFormatter(logging.Formatter):
     """
@@ -1011,8 +1011,8 @@ def binPath(fileName):
     
     >>> len(binPath('zenoss')) > 0
     True
-    >>> len(binPath('zeoup.py')) > 0
-    True
+    >>> len(binPath('zeoup.py')) > 0 # This doesn't exist in Zope 2.12
+    False
     >>> len(binPath('check_http')) > 0
     True
     >>> binPath('Idontexistreally') == ''
@@ -1287,7 +1287,7 @@ def json(f):
     @deprecated: import from Products.ZenWidgets.json
     """
     warnings.warn("Use of the ZenUtils.Utils.json decorator is deprecated. " 
-                  "Please import from Products.ZenUtils.json", 
+                  "Please import from Products.ZenUtils.jsonutilsutils", 
                   DeprecationWarning) 
     return _json(f) 
 

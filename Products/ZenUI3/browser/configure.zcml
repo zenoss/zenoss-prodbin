@@ -30,7 +30,12 @@
 <include file="screentypes.zcml"/>
 -->
 
-<browser:skin name="zenossSkin" layers="zenossNav default"/>
+<interface
+    interface="..navigation.interfaces.IZenossNav"
+    type="zope.publisher.interfaces.browser.IBrowserSkinType"
+    name="zenossSkin"
+    />
+
 <browser:defaultSkin name="zenossSkin"/>
 
 <!-- Viewlet manager for generic snippets -->

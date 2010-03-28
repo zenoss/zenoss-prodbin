@@ -11,7 +11,7 @@
 #
 ###########################################################################
 from zope.viewlet.interfaces import IViewletManager, IViewlet
-from zope.publisher.interfaces.browser import IBrowserRequest
+from zope.publisher.interfaces.browser import IBrowserSkinType, IDefaultBrowserLayer
 
 class IPrimaryNavigationMenu(IViewletManager):
     """
@@ -28,7 +28,7 @@ class INavigationItem(IViewlet):
     A navigable item.
     """
 
-class IZenossNav(IBrowserRequest):
+class IZenossNav(IBrowserSkinType,IDefaultBrowserLayer):
     """
     Marker interface for our nav layer
     """

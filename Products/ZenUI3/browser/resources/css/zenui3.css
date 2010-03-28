@@ -6,13 +6,13 @@
 #header .bg .bg-leftcap {
     height: 100%;
     padding-left: 15px;
-    background: transparent url(/zenui/img/header_bg_leftcap.png) 
+    background: transparent url(/++resource++zenui/img/header_bg_leftcap.png) 
         top left no-repeat;
 }
 
 #header .bg .bg-tile {
     height: 100%;
-    background: transparent url(/zenui/img/header_bg_tile.png) 
+    background: transparent url(/++resource++zenui/img/header_bg_tile.png) 
         top left repeat-x;
 }
 
@@ -20,7 +20,7 @@
     float: left;
     height: 45px;
     width: 134px;
-    background: transparent url(/zenui/img/header_bg_logo.png) 5px 7px no-repeat;
+    background: transparent url(/++resource++zenui/img/header_bg_logo.png) 5px 7px no-repeat;
 }
 
 /** 
@@ -52,15 +52,15 @@
 
 #primarynav li.nav-item-active a { 
     color: #c7c7c7;
-    background: transparent url('/zenui/img/primarynav_sprite.gif') 
+    background: transparent url('/++resource++zenui/img/primarynav_sprite.gif') 
         0 -30px repeat-x;
 }
 #primarynav li.nav-item-active .sd-left {
-    background: transparent url('/zenui/img/primarynav_sprite.gif') 
+    background: transparent url('/++resource++zenui/img/primarynav_sprite.gif') 
         0 -106px no-repeat;
 }
 #primarynav li.nav-item-active .sd-right {
-    background: transparent url('/zenui/img/primarynav_sprite.gif') 
+    background: transparent url('/++resource++zenui/img/primarynav_sprite.gif') 
         right -182px no-repeat;
 }
 #primarynav ul {
@@ -94,7 +94,7 @@
 #secondarynav li.nav-item-active a { 
     color: #3b70ab;
     font-weight: bold;
-    background: transparent url('/zenui/img/secondarynav_sprite.png') 
+    background: transparent url('/++resource++zenui/img/secondarynav_sprite.png') 
         0 -30px repeat-x;
 }
 
@@ -105,11 +105,11 @@
     padding-right: 8px;
 }
 #secondarynav li.nav-item-active .sd-left {
-    background: transparent url('/zenui/img/secondarynav_sprite.png') 
+    background: transparent url('/++resource++zenui/img/secondarynav_sprite.png') 
         0 -77px no-repeat;
 }
 #secondarynav li.nav-item-active .sd-right {
-    background: transparent url('/zenui/img/secondarynav_sprite.png') 
+    background: transparent url('/++resource++zenui/img/secondarynav_sprite.png') 
         right -124px no-repeat;
 }
 #secondarynav ul {
@@ -122,7 +122,7 @@
 #footer { 
     font-size: 8.5pt;
     height: 30px; line-height: 30px; padding: 0 8px;
-    background: transparent url(/zenui/img/footer_bg_tile.png) top left repeat-x;
+    background: transparent url(/++resource++zenui/img/footer_bg_tile.png) top left repeat-x;
 }
 
 

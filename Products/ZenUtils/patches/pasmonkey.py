@@ -91,7 +91,7 @@ def login(self):
         url = came_from
 
     if self.dmd.uuid is None:
-        from uuid.uuid import uuid1
+        from uuid import uuid1
         self.dmd.uuid = str(uuid1())
     return response.redirect(url)
 
@@ -116,7 +116,7 @@ def termsCheck(self):
         url += 'terms=Decline'
     else:
         self.dmd.acceptedTerms = True
-        from uuid.uuid import uuid1
+        from uuid import uuid1
         self.dmd.uuid = str(uuid1())
     return response.redirect(url)
 

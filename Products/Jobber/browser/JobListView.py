@@ -16,7 +16,7 @@ from itertools import chain
 from Products.Five.browser import BrowserView
 from Products.Five.browser.pagetemplatefile import ZopeTwoPageTemplateFile
 from Products.ZenUtils.Utils import relative_time, readable_time
-from Products.ZenUtils.json import json
+from Products.ZenUtils.jsonutils import json
 
 
 class JobListView(BrowserView):
@@ -25,7 +25,6 @@ class JobListView(BrowserView):
     """
     __call__ = ZopeTwoPageTemplateFile('joblist.pt')
     # Give the template object an id so that the tab will be selected
-    __call__.id = 'joblist'
 
     def start_daemon(self):
         self.context.dmd.About.doDaemonAction('zenjobs', 'start')

@@ -134,6 +134,7 @@ class ZItem(Base, CopySource, App.Management.Tabs, Traversable,
     def manage_editedDialog(self, REQUEST, **args):
         return apply(self._manage_editedDialog,(self, REQUEST), args)
 
+    """
     def raise_standardErrorMessage(
         self, client=None, REQUEST={},
         error_type=None, error_value=None, tb=None,
@@ -220,6 +221,7 @@ class ZItem(Base, CopySource, App.Management.Tabs, Traversable,
         finally:
             if hasattr(self, '_v_eek'): del self._v_eek
             tb=None
+    """
 
     def manage(self, URL1):
         """

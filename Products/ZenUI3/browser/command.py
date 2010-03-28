@@ -17,7 +17,7 @@ import subprocess
 import signal
 import time
 from Products.ZenUI3.browser.streaming import StreamingView, StreamClosed
-from Products.ZenUtils.json import unjson
+from Products.ZenUtils.jsonutils import unjson
 
 class CommandView(StreamingView):
     """

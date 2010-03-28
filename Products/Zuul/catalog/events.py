@@ -20,6 +20,7 @@ from OFS.interfaces import IObjectWillBeMovedEvent, IObjectWillBeAddedEvent
 from interfaces import IIndexingEvent, IGloballyIndexed, ITreeSpanningComponent, IDeviceOrganizer
 from paths import devicePathsFromComponent
 
+from Products.ZenRelations.RelationshipBase import RelationshipBase
 
 class IndexingEvent(object):
     implements(IIndexingEvent)
@@ -40,9 +41,9 @@ def onIndexingEvent(ob, event):
     if isinstance(idxs, basestring):
         idxs = [idxs]
     try:
-        evob = event.object.primaryAq()
+        evob = ob.primaryAq()
     except (AttributeError, KeyError), e:
-        evob = event.object
+        evob = ob
     catalog.catalog_object(evob, idxs=idxs,
                            update_metadata=event.update_metadata)
 
@@ -117,8 +118,13 @@ def onTreeSpanningComponentBeforeDelete(ob, event):
         device = component.device()
         if not device:
             # OS relation has already been broken; get by path
-            devpath = component.getPrimaryPath()[:-3]
-            device = component.unrestrictedTraverse(devpath)
+            path = component.getPrimaryPath()
+            try:
+                devpath = path[:path.index('devices')+2]
+                device = component.unrestrictedTraverse(devpath)
+            except ValueError:
+                # We've done our best. Give up.
+                return
         if device:
             oldpaths = devicePathsFromComponent(component)
             catalog.unindex_object_from_paths(device, oldpaths)
@@ -134,5 +140,16 @@ def onTreeSpanningComponentAfterAddOrMove(ob, event):
             # Migrate script hasn't run yet; ignore indexing
             return
         device = component.device()
-        newpaths = devicePathsFromComponent(component)
-        catalog.index_object_under_paths(device, newpaths)
+        if not device:
+            # OS relation has been broken or doesn't exist yet; get by path
+            path = component.getPrimaryPath()
+            try:
+                devpath = path[:path.index('devices')+2]
+                device = component.unrestrictedTraverse(devpath)
+            except ValueError:
+                # We've done our best. Give up.
+                return
+        if device:
+            newpaths = devicePathsFromComponent(component)
+            catalog.index_object_under_paths(device, newpaths)
+

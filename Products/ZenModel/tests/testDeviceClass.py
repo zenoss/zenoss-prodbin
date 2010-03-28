@@ -98,7 +98,7 @@ class TestDeviceClass(ZenModelBaseTest):
         self.assertEqual( devBrains[0].getObject().id, 'testdev2' )
         self.assertEqual( devBrains[1].getObject().id, 'testdev' )
         devBrains = self.dmd.Devices._findDevice( 'testdev2', False )
-        self.assertEqual( len( dev ), 1 )
+        self.assertEqual( len(devBrains), 1 )
         self.assertEqual( devBrains[0].getObject().id, 'testdev2' )
         devBrains = self.dmd.Devices._findDevice( 'badid' )
         self.assert_( not devBrains )

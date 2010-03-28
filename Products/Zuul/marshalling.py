@@ -13,7 +13,7 @@
 
 from zope.interface import implements
 from zope.component import adapts
-from Products.ZenUtils.json import json
+from Products.ZenUtils.jsonutils import json
 from Products import Zuul
 from Products.Zuul.interfaces import IMarshallable
 from Products.Zuul.interfaces import IMarshaller

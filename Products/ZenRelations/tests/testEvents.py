@@ -26,7 +26,7 @@ from OFS.Folder import Folder
 
 from zope import interface
 from zope import component
-from zope.app.component.hooks import setHooks
+from zope.site.hooks import setHooks
 from zope.component.interfaces import IObjectEvent
 from zope.testing import cleanup
 

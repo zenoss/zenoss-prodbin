@@ -17,7 +17,7 @@ log = logging.getLogger('extdirect')
 class DirectException(Exception):
     pass
 
-import simplejson as json
+import json
 
 
 class DirectResponse(object):

@@ -11,7 +11,7 @@
 #
 ###########################################################################
 
-import simplejson
+import json
 from itertools import count, islice
 
 #import operator
@@ -118,7 +118,7 @@ class TestLayer3Linking(ZenModelBaseTest):
         nononet.zDrawMapLinks = False
 
         links = self.dmd.ZenLinkManager.getChildLinks(self.dmd.Locations)
-        links = simplejson.loads(links)
+        links = json.loads(links)
         self.assertEqual(len(links), 2)
 
 
@@ -155,7 +155,7 @@ class TestLayer3Linking(ZenModelBaseTest):
         iface5.addIpAddress('192.168.254.2/30')
 
         links = self.dmd.ZenLinkManager.getChildLinks(self.dmd.Locations)
-        links = simplejson.loads(links)
+        links = json.loads(links)
         self.assertEqual(len(links), 3)
 
 
@@ -188,7 +188,7 @@ class TestLayer3Linking(ZenModelBaseTest):
             for this in these:
                 this.setLocation("/loc_%d" % len(devs))
         locs = self.dmd.ZenLinkManager.getChildLinks(self.dmd.Locations)
-        locs = simplejson.loads(locs)
+        locs = json.loads(locs)
         self.assertEqual(len(locs), 15) # (n!)/(k!(n-k)!), n=6, k=2
 
     def testLinkStatus(self):
@@ -209,7 +209,7 @@ class TestLayer3Linking(ZenModelBaseTest):
         self.evids.append(self.zem.sendEvent(evt))
 
         links = self.dmd.ZenLinkManager.getChildLinks(self.dmd.Locations)
-        links = simplejson.loads(links)
+        links = json.loads(links)
 
         self.assertEqual(len(links), 1)
         self.assertEqual(links[0][1], 0)
@@ -220,7 +220,7 @@ class TestLayer3Linking(ZenModelBaseTest):
         self.evids.append(self.zem.sendEvent(evt))
 
         links = self.dmd.ZenLinkManager.getChildLinks(self.dmd.Locations)
-        links = simplejson.loads(links)
+        links = json.loads(links)
 
         self.assertEqual(len(links), 1)
         self.assertEqual(links[0][1], 5)

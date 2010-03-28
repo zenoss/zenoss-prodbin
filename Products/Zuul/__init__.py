@@ -42,6 +42,7 @@ from itertools import imap
 from OFS.ObjectManager import ObjectManager
 from zope import component
 from zope.interface import verify
+from OFS.ObjectManager import ObjectManager
 from interfaces import IFacade, IInfo
 from interfaces import IMarshallable
 from interfaces import IMarshaller

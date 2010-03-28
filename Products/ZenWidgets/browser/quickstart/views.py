@@ -19,7 +19,7 @@ from Products.ZenModel.ZDeviceLoader import DeviceCreationJob
 from Products.ZenModel.IpNetwork import AutoDiscoveryJob
 from Products.ZenWidgets.messaging import IMessageSender
 from Products.ZenUtils import Ext
-from Products.ZenUtils.json import json
+from Products.ZenUtils.jsonutils import json
 
 _is_network = lambda x: bool(re.compile(r'^(\d+\.){3}\d+\/\d+$').search(x))
 _is_range = lambda x: bool(re.compile(r'^(\d+\.){3}\d+\-\d+$').search(x))

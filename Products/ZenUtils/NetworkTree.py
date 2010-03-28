@@ -151,8 +151,8 @@ class NetworkLink(ILink):
 
     def getDataForJSON(self):
         # Eventually will return data for serialization
-        import simplejson
-        return simplejson.dumps([
+        import json
+        return json.dumps([
             self.id,
             self.getEndpointNames()[0],
             self.getEndpointNames()[1],

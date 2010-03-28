@@ -12,13 +12,13 @@
 ###########################################################################
 
 import re
-import simplejson
+import json
 
 from Products.Five.browser import BrowserView
 from Products.AdvancedQuery import Eq, Or
 
 from Products.ZenUtils.Utils import relative_time
-from Products.ZenUtils.json import json
+from Products.ZenUtils.jsonutils import json
 from Products.ZenUtils.Utils import formreq, extractPostContent
 from Products.ZenWidgets import messaging
 from Products.ZenModel.ZenossSecurity import *

@@ -12,7 +12,7 @@
 ###########################################################################
 
 from Products.Five.browser import BrowserView
-from Products.ZenUtils.json import json
+from Products.ZenUtils.jsonutils import json
 
 class DeviceComponentTable(BrowserView):
     """

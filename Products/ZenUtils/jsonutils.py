@@ -11,7 +11,7 @@
 #
 ###########################################################################
 
-import simplejson
+import json as _json
 
 def json(value):
     """
@@ -38,7 +38,7 @@ def json(value):
     if callable(value):
         # Decorate the given callable
         def inner(*args, **kwargs):
-            return simplejson.dumps(value(*args, **kwargs))
+            return _json.dumps(value(*args, **kwargs))
         # Well-behaved decorators look like the decorated function
         inner.__name__ = value.__name__
         inner.__dict__.update(value.__dict__)
@@ -46,7 +46,7 @@ def json(value):
         return inner
     else:
         # Simply serialize the value passed
-        return simplejson.dumps(value)
+        return _json.dumps(value)
 
 def unjson(value):
     """
@@ -54,10 +54,10 @@ def unjson(value):
 
         >>> jsonstr = '[{"a": 1}, "123", 123]'
         >>> print unjson(jsonstr)
-        [{'a': 1}, '123', 123]
+        [{u'a': 1}, u'123', 123]
     
     @param value: A JSON string
     @type value: str
     @return: The object represented by C{value}
     """
-    return simplejson.loads(value)
+    return _json.loads(value)

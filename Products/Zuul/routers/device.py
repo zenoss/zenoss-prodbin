@@ -13,7 +13,7 @@
 
 from itertools import islice
 from Products.ZenUtils.Ext import DirectResponse
-from Products.ZenUtils.json import unjson
+from Products.ZenUtils.jsonutils import unjson
 from Products import Zuul
 from Products.Zuul.routers import TreeRouter
 from Products.Zuul.form.interfaces import IFormBuilder

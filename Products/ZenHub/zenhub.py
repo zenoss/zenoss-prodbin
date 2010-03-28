@@ -18,6 +18,7 @@ Provide remote, authenticated, and possibly encrypted two-way
 communications with the Model and Event databases.
 
 """
+import Globals
 
 from XmlRpcService import XmlRpcService
 
@@ -32,7 +33,6 @@ from twisted.internet import reactor, protocol, defer
 from twisted.web import server, xmlrpc
 from zope.interface import implements
 
-import Globals
 
 from Products.DataCollector.Plugins import loadPlugins
 from Products.ZenUtils.ZCmdBase import ZCmdBase
@@ -313,9 +313,9 @@ class ZenHub(ZCmdBase):
             def __getattr__(s, name):
                 return getattr(s._cache, name)
 
-            def invalidate(s, oid, version, tid, server_invalidation=True):
+            def invalidate(s, oid, tid, server_invalidation=True):
                 self.changes.insert(0, oid)
-                return s._cache.invalidate(oid, version, tid,
+                return s._cache.invalidate(oid, tid,
                                            server_invalidation)
 
         from ZEO.ClientStorage import ClientStorage as ClientStorageBase

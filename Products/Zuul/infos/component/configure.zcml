@@ -16,8 +16,6 @@
 <configure xmlns="http://namespaces.zope.org/zope"
            xmlns:five="http://namespaces.zope.org/five">
 
-    <include package="zope.app.schema" file="meta.zcml"/>
-
     <adapter provides="...interfaces.IComponentInfo"
              for="Products.ZenModel.OSComponent.OSComponent"
              factory=".ComponentInfo"
@@ -48,8 +46,9 @@
              factory=".ipservice.IpServiceInfo"
              />
 
-    <vocabulary factory=".ipservice.serviceIpAddressesVocabulary"
-                name="serviceIpAddresses"/>
+    <utility provides="zope.schema.interfaces.IVocabularyFactory"
+             component=".ipservice.serviceIpAddressesVocabulary"
+             name="serviceIpAddresses"/>
 
     <adapter provides="...interfaces.IWinServiceInfo"
              for="Products.ZenModel.WinService.WinService"

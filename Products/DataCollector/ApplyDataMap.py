@@ -308,7 +308,9 @@ class ApplyDataMap(object):
                 self.logEvent(device, obj,Change_Set_Blocked,msg,Event.Warning)
             return changed
         for attname, value in objmap.items():
-            if type(value) == type(''):
+            if attname.startswith('_'):
+                continue
+            if isinstance(value, basestring):
                 try:
                     # This looks confusing, and it is. The scenario is:
                     #   A collector gathers some data as a raw byte stream, 
@@ -325,8 +327,9 @@ class ApplyDataMap(object):
                     value = value.decode(codec)
                     value = value.encode(sys.getdefaultencoding())
                 except UnicodeDecodeError:
+                    # We don't know what to do with this, so don't set the
+                    # value
                     continue
-            if attname[0] == '_': continue
             att = getattr(aq_base(obj), attname, zenmarker)
             if att == zenmarker:
                 log.warn('The attribute %s was not found on object %s from device %s',
@@ -336,9 +339,9 @@ class ApplyDataMap(object):
                 setter = getattr(obj, attname)
                 gettername = attname.replace("set","get") 
                 getter = getattr(obj, gettername, None)
-                
+
                 if not getter:
-                    
+
                     log.warn("getter '%s' not found on obj '%s', "
                                   "skipping", gettername, obj.id)
                     
