@@ -18,8 +18,6 @@ read ZOPEPASSWORD
 echo
 stty echo
 
-test -z "$ZOPEHOME" && export ZOPEHOME=$ZENHOME
-
-$ZOPEHOME/bin/zpasswd.py -u admin -p $ZOPEPASSWORD inituser
+$ZENHOME/lib/python/Zope2/utilities/zpassswd.py -u admin -p $ZOPEPASSWORD inituser
 zopectl stop
 zopectl start

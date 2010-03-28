@@ -49,6 +49,7 @@ export ZOPE_USERNAME="admin"
 export ZOPE_PASSWORD="**ZOPE_PASSWD**"
 export ZOPE_LISTEN_PORT="8080"
 export PYTHON="**PYTHON**"
+export PYTHONPATH="**ZENHOME**/lib/python"
 export INSTALL_LOG="$ZENHOME/log/install.log"
 # NB: This crude hack is to add output while preserving return codes
 # Uses the concepts from http://www.travishartwell.net/blog/2006/08/19_2220

@@ -26,14 +26,69 @@ from subprocess import call
 import optparse
 import time
 
-ZENHOME = os.environ['ZENHOME']
-ZOPEHOME = os.environ.get('ZOPEHOME', ZENHOME)
-zenhome = lambda *args: os.path.join(ZENHOME, *args)
-zopehome = lambda *args: os.path.join(ZOPEHOME, *args)
-
 STDOUT = sys.stdout
 
+# Remove script directory from path
+scriptdir = os.path.realpath(os.path.dirname(sys.argv[0]))
+sys.path[:] = [p for p in sys.path if os.path.realpath(p)!=scriptdir]
+
+ZENHOME = os.environ['ZENHOME']
+zenhome = lambda *args: os.path.join(ZENHOME, *args)
+
+PYTHON = zenhome('bin', 'python')
+CONFIG = zenhome('etc', 'zope.conf')
+SOFTWARE_HOME = zenhome('lib', 'python')
+PRODUCTS = zenhome('Products')
+
+# add SOFTWARE_HOME to sys.path, but only if Zope isn't available
+try:
+    import Zope2
+except ImportError:
+    sys.path.insert(0, SOFTWARE_HOME)
+
 exitcodes = []
+
+def runZopeTests(options):
+    from zope.testing import testrunner
+    from zope.testing.testrunner.options import setup
+
+    def load_config_file(option, opt, config_file, *ignored):
+        print "Parsing %s" % config_file
+        import Zope2
+        Zope2.configure(config_file)
+
+    setup.add_option( '--config-file', action='callback', type='string',
+                     dest='config_file', callback=load_config_file)
+
+    defaults = '--tests-pattern ^tests$ -v'.split()
+    defaults += ['--config-file', CONFIG]
+    defaults += ['-m',
+                 '!^('
+                 'ZConfig'
+                 '|'
+                 'BTrees'
+                 '|'
+                 'persistent'
+                 '|'
+                 'ThreadedAsync'
+                 '|'
+                 'transaction'
+                 '|'
+                 'ZEO'
+                 '|'
+                 'ZODB'
+                 '|'
+                 'ZopeUndo'
+                 '|'
+                 'zdaemon'
+                 '|'
+                 'zope[.]testing'
+                 '|'
+                 'zope[.]app'
+                 ')[.]']
+    defaults += ['--path', SOFTWARE_HOME]
+    defaults += ['--package-path', PRODUCTS, 'Products']
+    sys.exit(testrunner.run(defaults, options))
 
 
 def overrideCoreTests(results):
@@ -129,15 +184,15 @@ def expandPackDir(fulldir):
     return demangleEggName(fulldir, name)
 
 
-_packname = re.compile('ZenPacks\.[^-/]+\.[^-/]+').search 
+_packname = re.compile('ZenPacks\.[^-/]+\.[^-/]+').search
 def zenPackName(s):
     match = _packname(s)
     if match:
         return match.group()
     return None
-    
-def findZenPackNames(): 
-    dirs = findZenPackDirectories() 
+
+def findZenPackNames():
+    dirs = findZenPackDirectories()
     return filter(None, map(zenPackName, dirs))
 
 
@@ -308,11 +363,9 @@ def runUnitTests(packages=[], modules=[], names=[], coverage="", count=0):
         for p in invalid_packages:
             print '\t' + p
     print "="*30
-    python = zenhome('bin', 'python')
-    zdctl = zenhome('lib', 'python', 'Zope2', 'Startup', 'zopectl.py')
-    cfgfile = zenhome('etc', 'zope.conf')
-    swhome = zenhome('lib', 'python')
-    parts = [python, zdctl, '-C', cfgfile, 'test']
+
+    #parts = [python, zdctl, '-C', cfgfile, 'test']
+    parts = ['--config-file', CONFIG]
 
     # Add ZenPack homes to package directories
     for d in findZenPackDirectories():
@@ -334,12 +387,9 @@ def runUnitTests(packages=[], modules=[], names=[], coverage="", count=0):
     if count:
         parts.append('-'+('v'*count))
     if coverage: parts.extend(['--coverage', coverage])
-    pythonpath = os.environ.get('PYTHONPATH', '')
-    env = os.environ.copy()
-    env.update({'PYTHONPATH': swhome + ':' + pythonpath,
-                'INSTANCE_HOME': zenhome(), 'SOFTWARE_HOME': swhome})
     if packages or modules or names:
-        exitcodes.append(call(parts, env=env))
+        sys.argv[:] = sys.argv[:1]
+        runZopeTests(parts)
 
 
 usage = \
