@@ -17,7 +17,7 @@ log = logging.getLogger('extdirect')
 class DirectException(Exception):
     pass
 
-import json
+from Products.ZenUtils.jsonutils import json, unjson
 
 
 class DirectResponse(object):
@@ -68,7 +68,7 @@ class DirectRouter(object):
         """
         """
         # Decode the request data
-        body = json.loads(body)
+        body = unjson(body)
         self._body = body
 
         if isinstance(body, list):
@@ -85,7 +85,7 @@ class DirectRouter(object):
         if len(directResponses) == 1:
             directResponses = directResponses[0]
 
-        return json.dumps(directResponses, encoding='iso-8859-1')
+        return json(directResponses, encoding='iso-8859-1')
 
     def _processDirectRequest(self, directRequest):
 
@@ -211,6 +211,6 @@ class DirectProviderDefinition(object):
         <script> tag and ready for inclusion in an HTML document.
         """
         config = self._config()
-        source = "\nExt.Direct.addProvider(%s);\n" % json.dumps(config)
+        source = "\nExt.Direct.addProvider(%s);\n" % json(config)
         return source.strip()
 

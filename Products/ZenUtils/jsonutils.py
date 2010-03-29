@@ -13,7 +13,31 @@
 
 import json as _json
 
-def json(value):
+def _recursiveCaster(ob):
+    if isinstance(ob, dict):
+        result = {}
+        for k, v in ob.iteritems():
+            result[str(k)] = _recursiveCaster(v)
+        return result
+    elif isinstance(ob, list):
+        return [_recursiveCaster(x) for x in ob]
+    elif isinstance(ob, unicode):
+        return str(ob)
+    else:
+        return ob
+
+
+class StringifyingDecoder(_json.JSONDecoder):
+    """
+    Casts all unicode objects as strings. This is necessary until Zope is less
+    stupid.
+    """
+    def decode(self, s):
+        result = super(StringifyingDecoder, self).decode(s)
+        return _recursiveCaster(result)
+
+
+def json(value, **kw):
     """
     Serialize C{value} into a JSON string.
 
@@ -46,9 +70,9 @@ def json(value):
         return inner
     else:
         # Simply serialize the value passed
-        return _json.dumps(value)
+        return _json.dumps(value, **kw)
 
-def unjson(value):
+def unjson(value, **kw):
     """
     Create the Python object represented by the JSON string C{value}.
 
@@ -60,4 +84,6 @@ def unjson(value):
     @type value: str
     @return: The object represented by C{value}
     """
-    return _json.loads(value)
+    if 'cls' not in kw:
+        kw['cls'] = StringifyingDecoder
+    return _json.loads(value, **kw)
