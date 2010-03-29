@@ -27,6 +27,7 @@ from Products.ZenModel.BasicDataSource import BasicDataSource
 from Products.ZenModel.RRDDataPoint import RRDDataPoint
 from Products.ZenModel.ThresholdClass import ThresholdClass
 from Products.ZenModel.GraphDefinition import GraphDefinition
+from Products.ZenModel.GraphPoint import GraphPoint
 from Products.ZenModel.Device import Device
 from Products.ZenModel.DeviceClass import DeviceClass
 
@@ -327,6 +328,11 @@ class TemplateFacade(ZuulFacade):
         thresholdClass = self._getThresholdClass(thresholdUid)
         graphDefinition.manage_addThresholdGraphPoints((thresholdClass.id,))
 
+    def setGraphPointSequence(self, uids):
+        for i, uid in enumerate(uids):
+            graphPoint = self._getGraphPoint(uid)
+            graphPoint.sequence = i
+
     def _getCatalog(self, uid):
         obj = self._getObject(uid)
         return ICatalogTool(obj)
@@ -349,3 +355,8 @@ class TemplateFacade(ZuulFacade):
             raise Exception('Cannot find GraphDefinition at "%s".' % uid)
         return obj
 
+    def _getGraphPoint(self, uid):
+        obj = self._getObject(uid)
+        if not isinstance(obj, GraphPoint):
+            raise Exception('Cannot find GraphPoint at "%s".' % uid)
+        return obj

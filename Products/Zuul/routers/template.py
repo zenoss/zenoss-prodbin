@@ -204,7 +204,14 @@ class TemplateRouter(DirectRouter):
                 'data': Zuul.marshal(graphPoints)
                 }
 
+    @require('Manage DMD')
     def addThresholdToGraph(self, graphUid, thresholdUid):
         facade = self._getFacade()
         facade.addThresholdToGraph(graphUid, thresholdUid)
+        return {'success': True}
+
+    @require('Manage DMD')
+    def setGraphPointSequence(self, uids):
+        facade = self._getFacade()
+        facade.setGraphPointSequence(uids)
         return {'success': True}

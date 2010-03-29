@@ -251,3 +251,9 @@ class ITemplateFacade(IFacade):
         parameter as a ThresholdGraphPoint on the GraphDefinition uniquely
         identified by the graphUid parameter.
         """
+
+    def setGraphPointSequence(uids):
+        """
+        Set the sequence of the graph points uniquely identified by the items
+        in the uids paramter.
+        """

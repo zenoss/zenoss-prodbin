@@ -189,7 +189,8 @@ Zenoss.GraphPointStore = Ext.extend(Ext.data.DirectStore, {
     constructor: function(config){
         Ext.applyIf(config, {
             directFn: router.getGraphPoints,
-            fields: ['name', 'type', 'description'],
+            idProperty: 'uid',
+            fields: ['uid', 'name', 'type', 'description'],
             root: 'data'
         });
         Zenoss.GraphPointStore.superclass.constructor.call(this, config);
@@ -220,40 +221,99 @@ new Ext.menu.Menu({
     }]
 });
 
+Zenoss.BaseSequenceGrid = Ext.extend(Ext.grid.GridPanel, {
+    constructor: function(config){
+        Ext.applyIf(config, {
+            enableDragDrop: Zenoss.Security.hasPermission('Manage DMD'),
+            ddGroup: 'sequenceDDGroup'
+        });
+        Zenoss.BaseSequenceGrid.superclass.constructor.call(this, config);
+    },
+    onRender: function() {
+        Zenoss.BaseSequenceGrid.superclass.onRender.apply(this, arguments);
+        var grid, store;
+        grid = this;
+        store = this.getStore();
+        this.dropZone = new Ext.dd.DropZone(this.view.scroller.dom, {
+            ddGroup: 'sequenceDDGroup',
+            onContainerOver: function(source, event, data) {
+                return this.dropAllowed;
+            },
+            notifyDrop: function(source, event, data) {
+                var sm, rows, cindex, i, rowData;
+                sm = grid.getSelectionModel();
+                rows = sm.getSelections();
+                cindex = source.getDragData(event).rowIndex;
+                if (typeof cindex != "undefined") {
+                    for (i = 0; i < rows.length; i++) {
+                        rowData = store.getById(rows[i].id);
+                        store.remove(store.getById(rows[i].id));
+                        store.insert(cindex, rowData);
+                    }
+                    sm.selectRecords(rows);
+                }
+            }
+        });
+    }
+});
+
+Zenoss.GraphPointGrid = Ext.extend(Zenoss.BaseSequenceGrid, {
+    constructor: function(config){
+        Ext.applyIf(config, {
+            stripeRows: true,
+            autoScroll: true,
+            border: false,
+            autoExpandColumn: 'description',
+            store: {xtype: 'graphpointstore'},
+            columns: [
+                {dataIndex: 'name', header: _t('Name'), width: 150},
+                {dataIndex: 'type', header: _t('Type'), width: 150},
+                {dataIndex: 'description', header: _t('Description'), id: 'description'}
+            ],
+            tbar: [{
+                xtype: 'button',
+                id: 'addGraphPointButton',
+                iconCls: 'add',
+                tooltip: _t('Add Graph Point'),
+                menu: 'graphPointMenu'
+            }, {
+                xtype: 'button',
+                id: 'deleteGraphPointButton',
+                iconCls: 'delete',
+                tooltip: _t('Delete Graph Point'),
+                disabled: true,
+                handler: function() {
+                    Ext.getCmp('deleteGraphPointDialog').show();
+                }
+            }]
+        });
+        Zenoss.GraphPointGrid.superclass.constructor.call(this, config);
+    }
+});
+Ext.reg('graphpointgrid', Zenoss.GraphPointGrid);
+
 new Zenoss.HideFitDialog({
     id: 'manageGraphPointsDialog',
     title: _t('Manage Graph Points'),
     items: [{
-        xtype: 'grid',
-        id: 'graphPointGrid',
-        autoExpandColumn: 'description',
-        store: {xtype: 'graphpointstore'},
-        columns: [
-            {dataIndex: 'name', header: _t('Name'), width: 150},
-            {dataIndex: 'type', header: _t('Type'), width: 150},
-            {dataIndex: 'description', header: _t('Description'), id: 'description'}
-        ],
-        tbar: [{
-            xtype: 'button',
-            id: 'addGraphPointButton',
-            iconCls: 'add',
-            tooltip: _t('Add Graph Point'),
-            menu: 'graphPointMenu'
-        }, {
-            xtype: 'button',
-            id: 'deleteGraphPointButton',
-            iconCls: 'delete',
-            tooltip: _t('Delete Graph Point'),
-            disabled: true,
-            handler: function() {
-                Ext.getCmp('deleteGraphPointDialog').show();
-            }
-        }]
+        xtype: 'graphpointgrid',
+        id: 'graphPointGrid'
     }],
     buttons: [
     {
         xtype: 'HideDialogButton',
-        text: _t('Close')
+        text: _t('Save'),
+        handler: function(){
+            if (Zenoss.Security.hasPermission('Manage DMD')) {
+                var records, uids;
+                records = Ext.getCmp('graphPointGrid').getStore().getRange();
+                uids = Ext.pluck(records, 'id');
+                router.setGraphPointSequence({'uids': uids});
+            }
+        }
+    }, {
+        xtype: 'HideDialogButton',
+        text: _t('Cancel')
     }]
 });
 

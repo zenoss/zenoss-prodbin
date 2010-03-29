@@ -427,11 +427,9 @@ footerPanel.add({
 
 Ext.getCmp('deleteButton').setDisabled(true);
 
-Zenoss.SequenceGrid = Ext.extend(Ext.grid.GridPanel, {
+Zenoss.SequenceGrid = Ext.extend(Zenoss.BaseSequenceGrid, {
     constructor: function(config) {
         Ext.applyIf(config, {
-            enableDragDrop: true,
-            ddGroup: 'sequenceDDGroup',
             stripeRows: true,
             autoScroll: true,
             border: false,
@@ -454,32 +452,6 @@ Zenoss.SequenceGrid = Ext.extend(Ext.grid.GridPanel, {
             ]
         });
         Zenoss.SequenceGrid.superclass.constructor.call(this, config);
-    },
-    onRender: function() {
-        var grid, store;
-        grid = this;
-        store = this.getStore();
-        Zenoss.SequenceGrid.superclass.onRender.apply(this, arguments);
-        this.dropZone = new Ext.dd.DropZone(this.view.scroller.dom, {
-            ddGroup: 'sequenceDDGroup',
-            onContainerOver: function(source, event, data) {
-                return this.dropAllowed;
-            },
-            notifyDrop: function(source, event, data) {
-                var sm, rows, cindex, i, rowData;
-                sm = grid.getSelectionModel();
-                rows = sm.getSelections();
-                cindex = source.getDragData(event).rowIndex;
-                if (typeof cindex != "undefined") {
-                    for (i = 0; i < rows.length; i++) {
-                        rowData = store.getById(rows[i].id);
-                        store.remove(store.getById(rows[i].id));
-                        store.insert(cindex, rowData);
-                    }
-                    sm.selectRecords(rows);
-                }
-            }
-        });
     }
 });
 Ext.reg('sequencegrid', Zenoss.SequenceGrid);
