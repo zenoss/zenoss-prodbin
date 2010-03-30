@@ -730,6 +730,15 @@ Ext.apply(Zenoss.devices, {
                         xtype: 'panel',
                         border: false,
                         layout: 'column',
+                        ref: "moreAttributes",
+                        listeners: {
+                            expand: function(){
+                                this.refOwner.refOwner.center();
+                            },
+                            collapse: function(){
+                                this.refOwner.refOwner.center();
+                            }
+                        },
                         items: [{
                             columnWidth: 0.33,
                             layout: 'form',
