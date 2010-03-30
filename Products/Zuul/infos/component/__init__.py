@@ -14,7 +14,7 @@
 from zope.interface import implements
 from zope.component import adapts
 from Products.Zuul.interfaces import IComponentInfo, IComponent
-from Products.Zuul.infos import InfoBase
+from Products.Zuul.infos import InfoBase, ProxyProperty
 from Products.Zuul.decorators import info
 
 class ComponentInfo(InfoBase):
@@ -34,9 +34,7 @@ class ComponentInfo(InfoBase):
             'events': self._object.sendEventWhenBlocked()
         }
 
-    @property
-    def monitored(self):
-        return self._object.monitor
+    monitored = ProxyProperty('monitor')
 
     @property
     def status(self):
