@@ -133,6 +133,14 @@ class BasicDataSourceInfo(InfoBase):
         self._object = dataSource
 
     @property
+    def testable(self):
+        """
+        This tells the client if we can test this datasource against a specific device.
+        It defaults to True and expects subclasses to overide it if they can not
+        """
+        return True
+    
+    @property
     def id(self):
         return '/'.join( self._object.getPrimaryPath() )
 
@@ -149,21 +157,7 @@ class BasicDataSourceInfo(InfoBase):
         return self._object.sourcetype
     
     enabled = ProxyProperty('enabled')
-
     
-class SNMPDataSourceInfo(BasicDataSourceInfo):
-    implements(ISNMPDataSourceInfo)
-    """
-    DataSource for SNMP (Basic DataSource with a type of 'SNMP')
-    """
-    oid = ProxyProperty('oid')
-
-    
-class CommandDataSourceInfo(BasicDataSourceInfo):
-    implements(ICommandDataSourceInfo)
-    """
-    Datasource for Commands (Basic DataSource with a type of 'COMMAND')
-    """
     @property
     def availableParsers(self):
         """
@@ -187,14 +181,29 @@ class CommandDataSourceInfo(BasicDataSourceInfo):
         return self._object.getSeverityString()
     
     severity = property(_getSeverity, _setSeverity)
-    usessh = ProxyProperty('usessh')
-    component = ProxyProperty('component')
-    eventClass = ProxyProperty('eventClass')
-    eventKey = ProxyProperty('eventKey')
-    commandTemplate = ProxyProperty('commandTemplate')
     cycletime = ProxyProperty('cycletime')
     parser = ProxyProperty('parser')
+    eventClass = ProxyProperty('eventClass')
+
     
+class SNMPDataSourceInfo(BasicDataSourceInfo):
+    implements(ISNMPDataSourceInfo)
+    """
+    DataSource for SNMP (Basic DataSource with a type of 'SNMP')
+    """
+    oid = ProxyProperty('oid')
+
+    
+class CommandDataSourceInfo(BasicDataSourceInfo):
+    implements(ICommandDataSourceInfo)
+    """
+    Datasource for Commands (Basic DataSource with a type of 'COMMAND')
+    """
+    usessh = ProxyProperty('usessh')
+    component = ProxyProperty('component')
+    eventKey = ProxyProperty('eventKey')
+    commandTemplate = ProxyProperty('commandTemplate')
+        
     
 class DataPointInfo(InfoBase):
     implements(IDataPointInfo)

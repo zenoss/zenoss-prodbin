@@ -62,31 +62,35 @@ class IBasicDataSourceInfo(IInfo):
     type = schema.Text(title=_t(u"Type"),
                        readonly=True)
     enabled = schema.Bool(title=_t(u"Enabled"))
+    severity = schema.Text(title=_t(u"Severity"),
+                           xtype="severity")
+    eventClass = schema.Text(title=_t(u"Event Class"),
+                             xtype="eventclass")
+    cycletime = schema.Int(title=_t(u"Cycle Time (seconds)"))
+    parser = schema.Text(title=_t(u"Parser"),
+                         xtype="parser")
 
     
 class ICommandDataSourceInfo(IBasicDataSourceInfo):
     """
     Adapts basic datasource infos of type CMD
     """
-    enabled = schema.Bool(title=_t(u"Enabled"))
     usessh = schema.Bool(title=_t(u"Use SSH"))
-   
-    severity = schema.Text(title=_t(u"Severity"),
-                           xtype="severity")
     component = schema.Text(title=_t(u"Component"))
     eventKey = schema.Text(title=_t(u"Event Key"))
-    eventClass = schema.Text(title=_t(u"Event Class"),
-                             xtype="eventclass")
     commandTemplate = schema.TextLine(title=_t(u"Command Template"))
-    cycleTime = schema.Int(title=_t(u"Cycle Time"))
-    parser = schema.Text(title=_t(u"Parser"),
-                         xtype="parser")
-
+   
     
-class ISNMPDataSourceInfo(IBasicDataSourceInfo):
+class ISNMPDataSourceInfo(IInfo):
     """
     Adaps a basic Datasource of type SNMP
     """
+    name = schema.Text(title=_t(u"Name"),
+                       description=_t(u"The name of this datasource"),
+                       readonly=True)
+    type = schema.Text(title=_t(u"Type"),
+                       readonly=True)
+    enabled = schema.Bool(title=_t(u"Enabled"))
     oid = schema.Text(title=_t(u"OID"))
     
     

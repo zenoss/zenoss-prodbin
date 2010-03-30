@@ -142,6 +142,9 @@
             "text": "rrdtype.js",
             "path": "resources/js/zenoss/form/"
         },{
+            "text": "Password.js",
+            "path": "resources/js/zenoss/form/"
+        },{
             "text": "UpDownField.js",
             "path": "resources/js/zenoss/form/"
         },{

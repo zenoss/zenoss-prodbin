@@ -598,16 +598,20 @@ function editDataSourceOrPoint() {
     // callback for the router request
     function displayEditDialog(response) {
         var win,
-        config = {};
-        config.record = response.record;
-        config.items = response.form;
-        config.xtype = "editdialog";
-        config.id = editDataSourcesId;
-        config.isDataPoint = isDataPoint;
+        config = {
+            record: response.record,
+            items: response.form,
+            xtype: "editdialog",
+            id: editDataSourcesId,
+            isDataPoint: isDataPoint,
+            directFn: router.setInfo,
+            title: _t('Edit Data Source')
+        };
+                
         if (isDataPoint) {
             config.title = _t('Edit Metric');
             config.directFn = submitDataPointForm;
-        }else{
+        }else if (config.record.testable){
             // add the test against device panel
             config.items.push({
                xtype:'panel',
@@ -629,10 +633,7 @@ function editDataSourceOrPoint() {
                    text: 'Test',
                    handler: testDataSource
                }]});
-            config.title = _t('Edit Data Source');
-            config.directFn = router.setInfo;
         }
-        
         config.saveHandler = closeEditDialog;
         win = Ext.create(config);
         win.show();

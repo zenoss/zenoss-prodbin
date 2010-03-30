@@ -106,6 +106,7 @@ class TemplateFacade(ZuulFacade):
         This defaults to using the adapters to return the correct info if not a datasource.
         """
         info = None
+        
         # look for datasource type
         if isinstance(obj, BasicDataSource):
             if obj.sourcetype == 'SNMP':
@@ -116,7 +117,7 @@ class TemplateFacade(ZuulFacade):
         # use the default adapter    
         if not info:
             info = IInfo(obj)
-            
+        
         return info
     
     def getDataSourceDetails(self, uid):
@@ -174,7 +175,7 @@ class TemplateFacade(ZuulFacade):
         @parma string name 
         """
         datasource = self._getObject(dataSourceUid)
-        return datasource.manage_addRRDDataPoint(name)
+        return datasource.manage_addRRDDataPoint(str(name))
     
     def addDataSource(self, templateUid, name, type):
         """
