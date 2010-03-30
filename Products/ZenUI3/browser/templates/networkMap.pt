@@ -52,7 +52,7 @@ Ext.onReady(function(){
         id: 'zennetmap',
         url: '/zport/dmd/flex/ZenNetMap.swf',
         autoShow: true,
-        backgroundColor: '#FFFFFF',
+        backgroundColor: '#FFFFFF'
     });
 
 });
