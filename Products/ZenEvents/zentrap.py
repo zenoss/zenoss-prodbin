@@ -364,24 +364,26 @@ class ZenTrap(EventServer, CaptureReplay):
             """
             self.capturePacket( addr[0], addr, pdu)
 
+            oid = ''
             eventType = 'unknown'
             result = {}
             if pdu.version == 1:
                 # SNMP v2
                 variables = self.getResult(pdu)
-                for oid, value in variables:
-                    oid = '.'.join(map(str, oid))
+                for vb_oid, vb_value in variables:
+                    vb_oid = '.'.join(map(str, vb_oid))
                     # SNMPv2-MIB/snmpTrapOID
-                    if oid == '1.3.6.1.6.3.1.1.4.1.0':
+                    if vb_oid == '1.3.6.1.6.3.1.1.4.1.0':
+                        oid = '.'.join(map(str, vb_value))
                         eventType = self.oid2name(
-                            value, exactMatch=False, strip=False)
+                            vb_value, exactMatch=False, strip=False)
                     else:
                         # Add a detail for the variable binding.
-                        r = self.oid2name(oid, exactMatch=False, strip=False)
-                        result[r] = value
+                        r = self.oid2name(vb_oid, exactMatch=False, strip=False)
+                        result[r] = vb_value
                         # Add a detail for the index-stripped variable binding.
-                        r = self.oid2name(oid, exactMatch=False, strip=True)
-                        result[r] = value
+                        r = self.oid2name(vb_oid, exactMatch=False, strip=True)
+                        result[r] = vb_value
 
             elif pdu.version == 0:
                 # SNMP v1
@@ -419,14 +421,14 @@ class ZenTrap(EventServer, CaptureReplay):
 
                 # Decode all variable bindings. Allow partial matches and strip
                 # off any index values.
-                for oid, value in variables:
-                    oid = '.'.join(map(str, oid))
+                for vb_oid, vb_value in variables:
+                    vb_oid = '.'.join(map(str, vb_oid))
                     # Add a detail for the variable binding.
-                    r = self.oid2name(oid, exactMatch=False, strip=False)
-                    result[r] = value
+                    r = self.oid2name(vb_oid, exactMatch=False, strip=False)
+                    result[r] = vb_value
                     # Add a detail for the index-stripped variable binding.
-                    r = self.oid2name(oid, exactMatch=False, strip=True)
-                    result[r] = value
+                    r = self.oid2name(vb_oid, exactMatch=False, strip=True)
+                    result[r] = vb_value
             else:
                 self.log.error("Unable to handle trap version %d", pdu.version)
                 return
