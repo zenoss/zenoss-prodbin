@@ -53,10 +53,10 @@ class Location(DeviceOrganizer, ZenPackable):
     # Organizer configuration
     dmdRootName = "Locations"
 
-    address = '' 
+    address = ''
 
     portal_type = meta_type = event_key = 'Location'
-    
+
     _properties = DeviceOrganizer._properties + (
         {'id':'address','type':'string','mode':'w'},
     )
@@ -123,10 +123,6 @@ class Location(DeviceOrganizer, ZenPackable):
         into a data structure appropriate for JS consumption by another method
         (specifically, getChildGeomapData, below).
         """
-        try:
-            address = self.address.decode().encode('iso-8859-1')
-        except (UnicodeDecodeError, UnicodeEncodeError):
-            address = self.address
         psthresh = self.dmd.prodStateDashboardThresh
         summary = self.getEventSummary(prodState=psthresh)
         colors = 'red orange yellow green green'.split()
@@ -140,7 +136,7 @@ class Location(DeviceOrganizer, ZenPackable):
         if linkToMap: 
             link+='/locationGeoMap'
         summarytext = self.mapTooltip() # mapTooltip is a page template
-        return [address, color, link, summarytext]
+        return [self.address, color, link, summarytext]
 
     @json
     def getChildGeomapData(self):

@@ -85,7 +85,7 @@ class DirectRouter(object):
         if len(directResponses) == 1:
             directResponses = directResponses[0]
 
-        return json(directResponses, encoding='iso-8859-1')
+        return json(directResponses)
 
     def _processDirectRequest(self, directRequest):
 

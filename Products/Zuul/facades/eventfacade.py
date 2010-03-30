@@ -139,6 +139,8 @@ class EventFacade(ZuulFacade):
             else:
                 value = _shortvalue
             if field not in data:
+                if isinstance(value, str):
+                    value = value.decode('iso-8859-1')
                 data[field] = value
         data['evid'] = zevent.evid
         data['id'] = zevent.evid

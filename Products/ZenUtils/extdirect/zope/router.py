@@ -16,7 +16,7 @@ class ZopeDirectRouter(DirectRouter):
     def __init__(self, context, request=None):
         self.context = context
         self.request = request
-        
+
     def __call__(self):
         try:
             # Zope 3
