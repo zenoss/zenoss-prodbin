@@ -49,7 +49,7 @@
             "text": "DialogWindow.js",
             "path": "resources/js/zenoss/"
         }, {
-            "text": "EditDialog.js",          
+            "text": "DataSourceEditDialog.js",          
             "path": "resources/js/zenoss/form/"      
         },{
             "text": "HierarchyTreePanel.js",

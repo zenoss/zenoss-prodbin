@@ -142,7 +142,8 @@
             var win = Ext.create( {
                 record: response.record,
                 items: response.form,
-                xtype: 'editdialog',
+                thresholds: true,
+                xtype: 'datasourceeditdialog',
                 title: _t('Edit Threshold'),
                 directFn: router.setInfo,
                 id: 'editThresholdDialog',

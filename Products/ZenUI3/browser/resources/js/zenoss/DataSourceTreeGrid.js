@@ -601,7 +601,7 @@ function editDataSourceOrPoint() {
         config = {
             record: response.record,
             items: response.form,
-            xtype: "editdialog",
+            xtype: "datasourceeditdialog",
             id: editDataSourcesId,
             isDataPoint: isDataPoint,
             directFn: router.setInfo,
@@ -612,25 +612,25 @@ function editDataSourceOrPoint() {
             config.title = _t('Edit Metric');
             config.directFn = submitDataPointForm;
         }else if (config.record.testable){
-            // add the test against device panel
-            config.items.push({
-               xtype:'panel',
+            // add the test against device panel (as an extra fieldset)
+            config.items.items.push({
+               xtype:'fieldset',
                columnWidth: 0.5,
                baseCls: 'test-against-device',
                hidden: Zenoss.Security.doesNotHavePermission('Run Commands'),
                title: _t('Test Against a Device'),
                items:[{
-                   xtype: 'hidden',
-                   name: 'uid',
-                   value: response.record.id
-               },{
                    xtype: 'textfield',
                    fieldLabel: _t('Device Name'),
                    id: 'testDevice',
                    name: 'testDevice'
                },{
+                   xtype: 'hidden',
+                   name: 'uid',
+                   value: response.record.id
+               },{
                    xtype: 'button',
-                   text: 'Test',
+                   text: _t('Test'),
                    handler: testDataSource
                }]});
         }
