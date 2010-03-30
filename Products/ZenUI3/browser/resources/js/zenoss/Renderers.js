@@ -33,7 +33,7 @@ Ext.apply(Zenoss.render, {
     },
 
     evstatus: function(evstatus) {
-        return '<div class="status-icon-small '+evstatus.toLowerCase()+'"><'+'/div>';
+        return '<div class="status-icon-small-'+evstatus.toLowerCase()+'"><'+'/div>';
     },
 
     events: function(value) {

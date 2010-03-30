@@ -583,8 +583,9 @@ Zenoss.FilterGridView = Ext.extend(Ext.ux.grid.livegrid.GridView, {
         var stateclass = record.get('eventState')=='New' ?
                             'unacknowledged':'acknowledged';
         var sev = Zenoss.util.convertSeverity(record.get('severity'));
-        var sevclass = this.rowColors ? sev + ' rowcolor' : '';
-        return stateclass + ' ' + sevclass;
+        var rowcolors = this.rowColors ? 'rowcolor rowcolor-' : '';
+        var cls = rowcolors + sev + '-' + stateclass + ' ' + stateclass;
+        return cls;
     },
     toggleRowColors: function(bool){
         this.rowColors = bool;

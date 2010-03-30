@@ -317,11 +317,11 @@ Zenoss.SimpleEventGridPanel = Ext.extend(Ext.ux.grid.livegrid.GridPanel, {
                 },
                 getRowClass: function(record, index) {
                     var stateclass = record.get('eventState')=='New' ?
-                                        'unacknowledged':'acknowledged',
-                        sev = Zenoss.util.convertSeverity(record.get('severity')),
-                        rowColors = Ext.state.Manager.get('rowcolor'),
-                        sevclass = rowColors ? sev + ' rowcolor' : '';
-                    return stateclass + ' ' + sevclass;
+                                        'unacknowledged':'acknowledged';
+                    var sev = Zenoss.util.convertSeverity(record.get('severity'));
+                    var rowcolors = Ext.state.Manager.get('rowcolor') ? 'rowcolor rowcolor-' : '';
+                    var cls = rowcolors + sev + '-' + stateclass + ' ' + stateclass;
+                    return cls;
                 }
             })
         }); // Ext.applyIf
