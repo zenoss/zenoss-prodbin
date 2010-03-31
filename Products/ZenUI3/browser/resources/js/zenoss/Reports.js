@@ -102,7 +102,7 @@ function initializeTreeDrop(g) {
                 }
             }
             var tree = this.tree;
-            Zenoss.remote.ReportRouter.moveReports({
+            Zenoss.remote.ReportRouter.moveNode({
                 uids: [data.node.attributes.uid],
                 target: target.node.attributes.uid
             }, function (cb_data) {

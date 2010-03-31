@@ -26,12 +26,12 @@ class ReportRouter(DirectRouter):
 
     def _getReportOrganizersTree(self, rorg, my_data):
         for rorg in rorg.children():
-            rorg_node = self._createTreeNode(rorg, False)
+            rorg_node = self._createTreeNode(rorg)
             my_data.append(rorg_node)
             self._getReportOrganizersTree(rorg, rorg_node['children'])
 
             for report in rorg.reports():
-                report_node = self._createTreeNode(report, True)
+                report_node = self._createTreeNode(report)
                 rorg_node['children'].append(report_node)
 
     @require('Manage DMD')
@@ -44,7 +44,7 @@ class ReportRouter(DirectRouter):
             maoUid = uid.replace('/zport/dmd', '')
             self.context.dmd.Reports.manage_addOrganizer(maoUid)
             represented = self.context.dmd.restrictedTraverse(uid)
-            node = self._createTreeNode(represented, False)
+            node = self._createTreeNode(represented)
             return DirectResponse.succeed(tree=self.getTree(), newNode=node)
         except Exception, e:
             return DirectResponse.fail(str(e))
@@ -56,24 +56,26 @@ class ReportRouter(DirectRouter):
         return DirectResponse.succeed(tree=self.getTree())
 
     @require('Manage DMD')
-    def moveReports(self, uids, target):
-        """Move a report from its current organizer to moveTarget.
+    def moveNode(self, uids, target):
+        """Move a node from its current organizer to another.
         """
         targetNode = self.context.dmd.restrictedTraverse(target)
         for uid in uids:
-            report = self.context.dmd.restrictedTraverse(uid)
-            reportTitle = report.titleOrId()
-            report.getParentNode()._delObject(reportTitle)
-            targetNode._setObject(reportTitle, report)
-            reportNode = self._createTreeNode(report, True)
-        return DirectResponse.succeed(tree=self.getTree(), newNode=reportNode)
+            represented = self.context.dmd.restrictedTraverse(uid)
+            representedTitle = represented.titleOrId()
+            represented.getParentNode()._delObject(representedTitle)
+            targetNode._setObject(representedTitle, represented)
+            representedNode = self._createTreeNode(represented)
+        return DirectResponse.succeed(tree=self.getTree(), 
+                newNode=representedNode)
 
-    def _createTreeNode(self, represented, leaf):
+    def _createTreeNode(self, represented):
         path = represented.getDmdKey()
         if path.startswith('/') :
             path = path[1:]
 
         text = represented.titleOrId()
+        leaf = not isinstance(represented, represented.getReportClass())
         if not leaf:
             description = ('reports', 'report')[represented.countReports() == 1]
             text = {'count': represented.countReports(),
@@ -86,4 +88,5 @@ class ReportRouter(DirectRouter):
                 'id': represented.getPrimaryId().replace('/', '.'),
                 'uiProvider': 'report', 
                 'leaf': leaf,
+                'expandable': not leaf,
                 'text': text }
