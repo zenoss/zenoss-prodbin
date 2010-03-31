@@ -17,6 +17,7 @@ from Products.Zuul.search.interfaces import IParsedQuery
 from Products.Zuul.search.interfaces import ISearchProvider
 from Products.Zuul.search.facades import SearchFacade
 from Products.Zuul.search.facades import ParsedQuery
+from Products.Zuul.search.facades import DefaultSearchResultSorter
 
 import logging
 log = logging.getLogger("zen.search")
@@ -51,7 +52,7 @@ def createResultsFromRange( max, category='test' ):
     return createResultsFromIds(ids,category)
 
 def createResultsFromIds( ids, category='test' ):
-    excerpts = map(str,ids)
+    excerpts = ids[:]
     categories = [category] * len(ids)
     return map( DummyResult, ids, excerpts, categories )
 
@@ -99,6 +100,7 @@ class TestSearchFacade(BaseTestCase):
         search_results.extend( createResultsFromRange(7,'cat2') )
         facade = SearchFacade(self.dmd)
         results = facade.getQuickSearchResults( "testquery", 20, 5 )
+        results = list(results)
         cat1Ids = [result.id for result in results if result.category == 'cat1']
         cat2Ids = [result.id for result in results if result.category == 'cat2']
         self.assertEquals( set(range(1,6)), set(cat1Ids) )
@@ -112,6 +114,57 @@ class TestSearchFacade(BaseTestCase):
         results = facade.getSearchResults( "testquery" )
         resultIds = [result.id for result in results]
         self.assertEquals( range(1,10), resultIds )
+
+    def testDefaultResultSorter(self):
+        device_results = createResultsFromRange(2, 'Device')
+        event_results = createResultsFromRange(2, 'Event')
+        other1_results = createResultsFromRange(2, 'Category1')
+        other2_results = createResultsFromRange(2, 'Category2')
+        scrambledResults = other2_results + event_results + device_results + \
+                           other1_results
+        sorter = DefaultSearchResultSorter()
+        sortedResults = sorted(scrambledResults, sorter)
+        expectedResults = device_results + event_results + other1_results + \
+                          other2_results
+        self.assertEquals( expectedResults, sortedResults )
+
+
+    def testCategorySortAndLimit(self):
+        global search_results
+        device_results = createResultsFromRange(9, 'Device')
+        event_results = createResultsFromRange(9, 'Event')
+        other1_results = createResultsFromRange(9, 'Category1')
+        other2_results = createResultsFromRange(9, 'Category2')
+        search_results = other2_results + event_results + device_results + \
+                         other1_results
+        facade = SearchFacade(self.dmd)
+        maxPerCategory = 5
+        results = facade.getQuickSearchResults( 'testquery',
+                                                len( search_results ),
+                                                maxPerCategory )
+        expected = device_results[:maxPerCategory] + \
+                   event_results[:maxPerCategory] + \
+                   other1_results[:maxPerCategory] + \
+                   other2_results[:maxPerCategory]
+        self.assertEquals( expected, list(results) )
+
+    def testCategorySortAndLimit2(self):
+        global search_results
+        maxPerCategory = 4
+        device_results = createResultsFromRange(2 * maxPerCategory, 'Device')
+        event_results = createResultsFromRange(2 * maxPerCategory, 'Event')
+        other1_results = createResultsFromRange(2 * maxPerCategory, 'Category1')
+        other2_results = createResultsFromRange(2 * maxPerCategory, 'Category2')
+        search_results = other2_results + event_results + device_results + \
+                         other1_results
+        facade = SearchFacade(self.dmd)
+        results = facade.getQuickSearchResults( 'testquery',
+                                                2 * maxPerCategory,
+                                                maxPerCategory )
+        expected = device_results[:maxPerCategory] + \
+                   event_results[:maxPerCategory]
+        self.assertEquals( expected, list(results) )
+
 
 def test_suite():
     from unittest import TestSuite, makeSuite

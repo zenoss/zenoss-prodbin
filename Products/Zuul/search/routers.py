@@ -68,7 +68,7 @@ class SearchRouter(DirectRouter):
 
     def getLiveResults(self, query):
         """
-        Returns IQuickSearchResult snippets for the results of the query.
+        Returns IQuickSearchResultSnippets for the results of the query.
         """
         facade = self._getFacade()
         results = facade.getQuickSearchResults(query,
@@ -79,8 +79,7 @@ class SearchRouter(DirectRouter):
             snippet = IQuickSearchResultSnippet( result )
             snippets.append( snippet )
         #self._addAllResultsLink( results )
-        return {'results': sorted(Zuul.marshal(snippets),
-            lambda x, y: cmp(x['category'], y['category']))}
+        return {'results': Zuul.marshal(snippets)}
 
     def noProvidersPresent(self):
         return self._getFacade().noProvidersPresent()

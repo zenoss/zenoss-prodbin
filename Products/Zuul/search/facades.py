@@ -11,6 +11,7 @@
 #
 ######################################################################
 
+from itertools import islice, ifilter
 from zope.component import subscribers
 from zope.interface import implements
 from zope.component import getGlobalSiteManager
@@ -20,6 +21,7 @@ from interfaces import ISearchFacade
 from interfaces import ISearchProvider
 from interfaces import ISearchQueryParser
 from interfaces import IParsedQuery
+from Products.Zuul.search import ISearchResultSorter
 
 
 class ParsedQuery(object):
@@ -106,6 +108,38 @@ class DefaultQueryParser(object):
         return ParsedQuery( operators, keywords )
 
 
+DEVICE_CATEGORY = 'device'
+EVENT_CATEGORY = 'event'
+
+class DefaultSearchResultSorter(object):
+    implements(ISearchResultSorter)
+
+    def __call__(self, result1, result2):
+        result = self._compareCategories( result1, result2 )
+        if result == 0:
+            result = self._compareExcerpts( result1, result2 )
+        return result
+
+    def _compareCategories(self, result1, result2):
+        cat1 = result1.category.lower()
+        cat2 = result2.category.lower()
+
+        if cat1 == cat2:
+            return 0
+        elif cat1 == DEVICE_CATEGORY or cat1 == EVENT_CATEGORY:
+            return 1 if cat2 == DEVICE_CATEGORY else -1
+        elif cat2 == DEVICE_CATEGORY or cat2 == EVENT_CATEGORY:
+            return 1
+        else:
+            return cmp( cat1, cat2 )
+
+    def _compareExcerpts(self, result1, result2 ):
+        return cmp( result1.excerpt, result2.excerpt )
+
+
+DEFAULT_SORTER = DefaultSearchResultSorter()
+
+
 class SearchFacade(ZuulFacade):
     """
     Facade for search functionality.  The SearchFacade distributes queries to
@@ -123,23 +157,26 @@ class SearchFacade(ZuulFacade):
         return subscribers([self._dmd], ISearchProvider)
 
     def _filterResultsByCategoryCount(self, results, maxPerCategory ):
+        # If no max, just return the results
         if maxPerCategory is None:
             return results
-        resultCounts={}
+        
+        # We assume the results are sorted by category.
+        # Take the first maxPerCategory of each group.
+        categoryCounts={}
+        def stillBelowCategoryLimit( result ):
+            category = result.category
+            if category not in categoryCounts:
+                categoryCounts[category] = 0
+            categoryCounts[category] += 1
+            return categoryCounts[category] <= maxPerCategory
 
-        def keepResult( result ):
-            doKeep = False
-            if result.category not in resultCounts:
-                resultCounts[result.category] = 0
-            if resultCounts[result.category] != maxPerCategory:
-                resultCounts[result.category] += 1
-                doKeep = True
-            return doKeep
-
-        return filter( keepResult, results )
+        return ifilter( stillBelowCategoryLimit, results )
+        
 
     def _getSearchResults(self, query, maxResults=None,
-                          maxResultsPerCategory=None):
+                          maxResultsPerCategory=None,
+                          resultSorter=DEFAULT_SORTER):
         """
         The actual implementation of querying each provider.  This consists
         of parsing the query, sending it to the providers, and limiting
@@ -149,6 +186,7 @@ class SearchFacade(ZuulFacade):
         @param maxResults The maximum number of results to be returned
         @param maxResultsPerCategory The maximum number of results to be
                                      returned of any one category
+        @return ordered list of ISearchResult objects
         """
         parser = self._getParser()
         parsedQuery = parser.parse( query )
@@ -163,20 +201,21 @@ class SearchFacade(ZuulFacade):
                                                         maxResults )
             if providerResults:
                 results.extend( providerResults )
-            if maxResults is not None and len( results ) > maxResults:
-                break
 
-        if results is not None:
-            results = results[:maxResults]
-        results.sort( lambda x,y: cmp(x.excerpt,y.excerpt) )
+        # Sort results
+        results.sort( resultSorter )
 
+        # Keep only max number of results per category
         if maxResultsPerCategory is not None:
             results = self._filterResultsByCategoryCount( results,
                                                 maxResultsPerCategory )
 
+        # Keep max number of results
+        results = islice(results, maxResults)
+
         return results
 
-    def getSearchResults(self, query):
+    def getSearchResults(self, query, resultSorter=DEFAULT_SORTER):
         """
         Execute the query against registered search providers, returning
         full results.
@@ -184,10 +223,11 @@ class SearchFacade(ZuulFacade):
         @param query query string
         @rtype list of ISearchResult-implementing objects
         """
-        return self._getSearchResults( query )
+        return self._getSearchResults( query, resultSorter=resultSorter )
 
     def getQuickSearchResults(self, query, maxResults=None,
-                              maxResultsPerCategory=None):
+                              maxResultsPerCategory=None,
+                              resultSorter=DEFAULT_SORTER):
         """
         Execute the query against registered search providers, returning
         abbreviated results for display in the quick search drop-down list.
@@ -197,7 +237,8 @@ class SearchFacade(ZuulFacade):
         """
         return self._getSearchResults(query,
                                       maxResults,
-                                      maxResultsPerCategory )
+                                      maxResultsPerCategory,
+                                      resultSorter=resultSorter)
 
     def noProvidersPresent(self):
         """

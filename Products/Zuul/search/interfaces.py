@@ -70,14 +70,20 @@ class ISearchFacade(IFacade):
     Interface for a search facade.
     """
     def getQuickSearchResults(self, queryString, maxResults,
-                              maxResultsPerCategory):
+                              maxResultsPerCategory, searchResultSorter):
         """
         Query for items, return ISearchInfo objects
+
+        @param searchResultSorter an optional ISearchResultSorter-implementing
+               object
         """
 
-    def getSearchResults(self, queryString):
+    def getSearchResults(self, queryString, searchResultSorter):
         """
         Query for items, returning ISearchInfo objects
+
+        @param searchResultSorter an optional ISearchResultSorter-implementing
+               object
         """
 
     def noProvidersPresent(self):
@@ -85,6 +91,18 @@ class ISearchFacade(IFacade):
         Return true if there are no providers
         """
 
+class ISearchResultSorter(Interface):
+    """
+    Sort ISearchResult objects.  (The default sort is by category then excerpt.)
+    """
+    def __call__(result1,result2):
+        """
+        Passed to list.sort or sorted method for sorting ISearchResult objects.
+
+        @type result1 ISearchResult
+        @type result2 ISearchResult
+        @return 1 if result1 > result2, 0 if equal, -1 if result2 > result1
+        """
 
 class IQuickSearchResultSnippet(IMarshallable):
     """
