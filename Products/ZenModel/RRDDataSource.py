@@ -201,7 +201,9 @@ class RRDDataSource(ZenModelRM, ZenPackable):
         environ = {'dev' : d,
                    'device': d,
                    'devname': d.id,
-                   'here' : context, 
+                   'ds': self,
+                   'datasource': self,
+                   'here' : context,
                    'zCommandPath' : context.zCommandPath,
                    'nothing' : None,
                    'now' : DateTime() }
