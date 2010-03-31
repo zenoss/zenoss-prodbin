@@ -179,7 +179,7 @@
 <browser:page
     class=".command.TestDataSourceView"
     name="test_datasource"
-    for="Products.ZenModel.RRDDataSource.SimpleRRDDataSource"
+    for="Products.ZenModel.RRDDataSource.RRDDataSource"
     permission="zenoss.RunCommands"
     />
 

@@ -150,6 +150,9 @@
         },{
             "text": "alias.js",
             "path": "resources/js/zenoss/form/"
+        },{
+            "text": "TwoColumnTextArea.js",
+            "path": "resources/js/zenoss/form/"
         }]
     }],
     "resources": []
