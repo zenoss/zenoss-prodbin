@@ -96,6 +96,7 @@ Zenoss.HorizontalSlidePanel = Ext.extend(Ext.Panel, {
                 cls: index ? 'toleft' : 'toright',
                 handler: function() {
                     this.layout.setActiveItem(index ? 0 : 1);
+                    
                 },
                 scope: this
             }, this);
@@ -255,6 +256,45 @@ Zenoss.SubselectionPanel = Ext.extend(Ext.Panel, {
     }
 });
 
+Zenoss.DetailNavTreePanel = Ext.extend(Ext.tree.TreePanel, {
+    constructor: function(config){
+        Ext.applyIf(config, {
+            autoHeight: true,
+            selModel: new Ext.tree.DefaultSelectionModel({
+                listeners: {
+                    selectionchange: function(sm, node) {
+                        var itemSelModel;
+                        if (node) {
+                            this.ownerCt.onSelectionChange(this.ownerCt, node);
+                            this.ownerCt.items.each(function(item){
+                                itemSelModel = item.getSelectionModel();
+                                if ( itemSelModel !== sm && itemSelModel.getSelectedNode() ) {
+                                    itemSelModel.getSelectedNode().unselect(true);
+                                }
+                            });
+                        }
+                    },
+                    scope: this
+                }
+            }),
+            id: 'subselecttreepanel' + config.idSuffix,
+            ref: 'subselecttreepanel',
+            border: false,
+            rootVisible: false,
+            cls: 'x-tree-noicon',
+            root : {nodeType: 'node'}
+        });
+        Zenoss.DetailNavTreePanel.superclass.constructor.call(this, config);
+    },
+    setContext: function(uid) {
+        //called to load the nav tree
+        this.ownerCt.contextId = uid;
+        this.setRootNode([]);
+        this.ownerCt.getNavConfig(uid);
+    }
+});
+Ext.reg('detailnavtreepanel', Zenoss.DetailNavTreePanel);
+
 Ext.reg('subselection', Zenoss.SubselectionPanel);
 /**
  * Used to manage and display detail navigation tree for a contextId
@@ -295,30 +335,13 @@ Zenoss.DetailNavPanel = Ext.extend(Zenoss.SubselectionPanel,{
      */
     panelConfigMap: null,
     constructor: function(config) {
-        var id = config.id || Ext.id();
         Ext.applyIf(config, {
-            id: id,
+            id: Ext.id(),
             layout: 'fit',
             border: false,
-            bodyStyle: { 'margin-top' : 10 },
-            items: [{
-                xtype:'treepanel',
-                selModel: new Ext.tree.DefaultSelectionModel({
-                    listeners: {
-                        selectionchange: function(sm, node) {
-                            if (node) {
-                                this.onSelectionChange(this, node);
-                            }
-                        },
-                        scope: this
-                    }
-                }),
-                id: 'subselecttreepanel' + id,
-                border: false,
-                rootVisible: false,
-                root : {nodeType: 'node'}
-                }]
+            bodyStyle: { 'margin-top' : 10 }
         });
+        config.items = this.getConfigItems(config.id, config.items);
         Zenoss.DetailNavPanel.superclass.constructor.call(this, config);
     },initEvents: function() {
         this.addEvents( 
@@ -331,10 +354,9 @@ Zenoss.DetailNavPanel = Ext.extend(Zenoss.SubselectionPanel,{
         Zenoss.DetailNavPanel.superclass.initEvents.call(this);
     },
     setContext: function(uid) {
-        //called to load the nav tree
-        this.contextId = uid;
-        this.treepanel.setRootNode([]);
-        this.getNavConfig(uid);
+        this.items.each(function(item){
+            item.setContext(uid);
+        });
     },
     getNavConfig: function(uid){
         //Direct call to get nav configs from server
@@ -399,6 +421,16 @@ Zenoss.DetailNavPanel = Ext.extend(Zenoss.SubselectionPanel,{
             }, this);
             
         }
+    },
+    getConfigItems: function(id, otherItems){
+        var firstItem = this.getFirstItem(id);
+        return [ firstItem ].concat(otherItems || []);
+    },
+    getFirstItem: function(id){
+        return {
+            xtype:'detailnavtreepanel',
+            idSuffix: id
+        };
     }
 });
 

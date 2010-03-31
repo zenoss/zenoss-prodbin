@@ -303,3 +303,7 @@ class DeviceRouter(TreeRouter):
                                                serialNumber)
         return DirectResponse(jobId=jobStatus.id)
         
+    def getTemplates(self, id):
+        facade = self._getFacade()
+        templates = facade.getTemplates(id)
+        return Zuul.marshal(templates)

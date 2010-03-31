@@ -235,3 +235,16 @@ class DeviceFacade(TreeFacade):
                                                serialNumber=serialNumber,
                                                title=title)
         return jobStatus
+
+    def getTemplates(self, id):
+        deviceClass = self._getObject(id)
+        rrdTemplates = deviceClass.getRRDTemplates()
+        def byTitleOrId(left, right):
+            return cmp(left.titleOrId().lower(), right.titleOrId().lower())
+        for rrdTemplate in sorted(rrdTemplates, byTitleOrId):
+            uid = '/'.join(rrdTemplate.getPrimaryPath())
+            yield {'id': uid,
+                   'uid': uid,
+                   'text': rrdTemplate.titleOrId(),
+                   'leaf': True
+                   }

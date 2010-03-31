@@ -144,10 +144,7 @@ var hwProduct = {
         root: 'productNames',
         totalProperty: 'totalCount',
         fields: ['name'],
-        directFn: REMOTE.getHardwareProductNames,
-        listener:{'beforeload': function(store, options) {
-            console.log('load options', options);
-        }}
+        directFn: REMOTE.getHardwareProductNames
     }),
     triggerAction: 'all',
     selectOnFocus: true,
@@ -971,6 +968,66 @@ var loctree = {
     listeners: { render: initializeTreeDrop }
 };
 
+Zenoss.MonTemplateTreePanel = Ext.extend(Ext.tree.TreePanel, {
+    constructor: function(config){
+        Ext.applyIf(config, {
+            id: 'templateTree',
+            useArrows: true,
+            border: false,
+            cls: 'x-tree-noicon',
+            selModel: new Ext.tree.DefaultSelectionModel({
+                listeners: {
+                    beforeselect: function(sm, node) {
+                        return node.isLeaf();
+                    },
+                    selectionchange: function(sm, node) {
+                        var itemSelModel, detail;
+                        if (node) {
+                            this.ownerCt.items.each(function(item){
+                                itemSelModel = item.getSelectionModel();
+                                if ( itemSelModel !== sm && itemSelModel.getSelectedNode() ) {
+                                    itemSelModel.getSelectedNode().unselect(true);
+                                }
+                            });
+                            detail = Ext.getCmp('detail_panel');
+                            if ( ! detail.items.containsKey('montemplate') ) {
+                                detail.add({
+                                    xtype: 'templatecontainer',
+                                    id: 'montemplate',
+                                    ref: 'montemplate'
+                                });
+                            }
+                            detail.montemplate.setContext(node.attributes.uid);
+                            detail.getLayout().setActiveItem('montemplate');
+                        }
+                    },
+                    scope: this
+                }
+            }),
+            loader: {
+                directFn: REMOTE.getTemplates,
+                baseAttrs: {singleClickExpand: true}
+            },
+            root: {
+                nodeType: 'async',
+                id: '/zport/dmd/Devices',
+                text: _t('Monitoring Templates'),
+                expanded: true
+            }
+        });
+        Zenoss.MonTemplateTreePanel.superclass.constructor.call(this, config);
+    },
+    setContext: function(uid){
+        if ( uid.match('^/zport/dmd/Devices') ) {
+            this.getRootNode().setId(uid);
+            this.getRootNode().reload();
+            this.show();
+        } else {
+            this.hide();
+        }
+    }
+});
+Ext.reg('montemplatetreepanel', Zenoss.MonTemplateTreePanel);
 
 Ext.getCmp('center_panel').add({
     id: 'center_panel_container',
@@ -996,8 +1053,10 @@ Ext.getCmp('center_panel').add({
             text: _t('Details'),
             target: 'detail_panel',
             buttonText: _t('See All'),
-            html: 'some other stuff',
             menuIds: ['More','Add','TopLevel','Manage'],
+            items: [{
+                xtype: 'montemplatetreepanel'
+            }],
             listeners:{
                 navloaded: function( detailNavPanel, navConfig){
                     if (navConfig.id != 'device_grid'){
@@ -1014,7 +1073,13 @@ Ext.getCmp('center_panel').add({
             },
             filterNav: function(navpanel, config){
                 //nav items to be excluded
-                var excluded = {'status':true, 'classes':true, 'events':true};
+                var excluded = {
+                    'status': true,
+                    'classes': true,
+                    'events': true,
+                    'templates': true,
+                    'performancetemplates': true
+                };
                 return !excluded[config.id];
             },
             onGetNavConfig: function(contextId) {
@@ -1046,11 +1111,17 @@ Ext.getCmp('center_panel').add({
         }],
         listeners: {
             beforecardchange: function(me, card, index, from, fromidx) {
+                var node, selectedNode;
                 if (index==1) {
-                    var node = treesm.getSelectedNode().attributes;
+                    node = treesm.getSelectedNode().attributes;
                     card.setHeaderText(node.text.text);
                 } else if (index===0) {
-                    Ext.getCmp('subselecttreepanel').getSelectionModel().getSelectedNode().unselect();
+                    Ext.getCmp('detail_nav').items.each(function(item){
+                        selectedNode = item.getSelectionModel().getSelectedNode();
+                        if ( selectedNode ) {
+                            selectedNode.unselect();
+                        }
+                    });
                     Ext.getCmp('detail_panel').layout.setActiveItem(0);
                 }
             },
@@ -1133,7 +1204,6 @@ Ext.getCmp('center_panel').add({
         }]
     }]
 });
-
 
 /*
  *

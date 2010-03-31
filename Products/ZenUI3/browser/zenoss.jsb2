@@ -85,10 +85,16 @@
             "text": "TemplateTreePanel.js",
             "path": "resources/js/zenoss/"
         }, {
-            "text": "DataSourceTreeGrid.js",
-            "path": "resources/js/zenoss/"
+            "text": "datasource.js",
+            "path": "resources/js/zenoss/monitoringTemplates/"
+        }, {
+            "text": "threshold.js",
+            "path": "resources/js/zenoss/monitoringTemplates/"
         }, {
             "text": "graph.js",
+            "path": "resources/js/zenoss/monitoringTemplates/"
+        }, {
+            "text": "container.js",
             "path": "resources/js/zenoss/monitoringTemplates/"
         }, {
             "text": "TreeFooterBar.js",

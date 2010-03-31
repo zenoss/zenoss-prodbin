@@ -178,7 +178,7 @@ Zenoss.HierarchyTreePanel = Ext.extend(Ext.tree.TreePanel, {
             },
             setDeleteMessage: function(msg){
                 // this remains for backward compatibility
-                if (msg === null) {
+                if (msg === null && this.config) {
                     msg = this.config.message;
                 }
                 this.setText(msg);
