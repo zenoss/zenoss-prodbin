@@ -1345,6 +1345,7 @@ Zenoss.util.setContext = function(uid) {
         Ext.getCmp(id).setContext(uid);
     });
 };
+
 /**
  * Return an array filtered by function argument; Filter function should
  * return true if a value should be included in the filtered result

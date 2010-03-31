@@ -18,6 +18,20 @@ Ext.onReady(function(){
 var REMOTE = Zenoss.remote.DeviceRouter,
     UID = Zenoss.env.device_uid;
 
+var ZEvActions = Zenoss.events.EventPanelToolbarActions;
+
+function setEventButtonsDisplayed(bool) {
+    var actions = [
+        ZEvActions.acknowledge,
+        ZEvActions.close,
+        ZEvActions.newwindow
+    ];
+    var method = bool ? 'show' : 'hide';
+    Ext.each(actions, function(action) {
+        action[method]();
+    });
+}
+
 Zenoss.nav.register({
     Device: [{
         id: 'Overview',
@@ -25,6 +39,13 @@ Zenoss.nav.register({
         text: _t('Device Overview'),
         action: function(node, target){
             target.layout.setActiveItem('device_overview');
+            var panel = Ext.getCmp('devdetail_bottom_detail_panel');
+            if (panel.collapsed) {
+                panel.topToolbar.togglebutton.setIconClass('expand');
+            } else {
+                panel.topToolbar.togglebutton.setIconClass('collapse');
+                setEventButtonsDisplayed(true);
+            }
         }
     },{
         id: 'Components',
@@ -32,6 +53,7 @@ Zenoss.nav.register({
         text: _t('Components'),
         action: function(node, target) {
             target.layout.setActiveItem('component_browser');
+            setEventButtonsDisplayed(true);
         }
     }]
 });
@@ -173,7 +195,6 @@ var hwosInformation = {
 };
 
 
-var ZEvActions = Zenoss.events.EventPanelToolbarActions;
 
 var overview = {
     id: 'device_overview',
@@ -260,7 +281,7 @@ var overview = {
         ]
     },{
         region: 'south',
-        id: 'bottom_detail_panel',
+        id: 'devdetail_bottom_detail_panel',
         split: true,
         xtype: 'SimpleEventGridPanel',
         height: 250,
@@ -269,14 +290,10 @@ var overview = {
                 me.setContext(UID);
             },
             collapse: function(me) {
-                ZEvActions.acknowledge.hide();
-                ZEvActions.close.hide();
-                ZEvActions.newwindow.hide();
+                setEventButtonsDisplayed(false);
             },
             beforeexpand: function(me) {
-                ZEvActions.acknowledge.show();
-                ZEvActions.close.show();
-                ZEvActions.newwindow.show();
+                setEventButtonsDisplayed(true);
             }
         },
         collapsed: true,
@@ -292,7 +309,6 @@ var overview = {
         columns: Zenoss.env.COLUMN_DEFINITIONS
     }]
 };
-
 
 
 Ext.getCmp('center_panel').add({

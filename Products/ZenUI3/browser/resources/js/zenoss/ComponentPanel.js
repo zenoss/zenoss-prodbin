@@ -50,6 +50,7 @@ Zenoss.nav.register({
                 var panel = target.add({
                     id: cardid,
                     xtype: 'SimpleEventGridPanel',
+                    stateful: false,
                     columns: Zenoss.env.COLUMN_DEFINITIONS,
                     tbar: {
                         cls: 'largetoolbar consolebar',
