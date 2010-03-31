@@ -101,7 +101,7 @@ class IOSProcessInfo(IComponentInfo):
     processName = schema.TextLine(title=u"Process Name", group="Overview",
                                   order=-1)
     alertOnRestart = schema.Bool(title=u"Alert on Restart", group="Details")
-    failSeverity = schema.Int(title=u"Fail Severity", xtype="Severity",
+    failSeverity = schema.Int(title=u"Fail Severity", xtype="severity",
                               group="Details")
 
 
@@ -113,7 +113,7 @@ class IWinServiceInfo(IComponentInfo):
                          group="Overview")
     serviceClass = schema.Entity(title=u"Service Class", group="Overview")
     command = schema.Text(title=u"Command", group="Overview")
-    failSeverity = schema.Int(title=u"Fail Severity", xtype="Severity",
+    failSeverity = schema.Int(title=u"Fail Severity", xtype="severity",
                               group="Details")
     serviceType = schema.Text(title=u"Service Type", group="Details")
     startMode = schema.Text(title=u"Start Mode", group="Details")
