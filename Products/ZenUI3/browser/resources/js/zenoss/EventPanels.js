@@ -326,10 +326,18 @@ Zenoss.SimpleEventGridPanel = Ext.extend(Ext.ux.grid.livegrid.GridPanel, {
             })
         }); // Ext.applyIf
         Zenoss.SimpleEventGridPanel.superclass.constructor.call(this, config);
+        this.on('rowdblclick', this.onRowDblClick, this);
     }, // constructor
     setContext: function(uid){
         this.view._context = uid;
         this.view.updateLiveRows(this.view.rowIndex, true, true);
+    },
+    onRowDblClick: function(grid, rowIndex, e) {
+        var row = grid.getStore().getAt(rowIndex),
+            evid = row.id,
+             url = '/zport/dmd/Events/viewDetail?evid='+evid;
+         window.open(url, evid.replace(/-/g,'_'),
+             "status=1,width=600,height=500");
     }
 }); // SimpleEventGridPanel
 Ext.reg('SimpleEventGridPanel', Zenoss.SimpleEventGridPanel);
