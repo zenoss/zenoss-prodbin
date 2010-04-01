@@ -653,8 +653,8 @@ Ext.apply(Zenoss.devices, {
                                 }
                             }, {
                                 xtype: 'checkbox',
-                                name: 'useAutoDiscover',
-                                fieldLabel: _t('Auto Discover'),
+                                name: 'model',
+                                fieldLabel: _t('Model Device'),
                                 id: 'add-device-protocol',
                                 checked: true
                             }]
@@ -830,7 +830,7 @@ Ext.apply(Zenoss.devices, {
             Ext.util.Cookies.set('newui', 'yes');
             
             window.open('/zport/dmd/easyAddDevice', "multi_add",
-            "menubar=0,toolbar=0,resizable=0,height=600, width=800,location=0");
+            "menubar=0,toolbar=0,resizable=0,height=580, width=800,location=0");
         }
     })
 });
@@ -1204,6 +1204,7 @@ Ext.getCmp('center_panel').add({
         }]
     }]
 });
+
 
 /*
  *

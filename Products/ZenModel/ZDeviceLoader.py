@@ -221,6 +221,10 @@ class DeviceCreationJob(ShellCommandJob):
                                     self.discoverProto,
                                     self.performanceMonitor, self.manageIp,
                                     self.zProperties, self.deviceProps)
+            if self.discoverProto == 'none':
+                #need to commit otherwise the status object will lose 
+                #started time attribute and everything will break
+                transaction.commit()
         except Exception, e:
             transaction.commit()
             log = self.getStatus().getLog()
@@ -228,9 +232,14 @@ class DeviceCreationJob(ShellCommandJob):
             log.finish()
             self.finished(FAILURE)
         else:
-            self.cmd = self._v_loader.zendiscCmd
-            super(DeviceCreationJob, self).run(r)
-
+            if self.discoverProto != 'none':
+                self.cmd = self._v_loader.zendiscCmd
+                super(DeviceCreationJob, self).run(r)
+            else:
+                log = self.getStatus().getLog()
+                log.write("device added without modeling")
+                log.finish()
+                self.finished(SUCCESS)
     def finished(self, r):
         self._v_loader.cleanup()
         if self._v_loader.deviceobj is not None and r!=FAILURE:

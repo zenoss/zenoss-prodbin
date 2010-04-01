@@ -280,7 +280,7 @@ class DeviceRouter(TreeRouter):
         return DirectResponse(productNames=result, totalCount=len(result))
 
     def addDevice(self, deviceName, deviceClass, title=None, snmpCommunity="", snmpPort=161,
-                  useAutoDiscover= True, collector='localhost',  rackSlot=0, 
+                  model=False, collector='localhost',  rackSlot=0, 
                   productionState=1000, comments="", hwManufacturer="", 
                   hwProductName="", osManufacturer="", osProductName="", 
                   priority = 3, tag="", serialNumber=""):
@@ -289,7 +289,7 @@ class DeviceRouter(TreeRouter):
                                                title,
                                                snmpCommunity, 
                                                snmpPort,
-                                               useAutoDiscover,
+                                               model,
                                                collector, 
                                                rackSlot, 
                                                productionState, 
