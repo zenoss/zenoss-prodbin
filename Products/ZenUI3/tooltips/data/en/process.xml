@@ -2,73 +2,48 @@
 <view>
   <tooltip>
     <target>inheritedCheckbox</target>
-    <title>Inherited</title>
     <anchor>left</anchor>
-    <html>By default, this option is selected for all nodes below the Processes node. When selected,
-    the node will inherit monitoring choices from its parent. </html>
+    <html>Inherit monitoring</html>
   </tooltip>
 
   <tooltip>
     <target>monitorCheckbox</target> 
-    <title>Enabled</title>
     <anchor>left</anchor>
-    <html>When selected, monitoring choices are individually enabled for this node. (The node does
-    not inherit monitoring choices from its parent.) To select this option,
-    you must first deselect the Inherited option.</html>
+    <html>Individually enable monitoring</html>
   </tooltip>
 
   <tooltip>
     <target>alertOnRestartCheckBox</target>
-    <title>Alert on Restart</title>
     <anchor>left</anchor>
-    <html>When selected, the system will send an event when the process restarts.</html>
+    <html>Alert on restart</html>
   </tooltip>
     
   <tooltip>
     <target>eventSeverityCombo</target>
-    <title>Event Severity</title>
     <anchor>left</anchor>
-    <html>Select an event severity (Critical, Error, Warning, Info, or Debug). This severity
-    level is applied to the event created when the process fails.</html>
+    <html>Select event severity</html>
   </tooltip>
 
   <tooltip>
     <target>regexTextField</target>
-    <title>Pattern</title>
     <anchor>left</anchor>
-    <html>Enter text (as a regular expression) that the system will match to define this
-    process.
-
-    <!-- <br /><br />For example, to search for the
-    command:<br /><br />(NEED VALID COMMAND)<br /><br
-    />enter this pattern:<br /><br
-    /><tt>^.*\/*httpd</tt><br /><br />interpreted
-    as:<br /><br />(DEFINE) -->
-
-   <br /><br />More
-    information about: <a
-    href="http://en.wikipedia.org/wiki/Regular_expression">regular
-    expressions</a></html>
+    <html>Match regular expression</html>
   </tooltip>
 
   <tooltip>
     <target>ignoreParametersCheckbox</target>
-    <title>Ignore Parameters</title>
     <anchor>left</anchor>
-    <html>Select this option to ignore command parameters when matching
-    processes. By default, this option is disabled.</html>
+    <html>Ignore command parameters</html>
   </tooltip>
 
   <tooltip>
     <target>devicesbutton</target>
-    <title>Device</title>
-    <html>Click to display devices on which the selected process or processes are running.</html>
+    <html>Display devices</html>
   </tooltip>
 
   <tooltip>
     <target>eventsbutton</target>
-    <title>Events</title>
-    <html>Click to display events associated with the selected process or processes.</html>
+    <html>Display events</html>
   </tooltip>
   
   <tooltip>
