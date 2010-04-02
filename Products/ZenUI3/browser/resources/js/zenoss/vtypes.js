@@ -1,5 +1,7 @@
 (function(){
     Ext.ns('Zenoss.VTypes');
+
+    var ip_regex = new RegExp("(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)");
     
     /**
      * These are the custom validators defined for
@@ -23,7 +25,11 @@
         betweenzeroandone: function(val, field) {
             return (val >= 0 && val <=1);
         },
-        betweenzeroandoneText: _t('Must be between 0 and 1')
+        betweenzeroandoneText: _t('Must be between 0 and 1'),
+        ipaddress: function(val, field) {
+            return ip_regex.test(val);
+        },
+        ipaddressText: _t('Invalid IP address')
     };
      
     Ext.apply(Ext.form.VTypes, vtypes);

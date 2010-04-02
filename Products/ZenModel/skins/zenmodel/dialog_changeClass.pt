@@ -2,7 +2,7 @@
 <p>
 To which class would you like to move this device?<br/>
 </p> 
-<form method="post" tal:attributes="action here/absolute_url">
+<form id="change_class_form" method="post" tal:attributes="action here/absolute_url">
 <p style="text-align:center;">
 <select class="tableheader" name="deviceClassPath"
     tal:define="targets here/deviceClassMoveTargets">
@@ -11,13 +11,17 @@ To which class would you like to move this device?<br/>
         tal:content="target">/Thing</option>
 </select>
 </p>
-<br/>
-<div id="dialog_buttons">
-<input type="submit" name="changeDeviceClass:method"
-      value="OK" />  
-<input tal:attributes="id string:dialog_cancel;
-        type string:button;
-        value string:Cancel;
-        onclick string:$$('dialog').hide()" />
-</div>
 </form>
+<script>
+var change_class_form = new Zenoss.dialog.DialogFormPanel({
+    jsonResult: false,
+    existingFormId: 'change_class_form',
+    submitName: 'changeDeviceClass:method',
+    listeners: {
+        actioncomplete: function(form, action){
+            var newurl = action.response.responseText;
+            location.href = newurl + '/devicedetail';
+        }
+    }
+});
+</script>

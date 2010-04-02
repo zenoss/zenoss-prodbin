@@ -1,20 +1,94 @@
-<h2>Edit Lock</h2>
-<form method="post" name="_" tal:attributes="action here/absolute_url">
-<p style="text-align:right;">
-<input tal:attributes="name string:sendEventWhenBlocked;
-    type string:checkbox;
-    checked here/sendEventWhenBlocked"
-    />Send event when actions are blocked by a lock
-<br/><br/>
-<input type="submit" name="lockFromUpdates:method"
-        value="Lock from deletion and updates" />
-<br/><br/>
-<input type="submit" name="lockFromDeletion:method" 
-        value="Lock from deletion" />
-<br/><br/>
-<input type="submit" name="unlock:method" value="Unlock"/>
-<br/><br/>
-<input id="dialog_cancel" type="button" value="Cancel"
-        onclick="$('dialog').hide()"/>
-</p>
-</form>
+<h2>Edit Locking</h2>
+<br/>
+<div id="form_content"></div>
+<script tal:content="string:
+function boolFromPython(s) {
+    return eval(s.toLowerCase());
+}
+Zenoss.env.CONTEXT = '${context/absolute_url_path}';
+Zenoss.env.SENDWHENBLOCKED =    boolFromPython('${context/sendEventWhenBlocked}');
+Zenoss.env.LOCKEDFROMUPDATES =  boolFromPython('${context/isLockedFromUpdates}');
+Zenoss.env.LOCKEDFROMDELETION = boolFromPython('${context/isLockedFromDeletion}');
+"></script>
+<script>
+var lockFromUpdates, lockFromDeletion, unlock;
+function disableSendEvent() {
+    var del = Ext.getCmp('lock-deletion-checkbox'),
+        sendEvent = Ext.getCmp('send-event-checkbox');
+    sendEvent.setDisabled(!del.getValue());
+}
+
+var form_panel = new Zenoss.dialog.DialogFormPanel({
+    layout: 'form',
+    url: Zenoss.env.CONTEXT,
+    jsonResult: false,
+    applyTo: Ext.get('form_content'),
+    listeners: {
+        actioncomplete: function(){
+            location.href = location.href;
+        }
+    },
+    items: [{
+        xtype: 'panel',
+        frame: false,
+        border: false,
+        layout: 'vbox',
+        height: 100,
+        defaults: {
+            xtype: 'checkbox',
+            flex: 1,
+            align: 'stretch'
+        },
+        id: 'lockingchecks',
+        items: [{
+            name: 'updates',
+            submitValue: false,
+            id: 'lock-updates-checkbox',
+            boxLabel: _t('Lock from updates'),
+            handler: disableSendEvent.createInterceptor(function(){
+                var del = Ext.getCmp('lock-deletion-checkbox');
+                if (this.getValue()) {
+                    del.setValue(true);
+                    del.disable();
+                } else {
+                    del.enable();
+                }
+            }),
+            checked: Zenoss.env.LOCKEDFROMUPDATES
+        },{
+            name: 'deletion',
+            submitValue: false,
+            id: 'lock-deletion-checkbox',
+            boxLabel: _t('Lock from deletion'),
+            handler: disableSendEvent,
+            checked: Zenoss.env.LOCKEDFROMDELETION,
+            disabled: Zenoss.env.LOCKEDFROMUPDATES
+        },{
+            name: 'sendEventWhenBlocked',
+            id: 'send-event-checkbox',
+            boxLabel: _t('Send an event when an action is blocked'),
+            disabled: !(Zenoss.env.LOCKEDFROMUPDATES || Zenoss.env.LOCKEDFROMDELETION),
+            checked: Zenoss.env.SENDWHENBLOCKED
+        }]
+    }]
+});
+
+var win = Ext.getCmp('dynamic-dialog'),
+    submit = win.buttons[0];
+submit.setHandler(submit.handler.createInterceptor(function(b, e){
+
+    var formPanel = Ext.getCmp('dynamic-dialog-panel'),
+        del = Ext.getCmp('lock-deletion-checkbox'),
+        upd = Ext.getCmp('lock-updates-checkbox');
+
+        if (upd.getValue()) {
+            formPanel.submitName = 'lockFromUpdates:method';
+        } else if (del.getValue()) {
+            formPanel.submitName = 'lockFromDeletion:method';
+        } else {
+            formPanel.submitName = 'unlock:method'
+        }
+
+}, submit));
+
+</script>

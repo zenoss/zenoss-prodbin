@@ -384,4 +384,14 @@ Ext.getCmp('center_panel').add({
     }]
 });
 
+Ext.getCmp('footer_bar').add({
+    xtype: 'ContextConfigureMenu',
+    id: 'device_configure_menu',
+    listeners: {
+        render: function(){
+            this.setContext(UID);
+        }
+    }
+});
+
 });

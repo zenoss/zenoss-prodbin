@@ -56,12 +56,11 @@ Zenoss.ContextConfigureMenu = Ext.extend( Ext.Button,{
     menuItems: [],
     constructor: function(config){
         config = config || {};
-        Ext.apply(config, {
+        Ext.applyIf(config, {
             id: 'context-configure-menu',
-            iconCls: 'customize',
-            id: 'context-configure-menu'
+            iconCls: 'customize'
         });
-    Zenoss.ContextConfigureMenu.superclass.constructor.call(this, config);
+        Zenoss.ContextConfigureMenu.superclass.constructor.call(this, config);
     },
     /**
      * set the UID, menus for the corresponding object will be determined and
@@ -133,7 +132,7 @@ Zenoss.ContextConfigureMenu = Ext.extend( Ext.Button,{
             'uid': uid
         };
         if (this.menuIds !== null && this.menuIds.length >= 1){
-            args['menuIds'] = this.menuIds;
+            args.menuIds = this.menuIds;
         } 
         Zenoss.remote.DetailNavRouter.getContextMenus(args, callback, this);
     },

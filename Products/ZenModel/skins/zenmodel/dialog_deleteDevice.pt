@@ -1,6 +1,6 @@
 <h2>Delete device</h2>
 
-<form action="_"  method="post" tal:attributes="action here/REQUEST/URL1">
+<form id="deldevice_form"  method="post" tal:attributes="action here/REQUEST/URL1">
             
 <p>
 Are you sure you want to delete this device?<br/>
@@ -10,14 +10,19 @@ Are you sure you want to delete this device?<br/>
 <!--
 <input type="checkbox" name="deleteHistory" value="1" checked="1"> Delete historical events for this device<br />
 -->
-<input type="checkbox" name="deletePerf" value="1" checked="1"> Delete performance data for this device<br />
+<input type="checkbox" name="deletePerf" value="1" checked="1"> Delete performance data for this device
 </p>
-<br/>
-<div id="dialog_buttons">
-<input type="submit" name="deleteDevice:method" value="OK" />        
-<input tal:attributes="id string:dialog_cancel;
-        type string:button;
-        value string:Cancel;
-        onclick string:$$('dialog').hide()" />
-</div>
 </form>
+<script>
+var deldevice_form = new Zenoss.dialog.DialogFormPanel({
+    existingFormId: 'deldevice_form',
+    submitName: 'deleteDevice:method',
+    jsonResult: false,
+    listeners: {
+        actioncomplete: function(){
+            // redirect to the devices page
+            location.href='/zport/dmd/itinfrastructure';
+        }
+    }
+});
+</script>

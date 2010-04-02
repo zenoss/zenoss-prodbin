@@ -29,6 +29,9 @@
             href="/++resource++zenui/css/zenui3.css" />
         <tal:block tal:content="structure provider:js-security"/>
         <tal:block tal:content="structure provider:all-js"/>
+        <script tal:define="container context/getPrimaryParent" tal:content="string:
+            Zenoss.env.PARENT_CONTEXT = '${container/absolute_url_path}';
+        " tal:on-error="string:"></script>
         <tal:block metal:define-slot="head-local"/>
         
     </head>

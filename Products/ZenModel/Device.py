@@ -387,27 +387,17 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable,
     def changeDeviceClass(self, deviceClassPath, REQUEST=None):
         """
         Wrapper for DeviceClass.moveDevices. The primary reason to use this
-        method instead of that one is that this one redirects the user to the
-        device in the web interface instead of the new device class.
-        
+        method instead of that one is that this one returns the new path to the
+        device.
+
         @param deviceClassPath: device class in DMD path
         @type deviceClassPath: string
         @param REQUEST: Zope REQUEST object
         @type REQUEST: Zope REQUEST object
         """
         self.deviceClass().moveDevices(deviceClassPath, (self.id,))
-        if REQUEST:
-            messaging.IMessageSender(self).sendToBrowser(
-                title='Device Moved',
-                body="%s was moved to %s." % (self.id, deviceClassPath))
-            REQUEST['message'] = "%s moved to %s" % (self.id, deviceClassPath)
-            if isinstance(REQUEST, FakeRequest) and \
-                REQUEST.has_key('oneKeyValueSoInstanceIsntEmptyAndEvalToFalse'):
-                return REQUEST['message']
-            device = self.getDmdRoot('Devices').findDevice(self.id)
-            REQUEST['RESPONSE'].redirect(device.absolute_url())
-            return
-
+        device = self.getDmdRoot('Devices').findDevice(self.id)
+        return device.absolute_url_path()
 
     def getRRDTemplate(self):
         """
@@ -1765,11 +1755,10 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable,
         @type REQUEST: Zope REQUEST object
         """
         parent = self.getPrimaryParent()
+        path = self.absolute_url_path()
         oldId = self.getId()
         if newId is None:
-            if REQUEST:
-                REQUEST['RESPONSE'].redirect("%s/%s" % (parent.absolute_url(), oldId))
-            return
+            return path
 
         if not isinstance(newId, unicode):
             newId = self.prepId(newId)
@@ -1777,19 +1766,12 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable,
         newId = newId.strip()
 
         if newId == '' or newId == oldId:
-            if REQUEST:
-                REQUEST['RESPONSE'].redirect("%s/%s" % (parent.absolute_url(), oldId))
-            return
+            return path
 
         device = self.dmd.Devices.findDeviceByIdExact( newId )
         if device:
             message = 'Device already exists with id %s' % newId
-            if REQUEST:
-                messaging.IMessageSender(self).sendToBrowser(
-                    'Device Rename Failed', message, messaging.CRITICAL)
-                return self.callZenScreen(REQUEST)
-            else:
-                raise DeviceExistsError( message, device )
+            raise DeviceExistsError( message, device )
 
         # side effect: self.getId() will return newId after this call
         try:
@@ -1801,19 +1783,12 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable,
             self.renameDeviceInEvents(oldId, newId)
             self.renameDeviceInPerformance(oldId, newId)
             self.setLastChange()
-    
-            if REQUEST: 
-                messaging.IMessageSender(self).sendToBrowser(
-                    'Device Renamed',
-                    "Device %s was renamed to %s." % (oldId, newId)
-                )
-                REQUEST['RESPONSE'].redirect("%s/%s" % (parent.absolute_url(), newId))
+
+            return self.absolute_url_path()
 
         except CopyError, e:
-            if REQUEST:
-                messaging.IMessageSender(self).sendToBrowser(
-                    'Device Rename Failed', str(e), messaging.CRITICAL)
-                return self.callZenScreen(REQUEST)
+            raise Exception("Device rename failed.")
+
 
     def renameDeviceInEvents(self, old, new):
         """update the device column in the status and history tables for rows 

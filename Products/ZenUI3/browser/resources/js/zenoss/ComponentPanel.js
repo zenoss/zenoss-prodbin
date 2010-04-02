@@ -107,6 +107,25 @@ ZC.TypeSelection = Ext.extend(Ext.tree.TreePanel, {
 ZC.Browser = Ext.extend(Zenoss.VerticalBrowsePanel, {
     constructor: function(config) {
         config = Ext.applyIf(config||{}, {
+            tbar: {
+                items: [{
+                    xtype: 'tbfill'
+                /*
+                },{
+                    xtype: 'ContextConfigureMenu',
+                    id: 'component_configure_menu',
+                    menuIds: [
+                        'IpInterface'
+
+                    ],
+                    listeners: {
+                        render: function(){
+                            this.setContext(config.uid);
+                        }
+                    }
+                */
+                }]
+            },
             items: [
                 new ZC.TypeSelection({
                     ref: 'typeSelect',
@@ -114,7 +133,17 @@ ZC.Browser = Ext.extend(Zenoss.VerticalBrowsePanel, {
                     style: 'overflow-y: scroll',
                     border: false,
                     bodyStyle: 'border-right: 1px solid gray',
-                    contextUid: config.uid
+                    contextUid: config.uid,
+                    listeners: {
+                        load: function(node) {
+                            /*
+                            var ids = Ext.pluck(node.childNodes, 'id'),
+                                menu = Ext.getCmp('component_configure_menu');
+                            menu.menuIds = ids;
+                            menu.setContext(this.contextUid);
+                            */
+                        }
+                    }
                 }),
                 new ZC.ComponentGridPanel({
                     ref: 'compSelect',

@@ -255,6 +255,16 @@ class ToManyContRelationship(ToManyRelationshipBase):
             rel._setObject(cobj.id, cobj)
         return rel
 
+    def checkValidId(self, id):
+        """
+        Is this a valid id for this container?
+        """
+        try:
+            checkValidId(self, id)
+        except:
+            raise
+        else:
+            return True
 
     def exportXml(self, ofile, ignorerels=[]):
         """Return an xml representation of a ToManyContRelationship

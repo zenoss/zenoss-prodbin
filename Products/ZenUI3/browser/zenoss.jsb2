@@ -46,6 +46,9 @@
             "text": "InheritField.js",
             "path": "resources/js/zenoss/form/"
         }, {
+            "text": "IDField.js",
+            "path": "resources/js/zenoss/form/"
+        }, {
             "text": "DialogWindow.js",
             "path": "resources/js/zenoss/"
         }, {

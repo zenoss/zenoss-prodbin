@@ -394,7 +394,7 @@ Zenoss.dialog.DialogFormPanel = Ext.extend(Ext.form.FormPanel, {
     createForm: function(){
         var config = Ext.applyIf({listeners: {}}, this.initialConfig);
         if (!this.jsonResult) {
-            config['errorReader'] = {
+            config.errorReader = {
                 read: function(xhr) {
                     var success = true;
                     //TODO scan result for exceptions/errors
