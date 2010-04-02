@@ -27,7 +27,7 @@ fi
 #are patching from trunk or branch
 findStripSize () {
     rFILE=${ZENHOME}/Products/$1
-    echo "determinig strip size for ${rFILE}"
+    echo "determining strip size for ${rFILE}"
     ssize=3 
     if [[ `head -1 ${rFILE} | grep branches` ]] ; then
         ssize=4
