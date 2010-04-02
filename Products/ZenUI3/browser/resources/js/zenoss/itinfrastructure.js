@@ -1059,7 +1059,11 @@ Ext.getCmp('center_panel').add({
             }],
             listeners:{
                 navloaded: function( detailNavPanel, navConfig){
-                    if (navConfig.id != 'device_grid'){
+                    var excluded = {
+                        'device_grid': true,
+                        'events_grid': true
+                    };
+                    if (!excluded[navConfig.id]){
                         var config = detailNavPanel.panelConfigMap[navConfig.id];
                         Ext.applyIf(config, {refreshOnContextChange: true});
                         if(config && !Ext.getCmp(config.id)){
@@ -1078,7 +1082,8 @@ Ext.getCmp('center_panel').add({
                     'classes': true,
                     'events': true,
                     'templates': true,
-                    'performancetemplates': true
+                    'performancetemplates': true,
+                    'historyevents':true
                 };
                 return !excluded[config.id];
             },
@@ -1089,6 +1094,9 @@ Ext.getCmp('center_panel').add({
                     listeners: {
                         render: updateNavTextWithCount
                     }
+                },{
+                    id: 'events_grid',
+                    text: _t('Events')
                 }];
                 var otherNav = [];
                 switch (Zenoss.types.type(contextId)) {
@@ -1201,6 +1209,11 @@ Ext.getCmp('center_panel').add({
                     menu: {}
                 }]
             }
+        },{
+            xtype: 'SimpleEventGridPanel',
+            id: 'events_grid',
+            stateful: false,
+            columns: Zenoss.env.COLUMN_DEFINITIONS
         }]
     }]
 });

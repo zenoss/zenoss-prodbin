@@ -24,6 +24,7 @@
 </tal:block>
 
 <tal:block metal:fill-slot="script_layout">
+<tal:block tal:content="structure provider:jssnippets"/>
 <script src="/++resource++zenui/js/zenoss/itinfrastructure.js/"></script>
 </tal:block>
 </tal:block> <!-- metal:use-macro="context/page_macros/masterdetailsplit2" -->
