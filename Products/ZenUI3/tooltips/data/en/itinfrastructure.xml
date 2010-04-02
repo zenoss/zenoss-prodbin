@@ -6,47 +6,6 @@
     <html>Remove devices</html>
   </tooltip>
 
-  <!--
-  <tooltip>
-    <target>Devices</target>
-
-    <html></html>
-  </tooltip>
--->
-
-  <!--
-
-  <tooltip>
-    <target>Map</target>
-
-    <html>This tooltip maps to the nav item from Locations > Details > Map. Do not use.</html>
-  </tooltip>
--->
-
-  <!--
-  <tooltip>
-    <target>zprops</target>
-
-    <html>This tooltip maps to Device Details > Configuration Properties. Do not use. <strong>Configuration Properties</strong><br />View and edit configuration properties for the selected device class.</html>
-  </tooltip>
--->
-
-  <!--
-
-  <tooltip>
-    <target>templates</target>
-    <title>Monitoring Templates</title>
-    <html>View and edit performance templates for the selected device class.</html>
-  </tooltip>
-
-  <tooltip>
-    <target>organizer-events</target>
-
-    <html></html>
-  </tooltip>
-
--->
-
   <tooltip>
     <target>adddevice-button</target>
 
@@ -58,7 +17,7 @@
 
     <anchor>left</anchor>
 
-    <html> Administer devices </html>
+    <html>Administer devices </html>
   </tooltip>
 
   <tooltip>
@@ -72,6 +31,6 @@
   <tooltip>
     <target>productionState</target>
 
-    <html>Select a production state </html>
+    <html>Select production state </html>
   </tooltip>
 </view>
