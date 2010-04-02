@@ -121,7 +121,7 @@ class RRDDataSourceInfo(InfoBase):
     component = ProxyProperty('component')
     eventClass = ProxyProperty('eventClass')
     eventKey = ProxyProperty('eventKey')
-
+    
     
 class BasicDataSourceInfo(InfoBase):
     implements(IBasicDataSourceInfo)

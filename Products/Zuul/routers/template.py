@@ -113,7 +113,7 @@ class TemplateRouter(DirectRouter):
         """
         facade = self._getFacade()
         details = facade.getDataPointDetails(uid)
-        form = IFormBuilder(details).render()
+        form = IFormBuilder(details).render(fieldsets=False)
         data =  Zuul.marshal(dict(record=details, form=form))        
         return data
     

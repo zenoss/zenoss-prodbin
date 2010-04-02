@@ -43,14 +43,13 @@ class IRRDDataSourceInfo(IInfo):
                        readonly=True)
     type = schema.Text(title=_t(u"Type"),
                        readonly=True)
+    enabled = schema.Bool(title=_t(u"Enabled"))
     severity = schema.Text(title=_t(u"Severity"),
                            xtype="severity")
-    component = schema.Text(title=_t(u"Component"))
     eventKey = schema.Text(title=_t(u"Event Key"))
     eventClass = schema.Text(title=_t(u"Event Class"),
                              xtype="eventclass")
-    enabled = schema.Bool(title=_t(u"Enabled"))
-
+    component = schema.Text(title=_t(u"Component"))
     
 class IBasicDataSourceInfo(IInfo):
     """
@@ -78,7 +77,8 @@ class ICommandDataSourceInfo(IBasicDataSourceInfo):
     usessh = schema.Bool(title=_t(u"Use SSH"))
     component = schema.Text(title=_t(u"Component"))
     eventKey = schema.Text(title=_t(u"Event Key"))
-    commandTemplate = schema.TextLine(title=_t(u"Command Template"))
+    commandTemplate = schema.TextLine(title=_t(u"Command Template"),
+                                      xtype="twocolumntextarea")
    
     
 class ISNMPDataSourceInfo(IInfo):

@@ -37,22 +37,21 @@
              if (!record) {
                  throw "EditDialog did not recieve a record to edit (config.record is undefined)";
              }
-             if (!config.thresholds) {
+             
+             if (!config.singleColumn) {
                  items = this.sortItems(items, record);  
              }else{
                  for(i=0; i<items.length; i+=1) {
                      items[i].record = record;
                  }
              }
-             
-             
+                          
              Ext.apply(config, {
                 width: 800,
                 modal: true,
-                height: 670,
                 items: items,
                 constrain: true,
-                
+                autoHeight: true,
                 buttons: [{
                     xtype: 'DialogButton',
                     text: _t('Save'),
@@ -76,18 +75,45 @@
          * If you specify a group in your datasource schema, they will appear in that "panel" on this dialog
          **/
         sortItems: function(fieldsets, record) {
+            var panel = [], i, j, currentPanel,
+                item, fieldset, tmp, header;            
+            // items comes back from the server in the form
+            // fieldsets.items[0] = fieldset
             fieldsets = fieldsets.items;
             
-            // items comes back from the server in the form
-            // items.items[0] = fieldset
-            var panel = [], i, j, currentPanel, item, fieldset;
-            
+            // The datasources have a convention to where the first items are
+            // ungrouped. 
+            // This section makes sure the non-titled one is first.
+            // (It swaps the titled first fieldset with the untitled fieldset)
+            if (fieldsets[0].title) {
+                tmp = fieldsets[0];
+                for (i=0; i < fieldsets.length; i += 1) {
+                    if (!fieldsets[i].title) {
+                        fieldsets[0] = fieldsets[i];
+                        fieldsets[i] = tmp;
+                        break;
+                    }
+                }
+            }
+
+            // this creates a new panel for each group of items that come back from the server
             for (i =0; i < fieldsets.length; i += 1) {
                 fieldset = fieldsets[i];
+
+                // format the title a little funny
+                if (fieldset.title) {
+                    header = {
+                        xtype: 'panel',
+                        layout: 'form',
+                        html: '<br /><br /><h1>' + fieldset.title + '</h1>'
+                    };
+                }else {
+                    header = null;    
+                }
+                
                 currentPanel = {
                     xtype:'panel',
                     layout: 'column',
-                    title: fieldset.title,
                     border: false,
                     items: [{
                                 layout:'form',
@@ -108,7 +134,10 @@
                     item.record = record;
                     currentPanel.items[j%2].items.push(item);
                 }
-                
+                // if we have a header set display it
+                if (header) {
+                    panel.push(header);
+                }
                 panel.push(currentPanel);
             }
             

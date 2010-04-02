@@ -594,43 +594,47 @@ function editDataSourceOrPoint() {
     params = {
         uid: attributes.uid  
     };
-
+    
     // callback for the router request
     function displayEditDialog(response) {
         var win,
         config = {};
+        
         config.record = response.record;
         config.items = response.form;
-        config.xtype = "editdialog";
+        config.xtype = "datasourceeditdialog";
         config.id = editDataSourcesId;
         config.isDataPoint = isDataPoint;
+        config.title = _t('Edit Data Source');
+        config.directFn = router.setInfo;
+        
         if (isDataPoint) {
             config.title = _t('Edit Metric');
             config.directFn = submitDataPointForm;
-        }else{
+            config.singleColumn = true;
+        }else if (config.record.testable){
             // add the test against device panel
-            config.items.push({
-               xtype:'panel',
-               columnWidth: 0.5,
-               baseCls: 'test-against-device',
-               hidden: Zenoss.Security.doesNotHavePermission('Run Commands'),
-               title: _t('Test Against a Device'),
-               items:[{
-                   xtype: 'hidden',
-                   name: 'uid',
-                   value: response.record.id
-               },{
-                   xtype: 'textfield',
-                   fieldLabel: _t('Device Name'),
-                   id: 'testDevice',
-                   name: 'testDevice'
-               },{
-                   xtype: 'button',
-                   text: 'Test',
-                   handler: testDataSource
-               }]});
-            config.title = _t('Edit Data Source');
-            config.directFn = router.setInfo;
+            config.items.items.push({
+                xtype:'panel',
+                columnWidth: 0.5,
+                baseCls: 'test-against-device',
+                hidden: Zenoss.Security.doesNotHavePermission('Run Commands'),
+                title: _t('Test Against a Device'),
+                items:[{
+                    xtype: 'textfield',
+                    fieldLabel: _t('Device Name'),
+                    id: 'testDevice',
+                    name: 'testDevice'
+                },{
+                    xtype: 'hidden',
+                    name: 'uid',
+                    value: response.record.id
+                },{
+                    xtype: 'button',
+                    text: _t('Test'),
+                    handler: testDataSource
+                }]});
+         
         }
         
         config.saveHandler = closeEditDialog;
