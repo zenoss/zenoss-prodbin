@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<view>
+
+  <tooltip>
+    <target></target>
+
+    <html>Add threshold</html>
+  </tooltip>
+
+
+  <tooltip>
+    <target></target>
+
+    <html>Add metric to graph</html>
+  </tooltip>
+
+
+  <tooltip>
+    <target></target>
+
+    <html>Add data source</html>
+  </tooltip>
+
+
+  <tooltip>
+    <target></target>
+
+    <html>Add metric</html>
+  </tooltip>
+
+
+  <tooltip>
+    <target></target>
+
+    <html>Edit data source</html>
+  </tooltip>
+
+
+  <tooltip>
+    <target></target>
+
+    <html>Override template</html>
+  </tooltip>
+
+
+  <tooltip>
+    <target></target>
+
+    <html>Delete threshold</html>
+  </tooltip>
+
+
+  <tooltip>
+    <target></target>
+
+    <html>Edit threshold</html>
+  </tooltip>
+
+
+  <tooltip>
+    <target></target>
+
+    <html>Define graph</html>
+  </tooltip>
+
+<tooltip>
+    <target></target>
+
+    <html>Delete graph</html>
+  </tooltip>
+
+<tooltip>
+    <target></target>
+
+    <html>Manage graphs</html>
+  </tooltip>
+  
+</view>
