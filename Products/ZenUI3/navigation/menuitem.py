@@ -67,7 +67,7 @@ class SecondaryNavigationMenuItem(PrimaryNavigationMenuItem):
     def update(self):
         super(SecondaryNavigationMenuItem, self).update()
         if isinstance(self.subviews, basestring):
-            self.subviews = [self.subviews]
+            self.subviews = self.subviews.split()
 
     @property
     def selected(self):

@@ -1,4 +1,4 @@
-<tal:block metal:use-macro="here/templates/macros/page2">
+<tal:block metal:use-macro="here/page_macros/old-new">
 <tal:block metal:fill-slot="title">Zenoss: Portlets</tal:block>
 
 <tal:block metal:fill-slot="head-local">
@@ -22,7 +22,7 @@ Available Portlets
 <table style="width:100%;margin-top:4px;">
 <tal:block tal:repeat="portlet here/dmd/ZenPortletManager/get_portlets">
 <tr tal:define="odd repeat/portlet/odd" 
-     tal:attributes="class python:test(odd, 'odd', 'even') + ' portlet-row'">
+     tal:attributes="class python:odd and 'odd portlet-row' and 'even portlet-row'">
 <td tal:content="portlet/title">x</td>
 <td>
 <select tal:attributes="name python:portlet.id+'_permission'">

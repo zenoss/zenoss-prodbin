@@ -231,5 +231,25 @@
         layer="..navigation.interfaces.IZenossNav"
         />
 
+    <browser:viewlet
+        name="Settings"
+        url="/zport/dmd/editSettings"
+        subviews="/zport/dmd/dataRootManage
+                  /zport/dmd/ZenUsers/manageUserFolder
+                  /zport/dmd/ZenPackManager/viewZenPacks
+                  /zport/dmd/joblist
+                  /zport/dmd/editMenus
+                  /zport/dmd/editPortletPerms
+                  /zport/About/zenossInfo
+                  /zport/About/zenossVersions
+                  /zport/dmd/backupInfo"
+        weight="4"
+        parentItem="Advanced"
+        manager="..navigation.interfaces.ISecondaryNavigationMenu"
+        class="..navigation.menuitem.SecondaryNavigationMenuItem"
+        permission="zope2.Public"
+        layer="..navigation.interfaces.IZenossNav"
+        />
+
 </configure>
 
