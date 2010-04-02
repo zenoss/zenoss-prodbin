@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<view>
+
+  <tooltip>
+    <target></target>
+
+    <html>Acknowledge event</html>
+  </tooltip>
+
+
+  <tooltip>
+    <target></target>
+
+    <html>Close event</html>
+  </tooltip>
+
+
+  <tooltip>
+    <target></target>
+
+    <html>Go to Event Console</html>
+  </tooltip>
+
+
+  <tooltip>
+    <target></target>
+
+    <html>View events</html>
+  </tooltip>
+
+  
+</view>
