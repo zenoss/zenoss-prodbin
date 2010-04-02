@@ -31,9 +31,9 @@ class EventsExporter(BrowserView):
         body = self.request.form['body']
         state = unjson(body)
         type = state['type']
-
+        history = state.get('isHistory', False)
         # Get the events according to grid state
-        fields, events = self._query(**state['params'])
+        fields, events = self._query(history, **state['params'])
 
         # Send the events to the appropriate formatting method
         ctype, filename, result = getattr(self, type)(fields, events)
@@ -45,9 +45,9 @@ class EventsExporter(BrowserView):
         return result
 
 
-    def _query(self, fields, sort, dir, params=None):
+    def _query(self, history, fields, sort, dir, params=None):
         evutil = IEventManagerProxy(self)
-        zem = evutil.event_manager()
+        zem = evutil.event_manager(history)
         if isinstance(params, basestring):
             params = unjson(params)
         if not params:

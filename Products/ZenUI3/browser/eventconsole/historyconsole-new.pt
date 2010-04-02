@@ -250,13 +250,11 @@ Ext.onReady(function(){
                  */
                 //text: 'Classify',
                 id: 'classify-button',
-                tooltip: 'Map selected events to an event class',
                 iconCls: 'classify',
                 handler: showClassifyDialog
             },{
                 //text: 'Reopen',
                 id: 'reopen-button',
-                tooltip: 'Return selected events to the active event console',
                 iconCls: 'reopen',
                 handler: function(){
                     // Get params describing selected events
@@ -337,6 +335,7 @@ Ext.onReady(function(){
                         var state = Ext.getCmp('events_grid').getState(),
                             params = {
                                 type: 'xml',
+                                isHistory: true,
                                 params: {
                                     fields: Ext.pluck(state.columns, 'id'),
                                     sort: state.sort.field,
@@ -354,6 +353,7 @@ Ext.onReady(function(){
                         var state = Ext.getCmp('events_grid').getState(),
                             params = {
                                 type: 'csv',
+                                isHistory: true,
                                 params: {
                                     fields: Ext.pluck(state.columns, 'id'),
                                     sort: state.sort.field,
