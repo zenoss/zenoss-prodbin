@@ -18,16 +18,15 @@
 
 <tal:block metal:fill-slot="head-local">
     <tal:block metal:use-macro="here/templates/macros/head1"/>
+    <link rel="stylesheet" href="/++resource++zenui/css/backcompat.css"/>
 </tal:block>
 
 <tal:block metal:fill-slot="center_panel_content">
     <tal:block metal:use-macro="here/dialogmacros/macros/proxyForm"/>
     <tal:block metal:use-macro="here/dialogmacros/macros/dialog_with_buttons"/>
-    <div id="oldContentPane" style="margin: 7px;">
+    <div id="oldContentPane">
         <tal:block metal:define-slot="center_content">
-            <div style="background-color: #E0E0E0;
-                        border: 1px solid black;
-                        padding: 7px;">
+            <div id="contentPaneContainer">
                 <tal:block metal:define-slot="contentPane"/>
             </div>
         </tal:block>
@@ -37,9 +36,29 @@
 <tal:block metal:fill-slot="script_layout">
 <script>
 Ext.onReady(function(){
-    Ext.getCmp('center_panel').add({
+    var items = [{
+        region: 'center',
         autoScroll: true,
-        contentEl: 'oldContentPane'
+        bodyCssClass: 'z-bc-content-pane',
+        contentEl: 'contentPaneContainer',
+        split: true
+    }];
+    if (Zenoss.env.pageHasTabs) {
+        items.push({
+            region: 'west',
+            width: 275,
+            bodyCssClass: 'z-bc-tab-pane',
+            contentEl: 'newTabsPane',
+            split: true
+        });
+    }
+    Ext.getCmp('center_panel').add({
+        layout: 'border',
+        defaults: {
+            border: false
+        },
+        bodyCssClass: 'z-bc', // Zenoss back compat
+        items:items
     });
 });
 </script>
@@ -53,12 +72,13 @@ Ext.onReady(function(){
 <tal:block metal:use-macro="context/page_macros/old-new-no-tabs">
 
 <tal:block metal:fill-slot="center_content">
+<script>Zenoss.env.pageHasTabs = true;</script>
+<div class="z-bc">
     <div metal:use-macro="here/templates/macros/newTabsPane"/>
-    <div style="background-color: #E0E0E0;
-                border: 1px solid black;
-                padding: 7px;">
+    <div id="contentPaneContainer">
         <tal:block metal:define-slot="contentPane"/>
     </div>
+</div>
 </tal:block>
 
 </tal:block> <!-- metal:use-macro="context/page_macros/old-new-no-tabs" -->

@@ -1,0 +1,54 @@
+/*******************************
+            LAYOUT
+*******************************/
+.z-bc {
+    background-color: white;
+}
+
+.z-bc #newTabsPane {
+    width: 275px;
+}
+.z-bc .z-bc-tab-pane,
+.z-bc #newTabsPane {
+    background-color:#d4e0ee;
+    border-right: 1px solid #949494;
+}
+.z-bc .z-bc-content-pane,
+.z-bc #contentPaneContainer {
+    background-color: white;
+}
+
+.z-bc .z-bc-content-pane {
+    padding: 5px;
+}
+
+/*******************************
+             TABS
+*******************************/
+.z-bc  #newTabsPane ul {
+    margin: 0;
+    padding: 10px 0 0 0;
+    width: 100%;
+}
+.z-bc  #newTabsPane ul li {
+    list-style-type: none;
+    padding-top: 1px;
+    padding-bottom: 1px;
+}
+.z-bc  #newTabsPane ul li a {
+    display: block;
+    line-height: 18px;
+	text-decoration: none;
+    padding: 1px 3px 1px 18px;
+    font-size: 12px;
+    font-family: helvetica,arial,tahoma,sans-serif;
+    color: #454545;
+}
+.z-bc  #newTabsPane ul li a:hover {
+    background-color: #EEE;
+    color: #454545;
+}
+.z-bc  #newTabsPane ul li.selected a {
+    background-color:#7199c6;
+    color:white;
+}

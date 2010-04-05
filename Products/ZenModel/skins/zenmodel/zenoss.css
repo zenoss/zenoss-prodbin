@@ -528,18 +528,6 @@ tbody.zentablecontents tr {
     color: #c00;
 }
 
-a.tabletitle {  
-	display: block;
-	color: white;
-	text-decoration: none;
-	margin: 0px;
-    height:26px;
-    font-size:8pt;
-	line-height: 26px;
-    z-index: 3000;
-
-}
-
 #selectedtablinehider {
     height: 3px;
     z-index: 2999;
