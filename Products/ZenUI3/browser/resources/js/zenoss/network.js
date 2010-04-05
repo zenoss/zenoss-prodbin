@@ -20,8 +20,7 @@ Ext.onReady(function () {
 // Add/remove sub-network buttons and dialog
 //********************************************
 
-var addNetworkDialogSubmit = function(values)
-{
+var addNetworkDialogSubmit = function(values) {
     var tree = Ext.getCmp('networks');
 
     tree.router.addNode({newSubnet: values.addNetworkTextfield},
@@ -40,8 +39,7 @@ var addNetworkDialogSubmit = function(values)
     );
 };
 
-var deleteNetworkDialogSubmit = function()
-{
+var deleteNetworkDialogSubmit = function() {
     var tree = Ext.getCmp('networks'),
         node = tree.getSelectionModel().getSelectedNode(),
         parentNode = node.parentNode,
@@ -56,6 +54,17 @@ var deleteNetworkDialogSubmit = function()
                     }
                 );
             }
+        }
+    );
+};
+
+var discoverDevicesDialogSubmit = function() {
+    var tree = Ext.getCmp('networks'),
+        node = tree.getSelectionModel().getSelectedNode();
+
+    tree.router.discoverDevices( {uid: node.attributes.uid},
+        function(data) {
+            console.log(data);
         }
     );
 };
@@ -79,6 +88,13 @@ var deleteNetworkDialog = new Zenoss.MessageDialog({
     okHandler: deleteNetworkDialogSubmit
 });
 
+var discoverDevicesDialog = new Zenoss.MessageDialog({
+    id: 'discoverDevicesDialog',
+    title: _t('Discover Devices'),
+    message: _t('Devices on the selected subnetwork will be discovered.'),
+    okHandler: discoverDevicesDialogSubmit
+});
+
 // Adds a network or sub-network
 addNetwork = function() {
     addNetworkDialog.show();
@@ -87,6 +103,11 @@ addNetwork = function() {
 // Delete a network or subnetwork
 deleteNetwork = function() {
     deleteNetworkDialog.show();
+}
+
+// Discover on subnetwork
+discoverDevices = function() {
+    discoverDevicesDialog.show();
 }
 
 //********************************************
@@ -138,6 +159,8 @@ var treesm = new Ext.tree.DefaultSelectionModel({
             Ext.getCmp('networkForm').setContext(newnode.attributes.uid);
             Ext.getCmp('ipAddressGrid').setContext(newnode.attributes.uid);
             Ext.getCmp('deleteNetworkButton').setDisabled(
+                (newnode.attributes.id == 'Network') );
+            Ext.getCmp('discoverDevicesButton').setDisabled(
                 (newnode.attributes.id == 'Network') );
         }
     }
@@ -510,9 +533,16 @@ Ext.getCmp('footer_bar').add({
 
 Ext.getCmp('footer_bar').add({
     id: 'deleteNetworkButton',
-    tooltip: _t('Delete a subnetwork'),
+    tooltip: _t('Delete selected subnetwork'),
     iconCls: 'delete',
     handler: deleteNetwork
+});
+
+Ext.getCmp('footer_bar').add({
+    id: 'discoverDevicesButton',
+    tooltip: _t('Discover devices on selected subnetwork'),
+    iconCls: 'adddevice',
+    handler: discoverDevices
 });
 
 });

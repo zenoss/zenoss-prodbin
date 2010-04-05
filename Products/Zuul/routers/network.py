@@ -25,18 +25,18 @@ class NetworkRouter(DirectRouter):
         self.api = Zuul.getFacade('network')
 
     @require('Manage DMD')
+    def discoverDevices(self, uid):
+        return {'success': self.api.discoverDevices(uid)}
+
+    @require('Manage DMD')
     def addNode(self, newSubnet):
-        try:
-            newNet = self.context.dmd.Networks.createNet(newSubnet)
-            node = self._createTreeNode(newNet)
-            return DirectResponse.succeed(newNode=node)
-        except Exception, e:
-            return DirectResponse.fail(str(e))
+        newNet = self.api.addSubnet(newSubnet)
+        node = self._createTreeNode(newNet)
+        return DirectResponse.succeed(newNode=node)
 
     @require('Manage DMD')
     def deleteNode(self, uid):
-        toDel = self.context.dmd.restrictedTraverse(uid)
-        toDel.getParentNode().zmanage_delObjects([toDel.titleOrId()])
+        self.api.deleteSubnet(uid)
         return DirectResponse.succeed(tree=self.getTree())
 
     def getTree(self, id='/zport/dmd/Networks'):
