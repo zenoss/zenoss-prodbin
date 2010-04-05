@@ -113,6 +113,7 @@ class PerformanceConfig(HubService, ThresholdMixin):
         HubService.__init__(self, dmd, instance)
         self.config = self.dmd.Monitors.Performance._getOb(self.instance)
         self.procrastinator = Procrastinate(self.pushConfig)
+        self._collectorMap = {}
 
 
     @translateError
@@ -152,13 +153,31 @@ class PerformanceConfig(HubService, ThresholdMixin):
 
 
     def notifyAll(self, device):
-        if device.perfServer.getRelatedId() == self.instance:
-            self.procrastinator.doLater(device)
+        self.procrastinator.doLater(device)
 
 
     def pushConfig(self, device):
         deferreds = []
-        cfg = self.getDeviceConfig(device)
+        cfg = None
+
+        cur_collector = device.perfServer.getRelatedId()
+        prev_collector = self._collectorMap.get(device.id, None)
+        self._collectorMap[device.id] = cur_collector
+
+        # Always push config to currently assigned collector.
+        if cur_collector == self.instance:
+            cfg = self.getDeviceConfig(device)
+
+        # Push a deleteDevice call if the device was previously assigned to
+        # this collector.
+        elif prev_collector in (None, self.instance):
+            cfg = None
+
+        # Don't do anything if this collector is not, and has not been involved
+        # with the device
+        else:
+            return defer.DeferredList(deferreds)
+
         for listener in self.listeners:
             if cfg is None:
                 deferreds.append(listener.callRemote('deleteDevice', device.id))
