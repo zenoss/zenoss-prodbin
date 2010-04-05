@@ -104,6 +104,61 @@ ZC.TypeSelection = Ext.extend(Ext.tree.TreePanel, {
     }
 });
 
+Zenoss.ComponentDetailNav = Ext.extend(Zenoss.DetailNavPanel, {
+    constructor: function(config) {
+        Ext.applyIf(config, {
+            autoHeight: true,
+            autoScroll: true,
+            containerScroll: true,
+            border: false,
+            menuIds: []
+        });
+        Zenoss.ComponentDetailNav.superclass.constructor.call(this, config);
+    },
+    onGetNavConfig: function(contextId) {
+        return Zenoss.nav.Component;
+    },
+    filterNav: function(navpanel, config){
+        //nav items to be excluded
+        var excluded = [
+            'status',
+            'events',
+            'resetcommunity',
+            'pushconfig',
+            'objtemplates',
+            'modeldevice',
+            'historyevents'
+        ];
+        return (excluded.indexOf(config.id)==-1);
+    },
+    onSelectionChange: function(node) {
+        var me = this;
+        var target = Ext.getCmp('component_detail_panel'),
+            action = node.attributes.action || function(node, target) {
+                var id = node.attributes.id;
+                if (!(id in target.items.map)) {
+                    var config = me.panelConfigMap[id];
+                    Ext.applyIf(config, {refreshOnContextChange: true});
+                    if(config) {
+                        target.add(config);
+                        target.doLayout();
+                    }
+                }
+                target.items.map[node.attributes.id].setContext(me.contextId);
+                target.layout.setActiveItem(node.attributes.id);
+            };
+        action(node, target);
+    },
+    clearContext: function(){
+        /*
+        this.setRootNode({ 
+            nodeType: 'node' 
+        }); 
+        */
+    }
+});
+Ext.reg('componentdetailnav', Zenoss.ComponentDetailNav);
+
 ZC.Browser = Ext.extend(Zenoss.VerticalBrowsePanel, {
     constructor: function(config) {
         config = Ext.applyIf(config||{}, {
@@ -116,7 +171,6 @@ ZC.Browser = Ext.extend(Zenoss.VerticalBrowsePanel, {
                     id: 'component_configure_menu',
                     menuIds: [
                         'IpInterface'
-
                     ],
                     listeners: {
                         render: function(){
@@ -157,78 +211,11 @@ ZC.Browser = Ext.extend(Zenoss.VerticalBrowsePanel, {
                         header: _t('Name')
                     }]
                 }),{
-                    xtype: 'detailnav',
-                    ref: 'compNav',
-                    autoHeight: true,
-                    autoScroll: true,
-                    containerScroll: true,
-                    border: false,
-                    menuIds: [],
-                    onGetNavConfig: function(contextId) {
-                        return Zenoss.nav.Component;
-                    },
-                    filterNav: function(navpanel, config){
-                        //nav items to be excluded
-                        var excluded = [
-                            'status',
-                            'events',
-                            'resetcommunity',
-                            'pushconfig',
-                            'objtemplates',
-                            'modeldevice',
-                            'historyevents'
-                        ];
-                        return (excluded.indexOf(config.id)==-1);
-                    },
-                    onSelectionChange: function(node) {
-                        var target = Ext.getCmp('component_detail_panel'),
-                            action = node.attributes.action || function(node, target) {
-                                var id = node.attributes.id;
-                                if (!(id in target.items.map)) {
-                                    var config = this.panelConfigMap[id];
-                                    Ext.applyIf(config, {refreshOnContextChange: true});
-                                    if(config) {
-                                        target.add(config);
-                                        target.doLayout();
-                                    }
-                                }
-                                target.items.map[node.attributes.id].setContext(this.contextId);
-                                target.layout.setActiveItem(node.attributes.id);
-                            };
-                        action(node, target);
-                    },
-                    /*
-                    selModel: new Ext.tree.DefaultSelectionModel({
-                        listeners: {
-                            selectionchange: function(sm, node){
-                                var target = Ext.getCmp('component_detail_panel');
-                                node.attributes.action(node, target);
-                            }
-                        }
-                    }),
-                    rootVisible: false,
-                    root: {
-                        nodeType: 'node'
-                    },
-                    setContext: function(uid, type) {
-                        type = type || Zenoss.types.type(uid);
-                        this.setRootNode({
-                            id: uid,
-                            nodeType: 'async',
-                            children: Zenoss.nav[type] || Zenoss.nav.Component
-                        });
-                        try { // Catch this so it doesn't break ongoing loads
-                            this.getRootNode().firstChild.select();
-                        } catch(e) { }
-                    },
-                    */
-                    clearContext: function() {
-                        /*
-                        this.setRootNode({
-                            nodeType: 'node'
-                        });
-                        */
-                    }
+                    xtype: 'detailcontainer',
+                    items: [{
+                        xtype: 'componentdetailnav',
+                        ref: '../compNav'
+                    }]
                 }
             ]
         });
