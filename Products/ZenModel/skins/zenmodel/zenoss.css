@@ -1,12 +1,5 @@
-
-html {
-    background: #8f8f8f;
-}
-
 body {
-    background: #8f8f8f;
-    color: black;
-    font-family:  Verdana, Arial, Helvetica, sans-serif;
+    font-family: helvetica,arial,sans-serif;
     font-size:  9pt;
     margin: 0px;
     text-align: left;
@@ -302,9 +295,11 @@ span.searchform-label {
 }
 
 #contentPane {
+    /*
 	padding: 7px;
     border: 1px solid black;
     background-color: #E0E0E0;
+    */
 }
 
 a:link {
@@ -1467,31 +1462,6 @@ top: 10px;
 * html .dialog {
    height: 200px;
    width: 300px;
-}
-
-
-/* FILTERBOX */
-.filterbox {
-    background: transparent url('img/filter_box_bg.gif') no-repeat 0px 0px;
-    height: 26px;
-    line-height: 26px;
-    position: absolute;
-    z-index: 2000;
-    width: 126px;
-    top: 1px;
-    right: 60px;
-}
-
-.filterbox input[type="text"] {
-    background: transparent none no-repeat; 
-    border: medium none;
-    color: #444;
-    font-size: 90%;
-    margin-left: auto;
-    margin-right: auto;
-    width: 95px;
-    padding-left: 20px;
-    height: 21px;
 }
 
 div.tabletitlecontainer {

@@ -46,7 +46,7 @@ Ext.onReady(function(){
     if (Zenoss.env.pageHasTabs) {
         items.push({
             region: 'west',
-            width: 275,
+            width: 200,
             bodyCssClass: 'z-bc-tab-pane',
             contentEl: 'newTabsPane',
             split: true

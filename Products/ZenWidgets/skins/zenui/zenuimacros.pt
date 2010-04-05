@@ -112,6 +112,7 @@ loader.insert({onSuccess:function(){
 <tal:block metal:define-macro="tabletitle">
 <th class="tabletitle" tal:attributes="colspan tblcolspan|string:1">
 <div class="tabletitlecontainer">
+<!--
     <div class="leftcorner">
 <tal:block metal:define-slot="menuslot">
     <tal:block tal:condition="menu_id | python:False">
@@ -119,17 +120,19 @@ loader.insert({onSuccess:function(){
     </tal:block>
 </tal:block>
 </div>
+-->
 <tal:block metal:define-slot="titleslot">
     <span class="tabletitletext" tal:content="tabletitle | string:Items">
         Title
     </span>
 </tal:block>
+<div class="filterslot">
 <tal:block metal:define-slot="filterslot">
     <tal:block tal:condition="showfilterbox | python:False">
         <tal:block metal:use-macro="here/zenuimacros/macros/filterbox"/>
     </tal:block>
 </tal:block>
-    <div class="rightcorner">&nbsp;</div>
+</div>
 </div>
 </th>
 </tal:block>
@@ -147,10 +150,16 @@ loader.insert({onSuccess:function(){
                   tableName, here.ZenTableManager.getTableState(tableName), 
                   request);
                  message request/SESSION/message | nothing;">
-<input type="text" name="filter" id="filter"
-    onfocus="select(this)"
-    tal:attributes="value ts/filter | string:;
-    onkeypress string:submitViaEnter(event)" />
+ <div class="filterbox-left">
+     <div class="filterbox-right">
+         <div class="filterbox-middle">
+             <input type="text" name="filter" id="filter"
+             onfocus="select(this)"
+             tal:attributes="value ts/filter | string:;
+             onkeypress string:submitViaEnter(event)" />
+         </div>
+     </div>
+ </div>
 </div>
 </tal:block>
 
@@ -245,7 +254,7 @@ mypath python:test(item.action.startswith('javascript'),
         <tr>
             <td style="padding:0px;">
                 <table class="innerzentable" cellpadding="3" cellspacing="1"
-		       tal:attributes="noselectionbar noselectionbar | nothing">
+                       tal:attributes="noselectionbar python:True">
 <!-- The main body into which we dump rows -->
 <tbody tal:attributes="id python:filter(lambda x:x.isalnum(),tabletitle)">
                         <tal:block metal:define-slot="zentablecontents">

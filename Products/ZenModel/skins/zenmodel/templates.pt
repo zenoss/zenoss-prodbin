@@ -19,6 +19,7 @@
     </title>
         <tal:block metal:use-macro="here/templates/macros/head1"/>
         <tal:block metal:define-slot="head-local"/>
+        <link rel="stylesheet" href="/++resource++zenui/css/backcompat.css"/>
         <tal:block metal:use-macro="here/zenuimacros/macros/jsutils"/>
         <script type="text/javascript" src="/++resource++extjs/adapters/ext/ext-base.js">
         </script>
@@ -39,7 +40,7 @@
 	<body class="yui-skin-sam">
     <tal:block metal:use-macro="here/dialogmacros/macros/proxyForm"/>
     <tal:block metal:use-macro="here/dialogmacros/macros/dialog_with_buttons"/>
-	   <div id="frame">
+        <div id="frame">
             <form name="proxy_form" id="proxy_form"
                 style="position:absolute;visibility:hidden"
                 tal:attributes="action here/absolute_url_path"></form>

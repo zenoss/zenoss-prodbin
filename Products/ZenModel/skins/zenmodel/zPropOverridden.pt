@@ -7,26 +7,24 @@
 <tal:block metal:use-macro="here/zenuimacros/macros/zentable">
 
 <tal:block metal:fill-slot="filterslot">
-        <div style="position:absolute;right:200px;top:0px;">
-        <form method="post">
-        zProperty
-        <select class="tablevalues" 
-                name="prop" 
-                onchange="form.submit()">
-                <option value="">
-                <option tal:repeat="p here/zenPropertyIds"
-                        tal:content="p"
-                        tal:attributes="selected python:p==prop"/>
-        </select>
-        Show Devices
-        <input class="navcontrol" type="checkbox"
-                name="showDevices"
-                onchange="this.form.submit()"
-                value="1"
-                style="margin-top:-2px;margin-bottom:2px;"
-                tal:attributes="checked showDevices"/>
-        </form>
-        </div>
+    <form method="post">
+    zProperty
+    <select class="tablevalues" 
+            name="prop" 
+            onchange="form.submit()">
+            <option value="">
+            <option tal:repeat="p here/zenPropertyIds"
+                    tal:content="p"
+                    tal:attributes="selected python:p==prop"/>
+    </select>
+    Show Devices
+    <input class="navcontrol" type="checkbox"
+            name="showDevices"
+            onchange="this.form.submit()"
+            value="1"
+            style="margin-top:-2px;margin-bottom:2px;"
+            tal:attributes="checked showDevices"/>
+    </form>
 </tal:block>
 <tal:block metal:fill-slot="zentablecontents">
 
