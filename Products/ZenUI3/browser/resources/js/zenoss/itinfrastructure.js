@@ -968,66 +968,77 @@ var loctree = {
     listeners: { render: initializeTreeDrop }
 };
 
-Zenoss.MonTemplateTreePanel = Ext.extend(Ext.tree.TreePanel, {
+Zenoss.InfraDetailNav = Ext.extend(Zenoss.DetailNavPanel, {
     constructor: function(config){
         Ext.applyIf(config, {
-            id: 'templateTree',
-            useArrows: true,
-            border: false,
-            cls: 'x-tree-noicon',
-            selModel: new Ext.tree.DefaultSelectionModel({
-                listeners: {
-                    beforeselect: function(sm, node) {
-                        return node.isLeaf();
-                    },
-                    selectionchange: function(sm, node) {
-                        var itemSelModel, detail;
-                        if (node) {
-                            this.ownerCt.items.each(function(item){
-                                itemSelModel = item.getSelectionModel();
-                                if ( itemSelModel !== sm && itemSelModel.getSelectedNode() ) {
-                                    itemSelModel.getSelectedNode().unselect(true);
-                                }
-                            });
-                            detail = Ext.getCmp('detail_panel');
-                            if ( ! detail.items.containsKey('montemplate') ) {
-                                detail.add({
-                                    xtype: 'templatecontainer',
-                                    id: 'montemplate',
-                                    ref: 'montemplate'
-                                });
-                            }
-                            detail.montemplate.setContext(node.attributes.uid);
-                            detail.getLayout().setActiveItem('montemplate');
+            text: _t('Details'),
+            target: 'detail_panel',
+            menuIds: ['More','Add','TopLevel','Manage'],
+            listeners:{
+                navloaded: function( detailNavPanel, navConfig){
+                    var excluded = { 
+                        'device_grid': true, 
+                        'events_grid': true 
+                    }; 
+                    if (!excluded[navConfig.id]){
+                        var config = detailNavPanel.panelConfigMap[navConfig.id];
+                        Ext.applyIf(config, {refreshOnContextChange: true});
+                        if(config && !Ext.getCmp(config.id)){
+                            //create the panel in the center panel if needed
+                            var detail_panel = Ext.getCmp('detail_panel');
+                            detail_panel.add(config);
+                            detail_panel.doLayout();
                         }
-                    },
-                    scope: this
+                    }
                 }
-            }),
-            loader: {
-                directFn: REMOTE.getTemplates,
-                baseAttrs: {singleClickExpand: true}
-            },
-            root: {
-                nodeType: 'async',
-                id: '/zport/dmd/Devices',
-                text: _t('Monitoring Templates'),
-                expanded: true
             }
         });
-        Zenoss.MonTemplateTreePanel.superclass.constructor.call(this, config);
+        Zenoss.InfraDetailNav.superclass.constructor.call(this, config);
+    },    
+    filterNav: function(navpanel, config){
+        //nav items to be excluded
+        var excluded = {
+            'status': true,
+            'classes': true,
+            'events': true,
+            'templates': true,
+            'performancetemplates': true,
+            'historyevents':true
+        };
+        return !excluded[config.id];
     },
-    setContext: function(uid){
-        if ( uid.match('^/zport/dmd/Devices') ) {
-            this.getRootNode().setId(uid);
-            this.getRootNode().reload();
-            this.show();
-        } else {
-            this.hide();
+    onGetNavConfig: function(contextId) {
+        var deviceNav = [{
+            id: 'device_grid',
+            text: 'Devices',
+            listeners: {
+                render: updateNavTextWithCount
+            }
+        },{ 
+            id: 'events_grid',
+            text: _t('Events')
+        }];
+        var otherNav = [];
+        switch (Zenoss.types.type(contextId)) {
+            case 'DeviceLocation':
+                break;
+            case 'DeviceClass':
+                break;
+            default:
+                break;
+        }
+        return deviceNav.concat(otherNav);
+    },
+    onSelectionChange: function(node) {
+        if ( node ) {
+            var detailPanel = Ext.getCmp('detail_panel');
+            var contentPanel = Ext.getCmp(node.attributes.id);
+            contentPanel.setContext(this.contextId); 
+            detailPanel.layout.setActiveItem(node.attributes.id);
         }
     }
 });
-Ext.reg('montemplatetreepanel', Zenoss.MonTemplateTreePanel);
+Ext.reg('infradetailnav', Zenoss.InfraDetailNav);
 
 Ext.getCmp('center_panel').add({
     id: 'center_panel_container',
@@ -1048,74 +1059,16 @@ Ext.getCmp('center_panel').add({
             items: [devtree, grouptree, loctree],
             autoScroll: true
         },{
-            id: 'detail_nav',
-            xtype: 'detailnav',
-            text: _t('Details'),
-            target: 'detail_panel',
+            xtype: 'detailcontainer',
             buttonText: _t('See All'),
-            menuIds: ['More','Add','TopLevel','Manage'],
             items: [{
-                xtype: 'montemplatetreepanel'
-            }],
-            listeners:{
-                navloaded: function( detailNavPanel, navConfig){
-                    var excluded = {
-                        'device_grid': true,
-                        'events_grid': true
-                    };
-                    if (!excluded[navConfig.id]){
-                        var config = detailNavPanel.panelConfigMap[navConfig.id];
-                        Ext.applyIf(config, {refreshOnContextChange: true});
-                        if(config && !Ext.getCmp(config.id)){
-                            //create the panel in the center panel if needed
-                            var detail_panel = Ext.getCmp('detail_panel');
-                            detail_panel.add(config);
-                            detail_panel.doLayout();
-                        }
-                    }
-                }
-            },
-            filterNav: function(navpanel, config){
-                //nav items to be excluded
-                var excluded = {
-                    'status': true,
-                    'classes': true,
-                    'events': true,
-                    'templates': true,
-                    'performancetemplates': true,
-                    'historyevents':true
-                };
-                return !excluded[config.id];
-            },
-            onGetNavConfig: function(contextId) {
-                var deviceNav = [{
-                    id: 'device_grid',
-                    text: 'Devices',
-                    listeners: {
-                        render: updateNavTextWithCount
-                    }
-                },{
-                    id: 'events_grid',
-                    text: _t('Events')
-                }];
-                var otherNav = [];
-                switch (Zenoss.types.type(contextId)) {
-                    case 'DeviceLocation':
-                        break;
-                    case 'DeviceClass':
-                        break;
-                    default:
-                        break;
-                }
-
-                return deviceNav.concat(otherNav);
-            },
-            onSelectionChange: function(detailNav, node) {
-                var detailPanel = Ext.getCmp('detail_panel');
-                var contentPanel = Ext.getCmp(node.attributes.id);
-                contentPanel.setContext(detailNav.contextId); 
-                detailPanel.layout.setActiveItem(node.attributes.id);
-            }
+                xtype: 'infradetailnav',
+                id: 'detail_nav'
+            }, {
+                xtype: 'montemplatetreepanel',
+                id: 'templateTree',
+                detailPanelId: 'detail_panel'
+            }]
         }],
         listeners: {
             beforecardchange: function(me, card, index, from, fromidx) {

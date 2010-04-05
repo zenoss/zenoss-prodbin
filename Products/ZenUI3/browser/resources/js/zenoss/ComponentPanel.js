@@ -180,19 +180,19 @@ ZC.Browser = Ext.extend(Zenoss.VerticalBrowsePanel, {
                         ];
                         return (excluded.indexOf(config.id)==-1);
                     },
-                    onSelectionChange: function(detailNav, node) {
+                    onSelectionChange: function(node) {
                         var target = Ext.getCmp('component_detail_panel'),
                             action = node.attributes.action || function(node, target) {
                                 var id = node.attributes.id;
                                 if (!(id in target.items.map)) {
-                                    var config = detailNav.panelConfigMap[id];
+                                    var config = this.panelConfigMap[id];
                                     Ext.applyIf(config, {refreshOnContextChange: true});
                                     if(config) {
                                         target.add(config);
                                         target.doLayout();
                                     }
                                 }
-                                target.items.map[node.attributes.id].setContext(detailNav.contextId);
+                                target.items.map[node.attributes.id].setContext(this.contextId);
                                 target.layout.setActiveItem(node.attributes.id);
                             };
                         action(node, target);

@@ -17,6 +17,8 @@
 
 Ext.ns('Zenoss', 'Zenoss.templates');
 
+var REMOTE = Zenoss.remote.DeviceRouter;
+
 Zenoss.templates.Container = Ext.extend(Ext.Panel, {
     constructor: function(config) {
         Ext.applyIf(config, {
@@ -72,5 +74,79 @@ Zenoss.templates.Container = Ext.extend(Ext.Panel, {
     }
 });
 Ext.reg('templatecontainer', Zenoss.templates.Container);
+
+Zenoss.BubblingSelectionModel = Ext.extend(Ext.tree.DefaultSelectionModel, {
+    constructor: function(config) {
+        Zenoss.BubblingSelectionModel.superclass.constructor.call(this, config);
+        this.enableBubble('selectionchange');
+        this.bubbleTarget = config.bubbleTarget;
+    },
+    getBubbleTarget: function() {
+        return this.bubbleTarget;
+    }
+});
+
+Zenoss.MonTemplateSelectionModel = Ext.extend(Zenoss.BubblingSelectionModel, {
+    constructor: function(config) {
+        Ext.applyIf(config, {
+            listeners: {
+                beforeselect: function(sm, node) {
+                    return node.isLeaf();
+                }
+            }
+        });
+        Zenoss.MonTemplateSelectionModel.superclass.constructor.call(this, config);
+    }
+});
+
+Zenoss.templates.MonTemplateTreePanel = Ext.extend(Ext.tree.TreePanel, {
+    constructor: function(config){
+        Ext.applyIf(config, {
+            useArrows: true,
+            border: false,
+            cls: 'x-tree-noicon',
+            selModel: new Zenoss.MonTemplateSelectionModel({
+                bubbleTarget: config.bubbleTarget
+            }),
+            loader: {
+                directFn: REMOTE.getTemplates,
+                baseAttrs: {singleClickExpand: true}
+            },
+            root: {
+                text: _t('Monitoring Templates')
+            }
+        });
+        Zenoss.templates.MonTemplateTreePanel.superclass.constructor.call(this, config);
+    },
+    setContext: function(uid){
+        if ( uid.match('^/zport/dmd/Devices') ) {
+            this.show();
+            this.setRootNode({
+                nodeType: 'async',
+                id: uid,
+                text: _t('Monitoring Templates'),
+                expanded: true
+            });
+        } else {
+            this.hide();
+        }
+    },
+    onSelectionChange: function(node) {
+        var detail;
+        if (node) {
+            detail = Ext.getCmp(this.initialConfig.detailPanelId);
+            if ( ! detail.items.containsKey('montemplate') ) {
+                detail.add({
+                    xtype: 'templatecontainer',
+                    id: 'montemplate',
+                    ref: 'montemplate'
+                });
+            }
+            detail.montemplate.setContext(node.attributes.uid);
+            detail.getLayout().setActiveItem('montemplate');
+        }
+    }
+});
+Ext.reg('montemplatetreepanel', Zenoss.templates.MonTemplateTreePanel);
 
 })();

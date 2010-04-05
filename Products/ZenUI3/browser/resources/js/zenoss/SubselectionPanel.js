@@ -260,22 +260,8 @@ Zenoss.DetailNavTreePanel = Ext.extend(Ext.tree.TreePanel, {
     constructor: function(config){
         Ext.applyIf(config, {
             autoHeight: true,
-            selModel: new Ext.tree.DefaultSelectionModel({
-                listeners: {
-                    selectionchange: function(sm, node) {
-                        var itemSelModel;
-                        if (node) {
-                            this.ownerCt.onSelectionChange(this.ownerCt, node);
-                            this.ownerCt.items.each(function(item){
-                                itemSelModel = item.getSelectionModel();
-                                if ( itemSelModel !== sm && itemSelModel.getSelectedNode() ) {
-                                    itemSelModel.getSelectedNode().unselect(true);
-                                }
-                            });
-                        }
-                    },
-                    scope: this
-                }
+            selModel: new Zenoss.BubblingSelectionModel({
+                bubbleTarget: config.bubbleTarget
             }),
             id: 'subselecttreepanel' + config.idSuffix,
             ref: 'subselecttreepanel',
@@ -285,12 +271,6 @@ Zenoss.DetailNavTreePanel = Ext.extend(Ext.tree.TreePanel, {
             root : {nodeType: 'node'}
         });
         Zenoss.DetailNavTreePanel.superclass.constructor.call(this, config);
-    },
-    setContext: function(uid) {
-        //called to load the nav tree
-        this.ownerCt.contextId = uid;
-        this.setRootNode([]);
-        this.ownerCt.getNavConfig(uid);
     }
 });
 Ext.reg('detailnavtreepanel', Zenoss.DetailNavTreePanel);
@@ -341,7 +321,14 @@ Zenoss.DetailNavPanel = Ext.extend(Zenoss.SubselectionPanel,{
             border: false,
             bodyStyle: { 'margin-top' : 10 }
         });
-        config.items = this.getConfigItems(config.id, config.items);
+        // call second applyIf so config.id is set correctly
+        Ext.applyIf(config, {
+            items: {
+                xtype: 'detailnavtreepanel',
+                idSuffix: config.id,
+                bubbleTarget: config.bubbleTarget
+            }
+        });
         Zenoss.DetailNavPanel.superclass.constructor.call(this, config);
     },initEvents: function() {
         this.addEvents( 
@@ -354,9 +341,13 @@ Zenoss.DetailNavPanel = Ext.extend(Zenoss.SubselectionPanel,{
         Zenoss.DetailNavPanel.superclass.initEvents.call(this);
     },
     setContext: function(uid) {
-        this.items.each(function(item){
-            item.setContext(uid);
-        });
+        //called to load the nav tree
+        this.contextId = uid;
+        this.treepanel.setRootNode([]);
+        this.getNavConfig(uid);
+    },
+    getSelectionModel: function() {
+        return this.treepanel.getSelectionModel();
     },
     getNavConfig: function(uid){
         //Direct call to get nav configs from server
@@ -364,22 +355,22 @@ Zenoss.DetailNavPanel = Ext.extend(Zenoss.SubselectionPanel,{
         var myCallback = function(provider, response) {
             var detailConfigs = response.result.detailConfigs;
             var filterFn = function(val) {
-                return this.filterNav(this, val);
+                return me.filterNav(me, val);
             };
-            detailConfigs = Zenoss.util.filter(detailConfigs, filterFn, this);
+            detailConfigs = Zenoss.util.filter(detailConfigs, filterFn, me);
             var panelMap = [];
             Ext.each(detailConfigs, function(val) {
                 panelMap[val.id] = val;
             });
-            this.panelConfigMap = panelMap;
-            var nodes = this.onGetNavConfig(this.contextId);
+            me.panelConfigMap = panelMap;
+            var nodes = me.onGetNavConfig(me.contextId);
             if (!Ext.isDefined(nodes) || nodes === null){
                 nodes = [];
             }
             if (detailConfigs){
                 nodes = nodes.concat(detailConfigs);
             }
-            this.setNavTree(nodes);
+            me.setNavTree(nodes);
         };
         var args = {
             'uid': uid
@@ -421,18 +412,44 @@ Zenoss.DetailNavPanel = Ext.extend(Zenoss.SubselectionPanel,{
             }, this);
             
         }
-    },
-    getConfigItems: function(id, otherItems){
-        var firstItem = this.getFirstItem(id);
-        return [ firstItem ].concat(otherItems || []);
-    },
-    getFirstItem: function(id){
-        return {
-            xtype:'detailnavtreepanel',
-            idSuffix: id
-        };
     }
 });
-
 Ext.reg('detailnav', Zenoss.DetailNavPanel);
+
+Zenoss.DetailContainer = Ext.extend(Ext.Panel, {
+    constructor: function(config){
+        Ext.applyIf(config, {
+            border: false,
+            autoScroll: true,
+            listeners: {
+                selectionchange: this.onSelectionChange,
+                scope: this
+            }
+        });
+        Ext.each(config.items, function(item){
+            item.bubbleTarget = this;
+        }, this);
+        Zenoss.DetailContainer.superclass.constructor.call(this, config);
+    },
+    setContext: function(uid) {
+        this.items.each(function(item){
+            item.setContext(uid);
+        });
+    },
+    onSelectionChange: function(eventSelModel, node) {
+        var itemSelModel;
+        this.items.each(function(item){
+            itemSelModel = item.getSelectionModel();
+            if ( itemSelModel === eventSelModel ) {
+                item.onSelectionChange(node);
+            } else {
+                if ( itemSelModel.getSelectedNode() ) {
+                    itemSelModel.getSelectedNode().unselect(true);
+                }
+            }
+        });
+    }
+});
+Ext.reg('detailcontainer', Zenoss.DetailContainer);
+
 })();

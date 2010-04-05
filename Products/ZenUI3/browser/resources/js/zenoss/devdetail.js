@@ -81,7 +81,7 @@ var componentCard = {
             region: 'center'
         }
     ]
-}
+};
 
 var deviceInformation = {
     xtype: 'fieldset',
@@ -310,6 +310,63 @@ var overview = {
     }]
 };
 
+Zenoss.DeviceDetailNav = Ext.extend(Zenoss.DetailNavPanel, {
+    constructor: function(config) {
+        Ext.applyIf(config, {
+            target: 'detail_card_panel',
+            menuIds: ['More','Add','TopLevel','Manage'],
+            listeners:{
+                render: function(panel) {
+                    this.setContext(UID);
+                },
+                scope: this
+            }
+        });
+        Zenoss.DeviceDetailNav.superclass.constructor.call(this, config);
+    },
+    filterNav: function(navpanel, config){
+        //nav items to be excluded
+        var excluded = [
+            'status',
+            'os',
+            'edit',
+            'events',
+            'resetcommunity',
+            'pushconfig',
+            'modeldevice',
+            'historyevents',
+            'objtemplates'
+        ];
+        return (excluded.indexOf(config.id)==-1);
+    },
+    onGetNavConfig: function(contextId) {
+        return Zenoss.nav.Device;
+    },
+    onSelectionChange: function(node) {
+        var me, target, action;
+        me = this;
+        target = Ext.getCmp('detail_card_panel');
+        if ( node.attributes.action ) {
+            action = node.attributes.action;
+        } else {
+            action = function(node, target) {
+                var id = node.attributes.id;
+                if (!(id in target.items.map)) {
+                    var config = me.panelConfigMap[id];
+                    Ext.applyIf(config, {refreshOnContextChange: true});
+                    if(config) {
+                        target.add(config);
+                        target.doLayout();
+                    }
+                }
+                target.items.map[node.attributes.id].setContext(me.contextId);
+                target.layout.setActiveItem(node.attributes.id);
+            };
+        }
+        action(node, target);
+    }
+});
+Ext.reg('devicedetailnav', Zenoss.DeviceDetailNav);
 
 Ext.getCmp('center_panel').add({
     id: 'center_panel_container',
@@ -330,50 +387,23 @@ Ext.getCmp('center_panel').add({
         split: 'true',
         id: 'master_panel',
         width: 275,
-        items: [{
-            xtype: 'detailnav',
-            target: 'detail_card_panel',
-            menuIds: ['More','Add','TopLevel','Manage'],
-            listeners:{
-                render: function(panel) {
-                    this.setContext(UID);
+        items: {
+            xtype: 'detailcontainer',
+            id: 'detailContainer',
+            items: [{
+                xtype: 'devicedetailnav',
+                id: 'deviceDetailNav'
+            }, {
+                xtype: 'montemplatetreepanel',
+                id: 'templateTree',
+                detailPanelId: 'detail_card_panel',
+                listeners: {
+                    afterrender: function(me) {
+                        me.setContext(UID);
+                    }
                 }
-            },
-            filterNav: function(navpanel, config){
-                //nav items to be excluded
-                var excluded = [
-                    'status',
-                    'os',
-                    'edit',
-                    'events',
-                    'resetcommunity',
-                    'pushconfig',
-                    'modeldevice',
-                    'historyevents'
-                ];
-                return (excluded.indexOf(config.id)==-1);
-            },
-            onGetNavConfig: function(contextId) {
-                return Zenoss.nav.Device;
-            },
-            onSelectionChange: function(detailNav, node) {
-                var target = Ext.getCmp('detail_card_panel'),
-                    action = node.attributes.action || function(node, target) {
-                        var id = node.attributes.id;
-                        if (!(id in target.items.map)) {
-                            var config = detailNav.panelConfigMap[id];
-                            Ext.applyIf(config, {refreshOnContextChange: true});
-                            if(config) {
-                                target.add(config);
-                                target.doLayout();
-                            }
-                        }
-                        target.items.map[node.attributes.id].setContext(detailNav.contextId);
-                        target.layout.setActiveItem(node.attributes.id);
-                    };
-                action(node, target);
-            }
-        }]
+            }]
+        }
     },{
         xtype: 'contextcardpanel',
         id: 'detail_card_panel',
