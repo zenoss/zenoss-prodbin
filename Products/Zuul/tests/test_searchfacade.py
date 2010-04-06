@@ -79,7 +79,8 @@ class TestSearchFacade(BaseTestCase):
         global search_results
         facade = SearchFacade(self.dmd)
         search_results = createResultsFromRange(20)
-        results = facade.getQuickSearchResults( "testquery", 10 )
+        sorter = DefaultSearchResultSorter(10)
+        results = facade.getQuickSearchResults( "testquery", sorter )
         # Should only have 10 results
         dummyIds = [result.id for result in results
                     if isinstance(result, DummyResult)]
@@ -99,7 +100,8 @@ class TestSearchFacade(BaseTestCase):
         search_results = createResultsFromRange(8,'cat1')
         search_results.extend( createResultsFromRange(7,'cat2') )
         facade = SearchFacade(self.dmd)
-        results = facade.getQuickSearchResults( "testquery", 20, 5 )
+        sorter = DefaultSearchResultSorter( 20, 5 )
+        results = facade.getQuickSearchResults( "testquery", sorter )
         results = list(results)
         cat1Ids = [result.id for result in results if result.category == 'cat1']
         cat2Ids = [result.id for result in results if result.category == 'cat2']
@@ -123,7 +125,7 @@ class TestSearchFacade(BaseTestCase):
         scrambledResults = other2_results + event_results + device_results + \
                            other1_results
         sorter = DefaultSearchResultSorter()
-        sortedResults = sorted(scrambledResults, sorter)
+        sortedResults = sorter.limitSort(scrambledResults)
         expectedResults = device_results + event_results + other1_results + \
                           other2_results
         self.assertEquals( expectedResults, sortedResults )
@@ -139,9 +141,9 @@ class TestSearchFacade(BaseTestCase):
                          other1_results
         facade = SearchFacade(self.dmd)
         maxPerCategory = 5
+        sorter = DefaultSearchResultSorter( len(search_results), maxPerCategory )
         results = facade.getQuickSearchResults( 'testquery',
-                                                len( search_results ),
-                                                maxPerCategory )
+                                                sorter )
         expected = device_results[:maxPerCategory] + \
                    event_results[:maxPerCategory] + \
                    other1_results[:maxPerCategory] + \
@@ -158,13 +160,12 @@ class TestSearchFacade(BaseTestCase):
         search_results = other2_results + event_results + device_results + \
                          other1_results
         facade = SearchFacade(self.dmd)
+        sorter = DefaultSearchResultSorter( 2 * maxPerCategory, maxPerCategory )
         results = facade.getQuickSearchResults( 'testquery',
-                                                2 * maxPerCategory,
-                                                maxPerCategory )
+                                                sorter )
         expected = device_results[:maxPerCategory] + \
                    event_results[:maxPerCategory]
         self.assertEquals( expected, list(results) )
-
 
 def test_suite():
     from unittest import TestSuite, makeSuite

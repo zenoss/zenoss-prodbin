@@ -17,6 +17,7 @@ from Products.ZenUtils.Ext import DirectRouter
 from Products import Zuul
 from Products.Zuul.search import ISearchResult
 from Products.Zuul.search import IQuickSearchResultSnippet
+from Products.Zuul.search import DefaultSearchResultSorter
 
 class DefaultQuickSearchResultSnippet(object):
     """
@@ -54,6 +55,9 @@ class DefaultQuickSearchResultSnippet(object):
 _MAX_RESULTS_PER_QUERY=100
 _MAX_RESULTS_PER_CATEGORY=10
 
+_RESULT_SORTER = DefaultSearchResultSorter( _MAX_RESULTS_PER_QUERY,
+                                            _MAX_RESULTS_PER_CATEGORY )
+
 class SearchRouter(DirectRouter):
     """
     UI specific code for the search functionality.
@@ -72,8 +76,7 @@ class SearchRouter(DirectRouter):
         """
         facade = self._getFacade()
         results = facade.getQuickSearchResults(query,
-                                               _MAX_RESULTS_PER_QUERY,
-                                               _MAX_RESULTS_PER_CATEGORY)
+                                               _RESULT_SORTER)
         snippets = []
         for result in results:
             snippet = IQuickSearchResultSnippet( result )

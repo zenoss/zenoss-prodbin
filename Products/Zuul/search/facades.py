@@ -111,9 +111,7 @@ class DefaultQueryParser(object):
 DEVICE_CATEGORY = 'device'
 EVENT_CATEGORY = 'event'
 
-class DefaultSearchResultSorter(object):
-    implements(ISearchResultSorter)
-
+class DefaultSearchResultComparator(object):
     def __call__(self, result1, result2):
         result = self._compareCategories( result1, result2 )
         if result == 0:
@@ -136,7 +134,57 @@ class DefaultSearchResultSorter(object):
     def _compareExcerpts(self, result1, result2 ):
         return cmp( result1.excerpt, result2.excerpt )
 
+DEFAULT_SEARCH_RESULT_COMPARATOR=DefaultSearchResultComparator()
 
+class DefaultSearchResultSorter(object):
+    implements(ISearchResultSorter)
+
+    comparator = None
+    maxResults = None
+    maxResultsPerCategory = None
+
+    def __init__(self, maxResults=None,
+                       maxResultsPerCategory=None,
+                       resultComparator=DEFAULT_SEARCH_RESULT_COMPARATOR):
+        self.comparator = resultComparator
+        self.maxResults = maxResults
+        self.maxResultsPerCategory = maxResultsPerCategory
+
+    def limitSort(self, results):
+        """
+        Takes a list of results and returns and iterable
+        of results that is sorted a limited by maxResults
+        and maxPerCategory
+        """
+        if self.comparator is not None:
+            results.sort(self.comparator)
+
+        useCategoryLimits = self.maxResultsPerCategory is not None
+        useMaxResultsLimits = self.maxResults is not None
+
+        # We assume the results are sorted by category.
+        # Take the first maxPerCategory of each group.
+        categoryCounts={}
+        def stillBelowCategoryLimit( result ):
+            category = result.category
+            if category not in categoryCounts:
+                categoryCounts[category] = 0
+            categoryCounts[category] += 1
+            return categoryCounts[category] <= self.maxResultsPerCategory
+
+        if useCategoryLimits:
+            limitedResults = ifilter( stillBelowCategoryLimit, results )
+        else:
+            limitedResults = results
+
+        if useMaxResultsLimits:
+            limitedResults = islice( limitedResults, self.maxResults )
+        else:
+            limitedResults = results
+
+        return limitedResults
+
+    
 DEFAULT_SORTER = DefaultSearchResultSorter()
 
 
@@ -156,26 +204,7 @@ class SearchFacade(ZuulFacade):
     def _getProviders(self):
         return subscribers([self._dmd], ISearchProvider)
 
-    def _filterResultsByCategoryCount(self, results, maxPerCategory ):
-        # If no max, just return the results
-        if maxPerCategory is None:
-            return results
-        
-        # We assume the results are sorted by category.
-        # Take the first maxPerCategory of each group.
-        categoryCounts={}
-        def stillBelowCategoryLimit( result ):
-            category = result.category
-            if category not in categoryCounts:
-                categoryCounts[category] = 0
-            categoryCounts[category] += 1
-            return categoryCounts[category] <= maxPerCategory
-
-        return ifilter( stillBelowCategoryLimit, results )
-        
-
-    def _getSearchResults(self, query, maxResults=None,
-                          maxResultsPerCategory=None,
+    def _getSearchResults(self, query,
                           resultSorter=DEFAULT_SORTER):
         """
         The actual implementation of querying each provider.  This consists
@@ -198,21 +227,13 @@ class SearchFacade(ZuulFacade):
             # category, but most algorithms will do some sort of artificial
             # limiting unless the queries are performed in concert.
             providerResults = adapter.getSearchResults( parsedQuery,
-                                                        maxResults )
+                                                        resultSorter )
             if providerResults:
                 results.extend( providerResults )
 
-        # Sort results
-        results.sort( resultSorter )
-
-        # Keep only max number of results per category
-        if maxResultsPerCategory is not None:
-            results = self._filterResultsByCategoryCount( results,
-                                                maxResultsPerCategory )
-
-        # Keep max number of results
-        results = islice(results, maxResults)
-
+        # Sort results with limits
+        results = resultSorter.limitSort( results )
+        
         return results
 
     def getSearchResults(self, query, resultSorter=DEFAULT_SORTER):
@@ -225,9 +246,7 @@ class SearchFacade(ZuulFacade):
         """
         return self._getSearchResults( query, resultSorter=resultSorter )
 
-    def getQuickSearchResults(self, query, maxResults=None,
-                              maxResultsPerCategory=None,
-                              resultSorter=DEFAULT_SORTER):
+    def getQuickSearchResults(self, query, resultSorter=DEFAULT_SORTER):
         """
         Execute the query against registered search providers, returning
         abbreviated results for display in the quick search drop-down list.
@@ -236,8 +255,6 @@ class SearchFacade(ZuulFacade):
         @rtype list of ISearchResult-implementing objects
         """
         return self._getSearchResults(query,
-                                      maxResults,
-                                      maxResultsPerCategory,
                                       resultSorter=resultSorter)
 
     def noProvidersPresent(self):

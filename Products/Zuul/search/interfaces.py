@@ -40,13 +40,13 @@ class ISearchProvider(Interface):
     Implement this interface to provide search results.
     """
 
-    def getSearchResults(parsedQuery, maxResults):
+    def getSearchResults(parsedQuery, sorter):
         """
         Returns a list of ISearchResult objects based on the given
         IParsedQuery.
         """
 
-    def getQuickSearchResults(parsedQuery, maxResults):
+    def getQuickSearchResults(parsedQuery, sorter):
         """
         Returns a list of ISearchResult objects based on the given
         IParsedQuery.  These ISearchResults may be only partially filled
@@ -69,8 +69,7 @@ class ISearchFacade(IFacade):
     """
     Interface for a search facade.
     """
-    def getQuickSearchResults(self, queryString, maxResults,
-                              maxResultsPerCategory, searchResultSorter):
+    def getQuickSearchResults(self, queryString, searchResultSorter):
         """
         Query for items, return ISearchInfo objects
 
@@ -95,13 +94,13 @@ class ISearchResultSorter(Interface):
     """
     Sort ISearchResult objects.  (The default sort is by category then excerpt.)
     """
-    def __call__(result1,result2):
+    comparator = Attribute("Comparator for sorting search results")
+    maxResults = Attribute("Maximum results to be returned from a query")
+    maxResultsPerCategory = Attribute("Maximum results of any one category to" +
+                                      " be returned from a query")
+    def limitSort(results):
         """
-        Passed to list.sort or sorted method for sorting ISearchResult objects.
-
-        @type result1 ISearchResult
-        @type result2 ISearchResult
-        @return 1 if result1 > result2, 0 if equal, -1 if result2 > result1
+        Limits and sorts search results
         """
 
 class IQuickSearchResultSnippet(IMarshallable):
