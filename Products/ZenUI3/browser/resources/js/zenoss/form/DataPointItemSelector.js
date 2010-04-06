@@ -22,7 +22,7 @@
                  name: 'dataPoints',
                  fieldLabel: _t('Data Points'),
                  id: 'thresholdItemSelector',
-                 imagePath: "/zenui/img/xtheme-zenoss/icon",
+                 imagePath: "/++resource++zenui/img/xtheme-zenoss/icon",
                  drawUpIcon: false,
                  drawDownIcon: false,
                  drawTopIcon: false,

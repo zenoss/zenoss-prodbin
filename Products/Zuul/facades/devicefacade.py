@@ -248,3 +248,19 @@ class DeviceFacade(TreeFacade):
                    'text': rrdTemplate.titleOrId(),
                    'leaf': True
                    }
+
+    def getUnboundTemplates(self, uid):
+        return self._getBoundTemplates(uid, False)
+
+    def getBoundTemplates(self, uid):
+        return self._getBoundTemplates(uid, True)
+
+    def _getBoundTemplates(self, uid, isBound):
+        obj = self._getObject(uid)
+        for template in obj.getAvailableTemplates():
+            if (template.id in obj.zDeviceTemplates) == isBound:
+                yield template.id
+
+    def setBoundTemplates(self, uid, templateIds):
+        obj = self._getObject(uid)
+        obj.bindTemplates(templateIds)

@@ -85,6 +85,9 @@
             "text": "ContextCardButtonPanel.js",
             "path": "resources/js/zenoss/"
         }, {
+            "text": "multiselect.js",
+            "path": "resources/js/zenoss/lib/"
+        }, {
             "text": "TemplateTreePanel.js",
             "path": "resources/js/zenoss/"
         }, {
@@ -129,9 +132,6 @@
         }, {
             "text": "ComponentPanel.js",
             "path": "resources/js/zenoss/"
-        }, {
-            "text": "multiselect.js",
-            "path": "resources/js/zenoss/lib/"
         }, {
             "text": "Severity.js",
             "path": "resources/js/zenoss/form/"

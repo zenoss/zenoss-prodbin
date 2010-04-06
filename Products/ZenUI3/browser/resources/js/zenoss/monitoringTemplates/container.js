@@ -149,4 +149,83 @@ Zenoss.templates.MonTemplateTreePanel = Ext.extend(Ext.tree.TreePanel, {
 });
 Ext.reg('montemplatetreepanel', Zenoss.templates.MonTemplateTreePanel);
 
+Zenoss.BindTemplatesItemSelector = Ext.extend(Ext.ux.form.ItemSelector, {
+        constructor: function(config) {
+        Ext.applyIf(config, {
+            imagePath: "/++resource++zenui/img/xtheme-zenoss/icon",
+            drawUpIcon: false,
+            drawDownIcon: false,
+            drawTopIcon: false,
+            drawBotIcon: false,
+            dislplayField: 'id',
+            valueField: 'id',
+            multiselects: [{
+                width: 250,
+                height: 200,
+                appendOnly: true,
+                store: ['']
+            },{
+                width: 250,
+                height: 200,
+                appendOnly: true,
+                store: ['']
+            }]
+        });
+        Zenoss.BindTemplatesItemSelector.superclass.constructor.apply(this, arguments);
+    },
+    setContext: function(uid) {
+        REMOTE.getUnboundTemplates({uid: uid}, function(provider, response){
+            this.fromMultiselect.store.loadData(response.result.data);
+        }, this);
+        REMOTE.getBoundTemplates({uid: uid}, function(provider, response){
+            this.toMultiselect.store.loadData(response.result.data);
+        }, this);
+    }
+});
+Ext.reg('bindtemplatesitemselector', Zenoss.BindTemplatesItemSelector);
+
+Zenoss.BindTemplatesDialog = Ext.extend(Zenoss.HideFitDialog, {
+    constructor: function(config){
+        var me = this;
+        Ext.applyIf(config, {
+            title: _t('Bind Templates'),
+            items: {
+                xtype: 'bindtemplatesitemselector',
+                ref: 'itemselector',
+                context: config.context
+            },
+            listeners: {
+                show: function() {
+                    this.itemselector.setContext(this.context);
+                }
+            },
+            buttons: [
+            {
+                xtype: 'HideDialogButton',
+                text: _t('Save'),
+                handler: function(){
+                    var records, data, templateIds;
+                    if (Zenoss.Security.hasPermission('Manage DMD')) {
+                        records = me.itemselector.toMultiselect.store.getRange();
+                        data = Ext.pluck(records, 'data');
+                        templateIds = Ext.pluck(data, 'text');
+                        REMOTE.setBoundTemplates({
+                            uid: me.context,
+                            templateIds: templateIds
+                        });
+                    }
+                }
+            }, {
+                xtype: 'HideDialogButton',
+                text: _t('Cancel')
+            }]
+        });
+        Zenoss.BindTemplatesDialog.superclass.constructor.call(this, config);
+    },
+    setContext: function(uid) {
+        this.context = uid;
+    }
+});
+Ext.reg('bindtemplatesdialog', Zenoss.BindTemplatesDialog);
+
 })();

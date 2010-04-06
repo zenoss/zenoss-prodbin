@@ -307,3 +307,18 @@ class DeviceRouter(TreeRouter):
         facade = self._getFacade()
         templates = facade.getTemplates(id)
         return Zuul.marshal(templates)
+
+    def getUnboundTemplates(self, uid):
+        facade = self._getFacade()
+        templates = facade.getUnboundTemplates(uid)
+        return {'data': Zuul.marshal(templates), 'success': True}
+
+    def getBoundTemplates(self, uid):
+        facade = self._getFacade()
+        templates = facade.getBoundTemplates(uid)
+        return {'data': Zuul.marshal(templates), 'success': True}
+
+    def setBoundTemplates(self, uid, templateIds):
+        facade = self._getFacade()
+        facade.setBoundTemplates(uid, templateIds)
+        return {'success': True}

@@ -190,3 +190,30 @@ class IDeviceFacade(IFacade):
         @rtype: IJobStatus
         
         """
+
+    def getUnboundTemplates(uid):
+        """
+        Fetch the monitoring templates that are not bound to the DeviceClass
+        or Device uniquely identified by the uid parameter. These monitoring
+        templates are defined directly on the object or are available in the
+        object's acqisition chain. They are considered unbound because their
+        IDs are not listed in the zDeviceTemplates property and therefore are
+        not used by the monitoring daemons.
+        """
+
+    def getBoundTemplates(uid):
+        """
+        Fetch the monitoring templates that are bound to the DeviceClass or
+        Device uniquely identified by the uid parameter. These monitoring
+        templates are defined directly on the object or are available in the
+        object's acqisition chain. They are considered bound because their
+        IDs are listed in the zDeviceTemplates property and therefore are
+        used by the monitoring daemons.
+        """
+
+    def setBoundTemplates(self, uid, templateIds):
+        """
+        Set the zDeviceTemplates property on the DeviceClass or Device
+        uniquely identified by the uid parameter to the value of the 
+        templateIds parameter.
+        """

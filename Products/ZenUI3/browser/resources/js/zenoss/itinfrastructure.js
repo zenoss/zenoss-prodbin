@@ -1189,7 +1189,29 @@ footerPanel.add({
 
 var footerBar = Ext.getCmp('footer_bar');
 
-footerBar.add({
-    xtype: 'ContextConfigureMenu'
+Ext.create({
+    xtype: 'bindtemplatesdialog',
+    id: 'bindTemplatesDialog'
 });
+
+footerBar.add({
+    xtype: 'ContextConfigureMenu',
+    onSetContext: function(uid){
+        Ext.getCmp('bindTemplatesDialog').setContext(uid);
+    },
+    onGetMenuItems: function(uid){
+        var menuItems = [];
+        if ( uid.match('^/zport/dmd/Devices') ) {
+            menuItems.push({
+                xtype: 'menuitem',
+                text: _t('Bind Templates'),
+                handler: function(){
+                    Ext.getCmp('bindTemplatesDialog').show();
+                }
+            });
+        }
+        return menuItems;
+    }
+});
+
 }); // Ext. OnReady

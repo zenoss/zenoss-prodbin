@@ -414,6 +414,12 @@ Ext.getCmp('center_panel').add({
     }]
 });
 
+Ext.create({
+    xtype: 'bindtemplatesdialog',
+    id: 'bindTemplatesDialog',
+    context: UID
+});
+
 Ext.getCmp('footer_bar').add({
     xtype: 'ContextConfigureMenu',
     id: 'device_configure_menu',
@@ -421,7 +427,14 @@ Ext.getCmp('footer_bar').add({
         render: function(){
             this.setContext(UID);
         }
-    }
+    },
+    menuItems: [{
+        xtype: 'menuitem',
+        text: _t('Bind Templates'),
+        handler: function(){
+            Ext.getCmp('bindTemplatesDialog').show();
+        }
+    }]
 });
 
 });
