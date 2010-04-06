@@ -189,6 +189,10 @@ Zenoss.DeviceGridPanel = Ext.extend(Zenoss.FilterGridPanel,{
                 this.lastHash = o.result.hash || this.lastHash;
             },
             this);
+        this.on('rowdblclick', this.onRowDblClick, this);
+    }, // constructor
+    onRowDblClick: function(grid, rowIndex, e) {
+        window.location = grid.getStore().getAt(rowIndex).data.uid;
     }
 });
 Ext.reg('DeviceGridPanel', Zenoss.DeviceGridPanel);
