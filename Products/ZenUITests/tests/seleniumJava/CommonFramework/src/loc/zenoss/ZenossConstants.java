@@ -15,7 +15,7 @@ public class ZenossConstants {
 	/**
 	 * Localhost
 	 */
-	public static final String SeleniumHubHostname = (System.getProperties().containsKey("SeleniumServerHost"))?System.getProperties().getProperty("SeleniumServerHost") : "localhost";
+	public static final String SeleniumHubHostname = (System.getProperties().containsKey("SeleniumServerHost"))?System.getProperties().getProperty("SeleniumServerHost") : "selenium-master.zenoss.loc";
 	public static final String SeleniumHubPort = (System.getProperties().containsKey("SeleniumServerPort"))?System.getProperties().getProperty("SeleniumServerPort") : "4444";
 	/**
 	 * Browser in which the testcase will be executed
@@ -24,12 +24,12 @@ public class ZenossConstants {
 	/**
 	 * The machine in which the test will be executed
 	 */
-	public static final String targetMachine=(System.getProperties().containsKey("TargetMachine"))?System.getProperties().getProperty("TargetMachine") : "test-rhel54-32-5.zenoss.loc";
+	public static final String targetMachine=(System.getProperties().containsKey("TargetMachine"))?System.getProperties().getProperty("TargetMachine") : "test-rhel54-32-1.zenoss.loc";
 	public static final String testedMachine="http://" + targetMachine +":8080";
 	
-	public static final String build=(System.getProperties().containsKey("ZenossBuild"))?System.getProperties().getProperty("ZenossBuild") : "777";
-	public static final String version=(System.getProperties().containsKey("ZenossVersion"))?System.getProperties().getProperty("ZenossVersion") : "777";
-	public static final String installationPath=(System.getProperties().containsKey("buildLocation"))?System.getProperties().getProperty("buildLocation") : "777";
+	public static final String build=(System.getProperties().containsKey("ZenossBuild"))?System.getProperties().getProperty("ZenossBuild") : "629";
+	public static final String version=(System.getProperties().containsKey("ZenossVersion"))?System.getProperties().getProperty("ZenossVersion") : "2.5.70";
+	public static final String installationPath=(System.getProperties().containsKey("buildLocation"))?System.getProperties().getProperty("buildLocation") : "/629/";
 	
 	/**
 	 * The ssh parameters
@@ -37,5 +37,13 @@ public class ZenossConstants {
 	
 	public static final String sshUser=(System.getProperties().containsKey("SSHUser"))?System.getProperties().getProperty("SSHUser") : "tat";
 	public static final String sshPass=(System.getProperties().containsKey("SSHPass"))?System.getProperties().getProperty("SSHPass") : "mypass";
+	
+	/**
+	 * Testlink Parameters
+	 */
+	public static final String TestLinkAPIKEY = (System.getProperties().containsKey("SSHUser"))?System.getProperties().getProperty("TestLinkAPIKEY") : "x1254slokdijwur8882jjfuJJhhsu2";
+	public static final String TestLinkAPIURL = (System.getProperties().containsKey("SSHUser"))?System.getProperties().getProperty("TestLinkAPIURL") : "http://dev.zenoss.com/testlink/lib/api/xmlrpc.php";
+	
+	
 	
 }

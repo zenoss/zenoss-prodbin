@@ -7,6 +7,7 @@ import org.junit.Test;
 
 import loc.zenoss.Common;
 import loc.zenoss.ZenossConstants;
+import loc.zenoss.TestlinkXMLRPC;
 
 import com.thoughtworks.selenium.DefaultSelenium;
 import com.thoughtworks.selenium.SeleneseTestCase;
@@ -14,6 +15,11 @@ import com.thoughtworks.selenium.SeleneseTestCase;
 
 public class LoginScenarios {	
 	private static DefaultSelenium sClient = null;
+	
+	private static int testCaseID = 1790;
+	private static String testCaseResult = "f"; //Fail by default
+	private static int testPlanID = (System.getProperties().containsKey("testPlanID"))? Integer.parseInt(System.getProperties().getProperty("testPlanID")) : 2403;
+	
 	
 	@BeforeClass
 	public static void setUpBeforeClass() throws Exception {
@@ -30,6 +36,7 @@ public class LoginScenarios {
 	@AfterClass
 	public static void tearDownAfterClass() throws Exception {
 		sClient.stop();
+		TestlinkXMLRPC.UpdateTestCaseResult(testCaseID, testPlanID, testCaseResult);
 	}
 
 	@Before
@@ -44,10 +51,10 @@ public class LoginScenarios {
 	
 	
 	@Test
-	public void testLoginAsAdmin() throws Exception{
-	
+	public void testLoginAsAdmin() throws Exception{		
 		Common.Login(sClient, ZenossConstants.adminUserName,ZenossConstants.adminPassword);
 		Thread.sleep(12000);
-		SeleneseTestCase.assertTrue(sClient.isElementPresent("link=Getting Started Guide (PDF)"));
+		SeleneseTestCase.assertTrue(sClient.isElementPresent("link=Getting Started Guide (PDF)"));		
+		testCaseResult = "p";
 	}
 }

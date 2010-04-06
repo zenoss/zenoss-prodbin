@@ -8,14 +8,14 @@
 	<property name="Browser" value="FF 3.5 on W2K3" />
 	<property name="Username" value="admin" />
 	<property name="Password" value="zenoss" />
-	<property name="TargetMachine" value="MAchine" />
+	<property name="TargetMachine" value="test-rhel54-32-1.zenoss.loc" />
 	<property name="SSHUser" value="root" />
 	<property name="SSHPass" value="password" />
 	<property name="ZenossBuild" value="590" />
 	<property name="ZenossVersion" value="2.5.2" />
 	<property name="buildLocation" value="/releases/2.5.2/all/" />
 	
-	<property name="SeleniumServerHost" value="localhost" />
+	<property name="SeleniumServerHost" value="selenium-master.zenoss.loc" />
 	<property name="SeleniumServerPort" value="4444" />
 	
 	<target name="CompileAll" >
