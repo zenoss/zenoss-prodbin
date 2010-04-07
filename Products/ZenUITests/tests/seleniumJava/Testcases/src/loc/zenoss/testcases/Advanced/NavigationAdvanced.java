@@ -1,6 +1,5 @@
 package loc.zenoss.testcases.Advanced;
 
-
 import loc.zenoss.Common;
 import loc.zenoss.TestlinkXMLRPC;
 import loc.zenoss.ZenossConstants;
@@ -50,10 +49,8 @@ private static DefaultSelenium sClient = null;
 	public void tearDown() throws Exception {
 	}
 	
-	
 	@Test
 	public void naviAdvanced() throws Exception{
-	
 		/*Common.Login(sClient, ZenossConstants.adminUserName,ZenossConstants.adminPassword);
 		Thread.sleep(12000);*/
 		sClient.open("/zport/dmd/Dashboard");
@@ -93,7 +90,6 @@ private static DefaultSelenium sClient = null;
 		 SeleneseTestCase.assertTrue(sClient.isTextPresent("Versions"));
 		 SeleneseTestCase.assertTrue(sClient.isTextPresent("Backups"));
 
-	
 	}
 
 }

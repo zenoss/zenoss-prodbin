@@ -7,7 +7,8 @@
 	<property name="lib" value="lib" />
 	<property name="classes" value="Testcases/bin" />
 	<property name="test" value="loc.zenoss.testcases.Advanced.NavigationAdvanced" />
-
+	<property name="testSettings" value="loc.zenoss.testcases.Advanced.NavigationSettings" />
+	<property name="testSaveData" value="loc.zenoss.testcases.Advanced.SaveDataSettings" />
 	
 	<path id="TestCases.classpath">
 	  <pathelement location="${classes}" />
@@ -32,7 +33,8 @@
 			
 		            <formatter type="xml"/>
 					<test name="${test}" todir="${Results}" />
-					
+			        <test name="${testSettings}" todir="${Results}" />
+			        <test name="${testSaveData}" todir="${Results}" />
 		            <classpath refid="TestCases.classpath"/>
 		        </junit>
 	</target>
