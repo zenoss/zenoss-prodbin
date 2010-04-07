@@ -329,6 +329,27 @@ class TemplateFacade(ZuulFacade):
         thresholdClass = self._getThresholdClass(thresholdUid)
         graphDefinition.manage_addThresholdGraphPoints((thresholdClass.id,))
 
+    def addCustomToGraph(self, graphUid, customId, customType):
+        graphDefinition = self._getGraphDefinition(graphUid)
+        graphDefinition.manage_addCustomGraphPoint(customId, customType)
+
+    _graphInstructionTypes = (('DefGraphPoint', 'DEF'),
+                              ('VdefGraphPoint', 'VDEF'),
+                              ('CdefGraphPoint', 'CDEF'),
+                              ('PrintGraphPoint', 'PRINT'),
+                              ('GprintGraphPoint', 'GPRINT'),
+                              ('CommentGraphPoint', 'COMMENT'),
+                              ('VruleGraphPoint', 'VRULE'),
+                              ('HruleGraphPoint', 'HRULE'),
+                              ('LineGraphPoint', 'LINE'),
+                              ('AreaGraphPoint', 'AREA'),
+                              ('TickGraphPoint', 'TICK'),
+                              ('ShiftGraphPoint', 'SHIFT'))
+
+    def getGraphInstructionTypes(self):
+        for pythonClassName, label in self._graphInstructionTypes:
+            yield dict(pythonClassName=pythonClassName, label=label)
+
     def setGraphPointSequence(self, uids):
         for i, uid in enumerate(uids):
             graphPoint = self._getGraphPoint(uid)

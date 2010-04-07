@@ -31,10 +31,9 @@ getSelectedGraphDefinition = function() {
 };
 
 addGraphDefinition = function(){
-    var templateSelectionModel, params, callback;
-    templateSelectionModel = Ext.getCmp('templateTree').getSelectionModel();
+    var params, callback;
     params = {
-        templateUid: templateSelectionModel.getSelectedNode().attributes.uid,
+        templateUid: getSelectedTemplate().attributes.uid,
         graphDefinitionId: Ext.getCmp('graphDefinitionIdTextfield').getValue()
     };
     callback = function(provider, response) {
@@ -178,10 +177,83 @@ new Zenoss.HideFormDialog({
     
 });
 
-new Zenoss.MessageDialog({
+new Zenoss.HideFormDialog({
     id: 'addCustomToGraphDialog',
     title: _t('Add Custom Graph Point'),
-    message: 'Not implemented yet.'
+    listeners: {
+        show: function(dialog) {
+            dialog.idField.reset();
+            dialog.typeCombo.reset();
+            dialog._addButton.disable();
+            delete dialog.typeCombo.lastQuery;
+            dialog.typeCombo.doQuery(dialog.typeCombo.allQuery, true);
+        }
+    },
+    items: [{
+        xtype: 'textfield',
+        ref: 'idField',
+        fieldLabel: _t('ID'),
+        allowBlank: false,
+        listeners: {
+            invalid: function(idField){
+                idField.refOwner._addButton.disable();
+            },
+            valid: function(idField){
+                if ( idField.refOwner.typeCombo.isValid(true) ) {
+                    idField.refOwner._addButton.enable();
+                }
+            }
+        }
+    }, {
+        xtype: 'combo',
+        ref: 'typeCombo',
+        fieldLabel: _t('Instruction Type'),
+        valueField: 'pythonClassName',
+        displayField: 'label',
+        triggerAction: 'all',
+        selectOnFocus: true,
+        forceSelection: true,
+        editable: false,
+        allowBlank: false,
+        listeners: {
+            invalid: function(typeCombo){
+                typeCombo.refOwner._addButton.disable();
+            },
+            valid: function(typeCombo){
+                if ( typeCombo.refOwner.idField.isValid(true) ) {
+                    typeCombo.refOwner._addButton.enable();
+                }
+            }
+        },
+        store: {
+            xtype: 'directstore',
+            directFn: router.getGraphInstructionTypes,
+            fields: ['pythonClassName', 'label'],
+            root: 'data'
+        }
+    }],
+    buttons: [{
+        xtype: 'HideDialogButton',
+        ref: '../_addButton',
+        text: _t('Add'),
+        disabled: true,
+        handler: function(addButton) {
+            var params, callback;
+            params = {
+                graphUid: getSelectedGraphDefinition().id,
+                customId: addButton.refOwner.idField.getValue(),
+                customType: addButton.refOwner.typeCombo.getValue()
+            };
+            callback = function() {
+                Ext.getCmp('graphPointGrid').getStore().reload();
+            };
+            router.addCustomToGraph(params, callback);
+        }
+    }, {
+        xtype: 'HideDialogButton',
+        ref: '../cancelButton',
+        text: _t('Cancel')
+    }]
 });
 
 

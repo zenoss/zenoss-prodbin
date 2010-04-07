@@ -256,6 +256,21 @@ class ITemplateFacade(IFacade):
         identified by the graphUid parameter.
         """
 
+    def addCustomToGraph(graphUid, customId, customType):
+        """
+        Add a custom graph point to the GraphDefinition uniquely identified by
+        the graphUid parameter.  The customType parameter must be one of the
+        pythonClassNames returned by getGraphInstructionTypes.
+        """
+
+    def getGraphInstructionTypes():
+        """
+        Generates dictionaries containing the pythonClassName and label for
+        the graph instruction types supported by RRDtool.
+        
+        More info at http://oss.oetiker.ch/rrdtool/doc/rrdgraph_graph.en.html
+        """
+
     def setGraphPointSequence(uids):
         """
         Set the sequence of the graph points uniquely identified by the items
