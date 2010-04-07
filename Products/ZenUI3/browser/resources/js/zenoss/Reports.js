@@ -16,57 +16,7 @@ Ext.ns('Zenoss.ui.Reports');
 
 Ext.onReady(function () {
 
-var addrorg,
-    addtozenpack;
-
-/*
- * Add a report class
- */
-function addReportOrganizer(e) {
-    if (!addrorg) {
-        addrorg = new Ext.Window({
-            title: _t('Create Report Organizer'),
-            layout: 'fit',
-            autoHeight: true,
-            width: 310,
-            closeAction: 'hide',
-            plain: true,
-            items: [{
-                id: 'addrorgform',
-                xtype: 'form',
-                monitorValid: true,
-                defaults: {width: 180},
-                autoHeight: true,
-                border: false,
-                frame: false,
-                labelWidth: 100,
-                items: [{
-                    xtype: 'textfield',
-                    fieldLabel: _t('ID'),
-                    name: 'rorgname',
-                    allowBlank: false
-                }],
-                buttons: [{
-                    text: _t('Cancel'),
-                    handler: function () {
-                        addrorg.hide();
-                    }
-                }, {
-                    text: _t('Submit'),
-                    formBind: true,
-                    handler: function () {
-                        var form, newrorgname;
-                        form = Ext.getCmp('addrorgform').getForm();
-                        newrorgname = form.findField('rorgname').getValue();
-                        report_tree.addNode('organizer', newrorgname);
-                        addrorg.hide();
-                    }
-                }]
-            }]
-        });
-    }
-    addrorg.show(this);
-}
+var addtozenpack;
 
 /*
  * Delete a report class
@@ -168,7 +118,7 @@ Zenoss.ReportTreePanel = Ext.extend(Zenoss.HierarchyTreePanel, {
         Zenoss.ReportTreePanel.superclass.constructor.call(this, 
                 config);
     },
-    addNode: function (type, id) {
+    addNode: function (nodeType, id) {
         var selectedNode = this.getSelectionModel().getSelectedNode(),
                 parentNode;
         if (selectedNode.leaf) {
@@ -178,7 +128,7 @@ Zenoss.ReportTreePanel = Ext.extend(Zenoss.HierarchyTreePanel, {
         }
         parentNode.expand();
         var contextUid = parentNode.attributes.uid,
-                params = {type: type, contextUid: contextUid, id: id},
+                params = {nodeType: nodeType, contextUid: contextUid, id: id},
                 tree = this;
         function callback(data) {
             if (data.success) {
@@ -207,6 +157,11 @@ Zenoss.ReportTreePanel = Ext.extend(Zenoss.HierarchyTreePanel, {
                 node.select();
                 node.expand();
                 tree.update(data.tree);
+                if (node.attributes.leaf) {
+                    report_panel.setContext(node.attributes.uid +
+                            '/edit' +
+                            node.attributes.meta_type);
+                }
             }
         }
         this.router.addNode(params, callback);
@@ -226,26 +181,42 @@ Zenoss.ReportTreePanel = Ext.extend(Zenoss.HierarchyTreePanel, {
             }
         }
         this.router.deleteNode(params, callback);
+    },
+    editReport: function () {
+        var node = this.getSelectionModel().getSelectedNode(),
+                uid = node.attributes.uid,
+                meta_type = node.attributes.meta_type;
+        report_panel.contextUid = '';
+        report_panel.setContext(uid + '/edit' + meta_type);
     }
 });
 
 var report_panel = new Zenoss.BackCompatPanel({});
+var initialContextSet = false;
 
 var treesm = new Ext.tree.DefaultSelectionModel({
     listeners: {
         'selectionchange': function (sm, newnode) {
             if (newnode.attributes.leaf) {
-                report_panel.setContext(newnode.attributes.uid);
+                if (!initialContextSet) {
+                    initialContextSet = true;
+                    report_panel.setContext(newnode.attributes.uid);
+                }
                 Ext.getCmp('add-organizer-button').disable();
             } else {
                 Ext.getCmp('add-organizer-button').enable();
+            }
+            if (/^(Device|(Multi)?Graph)Report$/.test(newnode.attributes.meta_type)) {
+                Ext.getCmp('edit-button').enable();
+            } else {
+                Ext.getCmp('edit-button').disable();
             }
         }
     }
 });
 
 var report_tree = new Zenoss.ReportTreePanel({
-    id: 'reports',
+    id: 'reporttree',
     ddGroup: 'reporttreedd',
     searchField: true,
     enableDD: true,
@@ -257,9 +228,18 @@ var report_tree = new Zenoss.ReportTreePanel({
         allowDrop: false
     },
     selModel: treesm,
-    listeners: { render: initializeTreeDrop },
+    listeners: { 
+        render: initializeTreeDrop,
+        click: function (node, e) {
+            if (node.attributes.leaf) {
+                report_panel.setContext(node.attributes.uid);
+            }
+        }
+    },
     dropConfig: { appendOnly: true }
 });
+
+report_tree.expandAll();
 
 Ext.getCmp('center_panel').add({
     id: 'center_panel_container',
@@ -281,11 +261,70 @@ Ext.getCmp('center_panel').add({
     }]
 });
 
+function createAction(typeName, text) {
+    return new Zenoss.Action({
+        text: _t('Add ') + text + '...',
+        iconCls: 'add',
+        handler: function () {
+            var addDialog = new Zenoss.FormDialog({
+                title: _t('Create ') + text,
+                modal: true,
+                width: 310,
+                formId: 'addForm',
+                items: [{
+                    xtype: 'textfield',
+                    fieldLabel: _t('ID'),
+                    name: 'name',
+                    allowBlank: false
+                }],
+                buttons: [{
+                    xtype: 'DialogButton',
+                    text: _t('Submit'),
+                    handler: function () {
+                        var form, newName;
+                        form = Ext.getCmp('addForm').getForm();
+                        newName = form.findField('name').getValue();
+                        report_tree.addNode(typeName, newName);
+                    }
+                },
+                    Zenoss.dialog.CANCEL
+                ]
+            });
+            addDialog.show(this);
+        }
+    });
+}
+
 Ext.getCmp('footer_bar').add({
     id: 'add-organizer-button',
-    tooltip: _t('Add a report organizer'),
+    tooltip: _t('Add report organizer or report'),
     iconCls: 'add',
-    handler: addReportOrganizer
+    menu: {
+        width: 190, // mousing over longest menu item was changing width
+        items: [
+            createAction('organizer', _t('Report Organizer')),
+        ]
+    }
+});
+
+Zenoss.remote.ReportRouter.getReportTypes({},
+    function (data) {
+        var menu = Ext.getCmp('add-organizer-button').menu;
+        for (var idx = 0; idx < data.reportTypes.length; idx++) {
+            var reportType = data.reportTypes[idx],
+                    menuText = data.menuText[idx];
+            menu.add(createAction(reportType, menuText));
+        }
+    }
+);
+
+Ext.getCmp('footer_bar').add({
+    id: 'edit-button',
+    tooltip: _t('Edit a report'),
+    iconCls: 'set',
+    handler: function() {
+        report_tree.editReport();
+    }
 });
 
 Ext.getCmp('footer_bar').add({

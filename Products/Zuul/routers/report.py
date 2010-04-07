@@ -14,9 +14,38 @@
 import logging
 from Products.ZenUtils.Ext import DirectRouter, DirectResponse
 from Products.Zuul.decorators import require
+from Products.Zuul.utils import ZuulMessageFactory as _t
 
 log = logging.getLogger('zen.ReportRouter')
 class ReportRouter(DirectRouter):
+
+    _newReportTypes = [
+        'customDeviceReport',
+        'graphReport',
+        'multiGraphReport',
+    ]
+
+    _reportMenuItems = [
+        _t('Custom Device Report'),
+        _t('Graph Report'),
+        _t('Multi-Graph Report'),
+    ]
+
+    _createOrganizers = {
+        _newReportTypes[0]: 'Custom Device Reports',
+        _newReportTypes[1]: 'Graph Reports',
+        _newReportTypes[2]: 'Multi-Graph Reports',
+    }
+
+    _createMethods = {
+        _newReportTypes[0]: 'manage_addDeviceReport',
+        _newReportTypes[1]: 'manage_addGraphReport',
+        _newReportTypes[2]: 'manage_addMultiGraphReport',
+    }
+
+    def getReportTypes(self):
+        return DirectResponse.succeed(reportTypes=ReportRouter._newReportTypes,
+                menuText=ReportRouter._reportMenuItems)
 
     def getTree(self, id='/zport/dmd/Reports'):
         my_data = []
@@ -35,15 +64,27 @@ class ReportRouter(DirectRouter):
                 rorg_node['children'].append(report_node)
 
     @require('Manage DMD')
-    def addNode(self, type, contextUid, id):
-        if type.lower() != 'organizer':
-            return {'success': False, 'msg': 'Not creating report'}
+    def addNode(self, nodeType, contextUid, id):
+        if nodeType not in ['organizer'] + ReportRouter._newReportTypes :
+            return DirectResponse.fail('Not creating "%s"' % nodeType)
 
         try:
-            uid = contextUid + '/' + id
-            maoUid = uid.replace('/zport/dmd', '')
-            self.context.dmd.Reports.manage_addOrganizer(maoUid)
-            represented = self.context.dmd.restrictedTraverse(uid)
+            if nodeType == 'organizer':
+                uid = contextUid + '/' + id
+                maoUid = uid.replace('/zport/dmd', '')
+                self.context.dmd.Reports.manage_addOrganizer(maoUid)
+                represented = self.context.dmd.restrictedTraverse(uid)
+            else:
+                creatingOrganizer = self.context.dmd.restrictedTraverse(
+                        "/zport/dmd/Reports/" + 
+                        ReportRouter._createOrganizers[nodeType])
+                createMethod = eval('creatingOrganizer.' + 
+                        ReportRouter._createMethods[nodeType])
+                represented = createMethod(id)
+                represented.getParentNode()._delObject(id)
+                targetNode = self.context.dmd.restrictedTraverse(contextUid)
+                targetNode._setObject(id, represented)
+
             node = self._createTreeNode(represented)
             return DirectResponse.succeed(tree=self.getTree(), newNode=node)
         except Exception, e:
@@ -89,4 +130,5 @@ class ReportRouter(DirectRouter):
                 'uiProvider': 'report', 
                 'leaf': leaf,
                 'expandable': not leaf,
+                'meta_type': represented.meta_type,
                 'text': text }
