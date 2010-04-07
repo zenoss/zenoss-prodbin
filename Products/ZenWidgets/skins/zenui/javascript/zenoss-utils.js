@@ -983,6 +983,8 @@ Dialog.Box.prototype = {
     },
     hide: function() {
         fade(this.dimbg, {duration:0.1});
+        var header = Ext.fly(this.framework).select('.dbox_tc h2');
+        if (header) header.remove();
         if (this.curid in this.unloadEvents)
             forEach(this.unloadEvents[this.curid], function(f){f()});
         YAHOO.zenoss.setInnerHTML(this.defaultContent);
@@ -1014,6 +1016,9 @@ Dialog.Box.prototype = {
             });
         }
         if (submits.length==1) map(connectTextboxes, textboxes);
+        var head = Ext.get('dialog_content').select('h2'),
+            header = Ext.fly(this.framework).select('.dbox_tc');
+        if (header && head) head.appendTo(header);
         first.focus();
         if (this.lock.locked) this.lock.release();
     },

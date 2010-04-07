@@ -1356,11 +1356,6 @@ top: 10px;
 
 /* IE HACKS */
 
-* html .dialog {
-   height: 200px;
-   width: 300px;
-}
-
 div.tabletitlecontainer {
     height: 100%;
     position: relative;

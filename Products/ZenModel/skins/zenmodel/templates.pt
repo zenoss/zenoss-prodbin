@@ -43,6 +43,17 @@
         </script>
         <script type="text/javascript" id="extall" src="/++resource++extjs/ext-all.js"></script>
         <script>
+        // Fix an IE bug
+        Ext.override(Ext.Shadow, {
+            realign: Ext.Shadow.prototype.realign.createInterceptor(
+                function(l, t, w, h) {
+                    if (Ext.isIE) {
+                        var a = this.adjusts;
+                        a.h = Math.max(a.h, 0);
+                    }
+                }
+            )
+        });
         Ext.ns('Zenoss.util');
         Zenoss.util.registerBackCompatMenu = function(menu, btn, align, offsets){
 

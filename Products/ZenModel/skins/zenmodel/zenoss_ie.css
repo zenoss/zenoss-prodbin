@@ -134,14 +134,6 @@ td.tabtablecap {
     padding: 0px 10px;
 }
 
-div.dialog_container {
-    zoom: 100%;
-    width: 500px;
-}
-div.dialog_container select {
-    width: 400px; 
-}
-
 div#gridcontainer {
     overflow:visible;
 }

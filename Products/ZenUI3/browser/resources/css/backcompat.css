@@ -86,6 +86,8 @@
 
 .ext-ie .z-bc table.innerzentable {
     top: 0;
+    border-collapse: collapse;
+    margin: 0;
 }
 
 .z-bc table.innerzentable td.tablevalues {
@@ -287,5 +289,80 @@
 .ext-ie .z-bc-z-menu ul li a {
     display: inline-block;
     width: 100%;
+}
+
+/*******************************
+           DIALOGS
+*******************************/
+
+.dbox_tl {
+    background:transparent no-repeat url(../img/xtheme-zenoss/window/left-corners.png) 0 0;
+    padding-left: 6px;
+}
+.dbox_tc {
+    background:transparent url(../img/xtheme-zenoss/window/top-bottom.png) repeat-x 0 0;
+    overflow: ;
+    padding: 0;
+    margin: 0;
+    height: 30px;
+    line-height: 30px;
+}
+.dbox_tr {
+    background:transparent url(../img/xtheme-zenoss/window/right-corners.png) no-repeat 100% 0px;
+    padding-right: 6px;
+}
+.dbox_ml {
+    background:transparent url(../img/xtheme-zenoss/window/left-right.png) repeat-y 0 0;
+    padding-left: 6px;
+}
+.dbox_mc {
+    background: transparent url(../img/xtheme-zenoss/window/left-right.png);
+    font-family: helvetica,tahoma,sans-serif;
+    color: #fafafa;
+    font-size: 12px;
+    margin: 0;
+    padding: 0;
+}
+.dbox_tc h2 {
+    color: white;
+    display:inline;
+    font-size: 14px;
+    font-weight: bold;
+}
+.dbox_mr {
+    background:transparent url(../img/xtheme-zenoss/window/left-right.png) repeat-y 100% 0px;
+    padding-right: 6px;
+}
+.dbox_bl {
+    background:transparent url(../img/xtheme-zenoss/window/left-corners.png) no-repeat 0px 100%;
+    padding-left: 6px;
+}
+.dbox_bc {
+    background: transparent url(../img/xtheme-zenoss/window/top-bottom.png) repeat-x 0px 100%;
+    margin: 0;
+    padding: 0;
+}
+.dbox_br {
+    background:transparent url(../img/xtheme-zenoss/window/right-corners.png) no-repeat 100% 100%;
+    padding-right: 6px;
+}
+#dialog_innercontent {
+    padding: 5px;
+}
+.dialog_close{
+    background: transparent url();
+    line-height: 1.2em;
+    position: absolute;
+    top: -18px;
+    right: -2px;
+    cursor: pointer;
+}
+
+.ext-ie .dialog_container {
+    width: 300px;
+}
+
+.ext-ie .dialog_close {
+    right: 5px;
 }
 
