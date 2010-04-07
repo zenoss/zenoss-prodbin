@@ -4,7 +4,7 @@ Ext.ns('Zenoss.render');
 
 // templates for the events renderer
 var iconTemplate = new Ext.Template(
-    '<td class="severity-icon-small {severity}">{count}</td>');
+    '<td class="severity-icon-small {severity} {noevents}">{count}</td>');
 iconTemplate.compile();
 
 var rainbowTemplate = new Ext.Template(
@@ -39,8 +39,16 @@ Ext.apply(Zenoss.render, {
     events: function(value) {
         var result = '';
         Ext.each(['critical', 'error', 'warning'], function(severity) {
-            result += iconTemplate.apply({severity: severity,
-                                          count:value[severity]});
+            if (0 == value[severity]) {
+                noevents = 'no-events'
+            } else {
+                noevents = '';
+            }
+            result += iconTemplate.apply({
+                severity: severity,
+                count:value[severity],
+                noevents: noevents
+            });
         });
         return rainbowTemplate.apply({cells: result});
     },

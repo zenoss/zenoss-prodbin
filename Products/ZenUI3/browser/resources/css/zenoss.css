@@ -162,6 +162,12 @@ strong { font-weight: bold; }
     margin: 0 auto;
 }
 
+.no-events {
+    opacity: 0.2;
+    -moz-opacity: 0.2;
+    filter: alpha(opacity=20);
+}
+
 .eventrainbow .severity-icon-small {
     background-image: url(/++resource++zenui/img/xtheme-zenoss/icon/severity-sprite-reverse.png)
 }
