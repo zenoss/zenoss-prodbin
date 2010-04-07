@@ -15,6 +15,12 @@
 	  <pathelement location="lib/CommonFramework.jar"/>
 	  <pathelement location="lib/junit-4.4.jar"/>
       <pathelement location="lib/selenium-java-client-driver.jar"/>
+	  <pathelement location="lib/commons-logging-1.1.jar"/>
+      <pathelement location="lib/ws-commons-util-1.0.2.jar"/>
+      <pathelement location="lib/xmlrpc-client-3.1.jar"/>
+      <pathelement location="lib/xmlrpc-client-3.1-sources.jar"/>
+      <pathelement location="lib/xmlrpc-common-3.1.jar"/>
+      <pathelement location="lib/xmlrpc-common-3.1-sources.jar"/>
 	</path>
 	
 	<target name="JUnitTest">    
