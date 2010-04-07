@@ -74,7 +74,7 @@
 </div>
 <script>
 Ext.onReady(function(){
-    var footer = Ext.get('footer'),
+    var footer = Ext.get('footer_extra'),
         menu = Ext.get('contextmenu_items'),
         btn = new Ext.Button({
             renderTo: footer,

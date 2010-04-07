@@ -64,6 +64,8 @@
         </div>
         <div id="footer">
         </div>
+        <div id="footer_extra">
+        </div>
 
 <tal:block metal:define-slot="script_beforeLayout"/>
 
@@ -87,11 +89,16 @@ var viewport = new Ext.Viewport({
             region: 'south',
             height: 30,
             layout: 'fit',
+            el: 'footer',
             items: [
                 new Ext.Toolbar({
                     border: false,
                     id: 'footer_bar',
-                    contentEl: 'footer'
+                    listeners: {
+                        render: function(bar){
+                            Ext.get('footer_extra').appendTo(bar.getEl());
+                        }
+                    }
                 })
             ],
             border: false
