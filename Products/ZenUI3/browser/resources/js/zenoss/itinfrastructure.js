@@ -931,6 +931,7 @@ var devtree = {
         filter: function(e) {
             Ext.getCmp('locs').filterTree(e);
             Ext.getCmp('groups').filterTree(e);
+            Ext.getCmp('systems').filterTree(e);
         }
     }
 };
@@ -944,6 +945,23 @@ var grouptree = {
     root: {
         id: 'Groups',
         uid: '/zport/dmd/Groups'
+    },
+    selModel: treesm,
+    router: REMOTE,
+    addNodeDialogItems: addNodeDialogItems,
+    selectRootOnLoad: false,
+    listeners: { render: initializeTreeDrop }
+};
+
+var systree = {
+    xtype: 'HierarchyTreePanel',
+    id: 'systems',
+    searchField: false,
+    directFn: REMOTE.getTree,
+    deleteMessage: _t('The selected node will be deleted'),
+    root: {
+        id: 'Systems',
+        uid: '/zport/dmd/Systems'
     },
     router: REMOTE,
     addNodeDialogItems: addNodeDialogItems,
@@ -1056,7 +1074,7 @@ Ext.getCmp('center_panel').add({
         items: [{
             text: _t('IT Infrastructure'),
             buttonText: _t('Details'),
-            items: [devtree, grouptree, loctree],
+            items: [devtree, grouptree, systree, loctree],
             autoScroll: true
         },{
             xtype: 'detailcontainer',
