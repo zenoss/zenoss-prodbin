@@ -102,4 +102,45 @@ Zenoss.BackCompatPanel = Ext.extend(Zenoss.ContextualIFrame, {
 Ext.reg('backcompat', Zenoss.BackCompatPanel);
 
 
+
+Zenoss.util.registerBackCompatMenu = function(menu, btn, align, offsets){
+
+    align = align || 'bl';
+    offsets = offsets || [0, 0];
+
+    var layer = new Ext.Panel({
+        floating: true,
+        contentEl: menu,
+        border: false,
+        shadow: !Ext.isIE,
+        bodyCssClass: menu.id=='contextmenu_items' ? 'z-bc-z-menu z-bc-page-menu' : 'z-bc-z-menu'
+    });
+
+    layer.render(Ext.getBody());
+
+    function showMenu() {
+        var xy = layer.getEl().getAlignToXY(btn.getEl(), align, offsets);
+        layer.setPagePosition(xy[0], xy[1]);
+        menu.dom.style.display = 'block';
+        layer.show();
+    }
+
+    function hideMenu() {
+        layer.hide();
+    }
+
+    function menuClicked(e) {
+        var link = e.getTarget('a');
+        if (link) {
+            // Fake a click
+            location.href = link.href;
+        }
+    }
+
+    btn.on('menushow', showMenu);
+    btn.on('menuhide', hideMenu);
+    menu.on('mousedown', menuClicked);
+
+}
+
 })();

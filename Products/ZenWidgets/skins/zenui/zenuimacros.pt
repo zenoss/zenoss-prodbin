@@ -1,36 +1,18 @@
 
-<tal:block metal:define-macro="basemenu"
-    tal:condition="python:hasattr(here, 'getMenus')">
+<tal:block metal:define-macro="basemenu" tal:condition="python:hasattr(here, 'getMenus')">
 
 <div class="menu" tal:define="
         menu_ids menu_ids | python:['More','Manage','Actions','Add'];
         basepath here/absolute_url_path">
-<div tal:attributes="id string:contextmenu_btn">
-    <a class="tabletitle">&nbsp;</a>
-</div>
 
 <div id="contextmenu_items" class="contextmenuitems">
-<div class="menu_top">&nbsp;</div>
-<div class="menu_bottom">&nbsp;</div>
 <ul class="zenMenu">
 <tal:block tal:repeat="menu menu_ids">
 <tal:block tal:condition="python:menu != 'TopLevel'" 
         tal:define="menus python:here.getMenus(menu, here)">
-<li tal:condition="python:menus and len(menus) > 1">
-        <a href="javascript:void(0)" tal:attributes="id string:${menu}_parent">
-        <tal:block tal:content="menu">Menu</tal:block>
-        </a>
-</li>
-<div class="submenu" 
-        tal:define="items menus"
-        tal:condition="menus"
-        tal:attributes="id string:${menu}_submenu">
-    <tal:block tal:condition="items">
-            <tal:block tal:define="dummy items/sort"/>
-    </tal:block>
-    <div class="menu_top_rounded">&nbsp;</div>
-    <div class="menu_bottom">&nbsp;</div>
-    <ul>
+
+<tal:block tal:define="items menus" tal:condition="menus">
+    <tal:block tal:define="dummy items/sort"/>
     <li tal:repeat="item items">
     <a tal:define="mypath python:test(item.action.startswith('javascript'),
                                 item.action,
@@ -43,15 +25,7 @@
        <tal:block tal:condition="python:getattr(request, 'showMenuOrder', None)" 
                   tal:content="item/ordering"/>
     </li>
-    </ul>
-</div>
-<script tal:condition="menus"
-tal:content="string:
-    var loader=YAHOO.zenoss.getLoader();
-    loader.require(['zenossutils']);
-    loader.insert({onSuccess:function(){
-    registerSubmenu('${menu}_parent','${menu}_submenu');}});">javascript madness
-</script>
+</tal:block>
 </tal:block>
 </tal:block>
 
@@ -99,11 +73,16 @@ tal:content="string:
 </div>
 </div>
 <script>
-var loader = YAHOO.zenoss.getLoader();
-loader.require(['zenossutils']);
-loader.insert({onSuccess:function(){
-    registerMenu('contextmenu_btn', 'contextmenu_items');
-}});
+Ext.onReady(function(){
+    var footer = Ext.get('footer'),
+        menu = Ext.get('contextmenu_items'),
+        btn = new Ext.Button({
+            renderTo: footer,
+            iconCls: 'customize',
+            menu: {cls: 'z-bc-menu'}
+        });
+    Zenoss.util.registerBackCompatMenu(menu, btn, 'bl-tl')
+});
 </script>
 </tal:block>
 
@@ -111,21 +90,53 @@ loader.insert({onSuccess:function(){
 
 <tal:block metal:define-macro="tabletitle">
 <th class="tabletitle" tal:attributes="colspan tblcolspan|string:1">
-<div class="tabletitlecontainer">
-<!--
-    <div class="leftcorner">
-<tal:block metal:define-slot="menuslot">
-    <tal:block tal:condition="menu_id | python:False">
-        <tal:block metal:use-macro="here/zenuimacros/macros/devmovemenu"/>
-    </tal:block>
-</tal:block>
-</div>
--->
+<div class="tabletitlecontainer x-toolbar">
+
+<table class="tabletitle_layout"><tr>
+<td>
 <tal:block metal:define-slot="titleslot">
     <span class="tabletitletext" tal:content="tabletitle | string:Items">
         Title
     </span>
 </tal:block>
+</td>
+<td>
+<span class="xtb-sep">&nbsp;</span>
+</td>
+<td>
+<tal:block metal:define-slot="menuslot">
+    <tal:block tal:condition="menu_id | python:False">
+        <div tal:attributes="id string:menuslot_${menu_id}"></div>
+        <tal:block metal:use-macro="here/zenuimacros/macros/devmovemenu"/>
+        <script tal:content="string:
+
+Ext.onReady(function(){
+
+    var menu_id = '${menu_id}';
+
+    var container = Ext.get('menuslot_'+menu_id),
+        menu = Ext.get(menu_id+'_items');
+
+    var btn = new Ext.Button({
+        renderTo: container,
+        iconCls: 'customize',
+        menu: {cls: 'z-bc-menu'}
+    });
+
+    var inputs = menu.select('input[type=\'hidden\']');
+    inputs.appendTo(btn.getEl());
+
+    Zenoss.util.registerBackCompatMenu(menu, btn, 'bl', [2, -1]);
+
+});
+
+"></script>
+    </tal:block>
+</tal:block>
+</td>
+</table>
+
+
 <div class="filterslot">
 <tal:block metal:define-slot="filterslot">
     <tal:block tal:condition="showfilterbox | python:False">
@@ -185,14 +196,14 @@ padding-right:20px;margin-left:20px;}</style>
                 <tal:block tal:define="dummy menuitems/sort"/>
         </tal:block>
 
+        <!--
         <div class="devmovemenu" tal:attributes="id string:${menu_id}_btn">
            &nbsp; 
         </div>
+        -->
 
         <div class="devmovemenuitems"
             tal:attributes="id string:${menu_id}_items">
-        <div class="menu_top">&nbsp;</div>
-        <div class="menu_bottom">&nbsp;</div>
         <ul class="zenMenu" tal:attributes="id string:${menu_id}_list">
             <li tal:repeat="item menuitems">
 <tal:block tal:define="
@@ -205,8 +216,8 @@ mypath python:test(item.action.startswith('javascript'),
                     \'%s\')' % (thisid,mypath),
                mypath)">
    <input tal:attributes="id string:${thisid}input" type="hidden"/>
-   <a tal:attributes="id thisid; href actionpath" 
-    tal:content="item/description">description</a>
+   <a class="menu_item" tal:attributes="id thisid; href actionpath" 
+      tal:content="item/description">description</a>
    <tal:block tal:condition="python:getattr(request, 'showMenuOrder', None)" 
               tal:content="item/ordering"/>
 </tal:block>
@@ -215,14 +226,6 @@ mypath python:test(item.action.startswith('javascript'),
         </ul>
         </div>
 
-        <script tal:content="string:
-            var loader = YAHOO.zenoss.getLoader();
-            loader.require(['zenossutils']);
-            loader.insert({onSuccess:function(){
-                registerMenu('${menu_id}_btn', '${menu_id}_items');
-            }});
-        ">
-        </script>
     </div>
 </tal:block>
 </tal:block>
@@ -241,6 +244,7 @@ mypath python:test(item.action.startswith('javascript'),
     </tal:block>
               </tal:block>
             </tal:block>
+            <!--
             <tal:block metal:fill-slot="menuslot">
                 <tal:block metal:define-slot="menuslot">
     <tal:block tal:condition="menu_id | python:False">
@@ -248,13 +252,13 @@ mypath python:test(item.action.startswith('javascript'),
     </tal:block>
                 </tal:block>
             </tal:block>
+            -->
 
         </tal:block>
         </tr>
         <tr>
             <td style="padding:0px;">
-                <table class="innerzentable" cellpadding="3" cellspacing="1"
-                       tal:attributes="noselectionbar python:True">
+                <table class="innerzentable" tal:attributes="noselectionbar python:True">
 <!-- The main body into which we dump rows -->
 <tbody tal:attributes="id python:filter(lambda x:x.isalnum(),tabletitle)">
                         <tal:block metal:define-slot="zentablecontents">

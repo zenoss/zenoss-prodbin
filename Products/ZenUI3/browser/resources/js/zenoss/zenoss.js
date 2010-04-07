@@ -1466,4 +1466,17 @@ Ext.apply(Zenoss.date, {
     YearMonth: "F, Y"
 });
 
+// Fix an IE bug
+Ext.override(Ext.Shadow, {
+    realign: Ext.Shadow.prototype.realign.createInterceptor(
+        function(l, t, w, h) {
+            if (Ext.isIE) {
+                var a = this.adjusts;
+                a.h = Math.max(a.h, 0);
+            }
+        }
+    )
+});
+
+
 })(); // End local scope

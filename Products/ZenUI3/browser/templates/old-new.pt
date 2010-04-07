@@ -54,12 +54,14 @@ Ext.onReady(function(){
     }
     Ext.getCmp('center_panel').add({
         layout: 'border',
+        id: 'backcompat-layout-panel',
         defaults: {
             border: false
         },
         bodyCssClass: 'z-bc', // Zenoss back compat
         items:items
     });
+
 });
 </script>
 </tal:block>

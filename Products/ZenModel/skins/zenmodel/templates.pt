@@ -19,8 +19,14 @@
     </title>
         <tal:block metal:use-macro="here/templates/macros/head1"/>
         <tal:block metal:define-slot="head-local"/>
-        <link rel="stylesheet" href="/++resource++zenui/css/backcompat.css"/>
         <tal:block metal:use-macro="here/zenuimacros/macros/jsutils"/>
+        <link rel="stylesheet" type="text/css" href="/++resource++extjs/resources/css/ext-all.css" />
+        <link rel="stylesheet" type="text/css" href="/++resource++extjs/treegrid/treegrid.css" />
+        <link rel="stylesheet" href="/++resource++zenui/js/livegrid/resources/css/ext-ux-livegrid.css" />
+        <link rel="stylesheet" type="text/css" href="/++resource++zenui/css/xtheme-zenoss.css" />
+        <link rel="stylesheet" type="text/css" href="/++resource++zenui/css/zenoss.css" />
+        <link rel="stylesheet" type="text/css" href="/++resource++zenui/css/zenui3.css" />
+        <link type="text/css" rel="stylesheet" href="/++resource++zenui/css/backcompat.css"/>
         <script type="text/javascript" src="/++resource++extjs/adapters/ext/ext-base.js">
         </script>
         <script>
@@ -36,14 +42,53 @@
         })();
         </script>
         <script type="text/javascript" id="extall" src="/++resource++extjs/ext-all.js"></script>
+        <script>
+        Ext.ns('Zenoss.util');
+        Zenoss.util.registerBackCompatMenu = function(menu, btn, align, offsets){
+
+            align = align || 'bl';
+            offsets = offsets || [0, 0];
+
+            var layer = new Ext.Panel({
+                floating: true,
+                contentEl: menu,
+                border: false,
+                shadow: !Ext.isIE,
+                bodyCssClass: menu.id=='contextmenu_items' ? 'z-bc-z-menu z-bc-page-menu' : 'z-bc-z-menu'
+            });
+
+            layer.render(Ext.getBody());
+
+            function showMenu() {
+                var xy = layer.getEl().getAlignToXY(btn.getEl(), align, offsets);
+                layer.setPagePosition(xy[0], xy[1]);
+                menu.dom.style.display = 'block';
+                layer.show();
+            }
+
+            function hideMenu() {
+                layer.hide();
+            }
+
+            function menuClicked(e) {
+                var link = e.getTarget('a');
+                if (link) {
+                    // Fake a click
+                    location.href = link.href;
+                }
+            }
+
+            btn.on('menushow', showMenu);
+            btn.on('menuhide', hideMenu);
+            menu.on('mousedown', menuClicked);
+
+        }
+        </script>
     </head>
 	<body class="yui-skin-sam">
     <tal:block metal:use-macro="here/dialogmacros/macros/proxyForm"/>
     <tal:block metal:use-macro="here/dialogmacros/macros/dialog_with_buttons"/>
         <div id="frame">
-            <form name="proxy_form" id="proxy_form"
-                style="position:absolute;visibility:hidden"
-                tal:attributes="action here/absolute_url_path"></form>
             <tal:block tal:condition="not:exists:request/cookies/newui">
             <div  metal:use-macro="here/templates/macros/topPane"/>
             <div id="infoBar">
@@ -311,16 +356,16 @@
            </a>
         </li>
     </ul>
-        <div tal:define="menu_ids menu_ids |
-            python:['More','Manage','Edit', 'Actions','Add','TopLevel']">
-            <tal:block tal:condition="python:hasattr(here, 'getMenus')">
-                <tal:block tal:define="hasMenus python:here.getMenus(menu_ids, here)">
-                    <div class="contextmenutab" tal:condition="hasMenus">
-                        <span metal:use-macro="here/zenuimacros/macros/basemenu"/>
-                    </div>
-                </tal:block>
+    <div tal:define="menu_ids menu_ids |
+        python:['More','Manage','Edit', 'Actions','Add','TopLevel']">
+        <tal:block tal:condition="python:hasattr(here, 'getMenus')">
+            <tal:block tal:define="hasMenus python:here.getMenus(menu_ids, here)">
+                <div class="contextmenutab" tal:condition="hasMenus">
+                    <span metal:use-macro="here/zenuimacros/macros/basemenu"/>
+                </div>
             </tal:block>
-        </div>
+        </tal:block>
+    </div>
 </div>
 
 <!-- ======================================================

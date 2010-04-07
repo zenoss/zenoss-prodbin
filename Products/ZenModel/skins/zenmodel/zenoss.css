@@ -1132,106 +1132,13 @@ dl.faux-table a.prettylink div.device-icon-container {
     border-bottom-width: 0px;
 }
 
-.devmovemenuitems,
-.contextmenuitems {
-    visibility: hidden;
-    position: absolute;
-    width: 172px;
-    top: -1000px;
-    left: -1000px;
-    border-top: 0px;
-    padding-bottom: 14px;
-    padding-top: 14px;
-}
-
-div.menu_bottom {
-    background: transparent url('img/menu_bottom.gif') bottom left no-repeat;
-    position: absolute;
-    bottom: 0px;
-    left: -2px;
-    height: 20px;
-    width: 174px;
-    z-index: 1000;
-}
 .submenu div.menu_bottom {
     z-index: 0;
 }
 
-div.menu_top {
-    background: transparent url('img/menu_top.gif') top left no-repeat;
-    position: absolute;
-    top: 0px;
-    left: -2px;
-    height: 20px;
-    width: 174px;
-}
-div.menu_top_rounded {
-    background: transparent url('img/menu_top_rounded.gif') 
-        top left no-repeat;
-    position: absolute;
-    top: 0px;
-    left: -2px;
-    height: 20px;
-    width: 174px;
-}
-
-ul.zenMenu {
-    list-style-type: none;
-    border-left: 1px solid #5A6F8F;
-    border-right: 1px solid #5A6F8F;
-    width: 172px;
-    position: relative;
-    left: -2px;
-    background-color: black;
-    z-index: 4001;
-}
 
 #contentPane {
 z-index: 1;
-}
-
-ul.zenMenu li a {
-    padding-left: 1em;
-    text-align: left;
-    text-decoration: none;
-    display:block;
-    color: white;
-    padding: 5px;
-    height: 100%;
-}
-
-ul.zenMenu li {
-    line-height: 1.5em;
-    font-size: 9pt;
-    list-style-type: none;
-}
-
-ul.zenMenu li a:hover {
-    background-color: grey;
-    color: white;
-}
-
-div.menuselected {
-}
-
-div.devmovemenu {
-    width: 52px;
-    border-right: 1px solid #333;
-    height: 25px;
-    background: #E0E0E0 url('img/contextmenu_tab.gif') bottom left no-repeat;
-    position:absolute;
-    z-index: 4000;
-    right:-1px;
-    bottom: 0px;
-}
-
-div.devmovemenu span {
-    line-height: 2.5em;
-    margin-left: 3em;
-}
-
-div.devmovemenu:hover {
-    background: #E0E0E0 url('img/contextmenu_tab_depressed.gif') bottom left no-repeat;
 }
 
 .menu * {
@@ -1245,6 +1152,7 @@ div.devmovemenu:hover {
     z-index: 4000;
     cursor:pointer;
 }
+/*
 #contextmenu_items {
     position: absolute;
     top: 24px;
@@ -1252,16 +1160,8 @@ div.devmovemenu:hover {
     padding-bottom: 14px;
     border-top: 0px;
 }
-.menu ul {
-    padding:0;
-    margin:0;
-    list-style-type:none;
-    width:172px;
-    border-left: 1px solid #000;
-    border-right: 1px solid #000;
-    background: transparent url('img/menu_bg.gif') top left repeat-y;
-}
-
+    */
+/*
 ul.zenMenu > li > a {
     padding: 8px;
     padding-left: 1em;
@@ -1284,17 +1184,19 @@ div.devmovemenuitems ul.zenMenu li a {
 div.devmovemenuitems ul.zenMenu li a:hover {
     background-color: grey;
 }
+*/
 
+/*
 * html .menu li {margin-left:-16px; margin-lef\t:0;}
 .menu table {position:absolute; border-collapse:collapse; top:0; left:0;
     font-size:1em;width:0;height:0;}
-/* style the link hover */
 * html .menu a:hover {color:#fff; background:#999;}
 
 .menu :hover > a {
 color:#fff; 
 background-color:#999;
 }
+*/
 
 /* hide the sub levels and give them a position absolute so that they take up no room */
 .menu ul div.submenu {
@@ -1315,11 +1217,6 @@ visibility:visible;
 top: 10px;
 }
 */
-
-.menu div.submenu div.menu_top_rounded,
-.menu div.submenu div.menu_bottom {
-    left: 0px;
-}
 
 /* IE HACKS */
 

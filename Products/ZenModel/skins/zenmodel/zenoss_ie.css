@@ -104,13 +104,6 @@ table.tabtable,
     margin-left: 63px;
 }
 
-#tabsPane table td.contextmenutab .menu {
-    width: 52px;
-    z-index: 5000;
-    margin: 0; padding: 0;
-    margin-top: 10px;
-}
-
 td.contextmenutab { z-index: 3000; }
 
 td.tabletitleselected div.tabcenter a.tabletitle {
@@ -165,16 +158,6 @@ div#gridcontainer {
     position: relative;
     z-index: 1;
 }
-
-div.devmovemenu {
-    margin-bottom: -1px;
-    border-bottom: medium none;
-}
-
-div.devmovemenuitems ul.zenMenu li a:hover {
-    background-color: #aaa;
-}
-
 
 div.horizontal-rainbow > div > div ,
 div.vertical-rainbow > div > div {

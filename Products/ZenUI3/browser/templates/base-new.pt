@@ -86,12 +86,12 @@ var viewport = new Ext.Viewport({
             id: 'footer_panel',
             region: 'south',
             height: 30,
-            el: 'footer',
             layout: 'fit',
             items: [
                 new Ext.Toolbar({
                     border: false,
-                    id: 'footer_bar'
+                    id: 'footer_bar',
+                    contentEl: 'footer'
                 })
             ],
             border: false

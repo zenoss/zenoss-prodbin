@@ -53,7 +53,10 @@ loader.insert({
 
 <!--============Proxy form===============-->
 <tal:block metal:define-macro="proxyForm">
-<form method="post" name="proxyForm" action="here/absolute_url">
-<input type="hidden" name="zenScreenName" tal:attributes="value template/id"/>
+<form name="proxy_form" id="proxy_form"
+    style="position:absolute;visibility:hidden"
+    tal:attributes="action here/absolute_url_path"></form>
+<form method="post" name="proxyForm" action="here/absolute_url"> 
+    <input type="hidden" name="zenScreenName" tal:attributes="value template/id"/> 
 </form>
 </tal:block>

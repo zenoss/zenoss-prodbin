@@ -66,6 +66,12 @@
     border: medium none;
 }
 
+.z-bc table.tabletitle_layout td {
+    padding: 0;
+    margin: 0;
+    border: medium none;
+}
+
 .z-bc .zentable-modified .tabletitle-right,
 .z-bc .zentable-modified .tabletitle-left,
 .z-bc .zenportlet .tabletitle-right,
@@ -157,6 +163,7 @@
 
 .z-bc div.tabletitlecontainer span.tabletitletext {
     font-family: helvetica,arial,tahoma,sans-serif;
+    font-weight: bold;
     font-size: 13px;
     margin: 0;
     padding: 0;
@@ -217,3 +224,68 @@
 .ext-ie .z-bc .filterbox-middle input {
     margin-top: 1px;
 }
+
+
+/*******************************
+            MENUS
+*******************************/
+
+.z-bc div.menuslot {
+    background: transparent url();
+}
+
+.z-bc-menu {
+    display: none !important;
+}
+
+.z-bc-z-menu {
+    background: #f0f0f0 url("/++resource++zenui/img/xtheme-zenoss/menu/menu.gif") repeat-y scroll 0 0;
+}
+
+.contextmenutab,
+.devmovemenuitems {
+    display: none;
+}
+
+.z-bc-z-menu ul li {
+    list-style-type: none;
+    line-height: 100%;
+    display: block;
+    padding: 1px;
+    white-space: nowrap;
+}
+
+.z-bc-z-menu ul li a {
+    cursor: pointer;
+    line-height: 16px;
+    padding: 3px 21px 3px 27px;
+    display: block;
+    text-decoration: none;
+    white-space: nowrap;
+    border: 1px solid transparent;
+    font: 11px helvetica,arial,tahoma,sans-serif;
+}
+.z-bc-z-menu ul li a:hover {
+    background: transparent url(/++resource++zenui/img/xtheme-zenoss/menu/item-over.gif) repeat-x left bottom;
+    border-color: #c2cbd2;
+}
+
+.z-bc-z-menu ul.zenMenu {
+    margin: 0 0;
+    padding: 2px;
+    overflow: hidden;
+}
+
+.ext-ie .z-bc-z-menu {
+    width: 180px;
+}
+
+.ext-ie .z-bc-page-menu {
+    padding: 10px 0 5px;
+}
+
+.ext-ie .z-bc-z-menu ul li a {
+    display: inline-block;
+    width: 100%;
+}
+
