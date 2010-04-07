@@ -39,11 +39,7 @@ Ext.apply(Zenoss.render, {
     events: function(value) {
         var result = '';
         Ext.each(['critical', 'error', 'warning'], function(severity) {
-            if (0 == value[severity]) {
-                noevents = 'no-events'
-            } else {
-                noevents = '';
-            }
+            noevents = (0 == value[severity]) ? 'no-events' : '';
             result += iconTemplate.apply({
                 severity: severity,
                 count:value[severity],
