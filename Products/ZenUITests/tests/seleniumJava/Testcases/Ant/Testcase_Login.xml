@@ -7,7 +7,7 @@
 	<property name="lib" value="lib" />
 	<property name="classes" value="Testcases/bin" />
 	<property name="test" value="loc.zenoss.testcases.Login.LoginScenarios" />
-	
+	<property name="test2" value="loc.zenoss.testcases.Login.LoginScenarios2" />
 	
 	<path id="TestCases.classpath">
 	  <pathelement location="${classes}" />
@@ -20,6 +20,10 @@
 	<target name="JUnitTest">    
 		<junit fork="yes" printsummary="withOutAndErr">
 			<sysproperty key="Env.Browser" value="${Browser}"/>
+			<sysproperty key="Env.TargetMachine" value="${TargetMachine}"/>
+			<sysproperty key="Env.SeleniumServerHost" value="${SeleniumServerHost}"/>
+			<sysproperty key="Env.SeleniumServerPort" value="${SeleniumServerPort}"/>
+			
 		            <formatter type="xml"/>
 					<test name="${test}" todir="${Results}" />
 					

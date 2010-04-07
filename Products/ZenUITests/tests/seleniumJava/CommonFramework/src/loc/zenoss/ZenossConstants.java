@@ -41,8 +41,8 @@ public class ZenossConstants {
 	/**
 	 * Testlink Parameters
 	 */
-	public static final String TestLinkAPIKEY = (System.getProperties().containsKey("SSHUser"))?System.getProperties().getProperty("TestLinkAPIKEY") : "x1254slokdijwur8882jjfuJJhhsu2";
-	public static final String TestLinkAPIURL = (System.getProperties().containsKey("SSHUser"))?System.getProperties().getProperty("TestLinkAPIURL") : "http://dev.zenoss.com/testlink/lib/api/xmlrpc.php";
+	public static final String TestLinkAPIKEY = (System.getProperties().containsKey("TestLinkAPIKEY"))?System.getProperties().getProperty("TestLinkAPIKEY") : "x1254slokdijwur8882jjfuJJhhsu2";
+	public static final String TestLinkAPIURL = (System.getProperties().containsKey("TestLinkAPIURL"))?System.getProperties().getProperty("TestLinkAPIURL") : "http://dev.zenoss.com/testlink/lib/api/xmlrpc.php";
 	
 	
 	
