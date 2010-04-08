@@ -52,8 +52,8 @@
             "text": "DialogWindow.js",
             "path": "resources/js/zenoss/"
         }, {
-            "text": "DataSourceEditDialog.js",          
-            "path": "resources/js/zenoss/form/"      
+            "text": "DataSourceEditDialog.js",
+            "path": "resources/js/zenoss/form/"
         },{
             "text": "HierarchyTreePanel.js",
             "path": "resources/js/zenoss/"
@@ -103,7 +103,7 @@
             "text": "container.js",
             "path": "resources/js/zenoss/monitoringTemplates/"
         }, {
-            "text": "TreeFooterBar.js",
+            "text": "FooterBar.js",
             "path": "resources/js/zenoss/"
         }, {
             "text": "IpAddressField.js",
