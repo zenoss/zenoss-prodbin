@@ -1067,12 +1067,12 @@ Ext.getCmp('center_panel').add({
     items: [{
         xtype: 'horizontalslide',
         id: 'master_panel',
-        text: _t('IT Infrastructure'),
+        text: _t('Infrastructure'),
         region: 'west',
         split: true,
         width: 275,
         items: [{
-            text: _t('IT Infrastructure'),
+            text: _t('Infrastructure'),
             buttonText: _t('Details'),
             items: [devtree, grouptree, systree, loctree],
             autoScroll: true
