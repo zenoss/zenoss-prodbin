@@ -56,6 +56,11 @@
         class="Products.ZenModel.Device.Device"
         />
 
+    <five:implements
+        interface=".interfaces.IMarshallable"
+        class="Products.ZenModel.GraphDefinition.GraphDefinition"
+        />
+
     <adapter factory=".facades.DeviceFacade"
              provides=".interfaces.IDeviceFacade"
              name="device"
@@ -103,7 +108,7 @@
              />
 
     <adapter provides=".interfaces.IUnmarshaller"
-             for=".interfaces.IInfo"
+             for=".interfaces.IMarshallable"
              factory=".marshalling.DefaultUnmarshaller"
              />
 

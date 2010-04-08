@@ -226,3 +226,21 @@ class TemplateRouter(DirectRouter):
         facade = self._getFacade()
         facade.setGraphPointSequence(uids)
         return {'success': True}
+
+    def getGraphDefinition(self, uid):
+        facade = self._getFacade()
+        graphDef = facade.getGraphDefinition(uid)
+        keys = ('id', 'height', 'width', 'units', 'log', 'base', 'miny', 'maxy', 'hasSummary')
+        data = Zuul.marshal(graphDef, keys)
+        return {'success': True, 'data': data}
+
+    @require('Manage DMD')
+    def setGraphDefinition(self, **data):
+        uid = data['uid']
+        del data['uid']
+        data['log'] = 'log' in data
+        data['base'] = 'base' in data
+        data['hasSummary'] = 'hasSummary' in data
+        facade = self._getFacade()
+        facade.setGraphDefinition(uid, data)
+        return {'success': True}

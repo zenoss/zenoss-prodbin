@@ -276,3 +276,14 @@ class ITemplateFacade(IFacade):
         Set the sequence of the graph points uniquely identified by the items
         in the uids paramter.
         """
+
+    def getGraphDefinition(uid):
+        """
+        Get the GraphDefinition uniquely identified by the uid paramter.
+        """
+
+    def setGraphDefinition(uid, data):
+        """
+        Bind the values in the data parameter dictionary to the
+        GraphDefinition that is uniquely identified by uid.
+        """

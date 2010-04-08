@@ -389,10 +389,109 @@ new Zenoss.HideFitDialog({
     }]
 });
 
-new Zenoss.MessageDialog({
+Ext.create({
+    xtype: 'window',
     id: 'viewGraphDefinitionDialog',
     title: _t('View and Edit Graph Definition'),
-    message: 'This will allow the user to edit 9 fields that show up in the old UI.'
+    closeAction: 'hide',
+    buttonAlign: 'left',
+    autoScroll: true,
+    plain: true,
+    modal: true,
+    padding: 10,
+    buttons: [{
+        ref: '../submitButton',
+        text: _t('Submit'),
+        handler: function(submitButton){
+            var dialogWindow, basicForm, params;
+            dialogWindow = submitButton.refOwner;
+            basicForm = dialogWindow.formPanel.getForm();
+            params = Ext.applyIf(basicForm.getValues(), {
+                uid: dialogWindow.uid
+            });
+            basicForm.api.submit(params);
+            dialogWindow.hide();
+        }
+    },{
+        ref: '../cancelButton',
+        text: 'Cancel',
+        handler: function(cancelButton){
+            var dialogWindow = cancelButton.refOwner;
+            dialogWindow.hide();
+        }
+    }],
+    items: {
+        xtype: 'form',
+        ref: 'formPanel',
+        labelAlign: 'top',
+        monitorValid: true,
+        border: false,
+        paramsAsHash: true,
+        api: {
+            load: router.getGraphDefinition,
+            submit: router.setGraphDefinition
+        },
+        listeners: {
+            clientvalidation: function(formPanel, valid){
+                var dialogWindow;
+                dialogWindow = formPanel.refOwner;
+                dialogWindow.submitButton.setDisabled( ! valid );
+            },
+            show: function(formPanel){
+                formPanel.getForm().load();
+            }
+        },
+        items: [{
+            xtype: 'textfield',
+            fieldLabel: _t('Name'),
+            name: 'id',
+            allowBlank: false
+        },{
+            xtype: 'numberfield',
+            fieldLabel: _t('Height'),
+            name: 'height',
+            minValue: 0
+        },{
+            xtype: 'numberfield',
+            fieldLabel: _t('Width'),
+            name: 'width',
+            minValue: 0
+        },{
+            xtype: 'textfield',
+            fieldLabel: _t('Units'),
+            name: 'units'
+        },{
+            xtype: 'checkbox',
+            fieldLabel: _t('Logarithmic Scale'),
+            name: 'log'
+        },{
+            xtype: 'checkbox',
+            fieldLabel: _t('Base 1024'),
+            name: 'base'
+        },{
+            xtype: 'numberfield',
+            fieldLabel: _t('Min Y'),
+            name: 'miny'
+        },{
+            xtype: 'numberfield',
+            fieldLabel: _t('Max Y'),
+            name: 'maxy'
+        },{
+            xtype: 'checkbox',
+            fieldLabel: _t('Has Summary'),
+            name: 'hasSummary'
+        }]
+    },
+    loadAndShow: function(uid) {
+        this.uid = uid;
+        this.formPanel.getForm().load({
+            params: {uid:uid},
+            success: function() {
+                this.show();
+            },
+            scope: this
+        });
+    }
 });
 
 new Ext.menu.Menu({
@@ -412,7 +511,10 @@ new Ext.menu.Menu({
         xtype: 'menuitem',
         text: _t('View and Edit Details'),
         handler: function(){
-            Ext.getCmp('viewGraphDefinitionDialog').show();
+            var dialogWindow, uid;
+            dialogWindow = Ext.getCmp('viewGraphDefinitionDialog');
+            uid = getSelectedGraphDefinition().id;
+            dialogWindow.loadAndShow(uid);
         }
     }]
 });
