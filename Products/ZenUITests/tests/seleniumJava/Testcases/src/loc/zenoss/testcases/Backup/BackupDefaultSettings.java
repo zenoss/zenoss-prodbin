@@ -1,4 +1,8 @@
 package loc.zenoss.testcases.Backup;
+
+
+import loc.zenoss.ZenossConstants;
+
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
@@ -11,9 +15,8 @@ import loc.zenoss.ZenossConstants;
 import com.thoughtworks.selenium.DefaultSelenium;
 import com.thoughtworks.selenium.SeleneseTestCase;
 
-public class CreateBackup {
-	
-	
+public class BackupDefaultSettings {
+
 	private static DefaultSelenium sClient = null;
 
 	private static int testCaseID = 1790;
@@ -61,4 +64,5 @@ public class CreateBackup {
 		 SeleneseTestCase.assertTrue(sClient.isTextPresent("Backup completed successfully"));
 		
 	}
+
 }
