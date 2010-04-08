@@ -57,7 +57,13 @@ function initDashboardPortlets() {
 var loader = YAHOO.zenoss.getLoader();
 loader.require(['portletsource']);
 loader.insert({ 'onSuccess':initDashboardPortlets });
+
 </script>
+<style>
+    .z-bc .z-bc-content-pane {
+        background-color: #888;
+    }
+</style>
 </tal:block>
 </tal:block>
 

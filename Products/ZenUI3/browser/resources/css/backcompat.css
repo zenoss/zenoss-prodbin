@@ -74,12 +74,15 @@
 
 .z-bc .zentable-modified .tabletitle-right,
 .z-bc .zentable-modified .tabletitle-left,
+#ygddfdiv .zenportlet .tabletitle-right,
+#ygddfdiv .zenportlet .tabletitle-left,
 .z-bc .zenportlet .tabletitle-right,
 .z-bc .zenportlet .tabletitle-left {
     padding: 0;
 }
 
 .z-bc .zentable-modified .tabletitle-center,
+#ygddfdiv .zenportlet .tabletitle-center,
 .z-bc .zenportlet .tabletitle-center {
     padding: 0 5px;
 }
@@ -133,6 +136,7 @@
 
 .z-bc .zentable-modified .tabletitle-center,
 .z-bc .zenportlet .tabletitle-center,
+#ygddfdiv .zenportlet .tabletitle-center,
 .z-bc div.tabletitlecontainer {
     background-color: #a6a6a6;
     background-image: url();
@@ -152,15 +156,6 @@
 
 .z-bc .zentable-modified .tabletitle-container {
     height: 35px;
-}
-
-.z-bc .zenportlet .tabletitle-center{
-    height: 25px;
-    border: 1px solid #888;
-    border-bottom-width: 0px;
-    color: #454545;
-    font-family: helvetica,arial,tahoma,sans-serif;
-    font-size: 13px;
 }
 
 .z-bc div.tabletitlecontainer span.tabletitletext {
@@ -366,3 +361,88 @@
     right: 5px;
 }
 
+div.zenoss-portlet {
+    margin: 0 0;
+}
+div.zenportlet .yui-skin-sam .yui-dt-table td {
+    padding: 0;
+}
+#portletContainer .yui-g .yui-u{
+    width: 50%;
+}
+#portletContainer .yui-gb .yui-u.first{
+    width: 34%;
+}
+#portletContainer .yui-gb .yui-u{
+    width: 33%;
+    margin: 0;
+}
+
+div.zenportlet div.resize-handle {
+    height:4px;
+    width:100%;
+    cursor:s-resize;
+    background-color: #888;
+}
+div.zenportlet div.portlet-header {
+    height: 25px;
+    line-height: 25px;
+    border-top: 1px solid #b8b8b8;
+    border-bottom: 1px solid #949494;
+    border-left: 1px solid #b8b8b8;
+    border-right: 1px solid #949494;
+}
+
+#ygddfdiv .zenportlet .tabletitle-center,
+.z-bc .zenportlet .tabletitle-center{
+    height: 25px;
+    line-height: 25px;
+    color: #343434;
+    font-family: helvetica,arial,tahoma,sans-serif;
+    font-size: 13px;
+}
+
+div.zenportlet div.portlet-body {
+    margin: 0;
+    border-top: 1px solid #b8b8b8;
+    border-bottom: 1px solid #949494;
+    border-left: 1px solid #b8b8b8;
+    border-right: 1px solid #949494;
+}
+
+div.tinylink-container {
+    height: 20px;
+    line-height: 20px;
+    background: transparent url(/++resource++zenui/img/xtheme-zenoss/grid/grid3-hrow.png) repeat-x;
+}
+
+#connectionmessage {
+    color: #454545;
+}
+
+#portletContainer {
+    background-color: #888;
+}
+
+.portlet-settings-toggle {
+    position: absolute;
+    right: 5px;
+    top: 2px;
+    height: 16px;
+    cursor: pointer;
+    width: 16px;
+    background: transparent url('++resource++zenui/img/xtheme-zenoss/icon/icon-sprite.png') 0 -233px no-repeat;
+}
+
+div.portlet-settings {
+    background-color: #d4e0ee;
+    margin-top: 0;
+    border-top: 1px solid #b8b8b8;
+    border-bottom: 1px solid #949494;
+    border-left: 1px solid #b8b8b8;
+    border-right: 1px solid #949494;
+}
+
+.ext-ie div.portlet-settings {
+    zoom: 1;
+}

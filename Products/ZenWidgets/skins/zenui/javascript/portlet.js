@@ -210,8 +210,7 @@ Portlet.prototype = {
             this.resizehandle = DIV(
                 {'class':'resize-handle','id':this.id+'_resizer'}, null);
             this.titlecont = SPAN({'class':'nodrag'}, null);
-            this.settingsToggle = DIV({'style':'position:absolute;'+
-                                       'right:0;top:0;cursor:pointer'},'*');
+            this.settingsToggle = DIV({'class':'portlet-settings-toggle'}, null);
             connect(this.settingsToggle, 'onclick', this.toggleSettings);
             this.refreshRateInput = INPUT({'value':this.refreshTime}, null);
             this.titleInput = INPUT({'value':this.title}, null);
