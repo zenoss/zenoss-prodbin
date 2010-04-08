@@ -113,6 +113,11 @@
              factory=".network.IpNetworkInfo"
              />
 
+    <adapter provides="..interfaces.IIpAddressInfo"
+             for="Products.ZenModel.IpAddress.IpAddress"
+             factory=".network.IpAddressInfo"
+             />
+
 <include package=".component"/>
 
 </configure>

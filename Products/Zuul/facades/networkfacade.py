@@ -76,9 +76,7 @@ class NetworkFacade(TreeFacade):
                 cmd += ["--prefer-snmp-naming"]
         zd = binPath('zendisc')
         zendiscCmd = [zd] + cmd[1:]
-        self._dmd.JobManager.addJob(ShellCommandJob, zendiscCmd)
-
-        return True
+        return self._dmd.JobManager.addJob(ShellCommandJob, zendiscCmd)
 
     @property
     def _root(self):

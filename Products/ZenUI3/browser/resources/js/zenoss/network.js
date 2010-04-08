@@ -64,7 +64,24 @@ var discoverDevicesDialogSubmit = function() {
 
     tree.router.discoverDevices( {uid: node.attributes.uid},
         function(data) {
-            console.log(data);
+            if (data.success) {
+                var dialog = new Zenoss.dialog.SimpleMessageDialog( {
+                    message: _t('Discover subnetwork job submitted'),
+                    buttons: [{
+                        xtype: 'DialogButton',
+                        text: _t('OK')
+                    }, {
+                        xtype: 'button',
+                        text: _t('View Job Log'),
+                        handler: function() {
+                            window.location = String.format(
+                                '/zport/dmd/JobManager/jobs/{0}/viewlog',
+                                data.jobId);
+                        }
+                    }]
+                });
+                dialog.show();
+            }
         }
     );
 };
@@ -158,6 +175,8 @@ var treesm = new Ext.tree.DefaultSelectionModel({
             if (!newnode) return;
             Ext.getCmp('networkForm').setContext(newnode.attributes.uid);
             Ext.getCmp('ipAddressGrid').setContext(newnode.attributes.uid);
+
+            if (Zenoss.Security.doesNotHavePermission('Manage DMD')) return;
             Ext.getCmp('deleteNetworkButton').setDisabled(
                 (newnode.attributes.id == 'Network') );
             Ext.getCmp('discoverDevicesButton').setDisabled(
@@ -486,6 +505,7 @@ var formConfig = {
         xtype: 'button',
         id: 'saveButton',
         text: _t('Save'),
+        disabled: Zenoss.Security.doesNotHavePermission('Manage DMD'),
         handler: saveForm
         }, {
         xtype: 'button',
@@ -528,6 +548,7 @@ Ext.getCmp('footer_bar').add({
     id: 'addNetworkButton',
     tooltip: _t('Add a subnetwork'),
     iconCls: 'add',
+    disabled: Zenoss.Security.doesNotHavePermission('Manage DMD'),
     handler: addNetwork
 });
 
@@ -535,6 +556,7 @@ Ext.getCmp('footer_bar').add({
     id: 'deleteNetworkButton',
     tooltip: _t('Delete selected subnetwork'),
     iconCls: 'delete',
+    disabled: Zenoss.Security.doesNotHavePermission('Manage DMD'),
     handler: deleteNetwork
 });
 
@@ -542,6 +564,7 @@ Ext.getCmp('footer_bar').add({
     id: 'discoverDevicesButton',
     tooltip: _t('Discover devices on selected subnetwork'),
     iconCls: 'adddevice',
+    disabled: Zenoss.Security.doesNotHavePermission('Manage DMD'),
     handler: discoverDevices
 });
 

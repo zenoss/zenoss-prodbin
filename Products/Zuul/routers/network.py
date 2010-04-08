@@ -26,7 +26,11 @@ class NetworkRouter(DirectRouter):
 
     @require('Manage DMD')
     def discoverDevices(self, uid):
-        return {'success': self.api.discoverDevices(uid)}
+        jobStatus = self.api.discoverDevices(uid)
+        if jobStatus:
+            return DirectResponse.succeed(jobId=jobStatus.id)
+        else:
+            return DirectResponse.fail()
 
     @require('Manage DMD')
     def addNode(self, newSubnet):
