@@ -29,7 +29,7 @@ Ext.onReady( function() {
         var uid = dataRecord.data.uid;
         Ext.getCmp('serviceForm').setContext(uid);
         Ext.getCmp('serviceInstancePanel').setContext(uid);
-        Ext.getCmp('deleteButton').setDisabled(false);
+        Ext.getCmp('footer_bar').buttonDelete.setDisabled(false);
     };
 
 //    zs.storeLoadHandler = function(me, records, options) {

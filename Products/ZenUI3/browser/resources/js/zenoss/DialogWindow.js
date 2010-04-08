@@ -73,7 +73,12 @@ Zenoss.dialog.HideDialogButton = Ext.extend(Ext.Button, {
         var h = config.handler;
         config.handler = h ? h.createSequence(hideWindow) : hideWindow;
         Zenoss.dialog.HideDialogButton.superclass.constructor.call(this, config);
+    },
+    setHandler: function(handler, scope) {
+        var h = handler ? handler.createSequence(hideWindow) : hideWindow;
+        Zenoss.dialog.HideDialogButton.superclass.setHandler.call(this, h, scope);
     }
+
 });
 
 Ext.reg('HideDialogButton', Zenoss.dialog.HideDialogButton);
@@ -96,11 +101,11 @@ Zenoss.MessageDialog = Ext.extend(BaseDialog, {
         Ext.applyIf(config, {
             layout: 'fit',
             border: false,
-            items: [ { 
-                xtype: 'label', 
+            items: [ {
+                xtype: 'label',
                 id: 'message',
                 text: config.message,
-                ref: 'messagelabel' 
+                ref: 'messagelabel'
                 } ],
             buttons: [
                 {
@@ -157,16 +162,17 @@ Zenoss.dialog.SimpleMessageDialog = Ext.extend(BaseDialog, {
  */
 Zenoss.FormDialog = Ext.extend(Ext.Window, {
     constructor: function(config) {
-        this.form = new Ext.form.FormPanel({
+        var form = new Ext.form.FormPanel({
             border: false,
             id: config.formId,
             minWidth: 300,
-            ref: "editForm",
+            ref: 'editForm',
             labelAlign: 'top',
             autoScroll:true,
             labelSeparator: ' ',
             bodyStyle: {
-                'padding-left': '5%'
+                'padding-left': '5%',
+                'padding-right': '5%'
             },
             defaults: {
                 xtype: 'textfield',
@@ -176,7 +182,7 @@ Zenoss.FormDialog = Ext.extend(Ext.Window, {
             items: config.items,
             html: config.html
         });
-        config.items = this.form;
+        config.items = form;
         Ext.applyIf(config, {
             layout: 'fit',
             plain: true,
@@ -230,18 +236,10 @@ Zenoss.HideFormDialog = Ext.extend(BaseDialog, {
  * with properties of all form values.
  * @constructor
  */
-
 Zenoss.SmartFormDialog = Ext.extend(Zenoss.FormDialog, {
-
     constructor: function(config) {
         var createSaveHandler, handleEnterKey;
 
-        createSaveHandler = function(callbackFunction) {
-            return function() {
-                var values = this.form.getForm().getFieldValues();
-                return callbackFunction(values);
-            }.createDelegate(this);
-        }.createDelegate(this);
 
         handleEnterKey = function() {
             var first = this.buttons[0];
@@ -252,7 +250,7 @@ Zenoss.SmartFormDialog = Ext.extend(Zenoss.FormDialog, {
 
         config.listeners = Ext.applyIf(config.listeners || {}, {
             hide: function(me) {
-                Ext.each(me.form.getForm().items.items, function(field){
+                Ext.each(me.editForm.getForm().items.items, function(field){
                     field.setValue(null);
                 });
             }
@@ -264,10 +262,11 @@ Zenoss.SmartFormDialog = Ext.extend(Zenoss.FormDialog, {
             buttons: [{
                 xtype: 'HideDialogButton',
                 text: _t('Submit'),
-                type:'submit',
-                handler: createSaveHandler(config.saveHandler)
+                type: 'submit',
+                ref: '../buttonSubmit'
              }, {
                 xtype: 'HideDialogButton',
+                ref: '../buttonCancel',
                 text: _t('Cancel')
             }],
             keys: {
@@ -279,12 +278,31 @@ Zenoss.SmartFormDialog = Ext.extend(Zenoss.FormDialog, {
             closeAction: 'hide'
         });
 
-        config.items.unshift({ xtype: 'label' });
+        config.items.unshift({ xtype: 'label', ref: 'label'});
 
         Zenoss.SmartFormDialog.superclass.constructor.call(this, config);
     },
+    initComponent: function() {
+        Zenoss.FormDialog.superclass.initComponent.call(this);
+        if (this.submitHandler) {
+            this.setSubmitHandler(this.submitHandler);
+            delete this.submitHandler;
+        }
+    },
+    setSubmitHandler: function(callbackFunction) {
+        var form = this.editForm;
+        if (callbackFunction === null) {
+            this.buttonSubmit.setHandler(null);
+        }
+        else {
+            this.buttonSubmit.setHandler(function() {
+                var values = form.getForm().getFieldValues();
+                return callbackFunction(values);
+            });
+        }
+    },
     setText: function(text) {
-        this.form.items.items[0].setText(text);
+        this.editForm.label.setText(text);
     }
 });
 
@@ -354,7 +372,7 @@ Zenoss.dialog.DynamicDialog = Ext.extend(BaseDialog, {
             failure: function(form, action){
                 var msg = this.title + ' had errors';
                 Zenoss.message(msg, false);
-                }
+            }
         });
     }
 });

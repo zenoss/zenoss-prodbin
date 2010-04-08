@@ -22,47 +22,43 @@ Ext.onReady( function() {
     *
     */
 
-    zs.addDialogSubmit = function(values)
+    zs.addClassHandler = function(newId)
     {
-        var type = values.typeCombo;
+        var grid = Ext.getCmp('navGrid'),
+            view = grid.getView(),
+            store = grid.getStore(),
+            params;
 
-        if (type=='Class') {
-            var grid = Ext.getCmp('navGrid'),
-                view = grid.getView(),
-                store = grid.getStore(),
-                params;
+        view.clearFilters();
+        params = {
+            type: 'class',
+            contextUid: view.contextUid,
+            id: newId,
+            posQuery: view.getFilterParams()
+        };
 
-            view.clearFilters();
-            params = {
-                type: type,
-                contextUid: view.contextUid,
-                id: values.idTextfield,
-                posQuery: view.getFilterParams()
-            };
-
-            var callback = function(p, response) {
-                var result = response.result;
-                if (result.success) {
-                    var newRowPos = result['newIndex'];
-                    store.on('load', function(){
-                        view.focusRow(newRowPos);
-                        grid.getSelectionModel().selectRow(newRowPos);
-                    },
-                        store, { single: true });
-                    view.updateLiveRows(newRowPos, true, true, false);
-                } else {
-                    Ext.Msg.alert(_t('Error'), result.msg);
-                }
+        var callback = function(p, response) {
+            var result = response.result;
+            if (result.success) {
+                var newRowPos = result['newIndex'];
+                store.on('load', function(){
+                    view.focusRow(newRowPos);
+                    grid.getSelectionModel().selectRow(newRowPos);
+                }, store, { single: true });
+                view.updateLiveRows(newRowPos, true, true, false);
+            } else {
+                Ext.Msg.alert(_t('Error'), result.msg);
             }
-            Zenoss.remote.ServiceRouter.addNode(params, callback);
         }
-        else {
-            var tree = Ext.getCmp('navTree');
-            tree.addNode(type, values.idTextfield);
-        }
+        Zenoss.remote.ServiceRouter.addNode(params, callback);
     };
 
-    zs.deleteDialogSubmit = function() {
+    zs.addOrganizerHandler = function(newId) {
+        var tree = Ext.getCmp('navTree');
+        tree.addNode('organizer', newId);
+    };
+
+    zs.deleteHandler = function() {
         var grid = Ext.getCmp('navGrid'),
             view = grid.getView(),
             store = grid.getStore(),
@@ -101,34 +97,15 @@ Ext.onReady( function() {
         }
     };
 
-    zs.addDialog = new Zenoss.SmartFormDialog({
-        id: 'addDialog',
-        title: _t('Add Node'),
-        items: [{ xtype: 'combo',
-            id: 'typeCombo',
-            fieldLabel: _t('Type'),
-            displayField: 'type',
-            mode: 'local',
-            triggerAction: 'all',
-            emptyText: _t('Select a type...'),
-            forceSelection: true,
-            editable: false,
-            allowBlank: false,
-            store: new Ext.data.ArrayStore({
-                fields: ['type'],
-                data: [['Organizer'], ['Class']]
-            })
-        }, {
-            xtype: 'textfield',
-            id: 'idTextfield',
-            fieldLabel: _t('ID'),
-            allowBlank: false
-        }],
-        saveHandler: zs.addDialogSubmit
-    });
+    zs.dispatcher = function(actionName, value) {
+        switch (actionName) {
+            case 'addClass': zs.addClassHandler(value); break;
+            case 'addOrganizer': zs.addOrganizerHandler(value); break;
+            case 'delete': zs.deleteHandler(); break;
+        }
+    };
 
-    zs.getSelectedUid = function()
-    {
+    zs.getSelectedUid = function() {
         var selected = Ext.getCmp('navGrid').getSelectionModel().getSelected();
         if (selected) {
             return selected.data.uid;
@@ -140,55 +117,6 @@ Ext.onReady( function() {
         }
     }
 
-    zs.addButtonHandler = function() {
-        var uid,
-            selected = Ext.getCmp('navTree').getSelectionModel().getSelectedNode();
-
-        if (selected) {
-            zs.addDialog.setText('Adding new node to ' + selected.attributes.uid);
-            zs.addDialog.show();
-        }
-        else {
-            Ext.MessageBox.alert('Error', 'You must select a node before adding.');
-        }
-    };
-
-    zs.deleteButtonHandler = function() {
-        var uid = zs.getSelectedUid();
-        if (uid) {
-            Ext.MessageBox.show({
-                title: 'Delete Node',
-                msg: 'The selected node will be deleted: ' + uid,
-                fn: function(buttonid){
-                    if (buttonid=='ok') {
-                        zs.deleteDialogSubmit();
-                    }
-                },
-                buttons: Ext.MessageBox.OKCANCEL
-            });
-        }
-        else {
-            Ext.MessageBox.alert('Error', 'You must select a node to delete.');
-        }
-    };
-
-    zs.footerBarItems = [
-        {
-            id: 'addButton',
-            iconCls: 'add',
-            disabled: Zenoss.Security.doesNotHavePermission('Manage DMD'),
-            tooltip: _t('Add a child to the selected organizer'),
-            handler: zs.addButtonHandler
-        }, {
-            id: 'deleteButton',
-            iconCls: 'delete',
-            disabled: Zenoss.Security.doesNotHavePermission('Manage DMD'),
-            tooltip: _t('Delete the selected node'),
-            handler: zs.deleteButtonHandler
-        }
-    ];
-
-
     /**********************************************************************
     *
     * Navigation Initializer
@@ -196,12 +124,10 @@ Ext.onReady( function() {
     */
 
     zs.initNav = function(initialContext) {
-        var columnModel, store, gridConfig, treeConfig;
+        var columnModel, store, gridConfig, treeConfig, fb, navTree, navGrid, p;
 
         store = new Ext.ux.grid.livegrid.Store(zs.storeConfig);
         columnModel = new Ext.grid.ColumnModel(zs.columnModelConfig);
-
-//        store.on('load', zs.storeLoadHandler, store, { single: true });
 
         gridConfig = Ext.apply(zs.gridConfig, {
             store: store,
@@ -209,11 +135,10 @@ Ext.onReady( function() {
             sm: new Zenoss.ExtraHooksSelectionModel({singleSelect:true})
         });
 
-        var navGrid = new Zenoss.FilterGridPanel(gridConfig);
+        navGrid = new Zenoss.FilterGridPanel(gridConfig);
 
         navGrid.on('afterrender',
             function(me){
-//                me.setContext(initialContext);
                 me.showFilters();
             });
 
@@ -226,13 +151,16 @@ Ext.onReady( function() {
             }
         });
 
-        var navTree = new Zenoss.HierarchyTreePanel(treeConfig);
+        navTree = new Zenoss.HierarchyTreePanel(treeConfig);
 
         p = new Ext.Panel({layout: {type:'vbox', align: 'stretch'}});
         p.add(navTree);
         p.add(navGrid);
 
         Ext.getCmp('master_panel').add(p);
-        Ext.getCmp('footer_bar').add(zs.footerBarItems);
+
+        fb = Ext.getCmp('footer_bar');
+        fb.on('buttonClick', zs.dispatcher);
+        Zenoss.footerHelper('Service', fb);
     };
 });
