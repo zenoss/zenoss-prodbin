@@ -19,8 +19,7 @@ private static DefaultSelenium sClient = null;
 	
 	private static int testCaseID = 1790;
 	private static String testCaseResult = "f"; //Fail by default
-	
-	
+
 	@BeforeClass
 	public static void setUpBeforeClass() throws Exception {
 		
