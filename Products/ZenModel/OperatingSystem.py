@@ -110,7 +110,7 @@ class OperatingSystem(Software):
                   self.getDeviceName(), target)
         # Try to find a specific route to the target device
         nextdev = None
-        for route in self.getRouteObjs():
+        for route in sorted(self.getRouteObjs(),key=lambda route:route.routemask,reverse=True):
             ip = route.getNextHopIp()
             log.debug("Route %s next hop %s", route.getTarget(), ip)
             # Have a host-route
