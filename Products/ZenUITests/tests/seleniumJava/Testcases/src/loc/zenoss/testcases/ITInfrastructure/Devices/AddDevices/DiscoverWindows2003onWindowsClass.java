@@ -62,15 +62,15 @@ private static DefaultSelenium sClient = null;
 		sClient.waitForPageToLoad("30000");
 		sClient.click("//table[@id='adddevice-button']/tbody/tr[2]/td[2]/em/button[@id='ext-gen64']");
 		sClient.click("//a[@id='addsingledevice-item']");//addsingledevice-item");
-		Thread.sleep(5000);
+		Thread.sleep(7000);
 		
 		sClient.type("//input[@id='add-device-name']", "test-win2003-1d.zenoss.loc");
 		sClient.click("//input[@id='add-device_class']");//ext-gen190");
 		Thread.sleep(5000);
 		sClient.click("//div[53]");//div[@id='ext-gen402']/div[53]");//div[@id='ext-gen254']/div[53]");
-		sClient.click("ext-gen170");
+		sClient.click("//button[@id='ext-gen164']");//ext-gen170");
 		Thread.sleep(5000);
-		sClient.click("ext-gen270");
+		sClient.click("//button[@id='ext-gen264']");//*[@id='ext-gen363']");//ext-gen270");
 		sClient.waitForPageToLoad("30000");
 		
 		SeleneseTestCase.assertFalse(sClient.isTextPresent("Traceback"));
