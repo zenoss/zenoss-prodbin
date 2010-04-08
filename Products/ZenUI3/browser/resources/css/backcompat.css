@@ -377,6 +377,33 @@ div.zenportlet .yui-skin-sam .yui-dt-table td {
     width: 33%;
     margin: 0;
 }
+#portletContainer .yui-gd .yui-u.first{
+    width: 33%;
+}
+#portletContainer .yui-gd .yui-u {
+    width: 67%;
+    margin-left: 0;
+}
+#portletContainer .yui-gc .yui-u.first{
+    width: 67%;
+}
+#portletContainer .yui-gc .yui-u {
+    width: 33%;
+    margin-left: 0;
+}
+
+.ext-ie #portletContainer .yui-g .yui-u.first {
+    width: 49.9%;
+}
+.ext-ie #portletContainer .yui-gb .yui-u.first {
+    width: 33.9%;
+}
+.ext-ie #portletContainer .yui-gc .yui-u.first {
+    width: 66.9%;
+}
+.ext-ie #portletContainer .yui-gd .yui-u.first {
+    width: 32.9%;
+}
 
 div.zenportlet div.resize-handle {
     height:4px;
