@@ -17,7 +17,6 @@ public class VerifyDefaultPortlets {
 	
 	private static int testCaseID = 1790;
 	private static String testCaseResult = "f"; //Fail by default
-	private static int testPlanID = (System.getProperties().containsKey("testPlanID"))? Integer.parseInt(System.getProperties().getProperty("testPlanID")) : 2403;
 		
 	@BeforeClass
 	public static void setUpBeforeClass() throws Exception {
@@ -34,7 +33,7 @@ public class VerifyDefaultPortlets {
 	@AfterClass
 	public static void tearDownAfterClass() throws Exception {
 		sClient.stop();
-		TestlinkXMLRPC.UpdateTestCaseResult(testCaseID, testPlanID, testCaseResult);
+		TestlinkXMLRPC.UpdateTestCaseResult(testCaseID, ZenossConstants.testPlanID, testCaseResult);
 	}
 
 	@Before

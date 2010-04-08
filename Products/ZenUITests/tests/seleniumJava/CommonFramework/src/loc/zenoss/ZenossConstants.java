@@ -43,7 +43,7 @@ public class ZenossConstants {
 	 */
 	public static final String TestLinkAPIKEY = (System.getProperties().containsKey("TestLinkAPIKEY"))?System.getProperties().getProperty("TestLinkAPIKEY") : "x1254slokdijwur8882jjfuJJhhsu2";
 	public static final String TestLinkAPIURL = (System.getProperties().containsKey("TestLinkAPIURL"))?System.getProperties().getProperty("TestLinkAPIURL") : "http://dev.zenoss.com/testlink/lib/api/xmlrpc.php";
-	
+	public static final int testPlanID = (System.getProperties().containsKey("testPlanID"))? Integer.parseInt(System.getProperties().getProperty("testPlanID")) : 3838;
 	
 	
 }
