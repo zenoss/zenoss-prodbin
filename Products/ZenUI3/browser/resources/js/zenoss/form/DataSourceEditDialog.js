@@ -58,7 +58,6 @@
                     handler: function () {
                         var form = that.editForm.form,
                             values = form.getValues();
-                        
                         values.uid = record.id;
                         config.directFn(values, config.saveHandler);
                     }
@@ -132,6 +131,9 @@
                 for(j = 0; j < fieldset.items.length; j += 1) {
                     item = fieldset.items[j];
                     item.record = record;
+                    if (!Ext.ComponentMgr.isRegistered(item.xtype)) {
+                        throw item.xtype + " is not a valid xtype, please register it.";
+                    }
                     currentPanel.items[j%2].items.push(item);
                 }
                 // if we have a header set display it

@@ -76,6 +76,11 @@ def _item(item):
         'value': value,
         'vtype': item['vtype']
     }
+    
+    # fileupload has a superflorous button we must remove
+    if xtype == 'fileuploadfield':
+        field['buttonCfg'] = dict(hidden=True)
+        
     if xtype == 'numberfield':
         field['decimalPrecision'] = item['decimalPrecision']
     if xtype in ('autoformcombo', 'itemselector'):

@@ -42,6 +42,7 @@
                /++resource++extjs/treegrid/TreeGridNodeUI.js
                /++resource++extjs/treegrid/TreeGridLoader.js
                /++resource++extjs/treegrid/TreeGridColumns.js
+               /++resource++extjs/fileuploadfield/FileUploadField.js               
                /++resource++extjs/treegrid/TreeGridLoader.js
                /++resource++extjs/treegrid/TreeGridColumns.js
                /++resource++extjs/treegrid/TreeGrid.js
