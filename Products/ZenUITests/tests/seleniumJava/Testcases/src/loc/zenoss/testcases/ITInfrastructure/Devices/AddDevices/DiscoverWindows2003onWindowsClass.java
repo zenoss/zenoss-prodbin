@@ -55,18 +55,21 @@ private static DefaultSelenium sClient = null;
 		Thread.sleep(12000);*/
 		
 		sClient.open("/zport/dmd?submitted=");
+		sClient.waitForPageToLoad("30000");
 		Thread.sleep(5000);
 		
 		sClient.click("link=IT Infrastructure");
 		sClient.waitForPageToLoad("30000");
-		sClient.click("//table[@id='adddevice-button']/tbody/tr[2]/td[2]/em");
-		sClient.click("addsingledevice-item");
+		sClient.click("//table[@id='adddevice-button']/tbody/tr[2]/td[2]/em/button[@id='ext-gen64']");
+		sClient.click("//a[@id='addsingledevice-item']");//addsingledevice-item");
 		Thread.sleep(5000);
 		
-		sClient.type("add-device-name", "test-win2003-1d.zenoss.loc");
-		sClient.click("ext-gen190");
-		sClient.click("//div[@id='ext-gen254']/div[53]");
+		sClient.type("//input[@id='add-device-name']", "test-win2003-1d.zenoss.loc");
+		sClient.click("//input[@id='add-device_class']");//ext-gen190");
+		Thread.sleep(5000);
+		sClient.click("//div[53]");//div[@id='ext-gen402']/div[53]");//div[@id='ext-gen254']/div[53]");
 		sClient.click("ext-gen170");
+		Thread.sleep(5000);
 		sClient.click("ext-gen270");
 		sClient.waitForPageToLoad("30000");
 		
