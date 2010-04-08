@@ -48,12 +48,17 @@ Ext.Direct.on('event', function(e){
 
 Ext.Direct.on('exception', function(e) {
     Ext.Msg.show({
-        title: 'Server Exception',
-        msg:e.message,
-        buttons:Ext.Msg.OK,
+        title: _t('Server Exception'),
+        msg: '<p>' + _t('The server reported the following error:') + '</p>' +
+            '<p class="exception-message">' + e.message + '</p>' +
+            '<p>' + _t('The current state of the UI is not dependable. You should ' +
+            'reload the page.') + '</p>' ,
+        buttons: { yes: _t('Reload Page'), cancel: _t('Dismiss') },
         minWidth: 300,
         fn: function(buttonId, text, opt) {
-            window.location.reload();
+            if ('yes' == buttonId) {
+                window.location.reload();
+            }
         }
     });
 });

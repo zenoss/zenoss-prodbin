@@ -474,6 +474,15 @@ table.eventrainbow td.warning { background-color: #fbd13d; }
     cursor: pointer;
 }
 
+.exception-message {
+    margin-top: 1em;
+    margin-bottom: 1em;
+    margin-left: 2em;
+    font-family: monospace;
+    font-weight: bold;
+}
+
+
 #header-extra {
     position: absolute;
     right: 0;
