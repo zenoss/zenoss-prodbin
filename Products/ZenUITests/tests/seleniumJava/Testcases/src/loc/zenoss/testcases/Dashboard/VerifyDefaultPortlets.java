@@ -52,11 +52,15 @@ public class VerifyDefaultPortlets {
 		Thread.sleep(12000);*/
 		
 		sClient.open("http://test-cent4-64-1.zenoss.loc:8080/zport/dmd?submitted=");		
-		sClient.waitForPageToLoad("30000");
+
+		Thread.sleep(5000);
+		SeleneseTestCase.assertTrue(sClient.isTextPresent("Device Issues"));
+		SeleneseTestCase.assertTrue(sClient.isTextPresent("Location"));
+		SeleneseTestCase.assertTrue(sClient.isTextPresent("Welcome"));		
 		
-		SeleneseTestCase.assertTrue(sClient.isElementPresent("//div[@id='welcome_handle']/div/div/div/span"));
+		/*SeleneseTestCase.assertTrue(sClient.isElementPresent("//div[@id='welcome_handle']/div/div/div/span"));
 		SeleneseTestCase.assertTrue(sClient.isElementPresent("//div[@id='devissues_handle']/div/div/div/span"));
 		SeleneseTestCase.assertTrue(sClient.isElementPresent("//div[@id='googlemaps_handle']/div/div/div/span"));		
-		testCaseResult = "p";
+		*/testCaseResult = "p";
 	}
 }

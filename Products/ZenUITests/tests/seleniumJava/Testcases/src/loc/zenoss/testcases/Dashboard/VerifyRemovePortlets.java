@@ -56,6 +56,7 @@ public class VerifyRemovePortlets {
 		Thread.sleep(12000);*/
 				
 		sClient.open("http://test-cent4-64-1.zenoss.loc:8080/zport/dmd?submitted=");		
+		Thread.sleep(5000);
 		
 		List<String> portletsNoDefault = Arrays.asList("Zenoss Issues", "Production States", "Site Window", "Root Organizers", "Messages", "Object Watch List");  
 

@@ -60,7 +60,8 @@ public class VerifyAddPortlets {
 		for (String portlet : portlets)
 		{
 			sClient.open("http://test-cent4-64-1.zenoss.loc:8080/zport/dmd?submitted=");		
-		
+
+			Thread.sleep(5000);
 			sClient.click("link=Add portlet...");
 			Thread.sleep(5000);
 			sClient.click("yui-gen"+(count++)+"-button");
