@@ -20,7 +20,7 @@
     float: left;
     height: 45px;
     width: 134px;
-    background: transparent url(/++resource++zenui/img/header_bg_logo.png) 5px 7px no-repeat;
+    background: transparent url(/zport/dmd/logo.png) 5px 7px no-repeat;
 }
 
 /** 
@@ -92,7 +92,8 @@
 
 #secondarynav li.nav-item-inactive a { color: #fff; }
 #secondarynav li.nav-item-active a { 
-    color: #3b70ab;
+    color: #454545;
+    /*color: #3b70ab;*/
     font-weight: bold;
     background: transparent url('/++resource++zenui/img/secondarynav_sprite.png') 
         0 -30px repeat-x;
