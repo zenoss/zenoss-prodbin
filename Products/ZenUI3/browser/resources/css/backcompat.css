@@ -473,3 +473,7 @@ div.portlet-settings {
 .ext-ie div.portlet-settings {
     zoom: 1;
 }
+
+.ext-ie div.resize-handle {
+    overflow: hidden;
+}
