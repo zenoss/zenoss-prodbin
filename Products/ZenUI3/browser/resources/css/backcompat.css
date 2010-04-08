@@ -477,3 +477,6 @@ div.portlet-settings {
 .ext-ie div.resize-handle {
     overflow: hidden;
 }
+.ext-ie .yui-ac {
+    height: 30px;
+}
