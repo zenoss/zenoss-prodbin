@@ -36,7 +36,7 @@ resetCombo = function(combo, uid) {
     combo.doQuery(combo.allQuery, true);
 };
 
-addThreshold = function(thresholdType, thresholdId){
+addThreshold = function(data){
     var uid, node, dataPoints, params, callback;
     uid = Ext.getCmp(treeId).getSelectionModel().getSelectedNode().attributes.uid;
     node = Ext.getCmp(dataSourcesId).getSelectionModel().getSelectedNode();
@@ -47,8 +47,8 @@ addThreshold = function(thresholdType, thresholdId){
     }
     params = {
         uid: uid, 
-        thresholdType:thresholdType, 
-        thresholdId: thresholdId,
+        thresholdType: data['thresholdTypeField'], 
+        thresholdId: data['thresholdIdField'],
         dataPoints: dataPoints
     };
     callback = function(provider, response) {
@@ -57,52 +57,79 @@ addThreshold = function(thresholdType, thresholdId){
     Zenoss.remote.TemplateRouter.addThreshold(params, callback);
 };
 
-new Zenoss.HideFormDialog({
+new Ext.create({
+    xtype: 'window',
     id: 'addThresholdDialog',
     title: _t('Add Threshold'),
-    items: [
-        {
-            xtype: 'combo',
-            id: 'thresholdTypeCombo',
-            fieldLabel: _t('Type'),
-            displayField: 'type',
-            forceSelection: true,
-            triggerAction: 'all',
-            emptyText: _t('Select a type...'),
-            selectOnFocus: true,
-            store: new Ext.data.DirectStore({
-                fields: ['type'],
-                root: 'data',
-                directFn: Zenoss.remote.TemplateRouter.getThresholdTypes
-            })
-        }, {
-            xtype: 'textfield',
-            id: 'thresholdIdTextfield',
-            fieldLabel: _t('ID'),
-            allowBlank: false
-        }
-    ],
-    listeners: {
-        hide: function() {
-            Ext.getCmp('thresholdTypeCombo').setValue('');
-            Ext.getCmp('thresholdIdTextfield').setValue('');
+    message: _t('Allow the user to add a threshold.'),
+    closeAction: 'hide', 
+    buttonAlign: 'left', 
+    autoScroll: true, 
+    plain: true, 
+    modal: true, 
+    padding: 10,
+    listeners:{
+        show: function() {
+            this.formPanel.getForm().reset();
         }
     },
-    buttons: [
-    {
-        xtype: 'HideDialogButton',
-        text: _t('Submit'),
-        handler: function(button, event) {
-            var thresholdType, thresholdId;
-            thresholdType = Ext.getCmp('thresholdTypeCombo').getValue();
-            thresholdId = Ext.getCmp('thresholdIdTextfield').getValue();
-            addThreshold(thresholdType, thresholdId);
-        }
-    }, {
-        xtype: 'HideDialogButton',
-        text: _t('Cancel')
-    }]
-});
+    
+    buttons: [{ 
+            ref: '../submitButton',
+            text: _t('Add'), 
+            handler: function(submitButton) {
+                var dialogWindow, basicForm; 
+                dialogWindow = submitButton.refOwner; 
+                basicForm = dialogWindow.formPanel.getForm();
+                basicForm.api.submit(basicForm.getValues()); 
+                dialogWindow.hide(); 
+            } },
+        { 
+            ref: '../cancelButton', 
+            text: _t('Cancel'), 
+            handler: function(cancelButton) { 
+                var dialogWindow = cancelButton.refOwner; 
+                dialogWindow.hide();
+            } 
+        }],
+    items: {
+        xtype: 'form',
+        ref: 'formPanel',
+        leftAlign: 'top',
+        monitorValid: true,
+        border: false,
+        paramsAsHash: true,
+        api: { submit: addThreshold },
+        listeners: {
+            clientValidation: function(formPanel, valid) {
+                var dialogWindow;
+                dialogWindow = formPanel.refOwner;
+                dialogWindow.submitButton.setDisabled( !valid );
+            }
+        },
+        items: [{
+                name: 'thresholdTypeField',
+                xtype: 'combo',
+                fieldLabel: _t('Type'),
+                displayField: 'type',
+                forceSelection: true,
+                triggerAction: 'all',
+                emptyText: _t('Select a type...'),
+                selectOnFocus: true,
+                allowBlank: false,
+                store: new Ext.data.DirectStore({
+                    fields: ['type'],
+                    root: 'data',
+                    directFn: Zenoss.remote.TemplateRouter.getThresholdTypes
+                })
+            }, {
+                name: 'thresholdIdField',
+                xtype: 'textfield',
+                fieldLabel: _t('Name'),
+                allowBlank: false
+            }
+        ]
+    }});
 
 addMetricToGraph = function(dataPointUid, graphUid) {
     var params, callback;

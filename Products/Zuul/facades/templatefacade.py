@@ -218,7 +218,8 @@ class TemplateFacade(ZuulFacade):
             data.append({'type': type})
         return data
 
-    def addThreshold(self, uid, thresholdType, thresholdId, dataPoints):
+    def addThreshold(self, uid, thresholdType, thresholdId, dataPoints=None):
+        
         thresholdId = prepId(thresholdId)
         template = self._getObject(uid)
         thresholds = template.thresholds
@@ -227,11 +228,11 @@ class TemplateFacade(ZuulFacade):
                 thresholds._setObject(thresholdId, pythonClass(thresholdId))
                 break
         else:
-            raise Exception('Unknow threshold type: %s' % thresholdType)
+            raise Exception('Unknown threshold type: %s' % thresholdType)
         threshold = getattr(thresholds, thresholdId)
         dsnames = self._translateDataPoints(dataPoints)
         threshold._updateProperty('dsnames', dsnames)
-                                                                        
+
     def _translateDataPoints(self, dataPoints):
         """ Takes the list of datapoints from te server
         and turns them into the proper dsnames that the

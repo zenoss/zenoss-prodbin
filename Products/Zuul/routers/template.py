@@ -127,7 +127,11 @@ class TemplateRouter(DirectRouter):
         return {'success': True}
                 
     @require('Manage DMD')
-    def addThreshold(self, uid, thresholdType, thresholdId, dataPoints):
+    def addThreshold(self, **data):
+        uid = data['uid']
+        thresholdType = data['thresholdType']
+        thresholdId = data['thresholdId']
+        dataPoints = data.get('dataPoints', None)
         facade = self._getFacade()
         facade.addThreshold(uid, thresholdType, thresholdId, dataPoints)
         return {'success': True}
