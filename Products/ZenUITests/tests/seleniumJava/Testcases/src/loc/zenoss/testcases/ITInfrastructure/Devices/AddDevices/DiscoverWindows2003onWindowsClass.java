@@ -54,36 +54,47 @@ private static DefaultSelenium sClient = null;
 		/*Common.Login(sClient, ZenossConstants.adminUserName,ZenossConstants.adminPassword);
 		Thread.sleep(12000);*/
 		
-		sClient.open("/zport/dmd?submitted=");
+		sClient.open("/");
 		sClient.waitForPageToLoad("30000");
 		Thread.sleep(5000);
 		
 		sClient.click("link=IT Infrastructure");
 		sClient.waitForPageToLoad("30000");
-		sClient.click("//table[@id='adddevice-button']/tbody/tr[2]/td[2]/em/button[@id='ext-gen64']");
-		sClient.click("//a[@id='addsingledevice-item']");//addsingledevice-item");
+		Thread.sleep(8000);
+		sClient.click("//table[@id='adddevice-button']/tbody/tr[2]/td[2]/em");
+		Thread.sleep(1500);
+		sClient.click("//a[@id='addsingledevice-item']");
 		Thread.sleep(7000);
 		
 		sClient.type("//input[@id='add-device-name']", "test-win2003-1d.zenoss.loc");
-		sClient.click("//input[@id='add-device_class']");//ext-gen190");
+		sClient.click("//input[@id='add-device_class']");
 		Thread.sleep(5000);
-		sClient.click("//div[53]");//div[@id='ext-gen402']/div[53]");//div[@id='ext-gen254']/div[53]");
-		sClient.click("//button[@id='ext-gen164']");//ext-gen170");
+		sClient.click("//div//div[31]");
+		
+		sClient.click("link=More...");
+		Thread.sleep(2000);
+		sClient.type("ext-comp-1146", "public");
+		
+		
+		sClient.click("//table[@id='addsingledevice-submit']/tbody/tr[2]/td[2]");
 		Thread.sleep(5000);
-		sClient.click("//button[@id='ext-gen264']");//*[@id='ext-gen363']");//ext-gen270");
-		sClient.waitForPageToLoad("30000");
+		sClient.click("//*[contains(text(), 'View Job Log')]");
+		sClient.waitForPageToLoad("120000");
 		
 		SeleneseTestCase.assertFalse(sClient.isTextPresent("Traceback"));
 		SeleneseTestCase.assertFalse(sClient.isTextPresent("Error"));
 		
-		sClient.open("link=/zport/dmd/itinfrastructure");
+		
+		/*
+		sClient.open("/zport/dmd/itinfrastructure");
 		Thread.sleep(5000);
 		sClient.click("link=test-win2003-1d.zenoss.loc");
-		sClient.waitForPageToLoad("30000");
+		sClient.waitForPageToLoad("120000");
+		Thread.sleep(10000);
 		SeleneseTestCase.assertTrue(sClient.isElementPresent("link=/Server/Windows"));
 		
-		sClient.click("//ul[@id='ext-gen186']/div/li[7]/div/a/span");
-		Thread.sleep(5000);
+		sClient.click("//ul[@id='ext-gen182']/div/li[7]/div/a/span");
+		Thread.sleep(10000);
 		
 		sClient.type("zWinUser", "Administrator");
 		sClient.type("zWinPassword", "ZenossQA1");
