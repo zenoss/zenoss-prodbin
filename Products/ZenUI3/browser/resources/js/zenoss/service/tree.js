@@ -62,7 +62,7 @@ Ext.onReady( function() {
     zs.treeConfig = {
         id: 'navTree',
         flex: 1,
-        searchField: true,
+        searchField: false,
         directFn: Zenoss.remote.ServiceRouter.getOrganizerTree,
         router: Zenoss.remote.ServiceRouter,
         selModel: selModel,
