@@ -43,6 +43,13 @@ class ReportRouter(DirectRouter):
         _newReportTypes[2]: 'manage_addMultiGraphReport',
     }
 
+    _essentialNodes = [
+        '/zport/dmd/Reports',
+        '/zport/dmd/Reports/Custom%20Device%20Reports',
+        '/zport/dmd/Reports/Graph%20Reports',
+        '/zport/dmd/Reports/Multi-Graph%20Reports',
+    ]
+
     def getReportTypes(self):
         return DirectResponse.succeed(reportTypes=ReportRouter._newReportTypes,
                 menuText=ReportRouter._reportMenuItems)
@@ -93,6 +100,9 @@ class ReportRouter(DirectRouter):
     @require('Manage DMD')
     def deleteNode(self, uid):
         represented = self.context.dmd.restrictedTraverse(uid)
+        if represented.absolute_url_path() in ReportRouter._essentialNodes:
+            return DirectResponse.fail('Not deleting "%s"' % \
+                    represented.absolute_url_path())
         represented.getParentNode().zmanage_delObjects([represented.titleOrId()])
         return DirectResponse.succeed(tree=self.getTree())
 
@@ -130,5 +140,6 @@ class ReportRouter(DirectRouter):
                 'uiProvider': 'report', 
                 'leaf': leaf,
                 'expandable': not leaf,
+                'deletable' : represented.absolute_url_path() not in ReportRouter._essentialNodes,
                 'meta_type': represented.meta_type,
                 'text': text }

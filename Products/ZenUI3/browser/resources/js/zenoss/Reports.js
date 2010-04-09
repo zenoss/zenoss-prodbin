@@ -211,6 +211,11 @@ var treesm = new Ext.tree.DefaultSelectionModel({
             } else {
                 Ext.getCmp('edit-button').disable();
             }
+            if (newnode.attributes.deletable) {
+                Ext.getCmp('delete-button').enable();
+            } else {
+                Ext.getCmp('delete-button').disable();
+            }
         }
     }
 });
