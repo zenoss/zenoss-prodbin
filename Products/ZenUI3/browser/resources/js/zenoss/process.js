@@ -55,8 +55,10 @@ function beforeselectHandler(sm, node, oldNode) {
 function selectionchangeHandler(sm, node) {
     if (node) {
         // load up appropriate data in the form
-        Ext.getCmp('processForm').setContext(node.attributes.uid);
-        Ext.getCmp('instancesGrid').setContext(node.attributes.uid);
+        var uid = node.attributes.uid;
+        Ext.getCmp('processForm').setContext(uid);
+        Ext.getCmp('instancesGrid').setContext(uid);
+        Ext.getCmp('footer_bar').setContext(uid);
         // don't allow the user to delete the root node
         Ext.getCmp('footer_bar').buttonDelete.setDisabled(
                 node == Ext.getCmp(treeId).root);
@@ -387,11 +389,12 @@ Zenoss.SequenceGrid = Ext.extend(Zenoss.BaseSequenceGrid, {
 });
 Ext.reg('sequencegrid', Zenoss.SequenceGrid);
 
-Ext.getCmp('footer_bar').addButton({
+Ext.getCmp('footer_bar').buttonContextMenu.menu.addItem({
     id: 'sequenceButton',
     iconCls: 'set',
     disabled: Zenoss.Security.doesNotHavePermission('Manage DMD'),
     tooltip: 'Sequence the process classes',
+    text: _t('Change Sequence'),
     handler: function(button, event) {
         if ( ! Ext.getCmp('sequenceDialog') ) {
             new Zenoss.HideFitDialog({
