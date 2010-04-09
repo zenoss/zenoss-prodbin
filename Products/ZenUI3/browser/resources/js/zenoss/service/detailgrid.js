@@ -29,11 +29,12 @@ Ext.onReady( function() {
             buttonTitle: _t('Services'),
             iconCls: 'services',
             directFn: Zenoss.remote.ServiceRouter.getInstances,
-            tbar: {
-                    items: [ { xtype: 'tbtext', text: _t('Instances') } ]
+            region: 'south',
+            tbar: { xtype: 'consolebar',
+                    title: 'Service Instances'
             }
         };
 
-        Ext.getCmp('bottom_detail_panel').add(config);
+        Ext.getCmp('detail_panel').add(config);
     };
 });

@@ -48,6 +48,23 @@
                 />
 
         <browser:viewlet
+            name="Master w/Split Detail (1)"
+            url="/masterdetailsplit1"
+            weight="2"
+            parentItem="Screen Types"
+            manager="..navigation.interfaces.ISecondaryNavigationMenu"
+            class="..navigation.menuitem.SecondaryNavigationMenuItem"
+            permission="zope2.Public"
+            />
+
+            <browser:page
+                template="templates/masterdetailsplit1.pt"
+                name="masterdetailsplit1"
+                for="*"
+                permission="zope2.Public"
+                />
+
+        <browser:viewlet
             name="Master w/Split Detail (2)"
             url="/masterdetailsplit2"
             weight="2"

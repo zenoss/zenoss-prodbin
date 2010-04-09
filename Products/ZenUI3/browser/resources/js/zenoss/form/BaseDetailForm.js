@@ -25,28 +25,45 @@ ZF.BaseDetailForm = Ext.extend(Ext.form.FormPanel, {
             uid: config.contextUid
         });
         config = Ext.applyIf(config||{}, {
+            paramsAsHash: true,
             autoScroll: 'y',
             cls: 'detail-form-panel',
             buttonAlign: 'left',
+            labelAlign: 'top',
+            autoScroll:true,
+            labelSeparator: ' ',
             buttons:  [{
                     xtype: 'button',
                     formBind: true,
                     text: _t('Save'),
                     cls: 'detailform-submit-button',
                     handler: function(btn, e) {
-                        btn.ownerCt.ownerCt.getForm().submit();
+                        var values, form = me.getForm();
+
+                        values = Ext.apply({uid: me.contextUid}, form.getValues());
+                        form.api.submit(values);
+                        // Quirky work-around to clear all dirty flags on the
+                        // fields in the form.
+                        form.setValues(values);
+                        // Raise a fake action complete event for posterity.
+                        // TODO: make this a real action someday.
+                        me.fireEvent('actioncomplete', me, {type:'zsubmit', values:values});
                     }
                 },{
                     xtype: 'button',
                     text: _t('Cancel'),
                     cls: 'detailform-cancel-button',
                     handler: function(btn, e) {
-                        btn.ownerCt.ownerCt.getForm().reset();
+                        me.getForm().reset();
                     }
                 }]
 
         });
         ZF.BaseDetailForm.superclass.constructor.call(this, config);
+    },
+    setContext: function(uid) {
+        this.contextUid = uid;
+        this.load({ params: {uid: uid} });
     }
 });
 

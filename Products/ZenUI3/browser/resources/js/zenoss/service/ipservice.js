@@ -24,7 +24,8 @@ Ext.onReady( function() {
         xtype: 'textfield',
         fieldLabel: _t('Port'),
         name: 'port',
-        width: "100%"
+        width: "100%",
+        id: 'portTextField'
     };
 
     var formItems = [
@@ -60,6 +61,7 @@ Ext.onReady( function() {
 
     zsn.columnModelConfig.columns = navColumns;
     zsf.formItems.items = formItems;
+    zsf.hiddenFieldIdsForOrganizer.push('portTextField');
 
     zsn.initNav('/zport/dmd/Services/IpService');
     zsf.initForm();

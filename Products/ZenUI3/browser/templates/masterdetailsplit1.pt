@@ -1,0 +1,66 @@
+<!--
+###########################################################################
+#
+# This program is part of Zenoss Core, an open source monitoring platform.
+# Copyright (C) 2009, Zenoss Inc.
+#
+# This program is free software; you can redistribute it and/or modify it
+# under the terms of the GNU General Public License version 2 as published by
+# the Free Software Foundation.
+#
+# For complete information please visit: http://www.zenoss.com/oss/
+#
+###########################################################################
+-->
+
+<tal:block metal:define-macro="masterdetailsplit1">
+<tal:block metal:use-macro="context/page_macros/base-new">
+
+<tal:block metal:fill-slot="center_panel_content">
+</tal:block>
+
+<tal:block metal:fill-slot="script_beforeLayout">
+<tal:block metal:define-slot="script_beforeLayout">
+</tal:block> <!-- metal:define-slot="script_beforeLayout" -->
+</tal:block> <!-- metal:fill-slot="script_beforeLayout" -->
+
+<tal:block metal:fill-slot="script_layout">
+<script>
+Ext.onReady(function(){
+    Ext.getCmp('center_panel').add(
+        new Ext.Panel({
+            layout: 'border',
+            defaults: {'border':false},
+            items: [{
+                id: 'master_panel',
+                region: 'west',
+                layout: 'fit',
+                width: 250,
+                split: true
+            },{
+                id: 'detail_panel',
+                region: 'center',
+                layout: 'border',
+                defaults: {'border':false}
+            }]
+        }
+    ));
+});
+</script>
+<!-- Chain the macro -->
+<tal:block metal:define-slot="script_layout">
+<script>
+Ext.onReady(function(){
+    Ext.getCmp('master_panel').add(new Zenoss.PlaceholderPanel({
+        text: 'Ext.getCmp("master_panel"), metal:fill-slot="master_panel"'
+    }));
+    Ext.getCmp('detail_panel').add(new Zenoss.PlaceholderPanel({
+        text: 'Ext.getCmp("detail_panel"), metal:fill-slot="detail_panel"'
+    }));
+});
+</script>
+</tal:block>
+</tal:block>
+
+</tal:block>
+</tal:block>

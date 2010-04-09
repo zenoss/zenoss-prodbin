@@ -52,38 +52,41 @@ Ext.onReady( function() {
 
         router.getInfo({uid: uid, keys: ['monitor', 'eventSeverity']}, callback);
     };
+    zs.actioncompleteHandler = function(form, action) {
+        form = Ext.getCmp('serviceForm');
 
-    zs.saveForm = function(button, event) {
-        var form, values, navGridModel, navGridRecord;
+        var isClass = (form.contextUid.indexOf('serviceclasses') > 0),
+            isRoot = form.contextUid == Ext.getCmp('navTree').root.attributes.uid;
 
-        // Submit the form.
-        form = Ext.getCmp('serviceForm').getForm();
-        values = Ext.apply({
-            uid: Ext.getCmp('serviceForm').contextUid
-        }, form.getValues());
-        values = Ext.applyIf(values, {
-            isMonitoringAcquired: 'off',
-            monitor: 'off',
-            ignoreParameters: 'off'
-        });
-        form.api.submit(values);
-
-        // Update the record in the navigation grid.
-        navGridModel = Ext.getCmp('navGrid').getSelectionModel();
-        navGridRecord = navGridModel.getSelected();
-
-        if (navGridRecord)
-        {
-            Zenoss.util.applyNotIf(navGridRecord.data, values);
+        if (action.type == 'directload') {
+            Ext.each(zs.hiddenFieldIdsForOrganizer, function(i){
+                    o = Ext.getCmp(i);
+                    o.setVisible(isClass);
+                    o.label.setVisible(isClass);
+                });
+            Ext.getCmp('nameTextField').setDisabled(isRoot);
         }
+        else if (action.type == 'zsubmit') {
+            if (isClass) {
+                // Update the record in the navigation grid.
+                var navGrid = Ext.getCmp('navGrid'),
+                    navGridModel = navGrid.getSelectionModel(),
+                    navGridRecord = navGridModel.getSelected();
 
-        // setValues makes isDirty return false
-        form.setValues(values);
-    };
+                if (navGridRecord) {
+                    Zenoss.util.applyNotIf(navGridRecord.data, form.form.getValues());
+                    navGrid.view.refreshRow(navGridRecord);
+                }
+            }
+            else {
+                // Update the record in the navigation tree.
+                var treeSM = Ext.getCmp('navTree').getSelectionModel(),
+                    treeSNode = treeSM.getSelectedNode();
 
-    zs.resetForm = function(button, event) {
-        var form = Ext.getCmp('serviceForm').getForm();
-        form.reset();
+                treeSNode.attributes.text.text = form.form.getValues().name;
+                treeSNode.setText(treeSNode.attributes.text);
+            }
+        }
     };
 
     zs.nameTextField = {
@@ -158,20 +161,6 @@ Ext.onReady( function() {
         ]
     };
 
-    zs.saveButton = {
-        xtype: 'button',
-        id: 'saveButton',
-        text: _t('Save'),
-        handler: zs.saveForm
-    };
-
-    zs.cancelButton = {
-        xtype: 'button',
-        id: 'cancelButton',
-        text: _t('Cancel'),
-        handler: zs.resetForm
-    };
-
     zs.formItems = {
         layout: 'column',
         border: false,
@@ -190,17 +179,14 @@ Ext.onReady( function() {
         ]
     };
 
+    zs.hiddenFieldIdsForOrganizer = [zs.serviceKeysTextField.id];
+
     zs.formConfig = {
-        xtype: 'form',
+        xtype: 'basedetailform',
         id: 'serviceForm',
-        paramsAsHash: true,
+        region: 'center',
         items: zs.formItems,
-        border: false,
-        labelAlign: 'top',
-        autoScroll: true,
         trackResetOnLoad: true,
-        bbar: {xtype: 'largetoolbar',
-               items: [zs.saveButton, zs.cancelButton]},
         api: {
             load: Zenoss.remote.ServiceRouter.getInfo,
             submit: Zenoss.remote.ServiceRouter.setInfo
@@ -214,12 +200,14 @@ Ext.onReady( function() {
     }
 
     zs.initForm = function() {
-        var serviceForm = new Ext.form.FormPanel(zs.formConfig);
+
+        var serviceForm = Ext.create(zs.formConfig);
         serviceForm.setContext = function(uid) {
                 this.contextUid = uid;
                 clearForm(this.getForm());
                 this.load({ params: {uid: uid} });
             }.createDelegate(serviceForm);
-        Ext.getCmp('top_detail_panel').add(serviceForm);
+        Ext.getCmp('detail_panel').add(serviceForm);
+        serviceForm.on('actioncomplete', zs.actioncompleteHandler);
     };
 });

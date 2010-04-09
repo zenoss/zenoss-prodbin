@@ -1,12 +1,12 @@
 ###########################################################################
-#       
+#
 # This program is part of Zenoss Core, an open source monitoring platform.
 # Copyright (C) 2009, Zenoss Inc.
-#       
+#
 # This program is free software; you can redistribute it and/or modify it
 # under the terms of the GNU General Public License version 2 as published by
 # the Free Software Foundation.
-#       
+#
 # For complete information please visit: http://www.zenoss.com/oss/
 #
 ###########################################################################
@@ -29,6 +29,8 @@ class PageTemplateMacros(BrowserView):
                                'masterdetail'),
         'masterdetail-new':   ('templates/masterdetail-new.pt',
                                'masterdetail-new'),
+        'masterdetailsplit1': ('templates/masterdetailsplit1.pt',
+                               'masterdetailsplit1'),
         'masterdetailsplit2': ('templates/masterdetailsplit2.pt',
                                'masterdetailsplit2'),
         'masterdetailsplit3': ('templates/masterdetailsplit3.pt',

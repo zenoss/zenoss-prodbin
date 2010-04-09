@@ -20,29 +20,6 @@ Ext.onReady(function(){
 Ext.ns('Zenoss', 'Zenoss.env');
 var treeId = 'processTree';
 var router = Zenoss.remote.ProcessRouter;
-// These are the fields that will display on the "Add a Node form"  (the plus on the footerbar)
-var addNodeDialogItems = [
-    {
-        xtype: 'combo',
-        id: 'typeCombo',
-        fieldLabel: _t('Type'),
-        displayField: 'type',
-        mode: 'local',
-        forceSelection: true,
-        triggerAction: 'all',
-        emptyText: 'Select a type...',
-        selectOnFocus: true,
-        store: new Ext.data.ArrayStore({
-            fields: ['type'],
-            data: [['Organizer'], ['Class']]
-        })
-    }, {
-        xtype: 'textfield',
-        id: 'idTextfield',
-        fieldLabel: _t('ID'),
-        allowBlank: false
-    }
-];
 
 new Zenoss.MessageDialog({
     id: 'dirtyDialog',
@@ -78,12 +55,11 @@ function beforeselectHandler(sm, node, oldNode) {
 function selectionchangeHandler(sm, node) {
     if (node) {
         // load up appropriate data in the form
-        Ext.getCmp('processForm').getForm().load({
-            params: {uid: node.attributes.uid}
-        });
+        Ext.getCmp('processForm').setContext(node.attributes.uid);
         Ext.getCmp('instancesGrid').setContext(node.attributes.uid);
         // don't allow the user to delete the root node
-        Ext.getCmp('deleteButton').setDisabled(node == Ext.getCmp(treeId).root);
+        Ext.getCmp('footer_bar').buttonDelete.setDisabled(
+                node == Ext.getCmp(treeId).root);
     }
 }
 
@@ -117,7 +93,6 @@ var ProcessTreePanel = Ext.extend(Zenoss.HierarchyTreePanel, {
             router: router,
             selModel: selModel,
             enableDD: true,
-            addNodeDialogItems: addNodeDialogItems,
             dropConfig: {
                 appendOnly: true
             },
@@ -200,6 +175,14 @@ function actioncompleteHandler(form, action) {
         var regexFieldSet = Ext.getCmp('regexFieldSet');
         regexFieldSet.setVisible(processInfo.hasRegex);
         regexFieldSet.doLayout();
+    } else if (action.type == 'zsubmit') {
+        var processTree = Ext.getCmp(treeId);
+        var selectionModel = processTree.getSelectionModel();
+        var selectedNode = selectionModel.getSelectedNode();
+        var nameTextField = Ext.getCmp('nameTextField');
+
+        selectedNode.attributes.text.text = nameTextField.getValue();
+        selectedNode.setText(selectedNode.attributes.text);
     }
 }
 
@@ -225,21 +208,24 @@ var inheritedCheckbox = {
     id: 'inheritedCheckbox',
     fieldLabel: _t('Inherited'),
     name: 'isMonitoringAcquired',
-    handler: inheritedCheckboxHandler
+    handler: inheritedCheckboxHandler,
+    submitValue: true
 };
 
 var monitorCheckbox = {
     xtype: 'checkbox',
     id: 'monitorCheckbox',
     fieldLabel: _t('Enabled'),
-    name: 'monitor'
+    name: 'monitor',
+    submitValue: true
 };
 
 var alertOnRestartCheckBox = {
     xtype: 'checkbox',
     id: 'alertOnRestartCheckBox',
     fieldLabel: _t('Alert on Restart'),
-    name: 'alertOnRestart'
+    name: 'alertOnRestart',
+    submitValue: true
 };
 
 var eventSeverityCombo = {
@@ -269,7 +255,8 @@ var ignoreParametersCheckbox = {
     xtype: 'checkbox',
     id: 'ignoreParametersCheckbox',
     fieldLabel: _t('Ignore Parameters'),
-    name: 'ignoreParameters'
+    name: 'ignoreParameters',
+    submitValue: true
 };
 
 var monitoringFieldSet = {
@@ -319,113 +306,57 @@ var processFormItems = {
 }; // processFormItems
 
 var processFormConfig = {
-    xtype: 'form',
+    xtype: 'basedetailform',
+    trackResetOnLoad: true,
     id: 'processForm',
-    paramsAsHash: true,
+    region: 'center',
     items: processFormItems,
-    border: false,
-    labelAlign: 'top',
-    autoScroll: true,
     api: {
         load: router.getInfo,
         submit: router.setInfo
-    },
-    tbar: [
-        {
-            xtype: 'button',
-            id: 'saveButton',
-            text: _t('Save'),
-            iconCls: 'save',
-
-            handler: function(button, event) {
-                var processTree = Ext.getCmp(treeId);
-                var selectionModel = processTree.getSelectionModel();
-                var selectedNode = selectionModel.getSelectedNode();
-                var nameTextField = Ext.getCmp('nameTextField');
-                selectedNode.attributes.text.text = nameTextField.getValue();
-                selectedNode.setText(selectedNode.attributes.text);
-                var form = Ext.getCmp('processForm').getForm();
-                var params = Ext.apply({uid: selectedNode.attributes.uid},
-                                       form.getValues());
-                form.api.submit(params);
-                var values = Ext.applyIf(form.getValues(), {
-                    isMonitoringAcquired: 'off',
-                    monitor: 'off',
-                    alertOnRestart: 'off',
-                    ignoreParameters: 'off'
-                });
-                // setValues makes isDirty return false
-                form.setValues(values);
-            }
-        }, {
-            xtype: 'button',
-            id: 'cancelButton',
-            text: _t('Cancel'),
-            iconCls: 'close',
-            handler: function(button, event) {
-                Ext.getCmp('processForm').getForm().reset();
-            }
-        }
-    ] //tbar
+    }
 };
 
-Ext.ns('Zenoss');
-
-/**
- * @class Zenoss.ProcessFormPanel
- * @extends Ext.form.FormPanel
- * The form panel that displays information about a process organizer or class
- * @constructor
- */
-Zenoss.ProcessFormPanel = Ext.extend(Ext.form.FormPanel, {
-
-    constructor: function(userConfig) {
-        var config = Ext.apply(processFormConfig, userConfig);
-        Zenoss.ProcessFormPanel.superclass.constructor.call(this, config);
-        this.on('actioncomplete', actioncompleteHandler);
-    }
-
-});
-
-Ext.reg('ProcessFormPanel', Zenoss.ProcessFormPanel);
-
-var processForm = new Zenoss.ProcessFormPanel({
-    trackResetOnLoad: true
-});
-
 // place the form in the top right
-Ext.getCmp('top_detail_panel').add(processForm);
+processForm = Ext.create(processFormConfig);
 
-processForm.getForm().load({params:{uid: 'Processes'}});
-
+Ext.getCmp('detail_panel').add(processForm);
+processForm.on('actioncomplete', actioncompleteHandler);
 
 /* ***********************************************************************
  *
  *   bottom_detail_panel - the device and event grid on the bottom right
  *
  */
-Ext.getCmp('bottom_detail_panel').add({
+Ext.getCmp('detail_panel').add({
     xtype: 'SimpleInstanceGridPanel',
+    region: 'south',
     id: 'instancesGrid',
-    directFn: router.getInstances
+    directFn: router.getInstances,
+    tbar: {
+        xtype: 'consolebar',
+        title: 'Process Instances'
+    }
 });
-
 
 /* ***********************************************************************
  *
  *   footer_panel - the add/remove tree node buttons at the bottom
  *
  */
-var footerPanel = Ext.getCmp('footer_panel');
-footerPanel.removeAll();
+function dispatcher(actionName, value) {
+    var tree = Ext.getCmp(treeId);
+    switch (actionName) {
+        case 'addClass': tree.addNode('class', value); break;
+        case 'addOrganizer': tree.addNode('organizer', value); break;
+        case 'delete': tree.deleteSelectedNode(); break;
+    }
+};
 
-footerPanel.add({
-    xtype: 'TreeFooterBar',
-    id: 'footer_bar',
-    bubbleTargetId: treeId
-});
-
-Ext.getCmp('deleteButton').setDisabled(true);
+var footer = Ext.getCmp('footer_bar');
+Zenoss.footerHelper('Process', footer);
+footer.on('buttonClick', dispatcher);
+footer.buttonDelete.setDisabled(true);
 
 Zenoss.SequenceGrid = Ext.extend(Zenoss.BaseSequenceGrid, {
     constructor: function(config) {

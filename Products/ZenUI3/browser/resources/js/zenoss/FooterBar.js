@@ -110,13 +110,13 @@ Zenoss.footerHelper = function(itemName, footerBar) {
         menu: {
             items: [
                 {
-                    text: _t('Add ') + itemName.toLowerCase(),
+                    text: _t('Add ') + itemName,
                     listeners: {
                         click: addClassHandler
                     },
                     ref: 'buttonAddClass'
                 }, {
-                    text: _t('Add ') + itemName.toLowerCase() + _t(' Organizer'),
+                    text: _t('Add ') + itemName + _t(' Organizer'),
                     listeners: {
                         click: addOrganizerHandler
                     },

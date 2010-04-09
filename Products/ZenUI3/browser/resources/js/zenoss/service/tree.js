@@ -46,8 +46,9 @@ Ext.onReady( function() {
         if (node) {
             Ext.getCmp('serviceForm').setContext(node.attributes.uid);
             Ext.getCmp('navGrid').setContext(node.attributes.uid);
-            Ext.getCmp('footer_bar').buttonDelete.setDisabled(
-                    node == Ext.getCmp('navTree').root);
+
+            var isRoot = node == Ext.getCmp('navTree').root;
+            Ext.getCmp('footer_bar').buttonDelete.setDisabled(isRoot);
         }
     };
 
