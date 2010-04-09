@@ -28,8 +28,12 @@ class IJavaScriptSrcViewlet(IViewlet):
     A viewlet that will generate java a script src file includes
     """
 
-    
 class IJavaScriptBundleViewlet(IViewlet):
     """
     A viewlet that will generate a list of java script src file includes
+    """
+
+class IHeadExtraManager(IViewletManager):
+    """
+    A viewlet manager to allow ZenPacks, etc. to plug in extra stuff.
     """

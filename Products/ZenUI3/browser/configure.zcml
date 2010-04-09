@@ -54,6 +54,13 @@
     permission="zope2.Public"
     />
 
+<!-- Viewlet manager for javascript src includes -->   
+<browser:viewletManager
+    name="head-extra"
+    provides=".interfaces.IHeadExtraManager"
+    class=".resources.HeadExtraManager"
+    permission="zope2.Public"
+    />
 
 
 <!--

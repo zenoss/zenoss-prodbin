@@ -15,7 +15,10 @@ import re
 import json
 import logging
 import Globals
+from zope.interface import implements
 from Products.Five.browser import BrowserView
+from Products.Five.viewlet.manager import ViewletManagerBase
+from Products.ZenUI3.browser.interfaces import IHeadExtraManager
 
 _MISSING_JS_FILE_MESSAGE="""
 ************************************************************
@@ -95,4 +98,11 @@ class ZenossJavaScript(BrowserView):
         Redirect to the minified file containing all Zenoss js.
         """
         self.request.RESPONSE.redirect('/++resource++zenui/js/deploy/zenoss-compiled.js')
+
+
+class HeadExtraManager(ViewletManagerBase):
+    """
+    Simple viewlet manager allowing people to plug into <head>.
+    """
+    implements(IHeadExtraManager)
 

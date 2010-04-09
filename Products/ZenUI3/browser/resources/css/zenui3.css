@@ -93,7 +93,6 @@
 #secondarynav li.nav-item-inactive a { color: #fff; }
 #secondarynav li.nav-item-active a { 
     color: #454545;
-    /*color: #3b70ab;*/
     font-weight: bold;
     background: transparent url('/++resource++zenui/img/secondarynav_sprite.png') 
         0 -30px repeat-x;
