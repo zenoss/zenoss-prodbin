@@ -316,23 +316,23 @@ class TemplateFacade(ZuulFacade):
         template.manage_addGraphDefinition(graphDefinitionId)
 
     def deleteGraphDefinition(self, uid):
-        graphDefinition = self.getGraphDefinition(uid)
+        graphDefinition = self._getObject(uid)
         template = graphDefinition.rrdTemplate()
         template.manage_deleteGraphDefinitions((graphDefinition.id,))
 
     def getGraphPoints(self, uid):
-        graphDefinition = self.getGraphDefinition(uid)
+        graphDefinition = self._getObject(uid)
         graphPoints = graphDefinition.getGraphPoints()
         for graphPoint in graphPoints:
             yield IGraphPointInfo(graphPoint)
 
     def addThresholdToGraph(self, graphUid, thresholdUid):
-        graphDefinition = self.getGraphDefinition(graphUid)
+        graphDefinition = self._getObject(graphUid)
         thresholdClass = self._getThresholdClass(thresholdUid)
         graphDefinition.manage_addThresholdGraphPoints((thresholdClass.id,))
 
     def addCustomToGraph(self, graphUid, customId, customType):
-        graphDefinition = self.getGraphDefinition(graphUid)
+        graphDefinition = self._getObject(graphUid)
         graphDefinition.manage_addCustomGraphPoint(customId, customType)
 
     _graphInstructionTypes = (('DefGraphPoint', 'DEF'),
@@ -361,10 +361,10 @@ class TemplateFacade(ZuulFacade):
         obj = self._getObject(uid)
         if not isinstance(obj, GraphDefinition):
             raise Exception('Cannot find GraphDefinition at "%s".' % uid)
-        return obj
+        return IInfo(obj)
         
     def setGraphDefinition(self, uid, data):
-        graphDef = self.getGraphDefinition(uid)
+        graphDef = self._getObject(uid)
         Zuul.unmarshal(data, graphDef)
 
     def _getCatalog(self, uid):

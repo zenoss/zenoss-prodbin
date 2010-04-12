@@ -510,16 +510,16 @@ class GraphDefinition(ZenModelRM, ZenPackable):
         """
         gopts = ['-F', '-E']
         if self.height:
-            gopts.append('--height=%d' % self.height)
+            gopts.append('--height=%d' % int(self.height))
         if self.width:
-            gopts.append('--width=%d' % self.width)
+            gopts.append('--width=%d' % int(self.width))
         if self.log:
             gopts.append('--logarithmic')
         if self.maxy > -1:
-            gopts.append('--upper-limit=%d' % self.maxy)
+            gopts.append('--upper-limit=%d' % int(self.maxy))
             gopts.append('--rigid')
         if self.miny > -1:
-            gopts.append('--lower-limit=%d' % self.miny)
+            gopts.append('--lower-limit=%d' % int(self.miny))
             gopts.append('--rigid')
         # Always include a vertical label so that multiple graphs on page
         # align correctly.

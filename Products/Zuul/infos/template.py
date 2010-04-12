@@ -362,17 +362,24 @@ class GraphInfo(InfoBase):
     def graphPoints(self):
         return self._object.getGraphPointNamesString()
 
-    @property
-    def units(self):
-        return self._object.units
+    custom = ProxyProperty('custom')
+    height = ProxyProperty('height')
+    width = ProxyProperty('width')
+    units = ProxyProperty('units')
+    log = ProxyProperty('log')
+    base = ProxyProperty('base')
+    miny = ProxyProperty('miny')
+    maxy = ProxyProperty('maxy')
+    custom = ProxyProperty('custom')
+    hasSummary = ProxyProperty('hasSummary')
+    sequence = ProxyProperty('sequence')
 
     @property
-    def height(self):
-        return self._object.height
-
-    @property
-    def width(self):
-        return self._object.width
+    def rrdVariables(self):
+        """
+        Returns a list of RRD variables
+        """
+        return self._object.getRRDVariables()
     
 class GraphPointInfo(InfoBase):
     

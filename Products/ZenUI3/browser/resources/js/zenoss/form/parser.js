@@ -26,6 +26,8 @@
                  forceSelection: true,
                  autoSelect: true,
                  triggerAction: 'all',
+                 minListWidth: 250,
+                 resizable: true,
                  mode: 'local',
                  store: record.availableParsers
              });

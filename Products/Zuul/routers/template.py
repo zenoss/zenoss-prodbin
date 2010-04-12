@@ -234,8 +234,7 @@ class TemplateRouter(DirectRouter):
     def getGraphDefinition(self, uid):
         facade = self._getFacade()
         graphDef = facade.getGraphDefinition(uid)
-        keys = ('id', 'height', 'width', 'units', 'log', 'base', 'miny', 'maxy', 'hasSummary')
-        data = Zuul.marshal(graphDef, keys)
+        data = Zuul.marshal(graphDef)
         return {'success': True, 'data': data}
 
     @require('Manage DMD')

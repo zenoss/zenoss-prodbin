@@ -18,6 +18,7 @@
 var router, getSelectedTemplate, getSelectedGraphDefinition, 
     addGraphDefinition, deleteGraphDefinition, addThresholdToGraph;
 
+
 Ext.ns('Zenoss', 'Zenoss.templates');
 
 router = Zenoss.remote.TemplateRouter;
@@ -255,8 +256,93 @@ new Zenoss.HideFormDialog({
         text: _t('Cancel')
     }]
 });
+     
+/**********************************************************************
+ *
+ * Graph Custom Definition
+ *
+ */
+     
+Ext.create({
+    xtype: 'window',
+    title: _t('Graph Custom Definition'),
+    id: 'graphCustomDefinitionDialog',
+    closeAction: 'hide',
+    buttonAlign: 'left',
+    autoScroll: true,
+    modal: true,
+    plain: true,
+    padding: 10,
+    items: [{
+        xtype:'form',
+        ref: 'formPanel',
+        labelAlign: 'top',
+        border: false,
+        monitorValid: true,
+        paramsAsHash: true,
+        api: {
+            load: router.getGraphDefinition,
+            submit: router.setInfo
+        },
+        items:[{
+            xtype: 'label',
+            fieldLabel: _t('Name'),
+            name:'id',
+            ref: 'nameLabel'
+        },{
+            xtype: 'textarea',
+            fieldLabel: _t('Custom'),
+            width: 500,
+            height: 500,
+            name: 'custom',
+            ref: 'custom'
+        },{
+            xtype: 'label',
+            fieldLabel: _t('Available RRD Variables'),
+            border: false,
+            ref: 'rrdVariables'
+        }]
+    }],
+    buttons: [{
+        xtype: 'HideDialogButton',
+        text: _t('Submit'),
+        handler: function(button, event) {
+            var cmp = Ext.getCmp('graphCustomDefinitionDialog'),
+                routerCallback,
+                data = cmp.record,
+                params = {};         
+            
+            // we just need to update custom
+            params.uid = data.uid;
+            params.custom = cmp.formPanel.custom.getValue();
+                                                
+            router.setInfo(params);            
+        }
+    }, {
+        xtype: 'HideDialogButton',
+        text: _t('Cancel')
+    }],
+    loadAndShow: function(uid) {
+        this.uid = uid;
+        this.formPanel.getForm().load({
+            params: {uid:uid},
+            success: function(btn, response) {
+                var data = response.result.data;
+                this.record = data;
+                // populate the form
+                this.formPanel.nameLabel.setText(data.id);
+                this.formPanel.custom.setValue(data.custom);
+                this.formPanel.rrdVariables.setText(data.rrdVariables.join('<br />'), false);
+                
+                this.show();
+            },
+            scope: this
+        });
+    }
+    
+});
 
-
+     
 Zenoss.GraphPointStore = Ext.extend(Ext.data.DirectStore, {
     constructor: function(config){
         Ext.applyIf(config, {
@@ -516,6 +602,17 @@ new Ext.menu.Menu({
             uid = getSelectedGraphDefinition().id;
             dialogWindow.loadAndShow(uid);
         }
+    },{
+        xtype: 'menuitem',
+        text: _t('Custom Graph Definition'),
+        handler: function () {
+            var win = Ext.getCmp('graphCustomDefinitionDialog'),
+                uid = getSelectedGraphDefinition().id;
+            win.loadAndShow(uid);
+        }
+    },{
+        xtype: 'menuitem',
+        text: _t('Graph Commands')      
     }]
 });
 
@@ -524,6 +621,18 @@ Zenoss.templates.GraphGrid = Ext.extend(Ext.grid.GridPanel, {
         Ext.applyIf(config, {
             title: _t('Graph Definitions'),
             store: {xtype: 'graphstore'},
+            listeners: {
+                /**
+                 * Double click to edit a graph definition
+                 **/
+                rowdblclick: function()  {
+                    var dialogWindow, uid;
+                    dialogWindow = Ext.getCmp('viewGraphDefinitionDialog');
+                    uid = getSelectedGraphDefinition().id;
+                    dialogWindow.loadAndShow(uid);
+                }
+
+            },
             selModel: new Ext.grid.RowSelectionModel({
                 singleSelect: true,
                 listeners: {
