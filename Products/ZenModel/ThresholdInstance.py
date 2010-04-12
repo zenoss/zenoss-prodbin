@@ -14,7 +14,7 @@
 import os
 
 import Globals
-from Products.ZenModel.PerformanceConf import performancePath
+from Products.ZenModel.PerformanceConf import PerformanceConf, performancePath
 from Products.ZenUtils.Utils import unused
 
 
@@ -26,7 +26,13 @@ class ThresholdContext(pb.Copyable, pb.RemoteCopy):
     information from the Model."""
     
     def __init__(self, context):
-        self.deviceName = context.device().id
+        if isinstance(context, PerformanceConf):
+            # Collector threshold events should have their device field set
+            # to the collector's hostname if possible, and id otherwise.
+            self.deviceName = getattr(context, 'hostname', context.id)
+        else:
+            self.deviceName = context.device().id
+
         if hasattr( context, 'name' ) and callable( getattr( context, 'name' ) ):
             self.componentName = context.name()
         else:

@@ -115,10 +115,4 @@ class Monitor(ZenModelRM, DeviceManagerBase, RRDView):
         return self.performanceGraphUrl(objpaq, targetpath, template, graph, drange)
 
 
-    # FIXME: OMG this is such a hack to let thresholds instances be
-    # created against a monitor
-    def device(self):
-        return self
-
-
 InitializeClass(Monitor)
