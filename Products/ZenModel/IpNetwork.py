@@ -253,6 +253,14 @@ class IpNetwork(DeviceOrganizer):
     def _getNet(self, ip):
         """Recurse down the network tree to find the net of ip.
         """
+
+        # If we can find the IP in the catalog, use it. This is fast.
+        brains = self.ipSearch(id=ip)
+        if brains:
+            return self.getObjByPath(
+                '/'.join(brains[0].getPrimaryId.split('/')[:-2]))
+
+        # Otherwise we have to traverse the entire network hierarchy.
         for net in self.children():
             if net.hasIp(ip):
                 if len(net.children()):

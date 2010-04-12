@@ -15,6 +15,7 @@ import sys
 import logging
 log = logging.getLogger("zen.ZenStatus")
 
+import transaction
 from Products.ZenEvents.ZenEventClasses import Status_Ping
 from Products.ZenUtils.Utils import localIpCheck
 from Products.ZenStatus.AsyncPing import PingJob
@@ -107,7 +108,7 @@ class RouterNode(pb.Copyable, pb.RemoteCopy):
             netname = netobj.getNetworkName()
         net = self.getNet(tree, netname)
         if net.ip == 'default':
-            log.warn("device '%s' network '%s' not in topology", 
+            log.debug("device '%s' network '%s' not in topology", 
                             device.id, netname)
         pj = PingJob(ip, device.id, getStatus(device))
         net.addPingJob(pj)
@@ -273,6 +274,8 @@ def buildTree(root, rootnode=None, devs=None, memo=None, tree=None):
                 if localIpCheck(dev, netid) or rootnode.hasNet(tree, netid): continue
                 net = rnode.addNet(tree, netid,ip.getIp())
                 log.debug("add net: %s to rnode: %s", net, rnode)
+
+        transaction.abort()
     if nextdevs:
         buildTree(root, rootnode, nextdevs, memo, tree)
     return tree

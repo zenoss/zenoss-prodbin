@@ -31,7 +31,7 @@ class PingConfig(PerformanceConfig):
             self.log.info("building pingtree from %s", me.id)
             tree = pingtree.buildTree(me)
         else:
-            self.log.critical("ZenPing '%s' not found, "
+            self.log.info("ZenPing '%s' not found, "
                               "ignoring network topology.",
                               root)
             tree = pingtree.PingTree(fallbackIp)
