@@ -21,7 +21,7 @@ $Id$
 
 __version__ = "$Revision$"[11:-2]
 
-from twisted.internet import defer
+from twisted.internet import reactor, defer
 
 
 class NJobs:
@@ -57,6 +57,6 @@ class NJobs:
     def _finished(self, result):
         self.running -= 1
         self.results.append(result)
-        self._runSome()
+        reactor.callLater(0, self._runSome)
 
 
