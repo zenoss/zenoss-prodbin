@@ -200,3 +200,4 @@ import WinEventlogClause
 import MenuCleanup
 import removeTemplateMenuItem
 import addressEncoding
+import ZenManagerDeleteDevice
