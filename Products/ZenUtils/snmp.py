@@ -67,7 +67,9 @@ class SnmpConfig(object):
 
     def enrichResult(self, result):
         self._proxy.close()
-        if isinstance(result, dict):
+        if isinstance(result, dict) and bool(result):
+            # one and only one key/value pair _should_ be available in result,
+            # and we only need the value (the device name)
             self.sysName = result.values()[0]
             self.succeeded = True
         else:
