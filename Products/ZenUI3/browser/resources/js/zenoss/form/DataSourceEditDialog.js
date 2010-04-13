@@ -45,7 +45,7 @@
                      items[i].record = record;
                  }
              }
-                          
+             
              Ext.apply(config, {
                 width: 800,
                 autoHeight: true,
@@ -59,7 +59,7 @@
                     handler: function () {
                         var form = that.editForm.form,
                             values = form.getValues();
-                        values.uid = record.id;
+                        values.uid = record.uid;
                         config.directFn(values, config.saveHandler);
                     }
                 },

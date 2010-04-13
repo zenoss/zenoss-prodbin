@@ -11,8 +11,8 @@
 #
 ###########################################################################
 
-from Products.ZenUtils.Ext import DirectRouter
 from Products import Zuul
+from Products.ZenUtils.Ext import DirectRouter, DirectResponse
 from Products.Zuul.decorators import require
 from Products.Zuul.form.interfaces import IFormBuilder
 
@@ -208,6 +208,15 @@ class TemplateRouter(DirectRouter):
                 'data': Zuul.marshal(graphPoints)
                 }
 
+    def getInfo(self, uid):
+        """
+        @returns the details of a single info object as well as the form describing its schema
+        """
+        facade = self._getFacade()
+        info = facade.getInfo(uid)
+        form = IFormBuilder(info).render(fieldsets=False)
+        return DirectResponse(success=True, data=Zuul.marshal(info), form=form)
+    
     @require('Manage DMD')
     def addThresholdToGraph(self, graphUid, thresholdUid):
         facade = self._getFacade()

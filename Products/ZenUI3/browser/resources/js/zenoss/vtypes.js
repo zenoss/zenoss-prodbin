@@ -2,7 +2,7 @@
     Ext.ns('Zenoss.VTypes');
 
     var ip_regex = new RegExp("(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)");
-    
+    var hex_regex = new RegExp("^#?([a-f]|[A-F]|[0-9]){3}(([a-f]|[A-F]|[0-9]){3,5})?$");
     /**
      * These are the custom validators defined for
      * our zenoss forms. The xtype/vtype custom is to have the
@@ -29,8 +29,17 @@
         ipaddress: function(val, field) {
             return ip_regex.test(val);
         },
-        ipaddressText: _t('Invalid IP address')
+        ipaddressText: _t('Invalid IP address'),
+
+        /**
+         * Hex Number (for colors etc)
+         **/
+        hexnumber: function(val, field) {
+            return hex_regex.test(val);
+        },
+        hexnumberText: _t('Must be a 6 or 8 digit hexadecimal value.')
     };
      
     Ext.apply(Ext.form.VTypes, vtypes);
 }());
+

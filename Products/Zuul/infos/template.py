@@ -14,10 +14,15 @@ from zope.interface import implements
 from Acquisition import aq_parent
 from Products.Zuul.infos import InfoBase, ProxyProperty
 from Products.Zuul.utils import severityId
+from zope.schema.vocabulary import SimpleVocabulary
 from Products.Zuul.interfaces.template import IRRDDataSourceInfo, IDataPointInfo, \
     IMinMaxThresholdInfo, IThresholdInfo, ISNMPDataSourceInfo, IBasicDataSourceInfo, \
-    ICommandDataSourceInfo, IDataPointAlias
+    ICommandDataSourceInfo, IDataPointAlias, IDataPointGraphPointInfo
 
+from Products.ZenModel.ComplexGraphPoint import ComplexGraphPoint
+
+def complexGraphLineTypeVocabulary(context):
+    return SimpleVocabulary.fromItems(ComplexGraphPoint.lineTypeOptions)
 
 class TemplateNode(InfoBase):
     
@@ -387,6 +392,7 @@ class GraphInfo(InfoBase):
         Used to display the graph commands to the user 
         """
         return self._object.getFakeGraphCmds()
+
     
 class GraphPointInfo(InfoBase):
     
@@ -397,3 +403,22 @@ class GraphPointInfo(InfoBase):
     @property
     def description(self):
         return self._object.getDescription()
+
+    
+class ComplexGraphPointInfo(GraphPointInfo):
+    color = ProxyProperty('color')
+    lineType = ProxyProperty('lineType')
+    lineWidth = ProxyProperty('lineWidth')
+    stacked = ProxyProperty('stacked')
+    format = ProxyProperty('format')
+    legend = ProxyProperty('legend')
+
+    
+class DataPointGraphPointInfo(ComplexGraphPointInfo):
+    implements(IDataPointGraphPointInfo)
+    limit = ProxyProperty('limit')
+    rpn = ProxyProperty('rpn')
+    dpName = ProxyProperty('dpName')
+    cFunc = ProxyProperty('cFunc')
+    
+    

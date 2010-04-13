@@ -15,7 +15,7 @@
 
 (function(){
 
-var router, getSelectedTemplate, getSelectedGraphDefinition, 
+var router, getSelectedTemplate, getSelectedGraphDefinition,
     addGraphDefinition, deleteGraphDefinition, addThresholdToGraph;
 
 
@@ -31,6 +31,14 @@ getSelectedGraphDefinition = function() {
     return Ext.getCmp('graphGrid').getSelectionModel().getSelected();
 };
 
+function getSelectedGraphPoint() {
+    var cmp = Ext.getCmp('graphPointGrid');
+    if (cmp) {
+        return cmp.getSelectionModel().getSelected();
+    }
+    return null;
+}
+     
 addGraphDefinition = function(){
     var params, callback;
     params = {
@@ -419,6 +427,23 @@ Zenoss.GraphPointGrid = Ext.extend(Zenoss.BaseSequenceGrid, {
             stripeRows: true,
             autoScroll: true,
             border: false,
+            listeners: {
+                /**
+                 * The selection model was being ignored at this point so I used the
+                 * row click.
+                 **/
+                click: function() {
+                    var record = getSelectedGraphPoint();
+                    if (record) {
+                        Ext.getCmp('deleteGraphPointButton').enable();
+                        Ext.getCmp('editGraphPointButton').enable();                        
+                    }else{
+                        Ext.getCmp('deleteGraphPointButton').disable();
+                        Ext.getCmp('editGraphPointButton').disable();
+                    }
+                },
+                rowdblclick: displayGraphPointForm
+            },
             autoExpandColumn: 'description',
             store: {xtype: 'graphpointstore'},
             columns: [
@@ -436,24 +461,69 @@ Zenoss.GraphPointGrid = Ext.extend(Zenoss.BaseSequenceGrid, {
                 xtype: 'button',
                 id: 'deleteGraphPointButton',
                 iconCls: 'delete',
-                tooltip: _t('Delete Graph Point'),
                 disabled: true,
+                tooltip: _t('Delete Graph Point'),
                 handler: function() {
                     Ext.getCmp('deleteGraphPointDialog').show();
                 }
+            }, {
+                xtype: 'button',
+                id: 'editGraphPointButton',
+                iconCls: 'customize',
+                disabled: true,
+                tooltip: _t('Edit Graph Point'),
+                handler: displayGraphPointForm
             }]
         });
         Zenoss.GraphPointGrid.superclass.constructor.call(this, config);
-    }
+    }            
 });
 Ext.reg('graphpointgrid', Zenoss.GraphPointGrid);
+
+/**********************************************************************
+ *
+ * Graph Point Edit Dialog/Grid
+ *
+ */
+
+function reloadGraphPoints() {
+    var grid = Ext.getCmp('graphPointGrid');
+    grid.getStore().reload();
+}
+     
+/**
+ * Call back function from when a user selects a graph point.
+ * This shows yet another dialog for editing a graph point
+ **/
+function displayGraphPointForm() {
+    var record = getSelectedGraphPoint();
+    
+    function displayEditDialog(response) {
+        var win = Ext.create( {
+            record: response.data,
+            items: response.form,
+            singleColumn: true,
+            xtype: 'datasourceeditdialog',
+            title: _t('Edit Graph Point'),
+            directFn: router.setInfo,
+            id: 'editGraphPointDialog',
+            saveHandler: reloadGraphPoints
+        });
+        
+        win.show();
+    }
+    
+    // remote call to get the object details
+    router.getInfo({uid: record.id}, displayEditDialog);
+}
 
 new Zenoss.HideFitDialog({
     id: 'manageGraphPointsDialog',
     title: _t('Manage Graph Points'),
     items: [{
         xtype: 'graphpointgrid',
-        id: 'graphPointGrid'
+        id: 'graphPointGrid',
+        ref: 'graphGrid'
     }],
     buttons: [
     {

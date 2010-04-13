@@ -326,6 +326,14 @@ class TemplateFacade(ZuulFacade):
         for graphPoint in graphPoints:
             yield IGraphPointInfo(graphPoint)
 
+    def getInfo(self, uid):
+        """
+        @param uid unique identifier of an object
+        @returns the info object as identified by the UID
+        """
+        obj = self._getObject(uid)
+        return IInfo(obj)
+        
     def addThresholdToGraph(self, graphUid, thresholdUid):
         graphDefinition = self._getObject(graphUid)
         thresholdClass = self._getThresholdClass(thresholdUid)

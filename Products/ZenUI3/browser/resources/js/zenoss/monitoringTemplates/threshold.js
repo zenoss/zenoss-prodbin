@@ -139,7 +139,9 @@
             config = {};
                             
         function displayEditDialog(response) {
+            
             var win = Ext.create( {
+                
                 record: response.record,
                 items: response.form,
                 singleColumn: true,

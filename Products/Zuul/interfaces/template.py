@@ -146,12 +146,40 @@ class IGraphInfo(IInfo):
     """
     Adapts GraphDefinition.
     """
-
+    
 class IGraphPointInfo(IInfo):
     """
     Adapts GraphPoint.
     """
+    name = schema.Text(title=_t(u"Name"),
+                       required=True,
+                       order=1)
+    type = schema.Text(title=_t(u'Type'), readonly=True, order=2)
 
+    
+class IComplexGraphInfo(IGraphPointInfo):
+    color = schema.Text(title=_t('Color (Hex value RRGGBB)'),
+                        vtype="hexnumber",
+                        order=4)
+    lineType = schema.Choice(title=_t('Line Type'),
+                             vocabulary="complexGraphLineType",
+                             order=5)
+    lineWidth = schema.Text(title=_t('Line Width'), order=6)
+    stacked = schema.Bool(title=_t('Stacked'), order=7)
+    format = schema.Text(title=_t('Format'), order=8)
+    legend = schema.Text(title=_t('Legend'), order=9)
+
+    
+class IDataPointGraphPointInfo(IComplexGraphInfo):
+    """
+    Adapts DataPoint GraphPoint.
+    """
+    dpName = schema.Text(title=_t('DataPoint'), readonly=True, order=3)
+    rpn = schema.TextLine(title=_t('RPN'), order=10)
+    limit = schema.Int(title=_t('Limit'), order=11)
+    cFunc = schema.Text(title=_t('Consolidation'), order=12)
+    
+    
 class ITemplateFacade(IFacade):
     """
     A facade for monitoring templates.

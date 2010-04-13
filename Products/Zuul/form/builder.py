@@ -30,7 +30,8 @@ FIELDKEYS = (
     'order',
     'group',
     'decimalPrecision',
-    'vtype'
+    'vtype',
+    'required'
 )
 
 
@@ -74,7 +75,8 @@ def _item(item):
         'fieldLabel': item['title'],
         'name': item['name'],
         'value': value,
-        'vtype': item['vtype']
+        'vtype': item['vtype'],
+        'allowBlank': not item['required']
     }
     
     # fileupload has a superflorous button we must remove
