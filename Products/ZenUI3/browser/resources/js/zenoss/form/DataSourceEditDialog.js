@@ -48,10 +48,11 @@
                           
              Ext.apply(config, {
                 width: 800,
+                autoHeight: true,
+                autoScroll: true,
                 modal: true,
                 items: items,
                 constrain: true,
-                autoHeight: true,
                 buttons: [{
                     xtype: 'DialogButton',
                     text: _t('Save'),

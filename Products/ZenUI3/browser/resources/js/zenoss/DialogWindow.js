@@ -184,10 +184,19 @@ Zenoss.FormDialog = Ext.extend(Ext.Window, {
         });
         config.items = form;
         Ext.applyIf(config, {
-            layout: 'fit',
+            // ie renders window correctly on when layout is set to form
+            // this may change in future ext/ie version
+            layout: (Ext.isIE) ? 'form': 'fit',
             plain: true,
             border: false,
-            buttonAlign: 'left'
+            buttonAlign: 'left',
+            autoScroll: true,
+            plain: false,
+            width: 375,
+            height: 300,
+            modal: true,
+            padding: 10
+
         });
         Zenoss.FormDialog.superclass.constructor.call(this, config);
     }

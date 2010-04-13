@@ -62,11 +62,13 @@ new Ext.create({
     id: 'addThresholdDialog',
     title: _t('Add Threshold'),
     message: _t('Allow the user to add a threshold.'),
-    closeAction: 'hide', 
-    buttonAlign: 'left', 
-    autoScroll: true, 
-    plain: true, 
-    modal: true, 
+    closeAction: 'hide',
+    buttonAlign: 'left',
+    autoScroll: true,
+    plain: true,
+    width: 375,
+    autoHeight: true,
+    modal: true,
     padding: 10,
     listeners:{
         show: function() {
