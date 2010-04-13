@@ -262,7 +262,6 @@ new Zenoss.HideFormDialog({
  * Graph Custom Definition
  *
  */
-     
 Ext.create({
     xtype: 'window',
     title: _t('Graph Custom Definition'),
@@ -341,7 +340,6 @@ Ext.create({
     }
     
 });
-
      
 Zenoss.GraphPointStore = Ext.extend(Ext.data.DirectStore, {
     constructor: function(config){
@@ -612,7 +610,21 @@ new Ext.menu.Menu({
         }
     },{
         xtype: 'menuitem',
-        text: _t('Graph Commands')      
+        text: _t('Graph Commands'),
+        handler: function () {
+            var params = {
+                uid: getSelectedGraphDefinition().id
+            };
+            
+            router.getGraphDefinition(params, function (response) {
+                Ext.MessageBox.show({
+                    title: _t('Graph Commands'),
+                    minWidth: 700,
+                    msg: String.format('<pre>{0}</pre>', response.data.fakeGraphCommands),
+                    buttons: Ext.MessageBox.OK
+                });
+            });
+        }
     }]
 });
 

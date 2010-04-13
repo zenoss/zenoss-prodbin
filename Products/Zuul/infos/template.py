@@ -380,6 +380,13 @@ class GraphInfo(InfoBase):
         Returns a list of RRD variables
         """
         return self._object.getRRDVariables()
+
+    @property
+    def fakeGraphCommands(self):
+        """
+        Used to display the graph commands to the user 
+        """
+        return self._object.getFakeGraphCmds()
     
 class GraphPointInfo(InfoBase):
     
