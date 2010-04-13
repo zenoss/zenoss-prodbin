@@ -486,20 +486,44 @@ table.eventrainbow td.warning { background-color: #fbd13d; }
 #header-extra {
     position: absolute;
     right: 0;
-    margin-right: 1em;
     color: #FFFFFF;
     font-size: 9.5pt;
     font-family: Helvetica,sans-serif;
 }
 
-#header-extra a {padding-left: 8px}
-#header-extra a:link, #header-extra a:visited { text-decoration: none; color: white }
-#header-extra a:hover {text-decoration: underline}
+#header-extra div {
+    float: left;
+}
+
+#header-extra div a {
+    padding-left: 8px;
+    text-align: center;
+    padding-left: 7px;
+    padding-right: 7px;
+}
+#header-extra div a:link, #header-extra div a:visited { text-decoration: none; color: white }
+#header-extra div a:hover {text-decoration: underline}
 
 #searchbox-container {
     float: left;
     padding-top: 12px;
 }
+
+#sign-out-link {
+    text-transform: uppercase;
+}
+
+#help-icon-container a {
+    height: 14px;
+    width: 14px;
+    display: table-cell;
+    background-image: url(/++resource++zenui/img/help-icon.png);
+    background-repeat: no-repeat;
+    background-position: center;
+    margin-right: 14px;
+}
+
+
 
 .searchbox-query {
     top: 16px;
@@ -588,3 +612,4 @@ table.search-result {
 .consolebar .xtb-sep{
     height: 25px;
 }
+

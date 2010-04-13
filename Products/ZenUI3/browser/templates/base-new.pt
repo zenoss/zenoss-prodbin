@@ -50,10 +50,23 @@
                             <ul tal:content="structure provider:primarynav"/>
                             <div id="header-extra">
                                 <div id="searchbox-container"></div>
-                                <a tal:attributes="href here/dmd/ZenUsers/getUserSettingsUrl">
+                                <div>
+                                    <a tal:attributes="href here/dmd/ZenUsers/getUserSettingsUrl">
                                     <tal:block tal:content="request/AUTHENTICATED_USER"/>
-                                </a>
-                                <a style="text-transform:uppercase" href="/zport/dmd/logoutUser">sign out</a>
+                                    </a>
+                                </div>
+                                <div>
+                                    <a id="sign-out-link"
+                                       href="/zport/dmd/logoutUser">sign out
+                                       </a>
+                                </div>
+                                <div>
+                                    <div id="help-icon-container">
+                                        <span></span><!-- ie needs empty span tags in some versions -->
+                                        <a tal:attributes="href string:http://www.zenoss.com/help?version=${here/dmd/About/getZenossVersionShort}"
+                                           target="_blank" alt="Help">&nbsp;</a>
+                                    </div>
+                                </div>
                             </div>
                         </div>
                         <div id="secondarynav">
