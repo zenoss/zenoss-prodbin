@@ -53,8 +53,19 @@ Zenoss.TreeFooterBar = Ext.extend(Ext.Toolbar, {
 Ext.reg('TreeFooterBar', Zenoss.TreeFooterBar);
 
 
-Zenoss.footerHelper = function(itemName, footerBar) {
-    var addDialog, addToZenPackDialog, items;
+// options is comprised of the following:
+//      addToZenPack: true puts the Add To ZenPack icon in, default true
+//      hasOrganizers: true puts the Add ___  Organizer in, default true
+//      customAddDialog: config for a SmartFormDialog to override the default
+
+Zenoss.footerHelper = function(itemName, footerBar, options) {
+    var addToZenPackDialog, items;
+
+    options = Ext.applyIf(options || {}, {
+        addToZenPack: true,
+        hasOrganizers: true,
+        customAddDialog: false
+    });
 
     footerBar = footerBar || Ext.getCmp('footer_bar');
 
@@ -65,17 +76,28 @@ Zenoss.footerHelper = function(itemName, footerBar) {
             if (i.setContext) { i.setContext(contextUid); }} );
     };
 
-    addDialog = new Zenoss.SmartFormDialog({
-        itemId: 'addDialog',
-        items: [{
-            xtype: 'textfield',
-            name: 'idTextField',
-            fieldLabel: _t('ID'),
-            allowBlank: false
-        }]
-    });
 
-    addToZenPackDialog = new Zenoss.AddToZenPackWindow();
+    function showAddDialog(title, event) {
+        var handler, dialog, addDialogConfig;
+
+        handler = function(values) {
+            footerBar.fireEvent('buttonClick', event, values.idTextField);
+        };
+        addDialogConfig = Ext.applyIf(options.customAddDialog || {}, {
+            submitHandler: handler,
+            title: title,
+            itemId: 'addDialog',
+            items: [{
+                xtype: 'textfield',
+                name: 'idTextField',
+                fieldLabel: _t('ID'),
+                allowBlank: false
+            }]
+        });
+
+        dialog = new Zenoss.SmartFormDialog(addDialogConfig);
+        dialog.show();
+    };
 
     items = [
         {
@@ -86,29 +108,13 @@ Zenoss.footerHelper = function(itemName, footerBar) {
             menu: {
                 items: [
                     {
-                        text: _t('Add ') + itemName,
+                        text: String.format(_t('Add {0}'), itemName),
                         listeners: {
-                            click: function() {
-                                addDialog.setTitle(_t('Add ') + itemName);
-                                addDialog.setSubmitHandler(function(values) {
-                                    footerBar.fireEvent('buttonClick', 'addClass', values.idTextField);
-                                });
-                                addDialog.show();
-                            }
+                            click: showAddDialog.createCallback(
+                                    String.format(_t('Add {0}'), itemName),
+                                    'addClass')
                         },
                         ref: 'buttonAddClass'
-                    }, {
-                        text: _t('Add ') + itemName + _t(' Organizer'),
-                        listeners: {
-                            click: function () {
-                                addDialog.setTitle(_t('Add ') + itemName + _t(' Organizer'));
-                                addDialog.setSubmitHandler(function(values) {
-                                    footerBar.fireEvent('buttonClick', 'addOrganizer', values.idTextField);
-                                });
-                                addDialog.show();
-                            }
-                        },
-                        ref: 'buttonAddOrganizer'
                     }
                 ]
             },
@@ -117,14 +123,14 @@ Zenoss.footerHelper = function(itemName, footerBar) {
             xtype: 'button',
             iconCls: 'delete',
             disabled: Zenoss.Security.doesNotHavePermission('Manage DMD'),
-            tooltip: _t('Delete the selected ') + itemName.toLowerCase()
-                        + _t(' or organizer.'),
+            tooltip: String.format(_t('Delete the selected {0} or organizer.'),
+                    itemName.toLowerCase()),
             listeners: {
                 click: function() {
                     Ext.MessageBox.show({
-                        title: _t('Delete ' + itemName),
-                        msg: _t('The selected ') + itemName.toLowerCase()
-                                + _t(' will be deleted.'),
+                        title: String.format(_t('Delete {0}'), itemName),
+                        msg: String.format(_t('The selected {0} will be deleted.'),
+                                itemName.toLowerCase()),
                         fn: function(buttonid){
                             if (buttonid=='ok') {
                                 footerBar.fireEvent('buttonClick', 'delete');
@@ -140,24 +146,43 @@ Zenoss.footerHelper = function(itemName, footerBar) {
             disabled: Zenoss.Security.doesNotHavePermission('Manage DMD'),
             tooltip: _t('Context-sensitive actions'),
             menu: {
-                items: [
-                    {
-                        text: _t('Add to ZenPack'),
-                        listeners: {
-                            click: function() {
-                                addToZenPackDialog.setTarget(this.contextUid);
-                                addToZenPackDialog.show();
-                            }
-                        },
-                        ref: 'buttonAddToZenPack'
-                    }
-                ]
+                items: []
             },
             ref: 'buttonContextMenu'
         }, '-'
     ];
 
     footerBar.add(items);
+
+    if (options.hasOrganizers)
+    {
+        footerBar.buttonAdd.menu.add({
+            text: String.format(_t('Add {0} Organizer'), itemName),
+            listeners: {
+                click: showAddDialog.createCallback(
+                         String.format(_t('Add {0} Organizer'), itemName),
+                         'addOrganizer')
+            },
+            ref: 'buttonAddOrganizer'
+        });
+    }
+
+    if (options.addToZenPack)
+    {
+        addToZenPackDialog = new Zenoss.AddToZenPackWindow();
+
+        footerBar.buttonContextMenu.menu.add({
+            text: _t('Add to ZenPack'),
+            listeners: {
+                click: function() {
+                    addToZenPackDialog.setTarget(this.contextUid);
+                    addToZenPackDialog.show();
+                }
+            },
+            ref: 'buttonAddToZenPack'
+        });
+    }
+
 };
 
 })();

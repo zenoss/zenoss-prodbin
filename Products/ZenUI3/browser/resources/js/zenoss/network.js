@@ -20,10 +20,10 @@ Ext.onReady(function () {
 // Add/remove sub-network buttons and dialog
 //********************************************
 
-var addNetworkDialogSubmit = function(values) {
+var addNetwork = function(id) {
     var tree = Ext.getCmp('networks');
 
-    tree.router.addNode({newSubnet: values.addNetworkTextfield},
+    tree.router.addNode({newSubnet: id},
         function(data) {
             if (data.success) {
                 tree.getRootNode().reload(
@@ -39,7 +39,7 @@ var addNetworkDialogSubmit = function(values) {
     );
 };
 
-var deleteNetworkDialogSubmit = function() {
+var deleteNetwork = function() {
     var tree = Ext.getCmp('networks'),
         node = tree.getSelectionModel().getSelectedNode(),
         parentNode = node.parentNode,
@@ -86,24 +86,15 @@ var discoverDevicesDialogSubmit = function() {
     );
 };
 
-var addNetworkDialog = new Zenoss.SmartFormDialog({
-    id: 'addNetworkDialog',
+var addNetworkDialogConfig = {
     title: _t('Add a Subnetwork'),
     items: [{
         xtype: 'textfield',
-        id: 'addNetworkTextfield',
+        id: 'idTextField',
         fieldLabel: _t('Network / Subnet mask'),
         allowBlank: false
     }],
-    saveHandler: addNetworkDialogSubmit
-});
-
-var deleteNetworkDialog = new Zenoss.MessageDialog({
-    id: 'deleteNetworkDialog',
-    title: _t('Delete Subnetwork'),
-    message: _t('The selected subnetwork will be deleted.'),
-    okHandler: deleteNetworkDialogSubmit
-});
+};
 
 var discoverDevicesDialog = new Zenoss.MessageDialog({
     id: 'discoverDevicesDialog',
@@ -111,21 +102,6 @@ var discoverDevicesDialog = new Zenoss.MessageDialog({
     message: _t('Devices on the selected subnetwork will be discovered.'),
     okHandler: discoverDevicesDialogSubmit
 });
-
-// Adds a network or sub-network
-addNetwork = function() {
-    addNetworkDialog.show();
-}
-
-// Delete a network or subnetwork
-deleteNetwork = function() {
-    deleteNetworkDialog.show();
-}
-
-// Discover on subnetwork
-discoverDevices = function() {
-    discoverDevicesDialog.show();
-}
 
 //********************************************
 // Navigation tree (select subnetwork)
@@ -136,7 +112,7 @@ Zenoss.NetworkTreeNodeUI = Ext.extend(Zenoss.HierarchyTreeNodeUI, {
         var n = this.node;
 
         n.attributes.iconCls = 'severity-icon-small clear';
-        
+
         if (n.isLeaf())
             n.text = n.attributes.text;
         else
@@ -177,9 +153,9 @@ var treesm = new Ext.tree.DefaultSelectionModel({
             Ext.getCmp('ipAddressGrid').setContext(newnode.attributes.uid);
 
             if (Zenoss.Security.doesNotHavePermission('Manage DMD')) return;
-            Ext.getCmp('deleteNetworkButton').setDisabled(
-                (newnode.attributes.id == 'Network') );
-            Ext.getCmp('discoverDevicesButton').setDisabled(
+            fb = Ext.getCmp('footer_bar');
+            fb.buttonDelete.setDisabled((newnode.attributes.id == 'Network') );
+            fb.buttonContextMenu.menu.buttonDiscoverDevices.setDisabled(
                 (newnode.attributes.id == 'Network') );
         }
     }
@@ -485,7 +461,7 @@ var formItems = {
         labelSeparator: ' ',
         columnWidth: 0.5
     },
-    items: [ 
+    items: [
         {items: [addressDisplayField, ipcountDisplayField,
                 descriptionTextField]},
         {items: [configPropsFieldSet]}
@@ -544,28 +520,28 @@ Ext.getCmp('top_detail_panel').add(networkForm);
 // Footer
 //********************************************
 
-Ext.getCmp('footer_bar').add({
-    id: 'addNetworkButton',
-    tooltip: _t('Add a subnetwork'),
-    iconCls: 'add',
-    disabled: Zenoss.Security.doesNotHavePermission('Manage DMD'),
-    handler: addNetwork
-});
+var dispatcher = function(actionName, value) {
+    switch (actionName) {
+        case 'addClass': addNetwork(value); break;
+        case 'delete': deleteNetwork(); break;
+    }
+};
 
-Ext.getCmp('footer_bar').add({
-    id: 'deleteNetworkButton',
-    tooltip: _t('Delete selected subnetwork'),
-    iconCls: 'delete',
-    disabled: Zenoss.Security.doesNotHavePermission('Manage DMD'),
-    handler: deleteNetwork
-});
 
-Ext.getCmp('footer_bar').add({
-    id: 'discoverDevicesButton',
+fb = Ext.getCmp('footer_bar');
+fb.on('buttonClick', dispatcher);
+Zenoss.footerHelper('Subnetwork', fb, {
+    hasOrganizers: false,
+    addToZenPack: false,
+    customAddDialog: addNetworkDialogConfig
+});
+fb.buttonContextMenu.menu.add({
     tooltip: _t('Discover devices on selected subnetwork'),
+    text: _t('Discover Devices'),
     iconCls: 'adddevice',
+    ref: 'buttonDiscoverDevices',
     disabled: Zenoss.Security.doesNotHavePermission('Manage DMD'),
-    handler: discoverDevices
+    handler: discoverDevicesDialog.show.createDelegate(discoverDevicesDialog)
 });
 
 });

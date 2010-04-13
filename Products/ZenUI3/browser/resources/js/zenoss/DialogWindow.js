@@ -53,6 +53,10 @@ Zenoss.dialog.DialogButton = Ext.extend(Ext.Button, {
         var h = config.handler;
         config.handler = h ? h.createSequence(destroyWindow) : destroyWindow;
         Zenoss.dialog.DialogButton.superclass.constructor.call(this, config);
+    },
+    setHandler: function(handler, scope) {
+        var h = handler ? handler.createSequence(destroyWindow) : destroyWindow;
+        Zenoss.dialog.HideDialogButton.superclass.setHandler.call(this, h, scope);
     }
 });
 
@@ -170,10 +174,6 @@ Zenoss.FormDialog = Ext.extend(Ext.Window, {
             labelAlign: 'top',
             autoScroll:true,
             labelSeparator: ' ',
-            bodyStyle: {
-                'padding-left': '5%',
-                'padding-right': '5%'
-            },
             defaults: {
                 xtype: 'textfield',
                 anchor: '85%',
@@ -191,9 +191,7 @@ Zenoss.FormDialog = Ext.extend(Ext.Window, {
             border: false,
             buttonAlign: 'left',
             autoScroll: true,
-            plain: false,
             width: 375,
-            height: 300,
             modal: true,
             padding: 10
 
@@ -239,16 +237,18 @@ Zenoss.HideFormDialog = Ext.extend(BaseDialog, {
  * @class Zenoss.SmartFormDialog
  * @extends FormDialog
  * A modal dialog window with Zenoss styling and a form layout.  This window
- * meant to be instantiated once per page, and hidden each time the user
- * closes it.  It smartly cleans up it's own form items when "hidden" and
- * provides a better handler mechanism for the callback, returning an object
- * with properties of all form values.
+ * meant to be instantiated once and then thrown away after use.
+ *
+ * It smartly cleans up it's own form items when "hidden" and provides a better
+ * handler mechanism for the callback, returning an object with properties of
+ * all form values.
  * @constructor
  */
 Zenoss.SmartFormDialog = Ext.extend(Zenoss.FormDialog, {
+    message: '',
+    submitHandler: Ext.emptyFn,
     constructor: function(config) {
-        var createSaveHandler, handleEnterKey;
-
+        var handleEnterKey;
 
         handleEnterKey = function() {
             var first = this.buttons[0];
@@ -257,24 +257,16 @@ Zenoss.SmartFormDialog = Ext.extend(Zenoss.FormDialog, {
             }
         }.createDelegate(this);
 
-        config.listeners = Ext.applyIf(config.listeners || {}, {
-            hide: function(me) {
-                Ext.each(me.editForm.getForm().items.items, function(field){
-                    field.setValue(null);
-                });
-            }
-        });
-
         this.listeners = config.listeners;
 
         config = Ext.applyIf(config, {
             buttons: [{
-                xtype: 'HideDialogButton',
+                xtype: 'DialogButton',
                 text: _t('Submit'),
                 type: 'submit',
-                ref: '../buttonSubmit'
+                ref: '../buttonSubmit',
              }, {
-                xtype: 'HideDialogButton',
+                xtype: 'DialogButton',
                 ref: '../buttonCancel',
                 text: _t('Cancel')
             }],
@@ -284,19 +276,16 @@ Zenoss.SmartFormDialog = Ext.extend(Zenoss.FormDialog, {
                 scope: this
             },
             modal: true,
-            closeAction: 'hide'
+            closeAction: 'close'
         });
 
-        config.items.unshift({ xtype: 'label', ref: 'label'});
+        config.items.unshift({
+            xtype: 'label',
+            ref: 'label',
+            text: config.message || this.message
+        });
 
         Zenoss.SmartFormDialog.superclass.constructor.call(this, config);
-    },
-    initComponent: function() {
-        Zenoss.FormDialog.superclass.initComponent.call(this);
-        if (this.submitHandler) {
-            this.setSubmitHandler(this.submitHandler);
-            delete this.submitHandler;
-        }
     },
     setSubmitHandler: function(callbackFunction) {
         var form = this.editForm;
@@ -310,9 +299,13 @@ Zenoss.SmartFormDialog = Ext.extend(Zenoss.FormDialog, {
             });
         }
     },
-    setText: function(text) {
-        this.editForm.label.setText(text);
-    }
+    initComponent: function() {
+        Zenoss.FormDialog.superclass.initComponent.call(this);
+        if (this.submitHandler) {
+            this.setSubmitHandler(this.submitHandler);
+            delete this.submitHandler;
+        }
+    },
 });
 
 
