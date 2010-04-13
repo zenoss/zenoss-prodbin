@@ -40,7 +40,7 @@ class ServiceRouter(TreeRouter):
         if 'msg' in result:
             raise Exception(result['msg'])
 
-        if type=='Class':
+        if type.lower() == 'class':
             newUid = result['nodeConfig']['uid']
 
             q = dict(limit=None, start=0, sort=None, dir=None, params=None,
@@ -52,7 +52,7 @@ class ServiceRouter(TreeRouter):
             allinfos = self.api.getList(**q)
 
             newIndex = None
-            for iobj, pos in enumerate(allinfos):
+            for pos, iobj in enumerate(allinfos):
                 if iobj.uid == newUid:
                     newIndex = pos
                     break
