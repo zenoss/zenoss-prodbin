@@ -22,21 +22,6 @@ var ZEvActions = Zenoss.events.EventPanelToolbarActions;
 Zenoss.nav.register({
     Component: [{
         nodeType: 'subselect',
-        id: 'Overview',
-        text: _t('Overview'),
-        action: function(node, target) {
-            var uid = node.ownerTree.ownerCt.contextId;
-            if (!(uid in target.items.keys)) {
-                Zenoss.form.getGeneratedForm(uid, function(config){
-                    target.add(Ext.apply({id:uid}, config));
-                    target.layout.setActiveItem(uid);
-                });
-            } else {
-                target.layout.setActiveItem(uid);
-            }
-        }
-    },{
-        nodeType: 'subselect',
         id: 'Events',
         text: _t('Events'),
         action: function(node, target) {
@@ -66,45 +51,25 @@ Zenoss.nav.register({
             }
             showPanel();
         }
+    },{
+        nodeType: 'subselect',
+        id: 'Edit',
+        text: _t('Edit'),
+        action: function(node, target) {
+            var uid = node.ownerTree.ownerCt.contextId;
+            if (!(uid in target.items.keys)) {
+                Zenoss.form.getGeneratedForm(uid, function(config){
+                    target.add(Ext.apply({id:uid}, config));
+                    target.layout.setActiveItem(uid);
+                });
+            } else {
+                target.layout.setActiveItem(uid);
+            }
+        }
     }]
 });
 
-ZC.TypeSelection = Ext.extend(Ext.tree.TreePanel, {
-    constructor: function(config) {
-        config = Ext.applyIf(config||{}, {
-            cls: 'x-tree-noicon',
-            loader: {
-                directFn: config.directFn || Zenoss.remote.DeviceRouter.getComponentTree,
-                baseAttrs: {
-                    uiProvider: Zenoss.HierarchyTreeNodeUI
-                },
-                listeners: {
-                    load: function(){
-                        this.getRootNode().firstChild.select();
-                    },
-                    scope: this
-                }
-            },
-            rootVisible: false,
-            root: {
-                nodeType: 'node'
-            }
-        });
-        ZC.TypeSelection.superclass.constructor.call(this, config);
-        this.relayEvents(this.getSelectionModel(), ['selectionchange']);
-    },
-    setContext: function(uid) {
-        this.setRootNode({
-            nodeType: 'async',
-            text: _t('Component Types'),
-            expanded: true,
-            leaf: false,
-            id: uid
-        });
-    }
-});
-
-Zenoss.ComponentDetailNav = Ext.extend(Zenoss.DetailNavPanel, {
+ZC.ComponentDetailNav = Ext.extend(Zenoss.DetailNavPanel, {
     constructor: function(config) {
         Ext.applyIf(config, {
             autoHeight: true,
@@ -113,7 +78,9 @@ Zenoss.ComponentDetailNav = Ext.extend(Zenoss.DetailNavPanel, {
             border: false,
             menuIds: []
         });
-        Zenoss.ComponentDetailNav.superclass.constructor.call(this, config);
+        ZC.ComponentDetailNav.superclass.constructor.call(this, config);
+        this.relayEvents(this.getSelectionModel(), ['selectionchange']);
+        this.on('selectionchange', this.onSelectionChange);
     },
     onGetNavConfig: function(contextId) {
         return Zenoss.nav.Component;
@@ -131,113 +98,93 @@ Zenoss.ComponentDetailNav = Ext.extend(Zenoss.DetailNavPanel, {
         ];
         return (excluded.indexOf(config.id)==-1);
     },
-    onSelectionChange: function(node) {
-        var me = this;
-        var target = Ext.getCmp('component_detail_panel'),
+    onSelectionChange: function(sm, node) {
+        var target = this.target || Ext.getCmp('component_detail_panel'),
             action = node.attributes.action || function(node, target) {
                 var id = node.attributes.id;
                 if (!(id in target.items.map)) {
-                    var config = me.panelConfigMap[id];
+                    var config = this.panelConfigMap[id];
                     Ext.applyIf(config, {refreshOnContextChange: true});
                     if(config) {
                         target.add(config);
                         target.doLayout();
                     }
                 }
-                target.items.map[node.attributes.id].setContext(me.contextId);
+                target.items.map[node.attributes.id].setContext(this.contextId);
                 target.layout.setActiveItem(node.attributes.id);
-            };
+            }.createDelegate(this);
         action(node, target);
-    },
-    clearContext: function(){
-        /*
-        this.setRootNode({ 
-            nodeType: 'node' 
-        }); 
-        */
     }
 });
-Ext.reg('componentdetailnav', Zenoss.ComponentDetailNav);
+Ext.reg('componentnav', ZC.ComponentDetailNav);
 
-ZC.Browser = Ext.extend(Zenoss.VerticalBrowsePanel, {
+
+ZC.ComponentPanel = Ext.extend(Ext.Panel, {
     constructor: function(config) {
         config = Ext.applyIf(config||{}, {
-            tbar: {
+            border: false,
+            defaults: {border: false},
+            layout: 'border',
+            items: [{
+                region: 'north',
+                height: 150,
+                layout: 'border',
+                defaults: {border: false},
+                split: true,
                 items: [{
-                    xtype: 'tbfill'
-                /*
+                    ref: '../componentnav',
+                    xtype: 'componentnav',
+                    region: 'east',
+                    width: 150,
+                    split: true
                 },{
-                    xtype: 'ContextConfigureMenu',
-                    id: 'component_configure_menu',
-                    menuIds: [
-                        'IpInterface'
-                    ],
-                    listeners: {
-                        render: function(){
-                            this.setContext(config.uid);
-                        }
-                    }
-                */
+                    ref: '../gridcontainer',
+                    tbar: config.gridtbar,
+                    layout: 'fit',
+                    region: 'center',
+                    split: true
                 }]
-            },
-            items: [
-                new ZC.TypeSelection({
-                    ref: 'typeSelect',
-                    directFn: config.directFn,
-                    style: 'overflow-y: scroll',
-                    border: false,
-                    bodyStyle: 'border-right: 1px solid gray',
-                    contextUid: config.uid,
-                    listeners: {
-                        load: function(node) {
-                            /*
-                            var ids = Ext.pluck(node.childNodes, 'id'),
-                                menu = Ext.getCmp('component_configure_menu');
-                            menu.menuIds = ids;
-                            menu.setContext(this.contextUid);
-                            */
-                        }
-                    }
-                }),
-                new ZC.ComponentGridPanel({
-                    ref: 'compSelect',
-                    componentType: 'NotAComponentType',
-                    contextUid: config.uid,
-                    fields: ['name', 'uid'],
-                    bodyStyle: 'border-right: 1px solid gray',
-                    columns: [{
-                        id: 'name',
-                        dataIndex: 'name',
-                        header: _t('Name')
-                    }]
-                }),{
-                    xtype: 'detailcontainer',
-                    items: [{
-                        xtype: 'componentdetailnav',
-                        ref: '../compNav'
-                    }]
-                }
-            ]
+            },{
+                xtype: 'contextcardpanel',
+                region: 'center',
+                ref: 'detailcontainer',
+                split: true
+            }]
         });
-        ZC.Browser.superclass.constructor.call(this, config);
-        this.typeSelect.on('selectionchange', this.onTypeSelect, this);
-        this.compSelect.on('selectionchange', this.onComponentSelect, this);
-
-        this.typeSelect.setContext(config.uid);
+        ZC.ComponentPanel.superclass.constructor.call(this, config);
+        this.componentnav.target = this.detailcontainer;
     },
-    onTypeSelect: function(sm, to, from) {
-        this.compNav.clearContext();
-        var meta_type = to.attributes.text.text;
-        this.compSelect.setType(meta_type);
-    },
-    onComponentSelect: function(sm, to, from) {
-        this.compNav.clearContext();
-        var row = sm.selections.items[0];
-        if (row) {
-            this.compNav.setContext(row.data.uid);
+    setContext: function(uid, type) {
+        this.contextUid = uid;
+        if (type!=this.componentType) {
+            this.componentType = type;
+            var compType = this.componentType + 'Panel',
+                xtype = Ext.ComponentMgr.isRegistered(compType) ? compType : 'ComponentGridPanel';
+            this.gridcontainer.removeAll();
+            this.gridcontainer.add({
+                xtype: xtype,
+                componentType: this.componentType,
+                ref: '../../componentgrid',
+                listeners: {
+                    render: function(grid) {
+                        grid.setContext(uid);
+                    },
+                    selectionchange: function(sm) {
+                        var row = sm.getSelected();
+                        if (row) {
+                            this.componentnav.setContext(row.data.uid);
+                        }
+                    },
+                    scope: this
+                }
+            });
+            this.gridcontainer.doLayout();
+        } else {
+            this.componentgrid.setContext(uid);
         }
     }
 });
+Ext.reg('componentpanel', ZC.ComponentPanel);
 
 
 ZC.ComponentGridPanel = Ext.extend(Ext.ux.grid.livegrid.GridPanel, {
@@ -282,13 +229,6 @@ ZC.ComponentGridPanel = Ext.extend(Ext.ux.grid.livegrid.GridPanel, {
             meta_type: this.componentType
         });
     },
-    setType: function(type) {
-        this.componentType = type;
-        this.getStore().on('load', function(){
-            this.getSelectionModel().selectRow(0);
-        }, this, {single:true});
-        this.view.updateLiveRows(this.view.rowIndex, true, true, false);
-    },
     setContext: function(uid) {
         this.contextUid = uid;
         this.getStore().on('load', function(){
@@ -298,9 +238,12 @@ ZC.ComponentGridPanel = Ext.extend(Ext.ux.grid.livegrid.GridPanel, {
     }
 });
 
+Ext.reg('ComponentGridPanel', ZC.ComponentGridPanel);
+
 ZC.BaseComponentStore = Ext.extend(Ext.ux.grid.livegrid.Store, {
     constructor: function(config) {
         var fields = config.fields || [
+            {name: 'uid'},
             {name: 'name'},
             {name: 'monitored'},
             {name: 'status'}
@@ -352,6 +295,7 @@ ZC.IpInterfacePanel = Ext.extend(ZC.ComponentGridPanel, {
         config = Ext.applyIf(config||{}, {
             componentType: 'IpInterface',
             fields: [
+                {name: 'uid'},
                 {name: 'name'},
                 {name: 'ipAddress'},//, mapping:'ipAddress.uid'},
                 {name: 'network'},//, mapping:'network.uid'},

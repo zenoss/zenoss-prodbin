@@ -34,6 +34,26 @@ function setEventButtonsDisplayed(bool) {
 
 Zenoss.nav.register({
     Device: [{
+        id: UID,
+        nodeType: 'async',
+        text: _t('Components'),
+        expanded: true,
+        leaf: false,
+        listeners: {
+            beforeappend: function(tree, me, node){
+                node.attributes.action = function(node, target) {
+                    target.layout.setActiveItem('component_card');
+                    target.layout.activeItem.setContext(UID, node.id);
+                };
+            }
+        },
+        loader: new Ext.tree.TreeLoader({
+            directFn: Zenoss.remote.DeviceRouter.getComponentTree,
+            baseAttrs: {
+                uiProvider: Zenoss.HierarchyTreeNodeUI
+            }
+        })
+    },{
         id: 'Overview',
         nodeType: 'subselect',
         text: _t('Device Overview'),
@@ -47,40 +67,12 @@ Zenoss.nav.register({
                 setEventButtonsDisplayed(true);
             }
         }
-    },{
-        id: 'Components',
-        nodeType: 'subselect',
-        text: _t('Components'),
-        action: function(node, target) {
-            target.layout.setActiveItem('component_browser');
-            setEventButtonsDisplayed(true);
-        }
     }]
 });
 
-var componentBrowser = new Zenoss.component.Browser({
-    region: 'north',
-    height: 150,
-    uid: UID,
-    split: true,
-    directFn: REMOTE.getComponentTree
-});
-
 var componentCard = {
-    id: 'component_browser',
-    layout: 'border',
-    border: false,
-    items:[
-        componentBrowser,
-        {
-            xtype: 'contextcardpanel',
-            id: 'component_detail_panel',
-            split: true,
-            border: false,
-            bodyStyle: 'border-top: 1px solid gray',
-            region: 'center'
-        }
-    ]
+    xtype: 'componentpanel',
+    id: 'component_card'
 };
 
 var deviceInformation = {
