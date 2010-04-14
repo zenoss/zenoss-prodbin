@@ -1221,6 +1221,7 @@ Zenoss.env.SEVERITIES = [
 ];
 
 Zenoss.util.convertSeverity = function(severity){
+    if (Ext.isString(severity)) return severity;
     var sevs = ['clear', 'debug', 'info', 'warning', 'error', 'critical'];
     return sevs[severity];
 };

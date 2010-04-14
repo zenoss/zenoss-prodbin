@@ -259,6 +259,7 @@ Zenoss.SubselectionPanel = Ext.extend(Ext.Panel, {
 Zenoss.DetailNavTreePanel = Ext.extend(Ext.tree.TreePanel, {
     constructor: function(config){
         Ext.applyIf(config, {
+            useArrows: true,
             autoHeight: true,
             selModel: new Zenoss.BubblingSelectionModel({
                 bubbleTarget: config.bubbleTarget
@@ -317,6 +318,7 @@ Zenoss.DetailNavPanel = Ext.extend(Zenoss.SubselectionPanel,{
     constructor: function(config) {
         Ext.applyIf(config, {
             id: Ext.id(),
+            bodyCssClass: 'detailnav',
             layout: 'fit',
             border: false,
             bodyStyle: { 'margin-top' : 10 }
@@ -383,30 +385,15 @@ Zenoss.DetailNavPanel = Ext.extend(Zenoss.SubselectionPanel,{
     setNavTree: function(nodes){
         //get any configs registered by the page
         if (nodes) {
-            Ext.each(nodes, function(node) {
+            var root = new Ext.tree.AsyncTreeNode();
+            this.treepanel.setRootNode(root);
+            Ext.each(nodes, function(node){
                 Ext.applyIf(node, {
                     nodeType: 'subselect'
                 });
+                root.appendChild(node);
             });
-            var root = new Ext.tree.AsyncTreeNode({
-                children: nodes,
-                listeners: {
-                    load: function(node){
-                        var toselect = node.firstChild;
-                        if (toselect) {
-                            if (toselect.rendered) {
-                                toselect.select();
-                            } else {
-                                toselect.on('render', function(node){
-                                    node.select();
-                                });
-                            }
-                        }
-                    },
-                    scope: this
-                }
-            });
-            this.treepanel.setRootNode(root);
+            root.firstChild.select();
             Ext.each(nodes, function(navConfig){
                 this.fireEvent('navloaded', this, navConfig);
             }, this);

@@ -607,9 +607,13 @@ table.search-result {
     margin-top: 1px;
 }
 .consolebar table.x-btn {
-    margin-top: -1px;
+    margin-top: 1px;
 }
 .consolebar .xtb-sep{
     height: 25px;
 }
 
+.detailnav,
+.detailnav .x-tree .x-panel-body {
+    background-color: #D4E0EE;
+}

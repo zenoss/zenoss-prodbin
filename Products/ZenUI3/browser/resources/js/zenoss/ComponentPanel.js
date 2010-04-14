@@ -127,13 +127,21 @@ ZC.ComponentPanel = Ext.extend(Ext.Panel, {
             layout: 'border',
             items: [{
                 region: 'north',
-                height: 150,
+                height: 250,
                 layout: 'border',
+                style: 'border-bottom:1px solid #949494',
                 defaults: {border: false},
                 split: true,
                 items: [{
-                    ref: '../componentnav',
-                    xtype: 'componentnav',
+                    ref: '../navcontainer',
+                    bodyCssClass: 'detailnav',
+                    style: 'border-left:1px solid #949494',
+                    layout: 'fit',
+                    items: {
+                        ref: '../../componentnav',
+                        xtype: 'componentnav',
+                        autoHeight: true
+                    },
                     region: 'east',
                     width: 150,
                     split: true
@@ -244,6 +252,7 @@ ZC.BaseComponentStore = Ext.extend(Ext.ux.grid.livegrid.Store, {
     constructor: function(config) {
         var fields = config.fields || [
             {name: 'uid'},
+            {name: 'severity'},
             {name: 'name'},
             {name: 'monitored'},
             {name: 'status'}
@@ -265,6 +274,12 @@ ZC.BaseComponentStore = Ext.extend(Ext.ux.grid.livegrid.Store, {
 ZC.BaseComponentColModel = Ext.extend(Ext.grid.ColumnModel, {
     constructor: function(config) {
         var cols = config.columns || [{
+                id: 'severity',
+                dataIndex: 'severity',
+                header: _t('Events'),
+                renderer: Zenoss.render.severity,
+                width: 60
+            },{
                 id: 'name',
                 dataIndex: 'name',
                 header: _t('Name')
@@ -296,6 +311,8 @@ ZC.IpInterfacePanel = Ext.extend(ZC.ComponentGridPanel, {
             componentType: 'IpInterface',
             fields: [
                 {name: 'uid'},
+                {name: 'severity'},
+                {name: 'status'},
                 {name: 'name'},
                 {name: 'ipAddress'},//, mapping:'ipAddress.uid'},
                 {name: 'network'},//, mapping:'network.uid'},
@@ -305,6 +322,12 @@ ZC.IpInterfacePanel = Ext.extend(ZC.ComponentGridPanel, {
                 {name: 'locking'}
             ],
             columns: [{
+                id: 'severity',
+                dataIndex: 'severity',
+                header: _t('Events'),
+                renderer: Zenoss.render.severity,
+                width: 60
+            },{
                 id: 'name',
                 dataIndex: 'name',
                 header: _t('IP Interface')

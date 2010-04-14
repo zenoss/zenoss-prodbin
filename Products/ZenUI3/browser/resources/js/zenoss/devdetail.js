@@ -40,11 +40,33 @@ Zenoss.nav.register({
         expanded: true,
         leaf: false,
         listeners: {
+            beforeclick: function(node, e) {
+                node.firstChild.select();
+            },
             beforeappend: function(tree, me, node){
                 node.attributes.action = function(node, target) {
                     target.layout.setActiveItem('component_card');
                     target.layout.activeItem.setContext(UID, node.id);
                 };
+            }
+        },
+        action: function(node, target) {
+            var child = node.firstChild;
+            function selectOnRender(n) {
+                if (n.rendered) {
+                    n.select();
+                } else {
+                    n.render = n.render.createSequence(function(){
+                        n.select();
+                    }, n);
+                }
+            }
+            if (!child) {
+                node.on('append', function(tree,me,n){
+                    selectOnRender(n);
+                }, node, {single:true});
+            } else {
+                selectOnRender(child);
             }
         },
         loader: new Ext.tree.TreeLoader({
@@ -72,7 +94,11 @@ Zenoss.nav.register({
 
 var componentCard = {
     xtype: 'componentpanel',
-    id: 'component_card'
+    id: 'component_card',
+    gridtbar: [{
+        text: 'Actions',
+        menu:[]
+    }]
 };
 
 var deviceInformation = {
@@ -335,8 +361,7 @@ Zenoss.DeviceDetailNav = Ext.extend(Zenoss.DetailNavPanel, {
         return Zenoss.nav.Device;
     },
     onSelectionChange: function(node) {
-        var me, target, action;
-        me = this;
+        var target, action;
         target = Ext.getCmp('detail_card_panel');
         if ( node.attributes.action ) {
             action = node.attributes.action;
@@ -344,16 +369,16 @@ Zenoss.DeviceDetailNav = Ext.extend(Zenoss.DetailNavPanel, {
             action = function(node, target) {
                 var id = node.attributes.id;
                 if (!(id in target.items.map)) {
-                    var config = me.panelConfigMap[id];
+                    var config = this.panelConfigMap[id];
                     Ext.applyIf(config, {refreshOnContextChange: true});
                     if(config) {
                         target.add(config);
                         target.doLayout();
                     }
                 }
-                target.items.map[node.attributes.id].setContext(me.contextId);
+                target.items.map[node.attributes.id].setContext(this.contextId);
                 target.layout.setActiveItem(node.attributes.id);
-            };
+            }.createDelegate(this);
         }
         action(node, target);
     }
@@ -402,7 +427,7 @@ Ext.getCmp('center_panel').add({
         split: true,
         activeItem: 0,
         region: 'center',
-        items: [overview, componentCard]
+        items: [componentCard, overview]
     }]
 });
 
