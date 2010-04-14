@@ -264,7 +264,7 @@ Zenoss.SmartFormDialog = Ext.extend(Zenoss.FormDialog, {
                 xtype: 'DialogButton',
                 text: _t('Submit'),
                 type: 'submit',
-                ref: '../buttonSubmit',
+                ref: '../buttonSubmit'
              }, {
                 xtype: 'DialogButton',
                 ref: '../buttonCancel',
@@ -305,7 +305,7 @@ Zenoss.SmartFormDialog = Ext.extend(Zenoss.FormDialog, {
             this.setSubmitHandler(this.submitHandler);
             delete this.submitHandler;
         }
-    },
+    }
 });
 
 

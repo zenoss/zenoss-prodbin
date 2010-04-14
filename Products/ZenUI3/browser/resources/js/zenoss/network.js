@@ -93,7 +93,7 @@ var addNetworkDialogConfig = {
         id: 'idTextField',
         fieldLabel: _t('Network / Subnet mask'),
         allowBlank: false
-    }],
+    }]
 };
 
 var discoverDevicesDialog = new Zenoss.MessageDialog({
@@ -153,7 +153,7 @@ var treesm = new Ext.tree.DefaultSelectionModel({
             Ext.getCmp('ipAddressGrid').setContext(newnode.attributes.uid);
 
             if (Zenoss.Security.doesNotHavePermission('Manage DMD')) return;
-            fb = Ext.getCmp('footer_bar');
+            var fb = Ext.getCmp('footer_bar');
             fb.buttonDelete.setDisabled((newnode.attributes.id == 'Network') );
             fb.buttonContextMenu.menu.buttonDiscoverDevices.setDisabled(
                 (newnode.attributes.id == 'Network') );
@@ -180,7 +180,7 @@ Ext.getCmp('master_panel').add(network_tree);
 // IP Addresses grid
 //********************************************
 
-statusRenderer = function (statusNum) {
+var statusRenderer = function (statusNum) {
     var color = 'red',
         desc = _t('Down');
     if (statusNum == 0) {
@@ -192,9 +192,9 @@ statusRenderer = function (statusNum) {
         desc = _t('N/A');
     }
     return '<span style="color:' + color + '">' + desc + '</span>';
-}
+};
 
-ipAddressColumnConfig = {
+var ipAddressColumnConfig = {
     defaults: {
         menuDisabled: true
     },
@@ -242,7 +242,7 @@ ipAddressColumnConfig = {
     ]
 };
 
-ipAddressStoreConfig = {
+var ipAddressStoreConfig = {
         bufferSize: 50,
         proxy: new Ext.data.DirectProxy({
             directFn: Zenoss.remote.NetworkRouter.getIpAddresses
@@ -259,7 +259,7 @@ ipAddressStoreConfig = {
         })
     };
 
-ipAddressGridConfig = {
+var ipAddressGridConfig = {
         id: 'ipAddressGrid',
         border: false,
         autoExpandColumn: 'name',
@@ -271,7 +271,7 @@ ipAddressGridConfig = {
         store: new Ext.ux.grid.livegrid.Store(ipAddressStoreConfig)
     };
 
-ipAddressGrid = new Ext.ux.grid.livegrid.GridPanel(ipAddressGridConfig);
+var ipAddressGrid = new Ext.ux.grid.livegrid.GridPanel(ipAddressGridConfig);
 
 ipAddressGrid.setContext = function(uid) {
     this.contextUid = uid;
@@ -320,12 +320,12 @@ var saveForm = function() {
 
     // form reload makes isDirty return false (and updates any changed props)
     form.load({ params: {uid: Ext.getCmp('networkForm').contextUid} });
-}
+};
 
 var resetForm = function() {
     Ext.getCmp('networkForm').getForm().reset();
     defaultNetworkTreeTransform();
-}
+};
 
 var defaultNetworkTreeTransform = function () {
     var dnt = Ext.getCmp('configDefaultNetworkTreeTextArea');
@@ -365,7 +365,7 @@ var ipcountDisplayField = {
     fieldLabel: _t('IPs Used/Free'),
     name: 'ipcount',
     width: "100%"
-}
+};
 
 var descriptionTextField = {
     xtype: 'textarea',
@@ -528,7 +528,7 @@ var dispatcher = function(actionName, value) {
 };
 
 
-fb = Ext.getCmp('footer_bar');
+var fb = Ext.getCmp('footer_bar');
 fb.on('buttonClick', dispatcher);
 Zenoss.footerHelper('Subnetwork', fb, {
     hasOrganizers: false,
