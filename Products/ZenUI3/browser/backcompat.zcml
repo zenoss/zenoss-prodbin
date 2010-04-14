@@ -285,4 +285,11 @@
     permission="zenoss.View"
     />
 
+<browser:page
+    template="../../Jobber/browser/joblogview.pt"
+    name="JobManager"
+    for="*"
+    permission="zenoss.View"
+    />
+
 </configure>
