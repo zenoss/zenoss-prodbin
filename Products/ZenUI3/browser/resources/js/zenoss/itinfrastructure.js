@@ -1228,6 +1228,27 @@ footerBar.add({
                 }
             });
         }
+        menuItems.push({
+            xtype: 'menuitem',
+            text: _t('Clear Geocode Cache'),
+            handler: function(){
+                REMOTE.clearGeocodeCache({},
+                    function(data) {
+                        msg = (data.success) ?
+                            _t('Geocode Cache has been cleared') :
+                            _t('Something happened while trying to clear Geocode Cache');
+                        var dialog = new Zenoss.dialog.SimpleMessageDialog( {
+                             message: msg,
+                             buttons: [{
+                                xtype: 'DialogButton',
+                                text: _t('OK')
+                            }]
+                        });
+                        dialog.show();
+                    }
+                );
+            }
+        });
         return menuItems;
     }
 });

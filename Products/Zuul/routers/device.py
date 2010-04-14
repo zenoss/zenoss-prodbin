@@ -322,3 +322,7 @@ class DeviceRouter(TreeRouter):
         facade = self._getFacade()
         facade.setBoundTemplates(uid, templateIds)
         return {'success': True}
+
+    def clearGeocodeCache(self):
+        self.context.clearGeocodeCache()
+        return DirectResponse.succeed()
