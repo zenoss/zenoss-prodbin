@@ -162,6 +162,9 @@
         },{
             "text": "TwoColumnTextArea.js",
             "path": "resources/js/zenoss/form/"
+        },{
+            "text": "MultiLineDisplayField.js",
+            "path": "resources/js/zenoss/form/"
         }]
     }],
     "resources": []

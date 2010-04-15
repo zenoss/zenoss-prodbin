@@ -18,7 +18,8 @@ class FieldMixin(object):
     """
     A mixin providing extra attributes to zope.schema.
     """
-    def __init__(self, xtype=None, order=None, group=None, vtype=None, decimalPrecision=2, required=False,
+    def __init__(self, xtype=None, order=None, group=None, vtype=None,
+                 decimalPrecision=2, required=False,
                  *args, **kwargs):
         super(FieldMixin, self).__init__(*args, **kwargs)
         l = locals()

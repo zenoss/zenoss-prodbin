@@ -13,7 +13,7 @@
 
 """
 The concept of an interface is part of the Zope Component Architecture (ZCA).
-Interfaces are used in the Zuul Python API to document the attributes of the 
+Interfaces are used in the Zuul Python API to document the attributes of the
 interface implementations.  Using interfaces also allows the facades to get
 info objects that adapt a ZenModel object, e.g. IInfo(self._dmd.Devices).  The
 definition that determines the concrete implementation returned by such a
@@ -74,3 +74,4 @@ from tree import *
 from template import *
 from command import *
 from network import *
+from graphpoint import *

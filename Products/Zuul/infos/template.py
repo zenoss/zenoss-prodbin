@@ -15,17 +15,12 @@ from Acquisition import aq_parent
 from Products.Zuul.infos import InfoBase, ProxyProperty
 from Products.Zuul.utils import severityId
 from zope.schema.vocabulary import SimpleVocabulary
-from Products.Zuul.interfaces.template import IRRDDataSourceInfo, IDataPointInfo, \
-    IMinMaxThresholdInfo, IThresholdInfo, ISNMPDataSourceInfo, IBasicDataSourceInfo, \
-    ICommandDataSourceInfo, IDataPointAlias, IDataPointGraphPointInfo
+from Products.Zuul.interfaces import template as templateInterfaces
+from Products.Zuul.utils import ZuulMessageFactory as _t
 
-from Products.ZenModel.ComplexGraphPoint import ComplexGraphPoint
-
-def complexGraphLineTypeVocabulary(context):
-    return SimpleVocabulary.fromItems(ComplexGraphPoint.lineTypeOptions)
 
 class TemplateNode(InfoBase):
-    
+
     def __init__(self, template):
         self._object = template
         self._children = []
@@ -48,6 +43,7 @@ class TemplateNode(InfoBase):
     def _addChild(self, leaf):
         self._children.append(leaf)
 
+
 class TemplateLeaf(InfoBase):
 
     def __init__(self, template):
@@ -55,10 +51,10 @@ class TemplateLeaf(InfoBase):
 
     @property
     def id(self):
-        template = self._object.id
+        templateId = self._object.id
         parent = self._getParentPath('.')
-        return '%s.%s' % (template, parent)
-        
+        return '%s.%s' % (templateId, parent)
+
     @property
     def text(self):
         return self._getParentPath('/')
@@ -72,42 +68,42 @@ class TemplateLeaf(InfoBase):
         if obj is None:
             # this template is in a Device
             obj = aq_parent(self._object)
-            path = list( obj.getPrimaryPath() )
+            path = list(obj.getPrimaryPath())
             # remove the "devices" relationship
             path.pop(-2)
         else:
             # this template is in a DeviceClass.rrdTemplates relationship
-            path = list( obj.getPrimaryPath() )
+            path = list(obj.getPrimaryPath())
         parts = path[4:-1]
         parts.append(obj.titleOrId())
         return separator + separator.join(parts)
 
-    
+
 class RRDDataSourceInfo(InfoBase):
-    implements(IRRDDataSourceInfo)
+    implements(templateInterfaces.IRRDDataSourceInfo)
     """
-    This is the default Schema/Info for every class that descends from RRDDataSource.
-    Most of the zenpacks descend from this.
+    This is the default Schema/Info for every class that descends from
+    RRDDataSource.  Most of the zenpacks descend from this.
     """
     def __init__(self, dataSource):
         self._object = dataSource
 
     @property
     def id(self):
-        return '/'.join( self._object.getPrimaryPath() )
+        return '/'.join(self._object.getPrimaryPath())
 
     @property
     def name(self):
         return self._object.getId()
-        
+
     @property
     def source(self):
         return self._object.getDescription()
-    
+
     @property
     def type(self):
         return self._object.sourcetype
-    
+
     # severity
     def _setSeverity(self, value):
         try:
@@ -117,19 +113,19 @@ class RRDDataSourceInfo(InfoBase):
             # they entered junk somehow (default to info if invalid)
             value = severityId('info')
         self._object.severity = value
-        
+
     def _getSeverity(self):
         return self._object.getSeverityString()
-    
+
     severity = property(_getSeverity, _setSeverity)
     enabled = ProxyProperty('enabled')
     component = ProxyProperty('component')
     eventClass = ProxyProperty('eventClass')
     eventKey = ProxyProperty('eventKey')
-    
-    
+
+
 class BasicDataSourceInfo(InfoBase):
-    implements(IBasicDataSourceInfo)
+    implements(templateInterfaces.IBasicDataSourceInfo)
     """
     Not really used but SNMPDataSource and CommandDataSource both
     share common properties so I am using this subclass
@@ -140,29 +136,30 @@ class BasicDataSourceInfo(InfoBase):
     @property
     def testable(self):
         """
-        This tells the client if we can test this datasource against a specific device.
-        It defaults to True and expects subclasses to overide it if they can not
+        This tells the client if we can test this datasource against a
+        specific device.  It defaults to True and expects subclasses
+        to overide it if they can not
         """
         return True
-    
+
     @property
     def id(self):
-        return '/'.join( self._object.getPrimaryPath() )
+        return '/'.join(self._object.getPrimaryPath())
 
     @property
     def name(self):
         return self._object.getId()
-        
+
     @property
     def source(self):
         return self._object.getDescription()
-    
+
     @property
     def type(self):
         return self._object.sourcetype
-    
+
     enabled = ProxyProperty('enabled')
-    
+
     @property
     def availableParsers(self):
         """
@@ -171,7 +168,7 @@ class BasicDataSourceInfo(InfoBase):
         if hasattr(self._object, 'parsers'):
             return self._object.parsers()
         return []
-    
+
     # severity
     def _setSeverity(self, value):
         try:
@@ -181,26 +178,26 @@ class BasicDataSourceInfo(InfoBase):
             # they entered junk somehow (default to info if invalid)
             value = severityId('info')
         self._object.severity = value
-        
+
     def _getSeverity(self):
         return self._object.getSeverityString()
-    
+
     severity = property(_getSeverity, _setSeverity)
     cycletime = ProxyProperty('cycletime')
     parser = ProxyProperty('parser')
     eventClass = ProxyProperty('eventClass')
 
-    
+
 class SNMPDataSourceInfo(BasicDataSourceInfo):
-    implements(ISNMPDataSourceInfo)
+    implements(templateInterfaces.ISNMPDataSourceInfo)
     """
     DataSource for SNMP (Basic DataSource with a type of 'SNMP')
     """
     oid = ProxyProperty('oid')
 
-    
+
 class CommandDataSourceInfo(BasicDataSourceInfo):
-    implements(ICommandDataSourceInfo)
+    implements(templateInterfaces.ICommandDataSourceInfo)
     """
     Datasource for Commands (Basic DataSource with a type of 'COMMAND')
     """
@@ -208,16 +205,17 @@ class CommandDataSourceInfo(BasicDataSourceInfo):
     component = ProxyProperty('component')
     eventKey = ProxyProperty('eventKey')
     commandTemplate = ProxyProperty('commandTemplate')
-        
-    
+
+
 class DataPointInfo(InfoBase):
-    implements(IDataPointInfo)
+    implements(templateInterfaces.IDataPointInfo)
+
     def __init__(self, dataPoint):
         self._object = dataPoint
 
     @property
     def id(self):
-        return '/'.join( self._object.getPrimaryPath() )
+        return '/'.join(self._object.getPrimaryPath())
 
     @property
     def name(self):
@@ -240,9 +238,9 @@ class DataPointInfo(InfoBase):
 
         # add each alias
         for alias in value:
-            if alias.has_key('id') and alias.has_key('formula') and alias['id']:
+            if 'id' in alias and 'formula' in alias and alias['id']:
                 self._object.addAlias(alias['id'], alias['formula'])
-        
+
     def _getAliases(self):
         """
         Returns a generator of all the DataAliases
@@ -250,12 +248,12 @@ class DataPointInfo(InfoBase):
         """
         aliases = []
         for alias in self._object.aliases():
-            aliases.append(IDataPointAlias(alias))
-            
+            aliases.append(templateInterfaces.IDataPointAlias(alias))
+
         return aliases
 
     aliases = property(_getAliases, _setAliases)
-    
+
     @property
     def leaf(self):
         return True
@@ -274,14 +272,14 @@ class DataPointInfo(InfoBase):
     rrdmin = ProxyProperty('rrdmin')
     rrdmax = ProxyProperty('rrdmax')
 
-    
+
 class DataPointAliasInfo(InfoBase):
-    implements(IDataPointAlias)
+    implements(templateInterfaces.IDataPointAlias)
     """
     """
     @property
     def id(self):
-        return '/'.join( self._object.getPrimaryPath() )
+        return '/'.join(self._object.getPrimaryPath())
 
     @property
     def name(self):
@@ -291,15 +289,16 @@ class DataPointAliasInfo(InfoBase):
     def formula(self):
         return self._object.formula
 
-    
+
 class ThresholdInfo(InfoBase):
-    implements(IThresholdInfo)
+    implements(templateInterfaces.IThresholdInfo)
+
     def __init__(self, threshold):
         self._object = threshold
 
     @property
     def id(self):
-        return '/'.join( self._object.getPrimaryPath() )
+        return '/'.join(self._object.getPrimaryPath())
 
     @property
     def name(self):
@@ -319,13 +318,13 @@ class ThresholdInfo(InfoBase):
         dsnames can be either a list of valid names or a comma separated string
         """
         if value and isinstance(value, str):
-            # strip out the empty chars (junk our ItemSelector gives us sometimes)
+            # strip out the empty chars
             value = [name for name in value.split(',') if name]
         self._object.dsnames = value
-        
+
     def _getDsnames(self):
         return self._object.dsnames
-        
+
     dsnames = property(_getDsnames, _setDsnames)
 
     # severity
@@ -337,23 +336,23 @@ class ThresholdInfo(InfoBase):
             # they entered junk somehow (default to info if invalid)
             value = severityId('info')
         self._object.severity = value
-        
+
     def _getSeverity(self):
         return self._object.getSeverityString()
-    
+
     severity = property(_getSeverity, _setSeverity)
 
     enabled = ProxyProperty("enabled")
 
-    
+
 class MinMaxThresholdInfo(ThresholdInfo):
-    implements(IMinMaxThresholdInfo)
+    implements(templateInterfaces.IMinMaxThresholdInfo)
     minval = ProxyProperty("minval")
     maxval = ProxyProperty("maxval")
     eventClass = ProxyProperty("eventClass")
     escalateCount = ProxyProperty("escalateCount")
+
     
-            
 class GraphInfo(InfoBase):
 
     def __init__(self, graph):
@@ -389,36 +388,6 @@ class GraphInfo(InfoBase):
     @property
     def fakeGraphCommands(self):
         """
-        Used to display the graph commands to the user 
+        Used to display the graph commands to the user
         """
         return self._object.getFakeGraphCmds()
-
-    
-class GraphPointInfo(InfoBase):
-    
-    @property
-    def type(self):
-        return self._object.getType()
-
-    @property
-    def description(self):
-        return self._object.getDescription()
-
-    
-class ComplexGraphPointInfo(GraphPointInfo):
-    color = ProxyProperty('color')
-    lineType = ProxyProperty('lineType')
-    lineWidth = ProxyProperty('lineWidth')
-    stacked = ProxyProperty('stacked')
-    format = ProxyProperty('format')
-    legend = ProxyProperty('legend')
-
-    
-class DataPointGraphPointInfo(ComplexGraphPointInfo):
-    implements(IDataPointGraphPointInfo)
-    limit = ProxyProperty('limit')
-    rpn = ProxyProperty('rpn')
-    dpName = ProxyProperty('dpName')
-    cFunc = ProxyProperty('cFunc')
-    
-    

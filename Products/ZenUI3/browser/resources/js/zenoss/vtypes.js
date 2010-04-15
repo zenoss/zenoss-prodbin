@@ -15,9 +15,9 @@
          * The number must be greater than zero. Designed for us in NumberFields
          **/
         positive: function(val, field) {
-            return (val > 0);
+            return (val >= 0);
         },
-        positiveText: _t('Must be greater than 0'),
+        positiveText: _t('Must be greater than or equal to 0'),
 
         /**
          * Between 0 and 1 (for float types)

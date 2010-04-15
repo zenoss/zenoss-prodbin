@@ -33,7 +33,7 @@ def manage_addShiftGraphPoint(context, id, REQUEST = None):
 class ShiftGraphPoint(GraphPoint):
 
     meta_type = 'ShiftGraphPoint'
-
+    rrdFile = None
     vname = ''
     offset = 0
 

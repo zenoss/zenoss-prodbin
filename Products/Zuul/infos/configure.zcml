@@ -53,19 +53,8 @@
              for="Products.ZenModel.GraphDefinition.GraphDefinition"
              provides="..interfaces.IGraphInfo"/>
 
-    <adapter factory=".template.GraphPointInfo"
-             for="Products.ZenModel.GraphPoint.GraphPoint"
-             provides="..interfaces.IGraphPointInfo"/>
-
-    <!-- Graph Point Subclasses -->
-    <adapter factory=".template.DataPointGraphPointInfo"
-             for="Products.ZenModel.DataPointGraphPoint.DataPointGraphPoint"
-             provides="..interfaces.IDataPointGraphPointInfo"/>
-
-    <utility provides="zope.schema.interfaces.IVocabularyFactory"
-             component=".template.complexGraphLineTypeVocabulary"
-             name="complexGraphLineType"/>
     
+
     <adapter factory=".template.DataPointInfo"
              for="Products.ZenModel.RRDDataPoint.RRDDataPoint"
              provides="..interfaces.IDataPointInfo"/>
@@ -127,6 +116,6 @@
              factory=".network.IpAddressInfo"
              />
 
-<include package=".component"/>
-
+    <include package=".component"/>
+    <include file="graphpoint.zcml"/>
 </configure>

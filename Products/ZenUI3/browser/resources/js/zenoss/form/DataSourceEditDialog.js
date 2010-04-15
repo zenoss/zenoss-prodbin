@@ -47,7 +47,6 @@
              }
              
              Ext.apply(config, {
-                width: 800,
                 autoHeight: true,
                 autoScroll: true,
                 modal: true,

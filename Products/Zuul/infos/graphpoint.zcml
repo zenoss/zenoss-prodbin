@@ -1,0 +1,85 @@
+<!--
+    ###########################################################################
+    #
+    # This program is part of Zenoss Core, an open source monitoring platform.
+    # Copyright (C) 2009, Zenoss Inc.
+    #
+    # This program is free software; you can redistribute it and/or modify it
+    # under the terms of the GNU General Public License version 2 as published by
+    # the Free Software Foundation.
+    #
+    # For complete information please visit: http://www.zenoss.com/oss/
+    #
+    ###########################################################################
+-->
+
+<configure xmlns="http://namespaces.zope.org/zope"
+           xmlns:five="http://namespaces.zope.org/five">
+
+  <!-- Graph Point Subclasses -->
+  <adapter factory=".graphpoint.GraphPointInfo"
+           for="Products.ZenModel.GraphPoint.GraphPoint"
+           provides="..interfaces.IGraphPointInfo"/>
+  
+  <adapter factory=".graphpoint.DataPointGraphPointInfo"
+           for="Products.ZenModel.DataPointGraphPoint.DataPointGraphPoint"
+           provides="..interfaces.IDataPointGraphPointInfo"/>
+  
+  <adapter factory=".graphpoint.ThresholdGraphPointInfo"
+           for="Products.ZenModel.ThresholdGraphPoint.ThresholdGraphPoint"
+           provides="..interfaces.IThresholdGraphPointInfo"/>
+
+  <adapter factory=".graphpoint.DefGraphPointInfo"
+           for="Products.ZenModel.DefGraphPoint.DefGraphPoint"
+           provides="..interfaces.IDefGraphPointInfo"/>
+
+  <adapter factory=".graphpoint.VdefGraphPointInfo"
+           for="Products.ZenModel.VdefGraphPoint.VdefGraphPoint"
+           provides="..interfaces.IVdefGraphPointInfo"/>
+  
+  <!-- cdef has the same interface/info as vdef -->
+  <adapter factory=".graphpoint.VdefGraphPointInfo"
+           for="Products.ZenModel.CdefGraphPoint.CdefGraphPoint"
+           provides="..interfaces.IVdefGraphPointInfo"/>
+
+  <adapter factory=".graphpoint.PrintGraphPointInfo"
+           for="Products.ZenModel.PrintGraphPoint.PrintGraphPoint"
+           provides="..interfaces.IPrintGraphPointInfo"/>
+  
+  <utility provides="zope.schema.interfaces.IVocabularyFactory"
+           component=".graphpoint.complexGraphLineTypeVocabulary"
+           name="complexGraphLineType"/>
+  
+  <!-- gprint and print share the same info/interface -->
+  <adapter factory=".graphpoint.PrintGraphPointInfo"
+           for="Products.ZenModel.GprintGraphPoint.GprintGraphPoint"
+           provides="..interfaces.IPrintGraphPointInfo"/>
+
+  <adapter factory=".graphpoint.CommentGraphPointInfo"
+           for="Products.ZenModel.CommentGraphPoint.CommentGraphPoint"
+           provides="..interfaces.ICommentGraphPointInfo"/>
+  
+  <adapter factory=".graphpoint.VruleGraphPointInfo"
+           for="Products.ZenModel.VruleGraphPoint.VruleGraphPoint"
+           provides="..interfaces.IVruleGraphPointInfo"/>
+  
+  <adapter factory=".graphpoint.HruleGraphPointInfo"
+           for="Products.ZenModel.HruleGraphPoint.HruleGraphPoint"
+           provides="..interfaces.IHruleGraphPointInfo"/>
+
+  <adapter factory=".graphpoint.LineGraphPointInfo"
+           for="Products.ZenModel.LineGraphPoint.LineGraphPoint"
+           provides="..interfaces.ILineGraphPointInfo"/>
+
+  <adapter factory=".graphpoint.AreaGraphPointInfo"
+           for="Products.ZenModel.AreaGraphPoint.AreaGraphPoint"
+           provides="..interfaces.IAreaGraphPointInfo"/>
+
+  <adapter factory=".graphpoint.TickGraphPointInfo"
+           for="Products.ZenModel.TickGraphPoint.TickGraphPoint"
+           provides="..interfaces.ITickGraphPointInfo"/>
+  
+  <adapter factory=".graphpoint.ShiftGraphPointInfo"
+           for="Products.ZenModel.ShiftGraphPoint.ShiftGraphPoint"
+           provides="..interfaces.IShiftGraphPointInfo"/>
+</configure>

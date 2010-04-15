@@ -503,6 +503,7 @@ function displayGraphPointForm() {
             record: response.data,
             items: response.form,
             singleColumn: true,
+            width: 400,
             xtype: 'datasourceeditdialog',
             title: _t('Edit Graph Point'),
             directFn: router.setInfo,

@@ -636,7 +636,7 @@ function editDataSourceOrPoint() {
         config.isDataPoint = isDataPoint;
         config.title = _t('Edit Data Source');
         config.directFn = router.setInfo;
-        
+        config.width = 800;
         if (isDataPoint) {
             config.title = _t('Edit Metric');
             config.directFn = submitDataPointForm;

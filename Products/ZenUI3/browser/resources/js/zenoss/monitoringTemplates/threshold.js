@@ -139,12 +139,11 @@
             config = {};
                             
         function displayEditDialog(response) {
-            
             var win = Ext.create( {
-                
                 record: response.record,
                 items: response.form,
                 singleColumn: true,
+                width: 650,
                 xtype: 'datasourceeditdialog',
                 title: _t('Edit Threshold'),
                 directFn: router.setInfo,
