@@ -25,6 +25,10 @@
                  fieldLabel: _t('Event Class'),
                  name: 'eventClass',
                  typeAhead: true,
+                 editable: false,
+                 forceSelection: true,
+                 autoSelect: true,
+                 resizable: true,
                  triggerAction: 'all',
                  mode: 'local',
                  store: Zenoss.env.EVENT_CLASSES
