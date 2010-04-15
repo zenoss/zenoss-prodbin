@@ -1,7 +1,7 @@
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML Basic 1.0//EN"
 "http://www.w3.org/TR/xhtml-basic/xhtml-basic10.dtd">
 <html> 
-    <head metal:use-macro="here/templates/macros/head1"/>
+    <head metal:use-macro="here/page_macros/old-new"/>
 	<body>
     <tal:block metal:use-macro="here/dialogmacros/macros/dialog_with_buttons"/>
 	   <div id="frame">

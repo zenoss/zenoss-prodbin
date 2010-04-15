@@ -14,7 +14,7 @@
 
 import Migrate
 
-class RemoveTemplateMenuItem(Migrate.Step):
+class removeTemplateMenuItem(Migrate.Step):
     version = Migrate.Version(2, 5, 70)
     
     def cutover(self, dmd):
@@ -24,4 +24,4 @@ class RemoveTemplateMenuItem(Migrate.Step):
             items._delObject('performanceTemplates')
 
 
-RemoveTemplateMenuItem()
+removeTemplateMenuItem()

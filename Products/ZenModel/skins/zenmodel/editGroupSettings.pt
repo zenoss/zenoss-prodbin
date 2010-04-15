@@ -1,4 +1,4 @@
-<tal:block metal:use-macro="here/templates/macros/page2">
+<tal:block metal:use-macro="here/page_macros/old-new">
 
 <tal:block metal:fill-slot="head-local">
 <script type="text/javascript">
@@ -58,7 +58,7 @@ function ConfirmPagerTest() {
     </tr>
     <tal:block tal:repeat="user batch">
     <tr tal:define="odd repeat/user/odd"
-        tal:attributes="class python:test(odd, 'odd', 'even')">
+        tal:attributes="class python:odd and 'odd' or 'even'">
         <td class="tablevalues">
         <input type="checkbox" name="userids:list" 
             tal:condition="here/isManager" tal:attributes="value user/getId" />

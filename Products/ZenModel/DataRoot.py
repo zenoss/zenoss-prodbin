@@ -660,7 +660,7 @@ class DataRoot(ZenModelRM, OrderedFolder, Commandable, ZenMenuable):
 
     security.declareProtected(ZEN_MANAGE_DMD, 'manage_createBackup')
     def manage_createBackup(self, includeEvents=None, includeMysqlLogin=None,
-            timeout=120, REQUEST=None):
+            timeout=120, REQUEST=None, writeMethod=None):
         """
         Create a new backup file using zenbackup and the options specified
         in the request.
@@ -674,10 +674,13 @@ class DataRoot(ZenModelRM, OrderedFolder, Commandable, ZenMenuable):
         import select
         
         def write(s):
-            if REQUEST:
+            if writeMethod:
+                writeMethod(s)
+            elif REQUEST:
                 self.write(REQUEST.RESPONSE, s)
 
-        if REQUEST:
+        footer = None
+        if REQUEST and not writeMethod:
             header, footer = self.commandOutputTemplate().split('OUTPUT_TOKEN')
             REQUEST.RESPONSE.write(str(header))        
         write('')
@@ -721,7 +724,7 @@ class DataRoot(ZenModelRM, OrderedFolder, Commandable, ZenMenuable):
             write('Exception while performing backup.')
             write('type: %s  value: %s' % tuple(sys.exc_info()[:2]))
         write('')
-        if REQUEST:
+        if REQUEST and footer:
             REQUEST.RESPONSE.write(footer)
 
 

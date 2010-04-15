@@ -63,7 +63,7 @@ loader.insert({onSuccess:function(){
   </tr>
   <tal:block tal:repeat="ur batch">
   <tr tal:define="odd repeat/ur/odd"
-      tal:attributes="class python:test(odd, 'odd', 'even')">
+      tal:attributes="class python:odd and 'odd' or 'even'">
     <td class="tablevalues" align="left">
        <input type="hidden" name="ids" 
               tal:attributes="value ur/managedObjectName"/>

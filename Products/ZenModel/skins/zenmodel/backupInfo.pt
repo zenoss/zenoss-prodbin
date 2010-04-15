@@ -35,8 +35,20 @@
     </tr>
     <tr>
         <td align="left"  class="tableheader" colspan=2>
-            <input class="tableheader" type="submit" value=" Create Backup "
-                name="manage_createBackup:method"/>
+            <input class="tableheader" type="button" value=" Create Backup "
+            onclick="
+var backupLog = new Zenoss.CommandWindow({
+    args: [
+        this.form.includeEvents.checked,
+        this.form.includeMysqlLogin.checked,
+        this.form.timeout.value
+    ],
+    redirectButton: true,
+    panel: 'backuppanel',
+    command: 'zenbackup'
+});
+backupLog.show();
+            "/>
         </td>
     </tr>
 </tal:block>

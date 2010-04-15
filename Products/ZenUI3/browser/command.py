@@ -73,7 +73,20 @@ class CommandView(StreamingView):
                        target.id)
             self.write('Type: %s   Value: %s' % tuple(sys.exc_info()[:2]))
 
-            
+class BackupView(StreamingView):
+    def stream(self):
+        data = unjson(self.request.get('data'))
+        args = data['args']
+        includeEvents = args[0]
+        includeMysqlLogin = args[1]
+        timeoutString = args[2]
+        try:
+            timeout = int(timeoutString)
+        except ValueError:
+            timeout = 120
+        self.context.zport.dmd.manage_createBackup(includeEvents, 
+                includeMysqlLogin, timeout, None, self.write)
+
 class TestDataSourceView(StreamingView):
     """
     Accepts a post with data in of the command to be tested against a device

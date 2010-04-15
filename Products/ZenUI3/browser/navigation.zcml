@@ -235,14 +235,14 @@
         name="Settings"
         url="/zport/dmd/editSettings"
         subviews="/zport/dmd/dataRootManage
-                  /zport/dmd/ZenUsers/manageUserFolder
-                  /zport/dmd/ZenPackManager/viewZenPacks
+                  /zport/dmd/userCommands
+                  /zport/dmd/ZenUsers
+                  /zport/dmd/ZenPackManager
                   /zport/dmd/joblist
                   /zport/dmd/JobManager
                   /zport/dmd/editMenus
                   /zport/dmd/editPortletPerms
-                  /zport/About/zenossInfo
-                  /zport/About/zenossVersions
+                  /zport/About
                   /zport/dmd/backupInfo"
         weight="4"
         parentItem="Advanced"

@@ -21,7 +21,7 @@
  *
  */
 var formTpl = new Ext.Template(
-    '<form name="commandform" method="POST" action="{target}/run_command">',
+    '<form name="commandform" method="POST" action="{target}">',
     '<textarea style="visibility:hidden" name="data">',
     '{data}',
     '</textarea>',
@@ -36,7 +36,10 @@ Zenoss.CommandPanel = Ext.extend(Zenoss.IFramePanel, {
     injectForm: function(win){
         var doc = win.document,
             data = {uids: this.uids, command: this.command},
-            form = formTpl.apply({data:Ext.encode(data), target:this.target});
+            form = formTpl.apply({
+                data: Ext.encode(data), 
+                target: this.target + '/run_command'
+            });
         doc.body.innerHTML = form;
         doc.commandform.submit();
         this.parentWindow.setSize(this.parentWindow.getSize());
@@ -44,6 +47,22 @@ Zenoss.CommandPanel = Ext.extend(Zenoss.IFramePanel, {
 });
 
 Ext.reg('commandpanel', Zenoss.CommandPanel);
+
+Zenoss.BackupPanel = Ext.extend(Zenoss.CommandPanel, {
+    injectForm: function(win){
+        var doc = win.document,
+            data = {args: this.args, command: this.command},
+            form = formTpl.apply({
+                data: Ext.encode(data), 
+                target: '/run_backup'
+            });
+        doc.body.innerHTML = form;
+        doc.commandform.submit();
+        this.parentWindow.setSize(this.parentWindow.getSize());
+    }
+});
+
+Ext.reg('backuppanel', Zenoss.BackupPanel);
 
 /**********************************************************************
  *
@@ -56,33 +75,48 @@ Zenoss.CommandWindow = Ext.extend(Ext.Window, {
         config = Ext.applyIf(config || {}, {
             layout: 'fit',
             title: config.command,
+            redirectButton: config.redirectButton || false,
             cls: 'streaming-window',
             constrain: true,
             plain: true,
-            fbar: {
-                items:[{
-                    xtype: 'checkbox',
-                    checked: true,
-                    boxLabel: '<span style="color:white">Autoscroll</span>',
-                    handler: function(c){
-                        if (c.checked) {
-                            this.startScrolling();
-                        } else {
-                            this.stopScrolling();
-                        }
-                    }.createDelegate(this)
-                }]
-            },
             items: {
                 border: false,
                 id: this.cpanel,
                 // default to command panel
                 xtype: config.panel || 'commandpanel',
                 uids: config.uids,
+                args: config.args,
                 target: config.target,
                 command: config.command,
                 autoLoad: config.autoLoad,
                 parentWindow: this
+            }
+        });
+        var fbarItems = [];
+        if (config.redirectButton) {
+            fbarItems.push({
+                xtype: 'button',
+                text: _t('See Changes'),
+                handler: function(c){
+                    window.location = window.location;
+                }.createDelegate(this)
+            });
+        }
+        fbarItems.push({
+            xtype: 'checkbox',
+            checked: true,
+            boxLabel: '<span style="color:white">Autoscroll</span>',
+            handler: function(c){
+                if (c.checked) {
+                    this.startScrolling();
+                } else {
+                    this.stopScrolling();
+                }
+            }.createDelegate(this)
+        });
+        config = Ext.applyIf(config, {
+            fbar: {
+                items: fbarItems
             }
         });
         Zenoss.CommandWindow.superclass.constructor.call(this, config);

@@ -59,7 +59,7 @@ class CustomEventView(ZenModelRM, EventFilter):
 
     factory_type_information = (
         {
-            'immediate_view' : 'getEventView',
+            'immediate_view' : 'editEventView',
             'actions'        :
             (
                 { 'id'            : 'view'
@@ -80,12 +80,13 @@ class CustomEventView(ZenModelRM, EventFilter):
 
 
     security.declareProtected('View', 'zentinelTabs')
-    def zentinelTabs(self, templateName):
+    def zentinelTabs(self, templateName, requestUrl=None):
         """Return a list of hashs that define the screen tabs for this object.
         [{'name':'Name','action':'template','selected':False},...]
         """
-        tabs = super(CustomEventView, self).zentinelTabs(templateName)
-        if templateName.endswith("Events"): tabs[0]['selected']=True
+        tabs = super(CustomEventView, self).zentinelTabs(templateName, requestUrl)
+        if self._selectedTabName(templateName, requestUrl).endswith("Events"): 
+            tabs[0]['selected']=True
         # if we don't have any global roles take away edit tab
         if self.hasNoGlobalRoles():
             return [tabs[0]]
@@ -106,9 +107,9 @@ class CustomEventView(ZenModelRM, EventFilter):
         """Return the default screen for this custom view.
         """
         if self.type == "status":
-            tpl = 'viewEvents'
+            tpl = 'evconsole'
         else:
-            tpl = 'viewHistoryEvents'
+            tpl = 'evhistory'
         url = '%s/%s' % (self.absolute_url_path(), tpl)
         self.REQUEST.response.redirect(url)
 

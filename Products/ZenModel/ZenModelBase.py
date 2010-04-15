@@ -192,6 +192,8 @@ class ZenModelBase(object):
             # of rendering pages as result of ajax calls.
             return ''
         screenName = REQUEST.get("zenScreenName", "")
+        if not redirect and REQUEST.get("redirect", None) :
+            redirect = True
         if redirect:
             nurl = "%s/%s" % (self.getPrimaryUrlPath(), screenName)
             REQUEST['RESPONSE'].redirect(nurl)
@@ -330,11 +332,7 @@ class ZenModelBase(object):
         tabs = []
         user = getSecurityManager().getUser()
         actions = self.factory_type_information[0]['actions']
-        selectedTabName = templateName
-        if not selectedTabName and requestUrl and requestUrl.rfind('/') != -1:
-            selectedTabName = requestUrl[requestUrl.rfind('/') + 1:]
-            if selectedTabName.startswith('@@'):
-                selectedTabName = selectedTabName[2:]
+        selectedTabName = self._selectedTabName(templateName, requestUrl)
         for a in actions:
             def permfilter(p): return user.has_permission(p,self)
             permok = filter(permfilter, a['permissions'])
@@ -344,6 +342,14 @@ class ZenModelBase(object):
             if a['action'] == selectedTabName: a['selected'] = True
             tabs.append(a)
         return tabs
+
+    def _selectedTabName(self, templateName, requestUrl=None):
+        selectedTabName = templateName
+        if not selectedTabName and requestUrl and requestUrl.rfind('/') != -1:
+            selectedTabName = requestUrl[requestUrl.rfind('/') + 1:]
+            if selectedTabName.startswith('@@'):
+                selectedTabName = selectedTabName[2:]
+        return selectedTabName
 
 
     security.declareProtected(ZEN_MANAGE_DMD, 'zmanage_editProperties')

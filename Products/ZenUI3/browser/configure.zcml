@@ -184,6 +184,13 @@
     />
 
 <browser:page
+    class=".command.BackupView"
+    name="run_backup"
+    for="*"
+    permission="zenoss.RunCommands"
+    />
+
+<browser:page
     class=".command.TestDataSourceView"
     name="test_datasource"
     for="Products.ZenModel.RRDDataSource.RRDDataSource"
