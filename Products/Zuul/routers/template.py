@@ -38,7 +38,7 @@ class TemplateRouter(DirectRouter):
         result = {}
         try:
             facade = self._getFacade()
-            templateNode = facade.addTemplate(id) 
+            templateNode = facade.addTemplate(id)
             result['nodeConfig'] = Zuul.marshal(templateNode)
             result['success'] = True
         except Exception, e:
@@ -79,7 +79,7 @@ class TemplateRouter(DirectRouter):
         facade = self._getFacade()
         facade.addDataPoint(dataSourceUid, name)
         return {'success': True}
-    
+
     def addDataSource(self, templateUid, name, type):
         """
         Adds a new datasource designated by "name" to the template path
@@ -88,7 +88,7 @@ class TemplateRouter(DirectRouter):
         facade = self._getFacade()
         facade.addDataSource(templateUid, name, type)
         return {'success': True}
-        
+
     def getDataSources(self, id):
         """
         Get the data sources for the RRD template identified by uid.
@@ -114,9 +114,9 @@ class TemplateRouter(DirectRouter):
         facade = self._getFacade()
         details = facade.getDataPointDetails(uid)
         form = IFormBuilder(details).render(fieldsets=False)
-        data =  Zuul.marshal(dict(record=details, form=form))        
+        data =  Zuul.marshal(dict(record=details, form=form))
         return data
-    
+
     @require('Manage DMD')
     def setInfo(self, **data):
         uid = data['uid']
@@ -125,7 +125,7 @@ class TemplateRouter(DirectRouter):
         facade = self._getFacade()
         facade.setInfo(uid, data)
         return {'success': True}
-                
+
     @require('Manage DMD')
     def addThreshold(self, **data):
         uid = data['uid']
@@ -138,12 +138,12 @@ class TemplateRouter(DirectRouter):
 
     @require('Manage DMD')
     def removeThreshold(self, uid):
-        """Gets a list of Uids from the server, and deletes each one. 
+        """Gets a list of Uids from the server, and deletes each one.
         """
         facade = self._getFacade()
         facade.removeThreshold(uid)
         return {'success': True}
-    
+
     def getThresholdTypes(self, query):
         facade = self._getFacade()
         data = facade.getThresholdTypes()
@@ -216,19 +216,19 @@ class TemplateRouter(DirectRouter):
         info = facade.getInfo(uid)
         form = IFormBuilder(info).render(fieldsets=False)
         return DirectResponse(success=True, data=Zuul.marshal(info), form=form)
-    
+
     @require('Manage DMD')
     def addThresholdToGraph(self, graphUid, thresholdUid):
         facade = self._getFacade()
         facade.addThresholdToGraph(graphUid, thresholdUid)
         return {'success': True}
-        
+
     @require('Manage DMD')
     def addCustomToGraph(self, graphUid, customId, customType):
         facade = self._getFacade()
         facade.addCustomToGraph(graphUid, customId, customType)
         return {'success': True}
-        
+
     def getGraphInstructionTypes(self, query=''):
         facade = self._getFacade()
         types = facade.getGraphInstructionTypes()
@@ -254,5 +254,5 @@ class TemplateRouter(DirectRouter):
         data['base'] = 'base' in data
         data['hasSummary'] = 'hasSummary' in data
         facade = self._getFacade()
-        facade.setGraphDefinition(uid, data)
+        facade.setInfo(uid, data)
         return {'success': True}

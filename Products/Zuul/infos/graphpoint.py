@@ -42,7 +42,7 @@ class GraphPointInfo(InfoBase):
         # get the available variables from the graph definition
         graphDef = self._object.graphDef()
         variables = graphDef.getRRDVariables(self._object.sequence)
-        
+
         # the old UI returned the string "None" if there were not any variables
         return variables or _t(u'None')
 

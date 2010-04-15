@@ -38,7 +38,7 @@ function getSelectedGraphPoint() {
     }
     return null;
 }
-     
+
 addGraphDefinition = function(){
     var params, callback;
     params = {
@@ -183,7 +183,7 @@ new Zenoss.HideFormDialog({
         xtype: 'HideDialogButton',
         text: _t('Cancel')
     }]
-    
+
 });
 
 new Zenoss.HideFormDialog({
@@ -264,7 +264,7 @@ new Zenoss.HideFormDialog({
         text: _t('Cancel')
     }]
 });
-     
+
 /**********************************************************************
  *
  * Graph Custom Definition
@@ -317,13 +317,13 @@ Ext.create({
             var cmp = Ext.getCmp('graphCustomDefinitionDialog'),
                 routerCallback,
                 data = cmp.record,
-                params = {};         
-            
+                params = {};
+
             // we just need to update custom
             params.uid = data.uid;
             params.custom = cmp.formPanel.custom.getValue();
-                                                
-            router.setInfo(params);            
+
+            router.setInfo(params);
         }
     }, {
         xtype: 'HideDialogButton',
@@ -340,15 +340,15 @@ Ext.create({
                 this.formPanel.nameLabel.setText(data.id);
                 this.formPanel.custom.setValue(data.custom);
                 this.formPanel.rrdVariables.setText(data.rrdVariables.join('<br />'), false);
-                
+
                 this.show();
             },
             scope: this
         });
     }
-    
+
 });
-     
+
 Zenoss.GraphPointStore = Ext.extend(Ext.data.DirectStore, {
     constructor: function(config){
         Ext.applyIf(config, {
@@ -436,7 +436,7 @@ Zenoss.GraphPointGrid = Ext.extend(Zenoss.BaseSequenceGrid, {
                     var record = getSelectedGraphPoint();
                     if (record) {
                         Ext.getCmp('deleteGraphPointButton').enable();
-                        Ext.getCmp('editGraphPointButton').enable();                        
+                        Ext.getCmp('editGraphPointButton').enable();
                     }else{
                         Ext.getCmp('deleteGraphPointButton').disable();
                         Ext.getCmp('editGraphPointButton').disable();
@@ -476,7 +476,7 @@ Zenoss.GraphPointGrid = Ext.extend(Zenoss.BaseSequenceGrid, {
             }]
         });
         Zenoss.GraphPointGrid.superclass.constructor.call(this, config);
-    }            
+    }
 });
 Ext.reg('graphpointgrid', Zenoss.GraphPointGrid);
 
@@ -490,14 +490,14 @@ function reloadGraphPoints() {
     var grid = Ext.getCmp('graphPointGrid');
     grid.getStore().reload();
 }
-     
+
 /**
  * Call back function from when a user selects a graph point.
  * This shows yet another dialog for editing a graph point
  **/
 function displayGraphPointForm() {
     var record = getSelectedGraphPoint();
-    
+
     function displayEditDialog(response) {
         var win = Ext.create( {
             record: response.data,
@@ -510,10 +510,10 @@ function displayGraphPointForm() {
             id: 'editGraphPointDialog',
             saveHandler: reloadGraphPoints
         });
-        
+
         win.show();
     }
-    
+
     // remote call to get the object details
     router.getInfo({uid: record.id}, displayEditDialog);
 }
@@ -564,7 +564,9 @@ Ext.create({
             params = Ext.applyIf(basicForm.getValues(), {
                 uid: dialogWindow.uid
             });
-            basicForm.api.submit(params);
+            basicForm.api.submit(params, function() {
+                                     Ext.getCmp('graphGrid').getStore().reload();
+                                 });
             dialogWindow.hide();
         }
     },{
@@ -599,7 +601,7 @@ Ext.create({
         items: [{
             xtype: 'textfield',
             fieldLabel: _t('Name'),
-            name: 'id',
+            name: 'name',
             allowBlank: false
         },{
             xtype: 'numberfield',
@@ -686,7 +688,7 @@ new Ext.menu.Menu({
             var params = {
                 uid: getSelectedGraphDefinition().id
             };
-            
+
             router.getGraphDefinition(params, function (response) {
                 Ext.MessageBox.show({
                     title: _t('Graph Commands'),
@@ -731,7 +733,7 @@ Zenoss.templates.GraphGrid = Ext.extend(Ext.grid.GridPanel, {
             }),
             colModel: new Ext.grid.ColumnModel({
                 columns: [
-                    {dataIndex: 'name', header: _t('Name'), width: 400}                    
+                    {dataIndex: 'name', header: _t('Name'), width: 400}
                 ]
             }),
             tbar: [{
