@@ -29,8 +29,6 @@ class ProcessNode(TreeNode):
     implements(IProcessNode)
     adapts(IProcessEntity)
 
-    uiProvider = 'hierarchy'
-
     @property
     def _evsummary(self):
         return getFacade('process', self._object).getEventSummary(self.uid)

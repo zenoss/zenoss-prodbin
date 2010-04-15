@@ -24,7 +24,7 @@ class ProcessRouter(TreeRouter):
         facade = self._getFacade()
         tree = facade.getTree(id)
         data = Zuul.marshal(tree)
-        return data['children']
+        return [data]
 
     def moveProcess(self, uid, targetUid):
         facade = self._getFacade()

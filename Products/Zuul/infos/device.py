@@ -43,9 +43,7 @@ def _organizerWhere(uid):
 class DeviceOrganizerNode(TreeNode):
     implements(IDeviceOrganizerNode)
     adapts(DeviceOrganizer)
-
-    uiProvider = 'hierarchy'
-
+    
     @property
     def _evsummary(self):
         where = _organizerWhere(self.uid)

@@ -31,7 +31,7 @@ class DeviceRouter(TreeRouter):
         facade = self._getFacade()
         tree = facade.getTree(id)
         data = Zuul.marshal(tree)
-        return data['children']
+        return [data]
 
     def getComponents(self, uid=None, meta_type=None, keys=None, start=0, limit=50,
                       sort='name', dir='ASC'):

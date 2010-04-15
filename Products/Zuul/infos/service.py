@@ -28,8 +28,6 @@ class ServiceNode(TreeNode):
     implements(IServiceNode)
     adapts(IServiceEntity)
 
-    uiProvider = 'hierarchy'
-
     @property
     def _evsummary(self):
         return getFacade('service').getEventSummary(self.uid)
@@ -60,9 +58,6 @@ class ServiceNode(TreeNode):
 class ServiceOrganizerNode(ServiceNode):
     implements(IServiceOrganizerNode)
     adapts(ServiceOrganizer)
-
-    def __init__(self, brain):
-        super(ServiceOrganizerNode, self).__init__(brain)
 
     @property
     def children(self):

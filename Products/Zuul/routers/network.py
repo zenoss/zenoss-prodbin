@@ -71,7 +71,6 @@ class NetworkRouter(DirectRouter):
                 'children': [],
                 'path': path,
                 'id': thisSubnet.getPrimaryId().replace('/', '.'),
-                'uiProvider': 'network',
                 'leaf': leaf,
                 'text': text }
 

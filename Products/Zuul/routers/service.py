@@ -80,15 +80,12 @@ class ServiceRouter(TreeRouter):
     def getTree(self, id):
         tree = self.api.getTree(id)
         data = Zuul.marshal(tree)
-        return data['children']
+        return [data]
 
     def getOrganizerTree(self, id):
         tree = self.api.getOrganizerTree(id)
         data = Zuul.marshal(tree)
-        if 'children' in data:
-            return data['children']
-        else:
-            return {}
+        return [data]
 
     def getInfo(self, uid, keys=None):
         service = self.api.getInfo(uid)

@@ -107,39 +107,9 @@ var discoverDevicesDialog = new Zenoss.MessageDialog({
 // Navigation tree (select subnetwork)
 //********************************************
 
-Zenoss.NetworkTreeNodeUI = Ext.extend(Zenoss.HierarchyTreeNodeUI, {
-    render: function (bulkRender) {
-        var n = this.node;
-
-        n.attributes.iconCls = 'severity-icon-small clear';
-
-        if (n.isLeaf())
-            n.text = n.attributes.text;
-        else
-            n.text = this.buildNodeText(this.node);
-
-        Zenoss.NetworkTreeNodeUI.superclass.render.call(this,
-                bulkRender);
-    },
-    onTextChange : function (node, text, oldText) {
-        if ((this.rendered) && (!node.isLeaf())) {
-            this.textNode.innerHTML = this.buildNodeText(node);
-        }
-    }
-});
-
 Zenoss.NetworkTreePanel = Ext.extend(Zenoss.HierarchyTreePanel, {
     constructor: function (config) {
-        config.loader = {
-            xtype: 'treeloader',
-            directFn: Zenoss.remote.NetworkRouter.getTree,
-            uiProviders: {
-                'network': Zenoss.NetworkTreeNodeUI
-            },
-            getParams: function (node) {
-                return [node.attributes.uid];
-            }
-        };
+        config.directFn = Zenoss.remote.NetworkRouter.getTree;
         Zenoss.NetworkTreePanel.superclass.constructor.call(this,
                 config);
     }
@@ -160,6 +130,7 @@ var treesm = new Ext.tree.DefaultSelectionModel({
         }
     }
 });
+ 
 
 var network_tree = new Zenoss.NetworkTreePanel({
     id: 'networks',
