@@ -69,7 +69,8 @@ backupLog.show();
         batch python:container.dmd.ZenTableManager.getBatch(tableName,objects);"
 >
 
-<input type="hidden" name="zenScreenName" tal:attributes="value template/id"/>
+<input type="hidden" name="zenScreenName" tal:attributes="value string:backupInfo"/>
+<input type="hidden" name="redirect" value="true"/>
 
 <tal:block metal:use-macro="here/zenuimacros/macros/zentable">
 

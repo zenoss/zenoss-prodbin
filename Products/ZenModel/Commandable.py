@@ -85,7 +85,7 @@ class Commandable:
                 'Commands Deleted',
                 'User commands %s have been deleted.' % " ".join(ids)
             )
-            return self.callZenScreen(REQUEST)
+            return self.redirectToUserCommands(REQUEST)
 
     security.declareProtected(ZEN_DEFINE_COMMANDS_EDIT, 
         'manage_editUserCommand')

@@ -46,7 +46,8 @@ class ZenPacker(object):
             if isinstance(pack, ZenPack):
                 messaging.IMessageSender(self).sendToBrowser(
                     'Add To ZenPack', message)
-            return self.callZenScreen(REQUEST)
+            return REQUEST['RESPONSE'].redirect('/zport/dmd/ZenPackManager' +
+                    '/packs/%s' % pack.id if pack else '')
 
     def findObject(self, id):
         "Ugly hack for inconsistent object structure accross Organizers"
