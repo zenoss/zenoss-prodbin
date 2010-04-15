@@ -320,6 +320,14 @@ class TemplateFacade(ZuulFacade):
         template = graphDefinition.rrdTemplate()
         template.manage_deleteGraphDefinitions((graphDefinition.id,))
 
+    def deleteGraphPoint(self, uid):
+        """
+        Deletes a graph point
+        """
+        graphPoint = self._getObject(uid)
+        graphDef = graphPoint.graphDef()
+        graphDef.manage_deleteGraphPoints((graphPoint.id,))
+
     def getGraphPoints(self, uid):
         graphDefinition = self._getObject(uid)
         graphPoints = graphDefinition.getGraphPoints()

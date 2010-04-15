@@ -103,6 +103,7 @@ deleteGraphDefinition = function() {
     router.deleteGraphDefinition(params, callback);
 };
 
+
 new Zenoss.MessageDialog({
     id: 'deleteGraphDefinitionDialog',
     title: _t('Delete Graph Definition'),
@@ -112,6 +113,30 @@ new Zenoss.MessageDialog({
     }
 });
 
+/**
+ * Deletes the selected graph point
+ **/
+function deleteGraphPoint() {
+    var params, callback;
+    params = {
+        uid: getSelectedGraphPoint().id
+    };
+    callback = function(provider, response) {
+        Ext.getCmp('deleteGraphPointButton').disable();
+        Ext.getCmp('editGraphPointButton').disable();
+        Ext.getCmp('graphPointGrid').getStore().reload();
+    };
+    router.deleteGraphPoint(params, callback);
+}
+
+new Zenoss.MessageDialog({
+    id: 'deleteGraphPointDialog',
+    title: _t('Delete Graph Point'),
+    // the message is generated dynamically
+    okHandler: deleteGraphPoint
+});
+     
+     
 new Zenoss.MessageDialog({
     id: 'addDataPointToGraphDialog',
     title: _t('Add Data Point'),
@@ -464,7 +489,16 @@ Zenoss.GraphPointGrid = Ext.extend(Zenoss.BaseSequenceGrid, {
                 disabled: true,
                 tooltip: _t('Delete Graph Point'),
                 handler: function() {
-                    Ext.getCmp('deleteGraphPointDialog').show();
+                    var html, dialog;
+                    // format the confimation message
+                    html = _t("Are you sure you want to remove the graph point, {0}?") + "<br />" +
+                        _t("There is no undo.");
+                    html = String.format(html, getSelectedGraphPoint().data.name);
+                    
+                    // show the dialog
+                    dialog = Ext.getCmp('deleteGraphPointDialog');
+                    dialog.show();
+                    dialog.getComponent('message').update(html);                    
                 }
             }, {
                 xtype: 'button',
