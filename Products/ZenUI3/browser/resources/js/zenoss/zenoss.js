@@ -51,8 +51,8 @@ Ext.Direct.on('exception', function(e) {
         title: _t('Server Exception'),
         msg: '<p>' + _t('The server reported the following error:') + '</p>' +
             '<p class="exception-message">' + e.message + '</p>' +
-            '<p>' + _t('The current state of the UI is not dependable. You should ' +
-            'reload the page.') + '</p>' ,
+            '<p>' + _t('The system has encountered an error.') + ' ' +
+            _t('Please reload the page.') + '</p>' ,
         buttons: { yes: _t('Reload Page'), cancel: _t('Dismiss') },
         minWidth: 300,
         fn: function(buttonId, text, opt) {
