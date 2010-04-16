@@ -382,11 +382,15 @@ Zenoss.DetailNavPanel = Ext.extend(Zenoss.SubselectionPanel,{
         } 
         Zenoss.remote.DetailNavRouter.getDetailNavConfigs(args, myCallback, this);
     },
+    reset: function() {
+        var root = new Ext.tree.AsyncTreeNode();
+        this.treepanel.setRootNode(root);
+        return root;
+    },
     setNavTree: function(nodes){
         //get any configs registered by the page
         if (nodes) {
-            var root = new Ext.tree.AsyncTreeNode();
-            this.treepanel.setRootNode(root);
+            var root = this.reset();
             Ext.each(nodes, function(node){
                 Ext.applyIf(node, {
                     nodeType: 'subselect'

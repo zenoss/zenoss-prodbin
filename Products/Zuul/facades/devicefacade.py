@@ -17,7 +17,8 @@ from Products.AdvancedQuery import Eq, Or, And, MatchRegexp
 from Products.Zuul.decorators import info
 from Products.Zuul.utils import unbrain
 from Products.Zuul.facades import TreeFacade
-from Products.Zuul.interfaces import IDeviceFacade, ICatalogTool
+from Products.Zuul.interfaces import IDeviceFacade, ICatalogTool, IInfo
+from Products.Zuul.tree import SearchResults
 from Products.ZenModel.DeviceOrganizer import DeviceOrganizer
 from Products.ZenModel.DeviceGroup import DeviceGroup
 from Products.ZenModel.System import System
@@ -86,12 +87,12 @@ class DeviceFacade(TreeFacade):
                             orderby=sort, reverse=reverse)
         return brains
 
-    @info
     def getComponents(self, uid=None, types=(), meta_type=(), start=0,
                       limit=None, sort='name', dir='ASC', name=None):
-        return imap(unbrain, self._componentSearch(uid, types, meta_type,
-                                                   start, limit, sort, dir,
-                                                   name))
+        brains = self._componentSearch(uid, types, meta_type, start, limit,
+                                       sort, dir, name)
+        wrapped = imap(IInfo, imap(unbrain, brains))
+        return SearchResults(wrapped, brains.total, brains.hash_)
 
     def getComponentTree(self, uid=None, types=(), meta_type=()):
         d = {}
@@ -134,6 +135,11 @@ class DeviceFacade(TreeFacade):
                 sev = 'clear'
             result.append({'type':compType, 'count':compCount, 'severity':sev})
         return result
+
+    def deleteComponents(self, uids):
+        comps = imap(self._getObject, uids)
+        for comp in comps:
+            comp.manage_deleteComponent()
 
     def deleteDevices(self, uids):
         devs = imap(self._getObject, uids)

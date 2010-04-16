@@ -178,10 +178,17 @@ ZC.ComponentPanel = Ext.extend(Ext.Panel, {
                     render: function(grid) {
                         grid.setContext(uid);
                     },
-                    selectionchange: function(sm) {
+                    rangeselect: function(sm) {
+                        this.detailcontainer.removeAll();
+                        this.componentnav.reset();
+                    },
+                    selectionchange: function(sm, node) {
                         var row = sm.getSelected();
                         if (row) {
                             this.componentnav.setContext(row.data.uid);
+                        } else {
+                            this.detailcontainer.removeAll();
+                            this.componentnav.reset();
                         }
                     },
                     scope: this
@@ -198,6 +205,7 @@ Ext.reg('componentpanel', ZC.ComponentPanel);
 
 
 ZC.ComponentGridPanel = Ext.extend(Ext.ux.grid.livegrid.GridPanel, {
+    lastHash: null,
     constructor: function(config) {
         config = Ext.applyIf(config||{}, {
             border: false,
@@ -210,8 +218,8 @@ ZC.ComponentGridPanel = Ext.extend(Ext.ux.grid.livegrid.GridPanel, {
             colModel: new ZC.BaseComponentColModel({
                 columns:config.columns
             }),
-            selModel: new Ext.ux.grid.livegrid.RowSelectionModel({
-                singleSelect: true
+            selModel: new Zenoss.ExtraHooksSelectionModel({
+                suppressDeselectOnSelect: true
             }),
             view: new Ext.ux.grid.livegrid.GridView({
                 rowHeight: 10,
@@ -224,6 +232,12 @@ ZC.ComponentGridPanel = Ext.extend(Ext.ux.grid.livegrid.GridPanel, {
         });
         ZC.ComponentGridPanel.superclass.constructor.call(this, config);
         this.relayEvents(this.getSelectionModel(), ['selectionchange']);
+        this.relayEvents(this.getSelectionModel(), ['rangeselect']);
+        this.store.proxy.on('load', 
+            function(proxy, o, options) {
+                this.lastHash = o.result.hash || this.lastHash;
+            },
+            this);
     },
     onBeforeLoad: function(store, options) {
         this.applyOptions(options);

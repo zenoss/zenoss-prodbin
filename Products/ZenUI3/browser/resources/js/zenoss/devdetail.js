@@ -32,6 +32,32 @@ function setEventButtonsDisplayed(bool) {
     });
 }
 
+function refreshComponentTreeAndGrid(compType) {
+    var tree = Ext.getCmp('deviceDetailNav').treepanel,
+        sm = tree.getSelectionModel(),
+        sel = sm.getSelectedNode(),
+        compsNode = tree.getRootNode().findChildBy(function(n){
+            return n.text=='Components';
+        });
+    compType = compType || sel.id;
+    sm.suspendEvents();
+    compsNode.reload(function(){
+        sm.resumeEvents();
+        var node = compsNode.findChildBy(function(n){return n.id==compType;});
+        if (!node) {
+            node = compsNode.firstChild;
+        }
+        node.select();
+    });
+
+}
+
+Zenoss.env.componentReloader = function(compType) {
+    return function(form, action) {
+        refreshComponentTreeAndGrid(compType);
+    };
+}
+
 Zenoss.nav.register({
     Device: [{
         id: UID,
@@ -92,6 +118,23 @@ Zenoss.nav.register({
     }]
 });
 
+function componentGridOptions() {
+    var grid = Ext.getCmp('component_card').componentgrid,
+        sm = grid.getSelectionModel(),
+        rows = sm.getSelections(),
+        ranges = sm.getPendingSelections(true),
+        pluck = Ext.pluck,
+        uids = pluck(pluck(rows, 'data'), 'uid'),
+        name = Ext.getCmp('component_searchfield').getValue();
+    return {
+        uids: uids,
+        ranges: ranges,
+        name: name,
+        hashcheck: grid.lastHash
+    };
+}
+
+
 var componentCard = {
     xtype: 'componentpanel',
     id: 'component_card',
@@ -109,7 +152,38 @@ var componentCard = {
         iconCls: 'customize',
         menu: []
     },{
-        iconCls: 'delete'
+        iconCls: 'delete',
+        handler: function() {
+            Ext.Msg.show({
+                title: _t('Delete Components'),
+                msg: _t("Are you sure you want to delete these components?"),
+                buttons: Ext.Msg.YESNO,
+                fn: function(btn) {
+                    if (btn=="yes") {
+                        REMOTE.deleteComponents(componentGridOptions(), function(){
+                            refreshComponentTreeAndGrid();
+                        });
+                    } else {
+                        Ext.Msg.hide();
+                    }
+                }
+            });
+        }
+    },{
+        text: _t('Select'),
+        menu: [{
+            text: _t('All'),
+            handler: function(){
+                var grid = Ext.getCmp('component_card').componentgrid;
+                grid.getSelectionModel().selectRange(0, grid.store.totalLength);
+            }
+        },{
+            text: _t('None'),
+            handler: function(){
+                var grid = Ext.getCmp('component_card').componentgrid;
+                grid.getSelectionModel().clearSelections();
+            }
+        }]
     }],
     listeners: {
         contextchange: function(me){
@@ -482,20 +556,5 @@ Ext.getCmp('footer_bar').add([{
     }
 }]);
 
-Zenoss.env.componentReloader = function(compType) {
-    return function(form, action) {
-        var tree = Ext.getCmp('deviceDetailNav').treepanel,
-            sm = tree.getSelectionModel(),
-            sel = sm.getSelectedNode(),
-            compsNode = tree.getRootNode().findChildBy(function(n){
-                return n.text=='Components';
-            });
-        sm.suspendEvents();
-        compsNode.reload(function(){
-            sm.resumeEvents();
-            compsNode.findChildBy(function(n){return n.id==compType;}).select();
-        });
-    };
-}
 
 });

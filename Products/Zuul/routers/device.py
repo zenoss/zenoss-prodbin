@@ -39,7 +39,9 @@ class DeviceRouter(TreeRouter):
         comps = facade.getComponents(uid, meta_type=meta_type, start=start,
                                      limit=limit, sort=sort, dir=dir,
                                      name=name)
-        return DirectResponse(data=Zuul.marshal(comps, keys=keys))
+        data = Zuul.marshal(comps, keys=keys)
+        return DirectResponse(data=data, totalCount=comps.total,
+                              hash=comps.hash_)
 
     def getComponentTree(self, uid=None, id=None):
         if id:
@@ -207,6 +209,18 @@ class DeviceRouter(TreeRouter):
             log.exception(e)
             return DirectResponse.fail('Failed to change the collector.')
 
+    def deleteComponents(self, uids, hashcheck, uid=None, ranges=(),
+                         meta_type=None, keys=None, start=0, limit=50,
+                         sort='name', dir='ASC', name=None):
+        if ranges:
+            uids += self.loadComponentRanges(ranges, hashcheck, uid, params, sort, dir)
+        facade = self._getFacade()
+        try:
+            facade.deleteComponents(uids)
+            return DirectResponse.succeed('Components deleted.')
+        except:
+            return DirectResponse.fail('Failed to delete components.')
+
     def removeDevices(self, uids, hashcheck, action="remove", uid=None,
                       ranges=(), params=None, sort='name', dir='ASC'):
         if ranges:
@@ -242,6 +256,17 @@ class DeviceRouter(TreeRouter):
         uids = []
         for start, stop in sorted(ranges):
             uids.extend(b.uid for b in islice(devs, start, stop))
+        return uids
+
+    def loadComponentRanges(self, ranges, hashcheck, uid=None, types=(),
+                            meta_type=(), start=0, limit=None, sort='name',
+                            dir='ASC', name=None):
+        facade = self._getFacade()
+        comps = facade.getComponents(uid, types, meta_type, start, limit, sort,
+                                     dir, name)
+        uids = []
+        for start, stop in sorted(ranges):
+            uids.extend(b.uid for b in islice(comps, start, stop))
         return uids
 
     def getUserCommands(self, uid):

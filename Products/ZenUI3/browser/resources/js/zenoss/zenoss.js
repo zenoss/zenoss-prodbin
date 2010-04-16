@@ -167,9 +167,25 @@ Ext.reg('largetoolbar', Zenoss.LargeToolbar);
  */
 Zenoss.ExtraHooksSelectionModel = Ext.extend(
    Ext.ux.grid.livegrid.RowSelectionModel, {
+    suppressDeselectOnSelect: false,
     initEvents: function() {
         Zenoss.ExtraHooksSelectionModel.superclass.initEvents.call(this);
         this.addEvents('rangeselect');
+        this.on('beforerowselect', function(){
+            if (this.suppressDeselectOnSelect) {
+                this.selectingRow = true;
+            }
+        }, this);
+    },
+    clearSelections: function() {
+        if (this.selectingRow) {
+            this.suspendEvents();
+        }
+        Zenoss.ExtraHooksSelectionModel.superclass.clearSelections.apply(this, arguments);
+        if (this.selectingRow) {
+            this.resumeEvents();
+            this.selectingRow = false;
+        }
     },
     selectRange: function (startRow, endRow, keepExisting) {
         this.suspendEvents();
