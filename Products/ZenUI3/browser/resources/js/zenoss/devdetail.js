@@ -96,8 +96,12 @@ var componentCard = {
     xtype: 'componentpanel',
     id: 'component_card',
     gridtbar: [{
-        text: 'Actions',
-        menu:[]
+        xtype: 'searchfield'
+    },'-',{
+        iconCls: 'customize',
+        menu: []
+    },{
+        iconCls: 'delete'
     }]
 };
 
@@ -385,6 +389,7 @@ Zenoss.DeviceDetailNav = Ext.extend(Zenoss.DetailNavPanel, {
 });
 Ext.reg('devicedetailnav', Zenoss.DeviceDetailNav);
 
+
 Ext.getCmp('center_panel').add({
     id: 'center_panel_container',
     layout: 'border',
@@ -437,7 +442,7 @@ Ext.create({
     context: UID
 });
 
-Ext.getCmp('footer_bar').add({
+Ext.getCmp('footer_bar').add([{
     xtype: 'ContextConfigureMenu',
     id: 'device_configure_menu',
     listeners: {
@@ -452,6 +457,32 @@ Ext.getCmp('footer_bar').add({
             Ext.getCmp('bindTemplatesDialog').show();
         }
     }]
-});
+},{
+    xtype: 'ContextConfigureMenu',
+    id: 'component-add-menu',
+    iconCls: 'add',
+    menuIds: ['IpInterface', 'WinService', 'OSProcess', 'IpService', 'FileSystem', 'IpRouteEntry'],
+    listeners: {
+        render: function(){
+            this.setContext(UID);
+        }
+    }
+}]);
+
+Zenoss.env.componentReloader = function(compType) {
+    return function(form, action) {
+        var tree = Ext.getCmp('deviceDetailNav').treepanel,
+            sm = tree.getSelectionModel(),
+            sel = sm.getSelectedNode(),
+            compsNode = tree.getRootNode().findChildBy(function(n){
+                return n.text=='Components';
+            });
+        sm.suspendEvents();
+        compsNode.reload(function(){
+            sm.resumeEvents();
+            compsNode.findChildBy(function(n){return n.id==compType;}).select();
+        });
+    };
+}
 
 });

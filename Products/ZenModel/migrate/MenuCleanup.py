@@ -16,22 +16,45 @@ import Migrate
 
 class MenuCleanup(Migrate.Step):
     version = Migrate.Version(2, 6, 0)
-    
+
     def cutover(self, dmd):
-        
+
         zenMenus = dmd.zenMenus
-        
+
         edit = zenMenus.Edit
         removeItems(edit, ['setGroups', 'setLocation', 'setPerformanceMonitor',
                            'setPriority', 'setProductionState', 'setSystems'])
 
         topLevel = zenMenus.TopLevel
         removeItems(topLevel, ['clearMapCache'])
-        
+
         manage = zenMenus.Manage
         removeItems(manage, ['addDevice', 'lockDevices', 'pushConfig', 
                              'resetCommunity', 'resetIp'])
-        
+
+        ipinterface = zenMenus.IpInterface
+        removeItems(ipinterface, ['changeMonitoring', 'deleteIpInterfaces',
+                                  'lockIpInterfaces'])
+
+        iprouteentry = zenMenus.IpRouteEntry
+        removeItems(iprouteentry, ['deleteIpRouteEntries', 'lockIpRouteEntries'])
+
+        ipservice = zenMenus.IpService
+        removeItems(ipservice, ['changeMonitoring', 'deleteIpServices',
+                                  'lockIpServices'])
+
+        filesystem = zenMenus.FileSystem
+        removeItems(filesystem, ['changeMonitoring', 'deleteFileSystems',
+                                  'lockFileSystems'])
+
+        osprocess = zenMenus.OSProcess
+        removeItems(osprocess, ['changeMonitoring', 'deleteOSProcesses',
+                                  'lockOSProcesses'])
+
+        winservice = zenMenus.WinService
+        removeItems(winservice, ['changeMonitoring', 'deleteWinServices',
+                                  'lockWinServices'])
+
 def removeItems(menu, items):
     for item in items:
         if hasattr(menu.zenMenuItems, item):

@@ -237,6 +237,9 @@ ZC.ComponentGridPanel = Ext.extend(Ext.ux.grid.livegrid.GridPanel, {
             meta_type: this.componentType
         });
     },
+    refresh: function() {
+        this.setContext(this.contextUid);
+    },
     setContext: function(uid) {
         this.contextUid = uid;
         this.getStore().on('load', function(){
@@ -378,6 +381,5 @@ ZC.IpInterfacePanel = Ext.extend(ZC.ComponentGridPanel, {
 });
 
 Ext.reg('IpInterfacePanel', ZC.IpInterfacePanel);
-
 
 })();

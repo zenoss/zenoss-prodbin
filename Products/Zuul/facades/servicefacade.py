@@ -19,10 +19,10 @@ from Products.ZenModel.ServiceClass import ServiceClass
 from Products.ZenModel.ServiceOrganizer import ServiceOrganizer
 from Products.Zuul.facades import TreeFacade
 from Products.Zuul.utils import unbrain
+from Products.Zuul.decorators import info
 from Products.Zuul.interfaces import ITreeFacade, IServiceFacade
-from Products.Zuul.interfaces import IServiceOrganizerNode, IInfo, ICatalogTool
+from Products.Zuul.interfaces import IInfo, ICatalogTool
 from Products.Zuul.infos.service import ServiceOrganizerNode
-from Products.Zuul.tree import SearchResults
 from Acquisition import aq_base
 
 log = logging.getLogger('zen.ServiceFacade')
@@ -65,7 +65,7 @@ class ServiceFacade(TreeFacade):
         info = IInfo(parent)
         return info
 
-    def getList(self, limit=0, start=0, sort='name', dir='DESC',
+    def _serviceSearch(self, limit=None, start=None, sort='name', dir='ASC',
               params=None, uid=None, criteria=()):
         cat = ICatalogTool(self._getObject(uid))
         reverse = dir=='DESC'
@@ -83,7 +83,23 @@ class ServiceFacade(TreeFacade):
         brains = cat.search("Products.ZenModel.ServiceClass.ServiceClass",
                             start=start, limit=limit, orderby=sort,
                             reverse=reverse, query=query)
+        return brains
 
-        objs = imap(unbrain, brains)
-        infos = imap(IInfo, objs)
-        return SearchResults(infos, brains.total, brains.hash_)
+    def getClassNames(self, uid=None, query=None):
+        params = None
+        if query:
+            params = {'name':query}
+        data = []
+        brains = self._serviceSearch(uid=uid, params=params)
+        for klass in brains:
+            value = klass.getPath().lstrip('/zport/dmd/Services')
+            data.append({'value':value, 'name':klass.name})
+        return data
+
+    @info
+    def getList(self, limit=None, start=None, sort='name', dir='DESC',
+              params=None, uid=None, criteria=()):
+        brains = self._serviceSearch(limit, start, sort, dir, params, uid,
+                                     criteria)
+        return {'brains': imap(unbrain, brains), 'total':brains.total,
+                'hash':brains.hash_}

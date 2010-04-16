@@ -301,8 +301,8 @@ class OperatingSystem(Software):
     def addWinService(self, className, userCreated, REQUEST=None):
         """Add an WinService.
         """
-        org = self.dmd.Services.WinService
-        wsc = org.find(org.parseServiceLiveSearchString(className))
+        org = self.dmd.Services
+        wsc = org.unrestrictedTraverse(className)
         if wsc is not None:
             ws = manage_addWinService(self.winservices, 
                                     wsc.id,
@@ -445,8 +445,8 @@ class OperatingSystem(Software):
     def addIpService(self, className, protocol, userCreated, REQUEST=None):
         """Add IpServices.
         """
-        org = self.dmd.Services.IpService
-        ipsc = org.find(org.parseServiceLiveSearchString(className))
+        org = self.dmd.Services
+        ipsc = org.unrestrictedTraverse(className)
         if ipsc is not None:
             ips = manage_addIpService(self.ipservices,
                                 ipsc.id,

@@ -73,9 +73,9 @@ class ServiceRouter(TreeRouter):
 
         disabled = not Zuul.checkPermission('Manage DMD')
 
-        data = Zuul.marshal(services)
-        return DirectResponse(services=data, totalCount=services.total,
-                              hash=services.hash_, disabled=disabled)
+        data = Zuul.marshal(services['brains'])
+        return DirectResponse(services=data, totalCount=services['total'],
+                              hash=services['hash'], disabled=disabled)
 
     def getTree(self, id):
         tree = self.api.getTree(id)
@@ -98,6 +98,10 @@ class ServiceRouter(TreeRouter):
         data = Zuul.marshal(service, keys)
         disabled = not Zuul.checkPermission('Manage DMD')
         return {'data': data, 'disabled': disabled, 'success': True}
+
+    def getClassNames(self, uid=None, query=None):
+        data = self.api.getClassNames(uid, query)
+        return DirectResponse.succeed(data=data)
 
     @require('Manage DMD')
     def setInfo(self, **data):

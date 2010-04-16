@@ -1,9 +1,9 @@
-<h2>Add IpRouteEntry</h2>
+<form id="addiproute_form" tal:attributes="action context/os/absolute_url_path">
 <input type="hidden" name="userCreated" value="True">
 <span id="errmsg" style="color:red;"></span>
 <br/>
-<p style="text-align:right;">
-Destination:&nbsp;<input name="dest" size="15">&nbsp;/&nbsp;<input name="routemask" size="2">
+<p>
+Destination:&nbsp;<input id="route_dest" name="dest" size="15">&nbsp;/&nbsp;<input name="routemask" size="2">
 <br/><br/>
 Next Hop:&nbsp;<input name="nexthopid" size="15">
 <br/><br/>
@@ -29,15 +29,16 @@ tal:define="types here/os/routeTypeMap">
 </select>
 <br/><br/>
 </p>
-<div id="dialog_buttons">
-<input tal:attributes="id string:dialog_submit;
-        type string:submit;
-        value string:OK;
-        onclick string:return $$('dialog').submit_form('${here/os/absolute_url}',
-         '', 1)"
-                        name="addIpRouteEntry:method" />
-<input tal:attributes="id string:dialog_cancel;
-                        type string:button;
-                        value string:Cancel;
-                        onclick string:$$('dialog').hide()" />
-</div>
+</form>
+<script>
+var addiproute_form = new Zenoss.dialog.DialogFormPanel({
+    existingFormId: 'addiproute_form',
+    submitName: 'addIpRouteEntry:method',
+    jsonResult: false,
+    listeners: {
+        actioncomplete: Zenoss.env.componentReloader('IpRouteEntry')
+    }
+});
+
+Ext.get('route_dest').dom.focus();
+</script>
