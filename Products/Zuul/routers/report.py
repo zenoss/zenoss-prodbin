@@ -55,10 +55,11 @@ class ReportRouter(DirectRouter):
                 menuText=ReportRouter._reportMenuItems)
 
     def getTree(self, id='/zport/dmd/Reports'):
-        my_data = []
-        self._getReportOrganizersTree(self.context.dmd.restrictedTraverse(id),
-                my_data)
-        return my_data
+        root_organizer = self.context.dmd.restrictedTraverse(id)
+        root_node = self._createTreeNode(root_organizer)
+        self._getReportOrganizersTree(root_organizer,
+                root_node['children'])
+        return [root_node]
 
     def _getReportOrganizersTree(self, rorg, my_data):
         for rorg in rorg.children():

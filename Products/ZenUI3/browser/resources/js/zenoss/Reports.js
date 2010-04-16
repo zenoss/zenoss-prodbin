@@ -324,15 +324,6 @@ Zenoss.remote.ReportRouter.getReportTypes({},
 );
 
 Ext.getCmp('footer_bar').add({
-    id: 'edit-button',
-    tooltip: _t('Edit a report'),
-    iconCls: 'set',
-    handler: function() {
-        report_tree.editReport();
-    }
-});
-
-Ext.getCmp('footer_bar').add({
     id: 'delete-button', 
     tooltip: _t('Delete an item'),
     iconCls: 'delete',
@@ -341,6 +332,15 @@ Ext.getCmp('footer_bar').add({
 
 Ext.getCmp('footer_bar').add({ 
     xtype: 'tbseparator'
+});
+
+Ext.getCmp('footer_bar').add({
+    id: 'edit-button',
+    tooltip: _t('Edit a report'),
+    iconCls: 'set',
+    handler: function() {
+        report_tree.editReport();
+    }
 });
 
 Ext.getCmp('footer_bar').add({
