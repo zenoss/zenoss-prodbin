@@ -580,6 +580,7 @@ new Zenoss.HideFitDialog({
 
 Ext.create({
     xtype: 'window',
+    layout: (Ext.isIE) ? 'form': 'fit',
     id: 'viewGraphDefinitionDialog',
     title: _t('View and Edit Graph Definition'),
     closeAction: 'hide',
@@ -587,6 +588,7 @@ Ext.create({
     autoScroll: true,
     plain: true,
     modal: true,
+    width: 400,
     padding: 10,
     buttons: [{
         ref: '../submitButton',
