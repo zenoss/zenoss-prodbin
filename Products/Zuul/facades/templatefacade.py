@@ -255,8 +255,9 @@ class TemplateFacade(ZuulFacade):
     def getGraphs(self, uid):
         catalog = self._getCatalog(uid)
         brains = catalog.search(types=GraphDefinition)
-        graphs = imap(unbrain, brains)
-        return imap(IGraphInfo, graphs)
+        graphs = map(IGraphInfo, imap(unbrain, brains))
+        graphs.sort(key=lambda graph: graph.sequence)
+        return graphs.__iter__()
 
     def addDataPointToGraph(self, dataPointUid, graphUid):
         dataPoint = self._getObject(dataPointUid)
@@ -382,6 +383,12 @@ class TemplateFacade(ZuulFacade):
     def setGraphDefinition(self, uid, data):
         graphDef = self._getObject(uid)
         Zuul.unmarshal(data, graphDef)
+
+        
+    def _setGraphDefinitionSequence(self, uids):
+        for i, uid in enumerate(uids):
+            graphDefinition = self.getGraphDefinition(uid)
+            graphDefinition.sequence = i
 
     def _getCatalog(self, uid):
         obj = self._getObject(uid)

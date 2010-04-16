@@ -148,7 +148,8 @@ Zenoss.GraphStore = Ext.extend(Ext.data.DirectStore, {
             xtype: 'directstore',
             directFn: router.getGraphs,
             idProperty: 'uid',
-            fields: ['uid', 'name', 'graphPoints', 'units', 'height', 'width']
+            fields: ['uid', 'name', 'graphPoints', 'units', 'height', 'width',
+                     'sequence']
         });
         Zenoss.GraphStore.superclass.constructor.call(this, config);
     }

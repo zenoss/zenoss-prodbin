@@ -262,3 +262,9 @@ class TemplateRouter(DirectRouter):
         facade = self._getFacade()
         facade.setInfo(uid, data)
         return {'success': True}
+        
+    @require('Manage DMD')
+    def setGraphDefinitionSequence(self, uids):
+        facade = self._getFacade()
+        facade._setGraphDefinitionSequence(uids)
+        return DirectResponse(success=True)

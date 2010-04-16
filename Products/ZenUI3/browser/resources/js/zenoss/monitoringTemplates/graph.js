@@ -416,6 +416,7 @@ Zenoss.BaseSequenceGrid = Ext.extend(Ext.grid.GridPanel, {
             enableDragDrop: Zenoss.Security.hasPermission('Manage DMD'),
             ddGroup: 'sequenceDDGroup'
         });
+        this.addEvents({'resequence': true});
         Zenoss.BaseSequenceGrid.superclass.constructor.call(this, config);
     },
     onRender: function() {
@@ -440,6 +441,7 @@ Zenoss.BaseSequenceGrid = Ext.extend(Ext.grid.GridPanel, {
                         store.insert(cindex, rowData);
                     }
                     sm.selectRecords(rows);
+                    grid.fireEvent('resequence');
                 }
             }
         });
@@ -737,7 +739,7 @@ new Ext.menu.Menu({
     }]
 });
 
-Zenoss.templates.GraphGrid = Ext.extend(Ext.grid.GridPanel, {
+Zenoss.templates.GraphGrid = Ext.extend(Zenoss.BaseSequenceGrid, {
     constructor: function(config) {
         Ext.applyIf(config, {
             title: _t('Graph Definitions'),
@@ -751,8 +753,13 @@ Zenoss.templates.GraphGrid = Ext.extend(Ext.grid.GridPanel, {
                     dialogWindow = Ext.getCmp('viewGraphDefinitionDialog');
                     uid = getSelectedGraphDefinition().id;
                     dialogWindow.loadAndShow(uid);
+                },
+                resequence: function() {
+                    var records, uids;
+                    records = this.store.getRange();
+                    uids = Ext.pluck(records, 'id');
+                    router.setGraphDefinitionSequence({'uids': uids});
                 }
-
             },
             selModel: new Ext.grid.RowSelectionModel({
                 singleSelect: true,
@@ -768,9 +775,7 @@ Zenoss.templates.GraphGrid = Ext.extend(Ext.grid.GridPanel, {
                 }
             }),
             colModel: new Ext.grid.ColumnModel({
-                columns: [
-                    {dataIndex: 'name', header: _t('Name'), width: 400}
-                ]
+                columns: [{dataIndex: 'name', header: _t('Name'), width: 400}]
             }),
             tbar: [{
                 id: 'addGraphDefinitionButton',

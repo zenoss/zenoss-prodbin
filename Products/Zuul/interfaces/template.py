@@ -288,3 +288,9 @@ class ITemplateFacade(IFacade):
         Bind the values in the data parameter dictionary to the
         GraphDefinition that is uniquely identified by uid.
         """
+
+    def setGraphDefinitionSequence(uids):
+        """
+        Set the sequence of the graph definitions uniquely identified by the
+        items in the uids paramter.
+        """
