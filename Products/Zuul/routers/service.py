@@ -102,6 +102,11 @@ class ServiceRouter(TreeRouter):
     @require('Manage DMD')
     def setInfo(self, **data):
         service = self.api.getInfo(data['uid'])
+
+        if data['isInherited']:
+            if 'failSeverity' in data: del data['failSeverity']
+            if 'monitor' in data: del data['monitor']
+
         Zuul.unmarshal(data, service)
         return {'success': True}
 

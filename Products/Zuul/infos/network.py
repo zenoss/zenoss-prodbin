@@ -13,7 +13,7 @@
 
 from zope.interface import implements
 from Products.Zuul.interfaces import IIpNetworkInfo, IIpAddressInfo
-from Products.Zuul.infos import InfoBase
+from Products.Zuul.infos import InfoBase, ConfigProperty
 from Products.Zuul.decorators import info
 
 class IpNetworkInfo(InfoBase):
@@ -32,36 +32,29 @@ class IpNetworkInfo(InfoBase):
     def inheritConfigProperty(configProp):
         def getICP(self):
             return not self._object.hasProperty(configProp)
+
         def setICP(self, isInherited):
             if isInherited:
                 if self._object.hasProperty(configProp):
                     self._object.deleteZenProperty(configProp)
+
         return property(getICP, setICP)
 
-    def configProperty(configProp, configType):
-        def getCP(self):
-            return getattr(self._object, configProp)
-        def setCP(self, setting):
-            if self._object.hasProperty(configProp):
-                self._object._updateProperty(configProp, setting)
-            else:
-                self._object._setProperty(configProp, setting, type=configType)
-        return property(getCP, setCP)
-
     isInheritAutoDiscover = inheritConfigProperty('zAutoDiscover')
-    autoDiscover = configProperty('zAutoDiscover', 'boolean')
+    autoDiscover = ConfigProperty('zAutoDiscover', 'boolean')
 
     isInheritDefaultNetworkTree = inheritConfigProperty('zDefaultNetworkTree')
-    defaultNetworkTree = configProperty('zDefaultNetworkTree', 'lines')
+    defaultNetworkTree = ConfigProperty('zDefaultNetworkTree', 'lines')
 
     isInheritDrawMapLinks = inheritConfigProperty('zDrawMapLinks')
-    drawMapLinks = configProperty('zDrawMapLinks', 'boolean')
+    drawMapLinks = ConfigProperty('zDrawMapLinks', 'boolean')
 
     isInheritIcon = inheritConfigProperty('zIcon')
-    icon = configProperty('zIcon', 'string')
+    icon = ConfigProperty('zIcon', 'string')
     
     isInheritPingFailThresh = inheritConfigProperty('zPingFailThresh')
-    pingFailThresh = configProperty('zPingFailThresh', 'int')
+    pingFailThresh = ConfigProperty('zPingFailThresh', 'int')
+
 
 class IpAddressInfo(InfoBase):
     implements(IIpAddressInfo)

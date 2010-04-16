@@ -40,7 +40,8 @@ ZF.BaseDetailForm = Ext.extend(Ext.form.FormPanel, {
                     handler: function(btn, e) {
                         var values, form = me.getForm();
 
-                        values = Ext.apply({uid: me.contextUid}, form.getValues());
+                        values = Ext.apply({uid: me.contextUid}, form.getFieldValues());
+
                         form.api.submit(values);
                         // Quirky work-around to clear all dirty flags on the
                         // fields in the form.

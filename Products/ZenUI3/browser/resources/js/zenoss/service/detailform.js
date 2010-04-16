@@ -42,15 +42,16 @@ Ext.onReady( function() {
     zs.acquiredCheckboxHandler = function(checkbox, checked) {
         zs.setMonitoringDisabled(checked);
 
-        var router = Zenoss.remote.ServiceRouter;
+        var router = Zenoss.remote.ServiceRouter,
+            uid = Ext.getCmp('serviceForm').contextUid;
 
         var callback = function(provider, response) {
             var info = response.result.data;
             Ext.getCmp('monitorCheckbox').setValue(info.monitor);
-            Ext.getCmp('eventSeverityCombo').setValue(info.eventSeverity);
+            Ext.getCmp('eventSeverityCombo').setValue(info.failSeverity);
         };
 
-        router.getInfo({uid: uid, keys: ['monitor', 'eventSeverity']}, callback);
+        router.getInfo({uid: uid, keys: ['monitor', 'failSeverity']}, callback);
     };
     zs.actioncompleteHandler = function(form, action) {
         form = Ext.getCmp('serviceForm');
@@ -60,7 +61,7 @@ Ext.onReady( function() {
 
         if (action.type == 'directload') {
             Ext.each(zs.hiddenFieldIdsForOrganizer, function(i){
-                    o = Ext.getCmp(i);
+                    var o = Ext.getCmp(i);
                     o.setVisible(isClass);
                     o.label.setVisible(isClass);
                 });
@@ -118,8 +119,8 @@ Ext.onReady( function() {
     zs.acquiredCheckbox = {
         xtype: 'checkbox',
         id: 'acquiredCheckbox',
-        fieldLabel: _t('Inherited'),
-        name: 'isMonitoringAcquired',
+        fieldLabel: _t('Inherited?'),
+        name: 'isInherited',
         handler: zs.acquiredCheckboxHandler,
         submitValue: true
     };
@@ -132,19 +133,25 @@ Ext.onReady( function() {
         submitValue: true
     };
 
+    //TODO: replace with 'severity' xtype
     zs.eventSeverityCombo = {
         xtype: 'combo',
         id: 'eventSeverityCombo',
         fieldLabel: _t('Event Severity'),
-        name: 'eventSeverity',
-        triggerAction: 'all',
+        name: 'failSeverity',
         mode: 'local',
-        valueField: 'severityId',
-        displayField: 'severityText',
         store: new Ext.data.ArrayStore({
-            fields: ['severityId', 'severityText'],
-            data: Zenoss.env.SEVERITIES.slice(0, 5)
-        })
+            data: Zenoss.env.SEVERITIES,
+            fields: ['value', 'name']
+        }),
+        valueField: 'value',
+        displayField: 'name',
+        hiddenName: 'failSeverity',
+        hiddenId: 'eventSeverityComboHidden',
+        triggerAction: 'all',
+        forceSelection: true,
+        editable: false,
+        autoSelect: true
     };
 
     zs.monitoringFieldSet = {
@@ -193,11 +200,11 @@ Ext.onReady( function() {
         }
     };
 
-    clearForm = function(form) {
-        q = {};
-        Ext.each(form.items.items, function(i){ q[i.id] = null} );
+    var clearForm = function(form) {
+        var q = {};
+        Ext.each(form.items.items, function(i){ q[i.id] = null; } );
         form.setValues(q);
-    }
+    };
 
     zs.initForm = function() {
 

@@ -46,6 +46,9 @@ class IServiceInfo(IInfo):
     serviceKeys = Attribute('Keys which will match for defining services.')
     port = Attribute('The port that the service runs on')
     count = Attribute('The number of instances.')
+    isInherited = Attribute('Are monitoring properties inherited?')
+    monitor = Attribute('Monitoring enabled')
+    failSeverity = Attribute('Severity threshold for monitoring')
 
 class IServiceOrganizerInfo(IInfo):
     """

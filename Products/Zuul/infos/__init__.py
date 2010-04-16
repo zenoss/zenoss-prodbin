@@ -29,6 +29,16 @@ def ProxyProperty(propertyName):
 
     return property(getter, setter)
 
+def ConfigProperty(configProp, configType):
+        def getCP(self):
+            return getattr(self._object, configProp)
+
+        def setCP(self, setting):
+            if self._object.hasProperty(configProp):
+                self._object._updateProperty(configProp, setting)
+            else:
+                self._object._setProperty(configProp, setting, type=configType)
+        return property(getCP, setCP)
 
 class InfoBase(object):
     implements(IInfo)

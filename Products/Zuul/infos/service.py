@@ -16,7 +16,7 @@ from zope.component import adapts
 from zope.interface import implements
 from Products.Zuul import getFacade
 from Products.Zuul.tree import TreeNode
-from Products.Zuul.infos import InfoBase
+from Products.Zuul.infos import InfoBase, ConfigProperty
 from Products.Zuul.interfaces import IServiceEntity, IServiceInfo
 from Products.Zuul.interfaces import IServiceNode, IServiceOrganizerNode
 from Products.Zuul.interfaces import ICatalogTool
@@ -55,6 +55,7 @@ class ServiceNode(TreeNode):
     def leaf(self):
         return 'serviceclasses' in self.uid
 
+
 class ServiceOrganizerNode(ServiceNode):
     implements(IServiceOrganizerNode)
     adapts(ServiceOrganizer)
@@ -68,6 +69,7 @@ class ServiceOrganizerNode(ServiceNode):
     @property
     def leaf(self):
         return False
+
 
 class ServiceInfo(InfoBase):
     implements(IServiceInfo)
@@ -96,4 +98,16 @@ class ServiceInfo(InfoBase):
 
         return numInstances
 
+    monitor = ConfigProperty('zMonitor', 'boolean')
+    failSeverity = ConfigProperty('zFailSeverity', 'int')
 
+    def getInherited(self):
+        return not self._object.hasProperty('zMonitor')
+
+    def setInherited(self, isInherited):
+        if isInherited:
+            if self._object.hasProperty('zMonitor'):
+                self._object.deleteZenProperty('zMonitor')
+            if self._object.hasProperty('zFailSeverity'):
+                self._object.deleteZenProperty('zFailSeverity')
+    isInherited = property(getInherited, setInherited)
