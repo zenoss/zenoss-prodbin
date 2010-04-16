@@ -34,10 +34,11 @@ class DeviceRouter(TreeRouter):
         return [data]
 
     def getComponents(self, uid=None, meta_type=None, keys=None, start=0, limit=50,
-                      sort='name', dir='ASC'):
+                      sort='name', dir='ASC', name=None):
         facade = self._getFacade()
         comps = facade.getComponents(uid, meta_type=meta_type, start=start,
-                                     limit=limit, sort=sort, dir=dir)
+                                     limit=limit, sort=sort, dir=dir,
+                                     name=name)
         return DirectResponse(data=Zuul.marshal(comps, keys=keys))
 
     def getComponentTree(self, uid=None, id=None):

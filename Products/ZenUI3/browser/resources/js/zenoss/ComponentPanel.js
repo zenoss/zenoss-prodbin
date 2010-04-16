@@ -160,6 +160,7 @@ ZC.ComponentPanel = Ext.extend(Ext.Panel, {
             }]
         });
         ZC.ComponentPanel.superclass.constructor.call(this, config);
+        this.addEvents('contextchange');
         this.componentnav.target = this.detailcontainer;
     },
     setContext: function(uid, type) {
@@ -190,6 +191,7 @@ ZC.ComponentPanel = Ext.extend(Ext.Panel, {
         } else {
             this.componentgrid.setContext(uid);
         }
+        this.fireEvent('contextchange', this, uid, type);
     }
 });
 Ext.reg('componentpanel', ZC.ComponentPanel);
@@ -234,18 +236,25 @@ ZC.ComponentGridPanel = Ext.extend(Ext.ux.grid.livegrid.GridPanel, {
         Ext.apply(options.params, {
             uid: this.contextUid,
             keys: Ext.pluck(this.getColumnModel().config, 'dataIndex'),
-            meta_type: this.componentType
+            meta_type: this.componentType,
+            name: this.componentName
         });
     },
     refresh: function() {
         this.setContext(this.contextUid);
+    },
+    filter: function(name) {
+        if (this.componentName!=name) {
+            this.componentName = name;
+            this.view.updateLiveRows(0, true, true, false);
+        } 
     },
     setContext: function(uid) {
         this.contextUid = uid;
         this.getStore().on('load', function(){
             this.getSelectionModel().selectRow(0);
         }, this, {single:true});
-        this.view.updateLiveRows(this.view.rowIndex, true, true, false);
+        this.view.updateLiveRows(0, true, true, false);
     }
 });
 

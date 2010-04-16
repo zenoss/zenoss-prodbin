@@ -13,7 +13,7 @@
 
 from itertools import imap
 from zope.interface import implements
-from Products.AdvancedQuery import Eq, Or
+from Products.AdvancedQuery import Eq, Or, And, MatchRegexp
 from Products.Zuul.decorators import info
 from Products.Zuul.utils import unbrain
 from Products.Zuul.facades import TreeFacade
@@ -66,7 +66,7 @@ class DeviceFacade(TreeFacade):
         return zip(severities, counts)
 
     def _componentSearch(self, uid=None, types=(), meta_type=(), start=0,
-                         limit=None, sort='name', dir='ASC'):
+                         limit=None, sort='name', dir='ASC', name=None):
         reverse = dir=='DESC'
         if isinstance(types, basestring):
             types = (types,)
@@ -78,6 +78,9 @@ class DeviceFacade(TreeFacade):
         query = None
         if meta_type:
             query = Or(*(Eq('meta_type', t) for t in meta_type))
+        if name:
+            namequery = MatchRegexp('name', '(?i).*%s.*' % name)
+            query = namequery if query is None else And(query, namequery)
         cat = ICatalogTool(self._getObject(uid))
         brains = cat.search(defaults, query=query, start=start, limit=limit,
                             orderby=sort, reverse=reverse)
@@ -85,9 +88,10 @@ class DeviceFacade(TreeFacade):
 
     @info
     def getComponents(self, uid=None, types=(), meta_type=(), start=0,
-                      limit=None, sort='name', dir='ASC'):
+                      limit=None, sort='name', dir='ASC', name=None):
         return imap(unbrain, self._componentSearch(uid, types, meta_type,
-                                                   start, limit, sort, dir))
+                                                   start, limit, sort, dir,
+                                                   name))
 
     def getComponentTree(self, uid=None, types=(), meta_type=()):
         d = {}

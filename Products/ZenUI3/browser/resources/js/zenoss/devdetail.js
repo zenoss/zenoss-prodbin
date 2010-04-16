@@ -96,13 +96,26 @@ var componentCard = {
     xtype: 'componentpanel',
     id: 'component_card',
     gridtbar: [{
-        xtype: 'searchfield'
+        xtype: 'searchfield',
+        id: 'component_searchfield',
+        validateOnBlur: false,
+        listeners: {
+            valid: function(field) {
+                var grid = Ext.getCmp('component_card').componentgrid;
+                grid.filter(field.getValue());
+            }
+        }
     },'-',{
         iconCls: 'customize',
         menu: []
     },{
         iconCls: 'delete'
-    }]
+    }],
+    listeners: {
+        contextchange: function(me){
+            Ext.getCmp('component_searchfield').setRawValue('');
+        }
+    }
 };
 
 var deviceInformation = {
