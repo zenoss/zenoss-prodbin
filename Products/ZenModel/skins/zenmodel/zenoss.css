@@ -797,6 +797,7 @@ a.tablevalues:active {
     padding-bottom:3px;
     padding-top: 3px;
     font-weight:bold;
+    margin-left:5px;
 }
 .sortable_item fieldlist {
     color: darkgrey;
@@ -813,6 +814,7 @@ a.tablevalues:active {
     overflow:auto;
     padding:0.5em;
     padding-left:1em;
+    width: 130px;
 }
 
 .invisible {

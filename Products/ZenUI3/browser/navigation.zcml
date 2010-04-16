@@ -89,6 +89,17 @@
             layer="..navigation.interfaces.IZenossNav"
             />
 
+        <browser:viewlet
+            name="Event Manager"
+            url="/zport/dmd/ZenEventManager"
+            weight="4"
+            parentItem="Events"
+            manager="..navigation.interfaces.ISecondaryNavigationMenu"
+            class="..navigation.menuitem.SecondaryNavigationMenuItem"
+            permission="zenoss.ViewHistory"
+            layer="..navigation.interfaces.IZenossNav"
+            />
+
     <browser:viewlet
         name="Infrastructure"
         url="/zport/dmd/itinfrastructure"

@@ -1,4 +1,4 @@
-<tal:block metal:use-macro="here/templates/macros/page2">
+<tal:block metal:use-macro="here/page_macros/old-new">
 <tal:block metal:fill-slot="contentPane">
 <form id="clauseForm" 
       method="post" 
@@ -47,7 +47,7 @@
 
  <tal:block tal:repeat="command batch">
  <tr tal:define="odd repeat/command/odd"
-    tal:attributes="class python:test(odd, 'odd', 'even')">
+    tal:attributes="class python:odd and 'odd' or 'even'">
     <td class="tablevalues">
        <input type="checkbox" name="ids:list" 
            tal:attributes="value command/getId"/>

@@ -249,7 +249,7 @@ class EventManagerBase(ZenModelRM, ObjectCache, DbAccessBase):
                 },
                 { 'id'            : 'changes'
                 , 'name'          : 'Modifications'
-                , 'action'        : 'viewHistory'
+                , 'action'        : 'viewNewHistory'
                 , 'permissions'   : (ZEN_VIEW_MODIFICATIONS,)
                 },
             )

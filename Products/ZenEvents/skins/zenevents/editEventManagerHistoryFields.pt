@@ -1,4 +1,4 @@
-<tal:block metal:use-macro="here/templates/macros/page2">
+<tal:block metal:use-macro="here/page_macros/old-new">
 <tal:block metal:fill-slot="contentPane" 
     tal:define="obj python:here.dmd.ZenEventHistory">
 <tal:block tal:condition="python:'MSIE' not in here.REQUEST.HTTP_USER_AGENT">
@@ -7,7 +7,8 @@
 <script src="/zport/js/Sortable.js"></script>
 <script src="zendragdrop.js"></script>
 <form method="post" tal:attributes="action here/getPrimaryUrlPath">
-<input type="hidden" name="zenScreenName" tal:attributes="value template/id" /> 
+<input type="hidden" name="zenScreenName" tal:attributes="value string:editEventManagerHistoryFields" /> 
+<input type="hidden" name="redirect" value="true"/>
 
 
         <tal:block tal:define=" 
@@ -60,7 +61,6 @@
             <script> var x = new ZenDragDropList('ta_defaultResultFields',
                                                  'ul_defaultResultFields');
             </script>
-
         </td>
     </tr>
     <tr>
@@ -109,7 +109,8 @@
 
 <tal:block tal:condition="python:'MSIE' in here.REQUEST.HTTP_USER_AGENT">
 <form method="post" tal:attributes="action here/getPrimaryUrlPath">
-<input type="hidden" name="zenScreenName" tal:attributes="value template/id" /> 
+<input type="hidden" name="zenScreenName" tal:attributes="value string:editEventManagerHistoryFields" /> 
+<input type="hidden" name="redirect" value="true"/>
 
 
         <tal:block tal:define=" 
@@ -171,5 +172,6 @@
 
 </form>
 </tal:block>
+
 </tal:block>
 </tal:block>
