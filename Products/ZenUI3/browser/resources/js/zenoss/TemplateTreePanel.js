@@ -74,7 +74,6 @@ Zenoss.TemplateTreePanel = Ext.extend(Ext.tree.TreePanel, {
     constructor: function(config) {
         Ext.applyIf(config, {
             id: treeId,
-            title: _t('Monitoring Templates'),
             rootVisible: false,
             border: false,
             autoScroll: true,
@@ -91,6 +90,10 @@ Zenoss.TemplateTreePanel = Ext.extend(Ext.tree.TreePanel, {
             },
             listeners: {
                 expandnode: function(node){
+                    // do not autoexpand/select anything if we are filtering
+                    if (Ext.getCmp('templateTreeSearchField').getValue()) {
+                        return;
+                    }
                     var container, firstTemplate;
                     if ( node === Ext.getCmp(treeId).getRootNode() ) {
                         container = node.childNodes[0];
@@ -99,7 +102,10 @@ Zenoss.TemplateTreePanel = Ext.extend(Ext.tree.TreePanel, {
                         container = node;
                     }
                     firstTemplate = container.childNodes[0];
-                    firstTemplate.select();
+                    
+                    if (firstTemplate) {
+                        firstTemplate.select(); 
+                    }                    
                 }
             }
         });
@@ -107,7 +113,6 @@ Zenoss.TemplateTreePanel = Ext.extend(Ext.tree.TreePanel, {
         initTreeDialogs(this);
         this.on('buttonClick', this.buttonClickHandler, this);
     },
-    
     buttonClickHandler: function(buttonId) {
         switch(buttonId) {
             case 'addButton':
@@ -153,8 +158,62 @@ Zenoss.TemplateTreePanel = Ext.extend(Ext.tree.TreePanel, {
             me.getRootNode().reload();
         }
         router.deleteTemplate(params, callback);
-    }
+    },
+    afterRender: function() {
+        Zenoss.TemplateTreePanel.superclass.afterRender.call(this);
+        
+        // add the search text box 
+        this.searchField = this.add({
+            xtype: 'searchfield',
+            id: 'templateTreeSearchField',
+            bodyStyle: {padding: 10},
+            listeners: {
+                valid: this.filterTree,
+                scope: this
+            }
+        });
+    },
+    filterTree: function(e) {
+        var re,
+            text = e.getValue();
+        
+        // show all of our hidden nodes
+        if (this.hiddenPkgs) {
+            Ext.each(this.hiddenPkgs, function(node){node.ui.show();});
+        }
+        
+        this.hiddenPkgs = [];
+        if (!text) {
+            return;
+        }
+        this.expandAll();
 
+        // test every node against the Regular expression
+        re = new RegExp(Ext.escapeRe(text), 'i');
+        this.root.cascade(function(node){
+            var attr = node.id, parentNode;
+            if (!node.isRoot) {
+                if (re.test(attr)) {
+                    // if regex passes show our node and our parent
+                    parentNode = node.parentNode;
+                    while (parentNode) {
+                        if (!parentNode.hidden) {
+                            break;
+                        }
+                        parentNode.ui.show();
+                        parentNode = parentNode.parentNode;
+                    }
+                    // the cascade is stopped on this branch
+                    return false;
+                } else {
+                    node.ui.hide();
+                    this.hiddenPkgs.push(node);
+                }
+            }
+            // continue cascading down the tree from this node
+            return true;
+        }, this);
+    }
 });
 
 Ext.reg('TemplateTreePanel', Zenoss.TemplateTreePanel);

@@ -307,7 +307,7 @@ Ext.getCmp('footer_bar').add({
     menu: {
         width: 190, // mousing over longest menu item was changing width
         items: [
-            createAction('organizer', _t('Report Organizer')),
+            createAction('organizer', _t('Report Organizer'))
         ]
     }
 });
