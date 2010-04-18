@@ -121,7 +121,18 @@ Ext.reg('componentnav', ZC.ComponentDetailNav);
 
 ZC.ComponentPanel = Ext.extend(Ext.Panel, {
     constructor: function(config) {
+        var tbar = config.gridtbar,
+            tbarid = Ext.id();
+        if (tbar) {
+            if (Ext.isArray(tbar)) {
+                tbar = {items:tbar};
+            }
+            Ext.apply(tbar, {
+                id: tbarid
+            });
+        }
         config = Ext.applyIf(config||{}, {
+            tbarid: tbarid,
             border: false,
             defaults: {border: false},
             layout: 'border',
@@ -147,7 +158,7 @@ ZC.ComponentPanel = Ext.extend(Ext.Panel, {
                     split: true
                 },{
                     ref: '../gridcontainer',
-                    tbar: config.gridtbar,
+                    tbar: tbar,
                     layout: 'fit',
                     region: 'center',
                     split: true
@@ -162,6 +173,9 @@ ZC.ComponentPanel = Ext.extend(Ext.Panel, {
         ZC.ComponentPanel.superclass.constructor.call(this, config);
         this.addEvents('contextchange');
         this.componentnav.target = this.detailcontainer;
+    },
+    getGridToolbar: function(){
+        return Ext.getCmp(this.tbarid);
     },
     setContext: function(uid, type) {
         this.contextUid = uid;

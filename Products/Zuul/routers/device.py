@@ -209,11 +209,51 @@ class DeviceRouter(TreeRouter):
             log.exception(e)
             return DirectResponse.fail('Failed to change the collector.')
 
+    def setComponentsMonitored(self, uids, hashcheck, uid=None, ranges=(),
+                               monitored=False, meta_type=None, keys=None,
+                               start=0, limit=50, sort='name', dir='ASC',
+                               name=None):
+        if ranges:
+            uids += self.loadComponentRanges(ranges, hashcheck, uid, (),
+                                             meta_type, start, limit, sort,
+                                             dir, name)
+        facade = self._getFacade()
+        facade.setMonitored(uids, monitored)
+        return DirectResponse.succeed(('Set monitoring to %s for %s'
+                                       ' components.') % (monitored, len(uids)))
+
+    def lockComponents(self, uids, hashcheck, uid=None, ranges=(),
+                       updates=False, deletion=False, sendEvent=False,
+                       meta_type=None, keys=None, start=0, limit=50,
+                       sort='name', dir='ASC', name=None):
+        if ranges:
+            uids += self.loadComponentRanges(ranges, hashcheck, uid, (),
+                                             meta_type, start, limit, sort,
+                                             dir, name)
+        facade = self._getFacade()
+        try:
+            facade.setLockState(uids, deletion=deletion, updates=updates,
+                                sendEvent=sendEvent)
+            if not deletion and not updates:
+                message = "Unlocked %s components."
+            else:
+                actions = []
+                if deletion: actions.append('deletion')
+                if updates: actions.append('updates')
+                message = "Locked %%s components from %s." % ' and '.join(actions)
+            return DirectResponse.succeed(message)
+            message = message % len(uids)
+        except Exception, e:
+            log.exception(e)
+            return DirectResponse.fail('Failed to lock components.')
+
     def deleteComponents(self, uids, hashcheck, uid=None, ranges=(),
                          meta_type=None, keys=None, start=0, limit=50,
                          sort='name', dir='ASC', name=None):
         if ranges:
-            uids += self.loadComponentRanges(ranges, hashcheck, uid, params, sort, dir)
+            uids += self.loadComponentRanges(ranges, hashcheck, uid, (),
+                                             meta_type, start, limit, sort,
+                                             dir, name)
         facade = self._getFacade()
         try:
             facade.deleteComponents(uids)

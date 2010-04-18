@@ -58,6 +58,7 @@ Zenoss.env.componentReloader = function(compType) {
     };
 }
 
+
 Zenoss.nav.register({
     Device: [{
         id: UID,
@@ -74,6 +75,21 @@ Zenoss.nav.register({
                     target.layout.setActiveItem('component_card');
                     target.layout.activeItem.setContext(UID, node.id);
                 };
+            },
+            load: function(node) {
+                var card = Ext.getCmp('component_card'),
+                    tbar = card.getGridToolbar();
+                if (node.hasChildNodes()) {
+                    if (tbar) {
+                        tbar.show();
+                    }
+                } else {
+                    if (tbar){
+                        tbar.hide();
+                    } 
+                    card.detailcontainer.removeAll();
+                    card.componentnav.reset();
+                }
             }
         },
         action: function(node, target) {
@@ -134,6 +150,126 @@ function componentGridOptions() {
     };
 }
 
+function showMonitoringDialog() {
+    var win = new Ext.Window({
+        height: 115,
+        width: 200,
+        title: _t('Monitoring'),
+        bodyStyle: 'padding:8px;padding-top:2px',
+        buttonAlign: 'left',
+        plain: true,
+        border: false,
+        buttons: [{
+            text: _t('Submit'),
+            handler: function(btn) {
+                var mon = Ext.getCmp('monitoring-checkbox'),
+                    opts = {
+                        monitored: mon.getValue()
+                    };
+                Ext.apply(opts, componentGridOptions());
+                btn.ownerCt.ownerCt.destroy();
+                REMOTE.setComponentsMonitored(opts, function(r){
+                    refreshComponentTreeAndGrid();
+                });
+            }
+        },{
+            text: _t('Cancel'),
+            handler: function(btn){
+                btn.ownerCt.ownerCt.destroy();
+            }
+        }],
+        items: [{
+            xtype: 'checkbox',
+            name: 'monitored',
+            submitValue: false,
+            id: 'monitoring-checkbox',
+            boxLabel: _t('Monitor these components'),
+            checked: true
+        }]
+    });
+    win.show();
+    win.doLayout();
+}
+
+function showComponentLockingDialog() {
+    function disableSendEvent() {
+        var del = Ext.getCmp('lock-deletion-checkbox'),
+            sendEvent = Ext.getCmp('send-event-checkbox');
+        sendEvent.setDisabled(!del.getValue());
+    }
+    var win = new Ext.Window({
+        height: 150,
+        width: 300,
+        title: _t('Locking'),
+        bodyStyle: 'padding:8px;padding-top:2px',
+        buttonAlign: 'left',
+        plain: true,
+        layout: 'fit',
+        buttons: [{
+            text: _t('Submit'),
+            handler: function(btn) {
+                var del = Ext.getCmp('lock-deletion-checkbox'),
+                    upd = Ext.getCmp('lock-updates-checkbox'),
+                    send = Ext.getCmp('send-event-checkbox'),
+                    opts = {
+                        deletion: del.getValue(),
+                        updates: upd.getValue(),
+                        sendEvent: send.getValue()
+                    };
+                Ext.apply(opts, componentGridOptions());
+                btn.ownerCt.ownerCt.destroy();
+                REMOTE.lockComponents(opts, function(r){
+                    refreshComponentTreeAndGrid();
+                });
+            }
+        },{
+            text: _t('Cancel'),
+            handler: function(btn){
+                btn.ownerCt.ownerCt.destroy();
+            }
+        }],
+        items: [{
+            xtype: 'container',
+            frame: false,
+            border: false,
+            layout: 'vbox',
+            defaults: {
+                xtype: 'checkbox',
+                flex: 1,
+                align: 'stretch'
+            },
+            id: 'lockingchecks',
+            items: [{
+                name: 'updates',
+                submitValue: false,
+                id: 'lock-updates-checkbox',
+                boxLabel: _t('Lock from updates'),
+                handler: disableSendEvent.createInterceptor(function(){
+                    var del = Ext.getCmp('lock-deletion-checkbox');
+                    if (this.getValue()) {
+                        del.setValue(true);
+                        del.disable();
+                    } else {
+                        del.enable();
+                    }
+                })
+            },{
+                name: 'deletion',
+                submitValue: false,
+                id: 'lock-deletion-checkbox',
+                boxLabel: _t('Lock from deletion'),
+                handler: disableSendEvent
+            },{
+                name: 'sendEventWhenBlocked',
+                id: 'send-event-checkbox',
+                boxLabel: _t('Send an event when an action is blocked'),
+                disabled: true
+            }]
+        }]
+    });
+    win.show();
+    win.doLayout();
+}
 
 var componentCard = {
     xtype: 'componentpanel',
@@ -150,7 +286,13 @@ var componentCard = {
         }
     },'-',{
         iconCls: 'customize',
-        menu: []
+        menu: [{
+            text: _t('Locking...'),
+            handler: showComponentLockingDialog
+        },{
+            text: _t('Monitoring...'),
+            handler: showMonitoringDialog
+        }]
     },{
         iconCls: 'delete',
         handler: function() {

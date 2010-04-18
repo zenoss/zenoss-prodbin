@@ -192,6 +192,11 @@ class DeviceFacade(TreeFacade):
             else:
                 dev.unlock()
 
+    def setMonitored(self, uids, monitored=False):
+        comps = imap(self._getObject, uids)
+        for comp in comps:
+            IInfo(comp).monitored = monitored
+
     def resetCommunityString(self, uid):
         dev = self._getObject(uid)
         dev.manage_snmpCommunity()
