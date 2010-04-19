@@ -73,6 +73,7 @@ new Zenoss.HideFormDialog({
     listeners: {
         hide: function() {
             Ext.getCmp('graphDefinitionIdTextfield').reset();
+            Ext.getCmp('addGraphDefinitionSubmit').disable();
         }
     },
     buttons: [
