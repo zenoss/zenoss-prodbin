@@ -40,10 +40,10 @@ class WinServiceInfo(ComponentInfo):
             self._object.deleteZenProperty('zFailSeverity')
     failSeverity = property(getFailSeverity, setFailSeverity)
 
+    serviceName = ProxyProperty('serviceName')
+    caption = ProxyProperty('caption')
     serviceType = ProxyProperty('serviceType')
     startMode = ProxyProperty('startMode')
     startName = ProxyProperty('startName')
-    acceptPause = ProxyProperty('acceptPause')
-    acceptStop = ProxyProperty('acceptStop')
     pathName = ProxyProperty('pathName')
 

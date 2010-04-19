@@ -109,8 +109,7 @@ class IWinServiceInfo(IComponentInfo):
     """
     Info adapter for WinService components.
     """
-    description = schema.TextLine(title=u"Description",
-                         group="Overview")
+    serviceName = schema.TextLine(title=u"Name", group="Overview")
     serviceClass = schema.Entity(title=u"Service Class", group="Overview")
     caption = schema.Text(title=u"Caption", group="Overview")
     command = schema.Text(title=u"Command", group="Overview")
@@ -119,8 +118,6 @@ class IWinServiceInfo(IComponentInfo):
     serviceType = schema.Text(title=u"Service Type", group="Details")
     startMode = schema.Text(title=u"Start Mode", group="Details")
     startName = schema.Text(title=u"Start Name", group="Details")
-    acceptPause = schema.Bool(title=u"Accept Pause", group="Details")
-    acceptStop = schema.Bool(title=u"Accept Stop", group="Details")
     pathName = schema.Text(title=u"Path Name", group="Details")
 
 

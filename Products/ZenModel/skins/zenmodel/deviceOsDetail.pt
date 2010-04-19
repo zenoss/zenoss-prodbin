@@ -207,7 +207,7 @@ loader.insert({onSuccess:function(){
         </td>
         <td class="tablevalues">
            <tal:block 
-            tal:content="structure python:srv.urlLink(text=srv.caption(),
+            tal:content="structure python:srv.urlLink(text=srv.caption,
              attrs={'class':'tablevalues'})"/>
         </td>
         <td class="tablevalues" tal:content="srv/startMode"/>

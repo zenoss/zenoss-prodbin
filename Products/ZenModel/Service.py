@@ -25,6 +25,7 @@ from Acquisition import aq_chain
 from AccessControl import ClassSecurityInfo
 from Commandable import Commandable
 
+from Products.CMFCore.utils import getToolByName
 from Products.ZenRelations.RelSchema import *
 from Products.ZenWidgets import messaging
 
@@ -65,6 +66,32 @@ class Service(OSComponent, Commandable, ZenPackable):
         Should this service be monitored or not. Use ServiceClass aq path. 
         """
         return self.monitor and self.getAqProperty("zMonitor")
+
+
+    def isMonitored(self):
+        """
+        Returns the same as "monitored" but from the catalog instead of from
+        the service class.
+        """
+        try:
+            index_dict = self.dmd.Devices.componentSearch.getIndexDataForUID(
+                self.getPrimaryId())
+        except KeyError:
+            return self.monitored()
+
+        return index_dict.get('monitored', self.monitored())
+
+
+    def getStatus(self, statClass=None):
+        """
+        Return the status number for this component of class statClass.
+        """
+        if not self.isMonitored() \
+            or not self.device() \
+            or not self.device().monitorDevice(): return -1
+        if not statClass: statClass = "/Status/%s" % self.meta_type
+        return self.getEventManager().getComponentStatus(
+                self.getParentDeviceName(), self.name(), statclass=statClass)
 
 
     def getSeverities(self):

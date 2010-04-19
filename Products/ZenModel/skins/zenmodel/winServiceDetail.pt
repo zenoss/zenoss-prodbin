@@ -121,30 +121,6 @@
         </td>
     </tr>
     <tr>
-        <td class="tableheader">Accept Pause</td>
-        <td class="tablevalues">
-            <select class="tablevalues" name="acceptPause:boolean"
-                    tal:condition="editable">
-            <option tal:repeat="e python:(True,False)" tal:content="e"
-                tal:attributes="value e; 
-                                selected python:e==here.acceptPause"/>
-            </select>
-            <tal:block tal:condition="not:editable" 
-                       tal:content="here/acceptPause"/>
-        </td>
-        <td class="tableheader">Accept Stop</td>
-        <td class="tablevalues">
-            <select class="tablevalues" name="acceptStop:boolean"
-                    tal:condition="editable">
-            <option tal:repeat="e python:(True,False)" tal:content="e"
-                tal:attributes="value e; 
-                                selected python:e==here.acceptStop"/>
-            </select>
-            <tal:block tal:condition="not:editable" 
-                       tal:content="here/acceptStop"/>
-        </td>
-    </tr>
-    <tr>
         <td class="tableheader">Path Name</td>
         <td class="tablevalues" colspan='3' 
             tal:content="here/pathName"

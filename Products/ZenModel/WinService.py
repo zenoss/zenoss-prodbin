@@ -34,7 +34,8 @@ def manage_addWinService(context, id, description, userCreated=None,
     s.__of__(context).setServiceClass(args)
     context._setObject(id, s)
     s = context._getOb(id)
-    s.description = description
+    s.name = id
+    s.caption = description
     if userCreated: s.setUserCreateFlag()
     if REQUEST is not None:
         REQUEST['RESPONSE'].redirect(context.absolute_url()
@@ -47,8 +48,8 @@ class WinService(Service):
     """
     portal_type = meta_type = 'WinService'
 
-    acceptPause = False
-    acceptStop = False
+    serviceName = ""
+    caption = ""
     pathName = ""
     serviceType = ""
     startMode = ""
@@ -56,8 +57,8 @@ class WinService(Service):
     collectors = ('zenwin',)
 
     _properties = Service._properties + (
-        {'id': 'acceptPause', 'type':'boolean', 'mode':'w'},
-        {'id': 'acceptStop', 'type':'boolean', 'mode':'w'},
+        {'id': 'serviceName', 'type':'string', 'mode':'w'},
+        {'id': 'caption', 'type':'string', 'mode':'w'},
         {'id': 'pathName', 'type':'string', 'mode':'w'},
         {'id': 'serviceType', 'type':'string', 'mode':'w'},
         {'id': 'startMode', 'type':'string', 'mode':'w'},
@@ -104,7 +105,7 @@ class WinService(Service):
     def getInstDescription(self):
         """Return some text that describes this component.  Default is name.
         """
-        return "'%s' StartMode:%s StartName:%s" % (self.caption(), 
+        return "'%s' StartMode:%s StartName:%s" % (self.caption,
                         self.startMode, self.startName)
 
     def monitored(self):
@@ -122,32 +123,32 @@ class WinService(Service):
         if not desc:
             svccl = self.serviceclass()
             if svccl: desc = svccl.description
-        return {'name': self.name(), 'description': desc }
+        return {'name': self.serviceName, 'description': self.caption }
 
 
     def setServiceClass(self, kwargs):
         """Set the service class where name=ServiceName and description=Caption.
         """
-        name = kwargs['name']
-        description = kwargs['description']
+        self.serviceName = kwargs['name']
+        self.caption = kwargs['description']
         path = "/WinService/"
         srvs = self.dmd.getDmdRoot("Services")
-        srvclass = srvs.createServiceClass(name=name, description=description, 
-                                           path=path)
+        srvclass = srvs.createServiceClass(
+            name=self.serviceName, description=self.caption, path=path)
         self.serviceclass.addRelation(srvclass)
 
 
-    def caption(self):
-        """Return the windows caption for this service.
+    def name(self):
+        """Return the name of this service.
         """
-        svccl = self.serviceclass()
-        if svccl: return svccl.description
-        return ""
-    primarySortKey = caption
+        return self.serviceName
+
+    def getCaption(self):
+        return self.caption
+    primarySortKey = getCaption
 
     security.declareProtected('Manage DMD', 'manage_editService')
     def manage_editService(self, id=None, description=None, 
-                            acceptPause=None, acceptStop=None,
                             pathName=None, serviceType=None,
                             startMode=None, startName=None,
                             monitor=False, severity=5, 
@@ -156,9 +157,10 @@ class WinService(Service):
         """
         renamed = False
         if id is not None:
+            self.name = id
+            self.serviceName = id
             self.description = description
-            self.acceptPause = acceptPause
-            self.acceptStop = acceptStop
+            self.caption = description
             self.pathName = pathName
             self.serviceType = serviceType
             self.startMode = startMode

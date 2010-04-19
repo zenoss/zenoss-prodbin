@@ -146,7 +146,7 @@ class ZenTableManager(SimpleItem, PropertyManager):
             objects = []
         tableState = self.setupTableState(tableName, **keys)
         if tableState.onlyMonitored and objects:
-            objects = [o for o in objects if o.monitored()]
+            objects = [o for o in objects if getattr(o, 'isMonitored', o.monitored)()]
         if tableState.filter and objects:
             objects = self.filterObjects(objects, tableState.filter, 
                                         tableState.filterFields)
