@@ -60,4 +60,9 @@
              factory=".iprouteentry.IpRouteEntryInfo"
              />
 
+    <adapter provides="...interfaces.ICPUInfo"
+             for="Products.ZenModel.CPU.CPU"
+             factory=".cpu.CPUInfo"
+             />
+
 </configure>

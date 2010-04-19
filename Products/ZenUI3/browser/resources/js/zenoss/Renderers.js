@@ -104,7 +104,8 @@ Ext.apply(Zenoss.render, {
      */
     link: function(uid, url, name) {
         if (!url) {
-            var type = Zenoss.types.type(uid),
+            var dflt = 'default_uid_renderer',
+                type = Zenoss.types.type(uid) || dflt,
                 renderer = Zenoss.render[type];
             if (renderer) {
                 return renderer(uid, name);
@@ -138,7 +139,7 @@ Ext.apply(Zenoss.render, {
         
         return name;
     },
-        
+
     Device: function(uid, name) {
         // For now, link to the old device page
         return Zenoss.render.link(null, uid+'/devicedetail', name);

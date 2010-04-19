@@ -25,6 +25,10 @@ class WinServiceInfo(ComponentInfo):
     def serviceClass(self):
         return self._object.serviceClass()
 
+    @property
+    def caption(self):
+        return self._object.caption()
+
     command = ProxyProperty('id')
 
     def getFailSeverity(self):

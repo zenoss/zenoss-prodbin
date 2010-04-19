@@ -112,6 +112,7 @@ class IWinServiceInfo(IComponentInfo):
     description = schema.TextLine(title=u"Description",
                          group="Overview")
     serviceClass = schema.Entity(title=u"Service Class", group="Overview")
+    caption = schema.Text(title=u"Caption", group="Overview")
     command = schema.Text(title=u"Command", group="Overview")
     failSeverity = schema.Int(title=u"Fail Severity", xtype="severity",
                               group="Details")
@@ -159,4 +160,17 @@ class IIpRouteEntryInfo(IComponentInfo):
                             description=u"Is the instance monitored",
                             group="Overview")
 
+
+class ICPUInfo(IComponentInfo):
+    """
+    Info adapter for IpRouteEntry components.
+    """
+    socket = schema.Int(title=u"Socket", readonly=True)
+    clockspeed = schema.Int(title=u"Clock Speed", readonly=True)
+    extspeed = schema.Int(title=u"Ext Speed", readonly=True)
+    voltage = schema.Int(title=u"Voltage", readonly=True)
+    cacheSizeL1 = schema.Int(title=u"L1", readonly=True)
+    cacheSizeL2 = schema.Int(title=u"L2", readonly=True)
+    product = schema.Entity(title=u"Model", readonly=True)
+    manufacturer = schema.Entity(title=u"Manufacturer", readonly=True)
 

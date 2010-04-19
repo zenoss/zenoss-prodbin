@@ -12,35 +12,33 @@
 ###########################################################################
 
 from zope.interface import implements
+from Products.Zuul.interfaces import ICPUInfo
 from Products.Zuul.decorators import info
-from Products.Zuul.interfaces import IIpRouteEntryInfo
 from Products.Zuul.infos import ProxyProperty
 from Products.Zuul.infos.component import ComponentInfo
 
-class IpRouteEntryInfo(ComponentInfo):
-    implements(IIpRouteEntryInfo)
+
+class CPUInfo(ComponentInfo):
+    implements(ICPUInfo)
+
+    socket = ProxyProperty('socket')
+    clockspeed = ProxyProperty('clockspeed')
+    extspeed = ProxyProperty('extspeed')
+    voltage = ProxyProperty('voltage')
+    cacheSizeL1 = ProxyProperty('cacheSizeL1')
+    cacheSizeL2 = ProxyProperty('cacheSizeL2')
 
     @property
     @info
-    def destination(self):
-        target = self._object.target()
-        return target if target else self._object._target
+    def manufacturer(self):
+        pc = self._object.productClass()
+        if (pc):
+            return pc.manufacturer()
 
     @property
     @info
-    def nextHop(self):
-        ip = self._object.nexthop()
-        return ip if ip else self._object._nexthop
+    def product(self):
+        return self._object.productClass()
 
-    @property
-    @info
-    def interface(self):
-        return self._object.interface()
 
-    @property
-    def monitored(self):
-        return False
-
-    protocol = ProxyProperty('routeproto')
-    type = ProxyProperty('routetype')
 

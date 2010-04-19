@@ -25,6 +25,10 @@ class IpServiceInfo(ComponentInfo):
     implements(IIpServiceInfo)
 
     @property
+    def name(self):
+        return self._object.getKeyword()
+
+    @property
     @info
     def serviceClass(self):
         return self._object.serviceClass()

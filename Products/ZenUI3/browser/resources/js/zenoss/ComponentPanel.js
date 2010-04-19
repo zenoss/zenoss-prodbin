@@ -19,6 +19,14 @@ var ZC = Ext.ns('Zenoss.component');
 
 var ZEvActions = Zenoss.events.EventPanelToolbarActions;
 
+function render_link(ob) {
+    if (ob && ob.uid) {
+        return Zenoss.render.link(ob.uid);
+    } else {
+        return ob;
+    }
+}
+
 Zenoss.nav.register({
     Component: [{
         nodeType: 'subselect',
@@ -407,12 +415,7 @@ ZC.IpInterfacePanel = Ext.extend(ZC.ComponentGridPanel, {
                 id: 'ipAddress',
                 dataIndex: 'ipAddress',
                 header: _t('IP Address'),
-                renderer: function(ip) {
-                    // ip is the marshalled Info object
-                    if (ip) {
-                        return Zenoss.render.link(ip.uid);
-                    }
-                }
+                renderer: render_link
             },{
                 id: 'network',
                 dataIndex: 'network',
@@ -450,5 +453,367 @@ ZC.IpInterfacePanel = Ext.extend(ZC.ComponentGridPanel, {
 });
 
 Ext.reg('IpInterfacePanel', ZC.IpInterfacePanel);
+
+ZC.WinServicePanel = Ext.extend(ZC.ComponentGridPanel, {
+    constructor: function(config) {
+        config = Ext.applyIf(config||{}, {
+            componentType: 'WinService',
+            fields: [
+                {name: 'uid'},
+                {name: 'severity'},
+                {name: 'status'},
+                {name: 'name'},
+                {name: 'locking'},
+                {name: 'monitored'},
+                {name: 'caption'},
+                {name: 'startMode'},
+                {name: 'startName'}
+            ],
+            columns: [{
+                id: 'severity',
+                dataIndex: 'severity',
+                header: _t('Events'),
+                renderer: Zenoss.render.severity,
+                width: 60
+            },{
+                id: 'name',
+                dataIndex: 'name',
+                header: _t('Service Name')
+            },{
+                id: 'caption',
+                dataIndex: 'caption',
+                header: _t('Caption')
+            },{
+                id: 'startMode',
+                dataIndex: 'startMode',
+                header: _t('Start Mode')
+            },{
+                id: 'startName',
+                dataIndex: 'startName',
+                header: _t('Start Name')
+            },{
+                id: 'status',
+                dataIndex: 'status',
+                header: _t('Status'),
+                width: 50
+            },{
+                id: 'monitored',
+                dataIndex: 'monitored',
+                header: _t('Monitored'),
+                width: 60
+            },{
+                id: 'locking',
+                dataIndex: 'locking',
+                header: _t('Locking'),
+                renderer: Zenoss.render.locking_icons
+            }]
+        });
+        ZC.WinServicePanel.superclass.constructor.call(this, config);
+    }
+});
+
+Ext.reg('WinServicePanel', ZC.WinServicePanel);
+
+
+ZC.IpRouteEntryPanel = Ext.extend(ZC.ComponentGridPanel, {
+    constructor: function(config) {
+        config = Ext.applyIf(config||{}, {
+            componentType: 'IpRouteEntry',
+            autoExpandColumn: 'destination',
+            fields: [
+                {name: 'uid'},
+                {name: 'destination'},
+                {name: 'nextHop'},
+                {name: 'interface'},
+                {name: 'protocol'},
+                {name: 'type'},
+                {name: 'locking'}
+            ],
+            columns: [{
+                id: 'destination',
+                dataIndex: 'destination',
+                header: _t('Destination'),
+                renderer: render_link
+            },{
+                id: 'nextHop',
+                dataIndex: 'nextHop',
+                header: _t('Next Hop'),
+                renderer: render_link
+            },{
+                id: 'interface',
+                dataIndex: 'interface',
+                header: _t('Interface'),
+                renderer: render_link
+            },{
+                id: 'protocol',
+                dataIndex: 'protocol',
+                header: _t('Protocol')
+            },{
+                id: 'type',
+                dataIndex: 'type',
+                header: _t('Type'),
+                width: 50
+            },{
+                id: 'locking',
+                dataIndex: 'locking',
+                header: _t('Locking'),
+                renderer: Zenoss.render.locking_icons
+            }]
+        });
+        ZC.IpRouteEntryPanel.superclass.constructor.call(this, config);
+    }
+});
+
+Ext.reg('IpRouteEntryPanel', ZC.IpRouteEntryPanel);
+
+ZC.IpServicePanel = Ext.extend(ZC.ComponentGridPanel, {
+    constructor: function(config) {
+        config = Ext.applyIf(config||{}, {
+            componentType: 'IpService',
+            fields: [
+                {name: 'uid'},
+                {name: 'name'},
+                {name: 'status'},
+                {name: 'severity'},
+                {name: 'monitored'},
+                {name: 'locking'},
+                {name: 'protocol'},
+                {name: 'description'},
+                {name: 'ipaddresses'},
+                {name: 'port'}
+            ],
+            columns: [{
+                id: 'severity',
+                dataIndex: 'severity',
+                header: _t('Events'),
+                renderer: Zenoss.render.severity,
+                width: 60
+            },{
+                id: 'name',
+                dataIndex: 'name',
+                header: _t('Name')
+            },{
+                id: 'protocol',
+                dataIndex: 'protocol',
+                header: _t('Protocol')
+            },{
+                id: 'port',
+                dataIndex: 'port',
+                header: _t('Port')
+            },{
+                id: 'ipaddresses',
+                dataIndex: 'ipaddresses',
+                header: _t('IPs'),
+                renderer: function(ips) {
+                    return ips.join(', ');
+                }
+            },{
+                id: 'description',
+                dataIndex: 'description',
+                header: _t('Description')
+            },{
+                id: 'locking',
+                dataIndex: 'locking',
+                header: _t('Locking'),
+                renderer: Zenoss.render.locking_icons
+            }]
+        });
+        ZC.IpServicePanel.superclass.constructor.call(this, config);
+    }
+});
+
+Ext.reg('IpServicePanel', ZC.IpServicePanel);
+
+
+ZC.OSProcessPanel = Ext.extend(ZC.ComponentGridPanel, {
+    constructor: function(config) {
+        config = Ext.applyIf(config||{}, {
+            componentType: 'OSProcess',
+            autoExpandColumn: 'processName',
+            fields: [
+                {name: 'uid'},
+                {name: 'processName'},
+                {name: 'status'},
+                {name: 'severity'},
+                {name: 'monitored'},
+                {name: 'locking'},
+                {name: 'processClass'},
+                {name: 'alertOnRestart'},
+                {name: 'failSeverity'}
+            ],
+            columns: [{
+                id: 'severity',
+                dataIndex: 'severity',
+                header: _t('Events'),
+                renderer: Zenoss.render.severity,
+                width: 60
+            },{
+                id: 'processName',
+                dataIndex: 'processName',
+                header: _t('Name')
+            },{
+                id: 'processClass',
+                dataIndex: 'processClass',
+                header: _t('Process Class'),
+                renderer: function(cls) {
+                    if (cls && cls.uid) {
+                        return Zenoss.render.link(cls.uid);
+                    } else {
+                        return cls;
+                    }
+                }
+            },{
+                id: 'alertOnRestart',
+                dataIndex: 'alertOnRestart',
+                header: _t('Alert On Restart')
+            },{
+                id: 'failSeverity',
+                dataIndex: 'failSeverity',
+                header: _t('Fail Severity')
+            },{
+                id: 'locking',
+                dataIndex: 'locking',
+                header: _t('Locking'),
+                renderer: Zenoss.render.locking_icons
+            }]
+        });
+        ZC.OSProcessPanel.superclass.constructor.call(this, config);
+    }
+});
+
+Ext.reg('OSProcessPanel', ZC.OSProcessPanel);
+
+
+ZC.FileSystemPanel = Ext.extend(ZC.ComponentGridPanel, {
+    constructor: function(config) {
+        config = Ext.applyIf(config||{}, {
+            autoExpandColumn: 'mount',
+            componentType: 'FileSystem',
+            fields: [
+                {name: 'uid'},
+                {name: 'name'},
+                {name: 'status'},
+                {name: 'severity'},
+                {name: 'monitored'},
+                {name: 'locking'},
+                {name: 'mount'},
+                {name: 'totalBytes'},
+                {name: 'freeBytes'},
+                {name: 'capacity'}
+            ],
+            columns: [{
+                id: 'severity',
+                dataIndex: 'severity',
+                header: _t('Events'),
+                renderer: Zenoss.render.severity,
+                width: 60
+            },{
+                id: 'mount',
+                dataIndex: 'mount',
+                header: _t('Mount Point')
+            },{
+                id: 'totalBytes',
+                dataIndex: 'total Bytes',
+                header: _t('Total Bytes')
+            },{
+                id: 'usedBytes',
+                dataIndex: 'usedBytes',
+                header: _t('Used Bytes')
+            },{
+                id: 'freeBytes',
+                dataIndex: 'freeBytes',
+                header: _t('Free Bytes')
+            },{
+                id: 'capacity',
+                dataIndex: 'capacity',
+                header: _t('% Util')
+            },{
+                id: 'locking',
+                dataIndex: 'locking',
+                header: _t('Locking'),
+                renderer: Zenoss.render.locking_icons
+            }]
+        });
+        ZC.FileSystemPanel.superclass.constructor.call(this, config);
+    }
+});
+
+Ext.reg('FileSystemPanel', ZC.FileSystemPanel);
+
+
+ZC.CPUPanel = Ext.extend(ZC.ComponentGridPanel, {
+    constructor: function(config) {
+        config = Ext.applyIf(config||{}, {
+            componentType: 'CPU',
+            autoExpandColumn: 'product',
+            fields: [
+                {name: 'uid'},
+                {name: 'socket'},
+                {name: 'manufacturer'},
+                {name: 'product'},
+                {name: 'clockspeed'},
+                {name: 'extspeed'},
+                {name: 'cacheSizeL1'},
+                {name: 'cacheSizeL2'},
+                {name: 'voltage'},
+                {name: 'locking'}
+            ],
+            columns: [{
+                id: 'socket',
+                dataIndex: 'socket',
+                header: _t('Socket'),
+                width: 45
+            },{
+                id: 'manufacturer',
+                dataIndex: 'manufacturer',
+                header: _t('Manufacturer'),
+                renderer: render_link
+            },{
+                id: 'product',
+                dataIndex: 'product',
+                header: _t('Model'),
+                renderer: render_link
+            },{
+                id: 'clockspeed',
+                dataIndex: 'clockspeed',
+                header: _t('Speed'),
+                width: 70,
+                renderer: function(x){ return x + ' MHz';}
+            },{
+                id: 'extspeed',
+                dataIndex: 'extspeed',
+                header: _t('Ext Speed'),
+                width: 70,
+                renderer: function(x){ return x + ' MHz';}
+            },{
+                id: 'cacheSizeL1',
+                dataIndex: 'cacheSizeL1',
+                header: _t('L1'),
+                width: 70,
+                renderer: function(x){ return x + ' KB';}
+            },{
+                id: 'cacheSizeL2',
+                dataIndex: 'cacheSizeL2',
+                header: _t('L2'),
+                width: 70,
+                renderer: function(x){ return x + ' KB';}
+            },{
+                id: 'voltage',
+                dataIndex: 'voltage',
+                header: _t('Voltage'),
+                width: 70,
+                renderer: function(x){ return x + ' mV';}
+            },{
+                id: 'locking',
+                dataIndex: 'locking',
+                header: _t('Locking'),
+                renderer: Zenoss.render.locking_icons
+            }]
+        });
+        ZC.CPUPanel.superclass.constructor.call(this, config);
+    }
+});
+
+Ext.reg('CPUPanel', ZC.CPUPanel);
 
 })();
