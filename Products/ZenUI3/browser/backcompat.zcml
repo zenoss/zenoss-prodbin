@@ -30,6 +30,65 @@
     permission="zenoss.View"
     />
 
+<browser:defaultView
+    for="Products.ZenEvents.EventClassInst.EventClassInst"
+    name="eventClassInstStatus"
+    />
+
+<browser:page
+    template="../../ZenEvents/skins/zenevents/eventClassInstStatus.pt"
+    name="eventClassInstStatus"
+    for="*"
+    permission="zenoss.View"
+    />
+
+<browser:page
+    template="../../ZenEvents/skins/zenevents/eventClassInstEdit.pt"
+    name="eventClassInstEdit"
+    for="*"
+    permission="zenoss.View"
+    />
+
+<browser:page
+    template="../../ZenEvents/skins/zenevents/eventClassInstSequence.pt"
+    name="eventClassInstSequence"
+    for="*"
+    permission="zenoss.View"
+    />
+
+<browser:defaultView
+    for="Products.ZenEvents.EventClass.EventClass"
+    name="eventClassStatus"
+    />
+
+<browser:page
+    template="../../ZenEvents/skins/zenevents/eventClassStatus.pt"
+    name="eventClassStatus"
+    for="*"
+    permission="zenoss.View"
+    />
+
+<browser:page
+    template="../../ZenEvents/skins/zenevents/eventMappingList.pt"
+    name="eventMappingList"
+    for="*"
+    permission="zenoss.View"
+    />
+
+<browser:page
+    template="../../ZenModel/skins/zenmodel/zPropOverriddenNew.pt"
+    name="zPropOverriddenNew"
+    for="*"
+    permission="zenoss.View"
+    />
+
+<browser:page
+    template="../../ZenEvents/skins/zenevents/editEventClassTransform.pt"
+    name="editEventClassTransform"
+    for="*"
+    permission="zenoss.View"
+    />
+
 <browser:page
     template="../../ZenEvents/skins/zenevents/editActionRuleMessage.pt"
     name="editActionRuleMessage"

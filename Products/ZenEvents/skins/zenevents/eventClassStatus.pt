@@ -1,4 +1,4 @@
-<tal:block metal:use-macro="here/templates/macros/page2">
+<tal:block metal:use-macro="here/page_macros/old-new">
 <tal:block metal:fill-slot="contentPane">
 
 <form method="post" name="eventClassStatus"
@@ -98,7 +98,7 @@
     </tr>
     <tal:block tal:repeat="evdict batch">
     <tr tal:define="odd repeat/evdict/odd"
-        tal:attributes="class python:test(odd, 'odd', 'even')">
+        tal:attributes="class python:odd and 'odd' or 'even'">
         <td class="tablevalues" align="left" width="50%">
             <input tal:condition="here/isManager" 
                 type="checkbox" name="organizerPaths:list" 
@@ -169,7 +169,7 @@
     </tr>
     <tal:block tal:repeat="evinst batch">
     <tr tal:define="odd repeat/evinst/odd"
-        tal:attributes="class python:test(odd, 'odd', 'even')">
+        tal:attributes="class python:odd and 'odd' or 'even'">
         <td class="tablevalues">
             <input tal:condition="here/isManager" 
                 type="checkbox" name="ids:list" 

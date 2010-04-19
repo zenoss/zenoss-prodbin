@@ -742,6 +742,17 @@ Ext.onReady(function(){
         onDetailHide: hideEventDetail
     });
 
+    var toolbar_items = [
+        new Ext.Toolbar.Fill({}),
+        new Zenoss.LiveGridInfoPanel({grid: 'events_grid'})
+    ];
+
+    if (location.href.indexOf('viewEvents') != -1) {
+        toolbar_items = [new Ext.Toolbar.TextItem({
+            text: '<a href="viewHistoryEvents'+location.search+'">Event History...<'+'/a'+'>'
+        })].concat(toolbar_items);
+    }
+
     // Add the row info panel and bottom toolbar
     master_panel.add({
         xtype: 'toolbar',
@@ -750,13 +761,7 @@ Ext.onReady(function(){
         frame: false,
         style: {'border-top':'1px solid #888'},
         height: 25,
-        items: [{
-            xtype: 'tbfill'
-        },{
-            xtype: 'livegridinfo',
-            text: '',
-            grid: 'events_grid'
-        }]
+        items: toolbar_items
     });
 
     detail_panel.on('expand', function(ob, state) {

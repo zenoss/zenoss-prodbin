@@ -11,6 +11,7 @@
 #
 ###########################################################################
 from itertools import chain
+import re
 import zope.interface
 from zope.app.pagetemplate.viewpagetemplatefile import ViewPageTemplateFile
 from Products.Five.viewlet import viewlet
@@ -73,7 +74,7 @@ class SecondaryNavigationMenuItem(PrimaryNavigationMenuItem):
     def selected(self):
         requestURL = self.request.getURL()
         for url in chain((self.url,), self.subviews):
-            if requestURL.endswith(url) or (url + '/') in requestURL :
+            if re.search(url, requestURL) :
                 return True
         return False
 

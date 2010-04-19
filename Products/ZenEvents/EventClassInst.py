@@ -203,7 +203,7 @@ class EventClassInst(EventClassPropertyMixin, ZenModelRM, EventView,
                 },
                 { 'id'            : 'config'
                 , 'name'          : 'zProperties'
-                , 'action'        : 'zPropertyEdit'
+                , 'action'        : 'zPropertyEditNew'
                 , 'permissions'   : ("Manage DMD",)
                 },
                 { 'id'            : 'events'
@@ -218,7 +218,7 @@ class EventClassInst(EventClassPropertyMixin, ZenModelRM, EventView,
 #                },
                 { 'id'            : 'viewHistory'
                 , 'name'          : 'Modifications'
-                , 'action'        : 'viewHistory'
+                , 'action'        : 'viewNewHistory'
                 , 'permissions'   : (ZEN_VIEW_MODIFICATIONS,)
                 },
             )

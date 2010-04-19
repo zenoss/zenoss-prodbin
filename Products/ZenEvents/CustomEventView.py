@@ -107,9 +107,9 @@ class CustomEventView(ZenModelRM, EventFilter):
         """Return the default screen for this custom view.
         """
         if self.type == "status":
-            tpl = 'evconsole'
+            tpl = 'viewEvents'
         else:
-            tpl = 'evhistory'
+            tpl = 'viewHistoryEvents'
         url = '%s/%s' % (self.absolute_url_path(), tpl)
         self.REQUEST.response.redirect(url)
 

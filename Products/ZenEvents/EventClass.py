@@ -111,7 +111,7 @@ class EventClass(EventClassPropertyMixin, Organizer, ManagedEntity, ZenPackable)
                 },
                 { 'id'            : 'config'
                 , 'name'          : 'zProperties'
-                , 'action'        : 'zPropertyEdit'
+                , 'action'        : 'zPropertyEditNew'
                 , 'permissions'   : ("Change Device",)
                 },
             )

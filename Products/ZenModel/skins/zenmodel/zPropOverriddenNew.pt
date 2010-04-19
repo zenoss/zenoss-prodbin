@@ -1,0 +1,100 @@
+<tal:block metal:use-macro="here/page_macros/old-new">
+<tal:block metal:fill-slot="contentPane">
+<tal:block tal:define="tabletitle string:Overriding Objects;
+               prop request/prop | python:'';
+               showDevices request/showDevices | python:True;
+               orObjects python:here.getOverriddenObjects(prop, showDevices)"> 
+<tal:block metal:use-macro="here/zenuimacros/macros/zentable">
+
+<tal:block metal:fill-slot="filterslot">
+    <form method="post">
+    zProperty
+    <select class="tablevalues" 
+            name="prop" 
+            onchange="form.submit()">
+            <option value="">
+            <option tal:repeat="p here/zenPropertyIds"
+                    tal:content="p"
+                    tal:attributes="selected python:p==prop"/>
+    </select>
+    Show Devices
+    <input class="navcontrol" type="checkbox"
+            name="showDevices"
+            onchange="this.form.submit()"
+            value="1"
+            style="margin-top:-2px;margin-bottom:2px;"
+            tal:attributes="checked showDevices"/>
+    </form>
+</tal:block>
+<tal:block metal:fill-slot="zentablecontents">
+
+<!-- BEGIN TABLE CONTENTS -->
+    <tr>
+      <th class="tableheader" align="center">Object</th>
+      <th class="tableheader" align="center">Value</th>
+    </tr>
+    <tr>
+      <td class="tablevalues"
+              tal:condition="python:getattr(here, 'getPrettyLink', None)">
+        <div
+         tal:define="link python:here.getPrettyLink()"
+         tal:content="structure link"/>
+      </td>
+      <td class="tablevalues"
+              tal:condition="python:not getattr(here, 'getPrettyLink', None)">
+        <tal:block 
+         tal:define="link python:here.urlLink()"
+         tal:content="structure link"/>
+      </td> 
+      <td class="tablevalues" 
+          tal:condition="python:here.getPropertyType(prop) == 'lines'">
+          <tal:block tal:repeat="item python:getattr(here, prop)">
+                  <tal:block tal:content="item"/><br>
+          </tal:block>
+      </td>
+      <td class="tablevalues" 
+          tal:condition="python:here.getPropertyType(prop) != 'lines'"
+          tal:content="python:here.zenPropertyString(prop)"/>
+    </tr>
+    <tr>
+      <th class="tableheader" align="center">Overriding Object</th>
+      <th class="tableheader" align="center">Overriding Value</th>
+    </tr>
+    <tal:block tal:condition="not:orObjects">
+            <tr>
+            <td class="tablevalues" colspan="3">No Overriding Objects</td>
+            </tr>
+    </tal:block>
+    <tal:block tal:condition="orObjects" tal:repeat="orObject orObjects"> 
+    <tr tal:define="odd repeat/orObject/odd"
+        tal:attributes="class python:odd and 'odd' or 'even'">
+      <td class="tablevalues"
+         tal:condition="python:getattr(orObject, 'getPrettyLink', None)">
+        <div
+         tal:define="link python:orObject.getPrettyLink()"
+         tal:content="structure link"/>
+      </td>
+      <td class="tablevalues"
+         tal:condition="python:not getattr(orObject, 'getPrettyLink', None)">
+        <tal:block 
+         tal:define="link python:orObject.urlLink()"
+         tal:content="structure link"/>
+      </td>
+      <td class="tablevalues" 
+          tal:condition="python:orObject.getPropertyType(prop) == 'lines'">
+          <tal:block tal:repeat="item python:getattr(orObject, prop)">
+                  <tal:block tal:content="item"/><br>
+          </tal:block>
+      </td>
+      <td class="tablevalues" 
+          tal:condition="python:orObject.getPropertyType(prop) != 'lines'"
+          tal:content="python:orObject.zenPropertyString(prop)"/>
+    </tr>
+    </tal:block>
+<!-- END TABLE CONTENTS -->
+
+</tal:block>
+</tal:block>
+</tal:block>
+</tal:block>
+</tal:block>
