@@ -196,6 +196,18 @@ class TemplateRouter(DirectRouter):
         return {'success': True}
 
     @require('Manage DMD')
+    def deleteDataSource(self, uid):
+        facade = self._getFacade()
+        facade.deleteDataSource(uid)
+        return DirectResponse.succeed()
+
+    @require('Manage DMD')
+    def deleteDataPoint(self, uid):
+        facade = self._getFacade()
+        facade.deleteDataPoint(uid)
+        return DirectResponse.succeed()
+    
+    @require('Manage DMD')
     def deleteGraphDefinition(self, uid):
         facade = self._getFacade()
         facade.deleteGraphDefinition(uid)

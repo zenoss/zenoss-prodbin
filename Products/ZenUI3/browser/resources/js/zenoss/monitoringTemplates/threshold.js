@@ -21,17 +21,120 @@
      * Variable Declarations
      *
      */
-    var thresholdSelectionModel, thresholdDeleteButton,
-        router, treeId, thresholdEditButton, MinMaxThresholdDialog;
+    var thresholdSelectionModel, thresholdDeleteButton, addThreshold,
+        router, treeId, thresholdEditButton, MinMaxThresholdDialog, dataSourcesId, addThresholdDialog;
      
     Zenoss.templates.thresholdsId = 'thresholdGrid';
     thresholdDeleteButton = 'thresholdDeleteButton';
     thresholdEditButton = 'thesholdEditButton';
+    dataSourcesId = 'dataSourceTreeGrid';
     router = Zenoss.remote.TemplateRouter;
      
     // The id of the tree on the left hand side of the screen
     treeId = 'templateTree';
-
+     
+    /**********************************************************************
+     *
+     * Add Threshold
+     *
+     */
+     
+    addThreshold = function(data){
+        var uid, node, dataPoints, params, callback;
+        uid = Ext.getCmp(treeId).getSelectionModel().getSelectedNode().attributes.uid;
+        node = Ext.getCmp(dataSourcesId).getSelectionModel().getSelectedNode();
+        if ( node && node.isLeaf() ) {
+            dataPoints = [node.attributes.uid];
+        } else {
+            dataPoints = [];
+        }
+        params = {
+            uid: uid, 
+            thresholdType: data.thresholdTypeField,
+            thresholdId: data.thresholdIdField,
+            dataPoints: dataPoints
+        };
+        callback = function(provider, response) {
+            Ext.getCmp(Zenoss.templates.thresholdsId).getStore().reload();
+        };
+        Zenoss.remote.TemplateRouter.addThreshold(params, callback);
+    };
+    
+    addThresholdDialog = new Ext.create({
+        xtype: 'window',
+        id: 'addThresholdDialog',
+        title: _t('Add Threshold'),
+        message: _t('Allow the user to add a threshold.'),
+        closeAction: 'hide',
+        buttonAlign: 'left',
+        autoScroll: true,
+        plain: true,
+        width: 375,
+        autoHeight: true,
+        modal: true,
+        padding: 10,
+        listeners:{
+            show: function() {
+                this.formPanel.getForm().reset();
+            }
+        },
+        
+        buttons: [{ 
+            ref: '../submitButton',
+            text: _t('Add'), 
+            handler: function(submitButton) {
+                var dialogWindow, basicForm; 
+                dialogWindow = submitButton.refOwner; 
+                basicForm = dialogWindow.formPanel.getForm();
+                basicForm.api.submit(basicForm.getValues()); 
+                dialogWindow.hide(); 
+            } },
+                  { 
+                      ref: '../cancelButton', 
+                      text: _t('Cancel'), 
+                      handler: function(cancelButton) { 
+                          var dialogWindow = cancelButton.refOwner; 
+                          dialogWindow.hide();
+                      } 
+                  }],
+        items: {
+            xtype: 'form',
+            ref: 'formPanel',
+            leftAlign: 'top',
+            monitorValid: true,
+            border: false,
+            paramsAsHash: true,
+            api: { submit: addThreshold },
+            listeners: {
+                clientValidation: function(formPanel, valid) {
+                    var dialogWindow;
+                    dialogWindow = formPanel.refOwner;
+                    dialogWindow.submitButton.setDisabled( !valid );
+                }
+            },
+            items: [{
+                name: 'thresholdTypeField',
+                xtype: 'combo',
+                fieldLabel: _t('Type'),
+                displayField: 'type',
+                forceSelection: true,
+                triggerAction: 'all',
+                emptyText: _t('Select a type...'),
+                selectOnFocus: true,
+                allowBlank: false,
+                store: new Ext.data.DirectStore({
+                    fields: ['type'],
+                    root: 'data',
+                    directFn: Zenoss.remote.TemplateRouter.getThresholdTypes
+                })
+            }, {
+                name: 'thresholdIdField',
+                xtype: 'textfield',
+                fieldLabel: _t('Name'),
+                allowBlank: false
+            }
+                   ]
+        }});
     /**********************************************************************
      *
      * Delete Thresholds
@@ -217,6 +320,14 @@
                 },
                 listeners: listeners,
                 tbar: [{
+                    xtype: 'button',
+                    iconCls: 'add',
+                    tooltip: 'Add Threshold',
+                    handler: function() {
+                        Ext.getCmp('addThresholdDialog').show();
+                    }
+                },
+                    {
                     id: thresholdDeleteButton,
                     xtype: 'button',
                     iconCls: 'delete',
@@ -231,7 +342,7 @@
                 }, {
                     id: thresholdEditButton,
                     xtype: 'button',
-                    iconCls: 'edit',
+                    iconCls: 'customize',
                     disabled: true,
                     tooltip: _t('Edit Threshold'),
                     handler: thresholdEdit

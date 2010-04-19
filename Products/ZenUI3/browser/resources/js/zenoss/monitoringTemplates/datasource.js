@@ -15,9 +15,9 @@
 
 (function(){
 
-var router, dataSourcesId, graphsId, resetCombo, addThreshold, 
+var router, dataSourcesId, graphsId, resetCombo,  
     addMetricToGraph, showAddToGraphDialog, override, overrideHtml1,
-    overrideHtml2, showOverrideDialog, editDataSourcesId, treeId;
+    overrideHtml2, showOverrideDialog, editDataSourcesId, treeId, dataSourceMenu;
 
 Ext.ns('Zenoss');
 
@@ -28,6 +28,13 @@ editDataSourcesId = "editDataSource";
      
 // NOTE: this must match the tree id from the template.js file
 treeId = 'templateTree';
+
+/**
+ *@returns the currently selected Data Source or Data Point, or none if nothing is selected
+ **/
+function getSelectedDataSourceOrPoint() {
+    return Ext.getCmp(dataSourcesId).getSelectionModel().getSelectedNode();   
+}
      
 resetCombo = function(combo, uid) {
     combo.clearValue();
@@ -35,103 +42,6 @@ resetCombo = function(combo, uid) {
     delete combo.lastQuery;
     combo.doQuery(combo.allQuery, true);
 };
-
-addThreshold = function(data){
-    var uid, node, dataPoints, params, callback;
-    uid = Ext.getCmp(treeId).getSelectionModel().getSelectedNode().attributes.uid;
-    node = Ext.getCmp(dataSourcesId).getSelectionModel().getSelectedNode();
-    if ( node && node.isLeaf() ) {
-        dataPoints = [node.attributes.uid];
-    } else {
-        dataPoints = [];
-    }
-    params = {
-        uid: uid, 
-        thresholdType: data['thresholdTypeField'], 
-        thresholdId: data['thresholdIdField'],
-        dataPoints: dataPoints
-    };
-    callback = function(provider, response) {
-        Ext.getCmp('thresholdGrid').getStore().reload();
-    };
-    Zenoss.remote.TemplateRouter.addThreshold(params, callback);
-};
-
-new Ext.create({
-    xtype: 'window',
-    id: 'addThresholdDialog',
-    title: _t('Add Threshold'),
-    message: _t('Allow the user to add a threshold.'),
-    closeAction: 'hide',
-    buttonAlign: 'left',
-    autoScroll: true,
-    plain: true,
-    width: 375,
-    autoHeight: true,
-    modal: true,
-    padding: 10,
-    listeners:{
-        show: function() {
-            this.formPanel.getForm().reset();
-        }
-    },
-    
-    buttons: [{ 
-            ref: '../submitButton',
-            text: _t('Add'), 
-            handler: function(submitButton) {
-                var dialogWindow, basicForm; 
-                dialogWindow = submitButton.refOwner; 
-                basicForm = dialogWindow.formPanel.getForm();
-                basicForm.api.submit(basicForm.getValues()); 
-                dialogWindow.hide(); 
-            } },
-        { 
-            ref: '../cancelButton', 
-            text: _t('Cancel'), 
-            handler: function(cancelButton) { 
-                var dialogWindow = cancelButton.refOwner; 
-                dialogWindow.hide();
-            } 
-        }],
-    items: {
-        xtype: 'form',
-        ref: 'formPanel',
-        leftAlign: 'top',
-        monitorValid: true,
-        border: false,
-        paramsAsHash: true,
-        api: { submit: addThreshold },
-        listeners: {
-            clientValidation: function(formPanel, valid) {
-                var dialogWindow;
-                dialogWindow = formPanel.refOwner;
-                dialogWindow.submitButton.setDisabled( !valid );
-            }
-        },
-        items: [{
-                name: 'thresholdTypeField',
-                xtype: 'combo',
-                fieldLabel: _t('Type'),
-                displayField: 'type',
-                forceSelection: true,
-                triggerAction: 'all',
-                emptyText: _t('Select a type...'),
-                selectOnFocus: true,
-                allowBlank: false,
-                store: new Ext.data.DirectStore({
-                    fields: ['type'],
-                    root: 'data',
-                    directFn: Zenoss.remote.TemplateRouter.getThresholdTypes
-                })
-            }, {
-                name: 'thresholdIdField',
-                xtype: 'textfield',
-                fieldLabel: _t('Name'),
-                allowBlank: false
-            }
-        ]
-    }});
 
 addMetricToGraph = function(dataPointUid, graphUid) {
     var params, callback;
@@ -158,7 +68,7 @@ Ext.reg('graphstore', Zenoss.GraphStore);
 
 new Zenoss.HideFormDialog({
     id: 'addToGraphDialog',
-    title: _t('Add Metric to Graph'),
+    title: _t('Add Data Point to Graph'),
     items: [
     {
         xtype: 'panel',
@@ -208,7 +118,7 @@ showAddToGraphDialog = function() {
     nodeDataSource = smDataSource.getSelectedNode();
     if ( nodeDataSource && nodeDataSource.isLeaf() ) {
         metricName = nodeDataSource.attributes.name;
-        html = '<div>Metric</div>';
+        html = '<div>Data Point</div>';
         html += '<div>' + metricName + '</div><br/>';
         Ext.getCmp('addToGraphDialog').show();
         Ext.getCmp('addToGraphMetricPanel').body.update(html);
@@ -216,13 +126,13 @@ showAddToGraphDialog = function() {
         resetCombo(combo, templateUid);
         Ext.getCmp('submit').disable();
     } else {
-        Ext.Msg.alert('Error', 'You must select a metric.');
+        Ext.Msg.alert('Error', 'You must select a Data Point.');
     }
 };
      
 /**********************************************************************
  *
- * Override Functionality
+ * Override Templates
  *
  */
 override = function() {
@@ -333,7 +243,7 @@ showOverrideDialog = function() {
      
 /**********************************************************************
  *
- * Add Metric
+ * Add Data Point
  *
  **/
      
@@ -374,7 +284,7 @@ function saveDataPoint() {
  **/
 new Ext.Window({
         id: 'addDataPointDialog',
-        title: _t('Add Metric'),
+        title: _t('Add Data Point'),
         height: 160,
         width: 310,
         plain: true,
@@ -524,16 +434,61 @@ function showAddDataSourceDialog() {
     
     // make sure they selected a node
     if (!selectedNode) {
-        Ext.Msg.alert(_t('Error'), _t('You must select template'));
+        Ext.Msg.alert(_t('Error'), _t('You must select a template'));
         return; 
     }
     // clear the entries (all of our forms are blank when you load them)
     Ext.getCmp('addDataSourceDialog').show();    
 }
+
+/**********************************************************************
+ *
+ * Delete DataSource
+ *
+ */
+
+/**
+ * Creates the dynamic delete message and shows the dialog
+ **/
+function showDeleteDataSourceDialog() {
+    var msg, name, html, dialog;
+    if (getSelectedDataSourceOrPoint()) {
+        // set up the custom delete message 
+        msg = _t("Are you sure you want to remove {0}? There is no undo.");
+        name = getSelectedDataSourceOrPoint().attributes.name;
+        html = String.format(msg, name);
+
+        // show the dialog
+        dialog = Ext.getCmp('deleteDataSourceDialog');
+        dialog.show();
+        dialog.getComponent('message').update(html);
+    }else{
+        Ext.Msg.alert(_t('Error'), _t('You must select a Data Source or Data Point.'));
+    }
+}
+
+new Zenoss.MessageDialog({
+    id: 'deleteDataSourceDialog',
+    title: _t('Delete'),
+    // msg is generated dynamically
+    okHandler: function(){
+        var params;
+        params = {
+            uid: getSelectedDataSourceOrPoint().id
+        };
+        
+        // data points are always leafs
+        if (getSelectedDataSourceOrPoint().leaf) {
+            router.deleteDataPoint(params, refreshDataSourceGrid);  
+        }else {
+            router.deleteDataSource(params, refreshDataSourceGrid); 
+        }
+    }
+});
      
 /**********************************************************************
  *
- * Edit DataSource/DataPoint functionality
+ * Edit DataSource/DataPoint 
  *
  */
      
@@ -589,7 +544,7 @@ function submitDataPointForm (values, callback) {
 
     // assert that we have one exactly one alias form
     if (aliases.length < 1) {
-        throw "The DataPoint(metric) form does not have an alias field, it should have only one";
+        throw "The DataPoint form does not have an alias field, it should have only one";
     }
     
     alias = aliases[0];
@@ -610,7 +565,7 @@ function editDataSourceOrPoint() {
     
     // make sure they selected something
     if (!selectedNode) {
-        Ext.Msg.alert(_t('Error'), _t('You must select a data source or metric.'));
+        Ext.Msg.alert(_t('Error'), _t('You must select a data source or data point.'));
         return;
     }
     attributes = selectedNode.attributes;
@@ -639,7 +594,7 @@ function editDataSourceOrPoint() {
         config.directFn = router.setInfo;
         config.width = 800;
         if (isDataPoint) {
-            config.title = _t('Edit Metric');
+            config.title = _t('Edit Data Point');
             config.directFn = submitDataPointForm;
             config.singleColumn = true;
         }else if (config.record.testable){
@@ -680,6 +635,30 @@ function editDataSourceOrPoint() {
     }
 }
 
+dataSourceMenu = new Ext.menu.Menu({
+    id: 'dataSourceMenu',
+    items: [{
+        xtype: 'menuitem',
+        text: _t('Add Data Point To Graph'),
+        disable: Zenoss.Security.doesNotHavePermission('Manage DMD'),
+        handler: showAddToGraphDialog
+    },{
+        xtype: 'menuitem',
+        text: _t('Add Data Point'),
+        disable: Zenoss.Security.doesNotHavePermission('Manage DMD'),
+        handler: showAddDataPointDialog
+    },{
+        xtype: 'menuitem',
+        text: _t('View and Edit Details'),
+        disable: Zenoss.Security.doesNotHavePermission('Manage DMD'),
+        handler: editDataSourceOrPoint
+    },{
+        xtype: 'menuitem',
+        text: _t('Override Template'),
+        handler: showOverrideDialog
+    }]
+});
+     
 /**
  * @class Zenoss.DataSourceTreeGrid
  * @extends Ext.ux.tree.TreeGrid
@@ -702,51 +681,26 @@ Zenoss.DataSourceTreeGrid = Ext.extend(Ext.ux.tree.TreeGrid, {
             loader: new Ext.ux.tree.TreeGridLoader({
                 directFn: router.getDataSources
             }),
-            tbar: [
-                {
-                    xtype: 'button',
-                    iconCls: 'configure',
-                    tooltip: 'Add Threshold',
-                    handler: function() {
-                        Ext.getCmp('addThresholdDialog').show();
-                    }
-                }, {
-                    xtype: 'button',
-                    iconCls: 'set',
-                    tooltip: 'Add Metric to Graph',
-                    handler: showAddToGraphDialog
-                }, {
-                    xtype: 'tbseparator'
-                }, {
+            tbar: [{
                     xtype: 'button',
                     iconCls: 'add',
                     tooltip: 'Add Data Source',
-                    disable: Zenoss.Security.doesNotHavePermission('Manage DMD'),
                     handler: showAddDataSourceDialog
-                },{
-                    xtype: 'button',
-                    iconCls: 'devprobs',
-                    tooltip: 'Add Metric',
-                    disable: Zenoss.Security.doesNotHavePermission('Manage DMD'),
-                    handler: showAddDataPointDialog
-                },{
-                    xtype: 'button',
-                    iconCls: 'edit',
-                    tooltip: 'Edit Data Source',
-                    disable: Zenoss.Security.doesNotHavePermission('Manage DMD'),
-                    handler: editDataSourceOrPoint
-                },{
-                    xtype: 'button',
-                    iconCls: 'adddevice',
-                    tooltip: 'Override Template',
-                    handler: showOverrideDialog
-                }
-            ],
+            }, {
+                xtype: 'button',
+                iconCls: 'delete',
+                tooltip: _t('Delete Data Source'),
+                handler: showDeleteDataSourceDialog
+            },{
+                xtype: 'button',
+                iconCls: 'customize',
+                menu: 'dataSourceMenu'
+            }],
             columns: [
                 {
                     id: 'name',
                     dataIndex: 'name',
-                    header: 'Metrics by Data Source',
+                    header: 'Data Points by Data Source',
                     width: 250
                 }, {
                     dataIndex: 'source',

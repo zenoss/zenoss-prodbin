@@ -73,6 +73,22 @@ class TemplateFacade(ZuulFacade):
     def deleteTemplate(self, uid):
         return self._deleteObject(uid)
 
+    def deleteDataSource(self, uid):
+        """
+        @param String uid: Unique Identifier of the data source we wish to delete
+        """
+        obj = self._getObject(uid)
+        template = obj.rrdTemplate()
+        template.manage_deleteRRDDataSources((obj.id,))
+        
+    def deleteDataPoint(self, uid):
+        """
+        @param String uid: Unique Identifier of the data point we wish to delete
+        """
+        obj = self._getObject(uid)
+        datasource = obj.datasource()
+        datasource.manage_deleteRRDDataPoints((obj.id,))
+        
     def _editDetails(self, info, data):
         """
         Will apply every property in data to the info if
