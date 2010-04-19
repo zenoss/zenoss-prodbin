@@ -24,6 +24,9 @@ class MEProduct(ManagedEntity):
     For instance software and hardware.
     """
 
+    _prodKey = None
+    _manufacturer = None
+
     _relations = ManagedEntity._relations + (
         ("productClass", ToOne(ToMany, "Products.ZenModel.ProductClass", "instances")),
     )
@@ -59,15 +62,24 @@ class MEProduct(ManagedEntity):
             return self.productClass().manufacturer.getPrimaryLink()
         return ""
 
-    
-    def getProductKey(self):
-        """Get the product class of this software.
-        """
-        pclass = self.productClass()
-        if pclass: return pclass.getProductKey()
-        return ""
 
-    
+    def getProductKey(self):
+        """
+        Return the arguments to the setProductKey method so we can avoid
+        changing the object model when nothing has changed.
+        """
+        if self._manufacturer is not None:
+            return (self._prodKey, self._manufacturer)
+        elif self._prodKey is not None:
+            return self._prodKey
+        else:
+            pclass = self.productClass()
+            if pclass:
+                return pclass.getProductKey()
+            else:
+                return ""
+
+
     def getProductLink(self):
         return self.productClass.getPrimaryLink()
 

@@ -128,10 +128,17 @@ class Software(MEProduct):
             return self.callZenScreen(REQUEST)
 
 
-    def setProductKey(self, prodKey, manufacturer="Unknown"):
+    def setProductKey(self, prodKey, manufacturer=None):
         """Set the product class of this software by its productKey.
         """
         if prodKey:
+            # Store these so we can return the proper value from getProductKey
+            self._prodKey = prodKey
+            self._manufacturer = manufacturer
+
+            if manufacturer is None:
+                manufacturer = 'Unknown'
+
             manufs = self.getDmdRoot("Manufacturers")
             prodobj = manufs.createSoftwareProduct(prodKey, manufacturer)
             self.productClass.addRelation(prodobj)

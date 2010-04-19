@@ -81,9 +81,9 @@ class NewDeviceMap(SnmpPlugin):
         if om.snmpOid:
             match = re.match(r'(.\d+){7}', om.snmpOid)
             if match:
-                manufacturer = EnterpriseOIDs.get(match.group(0), "Unknown")
+                manufacturer = EnterpriseOIDs.get(match.group(0), None)
             else:
-                manufacturer = "Unknown"
+                manufacturer = None
 
             om.setHWProductKey = MultiArgs(om.snmpOid, manufacturer)
             log.debug("HWProductKey=%s", om.setHWProductKey)

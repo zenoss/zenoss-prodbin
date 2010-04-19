@@ -351,7 +351,7 @@ class ApplyDataMap(object):
                     if isinstance(value, MultiArgs):
                         
                         args = value.args
-                        change = True
+                        change = not isSameData(value.args, getter())
                         
                     else:
                         
