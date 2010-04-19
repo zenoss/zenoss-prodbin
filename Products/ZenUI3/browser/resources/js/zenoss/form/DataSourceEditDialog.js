@@ -31,7 +31,9 @@
             var record = config.record,
             items = config.items,
             i,
+            autoHeight = true,
             that = this; // used in the save handler closure
+            this.itemCount = 0;
             
             // make sure the record was passed in
             if (!record) {
@@ -44,7 +46,14 @@
                 // NOTE: this assumes there to be no fieldsets in the items 
                 for(i=0; i<items.length; i+=1) {
                     items[i].record = record;
+                    this.itemCount += 1;
                 }
+            }
+
+            // Since ext has no maxheight property, we need to only use autoheight if we don't
+            // have a lot of items. Otherwise the dialog expands off the screen.
+            if (this.itemCount > 10) {
+                autoHeight = false;
             }
             
             Ext.apply(config, {
@@ -56,7 +65,8 @@
                 constrain: true,
                 modal: true,
                 padding: 10,
-                autoHeight: true,
+                height: 500,
+                autoHeight: autoHeight,
                 items: [{
                     xtype:'form',
                     border: false,
@@ -72,6 +82,9 @@
                     },
                     labelSeparator: ' ',
                     listeners: {
+                        /**
+                         * Sets the windows submit button to be disabled when the form is not valid
+                         **/
                         clientvalidation: function(formPanel, valid){
                             var dialogWindow;
                             dialogWindow = formPanel.refOwner;
@@ -164,6 +177,7 @@
                 // alternate which column this item belongs too
                 for(j = 0; j < fieldset.items.length; j += 1) {
                     item = fieldset.items[j];
+                    this.itemCount += 1;
                     item.record = record;
                     if (!Ext.ComponentMgr.isRegistered(item.xtype)) {
                         throw item.xtype + " is not a valid xtype, please register it.";
