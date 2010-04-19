@@ -196,7 +196,15 @@ class Report:
                     device, component, first, last = row
                     last = min(last, endDate)
                     first = max(first, startDate)
-                    k = (device, component)
+
+                    # Only treat component specially if a component filter was
+                    # specified.
+                    k = None
+                    if self.component:
+                        k = (device, component)
+                    else:
+                        k = (device, '')
+
                     try:
                         devices[k] += last - first
                     except KeyError:
