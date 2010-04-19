@@ -53,6 +53,26 @@ Zenoss.nav.register({
         }
     },{
         nodeType: 'subselect',
+        id: 'Graphs',
+        text: _t('Graphs'),
+        action: function(node, target) {
+            var uid = node.ownerTree.ownerCt.contextId,
+                cardid = uid+'_graphs',
+                graphs = {
+                    id: cardid,
+                    xtype: 'backcompat',
+                    viewName: 'graphs',
+                    text: _t('Graphs')
+                };
+            if (!(cardid in target.items.keys)) {
+                target.add(graphs);
+            }
+            target.layout.setActiveItem(cardid);
+            target.layout.activeItem.setContext(uid);
+        }
+
+    },{
+        nodeType: 'subselect',
         id: 'Edit',
         text: _t('Edit'),
         action: function(node, target) {
@@ -83,7 +103,19 @@ ZC.ComponentDetailNav = Ext.extend(Zenoss.DetailNavPanel, {
         this.on('selectionchange', this.onSelectionChange);
     },
     onGetNavConfig: function(contextId) {
-        return Zenoss.nav.Component;
+        var grid = this.ownerCt.ownerCt.ownerCt.componentgrid,
+            items = [],
+            monitored = false;
+        Zenoss.env.GRID = grid;
+        Ext.each(grid.store.data.items, function(record){
+            if (record.data.monitored) { monitored = true; }
+        });
+        Ext.each(Zenoss.nav.Component, function(item){
+            if (!(item.id=='Graphs' && !monitored)) {
+                items.push(item);
+            }
+        });
+        return items;
     },
     filterNav: function(navpanel, config){
         //nav items to be excluded

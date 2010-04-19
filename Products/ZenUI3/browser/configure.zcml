@@ -197,6 +197,13 @@
     permission="zenoss.RunCommands"
     />
 
+<browser:page
+    template="templates/graphs.pt"
+    name="graphs"
+    permission="zenoss.View"
+    for="Products.ZenModel.DeviceComponent.DeviceComponent"
+    />
+
 
 <include package=".eventconsole"/>
 <include package=".search"/>

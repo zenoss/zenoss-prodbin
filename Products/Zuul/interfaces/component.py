@@ -153,5 +153,10 @@ class IIpRouteEntryInfo(IComponentInfo):
                               group="Overview")
     protocol = schema.Text(title=u"Protocol", readonly=True, group="Overview")
     type = schema.Text(title=u"Type", readonly=True, group="Overview")
+    monitored = schema.Bool(title=u"Monitored",
+                            readonly=True,
+                            order=0,
+                            description=u"Is the instance monitored",
+                            group="Overview")
 
 
