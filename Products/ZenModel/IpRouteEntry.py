@@ -83,6 +83,9 @@ class IpRouteEntry(OSComponent):
     metric4 = 0
     metric5 = 0
 
+    _ifindex = None
+    _ifname = None
+
     _properties = (
         {'id':'routemask', 'type':'string', 'mode':''},
         {'id':'nexthopip', 'type':'string', 
@@ -165,7 +168,9 @@ class IpRouteEntry(OSComponent):
         Return the interface name for this route as a string.
         If no interface is found return 'No Interface'.
         """
-        if self.interface():
+        if self._ifname is not None:
+            return self._ifname
+        elif self.interface():
             return self.interface().name()
         return "No Interface"
 
@@ -244,6 +249,7 @@ class IpRouteEntry(OSComponent):
         Set the interface relationship to the interface specified by the given
         index.  See also setInterfaceName()
         """
+        self._ifindex = ifindex
         for int in self.os().interfaces():
             if int.ifindex == ifindex: break
         else:
@@ -257,8 +263,12 @@ class IpRouteEntry(OSComponent):
         Return the index of the associated interface or None if no
         interface is found.
         """
-        int = self.interface()
-        if int: return int.ifindex
+        if self._ifindex is not None:
+            return self._ifindex
+        else:
+            int = self.interface()
+            if int:
+                return int.ifindex
 
 
     security.declareProtected('Change Device', 'setInterfaceName')
@@ -267,6 +277,7 @@ class IpRouteEntry(OSComponent):
         Set the interface relationship to the interface specified by the given
         name.  See also setInterfaceIndex()
         """
+        self._ifname = intname
         try:
             int = filter(lambda i: i.name() == intname,
                     self.os().interfaces())[0]
