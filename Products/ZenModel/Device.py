@@ -280,7 +280,7 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable,
             'icon'           : 'Device_icon.gif',
             'product'        : 'ZenModel',
             'factory'        : 'manage_addDevice',
-            'immediate_view' : 'deviceStatus',
+            'immediate_view' : 'devicedetail',
             'actions'        :
             (
                 { 'id'            : 'status'

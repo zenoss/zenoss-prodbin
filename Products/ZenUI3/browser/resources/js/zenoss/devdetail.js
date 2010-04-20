@@ -47,7 +47,9 @@ function refreshComponentTreeAndGrid(compType) {
         if (!node) {
             node = compsNode.firstChild;
         }
-        node.select();
+        if (!sel) {
+            node.select();
+        }
     });
 
 }
@@ -57,7 +59,6 @@ Zenoss.env.componentReloader = function(compType) {
         refreshComponentTreeAndGrid(compType);
     };
 }
-
 
 Zenoss.nav.register({
     Device: [{
@@ -593,6 +594,14 @@ Zenoss.DeviceDetailNav = Ext.extend(Zenoss.DetailNavPanel, {
     onGetNavConfig: function(contextId) {
         return Zenoss.nav.Device;
     },
+    selectByToken: function(token) {
+        var node = this.treepanel.getRootNode().findChildBy(function(n){
+            return n.id==token;
+        });
+        if (node) {
+            node.select();
+        }
+    },
     onSelectionChange: function(node) {
         var target, action;
         target = Ext.getCmp('detail_card_panel');
@@ -613,6 +622,7 @@ Zenoss.DeviceDetailNav = Ext.extend(Zenoss.DetailNavPanel, {
                 target.layout.setActiveItem(node.attributes.id);
             }.createDelegate(this);
         }
+        Ext.History.add(this.id + Ext.History.DELIMITER + node.id);
         action(node, target);
     }
 });

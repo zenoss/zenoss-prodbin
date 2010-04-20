@@ -41,6 +41,7 @@ from Products.ZenUtils.Utils import getObjByPath
 
 from Products.ZenUtils.Utils import prepId as globalPrepId
 from Products.ZenWidgets import messaging
+from Products.ZenUI3.browser.interfaces import INewPath
 
 from ZenossSecurity import *
 
@@ -65,13 +66,8 @@ class ZenModelBase(object):
         """
         Invokes the default view.
         """
-        view = "view"
-        if hasattr(self, "factory_type_information"):
-            view = self.factory_type_information[0]['immediate_view']
-        else:
-            raise NameError('Cannot find default view for "%s"' %
-                            '/'.join(self.getPhysicalPath()))
-        return self.restrictedTraverse(view)()
+        newpath = INewPath(self)
+        self.REQUEST.response.redirect(newpath)
 
     index_html = None  # This special value informs ZPublisher to use __call__
 

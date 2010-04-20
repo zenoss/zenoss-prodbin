@@ -257,7 +257,6 @@ class DataRoot(ZenModelRM, OrderedFolder, Commandable, ZenMenuable):
         from ZVersion import VERSION
         self.version = "Zenoss " + VERSION
 
-
     def index_html(self):
         """
         Override to force redirection to quickstart.

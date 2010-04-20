@@ -10,6 +10,7 @@
 # For complete information please visit: http://www.zenoss.com/oss/
 #
 ###########################################################################
+from zope.interface import Interface
 from Products.ZenUI3.utils.interfaces import IJavaScriptSnippetManager
 from zope.viewlet.interfaces import IViewlet, IViewletManager
 
@@ -37,3 +38,9 @@ class IHeadExtraManager(IViewletManager):
     """
     A viewlet manager to allow ZenPacks, etc. to plug in extra stuff.
     """
+
+class INewPath(Interface):
+    """
+    Translates old paths into new ones.
+    """
+

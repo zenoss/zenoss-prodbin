@@ -197,6 +197,7 @@ Zenoss.SubselectionPanel = Ext.extend(Ext.Panel, {
             bodyStyle: { 'margin-top' : 10 },
             items: [{
                 xtype:'treepanel',
+                ref: 'treepanel',
                 selModel: new Ext.tree.DefaultSelectionModel({
                     listeners: {
                         selectionchange: function(sm, node) {
@@ -314,7 +315,9 @@ Zenoss.DetailNavPanel = Ext.extend(Zenoss.SubselectionPanel,{
     /**
      * map of nav id to panel configuration
      */
+    loaded: false,
     panelConfigMap: null,
+    selectFirstNode: true,
     constructor: function(config) {
         Ext.applyIf(config, {
             id: Ext.id(),
@@ -327,26 +330,48 @@ Zenoss.DetailNavPanel = Ext.extend(Zenoss.SubselectionPanel,{
         Ext.applyIf(config, {
             items: {
                 xtype: 'detailnavtreepanel',
+                ref: 'navtreepanel',
                 idSuffix: config.id,
                 bubbleTarget: config.bubbleTarget
             }
         });
         Zenoss.DetailNavPanel.superclass.constructor.call(this, config);
-    },initEvents: function() {
+    },
+    initEvents: function() {
         this.addEvents( 
-        /**
-         * @event navloaded
-         * Fires after the navigation has been loaded
-         * @param {DetailNavPanel} this The DetailNavPanel
-         * @param {Object} The Navigation config loaded
-         */'navloaded' );
+            /**
+             * @event navloaded
+             * Fires after the navigation has been loaded
+             * @param {DetailNavPanel} this The DetailNavPanel
+             * @param {AsyncTreeNode} root The root node
+             */
+             'navloaded',
+             /*
+             * @event nodeloaded
+             * Fires after each navigation node has been loaded
+             * @param {DetailNavPanel} this The DetailNavPanel
+             * @param {Object} The Navigation config loaded
+             */
+             'nodeloaded',
+            /**
+             * @event contextchange
+             * Fires after the navigation has been loaded
+             * @param {DetailNavPanel} this The DetailNavPanel
+             */
+            'contextchange'
+        );
         Zenoss.DetailNavPanel.superclass.initEvents.call(this);
+        if (this.selectFirstNode) {
+            this.on('navloaded', this.selectFirst, this);
+        }
     },
     setContext: function(uid) {
         //called to load the nav tree
+        this.loaded = false;
         this.contextId = uid;
         this.treepanel.setRootNode([]);
         this.getNavConfig(uid);
+        this.fireEvent('contextchange', this);
     },
     getSelectionModel: function() {
         return this.treepanel.getSelectionModel();
@@ -387,22 +412,29 @@ Zenoss.DetailNavPanel = Ext.extend(Zenoss.SubselectionPanel,{
         this.treepanel.setRootNode(root);
         return root;
     },
+    selectFirst: function(me, root) {
+        var sel = root.getOwnerTree().getSelectionModel().getSelectedNode();
+        if (!sel) {
+            root.firstChild.select();
+        }
+    },
     setNavTree: function(nodes){
         //get any configs registered by the page
+        var root;
         if (nodes) {
-            var root = this.reset();
+            root = this.reset();
             Ext.each(nodes, function(node){
                 Ext.applyIf(node, {
                     nodeType: 'subselect'
                 });
                 root.appendChild(node);
             });
-            root.firstChild.select();
             Ext.each(nodes, function(navConfig){
-                this.fireEvent('navloaded', this, navConfig);
+                this.fireEvent('nodeloaded', this, navConfig);
             }, this);
-            
         }
+        this.loaded = true;
+        this.fireEvent('navloaded', this, root);
     }
 });
 Ext.reg('detailnav', Zenoss.DetailNavPanel);

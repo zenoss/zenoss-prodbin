@@ -489,4 +489,40 @@
     permission="zenoss.View"
     />
 
+<adapter
+    for="Products.ZenModel.ZenModelBase.ZenModelBase"
+    provides=".interfaces.INewPath"
+    factory=".backcompat.immediate_view"
+    />
+
+<adapter
+    for="Products.ZenModel.DeviceClass.DeviceClass"
+    provides=".interfaces.INewPath"
+    factory=".backcompat.DeviceClass"
+    />
+
+<adapter
+    for="Products.ZenModel.Location.Location"
+    provides=".interfaces.INewPath"
+    factory=".backcompat.Location"
+    />
+
+<adapter
+    for="Products.ZenModel.System.System"
+    provides=".interfaces.INewPath"
+    factory=".backcompat.System"
+    />
+
+<adapter
+    for="Products.ZenModel.DeviceGroup.DeviceGroup"
+    provides=".interfaces.INewPath"
+    factory=".backcompat.DeviceGroup"
+    />
+
+<adapter
+    for="Products.ZenModel.IpNetwork.IpNetwork"
+    provides=".interfaces.INewPath"
+    factory=".backcompat.IpNetwork"
+    />
+
 </configure>

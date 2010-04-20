@@ -912,6 +912,36 @@ function initializeTreeDrop(g) {
     });
 }
 
+/*
+* Special history manager selection to deal with the second level of nav
+* on the "Details" panel.
+*/
+function detailSelectByToken(nodeId) {
+    var parts = nodeId.split(Ext.History.DELIMITER),
+        master = Ext.getCmp('master_panel'),
+        container = master.layout,
+        node = treesm.getSelectedNode(),
+        item = Ext.getCmp('detail_nav');
+    function changeDetail() {
+        item.un('navloaded', item.selectFirst, item);
+        container.setActiveItem(1);
+        item.selectByToken(parts[1]);
+    }
+    if (parts[1]) {
+        if (master.items.items.indexOf(container.activeItem)==1 ||
+            (node && node.id==parts[0])) {
+            Zenoss.HierarchyTreePanel.prototype.selectByToken.call(this, parts[0]);
+            changeDetail();
+        } else {
+            treesm.on('selectionchange', changeDetail, treesm, {single:true});
+            Zenoss.HierarchyTreePanel.prototype.selectByToken.call(this, parts[0]);
+        }
+    } else {
+        container.setActiveItem(0);
+        Zenoss.HierarchyTreePanel.prototype.selectByToken.call(this, parts[0]);
+    }
+}
+
 var devtree = {
     xtype: 'HierarchyTreePanel',
     id: 'devices',
@@ -923,6 +953,7 @@ var devtree = {
         uid: '/zport/dmd/Devices',
         text: 'Device Classes'
     },
+    selectByToken: detailSelectByToken,
     selModel: treesm,
     router: REMOTE,
     addNodeDialogItems: addNodeDialogItems,
@@ -942,6 +973,7 @@ var grouptree = {
     searchField: false,
     directFn: REMOTE.getTree,
     deleteMessage: _t('The selected node will be deleted'),
+    selectByToken: detailSelectByToken,
     root: {
         id: 'Groups',
         uid: '/zport/dmd/Groups'
@@ -959,6 +991,7 @@ var systree = {
     searchField: false,
     directFn: REMOTE.getTree,
     deleteMessage: _t('The selected node will be deleted'),
+    selectByToken: detailSelectByToken,
     root: {
         id: 'Systems',
         uid: '/zport/dmd/Systems'
@@ -975,6 +1008,7 @@ var loctree = {
     id: 'locs',
     searchField: false,
     directFn: REMOTE.getTree,
+    selectByToken: detailSelectByToken,
     root: {
         id: 'Locations',
         uid: '/zport/dmd/Locations'
@@ -993,7 +1027,7 @@ Zenoss.InfraDetailNav = Ext.extend(Zenoss.DetailNavPanel, {
             target: 'detail_panel',
             menuIds: ['More','Add','TopLevel','Manage'],
             listeners:{
-                navloaded: function( detailNavPanel, navConfig){
+                nodeloaded: function( detailNavPanel, navConfig){
                     var excluded = { 
                         'device_grid': true, 
                         'events_grid': true 
@@ -1013,6 +1047,24 @@ Zenoss.InfraDetailNav = Ext.extend(Zenoss.DetailNavPanel, {
         });
         Zenoss.InfraDetailNav.superclass.constructor.call(this, config);
     },    
+    selectByToken: function(nodeId) {
+        var selNode = function () {
+            var sel = this.getSelectionModel().getSelectedNode();
+            if ( !(sel && nodeId === sel.id) ) {
+                var n = this.navtreepanel.root.findChild('id', nodeId);
+                if (n) {
+                    n.select();
+                }
+            }
+            this.un('navloaded', this.selectFirst, this);
+            this.on('navloaded', this.selectFirst, this);
+        }.createDelegate(this);
+        if (this.loaded) {
+            selNode();
+        } else {
+            this.on('navloaded', selNode, this, {single:true});
+        }
+    },
     filterNav: function(navpanel, config){
         //nav items to be excluded
         var excluded = {
@@ -1053,6 +1105,8 @@ Zenoss.InfraDetailNav = Ext.extend(Zenoss.DetailNavPanel, {
             var contentPanel = Ext.getCmp(node.attributes.id);
             contentPanel.setContext(this.contextId); 
             detailPanel.layout.setActiveItem(node.attributes.id);
+            var orgnode = treesm.getSelectedNode();
+            Ext.History.add([orgnode.getOwnerTree().id, orgnode.id, node.id].join(Ext.History.DELIMITER));
         }
     }
 });
@@ -1105,9 +1159,11 @@ Ext.getCmp('center_panel').add({
                 }
             },
             cardchange: function(me, card, index, from , fromidx) {
+                var node = treesm.getSelectedNode();
                 if (index==1) {
-                    var node = treesm.getSelectedNode().attributes;
-                    card.card.setContext(node.uid);
+                    card.card.setContext(node.attributes.uid);
+                } else if (index===0) {
+                    Ext.History.add([node.getOwnerTree().id, node.id].join(Ext.History.DELIMITER));
                 }
             }
         }
@@ -1189,7 +1245,6 @@ Ext.getCmp('center_panel').add({
     }]
 });
 
-
 /*
  *
  *   footer_panel - the add/remove tree node buttons at the bottom
@@ -1234,7 +1289,7 @@ footerBar.add({
             handler: function(){
                 REMOTE.clearGeocodeCache({},
                     function(data) {
-                        msg = (data.success) ?
+                        var msg = (data.success) ?
                             _t('Geocode Cache has been cleared') :
                             _t('Something happened while trying to clear Geocode Cache');
                         var dialog = new Zenoss.dialog.SimpleMessageDialog( {
