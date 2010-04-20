@@ -18,7 +18,7 @@ from Products.AdvancedQuery import Eq, Or, And, MatchRegexp
 from Products.Zuul.decorators import info
 from Products.Zuul.utils import unbrain
 from Products.Zuul.facades import TreeFacade
-from Products.Zuul.interfaces import IDeviceFacade, ICatalogTool, IInfo
+from Products.Zuul.interfaces import IDeviceFacade, ICatalogTool, IInfo, ITemplateNode
 from Products.Zuul.tree import SearchResults
 from Products.ZenModel.DeviceOrganizer import DeviceOrganizer
 from Products.ZenModel.DeviceGroup import DeviceGroup
@@ -292,3 +292,17 @@ class DeviceFacade(TreeFacade):
     def setBoundTemplates(self, uid, templateIds):
         obj = self._getObject(uid)
         obj.bindTemplates(templateIds)
+
+    def getOverridableTemplates(self, uid):
+        """
+        A template is overrideable at the device if it is bound to the device and
+        we have not already overridden it.
+        @param string UID, the unique id of a device 
+        @returns a list of all available templates for the given uid
+        """
+        obj = self._getObject(uid)
+        templates = obj.getRRDTemplates()
+        for template in templates:
+            # see if the template is already overridden here
+            if not obj.id in template.getPhysicalPath():
+                yield ITemplateNode(template)

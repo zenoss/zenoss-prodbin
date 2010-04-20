@@ -681,6 +681,13 @@ Ext.create({
     context: UID
 });
 
+Ext.create({
+    xtype: 'overridetemplatesdialog',
+    id: 'overrideTemplatesDialog',
+    context: UID
+});
+
+                
 Ext.getCmp('footer_bar').add([{
     xtype: 'ContextConfigureMenu',
     id: 'device_configure_menu',
@@ -694,6 +701,12 @@ Ext.getCmp('footer_bar').add([{
         text: _t('Bind Templates'),
         handler: function(){
             Ext.getCmp('bindTemplatesDialog').show();
+        }
+    },{
+        xtype: 'menuitem',
+        text: _t('Override Template Here'),
+        handler: function(){
+            Ext.getCmp('overrideTemplatesDialog').show();
         }
     }]
 },{

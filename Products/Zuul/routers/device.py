@@ -398,6 +398,20 @@ class DeviceRouter(TreeRouter):
         facade.setBoundTemplates(uid, templateIds)
         return {'success': True}
 
+    def getOverridableTemplates(self, query, uid):
+        """
+        @returns A list of all the available templates at this context
+        that we can override. Here the context is assumed to be either
+        a device
+        """
+        facade = self._getFacade()
+        templates = facade.getOverridableTemplates(uid)
+        # we just need the text and the id (for our combobox)
+        data = []
+        for template in templates:
+            data.append(dict(label=template.text, uid=template.uid))
+        return DirectResponse(success=True, data=data)
+    
     def clearGeocodeCache(self):
         self.context.clearGeocodeCache()
         return DirectResponse.succeed()

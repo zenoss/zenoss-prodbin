@@ -234,4 +234,84 @@ Zenoss.BindTemplatesDialog = Ext.extend(Zenoss.HideFitDialog, {
 });
 Ext.reg('bindtemplatesdialog', Zenoss.BindTemplatesDialog);
 
+
+Zenoss.OverrideTemplatesDialog = Ext.extend(Zenoss.HideFitDialog, {
+    constructor: function(config){
+        var me = this;
+        Ext.applyIf(config, {
+            title: _t('Override Templates'),
+            listeners: {
+                show: function() {
+                    // completely reload the combobox every time
+                    // we show the dialog
+                    me.submit.setDisabled(true);
+                    me.comboBox.setValue(null);
+                    me.comboBox.store.setBaseParam('query', me.context);
+                    me.comboBox.store.setBaseParam('uid', me.context);
+                    me.comboBox.store.load();
+                }
+            },
+            items: [{
+                xtype: 'label',
+                border: false,
+                html: _t('Select the bound template you wish to override.')
+            },{
+                xtype: 'combo',
+                forceSelection: true,
+                emptyText: _t('Select a template...'),
+                minChars: 0,
+                ref: 'comboBox',
+                selectOnFocus: true,
+                valueField: 'uid',
+                displayField: 'label',
+                typeAhead: true,
+                store: {
+                    xtype: 'directstore',
+                    ref:'store',
+                    directFn: REMOTE.getOverridableTemplates,
+                    fields: ['uid', 'label'],
+                    root: 'data'
+                },
+                listeners: {
+                    select: function(){
+                        // disable submit if something is selected
+                        me.submit.setDisabled(!me.comboBox.getValue());
+                    }
+                }
+            }],
+            buttons: [
+            {
+                xtype: 'HideDialogButton',
+                ref: '../submit',
+                disabled: true,
+                text: _t('Submit'),
+                handler: function(){
+                    var records, data, templateIds;
+                    if (Zenoss.Security.hasPermission('Manage DMD')) {
+                        var templateUid = me.comboBox.getValue();
+                        Zenoss.remote.TemplateRouter.copyTemplate({
+                            uid: templateUid,
+                            targetUid: me.context
+                        }, function (){
+                            // refresh the template tree
+                            var cmp = Ext.getCmp('templateTree');
+                            if (cmp) {
+                                cmp.getRootNode().reload();
+                            }
+                        });
+                    }
+                }
+            }, {
+                xtype: 'HideDialogButton',
+                text: _t('Cancel')
+            }]
+        });
+        Zenoss.OverrideTemplatesDialog.superclass.constructor.call(this, config);
+    },
+    setContext: function(uid) {
+        this.context = uid;
+    }
+});
+Ext.reg('overridetemplatesdialog', Zenoss.OverrideTemplatesDialog);
+
 })();
