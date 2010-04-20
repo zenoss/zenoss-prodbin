@@ -52,7 +52,7 @@ class ServiceRouter(TreeRouter):
             allinfos = self.api.getList(**q)
 
             newIndex = None
-            for pos, iobj in enumerate(allinfos):
+            for pos, iobj in enumerate(allinfos['brains']):
                 if iobj.uid == newUid:
                     newIndex = pos
                     break
