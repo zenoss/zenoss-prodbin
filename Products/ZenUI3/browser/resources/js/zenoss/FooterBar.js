@@ -90,7 +90,7 @@ Zenoss.footerHelper = function(itemName, footerBar, options) {
             items: [{
                 xtype: 'textfield',
                 name: 'idTextField',
-                fieldLabel: _t('ID'),
+                fieldLabel: _t('Name'),
                 allowBlank: false
             }]
         });
