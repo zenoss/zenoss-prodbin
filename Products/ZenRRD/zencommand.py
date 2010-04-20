@@ -142,7 +142,8 @@ class MySshClient(SshClient):
 
     def addResult(self, command, data, code):
         "Forward the results of the command execution to the starter"
-        SshClient.addResult(self, command, data, code)
+        # don't call the CollectorClient.addResult which adds the result to a
+        # member variable for zenmodeler
         d = self.defers.pop(command, None)
         if d is None:
             log.error("Internal error where deferred object not in dictionary." \
@@ -160,7 +161,8 @@ class MySshClient(SshClient):
     def clientFinished(self):
         "We don't need to track commands/results when they complete"
         SshClient.clientFinished(self)
-        self.commands = []
+        self.cmdmap = {}
+        self._commands = []
         self.results = []
 
 
@@ -189,6 +191,9 @@ class SshPool:
             self.pool[dc.device] = result
         return result
 
+    def reinitializeCollectorClients(self):
+        for collectorClient in self.pool.values():
+            collectorClient.reinitialize()
 
     def _close(self, device):
         "close the SSH connection to a device, if it exists"
@@ -361,7 +366,7 @@ class Cmd(pb.Copyable, pb.RemoteCopy):
     def updateConfig(self, cfg, deviceConfig):
         self.deviceConfig = deviceConfig
         self.useSsh = cfg.useSsh
-        self.cycleTime = max(cfg.cycleTime, 1)
+        self.cycleTime = max(int(cfg.cycleTime), 1)
         self.eventKey = cfg.eventKey
         self.eventClass = cfg.eventClass
         self.severity = cfg.severity
@@ -579,6 +584,7 @@ class zencommand(RRDDaemon):
                     break
 
             if earliest is not None:
+                self.pool.reinitializeCollectorClients()
                 self.log.debug("Next command in %d seconds", int(earliest))
                 self.timeout = reactor.callLater(max(1, earliest),
                                                  self.processSchedule)

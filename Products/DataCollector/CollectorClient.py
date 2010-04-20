@@ -184,7 +184,15 @@ class CollectorClient(BaseClient, protocol.ClientFactory):
         if self.datacollector:
             self.datacollector.clientFinished(self)
 
-        
+    def reinitialize(self):
+        """
+        Clear out all member variables that are collections to avoid memory
+        leaks.
+        """
+        self.cmdmap = {}
+        self._commands = []
+        self.results = []
+
 
 def buildOptions(parser=None, usage=None):
     """
