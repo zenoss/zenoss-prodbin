@@ -114,6 +114,7 @@ class DeviceRouter(TreeRouter):
             tree = self.getTree(target)
             return DirectResponse.succeed(tree=tree)
 
+    @require('Change Device')
     def lockDevices(self, uids, hashcheck, ranges=(), updates=False,
                     deletion=False, sendEvent=False, uid=None, params=None,
                     sort='name', dir='ASC'):
@@ -137,6 +138,7 @@ class DeviceRouter(TreeRouter):
             log.exception(e)
             return DirectResponse.fail('Failed to lock devices.')
 
+    @require('Change Device')
     def resetIp(self, uids, hashcheck, uid=None, ranges=(), params=None,
                 sort='name', dir='ASC'):
         if ranges:
@@ -151,6 +153,7 @@ class DeviceRouter(TreeRouter):
             log.exception(e)
             return DirectResponse.fail('Failed to reset IP addresses.')
 
+    @require('Change Device')
     def resetCommunity(self, uids, hashcheck, uid=None, ranges=(), params=None,
                       sort='name', dir='ASC'):
         if ranges:
@@ -164,6 +167,7 @@ class DeviceRouter(TreeRouter):
             log.exception(e)
             return DirectResponse.fail('Failed to reset community strings.')
 
+    @require('Change Device Production State')
     def setProductionState(self, uids, prodState, hashcheck, uid=None,
                            ranges=(), params=None, sort='name', dir='ASC'):
         if ranges:
@@ -178,6 +182,7 @@ class DeviceRouter(TreeRouter):
             log.exception(e)
             return DirectResponse.fail('Failed to change production state.')
 
+    @require('Change Device')
     def setPriority(self, uids, priority, hashcheck, uid=None, ranges=(),
                     params=None, sort='name', dir='ASC'):
         if ranges:
@@ -194,6 +199,7 @@ class DeviceRouter(TreeRouter):
             log.exception(e)
             return DirectResponse.fail('Failed to change priority.')
 
+    @require('Change Device')
     def setCollector(self, uids, collector, hashcheck, uid=None, ranges=(),
                      params=None, sort='name', dir='ASC'):
         if ranges:
@@ -261,6 +267,7 @@ class DeviceRouter(TreeRouter):
         except:
             return DirectResponse.fail('Failed to delete components.')
 
+    @require('Delete Device')
     def removeDevices(self, uids, hashcheck, action="remove", uid=None,
                       ranges=(), params=None, sort='name', dir='ASC'):
         if ranges:
@@ -345,6 +352,7 @@ class DeviceRouter(TreeRouter):
         result = [{'name': name} for name in names];
         return DirectResponse(productNames=result, totalCount=len(result))
 
+    @require('Manage DMD')
     def addDevice(self, deviceName, deviceClass, title=None, snmpCommunity="", snmpPort=161,
                   model=False, collector='localhost',  rackSlot=0, 
                   productionState=1000, comments="", hwManufacturer="", 

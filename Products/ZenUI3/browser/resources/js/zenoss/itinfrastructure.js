@@ -238,7 +238,10 @@ var deviceClassCombo = {
 };
 
 function setDeviceButtonsDisabled(bool){
-    Zenoss.devices.deleteDevices.setDisabled(bool);
+    // must also check permissions before enable/disable the 
+    // 'deleteDevices' button
+    Zenoss.devices.deleteDevices.setDisabled(bool ||
+        Zenoss.Security.doesNotHavePermission('Delete Device'));
     Ext.getCmp('commands-menu').setDisabled(bool);
     Ext.getCmp('actions-menu').setDisabled(bool);
 }
@@ -521,7 +524,7 @@ Ext.apply(Zenoss.devices, {
         //text: _t('Delete Devices'),
         iconCls: 'delete',
         id: 'delete-button',
-        permission: 'Change Device',
+        permission: 'Delete Device',
         handler: function(btn, e) {
             var grid = Ext.getCmp('device_grid'),
                 selnode = treesm.getSelectedNode(),
@@ -1205,7 +1208,7 @@ Ext.getCmp('center_panel').add({
                 {
                     id: 'actions-menu',
                     text: _t('Actions'),
-                    disabled: Zenoss.Security.doesNotHavePermission('Change Device'),
+                    disabled: Zenoss.Security.doesNotHavePermission('Delete Device'),
                     menu: {
                         items: [
                             Zenoss.devices.lockDevices,
