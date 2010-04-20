@@ -117,7 +117,7 @@ def _customStuff():
 
     def logout():
         noSecurityManager()
-
+    
     def zhelp():
         cmds = filter(lambda x: not x.startswith("_"), _CUSTOMSTUFF)
         cmds.sort()
@@ -130,7 +130,12 @@ def _customStuff():
             for key in dir(obj):
                 if pattern.search(key):
                     print key
-    
+
+    def version():
+        for info in zport.About.getAllVersions():
+            print "%10s: %s" % (info['header'], info['data'])
+        print "%10s: %s" % ("DMD", dmd.version)
+
     def printNets(net=dmd.Networks, format="text", out=sys.stdout):
         """
         Print out the IpNetwork and IpAddress hierarchy under net.  To print
