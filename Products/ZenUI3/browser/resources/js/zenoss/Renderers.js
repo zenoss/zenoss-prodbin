@@ -36,9 +36,11 @@ Ext.apply(Zenoss.render, {
         return '<div class="status-icon-small-'+evstatus.toLowerCase()+'"><'+'/div>';
     },
 
-    events: function(value) {
-        var result = '';
-        Ext.each(['critical', 'error', 'warning'], function(severity) {
+    events: function(value, count) {
+        var result = '',
+            sevs = ['critical', 'error', 'warning', 'info', 'debug', 'clear'];
+        count = count || 3;
+        Ext.each(sevs.slice(0, count), function(severity) {
             noevents = (0 == value[severity]) ? 'no-events' : '';
             result += iconTemplate.apply({
                 severity: severity,

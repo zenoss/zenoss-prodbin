@@ -46,6 +46,7 @@ strong { font-weight: bold; }
     width: 22px;
     height: 50px;
     margin-right: 2px;
+    margin-left: -3px;
     background: transparent 
                 url(/++resource++zenui/img/xtheme-zenoss/toolbar/tb-evdetail-sep.png)
                 center center no-repeat;
@@ -400,7 +401,6 @@ div.dialog-link a {
 table.eventrainbow {
     border-collapse: collapse;
     height: 16px;
-    width: 147px;
 }
 
 .eventrainbow td {
@@ -409,6 +409,11 @@ table.eventrainbow {
     color: white;
     vertical-align: middle;
 }
+
+.eventrainbow td.severity-icon-small {
+    width: 25px;
+}
+
 .largetoolbar .eventrainbow td {
     padding-left: 25px;
 }
@@ -424,6 +429,9 @@ table.eventrainbow {
 table.eventrainbow td.critical { background-color: #d60000; }
 table.eventrainbow td.error { background-color: #ff9711; }
 table.eventrainbow td.warning { background-color: #fbd13d; }
+table.eventrainbow td.info { background-color: #0472b8; }
+table.eventrainbow td.debug { background-color: #747474; }
+table.eventrainbow td.clear { background-color: #62a700; }
 
 .streaming-window .x-window-body {
     background: transparent url(../img/xtheme-zenoss/window/left-right.png);
@@ -448,15 +456,26 @@ table.eventrainbow td.warning { background-color: #fbd13d; }
     text-align: center;
     text-transform: uppercase;
 }
-.devdetailbar div.devdetail-labelitem.devdetail-ipaddress {
-    margin-top: -5px;
-    text-align: left;
-    font-size: 10pt;
-}
-.devdetailbar div.devdetail-textitem.devdetail-devname {
-    margin-top: -5px;
-    font-size: 11pt;
+.devdetailbar .devdetail-devname {
+    margin-top: 2px;
+    font-size: 13pt;
     font-weight: bold;
+}
+.ext-ie .devdetailbar .devdetail-devname {
+    margin-top: 0px;
+}
+.devdetailbar .devdetail-devclass,
+.devdetailbar .devdetail-ipaddress {
+    margin-top: -6px;
+    text-align: left;
+    font-size: 9pt;
+    font-weight: normal;
+}
+
+.devdetail-icon {
+    height: 50px;
+    width: 40px;
+    background: transparent url() center center no-repeat;
 }
 
 .display-field {
@@ -617,3 +636,4 @@ table.search-result {
 .detailnav .x-tree .x-panel-body {
     background-color: #D4E0EE;
 }
+

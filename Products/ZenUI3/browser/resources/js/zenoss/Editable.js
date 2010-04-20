@@ -25,7 +25,7 @@ Zenoss.DisplayField = Ext.extend(Ext.form.DisplayField, {
         Zenoss.DisplayField.superclass.constructor.call(this, config);
     },
     setRawValue: function(v) {
-        if (Ext.isIE) {
+        if (v && Ext.isIE) {
             v = v.replace(/\n/g, '<br/>');
         }
         Zenoss.DisplayField.superclass.setRawValue.call(this, v);

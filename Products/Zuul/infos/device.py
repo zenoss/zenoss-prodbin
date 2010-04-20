@@ -121,7 +121,6 @@ class DeviceInfo(InfoBase):
         counts = (s[1]+s[2] for s in self._object.getEventSummary())
         return dict(zip(severities, counts))
 
-    @property
     def availability(self):
         return self._object.availability().availability
 
@@ -249,11 +248,20 @@ class DeviceInfo(InfoBase):
 
     snmpAgent = property(getSnmpAgent, setSnmpAgent)
 
+    @property
+    def icon(self):
+        return self._object.zIcon
+
 
 
 class DeviceOrganizerInfo(InfoBase):
     implements(IDeviceOrganizerInfo)
     adapts(DeviceOrganizer)
+
+    @property
+    def path(self):
+        return self._object.getPrimaryDmdId()
+
     @property
     def events(self):
         mgr = self._object.getEventManager()

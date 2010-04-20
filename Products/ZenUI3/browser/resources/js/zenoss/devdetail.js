@@ -62,6 +62,20 @@ Zenoss.env.componentReloader = function(compType) {
 
 Zenoss.nav.register({
     Device: [{
+        id: 'Overview',
+        nodeType: 'subselect',
+        text: _t('Overview'),
+        action: function(node, target){
+            target.layout.setActiveItem('device_overview');
+            var panel = Ext.getCmp('devdetail_bottom_detail_panel');
+            if (panel.collapsed) {
+                panel.topToolbar.togglebutton.setIconClass('expand');
+            } else {
+                panel.topToolbar.togglebutton.setIconClass('collapse');
+                setEventButtonsDisplayed(true);
+            }
+        }
+    },{
         id: UID,
         nodeType: 'async',
         text: _t('Components'),
@@ -118,20 +132,6 @@ Zenoss.nav.register({
                 uiProvider: Zenoss.HierarchyTreeNodeUI
             }
         })
-    },{
-        id: 'Overview',
-        nodeType: 'subselect',
-        text: _t('Device Overview'),
-        action: function(node, target){
-            target.layout.setActiveItem('device_overview');
-            var panel = Ext.getCmp('devdetail_bottom_detail_panel');
-            if (panel.collapsed) {
-                panel.topToolbar.togglebutton.setIconClass('expand');
-            } else {
-                panel.topToolbar.togglebutton.setIconClass('collapse');
-                setEventButtonsDisplayed(true);
-            }
-        }
     }]
 });
 

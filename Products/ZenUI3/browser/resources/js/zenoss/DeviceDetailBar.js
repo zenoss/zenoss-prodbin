@@ -29,6 +29,31 @@ Zenoss.DeviceDetailItem = Ext.extend(Ext.Container, {
 
 Ext.reg('devdetailitem', Zenoss.DeviceDetailItem);
 
+Zenoss.DeviceNameItem = Ext.extend(Ext.Container, {
+    constructor: function(config) {
+        config = Ext.applyIf(config||{}, {
+            //layout: 'vbox',
+            defaults: {
+                flex: 1,
+                xtype: 'tbtext'
+            },
+            items: [{
+                cls: 'devdetail-devname',
+                ref: 'devname'
+            },{
+                ref: 'devclass',
+                cls: 'devdetail-devclass'
+            },{
+                ref: 'ipAddress',
+                cls: 'devdetail-ipaddress'
+            }]
+        });
+        Zenoss.DeviceNameItem.superclass.constructor.call(this, config);
+    }
+});
+Ext.reg('devnameitem', Zenoss.DeviceNameItem);
+
+
 Zenoss.DeviceDetailBar = Ext.extend(Zenoss.LargeToolbar, {
     constructor: function(config) {
         config = Ext.applyIf(config || {}, {
@@ -37,9 +62,14 @@ Zenoss.DeviceDetailBar = Ext.extend(Zenoss.LargeToolbar, {
             directFn: Zenoss.remote.DeviceRouter.getInfo,
             defaultType: 'devdetailitem',
             items: [{
-                ref: 'deviditem',
-                textCls: 'devdetail-devname',
-                labelCls: 'devdetail-ipaddress'
+                ref: 'iconitem',
+                cls: 'devdetail-icon'
+            },{
+                cls: 'evdetail-sep',
+                style: 'margin-right:4px;'
+            },{
+                xtype: 'devnameitem',
+                ref: 'deviditem'
             },'-',{
                 ref: 'eventsitem',
                 label: _t('Events')
@@ -47,30 +77,25 @@ Zenoss.DeviceDetailBar = Ext.extend(Zenoss.LargeToolbar, {
                 ref: 'statusitem',
                 label: _t('Device Status')
             },'-',{
-                ref: 'availabilityitem',
-                label: _t('Availability')
-            },'-',{
                 ref: 'prodstateitem',
                 label: _t('Production State')
-            },'-',{
-                ref: 'collectoritem',
-                label: _t('Collector')
             }]  
         });
         Zenoss.DeviceDetailBar.superclass.constructor.call(this, config);
     },
     setContext: function(uid) {
         this.directFn({uid:uid}, function(result){
-            this.deviditem.setText(result.data.name);
-            this.deviditem.setLabel(
-                Zenoss.render.ipAddress(result.data.ipAddress));
-            this.eventsitem.setText(Zenoss.render.events(result.data.events));
+            Zenoss.env.icon = this.iconitem;
+            this.iconitem.getEl().setStyle({
+                'background-image' : 'url(' + result.data.icon + ')'
+            });
+            this.deviditem.devname.setText(result.data.name);
+            this.deviditem.ipAddress.setText(Zenoss.render.ipAddress(result.data.ipAddress));
+            this.deviditem.devclass.setText(result.data.deviceClass.path);
+            this.eventsitem.setText(Zenoss.render.events(result.data.events, 4));
             this.statusitem.setText(
                 Zenoss.render.pingStatus(result.data.status));
-            this.availabilityitem.setText(
-                Zenoss.render.availability(result.data.availability));
             this.prodstateitem.setText(result.data.productionState);
-            this.collectoritem.setText(result.data.collector);
         }, this);
     }
 });
