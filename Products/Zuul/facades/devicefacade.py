@@ -13,6 +13,7 @@
 
 from itertools import imap
 from zope.interface import implements
+from Acquisition import aq_parent
 from Products.AdvancedQuery import Eq, Or, And, MatchRegexp
 from Products.Zuul.decorators import info
 from Products.Zuul.utils import unbrain
@@ -24,7 +25,9 @@ from Products.ZenModel.DeviceGroup import DeviceGroup
 from Products.ZenModel.System import System
 from Products.ZenModel.Location import Location
 from Products.ZenModel.DeviceClass import DeviceClass
+from Products.ZenModel.Device import Device
 from Products.ZenModel.ZDeviceLoader import DeviceCreationJob
+from Products.Zuul.utils import ZuulMessageFactory as _t
 
 
 class DeviceFacade(TreeFacade):
@@ -252,18 +255,28 @@ class DeviceFacade(TreeFacade):
         return jobStatus
 
     def getTemplates(self, id):
-        deviceClass = self._getObject(id)
-        rrdTemplates = deviceClass.getRRDTemplates()
+        object = self._getObject(id)
+        rrdTemplates = object.getRRDTemplates()
+                
+        # used to sort the templates
         def byTitleOrId(left, right):
             return cmp(left.titleOrId().lower(), right.titleOrId().lower())
+        
         for rrdTemplate in sorted(rrdTemplates, byTitleOrId):
             uid = '/'.join(rrdTemplate.getPrimaryPath())
-            yield {'id': uid,
-                   'uid': uid,
-                   'text': rrdTemplate.titleOrId(),
-                   'leaf': True
-                   }
-
+            # only show Bound Templates 
+            if rrdTemplate.id in object.zDeviceTemplates:
+                path = rrdTemplate.getUIPath()
+                
+                # if defined directly on the device do not show the path
+                if isinstance(object, Device) and object.titleOrId() in path:
+                    path = _t('Locally Defined')
+                yield {'id': uid,
+                       'uid': uid,
+                       'text': '%s (%s)' % (rrdTemplate.titleOrId(), path),
+                       'leaf': True
+                       }
+        
     def getUnboundTemplates(self, uid):
         return self._getBoundTemplates(uid, False)
 
@@ -275,7 +288,7 @@ class DeviceFacade(TreeFacade):
         for template in obj.getAvailableTemplates():
             if (template.id in obj.zDeviceTemplates) == isBound:
                 yield template.id
-
+        
     def setBoundTemplates(self, uid, templateIds):
         obj = self._getObject(uid)
         obj.bindTemplates(templateIds)

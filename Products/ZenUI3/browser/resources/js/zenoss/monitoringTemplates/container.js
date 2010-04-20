@@ -212,6 +212,12 @@ Zenoss.BindTemplatesDialog = Ext.extend(Zenoss.HideFitDialog, {
                         REMOTE.setBoundTemplates({
                             uid: me.context,
                             templateIds: templateIds
+                        }, function (){
+                            // refresh the template tree
+                            var cmp = Ext.getCmp('templateTree');
+                            if (cmp) {
+                                cmp.getRootNode().reload();
+                            }
                         });
                     }
                 }

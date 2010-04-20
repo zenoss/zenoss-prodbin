@@ -17,7 +17,7 @@ from Globals import InitializeClass
 from AccessControl import ClassSecurityInfo, Permissions
 from Products.ZenModel.ZenossSecurity import *
 from zope.interface import implements
-
+from Acquisition import aq_parent
 from ZenModelRM import ZenModelRM
 from Products.ZenModel.interfaces import IIndexed
 
@@ -516,5 +516,28 @@ class RRDTemplate(ZenModelRM, ZenPackable):
         """
         return self.primaryAq().Events.getOrganizerNames()
 
+    
+    def getUIPath(self, separator='/'):
+        """
+        Given a separator and a template this method returns the UI path that we display
+        to the user.
+        @param RRDTemplate template
+        @param String separator e.g. '/'
+        @returns String e.g. '/Devices' or '/Server'
+        """
+        obj = self.deviceClass()
+        if obj is None:
+            # this template is in a Device
+            obj = aq_parent(self)
+            path = list(obj.getPrimaryPath())
+            # remove the "devices" relationship
+            path.pop(-2)
+        else:
+            # this template is in a DeviceClass.rrdTemplates relationship
+            path = list(obj.getPrimaryPath())
+        parts = path[4:-1]
+        parts.append(obj.titleOrId())
+        return separator + separator.join(parts)
 
+    
 InitializeClass(RRDTemplate)

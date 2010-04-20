@@ -11,12 +11,9 @@
 #
 ###########################################################################
 from zope.interface import implements
-from Acquisition import aq_parent
 from Products.Zuul.infos import InfoBase, ProxyProperty
 from Products.Zuul.utils import severityId
-from zope.schema.vocabulary import SimpleVocabulary
 from Products.Zuul.interfaces import template as templateInterfaces
-from Products.Zuul.utils import ZuulMessageFactory as _t
 
 
 class TemplateNode(InfoBase):
@@ -52,31 +49,16 @@ class TemplateLeaf(InfoBase):
     @property
     def id(self):
         templateId = self._object.id
-        parent = self._getParentPath('.')
+        parent = self._object.getUIPath('.')
         return '%s.%s' % (templateId, parent)
 
     @property
     def text(self):
-        return self._getParentPath('/')
+        return self._object.getUIPath()
 
     @property
     def leaf(self):
         return True
-
-    def _getParentPath(self, separator):
-        obj = self._object.deviceClass()
-        if obj is None:
-            # this template is in a Device
-            obj = aq_parent(self._object)
-            path = list(obj.getPrimaryPath())
-            # remove the "devices" relationship
-            path.pop(-2)
-        else:
-            # this template is in a DeviceClass.rrdTemplates relationship
-            path = list(obj.getPrimaryPath())
-        parts = path[4:-1]
-        parts.append(obj.titleOrId())
-        return separator + separator.join(parts)
 
 
 class RRDDataSourceInfo(InfoBase):
