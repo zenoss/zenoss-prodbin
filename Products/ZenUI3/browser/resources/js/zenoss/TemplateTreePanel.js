@@ -28,7 +28,7 @@ initTreeDialogs = function(tree) {
         items: {
             xtype: 'textfield',
             id: 'idTextfield',
-            fieldLabel: _t('ID'),
+            fieldLabel: _t('Name'),
             allowBlank: false
         },
         listeners: {
