@@ -17,6 +17,7 @@ from Products.ZenUtils.jsonutils import unjson
 from Products import Zuul
 from Products.Zuul.routers import TreeRouter
 from Products.Zuul.form.interfaces import IFormBuilder
+from Products.Zuul.decorators import require
 
 import logging
 log = logging.getLogger('zen.Zuul')
