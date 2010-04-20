@@ -1147,7 +1147,7 @@ Ext.getCmp('center_panel').add({
                 var node, selectedNode;
                 if (index==1) {
                     node = treesm.getSelectedNode().attributes;
-                    card.setHeaderText(node.text.text);
+                    card.setHeaderText(node.text.text, node.path);
                 } else if (index===0) {
                     Ext.getCmp('detail_nav').items.each(function(item){
                         selectedNode = item.getSelectionModel().getSelectedNode();

@@ -120,8 +120,16 @@ Zenoss.HorizontalSlidePanel = Ext.extend(Ext.Panel, {
                         card.card.parentCard = card;
                         card.headerText = headerText;
                         card.navButton = navButton;
-                        var setHeaderText = function(text) {
+                        var setHeaderText = function(text, qtip) {
                             this.headerText.setText(text);
+                            Ext.QuickTips.unregister(this.headerText);
+
+                            if ( qtip ) {
+                                Ext.QuickTips.register({
+                                    target: this.headerText,
+                                    text: qtip
+                                });
+                            }
                         };
                         var setButtonText = function(text) {
                             this.navButton.setText(text);
