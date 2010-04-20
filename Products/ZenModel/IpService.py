@@ -178,7 +178,7 @@ class IpService(Service):
         """
         svc = self.serviceclass()
         if svc:
-            return {'protocol': self.protocol, 'port': svc.port }
+            return {'protocol': self.protocol, 'port': self.port }
         return {}
 
 
