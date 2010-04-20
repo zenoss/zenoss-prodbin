@@ -66,6 +66,10 @@ Ext.onReady(function(){
 </script>
 </tal:block>
 
+<tal:block metal:fill-slot="script_afterLayout">
+    <tal:block metal:define-slot="script_afterLayout"/>
+</tal:block>
+
 </tal:block> <!-- metal:use-macro="context/page_macros/base-new" -->
 </tal:block>
 
@@ -81,6 +85,10 @@ Ext.onReady(function(){
         <tal:block metal:define-slot="contentPane"/>
     </div>
 </div>
+</tal:block>
+
+<tal:block metal:fill-slot="script_afterLayout">
+    <tal:block metal:define-slot="script_afterLayout"/>
 </tal:block>
 
 </tal:block> <!-- metal:use-macro="context/page_macros/old-new-no-tabs" -->

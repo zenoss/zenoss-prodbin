@@ -13,8 +13,10 @@
 <a href="/zport/dmd/joblist">&lt;&lt; Back to Job Manager</a>
 <h3 tal:content="view/description"></h3>
 <h4>If no output is being displayed, make sure the zenjobs daemon is running.</h4>
-
-<iframe tal:attributes="src view/stream_URI"
+<div id="xj" style="display:none;"
+tal:content="view/stream_URI"></div>
+<iframe id="joblog-stream" 
+    scrolling="auto"
     style="width:100%; 
            background-color:#fff;
            border: 2px solid black;
@@ -22,4 +24,18 @@
 </iframe>
 
 </tal:block>
+
+
+<tal:block metal:fill-slot="script_afterLayout">
+<script>
+Ext.onReady(function(){
+    setTimeout(function() {
+       f = Ext.get('joblog-stream');
+       f2 = Ext.get('xj');
+       f.dom.src = f2.dom.innerHTML;
+    }, 1000);
+});
+</script>
+</tal:block>
+
 </tal:block>
