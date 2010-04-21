@@ -35,15 +35,14 @@ class TemplateRouter(DirectRouter):
         """
         Add a template to dmd/Devices.
         """
-        result = {}
+        result = None
         try:
             facade = self._getFacade()
             templateNode = facade.addTemplate(id)
-            result['nodeConfig'] = Zuul.marshal(templateNode)
-            result['success'] = True
+            result = DirectResponse.succeed(
+                nodeConfig=Zuul.marshal(templateNode))
         except Exception, e:
-            result['msg'] = str(e)
-            result['success'] = False
+            result = DirectResponse.fail(msg=str(e))
         return result
 
     @require('Manage DMD')
@@ -51,7 +50,7 @@ class TemplateRouter(DirectRouter):
         facade = self._getFacade()
         facade.deleteTemplate(uid)
         msg = "Deleted node '%s'" % uid
-        return {'success': True, 'msg': msg}
+        return DirectResponse.succeed(msg=msg)
 
     def getThresholds(self, uid, query=''):
         """
@@ -78,7 +77,7 @@ class TemplateRouter(DirectRouter):
         """
         facade = self._getFacade()
         facade.addDataPoint(dataSourceUid, name)
-        return {'success': True}
+        return DirectResponse.succeed()
 
     def addDataSource(self, templateUid, name, type):
         """
@@ -87,7 +86,7 @@ class TemplateRouter(DirectRouter):
         """
         facade = self._getFacade()
         facade.addDataSource(templateUid, name, type)
-        return {'success': True}
+        return DirectResponse.succeed()
 
     def getDataSources(self, id):
         """
@@ -124,7 +123,7 @@ class TemplateRouter(DirectRouter):
         data['enabled'] = data.has_key('enabled')
         facade = self._getFacade()
         facade.setInfo(uid, data)
-        return {'success': True}
+        return DirectResponse.succeed()
 
     @require('Manage DMD')
     def addThreshold(self, **data):
@@ -134,7 +133,7 @@ class TemplateRouter(DirectRouter):
         dataPoints = data.get('dataPoints', None)
         facade = self._getFacade()
         facade.addThreshold(uid, thresholdType, thresholdId, dataPoints)
-        return {'success': True}
+        return DirectResponse.succeed()
 
     @require('Manage DMD')
     def removeThreshold(self, uid):
@@ -142,17 +141,17 @@ class TemplateRouter(DirectRouter):
         """
         facade = self._getFacade()
         facade.removeThreshold(uid)
-        return {'success': True}
+        return DirectResponse.succeed()
 
     def getThresholdTypes(self, query):
         facade = self._getFacade()
         data = facade.getThresholdTypes()
-        return {'success': True, 'data': data}
+        return DirectResponse.succeed(data=data) 
 
     def getDataSourceTypes(self, query):
         facade = self._getFacade()
         data = facade.getDataSourceTypes()
-        return {'success': True, 'data': data}
+        return DirectResponse.succeed(data=data) 
 
     def getGraphs(self, uid, query=None):
         """
@@ -169,7 +168,7 @@ class TemplateRouter(DirectRouter):
         """
         facade = self._getFacade()
         facade.addDataPointToGraph(dataPointUid, graphUid)
-        return {'success': True}
+        return DirectResponse.succeed()
 
     def getCopyTargets(self, uid, query=''):
         """
@@ -178,7 +177,7 @@ class TemplateRouter(DirectRouter):
         """
         facade = self._getFacade()
         data = Zuul.marshal( facade.getCopyTargets(uid, query) )
-        return {'success': True, 'data': data}
+        return DirectResponse.succeed(data=data)
 
     def copyTemplate(self, uid, targetUid):
         """
@@ -187,13 +186,13 @@ class TemplateRouter(DirectRouter):
         """
         facade = self._getFacade()
         facade.copyTemplate(uid, targetUid)
-        return {'success': True}
+        return DirectResponse.succeed()
 
     @require('Manage DMD')
     def addGraphDefinition(self, templateUid, graphDefinitionId):
         facade = self._getFacade()
         facade.addGraphDefinition(templateUid, graphDefinitionId)
-        return {'success': True}
+        return DirectResponse.succeed()
 
     @require('Manage DMD')
     def deleteDataSource(self, uid):
@@ -217,14 +216,12 @@ class TemplateRouter(DirectRouter):
     def deleteGraphPoint(self, uid):
         facade = self._getFacade()
         facade.deleteGraphPoint(uid)
-        return {'success': True}
+        return DirectResponse.succeed()
 
     def getGraphPoints(self, uid):
         facade = self._getFacade()
         graphPoints = facade.getGraphPoints(uid)
-        return {'success': True,
-                'data': Zuul.marshal(graphPoints)
-                }
+        return DirectResponse.succeed(data=Zuul.marshal(graphPoints))
 
     def getInfo(self, uid):
         """
@@ -239,30 +236,29 @@ class TemplateRouter(DirectRouter):
     def addThresholdToGraph(self, graphUid, thresholdUid):
         facade = self._getFacade()
         facade.addThresholdToGraph(graphUid, thresholdUid)
-        return {'success': True}
+        return DirectResponse.succeed()
 
     @require('Manage DMD')
     def addCustomToGraph(self, graphUid, customId, customType):
         facade = self._getFacade()
         facade.addCustomToGraph(graphUid, customId, customType)
-        return {'success': True}
+        return DirectResponse.succeed()
 
     def getGraphInstructionTypes(self, query=''):
         facade = self._getFacade()
         types = facade.getGraphInstructionTypes()
-        return {'success': True, 'data': Zuul.marshal(types)}
+        return DirectResponse.succeed(data=Zuul.marshal(types))
 
     @require('Manage DMD')
     def setGraphPointSequence(self, uids):
         facade = self._getFacade()
         facade.setGraphPointSequence(uids)
-        return {'success': True}
+        return DirectResponse.succeed()
 
     def getGraphDefinition(self, uid):
         facade = self._getFacade()
         graphDef = facade.getGraphDefinition(uid)
-        data = Zuul.marshal(graphDef)
-        return {'success': True, 'data': data}
+        return DirectResponse.succeed(data=Zuul.marshal(graphDef))
 
     @require('Manage DMD')
     def setGraphDefinition(self, **data):
@@ -273,10 +269,10 @@ class TemplateRouter(DirectRouter):
         data['hasSummary'] = 'hasSummary' in data
         facade = self._getFacade()
         facade.setInfo(uid, data)
-        return {'success': True}
+        return DirectResponse.succeed()
         
     @require('Manage DMD')
     def setGraphDefinitionSequence(self, uids):
         facade = self._getFacade()
         facade._setGraphDefinitionSequence(uids)
-        return DirectResponse(success=True)
+        return DirectResponse.succeed()

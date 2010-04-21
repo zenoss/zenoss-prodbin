@@ -376,7 +376,7 @@ class DeviceRouter(TreeRouter):
                                                priority, 
                                                tag,
                                                serialNumber)
-        return DirectResponse(jobId=jobStatus.id)
+        return DirectResponse.succeed(jobId=jobStatus.id)
         
     def getTemplates(self, id):
         facade = self._getFacade()
@@ -386,17 +386,17 @@ class DeviceRouter(TreeRouter):
     def getUnboundTemplates(self, uid):
         facade = self._getFacade()
         templates = facade.getUnboundTemplates(uid)
-        return {'data': Zuul.marshal(templates), 'success': True}
+        return DirectResponse.succeed(data=Zuul.marshal(templates))
 
     def getBoundTemplates(self, uid):
         facade = self._getFacade()
         templates = facade.getBoundTemplates(uid)
-        return {'data': Zuul.marshal(templates), 'success': True}
+        return DirectResponse.succeed(data=Zuul.marshal(templates))
 
     def setBoundTemplates(self, uid, templateIds):
         facade = self._getFacade()
         facade.setBoundTemplates(uid, templateIds)
-        return {'success': True}
+        return DirectResponse.succeed()
 
     def getOverridableTemplates(self, query, uid):
         """
@@ -410,7 +410,7 @@ class DeviceRouter(TreeRouter):
         data = []
         for template in templates:
             data.append(dict(label=template.text, uid=template.uid))
-        return DirectResponse(success=True, data=data)
+        return DirectResponse.succeed(data=data)
     
     def clearGeocodeCache(self):
         self.context.clearGeocodeCache()

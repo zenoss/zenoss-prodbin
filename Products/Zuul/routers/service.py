@@ -91,13 +91,13 @@ class ServiceRouter(TreeRouter):
         service = self.api.getInfo(uid)
         data = Zuul.marshal(service, keys)
         disabled = not Zuul.checkPermission('Manage DMD')
-        return {'data': data, 'disabled': disabled, 'success': True}
+        return DirectResponse.succeed(data=data, disabled=disabled)
 
     def getParentInfo(self, uid, keys=None):
         service = self.api.getParentInfo(uid)
         data = Zuul.marshal(service, keys)
         disabled = not Zuul.checkPermission('Manage DMD')
-        return {'data': data, 'disabled': disabled, 'success': True}
+        return DirectResponse.succeed(data=data, disabled=disabled)
 
     def getClassNames(self, uid=None, query=None):
         data = self.api.getClassNames(uid, query)
@@ -112,7 +112,7 @@ class ServiceRouter(TreeRouter):
             if 'monitor' in data: del data['monitor']
 
         Zuul.unmarshal(data, service)
-        return {'success': True}
+        return DirectResponse.succeed()
 
     def getDevices(self, uid, start=0, params=None, limit=50, sort='device',
                    dir='ASC'):
@@ -121,7 +121,7 @@ class ServiceRouter(TreeRouter):
         devices = self.api.getDevices(uid, start=start, params=params,
                                       limit=limit, sort=sort, dir=dir)
         data = Zuul.marshal(devices)
-        return {'data': data, 'success': True}
+        return DirectResponse.succeed(data=data)
 
     def getEvents(self, uid, start=0, params=None, limit=50, sort='device',
                    dir='ASC'):
@@ -130,7 +130,7 @@ class ServiceRouter(TreeRouter):
         events = self.api.getEvents(uid, start=start, params=params,
                                     limit=limit, sort=sort, dir=dir)
         data = Zuul.marshal(events)
-        return {'data': data, 'success': True}
+        return DirectResponse.succeed(data=data)
 
     def getInstances(self, uid, start=0, params=None, limit=50, sort='name',
                    order='ASC'):
@@ -142,4 +142,4 @@ class ServiceRouter(TreeRouter):
         keys = ['description', 'device', 'locking', 'monitored', 'name',
                 'status', 'uid']
         data = Zuul.marshal(instances, keys)
-        return {'data': data, 'success': True}
+        return DirectResponse.succeed(data=data)

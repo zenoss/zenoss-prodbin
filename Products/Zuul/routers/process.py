@@ -14,6 +14,7 @@
 from Products import Zuul
 from Products.Zuul.decorators import require
 from Products.Zuul.routers import TreeRouter
+from Products.ZenUtils.Ext import DirectResponse
 
 class ProcessRouter(TreeRouter):
 
@@ -31,48 +32,47 @@ class ProcessRouter(TreeRouter):
         primaryPath = facade.moveProcess(uid, targetUid)
         id = '.'.join(primaryPath)
         uid = '/'.join(primaryPath)
-        return {'success': True, 'uid': uid, 'id': id}
+        return DirectResponse.succeed(uid=uid, id=id)
 
     def getInfo(self, uid, keys=None):
         facade = self._getFacade()
         process = facade.getInfo(uid)
         data = Zuul.marshal(process, keys)
-        return {'data': data, 'success': True}
+        return DirectResponse.succeed(data=data)
 
     @require('Manage DMD')
     def setInfo(self, **data):
         facade = self._getFacade()
         process = facade.getInfo(data['uid'])
-        Zuul.unmarshal(data, process)
-        return {'success': True}
+        return DirectResponse.succeed(data=Zuul.unmarshal(data, process))
 
     def getDevices(self, uid, start=0, params=None, limit=50, sort='device',
                    dir='ASC'):
         facade = self._getFacade()
         devices = facade.getDevices(uid)
         data = Zuul.marshal(devices)
-        return {'data': data, 'success': True}
+        return DirectResponse.succeed(data=data)
 
     def getEvents(self, uid):
         facade = self._getFacade()
         events = facade.getEvents(uid)
         data = Zuul.marshal(events)
-        return {'data': data, 'success': True}
+        return DirectResponse.succeed(data=data)
 
     def getInstances(self, uid, start=0, params=None, limit=50, sort='name',
                      dir='ASC'):
         facade = self._getFacade()
         instances = facade.getInstances(uid, start, limit, sort, dir, params)
         data = Zuul.marshal(instances)
-        return {'data': data, 'success': True, 'total': instances.total}
+        return DirectResponse.succeed(data=data, total=instances.total)
 
     def getSequence(self):
         facade = self._getFacade()
         sequence = facade.getSequence()
         data = Zuul.marshal(sequence)
-        return {'data': data, 'success': True}
+        return DirectResponse.succeed(data=data)
 
     def setSequence(self, uids):
         facade = self._getFacade()
         facade.setSequence(uids)
-        return {'success': True}
+        return DirectResponse.succeed()

@@ -78,7 +78,7 @@ class NetworkRouter(DirectRouter):
         network = self.api.getInfo(uid)
         data = Zuul.marshal(network, keys)
         disabled = not Zuul.checkPermission('Manage DMD')
-        return {'data': data, 'disabled': disabled, 'success': True}
+        return DirectResponse.succeed(data=data, disabled=disabled)
 
     @require('Manage DMD')
     def setInfo(self, **data):
@@ -92,7 +92,7 @@ class NetworkRouter(DirectRouter):
                 data[field] = [int(x) for x in data[field].split()]
 
         Zuul.unmarshal(data, network)
-        return {'success': True}
+        return DirectResponse.succeed()
 
     def getIpAddresses(self, uid, start=0, params=None, limit=50, sort='name',
                    order='ASC'):
@@ -103,4 +103,4 @@ class NetworkRouter(DirectRouter):
 
         keys = ['name', 'device', 'interface', 'pingstatus', 'snmpstatus', 'uid']
         data = Zuul.marshal(instances, keys)
-        return {'data': data, 'success': True}
+        return DirectResponse.succeed(data=data)
