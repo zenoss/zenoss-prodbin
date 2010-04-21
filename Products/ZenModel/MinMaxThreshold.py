@@ -114,7 +114,8 @@ class MinMaxThreshold(ThresholdClass):
         minval = None
         if self.minval:
             try:
-                minval = talesEval("python:"+self.minval, context)
+                express = "python:%s" % self.minval
+                minval = talesEval(express, context)
             except:
                 msg= "User-supplied Python expression (%s) for minimum value caused error: %s" % \
                            ( self.minval,  self.dsnames )
@@ -130,7 +131,8 @@ class MinMaxThreshold(ThresholdClass):
         maxval = None
         if self.maxval:
             try:
-                maxval = talesEval("python:"+self.maxval, context)
+                express = "python:%s" % self.maxval
+                maxval = talesEval(express, context)
             except:
                 msg= "User-supplied Python expression (%s) for maximum value caused error: %s" % \
                            ( self.maxval,  self.dsnames )
