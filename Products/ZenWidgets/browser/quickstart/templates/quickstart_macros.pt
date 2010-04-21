@@ -17,7 +17,6 @@
             href="/zport/quickstart.css"/>
         <style tal:condition="python:here.dmd.getProductName()!='core'">
             html {background-color:#eae9dc} 
-            #header {background-image:url('zent-img/metalbg.gif')}
         </style>
         <!--[if lt IE 8]>
         <style>legend {width: 100%} legend span
