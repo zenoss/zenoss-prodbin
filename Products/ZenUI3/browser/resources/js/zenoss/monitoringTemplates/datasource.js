@@ -87,13 +87,13 @@ new Zenoss.HideFormDialog({
         selectOnFocus: true,
         store: {xtype: 'graphstore'},
         listeners: {select: function(){
-            Ext.getCmp('submit').enable();
+            Ext.getCmp('addToGraphDialog').submit.enable();
         }}
     }],
     buttons: [
     {
         xtype: 'HideDialogButton',
-        id: 'submit',
+        ref: '../submit',
         text: _t('Submit'),
         disabled: true,
         handler: function(button, event) {
@@ -124,7 +124,7 @@ showAddToGraphDialog = function() {
         Ext.getCmp('addToGraphMetricPanel').body.update(html);
         combo = Ext.getCmp('graphCombo');
         resetCombo(combo, templateUid);
-        Ext.getCmp('submit').disable();
+        Ext.getCmp('addToGraphDialog').submit.disable();
     } else {
         Ext.Msg.alert('Error', 'You must select a Data Point.');
     }
@@ -213,14 +213,14 @@ new Zenoss.HideFormDialog({
         },
         listeners: {
             select: function(){
-                Ext.getCmp('submit').enable();
+                Ext.getCmp('overrideDialog').submit.enable();
             }
         }
     }],
     buttons: [
     {
         xtype: 'HideDialogButton',
-        id: 'submit',
+        ref: '../submit',
         text: _t('Submit'),
         handler: function(button, event) {
             override();
@@ -238,7 +238,7 @@ showOverrideDialog = function() {
     Ext.getCmp('overrideDialog').show();
     combo = Ext.getCmp('targetCombo');
     resetCombo(combo, uid);
-    Ext.getCmp('submit').disable();
+    Ext.getCmp('overrideDialog').submit.disable();
 };
      
 /**********************************************************************
