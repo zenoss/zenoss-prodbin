@@ -313,6 +313,7 @@
                 id: Zenoss.templates.thresholdsId,
                 selModel: thresholdSelectionModel,
                 title: _t('Thresholds'),
+                border: false,
                 store: {
                     xtype: 'directstore',
                     directFn: router.getThresholds,
