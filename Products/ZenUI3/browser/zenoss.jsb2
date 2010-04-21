@@ -118,6 +118,9 @@
             "text": "CommandWindow.js",
             "path": "resources/js/zenoss/"
         }, {
+            "text": "DeviceOverviewPanel.js",
+            "path": "resources/js/zenoss/"
+        }, {
             "text": "DeviceDetailBar.js",
             "path": "resources/js/zenoss/"
         }, {

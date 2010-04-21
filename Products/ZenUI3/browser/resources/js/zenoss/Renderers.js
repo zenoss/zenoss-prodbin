@@ -10,11 +10,16 @@ iconTemplate.compile();
 var rainbowTemplate = new Ext.Template(
     '<table class="eventrainbow"><tr>{cells}</tr></table>');
 rainbowTemplate.compile();
+
+var upDownTemplate = new Ext.Template(
+    '<span class="status-{0}">{1}</span>');
+upDownTemplate.compile();
                      
 Ext.apply(Zenoss.render, {
 
     pingStatus: function(bool) {
-        return bool ? 'Up' : 'Down';
+        var str = bool ? 'Up' : 'Down';
+        return upDownTemplate.apply([str.toLowerCase(), str]);
     },
 
     ipAddress: function(ip) {
@@ -41,7 +46,7 @@ Ext.apply(Zenoss.render, {
             sevs = ['critical', 'error', 'warning', 'info', 'debug', 'clear'];
         count = count || 3;
         Ext.each(sevs.slice(0, count), function(severity) {
-            noevents = (0 == value[severity]) ? 'no-events' : '';
+            var noevents = (0 === value[severity]) ? 'no-events' : '';
             result += iconTemplate.apply({
                 severity: severity,
                 count:value[severity],

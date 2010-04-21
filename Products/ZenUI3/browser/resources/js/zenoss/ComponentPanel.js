@@ -612,6 +612,11 @@ ZC.IpServicePanel = Ext.extend(ZC.ComponentGridPanel, {
                 dataIndex: 'description',
                 header: _t('Description')
             },{
+                id: 'monitored',
+                dataIndex: 'monitored',
+                header: _t('Monitored'),
+                width: 60
+            },{
                 id: 'locking',
                 dataIndex: 'locking',
                 header: _t('Locking'),
@@ -671,6 +676,11 @@ ZC.OSProcessPanel = Ext.extend(ZC.ComponentGridPanel, {
                 dataIndex: 'failSeverity',
                 header: _t('Fail Severity')
             },{
+                id: 'monitored',
+                dataIndex: 'monitored',
+                header: _t('Monitored'),
+                width: 60
+            },{
                 id: 'locking',
                 dataIndex: 'locking',
                 header: _t('Locking'),
@@ -727,6 +737,11 @@ ZC.FileSystemPanel = Ext.extend(ZC.ComponentGridPanel, {
                 id: 'capacity',
                 dataIndex: 'capacity',
                 header: _t('% Util')
+            },{
+                id: 'monitored',
+                dataIndex: 'monitored',
+                header: _t('Monitored'),
+                width: 60
             },{
                 id: 'locking',
                 dataIndex: 'locking',

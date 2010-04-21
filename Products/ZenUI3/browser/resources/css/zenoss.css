@@ -437,6 +437,10 @@ table.eventrainbow td.clear { background-color: #62a700; }
     background: transparent url(../img/xtheme-zenoss/window/left-right.png);
 }
 
+.largetoolbar.devdetailbar {
+    border-top: 3px solid #b2b2b2 !important;
+} 
+
 .largetoolbar.devdetailbar table.eventrainbow {
     margin-top: 3px;
 }
@@ -446,6 +450,7 @@ table.eventrainbow td.clear { background-color: #62a700; }
     font-weight: normal;
     margin-top: -3px;
 }
+.devdetailbar .devdetailitem div.devdetail-textitem span,
 .devdetailbar .devdetailitem div.devdetail-textitem {
     font-size: 14px;
     height: 30px;
@@ -460,21 +465,27 @@ table.eventrainbow td.clear { background-color: #62a700; }
     margin-top: 2px;
     font-size: 13pt;
     font-weight: bold;
+    color: black;
 }
 .ext-ie .devdetailbar .devdetail-devname {
     margin-top: 0px;
 }
 .devdetailbar .devdetail-devclass,
 .devdetailbar .devdetail-ipaddress {
-    margin-top: -6px;
     text-align: left;
     font-size: 9pt;
     font-weight: normal;
 }
+.devdetailbar .devdetail-ipaddress {
+    margin-top: -7px;
+}
+.devdetailbar .devdetail-devclass {
+    margin-top: -4px;
+}
 
 .devdetail-icon {
     height: 50px;
-    width: 40px;
+    width: 52px;
     background: transparent url() center center no-repeat;
 }
 
@@ -635,5 +646,15 @@ table.search-result {
 .detailnav,
 .detailnav .x-tree .x-panel-body {
     background-color: #D4E0EE;
+}
+
+span.status-up {
+    color: green;
+    font-weight: bold;
+}
+
+span.status-down {
+    color: #d60000;
+    font-weight: bold;
 }
 

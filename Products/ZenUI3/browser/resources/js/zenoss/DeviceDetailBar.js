@@ -34,7 +34,6 @@ Zenoss.DeviceNameItem = Ext.extend(Ext.Container, {
         config = Ext.applyIf(config||{}, {
             //layout: 'vbox',
             defaults: {
-                flex: 1,
                 xtype: 'tbtext'
             },
             items: [{

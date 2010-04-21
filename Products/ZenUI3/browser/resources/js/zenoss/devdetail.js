@@ -58,23 +58,17 @@ Zenoss.env.componentReloader = function(compType) {
     return function(form, action) {
         refreshComponentTreeAndGrid(compType);
     };
-}
+};
 
 Zenoss.nav.register({
     Device: [{
-        id: 'Overview',
+        id: 'device_overview',
         nodeType: 'subselect',
-        text: _t('Overview'),
-        action: function(node, target){
-            target.layout.setActiveItem('device_overview');
-            var panel = Ext.getCmp('devdetail_bottom_detail_panel');
-            if (panel.collapsed) {
-                panel.topToolbar.togglebutton.setIconClass('expand');
-            } else {
-                panel.topToolbar.togglebutton.setIconClass('collapse');
-                setEventButtonsDisplayed(true);
-            }
-        }
+        text: _t('Overview')
+    },{
+        id: 'device_events',
+        nodeType: 'subselect',
+        text: _t('Events')
     },{
         id: UID,
         nodeType: 'async',
@@ -449,6 +443,27 @@ var hwosInformation = {
 
 
 var overview = {
+    xtype: 'deviceoverview',
+    id: 'device_overview',
+    setContext: Ext.emptyFn
+};
+
+var event_console = Ext.create({
+    xtype: 'SimpleEventGridPanel',
+    stateful: false,
+    id: 'device_events',
+    tbar: {
+        items: [
+            ZEvActions.acknowledge,
+            ZEvActions.close,
+            ZEvActions.newwindow
+        ]
+    },
+    columns: Zenoss.env.COLUMN_DEFINITIONS
+});
+
+/*
+var overview = {
     id: 'device_overview',
     layout: 'border',
     border: false,
@@ -561,6 +576,7 @@ var overview = {
         columns: Zenoss.env.COLUMN_DEFINITIONS
     }]
 };
+*/
 
 Zenoss.DeviceDetailNav = Ext.extend(Zenoss.DetailNavPanel, {
     constructor: function(config) {
@@ -671,7 +687,7 @@ Ext.getCmp('center_panel').add({
         split: true,
         activeItem: 0,
         region: 'center',
-        items: [componentCard, overview]
+        items: [overview, event_console, componentCard]
     }]
 });
 

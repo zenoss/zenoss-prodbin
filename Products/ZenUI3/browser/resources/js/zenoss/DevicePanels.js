@@ -73,7 +73,9 @@ Zenoss.DeviceColumnModel = Ext.extend(Ext.grid.ColumnModel, {
                 filter: false,
                 dataIndex: 'events',
                 header: _t('Events'),
-                renderer: Zenoss.render.events
+                renderer: function(ev) {
+                    return Zenoss.render.events(ev);
+                }
             }] // columns
         }); // Ext.applyIf
         config.defaults = Ext.applyIf(config.defaults || {}, {
