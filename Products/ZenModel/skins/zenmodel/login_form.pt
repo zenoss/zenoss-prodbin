@@ -3,7 +3,7 @@
         <link rel="shortcut icon"
               type="image/x-icon"
               href="/zport/dmd/favicon.ico"/>
-        <title>Zenoss Login</title>
+        <title><tal:block tal:content="here/dmd/instanceIdentifier"/>: Login</title>
         <style>
             .inputbox {
                 border: medium none;

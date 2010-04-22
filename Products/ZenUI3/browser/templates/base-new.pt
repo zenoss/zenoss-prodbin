@@ -15,6 +15,12 @@
 
 <html metal:define-macro="base-new">
     <head>
+        <title>
+            <tal:block tal:content="here/dmd/instanceIdentifier"/>:
+            <tal:block metal:define-slot="title">
+                <tal:block tal:content="here/titleOrId"/>
+            </tal:block>
+        </title>
         <link rel="icon" href="/zport/dmd/favicon.ico" type="image/x-icon"/>
         <link rel="shortcut icon" href="/zport/dmd/favicon.ico" type="image/x-icon"/>
         <link rel="stylesheet" type="text/css"

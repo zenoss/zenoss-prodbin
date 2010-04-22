@@ -1,5 +1,5 @@
 <tal:block metal:use-macro="here/page_macros/old-new">
-<tal:block metal:fill-slot="title">Zenoss: Settings</tal:block>
+<tal:block metal:fill-slot="title">Settings</tal:block>
 <tal:block metal:fill-slot="contentPane">
 
 <script>
@@ -55,6 +55,13 @@ loader.insert();
         <tal:block metal:fill-slot="zentablecontents">
         <!-- BEGIN TABLE CONTENTS -->
             
+    <tr>
+        <td class="noselect tableheader" align="left">Instance Identifier</td>
+        <td class="tablevalues">
+            <input class="tablevalues" type="text" name="instanceIdentifier"
+                tal:attributes="value here/instanceIdentifier" />
+        </td>
+    </tr>
     <tr>
       <td class="tableheader noselect" title="Simple Mail Transport Protocol (aka E-mail server)" align="left">SMTP Host</td>
       <td class="tablevalues">

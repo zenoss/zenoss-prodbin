@@ -16,6 +16,12 @@
 <tal:block metal:define-macro="masterdetailsplit2">
 <tal:block metal:use-macro="context/page_macros/base-new">
 
+<tal:block metal:fill-slot="title">
+    <tal:block metal:define-slot="title">
+        <tal:block tal:content="here/titleOrId"/>
+    </tal:block>
+</tal:block>
+
 <tal:block metal:fill-slot="center_panel_content">
 </tal:block>
 

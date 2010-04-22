@@ -81,6 +81,7 @@ class DataRoot(ZenModelRM, OrderedFolder, Commandable, ZenMenuable):
     versionCheckOptIn = True
     reportMetricsOptIn = True
     acceptedTerms = True
+    instanceIdentifier = 'Zenoss'
     smtpHost = 'localhost'
     pageCommand = '$ZENHOME/bin/zensnpp localhost 444 $RECIPIENT'
     smtpPort = 25
@@ -108,6 +109,7 @@ class DataRoot(ZenModelRM, OrderedFolder, Commandable, ZenMenuable):
         {'id':'lastVersionCheckAttempt', 'type': 'long', 'mode':'w'},
         {'id':'versionCheckOptIn', 'type': 'boolean', 'mode':'w'},
         {'id':'reportMetricsOptIn', 'type': 'boolean', 'mode':'w'},
+        {'id':'instanceIdentifier', 'type': 'string', 'mode':'w'},
         {'id':'smtpHost', 'type': 'string', 'mode':'w'},
         {'id':'smtpPort', 'type': 'int', 'mode':'w'},
         {'id':'pageCommand', 'type': 'string', 'mode':'w'},
@@ -269,7 +271,6 @@ class DataRoot(ZenModelRM, OrderedFolder, Commandable, ZenMenuable):
         """Return the current event list for this managed entity.
         """
         return self.ZenEventManager.getEventCount(**kwargs)
-
 
     security.declareProtected(ZEN_COMMON, 'getEventClassNames')
     def getEventClassNames(self):

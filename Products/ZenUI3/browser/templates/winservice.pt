@@ -15,6 +15,8 @@
 
 <tal:block metal:use-macro="context/page_macros/masterdetailsplit1">
 
+<tal:block metal:fill-slot="title">Windows Services</tal:block>
+
   <tal:block metal:fill-slot="script_layout">
     <script src="/++resource++zenui/js/zenoss/service/grid.js"></script>
     <script src="/++resource++zenui/js/zenoss/service/tree.js"></script>

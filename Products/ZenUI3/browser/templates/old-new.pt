@@ -16,6 +16,12 @@
 <tal:block metal:define-macro="old-new-no-tabs">
 <tal:block metal:use-macro="context/page_macros/base-new">
 
+<tal:block metal:fill-slot="title">
+    <tal:block metal:define-slot="title">
+        <tal:block tal:content="here/titleOrId"/>
+    </tal:block>
+</tal:block>
+
 <tal:block metal:fill-slot="head-local">
     <tal:block metal:use-macro="here/templates/macros/head1"/>
     <link rel="stylesheet" href="/++resource++zenui/css/backcompat.css"/>
@@ -76,6 +82,12 @@ Ext.onReady(function(){
 
 <tal:block metal:define-macro="old-new">
 <tal:block metal:use-macro="context/page_macros/old-new-no-tabs">
+
+<tal:block metal:fill-slot="title">
+    <tal:block metal:define-slot="title">
+        <tal:block tal:content="here/titleOrId"/>
+    </tal:block>
+</tal:block>
 
 <tal:block metal:fill-slot="center_content">
 <script>Zenoss.env.pageHasTabs = true;</script>

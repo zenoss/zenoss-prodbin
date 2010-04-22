@@ -1,5 +1,5 @@
 <tal:block metal:use-macro="here/page_macros/old-new-no-tabs">
-<tal:block metal:fill-slot="title">Zenoss: Dashboard</tal:block>
+<tal:block metal:fill-slot="title">Dashboard</tal:block>
 <tal:block metal:fill-slot="infoBar">
    <div style="float:right; padding:0px; 
    font-weight:normal; font-style:normal; 
