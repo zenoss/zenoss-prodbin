@@ -13,11 +13,13 @@
 import os
 import shlex
 import sys
+import traceback
 import subprocess
 import signal
 import time
 from Products.ZenUI3.browser.streaming import StreamingView, StreamClosed
 from Products.ZenUtils.jsonutils import unjson
+
 
 class CommandView(StreamingView):
     """
@@ -73,6 +75,7 @@ class CommandView(StreamingView):
                        target.id)
             self.write('Type: %s   Value: %s' % tuple(sys.exc_info()[:2]))
 
+            
 class BackupView(StreamingView):
     def stream(self):
         data = unjson(self.request.get('data'))
@@ -87,6 +90,7 @@ class BackupView(StreamingView):
         self.context.zport.dmd.manage_createBackup(includeEvents, 
                 includeMysqlLogin, timeout, None, self.write)
 
+        
 class TestDataSourceView(StreamingView):
     """
     Accepts a post with data in of the command to be tested against a device
@@ -97,14 +101,22 @@ class TestDataSourceView(StreamingView):
         Called by the parent class, this method asks the datasource
         to test itself.
         """
-        request = self.request
-        context = self.context
-        request['renderTemplate'] = False
-        return context.testDataSourceAgainstDevice(request.get('testDevice'), request, self.write, self.reportError)
-        
+        try:
+            request = self.request
+            context = self.context
+            request['renderTemplate'] = False
+            return context.testDataSourceAgainstDevice(request.get('testDevice'),
+                                                       request,
+                                                       self.write,
+                                                       self.reportError)
+        except Exception:
+            self.write('Exception while performing command: <br />')
+            self.write('<pre>%s</pre>' % (traceback.format_exc()))
+                    
     def reportError(self, title, body, priority=None, image=None):
         """
-        If something goes wrong, just display it in the command output (as opposed to a browser message)
+        If something goes wrong, just display it in the command output
+        (as opposed to a browser message)
         """
         error = "<b>%s</b><p>%s</p>" % (title, body)
         return self.write(error)

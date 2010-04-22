@@ -356,7 +356,6 @@ class GraphInfo(InfoBase):
     base = ProxyProperty('base')
     miny = ProxyProperty('miny')
     maxy = ProxyProperty('maxy')
-    custom = ProxyProperty('custom')
     hasSummary = ProxyProperty('hasSummary')
     sequence = ProxyProperty('sequence')
 
