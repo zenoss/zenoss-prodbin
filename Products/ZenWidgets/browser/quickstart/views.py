@@ -15,7 +15,6 @@ import re
 from Acquisition import aq_base
 from Products.Five.browser import BrowserView
 from Products.Five.browser.pagetemplatefile import ZopeTwoPageTemplateFile
-from Products.ZenModel.ZDeviceLoader import DeviceCreationJob
 from Products.ZenModel.IpNetwork import AutoDiscoveryJob
 from Products.ZenWidgets.messaging import IMessageSender
 from Products.ZenUtils import Ext
@@ -241,10 +240,9 @@ class DeviceAddView(BrowserView):
                         'snmpcomm_%s' % idx
                     ).splitlines()
                 }
-            self.context.JobManager.addJob(DeviceCreationJob,
-                deviceName=self.request.form.get(k),
-                devicePath=devclass,
-                zProperties = zProps)
+            perfConf = self.context.Monitors.getPerformanceMonitor(collector)
+            perfConf.addDeviceCreationJob(deviceName=self.request.form.get(k),
+                devicePath=devclass, zProperties=zProps)
         devnames = [self.request.form.get(dev) for dev in devs]
         IMessageSender(self.context).sendToUser(
             'Devices Added',

@@ -149,22 +149,10 @@ class JobDeviceLoader(BaseDeviceLoader):
 
     def run_zendisc(self, deviceName, devicePath, performanceMonitor):
         """
-        In this subclass, just create the zendisc command and return it. The
-        job will do the actual running.
+        In this subclass, just commit to database,
+        so everybody can find the new device
         """
-        # Commit to database so everybody can find the new device
         transaction.commit()
-
-        jobid = self.context.getUid()
-
-        zm = binPath('zendisc')
-        zendiscCmd = [zm]
-        zendiscOptions = ['run', '--now','-d', deviceName,
-                          '--monitor', performanceMonitor, 
-                          '--deviceclass', devicePath,
-                          '--job', jobid]
-        zendiscCmd.extend(zendiscOptions)
-        self.zendiscCmd = zendiscCmd
 
     def cleanup(self):
         """
@@ -180,7 +168,7 @@ class DeviceCreationJob(ShellCommandJob):
                  osManufacturer="", osProductName="", locationPath="",
                  groupPaths=[], systemPaths=[], performanceMonitor="localhost",
                  discoverProto="snmp", priority=3, manageIp="",
-                 zProperties=None, title=None):
+                 zProperties=None, title=None, zendiscCmd=""):
 
         # Store device name for later finding
         self.deviceName = deviceName
@@ -206,8 +194,8 @@ class DeviceCreationJob(ShellCommandJob):
                           priority = priority,
                           title= title)
 
-        # Set up the job, passing in a blank command (gets set later)
-        super(DeviceCreationJob, self).__init__(jobid, '')
+        zendiscCmd.extend(['--job', jobid])
+        super(DeviceCreationJob, self).__init__(jobid, zendiscCmd)
 
 
     def run(self, r):
@@ -233,7 +221,6 @@ class DeviceCreationJob(ShellCommandJob):
             self.finished(FAILURE)
         else:
             if self.discoverProto != 'none':
-                self.cmd = self._v_loader.zendiscCmd
                 super(DeviceCreationJob, self).run(r)
             else:
                 log = self.getStatus().getLog()
@@ -241,7 +228,6 @@ class DeviceCreationJob(ShellCommandJob):
                 log.finish()
                 self.finished(SUCCESS)
     def finished(self, r):
-        self._v_loader.cleanup()
         if self._v_loader.deviceobj is not None and r!=FAILURE:
             result = SUCCESS
         else:

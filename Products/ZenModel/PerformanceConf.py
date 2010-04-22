@@ -65,6 +65,7 @@ from Products.ZenUtils.Utils import setupLoggingHeader
 from Products.ZenUtils.Utils import executeCommand
 from Products.ZenUtils.Utils import clearWebLoggingStream
 from Products.ZenModel.Device import manage_createDevice
+from Products.ZenModel.ZDeviceLoader import DeviceCreationJob
 from Products.ZenWidgets import messaging
 from StatusColor import StatusColor
 
@@ -589,10 +590,40 @@ class PerformanceConf(Monitor, StatusColor):
                 devices.append(dev)
         return devices
 
+    def addDeviceCreationJob(self, deviceName, devicePath, title=None,
+                             discoverProto="none", 
+                             performanceMonitor='localhost',
+                             rackSlot=0, productionState=1000, comments="",
+                             hwManufacturer="", hwProductName="",
+                             osManufacturer="", osProductName="", priority = 3,
+                             tag="", serialNumber="", zProperties={}):
+
+        zendiscCmd = self._getZenDiscCommand(deviceName, devicePath, 
+                                             performanceMonitor)
+
+        jobStatus = self.dmd.JobManager.addJob(DeviceCreationJob,
+                                        deviceName=deviceName,
+                                        devicePath=devicePath,
+                                        title=title,
+                                        discoverProto=discoverProto,
+                                        performanceMonitor=performanceMonitor,
+                                        rackSlot=rackSlot,
+                                        productionState=productionState,
+                                        comments=comments,
+                                        hwManufacturer=hwManufacturer,
+                                        hwProductName=hwProductName,
+                                        osManufacturer=osManufacturer,
+                                        osProductName=osProductName,
+                                        priority=priority,
+                                        tag=tag,
+                                        serialNumber=serialNumber,
+                                        zProperties=zProperties,
+                                        zendiscCmd=zendiscCmd)
+        return jobStatus
+
     def _executeZenDiscCommand(self, deviceName, devicePath= "/Discovered", 
-                      performanceMonitor="localhost", discoverProto="snmp",
-                      zSnmpPort=161, zSnmpCommunity="", background=False,
-                      REQUEST=None):
+                               performanceMonitor="localhost", 
+                               background=False, REQUEST=None):
         """
         Execute zendisc on the new device and return result
         
@@ -602,17 +633,26 @@ class PerformanceConf(Monitor, StatusColor):
         @type devicePath: string
         @param performanceMonitor: DMD object that collects from a device
         @type performanceMonitor: DMD object
-        @param discoverProto: auto or none
-        @type discoverProto: string
-        @param zSnmpPort: zSnmpPort
-        @type zSnmpPort: string
-        @param zSnmpCommunity: SNMP community string
-        @type zSnmpCommunity: string
+        @param background: should command be scheduled job?
+        @type background: boolean
         @param REQUEST: Zope REQUEST object
         @type REQUEST: Zope REQUEST object
         @return:
         @rtype:
         """
+        zendiscCmd = self._getZenDiscCommand(deviceName, devicePath,
+                                             performanceMonitor, REQUEST)
+        if background:
+            log.info('queued job: %s', " ".join(zendiscCmd))
+            result = self.dmd.JobManager.addJob(ShellCommandJob,
+                                                    zendiscCmd) 
+        else:
+            result = executeCommand(zendiscCmd, REQUEST)
+        return result
+
+    def _getZenDiscCommand(self, deviceName, devicePath, 
+                           performanceMonitor, REQUEST=None):
+
         zm = binPath('zendisc')
         zendiscCmd = [zm]
         zendiscOptions = ['run', '--now','-d', deviceName,
@@ -621,13 +661,8 @@ class PerformanceConf(Monitor, StatusColor):
         if REQUEST: 
             zendiscOptions.append("--weblog")
         zendiscCmd.extend(zendiscOptions)
-        if background:
-            log.info('queued job: %s', " ".join(zendiscCmd))
-            result = self.dmd.JobManager.addJob(ShellCommandJob,
-                                                    zendiscCmd) 
-        else:
-            result = executeCommand(zendiscCmd, REQUEST)
-        return result
+        log.info('local zendiscCmd is "%s"' % ' '.join(zendiscCmd))
+        return zendiscCmd
 
     def executeCollectorCommand(self, command, args, REQUEST=None):
         """

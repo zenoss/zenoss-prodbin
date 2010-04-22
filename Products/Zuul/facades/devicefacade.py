@@ -26,7 +26,6 @@ from Products.ZenModel.System import System
 from Products.ZenModel.Location import Location
 from Products.ZenModel.DeviceClass import DeviceClass
 from Products.ZenModel.Device import Device
-from Products.ZenModel.ZDeviceLoader import DeviceCreationJob
 from Products.Zuul.utils import ZuulMessageFactory as _t
 
 
@@ -235,8 +234,8 @@ class DeviceFacade(TreeFacade):
         zProps = dict(zSnmpCommunity=snmpCommunity,
                            zSnmpPort=snmpPort)
         model = model and "Auto" or "none"
-        jobStatus = self._dmd.JobManager.addJob(DeviceCreationJob,
-                                               deviceName=deviceName,
+        perfConf = self._dmd.Monitors.getPerformanceMonitor(collector)
+        jobStatus = perfConf.addDeviceCreationJob(deviceName=deviceName,
                                                devicePath=deviceClass,
                                                performanceMonitor=collector,
                                                discoverProto=model,
