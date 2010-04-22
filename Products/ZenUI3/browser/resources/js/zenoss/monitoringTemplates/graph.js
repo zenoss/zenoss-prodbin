@@ -303,6 +303,8 @@ Ext.create({
     closeAction: 'hide',
     buttonAlign: 'left',
     autoScroll: true,
+    height: 500,
+    width: 400,
     modal: true,
     plain: true,
     padding: 10,
@@ -325,8 +327,8 @@ Ext.create({
         },{
             xtype: 'textarea',
             fieldLabel: _t('Custom'),
-            width: 500,
-            height: 500,
+            width: 300,
+            height: 300,
             name: 'custom',
             ref: 'custom'
         },{
