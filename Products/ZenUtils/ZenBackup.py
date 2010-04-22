@@ -51,9 +51,10 @@ class ZenBackup(ZenBackupBase):
         @return: whether Zeo is up or not
         @rtype: boolean
         '''
-        # zeoup.py should live in either $ZOPEHOME/lib/bin/ (for the
-        # appliance) or in $ZENHOME/bin (other installs.)
-        cmd = [ binPath('python'), binPath('zeoup.py') ]
+        import ZEO
+        zeohome = os.path.dirname(ZEO.__file__)
+        cmd = [ binPath('python'),
+                os.path.join(zeohome, 'scripts', 'zeoup.py')]
         cmd += '-p 8100 -h localhost'.split()
         self.log.debug("Can we access ZODB through Zeo?")
 
@@ -289,7 +290,7 @@ class ZenBackup(ZenBackupBase):
         Backup the zenpacks dir
         """
         #can only copy zenpacks backups if ZEO is backed up
-        if not self.options.noZopeDb:
+        if not self.options.noZopeDb and os.path.isdir(zenPath('ZenPacks')):
             # Copy /ZenPacks to backup dir
             self.log.info('Backing up ZenPacks.')
             etcTar = tarfile.open(os.path.join(self.tempDir, 'ZenPacks.tar'), 'w')
@@ -313,7 +314,7 @@ class ZenBackup(ZenBackupBase):
         self.log.info('Backing up the ZODB.')
         repozoDir = os.path.join(self.tempDir, 'repozo')
         os.mkdir(repozoDir, 0750)
-        cmd = [binPath('python'), binPath('repozo.py'),
+        cmd = [binPath('python'), binPath('repozo'),
                 '--repository', repozoDir, '--file',
                 zenPath('var', 'Data.fs'),
                 '--backup', '--full' ]
