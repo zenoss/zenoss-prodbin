@@ -3,7 +3,7 @@
         <link rel="shortcut icon"
               type="image/x-icon"
               href="/zport/dmd/favicon.ico"/>
-        <title><tal:block tal:content="here/dmd/instanceIdentifier"/>: Login</title>
+        <title>Login</title>
         <style>
             .inputbox {
                 border: medium none;
