@@ -397,6 +397,12 @@ class DeviceRouter(TreeRouter):
         facade = self._getFacade()
         facade.setBoundTemplates(uid, templateIds)
         return DirectResponse.succeed()
+        
+    def resetBoundTemplates(self, uid):
+        facade = self._getFacade()
+        templates = facade.getBoundTemplates(uid)
+        facade.resetBoundTemplates(uid)
+        return DirectResponse.succeed()
 
     def getOverridableTemplates(self, query, uid):
         """

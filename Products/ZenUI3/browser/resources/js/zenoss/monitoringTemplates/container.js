@@ -234,6 +234,44 @@ Zenoss.BindTemplatesDialog = Ext.extend(Zenoss.HideFitDialog, {
 });
 Ext.reg('bindtemplatesdialog', Zenoss.BindTemplatesDialog);
 
+Zenoss.ResetTemplatesDialog = Ext.extend(Zenoss.MessageDialog, {
+    constructor: function(config) {
+        me = this;
+        Ext.applyIf(config, {
+            title: _t('Reset Template Bindings'),
+            message: _t('Are you sure you want to delete all local template bindings and use default values?'),
+            buttons: [
+                {
+                    xtype: 'HideDialogButton',
+                    text: _t('Reset Bindings'),
+                    handler: function() {
+                        if (Zenoss.Security.hasPermission('Manage DMD')) {
+                            REMOTE.resetBoundTemplates(
+                                { uid: me.context },
+                                function() {
+                                    // refresh the template tree
+                                    var cmp = Ext.getCmp('templateTree');
+                                    if (cmp) {
+                                        cmp.getRootNode().reload();
+                                    }
+                                }
+                            );
+                        }
+                    }
+                }, {
+                    xtype: 'HideDialogButton',
+                    text: _t('Cancel')
+                }
+            ]
+        });
+        Zenoss.ResetTemplatesDialog.superclass.constructor.call(this, config);
+    },
+    setContext: function(uid) {
+        this.context = uid;
+    }
+});
+
+Ext.reg('resettemplatesdialog', Zenoss.ResetTemplatesDialog);
 
 Zenoss.OverrideTemplatesDialog = Ext.extend(Zenoss.HideFitDialog, {
     constructor: function(config){

@@ -1285,21 +1285,33 @@ Ext.create({
     id: 'bindTemplatesDialog'
 });
 
+Ext.create({
+    xtype: 'resettemplatesdialog',
+    id: 'resetTemplatesDialog'
+});
+
 footerBar.add({
     xtype: 'ContextConfigureMenu',
     onSetContext: function(uid){
         Ext.getCmp('bindTemplatesDialog').setContext(uid);
+        Ext.getCmp('resetTemplatesDialog').setContext(uid);
     },
     onGetMenuItems: function(uid){
         var menuItems = [];
         if ( uid.match('^/zport/dmd/Devices') ) {
-            menuItems.push({
+            menuItems.push([{
                 xtype: 'menuitem',
                 text: _t('Bind Templates'),
                 handler: function(){
                     Ext.getCmp('bindTemplatesDialog').show();
                 }
-            });
+            },{
+                xtype: 'menuitem',
+                text: _t('Reset Bindings'),
+                handler: function(){
+                    Ext.getCmp('resetTemplatesDialog').show();
+                }
+            }]);
         }
         menuItems.push({
             xtype: 'menuitem',

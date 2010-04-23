@@ -706,6 +706,12 @@ Ext.create({
 });
 
 Ext.create({
+    xtype: 'resettemplatesdialog',
+    id: 'resetTemplatesDialog',
+    context: UID
+});
+
+Ext.create({
     xtype: 'overridetemplatesdialog',
     id: 'overrideTemplatesDialog',
     context: UID
@@ -727,6 +733,12 @@ Ext.getCmp('footer_bar').add([{
             Ext.getCmp('bindTemplatesDialog').show();
         }
     },{
+        xtype: 'menuitem',
+        text: _t('Reset Bindings'),
+        handler: function(){
+            Ext.getCmp('resetTemplatesDialog').show();
+        }
+    }, {
         xtype: 'menuitem',
         text: _t('Override Template Here'),
         handler: function(){

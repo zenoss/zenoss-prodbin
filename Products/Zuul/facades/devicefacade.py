@@ -292,6 +292,10 @@ class DeviceFacade(TreeFacade):
         obj = self._getObject(uid)
         obj.bindTemplates(templateIds)
 
+    def resetBoundTemplates(self, uid):
+        obj = self._getObject(uid)
+        obj.removeZDeviceTemplates()
+
     def getOverridableTemplates(self, uid):
         """
         A template is overrideable at the device if it is bound to the device and

@@ -217,3 +217,12 @@ class IDeviceFacade(IFacade):
         uniquely identified by the uid parameter to the value of the 
         templateIds parameter.
         """
+    
+    def resetBoundTemplates(self, uid):
+        """
+        Remove templates bound to the Device identified by C{uid}.
+        
+        @param uid: The primary path of the object
+        @type uid: str
+        @rtype: void
+        """

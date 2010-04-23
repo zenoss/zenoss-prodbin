@@ -1995,7 +1995,11 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable,
         """
         for id in self.zDeviceTemplates:
             self.removeLocalRRDTemplate(id)
-        return self.deleteZenProperty('zDeviceTemplates', REQUEST)
+        from Products.ZenRelations.ZenPropertyManager import ZenPropertyDoesNotExist
+        try:
+            return self.deleteZenProperty('zDeviceTemplates', REQUEST)
+        except ZenPropertyDoesNotExist:
+            if REQUEST: return self.callZenScreen(REQUEST)
 
     security.declareProtected(ZEN_EDIT_LOCAL_TEMPLATES, 'addLocalTemplate')
     def addLocalTemplate(self, id, REQUEST=None):

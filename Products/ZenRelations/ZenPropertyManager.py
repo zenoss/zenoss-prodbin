@@ -13,6 +13,7 @@
 
 import re
 import logging
+import exceptions
 
 from OFS.PropertyManager import PropertyManager
 from zExceptions import BadRequest
@@ -193,6 +194,9 @@ class PropertyDescriptor(object):
         """
         return getattr(self.transformer, method)(value)
         
+class ZenPropertyDoesNotExist(exceptions.ValueError):
+    pass
+
 class ZenPropertyManager(object, PropertyManager):
     """
     ZenPropertyManager adds keyedselection type to PropertyManager.
@@ -456,6 +460,8 @@ class ZenPropertyManager(object, PropertyManager):
                 #and create a new _properties tuple
                 newProps = [x for x in self._properties if x['id'] != propname]
                 self._properties=tuple(newProps)
+            except exceptions.ValueError:
+                raise ZenPropertyDoesNotExist()
         if REQUEST: return self.callZenScreen(REQUEST)
 
     security.declareProtected(ZEN_ZPROPERTIES_VIEW, 'zenPropertyOptions')
