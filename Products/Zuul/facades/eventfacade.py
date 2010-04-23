@@ -146,6 +146,11 @@ class EventFacade(ZuulFacade):
         data['id'] = zevent.evid
         return data
         
+    def _resolve_context(self, context, default):
+        if context and getattr(context, 'id', None) == 'dmd':
+            context = None
+        return resolve_context(context, default)
+    
     def log(self, evid, message, history=False):
         zem = self._event_manager(history)
         zem.manage_addLogMessage(evid, message)
@@ -177,7 +182,7 @@ class EventFacade(ZuulFacade):
         return event
 
     def fields(self, context=None, history=False):
-        context = resolve_context(context, self._dmd.Events)
+        context = self._resolve_context(context, self._dmd.Events)
         zem = self._event_manager(history)
         if hasattr(context, 'getResultFields'):
             fs = context.getResultFields()
@@ -192,7 +197,7 @@ class EventFacade(ZuulFacade):
 
     def query(self, limit=0, start=0, sort='lastTime', dir='DESC', 
               filters=None, context=None, criteria=(), history=False):
-        context = resolve_context(context, self._dmd.Events)
+        context = self._resolve_context(context, self._dmd.Events)
         if isinstance(filters, basestring): filters = unjson(filters)
         zem = self._event_manager(history)
 
@@ -258,7 +263,7 @@ class EventFacade(ZuulFacade):
     def acknowledge(self, evids=None, excludeIds=None, selectState=None,
                     sort=None, dir=None, filters=None, asof=None,
                     context=None, history=False):
-        context = resolve_context(context, self._dmd.Events)
+        context = self._resolve_context(context, self._dmd.Events)
         zem = self._event_manager(history)
         orderby = self._get_orderby_clause(sort, dir, history);
         r_evids = zem.getEventIds(context, selectState, orderby, filters, evids,
@@ -270,7 +275,7 @@ class EventFacade(ZuulFacade):
     def unacknowledge(self, evids=None, excludeIds=None, selectState=None,
                     sort=None, dir=None, filters=None, asof=None,
                     context=None, history=False):
-        context = resolve_context(context, self._dmd.Events)
+        context = self._resolve_context(context, self._dmd.Events)
         zem = self._event_manager(history)
         orderby = self._get_orderby_clause(sort, dir, history);
         r_evids = zem.getEventIds(context, selectState, orderby, filters, evids,
@@ -282,7 +287,7 @@ class EventFacade(ZuulFacade):
     def reopen(self, evids=None, excludeIds=None, selectState=None,
                     sort=None, dir=None, filters=None, asof=None,
                     context=None, history=False):
-        context = resolve_context(context, self._dmd.Events)
+        context = self._resolve_context(context, self._dmd.Events)
         zem = self._event_manager(history)
         orderby = self._get_orderby_clause(sort, dir, history);
         r_evids = zem.getEventIds(context, selectState, orderby, filters, evids,
@@ -294,7 +299,7 @@ class EventFacade(ZuulFacade):
     def close(self, evids=None, excludeIds=None, selectState=None,
                     sort=None, dir=None, filters=None, asof=None,
                     context=None, history=False):
-        context = resolve_context(context, self._dmd.Events)
+        context = self._resolve_context(context, self._dmd.Events)
         zem = self._event_manager(history)
         orderby = self._get_orderby_clause(sort, dir, history);
         r_evids = zem.getEventIds(context, selectState, orderby, filters, evids,

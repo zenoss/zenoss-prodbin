@@ -23,6 +23,8 @@ var REMOTE = Zenoss.remote.DeviceRouter;
 var treeId = 'groups';
 var nodeType = 'Organizer';
 var deleteDeviceMessage = _t('Warning! This will delete all of the devices in this group!');
+var ZEvActions = Zenoss.events.EventPanelToolbarActions;
+
                 
 // These are the fields that will display on the "Add a Node form" 
 var addNodeDialogItems = [{
@@ -1243,7 +1245,20 @@ Ext.getCmp('center_panel').add({
             xtype: 'SimpleEventGridPanel',
             id: 'events_grid',
             stateful: false,
-            columns: Zenoss.env.COLUMN_DEFINITIONS
+            columns: Zenoss.env.COLUMN_DEFINITIONS,
+            tbar: {
+                xtype: 'toolbar',
+                cls: 'largetoolbar consolebar',
+                height: 35,
+                items: [{
+                    xtype: 'tbtext',
+                    text: _t('Event Console')
+                },
+                    '-',
+                    ZEvActions.acknowledge,
+                    ZEvActions.close
+                ]
+            }
         }]
     }]
 });
