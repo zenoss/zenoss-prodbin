@@ -367,7 +367,7 @@ Zenoss.events.EventPanelToolbarActions = {
         iconCls: 'acknowledge',
         permission: 'Manage Events',
         handler: function(btn) {
-            var grid = this.ownerCt.ownerCt,
+            var grid = btn.grid || this.ownerCt.ownerCt,
                 sm = grid.getSelectionModel(),
                 selected = sm.getSelections(),
                 evids = Ext.pluck(selected, 'id');
@@ -385,7 +385,7 @@ Zenoss.events.EventPanelToolbarActions = {
         iconCls: 'close',
         permission: 'Manage Events',
         handler: function(btn) {
-            var grid = this.ownerCt.ownerCt,
+            var grid = btn.grid || this.ownerCt.ownerCt,
                 sm = grid.getSelectionModel(),
                 selected = sm.getSelections(),
                 evids = Ext.pluck(selected, 'id');
@@ -403,7 +403,7 @@ Zenoss.events.EventPanelToolbarActions = {
         iconCls: 'newwindow',
         permission: 'View',
         handler: function(btn) {
-            var grid = this.ownerCt.ownerCt,
+            var grid = btn.grid || this.ownerCt.ownerCt,
                 curState = Ext.state.Manager.get('evconsole') || {},
                 filters = curState.filters || {},
                 opts = filters.options || {},

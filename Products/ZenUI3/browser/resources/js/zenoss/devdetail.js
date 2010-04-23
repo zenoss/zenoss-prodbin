@@ -270,15 +270,9 @@ var componentCard = {
     xtype: 'componentpanel',
     id: 'component_card',
     gridtbar: [{
-        xtype: 'searchfield',
-        id: 'component_searchfield',
-        validateOnBlur: false,
-        listeners: {
-            valid: function(field) {
-                var grid = Ext.getCmp('component_card').componentgrid;
-                grid.filter(field.getValue());
-            }
-        }
+        xtype: 'tbtext',
+        id: 'component_type_label',
+        style: 'font-size:10pt;font-weight:bold'
     },'-',{
         iconCls: 'customize',
         menu: [{
@@ -321,10 +315,24 @@ var componentCard = {
                 grid.getSelectionModel().clearSelections();
             }
         }]
+    },'->',{
+        xtype: 'searchfield',
+        id: 'component_searchfield',
+        validateOnBlur: false,
+        emptyText: _t('Type to filter by name...'),
+        listeners: {
+            valid: function(field) {
+                var grid = Ext.getCmp('component_card').componentgrid;
+                grid.filter(field.getValue());
+            }
+        }
     }],
     listeners: {
-        contextchange: function(me){
-            Ext.getCmp('component_searchfield').setRawValue('');
+        contextchange: function(me, uid, type){
+            Ext.getCmp('component_type_label').setText(type);
+            var sf = Ext.getCmp('component_searchfield');
+            sf.setRawValue(sf.emptyText);
+            sf.el.addClass(sf.emptyClass);
         }
     }
 };

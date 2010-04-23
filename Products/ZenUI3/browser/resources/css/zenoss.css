@@ -658,3 +658,10 @@ span.status-down {
     font-weight: bold;
 }
 
+.componenttbar table.x-toolbar-ct {
+    margin-top: 3px;
+} 
+
+.componenttbar .xtb-sep {
+    height: 18px;
+}

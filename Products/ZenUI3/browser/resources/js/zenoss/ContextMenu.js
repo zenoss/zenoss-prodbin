@@ -40,6 +40,7 @@ Zenoss.ContextMenu = Ext.extend( Ext.Button, {
 
 Ext.reg('ContextMenu', Zenoss.ContextMenu);
 
+
 Zenoss.ContextConfigureMenu = Ext.extend( Zenoss.ContextMenu,{
     /**
      * onGetMenuItems abstract function; hook to provide

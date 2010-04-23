@@ -32,8 +32,8 @@ Zenoss.nav.register({
         nodeType: 'subselect',
         id: 'Events',
         text: _t('Events'),
-        action: function(node, target) {
-            var uid = node.ownerTree.ownerCt.contextId,
+        action: function(node, target, combo) {
+            var uid = combo.contextUid,
                 cardid = uid + '_events',
                 showPanel = function() {
                     target.layout.setActiveItem(cardid);
@@ -44,18 +44,26 @@ Zenoss.nav.register({
                     id: cardid,
                     xtype: 'SimpleEventGridPanel',
                     stateful: false,
-                    columns: Zenoss.env.COLUMN_DEFINITIONS,
-                    tbar: {
-                        cls: 'largetoolbar consolebar',
-                        height: 32,
-                        items: [{
-                            xtype: 'tbfill'
-                        }, ZEvActions.acknowledge,
-                           ZEvActions.close,
-                           ZEvActions.newwindow
-                        ]
-                    }
+                    columns: Zenoss.env.COLUMN_DEFINITIONS
                 });
+                var tbar = target.getTopToolbar();
+                if (tbar._btns) {
+                    Ext.each(tbar._btns, tbar.remove, tbar);
+                }
+                var btns = tbar.add([
+                    '-',
+                    ZEvActions.acknowledge,
+                    ZEvActions.close,
+                    ZEvActions.newwindow
+                ]);
+                Ext.each(btns, function(b){b.grid = panel;});
+                tbar.doLayout();
+                tbar._btns = btns;
+                combo.on('select', function(c, selected){
+                    if (selected.id!="Events") {
+                        Ext.each(btns, tbar.remove, tbar);
+                    }
+                }, this, {single:true});
             }
             showPanel();
         }
@@ -63,8 +71,8 @@ Zenoss.nav.register({
         nodeType: 'subselect',
         id: 'Graphs',
         text: _t('Graphs'),
-        action: function(node, target) {
-            var uid = node.ownerTree.ownerCt.contextId,
+        action: function(node, target, combo) {
+            var uid = combo.contextUid,
                 cardid = uid+'_graphs',
                 graphs = {
                     id: cardid,
@@ -83,8 +91,8 @@ Zenoss.nav.register({
         nodeType: 'subselect',
         id: 'Edit',
         text: _t('Edit'),
-        action: function(node, target) {
-            var uid = node.ownerTree.ownerCt.contextId;
+        action: function(node, target, combo) {
+            var uid = combo.contextUid;
             if (!(uid in target.items.keys)) {
                 Zenoss.form.getGeneratedForm(uid, function(config){
                     target.add(Ext.apply({id:uid}, config));
@@ -179,40 +187,68 @@ ZC.ComponentPanel = Ext.extend(Ext.Panel, {
             items: [{
                 region: 'north',
                 height: 250,
-                layout: 'border',
-                style: 'border-bottom:1px solid #949494',
                 defaults: {border: false},
+                border: false,
                 split: true,
-                items: [{
-                    ref: '../navcontainer',
-                    bodyCssClass: 'detailnav',
-                    style: 'border-left:1px solid #949494',
-                    layout: 'fit',
-                    items: {
-                        ref: '../../componentnav',
-                        xtype: 'componentnav',
-                        autoHeight: true
-                    },
-                    region: 'east',
-                    width: 150,
-                    split: true
-                },{
-                    ref: '../gridcontainer',
-                    tbar: tbar,
-                    layout: 'fit',
-                    region: 'center',
-                    split: true
-                }]
+                ref: 'gridcontainer',
+                tbar: tbar,
+                layout: 'fit'
             },{
                 xtype: 'contextcardpanel',
                 region: 'center',
                 ref: 'detailcontainer',
-                split: true
+                split: true,
+                defaults: {
+                    border: false
+                },
+                tbar: {
+                    cls: 'largetoolbar componenttbar',
+                    border: false,
+                    height: 32,
+                    items: [{
+                        xtype: 'tbtext',
+                        html: _t("Display: ")
+                    },{
+                        xtype: 'detailnavcombo',
+                        menuIds: [],
+                        onGetNavConfig: function(uid) {
+                            var grid = this.componentgrid,
+                                items = [],
+                                monitored = false;
+                            Ext.each(grid.store.data.items, function(record){
+                                if (record.data.uid==uid && record.data.monitored) { 
+                                    monitored = true; 
+                                }
+                            });
+                            Ext.each(Zenoss.nav.Component, function(item){
+                                if (!(item.id=='Graphs' && !monitored)) {
+                                    items.push(item);
+                                }
+                            });
+                            return items;
+                        }.createDelegate(this),
+                        filterNav: function(cfg) {
+                            var excluded = [
+                                'status',
+                                'events',
+                                'resetcommunity',
+                                'pushconfig',
+                                'objtemplates',
+                                'modeldevice',
+                                'historyevents'
+                            ];
+                            return (excluded.indexOf(cfg.id)==-1);
+                        },
+                        ref: '../../componentnav',
+                        getTarget: function() {
+                            return this.detailcontainer;
+                        }.createDelegate(this)
+                    }]
+                }
             }]
         });
         ZC.ComponentPanel.superclass.constructor.call(this, config);
         this.addEvents('contextchange');
-        this.componentnav.target = this.detailcontainer;
     },
     getGridToolbar: function(){
         return Ext.getCmp(this.tbarid);
@@ -227,7 +263,7 @@ ZC.ComponentPanel = Ext.extend(Ext.Panel, {
             this.gridcontainer.add({
                 xtype: xtype,
                 componentType: this.componentType,
-                ref: '../../componentgrid',
+                ref: '../componentgrid',
                 listeners: {
                     render: function(grid) {
                         grid.setContext(uid);

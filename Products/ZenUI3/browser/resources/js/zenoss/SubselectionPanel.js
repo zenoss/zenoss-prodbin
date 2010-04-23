@@ -447,6 +447,83 @@ Zenoss.DetailNavPanel = Ext.extend(Zenoss.SubselectionPanel,{
 });
 Ext.reg('detailnav', Zenoss.DetailNavPanel);
 
+
+Zenoss.DetailNavCombo = Ext.extend(Ext.form.ComboBox, {
+    target: null,
+    contextUid: null,
+    panelConfigMap: null,
+    mode: 'local',
+    editable: false,
+    forceSelection: true,
+    typeAhead: false,
+    triggerAction: 'all',
+    filterNav: function(config) {return true;},
+    menuIds: ['More','Manage','Edit', 'Actions','Add','TopLevel'],
+    onSelectionChange: Ext.emptyFn,
+    onGetNavConfig: function(uid){ return []; },
+    getTarget: function() {
+        var target = this.target;
+        return Ext.isString(target) ? Ext.getCmp(target) : target;
+    },
+    initEvents: function() {
+        Zenoss.DetailNavCombo.superclass.initEvents.call(this);
+        this.on('select', this.onItemSelected, this);
+    },
+    onItemSelected: function(me, item){
+        var target = this.getTarget(),
+            id = item.id,
+            config = this.panelConfigMap[id],
+            action = config.action || function(node, target) {
+                if (!(id in target.items.map)) {
+                    Ext.applyIf(config, {refreshOnContextChange: true});
+                    if(config) {
+                        target.add(config);
+                        target.doLayout();
+                    }
+                }
+                target.items.map[id].setContext(this.contextUid);
+                target.layout.setActiveItem(id);
+            };
+        action.call(this, item, target, this);
+    },
+    selectAt: function(idx) {
+        var record = this.store.getAt(idx);
+        this.onSelect(record, idx);
+    },
+    setContext: function(uid) {
+        this.contextUid = uid;
+        var args = {uid:uid};
+        if (!Ext.isEmpty(this.menuIds)) {
+            args.menuIds = this.menuIds;
+        }
+        Zenoss.remote.DetailNavRouter.getDetailNavConfigs(args, function(r){
+            var detailConfigs = r.detailConfigs,
+                items = [],
+                panelMap = {};
+            detailConfigs = Zenoss.util.filter(detailConfigs, this.filterNav.createDelegate(this));
+            detailConfigs = this.onGetNavConfig(uid).concat(detailConfigs);
+            Ext.each(detailConfigs, function(cfg){
+                items.push([cfg.id, cfg.text]);
+                panelMap[cfg.id] = cfg;
+            });
+            this.panelConfigMap = panelMap;
+            this.store = new Ext.data.ArrayStore({
+                'id':0,
+                fields: ['value', 'text'],
+                data: items,
+                autoDestroy: true
+            });
+            this.valueField = 'value';
+            this.displayField = 'text';
+            this.list = null;
+            this.initList();
+            this.selectAt(0);
+        }, this);
+    }
+});
+
+Ext.reg('detailnavcombo', Zenoss.DetailNavCombo);
+
 Zenoss.DetailContainer = Ext.extend(Ext.Panel, {
     constructor: function(config){
         Ext.applyIf(config, {

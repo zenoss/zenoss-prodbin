@@ -141,6 +141,6 @@ Zenoss.util.registerBackCompatMenu = function(menu, btn, align, offsets){
     btn.on('menuhide', hideMenu);
     menu.on('mousedown', menuClicked);
 
-}
+};
 
 })();
