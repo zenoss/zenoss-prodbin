@@ -1,0 +1,82 @@
+<tal:block metal:use-macro="here/templates/macros/page2">
+<tal:block metal:fill-slot="contentPane">
+
+<form method="post" tal:attributes="action string:${here/absolute_url_path}">
+<input type="hidden" name="zenScreenName" tal:attributes="value template/id"/>
+
+<tal:block tal:define="
+    message request/message | string:State at time:;
+    tabletitle string:${message} ${here/getNowString}">
+<tal:block metal:use-macro="here/zenuimacros/macros/zentable">
+<tal:block metal:fill-slot="zentablecontents">
+    <tr>
+        <th class="tableheader">Name</th>
+        <td class="tablevalues">
+        <input class="tablevalues" type="text" name="name" size="40"
+            tal:attributes="value here/name" />
+        </td>
+    </tr>
+    <tr>
+        <th class="tableheader">Monitor</th>
+        <td class="tablevalues">
+            <select class="tablevalues"  name="monitor:boolean">
+            <option tal:repeat="e python:(True,False)" tal:content="e"
+                tal:attributes="value e; selected python:e==here.zMonitor"/>
+            </select>
+        </td>
+    </tr>
+    <tr>
+        <th class="tableheader">Monitored Start Modes</th>
+        <td class="tablevalues">
+            <select class="tablevalues" name="monitoredStartModes:list"
+                multiple tal:define="curstates here/monitoredStartModes">
+                <option tal:attributes="selected python:'Auto' in curstates"
+                    value="Auto">Auto</option>
+                <option tal:attributes="selected python:'Manual' in curstates"
+                    value="Manual">Manual</option>
+                <option tal:attributes="selected python:'Disabled' in curstates"
+                    value="Disabled">Disabled</option>
+                <option tal:attributes="selected python:'Not Installed' in curstates"
+                    value="Not Installed">Not Installed</option>
+            </select>
+        </td>
+    </tr>
+    <tr>
+        <th class="tableheader" colspan="2">Description</th>
+    </tr>
+    <tr>
+        <td class="tablevalues" colspan="2">
+        <textarea class="tablevalues" rows=3 cols=70
+            name="description:text" tal:content="here/description">
+        </textarea>
+        </td>
+    </tr>
+    <tr>
+        <th class="tableheader" colspan="2">Service Keys</th>
+    </tr>
+    <tr>
+        <td class="tablevalues" colspan="2">
+        <textarea class="tablevalues" rows="6" cols="70"
+            name="serviceKeys:text"
+            tal:content="python:'\n'.join(here.serviceKeys)">
+        </textarea>
+        </td>
+    </tr>
+    <tr>
+        <td align="left"  class="tableheader" colspan="2">
+            <input class="tableheader" type="submit" value=" Save "
+                name="manage_editServiceClass:method" />
+        </td>
+    </tr>
+
+        <!-- END TABLE CONTENTS -->
+
+        </tal:block>
+        </tal:block>
+        </tal:block>
+
+
+</form>
+
+</tal:block>
+</tal:block>

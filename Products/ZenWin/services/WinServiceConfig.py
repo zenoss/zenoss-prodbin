@@ -80,8 +80,15 @@ class WinServiceConfig(CollectorConfigService):
         proxy.services = {}
         for service in genServices(device):
             if service.isMonitored:
-                proxy.services[service.name] = (service.getStatus(),
-                                                service.severity)
+                running = None
+                if service.getStatus() > 0:
+                    running = False
+                else:
+                    running = True
+
+                proxy.services[service.name] = (
+                    running, service.severity, None,
+                    service.getMonitoredStartModes())
                 
         # don't bother adding this device proxy if there aren't any services
         # to monitor

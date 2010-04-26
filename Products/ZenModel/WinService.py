@@ -54,6 +54,7 @@ class WinService(Service):
     serviceType = ""
     startMode = ""
     startName = ""
+    monitoredStartModes = []
     collectors = ('zenwin',)
 
     _properties = Service._properties + (
@@ -63,6 +64,7 @@ class WinService(Service):
         {'id': 'serviceType', 'type':'string', 'mode':'w'},
         {'id': 'startMode', 'type':'string', 'mode':'w'},
         {'id': 'startName', 'type':'string', 'mode':'w'},
+        {'id': 'monitoredStartModes', 'type':'lines', 'mode':'w'},
     )
 
     _relations = Service._relations + (
@@ -108,6 +110,13 @@ class WinService(Service):
         return "'%s' StartMode:%s StartName:%s" % (self.caption,
                         self.startMode, self.startName)
 
+
+    def getMonitoredStartModes(self):
+        if self.monitoredStartModes:
+            return self.monitoredStartModes
+        return self.serviceclass().monitoredStartModes
+
+
     def monitored(self):
         """Should this Windows Service be monitored
         """
@@ -151,10 +160,12 @@ class WinService(Service):
     def manage_editService(self, id=None, description=None, 
                             pathName=None, serviceType=None,
                             startMode=None, startName=None,
+                            monitoredStartModes=[],
                             monitor=False, severity=5, 
                             REQUEST=None):
         """Edit a Service from a web page.
         """
+        msg = []
         renamed = False
         if id is not None:
             self.name = id
@@ -165,12 +176,18 @@ class WinService(Service):
             self.serviceType = serviceType
             self.startMode = startMode
             self.startName = startName
+
             if self.id != id:
                 id = prepId(id)
                 self.setServiceClass(dict(name=id, description=description))
                 renamed = self.rename(id)
-        tmpl = super(WinService, self).manage_editService(monitor, severity,
-                                                    REQUEST=REQUEST)
+
+        if set(monitoredStartModes) != set(self.getMonitoredStartModes()):
+            self.monitoredStartModes = monitoredStartModes
+            msg.append("Updated monitored start modes")
+
+        tmpl = super(WinService, self).manage_editService(
+            monitor, severity, msg=msg, REQUEST=REQUEST)
         if REQUEST and renamed:
             messaging.IMessageSender(self).sendToBrowser(
                 'Service Renamed',

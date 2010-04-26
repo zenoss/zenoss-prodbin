@@ -1,0 +1,78 @@
+<tal:block metal:use-macro="here/templates/macros/page2">
+<tal:block metal:fill-slot="contentPane">
+
+<tal:block tal:define="tabletitle string:Windows Service Class">
+<tal:block metal:use-macro="here/zenuimacros/macros/zentable">
+<tal:block metal:fill-slot="zentablecontents">
+    <tr>
+        <th class="tableheader">Name</th>
+        <td class="tablevalues" tal:content="here/name"/>
+    </tr>
+    <tr>
+        <th class="tableheader">Monitor</th>
+        <td class="tablevalues" tal:content="here/zMonitor"/>
+    </tr>
+    <tr>
+        <th class="tableheader">Description</th>
+        <td class="tablevalues" tal:content="here/description"/>
+    </tr>
+    <tr>
+        <th class="tableheader">Monitored Start Modes</th>
+        <td class="tablevalues" tal:content="
+            python:','.join(here.monitoredStartModes)"/>
+    </tr>
+    <tr>
+        <th class="tableheader">Service Keys</th>
+        <td class="tablevalues" tal:content="python:','.join(here.serviceKeys)"/>
+    </tr>
+</tal:block>
+</tal:block>
+</tal:block>
+
+<span metal:use-macro="here/templates/macros/contentSeparator"/>
+
+<tal:block tal:define="tableName string:serviceinstances;
+    objects here/instances/objectValuesAll;
+    batch python:here.ZenTableManager.getBatch(tableName,objects); tabletitle string:Service Instances">
+<tal:block metal:use-macro="here/zenuimacros/macros/zentable">
+<tal:block metal:fill-slot="zentablecontents">
+    <tr>
+        <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
+            tableName,'getDeviceName','Device')"/>
+        <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
+            tableName,'getId','Name')"/>
+        <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
+            tableName,'monitored','Monitor')"/>
+        <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
+            tableName,'getStatus','Status','cmp')"/>
+    </tr>
+
+    <tal:block tal:repeat="srv batch">
+    <tr tal:define="odd repeat/srv/odd"
+        tal:attributes="class python:test(odd, 'odd', 'even')">
+
+        <td class="tablevalues" tal:content="
+            structure python:srv.getDeviceLink('deviceOsDetail')"/>
+
+        <td class="tablevalues">
+            <a tal:attributes="href srv/getPrimaryUrlPath"
+                tal:content="srv/id"/>
+        </td>
+        <td class="tablevalues" tal:content="srv/monitored"/>
+        <td tal:define="status srv/getStatus"
+            tal:attributes="class python:here.getStatusCssClass(status)"
+            tal:content="python:here.convertStatus(status)"/>
+    </tr>
+    </tal:block>
+
+    <tr>
+        <td colspan="4" class="tableheader" align="center">
+        <form metal:use-macro="here/zenTableNavigation/macros/navtool"></form>
+        </td>
+    </tr>
+</tal:block>
+</tal:block>
+</tal:block>
+
+</tal:block>
+</tal:block>

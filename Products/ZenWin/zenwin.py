@@ -42,6 +42,7 @@ from Products.ZenCollector.tasks import SimpleTaskFactory,\
                                         SimpleTaskSplitter,\
                                         TaskStates
 from Products.ZenEvents.ZenEventClasses import Error, Clear, Status_WinService, Status_Wmi
+from Products.ZenModel.WinServiceClass import STARTMODE_AUTO
 from Products.ZenUtils.observable import ObservableMixin
 from Products.ZenWin.WMIClient import WMIClient
 from Products.ZenWin.Watcher import Watcher
@@ -237,7 +238,7 @@ class ZenWinTask(ObservableMixin):
                  'eventGroup': 'StatusTest'}
         self._eventService.sendEvent(event)
             
-    def _handleResult(self, name, state):
+    def _handleResult(self, name, state, startMode=None):
         """
         Handle a result from the wmi query. Results from both the initial WMI
         client query and the watcher's notification query are processed by
@@ -248,15 +249,24 @@ class ZenWinTask(ObservableMixin):
         summary = "Windows service '%s' is %s" % (name, state)
         logLevel = logging.DEBUG
         if name in self._taskConfig.services:
-            eventCount, stoppedSeverity = self._taskConfig.services[name]
+            running, stoppedSeverity, oldStartMode, monitoredStartModes = \
+                self._taskConfig.services[name]
+
             if state == self.RUNNING:
+                running = True
+            else:
+                running = False
+
+            if running or startMode not in monitoredStartModes:
                 self._sendWinServiceEvent(name, summary, Clear)
                 logLevel = logging.INFO
-                self._taskConfig.services[name] = (0, stoppedSeverity)
-            elif state == self.STOPPED:
+            elif not running and startMode in monitoredStartModes:
                 self._sendWinServiceEvent(name, summary, stoppedSeverity)
                 logLevel = logging.CRITICAL
-                self._taskConfig.services[name] = (eventCount + 1, stoppedSeverity)
+
+            self._taskConfig.services[name] = (
+                running, stoppedSeverity, startMode, monitoredStartModes)
+
         log.log(logLevel, '%s on %s', summary, self._devId)
         
     def _collectSuccessful(self, results):
@@ -276,14 +286,16 @@ class ZenWinTask(ObservableMixin):
                     if result.name in services:
                         # remove service from local copy
                         del services[result.name]
-                    self._handleResult(result.name, result.state)
+                    self._handleResult(
+                        result.name, result.state, result.startmode)
         # send events for the services that did not show up in results
-        for name, (eventCount, stoppedSeverity) in services.items():
-            if eventCount == 0:
+        for name, data in services.items():
+            running, failSeverity, startMode, monitoredStartModes = data
+            if running:
                 state = self.RUNNING
             else:
                 state = self.STOPPED
-            self._handleResult(name, state)
+            self._handleResult(name, state, startMode)
         if results:
             # schedule another immediate collection so that we'll keep eating
             # events as long as they are ready for us; using callLater ensures
@@ -329,7 +341,7 @@ class ZenWinTask(ObservableMixin):
     def _connectWatcher(self, result):
         self.state = ZenWinTask.STATE_WMIC_PROCESS
         for service in result['query']:
-            self._handleResult(service.name, service.state)
+            self._handleResult(service.name, service.state, service.startmode)
         self._wmic.close()
         self._wmic = None
         self.state = ZenWinTask.STATE_WATCHER_CONNECT
@@ -340,7 +352,7 @@ class ZenWinTask(ObservableMixin):
         
     def _initialQuery(self, result):
         self.state = ZenWinTask.STATE_WMIC_QUERY
-        wql = "SELECT Name, State FROM Win32_Service"
+        wql = "SELECT Name, State, StartMode FROM Win32_Service"
         d = self._wmic.query({'query': wql})
         d.addCallback(self._connectWatcher)
         return d

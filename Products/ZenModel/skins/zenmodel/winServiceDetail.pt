@@ -59,15 +59,26 @@
       </td>
     </tr>
     <tr>
-        <td class="tableheader">Monitor</td>
-        <td class="tablevalues" tal:condition="manager">
-            <select class="tablevalues" name="monitor:boolean">
-            <option tal:repeat="e python:(True,False)" tal:content="e"
-                tal:attributes="value e; selected python:e==here.monitored()"/>
-            </select>
-        </td>        
-        <td class="tablevalues" tal:condition="not:manager"
-            tal:content="here/monitored"/>
+      <td class="tableheader">Description</td>
+      <td class="tablevalues" tal:condition="not:editable"
+                              tal:content="here/caption"/>
+      <td class="tablevalues" tal:condition="editable">
+          <input tal:condition="editable"
+                 tal:attributes="class string:tablevalues;
+                                 name string:description;
+                                 value here/caption">
+      </td>
+      <td class="tableheader">Monitor</td>
+      <td class="tablevalues" tal:condition="manager">
+          <select class="tablevalues" name="monitor:boolean">
+          <option tal:repeat="e python:(True,False)" tal:content="e"
+              tal:attributes="value e; selected python:e==here.monitored()"/>
+          </select>
+      </td>        
+      <td class="tablevalues" tal:condition="not:manager"
+          tal:content="here/monitored"/>
+    </tr>
+    <tr>
         <td class="tableheader">Fail Severity</td>
         <td class="tablevalues" tal:condition="manager">
             <select class="tablevalues" name="severity:int">
@@ -79,17 +90,25 @@
         </td>
         <td class="tablevalues" tal:condition="not:manager"
             tal:content="here/getFailSeverityString"/>
+
+        <td class="tableheader" rowspan="4">Monitored Start Modes</td>
+        <td class="tablevalues" tal:condition="manager" rowspan="4">
+            <select class="tablevalues" name="monitoredStartModes:list"
+                multiple tal:define="curstates here/getMonitoredStartModes">
+                <option tal:attributes="selected python:'Auto' in curstates"
+                    value="Auto">Auto</option>
+                <option tal:attributes="selected python:'Manual' in curstates"
+                    value="Manual">Manual</option>
+                <option tal:attributes="selected python:'Disabled' in curstates"
+                    value="Disabled">Disabled</option>
+                <option tal:attributes="selected python:'Not Installed' in curstates"
+                    value="Not Installed">Not Installed</option>
+            </select>
+        </td>
+        <td class="tablevalues"  rowspan="4" tal:condition="not:manager"
+            tal:content="python:','.join(here.getMonitoredStartModes)"/>
     </tr>
     <tr>
-        <td class="tableheader">Description</td>
-        <td class="tablevalues" tal:condition="not:editable"
-                                tal:content="here/caption"/>
-        <td class="tablevalues" tal:condition="editable">
-            <input tal:condition="editable"
-                   tal:attributes="class string:tablevalues;
-                                   name string:description;
-                                   value here/caption">
-        </td>
         <td class="tableheader">Service Type</td>
         <td class="tablevalues" tal:condition="not:editable"
                                 tal:content="here/serviceType"/>
@@ -110,6 +129,8 @@
                                    name string:startMode;
                                    value here/startMode">
         </td>
+    </tr>
+    <tr>
         <td class="tableheader">Start Name</td>
         <td class="tablevalues" tal:condition="not:editable"
                                 tal:content="here/startName"/>
