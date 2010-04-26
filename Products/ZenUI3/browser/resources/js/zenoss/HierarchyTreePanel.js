@@ -245,14 +245,15 @@ Zenoss.HierarchyTreePanel = Ext.extend(Ext.tree.TreePanel, {
         }
     },
     getNodePathById: function(nodeId) {
+        var part;
         var parts = nodeId.split('.'),
             curpath = parts.slice(0, 3).join('.');
 
         parts = parts.slice(3);
 
         var path = [this.root.getPath()];
-        while ( p = parts.shift() ) {
-            curpath = [curpath, p].join('.');
+        while ( part = parts.shift() ) {
+            curpath = [curpath, part].join('.');
             path.push(curpath);
         }
 

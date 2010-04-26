@@ -12,7 +12,7 @@
 #
 ###########################################################################
 */
-Ext.onReady( function() {
+(function(){
 
     var zs = Ext.ns('Zenoss.Service.Nav');
 
@@ -83,7 +83,8 @@ Ext.onReady( function() {
         id: 'navGrid',
         flex: 3,
         stateId: 'servicesNavGridState',
-        enableDragDrop: false,
+        enableDrag: true,
+        ddGroup: 'serviceDragDrop',
         stateful: true,
         border: false,
         autoExpandColumn: 'name',
@@ -98,4 +99,5 @@ Ext.onReady( function() {
             }
         })
     };
-});
+
+})();

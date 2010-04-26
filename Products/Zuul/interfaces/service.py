@@ -23,6 +23,13 @@ class IServiceFacade(IFacade):
         Get the Services tree by a serviceTreeNodeId.
         """
 
+    def moveServices(sourceUids, targetUid):
+        """
+        Move ServiceOrganizers and ServiceClasses uniquely identified by the
+        sourceUids parameter to the ServiceOrganizer uniquely identified by
+        the targetUid parameter.
+        """
+
 class IServiceNode(ITreeNode):
     """
     Marker interface for providing a Service node in a Service tree.

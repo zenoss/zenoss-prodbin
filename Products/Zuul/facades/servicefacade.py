@@ -23,7 +23,7 @@ from Products.Zuul.decorators import info
 from Products.Zuul.interfaces import ITreeFacade, IServiceFacade
 from Products.Zuul.interfaces import IInfo, ICatalogTool
 from Products.Zuul.infos.service import ServiceOrganizerNode
-from Acquisition import aq_base
+from Acquisition import aq_base, aq_parent
 
 log = logging.getLogger('zen.ServiceFacade')
 
@@ -103,3 +103,21 @@ class ServiceFacade(TreeFacade):
                                      criteria)
         return {'brains': imap(unbrain, brains), 'total':brains.total,
                 'hash':brains.hash_}
+
+    def moveServices(self, sourceUids, targetUid):
+        moveTarget = targetUid.replace('/zport/dmd/Services/', '')
+        
+        for sourceUid in sourceUids:
+            sourceObj = self._getObject(sourceUid)
+            
+            if isinstance(sourceObj, ServiceOrganizer):
+                sourceParent = aq_parent(sourceObj)
+                sourceParent.moveOrganizer( moveTarget, (sourceObj.id,) )
+                
+            elif isinstance(sourceObj, ServiceClass):
+                sourceParent = sourceObj.serviceorganizer()
+                sourceParent.moveServiceClasses( moveTarget, (sourceObj.id,) )
+                
+            else:
+                args = (sourceUid, sourceObj.__class__.__name__)
+                raise Exception('Cannot move service %s of type %s' % args)

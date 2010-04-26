@@ -12,7 +12,7 @@
 #
 ###########################################################################
 */
-Ext.onReady( function() {
+(function(){
 
     var zs = Ext.ns('Zenoss.Service.Nav');
 
@@ -59,15 +59,56 @@ Ext.onReady( function() {
         }
     });
 
-    zs.treeConfig = {
-        id: 'navTree',
-        flex: 1,
-        searchField: false,
-        directFn: Zenoss.remote.ServiceRouter.getOrganizerTree,
-        router: Zenoss.remote.ServiceRouter,
-        selModel: selModel,
-        selectRootOnLoad: true,
-        enableDD: false
-    };
+    var ServiceTreePanel = Ext.extend(Zenoss.HierarchyTreePanel, {
+        constructor: function(config) {
+            Ext.applyIf(config, {
+                id: 'navTree',
+                flex: 1,
+                searchField: false,
+                directFn: Zenoss.remote.ServiceRouter.getOrganizerTree,
+                router: Zenoss.remote.ServiceRouter,
+                selModel: selModel,
+                selectRootOnLoad: true,
+                enableDD: true,
+                ddGroup: 'serviceDragDrop',
+                ddAppendOnly: true,
+                listeners: {
+                    beforenodedrop: {
+                        fn: this.onBeforeNodeDrop,
+                        scope: this
+                    }
+                }
+            });
+            ServiceTreePanel.superclass.constructor.call(this, config);
+        },
+        onBeforeNodeDrop: function(dropEvent) {
+            var sourceUids, targetUid;
+            if (dropEvent.dropNode) {
+                // moving a ServiceOrganizer into another ServiceOrganizer
+                sourceUids = [dropEvent.dropNode.attributes.uid];
+            } else {
+                // moving a ServiceClass from grid into a ServiceOrganizer
+                var data = Ext.pluck(dropEvent.data.selections, 'data');
+                sourceUids = Ext.pluck(data, 'uid');
+            }
+            dropEvent.target.expand();
+            targetUid = dropEvent.target.attributes.uid;
+            Zenoss.remote.ServiceRouter.moveServices(
+                {
+                    sourceUids: sourceUids, 
+                    targetUid: targetUid
+                },
+                this.moveServicesCallback, 
+                this);
+        },
+        moveServicesCallback: function() {
+            this.getRootNode().reload(this.rootNodeReloadCallback, this);
+        },
+        rootNodeReloadCallback: function() {
+            this.getRootNode().select();
+            this.getRootNode().expand(true);
+        }
+    });
+    Ext.reg('servicetreepanel', ServiceTreePanel);
 
-});
+})();

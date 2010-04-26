@@ -12,7 +12,7 @@
 #
 ###########################################################################
 */
-Ext.onReady( function() {
+(function(){
 
     var zs = Ext.ns('Zenoss.Service.Nav');
 
@@ -124,7 +124,7 @@ Ext.onReady( function() {
     */
 
     zs.initNav = function(initialContext) {
-        var columnModel, store, gridConfig, treeConfig, fb, navTree, navGrid, p;
+        var columnModel, store, gridConfig, fb, navTree, navGrid, p;
 
         store = new Ext.ux.grid.livegrid.Store(zs.storeConfig);
         columnModel = new Ext.grid.ColumnModel(zs.columnModelConfig);
@@ -144,14 +144,14 @@ Ext.onReady( function() {
 
         navGrid.getSelectionModel().on('rowselect', zs.gridSelectHandler);
 
-        treeConfig = Ext.applyIf(zs.treeConfig, {
+
+        navTree = Ext.create({
+            xtype: 'servicetreepanel',
             root: {
                 id: initialContext.split('/').pop(),
                 uid: initialContext
             }
         });
-
-        navTree = new Zenoss.HierarchyTreePanel(treeConfig);
 
         p = new Ext.Panel({layout: {type:'vbox', align: 'stretch'}});
         p.add(navTree);
@@ -163,4 +163,4 @@ Ext.onReady( function() {
         fb.on('buttonClick', zs.dispatcher);
         Zenoss.footerHelper('Service', fb);
     };
-});
+})();
