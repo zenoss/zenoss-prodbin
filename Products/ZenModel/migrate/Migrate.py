@@ -15,10 +15,7 @@ __doc__='''Migrate
 
 A small framework for data migration.
 
-$Id$
 '''
-
-__version__ = "$Revision$"[11:-2]
 
 import Globals
 import transaction
@@ -29,9 +26,9 @@ from Products.ZenUtils.Utils import zenPath
 from Products.ZenModel.ZVersion import VERSION
 
 import sys
-import logging
 from textwrap import wrap
-log = logging.getLogger("zen.migrate")
+import logging
+log = logging.getLogger('zen.migrate')
 
 allSteps = []
 
@@ -124,6 +121,19 @@ class Migration(ZenScriptBase):
         self.allSteps.sort(lambda x,y: cmp(x.name(), y.name()))
         self.allSteps.sort()
 
+        # Log output to a file
+        # self.setupLogging() does *NOT* do what we want.
+        logFilename = zenPath('log', 'zenmigrate.log')
+        import logging.handlers
+        maxBytes = self.options.maxLogKiloBytes * 1024
+        backupCount = self.options.maxBackupLogs
+        handler = logging.handlers.RotatingFileHandler(
+              logFilename, maxBytes=maxBytes, backupCount=backupCount)
+        handler.setFormatter(logging.Formatter(
+                "%(asctime)s %(levelname)s %(name)s: %(message)s",
+                "%Y-%m-%d %H:%M:%S"))
+        log.addHandler(handler)
+
     def message(self, msg):
         log.info(msg)
 
@@ -215,6 +225,13 @@ class Migration(ZenScriptBase):
                         return True
                 return False
             steps = [s for s in self.allSteps if matches(s.name())]
+            if not steps:
+                log.error("No steps found that matched '%s'",
+                           ', '.join(self.options.steps))
+                log.error("Aborting")
+                sys.exit(1)
+            log.info("Will execute these steps: %s",
+                     ', '.join(self.options.steps))
 
         else:
             currentDbVers = self._currentVersion()
@@ -280,13 +297,14 @@ class Migration(ZenScriptBase):
             self.migrate()
             self.success()
         except Exception, ex:
-            self.error("Recovering")
+            log.warning("Recovering")
             self.recover()
             raise
 
 
     def error(self, msg):
-        print >>sys.stderr, msg
+        "Deprecated"
+        log.error(msg)
 
 
     def backup(self):
@@ -305,10 +323,10 @@ class Migration(ZenScriptBase):
 
     def success(self):
         if self.options.commit:
-            self.message('committing')
+            self.message('Committing changes')
             transaction.commit()
         else:
-            self.message('rolling back changes')
+            self.message('Rolling back changes')
             self.recover()
         self.message("Migration successful")
 
@@ -317,9 +335,9 @@ class Migration(ZenScriptBase):
         ZenScriptBase.parseOptions(self)
         if self.args:
             if self.args == ['run']:
-                sys.stderr.write('Use of "run" is depracated.\n')
+                sys.stderr.write('Use of "run" is deprecated.\n')
             elif self.args == ['help']:
-                sys.stderr.write('Use of "help" is depracated,'
+                sys.stderr.write('Use of "help" is deprecated,'
                                     'use --help instead.\n')
                 self.parser.print_help()
                 self.parser.exit()
@@ -335,7 +353,7 @@ class Migration(ZenScriptBase):
                                dest="steps",
                                help="Run the specified step.  This option "
                                     'can be specified multiple times to run '
-                                    'more than on step.')
+                                    'more than one step.')
         # NB: The flag for this setting indicates a false value for the setting.
         self.parser.add_option('--dont-commit',
                                dest="commit",
