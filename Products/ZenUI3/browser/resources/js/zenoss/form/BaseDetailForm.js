@@ -37,6 +37,7 @@ ZF.BaseDetailForm = Ext.extend(Ext.form.FormPanel, {
                     formBind: true,
                     text: _t('Save'),
                     cls: 'detailform-submit-button',
+                    disabled: Zenoss.Security.doesNotHavePermission('Manage DMD'),
                     handler: function(btn, e) {
                         var values, form = me.getForm();
 
