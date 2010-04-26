@@ -130,7 +130,8 @@ class GraphReport(ZenModelRM):
                             if callable(newId):
                                 newId = newId()
 
-                            ge = GraphReportElement(self.prepId(newId))
+                            newId = GetId(devId, cPath, graphId)
+                            ge = GraphReportElement(newId)
                             ge.deviceId = dev.titleOrId()
                             ge.componentPath = cPath
                             ge.graphId = graphId
