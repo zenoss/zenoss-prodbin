@@ -277,7 +277,7 @@ class MaintenanceWindow(ZenModelRM):
             return self.adjustDST(self.started + self.duration * 60 - 1)
         # ok, so maybe "now" is a little late: start anything that
         # should have been started by now
-        return self.next(now - self.duration * 60 + 1)
+        return self.next(self.padDST(now) - self.duration * 60 + 1)
 
 
     security.declareProtected(ZEN_VIEW, 'breadCrumbs')
@@ -538,6 +538,22 @@ class MaintenanceWindow(ZenModelRM):
         if startTime.tm_isdst:
             return result + 60*60
         return result - 60*60
+
+
+    def padDST(self, now):
+        """
+        When incrementing or decrementing timestamps within a DST switch we
+        need to add or subtract the DST offset accordingly.
+        """
+        startTime = time.localtime(self.start)
+        nowTime = time.localtime(now)
+        if startTime.tm_isdst == nowTime.tm_isdst:
+            return now
+        elif startTime.tm_isdst:
+            return now - 60 * 60
+        else:
+            return now + 60 * 60
+
 
 DeviceMaintenanceWindow = MaintenanceWindow
 OrganizerMaintenanceWindow = MaintenanceWindow
