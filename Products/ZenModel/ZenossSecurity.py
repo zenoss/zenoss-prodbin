@@ -60,8 +60,8 @@ ZEN_MANAGE_DEVICE='Manage Device'
 ZEN_MANAGE_DEVICE_STATUS='Manage Device Status'
 
 # Run Commands
-#ZEN_COLLECTOR_PLUGINS_EDIT='Collector Plugins Edit'
-#ZEN_COLLECTOR_PLUGINS_VIEW='Collector Plugins View'
+#ZEN_COLLECTOR_PLUGINS_EDIT='Modeler Plugins Edit'
+#ZEN_COLLECTOR_PLUGINS_VIEW='Modeler Plugins View'
 ZEN_ZPROPERTIES_EDIT='zProperties Edit'
 ZEN_ZPROPERTIES_VIEW='zProperties View'
 ZEN_EDIT_LOCAL_TEMPLATES='Edit Local Templates'

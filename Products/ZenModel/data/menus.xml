@@ -2540,7 +2540,7 @@ True
 </object>
 <object id='collectorPlugins' module='Products.ZenModel.ZenMenuItem' class='ZenMenuItem'>
 <property type="text" id="description" mode="w" >
-Collector Plugins
+Modeler Plugins
 </property>
 <property type="text" id="action" mode="w" >
 zSortableProperty?prop=zCollectorPlugins
