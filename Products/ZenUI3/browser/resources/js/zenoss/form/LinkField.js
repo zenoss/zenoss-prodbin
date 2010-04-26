@@ -20,7 +20,11 @@ Ext.ns('Zenoss.form');
 
 Zenoss.form.LinkField = Ext.extend(Ext.form.DisplayField, {
      constructor: function(config) {
-         config.value = Zenoss.render.link(config.value);
+         try {
+             config.value = Zenoss.render.link(config.value);
+         } catch(e) {
+             // If parsing as link fails, just return the value
+         }
          Zenoss.form.LinkField.superclass.constructor.apply(this, arguments);
      }
  });

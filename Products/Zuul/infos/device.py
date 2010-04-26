@@ -145,6 +145,14 @@ class DeviceInfo(InfoBase):
         return info(self._object.location())
 
     @property
+    def uptime(self):
+        return self._object.uptimeStr()
+
+    @property
+    def firstSeen(self):
+        return self._object.getCreatedTimeString()
+
+    @property
     def lastChanged(self):
         return self._object.getLastChangeString()
 
@@ -191,7 +199,7 @@ class DeviceInfo(InfoBase):
     @property
     def hwManufacturer(self):
         if self.hwModel is not None:
-            return info(self.hwModel._object.manufacturer)
+            return info(self.hwModel._object.manufacturer())
 
     @property
     def hwModel(self):
@@ -201,7 +209,7 @@ class DeviceInfo(InfoBase):
     @property
     def osManufacturer(self):
         if self.osModel is not None:
-            return info(self.osModel._object.manufacturer)
+            return info(self.osModel._object.manufacturer())
 
     @property
     def osModel(self):

@@ -144,7 +144,8 @@ ul.x-tab-strip-bottom{
     float:none !important;
 }
 .x-form-text, textarea.x-form-field{
-    border:1px solid #9ab;
+    border:1px solid #999;
+    background: white url();
 }
 .x-trigger-wrap-focus .x-form-trigger{
     border-bottom:1px solid #4a7192;
@@ -242,6 +243,11 @@ ul.x-tab-strip-bottom{
 .x-btn button{
     color:#fff;
 }
+
+.x-item-disabled button.x-btn-text {
+    color: #eee !important;
+}
+
 .x-btn-over button{
     color:#fff;
 }

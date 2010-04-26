@@ -452,8 +452,7 @@ var hwosInformation = {
 
 var overview = {
     xtype: 'deviceoverview',
-    id: 'device_overview',
-    setContext: Ext.emptyFn
+    id: 'device_overview'
 };
 
 var event_console = Ext.create({

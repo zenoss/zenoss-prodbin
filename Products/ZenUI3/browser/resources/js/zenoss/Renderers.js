@@ -119,7 +119,7 @@ Ext.apply(Zenoss.render, {
             }
         }
         if (url && name) {
-            return '<a href="'+url+'">'+name+'</a>';
+            return '<a class="z-entity" href="'+url+'">'+name+'</a>';
         }
     },
 

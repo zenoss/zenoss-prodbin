@@ -665,3 +665,37 @@ span.status-down {
 .componenttbar .xtb-sep {
     height: 18px;
 }
+
+.device-overview-form {
+    padding: 13px;
+}
+
+.device-overview-form .display-field {
+    color: #999;
+}
+
+.device-overview-form-wrapper .x-panel-tl,
+.device-overview-form-wrapper .x-panel-bl,
+.device-overview-form-wrapper .x-panel-ml,
+.device-overview-form-wrapper .x-panel-tr,
+.device-overview-form-wrapper .x-panel-br,
+.device-overview-form-wrapper .x-panel-mr,
+.device-overview-form-wrapper .x-panel-tc,
+.device-overview-form-wrapper .x-panel-bc,
+.device-overview-form-wrapper .x-panel-mc {
+    background: #fafafa url();
+    border: medium none;
+}
+
+.device-overview-form-wrapper {
+    border: 1px solid #b7b7b7;
+}
+
+.device-overview-form a.z-entity:link,
+.device-overview-form a.z-entity:hover,
+.device-overview-form a.z-entity:visited {
+    color: #7595c1;
+    text-decoration: none;
+    padding-right: 15px;
+    background: transparent url(/++resource++zenui/img/entity-link-arrow.png) center right no-repeat;
+}
