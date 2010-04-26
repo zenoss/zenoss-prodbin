@@ -8,7 +8,7 @@ var YZP = YAHOO.zenoss.portlet;
 YZP.Registry = [];
 function register_portlet(klass, name) {
     if (klass in YZP) {
-        constructor = YZP[klass];
+        var constructor = YZP[klass];
         YZP.Registry.push([constructor, name]);
     }
 }
