@@ -1210,8 +1210,7 @@ Zenoss.footerHelper(
                 resetTemplatesDialog.setContext(uid);
     },
             onGetMenuItems: function(uid) {
-                console.log('onGetMenuItems');
-        var menuItems = [];
+                var menuItems = [];
                 if (uid.match('^/zport/dmd/Devices')) {
             menuItems.push([{
                 xtype: 'menuitem',
