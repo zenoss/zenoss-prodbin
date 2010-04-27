@@ -68,7 +68,8 @@ Zenoss.DeviceDetailBar = Ext.extend(Zenoss.LargeToolbar, {
                 style: 'margin-right:4px;'
             },{
                 xtype: 'devnameitem',
-                ref: 'deviditem'
+                ref: 'deviditem',
+                style: 'margin-right: 8px;'
             },'-',{
                 ref: 'eventsitem',
                 label: _t('Events')
@@ -84,17 +85,19 @@ Zenoss.DeviceDetailBar = Ext.extend(Zenoss.LargeToolbar, {
     },
     setContext: function(uid) {
         this.directFn({uid:uid}, function(result){
+            var ZR = Zenoss.render,
+                data = result.data;
             Zenoss.env.icon = this.iconitem;
             this.iconitem.getEl().setStyle({
-                'background-image' : 'url(' + result.data.icon + ')'
+                'background-image' : 'url(' + data.icon + ')'
             });
-            this.deviditem.devname.setText(result.data.name);
-            this.deviditem.ipAddress.setText(Zenoss.render.ipAddress(result.data.ipAddress));
-            this.deviditem.devclass.setText(result.data.deviceClass.path);
-            this.eventsitem.setText(Zenoss.render.events(result.data.events, 4));
+            this.deviditem.devname.setText(data.name);
+            this.deviditem.ipAddress.setText(ZR.ipAddress(data.ipAddress));
+            this.deviditem.devclass.setText(ZR.DeviceClass(data.deviceClass.uid));
+            this.eventsitem.setText(ZR.events(data.events, 4));
             this.statusitem.setText(
-                Zenoss.render.pingStatus(result.data.status));
-            this.prodstateitem.setText(result.data.productionState);
+                ZR.pingStatus(data.status));
+            this.prodstateitem.setText(data.productionState);
         }, this);
     }
 });

@@ -36,6 +36,10 @@ Ext.ns('Zenoss');
  * @constructor
  */
 
+var nodeTemplate = new Ext.Template('<span style="font-weight:bold">{text}</span>',
+                                    '<span class="node-extra">({count})</span>');
+nodeTemplate.compile();
+
 Zenoss.HierarchyTreeNodeUI = Ext.extend(Ext.tree.TreeNodeUI, {
     buildNodeText: function(node) {
         // everything should be a span or a text node or it won't be picked up
@@ -46,12 +50,7 @@ Zenoss.HierarchyTreeNodeUI = Ext.extend(Ext.tree.TreeNodeUI, {
         var textOverride = node.getDepth() === 1 ? node.getOwnerTree().getRootNode().attributes.text : null;
 
         if ( Ext.isObject(t) ) {
-            b.push('<span style="font-weight: bold;">' + (textOverride || t.text) + '</span>');
-
-            if (t.count!==undefined) {
-                b.push('<span class="node-extra">(' + t.count);
-                b.push((t.description || 'instances') + ')</span>');
-            }
+            b.push(nodeTemplate.apply(t));
         }
         else {
             b.push(textOverride || t.text);

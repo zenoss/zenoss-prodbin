@@ -55,52 +55,6 @@ REMOTE.getCollectors({}, function(d){
     Zenoss.env.COLLECTORS = collectors;
 });
 
-Zenoss.devices.PriorityCombo = Ext.extend(Ext.form.ComboBox, {
-    constructor: function(config) {
-        config = Ext.apply(config || {}, {
-            fieldLabel: _t('Priority'),
-            mode: 'local',
-            store: new Ext.data.ArrayStore({
-                data: Zenoss.env.PRIORITIES,
-                fields: ['name', 'value']
-            }),
-            valueField: 'value',
-            displayField: 'name',
-            forceSelection: true,
-            editable: false,
-            autoSelect: true,
-            triggerAction: 'all'
-        });
-        Zenoss.devices.PriorityCombo.superclass.constructor.call(this, config);
-    }
-});
-
-Ext.reg('PriorityCombo', Zenoss.devices.PriorityCombo);
-
-
-Zenoss.devices.ProductionStateCombo = Ext.extend(Ext.form.ComboBox, {
-    constructor: function(config) {
-        config = Ext.apply(config || {}, {
-            fieldLabel: _t('Production State'),
-            mode: 'local',
-            store: new Ext.data.ArrayStore({
-                data: Zenoss.env.PRODUCTION_STATES,
-                fields: ['name', 'value']
-            }),
-            valueField: 'value',
-            displayField: 'name',
-            forceSelection: true,
-            editable: false,
-            autoSelect: true,
-            triggerAction: 'all'
-        });
-        Zenoss.devices.ProductionStateCombo.superclass.constructor.call(this, config);
-
-    }
-});
-
-Ext.reg('ProductionStateCombo', Zenoss.devices.ProductionStateCombo);
-
 var resetCombo = function(combo, manufacturer) {
     combo.clearValue();
     combo.getStore().setBaseParam('manufacturer', manufacturer);
@@ -108,26 +62,10 @@ var resetCombo = function(combo, manufacturer) {
     //combo.doQuery(combo.allQuery, true);
 };
 
-var manufacturerDataStore = new Ext.data.DirectStore({
-        id: 'manufacturersStore',
-        root: 'manufacturers',
-        totalProperty: 'totalCount',
-        fields: ['name'],
-        directFn: REMOTE.getManufacturerNames
-    });
-
 var hwManufacturers = {
-    xtype: 'combo',
+    xtype: 'manufacturercombo',
     name: 'hwManufacturer',
     fieldLabel: _t('HW Manufacturer'),
-    store: manufacturerDataStore,
-    triggerAction: 'all',
-    selectOnFocus: true,
-    valueField: 'name',
-    displayField: 'name',
-    forceSelection: true,
-    editable: false,
-    width: 160,
     listeners: {'select': function(combo, record, index){
         var productCombo = Ext.getCmp('hwproductcombo');
         resetCombo(productCombo, record.data.name);
@@ -135,40 +73,18 @@ var hwManufacturers = {
 };
 
 var hwProduct = {
-    xtype: 'combo',
+    xtype: 'productcombo',
     minListWidth: 250,
     resizable: true,
     name: 'hwProductName',
     fieldLabel: _t('HW Product'),
-    id: 'hwproductcombo',
-    store: new Ext.data.DirectStore({
-        id: 'hwProductsStore',
-        root: 'productNames',
-        totalProperty: 'totalCount',
-        fields: ['name'],
-        directFn: REMOTE.getHardwareProductNames
-    }),
-    triggerAction: 'all',
-    selectOnFocus: true,
-    valueField: 'name',
-    displayField: 'name',
-    forceSelection: true,
-    editable: false,
-    width: 160
+    id: 'hwproductcombo'
 };
 
 var osManufacturers = {
-    xtype: 'combo',
+    xtype: 'manufacturercombo',
     name: 'osManufacturer',
     fieldLabel: _t('OS Manufacturer'),
-    store: manufacturerDataStore,
-    triggerAction: 'all',
-    selectOnFocus: true,
-    valueField: 'name',
-    displayField: 'name',
-    forceSelection: true,
-    editable: false,
-    width: 160,
     listeners: {'select': function(combo, record, index){
         var productCombo = Ext.getCmp('osproductcombo');
         resetCombo(productCombo, record.data.name);
@@ -176,26 +92,12 @@ var osManufacturers = {
 };
 
 var osProduct = {
-    xtype: 'combo',
+    xtype: 'productcombo',
     minListWidth: 250,
     resizable: true,
     name: 'osProductName',
     id: 'osproductcombo',
-    fieldLabel: _t('OS Product'),
-    store: new Ext.data.DirectStore({
-        id: 'osProductsStore',
-        root: 'productNames',
-        totalProperty: 'totalCount',
-        fields: ['name'],
-        directFn: REMOTE.getOSProductNames
-    }),
-    triggerAction: 'all',
-    selectOnFocus: true,
-    valueField: 'name',
-    displayField: 'name',
-    forceSelection: true,
-    editable: false,
-    width: 160
+    fieldLabel: _t('OS Product')
 };
 
 var deviceClassCombo = {
@@ -680,10 +582,12 @@ Ext.apply(Zenoss.devices, {
                                 allowBlank: false,
                                 listeners: {
                                     'afterrender': function(component) {
-                                        var index = component.store.find('value', '1000');
-                                        if (index >= 0) {
-                                            component.setValue('1000');
-                                        }
+                                        component.store.load({callback:function(){
+                                            var index = component.store.find('value', '1000');
+                                            if (index>=0) {
+                                                component.setValue('1000');
+                                            }
+                                        }});
                                     }
                                 }
                             }, {
@@ -694,10 +598,12 @@ Ext.apply(Zenoss.devices, {
                                 allowBlank: false,
                                 listeners: {
                                     'afterrender': function(component) {
-                                        var index = component.store.find('value', '3');
-                                        if (index >= 0) {
-                                            component.setValue('3');
-                                        }
+                                        component.store.load({callback:function(){
+                                            var index = component.store.find('value', '3');
+                                            if (index>=0) {
+                                                component.setValue('3');
+                                            }
+                                        }});
                                     }
                                 }
                             }]

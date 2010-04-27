@@ -91,6 +91,9 @@
             "text": "TemplateTreePanel.js",
             "path": "resources/js/zenoss/"
         }, {
+            "text": "DeviceFields.js",
+            "path": "resources/js/zenoss/form/"
+        }, {
             "text": "datasource.js",
             "path": "resources/js/zenoss/monitoringTemplates/"
         }, {

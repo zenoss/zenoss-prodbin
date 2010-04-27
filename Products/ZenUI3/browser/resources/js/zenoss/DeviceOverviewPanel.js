@@ -2,6 +2,126 @@
 
     var REMOTE = Zenoss.remote.DeviceRouter;
 
+    var resetCombo = function(combo, manufacturer) {
+        combo.clearValue();
+        combo.getStore().setBaseParam('manufacturer', manufacturer);
+        delete combo.lastQuery;
+        //combo.doQuery(combo.allQuery, true);
+    };
+
+    var ClickToEditField = Ext.extend(Zenoss.form.LinkField, {
+        constructor: function(config) {
+            var editLink = '<a href="javascript:" class="manu-edit-link">'+
+                           _t('Edit') + '</a>';
+            config.fieldLabel += editLink;
+            config.listeners = Ext.apply(config.listeners||{}, {
+                render: function(p) {
+                    p.editlink = p.label.select('a.manu-edit-link');
+                    p.editlink.on('click', function(){
+                        p.fireEvent('labelclick', p);
+                    }, p);
+                }
+            });
+            ClickToEditField.superclass.constructor.call(this, config);
+            this.addEvents('labelclick');
+        }
+    });
+    Ext.reg('clicktoedit', ClickToEditField);
+
+    function editManuInfo (vals, uid) {
+
+        function name(uid) {
+            if (!Ext.isString(uid)) {
+                uid = uid.uid;
+            }
+            return uid.split('/').reverse()[0];
+        }
+
+        var FIELDWIDTH = 300;
+
+        var hwManufacturers = {
+            xtype: 'manufacturercombo',
+            width: FIELDWIDTH,
+            name: 'hwManufacturer',
+            fieldLabel: _t('HW Manufacturer'),
+            value: name(vals.hwManufacturer),
+            listeners: {'select': function(combo, record, index){
+                var productCombo = Ext.getCmp('hwproductcombo');
+                resetCombo(productCombo, record.data.name);
+            }}
+        };
+
+        var hwProduct = {
+            xtype: 'productcombo',
+            width: FIELDWIDTH,
+            value: name(vals.hwModel),
+            resizable: true,
+            name: 'hwProductName',
+            fieldLabel: _t('HW Product'),
+            id: 'hwproductcombo'
+        };
+
+        var osManufacturers = {
+            xtype: 'manufacturercombo',
+            width: FIELDWIDTH,
+            name: 'osManufacturer',
+            value: name(vals.osManufacturer),
+            fieldLabel: _t('OS Manufacturer'),
+            listeners: {'select': function(combo, record, index){
+                var productCombo = Ext.getCmp('osproductcombo');
+                resetCombo(productCombo, record.data.name);
+            }}
+        };
+
+        var osProduct = {
+            xtype: 'productcombo',
+            width: FIELDWIDTH,
+            value: name(vals.osModel),
+            resizable: true,
+            name: 'osProductName',
+            id: 'osproductcombo',
+            fieldLabel: _t('OS Product')
+        };
+
+        var win = new Zenoss.FormDialog({
+            autoHeight: true,
+            width: 390,
+            title: _t('Edit Manufacturer Info'),
+            items: [{
+                xtype: 'container',
+                layout: 'form',
+                autoHeight: true,
+                style: 'padding-bottom:5px;margin-bottom:5px;border-bottom:1px solid #555;',
+                items: [hwManufacturers, hwProduct]
+            },{
+                xtype: 'container',
+                layout: 'form',
+                autoHeight: true,
+                items: [osManufacturers, osProduct]
+            }],
+            buttons: [{
+                text: _t('Save'),
+                ref: '../savebtn',
+                handler: function(btn){
+                    var vals = btn.refOwner.editForm.getForm().getFieldValues();
+                    Ext.apply(vals, {uid:uid});
+                    REMOTE.setProductInfo(vals, function(r) {
+                        Ext.getCmp('device_overview').load();
+                        win.destroy();
+                    });
+                }
+            },{
+                text: _t('Cancel'),
+                handler: function(btn){
+                    win.destroy();
+                }
+            }]
+        });
+        win.show();
+        win.doLayout();
+    };
+
+
     function isField(c) {
         return !!c.setValue && !!c.getValue && !!c.markInvalid && !!c.clearInvalid;
     }
@@ -128,22 +248,34 @@
                         },{
                             fieldLabel: _t('Locking'),
                             name: 'locking'
+                        },{
+                            xtype: 'displayfield',
+                            name: 'memory',
+                            fieldLabel: _t('Memory/Swap')
                         }]
                     },{
                         defaultType: 'displayfield',
                         items: [{
+                            xtype: 'ProductionStateCombo',
+                            fieldLabel: _t('Production State'),
+                            name: 'productionState'
+                        },{
+                            xtype: 'PriorityCombo',
                             fieldLabel: _t('Priority'),
                             name: 'priority'
                         },{
                             fieldLabel: _t('Collector'),
                             name: 'collector'
                         },{
+                            xtype: 'linkfield',
                             fieldLabel: _t('Systems'),
                             name: 'systems'
                         },{
+                            xtype: 'linkfield',
                             fieldLabel: _t('Groups'),
                             name: 'groups'
                         },{
+                            xtype: 'linkfield',
                             fieldLabel: _t('Location'),
                             name: 'location'
                         }]
@@ -160,21 +292,45 @@
                             fieldLabel: _t('Rack Slot'),
                             name: 'rackSlot'
                         },{
-                            xtype: 'displayfield',
+                            xtype: 'clicktoedit',
+                            listeners: {
+                                labelclick: function(p){
+                                    editManuInfo(this.getValues(), this.contextUid);
+                                },
+                                scope: this
+                            },
                             name: 'hwManufacturer',
                             fieldLabel: _t('Hardware Manufacturer')
                         },{
-                            xtype: 'displayfield',
+                            xtype: 'clicktoedit',
+                            listeners: {
+                                labelclick: function(p){
+                                    editManuInfo(this.getValues());
+                                },
+                                scope: this
+                            },
                             name: 'hwModel',
                             fieldLabel: _t('Hardware Model')
                         },{
-                            xtype: 'displayfield',
+                            xtype: 'clicktoedit',
+                            listeners: {
+                                labelclick: function(p){
+                                    editManuInfo(this.getValues());
+                                },
+                                scope: this
+                            },
                             name: 'osManufacturer',
                             fieldLabel: _t('OS Manufacturer')
                         },{
-                            xtype: 'displayfield',
+                            xtype: 'clicktoedit',
+                            listeners: {
+                                labelclick: function(p){
+                                    editManuInfo(this.getValues());
+                                },
+                                scope: this
+                            },
                             name: 'osModel',
-                            fieldLabel: _t('OS Model')
+                            fieldLabel: _t('OS Model') 
                         }]
                     }]
                 },{
@@ -187,7 +343,6 @@
                     },
                     items: [{
                         defaultType: 'displayfield',
-                        autoHeight: true,
                         flex: 2,
                         items: [{
                             fieldLabel: _t('Links'),
@@ -201,6 +356,7 @@
                     },{
                         defaultType: 'displayfield',
                         flex: 1,
+                        minHeight: 230,
                         items: [{
                             fieldLabel: _t('SNMP SysName'),
                             name: 'snmpSysName'
@@ -235,6 +391,7 @@
         },
         baseParams: {},
         setContext: function(uid) {
+            this.contextUid = uid;
             this.baseParams.uid = uid;
             this.load();
         },
@@ -253,41 +410,24 @@
             var o = Ext.apply({keys:this.getFieldNames()}, this.baseParams);
             this.api.load(o, function(result) {
                 var systems = [], groups = [], D = result.data;
-                D.location = D.location ? Zenoss.render.link(D.location.uid) : 'None';
-                Ext.each(D.systems, function(i){
-                    systems.push(Zenoss.render.link(i.uid));
-                });
-                D.systems = systems.join('<br/>') || 'None';
-                Ext.each(D.groups, function(i){
-                    groups.push(Zenoss.render.link(i.uid));
-                });
-                D.groups = groups.join('<br/>') || 'None';
                 if (D.locking) {
                     D.locking = Zenoss.render.locking(D.locking);
                 }
-                if (D.hwManufacturer) {
-                    D.hwManufacturer = Zenoss.render.link(D.hwManufacturer.uid);
+                if (D.memory) {
+                    D.memory = D.memory.ram + '/' + D.memory.swap;
                 } else {
-                    D.hwManufacturer = 'None';
-                }
-                if (D.hwModel) {
-                    D.hwModel = Zenoss.render.link(D.hwModel.uid);
-                } else {
-                    D.hwModel = 'None';
-                }
-                if (D.osManufacturer) {
-                    D.osManufacturer = Zenoss.render.link(D.osManufacturer.uid);
-                } else {
-                    D.osManufacturer = 'None';
-                }
-                if (D.osModel) {
-                    D.osModel = Zenoss.render.link(D.osModel.uid);
-                } else {
-                    D.osModel = 'None';
+                    D.memory = 'Unknown/Unknown';
                 }
                 this.setValues(D);
                 this.doLayout();
             }, this);
+        },
+        getValues: function() {
+            var o = {};
+            Ext.each(this.forms, function(form){
+                Ext.apply(o, form.getForm().getFieldValues());
+            }, this);
+            return o;
         },
         setValues: function(d) {
             Ext.each(this.forms, function(form){

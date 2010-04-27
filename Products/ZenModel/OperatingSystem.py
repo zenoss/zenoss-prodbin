@@ -89,7 +89,7 @@ class OperatingSystem(Software):
 
 
     def totalSwapString(self):
-        return self.totalSwap and convToUnits(self.totalSwap) or 'unknown'
+        return self.totalSwap and convToUnits(self.totalSwap) or 'Unknown'
 
     def traceRoute(self, target, ippath):
         """

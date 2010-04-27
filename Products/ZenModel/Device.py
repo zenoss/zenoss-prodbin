@@ -293,11 +293,6 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable,
                 , 'action'        : 'deviceOsDetail'
                 , 'permissions'   : (ZEN_VIEW, )
                 },
-                { 'id'            : 'hwdetail'
-                , 'name'          : 'Hardware'
-                , 'action'        : 'deviceHardwareDetail'
-                , 'permissions'   : (ZEN_VIEW, )
-                },
                 { 'id'            : 'swdetail'
                 , 'name'          : 'Software'
                 , 'action'        : 'deviceSoftwareDetail'

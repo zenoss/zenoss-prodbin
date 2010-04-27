@@ -18,6 +18,14 @@ Ext.onReady(function(){
 var REMOTE = Zenoss.remote.DeviceRouter,
     UID = Zenoss.env.device_uid;
 
+REMOTE.getProductionStates({}, function(d){
+    Zenoss.env.PRODUCTION_STATES = d;
+});
+                
+REMOTE.getPriorities({}, function(d){
+    Zenoss.env.PRIORITIES = d;
+});
+
 var ZEvActions = Zenoss.events.EventPanelToolbarActions;
 
 function setEventButtonsDisplayed(bool) {

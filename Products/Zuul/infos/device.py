@@ -216,6 +216,13 @@ class DeviceInfo(InfoBase):
         if self._object.os:
             return info(self._object.os.productClass())
 
+    @property
+    def memory(self):
+        return {
+            'ram': self._object.hw.totalMemoryString(),
+            'swap': self._object.os.totalSwapString()
+        }
+
     def getRackSlot(self):
         return self._object.rackSlot
 

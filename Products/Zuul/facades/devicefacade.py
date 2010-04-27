@@ -182,6 +182,14 @@ class DeviceFacade(TreeFacade):
         org = self._getObject(uid)
         return org.getUserCommands()
 
+    def setProductInfo(self, uid, hwManufacturer=None, hwProductName=None,
+                       osManufacturer=None, osProductName=None):
+        dev = self._getObject(uid)
+        dev.manage_editDevice(hwManufacturer=hwManufacturer,
+                              hwProductName=hwProductName,
+                              osManufacturer=osManufacturer,
+                              osProductName=osProductName)
+
     def setLockState(self, uids, deletion=False, updates=False,
                      sendEvent=False):
         devs = imap(self._getObject, uids)

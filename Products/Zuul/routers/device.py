@@ -88,6 +88,12 @@ class DeviceRouter(TreeRouter):
         Zuul.unmarshal(data, process)
         return DirectResponse()
 
+    @require('Manage Device')
+    def setProductInfo(self, uid, **data):
+        facade = self._getFacade()
+        facade.setProductInfo(uid, **data)
+        return DirectResponse()
+
     def getDevices(self, uid=None, start=0, params=None, limit=50, sort='name',
                    dir='ASC'):
         facade = self._getFacade()
@@ -115,7 +121,7 @@ class DeviceRouter(TreeRouter):
             tree = self.getTree(target)
             return DirectResponse.succeed(tree=tree)
 
-    @require('Change Device')
+    @require('Manage Device')
     def lockDevices(self, uids, hashcheck, ranges=(), updates=False,
                     deletion=False, sendEvent=False, uid=None, params=None,
                     sort='name', dir='ASC'):
@@ -139,7 +145,7 @@ class DeviceRouter(TreeRouter):
             log.exception(e)
             return DirectResponse.fail('Failed to lock devices.')
 
-    @require('Change Device')
+    @require('Admin Device')
     def resetIp(self, uids, hashcheck, uid=None, ranges=(), params=None,
                 sort='name', dir='ASC'):
         if ranges:
@@ -154,7 +160,7 @@ class DeviceRouter(TreeRouter):
             log.exception(e)
             return DirectResponse.fail('Failed to reset IP addresses.')
 
-    @require('Change Device')
+    @require('Manage Device')
     def resetCommunity(self, uids, hashcheck, uid=None, ranges=(), params=None,
                       sort='name', dir='ASC'):
         if ranges:
@@ -183,7 +189,7 @@ class DeviceRouter(TreeRouter):
             log.exception(e)
             return DirectResponse.fail('Failed to change production state.')
 
-    @require('Change Device')
+    @require('Manage Device')
     def setPriority(self, uids, priority, hashcheck, uid=None, ranges=(),
                     params=None, sort='name', dir='ASC'):
         if ranges:
@@ -200,7 +206,7 @@ class DeviceRouter(TreeRouter):
             log.exception(e)
             return DirectResponse.fail('Failed to change priority.')
 
-    @require('Change Device')
+    @require('Admin Device')
     def setCollector(self, uids, collector, hashcheck, uid=None, ranges=(),
                      params=None, sort='name', dir='ASC'):
         if ranges:
@@ -322,11 +328,15 @@ class DeviceRouter(TreeRouter):
         cmds = facade.getUserCommands(uid)
         return Zuul.marshal(cmds, ['id', 'description'])
 
-    def getProductionStates(self):
-        return [s.split(':') for s in self.context.dmd.prodStateConversions]
+    def getProductionStates(self, **kwargs):
+        return DirectResponse(data=[dict(name=s.split(':')[0],
+                                         value=s.split(':')[1]) for s in
+                                    self.context.dmd.prodStateConversions])
 
-    def getPriorities(self):
-        return [s.split(':') for s in self.context.dmd.priorityConversions]
+    def getPriorities(self, **kwargs):
+        return DirectResponse(data=[dict(name=s.split(':')[0],
+                                         value=s.split(':')[1]) for s in
+                                    self.context.dmd.priorityConversions])
 
     def getCollectors(self):
         return self.context.dmd.Monitors.getPerformanceMonitorNames()

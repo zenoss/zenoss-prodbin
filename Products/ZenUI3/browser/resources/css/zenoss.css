@@ -445,6 +445,11 @@ table.eventrainbow td.clear { background-color: #62a700; }
     margin-top: 3px;
 }
 
+.devdetailbar .devdetailitem {
+    margin-left: 8px;
+    margin-right: 8px;
+}
+
 .devdetailbar .devdetailitem div {
     text-align: center;
     font-weight: normal;
@@ -670,6 +675,7 @@ span.status-down {
     padding: 13px;
 }
 
+.device-overview-form .x-form-display-field,
 .device-overview-form .display-field {
     color: #999;
 }
@@ -699,3 +705,25 @@ span.status-down {
     padding-right: 15px;
     background: transparent url(/++resource++zenui/img/entity-link-arrow.png) center right no-repeat;
 }
+
+.devdetail-devclass a.z-entity:link,
+.devdetail-devclass a.z-entity:hover,
+.devdetail-devclass a.z-entity:visited {
+    color: #383838;
+    text-decoration: none;
+}
+.devdetail-devclass a.z-entity:hover {
+    text-decoration: underline;
+}
+
+.manu-edit-link {
+    text-decoration: underline;
+    color: #678cbc;
+    font-size: 11px;
+    padding-left: 5px;
+    cursor: pointer;
+    text-transform: lowercase;
+    position: relative;
+    bottom: 1px;
+}
+

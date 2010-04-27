@@ -68,13 +68,15 @@ Ext.apply(Zenoss.render, {
             from.push('deletion');
         }
         if (!Ext.isEmpty(from)) {
-            var l = 'Locked from ' + from.join(' and ');
+            var l = _t('Locked from ') + from.join(_t(' and '));
             if (obj.events) {
-                l += "<br/>Send event when blocked";
+                l += "<br/>"+_t("Send event when blocked");
             } else {
-                l += "<br/>Do not send event when blocked";
+                l += "<br/>"+_t("Do not send event when blocked");
             }
             return l;
+        } else {
+            return _t('Unlocked');
         }
     },
 
@@ -126,6 +128,13 @@ Ext.apply(Zenoss.render, {
     default_uid_renderer: function(uid, name) {
         // Just straight up links to the object.
         var parts;
+        if (!uid) {
+            return uid;
+        }
+        if (Ext.isObject(uid)) {
+            uid = uid.uid;
+            name = uid.name;
+        }
         if (!name) {
             parts = uid.split('/');
             name = parts[parts.length-1];

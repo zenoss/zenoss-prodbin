@@ -60,7 +60,7 @@ class DeviceHW(Hardware):
         return screen()
 
     def totalMemoryString(self):
-        return self.totalMemory and convToUnits(self.totalMemory) or 'unknown' 
+        return self.totalMemory and convToUnits(self.totalMemory) or 'Unknown' 
 
     def device(self):
         """Return our Device object for DeviceResultInt.

@@ -44,6 +44,7 @@
     text-transform: uppercase;
     font-family: Helvetica,sans-serif;
     font-size: 9.5pt;
+    padding: 0 5px;
 }
 
 #primarynav li.nav-item-inactive a { color: #fff; }
@@ -78,6 +79,7 @@
 #secondarynav li {
     float: left;
     list-style-type: none;
+    padding: 0 5px;
 }
 
 #secondarynav li a {
