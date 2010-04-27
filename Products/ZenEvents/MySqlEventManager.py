@@ -97,8 +97,7 @@ class MySqlEventManager(MySqlSendEventMixin, EventManagerBase):
             where = paramWhereAnd(where, "%s >= %%s", 'prodState', prodState)
         select += where
         select += " group by severity desc"
-        #print select
-        sevsum = self.checkCache(select)
+        sevsum = self.checkCache(select+str(paramValues))
         if sevsum: return sevsum
         zem = self.dmd.ZenEventManager
         conn = zem.connect()
@@ -122,7 +121,7 @@ class MySqlEventManager(MySqlSendEventMixin, EventManagerBase):
                 sevsum.append([css, ackcount, int(count)])
         finally: zem.close(conn)
         
-        self.addToCache(select, sevsum)
+        self.addToCache(select+str(paramValues), sevsum)
         self.cleanCache()
         return sevsum
 
