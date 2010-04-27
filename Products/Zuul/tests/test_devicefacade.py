@@ -23,7 +23,7 @@ class DeviceFacadeTest(ZuulFacadeTestCase):
     def setUp(self):
         super(DeviceFacadeTest, self).setUp()
         self.facade = Zuul.getFacade('device', self.dmd)
-                
+
     def test_interfaces(self):
         verifyClass(IDeviceInfo, DeviceInfo)
 
@@ -32,9 +32,11 @@ class DeviceFacadeTest(ZuulFacadeTestCase):
         still have a relationship to it in the catalog
         """
         # Create Organizer
-        organizer_path = self.facade.addOrganizer("/zport/dmd/Groups", 'testOrganizer')
+        organizer = self.facade.addOrganizer("/zport/dmd/Groups", 'testOrganizer')
+        organizer_path = organizer.uid
+        
         catalog = self.dmd.zport.global_catalog
-                
+
         # Add some devices to it (use createInstance to create a device)
         devices = self.dmd.Devices
         test_device = devices.createInstance('testDevice')
@@ -45,19 +47,19 @@ class DeviceFacadeTest(ZuulFacadeTestCase):
         self.assertEqual(len(organizer.getDevices()), 1, "make sure we saved our device")
         deviceBrains = catalog(path='/'.join(organizer.getPhysicalPath()))
         self.assertTrue(len(deviceBrains) > 1, " At this point we should have the organizer and the device")
-        
+
         # Delete the Organizer
         self.facade.deleteNode(organizer_path)
-        
+
         # Get the devices directly from the path
         deviceBrains = catalog(path='/'.join(organizer.getPhysicalPath()))
         self.assertEqual(len(deviceBrains), 0, " we should not have any devices at this point")
-                
-        
+
+
 def test_suite():
     return unittest.TestSuite((unittest.makeSuite(DeviceFacadeTest),))
 
 
 if __name__=="__main__":
     unittest.main(defaultTest='test_suite')
-    
+

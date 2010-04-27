@@ -38,7 +38,7 @@ def manage_addServiceOrganizer(context, id, REQUEST = None):
     context._setObject(id, sc)
     sc = context._getOb(id)
     if REQUEST is not None:
-        REQUEST['RESPONSE'].redirect(context.absolute_url() + '/manage_main') 
+        REQUEST['RESPONSE'].redirect(context.absolute_url() + '/manage_main')
 
 addServiceOrganizer = DTMLFile('dtml/addServiceOrganizer',globals())
 
@@ -48,18 +48,18 @@ class ServiceOrganizer(Organizer, Commandable, ZenPackable):
     default_catalog = "serviceSearch"
 
     description = ""
-    
+
     _properties = (
         {'id':'description', 'type':'text', 'mode':'w'},
-        ) 
+        )
 
     _relations = Organizer._relations + ZenPackable._relations + (
         ("serviceclasses", ToManyCont(ToOne,"Products.ZenModel.ServiceClass","serviceorganizer")),
         ('userCommands', ToManyCont(ToOne, 'Products.ZenModel.UserCommand', 'commandable')),
         )
-        
-    factory_type_information = ( 
-        { 
+
+    factory_type_information = (
+        {
             'id'             : 'ServiceOrganizer',
             'meta_type'      : 'ServiceOrganizer',
             'icon'           : 'ServiceOrganizer.gif',
@@ -67,7 +67,7 @@ class ServiceOrganizer(Organizer, Commandable, ZenPackable):
             'factory'        : 'manage_addServiceOrganizer',
             'immediate_view' : 'serviceOrganizerOverview',
             'actions'        :
-            ( 
+            (
                 { 'id'            : 'classes'
                 , 'name'          : 'Classes'
                 , 'action'        : 'serviceOrganizerOverview'
@@ -92,22 +92,22 @@ class ServiceOrganizer(Organizer, Commandable, ZenPackable):
             )
          },
         )
-    
+
     security = ClassSecurityInfo()
-    
-    def __init__(self, id=None):
+
+    def __init__(self, id=None, description=None):
         if not id: id = self.dmdRootName
-        super(ServiceOrganizer, self).__init__(id)
+        super(ServiceOrganizer, self).__init__(id, description)
         if self.id == self.dmdRootName:
             self.createCatalog()
             self.buildZProperties()
-   
+
 
     def find(self, query):
         """Find a service class by is serviceKey.
         """
         cat = getattr(self, self.default_catalog, None)
-        if not cat: return 
+        if not cat: return
         brains = cat({'serviceKeys': query})
         if not brains: return None
         for brain in brains:
@@ -127,8 +127,8 @@ class ServiceOrganizer(Organizer, Commandable, ZenPackable):
         for subgroup in self.children():
             for proc in subgroup.getSubClassesGen():
                 yield proc
-                
-                
+
+
     def getSubClassesSorted(self):
         '''Return list of the process classes sorted by sequence.
         '''
@@ -140,7 +140,7 @@ class ServiceOrganizer(Organizer, Commandable, ZenPackable):
         procs.sort(cmpProc)
         return procs
 
-    
+
     def countClasses(self):
         """Count all serviceclasses with in a ServiceOrganizer.
         """
@@ -157,11 +157,11 @@ class ServiceOrganizer(Organizer, Commandable, ZenPackable):
         svcs = self.getDmdRoot(self.dmdRootName)
         svcorg = svcs.createOrganizer(path)
         svccl = svcorg.find(name)
-        if not svccl: 
+        if not svccl:
             svccl = factory(name, (name,),description=description, **kwargs)
             svcorg.serviceclasses._setObject(svccl.id, svccl)
             svccl = svcorg.serviceclasses._getOb(svccl.id)
-        return svccl 
+        return svccl
 
     def saveZenProperties(self, pfilt=iszprop, REQUEST=None):
         """
@@ -171,13 +171,13 @@ class ServiceOrganizer(Organizer, Commandable, ZenPackable):
         #get value to see if it changes
         monitor = self.zMonitor
         result = super(ServiceOrganizer, self).saveZenProperties( pfilt, REQUEST)
-        
+
         if monitor != self.zMonitor :
             #indexes need to be updated so that the updated config will be sent
             #can be slow if done at /Services would be nice to run asynch
             self._indexServiceClassInstances()
         return result
-    
+
     def deleteZenProperty(self, propname=None, REQUEST=None):
         """
         Delete device tree properties from the this DeviceClass object.
@@ -189,7 +189,7 @@ class ServiceOrganizer(Organizer, Commandable, ZenPackable):
             #indexes need to be updated so that the updated config will be sent
             #can be slow if done at /Services would be nice to run asynch
             self._indexServiceClassInstances()
-        
+
         return result
 
     def _indexServiceClassInstances(self):
@@ -201,7 +201,7 @@ class ServiceOrganizer(Organizer, Commandable, ZenPackable):
             for org in organizers:
                 for sc in org.serviceclasses():
                     sc._indexInstances()
-        
+
             oldOrgs = organizers
             organizers = []
             for org in oldOrgs:
@@ -233,11 +233,11 @@ class ServiceOrganizer(Organizer, Commandable, ZenPackable):
         else:
             return self.serviceclasses._getOb(id)
 
-    
+
     def unmonitorServiceClasses(self, ids=None, REQUEST=None):
         return self.monitorServiceClasses(ids, False, REQUEST)
 
-   
+
     def monitorServiceClasses(self, ids=None, monitor=True, REQUEST=None):
         """Remove ServiceClasses from an EventClass.
         """
@@ -286,14 +286,14 @@ class ServiceOrganizer(Organizer, Commandable, ZenPackable):
         zcat = self._getOb(self.default_catalog)
         zcat.manage_catalogClear()
         for srv in self.getSubOrganizers():
-            for inst in srv.serviceclasses(): 
+            for inst in srv.serviceclasses():
                 inst.index_object()
 
 
     def createCatalog(self):
         """Create a catalog for ServiceClass searching"""
         from Products.ZCatalog.ZCatalog import manage_addZCatalog
-        manage_addZCatalog(self, self.default_catalog, 
+        manage_addZCatalog(self, self.default_catalog,
                             self.default_catalog)
         zcat = self._getOb(self.default_catalog)
         zcat.addIndex('serviceKeys', 'KeywordIndex')

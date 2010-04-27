@@ -25,8 +25,8 @@ var nodeType = 'Organizer';
 var deleteDeviceMessage = _t('Warning! This will delete all of the devices in this group!');
 var ZEvActions = Zenoss.events.EventPanelToolbarActions;
 
-                
-// These are the fields that will display on the "Add a Node form" 
+
+// These are the fields that will display on the "Add a Node form"
 var addNodeDialogItems = [{
         // since they can only have organizer, we will just use a hidden field
         xtype: 'hidden',
@@ -37,18 +37,18 @@ var addNodeDialogItems = [{
         id: 'idTextfield',
         width: 270,
         fieldLabel: _t('ID'),
-        allowBlank: false        
+        allowBlank: false
     }
 ];
-    
+
 REMOTE.getProductionStates({}, function(d){
     Zenoss.env.PRODUCTION_STATES = d;
 });
-                
+
 REMOTE.getPriorities({}, function(d){
     Zenoss.env.PRIORITIES = d;
 });
-                
+
 REMOTE.getCollectors({}, function(d){
     var collectors = [];
     Ext.each(d, function(r){collectors.push([r]);});
@@ -95,7 +95,7 @@ Zenoss.devices.ProductionStateCombo = Ext.extend(Ext.form.ComboBox, {
             triggerAction: 'all'
         });
         Zenoss.devices.ProductionStateCombo.superclass.constructor.call(this, config);
-        
+
     }
 });
 
@@ -202,7 +202,7 @@ var deviceClassCombo = {
     xtype: 'combo',
     minListWidth: 250,
     resizable: true,
-    width: 160,    
+    width: 160,
     name: 'deviceClass',
     fieldLabel: _t('Device Class'),
     id: 'add-device_class',
@@ -234,13 +234,13 @@ var deviceClassCombo = {
                 path = path.replace(/^Devices/,'');
                 component.setValue(path);
             }
-            
+
         }
     }
 };
 
 function setDeviceButtonsDisabled(bool){
-    // must also check permissions before enable/disable the 
+    // must also check permissions before enable/disable the
     // 'deleteDevices' button
     Zenoss.devices.deleteDevices.setDisabled(bool ||
         Zenoss.Security.doesNotHavePermission('Delete Device'));
@@ -259,8 +259,8 @@ var treesm = new Ext.tree.DefaultSelectionModel({
             // set the footer_bar to bubble to new node
             var footer = Ext.getCmp('footer_bar');
             footer.bubbleTargetId = newnode.id;
-            
-            // Even after changing the ID I was not able to have 
+
+            // Even after changing the ID I was not able to have
             // each tree have their own instance of a deleteNodeDialog, so I
             // modified it to allow you to change the message
             var dialog = Ext.getCmp('deleteNodeDialog');
@@ -269,9 +269,9 @@ var treesm = new Ext.tree.DefaultSelectionModel({
             }else{
                 dialog.setDeleteMessage(null);
             }
-            
+
             var uid = newnode.attributes.uid;
-            Zenoss.util.setContext(uid, 'detail_panel', 'organizer_events', 
+            Zenoss.util.setContext(uid, 'detail_panel', 'organizer_events',
                                    'commands-menu', 'context-configure-menu');
             setDeviceButtonsDisabled(true);
             var card = Ext.getCmp('master_panel').getComponent(0);
@@ -570,7 +570,7 @@ Ext.apply(Zenoss.devices, {
                         var opts = Ext.apply(gridOptions(), {
                             action: Ext.getCmp('removetype').getValue().value
                         });
-                        Zenoss.remote.DeviceRouter.removeDevices(opts, 
+                        Zenoss.remote.DeviceRouter.removeDevices(opts,
                              function(response) {
                                  var devtree = Ext.getCmp('devices'),
                                  loctree = Ext.getCmp('locs'),
@@ -833,7 +833,7 @@ Ext.apply(Zenoss.devices, {
         permission: 'Manage DMD',
         handler: function(btn, e){
             Ext.util.Cookies.set('newui', 'yes');
-            
+
             window.open('/zport/dmd/easyAddDevice', "multi_add",
             "menubar=0,toolbar=0,resizable=0,height=580, width=800,location=0");
         }
@@ -882,7 +882,7 @@ function initializeTreeDrop(g) {
         getTargetFromEvent: function(e) {
             return e.getTarget('.x-tree-node-el');
         },
-        onNodeOver : function(target, dd, e, data){ 
+        onNodeOver : function(target, dd, e, data){
             // Return the class that makes the check mark
             return Ext.dd.DropZone.prototype.dropAllowed;
         },
@@ -962,8 +962,8 @@ var devtree = {
     selModel: treesm,
     router: REMOTE,
     addNodeDialogItems: addNodeDialogItems,
-    listeners: { 
-        render: initializeTreeDrop, 
+    listeners: {
+        render: initializeTreeDrop,
         filter: function(e) {
             Ext.getCmp('locs').filterTree(e);
             Ext.getCmp('groups').filterTree(e);
@@ -1033,10 +1033,10 @@ Zenoss.InfraDetailNav = Ext.extend(Zenoss.DetailNavPanel, {
             menuIds: ['More','Add','TopLevel','Manage'],
             listeners:{
                 nodeloaded: function( detailNavPanel, navConfig){
-                    var excluded = { 
-                        'device_grid': true, 
-                        'events_grid': true 
-                    }; 
+                    var excluded = {
+                        'device_grid': true,
+                        'events_grid': true
+                    };
                     if (!excluded[navConfig.id]){
                         var config = detailNavPanel.panelConfigMap[navConfig.id];
                         Ext.applyIf(config, {refreshOnContextChange: true});
@@ -1051,7 +1051,7 @@ Zenoss.InfraDetailNav = Ext.extend(Zenoss.DetailNavPanel, {
             }
         });
         Zenoss.InfraDetailNav.superclass.constructor.call(this, config);
-    },    
+    },
     selectByToken: function(nodeId) {
         var selNode = function () {
             var sel = this.getSelectionModel().getSelectedNode();
@@ -1089,7 +1089,7 @@ Zenoss.InfraDetailNav = Ext.extend(Zenoss.DetailNavPanel, {
             listeners: {
                 render: updateNavTextWithCount
             }
-        },{ 
+        },{
             id: 'events_grid',
             text: _t('Events')
         }];
@@ -1108,7 +1108,7 @@ Zenoss.InfraDetailNav = Ext.extend(Zenoss.DetailNavPanel, {
         if ( node ) {
             var detailPanel = Ext.getCmp('detail_panel');
             var contentPanel = Ext.getCmp(node.attributes.id);
-            contentPanel.setContext(this.contextId); 
+            contentPanel.setContext(this.contextId);
             detailPanel.layout.setActiveItem(node.attributes.id);
             var orgnode = treesm.getSelectedNode();
             Ext.History.add([orgnode.getOwnerTree().id, orgnode.id, node.id].join(Ext.History.DELIMITER));
@@ -1181,7 +1181,7 @@ Ext.getCmp('center_panel').add({
         items: [{
             xtype: 'DeviceGridPanel',
             ddGroup: 'devicegriddd',
-            id: 'device_grid', 
+            id: 'device_grid',
             enableDrag: true,
             sm: new Zenoss.ExtraHooksSelectionModel({
                 listeners: {
@@ -1201,12 +1201,12 @@ Ext.getCmp('center_panel').add({
                     disabled: Zenoss.Security.doesNotHavePermission("Manage DMD"),
                     menu:{
                         items: [
-                        Zenoss.devices.addDevice, 
+                        Zenoss.devices.addDevice,
                         Zenoss.devices.addMultiDevicePopUP
                         ]
                     }
                 }, Zenoss.devices.deleteDevices,
-                '->', 
+                '->',
                 {
                     id: 'actions-menu',
                     text: _t('Actions'),
@@ -1263,78 +1263,100 @@ Ext.getCmp('center_panel').add({
     }]
 });
 
-/*
- *
- *   footer_panel - the add/remove tree node buttons at the bottom
- *
- */ 
-var footerPanel = Ext.getCmp('footer_panel');
-footerPanel.removeAll();
-
-
-footerPanel.add({
-    xtype: 'TreeFooterBar',
-    id: 'footer_bar',
-    bubbleTargetId: treeId
-});
-
-var footerBar = Ext.getCmp('footer_bar');
-
-Ext.create({
+var bindTemplatesDialog = Ext.create({
     xtype: 'bindtemplatesdialog',
     id: 'bindTemplatesDialog'
 });
 
-Ext.create({
+var resetTemplatesDialog = Ext.create({
     xtype: 'resettemplatesdialog',
     id: 'resetTemplatesDialog'
 });
 
-footerBar.add({
+var footerBar = Ext.getCmp('footer_bar');
+Zenoss.footerHelper(
+    _t('Tree Node'),
+    footerBar,
+    {
+        hasOrganizers: false,
+        addToZenPack: true,
+        customAddDialog: {
+            title: _t('Add Tree Node'),
+            items: [
+                {
+                    xtype: 'textfield',
+                    id: 'id',
+                    fieldLabel: _t('Name'),
+                    allowBlank: false
+                },
+                {
+                    xtype: 'textfield',
+                    id: 'description',
+                    fieldLabel: _t('Description'),
+                    allowBlank: true
+                }
+            ]
+        },
+        buttonContextMenu: {
     xtype: 'ContextConfigureMenu',
-    onSetContext: function(uid){
-        Ext.getCmp('bindTemplatesDialog').setContext(uid);
-        Ext.getCmp('resetTemplatesDialog').setContext(uid);
+            onSetContext: function(uid) {
+                bindTemplatesDialog.setContext(uid);
+                resetTemplatesDialog.setContext(uid);
     },
-    onGetMenuItems: function(uid){
+            onGetMenuItems: function(uid) {
+                console.log('onGetMenuItems');
         var menuItems = [];
-        if ( uid.match('^/zport/dmd/Devices') ) {
+                if (uid.match('^/zport/dmd/Devices')) {
             menuItems.push([{
                 xtype: 'menuitem',
                 text: _t('Bind Templates'),
-                handler: function(){
-                    Ext.getCmp('bindTemplatesDialog').show();
+                        handler: function() {
+                            bindTemplatesDialog.show();
                 }
-            },{
+                    },
+                    {
                 xtype: 'menuitem',
                 text: _t('Reset Bindings'),
                 handler: function(){
-                    Ext.getCmp('resetTemplatesDialog').show();
+                            resetTemplatesDialog.show();
                 }
             }]);
         }
         menuItems.push({
             xtype: 'menuitem',
             text: _t('Clear Geocode Cache'),
-            handler: function(){
-                REMOTE.clearGeocodeCache({},
-                    function(data) {
-                        var msg = (data.success) ?
+                    handler: function() {
+                        REMOTE.clearGeocodeCache({}, function(data) {
+                            msg = (data.success) ?
                             _t('Geocode Cache has been cleared') :
                             _t('Something happened while trying to clear Geocode Cache');
-                        var dialog = new Zenoss.dialog.SimpleMessageDialog( {
+                            var dialog = new Zenoss.dialog.SimpleMessageDialog({
                              message: msg,
-                             buttons: [{
+                                buttons: [
+                                    {
                                 xtype: 'DialogButton',
                                 text: _t('OK')
-                            }]
+                                    }
+                                ]
                         });
                         dialog.show();
+                        });
                     }
-                );
-            }
         });
+
         return menuItems;
+    }
+        }
+    }
+);
+
+footerBar.on('buttonClick', function(actionName, id, values) {
+    var tree = treesm.getSelectedNode().getOwnerTree();
+    switch (actionName) {
+        // All items on this are organizers, no classes
+        case 'addClass': tree.addNode('organizer', values.id, values.description); break;
+        case 'addOrganizer': throw new Ext.Error('Not Implemented'); break;
+        case 'delete': tree.deleteSelectedNode(); break;
     }
 });
 

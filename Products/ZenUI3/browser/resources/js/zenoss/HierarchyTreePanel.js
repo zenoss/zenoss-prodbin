@@ -135,7 +135,7 @@ Zenoss.HierarchyTreePanel = Ext.extend(Ext.tree.TreePanel, {
             iconCls: 'severity-icon-small clear',
             uiProvider: 'hierarchy'
         };
-        
+
         Zenoss.HierarchyTreePanel.superclass.constructor.apply(this,
             arguments);
         this.initTreeDialogs(this, config);
@@ -237,7 +237,7 @@ Zenoss.HierarchyTreePanel = Ext.extend(Ext.tree.TreePanel, {
                 this.selectPath(path);
             }
         }.createDelegate(this);
-        
+
         if (!this.root.loaded) {
             this.getRootNode().on('load', selNode, this);
         } else {
@@ -258,7 +258,7 @@ Zenoss.HierarchyTreePanel = Ext.extend(Ext.tree.TreePanel, {
         }
 
         return path.join(this.pathSeparator);
-    },    
+    },
     afterRender: function() {
         Zenoss.HierarchyTreePanel.superclass.afterRender.call(this);
 
@@ -312,7 +312,7 @@ Zenoss.HierarchyTreePanel = Ext.extend(Ext.tree.TreePanel, {
             return true;
         }, this);
     },
-    addNode: function(type, id) {
+    addNode: function(type, id, description) {
         var selectedNode = this.getSelectionModel().getSelectedNode();
         var parentNode;
         if (selectedNode.leaf) {
@@ -322,6 +322,11 @@ Zenoss.HierarchyTreePanel = Ext.extend(Ext.tree.TreePanel, {
         }
         var contextUid = parentNode.attributes.uid;
         var params = {type: type, contextUid: contextUid, id: id};
+
+        if ( description ) {
+            params.description = description;
+        }
+        
         var tree = this;
         function callback(provider, response) {
             var result = response.result;

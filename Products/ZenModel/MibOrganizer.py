@@ -44,7 +44,7 @@ def _oid2name(mibSearch, oid, exactMatch=True, strip=False):
     unit test.
     """
     oid = oid.strip('.')
-    
+
     if exactMatch:
         brains = mibSearch(oid=oid)
         if len(brains) > 0:
@@ -71,7 +71,7 @@ class MibOrganizer(Organizer, ZenPackable):
     meta_type = "MibOrganizer"
     dmdRootName = "Mibs"
     default_catalog = 'mibSearch'
-    
+
     security = ClassSecurityInfo()
 
     _relations = Organizer._relations + ZenPackable._relations + (
@@ -100,20 +100,20 @@ class MibOrganizer(Organizer, ZenPackable):
         )
 
 
-    def __init__(self, id=None):
+    def __init__(self, id=None, description=None):
         if not id: id = self.dmdRootName
-        super(MibOrganizer, self).__init__(id)
+        super(MibOrganizer, self).__init__(id, description)
         if self.id == self.dmdRootName:
             self.createCatalog()
-  
+
 
     def oid2name(self, oid, exactMatch=True, strip=False):
         """Return a name for an oid.
         """
         return _oid2name(self.getDmdRoot("Mibs").mibSearch, oid,
             exactMatch, strip)
-        
- 
+
+
     def name2oid(self, name):
         """Return an oid based on a name in the form MIB::name.
         """
@@ -132,7 +132,7 @@ class MibOrganizer(Organizer, ZenPackable):
 
 
     def createMibModule(self, name, path="/"):
-        """Create a MibModule 
+        """Create a MibModule
         """
         mibs = self.getDmdRoot(self.dmdRootName)
         mod = None
@@ -143,7 +143,7 @@ class MibOrganizer(Organizer, ZenPackable):
             mod = modorg.mibs._getOb(mod.id)
         return mod
 
-    
+
     def manage_addMibModule(self, id, REQUEST=None):
         """Create a new service class in this Organizer.
         """
@@ -158,7 +158,7 @@ class MibOrganizer(Organizer, ZenPackable):
         else:
             return self.mibs._getOb(id)
 
-    
+
     def removeMibModules(self, ids=None, REQUEST=None):
         """Remove MibModules from an EventClass.
         """
@@ -166,7 +166,7 @@ class MibOrganizer(Organizer, ZenPackable):
         if type(ids) == types.StringType: ids = (ids,)
         for id in ids:
             self.mibs._delObject(id)
-        if REQUEST: 
+        if REQUEST:
             messaging.IMessageSender(self).sendToBrowser(
                 'Mib Module Deleted',
                 'Mib modules deleted: %s' % ', '.join(ids)

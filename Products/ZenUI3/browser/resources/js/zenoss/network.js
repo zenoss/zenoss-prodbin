@@ -90,7 +90,7 @@ var addNetworkDialogConfig = {
     title: _t('Add a Subnetwork'),
     items: [{
         xtype: 'textfield',
-        id: 'idTextField',
+        name: 'id',
         fieldLabel: _t('Network / Subnet mask'),
         allowBlank: false
     }]
@@ -130,7 +130,7 @@ var treesm = new Ext.tree.DefaultSelectionModel({
         }
     }
 });
- 
+
 
 var network_tree = new Zenoss.NetworkTreePanel({
     id: 'networks',

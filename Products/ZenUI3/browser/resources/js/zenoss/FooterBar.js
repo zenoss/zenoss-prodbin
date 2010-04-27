@@ -64,7 +64,18 @@ Zenoss.footerHelper = function(itemName, footerBar, options) {
     options = Ext.applyIf(options || {}, {
         addToZenPack: true,
         hasOrganizers: true,
-        customAddDialog: false
+        customAddDialog: false,
+        buttonContextMenu: {}
+    });
+
+    Ext.applyIf(options.buttonContextMenu, {
+        xtype: 'ContextMenu',
+        disabled: Zenoss.Security.doesNotHavePermission('Manage DMD'),
+        tooltip: _t('Context-sensitive actions'),
+        menu: {
+            items: []
+        },
+        ref: 'buttonContextMenu'
     });
 
     footerBar = footerBar || Ext.getCmp('footer_bar');
@@ -81,7 +92,7 @@ Zenoss.footerHelper = function(itemName, footerBar, options) {
         var handler, dialog, addDialogConfig;
 
         handler = function(values) {
-            footerBar.fireEvent('buttonClick', event, values.idTextField);
+            footerBar.fireEvent('buttonClick', event, values.id, values);
         };
         addDialogConfig = Ext.applyIf(options.customAddDialog || {}, {
             submitHandler: handler,
@@ -89,7 +100,7 @@ Zenoss.footerHelper = function(itemName, footerBar, options) {
             itemId: 'addDialog',
             items: [{
                 xtype: 'textfield',
-                name: 'idTextField',
+                name: 'id',
                 fieldLabel: _t('Name'),
                 allowBlank: false
             }]
@@ -119,7 +130,8 @@ Zenoss.footerHelper = function(itemName, footerBar, options) {
                 ]
             },
             ref: 'buttonAdd'
-        }, {
+        },
+        {
             xtype: 'button',
             iconCls: 'delete',
             disabled: Zenoss.Security.doesNotHavePermission('Manage DMD'),
@@ -141,15 +153,10 @@ Zenoss.footerHelper = function(itemName, footerBar, options) {
                 }
             },
             ref: 'buttonDelete'
-        }, ' ', {
-            xtype: 'ContextMenu',
-            disabled: Zenoss.Security.doesNotHavePermission('Manage DMD'),
-            tooltip: _t('Context-sensitive actions'),
-            menu: {
-                items: []
             },
-            ref: 'buttonContextMenu'
-        }, '-'
+        ' ',
+        options.buttonContextMenu,
+        '-'
     ];
 
     footerBar.add(items);

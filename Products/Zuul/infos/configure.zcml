@@ -36,7 +36,7 @@
     <adapter factory=".template.TemplateLeaf"
              for="Products.ZenModel.RRDTemplate.RRDTemplate"
              provides="..interfaces.ITemplateLeaf"/>
-    
+
     <adapter factory=".template.RRDDataSourceInfo"
              for="Products.ZenModel.RRDDataSource.RRDDataSource"
              provides="..interfaces.IRRDDataSourceInfo"/>
@@ -53,20 +53,20 @@
              for="Products.ZenModel.GraphDefinition.GraphDefinition"
              provides="..interfaces.IGraphInfo"/>
 
-    
+
 
     <adapter factory=".template.DataPointInfo"
              for="Products.ZenModel.RRDDataPoint.RRDDataPoint"
              provides="..interfaces.IDataPointInfo"/>
-    
+
     <adapter factory=".template.BasicDataSourceInfo"
              for="Products.ZenModel.BasicDataSource.BasicDataSource"
              provides="..interfaces.IBasicDataSourceInfo"/>
-    
+
     <adapter factory=".template.DataPointAliasInfo"
              for="Products.ZenModel.RRDDataPointAlias.RRDDataPointAlias"
              provides="..interfaces.IDataPointAlias"/>
-    
+
     <adapter provides="..interfaces.IInfo"
              for="..interfaces.IProcessEntity"
              factory=".process.ProcessInfo"
@@ -114,6 +114,16 @@
     <adapter provides="..interfaces.IIpAddressInfo"
              for="Products.ZenModel.IpAddress.IpAddress"
              factory=".network.IpAddressInfo"
+             />
+
+    <adapter provides="..interfaces.IOrganizerInfo"
+             for="Products.ZenModel.Organizer.Organizer"
+             factory=".organizer.OrganizerInfo"
+             />
+    
+    <adapter provides="..interfaces.ILocationOrganizerInfo"
+             for="Products.ZenModel.Location.Location"
+             factory=".organizer.LocationOrganizerInfo"
              />
 
     <include package=".component"/>

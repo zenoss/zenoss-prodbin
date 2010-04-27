@@ -31,7 +31,7 @@ from zope.interface import implements
 
 from Products.AdvancedQuery import MatchRegexp, And, Or, Eq, Between
 from Products.Zuul.interfaces import IFacade, ITreeNode
-from Products.Zuul.interfaces import ITreeFacade, IInfo, ICatalogTool
+from Products.Zuul.interfaces import ITreeFacade, IInfo, ICatalogTool, IOrganizerInfo
 from Products.Zuul.interfaces import IEventInfo
 from Products.Zuul.utils import unbrain, get_dmd
 from Products.Zuul.tree import SearchResults
@@ -187,11 +187,12 @@ class TreeFacade(ZuulFacade):
         counts = (s[1]+s[2] for s in summary)
         return zip(severities, counts)
 
-    def addOrganizer(self, contextUid, id):
+    def addOrganizer(self, contextUid, id, description = ''):
         context = self._getObject(contextUid)
-        organizer = aq_base(context).__class__(id)
+        organizer = aq_base(context).__class__(id, description)
         context._setObject(id, organizer)
-        return '%s/%s' % (contextUid, id)
+
+        return IOrganizerInfo(organizer)
 
     def addClass(self, contextUid, id):
         context = self._getObject(contextUid)

@@ -34,7 +34,7 @@ def manage_addOSProcessOrganizer(context, id, REQUEST = None):
     context._setObject(id, sc)
     sc = context._getOb(id)
     if REQUEST is not None:
-        REQUEST['RESPONSE'].redirect(context.absolute_url() + '/manage_main') 
+        REQUEST['RESPONSE'].redirect(context.absolute_url() + '/manage_main')
 
 addOSProcessOrganizer = DTMLFile('dtml/addOSProcessOrganizer',globals())
 
@@ -44,10 +44,10 @@ class OSProcessOrganizer(Organizer, Commandable, ZenPackable):
     #default_catalog = "osprocessSearch"
 
     description = ""
-    
+
     _properties = (
         {'id':'description', 'type':'text', 'mode':'w'},
-        ) 
+        )
 
     _relations = Organizer._relations + ZenPackable._relations + (
         ("osProcessClasses", ToManyCont(
@@ -55,11 +55,11 @@ class OSProcessOrganizer(Organizer, Commandable, ZenPackable):
         ('userCommands', ToManyCont(ToOne, 'Products.ZenModel.UserCommand', 'commandable')),
         )
 
-    factory_type_information = ( 
-        { 
+    factory_type_information = (
+        {
             'immediate_view' : 'osProcessOrganizerOverview',
             'actions'        :
-            ( 
+            (
                 { 'id'            : 'classes'
                 , 'name'          : 'Classes'
                 , 'action'        : 'osProcessOrganizerOverview'
@@ -90,12 +90,12 @@ class OSProcessOrganizer(Organizer, Commandable, ZenPackable):
             )
          },
         )
-    
+
     security = ClassSecurityInfo()
-    
-    def __init__(self, id=None):
+
+    def __init__(self, id=None, description=None):
         if not id: id = self.dmdRootName
-        super(OSProcessOrganizer, self).__init__(id)
+        super(OSProcessOrganizer, self).__init__(id, description)
         if self.id == self.dmdRootName:
             self.buildZProperties()
 
@@ -146,7 +146,7 @@ class OSProcessOrganizer(Organizer, Commandable, ZenPackable):
         """
         if id:
             sc = OSProcessClass(id)
-            sc.sequence = len(self.osProcessClasses()) 
+            sc.sequence = len(self.osProcessClasses())
             self.osProcessClasses._setObject(id, sc)
         if REQUEST:
             return self.callZenScreen(REQUEST)
@@ -157,7 +157,7 @@ class OSProcessOrganizer(Organizer, Commandable, ZenPackable):
     def manage_resequenceProcesses(self, seqmap=(), origseq=(), REQUEST=None):
         "resequence the OsProcesses"
         from Products.ZenUtils.Utils import resequence
-        return resequence(self, self.getSubOSProcessClassesGen(), 
+        return resequence(self, self.getSubOSProcessClassesGen(),
                             seqmap, origseq, REQUEST)
 
     def unmonitorOSProcessClasses(self, ids=None, REQUEST=None):
@@ -222,7 +222,7 @@ class OSProcessOrganizer(Organizer, Commandable, ZenPackable):
             targets += osc.getUserCommandTargets()
         for org in self.children():
             targets += org.getUserCommandTargets()
-        return targets            
+        return targets
 
 
     def getUrlForUserCommands(self):

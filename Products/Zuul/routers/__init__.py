@@ -22,14 +22,16 @@ class TreeRouter(DirectRouter):
     the HierarchyTreePanel and want to add/remove nodes
     """
     @require('Manage DMD')
-    def addNode(self, type, contextUid, id):
+    def addNode(self, type, contextUid, id, description=None):
         result = {}
-        try: 
+        try:
             facade = self._getFacade()
             if type.lower() == 'class':
                 uid = facade.addClass(contextUid, id)
             else:
-                uid = facade.addOrganizer(contextUid, id)
+                organizer = facade.addOrganizer(contextUid, id, description)
+                uid = organizer.uid
+                
             treeNode = facade.getTree(uid)
             result['nodeConfig'] = Zuul.marshal(treeNode)
             result['success'] = True
@@ -63,5 +65,5 @@ class TreeRouter(DirectRouter):
         # check the number of levels deep it is
         levels = len(uid.split('/'))
         return levels > 4
-        
-    
+
+
