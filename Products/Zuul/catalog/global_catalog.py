@@ -236,7 +236,7 @@ class DeviceWrapper(SearchableMixin,IndexableWrapper):
     def searchKeywordsForChildren(self):
         o = self._context
         return (o.titleOrId(),
-            o.manageIp, o.hw.serialNumber, o.hw.tag, o.uptimeStr(),
+            o.manageIp, o.hw.serialNumber, o.hw.tag,
             o.getHWManufacturerName(), o.getHWProductName(),
             o.getOSProductName(), o.getOSManufacturerName(),
             o.getHWSerialNumber(), o.getPerformanceServerName(),
