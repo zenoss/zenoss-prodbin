@@ -240,7 +240,7 @@ class DeviceAddView(BrowserView):
                         'snmpcomm_%s' % idx
                     ).splitlines()
                 }
-            perfConf = self.context.Monitors.getPerformanceMonitor(collector)
+            perfConf = self.context.Monitors.getPerformanceMonitor('localhost')
             perfConf.addDeviceCreationJob(deviceName=self.request.form.get(k),
                 devicePath=devclass, zProperties=zProps)
         devnames = [self.request.form.get(dev) for dev in devs]

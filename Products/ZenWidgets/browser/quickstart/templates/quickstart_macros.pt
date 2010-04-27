@@ -296,7 +296,12 @@
         var submit_discover = autodiscover.addButton({
             text: 'Discover',
             handler: function(){
-                autodiscover.getForm().submit({url: 'auto_add'});
+                autodiscover.getForm().submit({
+                    url: 'auto_add',
+                    success: function(form, action) {
+                        window.location = action.result.redirect;
+                    }
+                });
             }
         });
 
@@ -551,7 +556,12 @@
         var submit_manual = manualdiscover.addButton({
             text: 'Submit',
             handler: function(){
-                manualdiscover.getForm().submit({url:'manual_add'});
+                manualdiscover.getForm().submit({
+                    url:'manual_add',
+                    success: function(form, action) {
+                        window.location = '/zport/dmd/Dashboard';
+                    }
+                });
             }
         });
 
