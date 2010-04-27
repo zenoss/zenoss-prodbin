@@ -76,6 +76,60 @@ class EventClassPropertyMixin(object):
         evt.updateFromDict(updates)
         return evt
 
+    def formatTransform(self, transformLines):
+        """
+        Convenience function to number the transform info
+        """
+        numberedTransform = []
+        for lineNo in range(0, len(transformLines)):
+            line = "%3s %s" % (lineNo, transformLines[lineNo])
+            numberedTransform.append(line)
+        return '\n'.join(numberedTransform)
+
+    def sendTransformException(self, eventclass, evt):
+        """
+        Try to convert the rather horrible looking traceback that
+        is hard to understand into something actionable by the user.
+        """
+        transformName = '/%s'% '/'.join(eventclass.getPhysicalPath()[4:])
+        summary = "Error processing transform/mapping on Event Class %s" % \
+            transformName
+
+        import sys
+        from traceback import format_exc, extract_tb
+        badLineNo = extract_tb(sys.exc_info()[2])[-1][1] - 1
+
+        transformLines = eventclass.transform.splitlines()
+        transformFormatted = self.formatTransform(transformLines)
+        exceptionText = format_exc(0).splitlines()[1]
+        message = """%s
+Problem on line %s: %s
+%s
+
+Transform:
+%s
+""" % (summary, badLineNo, exceptionText, transformLines[badLineNo],
+        transformFormatted)
+        log.warn(message)
+
+        # Now send an event
+        zem = self.getDmd().ZenEventManager
+        badEvt = dict(
+            dedupid='|'.join([transformName,zem.host]),
+            # Don't send the *same* event class or we trash and
+            # and crash endlessly
+            eventClass='/',
+            device=zem.host,
+            component=transformName,
+            summary=summary,
+            severity=4,
+            message = "Problem with line %s: %s" % (badLineNo, 
+                      transformLines[badLineNo]),
+            transform=transformFormatted,
+            exception=exceptionText,
+        )
+        zem.sendEvent(badEvt)
+
     def applyTransform(self, evt, device):
         """
         Apply transforms on an event from the top level of the Event Class Tree
@@ -97,9 +151,8 @@ class EventClassPropertyMixin(object):
                 log.debug('Results after transform: %s',
                           variables_and_funcs['evt'])
             except Exception, ex:
-                log.exception(
-                    "Error processing transform/mapping on Event Class %s",
-                    eventclass.getPrimaryId())
+                self.sendTransformException(eventclass, evt)
+
         return variables_and_funcs['evt']
                  
 
