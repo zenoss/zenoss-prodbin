@@ -142,6 +142,9 @@ function setMonitoringDisabled(disabled) {
 }
 
 function inheritedCheckboxHandler(checkbox, checked) {
+    if ( Ext.getCmp('processForm').isLoadInProgress ) {
+        return;
+    }
     setMonitoringDisabled(checked);
     var processTree = Ext.getCmp(treeId);
     var selectionModel = processTree.getSelectionModel();
@@ -167,6 +170,7 @@ function inheritedCheckboxHandler(checkbox, checked) {
 // when the form loads, show/hide the regex fieldset
 function actioncompleteHandler(form, action) {
     if (action.type == 'directload') {
+        Ext.getCmp('processForm').isLoadInProgress = false;
         var processInfo = action.result.data;
         // disabling the forms will disable all of the elements in it
         Ext.getCmp('processForm').setDisabled(Zenoss.Security.doesNotHavePermission('Manage DMD'));
@@ -320,7 +324,7 @@ var processFormConfig = {
 };
 
 // place the form in the top right
-processForm = Ext.create(processFormConfig);
+var processForm = Ext.create(processFormConfig);
 
 Ext.getCmp('detail_panel').add(processForm);
 processForm.on('actioncomplete', actioncompleteHandler);
@@ -352,6 +356,7 @@ function dispatcher(actionName, value) {
         case 'addClass': tree.addNode('class', value); break;
         case 'addOrganizer': tree.addNode('organizer', value); break;
         case 'delete': tree.deleteSelectedNode(); break;
+        default: break;
     }
 };
 

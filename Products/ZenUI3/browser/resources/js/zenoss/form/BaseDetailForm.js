@@ -19,6 +19,7 @@ var ZF = Ext.ns('Zenoss.form');
 
 ZF.BaseDetailForm = Ext.extend(Ext.form.FormPanel, {
     contextUid: null,
+    isLoadInProgress: false,
     constructor: function(config){
         var me = this;
         config.baseParams = Ext.applyIf(config.baseParams||{
@@ -65,6 +66,7 @@ ZF.BaseDetailForm = Ext.extend(Ext.form.FormPanel, {
     },
     setContext: function(uid) {
         this.contextUid = uid;
+        this.isLoadInProgress = true;
         this.load({ params: {uid: uid} });
     }
 });
