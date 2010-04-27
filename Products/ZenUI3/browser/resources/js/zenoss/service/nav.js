@@ -72,6 +72,7 @@
             function callback(p, response){
                 var result = response.result;
                 if (result.success) {
+                    grid.getSelectionModel().clearSelections();
                     var newRowPos = view.rowIndex;
                     store.on('load', function(){
                         view.focusRow(newRowPos);
@@ -84,17 +85,22 @@
             }
             Zenoss.remote.ServiceRouter.deleteNode(params, callback);
         } else {
-            var tree = Ext.getCmp('navTree'),
-                node = tree.getSelectionModel().getSelectedNode();
-
-            if (node)
-            {
-                tree.deleteSelectedNode();
-            }
-            else {
-                Ext.Msg.alert('Error', 'Must select an item in the list.');
-            }
+            Ext.Msg.alert('Error', 'Must select an item in the list.');
         }
+    };
+
+    zs.deleteOrganizerHandler = function() {
+        var tree, selected, params;
+        tree = Ext.getCmp('navTree');
+        selected = tree.getSelectionModel().getSelectedNode();
+        params = {uid: selected.attributes.uid};
+        function callback(){
+            tree.getRootNode().reload(function() {
+                tree.getRootNode().select();
+                tree.getRootNode().expand(true);
+            });
+        }
+        Zenoss.remote.ServiceRouter.deleteNode(params, callback);
     };
 
     zs.dispatcher = function(actionName, value) {
@@ -102,6 +108,7 @@
             case 'addClass': zs.addClassHandler(value); break;
             case 'addOrganizer': zs.addOrganizerHandler(value); break;
             case 'delete': zs.deleteHandler(); break;
+            case 'deleteOrganizer': zs.deleteOrganizerHandler(); break;
         }
     };
 
@@ -115,7 +122,7 @@
         if (selected) {
             return selected.attributes.uid;
         }
-    }
+    };
 
     /**********************************************************************
     *
@@ -161,6 +168,6 @@
 
         fb = Ext.getCmp('footer_bar');
         fb.on('buttonClick', zs.dispatcher);
-        Zenoss.footerHelper('Service', fb);
+        Zenoss.footerHelper('Service', fb, {deleteMenu: true});
     };
 })();

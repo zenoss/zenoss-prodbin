@@ -65,7 +65,8 @@ Zenoss.footerHelper = function(itemName, footerBar, options) {
         addToZenPack: true,
         hasOrganizers: true,
         customAddDialog: false,
-        buttonContextMenu: {}
+        buttonContextMenu: {},
+        deleteMenu: false
     });
 
     Ext.applyIf(options.buttonContextMenu, {
@@ -110,28 +111,75 @@ Zenoss.footerHelper = function(itemName, footerBar, options) {
         dialog.show();
     };
 
-    items = [
-        {
-            xtype: 'button',
-            iconCls: 'add',
-            disabled: Zenoss.Security.doesNotHavePermission('Manage DMD'),
-            tooltip: _t('Add a child to the selected organizer'),
-            menu: {
-                items: [
-                    {
-                        text: String.format(_t('Add {0}'), itemName),
-                        listeners: {
-                            click: showAddDialog.createCallback(
-                                    String.format(_t('Add {0}'), itemName),
-                                    'addClass')
-                        },
-                        ref: 'buttonAddClass'
-                    }
-                ]
-            },
-            ref: 'buttonAdd'
+    items = [{
+        xtype: 'button',
+        iconCls: 'add',
+        disabled: Zenoss.Security.doesNotHavePermission('Manage DMD'),
+        tooltip: _t('Add a child to the selected organizer'),
+        menu: {
+            items: [
+                {
+                    text: String.format(_t('Add {0}'), itemName),
+                    listeners: {
+                        click: showAddDialog.createCallback(
+                                String.format(_t('Add {0}'), itemName),
+                                'addClass')
+                    },
+                    ref: 'buttonAddClass'
+                }
+            ]
         },
-        {
+        ref: 'buttonAdd'
+    }];
+
+    if ( options.deleteMenu ) {
+        items.push({
+            xtype: 'button',
+            ref: 'buttonDelete',
+            iconCls: 'delete',
+            disabled: Zenoss.Security.doesNotHavePermission('Manage DMD'),
+            menu: {
+                items: [{
+                    text: String.format(_t('Delete {0}'), itemName),
+                    ref: 'buttonDelete',
+                    listeners: {
+                        click: function() {
+                            Ext.MessageBox.show({
+                                title: String.format(_t('Delete {0}'), itemName),
+                                msg: String.format(_t('The selected {0} will be deleted.'),
+                                        itemName.toLowerCase()),
+                                fn: function(buttonid){
+                                    if (buttonid=='ok') {
+                                        footerBar.fireEvent('buttonClick', 'delete');
+                                    }
+                                },
+                                buttons: Ext.MessageBox.OKCANCEL
+                            });
+                        }
+                    }
+                }, {
+                    text: String.format(_t('Delete {0} Organizer'), itemName),
+                    ref: 'buttonDeleteOrganizer',
+                    listeners: {
+                        click: function() {
+                            Ext.MessageBox.show({
+                                title: String.format(_t('Delete {0} Organizer'), itemName),
+                                msg: String.format(_t('The selected {0} organizer will be deleted.'),
+                                        itemName.toLowerCase()),
+                                fn: function(buttonid){
+                                    if (buttonid=='ok') {
+                                        footerBar.fireEvent('buttonClick', 'deleteOrganizer');
+                                    }
+                                },
+                                buttons: Ext.MessageBox.OKCANCEL
+                            });
+                        }
+                    }
+                }]
+            }
+        });
+    } else {
+        items.push({
             xtype: 'button',
             iconCls: 'delete',
             disabled: Zenoss.Security.doesNotHavePermission('Manage DMD'),
@@ -153,12 +201,10 @@ Zenoss.footerHelper = function(itemName, footerBar, options) {
                 }
             },
             ref: 'buttonDelete'
-            },
-        ' ',
-        options.buttonContextMenu,
-        '-'
-    ];
+        });
+    }
 
+    items.push(' ', options.buttonContextMenu, '-');
     footerBar.add(items);
 
     if (options.hasOrganizers)
