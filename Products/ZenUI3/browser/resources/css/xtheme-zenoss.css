@@ -1396,6 +1396,11 @@ body.x-body-masked .x-window-mc, body.x-body-masked .x-window-plain .x-window-mc
 .x-toolbar .x-btn-over .expand          { background-position: 0 -1530px; }
 .x-toolbar .x-btn-disabled .expand      { background-position: 0 -1548px; }
 
+.x-toolbar .x-btn .refresh              { background-position: 0 -1565px; }
+.x-toolbar .x-btn-click .refresh        { background-position: 0 -1583px; }
+.x-toolbar .x-btn-over .refresh         { background-position: 0 -1583px; }
+.x-toolbar .x-btn-disabled .refresh     { background-position: 0 -1601px; }
+
 .x-toolbar .x-btn .filter {
     background-image: url(../img/xtheme-zenoss/icon/filter.png);
 }
