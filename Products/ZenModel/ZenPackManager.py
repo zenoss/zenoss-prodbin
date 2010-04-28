@@ -80,11 +80,11 @@ class ZenPackManager(ZenModelRM):
                 , 'action'        : '../joblist'
                 , 'permissions'   : ( "Manage DMD", )
                 },
-                { 'id'            : 'menus'
-                , 'name'          : 'Menus'
-                , 'action'        : '../editMenus'
-                , 'permissions'   : ( "Manage DMD", )
-                },
+                #{ 'id'            : 'menus'
+                #, 'name'          : 'Menus'
+                #, 'action'        : '../editMenus'
+                #, 'permissions'   : ( "Manage DMD", )
+                #},
                 { 'id'            : 'portlets'
                 , 'name'          : 'Portlets'
                 , 'action'        : '../editPortletPerms'

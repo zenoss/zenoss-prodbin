@@ -85,11 +85,11 @@ class ZenossInfo(ZenModelItem, SimpleItem):
                 , 'action'        : '../dmd/joblist'
                 , 'permissions'   : ( "Manage DMD", )
                 },
-                { 'id'            : 'menus'
-                , 'name'          : 'Menus'
-                , 'action'        : '../dmd/editMenus'
-                , 'permissions'   : ( "Manage DMD", )
-                },
+                #{ 'id'            : 'menus'
+                #, 'name'          : 'Menus'
+                #, 'action'        : '../dmd/editMenus'
+                #, 'permissions'   : ( "Manage DMD", )
+                #},
                 { 'id'            : 'portlets'
                 , 'name'          : 'Portlets'
                 , 'action'        : '../dmd/editPortletPerms'

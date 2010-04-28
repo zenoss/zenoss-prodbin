@@ -104,11 +104,11 @@ class UserSettingsManager(ZenModelRM):
                 , 'action'        : '../joblist'
                 , 'permissions'   : ( "Manage DMD", )
                 },
-                { 'id'            : 'menus'
-                , 'name'          : 'Menus'
-                , 'action'        : '../editMenus'
-                , 'permissions'   : ( ZEN_MANAGE_DMD, )
-                },
+                #{ 'id'            : 'menus'
+                #, 'name'          : 'Menus'
+                #, 'action'        : '../editMenus'
+                #, 'permissions'   : ( ZEN_MANAGE_DMD, )
+                #},
                 { 'id'            : 'portlets'
                 , 'name'          : 'Portlets'
                 , 'action'        : '../editPortletPerms'
