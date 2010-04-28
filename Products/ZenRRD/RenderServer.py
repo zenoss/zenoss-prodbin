@@ -541,8 +541,8 @@ class RenderServer(RRDToolItem):
         ftype = ftype.lower()
 
         if REQUEST:
-            mimetype = mimetypes.guess_type('.%s'%ftype)[0]
-            if not mimetype:
+            mimetype = mimetypes.guess_type('%s.%s' % (id, ftype))[0]
+            if mimetype is None:
                 mimetype = 'image/%s' % ftype
             response = REQUEST.RESPONSE
             response.setHeader('Content-Type', mimetype)
