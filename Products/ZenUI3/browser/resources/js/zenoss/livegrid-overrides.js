@@ -9,7 +9,6 @@ Ext.override(Ext.ux.grid.livegrid.GridView, {
 
         var inRange = this.isInRange(index);
 
-
         if (this.isBuffering) {
             if (this.isPrebuffering) {
                 if (inRange) {
@@ -32,7 +31,7 @@ Ext.override(Ext.ux.grid.livegrid.GridView, {
         this.lastIndex = index;
         var inRange    = this.isInRange(index);
 
-        var down = false;
+        var down = lastIndex < index;
 
         if (inRange && forceReload !== true) {
 
@@ -104,6 +103,7 @@ Ext.override(Ext.ux.grid.livegrid.GridView, {
         params.start = bufferOffset;
         params.limit = this.ds.bufferSize;
 
+
         if (sInfo) {
             params.dir  = sInfo.direction;
             params.sort = sInfo.field;
@@ -169,6 +169,32 @@ Ext.override(Ext.ux.grid.livegrid.GridView, {
         }
 
         this.liveScrollerInset.style.height = (hiddenRows === 0 ? 0 : contHeight+(hiddenRows*this.rowHeight))+"px";
-     }
+     },
+
+    getPredictedBufferIndex : function(index, inRange, down)
+    {
+        /*
+        if (!inRange) {
+            if (index + this.ds.bufferSize >= this.ds.totalLength) {
+                return this.ds.totalLength - this.ds.bufferSize;
+            }
+            // I can't tell how this calculation is supposed to make sense.  If
+            // index is outside the buffer range in the lesser direction and
+            // visibleRows is larger than bufferSize/2, you just get an offset
+            // larger than index, meaning it'll try to request data again,
+            // forever. If you just do what you would normally do if in range,
+            // it works fine. -- Ian
+            return Math.max(0, (index + this.visibleRows) - Math.round(this.ds.bufferSize/2));
+        }
+        */
+        if (!down) {
+            return Math.max(0, (index-this.ds.bufferSize)+this.visibleRows);
+        }
+
+        if (down) {
+            return Math.max(0, Math.min(index, this.ds.totalLength-this.ds.bufferSize));
+        }
+    }
+
 });       
 })(); // End local scope

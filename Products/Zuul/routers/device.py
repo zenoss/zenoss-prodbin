@@ -311,11 +311,11 @@ class DeviceRouter(TreeRouter):
         facade = self._getFacade()
         if isinstance(params, basestring):
             params = unjson(params)
-        devs = facade.getDevices(uid, sort=sort, dir=dir, params=params,
-                                 hashcheck=hashcheck)
+        devs = facade.getDeviceBrains(uid, limit=None, sort=sort, dir=dir,
+                                      params=params, hashcheck=hashcheck)
         uids = []
         for start, stop in sorted(ranges):
-            uids.extend(b.uid for b in islice(devs, start, stop))
+            uids.extend(b.getPath() for b in islice(devs, start, stop+1))
         return uids
 
     def loadComponentRanges(self, ranges, hashcheck, uid=None, types=(),

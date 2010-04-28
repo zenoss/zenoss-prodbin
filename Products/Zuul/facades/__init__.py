@@ -88,8 +88,8 @@ class TreeFacade(ZuulFacade):
         cat = ICatalogTool(self._getObject(uid))
         return cat.count('Products.ZenModel.Device.Device')
 
-    def getDevices(self, uid=None, start=0, limit=50, sort='name', dir='ASC',
-                   params=None, hashcheck=None):
+    def getDeviceBrains(self, uid=None, start=0, limit=50, sort='name',
+                        dir='ASC', params=None, hashcheck=None):
         cat = ICatalogTool(self._getObject(uid))
         reverse = dir=='DESC'
         qs = []
@@ -118,7 +118,13 @@ class TreeFacade(ZuulFacade):
         brains = cat.search('Products.ZenModel.Device.Device', start=start,
                            limit=limit, orderby=sort, reverse=reverse,
                             query=query, hashcheck=hashcheck)
+        return brains
 
+    def getDevices(self, uid=None, start=0, limit=50, sort='name', dir='ASC',
+                   params=None, hashcheck=None):
+
+        brains = self.getDeviceBrains(uid, start, limit, sort, dir, params,
+                                      hashcheck)
         wrapped = imap(IInfo, imap(unbrain, brains))
         return SearchResults(wrapped, brains.total, brains.hash_)
 

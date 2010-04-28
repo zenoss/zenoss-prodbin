@@ -107,7 +107,8 @@ Zenoss.DeviceStore = Ext.extend(Ext.ux.grid.livegrid.Store, {
             }),
             reader: new Ext.ux.grid.livegrid.JsonReader({
                 root: 'devices',
-                totalProperty: 'totalCount'
+                totalProperty: 'totalCount',
+                idProperty: 'uid'
             },[
                   {name: 'uid', type: 'string'},
                   {name: 'name', type: 'string'},

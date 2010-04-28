@@ -181,6 +181,7 @@ class CatalogTool(object):
                 raise StaleResultsException("Search results do not match")
 
         # Return a slice
+        start = max(start, 0)
         if limit is None:
             stop = None
         else:

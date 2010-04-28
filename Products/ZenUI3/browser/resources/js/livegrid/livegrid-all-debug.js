@@ -1414,6 +1414,7 @@ Ext.extend(Ext.ux.grid.livegrid.GridView, Ext.grid.GridView, {
      */
     isInRange : function(rowIndex)
     {
+
         var lastRowIndex = Math.min(this.ds.totalLength-1,
                                     rowIndex + (this.visibleRows-1));
 
@@ -2488,6 +2489,7 @@ Ext.extend(Ext.ux.grid.livegrid.RowSelectionModel, Ext.grid.RowSelectionModel, {
      */
     selectRange : function(startRow, endRow, keepExisting)
     {
+
         if(this.locked) {
             return;
         }

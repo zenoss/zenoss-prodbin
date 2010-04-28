@@ -1089,7 +1089,7 @@ Ext.getCmp('center_panel').add({
             ddGroup: 'devicegriddd',
             id: 'device_grid',
             enableDrag: true,
-            sm: new Zenoss.ExtraHooksSelectionModel({
+            sm: new Ext.ux.grid.livegrid.RowSelectionModel({
                 listeners: {
                     selectionchange: function(sm) {
                         setDeviceButtonsDisabled(!sm.getSelected());
@@ -1111,7 +1111,22 @@ Ext.getCmp('center_panel').add({
                         Zenoss.devices.addMultiDevicePopUP
                         ]
                     }
-                }, Zenoss.devices.deleteDevices,
+                }, Zenoss.devices.deleteDevices, {
+                    text: _t('Select'),
+                    menu:[{
+                        text: _t('All'),
+                        handler: function() {
+                            var grid = Ext.getCmp('device_grid');
+                            grid.getSelectionModel().selectRange(0, grid.store.totalLength);
+                        }
+                    },{
+                        text: _t('None'),
+                        handler: function() {
+                            var grid = Ext.getCmp('device_grid');
+                            grid.getSelectionModel().clearSelections();
+                        }
+                    }]
+                },
                 '->',
                 {
                     id: 'actions-menu',
