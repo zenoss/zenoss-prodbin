@@ -275,10 +275,10 @@ class TemplateFacade(ZuulFacade):
         graphs.sort(key=lambda graph: graph.sequence)
         return graphs.__iter__()
 
-    def addDataPointToGraph(self, dataPointUid, graphUid):
+    def addDataPointToGraph(self, dataPointUid, graphUid, includeThresholds=False):
         dataPoint = self._getObject(dataPointUid)
         graph = self._getObject(graphUid)
-        graph.manage_addDataPointGraphPoints([dataPoint.name()])
+        graph.manage_addDataPointGraphPoints([dataPoint.name()], includeThresholds)
 
     def getCopyTargets(self, uid, query=''):
         template = self._getTemplate(uid)

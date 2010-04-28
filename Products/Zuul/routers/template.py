@@ -71,6 +71,21 @@ class TemplateRouter(DirectRouter):
         data =  Zuul.marshal(dict(record=thresholdDetails, form=form))
         return data
 
+    def getDataPoints(self, query, uid):
+        """
+        @returns [DataPointInfo] Given a template UID, this returns
+        every data point associated with it
+        """
+        datapoints = []
+        facade = self._getFacade()
+        # go through each of our datasources and get all the data points
+        datasources = facade.getDataSources(uid)
+        for datasource in datasources:
+            for datapoint in facade.getDataSources(datasource.uid):
+                datapoints.append(datapoint)
+        data = Zuul.marshal(datapoints)
+        return DirectResponse.succeed(data=data)
+    
     def addDataPoint(self, dataSourceUid, name):
         """
         Given a datasource uid and a name, this creates a new datapoint
@@ -162,12 +177,12 @@ class TemplateRouter(DirectRouter):
         return Zuul.marshal(graphs)
 
     @require('Manage DMD')
-    def addDataPointToGraph(self, dataPointUid, graphUid):
+    def addDataPointToGraph(self, dataPointUid, graphUid, includeThresholds=False):
         """
         Add a datapoint to a graph.
         """
         facade = self._getFacade()
-        facade.addDataPointToGraph(dataPointUid, graphUid)
+        facade.addDataPointToGraph(dataPointUid, graphUid, includeThresholds)
         return DirectResponse.succeed()
 
     def getCopyTargets(self, uid, query=''):

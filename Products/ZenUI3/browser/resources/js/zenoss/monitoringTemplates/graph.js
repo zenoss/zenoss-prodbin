@@ -136,12 +136,87 @@ new Zenoss.MessageDialog({
     // the message is generated dynamically
     okHandler: deleteGraphPoint
 });
+
+/**
+ * Adds the selected datapoint as a graph point to our
+ * graph definition we are managing
+ **/
+function addDataPointToGraph() {
+    var dataPointUid = Ext.getCmp('addDataPointToGraphDialog').comboBox.getValue(),
+        graphUid = getSelectedGraphDefinition().id,
+        includeThresholds = Ext.getCmp('addDataPointToGraphDialog').includeRelatedThresholds.getValue(),
+        params = {
+            dataPointUid: dataPointUid,
+            graphUid: graphUid,
+            includeThresholds: includeThresholds
+        },
+        callback = function() {
+            Ext.getCmp('graphPointGrid').getStore().reload();
+        };
+    router.addDataPointToGraph(params, callback);
+}
      
-     
-new Zenoss.MessageDialog({
+new Zenoss.HideFormDialog({
     id: 'addDataPointToGraphDialog',
     title: _t('Add Data Point'),
-    message: 'Not implemented yet.'
+    items:[{
+        xtype: 'combo',
+        ref: 'comboBox',
+        fieldLabel: _t('Data Point'),
+        valueField: 'uid',
+        displayField: 'name',
+        triggerAction: 'all',
+        selectOnFocus: true,
+        forceSelection: true,
+        editable: false,
+        allowBlank: false,
+        listeners: {
+            invalid: function(){
+                Ext.getCmp('addDataPointToGraphDialog').submit.disable();
+            },
+            valid: function(){
+                Ext.getCmp('addDataPointToGraphDialog').submit.enable();
+            }
+        },
+        store: {
+            xtype: 'directstore',
+            directFn: router.getDataPoints,
+            fields: ['uid', 'name'],
+            root: 'data'
+        }
+    },{
+        xtype: 'checkbox',
+        name: 'include_related_thresholds',
+        ref: 'includeRelatedThresholds',
+        fieldLabel: _t('Include Related Thresholds'),
+        checked: true
+    }],
+    listeners: {
+        show: function() {
+            var combo, uid;
+            combo = Ext.getCmp('addDataPointToGraphDialog').comboBox;
+            combo.reset();
+            Ext.getCmp('addDataPointToGraphDialog').submit.disable();
+            uid = getSelectedTemplate().attributes.uid;
+            combo.getStore().setBaseParam('query', uid);
+            combo.getStore().setBaseParam('uid', uid);
+            combo.getStore().load();
+        }
+    },
+    buttons: [
+    {
+        xtype: 'HideDialogButton',
+        ref: '../submit',
+        text: _t('Submit'),
+        disabled: true,
+        handler: function(button, event) {
+            addDataPointToGraph();
+        }
+    }, {
+        xtype: 'HideDialogButton',
+        text: _t('Cancel')
+    }]
+
 });
 
 addThresholdToGraph = function() {
