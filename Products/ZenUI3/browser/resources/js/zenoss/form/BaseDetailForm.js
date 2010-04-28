@@ -32,7 +32,6 @@ ZF.BaseDetailForm = Ext.extend(Ext.form.FormPanel, {
             buttonAlign: 'left',
             labelAlign: 'top',
             autoScroll:true,
-            labelSeparator: ' ',
             buttons:  [{
                     xtype: 'button',
                     formBind: true,

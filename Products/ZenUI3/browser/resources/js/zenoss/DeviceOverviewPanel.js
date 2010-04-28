@@ -132,7 +132,6 @@
         frame: true,
         defaults: {
             labelStyle: 'font-size: 13px; color: #5a5a5a',
-            labelSeparator: '',
             anchor: '100%'
         },
         buttonAlign: 'left',

@@ -154,7 +154,7 @@ Ext.getCmp('master_panel').add(network_tree);
 var statusRenderer = function (statusNum) {
     var color = 'red',
         desc = _t('Down');
-    if (statusNum == 0) {
+    if (statusNum === 0) {
         color = 'green';
         desc = _t('Up');
     }
@@ -357,7 +357,6 @@ var configPropsFieldSet = {
     defaults: {
         layout: 'form',
         border: false,
-        labelSeparator: ' ',
         bodyStyle: 'padding-left: 15px'
     },
     items: [ {
@@ -429,7 +428,6 @@ var formItems = {
         layout: 'form',
         border: false,
         bodyStyle: 'padding: 15px',
-        labelSeparator: ' ',
         columnWidth: 0.5
     },
     items: [
@@ -495,6 +493,7 @@ var dispatcher = function(actionName, value) {
     switch (actionName) {
         case 'addClass': addNetwork(value); break;
         case 'delete': deleteNetwork(); break;
+        default: break;
     }
 };
 

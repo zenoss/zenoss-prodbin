@@ -31,7 +31,6 @@ Zenoss.form.InheritField = Ext.extend(Zenoss.form.FieldRow, {
         // Add the checkbox
         this.inheritbox = new Ext.form.Checkbox({
             fieldLabel: _t('Inherit?'),
-            labelSeparator: '',
             width: 60,
             handler: function(me) {
                 console.log(me.checked ? 'checked' : 'unchecked');

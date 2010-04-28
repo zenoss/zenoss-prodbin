@@ -302,7 +302,6 @@ var processFormItems = {
         layout: 'form',
         border: false,
         bodyStyle: 'padding: 15px',
-        labelSeparator: ' ',
         columnWidth: 0.5
     },
     items: [

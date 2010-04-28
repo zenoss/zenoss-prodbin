@@ -173,7 +173,6 @@ Zenoss.FormDialog = Ext.extend(Ext.Window, {
             ref: 'editForm',
             labelAlign: 'top',
             autoScroll:true,
-            labelSeparator: ' ',
             defaults: {
                 xtype: 'textfield',
                 anchor: '85%',

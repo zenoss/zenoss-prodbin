@@ -80,7 +80,6 @@
                         anchor: '85%',
                         border: false
                     },
-                    labelSeparator: ' ',
                     listeners: {
                         /**
                          * Sets the windows submit button to be disabled when the form is not valid
