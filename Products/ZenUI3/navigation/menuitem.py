@@ -34,8 +34,8 @@ class PrimaryNavigationMenuItem(viewlet.ViewletBase):
 
     @property
     def selected(self):
-        requestURL = self.request.getURL()
-        if requestURL.endswith(self.url):
+        requestURL = self.request.getURL().replace('/@@', '/')
+        if re.search(self.url, requestURL) :
             return True
         sec = SecondaryNavigationManager(self.context, self.request,
                                          self.__parent__)
@@ -72,7 +72,7 @@ class SecondaryNavigationMenuItem(PrimaryNavigationMenuItem):
 
     @property
     def selected(self):
-        requestURL = self.request.getURL()
+        requestURL = self.request.getURL().replace('/@@', '/')
         for url in chain((self.url,), self.subviews):
             if re.search(url, requestURL) :
                 return True
