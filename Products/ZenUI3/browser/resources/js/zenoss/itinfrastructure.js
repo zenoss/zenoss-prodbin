@@ -1185,7 +1185,11 @@ Zenoss.footerHelper(
     footerBar,
     {
         hasOrganizers: false,
-        addToZenPack: true,
+        
+        // this footer bar has an add to zenpack option, but it defines its
+        // own in contrast to using the canned one in footerHelper
+        addToZenPack: false,
+        
         customAddDialog: {
             title: _t('Add Tree Node'),
             items: [
@@ -1232,7 +1236,7 @@ Zenoss.footerHelper(
             text: _t('Clear Geocode Cache'),
                     handler: function() {
                         REMOTE.clearGeocodeCache({}, function(data) {
-                            msg = (data.success) ?
+                            var msg = (data.success) ?
                             _t('Geocode Cache has been cleared') :
                             _t('Something happened while trying to clear Geocode Cache');
                             var dialog = new Zenoss.dialog.SimpleMessageDialog({
@@ -1262,6 +1266,7 @@ footerBar.on('buttonClick', function(actionName, id, values) {
         case 'addClass': tree.addNode('organizer', values.id, values.description); break;
         case 'addOrganizer': throw new Ext.Error('Not Implemented'); break;
         case 'delete': tree.deleteSelectedNode(); break;
+        default: break;
     }
 });
 

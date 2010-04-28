@@ -57,6 +57,8 @@ Ext.reg('TreeFooterBar', Zenoss.TreeFooterBar);
 //      addToZenPack: true puts the Add To ZenPack icon in, default true
 //      hasOrganizers: true puts the Add ___  Organizer in, default true
 //      customAddDialog: config for a SmartFormDialog to override the default
+//      deleteMenu: needs separate menu items for deleting organizers and items
+//      contextGetter: fetches the context UIDs for the specific page
 
 Zenoss.footerHelper = function(itemName, footerBar, options) {
     var addToZenPackDialog, items;
@@ -66,7 +68,8 @@ Zenoss.footerHelper = function(itemName, footerBar, options) {
         hasOrganizers: true,
         customAddDialog: false,
         buttonContextMenu: {},
-        deleteMenu: false
+        deleteMenu: false,
+        contextGetter: null
     });
 
     Ext.applyIf(options.buttonContextMenu, {
@@ -220,20 +223,43 @@ Zenoss.footerHelper = function(itemName, footerBar, options) {
         });
     }
 
-    if (options.addToZenPack)
-    {
+    if (options.addToZenPack) {
         addToZenPackDialog = new Zenoss.AddToZenPackWindow();
 
         footerBar.buttonContextMenu.menu.add({
-            text: _t('Add to ZenPack'),
+            ref: 'buttonAddToZenPack',
+            text: String.format(_t('Add {0} to ZenPack'), itemName),
             listeners: {
                 click: function() {
-                    addToZenPackDialog.setTarget(this.contextUid);
+                    var target = options.contextGetter.getUid();
+                    if ( ! target ) {
+                        return;
+                    }
+                    addToZenPackDialog.setTarget(target);
                     addToZenPackDialog.show();
                 }
-            },
-            ref: 'buttonAddToZenPack'
+            }
         });
+
+        if ( options.contextGetter.hasTwoControls() ) {
+
+            footerBar.buttonContextMenu.menu.add({
+                ref: 'buttonAddOrganizerToZenPack',
+                text: String.format(_t('Add {0} Organizer to ZenPack'), itemName),
+                listeners: {
+                    click: function() {
+                        var target = options.contextGetter.getOrganizerUid();
+                        if ( ! target ) {
+                            return;
+                        }
+                        addToZenPackDialog.setTarget(target);
+                        addToZenPackDialog.show();
+                    }
+                }
+            });
+
+        }
+        
     }
 
 };

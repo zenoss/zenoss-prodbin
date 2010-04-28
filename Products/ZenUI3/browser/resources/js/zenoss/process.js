@@ -345,6 +345,20 @@ Ext.getCmp('detail_panel').add({
     }
 });
 
+var ContextGetter = Ext.extend(Object, {
+    getUid: function() {
+        var selected = Ext.getCmp('processTree').getSelectionModel().getSelectedNode();
+        if ( ! selected ) {
+            Ext.Msg.alert(_t('Error'), _t('You must select a process.'));
+            return null;
+        }
+        return selected.attributes.uid;
+    },
+    hasTwoControls: function() {
+        return false;
+    }
+});
+
 /* ***********************************************************************
  *
  *   footer_panel - the add/remove tree node buttons at the bottom
@@ -361,7 +375,7 @@ function dispatcher(actionName, value) {
 };
 
 var footer = Ext.getCmp('footer_bar');
-Zenoss.footerHelper('Process', footer);
+Zenoss.footerHelper('Process', footer, {contextGetter: new ContextGetter()});
 footer.on('buttonClick', dispatcher);
 footer.buttonDelete.setDisabled(true);
 

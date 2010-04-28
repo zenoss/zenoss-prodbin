@@ -49,7 +49,7 @@
             } else {
                 Ext.Msg.alert(_t('Error'), result.msg);
             }
-        }
+        };
         Zenoss.remote.ServiceRouter.addNode(params, callback);
     };
 
@@ -109,6 +109,7 @@
             case 'addOrganizer': zs.addOrganizerHandler(value); break;
             case 'delete': zs.deleteHandler(); break;
             case 'deleteOrganizer': zs.deleteOrganizerHandler(); break;
+            default: break;
         }
     };
 
@@ -123,6 +124,28 @@
             return selected.attributes.uid;
         }
     };
+    
+    var ContextGetter = Ext.extend(Object, {
+        getUid: function() {
+            var selected = Ext.getCmp('navGrid').getSelectionModel().getSelected();
+            if ( ! selected ) {
+                Ext.Msg.alert(_t('Error'), _t('You must select a service.'));
+                return null;
+            }
+            return selected.data.uid;
+        },
+        hasTwoControls: function() {
+            return true;
+        },
+        getOrganizerUid: function() {
+            var selected = Ext.getCmp('navTree').getSelectionModel().getSelectedNode();
+            if ( ! selected ) {
+                Ext.Msg.alert(_t('Error'), _t('You must select a service organizer.'));
+                return null;
+            }
+            return selected.attributes.uid;
+        }
+    });
 
     /**********************************************************************
     *
@@ -168,6 +191,10 @@
 
         fb = Ext.getCmp('footer_bar');
         fb.on('buttonClick', zs.dispatcher);
-        Zenoss.footerHelper('Service', fb, {deleteMenu: true});
+        var footerHelperOptions = {
+            deleteMenu: true,
+            contextGetter: new ContextGetter()
+        };
+        Zenoss.footerHelper('Service', fb, footerHelperOptions);
     };
 })();
