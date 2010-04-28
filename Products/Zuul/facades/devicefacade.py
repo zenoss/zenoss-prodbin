@@ -68,13 +68,20 @@ class DeviceFacade(TreeFacade):
         counts = (s[1]+s[2] for s in summary)
         return zip(severities, counts)
 
+    def findComponentIndex(self, componentUid, uid=None, meta_type=None,
+                           sort='name', dir='ASC', name=None):
+        brains = self._componentSearch(uid=uid, meta_type=meta_type, sort=sort,
+                                       dir=dir, name=name)
+        for i, b in enumerate(brains):
+            if b.getPath()==componentUid:
+                return i
+
     def _componentSearch(self, uid=None, types=(), meta_type=(), start=0,
                          limit=None, sort='name', dir='ASC', name=None):
         reverse = dir=='DESC'
         if isinstance(types, basestring):
             types = (types,)
-        defaults =['Products.ZenModel.OSComponent.OSComponent',
-                   'Products.ZenModel.HWComponent.HWComponent']
+        defaults =['Products.ZenModel.DeviceComponent.DeviceComponent']
         defaults.extend(types)
         if isinstance(meta_type, basestring):
             meta_type = (meta_type,)

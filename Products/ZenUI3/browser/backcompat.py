@@ -41,7 +41,8 @@ def IpNetwork(ob):
     return '/zport/dmd/networks#networks:' + id
 
 def DeviceComponent(ob):
-    devpath = ob.device().getPrimaryPath()
+    devpath = ob.device().getPrimaryUrlPath()
     meta_type = ob.meta_type
-    return devpath + '/devdetail#Components:' + ob.meta_type
+    return ':'.join([devpath+'/devicedetail#deviceDetailNav', ob.meta_type,
+                    ob.getPrimaryUrlPath()])
 

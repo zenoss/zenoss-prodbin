@@ -26,6 +26,16 @@ REMOTE.getPriorities({}, function(d){
     Zenoss.env.PRIORITIES = d;
 });
 
+function selectOnRender(n) {
+    if (n.rendered) {
+        n.select();
+    } else {
+        n.render = n.render.createSequence(function(){
+            n.select();
+        }, n);
+    }
+}
+
 var ZEvActions = Zenoss.events.EventPanelToolbarActions;
 
 function setEventButtonsDisplayed(bool) {
@@ -111,15 +121,6 @@ Zenoss.nav.register({
         },
         action: function(node, target) {
             var child = node.firstChild;
-            function selectOnRender(n) {
-                if (n.rendered) {
-                    n.select();
-                } else {
-                    n.render = n.render.createSequence(function(){
-                        n.select();
-                    }, n);
-                }
-            }
             if (!child) {
                 node.on('append', function(tree,me,n){
                     selectOnRender(n);
@@ -132,6 +133,28 @@ Zenoss.nav.register({
             directFn: Zenoss.remote.DeviceRouter.getComponentTree,
             baseAttrs: {
                 uiProvider: Zenoss.HierarchyTreeNodeUI
+            },
+            listeners: {
+                load: function(loader, node, response) {
+                    var tree = node.getOwnerTree(),
+                        sm = tree.getSelectionModel(),
+                        sel = sm.getSelectedNode(),
+                        token = Ext.History.getToken(),
+                        panelid = tree.ownerCt.id;
+                    if (!sel && token && token.slice(0,panelid.length)==panelid) {
+                        var parts = token.split(Ext.History.DELIMITER),
+                            type = parts[1],
+                            rest = parts.slice(2).join(Ext.History.DELIMITER);
+                        if (type) {
+                            var tosel = node.findChild('id', type);
+                            if (tosel) {
+                                selectOnRender(tosel);
+                            }
+                            var card = Ext.getCmp('component_card');
+                            card.selectByToken(rest);
+                        }
+                    }
+                }
             }
         })
     }]
@@ -487,6 +510,11 @@ Zenoss.DeviceDetailNav = Ext.extend(Zenoss.DetailNavPanel, {
                 render: function(panel) {
                     this.setContext(UID);
                 },
+                navloaded: function() {
+                    Ext.History.init(function(mgr){
+                        Ext.History.selectByToken(mgr.getToken());
+                    });
+                },
                 scope: this
             }
         });
@@ -511,11 +539,22 @@ Zenoss.DeviceDetailNav = Ext.extend(Zenoss.DetailNavPanel, {
         return Zenoss.nav.Device;
     },
     selectByToken: function(token) {
-        var node = this.treepanel.getRootNode().findChildBy(function(n){
-            return n.id==token;
-        });
-        if (node) {
-            node.select();
+        var root = this.treepanel.getRootNode(),
+            loader = this.treepanel.loader,
+            sm = this.treepanel.getSelectionModel(),
+            sel = sm.getSelectedNode(),
+            findAndSelect = function() {
+                var node = root.findChildBy(function(n){
+                    return n.id==token;
+                });
+                if (node && sel!=node) {
+                    selectOnRender(node);
+                }
+            };
+        if (root.childNodes.length===0) {
+            loader.on('load', findAndSelect);
+        } else {
+            findAndSelect();
         }
     },
     onSelectionChange: function(node) {
@@ -538,7 +577,10 @@ Zenoss.DeviceDetailNav = Ext.extend(Zenoss.DetailNavPanel, {
                 target.layout.setActiveItem(node.attributes.id);
             }.createDelegate(this);
         }
-        Ext.History.add(this.id + Ext.History.DELIMITER + node.id);
+        var token = this.id + Ext.History.DELIMITER + node.id;
+        if (Ext.History.getToken().slice(0, token.length)!=token) {
+            Ext.History.add(token);
+        }
         action(node, target);
     }
 });

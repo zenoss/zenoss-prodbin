@@ -68,6 +68,12 @@ class DeviceRouter(TreeRouter):
             ))
         return result
 
+    def findComponentIndex(self, componentUid, uid=None, meta_type=None,
+                           sort='name', dir='ASC', name=None, **kwargs):
+        facade = self._getFacade()
+        i = facade.findComponentIndex(componentUid, uid, meta_type, sort, dir, name)
+        return DirectResponse(index=i)
+
     def getForm(self, uid):
         info = self._getFacade().getInfo(uid)
         form = IFormBuilder(info).render()

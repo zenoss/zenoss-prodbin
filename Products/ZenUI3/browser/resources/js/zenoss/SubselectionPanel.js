@@ -421,9 +421,13 @@ Zenoss.DetailNavPanel = Ext.extend(Zenoss.SubselectionPanel,{
         return root;
     },
     selectFirst: function(me, root) {
-        var sel = root.getOwnerTree().getSelectionModel().getSelectedNode();
+        var sel = root.getOwnerTree().getSelectionModel().getSelectedNode(),
+            token = Ext.History.getToken(),
+            firstToken = me.id + Ext.History.DELIMITER + root.firstChild.id;
         if (!sel) {
-            root.firstChild.select();
+            if (!token || (token && token==firstToken)) {
+                root.firstChild.select();
+            }
         }
     },
     setNavTree: function(nodes){

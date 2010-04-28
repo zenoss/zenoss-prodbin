@@ -525,4 +525,10 @@
     factory=".backcompat.IpNetwork"
     />
 
+<adapter
+    for="Products.ZenModel.DeviceComponent.DeviceComponent"
+    provides=".interfaces.INewPath"
+    factory=".backcompat.DeviceComponent"
+    />
+
 </configure>

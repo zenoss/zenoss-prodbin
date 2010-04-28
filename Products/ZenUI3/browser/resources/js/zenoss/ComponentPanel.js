@@ -253,6 +253,26 @@ ZC.ComponentPanel = Ext.extend(Ext.Panel, {
     getGridToolbar: function(){
         return Ext.getCmp(this.tbarid);
     },
+    selectByToken: function(token) {
+        var grid = this.componentgrid,
+            store = grid.getStore(),
+            sm = grid.getSelectionModel(),
+            view = grid.getView();
+        if (token) {
+            store.findByUid(token, function(record, index) {
+                if (!sm.isSelected(index)) {
+                    if (index<=this.store.bufferRange[1]) {
+                        sm.selectRow(index);
+                    } else {
+                        view.on('buffer', function(){
+                            sm.selectRow(index);
+                        }, this.store, {single:true});
+                    }
+                    view.ensureVisible(index);
+                }
+            }, grid);
+        }
+    },
     setContext: function(uid, type) {
         this.contextUid = uid;
         if (type!=this.componentType) {
@@ -276,6 +296,9 @@ ZC.ComponentPanel = Ext.extend(Ext.Panel, {
                         var row = sm.getSelected();
                         if (row) {
                             this.componentnav.setContext(row.data.uid);
+                            var delimiter = Ext.History.DELIMITER,
+                                token = Ext.History.getToken().split(delimiter, 2).join(delimiter);
+                            Ext.History.add(token + delimiter + row.data.uid);
                         } else {
                             this.detailcontainer.removeAll();
                             this.componentnav.reset();
@@ -312,7 +335,8 @@ ZC.ComponentGridPanel = Ext.extend(Ext.ux.grid.livegrid.GridPanel, {
                 suppressDeselectOnSelect: true
             }),
             view: new Ext.ux.grid.livegrid.GridView({
-                rowHeight: 10,
+                rowHeight: 22,
+                nearLimit: 20,
                 listeners: {
                     beforeload: this.onBeforeLoad,
                     beforebuffer: this.onBeforeBuffer,
@@ -356,7 +380,10 @@ ZC.ComponentGridPanel = Ext.extend(Ext.ux.grid.livegrid.GridPanel, {
     setContext: function(uid) {
         this.contextUid = uid;
         this.getStore().on('load', function(){
-            this.getSelectionModel().selectRow(0);
+            var token = Ext.History.getToken();
+            if (token.split(Ext.History.DELIMITER).length!=3) {
+                this.getSelectionModel().selectRow(0);
+            }
         }, this, {single:true});
         this.view.updateLiveRows(0, true, true, false);
     }
@@ -380,10 +407,37 @@ ZC.BaseComponentStore = Ext.extend(Ext.ux.grid.livegrid.Store, {
             }),
             reader: new Ext.ux.grid.livegrid.JsonReader({
                 root: 'data',
+                totalProperty: 'totalCount',
                 fields: fields
             })
         });
         ZC.BaseComponentStore.superclass.constructor.call(this, config);
+        this.on('load', function(){this.loaded = true;}, this);
+    },
+    findByUid: function(uid, callback, scope) {
+        var doit = function() {
+            var i = 0, found = false;
+            this.each(function(r){
+                if (r.data.uid==uid) {
+                    callback.call(scope||this, r, i);
+                    found = true;
+                    return false;
+                }
+                i++;
+            });
+            if (!found) {
+                var o = {componentUid:uid};
+                Ext.apply(o, this.lastOptions.params);
+                Zenoss.remote.DeviceRouter.findComponentIndex(o, function(r){
+                    callback.call(scope||this, null, r.index);
+                });
+            }
+        }.createDelegate(this);
+        if (!this.loaded) {
+            this.on('load', doit, this);
+        } else {
+            doit();
+        }
     }
 });
 
