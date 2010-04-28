@@ -101,6 +101,7 @@ Zenoss.footerHelper = function(itemName, footerBar, options) {
         addDialogConfig = Ext.applyIf(options.customAddDialog || {}, {
             submitHandler: handler,
             title: title,
+            height: 175,
             itemId: 'addDialog',
             items: [{
                 xtype: 'textfield',

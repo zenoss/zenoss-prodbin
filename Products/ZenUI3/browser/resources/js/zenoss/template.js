@@ -17,7 +17,8 @@ Ext.onReady(function(){
 
 var router, treeId, dataSourcesId, thresholdsId, graphsId,
     beforeselectHandler, updateDataSources, updateThresholds, updateGraphs,
-    selectionchangeHandler, selModel, footerPanel;
+    selectionchangeHandler, selModel, footerBar, override, overrideHtml1,
+    overrideHtml2, showOverrideDialog, resetCombo;
 
 router = Zenoss.remote.TemplateRouter;
 treeId = 'templateTree';
@@ -25,6 +26,17 @@ dataSourcesId = 'dataSourceTreeGrid';
 thresholdsId = Zenoss.templates.thresholdsId;
 graphsId = 'graphGrid';
 
+resetCombo = function(combo, uid) {
+    combo.clearValue();
+    combo.getStore().setBaseParam('uid', uid);
+    delete combo.lastQuery;
+    combo.doQuery(combo.allQuery, true);
+};
+
+function reloadTree() {
+    Ext.getCmp(treeId).getRootNode().reload();  
+}
+                
 beforeselectHandler = function(sm, node, oldNode) {
     return node.isLeaf();
 };
@@ -92,13 +104,228 @@ Ext.getCmp('master_panel').add({
     xtype: 'TemplateTreePanel',
     selModel: selModel
 });
+                
+/**********************************************************************
+ *
+ * Edit Template Information
+ *
+ */
+                
+/**
+ * Shows the edit template dialog and sends the form values back to the server.
+ **/
+function showEditTemplateDialog(response) {
+    var config, dialog, handler,
+        data = response.data,
+        dirtyOnly = true;
 
-footerPanel = Ext.getCmp('footer_panel');
-footerPanel.removeAll();
-footerPanel.add({
-    xtype: 'TreeFooterBar',
-    id: 'footer_bar',
-    bubbleTargetId: treeId
+    // save function (also reloads the tree, in case we change the name)
+    handler = function() {
+        var values = Ext.getCmp('editTemplateDialog').editForm.getForm().getFieldValues(dirtyOnly);
+        values.uid = data.uid;
+        router.setInfo(values, reloadTree);
+    };
+    
+    // form config
+    config = {
+        submitHandler: handler,
+        id: 'editTemplateDialog',
+        height: 300,
+        title: _t('Edit Template Details'),
+        items: [{
+            xtype: 'textfield',
+            name: 'newId',
+            fieldLabel: _t('Name'),
+            allowBlank: false,
+            ref: 'templateName'
+        },{
+            xtype: 'textfield',
+            name: 'targetPythonClass',
+            fieldLabel: _t('Target Class'),
+            allowBlank: true,
+            ref: 'targetPythonClass'
+        },{
+            xtype: 'textarea',
+            name: 'description',
+            fieldLabel: _t('Description'),
+            ref: 'description'            
+        }]
+    };
+    
+    dialog = new Zenoss.SmartFormDialog(config);
+    
+    // set our form to monitor for errors  
+    dialog.editForm.startMonitoring();
+    dialog.editForm.addListener('clientvalidation', function(formPanel, valid){
+        var dialogWindow;
+        dialogWindow = formPanel.refOwner;
+        dialogWindow.buttonSubmit.setDisabled( !valid );
+    });
+    
+    // populate the form
+    dialog.editForm.templateName.setValue(data.name);
+    dialog.editForm.targetPythonClass.setValue(data.targetPythonClass);
+    dialog.editForm.description.setValue(data.description);
+    dialog.show();  
+}
+                
+/**
+ * Gets the selected template information from the server
+ **/
+function editSelectedTemplate() {
+    var params = {
+        uid: Ext.getCmp(treeId).getSelectionModel().getSelectedNode().attributes.uid
+    };
+    router.getInfo(params, showEditTemplateDialog);
+}
+/**********************************************************************
+ *
+ * Override Templates
+ *
+ */
+override = function() {
+    var node, params, callback;
+    node = Ext.getCmp('templateTree').getSelectionModel().getSelectedNode();
+    params = {
+        uid: node.attributes.uid,
+        targetUid: Ext.getCmp('targetCombo').getValue()
+    };
+    callback = function() {
+        Ext.getCmp('templateTree').getRootNode().reload();
+    };
+    router.copyTemplate(params, callback);
+};
+
+overrideHtml1 = function() {
+    var html;
+    html = _t('Do you wish to override the selected monitoring template? This will affect all devices using the monitoring template.');
+    html += '<br/><br/>';
+    return html;
+};
+
+overrideHtml2 = function() {
+    var html;
+    html = _t('If new thresholds, graphs, are added or removed, or datasources added or disabled, these will be saved to this local copy of template.');
+    html += '<br/><br/>';
+    html += _t('Override lets you save this template overriding the original template at the root level.');
+    return html;
+};
+
+new Zenoss.HideFormDialog({
+    id: 'overrideDialog',
+    title: _t('Override'),
+    width: 500,
+    items: [
+    {
+        xtype: 'panel',
+        border: false,
+        html: overrideHtml1()
+    }, {
+        xtype: 'button',
+        id: 'learnMore',
+        border: false,
+        text: _t('Learn more'),
+        handler: function() {
+            Ext.getCmp('learnMore').hide();
+            Ext.getCmp('detailedExplanation').show();
+        }
+    }, {
+        xtype: 'panel',
+        id: 'detailedExplanation',
+        border: false,
+        html: overrideHtml2(),
+        hidden: true
+    }, {
+        xtype: 'panel',
+        border: false,
+        html: '<br/>'
+    }, {
+        xtype: 'combo',
+        id: 'targetCombo',
+        fieldLabel: _t('Target'),
+        quickTip: _t('The selected monitoring template will be copied to the specified device class or device.'),
+        forceSelection: true,
+        emptyText: _t('Select a target...'),
+        minChars: 0,
+        selectOnFocus: true,
+        valueField: 'uid',
+        displayField: 'label',
+        typeAhead: true,
+        width: 450,
+        store: {
+            xtype: 'directstore',
+            directFn: router.getCopyTargets,
+            fields: ['uid', 'label'],
+            root: 'data'
+        },
+        listeners: {
+            select: function(){
+                Ext.getCmp('overrideDialog').submit.enable();
+            }
+        }
+    }],
+    buttons: [
+    {
+        xtype: 'HideDialogButton',
+        ref: '../submit',
+        text: _t('Submit'),
+        handler: function(button, event) {
+            override();
+        }
+    }, {
+        xtype: 'HideDialogButton',
+        text: _t('Cancel')
+    }]
+});
+
+showOverrideDialog = function() {
+    var sm, uid, combo;
+    sm = Ext.getCmp('templateTree').getSelectionModel();
+    uid = sm.getSelectedNode().attributes.uid;
+    Ext.getCmp('overrideDialog').show();
+    combo = Ext.getCmp('targetCombo');
+    resetCombo(combo, uid);
+    Ext.getCmp('overrideDialog').submit.disable();
+};
+
+/**********************************************************************
+ *
+ * Footer Bar
+ *
+ */
+footerBar = Ext.getCmp('footer_bar');
+Zenoss.footerHelper(_t('Monitoring Template'),
+                    footerBar, {
+                        hasOrganizers: false,
+                        addToZenPack: false    
+                    });
+                
+footerBar.buttonContextMenu.menu.add({
+    text: _t('View and Edit Details'),
+    disabled: Zenoss.Security.doesNotHavePermission('Manage DMD'),
+    handler: editSelectedTemplate
+},{
+    xtype: 'menuitem',
+    text: _t('Override Template'),
+    handler: showOverrideDialog
+});
+
+footerBar.on('buttonClick', function(actionName, id, values) {
+    var params;
+    switch (actionName) {
+        case 'addClass':
+            params = {
+                id: values.id
+            }; 
+            router.addTemplate(params, reloadTree);
+        break;
+        case 'delete':
+            params = {
+                uid: Ext.getCmp(treeId).getSelectionModel().getSelectedNode().attributes.uid
+            };
+            router.deleteTemplate(params, reloadTree);
+        break;
+    }
 });
 
 }); // Ext.onReady

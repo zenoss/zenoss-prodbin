@@ -669,6 +669,7 @@ Ext.create({
     plain: true,
     modal: true,
     width: 400,
+    height: 500,
     padding: 10,
     buttons: [{
         ref: '../submitButton',

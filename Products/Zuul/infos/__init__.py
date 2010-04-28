@@ -83,6 +83,12 @@ class InfoBase(object):
 
     description = property(getDescription, setDescription)
 
+    def rename(self, newId):
+        """
+        Call this when you wish to change the ID of the object, not just its title. This will recatalog it.
+        """
+        self._object.rename(newId)
+        
     def __repr__(self):
         return '<%s Info "%s">' % (self._object.__class__.__name__, self.id)
 

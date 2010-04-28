@@ -15,8 +15,11 @@ from Products.Zuul.infos import InfoBase, ProxyProperty
 from Products.Zuul.utils import severityId
 from Products.Zuul.interfaces import template as templateInterfaces
 
+class TemplateInfo(InfoBase):
+    description = ProxyProperty('description')
+    targetPythonClass = ProxyProperty('targetPythonClass')
 
-class TemplateNode(InfoBase):
+class TemplateNode(TemplateInfo):
 
     def __init__(self, template):
         self._object = template
@@ -31,6 +34,10 @@ class TemplateNode(InfoBase):
         return self._object.id
 
     @property
+    def qtip(self):
+        return self._object.description
+    
+    @property
     def children(self):
         def caseInsensitive(x, y):
             return cmp(x.text.lower(), y.text.lower())
@@ -40,8 +47,8 @@ class TemplateNode(InfoBase):
     def _addChild(self, leaf):
         self._children.append(leaf)
 
-
-class TemplateLeaf(InfoBase):
+        
+class TemplateLeaf(TemplateInfo):
 
     def __init__(self, template):
         self._object = template
@@ -53,13 +60,17 @@ class TemplateLeaf(InfoBase):
         return '%s.%s' % (templateId, parent)
 
     @property
+    def qtip(self):
+        return self._object.description
+    
+    @property
     def text(self):
         return self._object.getUIPath()
 
     @property
     def leaf(self):
         return True
-
+        
 
 class RRDDataSourceInfo(InfoBase):
     implements(templateInterfaces.IRRDDataSourceInfo)

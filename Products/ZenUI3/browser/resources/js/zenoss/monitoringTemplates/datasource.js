@@ -16,8 +16,7 @@
 (function(){
 
 var router, dataSourcesId, graphsId, resetCombo,  
-    addMetricToGraph, showAddToGraphDialog, override, overrideHtml1,
-    overrideHtml2, showOverrideDialog, editDataSourcesId, treeId, dataSourceMenu;
+    addMetricToGraph, showAddToGraphDialog, editDataSourcesId, treeId, dataSourceMenu;
 
 Ext.ns('Zenoss');
 
@@ -130,116 +129,6 @@ showAddToGraphDialog = function() {
     }
 };
      
-/**********************************************************************
- *
- * Override Templates
- *
- */
-override = function() {
-    var node, params, callback;
-    node = Ext.getCmp('templateTree').getSelectionModel().getSelectedNode();
-    params = {
-        uid: node.attributes.uid,
-        targetUid: Ext.getCmp('targetCombo').getValue()
-    };
-    callback = function() {
-        Ext.getCmp('templateTree').getRootNode().reload();
-    };
-    router.copyTemplate(params, callback);
-};
-
-overrideHtml1 = function() {
-    var html;
-    html = 'Do you wish to override the selected monitoring template? This';
-    html += ' will affect all devices using the monitoring template.<br/><br/>';
-    return html;
-};
-
-overrideHtml2 = function() {
-    var html;
-    html = 'If new thresholds, graphs, are added or removed, or datasources';
-    html += ' added or disabled, these will be saved to this local copy of';
-    html += ' template.<br/><br/>Override lets you save this template';
-    html += ' overriding the original template at the root level.';
-    return html;
-};
-
-new Zenoss.HideFormDialog({
-    id: 'overrideDialog',
-    title: _t('Override'),
-    width: 500,
-    items: [
-    {
-        xtype: 'panel',
-        border: false,
-        html: overrideHtml1()
-    }, {
-        xtype: 'button',
-        id: 'learnMore',
-        border: false,
-        text: _t('Learn more'),
-        handler: function() {
-            Ext.getCmp('learnMore').hide();
-            Ext.getCmp('detailedExplanation').show();
-        }
-    }, {
-        xtype: 'panel',
-        id: 'detailedExplanation',
-        border: false,
-        html: overrideHtml2(),
-        hidden: true
-    }, {
-        xtype: 'panel',
-        border: false,
-        html: '<br/>'
-    }, {
-        xtype: 'combo',
-        id: 'targetCombo',
-        fieldLabel: 'Target',
-        quickTip: 'The selected monitoring template will be copied to the specified device class or device.',
-        forceSelection: true,
-        emptyText: 'Select a target...',
-        minChars: 0,
-        selectOnFocus: true,
-        valueField: 'uid',
-        displayField: 'label',
-        typeAhead: true,
-        width: 450,
-        store: {
-            xtype: 'directstore',
-            directFn: router.getCopyTargets,
-            fields: ['uid', 'label'],
-            root: 'data'
-        },
-        listeners: {
-            select: function(){
-                Ext.getCmp('overrideDialog').submit.enable();
-            }
-        }
-    }],
-    buttons: [
-    {
-        xtype: 'HideDialogButton',
-        ref: '../submit',
-        text: _t('Submit'),
-        handler: function(button, event) {
-            override();
-        }
-    }, {
-        xtype: 'HideDialogButton',
-        text: _t('Cancel')
-    }]
-});
-
-showOverrideDialog = function() {
-    var sm, uid, combo;
-    sm = Ext.getCmp('templateTree').getSelectionModel();
-    uid = sm.getSelectedNode().attributes.uid;
-    Ext.getCmp('overrideDialog').show();
-    combo = Ext.getCmp('targetCombo');
-    resetCombo(combo, uid);
-    Ext.getCmp('overrideDialog').submit.disable();
-};
      
 /**********************************************************************
  *
@@ -652,10 +541,6 @@ dataSourceMenu = new Ext.menu.Menu({
         text: _t('View and Edit Details'),
         disable: Zenoss.Security.doesNotHavePermission('Manage DMD'),
         handler: editDataSourceOrPoint
-    },{
-        xtype: 'menuitem',
-        text: _t('Override Template'),
-        handler: showOverrideDialog
     }]
 });
      

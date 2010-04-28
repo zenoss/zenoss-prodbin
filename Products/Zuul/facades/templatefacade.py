@@ -146,7 +146,7 @@ class TemplateFacade(ZuulFacade):
         """
         obj = self._getObject(uid)
         return self._getDataSourceInfoFromObject(obj)
-        
+            
     def setInfo(self, uid, data):
         """
         Given a dictionary of {property name: property value}
@@ -157,6 +157,14 @@ class TemplateFacade(ZuulFacade):
         """
         obj = self._getObject(uid)
         info = self._getDataSourceInfoFromObject(obj)
+
+        # see if we need to rename the object
+        newId = None
+        if 'newId' in data:
+            newId = data['newId']
+            del data['newId']
+            info.rename(newId)
+            
         return self._editDetails(info, data)
     
     def getDataPointDetails(self, uid):
