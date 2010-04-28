@@ -38,6 +38,13 @@ function selectOnRender(n) {
 
 var ZEvActions = Zenoss.events.EventPanelToolbarActions;
 
+function deviceColumnDefinitions() {
+    var defs = Zenoss.env.COLUMN_DEFINITIONS;
+    return Zenoss.util.filter(defs, function(d){
+        return d.id != "device";
+    });
+}
+
 function setEventButtonsDisplayed(bool) {
     var actions = [
         ZEvActions.acknowledge,
@@ -497,8 +504,9 @@ var event_console = Ext.create({
             ZEvActions.newwindow
         ]
     },
-    columns: Zenoss.env.COLUMN_DEFINITIONS
+    columns: deviceColumnDefinitions()
 });
+
 
 
 Zenoss.DeviceDetailNav = Ext.extend(Zenoss.DetailNavPanel, {

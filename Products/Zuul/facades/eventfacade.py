@@ -135,7 +135,6 @@ class EventFacade(ZuulFacade):
                     url, titleOrId = self._get_component_url(dev, value)
                     titleOrId = titleOrId or value
                     data['component'] = dict(uid=url, text=titleOrId)
-                    
             else:
                 value = _shortvalue
             if field not in data:
@@ -193,6 +192,8 @@ class EventFacade(ZuulFacade):
             else:
                 base = self._dmd.Events.primaryAq()
             fs = zem.lookupManagedEntityResultFields(base.event_key)
+        if 'component' in fs and 'device' not in fs:
+            fs += ('device',)
         return fs
 
     def query(self, limit=0, start=0, sort='lastTime', dir='DESC', 

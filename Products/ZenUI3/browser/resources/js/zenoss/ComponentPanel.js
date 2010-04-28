@@ -19,6 +19,14 @@ var ZC = Ext.ns('Zenoss.component');
 
 var ZEvActions = Zenoss.events.EventPanelToolbarActions;
 
+function componentColumnDefinitions() {
+    var defs = Zenoss.env.COLUMN_DEFINITIONS,
+        bad = ['component', 'device'];
+    return Zenoss.util.filter(defs, function(d){
+        return bad.indexOf(d.id)==-1;
+    });
+}
+
 function render_link(ob) {
     if (ob && ob.uid) {
         return Zenoss.render.link(ob.uid);
@@ -44,7 +52,7 @@ Zenoss.nav.register({
                     id: cardid,
                     xtype: 'SimpleEventGridPanel',
                     stateful: false,
-                    columns: Zenoss.env.COLUMN_DEFINITIONS
+                    columns: componentColumnDefinitions()
                 });
                 var tbar = target.getTopToolbar();
                 if (tbar._btns) {
