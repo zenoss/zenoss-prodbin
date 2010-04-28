@@ -587,7 +587,7 @@ Zenoss.DeviceDetailNav = Ext.extend(Zenoss.DetailNavPanel, {
         }
         var token = Ext.History.getToken(),
             mytoken = this.id + Ext.History.DELIMITER + node.id;
-        if (token && token.slice(0, mytoken.length)!=mytoken) {
+        if (!token || token.slice(0, mytoken.length)!=mytoken) {
             Ext.History.add(mytoken);
         }
         action(node, target);
