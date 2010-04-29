@@ -346,6 +346,17 @@ Ext.onReady(function(){
                 iconCls: 'add',
                 handler: showAddEventDialog
             },{
+                /*  
+                 * REFRESH BUTTON 
+                 */ 
+                // text: _t('Refresh'), 
+                id: 'refresh-icon', 
+                iconCls: 'refresh', 
+                handler: function() { 
+                    view = grid.getView(); 
+                    view.updateLiveRows(view.rowIndex, true, true); 
+                } 
+            },{             
                 xtype: 'tbseparator'
             },{
                 /*

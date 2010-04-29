@@ -501,7 +501,8 @@ var event_console = Ext.create({
         items: [
             ZEvActions.acknowledge,
             ZEvActions.close,
-            ZEvActions.newwindow
+            ZEvActions.newwindow,
+            ZEvActions.refresh
         ]
     },
     columns: deviceColumnDefinitions()

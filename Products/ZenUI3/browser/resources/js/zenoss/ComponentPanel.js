@@ -62,7 +62,8 @@ Zenoss.nav.register({
                     '-',
                     ZEvActions.acknowledge,
                     ZEvActions.close,
-                    ZEvActions.newwindow
+                    ZEvActions.newwindow,
+                    ZEvActions.refresh
                 ]);
                 Ext.each(btns, function(b){b.grid = panel;});
                 tbar.doLayout();

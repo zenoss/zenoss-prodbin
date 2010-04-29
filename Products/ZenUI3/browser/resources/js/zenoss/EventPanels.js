@@ -418,6 +418,16 @@ Zenoss.events.EventPanelToolbarActions = {
             url = '/zport/dmd/Events/evconsole?state=' + st;
             window.open(url, '_newtab', "");
         }
+    }),
+    refresh: new Zenoss.Action({
+        //text: _t('refresh'),
+        iconCls: 'refresh',
+        permission: 'View',
+        handler: function(btn) {
+            var grid = btn.grid || this.ownerCt.ownerCt,
+                view = grid.getView();
+            view.updateLiveRows(view.rowIndex, true, true);
+        }
     })
 }
 

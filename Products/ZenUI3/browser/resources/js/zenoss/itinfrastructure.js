@@ -1143,7 +1143,8 @@ Ext.getCmp('center_panel').add({
                 },
                     '-',
                     ZEvActions.acknowledge,
-                    ZEvActions.close
+                    ZEvActions.close,
+                    ZEvActions.refresh
                 ]
             }
         }]
