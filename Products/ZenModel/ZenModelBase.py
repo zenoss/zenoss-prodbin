@@ -283,7 +283,7 @@ class ZenModelBase(object):
             url = ""
             if self.checkRemotePerm("View", curDir):
                 url = curDir.getBreadCrumbUrlPath()
-            links.append((url, curDir.titleOrId()))
+            links.append((url, curDir.title_or_id()))
             curDir = curDir.aq_parent
         links.reverse()
         return links

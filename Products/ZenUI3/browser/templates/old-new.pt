@@ -30,13 +30,11 @@
 <tal:block metal:fill-slot="center_panel_content">
     <tal:block metal:use-macro="here/dialogmacros/macros/proxyForm"/>
     <tal:block metal:use-macro="here/dialogmacros/macros/dialog_with_buttons"/>
-    <div id="oldContentPane">
-        <tal:block metal:define-slot="center_content">
-            <div id="contentPaneContainer">
-                <tal:block metal:define-slot="contentPane"/>
-            </div>
-        </tal:block>
-    </div>
+    <tal:block metal:define-slot="center_content">
+        <div id="contentPaneContainer">
+            <tal:block metal:define-slot="contentPane"/>
+        </div>
+    </tal:block>
 </tal:block>
 
 <tal:block metal:fill-slot="script_layout">
@@ -56,6 +54,11 @@ Ext.onReady(function(){
             bodyCssClass: 'z-bc-tab-pane',
             contentEl: 'newTabsPane',
             split: true
+        },{
+            region: 'north',
+            height: 26,
+            bodyCssClass: 'z-bc-bread-crumb-pane',
+            contentEl: 'breadCrumbPane'
         });
     }
     Ext.getCmp('center_panel').add({
@@ -90,6 +93,9 @@ Ext.onReady(function(){
 </tal:block>
 
 <tal:block metal:fill-slot="center_content">
+<div metal:define-slot="breadcrumbs" id="breadCrumbPane">
+    <span metal:use-macro="here/miscmacros/macros/breadCrumbs"/>
+</div>
 <script>Zenoss.env.pageHasTabs = true;</script>
 <div class="z-bc">
     <div metal:use-macro="here/templates/macros/newTabsPane"/>

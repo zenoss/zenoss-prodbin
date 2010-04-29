@@ -268,19 +268,15 @@ span.searchform-label {
 	font-size: 9pt;
     height: 25px;
     line-height: 25px;
-    padding-top: 0px;
-	padding-bottom: 5px;
-    padding-left: 120px;
-    padding-right: 180px;
 	margin: 0px;
 	font-weight: bold;
 	border: medium none;
     position: relative;
-    top: -2px;
+    border-bottom: 1px solid #888;
 }
 
 #breadCrumbPane a {
-	color: inherit;
+	color: #454545;
 	font-size: inherit;
 /*	background: inherit;
 */	font-weight: inherit;

@@ -727,3 +727,29 @@ span.status-down {
     bottom: 1px;
 }
 
+#breadCrumbPane {
+    background: transparent url('/++resource++zenui/img/xtheme-zenoss/toolbar/bg.gif') repeat-x bottom left;
+	font-size: 9pt;
+    height: 25px;
+    line-height: 25px;
+    padding-left: 21px;
+	margin: 0px;
+	border: medium none;
+    position: relative;
+    border-bottom: 1px solid #888;
+}
+
+#breadCrumbPane a {
+    padding-left: 2px;
+    padding-right: 12px;
+    background: transparent url('/++resource++zenui/img/xtheme-zenoss/toolbar/tb-evdetail-sep.png') center right no-repeat;
+	color: #454545;
+	font-size: inherit;
+	font-weight: bold;
+    text-decoration: none;
+}
+
+#breadCrumbPane a:hover {
+    text-decoration: underline;
+}
+
