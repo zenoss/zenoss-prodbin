@@ -367,25 +367,14 @@ class ZenTrap(EventServer, CaptureReplay):
             oid = ''
             eventType = 'unknown'
             result = {}
-            if pdu.version == 1:
-                # SNMP v2
-                variables = self.getResult(pdu)
-                for vb_oid, vb_value in variables:
-                    vb_oid = '.'.join(map(str, vb_oid))
-                    # SNMPv2-MIB/snmpTrapOID
-                    if vb_oid == '1.3.6.1.6.3.1.1.4.1.0':
-                        oid = '.'.join(map(str, vb_value))
-                        eventType = self.oid2name(
-                            vb_value, exactMatch=False, strip=False)
-                    else:
-                        # Add a detail for the variable binding.
-                        r = self.oid2name(vb_oid, exactMatch=False, strip=False)
-                        result[r] = vb_value
-                        # Add a detail for the index-stripped variable binding.
-                        r = self.oid2name(vb_oid, exactMatch=False, strip=True)
-                        result[r] = vb_value
 
-            elif pdu.version == 0:
+            # Some misbehaving agents will send SNMPv1 traps contained within
+            # an SNMPv2c PDU. So we can't trust tpdu.version to determine what
+            # version trap exists within the PDU. We need to assume that a
+            # PDU contains an SNMPv1 trap if the enterprise_length is greater
+            # than zero in addition to the PDU version being 0.
+
+            if pdu.version == 0 or pdu.enterprise_length > 0:
                 # SNMP v1
                 variables = self.getResult(pdu)
                 addr[0] = '.'.join(map(str, [pdu.agent_addr[i] for i in range(4)]))
@@ -402,7 +391,7 @@ class ZenTrap(EventServer, CaptureReplay):
                 name = self.oid2name(oid, exactMatch=True, strip=False)
 
                 # If we didn't get a match with the .0. inserted we will try
-                # resolving withing the .0. inserted and allow partial matches.
+                # resolving with the .0. inserted and allow partial matches.
                 if name == oid:
                     oid = "%s.%d" % (enterprise, specific)
                     name = self.oid2name(oid, exactMatch=False, strip=False)
@@ -429,6 +418,25 @@ class ZenTrap(EventServer, CaptureReplay):
                     # Add a detail for the index-stripped variable binding.
                     r = self.oid2name(vb_oid, exactMatch=False, strip=True)
                     result[r] = vb_value
+
+            elif pdu.version == 1:
+                # SNMP v2
+                variables = self.getResult(pdu)
+                for vb_oid, vb_value in variables:
+                    vb_oid = '.'.join(map(str, vb_oid))
+                    # SNMPv2-MIB/snmpTrapOID
+                    if vb_oid == '1.3.6.1.6.3.1.1.4.1.0':
+                        oid = '.'.join(map(str, vb_value))
+                        eventType = self.oid2name(
+                            vb_value, exactMatch=False, strip=False)
+                    else:
+                        # Add a detail for the variable binding.
+                        r = self.oid2name(vb_oid, exactMatch=False, strip=False)
+                        result[r] = vb_value
+                        # Add a detail for the index-stripped variable binding.
+                        r = self.oid2name(vb_oid, exactMatch=False, strip=True)
+                        result[r] = vb_value
+
             else:
                 self.log.error("Unable to handle trap version %d", pdu.version)
                 return
