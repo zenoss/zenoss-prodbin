@@ -133,11 +133,11 @@ class ServiceRouter(TreeRouter):
         return DirectResponse.succeed(data=data)
 
     def getInstances(self, uid, start=0, params=None, limit=50, sort='name',
-                   order='ASC'):
+                   dir='ASC'):
         if isinstance(params, basestring):
             params = unjson(params)
         instances = self.api.getInstances(uid, start=start, params=params,
-                                          limit=limit, sort=sort, dir=order)
+                                          limit=limit, sort=sort, dir=dir)
 
         keys = ['description', 'device', 'locking', 'monitored', 'name',
                 'status', 'uid']
