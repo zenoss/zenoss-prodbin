@@ -13,12 +13,12 @@
 
 from itertools import imap
 from zope.interface import implements
-from Acquisition import aq_parent
+from Acquisition import aq_base, aq_parent
 from Products.AdvancedQuery import Eq, Or, And, MatchRegexp
 from Products.Zuul.decorators import info
 from Products.Zuul.utils import unbrain
 from Products.Zuul.facades import TreeFacade
-from Products.Zuul.interfaces import IDeviceFacade, ICatalogTool, IInfo, ITemplateNode
+from Products.Zuul.interfaces import IDeviceFacade, ICatalogTool, IInfo, ITemplateNode, ILocationOrganizerInfo
 from Products.Zuul.tree import SearchResults
 from Products.ZenModel.DeviceOrganizer import DeviceOrganizer
 from Products.ZenModel.DeviceGroup import DeviceGroup
@@ -105,7 +105,7 @@ class DeviceFacade(TreeFacade):
 
     def getComponentTree(self, uid=None, types=(), meta_type=()):
         d = {}
-        # Build a dictionary with device/component 
+        # Build a dictionary with device/component
         for b in self._componentSearch(uid, types, meta_type):
             component = b.id
             path = b.getPath().split('/')
@@ -241,10 +241,10 @@ class DeviceFacade(TreeFacade):
         elif isinstance(target, DeviceClass):
             self._dmd.Devices.moveDevices(targetname,[dev.id for dev in devs])
 
-    def addDevice(self, deviceName, deviceClass, title=None, snmpCommunity="", 
-                  snmpPort=161, model=False, collector='localhost', 
-                  rackSlot=0, productionState=1000, comments="", 
-                  hwManufacturer="", hwProductName="", osManufacturer="", 
+    def addDevice(self, deviceName, deviceClass, title=None, snmpCommunity="",
+                  snmpPort=161, model=False, collector='localhost',
+                  rackSlot=0, productionState=1000, comments="",
+                  hwManufacturer="", hwProductName="", osManufacturer="",
                   osProductName="", priority = 3, tag="", serialNumber=""):
         zProps = dict(zSnmpCommunity=snmpCommunity,
                            zSnmpPort=snmpPort)
@@ -255,14 +255,14 @@ class DeviceFacade(TreeFacade):
                                                performanceMonitor=collector,
                                                discoverProto=model,
                                                zProperties=zProps,
-                                               rackSlot=rackSlot, 
-                                               productionState=productionState, 
-                                               comments=comments, 
+                                               rackSlot=rackSlot,
+                                               productionState=productionState,
+                                               comments=comments,
                                                hwManufacturer=hwManufacturer,
-                                               hwProductName=hwProductName, 
+                                               hwProductName=hwProductName,
                                                osManufacturer=osManufacturer,
-                                               osProductName=osProductName, 
-                                               priority=priority, 
+                                               osProductName=osProductName,
+                                               priority=priority,
                                                tag=tag,
                                                serialNumber=serialNumber,
                                                title=title)
@@ -271,17 +271,17 @@ class DeviceFacade(TreeFacade):
     def getTemplates(self, id):
         object = self._getObject(id)
         rrdTemplates = object.getRRDTemplates()
-                
+
         # used to sort the templates
         def byTitleOrId(left, right):
             return cmp(left.titleOrId().lower(), right.titleOrId().lower())
-        
+
         for rrdTemplate in sorted(rrdTemplates, byTitleOrId):
             uid = '/'.join(rrdTemplate.getPrimaryPath())
-            # only show Bound Templates 
+            # only show Bound Templates
             if rrdTemplate.id in object.zDeviceTemplates:
                 path = rrdTemplate.getUIPath()
-                
+
                 # if defined directly on the device do not show the path
                 if isinstance(object, Device) and object.titleOrId() in path:
                     path = _t('Locally Defined')
@@ -290,7 +290,7 @@ class DeviceFacade(TreeFacade):
                        'text': '%s (%s)' % (rrdTemplate.titleOrId(), path),
                        'leaf': True
                        }
-        
+
     def getUnboundTemplates(self, uid):
         return self._getBoundTemplates(uid, False)
 
@@ -302,7 +302,7 @@ class DeviceFacade(TreeFacade):
         for template in obj.getAvailableTemplates():
             if (template.id in obj.zDeviceTemplates) == isBound:
                 yield template.id
-        
+
     def setBoundTemplates(self, uid, templateIds):
         obj = self._getObject(uid)
         obj.bindTemplates(templateIds)
@@ -315,7 +315,7 @@ class DeviceFacade(TreeFacade):
         """
         A template is overrideable at the device if it is bound to the device and
         we have not already overridden it.
-        @param string UID, the unique id of a device 
+        @param string UID, the unique id of a device
         @returns a list of all available templates for the given uid
         """
         obj = self._getObject(uid)
@@ -324,3 +324,10 @@ class DeviceFacade(TreeFacade):
             # see if the template is already overridden here
             if not obj.id in template.getPhysicalPath():
                 yield ITemplateNode(template)
+
+    def addLocationOrganizer(self, contextUid, id, description = '', address=''):
+        context = self._getObject(contextUid)
+        organizer = aq_base(context).__class__(id, description, address)
+        context._setObject(id, organizer)
+
+        return ILocationOrganizerInfo(organizer)

@@ -39,7 +39,7 @@ var BaseDialog = Ext.extend(Ext.Window, {
 });
 
 function destroyWindow(button){
-    button.ownerCt.ownerCt.destroy();
+    button.ownerCt.ownerCt.close();
 }
 
 /**
@@ -56,7 +56,7 @@ Zenoss.dialog.DialogButton = Ext.extend(Ext.Button, {
     },
     setHandler: function(handler, scope) {
         var h = handler ? handler.createSequence(destroyWindow) : destroyWindow;
-        Zenoss.dialog.HideDialogButton.superclass.setHandler.call(this, h, scope);
+        Zenoss.dialog.DialogButton.superclass.setHandler.call(this, h, scope);
     }
 });
 
@@ -172,16 +172,21 @@ Zenoss.FormDialog = Ext.extend(Ext.Window, {
             minWidth: 300,
             ref: 'editForm',
             labelAlign: 'top',
-            autoScroll:true,
+            autoScroll: true,
             defaults: {
                 xtype: 'textfield',
                 anchor: '85%',
                 border: false
             },
             items: config.items,
-            html: config.html
+            html: config.html,
+            paramsAsHash: true,
+            api: config.formApi || {}
         });
-        config.items = form;
+
+        // Remove config properties that don't pertain to the window
+        Ext.destroyMembers(config, 'items', 'formApi', 'formId', 'html');
+
         Ext.applyIf(config, {
             // ie renders window correctly on when layout is set to form
             // this may change in future ext/ie version
@@ -193,9 +198,15 @@ Zenoss.FormDialog = Ext.extend(Ext.Window, {
             width: 375,
             modal: true,
             padding: 10
-
         });
+
         Zenoss.FormDialog.superclass.constructor.call(this, config);
+
+        this.add(form);
+    },
+
+    getForm: function() {
+        return this.editForm;
     }
 });
 
@@ -245,7 +256,7 @@ Zenoss.HideFormDialog = Ext.extend(BaseDialog, {
  */
 Zenoss.SmartFormDialog = Ext.extend(Zenoss.FormDialog, {
     message: '',
-    submitHandler: Ext.emptyFn,
+    submitHandler: null,
     constructor: function(config) {
         var handleEnterKey;
 
@@ -258,7 +269,7 @@ Zenoss.SmartFormDialog = Ext.extend(Zenoss.FormDialog, {
 
         this.listeners = config.listeners;
 
-        config = Ext.applyIf(config, {
+        Ext.applyIf(config, {
             buttons: [{
                 xtype: 'DialogButton',
                 text: _t('Submit'),
@@ -278,24 +289,25 @@ Zenoss.SmartFormDialog = Ext.extend(Zenoss.FormDialog, {
             closeAction: 'close'
         });
 
-        config.items.unshift({
-            xtype: 'label',
-            ref: 'label',
-            text: config.message || this.message
-        });
-
         Zenoss.SmartFormDialog.superclass.constructor.call(this, config);
+
+        if ( config.message || this.message ) {
+            this.insert(0, {
+                xtype: 'label',
+                ref: 'label',
+                text: config.message || this.message
+            });
+        }
     },
     setSubmitHandler: function(callbackFunction) {
-        var form = this.editForm;
         if (callbackFunction === null) {
             this.buttonSubmit.setHandler(null);
         }
         else {
             this.buttonSubmit.setHandler(function() {
-                var values = form.getForm().getFieldValues();
+                var values = this.getForm().getForm().getFieldValues();
                 return callbackFunction(values);
-            });
+            }.createDelegate(this));
         }
     },
     initComponent: function() {

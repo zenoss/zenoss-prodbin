@@ -31,7 +31,7 @@ from ZenPackable import ZenPackable
 
 from Products.ZenUtils.jsonutils import json
 
-def manage_addLocation(context, id, description = "", 
+def manage_addLocation(context, id, description = "",
                        address="", REQUEST = None):
     """make a Location"""
     loc = Location(id, description)
@@ -39,7 +39,7 @@ def manage_addLocation(context, id, description = "",
     loc.description = description
     loc.address = address
     if REQUEST is not None:
-        REQUEST['RESPONSE'].redirect(context.absolute_url() +'/manage_main') 
+        REQUEST['RESPONSE'].redirect(context.absolute_url() +'/manage_main')
 
 
 addLocation = DTMLFile('dtml/addLocation',globals())
@@ -102,7 +102,12 @@ class Location(DeviceOrganizer, ZenPackable):
         )
 
     security = ClassSecurityInfo()
-    
+
+    def __init__(self, id, description = '', address=''):
+        super(Location, self).__init__(id, description)
+        self.address = address
+
+
     def setAddress(self, address):
         """Sets the mailing address for this location"""
         self.address = address
@@ -133,7 +138,7 @@ class Location(DeviceOrganizer, ZenPackable):
                 break
         link = self.absolute_url_path()
         linkToMap = self.numMappableChildren()
-        if linkToMap: 
+        if linkToMap:
             link+='/locationGeoMap'
         summarytext = self.mapTooltip() # mapTooltip is a page template
         return [self.address, color, link, summarytext]
@@ -158,5 +163,5 @@ class Location(DeviceOrganizer, ZenPackable):
         data = []
         # Short-circuit the method for now
         return data
-    
+
 InitializeClass(Location)

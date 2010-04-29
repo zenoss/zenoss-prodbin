@@ -105,6 +105,20 @@ Zenoss.HierarchyTreePanel = Ext.extend(Ext.tree.TreePanel, {
             selectRootOnLoad: true,
             rootVisible: false
         });
+
+        if ( config.router ) {
+            Ext.applyIf(config, {
+                addNodeFn: config.router.addNode,
+                deleteNodeFn: config.router.deleteNode
+            });
+        }
+        else {
+            Ext.applyIf(config, {
+                addNodeFn: Ext.emptyFn,
+                deleteNodeFn: Ext.emptyFn
+            });
+        }
+
         if (config.directFn && !config.loader) {
             config.loader = new Ext.tree.TreeLoader({
                 directFn: config.directFn,
@@ -126,10 +140,6 @@ Zenoss.HierarchyTreePanel = Ext.extend(Ext.tree.TreePanel, {
             // Use null so the root won't render
             uiProvider: null
         });
-        config.listeners = Ext.applyIf(config.listeners || {}, {
-            buttonClick: this.buttonClickHandler
-        });
-        this.router = config.router;
         config.loader.baseAttrs = {
             iconCls: 'severity-icon-small clear',
             uiProvider: 'hierarchy'
@@ -137,64 +147,6 @@ Zenoss.HierarchyTreePanel = Ext.extend(Ext.tree.TreePanel, {
 
         Zenoss.HierarchyTreePanel.superclass.constructor.apply(this,
             arguments);
-        this.initTreeDialogs(this, config);
-    },
-
-    initTreeDialogs: function(tree, config) {
-
-        new Zenoss.HideFormDialog({
-            id: 'addNodeDialog',
-            title: _t('Add Tree Node'),
-            items: config.addNodeDialogItems,
-            listeners: {
-                'hide': function(treeDialog) {
-                    Ext.getCmp('typeCombo').setValue('');
-                    Ext.getCmp('idTextfield').setValue('');
-                }
-            },
-            buttons: [{
-                xtype: 'HideDialogButton',
-                text: _t('Submit'),
-                handler: function(button, event) {
-                    var type = Ext.getCmp('typeCombo').getValue();
-                    var id = Ext.getCmp('idTextfield').getValue();
-                    tree.addNode(type, id);
-                }
-             }, {
-                xtype: 'HideDialogButton',
-                text: _t('Cancel')
-            }]
-        });
-
-        tree.deleteDialog = new Zenoss.MessageDialog({
-            id: 'deleteNodeDialog',
-            title: _t('Delete Tree Node'),
-            message: _t('The selected node will be deleted'),
-            width:330,
-            okHandler: function(){
-                tree.deleteSelectedNode();
-            },
-            setDeleteMessage: function(msg){
-                // this remains for backward compatibility
-                if (msg === null && this.config) {
-                    msg = this.config.message;
-                }
-                this.setText(msg);
-            }
-        });
-
-    },
-    buttonClickHandler: function(buttonId) {
-        switch(buttonId) {
-            case 'addButton':
-                Ext.getCmp('addNodeDialog').show();
-                break;
-            case 'deleteButton':
-                Ext.getCmp('deleteNodeDialog').show();
-                break;
-            default:
-                break;
-        }
     },
     initEvents: function() {
         Zenoss.HierarchyTreePanel.superclass.initEvents.call(this);
@@ -244,11 +196,12 @@ Zenoss.HierarchyTreePanel = Ext.extend(Ext.tree.TreePanel, {
         }
     },
     getNodePathById: function(nodeId) {
-        var part;
-        var parts = nodeId.split('.'),
-            curpath = parts.slice(0, 3).join('.');
+        var part,
+            depth = this.root.attributes.uid.split('/').length - 1,
+            parts = nodeId.split('.'),
+            curpath = parts.slice(0, depth).join('.');
 
-        parts = parts.slice(3);
+        parts = parts.slice(depth);
 
         var path = [this.root.getPath()];
         while ( part = parts.shift() ) {
@@ -311,7 +264,12 @@ Zenoss.HierarchyTreePanel = Ext.extend(Ext.tree.TreePanel, {
             return true;
         }, this);
     },
-    addNode: function(type, id, description) {
+
+    addNode: function(type, id) {
+        this.addChildNode({type: type, id: id});
+    },
+
+    addChildNode: function(params) {
         var selectedNode = this.getSelectionModel().getSelectedNode();
         var parentNode;
         if (selectedNode.leaf) {
@@ -320,28 +278,39 @@ Zenoss.HierarchyTreePanel = Ext.extend(Ext.tree.TreePanel, {
             parentNode = selectedNode;
         }
         var contextUid = parentNode.attributes.uid;
-        var params = {type: type, contextUid: contextUid, id: id};
+        Ext.applyIf(params, {
+            contextUid: contextUid
+        });
 
-        if ( description ) {
-            params.description = description;
-        }
-        
-        var tree = this;
-        function callback(provider, response) {
+        this.addTreeNode(params);
+    },
+
+    addTreeNode: function(params) {
+        var callback = function (provider, response) {
             var result = response.result;
             if (result.success) {
-                var nodeConfig = response.result.nodeConfig;
-                var node = tree.getLoader().createNode(nodeConfig);
-                // if you don't call expand on the parentNode you will get a
-                // javascript error that does not make sense on the callback
-                parentNode.expand();
-                parentNode.appendChild(node);
-                node.select();
-            } else {
+                // look for another node on result and assume it's the new node, grab it's id
+                // TODO would be best to normalize the names of result node
+                var nodeId;
+                Ext.iterate(result, function(key, value) {
+                    if ( key != 'success' && Ext.isObject(value) && value.id ) {
+                        nodeId = value.id;
+                        return false;
+                    }
+                }, this);
+
+                this.getRootNode().reload(function() {
+                    if ( nodeId ) {
+                        this.selectByToken(nodeId);
+                    }
+                }, this);
+            }
+            else {
                 Ext.Msg.alert('Error', result.msg);
             }
-        }
-        this.router.addNode(params, callback);
+        };
+
+        this.addNodeFn(params, callback.createDelegate(this));
     },
 
     deleteSelectedNode: function() {
@@ -354,7 +323,7 @@ Zenoss.HierarchyTreePanel = Ext.extend(Ext.tree.TreePanel, {
             parentNode.removeChild(node);
             node.destroy();
         }
-        this.router.deleteNode(params, callback);
+        this.deleteNodeFn(params, callback);
     }
 }); // HierarchyTreePanel
 

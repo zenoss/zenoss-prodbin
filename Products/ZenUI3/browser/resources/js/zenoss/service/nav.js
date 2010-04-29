@@ -124,7 +124,7 @@
             return selected.attributes.uid;
         }
     };
-    
+
     var ContextGetter = Ext.extend(Object, {
         getUid: function() {
             var selected = Ext.getCmp('navGrid').getSelectionModel().getSelected();
@@ -192,7 +192,6 @@
         fb = Ext.getCmp('footer_bar');
         fb.on('buttonClick', zs.dispatcher);
         var footerHelperOptions = {
-            deleteMenu: true,
             contextGetter: new ContextGetter()
         };
         Zenoss.footerHelper('Service', fb, footerHelperOptions);

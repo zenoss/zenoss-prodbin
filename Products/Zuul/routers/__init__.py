@@ -14,7 +14,8 @@
 from Products.ZenUtils.Ext import DirectRouter
 from Products.Zuul.decorators import require
 from Products import Zuul
-
+import logging
+log = logging.getLogger(__name__)
 
 class TreeRouter(DirectRouter):
     """
@@ -31,11 +32,12 @@ class TreeRouter(DirectRouter):
             else:
                 organizer = facade.addOrganizer(contextUid, id, description)
                 uid = organizer.uid
-                
+
             treeNode = facade.getTree(uid)
             result['nodeConfig'] = Zuul.marshal(treeNode)
             result['success'] = True
         except Exception, e:
+            log.exception(e)
             result['msg'] = str(e)
             result['success'] = False
         return result

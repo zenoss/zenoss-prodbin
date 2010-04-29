@@ -25,22 +25,6 @@ var nodeType = 'Organizer';
 var deleteDeviceMessage = _t('Warning! This will delete all of the devices in this group!');
 var ZEvActions = Zenoss.events.EventPanelToolbarActions;
 
-
-// These are the fields that will display on the "Add a Node form"
-var addNodeDialogItems = [{
-        // since they can only have organizer, we will just use a hidden field
-        xtype: 'hidden',
-        id: 'typeCombo',
-        value: nodeType
-    }, {
-        xtype: 'textfield',
-        id: 'idTextfield',
-        width: 270,
-        fieldLabel: _t('ID'),
-        allowBlank: false
-    }
-];
-
 REMOTE.getProductionStates({}, function(d){
     Zenoss.env.PRODUCTION_STATES = d;
 });
@@ -158,29 +142,17 @@ function resetGrid() {
 var treesm = new Ext.tree.DefaultSelectionModel({
     listeners: {
         'selectionchange': function(sm, newnode, oldnode){
-            // set the footer_bar to bubble to new node
-            var footer = Ext.getCmp('footer_bar');
-            footer.bubbleTargetId = newnode.id;
-
-            // Even after changing the ID I was not able to have
-            // each tree have their own instance of a deleteNodeDialog, so I
-            // modified it to allow you to change the message
-            var dialog = Ext.getCmp('deleteNodeDialog');
-            if (newnode.id.match('Device')){
-                dialog.setDeleteMessage(deleteDeviceMessage);
-            }else{
-                dialog.setDeleteMessage(null);
+            if (newnode) {
+                var uid = newnode.attributes.uid;
+                Zenoss.util.setContext(uid, 'detail_panel', 'organizer_events',
+                                       'commands-menu', 'context-configure-menu');
+                setDeviceButtonsDisabled(true);
+                var card = Ext.getCmp('master_panel').getComponent(0);
+                //should "ask" the DetailNav if there are any details before showing
+                //the button
+                card.navButton.show();
+                Ext.getCmp('master_panel').getComponent(1).navButton.show();
             }
-
-            var uid = newnode.attributes.uid;
-            Zenoss.util.setContext(uid, 'detail_panel', 'organizer_events',
-                                   'commands-menu', 'context-configure-menu');
-            setDeviceButtonsDisabled(true);
-            var card = Ext.getCmp('master_panel').getComponent(0);
-            //should "ask" the DetailNav if there are any details before showing
-            //the button
-            card.navButton.show();
-            Ext.getCmp('master_panel').getComponent(1).navButton.show();
         }
     }
 });
@@ -857,7 +829,6 @@ var devtree = {
     xtype: 'HierarchyTreePanel',
     id: 'devices',
     searchField: true,
-    deleteMessage: _t('The selected node will be deleted'),
     directFn: REMOTE.getTree,
     root: {
         id: 'Devices',
@@ -867,7 +838,6 @@ var devtree = {
     selectByToken: detailSelectByToken,
     selModel: treesm,
     router: REMOTE,
-    addNodeDialogItems: addNodeDialogItems,
     listeners: {
         render: initializeTreeDrop,
         filter: function(e) {
@@ -883,7 +853,6 @@ var grouptree = {
     id: 'groups',
     searchField: false,
     directFn: REMOTE.getTree,
-    deleteMessage: _t('The selected node will be deleted'),
     selectByToken: detailSelectByToken,
     root: {
         id: 'Groups',
@@ -891,7 +860,6 @@ var grouptree = {
     },
     selModel: treesm,
     router: REMOTE,
-    addNodeDialogItems: addNodeDialogItems,
     selectRootOnLoad: false,
     listeners: { render: initializeTreeDrop }
 };
@@ -901,14 +869,12 @@ var systree = {
     id: 'systems',
     searchField: false,
     directFn: REMOTE.getTree,
-    deleteMessage: _t('The selected node will be deleted'),
     selectByToken: detailSelectByToken,
     root: {
         id: 'Systems',
         uid: '/zport/dmd/Systems'
     },
     router: REMOTE,
-    addNodeDialogItems: addNodeDialogItems,
     selectRootOnLoad: false,
     selModel: treesm,
     listeners: { render: initializeTreeDrop }
@@ -925,7 +891,7 @@ var loctree = {
         uid: '/zport/dmd/Locations'
     },
     router: REMOTE,
-    addNodeDialogItems: addNodeDialogItems,
+    addNodeFn: REMOTE.addLocationNode,
     selectRootOnLoad: false,
     selModel: treesm,
     listeners: { render: initializeTreeDrop }
@@ -1194,82 +1160,146 @@ var resetTemplatesDialog = Ext.create({
     id: 'resetTemplatesDialog'
 });
 
+function getOrganizerFields(mode) {
+    var items = [];
+
+    if ( mode == 'add' ) {
+        items.push({
+            xtype: 'textfield',
+            id: 'id',
+            fieldLabel: _t('Name'),
+            allowBlank: false
+        });
+    }
+
+    items.push({
+        xtype: 'textfield',
+        id: 'description',
+        fieldLabel: _t('Description'),
+        allowBlank: true
+    });
+
+    var rootId = treesm.getSelectedNode().getOwnerTree().getRootNode().attributes.id;
+    if ( rootId === loctree.root.id ) {
+        items.push({
+            xtype: 'textfield',
+            id: 'address',
+            fieldLabel: _t('Address'),
+            allowBlank: true
+        });
+    }
+
+    return items;
+}
+
 var footerBar = Ext.getCmp('footer_bar');
-Zenoss.footerHelper(
+    Zenoss.footerHelper(
     _t('Tree Node'),
     footerBar,
     {
         hasOrganizers: false,
-        
+
         // this footer bar has an add to zenpack option, but it defines its
         // own in contrast to using the canned one in footerHelper
         addToZenPack: false,
-        
+
+        onGetDeleteMessage: function (itemName) {
+            var rootId = treesm.getSelectedNode().getOwnerTree().getRootNode().attributes.id;
+            if ( rootId === devtree.root.id ) {
+                return deleteDeviceMessage;
+            }
+            else {
+                return String.format(_t('The selected {0} will be deleted.'), itemName.toLowerCase());
+            }
+        },
+        onGetAddDialogItems: function () { return getOrganizerFields('add') },
         customAddDialog: {
-            title: _t('Add Tree Node'),
-            items: [
-                {
-                    xtype: 'textfield',
-                    id: 'id',
-                    fieldLabel: _t('Name'),
-                    allowBlank: false
-                },
-                {
-                    xtype: 'textfield',
-                    id: 'description',
-                    fieldLabel: _t('Description'),
-                    allowBlank: true
-                }
-            ]
+            title: _t('Add Tree Node')
         },
         buttonContextMenu: {
-    xtype: 'ContextConfigureMenu',
+        xtype: 'ContextConfigureMenu',
             onSetContext: function(uid) {
                 bindTemplatesDialog.setContext(uid);
                 resetTemplatesDialog.setContext(uid);
-    },
+            },
             onGetMenuItems: function(uid) {
                 var menuItems = [];
                 if (uid.match('^/zport/dmd/Devices')) {
-            menuItems.push([{
-                xtype: 'menuitem',
-                text: _t('Bind Templates'),
-                        handler: function() {
-                            bindTemplatesDialog.show();
+                    menuItems.push([
+                        {
+                            xtype: 'menuitem',
+                            text: _t('Bind Templates'),
+                            handler: function() {
+                                bindTemplatesDialog.show();
+                            }
+                        },
+                        {
+                            xtype: 'menuitem',
+                            text: _t('Reset Bindings'),
+                            handler: function(){
+                                resetTemplatesDialog.show();
+                            }
+                        }
+                    ]);
                 }
-                    },
-                    {
-                xtype: 'menuitem',
-                text: _t('Reset Bindings'),
-                handler: function(){
-                            resetTemplatesDialog.show();
-                }
-            }]);
-        }
-        menuItems.push({
-            xtype: 'menuitem',
-            text: _t('Clear Geocode Cache'),
+
+                menuItems.push({
+                    xtype: 'menuitem',
+                    text: _t('Clear Geocode Cache'),
                     handler: function() {
                         REMOTE.clearGeocodeCache({}, function(data) {
                             var msg = (data.success) ?
-                            _t('Geocode Cache has been cleared') :
-                            _t('Something happened while trying to clear Geocode Cache');
+                                    _t('Geocode Cache has been cleared') :
+                                    _t('Something happened while trying to clear Geocode Cache');
                             var dialog = new Zenoss.dialog.SimpleMessageDialog({
-                             message: msg,
+                                message: msg,
                                 buttons: [
                                     {
-                                xtype: 'DialogButton',
-                                text: _t('OK')
+                                        xtype: 'DialogButton',
+                                        text: _t('OK')
                                     }
                                 ]
-                        });
-                        dialog.show();
+                            });
+                            dialog.show();
                         });
                     }
-        });
+                });
 
-        return menuItems;
-    }
+                menuItems.push({
+                    xtype: 'menuitem',
+                    text: _t('Edit'),
+                    handler: function() {
+                        var node = treesm.getSelectedNode();
+
+                        var dialog = new Zenoss.SmartFormDialog({
+                            title: _t('Edit Organizer'),
+                            formId: 'editDialog',
+                            items: getOrganizerFields(),
+                            formApi: {
+                                load: REMOTE.getInfo
+                            }
+                        });
+
+                        dialog.setSubmitHandler(function(values) {
+                            values.uid = node.attributes.uid;
+                            REMOTE.setInfo(values);
+                        });
+
+                        dialog.getForm().load({
+                            params: { uid: node.attributes.uid, keys: ['id', 'description', 'address'] },
+                            success: function(form, action) {
+                                dialog.show();
+                            },
+                            failure: function(form, action) {
+                                Ext.Msg.alert('Error', action.result.msg);
+                            }
+                        });
+
+                    }
+                });
+
+                return menuItems;
+            }
         }
     }
 );
@@ -1278,7 +1308,7 @@ footerBar.on('buttonClick', function(actionName, id, values) {
     var tree = treesm.getSelectedNode().getOwnerTree();
     switch (actionName) {
         // All items on this are organizers, no classes
-        case 'addClass': tree.addNode('organizer', values.id, values.description); break;
+        case 'addClass': tree.addChildNode(Ext.apply(values, {type: 'organizer'})); break;
         case 'addOrganizer': throw new Ext.Error('Not Implemented'); break;
         case 'delete': tree.deleteSelectedNode(); break;
         default: break;

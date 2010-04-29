@@ -24,6 +24,22 @@ log = logging.getLogger('zen.Zuul')
 
 
 class DeviceRouter(TreeRouter):
+    @require('Manage DMD')
+    def addLocationNode(self, type, contextUid, id, description=None, address=None):
+        result = {}
+        try:
+            facade = self._getFacade()
+            organizer = facade.addLocationOrganizer(contextUid, id, description, address)
+            uid = organizer.uid
+
+            treeNode = facade.getTree(uid)
+            result['nodeConfig'] = Zuul.marshal(treeNode)
+            result['success'] = True
+        except Exception, e:
+            log.exception(e)
+            result['msg'] = str(e)
+            result['success'] = False
+        return result
 
     def _getFacade(self):
         return Zuul.getFacade('device', self.context)
@@ -351,12 +367,12 @@ class DeviceRouter(TreeRouter):
         deviceClasses = self.context.dmd.Devices.getOrganizerNames(addblank=True)
         result = [{'name': name} for name in deviceClasses];
         return DirectResponse(deviceClasses=result, totalCount=len(result))
-    
+
     def getManufacturerNames(self, **data):
         names = self.context.dmd.Manufacturers.getManufacturerNames()
         result = [{'name': name} for name in names];
         return DirectResponse(manufacturers=result, totalCount=len(result))
-    
+
     def getHardwareProductNames(self, manufacturer = '', **data):
         manufacturers = self.context.dmd.Manufacturers
         names = manufacturers.getProductNames(manufacturer, 'HardwareClass')
@@ -371,29 +387,29 @@ class DeviceRouter(TreeRouter):
 
     @require('Manage DMD')
     def addDevice(self, deviceName, deviceClass, title=None, snmpCommunity="", snmpPort=161,
-                  model=False, collector='localhost',  rackSlot=0, 
-                  productionState=1000, comments="", hwManufacturer="", 
-                  hwProductName="", osManufacturer="", osProductName="", 
+                  model=False, collector='localhost',  rackSlot=0,
+                  productionState=1000, comments="", hwManufacturer="",
+                  hwProductName="", osManufacturer="", osProductName="",
                   priority = 3, tag="", serialNumber=""):
-        jobStatus = self._getFacade().addDevice(deviceName, 
-                                               deviceClass, 
+        jobStatus = self._getFacade().addDevice(deviceName,
+                                               deviceClass,
                                                title,
-                                               snmpCommunity, 
+                                               snmpCommunity,
                                                snmpPort,
                                                model,
-                                               collector, 
-                                               rackSlot, 
-                                               productionState, 
-                                               comments, 
+                                               collector,
+                                               rackSlot,
+                                               productionState,
+                                               comments,
                                                hwManufacturer,
-                                               hwProductName, 
+                                               hwProductName,
                                                osManufacturer,
-                                               osProductName, 
-                                               priority, 
+                                               osProductName,
+                                               priority,
                                                tag,
                                                serialNumber)
         return DirectResponse.succeed(jobId=jobStatus.id)
-        
+
     def getTemplates(self, id):
         facade = self._getFacade()
         templates = facade.getTemplates(id)
@@ -413,7 +429,7 @@ class DeviceRouter(TreeRouter):
         facade = self._getFacade()
         facade.setBoundTemplates(uid, templateIds)
         return DirectResponse.succeed()
-        
+
     def resetBoundTemplates(self, uid):
         facade = self._getFacade()
         templates = facade.getBoundTemplates(uid)
@@ -433,7 +449,7 @@ class DeviceRouter(TreeRouter):
         for template in templates:
             data.append(dict(label=template.text, uid=template.uid))
         return DirectResponse.succeed(data=data)
-    
+
     def clearGeocodeCache(self):
         self.context.clearGeocodeCache()
         return DirectResponse.succeed()

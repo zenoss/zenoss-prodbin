@@ -66,10 +66,21 @@ Zenoss.footerHelper = function(itemName, footerBar, options) {
     options = Ext.applyIf(options || {}, {
         addToZenPack: true,
         hasOrganizers: true,
-        customAddDialog: false,
+        hasContextMenu: true,
+        customAddDialog: {},
         buttonContextMenu: {},
-        deleteMenu: false,
-        contextGetter: null
+        contextGetter: null,
+        onGetDeleteMessage: function (itemName) {
+            return String.format(_t('The selected {0} will be deleted.'), itemName.toLowerCase());
+        },
+        onGetAddDialogItems: function () {
+            return [{
+                xtype: 'textfield',
+                name: 'id',
+                fieldLabel: _t('Name'),
+                allowBlank: false
+            }];
+        }
     });
 
     Ext.applyIf(options.buttonContextMenu, {
@@ -85,7 +96,6 @@ Zenoss.footerHelper = function(itemName, footerBar, options) {
     footerBar = footerBar || Ext.getCmp('footer_bar');
 
     // For now, we will monkey-patch a setContext onto it.
-
     footerBar.setContext = function(contextUid) {
         Ext.each(this.items.items, function(i) {
             if (i.setContext) { i.setContext(contextUid); }} );
@@ -95,106 +105,53 @@ Zenoss.footerHelper = function(itemName, footerBar, options) {
     function showAddDialog(title, event) {
         var handler, dialog, addDialogConfig;
 
+        // Shallow copy config to avoid mangling the original config
+        addDialogConfig = Ext.apply({}, options.customAddDialog);
+
         handler = function(values) {
             footerBar.fireEvent('buttonClick', event, values.id, values);
         };
-        addDialogConfig = Ext.applyIf(options.customAddDialog || {}, {
+
+        addDialogConfig = Ext.applyIf(addDialogConfig, {
             submitHandler: handler,
-            title: title,
-            height: 175,
-            itemId: 'addDialog',
-            items: [{
-                xtype: 'textfield',
-                name: 'id',
-                fieldLabel: _t('Name'),
-                allowBlank: false
-            }]
+            items: options.onGetAddDialogItems(),
+            title: title
         });
 
         dialog = new Zenoss.SmartFormDialog(addDialogConfig);
         dialog.show();
     };
 
-    items = [{
-        xtype: 'button',
-        iconCls: 'add',
-        disabled: Zenoss.Security.doesNotHavePermission('Manage DMD'),
-        tooltip: _t('Add a child to the selected organizer'),
-        menu: {
-            items: [
-                {
-                    text: String.format(_t('Add {0}'), itemName),
-                    listeners: {
-                        click: showAddDialog.createCallback(
-                                String.format(_t('Add {0}'), itemName),
-                                'addClass')
-                    },
-                    ref: 'buttonAddClass'
-                }
-            ]
-        },
-        ref: 'buttonAdd'
-    }];
-
-    if ( options.deleteMenu ) {
-        items.push({
-            xtype: 'button',
-            ref: 'buttonDelete',
-            iconCls: 'delete',
+    items = [
+        {
+            xtype: 'FlexButton',
+            iconCls: 'add',
             disabled: Zenoss.Security.doesNotHavePermission('Manage DMD'),
+            tooltip: _t('Add a child to the selected organizer'),
             menu: {
-                items: [{
-                    text: String.format(_t('Delete {0}'), itemName),
-                    ref: 'buttonDelete',
-                    listeners: {
-                        click: function() {
-                            Ext.MessageBox.show({
-                                title: String.format(_t('Delete {0}'), itemName),
-                                msg: String.format(_t('The selected {0} will be deleted.'),
-                                        itemName.toLowerCase()),
-                                fn: function(buttonid){
-                                    if (buttonid=='ok') {
-                                        footerBar.fireEvent('buttonClick', 'delete');
-                                    }
-                                },
-                                buttons: Ext.MessageBox.OKCANCEL
-                            });
+                items: [
+                    {
+                        text: String.format(_t('Add {0}'), itemName),
+                        listeners: {
+                            click: showAddDialog.createCallback(
+                                    String.format(_t('Add {0}'), itemName),
+                                    'addClass')
                         }
                     }
-                }, {
-                    text: String.format(_t('Delete {0} Organizer'), itemName),
-                    ref: 'buttonDeleteOrganizer',
-                    listeners: {
-                        click: function() {
-                            Ext.MessageBox.show({
-                                title: String.format(_t('Delete {0} Organizer'), itemName),
-                                msg: String.format(_t('The selected {0} organizer will be deleted.'),
-                                        itemName.toLowerCase()),
-                                fn: function(buttonid){
-                                    if (buttonid=='ok') {
-                                        footerBar.fireEvent('buttonClick', 'deleteOrganizer');
-                                    }
-                                },
-                                buttons: Ext.MessageBox.OKCANCEL
-                            });
-                        }
-                    }
-                }]
-            }
-        });
-    } else {
-        items.push({
-            xtype: 'button',
+                ]
+            },
+            ref: 'buttonAdd'
+        },
+        {
+            xtype: 'FlexButton',
             iconCls: 'delete',
             disabled: Zenoss.Security.doesNotHavePermission('Manage DMD'),
-            tooltip: String.format(_t('Delete the selected {0} or organizer.'),
-                    itemName.toLowerCase()),
+            tooltip: String.format(_t('Delete {0}'), itemName),
             listeners: {
                 click: function() {
                     Ext.MessageBox.show({
                         title: String.format(_t('Delete {0}'), itemName),
-                        msg: String.format(_t('The selected {0} will be deleted.'),
-                                itemName.toLowerCase()),
+                        msg: options.onGetDeleteMessage(itemName),
                         fn: function(buttonid){
                             if (buttonid=='ok') {
                                 footerBar.fireEvent('buttonClick', 'delete');
@@ -205,15 +162,21 @@ Zenoss.footerHelper = function(itemName, footerBar, options) {
                 }
             },
             ref: 'buttonDelete'
-        });
+        }
+    ];
+
+    if ( options.hasContextMenu || options.addToZenPack ) {
+        items.push(' ');
+        items.push(options.buttonContextMenu);
     }
 
-    items.push(' ', options.buttonContextMenu, '-');
+    items.push('-');
+
     footerBar.add(items);
 
     if (options.hasOrganizers)
     {
-        footerBar.buttonAdd.menu.add({
+        footerBar.buttonAdd.add({
             text: String.format(_t('Add {0} Organizer'), itemName),
             listeners: {
                 click: showAddDialog.createCallback(
@@ -221,6 +184,26 @@ Zenoss.footerHelper = function(itemName, footerBar, options) {
                          'addOrganizer')
             },
             ref: 'buttonAddOrganizer'
+        });
+
+        footerBar.buttonDelete.add({
+            text: String.format(_t('Delete {0} Organizer'), itemName),
+            ref: 'buttonDeleteOrganizer',
+            listeners: {
+                click: function() {
+                    Ext.MessageBox.show({
+                        title: String.format(_t('Delete {0} Organizer'), itemName),
+                        msg: String.format(_t('The selected {0} organizer will be deleted.'),
+                                itemName.toLowerCase()),
+                        fn: function(buttonid){
+                            if (buttonid=='ok') {
+                                footerBar.fireEvent('buttonClick', 'deleteOrganizer');
+                            }
+                        },
+                        buttons: Ext.MessageBox.OKCANCEL
+                    });
+                }
+            }
         });
     }
 
@@ -260,7 +243,7 @@ Zenoss.footerHelper = function(itemName, footerBar, options) {
             });
 
         }
-        
+
     }
 
 };

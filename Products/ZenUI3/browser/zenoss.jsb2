@@ -25,6 +25,9 @@
             "text": "Renderers.js",
             "path": "resources/js/zenoss/"
         }, {
+            "text": "FlexButton.js",
+            "path": "resources/js/zenoss/"
+        }, {
             "text": "i18n.js",
             "path": "resources/js/zenoss/"
         }, {
