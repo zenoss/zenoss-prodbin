@@ -5,6 +5,7 @@
 <form method="post" name="eventClassStatus"
       tal:attributes="action here/absolute_url_path">
 <input type="hidden" name="zenScreenName" value="eventClassStatus" />
+<input type="hidden" name="redirect" value="true" />
 <tal:block tal:define=" tabletitle string:Status ">
 <tal:block metal:use-macro="here/zenuimacros/macros/zentable">
 <tal:block metal:fill-slot="zentablecontents">

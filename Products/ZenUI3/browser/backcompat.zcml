@@ -362,6 +362,20 @@
     />
 
 <browser:page
+    template="../../ZenModel/skins/zenmodel/viewMibNode.pt"
+    name="viewMibNode"
+    for="*"
+    permission="zenoss.View"
+    />
+
+<browser:page
+    template="../../ZenModel/skins/zenmodel/viewMibNotification.pt"
+    name="viewMibNotification"
+    for="*"
+    permission="zenoss.View"
+    />
+
+<browser:page
     template="../../ZenModel/skins/zenmodel/viewNewHistory.pt"
     name="viewNewHistory"
     for="*"
