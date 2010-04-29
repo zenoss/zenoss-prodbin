@@ -22,13 +22,8 @@
     </tal:block>
 </tal:block>
 
-<tal:block metal:fill-slot="breadcrumbs">
-    <tal:block metal:define-slot="breadcrumbs">
-        <span metal:use-macro="here/miscmacros/macros/breadCrumbs" />
-    </tal:block>
-</tal:block>
-
 <tal:block metal:fill-slot="center_panel_content">
+<tal:block metal:define-slot="breadcrumbs"/>
 <div id="master_panel_content">
     <tal:block metal:define-slot="master_panel_content"/>
 </div>
@@ -45,27 +40,36 @@
 <tal:block metal:fill-slot="script_layout">
 <script>
 Ext.onReady(function(){
+    var items = [{
+        id: 'master_panel',
+        contentEl: 'master_panel_content',
+        layout: 'fit',
+        region: 'center',
+        split: true
+    },{
+        split: true,
+        width: '50%',
+        id: 'detail_panel',
+        contentEl: 'detail_panel_content',
+        region: 'east',
+        layout: 'fit',
+        collapseMode: 'mini'
+    }];
+    if (Zenoss.env.pageHasBreadCrumbs) {
+        items.push({
+            region: 'north',
+            height: 26,
+            bodyCssClass: 'z-bc-bread-crumb-pane',
+            contentEl: 'breadCrumbPane'
+        });
+    }
     Ext.getCmp('center_panel').add(new Ext.Panel({
         id: 'center_panel_container',
         layout: 'border',
         defaults: {
             'border': false
         },
-        items: [{
-            id: 'master_panel',
-            contentEl: 'master_panel_content',
-            layout: 'fit',
-            region: 'center',
-            split: true
-        },{
-            split: true,
-            width: '50%',
-            id: 'detail_panel',
-            contentEl: 'detail_panel_content',
-            region: 'east',
-            layout: 'fit',
-            collapseMode: 'mini'
-        }]
+        items: items
     }));
 });
 </script>

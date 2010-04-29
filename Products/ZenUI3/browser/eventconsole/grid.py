@@ -26,11 +26,11 @@ from Products.Zuul import getFacade
 
 
 class EventConsoleView(BrowserView):
-    __call__ = ViewPageTemplateFile('console-new.pt')
+    __call__ = ViewPageTemplateFile('view-events.pt')
 
 
 class HistoryConsoleView(BrowserView):
-    __call__ = ViewPageTemplateFile('historyconsole-new.pt')
+    __call__ = ViewPageTemplateFile('view-history-events.pt')
 
 
 def column_config(fields, request=None):
