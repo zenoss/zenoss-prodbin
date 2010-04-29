@@ -24,7 +24,7 @@ Ext.ns('Zenoss.form');
 Zenoss.form.TwoColumnTextArea = Ext.extend(Ext.form.TextArea, {
      constructor: function(config) {
          config.width = 500;
-         config.height = 120;
+         config.height = 220;
          Zenoss.form.TwoColumnTextArea.superclass.constructor.apply(this, arguments);
      }
  });

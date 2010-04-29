@@ -120,7 +120,7 @@
          **/
         sortItems: function(fieldsets, record) {
             var panel = [], i, j, currentPanel,
-            item, fieldset, tmp, header;
+            item, fieldset, tmp, header, textareas;
             
             // items comes back from the server in the form
             // fieldsets.items[0] = fieldset
@@ -140,11 +140,11 @@
                     }
                 }
             }
-
+            
             // this creates a new panel for each group of items that come back from the server
             for (i =0; i < fieldsets.length; i += 1) {
                 fieldset = fieldsets[i];
-
+                
                 // format the title a little funny
                 if (fieldset.title) {
                     header = {
@@ -155,6 +155,8 @@
                 }else {
                     header = null;    
                 }
+
+                textareas = [];
                 
                 currentPanel = {
                     xtype:'panel',
@@ -181,15 +183,36 @@
                     if (!Ext.ComponentMgr.isRegistered(item.xtype)) {
                         throw item.xtype + " is not a valid xtype, please register it.";
                     }
-                    currentPanel.items[j%2].items.push(item);
+                    // we want to keep text areas to put them in a single column panel
+                    if (item.xtype.search(/textarea/) >= 0) {
+                        textareas.push(item);   
+                    }else{
+                        currentPanel.items[j%2].items.push(item);   
+                    }
                 }
                 
                 // if we have a header set display it
                 if (header) {
                     panel.push(header);
                 }
+                
+                // add the non-textarea fields
                 panel.push(currentPanel);
-            }
+
+                // put text areas in a single column layout
+                if (textareas.length) {
+                    for (j=0; j<textareas.length; j += 1) {
+                        panel.push({
+                            xtype: 'panel',
+                            layout: 'form',
+                                       
+                            border: false,
+                            items: textareas[j]
+                        });
+                    }
+                }
+                
+            }// fieldsets
             
             return panel;
         }
