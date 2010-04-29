@@ -1,27 +1,12 @@
 <tal:block metal:use-macro="here/page_macros/old-new">
 <tal:block metal:fill-slot="contentPane">
-<style>
-    .logframe {
-        width: 90%;
-        margin: 1em auto;
-        background-color: white;
-        height: 400px;
-        overflow-x: hidden;
-    }
-</style>
 
 <a href="/zport/dmd/joblist">&lt;&lt; Back to Job Manager</a>
 <h3 tal:content="view/description"></h3>
 <h4>If no output is being displayed, make sure the zenjobs daemon is running.</h4>
 <div id="xj" style="display:none;"
 tal:content="view/stream_URI"></div>
-<iframe id="joblog-stream" 
-    scrolling="auto"
-    style="width:100%; 
-           background-color:#fff;
-           border: 2px solid black;
-           height:400px;">
-</iframe>
+<iframe id="joblog-stream" class="joblog-stream-c"></iframe>
 
 </tal:block>
 

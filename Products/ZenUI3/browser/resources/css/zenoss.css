@@ -753,3 +753,12 @@ span.status-down {
     text-decoration: underline;
 }
 
+.joblog-stream-c {
+    width: 99%; 
+    background-color: white;
+    border: 2px solid black;
+    height:400px;
+    margin: 1em auto;
+}
+
+           
