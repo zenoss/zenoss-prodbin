@@ -20,12 +20,22 @@ import atexit
 import logging
 from subprocess import Popen, PIPE
 from optparse import OptionParser
+
 try:
     import readline
+
+    try:
+        from IPython.Shell import IPShellEmbed
+    except ImportError:
+        IPShellEmbed = None
+    except AttributeError:
+        # Looks like we have IPython but the wrong version of readline, likely on OSX 10.6
+        IPShellEmbed = None
     from rlcompleter import Completer
 except ImportError:
     readline = rlcompleter = None
     Completer = object
+    IPShellEmbed = None
 
 # Parse the command line for host and port; have to do it before Zope
 # configuration, because it hijacks option parsing.
@@ -117,7 +127,7 @@ def _customStuff():
 
     def logout():
         noSecurityManager()
-    
+
     def zhelp():
         cmds = filter(lambda x: not x.startswith("_"), _CUSTOMSTUFF)
         cmds.sort()
@@ -139,13 +149,13 @@ def _customStuff():
     def printNets(net=dmd.Networks, format="text", out=sys.stdout):
         """
         Print out the IpNetwork and IpAddress hierarchy under net.  To print
-        out everything call printNets(dmd.Networks).  format can be text, 
+        out everything call printNets(dmd.Networks).  format can be text,
         python, or xml.
         """
         factory = IpNetworkPrinterFactory()
         printer = factory.createIpNetworkPrinter(format, out)
         printer.printIpNetwork(net)
-        
+
 
     def cleandir(obj):
         portaldir = set(dir(dmd))
@@ -275,8 +285,8 @@ def _customStuff():
 
 class ZenCompleter(Completer):
     """
-    Provides the abiility to specify *just* the zendmd-specific 
-    stuff when you first enter and hit tab-tab, and also the 
+    Provides the abiility to specify *just* the zendmd-specific
+    stuff when you first enter and hit tab-tab, and also the
     ability to remove junk that we don't need to see.
     """
     ignored_names = [
@@ -292,7 +302,7 @@ class ZenCompleter(Completer):
         "manage_historyCopy",
         "manage_addDTMLDocument",
         "manage_addDTMLMethod",
-        "manage_clone",   
+        "manage_clone",
         "manage_copyObjects",
         "manage_copyright",
         "manage_cutObjects",
@@ -303,7 +313,7 @@ class ZenCompleter(Completer):
         "manage_DAVget",
         "manage_FTPlist",
         "manage_UndoForm",
-        "manage_access",   
+        "manage_access",
     ]
     ignored_prefixes = [
        '_', 'wl_', 'cb_', 'acl', 'http__', 'dav_',
@@ -412,22 +422,29 @@ if __name__=="__main__":
         if not os.path.exists(opts.script):
             print "Unable to open script file '%s' -- exiting" % opts.script
             sys.exit(1)
-        execfile(opts.script, globals(), _customStuff())
+        execfile(opts.script, globals(), vars)
         if opts.commit:
             from transaction import commit
             commit()
         sys.exit(0)
 
-    _banner = ["Welcome to the Zenoss dmd command shell!\n"
+    _banner = ("Welcome to the Zenoss dmd command shell!\n"
              "'dmd' is bound to the DataRoot. 'zhelp()' to get a list of "
-             "commands." ] 
-    if readline is not None:
-        _banner = '\n'.join( [ _banner[0],
-                       "Use TAB-TAB to see a list of zendmd related commands.",
-                       "Tab completion also works for objects -- hit tab after"
-                       " an object name and '.'", " (eg dmd. + tab-key)."])
+             "commands.")
 
-    # Start up the console
-    myconsole = HistoryConsole(locals=_customStuff())
-    myconsole.interact(_banner)
+    vars = _customStuff()
+    if IPShellEmbed:
+        ipshell = IPShellEmbed(banner=_banner)
+        ipshell(local_ns=vars)
+    else:
+        if readline is not None:
+            _banner = '\n'.join( [ _banner,
+                           "Use TAB-TAB to see a list of zendmd related commands.",
+                           "Tab completion also works for objects -- hit tab after"
+                           " an object name and '.'", " (eg dmd. + tab-key)."])
+
+
+        # Start up the console
+        myconsole = HistoryConsole(locals=vars)
+        myconsole.interact(_banner)
 
