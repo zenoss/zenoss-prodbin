@@ -16,7 +16,7 @@
     <tr>
         <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
                     tableName,'primarySortKey','Id')">
-            Id 
+            Id
         </th>
         <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
                     tableName,'getEventClass','EventClass')">
@@ -24,7 +24,7 @@
         </th>
         <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
                     tableName,'ruleOrRegex','Evaluation')">
-            Evaluation 
+            Evaluation
         </th>
         <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
                     tableName,'getStatus','Events')">
@@ -35,14 +35,15 @@
     <tr tal:define="odd repeat/evinst/odd"
         tal:attributes="class python:odd and 'odd' or 'even'">
         <td class="tablevalues">
-            <input tal:condition="here/isManager" 
-                type="checkbox" name="ids:list" 
-                tal:attributes="value evinst/getId"/>
+            <input tal:condition="here/isManager"
+                type="checkbox" name="ids:list"
+                tal:attributes="value evinst/getId;
+                    disabled python:'disabled' if not (evinst.aq_parent.aq_parent is here.instances.aq_parent) else nothing"/>
             <a tal:attributes="href evinst/getPrimaryUrlPath"
             tal:content="evinst/id">Name</a>
         </td>
         <td class="tablevalues">
-            <a tal:attributes="href string:${evinst/getEventClassHref}/eventMappingList" 
+            <a tal:attributes="href string:${evinst/getEventClassHref}/eventMappingList"
                 tal:content="evinst/getEventClass"></a>
         </td>
         <td class="tablevalues" tal:content="python:evinst.ruleOrRegex(60)"/>
