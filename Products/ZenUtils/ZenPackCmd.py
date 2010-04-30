@@ -975,7 +975,7 @@ class ZenPackCmd(ZenScriptBase):
                     what = 'ZenPack'
                 print('Installed %s%s: %s' % (
                         what,
-                        len(names) > 1 and 's' or '',
+                        len(names) != 1 and 's' or '',
                         ', '.join(names)))
             else:
                 print('No ZenPacks installed.')
