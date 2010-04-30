@@ -317,7 +317,7 @@ class RRDTemplate(ZenModelRM, ZenPackable):
         if REQUEST:
             messaging.IMessageSender(self).sendToBrowser(
                 'Datasources Deleted',
-                'Datasource%s %s deleted.' % (len(ids)==1 and '' or 's',
+                'Datasource%s %s deleted.' % ('' if len(ids)==1 else 's',
                                               ', '.join(ids))
             )
             return self.callZenScreen(REQUEST)
@@ -355,7 +355,7 @@ class RRDTemplate(ZenModelRM, ZenPackable):
         if REQUEST:
             messaging.IMessageSender(self).sendToBrowser(
                 'Thresholds Deleted',
-                'Threshold%s %s deleted.' % (len(ids)==1 and '' or 's',
+                'Threshold%s %s deleted.' % ('' if len(ids)==1 else 's',
                                               ', '.join(ids))
             )
             return self.callZenScreen(REQUEST)
@@ -392,7 +392,7 @@ class RRDTemplate(ZenModelRM, ZenPackable):
         if REQUEST:
             messaging.IMessageSender(self).sendToBrowser(
                 'Graphs Deleted',
-                'Graph%s %s deleted.' % (len(ids)==1 and '' or 's',
+                'Graph%s %s deleted.' % ('' if len(ids)==1 else 's',
                                               ', '.join(ids))
             )
             return self.callZenScreen(REQUEST)
