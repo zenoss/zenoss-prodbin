@@ -29,6 +29,11 @@
              for="Products.ZenModel.DeviceOrganizer.DeviceOrganizer"
              provides="..interfaces.IDeviceOrganizerNode"/>
 
+    <adapter provides="..interfaces.IMarshaller"
+             for="..interfaces.IDeviceOrganizerNode"
+             factory=".device.DeviceOrganizerTreeNodeMarshaller"
+             />
+
     <adapter factory=".template.TemplateNode"
              for="Products.ZenModel.RRDTemplate.RRDTemplate"
              provides="..interfaces.ITemplateNode"/>

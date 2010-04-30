@@ -109,7 +109,7 @@
     template="templates/itinfrastructure.pt"
     name="itinfrastructure"
     for="*"
-    permission="zope2.Public"
+    permission="zenoss.View"
     />
 
 <browser:page

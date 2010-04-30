@@ -100,18 +100,27 @@ class TreeNodeMarshaller(object):
     def __init__(self, root):
         self.root = root
 
-    def marshal(self, keys=None):
-        obj = {}
-        for attr in dir(self.root):
-            if attr.startswith('_'):
-                continue
+    def getKeys(self):
+        validkey = lambda k:not k.startswith('_')
+        keys = filter(validkey, dir(self.root))
+        return keys
+
+    def getValues(self, keys=None):
+        values = {}
+        if keys is None:
+            keys = self.getKeys()
+        for attr in keys:
             val = getattr(self.root, attr)
             try:
                 json(val)
             except TypeError:
                 # We can't deal with it, just move on
                 continue
-            obj[attr] = val
+            values[attr] = val
+        return values
+
+    def marshal(self, keys=None):
+        obj = self.getValues(keys)
         if self.root.leaf:
             obj['leaf'] = True
         else:

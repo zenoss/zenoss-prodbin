@@ -25,6 +25,7 @@ from Products.Zuul.interfaces import IEventReopened
 from Products.Zuul.interfaces import IEventClosed
 from Products.Zuul.interfaces import IEventFacade
 
+
 class EventEvent(object):
     implements(IEventEvent)
     evid = None
@@ -85,6 +86,7 @@ class EventFacade(ZuulFacade):
         try:
             curs = conn.cursor()
             curs.execute(select, values)
+            return curs.fetchall()
         finally:
             zem.close(conn)
 
@@ -154,12 +156,12 @@ class EventFacade(ZuulFacade):
         data['evid'] = zevent.evid
         data['id'] = zevent.evid
         return data
-        
+
     def _resolve_context(self, context, default):
         if context and getattr(context, 'id', None) == 'dmd':
             context = None
         return resolve_context(context, default)
-    
+
     def log(self, evid, message, history=False):
         zem = self._event_manager(history)
         zem.manage_addLogMessage(evid, message)

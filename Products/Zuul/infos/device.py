@@ -14,14 +14,22 @@
 from itertools import imap
 from zope.component import adapts
 from zope.interface import implements
+from Products.ZenModel.DeviceOrganizer import DeviceOrganizer
+from Products.ZenUtils import IpUtil
 from Products.Zuul.tree import TreeNode
 from Products.Zuul.interfaces import IDeviceOrganizerNode
 from Products.Zuul.interfaces import IDeviceOrganizerInfo
 from Products.Zuul.interfaces import IDeviceInfo, IDevice, ICatalogTool
 from Products.Zuul.infos import InfoBase
-from Products.ZenModel.DeviceOrganizer import DeviceOrganizer
-from Products.ZenUtils import IpUtil
 from Products.Zuul import getFacade, info
+from Products.Zuul.marshalling import TreeNodeMarshaller
+
+ORGTYPES = {
+    'Devices':'DeviceClass',
+    'Systems':'Systems',
+    'Locations':'Location',
+    'Groups':'DeviceGroups'
+}
 
 def _organizerWhere(uid):
     """
@@ -68,6 +76,57 @@ class DeviceOrganizerNode(TreeNode):
 
     # All nodes are potentially branches, just some have no children
     leaf = False
+
+
+class DeviceOrganizerTreeNodeMarshaller(TreeNodeMarshaller):
+    """
+    Doesn't get iconCls for each individually. Loads up max sevs for all nodes
+    first, then each node can look up its severity from that single query.
+    """
+    def getSeverities(self):
+        f = getFacade('event')
+        root = self.root.uid.split('/')[3]
+        orgcol = ORGTYPES[root]
+        q = 'select %s, max(severity) from status group by %s' % (orgcol,
+                                                                  orgcol)
+        result = {}
+        for org, sev in f._run_query(q, ()):
+            for org in org.split('|'):
+                result[org] = max(result.get(org, sev), sev)
+        return sorted(result.items())
+
+    def getKeys(self):
+        keys = super(DeviceOrganizerTreeNodeMarshaller, self).getKeys()
+        if 'iconCls' in keys:
+            keys.remove('iconCls')
+        return keys
+
+    def marshal(self, keys=None, severities=None):
+        obj = self.getValues(keys)
+        if self.root.leaf:
+            obj['leaf'] = True
+        if severities is None:
+            severities = self.getSeverities()
+
+        name = '/' + self.root.uid.split('/', 4)[-1]
+
+        zem = getFacade('event')._event_manager()
+        sevnames = [c[0].lower() for c in reversed(zem.severityConversions)]
+        sev = 0
+        for p, s in severities:
+            if p.startswith(name):
+                sev = max(sev, s)
+                if p==name:
+                    break
+        sev = sevnames[sev]
+        obj['iconCls'] = 'tree-severity-icon-small-%s' % sev
+        obj['children'] = []
+        for childNode in self.root.children:
+            # We want to adapt explicitly because the signature of marshal() is
+            # different (we need to pass the severities dict down)
+            node = DeviceOrganizerTreeNodeMarshaller(childNode)
+            obj['children'].append(node.marshal(keys, severities))
+        return obj
 
 
 class DeviceInfo(InfoBase):
