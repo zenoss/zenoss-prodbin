@@ -14,7 +14,7 @@ rainbowTemplate.compile();
 var upDownTemplate = new Ext.Template(
     '<span class="status-{0}">{1}</span>');
 upDownTemplate.compile();
-                     
+
 Ext.apply(Zenoss.render, {
 
     pingStatus: function(bool) {
@@ -102,7 +102,7 @@ Ext.apply(Zenoss.render, {
         return result;
     },
 
-    /* 
+    /*
      * Given a uid, determines the type of the object and passes rendering
      * off to the appropriate rendering function.
      * e.g. Zenoss.render.link('/zport/dmd/Devices/Server') =>
@@ -152,7 +152,7 @@ Ext.apply(Zenoss.render, {
             }
             return item.text;
         }
-        
+
         return name;
     },
 
@@ -187,20 +187,16 @@ Ext.apply(Zenoss.render, {
 
     DeviceComponent: function(name, col, record) {
         var item = record.data[col.id];
-        if (item.uid){            
+        if (item.uid){
             // TODO once these pages are built fix the link
-            return Zenoss.render.default_uid_renderer(item.uid, item.text); 
+            return Zenoss.render.default_uid_renderer(item.uid, item.text);
         }
         return item.text;
     },
-        
+
     EventClass: function(uid, name) {
-        // TODO make this point to the correct place once we have the event
-        // class pages
-        var value = uid.replace(/^\/zport\/dmd\/Events/, '');
-        var url = '/zport/dmd/Events/evconsole#eventClass:.zport.dmd.Events' + value.replace(/\//g,'.');
-        if (!Ext.isString(name)) name = value;
-        return Zenoss.render.link(null, url, name);
+        if (!Ext.isString(name)) name = uid;
+        return Zenoss.render.link(null, uid, name);
     },
 
     IpAddress: function(uid, name) {
