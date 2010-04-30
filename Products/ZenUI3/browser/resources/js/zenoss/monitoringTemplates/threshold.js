@@ -129,7 +129,7 @@
                 })
             }, {
                 name: 'thresholdIdField',
-                xtype: 'textfield',
+                xtype: 'idfield',
                 fieldLabel: _t('Name'),
                 allowBlank: false
             }

@@ -40,8 +40,8 @@ class IRRDDataSourceInfo(IInfo):
     See the _properties on the RRDDatasouce ZenModel
     """
     name = schema.Text(title=_t(u'Name'),
-                       description=_t(u'The name of this datasource'),
-                       readonly=True)
+                       xtype="idfield",
+                       description=_t(u'The name of this datasource'))                       
     type = schema.Text(title=_t(u'Type'),
                        readonly=True)
     enabled = schema.Bool(title=_t(u'Enabled'))
@@ -59,8 +59,8 @@ class IBasicDataSourceInfo(IInfo):
     COMMAND infos)
     """
     name = schema.Text(title=_t(u'Name'),
-                       description=_t(u'The name of this datasource'),
-                       readonly=True)
+                       xtype="idfield",
+                       description=_t(u'The name of this datasource'))                       
     type = schema.Text(title=_t(u'Type'),
                        readonly=True)
     enabled = schema.Bool(title=_t(u'Enabled'))
@@ -89,8 +89,8 @@ class ISNMPDataSourceInfo(IInfo):
     Adaps a basic Datasource of type SNMP
     """
     name = schema.Text(title=_t(u'Name'),
-                       description=_t(u'The name of this datasource'),
-                       readonly=True)
+                       xtype="idfield",
+                       description=_t(u'The name of this datasource'))
     type = schema.Text(title=_t(u'Type'),
                        readonly=True)
     enabled = schema.Bool(title=_t(u'Enabled'))
@@ -102,8 +102,9 @@ class IDataPointInfo(IInfo):
     Adapts RRDDataPoint.
     """
     name = schema.Text(title=_t(u'Name'),
-                       description=_t(u'The name of this data point'),
-                       readonly=True)
+                       xtype="idfield",
+                       description=_t(u'The name of this data point'))
+                       
     rrdtype = schema.Text(title=_t(u'Type'),
                           description=_t(u'The type of data point we have'),
                           xtype='rrdtype')
@@ -120,7 +121,8 @@ class IThresholdInfo(IInfo):
     Adapts ThresholdClass.
     """
     name = schema.Text(title=_t(u'Name'),
-                       readonly=True, order=1)
+                       xtype="idfield",
+                        order=1)
     type = schema.Text(title=_t(u'Type'),
                        readonly=True, order=2)
     dsnames = schema.List(title=_t(u'DataPoints'),

@@ -91,6 +91,8 @@ selectionchangeHandler = function(sm, node) {
     updateDataSources(node.attributes.uid);
     updateThresholds(node.attributes.uid);
     updateGraphs(node.attributes.uid);
+    // set the context for the id fields (they validate their id against this context)
+    Zenoss.env.PARENT_CONTEXT = node.attributes.uid;
 };
 
 selModel = new Ext.tree.DefaultSelectionModel({

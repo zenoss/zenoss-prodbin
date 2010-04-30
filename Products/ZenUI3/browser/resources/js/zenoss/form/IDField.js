@@ -33,6 +33,15 @@ ZF.IDField = Ext.extend(Ext.form.TextField, {
     */
     validator: function(value) {
         var context = this.context || Zenoss.env.PARENT_CONTEXT;
+
+        // if the value has not changed do not send an ajax request
+        if (this._previousValue !== undefined) {
+            if (value === this._previousValue) {
+                return this.reportResponse(this._previousResponseText);
+            }
+        }
+        this._previousValue = value;
+        
         if (this.vtransaction) {
             Ext.lib.Ajax.abort(this.vtransaction);
         }
@@ -40,19 +49,33 @@ ZF.IDField = Ext.extend(Ext.form.TextField, {
             'GET',
             context + '/checkValidId?id='+value,
             {
-                success: function() {
-                    this.isValid = true;
+                success: function(response) {
+                    this._previousResponseText = response.responseText;
+                    return this.reportResponse(response.responseText);
                 },
-                failure: function() {
+                failure: function(response) {
                     this.markInvalid(
-                        _t('That name is invalid or already in use.')
+                        _t('That name is invalid or is already in use.')
                     );
-                    this.isValid = false;
                 },
                 scope: this
             }
         );
         return true;
+    },
+    /**
+    * Interprets a response from the server to determine if this field is valid.
+    **/
+    reportResponse: function(responseText) {
+        if (responseText === "True") {
+            return true;
+        }
+        
+        // the server responds with a string of why it is invalid 
+        this.markInvalid(
+            _t('That name is invalid: ') + ' ' + responseText
+        );
+        return false;
     }
 });
 

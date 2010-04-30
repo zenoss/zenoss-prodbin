@@ -192,7 +192,7 @@ new Ext.Window({
             buttonAlign: 'left',
             monitorValid: true,
             items: [{                       
-                xtype: 'textfield',
+                xtype: 'idfield',
                 id: 'metricName',
                 fieldLabel: _t('Name'),
                 allowBlank: false,
@@ -276,7 +276,7 @@ new Ext.Window({
             buttonAlign: 'left',
             monitorValid: true,
             items:[{
-            xtype: 'textfield',
+            xtype: 'idfield',
             id: 'dataSourceName',
             fieldLabel: _t('Name'),
             allowBlank: false,

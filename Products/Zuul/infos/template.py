@@ -84,11 +84,7 @@ class RRDDataSourceInfo(InfoBase):
     @property
     def id(self):
         return '/'.join(self._object.getPrimaryPath())
-
-    @property
-    def name(self):
-        return self._object.getId()
-
+    
     @property
     def source(self):
         return self._object.getDescription()
@@ -138,11 +134,7 @@ class BasicDataSourceInfo(InfoBase):
     @property
     def id(self):
         return '/'.join(self._object.getPrimaryPath())
-
-    @property
-    def name(self):
-        return self._object.getId()
-
+    
     @property
     def source(self):
         return self._object.getDescription()
@@ -209,11 +201,7 @@ class DataPointInfo(InfoBase):
     @property
     def id(self):
         return '/'.join(self._object.getPrimaryPath())
-
-    @property
-    def name(self):
-        return self._object.getId()
-
+    
     @property
     def type(self):
         return self._object.rrdtype
@@ -292,11 +280,7 @@ class ThresholdInfo(InfoBase):
     @property
     def id(self):
         return '/'.join(self._object.getPrimaryPath())
-
-    @property
-    def name(self):
-        return self._object.getId()
-
+    
     @property
     def type(self):
         return self._object.getTypeName()

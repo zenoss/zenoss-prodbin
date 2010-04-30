@@ -56,9 +56,9 @@ new Zenoss.HideFormDialog({
     title: _t('Add Graph Definition'),
     items: [
         {
-            xtype: 'textfield',
+            xtype: 'idfield',
             id: 'graphDefinitionIdTextfield',
-            fieldLabel: _t('ID'),
+            fieldLabel: _t('Name'),
             allowBlank: false,
             listeners: {
                 invalid: function(){
@@ -300,9 +300,9 @@ new Zenoss.HideFormDialog({
         }
     },
     items: [{
-        xtype: 'textfield',
+        xtype: 'idfield',
         ref: 'idField',
-        fieldLabel: _t('ID'),
+        fieldLabel: _t('Name'),
         allowBlank: false,
         listeners: {
             invalid: function(idField){
@@ -395,7 +395,7 @@ Ext.create({
             submit: router.setInfo
         },
         items:[{
-            xtype: 'label',
+            xtype: 'idfield',
             fieldLabel: _t('Name'),
             name:'id',
             ref: 'nameLabel'
@@ -716,7 +716,7 @@ Ext.create({
             }
         },
         items: [{
-            xtype: 'textfield',
+            xtype: 'idfield',
             fieldLabel: _t('Name'),
             name: 'name',
             allowBlank: false
