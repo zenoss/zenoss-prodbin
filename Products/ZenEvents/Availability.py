@@ -46,7 +46,7 @@ class Availability:
 
         # Guard against endDate being equal to or less than startDate.
         if total <= 0:
-            self.availability = downtime and 0 or 1
+            self.availability = 0 if downtime else 1
         else:
             self.availability = max(0, 1 - (downtime / total))
 
