@@ -94,7 +94,7 @@ class DeviceInfo(InfoBase):
         return self._object.convertProdState(self._object.productionState)
 
     def setProductionState(self, prodState):
-        self._object.setProdState(int(prodState))
+        return getFacade('device').setProductionState(self.uid, prodState)
 
     productionState = property(getProductionState, setProductionState)
 

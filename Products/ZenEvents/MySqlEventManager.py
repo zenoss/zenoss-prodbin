@@ -120,7 +120,7 @@ class MySqlEventManager(MySqlSendEventMixin, EventManagerBase):
                 ackcount, count = sumdata.get(value, [0,0])
                 sevsum.append([css, ackcount, int(count)])
         finally: zem.close(conn)
-        
+
         self.addToCache(select+str(paramValues), sevsum)
         self.cleanCache()
         return sevsum

@@ -447,8 +447,8 @@ Ext.apply(Zenoss.devices, {
                         Zenoss.remote.DeviceRouter.removeDevices(opts,
                              function(response) {
                                  var devtree = Ext.getCmp('devices'),
-                                 loctree = Ext.getCmp('locs'),
-                                 grptree = Ext.getCmp('groups');
+                                     loctree = Ext.getCmp('locs'),
+                                     grptree = Ext.getCmp('groups');
                                  resetGrid();
                                  devtree.update(response.devtree);
                                  loctree.update(response.loctree);

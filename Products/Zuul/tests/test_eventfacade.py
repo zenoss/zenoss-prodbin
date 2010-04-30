@@ -29,6 +29,16 @@ class TestEvents(EventTestCase, ZuulFacadeTestCase):
         super(TestEvents, self).setUp()
         self.svc = getFacade('event', self.dmd)
 
+    def _run_query(self, query):
+        zem = self.svc._event_manager(history=False)
+        conn = zem.connect()
+        try:
+            curs = conn.cursor()
+            curs.execute(query)
+            return curs.fetchall()
+        finally:
+            zem.close(conn)
+
     def getEvent(self, evid):
         try:
             return self.svc.query(filters={'evid':evid})['events'][0]
@@ -199,6 +209,26 @@ class TestEvents(EventTestCase, ZuulFacadeTestCase):
         self.assert_(event is not None)
         self.assertEqual(event.eventState, 0)
         self.assertEqual(len(_notified), 1)
+
+    def test_setProductionState(self):
+        devid = 'my_dev'
+
+        # Test a single device
+        evid = self.sendEvent(device=devid, prodState=1000)
+        self.svc.setProductionState(devid, 500)
+        event = self._run_query('select prodState from status where '
+                                'evid="%s"' % evid)
+        self.assertEqual(event[0][0], 500)
+
+        # Test multiple devices
+        devid2 = 'my_dev_2'
+        evid2 = self.sendEvent(device=devid2, prodState=1000,
+                               summary='nodedupe')
+        self.svc.setProductionState((devid, devid2), 250)
+        ev1, ev2 = self._run_query('select prodState from status where '
+                                   'evid="%s" or evid="%s"' % (evid, evid2))
+        self.assertEqual(ev1[0], 250)
+        self.assertEqual(ev2[0], 250)
 
 
 

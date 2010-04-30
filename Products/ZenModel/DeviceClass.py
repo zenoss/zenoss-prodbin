@@ -283,19 +283,7 @@ class DeviceClass(DeviceOrganizer, ZenPackable, TemplateContainer):
             dev.setLastChange()
             dev.setAdminLocalRoles()
             dev.index_object()
-            notify(ObjectMovedEvent(dev, source, dev.id, target, dev.id))
             transaction.commit()
-        if REQUEST:
-            messaging.IMessageSender(self).sendToBrowser(title='Devices Moved',
-                                   body="Devices were moved to %s." % moveTarget)
-            REQUEST['message'] = "Devices moved to %s" % moveTarget
-            if not isinstance(REQUEST, FakeRequest):
-                REQUEST['RESPONSE'].redirect(target.getPrimaryUrlPath())
-            else:
-                if REQUEST.has_key('oneKeyValueSoInstanceIsntEmptyAndEvalToFalse'):
-                    return REQUEST['message']
-                else:
-                    return self.callZenScreen(REQUEST)
 
 
     security.declareProtected(ZEN_DELETE_DEVICE, 'removeDevices')

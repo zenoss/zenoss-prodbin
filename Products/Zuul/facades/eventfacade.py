@@ -69,6 +69,7 @@ class EventReopened(EventAdded):
 class EventClosed(EventEvent):
     implements(IEventClosed)
 
+
 class EventFacade(ZuulFacade):
     implements(IEventFacade)
 
@@ -77,6 +78,15 @@ class EventFacade(ZuulFacade):
             return self._dmd.ZenEventHistory
         else:
             return self._dmd.ZenEventManager
+
+    def _run_query(self, select, values, history=False):
+        zem = self._event_manager(history)
+        conn = zem.connect()
+        try:
+            curs = conn.cursor()
+            curs.execute(select, values)
+        finally:
+            zem.close(conn)
 
     def _get_device_url(self, devname):
         dev = self._dmd.Devices.findDevice(devname)
@@ -107,7 +117,7 @@ class EventFacade(ZuulFacade):
             secondarySort = 'lastTime DESC'
         orderBy = "%s %s, %s" % (sort, dir, secondarySort)
         return orderBy
-    
+
     def _extract_data_from_zevent(self, zevent, fields):
         data = {}
         for field in fields:
@@ -308,3 +318,12 @@ class EventFacade(ZuulFacade):
         zem.manage_deleteEvents(r_evids)
         for evid in r_evids:
             notify(EventClosed(evid, zem))
+
+    def setProductionState(self, devids, state):
+        if isinstance(devids, basestring):
+            devids = [devids]
+        state = int(state)
+        q = 'update status set prodState=%d where device in ' % state
+        q += '(%s)' % ','.join(['%s']*len(devids))
+        self._run_query(q, devids)
+

@@ -203,9 +203,7 @@ class DeviceRouter(TreeRouter):
             uids += self.loadRanges(ranges, hashcheck, uid, params, sort, dir)
         facade = self._getFacade()
         try:
-            for uid in uids:
-                info = facade.getInfo(uid)
-                info.productionState = prodState
+            facade.setProductionState(uids, prodState)
             return DirectResponse()
         except Exception, e:
             log.exception(e)

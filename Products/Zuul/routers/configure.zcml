@@ -36,6 +36,7 @@
     for="*"
     class=".device.DeviceRouter"
     namespace="Zenoss.remote"
+    timeout="180000"
     permission="zenoss.View"
     />
 

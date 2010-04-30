@@ -13,7 +13,8 @@
 
 from itertools import imap
 from zope.interface import implements
-from Acquisition import aq_base, aq_parent
+from Acquisition import aq_base
+from zope.event import notify
 from Products.AdvancedQuery import Eq, Or, And, MatchRegexp
 from Products.Zuul.decorators import info
 from Products.Zuul.utils import unbrain
@@ -26,7 +27,9 @@ from Products.ZenModel.System import System
 from Products.ZenModel.Location import Location
 from Products.ZenModel.DeviceClass import DeviceClass
 from Products.ZenModel.Device import Device
+from Products.Zuul import getFacade
 from Products.Zuul.utils import ZuulMessageFactory as _t
+from Products.Zuul.catalog.events import IndexingEvent
 
 
 class DeviceFacade(TreeFacade):
@@ -197,6 +200,20 @@ class DeviceFacade(TreeFacade):
                               osManufacturer=osManufacturer,
                               osProductName=osProductName)
 
+    def setProductionState(self, uids, state):
+        devids = []
+        if isinstance(uids, basestring):
+            uids = (uids,)
+        for uid in uids:
+            dev = self._getObject(uid)
+            if isinstance(dev, Device):
+                dev.productionState = state
+                devids.append(dev.id)
+                dev.index_object()
+                notify(IndexingEvent(dev, ('productionState',), True))
+        evfacade = getFacade('event', self._dmd)
+        evfacade.setProductionState(devids, state)
+
     def setLockState(self, uids, deletion=False, updates=False,
                      sendEvent=False):
         devs = imap(self._getObject, uids)
@@ -329,5 +346,4 @@ class DeviceFacade(TreeFacade):
         context = self._getObject(contextUid)
         organizer = aq_base(context).__class__(id, description, address)
         context._setObject(id, organizer)
-
         return ILocationOrganizerInfo(organizer)

@@ -12,6 +12,8 @@
 ###########################################################################
 
 import unittest
+import zope.component
+from Products.Zuul.catalog.interfaces import IIndexingEvent
 from zope.interface.verify import verifyClass
 from Products import Zuul
 from Products.Zuul.tests.base import ZuulFacadeTestCase
@@ -34,7 +36,7 @@ class DeviceFacadeTest(ZuulFacadeTestCase):
         # Create Organizer
         organizer = self.facade.addOrganizer("/zport/dmd/Groups", 'testOrganizer')
         organizer_path = organizer.uid
-        
+
         catalog = self.dmd.zport.global_catalog
 
         # Add some devices to it (use createInstance to create a device)
@@ -54,6 +56,30 @@ class DeviceFacadeTest(ZuulFacadeTestCase):
         # Get the devices directly from the path
         deviceBrains = catalog(path='/'.join(organizer.getPhysicalPath()))
         self.assertEqual(len(deviceBrains), 0, " we should not have any devices at this point")
+
+    def test_setProductionState(self):
+        notified = []
+        @zope.component.adapter(IIndexingEvent)
+        def _indexed(event):
+            self.assertEqual(event.idxs, ('productionState',))
+            self.assertEqual(event.update_metadata, True)
+            notified.append(event)
+
+        dev = self.dmd.Devices.createInstance('dev')
+        dev2 = self.dmd.Devices.createInstance('dev2')
+
+        self.assertEqual(dev.productionState, 1000)
+        self.assertEqual(dev2.productionState, 1000)
+
+        zope.component.provideHandler(_indexed)
+
+        self.facade.setProductionState((dev.getPrimaryUrlPath(),
+                                        dev2.getPrimaryUrlPath()), 500)
+
+        self.assertEqual(dev.productionState, 500)
+        self.assertEqual(dev2.productionState, 500)
+
+        self.assertEqual(len(notified), 2)
 
 
 def test_suite():
