@@ -27,9 +27,9 @@ class LogStreamView(BrowserView):
         self.request.response.write("""
             <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML Basic 1.0//EN"
             "http://www.w3.org/TR/xhtml-basic/xhtml-basic10.dtd">
-            <html><body style="overflow-x:hidden;"><pre style="
-                font-family:Monaco,monospace;
-                font-size:14px;">""")
+            <html>
+                <link rel="stylesheet" type="text/css" href="/++resource++zenui/css/zenoss.css" />
+                <body class="log-output"><pre class="log-output">""")
         self._stream()
         self.request.response.write(""" </pre></body></html> """)
         self.request.response.flush()

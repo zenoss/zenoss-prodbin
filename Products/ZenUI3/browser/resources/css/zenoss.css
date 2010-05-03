@@ -761,4 +761,7 @@ span.status-down {
     margin: 1em auto;
 }
 
-           
+.log-output {
+    font-family:Monaco,monospace;
+    font-size:14px;
+}
