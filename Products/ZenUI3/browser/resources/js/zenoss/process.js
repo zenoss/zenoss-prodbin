@@ -165,6 +165,7 @@ function inheritedCheckboxHandler(checkbox, checked) {
     };
 
     router.getInfo({uid: uid, keys: ['monitor', 'eventSeverity']}, callback);
+    checkbox.fireEvent('valid', checkbox);
 }
 
 // when the form loads, show/hide the regex fieldset
@@ -181,7 +182,7 @@ function actioncompleteHandler(form, action) {
         var regexFieldSet = Ext.getCmp('regexFieldSet');
         regexFieldSet.setVisible(processInfo.hasRegex);
         regexFieldSet.doLayout();
-    } else if (action.type == 'zsubmit') {
+    } else if (action.type == 'directsubmit') {
         var processTree = Ext.getCmp(treeId);
         var selectionModel = processTree.getSelectionModel();
         var selectedNode = selectionModel.getSelectedNode();
@@ -314,18 +315,13 @@ var processFormConfig = {
     xtype: 'basedetailform',
     trackResetOnLoad: true,
     id: 'processForm',
+    permission: 'Manage DMD',
     region: 'center',
     items: processFormItems,
-    api: {
-        load: router.getInfo,
-        submit: router.setInfo
-    }
+    router: router
 };
 
-// place the form in the top right
-var processForm = Ext.create(processFormConfig);
-
-Ext.getCmp('detail_panel').add(processForm);
+var processForm = Ext.getCmp('detail_panel').add(processFormConfig);
 processForm.on('actioncomplete', actioncompleteHandler);
 
 /* ***********************************************************************

@@ -36,13 +36,6 @@ ZF.getGeneratedForm = function(uid, callback, router) {
         callback(Ext.apply({
             xtype:'autoformpanel',
             contextUid: uid,
-            api: {
-                submit:  function(x, y, panel){
-                    var form = panel.form,
-                        values = form.getFieldValues(true /* true to select dirty only */);
-                    router.setInfo(Ext.applyIf(values, form.baseParams), Ext.emptyFn);
-                }
-            },
             border: false,
             layout: 'column',
             defaults: {

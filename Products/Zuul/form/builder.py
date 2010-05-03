@@ -73,16 +73,17 @@ def _item(item):
     field = {
         'xtype': xtype,
         'fieldLabel': item['title'],
+        'anchor':'85%',
         'name': item['name'],
         'value': value,
         'vtype': item['vtype'],
         'allowBlank': not item['required']
     }
-    
-    # fileupload has a superflorous button we must remove
+
+    # fileupload has a superfluous button we must remove
     if xtype == 'fileuploadfield':
         field['buttonCfg'] = dict(hidden=True)
-        
+
     if xtype == 'numberfield':
         field['decimalPrecision'] = item['decimalPrecision']
     if xtype in ('autoformcombo', 'itemselector'):
@@ -133,16 +134,13 @@ class FormBuilder(object):
 
     def render(self, fieldsets=True):
         if not fieldsets:
-            
             fields = sorted(self.fields().values(), key=ordergetter)
             form = map(_item, fields)
             return form
-                            
         # group the fields 
         groups = self.groups()
         form = {
             'items': [_fieldset(k, v) for k,v in groups.iteritems()]
         }
         return form
-        
 

@@ -65,4 +65,9 @@
              factory=".cpu.CPUInfo"
              />
 
+    <adapter provides="...form.interfaces.IFormBuilder"
+             for="...interfaces.component.IComponentInfo"
+             factory=".ComponentFormBuilder"
+             />
+
 </configure>

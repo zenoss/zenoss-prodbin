@@ -1499,5 +1499,15 @@ Ext.override(Ext.Shadow, {
     )
 });
 
+// Force checkbox to fire valid
+var oldcbsetvalue = Ext.form.Checkbox.prototype.setValue;
+Ext.override(Ext.form.Checkbox, {
+    setValue: function(v) {
+        var result = oldcbsetvalue.call(this, v);
+        this.fireEvent('valid', this);
+        return result;
+    }
+});
+
 
 })(); // End local scope

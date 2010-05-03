@@ -56,6 +56,13 @@ Ext.onReady( function() {
 
         router.getInfo({uid: uid, keys: ['monitor', 'failSeverity']}, callback);
     };
+    zs.beforeactionhandler = function(form, action) {
+        if (action.type=='directsubmit') {
+            action.options.params = Ext.apply(action.params||{}, {
+                isInherited: form.getFieldValues().isInherited
+            });
+        }
+    };
     zs.actioncompleteHandler = function(form, action) {
         form = Ext.getCmp('serviceForm');
 
@@ -71,7 +78,7 @@ Ext.onReady( function() {
                 });
             Ext.getCmp('nameTextField').setDisabled(isRoot);
         }
-        else if (action.type == 'zsubmit') {
+        else if (action.type == 'directsubmit') {
             if (isClass) {
                 // Update the record in the navigation grid.
                 var navGrid = Ext.getCmp('navGrid'),
@@ -196,28 +203,14 @@ Ext.onReady( function() {
         id: 'serviceForm',
         region: 'center',
         items: zs.formItems,
+        permission: 'Manage DMD',
         trackResetOnLoad: true,
-        api: {
-            load: Zenoss.remote.ServiceRouter.getInfo,
-            submit: Zenoss.remote.ServiceRouter.setInfo
-        }
-    };
-
-    var clearForm = function(form) {
-        var q = {};
-        Ext.each(form.items.items, function(i){ q[i.id] = null; } );
-        form.setValues(q);
+        router: Zenoss.remote.ServiceRouter
     };
 
     zs.initForm = function() {
-
-        var serviceForm = Ext.create(zs.formConfig);
-        serviceForm.setContext = function(uid) {
-                this.contextUid = uid;
-                clearForm(this.getForm());
-                this.load({ params: {uid: uid} });
-            }.createDelegate(serviceForm);
-        Ext.getCmp('detail_panel').add(serviceForm);
+        var serviceForm = Ext.getCmp('detail_panel').add(zs.formConfig);
         serviceForm.on('actioncomplete', zs.actioncompleteHandler);
+        serviceForm.on('beforeaction', zs.beforeactionhandler);
     };
 });
