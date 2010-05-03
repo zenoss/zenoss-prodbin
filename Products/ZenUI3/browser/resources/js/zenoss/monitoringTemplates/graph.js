@@ -560,14 +560,22 @@ Zenoss.GraphPointGrid = Ext.extend(Zenoss.BaseSequenceGrid, {
                 xtype: 'button',
                 id: 'addGraphPointButton',
                 iconCls: 'add',
-                tooltip: _t('Add Graph Point'),
-                menu: 'graphPointMenu'
+                menu: 'graphPointMenu',
+                listeners: {
+                    render: function() {
+                        Zenoss.registerTooltipFor('addGraphPointButton');       
+                    }
+                }
             }, {
                 xtype: 'button',
                 id: 'deleteGraphPointButton',
                 iconCls: 'delete',
                 disabled: true,
-                tooltip: _t('Delete Graph Point'),
+                listeners: {
+                    render: function() {
+                        Zenoss.registerTooltipFor('deleteGraphPointButton');       
+                    }
+                },
                 handler: function() {
                     var html, dialog;
                     // format the confimation message
@@ -585,7 +593,11 @@ Zenoss.GraphPointGrid = Ext.extend(Zenoss.BaseSequenceGrid, {
                 id: 'editGraphPointButton',
                 iconCls: 'customize',
                 disabled: true,
-                tooltip: _t('Edit Graph Point'),
+                listeners: {
+                    render: function() {
+                        Zenoss.registerTooltipFor('editGraphPointButton');       
+                    }
+                },
                 handler: displayGraphPointForm
             }]
         });
@@ -860,7 +872,11 @@ Zenoss.templates.GraphGrid = Ext.extend(Zenoss.BaseSequenceGrid, {
                 id: 'addGraphDefinitionButton',
                 xtype: 'button',
                 iconCls: 'add',
-                tooltip: _t('Add Graph Definition'),
+                listeners: {
+                    render: function() {
+                        Zenoss.registerTooltipFor('addGraphDefinitionButton');
+                    }
+                },
                 handler: function() {
                     Ext.getCmp('addGraphDefinitionDialog').show();
                 }
@@ -868,8 +884,12 @@ Zenoss.templates.GraphGrid = Ext.extend(Zenoss.BaseSequenceGrid, {
                 id: 'deleteGraphDefinitionButton',
                 xtype: 'button',
                 iconCls: 'delete',
-                tooltip: _t('Delete Graph Definition'),
                 disabled: true,
+                listeners: {
+                    render: function() {
+                        Zenoss.registerTooltipFor('deleteGraphDefinitionButton');
+                    }
+                },
                 handler: function() {
                     var msg, name, html, dialog;
                     msg = _t("Are you sure you want to remove {0}? There is no undo.");
@@ -882,6 +902,11 @@ Zenoss.templates.GraphGrid = Ext.extend(Zenoss.BaseSequenceGrid, {
             }, {
                 id: 'graphDefinitionMenuButton',
                 xtype: 'button',
+                listeners: {
+                    render: function() {
+                        Zenoss.registerTooltipFor('graphDefinitionMenuButton');
+                    }
+                },
                 iconCls: 'customize',
                 menu: 'graphDefinitionMenu',
                 disabled: true

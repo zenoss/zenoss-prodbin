@@ -569,16 +569,32 @@ Zenoss.DataSourceTreeGrid = Ext.extend(Ext.ux.tree.TreeGrid, {
             tbar: [{
                     xtype: 'button',
                     iconCls: 'add',
-                    tooltip: 'Add Data Source',
-                    handler: showAddDataSourceDialog
+                    id:'datasourceAddButton',
+                    handler: showAddDataSourceDialog,
+                    listeners: {
+                        render: function() {
+                            Zenoss.registerTooltipFor('datasourceAddButton');
+                        }
+                    }
             }, {
                 xtype: 'button',
                 iconCls: 'delete',
-                tooltip: _t('Delete Data Source'),
+                id: 'datasourceDeleteButton',
+                listeners: {
+                    render: function() {
+                        Zenoss.registerTooltipFor('datasourceDeleteButton');
+                    }
+                },
                 handler: showDeleteDataSourceDialog
             },{
                 xtype: 'button',
+                id: 'datasourceEditButton',
                 iconCls: 'customize',
+                listeners: {
+                    render: function() {
+                        Zenoss.registerTooltipFor('datasourceEditButton');
+                    }
+                },
                 menu: 'dataSourceMenu'
             }],
             columns: [
@@ -603,6 +619,7 @@ Zenoss.DataSourceTreeGrid = Ext.extend(Ext.ux.tree.TreeGrid, {
             ]
         });
         Zenoss.DataSourceTreeGrid.superclass.constructor.call(this, config);
+        
     }
     
 });

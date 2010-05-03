@@ -1,78 +1,79 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <view>
+    <!-- data sources -->
+    <tooltip>
+        <target>datasourceAddButton</target>
+        
+        <html>Add data source</html>
+    </tooltip>
 
-  <tooltip>
-    <target></target>
+    <tooltip>
+        <target>datasourceDeleteButton</target>
+        
+        <html>Remove data source</html>
+    </tooltip>
 
-    <html>Add threshold</html>
-  </tooltip>
+    <tooltip>
+        <target>datasourceEditButton</target>
+        
+        <html>Data source edit options</html>
+    </tooltip>
+    
+    <!-- thresholds -->
+    <tooltip>
+        <target>thresholdAddButton</target>
+        
+        <html>Add threshold</html>
+    </tooltip>
 
+    <tooltip>
+        <target>thresholdDeleteButton</target>
+        
+        <html>Delete threshold</html>
+    </tooltip>
 
-  <tooltip>
-    <target></target>
+    <tooltip>
+        <target>thresholdEditButton</target>
+        
+        <html>View and edit threshold details </html>
+    </tooltip>
 
-    <html>Add metric to graph</html>
-  </tooltip>
+    <!-- graph definition -->
+    <tooltip>
+        <target>addGraphDefinitionButton</target>
+        
+        <html>Add graph definition</html>
+    </tooltip>
 
+    <tooltip>
+        <target>deleteGraphDefinitionButton</target>
+        
+        <html>Delete graph definition</html>
+    </tooltip>
 
-  <tooltip>
-    <target></target>
+    <tooltip>
+        <target>graphDefinitionMenuButton</target>
+        
+        <html>Manage graph definition</html>
+    </tooltip>
 
-    <html>Add data source</html>
-  </tooltip>
+    <!-- graph points -->
+    <tooltip>
+        <target>addGraphPointButton</target>
+        
+        <html>Add graph point</html>
+    </tooltip>
 
+    <tooltip>
+        <target>deleteGraphPointButton</target>
+        
+        <html>Delete graph point</html>
+    </tooltip>
 
-  <tooltip>
-    <target></target>
-
-    <html>Add metric</html>
-  </tooltip>
-
-
-  <tooltip>
-    <target></target>
-
-    <html>Edit data source</html>
-  </tooltip>
-
-
-  <tooltip>
-    <target></target>
-
-    <html>Override template</html>
-  </tooltip>
-
-
-  <tooltip>
-    <target></target>
-
-    <html>Delete threshold</html>
-  </tooltip>
-
-
-  <tooltip>
-    <target></target>
-
-    <html>Edit threshold</html>
-  </tooltip>
-
-
-  <tooltip>
-    <target></target>
-
-    <html>Define graph</html>
-  </tooltip>
-
-<tooltip>
-    <target></target>
-
-    <html>Delete graph</html>
-  </tooltip>
-
-<tooltip>
-    <target></target>
-
-    <html>Manage graphs</html>
-  </tooltip>
-  
+    <tooltip>
+        <target>editGraphPointButton</target>
+        
+        <html>View and edit graph point details</html>
+    </tooltip>
+    
 </view>

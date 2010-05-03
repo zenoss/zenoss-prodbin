@@ -26,7 +26,7 @@
      
     Zenoss.templates.thresholdsId = 'thresholdGrid';
     thresholdDeleteButton = 'thresholdDeleteButton';
-    thresholdEditButton = 'thesholdEditButton';
+    thresholdEditButton = 'thresholdEditButton';
     dataSourcesId = 'dataSourceTreeGrid';
     router = Zenoss.remote.TemplateRouter;
      
@@ -306,7 +306,7 @@
             var listeners = {};
             // allow them to doubleclick and bring up the edit dialog
             if (Zenoss.Security.hasPermission('Manage DMD')) {
-                listeners = { rowdblclick: thresholdEdit};
+                listeners = Ext.apply(listeners, { rowdblclick: thresholdEdit});
             }
             config = config || {};
             Ext.apply(config, {
@@ -323,9 +323,14 @@
                 tbar: [{
                     xtype: 'button',
                     iconCls: 'add',
-                    tooltip: 'Add Threshold',
+                    id: 'thresholdAddButton',
                     handler: function() {
                         Ext.getCmp('addThresholdDialog').show();
+                    },
+                    listeners: {
+                        render: function() {
+                            Zenoss.registerTooltipFor('thresholdAddButton');
+                        }
                     }
                 },
                     {
@@ -333,11 +338,15 @@
                     xtype: 'button',
                     iconCls: 'delete',
                     disabled: true,
-                    tooltip: _t('Delete Threshold'),
                     handler: function() {
                         // when they press delete show the Confirmation
                         var win = new Zenoss.FormDialog(thresholdDeleteConfig());
                         win.show();
+                    },
+                    listeners: {
+                        render: function() {
+                            Zenoss.registerTooltipFor(thresholdDeleteButton);
+                        }
                     }
                                        
                 }, {
@@ -345,8 +354,12 @@
                     xtype: 'button',
                     iconCls: 'customize',
                     disabled: true,
-                    tooltip: _t('Edit Threshold'),
-                    handler: thresholdEdit
+                    handler: thresholdEdit,
+                    listeners: {
+                        render: function() {
+                            Zenoss.registerTooltipFor(thresholdEditButton);
+                        }
+                    }
                 }],
                 colModel: new Ext.grid.ColumnModel({
                     columns: [
