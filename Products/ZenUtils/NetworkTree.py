@@ -28,7 +28,7 @@ def _fromNetworkToDevices(net, devclass):
         if dev is None:
             continue
         dcp = dev.getDeviceClassPath()
-        if not ( dcp.startswith(devclass) or 
+        if not ( dcp.startswith(devclass) or
             dcp.startswith('/Network/Router')):
             continue
         else:
@@ -72,13 +72,13 @@ def get_edges(rootnode, depth=1, withIcons=False, filter='/'):
     depth = int(depth)
     g = _get_connections(rootnode, depth, [], filter)
     def getColor(node):
-        if node.meta_type=='IpNetwork': 
+        if node.meta_type=='IpNetwork':
             return '0xffffff'
         summary = node.getEventSummary()
         colors = '0xff0000 0xff8c00 0xffd700 0x00ff00 0x00ff00'.split()
         color = '0x00ff00'
         for i in range(5):
-            if summary[i][1]+summary[i][2]>0:
+            if summary[i][2]>0:
                 color = colors[i]
                 break
         return color
@@ -99,8 +99,8 @@ def getDeviceNetworkLinks(rootdevice):
             for ipsib in ip.network().ipaddresses.objectValuesGen():
                 ifacesib = ipsib.interface()
                 if ifacesib is None: continue
-                if (ifacesib.getPrimaryId() in visited or 
-                    ifacesib.getPrimaryId() in ifaceids): 
+                if (ifacesib.getPrimaryId() in visited or
+                    ifacesib.getPrimaryId() in ifaceids):
                     continue
                 visited.append(ifacesib.getPrimaryId())
                 link = NetworkLink()
@@ -113,7 +113,7 @@ class NetworkLink(ILink):
     """ Represents a link between two IpInterfaces
         related by network connectivity.
         Not a persistent object, so not managed
-        by a LinkManager. 
+        by a LinkManager.
         Implements Products.ZenModel.Link.ILink.
     """
 
@@ -170,7 +170,7 @@ class NetworkLink(ILink):
         generation = len(context.getPrimaryPath())+1
         def getancestoraddress(endpoint):
             loc = endpoint.device().location()
-            if loc is None: return 
+            if loc is None: return
             path = loc.getPrimaryPath()
             path = '/'.join(path[:generation])
             ancestor = dmd.getObjByPath(path)

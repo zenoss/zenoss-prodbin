@@ -190,7 +190,7 @@ class TreeFacade(ZuulFacade):
         where = self._parameterizedWhere(uid)
         summary = zem.getEventSummary(parameterizedWhere=where)
         severities = (c[0].lower() for c in zem.severityConversions)
-        counts = (s[1]+s[2] for s in summary)
+        counts = (s[2] for s in summary)
         return zip(severities, counts)
 
     def addOrganizer(self, contextUid, id, description = ''):

@@ -51,7 +51,7 @@ def _organizerWhere(uid):
 class DeviceOrganizerNode(TreeNode):
     implements(IDeviceOrganizerNode)
     adapts(DeviceOrganizer)
-    
+
     @property
     def _evsummary(self):
         where = _organizerWhere(self.uid)
@@ -177,7 +177,7 @@ class DeviceInfo(InfoBase):
     def events(self):
         manager = self._object.getEventManager()
         severities = (c[0].lower() for c in manager.severityConversions)
-        counts = (s[1]+s[2] for s in self._object.getEventSummary())
+        counts = (s[2] for s in self._object.getEventSummary())
         return dict(zip(severities, counts))
 
     def availability(self):

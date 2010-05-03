@@ -31,14 +31,14 @@ class ComponentInfo(InfoBase):
     def events(self):
         manager = self._object.getEventManager()
         severities = (c[0].lower() for c in manager.severityConversions)
-        counts = (s[1]+s[2] for s in self._object.getEventSummary())
+        counts = (s[2] for s in self._object.getEventSummary())
         return dict(zip(severities, counts))
 
     @property
     def severity(self):
         manager = self._object.getEventManager()
         severities = (c[0].lower() for c in manager.severityConversions)
-        counts = (s[1]+s[2] for s in self._object.getEventSummary())
+        counts = (s[2] for s in self._object.getEventSummary())
         for sev, count in zip(severities, counts):
             if count:
                 break

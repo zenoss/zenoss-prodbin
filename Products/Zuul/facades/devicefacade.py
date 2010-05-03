@@ -68,7 +68,7 @@ class DeviceFacade(TreeFacade):
             pw = self._parameterizedWhere(uid)
         summary = zem.getEventSummary(parameterizedWhere=pw)
         severities = (c[0].lower() for c in zem.severityConversions)
-        counts = (s[1]+s[2] for s in summary)
+        counts = (s[2] for s in summary)
         return zip(severities, counts)
 
     def findComponentIndex(self, componentUid, uid=None, meta_type=None,
@@ -137,7 +137,7 @@ class DeviceFacade(TreeFacade):
                 crit = ' or '.join(where)
                 pw = ('(%s)' % crit, vals)
                 summary = zem.getEventSummary(parameterizedWhere=pw)
-                counts = (s[1]+s[2] for s in summary)
+                counts = (s[2] for s in summary)
             else:
                 counts = [0]*5
             for sev, count in zip(severities, counts):
@@ -293,7 +293,7 @@ class DeviceFacade(TreeFacade):
         """
         device = self._getObject(deviceUid)
         device.addLocalTemplate(templateId)
-        
+
     def removeLocalTemplate(self, deviceUid, templateUid):
         """
         Removes a local definition of a template on a device
@@ -303,7 +303,7 @@ class DeviceFacade(TreeFacade):
         device = self._getObject(deviceUid)
         template = self._getObject(templateUid)
         device.removeLocalRRDTemplate(template.id)
-    
+
     def getTemplates(self, id):
         object = self._getObject(id)
         rrdTemplates = object.getRRDTemplates()
@@ -327,7 +327,7 @@ class DeviceFacade(TreeFacade):
                        'text': '%s (%s)' % (rrdTemplate.titleOrId(), path),
                        'leaf': True
                        }
-                
+
     def getLocalTemplates(self, uid):
         """
         Returns a dictionary of every template defined on the device specified by the uid
@@ -335,7 +335,7 @@ class DeviceFacade(TreeFacade):
         @returns [Dict] All the templates defined on this device
         """
         return [template for template in self.getTemplates(uid) if template['path'] == _t('Locally Defined')]
-    
+
     def getUnboundTemplates(self, uid):
         return self._getBoundTemplates(uid, False)
 
