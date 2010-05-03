@@ -16,8 +16,7 @@ from zope.interface import implements
 from Products.AdvancedQuery import Eq, Or, Generic, And
 from Products.ZCatalog.CatalogBrains import AbstractCatalogBrain
 from Products.Zuul.interfaces import ITreeNode, ICatalogTool
-from Products.Zuul.utils import dottedname
-
+from Products.Zuul.utils import dottedname, unbrain
 
 class TreeNode(object):
     """
@@ -86,13 +85,15 @@ class StaleResultsException(Exception):
 
 
 class SearchResults(object):
-    def __hash__(self):
-        return self.hash_
 
-    def __init__(self, results, total, hash_):
-        self.hash_ = hash_
+    def __init__(self, results, total, hash_, areBrains=True):
         self.results = results
         self.total = total
+        self.hash_ = hash_
+        self.areBrains = areBrains
+
+    def __hash__(self):
+        return self.hash_
 
     def __iter__(self):
         return self.results
@@ -171,10 +172,20 @@ class CatalogTool(object):
     def search(self, types=(), start=0, limit=None, orderby='name',
                reverse=False, paths=(), depth=None, query=None,
                hashcheck=None):
-        brains = self._queryCatalog(types, orderby, reverse, paths, depth,
-                                    query)
-        totalCount = len(brains)
-        hash_ = hash(tuple(b.getRID() for b in brains))
+
+        # if orderby is not an index then _queryCatalog, then query results
+        # will be unbrained and sorted
+        areBrains = orderby in self.catalog.getIndexes()
+        queryOrderby = orderby if areBrains else None
+
+        queryResults = self._queryCatalog(types, queryOrderby, reverse, paths, depth, query)
+        totalCount = len(queryResults)
+        if areBrains or not queryResults:
+            allResults = queryResults
+            hash_ = hash( tuple(r.getRID() for r in queryResults) )
+        else:
+            allResults = self._sortQueryResults(queryResults, orderby, reverse)
+            hash_ = hash( tuple(r.getPrimaryPath() for r in allResults) )
 
         if hashcheck is not None:
             if hash_ != hashcheck:
@@ -186,11 +197,32 @@ class CatalogTool(object):
             stop = None
         else:
             stop = start + limit
-        results = islice(brains, start, stop)
+        results = islice(allResults, start, stop)
 
-        return SearchResults(results, totalCount, hash_)
+        return SearchResults(results, totalCount, hash_, areBrains)
 
     def update(self, obj):
         self.catalog.catalog_object(obj, idxs=())
 
+    def _sortQueryResults(self, queryResults, orderby, reverse):
 
+        # save the values during sorting in case getting the value is slow
+        savedValues = {}
+
+        def getValue(obj):
+            key = obj.getPrimaryPath()
+            if key in savedValues:
+                value = savedValues[key]
+            else:
+                value = getattr(obj, orderby)
+                if callable(value):
+                    value = value()
+                savedValues[key] = value
+            return value
+
+        def compareValues(left, right):
+            return cmp( getValue(left), getValue(right) )
+
+        allObjects = [unbrain(brain) for brain in queryResults]
+        allObjects.sort(cmp=compareValues, reverse=reverse)
+        return allObjects

@@ -80,10 +80,9 @@ class ServiceFacade(TreeFacade):
         if qs:
             query = And(*qs)
 
-        brains = cat.search("Products.ZenModel.ServiceClass.ServiceClass",
-                            start=start, limit=limit, orderby=sort,
-                            reverse=reverse, query=query)
-        return brains
+        return cat.search("Products.ZenModel.ServiceClass.ServiceClass",
+                          start=start, limit=limit, orderby=sort,
+                          reverse=reverse, query=query)
 
     def getClassNames(self, uid=None, query=None):
         params = None
@@ -99,10 +98,15 @@ class ServiceFacade(TreeFacade):
     @info
     def getList(self, limit=None, start=None, sort='name', dir='DESC',
               params=None, uid=None, criteria=()):
-        brains = self._serviceSearch(limit, start, sort, dir, params, uid,
-                                     criteria)
-        return {'brains': imap(unbrain, brains), 'total':brains.total,
-                'hash':brains.hash_}
+        searchResults = self._serviceSearch(limit, start, sort, dir, params, uid, criteria)
+        if searchResults.areBrains:
+            objects = [unbrain(brain) for brain in searchResults]
+        else:
+            objects = searchResults
+        return {'brains': objects,
+                'total': searchResults.total,
+                'hash': searchResults.hash_,
+                }
 
     def moveServices(self, sourceUids, targetUid):
         moveTarget = targetUid.replace('/zport/dmd/Services/', '')

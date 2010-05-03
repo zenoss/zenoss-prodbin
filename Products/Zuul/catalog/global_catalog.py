@@ -287,6 +287,9 @@ class GlobalCatalog(ZCatalog):
             idx = self._catalog.getIndex('path')
             idx.unindex_paths(uid, paths)
 
+    def getIndexes(self):
+        return self._catalog.indexes
+
 
 def createGlobalCatalog(portal):
     catalog = GlobalCatalog()

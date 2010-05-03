@@ -60,7 +60,7 @@
 
     zs.columnModelConfig = {
         defaults: {
-            sortable: false,
+            sortable: true,
             menuDisabled: true
         },
         columns: [
@@ -89,6 +89,7 @@
         border: false,
         autoExpandColumn: 'name',
         rowSelectorDepth: 5,
+        loadMask: true,
         view: new Zenoss.FilterGridView({
             nearLimit: 20,
             loadMask: {msg: _t('Loading. Please wait...')},
