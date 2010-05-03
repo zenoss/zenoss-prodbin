@@ -19,7 +19,7 @@ from Products.Zuul.tree import TreeNode
 from Products.Zuul.infos import InfoBase, ConfigProperty
 from Products.Zuul.interfaces import IServiceEntity, IServiceInfo
 from Products.Zuul.interfaces import IServiceNode, IServiceOrganizerNode
-from Products.Zuul.interfaces import ICatalogTool
+from Products.Zuul.interfaces import ICatalogTool, IServiceOrganizerInfo
 from Products.ZenModel.ServiceClass import ServiceClass
 from Products.ZenModel.ServiceOrganizer import ServiceOrganizer
 from Products.ZenModel.Service import Service
@@ -71,7 +71,23 @@ class ServiceOrganizerNode(ServiceNode):
         return False
 
 
-class ServiceInfo(InfoBase):
+class ServiceInfoBase(InfoBase):
+
+    monitor = ConfigProperty('zMonitor', 'boolean')
+    failSeverity = ConfigProperty('zFailSeverity', 'int')
+
+    def getInherited(self):
+        return not self._object.hasProperty('zMonitor')
+
+    def setInherited(self, isInherited):
+        if isInherited:
+            if self._object.hasProperty('zMonitor'):
+                self._object.deleteZenProperty('zMonitor')
+            if self._object.hasProperty('zFailSeverity'):
+                self._object.deleteZenProperty('zFailSeverity')
+    isInherited = property(getInherited, setInherited)
+
+class ServiceInfo(ServiceInfoBase):
     implements(IServiceInfo)
     adapts(ServiceClass)
 
@@ -98,16 +114,6 @@ class ServiceInfo(InfoBase):
 
         return numInstances
 
-    monitor = ConfigProperty('zMonitor', 'boolean')
-    failSeverity = ConfigProperty('zFailSeverity', 'int')
-
-    def getInherited(self):
-        return not self._object.hasProperty('zMonitor')
-
-    def setInherited(self, isInherited):
-        if isInherited:
-            if self._object.hasProperty('zMonitor'):
-                self._object.deleteZenProperty('zMonitor')
-            if self._object.hasProperty('zFailSeverity'):
-                self._object.deleteZenProperty('zFailSeverity')
-    isInherited = property(getInherited, setInherited)
+class ServiceOrganizerInfo(ServiceInfoBase):
+    implements(IServiceOrganizerInfo)
+    adapts(ServiceOrganizer)
