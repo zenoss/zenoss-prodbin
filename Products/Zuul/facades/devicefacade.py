@@ -285,6 +285,25 @@ class DeviceFacade(TreeFacade):
                                                title=title)
         return jobStatus
 
+    def addLocalTemplate(self, deviceUid, templateId):
+        """
+        Adds a local template on the device specified by deviceUid
+        @param string deviceUid: absolute path to a device
+        @param string templateId: the Id of the new template
+        """
+        device = self._getObject(deviceUid)
+        device.addLocalTemplate(templateId)
+        
+    def removeLocalTemplate(self, deviceUid, templateUid):
+        """
+        Removes a local definition of a template on a device
+        @param string deviceUid: Absolute path to the device that has the template
+        @param string templateUid: Absolute path to the template we wish to remove
+        """
+        device = self._getObject(deviceUid)
+        template = self._getObject(templateUid)
+        device.removeLocalRRDTemplate(template.id)
+    
     def getTemplates(self, id):
         object = self._getObject(id)
         rrdTemplates = object.getRRDTemplates()
@@ -304,10 +323,19 @@ class DeviceFacade(TreeFacade):
                     path = _t('Locally Defined')
                 yield {'id': uid,
                        'uid': uid,
+                       'path': path,
                        'text': '%s (%s)' % (rrdTemplate.titleOrId(), path),
                        'leaf': True
                        }
-
+                
+    def getLocalTemplates(self, uid):
+        """
+        Returns a dictionary of every template defined on the device specified by the uid
+        @param string uid: absolute path of a device
+        @returns [Dict] All the templates defined on this device
+        """
+        return [template for template in self.getTemplates(uid) if template['path'] == _t('Locally Defined')]
+    
     def getUnboundTemplates(self, uid):
         return self._getBoundTemplates(uid, False)
 
@@ -332,7 +360,7 @@ class DeviceFacade(TreeFacade):
         """
         A template is overrideable at the device if it is bound to the device and
         we have not already overridden it.
-        @param string UID, the unique id of a device
+        @param string uid: the unique id of a device
         @returns a list of all available templates for the given uid
         """
         obj = self._getObject(uid)

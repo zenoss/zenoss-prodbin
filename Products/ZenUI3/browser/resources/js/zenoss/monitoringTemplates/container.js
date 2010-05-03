@@ -19,6 +19,16 @@ Ext.ns('Zenoss', 'Zenoss.templates');
 
 var REMOTE = Zenoss.remote.DeviceRouter;
 
+/**
+ * Updates the data store for the template tree
+ **/
+function refreshTemplateTree() {
+    var cmp = Ext.getCmp('templateTree');
+    if (cmp) {
+        cmp.getRootNode().reload();
+    }
+}
+     
 Zenoss.templates.Container = Ext.extend(Ext.Panel, {
     constructor: function(config) {
         Ext.applyIf(config, {
@@ -184,6 +194,63 @@ Zenoss.BindTemplatesItemSelector = Ext.extend(Ext.ux.form.ItemSelector, {
 });
 Ext.reg('bindtemplatesitemselector', Zenoss.BindTemplatesItemSelector);
 
+Zenoss.AddLocalTemplatesDialog = Ext.extend(Zenoss.HideFitDialog, {
+    constructor: function(config){
+        var me = this;
+        Ext.applyIf(config, {
+            title: _t('Add Local Template'),
+            layout: 'form',
+            items: [{
+                xtype: 'form',
+                ref: 'formPanel',
+                border: false,
+                monitorValid: true,
+                listeners: {
+                    clientvalidation: function(formPanel, valid) {
+                        var dialogWindow = formPanel.refOwner;
+                        dialogWindow.submitButton.setDisabled( ! valid );
+                    }
+                },
+                items: [{
+                    xtype: 'idfield',
+                    fieldLabel: _t('Name'),
+                    ref: 'templateName',
+                    context: config.context
+                }]
+            }],
+            listeners: {
+                show: function() {
+                    this.formPanel.templateName.setValue('');
+                }
+                
+            },
+            buttons: [
+            {
+                xtype: 'HideDialogButton',
+                ref: '../submitButton',
+                text: _t('Submit'),
+                handler: function(){
+                    var templateId = me.formPanel.templateName.getValue();
+                                        
+                    REMOTE.addLocalTemplate({
+                       deviceUid: me.context,
+                       templateId: templateId
+                    }, refreshTemplateTree);
+                    
+                }
+            }, {
+                xtype: 'HideDialogButton',
+                text: _t('Cancel')
+            }]
+        });
+        Zenoss.BindTemplatesDialog.superclass.constructor.call(this, config);
+    },
+    setContext: function(uid) {
+        this.context = uid;
+    }
+});
+Ext.reg('addlocaltemplatesdialog', Zenoss.AddLocalTemplatesDialog);
+     
 Zenoss.BindTemplatesDialog = Ext.extend(Zenoss.HideFitDialog, {
     constructor: function(config){
         var me = this;
@@ -212,13 +279,7 @@ Zenoss.BindTemplatesDialog = Ext.extend(Zenoss.HideFitDialog, {
                         REMOTE.setBoundTemplates({
                             uid: me.context,
                             templateIds: templateIds
-                        }, function (){
-                            // refresh the template tree
-                            var cmp = Ext.getCmp('templateTree');
-                            if (cmp) {
-                                cmp.getRootNode().reload();
-                            }
-                        });
+                        }, refreshTemplateTree);
                     }
                 }
             }, {
@@ -248,14 +309,7 @@ Zenoss.ResetTemplatesDialog = Ext.extend(Zenoss.MessageDialog, {
                         if (Zenoss.Security.hasPermission('Manage DMD')) {
                             REMOTE.resetBoundTemplates(
                                 { uid: me.context },
-                                function() {
-                                    // refresh the template tree
-                                    var cmp = Ext.getCmp('templateTree');
-                                    if (cmp) {
-                                        cmp.getRootNode().reload();
-                                    }
-                                }
-                            );
+                                refreshTemplateTree);
                         }
                     }
                 }, {
@@ -312,7 +366,7 @@ Zenoss.OverrideTemplatesDialog = Ext.extend(Zenoss.HideFitDialog, {
                 },
                 listeners: {
                     select: function(){
-                        // disable submit if something is selected
+                        // disable submit if nothing is selected
                         me.submit.setDisabled(!me.comboBox.getValue());
                     }
                 }
@@ -330,13 +384,7 @@ Zenoss.OverrideTemplatesDialog = Ext.extend(Zenoss.HideFitDialog, {
                         Zenoss.remote.TemplateRouter.copyTemplate({
                             uid: templateUid,
                             targetUid: me.context
-                        }, function (){
-                            // refresh the template tree
-                            var cmp = Ext.getCmp('templateTree');
-                            if (cmp) {
-                                cmp.getRootNode().reload();
-                            }
-                        });
+                        }, refreshTemplateTree);
                     }
                 }
             }, {
@@ -351,5 +399,78 @@ Zenoss.OverrideTemplatesDialog = Ext.extend(Zenoss.HideFitDialog, {
     }
 });
 Ext.reg('overridetemplatesdialog', Zenoss.OverrideTemplatesDialog);
+
+Zenoss.removeLocalTemplateDialog = Ext.extend(Zenoss.HideFitDialog, {
+    constructor: function(config){
+        var me = this;
+        Ext.applyIf(config, {
+            title: _t('Remove Local Template'),
+            listeners: {
+                show: function() {
+                    // completely reload the combobox every time
+                    // we show the dialog
+                    me.submit.setDisabled(true);
+                    me.comboBox.setValue(null);
+                    me.comboBox.store.setBaseParam('query', me.context);
+                    me.comboBox.store.setBaseParam('uid', me.context);
+                    me.comboBox.store.load();
+                }
+            },
+            items: [{
+                xtype: 'label',
+                border: false,
+                html: _t('Select the locally defined template you wish to remove.')
+            },{
+                xtype: 'combo',
+                forceSelection: true,
+                emptyText: _t('Select a template...'),
+                minChars: 0,
+                ref: 'comboBox',
+                selectOnFocus: true,
+                valueField: 'uid',
+                displayField: 'label',
+                typeAhead: true,
+                store: {
+                    xtype: 'directstore',
+                    ref:'store',
+                    directFn: REMOTE.getLocalTemplates,
+                    fields: ['uid', 'label'],
+                    root: 'data'
+                },
+                listeners: {
+                    select: function(){
+                        // disable submit if nothing is selected
+                        me.submit.setDisabled(!me.comboBox.getValue());
+                    }
+                }
+            }],
+            buttons: [
+            {
+                xtype: 'HideDialogButton',
+                ref: '../submit',
+                disabled: true,
+                text: _t('Submit'),
+                handler: function(){
+                    var records, data, templateIds;
+                    if (Zenoss.Security.hasPermission('Manage DMD')) {
+                        var templateUid = me.comboBox.getValue();
+                        REMOTE.removeLocalTemplate({
+                            deviceUid: me.context,
+                            templateUid: templateUid
+                        }, refreshTemplateTree);
+                    }
+                }
+            }, {
+                xtype: 'HideDialogButton',
+                text: _t('Cancel')
+            }]
+        });
+        Zenoss.OverrideTemplatesDialog.superclass.constructor.call(this, config);
+    },
+    setContext: function(uid) {
+        this.context = uid;
+    }
+});
+Ext.reg('removelocaltemplatesdialog', Zenoss.removeLocalTemplateDialog);
 
 })();

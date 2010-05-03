@@ -661,6 +661,18 @@ Ext.create({
     context: UID
 });
 
+Ext.create({
+    xtype: 'addlocaltemplatesdialog',
+    id: 'addLocalTemplatesDialog',
+    context: UID
+});
+
+Ext.create({
+    xtype: 'removelocaltemplatesdialog',
+    id: 'removeLocalTemplatesDialog',
+    context: UID
+});
+
                 
 Ext.getCmp('footer_bar').add([{
     xtype: 'ContextConfigureMenu',
@@ -678,11 +690,23 @@ Ext.getCmp('footer_bar').add([{
         }
     },{
         xtype: 'menuitem',
+        text: _t('Add Local Template'),
+        handler: function(){
+            Ext.getCmp('addLocalTemplatesDialog').show();
+        }
+    },{
+        xtype: 'menuitem',
+        text: _t('Remove Local Template'),
+        handler: function(){
+            Ext.getCmp('removeLocalTemplatesDialog').show();
+        }
+    },{
+        xtype: 'menuitem',
         text: _t('Reset Bindings'),
         handler: function(){
             Ext.getCmp('resetTemplatesDialog').show();
         }
-    }, {
+    },{
         xtype: 'menuitem',
         text: _t('Override Template Here'),
         handler: function(){

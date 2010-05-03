@@ -407,6 +407,39 @@ class DeviceRouter(TreeRouter):
                                                tag,
                                                serialNumber)
         return DirectResponse.succeed(jobId=jobStatus.id)
+    
+    def addLocalTemplate(self, deviceUid, templateId):
+        """
+        Devices a template on the device
+        @param string deviceUid: absoltue path to the device
+        @param string templateid: Name of the new template
+        """
+        facade = self._getFacade()
+        facade.addLocalTemplate(deviceUid, templateId)
+        return DirectResponse.succeed()
+
+    def removeLocalTemplate(self, deviceUid, templateUid ):
+        """
+        Removes a template that is defined locally on a device
+        @param string deviceUid: absoltue path to the device
+        @param string templateUid: absoltue path to the performance
+               template, it must belong to the device
+        """
+        facade = self._getFacade()
+        facade.removeLocalTemplate(deviceUid, templateUid)
+        return DirectResponse.succeed()
+
+    def getLocalTemplates(self, query, uid):
+        """
+        @param string uid: Absolute path of a device
+        @returns [Dict] All the templates defined on this device
+        """
+        facade = self._getFacade()
+        templates = facade.getLocalTemplates(uid)
+        data = []
+        for template in templates:
+            data.append(dict(label=template['text'], uid=template['uid']))
+        return DirectResponse.succeed(data=data)
 
     def getTemplates(self, id):
         facade = self._getFacade()
@@ -427,10 +460,9 @@ class DeviceRouter(TreeRouter):
         facade = self._getFacade()
         facade.setBoundTemplates(uid, templateIds)
         return DirectResponse.succeed()
-
+    
     def resetBoundTemplates(self, uid):
         facade = self._getFacade()
-        templates = facade.getBoundTemplates(uid)
         facade.resetBoundTemplates(uid)
         return DirectResponse.succeed()
 
