@@ -40,6 +40,9 @@ Ext.onReady( function() {
      * @param {boolean} checked The value of the checkbox as a boolean
      */
     zs.acquiredCheckboxHandler = function(checkbox, checked) {
+        if ( Ext.getCmp('serviceForm').isLoadInProgress ) {
+            return;
+        }
         zs.setMonitoringDisabled(checked);
 
         var router = Zenoss.remote.ServiceRouter,
@@ -60,6 +63,7 @@ Ext.onReady( function() {
             isRoot = form.contextUid == Ext.getCmp('navTree').root.attributes.uid;
 
         if (action.type == 'directload') {
+            form.isLoadInProgress = false;
             Ext.each(zs.hiddenFieldIdsForOrganizer, function(i){
                     var o = Ext.getCmp(i);
                     o.setVisible(isClass);
