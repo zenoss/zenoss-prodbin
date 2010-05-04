@@ -17,8 +17,10 @@ import traceback
 import subprocess
 import signal
 import time
+from itertools import imap
 from Products.ZenUI3.browser.streaming import StreamingView, StreamClosed
 from Products.ZenUtils.jsonutils import unjson
+from Products.Zuul import getFacade
 
 
 class CommandView(StreamingView):
@@ -75,7 +77,7 @@ class CommandView(StreamingView):
                        target.id)
             self.write('Type: %s   Value: %s' % tuple(sys.exc_info()[:2]))
 
-            
+
 class BackupView(StreamingView):
     def stream(self):
         data = unjson(self.request.get('data'))
@@ -90,7 +92,7 @@ class BackupView(StreamingView):
         self.context.zport.dmd.manage_createBackup(includeEvents, 
                 includeMysqlLogin, timeout, None, self.write)
 
-        
+
 class TestDataSourceView(StreamingView):
     """
     Accepts a post with data in of the command to be tested against a device
@@ -112,7 +114,7 @@ class TestDataSourceView(StreamingView):
         except Exception:
             self.write('Exception while performing command: <br />')
             self.write('<pre>%s</pre>' % (traceback.format_exc()))
-                    
+
     def reportError(self, title, body, priority=None, image=None):
         """
         If something goes wrong, just display it in the command output
@@ -120,3 +122,25 @@ class TestDataSourceView(StreamingView):
         """
         error = "<b>%s</b><p>%s</p>" % (title, body)
         return self.write(error)
+
+
+class ModelView(StreamingView):
+    """
+    Accepts a list of uids to model.
+    """
+    def stream(self):
+        data = unjson(self.request.get('data'))
+        uids = data['uids']
+        facade = getFacade('device', self.context)
+        for device in imap(facade._getObject, uids):
+            device.collectDevice(REQUEST=self.request, write=self.write)
+
+
+
+
+
+
+
+
+
+

@@ -1673,7 +1673,8 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable,
     ####################################################################
 
     security.declareProtected(ZEN_MANAGE_DEVICE, 'collectDevice')
-    def collectDevice(self, setlog=True, REQUEST=None, generateEvents=False, background=False):
+    def collectDevice(self, setlog=True, REQUEST=None, generateEvents=False,
+                      background=False, write=None):
         """
         Collect the configuration of this device AKA Model Device
         
@@ -1684,8 +1685,8 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable,
         unused(generateEvents)
         xmlrpc = isXmlRpc(REQUEST)
         perfConf = self.getPerformanceServer()
-        perfConf.collectDevice(self, setlog, REQUEST, 
-                                generateEvents, background)
+        perfConf.collectDevice(self, setlog, REQUEST, generateEvents,
+                               background, write)
         
         if xmlrpc: return 0
 

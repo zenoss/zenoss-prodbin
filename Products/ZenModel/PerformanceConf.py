@@ -685,7 +685,7 @@ class PerformanceConf(Monitor, StatusColor):
 
 
     def collectDevice(self, device=None, setlog=True, REQUEST=None,
-        generateEvents=False, background=False):
+        generateEvents=False, background=False, write=None):
         """
         Collect the configuration of this device AKA Model Device
 
@@ -700,31 +700,25 @@ class PerformanceConf(Monitor, StatusColor):
         @type generateEvents: string
         """
         xmlrpc = isXmlRpc(REQUEST)
-        if setlog and REQUEST and not xmlrpc:
-            handler = setupLoggingHeader(device, REQUEST)
-
-        zenmodelerOpts = ['run', '--now', '--monitor', self.id, 
+        zenmodelerOpts = ['run', '--now', '--monitor', self.id,
                             '-F', '-d', device.id]
         if REQUEST:
             zenmodelerOpts.append('--weblog')
-        result = self._executeZenModelerCommand(zenmodelerOpts, 
-                                                background, REQUEST)
+        result = self._executeZenModelerCommand(zenmodelerOpts, background,
+                                                REQUEST, write)
         if result and xmlrpc:
             return result
         log.info('configuration collected')
-
-        if setlog and REQUEST and not xmlrpc:
-            clearWebLoggingStream(handler)
 
         if xmlrpc:
             return 0
 
 
-    def _executeZenModelerCommand(self, zenmodelerOpts, 
-                                    background=False, REQUEST=None):
+    def _executeZenModelerCommand(self, zenmodelerOpts, background=False,
+                                  REQUEST=None, write=None):
         """
         Execute zenmodeler and return result
-        
+
         @param zenmodelerOpts: zenmodeler command-line options
         @type zenmodelerOpts: string
         @param REQUEST: Zope REQUEST object
@@ -737,9 +731,9 @@ class PerformanceConf(Monitor, StatusColor):
         zenmodelerCmd.extend(zenmodelerOpts)
         if background:
             log.info('queued job: %s', " ".join(zenmodelerCmd))
-            result = self.dmd.JobManager.addJob(ShellCommandJob,zenmodelerCmd) 
+            result = self.dmd.JobManager.addJob(ShellCommandJob,zenmodelerCmd)
         else:
-            result = executeCommand(zenmodelerCmd, REQUEST)
+            result = executeCommand(zenmodelerCmd, REQUEST, write)
         return result
 
 

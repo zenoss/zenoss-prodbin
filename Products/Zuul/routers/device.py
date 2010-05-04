@@ -144,6 +144,16 @@ class DeviceRouter(TreeRouter):
             return DirectResponse.succeed(tree=tree)
 
     @require('Manage Device')
+    def pushChanges(self, uids, hashcheck, ranges=(), uid=None, params=None,
+                    sort='name', dir='ASC'):
+        if ranges:
+            uids += self.loadRanges(ranges, hashcheck, uid, params, sort, dir)
+
+        facade = self._getFacade()
+        facade.pushChanges(uids)
+        return DirectResponse.succeed('Changes pushed to collectors.')
+
+    @require('Manage Device')
     def lockDevices(self, uids, hashcheck, ranges=(), updates=False,
                     deletion=False, sendEvent=False, uid=None, params=None,
                     sort='name', dir='ASC'):
@@ -169,14 +179,14 @@ class DeviceRouter(TreeRouter):
 
     @require('Admin Device')
     def resetIp(self, uids, hashcheck, uid=None, ranges=(), params=None,
-                sort='name', dir='ASC'):
+                sort='name', dir='ASC', ip=''):
         if ranges:
             uids += self.loadRanges(ranges, hashcheck, uid, params, sort, dir)
         facade = self._getFacade()
         try:
             for uid in uids:
                 info = facade.getInfo(uid)
-                info.ipAddress = '' # Set to empty causes DNS lookup
+                info.ipAddress = ip # Set to empty causes DNS lookup
             return DirectResponse('Reset %s IP addresses.' % len(uids))
         except Exception, e:
             log.exception(e)

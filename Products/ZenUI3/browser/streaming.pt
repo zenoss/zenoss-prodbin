@@ -4,7 +4,6 @@
 <head>
 <link rel="stylesheet" type="text/css"
       href="/++resource++zenui/css/streaming.css" />
-<script src="/++resource++zenui/js/zenoss/streaming.js"></script>
 </head>
 <body>
 <div class="streaming-container">

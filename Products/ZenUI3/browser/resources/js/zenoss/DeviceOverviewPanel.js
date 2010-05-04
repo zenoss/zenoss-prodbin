@@ -119,7 +119,7 @@
         });
         win.show();
         win.doLayout();
-    };
+    }
 
 
     function isField(c) {
@@ -165,6 +165,7 @@
             config = Ext.applyIf(config || {}, {
                 trackResetOnLoad: true
             });
+            config.listeners = Ext.applyIf(config.listeners||{}, this.listeners);
             Zenoss.DeviceOverviewForm.superclass.constructor.call(this, config);
         },
         showButtons: function() {
@@ -254,7 +255,22 @@
                         }]
                     },{
                         defaultType: 'displayfield',
+                        autoHeight: true,
+                        listeners: {
+                            actioncomplete: function(form, action) {
+                                if (action.type=='directsubmit') {
+                                    var bar = Ext.getCmp('devdetailbar');
+                                    if (bar) {
+                                        bar.refresh();
+                                    }
+                                }
+                            }
+                        },
                         items: [{
+                            xtype: 'textfield',
+                            name: 'name',
+                            fieldLabel: _t('Device Name')
+                        },{
                             xtype: 'ProductionStateCombo',
                             fieldLabel: _t('Production State'),
                             name: 'productionState'
@@ -280,7 +296,6 @@
                         }]
                     },{
                         defaultType: 'textfield',
-                        autoHeight: true,
                         items: [{
                             fieldLabel: _t('Tag'),
                             name: 'tagNumber'

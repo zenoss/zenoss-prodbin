@@ -83,7 +83,11 @@ Zenoss.DeviceDetailBar = Ext.extend(Zenoss.LargeToolbar, {
         });
         Zenoss.DeviceDetailBar.superclass.constructor.call(this, config);
     },
+    refresh: function() {
+        this.setContext(this.contextUid);
+    },
     setContext: function(uid) {
+        this.contextUid = uid;
         this.directFn({uid:uid}, function(result){
             var ZR = Zenoss.render,
                 data = result.data;

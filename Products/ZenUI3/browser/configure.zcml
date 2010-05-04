@@ -191,6 +191,13 @@
     />
 
 <browser:page
+    class=".command.ModelView"
+    name="run_model"
+    for="*"
+    permission="zenoss.ManageDevice"
+    />
+
+<browser:page
     class=".command.TestDataSourceView"
     name="test_datasource"
     for="Products.ZenModel.RRDDataSource.RRDDataSource"

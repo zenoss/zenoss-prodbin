@@ -605,6 +605,7 @@ Ext.getCmp('center_panel').add({
     },
     tbar: {
         xtype: 'devdetailbar',
+        id: 'devdetailbar',
         listeners: {
             render: function(me) {
                 me.setContext(UID);
@@ -721,6 +722,72 @@ Ext.getCmp('footer_bar').add([{
         text: _t('Override Template Here'),
         handler: function(){
             Ext.getCmp('overrideTemplatesDialog').show();
+        }
+    },'-',{
+        xtype: 'menuitem',
+        text: _t('Reset/Change IP Address') + '...',
+        handler: function() {
+            var win = new Zenoss.FormDialog({
+                title: 'Reset/Change IP Address',
+                items: [{
+                    xtype: 'textfield',
+                    vtype: 'ipaddress',
+                    name: 'ip',
+                    ref: '../ipaddressfield',
+                    fieldLabel: _t('IP Address (blank to use DNS)')
+                }],
+                buttons: [{
+                    text: _t('Save'),
+                    ref: '../savebtn',
+                    handler: function() {
+                        REMOTE.resetIp({
+                            ip: this.refOwner.ipaddressfield.getValue(),
+                            uids: [UID],
+                            hashcheck: null
+                        }, function(){
+                            win.destroy();
+                            Ext.getCmp('devdetailbar').setContext(UID);
+                        });
+                    }
+                },{
+                    text: _t('Cancel'),
+                    handler: function(){
+                        win.destroy();
+                    }
+                }]
+            });
+            win.show();
+            win.doLayout();
+        }
+    },{
+        xtype: 'menuitem',
+        text: _t('Push Changes') + '...',
+        handler: function() {
+            Ext.Msg.show({
+                title: 'Push Changes',
+                msg: _t('Are you sure you want to push changes to the collectors?'),
+                buttons: Ext.Msg.YESNO,
+                fn: function (btnid) {
+                    if (btnid!='yes') { 
+                        return; 
+                    }
+                    REMOTE.pushChanges({
+                        uids: [UID],
+                        hashcheck: null
+                    }, Ext.emptyFn);
+                }
+            });
+        }
+    },{
+        xtype: 'menuitem',
+        text: _t('Model Device') + '...',
+        handler: function() {
+            var win = new Zenoss.CommandWindow({
+                panel: 'modelpanel',
+                command: 'Model Device',
+                uids: [UID]
+            });
+            win.show();
         }
     }]
 }]);

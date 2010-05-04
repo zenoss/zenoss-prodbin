@@ -64,6 +64,23 @@ Zenoss.BackupPanel = Ext.extend(Zenoss.CommandPanel, {
 
 Ext.reg('backuppanel', Zenoss.BackupPanel);
 
+Zenoss.ModelPanel = Ext.extend(Zenoss.CommandPanel, {
+    injectForm: function(win){
+        var doc = win.document,
+            data = {uids: this.uids},
+            form = formTpl.apply({
+                data: Ext.encode(data), 
+                target: '/run_model'
+            });
+        doc.body.innerHTML = form;
+        doc.commandform.submit();
+        this.parentWindow.setSize(this.parentWindow.getSize());
+    }
+});
+
+Ext.reg('modelpanel', Zenoss.ModelPanel);
+
+
 /**********************************************************************
  *
  *  Command Window

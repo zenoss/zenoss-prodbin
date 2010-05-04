@@ -231,6 +231,16 @@ class DeviceFacade(TreeFacade):
         for comp in comps:
             IInfo(comp).monitored = monitored
 
+    def pushChanges(self, uids):
+        devs = imap(self._getObject, uids)
+        for dev in devs:
+            dev.pushConfig()
+
+    def modelDevices(self, uids):
+        devs = imap(self._getObject, uids)
+        for dev in devs:
+            dev.collectDevice(background=True)
+
     def resetCommunityString(self, uid):
         dev = self._getObject(uid)
         dev.manage_snmpCommunity()

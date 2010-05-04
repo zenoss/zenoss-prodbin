@@ -1106,7 +1106,7 @@ def setupLoggingHeader(context, REQUEST):
     return setWebLoggingStream(response)
 
 
-def executeCommand(cmd, REQUEST):
+def executeCommand(cmd, REQUEST, write=None):
     """
     Execute the command and return the output
 
@@ -1124,15 +1124,19 @@ def executeCommand(cmd, REQUEST):
             response = REQUEST.RESPONSE
         else:
             response = sys.stdout
+        if write is None:
+            def _write(s):
+                response.write(s)
+                response.flush()
+            write = _write
         log.info('Executing command: %s' % ' '.join(cmd))
         f = Popen4(cmd)
         while 1:
             s = f.fromchild.readline()
-            if not s: 
+            if not s:
                 break
-            elif response:
-                response.write(s)
-                response.flush()
+            elif write:
+                write(s)
             else:
                 log.info(s)
     except (SystemExit, KeyboardInterrupt): 
