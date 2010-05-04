@@ -80,7 +80,7 @@ class ServiceOrganizer(Organizer, Commandable, ZenPackable):
                 , 'permissions'   : ("Manage DMD",)
                 },
                 { 'id'            : 'zproperties'
-                , 'name'          : 'zProperties'
+                , 'name'          : 'Configuration Properties'
                 , 'action'        : 'zPropertyEdit'
                 , 'permissions'   : ("Change Device",)
                 },

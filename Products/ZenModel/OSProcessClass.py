@@ -83,8 +83,8 @@ class OSProcessClass(ZenModelRM, Commandable, ZenPackable):
                 , 'action'        : 'osProcessClassManage'
                 , 'permissions'   : ("Manage DMD",)
                 },
-                { 'id'            : 'zproperties'
-                , 'name'          : 'zProperties'
+                { 'id'            : 'zProperties'
+                , 'name'          : 'Configuration Properties'
                 , 'action'        : 'zPropertyEdit'
                 , 'permissions'   : ("Change Device",)
                 },

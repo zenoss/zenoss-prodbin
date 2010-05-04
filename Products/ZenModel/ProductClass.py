@@ -82,7 +82,7 @@ class ProductClass(ZenModelRM, ZenPackable):
                 , 'permissions'   : ("Manage DMD", )
                 },
                 { 'id'            : 'config'
-                , 'name'          : 'zProperties'
+                , 'name'          : 'Configuration Properties'
                 , 'action'        : 'zPropertyEditNew'
                 , 'permissions'   : ("Manage DMD",)
                 },

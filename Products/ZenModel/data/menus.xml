@@ -2963,7 +2963,7 @@ False
 </object>
 <object id='zPropertyEdit' module='Products.ZenModel.ZenMenuItem' class='ZenMenuItem'>
 <property type="text" id="description" mode="w" >
-zProperties
+Configuration Properties
 </property>
 <property type="text" id="action" mode="w" >
 zPropertyEdit
@@ -2986,7 +2986,7 @@ False
 </object>
 <object id='zPropertyEdit_os' module='Products.ZenModel.ZenMenuItem' class='ZenMenuItem'>
 <property type="text" id="description" mode="w" >
-zProperties
+Configuration Properties
 </property>
 <property type="text" id="action" mode="w" >
 ../zPropertyEdit

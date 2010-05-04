@@ -112,7 +112,7 @@ class DeviceClass(DeviceOrganizer, ZenPackable, TemplateContainer):
                 , 'action'        : 'viewEvents'
                 , 'permissions'   : (  permissions.view, )
                 },
-                { 'name'          : 'zProperties'
+                { 'name'          : 'Configuration Properties'
                 , 'action'        : 'zPropertyEdit'
                 , 'permissions'   : (permissions.view,)
                 },

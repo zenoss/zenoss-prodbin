@@ -77,8 +77,8 @@ class OSProcessOrganizer(Organizer, Commandable, ZenPackable):
                 , 'action'        : 'osProcessOrganizerManage'
                 , 'permissions'   : ("Manage DMD",)
                 },
-                { 'id'            : 'zproperties'
-                , 'name'          : 'zProperties'
+                { 'id'            : 'zProperties'
+                , 'name'          : 'Configuration Properties'
                 , 'action'        : 'zPropertyEdit'
                 , 'permissions'   : ("Change Device",)
                 },

@@ -29,7 +29,7 @@ class MenuCleanup(Migrate.Step):
         removeItems(topLevel, ['clearMapCache'])
 
         manage = zenMenus.Manage
-        removeItems(manage, ['addDevice', 'lockDevices', 'pushConfig', 
+        removeItems(manage, ['addDevice', 'lockDevices', 'pushConfig',
                              'resetCommunity', 'resetIp'])
 
         ipinterface = zenMenus.IpInterface
@@ -54,6 +54,11 @@ class MenuCleanup(Migrate.Step):
         winservice = zenMenus.WinService
         removeItems(winservice, ['changeMonitoring', 'deleteWinServices',
                                   'lockWinServices'])
+
+        more = zenMenus.More.zenMenuItems
+        more._getOb('zPropertyEdit').description = 'Configuration Properties'
+        more._getOb('zPropertyEdit_os').description = 'Configuration Properties'
+        more._getOb('collectorPlugins').description = 'Modeler Plugins'
 
 def removeItems(menu, items):
     for item in items:

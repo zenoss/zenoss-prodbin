@@ -59,7 +59,7 @@ class WinServiceClass(ServiceClass):
             , 'permissions' : (ZEN_MANAGE_DMD,)
             },
             { 'id'          : 'zproperties'
-            , 'name'        : 'zProperties'
+            , 'name'        : 'Configuration Properties'
             , 'action'      : 'zPropertyEdit'
             , 'permissions' : (ZEN_CHANGE_DEVICE,)
             },

@@ -203,5 +203,4 @@ import addressEncoding
 import ZenManagerDeleteDevice
 import AddWinServiceProperties
 import modifyZPropOverriddenMenuItem
-import renameMenuToModelerPlugins
 import AddWinServiceClass

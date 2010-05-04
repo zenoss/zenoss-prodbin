@@ -101,8 +101,8 @@ class ServiceClass(ZenModelRM, Commandable, ZenPackable):
                 , 'action'        : 'serviceClassManage'
                 , 'permissions'   : ("Manage DMD",)
                 },
-                { 'id'            : 'zproperties'
-                , 'name'          : 'zProperties'
+                { 'id'            : 'zProperties'
+                , 'name'          : 'Configuration Properties'
                 , 'action'        : 'zPropertyEdit'
                 , 'permissions'   : ("Change Device",)
                 },

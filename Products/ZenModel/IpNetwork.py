@@ -113,7 +113,7 @@ class IpNetwork(DeviceOrganizer):
                   permissions.view, )
                 },
                 { 'id'            : 'zProperties'
-                , 'name'          : 'zProperties'
+                , 'name'          : 'Configuration Properties'
                 , 'action'        : 'zPropertyEdit'
                 , 'permissions'   : ("Manage DMD",)
                 },

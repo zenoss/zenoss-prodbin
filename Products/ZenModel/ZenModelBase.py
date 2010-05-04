@@ -333,7 +333,7 @@ class ZenModelBase(object):
         [{'action': 'deviceOrganizerStatus', 'selected': True,
             'name': 'Classes', 'permissions': ('View',)},
         {'action': 'viewEvents', 'name': 'Events', 'permissions': ('View',)},
-        {'action': 'zPropertyEdit', 'name': 'zProperties',
+        {'action': 'zPropertyEdit', 'name': 'Configuration Properties',
             'permissions': ('View',)},
         {'action': 'perfConfig', 'name': 'Templates',
             'permissions': ('Manage DMD',)}]
