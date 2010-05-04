@@ -188,7 +188,7 @@ class CatalogTool(object):
             hash_ = hash( tuple(r.getPrimaryPath() for r in allResults) )
 
         if hashcheck is not None:
-            if hash_ != hashcheck:
+            if hash_ != int(hashcheck):
                 raise StaleResultsException("Search results do not match")
 
         # Return a slice
@@ -199,7 +199,7 @@ class CatalogTool(object):
             stop = start + limit
         results = islice(allResults, start, stop)
 
-        return SearchResults(results, totalCount, hash_, areBrains)
+        return SearchResults(results, totalCount, str(hash_), areBrains)
 
     def update(self, obj):
         self.catalog.catalog_object(obj, idxs=())
