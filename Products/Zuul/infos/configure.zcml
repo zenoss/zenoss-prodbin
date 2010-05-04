@@ -21,10 +21,6 @@
              for="..interfaces.IProcessEntity"
              provides="..interfaces.IProcessNode"/>
 
-    <adapter factory=".service.ServiceNode"
-             for="..interfaces.IServiceEntity"
-             provides="..interfaces.IServiceNode"/>
-
     <adapter factory=".device.DeviceOrganizerNode"
              for="Products.ZenModel.DeviceOrganizer.DeviceOrganizer"
              provides="..interfaces.IDeviceOrganizerNode"/>

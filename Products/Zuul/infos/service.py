@@ -11,22 +11,22 @@
 #
 ###########################################################################
 
-from itertools import imap, chain
+from itertools import imap
 from zope.component import adapts
 from zope.interface import implements
 from Products.Zuul import getFacade
 from Products.Zuul.tree import TreeNode
 from Products.Zuul.infos import InfoBase, ConfigProperty
-from Products.Zuul.interfaces import IServiceEntity, IServiceInfo
-from Products.Zuul.interfaces import IServiceNode, IServiceOrganizerNode
+from Products.Zuul.interfaces import IServiceInfo
+from Products.Zuul.interfaces import IServiceOrganizerNode
 from Products.Zuul.interfaces import ICatalogTool, IServiceOrganizerInfo
 from Products.ZenModel.ServiceClass import ServiceClass
 from Products.ZenModel.ServiceOrganizer import ServiceOrganizer
 from Products.ZenModel.Service import Service
 
-class ServiceNode(TreeNode):
-    implements(IServiceNode)
-    adapts(IServiceEntity)
+class ServiceOrganizerNode(TreeNode):
+    implements(IServiceOrganizerNode)
+    adapts(ServiceOrganizer)
 
     @property
     def _evsummary(self):
@@ -34,31 +34,9 @@ class ServiceNode(TreeNode):
 
     @property
     def text(self):
-        text = super(ServiceNode, self).text
-        numInstances = ICatalogTool(self._object).count(
-            (Service,), self.uid)
-        return {
-            'text': text,
-            'count': numInstances,
-            'description': 'instances'
-        }
-
-    @property
-    def children(self):
-        cat = ICatalogTool(self._object)
-        orgs = cat.search(ServiceOrganizer, paths=(self.uid,), depth=1)
-        # Must search at depth+1 to account for relationship
-        cls = cat.search(ServiceClass, paths=(self.uid,), depth=2)
-        return imap(ServiceNode, chain(orgs, cls))
-
-    @property
-    def leaf(self):
-        return 'serviceclasses' in self.uid
-
-
-class ServiceOrganizerNode(ServiceNode):
-    implements(IServiceOrganizerNode)
-    adapts(ServiceOrganizer)
+        text = super(ServiceOrganizerNode, self).text
+        count = ICatalogTool(self._object).count((ServiceClass,), self.uid)
+        return {'text': text, 'count': count}
 
     @property
     def children(self):

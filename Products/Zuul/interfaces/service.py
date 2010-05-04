@@ -30,10 +30,6 @@ class IServiceFacade(IFacade):
         the targetUid parameter.
         """
 
-class IServiceNode(ITreeNode):
-    """
-    Marker interface for providing a Service node in a Service tree.
-    """
 class IServiceOrganizerNode(ITreeNode):
     """
     Marker interface for providing a Service node in a Service tree.
