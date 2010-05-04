@@ -372,6 +372,9 @@ class Cmd(pb.Copyable, pb.RemoteCopy):
         self.severity = cfg.severity
         self.command = str(cfg.command)
         self.points = cfg.points
+        if cfg.severity is None:
+            log.warning("severity is None: cfg,%r ;  deviceConfig, %r",
+                cfg, deviceConfig)
         return self
 
     def getEventKey(self, point):
@@ -486,6 +489,7 @@ class zencommand(RRDDaemon):
             
     def remote_updateConfig(self, config):
         self.log.debug("Configuration update from zenhub")
+        self.log.info("config: %r", config)
         self.updateConfig([config], [config.device])
 
     def remote_updateDeviceList(self, devices):

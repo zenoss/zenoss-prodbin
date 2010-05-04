@@ -155,6 +155,13 @@ class ps(CommandParser):
                     summary='Process not running: ' + process,
                     component=process,
                     severity=failSeverity)
+                log.debug("device:%s, command: %s, procInfo: %r, failSeverity: %r, process: %s, dp: %r",
+                            cmd.deviceConfig.device,
+                            cmd.command,
+                            procInfo,
+                            failSeverity,
+                            process,
+                            dp)
             else:
                 if 'cpu' in dp.id:
                     results.values.append( (dp, procInfo['cpu']) )
