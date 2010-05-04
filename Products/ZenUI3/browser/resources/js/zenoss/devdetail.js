@@ -676,6 +676,16 @@ Ext.create({
                 
 Ext.getCmp('footer_bar').add([{
     xtype: 'ContextConfigureMenu',
+    id: 'component-add-menu',
+    iconCls: 'add',
+    menuIds: ['IpInterface', 'WinService', 'OSProcess', 'IpService', 'FileSystem', 'IpRouteEntry'],
+    listeners: {
+        render: function(){
+            this.setContext(UID);
+        }
+    }
+},{
+    xtype: 'ContextConfigureMenu',
     id: 'device_configure_menu',
     listeners: {
         render: function(){
@@ -713,16 +723,6 @@ Ext.getCmp('footer_bar').add([{
             Ext.getCmp('overrideTemplatesDialog').show();
         }
     }]
-},{
-    xtype: 'ContextConfigureMenu',
-    id: 'component-add-menu',
-    iconCls: 'add',
-    menuIds: ['IpInterface', 'WinService', 'OSProcess', 'IpService', 'FileSystem', 'IpRouteEntry'],
-    listeners: {
-        render: function(){
-            this.setContext(UID);
-        }
-    }
 }]);
 
 
