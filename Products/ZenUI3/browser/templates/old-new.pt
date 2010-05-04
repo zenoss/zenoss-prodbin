@@ -40,7 +40,8 @@
 <tal:block metal:fill-slot="script_layout">
 <script>
 Ext.onReady(function(){
-    var items = [{
+    var outerItems = [],
+    innerItems = [{
         region: 'center',
         autoScroll: true,
         bodyCssClass: 'z-bc-content-pane',
@@ -48,19 +49,30 @@ Ext.onReady(function(){
         split: true
     }];
     if (Zenoss.env.pageHasTabs) {
-        items.push({
+        outerItems.push({
             region: 'west',
             width: 200,
             bodyCssClass: 'z-bc-tab-pane',
             contentEl: 'newTabsPane',
             split: true
-        },{
+        });
+    }
+    if (Zenoss.env.pageHasBreadCrumbs) {
+        innerItems.push({
             region: 'north',
             height: 26,
             bodyCssClass: 'z-bc-bread-crumb-pane',
             contentEl: 'breadCrumbPane'
         });
     }
+    outerItems.push({
+        region: 'center',
+        layout: 'border',
+        defaults: {
+            border: false
+        },
+        items: innerItems
+    });
     Ext.getCmp('center_panel').add({
         layout: 'border',
         id: 'backcompat-layout-panel',
@@ -68,7 +80,7 @@ Ext.onReady(function(){
             border: false
         },
         bodyCssClass: 'z-bc', // Zenoss back compat
-        items:items
+        items: outerItems
     });
 
 });
@@ -93,9 +105,12 @@ Ext.onReady(function(){
 </tal:block>
 
 <tal:block metal:fill-slot="center_content">
+<tal:block tal:condition="here/breadCrumbs">
 <div metal:define-slot="breadcrumbs" id="breadCrumbPane">
     <span metal:use-macro="here/miscmacros/macros/breadCrumbs"/>
 </div>
+<script>Zenoss.env.pageHasBreadCrumbs = true;</script>
+</tal:block>
 <script>Zenoss.env.pageHasTabs = true;</script>
 <div class="z-bc">
     <div metal:use-macro="here/templates/macros/newTabsPane"/>

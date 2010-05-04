@@ -286,8 +286,7 @@ class MaintenanceWindow(ZenModelRM):
         bc = super(MaintenanceWindow, self).breadCrumbs(terminator)
         url, display = bc[-2]
         url += "/" + self.backCrumb
-        bc.insert(-1, (url, 'manage'))
-        return bc
+        return [(url, 'Administration')]
 
 
     def next(self, now = None):

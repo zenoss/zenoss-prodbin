@@ -1,6 +1,16 @@
 <tal:block metal:use-macro="here/templates/macros/page2">
 <tal:block metal:fill-slot="contentPane">
 
+<script>
+Ext.addBehaviors({
+    'tbody * a@click' : function(a) {
+        if (/\/zport\/dmd\/ZenUsers\//.test(a.target.href)) {
+            window.parent.location.href = a.target.href;
+        }
+    }
+});
+</script>
+
 <span metal:use-macro="here/userCommandsMacros/macros/userCommandsTable" />
 
 <span metal:use-macro="here/templates/macros/contentSeparator"/>

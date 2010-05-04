@@ -258,7 +258,7 @@ class ZenModelBase(object):
         return self.getPrimaryUrlPath()
 
 
-    def breadCrumbs(self, terminator='dmd'):
+    def breadCrumbs(self, terminator='dmd', terminate=lambda x: False):
         """
         Return the data to create the breadcrumb links for this object.
 
@@ -274,7 +274,7 @@ class ZenModelBase(object):
         """
         links = []
         curDir = self.primaryAq()
-        while curDir.id != terminator:
+        while curDir.id != terminator and not terminate(curDir):
             if curDir.meta_type == 'ToManyContRelationship':
                 curDir = curDir.getPrimaryParent()
                 continue
@@ -287,6 +287,19 @@ class ZenModelBase(object):
             curDir = curDir.aq_parent
         links.reverse()
         return links
+
+
+    def upToOrganizerBreadCrumbs(self, terminator='dmd'):
+
+        def isOrganizer(curDir):
+            from Products.ZenModel.Organizer import Organizer
+            try:
+                return isinstance(curDir, Organizer)
+            except:
+                return False
+
+        return ZenModelBase.breadCrumbs(self, terminator, isOrganizer)
+
 
     security.declareProtected(ZEN_COMMON, 'checkRemotePerm')
     def checkRemotePerm(self, permission, robject):

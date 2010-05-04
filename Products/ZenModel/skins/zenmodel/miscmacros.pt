@@ -14,6 +14,12 @@
     </span>
 </th></tr>
 
+<span metal:define-macro="upToOrganizerBreadCrumbs"
+    tal:repeat="crumbinfo here/upToOrganizerBreadCrumbs" tal:omit-tag="">
+    <a href="_" tal:attributes="href python:crumbinfo[0]"
+        tal:content="python: crumbinfo[1]">link</a>
+</span>
+
 <form metal:define-macro="navtool" class="tableheader"
     action="_" method="POST" tal:attributes="action request/URL"
     tal:define="totalobjs python:here.scGetSortedTableState(tableName,

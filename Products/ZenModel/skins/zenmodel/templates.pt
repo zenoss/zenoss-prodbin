@@ -100,6 +100,7 @@
 	<body class="yui-skin-sam">
     <tal:block metal:use-macro="here/dialogmacros/macros/proxyForm"/>
     <tal:block metal:use-macro="here/dialogmacros/macros/dialog_with_buttons"/>
+    <tal:block metal:define-slot="frameSlot">
         <div id="frame">
             <tal:block tal:condition="not:exists:request/cookies/newui">
             <div  metal:use-macro="here/templates/macros/topPane"/>
@@ -123,11 +124,12 @@
                 </tal:block>
             </div>
        </div>
+    </tal:block>
     </body>
 </html>
 </tal:block>
-                
-                
+
+
 <!-- ======================================================
     Pointer to new leftPane macro
  ====================================================== -->
@@ -207,6 +209,74 @@
                         CONTENT GOES HERE
                </tal:block>
             </div>
+        </tal:block>
+    </html>
+</tal:block>
+
+
+<!-- ======================================================
+    Page4 - page template that adds standard
+        breadCrumb even on a backcompat panel
+ ====================================================== -->
+<tal:block metal:define-macro="page4">
+    <html metal:use-macro="here/templates/macros/page1" >
+        <tal:block metal:fill-slot="title">
+            <tal:block metal:define-slot="title">
+                <tal:block tal:content="here/titleOrId"/>
+            </tal:block>
+        </tal:block>
+        <tal:block metal:fill-slot="head-local">
+        <tal:block metal:define-slot="head-local"/>
+        </tal:block>
+        <tal:block metal:fill-slot="frameSlot">
+        <div id="frame">
+            <div metal:define-slot="breadcrumbs" id="breadCrumbPane">
+               <span metal:use-macro="here/miscmacros/macros/breadCrumbs" />
+            </div>
+            <div tal:omit-tag="exists:request/cookies/newui" id="rightPane">
+                <tal:block metal:define-slot="rightPane">
+                    <div id="contentPane">
+                        <tal:block metal:define-slot="contentPane">
+                            CONTENT GOES HERE
+                        </tal:block>
+                    </div>
+                </tal:block>
+            </div>
+        </div>
+        </tal:block>
+    </html>
+</tal:block>
+
+
+<!-- ======================================================
+    Page5 - page template that adds 
+        upToOrganizerBreadCrumbs even on a backcompat panel
+ ====================================================== -->
+<tal:block metal:define-macro="page5">
+    <html metal:use-macro="here/templates/macros/page1" >
+        <tal:block metal:fill-slot="title">
+            <tal:block metal:define-slot="title">
+                <tal:block tal:content="here/titleOrId"/>
+            </tal:block>
+        </tal:block>
+        <tal:block metal:fill-slot="head-local">
+        <tal:block metal:define-slot="head-local"/>
+        </tal:block>
+        <tal:block metal:fill-slot="frameSlot">
+        <div id="frame">
+            <div metal:define-slot="breadcrumbs" id="breadCrumbPane">
+               <span metal:use-macro="here/miscmacros/macros/upToOrganizerBreadCrumbs" />
+            </div>
+            <div tal:omit-tag="exists:request/cookies/newui" id="rightPane">
+                <tal:block metal:define-slot="rightPane">
+                    <div id="contentPane">
+                        <tal:block metal:define-slot="contentPane">
+                            CONTENT GOES HERE
+                        </tal:block>
+                    </div>
+                </tal:block>
+            </div>
+        </div>
         </tal:block>
     </html>
 </tal:block>

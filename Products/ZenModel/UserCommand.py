@@ -70,7 +70,11 @@ class UserCommand(ZenModelRM, ZenPackable):
         [('url','id'), ...]
         """
         crumbs = super(UserCommand, self).breadCrumbs(terminator)
-        return crumbs
+        aqParent = self.getPrimaryParent()
+        while aqParent.meta_type == 'ToManyContRelationship':
+            aqParent = aqParent.getPrimaryParent()
+        url = aqParent.absolute_url_path() + '/dataRootManage'
+        return [(url, 'Commands')]
         
 
 InitializeClass(UserCommand)
