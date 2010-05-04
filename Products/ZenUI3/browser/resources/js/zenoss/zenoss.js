@@ -1096,7 +1096,7 @@ Zenoss.DetailPanel = Ext.extend(Ext.Panel, {
         }
 
         // eventClass_link
-        event.eventClass_link = Zenoss.render.EventClass(event.eventClass,
+        event.eventClass_link = Zenoss.render.EventClass(event.eventClass_url,
                                                         event.eventClass);
 
         var top_prop_template = new

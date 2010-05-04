@@ -195,8 +195,7 @@ Ext.apply(Zenoss.render, {
     },
 
     EventClass: function(uid, name) {
-        if (!Ext.isString(name)) name = uid;
-        return Zenoss.render.link(null, uid, name);
+        return Zenoss.render.default_uid_renderer(uid, name);
     },
 
     IpAddress: function(uid, name) {

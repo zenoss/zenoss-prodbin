@@ -11,7 +11,7 @@
 <input type="hidden" name="zenScreenName" tal:attributes="value template/id"/>
 
 <tal:block tal:define="props here/zenPropertyIds;
-                       tabletitle string:zProperties Configuration;">
+                       tabletitle string:Configuration Properties;">
 <tal:block metal:use-macro="here/zenuimacros/macros/zentable">
 
 <tal:block metal:fill-slot="zentablecontents">
