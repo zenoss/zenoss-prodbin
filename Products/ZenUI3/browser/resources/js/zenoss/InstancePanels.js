@@ -91,7 +91,8 @@ Zenoss.SimpleInstanceGridPanel = Ext.extend(Ext.ux.grid.livegrid.GridPanel, {
     constructor: function(config) {
         Ext.applyIf(config, {
             border: false,
-            height: 200,
+            height: 400,
+            split: true,
             autoExpandColumn: 'name',
             stripeRows: true,
             cm: new InstanceColumnModel(),
