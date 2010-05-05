@@ -345,17 +345,6 @@ Ext.onReady(function(){
                 id: 'add-button',
                 iconCls: 'add',
                 handler: showAddEventDialog
-            },{
-                /*  
-                 * REFRESH BUTTON 
-                 */ 
-                // text: _t('Refresh'), 
-                id: 'refresh-icon', 
-                iconCls: 'refresh', 
-                handler: function() { 
-                    view = grid.getView(); 
-                    view.updateLiveRows(view.rowIndex, true, true); 
-                } 
             },{             
                 xtype: 'tbseparator'
             },{
@@ -541,6 +530,7 @@ Ext.onReady(function(){
             },{
                 xtype: 'refreshmenu',
                 id: 'refresh-button',
+                iconCls: 'refresh', 
                 text: _t('Refresh'),
                 handler: function(){
                     view = Ext.getCmp('events_grid').getView();

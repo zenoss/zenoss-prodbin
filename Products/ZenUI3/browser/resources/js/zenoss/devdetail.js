@@ -498,11 +498,15 @@ var event_console = Ext.create({
     stateful: false,
     id: 'device_events',
     tbar: {
+        xtype: 'largetoolbar',
+        cls: 'largetoolbar consolebar',
+        height: 35,
         items: [
             ZEvActions.acknowledge,
             ZEvActions.close,
-            ZEvActions.newwindow,
-            ZEvActions.refresh
+            ZEvActions.refresh,
+            '-',
+            ZEvActions.newwindow
         ]
     },
     columns: deviceColumnDefinitions()
