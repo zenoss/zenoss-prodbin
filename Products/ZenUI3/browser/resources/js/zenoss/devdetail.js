@@ -730,6 +730,7 @@ Ext.getCmp('footer_bar').add([{
     },'-',{
         xtype: 'menuitem',
         text: _t('Reset/Change IP Address') + '...',
+        hidden: Zenoss.Security.doesNotHavePermission('Admin Device'),
         handler: function() {
             var win = new Zenoss.FormDialog({
                 title: 'Reset/Change IP Address',
@@ -766,6 +767,7 @@ Ext.getCmp('footer_bar').add([{
     },{
         xtype: 'menuitem',
         text: _t('Push Changes') + '...',
+        hidden: Zenoss.Security.doesNotHavePermission('Manage Device'),
         handler: function() {
             Ext.Msg.show({
                 title: 'Push Changes',
@@ -785,6 +787,7 @@ Ext.getCmp('footer_bar').add([{
     },{
         xtype: 'menuitem',
         text: _t('Model Device') + '...',
+        hidden: Zenoss.Security.doesNotHavePermission('Manage Device'),
         handler: function() {
             var win = new Zenoss.CommandWindow({
                 panel: 'modelpanel',

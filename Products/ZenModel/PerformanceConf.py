@@ -702,8 +702,6 @@ class PerformanceConf(Monitor, StatusColor):
         xmlrpc = isXmlRpc(REQUEST)
         zenmodelerOpts = ['run', '--now', '--monitor', self.id,
                             '-F', '-d', device.id]
-        if REQUEST:
-            zenmodelerOpts.append('--weblog')
         result = self._executeZenModelerCommand(zenmodelerOpts, background,
                                                 REQUEST, write)
         if result and xmlrpc:
