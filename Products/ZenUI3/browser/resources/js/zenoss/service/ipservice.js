@@ -21,11 +21,16 @@ Ext.onReady( function() {
     var zsg = Zenoss.Service.DetailGrid;
 
     var portTextField = {
-        xtype: 'textfield',
+        xtype: 'numberfield',
         fieldLabel: _t('Port'),
         name: 'port',
         width: "100%",
-        id: 'portTextField'
+        id: 'portTextField',
+        allowBlank: false,
+        allowDecimals: false,
+        allowNegative: false,
+        maxValue: 65535,
+        minValue: 1
     };
 
     var formItems = [
