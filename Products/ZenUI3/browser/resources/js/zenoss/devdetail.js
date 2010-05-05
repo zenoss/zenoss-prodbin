@@ -794,6 +794,32 @@ Ext.getCmp('footer_bar').add([{
             win.show();
         }
     }]
+},{
+    id: 'commands-menu',
+    text: _t('Commands'),
+    listeners: {
+        render: function() {
+            var menu = this.menu;
+            REMOTE.getUserCommands({uid:UID}, function(data){
+                menu.removeAll();
+                Ext.each(data, function(d){
+                    menu.add({
+                        text:d.id,
+                        tooltip:d.description,
+                        handler: function(item) {
+                            var win = new Zenoss.CommandWindow({
+                                uids: [UID],
+                                target: UID,
+                                command: item.text
+                            });
+                            win.show();
+                        }
+                    });
+                });
+            });
+        }
+    },
+    menu: {}
 }]);
 
 
