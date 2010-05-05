@@ -75,12 +75,12 @@ def Duration(seconds):
 
 def getBeginningOfDay(gmtSecondsSince1970=None):
     value = _maybenow(gmtSecondsSince1970)
-    return time.mktime(time.localtime(value)[:3] + (0,0,0,0,0,0))
+    return time.mktime(time.localtime(value)[:3] + (0,0,0,0,0,-1))
 
 
 def getEndOfDay(gmtSecondsSince1970=None):
     value = _maybenow(gmtSecondsSince1970)
-    return time.mktime(time.localtime(value)[:3] + (23,59,59,0,0,0))
+    return time.mktime(time.localtime(value)[:3] + (23,59,59,0,0,-1))
 
 def isoToTimestamp(value):
     """

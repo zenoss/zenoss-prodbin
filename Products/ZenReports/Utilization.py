@@ -18,7 +18,7 @@ def getSummaryArgs(dmd, args):
     endDate = args.get('endDate', zem.defaultAvailabilityEnd())
     startDate, endDate = map(Time.ParseUSDate, (startDate, endDate))
     endDate = Time.getEndOfDay(endDate)
-    startDate = min(startDate, endDate - 1)
+    startDate = min(startDate, endDate - 24 * 60 * 60 + 1) # endDate - 23:59:59
     how = args.get('how', 'AVERAGE')
     return dict(start=startDate, end=endDate, function=how)
 
