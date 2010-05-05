@@ -23,7 +23,10 @@ Ext.apply(Zenoss.render, {
     },
 
     ipAddress: function(ip) {
-        return (ip instanceof String) ? ip : Zenoss.util.num2dot(ip);
+        if (!ip||ip=='0.0.0.0') {
+            return '';
+        }
+        return Ext.isString(ip) ? ip : Zenoss.util.num2dot(ip);
     },
 
     severity: function(sev) {
