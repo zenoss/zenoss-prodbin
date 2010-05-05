@@ -70,7 +70,7 @@ Zenoss.ModelPanel = Ext.extend(Zenoss.CommandPanel, {
             data = {uids: this.uids},
             form = formTpl.apply({
                 data: Ext.encode(data), 
-                target: '/run_model'
+                target: '/zport/dmd/run_model'
             });
         doc.body.innerHTML = form;
         doc.commandform.submit();
