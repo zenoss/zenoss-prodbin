@@ -31,26 +31,22 @@
 
         view.clearFilters();
         params = {
-            type: 'class',
             contextUid: view.contextUid,
             id: newId,
             posQuery: view.getFilterParams()
         };
 
         var callback = function(p, response) {
-            var result = response.result;
-            if (result.success) {
-                var newRowPos = result['newIndex'];
-                store.on('load', function(){
-                    view.focusRow(newRowPos);
-                    grid.getSelectionModel().selectRow(newRowPos);
-                }, store, { single: true });
-                view.updateLiveRows(newRowPos, true, true, false);
-            } else {
-                Ext.Msg.alert(_t('Error'), result.msg);
-            }
+            var result, loadHandler;
+            result = response.result;
+            loadHandler = function() {
+                view.focusRow(result.newIndex);
+                grid.getSelectionModel().selectRow(result.newIndex);
+            };
+            store.on('load', loadHandler, store, {single: true});
+            view.updateLiveRows(result.newIndex, true, true, false);
         };
-        Zenoss.remote.ServiceRouter.addNode(params, callback);
+        Zenoss.remote.ServiceRouter.addClass(params, callback);
     };
 
     zs.addOrganizerHandler = function(newId) {

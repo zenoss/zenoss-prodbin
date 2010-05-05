@@ -34,31 +34,19 @@ class ServiceRouter(TreeRouter):
         return levels > 5
 
     @require('Manage DMD')
-    def addNode(self, type, contextUid, id, posQuery=None):
-
-        result = super(ServiceRouter, self).addNode(type, contextUid, id)
-        if 'msg' in result:
-            raise Exception(result['msg'])
-
-        if type.lower() == 'class':
-            newUid = result['nodeConfig']['uid']
-
-            q = dict(limit=None, start=0, sort=None, dir=None, params=None,
-                     uid=contextUid, criteria=())
-            q.update(posQuery)
-            if isinstance(q['params'], basestring):
-                q['params'] = unjson(q['params'])
-
-            allinfos = self.api.getList(**q)
-
-            newIndex = None
-            for pos, iobj in enumerate(allinfos['brains']):
-                if iobj.uid == newUid:
-                    newIndex = pos
-                    break
-
-            result['newIndex'] = newIndex
-        return result
+    def addClass(self, contextUid, id, posQuery=None):
+        newUid = self.api.addClass(contextUid, id)
+        if isinstance(posQuery.get('params'), basestring):
+            posQuery['params'] = unjson(posQuery['params'])
+        result = self.api.getList(**posQuery)
+        for count, serviceInfo in enumerate(result['serviceInfos']):
+            if serviceInfo.uid == newUid:
+                newIndex = count
+                break
+        else:
+            raise Exception('The new service was added, but the system was '
+                            'unable to add it to the list.')
+        return DirectResponse(newIndex=newIndex)
 
     def query(self, limit=None, start=None, sort=None, dir=None, params=None,
               history=False, uid=None, criteria=()):
@@ -73,7 +61,7 @@ class ServiceRouter(TreeRouter):
 
         disabled = not Zuul.checkPermission('Manage DMD')
 
-        data = Zuul.marshal(services['brains'])
+        data = Zuul.marshal(services['serviceInfos'])
         return DirectResponse(services=data, totalCount=services['total'],
                               hash=services['hash'], disabled=disabled)
 

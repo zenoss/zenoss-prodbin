@@ -12,7 +12,6 @@
 ###########################################################################
 
 import logging
-from itertools import imap
 from zope.interface import implements
 from Products.AdvancedQuery import MatchRegexp, And
 from Products.ZenModel.ServiceClass import ServiceClass
@@ -100,10 +99,11 @@ class ServiceFacade(TreeFacade):
               params=None, uid=None, criteria=()):
         searchResults = self._serviceSearch(limit, start, sort, dir, params, uid, criteria)
         if searchResults.areBrains:
-            objects = [unbrain(brain) for brain in searchResults]
+            serviceClasses = [unbrain(brain) for brain in searchResults]
         else:
-            objects = searchResults
-        return {'brains': objects,
+            serviceClasses = searchResults
+        # the info decorator changes the returned serviceClasses to serviceInfos
+        return {'serviceInfos': serviceClasses, 
                 'total': searchResults.total,
                 'hash': searchResults.hash_,
                 }

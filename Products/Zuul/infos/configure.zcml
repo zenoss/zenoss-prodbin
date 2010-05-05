@@ -92,6 +92,11 @@
              for="Products.ZenModel.ServiceOrganizer.ServiceOrganizer"
              />
 
+    <adapter factory=".service.ServiceOrganizerNode"
+             provides="..interfaces.IServiceOrganizerNode"
+             for="Products.ZenModel.ServiceOrganizer.ServiceOrganizer"
+             />
+
     <adapter provides="..interfaces.IDeviceInfo"
              for="..interfaces.IDevice"
              factory=".device.DeviceInfo"
