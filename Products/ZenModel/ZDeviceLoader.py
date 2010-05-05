@@ -168,7 +168,7 @@ class DeviceCreationJob(ShellCommandJob):
                  osManufacturer="", osProductName="", locationPath="",
                  groupPaths=[], systemPaths=[], performanceMonitor="localhost",
                  discoverProto="snmp", priority=3, manageIp="",
-                 zProperties=None, title=None, zendiscCmd=""):
+                 zProperties=None, title=None, zendiscCmd=[]):
 
         # Store device name for later finding
         self.deviceName = deviceName
