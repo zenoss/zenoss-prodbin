@@ -395,7 +395,7 @@ Ext.create({
             submit: router.setInfo
         },
         items:[{
-            xtype: 'idfield',
+            xtype: 'label',
             fieldLabel: _t('Name'),
             name:'id',
             ref: 'nameLabel'
