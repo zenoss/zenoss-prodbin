@@ -135,7 +135,6 @@ class TemplateRouter(DirectRouter):
     def setInfo(self, **data):
         uid = data['uid']
         del data['uid']
-        data['enabled'] = data.has_key('enabled')
         facade = self._getFacade()
         facade.setInfo(uid, data)
         return DirectResponse.succeed()
