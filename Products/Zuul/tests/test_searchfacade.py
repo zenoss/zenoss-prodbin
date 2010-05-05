@@ -150,6 +150,28 @@ class TestSearchFacade(BaseTestCase):
                    other2_results[:maxPerCategory]
         self.assertEquals( expected, list(results) )
 
+    def testCategoryLimit(self):
+        global search_results
+        device_results = createResultsFromRange(9, 'Device')
+        event_results = createResultsFromRange(9, 'Event')
+        other1_results = createResultsFromRange(9, 'Category1')
+        other2_results = createResultsFromRange(9, 'Category2')
+        search_results = other2_results + event_results + device_results + \
+                         other1_results
+        facade = SearchFacade(self.dmd)
+        maxPerCategory = 5
+        sorter = DefaultSearchResultSorter( maxResultsPerCategory=maxPerCategory )
+        results = facade.getQuickSearchResults( 'testquery',
+                                                sorter )
+        expected = device_results[:maxPerCategory] + \
+                   event_results[:maxPerCategory] + \
+                   other1_results[:maxPerCategory] + \
+                   other2_results[:maxPerCategory]
+        results = list(results)
+        
+        self.assertEqual(len(expected), len(results))
+        self.assertEquals( expected, results )
+
     def testCategorySortAndLimit2(self):
         global search_results
         maxPerCategory = 4

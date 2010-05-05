@@ -180,7 +180,7 @@ class DefaultSearchResultSorter(object):
         if useMaxResultsLimits:
             limitedResults = islice( limitedResults, self.maxResults )
         else:
-            limitedResults = results
+            limitedResults = limitedResults
 
         return limitedResults
 

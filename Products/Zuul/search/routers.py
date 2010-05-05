@@ -18,6 +18,9 @@ from Products import Zuul
 from Products.Zuul.search import ISearchResult
 from Products.Zuul.search import IQuickSearchResultSnippet
 from Products.Zuul.search import DefaultSearchResultSorter
+from zope.component import getAllUtilitiesRegisteredFor
+from Products.Zuul.search.interfaces import IQuickResultSnippetFactory
+import itertools
 
 class DefaultQuickSearchResultSnippet(object):
     """
@@ -49,7 +52,7 @@ class DefaultQuickSearchResultSnippet(object):
 
     @property
     def popout(self):
-        return False
+        return self._result.popout
     
 
 _MAX_RESULTS_PER_QUERY=100
@@ -66,9 +69,10 @@ class SearchRouter(DirectRouter):
     def _getFacade(self):
         return Zuul.getFacade('search', self.context)
 
-    def _addAllResultsLink(self, results):
-        # HERE'S WHERE WE ADD THE LINK TO THE MAIN SEARCH PAGE
-        pass
+    def _addAllResultsLink(self, snippets, query):
+        extraResults = getAllUtilitiesRegisteredFor(IQuickResultSnippetFactory)
+        for factory in extraResults:
+            snippets.insert(0, factory()(query))
 
     def getLiveResults(self, query):
         """
@@ -81,8 +85,22 @@ class SearchRouter(DirectRouter):
         for result in results:
             snippet = IQuickSearchResultSnippet( result )
             snippets.append( snippet )
-        #self._addAllResultsLink( results )
+        if snippets:
+            self._addAllResultsLink( snippets, query )
+
         return {'results': Zuul.marshal(snippets)}
+    
+    def getAllResults(self, query, **kwargs):
+        """
+        Returns ISearchResultSnippets for the results of the query.
+        """
+        facade = self._getFacade()
+        limits = DefaultSearchResultSorter(maxResultsPerCategory=250)
+        results = facade.getSearchResults(query, limits)
+        #group by category so we get [ 'category', [SearchResults, ...]]
+        groupedResult = itertools.groupby(results, lambda x: x.category)
+        return {'results': Zuul.marshal(groupedResult),
+                'total': len(list(results))}
 
     def noProvidersPresent(self):
         return self._getFacade().noProvidersPresent()

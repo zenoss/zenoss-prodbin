@@ -54,7 +54,7 @@ class ISearchProvider(Interface):
         """
 
 
-class ISearchResult(Interface):
+class ISearchResult(IMarshallable):
     """
     Implement this interface to allow objects to appear in search results.
     """
@@ -63,6 +63,7 @@ class ISearchResult(Interface):
     category = Attribute("Search category of the represented object")
     excerpt = Attribute("Small descriptive snippet for the represented object.")
     icon = Attribute("URL to the 16x16 icon for the represented object")
+    popout = Attribute("True/false whether to open link in new window")
 
 
 class ISearchFacade(IFacade):
@@ -113,3 +114,7 @@ class IQuickSearchResultSnippet(IMarshallable):
     url = Attribute("Link to the represented object")
     popout = Attribute("True/false whether to open link in new window")
     
+class IQuickResultSnippetFactory( Interface):
+    """
+    return an IQuickSearchResultSnippet to be included in displayed results
+    """
