@@ -653,14 +653,66 @@ table.search-result {
     background-color: #D4E0EE;
 }
 
+.x-grid3-row-selected span.status-up,
+.x-grid3-row-selected span.status-down,
+.x-grid3-row-selected span.status-unknown {
+    color: white;
+}
+
+span.status-up-large,
+span.status-up,
+span.status-down-large,
+span.status-down {
+    background: transparent url(/++resource++zenui/img/up-down-sprite.png) 0 0 no-repeat;
+}
+
+span.status-up,
+span.status-down {
+    padding-right: 18px;
+}
 span.status-up {
     color: green;
+    background-position: right -9px;
+}
+span.status-down {
+    background-position: right -40px;
+}
+span.status-down-large,
+span.status-down {
+    color: #d60000;
+}
+
+span.status-up-large,
+span.status-unknown-large,
+span.status-down-large {
     font-weight: bold;
 }
 
-span.status-down {
-    color: #d60000;
-    font-weight: bold;
+span.status-up-large,
+span.status-down-large {
+    display: inline-block;
+    margin: 0 auto;
+    height: 18px;
+    padding-right: 23px;
+}
+
+span.status-up-large {
+    background-position: right -56px;
+}
+
+span.status-unknown,
+span.status-unknown-large {
+    color: gray;
+}
+
+span.status-down-large {
+    padding-right: 21px;
+    background-position: right -28px;
+}
+
+.ext-ie span.status-up-large,
+.ext-id span.status-down-large {
+    zoom: 1;
 }
 
 .componenttbar table.x-toolbar-ct {

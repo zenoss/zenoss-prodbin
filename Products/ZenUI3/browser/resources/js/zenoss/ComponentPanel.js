@@ -472,7 +472,8 @@ ZC.BaseComponentColModel = Ext.extend(Ext.grid.ColumnModel, {
                 id: 'status',
                 dataIndex: 'status',
                 header: _t('Status'),
-                width: 50
+                renderer: Zenoss.render.pingStatus,
+                width: 60
             }];
         config = Ext.applyIf(config||{}, {
             defaults: {
@@ -534,7 +535,8 @@ ZC.IpInterfacePanel = Ext.extend(ZC.ComponentGridPanel, {
                 id: 'status',
                 dataIndex: 'status',
                 header: _t('Status'),
-                width: 50
+                renderer: Zenoss.render.pingStatus,
+                width: 60
             },{
                 id: 'monitored',
                 dataIndex: 'monitored',
@@ -594,7 +596,8 @@ ZC.WinServicePanel = Ext.extend(ZC.ComponentGridPanel, {
                 id: 'status',
                 dataIndex: 'status',
                 header: _t('Status'),
-                width: 50
+                renderer: Zenoss.render.pingStatus,
+                width: 60
             },{
                 id: 'monitored',
                 dataIndex: 'monitored',

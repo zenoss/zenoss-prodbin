@@ -48,7 +48,8 @@ var InstanceColumnModel = Ext.extend(Ext.grid.ColumnModel, {
                     id: 'status',
                     dataIndex: 'status',
                     header: _t('Status'),
-                    width: 50
+                    renderer: Zenoss.render.pingStatus,
+                    width: 60
                 }
             ]
         });

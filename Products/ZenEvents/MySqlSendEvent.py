@@ -389,7 +389,7 @@ class MySqlSendEventMixin:
         if table == self.statusTable:
             insert += " on duplicate key update "
             if statusdata.has_key('prodState'):
-                insert += "prodState=%d," % statusdata['prodState']
+                insert += "prodState=%d," % int(statusdata['prodState'])
             insert += "summary='%s',message='%s',%s=%s+1,%s=%.3f" % (
                         self.escape(decode(self.dmd.Devices, statusdata.get('summary',''))), 
                         self.escape(decode(self.dmd.Devices, statusdata.get('message', ''))),

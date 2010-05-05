@@ -102,7 +102,7 @@ Zenoss.DeviceDetailBar = Ext.extend(Zenoss.LargeToolbar, {
             this.deviditem.devclass.setText(ZR.DeviceClass(data.deviceClass.uid));
             this.eventsitem.setText(ZR.events(data.events, 4));
             this.statusitem.setText(
-                ZR.pingStatus(data.status));
+                ZR.pingStatusLarge(data.status));
             this.prodstateitem.setText(data.productionState);
         }, this);
     }

@@ -12,14 +12,31 @@ var rainbowTemplate = new Ext.Template(
 rainbowTemplate.compile();
 
 var upDownTemplate = new Ext.Template(
-    '<span class="status-{0}">{1}</span>');
+    '<span class="status-{0}{2}">{1}</span>');
 upDownTemplate.compile();
+
+function pingStatusBase(bool) {
+    if (Ext.isString(bool)) {
+        bool = bool.toLowerCase();
+        if (bool=='none') {
+            return 'Unknown';
+        }
+        bool = bool=='up';
+    }
+    var str = bool ? 'Up' : 'Down';
+    return str;
+}
 
 Ext.apply(Zenoss.render, {
 
     pingStatus: function(bool) {
-        var str = bool ? 'Up' : 'Down';
+        var str = pingStatusBase(bool);
         return upDownTemplate.apply([str.toLowerCase(), str]);
+    },
+
+    pingStatusLarge: function(bool) {
+        var str = pingStatusBase(bool);
+        return upDownTemplate.apply([str.toLowerCase(), str, '-large']);
     },
 
     ipAddress: function(ip) {
