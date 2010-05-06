@@ -91,7 +91,7 @@ function resetPassword(){
         <tal:block tal:condition="here/email">
         &nbsp;&nbsp;
         <a class="tablevalues" onclick="return ConfirmEmailTest()"
-        tal:attributes="href string:${here/absolute_url_path}?zenScreenName=editUserSettings&manage_emailTest:method=1&userid=${here/getId}">test</a>
+        tal:attributes="href string:${here/absolute_url_path}?zenScreenName=editUserSettings&manage_emailTest:method=1&userid=${here/getId}&redirect=True">test</a>
         </tal:block>
       </td>
     </tr>
@@ -103,7 +103,7 @@ function resetPassword(){
         <tal:block tal:condition="here/pager">
         &nbsp;&nbsp;
         <a class="tablevalues" onclick="return ConfirmPagerTest()"
-        tal:attributes="href string:${here/absolute_url_path}?zenScreenName=editUserSettings&manage_pagerTest:method=1&userid=${here/getId}">test</a>
+        tal:attributes="href string:${here/absolute_url_path}?zenScreenName=editUserSettings&manage_pagerTest:method=1&userid=${here/getId}&redirect=True">test</a>
         </tal:block>
       </td>
     </tr>
