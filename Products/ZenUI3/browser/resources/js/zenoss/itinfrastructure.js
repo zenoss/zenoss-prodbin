@@ -18,6 +18,7 @@ Ext.onReady(function(){
 Ext.ns('Zenoss.devices');
 
 // Extensions used on this page
+Ext.ns('Zenoss.extensions');
 var EXTENSIONS_adddevice = Zenoss.extensions.adddevice instanceof Array ?
                            Zenoss.extensions.adddevice : [];
 
