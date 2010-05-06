@@ -35,10 +35,10 @@ Z.CallableReqDS = function(oLiveData, oConfigs) {
 }
 YAHOO.lang.extend(Z.CallableReqDS, Y.XHRDataSource);
 
-Z.CallableReqDS.prototype.makeConnection = function(oRequest, oCallback, 
+Z.CallableReqDS.prototype.makeConnection = function(oRequest, oCallback,
                                                   oCaller) {
     if (typeof(oRequest)=='function') oRequest = oRequest();
-    Z.CallableReqDS.superclass.makeConnection.call(this, oRequest, 
+    Z.CallableReqDS.superclass.makeConnection.call(this, oRequest,
                                                  oCallback, oCaller)
 }
 
@@ -72,7 +72,7 @@ Z.ConnectionManager = {
     }
 };
 
-/** 
+/**
  * register a listener for the beforeunload event so that we can cancel
  * outstanding connections
 **/
@@ -88,25 +88,25 @@ Z.Messenger = {
 
     // Start the polling off real good
     initialize: function() {
-        this.startPolling(pollInterval); 
+        this.startPolling(pollInterval);
     },
 
     // Source of remote data
     datasource: new Z.CallableReqDS(
         // Pointer to live data
-        "/zport/dmd/getUserMessages", 
+        "/zport/dmd/getUserMessages",
         // Config object
-        { 
+        {
             connMgr: Z.ConnectionManager,
             connXhrMode: "cancelStaleRequests",
-            responseType: Y.XHRDataSource.TYPE_JSON, 
+            responseType: Y.XHRDataSource.TYPE_JSON,
             responseSchema: {
                 resultsList: "messages",
                 fields:[
                     "sticky",
                     "title",
                     "image",
-                    "body", 
+                    "body",
                     {key: "priority", type: "number"}
                 ],
                 metaFields: {
@@ -165,13 +165,27 @@ Z.Messenger = {
     // Put a message into the browser
     send: function(msgConfig) {
         var text     = msgConfig.body,
-            title    = (msgConfig.title || "FYI"),
-            priority = priorities[msgConfig.priority],
-            image    = (msgConfig.image || icons[msgConfig.priority]),
-            sticky   = (msgConfig.sticky || false);
-        var panel = Yowl.notify('info', title, text, 'zenoss', image, sticky,
-                                priority);
-        return panel;
+            //title    = (msgConfig.title || "FYI"), // Deprecated
+            priority = msgConfig.priority || INFO,
+            //image    = (msgConfig.image || icons[msgConfig.priority]), // Deprecated
+            sticky   = (msgConfig.sticky || false),
+            flare;
+
+        if ( priority  === WARNING ) {
+            flare = Zenoss.flares.Manager.warning(text);
+        }
+        else if ( priority  === CRITICAL ) {
+            flare = Zenoss.flares.Manager.critical(text)
+        }
+        else {
+            flare = Zenoss.flares.Manager.info(text);
+        }
+
+        if ( sticky ) {
+            flare.sticky();
+        }
+
+        return flare;
     },
 
     // Shortcut to send severity INFO messages

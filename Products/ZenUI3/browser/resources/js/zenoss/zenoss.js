@@ -63,12 +63,241 @@ Ext.Direct.on('exception', function(e) {
     });
 });
 
+Ext.namespace('Zenoss.flares');
+
+/**
+ * An invisible layer that contains all the Flares.
+ * Must be the highest layer in order for Flares to show up.
+ */
+Zenoss.flares.Container = Ext.extend(Ext.Container, {
+    _layoutDelay: null,
+    constructor: function(config) {
+        config = Ext.applyIf(config || {}, {
+            id: 'flare-container',
+            baseCls: 'x-flare-container',
+            alignment: 't-t',
+            width: '100%',
+            zindex: 400000,
+            items: []
+        });
+
+        Zenoss.flares.Container.superclass.constructor.call(this, config);
+    },
+    onRender : function(ct, position) {
+        this.el = ct.createChild({
+            cls: this.baseCls + '-layer',
+            children: [{
+                cls: this.baseCls + '-body'
+            }]
+        });
+        this.body = this.el.child('.' + this.baseCls + '-body');
+        this.el = new Ext.Layer({ zindex: this.zindex }, this.el);
+
+        Zenoss.flares.Container.superclass.onRender.apply(this, arguments);
+        this.el.alignTo(document, this.alignment);
+    },
+    getLayoutTarget: function() {
+        return this.body;
+    },
+    onShow: function() {
+        this.el.show();
+        Zenoss.flares.Container.superclass.onShow.apply(this, arguments);
+    },
+    onRemove: function() {
+        // Move the sticky items back to the top. Wait a few microseconds to do it in case more items are
+        // being removed at the same time.
+        if ( !this._layoutDelay ) {
+            this._layoutDelay = new Ext.util.DelayedTask(this.doLayout, this);
+        }
+        this._layoutDelay.delay(500);
+    },
+    show: function() {
+        if ( !this.rendered ) {
+            this.render(Ext.getBody());
+        }
+        Zenoss.flares.Container.superclass.show.apply(this, arguments);
+    },
+    onLayout: function() {
+        Ext.each(this.items.items, function(item, index, items) {
+            if ( item.canLayout() ) {
+                if ( index == 0 ) {
+                    item.anchorTo(this.el, this.alignment);
+                }
+                else {
+                    item.anchorTo(items[index - 1].el, 'bl');
+                }
+            }
+        }, this);
+        Zenoss.flares.Container.superclass.onLayout.apply(this, arguments);
+    }
+});
+
+
+Zenoss.flares.Manager = {
+    container: new Zenoss.flares.Container(),
+    INFO: 'x-flare-info',
+    ERROR: 'x-flare-error',
+    WARNING: 'x-flare-warning',
+    DEBUG: 'x-flare-debug',
+    SUCCESS: 'x-flare-success',
+    CRITICAL: 'x-flare-critical',
+    /**
+     * Add the flare to the container and show it.
+     *
+     * @param flare Zenoss.flares.Flare
+     */
+    flare: function(flare) {
+        flare.setAnimateTarget(this.container.el);
+        this.container.add(flare);
+        this.container.doLayout();
+        flare.show();
+    },
+    _formatFlare: function(message, type, args) {
+        args = Array.prototype.slice.call(args, 1);
+        var flare = new Zenoss.flares.Flare(message, args, { iconCls: type });
+        this.flare(flare);
+        return flare;
+    },
+    /**
+     * Show a Flare with the info status.
+     *
+     * @param message string A message template
+     * @param args mixed Optional orguments to fill in the message template
+     */
+    info: function(message, args) {
+        return this._formatFlare(message, this.INFO, arguments);
+    },
+    error: function(message, args) {
+        return this._formatFlare(message, this.ERROR, arguments);
+    },
+    warning: function(message, args) {
+        return this._formatFlare(message, this.WARNING, arguments);
+    },
+    debug: function(message, args) {
+        return this._formatFlare(message, this.DEBUG, arguments);
+    },
+    critical: function(message, args) {
+        return this._formatFlare(message, this.CRITICAL, arguments);
+    },
+    success: function(message, args) {
+        return this._formatFlare(message, this.SUCCESS, arguments);
+    }
+};
+
+Ext.onReady(function() {
+    Zenoss.flares.Manager.container.show();
+});
+
+/**
+ * Flares are growl like flash messages. Used for transient notifications. Flares are
+ * managed by Zenoss.flares.Manager.
+ *
+ * Example:
+ *
+ * Zenoss.flares.Manager.info('{0} was saved as {1}.', itemName, newItemName);
+ */
+Zenoss.flares.Flare = Ext.extend(Ext.Window, {
+    _task: null,
+    _closing: false,
+    focus: Ext.emptyFn,
+    constructor: function(message, params, config) {
+        Ext.applyIf(config, {
+            headerAsText: false,
+            bodyCssClass: config.iconCls || 'x-flare-info',
+            baseCls: 'x-flare',
+            plain: false,
+            draggable: false,
+            shadow: false,
+            closable: true,
+            resizable: false,
+            delay: 5000, // How long to show the message for
+            alignment: 't-t',
+            duration: 0.2, // How long to do the opening slide in
+            hideDuration: 1, // How long to do the closing fade out
+            template: new Ext.Template(message, { compiled: true } ),
+            dismissOnClick: true
+        });
+
+        Ext.applyIf(config, {
+            bodyCfg: {
+                cls: 'x-flare-body',
+                children: [
+                    {cls: 'x-flare-icon'},
+                    {
+                        cls: 'x-flare-message',
+                        html: config.template.apply(params)
+                    }
+                ]
+            }
+        });
+
+        Zenoss.flares.Flare.superclass.constructor.call(this, config);
+    },
+    initEvents: function() {
+        Zenoss.flares.Flare.superclass.initEvents.apply(this, arguments);
+
+        if ( this.dismissOnClick ) {
+            this.mon(this.el, 'click', function() { this.hide(); }, this);
+        }
+    },
+    initComponent: function() {
+        if ( this.delay ) {
+            this._task = new Ext.util.DelayedTask(this.hide, this);
+        }
+
+        Zenoss.flares.Flare.superclass.initComponent.call(this);
+    },
+    _afterShow: function() {
+        Zenoss.flares.Flare.superclass.show.call(this);
+        if ( this._task ) {
+            this._task.delay(this.delay);
+       }
+    },
+    sticky: function() {
+        if ( this._task ) {
+            this._task.cancel();
+            delete this._task;
+        }
+    },
+    animShow: function() {
+        this.el.slideIn('t', {
+            duration: this.duration,
+            callback: this._afterShow,
+            scope: this
+        });
+    },
+    close: function() {
+        this.hide();
+    },
+    animHide: function() {
+        this._closing = true;
+        this.el.ghost("b", {
+            duration: this.hideDuration,
+            remove: false,
+            callback : function () {
+                this.destroy();
+            }.createDelegate(this)
+        });
+    },
+    canLayout: function() {
+        if ( !this._closing ) {
+            // Only move if it's not already closing
+            return Zenoss.flares.Flare.superclass.canLayout.apply(this, arguments);
+        }
+    }
+});
+
+
+
 Zenoss.message = function(msg, success) {
-    // Will be hooked into the regular message display once written
-    try {
-        console.log(msg);
-    } catch(e) {
-        Ext.emptyFn();
+    if ( success === true ) {
+        Zenoss.flares.Manager.success(msg);
+    }
+    else if ( success === false ) {
+        Zenoss.flares.Manager.error(msg);
+    }
+    else {
+        Zenoss.flares.Manager.info(msg);
     }
 };
 

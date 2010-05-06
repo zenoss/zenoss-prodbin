@@ -1087,6 +1087,49 @@ body.x-body-masked .x-window-mc, body.x-body-masked .x-window-plain .x-window-mc
     padding: 10px;
 }
 
+/* Flares */
+
+.x-flare {
+    width: 100%;
+    height: 30px;
+    line-height: 30px;
+    color: #282828;
+    font-size: 11px;
+    padding-left: 15px;
+    background: rgb(246, 225, 123);
+    overflow: hidden;
+    border-top: 1px solid #f0f0f0;
+    border-bottom: 1px solid #949494;
+}
+
+.x-flare .x-tool-close {
+    width: 30px;
+    height: 30px;
+    background: url(../img/xtheme-zenoss/flare/flare-sprite.png) no-repeat 0 -60px;
+}
+
+.x-flare .x-flare-header {
+    background: url(../img/xtheme-zenoss/flare/flare-sprite.png) no-repeat 0 -31px;
+    float: right;
+    height: 30px;
+    width: 45px;
+}
+
+.x-flare .x-flare-icon {
+    float: left;
+    background:url(../img/xtheme-zenoss/icon/severity-sprite.png) no-repeat scroll 0 -100px;
+    width: 16px;
+    height: 14px;
+    margin-top: 7px;
+    margin-right: 5px;
+}
+
+.x-flare .x-flare-critical .x-flare-icon { background-position: 0px  0px; }
+.x-flare .x-flare-error .x-flare-icon    { background-position: 0px -20px; }
+.x-flare .x-flare-warning .x-flare-icon  { background-position: 0px -40px; }
+.x-flare .x-flare-info .x-flare-icon     { background-position: 0px -60px; }
+.x-flare .x-flare-debug .x-flare-icon    { background-position: 0px -80px; }
+.x-flare .x-flare-success .x-flare-icon  { background-position: 0 -100px; }
 
 /* HTML Editors */
 

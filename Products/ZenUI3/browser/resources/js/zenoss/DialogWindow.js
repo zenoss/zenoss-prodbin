@@ -39,7 +39,7 @@ var BaseDialog = Ext.extend(Ext.Window, {
 });
 
 function destroyWindow(button){
-    button.ownerCt.ownerCt.close();
+    button.ownerCt.ownerCt.destroy();
 }
 
 /**
