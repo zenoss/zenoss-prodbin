@@ -1213,7 +1213,7 @@ var footerBar = Ext.getCmp('footer_bar');
                 return String.format(_t('The selected {0} will be deleted.'), itemName.toLowerCase());
             }
         },
-        onGetAddDialogItems: function () { return getOrganizerFields('add') },
+        onGetAddDialogItems: function () { return getOrganizerFields('add'); },
         customAddDialog: {
             title: _t('Add Tree Node')
         },
@@ -1222,6 +1222,7 @@ var footerBar = Ext.getCmp('footer_bar');
             onSetContext: function(uid) {
                 bindTemplatesDialog.setContext(uid);
                 resetTemplatesDialog.setContext(uid);
+                Zenoss.env.PARENT_CONTEXT = uid;
             },
             onGetMenuItems: function(uid) {
                 var menuItems = [];
