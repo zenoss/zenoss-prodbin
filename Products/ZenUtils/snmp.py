@@ -167,6 +167,10 @@ class SnmpAgentDiscoverer(object):
     _bestsofar = None
 
     def _handleResult(self, result):
+        if not hasattr(result, 'weight'):
+            # http://dev.zenoss.org/trac/ticket/6268
+            return
+
         for i, p in enumerate(self._pending):
             if p.weight == result.weight:
                 self._pending.pop(i)
