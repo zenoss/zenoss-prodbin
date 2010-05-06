@@ -1982,11 +1982,11 @@ class EventManagerBase(ZenModelRM, ObjectCache, DbAccessBase):
         '''
         assert(self == self.dmd.ZenEventManager)
         screenName = REQUEST.get('zenScreenName', '')
-        if screenName == 'editEventManagerHistoryFields':
+        if screenName == 'editEventManagerHistoryFields.pt':
             obj = self.dmd.ZenEventHistory
         else:
             obj = self
-        if screenName == 'editEventManager':
+        if screenName == 'editEventManager.pt':
             # We renamed the password field to try to keep browsers from
             # asking user if they wanted to save the password.
             if REQUEST.has_key('mysql_pass'):
