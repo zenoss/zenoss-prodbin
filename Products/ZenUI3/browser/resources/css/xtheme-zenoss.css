@@ -32,6 +32,10 @@
     color: #8a8b8c;
 }
 
+.x-tree-node .node-text {
+    font-weight: bold;
+}
+
 .x-tree-node strong {
     font-weight: bold;
 }
@@ -933,10 +937,20 @@ td.x-date-mp-sel a{
     border-width:0;
 }
 .x-panel-header{
-    color:#f8f8f8;
+    color: #f8f8f8;
     border:1px solid #abc;
-    background-image:url(../img/xtheme-zenoss/panel/white-top-bottom.gif);
+    background-color: #566d87;
+    background-image: none;
+    overflow: hidden;
+    height: 14px;
 }
+
+.x-panel-header .desc {
+    margin-left: 5px;
+    font-weight: normal;
+    color: #abc;
+}
+
 .x-panel-body{
     border-color:#abc;
 }

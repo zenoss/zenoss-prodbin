@@ -145,7 +145,7 @@ var treesm = new Ext.tree.DefaultSelectionModel({
             if (newnode) {
                 var uid = newnode.attributes.uid;
                 Zenoss.util.setContext(uid, 'detail_panel', 'organizer_events',
-                                       'commands-menu', 'context-configure-menu');
+                                       'commands-menu', 'context-configure-menu', 'footer_bar');
                 setDeviceButtonsDisabled(true);
                 var card = Ext.getCmp('master_panel').getComponent(0);
                 //should "ask" the DetailNav if there are any details before showing
@@ -754,26 +754,21 @@ function updateNavTextWithCount(node) {
 }
 
 
-function initializeTreeDrop(g) {
-    var dz = new Ext.tree.TreeDropZone(g, {
+function initializeTreeDrop(tree) {
+    Ext.apply(tree, {
         ddGroup: 'devicegriddd',
-        getTargetFromEvent: function(e) {
-            return e.getTarget('.x-tree-node-el');
-        },
-        onNodeOver : function(target, dd, e, data){
-            // Return the class that makes the check mark
-            return Ext.dd.DropZone.prototype.dropAllowed;
-        },
-        onNodeDrop: function(target, dd, e, data) {
-            var nodeid = target.getAttribute('ext:tree-node-id'),
-                grid = Ext.getCmp('device_grid'),
-                tree = this.tree,
-                targetnode = tree.getNodeById(nodeid),
+        enableDD: true
+    });
+
+    tree.on('beforenodedrop', function(e) {
+        if ( Ext.isArray(e.data.selections) ) {
+            var grid = Ext.getCmp('device_grid'),
+                targetnode = e.target,
                 targetuid = targetnode.attributes.uid,
                 ranges = grid.getSelectionModel().getPendingSelections(true),
                 devids;
 
-            devids = Ext.pluck(Ext.pluck(data.selections, 'data'), 'uid');
+            devids = Ext.pluck(Ext.pluck(e.data.selections, 'data'), 'uid');
 
             grid.view.showLoadMask(true);
 
@@ -786,13 +781,16 @@ function initializeTreeDrop(g) {
             REMOTE.moveDevices(opts, function(data){
                 if(data.success) {
                     resetGrid();
-                    tree.update(data.tree);
+                    this.update(data.tree);
                 } else {
                     grid.view.showLoadMask(false);
                 }
             }, this);
+
+            // we want Ext to complete the drop, thus return true
+            return true;
         }
-    });
+    }, tree);
 }
 
 /*
@@ -830,6 +828,7 @@ var devtree = {
     id: 'devices',
     searchField: true,
     directFn: REMOTE.getTree,
+    ddAppendOnly: true,
     root: {
         id: 'Devices',
         uid: '/zport/dmd/Devices',
@@ -838,6 +837,7 @@ var devtree = {
     selectByToken: detailSelectByToken,
     selModel: treesm,
     router: REMOTE,
+    nodeName: 'Device',
     listeners: {
         render: initializeTreeDrop,
         filter: function(e) {
@@ -853,11 +853,13 @@ var grouptree = {
     id: 'groups',
     searchField: false,
     directFn: REMOTE.getTree,
+    ddAppendOnly: true,
     selectByToken: detailSelectByToken,
     root: {
         id: 'Groups',
         uid: '/zport/dmd/Groups'
     },
+    nodeName: 'Group',
     selModel: treesm,
     router: REMOTE,
     selectRootOnLoad: false,
@@ -869,11 +871,13 @@ var systree = {
     id: 'systems',
     searchField: false,
     directFn: REMOTE.getTree,
+    ddAppendOnly: true,
     selectByToken: detailSelectByToken,
     root: {
         id: 'Systems',
         uid: '/zport/dmd/Systems'
     },
+    nodeName: 'System',
     router: REMOTE,
     selectRootOnLoad: false,
     selModel: treesm,
@@ -885,11 +889,13 @@ var loctree = {
     id: 'locs',
     searchField: false,
     directFn: REMOTE.getTree,
+    ddAppendOnly: true,         
     selectByToken: detailSelectByToken,
     root: {
         id: 'Locations',
         uid: '/zport/dmd/Locations'
     },
+    nodeName: 'Location',
     router: REMOTE,
     addNodeFn: REMOTE.addLocationNode,
     selectRootOnLoad: false,
@@ -989,6 +995,128 @@ Zenoss.InfraDetailNav = Ext.extend(Zenoss.DetailNavPanel, {
 });
 Ext.reg('infradetailnav', Zenoss.InfraDetailNav);
 
+var device_grid = new Zenoss.DeviceGridPanel({
+    ddGroup: 'devicegriddd',
+    id: 'device_grid',
+    enableDrag: true,
+    header: true,
+    sm: new Ext.ux.grid.livegrid.RowSelectionModel({
+        listeners: {
+            selectionchange: function(sm) {
+                setDeviceButtonsDisabled(!sm.getSelected());
+            }
+        }
+    }),
+    setContext: function(uid) {
+        Zenoss.DeviceGridPanel.superclass.setContext.call(this, uid);
+        REMOTE.getInfo({uid: uid, keys: ['name', 'description', 'address']}, function(result) {
+            var title = result.data.name;
+            var qtip;
+
+            this.header.child('span').child('span.title').update(title);
+
+            var desc = [];
+            if ( result.data.address ) {
+                desc.push(result.data.address);
+            }
+            if ( result.data.description ) {
+                desc.push(result.data.description);
+            }
+
+            if ( desc ) {
+                Ext.QuickTips.register({target: this.header, text: Ext.util.Format.nl2br(desc.join('<hr>')), title: result.data.name});
+            }
+
+            this.header.child('span').child('span.desc').update(desc.join(' - '));
+        }, this);
+    },
+    headerCfg: {
+        tag: 'div',
+        cls: 'x-panel-header',
+        children: [
+            { tag: 'span', cls: 'title', html: '' },
+            { tag: 'span', cls: 'desc' }
+        ]
+    },
+    tbar: {
+        xtype: 'largetoolbar',
+        id: 'detail-toolbar',
+        items: [
+            {
+                xtype: 'eventrainbow',
+                id: 'organizer_events'
+            },
+            '-',
+            {
+                id: 'adddevice-button',
+                iconCls: 'adddevice',
+                disabled: Zenoss.Security.doesNotHavePermission("Manage DMD"),
+                menu:{
+                    items: [
+                        Zenoss.devices.addDevice,
+                        Zenoss.devices.addMultiDevicePopUP
+                    ]
+                }
+            },
+            Zenoss.devices.deleteDevices,
+            {
+                text: _t('Select'),
+                menu:[
+                    {
+                        text: _t('All'),
+                        handler: function() {
+                            var grid = Ext.getCmp('device_grid');
+                            grid.getSelectionModel().selectRange(0, grid.store.totalLength);
+                        }
+                    },
+                    {
+                        text: _t('None'),
+                        handler: function() {
+                            var grid = Ext.getCmp('device_grid');
+                            grid.getSelectionModel().clearSelections();
+                        }
+                    }
+                ]
+            },
+            '->',
+            {
+                id: 'actions-menu',
+                text: _t('Actions'),
+                disabled: Zenoss.Security.doesNotHavePermission('Delete Device'),
+                menu: {
+                    items: [
+                        Zenoss.devices.lockDevices,
+                        Zenoss.devices.resetIP,
+                        Zenoss.devices.resetCommunity,
+                        Zenoss.devices.setProdState,
+                        Zenoss.devices.setPriority,
+                        Zenoss.devices.setCollector
+                    ]
+                }
+            },
+            {
+                id: 'commands-menu',
+                text: _t('Commands'),
+                setContext: function(uid) {
+                    var me = Ext.getCmp('commands-menu'),
+                            menu = me.menu;
+                    REMOTE.getUserCommands({uid:uid}, function(data) {
+                        menu.removeAll();
+                        Ext.each(data, function(d) {
+                            menu.add({
+                                text:d.id,
+                                tooltip:d.description,
+                                handler: commandMenuItemHandler
+                            });
+                        });
+                    });
+                },
+                menu: {}
+            }
+        ]
+    }
+});
+
 Ext.getCmp('center_panel').add({
     id: 'center_panel_container',
     layout: 'border',
@@ -1050,104 +1178,29 @@ Ext.getCmp('center_panel').add({
         region: 'center',
         activeItem: 0,
         split: true,
-        items: [{
-            xtype: 'DeviceGridPanel',
-            ddGroup: 'devicegriddd',
-            id: 'device_grid',
-            enableDrag: true,
-            sm: new Ext.ux.grid.livegrid.RowSelectionModel({
-                listeners: {
-                    selectionchange: function(sm) {
-                        setDeviceButtonsDisabled(!sm.getSelected());
-                    }
-                }
-            }),
-            tbar: {
-                xtype: 'largetoolbar',
-                items: [{
-                    xtype: 'eventrainbow',
-                    id: 'organizer_events'
-                }, '-', {
-                    id: 'adddevice-button',
-                    iconCls: 'adddevice',
-                    disabled: Zenoss.Security.doesNotHavePermission("Manage DMD"),
-                    menu:{
-                        items: [
-                        Zenoss.devices.addDevice,
-                        Zenoss.devices.addMultiDevicePopUP
-                        ]
-                    }
-                }, Zenoss.devices.deleteDevices, {
-                    text: _t('Select'),
-                    menu:[{
-                        text: _t('All'),
-                        handler: function() {
-                            var grid = Ext.getCmp('device_grid');
-                            grid.getSelectionModel().selectRange(0, grid.store.totalLength);
-                        }
-                    },{
-                        text: _t('None'),
-                        handler: function() {
-                            var grid = Ext.getCmp('device_grid');
-                            grid.getSelectionModel().clearSelections();
-                        }
-                    }]
-                },
-                '->',
-                {
-                    id: 'actions-menu',
-                    text: _t('Actions'),
-                    disabled: Zenoss.Security.doesNotHavePermission('Delete Device'),
-                    menu: {
-                        items: [
-                            Zenoss.devices.lockDevices,
-                            Zenoss.devices.resetIP,
-                            Zenoss.devices.resetCommunity,
-                            Zenoss.devices.setProdState,
-                            Zenoss.devices.setPriority,
-                            Zenoss.devices.setCollector
-                        ]
-                    }
-                },{
-                    id: 'commands-menu',
-                    text: _t('Commands'),
-                    setContext: function(uid) {
-                        var me = Ext.getCmp('commands-menu'),
-                            menu = me.menu;
-                        REMOTE.getUserCommands({uid:uid}, function(data){
-                            menu.removeAll();
-                            Ext.each(data, function(d){
-                                menu.add({
-                                    text:d.id,
-                                    tooltip:d.description,
-                                    handler: commandMenuItemHandler
-                                });
-                            });
-                        });
+        items: [
+            device_grid,
+            {
+                xtype: 'SimpleEventGridPanel',
+                id: 'events_grid',
+                stateful: false,
+                columns: Zenoss.env.COLUMN_DEFINITIONS,
+                tbar: {
+                    xtype: 'toolbar',
+                    cls: 'largetoolbar consolebar',
+                    height: 35,
+                    items: [{
+                        xtype: 'tbtext',
+                        text: _t('Event Console')
                     },
-                    menu: {}
-                }]
+                        '-',
+                        ZEvActions.acknowledge,
+                        ZEvActions.close,
+                        ZEvActions.refresh
+                    ]
+                }
             }
-        },{
-            xtype: 'SimpleEventGridPanel',
-            id: 'events_grid',
-            stateful: false,
-            columns: Zenoss.env.COLUMN_DEFINITIONS,
-            tbar: {
-                xtype: 'toolbar',
-                cls: 'largetoolbar consolebar',
-                height: 35,
-                items: [{
-                    xtype: 'tbtext',
-                    text: _t('Event Console')
-                },
-                    '-',
-                    ZEvActions.acknowledge,
-                    ZEvActions.close,
-                    ZEvActions.refresh
-                ]
-            }
-        }]
+        ]
     }]
 });
 
@@ -1183,7 +1236,7 @@ function getOrganizerFields(mode) {
     var rootId = treesm.getSelectedNode().getOwnerTree().getRootNode().attributes.id;
     if ( rootId === loctree.root.id ) {
         items.push({
-            xtype: 'textfield',
+            xtype: 'textarea',
             id: 'address',
             fieldLabel: _t('Address'),
             allowBlank: true
@@ -1195,7 +1248,7 @@ function getOrganizerFields(mode) {
 
 var footerBar = Ext.getCmp('footer_bar');
     Zenoss.footerHelper(
-    _t('Tree Node'),
+    '',
     footerBar,
     {
         hasOrganizers: false,
@@ -1205,17 +1258,24 @@ var footerBar = Ext.getCmp('footer_bar');
         addToZenPack: false,
 
         onGetDeleteMessage: function (itemName) {
-            var rootId = treesm.getSelectedNode().getOwnerTree().getRootNode().attributes.id;
+            var tree = treesm.getSelectedNode().getOwnerTree();
+            var rootId = tree.getRootNode().attributes.id;
             if ( rootId === devtree.root.id ) {
                 return deleteDeviceMessage;
             }
             else {
-                return String.format(_t('The selected {0} will be deleted.'), itemName.toLowerCase());
+                return String.format(_t('The selected {0} will be deleted.'), tree.nodeName.toLowerCase());
             }
         },
         onGetAddDialogItems: function () { return getOrganizerFields('add'); },
+        onGetItemName: function() {
+            var node = treesm.getSelectedNode();
+            if ( node ) {
+                var tree = node.getOwnerTree();
+                return tree.nodeName;
+            }
+        },
         customAddDialog: {
-            title: _t('Add Tree Node')
         },
         buttonContextMenu: {
         xtype: 'ContextConfigureMenu',

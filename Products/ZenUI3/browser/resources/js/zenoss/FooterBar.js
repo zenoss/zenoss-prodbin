@@ -80,6 +80,9 @@ Zenoss.footerHelper = function(itemName, footerBar, options) {
                 fieldLabel: _t('Name'),
                 allowBlank: false
             }];
+        },
+        onGetItemName: function() {
+            return itemName;
         }
     });
 
@@ -98,11 +101,12 @@ Zenoss.footerHelper = function(itemName, footerBar, options) {
     // For now, we will monkey-patch a setContext onto it.
     footerBar.setContext = function(contextUid) {
         Ext.each(this.items.items, function(i) {
-            if (i.setContext) { i.setContext(contextUid); }} );
+            if (i.setContext) { i.setContext(contextUid); }
+        });
     };
 
 
-    function showAddDialog(title, event) {
+    function showAddDialog(template, event) {
         var handler, dialog, addDialogConfig;
 
         // Shallow copy config to avoid mangling the original config
@@ -115,7 +119,7 @@ Zenoss.footerHelper = function(itemName, footerBar, options) {
         addDialogConfig = Ext.applyIf(addDialogConfig, {
             submitHandler: handler,
             items: options.onGetAddDialogItems(),
-            title: title
+            title: String.format(template, options.onGetItemName())
         });
 
         dialog = new Zenoss.SmartFormDialog(addDialogConfig);
@@ -133,9 +137,7 @@ Zenoss.footerHelper = function(itemName, footerBar, options) {
                     {
                         text: String.format(_t('Add {0}'), itemName),
                         listeners: {
-                            click: showAddDialog.createCallback(
-                                    String.format(_t('Add {0}'), itemName),
-                                    'addClass')
+                            click: showAddDialog.createCallback(_t('Add {0}'), 'addClass'),
                         }
                     }
                 ]
@@ -149,6 +151,7 @@ Zenoss.footerHelper = function(itemName, footerBar, options) {
             tooltip: String.format(_t('Delete {0}'), itemName),
             listeners: {
                 click: function() {
+                    var itemName = options.onGetItemName();
                     Ext.MessageBox.show({
                         title: String.format(_t('Delete {0}'), itemName),
                         msg: options.onGetDeleteMessage(itemName),
@@ -179,9 +182,7 @@ Zenoss.footerHelper = function(itemName, footerBar, options) {
         footerBar.buttonAdd.add({
             text: String.format(_t('Add {0} Organizer'), itemName),
             listeners: {
-                click: showAddDialog.createCallback(
-                         String.format(_t('Add {0} Organizer'), itemName),
-                         'addOrganizer')
+                click: showAddDialog.createCallback(_t('Add {0} Organizer'), 'addOrganizer')
             },
             ref: 'buttonAddOrganizer'
         });
@@ -191,6 +192,7 @@ Zenoss.footerHelper = function(itemName, footerBar, options) {
             ref: 'buttonDeleteOrganizer',
             listeners: {
                 click: function() {
+                    var itemName = options.onGetItemName();
                     Ext.MessageBox.show({
                         title: String.format(_t('Delete {0} Organizer'), itemName),
                         msg: String.format(_t('The selected {0} organizer will be deleted.'),

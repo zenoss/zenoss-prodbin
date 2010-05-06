@@ -36,60 +36,59 @@ Ext.ns('Zenoss');
  * @constructor
  */
 
-var nodeTemplate = new Ext.Template('<span style="font-weight:bold">{text}</span>',
-                                    '<span class="node-extra">({count})</span>');
-nodeTemplate.compile();
-
 Zenoss.HierarchyTreeNodeUI = Ext.extend(Ext.tree.TreeNodeUI, {
-    buildNodeText: function(node) {
-        // everything should be a span or a text node or it won't be picked up
-        // correctly as a drag-and-drop handle
-        var b = [];
-        var t = node.attributes.text;
-
-        var textOverride = node.getDepth() === 1 ? node.getOwnerTree().getRootNode().attributes.text : null;
-
-        if ( Ext.isObject(t) ) {
-            b.push(nodeTemplate.apply(t));
-        }
-        else {
-            b.push(textOverride || t.text);
-        }
-
-        return b.join(' ');
-    },
-
-    render: function(bulkRender) {
-        var n = this.node,
-            a = n.attributes;
-
+    renderElements: function(n, a, targetNode, bulkRender) {
         // Hack this in here because baseAttrs doesn't work on loader
         n.hasChildNodes = function() {
             return (a.children && a.children.length>0);
         }.createDelegate(n);
 
-        if (a.text && Ext.isObject(a.text)) {
-            n.text = this.buildNodeText(this.node);
-        }
-        Zenoss.HierarchyTreeNodeUI.superclass.render.call(this, bulkRender);
+        Zenoss.HierarchyTreeNodeUI.superclass.renderElements.apply(this, arguments);
+
+        this.textNode = Ext.DomHelper.overwrite(this.textNode, {
+            tag: 'span',
+            children: [
+                { tag: 'span', cls: 'node-text' },
+                { tag: 'span', cls: 'node-extra' }
+            ]
+        }, true);
+        this.textNodeBody = this.textNode.child('.node-text');
+        this.textNodeExtra = this.textNode.child('.node-extra');
 
         if ( n.getDepth() === 1 ) {
             this.addClass('hierarchy-root');
         }
-    },
 
-    onTextChange : function(node, text, oldText){
-        if(this.rendered){
-            this.textNode.innerHTML = this.buildNodeText(node);
+        this.onTextChange(this.node, a.text, null);
+    },
+    onTextChange: function(node, data, oldText) {
+        if ( this.rendered ) {
+            if ( !Ext.isObject(data) ) {
+                data = { text: data, count: null };
+            }
+
+            var textOverride = this.node.getDepth() === 1 ? this.node.getOwnerTree().getRootNode().attributes.text : null;
+            if ( textOverride ) {
+                data.text = textOverride;
+            }
+
+            // Just update the existing elements instead of replacing them so that the dd drop targets
+            // stay the same
+            this.textNodeBody.update(data.text);
+            if ( Ext.isDefined(data.count) ) {
+                this.textNodeExtra.update('(' + data.count + ')');
+                this.textNodeExtra.show();
+            }
+            else {
+                this.textNodeExtra.update('');
+                this.textNodeExtra.hide();
+            }
         }
     },
-
     getDDHandles : function(){
         // include the child span nodes of the text node as drop targets
-        var ddHandles, spans;
-        ddHandles = Zenoss.HierarchyTreeNodeUI.superclass.getDDHandles.call(this);
-        spans = Ext.query('span', this.textNode);
-        return ddHandles.concat(spans);
+        var ddHandles = Zenoss.HierarchyTreeNodeUI.superclass.getDDHandles.call(this);
+        return ddHandles.concat([this.textNodeBody, this.textNodeExtra]);
     }
 
 });
