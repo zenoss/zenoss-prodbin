@@ -242,7 +242,7 @@ class DeviceAddView(BrowserView):
                 }
             perfConf = self.context.Monitors.getPerformanceMonitor('localhost')
             perfConf.addDeviceCreationJob(deviceName=self.request.form.get(k),
-                devicePath=devclass, zProperties=zProps)
+                devicePath=devclass, zProperties=zProps, discoverProto='auto')
         devnames = [self.request.form.get(dev) for dev in devs]
         IMessageSender(self.context).sendToUser(
             'Devices Added',
