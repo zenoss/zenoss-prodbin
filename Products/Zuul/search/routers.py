@@ -98,9 +98,10 @@ class SearchRouter(DirectRouter):
         limits = DefaultSearchResultSorter(maxResultsPerCategory=250)
         results = facade.getSearchResults(query, limits)
         #group by category so we get [ 'category', [SearchResults, ...]]
+        results = list(results)
         groupedResult = itertools.groupby(results, lambda x: x.category)
         return {'results': Zuul.marshal(groupedResult),
-                'total': len(list(results))}
+                'total': len(results)}
 
     def noProvidersPresent(self):
         return self._getFacade().noProvidersPresent()
