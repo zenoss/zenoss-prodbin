@@ -490,9 +490,14 @@ class ZenossInfo(ZenModelItem, SimpleItem):
         # space
         data = ' '
         try:
-            data = self._readLogFile(filename, maxBytes) or ' '
-        except IOError:
-            data = 'Error reading log file'
+            if os.path.exists(filename):
+                data = self._readLogFile(filename, maxBytes) or ' '
+            else:
+                data = "No log file found for %s at '%s'" % (
+                        daemon, filename)
+        except IOError, ex:
+            data = "Error reading %s log file '%s':\n%s" % (
+                    daemon, filename, str(ex))
         return data
 
 
