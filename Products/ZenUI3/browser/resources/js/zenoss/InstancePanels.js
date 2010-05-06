@@ -91,8 +91,7 @@ Zenoss.SimpleInstanceGridPanel = Ext.extend(Ext.ux.grid.livegrid.GridPanel, {
 
     constructor: function(config) {
         Ext.applyIf(config, {
-            border: false,
-            height: 400,
+            height: Ext.getCmp('viewport').getHeight() - 300,
             split: true,
             autoExpandColumn: 'name',
             stripeRows: true,
