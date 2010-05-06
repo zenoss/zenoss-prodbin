@@ -72,7 +72,7 @@
                 dataIndex : 'count',
                 header : _t('Count'),
                 id : 'count',
-                width : 40,
+                width : 50,
                 renderer : zs.nonZeroRenderer,
                 filter : false
             }

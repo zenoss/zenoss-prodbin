@@ -50,14 +50,14 @@ Ext.onReady( function() {
             dataIndex: 'port',
             header: _t('Port'),
             id: 'port',
-            width: 40,
+            width: 50,
             filter: false
         },
         {
             dataIndex: 'count',
             header: _t('Count'),
             id: 'count',
-            width: 40,
+            width: 50,
             renderer: zsn.nonZeroRenderer,
             filter: false
         }
