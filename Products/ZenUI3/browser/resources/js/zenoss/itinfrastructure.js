@@ -17,6 +17,9 @@ Ext.onReady(function(){
 
 Ext.ns('Zenoss.devices');
 
+// Extensions used on this page
+var EXTENSIONS_adddevice = Zenoss.extensions.adddevice instanceof Array ?
+                           Zenoss.extensions.adddevice : [];
 
 // page level variables
 var REMOTE = Zenoss.remote.DeviceRouter;
@@ -1055,7 +1058,7 @@ var device_grid = new Zenoss.DeviceGridPanel({
                     items: [
                         Zenoss.devices.addDevice,
                         Zenoss.devices.addMultiDevicePopUP
-                    ]
+                    ].concat(EXTENSIONS_adddevice)
                 }
             },
             Zenoss.devices.deleteDevices,
