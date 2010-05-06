@@ -47,12 +47,12 @@ class UserCommand(ZenModelRM, ZenPackable):
     # Screen action bindings (and tab definitions)
     factory_type_information = ( 
     { 
-        'immediate_view' : 'userCommandDetail',
+        'immediate_view' : 'userCommandDetailNew',
         'actions'        :
         ( 
             {'id'            : 'overview',
              'name'          : 'User Command',
-             'action'        : 'userCommandDetail',
+             'action'        : 'userCommandDetailNew',
              'permissions'   : ( Permissions.view, ),
             },
             { 'id'            : 'viewHistory',

@@ -2,6 +2,7 @@
     metal:define-macro="userCommandsTable"
     tal:condition="python:here.has_permission('Define Commands View')">
 <input type="hidden" name="zenScreenName" tal:attributes="value template/id"/>
+<input type="hidden" name="editScreenName" tal:attributes="value string:userCommandDetailNew"/>
 
 <tal:block tal:define="tabletitle string:Define Commands;
         objects here/getUserCommands;
@@ -55,6 +56,85 @@ Optional titlebar stuff
   </tal:block>
   <tr>
     <td colspan="3" class="tableheader">
+        <span metal:use-macro="here/zenTableNavigation/macros/navbody" />
+    </td>
+  </tr>
+
+<!-- END TABLE CONTENTS -->
+
+</tal:block>
+</tal:block>
+</tal:block>
+
+</form>
+
+
+<form method="post" tal:attributes="action here/absolute_url_path"
+    metal:define-macro="userCommandsTableBackCompat"
+    tal:condition="python:here.has_permission('Define Commands View')">
+<input type="hidden" name="zenScreenName" tal:attributes="value template/id"/>
+<input type="hidden" name="editScreenName" tal:attributes="value string:userCommandDetail"/>
+
+<tal:block tal:define="tabletitle string:Define Commands;
+        objects here/getUserCommands;
+        editable here/isManager;
+        showfilterbox python:True;
+        tableName string:userCommands;
+        batch python:here.ZenTableManager.getBatch(tableName,objects);
+        menu_id string:UserCommand_list">
+<tal:block metal:use-macro="here/zenuimacros/macros/zentable">
+
+<!--==================== 
+Optional titlebar stuff
+
+<tal:block metal:fill-slot="menuslot">
+</tal:block>
+<tal:block metal:fill-slot="filterslot">
+</tal:block>
+
+  ====================-->
+
+<tal:block metal:fill-slot="zentablecontents">
+
+<!-- BEGIN TABLE CONTENTS -->
+
+    <tr>
+        <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
+                    tableName,'primarySortKey','Name')"/>
+        <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
+                    tableName,'role','Description')"/>
+        <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
+                    tableName,'role','Command')"/>
+        <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
+                    tableName,'role','Modifications')"/>
+  </tr>
+    <tal:block tal:repeat="uc batch">
+  <tr tal:define="odd repeat/uc/odd"
+      tal:attributes="class python:test(odd, 'odd', 'even')">
+    <td class="tablevalues" align="left">
+  <input type="checkbox" name="ids:list" 
+              tal:attributes="value uc/getId"/>
+
+  <a href="_" 
+        tal:attributes="href string:${uc/absolute_url}/userCommandDetail"
+        tal:content="uc/getId">command</a>
+    </td>
+    <td class="tablevalues" align="left"
+        tal:content="uc/description">
+    </td>
+    <td class="tablevalues" align="left"
+        tal:content="uc/command">
+    </td>
+    <td class="tablevalues" align="left">
+  <a href="_" 
+        tal:attributes="href string:${uc/absolute_url}/viewHistory"
+        tal:content="uc/getId">command</a>
+    </td>
+  </tr>
+  </tal:block>
+  <tr>
+    <!-- <td colspan="3" class="tableheader"> -->
+    <td colspan="4" class="tableheader">
         <span metal:use-macro="here/zenTableNavigation/macros/navbody" />
     </td>
   </tr>

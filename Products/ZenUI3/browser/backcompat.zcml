@@ -245,12 +245,12 @@
 
 <browser:defaultView
     for="Products.ZenModel.UserCommand.UserCommand"
-    name="userCommandDetail"
+    name="userCommandDetailNew"
     />
 
 <browser:page
-    template="../../ZenModel/skins/zenmodel/userCommandDetail.pt"
-    name="userCommandDetail"
+    template="../../ZenModel/skins/zenmodel/userCommandDetailNew.pt"
+    name="userCommandDetailNew"
     for="*"
     permission="zenoss.View"
     />

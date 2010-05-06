@@ -28,5 +28,15 @@
 <tal:block metal:fill-slot="script_layout">
 <tal:block tal:content="structure provider:jssnippets"/>
 <script src="/++resource++zenui/js/zenoss/itinfrastructure.js/"></script>
+<script>
+function changeDetail() {
+    var where = window.location.href.split('#')[1],
+        parts = where.split(':'),
+        contextId = parts[1].replace(/\./g, '/'),
+        panelKey = parts[2],
+        backCompatPanel = Ext.getCmp(panelKey);
+    backCompatPanel.setContext(contextId);
+}
+</script>
 </tal:block>
 </tal:block> <!-- metal:use-macro="context/page_macros/masterdetailsplit2" -->

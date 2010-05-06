@@ -4,6 +4,7 @@
     
 
 <form method="POST" name="backupForm"
+    onSubmit="return false;"
     tal:attributes="action here/getPrimaryUrlPath"
     tal:define="
         tabletitle string: Create New Backup;

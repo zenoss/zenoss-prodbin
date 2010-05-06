@@ -64,8 +64,10 @@ class Commandable:
                     'Command Added',
                     'User command %s has been created.' % newId
                 )
-                REQUEST['RESPONSE'].redirect(uc.getPrimaryUrlPath())
-            return self.callZenScreen(REQUEST)
+                screenName = REQUEST.get("editScreenName", "")
+                return REQUEST.RESPONSE.redirect(uc.getPrimaryUrlPath() +
+                        '/%s' % screenName if screenName else '')
+            return self.callZenScreen(REQUEST, True)
         return uc
 
 
@@ -106,7 +108,7 @@ class Commandable:
                 return REQUEST.RESPONSE.redirect(command.absolute_url_path())
             del REQUEST.form['password']
             command.manage_changeProperties(**REQUEST.form)
-        return self.redirectToUserCommands(REQUEST)
+        #return self.redirectToUserCommands(REQUEST)
 
 
     security.declareProtected(ZEN_RUN_COMMANDS, 'manage_doUserCommand')

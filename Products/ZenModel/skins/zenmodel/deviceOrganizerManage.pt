@@ -11,7 +11,7 @@ Ext.addBehaviors({
 });
 </script>
 
-<span metal:use-macro="here/userCommandsMacros/macros/userCommandsTable" />
+<span metal:use-macro="here/userCommandsMacros/macros/userCommandsTableBackCompat" />
 
 <span metal:use-macro="here/templates/macros/contentSeparator"/>
 

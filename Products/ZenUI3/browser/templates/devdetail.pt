@@ -28,6 +28,14 @@
 Ext.state.Manager.setProvider(new Ext.state.CookieProvider({
     expires: new Date(new Date().getTime()+(1000*60*60*24*30))
 }));
+function changeDetail() {
+    var where = window.location.href.split('#'),
+        parts = where[1].split(':'),
+        panelKey = parts[1],
+        contextUid = where[0].substring(where[0].indexOf('/zport/dmd'), 
+                where[0].indexOf('/devicedetail'));
+    Ext.getCmp('detail_card_panel').items.map[panelKey].setContext(contextUid);
+}
 </script>
 </tal:block>
 </tal:block> <!-- metal:use-macro="context/page_macros/base-new" -->

@@ -1,8 +1,7 @@
-<tal:block metal:use-macro="here/templates/macros/page2">
+<tal:block metal:use-macro="here/page_macros/old-new">
 <tal:block metal:fill-slot="contentPane">
 
 <form method=post 
-    onSubmit="return false;"
     tal:attributes="action string:${here/absolute_url_path}">
     <input type="hidden" name="zenScreenName" 
         tal:attributes="value template/id" />
@@ -64,25 +63,8 @@
     </tr>
     <tr>
         <td align="left"  class="tableheader" colspan=2>
-            <input class="tableheader" type="button" value=" Save "
-                onclick="
-                var url = location.href.replace('userCommandDetail',
-                            'manage_editUserCommand');
-                Ext.Ajax.request({
-                    method: 'POST',
-                    success: window.parent.changeDetail,
-                    failure: window.parent.changeDetail,
-                    url: url,
-                    params: {
-                        'description': form['description:text'].value,
-                        'command': form['command:text'].value,
-                        'commandId': form.commandId.value,
-                        'password': form.password.value,
-                        'zenScreenName': form.zenScreenName.value
-                    }
-                });
-                "
-            />
+            <input class="tableheader" type="submit" value=" Save "
+                name="manage_editUserCommand:method"/>
         </td>
     </tr>
 
