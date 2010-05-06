@@ -61,7 +61,7 @@ class CollectionItem(ZenModelRM):
         )
 
     _relations = (
-        ('collection', ToOne(ToManyCont,'Products.ZenModel.Collection','items')),
+        ('collection', ToOne(ToManyCont,'Products.ZenModel.Collection','collection_items')),
         )
     
     factory_type_information = ( 

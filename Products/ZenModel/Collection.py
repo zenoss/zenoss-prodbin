@@ -49,7 +49,7 @@ class Collection(ZenModelRM):
     _relations =  (
         ('report',
             ToOne(ToManyCont, 'Products.ZenModel.MultiGraphReport', 'collections')),
-        ('items',
+        ('collection_items',
             ToManyCont(ToOne, 'Products.ZenModel.CollectionItem', 'collection')),
         )
 
@@ -76,20 +76,20 @@ class Collection(ZenModelRM):
         orgPath or on devId/compPath.  Returns the new item.
         '''
         from CollectionItem import CollectionItem
-        ci = CollectionItem(self.getUnusedId('items', 'Item'))
+        ci = CollectionItem(self.getUnusedId('collection_items', 'Item'))
         if orgPath:
             ci.deviceOrganizer = orgPath
         else:
             ci.deviceId = devId
             ci.compPath = compPath
         ci.recurse = recurse
-        ci.sequence = len(self.items())
-        self.items._setObject(ci.id, ci)
-        ci = self.items._getOb(ci.id)
+        ci.sequence = len(self.collection_items())
+        self.collection_items._setObject(ci.id, ci)
+        ci = self.collection_items._getOb(ci.id)
         # This check happens after the _setObject so that ci has full 
         # aq wrapper in case it needs it.
         if checkExists and not ci.getRepresentedItem():
-            self.items._delObject(ci.id)
+            self.collection_items._delObject(ci.id)
             ci = None
         return ci
 
@@ -146,7 +146,7 @@ class Collection(ZenModelRM):
         ''' Delete collection items from this report
         '''
         for id in ids:
-            self.items._delObject(id)
+            self.collection_items._delObject(id)
         self.manage_resequenceCollectionItems()
         if REQUEST:
             count = len(ids)
@@ -163,7 +163,7 @@ class Collection(ZenModelRM):
         """Reorder the sequence of the items.
         """
         from Products.ZenUtils.Utils import resequence
-        return resequence(self, self.items(), seqmap, origseq, REQUEST)
+        return resequence(self, self.collection_items(), seqmap, origseq, REQUEST)
 
 
     security.declareProtected('Manage DMD', 'getItems')
@@ -177,7 +177,7 @@ class Collection(ZenModelRM):
             try: b = int(b.sequence)
             except ValueError: b = sys.maxint
             return cmp(a, b)
-        items =  self.items()[:]
+        items =  self.collection_items()[:]
         items.sort(cmpItems)
         return items
         
@@ -185,7 +185,7 @@ class Collection(ZenModelRM):
     def getNumItems(self):
         ''' Return the number of collection items
         '''
-        return len(self.items())
+        return len(self.collection_items())
 
 
     def getDevicesAndComponents(self):

@@ -295,7 +295,7 @@
     tal:attributes="action here/absolute_url_path">
     <tal:block tal:define="
         tableName string:collectionItemList; 
-        objects here/items;
+        objects here/collection_items;
         tabletitle string:Collection Items;
         batch python:here.ZenTableManager.getBatch(tableName,objects,
                                                 sortedHeader='sequence'); 
