@@ -21,7 +21,17 @@ class renameCollectionItemsRelations(Migrate.Step):
     def cutover(self, dmd):
         reportclass = dmd.Reports._getOb('Multi-Graph Reports')
         for report in reportclass.reports():
-            for coll in report.collections():
+
+            # if this item does not have a 'collections' attribute
+            # go on to the next
+            try:
+                rptcolls = report.collections
+            except AttributeError:
+                continue
+                
+            # for every collection attached to this report,
+            # change the 'items' relation to 'collection_items'
+            for coll in rptcolls():
                 rel = coll.items
                 if isinstance(rel, ToManyContRelationship):
                     coll._delObject('items')
