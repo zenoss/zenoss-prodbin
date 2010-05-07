@@ -459,12 +459,20 @@ class DeviceRouter(TreeRouter):
     def getUnboundTemplates(self, uid):
         facade = self._getFacade()
         templates = facade.getUnboundTemplates(uid)
-        return DirectResponse.succeed(data=Zuul.marshal(templates))
+        data = []
+        for template in templates:
+            label = '%s (%s)'  % (template.titleOrId(), template.getUIPath())
+            data.append([template.id, label])                         
+        return DirectResponse.succeed(data=Zuul.marshal(data))
 
     def getBoundTemplates(self, uid):
         facade = self._getFacade()
         templates = facade.getBoundTemplates(uid)
-        return DirectResponse.succeed(data=Zuul.marshal(templates))
+        data = []
+        for template in templates:
+            label = '%s (%s)'  % (template.titleOrId(), template.getUIPath())
+            data.append([template.id, label])                         
+        return DirectResponse.succeed(data=Zuul.marshal(data))
 
     def setBoundTemplates(self, uid, templateIds):
         facade = self._getFacade()
@@ -487,7 +495,8 @@ class DeviceRouter(TreeRouter):
         # we just need the text and the id (for our combobox)
         data = []
         for template in templates:
-            data.append(dict(label=template.text, uid=template.uid))
+            label = '%s (%s)'  % (template.text, template.getUIPath())
+            data.append(dict(label=label, uid=template.uid))
         return DirectResponse.succeed(data=data)
 
     def clearGeocodeCache(self):

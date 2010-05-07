@@ -167,18 +167,28 @@ Zenoss.BindTemplatesItemSelector = Ext.extend(Ext.ux.form.ItemSelector, {
             drawDownIcon: false,
             drawTopIcon: false,
             drawBotIcon: false,
-            dislplayField: 'id',
+            displayField: 'name',
             valueField: 'id',
             multiselects: [{
                 width: 250,
                 height: 200,
+                displayField: 'name',
+                valueField: 'id',
                 appendOnly: true,
-                store: ['']
+                store: {
+                    xtype: 'arraystore',
+                    fields: ['id', 'name']
+                }
             },{
                 width: 250,
                 height: 200,
+                displayField: 'name',
+                valueField: 'id',
                 appendOnly: true,
-                store: ['']
+                store: {
+                    xtype: 'arraystore',
+                    fields: ['id', 'name']
+                }
             }]
         });
         Zenoss.BindTemplatesItemSelector.superclass.constructor.apply(this, arguments);
@@ -231,7 +241,7 @@ Zenoss.AddLocalTemplatesDialog = Ext.extend(Zenoss.HideFitDialog, {
                 text: _t('Submit'),
                 handler: function(){
                     var templateId = me.formPanel.templateName.getValue();
-                                        
+                    
                     REMOTE.addLocalTemplate({
                        deviceUid: me.context,
                        templateId: templateId
@@ -243,7 +253,7 @@ Zenoss.AddLocalTemplatesDialog = Ext.extend(Zenoss.HideFitDialog, {
                 text: _t('Cancel')
             }]
         });
-        Zenoss.BindTemplatesDialog.superclass.constructor.call(this, config);
+        Zenoss.AddLocalTemplatesDialog.superclass.constructor.call(this, config);
     },
     setContext: function(uid) {
         this.context = uid;
@@ -275,7 +285,7 @@ Zenoss.BindTemplatesDialog = Ext.extend(Zenoss.HideFitDialog, {
                     if (Zenoss.Security.hasPermission('Manage DMD')) {
                         records = me.itemselector.toMultiselect.store.getRange();
                         data = Ext.pluck(records, 'data');
-                        templateIds = Ext.pluck(data, 'text');
+                        templateIds = Ext.pluck(data, 'id');
                         REMOTE.setBoundTemplates({
                             uid: me.context,
                             templateIds: templateIds
@@ -354,9 +364,8 @@ Zenoss.OverrideTemplatesDialog = Ext.extend(Zenoss.HideFitDialog, {
                 minChars: 0,
                 ref: 'comboBox',
                 selectOnFocus: true,
-                valueField: 'uid',
-                displayField: 'label',
                 typeAhead: true,
+                resizable: true,
                 store: {
                     xtype: 'directstore',
                     ref:'store',

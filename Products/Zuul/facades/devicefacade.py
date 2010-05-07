@@ -356,7 +356,7 @@ class DeviceFacade(TreeFacade):
         obj = self._getObject(uid)
         for template in obj.getAvailableTemplates():
             if (template.id in obj.zDeviceTemplates) == isBound:
-                yield template.id
+                yield  template
 
     def setBoundTemplates(self, uid, templateIds):
         obj = self._getObject(uid)

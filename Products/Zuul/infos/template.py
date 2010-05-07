@@ -47,6 +47,9 @@ class TemplateNode(TemplateInfo):
     def _addChild(self, leaf):
         self._children.append(leaf)
 
+    def getUIPath(self):
+        return self._object.getUIPath()
+    
         
 class TemplateLeaf(TemplateInfo):
 
