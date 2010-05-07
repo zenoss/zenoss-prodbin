@@ -108,7 +108,7 @@ class Commandable:
                 return REQUEST.RESPONSE.redirect(command.absolute_url_path())
             del REQUEST.form['password']
             command.manage_changeProperties(**REQUEST.form)
-        #return self.redirectToUserCommands(REQUEST)
+        return self.redirectToUserCommands(REQUEST)
 
 
     security.declareProtected(ZEN_RUN_COMMANDS, 'manage_doUserCommand')
