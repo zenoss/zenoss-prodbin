@@ -268,7 +268,7 @@ class MaintenanceWindow(ZenModelRM):
                     'Maintenance window changes were saved.'
                 )
         if REQUEST:
-            return self.callZenScreen(REQUEST)
+            return REQUEST.RESPONSE.redirect(self.getUrlForUserCommands())
 
 
     def nextEvent(self, now):
