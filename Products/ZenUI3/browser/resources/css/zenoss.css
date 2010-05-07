@@ -2,8 +2,8 @@ strong { font-weight: bold; }
 
 .zenui3 { font-family: Helvetica,sans-serif; }
 
-.zenui3 a.resource-link:link, 
-.zenui3 a.resource-link:visited, 
+.zenui3 a.resource-link:link,
+.zenui3 a.resource-link:visited,
 .zenui3 a.resource-link:active {
     color: #7199c6;
     text-decoration: none;
@@ -19,7 +19,7 @@ strong { font-weight: bold; }
     display: none !important;
 }
 
-/* 
+/*
  * GRID
  */
 .console-selection .x-grid3-row-selected {
@@ -28,7 +28,7 @@ strong { font-weight: bold; }
 .console-selection .x-grid3-row-alt {
     background-color: #eaf0f7;
 }
-.console-selection .x-grid3-row-over.console-selection-clicked, 
+.console-selection .x-grid3-row-over.console-selection-clicked,
 .console-selection .console-selection-clicked {
     background: #7199c6 !important;
 }
@@ -47,7 +47,7 @@ strong { font-weight: bold; }
     height: 50px;
     margin-right: 2px;
     margin-left: -3px;
-    background: transparent 
+    background: transparent
                 url(/++resource++zenui/img/xtheme-zenoss/toolbar/tb-evdetail-sep.png)
                 center center no-repeat;
 }
@@ -138,8 +138,8 @@ strong { font-weight: bold; }
     height: 50px;
     margin: 0 8px;
     width: 35px;
-    background: transparent 
-        url(/++resource++zenui/img/xtheme-zenoss/icon/severity-sprite-large.png) 
+    background: transparent
+        url(/++resource++zenui/img/xtheme-zenoss/icon/severity-sprite-large.png)
         100px 100px no-repeat;
 }
 
@@ -235,14 +235,14 @@ strong { font-weight: bold; }
     margin: 0 auto;
 }
 
-.status-icon-small-acknowledged { 
+.status-icon-small-acknowledged {
     width: 16px;
     height: 14px;
     background: transparent url() no-repeat;
     margin: 0 auto;
     background-image: url(/++resource++zenui/img/xtheme-zenoss/icon/acknowledge-small.png)
 }
-.status-icon-small-suppressed { 
+.status-icon-small-suppressed {
     width: 16px;
     height: 14px;
     background: transparent url() no-repeat;
@@ -439,7 +439,7 @@ table.eventrainbow td.clear { background-color: #62a700; }
 
 .largetoolbar.devdetailbar {
     border-top: 3px solid #b2b2b2 !important;
-} 
+}
 
 .largetoolbar.devdetailbar table.eventrainbow {
     margin-top: 3px;
@@ -717,7 +717,7 @@ span.status-down-large {
 
 .componenttbar table.x-toolbar-ct {
     margin-top: 3px;
-} 
+}
 
 .componenttbar .xtb-sep {
     height: 18px;
@@ -806,7 +806,7 @@ span.status-down-large {
 }
 
 .joblog-stream-c {
-    width: 99%; 
+    width: 99%;
     background-color: white;
     border: 2px solid black;
     height:400px;
@@ -816,4 +816,8 @@ span.status-down-large {
 .log-output {
     font-family:Monaco,monospace;
     font-size:14px;
+}
+
+.report-tree .x-tree-node-leaf .node-text {
+    font-weight: normal;
 }

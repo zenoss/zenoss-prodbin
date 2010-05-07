@@ -41,7 +41,7 @@ function initializeTreeDrop(g) {
         ddGroup: 'reporttreedd',
         appendOnly: true,
         onNodeDrop: function (target, dd, e, data) {
-            if ((target.node.attributes.leaf) || 
+            if ((target.node.attributes.leaf) ||
                     (target.node == data.node.parentNode)) {
                 try {
                     this.tree.selModel.suspendEvents(true);
@@ -87,19 +87,15 @@ Zenoss.ReportTreeNodeUI = Ext.extend(Zenoss.HierarchyTreeNodeUI, {
             a.draggable = true;
             a.allowDrop = false;
             n.text = a.text;
-        } else {
+        }
+        else {
             a.iconCls = 'severity-icon-small clear';
             a.draggable = false;
             a.allowDrop = true;
-            n.text = this.buildNodeText(this.node);
+            n.text = a.text;
         }
-        Zenoss.ReportTreeNodeUI.superclass.render.call(this, 
+        Zenoss.ReportTreeNodeUI.superclass.render.call(this,
                 bulkRender);
-    },
-    onTextChange : function (node, text, oldText) {
-        if ((this.rendered) && (!node.isLeaf())) {
-            this.textNode.innerHTML = this.buildNodeText(node);
-        }
     }
 });
 
@@ -115,7 +111,7 @@ Zenoss.ReportTreePanel = Ext.extend(Zenoss.HierarchyTreePanel, {
                 return [node.attributes.uid];
             }
         };
-        Zenoss.ReportTreePanel.superclass.constructor.call(this, 
+        Zenoss.ReportTreePanel.superclass.constructor.call(this,
                 config);
     },
     addNode: function (nodeType, id) {
@@ -136,7 +132,7 @@ Zenoss.ReportTreePanel = Ext.extend(Zenoss.HierarchyTreePanel, {
                 nodeConfig = data.newNode;
                 node = tree.getLoader().createNode(nodeConfig);
                 lastIndex = parentNode.childNodes.length - 1;
-                if ((node.leaf) || 
+                if ((node.leaf) ||
                         (lastIndex < 0) ||
                         (!parentNode.childNodes[lastIndex].attributes.leaf)) {
                     parentNode.appendChild(node);
@@ -144,7 +140,7 @@ Zenoss.ReportTreePanel = Ext.extend(Zenoss.HierarchyTreePanel, {
                     var notAdded = true;
                     for (var i = 0; i < parentNode.childNodes.length; i++) {
                         if (parentNode.childNodes[i].leaf) {
-                            parentNode.insertBefore(node, 
+                            parentNode.insertBefore(node,
                                     parentNode.childNodes[i]);
                             notAdded = false;
                             break;
@@ -222,6 +218,7 @@ var treesm = new Ext.tree.DefaultSelectionModel({
 
 var report_tree = new Zenoss.ReportTreePanel({
     id: 'reporttree',
+    cls: 'report-tree',
     ddGroup: 'reporttreedd',
     searchField: true,
     enableDD: true,
@@ -233,7 +230,7 @@ var report_tree = new Zenoss.ReportTreePanel({
         allowDrop: false
     },
     selModel: treesm,
-    listeners: { 
+    listeners: {
         render: initializeTreeDrop,
         click: function (node, e) {
             if (node.attributes.leaf) {
@@ -324,13 +321,13 @@ Zenoss.remote.ReportRouter.getReportTypes({},
 );
 
 Ext.getCmp('footer_bar').add({
-    id: 'delete-button', 
+    id: 'delete-button',
     tooltip: _t('Delete an item'),
     iconCls: 'delete',
     handler: deleteNode
 });
 
-Ext.getCmp('footer_bar').add({ 
+Ext.getCmp('footer_bar').add({
     xtype: 'tbseparator'
 });
 

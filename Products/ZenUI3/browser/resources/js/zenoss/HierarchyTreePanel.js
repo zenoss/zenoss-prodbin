@@ -75,7 +75,7 @@ Zenoss.HierarchyTreeNodeUI = Ext.extend(Ext.tree.TreeNodeUI, {
             // Just update the existing elements instead of replacing them so that the dd drop targets
             // stay the same
             this.textNodeBody.update(data.text);
-            if ( Ext.isDefined(data.count) ) {
+            if ( Ext.isDefined(data.count) && data.count !== null ) {
                 this.textNodeExtra.update('(' + data.count + ')');
                 this.textNodeExtra.show();
             }
