@@ -137,7 +137,7 @@ Zenoss.footerHelper = function(itemName, footerBar, options) {
                     {
                         text: String.format(_t('Add {0}'), itemName),
                         listeners: {
-                            click: showAddDialog.createCallback(_t('Add {0}'), 'addClass'),
+                            click: showAddDialog.createCallback(_t('Add {0}'), 'addClass')
                         }
                     }
                 ]
