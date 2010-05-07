@@ -204,4 +204,4 @@ import ZenManagerDeleteDevice
 import AddWinServiceProperties
 import modifyZPropOverriddenMenuItem
 import AddWinServiceClass
-import renameCollectionItemsRelations
+#import renameCollectionItemsRelations
