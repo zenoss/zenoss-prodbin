@@ -24,8 +24,10 @@ def _getAvailableReal( availableBytes, bufferedBytes, cachedBytes ):
     else:
         return availableBytes + bufferedBytes + cachedBytes
 
-def _getPercentUtilization( availableReal, totalReal ):
-    if totalReal and availableReal:
+def _getPercentUtilization( availableReal, totalReal, usedPercent ):
+    if usedPercent:
+        return usedPercent
+    elif totalReal and availableReal:
         return Utils.percent( totalReal - availableReal, totalReal )
     else:
         return None
@@ -39,7 +41,8 @@ class memory( AliasPlugin ):
                 Column('totalReal', PythonColumnHandler( 'device.hw.totalMemory')),
                 Column('availableReal_tmp', RRDColumnHandler( 'memoryAvailable__bytes')),
                 Column('buffered', RRDColumnHandler('memoryBuffered__bytes')),
-                Column('cached', RRDColumnHandler('memoryCached__bytes')) ]
+                Column('cached', RRDColumnHandler('memoryCached__bytes')),
+                Column('usedPercent_tmp', RRDColumnHandler('memoryUsed__pct')) ]
 
     def getCompositeColumns(self):
         return [Column('availableReal',
@@ -48,5 +51,5 @@ class memory( AliasPlugin ):
                             dict( getAvailableReal=_getAvailableReal ) ) ),
                 Column('percentUsed',
                         PythonColumnHandler(
-                            'getPercentUtilization(availableReal,totalReal)',
+                            'getPercentUtilization(availableReal,totalReal,usedPercent_tmp)',
                             dict( getPercentUtilization=_getPercentUtilization))) ]
