@@ -193,25 +193,14 @@ var initialContextSet = false;
 var treesm = new Ext.tree.DefaultSelectionModel({
     listeners: {
         'selectionchange': function (sm, newnode) {
-            if (newnode.attributes.leaf) {
-                if (!initialContextSet) {
-                    initialContextSet = true;
-                    report_panel.setContext(newnode.attributes.uid);
-                }
-                Ext.getCmp('add-organizer-button').disable();
-            } else {
-                Ext.getCmp('add-organizer-button').enable();
+            if (newnode.attributes.leaf && !initialContextSet) {
+                initialContextSet = true;
+                report_panel.setContext(newnode.attributes.uid);
             }
-            if (/^(Device|(Multi)?Graph)Report$/.test(newnode.attributes.meta_type)) {
-                Ext.getCmp('edit-button').enable();
-            } else {
-                Ext.getCmp('edit-button').disable();
-            }
-            if (newnode.attributes.deletable) {
-                Ext.getCmp('delete-button').enable();
-            } else {
-                Ext.getCmp('delete-button').disable();
-            }
+            Ext.getCmp('add-organizer-button').setDisabled(newnode.attributes.leaf);
+            Ext.getCmp('add-to-zenpack-button').setDisabled(newnode.attributes.leaf);
+            Ext.getCmp('edit-button').setDisabled(!/^(Device|(Multi)?Graph)Report$/.test(newnode.attributes.meta_type));
+            Ext.getCmp('delete-button').setDisabled(!newnode.attributes.deletable);
         }
     }
 });
@@ -341,7 +330,7 @@ Ext.getCmp('footer_bar').add({
 });
 
 Ext.getCmp('footer_bar').add({
-    id: 'adddevice-button',
+    id: 'add-to-zenpack-button',
     tooltip: _t('Add to ZenPack'),
     iconCls: 'adddevice',
     handler: addToZenPack
