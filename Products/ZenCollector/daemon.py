@@ -124,7 +124,7 @@ class CollectorDaemon(RRDDaemon):
         self._statService = StatisticsService()
         self._statService.addStatistic("devices", "GAUGE")
         self._statService.addStatistic("cyclePoints", "GAUGE")
-        self._statService.addStatistic("dataPoints", "COUNTER")
+        self._statService.addStatistic("dataPoints", "DERIVE")
         zope.component.provideUtility(self._statService, IStatisticsService)
 
         # register the collector's own preferences object so it may be easily
@@ -546,7 +546,7 @@ class CollectorDaemon(RRDDaemon):
                 stat.value = self._rrd.endCycle()
 
                 stat = self._statService.getStatistic("dataPoints")
-                stat.value += self._rrd.dataPoints
+                stat.value = self._rrd.dataPoints
 
                 events = self._statService.postStatistics(self.rrdStats,
                                                           interval)
@@ -606,7 +606,7 @@ class StatisticsService(object):
         if self._stats.has_key(name):
             raise NameError("Statistic %s already exists" % name)
 
-        if type not in ('COUNTER', 'GAUGE'):
+        if type not in ('DERIVE', 'COUNTER', 'GAUGE'):
             raise TypeError("Statistic type %s not supported" % type)
 
         stat = Statistic(name, type)
@@ -624,12 +624,14 @@ class StatisticsService(object):
                 func = rrdStats.counter
             elif stat.type is 'GAUGE':
                 func = rrdStats.gauge
+            elif stat.type is 'DERIVE':
+                func = rrdStats.derive
             else:
                 raise TypeError("Statistic type %s not supported" % stat.type)
 
             events += func(stat.name, interval, stat.value)
 
-            # counter is an ever increasing value, but otherwise...
+            # counter is an ever-increasing value, but otherwise...
             if stat.type is not 'COUNTER':
                 stat.value = 0
 

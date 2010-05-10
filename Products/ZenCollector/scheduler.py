@@ -383,7 +383,7 @@ class Scheduler(object):
                 totalStateStats.minElapsedTime = min(totalStateStats.minElapsedTime, stats.minElapsedTime)
                 totalStateStats.maxElapsedTime = max(totalStateStats.maxElapsedTime, stats.maxElapsedTime)
 
-        log.info("Tasks: %d Successful: %d Failed: %d Missed: %d",
+        log.info("Tasks: %d Successful_Runs: %d Failed_Runs: %d Missed_Runs: %d",
                  totalTasks, totalRuns, totalFailedRuns, totalMissedRuns)
 
         if verbose:
@@ -395,7 +395,7 @@ class Scheduler(object):
                 task = taskWrapper.task
                 taskStats = self._taskStats[task.name]
 
-                buffer += "%s Current State: %s Successful: %d Failed: %d Missed: %d\n" \
+                buffer += "%s Current State: %s Successful_Runs: %d Failed_Runs: %d Missed_Runs: %d\n" \
                     % (task.name, task.state, taskStats.totalRuns, 
                        taskStats.failedRuns, taskStats.missedRuns)
 

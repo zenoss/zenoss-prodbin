@@ -79,8 +79,12 @@ class DaemonStats:
         return base
 
 
+    def derive(self, name, cycleTime, value):
+        "Write a DERIVE value, return threshold events"
+        return self.counter(name, cycleTime, value)
+
     def counter(self, name, cycleTime, value):
-        "Write a counter value, return threshold events"
+        "Write a DERIVE(! NOT COUNTER!) value, return threshold events"
         fileName = self.rrdFile('DERIVE', cycleTime, name, 0)
         if fileName:
             full = fullname(fileName)
