@@ -4,7 +4,7 @@
 <br/>
 <p>
 <span id="new_id_label">ID:&nbsp;</span>
-<input id="new_id" name="id">
+<input id="new_id" name="newId">
 </p>
 </form>
 <script tal:content="string:

@@ -31,13 +31,13 @@ from Products.ZenWidgets import messaging
 
 from Products.ZenModel.ZenossSecurity import *
 
-def manage_addFileSystem(context, id, userCreated, REQUEST=None):
+def manage_addFileSystem(context, newId, userCreated, REQUEST=None):
     """make a filesystem"""
-    fsid = prepId(id)
+    fsid = prepId(newId)
     fs = FileSystem(fsid)
     context._setObject(fsid, fs)
     fs = context._getOb(fsid)
-    fs.mount = id
+    fs.mount = newId
     if userCreated: fs.setUserCreateFlag()
     if REQUEST is not None:
         REQUEST['RESPONSE'].redirect(context.absolute_url()+'/manage_main')

@@ -42,14 +42,14 @@ from Products.ZenModel.Linkable import Layer2Linkable
 
 from Products.ZenModel.ZenossSecurity import *
 
-def manage_addIpInterface(context, id, userCreated, REQUEST = None):
+def manage_addIpInterface(context, newId, userCreated, REQUEST = None):
     """
     Make a device via the ZMI
     """
-    d = IpInterface(id)
-    context._setObject(id, d)
-    d = context._getOb(id)
-    d.interfaceName = id
+    d = IpInterface(newId)
+    context._setObject(newId, d)
+    d = context._getOb(newId)
+    d.interfaceName = newId
     if userCreated: d.setUserCreateFlag()
     if REQUEST is not None:
         REQUEST['RESPONSE'].redirect(context.absolute_url()

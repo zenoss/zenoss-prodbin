@@ -25,15 +25,15 @@ from OSComponent import OSComponent
 from ZenPackable import ZenPackable
 
 
-def manage_addOSProcess(context, className, userCreated, REQUEST=None):
+def manage_addOSProcess(context, newClassName, userCreated, REQUEST=None):
     """
     Make an os process from the ZMI
     """
-    id = className.split('/')[-1]
+    id = newClassName.split('/')[-1]
     osp = OSProcess(id)
     # Indexing is subscribed to ObjectAddedEvent, which fires
     # on _setObject, so we want to set process class first.
-    osp.__of__(context).setOSProcessClass(className)
+    osp.__of__(context).setOSProcessClass(newClassName)
     context._setObject(id, osp)
     osp = context._getOb(id)
     osp.procName = id

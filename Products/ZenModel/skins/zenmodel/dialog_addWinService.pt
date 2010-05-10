@@ -7,7 +7,7 @@ Service Class<br/>
 <script>
 var win_sel = new Ext.form.ComboBox({
     renderTo: Ext.get('winServiceClassLiveSearch'),
-    hiddenName: 'className',
+    hiddenName: 'newClassName',
     width: 100,
     forceSelection: true,
     triggerAction: 'all',

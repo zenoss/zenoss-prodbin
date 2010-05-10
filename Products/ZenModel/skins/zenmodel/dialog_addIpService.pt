@@ -14,7 +14,7 @@ Protocol
 <script>
 var sel = new Ext.form.ComboBox({
     renderTo: Ext.get('ipServiceClassLiveSearch'),
-    hiddenName: 'className',
+    hiddenName: 'newClassName',
     width: 100,
     forceSelection: true,
     triggerAction: 'all',

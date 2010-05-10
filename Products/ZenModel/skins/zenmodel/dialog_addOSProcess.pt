@@ -3,7 +3,7 @@
 <span id="errmsg" style="color:red;"></span>
 <br/>
 <p>
-Process Class:&nbsp;<select name="className" id="className"
+Process Class:&nbsp;<select name="newClassName" id="newClassName"
 tal:define="targets python:[ x.absolute_url_path() for x in here.os.getSubOSProcessClassesGen()]">
     <option tal:repeat="target targets"
         tal:attributes="value target"
@@ -20,5 +20,5 @@ var addosprocess_form = new Zenoss.dialog.DialogFormPanel({
         actioncomplete: Zenoss.env.componentReloader('OSProcess')
     }
 });
-Ext.get('className').focus();
+Ext.get('newClassName').focus();
 </script>

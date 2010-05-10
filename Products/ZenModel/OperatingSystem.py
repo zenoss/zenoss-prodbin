@@ -207,17 +207,17 @@ class OperatingSystem(Software):
             return self.callZenScreen(REQUEST)
 
 
-    def addIpInterface(self, id, userCreated, REQUEST=None):
+    def addIpInterface(self, newId, userCreated, REQUEST=None):
         """Add IpInterfaces.
         """
-        manage_addIpInterface(self.interfaces, id, userCreated)
+        manage_addIpInterface(self.interfaces, newId, userCreated)
         if REQUEST:
             messaging.IMessageSender(self).sendToBrowser(
                 'Interface Created',
-                'IP Interface %s was created.' % id
+                'IP Interface %s was created.' % newId
             )
             REQUEST['RESPONSE'].redirect(
-                self.interfaces._getOb(id).absolute_url())
+                self.interfaces._getOb(newId).absolute_url())
             self._p_changed = True
             return self.callZenScreen(REQUEST)
 
@@ -298,11 +298,11 @@ class OperatingSystem(Software):
             REQUEST['RESPONSE'].redirect(self.absolute_url())
             return self.callZenScreen(REQUEST)
 
-    def addWinService(self, className, userCreated, REQUEST=None):
+    def addWinService(self, newClassName, userCreated, REQUEST=None):
         """Add an WinService.
         """
         org = self.dmd.Services
-        wsc = org.unrestrictedTraverse(className)
+        wsc = org.unrestrictedTraverse(newClassName)
         if wsc is not None:
             ws = manage_addWinService(self.winservices, 
                                     wsc.id,
@@ -312,7 +312,7 @@ class OperatingSystem(Software):
         elif REQUEST:
             messaging.IMessageSender(self).sendToBrowser(
                 'No Such WinService',
-                'Could not find a WinService named %s.' % (className),
+                'Could not find a WinService named %s.' % (newClassName),
                 priority=messaging.WARNING
             )
             return self.callZenScreen(REQUEST)
@@ -320,7 +320,7 @@ class OperatingSystem(Software):
         if REQUEST:
             messaging.IMessageSender(self).sendToBrowser(
                 'WinService Added',
-                'WinService %s was added.' % (className)
+                'WinService %s was added.' % (newClassName)
             )
             REQUEST['RESPONSE'].redirect(ws.absolute_url())
             return self.callZenScreen(REQUEST)
@@ -380,15 +380,15 @@ class OperatingSystem(Software):
         """
         return self.getDmdRoot('Processes').getSubOSProcessClassesGen()
         
-    def addOSProcess(self, className, userCreated, REQUEST=None):
+    def addOSProcess(self, newClassName, userCreated, REQUEST=None):
         """Add an OSProcess.
         """
-        osp = manage_addOSProcess(self.processes, className, userCreated)
+        osp = manage_addOSProcess(self.processes, newClassName, userCreated)
         self._p_changed = True
         if REQUEST:
             messaging.IMessageSender(self).sendToBrowser(
                 'Process Created',
-                'OS process %s was created.' % className
+                'OS process %s was created.' % newClassName
             )
             REQUEST['RESPONSE'].redirect(osp.absolute_url())
 
@@ -442,11 +442,11 @@ class OperatingSystem(Software):
             REQUEST['RESPONSE'].redirect(self.absolute_url())
             return self.callZenScreen(REQUEST)
 
-    def addIpService(self, className, protocol, userCreated, REQUEST=None):
+    def addIpService(self, newClassName, protocol, userCreated, REQUEST=None):
         """Add IpServices.
         """
         org = self.dmd.Services
-        ipsc = org.unrestrictedTraverse(className)
+        ipsc = org.unrestrictedTraverse(newClassName)
         if ipsc is not None:
             ips = manage_addIpService(self.ipservices,
                                 ipsc.id,
@@ -457,7 +457,7 @@ class OperatingSystem(Software):
         elif REQUEST:
             messaging.IMessageSender(self).sendToBrowser(
                 'No Such WinService',
-                'Could not find an IP Service named %s.' % (className),
+                'Could not find an IP Service named %s.' % (newClassName),
                 priority=messaging.WARNING
             )
             return self.callZenScreen(REQUEST)
@@ -465,7 +465,7 @@ class OperatingSystem(Software):
         if REQUEST:
             messaging.IMessageSender(self).sendToBrowser(
                 'IP Service Added',
-                'IP Service %s was added.' % (className)
+                'IP Service %s was added.' % (newClassName)
             )
             REQUEST['RESPONSE'].redirect(ips.absolute_url())
             return self.callZenScreen(REQUEST)
@@ -520,16 +520,16 @@ class OperatingSystem(Software):
             REQUEST['RESPONSE'].redirect(self.absolute_url())
             return self.callZenScreen(REQUEST)
 
-    def addFileSystem(self, id, userCreated, REQUEST=None):
+    def addFileSystem(self, newId, userCreated, REQUEST=None):
         """Add a FileSystem.
         """
-        fsid = prepId(id)
-        manage_addFileSystem(self.filesystems, id, userCreated)
+        fsid = prepId(newId)
+        manage_addFileSystem(self.filesystems, newId, userCreated)
         self._p_changed = True
         if REQUEST:
             messaging.IMessageSender(self).sendToBrowser(
                 'Filesystem Added',
-                'Filesystem %s was added.' % id
+                'Filesystem %s was added.' % newId
             )
             REQUEST['RESPONSE'].redirect(
                 self.filesystems._getOb(fsid).absolute_url())
