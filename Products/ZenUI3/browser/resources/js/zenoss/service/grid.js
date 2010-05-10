@@ -24,19 +24,18 @@
 
     zs.nonZeroRenderer = function(v) { return (v > 0 ? v : ''); };
 
-    // implements SelectionModel:rowselect event
-    zs.gridSelectHandler = function(sm, rowIndex, dataRecord) {
-        var uid = dataRecord.data.uid;
-        Ext.getCmp('serviceForm').setContext(uid);
-        Ext.getCmp('serviceInstancePanel').setContext(uid);
+    // handles the SelectionModel's rowselect event
+    zs.rowselectHandler = function(sm, rowIndex, dataRecord) {
+        var selectedOrganizer = Ext.getCmp('navTree').getSelectionModel().getSelectedNode();
+        if ( selectedOrganizer ) {
+            // unselect the organizer, but leave it highlighted
+            selectedOrganizer.unselect();
+            selectedOrganizer.getUI().addClass('x-tree-selected');
+        }
+        Ext.getCmp('serviceForm').setContext(dataRecord.data.uid);
+        Ext.getCmp('serviceInstancePanel').setContext(dataRecord.data.uid);
         Ext.getCmp('footer_bar').buttonDelete.setDisabled(false);
     };
-
-//    zs.storeLoadHandler = function(me, records, options) {
-//        var grid = Ext.getCmp('navGrid');
-//        grid.getSelectionModel().selectFirstRow();
-//        grid.fireEvent('rowclick', grid, 0);
-//    };
 
     zs.storeConfig = {
             proxy: new Ext.data.DirectProxy({

@@ -22,6 +22,28 @@
     *
     */
 
+    zs.getSelectedOrganizer = function() {
+        var tree, selected;
+        tree = Ext.getCmp('navTree');
+        selected = tree.getSelectionModel().getSelectedNode();
+        if ( ! selected ) {
+            // No node is really selected (a ServiceClass is selected in the 
+            // navGrid). Find the node that had the selected css class added
+            // to it when the ServiceClass was selected
+            tree.getRootNode().cascade(function(node){
+                // TreeNodeUI delegates addClass and removeClass to it's
+                // elNode, but not hasClass (so this gets ugly)
+                var wrap = node.getUI().getEl();
+                var elNode = wrap.childNodes[0];
+                if ( Ext.fly(elNode).hasClass('x-tree-selected') ) {
+                    selected = node;
+                    return false;
+                }
+            });
+        }
+        return selected;
+    };
+
     zs.treeBeforeSelectHandler = function(sm, node, oldNode) {
         var form = Ext.getCmp('serviceForm').getForm();
         if ( form.isDirty() ) {
@@ -38,6 +60,9 @@
             });
             return false;
         }
+        Ext.getCmp('navTree').getRootNode().cascade(function(node) {
+            node.getUI().removeClass('x-tree-selected');
+        });
         return true;
     };
 
@@ -45,6 +70,7 @@
     zs.treeSelectionChangeHandler = function(sm, node) {
         if (node) {
             Ext.getCmp('serviceForm').setContext(node.attributes.uid);
+            Ext.getCmp('navGrid').getSelectionModel().clearSelections();
             Ext.getCmp('navGrid').setContext(node.attributes.uid);
 
             var isRoot = node == Ext.getCmp('navTree').root;

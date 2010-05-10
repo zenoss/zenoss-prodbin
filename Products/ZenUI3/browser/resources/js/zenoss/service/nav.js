@@ -76,21 +76,25 @@
                         store, { single: true });
                     view.updateLiveRows(newRowPos, true, true, false);
                 } else {
-                    Ext.Msg.alert('Error', result.msg);
+                    Zenoss.flares.Manager.error(result.msg);
                 }
             }
             Zenoss.remote.ServiceRouter.deleteNode(params, callback);
         } else {
-            Ext.Msg.alert('Error', 'Must select an item in the list.');
+            Zenoss.flares.Manager.error(_t('Must select an item in the list.'));
         }
     };
 
     zs.deleteOrganizerHandler = function() {
-        var tree, selected, params;
-        tree = Ext.getCmp('navTree');
-        selected = tree.getSelectionModel().getSelectedNode();
+        var selected, params;
+        selected = zs.getSelectedOrganizer();
+        if ( ! selected ) {
+            Zenoss.flares.Manager.error(_t('No service organizer is selected.'));
+            return;
+        }
         params = {uid: selected.attributes.uid};
         function callback(){
+            var tree = Ext.getCmp('navTree');
             tree.getRootNode().reload(function() {
                 tree.getRootNode().select();
                 tree.getRootNode().expand(true);
@@ -109,23 +113,11 @@
         }
     };
 
-    zs.getSelectedUid = function() {
-        var selected = Ext.getCmp('navGrid').getSelectionModel().getSelected();
-        if (selected) {
-            return selected.data.uid;
-        }
-
-        selected = Ext.getCmp('navTree').getSelectionModel().getSelectedNode();
-        if (selected) {
-            return selected.attributes.uid;
-        }
-    };
-
     var ContextGetter = Ext.extend(Object, {
         getUid: function() {
             var selected = Ext.getCmp('navGrid').getSelectionModel().getSelected();
             if ( ! selected ) {
-                Ext.Msg.alert(_t('Error'), _t('You must select a service.'));
+                Zenoss.flares.Manager.error(_t('You must select a service.'));
                 return null;
             }
             return selected.data.uid;
@@ -134,9 +126,9 @@
             return true;
         },
         getOrganizerUid: function() {
-            var selected = Ext.getCmp('navTree').getSelectionModel().getSelectedNode();
+            var selected = zs.getSelectedOrganizer();
             if ( ! selected ) {
-                Ext.Msg.alert(_t('Error'), _t('You must select a service organizer.'));
+                Zenoss.flares.Manager.error(_t('You must select a service organizer.'));
                 return null;
             }
             return selected.attributes.uid;
@@ -168,7 +160,7 @@
                 me.showFilters();
             });
 
-        navGrid.getSelectionModel().on('rowselect', zs.gridSelectHandler);
+        navGrid.getSelectionModel().on('rowselect', zs.rowselectHandler);
 
 
         navTree = Ext.create({
