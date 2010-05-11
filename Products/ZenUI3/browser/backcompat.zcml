@@ -329,6 +329,13 @@
     />
 
 <browser:page
+    template="../../ZenModel/skins/zenmodel/showDaemonXMLConfig.pt"
+    name="showDaemonXMLConfig"
+    for="*"
+    permission="zenoss.View"
+    />
+
+<browser:page
     template="../../ZenModel/skins/zenmodel/editDaemonConfig.pt"
     name="editDaemonConfig"
     for="*"
