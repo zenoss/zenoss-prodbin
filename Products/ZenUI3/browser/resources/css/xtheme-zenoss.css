@@ -942,7 +942,14 @@ td.x-date-mp-sel a{
     background-color: #566d87;
     background-image: none;
     overflow: hidden;
-    height: 14px;
+    height: 23px;
+    padding: 0px;
+    line-height: 23px;
+}
+
+.x-panel-header-text {
+    margin: 0px 3px 0px 5px;
+    display: block;
 }
 
 .x-panel-header .desc {
