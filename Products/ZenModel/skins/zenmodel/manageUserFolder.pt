@@ -14,11 +14,7 @@ function ConfirmPagerTest() {
 </script>
 </tal:block>
 
-<tal:block metal:fill-slot="breadCrumbPane">
-    /<a tal:attributes=
-            "href string:${here/absolute_url_path}/${template/id}">Users
-    </a>
-</tal:block>
+<tal:block metal:fill-slot="breadcrumbs"/>
 
 <tal:block metal:fill-slot="contentPane">
 <form method="get" name="usersTable" tal:attributes="action here/absolute_url_path" id="users">
