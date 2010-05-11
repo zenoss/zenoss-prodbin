@@ -23,11 +23,12 @@ var EXTENSIONS_adddevice = Zenoss.extensions.adddevice instanceof Array ?
                            Zenoss.extensions.adddevice : [];
 
 // page level variables
-var REMOTE = Zenoss.remote.DeviceRouter;
-var treeId = 'groups';
-var nodeType = 'Organizer';
-var deleteDeviceMessage = _t('Warning! This will delete all of the devices in this group!');
-var ZEvActions = Zenoss.events.EventPanelToolbarActions;
+var REMOTE = Zenoss.remote.DeviceRouter,
+    treesm,
+    treeId = 'groups',
+    nodeType = 'Organizer',
+    deleteDeviceMessage = _t('Warning! This will delete all of the devices in this group!'),
+    ZEvActions = Zenoss.events.EventPanelToolbarActions;
 
 REMOTE.getProductionStates({}, function(d){
     Zenoss.env.PRODUCTION_STATES = d;
@@ -143,7 +144,7 @@ function resetGrid() {
     setDeviceButtonsDisabled(true);
 }
 
-var treesm = new Ext.tree.DefaultSelectionModel({
+treesm = new Ext.tree.DefaultSelectionModel({
     listeners: {
         'selectionchange': function(sm, newnode, oldnode){
             if (newnode) {
@@ -1168,11 +1169,16 @@ Ext.getCmp('center_panel').add({
                 }
             },
             cardchange: function(me, card, index, from , fromidx) {
-                var node = treesm.getSelectedNode();
-                if (index==1) {
+                var node = treesm.getSelectedNode(),
+                    footer = Ext.getCmp('footer_bar');
+                if (index===1) {
                     card.card.setContext(node.attributes.uid);
+                    footer.buttonAdd.disable();
+                    footer.buttonDelete.disable();
                 } else if (index===0) {
                     Ext.History.add([node.getOwnerTree().id, node.id].join(Ext.History.DELIMITER));
+                    footer.buttonAdd.enable();
+                    footer.buttonDelete.enable();
                 }
             }
         }
@@ -1375,7 +1381,7 @@ footerBar.on('buttonClick', function(actionName, id, values) {
     switch (actionName) {
         // All items on this are organizers, no classes
         case 'addClass': tree.addChildNode(Ext.apply(values, {type: 'organizer'})); break;
-        case 'addOrganizer': throw new Ext.Error('Not Implemented'); break;
+        case 'addOrganizer': throw new Ext.Error('Not Implemented'); 
         case 'delete': tree.deleteSelectedNode(); break;
         default: break;
     }

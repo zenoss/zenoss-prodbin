@@ -124,7 +124,7 @@ Zenoss.footerHelper = function(itemName, footerBar, options) {
 
         dialog = new Zenoss.SmartFormDialog(addDialogConfig);
         dialog.show();
-    };
+    }
 
     items = [
         {
