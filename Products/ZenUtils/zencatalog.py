@@ -36,6 +36,11 @@ class ZenCatalog(ZCmdBase):
                                action="store_true",
                                default=False,
                                help="Create global catalog and populate it")
+        self.parser.add_option("--forceindex",
+                               action="store_true",
+                               default=False,
+                               help="works with --createcatalog to create index"\
+                               " even if catalog exists")
         self.parser.add_option("--reindex",
                                action="store_true",
                                default=False,
@@ -64,17 +69,24 @@ class ZenCatalog(ZCmdBase):
                     self._catObj(catObj, obj, i)
                 else:
                     log.debug('%s does not exists' % brain.getPath())
+                    #TODO uncatalog object
                 i += 1
             
             import transaction
             transaction.commit()
+            self._logIndexed(i)
         else:
             log.warning('Global Catalog does not exist, try --createcatalog option')
 
     def _createCatalog(self, zport):
-        if self._getCatalog(zport) is None:
+        catalogExists = self._getCatalog(zport)
+        if not catalogExists:
             # Create the catalog
             createGlobalCatalog(zport)
+        else:
+            log.info('Global catalog already exists')
+
+        if not catalogExists or self.options.forceindex:
             # And now, the fun part: index every ZenModelRM
             log.info("Reindexing your system. This may take some time.")
             i = 0
@@ -86,9 +98,12 @@ class ZenCatalog(ZCmdBase):
                 i += 1
             import transaction
             transaction.commit()
+            self._logIndexed(i)
             log.info("Create Catalog complete")
-        else:
-            log.info('Global catalog already exists')
+
+    def _logIndexed(self, i):
+        if self.options.daemon:
+            log.info('%s objects indexed' % i)
 
     def _getCatalog(self, zport):
         return getattr(zport, 'global_catalog', None)
@@ -100,13 +115,12 @@ class ZenCatalog(ZCmdBase):
             if isinstance(obj, (Device, RRDTemplate)):
                 obj.index_object()
             if not i % 100:
-                if self.options.daemon:
-                    log.info('%s objects indexed' % i)
-                else:
+                if not self.options.daemon:     
                     sys.stdout.write('.')
                     sys.stdout.flush()
                 import transaction
                 transaction.commit()
+                self._logIndexed(i)
         except ConflictError:
             raise
         except:
