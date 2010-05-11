@@ -256,9 +256,11 @@ class IpNetwork(DeviceOrganizer):
 
         # If we can find the IP in the catalog, use it. This is fast.
         brains = self.ipSearch(id=ip)
-        if brains:
-            return self.getObjByPath(
-                '/'.join(brains[0].getPrimaryId.split('/')[:-2]))
+        path = self.getPrimaryUrlPath()
+        for brain in brains:
+            bp = brain.getPath()
+            if bp.startswith(path):
+                return self.unrestrictedTraverse('/'.join(bp.split('/')[:-2]))
 
         # Otherwise we have to traverse the entire network hierarchy.
         for net in self.children():
