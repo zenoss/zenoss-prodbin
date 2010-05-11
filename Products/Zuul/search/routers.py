@@ -13,11 +13,13 @@
 
 from zope.interface import implements
 from zope.component import adapts
-from Products.ZenUtils.Ext import DirectRouter
+from AccessControl import getSecurityManager
+from Products.ZenUtils.Ext import DirectRouter, DirectResponse
 from Products import Zuul
 from Products.Zuul.search import ISearchResult
 from Products.Zuul.search import IQuickSearchResultSnippet
 from Products.Zuul.search import DefaultSearchResultSorter
+from Products.Zuul.utils import ZuulMessageFactory as _t
 from zope.component import getAllUtilitiesRegisteredFor
 from Products.Zuul.search.interfaces import IQuickResultSnippetFactory
 import itertools
@@ -105,4 +107,40 @@ class SearchRouter(DirectRouter):
 
     def noProvidersPresent(self):
         return self._getFacade().noProvidersPresent()
+
+    def getSavedSearch(self, searchName):
+        """
+        @params string searchName: identifier of the search we are looking for
+        @return DirectResponse: the data attribute will have our search terms
+        """
+        facade = self._getFacade()
+        if facade.noSaveSearchProvidersPresent():
+            return DirectResponse.fail(message=_t('Unable to find the specified search'))
+        
+        # look for our search 
+        savedSearch = facade.getSavedSearch(searchName)
+        data = {}
+        if savedSearch:
+            data['query'] = savedSearch.query
+            return DirectResponse.succeed(data=data)
+
+        # we could not find the search term
+        return DirectResponse.fail(message=_t('Unable to find the specified search'))
     
+    def saveSearch(self, queryString, searchName):
+        """
+        Adds this search to our collection of saved searches
+        @param string queryString: term we are searching for
+        @param string searchName: our query string's identifier
+        """
+        facade = self._getFacade()
+        if facade.noSaveSearchProvidersPresent():
+            return DirectResponse.succeed()
+        
+        # get the creator (logged in user)
+        securityManager = getSecurityManager()
+        creator = securityManager.getUser()._login
+        
+        # save the search
+        facade.saveSearch(queryString, searchName, creator)
+        return DirectResponse.succeed()

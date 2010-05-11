@@ -17,10 +17,9 @@ from zope.interface import implements
 from zope.component import getGlobalSiteManager
 from Products.Zuul.facades import ZuulFacade
 
-from interfaces import ISearchFacade
-from interfaces import ISearchProvider
-from interfaces import ISearchQueryParser
-from interfaces import IParsedQuery
+from interfaces import ISearchFacade, ISearchProvider,\
+    ISearchQueryParser, IParsedQuery, ISavedSearchProvider
+
 from Products.Zuul.search import ISearchResultSorter
 
 
@@ -204,6 +203,16 @@ class SearchFacade(ZuulFacade):
     def _getProviders(self):
         return subscribers([self._dmd], ISearchProvider)
 
+    def _getSavedSearchProvider(self):
+        """
+        @return ISavedSearchProvider: assuming one exists
+        """
+        gsm = getGlobalSiteManager()
+        utility = gsm.queryUtility(ISavedSearchProvider, 'savedsearchprovider')
+        if not utility:
+            raise ValueError("No Search Provider Found")
+        return utility()()
+                
     def _getSearchResults(self, query,
                           resultSorter=DEFAULT_SORTER):
         """
@@ -236,13 +245,32 @@ class SearchFacade(ZuulFacade):
         
         return results
 
+    def saveSearch(self, queryString, searchName, creator):
+        """
+        Saves the queryString as a saved search identified by
+        searchName.
+        @param string queryString: term we are searching on
+        @param string searchName: how we want to identify the search later
+        @param string creator: user id of the person who created this search
+        """
+        provider = self._getSavedSearchProvider()
+        provider.addSearch(queryString, searchName, creator)        
+
+    def getSavedSearch(self, searchName):
+        """
+        Returns the saved search specified by searchName
+        @param string searchName: identifier of the search we are looking for
+        """
+        provider = self._getSavedSearchProvider()
+        return provider.getSearch(searchName)
+        
     def getSearchResults(self, query, resultSorter=DEFAULT_SORTER):
         """
         Execute the query against registered search providers, returning
         full results.
 
         @param query query string
-        @rtype list of ISearchResult-implementing objects
+        @return list of ISearchResult-implementing objects
         """
         return self._getSearchResults( query, resultSorter=resultSorter )
 
@@ -252,7 +280,7 @@ class SearchFacade(ZuulFacade):
         abbreviated results for display in the quick search drop-down list.
 
         @param query query string
-        @rtype list of ISearchResult-implementing objects
+        @return list of ISearchResult-implementing objects
         """
         return self._getSearchResults(query,
                                       resultSorter=resultSorter)
@@ -261,8 +289,18 @@ class SearchFacade(ZuulFacade):
         """
         Check for existence of search providers
 
-        @rtype boolean
+        @return boolean
         """
         subscribers = self._getProviders()
         return subscribers is None or len(subscribers) == 0
     
+    def noSaveSearchProvidersPresent(self):
+        """
+        Checks for the existence of a save provider
+
+        @return boolean
+        """
+        try:
+            return not self._getSavedSearchProvider()
+        except ValueError:
+            return True

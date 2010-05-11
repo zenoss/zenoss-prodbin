@@ -12,8 +12,8 @@
 ######################################################################
 
 from zope.interface import Attribute, Interface
-
 from Products.Zuul.interfaces import IFacade, IMarshallable
+
 
 class IParsedQuery(Interface):
     """
@@ -30,10 +30,11 @@ class ISearchQueryParser(Interface):
     adapter lookup so that the default parser can be replaced if needed.
     """
 
-    def parse( query ):
+    def parse(query):
         """
         Take a query and return an IParsedQuery object
         """
+
 
 class ISearchProvider(Interface):
     """
@@ -91,6 +92,12 @@ class ISearchFacade(IFacade):
         Return true if there are no providers
         """
 
+    def saveSearch(queryString, searchName, creator):
+        """
+        Saves the queryString and makes it identifable by the searchName
+        """
+
+
 class ISearchResultSorter(Interface):
     """
     Sort ISearchResult objects.  (The default sort is by category then excerpt.)
@@ -99,10 +106,12 @@ class ISearchResultSorter(Interface):
     maxResults = Attribute("Maximum results to be returned from a query")
     maxResultsPerCategory = Attribute("Maximum results of any one category to" +
                                       " be returned from a query")
+
     def limitSort(results):
         """
         Limits and sorts search results
         """
+
 
 class IQuickSearchResultSnippet(IMarshallable):
     """
@@ -113,8 +122,36 @@ class IQuickSearchResultSnippet(IMarshallable):
     content = Attribute("The content of the search result drop down")
     url = Attribute("Link to the represented object")
     popout = Attribute("True/false whether to open link in new window")
-    
-class IQuickResultSnippetFactory( Interface):
+
+
+class IQuickResultSnippetFactory(Interface):
     """
     return an IQuickSearchResultSnippet to be included in displayed results
     """
+
+
+class ISavedSearchProviderFactory(Interface):
+    """
+    returns a saved search provider
+    """
+
+
+class ISavedSearchProvider(Interface):
+    """
+    Interface for permanently saving search queries
+    """
+
+    def addSearch(queryString, searchName, creator):
+        """
+        Accepts a saved Search object and add it to a permanent store
+        """
+
+    def removeSearch(searchName):
+        """
+        This method removes a search from our store if it exists
+        """
+
+    def getSavedSearch(searchName):
+        """
+        Retrieves a saved search from our repository
+        """
