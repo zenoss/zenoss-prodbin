@@ -80,12 +80,12 @@ class CustomEventView(ZenModelRM, EventFilter):
 
 
     security.declareProtected('View', 'zentinelTabs')
-    def zentinelTabs(self, templateName, requestUrl=None):
+    def zentinelTabs(self, templateName, REQUEST=None):
         """Return a list of hashs that define the screen tabs for this object.
         [{'name':'Name','action':'template','selected':False},...]
         """
-        tabs = super(CustomEventView, self).zentinelTabs(templateName, requestUrl)
-        if self._selectedTabName(templateName, requestUrl).endswith("Events"): 
+        tabs = super(CustomEventView, self).zentinelTabs(templateName, REQUEST)
+        if self._selectedTabName(templateName, REQUEST).endswith("Events"): 
             tabs[0]['selected']=True
         # if we don't have any global roles take away edit tab
         if self.hasNoGlobalRoles():

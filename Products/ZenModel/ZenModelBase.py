@@ -318,7 +318,7 @@ class ZenModelBase(object):
 
 
     security.declareProtected(ZEN_VIEW, 'zentinelTabs')
-    def zentinelTabs(self, templateName, requestUrl=None):
+    def zentinelTabs(self, templateName, REQUEST=None):
         """
         Return a list of hashes that define the screen tabs for this object.
 
@@ -341,7 +341,7 @@ class ZenModelBase(object):
         tabs = []
         user = getSecurityManager().getUser()
         actions = self.factory_type_information[0]['actions']
-        selectedTabName = self._selectedTabName(templateName, requestUrl)
+        selectedTabName = self._selectedTabName(templateName, REQUEST)
         for a in actions:
             def permfilter(p): return user.has_permission(p,self)
             permok = filter(permfilter, a['permissions'])
@@ -352,8 +352,12 @@ class ZenModelBase(object):
             tabs.append(a)
         return tabs
 
-    def _selectedTabName(self, templateName, requestUrl=None):
-        selectedTabName = templateName
+    def _selectedTabName(self, templateName, REQUEST=None):
+        if REQUEST and REQUEST.get('selectedTabName', '') :
+            selectedTabName = REQUEST.get('selectedTabName', '')
+        else:
+            selectedTabName = templateName
+        requestUrl = REQUEST['URL'] if REQUEST else None
         if not selectedTabName and requestUrl and requestUrl.rfind('/') != -1:
             selectedTabName = requestUrl[requestUrl.rfind('/') + 1:]
             if selectedTabName.startswith('@@'):

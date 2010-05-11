@@ -1,10 +1,12 @@
 <tal:block metal:use-macro="here/page_macros/old-new">
+<tal:block metal:fill-slot="breadcrumbs"/>
 <tal:block metal:fill-slot="contentPane">
 
 
         <tal:block tal:define="
         query here/REQUEST/QUERY_STRING;
-        daemon  python:query.split('=')[-1]; tabletitle string:${daemon} Configuration File">
+        daemon  python:query.split('&')[0].split('=')[-1]; 
+        tabletitle string:${daemon} Configuration File">
         <tal:block metal:use-macro="here/zenuimacros/macros/zentable">
 
         <!--====Optional titlebar slots=============
@@ -32,7 +34,7 @@
         <tr>
             <td class="tableheader" />
             <td class="tablevalues"><a tal:attributes="
-                href string:${url}/editDaemonConfig?daemon=${daemon}">edit this configuration</a></td>
+                href string:${url}/editDaemonConfig?daemon=${daemon}&selectedTabName=zenossInfo">edit this configuration</a></td>
         </tr>
     </tbody>
 

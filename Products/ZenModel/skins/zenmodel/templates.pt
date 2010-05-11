@@ -428,7 +428,7 @@
     newTabsPane
  ====================================================== -->
 <div id="newTabsPane" metal:define-macro="newTabsPane"
-        tal:define="ztabs python:here.zentinelTabs(None, request.getURL());
+        tal:define="ztabs python:here.zentinelTabs(None, request);
                     tabnames python:[x['name'] for x in ztabs];"
         tal:condition="python:(ztabs and not getattr(request, 'notabs', False))">
     <ul class="tabtable">

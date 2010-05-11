@@ -1,4 +1,5 @@
 <tal:block metal:use-macro="here/page_macros/old-new">
+<tal:block metal:fill-slot="breadcrumbs"/>
 <tal:block metal:fill-slot="contentPane">
 
 <tal:block tal:define="
@@ -39,18 +40,18 @@
           tal:attributes="title daemon/tooltip" tal:content="daemon/name" />
         <td class="tablevalues" tal:content="daemon/pid" />
         <td class="tablevalues" nowrap><a tal:attributes="
-            href string:${url}/viewDaemonLog?daemon=${daemon/name}">view log</a></td>
+            href string:${url}/viewDaemonLog?daemon=${daemon/name}&selectedTabName=zenossInfo">view log</a></td>
         <td class="tablevalues" nowrap style="padding: 0px 20px">
             <a tal:attributes="
-                href string:${url}/viewDaemonConfig?daemon=${daemon/name}"
+                href string:${url}/viewDaemonConfig?daemon=${daemon/name}&selectedTabName=zenossInfo"
                 style="margin-right: 2em;">
                 view config</a> 
                 <a tal:condition="python:daemon['name'] in [ 'zeoctl', 'zopectl' ]" tal:attributes="
-                href string:${url}/editDaemonConfig?daemon=${daemon/name}">
+                href string:${url}/editDaemonConfig?daemon=${daemon/name}&selectedTabName=zenossInfo">
                 edit config</a>
 
                 <a tal:condition="python:not daemon['name'] in [ 'zeoctl', 'zopectl' ]" tal:attributes="
-                href string:${url}/showDaemonXMLConfig?daemon=${daemon/name}">
+                href string:${url}/showDaemonXMLConfig?daemon=${daemon/name}&selectedTabName=zenossInfo">
                     edit config</a>
         </td>
         <td class="tablevalues" tal:define="color python:daemon['color']=='#0F0' and 'green' or 'red'"
