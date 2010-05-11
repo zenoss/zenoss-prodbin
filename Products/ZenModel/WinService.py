@@ -34,7 +34,7 @@ def manage_addWinService(context, id, description, userCreated=None,
     s.__of__(context).setServiceClass(args)
     context._setObject(id, s)
     s = context._getOb(id)
-    s.name = id
+    s.serviceName = id
     s.caption = description
     if userCreated: s.setUserCreateFlag()
     if REQUEST is not None:
@@ -168,7 +168,6 @@ class WinService(Service):
         msg = []
         renamed = False
         if id is not None:
-            self.name = id
             self.serviceName = id
             self.description = description
             self.caption = description
