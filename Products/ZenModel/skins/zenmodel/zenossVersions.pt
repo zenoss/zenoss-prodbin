@@ -1,10 +1,12 @@
 <tal:block metal:use-macro="here/page_macros/old-new">
+<tal:block metal:fill-slot="breadcrumbs"/>
 <tal:block metal:fill-slot="contentPane">
 
 <form tal:attributes="action string:${here/absolute_url_path}" method="POST">
     <input type="hidden" name="zenScreenName" 
-           tal:attributes="value template/id" /> 
+           tal:attributes="value string:zenossVersions" /> 
     <input type="hidden" name="manage_checkVersion:method" value="dome"/>
+    <input type="hidden" name="redirect" value="true"/>
 
 
         <tal:block tal:define=" tabletitle string:Check For Updates; 
