@@ -76,6 +76,13 @@ class SearchRouter(DirectRouter):
         for factory in extraResults:
             snippets.insert(0, factory()(query))
 
+    def _getLoggedinUserId(self):
+        """
+        @return String logged in users user id
+        """
+        securityManager = getSecurityManager()
+        return securityManager.getUser()._login
+        
     def getLiveResults(self, query):
         """
         Returns IQuickSearchResultSnippets for the results of the query.
@@ -119,10 +126,8 @@ class SearchRouter(DirectRouter):
         
         # look for our search 
         savedSearch = facade.getSavedSearch(searchName)
-        data = {}
         if savedSearch:
-            data['query'] = savedSearch.query
-            return DirectResponse.succeed(data=data)
+            return DirectResponse.succeed(data=Zuul.marshal(savedSearch))
 
         # we could not find the search term
         return DirectResponse.fail(message=_t('Unable to find the specified search'))
@@ -136,11 +141,21 @@ class SearchRouter(DirectRouter):
         facade = self._getFacade()
         if facade.noSaveSearchProvidersPresent():
             return DirectResponse.succeed()
-        
-        # get the creator (logged in user)
-        securityManager = getSecurityManager()
-        creator = securityManager.getUser()._login
+
+        creator = self._getLoggedinUserId()
         
         # save the search
         facade.saveSearch(queryString, searchName, creator)
         return DirectResponse.succeed()
+
+    def getAllSavedSearches(self, query):
+        """
+        @returns [ISavedSearchInfo] All the searches the logged in
+        user can access
+        """
+        facade = self._getFacade()
+        if facade.noSaveSearchProvidersPresent():
+            return DirectResponse.succeed()
+        
+        data = facade.getSavedSearchesByUser()
+        return DirectResponse.succeed(data=Zuul.marshal(data))

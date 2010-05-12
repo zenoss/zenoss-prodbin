@@ -16,7 +16,6 @@ from zope.component import subscribers
 from zope.interface import implements
 from zope.component import getGlobalSiteManager
 from Products.Zuul.facades import ZuulFacade
-
 from interfaces import ISearchFacade, ISearchProvider,\
     ISearchQueryParser, IParsedQuery, ISavedSearchProvider
 
@@ -285,6 +284,15 @@ class SearchFacade(ZuulFacade):
         return self._getSearchResults(query,
                                       resultSorter=resultSorter)
 
+    def getSavedSearchesByUser(self):
+        """
+        @param string user id
+        @return [ISavedSearchProvider]
+        """
+        provider = self._getSavedSearchProvider()
+        return provider.getAllSavedSearches()
+            
+                
     def noProvidersPresent(self):
         """
         Check for existence of search providers

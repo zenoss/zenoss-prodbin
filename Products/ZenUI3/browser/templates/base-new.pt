@@ -56,6 +56,7 @@
                             <ul tal:content="structure provider:primarynav"/>
                             <div id="header-extra">
                                 <div id="searchbox-container"></div>
+                                <div id="saved-search-container"></div>
                                 <div>
                                     <a tal:attributes="href here/dmd/ZenUsers/getUserSettingsUrl">
                                     <tal:block tal:content="request/AUTHENTICATED_USER"/>

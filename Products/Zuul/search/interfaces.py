@@ -12,7 +12,7 @@
 ######################################################################
 
 from zope.interface import Attribute, Interface
-from Products.Zuul.interfaces import IFacade, IMarshallable
+from Products.Zuul.interfaces import IFacade, IMarshallable, IInfo
 
 
 class IParsedQuery(Interface):
@@ -134,8 +134,16 @@ class ISavedSearchProviderFactory(Interface):
     """
     returns a saved search provider
     """
+    
+    
+class ISavedSearchInfo(IInfo):
+    """
+    Represents a search that has been saved
+    """
+    query = Attribute("The Search term")
+    creator = Attribute("User id of the person who created this saved search")
 
-
+    
 class ISavedSearchProvider(Interface):
     """
     Interface for permanently saving search queries
@@ -154,4 +162,11 @@ class ISavedSearchProvider(Interface):
     def getSavedSearch(searchName):
         """
         Retrieves a saved search from our repository
+        @return [ISavedSearchInfo]
+        """
+
+    def getAllSavedSearches():
+        """
+        Retrieves all the saved search for the logged in user
+        @return [ISavedSearchInfo]
         """
