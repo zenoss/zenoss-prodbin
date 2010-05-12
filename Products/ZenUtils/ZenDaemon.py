@@ -23,6 +23,7 @@ import pwd
 import socket
 import logging
 from logging import handlers
+from twisted.python import log as twisted_log
 
 from CmdBase import CmdBase
 from Utils import zenPath, HtmlFormatter, binPath
@@ -106,6 +107,8 @@ class ZenDaemon(CmdBase):
         """
         Create formating for log entries and set default log level
         """
+
+        # Setup python logging module
         rlog = logging.getLogger()
         rlog.setLevel(logging.WARN)
         if hasattr(self, 'mname'): mname = self.mname
@@ -132,7 +135,7 @@ class ZenDaemon(CmdBase):
             else:
                 f = logging.Formatter("%(asctime)s %(levelname)s %(name)s: %(message)s")
                 [ h.setFormatter(f) for h in rlog.handlers ]
-
+        
         # Allow the user to dynamically lower and raise the logging
         # level without restarts.
         import signal
@@ -164,9 +167,20 @@ class ZenDaemon(CmdBase):
                            levelNames.get(self.options.logseverity,
                                           "unknown"),
                            self.options.logseverity)
+            # Stop twisted logging
+            if hasattr(self, 'mname'): mname = self.mname
+            else: mname = self.__class__.__name__
+            observer = twisted_log.PythonLoggingObserver(loggerName="zen."+ mname)
+            observer.stop()
         else:
             log.setLevel(logging.DEBUG)
             log.info("Setting logging level to DEBUG")
+        
+            # Setup twisted logging
+            if hasattr(self, 'mname'): mname = self.mname
+            else: mname = self.__class__.__name__
+            observer = twisted_log.PythonLoggingObserver(loggerName="zen."+ mname)
+            observer.start()
 
 
     def changeUser(self):
