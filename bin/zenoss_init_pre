@@ -70,6 +70,7 @@ run_mkzeoinstance
 
 # create the zeo database
 start_zeodb
-chown -R ${OS_USERNAME} ${ZENHOME}/var
+# Remediate file ownership under $ZENHOME.
+fix_zenhome_owner_and_group ${OS_USERNAME}
 run_zenbuild
 stop_zeodb
