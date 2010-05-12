@@ -38,4 +38,5 @@ export PYTHON="**PYTHON**"
 . ${ZENHOME}/bin/shared-functions.sh
 . ${ZENHOME}/bin/install-functions.sh
 
-# do nothing...  this is left here for others to fill in later
+# run scripts needed after upgrade
+${ZENHOME}/bin/zencatalog start --createcatalog --forceindex --logpath=${ZENHOME}/log 
