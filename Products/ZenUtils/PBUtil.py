@@ -55,7 +55,9 @@ class ReconnectingPBClientFactory(PBClientFactory,
     """
     __pychecker__='no-override'
 
-    maxdelay = 5
+    # maxDelay(secs) set to 5 minute maximum delay before attempting to
+    # reconnect
+    maxDelay = 300
 
     def __init__(self):
         PBClientFactory.__init__(self)
