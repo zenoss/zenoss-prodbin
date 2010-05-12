@@ -16,7 +16,7 @@ def immediate_view(ob):
          view = ob.factory_type_information[0]['immediate_view']
      else:
          raise NameError('Cannot find default view for "%s"' %
-                         '/'.join(self.getPhysicalPath()))
+                         '/'.join(ob.getPhysicalPath()))
      path = ob.getPhysicalPath() + (view,)
      return '/'.join(path)
 
