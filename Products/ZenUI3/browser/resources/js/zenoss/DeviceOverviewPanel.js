@@ -29,8 +29,11 @@
     Ext.reg('clicktoedit', ClickToEditField);
 
     function editManuInfo (vals, uid) {
-
+        
         function name(uid) {
+            if (!uid){
+                return 'Unknown';
+            }
             if (!Ext.isString(uid)) {
                 uid = uid.uid;
             }
