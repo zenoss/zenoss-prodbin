@@ -71,9 +71,10 @@
         Zenoss.env.EVENTSGRID_STATEID = '${context/id}_evconsole';
     });
 "></script>
-<script tal:content="string:
-    var EVENT_ID = '${request/form/evid}';
-"></script>
+<script tal:content="python: 'var EVENT_ID = ' + '\'' + request.form['evid'].replace('\'', '') + '\';'">
+
+</script> 
+    
 <style>
 #evdetail-tools { display:none; } 
 </style>

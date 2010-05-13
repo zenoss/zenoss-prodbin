@@ -787,6 +787,7 @@ class EventManagerBase(ZenModelRM, ObjectCache, DbAccessBase):
         event = self.checkCache(cachekey)
         if event: return event
         fields = self.getFieldList()
+        evid = self.escape(evid)
         selectevent = "select " 
         selectevent += ", ".join(fields)
         selectevent += " from %s where" % self.statusTable
