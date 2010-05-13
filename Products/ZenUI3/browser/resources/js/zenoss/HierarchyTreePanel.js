@@ -323,6 +323,18 @@ Zenoss.HierarchyTreePanel = Ext.extend(Ext.tree.TreePanel, {
             node.destroy();
         }
         this.deleteNodeFn(params, callback);
+    },
+                                           
+    canMoveOrganizer: function(organizerUid, targetUid) {
+        var orgPieces = organizerUid.split('/'),
+            targetPieces = targetUid.split('/');
+        
+        // Relying on a coincidence that the third item
+        // is the top level organizer (e.g. Locations, Groups)
+        if (orgPieces[3] === targetPieces[3] ) {
+            return true;
+        }
+        return false;
     }
 }); // HierarchyTreePanel
 

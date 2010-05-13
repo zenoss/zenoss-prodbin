@@ -117,7 +117,6 @@ class RRDDataSourceInfo(InfoBase):
 
 
 class BasicDataSourceInfo(InfoBase):
-    implements(templateInterfaces.IBasicDataSourceInfo)
     """
     Not really used but SNMPDataSource and CommandDataSource both
     share common properties so I am using this subclass
@@ -172,7 +171,6 @@ class BasicDataSourceInfo(InfoBase):
 
     severity = property(_getSeverity, _setSeverity)
     cycletime = ProxyProperty('cycletime')
-    parser = ProxyProperty('parser')
     eventClass = ProxyProperty('eventClass')
 
 
@@ -189,6 +187,7 @@ class CommandDataSourceInfo(BasicDataSourceInfo):
     """
     Datasource for Commands (Basic DataSource with a type of 'COMMAND')
     """
+    parser = ProxyProperty('parser')
     usessh = ProxyProperty('usessh')
     component = ProxyProperty('component')
     eventKey = ProxyProperty('eventKey')

@@ -93,8 +93,8 @@ class ISNMPDataSourceInfo(IInfo):
                        description=_t(u'The name of this datasource'))
     type = schema.Text(title=_t(u'Type'),
                        readonly=True)
-    enabled = schema.Bool(title=_t(u'Enabled'))
     oid = schema.Text(title=_t(u'OID'))
+    enabled = schema.Bool(title=_t(u'Enabled'))
 
 
 class IDataPointInfo(IInfo):

@@ -213,6 +213,21 @@ class TreeFacade(ZuulFacade):
         context = aq_parent(obj)
         context._delObject(obj.id)
 
+    def moveOrganizer(self, targetUid, organizerUid):
+        """
+        Will move the organizerUid to be underneath the targetUid.
+
+        @param string targetUid: unique id of where we want
+        to move the organizer
+        @param string organizerUid: unique id of the ogranizer we are moving
+        """
+        organizer = self._getObject(organizerUid)
+        parent = organizer.getPrimaryParent()
+        parent.moveOrganizer(targetUid, [organizer.id])
+        target = self._getObject(targetUid)
+        return IOrganizerInfo(target._getOb(organizer.id))
+
+
 from eventfacade import EventFacade
 from networkfacade import NetworkFacade
 from processfacade import ProcessFacade

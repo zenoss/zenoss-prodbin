@@ -11,7 +11,7 @@
 #
 ###########################################################################
 
-from Products.ZenUtils.Ext import DirectRouter
+from Products.ZenUtils.Ext import DirectRouter, DirectResponse
 from Products.Zuul.decorators import require
 from Products import Zuul
 import logging
@@ -52,6 +52,14 @@ class TreeRouter(DirectRouter):
         msg = "Deleted node '%s'" % uid
         return {'success': True, 'msg': msg}
 
+    def moveOrganizer(self, targetUid, organizerUid):
+        """
+        Moves the organizer uid to be underneath the targetuid
+        """
+        facade = self._getFacade()
+        data = facade.moveOrganizer(targetUid, organizerUid)
+        return DirectResponse.succeed(data=Zuul.marshal(data))
+    
     def _getFacade(self):
         """
         Abstract method for child classes to use to get their facade
@@ -60,7 +68,7 @@ class TreeRouter(DirectRouter):
 
     def _canDeleteUid(self,uid):
         """
-        We can not top level UID's. For example:
+        We can not delete top level UID's. For example:
         '/zport/dmd/Processes' this will return False (we can NOT delete)
         '/zport/dmd/Processes/Child' will return True (we can delete this)
         """

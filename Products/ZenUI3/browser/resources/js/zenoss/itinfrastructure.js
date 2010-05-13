@@ -766,35 +766,97 @@ function initializeTreeDrop(tree) {
     });
 
     tree.on('beforenodedrop', function(e) {
+        var grid = Ext.getCmp('device_grid'),
+            targetnode = e.target,
+            targetuid = targetnode.attributes.uid,
+            ranges = grid.getSelectionModel().getPendingSelections(true),
+            devids,
+            me = this,
+            success = true;
         if ( Ext.isArray(e.data.selections) ) {
-            var grid = Ext.getCmp('device_grid'),
-                targetnode = e.target,
-                targetuid = targetnode.attributes.uid,
-                ranges = grid.getSelectionModel().getPendingSelections(true),
-                devids;
-
             devids = Ext.pluck(Ext.pluck(e.data.selections, 'data'), 'uid');
 
-            grid.view.showLoadMask(true);
+            // show a confirmation for moving devices
+            Ext.Msg.show({
+                title: _t('Move Devices'),
+                msg: String.format(_t("Are you sure you want to move these {0} device(s) to {1}?"), devids.length, targetnode.attributes.text.text),
+                buttons: Ext.Msg.OKCANCEL,
+                fn: function(btn) {
+                    if (btn=="ok") {
+                        grid.view.showLoadMask(true);
 
-            var opts = Ext.apply(grid.view.getFilterParams(true), {
-                uids: devids,
-                ranges: ranges,
-                target: targetuid
+                        // move the devices
+                        var opts = Ext.apply(grid.view.getFilterParams(true), {
+                            uids: devids,
+                            ranges: ranges,
+                            target: targetuid
+                        });
+
+                        REMOTE.moveDevices(opts, function(data){
+                            if(data.success) {
+                                resetGrid();
+                                me.update(data.tree);
+                            } else {
+                                grid.view.showLoadMask(false);
+                            }
+                        }, me);
+
+                    } else {
+                        Ext.Msg.hide();
+                        success = false;
+                    }
+                }
             });
 
-            REMOTE.moveDevices(opts, function(data){
-                if(data.success) {
-                    resetGrid();
-                    this.update(data.tree);
-                } else {
-                    grid.view.showLoadMask(false);
-                }
-            }, this);
-
             // we want Ext to complete the drop, thus return true
-            return true;
+            return success;
+        }else {
+            var organizerUid = e.data.node.attributes.uid;
+            
+            if (!tree.canMoveOrganizer(organizerUid, targetuid)) {
+                return false;
+            }
+            
+            // show a confirmation for organizer move
+            Ext.Msg.show({
+                title: _t('Move Organizer'),
+                msg: String.format(_t("Are you sure you want to move {0} to {1}?"), e.data.node.attributes.text.text, targetnode.attributes.text.text),
+                buttons: Ext.Msg.OKCANCEL,
+                fn: function(btn) {
+                    if (btn=="ok") {
+                        grid.view.showLoadMask(true);
+
+                        // move the devices
+                        var params = {
+                            organizerUid: organizerUid,
+                            targetUid: targetuid
+                        };
+
+                        REMOTE.moveOrganizer(params, function(data){
+                            if(data.success) {
+                                // add the new node to our history
+                                Ext.History.add(me.id + Ext.History.DELIMITER + data.data.uid.replace(/\//g, '.'));
+                                tree.getRootNode().reload({                                    
+                                    callback: resetGrid
+                                });
+                                grid.view.showLoadMask(false);
+                            } else {
+                                grid.view.showLoadMask(false);
+                            }
+                        }, me);
+
+                    } else {
+                        Ext.Msg.hide();
+                    }
+                }
+            });
+            // Ext shows the node as already moved when we are awaiting the
+            // dialog confirmation, so always tell Ext that the move didn't work
+            // here. If the move was successful the tree will redraw itself with
+            // the new nodes in place
+            return false;
         }
+
     }, tree);
 }
 
@@ -894,7 +956,7 @@ var loctree = {
     id: 'locs',
     searchField: false,
     directFn: REMOTE.getTree,
-    ddAppendOnly: true,         
+    ddAppendOnly: true,
     selectByToken: detailSelectByToken,
     root: {
         id: 'Locations',
@@ -1381,7 +1443,7 @@ footerBar.on('buttonClick', function(actionName, id, values) {
     switch (actionName) {
         // All items on this are organizers, no classes
         case 'addClass': tree.addChildNode(Ext.apply(values, {type: 'organizer'})); break;
-        case 'addOrganizer': throw new Ext.Error('Not Implemented'); 
+        case 'addOrganizer': throw new Ext.Error('Not Implemented');
         case 'delete': tree.deleteSelectedNode(); break;
         default: break;
     }
