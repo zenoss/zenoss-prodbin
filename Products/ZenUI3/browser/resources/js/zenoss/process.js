@@ -257,7 +257,8 @@ var regexTextField = {
     id: 'regexTextField',
     fieldLabel: _t('Pattern'),
     name: 'regex',
-    width: "100%"
+    width: "100%",
+    allowBlank: false
 };
 
 var ignoreParametersCheckbox = {
