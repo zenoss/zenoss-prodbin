@@ -174,7 +174,9 @@ function actioncompleteHandler(form, action) {
         Ext.getCmp('processForm').isLoadInProgress = false;
         var processInfo = action.result.data;
         // disabling the forms will disable all of the elements in it
-        Ext.getCmp('processForm').setDisabled(Zenoss.Security.doesNotHavePermission('Manage DMD'));
+        if ( Zenoss.Security.doesNotHavePermission('Manage DMD') ) {
+            Ext.getCmp('processForm').disable();
+        }
         var isRoot = processInfo.name == 'Processes';
         Ext.getCmp('nameTextField').setDisabled(isRoot);
         Ext.getCmp('inheritedCheckbox').setDisabled(isRoot);

@@ -21,6 +21,43 @@ function isField(c) {
     return !!c.setValue && !!c.getValue && !!c.markInvalid && !!c.clearInvalid;
 }
 
+function createDirectSubmitFunction(router) {
+
+    // called in the Ext.form.Action.DirectSubmit.run method
+    return function(formElDom, successFunction, directSubmitAction) {
+
+        var form = directSubmitAction.form;
+
+        // copy field values to the info object for fields that
+        //   * are dirty (param passed to getFieldValues above)
+        //   * have submitValue true
+        //   * have an id or name set on them
+        var info = {};
+        var dirtyFieldValues = form.getFieldValues(true);
+        Ext.iterate(dirtyFieldValues, function(key, value) {
+            var field = form.findField(key);
+            if ( field.submitValue && field.getName().indexOf("ext-comp-") !== 0 ) {
+                info[key] = value;
+            }
+        });
+
+        // add the forms baseParams to the info object (often includes uid)
+        Ext.applyIf(info, directSubmitAction.getParams());
+
+        // define a callback to run after server responds
+        var callback = function() {
+            form.clearInvalid();
+            form.setValues(dirtyFieldValues); // isDirty() will return true now
+            form.afterAction(directSubmitAction, true);
+            form.reset(); //this.el is undefined
+        };
+
+        // the remote call
+        router.setInfo(info, callback, directSubmitAction);
+
+    };
+}
+
 ZF.BaseDetailForm = Ext.extend(Ext.form.FormPanel, {
     contextUid: null,
     isLoadInProgress: false,
@@ -47,17 +84,7 @@ ZF.BaseDetailForm = Ext.extend(Ext.form.FormPanel, {
             trackResetOnLoad: true,
             permission: 'Manage Device',
             api: {
-                submit:  function(form, success, scope){
-                    var o = {},
-                        vals = scope.form.getFieldValues(true);
-                    Ext.apply(o, vals, success.params);
-                    router.setInfo(o, function(result) {
-                        this.form.clearInvalid();
-                        this.form.setValues(vals);
-                        this.form.afterAction(this, true);
-                        this.form.reset();
-                    }, scope);
-                },
+                submit: createDirectSubmitFunction(router),
                 load: router.getInfo
             }
         });
