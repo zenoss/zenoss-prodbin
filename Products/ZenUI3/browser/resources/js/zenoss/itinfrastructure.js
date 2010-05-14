@@ -150,7 +150,7 @@ treesm = new Ext.tree.DefaultSelectionModel({
             if (newnode) {
                 var uid = newnode.attributes.uid;
                 Zenoss.util.setContext(uid, 'detail_panel', 'organizer_events',
-                                       'commands-menu', 'context-configure-menu', 'footer_bar');
+                                       'commands-menu', 'footer_bar');
                 setDeviceButtonsDisabled(true);
                 var card = Ext.getCmp('master_panel').getComponent(0);
                 //should "ask" the DetailNav if there are any details before showing
