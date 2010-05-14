@@ -50,9 +50,18 @@ class TemplateFacade(ZuulFacade):
         for key in sorted(nodes.keys(), key=str.lower):
             yield nodes[key]        
 
-    def addTemplate(self, id):
+    def getAddTemplateTargets(self):
+        """
+        @returns list of targets for our new template
+        """
+        targets = self.getCopyTargets('/zport/dmd/Devices/rrdTemplates/Device')
+        return [dict(uid='/zport/dmd/Devices/rrdTemplates/Device', label='/Devices')] + targets
+                
+    def addTemplate(self, id, targetUid):
         id = prepId(id)
-        relationship = self._dmd.Devices.rrdTemplates
+        # make the assumption targetUid is always a device class
+        parent = self._getObject(targetUid)
+        relationship = parent.rrdTemplates
         relationship._setObject(id, RRDTemplate(id))
         template = getattr(relationship, id)
         node = ITemplateNode(template)
@@ -291,8 +300,7 @@ class TemplateFacade(ZuulFacade):
     def getCopyTargets(self, uid, query=''):
         template = self._getTemplate(uid)
         catalog = ICatalogTool(self._dmd)
-        types = ['Products.ZenModel.DeviceClass.DeviceClass',
-                 'Products.ZenModel.Device.Device']
+        types = ['Products.ZenModel.DeviceClass.DeviceClass']                 
         brains = catalog.search(types=types)
         objs = imap(unbrain, brains)
         def genTargets():
@@ -322,6 +330,7 @@ class TemplateFacade(ZuulFacade):
             # copying to and from a DeviceClass
             source = template.deviceClass()
             source.manage_copyAndPasteRRDTemplates((template.id,), targetUid)
+            target.bindTemplates(target.zDeviceTemplates + [template.id])
         else:
             if isinstance(target, DeviceClass):
                 # copying from a Device to a DeviceClass
@@ -335,6 +344,7 @@ class TemplateFacade(ZuulFacade):
                 raise Exception(msg % args)
             copy = template._getCopy(container)
             container._setObject(copy.id, copy)
+            target.bindTemplates(target.zDeviceTemplates + [copy.id])
 
     def addGraphDefinition(self, templateUid, graphDefinitionId):
         template = self._getTemplate(templateUid)

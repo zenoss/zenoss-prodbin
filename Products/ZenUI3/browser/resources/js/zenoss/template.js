@@ -18,7 +18,7 @@ Ext.onReady(function(){
 var router, treeId, dataSourcesId, thresholdsId, graphsId,
     beforeselectHandler, updateDataSources, updateThresholds, updateGraphs,
     selectionchangeHandler, selModel, footerBar, override, overrideHtml1,
-    overrideHtml2, showOverrideDialog, resetCombo;
+    overrideHtml2, showOverrideDialog, resetCombo, addTemplateDialogConfig;
 
 router = Zenoss.remote.TemplateRouter;
 treeId = 'templateTree';
@@ -295,11 +295,53 @@ showOverrideDialog = function() {
  * Footer Bar
  *
  */
+addTemplateDialogConfig = {
+    title: _t('Add Template'),
+    id: 'addNewTemplateDialog',
+    listeners: {
+        show: function() {
+            var cmp = Ext.getCmp('addNewTemplateDialog');
+            // completely reload the combobox every time
+            // we show the dialog
+            cmp.comboBox.setValue(null);
+            cmp.comboBox.store.setBaseParam('query', '');
+            cmp.comboBox.store.load();
+        }
+    },
+    items: [{
+        xtype: 'textfield',
+        name: 'id',
+        fieldLabel: _t('Name'),
+        allowBlank: false
+    }, {
+        xtype: 'combo',
+        fieldLabel: _t('Template Path'),
+        forceSelection: true,
+        emptyText: _t('Select a template path...'),
+        minChars: 0,
+        ref: '../comboBox',
+        selectOnFocus: true,
+        typeAhead: true,
+        resizable: true,
+        displayField: 'label',
+        valueField: 'uid',
+        name: 'targetUid',
+        store: {
+            xtype: 'directstore',
+            ref:'store',
+            directFn: router.getAddTemplateTargets,
+            fields: ['uid', 'label'],
+            root: 'data'
+        }
+    }]
+};
+
 footerBar = Ext.getCmp('footer_bar');
 Zenoss.footerHelper(_t('Monitoring Template'),
                     footerBar, {
                         hasOrganizers: false,
-                        addToZenPack: false    
+                        addToZenPack: false,
+                        customAddDialog: addTemplateDialogConfig
                     });
                 
 footerBar.buttonContextMenu.menu.add({
@@ -317,7 +359,8 @@ footerBar.on('buttonClick', function(actionName, id, values) {
     switch (actionName) {
         case 'addClass':
             params = {
-                id: values.id
+                id: values.id,
+                targetUid: values.targetUid
             }; 
             router.addTemplate(params, reloadTree);
         break;

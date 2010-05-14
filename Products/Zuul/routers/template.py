@@ -30,15 +30,23 @@ class TemplateRouter(DirectRouter):
         templates = facade.getTemplates()
         return Zuul.marshal(templates)
 
-    @require('Manage DMD')
-    def addTemplate(self, id):
+    def getAddTemplateTargets(self, query):
         """
-        Add a template to dmd/Devices.
+        @returns list of places where our new template can live
+        """
+        facade = self._getFacade()
+        data = facade.getAddTemplateTargets()
+        return DirectResponse.succeed(data=data)
+    
+    @require('Manage DMD')
+    def addTemplate(self, id, targetUid):
+        """
+        Add a template to the DeviceClass uniquely identified by targetUid
         """
         result = None
         try:
             facade = self._getFacade()
-            templateNode = facade.addTemplate(id)
+            templateNode = facade.addTemplate(id, targetUid)
             result = DirectResponse.succeed(
                 nodeConfig=Zuul.marshal(templateNode))
         except Exception, e:

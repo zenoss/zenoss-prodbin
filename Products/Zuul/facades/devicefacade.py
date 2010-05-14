@@ -268,6 +268,7 @@ class DeviceFacade(TreeFacade):
         elif isinstance(target, DeviceClass):
             self._dmd.Devices.moveDevices(targetname,[dev.id for dev in devs])
 
+
     def addDevice(self, deviceName, deviceClass, title=None, snmpCommunity="",
                   snmpPort=161, model=False, collector='localhost',
                   rackSlot=0, productionState=1000, comments="",

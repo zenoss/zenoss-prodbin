@@ -159,13 +159,17 @@ class ITemplateFacade(IFacade):
     """
     A facade for monitoring templates.
     """
-
+    
     def getTemplates():
         """
         Get all the monitoring templates in the system. This is used to fill
         out the tree view in the UI.
         """
-
+    def getAddTemplateTargets():
+        """
+        Returns a list of targets for a new template
+        """
+        
     def addTemplate(id):
         """
         Add a new monitoring template to the dmd/Devices device class.
