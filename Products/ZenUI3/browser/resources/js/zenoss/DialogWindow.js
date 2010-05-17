@@ -38,8 +38,10 @@ var BaseDialog = Ext.extend(Ext.Window, {
     }
 });
 
-function destroyWindow(button){
-    button.ownerCt.ownerCt.destroy();
+function destroyWindow(button) {
+    var container = button.ownerCt.ownerCt;
+    if (container.ownerCt !== undefined) container.ownerCt.destroy();
+    else container.destroy();
 }
 
 /**
