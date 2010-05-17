@@ -133,54 +133,20 @@ Ext.getCmp('master_panel').add( new ProcessTreePanel({}) );
  *
  */
 
-
-// disable the monitoring fields if monitoring settings are inherited
-function setMonitoringDisabled(disabled) {
-    Ext.getCmp('monitorCheckbox').setDisabled(disabled);
-    Ext.getCmp('alertOnRestartCheckBox').setDisabled(disabled);
-    Ext.getCmp('eventSeverityCombo').setDisabled(disabled);
-}
-
-function inheritedCheckboxHandler(checkbox, checked) {
-    if ( Ext.getCmp('processForm').isLoadInProgress ) {
-        return;
-    }
-    setMonitoringDisabled(checked);
-    var processTree = Ext.getCmp(treeId);
-    var selectionModel = processTree.getSelectionModel();
-    var selectedNode = selectionModel.getSelectedNode();
-
-    var uid;
-    if (checked && selectedNode.parentNode !== null) {
-        uid = selectedNode.parentNode.attributes.uid;
-    } else {
-        uid = selectedNode.attributes.uid;
-    }
-
-    var callback = function(provider, response) {
-        var info = response.result.data;
-        Ext.getCmp('monitorCheckbox').setValue(info.monitor);
-        Ext.getCmp('alertOnRestartCheckBox').setValue(info.alertOnRestart);
-        Ext.getCmp('eventSeverityCombo').setValue(info.eventSeverity);
-    };
-
-    router.getInfo({uid: uid, keys: ['monitor', 'eventSeverity']}, callback);
-    checkbox.fireEvent('valid', checkbox);
-}
-
 // when the form loads, show/hide the regex fieldset
-function actioncompleteHandler(form, action) {
+function actioncompleteHandler(basicForm, action) {
     if (action.type == 'directload') {
-        Ext.getCmp('processForm').isLoadInProgress = false;
+        var formPanel = Ext.getCmp('processForm');
+        formPanel.isLoadInProgress = false;
         var processInfo = action.result.data;
         // disabling the forms will disable all of the elements in it
         if ( Zenoss.Security.doesNotHavePermission('Manage DMD') ) {
-            Ext.getCmp('processForm').disable();
+            formPanel.disable();
         }
         var isRoot = processInfo.name == 'Processes';
         Ext.getCmp('nameTextField').setDisabled(isRoot);
-        Ext.getCmp('inheritedCheckbox').setDisabled(isRoot);
-        setMonitoringDisabled(processInfo.isMonitoringAcquired);
+        Ext.getCmp('regexTextField').setDisabled(!processInfo.hasRegex);
+        Ext.getCmp('ignoreParametersCheckbox').setDisabled(!processInfo.hasRegex);
         var regexFieldSet = Ext.getCmp('regexFieldSet');
         regexFieldSet.setVisible(processInfo.hasRegex);
         regexFieldSet.doLayout();
@@ -212,46 +178,6 @@ var descriptionTextField = {
     grow: true
 };
 
-var inheritedCheckbox = {
-    xtype: 'checkbox',
-    id: 'inheritedCheckbox',
-    fieldLabel: _t('Inherited'),
-    name: 'isMonitoringAcquired',
-    handler: inheritedCheckboxHandler,
-    submitValue: true
-};
-
-var monitorCheckbox = {
-    xtype: 'checkbox',
-    id: 'monitorCheckbox',
-    fieldLabel: _t('Enabled'),
-    name: 'monitor',
-    submitValue: true
-};
-
-var alertOnRestartCheckBox = {
-    xtype: 'checkbox',
-    id: 'alertOnRestartCheckBox',
-    fieldLabel: _t('Alert on Restart'),
-    name: 'alertOnRestart',
-    submitValue: true
-};
-
-var eventSeverityCombo = {
-    xtype: 'combo',
-    id: 'eventSeverityCombo',
-    fieldLabel: _t('Event Severity'),
-    name: 'eventSeverity',
-    triggerAction: 'all',
-    mode: 'local',
-    valueField: 'severityId',
-    displayField: 'severityText',
-    store: new Ext.data.ArrayStore({
-        fields: ['severityId', 'severityText'],
-        data: Zenoss.env.SEVERITIES.slice(0, 5)
-    })
-};
-
 var regexTextField = {
     xtype: 'textfield',
     id: 'regexTextField',
@@ -269,20 +195,41 @@ var ignoreParametersCheckbox = {
     submitValue: true
 };
 
-var monitoringFieldSet = {
-    xtype: 'ColumnFieldSet',
-    title: _t('Monitoring'),
-    __inner_items__: [
-    {
-        items: inheritedCheckbox
-    }, {
-        items: monitorCheckbox
-    }, {
-        items: alertOnRestartCheckBox
-    }, {
-        items: eventSeverityCombo
-    }]
-}; // monitoringFieldSet
+var zMonitor = {
+    xtype: 'zprop',
+    ref: '../../zMonitor',
+    title: _t('Enable Monitoring? (zMonitor)'),
+    name: 'zMonitor',
+    localField: {
+        xtype: 'select',
+        mode: 'local',
+        store: [[true, 'Yes'], [false, 'No']]
+    }
+};
+
+var zAlertOnRestart = {
+    xtype: 'zprop',
+    ref: '../../zAlertOnRestart',
+    title: _t('Send Event on Restart? (zAlertOnRestart)'),
+    name: 'zAlertOnRestart',
+    localField: {
+        xtype: 'select',
+        mode: 'local',
+        store: [[true, 'Yes'], [false, 'No']]
+    }
+};
+
+var zFailSeverity = {
+    xtype: 'zprop',
+    ref: '../../zFailSeverity',
+    title: _t('Failure Event Severity (zFailSeverity)'),
+    name: 'zFailSeverity',
+    localField: {
+        xtype: 'select',
+        mode: 'local',
+        store: Zenoss.env.SEVERITIES.slice(0, 5)
+    }
+};
 
 var regexFieldSet = {
     xtype: 'ColumnFieldSet',
@@ -309,8 +256,8 @@ var processFormItems = {
         columnWidth: 0.5
     },
     items: [
-        {items: [nameTextField, descriptionTextField]},
-        {items: [monitoringFieldSet, regexFieldSet]}
+        {items: [nameTextField, descriptionTextField, regexFieldSet]},
+        {items: [zMonitor, zAlertOnRestart, zFailSeverity]}
     ]
 }; // processFormItems
 
@@ -326,6 +273,8 @@ var processFormConfig = {
 
 var processForm = Ext.getCmp('detail_panel').add(processFormConfig);
 processForm.on('actioncomplete', actioncompleteHandler);
+
+processForm.getRootNode().select();
 
 /* ***********************************************************************
  *

@@ -79,8 +79,17 @@ Zenoss.form.ZPropHidden = Ext.extend(Ext.form.Hidden, {
     getValue: function() {
         return {
             isAcquired: this.zpropFieldSet.acquiredRadio.getValue(),
-            localValue: this.zpropFieldSet.localField.getValue()
+            localValue: this.zpropFieldSet.localField.getValue(),
+            
+            // acquiredValue and ancestor aren't needed by the server, but it
+            // is needed by reset which is called when the form is submitted
+            acquiredValue: this.zpropFieldSet.acquiredValue,
+            ancestor: this.zpropFieldSet.ancestor
         };
+    },
+    
+    setValue: function(values) {
+        this.zpropFieldSet.setValues(values);
     },
     
     isDirty: function() {
@@ -134,10 +143,19 @@ Zenoss.form.ZProperty = Ext.extend(Ext.form.FieldSet, {
             {id: this.localField.getName(), value: values.localValue},
             {id: this.acquiredRadio.getName(), value: values.isAcquired}
         ]);
-        
+
         // update the boxLabel with the acquiredValue and ancestor
-        var boxLabel = String.format('Inherit Value "{0}" from {1}', values.acquiredValue, values.ancestor);
+        var boxLabel;
+        if ( values.acquiredValue !== null && values.ancestor !== null ) {
+            boxLabel = String.format('Inherit Value "{0}" from {1}', values.acquiredValue, values.ancestor);
+            this.acquiredRadio.enable();
+        } else {
+            boxLabel = String.format('Inherit Value');
+            this.acquiredRadio.disable();
+        }
         this.acquiredRadio.setBoxLabel(boxLabel);
+        this.acquiredValue = values.acquiredValue;
+        this.ancestor = values.ancestor;
     },
 
     // private

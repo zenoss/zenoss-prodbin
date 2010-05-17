@@ -15,7 +15,7 @@ import transaction
 from types import ClassType
 from operator import attrgetter
 from itertools import islice
-from Acquisition import aq_base
+from Acquisition import aq_base, aq_chain
 from zope.interface import Interface
 from Products.ZCatalog.CatalogBrains import AbstractCatalogBrain
 from Products.ZenRelations.ZenPropertyManager import ZenPropertyManager
@@ -174,3 +174,34 @@ def getZProperties(context):
             properties[propertyId] = context.getProperty(propertyId)
 
     return properties
+
+def getAcquiredZPropertyInfo(obj, zProp, translate=lambda x: x):
+    for ancestor in aq_chain(obj)[1:]:
+        if isinstance(ancestor, ZenPropertyManager) and ancestor.hasProperty(zProp):
+            info = {'acquiredValue': translate(getattr(ancestor, zProp)),
+                    'ancestor': ancestor.titleOrId()
+                    }
+            break
+    else:
+        info = {'acquiredValue': None, 'ancestor': None}
+    return info
+
+def getZPropertyInfo(obj, zProp, defaultLocalValue, translate=lambda x: x):
+    zPropInfo = {}
+    zPropInfo['isAcquired'] = not obj.hasProperty(zProp)
+    if zPropInfo['isAcquired']:
+        zPropInfo['localValue'] = defaultLocalValue
+    else:
+        zPropInfo['localValue'] = getattr(obj, zProp)
+    zPropInfo.update(getAcquiredZPropertyInfo(obj, zProp, translate))
+    return zPropInfo
+
+def setZPropertyInfo(obj, zProp, isAcquired, localValue, **kwargs):
+    if isAcquired:
+        if obj.hasProperty(zProp):
+            obj.deleteZenProperty(zProp)
+    else:
+        if obj.hasProperty(zProp):
+            obj._updateProperty(zProp, localValue)
+        else:
+            obj._setProperty(zProp, localValue)

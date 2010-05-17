@@ -24,6 +24,7 @@ from Products.Zuul.interfaces import ICatalogTool
 from Products.Zuul.interfaces import IProcessInfo
 from Products.Zuul.tree import TreeNode
 from Products.Zuul.infos import InfoBase
+from Products.Zuul.utils import getZPropertyInfo, setZPropertyInfo
 
 class ProcessNode(TreeNode):
     implements(IProcessNode)
@@ -68,57 +69,39 @@ class ProcessInfo(InfoBase):
 
     description = property(getDescription, setDescription)
 
-    def getIsMonitoringAcquired(self):
-        return not self._object.hasProperty('zMonitor') \
-                and not self._object.hasProperty('zFailSeverity')
+    def getZMonitor(self):
+        def translate(rawValue):
+            return {False: 'No', True: 'Yes'}[rawValue]
+        return getZPropertyInfo(self._object, 'zMonitor', True, translate)
 
-    def setIsMonitoringAcquired(self, isMonitoringAcquired):
-        if isMonitoringAcquired:
-            for name in 'zMonitor', 'zFailSeverity':
-                if self._object.hasProperty(name):
-                    self._object.deleteZenProperty(name)
+    def setZMonitor(self, data):
+        setZPropertyInfo(self._object, 'zMonitor', **data)
 
-    isMonitoringAcquired = property(getIsMonitoringAcquired,
-                                    setIsMonitoringAcquired)
+    zMonitor = property(getZMonitor, setZMonitor)
 
-    def getMonitor(self):
-        return self._object.zMonitor
+    def getZAlertOnRestart(self):
+        def translate(rawValue):
+            return {False: 'No', True: 'Yes'}[rawValue]
+        return getZPropertyInfo(self._object, 'zAlertOnRestart', True, translate)
 
-    def setMonitor(self, monitor):
-        if self._object.hasProperty('zMonitor'):
-            self._object._updateProperty('zMonitor', monitor)
-        else:
-            self._object._setProperty('zMonitor', monitor)
+    def setZAlertOnRestart(self, data):
+        setZPropertyInfo(self._object, 'zAlertOnRestart', **data)
 
-    monitor = property(getMonitor, setMonitor)
+    zAlertOnRestart = property(getZAlertOnRestart, setZAlertOnRestart)
 
-    def getAlertOnRestart(self):
-        return self._object.zAlertOnRestart
+    def getZFailSeverity(self):
+        def translate(rawValue):
+            return {5: 'Critical',
+                    4: 'Error',
+                    3: 'Warning',
+                    2: 'Info',
+                    1: 'Debug'}[rawValue]
+        return getZPropertyInfo(self._object, 'zFailSeverity', 4, translate)
 
-    def setAlertOnRestart(self, alertOnRestart):
-        if self._object.hasProperty('zAlertOnRestart'):
-            self._object._updateProperty('zAlertOnRestart', alertOnRestart)
-        else:
-            self._object._setProperty('zAlertOnRestart', alertOnRestart)
+    def setZFailSeverity(self, data):
+        setZPropertyInfo(self._object, 'zFailSeverity', **data)
 
-    alertOnRestart = property(getAlertOnRestart, setAlertOnRestart)
-
-    def getEventSeverity(self):
-        return self._object.zFailSeverity
-
-    def setEventSeverity(self, eventSeverity):
-        if isinstance(eventSeverity, basestring):
-            eventSeverity = {'Critical': 5,
-                             'Error': 4,
-                             'Warning': 3,
-                             'Info': 2,
-                             'Debug': 1}[eventSeverity]
-        if self._object.hasProperty('zFailSeverity'):
-            self._object._updateProperty('zFailSeverity', eventSeverity)
-        else:
-            self._object._setProperty('zFailSeverity', eventSeverity)
-
-    eventSeverity = property(getEventSeverity, setEventSeverity)
+    zFailSeverity = property(getZFailSeverity, setZFailSeverity)
 
     def getHasRegex(self):
         return isinstance(self._object, OSProcessClass)
