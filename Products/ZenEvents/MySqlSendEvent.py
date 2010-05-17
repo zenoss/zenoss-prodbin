@@ -80,9 +80,14 @@ class MySqlSendEventMixin:
         
         for field in self.requiredEventFields:
             if not hasattr(event, field):
-                raise ZenEventError(
-                    "Required event field %s not found" % field)
-
+                log.error("Required event field %s not found" \
+                          " -- ignoring event", field)
+                statusdata, detaildata = self.eventDataMaps(event)
+                log.error("Event info: %s", statusdata)
+                if detaildata:
+                    log.error("Detail data: %s", detaildata)
+                return None
+        
         #FIXME - ungly hack to make sure severity is an int
         try:
             event.severity = int(event.severity)
