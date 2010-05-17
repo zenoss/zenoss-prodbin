@@ -59,6 +59,16 @@ update_conf_files
 # set the python shebang to be the proper python
 shebang
 
+# has run_mkzeoinstance been run?  need to do this especially when
+# going from Zope 2.11 -> 2.12 since that is the mechanism for generating
+# the required non-easy_install versions of zeoctl and runzeo.
+#
+if [ -f "$ZENHOME/bin/zeoctl" ] ;then
+    if grep EASY-INSTALL-ENTRY-SCRIPT $ZENHOME/bin/zeoctl $ZENHOME/bin/runzeo 2>/dev/null 1>&2;then
+        run_mkzeoinstance
+    fi
+fi
+
 # migrate the zeo database
 start_zeodb
 run_zenmigrate

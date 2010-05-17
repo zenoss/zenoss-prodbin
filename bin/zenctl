@@ -226,7 +226,6 @@ fi
 # an upgrade occurred
 if [ "$1" = start -a -f ${UPGRADED} ]; then
     upgrade_pre
-    rm ${UPGRADED}
 fi
 
 
