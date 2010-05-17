@@ -107,14 +107,6 @@ var discoverDevicesDialog = new Zenoss.MessageDialog({
 // Navigation tree (select subnetwork)
 //********************************************
 
-Zenoss.NetworkTreePanel = Ext.extend(Zenoss.HierarchyTreePanel, {
-    constructor: function (config) {
-        config.directFn = Zenoss.remote.NetworkRouter.getTree;
-        Zenoss.NetworkTreePanel.superclass.constructor.call(this,
-                config);
-    }
-});
-
 var treesm = new Ext.tree.DefaultSelectionModel({
     listeners: {
         'selectionchange': function (sm, newnode) {
@@ -132,14 +124,15 @@ var treesm = new Ext.tree.DefaultSelectionModel({
 });
 
 
-var network_tree = new Zenoss.NetworkTreePanel({
+var network_tree = new Zenoss.HierarchyTreePanel({
     id: 'networks',
     searchField: true,
+    directFn: Zenoss.remote.NetworkRouter.getTree,
     router: Zenoss.remote.NetworkRouter,
     root: {
         id: 'Network',
         uid: '/zport/dmd/Networks',
-        text: _t('Subnetworks'),
+        text: null, // Use the name loaded from the remote
         allowDrop: false
     },
     selModel: treesm
