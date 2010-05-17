@@ -6,7 +6,7 @@ Ext.onReady(function(){
 if ( Ext.get('searchbox-container') === null ) {
             return;
 }else {
-
+    var combo;
     Ext.create({
             black: true,
             id: 'searchbox-query',
@@ -22,7 +22,12 @@ if ( Ext.get('searchbox-container') === null ) {
             xtype: 'button',
             id: 'saved-searches-button',
             renderTo: 'searchbox-container',
-            text: _t('Saved') // TODO: Get an Icon for this
+                   text: _t('Saved'), // TODO: Get an Icon for this,
+            handler: function () {
+                // everytime we press this button, we want
+                // to go back to the server to get fresh data
+                delete combo.lastQuery;
+            }
         }
     );
     
@@ -72,7 +77,7 @@ if ( Ext.get('searchbox-container') === null ) {
     });
 
     // drop down box of existing saved searches
-    new Ext.form.ComboBox({
+    combo = new Ext.form.ComboBox({
         editable: false,
         triggerAction: 'all',
         triggerClass: 'no-trigger-icon',
@@ -92,7 +97,7 @@ if ( Ext.get('searchbox-container') === null ) {
             root: 'data'
         },
         listeners: {
-            select: function(box,record){
+            select: function(box, record){
                 // go to the selected search results page
                 window.location = String.format('/zport/dmd/search?search={0}', record.id);
             }

@@ -131,6 +131,33 @@ class SearchRouter(DirectRouter):
 
         # we could not find the search term
         return DirectResponse.fail(message=_t('Unable to find the specified search'))
+
+    def updateSavedSearch(self, searchName, queryString):
+        """
+        Updates the specified search with the new query
+        @param string searchName: name of the search we want to update
+        @param string query: value of the new query we are searching on
+        """
+        facade = self._getFacade()
+        if facade.noSaveSearchProvidersPresent():
+            return DirectResponse.succeed()
+        
+        # save the search
+        facade.updateSavedSearch(searchName, queryString)
+        return DirectResponse.succeed()
+
+    def removeSavedSearch(self, searchName):
+        """
+        Removes the search specified by searchName
+        @param string searchName
+        """
+        facade = self._getFacade()
+        if facade.noSaveSearchProvidersPresent():
+            return DirectResponse.succeed()
+        
+        # save the search
+        facade.removeSavedSearch(searchName)
+        return DirectResponse.succeed()
     
     def saveSearch(self, queryString, searchName):
         """
@@ -148,7 +175,7 @@ class SearchRouter(DirectRouter):
         facade.saveSearch(queryString, searchName, creator)
         return DirectResponse.succeed()
 
-    def getAllSavedSearches(self, query):
+    def getAllSavedSearches(self, query=None):
         """
         @returns [ISavedSearchInfo] All the searches the logged in
         user can access

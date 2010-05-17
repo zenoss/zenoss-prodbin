@@ -97,6 +97,21 @@ class ISearchFacade(IFacade):
         Saves the queryString and makes it identifable by the searchName
         """
 
+    def updateSavedSearch(searchName, queryString):
+        """
+        Updates the specified search with the specified query
+        """
+
+    def removeSavedSearch(searchName):
+        """
+        Removes the saved search specified by searchName
+        """
+
+    def getSavedSearchesByUser():
+        """
+        Gets all the saved searches for the currently logged in user
+        """
+
 
 class ISearchResultSorter(Interface):
     """
@@ -134,8 +149,8 @@ class ISavedSearchProviderFactory(Interface):
     """
     returns a saved search provider
     """
-    
-    
+
+
 class ISavedSearchInfo(IInfo):
     """
     Represents a search that has been saved
@@ -143,7 +158,7 @@ class ISavedSearchInfo(IInfo):
     query = Attribute("The Search term")
     creator = Attribute("User id of the person who created this saved search")
 
-    
+
 class ISavedSearchProvider(Interface):
     """
     Interface for permanently saving search queries
@@ -170,3 +185,4 @@ class ISavedSearchProvider(Interface):
         Retrieves all the saved search for the logged in user
         @return [ISavedSearchInfo]
         """
+

@@ -244,6 +244,23 @@ class SearchFacade(ZuulFacade):
         
         return results
 
+    def updateSavedSearch(self, searchName, queryString):
+        """
+        Updates the specified search with the specified query
+        @param string searchName: name of the search we want to update
+        @param string query: value of the new query we are searching on
+        """
+        search = self.getSavedSearch(searchName)
+        search.query = queryString
+
+    def removeSavedSearch(self, searchName):
+        """
+        Removes the saved search specified by searchName
+        @param string searchName: search we wish to remove
+        """
+        provider = self._getSavedSearchProvider()
+        provider.removeSearch(searchName)
+        
     def saveSearch(self, queryString, searchName, creator):
         """
         Saves the queryString as a saved search identified by
@@ -286,7 +303,6 @@ class SearchFacade(ZuulFacade):
 
     def getSavedSearchesByUser(self):
         """
-        @param string user id
         @return [ISavedSearchProvider]
         """
         provider = self._getSavedSearchProvider()

@@ -3,6 +3,8 @@
 
     var ip_regex = new RegExp("(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)");
     var hex_regex = new RegExp("^#?([a-f]|[A-F]|[0-9]){3}(([a-f]|[A-F]|[0-9]){3,5})?$");
+    var alpha_num_space = new RegExp(/[a-z_\s\d]/i);
+     
     /**
      * These are the custom validators defined for
      * our zenoss forms. The xtype/vtype custom is to have the
@@ -37,7 +39,16 @@
         hexnumber: function(val, field) {
             return hex_regex.test(val);
         },
-        hexnumberText: _t('Must be a 6 or 8 digit hexadecimal value.')
+        hexnumberText: _t('Must be a 6 or 8 digit hexadecimal value.'),
+
+        /**
+         * Modifies alpha number to allow spaces
+         **/
+        alphanumspace: function(val, field) {
+            return alpha_num_space.test(val);
+        },
+        alphanumspaceText: _t('Must be an alphanumeric value or a space '),
+        alphanumspaceMask: alpha_num_space
     };
      
     Ext.apply(Ext.form.VTypes, vtypes);
