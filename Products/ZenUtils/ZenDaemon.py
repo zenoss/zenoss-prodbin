@@ -35,7 +35,7 @@ UMASK = 0022
 WORKDIR = "/"
 
 # only close stdin/out/err
-MAXFD = 3 
+MAXFD = 3
 
 # The standard I/O file descriptors are redirected to /dev/null by default.
 if (hasattr(os, "devnull")):
@@ -135,7 +135,7 @@ class ZenDaemon(CmdBase):
             else:
                 f = logging.Formatter("%(asctime)s %(levelname)s %(name)s: %(message)s")
                 [ h.setFormatter(f) for h in rlog.handlers ]
-        
+
         # Allow the user to dynamically lower and raise the logging
         # level without restarts.
         import signal
@@ -152,21 +152,13 @@ class ZenDaemon(CmdBase):
         Switch to debug level if signaled by the user, and to
         default when signaled again.
         """
-        levelNames = {
-          logging.DEBUG:"DEBUG",
-          logging.INFO:"INFO",
-          logging.WARN:"WARN",
-          logging.ERROR:"ERROR",
-          logging.CRITICAL:"CRITICAL",
-        }
         log = logging.getLogger('zen')
         currentLevel = log.getEffectiveLevel()
         if currentLevel == logging.DEBUG:
             log.setLevel(self.options.logseverity)
             log.info("Restoring logging level back to %s (%d)",
-                           levelNames.get(self.options.logseverity,
-                                          "unknown"),
-                           self.options.logseverity)
+                     logging.getLevelName(self.options.logseverity) or "unknown",
+                     self.options.logseverity)
             # Stop twisted logging
             if hasattr(self, 'mname'): mname = self.mname
             else: mname = self.__class__.__name__
@@ -175,7 +167,7 @@ class ZenDaemon(CmdBase):
         else:
             log.setLevel(logging.DEBUG)
             log.info("Setting logging level to DEBUG")
-        
+
             # Setup twisted logging
             if hasattr(self, 'mname'): mname = self.mname
             else: mname = self.__class__.__name__
@@ -268,7 +260,7 @@ class ZenDaemon(CmdBase):
     def watchdogStartTimeout(self):
         """
         Return our watchdog start timeout (in minutes)
-        
+
         @return: start timeout
         @rtype: integer
         """
@@ -283,7 +275,7 @@ class ZenDaemon(CmdBase):
     def watchdogMaxRestartTime(self):
         """
         Return our watchdog max restart time (in minutes)
-        
+
         @return: maximum restart time
         @rtype: integer
         """
@@ -353,7 +345,7 @@ class ZenDaemon(CmdBase):
                                dest='watchdog', action="store_true",
                                help="Run under a supervisor which will restart it")
         self.parser.add_option('--watchdogPath', default=None,
-                               dest='watchdogPath', 
+                               dest='watchdogPath',
                                help="The path to the watchdog reporting socket")
         self.parser.add_option('--starttimeout',
                                dest='starttimeout',

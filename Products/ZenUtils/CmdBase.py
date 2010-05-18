@@ -21,13 +21,14 @@ import os
 import sys
 import datetime
 import logging
+import re
 
 import zope.component
 from zope.traversing.adapters import DefaultTraversable
 from Products.Five import zcml
 
 from logging import handlers
-from optparse import OptionParser, SUPPRESS_HELP, NO_DEFAULT
+from optparse import OptionParser, SUPPRESS_HELP, NO_DEFAULT, OptionValueError
 from urllib import quote
 
 # There is a nasty incompatibility between pkg_resources and twisted.
@@ -74,7 +75,7 @@ class CmdBase(object):
         self.parser = None
         self.buildParser()
         self.buildOptions()
-        
+
         self.parseOptions()
         if self.options.configfile:
             self.getConfigFileDefaults( self.options.configfile )
@@ -96,7 +97,7 @@ class CmdBase(object):
         @type filename: string
         """
         outlines = []
-        
+
         try:
             configFile = open(filename)
             lines = configFile.readlines()
@@ -107,7 +108,7 @@ class CmdBase(object):
                    filename
             traceback.print_exc(0)
             return
-        
+
         lineno = 0
         modified = False
         for line in lines:
@@ -131,7 +132,7 @@ class CmdBase(object):
                 outlines.append('## %s' % line)
                 modified = True
                 continue
-            
+
             # NB: At this stage, optparse accepts even bogus values
             #     It will report unhappiness when it parses the arguments
             try:
@@ -147,8 +148,8 @@ class CmdBase(object):
                 print >>sys.stderr, "Bad configuration value for" \
                     " %s at line %s, value = %s (type %s)" % (
                     option.dest, lineno, value, option.type )
-        
-        #if we found bogus options write out the file with commented out bogus 
+
+        #if we found bogus options write out the file with commented out bogus
         #values
         if modified:
             configFile = file(filename, 'w')
@@ -209,7 +210,7 @@ class CmdBase(object):
             except:
                 from Products.ZenModel.ZVersion import VERSION
                 version= VERSION
-            self.parser = OptionParser(usage=self.usage, 
+            self.parser = OptionParser(usage=self.usage,
                                        version="%prog " + version )
 
     def buildOptions(self):
@@ -219,28 +220,42 @@ class CmdBase(object):
         """
         self.buildParser()
         if self.doesLogging:
+            def parseLogSeverity(option, opt, value, parser):
+                if re.match(r'^\d+$', value):
+                    value = int(value)
+                else:
+                    intval = getattr(logging, value.upper(), None)
+                    if intval:
+                        value = intval
+                    else:
+                        raise OptionValueError('"%s" is not a valid log level.' % value)
+
+                setattr(parser.values, option.dest, value)
+
             self.parser.add_option('-v', '--logseverity',
                         dest='logseverity',
                         default=20,
-                        type='int',
-                        help='Logging severity threshold')
+                        type='string',
+                        action='callback',
+                        help='Logging severity threshold',
+                        callback=parseLogSeverity)
 
             self.parser.add_option('--logpath',dest='logpath',
                         help='Override the default logging path')
-            
+
             self.parser.add_option('--maxlogsize',
                         dest='maxLogKiloBytes',
                         help='Max size of log file in KB; default 10240',
                         default=10240,
                         type='int')
-            
+
             self.parser.add_option('--maxbackuplogs',
                         dest='maxBackupLogs',
                         help='Max number of back up log files; default 3',
                         default=3,
                         type='int')
 
-        self.parser.add_option("-C", "--configfile", 
+        self.parser.add_option("-C", "--configfile",
                     dest="configfile",
                     help="Use an alternate configuration file" )
 
@@ -271,7 +286,7 @@ be seen on the display.
         max_size= 40
         #
         # As a heuristic we'll accept strings that are +-  text_window
-        # size in length. 
+        # size in length.
         #
         text_window= 5
 
@@ -372,10 +387,10 @@ be seen on the display.
                         continue
 
                 #
-                # Find the actual value specified on the command line, if any, 
+                # Find the actual value specified on the command line, if any,
                 # and display it
                 #
-                
+
                 value= getattr( parser.values,  opt.dest )
 
                 default_value= parser.defaults.get( opt.dest )
@@ -546,7 +561,7 @@ be seen on the display.
 
 """ % ( export_date, daemon_name )
 
-        options_to_ignore= ( 
+        options_to_ignore= (
             'help', 'version', '', 'genconf', 'genxmltable',
             'genxmlconfigs',
         )
