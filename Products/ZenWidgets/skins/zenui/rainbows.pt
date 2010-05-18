@@ -51,7 +51,7 @@
     totals python:[x[2] for x in summaries];
     ackstatus python:[x[2]-x[1] for x in summaries]; " >
     <div class="horizontal-rainbow"
-    onclick="location.href=YAHOO.zenoss.templateFreeURL+'/viewEvents'">
+    onclick="top.location.href=YAHOO.zenoss.templateFreeURL+'/viewEvents'">
         <tal:block tal:repeat="evnum python:totals[:-1]">
         <div tal:define="color python:colors[repeat['evnum'].index]"
             tal:attributes="class string:evpill-${color}"

@@ -157,15 +157,20 @@ class ToOneRelationship(RelationshipBase):
     
     #FIXME - please make me go away, I'm so ugly!
     security.declareProtected('View', 'getPrimaryLink')
-    def getPrimaryLink(self):
+    def getPrimaryLink(self, target=None):
         """get the link tag of a related object""" 
         link = ""
         if self.obj:
             if not self.obj.checkRemotePerm("View", self.obj):
                 link = self.obj.id
             else:
-                link = "<a href='%s'>%s</a>" % (self.obj.getPrimaryUrlPath(),
-                                            self.obj.id)
+                attributes = ''
+                if target is not None:
+                    attributes = ' target="%s" ' % (target,)
+                link = "<a %s href='%s'>%s</a>" % (
+                    attributes,
+                    self.obj.getPrimaryUrlPath(),
+                    self.obj.id)
         return link
 
 

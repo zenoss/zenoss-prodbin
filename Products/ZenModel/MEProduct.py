@@ -57,9 +57,9 @@ class MEProduct(ManagedEntity):
 
 
     security.declareProtected('View', 'getManufacturerLink')
-    def getManufacturerLink(self):
+    def getManufacturerLink(self, target=None):
         if self.productClass():
-            return self.productClass().manufacturer.getPrimaryLink()
+            return self.productClass().manufacturer.getPrimaryLink(target)
         return ""
 
 
@@ -80,8 +80,8 @@ class MEProduct(ManagedEntity):
                 return ""
 
 
-    def getProductLink(self):
-        return self.productClass.getPrimaryLink()
+    def getProductLink(self, target=None):
+        return self.productClass.getPrimaryLink(target)
 
 
     def getProductContext(self):
