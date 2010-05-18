@@ -35,7 +35,7 @@
         }
         function goToDeviceSearch(objid) {
             url = '/zport/dmd/goToStatusPage?objid=' + escape(objid);
-            currentWindow().location.href = url;
+            window.location.href = url;
         }
     </script>
 
