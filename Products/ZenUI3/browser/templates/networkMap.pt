@@ -17,14 +17,14 @@
 
 <tal:block metal:fill-slot="title">Network Map</tal:block>
 
-<tal:block metal:fill-slot="script_afterLayout">
+<tal:block metal:fill-slot="head-local">
     <script tal:define="classlist python:[dict(label=x,data=x) for x in 
                         here.dmd.Devices.deviceMoveTargets()];
                         initobj python:here.dmd.ZenUsers.getUserSettings(
                                        )['netMapStartObject']"
         tal:content="string:
-       var _deviceClasses = ${classlist};
-       var _initialObjId = '${initobj}';
+       _deviceClasses = ${classlist};
+       _initialObjId = '${initobj}';
     "></script>
     <script language="javascript" type="text/javascript">
         function getDevClassList() {
@@ -38,26 +38,45 @@
             currentWindow().location.href = url;
         }
     </script>
+
+
+
+    <script type="text/javascript" src="/++resource++zenui/js/swfobject/2.2/swfobject.js"></script>
+    <script type="text/javascript">
+    swfobject.registerObject("zennetmap", "9.0.0");
+    </script>
+    <style>
+      #center { height: 100%; overflow: hidden;}
+      #zennetmap_container { height: 100%; overflow: hidden;}
+
+    </style>
+
 </tal:block>
 
+
 <tal:block metal:fill-slot="center_panel_content">
-<div id="zennetmap"> </div>
+<div id="zennetmap_container" style="position: relative; overflow: hidden;">
+
+      <object classid="clsid:D27CDB6E-AE6D-11cf-96B8-444553540000"
+              id="zennetmap" width="100%" height="100%"
+              codebase="http://download.macromedia.com/pub/shockwave/cabs/flash/swflash.cab" style="overflow: hidden;">
+          <param name="movie" value="/zport/dmd/flex/ZenNetMap.swf" />
+          <param name="quality" value="high" />
+          <param name="bgcolor" value="#869ca7" />
+          <param name="allowScriptAccess" value="sameDomain" />
+          <embed src="/zport/dmd/flex/ZenNetMap.swf" quality="high" bgcolor="#869ca7"
+              width="100%" height="100%" name="zennetmap" align="middle"
+               loop="false" quality="high" allowScriptAccess="sameDomain"
+              type="application/x-shockwave-flash"
+              pluginspage="http://www.macromedia.com/go/getflashplayer">
+          </embed>
+      </object>
+
+</div>
 </tal:block>
 
 <tal:block metal:fill-slot="script_layout">
 <script>
-Ext.onReady(function(){
-
-    Ext.getCmp('center_panel').add({
-        applyTo: 'zennetmap',
-        xtype: 'flash',
-        id: 'zennetmap',
-        url: '/zport/dmd/flex/ZenNetMap.swf',
-        autoShow: true,
-        backgroundColor: '#FFFFFF'
-    });
-
-});
 </script>
 </tal:block>
 </tal:block> <!-- metal:use-macro="context/page_macros/masterdetailsplit2" -->
