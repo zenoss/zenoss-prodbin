@@ -35,10 +35,9 @@ Zenoss.CommandPanel = Ext.extend(Zenoss.IFramePanel, {
     },
     injectForm: function(win){
         var doc = win.document,
-            data = {uids: this.uids, command: this.command},
             form = formTpl.apply({
-                data: Ext.encode(data), 
-                target: this.target + '/run_command'
+                data: Ext.encode(this.data), 
+                target: this.target
             });
         doc.body.innerHTML = form;
         doc.commandform.submit();
@@ -47,39 +46,6 @@ Zenoss.CommandPanel = Ext.extend(Zenoss.IFramePanel, {
 });
 
 Ext.reg('commandpanel', Zenoss.CommandPanel);
-
-Zenoss.BackupPanel = Ext.extend(Zenoss.CommandPanel, {
-    injectForm: function(win){
-        var doc = win.document,
-            data = {args: this.args, command: this.command},
-            form = formTpl.apply({
-                data: Ext.encode(data), 
-                target: '/run_backup'
-            });
-        doc.body.innerHTML = form;
-        doc.commandform.submit();
-        this.parentWindow.setSize(this.parentWindow.getSize());
-    }
-});
-
-Ext.reg('backuppanel', Zenoss.BackupPanel);
-
-Zenoss.ModelPanel = Ext.extend(Zenoss.CommandPanel, {
-    injectForm: function(win){
-        var doc = win.document,
-            data = {uids: this.uids},
-            form = formTpl.apply({
-                data: Ext.encode(data), 
-                target: '/zport/dmd/run_model'
-            });
-        doc.body.innerHTML = form;
-        doc.commandform.submit();
-        this.parentWindow.setSize(this.parentWindow.getSize());
-    }
-});
-
-Ext.reg('modelpanel', Zenoss.ModelPanel);
-
 
 /**********************************************************************
  *
@@ -91,8 +57,7 @@ Zenoss.CommandWindow = Ext.extend(Ext.Window, {
         this.cpanel = Ext.id();
         config = Ext.applyIf(config || {}, {
             layout: 'fit',
-            title: config.command,
-            redirectButton: config.redirectButton || false,
+            title: config.command || config.title,
             cls: 'streaming-window',
             constrain: true,
             plain: true,
@@ -101,21 +66,20 @@ Zenoss.CommandWindow = Ext.extend(Ext.Window, {
                 id: this.cpanel,
                 // default to command panel
                 xtype: config.panel || 'commandpanel',
-                uids: config.uids,
-                args: config.args,
+                data: config.data || 
+                      {uids: config.uids, command: config.command},
                 target: config.target,
-                command: config.command,
                 autoLoad: config.autoLoad,
                 parentWindow: this
             }
         });
         var fbarItems = [];
-        if (config.redirectButton) {
+        if (config.redirectTarget) {
             fbarItems.push({
                 xtype: 'button',
-                text: _t('See Changes'),
+                text: _t('Done'),
                 handler: function(c){
-                    window.location = window.location;
+                    window.location = config.redirectTarget;
                 }.createDelegate(this)
             });
         }

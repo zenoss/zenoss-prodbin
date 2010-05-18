@@ -733,7 +733,7 @@ function commandMenuItemHandler(item) {
     function showWindow() {
         var win = new Zenoss.CommandWindow({
             uids: devids,
-            target: treesm.getSelectedNode().attributes.uid,
+            target: treesm.getSelectedNode().attributes.uid + '/run_command',
             command: command
         });
         win.show();

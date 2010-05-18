@@ -1,5 +1,4 @@
 <tal:block metal:use-macro="here/page_macros/old-new">
-<tal:block metal:fill-slot="breadcrumbs"/>
 <tal:block metal:fill-slot="contentPane">
 
 
@@ -34,7 +33,7 @@
         <tr>
             <td class="tableheader" />
             <td class="tablevalues"><a tal:attributes="
-                href string:${url}/editDaemonConfig?daemon=${daemon}&selectedTabName=zenossInfo">edit this configuration</a></td>
+                href string:${url}/editDaemonConfig?${query}">edit this configuration</a></td>
         </tr>
     </tbody>
 

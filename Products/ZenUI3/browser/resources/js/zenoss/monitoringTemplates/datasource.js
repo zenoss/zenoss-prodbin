@@ -412,7 +412,7 @@ function testDataSource() {
     win = new Zenoss.CommandWindow({
         uids: testDevice,
         panel: 'panel',
-        command: _t('Test Data Source'),
+        title: _t('Test Data Source'),
         autoLoad: {
             url: values.uid + '/test_datasource?' + data
         }

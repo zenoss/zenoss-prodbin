@@ -39,14 +39,16 @@
             <input class="tableheader" type="button" value=" Create Backup "
             onclick="
 var backupLog = new Zenoss.CommandWindow({
-    args: [
-        this.form.includeEvents.checked,
-        this.form.includeMysqlLogin.checked,
-        this.form.timeout.value
-    ],
-    redirectButton: true,
-    panel: 'backuppanel',
-    command: 'zenbackup'
+    data: {
+        args: [
+            this.form.includeEvents.checked,
+            this.form.includeMysqlLogin.checked,
+            this.form.timeout.value
+        ]
+    },
+    redirectTarget: window.location,
+    target: '/run_backup',
+    title: _t('zenbackup')
 });
 backupLog.show();
             "/>

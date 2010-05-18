@@ -790,9 +790,9 @@ Ext.getCmp('footer_bar').add([{
         hidden: Zenoss.Security.doesNotHavePermission('Manage Device'),
         handler: function() {
             var win = new Zenoss.CommandWindow({
-                panel: 'modelpanel',
-                command: 'Model Device',
-                uids: [UID]
+                uids: [UID],
+                target: '/zport/dmd/run_model',
+                title: _t('Model Device')
             });
             win.show();
         }
@@ -812,7 +812,7 @@ Ext.getCmp('footer_bar').add([{
                         handler: function(item) {
                             var win = new Zenoss.CommandWindow({
                                 uids: [UID],
-                                target: UID,
+                                target: UID + '/run_command',
                                 command: item.text
                             });
                             win.show();

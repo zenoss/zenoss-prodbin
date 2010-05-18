@@ -118,6 +118,8 @@ class ZenossInfo(ZenModelItem, SimpleItem):
     def titleOrId(self):
         return self.title or self.id
 
+    def breadCrumbs(self, target='dmd'):
+        return []
 
     security.declarePublic('getZenossVersion')
     def getZenossVersion(self):
