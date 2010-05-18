@@ -43,6 +43,9 @@ class StreamingView(BrowserView):
                 self.stream()
             except StreamClosed:
                 return
+            except Exception:
+                self.write('Exception while performing command: <br />')
+                self.write('<pre>%s</pre>' % (traceback.format_exc()))
         finally:
             self._stream.write(footer)
 
