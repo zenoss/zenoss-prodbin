@@ -23,7 +23,7 @@ log = logging.getLogger('zen.deleteHistory')
 import time
 
 import Globals
-from Products.ZenUtils.ZenScriptBase import ZenScriptBase
+from Products.ZenUtils.scripts.ZenScriptBase import ZenScriptBase
 from _mysql_exceptions import OperationalError
 
 

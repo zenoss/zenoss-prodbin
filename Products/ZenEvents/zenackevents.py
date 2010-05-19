@@ -13,7 +13,7 @@
 ###########################################################################
 import Globals
 
-from Products.ZenUtils.ZenScriptBase import ZenScriptBase
+from Products.ZenUtils.scripts.ZenScriptBase import ZenScriptBase
 
 class zenackevents(ZenScriptBase):
     

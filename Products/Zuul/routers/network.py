@@ -14,7 +14,7 @@
 import logging
 from Products.ZenUtils.Ext import DirectRouter, DirectResponse
 from Products.Zuul.decorators import require
-from Products.ZenUtils.jsonutils import unjson
+from Products.ZenUtils.scripts.jsonutils import unjson
 from Products import Zuul
 
 log = logging.getLogger('zen.NetworkRouter')

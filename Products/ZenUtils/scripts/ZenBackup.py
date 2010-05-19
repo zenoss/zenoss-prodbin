@@ -28,7 +28,7 @@ import ConfigParser
 import tarfile
 
 import Globals
-from ZCmdBase import ZCmdBase
+from Products.ZenUtils.ZCmdBase import ZCmdBase
 from Products.ZenUtils.Utils import zenPath, binPath, readable_time
 from ZenBackupBase import *
 

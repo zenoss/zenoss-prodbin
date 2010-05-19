@@ -18,11 +18,11 @@ from AccessControl.SecurityManagement import newSecurityManager
 from AccessControl.SecurityManagement import noSecurityManager
 from threading import Lock
 from transaction import commit
-from Utils import getObjByPath, zenPath, set_context
-from CmdBase import CmdBase
+from Products.ZenUtils.Utils import getObjByPath, zenPath, set_context
+from Products.ZenUtils.CmdBase import CmdBase
 
 from Products.ZenRelations.ZenPropertyManager import setDescriptors
-from Exceptions import ZentinelException
+from Products.ZenUtils.Exceptions import ZentinelException
 
 defaultCacheDir = zenPath('var')
 

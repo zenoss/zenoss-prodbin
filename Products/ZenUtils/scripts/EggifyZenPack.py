@@ -13,9 +13,9 @@
 __doc__ = "Convert old-style zenpacks to zenpack eggs"
 
 import Globals
-from Products.ZenUtils.ZenScriptBase import ZenScriptBase
+from Products.ZenUtils.scripts.ZenScriptBase import ZenScriptBase
 from Products.ZenModel.ZenPack import ZenPackException
-from Utils import zenPath
+from Products.ZenUtils.Utils import zenPath
 import ZenPackCmd
 import os, sys
 import shutil

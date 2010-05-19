@@ -19,7 +19,7 @@ _ = MessageFactory('zenoss')
 from Products.Five.browser import BrowserView
 from Products.Five.browser.pagetemplatefile import ViewPageTemplateFile
 
-from Products.ZenUtils.jsonutils import json, unjson
+from Products.ZenUtils.scripts.jsonutils import json, unjson
 from Products.ZenUI3.utils.javascript import JavaScriptSnippet
 from Products.ZenUI3.browser.eventconsole.columns import COLUMN_CONFIG
 from Products.Zuul import getFacade

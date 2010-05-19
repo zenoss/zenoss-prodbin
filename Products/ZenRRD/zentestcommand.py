@@ -31,7 +31,7 @@ from copy import copy
 log = logging.getLogger("zen.zentestcommand")
 
 import Globals
-from Products.ZenUtils.ZenScriptBase import ZenScriptBase
+from Products.ZenUtils.scripts.ZenScriptBase import ZenScriptBase
 
 snmptemplate = ("snmpwalk -c%(zSnmpCommunity)s "
                 "-%(zSnmpVer)s %(manageIp)s %(oid)s")

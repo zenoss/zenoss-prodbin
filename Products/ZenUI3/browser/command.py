@@ -19,7 +19,7 @@ import signal
 import time
 from itertools import imap
 from Products.ZenUI3.browser.streaming import StreamingView, StreamClosed
-from Products.ZenUtils.jsonutils import unjson
+from Products.ZenUtils.scripts.jsonutils import unjson
 from Products.Zuul import getFacade
 
 

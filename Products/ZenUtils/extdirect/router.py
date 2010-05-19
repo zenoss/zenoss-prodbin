@@ -17,7 +17,7 @@ log = logging.getLogger('extdirect')
 class DirectException(Exception):
     pass
 
-from Products.ZenUtils.jsonutils import json, unjson
+from Products.ZenUtils.scripts.jsonutils import json, unjson
 
 
 class DirectResponse(object):

@@ -14,7 +14,7 @@
 import re
 
 from Products.Five.browser import BrowserView
-from Products.ZenUtils.jsonutils import json
+from Products.ZenUtils.scripts.jsonutils import json
 
 class SinglePill(BrowserView):
     def __call__(self):

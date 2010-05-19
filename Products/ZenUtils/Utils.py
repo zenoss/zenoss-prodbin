@@ -45,7 +45,7 @@ from Acquisition import aq_inner, aq_parent
 from ZServer.HTTPServer import zhttp_channel
 
 from Products.ZenUtils.Exceptions import ZenPathError, ZentinelException
-from Products.ZenUtils.jsonutils import json as _json, unjson
+from Products.ZenUtils.scripts.jsonutils import unjson
 
 class HtmlFormatter(logging.Formatter):
     """
@@ -1268,32 +1268,6 @@ def monkeypatch(target):
         return func
     return patcher
 
-
-def json(f):
-    """
-    Decorator that serializes the return value of the decorated function as
-    JSON.
-
-    Use of the C{ZenUtils.Utils.json} decorator is deprecated. Please import 
-    from C{ZenUtils.json}. 
-
-        >>> @json
-        ... def f():
-        ...     return (dict(a=1L), u"123", 123)
-        ...
-        >>> print f()
-        [{"a": 1}, "123", 123]
-
-    @param f: class
-    @type f: class object
-    @return: decorator function return
-    @rtype: function
-    @deprecated: import from Products.ZenWidgets.json
-    """
-    warnings.warn("Use of the ZenUtils.Utils.json decorator is deprecated. " 
-                  "Please import from Products.ZenUtils.jsonutilsutils", 
-                  DeprecationWarning) 
-    return _json(f) 
 
 def formreq(f): 
     """ 

@@ -11,7 +11,8 @@
 #
 ###########################################################################
 
-import json as _json
+
+from json import JSONDecoder, dumps, loads
 
 def _recursiveCaster(ob):
     if isinstance(ob, dict):
@@ -27,7 +28,7 @@ def _recursiveCaster(ob):
         return ob
 
 
-class StringifyingDecoder(_json.JSONDecoder):
+class StringifyingDecoder(JSONDecoder):
     """
     Casts all unicode objects as strings. This is necessary until Zope is less
     stupid.
@@ -62,7 +63,7 @@ def json(value, **kw):
     if callable(value):
         # Decorate the given callable
         def inner(*args, **kwargs):
-            return _json.dumps(value(*args, **kwargs))
+            return dumps(value(*args, **kwargs))
         # Well-behaved decorators look like the decorated function
         inner.__name__ = value.__name__
         inner.__dict__.update(value.__dict__)
@@ -70,7 +71,7 @@ def json(value, **kw):
         return inner
     else:
         # Simply serialize the value passed
-        return _json.dumps(value, **kw)
+        return dumps(value, **kw)
 
 def unjson(value, **kw):
     """
@@ -86,4 +87,4 @@ def unjson(value, **kw):
     """
     if 'cls' not in kw:
         kw['cls'] = StringifyingDecoder
-    return _json.loads(value, **kw)
+    return loads(value, **kw)
