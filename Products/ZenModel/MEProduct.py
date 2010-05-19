@@ -43,11 +43,19 @@ class MEProduct(ManagedEntity):
     getModelName = getProductName
 
 
+    security.declareProtected('View', 'getProductHref')
+    def getProductHref(self):
+        productClass = self.productClass()
+        if productClass: 
+            return productClass.getPrimaryHref()
+        return ''
+
+
     security.declareProtected('View', 'getManufacturer')
     def getManufacturer(self):
         if self.productClass():
             return self.productClass().manufacturer()
-  
+
 
     security.declareProtected('View', 'getManufacturerName')
     def getManufacturerName(self):
@@ -60,6 +68,13 @@ class MEProduct(ManagedEntity):
     def getManufacturerLink(self, target=None):
         if self.productClass():
             return self.productClass().manufacturer.getPrimaryLink(target)
+        return ""
+
+
+    security.declareProtected('View', 'getManufacturerLink')
+    def getManufacturerHref(self):
+        if self.productClass():
+            return self.productClass().manufacturer.getPrimaryHref()
         return ""
 
 
