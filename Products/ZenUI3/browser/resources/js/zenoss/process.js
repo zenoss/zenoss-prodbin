@@ -274,8 +274,6 @@ var processFormConfig = {
 var processForm = Ext.getCmp('detail_panel').add(processFormConfig);
 processForm.on('actioncomplete', actioncompleteHandler);
 
-processForm.getRootNode().select();
-
 /* ***********************************************************************
  *
  *   bottom_detail_panel - the device and event grid on the bottom right
