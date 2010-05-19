@@ -23,6 +23,7 @@ from Products.Zuul.interfaces import ICatalogTool, IServiceOrganizerInfo
 from Products.ZenModel.ServiceClass import ServiceClass
 from Products.ZenModel.ServiceOrganizer import ServiceOrganizer
 from Products.ZenModel.Service import Service
+from Products.Zuul.utils import getZPropertyInfo, setZPropertyInfo
 
 class ServiceOrganizerNode(TreeNode):
     implements(IServiceOrganizerNode)
@@ -51,19 +52,30 @@ class ServiceOrganizerNode(TreeNode):
 
 class ServiceInfoBase(InfoBase):
 
-    monitor = ConfigProperty('zMonitor', 'boolean')
-    failSeverity = ConfigProperty('zFailSeverity', 'int')
+    def getZMonitor(self):
+        def translate(rawValue):
+            return {False: 'No', True: 'Yes'}[rawValue]
+        return getZPropertyInfo(self._object, 'zMonitor', True, translate)
 
-    def getInherited(self):
-        return not self._object.hasProperty('zMonitor')
+    def setZMonitor(self, data):
+        setZPropertyInfo(self._object, 'zMonitor', **data)
 
-    def setInherited(self, isInherited):
-        if isInherited:
-            if self._object.hasProperty('zMonitor'):
-                self._object.deleteZenProperty('zMonitor')
-            if self._object.hasProperty('zFailSeverity'):
-                self._object.deleteZenProperty('zFailSeverity')
-    isInherited = property(getInherited, setInherited)
+    zMonitor = property(getZMonitor, setZMonitor)
+
+    def getZFailSeverity(self):
+        def translate(rawValue):
+            return {5: 'Critical',
+                    4: 'Error',
+                    3: 'Warning',
+                    2: 'Info',
+                    1: 'Debug'}[rawValue]
+        return getZPropertyInfo(self._object, 'zFailSeverity', 4, translate)
+
+    def setZFailSeverity(self, data):
+        setZPropertyInfo(self._object, 'zFailSeverity', **data)
+
+    zFailSeverity = property(getZFailSeverity, setZFailSeverity)
+
 
 class ServiceInfo(ServiceInfoBase):
     implements(IServiceInfo)

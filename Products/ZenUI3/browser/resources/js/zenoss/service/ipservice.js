@@ -33,12 +33,19 @@ Ext.onReady( function() {
         minValue: 1
     };
 
-    var formItems = [
-        {items: [zsf.nameTextField, zsf.descriptionTextField,
-                 portTextField, zsf.serviceKeysTextField]},
-
-        {items: [zsf.monitoringFieldSet]}
-    ];
+    var formItems = [{
+        items: [
+            zsf.nameTextField,
+            zsf.descriptionTextField,
+            portTextField,
+            zsf.serviceKeysTextField
+        ]
+    }, {
+        items: [
+            zsf.zMonitor,
+            zsf.zFailSeverity
+        ]
+    }];
 
     var navColumns = [
         {

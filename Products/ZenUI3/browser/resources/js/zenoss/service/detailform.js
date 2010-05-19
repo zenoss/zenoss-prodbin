@@ -22,47 +22,6 @@ Ext.onReady( function() {
 
     var zs = Ext.ns('Zenoss.Service.DetailForm');
 
-    /**
-     * Enables or disables monitoring options based on inheritance
-     * @param {boolean} disabled Whether to disable or not
-     */
-    zs.setMonitoringDisabled = function(disabled) {
-        Ext.getCmp('monitorCheckbox').setDisabled(disabled);
-        Ext.getCmp('eventSeverityCombo').setDisabled(disabled);
-    };
-
-    /**
-     * Handles the acquiredCheckbox check events.  If unchecked, it will
-     * load its own values, but if checked, it will load its parent's
-     * values instead.
-     * @implements Ext.form.Checkbox:check
-     * @param {Ext.form.Checkbox} checkbox The checkbox itself
-     * @param {boolean} checked The value of the checkbox as a boolean
-     */
-    zs.acquiredCheckboxHandler = function(checkbox, checked) {
-        if ( Ext.getCmp('serviceForm').isLoadInProgress ) {
-            return;
-        }
-        zs.setMonitoringDisabled(checked);
-
-        var router = Zenoss.remote.ServiceRouter,
-            uid = Ext.getCmp('serviceForm').contextUid;
-
-        var callback = function(provider, response) {
-            var info = response.result.data;
-            Ext.getCmp('monitorCheckbox').setValue(info.monitor);
-            Ext.getCmp('eventSeverityCombo').setValue(info.failSeverity);
-        };
-
-        router.getInfo({uid: uid, keys: ['monitor', 'failSeverity']}, callback);
-    };
-    zs.beforeactionhandler = function(form, action) {
-        if (action.type=='directsubmit') {
-            action.options.params = Ext.apply(action.params||{}, {
-                isInherited: form.getFieldValues().isInherited
-            });
-        }
-    };
     zs.actioncompleteHandler = function(form, action) {
         form = Ext.getCmp('serviceForm');
 
@@ -123,60 +82,31 @@ Ext.onReady( function() {
         id: 'serviceKeysTextField',
         fieldLabel: _t('Service Keys'),
         name: 'serviceKeys',
-
         width: "100%"
     };
 
-    zs.acquiredCheckbox = {
-        xtype: 'checkbox',
-        id: 'acquiredCheckbox',
-        fieldLabel: _t('Inherited?'),
-        name: 'isInherited',
-        handler: zs.acquiredCheckboxHandler,
-        submitValue: true
+    zs.zMonitor = {
+        xtype: 'zprop',
+        ref: '../../zMonitor',
+        title: _t('Enable Monitoring? (zMonitor)'),
+        name: 'zMonitor',
+        localField: {
+            xtype: 'select',
+            mode: 'local',
+            store: [[true, 'Yes'], [false, 'No']]
+        }
     };
 
-    zs.monitorCheckbox = {
-        xtype: 'checkbox',
-        id: 'monitorCheckbox',
-        fieldLabel: _t('Enabled'),
-        name: 'monitor',
-        submitValue: true
-    };
-
-    //TODO: replace with 'severity' xtype
-    zs.eventSeverityCombo = {
-        xtype: 'combo',
-        id: 'eventSeverityCombo',
-        fieldLabel: _t('Event Severity'),
-        name: 'failSeverity',
-        mode: 'local',
-        store: new Ext.data.ArrayStore({
-            data: Zenoss.env.SEVERITIES,
-            fields: ['value', 'name']
-        }),
-        valueField: 'value',
-        displayField: 'name',
-        hiddenName: 'failSeverity',
-        hiddenId: 'eventSeverityComboHidden',
-        triggerAction: 'all',
-        forceSelection: true,
-        editable: false,
-        autoSelect: true
-    };
-
-    zs.monitoringFieldSet = {
-        xtype: 'ColumnFieldSet',
-        title: _t('Monitoring'),
-        __inner_items__: [
-            {
-                items: zs.acquiredCheckbox
-            }, {
-                items: zs.monitorCheckbox
-            }, {
-                items: zs.eventSeverityCombo
-            }
-        ]
+    zs.zFailSeverity = {
+        xtype: 'zprop',
+        ref: '../../zFailSeverity',
+        title: _t('Failure Event Severity (zFailSeverity)'),
+        name: 'zFailSeverity',
+        localField: {
+            xtype: 'select',
+            mode: 'local',
+            store: Zenoss.env.SEVERITIES.slice(0, 5)
+        }
     };
 
     zs.formItems = {
@@ -188,12 +118,18 @@ Ext.onReady( function() {
             bodyStyle: 'padding: 15px',
             columnWidth: 0.5
         },
-        items: [
-            {items: [zs.nameTextField, zs.descriptionTextField,
-                     zs.serviceKeysTextField]},
-
-            {items: [zs.monitoringFieldSet]}
-        ]
+        items: [{
+            items: [
+                zs.nameTextField, 
+                zs.descriptionTextField,
+                zs.serviceKeysTextField
+            ]
+        }, {
+            items: [
+                zs.zMonitor,
+                zs.zFailSeverity
+            ]
+        }]
     };
 
     zs.hiddenFieldIdsForOrganizer = [zs.serviceKeysTextField.id];
@@ -211,6 +147,5 @@ Ext.onReady( function() {
     zs.initForm = function() {
         var serviceForm = Ext.getCmp('detail_panel').add(zs.formConfig);
         serviceForm.on('actioncomplete', zs.actioncompleteHandler);
-        serviceForm.on('beforeaction', zs.beforeactionhandler);
     };
 });
