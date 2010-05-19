@@ -40,6 +40,25 @@ from Products.CMFCore.DirectoryView import DirectoryView
 #######################################################
 from Products.ZenUtils.Utils import monkeypatch
 
+@monkeypatch(FSMetadata)
+def read(self):
+    """ Find the files to read, either the old security and
+    properties type or the new metadata type """
+    filename = self._filename + '.metadata'
+    if path.exists(filename):
+        # found the new type, lets use that
+        self._readMetadata()
+    else:
+###########################################################################
+# This is a monkeypatch. CMFCore 2.0 returns {} where 1.x returned
+# None; we rely on None. {} is (maybe) ambiguous.
+###########################################################################
+        self._properties = None
+        self._security = None
+###########################################################################
+# End monkeypatch
+###########################################################################
+
 
 @monkeypatch('Products.CMFCore.DirectoryView.DirectoryInformation')
 def prepareContents(self, registry, register_subdirs=0):

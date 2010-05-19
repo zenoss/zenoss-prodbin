@@ -24,6 +24,25 @@ class SecurityManager(ViewletManagerBase):
     interface.implements(ISecurityManager)
 
 
+def permissionsForContext(context):
+    """
+    Given a context (zope object) returns all the permissions
+    the logged in user has.
+    """
+    manager = getSecurityManager()
+    all_permissions = context.zport.acl_users.possible_permissions()
+    
+    # filter out the ones we have in this context
+    valid_permissions = [permission for permission in all_permissions 
+                         if manager.checkPermission(permission, context)]
+        
+    # turn the list into a dictionary to make it easier to look up on
+    # the client side (just look up the key instead of iterating)
+    perms = {}
+    for permission in valid_permissions:
+        perms[permission.lower()] = True
+    return perms
+
 class PermissionsDeclaration(viewlet.ViewletBase):
     """This is responsible for sending to the client side
     which permissions the user has
@@ -51,16 +70,5 @@ class PermissionsDeclaration(viewlet.ViewletBase):
         """Given a context return a list of all the permissions the logged in
         user has.
         """
-        manager = getSecurityManager()
-        all_permissions = self.context.zport.acl_users.possible_permissions()
+        return permissionsForContext(self.context)
         
-        # filter out the ones we have in this context
-        valid_permissions = [permission for permission in all_permissions 
-                             if manager.checkPermission(permission, self.context)]
-        
-        # turn the list into a dictionary to make it easier to look up on
-        # the client side (just look up the key instead of iterating)
-        perms = {}
-        for permission in valid_permissions:
-            perms[permission.lower()] = True
-        return perms

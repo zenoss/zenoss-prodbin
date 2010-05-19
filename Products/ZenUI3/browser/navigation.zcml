@@ -41,7 +41,7 @@
         weight="0"
         manager="..navigation.interfaces.IPrimaryNavigationMenu"
         class="..navigation.menuitem.PrimaryNavigationMenuItem"
-        permission="zope2.Public"
+        permission="zenoss.Common"
         layer="..navigation.interfaces.IZenossNav"
         />
 
@@ -63,7 +63,7 @@
         weight="2"
         manager="..navigation.interfaces.IPrimaryNavigationMenu"
         class="..navigation.menuitem.PrimaryNavigationMenuItem"
-        permission="zope2.Public"
+        permission="zenoss.View"
         layer="..navigation.interfaces.IZenossNav"
         />
 
@@ -74,7 +74,7 @@
             parentItem="Events"
             manager="..navigation.interfaces.ISecondaryNavigationMenu"
             class="..navigation.menuitem.SecondaryNavigationMenuItem"
-            permission="zenoss.ViewHistory"
+            permission="zenoss.Common"
             layer="..navigation.interfaces.IZenossNav"
             />
 
@@ -86,7 +86,7 @@
             parentItem="Events"
             manager="..navigation.interfaces.ISecondaryNavigationMenu"
             class="..navigation.menuitem.SecondaryNavigationMenuItem"
-            permission="zope2.Public"
+            permission="zenoss.View"
             layer="..navigation.interfaces.IZenossNav"
             />
 
@@ -97,7 +97,7 @@
             parentItem="Events"
             manager="..navigation.interfaces.ISecondaryNavigationMenu"
             class="..navigation.menuitem.SecondaryNavigationMenuItem"
-            permission="zope2.Public"
+            permission="zenoss.ManageEventManager"
             layer="..navigation.interfaces.IZenossNav"
             />
 
@@ -107,7 +107,7 @@
         weight="3"
         manager="..navigation.interfaces.IPrimaryNavigationMenu"
         class="..navigation.menuitem.PrimaryNavigationMenuItem"
-        permission="zope2.Public"
+        permission="zenoss.Common"
         layer="..navigation.interfaces.IZenossNav"
         />
 
@@ -119,7 +119,7 @@
             parentItem="Infrastructure"
             manager="..navigation.interfaces.ISecondaryNavigationMenu"
             class="..navigation.menuitem.SecondaryNavigationMenuItem"
-            permission="zope2.Public"
+            permission="zenoss.Common"
             layer="..navigation.interfaces.IZenossNav"
             />
 
@@ -130,7 +130,7 @@
             parentItem="Infrastructure"
             manager="..navigation.interfaces.ISecondaryNavigationMenu"
             class="..navigation.menuitem.SecondaryNavigationMenuItem"
-            permission="zope2.Public"
+            permission="zenoss.View"
             layer="..navigation.interfaces.IZenossNav"
             />
 
@@ -141,7 +141,7 @@
             parentItem="Infrastructure"
             manager="..navigation.interfaces.ISecondaryNavigationMenu"
             class="..navigation.menuitem.SecondaryNavigationMenuItem"
-            permission="zope2.Public"
+            permission="zenoss.View"
             layer="..navigation.interfaces.IZenossNav"
             />
 
@@ -152,7 +152,7 @@
             parentItem="Infrastructure"
             manager="..navigation.interfaces.ISecondaryNavigationMenu"
             class="..navigation.menuitem.SecondaryNavigationMenuItem"
-            permission="zope2.Public"
+            permission="zenoss.View"
             layer="..navigation.interfaces.IZenossNav"
             />
 
@@ -163,7 +163,7 @@
             parentItem="Infrastructure"
             manager="..navigation.interfaces.ISecondaryNavigationMenu"
             class="..navigation.menuitem.SecondaryNavigationMenuItem"
-            permission="zope2.Public"
+            permission="zenoss.View"
             layer="..navigation.interfaces.IZenossNav"
             />
 
@@ -174,7 +174,7 @@
             parentItem="Infrastructure"
             manager="..navigation.interfaces.ISecondaryNavigationMenu"
             class="..navigation.menuitem.SecondaryNavigationMenuItem"
-            permission="zope2.Public"
+            permission="zenoss.View"
             layer="..navigation.interfaces.IZenossNav"
             />
 
@@ -185,7 +185,7 @@
             parentItem="Infrastructure"
             manager="..navigation.interfaces.ISecondaryNavigationMenu"
             class="..navigation.menuitem.SecondaryNavigationMenuItem"
-            permission="zope2.Public"
+            permission="zenoss.View"
             layer="..navigation.interfaces.IZenossNav"
             />
 
@@ -196,7 +196,7 @@
         weight="4"
         manager="..navigation.interfaces.IPrimaryNavigationMenu"
         class="..navigation.menuitem.PrimaryNavigationMenuItem"
-        permission="zope2.Public"
+        permission="zenoss.Common"
         layer="..navigation.interfaces.IZenossNav"
         />
 
@@ -206,63 +206,63 @@
         weight="6"
         manager="..navigation.interfaces.IPrimaryNavigationMenu"
         class="..navigation.menuitem.PrimaryNavigationMenuItem"
-        permission="zope2.Public"
+        permission="zenoss.ManageDMD"
         layer="..navigation.interfaces.IZenossNav"
         />
 
-    <browser:viewlet
-        name="Monitoring Templates"
-        url="/zport/dmd/template"
-        weight="1"
-        parentItem="Advanced"
-        manager="..navigation.interfaces.ISecondaryNavigationMenu"
-        class="..navigation.menuitem.SecondaryNavigationMenuItem"
-        permission="zope2.Public"
-        layer="..navigation.interfaces.IZenossNav"
-        />
+        <browser:viewlet
+            name="Monitoring Templates"
+            url="/zport/dmd/template"
+            weight="1"
+            parentItem="Advanced"
+            manager="..navigation.interfaces.ISecondaryNavigationMenu"
+            class="..navigation.menuitem.SecondaryNavigationMenuItem"
+            permission="zope2.Public"
+            layer="..navigation.interfaces.IZenossNav"
+            />
 
-    <browser:viewlet
-        name="Collectors"
-        url="/zport/dmd/Monitors"
-        weight="2"
-        parentItem="Advanced"
-        manager="..navigation.interfaces.ISecondaryNavigationMenu"
-        class="..navigation.menuitem.SecondaryNavigationMenuItem"
-        permission="zope2.Public"
-        layer="..navigation.interfaces.IZenossNav"
-        />
+        <browser:viewlet
+            name="Collectors"
+            url="/zport/dmd/Monitors"
+            weight="2"
+            parentItem="Advanced"
+            manager="..navigation.interfaces.ISecondaryNavigationMenu"
+            class="..navigation.menuitem.SecondaryNavigationMenuItem"
+            permission="zope2.Public"
+            layer="..navigation.interfaces.IZenossNav"
+            />
 
-    <browser:viewlet
-        name="MIBs"
-        url="/zport/dmd/Mibs"
-        weight="3"
-        parentItem="Advanced"
-        manager="..navigation.interfaces.ISecondaryNavigationMenu"
-        class="..navigation.menuitem.SecondaryNavigationMenuItem"
-        permission="zope2.Public"
-        layer="..navigation.interfaces.IZenossNav"
-        />
+        <browser:viewlet
+            name="MIBs"
+            url="/zport/dmd/Mibs"
+            weight="3"
+            parentItem="Advanced"
+            manager="..navigation.interfaces.ISecondaryNavigationMenu"
+            class="..navigation.menuitem.SecondaryNavigationMenuItem"
+            permission="zope2.Public"
+            layer="..navigation.interfaces.IZenossNav"
+            />
 
-    <browser:viewlet
-        name="Settings"
-        url="/zport/dmd/editSettings"
-        subviews="/zport/dmd/dataRootManage
-                  /zport/dmd/userCommands
-                  /zport/dmd/ZenUsers
-                  /zport/dmd/ZenPackManager
-                  /zport/dmd/joblist
-                  /zport/dmd/JobManager
-                  /zport/dmd/editMenus
-                  /zport/dmd/editPortletPerms
-                  /zport/About
-                  /zport/dmd/backupInfo"
-        weight="4"
-        parentItem="Advanced"
-        manager="..navigation.interfaces.ISecondaryNavigationMenu"
-        class="..navigation.menuitem.SecondaryNavigationMenuItem"
-        permission="zope2.Public"
-        layer="..navigation.interfaces.IZenossNav"
-        />
+        <browser:viewlet
+            name="Settings"
+            url="/zport/dmd/editSettings"
+            subviews="/zport/dmd/dataRootManage
+                      /zport/dmd/userCommands
+                      /zport/dmd/ZenUsers
+                      /zport/dmd/ZenPackManager
+                      /zport/dmd/joblist
+                      /zport/dmd/JobManager
+                      /zport/dmd/editMenus
+                      /zport/dmd/editPortletPerms
+                      /zport/About
+                      /zport/dmd/backupInfo"
+            weight="4"
+            parentItem="Advanced"
+            manager="..navigation.interfaces.ISecondaryNavigationMenu"
+            class="..navigation.menuitem.SecondaryNavigationMenuItem"
+            permission="zope2.Public"
+            layer="..navigation.interfaces.IZenossNav"
+            />
 
 </configure>
 

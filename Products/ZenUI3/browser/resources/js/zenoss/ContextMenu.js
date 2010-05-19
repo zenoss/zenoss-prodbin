@@ -144,8 +144,10 @@ Zenoss.ContextConfigureMenu = Ext.extend( Zenoss.ContextMenu,{
         if (this.menuIds !== null && this.menuIds.length >= 1){
             args.menuIds = this.menuIds;
         }
-        Zenoss.remote.DetailNavRouter.getContextMenus(args, callback, this);
+
+        Zenoss.remote.DetailNavRouter.getContextMenus(args, callback, this);    
     },
+                                              
     /**
      * private
      * handler used if a menu item does not have a handler defined

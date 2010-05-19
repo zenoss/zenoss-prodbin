@@ -40,7 +40,7 @@ def JavaScriptSourceViewlet(source):
 
 def directRouter(_context, name, class_, namespace=None, for_=Interface,
                  layer=IDefaultBrowserLayer, timeout="30000", 
-                 permission='zope.Public'):
+                 permission='zenoss.Common'):
 
     # Register the view at which the class will be available
     page(_context, name, permission, for_, layer, class_=class_)
@@ -49,5 +49,5 @@ def directRouter(_context, name, class_, namespace=None, for_=Interface,
     source = DirectProviderDefinition(class_, name, timeout, namespace).render()
     viewletclass = JavaScriptSourceViewlet(source)
 
-    viewletDirective(_context, name, 'zope.Public', for_, layer,
+    viewletDirective(_context, name, 'zope2.Public', for_, layer,
                      manager=IExtDirectJavaScriptManager, class_=viewletclass)

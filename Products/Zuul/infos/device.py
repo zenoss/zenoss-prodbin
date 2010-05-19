@@ -65,7 +65,9 @@ class DeviceOrganizerNode(TreeNode):
 
     @property
     def text(self):
-        cat = ICatalogTool(self._object)
+        # need to query the catalog from the permissions perspective of
+        # the uid
+        cat = ICatalogTool(self._object.unrestrictedTraverse(self.uid))
         numInstances = cat.count('Products.ZenModel.Device.Device', self.uid)
         text = super(DeviceOrganizerNode, self).text
         return {

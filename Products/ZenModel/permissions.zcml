@@ -54,6 +54,21 @@
       />
 
   <permission
+      id="zenoss.ManageEventManager"
+      title="Manage EventManager"
+      />
+
+  <permission
+      id="zenoss.ManageEvents"
+      title="Manage Events"
+      />
+
+  <permission
+      id="zenoss.SendEvents"
+      title="Send Events"
+      />
+
+  <permission
       id="zenoss.ChangeEventViews"
       title="Change Event Views"
       />

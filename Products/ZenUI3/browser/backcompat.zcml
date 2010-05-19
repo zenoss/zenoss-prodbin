@@ -226,7 +226,7 @@
     template="../../ZenModel/skins/zenmodel/Dashboard.pt"
     name="Dashboard"
     for="*"
-    permission="zenoss.View"
+    permission="zenoss.Common"
     />
 
 <browser:page

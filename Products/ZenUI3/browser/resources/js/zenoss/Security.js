@@ -49,5 +49,22 @@
          return (!this.hasPermission(permission));           
      };
 
+
+     /**
+      * If the context you are working on changes call this
+      * method to update the security permissions for that new context
+      **/
+     Zenoss.Security.setContext = function(uid) {
+         var params = {
+             uid:uid
+         };
+         function callback(response) {
+             if (response.success) {
+                 all_permissions = response.data;
+             }
+         }
+         Zenoss.remote.DetailNavRouter.getSecurityPermissions(params, callback);    
+         
+     };
      
 }());

@@ -17,7 +17,7 @@ Base class for device organizers
 
 from itertools import ifilter
 from types import StringTypes
-
+from zope.event import notify
 from AccessControl import ClassSecurityInfo
 from Globals import InitializeClass
 
@@ -27,7 +27,7 @@ from Commandable import Commandable
 from ZenMenuable import ZenMenuable
 from MaintenanceWindowable import MaintenanceWindowable
 from AdministrativeRoleable import AdministrativeRoleable
-
+from Products.Zuul.catalog.events import IndexingEvent
 from Products.CMFCore.utils import getToolByName
 
 from Products.ZenRelations.RelSchema import *
@@ -409,10 +409,13 @@ class DeviceOrganizer(Organizer, DeviceManagerBase, Commandable, ZenMenuable,
         @param userid: User to make an administrator of this Organizer
         @type userid: string
         """
+        
         AdministrativeRoleable.manage_addAdministrativeRole(self, newId)
         for dev in self.getSubDevices():
             dev = dev.primaryAq()
             dev.setAdminLocalRoles()
+
+        notify(IndexingEvent(self, ('allowedRolesAndUsers',), False))
         if REQUEST:
             messaging.IMessageSender(self).sendToBrowser(
                 'Role Added',
@@ -432,6 +435,8 @@ class DeviceOrganizer(Organizer, DeviceManagerBase, Commandable, ZenMenuable,
         for dev in self.getSubDevices():
             dev = dev.primaryAq()
             dev.setAdminLocalRoles()
+                        
+        notify(IndexingEvent(self, ('allowedRolesAndUsers',), False))
         if REQUEST:
             messaging.IMessageSender(self).sendToBrowser(
                 'Role Added',
@@ -452,6 +457,8 @@ class DeviceOrganizer(Organizer, DeviceManagerBase, Commandable, ZenMenuable,
         for dev in self.getSubDevices():
             dev = dev.primaryAq()
             dev.setAdminLocalRoles()
+        
+        notify(IndexingEvent(self, ('allowedRolesAndUsers',), False))
         if REQUEST:
             if delids:
                 messaging.IMessageSender(self).sendToBrowser(

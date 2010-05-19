@@ -13,10 +13,11 @@
 
 from itertools import islice
 from zope.interface import implements
-from Products.AdvancedQuery import Eq, Or, Generic, And
+from Products.AdvancedQuery import Eq, Or, Generic, And, In
 from Products.ZCatalog.CatalogBrains import AbstractCatalogBrain
 from Products.Zuul.interfaces import ITreeNode, ICatalogTool
 from Products.Zuul.utils import dottedname, unbrain
+from AccessControl import getSecurityManager
 
 class TreeNode(object):
     """
@@ -77,7 +78,29 @@ class TreeNode(object):
     def __repr__(self):
         return "<TreeNode %s>" % self.uid
 
-
+    @property
+    def hidden(self):
+        """
+        Make sure we don't show the root node of a tree
+        if we don't have permission on it or any of its children
+        """
+        # make sure we are looking at a root node
+        pieces = self.uid.split('/')
+        if len(pieces) != 4:
+            return False
+        
+        # check for our permission
+        manager = getSecurityManager()
+        obj = self._object.unrestrictedTraverse(self.uid)
+        if manager.checkPermission("View", obj):
+            return False
+        
+        # search the catalog to see if we have permission with any of the children
+        cat = ICatalogTool(obj)
+        numInstances = cat.count('Products.ZenModel.DeviceOrganizer.DeviceOrganizer', self.uid)
+        # if anything is returned we have view permissions on a child
+        return not numInstances > 0
+    
 class StaleResultsException(Exception):
     """
     The hash check failed. Selections need to be refreshed.
@@ -130,6 +153,23 @@ class CatalogTool(object):
         results = self._queryCatalog(types, orderby=None, paths=(path,))
         return len(results)
 
+    def _allowedRolesAndGroups(self):
+        """
+        Returns a list of all the groups and
+        roles that the logged in user has access too
+        """
+        user = getSecurityManager().getUser()
+        roles = list(user.getRolesInContext(self.context))
+        # anonymous and anything we own
+        roles.append('Anonymous')
+        roles.append('user:%s' % user.getId())
+        # groups
+        groups = user.getGroups()
+        for group in groups:
+            roles.append('user:%s' % group)
+        
+        return roles
+        
     def _queryCatalog(self, types=(), orderby='name', reverse=False, paths=(),
                      depth=None, query=None):
         qs = []
@@ -152,6 +192,9 @@ class CatalogTool(object):
         typeq = Or(*subqs)
         qs.append(typeq)
 
+        # filter based on permissions
+        qs.append(In('allowedRolesAndUsers', self._allowedRolesAndGroups()))
+                
         # Consolidate into one query
         query = And(*qs)
 

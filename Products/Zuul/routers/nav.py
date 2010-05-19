@@ -12,6 +12,9 @@
 ###########################################################################
 from Products.ZenUtils.Ext import DirectRouter
 from Products.ZenUtils.extdirect.router import DirectResponse
+from Products.Zuul.decorators import require
+from Products.ZenUI3.security.security import permissionsForContext
+
 
 class DetailNavRouter(DirectRouter):
     """
@@ -80,10 +83,10 @@ class DetailNavRouter(DirectRouter):
                 if menus:
                     detailItems.extend([menuToNav(menu) for menu in menus])
         return DirectResponse(detailConfigs=detailItems)
-
+    
     def getContextMenus(self, uid=None, menuIds=None):
         if uid:
-            ob = self.context.dmd.restrictedTraverse(uid)
+            ob = self.context.dmd.unrestrictedTraverse(uid)
             menuItems = []
             if menuIds:
                 menus = self._getDialogMenuItems(menuIds, ob)
@@ -96,3 +99,12 @@ class DetailNavRouter(DirectRouter):
                 if menus:
                     menuItems.extend([menuToConfig(menu) for menu in menus])
         return DirectResponse(menuItems=menuItems)
+
+    def getSecurityPermissions(self, uid):
+        """
+        returns a dictionary of all the permissions a
+        user has on the context
+        """
+        obj = self.context.dmd.unrestrictedTraverse(uid)
+        permissions = permissionsForContext(obj)
+        return DirectResponse.succeed(data=permissions)

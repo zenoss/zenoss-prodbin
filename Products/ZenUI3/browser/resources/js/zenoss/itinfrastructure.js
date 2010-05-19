@@ -135,8 +135,10 @@ function setDeviceButtonsDisabled(bool){
     // 'deleteDevices' button
     Zenoss.devices.deleteDevices.setDisabled(bool ||
         Zenoss.Security.doesNotHavePermission('Delete Device'));
-    Ext.getCmp('commands-menu').setDisabled(bool);
-    Ext.getCmp('actions-menu').setDisabled(bool);
+    Ext.getCmp('commands-menu').setDisabled(bool ||
+        Zenoss.Security.doesNotHavePermission('Run Commands'));
+    Ext.getCmp('actions-menu').setDisabled(bool ||
+        Zenoss.Security.doesNotHavePermission('Manage Device'));
 }
 
 function resetGrid() {
@@ -152,6 +154,10 @@ treesm = new Ext.tree.DefaultSelectionModel({
                 Zenoss.util.setContext(uid, 'detail_panel', 'organizer_events',
                                        'commands-menu', 'footer_bar');
                 setDeviceButtonsDisabled(true);
+                
+                // explicitly set the new security context (to update permissions)
+                Zenoss.Security.setContext(uid);
+                
                 var card = Ext.getCmp('master_panel').getComponent(0);
                 //should "ask" the DetailNav if there are any details before showing
                 //the button
@@ -762,9 +768,9 @@ function updateNavTextWithCount(node) {
 function initializeTreeDrop(tree) {
     Ext.apply(tree, {
         ddGroup: 'devicegriddd',
-        enableDD: true
+        enableDD: Zenoss.Security.hasPermission('Change Device')
     });
-
+    
     tree.on('beforenodedrop', function(e) {
         var grid = Ext.getCmp('device_grid'),
             targetnode = e.target,
@@ -914,7 +920,7 @@ var devtree = {
         }
     }
 };
-
+                
 var grouptree = {
     xtype: 'HierarchyTreePanel',
     id: 'groups',
@@ -1239,10 +1245,13 @@ Ext.getCmp('center_panel').add({
                     footer.buttonDelete.disable();
                 } else if (index===0) {
                     Ext.History.add([node.getOwnerTree().id, node.id].join(Ext.History.DELIMITER));
-                    footer.buttonAdd.enable();
-                    footer.buttonDelete.enable();
+                    if (Zenoss.Security.hasPermission('Manage DMD')) {
+                        footer.buttonAdd.enable();
+                        footer.buttonDelete.enable();   
+                    }
+                    
                 }
-            }
+            }            
         }
     },{
         xtype: 'contextcardpanel',
