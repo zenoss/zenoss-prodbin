@@ -4660,26 +4660,6 @@ True
 0
 </property>
 </object>
-<object id='low swap' module='Products.ZenModel.MinMaxThreshold' class='MinMaxThreshold'>
-<property type="lines" id="dsnames" mode="w" >
-['memAvailSwap_memAvailSwap']
-</property>
-<property type="boolean" id="enabled" mode="w" >
-True
-</property>
-<property type="string" id="minval" mode="w" >
-1024000
-</property>
-<property type="string" id="eventClass" mode="w" >
-/Perf/Memory
-</property>
-<property type="int" id="severity" mode="w" >
-3
-</property>
-<property type="int" id="escalateCount" mode="w" >
-0
-</property>
-</object>
 </tomanycont>
 <tomanycont id='graphDefs'>
 <object id='CPU Utilization' module='Products.ZenModel.GraphDefinition' class='GraphDefinition'>
@@ -6718,26 +6698,6 @@ True
 0
 </property>
 </object>
-<object id='low swap' module='Products.ZenModel.MinMaxThreshold' class='MinMaxThreshold'>
-<property type="lines" id="dsnames" mode="w" >
-['memAvailSwap_memAvailSwap']
-</property>
-<property type="boolean" id="enabled" mode="w" >
-True
-</property>
-<property type="string" id="minval" mode="w" >
-1024000
-</property>
-<property type="string" id="eventClass" mode="w" >
-/Perf/Memory
-</property>
-<property type="int" id="severity" mode="w" >
-3
-</property>
-<property type="int" id="escalateCount" mode="w" >
-0
-</property>
-</object>
 </tomanycont>
 <tomanycont id='graphDefs'>
 <object id='CPU Utilization' module='Products.ZenModel.GraphDefinition' class='GraphDefinition'>
@@ -7208,7 +7168,7 @@ AVERAGE
 <tomanycont id='rrdTemplates'>
 <object id='Device' module='Products.ZenModel.RRDTemplate' class='RRDTemplate'>
 <property type="text" id="description" mode="w" >
-Net-SNMP template for Solaris devices.
+Net-SNMP template for Mac OS X devices.
 </property>
 <property type="string" id="targetPythonClass" mode="w" >
 Products.ZenModel.Device
@@ -7963,26 +7923,6 @@ True
 </property>
 <property type="string" id="eventClass" mode="w" >
 /Perf/CPU
-</property>
-<property type="int" id="severity" mode="w" >
-3
-</property>
-<property type="int" id="escalateCount" mode="w" >
-0
-</property>
-</object>
-<object id='low swap' module='Products.ZenModel.MinMaxThreshold' class='MinMaxThreshold'>
-<property type="lines" id="dsnames" mode="w" >
-['memAvailSwap_memAvailSwap']
-</property>
-<property type="boolean" id="enabled" mode="w" >
-True
-</property>
-<property type="string" id="minval" mode="w" >
-1024000
-</property>
-<property type="string" id="eventClass" mode="w" >
-/Perf/Memory
 </property>
 <property type="int" id="severity" mode="w" >
 3
