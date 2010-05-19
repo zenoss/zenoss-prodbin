@@ -1,5 +1,21 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <view>
+  
+ <!-- Overview buttons -->
+
+  <tooltip>
+    <target></target>
+
+    <html>Save</html>
+  </tooltip>
+
+  <tooltip>
+    <target></target>
+
+    <html>Cancel</html>
+  </tooltip>
+
+<!-- Events buttons -->
 
   <tooltip>
     <target></target>
@@ -18,7 +34,7 @@
   <tooltip>
     <target></target>
 
-    <html>Go to Event Console</html>
+    <html>Go to event console</html>
   </tooltip>
 
 
@@ -27,6 +43,105 @@
 
     <html>View events</html>
   </tooltip>
+
+<!-- bottom of page buttons -->
+
+  <tooltip>
+    <target></target>
+
+    <html>Run commands</html>
+  </tooltip>
+
+ <tooltip>
+    <target></target>
+
+    <html>Actions</html>
+ </tooltip>
+
+ <tooltip>
+    <target></target>
+
+    <html>Add</html>
+ </tooltip>
+
+<!-- Modeler Plugins buttons -->
+
+<tooltip>
+   <target></target>
+
+   <html>Save</html>
+</tooltip>
+
+<tooltip>
+   <target></target>
+
+   <html>Delete</html>
+</tooltip>
+
+<!-- Custom buttons -->
+
+<tooltip>
+   <target></target>
+
+   <html>Save</html>
+</tooltip>
+
+<!-- Monitoring Templates buttons -->
+
+<tooltip>
+   <target></target>
+
+   <html>Add data source</html>
+</tooltip>
+
+<tooltip>
+   <target></target>
+
+   <html>Delete data source</html>
+</tooltip>
+
+<tooltip>
+   <target></target>
+
+   <html>Actions</html>
+</tooltip>
+
+<tooltip>
+   <target></target>
+
+   <html>Add threshold</html>
+</tooltip>
+
+<tooltip>
+   <target></target>
+
+   <html>Delete threshold</html>
+</tooltip>
+
+<tooltip>
+   <target></target>
+
+   <html>Actions</html>
+</tooltip>
+
+<tooltip>
+   <target></target>
+
+   <html>Add graph definition</html>
+</tooltip>
+
+<tooltip>
+   <target></target>
+
+   <html>Delete graph definition</html>
+</tooltip>
+
+<tooltip>
+   <target></target>
+
+   <html>Actions</html>
+</tooltip>
+
 
   
 </view>
