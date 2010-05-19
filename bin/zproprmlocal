@@ -13,7 +13,7 @@
 . $ZENHOME/bin/zenfunctions
 
 NAME=zproprmlocal
-PRGHOME=$ZENHOME/Products/ZenUtils
+PRGHOME=$ZENHOME/Products/ZenUtils/scripts
 PRGNAME=$NAME.py
 CFGFILE=$CFGDIR/$NAME.conf
 
