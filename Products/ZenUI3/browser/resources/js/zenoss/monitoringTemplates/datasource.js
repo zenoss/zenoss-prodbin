@@ -486,7 +486,8 @@ function editDataSourceOrPoint() {
             config.title = _t('Edit Data Point');
             config.directFn = submitDataPointForm;
             config.singleColumn = true;
-        }else if (config.record.testable){
+        }else if (config.record.testable &&
+                  Zenoss.Security.hasPermission('Change Device')){
             // add the test against device panel
             config.items.items.push({
                 xtype:'panel',

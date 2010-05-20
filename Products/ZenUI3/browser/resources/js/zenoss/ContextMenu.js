@@ -104,7 +104,7 @@ Zenoss.ContextConfigureMenu = Ext.extend( Zenoss.ContextMenu,{
      */
     getMenuItems: function(uid){
         var callback = function(provider, response){
-            var menuItems = [];
+            var menuItems = [], visibleMenuCount = 0;
             //get statically defined menu items
             if (this.menuItems.length !== 0) {
                 menuItems = menuItems.concat(this.menuItems);
@@ -132,9 +132,16 @@ Zenoss.ContextConfigureMenu = Ext.extend( Zenoss.ContextMenu,{
                 if (!Ext.isDefined(item.handler)) {
                     item.handler = this.defaultHandler.createDelegate(this);
                 }
+                         
+                // do now show as enabled if we only have hidden items (or spacers)
+                if (!item.hidden && item != '-') {
+                    visibleMenuCount += 1;
+                }
                 this.menu.add(item);
             }, this);
-            if(this.menu.items.length !== 0){
+            
+            // if we have stuff then enable this control
+            if(this.menu.items.length !== 0 && visibleMenuCount){
                 this.enable();
             }
         };

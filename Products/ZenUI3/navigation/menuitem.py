@@ -54,9 +54,27 @@ class PrimaryNavigationMenuItem(viewlet.ViewletBase):
 
     def render(self):
         """
-        Render the menu item into html
+        Render the menu item into html.
+        This needs to look at the permissions from the perspective
+        of the DMD. This way the menu will not change if a user has
+        View Permission in one Context but not in another.
+        The default zope permissions mechanism only looks at the
+        permissions from the current context.
         """
-        return self.template()
+        # empty permissions list means that the permission is either not set
+        # or is zope2.Public (everyone can access it)
+        if not self.__ac_permissions__:
+            return self.template()
+
+        # permissions come from zope looking like
+        #     (('ZenCommon', ('', 'update', 'render')),)
+        # NOTE: You can only have one permission per nav item
+        permission = self.__ac_permissions__[0][0]
+        if self.context.dmd.has_permission(permission):
+            return self.template()
+
+        # user does not have permission to view the menu item globally
+        return ''
 
 
 class SecondaryNavigationMenuItem(PrimaryNavigationMenuItem):

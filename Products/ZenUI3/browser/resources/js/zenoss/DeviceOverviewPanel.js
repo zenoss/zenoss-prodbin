@@ -105,6 +105,7 @@
             buttons: [{
                 text: _t('Save'),
                 ref: '../savebtn',
+                disabled: Zenoss.Security.doesNotHavePermission('Manage Device'),
                 handler: function(btn){
                     var vals = btn.refOwner.editForm.getForm().getFieldValues();
                     Ext.apply(vals, {uid:uid});
@@ -183,8 +184,10 @@
             this.setButtonsDisabled(!this.form.isDirty());
         },
         setButtonsDisabled: function(b) {
-            this.savebtn.setDisabled(b);
-            this.cancelbtn.setDisabled(b);
+            if (Zenoss.Security.hasPermission('Manage Device')) {
+                this.savebtn.setDisabled(b);
+            }
+            this.cancelbtn.setDisabled(b);  
         },
         onFieldAdd: function(field) {
             if (!field.isXType('displayfield')) {

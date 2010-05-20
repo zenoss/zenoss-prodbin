@@ -313,6 +313,7 @@ var componentCard = {
         style: 'font-size:10pt;font-weight:bold'
     },'-',{
         iconCls: 'customize',
+        disabled: Zenoss.Security.doesNotHavePermission('Manage Device'),
         menu: [{
             text: _t('Locking...'),
             handler: showComponentLockingDialog
@@ -322,6 +323,7 @@ var componentCard = {
         }]
     },{
         iconCls: 'delete',
+        disabled: Zenoss.Security.doesNotHavePermission('Manage Device'),
         handler: function() {
             Ext.Msg.show({
                 title: _t('Delete Components'),
@@ -340,6 +342,7 @@ var componentCard = {
         }
     },{
         text: _t('Select'),
+        disabled: Zenoss.Security.doesNotHavePermission('Manage Device'),
         menu: [{
             text: _t('All'),
             handler: function(){
@@ -700,30 +703,35 @@ Ext.getCmp('footer_bar').add([{
     menuItems: [{
         xtype: 'menuitem',
         text: _t('Bind Templates'),
+        hidden: Zenoss.Security.doesNotHavePermission('Edit Local Templates'),
         handler: function(){
             Ext.getCmp('bindTemplatesDialog').show();
         }
     },{
         xtype: 'menuitem',
         text: _t('Add Local Template'),
+        hidden: Zenoss.Security.doesNotHavePermission('Edit Local Templates'),
         handler: function(){
             Ext.getCmp('addLocalTemplatesDialog').show();
         }
     },{
         xtype: 'menuitem',
         text: _t('Remove Local Template'),
+        hidden: Zenoss.Security.doesNotHavePermission('Edit Local Templates'),
         handler: function(){
             Ext.getCmp('removeLocalTemplatesDialog').show();
         }
     },{
         xtype: 'menuitem',
         text: _t('Reset Bindings'),
+        hidden: Zenoss.Security.doesNotHavePermission('Edit Local Templates'),
         handler: function(){
             Ext.getCmp('resetTemplatesDialog').show();
         }
     },{
         xtype: 'menuitem',
         text: _t('Override Template Here'),
+        hidden: Zenoss.Security.doesNotHavePermission('Edit Local Templates'),
         handler: function(){
             Ext.getCmp('overrideTemplatesDialog').show();
         }
