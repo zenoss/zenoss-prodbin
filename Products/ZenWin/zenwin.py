@@ -238,7 +238,7 @@ class ZenWinTask(ObservableMixin):
                  'eventGroup': 'StatusTest'}
         self._eventService.sendEvent(event)
             
-    def _handleResult(self, name, state, startMode=None):
+    def _handleResult(self, name, state, startMode):
         """
         Handle a result from the wmi query. Results from both the initial WMI
         client query and the watcher's notification query are processed by
@@ -249,20 +249,25 @@ class ZenWinTask(ObservableMixin):
         summary = "Windows service '%s' is %s" % (name, state)
         logLevel = logging.DEBUG
         if name in self._taskConfig.services:
-            running, stoppedSeverity, oldStartMode, monitoredStartModes = \
+            was_running, stoppedSeverity, oldStartMode, monitoredStartModes = \
                 self._taskConfig.services[name]
 
-            if state == self.RUNNING:
-                running = True
-            else:
-                running = False
+            running = (state == self.RUNNING)
+            service_was_important = (oldStartMode in monitoredStartModes)
+            service_is_important = (startMode in monitoredStartModes)
 
-            if running or startMode not in monitoredStartModes:
-                self._sendWinServiceEvent(name, summary, Clear)
-                logLevel = logging.INFO
-            elif not running and startMode in monitoredStartModes:
-                self._sendWinServiceEvent(name, summary, stoppedSeverity)
-                logLevel = logging.CRITICAL
+            logLevel = logging.INFO
+            if service_is_important:
+                if running:
+                    self._sendWinServiceEvent(name, summary, Clear)
+                else:
+                    self._sendWinServiceEvent(name, summary, stoppedSeverity)
+                    logLevel = logging.CRITICAL
+            else:
+                # if a down service was changed from important to unimportant,
+                # emit a clear event
+                if service_was_important and not running:
+                    self._sendWinServiceEvent(name, summary, Clear)
 
             self._taskConfig.services[name] = (
                 running, stoppedSeverity, startMode, monitoredStartModes)
