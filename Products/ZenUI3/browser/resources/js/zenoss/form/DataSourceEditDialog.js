@@ -87,7 +87,10 @@
                         clientvalidation: function(formPanel, valid){
                             var dialogWindow;
                             dialogWindow = formPanel.refOwner;
-                            dialogWindow.submitButton.setDisabled(!valid);
+                            // check security first
+                            if (Zenoss.Security.hasPermission('Manage DMD')) {
+                                dialogWindow.submitButton.setDisabled(!valid);    
+                            }
                         }
                     },
                     items: items
@@ -97,6 +100,7 @@
                     xtype: 'DialogButton',
                     ref: '../submitButton',
                     formBind: true,
+                    disabled: Zenoss.Security.doesNotHavePermission('Manage DMD'),
                     text: _t('Save'),
                     handler: function () {
                         var form = that.editForm.form,

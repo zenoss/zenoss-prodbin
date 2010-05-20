@@ -25,7 +25,7 @@ class EventsRouter(DirectRouter):
         super(EventsRouter, self).__init__(context, request)
         self.api = getFacade('event', context)
 
-    @require('View')
+    @require('ZenCommon')
     def query(self, limit=None, start=None, sort=None, dir=None, params=None,
               history=False, uid=None, criteria=()):
         try:

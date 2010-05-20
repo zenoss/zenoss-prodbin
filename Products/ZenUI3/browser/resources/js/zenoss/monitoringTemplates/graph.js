@@ -686,6 +686,7 @@ Ext.create({
     buttons: [{
         ref: '../submitButton',
         text: _t('Submit'),
+        disabled: Zenoss.Security.doesNotHavePermission('Manage DMD'),
         handler: function(submitButton){
             var dialogWindow, basicForm, params;
             dialogWindow = submitButton.refOwner;
@@ -721,7 +722,9 @@ Ext.create({
             clientvalidation: function(formPanel, valid){
                 var dialogWindow;
                 dialogWindow = formPanel.refOwner;
-                dialogWindow.submitButton.setDisabled( ! valid );
+                if (Zenoss.Security.hasPermission('Manage DMD')) {
+                    dialogWindow.submitButton.setDisabled( ! valid );   
+                }                
             },
             show: function(formPanel){
                 formPanel.getForm().load();
@@ -860,8 +863,10 @@ Zenoss.templates.GraphGrid = Ext.extend(Zenoss.BaseSequenceGrid, {
                         Ext.getCmp('graphDefinitionMenuButton').disable();
                     },
                     rowselect: function() {
-                        Ext.getCmp('deleteGraphDefinitionButton').enable();
-                        Ext.getCmp('graphDefinitionMenuButton').enable();
+                        if (Zenoss.Security.hasPermission('Manage DMD')){
+                            Ext.getCmp('deleteGraphDefinitionButton').enable();
+                            Ext.getCmp('graphDefinitionMenuButton').enable();   
+                        }                        
                     }
                 }
             }),
@@ -872,6 +877,7 @@ Zenoss.templates.GraphGrid = Ext.extend(Zenoss.BaseSequenceGrid, {
                 id: 'addGraphDefinitionButton',
                 xtype: 'button',
                 iconCls: 'add',
+                disabled: Zenoss.Security.doesNotHavePermission('Manage DMD'),
                 listeners: {
                     render: function() {
                         Zenoss.registerTooltipFor('addGraphDefinitionButton');

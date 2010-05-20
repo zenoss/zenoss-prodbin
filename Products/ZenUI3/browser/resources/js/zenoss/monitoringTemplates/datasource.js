@@ -570,6 +570,7 @@ Zenoss.DataSourceTreeGrid = Ext.extend(Ext.ux.tree.TreeGrid, {
                     xtype: 'button',
                     iconCls: 'add',
                     id:'datasourceAddButton',
+                    disabled: Zenoss.Security.doesNotHavePermission('Manage DMD'),
                     handler: showAddDataSourceDialog,
                     listeners: {
                         render: function() {
@@ -580,6 +581,7 @@ Zenoss.DataSourceTreeGrid = Ext.extend(Ext.ux.tree.TreeGrid, {
                 xtype: 'button',
                 iconCls: 'delete',
                 id: 'datasourceDeleteButton',
+                disabled: Zenoss.Security.doesNotHavePermission('Manage DMD'),
                 listeners: {
                     render: function() {
                         Zenoss.registerTooltipFor('datasourceDeleteButton');
@@ -590,6 +592,7 @@ Zenoss.DataSourceTreeGrid = Ext.extend(Ext.ux.tree.TreeGrid, {
                 xtype: 'button',
                 id: 'datasourceEditButton',
                 iconCls: 'customize',
+                disabled: Zenoss.Security.doesNotHavePermission('Manage DMD'),
                 listeners: {
                     render: function() {
                         Zenoss.registerTooltipFor('datasourceEditButton');

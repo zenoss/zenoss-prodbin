@@ -304,10 +304,9 @@
     Zenoss.templates.thresholdDataGrid = Ext.extend(Ext.grid.GridPanel, {
         constructor: function(config) {
             var listeners = {};
-            // allow them to doubleclick and bring up the edit dialog
-            if (Zenoss.Security.hasPermission('Manage DMD')) {
-                listeners = Ext.apply(listeners, { rowdblclick: thresholdEdit});
-            }
+            
+            listeners = Ext.apply(listeners, { rowdblclick: thresholdEdit});
+            
             config = config || {};
             Ext.apply(config, {
                 id: Zenoss.templates.thresholdsId,
@@ -324,6 +323,7 @@
                     xtype: 'button',
                     iconCls: 'add',
                     id: 'thresholdAddButton',
+                    disabled: Zenoss.Security.doesNotHavePermission('Manage DMD'),
                     handler: function() {
                         Ext.getCmp('addThresholdDialog').show();
                     },

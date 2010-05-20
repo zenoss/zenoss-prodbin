@@ -93,7 +93,8 @@ class TemplateRouter(DirectRouter):
                 datapoints.append(datapoint)
         data = Zuul.marshal(datapoints)
         return DirectResponse.succeed(data=data)
-    
+
+    @require('Manage DMD')
     def addDataPoint(self, dataSourceUid, name):
         """
         Given a datasource uid and a name, this creates a new datapoint
@@ -102,6 +103,7 @@ class TemplateRouter(DirectRouter):
         facade.addDataPoint(dataSourceUid, name)
         return DirectResponse.succeed()
 
+    @require('Manage DMD')
     def addDataSource(self, templateUid, name, type):
         """
         Adds a new datasource designated by "name" to the template path
@@ -200,7 +202,8 @@ class TemplateRouter(DirectRouter):
         facade = self._getFacade()
         data = Zuul.marshal( facade.getCopyTargets(uid, query) )
         return DirectResponse.succeed(data=data)
-
+    
+    @require('Manage DMD')
     def copyTemplate(self, uid, targetUid):
         """
         Copy template to device or device class uniquely identified by

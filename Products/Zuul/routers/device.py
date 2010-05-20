@@ -417,7 +417,8 @@ class DeviceRouter(TreeRouter):
                                                tag,
                                                serialNumber)
         return DirectResponse.succeed(jobId=jobStatus.id)
-    
+
+    @require('Edit Local Templates')
     def addLocalTemplate(self, deviceUid, templateId):
         """
         Devices a template on the device
@@ -428,6 +429,7 @@ class DeviceRouter(TreeRouter):
         facade.addLocalTemplate(deviceUid, templateId)
         return DirectResponse.succeed()
 
+    @require('Edit Local Templates')
     def removeLocalTemplate(self, deviceUid, templateUid ):
         """
         Removes a template that is defined locally on a device
@@ -474,11 +476,13 @@ class DeviceRouter(TreeRouter):
             data.append([template.id, label])                         
         return DirectResponse.succeed(data=Zuul.marshal(data))
 
+    @require('Edit Local Templates')
     def setBoundTemplates(self, uid, templateIds):
         facade = self._getFacade()
         facade.setBoundTemplates(uid, templateIds)
         return DirectResponse.succeed()
-    
+
+    @require('Edit Local Templates')
     def resetBoundTemplates(self, uid):
         facade = self._getFacade()
         facade.resetBoundTemplates(uid)
@@ -499,6 +503,7 @@ class DeviceRouter(TreeRouter):
             data.append(dict(label=label, uid=template.uid))
         return DirectResponse.succeed(data=data)
 
+    @require('Manage DMD')
     def clearGeocodeCache(self):
         self.context.clearGeocodeCache()
         return DirectResponse.succeed()

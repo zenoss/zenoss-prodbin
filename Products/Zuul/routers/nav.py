@@ -74,7 +74,7 @@ class DetailNavRouter(DirectRouter):
                     }
 
         if uid:
-            ob = self.context.dmd.restrictedTraverse(uid)
+            ob = self.context.dmd.unrestrictedTraverse(uid)
             tabs = ob.zentinelTabs('')
             detailItems = [ convertToDetailNav(tab) for tab in tabs ]
             #get menu items that are not dialogs

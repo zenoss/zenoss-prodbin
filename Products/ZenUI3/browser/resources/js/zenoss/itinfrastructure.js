@@ -1372,6 +1372,7 @@ var footerBar = Ext.getCmp('footer_bar');
                         {
                             xtype: 'menuitem',
                             text: _t('Bind Templates'),
+                            hidden: Zenoss.Security.doesNotHavePermission('Edit Local Templates'),
                             handler: function() {
                                 bindTemplatesDialog.show();
                             }
@@ -1379,6 +1380,7 @@ var footerBar = Ext.getCmp('footer_bar');
                         {
                             xtype: 'menuitem',
                             text: _t('Reset Bindings'),
+                            hidden: Zenoss.Security.doesNotHavePermission('Edit Local Templates'),
                             handler: function(){
                                 resetTemplatesDialog.show();
                             }
@@ -1389,6 +1391,7 @@ var footerBar = Ext.getCmp('footer_bar');
                 menuItems.push({
                     xtype: 'menuitem',
                     text: _t('Clear Geocode Cache'),
+                    hidden: Zenoss.Security.doesNotHavePermission('Manage DMD'),
                     handler: function() {
                         REMOTE.clearGeocodeCache({}, function(data) {
                             var msg = (data.success) ?
@@ -1411,6 +1414,7 @@ var footerBar = Ext.getCmp('footer_bar');
                 menuItems.push({
                     xtype: 'menuitem',
                     text: _t('Edit'),
+                    hidden: Zenoss.Security.doesNotHavePermission('Manage DMD'),
                     handler: function() {
                         var node = treesm.getSelectedNode();
 
