@@ -47,6 +47,10 @@ from ZServer.HTTPServer import zhttp_channel
 from Products.ZenUtils.Exceptions import ZenPathError, ZentinelException
 from Products.ZenUtils.scripts.jsonutils import unjson
 
+
+DEFAULT_SOCKET_TIMEOUT = 30
+
+
 class HtmlFormatter(logging.Formatter):
     """
     Formatter for the logging class
@@ -645,6 +649,7 @@ def sendEmail(emsg, host, port=25, usetls=0, usr='', pwd=''):
     @rtype: tuple
     """
     import smtplib
+    socket.setdefaulttimeout(DEFAULT_SOCKET_TIMEOUT)
     fromaddr = emsg['From']
     toaddr = map(lambda x: x.strip(), emsg['To'].split(','))
     try:
@@ -659,7 +664,7 @@ def sendEmail(emsg, host, port=25, usetls=0, usr='', pwd=''):
         # EOF error on quit, so the email gets sent over and over
         try: server.quit()
         except: pass
-    except (smtplib.SMTPException, socket.error):
+    except (smtplib.SMTPException, socket.error, socket.timeout):
         result = (False, '%s - %s' % tuple(sys.exc_info()[:2]))
     else:
         result = (True, '')
