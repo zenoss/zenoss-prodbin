@@ -21,7 +21,7 @@ function isField(c) {
     return !!c.setValue && !!c.getValue && !!c.markInvalid && !!c.clearInvalid;
 }
 
-function createDirectSubmitFunction(router) {
+ZF.createDirectSubmitFunction = function(router) {
 
     // called in the Ext.form.Action.DirectSubmit.run method
     return function(formElDom, successFunction, directSubmitAction) {
@@ -84,7 +84,7 @@ ZF.BaseDetailForm = Ext.extend(Ext.form.FormPanel, {
             trackResetOnLoad: true,
             permission: 'Manage Device',
             api: {
-                submit: createDirectSubmitFunction(router),
+                submit: ZF.createDirectSubmitFunction(router),
                 load: router.getInfo
             }
         });

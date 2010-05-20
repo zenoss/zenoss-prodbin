@@ -11,10 +11,12 @@
 #
 ###########################################################################
 
+import re
 from zope.interface import implements
 from Products.Zuul.interfaces import IIpNetworkInfo, IIpAddressInfo
-from Products.Zuul.infos import InfoBase, ConfigProperty
+from Products.Zuul.infos import InfoBase
 from Products.Zuul.decorators import info
+from Products.Zuul.utils import getZPropertyInfo, setZPropertyInfo
 
 class IpNetworkInfo(InfoBase):
     implements(IIpNetworkInfo)
@@ -29,31 +31,60 @@ class IpNetworkInfo(InfoBase):
                str(self._object.freeIps())
 
     # zProperties
-    def inheritConfigProperty(configProp):
-        def getICP(self):
-            return not self._object.hasProperty(configProp)
+    def getZAutoDiscover(self):
+        def translate(rawValue):
+            return {False: 'No', True: 'Yes'}[rawValue]
+        return getZPropertyInfo(self._object, 'zAutoDiscover', True, translate)
 
-        def setICP(self, isInherited):
-            if isInherited:
-                if self._object.hasProperty(configProp):
-                    self._object.deleteZenProperty(configProp)
+    def setZAutoDiscover(self, data):
+        setZPropertyInfo(self._object, 'zAutoDiscover', **data)
 
-        return property(getICP, setICP)
+    zAutoDiscover = property(getZAutoDiscover, setZAutoDiscover)
 
-    isInheritAutoDiscover = inheritConfigProperty('zAutoDiscover')
-    autoDiscover = ConfigProperty('zAutoDiscover', 'boolean')
+    def getZDrawMapLinks(self):
+        def translate(rawValue):
+            return {False: 'No', True: 'Yes'}[rawValue]
+        return getZPropertyInfo(self._object, 'zDrawMapLinks', True, translate)
 
-    isInheritDefaultNetworkTree = inheritConfigProperty('zDefaultNetworkTree')
-    defaultNetworkTree = ConfigProperty('zDefaultNetworkTree', 'lines')
+    def setZDrawMapLinks(self, data):
+        setZPropertyInfo(self._object, 'zDrawMapLinks', **data)
 
-    isInheritDrawMapLinks = inheritConfigProperty('zDrawMapLinks')
-    drawMapLinks = ConfigProperty('zDrawMapLinks', 'boolean')
-
-    isInheritIcon = inheritConfigProperty('zIcon')
-    icon = ConfigProperty('zIcon', 'string')
+    zDrawMapLinks = property(getZDrawMapLinks, setZDrawMapLinks)
     
-    isInheritPingFailThresh = inheritConfigProperty('zPingFailThresh')
-    pingFailThresh = ConfigProperty('zPingFailThresh', 'int')
+    def getZDefaultNetworkTree(self):
+        def translate(rawValue):
+            return ', '.join( [str(x) for x in rawValue] )
+        return getZPropertyInfo(self._object, 'zDefaultNetworkTree', 
+                                translate=translate, translateLocal=True)
+
+    _decimalDigits = re.compile('\d+')
+
+    def setZDefaultNetworkTree(self, data):
+        
+        # convert data['localValue'] (string with comma and whitespace
+        # delimeters) to tuple of integers
+        digits = self._decimalDigits.findall( data['localValue'] )
+        data['localValue'] = tuple( int(x) for x in digits )
+        
+        setZPropertyInfo(self._object, 'zDefaultNetworkTree', **data)
+
+    zDefaultNetworkTree = property(getZDefaultNetworkTree, setZDefaultNetworkTree)
+
+    def getZPingFailThresh(self):
+        return getZPropertyInfo(self._object, 'zPingFailThresh')
+
+    def setZPingFailThresh(self, data):
+        setZPropertyInfo(self._object, 'zPingFailThresh', **data)
+
+    zPingFailThresh = property(getZPingFailThresh, setZPingFailThresh)
+
+    def getZIcon(self):
+        return getZPropertyInfo(self._object, 'zIcon')
+
+    def setZIcon(self, data):
+        setZPropertyInfo(self._object, 'zIcon', **data)
+
+    zIcon = property(getZIcon, setZIcon)
 
 
 class IpAddressInfo(InfoBase):

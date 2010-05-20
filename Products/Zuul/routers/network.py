@@ -83,14 +83,6 @@ class NetworkRouter(DirectRouter):
     @require('Manage DMD')
     def setInfo(self, **data):
         network = self.api.getInfo(data['uid'])
-
-        for field in data.keys():
-            if field.startswith('isInherit') or \
-                field in ['autoDiscover', 'drawMapLinks']:
-                    data[field] = data[field] == 'on'
-            if field == 'defaultNetworkTree':
-                data[field] = [int(x) for x in data[field].split()]
-
         Zuul.unmarshal(data, network)
         return DirectResponse.succeed()
 

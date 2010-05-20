@@ -186,13 +186,15 @@ def getAcquiredZPropertyInfo(obj, zProp, translate=lambda x: x):
         info = {'acquiredValue': None, 'ancestor': None}
     return info
 
-def getZPropertyInfo(obj, zProp, defaultLocalValue, translate=lambda x: x):
+def getZPropertyInfo(obj, zProp, defaultLocalValue='', translate=lambda x: x, translateLocal=False):
     zPropInfo = {}
     zPropInfo['isAcquired'] = not obj.hasProperty(zProp)
     if zPropInfo['isAcquired']:
         zPropInfo['localValue'] = defaultLocalValue
     else:
         zPropInfo['localValue'] = getattr(obj, zProp)
+        if translateLocal:
+            zPropInfo['localValue'] = translate(zPropInfo['localValue'])
     zPropInfo.update(getAcquiredZPropertyInfo(obj, zProp, translate))
     return zPropInfo
 
