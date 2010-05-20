@@ -27,7 +27,6 @@ import zope.component
 from zope.traversing.adapters import DefaultTraversable
 from Products.Five import zcml
 
-from logging import handlers
 from optparse import OptionParser, SUPPRESS_HELP, NO_DEFAULT, OptionValueError
 from urllib import quote
 
@@ -36,7 +35,7 @@ from urllib import quote
 # See http://dev.zenoss.org/trac/ticket/3146 for details
 from Products.ZenUtils.PkgResources import pkg_resources
 
-from Products.ZenUtils.Utils import unused
+from Products.ZenUtils.Utils import unused, load_config_override
 unused(pkg_resources)
 
 class DMDError: pass
@@ -50,24 +49,25 @@ class CmdBase(object):
 
     def __init__(self, noopts=0):
 
+        zope.component.provideAdapter(DefaultTraversable, (None,))
         # We must import ZenossStartup at this point so that all Zenoss daemons
         # and tools will have any ZenPack monkey-patched methods available.
-        zope.component.provideAdapter(DefaultTraversable, (None,))
-        import Products.Five, Products.ZenModel, Products.ZenRelations
-        import Products.ZenWidgets, Products.Zuul
-        try:
-            zcml.load_config('meta.zcml', Products.Five)
-            zcml.load_config('indexing.zcml', Products.ZenModel)
-            zcml.load_config('zendoc.zcml', Products.ZenModel)
-            zcml.load_config('configure.zcml', Products.ZenRelations)
-            zcml.load_config('configure.zcml', Products.Zuul)
-            zcml.load_config('scriptmessaging.zcml', Products.ZenWidgets)
-        except AttributeError:
-            # Could be that we're in a pre-Product-installation Zope, e.g. in
-            # zenwipe. No problem, we won't need this stuff now anyway.
-            pass
         import Products.ZenossStartup
         unused(Products.ZenossStartup)
+        if not zcml._initialized:
+            import Products.Five, Products.ZenModel, Products.ZenRelations, Products.Zuul
+            try:
+                zcml.load_config('meta.zcml', Products.Five)
+                zcml.load_config('indexing.zcml', Products.ZenModel)
+                zcml.load_config('zendoc.zcml', Products.ZenModel)
+                zcml.load_config('configure.zcml', Products.ZenRelations)
+                zcml.load_config('configure.zcml', Products.Zuul)
+            except AttributeError:
+                # Could be that we're in a pre-Product-installation Zope, e.g. in
+                # zenwipe. No problem, we won't need this stuff now anyway.
+                pass
+        import Products.ZenWidgets
+        load_config_override('scriptmessaging.zcml', Products.ZenWidgets)
 
         self.usage = "%prog [options]"
         self.noopts = noopts

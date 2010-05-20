@@ -19,9 +19,10 @@ __version__ = "$Revision: 1.9 $"[11:-2]
 
 from threading import Lock
 
-import zope.component
 from AccessControl.SecurityManagement import newSecurityManager
 from AccessControl.SecurityManagement import noSecurityManager
+from Products.Five import zcml
+
 from Utils import getObjByPath, zenPath
 
 from Exceptions import ZentinelException
@@ -47,11 +48,10 @@ def login(context, name='admin', userfolder=None):
 
 class ZCmdBase(ZenDaemon):
 
-
     def __init__(self, noopts=0, app=None, keeproot=False):
+        import Products.ZenossStartup
+        zcml.load_site()
         ZenDaemon.__init__(self, noopts, keeproot)
-        import Products.Five
-        Products.Five.zcml.load_config('event.zcml', Products.Five)
         self.dataroot = None
         self.app = app
         self.db = None
@@ -65,7 +65,7 @@ class ZCmdBase(ZenDaemon):
                     self.log.warning("Deleting corrupted cache %s" % cache)
                     os.unlink(cache)
                     self.zeoConnect()
-                else: 
+                else:
                     raise
         self.poollock = Lock()
         self.getDataRoot()

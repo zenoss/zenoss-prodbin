@@ -1504,3 +1504,16 @@ def getObjectsFromCatalog(catalog, query=None, log=None):
         except (NotFound, KeyError, AttributeError):
             if log:
                 log.warn("Stale %s record: %s", catalog.id, brain.getPath())
+
+
+def load_config_override(file, package=None, execute=True):
+    """Load an additional ZCML file into the context, overriding others.
+
+    Use with extreme care.
+    """
+    from zope.configuration import xmlconfig
+    from Products.Five.zcml import _context
+    xmlconfig.includeOverrides(_context, file, package=package)
+    if execute:
+        _context.execute_actions()
+
