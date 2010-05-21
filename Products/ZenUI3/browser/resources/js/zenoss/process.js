@@ -87,6 +87,7 @@ var MoveProcessCallback = Ext.extend(Object, {
 });
 
 var ProcessTreePanel = Ext.extend(Zenoss.HierarchyTreePanel, {
+    
     constructor: function(config) {
         Ext.applyIf(config, {
             id: treeId,
@@ -99,10 +100,9 @@ var ProcessTreePanel = Ext.extend(Zenoss.HierarchyTreePanel, {
                 appendOnly: true
             },
             listeners: {
-                nodedrop: {
-                    fn: this.onNodeDrop,
-                    scope: this
-                }
+                scope: this,
+                nodedrop: this.onNodeDrop,
+                load: this.onLoad
             },
             root: {
                 id: 'Processes',
@@ -111,6 +111,7 @@ var ProcessTreePanel = Ext.extend(Zenoss.HierarchyTreePanel, {
         });
         ProcessTreePanel.superclass.constructor.call(this, config);
     },
+    
     onNodeDrop: function(dropEvent) {
         var node, uid, target, targetUid, params, callback;
         node = dropEvent.dropNode;
@@ -121,7 +122,35 @@ var ProcessTreePanel = Ext.extend(Zenoss.HierarchyTreePanel, {
         params = {uid: uid, targetUid: targetUid};
         callback = new MoveProcessCallback(this, node);
         router.moveProcess(params, callback.call, callback);
+    },
+    
+    onLoad: function(node) {
+        if (node.id === '.zport.dmd.Processes') {
+            // the root node has been loaded from the server.  All the nodes
+            // in this TreePanel have been registered and the getNodeById
+            // method will now return a node instance instead of null.
+            var token = Ext.History.getToken();
+            if (token) {
+                var parts = token.split(Ext.History.DELIMITER);
+                var nodeId =  parts.slice(1).join(Ext.History.DELIMITER);
+                this.selectByToken(nodeId);
+            }
+        }
+    },
+    
+    selectByToken: function(nodeId) {
+        // called from Ext.History.selectByToken defined in HistoryManager.js
+        // overrides HierarchyTreePanel method
+        var node = this.getNodeById( unescape(nodeId) );
+        if (node) {
+            this.selectPath(node.getPath());
+        }
+        // node is null prior to the TreePanel load event firing for the root
+        // node with the id .zport.dmd.Processes (the id that comes from the
+        // server). In this case the correct node will be selected once that
+        // event fires and the onLoad method is called.
     }
+    
 });
 
 Ext.getCmp('master_panel').add( new ProcessTreePanel({}) );

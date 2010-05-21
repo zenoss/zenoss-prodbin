@@ -224,6 +224,15 @@ Ext.apply(Zenoss.render, {
 
     Network: function(uid, name) {
         return Zenoss.render.default_uid_renderer(uid, name);
+    },
+    
+    Process: function(uid, name) {
+        var url = '/zport/dmd/process#processTree:' + uid.replace(/\//g, '.');
+        if (!name) {
+            var parts = uid.split('/');
+            name = parts[parts.length-1];
+        }
+        return Zenoss.render.link(null, url, name);
     }
 
 }); // Ext.apply

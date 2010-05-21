@@ -7,7 +7,8 @@ var _tm = {
     'Device':           ["^/zport/dmd/.*/devices/[^/]*/?$"],
     'EventClass':       ["^/zport/dmd/Events(/[A-Z][^/]*)*/?$"],
     'Network':          ["^/zport/dmd/Networks(/(?!ipaddresses)[^/]+)*/?$"],
-    'IpAddress':        ["^/zport/dmd/.*/ipaddresses/[^/]*/?$"]
+    'IpAddress':        ["^/zport/dmd/.*/ipaddresses/[^/]*/?$"],
+    'Process':          ["^/zport/dmd/Processes(.*)$"]
 };
 
 var T = Ext.ns('Zenoss.types');
