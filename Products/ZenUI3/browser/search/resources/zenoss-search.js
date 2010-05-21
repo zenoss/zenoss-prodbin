@@ -7,22 +7,14 @@ if ( Ext.get('searchbox-container') === null ) {
             return;
 }else {
     var combo;
-    Ext.create({
-            black: true,
-            id: 'searchbox-query',
-            fieldClass: 'searchbox-query',
-            name: 'query',
-            width: 150,
-            xtype: 'searchfield',
-            renderTo: 'searchbox-container'
-        });
-
 
     Ext.create({           
-            xtype: 'button',
+            xtype: 'panel',
             id: 'saved-searches-button',
             renderTo: 'searchbox-container',
-                   text: _t('Saved'), // TODO: Get an Icon for this,
+            cls: 'searchcombo-left',
+            width: 20,
+            height: 21,
             handler: function () {
                 // everytime we press this button, we want
                 // to go back to the server to get fresh data
@@ -30,6 +22,17 @@ if ( Ext.get('searchbox-container') === null ) {
             }
         }
     );
+
+    Ext.create({
+            black: true,
+            altCls: 'searchcombo',
+            id: 'searchbox-query',
+            fieldClass: 'searchbox-query',
+            name: 'query',
+            width: 150,
+            xtype: 'searchfield',
+            renderTo: 'searchbox-container'
+        });
     
     var ds = new Ext.data.DirectStore({
         directFn: Zenoss.remote.SearchRouter.getLiveResults,
@@ -80,12 +83,8 @@ if ( Ext.get('searchbox-container') === null ) {
     combo = new Ext.form.ComboBox({
         editable: false,
         triggerAction: 'all',
-        triggerClass: 'no-trigger-icon',
-        triggerConfig: {
-            tag: "img",
-            src: Ext.BLANK_IMAGE_URL,
-            cls: "no-trigger-icon" + this.triggerClass
-        },
+        height: 21,
+        triggerClass: 'searchcombo-trigger',
         applyTo: Ext.get('saved-searches-button'),
         valueField: 'id',
         displayField: 'name',

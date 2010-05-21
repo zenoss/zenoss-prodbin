@@ -12,7 +12,8 @@ Zenoss.SearchField = Ext.extend(Ext.form.TextField, {
         Zenoss.SearchField.superclass.constructor.apply(this, arguments);
     },
     getClass: function(){
-        return this.black ? 'searchfield-black' : 'searchfield';
+        var cls = this.altCls ? this.altCls : 'searchfield';
+        return this.black ? cls + '-black' : cls;
     },
     onRender: function() {
         Zenoss.SearchField.superclass.onRender.apply(this, arguments);
