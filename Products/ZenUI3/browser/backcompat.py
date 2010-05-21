@@ -46,3 +46,6 @@ def DeviceComponent(ob):
     return ':'.join([devpath+'/devicedetail#deviceDetailNav', ob.meta_type,
                     ob.getPrimaryUrlPath()])
 
+def Process(ob):
+    id = '.'.join(ob.getPhysicalPath())
+    return '/zport/dmd/process#processTree:' + id

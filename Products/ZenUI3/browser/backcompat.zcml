@@ -552,4 +552,16 @@
     factory=".backcompat.DeviceComponent"
     />
 
+<adapter
+    for="Products.ZenModel.OSProcessOrganizer.OSProcessOrganizer"
+    provides=".interfaces.INewPath"
+    factory=".backcompat.Process"
+    />
+
+<adapter
+    for="Products.ZenModel.OSProcessClass.OSProcessClass"
+    provides=".interfaces.INewPath"
+    factory=".backcompat.Process"
+    />
+
 </configure>
