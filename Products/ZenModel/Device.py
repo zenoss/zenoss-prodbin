@@ -2059,7 +2059,7 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable,
         return edgesToXML(edges, start)
 
     security.declareProtected(ZEN_VIEW, 'getPrettyLink')
-    def getPrettyLink(self):
+    def getPrettyLink(self, target=None, altHref=""):
         """
         Gets a link to this device, plus an icon
 
@@ -2070,14 +2070,16 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable,
                     "<img class='device-icon' src='%s'/> "
                     "</div>%s")
         icon = self.getIconPath()
-        href = self.getPrimaryUrlPath().replace('%','%%')
+        href = altHref if altHref else self.getPrimaryUrlPath().replace('%','%%')
         name = self.titleOrId()
-        linktemplate = "<a href='"+href+"' class='prettylink'>%s</a>"
+
         rendered = template % (icon, name)
+
         if not self.checkRemotePerm(ZEN_VIEW, self):
             return rendered
         else:
-            return linktemplate % rendered
+            return "<a %s href='%s' class='prettylink'>%s</a>" % \
+                    ('target=' + target if target else '', href, rendered)
 
 
     def getOSProcessMatchers(self):
