@@ -17,6 +17,8 @@ from Products.Zuul.interfaces import IComponentInfo, IComponent
 from Products.Zuul.infos import InfoBase, ProxyProperty
 from Products.Zuul.form.builder import FormBuilder
 from Products.Zuul.decorators import info
+from Products.Zuul.utils import safe_hasattr as hasattr
+
 
 class ComponentInfo(InfoBase):
     implements(IComponentInfo)
@@ -66,5 +68,7 @@ class ComponentFormBuilder(FormBuilder):
     def render(self, fieldsets=True):
         form = super(ComponentFormBuilder, self).render(fieldsets)
         ob = self.context._object
-        form['userCreated'] = ob.isUserCreated and ob.isUserCreated()
+        form['userCreated'] = False
+        if hasattr(ob, 'isUserCreated'):
+            form['userCreated'] =  ob.isUserCreated()
         return form
