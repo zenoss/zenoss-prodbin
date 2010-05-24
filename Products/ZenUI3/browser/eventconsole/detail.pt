@@ -66,13 +66,12 @@
     </tpl>
 </table>
 </textarea>
-<script tal:content="string:
-    Ext.onReady(function(){
-        Zenoss.env.EVENTSGRID_STATEID = '${context/id}_evconsole';
-    });
-"></script>
-<script tal:content="python: 'var EVENT_ID = ' + '\'' + request.form['evid'].replace('\'', '') + '\';'">
 
+<!--The following is using a python statement to avoid permission issues for non-global roles -->
+<script tal:content="python: 'Ext.onReady(function() { Zenoss.env.EVENTSGRID_STATEID = \'' + here.id + '_evconsole\';  });'" >
+</script>
+
+<script tal:content="python: 'var EVENT_ID = ' + '\'' + request.form['evid'].replace('\'', '') + '\';'">
 </script> 
     
 <style>

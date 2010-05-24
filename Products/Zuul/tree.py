@@ -16,7 +16,7 @@ from zope.interface import implements
 from Products.AdvancedQuery import Eq, Or, Generic, And, In
 from Products.ZCatalog.CatalogBrains import AbstractCatalogBrain
 from Products.Zuul.interfaces import ITreeNode, ICatalogTool
-from Products.Zuul.utils import dottedname, unbrain
+from Products.Zuul.utils import dottedname, unbrain, allowedRolesAndGroups
 from AccessControl import getSecurityManager
 
 class TreeNode(object):
@@ -152,23 +152,6 @@ class CatalogTool(object):
             path = '/'.join(self.context.getPhysicalPath())
         results = self._queryCatalog(types, orderby=None, paths=(path,))
         return len(results)
-
-    def _allowedRolesAndGroups(self):
-        """
-        Returns a list of all the groups and
-        roles that the logged in user has access too
-        """
-        user = getSecurityManager().getUser()
-        roles = list(user.getRolesInContext(self.context))
-        # anonymous and anything we own
-        roles.append('Anonymous')
-        roles.append('user:%s' % user.getId())
-        # groups
-        groups = user.getGroups()
-        for group in groups:
-            roles.append('user:%s' % group)
-        
-        return roles
         
     def _queryCatalog(self, types=(), orderby='name', reverse=False, paths=(),
                      depth=None, query=None):
@@ -193,7 +176,7 @@ class CatalogTool(object):
         qs.append(typeq)
 
         # filter based on permissions
-        qs.append(In('allowedRolesAndUsers', self._allowedRolesAndGroups()))
+        qs.append(In('allowedRolesAndUsers', allowedRolesAndGroups(self.context)))
                 
         # Consolidate into one query
         query = And(*qs)

@@ -86,7 +86,7 @@ class EventsRouter(DirectRouter):
                         asof=asof, context=uid, history=history)
         return DirectResponse.succeed()
 
-    @require('View')
+    @require('ZenCommon')
     def detail(self, evid, history=False):
         event = self.api.detail(evid, history)
         if event:

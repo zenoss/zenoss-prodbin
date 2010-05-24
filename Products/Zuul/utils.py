@@ -17,9 +17,10 @@ from operator import attrgetter
 from itertools import islice
 from Acquisition import aq_base, aq_chain
 from zope.interface import Interface
+from AccessControl import getSecurityManager
+from zope.i18nmessageid import MessageFactory
 from Products.ZCatalog.CatalogBrains import AbstractCatalogBrain
 from Products.ZenRelations.ZenPropertyManager import ZenPropertyManager
-from zope.i18nmessageid import MessageFactory
 
 # Translations
 ZuulMessageFactory = MessageFactory('zenoss')
@@ -207,3 +208,24 @@ def setZPropertyInfo(obj, zProp, isAcquired, localValue, **kwargs):
             obj._updateProperty(zProp, localValue)
         else:
             obj._setProperty(zProp, localValue)
+
+
+def allowedRolesAndGroups(context):
+    """
+    Returns a list of all the groups and
+    roles that the logged in user has access too
+    @param context: context for which we are retrieving
+    allowed roles and groups
+    @return [string]: All roles user has as well as groups
+    """
+    user = getSecurityManager().getUser()
+    roles = list(user.getRolesInContext(context))
+    # anonymous and anything we own
+    roles.append('Anonymous')
+    roles.append('user:%s' % user.getId())
+    # groups
+    groups = user.getGroups()
+    for group in groups:
+        roles.append('user:%s' % group)
+        
+    return roles
