@@ -37,8 +37,10 @@ Jobs
 <script type='text/javascript' 
     src='http://getfirebug.com/releases/lite/1.2/firebug-lite-compressed.js'></script>
 -->
-<script>
-(function() {
+<script type='text/javascript'>
+
+Ext.onReady(
+function() {
 
 function initialize() {
 
@@ -147,7 +149,7 @@ loader.require(['connection', 'datasource', 'datatable', 'event']);
 loader.insert({onSuccess: function(){YAHOO.util.Event.onDOMReady(initialize)}});
 
 
-})();
+});
 </script>
 
 </tal:block>
