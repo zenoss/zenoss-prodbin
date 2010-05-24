@@ -365,6 +365,8 @@ Zenoss.OverrideTemplatesDialog = Ext.extend(Zenoss.HideFitDialog, {
                 ref: 'comboBox',
                 selectOnFocus: true,
                 typeAhead: true,
+                valueField: 'uid',
+                displayField: 'label',
                 resizable: true,
                 store: {
                     xtype: 'directstore',
