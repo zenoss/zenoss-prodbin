@@ -202,7 +202,7 @@
 
     <browser:viewlet
         name="Advanced"
-        url="/zport/dmd/template"
+        url="/zport/dmd/editSettings"
         weight="6"
         manager="..navigation.interfaces.IPrimaryNavigationMenu"
         class="..navigation.menuitem.PrimaryNavigationMenuItem"
@@ -213,7 +213,7 @@
         <browser:viewlet
             name="Monitoring Templates"
             url="/zport/dmd/template"
-            weight="1"
+            weight="3"
             parentItem="Advanced"
             manager="..navigation.interfaces.ISecondaryNavigationMenu"
             class="..navigation.menuitem.SecondaryNavigationMenuItem"
@@ -235,7 +235,7 @@
         <browser:viewlet
             name="MIBs"
             url="/zport/dmd/Mibs"
-            weight="3"
+            weight="4"
             parentItem="Advanced"
             manager="..navigation.interfaces.ISecondaryNavigationMenu"
             class="..navigation.menuitem.SecondaryNavigationMenuItem"
@@ -256,7 +256,7 @@
                       /zport/dmd/editPortletPerms
                       /zport/About
                       /zport/dmd/backupInfo"
-            weight="4"
+            weight="0"
             parentItem="Advanced"
             manager="..navigation.interfaces.ISecondaryNavigationMenu"
             class="..navigation.menuitem.SecondaryNavigationMenuItem"
