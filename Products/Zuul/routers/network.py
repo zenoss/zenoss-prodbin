@@ -95,4 +95,4 @@ class NetworkRouter(DirectRouter):
 
         keys = ['name', 'device', 'interface', 'pingstatus', 'snmpstatus', 'uid']
         data = Zuul.marshal(instances, keys)
-        return DirectResponse.succeed(data=data)
+        return DirectResponse.succeed(data=data, totalCount=instances.total)

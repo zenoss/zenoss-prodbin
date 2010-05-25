@@ -218,12 +218,23 @@ Ext.apply(Zenoss.render, {
         return Zenoss.render.default_uid_renderer(uid, name);
     },
 
+    IpInterface: function(uid, name) {
+        var deviceUid = uid.split('/os/interfaces/')[0];
+        var url = deviceUid + '/devicedetail#deviceDetailNav:IpInterface:' + uid;
+        return Zenoss.render.link(null, url, name);
+    },
+
     IpAddress: function(uid, name) {
-        return Zenoss.render.default_uid_renderer(uid, name);
+        return Zenoss.render.Network(uid, name);
     },
 
     Network: function(uid, name) {
-        return Zenoss.render.default_uid_renderer(uid, name);
+        var url = '/zport/dmd/networks#networks:' + uid.replace(/\//g, '.');
+        if (!name) {
+            var parts = uid.split('/');
+            name = parts[parts.length-1];
+        }
+        return Zenoss.render.link(null, url, name);
     },
     
     Process: function(uid, name) {

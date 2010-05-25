@@ -123,22 +123,107 @@ var treesm = new Ext.tree.DefaultSelectionModel({
     }
 });
 
+var NetworkNavTree = Ext.extend(Zenoss.HierarchyTreePanel, {
 
-var network_tree = new Zenoss.HierarchyTreePanel({
+    constructor: function(config) {
+        Ext.applyIf(config, {
+            listeners: {
+                scope: this,
+                load: this.onLoad
+            }
+        });
+        NetworkNavTree.superclass.constructor.call(this, config);
+    },
+
+    onLoad: function(node){
+        // when a TreePanel load event fires for a parent node, all of its
+        // child nodes have been registered, and getNodeById which is used in
+        // selectByToken returns the node instead of null. This is a good time
+        // to select the correct node based on the history token in the URL.
+
+        // example token: 'networks:.zport.dmd.Networks.204.12.105.0.204.12.105.192'
+        var token = Ext.History.getToken();
+
+        if (token) {
+
+            // Ext.History.DELIMITER is ':'
+            var tokenRightPart = unescape( token.split(Ext.History.DELIMITER).slice(1) );
+            var tokenNodeId = tokenRightPart.split('.ipaddresses.')[0];
+            var tokenNodeIdParts = tokenNodeId.split('.');
+
+            // strip the last network id off the token id
+            // example tokenParentId: '.zport.dmd.Networks.204.12.105.0'
+            var tokenParentId = tokenNodeIdParts.slice(0, tokenNodeIdParts.length - 4).join('.');
+
+            if ( node.id === tokenParentId ) {
+                this.selectByToken(tokenRightPart);
+                
+            } else if ( node.id !== '.zport.dmd.Networks' && tokenParentId.indexOf(node.id) === 0 ) {
+                // for nodes that aren't expanded by default, expand this 
+                // loaded ancestor so it loads its children
+                var ancestorIdLength = node.id.split('.').length + 4;
+                var ancestorId = tokenNodeIdParts.slice(0, ancestorIdLength).join('.');
+                var ancestorNode = this.getNodeById(ancestorId);
+                ancestorNode.expand();
+            }
+            
+        }
+        
+    },
+
+    selectByToken: function(tokenRightPart) {
+        // called from onLoad and Ext.History.selectByToken defined in
+        // HistoryManager.js. If node is null when called fomr the History 
+        // change event, then the TreePanel load event will call this function
+        // when getNodeById is ready.
+        var subParts = unescape(tokenRightPart).split('.ipaddresses.');
+        var tokenNodeId = subParts[0];
+        var node = this.getNodeById(tokenNodeId);
+        if (node) {
+            this.selectPath(node.getPath(), null, function(){
+                var ipAddress = subParts[1];
+                var instanceGrid = Ext.getCmp('ipAddressGrid');
+                var store = instanceGrid.getStore();
+                var selModel = instanceGrid.getSelectionModel();
+                
+                function selectIpAddress() {
+                    store.un('load', selectIpAddress);
+                    store.each(function(record){
+                        if ( record.data.name === ipAddress ) {
+                            selModel.selectRow( store.indexOf(record) );
+                            return false;
+                        }
+                    });
+                }
+                
+                selectIpAddress();
+                
+                if ( ! selModel.hasSelection() ) {
+                    // no row selectected, wait for the store to load and try again
+                    store.on('load', selectIpAddress);
+                }
+            });
+        }
+    }
+
+});
+
+Ext.reg('networknavtree', NetworkNavTree);
+
+Ext.getCmp('master_panel').add({
+    xtype: 'networknavtree',
     id: 'networks',
-    searchField: true,
     directFn: Zenoss.remote.NetworkRouter.getTree,
     router: Zenoss.remote.NetworkRouter,
+    searchField: true,
+    selModel: treesm,
     root: {
-        id: 'Network',
+        id: '.zport.dmd.Networks',
         uid: '/zport/dmd/Networks',
         text: null, // Use the name loaded from the remote
         allowDrop: false
-    },
-    selModel: treesm
+    }
 });
-
-Ext.getCmp('master_panel').add(network_tree);
 
 //********************************************
 // IP Addresses grid
@@ -184,7 +269,7 @@ var ipAddressColumnConfig = {
             width: 200,
             renderer: function(iface, row, record){
                 if (iface === null) return 'No Interface';
-                return iface.name;
+                return Zenoss.render.link(iface.uid, null, iface.name);
            }
         }, {
             id: 'pingstatus',
@@ -232,14 +317,30 @@ var ipAddressGridConfig = {
                 items: [ { xtype: 'tbtext', text: _t('IP Addresses') } ]
         },
         cm: new Ext.grid.ColumnModel(ipAddressColumnConfig),
-        store: new Ext.ux.grid.livegrid.Store(ipAddressStoreConfig)
+        store: new Ext.ux.grid.livegrid.Store(ipAddressStoreConfig),
+        sm: new Ext.ux.grid.livegrid.RowSelectionModel({
+            singleSelect: true,
+            listeners: {
+                rowselect: function(selModel, rowIndex, record) {
+                    var token = Ext.History.getToken();
+                    var network = token.split('.ipaddresses.')[0];
+                    Ext.History.add(network + '.ipaddresses.' + record.data.name);
+                }
+            }
+        })
     };
 
 var ipAddressGrid = new Ext.ux.grid.livegrid.GridPanel(ipAddressGridConfig);
 
 ipAddressGrid.setContext = function(uid) {
     this.contextUid = uid;
-    this.getStore().load({ params: {uid: uid} });
+    this.getStore().load({
+        params: {
+            uid: uid,
+            start: 0,
+            limit: 300
+        }
+    });
 }.createDelegate(ipAddressGrid);
 
 Ext.getCmp('bottom_detail_panel').add(ipAddressGrid);

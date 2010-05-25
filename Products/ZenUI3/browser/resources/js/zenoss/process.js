@@ -131,8 +131,7 @@ var ProcessTreePanel = Ext.extend(Zenoss.HierarchyTreePanel, {
             // method will now return a node instance instead of null.
             var token = Ext.History.getToken();
             if (token) {
-                var parts = token.split(Ext.History.DELIMITER);
-                var nodeId =  parts.slice(1).join(Ext.History.DELIMITER);
+                var nodeId = token.split(Ext.History.DELIMITER).slice(1);
                 this.selectByToken(nodeId);
             }
         }
