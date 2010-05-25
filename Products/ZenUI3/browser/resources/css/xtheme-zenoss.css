@@ -1096,6 +1096,9 @@ td.x-date-mp-sel a{
     line-height: 21px;
     font-weight: bold;
 }
+.ext-ie .x-window-header {
+    height: 24px;
+}
 body.x-body-masked .x-window-mc, body.x-body-masked .x-window-plain .x-window-mc{
     background: transparent url(../img/xtheme-zenoss/window/left-right.png) repeat;
 }

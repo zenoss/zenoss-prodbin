@@ -30,6 +30,14 @@ formTpl.compile();
 
 Zenoss.CommandPanel = Ext.extend(Zenoss.IFramePanel, {
     constructor: function(config) {
+        config = Ext.applyIf(config || {}, {
+            autoEl: {
+                tag: 'iframe allowtransparency="true"',
+                id: Ext.id(),
+                src: config.url || '',
+                frameborder: 0
+            }
+        });
         Zenoss.CommandPanel.superclass.constructor.call(this, config);
         this.on('frameload', this.injectForm, this, {single:true});
     },

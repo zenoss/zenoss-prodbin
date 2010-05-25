@@ -17,19 +17,19 @@
 <tal:block metal:fill-slot="zentablecontents">
     
     <tr class="even">
-        <td class="tableheader" width="1" nowrap="1">Include MySQL events database in backup </td>
+        <td class="tableheader" nowrap="nowrap">Include MySQL events database in backup </td>
         <td class="tablevalues">
             <input type="checkbox" name="includeEvents" checked="1" />
         </td>
     </tr>
     <tr class="odd">
-        <td class="tableheader" nowrap="1">Include MySQL login information in the backup </td>
+        <td class="tableheader" nowrap="nowrap">Include MySQL login information in the backup </td>
         <td class="tablevalues">
             <input type="checkbox" name="includeMysqlLogin" checked="1" />
         </td>
     </tr>
     <tr class="even">
-        <td class="tableheader" nowrap="1">Timeout (seconds) </td>
+        <td class="tableheader" width="200" nowrap="nowrap">Timeout (seconds) </td>
         <td class="tablevalues">
             <input type="text" name="timeout" value="120" />
         </td>

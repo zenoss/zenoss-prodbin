@@ -114,7 +114,7 @@ loader.insert();
     </tr>
 
     <tr>
-      <td class="noselect tableheader" title="" align="left">Dashboard Production State Threshold</td>
+      <td class="noselect tableheader" title="" nowrap="nowrap" align="left">Dashboard Production State Threshold</td>
       <td class="tablevalues">
         <input class="tablevalues" title="" type="text" name="prodStateDashboardThresh"
             tal:attributes="value here/prodStateDashboardThresh" />
