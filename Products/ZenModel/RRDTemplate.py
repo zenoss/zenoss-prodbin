@@ -256,7 +256,8 @@ class RRDTemplate(ZenModelRM, ZenPackable):
             ds = self.getDataSourceInstance(id, dsOption)
             self.datasources._setObject(ds.id, ds)
             ds = self.datasources._getOb(ds.id)
-            if isinstance(ds, SimpleRRDDataSource): ds.addDataPoints()
+            if ds:
+                ds.addDataPoints()
         if REQUEST:
             if ds:
                 messaging.IMessageSender(self).sendToBrowser(

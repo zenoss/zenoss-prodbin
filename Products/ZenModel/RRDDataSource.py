@@ -33,13 +33,6 @@ from Products.ZenWidgets import messaging
 from ZenModelRM import ZenModelRM
 from ZenPackable import ZenPackable
 
-def manage_addRRDDataSource(context, id, dsOption, REQUEST = None):
-   """make a RRDDataSource"""
-   ds = context.getDataSourceInstance(id, dsOption, REQUEST=None)
-   context._setObject(ds.id, ds)
-   if REQUEST is not None:
-       REQUEST['RESPONSE'].redirect(context.absolute_url()+'/manage_main')
-       
 
 class RRDDataSource(ZenModelRM, ZenPackable):
 
@@ -112,6 +105,9 @@ class RRDDataSource(ZenModelRM, ZenPackable):
     def useZenCommand(self):
         return False
 
+    def addDataPoints(self):
+        """Abstract hook method, to be overridden in derived classes."""
+        pass
 
     security.declareProtected(ZEN_MANAGE_DMD, 'manage_addRRDDataPoint')
     def manage_addRRDDataPoint(self, id, REQUEST = None):
