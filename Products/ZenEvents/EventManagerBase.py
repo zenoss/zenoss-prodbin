@@ -37,6 +37,7 @@ from EventDetail import EventDetail
 from BetterEventDetail import BetterEventDetail
 from EventCommand import EventCommand
 from Products.ZenEvents.Exceptions import *
+from Products.AdvancedQuery import MatchRegexp, In, And
 
 from Products.ZenModel.ZenModelRM import ZenModelRM
 from Products.ZenModel.ZenossSecurity import *
@@ -404,7 +405,24 @@ class EventManagerBase(ZenModelRM, ObjectCache, DbAccessBase):
             ftype = COLUMN_CONFIG[k].get('filter', 'textfield')
             if isinstance(ftype, dict):
                 ftype = ftype['xtype']
-            if k=='count':
+            if k=='device':
+                # get all list of devices where title match the search term
+                deviceids = self._getDeviceIdsMatching(v)
+                if deviceids:
+                    newwhere += " and device IN ('%s') " % "','".join(deviceids)
+                else:
+                    newwhere += ' and (%s REGEXP %%s) ' % (k,)
+                    queryValues.append(v)
+            elif k=='component':
+                componentWhere = ""
+                componentids = self._getComponentIdsMatching(v)
+                if componentids:
+                    componentWhere = " OR component IN ('%s') " % "','".join(componentids)
+                # because components don't have to exist in the ZODB always search the
+                # database for them
+                newwhere += ' and ((%s REGEXP %%s) %s) ' % (k,componentWhere)
+                queryValues.append(v)
+            elif k=='count':
                 if v.isalnum():
                     queryValues.append(v)
                     v = '>=%s'
@@ -431,6 +449,50 @@ class EventManagerBase(ZenModelRM, ObjectCache, DbAccessBase):
         values.extend(queryValues)
         return where + newwhere
 
+
+    def _filterCatalogResultsForIds(self, catalog, querySet):
+        """
+        Used by both the id matching sub queries
+        this gets brain results and returns a list of
+        ids
+        @param catalog: catalog we are searching
+        @param querySet: Advanced Query Search Terms
+        @return [string]: all the ids of the search results that match
+                          the queryset
+        """
+        try:
+            brains = catalog.evalAdvancedQuery(querySet)
+        except:
+            # they had an error in their regex, just return nothing they may still be working on it
+            return None
+        # return list of device ids for mysql to filter by
+        ids = []
+        for brain in brains:
+            ids.append(brain.id)
+        return ids
+    
+    def _getComponentIdsMatching(self, searchTerm):
+        """
+        This returns a list of component ids where the titleOrId
+        matches the searchTerm
+        @param searchTerm: query for which we want to search for (can be regex)
+        """
+        catalog = self.dmd.global_catalog
+        querySet = [MatchRegexp('name', '.*%s.*' % searchTerm),
+                    In('objectImplements',
+                       'Products.ZenModel.DeviceComponent.DeviceComponent')]
+        return self._filterCatalogResultsForIds(catalog, And(*querySet))
+    
+    def _getDeviceIdsMatching(self, searchTerm):
+        """
+        This returns a list of device ids where the titleOrId
+        matches the searchTerm
+        @param searchTerm: query for which we want to search for (can be regex)
+        """
+        catalog = self.dmd.Devices.deviceSearch
+        querySet = MatchRegexp('titleOrId', '.*%s.*' % searchTerm)
+        return self._filterCatalogResultsForIds(catalog, querySet)
+                        
     def getEventBatchME(self, me, selectstatus=None, resultFields=[], 
                         where="", orderby="", severity=None, state=2,
                         startdate=None, enddate=None, offset=0, rows=0,
