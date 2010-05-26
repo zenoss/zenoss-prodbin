@@ -564,4 +564,10 @@
     factory=".backcompat.Process"
     />
 
+<adapter
+    for="Products.ZenModel.RRDTemplate.RRDTemplate"
+    provides=".interfaces.INewPath"
+    factory=".backcompat.MonitoringTemplate"
+    />
+
 </configure>

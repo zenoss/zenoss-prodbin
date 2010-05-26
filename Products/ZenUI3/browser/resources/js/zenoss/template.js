@@ -93,6 +93,7 @@ selectionchangeHandler = function(sm, node) {
     updateGraphs(node.attributes.uid);
     // set the context for the id fields (they validate their id against this context)
     Zenoss.env.PARENT_CONTEXT = node.attributes.uid;
+    Ext.History.add(treeId + Ext.History.DELIMITER + node.attributes.uid);
 };
 
 selModel = new Ext.tree.DefaultSelectionModel({
@@ -369,6 +370,8 @@ footerBar.on('buttonClick', function(actionName, id, values) {
                 uid: Ext.getCmp(treeId).getSelectionModel().getSelectedNode().attributes.uid
             };
             router.deleteTemplate(params, reloadTree);
+        break;
+        default:
         break;
     }
 });

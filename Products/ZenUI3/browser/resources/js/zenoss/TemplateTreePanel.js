@@ -89,24 +89,8 @@ Zenoss.TemplateTreePanel = Ext.extend(Ext.tree.TreePanel, {
                 id: 'root'
             },
             listeners: {
-                expandnode: function(node){
-                    // do not autoexpand/select anything if we are filtering
-                    if (Ext.getCmp('templateTreeSearchField').getValue()) {
-                        return;
-                    }
-                    var container, firstTemplate;
-                    if ( node === Ext.getCmp(treeId).getRootNode() ) {
-                        container = node.childNodes[0];
-                        container.expand();
-                    } else {
-                        container = node;
-                    }
-                    firstTemplate = container.childNodes[0];
-                    
-                    if (firstTemplate) {
-                        firstTemplate.select(); 
-                    }                    
-                }
+                scope: this,
+                expandnode: this.onExpandnode
             }
         });
         Zenoss.TemplateTreePanel.superclass.constructor.call(this, config);
@@ -162,10 +146,10 @@ Zenoss.TemplateTreePanel = Ext.extend(Ext.tree.TreePanel, {
     afterRender: function() {
         Zenoss.TemplateTreePanel.superclass.afterRender.call(this);
         
-        // add the search text box 
-        this.searchField = this.add({
+        // add the search text box
+        this.add({
             xtype: 'searchfield',
-            id: 'templateTreeSearchField',
+            ref: 'searchField',
             bodyStyle: {padding: 10},
             listeners: {
                 valid: this.filterTree,
@@ -213,7 +197,40 @@ Zenoss.TemplateTreePanel = Ext.extend(Ext.tree.TreePanel, {
             // continue cascading down the tree from this node
             return true;
         }, this);
+    },
+    
+    onExpandnode: function(node) {
+        // select the first template when the base URL is accessed without a
+        // history token and without a filter value
+        if ( ! this.searchField.getValue() && ! Ext.History.getToken() ) {
+            if ( node === this.getRootNode() ) {
+                node.childNodes[0].expand();
+            } else {
+                node.childNodes[0].select();
+            }
+        }
+    },
+    
+    selectByToken: function(uid) {
+        // called on Ext.History change event (see HistoryManager.js)
+        // convert uid to path and select the path
+        // example uid: '/zport/dmd/Devices/Power/UPS/APC/rrdTemplates/Device'
+        // example path: '/root/Device/Device..Power.UPS.APC'
+        var uidParts, templateName, dmdPath, path;
+        uidParts = unescape(uid).split('/');
+        templateName = uidParts[uidParts.length - 1];
+        dmdPath;
+        if ( uidParts.length === 6 ) {
+            // Defined at devices, special case, include 'Devices'
+            dmdPath = 'Devices';
+        } else {
+            // all the DeviceClass names under Devices separated by dots
+            dmdPath = uidParts.slice(4, uidParts.length - 2).join('.');
+        }
+        path = String.format('/root/{0}/{0}..{1}', templateName, dmdPath);
+        this.selectPath(path);
     }
+    
 });
 
 Ext.reg('TemplateTreePanel', Zenoss.TemplateTreePanel);

@@ -19,7 +19,7 @@ def immediate_view(ob):
                          '/'.join(ob.getPhysicalPath()))
      path = ob.getPhysicalPath() + (view,)
      return '/'.join(path)
-
+     
 def DeviceClass(ob):
     id = '.'.join(ob.getPhysicalPath())
     return '/zport/dmd/itinfrastructure#devices:' + id
@@ -49,3 +49,7 @@ def DeviceComponent(ob):
 def Process(ob):
     id = '.'.join(ob.getPhysicalPath())
     return '/zport/dmd/process#processTree:' + id
+
+def MonitoringTemplate(ob):
+    id = '/'.join(ob.getPhysicalPath())
+    return '/zport/dmd/template#templateTree:' + id
