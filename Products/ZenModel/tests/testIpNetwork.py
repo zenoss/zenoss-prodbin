@@ -193,6 +193,26 @@ class TestIpNetwork(ZenModelBaseTest):
         self.assertEqual(1, len(subnet16.children()))
         self.assertEqual(subnet24.id, subnet16.children()[0].id)
 
+    def testZPropertyExistence(self):
+        """
+        """
+        zProps = ("zDefaultNetworkTree",
+                  "zDrawMapLinks",
+                  "zAutoDiscover",
+                  "zPingFailThresh",
+                  "zIcon",
+                  "zPreferSnmpNaming",
+                  "zSnmpStrictDiscovery")
+
+        def assertZPropertiesExist( network ):
+            for zprop in zProps:
+                self.assert_(hasattr(network,zprop))
+
+        dmdNet = self.dmd.Networks
+        assertZPropertiesExist(dmdNet)
+        subnet24 = dmdNet.createNet("10.10.10.0", 24)
+        assertZPropertiesExist(subnet24)
+
 def test_suite():
     from unittest import TestSuite, makeSuite
     suite = TestSuite()

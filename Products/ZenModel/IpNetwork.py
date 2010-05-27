@@ -467,6 +467,8 @@ class IpNetwork(DeviceOrganizer):
         nets._setProperty("zAutoDiscover", True, type="boolean")
         nets._setProperty("zPingFailThresh", 168, type="int")
         nets._setProperty("zIcon", "/zport/dmd/img/icons/network.png")
+        nets._setProperty("zPreferSnmpNaming", False, type="boolean")
+        nets._setProperty("zSnmpStrictDiscovery", False, type="boolean")
 
 
     def reIndex(self):

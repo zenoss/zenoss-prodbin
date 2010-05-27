@@ -40,5 +40,11 @@ class IIpNetworkInfo(IInfo):
     isInheritPingFailThresh = Attribute('Does network inherit PingFailThresh property')
     pingFailThresh = Attribute('zPingFailThresh')
 
+    isInheritPreferSnmpNaming = Attribute('Does network inherit PreferSnmpNaming property')
+    autoDiscover = Attribute('zPreferSnmpNaming')
+
+    isInheritSnmpStrictDiscovery = Attribute('Does network inherit SnmpStrictDiscovery property')
+    SnmpStrictDiscovery = Attribute('zSnmpStrictDiscovery')
+
 class IIpAddressInfo(IInfo):
     pass

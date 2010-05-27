@@ -439,6 +439,31 @@ var zIcon = {
     }  
 };
 
+var zSnmpStrictDiscovery = {
+    xtype: 'zprop',
+    ref: '../../zSnmpStrictDiscovery',
+    title: _t('Only Create Devices If SNMP Succeeds? (zSnmpStrictDiscovery)'),
+    name: 'zSnmpStrictDiscovery',
+    localField: {
+        xtype: 'select',
+        mode: 'local',
+        store: [[true, 'Yes'], [false, 'No']]
+    }
+};
+
+var zPreferSnmpNaming = {
+    xtype: 'zprop',
+    ref: '../../zPreferSnmpNaming',
+    title: _t('Prefer Name Discovered Via SNMP to DNS? (zPreferSnmpNaming)'),
+    name: 'zPreferSnmpNaming',
+    localField: {
+        xtype: 'select',
+        mode: 'local',
+        store: [[true, 'Yes'], [false, 'No']]
+    }
+};
+
+
 var formItems = {
     layout: 'column',
     border: false,
@@ -459,6 +484,8 @@ var formItems = {
             zAutoDiscover,
             zDefaultNetworkTree,
             zPingFailThresh,
+            zPreferSnmpNaming,
+            zSnmpStrictDiscovery,
             zDrawMapLinks,
             zIcon
         ]

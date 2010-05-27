@@ -86,6 +86,25 @@ class IpNetworkInfo(InfoBase):
 
     zIcon = property(getZIcon, setZIcon)
 
+    def getZSnmpStrictDiscovery(self):
+        def translate(rawValue):
+            return {False: 'No', True: 'Yes'}[rawValue]
+        return getZPropertyInfo(self._object, 'zSnmpStrictDiscovery', True, translate)
+
+    def setZSnmpStrictDiscovery(self, data):
+        setZPropertyInfo(self._object, 'zSnmpStrictDiscovery', **data)
+
+    zSnmpStrictDiscovery = property(getZSnmpStrictDiscovery, setZSnmpStrictDiscovery)
+
+    def getZPreferSnmpNaming(self):
+        def translate(rawValue):
+            return {False: 'No', True: 'Yes'}[rawValue]
+        return getZPropertyInfo(self._object, 'zPreferSnmpNaming', True, translate)
+
+    def setZPreferSnmpNaming(self, data):
+        setZPropertyInfo(self._object, 'zPreferSnmpNaming', **data)
+
+    zPreferSnmpNaming = property(getZPreferSnmpNaming, setZPreferSnmpNaming)
 
 class IpAddressInfo(InfoBase):
     implements(IIpAddressInfo)
