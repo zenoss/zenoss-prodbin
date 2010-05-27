@@ -22,9 +22,10 @@ var REMOTE = Zenoss.remote.DeviceRouter;
 /**
  * Updates the data store for the template tree
  **/
+     
 function refreshTemplateTree() {
     var cmp = Ext.getCmp('templateTree');
-    if (cmp) {
+    if (cmp && cmp.isVisible()) {
         cmp.getRootNode().reload();
     }
 }
