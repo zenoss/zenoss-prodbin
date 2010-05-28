@@ -42,6 +42,7 @@ except ImportError:
         import base64
         return base64.decodestring(s.replace('-','+').replace('_','/'))
 
+from Products.ZenRRD.RRDUtil import fixMissingRRDs
 from Products.ZenUtils.PObjectCache import PObjectCache
 from Products.ZenUtils.Utils import zenPath
 
@@ -85,63 +86,6 @@ class RenderServer(RRDToolItem):
         self.cachetimeout = cachetimeout
 
 
-    def removeInvalidRRDReferences(self, cmds):
-        """
-        Check the cmds list for DEF commands.  For each one check that the rrd
-        file specified actually exists.  Return a list of commands which
-        excludes commands referencing or depending on non-existent RRD files.
-
-        @param cmds: list of RRD commands
-        @return: sanitized list of RRD commands
-        """
-        newCmds = []
-        badNames = Set()
-        dedupMissing = dict()
-        for cmd in cmds:
-            if cmd.startswith('DEF:'):
-                # Check for existence of the RRD file
-                vName, rrdFile = cmd.split(':')[1].split('=', 1)
-                if not os.path.isfile(rrdFile):
-                    zenhomeCount = len(zenPath().split('/')) + 2
-                    rrdFileTuple = rrdFile.split('/')
-                    rrdFileEnd = rrdFile
-                    if zenhomeCount < len(rrdFileTuple):
-                        rrdFileEnd = '/'.join(rrdFileTuple[zenhomeCount:])
-
-                    badNames.add(vName)
-                    parts = rrdFile.split('/')
-                    try:
-                        devIndex = parts.index('Devices') + 1
-                    except ValueError:
-                        devIndex = -1
-                    devName = devIndex > 0 and parts[devIndex] or ''
-                    compIndex = len(parts) - 2
-                    compName = compIndex > devIndex and parts[compIndex] or ''
-                    dpName = parts[-1].rsplit('.', 1)[0]
-                    desc = ' '.join([p for p in (devName,compName,dpName) if p])
-                    if rrdFileEnd not in dedupMissing:
-                        newCmds.append('COMMENT:Missing File\: %s\j' 
-                                        % rrdFileEnd)
-                        dedupMissing[rrdFileEnd] = True
-                    continue
-
-            elif cmd.startswith('VDEF:') or cmd.startswith('CDEF:'):
-                vName, expression = cmd.split(':', 1)[1].split('=', 1)
-                if Set(expression.split(',')) & badNames:
-                    badNames.add(vName)
-                    continue
-
-            elif not cmd.startswith('COMMENT'):
-                try:
-                    vName = cmd.split(':')[1].split('#')[0]
-                except IndexError:
-                    vName = None
-                if vName in badNames:
-                    continue
-            newCmds.append(cmd)
-        return newCmds
-
-
     security.declareProtected('View', 'render')
     def render(self, gopts=None, start=None, end=None, drange=None, 
                remoteUrl=None, width=None, ftype='PNG', getImage=True, 
@@ -165,7 +109,7 @@ class RenderServer(RRDToolItem):
         """
         gopts = zlib.decompress(urlsafe_b64decode(gopts))
         gopts = gopts.split('|')
-        gopts = self.removeInvalidRRDReferences(gopts)
+        gopts = fixMissingRRDs(gopts)
         gopts.append('HRULE:INF#00000000')
         gopts.append('--width=%s' % width)
         if start:
@@ -387,6 +331,7 @@ class RenderServer(RRDToolItem):
         @param gopts: RRD graph options
         @return: values from the graph
         """
+        gopts = fixMissingRRDs(gopts)
         gopts.insert(0, '/dev/null') #no graph generated
         try:
             values = rrdtool.graph(*gopts)[2]

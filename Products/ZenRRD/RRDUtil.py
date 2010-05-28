@@ -19,6 +19,15 @@ Wrapper routines around the rrdtool library.
 import logging
 log = logging.getLogger("zen.RRDUtil")
 
+import os
+import re
+
+from Products.ZenUtils.Utils import zenPath
+
+
+EMPTY_RRD = zenPath('perf', 'empty.rrd')
+
+
 def _checkUndefined(x):
     """
     Sanity check on the min, max values
@@ -55,6 +64,46 @@ def convertToRRDTime(val):
         pass
 
     return str(val)
+
+
+def fixMissingRRDs(gopts):
+    """
+    Parses a list of RRDtool gopts for DEFs. Runs all of the filenames
+    referenced by those DEFs through the fixRRDFilename method to make sure
+    that they will exist and not cause the rendering to fail.
+    """
+    fixed_gopts = []
+
+    def_match = re.compile(r'^DEF:([^=]+)=([^:]+)').match
+    for gopt in gopts:
+        match = def_match(gopt)
+        if not match:
+            fixed_gopts.append(gopt)
+            continue
+
+        rrd_filename = match.group(2)
+        fixed_gopts.append(gopt.replace(
+            rrd_filename, fixRRDFilename(rrd_filename)))
+
+    return fixed_gopts
+
+
+def fixRRDFilename(filename):
+    """
+    Attempting to render a graph containing a DEF referencing a non-existent
+    filename will cause the entire graph to fail to render. This method is a
+    helper to verify existence of an RRD file. If the file doesn't exist, a
+    placeholder RRD filename with no values in it will be returned instead.
+    """
+    if os.path.isfile(filename):
+        return filename
+
+    if not os.path.isfile(EMPTY_RRD):
+        import rrdtool
+        rrdtool.create(EMPTY_RRD, "--step", '300', 'DS:ds0:GAUGE:900:U:U',
+            'RRA:AVERAGE:0.5:1:1', 'RRA:MAX:0.5:1:1')
+
+    return EMPTY_RRD
 
 
 class RRDUtil:
