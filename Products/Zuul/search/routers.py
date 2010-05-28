@@ -175,7 +175,7 @@ class SearchRouter(DirectRouter):
         facade.saveSearch(queryString, searchName, creator)
         return DirectResponse.succeed()
 
-    def getAllSavedSearches(self, query=None):
+    def getAllSavedSearches(self, query=None, addManageSavedSearch=False):
         """
         @returns [ISavedSearchInfo] All the searches the logged in
         user can access
@@ -184,5 +184,8 @@ class SearchRouter(DirectRouter):
         if facade.noSaveSearchProvidersPresent():
             return DirectResponse.succeed()
         
-        data = facade.getSavedSearchesByUser()
-        return DirectResponse.succeed(data=Zuul.marshal(data))
+        data = Zuul.marshal(facade.getSavedSearchesByUser())
+        if addManageSavedSearch:
+            manageName = '<span id="manage-search-link">%s</span>' % (_t('Manage Saved Searches...'))
+            data.append(dict(id='manage_saved_search', name=manageName))
+        return DirectResponse.succeed(data=data)

@@ -6,9 +6,8 @@ Ext.onReady(function(){
 if ( Ext.get('searchbox-container') === null ) {
             return;
 }else {
-    var combo;
-
-    Ext.create({           
+    
+    Ext.create({
             xtype: 'panel',
             id: 'saved-searches-button',
             renderTo: 'searchbox-container',
@@ -33,8 +32,11 @@ if ( Ext.get('searchbox-container') === null ) {
             xtype: 'searchfield',
             renderTo: 'searchbox-container'
         });
-    
-    var ds = new Ext.data.DirectStore({
+
+    var combo,
+        router = Zenoss.remote.SearchRouter,
+        ManageSavedSearchDialog,     
+        ds = new Ext.data.DirectStore({
         directFn: Zenoss.remote.SearchRouter.getLiveResults,
         root: 'results',
         idProperty: 'url',
@@ -48,7 +50,7 @@ if ( Ext.get('searchbox-container') === null ) {
         '<th><tpl if="values.category && (xindex == 1 || parent[xindex - 2].category != values.category)">{category}</tpl></th>',
         '<td colspan="2">{content}</td>',
         '</tpl>' );
-    
+
     Zenoss.env.search = new Ext.form.ComboBox({
         store: ds,
         typeAhead: false,
@@ -86,22 +88,127 @@ if ( Ext.get('searchbox-container') === null ) {
         height: 21,
         triggerClass: 'searchcombo-trigger',
         applyTo: Ext.get('saved-searches-button'),
+        listClass: 'saved-search-item',
         valueField: 'id',
+        listWidth: 200,
         displayField: 'name',
         store: {
             xtype: 'directstore',
             ref:'store',
             directFn: Zenoss.remote.SearchRouter.getAllSavedSearches,
             fields: ['id', 'name'],
-            root: 'data'
+            root: 'data',
+            baseParams: {
+                'addManageSavedSearch': true
+            }
         },
         listeners: {
             select: function(box, record){
-                // go to the selected search results page
-                window.location = String.format('/zport/dmd/search?search={0}', record.id);
+                // magic string that means the user wishes to manage
+                // their saved searches
+                if (record.id == 'manage_saved_search') {
+                    var decodedUrl = Ext.urlDecode(location.search.substring(1, location.search.length)),
+                        searchId = decodedUrl.search,
+                        win = Ext.create({
+                        xtype:'managesavedsearchdialog',
+                        id:'manageSavedSearchesDialog',
+                        searchId: searchId
+                    });
+                    win.show();
+                }else {
+                    // otherwise go to the selected search results page
+                    window.location = String.format('/zport/dmd/search?search={0}', record.id);
+                }
             }
         }
 
     });
-  }
+
+    ManageSavedSearchDialog = Ext.extend(Ext.Window, {
+        constructor: function(config) {
+            config = config || {};
+            var searchId = config.searchId,
+                me = this;
+            Ext.apply(config, {
+                title: _t('Manage Saved Searches'),
+                layout: 'form',
+                autoHeight: true,
+                width: 475,
+                modal: true,
+                listeners: {
+                    show: function() {
+                        this.reloadGrid();
+                        this.savedSearchGrid.deleteButton.disable();
+                    },
+                    scope: this
+                },
+                items: [{
+                    ref: 'savedSearchGrid',
+                    xtype: 'grid',
+                    stripeRows: true,
+                    autoScroll: true,
+                    border: false,
+                    autoHeight: true,
+                    tbar: [{
+                        xtype: 'button',
+                        ref: '../deleteButton',
+                        iconCls: 'delete',
+                        tooltip: _t('Delete the selected saved search'),
+                        disabled: true,
+                        handler: function(button, e) {
+                            var grid = button.refOwner,
+                            selectedRow = grid.getSelectionModel().getSelected(),
+                            params = {
+                                searchName: selectedRow.data.name
+                            };
+
+                            button.disable();
+                            router.removeSavedSearch(params, me.reloadGrid.createDelegate(me));
+                        }
+                    }],
+                    selModel: new Ext.grid.RowSelectionModel({
+                        singleSelect: true,
+                        listeners: {
+                            rowselect: function(grid, rowIndex, row) {
+                                // do not allow them to delete the one they are editing
+                                if (row.data.name != searchId) {
+                                    me.savedSearchGrid.deleteButton.enable();
+                                }
+                            },
+                            rowdeselect: function() {
+                                me.savedSearchGrid.deleteButton.disable();
+                            }
+                        }
+                    }),
+                    columns: [
+                        {dataIndex: 'name', header: _t('Name'), width: 150},
+                        {dataIndex: 'query', header: _t('Query'), width: 150},
+                        {dataIndex: 'creator', header: _t('Created By'), width: 150}
+                    ],
+                    store: {
+                        xtype: 'directstore',
+                        directFn: router.getAllSavedSearches,
+                        idProperty: 'uid',
+                        root: 'data',
+                        fields: ['uid', 'name', 'creator', 'query']
+                    }
+                }],
+
+                buttons: [{
+                    xtype: 'button',
+                    text: _t('Close'),
+                    handler: function() {
+                        me.hide();
+                        me.destroy();
+                    }
+                }]
+            });
+            ManageSavedSearchDialog.superclass.constructor.apply(this, arguments);
+        },
+        reloadGrid: function() {
+            this.savedSearchGrid.getStore().load();
+        }
+    });
+    Ext.reg('managesavedsearchdialog', ManageSavedSearchDialog);
+}
 });
