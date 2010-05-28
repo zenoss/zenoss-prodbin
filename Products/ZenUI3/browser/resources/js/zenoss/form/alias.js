@@ -69,7 +69,12 @@
              alias;
              // use "that" as a closure so we have a reference to it
              that = this;
-             
+             items.push({
+                xtype: 'panel',
+                layout: 'form',
+                border: false,
+                html: _t('ID / FORMULA')
+             });
              config = config || {};
              // add a row for each alias defined
              for (i=0; i < aliases.length; i++) {
@@ -82,7 +87,6 @@
              // add the button
              items.push(addAliasButton);
              Ext.applyIf(config, {
-                 title: _t('ID/Forumla'),
                  items:items
              });
              
