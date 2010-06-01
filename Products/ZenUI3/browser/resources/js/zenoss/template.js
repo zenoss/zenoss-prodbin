@@ -33,14 +33,22 @@ resetCombo = function(combo, uid) {
     combo.doQuery(combo.allQuery, true);
 };
 
-function reloadTree() {
-    Ext.getCmp(treeId).getRootNode().reload();  
+function reloadTree(shouldSelectFirstNode) {
+    var tree = Ext.getCmp(treeId);
+    if (shouldSelectFirstNode){
+        tree.getRootNode().reload(function() {
+            tree.getRootNode().childNodes[0].expand();
+            tree.getRootNode().childNodes[0].childNodes[0].select();
+        });
+    }else{
+        tree.getRootNode().reload();
+    }
 }
-                
+
 beforeselectHandler = function(sm, node, oldNode) {
     return node.isLeaf();
 };
-                
+
 updateDataSources = function(uid) {
     var panel, treeGrid, root;
     if ( ! Ext.getCmp(dataSourcesId) ) {
@@ -53,16 +61,17 @@ updateDataSources = function(uid) {
         root.setId(uid);
         panel.doLayout();
     } else {
-        root = Ext.getCmp(dataSourcesId).getRootNode();
+        // create a new async node since we may have had a dummy one
+        root = new Ext.tree.AsyncTreeNode();
         root.setId(uid);
-        root.reload();
+        Ext.getCmp(dataSourcesId).setRootNode(root);
     }
 };
 
 updateThresholds = function(uid) {
     var panel, root, grid;
     panel = Ext.getCmp('top_detail_panel');
-    
+
     if ( ! Ext.getCmp(thresholdsId) ) {
         panel.add({id: thresholdsId, xtype:'thresholddatagrid'});
         panel.doLayout();
@@ -88,12 +97,30 @@ updateGraphs = function(uid) {
 };
 
 selectionchangeHandler = function(sm, node) {
-    updateDataSources(node.attributes.uid);
-    updateThresholds(node.attributes.uid);
-    updateGraphs(node.attributes.uid);
-    // set the context for the id fields (they validate their id against this context)
-    Zenoss.env.PARENT_CONTEXT = node.attributes.uid;
-    Ext.History.add(treeId + Ext.History.DELIMITER + node.attributes.uid);
+    if (node){
+        updateDataSources(node.attributes.uid);
+        updateThresholds(node.attributes.uid);
+        updateGraphs(node.attributes.uid);
+        // set the context for the id fields (they validate their id against this context)
+        Zenoss.env.PARENT_CONTEXT = node.attributes.uid;
+        Ext.History.add(treeId + Ext.History.DELIMITER + node.attributes.uid);
+    }else {
+        // clear thresholds graphs and datasources
+        Ext.getCmp(graphsId).getStore().removeAll();
+        Ext.getCmp(thresholdsId).getStore().removeAll();
+        // only way to clear the store of a tree grid is to set a dummy node
+        Ext.getCmp(dataSourcesId).setRootNode(new Ext.tree.TreeNode());
+    }
+
+    // enable the footer bar buttons
+    var footerBar = Ext.getCmp('footer_bar');
+    footerBar.buttonContextMenu.setDisabled(!node);
+    footerBar.buttonDelete.setDisabled(!node);
+
+    // disable/enable the add buttons 
+    Ext.getCmp(thresholdsId).addButton.setDisabled(!node);
+    Ext.getCmp(graphsId).addButton.setDisabled(!node);
+    Ext.getCmp(dataSourcesId).disableToolBarButtons(!node);
 };
 
 selModel = new Ext.tree.DefaultSelectionModel({
@@ -107,13 +134,13 @@ Ext.getCmp('master_panel').add({
     xtype: 'TemplateTreePanel',
     selModel: selModel
 });
-                
+
 /**********************************************************************
  *
  * Edit Template Information
  *
  */
-                
+
 /**
  * Shows the edit template dialog and sends the form values back to the server.
  **/
@@ -128,7 +155,7 @@ function showEditTemplateDialog(response) {
         values.uid = data.uid;
         router.setInfo(values, reloadTree);
     };
-    
+
     // form config
     config = {
         submitHandler: handler,
@@ -151,27 +178,27 @@ function showEditTemplateDialog(response) {
             xtype: 'textarea',
             name: 'description',
             fieldLabel: _t('Description'),
-            ref: 'description'            
+            ref: 'description'
         }]
     };
-    
+
     dialog = new Zenoss.SmartFormDialog(config);
-    
-    // set our form to monitor for errors  
+
+    // set our form to monitor for errors
     dialog.editForm.startMonitoring();
     dialog.editForm.addListener('clientvalidation', function(formPanel, valid){
         var dialogWindow;
         dialogWindow = formPanel.refOwner;
         dialogWindow.buttonSubmit.setDisabled( !valid );
     });
-    
+
     // populate the form
     dialog.editForm.templateName.setValue(data.name);
     dialog.editForm.targetPythonClass.setValue(data.targetPythonClass);
     dialog.editForm.description.setValue(data.description);
-    dialog.show();  
+    dialog.show();
 }
-                
+
 /**
  * Gets the selected template information from the server
  **/
@@ -344,7 +371,7 @@ Zenoss.footerHelper(_t('Monitoring Template'),
                         addToZenPack: false,
                         customAddDialog: addTemplateDialogConfig
                     });
-                
+
 footerBar.buttonContextMenu.menu.add({
     text: _t('View and Edit Details'),
     disabled: Zenoss.Security.doesNotHavePermission('Manage DMD'),
@@ -356,20 +383,29 @@ footerBar.buttonContextMenu.menu.add({
 });
 
 footerBar.on('buttonClick', function(actionName, id, values) {
-    var params;
+    var params, tree = Ext.getCmp(treeId);
     switch (actionName) {
         case 'addClass':
             params = {
                 id: values.id,
                 targetUid: values.targetUid
-            }; 
-            router.addTemplate(params, reloadTree);
+            };
+            router.addTemplate(params, function() {
+                reloadTree();
+                tree.clearFilter();
+            });
         break;
         case 'delete':
             params = {
                 uid: Ext.getCmp(treeId).getSelectionModel().getSelectedNode().attributes.uid
             };
-            router.deleteTemplate(params, reloadTree);
+            router.deleteTemplate(params,
+            function(){
+                reloadTree(true);
+                tree.clearFilter();
+                footerBar.buttonDelete.setDisabled(true);
+                footerBar.buttonContextMenu.setDisabled(true);
+            });
         break;
         default:
         break;

@@ -157,6 +157,13 @@ Zenoss.TemplateTreePanel = Ext.extend(Ext.tree.TreePanel, {
             }
         });
     },
+                                        
+    clearFilter: function() {
+        // use set raw value to not trigger listeners
+        this.searchField.setRawValue('');
+        this.hiddenPkgs = [];
+    },
+                                          
     filterTree: function(e) {
         var re,
             text = e.getValue();
@@ -164,6 +171,11 @@ Zenoss.TemplateTreePanel = Ext.extend(Ext.tree.TreePanel, {
         // show all of our hidden nodes
         if (this.hiddenPkgs) {
             Ext.each(this.hiddenPkgs, function(node){node.ui.show();});
+        }
+
+        // de-select the selected node
+        if (this.getSelectionModel().getSelectedNode()){
+            this.getSelectionModel().getSelectedNode().unselect();  
         }
         
         this.hiddenPkgs = [];
@@ -219,7 +231,7 @@ Zenoss.TemplateTreePanel = Ext.extend(Ext.tree.TreePanel, {
         var uidParts, templateName, dmdPath, path;
         uidParts = unescape(uid).split('/');
         templateName = uidParts[uidParts.length - 1];
-        dmdPath;
+
         if ( uidParts.length === 6 ) {
             // Defined at devices, special case, include 'Devices'
             dmdPath = 'Devices';

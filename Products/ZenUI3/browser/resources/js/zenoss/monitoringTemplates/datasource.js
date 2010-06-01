@@ -571,6 +571,7 @@ Zenoss.DataSourceTreeGrid = Ext.extend(Ext.ux.tree.TreeGrid, {
                     xtype: 'button',
                     iconCls: 'add',
                     id:'datasourceAddButton',
+                    ref: '../addButton',
                     disabled: Zenoss.Security.doesNotHavePermission('Manage DMD'),
                     handler: showAddDataSourceDialog,
                     listeners: {
@@ -581,6 +582,7 @@ Zenoss.DataSourceTreeGrid = Ext.extend(Ext.ux.tree.TreeGrid, {
             }, {
                 xtype: 'button',
                 iconCls: 'delete',
+                ref: '../deleteButton',
                 id: 'datasourceDeleteButton',
                 disabled: Zenoss.Security.doesNotHavePermission('Manage DMD'),
                 listeners: {
@@ -593,6 +595,7 @@ Zenoss.DataSourceTreeGrid = Ext.extend(Ext.ux.tree.TreeGrid, {
                 xtype: 'button',
                 id: 'datasourceEditButton',
                 iconCls: 'customize',
+                ref: '../customizeButton',
                 disabled: Zenoss.Security.doesNotHavePermission('Manage DMD'),
                 listeners: {
                     render: function() {
@@ -624,6 +627,11 @@ Zenoss.DataSourceTreeGrid = Ext.extend(Ext.ux.tree.TreeGrid, {
         });
         Zenoss.DataSourceTreeGrid.superclass.constructor.call(this, config);
         
+    },
+    disableToolBarButtons: function(bool) {
+        this.addButton.setDisabled(bool && Zenoss.Security.hasPermission('Manage DMD'));
+        this.deleteButton.setDisabled(bool && Zenoss.Security.hasPermission('Manage DMD'));
+        this.customizeButton.setDisabled(bool && Zenoss.Security.hasPermission('Manage DMD'));
     }
     
 });

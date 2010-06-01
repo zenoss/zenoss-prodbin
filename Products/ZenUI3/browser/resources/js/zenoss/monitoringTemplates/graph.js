@@ -877,6 +877,7 @@ Zenoss.templates.GraphGrid = Ext.extend(Zenoss.BaseSequenceGrid, {
                 id: 'addGraphDefinitionButton',
                 xtype: 'button',
                 iconCls: 'add',
+                ref: '../addButton',
                 disabled: Zenoss.Security.doesNotHavePermission('Manage DMD'),
                 listeners: {
                     render: function() {

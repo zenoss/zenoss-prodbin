@@ -323,6 +323,7 @@
                     xtype: 'button',
                     iconCls: 'add',
                     id: 'thresholdAddButton',
+                    ref: '../addButton',
                     disabled: Zenoss.Security.doesNotHavePermission('Manage DMD'),
                     handler: function() {
                         Ext.getCmp('addThresholdDialog').show();
@@ -370,7 +371,7 @@
             
             Zenoss.templates.thresholdDataGrid.superclass.constructor.apply(
                 this, arguments);
-        }
+        }        
     });
     Ext.reg('thresholddatagrid', Zenoss.templates.thresholdDataGrid);
 }());
