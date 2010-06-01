@@ -20,7 +20,7 @@ Common code for zenbackup.py and zenrestore.py
 import tempfile
 from subprocess import Popen, PIPE
 
-from Products.ZenUtils.CmdBase import CmdBase
+from CmdBase import CmdBase
 
 
 BACKUP_DIR = 'zenbackup'

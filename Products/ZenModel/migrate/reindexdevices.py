@@ -20,7 +20,7 @@ log = logging.getLogger("zen.migrate")
 from Products.ZenUtils.Search import makePathIndex, makeMultiPathIndex
 
 class UpgradeMultiPathIndices(Migrate.Step):
-    version = Migrate.Version(2, 6, 0)
+    version = Migrate.Version(3, 0, 0)
 
     def cutover(self, dmd):
         idx = dmd.Devices.deviceSearch._catalog.indexes['path']

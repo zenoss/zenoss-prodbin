@@ -10,7 +10,6 @@
 # For complete information please visit: http://www.zenoss.com/oss/
 #
 ###########################################################################
-
 from Products.CMFCore.DirectoryView import registerDirectory
 registerDirectory('js', globals())
 

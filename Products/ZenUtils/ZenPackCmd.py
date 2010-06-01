@@ -14,7 +14,7 @@
 __doc__ = "Manage ZenPacks"
 
 import Globals
-from Products.ZenUtils.scripts.ZenScriptBase import ZenScriptBase
+from Products.ZenUtils.ZenScriptBase import ZenScriptBase
 from Products.ZenUtils.Utils import cleanupSkins, zenPath, binPath, getObjByPath
 
 from Products.ZenModel.ZenPack import ZenPackException, \

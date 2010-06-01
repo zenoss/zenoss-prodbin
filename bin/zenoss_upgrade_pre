@@ -69,6 +69,9 @@ if [ -f "$ZENHOME/bin/zeoctl" ] ;then
     fi
 fi
 
+# patch any ZenPack code that isn't compatible with this version of core
+. ${ZENHOME}/bin/zenoss_upgrade_patch_zenpacks.sh
+
 # migrate the zeo database
 start_zeodb
 run_zenmigrate

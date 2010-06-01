@@ -16,14 +16,13 @@ __doc__="""ZenScriptBase
 
 from AccessControl.SecurityManagement import newSecurityManager
 from AccessControl.SecurityManagement import noSecurityManager
-from Products.Five import zcml
 from threading import Lock
 from transaction import commit
-from Products.ZenUtils.Utils import getObjByPath, zenPath, set_context
-from Products.ZenUtils.CmdBase import CmdBase
+from Utils import getObjByPath, zenPath, set_context
+from CmdBase import CmdBase
 
 from Products.ZenRelations.ZenPropertyManager import setDescriptors
-from Products.ZenUtils.Exceptions import ZentinelException
+from Exceptions import ZentinelException
 
 defaultCacheDir = zenPath('var')
 
@@ -32,9 +31,9 @@ class DataRootError(Exception):pass
 class ZenScriptBase(CmdBase):
 
     def __init__(self, noopts=0, app=None, connect=False):
-        import Products.ZenossStartup
-        zcml.load_site()
         CmdBase.__init__(self, noopts)
+        import Products.Five
+        Products.Five.zcml.load_config('event.zcml', Products.Five)
         self.dataroot = None
         self.app = app
         self.db = None
@@ -46,7 +45,7 @@ class ZenScriptBase(CmdBase):
             from ZEO import ClientStorage
             from ZODB import DB
             addr = (self.options.host, self.options.port)
-            storage=ClientStorage.ClientStorage(addr,
+            storage=ClientStorage.ClientStorage(addr, 
                             client=self.options.pcachename,
                             var=self.options.pcachedir,
                             cache_size=self.options.pcachesize*1024*1024)

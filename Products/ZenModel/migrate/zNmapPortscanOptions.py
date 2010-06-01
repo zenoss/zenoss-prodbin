@@ -23,7 +23,7 @@ import logging
 log = logging.getLogger("zen.migrate")
 
 class zNmapPortscanOptions(Migrate.Step):
-    version = Migrate.Version(2, 5, 70)
+    version = Migrate.Version(3, 0, 0)
 
     #try to migrate any other properties that still contain ";" instead of " "
     def _tryMigrate(self, path, dmd):

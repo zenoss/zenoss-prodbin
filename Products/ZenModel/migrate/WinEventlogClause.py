@@ -18,7 +18,7 @@ Allows queries based of the Windows Event Log rather than just the severity.
 import Migrate
 
 class WinEventlogClause(Migrate.Step):
-    version = Migrate.Version(2, 6, 0)
+    version = Migrate.Version(3, 0, 0)
 
     def cutover(self, dmd):
         if not dmd.Devices.hasProperty("zWinEventlogClause"):

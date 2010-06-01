@@ -12,7 +12,7 @@
 
 . $ZENHOME/bin/zenfunctions
 
-PRGHOME=$ZENHOME/Products/ZenUtils/scripts
+PRGHOME=$ZENHOME/Products/ZenUtils
 PRGNAME=zencatalog.py
 CFGFILE=$CFGDIR/zencatalog.conf
 

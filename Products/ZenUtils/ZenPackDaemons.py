@@ -20,8 +20,8 @@ import os
 import Globals
 from Products.ZenUtils.PkgResources import pkg_resources
 
-from Products.ZenUtils.scripts.ZenScriptBase import ZenScriptBase
-from Products.ZenUtils.scripts.ZenPackCmd import ZENPACK_ENTRY_POINT
+from Products.ZenUtils.ZenScriptBase import ZenScriptBase
+from Products.ZenUtils.ZenPackCmd import ZENPACK_ENTRY_POINT
 from Products.ZenModel.ZenPackLoader import ZPLDaemons
 from Products.ZenUtils.Utils import zenPath
 

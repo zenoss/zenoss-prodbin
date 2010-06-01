@@ -14,7 +14,7 @@ import Migrate
 
 class RemoveWinModelerCycleInterval(Migrate.Step):
     ATTR_NAME = 'winmodelerCycleInterval'
-    version = Migrate.Version(2, 5, 70)
+    version = Migrate.Version(3, 0, 0)
 
     def cutover(self, dmd):
         for name in dmd.Monitors.getPerformanceMonitorNames():

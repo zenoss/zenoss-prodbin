@@ -23,7 +23,7 @@ from email.MIMEImage import MIMEImage
 from email.MIMEBase import MIMEBase
 
 import Globals
-from Products.ZenUtils.scripts.ZenScriptBase import ZenScriptBase
+from Products.ZenUtils.ZenScriptBase import ZenScriptBase
 from Products.ZenUtils import Utils
 import md5
 

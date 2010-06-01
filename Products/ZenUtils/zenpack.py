@@ -13,10 +13,9 @@
 __doc__ = "Manage ZenPacks"
 
 import Globals
-
 from Products.ZenModel.ZenPack import ZenPack, ZenPackException, \
                                         ZenPackNeedMigrateException
-from Products.ZenUtils.scripts.ZenScriptBase import ZenScriptBase
+from Products.ZenUtils.ZenScriptBase import ZenScriptBase
 from Products.ZenUtils.Utils import cleanupSkins, zenPath
 import transaction
 from zipfile import ZipFile

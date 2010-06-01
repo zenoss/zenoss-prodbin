@@ -15,7 +15,7 @@
 import Migrate
 
 class removeTemplateMenuItem(Migrate.Step):
-    version = Migrate.Version(2, 5, 70)
+    version = Migrate.Version(3, 0, 0)
     
     def cutover(self, dmd):
         

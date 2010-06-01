@@ -29,7 +29,7 @@ from Products.ZenRelations.RelSchema import *
 from DeviceOrganizer import DeviceOrganizer
 from ZenPackable import ZenPackable
 
-from Products.ZenUtils.scripts.jsonutils import json
+from Products.ZenUtils.jsonutils import json
 
 def manage_addLocation(context, id, description = "",
                        address="", REQUEST = None):

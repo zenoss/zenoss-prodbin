@@ -15,7 +15,7 @@ import Migrate
 from Products.Zuul.catalog.global_catalog import createGlobalCatalog
 
 class GlobalCatalog(Migrate.Step):
-    version = Migrate.Version(2, 6, 0)
+    version = Migrate.Version(3, 0, 0)
 
     def __init__(self):
         Migrate.Step.__init__(self)

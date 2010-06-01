@@ -21,7 +21,7 @@ log = logging.getLogger('zen.checkRRD')
 import Globals
 import transaction
 from Products.ZenUtils.Utils import zenPath
-from Products.ZenUtils.scripts.ZenScriptBase import ZenScriptBase
+from Products.ZenUtils.ZenScriptBase import ZenScriptBase
 
 CACHE_FILE = zenPath('var', 'zencheckrrd.cache')
 rrdMatch = re.compile('DEF:[^=]+=([^:]+)').match

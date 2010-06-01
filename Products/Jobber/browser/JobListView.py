@@ -16,7 +16,7 @@ from itertools import chain
 from Products.Five.browser import BrowserView
 from Products.Five.browser.pagetemplatefile import ZopeTwoPageTemplateFile
 from Products.ZenUtils.Utils import relative_time, readable_time
-from Products.ZenUtils.scripts.jsonutils import json
+from Products.ZenUtils.jsonutils import json
 
 
 class JobListView(BrowserView):

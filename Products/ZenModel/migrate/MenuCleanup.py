@@ -15,7 +15,7 @@
 import Migrate
 
 class MenuCleanup(Migrate.Step):
-    version = Migrate.Version(2, 6, 0)
+    version = Migrate.Version(3, 0, 0)
 
     def cutover(self, dmd):
 

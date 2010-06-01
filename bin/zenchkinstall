@@ -10,4 +10,4 @@
 # For complete information please visit: http://www.zenoss.com/oss/
 #############################################################################
 . $ZENHOME/bin/zenfunctions 
-$PYTHON $ZENHOME/Products/ZenUtils/scripts/CheckBasicInstall.py "$CMD" $*
+$PYTHON $ZENHOME/Products/ZenUtils/CheckBasicInstall.py "$CMD" $*
