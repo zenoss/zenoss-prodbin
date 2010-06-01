@@ -645,7 +645,7 @@ XHRDatasource.prototype = {
             callback(r);
         });
         d.addErrback(function(){
-            YAHOO.zenoss.globalPortletContainer.brokenConnection()
+            YAHOO.zenoss.globalPortletContainer.brokenConnection();
         });
         return d;
     }
@@ -674,11 +674,17 @@ TableDatasource.prototype = {
         this.postContent = 'postContent' in settings?
             settings.postContent:'';
         this.method = 'method' in settings? settings.method:'POST';
+        this.useRandomParameter = 'useRandomParameter' in settings?
+            settings.useRandomParameter:true;
     },
     get: function(callback) {
         queryarguments = this.queryArguments;
         if ('ms' in queryarguments) delete queryarguments['ms'];
-        queryarguments['_dc'] = String(new Date().getTime());
+        if (this.useRandomParameter && ('_dc' in queryarguments)) {
+            delete queryarguments['_dc'];
+        } else {
+            queryarguments['_dc'] = String(new Date().getTime());
+        }
         var d = doXHR(this.url, {
             method: this.method,
             queryString: queryarguments,
@@ -688,7 +694,7 @@ TableDatasource.prototype = {
             YAHOO.zenoss.globalPortletContainer.goodConnection();
             this.parseResponse(r, callback)},this));
         d.addErrback(function(){
-            YAHOO.zenoss.globalPortletContainer.brokenConnection()
+            YAHOO.zenoss.globalPortletContainer.brokenConnection();
         });
     },
     parseResponse: function(response, callback) {
@@ -720,7 +726,14 @@ TableDatasource.prototype = {
         callback({columnDefs:mycolumndefs,dataSource:this.datasource});
     },
     __json__: function() {
-        return {url:this.url, queryArguments:this.queryArguments,
+        queryarguments = this.queryArguments;
+        if ('ms' in queryarguments) delete queryarguments['ms'];
+        if (this.useRandomParameter && ('_dc' in queryarguments)) {
+            delete queryarguments['_dc'];
+        } else {
+            queryarguments['_dc'] = String(new Date().getTime());
+        }
+        return {url:this.url, queryArguments:queryarguments,
                 postContent: this.postContent, method:this.method, 
                 __class__:this.__class__}
     }

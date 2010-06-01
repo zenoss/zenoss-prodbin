@@ -19,7 +19,7 @@ from Products.AdvancedQuery import Eq, Or
 
 from Products.ZenUtils.Utils import relative_time
 from Products.ZenUtils.scripts.jsonutils import json
-from Products.ZenUtils.Utils import formreq, extractPostContent
+from Products.ZenUtils.Utils import nocache, formreq, extractPostContent
 from Products.ZenWidgets import messaging
 from Products.ZenModel.ZenossSecurity import *
 from Products.ZenEvents.browser.EventPillsAndSummaries import \
@@ -99,6 +99,7 @@ class WatchListPortletView(BrowserView):
         of the table
     @rtype: string
     """
+    @nocache
     @formreq
     def __call__(self, *args, **kwargs):
         return self.getEntityListEventSummary(*args, **kwargs)

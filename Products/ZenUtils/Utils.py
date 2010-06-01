@@ -1273,7 +1273,37 @@ def monkeypatch(target):
         return func
     return patcher
 
+def nocache(f):
+    """
+    Decorator to set headers which force browser to not cache request
+    
+    This is intended to decorate methods of BrowserViews.
 
+    @param f: class
+    @type f: class object
+    @return: decorator function return
+    @rtype: function
+    """
+    def inner(self, *args, **kwargs): 
+        """
+        Inner portion of the decorator
+
+        @param *args: arguments
+        @type *args: possible list
+        @param **kwargs: keyword arguments
+        @type **kwargs: possible list
+        @return: decorator function return
+        @rtype: function
+        """
+        self.request.response.setHeader('Cache-Control', 'no-cache, must-revalidate')
+        self.request.response.setHeader('Pragma', 'no-cache') 
+        self.request.response.setHeader('Expires', 'Sat, 13 May 2006 18:02:00 GMT')
+        # Get rid of kw used to prevent browser caching 
+        if kwargs.has_key('_dc'): del kwargs['_dc'] 
+        return f(self, *args, **kwargs) 
+
+    return inner
+    
 def formreq(f): 
     """ 
     Decorator to pass in request.form information as arguments to a method. 

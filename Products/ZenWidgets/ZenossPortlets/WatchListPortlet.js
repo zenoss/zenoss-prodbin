@@ -8,6 +8,7 @@ WatchListPortlet.prototype = {
         title = 'title' in args? args.title: "Object Watch List",
         datasource = 'datasource' in args? args.datasource :
             new YAHOO.zenoss.portlet.TableDatasource({
+                useRandomParameter: false,
                 url:'/zport/dmd/ZenEventManager/getEntityListEventSummary',
                 postContent: ['/Devices/Discovered']});
         bodyHeight = 'bodyHeight' in args? args.bodyHeight:200;
