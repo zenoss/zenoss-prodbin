@@ -29,7 +29,7 @@ class MenuCleanup(Migrate.Step):
         removeItems(topLevel, ['clearMapCache'])
 
         manage = zenMenus.Manage
-        removeItems(manage, ['addDevice', 'lockDevices', 'pushConfig',
+        removeItems(manage, ['addDevice', 'lockDevices', 'pushConfig', 'changeClass',
                              'resetCommunity', 'resetIp'])
 
         ipinterface = zenMenus.IpInterface
