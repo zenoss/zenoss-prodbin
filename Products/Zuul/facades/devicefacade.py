@@ -195,7 +195,7 @@ class DeviceFacade(TreeFacade):
     def setProductInfo(self, uid, hwManufacturer=None, hwProductName=None,
                        osManufacturer=None, osProductName=None):
         dev = self._getObject(uid)
-        dev.manage_editDevice(hwManufacturer=hwManufacturer,
+        dev.setProductInfo(hwManufacturer=hwManufacturer,
                               hwProductName=hwProductName,
                               osManufacturer=osManufacturer,
                               osProductName=osProductName)

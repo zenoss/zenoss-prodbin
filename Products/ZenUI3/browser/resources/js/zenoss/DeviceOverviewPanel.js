@@ -29,7 +29,6 @@
     Ext.reg('clicktoedit', ClickToEditField);
 
     function editManuInfo (vals, uid) {
-        
         function name(uid) {
             if (!uid){
                 return 'Unknown';
@@ -325,7 +324,7 @@
                             xtype: 'clicktoedit',
                             listeners: {
                                 labelclick: function(p){
-                                    editManuInfo(this.getValues());
+                                    editManuInfo(this.getValues(), this.contextUid);
                                 },
                                 scope: this
                             },
@@ -335,7 +334,7 @@
                             xtype: 'clicktoedit',
                             listeners: {
                                 labelclick: function(p){
-                                    editManuInfo(this.getValues());
+                                    editManuInfo(this.getValues(), this.contextUid);
                                 },
                                 scope: this
                             },
@@ -345,7 +344,7 @@
                             xtype: 'clicktoedit',
                             listeners: {
                                 labelclick: function(p){
-                                    editManuInfo(this.getValues());
+                                    editManuInfo(this.getValues(), this.contextUid);
                                 },
                                 scope: this
                             },

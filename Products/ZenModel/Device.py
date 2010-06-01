@@ -1043,6 +1043,22 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable,
             if self.zSnmpVer != zSnmpVer:
                 self.setZenProperty("zSnmpVer", zSnmpVer)
 
+    def setProductInfo(self, hwManufacturer="", hwProductName="",
+                          osManufacturer="", osProductName=""):
+        if hwManufacturer and hwProductName:
+            log.info("setting hardware manufacturer to %s productName to %s"
+                            % (hwManufacturer, hwProductName))
+            self.hw.setProduct(hwProductName, hwManufacturer)
+        else:
+            self.hw.productClass.removeRelation()
+
+        if osManufacturer and osProductName:
+            log.info("setting os manufacturer to %s productName to %s"
+                            % (osManufacturer, osProductName))
+            self.os.setProduct(osProductName, osManufacturer)
+            self.os.productClass().isOS = True
+        else:
+            self.os.productClass.removeRelation()
 
     security.declareProtected(ZEN_CHANGE_DEVICE, 'manage_editDevice')
     def manage_editDevice(self,
@@ -1086,20 +1102,10 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable,
         self.setPriority(priority)
         self.comments = comments
 
-        if hwManufacturer and hwProductName:
-            log.info("setting hardware manufacturer to %s productName to %s"
-                            % (hwManufacturer, hwProductName))
-            self.hw.setProduct(hwProductName, hwManufacturer)
-        else:
-            self.hw.productClass.removeRelation()
-
-        if osManufacturer and osProductName:
-            log.info("setting os manufacturer to %s productName to %s"
-                            % (osManufacturer, osProductName))
-            self.os.setProduct(osProductName, osManufacturer)
-            self.os.productClass().isOS = True
-        else:
-            self.os.productClass.removeRelation()
+        self.setProductInfo(hwManufacturer=hwManufacturer,
+                            hwProductName=hwProductName,
+                            osManufacturer=osManufacturer,
+                            osProductName=osProductName)
 
         if locationPath:
             log.info("setting location to %s" % locationPath)
