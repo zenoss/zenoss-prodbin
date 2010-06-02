@@ -8,6 +8,16 @@
         tal:attributes="value template/id"/>
 </form>
 
+<script>
+Ext.addBehaviors({
+    'tbody * a@click' : function(a) {
+        if (!(/sortRule=cmp/.test(a.target.href))) {
+            window.parent.location.href = a.target.href;
+        }
+    }
+});
+</script>
+
 <tal:block metal:define-macro="rrdtemplatelist"
     tal:define="
         tableName string:rrdtemplatelist;
@@ -36,15 +46,11 @@
                     editable python:temp.isEditable(here);"
         tal:attributes="class python:'tablevalues ' + test(odd,'odd','even')">
         <td>
-                <a tal:attributes="href temp/absolute_url_path" 
-                        tal:content="temp/getId">name</a>
+          <a tal:attributes="href temp/absolute_url_path" 
+             tal:content="temp/getId">name</a>
         </td>
         <td>
-            <a tal:condition="temp/deviceClass" 
-                tal:attributes="href string:${temp/deviceClass/getPrimaryHref}/perfConfig"
-                tal:content="temp/getRRDPath">/Devices/Server</a>
-            <a tal:condition="not:temp/deviceClass" 
-                tal:content="temp/getRRDPath">/Devices/Server</a>
+          <a tal:content="temp/getRRDPath">/Devices/Server</a>
         </td>
         <td tal:content="temp/description"/>
         <td>

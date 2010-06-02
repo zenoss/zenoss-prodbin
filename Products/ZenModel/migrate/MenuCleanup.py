@@ -55,6 +55,10 @@ class MenuCleanup(Migrate.Step):
         removeItems(winservice, ['changeMonitoring', 'deleteWinServices',
                                   'lockWinServices'])
 
+        objTemplates = zenMenus.objTemplates
+        removeItems(objTemplates, ['addLocalTemplate', 'bindTemplate',
+                                  'removeZDeviceTemplates'])
+        
         more = zenMenus.More.zenMenuItems
         more._getOb('zPropertyEdit').description = 'Configuration Properties'
         more._getOb('zPropertyEdit_os').description = 'Configuration Properties'

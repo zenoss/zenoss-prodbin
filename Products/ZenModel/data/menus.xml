@@ -4705,66 +4705,6 @@ True
 </object>
 <object id='objTemplates' module='Products.ZenModel.ZenMenu' class='ZenMenu'>
 <tomanycont id='zenMenuItems'>
-<object id='addLocalTemplate' module='Products.ZenModel.ZenMenuItem' class='ZenMenuItem'>
-<property type="text" id="description" mode="w" >
-Add Template...
-</property>
-<property type="text" id="action" mode="w" >
-dialog_addLocalTemplate
-</property>
-<property type="boolean" id="isglobal" mode="w" >
-True
-</property>
-<property type="lines" id="permissions" mode="w" >
-('Change Device',)
-</property>
-<property type="boolean" id="isdialog" mode="w" >
-True
-</property>
-<property type="float" id="ordering" mode="w" >
-90.1
-</property>
-</object>
-<object id='bindTemplate' module='Products.ZenModel.ZenMenuItem' class='ZenMenuItem'>
-<property type="text" id="description" mode="w" >
-Bind Templates...
-</property>
-<property type="text" id="action" mode="w" >
-dialog_bindTemplates
-</property>
-<property type="boolean" id="isglobal" mode="w" >
-True
-</property>
-<property type="lines" id="permissions" mode="w" >
-('Change Device',)
-</property>
-<property type="boolean" id="isdialog" mode="w" >
-True
-</property>
-<property type="float" id="ordering" mode="w" >
-80.1
-</property>
-</object>
-<object id='removeZDeviceTemplates' module='Products.ZenModel.ZenMenuItem' class='ZenMenuItem'>
-<property type="text" id="description" mode="w" >
-Reset Bindings
-</property>
-<property type="text" id="action" mode="w" >
-dialog_removeZDeviceTemplates
-</property>
-<property type="boolean" id="isglobal" mode="w" >
-True
-</property>
-<property type="lines" id="permissions" mode="w" >
-('Change Device',)
-</property>
-<property type="boolean" id="isdialog" mode="w" >
-True
-</property>
-<property type="float" id="ordering" mode="w" >
-70.1
-</property>
-</object>
 </tomanycont>
 </object>
 </tomanycont>

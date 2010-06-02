@@ -122,12 +122,14 @@ Ext.onReady(function(){
         iconCls: 'customize',
         menu: {cls: 'z-bc-menu'}
     });
+    if (!menu) {
+        btn.hide();
+    }else {
+        var inputs = menu.select('input[type=\'hidden\']');
+        inputs.appendTo(btn.getEl());
 
-    var inputs = menu.select('input[type=\'hidden\']');
-    inputs.appendTo(btn.getEl());
-
-    Zenoss.util.registerBackCompatMenu(menu, btn, 'bl', [2, -1]);
-
+        Zenoss.util.registerBackCompatMenu(menu, btn, 'bl', [2, -1]);
+    }
 });
 
 "></script>
