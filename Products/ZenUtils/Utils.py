@@ -45,7 +45,7 @@ from Acquisition import aq_inner, aq_parent
 from ZServer.HTTPServer import zhttp_channel
 
 from Products.ZenUtils.Exceptions import ZenPathError, ZentinelException
-from Products.ZenUtils.scripts.jsonutils import unjson
+from Products.ZenUtils.jsonutils import unjson
 
 
 DEFAULT_SOCKET_TIMEOUT = 30
