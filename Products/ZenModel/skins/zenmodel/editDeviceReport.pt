@@ -1,4 +1,4 @@
-<tal:block metal:use-macro="here/templates/macros/page2">
+<tal:block metal:use-macro="here/page_macros/old-new">
 <tal:block metal:fill-slot="contentPane">
 
 <form method=post 
@@ -7,7 +7,8 @@
         tal:attributes="value template/id" /> 
 
 
-        <tal:block tal:define="message request/message | string:RRD Graph state at time:; tabletitle string:">
+        <tal:block tal:define="message request/message | string:RRD Graph state at time:; 
+        tabletitle string:${message} ${here/getNowString}">
         <tal:block metal:use-macro="here/zenuimacros/macros/zentable">
 
         <!--====Optional titlebar slots=============
@@ -23,10 +24,6 @@
         <tal:block metal:fill-slot="zentablecontents">
         <!-- BEGIN TABLE CONTENTS -->
             
-    <tr tal:define="message request/message | string:RRD Graph state at time:">
-        <th class="tabletitle" colspan="2"
-            tal:content="string:${message} ${here/getNowString}" />
-    </tr>
     <tr>
         <td class="tableheader">Name</td>
         <td class="tablevalues" tal:condition="here/isManager">

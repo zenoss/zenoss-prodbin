@@ -65,14 +65,14 @@ class DeviceReport(ZenModelRM):
     # Screen action bindings (and tab definitions)
     factory_type_information = ( 
         { 
-            'immediate_view' : 'viewDeviceReport',
+            'immediate_view' : '',
             'actions'        :
             ( 
-                {'name'          : 'Report',
-                'action'        : 'viewDeviceReport',
+                {'name'          : 'View Report',
+                'action'        : '',
                 'permissions'   : ("View",),
                 },
-                {'name'          : 'Edit',
+                {'name'          : 'Edit Report',
                 'action'        : 'editDeviceReport',
                 'permissions'   : ("Manage DMD",),
                 },
@@ -81,6 +81,12 @@ class DeviceReport(ZenModelRM):
         )
 
     security = ClassSecurityInfo()
+
+    def getBreadCrumbUrlPath(self):
+        '''
+        Return the url to be used in breadcrumbs for this object.
+        '''
+        return self.getPrimaryUrlPath() + '/editDeviceReport'
 
 
     def getDevices(self):

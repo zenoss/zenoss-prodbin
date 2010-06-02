@@ -125,10 +125,8 @@ Optional titlebar stuff
     <td class="tablevalues" align="left"
         tal:content="uc/command">
     </td>
-    <td class="tablevalues" align="left">
-  <a href="_" 
-        tal:attributes="href string:${uc/absolute_url}/viewHistory"
-        tal:content="uc/getId">command</a>
+    <td class="tablevalues" align="center">
+        <a href="_" tal:attributes="href string:${uc/absolute_url}/viewHistory">&#916;</a>
     </td>
   </tr>
   </tal:block>

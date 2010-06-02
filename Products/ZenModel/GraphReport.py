@@ -58,14 +58,14 @@ class GraphReport(ZenModelRM):
 
     factory_type_information = ( 
         { 
-            'immediate_view' : 'viewGraphReport',
+            'immediate_view' : '',
             'actions'        :
             ( 
-                {'name'          : 'Report',
-                'action'        : 'viewGraphReport',
+                {'name'          : 'View Report',
+                'action'        : '',
                 'permissions'   : ("View",),
                 },
-                {'name'          : 'Edit',
+                {'name'          : 'Edit Report',
                 'action'        : 'editGraphReport',
                 'permissions'   : ("Manage DMD",),
                 },

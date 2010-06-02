@@ -154,9 +154,9 @@ Zenoss.ReportTreePanel = Ext.extend(Zenoss.HierarchyTreePanel, {
                 node.expand();
                 tree.update(data.tree);
                 if (node.attributes.leaf) {
-                    report_panel.setContext(node.attributes.uid +
+                    window.location = node.attributes.uid + 
                             '/edit' +
-                            node.attributes.meta_type);
+                            node.attributes.meta_type;
                 }
             }
         }
@@ -182,8 +182,7 @@ Zenoss.ReportTreePanel = Ext.extend(Zenoss.HierarchyTreePanel, {
         var node = this.getSelectionModel().getSelectedNode(),
                 uid = node.attributes.uid,
                 meta_type = node.attributes.meta_type;
-        report_panel.contextUid = '';
-        report_panel.setContext(uid + '/edit' + meta_type);
+        window.location = uid + '/edit' + meta_type;
     }
 });
 
@@ -195,7 +194,13 @@ var treesm = new Ext.tree.DefaultSelectionModel({
         'selectionchange': function (sm, newnode) {
             if (newnode.attributes.leaf && !initialContextSet) {
                 initialContextSet = true;
-                report_panel.setContext(newnode.attributes.uid);
+                var uid = newnode.attributes.uid,
+                    meta_type = newnode.attributes.meta_type;
+                if (meta_type == 'Report') {
+                    report_panel.setContext(uid + '?adapt=false');
+                } else {
+                    report_panel.setContext(uid + '/view' + meta_type);
+                }
             }
             Ext.getCmp('add-organizer-button').setDisabled(newnode.attributes.leaf);
             Ext.getCmp('add-to-zenpack-button').setDisabled(newnode.attributes.leaf);
@@ -223,7 +228,13 @@ var report_tree = new Zenoss.ReportTreePanel({
         render: initializeTreeDrop,
         click: function (node, e) {
             if (node.attributes.leaf) {
-                report_panel.setContext(node.attributes.uid);
+                var uid = node.attributes.uid,
+                    meta_type = node.attributes.meta_type;
+                if (meta_type == 'Report') {
+                    report_panel.setContext(uid + '?adapt=false');
+                } else {
+                    report_panel.setContext(uid + '/view' + meta_type);
+                }
             }
         }
     },
@@ -242,7 +253,7 @@ Ext.getCmp('center_panel').add({
         id: 'master_panel',
         layout: 'fit',
         region: 'west',
-        width: 275,
+        width: 300,
         split: true,
         items: [report_tree]
     }, {

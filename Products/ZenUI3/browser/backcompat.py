@@ -53,3 +53,8 @@ def Process(ob):
 def MonitoringTemplate(ob):
     id = '/'.join(ob.getPhysicalPath())
     return '/zport/dmd/template#templateTree:' + id
+
+def ReportClass(ob):
+    id = '.'.join(ob.getPhysicalPath())
+    return '/zport/dmd/reports#reporttree:' + id
+

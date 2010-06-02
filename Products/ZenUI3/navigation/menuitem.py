@@ -27,16 +27,23 @@ class PrimaryNavigationMenuItem(viewlet.ViewletBase):
     url = ''
     active_class = 'active'
     inactive_class = 'inactive'
+    subviews = ()
 
     @property
     def title(self):
         return self.__name__
 
+    def update(self):
+        super(PrimaryNavigationMenuItem, self).update()
+        if isinstance(self.subviews, basestring):
+            self.subviews = self.subviews.split()
+
     @property
     def selected(self):
         requestURL = self.request.getURL().replace('/@@', '/')
-        if re.search(self.url, requestURL) :
-            return True
+        for url in chain((self.url,), self.subviews):
+            if re.search(url, requestURL) :
+                return True
         sec = SecondaryNavigationManager(self.context, self.request,
                                          self.__parent__)
         if sec:
@@ -81,12 +88,6 @@ class SecondaryNavigationMenuItem(PrimaryNavigationMenuItem):
     zope.interface.implements(INavigationItem)
 
     parentItem = ""
-    subviews = ()
-
-    def update(self):
-        super(SecondaryNavigationMenuItem, self).update()
-        if isinstance(self.subviews, basestring):
-            self.subviews = self.subviews.split()
 
     @property
     def selected(self):

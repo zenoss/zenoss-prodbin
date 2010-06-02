@@ -52,14 +52,14 @@ class MultiGraphReport(ZenModelRM):
 
     factory_type_information = ( 
         { 
-            'immediate_view' : 'viewMultiGraphReport',
+            'immediate_view' : '',
             'actions'        :
             ( 
-                {'name'          : 'Report',
-                'action'        : 'viewMultiGraphReport',
+                {'name'          : 'View Report',
+                'action'        : '',
                 'permissions'   : ("View",),
                 },
-                {'name'          : 'Edit',
+                {'name'          : 'Edit Report',
                 'action'        : 'editMultiGraphReport',
                 'permissions'   : ("Manage DMD",),
                 },
