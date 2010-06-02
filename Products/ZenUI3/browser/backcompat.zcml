@@ -683,12 +683,6 @@
     />
 
 <adapter
-    for="Products.ZenModel.RRDDataSource.RRDDataSource"
-    provides=".interfaces.INewPath"
-    factory=".backcompat.MonitoringTemplate"
-    />
-
-<adapter
     for="Products.ZenModel.ReportClass.ReportClass"
     provides=".interfaces.INewPath"
     factory=".backcompat.ReportClass"
