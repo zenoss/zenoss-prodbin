@@ -44,3 +44,7 @@ class INewPath(Interface):
     Translates old paths into new ones.
     """
 
+class IErrorMessage(Interface):
+    """
+    A 404 or 500 page.
+    """

@@ -30,6 +30,14 @@
 <include file="screentypes.zcml"/>
 -->
 
+<browser:page
+    for="*"
+    name="index.html"
+    class=".ErrorMessage"
+    permission="zope2.Public"
+    />
+
+
 <interface
     interface="..navigation.interfaces.IZenossNav"
     type="zope.publisher.interfaces.browser.IBrowserSkinType"

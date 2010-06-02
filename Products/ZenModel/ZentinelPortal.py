@@ -31,6 +31,7 @@ from Products.CMFCore.utils import getToolByName
 
 from Products.ZenUtils import Security, Time
 from Products.ZenUtils.Utils import prepId
+from Products.ZenUI3.browser.interfaces import IErrorMessage
 
 from ZenossSecurity import *
 

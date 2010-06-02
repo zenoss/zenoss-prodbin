@@ -3,14 +3,12 @@
 To which class would you like to move this device?<br/>
 </p> 
 <form id="change_class_form" method="post" tal:attributes="action here/absolute_url">
-<p style="text-align:center;">
 <select class="tableheader" name="deviceClassPath"
     tal:define="targets here/deviceClassMoveTargets">
     <option value=""></option>
     <option tal:repeat="target targets"
         tal:content="target">/Thing</option>
 </select>
-</p>
 </form>
 <script>
 var change_class_form = new Zenoss.dialog.DialogFormPanel({

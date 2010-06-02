@@ -1,0 +1,77 @@
+<html metal:define-macro="base-new">
+    <head>
+        <title>
+            <tal:block tal:content="view/instanceIdentifier"/>: Error
+        </title>
+        <link rel="icon" href="/zport/dmd/favicon.ico" type="image/x-icon"/>
+        <link rel="shortcut icon" href="/zport/dmd/favicon.ico" type="image/x-icon"/>
+        <link rel="stylesheet" type="text/css"
+            href="/++resource++extjs/resources/css/ext-all.css" />
+        <link rel="stylesheet" type="text/css"
+            href="/++resource++zenui/css/zenoss.css" />
+        <link rel="stylesheet" type="text/css"
+            href="/++resource++zenui/css/zenui3.css" />
+        <tal:block tal:content="structure view/headExtra"/>
+        <style>
+            #center {
+                font-family: helvetica,tahoma,arial,sans-serif;
+                padding: 1em;
+                border: 1px solid #ABC;
+                margin: 1em;
+                background-color: #D4E0EE;
+            }
+            #center h2 {
+                font-size: 140%;
+                margin: 5px auto;
+            }
+            body {
+            }
+        </style>
+    </head>
+    <body>
+        <div id="header">
+            <div class="bg">
+                <div class="bg-leftcap">
+                    <div class="bg-tile">
+                        <div class="bg-logo"></div>
+                        <div id="primarynav">
+                            <ul tal:content="structure view/primaryNav"/>
+                            <div id="header-extra">
+                                <div>
+                                    <a id="sign-out-link"
+                                       href="/zport/dmd/logoutUser">sign out
+                                       </a>
+                                </div>
+                                <div>
+                                    <div id="help-icon-container">
+                                        <span></span><!-- ie needs empty span tags in some versions -->
+                                        <a tal:attributes="href
+                                            string:http://www.zenoss.com/help?version=${view/zenossVersion}"
+                                           target="_blank" alt="Help">&nbsp;</a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div id="secondarynav">
+                            <ul tal:content="structure view/secondaryNav"/>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div id="center"> 
+
+<tal:block tal:condition="view/isNotFound">
+<h2>Site error</h2>
+<p>An error was encountered while publishing this resource.  The requested
+resource does not exist.</p>
+<a href="/zport/dmd/">Please click here to return to the Zenoss dashboard</a>
+</tal:block>
+
+<tal:block tal:condition="not:view/isNotFound" 
+           tal:content="structure view/error_message"/>
+</div>
+
+</body>
+</html>
+
