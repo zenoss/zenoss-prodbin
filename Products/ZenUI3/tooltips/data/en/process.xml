@@ -31,7 +31,7 @@
   </tooltip>
 
   <tooltip>
-    <target>ignoreParametersCheckbox</target>
+    <target>ignoreParametersSelect</target>
     <anchor>left</anchor>
     <html>Ignore command parameters</html>
   </tooltip>

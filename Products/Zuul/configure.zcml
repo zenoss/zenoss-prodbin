@@ -112,11 +112,6 @@
              factory=".marshalling.DefaultUnmarshaller"
              />
 
-    <adapter provides=".interfaces.IUnmarshaller"
-             for=".interfaces.IProcessInfo"
-             factory=".marshalling.ProcessUnmarshaller"
-             />
-
     <adapter provides=".interfaces.IMarshaller"
              for=".interfaces.IMarshallable"
              factory=".marshalling.Marshaller"

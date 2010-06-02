@@ -174,7 +174,7 @@ function actioncompleteHandler(basicForm, action) {
         var isRoot = processInfo.name == 'Processes';
         Ext.getCmp('nameTextField').setDisabled(isRoot);
         Ext.getCmp('regexTextField').setDisabled(!processInfo.hasRegex);
-        Ext.getCmp('ignoreParametersCheckbox').setDisabled(!processInfo.hasRegex);
+        Ext.getCmp('ignoreParametersSelect').setDisabled(!processInfo.hasRegex);
         var regexFieldSet = Ext.getCmp('regexFieldSet');
         regexFieldSet.setVisible(processInfo.hasRegex);
         regexFieldSet.doLayout();
@@ -211,16 +211,17 @@ var regexTextField = {
     id: 'regexTextField',
     fieldLabel: _t('Pattern'),
     name: 'regex',
-    width: "100%",
+    width: "94%",
     allowBlank: false
 };
 
-var ignoreParametersCheckbox = {
-    xtype: 'checkbox',
-    id: 'ignoreParametersCheckbox',
+var ignoreParametersSelect = {
+    xtype: 'select',
+    id: 'ignoreParametersSelect',
     fieldLabel: _t('Ignore Parameters'),
     name: 'ignoreParameters',
-    submitValue: true
+    mode: 'local',
+    store: [[true, 'Yes'], [false, 'No']]
 };
 
 var zMonitor = {
@@ -260,16 +261,13 @@ var zFailSeverity = {
 };
 
 var regexFieldSet = {
-    xtype: 'ColumnFieldSet',
+    xtype: 'fieldset',
     id: 'regexFieldSet',
     title: _t('Regular Expression'),
     hidden: true,
-    __inner_items__: [
-        {
-            items: regexTextField
-        }, {
-            items: ignoreParametersCheckbox
-        }
+    items: [
+        regexTextField,
+        ignoreParametersSelect
     ]
 }; // regexFieldSet
 
@@ -312,6 +310,7 @@ Ext.getCmp('detail_panel').add({
     region: 'south',
     id: 'instancesGrid',
     directFn: router.getInstances,
+    nameDataIndex: 'processName',
     tbar: {
         xtype: 'consolebar',
         title: 'Process Instances'

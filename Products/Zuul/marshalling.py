@@ -19,7 +19,6 @@ from Products.Zuul.interfaces import IMarshallable
 from Products.Zuul.interfaces import IMarshaller
 from Products.Zuul.interfaces import IUnmarshaller
 from Products.Zuul.interfaces import IInfo
-from Products.Zuul.interfaces import IProcessInfo
 from Products.Zuul.interfaces import ITreeNode
 
 def _marshalImplicitly(obj):
@@ -145,28 +144,3 @@ class DefaultUnmarshaller(object):
     def unmarshal(self, data):
         for key, value in data.iteritems():
             setattr(self.obj, key, value)
-
-
-class ProcessUnmarshaller(object):
-    """
-    Unmarshalls dictionary into a ProcessInfo object.  Coverts monitor and
-    ignoreParameters into boolean values.
-    """
-    implements(IUnmarshaller)
-    adapts(IProcessInfo)
-
-    def __init__(self, obj):
-        self.obj = obj
-
-    def unmarshal(self, data):
-        for key, value in data.iteritems():
-            if key in ['monitor', 'alertOnRestart', 'ignoreParameters']:
-                value = True
-            setattr(self.obj, key, value)
-        if 'isMonitoringAcquired' not in data:
-            if 'monitor' not in data:
-                setattr(self.obj, 'monitor', False)
-            if 'alertOnRestart' not in data:
-                setattr(self.obj, 'alertOnRestart', False)
-        if 'ignoreParameters' not in data:
-            setattr(self.obj, 'ignoreParameters', False)

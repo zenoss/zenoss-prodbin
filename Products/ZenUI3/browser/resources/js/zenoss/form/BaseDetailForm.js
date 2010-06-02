@@ -36,7 +36,7 @@ ZF.createDirectSubmitFunction = function(router) {
         var dirtyFieldValues = form.getFieldValues(true);
         Ext.iterate(dirtyFieldValues, function(key, value) {
             var field = form.findField(key);
-            if ( field.submitValue && field.getName().indexOf("ext-comp-") !== 0 ) {
+            if ( field.submitValue !== false && field.getName().indexOf("ext-comp-") !== 0 ) {
                 info[key] = value;
             }
         });

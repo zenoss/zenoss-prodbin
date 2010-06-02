@@ -35,7 +35,7 @@ var InstanceColumnModel = Ext.extend(Ext.grid.ColumnModel, {
                    }
                 }, {
                     id: 'name',
-                    dataIndex: 'name',
+                    dataIndex: config.nameDataIndex || 'name',
                     header: _t('Name'),
                     width: 400
                 }, {
@@ -74,7 +74,7 @@ Zenoss.InstanceStore = Ext.extend(Ext.ux.grid.livegrid.Store, {
                 root: 'data',
                 fields: [
                     {name: 'device'},
-                    {name: 'name'},
+                    {name: config.nameDataIndex || 'name'},
                     {name: 'monitored'},
                     {name: 'status'}
                 ]
@@ -95,10 +95,13 @@ Zenoss.SimpleInstanceGridPanel = Ext.extend(Ext.ux.grid.livegrid.GridPanel, {
             split: true,
             autoExpandColumn: 'name',
             stripeRows: true,
-            cm: new InstanceColumnModel(),
+            cm: new InstanceColumnModel({
+                nameDataIndex: config.nameDataIndex
+            }),
             store: {
                 xtype:'InstanceStore',
-                directFn: config.directFn
+                directFn: config.directFn,
+                nameDataIndex: config.nameDataIndex
             }
         });
         Zenoss.SimpleInstanceGridPanel.superclass.constructor.call(this, config);
