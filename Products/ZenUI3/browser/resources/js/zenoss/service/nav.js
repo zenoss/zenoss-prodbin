@@ -147,21 +147,22 @@
         store = new Ext.ux.grid.livegrid.Store(zs.storeConfig);
         columnModel = new Ext.grid.ColumnModel(zs.columnModelConfig);
 
-        gridConfig = Ext.apply(zs.gridConfig, {
+        navGrid = Ext.create({
+            xtype: 'servicegridpanel',
             store: store,
             cm: columnModel,
-            sm: new Zenoss.ExtraHooksSelectionModel({singleSelect:true})
+            sm: new Zenoss.ExtraHooksSelectionModel({
+                singleSelect: true,
+                listeners: {
+                    rowselect: zs.rowselectHandler
+                }
+            })
         });
-
-        navGrid = new Zenoss.FilterGridPanel(gridConfig);
 
         navGrid.on('afterrender',
             function(me){
                 me.showFilters();
             });
-
-        navGrid.getSelectionModel().on('rowselect', zs.rowselectHandler);
-
 
         navTree = Ext.create({
             xtype: 'servicetreepanel',

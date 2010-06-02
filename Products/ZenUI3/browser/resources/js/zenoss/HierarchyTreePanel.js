@@ -157,11 +157,11 @@ Zenoss.HierarchyTreePanel = Ext.extend(Ext.tree.TreePanel, {
                 }
             }, this);
         }
-
         this.addEvents('filter');
-        this.on('click', function(node, event) {
-            Ext.History.add(this.id + Ext.History.DELIMITER + node.id);
-        }, this);
+        this.on('click', this.addHistoryToken, this);
+    },
+    addHistoryToken: function(node) {
+        Ext.History.add(this.id + Ext.History.DELIMITER + node.id);
     },
     update: function(data) {
         function doUpdate(root, data) {

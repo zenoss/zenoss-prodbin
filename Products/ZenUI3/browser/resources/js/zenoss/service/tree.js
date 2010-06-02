@@ -68,12 +68,36 @@
 
     // function that gets run when the user clicks on a node in the tree
     zs.treeSelectionChangeHandler = function(sm, node) {
+        var oldToken, newToken, token, remainder, remainderParts, isRoot;
         if (node) {
             Ext.getCmp('serviceForm').setContext(node.attributes.uid);
-            Ext.getCmp('navGrid').getSelectionModel().clearSelections();
-            Ext.getCmp('navGrid').setContext(node.attributes.uid);
+            
+            oldToken = unescape(Ext.History.getToken());
+            newToken = 'navTree' + Ext.History.DELIMITER + node.id;
+            if ( oldToken.indexOf(newToken + '.serviceclasses.') !== 0 ) {
+                Ext.History.add(newToken);
+                token = newToken;
+            } else {
+                token = oldToken;
+            }
 
-            var isRoot = node == Ext.getCmp('navTree').root;
+            Ext.getCmp('navGrid').getSelectionModel().clearSelections();
+            Ext.getCmp('navGrid').getView().contextUid = node.attributes.uid;
+
+            if (token) {
+                remainder = token.split(Ext.History.DELIMITER)[1];
+                if ( remainder ) {
+                    remainderParts = remainder.split('.serviceclasses.');
+                    if ( remainderParts[1] ) {
+                        Ext.getCmp('navGrid').filterAndSelectRow(remainderParts[1]);
+                    } else {
+                        Ext.getCmp('name').setRawValue('');
+                    }
+                } 
+            }            
+            Ext.getCmp('navGrid').getView().updateLiveRows(Ext.getCmp('navGrid').getView().rowIndex, true, true, false);
+            
+            isRoot = node == Ext.getCmp('navTree').root;
             Ext.getCmp('footer_bar').buttonDelete.setDisabled(isRoot);
         }
     };
@@ -85,7 +109,7 @@
         }
     });
 
-    var ServiceTreePanel = Ext.extend(Zenoss.HierarchyTreePanel, {
+    zs.ServiceTreePanel = Ext.extend(Zenoss.HierarchyTreePanel, {
         constructor: function(config) {
             Ext.applyIf(config, {
                 id: 'navTree',
@@ -99,13 +123,12 @@
                 ddGroup: 'serviceDragDrop',
                 ddAppendOnly: true,
                 listeners: {
-                    beforenodedrop: {
-                        fn: this.onBeforeNodeDrop,
-                        scope: this
-                    }
+                    scope: this,
+                    beforenodedrop: this.onBeforeNodeDrop,
+                    expandnode: this.onExpandnode
                 }
             });
-            ServiceTreePanel.superclass.constructor.call(this, config);
+            zs.ServiceTreePanel.superclass.constructor.call(this, config);
         },
         onBeforeNodeDrop: function(dropEvent) {
             var sourceUids, targetUid;
@@ -133,8 +156,39 @@
         rootNodeReloadCallback: function() {
             this.getRootNode().select();
             this.getRootNode().expand(true);
+        },
+        
+        onExpandnode: function(node) {
+            var token, remainder;
+            token = Ext.History.getToken();
+            if (token) {
+                remainder = token.split(Ext.History.DELIMITER)[1];
+                this.selectByToken(remainder);
+            }
+        },
+        
+        selectByToken: function(token) {
+            var tokenParts, node, serviceClassName;
+            token = unescape(token);
+            tokenParts = token.split('.serviceclasses.');
+            node = this.getNodeById(tokenParts[0]);
+            if (node) {
+                if ( node !== zs.getSelectedOrganizer() ) {
+                    node.select();
+                } else {
+                    Ext.getCmp('navGrid').filterAndSelectRow(tokenParts[1]);
+                }
+            }
+        },
+        
+        initEvents: function() {
+            zs.ServiceTreePanel.superclass.initEvents.call(this);
+            // don't add history token on click like HierarchyTreePanel does
+            // this is handled in the selection model
+            this.un('click', this.addHistoryToken, this);
         }
+
     });
-    Ext.reg('servicetreepanel', ServiceTreePanel);
+    Ext.reg('servicetreepanel', zs.ServiceTreePanel);
 
 })();

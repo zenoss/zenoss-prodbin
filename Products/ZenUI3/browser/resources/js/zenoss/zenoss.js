@@ -995,6 +995,8 @@ Zenoss.FilterGridPanel = Ext.extend(Ext.ux.grid.livegrid.GridPanel, {
     clearFilters: function() { this.getView().clearFilters(); }
 });
 
+Ext.reg('filtergridpanel', Zenoss.FilterGridPanel);
+
 /**
  * @class Zenoss.MultiselectMenu
  * @extends Ext.Toolbar.Button

@@ -372,7 +372,7 @@ ZC.ComponentGridPanel = Ext.extend(Ext.ux.grid.livegrid.GridPanel, {
     applyOptions: function(options){
         Ext.apply(options.params, {
             uid: this.contextUid,
-            keys: Ext.pluck(this.getColumnModel().config, 'dataIndex'),
+            keys: Ext.pluck(this.getStore().fields.getRange(), 'name'),
             meta_type: this.componentType,
             name: this.componentName
         });
@@ -433,6 +433,7 @@ ZC.BaseComponentStore = Ext.extend(Ext.ux.grid.livegrid.Store, {
                     return false;
                 }
                 i++;
+                return true;
             });
             if (!found) {
                 var o = {componentUid:uid};
@@ -568,7 +569,8 @@ ZC.WinServicePanel = Ext.extend(ZC.ComponentGridPanel, {
                 {name: 'monitored'},
                 {name: 'caption'},
                 {name: 'startMode'},
-                {name: 'startName'}
+                {name: 'startName'},
+                {name: 'serviceClassUid'}
             ],
             columns: [{
                 id: 'severity',
@@ -579,7 +581,8 @@ ZC.WinServicePanel = Ext.extend(ZC.ComponentGridPanel, {
             },{
                 id: 'name',
                 dataIndex: 'name',
-                header: _t('Service Name')
+                header: _t('Service Name'),
+                renderer: Zenoss.render.WinServiceClass
             },{
                 id: 'caption',
                 dataIndex: 'caption',
@@ -682,7 +685,8 @@ ZC.IpServicePanel = Ext.extend(ZC.ComponentGridPanel, {
                 {name: 'protocol'},
                 {name: 'description'},
                 {name: 'ipaddresses'},
-                {name: 'port'}
+                {name: 'port'},
+                {name: 'serviceClassUid'}
             ],
             columns: [{
                 id: 'severity',
@@ -693,7 +697,8 @@ ZC.IpServicePanel = Ext.extend(ZC.ComponentGridPanel, {
             },{
                 id: 'name',
                 dataIndex: 'name',
-                header: _t('Name')
+                header: _t('Name'),
+                renderer: Zenoss.render.IpServiceClass
             },{
                 id: 'protocol',
                 dataIndex: 'protocol',

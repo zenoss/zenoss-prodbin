@@ -24,6 +24,10 @@ def serviceIpAddressesVocabulary(context):
 class IpServiceInfo(ComponentInfo):
     implements(IIpServiceInfo)
 
+    def __init__(self, *args, **kwargs):
+        super(ComponentInfo, self).__init__(*args, **kwargs)
+        self.serviceClassUid = self._object.serviceclass().getPrimaryUrlPath()
+
     @property
     def name(self):
         return self._object.getKeyword()
@@ -31,7 +35,7 @@ class IpServiceInfo(ComponentInfo):
     @property
     @info
     def serviceClass(self):
-        return self._object.serviceClass()
+        return self._object.serviceclass()
 
     def getManageIp(self):
         return self._object.getManageIp()

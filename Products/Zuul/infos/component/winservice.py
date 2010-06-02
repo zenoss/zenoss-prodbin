@@ -20,10 +20,14 @@ from Products.Zuul.decorators import info
 class WinServiceInfo(ComponentInfo):
     implements(IWinServiceInfo)
 
+    def __init__(self, *args, **kwargs):
+        super(ComponentInfo, self).__init__(*args, **kwargs)
+        self.serviceClassUid = self._object.serviceclass().getPrimaryUrlPath()
+
     @property
     @info
     def serviceClass(self):
-        return self._object.serviceClass()
+        return self._object.serviceclass()
 
     @property
     def caption(self):
