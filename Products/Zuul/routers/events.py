@@ -43,7 +43,7 @@ class EventsRouter(DirectRouter):
             message = e.__class__.__name__ + ' ' + str(e)
             return DirectResponse.fail(message)
 
-    @require('View History')
+    @require('ZenCommon')
     def queryHistory(self, limit, start, sort, dir, params):
         return self.query(limit, start, sort, dir, params, history=True)
 

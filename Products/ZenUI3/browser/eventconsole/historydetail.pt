@@ -7,7 +7,8 @@
         <link rel="stylesheet" type="text/css" 
             href="/++resource++zenui/css/zenoss.css" />
         <link rel="stylesheet"
-            href="/++resource++zenui/js/livegrid/resources/css/ext-ux-livegrid.css"/> 
+            href="/++resource++zenui/js/livegrid/resources/css/ext-ux-livegrid.css"/>
+        <tal:block tal:content="structure provider:js-security"/>
         <tal:block tal:content="structure provider:all-js"/>
     </head>
     <body class="zenui3">
