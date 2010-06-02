@@ -53,8 +53,7 @@ class ComponentInfo(InfoBase):
         return {
             'updates': self._object.isLockedFromUpdates(),
             'deletion': self._object.isLockedFromDeletion(),
-            'events': self._object.sendEventWhenBlocked()
-        }
+            'events': self._object.sendEventWhenBlocked()}
 
     monitored = ProxyProperty('monitor')
 
@@ -66,9 +65,15 @@ class ComponentInfo(InfoBase):
 
 class ComponentFormBuilder(FormBuilder):
     def render(self, fieldsets=True):
-        form = super(ComponentFormBuilder, self).render(fieldsets)
         ob = self.context._object
-        form['userCreated'] = False
+        
+        # find out if we can edit this form
+        userCreated = False
         if hasattr(ob, 'isUserCreated'):
-            form['userCreated'] =  ob.isUserCreated()
+            userCreated = ob.isUserCreated()
+        
+        # construct the form
+        form = super(ComponentFormBuilder, self).render(fieldsets,
+                                                        readOnly=not userCreated)
+        form['userCreated'] = userCreated
         return form

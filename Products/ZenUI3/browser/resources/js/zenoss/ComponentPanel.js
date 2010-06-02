@@ -99,7 +99,7 @@ Zenoss.nav.register({
     },{
         nodeType: 'subselect',
         id: 'Edit',
-        text: _t('Edit'),
+        text: _t('Details'),
         action: function(node, target, combo) {
             var uid = combo.contextUid;
             if (!(uid in target.items.keys)) {

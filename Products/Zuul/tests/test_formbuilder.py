@@ -15,7 +15,7 @@ import unittest
 
 
 from zope.interface import implements, Interface
-from Products.Zuul.form.builder import FormBuilder, _item
+from Products.Zuul.form.builder import FormBuilder
 import Products.Zuul.form.schema as zs
 
 class ITestObject(Interface):
@@ -83,8 +83,8 @@ class FormBuilderTest(unittest.TestCase):
 
     def test_value(self):
         fields = self.fb.fields()
-        self.assertEqual(_item(fields['thing'])['value'], '/path/to/ob')
-        self.assertEqual(_item(fields['yoyo'])['value'], None)
+        self.assertEqual(self.fb._item(fields['thing'])['value'], '/path/to/ob')
+        self.assertEqual(self.fb._item(fields['yoyo'])['value'], None)
 
 def test_suite():
     return unittest.TestSuite((unittest.makeSuite(FormBuilderTest),))

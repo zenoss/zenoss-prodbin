@@ -107,6 +107,7 @@ class TestDataSourceView(StreamingView):
             request = self.request
             context = self.context
             request['renderTemplate'] = False
+            self.write("Preparing Command...")
             return context.testDataSourceAgainstDevice(request.get('testDevice'),
                                                        request,
                                                        self.write,

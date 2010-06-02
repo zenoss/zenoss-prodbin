@@ -35,70 +35,13 @@ FIELDKEYS = (
 )
 
 
-def _dict(field):
-    """
-    Turns a zope.schema.Field into a dictionary with our desired keys.
-    """
-    return dict((k, getattr(field, k, None)) for k in FIELDKEYS)
-
-
-def _fieldset(name, items):
-    """
-    Turns a list into a fieldset config.
-    """
-    return {
-        'xtype': 'fieldset',
-        'title': name,
-        'items': map(_item, items)
-    }
-
-
-def _item(item):
-    """
-    Turns a dict representing a field into a config.
-    """
-    if item['readonly']:
-        if item['xtype']=='checkbox':
-            xtype = 'checkbox'
-            item['disabled'] = True
-        elif item['xtype']=='linkfield':
-            xtype = 'linkfield'
-        else:
-            xtype = 'displayfield'
-    else:
-        xtype = item['xtype']
-    value = item['value']
-    if xtype == 'linkfield':
-        value = getattr(value, 'uid', value)
-    field = {
-        'xtype': xtype,
-        'fieldLabel': item['title'],
-        'anchor':'85%',
-        'name': item['name'],
-        'value': value,
-        'vtype': item['vtype'],
-        'allowBlank': not item['required']
-    }
-
-    # fileupload has a superfluous button we must remove
-    if xtype == 'fileuploadfield':
-        field['buttonCfg'] = dict(hidden=True)
-
-    if xtype == 'numberfield':
-        field['decimalPrecision'] = item['decimalPrecision']
-    if xtype in ('autoformcombo', 'itemselector'):
-        field['values'] = item['values']
-    if xtype=='checkbox':
-        field['checked'] = value
-    return field
-
-
 class FormBuilder(object):
     implements(IFormBuilder)
     adapts(IInfo)
 
     def __init__(self, context):
         self.context = context
+        self.readOnly = False
 
     def vocabulary(self, field):
         vocabulary = field.vocabulary
@@ -116,7 +59,7 @@ class FormBuilder(object):
         for iface in providedBy(self.context):
             f = zope.schema.getFields(iface)
             for k,v in f.iteritems():
-                c = _dict(v)
+                c = self._dict(v)
                 c['name'] = k
                 c['value'] = getattr(self.context, k, None)
                 if c['xtype'] in ('autoformcombo', 'itemselector'):
@@ -132,15 +75,71 @@ class FormBuilder(object):
             l.sort(key=ordergetter)
         return g
 
-    def render(self, fieldsets=True):
+    def render(self, fieldsets=True, readOnly=False):
+        self.readOnly = readOnly
         if not fieldsets:
             fields = sorted(self.fields().values(), key=ordergetter)
-            form = map(_item, fields)
+            form = map(self._item, fields)
             return form
         # group the fields 
         groups = self.groups()
         form = {
-            'items': [_fieldset(k, v) for k,v in groups.iteritems()]
+            'items': [self._fieldset(k, v) for k,v in groups.iteritems()]
         }
         return form
 
+    def _dict(self, field):
+        """
+        Turns a zope.schema.Field into a dictionary with our desired keys.
+        """
+        return dict((k, getattr(field, k, None)) for k in FIELDKEYS)
+
+    def _fieldset(self, name, items):
+        """
+        Turns a list into a fieldset config.
+        """
+        return {
+            'xtype': 'fieldset',
+            'title': name,
+            'items': map(self._item, items)
+            }
+
+    def _item(self, item):
+        """
+        Turns a dict representing a field into a config.
+        """
+        if item['readonly'] or self.readOnly:
+            if item['xtype']=='checkbox':
+                xtype = 'checkbox'
+                item['disabled'] = True
+            elif item['xtype']=='linkfield':
+                xtype = 'linkfield'
+            else:
+                xtype = 'displayfield'
+        else:
+            xtype = item['xtype']
+        
+        value = item['value']
+        if xtype == 'linkfield':
+            value = getattr(value, 'uid', value)
+        field = {
+            'xtype': xtype,
+            'fieldLabel': item['title'],
+            'anchor':'85%',
+            'name': item['name'],
+            'value': value,
+            'vtype': item['vtype'],
+            'allowBlank': not item['required']
+            }
+
+        # fileupload has a superfluous button we must remove
+        if xtype == 'fileuploadfield':
+            field['buttonCfg'] = dict(hidden=True)
+
+        if xtype == 'numberfield':
+            field['decimalPrecision'] = item['decimalPrecision']
+        if xtype in ('autoformcombo', 'itemselector'):
+            field['values'] = item['values']
+        if xtype=='checkbox':
+            field['checked'] = value
+        return field
