@@ -478,6 +478,41 @@
     />
 
 <browser:page
+    template="../../ZenModel/skins/zenmodel/viewRRDTemplate.pt"
+    name="viewRRDTemplate"
+    for="*"
+    permission="zenoss.View"
+    />
+
+<browser:page
+    template="../../ZenModel/skins/zenmodel/editRRDDataSource.pt"
+    name="editRRDDataSource"
+    for="*"
+    permission="zenoss.View"
+    />
+
+<browser:page
+    template="../../ZenModel/skins/zenmodel/editRRDDataPoint.pt"
+    name="editRRDDataPoint"
+    for="*"
+    permission="zenoss.View"
+    />
+
+<browser:page
+    template="../../ZenModel/skins/zenmodel/editRRDThreshold.pt"
+    name="editRRDThreshold"
+    for="*"
+    permission="zenoss.View"
+    />
+
+<browser:page
+    template="../../ZenModel/skins/zenmodel/editBasicDataSource.pt"
+    name="editBasicDataSource"
+    for="*"
+    permission="zenoss.View"
+    />
+
+<browser:page
     template="../../ZenModel/skins/zenmodel/editGraphDefinition.pt"
     name="editGraphDefinition"
     for="*"

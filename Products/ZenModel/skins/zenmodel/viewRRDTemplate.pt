@@ -1,4 +1,4 @@
-<tal:block metal:use-macro="here/templates/macros/page2">
+<tal:block metal:use-macro="here/page_macros/old-new-no-tabs">
 <tal:block metal:fill-slot="contentPane"
     tal:define="editable python:here.isEditable(here)">
 

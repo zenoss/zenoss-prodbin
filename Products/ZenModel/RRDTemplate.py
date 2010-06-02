@@ -98,12 +98,6 @@ addRRDTemplate = DTMLFile('dtml/addRRDTemplate',globals())
 def crumbspath(templ, crumbs, idx=-1):
     """Create the crumbs path for sub objects of an RRDTemplate.
     """
-    dc = templ.deviceClass()
-    if dc:
-        url = '%s/perfConfig' % dc.getPrimaryUrlPath()
-    else:
-        url = '%s/objTemplates' % templ.getPrimaryParent().getPrimaryUrlPath()
-    crumbs.insert(idx,(url,'Templates'))
     return crumbs
 
 

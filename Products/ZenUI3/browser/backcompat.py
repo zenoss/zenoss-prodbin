@@ -52,6 +52,8 @@ def Process(ob):
 
 def MonitoringTemplate(ob):
     id = '/'.join(ob.getPhysicalPath())
+    if id.startswith('/zport/dmd/Monitors'):
+        return id + '/viewRRDTemplate'
     return '/zport/dmd/template#templateTree:' + id
 
 def ReportClass(ob):
