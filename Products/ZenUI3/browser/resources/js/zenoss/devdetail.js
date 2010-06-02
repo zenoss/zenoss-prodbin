@@ -76,7 +76,6 @@ function refreshComponentTreeAndGrid(compType) {
             node.select();
         }
     });
-
 }
 
 Zenoss.env.componentReloader = function(compType) {
@@ -98,6 +97,8 @@ Zenoss.nav.register({
         id: UID,
         nodeType: 'async',
         text: _t('Components'),
+        // hide the node; show it only when it's determined we have components
+        hidden: true,
         expanded: true,
         leaf: false,
         listeners: {
@@ -114,15 +115,22 @@ Zenoss.nav.register({
                 var card = Ext.getCmp('component_card'),
                     tbar = card.getGridToolbar();
                 if (node.hasChildNodes()) {
+                    node.ui.show();
                     if (tbar) {
                         tbar.show();
                     }
                 } else {
+                    node.ui.hide();
                     if (tbar){
                         tbar.hide();
                     } 
                     card.detailcontainer.removeAll();
-                    card.componentnav.reset();
+                    try {
+                        // This can fail if the device has no components at
+                        // all, but it fails deep in Ext. Also it's irrelevant
+                        // in that case, so just fail quietly.
+                        card.componentnav.reset();
+                    } catch(e) {}
                 }
             }
         },
