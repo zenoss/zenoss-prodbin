@@ -18,7 +18,7 @@ function ConfirmPagerTest() {
 
 function resetPassword(){
     if(confirm("Are you sure you want to reset this user's password?"))
-        location.href = location.pathname + "/manage_resetPassword"
+        location.href = location.pathname + "?zenScreenName=editUserSettings&manage_resetPassword:method=1&redirect=True";
 }
 </script>
 
@@ -48,11 +48,13 @@ function resetPassword(){
       <td class="tablevalues">
         <input class="tablevalues" type="password" name="password"
             autocomplete="off"/>
-            <input type="button" value="Reset Password" 
+            <button
                    tabindex="-1"
                    onclick="resetPassword()"
                    class="tableheader"
-                   name="manage_resetPassword:method"/>
+                   name="manage_resetPassword:method">
+              Reset Password
+            </button>
        </td>
     </tr>
     <tr>
