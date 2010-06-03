@@ -15,6 +15,29 @@ var upDownTemplate = new Ext.Template(
     '<span class="status-{0}{2}">{1}</span>');
 upDownTemplate.compile();
 
+function convertToUnits(num, divby, unitstr, places){
+    unitstr = unitstr || "B";
+    places = places || 2;
+    divby = divby || 1024.0;
+    var units = [];
+    Ext.each(['', 'K', 'M', 'G', 'T', 'P'], function(p){
+        units.push(p+unitstr);
+    });
+    var sign = 1;
+    if (num < 0) {
+        num = Math.abs(num);
+        sign = -1;
+    }
+    var i;
+    for (i=0;i<units.length;i++) {
+        if (num<divby) {
+            break;
+        }
+        num = num/divby;
+    }
+    return (num*sign).toFixed(places) + units[i];
+}
+
 function pingStatusBase(bool) {
     if (Ext.isString(bool)) {
         bool = bool.toLowerCase();
@@ -28,6 +51,10 @@ function pingStatusBase(bool) {
 }
 
 Ext.apply(Zenoss.render, {
+
+    bytesString: function(num) {
+        return num===0 ? '0' :convertToUnits(num, 1024.0, 'B');
+    },
 
     pingStatus: function(bool) {
         var str = pingStatusBase(bool);

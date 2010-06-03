@@ -38,7 +38,7 @@ class FileSystemInfo(ComponentInfo):
 
     @property
     def availableBytes(self):
-        return self._object.availableBytes()
+        return self._object.availBytes()
 
     @property
     def capacityBytes(self):

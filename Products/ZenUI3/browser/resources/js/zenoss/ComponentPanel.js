@@ -815,8 +815,9 @@ ZC.FileSystemPanel = Ext.extend(ZC.ComponentGridPanel, {
                 {name: 'locking'},
                 {name: 'mount'},
                 {name: 'totalBytes'},
-                {name: 'freeBytes'},
-                {name: 'capacity'}
+                {name: 'availableBytes'},
+                {name: 'usedBytes'},
+                {name: 'capacityBytes'}
             ],
             columns: [{
                 id: 'severity',
@@ -830,20 +831,38 @@ ZC.FileSystemPanel = Ext.extend(ZC.ComponentGridPanel, {
                 header: _t('Mount Point')
             },{
                 id: 'totalBytes',
-                dataIndex: 'total Bytes',
-                header: _t('Total Bytes')
+                dataIndex: 'totalBytes',
+                header: _t('Total Bytes'),
+                renderer: Zenoss.render.bytesString
             },{
                 id: 'usedBytes',
                 dataIndex: 'usedBytes',
-                header: _t('Used Bytes')
+                header: _t('Used Bytes'),
+                renderer: Zenoss.render.bytesString
             },{
-                id: 'freeBytes',
-                dataIndex: 'freeBytes',
-                header: _t('Free Bytes')
+                id: 'availableBytes',
+                dataIndex: 'availableBytes',
+                header: _t('Free Bytes'),
+                renderer: function(n){
+                    if (n<0) {
+                        return _t('Unknown');
+                    } else {
+                        return Zenoss.render.bytesString(n);
+                    }
+                    
+                }
             },{
-                id: 'capacity',
-                dataIndex: 'capacity',
-                header: _t('% Util')
+                id: 'capacityBytes',
+                dataIndex: 'capacityBytes',
+                header: _t('% Util'),
+                renderer: function(n) {
+                    if (n=='unknown' || n<0) {
+                        return _t('Unknown');
+                    } else {
+                        return n + '%';
+                    }
+                }
+
             },{
                 id: 'monitored',
                 dataIndex: 'monitored',
