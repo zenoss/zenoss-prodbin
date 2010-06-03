@@ -710,6 +710,7 @@ Ext.create({
     items: {
         xtype: 'form',
         ref: 'formPanel',
+        autoScroll: true,
         labelAlign: 'top',
         monitorValid: true,
         border: false,
