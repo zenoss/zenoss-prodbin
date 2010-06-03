@@ -149,13 +149,6 @@ class RRDDataPoint(ZenModelRM, ZenPackable):
         return crumbspath(self.rrdTemplate(), crumbs, -3)
 
 
-
-    security.declareProtected(ZEN_VIEW, 'getPrimaryUrlPath')
-    def getPrimaryUrlPath(self, ignored=None):
-        """get the physicalpath as a url"""
-        return self.absolute_url_path()
-
-
     def name(self):
         """Include the data source name in our name,
         useful for lists of DataPoints"""

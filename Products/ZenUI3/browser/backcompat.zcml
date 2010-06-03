@@ -677,7 +677,61 @@
     />
 
 <adapter
+    for="Products.ZenModel.IpServiceClass.IpServiceClass"
+    provides=".interfaces.INewPath"
+    factory=".backcompat.Service"
+    />
+
+<adapter
+    for="Products.ZenModel.ServiceClass.ServiceClass"
+    provides=".interfaces.INewPath"
+    factory=".backcompat.Service"
+    />
+
+<adapter
+    for="Products.ZenModel.WinServiceClass.WinServiceClass"
+    provides=".interfaces.INewPath"
+    factory=".backcompat.Service"
+    />
+
+<adapter
     for="Products.ZenModel.RRDTemplate.RRDTemplate"
+    provides=".interfaces.INewPath"
+    factory=".backcompat.MonitoringTemplate"
+    />
+
+<adapter
+    for="Products.ZenModel.RRDDataSource.RRDDataSource"
+    provides=".interfaces.INewPath"
+    factory=".backcompat.MonitoringTemplate"
+    />
+
+<adapter
+    for="Products.ZenModel.RRDDataPoint.RRDDataPoint"
+    provides=".interfaces.INewPath"
+    factory=".backcompat.MonitoringTemplate"
+    />
+
+<adapter
+    for="Products.ZenModel.RRDDataPointAlias.RRDDataPointAlias"
+    provides=".interfaces.INewPath"
+    factory=".backcompat.MonitoringTemplate"
+    />
+
+<adapter
+    for="Products.ZenModel.RRDThreshold.RRDThreshold"
+    provides=".interfaces.INewPath"
+    factory=".backcompat.MonitoringTemplate"
+    />
+
+<adapter
+    for="Products.ZenModel.MinMaxThreshold.MinMaxThreshold"
+    provides=".interfaces.INewPath"
+    factory=".backcompat.MonitoringTemplate"
+    />
+
+<adapter
+    for="Products.ZenModel.GraphPoint.GraphPoint"
     provides=".interfaces.INewPath"
     factory=".backcompat.MonitoringTemplate"
     />
