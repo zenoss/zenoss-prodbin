@@ -54,6 +54,7 @@ class FakePacket(object):
     def __init__(self):
         self.fake = True
 
+        
 class CaptureReplay(object):
     """
     Base class for packet capture and replay capability.
@@ -131,12 +132,13 @@ class CaptureReplay(object):
 
         Note that this calls the Twisted stop() method
         """
+        
         if hasattr(self, 'configure'):
             d = self.configure()
             d.addCallback(self._replayAll)
         else:
             self._replayAll()
-
+    
     def _replayAll(self, ignored):
         # Note what you are about to see below is a direct result of optparse
         # adding in the arguments *TWICE* each time --replayFilePrefix is used.
@@ -175,7 +177,7 @@ class CaptureReplay(object):
         @type packet: binary
         """
         pass
-
+    
 
     def replayStop(self):
         """

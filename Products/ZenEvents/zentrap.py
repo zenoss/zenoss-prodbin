@@ -74,8 +74,7 @@ class FakePacket(object):
     """
     def __init__(self):
         self.fake = True
-
-
+   
 class ZenTrap(EventServer, CaptureReplay):
     """
     Listen for SNMP traps and turn them into events
@@ -109,7 +108,12 @@ class ZenTrap(EventServer, CaptureReplay):
 
         twistedsnmp.updateReactor()
 
-
+    def isReplaying(self):
+        """
+        @returns True if we are replaying a packet instead of capturing one
+        """
+        return len(self.options.replayFilePrefix) > 0
+        
     def configure(self):
         def inner(driver):
             self.log.info("fetching default RRDCreateCommand")
@@ -129,8 +133,12 @@ class ZenTrap(EventServer, CaptureReplay):
             yield self.getServiceNow('TrapService').callRemote('getOidMap')
             self.oidMap = driver.next()
             self.haveOids = True
-
-            self.heartbeat()
+            # Trac #6563 the heartbeat shuts down the service
+            # before the eventserver is ready to send the events
+            # so we ignore the heartbeat
+            # (replay is always in non-cycle mode)
+            if not self.isReplaying():
+                self.heartbeat()
             self.reportCycle()
 
         d = drive(inner)
@@ -208,7 +216,7 @@ class ZenTrap(EventServer, CaptureReplay):
         packet.port = addr[1]
         packet.variables = netsnmp.getResult(pdu)
         packet.community = ''
-
+        packet.enterprise_length = pdu.enterprise_length
         # Here's where we start to encounter differences between packet types
         if pdu.version == 0:
             packet.agent_addr =  [pdu.agent_addr[i] for i in range(4)]
@@ -229,7 +237,7 @@ class ZenTrap(EventServer, CaptureReplay):
         """
         ts = time.time()
         d = self.asyncHandleTrap([pdu.host, pdu.port], pdu, ts)
-
+        
 
     def oid2name(self, oid, exactMatch=True, strip=False):
         """
