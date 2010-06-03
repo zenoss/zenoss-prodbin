@@ -20,6 +20,7 @@ from threading import Lock
 from transaction import commit
 from Utils import getObjByPath, zenPath, set_context
 from CmdBase import CmdBase
+from Products.Five import zcml
 
 from Products.ZenRelations.ZenPropertyManager import setDescriptors
 from Exceptions import ZentinelException
@@ -31,9 +32,9 @@ class DataRootError(Exception):pass
 class ZenScriptBase(CmdBase):
 
     def __init__(self, noopts=0, app=None, connect=False):
+        import Products.ZenossStartup
+        zcml.load_site()
         CmdBase.__init__(self, noopts)
-        import Products.Five
-        Products.Five.zcml.load_config('event.zcml', Products.Five)
         self.dataroot = None
         self.app = app
         self.db = None
