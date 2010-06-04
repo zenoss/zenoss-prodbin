@@ -1,73 +1,7 @@
-<tal:block metal:use-macro="here/page_macros/old-new-no-tabs">
+<tal:block metal:use-macro="here/page_macros/old-new">
 <tal:block metal:fill-slot="contentPane"
     tal:define="editable python:here.isEditable(here)">
 
-<form method="POST" tal:attributes="action here/absolute_url_path">
-<input type="hidden" name="zenScreenName" tal:attributes="value template/id"/>
-
-
-        <tal:block tal:define="message request/message | string:State at time:; 
-            message request/message | string:State at time:;
-            tabletitle string:${message} ${here/getNowString}">
-        <tal:block metal:use-macro="here/zenuimacros/macros/zentable">
-
-        <!--====Optional titlebar slots=============
-
-            <tal:block metal:fill-slot="filterslot">
-            </tal:block>
-
-            <tal:block metal:fill-slot="menuslot">
-            </tal:block>
-
-            ==========================================-->
-
-        <tal:block metal:fill-slot="zentablecontents">
-        <!-- BEGIN TABLE CONTENTS -->
-            
-    <tr>
-        <td class="tableheader">Name</td>
-        <td class="tablevalues" tal:condition="here/isManager">
-            <input class="tablevalues" type="text" name="newId" size="40"
-                tal:attributes="value here/id" />
-        </td>
-        <td class="tablevalues" tal:condition="not:here/isManager"
-            tal:content="here/id"/>
-    </tr>
-    <tr>
-        <td class="tableheader">Target Class</td>
-        <td class="tablevalues" tal:condition="here/isManager">
-            <input class="tablevalues" type="text" name="targetPythonClass"
-                size="40" tal:attributes="value here/targetPythonClass" />
-        </td>
-        <td class="tablevalues" tal:condition="not:here/isManager"
-            tal:content="here/targetPythonClass"/>
-    </tr>
-    <tr>
-    <td class="tableheader" colspan="2">Description</td>
-    </tr>
-    <tr>
-    <td class="tablevalues" colspan="2">
-        <textarea class="tablevalues" rows="2" cols="60" name="description:text"
-            tal:content="here/description">
-        </textarea>
-    </td>
-    </tr>
-    <tr>
-        <td class="tableheader" colspan="2">
-            <input class="tableheader" type="submit" value="Save"
-                name="zmanage_editProperties:method" />
-        </td>
-    </tr>
-
-        <!-- END TABLE CONTENTS -->
-
-        </tal:block>
-        </tal:block>
-        </tal:block>
-        
-
-</form>
-<br/>
 
 <form tal:attributes="method string:post;
                 action here/absolute_url_path;
