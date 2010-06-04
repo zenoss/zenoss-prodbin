@@ -369,7 +369,13 @@ class ZenDisc(ZenModeler):
                                                    self.options.job)
                     job_props = driver.next()
                     if job_props is not None:
+                        # grab zProperties from Job
                         kw['zProperties'] = job_props.get('zProperties', {})
+                        # grab other Device properties from jobs
+                        #deviceProps = job_props.get('deviceProps', {})
+                        #kw.update(deviceProps)
+                        #@FIXME we are not getting deviceProps, check calling
+                        # chain for clues. twisted upgrade heartburn perhaps?
 
                 snmpDeviceInfo = None
                 # if we are using SNMP, lookup the device SNMP info and use the
@@ -412,7 +418,6 @@ class ZenDisc(ZenModeler):
                 #        If we are discovering a single device and a name is 
                 #        passed in instead of an IP, use the passed-in name.
                 #        Otherwise, do a dns lookup on the ip. 
-                #import pydevd;pydevd.settrace()
                 if self.options.zPreferSnmpNaming and \
                    not isip( kw['deviceName'] ):
                     # In this case, we want to keep kw['deviceName'] as-is,

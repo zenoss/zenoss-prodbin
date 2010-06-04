@@ -1047,19 +1047,126 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable,
     def setProductInfo(self, hwManufacturer="", hwProductName="",
                           osManufacturer="", osProductName=""):
         if hwManufacturer and hwProductName:
-            log.info("setting hardware manufacturer to %s productName to %s"
-                            % (hwManufacturer, hwProductName))
-            self.hw.setProduct(hwProductName, hwManufacturer)
+            # updateDevice uses the sentinel value "_no_change" to indicate
+            # that we really don't want change this value
+            if hwManufacturer != "_no_change" and hwProductName != "_no_change":
+                log.info("setting hardware manufacturer to %r productName to %r"
+                                % (hwManufacturer, hwProductName))
+                self.hw.setProduct(hwProductName, hwManufacturer)
         else:
             self.hw.productClass.removeRelation()
 
         if osManufacturer and osProductName:
-            log.info("setting os manufacturer to %s productName to %s"
-                            % (osManufacturer, osProductName))
-            self.os.setProduct(osProductName, osManufacturer)
-            self.os.productClass().isOS = True
+            # updateDevice uses the sentinel value "_no_change" to indicate
+            # that we really don't want change this value
+            if osManufacturer != "_no_change" and osProductName != "_no_change":
+                log.info("setting os manufacturer to %r productName to %r"
+                                % (osManufacturer, osProductName))
+                self.os.setProduct(osProductName, osManufacturer)
+                self.os.productClass().isOS = True
         else:
             self.os.productClass.removeRelation()
+
+
+    security.declareProtected(ZEN_CHANGE_DEVICE, 'updateDevice')
+    def updateDevice(self,**kwargs):
+        """
+        Update the device relation and attributes, if passed. If any parameter
+        is not passed it will not be updated; the value of any unpassed device
+        propeties will remain the same.
+        
+        @permission: ZEN_CHANGE_DEVICE
+        Keyword arguments:
+          title              -- device title [string]
+          tag                -- tag number [string]
+          serialNumber       -- serial number [string]
+          zProperties        -- dict of zProperties [dict]
+          zSnmpCommunity     -- snmp community (overrides corresponding value is zProperties) [string]
+          zSnmpPort          -- snmp port (overrides corresponding value in zProperties) [string]
+          zSnmpVer           -- snmp version (overrides corresponding value in zProperties) [string]
+          rackSlot           -- rack slot number [integer]
+          productionState    -- production state of device [integer]
+          priority           -- device priority [integer]
+          comment            -- device comment [string]
+          hwManufacturer     -- hardware manufacturer [string]
+          hwProductName      -- hardware product name [string]
+          osManufacturer     -- operating system manufacturer [string]
+          osProductName      -- operating system name [string]
+          locationPath       -- location [string]
+          groupPaths         -- group paths [list]
+          systemPaths        -- systen paths [list]
+          performanceMonitor -- collector name [string]
+          
+        """
+        if kwargs.has_key("title") and kwargs['title'] is not None:
+            log.info("setting title to %r" % kwargs["title"])
+            self.title = kwargs["title"]
+        if kwargs.has_key("tag") and kwargs["tag"] is not None:
+            log.info("setting tag to %r" % kwargs["tag"])
+            self.hw.tag = kwargs["tag"]
+        if kwargs.has_key("serialNumber") and kwargs["serialNumber"] is not None:
+            log.info("setting serialNumber to %r" % kwargs["serialNumber"])
+            self.hw.serialNumber = kwargs["serialNumber"]
+
+        # Set zProperties passed in intelligently
+        if kwargs.has_key("zProperties") and kwargs["zProperties"] is not None:
+            zProperties = kwargs["zProperties"]
+        else:
+            zProperties = {}
+        # override any snmp properties that may be in zProperties
+        if kwargs.has_key("zSnmpCommunity"):
+            zProperties.update({"zSnmpCommunity":kwargs["zSnmpCommunity"]});
+        if kwargs.has_key("zSnmpPort"):
+            zProperties.update({"zSnmpPort":kwargs["zSnmpPort"]});
+        if kwargs.has_key("zSnmpVer"):
+            zProperties.update({"zSnmpVer":kwargs["zSnmpVer"]});
+
+        for prop, value in zProperties.items():
+            if value and getattr(self, prop) != value:
+                self.setZenProperty(prop, value)
+
+        if kwargs.has_key("rackSlot"):
+            log.info("setting rackSlot to %r" % kwargs["rackSlot"])
+            self.rackSlot = kwargs["rackSlot"]
+
+        if kwargs.has_key("productionState"):
+            log.info("setting productionState to %r" % kwargs["productionState"])
+            self.setProdState(kwargs["productionState"])
+            
+        if kwargs.has_key("priority"):
+            log.info("setting priority to %r" % kwargs["priority"])
+            self.setPriority(kwargs["priority"])
+        
+        if kwargs.has_key("comments"):
+            log.info("setting comments to %r" % kwargs["comments"])
+            self.comments = kwargs["comments"]
+
+        self.setProductInfo(hwManufacturer=kwargs.get("hwManufacturer","_no_change"),
+                            hwProductName=kwargs.get("hwProductName","_no_change"),
+                            osManufacturer=kwargs.get("osManufacturer","_no_change"),
+                            osProductName=kwargs.get("osProductName","_no_change"))
+
+        if kwargs.get("locationPath", False):
+            log.info("setting location to %r" % kwargs["locationPath"])
+            self.setLocation(kwargs["locationPath"])
+
+        if kwargs.get("groupPaths",False):
+            log.info("setting group %r" % kwargs["groupPaths"])
+            self.setGroups(kwargs["groupPaths"])
+
+        if kwargs.get("systemPaths",False):
+            log.info("setting system %r" % kwargs["systemPaths"])
+            self.setSystems(kwargs["systemPaths"])
+
+        if kwargs.has_key("performanceMonitor") and \
+            kwargs["performanceMonitor"] != self.getPerformanceServerName():
+            log.info("setting performance monitor to %r" \
+                     % kwargs["performanceMonitor"])
+            self.setPerformanceMonitor(kwargs["performanceMonitor"])
+
+        self.setLastChange()
+        self.index_object()
+        notify(IndexingEvent(self))
 
     security.declareProtected(ZEN_CHANGE_DEVICE, 'manage_editDevice')
     def manage_editDevice(self,
@@ -1072,7 +1179,11 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable,
                 performanceMonitor="localhost", priority=3,
                 zProperties=None, title=None, REQUEST=None):
         """
-        Edit the device relation and attributes.
+        Edit the device relation and attributes. This method will update device
+        properties because of the default values that are passed. Calling this
+        method using a **kwargs dict will result in default values being set for
+        many device properties. To update only a subset of these properties use
+        updateDevice(**kwargs).
 
         @param locationPath: path to a Location
         @type locationPath: string
@@ -1084,53 +1195,20 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable,
         @type performanceMonitor: string
         @permission: ZEN_CHANGE_DEVICE
         """
-        if title is not None:
-            self.title = title
-        self.hw.tag = tag
-        self.hw.serialNumber = serialNumber
-
-        # Set zProperties passed in intelligently
-        if zProperties is None: zProperties = {}
-        zProperties.update({'zSnmpCommunity':zSnmpCommunity,
-                           'zSnmpPort':zSnmpPort,
-                           'zSnmpVer':zSnmpVer})
-        for prop, value in zProperties.items():
-            if value and getattr(self, prop) != value:
-                self.setZenProperty(prop, value)
-
-        self.rackSlot = rackSlot
-        self.setProdState(productionState)
-        self.setPriority(priority)
-        self.comments = comments
-
-        self.setProductInfo(hwManufacturer=hwManufacturer,
-                            hwProductName=hwProductName,
-                            osManufacturer=osManufacturer,
-                            osProductName=osProductName)
-
-        if locationPath:
-            log.info("setting location to %s" % locationPath)
-            self.setLocation(locationPath)
-
-        if groupPaths:
-            log.info("setting group %s" % groupPaths)
-            self.setGroups(groupPaths)
-
-        if systemPaths:
-            log.info("setting system %s" % systemPaths)
-            self.setSystems(systemPaths)
-
-        if performanceMonitor != self.getPerformanceServerName():
-            log.info("setting performance monitor to %s" % performanceMonitor)
-            self.setPerformanceMonitor(performanceMonitor)
-
-        self.setLastChange()
-        self.index_object()
-        notify(IndexingEvent(self))
+        self.updateDevice(
+                tag=tag, serialNumber=serialNumber,
+                zSnmpCommunity=zSnmpCommunity, zSnmpPort=zSnmpPort, zSnmpVer=zSnmpVer,
+                rackSlot=rackSlot, productionState=productionState, comments=comments,
+                hwManufacturer=hwManufacturer, hwProductName=hwProductName,
+                osManufacturer=osManufacturer, osProductName=osProductName,
+                locationPath=locationPath, groupPaths=groupPaths, systemPaths=systemPaths,
+                performanceMonitor=performanceMonitor, priority=priority, 
+                zProperties=zProperties, title=title, REQUEST=REQUEST)
         if REQUEST:
             from Products.ZenUtils.Time import SaveMessage
-            IMessageSender(self).sendToBrowser('Saved', SaveMessage())
+            IMessageSender(self).sendToBrowser("Saved", SaveMessage())
             return self.callZenScreen(REQUEST)
+
 
     def setTitle(self, newTitle):
         """

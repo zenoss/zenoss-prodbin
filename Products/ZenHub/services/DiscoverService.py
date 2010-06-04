@@ -155,11 +155,14 @@ class DiscoverService(ModelerService):
         except DeviceExistsError, e:
             # Update device with latest info from zendisc
             e.dev.setManageIp(kw['manageIp'])
-            e.dev.setTitle(kw['deviceName'])
+            # only overwrite title if it has not been set
+            if e.dev.title is None or len(e.dev.title) <= 0:
+                e.dev.setTitle(kw['deviceName'])
             for key in ('manageIp', 'deviceName', 'devicePath', 
                         'discoverProto'): 
                 del kw[key]
-            e.dev.manage_editDevice(**kw)
+            # use updateDevice so we don't clobber existing device properties.
+            e.dev.updateDevice(**kw)
             # Make and return a device proxy
             return self.createDeviceProxy(e.dev), False
         except Exception, ex:
