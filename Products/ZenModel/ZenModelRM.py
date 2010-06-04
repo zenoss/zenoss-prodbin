@@ -242,34 +242,28 @@ class ZenModelRM(ZenModelBase, RelationshipManager, Historical, ZenPacker):
         """
         Hook to get the name of an object.  Usually its self.getId() but is
         overridden by Organizer to be getOrganizerName.
-        
+
         >>> dmd.Manufacturers.createManufacturer('Cisco').getDmdKey()
         'Cisco'
         >>> dmd.Devices.Server.getDmdKey()
-        '/Server'        
+        '/Server'
         """
         return self.getId()
-    
-        
+
+
     security.declareProtected('View', 'primarySortKey')
     def primarySortKey(self):
         """
         Hook for the value used to sort this object.  Defaults to self.getId().
-        IpNetwork for instance overrides to allow it to sort by the IP numeric
-        value not its string value.
-
-        >>> n = dmd.Networks.createNet('1.2.3.0', 24)
-        >>> n.primarySortKey()
-        16909056L
         """
         return self.titleOrId()
-    
-        
+
+
     security.declareProtected('View', 'viewName')
     def viewName(self):
         return self.titleOrId()
-    
-        
+
+
     #actions?
     def getTreeItems(self):
         nodes = []
@@ -277,7 +271,7 @@ class ZenModelRM(ZenModelBase, RelationshipManager, Historical, ZenPacker):
             if hasattr(aq_base(item), "isInTree") and item.isInTree:
                 nodes.append(item)
         return nodes
-  
+
 
     def getSubObjects(self, filter=None, decend=None, retobjs=None):
         return getSubObjects(self, filter, decend, retobjs)
@@ -318,12 +312,12 @@ class ZenModelRM(ZenModelBase, RelationshipManager, Historical, ZenPacker):
                 nobj._updateProperty(name, val)
         return aq_base(nobj)
 
-    
+
     def getZenRootNode(self):
         """Return the root node for our zProperties."""
         return self.getDmdRoot(self.dmdRootName)
 
-    
+
     def editableDeviceList(self):
         """
         Return true if user has Manager role and self has a deviceList.
@@ -355,14 +349,14 @@ class ZenModelRM(ZenModelBase, RelationshipManager, Historical, ZenPacker):
     def index_object(self):
         """A common method to allow Findables to index themselves."""
         cat = getattr(self, self.default_catalog, None)
-        if cat != None: 
+        if cat != None:
             cat.catalog_object(self, self.getPrimaryId())
 
 
     def unindex_object(self):
         """A common method to allow Findables to unindex themselves."""
         cat = getattr(self, self.default_catalog, None)
-        if cat != None: 
+        if cat != None:
             cat.uncatalog_object(self.getPrimaryId())
 
 
@@ -383,9 +377,9 @@ class ZenModelRM(ZenModelBase, RelationshipManager, Historical, ZenPacker):
         """
         Find child using the ids found in path. Path separator is '/'.  This
         is similar to using attributes, but doesn't use acquisition.  For
-        example, if 'Devices/Server/Linux' exists, but 
+        example, if 'Devices/Server/Linux' exists, but
         'Devices/Server/SSH/Linux' does not, then the two methods will behave
-        differently.  dmd.Devices.Server.SSH.Linux will return 
+        differently.  dmd.Devices.Server.SSH.Linux will return
         'Devices/Server/Linux', whereas this method will throw an exception.
         """
         child = self

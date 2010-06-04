@@ -50,7 +50,7 @@ class MySqlEventManagerTest(BaseTestCase):
         self.zem = None
         BaseTestCase.tearDown(self)
 
-    
+
     def testSendEvent(self):
         self.zem.sendEvent(self.evt)
         evts = self.zem.getEventList(where="device='%s'" % self.evt.device)
@@ -60,25 +60,20 @@ class MySqlEventManagerTest(BaseTestCase):
 
     def testSendEventDup(self):
         self.zem.sendEvent(self.evt.__dict__)
-        self.zem.sendEvent(self.evt.__dict__) 
+        self.zem.sendEvent(self.evt.__dict__)
         evts = self.zem.getEventList(where="device='%s'" % self.evt.device)
         self.assertEqual(len(evts), 1)
         self.assertEqual(evts[0].count, 2)
-
-
-    def testEventMissingRequired(self):
-        delattr(self.evt, "device")
-        self.assertRaises(ZenEventError, self.zem.sendEvent, self.evt) 
 
 
     def testEventDetailField(self):
         self.evt.test = "Error"
         evt = self.zem.sendEvent(self.evt)
         evdetail = self.zem.getEventDetail(dedupid=self.evt.dedupid)
-        self.assert_(("test", self.evt.test) in 
+        self.assert_(("test", self.evt.test) in
                         evdetail.getEventDetails())
 
-    
+
     def testEventDetailFields(self):
         self.evt.ntseverity = "Error"
         self.evt.ntsource = "Zope"
@@ -89,8 +84,8 @@ class MySqlEventManagerTest(BaseTestCase):
         self.assert_(("ntseverity", self.evt.ntseverity) in details)
         self.assert_(("ntsource", self.evt.ntsource) in details)
         self.assert_(("foo", self.evt.foo) in details)
-    
-    
+
+
     def testEventDetailgetEventFields(self):
         evt = self.zem.sendEvent(self.evt)
         evdetail = self.zem.getEventDetail(dedupid=self.evt.dedupid)
@@ -98,9 +93,9 @@ class MySqlEventManagerTest(BaseTestCase):
 
 
     def testMoveEventToHistory(self):
-        # NB: when we delete an event, the MySQL DB trigger moves 
+        # NB: when we delete an event, the MySQL DB trigger moves
         #     the event to the 'history' table
-        evid= self.zem.sendEvent(self.evt) 
+        evid= self.zem.sendEvent(self.evt)
         evts = self.zem.getEventList(where="device='%s'" % self.evt.device)
         self.assertEqual(len(evts), 1)
         self.assertEqual(evts[0].evid, evid )
@@ -121,7 +116,7 @@ class MySqlEventManagerTest(BaseTestCase):
         self.assert_( event is not None )
         self.assertEqual(event.evid, evid )
 
-    
+
 def test_suite():
     from unittest import TestSuite, makeSuite
     suite = TestSuite()

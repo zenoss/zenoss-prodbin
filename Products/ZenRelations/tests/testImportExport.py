@@ -85,7 +85,7 @@ class ImportTest(ZenRelationsBaseTest):
                          self.app.loc.__module__)
         self.assertEqual('Location', self.app.loc.__class__.__name__)
         self.failIf(hasattr(self.app, 'dev'))
-        
+
     def testImportProperties(self):
         "test importing rm with properties"
         self.failIf(hasattr(self.app, 'loc'))
@@ -100,7 +100,7 @@ class ImportTest(ZenRelationsBaseTest):
         self.assertEqual('Device', self.app.dev.__class__.__name__)
         self.assertEqual(0, self.app.dev.pingStatus)
         self.failIf(hasattr(self.app, 'loc'))
-    
+
     def testImportToOne(self):
         "test importing rm with to-one relationship"
         self.failIf(hasattr(self.app, 'dev'))
@@ -139,7 +139,7 @@ class ImportTest(ZenRelationsBaseTest):
     # This test fails when ZenVMWare is not installed, so it is commented out
     #
     # def testImportNoSkip(self):
-    #     """test not skipping vmware relations that are relevant to the vmware 
+    #     """test not skipping vmware relations that are relevant to the vmware
     #     class"""
     #     self.failIf(hasattr(self.app, 'dev'))
     #     im = NoLoginImportRM(self.app)
@@ -148,16 +148,16 @@ class ImportTest(ZenRelationsBaseTest):
     #     self.assert_(self.app.dev)
     #     self.assert_(hasattr(self.app.dev, 'guestDevices'))
     #
-        
+
     def testImportSkip(self):
-        """test skipping vmware relations that are not relevant to the 
+        """test skipping vmware relations that are not relevant to the
         standard device class"""
-        self.failIf(hasattr(self.dmd, 'dev'))
-        im = NoLoginImportRM(self.dmd)
+        self.failIf(hasattr(self.dmd.Devices, 'dev'))
+        im = NoLoginImportRM(self.dmd.Devices)
         infile = StringIO.StringIO(objwithskip)
         im.loadObjectFromXML(infile)
-        self.assert_(self.dmd.dev)
-        self.failIf(hasattr(self.dmd.dev, 'guestDevices'))
+        self.assert_(self.dmd.Devices.dev)
+        self.failIf(hasattr(self.dmd.Devices.dev, 'guestDevices'))
 
 def test_suite():
     from unittest import TestSuite, makeSuite

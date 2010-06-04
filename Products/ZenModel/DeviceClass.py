@@ -125,7 +125,7 @@ class DeviceClass(DeviceOrganizer, ZenPackable, TemplateContainer):
         )
 
     security = ClassSecurityInfo()
-    
+
     def getPeerDeviceClassNames(self, pyclass=None):
         """
         Return a list of all device paths that have the Python class pyclass
@@ -166,12 +166,12 @@ class DeviceClass(DeviceOrganizer, ZenPackable, TemplateContainer):
         self.devices._setObject(id, dev)
         return self.devices._getOb(id)
 
-    
+
     def getPythonDeviceClass(self):
         """
-        Return the Python class object to be used for device instances in this 
-        device class.  This is done by walking up the aq_chain of a deviceclass 
-        to find a node that has the same name as a Python class or has an 
+        Return the Python class object to be used for device instances in this
+        device class.  This is done by walking up the aq_chain of a deviceclass
+        to find a node that has the same name as a Python class or has an
         attribute named zPythonClass that matches a Python class.
 
         @return: device class
@@ -185,7 +185,7 @@ class DeviceClass(DeviceOrganizer, ZenPackable, TemplateContainer):
             except ImportError:
                 log.exception("Unable to import class " + cname)
         return Device
-   
+
 
     def moveDevices(self, moveTarget, deviceNames=None, REQUEST=None):
         """
@@ -254,7 +254,7 @@ class DeviceClass(DeviceOrganizer, ZenPackable, TemplateContainer):
                     """
                     o = StringIO.StringIO()
                     d.exportXml(o)
-                    return switchClass(o, module, klass) 
+                    return switchClass(o, module, klass)
 
                 def devImport(xmlfile):
                     """
@@ -273,6 +273,7 @@ class DeviceClass(DeviceOrganizer, ZenPackable, TemplateContainer):
                     module = 'Products.ZenModel.Device'
                     klass = 'Device'
                 xmlfile = devExport(dev, module,klass)
+                log.info('Removing device %s from %s', devname, source)
                 source.devices._delObject(devname)
                 devImport(xmlfile)
             else:
@@ -287,7 +288,7 @@ class DeviceClass(DeviceOrganizer, ZenPackable, TemplateContainer):
 
 
     security.declareProtected(ZEN_DELETE_DEVICE, 'removeDevices')
-    def removeDevices(self, deviceNames=None, deleteStatus=False, 
+    def removeDevices(self, deviceNames=None, deleteStatus=False,
                     deleteHistory=False, deletePerf=False,REQUEST=None):
         """
         See IManageDevice overrides DeviceManagerBase.removeDevices
@@ -296,7 +297,7 @@ class DeviceClass(DeviceOrganizer, ZenPackable, TemplateContainer):
         if type(deviceNames) in types.StringTypes: deviceNames = (deviceNames,)
         for devname in deviceNames:
             dev = self.findDevice(devname)
-            dev.deleteDevice(deleteStatus=deleteStatus, 
+            dev.deleteDevice(deleteStatus=deleteStatus,
                         deleteHistory=deleteHistory, deletePerf=deletePerf)
         if REQUEST:
             messaging.IMessageSender(self).sendToBrowser(
@@ -326,7 +327,7 @@ class DeviceClass(DeviceOrganizer, ZenPackable, TemplateContainer):
                                     device.productionState,
                                     device.getDeviceClassPath())
         return deviceInfo
-  
+
 
     security.declareProtected('View', 'getDeviceWinInfo')
     def getDeviceWinInfo(self, lastPoll=0, eventlog=False):
@@ -350,11 +351,11 @@ class DeviceClass(DeviceOrganizer, ZenPackable, TemplateContainer):
             sev = dev.getProperty( 'zWinEventlogMinSeverity', '')
             devinfo.append((dev.id, str(user), str(passwd), sev, dev.absolute_url()))
         return starttime, devinfo
-    
-    
+
+
     def getWinServices(self):
         """
-        Return a list of (devname, user, passwd, {'EvtSys':0,'Exchange':0}) 
+        Return a list of (devname, user, passwd, {'EvtSys':0,'Exchange':0})
         """
         svcinfo = []
         allsvcs = {}
@@ -452,7 +453,7 @@ class DeviceClass(DeviceOrganizer, ZenPackable, TemplateContainer):
         """
         ret = self._findDevice( devicename, False )
         if ret: return ret[0].getObject()
-    
+
     def findDeviceByIdExact(self, devicename):
         """
         Look up device in catalog and return it.  devicename
@@ -470,7 +471,7 @@ class DeviceClass(DeviceOrganizer, ZenPackable, TemplateContainer):
         dev = self.findDevice(devicename)
         if dev: return dev.getPingStatusNumber()
 
-    
+
     def getSubComponents(self, meta_type="", monitored=True):
         """
         Return generator of components, by meta_type if specified
@@ -483,7 +484,7 @@ class DeviceClass(DeviceOrganizer, ZenPackable, TemplateContainer):
                 if self.checkRemotePerm("View", c):
                     yield c
             except KeyError:
-                log.warn("bad path '%s' in index 'componentSearch'", 
+                log.warn("bad path '%s' in index 'componentSearch'",
                             b.getPrimaryId)
 
 
@@ -557,7 +558,7 @@ class DeviceClass(DeviceOrganizer, ZenPackable, TemplateContainer):
         for templates which is a very slow way of going about things.
         The newer RRDTemplate.YieldAllRRDTemplate() method uses the
         searchRRDTemplates catalog to speed things up dramatically.
-        YieldAllRRDTemplates is smart enough to revert to 
+        YieldAllRRDTemplates is smart enough to revert to
         getAllRRDTemplatesPainfully if the catalog is not present.
 
         The searchRRDTemplates catalog was added in 2.2
@@ -694,7 +695,7 @@ class DeviceClass(DeviceOrganizer, ZenPackable, TemplateContainer):
                               'manage_deleteRRDTemplates')
     def manage_deleteRRDTemplates(self, ids=(), paths=(), REQUEST=None):
         """
-        Delete RRDTemplates from this DeviceClass 
+        Delete RRDTemplates from this DeviceClass
         (skips ones in other Classes)
         """
         if not ids and not paths:
@@ -709,7 +710,7 @@ class DeviceClass(DeviceOrganizer, ZenPackable, TemplateContainer):
                 temp.deviceClass().rrdTemplates._delObject(temp.id)
             else:
                 temp.device()._delObject(temp.id)
-        if REQUEST: 
+        if REQUEST:
             messaging.IMessageSender(self).sendToBrowser(
                 'Templates Deleted',
                 'Templates were deleted: %s' % ", ".join(ids)
@@ -778,7 +779,7 @@ class DeviceClass(DeviceOrganizer, ZenPackable, TemplateContainer):
         for id, value, type in Z_PROPERTIES:
             if not devs.hasProperty(id):
                 devs._setProperty(id, value, type)
-                
+
     def zenPropertyOptions(self, propname):
         """
         Provide a set of default options for a zProperty

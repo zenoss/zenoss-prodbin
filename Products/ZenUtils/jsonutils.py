@@ -78,8 +78,8 @@ def unjson(value, **kw):
 
         >>> jsonstr = '[{"a": 1}, "123", 123]'
         >>> print unjson(jsonstr)
-        [{u'a': 1}, u'123', 123]
-    
+        [{'a': 1}, '123', 123]
+
     @param value: A JSON string
     @type value: str
     @return: The object represented by C{value}

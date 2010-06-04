@@ -151,8 +151,8 @@ class IpNetwork(DeviceOrganizer):
         """
         if id.find("/") > -1: id, netmask = id.split("/",1)
         return super(IpNetwork, self).checkValidId(id, prep_id)
-    
-    
+
+
     def getNetworkRoot(self):
         """This is a hook method do not remove!"""
         return self.dmd.getDmdRoot("Networks")
@@ -179,7 +179,7 @@ class IpNetwork(DeviceOrganizer):
             netmask = 24
         if netmask < 0 or netmask >= 64:
             netmask = 24
-        
+
         #hook method do not remove!
         netroot = self.getNetworkRoot()
         netobj = netroot.getNet(netip)
@@ -276,7 +276,7 @@ class IpNetwork(DeviceOrganizer):
 
 
     def createIp(self, ip, netmask=24):
-        """Return an ip and create if nessesary in a hierarchy of 
+        """Return an ip and create if nessesary in a hierarchy of
         subnetworks based on the zParameter zDefaulNetworkTree.
         """
         ipobj = self.findIp(ip)
@@ -291,7 +291,7 @@ class IpNetwork(DeviceOrganizer):
         """
         freeips = int(math.pow(2,32-self.netmask)-(self.countIpAddresses()))
         if self.netmask >= 31:
-            return freeips 
+            return freeips
         return freeips - 2
 
 
@@ -302,7 +302,7 @@ class IpNetwork(DeviceOrganizer):
         end = start + math.pow(2,32-self.netmask)
         return start <= numbip(ip) < end
 
-        
+
     def fullIpList(self):
         """Return a list of all ips in this network.
         """
@@ -312,7 +312,7 @@ class IpNetwork(DeviceOrganizer):
         start = int(ipnumb+1)
         end = int(ipnumb+maxip-1)
         return map(strip, range(start,end))
-        
+
 
     def deleteUnusedIps(self):
         """Delete ips that are unused in this network.
@@ -342,7 +342,13 @@ class IpNetwork(DeviceOrganizer):
 
     security.declareProtected('View', 'primarySortKey')
     def primarySortKey(self):
-        """make sure that networks sort correctly"""
+        """
+        Sort by the IP numeric
+
+        >>> net = dmd.Networks.addSubNetwork('1.2.3.0', 24)
+        >>> net.primarySortKey()
+        16909056L
+        """
         return numbip(self.id)
 
 
@@ -362,7 +368,7 @@ class IpNetwork(DeviceOrganizer):
         """get an ip on this network"""
         return self._getOb(ip, None)
 
-    
+
     def getSubNetworks(self):
         """Return all network objects below this one.
         """
@@ -388,7 +394,7 @@ class IpNetwork(DeviceOrganizer):
     def manage_deleteIpAddresses(self, ipaddresses=(), REQUEST=None):
         """Delete ipaddresses by id from this network.
         """
-        for ipaddress in ipaddresses:  
+        for ipaddress in ipaddresses:
             ip = self.getIpAddress(ipaddress)
             self.ipaddresses.removeRelation(ip)
         if REQUEST:
@@ -413,7 +419,7 @@ class IpNetwork(DeviceOrganizer):
 
     security.declareProtected('View', 'countDevices')
     countDevices = countIpAddresses
-   
+
 
     def getAllCounts(self, devrel=None):
         """Count all devices within a device group and get the
@@ -429,13 +435,13 @@ class IpNetwork(DeviceOrganizer):
             for i in range(3): counts[i] += sc[i]
         return counts
 
-    
+
     def pingStatus(self, devrel=None):
         """aggregate ping status for all devices in this group and below"""
         unused(devrel)
         return DeviceOrganizer.pingStatus(self, "ipaddresses")
 
-    
+
     def snmpStatus(self, devrel=None):
         """aggregate snmp status for all devices in this group and below"""
         unused(devrel)
@@ -457,7 +463,7 @@ class IpNetwork(DeviceOrganizer):
             raise IpAddressConflict( "IP address conflict for IP: %s" % ip )
         return ret[0].getObject()
 
-    
+
     def buildZProperties(self):
         nets = self.getDmdRoot("Networks")
         if getattr(aq_base(nets), "zDefaultNetworkTree", False):
@@ -504,7 +510,7 @@ class IpNetwork(DeviceOrganizer):
     def discoverDevices(self, organizerPaths=None, REQUEST = None):
         """
         Load a device into the database connecting its major relations
-        and collecting its configuration. 
+        and collecting its configuration.
         """
         xmlrpc = isXmlRpc(REQUEST)
 
@@ -569,7 +575,7 @@ class IpNetwork(DeviceOrganizer):
     def loaderFooter(self, response):
         """add navigation links to the end of the loader output"""
         response.write("""<tr class="tableheader"><td colspan="4">
-            Navigate to network <a href=%s>%s</a></td></tr>""" 
+            Navigate to network <a href=%s>%s</a></td></tr>"""
             % (self.absolute_url(), self.id))
         response.write("</table></body></html>")
 
@@ -577,7 +583,7 @@ class IpNetwork(DeviceOrganizer):
     def getXMLEdges(self, depth=1, filter='/', start=()):
         """ Gets XML """
         if not start: start=self.id
-        edges = NetworkTree.get_edges(self, depth, 
+        edges = NetworkTree.get_edges(self, depth,
                                       withIcons=True, filter=filter)
         return edgesToXML(edges, start)
 
@@ -598,7 +604,7 @@ class IpNetwork(DeviceOrganizer):
         @type attrs: dict
         @param attrs: any other attributes to be place in the in the tag.
         @return: An HTML link to this object
-        @rtype: string 
+        @rtype: string
         """
         if not text:
             text = "%s/%d" % (self.id, self.netmask)
@@ -641,12 +647,12 @@ class AutoDiscoveryJob(ShellCommandJob):
         # Store zProperties on the job
         if self.zProperties:
             self.getStatus().setZProperties(**self.zProperties)
-            transaction.commit() 
+            transaction.commit()
 
         # Build the zendisc command
         cmd = [binPath('zendisc')]
-        cmd.extend(['run', '--now', 
-                   '--monitor', 'localhost', 
+        cmd.extend(['run', '--now',
+                   '--monitor', 'localhost',
                    '--deviceclass', '/Discovered',
                    '--parallel', '8',
                    '--job', self.getUid()
@@ -690,24 +696,24 @@ class AutoDiscoveryJob(ShellCommandJob):
 
 
 class IpNetworkPrinter(object):
-    
+
     def __init__(self, out):
         """out is the output stream to print to"""
         self._out = out
-        
-        
+
+
 class TextIpNetworkPrinter(IpNetworkPrinter):
     """
     Prints out IpNetwork hierarchy as text with indented lines.
     """
-    
+
     def printIpNetwork(self, net):
         """
         Print out the IpNetwork and IpAddress hierarchy under net.
         """
         self._printIpNetworkLine(net)
         self._printTree(net)
-        
+
     def _printTree(self, net, indent="  "):
         for child in net.children():
             self._printIpNetworkLine(child, indent)
@@ -715,17 +721,17 @@ class TextIpNetworkPrinter(IpNetworkPrinter):
         for ipaddress in net.ipaddresses():
             args = (indent, ipaddress, ipaddress.__class__.__name__)
             self._out.write("%s%s (%s)\n" % args)
-            
+
     def _printIpNetworkLine(self, net, indent=""):
         args = (indent, net.id, net.netmask, net.__class__.__name__)
         self._out.write("%s%s/%s (%s)\n" % args)
-        
-        
+
+
 class PythonIpNetworkPrinter(IpNetworkPrinter):
     """
     Prints out the IpNetwork hierarchy as a python dictionary.
     """
-    
+
     def printIpNetwork(self, net):
         """
         Print out the IpNetwork and IpAddress hierarchy under net.
@@ -734,26 +740,26 @@ class PythonIpNetworkPrinter(IpNetworkPrinter):
         self._createTree(net, tree)
         from pprint import pformat
         self._out.write("%s\n" % pformat(tree))
-        
+
     def _walkTree(self, net, tree):
         for child in net.children():
             self._createTree(child, tree)
         for ip in net.ipaddresses():
             key = (ip.__class__.__name__, ip.id, ip.netmask)
             tree[key] = True
-            
+
     def _createTree(self, net, tree):
         key = (net.__class__.__name__, net.id, net.netmask)
         subtree = {}
         tree[key] = subtree
         self._walkTree(net, subtree)
-        
-        
+
+
 class XmlIpNetworkPrinter(IpNetworkPrinter):
     """
     Prints out the IpNetwork hierarchy as XML.
     """
-    
+
     def printIpNetwork(self, net):
         """
         Print out the IpNetwork and IpAddress hierarchy under net.
@@ -762,32 +768,32 @@ class XmlIpNetworkPrinter(IpNetworkPrinter):
         root = self._doc.documentElement
         self._createTree(net, root)
         self._out.write(self._doc.toprettyxml())
-        
+
     def _walkTree(self, net, tree):
         for child in net.children():
             self._createTree(child, tree)
         for ip in net.ipaddresses():
             self._appendChild(tree, ip)
-            
+
     def _createTree(self, net, tree):
         node = self._appendChild(tree, net)
         self._walkTree(net, node)
-        
+
     def _appendChild(self, tree, child):
         node = self._doc.createElement(child.__class__.__name__)
         node.setAttribute("id", child.id)
         node.setAttribute("netmask", str(child.netmask))
         tree.appendChild(node)
         return node
-        
-        
+
+
 class IpNetworkPrinterFactory(object):
-    
+
     def __init__(self):
         self._printerFactories = {'text': TextIpNetworkPrinter,
                                   'python': PythonIpNetworkPrinter,
                                   'xml': XmlIpNetworkPrinter}
-    
+
     def createIpNetworkPrinter(self, format, out):
         if format in self._printerFactories:
             factory = self._printerFactories[format]
@@ -795,4 +801,4 @@ class IpNetworkPrinterFactory(object):
         else:
             args = (format, self._printerFactories.keys())
             raise Exception("Invalid format '%s' must be one of %s" % args)
-            
+

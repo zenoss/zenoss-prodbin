@@ -236,13 +236,13 @@ class SshUserAuth(userauth.SSHUserAuthClient):
         @param factory: factory info
         @type factory: Twisted factory object
         """
-        
+
         user = str(user)                # damn unicode
         if user == '':
             log.debug("Unable to determine username/password from " + \
                        "zCommandUser/zCommandPassword")
 
-            # From the Python docs about the preferred method of 
+            # From the Python docs about the preferred method of
             # obtaining user name in preference to os.getlogin()
             #  (http://docs.python.org/library/os.html)
             import pwd
@@ -266,7 +266,7 @@ class SshUserAuth(userauth.SSHUserAuthClient):
     def getPassword(self, unused=None):
         """
         Called from conch.
-        
+
         Return a deferred object of success if there's a password or
         return fail (ie no zCommandPassword specified)
 
@@ -281,15 +281,15 @@ class SshUserAuth(userauth.SSHUserAuthClient):
         except NoPasswordException, e:
             d = self._handleFailure(str(e))
         return d
-        
+
     def getGenericAnswers(self, name, instruction, prompts):
         """
         Called from conch.
-        
+
         Returns a L{Deferred} with the responses to the prompts.
 
         @param name: The name of the authentication currently in progress.
-        @param instruction: Describes what the authentication wants. 
+        @param instruction: Describes what the authentication wants.
         @param prompts: A list of (prompt, echo) pairs, where prompt is a
         string to display and echo is a boolean indicating whether the
         user's response should be echoed as they type it.
@@ -314,7 +314,7 @@ class SshUserAuth(userauth.SSHUserAuthClient):
                 message = 'No known prompts: %s' % pformat(prompts)
                 d = self._handleFailure(message)
         return d
-        
+
     def _getPassword(self):
         """
         Get the password. Raise an exception if it is not set.
@@ -324,7 +324,7 @@ class SshUserAuth(userauth.SSHUserAuthClient):
                      "has zCommandPassword been set?"
             raise NoPasswordException(message)
         return self.factory.password
-        
+
     def _handleFailure(self, message):
         """
         Handle a failure by logging a message, sending an event, calling
@@ -341,13 +341,13 @@ class SshUserAuth(userauth.SSHUserAuthClient):
                 self.factory.keyPath, keyPath))
         if os.path.exists(keyPath):
             data = ''.join(open(keyPath).readlines()).strip()
-            key = Key.fromString(data, 
+            key = Key.fromString(data,
                                passphrase=self.factory.password)
         else:
             key = None
             log.debug( "SSH key path %s doesn't exist" % keyPath )
         return key
-        
+
     def getPublicKey(self):
         """
         Return the SSH public key (using the zProperty zKeyPath) or None
@@ -357,7 +357,7 @@ class SshUserAuth(userauth.SSHUserAuthClient):
         """
         if self._key is not None:
             return self._key.blob()
-        
+
     def getPrivateKey(self):
         """
         Return a deferred with the SSH private key (using the zProperty zKeyPath)
@@ -370,7 +370,7 @@ class SshUserAuth(userauth.SSHUserAuthClient):
         else:
             keyObject = self._key.keyObject
         return defer.succeed(keyObject)
-        
+
     def ssh_USERAUTH_FAILURE( self, packet):
         """
         Called when the SSH session can't authenticate.
@@ -441,7 +441,7 @@ class SshUserAuth(userauth.SSHUserAuthClient):
         log.debug( "All authentication methods attempted" )
         self.factory.clientFinished()
         self.transport.sendDisconnect(transport.DISCONNECT_NO_MORE_AUTH_METHODS_AVAILABLE, 'No more authentication methods available')
-        
+
 class SshConnection(connection.SSHConnection):
     """
     Wrapper class that starts channels on top of connections.
@@ -576,8 +576,11 @@ class CommandChannel(channel.SSHChannel):
         channel.SSHChannel.__init__(self, conn=conn)
         self.command = command
         self.exitCode = None
-        self.targetIp = conn.transport.transport.addr[0]
 
+    @property
+    def targetIp(self):
+        if self.conn:
+            return self.conn.transport.transport.addr[0]
 
     def openFailed(self, reason):
         """
@@ -624,7 +627,7 @@ class CommandChannel(channel.SSHChannel):
         log.debug('%s channel %s Opening command channel for %s',
                   self.targetIp, self.conn.localChannelID, self.command)
         self.data = ''
-        
+
         #  Notes for sendRequest:
         # 'exec'      - execute the following command and exit
         # common.NS() - encodes the command as a length-prefixed string
@@ -768,7 +771,7 @@ class SshClient(CollectorClient.CollectorClient):
         if type(commands) == type(''):
             commands = (commands,)
         self.workList.extend(commands)
-        
+
         # This code is required when we're reused by zencommand.
         if self.connection:
             self.runCommands()

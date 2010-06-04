@@ -81,6 +81,7 @@ class DeviceFacadeTest(ZuulFacadeTestCase):
 
         self.assertEqual(len(notified), 2)
 
+        zope.component.getGlobalSiteManager().unregisterHandler(_indexed)
 
 def test_suite():
     return unittest.TestSuite((unittest.makeSuite(DeviceFacadeTest),))

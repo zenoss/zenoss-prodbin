@@ -59,7 +59,7 @@ class TestIpRouteEntry(ZenModelBaseTest):
         self.assert_(self.iface0.getManageIp() == '1.2.3.4/24')
         self.assert_(self.iface1.getManageIp() == '1.2.3.4/24')
         self.assert_(self.dev.getManageIp() == '1.2.3.4/24')
-        
+
 
     def testSetNextHopIp(self):
         tempdev = self.dmd.Devices.createInstance('testdev2')
@@ -69,45 +69,45 @@ class TestIpRouteEntry(ZenModelBaseTest):
         iface2.setIpAddresses('3.4.5.6/24')
         self.rEntry.setNextHopIp('3.4.5.6')
         self.assert_(self.rEntry.getNextHopIp() == '3.4.5.6')
-        self.assert_(self.rEntry.getNextHopIpLink() == "<a href='/zport/dmd/Networks/3.4.5.0/ipaddresses/3.4.5.6'>3.4.5.6</a>")
-        self.assert_(self.rEntry.getNextHopDevice() == tempdev)
-        self.assert_(self.rEntry.getNextHopDeviceLink() == "<a href='/zport/dmd/Devices/devices/testdev2/'>testdev2</a>")
+        self.assertEqual(self.rEntry.getNextHopIpLink(), "<a href='/zport/dmd/Networks/3.4.5.0/ipaddresses/3.4.5.6'>3.4.5.6</a>")
+        self.assertEqual(self.rEntry.getNextHopDevice(), tempdev)
+        self.assertEqual(self.rEntry.getNextHopDeviceLink(), "<a href='/zport/dmd/Devices/devices/testdev2/'>testdev2</a>")
         #TODO: test setNextHopIp locally
 
 
     def testSetTarget(self):
         self.rEntry.setTarget('1.2.3.0/24')
-        self.assert_(self.rEntry.getTarget() == '1.2.3.0/24')
+        self.assertEqual(self.rEntry.getTarget(), '1.2.3.0/24')
         self.assert_(self.rEntry.matchTarget('1.2.3.0'))
-        self.assert_(self.rEntry.getTargetIp() == '1.2.3.0')
-        self.assert_(self.rEntry.getTargetLink() == '<a href="/zport/dmd/Networks/1.2.3.0">1.2.3.0/24</a>')
+        self.assertEqual(self.rEntry.getTargetIp(), '1.2.3.0')
+        self.assertEqual(self.rEntry.getTargetLink(), '<a href="/zport/dmd/Networks/1.2.3.0">1.2.3.0/24</a>')
         #TODO(?): test setTarget locally
 
 
     def testSetInterfaceIndex(self):
         self.rEntry.setInterfaceIndex(0)
-        self.assert_(self.rEntry.getInterfaceIndex() == 0)
-        self.assert_(self.rEntry.getInterfaceName() == 'iface0')
-        self.assert_(self.rEntry.getInterfaceIp() == '1.2.3.4')
+        self.assertEqual(self.rEntry.getInterfaceIndex(), 0)
+        self.assertEqual(self.rEntry.getInterfaceName(), 'iface0')
+        self.assertEqual(self.rEntry.getInterfaceIp(), '1.2.3.4')
 
         self.rEntry.setInterfaceIndex(1)
-        self.assert_(self.rEntry.getInterfaceIndex() == 1)
-        self.assert_(self.rEntry.getInterfaceName() == 'iface1')
-        self.assert_(self.rEntry.getInterfaceIp() == '2.3.4.5')
+        self.assertEqual(self.rEntry.getInterfaceIndex(), 1)
+        self.assertEqual(self.rEntry.getInterfaceName(), 'iface1')
+        self.assertEqual(self.rEntry.getInterfaceIp(), '2.3.4.5')
 
 
     def testSetInterfaceName(self):
         self.rEntry.setInterfaceName('iface0')
-        self.assert_(self.rEntry.getInterfaceIndex() == 0)
-        self.assert_(self.rEntry.getInterfaceName() == 'iface0')
-        self.assert_(self.rEntry.getInterfaceIp() == '1.2.3.4')
+        self.assertEqual(self.rEntry.getInterfaceIndex(), 0)
+        self.assertEqual(self.rEntry.getInterfaceName(), 'iface0')
+        self.assertEqual(self.rEntry.getInterfaceIp(), '1.2.3.4')
 
         self.rEntry.setInterfaceName('iface1')
-        self.assert_(self.rEntry.getInterfaceIndex() == 1)
-        self.assert_(self.rEntry.getInterfaceName() == 'iface1')
-        self.assert_(self.rEntry.getInterfaceIp() == '2.3.4.5')
+        self.assertEqual(self.rEntry.getInterfaceIndex(), 1)
+        self.assertEqual(self.rEntry.getInterfaceName(), 'iface1')
+        self.assertEqual(self.rEntry.getInterfaceIp(), '2.3.4.5')
 
-        
+
 def test_suite():
     from unittest import TestSuite, makeSuite
     suite = TestSuite()

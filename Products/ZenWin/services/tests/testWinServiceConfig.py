@@ -73,6 +73,7 @@ class TestWinServiceConfig(ZenModelBaseTest):
         self.assertEqual(len(proxies), 1)
 
         self._testDev.os.winservices()[0].zMonitor = False
+        self._testDev.os.winservices()[0].index_object()
         proxies = self._configService.remote_getDeviceConfigs(self._deviceNames)
         self.assertEqual(len(proxies), 0)
 

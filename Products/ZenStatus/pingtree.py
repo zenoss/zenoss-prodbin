@@ -15,7 +15,6 @@ import sys
 import logging
 log = logging.getLogger("zen.ZenStatus")
 
-import transaction
 from Products.ZenEvents.ZenEventClasses import Status_Ping
 from Products.ZenUtils.Utils import localIpCheck
 from Products.ZenStatus.AsyncPing import PingJob
@@ -95,12 +94,12 @@ class RouterNode(pb.Copyable, pb.RemoteCopy):
     def addDevice(self, tree, device):
         """Add a device to the ping tree.
         """
-        if self.hasDev(tree, device.id): 
+        if self.hasDev(tree, device.id):
             log.debug("device '%s' already exists.", device.id)
             return
         tree.deviceMap[device.id] = 1
         ip = device.getManageIp()
-        if not ip: 
+        if not ip:
             return
         netobj = device.getDmdRoot("Networks").getNet(ip)
         netname = "default"
@@ -108,7 +107,7 @@ class RouterNode(pb.Copyable, pb.RemoteCopy):
             netname = netobj.getNetworkName()
         net = self.getNet(tree, netname)
         if net.ip == 'default':
-            log.debug("device '%s' network '%s' not in topology", 
+            log.debug("device '%s' network '%s' not in topology",
                             device.id, netname)
         pj = PingJob(ip, device.id, getStatus(device))
         net.addPingJob(pj)
@@ -119,7 +118,7 @@ class RouterNode(pb.Copyable, pb.RemoteCopy):
         self.pj.reset()
         yield self.pj
         # iterators with intelligence are bad
-        # this should be handeled in caller if needed 
+        # this should be handeled in caller if needed
         # removing pj.status != 0 check
         for rnode in self.children:
             for pj in rnode.pjgen():
@@ -128,7 +127,7 @@ class RouterNode(pb.Copyable, pb.RemoteCopy):
             for pj in net.pjgen():
                 yield pj
 
-    
+
     def pprint(self):
         allNodes = set()
         def recurse(nodes):
@@ -152,7 +151,7 @@ class RouterNode(pb.Copyable, pb.RemoteCopy):
             for child in iter(node.children):
                 yield child
                 last = child
-            if last == node: return    
+            if last == node: return
 
     def __str__(self):
         parentStr = "top"
@@ -188,7 +187,7 @@ class Net(pb.Copyable, pb.RemoteCopy):
     def pjgen(self):
         for pj in self.pingjobs:
             yield pj
-  
+
     def addPingJob(self, pj):
         self.pingjobs.append(pj)
 
@@ -225,8 +224,8 @@ pb.setUnjellyableForClass(PingTree, PingTree)
 
 
 def buildTree(root, rootnode=None, devs=None, memo=None, tree=None):
-    """Returns tree where tree that maps the network from root's 
-    perspective  and nmap is a dict that points network ids to the 
+    """Returns tree where tree that maps the network from root's
+    perspective  and nmap is a dict that points network ids to the
     network objects in the tree.  nmap is used to add devices to be pinged
     to the tree.
     """
@@ -256,7 +255,7 @@ def buildTree(root, rootnode=None, devs=None, memo=None, tree=None):
                     log.debug("add net: %s to rnode: %s", net, rnode)
             else:
                 ndev = route.getNextHopDevice()
-                if ndev: 
+                if ndev:
                     if rootnode.hasDev(tree, ndev.id): continue
                     if route.getNextHopDevice():
                         nextHopIp = route.getNextHopDevice().manageIp
@@ -275,7 +274,6 @@ def buildTree(root, rootnode=None, devs=None, memo=None, tree=None):
                 net = rnode.addNet(tree, netid,ip.getIp())
                 log.debug("add net: %s to rnode: %s", net, rnode)
 
-        transaction.abort()
     if nextdevs:
         buildTree(root, rootnode, nextdevs, memo, tree)
     return tree
@@ -303,7 +301,7 @@ def netDistMap(root, nmap=None, distance=0, devs=None, memo=None):
                     netip = route.getTargetIp()
                     curdist = nmap.get(netip,sys.maxint)
                     if curdist > distance:
-                        log.debug("netip '%s' distance '%d'", 
+                        log.debug("netip '%s' distance '%d'",
                                         netip, distance)
                         nmap[netip] = distance
             else:

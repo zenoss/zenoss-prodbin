@@ -28,6 +28,7 @@ class TestParsers(BaseTestCase):
         deviceConfig.device = 'localhost'
         cmd = Object()
         cmd.deviceConfig = deviceConfig
+        cmd.command = 'command'
         p1 = Object()
         p1.id = 'cpu_cpu'
         p1.data = dict(processName='someJob a b c',
@@ -130,11 +131,11 @@ class TestParsers(BaseTestCase):
 483362 146300    22:58:11 /usr/local/bin/bogoApplication --conf bogo.conf instance5
 495844 137916    22:45:57 /usr/local/bin/bogoApplication --conf bogo.conf instance6
 508130 138196    22:23:08 /usr/local/bin/bogoApplication --conf bogo.conf instance3
-520290  1808    00:00:00 /usr/sbin/aixmibd 
+520290  1808    00:00:00 /usr/sbin/aixmibd
 561300 140440    22:13:15 /usr/local/bin/bogoApplication --conf bogo.conf instance4
 561301 140440    22:13:15 /usr/local/bin/bogoApplication --conf bogo.conf instance4
 561302 140440    22:13:15 /usr/local/bin/wrapper bogoApplication --conf bogo.conf instance4
-749772  3652    00:00:00 /bin/nmon_aix53 -f -A -P -V -m /tmp 
+749772  3652    00:00:00 /bin/nmon_aix53 -f -A -P -V -m /tmp
 """
         results = ParsedResults()
         parser = ps()

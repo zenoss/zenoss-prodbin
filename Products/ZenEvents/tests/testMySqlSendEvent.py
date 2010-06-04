@@ -19,15 +19,24 @@ IPADDR2 = '1.1.1.2'
 
 
 class MySqlSendEventTest(BaseTestCase):
-    
+
     def setUp(self):
         BaseTestCase.setUp(self)
         self.zem = self.dmd.ZenEventManager
+
+        # Make sure the tables are empty before we start
+        self._clearTables()
+        
         self.d = self.dmd.Devices.createInstance(TEST_DEVICE)
         #dmd.Devices.findDevice() isn't finding TEST_DEVICE w/out reindexing
         self.d.reIndex()
 
     def tearDown(self):
+        self._clearTables()
+        BaseTestCase.tearDown(self)
+
+    def _clearTables(self):
+        """Empty out the MySQL event tables"""
         conn = self.zem.connect()
         try:
             curs = conn.cursor()
@@ -35,62 +44,60 @@ class MySqlSendEventTest(BaseTestCase):
             curs.execute("truncate table history")
             curs.execute("truncate table detail")
             curs.execute("truncate table heartbeat")
-        finally: 
+        finally:
             self.zem.close(conn)
-        BaseTestCase.tearDown(self)
-
 
     def testSendEventDeviceFieldIsName(self):
         """Send event with device feild set to name of device"""
-        evt = dict(device = TEST_DEVICE, 
-                    summary = 'device field is name using device index', 
+        evt = dict(device = TEST_DEVICE,
+                    summary = 'device field is name using device index',
                     severity = 5)
         evid = self.zem.sendEvent(evt)
         event = self.zem.getEventDetail(evid)
-        self.assert_(event.device == TEST_DEVICE)
+        self.assertEqual(event.device, TEST_DEVICE)
 
-    def testSendEventDeviceFieldIsIp(self): 
+    def testSendEventDeviceFieldIsIp(self):
         """Send event with device feild set to manage ip of device"""
         self.d.setManageIp(IPADDR1)
-        evt = dict(device = IPADDR1, 
-                    summary = 'device field is ip using device index', 
+        evt = dict(device = IPADDR1,
+                    summary = 'device field is ip using device index',
                     severity = 5)
         evid = self.zem.sendEvent(evt)
         event = self.zem.getEventDetail(evid)
-        self.assert_(event.device == TEST_DEVICE)
+        self.assertEqual(event.device, TEST_DEVICE)
 
     def testSendEventDeviceFieldIsIpNet(self):
         """Send event with device feild set to an interface ip of device"""
         self.d.os.addIpInterface('eth0', True)
         self.d.os.interfaces.eth0.addIpAddress(IPADDR2)
-        evt = dict(device = IPADDR2, 
-                summary = 'device field is ip using network index', 
+        evt = dict(device = IPADDR2,
+                summary = 'device field is ip using network index',
                 severity = 5)
         evid = self.zem.sendEvent(evt)
         event = self.zem.getEventDetail(evid)
-        self.assert_(event.device == TEST_DEVICE)
+        self.assertEqual(event.device, TEST_DEVICE)
 
 
     def testSendEvent_ipAddressFieldIsIpNet(self):
         """Send event with ipAddress feild set to an interface ip of device"""
         self.d.os.addIpInterface('eth0', True)
         self.d.os.interfaces.eth0.addIpAddress(IPADDR2)
-        evt = dict(device = "", ipAddress = IPADDR2, 
+        evt = dict(device = "", ipAddress = IPADDR2,
                 summary = 'device blank, ipAddress with ip using network index',
                 severity = 5)
         evid = self.zem.sendEvent(evt)
         event = self.zem.getEventDetail(evid)
-        self.assert_(event.device == TEST_DEVICE)
-        self.assert_(event.ipAddress == IPADDR2)
+        self.assertEqual(event.device, TEST_DEVICE)
+        self.assertEqual(event.ipAddress, IPADDR2)
 
 
     def testDeduplicationSimple(self):
-        """Test sumary based dedupliation 
+        """Test sumary based dedupliation
         """
         evt = dict(device=TEST_DEVICE, summary='Test', severity = 5)
         evid = self.zem.sendEvent(evt)
         evid2 = self.zem.sendEvent(evt)
-        self.assert_(evid == evid2)
+        self.assertEqual(evid, evid2)
 
 
     def testDeduplicationEventKey(self):
@@ -104,7 +111,7 @@ class MySqlSendEventTest(BaseTestCase):
         evt = dict(device=TEST_DEVICE, eventKey='mykey',
                     summary='Test2', severity = 5)
         evid2 = self.zem.sendEvent(evt)
-        self.assert_(evid == evid2)
+        self.assertEqual(evid, evid2)
 
 
     def testUnknownEventClass(self):
@@ -113,29 +120,29 @@ class MySqlSendEventTest(BaseTestCase):
         evt = dict(device=TEST_DEVICE, summary='Test', severity = 5)
         evid = self.zem.sendEvent(evt)
         event = self.zem.getEventDetail(evid)
-        self.assert_(event.eventClass == "/Unknown")
+        self.assertEqual(event.eventClass, "/Unknown")
 
 
     def testHeartbeatClass(self):
         """Test sending heartbeats and the not timedout query
         """
-        evt = dict(device=TEST_DEVICE, summary='Test', component='Test', 
+        evt = dict(device=TEST_DEVICE, summary='Test', component='Test',
                     timeout = 50, severity = 5, eventClass="/Heartbeat")
         evid = self.zem.sendEvent(evt)
         self.assert_(evid is None)
-        self.assert_(len(self.zem.getHeartbeat()) == 0)
-        self.assert_(len(self.zem.getHeartbeat(failures=False)) == 1)
+        self.assertEquals(len(self.zem.getHeartbeat()), 0)
+        self.assertEquals(len(self.zem.getHeartbeat(failures=False)), 1)
 
 
     def testHeartbeatClassTimedOut(self):
         """Test sending heartbeats and the timedout query
         """
-        evt = dict(device=TEST_DEVICE, summary='Test', component='Test', 
+        evt = dict(device=TEST_DEVICE, summary='Test', component='Test',
                     timeout = 0, severity = 5, eventClass="/Heartbeat")
         evid = self.zem.sendEvent(evt)
         self.assert_(evid is None)
-        self.assert_(len(self.zem.getHeartbeat()) == 1)
-        self.assert_(len(self.zem.getHeartbeat(failures=False)) == 1)
+        self.assertEqual(len(self.zem.getHeartbeat()), 1)
+        self.assertEqual(len(self.zem.getHeartbeat(failures=False)), 1)
 
 
     def testBadClearEvent(self):
@@ -181,7 +188,7 @@ class MySqlSendEventTest(BaseTestCase):
         clear_evt._clearClasses.append( clear_evt.evil )
         clear_evid = self.zem.sendEvent(clear_evt)
         self.assertEquals(clear_evid, None)
-        
+
     def testLongComponentIdInClearEvent(self):
         """
         Make sure we handle clear events for components with
@@ -199,7 +206,7 @@ class MySqlSendEventTest(BaseTestCase):
         clear_evt = Event( **evt )
         clear_evt.severity = 0
         clear_id = self.zem.sendEvent(clear_evt)
-        
+
         extraField=('clearid',)
         statusEvents = self.zem.getEventList(where="evid='%s'" % evid,
                                              resultFields=extraField)
@@ -209,7 +216,7 @@ class MySqlSendEventTest(BaseTestCase):
                                             resultFields=extraField)
         self.assertEquals( len( historyEvents ), 1 )
         self.assertEquals( historyEvents[0].clearid, clear_id )
-    
+
     def testHierarchicalTransforms(self):
         """
         Are transforms applied down the event class tree properly?
@@ -220,14 +227,14 @@ class MySqlSendEventTest(BaseTestCase):
         e.LevelOne.transform += "evt.levels = 'one'\n"
         e.LevelOne.LevelTwo.transform = "evt.severity = 2\n"
         e.LevelOne.LevelTwo.transform += "evt.levels += ',two'\n"
-        
+
         mapping = e.LevelOne.LevelTwo.createInstance("testMapping")
         mapping.eventClassKey = "testMappingKey"
         mapping.sequence = 0
         mapping.transform = "evt.severity = 3\n"
         mapping.transform += "evt.levels += ',three'\n"
         mapping.index_object()
-        
+
         evt = dict(device=TEST_DEVICE, summary="hierarchical transform test",
             severity=5, eventKey="testOne", eventClass="/LevelOne")
         evid = self.zem.sendEvent(evt)
@@ -255,31 +262,31 @@ class MySqlSendEventTest(BaseTestCase):
         rules.
         """
         zem = self.dmd.ZenEventManager
-        
+
         ec = self.dmd.Events.createOrganizer('/Test')
         inst = ec.createInstance('noEventClassKeyMapping')
         inst.regex = 'test of \w+ eventClassKey'
         inst.eventClassKey = 'defaultmapping'
         inst.index_object()
-        
+
         # defaultmapping should be used for events with no eventClassKey.
         evid = zem.sendEvent(dict(
             device='damsel',
             summary='test of no eventClassKey',
             severity=5))
-        
+
         evt = zem.getEventDetailFromStatusOrHistory(evid)
         self.assertEquals(evt.eventClass, '/Test')
-        
+
         # defaultmapping should be used for events with a blank eventClassKey.
         evid = zem.sendEvent(dict(
             device='damsel',
             summary='test of blank eventClassKey',
             severity=5,
             eventClassKey=''))
-        
+
         evt = zem.getEventDetailFromStatusOrHistory(evid)
-        self.assertEquals(evt.eventClass, '/Test')        
+        self.assertEquals(evt.eventClass, '/Test')
 
 
 def test_suite():

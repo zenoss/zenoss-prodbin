@@ -57,7 +57,7 @@ class HtmlFormatter(logging.Formatter):
     """
 
     def __init__(self):
-        logging.Formatter.__init__(self, 
+        logging.Formatter.__init__(self,
         """<tr class="loggingRow">
         <td>%(asctime)s</td> <td>%(levelname)s</td>
         <td>%(name)s</td> <td>%(message)s</td>
@@ -144,7 +144,7 @@ def convToUnits(number=0, divby=1024.0, unitstr="B"):
         if numb < divby: break
         numb /= divby
     return "%.1f%s" % (numb * sign, unit)
-        
+
 
 def travAndColl(obj, toonerel, collect, collectname):
     """
@@ -197,7 +197,7 @@ def getObjByPath(base, path, restricted=0):
     if isinstance(path, str):
         # Unicode paths are not allowed
         path = path.split('/')
-    else: 
+    else:
         path = list(path)
 
     REQUEST = {'TraversalRequestNameStack': path}
@@ -208,16 +208,16 @@ def getObjByPath(base, path, restricted=0):
         # Remove trailing slash
         path.pop(0)
 
-    if restricted: 
+    if restricted:
         securityManager = getSecurityManager()
-    else: 
+    else:
         securityManager = _none
 
     if not path[-1]:
         # If the path starts with an empty string, go to the root first.
         path_pop()
         base = base.getPhysicalRoot()
-        if (restricted 
+        if (restricted
             and not securityManager.validate(None, None, None, base)):
             raise Unauthorized( base )
 
@@ -362,7 +362,7 @@ def importClass(modulePath, classname=""):
             mod = sys.modules[modulePath]
         except (ValueError, ImportError, KeyError), ex:
             raise ex
-        
+
         return getattr(mod, classname)
     except AttributeError:
         raise ImportError("Failed while importing class %s from module %s" % (
@@ -435,8 +435,8 @@ def getSubObjectsMemo(base, filter=None, descend=None, memo={}):
     else:
         objs = base.objectValues()
     for obj in objs:
-        if (isinstance(obj, RelationshipManager) and 
-            not obj.getPrimaryDmdId().startswith(base.getPrimaryDmdId())): 
+        if (isinstance(obj, RelationshipManager) and
+            not obj.getPrimaryDmdId().startswith(base.getPrimaryDmdId())):
             continue
         if not filter or filter(obj):
             yield obj
@@ -472,7 +472,7 @@ def getAllConfmonObjects(base):
         @rtype: boolean
         """
         return (
-                isinstance(obj, ZenModelBase) or 
+                isinstance(obj, ZenModelBase) or
                 isinstance(obj, ToManyContRelationship) or
                 isinstance(obj, ToManyRelationship) or
                 isinstance(obj, ToOneRelationship))
@@ -523,7 +523,7 @@ def zenpathjoin(pathar):
 def createHierarchyObj(root, name, factory, relpath="", llog=None):
     """
     Create a hierarchy object from its path we use relpath to skip down
-    any missing relations in the path and factory is the constructor for 
+    any missing relations in the path and factory is the constructor for
     this object.
 
     @param root: root from which to start
@@ -546,7 +546,7 @@ def createHierarchyObj(root, name, factory, relpath="", llog=None):
         if id == relpath or getattr(aq_base(root), relpath, False):
             root = getattr(root, relpath)
         if not getattr(aq_base(root), id, False):
-            if id == relpath: 
+            if id == relpath:
                 raise AttributeError("relpath %s not found" % relpath)
             log.debug("Creating object with id %s in object %s",id,root.getId())
             newobj = factory(id)
@@ -578,7 +578,7 @@ def getHierarchyObj(root, name, relpath=None):
         root = getattr(root, id, None)
 
     return root
-    
+
 
 
 def basicAuthUrl(username, password, url):
@@ -596,8 +596,8 @@ def basicAuthUrl(username, password, url):
     @rtype: string
     """
     urlar = url.split('/')
-    if not username or not password or urlar[2].find('@') > -1: 
-        return url 
+    if not username or not password or urlar[2].find('@') > -1:
+        return url
     urlar[2] = "%s:%s@%s" % (username, password, urlar[2])
     return "/".join(urlar)
 
@@ -615,7 +615,7 @@ def prepId(id, subchar='_'):
     """
     _prepId = re.compile(r'[^a-zA-Z0-9-_,.$\(\) ]').sub
     _cleanend = re.compile(r"%s+$" % subchar).sub
-    if id is None: 
+    if id is None:
         raise ValueError('Ids can not be None')
     if type(id) not in types.StringTypes:
         id = str(id)
@@ -726,7 +726,7 @@ def sendPage(recipient, msg, pageCommand, deferred=False):
 
         return (not protocol.code, protocol.out)
     else:
-        p = subprocess.Popen(pageCommand, 
+        p = subprocess.Popen(pageCommand,
                              stdin=subprocess.PIPE,
                              stdout=subprocess.PIPE,
                              shell=True,
@@ -735,7 +735,7 @@ def sendPage(recipient, msg, pageCommand, deferred=False):
         p.stdin.close()
         response = p.stdout.read()
     return (not p.wait(), response)
-       
+
 
 def zdecode(context, value):
     """
@@ -766,7 +766,7 @@ def localIpCheck(context, ip):
     @return: regular expression match or None (if not found)
     @rtype: re match object
     """
-    return re.search(getattr(context, 'zLocalIpAddresses', '^$'), ip) 
+    return re.search(getattr(context, 'zLocalIpAddresses', '^$'), ip)
 
 def localInterfaceCheck(context, intname):
     """
@@ -785,8 +785,8 @@ def localInterfaceCheck(context, intname):
 
 def cmpClassNames(obj, classnames):
     """
-    Check to see if any of an object's base classes 
-    are in a list of class names. Like isinstance(), 
+    Check to see if any of an object's base classes
+    are in a list of class names. Like isinstance(),
     but without requiring a class to compare against.
 
     @param obj: object
@@ -849,7 +849,7 @@ def resequence(context, objects, seqmap, origseq, REQUEST):
 
     if REQUEST:
         return context.callZenScreen(REQUEST)
-    
+
 
 def cleanupSkins(dmd):
     """
@@ -941,7 +941,7 @@ def zenPath(*args):
     """
     Return a path relative to $ZENHOME specified by joining args.  The path
     is not guaranteed to exist on the filesystem.
-    
+
     >>> import os
     >>> zenHome = os.environ['ZENHOME']
     >>> zenPath() == zenHome
@@ -952,7 +952,7 @@ def zenPath(*args):
     True
     >>> zenPath('/Products/') == zenPath('Products')
     True
-    >>> 
+    >>>
     >>> zenPath('Products', 'foo') == zenPath('Products/foo')
     True
 
@@ -994,14 +994,14 @@ def zopePath(*args):
     If ZOPEHOME is not defined or is empty then return ''.
     NOTE: A non-empty return value does not guarantee that the path exists,
     just that ZOPEHOME is defined.
-    
+
     >>> import os
     >>> zopeHome = os.environ.setdefault('ZOPEHOME', '/something')
     >>> zopePath('bin') == os.path.join(zopeHome, 'bin')
     True
     >>> zopePath(zopePath('bin')) == zopePath('bin')
     True
-    
+
     @param *args: path components starting from $ZOPEHOME
     @type *args: strings
     """
@@ -1013,7 +1013,7 @@ def binPath(fileName):
     """
     Search for the given file in a list of possible locations.  Return
     either the full path to the file or '' if the file was not found.
-    
+
     >>> len(binPath('zenoss')) > 0
     True
     >>> len(binPath('zeoup.py')) > 0 # This doesn't exist in Zope 2.12
@@ -1056,7 +1056,7 @@ def extractPostContent(REQUEST):
             # Firefox
             result = REQUEST._file.read()
         except:
-            # IE         
+            # IE
             result = REQUEST.form.keys()[0]
     except: result = ''
     return result
@@ -1144,13 +1144,13 @@ def executeCommand(cmd, REQUEST, write=None):
                 write(s)
             else:
                 log.info(s)
-    except (SystemExit, KeyboardInterrupt): 
+    except (SystemExit, KeyboardInterrupt):
         if xmlrpc: return 1
         raise
     except ZentinelException, e:
         if xmlrpc: return 1
         log.critical(e)
-    except: 
+    except:
         if xmlrpc: return 1
         raise
     else:
@@ -1174,7 +1174,7 @@ def ipsort(a, b):
     # Use 0.0.0.0 instead of blank string
     if not a: a = "0.0.0.0"
     if not b: b = "0.0.0.0"
-    
+
     # Strip off netmasks
     a, b = map(lambda x:x.rsplit("/")[0], (a, b))
     return cmp(*map(socket.inet_aton, (a, b)))
@@ -1276,7 +1276,7 @@ def monkeypatch(target):
 def nocache(f):
     """
     Decorator to set headers which force browser to not cache request
-    
+
     This is intended to decorate methods of BrowserViews.
 
     @param f: class
@@ -1284,7 +1284,7 @@ def nocache(f):
     @return: decorator function return
     @rtype: function
     """
-    def inner(self, *args, **kwargs): 
+    def inner(self, *args, **kwargs):
         """
         Inner portion of the decorator
 
@@ -1296,26 +1296,26 @@ def nocache(f):
         @rtype: function
         """
         self.request.response.setHeader('Cache-Control', 'no-cache, must-revalidate')
-        self.request.response.setHeader('Pragma', 'no-cache') 
+        self.request.response.setHeader('Pragma', 'no-cache')
         self.request.response.setHeader('Expires', 'Sat, 13 May 2006 18:02:00 GMT')
-        # Get rid of kw used to prevent browser caching 
-        if kwargs.has_key('_dc'): del kwargs['_dc'] 
-        return f(self, *args, **kwargs) 
+        # Get rid of kw used to prevent browser caching
+        if kwargs.has_key('_dc'): del kwargs['_dc']
+        return f(self, *args, **kwargs)
 
     return inner
-    
-def formreq(f): 
-    """ 
-    Decorator to pass in request.form information as arguments to a method. 
 
-    These are intended to decorate methods of BrowserViews. 
+def formreq(f):
+    """
+    Decorator to pass in request.form information as arguments to a method.
+
+    These are intended to decorate methods of BrowserViews.
 
     @param f: class
     @type f: class object
     @return: decorator function return
     @rtype: function
-    """ 
-    def inner(self, *args, **kwargs): 
+    """
+    def inner(self, *args, **kwargs):
         """
         Inner portion of the decorator
 
@@ -1334,11 +1334,11 @@ def formreq(f):
                 kwargs.update(self.request.form)
         else:
             kwargs.update(self.request.form)
-        # Get rid of useless Zope thing that appears when no querystring 
-        if kwargs.has_key('-C'): del kwargs['-C'] 
-        # Get rid of kw used to prevent browser caching 
-        if kwargs.has_key('_dc'): del kwargs['_dc'] 
-        return f(self, *args, **kwargs) 
+        # Get rid of useless Zope thing that appears when no querystring
+        if kwargs.has_key('-C'): del kwargs['-C']
+        # Get rid of kw used to prevent browser caching
+        if kwargs.has_key('_dc'): del kwargs['_dc']
+        return f(self, *args, **kwargs)
 
     return inner
 
@@ -1457,7 +1457,7 @@ def is_browser_connection_open(request):
     """
     creation_time = request.environ['channel.creation_time']
     for cnxn in asyncore.socket_map.values():
-        if (isinstance(cnxn, zhttp_channel) and 
+        if (isinstance(cnxn, zhttp_channel) and
             cnxn.creation_time==creation_time):
             return True
     return False
@@ -1531,7 +1531,7 @@ def getObjectsFromCatalog(catalog, query=None, log=None):
     Generator that can be used to load all objects of out a catalog and skip
     any objects that are no longer able to be loaded.
     """
-    
+
     for brain in catalog(query):
         try:
             ob = brain.getObject()

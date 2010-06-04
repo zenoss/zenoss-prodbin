@@ -19,7 +19,6 @@ from Products import Zuul
 from Products.Zuul.marshalling import InfoMarshaller
 from Products.Zuul.marshalling import TreeNodeMarshaller
 from Products.Zuul.marshalling import DefaultUnmarshaller
-from Products.Zuul.marshalling import ProcessUnmarshaller
 from Products.Zuul.interfaces import IMarshaller
 from Products.Zuul.interfaces import IUnmarshaller
 from Products.Zuul.interfaces import IInfo
@@ -36,7 +35,7 @@ class TestClass(object):
 
     def myMethod(self):
         pass
-        
+
     @property
     def myProperty(self):
         return 5
@@ -67,7 +66,6 @@ class MarshalTest(BaseTestCase):
         verifyClass(IMarshaller, InfoMarshaller)
         verifyClass(IMarshaller, TreeNodeMarshaller)
         verifyClass(IUnmarshaller, DefaultUnmarshaller)
-        verifyClass(IUnmarshaller, ProcessUnmarshaller)
         
     def test_marshal_implicit(self):
         dct = Zuul.marshal(TestClass())
@@ -77,27 +75,27 @@ class MarshalTest(BaseTestCase):
         keys = ('foo', '_bar')
         dct = Zuul.marshal(TestClass(), keys=keys)
         self.match(dct, keys)
-        
+
     def test_unmarshal(self):
         data = {'foo': 42}
         obj = TestClass()
         Zuul.unmarshal(data, obj)
         self.assertEqual(42, obj.foo)
-    
+
     def test_recursion(self):
         data = [TestClass(), TestClass()]
         result = Zuul.marshal(data)
         self.assert_(isinstance(result, list))
         for o in result:
             self.match(o)
-        
+
         data = {'a':TestClass(), 'b':TestClass()}
         result = Zuul.marshal(data)
         self.assert_(isinstance(result, dict))
         self.assertEqual(sorted(result.keys()), ['a', 'b'])
         for v in result.values():
             self.match(v)
-    
+
     def test_recursion_with_keys(self):
         keys = ['foo', '_bar']
         data = [TestClass(), TestClass()]
@@ -105,14 +103,14 @@ class MarshalTest(BaseTestCase):
         self.assert_(isinstance(result, list))
         for o in result:
             self.match(o, keys=keys)
-        
+
         data = {'a':TestClass(), 'b':TestClass()}
         result = Zuul.marshal(data, keys=keys)
         self.assert_(isinstance(result, dict))
         self.assertEqual(sorted(result.keys()), ['a', 'b'])
         for v in result.values():
             self.match(v, keys=keys)
-    
+
     def test_recursion_with_callables(self):
         class TestThing(object):
             implements(IInfo)
@@ -130,4 +128,4 @@ def test_suite():
 
 if __name__=="__main__":
     unittest.main(defaultTest='test_suite')
-    
+

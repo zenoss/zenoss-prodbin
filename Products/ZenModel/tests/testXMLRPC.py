@@ -18,7 +18,7 @@ import unittest
 class TestXmlRpc(unittest.TestCase):
     """Test XML-RPC services used in the Dev Guide against our Zenoss server"""
 
-    # Args for some of these functions are found at 
+    # Args for some of these functions are found at
     # xml:id="dev_mgmt_xml_rpc_attributes"
     # in the Dev Guide
 
@@ -38,7 +38,7 @@ class TestXmlRpc(unittest.TestCase):
         """
         return
         try:
-            serv = ServerProxy( self.baseUrl ) 
+            serv = ServerProxy( self.baseUrl )
             methods = serv.system.listMethods()
         except:
             msg= traceback.format_exc(limit=0)
@@ -58,7 +58,7 @@ class TestXmlRpc(unittest.TestCase):
     def testGetEvents(self):
         "Look for events in the Event Console using XML-RPC"
         try:
-            serv = ServerProxy( self.baseUrl + 'ZenEventManager' ) 
+            serv = ServerProxy( self.baseUrl + 'ZenEventManager' )
             serv.getEventList()
         except:
             msg= traceback.format_exc(limit=0)
@@ -69,17 +69,17 @@ class TestXmlRpc(unittest.TestCase):
 
     def testCreateEvent(self):
         "Create an event using XML-RPC"
-        serv = ServerProxy( self.baseUrl + 'ZenEventManager' ) 
+        serv = ServerProxy( self.baseUrl + 'ZenEventManager' )
         evt = {
           'device':self.device,
-          'component':'eth0', 
+          'component':'eth0',
           'summary':'eth0 is down',
           'severity':4,
           'eventClass':'/Net'
-        } 
+        }
 
         try:
-            serv.sendEvent(evt) 
+            serv.sendEvent(evt)
             post_events = serv.getEventList( { 'device':self.device, } )
         except:
             msg= traceback.format_exc(limit=0)
@@ -101,23 +101,16 @@ class TestXmlRpc(unittest.TestCase):
 
         # Now add an event to ensure that we have something
         # to delete
-        try:
-            serv.sendEvent(evt)
-            events = serv.getEventList( { 'device':self.device, } )
-        except:
-            msg= traceback.format_exc(limit=0)
-            self.fail( msg )
+        serv.sendEvent(evt)
+        events = serv.getEventList( { 'device':self.device, } )
 
         self.assert_( len(events) >= 1 )
 
         # Gather our event ids and delete them
         evids= [ ev['evid'] for ev in events ]
-        try:
-            serv.manage_deleteEvents(evids)
-            events = serv.getEventList( { 'device':self.device, } )
-        except:
-            msg= traceback.format_exc(limit=0)
-            self.fail( msg )
+
+        serv.manage_deleteEvents(evids)
+        events = serv.getEventList( { 'device':self.device, } )
 
         self.assertEquals( len(events), 0 )
 
@@ -199,7 +192,7 @@ class TestXmlRpc(unittest.TestCase):
           'deviceName':self.device,
           'devicePath':devpath,
           'discoverProto':'none',
-        } 
+        }
 
         try:
             serv = ServerProxy( url )

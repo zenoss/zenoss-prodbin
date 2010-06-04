@@ -39,7 +39,7 @@ from Products.ZenUtils.Utils import zenpathsplit, zenpathjoin
 from Products.ZenUtils.Utils import createHierarchyObj, getHierarchyObj
 from Products.ZenUtils.Utils import getObjByPath
 
-from Products.ZenUtils.Utils import prepId as globalPrepId
+from Products.ZenUtils.Utils import prepId as globalPrepId, isXmlRpc
 from Products.ZenWidgets import messaging
 from Products.ZenUI3.browser.interfaces import INewPath
 
@@ -66,8 +66,11 @@ class ZenModelBase(object):
         """
         Invokes the default view.
         """
-        newpath = INewPath(self)
-        self.REQUEST.response.redirect(newpath)
+        if isXmlRpc(self.REQUEST):
+            return self
+        else:
+            newpath = INewPath(self)
+            self.REQUEST.response.redirect(newpath)
 
     index_html = None  # This special value informs ZPublisher to use __call__
 
@@ -664,7 +667,7 @@ class ZenModelBase(object):
         @rtype: string
         @permission: ZEN_VIEW
 
-        >>> dmd.Devices.Server._setProperty('zIcon', '/zport/dmd/img/icons/server.png')
+        >>> dmd.Devices.Server.zIcon = '/zport/dmd/img/icons/server.png'
         >>> d = dmd.Devices.Server.createInstance('test')
         >>> d.getIconPath()
         '/zport/dmd/img/icons/server.png'

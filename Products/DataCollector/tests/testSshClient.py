@@ -17,34 +17,31 @@ from Products.DataCollector import SshClient
 
 def doNothing(*args, **kwargs):
     pass
-    
+
 class FakeLog(object):
-    def warn(self, message):
-        self.message = message
-        
+    def warn(self, message, *args):
+        self.message = message % args
+
 class OpenFailedTestCase(unittest.TestCase):
     """Tests regression of ticket #1483"""
-    
+
     def setUp(self):
         self.log = SshClient.log
         SshClient.log = FakeLog()
         self.sendEvent = SshClient.sendEvent
         SshClient.sendEvent = doNothing
-        self.CommandChannelInit = SshClient.CommandChannel.__init__
-        SshClient.CommandChannel.__init__ = doNothing
-        
+
     def runTest(self):
-        channel = SshClient.CommandChannel()
-        channel.command = 'foo'
+        channel = SshClient.CommandChannel('foo')
+        #channel.command = 'foo'
         channel.openFailed(ConchError('quux', 22))
-        self.assertEqual('Open of foo failed (error code 22): quux',
+        self.assertEqual('None CommandChannel Open of foo failed (error code 22): quux',
                          SshClient.log.message)
-                         
+
     def tearDown(self):
         SshClient.log = self.log
         SshClient.sendEvent = self.sendEvent
-        SshClient.CommandChannel.__init__ = self.CommandChannelInit
-        
+
 def test_suite():
     suite = unittest.TestSuite()
     suite.addTest(unittest.makeSuite(OpenFailedTestCase))

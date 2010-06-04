@@ -91,20 +91,10 @@ class DummyManager(MySqlSendEventMixin, EventManagerBase):
     def applyEventContext(self, evt): return evt
     def applyDeviceContext(self, dev, evt): unused(dev); return evt
 
-
-class Builder(DmdBuilder):
-
-    def build(self):
-        DmdBuilder.build(self)
-        #manage_addDummyManager(self.dmd, 'ZenEventManager')
-        #manage_addDummyManager(self.dmd, 'ZenEventHistory')
-
-
-
 class ZenossTestCaseLayer(ZopeLite):
 
     @classmethod
-    def setUp(cls):
+    def testSetUp(cls):
         import Products
 
         zope.component.testing.setUp(cls)
@@ -112,7 +102,7 @@ class ZenossTestCaseLayer(ZopeLite):
         zcml.load_config('testing.zcml', Products.ZenTestCase)
 
     @classmethod
-    def tearDown(cls):
+    def testTearDown(cls):
         cleanUp()
 
 
@@ -129,7 +119,7 @@ class BaseTestCase(ZopeTestCase.ZopeTestCase):
         # portal, cvthost, evtuser, evtpass, evtdb,
         #    smtphost, smtpport, pagecommand
         builder = DmdBuilder(self.app.zport, 'localhost', 'zenoss', 'zenoss',
-                            'events', 3306, 'localhost', '25', 
+                            'events', 3306, 'localhost', '25',
                              '$ZENHOME/bin/zensnpp localhost 444 $RECIPIENT')
         builder.build()
         self.dmd = builder.dmd

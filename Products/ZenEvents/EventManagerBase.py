@@ -149,10 +149,10 @@ class EventManagerBase(ZenModelRM, ObjectCache, DbAccessBase):
                       " % (me.device().getDmdKey(), me.id)")
     ComponentResultFields = ("eventState", "severity", "eventClass", "summary",
                              "firstTime", "lastTime", "count" )
-    IpAddressWhere = "\"ipAddress='%s'\" % (me.getId())" 
+    IpAddressWhere = "\"ipAddress='%s'\" % (me.getId())"
     EventClassWhere = "\"eventClass like '%s%%'\" % me.getDmdKey()"
     EventClassInstWhere = """\"eventClass = '%s' and eventClassKey = '%s'\" % (\
-                                me.getEventClass(), me.eventClassKey)""" 
+                                me.getEventClass(), me.eventClassKey)"""
     DeviceClassWhere = "\"DeviceClass like '%s%%'\" % me.getDmdKey()"
     LocationWhere = "\"Location like '%s%%'\" % me.getDmdKey()"
     SystemWhere = "\"Systems like '%%|%s%%'\" % me.getDmdKey()"
@@ -170,13 +170,13 @@ class EventManagerBase(ZenModelRM, ObjectCache, DbAccessBase):
     requiredEventFields = ('device', 'summary', 'severity')
 
     refreshConversionsForm = DTMLFile('dtml/refreshNcoProduct', globals())
-    
+
     defaultAvailabilityDays = 7
     defaultPriority = 3
     eventAgingHours = 4
     eventAgingSeverity = 4
     historyMaxAgeDays = 0
-    
+
     _properties = (
         {'id':'backend', 'type':'string','mode':'r', },
         {'id':'username', 'type':'string', 'mode':'w'},
@@ -222,7 +222,7 @@ class EventManagerBase(ZenModelRM, ObjectCache, DbAccessBase):
     _relations =  (
         ("commands", ToManyCont(ToOne, "Products.ZenEvents.EventCommand", "eventManager")),
     )
-    
+
     factory_type_information = (
         {
             'immediate_view' : 'editEventManager',
@@ -258,7 +258,7 @@ class EventManagerBase(ZenModelRM, ObjectCache, DbAccessBase):
         )
 
     security = ClassSecurityInfo()
-    
+
 
     def __init__(self, id, title='', hostname='localhost', username='root',
                  password='', database='events', port=3306,
@@ -300,7 +300,7 @@ class EventManagerBase(ZenModelRM, ObjectCache, DbAccessBase):
         self.host=hostname
         self.port=port
         DbAccessBase.__init__(self)
-        
+
         self.defaultWhere = defaultWhere
         self.defaultOrderby="%s desc, %s desc" % (
                             self.severityField, self.lastTimeField)
@@ -392,7 +392,7 @@ class EventManagerBase(ZenModelRM, ObjectCache, DbAccessBase):
         @param filters: Values for which to create filters (e.g.,
                         {'device':'^loc.*$', 'severity':[4, 5]})
         @type filters: dict or JSON str representing dict
-        @param values: Clause will be parameterized and the values list will be 
+        @param values: Clause will be parameterized and the values list will be
                 populated with the values for the query
         @type values: list
         """
@@ -470,7 +470,7 @@ class EventManagerBase(ZenModelRM, ObjectCache, DbAccessBase):
         for brain in brains:
             ids.append(brain.id)
         return ids
-    
+
     def _getComponentIdsMatching(self, searchTerm):
         """
         This returns a list of component ids where the titleOrId
@@ -482,7 +482,7 @@ class EventManagerBase(ZenModelRM, ObjectCache, DbAccessBase):
                     In('objectImplements',
                        'Products.ZenModel.DeviceComponent.DeviceComponent')]
         return self._filterCatalogResultsForIds(catalog, And(*querySet))
-    
+
     def _getDeviceIdsMatching(self, searchTerm):
         """
         This returns a list of device ids where the titleOrId
@@ -492,8 +492,8 @@ class EventManagerBase(ZenModelRM, ObjectCache, DbAccessBase):
         catalog = self.dmd.Devices.deviceSearch
         querySet = MatchRegexp('titleOrId', '.*%s.*' % searchTerm)
         return self._filterCatalogResultsForIds(catalog, querySet)
-                        
-    def getEventBatchME(self, me, selectstatus=None, resultFields=[], 
+
+    def getEventBatchME(self, me, selectstatus=None, resultFields=[],
                         where="", orderby="", severity=None, state=2,
                         startdate=None, enddate=None, offset=0, rows=0,
                         getTotalCount=False, filter="", goodevids=[],
@@ -569,14 +569,14 @@ class EventManagerBase(ZenModelRM, ObjectCache, DbAccessBase):
                                     filter=filter,
                                     offset=offset,
                                     getTotalCount=False,
-                                    startdate=startdate, 
+                                    startdate=startdate,
                                     enddate=enddate, severity=severity,
                                     state=state, orderby=orderby,
                                     resultFields=resultFields,
                                     where=where,**kwargs)
         return [ev.evid for ev in events]
-    
-    def getEventIds(self, me, selectstatus=None, 
+
+    def getEventIds(self, me, selectstatus=None,
                         orderby="", filters=None, evids=[],
                         excludeIds=[], asof=None):
         """
@@ -610,7 +610,7 @@ class EventManagerBase(ZenModelRM, ObjectCache, DbAccessBase):
             if selectstatus != 'All':
                 eventStates= dict(self.eventStateConversions)
                 assert selectstatus in (eventStates.keys())
-                where = self._wand(where, '%s = %s', self.stateField, 
+                where = self._wand(where, '%s = %s', self.stateField,
                            eventStates[selectstatus])
             if asof:
                 if where: where += ' and '
@@ -723,7 +723,7 @@ class EventManagerBase(ZenModelRM, ObjectCache, DbAccessBase):
             if not orderby:
                 orderby = self.defaultOrderby
             if orderby:
-                #validate orderby is a valid field 
+                #validate orderby is a valid field
                 orderby = self._scrubOrderby(orderby)
                 select.append("order by")
                 select.append(orderby)
@@ -735,9 +735,9 @@ class EventManagerBase(ZenModelRM, ObjectCache, DbAccessBase):
                 select.append("limit %s, %s" % (offset, rows))
             select.append(';')
             select = " ".join(select)
-            if getTotalCount: 
+            if getTotalCount:
                 try: retdata, totalCount = self.checkCache(select)
-                except TypeError: 
+                except TypeError:
                     retdata, totalCount = self.checkCache(select), 100
             else: retdata = self.checkCache(select)
             if not False:
@@ -764,7 +764,7 @@ class EventManagerBase(ZenModelRM, ObjectCache, DbAccessBase):
                 if getTotalCount: self.addToCache(select, (retdata, totalCount))
                 else: self.addToCache(select, retdata)
                 self.cleanCache()
-            if getTotalCount: 
+            if getTotalCount:
                 return retdata, totalCount
             else: return retdata
         except:
@@ -815,7 +815,7 @@ class EventManagerBase(ZenModelRM, ObjectCache, DbAccessBase):
         @type prodState: int
         @return: List of lists of the form [class, acked count, unacked count].
         @rtype: list
-        """ 
+        """
         raise NotImplementedError
 
 
@@ -850,7 +850,7 @@ class EventManagerBase(ZenModelRM, ObjectCache, DbAccessBase):
         if event: return event
         fields = self.getFieldList()
         evid = self.escape(evid)
-        selectevent = "select " 
+        selectevent = "select "
         selectevent += ", ".join(fields)
         selectevent += " from %s where" % self.statusTable
         selectevent += " %s = '%s'" % (idfield, evid)
@@ -895,7 +895,7 @@ class EventManagerBase(ZenModelRM, ObjectCache, DbAccessBase):
 
     def getStatusME(self, me, statusclass=None, **kwargs):
         """
-        """ 
+        """
         from Products.ZenModel.Organizer import Organizer
         if me.event_key == "Device":
             return self.getDeviceStatus(me.getId(), statusclass, **kwargs)
@@ -912,7 +912,7 @@ class EventManagerBase(ZenModelRM, ObjectCache, DbAccessBase):
     def getGenericStatus(self, me):
         """Return status based on a where clause defined for the me event_type.
         No fancy caching done this might be a little slow if there are a lot
-        of events.  Where clause is evaled 
+        of events.  Where clause is evaled
         """
         where = self.lookupManagedEntityWhere(me)
         select = "select count(*) from %s where %s" % (self.statusTable, where)
@@ -928,8 +928,8 @@ class EventManagerBase(ZenModelRM, ObjectCache, DbAccessBase):
 
             self.addToCache(select,statusCount)
         return statusCount
-    
-    
+
+
     def getOrganizerStatus(self, org, statusclass=None, severity=None,
                            state=0, where=""):
         """see IEventStatus
@@ -965,7 +965,7 @@ class EventManagerBase(ZenModelRM, ObjectCache, DbAccessBase):
                 countevts += value
         return countevts
 
-    
+
     def getOrganizerStatusIssues(self, event_key,severity=4,state=0,
                                 where="", limit=0):
         """Return list of tuples (org, count) for all organizers with events.
@@ -1026,7 +1026,7 @@ class EventManagerBase(ZenModelRM, ObjectCache, DbAccessBase):
         """
         where = self._wand(where, "%s >= %s", self.severityField, severity)
         where = self._wand(where, "%s <= %s", self.stateField, state)
-        select = """select distinct device, count(device) as evcount, 
+        select = """select distinct device, count(device) as evcount,
                     sum(count) from status where %s group by device
                     having evcount > %s""" % (where, mincount)
         statusCache = self.checkCache(select)
@@ -1113,42 +1113,41 @@ class EventManagerBase(ZenModelRM, ObjectCache, DbAccessBase):
     def getHeartbeat(self, failures=True, simple=False, limit=0, db=None):
         """Return all heartbeat issues list of tuples (device, component, secs)
         """
-        sel = """select device, component, lastTime from heartbeat """
+        sel = "select device, component, lastTime from heartbeat"
         if failures:
-            sel += "where DATE_ADD(lastTime, INTERVAL timeout SECOND) <= NOW();"
+            sel += " where DATE_ADD(lastTime, INTERVAL timeout SECOND) <= NOW()"
 
-        statusCache = self.checkCache(sel)
-        cleanup = lambda : None
-        if not statusCache:
-            statusCache = []
-            conn = self.connect()
-            try:
-                curs = conn.cursor()
-                curs.execute(sel)
-                res = list(curs.fetchall())
-                res.sort(lambda x,y: cmp(x[2],y[2]))
-                devclass = self.getDmdRoot("Devices")
-                for devname, comp, dtime in res:
-                    dtime = "%d" % int(time.time()-dtime.timeTime())
+        statuses = []
+        conn = self.connect()
+        try:
+            curs = conn.cursor()
+            curs.execute(sel)
+            res = list(curs.fetchall())
+            res.sort(lambda x,y: cmp(x[2],y[2]))
+            devclass = self.getDmdRoot("Devices")
+            for devname, comp, lastTime in res:
+                dtime = int(time.time() - lastTime.timeTime())
+
+                alink = devname
+                if not simple:
                     dev = devclass.findDevice(devname)
-                    if dev and not simple:
+                    if dev:
                         alink = "<a href='%s'>%s</a>" % (
                                 dev.getPrimaryUrlPath(), dev.titleOrId())
-                    else: alink = devname
-                    statusCache.append([alink, comp, dtime, devname])
-                if limit:
-                    statusCache = statusCache[:limit]
-                cleanup()
-            finally: self.close(conn)
-        return statusCache
 
+                statuses.append([alink, comp, str(dtime), devname])
+            if limit:
+                statuses = statuses[:limit]
+        finally:
+            self.close(conn)
+        return statuses
 
     def getHeartbeatObjects(self, failures=True, simple=False, limit=0, db=None):
         beats = self.getHeartbeat(failures, simple, limit, db)
         return [{'alink':b[0], 'comp':b[1], 'dtime':b[2], 'devId':b[3]}
                 for b in beats]
 
-        
+
     def getAllComponentStatus(self,
                               statclass,
                               countField=None,
@@ -1173,7 +1172,7 @@ class EventManagerBase(ZenModelRM, ObjectCache, DbAccessBase):
                 dev = self.cleanstring(dev)
                 comp = self.cleanstring(comp)
                 result[dev,comp] = count
-            return result 
+            return result
         finally:
             self.close(conn)
 
@@ -1184,7 +1183,7 @@ class EventManagerBase(ZenModelRM, ObjectCache, DbAccessBase):
         if me.event_key == 'Component':
             where = self._wand(where, "%s = '%s'",
                 self.componentField, me.id)
-        select = "select max(%s) from %s where " % (self.severityField, 
+        select = "select max(%s) from %s where " % (self.severityField,
             self.statusTable)
         query = select + where
         conn = self.connect()
@@ -1241,17 +1240,17 @@ class EventManagerBase(ZenModelRM, ObjectCache, DbAccessBase):
             finally: self.close(conn)
             return data
 
-        select = "select MAX(%s) from %s where " % (self.severityField, 
+        select = "select MAX(%s) from %s where " % (self.severityField,
                                                     self.statusTable)
         where = self._wand("", "%s >= %s", self.severityField, severity)
         where = self._wand(where, "%s <= %s", self.stateField, state)
         def componentWhere(device, component):
             return "device = '%s' and component= '%s'" % (device, component)
-        cwheres = ' and ' + ' or '.join(['(%s)'% componentWhere(**comp) 
+        cwheres = ' and ' + ' or '.join(['(%s)'% componentWhere(**comp)
                                         for comp in components])
         sevquery = select + where + cwheres
 
-        select = "select MAX(%s) from %s where " % (self.countField, 
+        select = "select MAX(%s) from %s where " % (self.countField,
                                                     self.statusTable)
         where = self._wand("", "%s >= %s", self.severityField, severity)
         where = self._wand(where, "%s <= %s", self.stateField, state)
@@ -1279,7 +1278,7 @@ class EventManagerBase(ZenModelRM, ObjectCache, DbAccessBase):
 
     def getEventOwnerList(self, where="", severity=0, state=1):
         """Return a list of userids that correspond to the events in where.
-        select distinct ownerid from status where 
+        select distinct ownerid from status where
         device="win2k.confmon.loc" and eventState > 2
         """
         select ="select distinct ownerid from status where "
@@ -1317,7 +1316,7 @@ class EventManagerBase(ZenModelRM, ObjectCache, DbAccessBase):
 
     def lookupManagedEntityField(self, event_key):
         """
-        Lookup database field for managed entity default 
+        Lookup database field for managed entity default
         using event_key.
 
         @param event_key: event
@@ -1386,14 +1385,14 @@ class EventManagerBase(ZenModelRM, ObjectCache, DbAccessBase):
         startdate = self.dateDB(startdate)
         enddate = self.dateDB(enddate)
         return startdate, enddate
-    
+
     def _scrubOrderby(self, orderby):
         """
         validates the syntax and columns for an orderby used on the status and
         history tables. Also removes adjacent sorts of the same columns as an
         optimization
         @return: orderby by clause
-        @raise exception: if order by clause is invalid 
+        @raise exception: if order by clause is invalid
         """
         sortValues = []
         prevSortCol = None
@@ -1405,13 +1404,13 @@ class EventManagerBase(ZenModelRM, ObjectCache, DbAccessBase):
             dir = dir.upper()
             if dir not in ['DESC','ASC'] or col not in fieldList:
                 raise ("order by  value %s %s not valid" % (col, dir))
-            #remove adjacent sorts of same column; 
+            #remove adjacent sorts of same column;
             if not prevSortCol or prevSortCol != col:
                 sortValues.append((col, dir))
             prevSortCol = col
 
         orderby = ', '.join([' '.join(x) for x in sortValues])
-            
+
         log.debug("final orderby is %s" % orderby)
         return orderby
 
@@ -1426,7 +1425,7 @@ class EventManagerBase(ZenModelRM, ObjectCache, DbAccessBase):
             avglen = curs.fetchone()
         finally: self.close(conn)
         try: return float(avglen[0])
-        except TypeError: return 10. 
+        except TypeError: return 10.
 
 
     #==========================================================================
@@ -1474,7 +1473,7 @@ class EventManagerBase(ZenModelRM, ObjectCache, DbAccessBase):
         #    idx = len(self.severityConversions) - value
         #    value = self.severityConversions[idx][0]
         #elif field == 'prodState':
-        #    value = self.dmd.convertProdState(value)            
+        #    value = self.dmd.convertProdState(value)
         if self.isDate(field):
             value = self.dateString(value)
         return value
@@ -1596,7 +1595,7 @@ class EventManagerBase(ZenModelRM, ObjectCache, DbAccessBase):
         if isinstance(value, DateTime.DateTime):
             value = value.timeTime()
         return Time.LocalDateTime(value)
-        
+
 
 
     def dateDB(self, value):
@@ -1789,7 +1788,7 @@ class EventManagerBase(ZenModelRM, ObjectCache, DbAccessBase):
         don't want to test the combination.
         This is an option during device deletion.  It is also used
         by zenactions to keep history table clean.
-        
+
         NB: Device.deleteDevice() is not currently calling this when devices
         are deleted.  See ticket #2996.
         """
@@ -1869,7 +1868,7 @@ class EventManagerBase(ZenModelRM, ObjectCache, DbAccessBase):
 
 
     security.declareProtected(ZEN_MANAGE_EVENTS,'manage_setEventStates')
-    def manage_setEventStates(self, eventState=None, evids=(), 
+    def manage_setEventStates(self, eventState=None, evids=(),
                               userid="", REQUEST=None):
         reason = None
         if eventState is not None and evids:
@@ -1878,7 +1877,7 @@ class EventManagerBase(ZenModelRM, ObjectCache, DbAccessBase):
                 userid = getSecurityManager().getUser().getId()
             update = "update status set eventState=%s, ownerid='%s' " % (
                         eventState, userid)
-            whereClause = "where evid in (" 
+            whereClause = "where evid in ("
             whereClause += ",".join([ "'%s'" % evid for evid in evids]) + ")"
             reason = 'Event state changed to '
             try:
@@ -1902,7 +1901,7 @@ class EventManagerBase(ZenModelRM, ObjectCache, DbAccessBase):
         numNoKey = 0
         if eventClass and evids:
             evclass = self.getDmdRoot("Events").getOrganizer(eventClass)
-            sel = """select eventClassKey, eventClass, message 
+            sel = """select eventClassKey, eventClass, message
                     from %s where evid in ('%s')"""
             sel = sel % (self.statusTable, "','".join(evids))
             conn = self.connect()
@@ -1939,9 +1938,9 @@ class EventManagerBase(ZenModelRM, ObjectCache, DbAccessBase):
 
         msg = ''
         if numNotUnknown:
-            msg += ((msg and ' ') + 
+            msg += ((msg and ' ') +
                     '%s event%s %s not class /Unknown.' % (
-                        numNotUnknown, 
+                        numNotUnknown,
                         (numNotUnknown != 1 and 's') or '',
                         (numNotUnknown != 1 and 'are') or 'is'))
         if numNoKey:
@@ -2002,7 +2001,7 @@ class EventManagerBase(ZenModelRM, ObjectCache, DbAccessBase):
         assert(self == self.dmd.ZenEventManager)
         self.cleanCache(force=1)
         self.dmd.ZenEventHistory.cleanCache(force=1)
-        if REQUEST: 
+        if REQUEST:
             messaging.IMessageSender(self).sendToBrowser(
                 'Event Cache', 'Event cache has been cleared.')
             return self.callZenScreen(REQUEST)
@@ -2024,7 +2023,7 @@ class EventManagerBase(ZenModelRM, ObjectCache, DbAccessBase):
         self.dmd.ZenEventHistory.port = self.dmd.ZenEventManager.port
         if REQUEST: return self.callZenScreen(REQUEST)
 
-   
+
     security.declareProtected(ZEN_MANAGE_EVENTMANAGER,'manage_clearHeartbeats')
     def manage_clearHeartbeats(self, REQUEST=None):
         """truncate heartbeat table"""
@@ -2034,7 +2033,7 @@ class EventManagerBase(ZenModelRM, ObjectCache, DbAccessBase):
             sql = 'truncate table heartbeat'
             curs.execute(sql)
         finally: self.close(conn)
-        if REQUEST: 
+        if REQUEST:
             messaging.IMessageSender(self).sendToBrowser(
                 'Heartbeats Cleared', 'Heartbeats have been cleared.')
             return self.callZenScreen(REQUEST)
