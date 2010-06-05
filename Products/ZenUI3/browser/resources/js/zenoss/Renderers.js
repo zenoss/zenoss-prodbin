@@ -179,8 +179,8 @@ Ext.apply(Zenoss.render, {
             return uid;
         }
         if (Ext.isObject(uid)) {
-            uid = uid.uid;
             name = uid.name;
+            uid = uid.uid;
         }
         if (!name) {
             parts = uid.split('/');
