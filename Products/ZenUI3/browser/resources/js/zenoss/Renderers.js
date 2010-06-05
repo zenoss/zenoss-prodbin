@@ -56,6 +56,23 @@ Ext.apply(Zenoss.render, {
         return num===0 ? '0' :convertToUnits(num, 1024.0, 'B');
     },
 
+    memory: function(mb) {
+        return (mb === 0) ? '0' : convertToUnits(mb, 1024.0, 'B', 2);
+    },
+
+    cpu_speed: function(speed) {
+        if (speed) {
+            n = parseFloat(speed);
+            if (isNaN(n)) {
+                return speed;
+            } else {
+                return n.toFixed(2) + ' GHz'; // XXX I18N unfriendly
+            }
+        } else {
+            return speed;
+        }
+    },
+
     pingStatus: function(bool) {
         var str = pingStatusBase(bool);
         return upDownTemplate.apply([str.toLowerCase(), str]);
