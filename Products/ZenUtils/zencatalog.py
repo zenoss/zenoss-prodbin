@@ -103,6 +103,7 @@ class ZenCatalog(ZCmdBase):
             while self._queue:
                 ob = self._queue.pop()
                 i = self._catObj(catObj, ob, i)
+            zport._zencatalog_completed = True
             import transaction
             transaction.commit()
             self._logIndexed(i)

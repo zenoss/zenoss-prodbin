@@ -23,6 +23,7 @@ from Products.ZenModel.ZenPack import ZenPackException, \
 from Products.ZenModel.ZenPack import ZenPackDependentsException
 from Products.ZenModel.ZenPack import ZenPack
 from Products.ZenUtils.PkgResources import pkg_resources
+from Products.Zuul.utils import CatalogLoggingFilter
 import Products.ZenModel.ZenPackLoader as ZPL
 import zenpack as oldzenpack
 import transaction
@@ -801,9 +802,20 @@ def RemoveZenPack(dmd, packName, filesOnly=False, skipDepsCheck=False,
             except AttributeError, ex:
                 raise ZenPackNotFoundException('No ZenPack named %s is installed' %
                                                 packName)
-            zp.remove(dmd, leaveObjects)
-            dmd.ZenPackManager.packs._delObject(packName)
-            transaction.commit()
+            # If zencatalog hasn't finished yet, we get ugly messages that don't
+            # mean anything. Hide them.
+            logFilter = None
+            if not getattr(dmd.zport, '_zencatalog_completed', False):
+                logFilter = CatalogLoggingFilter()
+                logging.getLogger('Zope.ZCatalog').addFilter(logFilter)
+            try:
+                zp.remove(dmd, leaveObjects)
+                dmd.ZenPackManager.packs._delObject(packName)
+                transaction.commit()
+            finally:
+                # Remove our logging filter so we don't hide anything important
+                if logFilter is not None:
+                    logging.getLogger('Zope.ZCatalog').removeFilter(logFilter)
 
         # Uninstall the egg and possibly delete it
         # If we can't find the distribution then apparently the zp egg itself is

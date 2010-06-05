@@ -12,18 +12,21 @@
 ###########################################################################
 __doc__ = "Manage ZenPacks"
 
-import Globals
-from Products.ZenModel.ZenPack import ZenPack, ZenPackException, \
-                                        ZenPackNeedMigrateException
-from Products.ZenUtils.ZenScriptBase import ZenScriptBase
-from Products.ZenUtils.Utils import cleanupSkins, zenPath
-import transaction
+import os, sys
+import logging
+import ConfigParser
 from zipfile import ZipFile
 from StringIO import StringIO
-import ConfigParser
+
+import Globals
+import transaction
+
+from Products.ZenModel.ZenPack import ZenPack, ZenPackException
+from Products.ZenModel.ZenPack import ZenPackNeedMigrateException
+from Products.ZenUtils.ZenScriptBase import ZenScriptBase
+from Products.ZenUtils.Utils import cleanupSkins, zenPath
 import Products.ZenModel.ZenPackLoader as ZPL
 from Products.ZenModel.ZenPackLoader import CONFIG_FILE, CONFIG_SECTION_ABOUT
-import os, sys
 import ZenPackCmd as EggPackCmd
 
 

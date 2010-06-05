@@ -292,7 +292,7 @@ class ZenPack(ZenModelRM):
         if not leaveObjects:
             self.removeZProperties(app)
             self.removeCatalogedObjects(app)
-        
+
 
     def migrate(self, previousVersion=None):
         """

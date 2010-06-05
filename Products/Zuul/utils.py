@@ -250,3 +250,14 @@ def catalogAwareImap(f, iterable):
             yield f(ob)
         except UncataloguedObjectException, e:
             pass
+
+
+class CatalogLoggingFilter(logging.Filter):
+
+    def filter(self, rec):
+        return logging.Filter.filter(self, rec) and not self.matches(rec)
+
+    def matches(self, rec):
+        return rec.msg.startswith('uncatalogObject unsuccessfully attempted')
+
+
