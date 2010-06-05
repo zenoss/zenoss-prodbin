@@ -17,7 +17,9 @@ from Products.AdvancedQuery import Eq, Or, Generic, And, In
 from Products.ZCatalog.CatalogBrains import AbstractCatalogBrain
 from Products.Zuul.interfaces import ITreeNode, ICatalogTool
 from Products.Zuul.utils import dottedname, unbrain, allowedRolesAndGroups
+from Products.Zuul.utils import UncataloguedObjectException
 from AccessControl import getSecurityManager
+
 
 class TreeNode(object):
     """
@@ -25,12 +27,14 @@ class TreeNode(object):
     """
     implements(ITreeNode)
 
-    def __init__(self, brain):
-        if not isinstance(brain, AbstractCatalogBrain):
-            brain = ICatalogTool(brain).getBrain(brain)
+    def __init__(self, ob):
+        if not isinstance(ob, AbstractCatalogBrain):
+            brain = ICatalogTool(ob).getBrain(ob)
             if brain is None:
-                raise Exception('brain is None')
-        self._object = brain
+                raise UncataloguedObjectException(ob)
+            else:
+                ob = brain
+        self._object = ob
 
     @property
     def uid(self):

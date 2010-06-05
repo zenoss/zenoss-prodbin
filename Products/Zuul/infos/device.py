@@ -23,6 +23,7 @@ from Products.Zuul.interfaces import IDeviceInfo, IDevice, ICatalogTool
 from Products.Zuul.infos import InfoBase
 from Products.Zuul import getFacade, info
 from Products.Zuul.marshalling import TreeNodeMarshaller
+from Products.Zuul.utils import catalogAwareImap
 
 ORGTYPES = {
     'Devices':'DeviceClass',
@@ -61,7 +62,7 @@ class DeviceOrganizerNode(TreeNode):
     def children(self):
         cat = ICatalogTool(self._object)
         orgs = cat.search(DeviceOrganizer, paths=(self.uid,), depth=1)
-        return imap(DeviceOrganizerNode, orgs)
+        return catalogAwareImap(DeviceOrganizerNode, orgs)
 
     @property
     def text(self):

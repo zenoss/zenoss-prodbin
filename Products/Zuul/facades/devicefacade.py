@@ -28,7 +28,7 @@ from Products.ZenModel.Location import Location
 from Products.ZenModel.DeviceClass import DeviceClass
 from Products.ZenModel.Device import Device
 from Products.Zuul import getFacade
-from Products.Zuul.utils import ZuulMessageFactory as _t
+from Products.Zuul.utils import ZuulMessageFactory as _t, UncataloguedObjectException
 from Products.Zuul.catalog.events import IndexingEvent
 
 
@@ -381,7 +381,10 @@ class DeviceFacade(TreeFacade):
         for template in templates:
             # see if the template is already overridden here
             if not obj.id in template.getPhysicalPath():
-                yield ITemplateNode(template)
+                try:
+                    yield ITemplateNode(template)
+                except UncataloguedObjectException, e:
+                    pass
 
     def addLocationOrganizer(self, contextUid, id, description = '', address=''):
         context = self._getObject(contextUid)

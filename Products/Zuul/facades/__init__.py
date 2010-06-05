@@ -33,7 +33,7 @@ from Products.AdvancedQuery import MatchRegexp, And, Or, Eq, Between
 from Products.Zuul.interfaces import IFacade, ITreeNode
 from Products.Zuul.interfaces import ITreeFacade, IInfo, ICatalogTool, IOrganizerInfo
 from Products.Zuul.interfaces import IEventInfo
-from Products.Zuul.utils import unbrain, get_dmd
+from Products.Zuul.utils import unbrain, get_dmd, UncataloguedObjectException
 from Products.Zuul.tree import SearchResults
 from Products.ZenUtils.IpUtil import numbip, checkip, IpAddressError, ensureIp
 from Products.ZenUtils.IpUtil import getSubnetBounds
@@ -70,7 +70,10 @@ class TreeFacade(ZuulFacade):
 
     def getTree(self, uid=None):
         obj = self._getObject(uid)
-        return ITreeNode(obj)
+        try:
+            return ITreeNode(obj)
+        except UncataloguedObjectException, e:
+            pass
 
     def getInfo(self, uid=None):
         obj = self._getObject(uid)

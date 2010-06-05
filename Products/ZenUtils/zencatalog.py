@@ -26,6 +26,8 @@ from Products.Zuul.catalog.global_catalog import createGlobalCatalog
 
 log = logging.getLogger("zen.catalog")
 
+CHUNK_SIZE = 100
+
 class ZenCatalog(ZCmdBase):
     name = 'zencatalog'
 
@@ -87,6 +89,9 @@ class ZenCatalog(ZCmdBase):
             log.info('Global catalog already exists')
 
         if not catalogExists or self.options.forceindex:
+            self._queuesize = 0
+            self._queue = []
+            self._tempqueue = []
             # And now, the fun part: index every ZenModelRM
             log.info("Reindexing your system. This may take some time.")
             i = 0
@@ -94,8 +99,10 @@ class ZenCatalog(ZCmdBase):
             globalCat = self._getCatalog(zport)
             catObj = globalCat.catalog_object
             for ob in self._recurse(zport):
-                self._catObj(catObj, ob, i)
-                i += 1
+                i = self._catObj(catObj, ob, i)
+            while self._queue:
+                ob = self._queue.pop()
+                i = self._catObj(catObj, ob, i)
             import transaction
             transaction.commit()
             self._logIndexed(i)
@@ -104,28 +111,41 @@ class ZenCatalog(ZCmdBase):
     def _logIndexed(self, i):
         if self.options.daemon:
             log.info('%s objects indexed' % i)
+            queuesize = len(self._queue)
+            if queuesize!=self._queuesize:
+                log.info('%s objects in retry queue' % queuesize)
+                self._queuesize = queuesize
 
     def _getCatalog(self, zport):
         return getattr(zport, 'global_catalog', None)
-        
+
     def _catObj(self, catObj, obj, i):
         try:
+            self._tempqueue.append(obj)
             catObj(obj)
             # Reindex the old catalogs for device and template
             if isinstance(obj, (Device, RRDTemplate)):
                 obj.index_object()
-            if not i % 100:
-                if not self.options.daemon:     
+            if not i % CHUNK_SIZE:
+                if not self.options.daemon:
                     sys.stdout.write('.')
                     sys.stdout.flush()
                 import transaction
                 transaction.commit()
+                self.syncdb()
                 self._logIndexed(i)
+                self._tempqueue = []
         except ConflictError:
-            raise
+            self._queue.extend(self._tempqueue)
+            self._tempqueue = []
+            self.syncdb()
+            i -= CHUNK_SIZE
         except:
             log.error('cataloging object at %s failed' % 
                       obj.getPrimaryUrlPath(), exc_info=sys.exc_info())
+        else:
+            i += 1
+        return i
 
     def _recurse(self, obj):
         if isinstance(obj, ObjectManager):
@@ -144,5 +164,8 @@ class ZenCatalog(ZCmdBase):
 
 if __name__ == "__main__":
     zc = ZenCatalog()
-    zc.run()
+    try:
+        zc.run()
+    except Exception, e:
+        log.exception(e)
 

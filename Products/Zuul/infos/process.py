@@ -11,7 +11,7 @@
 #
 ###########################################################################
 
-from itertools import imap, chain
+from itertools import chain
 from zope.component import adapts
 from zope.interface import implements
 from Products.ZenModel.OSProcess import OSProcess
@@ -25,6 +25,8 @@ from Products.Zuul.interfaces import IProcessInfo
 from Products.Zuul.tree import TreeNode
 from Products.Zuul.infos import InfoBase
 from Products.Zuul.utils import getZPropertyInfo, setZPropertyInfo
+from Products.Zuul.utils import catalogAwareImap
+
 
 class ProcessNode(TreeNode):
     implements(IProcessNode)
@@ -50,7 +52,7 @@ class ProcessNode(TreeNode):
         orgs = cat.search(OSProcessOrganizer, paths=(self.uid,), depth=1)
         # Must search at depth+1 to account for relationship
         cls = cat.search(OSProcessClass, paths=(self.uid,), depth=2)
-        return imap(ProcessNode, chain(orgs, cls))
+        return catalogAwareImap(ProcessNode, chain(orgs, cls))
 
     @property
     def leaf(self):

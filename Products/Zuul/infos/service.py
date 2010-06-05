@@ -11,12 +11,11 @@
 #
 ###########################################################################
 
-from itertools import imap
 from zope.component import adapts
 from zope.interface import implements
 from Products.Zuul import getFacade
 from Products.Zuul.tree import TreeNode
-from Products.Zuul.infos import InfoBase, ConfigProperty
+from Products.Zuul.infos import InfoBase
 from Products.Zuul.interfaces import IServiceInfo
 from Products.Zuul.interfaces import IServiceOrganizerNode
 from Products.Zuul.interfaces import ICatalogTool, IServiceOrganizerInfo
@@ -24,6 +23,7 @@ from Products.ZenModel.ServiceClass import ServiceClass
 from Products.ZenModel.ServiceOrganizer import ServiceOrganizer
 from Products.ZenModel.Service import Service
 from Products.Zuul.utils import getZPropertyInfo, setZPropertyInfo
+from Products.Zuul.utils import catalogAwareImap
 
 class ServiceOrganizerNode(TreeNode):
     implements(IServiceOrganizerNode)
@@ -43,7 +43,7 @@ class ServiceOrganizerNode(TreeNode):
     def children(self):
         cat = ICatalogTool(self._object)
         orgs = cat.search(ServiceOrganizer, paths=(self.uid,), depth=1)
-        return imap(ServiceOrganizerNode, orgs)
+        return catalogAwareImap(ServiceOrganizerNode, orgs)
 
     @property
     def leaf(self):

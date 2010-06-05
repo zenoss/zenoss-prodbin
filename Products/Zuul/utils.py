@@ -22,6 +22,9 @@ from zope.i18nmessageid import MessageFactory
 from Products.ZCatalog.CatalogBrains import AbstractCatalogBrain
 from Products.ZenRelations.ZenPropertyManager import ZenPropertyManager
 
+import logging
+log = logging.getLogger('zen.Zuul')
+
 # Translations
 ZuulMessageFactory = MessageFactory('zenoss')
 
@@ -229,3 +232,21 @@ def allowedRolesAndGroups(context):
         roles.append('user:%s' % group)
         
     return roles
+
+
+class UncataloguedObjectException(Exception):
+    """
+    The object we've tried to adapt hasn't been indexed
+    """
+    def __init__(self, ob):
+        self.ob = ob
+        log.critical('Object %s has not been catalogued. Skipping.' %
+                     ob.getPrimaryUrlPath())
+
+
+def catalogAwareImap(f, iterable):
+    for ob in iterable:
+        try:
+            yield f(ob)
+        except UncataloguedObjectException, e:
+            pass

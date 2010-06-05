@@ -17,7 +17,7 @@ from Products.AdvancedQuery import MatchRegexp, And
 from Products.ZenModel.ServiceClass import ServiceClass
 from Products.ZenModel.ServiceOrganizer import ServiceOrganizer
 from Products.Zuul.facades import TreeFacade
-from Products.Zuul.utils import unbrain
+from Products.Zuul.utils import unbrain, UncataloguedObjectException
 from Products.Zuul.decorators import info
 from Products.Zuul.interfaces import ITreeFacade, IServiceFacade
 from Products.Zuul.interfaces import IInfo, ICatalogTool
@@ -50,7 +50,10 @@ class ServiceFacade(TreeFacade):
 
     def getOrganizerTree(self, id):
         obj = self._getObject(id)
-        return ServiceOrganizerNode(obj)
+        try:
+            return ServiceOrganizerNode(obj)
+        except UncataloguedObjectException, e:
+            pass
 
     def getParentInfo(self, uid=None):
         obj = self._getObject(uid)

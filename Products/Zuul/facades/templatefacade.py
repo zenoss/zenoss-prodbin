@@ -21,6 +21,7 @@ from Products.Zuul.interfaces import ITemplateFacade, ICatalogTool, ITemplateNod
     IDataPointInfo, IThresholdInfo, IGraphInfo, IInfo, ITemplateLeaf, IGraphPointInfo
 from Products.Zuul.infos.template import SNMPDataSourceInfo, CommandDataSourceInfo
 from Products.Zuul.utils import unbrain, safe_hasattr as hasattr
+from Products.Zuul.utils import UncataloguedObjectException
 from Products.Zuul.facades import ZuulFacade
 from Products.ZenModel.RRDTemplate import RRDTemplate
 from Products.ZenModel.RRDDataSource import RRDDataSource
@@ -44,11 +45,17 @@ class TemplateFacade(ZuulFacade):
         nodes = {}
         for template in templates:
             if template.id not in nodes:
-                nodes[template.id] = ITemplateNode(template)
-            leaf = ITemplateLeaf(template)
-            nodes[template.id]._addChild(leaf)
+                try:
+                    nodes[template.id] = ITemplateNode(template)
+                except UncataloguedObjectException, e:
+                    pass
+            try:
+                leaf = ITemplateLeaf(template)
+                nodes[template.id]._addChild(leaf)
+            except UncataloguedObjectException, e:
+                pass
         for key in sorted(nodes.keys(), key=str.lower):
-            yield nodes[key]        
+            yield nodes[key]
 
     def getAddTemplateTargets(self):
         """
