@@ -398,77 +398,14 @@ div.dialog-link a {
     background: transparent url();
 }
 
-
-
-.searchcombo-ml,
-.searchcombo-mr,
-.searchcombo-mc,
-.searchcombo-black-ml,
-.searchcombo-black-mr,
-.searchcombo-black-mc {
-    height: 21px;
-    border: medium none;
-    background: transparent
-                url(/++resource++zenui/img/xtheme-zenoss/form/searchfield-sprite.png)
-                no-repeat;
+.searchfield-black .x-form-arrow-trigger {
+    background-position: -102px 0;
+    border-bottom: medium none;
 }
 
-.searchcombo-ml,
-.searchcombo-black-ml { padding-left: 18px; }
-
-.searchcombo-mr,
-.searchcombo-black-mr { padding-right: 10px; }
-
-.searchcombo-ml {
-    background-image: none;
-    padding-left: 0px;
-    margin-left: 0px;
-}
-
-.searchcombo-mc {
-    background-position: 0 -21px;
-    background-repeat: repeat-x;
-}
-
-.searchcombo-mr {
-    background-position: right -42px;
-}
-
-.searchcombo-black-ml {
-    background-image: none;
-    padding-left: 0px;
-    margin-left: 0px;
-}
-.searchcombo-black-mc {
-    background-position: 0 -84px;
-    background-repeat: repeat-x;
-    color: white;
-}
-.searchcombo-black-mr {
-    background-position: right -105px;
-}
-
-.searchcombo-black-mc .x-form-text,
-.searchcombo-mc .x-form-text {
-    border: 0px none;
-    background: transparent;
-}
-.searchcombo-left {
-    height: 21px;
-    border: medium none;
-    background: transparent
-                url(/++resource++zenui/img/xtheme-zenoss/form/searchfield-sprite.png)
-                no-repeat;
-    background-position: 0 -63px;
-}
-
-div.searchcombo-left div.x-panel-bwrap div.x-panel-body {
-    background-color: transparent;
-    border: none;
-}
-
-div.searchcombo-left div.x-panel-bwrap {
-    border: none;
+.searchfield-black .x-form-arrow-trigger.x-form-trigger-click,
+.searchfield-black .x-form-arrow-trigger.x-form-trigger-over {
+    background-position: -119px 0;
 }
 
 .saved-search-item .x-combo-list-inner {
@@ -479,9 +416,13 @@ div.searchcombo-left div.x-panel-bwrap {
    border: none;
 }
 
+.saved-search-item .x-combo-selected {
+    background-color: #ddd;
+    color: black;
+}
+
 #manage-search-link {
-   color:white;
-   font-size:14px;   
+   font-size:12px;   
 }
 
 table.eventrainbow {
@@ -907,3 +848,4 @@ span.status-down-large {
 .report-tree .x-tree-node-leaf .node-text {
     font-weight: normal;
 }
+
