@@ -82,9 +82,14 @@
              factory=".component.ComponentInfo"
              />
 
-    <adapter factory=".service.ServiceInfo"
-             provides="..interfaces.IServiceInfo"
-             for="Products.ZenModel.ServiceClass.ServiceClass"
+    <adapter factory=".service.IpServiceClassInfo"
+             provides="..interfaces.IIpServiceClassInfo"
+             for="Products.ZenModel.IpServiceClass.IpServiceClass"
+             />
+
+    <adapter factory=".service.WinServiceClassInfo"
+             provides="..interfaces.IWinServiceClassInfo"
+             for="Products.ZenModel.WinServiceClass.WinServiceClass"
              />
 
     <adapter factory=".service.ServiceOrganizerInfo"

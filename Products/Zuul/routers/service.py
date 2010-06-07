@@ -131,3 +131,11 @@ class ServiceRouter(TreeRouter):
     def moveServices(self, sourceUids, targetUid):
         self.api.moveServices(sourceUids, targetUid)
         return DirectResponse.succeed()
+
+    def getUnmonitoredStartModes(self, uid):
+        data = self.api.getUnmonitoredStartModes(uid)
+        return DirectResponse.succeed(data=Zuul.marshal(data))
+
+    def getMonitoredStartModes(self, uid):
+        data = self.api.getMonitoredStartModes(uid)
+        return DirectResponse.succeed(data=Zuul.marshal(data))

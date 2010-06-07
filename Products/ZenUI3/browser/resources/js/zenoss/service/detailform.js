@@ -20,9 +20,9 @@ Ext.onReady( function() {
      *
      */
 
-    var zs = Ext.ns('Zenoss.Service.DetailForm');
+    var zsf = Ext.ns('Zenoss.Service.DetailForm');
 
-    zs.actioncompleteHandler = function(form, action) {
+    zsf.actioncompleteHandler = function(form, action) {
         form = Ext.getCmp('serviceForm');
 
         var isClass = (form.contextUid.indexOf('serviceclasses') > 0),
@@ -30,7 +30,7 @@ Ext.onReady( function() {
 
         if (action.type == 'directload') {
             form.isLoadInProgress = false;
-            Ext.each(zs.hiddenFieldIdsForOrganizer, function(i){
+            Ext.each(zsf.hiddenFieldIdsForOrganizer, function(i){
                     var o = Ext.getCmp(i);
                     o.setVisible(isClass);
                     o.label.setVisible(isClass);
@@ -60,7 +60,7 @@ Ext.onReady( function() {
         }
     };
 
-    zs.nameTextField = {
+    zsf.nameTextField = {
         xtype: 'textfield',
         id: 'nameTextField',
         fieldLabel: _t('Name'),
@@ -69,7 +69,7 @@ Ext.onReady( function() {
         width: "100%"
     };
 
-    zs.descriptionTextField = {
+    zsf.descriptionTextField = {
         xtype: 'textfield',
         id: 'descriptionTextField',
         fieldLabel: _t('Description'),
@@ -77,7 +77,7 @@ Ext.onReady( function() {
         width: "100%"
     };
 
-    zs.serviceKeysTextField = {
+    zsf.serviceKeysTextField = {
         xtype: 'textarea',
         id: 'serviceKeysTextField',
         fieldLabel: _t('Service Keys'),
@@ -85,7 +85,7 @@ Ext.onReady( function() {
         width: "100%"
     };
 
-    zs.zMonitor = {
+    zsf.zMonitor = {
         xtype: 'zprop',
         ref: '../../zMonitor',
         title: _t('Enable Monitoring? (zMonitor)'),
@@ -97,7 +97,7 @@ Ext.onReady( function() {
         }
     };
 
-    zs.zFailSeverity = {
+    zsf.zFailSeverity = {
         xtype: 'zprop',
         ref: '../../zFailSeverity',
         title: _t('Failure Event Severity (zFailSeverity)'),
@@ -109,7 +109,7 @@ Ext.onReady( function() {
         }
     };
 
-    zs.formItems = {
+    zsf.formItems = {
         layout: 'column',
         border: false,
         defaults: {
@@ -117,35 +117,24 @@ Ext.onReady( function() {
             border: false,
             bodyStyle: 'padding: 15px',
             columnWidth: 0.5
-        },
-        items: [{
-            items: [
-                zs.nameTextField, 
-                zs.descriptionTextField,
-                zs.serviceKeysTextField
-            ]
-        }, {
-            items: [
-                zs.zMonitor,
-                zs.zFailSeverity
-            ]
-        }]
+        }
+        // items is set in winservice.js and ipservice.js
     };
 
-    zs.hiddenFieldIdsForOrganizer = [zs.serviceKeysTextField.id];
+    zsf.hiddenFieldIdsForOrganizer = [zsf.serviceKeysTextField.id];
 
-    zs.formConfig = {
+    zsf.formConfig = {
         xtype: 'basedetailform',
         id: 'serviceForm',
         region: 'center',
-        items: zs.formItems,
+        items: zsf.formItems,
         permission: 'Manage DMD',
         trackResetOnLoad: true,
         router: Zenoss.remote.ServiceRouter
     };
 
-    zs.initForm = function() {
-        var serviceForm = Ext.getCmp('detail_panel').add(zs.formConfig);
-        serviceForm.on('actioncomplete', zs.actioncompleteHandler);
+    zsf.initForm = function() {
+        var serviceForm = Ext.getCmp('detail_panel').add(zsf.formConfig);
+        serviceForm.on('actioncomplete', zsf.actioncompleteHandler);
     };
 });

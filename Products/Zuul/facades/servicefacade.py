@@ -18,6 +18,7 @@ from Products.ZenModel.ServiceClass import ServiceClass
 from Products.ZenModel.ServiceOrganizer import ServiceOrganizer
 from Products.Zuul.facades import TreeFacade
 from Products.Zuul.utils import unbrain, UncataloguedObjectException
+from Products.Zuul.utils import safe_hasattr
 from Products.Zuul.decorators import info
 from Products.Zuul.interfaces import ITreeFacade, IServiceFacade
 from Products.Zuul.interfaces import IInfo, ICatalogTool
@@ -128,3 +129,15 @@ class ServiceFacade(TreeFacade):
             else:
                 args = (sourceUid, sourceObj.__class__.__name__)
                 raise Exception('Cannot move service %s of type %s' % args)
+
+    def getUnmonitoredStartModes(self, uid):
+        monitoredStartModes = [x[0] for x in self.getMonitoredStartModes(uid)]
+        for startMode in ['Auto', 'Manual', 'Disabled', 'Not Installed']:
+            if startMode not in monitoredStartModes:
+                yield [startMode]
+
+    def getMonitoredStartModes(self, uid):
+        ob = self._getObject(uid)
+        if safe_hasattr(ob, 'monitoredStartModes'):
+            for startMode in ob.monitoredStartModes:
+                yield [startMode]

@@ -33,7 +33,7 @@ Ext.onReady( function() {
         minValue: 1
     };
 
-    var formItems = [{
+    zsf.formItems.items = [{
         items: [
             zsf.nameTextField,
             zsf.descriptionTextField,
@@ -47,7 +47,7 @@ Ext.onReady( function() {
         ]
     }];
 
-    var navColumns = [
+    zsn.columnModelConfig.columns = [
         {
             dataIndex: 'name',
             header: _t('Name'),
@@ -71,8 +71,6 @@ Ext.onReady( function() {
     ];
 
 
-    zsn.columnModelConfig.columns = navColumns;
-    zsf.formItems.items = formItems;
     zsf.hiddenFieldIdsForOrganizer.push('portTextField');
 
     zsn.initNav('/zport/dmd/Services/IpService');

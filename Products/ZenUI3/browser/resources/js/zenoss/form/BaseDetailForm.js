@@ -47,16 +47,16 @@ ZF.createDirectSubmitFunction = function(router) {
         // define a callback to run after server responds
         var callback = function() {
             form.clearInvalid();
-            form.setValues(dirtyFieldValues); // isDirty() will return true now
+            form.setValues(dirtyFieldValues); // isDirty() will return false now
             form.afterAction(directSubmitAction, true);
-            form.reset(); //this.el is undefined
+            form.reset();
         };
 
         // the remote call
         router.setInfo(info, callback, directSubmitAction);
 
     };
-}
+};
 
 ZF.BaseDetailForm = Ext.extend(Ext.form.FormPanel, {
     contextUid: null,

@@ -16,10 +16,12 @@ from zope.interface import implements
 from Products.Zuul import getFacade
 from Products.Zuul.tree import TreeNode
 from Products.Zuul.infos import InfoBase
-from Products.Zuul.interfaces import IServiceInfo
-from Products.Zuul.interfaces import IServiceOrganizerNode
+from Products.Zuul.interfaces import IServiceInfo, IIpServiceClassInfo
+from Products.Zuul.interfaces import IServiceOrganizerNode, IWinServiceClassInfo
 from Products.Zuul.interfaces import ICatalogTool, IServiceOrganizerInfo
 from Products.ZenModel.ServiceClass import ServiceClass
+from Products.ZenModel.IpServiceClass import IpServiceClass
+from Products.ZenModel.WinServiceClass import WinServiceClass
 from Products.ZenModel.ServiceOrganizer import ServiceOrganizer
 from Products.ZenModel.Service import Service
 from Products.Zuul.utils import getZPropertyInfo, setZPropertyInfo
@@ -79,7 +81,6 @@ class ServiceInfoBase(InfoBase):
 
 class ServiceInfo(ServiceInfoBase):
     implements(IServiceInfo)
-    adapts(ServiceClass)
 
     def getServiceKeys(self):
         return self._object.serviceKeys
@@ -89,6 +90,17 @@ class ServiceInfo(ServiceInfoBase):
 
     serviceKeys = property(getServiceKeys, setServiceKeys)
 
+    @property
+    def count(self):
+        numInstances = ICatalogTool(self._object).count(
+            (Service,), self.uid)
+
+        return numInstances
+
+class IpServiceClassInfo(ServiceInfo):
+    adapts(IpServiceClass)
+    implements(IIpServiceClassInfo)
+
     def getPort(self):
         return self._object.port
 
@@ -97,12 +109,18 @@ class ServiceInfo(ServiceInfoBase):
 
     port = property(getPort, setPort)
 
-    @property
-    def count(self):
-        numInstances = ICatalogTool(self._object).count(
-            (Service,), self.uid)
 
-        return numInstances
+class WinServiceClassInfo(ServiceInfo):
+    adapts(WinServiceClass)
+    implements(IWinServiceClassInfo)
+
+    def getMonitoredStartModes(self):
+        return self._object.monitoredStartModes
+
+    def setMonitoredStartModes(self, value):
+        self._object.monitoredStartModes = value.split(',')
+
+    monitoredStartModes = property(getMonitoredStartModes, setMonitoredStartModes)
 
 class ServiceOrganizerInfo(ServiceInfoBase):
     implements(IServiceOrganizerInfo)

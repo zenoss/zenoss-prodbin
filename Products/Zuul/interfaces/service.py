@@ -47,11 +47,15 @@ class IServiceInfo(IInfo):
     name = Attribute('The name of the service')
     description = Attribute('A description of the service')
     serviceKeys = Attribute('Keys which will match for defining services.')
-    port = Attribute('The port that the service runs on')
     count = Attribute('The number of instances.')
-    isInherited = Attribute('Are monitoring properties inherited?')
-    monitor = Attribute('Monitoring enabled')
-    failSeverity = Attribute('Severity threshold for monitoring')
+    zMonitor = Attribute('Is the service monitored')
+    zFailSeverity = Attribute('The event severity for failure events')
+
+class IIpServiceClassInfo(IServiceInfo):
+    port = Attribute('The port that the service runs on')
+
+class IWinServiceClassInfo(IServiceInfo):
+    monitoredStartModes = Attribute('Start modes that will be monitored')
 
 class IServiceOrganizerInfo(IInfo):
     """

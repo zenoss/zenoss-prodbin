@@ -225,6 +225,15 @@ ul.x-tab-strip-bottom{
 .x-fieldset-bwrap {
     background-color:white;
 }
+
+.multiselect .x-fieldset-header-text {
+    font: 12px helvetica,arial,tahoma,sans-serif;
+}
+
+.multiselect .x-fieldset-body {
+    border: 1px solid #abc;
+}
+
 /* Buttons */
 
 .x-btn-text {
