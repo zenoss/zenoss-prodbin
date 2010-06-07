@@ -152,8 +152,9 @@ class EventManagerBase(ZenModelRM, ObjectCache, DbAccessBase):
     IpAddressWhere = "\"ipAddress='%s'\" % (me.getId())"
     EventClassWhere = "\"eventClass like '%s%%'\" % me.getDmdKey()"
     EventClassInstWhere = """\"eventClass = '%s' and eventClassKey = '%s'\" % (\
-                                me.getEventClass(), me.eventClassKey)"""
-    DeviceClassWhere = "\"DeviceClass like '%s%%'\" % me.getDmdKey()"
+                                me.getEventClass(), me.eventClassKey)""" 
+    DeviceClassWhere = "\"(DeviceClass = '%s' or DeviceClass like '%s/%%') \" % \
+                         ( me.getDmdKey(), me.getDmdKey() )"
     LocationWhere = "\"Location like '%s%%'\" % me.getDmdKey()"
     SystemWhere = "\"Systems like '%%|%s%%'\" % me.getDmdKey()"
     DeviceGroupWhere = "\"DeviceGroups like '%%|%s%%'\" % me.getDmdKey()"
