@@ -42,7 +42,7 @@ Zenoss.IFramePanel = Ext.extend(Ext.BoxComponent, {
     afterRender: function(container) {
         Zenoss.IFramePanel.superclass.afterRender.apply(this, arguments);
         if (!this.ownerCt) {
-            var pos = this.getPosition(), 
+            var pos = this.getPosition(),
                 size = this.frame.parent().getViewSize();
             this.setSize(size.width - pos[0], size.height-pos[1]);
         }
@@ -55,6 +55,8 @@ Zenoss.IFramePanel = Ext.extend(Ext.BoxComponent, {
     },
     onFrameLoad: function() {
         this.fireEvent('frameload', this.getWindow());
+        // Load any messages that may have been created by the frame
+        Zenoss.messenger.checkMessages();
     }
 });
 
@@ -80,12 +82,12 @@ Ext.reg('contextiframe', Zenoss.ContextualIFrame);
 
 
 /**
- * Panel used for displaying old zenoss ui pages in an iframe. Set Context 
+ * Panel used for displaying old zenoss ui pages in an iframe. Set Context
  * should be called by page to initialze panel for viewing.
- * 
+ *
  * NOTE: sets a cookie named "newui"; the presence of this cookie will cause the
  * old ui to render with out the old navigation panels and without the tabs.
- * 
+ *
  * @class Zenoss.BackCompatPanel
  * @extends Zenoss.ContextualIFrame
  */

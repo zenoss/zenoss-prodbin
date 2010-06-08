@@ -6,6 +6,14 @@
 <include package="Products.ZenUtils.extdirect.zope" file="meta.zcml"/>
 <include package="Products.ZenModel" file="permissions.zcml"/>
 
+
+<browser:directRouter
+    name="messaging_router"
+    for="*"
+    class=".messaging.MessagingRouter"
+    namespace="Zenoss.remote"
+    />
+
 <browser:directRouter
     name="evconsole_router"
     for="*"

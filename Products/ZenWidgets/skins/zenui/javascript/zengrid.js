@@ -66,8 +66,8 @@ ZenGridBuffer.prototype = {
         this.numRows = 0;
         this.numCols = 0;
         this.pageSize = 10;
-        this.bufferSize = 5; 
-        this.marginFactor = 0.2; 
+        this.bufferSize = 5;
+        this.marginFactor = 0.2;
         bindMethods(this);
     },
     tolerance: function() {
@@ -88,8 +88,8 @@ ZenGridBuffer.prototype = {
             newSize = Math.min(this.startPos - newOffset, this.maxQuery);
         }
         newSize = Math.max(0, newSize);
-        maxSizeNeeded = this.totalRows ? 
-                        Math.max(this.maxQuery, this.totalRows-newOffset) : 
+        maxSizeNeeded = this.totalRows ?
+                        Math.max(this.maxQuery, this.totalRows-newOffset) :
                         this.maxQuery;
         newSize = Math.min(newSize, this.maxQuery, maxSizeNeeded);
         return newSize;
@@ -97,7 +97,7 @@ ZenGridBuffer.prototype = {
     queryOffset: function(offset) {
         var newOffset = offset;
         var reverse = this.grid.lastOffset > offset;
-        if (offset > this.startPos && !reverse){ 
+        if (offset > this.startPos && !reverse){
             newOffset = Math.max(offset, this.endPos()); //appending
         }
         else if (offset + this.maxQuery >= this.startPos) {
@@ -213,7 +213,7 @@ ZenGrid.prototype = {
         updatelock.addCallback(bind(function(r){
             var isMSIE//@cc_on=1;
             if (!isMSIE) this.resizeTable();
-            this.message('Last updated ' + 
+            this.message('Last updated ' +
                          getServerTimestamp() + '.');
             if (this.lock.locked) this.lock.release();
         }, this));
@@ -230,7 +230,7 @@ ZenGrid.prototype = {
         var time = $('refreshRate').value;
         this.refreshMgr = new RefreshManager(time, this.refresh);
         var button = $('refreshButton');
-        setStyle(button, 
+        setStyle(button,
             {'background-image':'url(img/refresh_off.png)'});
         button.onclick = this.turnRefreshOff;
         button.blur();
@@ -335,7 +335,7 @@ ZenGrid.prototype = {
     refresh: function() {
         this.buffer.clear();
         this.refreshTable(this.lastOffset);
-        this.message('Last updated ' + 
+        this.message('Last updated ' +
                      getServerTimestamp() + '.');
     },
     query: function(offset) {
@@ -358,7 +358,7 @@ ZenGrid.prototype = {
         }
         if ('askformore' in this) this.askformore.cancel()
         this.askformore = loadJSONDoc(url, qs);
-        this.askformore.addErrback(bind(function(x) { 
+        this.askformore.addErrback(bind(function(x) {
             callLater(5, bind(function(){
             this.message('Unable to communicate with the server.');
             this.emptyTable();
@@ -367,7 +367,7 @@ ZenGrid.prototype = {
         }, this));
         this.askformore.addCallback(
          bind(function(r) {
-             result = r; 
+             result = r;
              this.buffer.totalRows = result[1];
              this.setScrollHeight(this.rowToPixel(this.buffer.totalRows));
              this.buffer.update(result[0], bufOffset);
@@ -382,16 +382,16 @@ ZenGrid.prototype = {
         this.scrollbar.scrollTop = this.rowToPixel(offset);
         var inRange = this.buffer.isInRange(offset);
         var isMSIE//@cc_on=1;
-        if (isMSIE) setStyle(this.zgtable, 
+        if (isMSIE) setStyle(this.zgtable,
             {'table-layout':'fixed'}
         );
         if (inRange) {
             this.populateTable(this.buffer.getRows(offset, this.numRows));
             if (offset > lastOffset) {
-                if (offset+this.buffer.pageSize < 
+                if (offset+this.buffer.pageSize <
                     this.buffer.endPos()-this.buffer.tolerance()) return;
             } else if (offset < lastOffset) {
-                if (offset > this.buffer.startPos + this.buffer.tolerance()) 
+                if (offset > this.buffer.startPos + this.buffer.tolerance())
                     return;
                 if (this.buffer.startPos==0) return;
             } else return;
@@ -408,7 +408,7 @@ ZenGrid.prototype = {
             try {
                 myrows = this.buffer.getRows(offset, this.numRows);
                 this.populateTable(myrows);
-            } catch(e) { 
+            } catch(e) {
                 console.log("We have a problem of sorts.");
             }
             this.killLoading();
@@ -418,7 +418,7 @@ ZenGrid.prototype = {
         var i = String(indx);
         cells = map(function(x) {return TD({
             'class':'cell',
-            'id':x[0]+'_'+i}, 
+            'id':x[0]+'_'+i},
                 DIV({'class':'cell_inner'}, null))},
             this.fields);
         return TR({'class':'zengrid_row'}, cells);
@@ -428,7 +428,7 @@ ZenGrid.prototype = {
         for (i=0;i<stuffz.length-1;i++) {
             setInnerHTML(stuffz[i], data[i]);
         }
-        setElementClass(stuffz[stuffz.length-1], 'event_detail');    
+        setElementClass(stuffz[stuffz.length-1], 'event_detail');
 
         if (isManager) {
             var cb = '<input type="checkbox" style="visibility:hidden"/>';
@@ -447,12 +447,12 @@ ZenGrid.prototype = {
         var isMSIE//@cc_on=1;
         if (isMSIE) updateNodeAttributes(cols[0], {width:'26px'});
         updateNodeAttributes(cols[cols.length-1], {width:'32'});
-        colgroup = createDOM('colgroup', {span:widths.length, height:'32px'}, 
+        colgroup = createDOM('colgroup', {span:widths.length, height:'32px'},
             cols);
         return colgroup;
     },
     connectHeaders: function(cells) {
-        for(i=isManager?1:0;i<cells.length;i++) { 
+        for(i=isManager?1:0;i<cells.length;i++) {
             setStyle(cells[i], {'cursor':'pointer'});
             connect(cells[i], 'onclick', this.toggleSortOrder);
         }
@@ -524,7 +524,7 @@ ZenGrid.prototype = {
             this.setTableNumRows(this.numRows);
             if (this.lock.locked) this.lock.release();
         }, this);
-        fieldparams = {}; 
+        fieldparams = {};
         if (this.isHistory) fieldparams['history'] = 1;
             var x = loadJSONDoc(this.absurl + '/getJSONFields', fieldparams);
         x.addCallback(bind(function(r){
@@ -544,11 +544,11 @@ ZenGrid.prototype = {
             setInnerHTML(cell, '');
         }
         forEach(rows, function(row){
-                forEach(['zenevents_5_noack', 'zenevents_4_noack', 
+                forEach(['zenevents_5_noack', 'zenevents_4_noack',
                          'zenevents_3_noack', 'zenevents_2_noack',
                          'zenevents_1_noack', 'zenevents_0_noack'],
-                         function(className){ 
-                            removeElementClass(row, className); 
+                         function(className){
+                            removeElementClass(row, className);
                         });
                 });
     },
@@ -559,7 +559,7 @@ ZenGrid.prototype = {
             {h:parseInt(this.rowToPixel(numrows))}
         );
         var scrollHeight = parseInt(this.rowToPixel(numrows));
-        if (scrollHeight <= 0) 
+        if (scrollHeight <= 0)
             setElementDimensions(this.scrollbar, {h:0});
         else if (scrollHeight<=getElementDimensions(this.zgtable).h-2) {
             setStyle(this.scrollbar, {'display':'none'});
@@ -568,7 +568,7 @@ ZenGrid.prototype = {
         }
     },
     shouldBeChecked: function(evid, klass) {
-        if (this.checkedArray[evid]=='checked') 
+        if (this.checkedArray[evid]=='checked')
             return true;
         if (this.checkedArray[evid]=='blank')
             return false;
@@ -583,9 +583,9 @@ ZenGrid.prototype = {
         return false;
     },
     populateTable: function(data) {
-        var tableLength = data.length > this.numRows ? 
+        var tableLength = data.length > this.numRows ?
             this.numRows : data.length;
-        if (tableLength != this.rowEls.length){ 
+        if (tableLength != this.rowEls.length){
             //this.clearTable();
             this.setTableNumRows(tableLength);
         }
@@ -597,7 +597,7 @@ ZenGrid.prototype = {
             setElementClass(rows[numrows], mydata[mydata.length-1])
             var evid = mydata[mydata.length-2];
             var chkbox = '<input type="checkbox" name="evids:list" ';
-            if (this.shouldBeChecked(evid, mydata[mydata.length-1])) 
+            if (this.shouldBeChecked(evid, mydata[mydata.length-1]))
                 chkbox+='checked ';
             chkbox += 'value="'+evid+'" id="'+evid+'"/>';
             var yo = rows[numrows].getElementsByTagName('td');
@@ -610,14 +610,14 @@ ZenGrid.prototype = {
                 connect($(evid), 'onclick', this.markAsChecked);
             }
             var lastcol = yo[yo.length-1];
-            setElementClass(divs[yo.length-1], 'event_detail');    
+            setElementClass(divs[yo.length-1], 'event_detail');
             disconnectAll(divs[yo.length-1]);
             var geteventwindow = function(zeml, evidl) {
                 return function() { eventWindow(zeml, evidl) }
             }
-            connect(divs[yo.length-1], 'onclick', 
+            connect(divs[yo.length-1], 'onclick',
                     geteventwindow(this.absurl, evid));
-            divs[yo.length-1].title = "View detailed information" + 
+            divs[yo.length-1].title = "View detailed information" +
                 " about this event."
             for (var j=isManager?1:0;j<yo.length-1;j++) {
                 var cellwidth = this.abswidths[j] - 9;
@@ -648,7 +648,7 @@ ZenGrid.prototype = {
         return myws
     },
     buildHTML: function() {
-        var getId = function(thing) { 
+        var getId = function(thing) {
             return "zg_" + thing + "_" + this.gridId }
         getId = bind(getId, this);
         this.scrollbar = DIV(
@@ -657,7 +657,7 @@ ZenGrid.prototype = {
         );
         this.output = TBODY( {id: getId('output')}, null);
         this.headcolgroup = createDOM('colgroup', null, null);
-        this.colgroup = createDOM( 'colgroup', 
+        this.colgroup = createDOM( 'colgroup',
             {style: 'height:'+this.rowHeight+'px'}, null );
         this.zgtable = TABLE( {id: getId('table'),
             cellspacing:0, cellpadding:0}, [
@@ -667,7 +667,7 @@ ZenGrid.prototype = {
             TFOOT(null, null)
         ]);
         this.viewport = DIV( {id: getId('viewport')}, this.zgtable );
-        this.statusBar = DIV( {id:getId('statusbar'), 'class':'zg_statusbar'}, 
+        this.statusBar = DIV( {id:getId('statusbar'), 'class':'zg_statusbar'},
             SPAN({id:'currentRows'}, String(0+1 +'-'+ parseInt(parseInt(0)+parseInt(this.numRows)) +  ' of ' + this.buffer.totalRows)),
         [   'Select:  ',
             UL(null,
@@ -684,7 +684,7 @@ ZenGrid.prototype = {
             this.headcolgroup,
             TBODY(null, null)
         ]);
-        this.innercont = DIV( {id:getId('innercont')}, 
+        this.innercont = DIV( {id:getId('innercont')},
             [this.viewport, this.scrollbar]);
         setStyle(this.zgtable, {
             'width': '100%',
@@ -711,7 +711,7 @@ ZenGrid.prototype = {
             'border-bottom':'medium none'
         });
         addElementClass(this.viewport, 'leftfloat');
-        setStyle(this.scrollbar, 
+        setStyle(this.scrollbar,
             { //'border': '1px solid black',
               'border-left': 'medium none',
               'overflow': 'auto',
@@ -719,7 +719,7 @@ ZenGrid.prototype = {
               'position': 'relative',
               'left': '-3px',
               'width': '19px',
-              'height': this.rowToPixel(this.numRows)+'px' 
+              'height': this.rowToPixel(this.numRows)+'px'
         });
         var scrollHeight = this.rowToPixel(this.buffer.totalRows);
         this.setScrollHeight(scrollHeight);
@@ -844,17 +844,16 @@ ZenGrid.prototype = {
             if (this.checkedArray[evid]=='checked') goodevids.push(evid);
             else badevids.push(evid);
         }
-        qs = {  'selectstatus':selectstatus, 
+        qs = {  'selectstatus':selectstatus,
                 'goodevids':goodevids,
                 'badevids':badevids         }
         qs = update(qs, this.lastparams);
-        d = doXHR(url, {queryString:qs}); 
+        d = doXHR(url, {queryString:qs});
         d.addCallback(bind(
-            function(r) { 
+            function(r) {
                 this.buffer.clear();
                 this.refreshTable(this.lastOffset);
                 this.setSelectNone();
-                YAHOO.zenoss.Messenger.checkMessages();
             }, this));
     },
     undeleteBatch: function() {
@@ -866,17 +865,16 @@ ZenGrid.prototype = {
             if (this.checkedArray[evid]=='checked') goodevids.push(evid);
             else badevids.push(evid);
         }
-        qs = {  'selectstatus':selectstatus, 
+        qs = {  'selectstatus':selectstatus,
                 'goodevids':goodevids,
                 'badevids':badevids         }
         qs = update(qs, this.lastparams);
-        d = doXHR(url, {queryString:qs}); 
+        d = doXHR(url, {queryString:qs});
         d.addCallback(bind(
-            function(r) { 
+            function(r) {
                 this.buffer.clear();
                 this.refreshTable(this.lastOffset);
                 this.setSelectNone();
-                YAHOO.zenoss.Messenger.checkMessages();
             }, this));
 
     },
@@ -889,18 +887,17 @@ ZenGrid.prototype = {
             if (this.checkedArray[evid]=='checked') goodevids.push(evid);
             else badevids.push(evid);
         }
-        qs = {  'selectstatus':selectstatus, 
+        qs = {  'selectstatus':selectstatus,
                 'goodevids':goodevids,
                 'badevids':badevids         }
         qs = update(qs, this.lastparams);
         this.showLoading();
-        d = doXHR(url, {queryString:qs}); 
+        d = doXHR(url, {queryString:qs});
         d.addCallback(bind(
-            function(r) { 
+            function(r) {
                 this.buffer.clear();
                 this.refreshTable(this.lastOffset);
                 this.setSelectNone();
-                YAHOO.zenoss.Messenger.checkMessages();
             }, this));
     }
 }

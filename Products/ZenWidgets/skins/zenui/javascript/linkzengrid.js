@@ -58,8 +58,8 @@ LinkZenGridBuffer.prototype = {
         this.numRows = 0;
         this.numCols = 0;
         this.pageSize = 10;
-        this.bufferSize = 5; 
-        this.marginFactor = 0.2; 
+        this.bufferSize = 5;
+        this.marginFactor = 0.2;
         bindMethods(this);
     },
     tolerance: function() {
@@ -83,11 +83,11 @@ LinkZenGridBuffer.prototype = {
         var goingup = Math.abs(this.startPos - this.grid.lastOffset);
         var goingdown = Math.abs(this.grid.lastOffset - this.endPos());
         var reverse = goingup < goingdown;
-        if (offset > this.startPos && !reverse){ 
+        if (offset > this.startPos && !reverse){
             newOffset = Math.max(offset, this.endPos()); //appending
         }
         else if (offset > this.startPos && reverse) {
-            newOffset = Math.max(0, 
+            newOffset = Math.max(0,
                 offset - this.maxQuery + (2*this.tolerance()));
             if (offset-newOffset-this.maxQuery<this.tolerance()) {
                 newOffset += this.tolerance()
@@ -204,7 +204,7 @@ LinkZenGrid.prototype = {
         var time = $('refreshRate').value;
         this.refreshMgr = new RefreshManager(time, this.refresh);
         var button = $('refreshButton');
-        setStyle(button, 
+        setStyle(button,
             {'background-image':'url(img/refresh_off.png)'});
         button.onclick = this.turnRefreshOff;
         button.blur();
@@ -285,14 +285,14 @@ LinkZenGrid.prototype = {
                 'offset':this.buffer.startPos,
                 'count':this.buffer.size });
         var d = loadJSONDoc(this.url, qs);
-        d.addErrback(bind(function(x) { 
+        d.addErrback(bind(function(x) {
             callLater(5, bind(function(){
             alert('Cannot communicate with the server!');
             this.killLoading()}, this))
         }, this));
         d.addCallback(
             bind(function(r) {
-                result = r; 
+                result = r;
                 this.buffer.totalRows = result[1];
                 this.setScrollHeight(this.rowToPixel(this.buffer.totalRows));
                 this.buffer.clear();
@@ -312,14 +312,14 @@ LinkZenGrid.prototype = {
             'count': bufSize
         });
         var d = loadJSONDoc(url, qs);
-        d.addErrback(bind(function(x) { 
+        d.addErrback(bind(function(x) {
             callLater(5, bind(function(){
             alert('Cannot communicate with the server!');
             this.killLoading()}, this))
         }, this));
         d.addCallback(
          bind(function(r) {
-             result = r; 
+             result = r;
              this.buffer.totalRows = result[1];
              this.setScrollHeight(this.rowToPixel(this.buffer.totalRows));
              this.buffer.update(result[0], bufOffset);
@@ -335,10 +335,10 @@ LinkZenGrid.prototype = {
         if (inRange) {
             this.populateTable(this.buffer.getRows(offset, this.numRows));
             if (offset > lastOffset) {
-                if (offset+this.buffer.pageSize < 
+                if (offset+this.buffer.pageSize <
                     this.buffer.endPos()-this.buffer.tolerance()) return;
             } else if (offset < lastOffset) {
-                if (offset > this.buffer.startPos + this.buffer.tolerance()) 
+                if (offset > this.buffer.startPos + this.buffer.tolerance())
                     return;
                 if (this.buffer.startPos==0) return;
             } else return;
@@ -360,7 +360,7 @@ LinkZenGrid.prototype = {
         var i = String(indx);
         cells = map(function(x) {return TD({
             'class':'cell',
-            'id':x[0]+'_'+i}, 
+            'id':x[0]+'_'+i},
                 DIV({'class':'cell_inner'}, null))},
             this.fields);
         setNodeAttribute(cells[cells.length-1], 'nowrap', 'true');
@@ -384,12 +384,12 @@ LinkZenGrid.prototype = {
             return createDOM( 'col', {width: w+'%'}, null)
         }, widths);
         updateNodeAttributes(cols[0], {width:'0*'});
-        colgroup = createDOM('colgroup', {span:widths.length, height:'25px'}, 
+        colgroup = createDOM('colgroup', {span:widths.length, height:'25px'},
             cols);
         return colgroup;
     },
     connectHeaders: function(cells) {
-        for(i=isManager?1:0;i<cells.length;i++) { 
+        for(i=isManager?1:0;i<cells.length;i++) {
             setStyle(cells[i], {'cursor':'pointer'});
             connect(cells[i], 'onclick', this.toggleSortOrder);
         }
@@ -487,7 +487,7 @@ LinkZenGrid.prototype = {
         );
         var scrollHeight = parseInt(this.rowToPixel(numrows));
         var myoffset = numrows*(32-this.rowHeight);
-        if (scrollHeight <= 0) 
+        if (scrollHeight <= 0)
             setElementDimensions(this.scrollbar, {h:0});
         else if
             (scrollHeight<=getElementDimensions(this.zgtable).h-myoffset-2) {
@@ -497,7 +497,7 @@ LinkZenGrid.prototype = {
         }
     },
     shouldBeChecked: function(evid, klass) {
-        if (this.checkedArray[evid]=='checked') 
+        if (this.checkedArray[evid]=='checked')
             return true;
         if (this.checkedArray[evid]=='blank')
             return false;
@@ -512,9 +512,9 @@ LinkZenGrid.prototype = {
         return false;
     },
     populateTable: function(data) {
-        var tableLength = data.length > this.numRows ? 
+        var tableLength = data.length > this.numRows ?
             this.numRows : data.length;
-        if (tableLength != this.rowEls.length){ 
+        if (tableLength != this.rowEls.length){
             //this.clearTable();
             this.setTableNumRows(tableLength);
         }
@@ -525,7 +525,7 @@ LinkZenGrid.prototype = {
             setElementClass(rows[i], (this.lastOffset+i)%2?'odd':'even')
             var evid = mydata[mydata.length-2];
             var chkbox = '<input type="checkbox" name="evids:list" ';
-            if (this.shouldBeChecked(evid, mydata[mydata.length-1])) 
+            if (this.shouldBeChecked(evid, mydata[mydata.length-1]))
                 chkbox+='checked ';
             chkbox += 'value="'+evid+'" id="'+evid+'"/>';
             var yo = rows[i].getElementsByTagName('td');
@@ -565,7 +565,7 @@ LinkZenGrid.prototype = {
         return myws
     },
     buildHTML: function() {
-        var getId = function(thing) { 
+        var getId = function(thing) {
             return "zg_" + thing + "_" + this.gridId }
         getId = bind(getId, this);
         this.scrollbar = DIV(
@@ -574,7 +574,7 @@ LinkZenGrid.prototype = {
         );
         this.output = TBODY( {id: getId('output')}, null);
         this.headcolgroup = createDOM('colgroup', null, null);
-        this.colgroup = createDOM( 'colgroup', 
+        this.colgroup = createDOM( 'colgroup',
             {style: 'height:'+this.rowHeight+'px'}, null );
         this.zgtable = TABLE( {id: getId('table'),
             cellspacing:0, cellpadding:0}, [
@@ -584,7 +584,7 @@ LinkZenGrid.prototype = {
             TFOOT(null, null)
         ]);
         this.viewport = DIV( {id: getId('viewport')}, this.zgtable );
-        this.statusBar = DIV( {id:getId('statusbar'), 'class':'zg_statusbar'}, 
+        this.statusBar = DIV( {id:getId('statusbar'), 'class':'zg_statusbar'},
             SPAN({id:'currentRows'}, String(0+1 +'-'+ parseInt(parseInt(0)+parseInt(this.numRows)) +  ' of ' + this.buffer.totalRows)),
         [   'Select:  ',
             UL(null,
@@ -599,7 +599,7 @@ LinkZenGrid.prototype = {
             this.headcolgroup,
             TBODY(null, null)
         ]);
-        this.innercont = DIV( {id:getId('innercont')}, 
+        this.innercont = DIV( {id:getId('innercont')},
             [this.viewport, this.scrollbar]);
         setStyle(this.zgtable, {
             'width': '100%',
@@ -626,14 +626,14 @@ LinkZenGrid.prototype = {
             'border-bottom':'medium none'
         });
         addElementClass(this.viewport, 'leftfloat');
-        setStyle(this.scrollbar, 
+        setStyle(this.scrollbar,
             { 'border-left': 'medium none',
               'overflow': 'auto',
               'z-index':'300',
               'position': 'relative',
               'left': '-3px',
               'width': '19px',
-              'height': this.rowToPixel(this.numRows)+'px' 
+              'height': this.rowToPixel(this.numRows)+'px'
         });
         var scrollHeight = this.rowToPixel(this.buffer.totalRows);
         this.setScrollHeight(scrollHeight);
@@ -664,7 +664,7 @@ LinkZenGrid.prototype = {
         Math.floor(pixel/(this.rowSizePlus))*(this.rowSizePlus);
         var newOffset = this.pixelToRow(pixel);
         this.updateStatusBar(newOffset);
-        if (newOffset==0||newOffset==this.buffer.totalRows-this.numRows) 
+        if (newOffset==0||newOffset==this.buffer.totalRows-this.numRows)
             this.refreshTable(newOffset);
         clearTimeout(this.scrollTimeout);
         this.scrollTimeout = setTimeout (
@@ -737,7 +737,7 @@ LinkZenGrid.prototype = {
     resizeTable: function() {
         var maxTableBottom = getViewportDimensions().h +
             getViewportPosition().y - 20;
-        var curTableBottom = 
+        var curTableBottom =
             Math.max(0,
                 getElementDimensions(this.viewport).h +
                 getElementPosition(this.viewport).y);
@@ -779,7 +779,7 @@ LinkZenGrid.prototype = {
             else badevids.push(evid);
         }
         qs = {
-                'selectstatus':selectstatus, 
+                'selectstatus':selectstatus,
                 'goodevids':goodevids,
                 'badevids':badevids,
                 'method':method,
@@ -789,13 +789,12 @@ LinkZenGrid.prototype = {
         $('dialog').hide();
         if (!(selectstatus=='none' && goodevids.length==0)) {
             this.showLoading();
-            d = doXHR(url, {queryString:qs}); 
+            d = doXHR(url, {queryString:qs});
             d.addCallback(bind(
-                function(r) { 
+                function(r) {
                     this.buffer.clear();
                     this.refreshTable(this.lastOffset);
                     this.setSelectNone();
-                    YAHOO.zenoss.Messenger.checkMessages();
                 }, this));
         }
     }

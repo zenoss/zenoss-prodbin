@@ -8,7 +8,7 @@
 <div id="contextmenu_items" class="contextmenuitems">
 <ul class="zenMenu">
 <tal:block tal:repeat="menu menu_ids">
-<tal:block tal:condition="python:menu != 'TopLevel'" 
+<tal:block tal:condition="python:menu != 'TopLevel'"
         tal:define="menus python:here.getMenus(menu, here)">
 
 <tal:block tal:define="items menus" tal:condition="menus">
@@ -17,12 +17,12 @@
     <a tal:define="mypath python:test(item.action.startswith('javascript'),
                                 item.action,
                                 '%s/%s' % (basepath, item.action));
-                   actionpath python:test(item.isdialog, 
+                   actionpath python:test(item.isdialog,
                     'javascript:$(\'dialog\').show(this.event, \'%s\')' % mypath,
                     mypath)"
-       tal:attributes="href actionpath" 
+       tal:attributes="href actionpath"
        tal:content="item/description">description</a>
-       <tal:block tal:condition="python:getattr(request, 'showMenuOrder', None)" 
+       <tal:block tal:condition="python:getattr(request, 'showMenuOrder', None)"
                   tal:content="item/ordering"/>
     </li>
 </tal:block>
@@ -32,19 +32,19 @@
 <tal:block metal:use-macro="here/userCommandsMacros/macros/runCommandMenu"/>
 
 <tal:block tal:repeat="menu menu_ids">
-<tal:block tal:condition="python:menu != 'TopLevel'" 
+<tal:block tal:condition="python:menu != 'TopLevel'"
         tal:define="menus python:here.getMenus(menu, here)">
 <li tal:condition="python:menus and len(menus) == 1" class="toplevelmenu">
 <tal:block tal:define="item python:menus[0]">
     <a tal:define="mypath python:test(item.action.startswith('javascript'),
         item.action,
         '%s/%s' % (basepath, item.action));
-        actionpath python:test(item.isdialog, 
+        actionpath python:test(item.isdialog,
         'javascript:$(\'dialog\').show(this.event, \'%s\')' % mypath,
         mypath)"
-        tal:attributes="href actionpath" 
+        tal:attributes="href actionpath"
         tal:content="item/description">description</a>
-     <tal:block tal:condition="python:getattr(request, 'showMenuOrder', None)" 
+     <tal:block tal:condition="python:getattr(request, 'showMenuOrder', None)"
              tal:content="item/ordering"/>
 </tal:block>
 </li>
@@ -59,12 +59,12 @@
     <a tal:define="mypath python:test(item.action.startswith('javascript'),
         item.action,
         '%s/%s' % (basepath, item.action));
-        actionpath python:test(item.isdialog, 
+        actionpath python:test(item.isdialog,
         'javascript:$(\'dialog\').show(this.event, \'%s\')' % mypath,
         mypath)"
-        tal:attributes="href actionpath" 
+        tal:attributes="href actionpath"
         tal:content="item/description">description</a>
-    <tal:block tal:condition="python:getattr(request, 'showMenuOrder', None)" 
+    <tal:block tal:condition="python:getattr(request, 'showMenuOrder', None)"
             tal:content="item/ordering"/>
 </li>
 </tal:block>
@@ -160,7 +160,7 @@ Ext.onReady(function(){
 <div class="filterbox"
      tal:define=" tableName tableName | nothing;
                  ts python:test(
-                  tableName, here.ZenTableManager.getTableState(tableName), 
+                  tableName, here.ZenTableManager.getTableState(tableName),
                   request);
                  message request/SESSION/message | nothing;">
  <div class="filterbox-left">
@@ -200,7 +200,7 @@ padding-right:20px;margin-left:20px;}</style>
 
         <!--
         <div class="devmovemenu" tal:attributes="id string:${menu_id}_btn">
-           &nbsp; 
+           &nbsp;
         </div>
         -->
 
@@ -213,14 +213,14 @@ mypath python:test(item.action.startswith('javascript'),
                             item.action,
                             '%s/%s' % (basepath, item.action));
                thisid python:''.join(filter(lambda x:x.isalnum(), menu_id+item.id));
-               actionpath python:test(item.isdialog, 
-                    'javascript:$(\'dialog\').show($(\'%sinput\').form, 
+               actionpath python:test(item.isdialog,
+                    'javascript:$(\'dialog\').show($(\'%sinput\').form,
                     \'%s\')' % (thisid,mypath),
                mypath)">
    <input tal:attributes="id string:${thisid}input" type="hidden"/>
-   <a class="menu_item" tal:attributes="id thisid; href actionpath" 
+   <a class="menu_item" tal:attributes="id thisid; href actionpath"
       tal:content="item/description">description</a>
-   <tal:block tal:condition="python:getattr(request, 'showMenuOrder', None)" 
+   <tal:block tal:condition="python:getattr(request, 'showMenuOrder', None)"
               tal:content="item/ordering"/>
 </tal:block>
 
@@ -262,7 +262,7 @@ mypath python:test(item.action.startswith('javascript'),
             <td style="padding:0px;">
                 <table class="innerzentable" tal:attributes="noselectionbar python:True">
 <!-- The main body into which we dump rows -->
-<tbody tal:attributes="id python:filter(lambda x:x.isalnum(),tabletitle)">
+<tbody tal:attributes="id python:''.join(filter(lambda x:x.isalnum(),tabletitle))">
                         <tal:block metal:define-slot="zentablecontents">
 
                         </tal:block>
@@ -309,7 +309,7 @@ mypath python:test(item.action.startswith('javascript'),
     =================================================-->
 
 <tal:block metal:define-macro="jsutils">
-<script 
+<script
 tal:define="templateFreeUrl python:here.absolute_url_path()"
 tal:content="string:
 

@@ -23,17 +23,6 @@ Ext.state.Manager.setProvider(new Ext.state.CookieProvider({
  * Hook up all Ext.Direct requests to the connection error message box.
  */
 Ext.Direct.on('event', function(e){
-    // Have to catch this because of race condition at first load, but
-    // connection errors won't happen there anyway.
-    try {
-        if (e.status) {
-            YAHOO.zenoss.Messenger.clearConnectionErrors();
-        } else {
-            YAHOO.zenoss.Messenger.connectionError();
-        }
-    } catch(e) {
-        Ext.emptyFn();
-    }
     if ( Ext.isDefined(e.result) && Ext.isDefined(e.result.asof) ) {
         Zenoss.env.asof = e.result.asof || null;
     }
@@ -184,10 +173,6 @@ Zenoss.flares.Manager = {
     }
 };
 
-Ext.onReady(function() {
-    Zenoss.flares.Manager.container.show();
-});
-
 /**
  * Flares are growl like flash messages. Used for transient notifications. Flares are
  * managed by Zenoss.flares.Manager.
@@ -299,7 +284,71 @@ Zenoss.flares.Flare = Ext.extend(Ext.Window, {
     }
 });
 
+Ext.namespace('Zenoss.messaging');
+Zenoss.messaging.Message = Ext.extend(Object, {
+    INFO: 0,                // Same as in messaging.py
+    WARNING: 1,                // Same as in messaging.py
+    CRITICAL: 2,                // Same as in messaging.py
+    constructor: function(config) {
+        config = Ext.applyIf(config || {}, {
+            body: '',
+            priority: this.INFO,
+            sticky: false
+        });
+        Ext.apply(this, config);
+    }
+});
 
+Zenoss.messaging.Messenger = Ext.extend(Ext.util.Observable, {
+    constructor: function(config) {
+        config = Ext.applyIf(config || {}, {
+            interval: 30000
+        });
+        Ext.apply(this, config);
+        Zenoss.messaging.Messenger.superclass.constructor.call(this, config);
+        this.addEvents('message');
+    },
+    init: function() {
+        this._task = new Ext.util.DelayedTask(function(){
+            this.checkMessages();
+        }, this);
+        this._task.delay(this.interval);
+        this.checkMessages();
+    },
+    checkMessages: function() {
+        Zenoss.remote.MessagingRouter.getUserMessages({}, function(results) {
+            Ext.each(results.messages, function(m) {
+                this.send(m);
+            }, this);
+        }, this);
+    },
+    send: function(msgConfig) {
+        var message = new Zenoss.messaging.Message(msgConfig);
+        this.fireEvent('message', this, message);
+
+        var flare;
+        if ( message.priority  === Zenoss.messaging.Message.WARNING ) {
+            flare = Zenoss.flares.Manager.warning(message.body);
+        }
+        else if ( message.priority  === Zenoss.messaging.Message.CRITICAL ) {
+            flare = Zenoss.flares.Manager.critical(message.body)
+        }
+        else {
+            flare = Zenoss.flares.Manager.info(message.body);
+        }
+
+        if ( message.sticky ) {
+            flare.sticky();
+        }
+    }
+});
+
+Zenoss.messenger = new Zenoss.messaging.Messenger();
+
+Ext.onReady(function() {
+    Zenoss.flares.Manager.container.show();
+    Zenoss.messenger.init();
+});
 
 Zenoss.message = function(msg, success) {
     if ( success === true ) {

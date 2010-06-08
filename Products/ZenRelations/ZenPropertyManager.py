@@ -24,29 +24,31 @@ from ZPublisher.Converters import type_converters
 from Products.ZenModel.ZenossSecurity import *
 from AccessControl import ClassSecurityInfo
 from Exceptions import zenmarker
+from Products.ZenWidgets.interfaces import IMessageSender
+
 iszprop = re.compile("^z[A-Z]").search
 
 from Products.ZenUtils.Utils import unused
 
 log = logging.getLogger('zen.PropertyManager')
 
-# Z_PROPERTIES is a list of (id, type, value) pairs that define all the 
-# zProperties.  The values are set on dmd.Devices in the 
+# Z_PROPERTIES is a list of (id, type, value) pairs that define all the
+# zProperties.  The values are set on dmd.Devices in the
 # buildDeviceTreeProperties of DeviceClass
 Z_PROPERTIES = [
-    
+
     # zPythonClass maps device class to python classs (separate from device
     # class name)
     ('zPythonClass', '', 'string'),
-    
+
     # zProdStateThreshold is the production state threshold at which to start
     # monitoring boxes
     ('zProdStateThreshold', 300, 'int'),
-    
+
     # zIfDescription determines whether or not the ifdescripion field is
     # displayed
     ('zIfDescription', False, 'boolean'),
-    
+
     # Snmp collection properties
     ('zSnmpCommunities', ['public', 'private'], 'lines'),
     ('zSnmpCommunity', 'public', 'string'),
@@ -73,13 +75,13 @@ Z_PROPERTIES = [
     ('zDeviceTemplates', ['Device'], 'lines'),
     ('zLocalIpAddresses', '^127|^0\\.0|^169\\.254|^224', 'string'),
     ('zLocalInterfaceNames', '^lo|^vmnet', 'string'),
-    
+
     # Status monitor properties
     ('zSnmpMonitorIgnore', False, 'boolean'),
     ('zPingMonitorIgnore', False, 'boolean'),
     ('zWmiMonitorIgnore', True, 'boolean'),
     ('zStatusConnectTimeout', 15.0, 'float'),
-    
+
     # DataCollector properties
     ('zCollectorPlugins', [], 'lines'),
     ('zCollectorClientTimeout', 180, 'int'),
@@ -103,16 +105,16 @@ Z_PROPERTIES = [
     ('zTelnetPromptTimeout', 10.0, 'float'),
     ('zKeyPath', '~/.ssh/id_dsa', 'string'),
     ('zMaxOIDPerRequest', 40, 'int'),
-    
+
     # Extra stuff for users
     ('zLinks', '', 'string'),
-    
+
     # Windows WMI collector properties
     ('zWinUser', '', 'string'),
     ('zWinPassword', '', 'password'),
     ('zWinEventlogMinSeverity', 2, 'int'),
     ('zWinEventlog', False, 'boolean'),
-    
+
     # zIcon is the icon path
     ('zIcon', '/zport/dmd/img/icons/noicon.png', 'string'),
     ]
@@ -120,16 +122,16 @@ Z_PROPERTIES = [
 class PropertyDescriptor(object):
     """
     Transforms the property value based on its type.
-    
+
     Follows the Descriptor protocol defined at
     http://docs.python.org/reference/datamodel.html#descriptors
     """
-    
+
     def __init__(self, id, type, transformer):
         self.id = id
         self.type = type
         self.transformer = transformer
-        
+
     def __get__(self, instance, owner):
         """
         Returns self for class attribute access.  Returns the transformed
@@ -145,21 +147,21 @@ class PropertyDescriptor(object):
             return retval
         except:
             raise AttributeError
-            
+
     def __set__(self, instance, value):
         """
         Transforms the value and sets it.
         """
         self._migrate(instance)
         self._set(instance, value)
-        
+
     def __delete__(self, instance):
         """
         Delete the property.
         """
         self._migrate(instance)
         del instance._propertyValues[self.id]
-        
+
     def _migrate(self, instance):
         """
         If the id is in __dict__ then move the value to the _propertyValues
@@ -178,14 +180,14 @@ class PropertyDescriptor(object):
                     dct['type'] = self.type
                     instance._p_changed = True
                 break
-                
+
     def _set(self, instance, value):
         """
         Transform and set the value in the _propertyValues dictionary.
         """
         valueToSet = self._transform(instance, value, 'transformForSet')
         instance._propertyValues[self.id] = valueToSet
-        
+
     def _transform(self, instance, value, method):
         """
         Lookup the transformer for the type and transform the value. The
@@ -193,7 +195,7 @@ class PropertyDescriptor(object):
         determines the transformer method that is called.
         """
         return getattr(self.transformer, method)(value)
-        
+
 class ZenPropertyDoesNotExist(exceptions.ValueError):
     pass
 
@@ -207,45 +209,45 @@ class ZenPropertyManager(object, PropertyManager):
     inherited long the acquision chain.  All properties are for a branch are
     defined on a "root node" specified by the function which must be returned
     by the function getZenRootNode that should be over ridden in a sub class.
-    Prperties can then be added further "down" the aq_chain by calling 
+    Prperties can then be added further "down" the aq_chain by calling
     setZenProperty on any contained node.
 
     ZenProperties all have the same prefix which is defined by iszprop
     this can be overridden in a subclass.
-    
-    ZenPropertyManager overrides getProperty and getPropertyType from 
+
+    ZenPropertyManager overrides getProperty and getPropertyType from
     PropertyManager to support acquisition. If you want to query an object
     about a property, but do not want it to search the acquistion chain then
     use the super classes method or aq_base.  Example:
-        
+
         # acquires property from dmd.Devices
         dmd.Devices.Server.getProperty('zCollectorPlugins')
-        
+
         # does not acquire property from dmd.Devices
         PropertyManager.getProperty(dmd.Devices.Server, 'zCollectorPlugins')
-        
+
         # also does not acquire property from dmd.Devices
         aq_base(dmd.Devices.Server).getProperty('zSnmpCommunity')
-        
-    The properties are stored as attributes which is convenient, but can be 
+
+    The properties are stored as attributes which is convenient, but can be
     confusing.  Attribute access always uses acquistion.  Setting an
     attribute, will not add it to the list of properties, so subsquent calls
     to hasProperty or getProperty won't return it.
-    
+
     Property Transformers are stored at dmd.propertyTransformers and transform
-    the property based on type during calls to the _setProperty, 
-    _updateProperty, and getProperty methods. Adding a property using 
+    the property based on type during calls to the _setProperty,
+    _updateProperty, and getProperty methods. Adding a property using
     _setProperty applies the appropriate transformer and adds its value as an
     attribute, but when you access it as an attribute the property transformer
     is again applied, but this time using its transformForGet method.
     """
     __pychecker__='no-override'
-    
+
     security = ClassSecurityInfo()
-    
+
     manage_propertiesForm=DTMLFile('dtml/properties', globals(),
                                    property_extensible_schema__=1)
-                                   
+
     def _setPropValue(self, id, value):
         """override from PerpertyManager to handle checks and ip creation"""
         self._wrapperCheck(value)
@@ -268,7 +270,7 @@ class ZenPropertyManager(object, PropertyManager):
             setattr(self, id, value)
 
 
-    def _setProperty(self, id, value, type='string', label=None, 
+    def _setProperty(self, id, value, type='string', label=None,
                     visible=True, setter=None):
         """for selection and multiple selection properties
         the value argument indicates the select variable
@@ -277,17 +279,17 @@ class ZenPropertyManager(object, PropertyManager):
         self._wrapperCheck(value)
         if not self.valid_property_id(id):
             raise BadRequest, 'Id %s is invalid or duplicate' % id
-            
+
         def setprops(**pschema):
             self._properties=self._properties+(pschema,)
             if setter: pschema['setter'] = setter
-            if label: pschema['label'] = label 
-            
+            if label: pschema['label'] = label
+
         if type in ('selection', 'multiple selection'):
             if not hasattr(self, value):
                 raise BadRequest, 'No select variable %s' % value
             setprops(id=id,type=type, visible=visible,
-                     select_variable=value)    
+                     select_variable=value)
             if type=='selection':
                 self._setPropValue(id, '')
             else:
@@ -295,7 +297,7 @@ class ZenPropertyManager(object, PropertyManager):
         else:
             setprops(id=id, type=type, visible=visible)
             self._setPropValue(id, value)
-            
+
     def _updateProperty(self, id, value):
         """ This method sets a property on a zope object. It overrides the
         method in PropertyManager. If Zope is upgraded you will need to check
@@ -345,12 +347,12 @@ class ZenPropertyManager(object, PropertyManager):
     security.declareProtected(ZEN_ZPROPERTIES_VIEW, 'zenPropertyIds')
     def zenPropertyIds(self, all=True, pfilt=iszprop):
         """
-        Return list of device tree property names. 
+        Return list of device tree property names.
         If all use list from property root node.
         """
-        if all: 
+        if all:
             rootnode = self.getZenRootNode()
-        else: 
+        else:
             if self.id == self.dmdRootName: return []
             rootnode = aq_base(self)
         props = []
@@ -387,10 +389,10 @@ class ZenPropertyManager(object, PropertyManager):
             return other
         displayFunctions = {'lines': displayLines,
                             'password': displayPassword}
-        display = displayFunctions.get(self.getPropertyType(id), 
+        display = displayFunctions.get(self.getPropertyType(id),
                                        displayOthers)
         return display(self.getProperty(id, ''))
-        
+
     security.declareProtected(ZEN_ZPROPERTIES_VIEW, 'zenPropIsPassword')
     def zenPropIsPassword(self, id):
         """Is this field a password field.
@@ -406,19 +408,19 @@ class ZenPropertyManager(object, PropertyManager):
         else:
             path = ob.getPrimaryId(self.getZenRootNode().getId())
         return path
-                
+
     security.declareProtected(ZEN_ZPROPERTIES_EDIT, 'setZenProperty')
     def setZenProperty(self, propname, propvalue, REQUEST=None):
         """
-        Add or set the propvalue of the property propname on this node of 
+        Add or set the propvalue of the property propname on this node of
         the device Class tree.
         """
         ptype = self.getPropertyType(propname)
-        if ptype == 'lines': 
-            dedupedList = [] 
-            for x in propvalue: 
-                if x not in dedupedList: 
-                    dedupedList.append(x) 
+        if ptype == 'lines':
+            dedupedList = []
+            for x in propvalue:
+                if x not in dedupedList:
+                    dedupedList.append(x)
             propvalue = dedupedList
         if getattr(aq_base(self), propname, zenmarker) != zenmarker:
             self._updateProperty(propname, propvalue)
@@ -444,6 +446,12 @@ class ZenPropertyManager(object, PropertyManager):
                 else:
                     self.setZenProperty(name, value)
 
+        if REQUEST:
+            IMessageSender(self).sendToBrowser(
+                'Configuration Propeties Updated',
+                'Configuration properties have been updated.'
+            )
+
         return self.callZenScreen(REQUEST)
 
     security.declareProtected(ZEN_ZPROPERTIES_EDIT, 'deleteZenProperty')
@@ -455,8 +463,8 @@ class ZenPropertyManager(object, PropertyManager):
             try:
                 self._delProperty(propname)
             except AttributeError:
-                #occasional object corruption where the propName is in 
-                #_properties but not set as an attribute. filter out the prop 
+                #occasional object corruption where the propName is in
+                #_properties but not set as an attribute. filter out the prop
                 #and create a new _properties tuple
                 newProps = [x for x in self._properties if x['id'] != propname]
                 self._properties=tuple(newProps)
@@ -469,14 +477,14 @@ class ZenPropertyManager(object, PropertyManager):
         "Provide a set of default options for a ZProperty"
         unused(propname)
         return []
-    
+
     security.declareProtected(ZEN_ZPROPERTIES_VIEW, 'isLocal')
     def isLocal(self, propname):
         """Check to see if a name is local to our current context.
         """
         v = getattr(aq_base(self), propname, zenmarker)
         return v != zenmarker
-    
+
     security.declareProtected(ZEN_ZPROPERTIES_VIEW, 'getOverriddenObjects')
     def getOverriddenObjects(self, propname, showDevices=False):
         """ Get the objects that override a property somewhere below in the tree
@@ -485,7 +493,7 @@ class ZenPropertyManager(object, PropertyManager):
             objects = []
             for inst in self.getSubInstances('devices'):
                 if inst.isLocal(propname) and inst not in objects:
-                    objects.append(inst) 
+                    objects.append(inst)
             for suborg in self.children():
                 if suborg.isLocal(propname):
                     objects.append(suborg)
@@ -493,10 +501,10 @@ class ZenPropertyManager(object, PropertyManager):
                     if inst not in objects:
                         objects.append(inst)
             return objects
-        
-        return [ org for org in self.getSubOrganizers() 
+
+        return [ org for org in self.getSubOrganizers()
             if org.isLocal(propname) ]
-            
+
     def _findParentWithProperty(self, id):
         """
         Returns self or the first acquisition parent that has a property with
@@ -509,7 +517,7 @@ class ZenPropertyManager(object, PropertyManager):
         else:
             parentWithProperty = None
         return parentWithProperty
-        
+
     def hasProperty(self, id, useAcquisition=False):
         """
         Override method in PropertyManager to support acquisition.
@@ -519,7 +527,7 @@ class ZenPropertyManager(object, PropertyManager):
         else:
             hasProp = PropertyManager.hasProperty(self, id)
         return hasProp
-        
+
     def getProperty(self, id, d=None):
         """
         Get property value and apply transformer.  Overrides method in Zope's
@@ -532,7 +540,7 @@ class ZenPropertyManager(object, PropertyManager):
         else:
             value = PropertyManager.getProperty(ob, id, d)
         return value
-        
+
     security.declareProtected(ZEN_ZPROPERTIES_VIEW, 'getPropertyType')
     def getPropertyType(self, id):
         """
@@ -544,7 +552,7 @@ class ZenPropertyManager(object, PropertyManager):
         else:
             type = PropertyManager.getPropertyType(ob, id)
         return type
-        
+
     security.declareProtected(ZEN_ZPROPERTIES_VIEW, 'getZ')
     def getZ(self, id):
         """
@@ -569,18 +577,18 @@ class ZenPropertyManager(object, PropertyManager):
         else:
             returnValue = None
         return returnValue
-        
+
 InitializeClass(ZenPropertyManager)
 
 class IdentityTransformer(object):
     "A do-nothing transformer to use as the default"
-    
+
     def transformForGet(self, value):
         return value
-        
+
     def transformForSet(self, value):
         return value
-        
+
 def monkeypatchDescriptors(zprops, transformerFactories):
     """
     monkeypatch ZenPropertyManager adding an instance of the descriptor class
@@ -590,17 +598,17 @@ def monkeypatchDescriptors(zprops, transformerFactories):
         factory = transformerFactories.get(type, IdentityTransformer)
         descriptor = PropertyDescriptor(id, type, factory())
         setattr(ZenPropertyManager, id, descriptor)
-        
+
 def setDescriptors(transformerFactories):
     """
     Set the property descriptors on the ZenPropertyManager class.  The
     transformerFactories parameter is a dictionary that maps a property type
-    to a callable factory that produces instances with transformForGet and 
+    to a callable factory that produces instances with transformForGet and
     transformForSet methods.
     """
     # copy the core zProps
     zprops = Z_PROPERTIES[:]
-        
+
     # add zProps from zenpacks
     from Products.ZenUtils.PkgResources import pkg_resources
     for zpkg in pkg_resources.iter_entry_points('zenoss.zenpacks'):
@@ -609,9 +617,9 @@ def setDescriptors(transformerFactories):
         module = __import__(zpkg.module_name, globals(), locals(), fromlist)
         if hasattr(module, 'ZenPack'):
             zprops.extend(module.ZenPack.packZProperties)
-            
+
     monkeypatchDescriptors(zprops, transformerFactories)
-    
+
 def updateDescriptors(type, transformer):
     """
     Update all descriptors with the specified type to use the specified
@@ -621,4 +629,4 @@ def updateDescriptors(type, transformer):
         attr = getattr(ZenPropertyManager, var)
         if isinstance(attr, PropertyDescriptor) and attr.type == type:
             attr.transformer = transformer
-            
+

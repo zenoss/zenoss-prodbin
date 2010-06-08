@@ -6,8 +6,8 @@ var DEBUG_MODE = false;
 // Graceful degradation of Firebug console object
 // via http://ajaxian.com/archives/graceful-degradation-of-firebug-console-object
 if (! ("console" in window) || !("firebug" in console)) {
-    var names = ["log", "debug", "info", "warn", "error", "assert", 
-                 "dir", "dirxml", "group", "groupEnd", "time", "timeEnd", 
+    var names = ["log", "debug", "info", "warn", "error", "assert",
+                 "dir", "dirxml", "group", "groupEnd", "time", "timeEnd",
                  "count", "trace", "profile", "profileEnd"];
     window.console = {};
     for (var i = 0; i <names.length; ++i) window.console[names[i]] = function() {};}
@@ -56,7 +56,7 @@ function getLoader(withtests) {
         name: "portlet",
         type: "js",
         fullpath: "/zport/dmd/javascript/portlet.js",
-        requires: ["dragdrop", "event", "dom", "animation", 
+        requires: ["dragdrop", "event", "dom", "animation",
                    "datasource", "datatable", "datatablesamskin",
                    "container", "button","zenautocomplete", "zenossutils"]
     });
@@ -97,15 +97,8 @@ function getLoader(withtests) {
         requires: ['zenossutils']
     });
     loader.addModule({
-        name: 'uifeedback',
-        type: 'js',
-        fullpath: '/zport/dmd/javascript/uifeedback.js',
-        requires: ['zenossutils', 'container', 'datasource', 
-                   'connection', 'animation', 'yowl']
-    });
-    loader.addModule({
         name: 'yowl-base',
-        type: 'js', 
+        type: 'js',
         fullpath: '/zport/dmd/yowl/yowl.js',
         requires: ['event', 'animation', 'container']
     });

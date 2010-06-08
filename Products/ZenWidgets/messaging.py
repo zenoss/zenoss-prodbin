@@ -18,8 +18,8 @@ from Products.ZenRelations.utils import ZenRelationshipNameChooser
 from Products.ZenWidgets.interfaces import *
 
 
-# Constants representing priorities. 
-# Parallel definitions exist in uifeedback.js.
+# Constants representing priorities.
+# Parallel definitions exist in zenoss.js.
 INFO     = 0
 WARNING  = 1
 CRITICAL = 2

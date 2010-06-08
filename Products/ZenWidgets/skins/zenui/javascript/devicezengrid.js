@@ -60,8 +60,8 @@ DeviceZenGridBuffer.prototype = {
         this.numRows = 0;
         this.numCols = 0;
         this.pageSize = 10;
-        this.bufferSize = 5; 
-        this.marginFactor = 0.2; 
+        this.bufferSize = 5;
+        this.marginFactor = 0.2;
         bindMethods(this);
     },
     tolerance: function() {
@@ -82,8 +82,8 @@ DeviceZenGridBuffer.prototype = {
             newSize = Math.min(this.startPos - newOffset, this.maxQuery);
         }
         newSize = Math.max(0, newSize);
-        maxSizeNeeded = this.totalRows ? 
-                        Math.max(this.maxQuery, this.totalRows-newOffset) : 
+        maxSizeNeeded = this.totalRows ?
+                        Math.max(this.maxQuery, this.totalRows-newOffset) :
                         this.maxQuery;
         newSize = Math.min(newSize, this.maxQuery, maxSizeNeeded);
         return newSize;
@@ -91,7 +91,7 @@ DeviceZenGridBuffer.prototype = {
     queryOffset: function(offset) {
         var newOffset = offset;
         var reverse = this.grid.lastOffset > offset;
-        if (offset > this.startPos && !reverse){ 
+        if (offset > this.startPos && !reverse){
             newOffset = Math.max(offset, this.endPos()); //appending
         }
         else if (offset + this.maxQuery >= this.startPos) {
@@ -208,7 +208,7 @@ DeviceZenGrid.prototype = {
         var time = $('refreshRate').value;
         this.refreshMgr = new RefreshManager(time, this.refresh);
         var button = $('refreshButton');
-        setStyle(button, 
+        setStyle(button,
             {'background-image':'url(img/refresh_off.png)'});
         button.onclick = this.turnRefreshOff;
         button.blur();
@@ -302,7 +302,7 @@ DeviceZenGrid.prototype = {
         });
         if ('askformore' in this) this.askformore.cancel();
         this.askformore = loadJSONDoc(url, qs);
-        this.askformore.addErrback(bind(function(x) { 
+        this.askformore.addErrback(bind(function(x) {
             callLater(5, bind(function(){
             this.message('Unable to communicate with the server.');
             delete this.askformore;
@@ -310,7 +310,7 @@ DeviceZenGrid.prototype = {
         }, this));
         this.askformore.addCallback(
          bind(function(r) {
-             result = r; 
+             result = r;
              this.buffer.totalRows = result[1];
              this.setScrollHeight(this.rowToPixel(this.buffer.totalRows));
              this.buffer.update(result[0], bufOffset);
@@ -331,10 +331,10 @@ DeviceZenGrid.prototype = {
         if (inRange) {
             this.populateTable(this.buffer.getRows(offset, this.numRows));
             if (offset > lastOffset) {
-                if (offset+this.buffer.pageSize < 
+                if (offset+this.buffer.pageSize <
                     this.buffer.endPos()-this.buffer.tolerance()) return;
             } else if (offset < lastOffset) {
-                if (offset > this.buffer.startPos + this.buffer.tolerance()) 
+                if (offset > this.buffer.startPos + this.buffer.tolerance())
                     return;
                 if (this.buffer.startPos==0) return;
             } else return;
@@ -360,7 +360,7 @@ DeviceZenGrid.prototype = {
         var i = String(indx);
         cells = map(function(x) {return TD({
             'class':'cell',
-            'id':x[0]+'_'+i}, 
+            'id':x[0]+'_'+i},
                 DIV({'class':'cell_inner'}, null))},
             this.fields);
         setNodeAttribute(cells[cells.length-1], 'nowrap', 'true');
@@ -386,12 +386,12 @@ DeviceZenGrid.prototype = {
         updateNodeAttributes(cols[0], {width:'0*'});
         var isMSIE//@cc_on=1;
         if (isMSIE) updateNodeAttributes(cols[0], {width:'26px'});
-        colgroup = createDOM('colgroup', {span:widths.length, height:'25px'}, 
+        colgroup = createDOM('colgroup', {span:widths.length, height:'25px'},
             cols);
         return colgroup;
     },
     connectHeaders: function(cells) {
-        for(i=isManager?1:0;i<cells.length;i++) { 
+        for(i=isManager?1:0;i<cells.length;i++) {
             setStyle(cells[i], {'cursor':'pointer'});
             connect(cells[i], 'onclick', this.toggleSortOrder);
         }
@@ -493,7 +493,7 @@ DeviceZenGrid.prototype = {
         );
         var scrollHeight = parseInt(this.rowToPixel(numrows));
         var myoffset = numrows*(32-this.rowHeight);
-        if (scrollHeight <= 0) 
+        if (scrollHeight <= 0)
             setElementDimensions(this.scrollbar, {h:0});
         else if (scrollHeight<=getElementDimensions(this.zgtable).h-myoffset-2) {
             setStyle(this.scrollbar, {'display':'none'});
@@ -502,7 +502,7 @@ DeviceZenGrid.prototype = {
         }
     },
     shouldBeChecked: function(evid, klass) {
-        if (this.checkedArray[evid]=='checked') 
+        if (this.checkedArray[evid]=='checked')
             return true;
         if (this.checkedArray[evid]=='blank')
             return false;
@@ -517,9 +517,9 @@ DeviceZenGrid.prototype = {
         return false;
     },
     populateTable: function(data) {
-        var tableLength = data.length > this.numRows ? 
+        var tableLength = data.length > this.numRows ?
             this.numRows : data.length;
-        if (tableLength != this.rowEls.length){ 
+        if (tableLength != this.rowEls.length){
             //this.clearTable();
             this.setTableNumRows(tableLength);
         }
@@ -531,7 +531,7 @@ DeviceZenGrid.prototype = {
             setElementClass(rows[i], (this.lastOffset+i)%2?'odd':'even')
             var evid = mydata[mydata.length-2];
             var chkbox = '<input type="checkbox" name="evids:list" ';
-            if (this.shouldBeChecked(evid, mydata[mydata.length-1])) 
+            if (this.shouldBeChecked(evid, mydata[mydata.length-1]))
                 chkbox+='checked ';
             chkbox += 'value="'+evid+'" id="'+evid+'"/>';
             var yo = rows[i].getElementsByTagName('td');
@@ -572,7 +572,7 @@ DeviceZenGrid.prototype = {
         return myws
     },
     buildHTML: function() {
-        var getId = function(thing) { 
+        var getId = function(thing) {
             return "zg_" + thing + "_" + this.gridId }
         getId = bind(getId, this);
         this.scrollbar = DIV(
@@ -581,7 +581,7 @@ DeviceZenGrid.prototype = {
         );
         this.output = TBODY( {id: getId('output')}, null);
         this.headcolgroup = createDOM('colgroup', null, null);
-        this.colgroup = createDOM( 'colgroup', 
+        this.colgroup = createDOM( 'colgroup',
             {style: 'height:'+this.rowHeight+'px'}, null );
         this.zgtable = TABLE( {id: getId('table'),
             cellspacing:0, cellpadding:0}, [
@@ -591,7 +591,7 @@ DeviceZenGrid.prototype = {
             TFOOT(null, null)
         ]);
         this.viewport = DIV( {id: getId('viewport')}, this.zgtable );
-        this.statusBar = DIV( {id:getId('statusbar'), 'class':'zg_statusbar'}, 
+        this.statusBar = DIV( {id:getId('statusbar'), 'class':'zg_statusbar'},
             SPAN({id:'currentRows'}, String(0+1 +'-'+ parseInt(parseInt(0)+parseInt(this.numRows)) +  ' of ' + this.buffer.totalRows)),
         [   'Select:  ',
             UL(null,
@@ -607,7 +607,7 @@ DeviceZenGrid.prototype = {
             this.headcolgroup,
             TBODY(null, null)
         ]);
-        this.innercont = DIV( {id:getId('innercont')}, 
+        this.innercont = DIV( {id:getId('innercont')},
             [this.viewport, this.scrollbar]);
         setStyle(this.zgtable, {
             'width': '100%',
@@ -634,14 +634,14 @@ DeviceZenGrid.prototype = {
             'border-bottom':'medium none'
         });
         addElementClass(this.viewport, 'leftfloat');
-        setStyle(this.scrollbar, 
+        setStyle(this.scrollbar,
             { 'border-left': 'medium none',
               'overflow': 'auto',
               'z-index':'300',
               'position': 'relative',
               'left': '-3px',
               'width': '19px',
-              'height': this.rowToPixel(this.numRows)+'px' 
+              'height': this.rowToPixel(this.numRows)+'px'
         });
         var scrollHeight = this.rowToPixel(this.buffer.totalRows);
         this.setScrollHeight(scrollHeight);
@@ -656,7 +656,7 @@ DeviceZenGrid.prototype = {
             {'height':String(parseInt(scrlheight)) + 'px'}
         );
         var isMSIE//@cc_on=1;
-        if (isMSIE) 
+        if (isMSIE)
             setStyle(this.scrollbar, {'height':this.rowToPixel(this.numRows)+'px'});
     },
     rowToPixel: function(row) {
@@ -789,7 +789,7 @@ DeviceZenGrid.prototype = {
             else badevids.push(evid);
         }
         qs = {
-                'selectstatus':selectstatus, 
+                'selectstatus':selectstatus,
                 'goodevids':goodevids,
                 'badevids':badevids,
                 'method':method,
@@ -801,17 +801,15 @@ DeviceZenGrid.prototype = {
         $('dialog').hide();
         if (!(selectstatus=='none' && goodevids.length==0)) {
             this.showLoading();
-            d = doXHR(url, {queryString:qs}); 
+            d = doXHR(url, {queryString:qs});
             d.addErrback(bind(function(x) {
                 this.killLoading();
-                YAHOO.zenoss.Messenger.checkMessages();
             }, this));
             d.addCallback(bind(
-                function(r) { 
+                function(r) {
                     this.buffer.clear();
                     this.refreshTable(this.lastOffset);
                     this.setSelectNone();
-                    YAHOO.zenoss.Messenger.checkMessages();
                 }, this));
         }
     }

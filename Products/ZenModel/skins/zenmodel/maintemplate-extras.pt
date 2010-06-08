@@ -1,11 +1,11 @@
 <tal:block metal:define-macro="panetoggle">
 <div id="paneToggle">
 </div>
-<style tal:condition="python:'Zenoss_Collapsed_Menu' in 
+<style tal:condition="python:'Zenoss_Collapsed_Menu' in
                         here.REQUEST.HTTP_COOKIE">
     #leftPane { display:none;}
     #rightPane { margin-left:12px;}
-    #paneToggle { 
+    #paneToggle {
         display:none;
         background-image: url('img/paneToggle_bg_collapsed.gif');
         border-right: medium none;
@@ -28,9 +28,9 @@
     <link rel="shortcut icon"
           href="/zport/dmd/favicon.ico"
           type="image/x-icon"/>
-    <link rel="stylesheet" 
+    <link rel="stylesheet"
           href="yui/reset-fonts-grids/reset-fonts-grids.css"/>
-    <link rel="stylesheet" 
+    <link rel="stylesheet"
           href="yui/base/base-min.css"/>
     <link rel="stylesheet" href="/zport/portal_skins/zenoss.css" >
     <!--[if IE 7]>
@@ -53,7 +53,7 @@
     <script type="text/javascript" src="javascript/zenoss-core.js"></script>
     <script>
     var loader = YAHOO.zenoss.getLoader();
-    loader.require(['zenossutils', 'uifeedback']);
+    loader.require(['zenossutils']);
     loader.insert({onSuccess:function(){
         removeElementAutoCompletes();
         applyBrowserSpecificStyles();
@@ -62,7 +62,6 @@
         connectCheckboxListeners();
         notifyParentOfNewUrl();
         zenPageInit();
-        YAHOO.zenoss.Messenger.initialize();
     }});
     </script>
 </tal:block>
