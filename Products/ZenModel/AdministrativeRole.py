@@ -69,8 +69,9 @@ class AdministrativeRole(ZenModelRM):
         return self.userSetting().getPrimaryUrlPath()
 
     def managedObjectName(self):
+        from Device import Device
         mo = self.managedObject()
-        if mo.meta_type == 'Device':
+        if isinstance(mo, Device) or mo.meta_type == 'Device':
             return mo.id
         return mo.getOrganizerName()
 

@@ -27,13 +27,16 @@ class DeviceNames(BrowserView):
     """
     @json
     @formreq
-    def __call__(self, query=''):
+    def __call__(self, query='', dataRoot='devices'):
         """
         @param query: A glob by which to filter device names
         @type query: str
         @return: A JSON representation of a list of ids
         @rtype: "['id1', 'id2', 'id3']"
         """
+        if dataRoot != 'devices':
+            import exceptions
+            raise exceptions.ValueError("dataRoot should only be 'devices'")
         catalog = getToolByName(self.context.dmd.Devices,
             self.context.dmd.Devices.default_catalog)
         query = MatchGlob('titleOrId', query.rstrip('*') + '*')
