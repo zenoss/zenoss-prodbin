@@ -57,7 +57,7 @@ function selectionchangeHandler(sm, node) {
         // load up appropriate data in the form
         var uid = node.attributes.uid;
         Ext.getCmp('processForm').setContext(uid);
-        Ext.getCmp('instancesGrid').setContext(uid);
+        Ext.getCmp('detail_panel').detailCardPanel.setContext(uid);
         Ext.getCmp('footer_bar').setContext(uid);
         // don't allow the user to delete the root node
         Ext.getCmp('footer_bar').buttonDelete.setDisabled(
@@ -306,15 +306,12 @@ processForm.on('actioncomplete', actioncompleteHandler);
  *
  */
 Ext.getCmp('detail_panel').add({
-    xtype: 'SimpleInstanceGridPanel',
+    xtype: 'instancecardpanel',
+    ref: 'detailCardPanel',
     region: 'south',
-    id: 'instancesGrid',
-    directFn: router.getInstances,
-    nameDataIndex: 'processName',
-    tbar: {
-        xtype: 'consolebar',
-        title: 'Process Instances'
-    }
+    height: Ext.getCmp('viewport').getHeight() - 300,
+    split: true,
+    router: router
 });
 
 var ContextGetter = Ext.extend(Object, {

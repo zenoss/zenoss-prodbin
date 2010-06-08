@@ -179,12 +179,19 @@ def getZProperties(context):
 
     return properties
 
+def _translateZPropertyValue(zProp, translate, value):
+    try:
+        return translate(value)
+    except Exception, e:
+        args = zProp, ancestorValue, e.__class__.__name__, e
+        raise Exception('Unable to translate %s "%s" (%s: %s)' % args)
+
 def getAcquiredZPropertyInfo(obj, zProp, translate=lambda x: x):
     for ancestor in aq_chain(obj)[1:]:
         if isinstance(ancestor, ZenPropertyManager) and ancestor.hasProperty(zProp):
-            info = {'acquiredValue': translate(getattr(ancestor, zProp)),
-                    'ancestor': ancestor.titleOrId()
-                    }
+            info = {'ancestor': ancestor.titleOrId()}
+            ancestorValue = getattr(ancestor, zProp)
+            info['acquiredValue'] = _translateZPropertyValue(zProp, translate, ancestorValue)
             break
     else:
         info = {'acquiredValue': None, 'ancestor': None}
@@ -198,7 +205,7 @@ def getZPropertyInfo(obj, zProp, defaultLocalValue='', translate=lambda x: x, tr
     else:
         zPropInfo['localValue'] = getattr(obj, zProp)
         if translateLocal:
-            zPropInfo['localValue'] = translate(zPropInfo['localValue'])
+            zPropInfo['localValue'] = _translateZPropertyValue(zProp, translate, zPropInfo['localValue'])
     zPropInfo.update(getAcquiredZPropertyInfo(obj, zProp, translate))
     return zPropInfo
 

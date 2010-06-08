@@ -26,9 +26,9 @@ Zenoss.ConsoleBar = Ext.extend(Zenoss.LargeToolbar, {
             items: [{
                 xtype: 'tbtext',
                 text: title
-            },{
+            }].concat(config.leftItems||[]).concat([{
                 xtype: 'tbfill'
-            }].concat(config.items||[]).concat(['-',{
+            }]).concat(config.items||[]).concat(['-',{
                 iconCls: 'expand',
                 ref: 'togglebutton',
                 handler: function() {
@@ -71,7 +71,7 @@ Zenoss.ConsoleBar = Ext.extend(Zenoss.LargeToolbar, {
         */
         panel.on('afterlayout', function(p) {
             var region = p.layout.container.ownerCt.layout[p.region];
-            if (region.floatable) {
+            if (region && region.floatable) {
                 region.getCollapsedEl().un('click', region.collapseClick,
                                            region);
             }

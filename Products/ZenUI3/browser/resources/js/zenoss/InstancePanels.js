@@ -91,8 +91,6 @@ Zenoss.SimpleInstanceGridPanel = Ext.extend(Ext.ux.grid.livegrid.GridPanel, {
 
     constructor: function(config) {
         Ext.applyIf(config, {
-            height: Ext.getCmp('viewport').getHeight() - 300,
-            split: true,
             autoExpandColumn: 'name',
             stripeRows: true,
             cm: new InstanceColumnModel({
@@ -114,5 +112,51 @@ Zenoss.SimpleInstanceGridPanel = Ext.extend(Ext.ux.grid.livegrid.GridPanel, {
 });
 
 Ext.reg('SimpleInstanceGridPanel', Zenoss.SimpleInstanceGridPanel);
+
+Zenoss.InstanceCardPanel = Ext.extend(Ext.Panel, {
+
+    constructor: function(config) {
+        Ext.applyIf(config, {
+            layout: 'card',
+            activeItem: 0,
+            tbar: {
+                xtype: 'consolebar',
+                title: 'Display: ',
+                leftItems: [{
+                    xtype: 'select',
+                    ref: '../displaySelect',
+                    mode: 'local',
+                    value: 'Process Instances',
+                    store: ['Process Instances', 'Configuration Properties'],
+                    listeners: {
+                        select: function(displaySelect, record, index) {
+                            displaySelect.refOwner.getLayout().setActiveItem(index);
+                        }
+                    }
+                }]
+            },
+            items: [{
+                xtype: 'SimpleInstanceGridPanel',
+                ref: 'instancesGrid',
+                directFn: config.router.getInstances,
+                nameDataIndex: 'processName'
+            }, {
+                xtype: 'backcompat',
+                ref: 'zPropertyEdit',
+                viewName: 'zPropertyEdit'
+            }]
+        });
+        Zenoss.InstanceCardPanel.superclass.constructor.call(this, config);
+    },
+
+    setContext: function(uid) {
+        this.instancesGrid.setContext(uid);
+        this.zPropertyEdit.setContext(uid);
+    }
+
+});
+
+Ext.reg('instancecardpanel', Zenoss.InstanceCardPanel);
+
 
 })();

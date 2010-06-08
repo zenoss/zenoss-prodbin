@@ -57,7 +57,7 @@
             selectedOrganizer.getUI().addClass('x-tree-selected');
         }
         Ext.getCmp('serviceForm').setContext(dataRecord.data.uid);
-        Ext.getCmp('serviceInstancePanel').setContext(dataRecord.data.uid);
+        Ext.getCmp('detail_panel').detailCardPanel.setContext(dataRecord.data.uid);
         Ext.getCmp('footer_bar').buttonDelete.setDisabled(false);
         token = Ext.History.getToken();
         if ( ! token ) {

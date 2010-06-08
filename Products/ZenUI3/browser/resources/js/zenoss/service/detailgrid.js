@@ -24,15 +24,12 @@ Ext.onReady( function() {
      */
     zs.initDetailPanel = function() {
         var config = {
-            xtype: 'SimpleInstanceGridPanel',
-            id: 'serviceInstancePanel',
-            buttonTitle: _t('Services'),
-            iconCls: 'services',
-            directFn: Zenoss.remote.ServiceRouter.getInstances,
+            xtype: 'instancecardpanel',
+            ref: 'detailCardPanel',
             region: 'south',
-            tbar: { xtype: 'consolebar',
-                    title: 'Service Instances'
-            }
+            height: Ext.getCmp('viewport').getHeight() - 300,
+            split: true,
+            router: Zenoss.remote.ServiceRouter
         };
 
         Ext.getCmp('detail_panel').add(config);
