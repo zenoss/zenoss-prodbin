@@ -28,7 +28,7 @@
             <!-- THIS IS A COMMENT -->
         <link rel="stylesheet" type="text/css" 
             href="/++resource++extjs/treegrid/treegrid.css" />
-        <link rel="stylesheet"
+        <link rel="stylesheet" type="text/css" 
             href="/++resource++zenui/js/livegrid/resources/css/ext-ux-livegrid.css"/>
         <link rel="stylesheet" type="text/css"
             href="/++resource++zenui/css/xtheme-zenoss.css" />
@@ -143,7 +143,7 @@ var viewport = new Ext.Viewport({
 
 <tal:block metal:define-slot="script_layout">
 <!-- Use this slot to add elements to the basic layout. -->
-<script>
+<script type="text/javascript">
 Ext.onReady(function(){
     // Add a placeholder panel to show what goes where
     Ext.getCmp('center_panel').add(
@@ -154,7 +154,9 @@ Ext.onReady(function(){
 </tal:block>
 
 <!-- Make sure everything on the page gets laid out -->
-<script>Ext.onReady(function(){Ext.getCmp('viewport').doLayout()});</script>
+<script type="text/javascript">
+    Ext.onReady(function(){Ext.getCmp('viewport').doLayout()});
+</script>
 
 <tal:block metal:define-slot="script_afterLayout">
 <!-- Use this slot to perform any post-layout steps. -->
@@ -164,11 +166,11 @@ Ext.onReady(function(){
 <script type="text/javascript" src="tooltips.js"></script>
 
 <!-- Fields required for history management -->
-<form id="history-form" class="x-hidden">
+<form id="history-form" class="x-hidden" action="">
     <input type="hidden" id="x-history-field" />
     <iframe id="x-history-frame"></iframe>
 </form>
-<script>
+<script type="text/javascript">
 Ext.History.init(function(mgr){
     Ext.History.selectByToken(mgr.getToken());
 });
