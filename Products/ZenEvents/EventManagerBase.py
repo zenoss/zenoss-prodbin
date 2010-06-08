@@ -18,6 +18,7 @@ Data connector to backend of the event management system.
 import time
 import types
 import random
+import re
 random.seed()
 import logging
 log = logging.getLogger("zen.Events")
@@ -54,7 +55,7 @@ from DbAccessBase import DbAccessBase
 
 from Products.ZenUtils.Utils import unused
 
-__pychecker__="maxargs=16"
+__pychecker__="maxargs=16"  
 
 def evtprep(evts):
     """
@@ -424,13 +425,15 @@ class EventManagerBase(ZenModelRM, ObjectCache, DbAccessBase):
                 newwhere += ' and ((%s REGEXP %%s) %s) ' % (k,componentWhere)
                 queryValues.append(v)
             elif k=='count':
-                if v.isalnum():
-                    queryValues.append(v)
-                    v = '>=%s'
+                m = re.match(r'^(?P<condition>\>=|\<=|\>|\<|=)?\s*(?P<value>[0-9]+)$', v.strip())
+                if m:
+                    cond = m.group('condition') if m.group('condition') else '='
+                    queryValues.append(m.group('value'))
+
+                    newwhere += ' and count %s %%s' % cond
                 else:
-                    #TODO validate the input
-                    pass
-                newwhere += ' and count%s ' % v
+                    raise ValueError('%s is not a valid count' % v)
+
             elif ftype=='textfield':
                 newwhere += ' and (%s REGEXP %%s) ' % (k,)
                 queryValues.append(v)

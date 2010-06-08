@@ -12,6 +12,7 @@
 ###########################################################################
 
 import json as _json
+import re
 
 def _recursiveCaster(ob):
     if isinstance(ob, dict):
@@ -36,6 +37,42 @@ class StringifyingDecoder(_json.JSONDecoder):
         result = super(StringifyingDecoder, self).decode(s)
         return _recursiveCaster(result)
 
+class JavaScript(object):
+    """A simple class that represents a JavaScript literal that should not be JSON encoded."""
+    def __init__(self, value):
+        self.value = value
+
+    def __str__(self):
+        return self.value
+
+class JavaScriptRegex(JavaScript):
+    """A simple class that represents a JavaScript Regex literal that should not be JSON encoded."""
+    def __str__(self):
+        return '/' + self.value + '/'
+
+class JavaScriptEncoder(_json.JSONEncoder):
+    """A JavaScript encoder based on JSON. It encodes like normal JSON except it passes JavaScript objects un-encoded."""
+
+    _js_start = '__js_start__'
+    _js_end = '__js_end__'
+    _js_re = re.compile(r'\["%s", (.*?), "%s"\]' % (_js_start, _js_end))
+
+    def default(self, obj):
+        if isinstance(obj, JavaScript):
+            return [self._js_start, str(obj), self._js_end]
+        else:
+            return _json.JSONEncoder.default(self, obj)
+
+    def _js_clean(self, jsonstr):
+        # This re replace is not ideal but at least the dirtyness of it is encapsulated in these classes
+        # instead of plain str manipulation being done in the wild.
+        def fix(matchobj):
+            return _json.loads(matchobj.group(1))
+
+        return self._js_re.sub(fix, jsonstr)
+
+    def encode(self, obj):
+        return self._js_clean(_json.JSONEncoder.encode(self, obj))
 
 def json(value, **kw):
     """
@@ -71,6 +108,10 @@ def json(value, **kw):
     else:
         # Simply serialize the value passed
         return _json.dumps(value, **kw)
+
+def javascript(data):
+    """A JavaScript encoder based on JSON. It encodes like normal JSON except it passes JavaScript objects un-encoded."""
+    return json(data, cls=JavaScriptEncoder)
 
 def unjson(value, **kw):
     """

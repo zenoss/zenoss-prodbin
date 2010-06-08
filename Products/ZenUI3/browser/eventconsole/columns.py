@@ -31,7 +31,7 @@ COLUMN_CONFIG = {
         header='Device',
         filter='textfield',
         renderer='Zenoss.render.linkFromGrid'),
-                
+
     'component' : dict(
         header='Component',
         filter='textfield',
@@ -41,7 +41,7 @@ COLUMN_CONFIG = {
         header='Event Class',
         filter='textfield',
         renderer='Zenoss.render.linkFromGrid'),
-        
+
     'eventKey'  : dict(
         header='Event Key',
         filter='textfield'),
@@ -138,7 +138,11 @@ COLUMN_CONFIG = {
     'count'     : dict(
         header='Count',
         width=60,
-        filter='textfield'),
+        filter={
+            'xtype': 'textfield',
+            'vtype': 'numcmp'
+        }
+    ),
 
     'prodState' : dict(
         header='Production State',

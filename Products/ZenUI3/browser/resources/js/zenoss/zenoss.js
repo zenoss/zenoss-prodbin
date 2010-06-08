@@ -201,6 +201,18 @@ Zenoss.flares.Flare = Ext.extend(Ext.Window, {
     _closing: false,
     focus: Ext.emptyFn,
     constructor: function(message, params, config) {
+        if ( Ext.isArray(message) ) {
+            var children = [];
+            Ext.each(message, function(m) {
+                children.push({ tag: 'li', html: m });
+            });
+
+            message = Ext.DomHelper.markup({
+                tag: 'ul',
+                children: children
+            });
+        }
+
         Ext.applyIf(config, {
             headerAsText: false,
             bodyCssClass: config.iconCls || 'x-flare-info',
@@ -553,6 +565,7 @@ Zenoss.FilterGridView = Ext.extend(Ext.ux.grid.livegrid.GridView, {
     rowHeight: 22,
     rowColors: false,
     liveSearch: true,
+    _valid: true,
     constructor: function(config) {
         if (typeof(config.displayFilters)=='undefined')
             config.displayFilters = true;
@@ -621,6 +634,12 @@ Zenoss.FilterGridView = Ext.extend(Ext.ux.grid.livegrid.GridView, {
         this.contextUid = uid;
         this.updateLiveRows(this.rowIndex, true, true, false);
     },
+    updateLiveRows: function(index, forceRepaint, forceReload) {
+        if ( this.isValid() ) {
+            return Zenoss.FilterGridView.superclass.updateLiveRows.call(this, index, forceRepaint, forceReload);
+        }
+        return false;
+    },
     onBeforeLoad: function(store, options) {
         this.applyFilterParams(options);
         return Zenoss.FilterGridView.superclass.onBeforeLoad.call(this,
@@ -641,10 +660,34 @@ Zenoss.FilterGridView = Ext.extend(Ext.ux.grid.livegrid.GridView, {
         this.setFiltersDisplayed(true);
     },
     clearFilters: function() {
+        this._valid = true;
         Ext.each(this.filters, function(ob){
             ob.reset();
         }, this);
         this.updateLiveRows(this.rowIndex, true, true, false);
+    },
+    validateFilters: function() {
+        var valid = true;
+        Ext.each(this.filters, function(ob){
+            if ( ob.isValid != undefined ) {
+                valid = ob.isValid(true) && valid;
+            }
+        }, this);
+        this._valid = valid;
+        return valid;
+    },
+    getErrors: function() {
+        var errors = [];
+        Ext.each(this.filters, function(ob){
+            if ( ob.getActiveError != undefined ) {
+                var err = ob.getActiveError();
+                if ( err ) {
+                    errors.push(err);
+                }
+            }
+        }, this);
+
+        return errors;
     },
     setFiltersDisplayed: function(bool) {
         // For now, always show the filters The rest of the filter-hiding
@@ -757,6 +800,7 @@ Zenoss.FilterGridView = Ext.extend(Ext.ux.grid.livegrid.GridView, {
 
             if (filter instanceof Ext.form.TextField) {
                 filter.on('valid', this.validFilter, this);
+                filter.on('invalid', this.onInvalidFilter, this);
             }
 
             if (filter instanceof Zenoss.MultiselectMenu) {
@@ -776,10 +820,28 @@ Zenoss.FilterGridView = Ext.extend(Ext.ux.grid.livegrid.GridView, {
             });
         }
     },
+    isValid: function() {
+        return this._valid;
+    },
     validFilter: function() {
+        // Check all filters to determine if we are valid
+        this.validateFilters();
         this.fireEvent('filterchange', this);
         if (this.liveSearch) {
             this.nonDisruptiveReset();
+        }
+    },
+    onInvalidFilter: function() {
+        // If one filter is invalid, all are
+        this._valid = false;
+        this.fireEvent('filterchange', this);
+
+        var errors = this.getErrors();
+        if ( errors ) {
+            Zenoss.flares.Manager.error(errors);
+        }
+        else {
+            Zenoss.flares.Manager.error('Error loading, grid has invalid filters.');
         }
     },
     updateHeaders: function() {
@@ -1150,7 +1212,9 @@ Zenoss.RefreshMenuButton = Ext.extend(Ext.SplitButton, {
     },
     poll: function(){
         if (this.interval>0) {
-            this.handler();
+            if ( !this.disabled ) {
+                this.handler();
+            }
             this.refreshTask.delay(this.interval*1000);
         }
     }

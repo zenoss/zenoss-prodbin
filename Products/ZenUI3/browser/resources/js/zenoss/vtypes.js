@@ -3,8 +3,9 @@
 
     var ip_regex = new RegExp("(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)");
     var hex_regex = new RegExp("^#?([a-f]|[A-F]|[0-9]){3}(([a-f]|[A-F]|[0-9]){3,5})?$");
+    var numcmp_regex = new RegExp("^(\>=|\<=|\>|\<|=)?\s*([0-9]+)$");
     var alpha_num_space = new RegExp(/[a-z_\s\d]/i);
-     
+
     /**
      * These are the custom validators defined for
      * our zenoss forms. The xtype/vtype custom is to have the
@@ -12,6 +13,13 @@
      *
      **/
     var vtypes = {
+        /**
+         * Allows int comparisons like 4,>2,<=5
+         */
+        numcmp: function(val, field) {
+            return numcmp_regex.test(val);
+        },
+        numcmpText: _t('Enter a valid comparison (ex: 4, <2, >=1)'),
 
         /**
          * The number must be greater than zero. Designed for us in NumberFields
@@ -50,7 +58,7 @@
         alphanumspaceText: _t('Must be an alphanumeric value or a space '),
         alphanumspaceMask: alpha_num_space
     };
-     
+
     Ext.apply(Ext.form.VTypes, vtypes);
 }());
 

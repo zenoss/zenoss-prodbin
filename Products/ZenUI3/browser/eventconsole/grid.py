@@ -1,12 +1,12 @@
 ###########################################################################
-#       
+#
 # This program is part of Zenoss Core, an open source monitoring platform.
 # Copyright (C) 2009, Zenoss Inc.
-#       
+#
 # This program is free software; you can redistribute it and/or modify it
 # under the terms of the GNU General Public License version 2 as published by
 # the Free Software Foundation.
-#       
+#
 # For complete information please visit: http://www.zenoss.com/oss/
 #
 ###########################################################################
@@ -19,7 +19,7 @@ _ = MessageFactory('zenoss')
 from Products.Five.browser import BrowserView
 from Products.Five.browser.pagetemplatefile import ViewPageTemplateFile
 
-from Products.ZenUtils.jsonutils import json, unjson
+from Products.ZenUtils.jsonutils import json, unjson, JavaScript, javascript
 from Products.ZenUI3.utils.javascript import JavaScriptSnippet
 from Products.ZenUI3.browser.eventconsole.columns import COLUMN_CONFIG
 from Products.Zuul import getFacade
@@ -47,12 +47,9 @@ def column_config(fields, request=None):
         col['sortable'] = True
         renderer = None
         if 'renderer' in col:
-            renderer = col['renderer']
-            del col['renderer']
-        s = json(col)
-        if renderer:
-            ss, se = s[:-1], s[-1]
-            s = ''.join([ss, ',renderer:', renderer, se])
+            col['renderer'] = JavaScript(col['renderer'])
+
+        s = javascript(col)
         defs.append(s)
     return defs
 

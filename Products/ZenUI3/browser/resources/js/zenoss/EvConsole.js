@@ -31,7 +31,7 @@ Ext.onReady(function(){
     detail_panel.animCollapse = false;
     detail_panel.collapsible =false;
     detail_panel.collapsed = true;
-    
+
     /*
      * Assemble the parameters that define the grid state.
      */
@@ -95,7 +95,7 @@ Ext.onReady(function(){
                     xtype: 'textfield',
                     fieldLabel: 'Device',
                     name: 'device',
-                    allowBlank: false                    
+                    allowBlank: false
                 },{
                     xtype: 'textfield',
                     fieldLabel: 'Component',
@@ -210,7 +210,7 @@ Ext.onReady(function(){
                             'evids': evids
                         }, function(result){
                             win.hide();
-                            var title = result.success ?  
+                            var title = result.success ?
                                         'Classified':
                                         'Error';
                             Ext.MessageBox.show({
@@ -249,7 +249,7 @@ Ext.onReady(function(){
                 var sm = grid.getSelectionModel();
                 sm.clearSelections();
                 Ext.each(result, function(range){
-                    if (range.length==1) 
+                    if (range.length==1)
                         range[1] = grid.getStore().totalLength + 1;
                    sm.selectRange(range[0]-1, range[1]-1, true);
                 });
@@ -259,7 +259,7 @@ Ext.onReady(function(){
 
     // Get the container surrounding master/detail, for adding the toolbar
     var container = Ext.getCmp('center_panel_container');
-    
+
     // Add a CSS class to scope some styles that affect other parts of the UI
     container.on('render', function(){container.el.addClass('zenui3')});
 
@@ -268,10 +268,10 @@ Ext.onReady(function(){
             region:'north',
             border: false,
             items: [{
-                /* 
-                 * ACKNOWLEDGE BUTTON 
+                /*
+                 * ACKNOWLEDGE BUTTON
                  */
-                //text: 'Acknowledge', 
+                //text: 'Acknowledge',
                 iconCls: 'acknowledge',
                 id: 'ack-button',
                 handler: function() {
@@ -291,8 +291,8 @@ Ext.onReady(function(){
                     }
                 }
             },{
-                /* 
-                 * CLOSE BUTTON 
+                /*
+                 * CLOSE BUTTON
                  */
                 //text: 'Close',
                 iconCls: 'close',
@@ -338,14 +338,14 @@ Ext.onReady(function(){
                     }
                 }
             },{
-                /* 
-                 * ADD BUTTON 
+                /*
+                 * ADD BUTTON
                  */
                 // text: _t('Add'),
                 id: 'add-button',
                 iconCls: 'add',
                 handler: showAddEventDialog
-            },{             
+            },{
                 xtype: 'tbseparator'
             },{
                 /*
@@ -441,7 +441,7 @@ Ext.onReady(function(){
                     }]
                 }
             },{
-                /* 
+                /*
                  * CONFIGURE MENU
                  */
                 text: _t('Configure'),
@@ -529,11 +529,14 @@ Ext.onReady(function(){
                 text: 'Updating...'
             },{
                 xtype: 'refreshmenu',
+                ref: 'refreshmenu',
                 id: 'refresh-button',
-                iconCls: 'refresh', 
+                iconCls: 'refresh',
                 text: _t('Refresh'),
                 handler: function(){
                     view = Ext.getCmp('events_grid').getView();
+
+
                     view.updateLiveRows(view.rowIndex, true, true);
                 }
             }
@@ -559,28 +562,16 @@ Ext.onReady(function(){
         livesearchitem: 'livesearch_checkitem',
         loadMask  : { msg :  'Loading. Please wait...' }
     });
-    
+
     var console_store = new Zenoss.EventStore({
         autoLoad: true,
         proxy: new Zenoss.ThrottlingProxy({
             directFn:Zenoss.remote.EventsRouter.query,
             listeners: {
-                
-                'exception': function(proxy, type, action, options,
-                response, arg){
-                    if (response.result && response.result.msg){
-                        Ext.Msg.show({
-                            title: 'Error',
-                            msg: response.result.msg,
-                            buttons: Ext.Msg.OK,
-                            minWidth: 300
-                            });
-                        }
-                    },
                 'load': function(proxy, transaction, options) {
                     var disabled = Zenoss.Security.doesNotHavePermission('Manage Events');
                     var buttonIds = [
-                        'ack-button', 
+                        'ack-button',
                         'close-button',
                         'classify-button',
                         'unack-button',
@@ -668,15 +659,15 @@ Ext.onReady(function(){
     // Finally, add the detail panel (have to do it after function defs to hook
     // up the hide callback)
     detail_panel.add({
-        xtype:'detailpanel', 
-        id: 'dpanelcontainer', 
+        xtype:'detailpanel',
+        id: 'dpanelcontainer',
         onDetailHide: hideEventDetail
     });
 
     detail_panel.on('expand', function(ob, state) {
-        toggleEventDetailContent();    
+        toggleEventDetailContent();
     });
-    
+
     detail_panel.on('collapse', function(ob, state) {
         eventDetailCollapsed()
     });
@@ -685,6 +676,14 @@ Ext.onReady(function(){
         view = grid.getView();
     store.on('load', doLastUpdated);
     view.on('buffer', doLastUpdated);
+    view.on('filterchange', function() {
+        tbar.refreshmenu.setDisabled(!view.isValid());
+
+        if ( !view.isValid() ) {
+            var box = Ext.getCmp('lastupdated');
+            box.setText(_t(''));
+        }
+    });
 
     // Detail pane should pop open when double-click on event
     grid.on("rowdblclick", toggleEventDetailContent);
