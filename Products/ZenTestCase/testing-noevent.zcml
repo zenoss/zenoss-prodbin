@@ -9,6 +9,7 @@
   <include package="Products.ZenEvents"/>
   <include package="Products.ZenRelations"/>
   <include package="Products.ZenEvents"/>
+  <include package="Products.ZenWidgets" file="scriptmessaging.zcml"/>
   <include package="Products.Jobber"/>
   <include package="Products.Zuul"/>
 
