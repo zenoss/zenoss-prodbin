@@ -428,6 +428,8 @@ div.dialog-link a {
 table.eventrainbow {
     border-collapse: collapse;
     height: 16px;
+    width: 147px; /* IE (in quirks mode) does not set table width based on
+                    width of td cells. Set width to .eventrainbow td * 3 */
 }
 
 .eventrainbow td {
