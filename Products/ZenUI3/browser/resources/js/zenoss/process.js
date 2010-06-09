@@ -195,6 +195,7 @@ function actioncompleteHandler(basicForm, action) {
 
         selectedNode.attributes.text.text = nameTextField.getValue();
         selectedNode.setText(selectedNode.attributes.text);
+        Ext.getCmp('detail_panel').detailCardPanel.setContext(selectedNode.attributes.uid);
     }
 }
 
@@ -320,7 +321,13 @@ Ext.getCmp('detail_panel').add({
     region: 'south',
     height: Ext.getCmp('viewport').getHeight() - 300,
     split: true,
-    router: router
+    router: router,
+    zPropertyEditListeners: {
+        frameload: function() {
+            var formPanel = Ext.getCmp('processForm');
+            formPanel.setContext(formPanel.contextUid);
+        }
+    }
 });
 
 var ContextGetter = Ext.extend(Object, {

@@ -47,6 +47,7 @@ Ext.onReady( function() {
                 if (navGridRecord) {
                     Zenoss.util.applyNotIf(navGridRecord.data, form.form.getValues());
                     navGrid.view.refreshRow(navGridRecord);
+                    Ext.getCmp('detail_panel').detailCardPanel.setContext(navGridRecord.data.uid);
                 }
             }
             else {
@@ -56,6 +57,7 @@ Ext.onReady( function() {
 
                 treeSNode.attributes.text.text = form.form.getValues().name;
                 treeSNode.setText(treeSNode.attributes.text);
+                Ext.getCmp('detail_panel').detailCardPanel.setContext(treeSNode.attributes.uid);
             }
         }
     };

@@ -143,7 +143,9 @@ Zenoss.InstanceCardPanel = Ext.extend(Ext.Panel, {
             }, {
                 xtype: 'backcompat',
                 ref: 'zPropertyEdit',
-                viewName: 'zPropertyEdit'
+                viewName: 'zPropertyEdit',
+                refreshOnContextChange: true,
+                listeners: config.zPropertyEditListeners
             }]
         });
         Zenoss.InstanceCardPanel.superclass.constructor.call(this, config);

@@ -29,7 +29,13 @@ Ext.onReady( function() {
             region: 'south',
             height: Ext.getCmp('viewport').getHeight() - 300,
             split: true,
-            router: Zenoss.remote.ServiceRouter
+            router: Zenoss.remote.ServiceRouter,
+            zPropertyEditListeners: {
+                frameload: function() {
+                    var formPanel = Ext.getCmp('serviceForm');
+                    formPanel.setContext(formPanel.contextUid);
+                }
+            }
         };
 
         Ext.getCmp('detail_panel').add(config);

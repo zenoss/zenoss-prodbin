@@ -217,7 +217,7 @@ def setZPropertyInfo(obj, zProp, isAcquired, localValue, **kwargs):
         if obj.hasProperty(zProp):
             obj._updateProperty(zProp, localValue)
         else:
-            obj._setProperty(zProp, localValue)
+            obj._setProperty(zProp, localValue, type=obj.getPropertyType(zProp))
 
 
 def allowedRolesAndGroups(context):
