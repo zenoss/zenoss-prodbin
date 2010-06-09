@@ -105,11 +105,12 @@ class TestDataSourceView(StreamingView):
         """
         try:
             request = self.request
+            data = unjson(request.form['data'])
             context = self.context
-            request['renderTemplate'] = False
+            data['renderTemplate'] = False
             self.write("Preparing Command...")
-            return context.testDataSourceAgainstDevice(request.get('testDevice'),
-                                                       request,
+            return context.testDataSourceAgainstDevice(data.get('testDevice'),
+                                                       data,
                                                        self.write,
                                                        self.reportError)
         except Exception:

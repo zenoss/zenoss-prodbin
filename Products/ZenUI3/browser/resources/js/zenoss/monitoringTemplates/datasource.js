@@ -406,15 +406,11 @@ function testDataSource() {
         win, testDevice, data;
     
     testDevice = values.testDevice;
-    // turn values into a GET string
-    data = Ext.urlEncode(values);
-    
+            
     win = new Zenoss.CommandWindow({
         uids: testDevice,
         title: _t('Test Data Source'),
-        data: {
-            args: data          
-        },
+        data: values,
         target: values.uid + '/test_datasource'
     });
         
