@@ -10,6 +10,7 @@ WatchListPortlet.prototype = {
             new YAHOO.zenoss.portlet.TableDatasource({
                 useRandomParameter: false,
                 url:'/zport/dmd/ZenEventManager/getEntityListEventSummary',
+                method:'POST',
                 postContent: ['/Devices/Discovered']});
         bodyHeight = 'bodyHeight' in args? args.bodyHeight:200;
         refreshTime = 'refreshTime' in args? args.refreshTime: 60;

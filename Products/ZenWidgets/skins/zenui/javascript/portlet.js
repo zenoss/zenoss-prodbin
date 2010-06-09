@@ -680,16 +680,39 @@ TableDatasource.prototype = {
     get: function(callback) {
         queryarguments = this.queryArguments;
         if ('ms' in queryarguments) delete queryarguments['ms'];
-        if (this.useRandomParameter && ('_dc' in queryarguments)) {
-            delete queryarguments['_dc'];
+        if (this.useRandomParameter) {
+            if ('_dc' in queryarguments) { delete queryarguments['_dc']; }
         } else {
             queryarguments['_dc'] = String(new Date().getTime());
         }
-        var d = doXHR(this.url, {
-            method: this.method,
-            queryString: queryarguments,
-            sendContent: serializeJSON(this.postContent)
-        });
+        /*
+          doXHR on IE will add post content to queryargs which get passed
+          as keyword parameters to backend. We need to get rid of _dc stuff
+          altogether and use response headers. For now, we detect if we have
+          any query args other that dc and if we are using POST. If so, don't
+          add queryargs string to doXHR call. Server side user @nocache
+          decorator.
+        */
+        var d;
+        var has_args_other_than_dc = false;
+        for (key in queryarguments) {
+            if (key != '_dc') {
+                has_args_other_than_dc = true;
+                break;
+            }
+        }
+        if ((this.method == 'POST') && (has_args_other_than_dc == false)) {
+            d = doXHR(this.url, {
+                method: this.method,
+                sendContent: serializeJSON(this.postContent)
+            });
+        } else {
+            d = doXHR(this.url, {
+                method: this.method,
+                queryString: queryarguments,
+                sendContent: serializeJSON(this.postContent)
+            });
+        }
         d.addCallback(bind(function(r){
             YAHOO.zenoss.globalPortletContainer.goodConnection();
             this.parseResponse(r, callback)},this));

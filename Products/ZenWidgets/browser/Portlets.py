@@ -32,6 +32,7 @@ class TopLevelOrganizerPortletView(ObjectsEventSummary):
     """
     Return JSON event summaries for a root organizer.
     """
+    @nocache
     @formreq
     def __call__(self, dataRoot):
         self.dataRoot = dataRoot
@@ -46,6 +47,7 @@ class ProductionStatePortletView(BrowserView):
     Return a map of device to production state in a format suitable for a
     YUI data table.
     """
+    @nocache
     @formreq
     def __call__(self, *args, **kwargs):
         return self.getDevProdStateJSON(*args, **kwargs)
@@ -128,6 +130,7 @@ class DeviceIssuesPortletView(BrowserView):
     """
     A list of devices with issues.
     """
+    @nocache
     def __call__(self):
         return self.getDeviceIssuesJSON()
 
@@ -197,6 +200,7 @@ class HeartbeatPortletView(BrowserView):
     """
     Heartbeat issues in YUI table form, for the dashboard portlet
     """
+    @nocache
     def __call__(self):
         return self.getHeartbeatIssuesJSON()
 
@@ -225,6 +229,7 @@ class UserMessagesPortletView(BrowserView):
     """
     User messages in YUI table form, for the dashboard portlet.
     """
+    @nocache
     @json
     def __call__(self):
         """
