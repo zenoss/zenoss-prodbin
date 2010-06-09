@@ -90,11 +90,12 @@ class Report(ZenModelRM, ZenPackable):
         if not kwargs.has_key('args'):
             kwargs['args'] = args
         template = self._template.__of__(self)
-        path_info = template.REQUEST['PATH_INFO']
+        path_info = template.REQUEST['PATH_INFO'].replace(' ', '%20')
         if path_info.startswith('/zport/dmd/Reports') and \
+                template.REQUEST['HTTP_REFERER'].find(path_info) == -1 and \
                 template.REQUEST['QUERY_STRING'].find('adapt=false') == -1 :
             url = '/zport/dmd/reports#reporttree:'
-            url += path_info.replace('/', '.').replace(' ', '%20')
+            url += path_info.replace('/', '.')
             template.REQUEST['RESPONSE'].redirect(url)
         return template.pt_render(extra_context={'options': kwargs})
 
