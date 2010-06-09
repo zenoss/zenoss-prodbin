@@ -16,7 +16,11 @@ Ext.ns('Zenoss.ui.Reports');
 
 Ext.onReady(function () {
 
-var addtozenpack;
+var addtozenpack,
+    report_panel = new Zenoss.BackCompatPanel({}),
+    initialContextSet = false,
+    treesm,
+    report_tree;
 
 /*
  * Delete a report class
@@ -186,10 +190,18 @@ Zenoss.ReportTreePanel = Ext.extend(Zenoss.HierarchyTreePanel, {
     }
 });
 
-var report_panel = new Zenoss.BackCompatPanel({});
-var initialContextSet = false;
+report_panel.addListener('frameload', function(win) {
+    var anchors = win.document.getElementsByTagName('a');
+    for (var idx = 0; idx < anchors.length; idx++) {
+        if (!/\/zport\/dmd\/[rR]eports\//.test(anchors[idx].href)) {
+            anchors[idx].onclick = function() {
+                window.top.location.href = this.href;
+            };
+        }
+    }
+});
 
-var treesm = new Ext.tree.DefaultSelectionModel({
+treesm = new Ext.tree.DefaultSelectionModel({
     listeners: {
         'selectionchange': function (sm, newnode) {
             if (newnode.attributes.leaf && !initialContextSet) {
@@ -210,7 +222,7 @@ var treesm = new Ext.tree.DefaultSelectionModel({
     }
 });
 
-var report_tree = new Zenoss.ReportTreePanel({
+report_tree = new Zenoss.ReportTreePanel({
     id: 'reporttree',
     cls: 'report-tree',
     ddGroup: 'reporttreedd',
