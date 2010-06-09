@@ -11,6 +11,8 @@
 #
 ###########################################################################
 import time
+import logging
+log = logging.getLogger('zen.event_router')
 
 from Products.ZenUI3.browser.eventconsole.grid import column_config
 from Products.ZenUtils.Ext import DirectRouter
@@ -40,6 +42,7 @@ class EventsRouter(DirectRouter):
             message = str(oe)
             return DirectResponse.fail(message)
         except Exception, e:
+            log.exception('Query is failing')
             message = e.__class__.__name__ + ' ' + str(e)
             return DirectResponse.fail(message)
 
