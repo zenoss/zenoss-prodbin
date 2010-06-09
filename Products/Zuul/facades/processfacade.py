@@ -12,16 +12,22 @@
 ###########################################################################
 
 import logging
-from itertools import izip, count
+from itertools import izip, count, imap
+from zope.event import notify
 from Acquisition import aq_parent
 from zope.interface import implements
+from Products.ZenModel.OSProcess import OSProcess
 from Products.ZenModel.OSProcessClass import OSProcessClass
 from Products.ZenModel.OSProcessOrganizer import OSProcessOrganizer
 from Products.Zuul.facades import TreeFacade
 from Products.Zuul.interfaces import IProcessFacade
 from Products.Zuul.interfaces import ITreeFacade
+from Products.Zuul.utils import unbrain
+from Products.Zuul.interfaces import ICatalogTool
+from zope.app.container.contained import ObjectMovedEvent
 
 log = logging.getLogger('zen.ProcessFacade')
+
 
 class ProcessFacade(TreeFacade):
     implements(IProcessFacade, ITreeFacade)
@@ -48,6 +54,13 @@ class ProcessFacade(TreeFacade):
     def moveProcess(self, uid, targetUid):
         obj = self._getObject(uid)
         target = self._getObject(targetUid)
+        brainsCollection = []
+        
+        # reindex all the devices and processes underneath this guy and the target
+        for org in (obj.getPrimaryParent().getPrimaryParent(), target):
+            catalog = ICatalogTool(org)
+            brainsCollection.append(catalog.search(OSProcess))
+            
         if isinstance(obj, OSProcessClass):
             source = obj.osProcessOrganizer()
             source.moveOSProcessClasses(targetUid, obj.id)
@@ -58,6 +71,14 @@ class ProcessFacade(TreeFacade):
             newObj = getattr(target, obj.id)
         else:
             raise Exception('Illegal type %s' % obj.__class__.__name__)
+
+        # fire the object moved event for the process instances (will update catalog)
+        for brains in brainsCollection:
+            objs = imap(unbrain, brains)
+            for item in objs:
+                notify(ObjectMovedEvent(item, item.os(), item.id, item.os(), item.id))
+                
+
         return newObj.getPrimaryPath()
 
     def getSequence(self):

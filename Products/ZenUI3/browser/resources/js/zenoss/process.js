@@ -79,10 +79,19 @@ var MoveProcessCallback = Ext.extend(Object, {
         MoveProcessCallback.superclass.constructor.call(this);
     },
     call: function(provider, response) {
-        this.node.setId(response.result.id);
-        this.node.attributes.uid = response.result.uid;
-        this.tree.selectPath(this.node.getPath());
-        Ext.History.add(this.tree.id + Ext.History.DELIMITER + this.node.id);
+        var node = this.node,
+            tree = this.tree;        
+        node.setId(response.result.id);
+        node.attributes.uid = response.result.uid;
+        tree.selectPath(this.node.getPath());
+        tree.getRootNode().reload(function() {
+            tree.expandAll();
+            // select the node that just moved
+            tree.selectByToken(node.attributes.id);
+        });
+        
+        Ext.History.add(tree.id + Ext.History.DELIMITER + node.id);
+        
     }
 });
 
