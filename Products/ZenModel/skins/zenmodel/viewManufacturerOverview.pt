@@ -22,7 +22,7 @@
     
     <tr>
       <td class="tableheader">Name</td>
-      <td class="tablevalues" tal:content="here/id">Zentinel</td>
+      <td class="tablevalues" tal:content="here/titleOrId">Zentinel</td>
       <td class="tableheader">Phone</td>
       <td width="14%" class="tablevalues" tal:content="here/supportNumber"/>
     </tr>

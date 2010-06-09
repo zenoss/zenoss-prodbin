@@ -201,13 +201,14 @@ class Manufacturer(ZenModelRM, ZenPackable):
 
 
     security.declareProtected('Manage DMD', 'manage_editManufacturer')
-    def manage_editManufacturer(self, id='', url='', supportNumber='',
+    def manage_editManufacturer(self, id='', title='', url='', supportNumber='',
                 address1='', address2='', city='', state='', zip='',
                 country='', regexes=[], REQUEST=None):
         """
         Edit a Manufacturer from a web page.
         """
         redirect = self.rename(id)
+        self.title = title
         self.url = url
         self.supportNumber = supportNumber
         self.address1 = address1

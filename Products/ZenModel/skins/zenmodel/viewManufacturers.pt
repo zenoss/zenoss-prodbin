@@ -45,7 +45,7 @@ Optional titlebar stuff
                 type="checkbox" name="ids:list" 
                 tal:attributes="value manuf/getId"/>
             <a tal:attributes="href manuf/getPrimaryUrlPath" 
-                tal:content="manuf/id">Zentinel</a>
+                tal:content="manuf/titleOrId">Zentinel</a>
         </td>
         <td class="tablevalues">
             <a tal:attributes="href manuf/url" 

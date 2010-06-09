@@ -27,8 +27,8 @@
     <tr>
         <td class="tableheader">Name</td>
         <td class="tablevalues">
-        <input class="tablevalues" type="text" name="id" size="25"
-            tal:attributes="value here/id" />
+        <input class="tablevalues" type="text" name="title" size="25"
+            tal:attributes="value here/titleOrId" />
         </td>
         <td class="tableheader">Phone</td>
         <td class="tablevalues">
