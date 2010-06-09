@@ -83,6 +83,12 @@ Zenoss.DeviceDetailBar = Ext.extend(Zenoss.LargeToolbar, {
         });
         Zenoss.DeviceDetailBar.superclass.constructor.call(this, config);
     },
+    contextCallbacks: [],
+    addDeviceDetailBarItem: function(item, fn) {
+      this.items.push('-')
+      this.items.push(item)
+      this.on('contextchange',fn,this)
+    },
     refresh: function() {
         this.setContext(this.contextUid);
     },
@@ -104,6 +110,7 @@ Zenoss.DeviceDetailBar = Ext.extend(Zenoss.LargeToolbar, {
             this.statusitem.setText(
                 ZR.pingStatusLarge(data.status));
             this.prodstateitem.setText(data.productionState);
+            this.fireEvent('contextchange', this, data)
         }, this);
     }
 });

@@ -199,7 +199,32 @@
         },
         showFooter: function() {
             this.footer.show();
+        },
+        addField: function(field) {
+            this.items.push( field );
+        },
+        _indexOfFieldName: function(name) {
+            var idx = -1
+            for ( i = 0; i < this.items.length; i++ ){
+                if (this.items[i].name == name){
+                    idx = i
+                    break
+                }
+            }
+        return idx
+        },
+        replaceField: function(name,field) {
+            idx = this._indexOfFieldName(name)
+            this.items[idx] = field
+        },
+        removeField: function(name) {
+            idx = this._indexOfFieldName(name)
+            this.items.splice(idx,1)
+        },
+        getField: function(name) {
+            return this.items[this._indexOfFieldName(name)]
         }
+
     });
 
     Ext.reg('devformpanel', Zenoss.DeviceOverviewForm);
@@ -237,6 +262,7 @@
                     },
                     defaultType: 'devformpanel',
                     items: [{
+                        id:'deviceoverviewpanel_summary',
                         defaultType: 'displayfield',
                         items: [{
                             fieldLabel: _t('Uptime'),
@@ -259,6 +285,7 @@
                             fieldLabel: _t('Memory/Swap')
                         }]
                     },{
+                        id:'deviceoverviewpanel_idsummary',
                         defaultType: 'displayfield',
                         autoHeight: true,
                         listeners: {
@@ -300,6 +327,7 @@
                             name: 'location'
                         }]
                     },{
+                        id:'deviceoverviewpanel_descriptionsummary',
                         defaultType: 'textfield',
                         items: [{
                             fieldLabel: _t('Tag'),
@@ -353,6 +381,7 @@
                         }]
                     }]
                 },{
+                    id:'deviceoverviewpanel_customsummary',
                     defaultType: 'devformpanel',
                     autoHeight: true,
                     layout: 'hbox',
@@ -373,6 +402,7 @@
                             name: 'comments'
                         }]
                     },{
+                    id:'deviceoverviewpanel_snmpsummary',
                         defaultType: 'displayfield',
                         flex: 1,
                         minHeight: 230,

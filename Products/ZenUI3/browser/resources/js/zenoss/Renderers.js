@@ -83,6 +83,14 @@ Ext.apply(Zenoss.render, {
         return upDownTemplate.apply([str.toLowerCase(), str, '-large']);
     },
 
+    upDownUnknown: function(status,displayString){
+        return upDownTemplate.apply([status.toLowerCase(),displayString])
+    },
+
+    upDownUnknownLarge: function(status,displayString){
+        return upDownTemplate.apply([status.toLowerCase(),displayString,'-large'])
+    },
+
     ipAddress: function(ip) {
         if (!ip||ip=='0.0.0.0') {
             return '';
