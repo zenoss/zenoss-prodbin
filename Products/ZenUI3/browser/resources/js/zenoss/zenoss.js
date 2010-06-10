@@ -1433,8 +1433,9 @@ Zenoss.DetailPanel = Ext.extend(Ext.Panel, {
                                                 event.device_title);
         // component_link
         if (event.component_url) {
-            event.component_link = Zenoss.render.DeviceComponent(event.component_url,
-                                                event.component_title);
+            event.component_link = Zenoss.render.default_uid_renderer(
+                                    event.component_url,
+                                    event.component_title);
         }else {
             event.component_link = event.component_title;
         }
