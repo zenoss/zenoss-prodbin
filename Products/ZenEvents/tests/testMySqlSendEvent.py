@@ -131,7 +131,7 @@ class MySqlSendEventTest(BaseTestCase):
         evid = self.zem.sendEvent(evt)
         self.assert_(evid is None)
         self.assertEquals(len(self.zem.getHeartbeat()), 0)
-        self.assertEquals(len(self.zem.getHeartbeat(failures=False)), 1)
+        self.assertTrue(len(self.zem.getHeartbeat(failures=False)) >= 1)
 
 
     def testHeartbeatClassTimedOut(self):

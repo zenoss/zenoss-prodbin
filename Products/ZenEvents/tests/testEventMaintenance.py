@@ -65,10 +65,11 @@ class testEventMaintenance(BaseTestCase):
         proc = zem.manage_deleteHistoricalEvents(agedDays=1)
         proc.wait()
 
-        # Verify that the event, detail and log were all deleted.
-        self.assertEquals(history_count, self._getEventCount('history'))
-        self.assertEquals(detail_count, self._getEventCount('detail'))
-        self.assertEquals(log_count, self._getEventCount('log'))
+        # verify that the history is <= current history since other events
+        # could have been added this day
+        self.assertTrue(self._getEventCount('history') <= history_count)
+        self.assertTrue(self._getEventCount('detail') <= detail_count)
+        self.assertTrue(self._getEventCount('log') <= log_count)
 
 
 def test_suite():
