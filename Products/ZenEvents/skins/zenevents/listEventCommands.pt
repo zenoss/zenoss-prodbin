@@ -12,7 +12,7 @@
         zem here/ZenTableManager;
         objects here/commands;
         batch python: here.ZenTableManager.getBatch(tableName,objects); 
-            tabletitle string:">
+            tabletitle string:Commands triggered by events:">
         <tal:block metal:use-macro="here/zenuimacros/macros/zentable">
 
         <!--====Optional titlebar slots=============
@@ -28,9 +28,6 @@
         <tal:block metal:fill-slot="zentablecontents">
         <!-- BEGIN TABLE CONTENTS -->
             
-  <tr>
-    <th class="tableheader" colspan="6">Commands triggered by events:</th>
-  </tr>
     <tr>
     <th tal:replace="structure python:zem.getTableHeader(
                             tableName,'primarySortKey','Name')"/>
@@ -65,7 +62,7 @@
   </tal:block>
 
   <tr>
-      <td colspan="4" class="tableheader">
+      <td colspan="6" class="tableheader">
           <span metal:use-macro="here/zenTableNavigation/macros/navbody"/>
       </td>
   </tr>
