@@ -4,7 +4,8 @@
 <form method=post 
     tal:attributes="action string:${here/absolute_url_path}">
     <input type="hidden" name="zenScreenName" 
-        tal:attributes="value template/id" /> 
+        value="editMultiGraphReport" /> 
+    <input type="hidden" name="redirect" value="true" />
 
 
         <tal:block tal:define="message request/message | string:State at time:; 
@@ -66,7 +67,8 @@
 <form method="POST" name="collectionsForm"
     tal:attributes="action here/absolute_url_path">
     <input type="hidden" name="zenScreenName" 
-        tal:attributes="value template/id"/>
+        value="editMultiGraphReport" /> 
+    <input type="hidden" name="redirect" value="true" />
         
     <tal:block tal:define="tableName string:collectionsTable; 
         objects here/getCollections;
@@ -108,7 +110,9 @@
 <form tal:attributes="method string:post;
                 action here/absolute_url_path;
                 name string:graphList">
-<input type="hidden" name="zenScreenName" tal:attributes="value template/id"/>
+    <input type="hidden" name="zenScreenName" 
+        value="editMultiGraphReport" /> 
+    <input type="hidden" name="redirect" value="true" />
 
 
         <tal:block tal:define="tableName string:graphdeflist; 
@@ -184,7 +188,8 @@
 <form method="POST" name="graphGroupForm"
     tal:attributes="action here/absolute_url_path">
     <input type="hidden" name="zenScreenName" 
-        tal:attributes="value template/id"/>
+        value="editMultiGraphReport" /> 
+    <input type="hidden" name="redirect" value="true" />
     <tal:block tal:define="tableName string:graphGroupList; 
         objects here/getGraphGroups;
         batch python:here.ZenTableManager.getBatch(tableName,objects,

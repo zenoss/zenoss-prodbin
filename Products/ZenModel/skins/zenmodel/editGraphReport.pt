@@ -92,7 +92,8 @@
 <form method="post" id="editReportForm"
     tal:attributes="action string:${here/absolute_url_path}">
     <input type="hidden" name="zenScreenName" 
-        tal:attributes="value template/id" /> 
+        value="editGraphReport" /> 
+    <input type="hidden" name="redirect" value="true" />
 
 
         <tal:block tal:define="tabletitle string: Graph Report">
@@ -164,7 +165,8 @@
     tal:attributes="action string:${here/absolute_url_path}"
     >
     <input type="hidden" name="zenScreenName" 
-        tal:attributes="value template/id" /> 
+        value="editGraphReport" /> 
+    <input type="hidden" name="redirect" value="true" />
 
 
         <tal:block tal:define="tabletitle string:Add New Graph">
@@ -184,6 +186,7 @@
             <br />
             <select name="deviceIds:list" 
                 id="deviceIds" size="8"
+                class="wide-select"
                 onChange="getComponentList(); getThirdList()" multiple="1">
             </select>
             <br />
@@ -196,6 +199,7 @@
         <td class="tablevalues">
             <select name="componentPaths:list" size="6"
                 id="componentPaths" multiple="1"
+                class="wide-select"
                 onChange="getThirdList()">
             </select>
         </td>
@@ -207,6 +211,7 @@
         <td class="tablevalues">
             <select name="graphIds:list" size="6"
                 id="graphIds"
+                class="wide-select"
                 multiple="1">
             </select>
         </td>
@@ -234,7 +239,9 @@
 <form tal:attributes="method string:post;
                 action here/absolute_url_path;
                 name string:graphReportElementListform">
-<input type="hidden" name="zenScreenName" tal:attributes="value template/id"/>
+    <input type="hidden" name="zenScreenName" 
+        value="editGraphReport" /> 
+    <input type="hidden" name="redirect" value="true" />
 
 
         <tal:block tal:define="tableName string:graphReportElementList; 

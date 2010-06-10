@@ -213,6 +213,10 @@
     height: 21px;
 }
 
+select.wide-select {
+    width: 98%;
+}
+
 .ext-ie .z-bc .filterbox-left,
 .ext-ie .z-bc .filterbox-right,
 .ext-ie .z-bc .filterbox-middle {

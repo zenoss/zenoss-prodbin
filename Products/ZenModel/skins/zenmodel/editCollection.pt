@@ -191,7 +191,8 @@
             Device Class
         </td>
         <td class="tablevalues">
-            <select name="deviceClasses:list" multiple="1" size="10">
+            <select name="deviceClasses:list" multiple="1" size="10"
+                class="wide-select">
                 <option tal:repeat="org here/Devices/getSubOrganizers"
                     tal:attributes="value org/getOrganizerName"
                     tal:content="org/getOrganizerName" />
