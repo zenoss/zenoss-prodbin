@@ -30,6 +30,7 @@ Ext.onReady( function() {
             height: Ext.getCmp('viewport').getHeight() - 300,
             split: true,
             router: Zenoss.remote.ServiceRouter,
+            instancesTitle: 'Service Instances',
             zPropertyEditListeners: {
                 frameload: function() {
                     var formPanel = Ext.getCmp('serviceForm');

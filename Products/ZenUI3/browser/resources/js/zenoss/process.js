@@ -322,6 +322,7 @@ Ext.getCmp('detail_panel').add({
     height: Ext.getCmp('viewport').getHeight() - 300,
     split: true,
     router: router,
+    instancesTitle: 'Process Instances',
     zPropertyEditListeners: {
         frameload: function() {
             var formPanel = Ext.getCmp('processForm');

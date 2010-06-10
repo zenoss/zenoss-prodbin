@@ -113,7 +113,8 @@ Zenoss.SimpleInstanceGridPanel = Ext.extend(Ext.ux.grid.livegrid.GridPanel, {
 
 Ext.reg('SimpleInstanceGridPanel', Zenoss.SimpleInstanceGridPanel);
 
-Zenoss.InstanceCardPanel = Ext.extend(Ext.Panel, {
+// supply the instances implementation in the config
+Zenoss.SimpleCardPanel = Ext.extend(Ext.Panel, {
 
     constructor: function(config) {
         Ext.applyIf(config, {
@@ -126,8 +127,8 @@ Zenoss.InstanceCardPanel = Ext.extend(Ext.Panel, {
                     xtype: 'select',
                     ref: '../displaySelect',
                     mode: 'local',
-                    value: 'Process Instances',
-                    store: ['Process Instances', 'Configuration Properties'],
+                    value: config.instancesTitle,
+                    store: [config.instancesTitle, 'Configuration Properties'],
                     listeners: {
                         select: function(displaySelect, record, index) {
                             displaySelect.refOwner.getLayout().setActiveItem(index);
@@ -135,12 +136,9 @@ Zenoss.InstanceCardPanel = Ext.extend(Ext.Panel, {
                     }
                 }]
             },
-            items: [{
-                xtype: 'SimpleInstanceGridPanel',
-                ref: 'instancesGrid',
-                directFn: config.router.getInstances,
-                nameDataIndex: 'processName'
-            }, {
+            items: [
+                config.instances,
+            {
                 xtype: 'backcompat',
                 ref: 'zPropertyEdit',
                 viewName: 'zPropertyEdit',
@@ -148,12 +146,32 @@ Zenoss.InstanceCardPanel = Ext.extend(Ext.Panel, {
                 listeners: config.zPropertyEditListeners
             }]
         });
-        Zenoss.InstanceCardPanel.superclass.constructor.call(this, config);
+        Zenoss.SimpleCardPanel.superclass.constructor.call(this, config);
     },
 
     setContext: function(uid) {
-        this.instancesGrid.setContext(uid);
-        this.zPropertyEdit.setContext(uid);
+        this.items.each(function(item) {
+            item.setContext(uid);
+        });
+    }
+
+});
+
+Ext.reg('simplecardpanel', Zenoss.SimpleCardPanel);
+
+// has the instances used by the Processes page and the two Services pages
+Zenoss.InstanceCardPanel = Ext.extend(Zenoss.SimpleCardPanel, {
+
+    constructor: function(config) {
+        Ext.applyIf(config, {
+            instances: [{
+                xtype: 'SimpleInstanceGridPanel',
+                ref: 'instancesGrid',
+                directFn: config.router.getInstances,
+                nameDataIndex: 'processName'
+            }]
+        });
+        Zenoss.InstanceCardPanel.superclass.constructor.call(this, config);
     }
 
 });

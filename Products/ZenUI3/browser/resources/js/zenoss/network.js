@@ -112,7 +112,7 @@ var treesm = new Ext.tree.DefaultSelectionModel({
         'selectionchange': function (sm, newnode) {
             if (!newnode) return;
             Ext.getCmp('networkForm').setContext(newnode.attributes.uid);
-            Ext.getCmp('ipAddressGrid').setContext(newnode.attributes.uid);
+            Ext.getCmp('detail_panel').detailCardPanel.setContext(newnode.attributes.uid);
 
             if (Zenoss.Security.doesNotHavePermission('Manage DMD')) return;
             var fb = Ext.getCmp('footer_bar');
@@ -313,9 +313,6 @@ var ipAddressGridConfig = {
         border: false,
         autoExpandColumn: 'name',
         stripeRows: true,
-        tbar: {
-                items: [ { xtype: 'tbtext', text: _t('IP Addresses') } ]
-        },
         cm: new Ext.grid.ColumnModel(ipAddressColumnConfig),
         store: new Ext.ux.grid.livegrid.Store(ipAddressStoreConfig),
         sm: new Ext.ux.grid.livegrid.RowSelectionModel({
@@ -343,7 +340,24 @@ ipAddressGrid.setContext = function(uid) {
     });
 }.createDelegate(ipAddressGrid);
 
-Ext.getCmp('bottom_detail_panel').add(ipAddressGrid);
+Ext.getCmp('detail_panel').add({
+    xtype: 'simplecardpanel',
+    ref: 'detailCardPanel',
+    region: 'south',
+    height: Ext.getCmp('viewport').getHeight() - 300,
+    split: true,
+    router: Zenoss.remote.NetworkRouter,
+    instances: ipAddressGrid,
+    instancesTitle: 'IP Addresses',
+    zPropertyEditListeners: {
+        frameload: function() {
+            var formPanel = Ext.getCmp('networkForm');
+            if (formPanel.contextUid) {
+                formPanel.setContext(formPanel.contextUid);
+            }
+        }
+    }
+});
 
 //********************************************
 // Network form
@@ -495,6 +509,7 @@ var formItems = {
 var formConfig = {
     xtype: 'form',
     id: 'networkForm',
+    region: 'center',
     paramsAsHash: true,
     items: formItems,
     border: false,
@@ -535,7 +550,14 @@ networkForm.setContext = function(uid) {
     this.load({ params: {uid: uid} });
 }.createDelegate(networkForm);
 
-Ext.getCmp('top_detail_panel').add(networkForm);
+Ext.getCmp('detail_panel').add(networkForm);
+
+networkForm.getForm().on('actioncomplete', function(basicForm, action){
+    if (action.type == 'directsubmit') {
+        var uid = Ext.getCmp('networks').getSelectionModel().getSelectedNode().attributes.uid;
+        Ext.getCmp('detail_panel').detailCardPanel.setContext(uid);
+    }
+});
 
 //********************************************
 // Footer
