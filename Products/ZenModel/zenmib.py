@@ -76,6 +76,9 @@ from Products.ZenUtils.Utils import zenPath
 from zExceptions import BadRequest
 
 
+CHUNK_SIZE = 50
+
+
 class MibFile:
     """
     A MIB file has the meta-data for a MIB inside of it.
@@ -818,6 +821,8 @@ class ZenMib(ZCmdBase):
         if not functor or leafType not in pythonMib:
             return entriesAdded
 
+        mibName = pythonMib['moduleName']
+
         for name, values in pythonMib[leafType].items():
             try:
                 functor(name, **values)
@@ -831,12 +836,17 @@ class ZenMib(ZCmdBase):
                     self.log.warn("Trying to add %s '%s' as '%s'",
                                 leafType, name, newName)
                     functor(newName, **values)
+                    entriesAdded += 1
                     self.log.warn("Renamed '%s' to '%s' and added to"
                                 " MIB %s", name, newName, leafType)
                 except (SystemExit, KeyboardInterrupt): raise
                 except:
                     self.log.warn("Unable to add %s id '%s' -- skipping",
                                 leafType, name)
+            else:
+                if not entriesAdded % CHUNK_SIZE:
+                    self.commit("Loaded MIB %s into the DMD" % mibName)
+        self.commit("Loaded MIB %s into the DMD" % mibName)
         return entriesAdded
 
     def loadMibFile(self, mibFileObj, dmdMibDict):
@@ -875,12 +885,23 @@ class ZenMib(ZCmdBase):
         self.loadPythonMibs(pythonMibs)
         return True
 
+    def commit(self, message):
+        if not self.options.nocommit:
+            self.log.debug('Committing a batch of objects')
+            trans = transaction.get()
+            trans.setUser('zenmib')
+            trans.note(message)
+            trans.commit()
+            self.syncdb()
+
     def loadPythonMibs(self, pythonMibs):
         """
         Walk through the MIB dictionaries and add the MIBs to the DMD.
         """
         # Standard MIB attributes that we expect in all MIBs
         MIB_MOD_ATTS = ('language', 'contact', 'description')
+
+        self.syncdb()
 
         # Add the MIB data for each MIB into Zenoss
         for pythonMib in pythonMibs:
@@ -892,9 +913,17 @@ class ZenMib(ZCmdBase):
             # Products.ZenModel.MibModule and Products.ZenModel.MibNode
             mibModule = self.dmd.Mibs.createMibModule(
                 mibName, self.options.path)
-            for key, val in pythonMib[mibName].items():
-                if key in MIB_MOD_ATTS:
-                    setattr(mibModule, key, val)
+
+            def gen():
+                for key, val in pythonMib[mibName].iteritems():
+                    if key in MIB_MOD_ATTS:
+                        yield key, val
+
+            for i, attr in enumerate(gen()):
+                setattr(mibModule, *attr)
+                if not i % CHUNK_SIZE:
+                    self.commit("Loaded MIB %s into the DMD" % mibName)
+            self.commit("Loaded MIB %s into the DMD" % mibName)
 
             nodesAdded = self.addMibEntries('nodes', pythonMib, mibModule)
             trapsAdded = self.addMibEntries('notifications', pythonMib, mibModule)
@@ -902,12 +931,11 @@ class ZenMib(ZCmdBase):
                           nodesAdded, trapsAdded, mibName)
 
             # Add the MIB tree permanently to the DMD unless --nocommit flag.
+            msg = "Loaded MIB %s into the DMD" % mibName
+            self.commit(msg)
             if not self.options.nocommit:
-                trans = transaction.get()
-                trans.setUser("zenmib")
-                trans.note("Loaded MIB %s into the DMD" % mibName)
-                trans.commit()
-                self.log.info("Loaded MIB %s into the DMD", mibName)
+                self.log.info(msg)
+
 
     def getAllMibDepFileNames(self):
         """
