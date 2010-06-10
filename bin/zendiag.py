@@ -11,7 +11,7 @@
 # For complete information please visit: http://www.zenoss.com/oss/
 #
 ###########################################################################
-__doc__="""zendiag
+__doc__ = """zendiag
 
 Gather basic details on an installation into a single zip file for
 reporting to Zenoss support.
@@ -29,6 +29,7 @@ import subprocess
 import sys
 import tempfile
 import time
+import datetime
 import zipfile
 
 
@@ -47,6 +48,7 @@ for location in [os.environ.get('ZENHOME', '/not there'),
                  '/usr/local/zenoss']:
     if os.path.exists(os.path.join(location, 'bin/zenoss')):
         zenhome = location
+        sys.path.insert(0, zenhome)
         break
 
 # files to put into the zip file
@@ -65,7 +67,7 @@ files = [
 ]
 
 # commands to run to get information about resources, the os, etc.
-commands = [ 
+commands = [
     # name, program args
     ('df', ('df', '-a')),
     ('top', ('top', '-b', '-n', '3', '-c')),
@@ -75,7 +77,7 @@ commands = [
     ('pspython', ('ps', '-C', 'python', '-F')),
     ('psjava', ('ps', '-C', 'java', '-F')),
     ('uname', ('uname', '-a')),
-    ('uptime', ('uptime')),
+    ('uptime', ('uptime',)),
     ('zenoss', ('zenoss', 'status')),
     ('mysqlstats', ('mysql', '--defaults-file=%s' % mysqlcreds,
                     '-e', 'show status')),
@@ -87,10 +89,12 @@ commands = [
                       '-e', 'select count(*) from history')),
     ('mysqlstatus', ('mysql', '--defaults-file=%s' % mysqlcreds,
                     '-e', 'select * from status')),
+    ('mysqladmin status', ('mysqladmin', '-uroot', 'status')),
+    ('mysqladmin variables', ('mysqladmin', '-uroot', 'variables')),
     ('crontab', ('crontab', '-l')),
-    ('patches', ('sh', '-c', 'ls -l $ZENHOME/Products/*.patch')),
+    ('patches', ('sh', '-c', 'ls -l %s/Products/*.patch' % zenhome)),
     ('javaVersion', ('/usr/bin/env', 'java', '-version')),
-    ('zenpacks', ('ls', '-l', '$ZENHOME/ZenPacks')),
+    ('zenpacks', ('ls', '-l', '%s/ZenPacks' % zenhome)),
     ('ifconfig', ('/sbin/ifconfig', '-a')),
 ]
 # These commands only work if you are root
@@ -100,8 +104,10 @@ root_commands = [
     ('crontab', ('crontab', '-u', 'root', '-l')),
 ]
 
+
 def zenhubConnections():
     "Scan the netstat connection information to see who is connected to zenhub"
+    print "Scanning for zenhub connections..."
     pids = os.popen('pgrep -f zenhub.py').read().split()
     lines = os.popen('netstat -anp 2>/dev/null').read().split('\n')
     result = lines[0:2]
@@ -111,6 +117,7 @@ def zenhubConnections():
                 result.append(line)
                 break
     return '\n'.join(result)
+
 
 def mysqlfiles():
     "pull in the mysql files if you can find them and read them"
@@ -122,18 +129,87 @@ def mysqlfiles():
             pass
     return ''
 
+
 def zenossInfo():
     "get the About:Versions page data"
+
+    def format_data(fmt, data):
+        return [fmt % datum for datum in data] + ['']
+
     try:
+        print "Gathering info from zodb..."
         import Globals
         from Products.ZenUtils.ZenScriptBase import ZenScriptBase
         zsb = ZenScriptBase(noopts=True, connect=True)
         zsb.getDataRoot()
-        result = []
-        for record in zsb.dmd.About.getAllVersions():
-            result.append('%10s: %s' % (record['header'], record['data']))
-        result.append('%10s: %s' % ('uuid', zsb.dmd.uuid))
-        return '\n'.join(result)
+
+        header_data = [
+            ('Report Data', datetime.datetime.now()),
+            ('Server Key', zsb.dmd.uuid),
+            ('Google Key', zsb.dmd.geomapapikey)]
+
+        counter = {}
+        decomm = 0
+        for d in zsb.dmd.Devices.getSubDevices():
+            if d.productionState < 0:
+                decomm += 1
+            else:
+                index = '%s %s' % \
+                    (d.getDeviceClassPath(), d.getProductionStateString())
+                count = counter.get(index, 0)
+                counter[index] = count + 1
+
+        totaldev = zsb.dmd.Devices.countDevices()
+
+        device_summary_header_data = [
+            ('Total Devices', totaldev),
+            ('Total Decommissioned Devices', decomm),
+            ('Total Monitored Devices', totaldev - decomm),
+        ]
+
+        device_summary_header = ['Device Breakdown by Class and State:']
+
+        counter_keylist = counter.keys()
+        counter_keylist.sort()
+        device_summary_data = [(k, counter[k]) for k in counter_keylist]
+
+        zenpacks_header = ['ZenPacks:']
+        zenpack_ids = zsb.dmd.ZenPackManager.packs.objectIds()
+
+        zenoss_versions_data = [
+            (record['header'], record['data']) for
+                record in zsb.dmd.About.getAllVersions()]
+
+        uuid_data = [('uuid', zsb.dmd.uuid)]
+
+        event_start = time.time() - 24 * 60 * 60
+        tail_data = [
+            ('Evt Rules', zsb.dmd.Events.countInstances()),
+            ('Evt Count', zsb.dmd.ZenEventManager.countEventsSince(event_start)),
+            ('Reports', zsb.dmd.Reports.countReports()),
+            ('Templates', zsb.dmd.Devices.rrdTemplates.countObjects()),
+            ('Systems', zsb.dmd.Systems.countChildren()),
+            ('Groups', zsb.dmd.Groups.countChildren()),
+            ('Locations', zsb.dmd.Locations.countChildren())]
+
+        detail_prefix = '    '
+        std_key_data_fmt = '%s: %s'
+        detail_std_key_data_fmt = detail_prefix + std_key_data_fmt
+        detail_data_fmt = detail_prefix + '%s'
+        center_justify_fmt = '%10s: %s'
+
+        return_data = (
+            format_data(std_key_data_fmt, header_data) +
+            format_data(std_key_data_fmt, device_summary_header_data) +
+            device_summary_header +
+            format_data(detail_std_key_data_fmt, device_summary_data) +
+            zenpacks_header +
+            format_data(detail_data_fmt, zenpack_ids) +
+            format_data(center_justify_fmt, zenoss_versions_data + uuid_data) +
+            format_data(std_key_data_fmt, tail_data))
+
+        return '\n'.join(return_data)
+
     except Exception, ex:
         log.exception(ex)
 
@@ -158,6 +234,7 @@ def getmysqlcreds():
         log.warning('zeo is not running')
         return False
     log.debug("Fetching mysql credentials")
+    print "Fetching mysql credentials"
     mysqlpass = 'zenoss'
     mysqluser = 'zenoss'
     mysqlport = '3306'
@@ -176,6 +253,7 @@ def getmysqlcreds():
     except Exception, ex:
         log.exception("Unable to open the object database for "
                       "mysql credentials")
+        pass
     os.write(fd, '''[client]
 password=%s
 user=%s
@@ -185,6 +263,7 @@ database=events
 ''' % (mysqlpass, mysqluser, mysqlport, mysqlhost) )
     os.close(fd)
     return True
+
 
 def archiveText(name, output):
     "if the output is interesting, put it into the archive"
@@ -196,15 +275,18 @@ def archiveText(name, output):
         zi.date_time = time.localtime(time.time())[:6]
         archive.writestr(zi, output)
 
+
 def process_functions(functions, skip):
     "Call arbitrary python code to extract data"
     for name, function, args, kw in functions:
         if name in skip: continue
         try:
+            print "Gathering info for function %s" % name
             output = function(*args, **kw)
             archiveText('zendiag/%s.txt' % name, output)
         except Exception, ex:
             log.exception("function %s failed", name)
+
 
 def process_commands(commands, skip):
     "Run some commands and put the result into the archive file"
@@ -213,14 +295,15 @@ def process_commands(commands, skip):
             log.info("Skipping %s", name)
             continue
         try:
-            log.info("Running %s", name)
+            log.debug("Running %s (%s)" % (name, " ".join(program_args)))
+            print "Running %s (%s)" % (name, " ".join(program_args))
             fp = subprocess.Popen(program_args,
                                   stdout=subprocess.PIPE,
                                   stderr=subprocess.PIPE)
             output, error = fp.communicate()
+            code = fp.wait()
             if error:
                 log.info("%s command had an error: %s", name, error)
-            code = fp.wait()
             if code != 0:
                 log.info("%s command returned code %d", name, code)
                 if not output:
@@ -229,6 +312,7 @@ def process_commands(commands, skip):
             log.debug("Output for %s:\n%s", name, output)
         except Exception, err:
             log.exception("%s command failed", name)
+
 
 def process_files(files, skip):
     "Archive some key files"
@@ -254,6 +338,7 @@ def process_files(files, skip):
                 except Exception, ex:
                     log.exception("could not access %s", filestr)
 
+
 def performance_graphs():
     "Turn the collector performance data into graphs and send them back"
     pattern = os.path.sep.join([zenhome, 'perf', 'Daemons', '*', '*.rrd'])
@@ -275,6 +360,7 @@ def performance_graphs():
         except Exception, ex:
             log.exception("Exception generating an RRD Graph for %s" % filename)
 
+
 def usage():
     print >>sys.stderr, """
 Usage:
@@ -282,8 +368,9 @@ Usage:
         -v         print in verbose messages about collection
         -d         include the object database (Data.fs)
         -s         suppress collection of some data (eg. -s Daemons)
-        -h         set ZENHOME explicity, useful when running the script as root
+        -h         set ZENHOME explicity
     """
+
 
 def main():
     "Parse args and create a .zip file with the results"
@@ -309,8 +396,11 @@ def main():
                 os.unlink(archive_name)
                 usage()
                 return
-        logging.basicConfig(level=level)
-        log = logging.getLogger("zendiag")
+        logging.basicConfig()
+        log = logging.getLogger('zendiag')
+        log.setLevel(level)
+        log.info('Starting zendiag')
+
         os.environ['ZENHOME'] = zenhome
         os.environ['PATH'] += ":%s/bin" % zenhome
         if not getmysqlcreds():
@@ -325,14 +415,15 @@ def main():
         process_functions(functions, skip)
         process_files(files, skip)
         process_commands(commands, skip)
-        if os.getuid() == 0:
-            process_commands(root_commands, skip)
-        else:
-            log.warning("Not running as root, ignoring commands that "
-                        "require additional privileges")
+        #if os.getuid() == 0:
+        #    process_commands(root_commands, skip)
+        #else:
+        #    log.warning("Not running as root, ignoring commands that "
+        #                "require additional privileges")
         archive.close()
         print "Diagnostic data stored in %s" % archive_name
     finally:
         os.unlink(mysqlcreds)
 
-main()
+if __name__ == '__main__':
+    main()
