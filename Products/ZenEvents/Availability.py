@@ -122,7 +122,6 @@ class Report:
         self.DevicePriority = DevicePriority
         self.monitor = monitor
 
-
     def tuple(self):
         return (
             self.startDate, self.endDate, self.eventClass, self.severity,
@@ -155,7 +154,8 @@ class Report:
         w += ' AND lastTime > %(startDate)s '
         w += ' AND firstTime <= %(endDate)s '
         w += ' AND firstTime != lastTime '
-        w += " AND eventClass = '%(eventClass)s' "
+        w += " AND (eventClass = '%s' OR eventClass LIKE '%s/%%%%') " % (self.eventClass,
+                                                                         self.eventClass.rstrip('/'))
         w += " AND prodState >= %(prodState)s "
         if self.device:
             w += " AND device = '%(device)s' "
@@ -166,9 +166,11 @@ class Report:
         if self.agent is not None:
             w += " AND agent = '%(agent)s' "
         if self.DeviceClass is not None:
-            w += " AND DeviceClass = '%(DeviceClass)s' "
+            w += " AND (DeviceClass = '%s' " % self.DeviceClass
+            w += " OR DeviceClass LIKE '%s/%%%%') " % self.DeviceClass.rstrip('/')
         if self.Location is not None:
-            w += " AND Location = '%(Location)s' "
+            w += " AND (Location = '%s' " % self.Location
+            w += " OR Location LIKE '%s/%%%%') " % self.Location.rstrip('/')
         if self.System is not None:
             w += " AND Systems LIKE '%%%(System)s%%' "
         if self.DeviceGroup is not None:
