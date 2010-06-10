@@ -26,4 +26,3 @@ class HWComponent(DeviceComponent, Hardware):
         hw = self.hw()
         if hw: return hw.device()
 
-

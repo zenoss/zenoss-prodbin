@@ -38,6 +38,7 @@ def JavaScriptSourceViewlet(source):
                   'weight':2})
     return klass
 
+
 def directRouter(_context, name, class_, namespace=None, for_=Interface,
                  layer=IDefaultBrowserLayer, timeout="30000", 
                  permission='zenoss.Common'):
