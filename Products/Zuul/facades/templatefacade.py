@@ -61,9 +61,17 @@ class TemplateFacade(ZuulFacade):
         """
         @returns list of targets for our new template
         """
-        targets = self.getCopyTargets('/zport/dmd/Devices/rrdTemplates/Device')
-        return [dict(uid='/zport/dmd/Devices/rrdTemplates/Device', label='/Devices')] + targets
-                
+        cat = ICatalogTool(self._dmd)
+        results = []
+        # it can be any device class that we add the template too
+        brains = cat.search(types=[DeviceClass])
+        for brain in brains:
+            path = brain.getPath().replace('/zport/dmd/', '')
+            path = path.replace('/'+ brain.id, '')
+            label = "%s in %s" % (brain.name, path)
+            results.append(dict(uid=brain.getPath(), label=label))
+        return results
+                        
     def addTemplate(self, id, targetUid):
         id = prepId(id)
         # make the assumption targetUid is always a device class
