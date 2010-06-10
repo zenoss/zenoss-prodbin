@@ -26,6 +26,7 @@ import transaction
 
 from twisted.spread import pb
 import math
+import re
 
 from ModelerService import ModelerService
 
@@ -156,7 +157,8 @@ class DiscoverService(ModelerService):
             # Update device with latest info from zendisc
             e.dev.setManageIp(kw['manageIp'])
             # only overwrite title if it has not been set
-            if e.dev.title is None or len(e.dev.title) <= 0:
+            if e.dev.title is None or len(e.dev.title) <= 0 or \
+               re.match('^0*([0-9]{1,2}|1[0-9]{2}|2[0-4][0-9]|25[0-5])$', e.dev.title):
                 e.dev.setTitle(kw['deviceName'])
             for key in ('manageIp', 'deviceName', 'devicePath', 
                         'discoverProto'): 
