@@ -62,9 +62,9 @@ updateDataSources = function(uid) {
         panel.doLayout();
     } else {
         // create a new async node since we may have had a dummy one
-        root = new Ext.tree.AsyncTreeNode();
+        root = Ext.getCmp(dataSourcesId).getRootNode();
         root.setId(uid);
-        Ext.getCmp(dataSourcesId).setRootNode(root);
+        root.reload();      
     }
 };
 
@@ -96,6 +96,7 @@ updateGraphs = function(uid) {
     });
 };
 
+                
 selectionchangeHandler = function(sm, node) {
     if (node){
         updateDataSources(node.attributes.uid);
@@ -104,12 +105,6 @@ selectionchangeHandler = function(sm, node) {
         // set the context for the id fields (they validate their id against this context)
         Zenoss.env.PARENT_CONTEXT = node.attributes.uid;
         Ext.History.add(treeId + Ext.History.DELIMITER + node.attributes.uid);
-    }else {
-        // clear thresholds graphs and datasources
-        Ext.getCmp(graphsId).getStore().removeAll();
-        Ext.getCmp(thresholdsId).getStore().removeAll();
-        // only way to clear the store of a tree grid is to set a dummy node
-        Ext.getCmp(dataSourcesId).setRootNode(new Ext.tree.TreeNode());
     }
 
     // enable the footer bar buttons

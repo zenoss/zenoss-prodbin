@@ -228,12 +228,20 @@ Zenoss.TemplateTreePanel = Ext.extend(Ext.tree.TreePanel, {
         // convert uid to path and select the path
         // example uid: '/zport/dmd/Devices/Power/UPS/APC/rrdTemplates/Device'
         // example path: '/root/Device/Device..Power.UPS.APC'
-        var templateSplit, pathParts, nameParts, templateName, dmdPath, path;
-        templateSplit = unescape(uid).split('/rrdTemplates/');
-        pathParts = templateSplit[0].split('/');
-        nameParts = templateSplit[1].split('/');
-        templateName = nameParts[0];
+        var templateSplit, pathParts, nameParts,
+            templateName, dmdPath, path, deviceName;
 
+        if (uid.search('/rrdTemplates/') != -1) {
+            templateSplit = unescape(uid).split('/rrdTemplates/');
+            pathParts = templateSplit[0].split('/');
+            nameParts = templateSplit[1].split('/');
+            templateName = nameParts[0];
+        }else{
+            // it is a template on a device
+            pathParts = uid.replace('/devices/', '/').split('/');
+            templateName = pathParts.pop();
+        }
+                
         if ( pathParts.length === 4 ) {
             // Defined at devices, special case, include 'Devices'
             dmdPath = 'Devices';
