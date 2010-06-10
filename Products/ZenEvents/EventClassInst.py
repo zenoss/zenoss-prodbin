@@ -255,7 +255,7 @@ class EventClassInst(EventClassPropertyMixin, ZenModelRM, EventView,
                 , 'permissions'   : (Permissions.view,)
                 },
                 { 'id'            : 'config'
-                , 'name'          : 'zProperties'
+                , 'name'          : 'Configuration Properties'
                 , 'action'        : 'zPropertyEditNew'
                 , 'permissions'   : ("Manage DMD",)
                 },
