@@ -23,7 +23,7 @@ Ext.ns('Zenoss.events');
  */
 Zenoss.EventPanelSelectionModel = Ext.extend(Zenoss.ExtraHooksSelectionModel, {
     selectState: null,
-    badIds: [],
+    badIds: {},
     initEvents: function(){
         Zenoss.EventPanelSelectionModel.superclass.initEvents.call(this);
         this.on('beforerowselect', this.handleBeforeRowSelect, this);
@@ -115,7 +115,7 @@ Zenoss.EventPanelSelectionModel = Ext.extend(Zenoss.ExtraHooksSelectionModel, {
                 this.deselectRow(i);
             }
         }
-        this.badIds = [];
+        this.badIds = {};
         Zenoss.EventPanelSelectionModel.superclass.clearSelections.apply(this, arguments);
     },
     onRefresh: function(){
