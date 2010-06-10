@@ -318,6 +318,7 @@ class DeviceRouter(TreeRouter):
             return DirectResponse.succeed(
                 devtree = self.getTree('/zport/dmd/Devices'),
                 grptree = self.getTree('/zport/dmd/Groups'),
+                systree = self.getTree('/zport/dmd/Systems'),
                 loctree = self.getTree('/zport/dmd/Locations')
             )
         except Exception, e:
@@ -464,7 +465,7 @@ class DeviceRouter(TreeRouter):
         data = []
         for template in templates:
             label = '%s (%s)'  % (template.titleOrId(), template.getUIPath())
-            data.append([template.id, label])                         
+            data.append([template.id, label])
         return DirectResponse.succeed(data=Zuul.marshal(data))
 
     def getBoundTemplates(self, uid):
@@ -473,7 +474,7 @@ class DeviceRouter(TreeRouter):
         data = []
         for template in templates:
             label = '%s (%s)'  % (template.titleOrId(), template.getUIPath())
-            data.append([template.id, label])                         
+            data.append([template.id, label])
         return DirectResponse.succeed(data=Zuul.marshal(data))
 
     @require('Edit Local Templates')

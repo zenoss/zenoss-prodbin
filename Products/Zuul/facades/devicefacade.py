@@ -167,25 +167,25 @@ class DeviceFacade(TreeFacade):
         devs = imap(self._getObject, uids)
         if isinstance(organizer, DeviceGroup):
             for dev in devs:
-                names = dev.getDeviceGroupNames()
-                try:
-                    names.remove(organizername)
-                except ValueError:
-                    pass
-                else:
-                    dev.setGroups(names)
-        if isinstance(organizer, System):
+                groups = dev.getDeviceGroupNames()
+
+                newGroups = self._excludePath(organizername, groups)
+                if newGroups != groups:
+                    dev.setGroups(newGroups)
+        elif isinstance(organizer, System):
             for dev in devs:
-                names = dev.getSystemNames()
-                try:
-                    names.remove(organizername)
-                except ValueError:
-                    pass
-                else:
-                    dev.setSystems(names)
+                systems = dev.getSystemNames()
+
+                newSystems = self._excludePath(organizername, systems)
+                if newSystems != systems:
+                    dev.setSystems(newSystems)
         elif isinstance(organizer, Location):
             for dev in devs:
                 dev.setLocation(None)
+
+    def _excludePath(self, path, paths):
+        """Return all paths not within path"""
+        return [name for name in paths if '%s/' % path  not in '%s/' % name]
 
     @info
     def getUserCommands(self, uid=None):
@@ -368,7 +368,7 @@ class DeviceFacade(TreeFacade):
         # make sure we have bound templates before we remove them
         if obj.hasProperty('zDeviceTemplates'):
             obj.removeZDeviceTemplates()
-                
+
     def getOverridableTemplates(self, uid):
         """
         A template is overrideable at the device if it is bound to the device and

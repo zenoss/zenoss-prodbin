@@ -154,10 +154,10 @@ treesm = new Ext.tree.DefaultSelectionModel({
                 Zenoss.util.setContext(uid, 'detail_panel', 'organizer_events',
                                        'commands-menu', 'footer_bar');
                 setDeviceButtonsDisabled(true);
-                
+
                 // explicitly set the new security context (to update permissions)
                 Zenoss.Security.setContext(uid);
-                
+
                 var card = Ext.getCmp('master_panel').getComponent(0);
                 //should "ask" the DetailNav if there are any details before showing
                 //the button
@@ -459,11 +459,13 @@ Ext.apply(Zenoss.devices, {
                              function(response) {
                                  var devtree = Ext.getCmp('devices'),
                                      loctree = Ext.getCmp('locs'),
+                                     systree = Ext.getCmp('systems'),
                                      grptree = Ext.getCmp('groups');
                                  resetGrid();
                                  devtree.update(response.devtree);
                                  loctree.update(response.loctree);
                                  grptree.update(response.grptree);
+                                 systree.update(response.systree);
                                  grid.view.showLoadMask(false);
                              }
                         );
@@ -770,7 +772,7 @@ function initializeTreeDrop(tree) {
         ddGroup: 'devicegriddd',
         enableDD: Zenoss.Security.hasPermission('Change Device')
     });
-    
+
     tree.on('beforenodedrop', function(e) {
         var grid = Ext.getCmp('device_grid'),
             targetnode = e.target,
@@ -818,11 +820,11 @@ function initializeTreeDrop(tree) {
             return success;
         }else {
             var organizerUid = e.data.node.attributes.uid;
-            
+
             if (!tree.canMoveOrganizer(organizerUid, targetuid)) {
                 return false;
             }
-            
+
             // show a confirmation for organizer move
             Ext.Msg.show({
                 title: _t('Move Organizer'),
@@ -842,7 +844,7 @@ function initializeTreeDrop(tree) {
                             if(data.success) {
                                 // add the new node to our history
                                 Ext.History.add(me.id + Ext.History.DELIMITER + data.data.uid.replace(/\//g, '.'));
-                                tree.getRootNode().reload({                                    
+                                tree.getRootNode().reload({
                                     callback: resetGrid
                                 });
                                 grid.view.showLoadMask(false);
@@ -920,7 +922,7 @@ var devtree = {
         }
     }
 };
-                
+
 var grouptree = {
     xtype: 'HierarchyTreePanel',
     id: 'groups',
@@ -1082,6 +1084,10 @@ var device_grid = new Zenoss.DeviceGridPanel({
     }),
     setContext: function(uid) {
         Zenoss.DeviceGridPanel.superclass.setContext.call(this, uid);
+
+        this.getSelectionModel().clearSelections();
+
+
         REMOTE.getInfo({uid: uid, keys: ['name', 'description', 'address']}, function(result) {
             var title = result.data.name;
             var qtip;
@@ -1247,11 +1253,11 @@ Ext.getCmp('center_panel').add({
                     Ext.History.add([node.getOwnerTree().id, node.id].join(Ext.History.DELIMITER));
                     if (Zenoss.Security.hasPermission('Manage DMD')) {
                         footer.buttonAdd.enable();
-                        footer.buttonDelete.enable();   
+                        footer.buttonDelete.enable();
                     }
-                    
+
                 }
-            }            
+            }
         }
     },{
         xtype: 'contextcardpanel',
