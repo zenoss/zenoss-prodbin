@@ -33,7 +33,9 @@ Ext.onReady( function() {
             zPropertyEditListeners: {
                 frameload: function() {
                     var formPanel = Ext.getCmp('serviceForm');
-                    formPanel.setContext(formPanel.contextUid);
+                    if (formPanel.contextUid) {
+                        formPanel.setContext(formPanel.contextUid);
+                    }
                 }
             }
         };
