@@ -1001,10 +1001,10 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable,
         elif ut == 0:
             return "0d:0h:0m:0s"
         ut = float(ut)/100.
-        days = ut/86400
-        hour = (ut%86400)/3600
-        mins = (ut%3600)/60
-        secs = ut%60
+        days = int(ut/86400)
+        hour = int((ut%86400)/3600)
+        mins = int((ut%3600)/60)
+        secs = int(ut%60)
         return "%02dd:%02dh:%02dm:%02ds" % (
             days, hour, mins, secs)
 
