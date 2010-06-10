@@ -9,7 +9,9 @@ class MessagingRouter(DirectRouter):
         super(MessagingRouter, self).__init__(context, request)
 
     def getUserMessages(self):
-        messages = IUserMessages(self.context).get_unread()
+        # user messages are stored in the logged in users "usersettings" object
+        # which must be able to access ZenUsers (off of dmd)
+        messages = IUserMessages(self.context.zport.dmd).get_unread()
         messages.extend(IBrowserMessages(self.context).get_unread())
         messages.sort(key=lambda x:x.timestamp)
         result = []
