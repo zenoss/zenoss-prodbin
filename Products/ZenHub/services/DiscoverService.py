@@ -158,7 +158,7 @@ class DiscoverService(ModelerService):
             e.dev.setManageIp(kw['manageIp'])
             # only overwrite title if it has not been set
             if e.dev.title is None or len(e.dev.title) <= 0 or \
-               re.match('^0*([0-9]{1,2}|1[0-9]{2}|2[0-4][0-9]|25[0-5])$', e.dev.title):
+               re.match('^(([0-9]{1,2}|1[0-9]{2}|2[0-4][0-9]|25[0-5])\.){3}([0-9]{1,2}|1[0-9]{2}|2[0-4][0-9]|25[0-5]){1}$', e.dev.title):
                 e.dev.setTitle(kw['deviceName'])
             for key in ('manageIp', 'deviceName', 'devicePath', 
                         'discoverProto'): 
