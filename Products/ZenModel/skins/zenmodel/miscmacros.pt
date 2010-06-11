@@ -1,5 +1,6 @@
 <span metal:define-macro="breadCrumbs"
-    tal:repeat="crumbinfo here/breadCrumbs" tal:omit-tag="">
+    tal:define="bc here/breadCrumbs"
+    tal:repeat="crumbinfo python:[(bc[i][0], '%s%s' % (bc[i][1], ' >' if i < len(bc) - 1 else '')) for i in range(0, len(bc))]" tal:omit-tag="">
     <a href="_" tal:attributes="href python:crumbinfo[0]"
         tal:content="python: crumbinfo[1]">link</a>
 </span>

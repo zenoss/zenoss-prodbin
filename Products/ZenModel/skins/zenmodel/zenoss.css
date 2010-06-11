@@ -263,30 +263,6 @@ span.searchform-label {
     z-index: 1;
 }
 
-#breadCrumbPane {
-	color: #000;
-	font-size: 9pt;
-    height: 25px;
-    line-height: 25px;
-	margin: 0px;
-	font-weight: bold;
-	border: medium none;
-    position: relative;
-    border-bottom: 1px solid #888;
-}
-
-#breadCrumbPane a {
-	color: #454545;
-	font-size: inherit;
-/*	background: inherit;
-*/	font-weight: inherit;
-    text-decoration: none;
-}
-
-#breadCrumbPane a:hover {
-    text-decoration: underline;
-}
-
 #tabsPane {
 }
 

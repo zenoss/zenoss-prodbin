@@ -946,6 +946,7 @@ td.x-date-mp-sel a{
     border-width:0;
 }
 .x-panel-header{
+    font-family: helvetica,arial,tahoma,sans-serif;
     color: #f8f8f8;
     border:1px solid #abc;
     background-color: #566d87;

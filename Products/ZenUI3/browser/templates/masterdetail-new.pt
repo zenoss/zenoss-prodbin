@@ -58,7 +58,7 @@ Ext.onReady(function(){
     if (Zenoss.env.pageHasBreadCrumbs) {
         items.push({
             region: 'north',
-            height: 26,
+            height: 24,
             bodyCssClass: 'z-bc-bread-crumb-pane',
             contentEl: 'breadCrumbPane'
         });
