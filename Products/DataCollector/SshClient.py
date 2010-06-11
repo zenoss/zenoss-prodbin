@@ -100,6 +100,9 @@ def sendEvent( self, message="", device='', severity=Event.Error ):
         if hasattr_path( self, "factory.datacollector.sendEvent" ):
             self.factory.datacollector.sendEvent( error_event )
 
+        elif hasattr_path( self, "factory.sendEvent" ):
+            self.factory.sendEvent( error_event )
+
         elif hasattr_path( self, "datacollector.sendEvent" ):
             self.datacollector.sendEvent( error_event )
 

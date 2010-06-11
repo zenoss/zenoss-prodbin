@@ -173,7 +173,7 @@ class SshPool:
 
     def __init__(self):
         self.pool = {}
-
+        self.eventSender = None
 
     def get(self, cmd):
         "Make a new SSH connection if there isn't one available"
@@ -187,6 +187,8 @@ class SshPool:
             # New param KeyPath
             result = MySshClient(dc.device, dc.ipAddress, dc.port,
                                  options=options)
+            if self.eventSender is not None:
+                result.sendEvent = self.eventSender.sendEvent
             result.run()
             self.pool[dc.device] = result
         return result
@@ -481,6 +483,7 @@ class zencommand(RRDDaemon):
         self.schedule = []
         self.timeout = None
         self.pool = SshPool()
+        self.pool.eventSender = self
         self.executed = 0
 
     def remote_deleteDevice(self, doomed):
