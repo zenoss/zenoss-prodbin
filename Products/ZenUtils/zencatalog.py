@@ -237,8 +237,9 @@ class ZenCatalog(ZCmdBase):
                 for ob in filter(None, c):
                     catalog_object(ob)
                 transaction.commit()
-            except ConflictError:
+            except ConflictError, e:
                 log.info('Conflict error during commit. Retrying...')
+                log.debug('Object in conflict: %r' % (self.app._p_jar[e.oid],))
                 reactor.callLater(0, handle_chunk, c, d)
             except (ClientDisconnected, DisconnectedError):
                 log.info('Connection problem during commit. '
