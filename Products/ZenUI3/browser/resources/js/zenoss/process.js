@@ -111,7 +111,7 @@ var ProcessTreePanel = Ext.extend(Zenoss.HierarchyTreePanel, {
             listeners: {
                 scope: this,
                 nodedrop: this.onNodeDrop,
-                load: this.onLoad
+                expandnode: this.onExpandnode
             },
             root: {
                 id: 'Processes',
@@ -133,14 +133,21 @@ var ProcessTreePanel = Ext.extend(Zenoss.HierarchyTreePanel, {
         router.moveProcess(params, callback.call, callback);
     },
     
-    onLoad: function(node) {
+    onExpandnode: function(node) {
         if (node.id === '.zport.dmd.Processes') {
             // the root node has been loaded from the server.  All the nodes
             // in this TreePanel have been registered and the getNodeById
             // method will now return a node instance instead of null.
             var token = Ext.History.getToken();
             if (token) {
-                var nodeId = token.split(Ext.History.DELIMITER).slice(1);
+                var nodeId = unescape(token.split(Ext.History.DELIMITER).slice(1));
+                var organizers = nodeId.split('.osProcessClasses.')[0].split('.').slice(4);
+                var orgId = '.zport.dmd.Processes';
+                // expand each of the organizers leading to the node in the token
+                Ext.each(organizers, function(org) {
+                    orgId += '.' + org;
+                    this.getNodeById(orgId).expand();
+                }, this);
                 this.selectByToken(nodeId);
             }
         }
