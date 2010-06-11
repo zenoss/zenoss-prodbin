@@ -156,6 +156,7 @@ class EventManagerBase(ZenModelRM, ObjectCache, DbAccessBase):
                                 me.getEventClass(), me.eventClassKey)""" 
     DeviceClassWhere = "\"(DeviceClass = '%s' or DeviceClass like '%s/%%') \" % \
                          ( me.getDmdKey(), me.getDmdKey() )"
+
     LocationWhere = "\"Location like '%s%%'\" % me.getDmdKey()"
     SystemWhere = "\"Systems like '%%|%s%%'\" % me.getDmdKey()"
     DeviceGroupWhere = "\"DeviceGroups like '%%|%s%%'\" % me.getDmdKey()"
@@ -1315,6 +1316,12 @@ class EventManagerBase(ZenModelRM, ObjectCache, DbAccessBase):
         wheretmpl = getattr(aq_base(self), key, False)
         if not wheretmpl:
             raise ValueError("No 'where' clause found for event_key %s" % me.event_key)
+       
+        # This code snippet is meant to fake out the where requirement
+        # We want no filter on the device so in effect "where 1" achieves
+        # this in sql syntax
+        if me.id == 'Devices':
+            return '1'
         return eval(wheretmpl,{'me':me})
 
 
