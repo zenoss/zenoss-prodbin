@@ -22,37 +22,6 @@ function createClickHandler(bubbleTargetId) {
     };
 }
 
-// TreeFooterBar is legacy.  Please do not use this.  See the helper
-// function below.  Thank you.
-Zenoss.TreeFooterBar = Ext.extend(Ext.Toolbar, {
-
-    constructor: function(config) {
-        Ext.applyIf(config, {
-            border: false,
-            items: [
-                {
-                    id: 'addButton',
-                    iconCls: 'add',
-                    disabled: Zenoss.Security.doesNotHavePermission('Manage DMD'),
-                    tooltip: 'Add a child to the selected organizer',
-                    handler: createClickHandler(config.bubbleTargetId)
-                }, {
-                    id: 'deleteButton',
-                    iconCls: 'delete',
-                    disabled: Zenoss.Security.doesNotHavePermission('Manage DMD'),
-                    tooltip: 'Delete the selected node',
-                    handler: createClickHandler(config.bubbleTargetId)
-                }
-            ]
-        });
-        Zenoss.TreeFooterBar.superclass.constructor.call(this, config);
-    }
-
-});
-
-Ext.reg('TreeFooterBar', Zenoss.TreeFooterBar);
-
-
 // options is comprised of the following:
 //      addToZenPack: true puts the Add To ZenPack icon in, default true
 //      hasOrganizers: true puts the Add ___  Organizer in, default true
@@ -88,7 +57,6 @@ Zenoss.footerHelper = function(itemName, footerBar, options) {
 
     Ext.applyIf(options.buttonContextMenu, {
         xtype: 'ContextMenu',
-        disabled: Zenoss.Security.doesNotHavePermission('Manage DMD'),
         tooltip: _t('Context-sensitive actions'),
         menu: {
             items: []
@@ -130,7 +98,7 @@ Zenoss.footerHelper = function(itemName, footerBar, options) {
         {
             xtype: 'FlexButton',
             iconCls: 'add',
-            disabled: Zenoss.Security.doesNotHavePermission('Manage DMD'),
+            hidden: Zenoss.Security.doesNotHavePermission('Add DMD Objects'),
             tooltip: _t('Add a child to the selected organizer'),
             menu: {
                 items: [
@@ -147,7 +115,7 @@ Zenoss.footerHelper = function(itemName, footerBar, options) {
         {
             xtype: 'FlexButton',
             iconCls: 'delete',
-            disabled: Zenoss.Security.doesNotHavePermission('Manage DMD'),
+            hidden: Zenoss.Security.doesNotHavePermission('Delete objects'),
             tooltip: String.format(_t('Delete {0}'), itemName),
             listeners: {
                 click: function() {
