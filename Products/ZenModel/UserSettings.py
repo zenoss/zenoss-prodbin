@@ -817,7 +817,11 @@ class UserSettings(ZenModelRM):
             # get roles to remove and then remove them
             removeRoles = list(set(origRoles).difference(set(roles)))
             for role in removeRoles:
-                roleManager.removeRoleFromPrincipal(role, self.id)
+                try:
+                    roleManager.removeRoleFromPrincipal(role, self.id)
+                except KeyError:
+                    # User doesn't actually have that role; ignore
+                    pass
             # get roles to add and then add them
             addRoles = list(set(roles).difference(set(origRoles)))
             for role in addRoles:
