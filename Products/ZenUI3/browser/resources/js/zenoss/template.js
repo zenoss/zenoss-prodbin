@@ -111,6 +111,7 @@ selectionchangeHandler = function(sm, node) {
     var footerBar = Ext.getCmp('footer_bar');
     footerBar.buttonContextMenu.setDisabled(!node);
     footerBar.buttonDelete.setDisabled(!node);
+    footerBar.buttonAdd.setTooltip(_t('Add a monitoring template'));
 
     // disable/enable the add buttons 
     Ext.getCmp(thresholdsId).addButton.setDisabled(!node);
