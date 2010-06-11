@@ -62,6 +62,7 @@ def chunk(iterable, callback, reconnect_cb=lambda:None, size=1, delay=1):
     @defer.inlineCallbacks
     def inner(gen=gen):
         d = defer.Deferred()
+        d.addCallback(callback)
         l = []
         while True:
             try:
