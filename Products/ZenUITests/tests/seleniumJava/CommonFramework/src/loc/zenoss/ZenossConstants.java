@@ -1,3 +1,15 @@
+/**
+#############################################################################
+# This program is part of Zenoss Core, an open source monitoringplatform.
+# Copyright (C) 2007, Zenoss Inc.
+#
+# This program is free software; you can redistribute it and/or modify it
+# under the terms of the GNU General Public License version 2 as published by
+# the Free Software Foundation.
+#
+# For complete information please visit: http://www.zenoss.com/oss/
+#############################################################################
+*/
 package loc.zenoss;
 
 
@@ -15,12 +27,12 @@ public class ZenossConstants {
 	/**
 	 * Localhost
 	 */
-	public static final String SeleniumHubHostname = (System.getProperties().containsKey("SeleniumServerHost"))?System.getProperties().getProperty("SeleniumServerHost") : "selenium-master.zenoss.loc";
+	public static final String SeleniumHubHostname = (System.getProperties().containsKey("SeleniumServerHost"))?System.getProperties().getProperty("SeleniumServerHost") : "localhost";
 	public static final String SeleniumHubPort = (System.getProperties().containsKey("SeleniumServerPort"))?System.getProperties().getProperty("SeleniumServerPort") : "4444";
 	/**
 	 * Browser in which the testcase will be executed
 	 */
-	public static final String browser = (System.getProperties().containsKey("Browser"))?System.getProperties().getProperty("Browser") : "Compatible FF";//"Compatible FF";//System.getProperty("Browser");// 
+	public static final String browser = (System.getProperties().containsKey("Browser"))?System.getProperties().getProperty("Browser") : "*chrome C:\\Program Files (x86)\\Mozilla Firefox\\firefox.exe";//"Compatible FF";//System.getProperty("Browser");// 
 	/**
 	 * The machine in which the test will be executed
 	 */
