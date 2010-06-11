@@ -167,6 +167,24 @@ Zenoss.ReportTreePanel = Ext.extend(Zenoss.HierarchyTreePanel, {
         this.router.addNode(params, callback);
     },
     deleteSelectedNode: function () {
+        var node = this.getSelectionModel().getSelectedNode();
+        if (node.childNodes.length < 1) {
+            this._deleteSelectedNode();
+            return;
+        }
+        Ext.MessageBox.show({
+            title: _t('Delete Organizer'),
+            msg: _t('Warning! ' +
+                    'This will delete all of the reports in this group!'),
+            fn: function(buttonid) {
+                if (buttonid=='ok') {
+                    report_tree._deleteSelectedNode();
+                }
+            },
+            buttons: Ext.MessageBox.OKCANCEL
+        });
+    },
+    _deleteSelectedNode: function () {
         var node = this.getSelectionModel().getSelectedNode(),
                 parentNode = node.parentNode,
                 uid = node.attributes.uid,
