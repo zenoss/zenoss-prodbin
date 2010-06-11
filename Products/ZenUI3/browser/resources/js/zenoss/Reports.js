@@ -69,8 +69,7 @@ function initializeTreeDrop(g) {
                         data.node.destroy();
                         newNode = tree.getLoader().createNode(cb_data.newNode);
                         target.node.expand();
-                        target.node.appendChild(newNode);
-                        newNode.select();
+                        addNodeToOrganizer(newNode, target.node);
                         tree.update(cb_data.tree);
                     } finally {
                         tree.selModel.resumeEvents();
@@ -80,6 +79,29 @@ function initializeTreeDrop(g) {
             return true;
         }
     });
+}
+
+function addNodeToOrganizer(node, organizerNode) {
+    var lastIndex = organizerNode.childNodes.length - 1;
+    if ((node.leaf) ||
+            (lastIndex < 0) ||
+            (!organizerNode.childNodes[lastIndex].attributes.leaf)) {
+        organizerNode.appendChild(node);
+    } else {
+        var notAdded = true;
+        for (var i = 0; i < organizerNode.childNodes.length; i++) {
+            if (organizerNode.childNodes[i].leaf) {
+                organizerNode.insertBefore(node,
+                        organizerNode.childNodes[i]);
+                notAdded = false;
+                break;
+            }
+        }
+        if (notAdded) {
+            organizerNode.appendChild(node);
+        }
+    }
+    node.select();
 }
 
 Zenoss.ReportTreeNodeUI = Ext.extend(Zenoss.HierarchyTreeNodeUI, {
@@ -135,26 +157,7 @@ Zenoss.ReportTreePanel = Ext.extend(Zenoss.HierarchyTreePanel, {
                 var nodeConfig, node, lastIndex;
                 nodeConfig = data.newNode;
                 node = tree.getLoader().createNode(nodeConfig);
-                lastIndex = parentNode.childNodes.length - 1;
-                if ((node.leaf) ||
-                        (lastIndex < 0) ||
-                        (!parentNode.childNodes[lastIndex].attributes.leaf)) {
-                    parentNode.appendChild(node);
-                } else {
-                    var notAdded = true;
-                    for (var i = 0; i < parentNode.childNodes.length; i++) {
-                        if (parentNode.childNodes[i].leaf) {
-                            parentNode.insertBefore(node,
-                                    parentNode.childNodes[i]);
-                            notAdded = false;
-                            break;
-                        }
-                    }
-                    if (notAdded) {
-                        parentNode.appendChild(node);
-                    }
-                }
-                node.select();
+                addNodeToOrganizer(node, parentNode);
                 node.expand();
                 tree.update(data.tree);
                 if (node.attributes.leaf) {
@@ -222,6 +225,9 @@ report_panel.addListener('frameload', function(win) {
 treesm = new Ext.tree.DefaultSelectionModel({
     listeners: {
         'selectionchange': function (sm, newnode) {
+            if (newnode == null) {
+                return;
+            }
             if (newnode.attributes.leaf && !initialContextSet) {
                 initialContextSet = true;
                 var uid = newnode.attributes.uid,
