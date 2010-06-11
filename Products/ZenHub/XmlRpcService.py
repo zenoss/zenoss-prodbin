@@ -10,6 +10,12 @@
 # For complete information please visit: http://www.zenoss.com/oss/
 #
 ###########################################################################
+
+# Hide a SyntaxWarning that is raised in twisted.web.microdom under Python>=2.5
+# TODO in 3.1: Remove when twisted is upgraded
+import warnings
+warnings.filterwarnings('ignore', 'assertion is always true', SyntaxWarning)
+
 from twisted.web import xmlrpc
 
 import types
