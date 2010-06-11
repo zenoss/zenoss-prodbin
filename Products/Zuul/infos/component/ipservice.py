@@ -33,6 +33,10 @@ class IpServiceInfo(ComponentInfo):
         return self._object.getKeyword()
 
     @property
+    def monitored(self):
+        return self._object.monitored()
+
+    @property
     @info
     def serviceClass(self):
         return self._object.serviceclass()

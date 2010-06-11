@@ -30,6 +30,10 @@ class WinServiceInfo(ComponentInfo):
         return self._object.serviceclass()
 
     @property
+    def monitored(self):
+        return self._object.monitored()
+
+    @property
     def caption(self):
         return self._object.caption()
 
