@@ -996,7 +996,8 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable,
         @permission: ZEN_VIEW
         """
         ut = self.sysUpTime()
-        if ut < 0:
+        # test if less than 0 or NaN
+        if ut < 0 or ut != ut:
             return "Unknown"
         elif ut == 0:
             return "0d:0h:0m:0s"
