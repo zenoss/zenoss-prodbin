@@ -34,6 +34,11 @@ ZF.IDField = Ext.extend(Ext.form.TextField, {
     validator: function(value) {
         var context = this.context || Zenoss.env.PARENT_CONTEXT;
 
+        // Don't bother with empty values
+        if (Ext.isEmpty(value)) {
+            return true;
+        }
+
         // if the value has not changed do not send an ajax request
         if (this._previousValue !== undefined) {
             if (value === this._previousValue) {
