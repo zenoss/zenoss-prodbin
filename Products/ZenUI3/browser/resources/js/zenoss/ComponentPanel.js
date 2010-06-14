@@ -469,6 +469,7 @@ ZC.BaseComponentColModel = Ext.extend(Ext.grid.ColumnModel, {
                 id: 'monitor',
                 dataIndex: 'monitor',
                 header: _t('Monitored'),
+                renderer: Zenoss.render.monitor,
                 width: 70,
                 sortable: true
             }, {
@@ -545,6 +546,7 @@ ZC.IpInterfacePanel = Ext.extend(ZC.ComponentGridPanel, {
                 id: 'monitor',
                 dataIndex: 'monitor',
                 header: _t('Monitored'),
+                renderer: Zenoss.render.monitor,
                 width: 60
             },{
                 id: 'locking',
@@ -609,6 +611,7 @@ ZC.WinServicePanel = Ext.extend(ZC.ComponentGridPanel, {
                 id: 'monitor',
                 dataIndex: 'monitor',
                 header: _t('Monitored'),
+                renderer: Zenoss.render.monitor,
                 width: 60
             },{
                 id: 'locking',
@@ -728,6 +731,7 @@ ZC.IpServicePanel = Ext.extend(ZC.ComponentGridPanel, {
                 id: 'monitor',
                 dataIndex: 'monitor',
                 header: _t('Monitored'),
+                renderer: Zenoss.render.monitor,
                 width: 60
             },{
                 id: 'locking',
@@ -793,6 +797,7 @@ ZC.OSProcessPanel = Ext.extend(ZC.ComponentGridPanel, {
                 id: 'monitor',
                 dataIndex: 'monitor',
                 header: _t('Monitored'),
+                renderer: Zenoss.render.monitor,
                 width: 60
             },{
                 id: 'locking',
@@ -875,6 +880,7 @@ ZC.FileSystemPanel = Ext.extend(ZC.ComponentGridPanel, {
                 id: 'monitor',
                 dataIndex: 'monitor',
                 header: _t('Monitored'),
+                renderer: Zenoss.render.monitor,
                 width: 60
             },{
                 id: 'locking',

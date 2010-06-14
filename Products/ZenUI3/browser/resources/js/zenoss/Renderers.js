@@ -62,7 +62,7 @@ Ext.apply(Zenoss.render, {
 
     cpu_speed: function(speed) {
         if (speed) {
-            n = parseFloat(speed);
+            var n = parseFloat(speed);
             if (isNaN(n)) {
                 return speed;
             } else {
@@ -71,6 +71,10 @@ Ext.apply(Zenoss.render, {
         } else {
             return speed;
         }
+    },
+
+    monitor: function(value, metadata, record, rowIndex, colIndex, store) {
+        return record.data.hasMonitor ? value : '';
     },
 
     pingStatus: function(bool) {
@@ -84,11 +88,11 @@ Ext.apply(Zenoss.render, {
     },
 
     upDownUnknown: function(status,displayString){
-        return upDownTemplate.apply([status.toLowerCase(),displayString])
+        return upDownTemplate.apply([status.toLowerCase(),displayString]);
     },
 
     upDownUnknownLarge: function(status,displayString){
-        return upDownTemplate.apply([status.toLowerCase(),displayString,'-large'])
+        return upDownTemplate.apply([status.toLowerCase(),displayString,'-large']);
     },
 
     ipAddress: function(ip) {

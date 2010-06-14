@@ -33,8 +33,16 @@ class IpServiceInfo(ComponentInfo):
         return self._object.getKeyword()
 
     @property
-    def monitored(self):
+    def hasMonitor(self):
+        return self._object.getAqProperty("zMonitor") and not self._object.cantMonitor()
+
+    def getMonitored(self):
         return self._object.monitored()
+
+    def setMonitor(self, value):
+        self._object.monitor = value
+
+    monitor = property(getMonitored, setMonitor)
 
     @property
     @info
