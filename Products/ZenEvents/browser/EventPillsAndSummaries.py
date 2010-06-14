@@ -15,6 +15,7 @@ import re
 
 from Products.Five.browser import BrowserView
 from Products.ZenUtils.jsonutils import json
+from Products.ZenModel.DeviceOrganizer import DeviceOrganizer
 
 class SinglePill(BrowserView):
     def __call__(self):
@@ -139,9 +140,9 @@ def getEventPillME(zem, me, number=1, minSeverity=0, showGreen=True,
         colors = "red orange yellow blue grey".split()
         info = ["%s out of %s acknowledged" % (x[1],x[2])
                 for x in evsum]
-        results = zip(colors, [me.getPrimaryUrlPath()]*5, info, summary)
+        results = zip(colors, [getEventsURL(me)]*5, info, summary)
         template = ('<div class="evpill-%s" onclick="location.href='
-                    '\'%s/viewEvents\'" title="%s">%s</div>')
+                    '\'%s\'" title="%s">%s</div>')
 
         # Always show grey for devices that are not monitored.
         disabled = False
@@ -170,4 +171,24 @@ def getEventPillME(zem, me, number=1, minSeverity=0, showGreen=True,
         return pills
     except:
         return None
+
+
+organizerTypes = {
+    'Devices': 'devices',
+    'Groups': 'groups',
+    'Locations': 'locs',
+    'Systems': 'systems'
+}
+
+
+def getEventsURL(me) :
+    if isinstance(me, DeviceOrganizer) :
+        path = me.getPrimaryPath()
+        return '/zport/dmd/itinfrastructure#%s:%s:events_grid' % \
+                (organizerTypes[path[3]], '.'.join(path))
+    from Products.ZenModel.Device import Device
+    if isinstance(me, Device) :
+        return me.getPrimaryUrlPath() + \
+                '/devicedetail#deviceDetailNav:device_events'
+    return me.getPrimaryUrlPath() + '/viewEvents'
 
