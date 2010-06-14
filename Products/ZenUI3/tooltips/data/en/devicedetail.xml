@@ -47,21 +47,24 @@
 <!-- bottom of page buttons -->
 
   <tooltip>
-    <target></target>
+    <target>commands-menu</target>
+    <anchor>top</anchor>
 
     <html>Run commands</html>
   </tooltip>
 
  <tooltip>
-    <target></target>
+    <target>device_configure_menu</target>
+    <anchor>top</anchor>
 
     <html>Actions</html>
  </tooltip>
 
  <tooltip>
-    <target></target>
+    <target>component-add-menu</target>
+    <anchor>top</anchor>
 
-    <html>Add</html>
+    <html>Add components</html>
  </tooltip>
 
 <!-- Modeler Plugins buttons -->
@@ -89,57 +92,78 @@
 <!-- Monitoring Templates buttons -->
 
 <tooltip>
-   <target></target>
-
-   <html>Add data source</html>
+    <target>datasourceAddButton</target>
+    
+    <html>Add data source</html>
 </tooltip>
 
 <tooltip>
-   <target></target>
-
-   <html>Delete data source</html>
+    <target>datasourceDeleteButton</target>
+    
+    <html>Remove data source</html>
 </tooltip>
 
 <tooltip>
-   <target></target>
+    <target>datasourceEditButton</target>
+    
+    <html>Data source edit options</html>
+</tooltip>
 
-   <html>Actions</html>
+<!-- thresholds -->
+<tooltip>
+    <target>thresholdAddButton</target>
+    
+    <html>Add threshold</html>
 </tooltip>
 
 <tooltip>
-   <target></target>
-
-   <html>Add threshold</html>
+    <target>thresholdDeleteButton</target>
+    
+    <html>Delete threshold</html>
 </tooltip>
 
 <tooltip>
-   <target></target>
+    <target>thresholdEditButton</target>
+    
+    <html>View and edit threshold details </html>
+</tooltip>
 
-   <html>Delete threshold</html>
+<!-- graph definition -->
+<tooltip>
+    <target>addGraphDefinitionButton</target>
+    
+    <html>Add graph definition</html>
 </tooltip>
 
 <tooltip>
-   <target></target>
-
-   <html>Actions</html>
+    <target>deleteGraphDefinitionButton</target>
+    
+    <html>Delete graph definition</html>
 </tooltip>
 
 <tooltip>
-   <target></target>
+    <target>graphDefinitionMenuButton</target>
+    
+    <html>Manage graph definition</html>
+</tooltip>
 
-   <html>Add graph definition</html>
+<!-- graph points -->
+<tooltip>
+    <target>addGraphPointButton</target>
+    
+    <html>Add graph point</html>
 </tooltip>
 
 <tooltip>
-   <target></target>
-
-   <html>Delete graph definition</html>
+    <target>deleteGraphPointButton</target>
+    
+    <html>Delete graph point</html>
 </tooltip>
 
 <tooltip>
-   <target></target>
-
-   <html>Actions</html>
+    <target>editGraphPointButton</target>
+    
+    <html>View and edit graph point details</html>
 </tooltip>
 
 

@@ -46,6 +46,10 @@ Zenoss.registerTooltip = function(config) {
         if (cmp.btnEl) {
             config.target = cmp.btnEl;
         }
+    } else {
+        Ext.ComponentMgr.onAvailable(target, function(t){
+            t.tooltip = config;
+        });
     }
     if ((t=Ext.get(target))) {
         var tip = new Zenoss.ToolTip(config);

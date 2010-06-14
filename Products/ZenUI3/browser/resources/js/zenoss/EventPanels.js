@@ -365,6 +365,7 @@ Zenoss.events.EventPanelToolbarActions = {
     acknowledge: new Zenoss.Action({
         //text: _t('Acknowledge'),
         iconCls: 'acknowledge',
+        tooltip: _t('Acknowledge events'),
         permission: 'Manage Events',
         handler: function(btn) {
             var grid = btn.grid || this.ownerCt.ownerCt,
@@ -384,6 +385,7 @@ Zenoss.events.EventPanelToolbarActions = {
         //text: _t('Close'),
         iconCls: 'close',
         permission: 'Manage Events',
+        tooltip: _t('Close events'),
         handler: function(btn) {
             var grid = btn.grid || this.ownerCt.ownerCt,
                 sm = grid.getSelectionModel(),
@@ -401,6 +403,7 @@ Zenoss.events.EventPanelToolbarActions = {
     newwindow: new Zenoss.Action({
         //text: _t('Open in new window'),
         iconCls: 'newwindow',
+        tooltip: _t('Go to event console'),
         permission: 'View',
         handler: function(btn) {
             var grid = btn.grid || this.ownerCt.ownerCt,
@@ -423,6 +426,7 @@ Zenoss.events.EventPanelToolbarActions = {
         //text: _t('refresh'),
         iconCls: 'refresh',
         permission: 'View',
+        tooltip: _t('Refresh events'),
         handler: function(btn) {
             var grid = btn.grid || this.ownerCt.ownerCt,
                 view = grid.getView();
