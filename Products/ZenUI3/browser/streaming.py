@@ -13,6 +13,7 @@
 from Products.Five.browser import BrowserView
 from Products.Five.browser.pagetemplatefile import ViewPageTemplateFile
 from Products.ZenUtils.Utils import is_browser_connection_open
+import traceback
 
 LINE = """
 <div class="streaming-line %(lineclass)s">
