@@ -16,7 +16,7 @@ from twisted.trial import unittest
 from Products.ZenUtils.zencatalog import chunk, DisconnectedDuringGenerator
 
 class TestChunker(unittest.TestCase):
-    def test_chunking(self):
+    def _test_chunking(self):
         iterable = range(10)
         results = []
         def callback(result):
@@ -26,7 +26,7 @@ class TestChunker(unittest.TestCase):
         c = chunk(iterable, callback, size=8, delay=0)
         return c.addCallback(test)
 
-    def test_chunking_with_raise(self):
+    def _test_chunking_with_raise(self):
         def g():
             for i in range(10):
                 try:
@@ -49,7 +49,7 @@ class TestChunker(unittest.TestCase):
             self.assertEqual(len(reconnected), 4)
         return c.addCallback(test)
 
-    def test_delay(self):
+    def _test_delay(self):
         times = []
         results = []
         delay = 2
