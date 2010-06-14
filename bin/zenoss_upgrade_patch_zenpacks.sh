@@ -32,15 +32,24 @@ find_zenpack()
     done
 }
 
-#
-# Patch the Diagram ZenPack to disable loading any registered components
-# via Zope Five as they aren't compatible with the 3.0 core code.
-#
-zenpack_name="Diagram"
-find_zenpack "${zenpack_name}"
-configure_file="${zenpack_dir}/ZenPacks/zenoss/${zenpack_name}/configure.zcml"
-if [ -f "${configure_file}" ]; then
-    patch  "${configure_file}" <<__EOF__
+if [ -z "$ZENHOME" ] ; then
+    echo ERROR: '$ZENHOME' is not set.
+    echo This is usually caused by executing this command as root rather than \
+as the zenoss user.  Either define '$ZENHOME' or run this command as a \
+different user.
+else
+    # Setup zenoss-friendly executable search path...especially for stacks.
+    . $ZENHOME/bin/zenfunctions
+
+    #
+    # Patch the Diagram ZenPack to disable loading any registered components
+    # via Zope Five as they aren't compatible with the 3.0 core code.
+    #
+    zenpack_name="Diagram"
+    find_zenpack "${zenpack_name}"
+    configure_file="${zenpack_dir}/ZenPacks/zenoss/${zenpack_name}/configure.zcml"
+    if [ -f "${configure_file}" ]; then
+        patch  "${configure_file}" <<__EOF__
 --- configure.zcml	2010-05-24 13:21:48.000000000 -0500
 +++ /home/zenoss/configure.zcml	2010-05-28 09:08:56.000000000 -0500
 @@ -3,36 +3,4 @@
@@ -81,18 +90,18 @@ if [ -f "${configure_file}" ]; then
 -
  </configure>
 __EOF__
-fi
+    fi
 
-#
-# Patch ZenMailTx because OpenSSL bindings for python 2.6 aren't there
-# with the python 2.4 version of the ZenPack. This patch just causes
-# the warning to disappear.
-#
-zenpack_name="ZenMailTx"
-find_zenpack "${zenpack_name}"
-mail_file="${zenpack_dir}/ZenPacks/zenoss/${zenpack_name}/Mail.py"
-if [ -f "${mail_file}" ]; then
-    patch "${mail_file}" << __EOF__
+    #
+    # Patch ZenMailTx because OpenSSL bindings for python 2.6 aren't there
+    # with the python 2.4 version of the ZenPack. This patch just causes
+    # the warning to disappear.
+    #
+    zenpack_name="ZenMailTx"
+    find_zenpack "${zenpack_name}"
+    mail_file="${zenpack_dir}/ZenPacks/zenoss/${zenpack_name}/Mail.py"
+    if [ -f "${mail_file}" ]; then
+        patch "${mail_file}" << __EOF__
 --- Mail.py	2010-05-24 13:16:55.000000000 -0500
 +++ /home/zenoss/Mail.py	2010-05-28 10:21:48.000000000 -0500
 @@ -14,11 +14,6 @@
@@ -108,18 +117,18 @@ if [ -f "${mail_file}" ]; then
  
  import traceback
 __EOF__
-fi
+    fi
 
-#
-# Patch EnterpriseSecurity since it has a bug in its overriden ZenPack.remove
-# method that does not allow ZenPack cleanup to occur properly when the 
-# ZenPack is being upgraded.
-#
-zenpack_name="EnterpriseSecurity"
-find_zenpack "${zenpack_name}"
-init_file="${zenpack_dir}/ZenPacks/zenoss/${zenpack_name}/__init__.py"
-if [ -f "${init_file}" ]; then
-  patch "${init_file}" << __EOF__
+    #
+    # Patch EnterpriseSecurity since it has a bug in its overriden ZenPack.remove
+    # method that does not allow ZenPack cleanup to occur properly when the 
+    # ZenPack is being upgraded.
+    #
+    zenpack_name="EnterpriseSecurity"
+    find_zenpack "${zenpack_name}"
+    init_file="${zenpack_dir}/ZenPacks/zenoss/${zenpack_name}/__init__.py"
+    if [ -f "${init_file}" ]; then
+      patch "${init_file}" << __EOF__
 --- __init__.py	2010-05-31 20:41:44.000000000 -0500
 +++ __init__.py.new	2010-05-31 20:41:41.000000000 -0500
 @@ -107,4 +107,5 @@
@@ -130,16 +139,16 @@ if [ -f "${init_file}" ]; then
 +        ZenPackBase.remove(self, app, leaveObjects)
 +
 __EOF__
-fi
+    fi
 
-#
-# Patch ZenVMware since it uses a deprecated version of json.
-#
-zenpack_name="ZenVMware"
-find_zenpack "${zenpack_name}"
-init_file="${zenpack_dir}/ZenPacks/zenoss/${zenpack_name}/__init__.py"
-if [ -f "${init_file}" ]; then
-    patch "${init_file}" << __EOF__
+    #
+    # Patch ZenVMware since it uses a deprecated version of json.
+    #
+    zenpack_name="ZenVMware"
+    find_zenpack "${zenpack_name}"
+    init_file="${zenpack_dir}/ZenPacks/zenoss/${zenpack_name}/__init__.py"
+    if [ -f "${init_file}" ]; then
+        patch "${init_file}" << __EOF__
 --- __init__.py	2010-06-01 13:11:05.000000000 -0500
 +++ __init__.py.new	2010-06-01 13:11:19.000000000 -0500
 @@ -18,7 +18,7 @@
@@ -152,11 +161,11 @@ if [ -f "${init_file}" ]; then
  from Products.ZenUtils.Search import makeCaseInsensitiveKeywordIndex
  from Products.ZenUtils.Search import makeCaseInsensitiveFieldIndex
 __EOF__
-fi
+    fi
 
-file="${zenpack_dir}/ZenPacks/zenoss/${zenpack_name}/VIPerfCounterMap.py"
-if [ -f "${file}" ]; then
-    patch "${file}" << __EOF__
+    file="${zenpack_dir}/ZenPacks/zenoss/${zenpack_name}/VIPerfCounterMap.py"
+    if [ -f "${file}" ]; then
+        patch "${file}" << __EOF__
 --- VIPerfCounterMap.py	2010-05-24 13:19:03.000000000 -0500
 +++ VIPerfCounterMap.py.new	2010-06-01 13:21:59.000000000 -0500
 @@ -12,7 +12,7 @@
@@ -167,5 +176,5 @@ if [ -f "${file}" ]; then
 +from Products.ZenUtils.jsonutils import json
  from Products.ZenModel.ZenModelItem import ZenModelItem
 __EOF__
+    fi
 fi
-
