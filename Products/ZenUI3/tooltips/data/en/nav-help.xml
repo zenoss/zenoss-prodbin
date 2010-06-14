@@ -30,7 +30,7 @@ The main content of the Dashboard comprises portlets, which provide information 
 <!--xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx -->
 <pagehelp target="Infrastructure" title="Infrastructure">
 
-<p>Infrastructure provides access to:
+<p>Infrastructure provides access to:</p>
 
 <ul>
   <li><strong>Devices</strong> - Add, discover, classify, and authenticate devices in the system.</li>
@@ -55,7 +55,7 @@ Add devices from (Add Devices Icon) (Add Devices). From here, you can:</p>
 
 <p>To move devices between organizers, select one or more devices in the list, and then drag them to the desired organizer.</p>
 
-<p>View detailed information about all devices by clicking <strong>Details</strong> in the tree view.
+<p>View detailed information about all devices by clicking <strong>Details</strong> in the tree view.</p>
 
 <p>To view details for a single device, click the device name in the list to display its overview page, and then make a selection from the left panel.</p>
 
