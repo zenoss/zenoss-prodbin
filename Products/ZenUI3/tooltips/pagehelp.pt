@@ -1,0 +1,54 @@
+<tal:block tal:condition="view/tip">
+<div id="page-help" i18n:translate="">Page Tips</div>
+<textarea id="page-help-title" style="display:none" tal:content="view/tip/title"/>
+<textarea id="page-help-tip" style="display:none" tal:content="view/tip/tip"/>
+<script>
+Ext.onReady(function(){
+    var title = Ext.get('page-help-title').dom.innerHTML,
+        tip = Ext.get('page-help-tip').dom.value,
+        link = Ext.get('page-help'),
+        tooltip = new Ext.ToolTip({
+            id: 'page-level-help-tip',
+            anchor: 'right',
+            autoHide: false,
+            closable: true,
+            draggable: true,
+            width: 440,
+            showDelay: 0,
+            target: link,
+            title: title,
+            html: tip,
+            listeners: {
+                show: function() {
+                    link.hide();
+                },
+                hide: function() {
+                    link.show();
+                }
+            },
+            show: Ext.ToolTip.prototype.show.createSequence(
+                function(){
+                    tooltip.anchorEl.hide();
+                }
+            ),
+            initTarget: function(target) {
+                var t;
+                if((t = Ext.get(target))){
+                    if(this.target){
+                        var tg = Ext.get(this.target);
+                        this.mun(tg, 'click', this.onTargetOver, this);
+                    }
+                    this.mon(t, {
+                        click: this.onTargetOver,
+                        scope: this
+                    });
+                    this.target = t;
+                }
+                if(this.anchor){
+                    this.anchorTarget = this.target;
+                }
+            }
+        });
+});
+</script>
+</tal:block>

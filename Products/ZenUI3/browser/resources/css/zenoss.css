@@ -848,3 +848,13 @@ span.status-down-large {
     font-weight: normal;
 }
 
+
+#page-help {
+    position: absolute;
+    right: 5px;
+    color: #eef;
+    font-size: 11px;
+    font-family: helvetica,arial,tahoma,sans-serif;
+    cursor: pointer;
+}
+

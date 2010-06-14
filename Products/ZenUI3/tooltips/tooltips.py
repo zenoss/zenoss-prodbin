@@ -16,7 +16,9 @@ import os.path
 from xml.dom import minidom
 from zope.i18n.negotiator import negotiator
 from Products.Five.browser import BrowserView
+from Products.Five.browser.pagetemplatefile import ViewPageTemplateFile
 from Products.ZenUtils.jsonutils import json
+from Products.ZenUI3.navigation import getSelectedNames
 
 
 _datapath = os.path.join(os.path.dirname(__file__), 'data')
@@ -44,11 +46,45 @@ class _TooltipCatalog(object):
     def add(self, lang, view, tip):
         self._catalog.setdefault(view, {}).setdefault(lang, []).append(tip)
 
+    def _add_navhelp(self, lang, target, title, tip):
+        d = {
+            'title':title,
+            'tip':tip
+        }
+        self._catalog.setdefault('nav-help', {}).setdefault(lang, {})[target] = d
+
     def reload(self):
         """
         Read in tooltips from XML files.
         """
-        def _load(_none, path, fnames):
+        def _load_tips(doc, lang, view):
+            for tip in doc.getElementsByTagName('tooltip'):
+                d = {}
+                for node in tip.childNodes:
+                    if isinstance(node, minidom.Text): continue
+                    result = _valpat.search(node.toxml())
+                    if result:
+                        value = result.groups()[0].strip()
+                        name = node.tagName
+                        if name in _tipattrs and _tipattrs[name]!=str:
+                            value = eval(value)
+                        if isinstance(value, basestring):
+                            value = value.replace('%26', '&')
+                        d[name] = value
+                if 'autoHide' in d:
+                    d['closable'] = not d['autoHide']
+                self.add(lang, view, d)
+
+        def _load_navhelp(doc, lang):
+            for tip in doc.getElementsByTagName('pagehelp'):
+                result = _valpat.search(tip.toxml())
+                target = tip.getAttribute('target')
+                title = tip.getAttribute('title')
+                if result and target:
+                    value = result.groups()[0].strip()
+                    self._add_navhelp(lang, target, title, value)
+
+        def _load_files(_none, path, fnames):
             lang = path.rsplit('/', 1)[-1]
             for f in fnames:
                 if not f.endswith('.xml'):
@@ -58,30 +94,26 @@ class _TooltipCatalog(object):
                 data = fd.read()
                 fd.close()
                 doc = minidom.parseString(data.replace('&', '%26'))
-                for tip in doc.getElementsByTagName('tooltip'):
-                    d = {}
-                    for node in tip.childNodes:
-                        if isinstance(node, minidom.Text): continue
-                        result = _valpat.search(node.toxml())
-                        if result:
-                            value = result.groups()[0].strip()
-                            name = node.tagName
-                            if name in _tipattrs and _tipattrs[name]!=str:
-                                value = eval(value)
-                            if isinstance(value, basestring):
-                                value = value.replace('%26', '&')
-                            d[name] = value
-                    if 'autoHide' in d:
-                        d['closable'] = not d['autoHide']
-                    self.add(lang, view, d)
+                if f.startswith('nav-help'):
+                    _load_navhelp(doc, lang)
+                else:
+                    _load_tips(doc, lang, view)
                 doc.unlink()
-        os.path.walk(_datapath, _load, None)
+
+        os.path.walk(_datapath, _load_files, None)
 
     def tips(self, view, lang="en"):
         """
         Look up the tooltips for a given screen and language.
         """
         return self._catalog.get(view, {}).get(lang, [])[:]
+
+    def pagehelp(self, navitem, lang="en"):
+        """
+        Look up the page-level help for a given screen and language.
+        """
+        return self._catalog.get('nav-help', {}).get(lang, {}).get(navitem,
+                                                                   None)
 
     def langs(self, view):
         """
@@ -103,3 +135,14 @@ class Tooltips(BrowserView):
         for tip in tips:
             results.append(tpl % json(tip))
         return "Ext.onReady(function(){%s})" % '\n'.join(results)
+
+
+class PageLevelHelp(BrowserView):
+    __call__ = ViewPageTemplateFile('pagehelp.pt')
+    def __init__(self, context, request):
+        super(PageLevelHelp, self).__init__(context, request)
+        primary, secondary = getSelectedNames(self)
+        lang = negotiator.getLanguage(TooltipCatalog.langs('nav-help'),
+                                      self.request)
+        self.tip = TooltipCatalog.pagehelp(primary, lang)
+

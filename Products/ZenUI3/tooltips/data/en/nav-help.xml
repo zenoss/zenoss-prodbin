@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<help>
+  <pagehelp target="Dashboard" title="The Dashboard">
+      <p>
+          This is the dashboard. You can do lots of things on the dashboard,
+          like see summaries of things and whatnot.
+      </p>
+      <br/>
+      <p>
+          <a href="http://www.zenoss.com">Visit Zenoss's website today!</a>
+      </p>
+  <br/>
+  <object width="425" height="344"><param name="movie" value="http://www.youtube.com/v/penvn9VL32Y&hl=en_US&fs=1&rel=0"></param><param name="allowFullScreen" value="true"></param><param name="allowscriptaccess" value="always"></param><embed src="http://www.youtube.com/v/penvn9VL32Y&hl=en_US&fs=1&rel=0" type="application/x-shockwave-flash" allowscriptaccess="always" allowfullscreen="true" width="425" height="344"></embed></object>
+  </pagehelp>
+  <pagehelp target="Infrastructure" title="Infrastructure">
+      <p>
+          The Infrastructure page has a lot of awesome stuff.
+      </p>
+      <br/>
+      <p>
+          You can see devices and things!
+      </p>
+  </pagehelp>
+</help>

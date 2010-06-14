@@ -29,13 +29,16 @@ Zenoss.ConsoleBar = Ext.extend(Zenoss.LargeToolbar, {
             }].concat(config.leftItems||[]).concat([{
                 xtype: 'tbfill'
             }]).concat(config.items||[]).concat(['-',{
-                iconCls: 'expand',
+                iconCls: 'collapse',
                 ref: 'togglebutton',
                 handler: function() {
                     this.ownerCt.ownerCt.toggleCollapse();
                 }
             }])
         });
+        if (config.collapsed) {
+            config.iconCls = 'expand';
+        }
         Zenoss.ConsoleBar.superclass.constructor.call(this, config);
         var panel = this.ownerCt;
         // Set the icons properly

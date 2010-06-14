@@ -78,6 +78,7 @@
                         </div>
                         <div id="secondarynav">
                             <ul tal:content="structure provider:secondarynav"/>
+                            <tal:block tal:content="structure context/page-level-help"/>
                         </div>
                     </div>
                 </div>

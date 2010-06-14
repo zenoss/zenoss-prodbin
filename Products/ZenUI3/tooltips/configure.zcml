@@ -9,4 +9,11 @@
     permission="zope2.Public"
     />
 
+<page
+    name="page-level-help"
+    class=".tooltips.PageLevelHelp"
+    for="*"
+    permission="zope2.Public"
+    />
+
 </configure>
