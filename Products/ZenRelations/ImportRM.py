@@ -46,6 +46,8 @@ from Products.Zuul.catalog.events import IndexingEvent
 
 _STRING_PROPERTY_TYPES = ( 'string', 'text', 'password' )
 
+
+
 class ImportRM(ZCmdBase, ContentHandler):
     """
     Wrapper module to interface between Zope and the Python SAX XML library. 
@@ -193,6 +195,8 @@ for a ZenPack.
             self.skipobj -= 1
             return
 
+        noIncrementalCommit = self.options.noCommit or self.options.chunk_size==0
+
         if name in ('object', 'tomany', 'tomanycont'):
             obj = self.objstack.pop()
             notify(IndexingEvent(obj))
@@ -202,6 +206,11 @@ for a ZenPack.
                 self.log.info('Calling reIndex %s', obj.getPrimaryId())
                 obj.reIndex()
                 self.rootpath = ''
+            if (not noIncrementalCommit and
+                not self.objectnumber % self.options.chunk_size):
+                self.log.debug("Committing a batch of %s objects" %
+                               self.options.chunk_size)
+                self.commit()
 
         elif name == 'objects': # ie end of the file
             self.log.info('End loading objects')
@@ -401,6 +410,11 @@ for a ZenPack.
                                action='store_true', default=False,
                                help='Do not try to index the freshly loaded objects.'
                                )
+        self.parser.add_option('--chunksize', dest='chunk_size',
+                               help='Number of objects to commit at a time.',
+                               type='int',
+                               default=100
+                               )
         self.parser.add_option(
             '-n',
             '--noCommit',
@@ -460,6 +474,7 @@ for a ZenPack.
         trans.note('Import from file %s using %s'
                     % (self.options.infile, self.__class__.__name__))
         trans.commit()
+        self.syncdb()
 
 
 class SpoofedOptions(object):

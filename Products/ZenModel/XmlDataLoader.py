@@ -19,6 +19,10 @@ from Products.ZenRelations.ImportRM import ImportRM
 class XmlDataLoader(ImportRM):
 
     def loadDatabase(self):
+
+        # This is an initial load, so we can forgo incremental commits
+        self.options.chunk_size = 0
+
         datadir = os.path.join(os.path.dirname(__file__),"data")
         self.log.info("loading data from:%s", datadir)
         for path, dirname, filenames in os.walk(datadir):
