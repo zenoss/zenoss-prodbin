@@ -38,6 +38,15 @@ function selectOnRender(n) {
 
 var ZEvActions = Zenoss.events.EventPanelToolbarActions;
 
+var _action = ZEvActions.close;
+_action.setHandler(_action.initialConfig.handler.createInterceptor(
+    function() {
+        Ext.Direct.on('event', function(){
+            Ext.getCmp('devdetailbar').refresh();
+        }, null, {single:true});
+    }
+));
+
 function deviceColumnDefinitions() {
     var defs = Zenoss.env.COLUMN_DEFINITIONS;
     return Zenoss.util.filter(defs, function(d){

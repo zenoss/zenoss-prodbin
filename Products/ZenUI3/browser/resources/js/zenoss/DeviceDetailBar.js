@@ -85,9 +85,9 @@ Zenoss.DeviceDetailBar = Ext.extend(Zenoss.LargeToolbar, {
     },
     contextCallbacks: [],
     addDeviceDetailBarItem: function(item, fn) {
-      this.items.push('-')
-      this.items.push(item)
-      this.on('contextchange',fn,this)
+      this.items.push('-');
+      this.items.push(item);
+      this.on('contextchange',fn,this);
     },
     refresh: function() {
         this.setContext(this.contextUid);

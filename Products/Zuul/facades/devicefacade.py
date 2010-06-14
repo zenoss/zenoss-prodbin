@@ -207,7 +207,7 @@ class DeviceFacade(TreeFacade):
         for uid in uids:
             dev = self._getObject(uid)
             if isinstance(dev, Device):
-                dev.productionState = state
+                dev.productionState = int(state)
                 devids.append(dev.id)
                 dev.index_object()
                 notify(IndexingEvent(dev, ('productionState',), True))
