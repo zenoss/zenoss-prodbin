@@ -1,0 +1,8 @@
+You may dump arbitrary static resources into this directory and refer to them
+with URLs starting with:
+
+    /++resource++pagehelp/
+
+For example:
+
+    <img src="/++resource++pagehelp/myimage.png"/>

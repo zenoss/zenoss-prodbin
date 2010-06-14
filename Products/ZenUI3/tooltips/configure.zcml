@@ -2,6 +2,11 @@
 
 <include package="Products.ZenUtils.extdirect.zope" file="meta.zcml"/>
 
+<resourceDirectory
+    name="pagehelp"
+    directory="resources"
+    />
+
 <page
     name="tooltips.js"
     class=".tooltips.Tooltips"
