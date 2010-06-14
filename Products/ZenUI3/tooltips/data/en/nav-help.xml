@@ -1,24 +1,82 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <help>
-  <pagehelp target="Dashboard" title="The Dashboard">
-      <p>
-          This is the dashboard. You can do lots of things on the dashboard,
-          like see summaries of things and whatnot.
-      </p>
-      <br/>
-      <p>
-          <a href="http://www.zenoss.com">Visit Zenoss's website today!</a>
-      </p>
-  <br/>
-  <object width="425" height="344"><param name="movie" value="http://www.youtube.com/v/penvn9VL32Y&hl=en_US&fs=1&rel=0"></param><param name="allowFullScreen" value="true"></param><param name="allowscriptaccess" value="always"></param><embed src="http://www.youtube.com/v/penvn9VL32Y&hl=en_US&fs=1&rel=0" type="application/x-shockwave-flash" allowscriptaccess="always" allowfullscreen="true" width="425" height="344"></embed></object>
-  </pagehelp>
-  <pagehelp target="Infrastructure" title="Infrastructure">
-      <p>
-          The Infrastructure page has a lot of awesome stuff.
-      </p>
-      <br/>
-      <p>
-          You can see devices and things!
-      </p>
-  </pagehelp>
+<!--xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx -->
+<pagehelp target="Dashboard" title="Dashboard">
+
+  <p>The Dashboard provides at-a-glance information about the status of your IT infrastructure.</p>
+
+<p><strong>User Information Area</strong><br />
+Go here to:</p>
+<ul>
+  <li>Sign out of the system.</li>
+  <li>Access community product documentation, FAQs, and HowTos.</li>
+  <li>Edit user settings, by clicking the displayed login ID.</li>
+</ul>
+
+<p><strong>Portlets</strong><br />
+The main content of the Dashboard comprises portlets, which provide information about the system and your infrastructure.</p>
+
+<p>To add a portlet to the Dashboard, select <strong>Add portlet</strong>. Click (gear icon), which appears at the top right corner of each portlet, to edit its settings or remove the portlet.</p>
+
+<p>To arrange portlets, click the portlet header and drag the portlet to any location on the Dashboard. Other portlets rearrange depending on the location you drop it. You also can change the Dashboard column layout to one, two, or three-column displays. For two-column display, you can additionally choose a layout that offers columns of equal or varying widths. Select <strong>Configure Layout</strong> to change the layout.</p>
+
+<p><strong>More Information</strong><br />
+"Using Zenoss" in <em><a href="http://community.zenoss.org/community/documentation/official_documentation/zenoss-guide">Zenoss Administration</a></em></p>
+</pagehelp>
+<!--xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx -->
+<pagehelp target="Events" title="Events">
+</pagehelp>
+
+<!--xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx -->
+<pagehelp target="Infrastructure" title="Infrastructure">
+
+<p>Infrastructure provides access to:
+
+<ul>
+  <li><strong>Devices</strong> - Add, discover, classify, and authenticate devices in the system.</li>
+  <li><strong>Networks</strong> - View and edit, and discover devices in a network.</li>
+  <li><strong>Processes</strong> - View and edit system processes.</li>
+  <li><strong>IP Services</strong> - View, organize, and edit IP services.</li>
+  <li><strong>Windows Services</strong> - View, organize, and edit Windows services.</li>
+  <li><strong>Network Map</strong> - View the status of devices in your network.</li>
+  <li><strong>Manufacturers</strong> - View and edit information about the products in your system.</li>
+</ul>
+
+<p><strong>Devices</strong><br />
+The Devices page is divided into two main parts. The device list shows individual devices and their status. The tree view (or left panel) lets you access devices by organizer (class, group, system, or location).
+
+Add devices from (Add Devices Icon) (Add Devices). From here, you can:</p>
+
+<ul>
+ <li>Add a single device</li>
+ <li>Add and discover multiple devices</li>
+ <li>Add VMware infrastructure (Enterprise only)</li>
+</ul>
+
+<p>To move devices between organizers, select one or more devices in the list, and then drag them to the desired organizer.</p>
+
+<p>View detailed information about all devices by clicking <strong>Details</strong> in the tree view.
+
+<p>To view details for a single device, click the device name in the list to display its overview page, and then make a selection from the left panel.</p>
+
+<p>The (Actions menu icon) (Actions menu)is located at the bottom left of the page. Options available here vary depending on your selection. Some of the tasks you can initiate here include:</p>
+
+<ul>
+ <li>Binding templates</li>
+ <li>Work with local templates</li>
+ <li>Reset IP addresses</li>
+ <li>Model, rename, locak, and delete devices</li>
+ <li>Clear heartbeats</li>
+</ul>
+
+<p><strong>More Information</strong><br />
+"Using Zenoss" and "Adding, Discovering, and Modeling Devices" in <em><a href="http://community.zenoss.org/community/documentation/official_documentation/zenoss-guide">Zenoss Administration</a></em></p> 
+</pagehelp>
+<!--xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx -->
+<pagehelp target="Reports" title="Reports">
+</pagehelp>
+<!--xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx -->
+<pagehelp target="Advanced" title="Advanced">
+</pagehelp>
+
 </help>
