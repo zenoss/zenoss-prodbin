@@ -8,7 +8,7 @@ var iconTemplate = new Ext.Template(
 iconTemplate.compile();
 
 var rainbowTemplate = new Ext.Template(
-    '<table class="eventrainbow"><tr>{cells}</tr></table>');
+    '<table class="eventrainbow eventrainbow_cols_{count}"><tr>{cells}</tr></table>');
 rainbowTemplate.compile();
 
 var upDownTemplate = new Ext.Template(
@@ -125,7 +125,7 @@ Ext.apply(Zenoss.render, {
                 noevents: noevents
             });
         });
-        return rainbowTemplate.apply({cells: result});
+        return rainbowTemplate.apply({cells: result, count: count});
     },
 
     locking: function(obj) {
