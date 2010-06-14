@@ -45,8 +45,7 @@ function initializeTreeDrop(g) {
         ddGroup: 'reporttreedd',
         appendOnly: true,
         onNodeDrop: function (target, dd, e, data) {
-            if ((target.node.attributes.leaf) ||
-                    (target.node == data.node.parentNode)) {
+            if (target.node.attributes.leaf) {
                 try {
                     this.tree.selModel.suspendEvents(true);
                     data.node.unselect();
