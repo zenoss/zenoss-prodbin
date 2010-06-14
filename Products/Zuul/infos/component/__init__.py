@@ -55,7 +55,11 @@ class ComponentInfo(InfoBase):
             'deletion': self._object.isLockedFromDeletion(),
             'events': self._object.sendEventWhenBlocked()}
 
-    monitored = ProxyProperty('monitor')
+    @property
+    def hasMonitor(self):
+        return True
+
+    monitor = ProxyProperty('monitor')
 
     @property
     def status(self):

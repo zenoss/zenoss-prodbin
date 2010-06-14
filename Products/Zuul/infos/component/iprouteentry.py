@@ -38,7 +38,7 @@ class IpRouteEntryInfo(ComponentInfo):
         return self._object.interface()
 
     @property
-    def monitored(self):
+    def hasMonitor(self):
         return False
 
     protocol = ProxyProperty('routeproto')

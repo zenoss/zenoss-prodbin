@@ -253,7 +253,7 @@ class DeviceRouter(TreeRouter):
             return DirectResponse.fail('Failed to change the collector.')
 
     def setComponentsMonitored(self, uids, hashcheck, uid=None, ranges=(),
-                               monitored=False, meta_type=None, keys=None,
+                               monitor=False, meta_type=None, keys=None,
                                start=0, limit=50, sort='name', dir='ASC',
                                name=None):
         if ranges:
@@ -261,9 +261,9 @@ class DeviceRouter(TreeRouter):
                                              meta_type, start, limit, sort,
                                              dir, name)
         facade = self._getFacade()
-        facade.setMonitored(uids, monitored)
+        facade.setMonitor(uids, monitor)
         return DirectResponse.succeed(('Set monitoring to %s for %s'
-                                       ' components.') % (monitored, len(uids)))
+                                       ' components.') % (monitor, len(uids)))
 
     def lockComponents(self, uids, hashcheck, uid=None, ranges=(),
                        updates=False, deletion=False, sendEvent=False,

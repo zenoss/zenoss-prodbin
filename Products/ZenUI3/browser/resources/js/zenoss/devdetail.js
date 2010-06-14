@@ -205,7 +205,7 @@ function showMonitoringDialog() {
             handler: function(btn) {
                 var mon = Ext.getCmp('monitoring-checkbox'),
                     opts = {
-                        monitored: mon.getValue()
+                        monitor: mon.getValue()
                     };
                 Ext.apply(opts, componentGridOptions());
                 btn.ownerCt.ownerCt.destroy();
@@ -221,7 +221,7 @@ function showMonitoringDialog() {
         }],
         items: [{
             xtype: 'checkbox',
-            name: 'monitored',
+            name: 'monitor',
             submitValue: false,
             id: 'monitoring-checkbox',
             boxLabel: _t('Monitor these components'),
@@ -326,6 +326,7 @@ var componentCard = {
             text: _t('Locking...'),
             handler: showComponentLockingDialog
         },{
+            id: 'component_monitor_menu_item',
             text: _t('Monitoring...'),
             handler: showMonitoringDialog
         }]
