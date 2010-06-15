@@ -917,6 +917,8 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable,
     def setManageIp(self, ip="", REQUEST=None):
         """
         Set the manage IP, if IP is not passed perform DNS lookup.
+        If we ever get a bad IP address or there's any problems,
+        reset the IP address to blank. (WHY?)
 
         @rtype: string
         @permission: ZEN_ADMIN_DEVICE
@@ -928,14 +930,25 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable,
                 ipWithoutNetmask, netmask = ip.split("/",1)
                 checkip(ipWithoutNetmask)
                 # Also check for valid netmask
-                if maskToBits(netmask) is None: ip = ""
+                if maskToBits(netmask) is None: ip = ''
             else:
                 checkip(ip)
-        except IpAddressError: ip = ""
-        except ValueError: ip = ""
+        except IpAddressError: ip = ''
+        except ValueError: ip = ''
         if not ip:
             try: ip = socket.gethostbyname(self.id)
-            except socket.error: ip = ""
+            except socket.error: ip = ''
+
+        errorMessage = ''
+        ipMatch = self.getNetworkRoot().findIp(ip)
+        if ipMatch:
+            dev = ipMatch.device()
+            if self.id != dev.id:
+                errorMessage = "The IP address %s is already assigned to %s" % \
+                     (ip, dev.id)
+                log.warn(errorMessage)
+                ip = ''
+
         self.manageIp = ip
         self.index_object()
         notify(IndexingEvent(self, ('ipAddress',), True))
@@ -944,6 +957,8 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable,
             if ip:
                 msgr.sendToBrowser('Manage IP Set',
                    "%s's IP address has been set to %s." % (self.id, ip))
+            elif errorMessage:
+                msgr.sendToBrowser('Duplicate IP', errorMessage)
             else:
                 msgr.sendToBrowser('Invalid IP',
                   ("%s is an invalid IP address, and no appropriate IP could"

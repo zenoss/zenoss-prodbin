@@ -231,13 +231,34 @@ class TestDevice(ZenModelBaseTest):
         self.assert_(isinstance(d, ClassTestDevice))
 
     def testSetManageIp(self):
-        self.dev.setManageIp('1.2.3.4')
-        self.assertEqual(self.dev.getManageIp(), '1.2.3.4')
+        testIp = '1.2.3.4'
+        self.dev.setManageIp(testIp)
+        self.assertEqual(self.dev.getManageIp(), testIp)
+
+        # Need a network interface to register an IP in catalog
+        from Products.ZenModel.IpInterface import IpInterface
+        tmpIface = IpInterface('testNIC')
+        self.dev.os.interfaces._setObject('testNIC', tmpIface)
+        self.iface1 = self.dev.getDeviceComponents()[0]
+        self.iface1.addIpAddress('1.2.3.4')
+
+        ip = self.dev.getNetworkRoot().findIp(testIp)
+        self.assert_(ip is not None)
+
+        self.dev.setManageIp(testIp)
+
+        # What about duplicates?
         d = self.dmd.Devices.createInstance('localhost')
         d.setManageIp()
         self.assertEqual(d.getManageIp(), '127.0.0.1')
 
-
+        # Mask out the warning
+        log = logging.getLogger()
+        curLogLevel = log.getEffectiveLevel()
+        log.setLevel(logging.ERROR)
+        d.setManageIp(testIp)
+        log.setLevel(curLogLevel)
+        self.assertEqual(d.getManageIp(), '')
 
     def testManage_editDevice(self):
         self.dev.manage_editDevice()
