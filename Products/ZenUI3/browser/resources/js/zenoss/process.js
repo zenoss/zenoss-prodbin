@@ -330,6 +330,7 @@ Ext.getCmp('detail_panel').add({
     split: true,
     router: router,
     instancesTitle: 'Process Instances',
+    nameDataIndex: 'processName',
     zPropertyEditListeners: {
         frameload: function() {
             var formPanel = Ext.getCmp('processForm');

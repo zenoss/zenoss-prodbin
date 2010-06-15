@@ -168,7 +168,7 @@ Zenoss.InstanceCardPanel = Ext.extend(Zenoss.SimpleCardPanel, {
                 xtype: 'SimpleInstanceGridPanel',
                 ref: 'instancesGrid',
                 directFn: config.router.getInstances,
-                nameDataIndex: 'processName'
+                nameDataIndex: config.nameDataIndex || "name"
             }]
         });
         Zenoss.InstanceCardPanel.superclass.constructor.call(this, config);
