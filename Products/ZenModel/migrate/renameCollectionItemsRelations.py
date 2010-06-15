@@ -13,6 +13,7 @@
 
 
 import Migrate
+from Acquisition import aq_base
 from Products.ZenRelations.ToManyContRelationship import ToManyContRelationship
 
 class renameCollectionItemsRelations(Migrate.Step):
@@ -34,7 +35,20 @@ class renameCollectionItemsRelations(Migrate.Step):
             for coll in rptcolls():
                 rel = coll.items
                 if isinstance(rel, ToManyContRelationship):
+                    obs = []
+                    for ob in rel():
+                        obs.append(aq_base(ob))
+                        remote_rel = ob.collection
+                        remote_rel._remove(coll)
+                        rel._remove(ob)
                     coll._delObject('items')
-                    coll._setObject('collection_items', rel)
+                    coll.buildRelations()
+                    newrel = coll.collection_items.primaryAq()
+                    for ob in obs:
+                        newrel._setObject(ob.getId(), ob)
+                        ob = newrel._getOb(ob.getId())
+                        assert ob.__primary_parent__ == newrel
+                        assert ob.collection() == coll
+                        assert ob in newrel()
 
 renameCollectionItemsRelations()
