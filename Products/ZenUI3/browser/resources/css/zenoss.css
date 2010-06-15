@@ -863,3 +863,14 @@ span.status-down-large {
     cursor: pointer;
 }
 
+#page-level-help-tip li {
+    list-style: disc inside;
+    padding: 1px 0;
+}
+#page-level-help-tip ul {
+    margin: 5px 5px auto;
+}
+#page-level-help-tip p {
+    padding-top: 7px;
+    padding-bottom: 7px;
+}
