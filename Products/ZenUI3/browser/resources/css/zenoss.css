@@ -426,19 +426,19 @@ div.dialog-link a {
    font-size:12px;   
 }
 
+/* Changed to use % instead of pixel counts.
+   @TODO: real answer is use divs instead of tables here */
 table.eventrainbow {
     border-collapse: collapse;
     height: 16px;
+    width: 100%;
 }
 
-/* IE (in quirks mode) does not set table width based on
-    width of td cells. Set width to .eventrainbow td * x */
-.ext-ie table.eventrainbow_cols_3 { width: 147px; }
-.ext-ie table.eventrainbow_cols_4 { width: 196px; }
-.ext-ie table.eventrainbow_cols_5 { width: 245px; }
+table.eventrainbow_cols_3 tr td { width: 33%; }
+table.eventrainbow_cols_4 tr td { width: 25%; }
+table.eventrainbow_cols_5 tr td { width: 20%; }
 
 .eventrainbow td {
-    width: 49px;
     padding-left: 22px;
     color: white;
     vertical-align: middle;
