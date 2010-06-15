@@ -25,8 +25,40 @@ The main content of the Dashboard comprises portlets, which provide information 
 </pagehelp>
 <!--xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx -->
 <pagehelp target="Events" title="Events">
-</pagehelp>
+<p>The event console is the system's central nervous system, enabling you to view and manage events. It displays the repository of all events that are detected by the system.</p>
 
+<p><strong>Sorting Events</strong><br />
+You can sort events by any column that appears in the event console. To sort events, click a column header. Clicking the header toggles between ascending and descending sort order. Filter options appear below each column header.</p>
+
+<p><strong>Refreshing Events</strong><br />
+You can refresh the list of events manually or specify that they refresh automatically. To manually refresh the view, click <strong>Refresh</strong>. You can manually refresh at any time, even if you have an automatic refresh increment specified.</p>
+
+<p>To configure automatic refresh, select one of the time increments from the Refresh list. By default, automatic refresh is enabled and set to refresh each minute.</p>
+
+<p><strong>Viewing Event Details</strong><br />
+You can view details for any event in the system. To view details, double-click an event row.</p>
+
+<p><strong>Tip:</strong> Do not double-click on or near the device name, component, or device class in the row. Doing this displays details about that entity, rather than information about the event.</p>
+
+<p><strong>Managing Events</strong><br />
+After selecting an event, you can:</p>
+<ul>
+ <li>Acknowledge the event</li>
+ <li>Close the event (move it to history)</li>
+ <li>Map the event to associate it with a specific event class</li>
+ <li>Return the event to New status (revoke its Acknowledged status)</li>
+</ul>
+
+<p>You also can add an event from the event console.</p>
+
+<p>(Event Management Options image)</p>
+
+<p><strong>Exporting Event Data</strong><br />
+You can export data from the event console to a comma-separated <tt>(.csv)</tt> or XML file. To do this, select <strong>Export > CSV</strong> or <strong>Export > XML</strong> By default, the exported file is named <tt>events.</tt><em>Extension</em>.</p>
+
+<p><strong>More Information</strong><br />
+"Event Management" in <em><a href="http://community.zenoss.org/community/documentation/official_documentation/zenoss-guide">Zenoss Administration</a></em></p> 
+</pagehelp>
 <!--xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx -->
 <pagehelp target="Infrastructure" title="Infrastructure">
 
@@ -43,9 +75,9 @@ The main content of the Dashboard comprises portlets, which provide information 
 </ul>
 
 <p><strong>Devices</strong><br />
-The Devices page is divided into two main parts. The device list shows individual devices and their status. The tree view (or left panel) lets you access devices by organizer (class, group, system, or location).
+The Devices page is divided into two main areas. The <em>device list</em> shows individual devices and their status. The <em>tree view</em> (or left panel) lets you access devices by organizer (class, group, system, or location).</p>
 
-Add devices from (Add Devices Icon) (Add Devices). From here, you can:</p>
+<p>Add devices from (Add Devices Icon) (Add Devices). From here, you can:</p>
 
 <ul>
  <li>Add a single device</li>
@@ -59,7 +91,7 @@ Add devices from (Add Devices Icon) (Add Devices). From here, you can:</p>
 
 <p>To view details for a single device, click the device name in the list to display its overview page, and then make a selection from the left panel.</p>
 
-<p>The (Actions menu icon) (Actions menu)is located at the bottom left of the page. Options available here vary depending on your selection. Some of the tasks you can initiate here include:</p>
+<p>The (Actions menu icon) (Actions menu) is located at the bottom left of the page. Options available here vary depending on your selection. Some of the tasks you can initiate here include:</p>
 
 <ul>
  <li>Binding templates</li>
@@ -69,14 +101,49 @@ Add devices from (Add Devices Icon) (Add Devices). From here, you can:</p>
  <li>Clear heartbeats</li>
 </ul>
 
-<p><strong>More Information</strong><br />
-"Using Zenoss" and "Adding, Discovering, and Modeling Devices" in <em><a href="http://community.zenoss.org/community/documentation/official_documentation/zenoss-guide">Zenoss Administration</a></em></p> 
+<p><strong>More Information</strong></p>
+<ul>
+ <li>"Using Zenoss" in <em><a href="http://community.zenoss.org/community/documentation/official_documentation/zenoss-guide">Zenoss Administration</a></em></li>
+ <li>"Adding, Discovering, and Modeling Devices" in <em><a href="http://community.zenoss.org/community/documentation/official_documentation/zenoss-guide">Zenoss Administration</a></em></li>
+</ul>
 </pagehelp>
 <!--xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx -->
 <pagehelp target="Reports" title="Reports">
+<p>Zenoss aggregates and reports, over time, on the data you set it up to monitor. The system provides a range of defined and custom report options.</p>
+
+<p>The Reports list appears in the tree view. Expand a list item to see available reports in that category.</p>
+
+<p><strong>Organizing Reports</strong><br />
+You can organize reports and report organizers by dragging and dropping them in the tree view. To create a report organizer, select Add Report Organizer from (Add Menu icon) (Add Menu).</p>
+
+<p><strong>Exporting Reports</strong><br />
+You can export data from any report as a comma-separated value <tt>(.csv)</tt> file. Click <strong>Export All</strong> located at the bottom of a report.</p>
 </pagehelp>
 <!--xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx -->
 <pagehelp target="Advanced" title="Advanced">
+
+<p>Advanced selections let you manage arange of system settings and objects, including:</p>
+
+<ul>
+ <li><strong>Settings</strong> - Use this area to:</li>
+   <ul>
+     <li>Edit system settings</li>
+     <li>Define commands</li>
+     <li>Manage users</li>
+     <li>Manage loaded ZenPacks</li>
+     <li>View the jobs log</li>
+     <li>Determine access to portlets</li>
+     <li>Stop and start system daemons</li>
+     <li>Check for Zenoss updates and view software component versions</li>
+     <li>Back up your Zenoss instance</li>
+   </ul>
+
+ <li><strong>Collectors</strong> - Add and delete Zenoss collectors.</li>
+
+ <li><strong>Monitoring Templates</strong> - Define monitoring templates and their components (data sources, thresholds, and graphs).</li>
+
+ <li><strong>MIBs</strong> - Load and manage MIBs.</li>
+</ul>
 </pagehelp>
 
 </help>
