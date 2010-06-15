@@ -474,8 +474,9 @@ for a ZenPack.
         trans.note('Import from file %s using %s'
                     % (self.options.infile, self.__class__.__name__))
         trans.commit()
-        self.syncdb()
-
+        if hasattr(self, 'connection'):
+            # It's safe to call syncdb()
+            self.syncdb()
 
 class SpoofedOptions(object):
     """
