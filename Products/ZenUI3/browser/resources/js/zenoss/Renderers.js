@@ -73,10 +73,6 @@ Ext.apply(Zenoss.render, {
         }
     },
 
-    monitor: function(value, metadata, record, rowIndex, colIndex, store) {
-        return record.data.hasMonitor ? value : '';
-    },
-
     pingStatus: function(bool) {
         var str = pingStatusBase(bool);
         return upDownTemplate.apply([str.toLowerCase(), str]);

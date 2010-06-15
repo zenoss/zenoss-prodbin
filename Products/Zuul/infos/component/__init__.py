@@ -56,10 +56,14 @@ class ComponentInfo(InfoBase):
             'events': self._object.sendEventWhenBlocked()}
 
     @property
-    def hasMonitor(self):
+    def usesMonitorAttribute(self):
         return True
 
     monitor = ProxyProperty('monitor')
+
+    @property
+    def monitored(self):
+        return self._object.monitored()
 
     @property
     def status(self):

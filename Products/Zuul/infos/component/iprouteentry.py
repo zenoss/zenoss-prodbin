@@ -38,8 +38,14 @@ class IpRouteEntryInfo(ComponentInfo):
         return self._object.interface()
 
     @property
-    def hasMonitor(self):
+    def usesMonitorAttribute(self):
         return False
+
+    monitor = False
+
+    @property
+    def monitored(self):
+        return ""
 
     protocol = ProxyProperty('routeproto')
     type = ProxyProperty('routetype')

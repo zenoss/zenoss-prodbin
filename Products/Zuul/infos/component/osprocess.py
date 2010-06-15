@@ -46,3 +46,9 @@ class OSProcessInfo(ComponentInfo):
             self._object.deleteZenProperty('zFailSeverity')
     failSeverity = property(getFailSeverity, setFailSeverity)
 
+    @property
+    def usesMonitorAttribute(self):
+        """OSProcess monitored() does not check the monitor attribute, so do
+        not allow the user to set it. canBeMonitor is True (from the base
+        class)"""
+        return False

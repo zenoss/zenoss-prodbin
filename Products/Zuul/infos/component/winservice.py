@@ -31,18 +31,14 @@ class WinServiceInfo(ComponentInfo):
         return self._object.serviceclass()
 
     @property
-    def hasMonitor(self):
+    def usesMonitorAttribute(self):
         return ( self._object.getAqProperty("zMonitor")
                and ( not safe_hasattr(self._object, "startMode")
                      or self._object.startMode != "Disabled" ))
 
-    def getMonitored(self):
-        return self._object.monitored()
-
-    def setMonitor(self, value):
-        self._object.monitor = value
-
-    monitor = property(getMonitored, setMonitor)
+    @property
+    def monitored(self):
+        return self._object.monitored() if self.usesMonitorAttribute else ""
 
     @property
     def caption(self):

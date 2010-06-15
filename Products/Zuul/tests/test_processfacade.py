@@ -117,7 +117,7 @@ class ProcessFacadeTest(EventTestCase, ZuulFacadeTestCase):
         instanceInfo = instanceInfos[0]
         self.assertEqual('quux', instanceInfo.device.getDevice())
         self.assertEqual('bar', instanceInfo.name)
-        self.assertEqual(True, instanceInfo.monitored)
+        self.assertEqual(True, instanceInfo.monitor)
         self.assertEqual('Up', instanceInfo.status)
 
     def test_getEvents(self):

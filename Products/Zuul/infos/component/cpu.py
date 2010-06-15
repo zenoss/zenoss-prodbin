@@ -41,5 +41,11 @@ class CPUInfo(ComponentInfo):
         return self._object.productClass()
 
     @property
-    def hasMonitor(self):
+    def usesMonitorAttribute(self):
         return False
+
+    monitor = False
+
+    @property
+    def monitored(self):
+        return ""

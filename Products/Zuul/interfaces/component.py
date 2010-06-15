@@ -14,7 +14,6 @@
 from zope.interface import Attribute, Interface
 from Products.Zuul.interfaces import IInfo
 from Products.Zuul.form import schema
-from Products.Zuul.utils import ZuulMessageFactory as _t
 
 class IComponent(Interface):
     """
@@ -38,9 +37,14 @@ class IComponentInfo(IInfo):
                          u" for this component?", group="Overview",
                          order=1,
                          readonly=True)
-    monitor = schema.Bool(title=u"Monitored",
+    usesMonitorAttribute = Attribute("Should the user be able to set the monitor attribute")
+    monitor = Attribute("Has monitoring been enabled on the component")
+    monitored = schema.Bool(title=u"Monitored",
+                            readonly=True,
                             order=0,
-                            description=u"Is the instance monitored",
+                            description=u"Is the component being monitored"
+                            u" (depends on the monitor setting and other"
+                            u" factors). Empty string if not applicable.",
                             group="Overview")
 
 
@@ -151,11 +155,6 @@ class IIpRouteEntryInfo(IComponentInfo):
                               group="Overview")
     protocol = schema.Text(title=u"Protocol", readonly=True, group="Overview")
     type = schema.Text(title=u"Type", readonly=True, group="Overview")
-    monitor = schema.Bool(title=u"Monitored",
-                            readonly=True,
-                            order=0,
-                            description=u"Is the instance monitored",
-                            group="Overview")
 
 
 class ICPUInfo(IComponentInfo):

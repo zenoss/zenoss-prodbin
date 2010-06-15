@@ -308,7 +308,7 @@ ZC.ComponentPanel = Ext.extend(Ext.Panel, {
                             var delimiter = Ext.History.DELIMITER,
                                 token = Ext.History.getToken().split(delimiter, 2).join(delimiter);
                             Ext.History.add(token + delimiter + row.data.uid);
-                            Ext.getCmp('component_monitor_menu_item').setDisabled(!row.data.hasMonitor);
+                            Ext.getCmp('component_monitor_menu_item').setDisabled(!row.data.usesMonitorAttribute);
                         } else {
                             this.detailcontainer.removeAll();
                             this.componentnav.reset();
@@ -407,8 +407,9 @@ ZC.BaseComponentStore = Ext.extend(Ext.ux.grid.livegrid.Store, {
             {name: 'uid'},
             {name: 'severity'},
             {name: 'name'},
-            {name: 'hasMonitor'},
+            {name: 'usesMonitorAttribute'},
             {name: 'monitor'},
+            {name: 'monitored'},
             {name: 'status'}
         ];
         Ext.applyIf(config, {
@@ -466,10 +467,9 @@ ZC.BaseComponentColModel = Ext.extend(Ext.grid.ColumnModel, {
                 dataIndex: 'name',
                 header: _t('Name')
             }, {
-                id: 'monitor',
-                dataIndex: 'monitor',
+                id: 'monitored',
+                dataIndex: 'monitored',
                 header: _t('Monitored'),
-                renderer: Zenoss.render.monitor,
                 width: 70,
                 sortable: true
             }, {
@@ -502,8 +502,9 @@ ZC.IpInterfacePanel = Ext.extend(ZC.ComponentGridPanel, {
                 {name: 'network'},//, mapping:'network.uid'},
                 {name: 'macaddress'},
                 {name: 'status'},
-                {name: 'hasMonitor'},
+                {name: 'usesMonitorAttribute'},
                 {name: 'monitor'},
+                {name: 'monitored'},
                 {name: 'locking'}
             ],
             columns: [{
@@ -543,10 +544,9 @@ ZC.IpInterfacePanel = Ext.extend(ZC.ComponentGridPanel, {
                 renderer: Zenoss.render.pingStatus,
                 width: 60
             },{
-                id: 'monitor',
-                dataIndex: 'monitor',
+                id: 'monitored',
+                dataIndex: 'monitored',
                 header: _t('Monitored'),
-                renderer: Zenoss.render.monitor,
                 width: 60
             },{
                 id: 'locking',
@@ -571,8 +571,9 @@ ZC.WinServicePanel = Ext.extend(ZC.ComponentGridPanel, {
                 {name: 'status'},
                 {name: 'name'},
                 {name: 'locking'},
-                {name: 'hasMonitor'},
+                {name: 'usesMonitorAttribute'},
                 {name: 'monitor'},
+                {name: 'monitored'},
                 {name: 'caption'},
                 {name: 'startMode'},
                 {name: 'startName'},
@@ -608,10 +609,9 @@ ZC.WinServicePanel = Ext.extend(ZC.ComponentGridPanel, {
                 renderer: Zenoss.render.pingStatus,
                 width: 60
             },{
-                id: 'monitor',
-                dataIndex: 'monitor',
+                id: 'monitored',
+                dataIndex: 'monitored',
                 header: _t('Monitored'),
-                renderer: Zenoss.render.monitor,
                 width: 60
             },{
                 id: 'locking',
@@ -640,7 +640,8 @@ ZC.IpRouteEntryPanel = Ext.extend(ZC.ComponentGridPanel, {
                 {name: 'protocol'},
                 {name: 'type'},
                 {name: 'locking'},
-                {name: 'hasMonitor'}
+                {name: 'usesMonitorAttribute'},
+                {name: 'monitored'}
             ],
             columns: [{
                 id: 'destination',
@@ -688,8 +689,9 @@ ZC.IpServicePanel = Ext.extend(ZC.ComponentGridPanel, {
                 {name: 'name'},
                 {name: 'status'},
                 {name: 'severity'},
-                {name: 'hasMonitor'},
+                {name: 'usesMonitorAttribute'},
                 {name: 'monitor'},
+                {name: 'monitored'},
                 {name: 'locking'},
                 {name: 'protocol'},
                 {name: 'description'},
@@ -728,10 +730,9 @@ ZC.IpServicePanel = Ext.extend(ZC.ComponentGridPanel, {
                 dataIndex: 'description',
                 header: _t('Description')
             },{
-                id: 'monitor',
-                dataIndex: 'monitor',
+                id: 'monitored',
+                dataIndex: 'monitored',
                 header: _t('Monitored'),
-                renderer: Zenoss.render.monitor,
                 width: 60
             },{
                 id: 'locking',
@@ -757,8 +758,9 @@ ZC.OSProcessPanel = Ext.extend(ZC.ComponentGridPanel, {
                 {name: 'processName'},
                 {name: 'status'},
                 {name: 'severity'},
-                {name: 'hasMonitor'},
+                {name: 'usesMonitorAttribute'},
                 {name: 'monitor'},
+                {name: 'monitored'},
                 {name: 'locking'},
                 {name: 'processClass'},
                 {name: 'alertOnRestart'},
@@ -794,10 +796,9 @@ ZC.OSProcessPanel = Ext.extend(ZC.ComponentGridPanel, {
                 dataIndex: 'failSeverity',
                 header: _t('Fail Severity')
             },{
-                id: 'monitor',
-                dataIndex: 'monitor',
+                id: 'monitored',
+                dataIndex: 'monitored',
                 header: _t('Monitored'),
-                renderer: Zenoss.render.monitor,
                 width: 60
             },{
                 id: 'locking',
@@ -823,8 +824,9 @@ ZC.FileSystemPanel = Ext.extend(ZC.ComponentGridPanel, {
                 {name: 'name'},
                 {name: 'status'},
                 {name: 'severity'},
-                {name: 'hasMonitor'},
+                {name: 'usesMonitorAttribute'},
                 {name: 'monitor'},
+                {name: 'monitored'},
                 {name: 'locking'},
                 {name: 'mount'},
                 {name: 'totalBytes'},
@@ -877,10 +879,9 @@ ZC.FileSystemPanel = Ext.extend(ZC.ComponentGridPanel, {
                 }
 
             },{
-                id: 'monitor',
-                dataIndex: 'monitor',
+                id: 'monitored',
+                dataIndex: 'monitored',
                 header: _t('Monitored'),
-                renderer: Zenoss.render.monitor,
                 width: 60
             },{
                 id: 'locking',
@@ -912,7 +913,8 @@ ZC.CPUPanel = Ext.extend(ZC.ComponentGridPanel, {
                 {name: 'cacheSizeL2'},
                 {name: 'voltage'},
                 {name: 'locking'},
-                {name: 'hasMonitor'}
+                {name: 'usesMonitorAttribute'},
+                {name: 'monitored'}
             ],
             columns: [{
                 id: 'socket',
