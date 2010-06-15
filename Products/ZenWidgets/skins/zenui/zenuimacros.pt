@@ -31,26 +31,6 @@
 
 <tal:block metal:use-macro="here/userCommandsMacros/macros/runCommandMenu"/>
 
-<tal:block tal:repeat="menu menu_ids">
-<tal:block tal:condition="python:menu != 'TopLevel'"
-        tal:define="menus python:here.getMenus(menu, here)">
-<li tal:condition="python:menus and len(menus) == 1" class="toplevelmenu">
-<tal:block tal:define="item python:menus[0]">
-    <a tal:define="mypath python:test(item.action.startswith('javascript'),
-        item.action,
-        '%s/%s' % (basepath, item.action));
-        actionpath python:test(item.isdialog,
-        'javascript:$(\'dialog\').show(this.event, \'%s\')' % mypath,
-        mypath)"
-        tal:attributes="href actionpath"
-        tal:content="item/description">description</a>
-     <tal:block tal:condition="python:getattr(request, 'showMenuOrder', None)"
-             tal:content="item/ordering"/>
-</tal:block>
-</li>
-</tal:block>
-</tal:block>
-
 <tal:block tal:define="items python:here.getMenus('TopLevel', here)">
 <tal:block tal:condition="items">
         <tal:block tal:define="dummy items/sort"/>
