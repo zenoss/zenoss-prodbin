@@ -106,13 +106,19 @@ class TestDataSourceView(StreamingView):
         try:
             request = self.request
             data = unjson(request.form['data'])
-            context = self.context
-            data['renderTemplate'] = False
+            # datasource expect the request object, so set the attributes
+            # from the request (so the user can test without saving the datasource)
+            for key in data:
+                request[key] = data[key]
+                
             self.write("Preparing Command...")
-            return context.testDataSourceAgainstDevice(data.get('testDevice'),
-                                                       data,
-                                                       self.write,
-                                                       self.reportError)
+            request['renderTemplate'] = False
+            results = self.context.testDataSourceAgainstDevice(
+                data.get('testDevice'),
+                request,
+                self.write,
+                self.reportError)
+            return results
         except Exception:
             self.write('Exception while performing command: <br />')
             self.write('<pre>%s</pre>' % (traceback.format_exc()))
