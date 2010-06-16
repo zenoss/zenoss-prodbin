@@ -488,14 +488,16 @@ class EventManagerBase(ZenModelRM, ObjectCache, DbAccessBase):
                        'Products.ZenModel.DeviceComponent.DeviceComponent')]
         return self._filterCatalogResultsForIds(catalog, And(*querySet))
 
-    def _getDeviceIdsMatching(self, searchTerm):
+    def _getDeviceIdsMatching(self, searchTerm, globSearch=True):
         """
         This returns a list of device ids where the titleOrId
         matches the searchTerm
         @param searchTerm: query for which we want to search for (can be regex)
         """
         catalog = self.dmd.Devices.deviceSearch
-        querySet = MatchRegexp('titleOrId', '.*%s.*' % searchTerm)
+        if globSearch:
+            searchTerm = '.*%s.*' % searchTerm
+        querySet = MatchRegexp('titleOrId', searchTerm)
         return self._filterCatalogResultsForIds(catalog, querySet)
 
     def getEventBatchME(self, me, selectstatus=None, resultFields=[],

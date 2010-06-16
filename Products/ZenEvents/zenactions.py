@@ -18,7 +18,7 @@ Turn events into notifications (pages, emails).
 
 '''
 
-
+import re
 import socket
 import time
 from sets import Set
@@ -42,6 +42,9 @@ from twisted.internet.protocol import ProcessProtocol
 from email.Utils import formatdate
 
 DEFAULT_MONITOR = "localhost"
+
+deviceFilterRegex = re.compile("Device\s(.*?)'(.*?)'", re.IGNORECASE)
+
 
 def _capitalize(s):
     return s[0:1].upper() + s[1:]
@@ -265,6 +268,52 @@ class BaseZenActions(object):
         import transaction
         transaction.commit()
 
+    def filterDeviceName(self, zem, whereClause):
+        """This is somewhat janky but we only store the device id in the mysql
+        database but allow people to search based on the device "title".
+        This method resolves the disparity by searching the catalog first and using
+        those results.
+        """
+        # they are not searching based on device at all
+        if not 'device' in whereClause:
+            return whereClause
+        matches = deviceFilterRegex.findall(whereClause)
+        
+        # incase our awesome regex fails
+        if not matches:
+            return whereClause
+        
+        # get the devices from the event manager
+        deviceids = []
+        include = 'IN'
+        
+        # should be of the form "LIKE '%bar%'" or "NOT LIKE '%bar%'"
+        for match in matches:
+            operator = match[0]
+            searchTerm = match[-1]
+            originalDeviceFilter = operator + "'" + searchTerm + "'"
+
+            # take care of begins with and ends with
+            if searchTerm.startswith('%'):
+                searchTerm = '.*' + searchTerm
+            if searchTerm.endswith('%'):
+                searchTerm = searchTerm + '.*'
+
+            # search the catalog
+            deviceids = zem._getDeviceIdsMatching(searchTerm.replace("%", ""), globSearch=False)
+                
+            # if we didn't find anything in the catalog just search the mysql
+            if not deviceids:
+                continue
+
+            if not operator.lower().strip() in ('like', '='):
+                include = 'NOT IN'
+            deviceFilter = " %s ('%s') " % (include, "','".join(deviceids))
+            whereClause = whereClause.replace(originalDeviceFilter, deviceFilter)
+            
+        return whereClause
+        
+                
     def processEvent(self, zem, context, action):
         userFields = context.getEventFields()
         columnNames = self._columnNames('status')
@@ -272,6 +321,7 @@ class BaseZenActions(object):
         userid = context.getUserid()
         # get new events
         nwhere = context.where.strip() or '1 = 1'
+        nwhere = self.filterDeviceName(zem, nwhere)
         if context.delay > 0:
             nwhere += " and firstTime + %s < UNIX_TIMESTAMP()" % context.delay
         awhere = ''

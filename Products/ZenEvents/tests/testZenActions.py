@@ -17,6 +17,7 @@ import transaction
 
 from Products.ZenTestCase.BaseTestCase import BaseTestCase
 from Products.ZenEvents.zenactions import BaseZenActions
+from Products.ZenEvents.MySqlEventManager import MySqlEventManager
 
 
 class MockLogger(object):
@@ -25,10 +26,24 @@ class MockLogger(object):
         pass
 
 
+class MockZenEventManager(MySqlEventManager):
+
+    def __init__(self, dmd):
+        self.dmd = dmd
+        
+    log = MockLogger()
+    
+    def _getDeviceIdsMatching(self, searchTerm, globSearch=True):
+        """Stub for the filterDeviceName test
+        """
+        return ["testDevice"]
+
+
 class MockZenActions(BaseZenActions):
 
     def __init__(self, dmd):
         self.dmd = dmd
+        
 
     log = MockLogger()
 
@@ -69,6 +84,68 @@ class ZenActionsTest(BaseTestCase):
             self.assert_(isinstance(name, basestring), 
                           'name must be a string')
 
+    def testFilterDeviceNameIgnoresNonDeviceSearches(self):
+        """When we are not searching for a device
+        the where clause should be exactly the same 
+        """
+        whereClause = "severity >= 4 and eventState = 0 and prodState = 1000"
+        nwhere = self.zenActions.filterDeviceName(MockZenEventManager(self.dmd), whereClause)
+        self.assertEqual(whereClause, nwhere)
+
+    def testFilterDeviceNameFilterLike(self):
+        """When we are searching for something like
+        device LIKE '%foo%' we should query the catalog
+        for devices like foo
+        """
+        whereClause = "(prodState = 1000) and (device like '%ubuntu%') and (eventState = 0) and (severity >= 0)"
+        nwhere = self.zenActions.filterDeviceName(MockZenEventManager(self.dmd), whereClause)
+        self.assertNotEqual(whereClause, nwhere)
+        # make sure we didn't strip out everything
+        self.assertTrue('severity' in nwhere)
+        self.assertTrue('testDevice' in nwhere, 'make sure we got our list of devices from the catalog')
+
+    def testFilterDeviceNameFilterNotLike(self):
+        """When we are searching for something like
+        device not LIKE '%foo%' we should query the catalog
+        for devices that are nothing like foo
+        """
+        whereClause = "(prodState = 1000) and (device not like '%ubuntu%') and (eventState = 0) and (severity >= 0)"
+        nwhere = self.zenActions.filterDeviceName(MockZenEventManager(self.dmd), whereClause)
+        self.assertNotEqual(whereClause, nwhere)
+        self.assertTrue('NOT IN' in nwhere)
+
+    def testFilterDeviceNameFilterBeginsWith(self):
+        """Searching for a string that "starts with" the phrase
+        """
+        whereClause = "(prodState = 1000) and (device like 'ubuntu%') and (eventState = 0) and (severity >= 0)"
+        nwhere = self.zenActions.filterDeviceName(MockZenEventManager(self.dmd), whereClause)
+        self.assertNotEqual(whereClause, nwhere)
+        self.assertTrue('testDevice' in nwhere)
+
+    def testFilterDeviceNameEquals(self):
+        """ When (device = 'foo')
+        """
+        whereClause = "(prodState = 1000) and (device = 'ubuntu') and (eventState = 0) and (severity >= 0)"
+        nwhere = self.zenActions.filterDeviceName(MockZenEventManager(self.dmd), whereClause)
+        self.assertNotEqual(whereClause, nwhere)
+        self.assertTrue("IN ('testDevice')" in nwhere)
+
+    def testFilterDeviceNameNotEquals(self):
+        """ When (device = 'foo')
+        """
+        whereClause = "(prodState = 1000) and (device != 'ubuntu') and (eventState = 0) and (severity >= 0)"
+        nwhere = self.zenActions.filterDeviceName(MockZenEventManager(self.dmd), whereClause)
+        self.assertNotEqual(whereClause, nwhere)
+        self.assertTrue("NOT IN ('testDevice')" in nwhere)
+    
+    def testFilterDeviceNameMultipleSearchTerms(self):
+        """ When (device = 'foo' or device like '%bar%'
+        """
+        whereClause = "(prodState = 1000) and (device like '%joseph%' or device like '%ubuntu%') and (eventState = 0) and (severity >= 4)"
+        nwhere = self.zenActions.filterDeviceName(MockZenEventManager(self.dmd), whereClause)
+        self.assertNotEqual(whereClause, nwhere)
+        self.assertTrue("IN ('testDevice')" in nwhere)
+        
     def testColumnNames(self):
         columnNames = self.zenActions._columnNames('status')
         for columnName in columnNames:
