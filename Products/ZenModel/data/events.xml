@@ -5201,6 +5201,8 @@ if device and evt.eventKey:
         # Get the total blocks from the model. Adjust by specified offset.
         totalBlocks = f.totalBlocks * getattr(device, "zFileSystemSizeOffset", 1.0)
         totalBytes = totalBlocks * f.blockSize
+        if int(f.totalBlocks) == 0:
+            break
         usedBytes = None
 
         currentValue = float(m.groups()[0])
