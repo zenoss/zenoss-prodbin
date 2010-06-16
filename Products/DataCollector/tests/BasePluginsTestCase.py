@@ -14,6 +14,7 @@
 import os
 from pprint import pprint, pformat
 import logging
+log = logging.getLogger("zen.BasePluginsTestCase")
 
 from Products.ZenTestCase.BaseTestCase import BaseTestCase
 from Products.ZenRRD.tests.BaseParsersTestCase import Object, filenames
@@ -36,10 +37,13 @@ class BasePluginsTestCase(BaseTestCase):
                 format = '%s/%s caught %s: %s'
                 host, parser = filename.split(os.path.sep)[-2:]
                 args = (host, parser, e.__class__.__name__, str(e))
-                raise Exception(format % args)
+                log.error(format % args)
+                raise
 
-        self.assert_(counter > 0, counter)
-        print self.__class__.__name__, "made", counter, "assertions."
+        if counter:
+            print self.__class__.__name__, "made", counter, "assertions."
+        else:
+            print self.__class__.__name__, "had no counters or failed to parse."
 
 
     def _testDataFile(self, filename, Plugins):
@@ -68,7 +72,7 @@ class BasePluginsTestCase(BaseTestCase):
         device.id = filename.split(os.path.sep)[-2]
         
         expecteds = [expected[p.__class__.__name__] for p in plugins]
-        dataMaps = [p.process(device, output, logging) for p in plugins]
+        dataMaps = [p.process(device, output, logging) or [] for p in plugins]
         #pprint(dataMaps)
         return self._testDataMaps(zip(expecteds, dataMaps), filename)
         

@@ -214,8 +214,8 @@ class ApplyDataMap(object):
         rname = relmap.relname
         rel = getattr(device, rname, None)
         if not rel:
-            log.warn("no relationship:%s found on:%s", 
-                          relmap.relname, device.id)
+            log.warn("no relationship:%s found on:%s (%s %s)", 
+                          relmap.relname, device.id, device.__class__, device.zPythonClass)
             return changed
         relids = rel.objectIdsAll()
         seenids = {}
@@ -424,7 +424,8 @@ class ApplyDataMap(object):
         rel = device._getOb(relname, None)
         if not rel:
             raise ObjectCreationError(
-                    "No relation %s found on device %s" % (relname, device.id))
+                    "No relation %s found on device %s (%s)" % (relname, device.id, device.__class__ ))
+                    #"No relation %s found on device %s" % (relname, device.id))
         changed = False
         try:
             remoteObj = rel._getOb(remoteObj.id)
