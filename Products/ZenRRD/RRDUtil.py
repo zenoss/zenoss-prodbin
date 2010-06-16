@@ -229,7 +229,10 @@ class RRDUtil:
             except (TypeError, ValueError):
                 return None
         else:
-            value = float(value)
+            try:
+                value = float(value)
+            except (TypeError, ValueError):
+                return None
         try:
             rrdtool.update(str(filename), 'N:%s' % value)
             log.debug('%s: %r', str(filename), value)
