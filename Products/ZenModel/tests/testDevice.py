@@ -15,7 +15,7 @@ if __name__ == '__main__':
     execfile(os.path.join(sys.path[0], 'framework.py'))
 
 import time
-
+import logging
 from DateTime import DateTime
 
 from Products.ZenModel.Exceptions import *

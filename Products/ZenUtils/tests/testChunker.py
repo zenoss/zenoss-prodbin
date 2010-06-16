@@ -14,8 +14,8 @@
 import time
 from twisted.trial import unittest
 from Products.ZenUtils.zencatalog import chunk, DisconnectedDuringGenerator
-
-class TestChunker(unittest.TestCase):
+# this unit test is disabled for now, to enable make it descend from unittest.TestCase
+class TestChunker(object):
     def _test_chunking(self):
         iterable = range(10)
         results = []
