@@ -20,6 +20,7 @@ from StringIO import StringIO
 
 import Globals
 import transaction
+from ZODB.POSException import ConflictError
 
 from Products.ZenModel.ZenPack import ZenPack, ZenPackException
 from Products.ZenModel.ZenPack import ZenPackNeedMigrateException
@@ -28,6 +29,8 @@ from Products.ZenUtils.Utils import cleanupSkins, zenPath
 import Products.ZenModel.ZenPackLoader as ZPL
 from Products.ZenModel.ZenPackLoader import CONFIG_FILE, CONFIG_SECTION_ABOUT
 import ZenPackCmd as EggPackCmd
+
+log = logging.getLogger('zen.ZenPackCmd')
 
 
 def RemoveZenPack(dmd, packName, log=None, 
@@ -393,7 +396,8 @@ if __name__ == '__main__':
     try:
         zp = ZenPackCmd()
         zp.run()
-    except Exception, e:
-        sys.stderr.write('ERROR: zenpack command failed. Reason: %s: %s\n' %
-                (e.__class__.__name__, e))
+    except ConflictError:
+        raise
+    except:
+        log.exception('zenpack command failed')
         sys.exit(-1)
