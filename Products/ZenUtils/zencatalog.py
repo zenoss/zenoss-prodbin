@@ -202,10 +202,12 @@ class ZenCatalog(ZCmdBase):
                                 for gkid in recurse(kid):
                                     yield gkid
                         yield obj
-            except (ClientDisconnected, DisconnectedError):
+            except (AttributeError, ClientDisconnected, DisconnectedError):
                 # Yield the special exception C{chunk} is watching for, so
                 # it'll pause and wait for a connection. Feed it the current
                 # object so it knows where to start from.
+                # We'll also catch AttributeErrors, which are thrown when
+                # ZenPacks get updated during the run.
                 log.info("Connection problem during object retrieval. "
                          "Trying again in 5 seconds...")
                 _reconnect.pop()
