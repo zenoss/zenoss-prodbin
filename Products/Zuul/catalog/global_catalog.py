@@ -136,14 +136,6 @@ class IndexableWrapper(object):
         except AttributeError:
             return self._context.id
 
-    def modified(self):
-        """
-        The last time this object was indexed.
-
-        This is a FieldIndex on the catalog.
-        """
-        return str(time.time())
-
     def meta_type(self):
         """
         Object's meta_type. Mostly used for backwards compatibility.
@@ -299,7 +291,6 @@ def createGlobalCatalog(portal):
     cat.addIndex('uid', makeCaseSensitiveFieldIndex('uid'))
     cat.addIndex('meta_type', makeCaseSensitiveFieldIndex('meta_type'))
     cat.addIndex('name', makeCaseInsensitiveFieldIndex('name'))
-    cat.addIndex('modified', makeCaseSensitiveFieldIndex('modified'))
     cat.addIndex('ipAddress', makeCaseSensitiveFieldIndex('ipAddress'))
     cat.addIndex('objectImplements', makeCaseSensitiveKeywordIndex('objectImplements'))
     cat.addIndex('allowedRolesAndUsers', makeCaseSensitiveKeywordIndex('allowedRolesAndUsers'))
@@ -309,12 +300,11 @@ def createGlobalCatalog(portal):
     cat.addIndex('collectors', makeCaseSensitiveKeywordIndex('collectors'))
     cat.addIndex('productKeys', makeCaseSensitiveKeywordIndex('productKeys'))
     cat.addIndex('searchKeywords',
-        makeCaseInsensitiveKeywordIndex('searchKeywords'))
-        
+                 makeCaseInsensitiveKeywordIndex('searchKeywords'))
+
     catalog.addColumn('id')
     catalog.addColumn('name')
     catalog.addColumn('meta_type')
-    catalog.addColumn('modified')
     catalog.addColumn('monitored')
     catalog.addColumn('productionState')
     catalog.addColumn('collectors')

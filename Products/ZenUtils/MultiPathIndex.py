@@ -18,6 +18,7 @@ from Globals import DTMLFile
 
 from ExtendedPathIndex import ExtendedPathIndex
 from Products.PluginIndexes.common import safe_callable
+from BTrees.OOBTree import OOSet
 
 def _isSequenceOfSequences(seq):
     if not seq: 
@@ -70,14 +71,20 @@ class MultiPathIndex(ExtendedPathIndex):
         if not _isSequenceOfSequences(paths):
             paths = [paths]
 
-        # Safest to clear out all for this object first
-        if self._unindex.has_key(docid):
-            self.unindex_object(docid)
-        self._unindex[docid] = set()
-        self._length.change(1)
-        
+        if docid in self._unindex:
+            unin = self._unindex[docid]
+            # Migrate old versions of the index to use OOSet
+            if isinstance(unin, set):
+                unin = self._unindex[docid] = OOSet(unin)
+            for oldpath in list(unin):
+                if oldpath not in paths:
+                    unin.remove(oldpath)
+        else:
+            self._unindex[docid] = OOSet()
+            self._length.change(1)
+
         self.index_paths(docid, paths)
-        
+
         return 1
 
 
@@ -94,9 +101,9 @@ class MultiPathIndex(ExtendedPathIndex):
             # Add terminator
             self.insertEntry(None, docid, len(comps)-1, parent_path, path)
 
-            self._unindex[docid].add(path)
-        
-        
+            self._unindex[docid].insert(path)
+
+
     def unindex_paths(self, docid, paths):
 
         if not self._unindex.has_key(docid):
@@ -123,19 +130,12 @@ class MultiPathIndex(ExtendedPathIndex):
                 # Failure
                 pass
 
-        old = self._unindex[docid]
-        toremove = set()
-        for path in paths:
-            if isinstance(path, tuple):
-                path = '/'.join(path)
-            toremove.add(path)
-        try:
-            new = old - toremove
-        except TypeError:
-            # Bad unindex data; clear it out
-            new = ()
-
-        for path in old:
+        old = set(self._unindex.get(docid, ()))
+        mkstr = lambda path:'/'.join(path) if isinstance(path, tuple) else path
+        paths = map(mkstr, paths)
+        toremove = set(paths) & old
+        tokeep = old - toremove
+        for path in toremove:
             if not path.startswith('/'):
                 path = '/'+path
             comps =  path.split('/')
@@ -143,32 +143,22 @@ class MultiPathIndex(ExtendedPathIndex):
 
             for level in range(len(comps[1:])):
                 comp = comps[level+1]
-
-                try:
-                    self._index[comp][level].remove(docid)
-
-                    if not self._index[comp][level]:
-                        del self._index[comp][level]
-
-                    if not self._index[comp]:
-                        del self._index[comp]
-                except KeyError:
-                    # We've already unindexed this one.
-                    pass
-
+                unindex(comp, level, docid, parent_path, path)
             # Remove the terminator
             level = len(comps[1:])
             comp = None
             unindex(comp, level-1, parent_path=parent_path, object_path=path)
-        
-        if new:
-            self._unindex[docid] = set()
-            self.index_paths(docid, new)
+
+            self._unindex[docid].remove(path)
+
+        if tokeep:
+            self.index_paths(docid, tokeep)
         else:
             # Cleared out all paths for the object
             self._length.change(-1)
             del self._unindex[docid]
-        
+
+
     def unindex_object(self, docid):
         """ hook for (Z)Catalog """
         if not self._unindex.has_key(docid):

@@ -36,7 +36,7 @@ class DummyResult:
         self.id = id
         self.excerpt = excerpt
         self.category = category
-        
+
 class DummyProvider(object):
     implements( ISearchProvider )
     adapts( object )
@@ -60,6 +60,7 @@ def createResultsFromIds( ids, category='test' ):
 class TestSearchFacade(BaseTestCase):
 
     def setUp(self):
+        BaseTestCase.setUp(self)
         global search_results
         BaseTestCase.setUp(self)
         search_results = None
@@ -74,6 +75,7 @@ class TestSearchFacade(BaseTestCase):
         gsm = getGlobalSiteManager()
         gsm.unregisterUtility( self._parser )
         gsm.unregisterSubscriptionAdapter( DummyProvider )
+        BaseTestCase.tearDown(self)
 
     def testGetQuickSearchResults(self):
         global search_results

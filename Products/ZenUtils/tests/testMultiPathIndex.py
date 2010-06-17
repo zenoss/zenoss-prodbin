@@ -93,7 +93,7 @@ class MultiPathIndexTests(unittest.TestCase):
         self._index.unindex_object(-1)
 
         # nor should this
-        self._index._unindex[1] = "/broken/thing"
+        self._index._unindex[1] = set(["/broken/thing"])
         self._index.unindex_object(1)
 
     def testRoot(self):
@@ -231,13 +231,17 @@ class MultiPathIndexTests(unittest.TestCase):
         index.index_object(1, Dummy("/ff"))
         # This should not throw an error
         index.unindex_paths(1, ('/a/b/c',))
-        
+
+    def testNoStalePathsAfterUnindex(self):
+        index = self._index
+        index.index_object(1, Dummy('/ff'))
+        index.index_object(1, Dummy('/aa'))
+        self.assertEqual(list(index._unindex[1]), ['/aa'])
+
 
 
 def test_suite():
-    return unittest.TestSuite((
-        unittest.makeSuite(MultiPathIndexTests),
-        ))
+    return unittest.makeSuite(MultiPathIndexTests)
 
 if __name__ == '__main__':
     unittest.main(defaultTest='test_suite')

@@ -44,6 +44,10 @@ def onIndexingEvent(ob, event):
         evob = ob.primaryAq()
     except (AttributeError, KeyError), e:
         evob = ob
+    path = evob.getPrimaryPath()
+    # Ignore things dmd or above
+    if len(path)<=3 or path[2]!='dmd':
+        return
     catalog.catalog_object(evob, idxs=idxs,
                            update_metadata=event.update_metadata)
 
@@ -59,7 +63,11 @@ def onObjectRemoved(ob, event):
         except (KeyError, AttributeError):
             # Migrate script hasn't run yet; ignore indexing
             return
-        uid = '/'.join(ob.getPrimaryPath())
+        path = ob.getPrimaryPath()
+        # Ignore things dmd or above
+        if len(path)<=3 or path[2]!='dmd':
+            return
+        uid = '/'.join(path)
         catalog.uncatalog_object(uid)
 
 

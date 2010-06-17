@@ -78,7 +78,7 @@ class ZenDocTestRunner(object):
     def tearDown(self):
         self.logout()
         self.conn.closedb()
-        
+
     def login(self, name='admin', userfolder=None):
         '''Logs in.'''
         if userfolder is None:
