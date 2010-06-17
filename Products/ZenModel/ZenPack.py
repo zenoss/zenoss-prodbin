@@ -961,7 +961,10 @@ registerDirectory("skins", globals())
         # to catch the case where a broken object won't have an isBroken
         # method.
         # So here we just need to check for presence on the filesystem.
-        if not os.path.isdir(self.path()):
+        try:
+            if not os.path.isdir(self.path()):
+                return True
+        except pkg_resources.DistributionNotFound:
             return True
 
         # If packables throws an exception the pack is broken.
