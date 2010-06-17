@@ -343,6 +343,73 @@ Zenoss.SimpleEventGridPanel = Ext.extend(Ext.ux.grid.livegrid.GridPanel, {
 Ext.reg('SimpleEventGridPanel', Zenoss.SimpleEventGridPanel);
 
 
+Zenoss.EventGridPanel = Ext.extend(Zenoss.SimpleEventGridPanel, {
+    constructor: function(config) {
+        var evtGrid = this,
+            tbarItems = [
+            {
+                xtype: 'tbtext',
+                text: _t('Event Console')
+            },
+            '-',
+            {
+                xtype: 'tbtext',
+                text: _t('Display: ')
+            },{
+                xtype: 'combo',
+                id: 'history_combo',
+                name: 'event_display',
+                mode: 'local',
+                store: new Ext.data.SimpleStore({
+                    fields: ['id', 'event_type'],
+                    data: [[0,'Events'],[1,'Event History']]
+                }),
+                displayField: 'event_type',
+                valueField: 'id',
+                width: 120,
+                value: 0,
+                triggerAction: 'all',
+                forceSelection: true,
+                editable: false,
+                listeners: {
+                    select: function(selection) {
+                        var getHistory = (selection.value == 1) ? true : false;
+                        evtGrid.getStore().load({ params: {'history' : getHistory} });
+                    }
+                }
+            },
+            '-',
+            Zenoss.events.EventPanelToolbarActions.acknowledge,
+            Zenoss.events.EventPanelToolbarActions.close,
+            Zenoss.events.EventPanelToolbarActions.refresh
+        ];
+        if (config.newwindowBtn) {
+            tbarItems.push('-');
+            tbarItems.push(Zenoss.events.EventPanelToolbarActions.newwindow);
+        }
+        Ext.applyIf(config, {
+            tbar: {
+                xtype: 'largetoolbar',
+                cls: 'largetoolbar consolebar',
+                height: 35,
+                items: tbarItems
+            }
+        });
+        Zenoss.EventGridPanel.superclass.constructor.call(this, config);
+    },
+    onRowDblClick: function(grid, rowIndex, e) {
+        var row = grid.getStore().getAt(rowIndex),
+            evid = row.id,
+            combo = Ext.getCmp('history_combo'),
+            history = (combo.getValue() == '1') ? 'History' : '',
+            url = '/zport/dmd/Events/view'+history+'Detail?evid='+evid;
+        window.open(url, evid.replace(/-/g,'_'),
+            "status=1,width=600,height=500");
+    }
+});
+Ext.reg('EventGridPanel', Zenoss.EventGridPanel);
+
+
 Zenoss.EventRainbow = Ext.extend(Ext.Toolbar.TextItem, {
     constructor: function(config) {
         config = Ext.applyIf(config || {}, {

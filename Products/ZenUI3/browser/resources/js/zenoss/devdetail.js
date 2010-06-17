@@ -515,53 +515,10 @@ var overview = {
 };
 
 var event_console = Ext.create({
-    xtype: 'SimpleEventGridPanel',
-    stateful: false,
+    xtype: 'EventGridPanel',
     id: 'device_events',
-    tbar: {
-        xtype: 'largetoolbar',
-        cls: 'largetoolbar consolebar',
-        height: 35,
-        items: [
-            {
-                xtype: 'tbtext',
-                text: _t('Event Console')
-            },
-            '-',
-            {
-                xtype: 'tbtext',
-                html: _t("Display: ")
-            },{
-                xtype: 'combo',
-                name: 'event_display',
-                mode: 'local',
-                store: new Ext.data.SimpleStore({
-                    fields: ['id', 'event_type'],
-                    data: [[0,'Events'],[1,'Event History']]
-                }),
-                displayField: 'event_type',
-                valueField: 'id',
-                width: 120,
-                value: 0,
-                triggerAction: 'all',
-                forceSelection: true,
-                editable: false,
-                listeners: {
-                    select: function(selection) {
-                        var eventsPanel = Ext.getCmp('device_events');
-                        var getHistory = (selection.value == 1) ? true : false;
-                        eventsPanel.getStore().load({ params: {'history' : getHistory} });
-                    }
-                }
-            },
-            '-',
-            ZEvActions.acknowledge,
-            ZEvActions.close,
-            ZEvActions.refresh,
-            '-',
-            ZEvActions.newwindow
-        ]
-    },
+    stateful: false,
+    newwindowBtn: true,
     columns: deviceColumnDefinitions()
 });
 

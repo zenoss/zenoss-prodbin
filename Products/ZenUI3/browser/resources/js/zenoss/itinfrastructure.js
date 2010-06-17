@@ -1268,52 +1268,11 @@ Ext.getCmp('center_panel').add({
         items: [
             device_grid,
             {
-                xtype: 'SimpleEventGridPanel',
+                xtype: 'EventGridPanel',
                 id: 'events_grid',
                 stateful: false,
-                columns: Zenoss.env.COLUMN_DEFINITIONS,
-                tbar: {
-                    xtype: 'toolbar',
-                    cls: 'largetoolbar consolebar',
-                    height: 35,
-                    items: [
-                        {
-                            xtype: 'tbtext',
-                            text: _t('Event Console')
-                        },
-                        '-',
-                        {
-                            xtype: 'tbtext',
-                            text: _t('Display ')
-                        },{
-                            xtype: 'combo',
-                            name: 'event_display',
-                            mode: 'local',
-                            store: new Ext.data.SimpleStore({
-                                fields: ['id', 'event_type'],
-                                data: [[0,'Events'],[1,'Event History']]
-                            }),
-                            displayField: 'event_type',
-                            valueField: 'id',
-                            width: 120,
-                            value: 0,
-                            triggerAction: 'all',
-                            forceSelection: true,
-                            editable: false,
-                            listeners: {
-                                select: function(selection) {
-                                    var eventsPanel = Ext.getCmp('events_grid');
-                                    var getHistory = (selection.value == 1) ? true : false;
-                                    eventsPanel.getStore().load({ params: {'history' : getHistory} });
-                                }
-                            }
-                        },
-                        '-',
-                        ZEvActions.acknowledge,
-                        ZEvActions.close,
-                        ZEvActions.refresh
-                    ]
-                }
+                newwindowBtn: false,
+                columns: Zenoss.env.COLUMN_DEFINITIONS
             }
         ]
     }]
