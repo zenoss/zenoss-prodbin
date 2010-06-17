@@ -1,7 +1,7 @@
 <tal:block tal:condition="view/tip">
 <div id="page-help" i18n:translate="">Page Tips</div>
-<textarea id="page-help-title" style="display:none" tal:content="view/tip/title"/>
-<textarea id="page-help-tip" style="display:none" tal:content="view/tip/tip"/>
+<textarea id="page-help-title" style="display:none" tal:content="view/tip/title" class="dontexpand"/>
+<textarea id="page-help-tip" style="display:none" tal:content="view/tip/tip" class="dontexpand"/>
 <script>
 Ext.onReady(function(){
     var title = Ext.get('page-help-title').dom.innerHTML,
