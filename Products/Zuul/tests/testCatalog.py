@@ -8,8 +8,6 @@ from Products.ZenTestCase.BaseTestCase import ZenossTestCaseLayer
 from Products.ZenTestCase.BaseTestCase import PortalGenerator
 from Products.ZenTestCase.BaseTestCase import DmdBuilder
 
-from inspectZodbUtils import oids2path
-
 class ZenossConcurrencyTestCase(unittest.TestCase):
     layer = ZenossTestCaseLayer
 
@@ -73,8 +71,7 @@ class TestCatalog(ZenossConcurrencyTestCase):
         try:
             tm2.commit()
         except ConflictError, e:
-            path = oids2path(self.db, app1, e.oid)[0]
-            self.fail('A ConflictError was raised against %s' % path)
+            self.fail('A ConflictError was raised against %s' % e.oid)
         finally:
             app1._p_jar.sync()
             app2._p_jar.sync()
