@@ -15,6 +15,7 @@ import transaction
 import Zope2
 from Testing.ZopeTestCase import ZopeLite
 from ZODB.POSException import ConflictError
+from ZODB.Connection import ConnectionStateError
 from AccessControl.SecurityManagement import newSecurityManager
 from Products.ZenTestCase.BaseTestCase import ZenossTestCaseLayer
 from Products.ZenTestCase.BaseTestCase import PortalGenerator
@@ -35,16 +36,27 @@ class ZenossConcurrencyTestCase(unittest.TestCase):
         newSecurityManager(None, user)
 
     def setUp(self):
+        # Make sure transaction still isn't monkeypatched
+        transaction.commit = transaction.manager.commit
         app = ZopeLite.app()
         self.db = Zope2.DB
         self.build_dmd(app)
         transaction.commit()
-        app._p_jar.close()
+        try:
+            app._p_jar.close()
+        except ConnectionStateError:
+            pass
         self._apps = []
 
     def tearDown(self):
         for app in self._apps:
-            app._p_jar.close()
+            app._p_jar.sync()
+            try:
+                app._p_jar.close()
+            except ConnectionStateError:
+                # We're being really polite anyway; this doesn't 
+                # matter that much
+                pass
         self.db.close()
 
     def get_connections(self, n=2):

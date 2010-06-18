@@ -77,8 +77,8 @@ class MultiPathIndex(ExtendedPathIndex):
             if isinstance(unin, set):
                 unin = self._unindex[docid] = OOSet(unin)
             for oldpath in list(unin):
-                if oldpath not in paths:
-                    unin.remove(oldpath)
+                if list(oldpath.split('/')) not in paths:
+                    self.unindex_paths(docid, (oldpath,))
         else:
             self._unindex[docid] = OOSet()
             self._length.change(1)
