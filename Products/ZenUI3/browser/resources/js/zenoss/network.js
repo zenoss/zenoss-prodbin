@@ -23,15 +23,12 @@ Ext.onReady(function () {
 var addNetwork = function(id) {
     var tree = Ext.getCmp('networks');
 
-    tree.router.addNode({newSubnet: id},
+    tree.router.addNode({newSubnet: id, contextUid: Zenoss.env.PARENT_CONTEXT},
         function(data) {
             if (data.success) {
                 tree.getRootNode().reload(
                     function() {
-//                        tree.expandAll();
-//                        tree.collapseAll();
-//                        tree.expandPath(
-//                            tree.getNodeById(data.newNode.id).getPath());
+                        tree.getRootNode().expandChildNodes();
                     }
                 );
             }
@@ -110,15 +107,24 @@ var discoverDevicesDialog = new Zenoss.MessageDialog({
 var treesm = new Ext.tree.DefaultSelectionModel({
     listeners: {
         'selectionchange': function (sm, newnode) {
-            if (!newnode) return;
-            Ext.getCmp('networkForm').setContext(newnode.attributes.uid);
-            Ext.getCmp('detail_panel').detailCardPanel.setContext(newnode.attributes.uid);
+            if (!newnode) {
+                return;
+            }
+            var uid = newnode.attributes.uid,
+                fb = Ext.getCmp('footer_bar');
 
-            if (Zenoss.Security.doesNotHavePermission('Manage DMD')) return;
-            var fb = Ext.getCmp('footer_bar');
-            fb.buttonDelete.setDisabled((newnode.attributes.id == 'Network') );
-            fb.buttonContextMenu.menu.buttonDiscoverDevices.setDisabled(
-                (newnode.attributes.id == 'Network') );
+            Ext.getCmp('networkForm').setContext(uid);
+            Ext.getCmp('detail_panel').detailCardPanel.setContext(uid);
+
+            if (Zenoss.Security.doesNotHavePermission('Manage DMD')) {
+                return;
+            }
+
+            fb.buttonContextMenu.setContext(uid);
+            Zenoss.env.PARENT_CONTEXT = uid;
+
+            fb.buttonDelete.setDisabled(
+                (newnode.attributes.id == '.zport.dmd.Networks'));
         }
     }
 });
@@ -126,10 +132,21 @@ var treesm = new Ext.tree.DefaultSelectionModel({
 var NetworkNavTree = Ext.extend(Zenoss.HierarchyTreePanel, {
 
     constructor: function(config) {
-        Ext.applyIf(config, {
+        config = Ext.applyIf(config||{}, {
             listeners: {
                 scope: this,
                 load: this.onLoad
+            },
+            id: 'networks',
+            directFn: Zenoss.remote.NetworkRouter.getTree,
+            router: Zenoss.remote.NetworkRouter,
+            searchField: true,
+            selModel: treesm,
+            root: {
+                id: '.zport.dmd.Networks',
+                uid: '/zport/dmd/Networks',
+                text: null, // Use the name loaded from the remote
+                allowDrop: false
             }
         });
         NetworkNavTree.superclass.constructor.call(this, config);
@@ -210,20 +227,7 @@ var NetworkNavTree = Ext.extend(Zenoss.HierarchyTreePanel, {
 
 Ext.reg('networknavtree', NetworkNavTree);
 
-Ext.getCmp('master_panel').add({
-    xtype: 'networknavtree',
-    id: 'networks',
-    directFn: Zenoss.remote.NetworkRouter.getTree,
-    router: Zenoss.remote.NetworkRouter,
-    searchField: true,
-    selModel: treesm,
-    root: {
-        id: '.zport.dmd.Networks',
-        uid: '/zport/dmd/Networks',
-        text: null, // Use the name loaded from the remote
-        allowDrop: false
-    }
-});
+Ext.getCmp('master_panel').add(new NetworkNavTree());
 
 //********************************************
 // IP Addresses grid
@@ -577,15 +581,22 @@ fb.on('buttonClick', dispatcher);
 Zenoss.footerHelper('Subnetwork', fb, {
     hasOrganizers: false,
     addToZenPack: false,
-    customAddDialog: addNetworkDialogConfig
-});
-fb.buttonContextMenu.menu.add({
-    tooltip: _t('Discover devices on selected subnetwork'),
-    text: _t('Discover Devices'),
-    iconCls: 'adddevice',
-    ref: 'buttonDiscoverDevices',
-    disabled: Zenoss.Security.doesNotHavePermission('Manage DMD'),
-    handler: discoverDevicesDialog.show.createDelegate(discoverDevicesDialog)
+    customAddDialog: addNetworkDialogConfig,
+    buttonContextMenu: {
+        xtype: 'ContextConfigureMenu',
+        id: 'network_context_menu',
+        menuIds: ['Network'],
+        onGetMenuItems: function(uid) {
+            return [{
+                tooltip: _t('Discover devices on selected subnetwork'),
+                text: _t('Discover Devices'),
+                iconCls: 'adddevice',
+                ref: 'buttonDiscoverDevices',
+                disabled: Zenoss.Security.doesNotHavePermission('Manage DMD'),
+                handler: discoverDevicesDialog.show.createDelegate(discoverDevicesDialog)
+            }];
+        }
+    }
 });
 
 });

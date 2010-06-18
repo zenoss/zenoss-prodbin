@@ -1854,5 +1854,12 @@ Ext.override(Ext.form.Checkbox, {
     }
 });
 
+String.prototype.startswith = function(){
+    return (this.match('^'+str)==str)
+};
+
+String.prototype.endswith = function(){
+    return (this.match(str+'$')==str)
+};
 
 })(); // End local scope

@@ -47,8 +47,11 @@ Zenoss.FlexButton = Ext.extend(Ext.Button, {
             }
 
             // Clear out properties that should be handled by the menu item
-            this.purgeListeners();
+            this.on('render', function() {
+                this.events['click'].clearListeners();
+            }); // *TODO* This code makes me feel dirty; there must be a better way
             this.clearTip();
+
             this.menu = Ext.menu.MenuMgr.get(menuConfig);
         }
 

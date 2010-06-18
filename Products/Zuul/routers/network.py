@@ -1,7 +1,7 @@
 ###########################################################################
 #
 # This program is part of Zenoss Core, an open source monitoring platform.
-# Copyright (C) 2009, Zenoss Inc.
+# Copyright (C) 2010, Zenoss Inc.
 #
 # This program is free software; you can redistribute it and/or modify it
 # under the terms of the GNU General Public License version 2 as published by
@@ -14,6 +14,7 @@
 import logging
 from Products.ZenUtils.Ext import DirectRouter, DirectResponse
 from Products.Zuul.decorators import require
+from Products.Zuul.interfaces import ITreeNode
 from Products.ZenUtils.jsonutils import unjson
 from Products import Zuul
 
@@ -33,10 +34,10 @@ class NetworkRouter(DirectRouter):
             return DirectResponse.fail()
 
     @require('Manage DMD')
-    def addNode(self, newSubnet):
-        newNet = self.api.addSubnet(newSubnet)
-        node = self._createTreeNode(newNet)
-        return DirectResponse.succeed(newNode=node)
+    def addNode(self, newSubnet, contextUid):
+        newNet = self.api.addSubnet(newSubnet, contextUid)
+        node = ITreeNode(newNet)
+        return DirectResponse.succeed(newNode=Zuul.marshal(node))
 
     @require('Manage DMD')
     def deleteNode(self, uid):
@@ -44,35 +45,9 @@ class NetworkRouter(DirectRouter):
         return DirectResponse.succeed(tree=self.getTree())
 
     def getTree(self, id='/zport/dmd/Networks'):
-        return self._getNetworkTree(self.context.dmd.restrictedTraverse(id))
-
-    def _getNetworkTree(self, thisSubnet):
-        net_list = []
-        for network in thisSubnet.children():
-            net_list.append(self._createTreeNode(network))
-            net_list[-1]['children'] = self._getNetworkTree(network)
-        return net_list
-    
-    def _createTreeNode(self, thisSubnet):
-        path = thisSubnet.getDmdKey()
-        if path.startswith('/') :
-            path = path[1:]
-
-        subnets = thisSubnet.children()
-        leaf = (subnets == [])
-
-        text = thisSubnet.id + '/' + str(thisSubnet.netmask)
-        if not leaf:
-            text = {'count': len(subnets),
-                    'text': text,
-                    'description': ('subnets', 'subnet')[len(subnets) == 1]}
-
-        return {'uid': thisSubnet.getPrimaryId(),
-                'children': [],
-                'path': path,
-                'id': thisSubnet.getPrimaryId().replace('/', '.'),
-                'leaf': leaf,
-                'text': text }
+        tree = self.api.getTree(id)
+        data = Zuul.marshal(tree)
+        return [data]
 
     def getInfo(self, uid, keys=None):
         network = self.api.getInfo(uid)

@@ -1,7 +1,7 @@
 ###########################################################################
 #
 # This program is part of Zenoss Core, an open source monitoring platform.
-# Copyright (C) 2009, Zenoss Inc.
+# Copyright (C) 2010, Zenoss Inc.
 #
 # This program is free software; you can redistribute it and/or modify it
 # under the terms of the GNU General Public License version 2 as published by
@@ -14,6 +14,7 @@
 import logging
 from itertools import imap
 
+from Acquisition import aq_parent
 from zope.interface import implements
 
 from Products.Jobber.jobs import ShellCommandJob
@@ -26,15 +27,16 @@ from Products.Zuul.tree import SearchResults
 
 log = logging.getLogger('zen.NetworkFacade')
 
+
 class NetworkFacade(TreeFacade):
     implements(INetworkFacade, ITreeFacade)
 
-    def addSubnet(self, newSubnet):
-        return self._root.createNet(newSubnet)
+    def addSubnet(self, newSubnet, contextUid):
+        return self._root.restrictedTraverse(contextUid).createNet(newSubnet)
 
     def deleteSubnet(self, uid):
         toDel = self._dmd.restrictedTraverse(uid)
-        toDel.getParentNode().zmanage_delObjects([toDel.titleOrId()])
+        aq_parent(toDel)._delObject(toDel.id)
         return True
 
     def getIpAddresses(self, limit=0, start=0, sort='name', dir='DESC',
@@ -56,7 +58,7 @@ class NetworkFacade(TreeFacade):
         Discover devices on input subnetwork
         """
         ip = '/'.join(self._dmd.restrictedTraverse(uid).getPrimaryPath()[4:])
-        orgroot = self._root.getNetworkRoot()
+        orgroot = self._root.restrictedTraverse(uid).getNetworkRoot()
 
         organizer = orgroot.getOrganizer(ip)
         if organizer is None:
@@ -84,7 +86,7 @@ class NetworkFacade(TreeFacade):
 
     @property
     def _instanceClass(self):
-        return "Products.ZenModel.IpNetwork.IpNetwork"
+        return "Products.ZenModel.IpAddress.IpAddress"
 
     def _getSecondaryParent(self, obj):
         return obj

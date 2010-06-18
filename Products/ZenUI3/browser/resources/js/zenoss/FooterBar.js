@@ -97,6 +97,7 @@ Zenoss.footerHelper = function(itemName, footerBar, options) {
     items = [
         {
             xtype: 'FlexButton',
+            id: 'footer_add_button',
             iconCls: 'add',
             hidden: Zenoss.Security.doesNotHavePermission('Add DMD Objects'),
             tooltip: _t('Add a child to the selected organizer'),
@@ -114,6 +115,7 @@ Zenoss.footerHelper = function(itemName, footerBar, options) {
         },
         {
             xtype: 'FlexButton',
+            id: 'footer_delete_button',
             iconCls: 'delete',
             hidden: Zenoss.Security.doesNotHavePermission('Delete objects'),
             tooltip: String.format(_t('Delete {0}'), itemName),

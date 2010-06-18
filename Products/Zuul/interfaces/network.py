@@ -13,6 +13,12 @@
 
 from zope.interface import Attribute
 from Products.Zuul.interfaces import IInfo, IFacade
+from Products.Zuul.interfaces.tree import ITreeNode
+
+class IIpNetworkNode(ITreeNode):
+    """
+    Marker interface for an IpNetwork tree node.
+    """
 
 class INetworkFacade(IFacade):
     pass

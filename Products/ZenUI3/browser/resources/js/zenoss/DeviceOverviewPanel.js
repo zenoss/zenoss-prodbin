@@ -203,6 +203,9 @@
         addField: function(field) {
             this.items.push( field );
         },
+        addFieldAfter: function(field, afterFieldName) {
+            this.items.splice(this._indexOfFieldName(afterFieldName)+1, 0, field);
+        },
         _indexOfFieldName: function(name) {
             var idx = -1
             for ( i = 0; i < this.items.length; i++ ){
