@@ -261,6 +261,10 @@ class ZenModelBase(object):
         return self.getPrimaryUrlPath()
 
 
+    def getBreadCrumbName(self):
+        return self.title_or_id()
+
+
     def breadCrumbs(self, terminator='dmd', terminate=lambda x: False):
         """
         Return the data to create the breadcrumb links for this object.
@@ -286,7 +290,7 @@ class ZenModelBase(object):
             url = ""
             if self.checkRemotePerm("View", curDir):
                 url = curDir.getBreadCrumbUrlPath()
-            links.append((url, curDir.title_or_id()))
+            links.append((url, curDir.getBreadCrumbName()))
             curDir = curDir.aq_parent
         links.reverse()
         return links

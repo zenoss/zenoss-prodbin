@@ -86,6 +86,11 @@ class MonitorClass(ZenModelRM, Folder, TemplateContainer):
     def __init__(self, id, title=None, buildRelations=True):
         ZenModelRM.__init__(self, id, title, buildRelations)
 
+
+    def getBreadCrumbName(self):
+        return 'Collectors'
+
+
     def getPerformanceMonitor(self, monitorName):
         """get or create the performance monitor name"""
         from Products.ZenModel.PerformanceConf \
@@ -127,19 +132,19 @@ class MonitorClass(ZenModelRM, Folder, TemplateContainer):
                         child._delObject(id)
                         num += 1
                 messaging.IMessageSender(self).sendToBrowser(
-                    'Monitors Deleted',
-                    'Deleted monitors: %s' % (', '.join(ids))
+                    'Collectors Deleted',
+                    'Deleted collectors: %s' % (', '.join(ids))
                 )
             else:
                 messaging.IMessageSender(self).sendToBrowser(
                     'Error',
-                    'You must have at least one monitor.',
+                    'You must have at least one collector.',
                     priority=messaging.WARNING
                 )
         else:
             messaging.IMessageSender(self).sendToBrowser(
                 'Error',
-                'No monitors were selected.',
+                'No collectors were selected.',
                 priority=messaging.WARNING
             )
         if REQUEST:
