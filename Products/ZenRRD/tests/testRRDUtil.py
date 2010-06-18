@@ -121,10 +121,10 @@ class TestRRDUtil(BaseTestCase):
 
         # A little inconsistent
         self.assertEquals( rrd.save( self.path, [], 'COUNTER' ), None )
-        self.assertRaises( TypeError, rrd.save, self.path, [], 'ABSOLUTE' )
+        self.assertEqual( rrd.save(self.path, [], 'ABSOLUTE'), None )
 
         self.assertEquals( rrd.save( self.path, "hello world", 'COUNTER' ), None )
-        self.assertRaises( ValueError, rrd.save, self.path, "hello world", 'ABSOLUTE' )
+        self.assertEqual(  rrd.save(self.path, "hello world", 'ABSOLUTE'), None )
 
 
     def testNotWritableRRD(self):
