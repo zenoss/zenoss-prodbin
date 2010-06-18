@@ -19,7 +19,7 @@ import Migrate
 from Products.ZenModel.ZenossSecurity import *
 
 class AddWinServiceProperties(Migrate.Step):
-    version = Migrate.Version(2, 5, 3)
+    version = Migrate.Version(3, 0, 0)
 
     def cutover(self, dmd):
         for b in dmd.Devices.componentSearch(meta_type='WinService'):

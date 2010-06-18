@@ -18,7 +18,7 @@ import Migrate
 from Products.ZenModel.ZenossSecurity import *
 
 class ZenManagerDeleteDevice(Migrate.Step):
-    version = Migrate.Version(2, 5, 3)
+    version = Migrate.Version(3, 0, 0)
 
     def cutover(self, dmd):
         dmd.zport.manage_permission(ZEN_DELETE_DEVICE,

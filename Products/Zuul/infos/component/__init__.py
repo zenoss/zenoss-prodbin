@@ -68,7 +68,17 @@ class ComponentInfo(InfoBase):
     @property
     def status(self):
         statusCode = self._object.getStatus()
-        return self._object.convertStatus(statusCode)
+        # the result from convertStatus will be a status string
+        # or the number of down event
+        value =  self._object.convertStatus(statusCode)
+        if isinstance(value, str):
+            return value
+        
+        if value > 0:
+            return "Down"
+        else:
+            return "Up"
+        
 
 
 class ComponentFormBuilder(FormBuilder):

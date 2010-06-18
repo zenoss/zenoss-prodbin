@@ -21,7 +21,7 @@ from Products.ZenModel.ServiceClass import ServiceClass
 
 
 class AddWinServiceClass(Migrate.Step):
-    version = Migrate.Version(2, 5, 3)
+    version = Migrate.Version(3, 0, 0)
 
     def cutover(self, dmd):
         for service_class in dmd.Services.WinService.getSubClassesGen():
