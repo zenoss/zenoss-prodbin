@@ -72,6 +72,7 @@ Zenoss.InstanceStore = Ext.extend(Ext.ux.grid.livegrid.Store, {
             }),
             reader: new Ext.ux.grid.livegrid.JsonReader({
                 root: 'data',
+                idProperty: 'uid',
                 fields: [
                     {name: 'device'},
                     {name: config.nameDataIndex || 'name'},
