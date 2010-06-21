@@ -171,6 +171,7 @@ Zenoss.BindTemplatesItemSelector = Ext.extend(Ext.ux.form.ItemSelector, {
             displayField: 'name',
             valueField: 'id',
             multiselects: [{
+                cls: 'multiselect-dialog',
                 width: 250,
                 height: 200,
                 displayField: 'name',
@@ -181,6 +182,7 @@ Zenoss.BindTemplatesItemSelector = Ext.extend(Ext.ux.form.ItemSelector, {
                     fields: ['id', 'name']
                 }
             },{
+                cls: 'multiselect-dialog',
                 width: 250,
                 height: 200,
                 displayField: 'name',

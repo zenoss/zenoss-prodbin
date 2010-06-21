@@ -234,6 +234,11 @@ ul.x-tab-strip-bottom{
     border: 1px solid #abc;
 }
 
+.multiselect-dialog .x-fieldset-header-text {
+    color: #FFFFFF;
+    font: 12px helvetica,arial,tahoma,sans-serif;
+}
+
 /* Buttons */
 
 .x-btn-text {
