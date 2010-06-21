@@ -285,10 +285,23 @@ Ext.apply(Zenoss.render, {
         var uid = record.data.serviceClassUid.replace(/\//g, '.');
         return Zenoss.render.serviceClass('winservice', uid, value);
     },
-    
+
     serviceClass: function(page, uid, name) {
         var url = String.format('/zport/dmd/{0}#navTree:{1}', page, uid);
         return Zenoss.render.link(null, url, name);
+    },
+
+    nextHop: function(value, metadata, record, rowIndex, colIndex, store) {
+        var link = "";
+        if (value && value.uid && value.id) {
+            link += Zenoss.render.IpAddress(value.uid, value.id);
+            if (value.device && value.device.uid && value.device.id) {
+                link += " (";
+                link += Zenoss.render.Device(value.device.uid, value.device.id);
+                link += ")";
+            }
+        }
+        return link;
     },
 
     IpInterface: function(uid, name) {

@@ -636,6 +636,8 @@ ZC.IpRouteEntryPanel = Ext.extend(ZC.ComponentGridPanel, {
                 {name: 'uid'},
                 {name: 'destination'},
                 {name: 'nextHop'},
+                {name: 'id'}, // needed for nextHop link
+                {name: 'device'}, // needed for nextHop link
                 {name: 'interface'},
                 {name: 'protocol'},
                 {name: 'type'},
@@ -652,7 +654,8 @@ ZC.IpRouteEntryPanel = Ext.extend(ZC.ComponentGridPanel, {
                 id: 'nextHop',
                 dataIndex: 'nextHop',
                 header: _t('Next Hop'),
-                renderer: render_link
+                renderer: Zenoss.render.nextHop,
+                width: 250
             },{
                 id: 'interface',
                 dataIndex: 'interface',
