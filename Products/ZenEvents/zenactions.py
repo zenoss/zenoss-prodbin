@@ -555,7 +555,6 @@ class BaseZenActions(object):
                             eventClass=Status_Heartbeat, 
                             summary="%s %s heartbeat failure" % (monitor, comp),
                             prodState=self.prodState,
-                            monitor=monitor,
                             severity=Event.Error))
             heartbeatState.discard((monitor, comp))
 
@@ -566,6 +565,7 @@ class BaseZenActions(object):
                 Event.Event(device=hostname, component=comp, 
                             eventClass=Status_Heartbeat, 
                             summary="%s %s heartbeat clear" % (monitor, comp),
+                            prodState=self.prodState,
                             severity=Event.Clear))
 
     def runEventCommand(self, cmd, data, clear = None):
