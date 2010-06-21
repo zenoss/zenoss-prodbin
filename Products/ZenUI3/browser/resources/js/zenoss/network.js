@@ -175,13 +175,15 @@ var NetworkNavTree = Ext.extend(Zenoss.HierarchyTreePanel, {
             if ( node.id === tokenParentId ) {
                 this.selectByToken(tokenRightPart);
                 
-            } else if ( node.id !== '.zport.dmd.Networks' && tokenParentId.indexOf(node.id) === 0 ) {
+            } else if ( tokenParentId.indexOf(node.id) === 0 ) {
                 // for nodes that aren't expanded by default, expand this 
                 // loaded ancestor so it loads its children
                 var ancestorIdLength = node.id.split('.').length + 4;
                 var ancestorId = tokenNodeIdParts.slice(0, ancestorIdLength).join('.');
                 var ancestorNode = this.getNodeById(ancestorId);
-                ancestorNode.expand();
+                if (ancestorNode) {
+                    ancestorNode.expand();
+                }
             }
             
         }
