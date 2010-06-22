@@ -101,7 +101,7 @@ class MultiPathIndex(ExtendedPathIndex):
             # Add terminator
             self.insertEntry(None, docid, len(comps)-1, parent_path, path)
 
-            self._unindex[docid].insert(path)
+            self._unindex.setdefault(docid, OOSet()).insert(path)
 
 
     def unindex_paths(self, docid, paths):
