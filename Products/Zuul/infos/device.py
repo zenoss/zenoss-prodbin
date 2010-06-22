@@ -148,7 +148,9 @@ class DeviceInfo(InfoBase):
             return IpUtil.ipToDecimal(self._object.manageIp)
 
     def setIpAddress(self, ip=None):
-        self._object.setManageIp(ip)
+        msg = self._object.setManageIp(ip)
+        if msg:
+            raise Exception(msg)
 
     ipAddress = property(getIpAddress, setIpAddress)
 

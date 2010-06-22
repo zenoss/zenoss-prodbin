@@ -200,6 +200,8 @@ def manage_addDevice(context, id, REQUEST = None):
 addDevice = DTMLFile('dtml/addDevice',globals())
 
 
+class NoNetMask(Exception): pass
+
 class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable,
             AdministrativeRoleable, ZenMenuable):
     """
@@ -913,44 +915,79 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable,
         return Time.LocalDateTimeSecsResolution(float(self._snmpLastCollection))
 
 
+    def _sanitizeIPaddress(self, ip):
+        try:
+            if not ip:
+                pass # Forcing a reset with a blank IP
+            elif ip.find("/") > -1:
+                ipWithoutNetmask, netmask = ip.split("/",1)
+                checkip(ipWithoutNetmask)
+                # Also check for valid netmask if they give us one
+                if maskToBits(netmask) is None:
+                    raise NoNetMask()
+            else:
+                checkip(ip)
+        except (IpAddressError, ValueError, NoNetMask), ex:
+            log.warn("%s is an invalid IP address", ip)
+            ip = ''
+        return ip
+
+    def _isDuplicateIp(self, ip):
+        ipMatch = self.getNetworkRoot().findIp(ip)
+        if ipMatch:
+            dev = ipMatch.device()
+            if dev and self.id != dev.id:
+                return True
+        return False
+
     security.declareProtected(ZEN_ADMIN_DEVICE, 'setManageIp')
     def setManageIp(self, ip="", REQUEST=None):
         """
         Set the manage IP, if IP is not passed perform DNS lookup.
+        If there is an error with the IP address format, the IP address
+        will be reset to the result of a DNS lookup.
 
         @rtype: string
         @permission: ZEN_ADMIN_DEVICE
         """
+        message = ''
         ip = ip.replace(' ', '')
         origip = ip
-        try:
-            if ip.find("/") > -1:
-                ipWithoutNetmask, netmask = ip.split("/",1)
-                checkip(ipWithoutNetmask)
-                # Also check for valid netmask
-                if maskToBits(netmask) is None: ip = ""
-            else:
-                checkip(ip)
-        except IpAddressError: ip = ""
-        except ValueError: ip = ""
+        ip = self._sanitizeIPaddress(ip)
+
+        if not ip: # What if they put in a DNS name?
+            try:
+                ip = socket.gethostbyname(origip)
+            except socket.error:
+                pass
+
         if not ip:
-            try: ip = socket.gethostbyname(self.id)
-            except socket.error: ip = ""
-        self.manageIp = ip
-        self.index_object()
-        notify(IndexingEvent(self, ('ipAddress',), True))
-        if REQUEST:
-            msgr = IMessageSender(self)
-            if ip:
-                msgr.sendToBrowser('Manage IP Set',
-                   "%s's IP address has been set to %s." % (self.id, ip))
+            try:
+                ip = socket.gethostbyname(self.id)
+            except socket.error:
+                ip = ''
+                if origip:
+                    message = ("%s is an invalid IP address, "
+                      "and no appropriate IP could"
+                      " be found via DNS for %s") % (origip, self.id)
+                    log.warn(message)
+                else:
+                    message = "DNS lookup of '%s' failed to return an IP" % \
+                               self.id
+
+        if ip:
+            if self._isDuplicateIp(ip):
+                message = "The IP address %s is already assigned" % ip
+                log.warn(message)
+
             else:
-                msgr.sendToBrowser('Invalid IP',
-                  ("%s is an invalid IP address, and no appropriate IP could"
-                  " be found via DNS") % origip)
-            return self.callZenScreen(REQUEST)
-        else:
-            return self.manageIp
+                self.manageIp = ip
+                self.index_object()
+                notify(IndexingEvent(self, ('ipAddress',), True))
+                log.info("%s's IP address has been set to %s.",
+                         self.id, ip)
+
+        return message
 
 
     security.declareProtected(ZEN_VIEW, 'getManageIp')
