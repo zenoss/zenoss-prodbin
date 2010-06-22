@@ -745,19 +745,19 @@
 <adapter
     for="Products.ZenModel.DeviceReport.DeviceReport"
     provides=".interfaces.INewPath"
-    factory=".backcompat.ReportClass"
+    factory=".backcompat.CustomReport"
     />
 
 <adapter
     for="Products.ZenModel.GraphReport.GraphReport"
     provides=".interfaces.INewPath"
-    factory=".backcompat.ReportClass"
+    factory=".backcompat.CustomReport"
     />
 
 <adapter
     for="Products.ZenModel.MultiGraphReport.MultiGraphReport"
     provides=".interfaces.INewPath"
-    factory=".backcompat.ReportClass"
+    factory=".backcompat.CustomReport"
     />
 
 </configure>

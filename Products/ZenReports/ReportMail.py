@@ -195,7 +195,8 @@ class ReportMail(ZenScriptBase):
             self.log.error("No address for user %s" % o.user)
             sys.exit(1)
         page = Page(o.user, o.passwd, o.div, o.comment)
-        page.fetch(o.url)
+        url = self.mangleUrl(o.url)
+        page.fetch(url)
         msg = page.mail()
         if o.subject:
             msg['Subject'] = o.subject
@@ -218,6 +219,14 @@ class ReportMail(ZenScriptBase):
                           o.addresses, msg.as_string(), errorMsg)
             sys.exit(1)
         sys.exit(0)
+
+    def mangleUrl(self, url):
+        if url.find('/zport/dmd/reports#reporttree:') != -1 :
+            urlSplit = url.split('/zport/dmd/reports#reporttree:')
+            url = urlSplit[0] + urlSplit[1].replace('.', '/')
+        if url.find('adapt=false') == -1 :
+            url += '?adapt=false' if url.find('?') == -1 else '&adapt=false'
+        return url
 
     def buildOptions(self):
         ZenScriptBase.buildOptions(self)

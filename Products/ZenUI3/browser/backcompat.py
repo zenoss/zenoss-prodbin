@@ -18,39 +18,48 @@ def getImmediateView(ob):
         raise NameError('Cannot find default view for "%s"' %
                         '/'.join(ob.getPhysicalPath()))
 
+
 def immediate_view(ob):
     view = getImmediateView(ob)
     path = ob.getPhysicalPath() + (view,)
     return '/'.join(path)
 
+
 def DeviceClass(ob):
     id = '.'.join(ob.getPhysicalPath())
     return '/zport/dmd/itinfrastructure#devices:' + id
+
 
 def Location(ob):
     id = '.'.join(ob.getPhysicalPath())
     return '/zport/dmd/itinfrastructure#locs:' + id
 
+
 def System(ob):
     id = '.'.join(ob.getPhysicalPath())
     return '/zport/dmd/itinfrastructure#systems:' + id
+
 
 def DeviceGroup(ob):
     id = '.'.join(ob.getPhysicalPath())
     return '/zport/dmd/itinfrastructure#groups:' + id
 
+
 def IpNetwork(ob):
     id = '.'.join(ob.getPhysicalPath())
     return '/zport/dmd/networks#networks:' + id
+
 
 def DeviceComponent(ob):
     devpath = ob.device().getPrimaryUrlPath()
     return ':'.join([devpath+'/devicedetail#deviceDetailNav', ob.meta_type,
                     ob.getPrimaryUrlPath()])
 
+
 def Process(ob):
     id = '.'.join(ob.getPhysicalPath())
     return '/zport/dmd/process#processTree:' + id
+
 
 def Service(ob):
     id = '.'.join(ob.getPhysicalPath())
@@ -58,14 +67,37 @@ def Service(ob):
         return '/zport/dmd/winservice#navTree:' + id
     return '/zport/dmd/ipservice#navTree:' + id
 
+
 def MonitoringTemplate(ob):
+    '''
+    Templates for devices are in the new Monitoring Templates screen.
+    Collector templates however, are still edited in the old style.
+    '''
     id = '/'.join(ob.getPhysicalPath())
     if id.startswith('/zport/dmd/Devices'):
         return '/zport/dmd/template#templateTree:' + id
     view = getImmediateView(ob)
     return '%s/%s' % (id, view)
 
+
 def ReportClass(ob):
+    id = '.'.join(ob.getPhysicalPath())
+    return '/zport/dmd/reports#reporttree:' + id
+
+
+def CustomReport(ob):
+    '''
+    The reportmail utility needs to get at what is the content of the
+    backcompat iframe on the reports screen, and existing reportmail setups
+    exist that are sending out reports using the old urls with paths
+    that resemble the model hierarchy. 
+
+    On the other hand, those same old model based urls exist in some places
+    in the app (ZenPack provides table for instance) and need to take the user
+    into the new reports screen.
+    '''
+    if ob.REQUEST['QUERY_STRING'].find('adapt=false') != -1:
+        return ob.absolute_url_path() + '/view' + ob.meta_type
     id = '.'.join(ob.getPhysicalPath())
     return '/zport/dmd/reports#reporttree:' + id
 
