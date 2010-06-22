@@ -1,24 +1,24 @@
 <form id="addOSProcess_form" tal:attributes="action context/os/absolute_url_path">
-<input type="hidden" name="userCreated" value="True">
-<span id="errmsg" style="color:red;"></span>
-<br/>
-<p>
-Process Class:&nbsp;<select name="newClassName" id="newClassName"
-tal:define="targets python:[ x.absolute_url_path() for x in here.os.getSubOSProcessClassesGen()]">
-    <option tal:repeat="target targets"
-        tal:attributes="value target"
-        tal:content="python:target.split('/')[-1]">/</option>
-</select>
-</p>
+    <input type="hidden" name="userCreated" value="True"/>
+    <span id="errmsg" style="color:red;"></span>
+    <br/>
+    <p>
+        <span>Process Class:&nbsp;</span>
+        <select name="newClassName" id="newClassName">
+            <option tal:repeat="cls here/os/getSubOSProcessClassesGen"
+                    tal:attributes="value cls/absolute_url_path"
+                    tal:content="cls/titleOrId"/>
+        </select>
+    </p>
 </form>
 <script>
-var addosprocess_form = new Zenoss.dialog.DialogFormPanel({
-    existingFormId: 'addOSProcess_form',
-    submitName: 'addOSProcess:method',
-    jsonResult: false,
-    listeners: {
-        actioncomplete: Zenoss.env.componentReloader('OSProcess')
-    }
-});
-Ext.get('newClassName').focus();
+    var addosprocess_form = new Zenoss.dialog.DialogFormPanel({
+        existingFormId: 'addOSProcess_form',
+        submitName: 'addOSProcess:method',
+        jsonResult: false,
+        listeners: {
+            actioncomplete: Zenoss.env.componentReloader('OSProcess')
+        }
+    });
+    Ext.get('newClassName').focus();
 </script>
