@@ -30,9 +30,6 @@ import Products.ZenModel.ZenPackLoader as ZPL
 from Products.ZenModel.ZenPackLoader import CONFIG_FILE, CONFIG_SECTION_ABOUT
 import ZenPackCmd as EggPackCmd
 
-log = logging.getLogger('zen.ZenPackCmd')
-
-
 def RemoveZenPack(dmd, packName, log=None, 
                         skipDepsCheck=False, leaveObjects=True,
                         deleteFiles=True):
@@ -393,6 +390,8 @@ class ZenPackCmd(ZenScriptBase):
         ZenScriptBase.buildOptions(self)
 
 if __name__ == '__main__':
+    logging.basicConfig()
+    log = logging.getLogger('zen.ZenPackCmd')
     try:
         zp = ZenPackCmd()
         zp.run()
