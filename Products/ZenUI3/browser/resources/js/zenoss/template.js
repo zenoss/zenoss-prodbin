@@ -360,6 +360,20 @@ addTemplateDialogConfig = {
     }]
 };
 
+/**********************************************************************
+ *
+ * Add to zenpack
+ *
+ */
+function showAddToZenPackDialog() {
+    var tree = Ext.getCmp(treeId),
+        win = Ext.create({
+            xtype:'AddToZenPackWindow'
+        });
+    win.target = tree.getSelectionModel().getSelectedNode().attributes.uid;
+    win.show();
+}
+                
 footerBar = Ext.getCmp('footer_bar');
 Zenoss.footerHelper(_t('Monitoring Template'),
                     footerBar, {
@@ -376,6 +390,10 @@ footerBar.buttonContextMenu.menu.add({
     xtype: 'menuitem',
     text: _t('Override Template'),
     handler: showOverrideDialog
+},{
+    xtype: 'menuitem',
+    text: _t('Add to ZenPack'),
+    handler: showAddToZenPackDialog
 });
 
 footerBar.on('buttonClick', function(actionName, id, values) {

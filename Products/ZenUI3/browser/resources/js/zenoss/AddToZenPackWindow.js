@@ -76,6 +76,7 @@ Zenoss.AddToZenPackWindow = Ext.extend(Ext.Window, {
                             },
                             function (data) {
                                 Ext.getCmp('addToZenPackWindow').hide();
+                                Zenoss.flares.Manager.info(_t("The item was added to the zenpack, {0}"), chosenzenpack);
                             }
                         );
                     }
