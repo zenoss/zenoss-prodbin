@@ -958,8 +958,11 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable,
         if not ip: # What if they put in a DNS name?
             try:
                 ip = socket.gethostbyname(origip)
+                if ip == '0.0.0.0':
+                    # Host resolution failed
+                    ip = ''
             except socket.error:
-                pass
+                ip = ''
 
         if not ip:
             try:
