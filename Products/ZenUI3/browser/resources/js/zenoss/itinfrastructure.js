@@ -27,7 +27,6 @@ var REMOTE = Zenoss.remote.DeviceRouter,
     treesm,
     treeId = 'groups',
     nodeType = 'Organizer',
-    deleteDeviceMessage = _t('Warning! This will delete all of the devices in this group!'),
     ZEvActions = Zenoss.events.EventPanelToolbarActions;
 
 REMOTE.getProductionStates({}, function(d){
@@ -1332,21 +1331,24 @@ var footerBar = Ext.getCmp('footer_bar');
         addToZenPack: false,
 
         onGetDeleteMessage: function (itemName) {
-            var tree = treesm.getSelectedNode().getOwnerTree();
-            var rootId = tree.getRootNode().attributes.id;
-            if ( rootId === devtree.root.id ) {
-                return deleteDeviceMessage;
+            var node = treesm.getSelectedNode(),
+                tree = node.getOwnerTree(),
+                rootId = tree.getRootNode().attributes.id,
+                msg = _t('Are you sure you want to delete the {0} {1}? <br/>There is <strong>no</strong> undo.');
+            if (rootId==devtree.root.id) {
+                msg = [msg, '<br/><br/><strong>', 
+                       _t('WARNING'), '</strong>:',
+                       _t(' This will also delete all devices in this {0}.'),
+                       '<br/>'].join('');
             }
-            else {
-                return String.format(_t('The selected {0} will be deleted.'), tree.nodeName.toLowerCase());
-            }
+            return String.format(msg, itemName.toLowerCase(), '/'+node.attributes.path);
         },
         onGetAddDialogItems: function () { return getOrganizerFields('add'); },
         onGetItemName: function() {
             var node = treesm.getSelectedNode();
             if ( node ) {
                 var tree = node.getOwnerTree();
-                return tree.nodeName;
+                return tree.nodeName=='Device'?'Device Class':tree.nodeName;
             }
         },
         customAddDialog: {

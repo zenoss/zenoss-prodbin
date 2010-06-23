@@ -22,7 +22,7 @@ function createClickHandler(bubbleTargetId) {
     };
 }
 
-// options is comprised of the following:
+// options comprises the following:
 //      addToZenPack: true puts the Add To ZenPack icon in, default true
 //      hasOrganizers: true puts the Add ___  Organizer in, default true
 //      customAddDialog: config for a SmartFormDialog to override the default
