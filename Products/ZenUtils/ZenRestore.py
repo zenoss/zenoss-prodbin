@@ -11,14 +11,13 @@
 # For complete information please visit: http://www.zenoss.com/oss/
 #
 ###########################################################################
-import logging
-
 
 __doc__='''zenrestore
 
 Restores a zenoss backup created by zenbackup.
 '''
 
+import logging
 import sys
 import os
 import os.path
@@ -37,7 +36,7 @@ class ZenRestore(ZenBackupBase):
         self.log = logging.getLogger("zenrestore")
         logging.basicConfig()
         if self.options.verbose:
-            self.log.setLevel(20)
+            self.log.setLevel(10)
         else:
             self.log.setLevel(40)
             
@@ -79,6 +78,11 @@ class ZenRestore(ZenBackupBase):
                                default=None,
                                help='Path to an untarred backup file'
                                         ' from which to restore.')
+        self.parser.add_option('--no-zodb',
+                               dest="noZODB",
+                               default=False,
+                               action='store_true',
+                               help='Do not restore the ZODB.')
         self.parser.add_option('--no-eventsdb',
                                dest="noEventsDb",
                                default=False,
@@ -124,27 +128,20 @@ class ZenRestore(ZenBackupBase):
 
     def createMySqlDb(self):
         '''
-        Create the events schema in MySQL if it does not exist
+        Create the events schema in MySQL if it does not exist.
+        Return true if the command was able to complete, otherwise
+        (eg permissions or login error), return false.
         '''
         # The original dbname is stored in the backup within dbname.txt
         # For now we ignore it and use the database specified on the command
         # line.
         sql = 'create database if not exists %s' % self.options.dbname
-        cmd = 'echo "%s" | mysql -u"%s" "%s"' % (
-                    sql,
-                    self.options.dbuser,
-                    self.getPassArg())
-
-        if self.options.dbhost and self.options.dbhost != 'localhost':
-            cmd += ' --host=%s' % self.options.dbhost
-        if self.options.dbport and self.options.dbport != '3306':
-            cmd += ' --port=%s' % self.options.dbport
-
-        result = os.system(cmd)
-        self.msg('MySQL events database check returned %s' % result)
-        if result not in [0, 256]:
+        if self.runMysqlCmd(sql):
+            self.msg('MySQL events database creation was successful.')
+            return True
+        else:
+            self.msg('MySQL events database creation faild and returned %d' % result[2])
             return False
-        return True
 
     def restoreEventsDatabase(self, tempDir):
         """
@@ -152,29 +149,21 @@ class ZenRestore(ZenBackupBase):
         """
         eventsSql = os.path.join(tempDir, 'events.sql')
         if not os.path.isfile(eventsSql):
-            self.msg('This backup does not contain an events database.')
+            self.msg('This backup does not contain an events database backup.')
             return
 
-        # Create the mysql db if it doesn't exist already
-        self.msg('Checking that events database exists.')
-        if self.createMySqlDb():
-            return -1
+        # Create the MySQL db if it doesn't exist already
+        self.msg('Creating the events database (if necessary).')
+        if not self.createMySqlDb():
+            return
 
         # Restore the mysql tables
         self.msg('Restoring events database.')
-        cmd_p1 = 'mysql -u"%s" "%s" %s' % (
-                    self.options.dbuser, self.getPassArg(), self.options.dbname)
-        cmd_p2 = ' < %s' % os.path.join(tempDir, 'events.sql')
-
-        if self.options.dbhost and self.options.dbhost != 'localhost':
-            cmd_p1 += ' --host=%s' % self.options.dbhost
-        if self.options.dbport and self.options.dbport != '3306':
-            cmd_p1 += ' --port=%s' % self.options.dbport
-
-        cmd = cmd_p1 + cmd_p2
-
-        if os.system(cmd):
-            return -1
+        sql = 'source %s' % eventsSql
+        if self.runMysqlCmd(sql, switchDB=True):
+            self.msg('Successfully loaded events into MySQL database.')
+        else:
+            self.msg('FAILED to load events into MySQL events database.')
 
     def doRestore(self):
         '''
@@ -236,7 +225,9 @@ class ZenRestore(ZenBackupBase):
             os.system(binPath('zeoctl') + 'stop > /dev/null')
 
         # Restore zopedb
-        if hasZeoBackup(tempDir):
+        if self.options.noZODB:
+            self.msg('Skipping the ZEO database..')
+        elif hasZeoBackup(tempDir):
             repozoDir = os.path.join(tempDir, 'repozo')
             self.msg('Restoring the ZEO database.')
             cmd ='%s %s --recover --repository %s --output %s' % (
@@ -246,7 +237,7 @@ class ZenRestore(ZenBackupBase):
                         zenPath('var', 'Data.fs'))
             if os.system(cmd): return -1
         else:
-            self.msg('archive does not contain ZEO database backup')
+            self.msg('Archive does not contain ZEO database backup')
         
         # Copy etc files
         self.msg('Restoring config files.')
@@ -259,7 +250,9 @@ class ZenRestore(ZenBackupBase):
 
         # Copy ZenPack files if requested
         # check for existence of ZEO backup
-        if self.options.zenpacks and hasZeoBackup(tempDir):
+        if not self.options.noZODB and \
+           self.options.zenpacks and \
+           hasZeoBackup(tempDir):
             tempPacks = os.path.join(tempDir, 'ZenPacks.tar')
             if os.path.isfile(tempPacks):
                 self.msg('Restoring ZenPacks.')

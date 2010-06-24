@@ -115,3 +115,41 @@ class ZenBackupBase(CmdBase):
         self.log.debug(output or 'No output from command')
         return (output, warnings, proc.returncode)
 
+    def runMysqlCmd(self, sql, switchDB=False):
+        """
+        Run a command that executes SQL statements in MySQL.
+        Return true if the command was able to complete, otherwise
+        (eg permissions or login error), return false.
+
+        @parameter sql: an executable SQL statement
+        @type sql: string
+        @parameter switchDB: use -D options.dbname to switch to a database?
+        @type switchDB: boolean
+        @return: boolean
+        @rtype: boolean
+        """
+        cmd = ['mysql', '-u', self.options.dbuser]
+
+        obfuscatedCmd = None
+        if self.options.dbpass:
+            cmd.append('--password=%s' % self.options.dbpass)
+
+        if self.options.dbhost and self.options.dbhost != 'localhost':
+            cmd.append('--host=%s' % self.options.dbhost)
+        if self.options.dbport and self.options.dbport != '3306':
+            cmd.append('--port=%s' % self.options.dbport)
+
+        if switchDB:
+            cmd.extend(['-D', self.options.dbname])
+
+        cmd.extend(['-e', sql])
+
+        if self.options.dbpass:
+            obfuscatedCmd = cmd[:]
+            obfuscatedCmd[3] = '--pasword=%s' % ('*' * 8)
+
+        result = self.runCommand(cmd, obfuscated_cmd=obfuscatedCmd)
+        if result[2]: # Return code from the command
+            return False
+        return True
+
