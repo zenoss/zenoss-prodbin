@@ -374,8 +374,10 @@ Zenoss.EventGridPanel = Ext.extend(Zenoss.SimpleEventGridPanel, {
                 editable: false,
                 listeners: {
                     select: function(selection) {
-                        var getHistory = (selection.value == 1) ? true : false;
+                        var getHistory = selection.value == 1;
                         evtGrid.getStore().load({ params: {'history' : getHistory} });
+                        Zenoss.events.EventPanelToolbarActions.acknowledge.setHidden(getHistory);
+                        Zenoss.events.EventPanelToolbarActions.close.setHidden(getHistory);
                     }
                 }
             },
