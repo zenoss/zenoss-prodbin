@@ -374,8 +374,18 @@ Zenoss.EventGridPanel = Ext.extend(Zenoss.SimpleEventGridPanel, {
                 editable: false,
                 listeners: {
                     select: function(selection) {
-                        var getHistory = selection.value == 1;
-                        evtGrid.getStore().load({ params: {'history' : getHistory} });
+                        var getHistory = selection.value == 1,
+                            params = {
+                                uid: evtGrid.view._context,
+                                history: getHistory
+                            },
+                            yesterday;
+                        if (getHistory) {
+                            yesterday = new Date();
+                            yesterday.setDate(yesterday.getDate() - 1);
+                            params['params'] = { lastTime: yesterday };
+                        }
+                        evtGrid.getStore().load({ params: params });
                         Zenoss.events.EventPanelToolbarActions.acknowledge.setHidden(getHistory);
                         Zenoss.events.EventPanelToolbarActions.close.setHidden(getHistory);
                     }
