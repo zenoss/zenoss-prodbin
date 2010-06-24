@@ -31,6 +31,7 @@ from Exceptions import ObjectCreationError
 from Products.ZenEvents.ZenEventClasses import Change_Add,Change_Remove,Change_Set,Change_Add_Blocked,Change_Remove_Blocked,Change_Set_Blocked
 from Products.ZenModel.Lockable import Lockable
 import Products.ZenEvents.Event as Event
+from zExceptions import NotFound
 
 zenmarker = "__ZENMARKER__"
 
@@ -153,7 +154,7 @@ class ApplyDataMap(object):
             log.exception("Plugin %s device %s", pname, device.getId())
 
 
-    def applyDataMap(self, device, datamap, relname="", compname="",modname=""):
+    def applyDataMap(self, device, datamap, relname="", compname="", modname=""):
         """Apply a datamap passed as a list of dicts through XML-RPC.
         """
         from plugins.DataMaps import RelationshipMap, ObjectMap
@@ -185,8 +186,12 @@ class ApplyDataMap(object):
             persist = False
         
         if hasattr(datamap, "compname"):
-            if datamap.compname: 
-                tobj = getattr(device, datamap.compname)
+            if datamap.compname:
+                try:
+                    tobj = device.getObjByPath(datamap.compname)
+                except NotFound:
+                    log.warn("Unable to find compname '%s'" % datamap.compname)
+                    return False
             else: 
                 tobj = device
             if hasattr(datamap, "relname"):

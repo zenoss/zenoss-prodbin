@@ -62,7 +62,32 @@ class ApplyDataMapTest(unittest.TestCase):
             self.adm._updateObject(obj, objmap)
             for key in objmap:
                 self.assertEqual(getattr(obj, key), objmap[key].decode(enc))
-
+                
+    def test_applyDataMap_relmap(self):
+        class datamap(list):
+            compname = "a/b"
+            relname  = "c"
+            
+        class Device(object):
+            class dmd:
+                "Used for faking sync()"
+                class _p_jar:
+                    @staticmethod
+                    def sync():
+                        pass
+                    
+            def getObjByPath(self, path):
+                return reduce(getattr, path.split("/"), self)
+            
+            class a:
+                class b:
+                    class c:
+                        "The relationship to populate"
+                        @staticmethod
+                        def objectIdsAll():
+                            "returns the list of object ids in this relationship"
+                            return []
+        self.adm.applyDataMap(Device(), datamap(), datamap.relname, datamap.compname)
 
 def test_suite():
     from unittest import TestSuite, makeSuite
