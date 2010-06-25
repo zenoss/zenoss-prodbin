@@ -18,7 +18,8 @@ Ext.onReady(function(){
 var router, treeId, dataSourcesId, thresholdsId, graphsId,
     beforeselectHandler, updateDataSources, updateThresholds, updateGraphs,
     selectionchangeHandler, selModel, footerBar, override, overrideHtml1,
-    overrideHtml2, showOverrideDialog, resetCombo, addTemplateDialogConfig;
+    overrideHtml2, showOverrideDialog, resetCombo, addTemplateDialogConfig,
+    addToZenPack;
 
 router = Zenoss.remote.TemplateRouter;
 treeId = 'templateTree';
@@ -365,11 +366,12 @@ addTemplateDialogConfig = {
  * Add to zenpack
  *
  */
+addToZenPack = Ext.create({
+    xtype:'AddToZenPackWindow'
+});
 function showAddToZenPackDialog() {
     var tree = Ext.getCmp(treeId),
-        win = Ext.create({
-            xtype:'AddToZenPackWindow'
-        });
+    win = addToZenPack;
     win.target = tree.getSelectionModel().getSelectedNode().attributes.uid;
     win.show();
 }

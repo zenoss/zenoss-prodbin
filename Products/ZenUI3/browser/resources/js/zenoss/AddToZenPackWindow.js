@@ -27,6 +27,7 @@ Zenoss.AddToZenPackWindow = Ext.extend(Ext.Window, {
             id: 'addToZenPackWindow',
             title: _t('Add to Zen Pack'),
             layout: 'fit',
+            modal: true,
             autoHeight: true,
             width: 310,
             closeAction: 'hide',
@@ -46,6 +47,8 @@ Zenoss.AddToZenPackWindow = Ext.extend(Ext.Window, {
                     fieldLabel: _t('Zen Pack'),
                     name: 'zpname',
                     xtype: 'combo',
+                    emptyText: _t('Please select a zenpack...'),
+                    listEmptyText: _t('No zenpacks available'),
                     allowBlank: false,
                     store: new Ext.data.DirectStore({
                         id: 'myzpstore',
