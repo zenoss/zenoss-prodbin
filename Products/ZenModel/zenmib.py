@@ -360,7 +360,12 @@ class PackageManager:
                 url, sys.exc_info()[1] ) )
              return []
         self.log.debug("Will attempt to load %s", localFile)
-        return self.processPackage(localFile)
+        try:
+            return self.processPackage(localFile)
+        except IOError, ex:
+            self.log.error("Unable to process '%s' because: %s",
+                           localFile, str(ex))
+            sys.exit(1)
 
     def download(self, url):
         """
@@ -762,6 +767,7 @@ class ZenMib(ZCmdBase):
             except IOError:
                 self.log.warn("Unable to open '%s' -- skipping", 
                               fileName)
+                continue
             pythonMibs += self.evalPythonToMibs(pythonCode, fileName)
 
         self.loadPythonMibs(pythonMibs)
