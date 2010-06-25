@@ -724,9 +724,9 @@ class SshClient(CollectorClient.CollectorClient):
 
 
     def runCommands(self):
-        log.debug("%s SshClient assigning %d commands to channels (max = %s, current = %s)",
+        log.debug("%s SshClient has %d commands to assign to channels (max = %s, current = %s)",
                   self.ip, len(self.workList), self.concurrentSessions, self.openSessions)
-        availSessions = (self.concurrentSessions - 1) - self.openSessions
+        availSessions = self.concurrentSessions - self.openSessions
         for i in range(min(len(self.workList), availSessions)):
             cmd = self.workList.pop(0)
             self.openSessions += 1
