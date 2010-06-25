@@ -50,26 +50,26 @@ class ReportRouter(DirectRouter):
         '/zport/dmd/Reports/Multi-Graph%20Reports',
     ]
 
+
     def getReportTypes(self):
         return DirectResponse.succeed(reportTypes=ReportRouter._newReportTypes,
                 menuText=ReportRouter._reportMenuItems)
 
+
     def getTree(self, id='/zport/dmd/Reports'):
         root_organizer = self.context.dmd.restrictedTraverse(id)
-        root_node = self._createTreeNode(root_organizer)
-        self._getReportOrganizersTree(root_organizer,
-                root_node['children'])
+        root_node = self._getReportOrganizersTree(root_organizer)
         return [root_node]
 
-    def _getReportOrganizersTree(self, rorg, my_data):
-        for rorg in rorg.children():
-            rorg_node = self._createTreeNode(rorg)
-            my_data.append(rorg_node)
-            self._getReportOrganizersTree(rorg, rorg_node['children'])
 
-            for report in rorg.reports():
-                report_node = self._createTreeNode(report)
-                rorg_node['children'].append(report_node)
+    def _getReportOrganizersTree(self, reportOrg):
+        rorg_node = self._createTreeNode(reportOrg)
+        for rorg in reportOrg.children():
+            rorg_node['children'].append(self._getReportOrganizersTree(rorg))
+        for report in reportOrg.reports():
+            rorg_node['children'].append(self._createTreeNode(report))
+        return rorg_node
+
 
     @require('Manage DMD')
     def addNode(self, nodeType, contextUid, id):
@@ -98,6 +98,7 @@ class ReportRouter(DirectRouter):
         except Exception, e:
             return DirectResponse.fail(str(e))
 
+
     @require('Manage DMD')
     def deleteNode(self, uid):
         represented = self.context.dmd.restrictedTraverse(uid)
@@ -106,6 +107,7 @@ class ReportRouter(DirectRouter):
                     represented.absolute_url_path())
         represented.getParentNode().zmanage_delObjects([represented.titleOrId()])
         return DirectResponse.succeed(tree=self.getTree())
+
 
     @require('Manage DMD')
     def moveNode(self, uids, target):
@@ -120,6 +122,7 @@ class ReportRouter(DirectRouter):
             representedNode = self._createTreeNode(represented)
         return DirectResponse.succeed(tree=self.getTree(), 
                 newNode=representedNode)
+
 
     def _createTreeNode(self, represented):
         path = represented.getDmdKey()
