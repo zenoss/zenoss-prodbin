@@ -157,11 +157,11 @@ treesm = new Ext.tree.DefaultSelectionModel({
                 // explicitly set the new security context (to update permissions)
                 Zenoss.Security.setContext(uid);
 
-                var card = Ext.getCmp('master_panel').getComponent(0);
                 //should "ask" the DetailNav if there are any details before showing
                 //the button
-                card.navButton.show();
-                Ext.getCmp('master_panel').getComponent(1).navButton.show();
+                Ext.getCmp('master_panel').items.each(function(card){
+                    card.navButton.setVisible(!newnode.attributes.hidden);
+                });
             }
         }
     }
