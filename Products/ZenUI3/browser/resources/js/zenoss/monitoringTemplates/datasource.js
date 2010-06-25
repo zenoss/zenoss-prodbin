@@ -16,7 +16,8 @@
 (function(){
 
 var router, dataSourcesId, graphsId, resetCombo,  
-    addMetricToGraph, showAddToGraphDialog, editDataSourcesId, treeId, dataSourceMenu;
+    addMetricToGraph, showAddToGraphDialog, editDataSourcesId, treeId,
+    dataSourceMenu, editingReSelectId;
 
 Ext.ns('Zenoss');
 
@@ -140,11 +141,22 @@ showAddToGraphDialog = function() {
  * Causes the DataSources Grid to refresh from the server
  * 
  **/
-function refreshDataSourceGrid() {
+function refreshDataSourceGrid(selectedId) {
     var grid = Ext.getCmp(dataSourcesId);
     Ext.getCmp('addDataPointDialog').hide();
     Ext.getCmp('addDataSourceDialog').hide();
-    return grid.getRootNode().reload();
+    if (selectedId) {
+        grid.getRootNode().reload(function(){
+            grid.getRootNode().cascade(function(node){
+                if (node.attributes.id == selectedId) {
+                    node.expand();
+                    node.select();
+                }
+            });                                     
+        });
+    }else{
+        grid.getRootNode().reload();
+    }
 }
 
 /**
@@ -153,7 +165,7 @@ function refreshDataSourceGrid() {
 function saveDataPoint() {
     var grid = Ext.getCmp(dataSourcesId),
         selectedNode = grid.getSelectionModel().getSelectedNode(),
-        parameters;
+        parameters, selectedId;
 
     // if we have a datapoint, find the datasource associated with it
     if (selectedNode.attributes.leaf) {
@@ -164,7 +176,12 @@ function saveDataPoint() {
         name: Ext.getCmp('metricName').getValue(),
         dataSourceUid: selectedNode.attributes.uid
     };
-    return router.addDataPoint(parameters, refreshDataSourceGrid);
+    selectedId = selectedNode.attributes.id;
+    // get selected datasource, and reopen the grid to that point
+    function callback() {
+        refreshDataSourceGrid(selectedId);
+    }
+    return router.addDataPoint(parameters, callback);
                               
 }
      
@@ -361,14 +378,19 @@ new Zenoss.MessageDialog({
     title: _t('Delete'),
     // msg is generated dynamically
     okHandler: function(){
-        var params;
+        var params, node = getSelectedDataSourceOrPoint(),
+        selectedId;
         params = {
             uid: getSelectedDataSourceOrPoint().id
         };
         
         // data points are always leafs
         if (getSelectedDataSourceOrPoint().leaf) {
-            router.deleteDataPoint(params, refreshDataSourceGrid);  
+            selectedId = node.parentNode.attributes.id;
+            function callback() {
+                refreshDataSourceGrid(selectedId);
+            }
+            router.deleteDataPoint(params, callback);  
         }else {
             router.deleteDataSource(params, refreshDataSourceGrid); 
         }
@@ -387,8 +409,7 @@ new Zenoss.MessageDialog({
  **/
 function closeEditDialog(response) {
     var dialog = Ext.getCmp('editDataSources');
-    
-    refreshDataSourceGrid();
+    refreshDataSourceGrid(editingReSelectId);
         
     // hide the dialog
     if (dialog) {
@@ -446,7 +467,7 @@ function editDataSourceOrPoint() {
         selectedNode = cmp.getSelectionModel().getSelectedNode(),
         attributes,
         isDataPoint = false,
-        params;
+        params, reselectId;
     
     // make sure they selected something
     if (!selectedNode) {
@@ -458,6 +479,9 @@ function editDataSourceOrPoint() {
     // find out if we are editing a datasource or a datapoint
     if (attributes.leaf) {
         isDataPoint = true;
+        editingReSelectId = selectedNode.parentNode.attributes.id;
+    }else{
+        editingReSelectId = attributes.id;
     }
     
     // parameters for the router call    
