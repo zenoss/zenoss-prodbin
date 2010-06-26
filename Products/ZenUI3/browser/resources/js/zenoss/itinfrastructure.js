@@ -687,28 +687,12 @@ Ext.apply(Zenoss.devices, {
                             var form = b.ownerCt.ownerCt.getForm();
                             var opts = form.getFieldValues();
                             Zenoss.remote.DeviceRouter.addDevice(opts, function(response) {
-                                var success = response.success;
-                                if (success) {
-                                    var dialog = new Zenoss.dialog.SimpleMessageDialog({
-                                        message: 'Add Device Job submitted',
-                                        buttons: [{
-                                            xtype: 'DialogButton',
-                                            text: _t('OK')
-                                        }, {
-                                            xtype: 'button',
-                                            text: _t('View Job Log'),
-                                            handler: function() {
-                                                var url = '/zport/dmd/JobManager/jobs/' +
-                                                response.jobId +
-                                                '/viewlog';
-                                                window.location = url;
-                                            }
-                                        }]
-                                    });
-                                    dialog.show();
+                                if (response.success) {
+                                    Zenoss.message.success(_t('Add Device Job submitted. <a href="/zport/dmd/JobManager/jobs/{0}/viewlog">View Job Log</a>'), response.jobId);
                                 }
-                                var jobId = response.jobId;
-                                Zenoss.message('add device submitted', success);
+                                else {
+                                    Zenoss.message.error(_t('Error adding device job.'));
+                                }
                             });
                         }
                     }, Zenoss.dialog.CANCEL]

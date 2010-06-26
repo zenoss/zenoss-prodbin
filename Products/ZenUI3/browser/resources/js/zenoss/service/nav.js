@@ -76,12 +76,12 @@
                         store, { single: true });
                     view.updateLiveRows(newRowPos, true, true, false);
                 } else {
-                    Zenoss.flares.Manager.error(result.msg);
+                    Zenoss.message.error(result.msg);
                 }
             }
             Zenoss.remote.ServiceRouter.deleteNode(params, callback);
         } else {
-            Zenoss.flares.Manager.error(_t('Must select an item in the list.'));
+            Zenoss.message.error(_t('Must select an item in the list.'));
         }
     };
 
@@ -89,7 +89,7 @@
         var selected, params;
         selected = zs.getSelectedOrganizer();
         if ( ! selected ) {
-            Zenoss.flares.Manager.error(_t('No service organizer is selected.'));
+            Zenoss.message.error(_t('No service organizer is selected.'));
             return;
         }
         params = {uid: selected.attributes.uid};
@@ -117,7 +117,7 @@
         getUid: function() {
             var selected = Ext.getCmp('navGrid').getSelectionModel().getSelected();
             if ( ! selected ) {
-                Zenoss.flares.Manager.error(_t('You must select a service.'));
+                Zenoss.message.error(_t('You must select a service.'));
                 return null;
             }
             return selected.data.uid;
@@ -128,7 +128,7 @@
         getOrganizerUid: function() {
             var selected = zs.getSelectedOrganizer();
             if ( ! selected ) {
-                Zenoss.flares.Manager.error(_t('You must select a service organizer.'));
+                Zenoss.message.error(_t('You must select a service organizer.'));
                 return null;
             }
             return selected.attributes.uid;

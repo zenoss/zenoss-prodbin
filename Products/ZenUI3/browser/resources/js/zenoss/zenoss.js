@@ -31,7 +31,12 @@ Ext.Direct.on('event', function(e){
 Ext.Direct.on('event', function(e){
     if (Ext.isDefined(e.result) && Ext.isDefined(e.result.msg)) {
         var success = e.result.success || false;
-        Zenoss.message(e.result.msg, success);
+        if (success) {
+            Zenoss.message.success(e.result.msg);
+        }
+        else {
+            Zenoss.message.error(e.result.msg);
+        }
     }
 });
 
@@ -121,7 +126,9 @@ Zenoss.flares.Container = Ext.extend(Ext.Container, {
     }
 });
 
-
+/**
+ * The UI manager for flares.
+ */
 Zenoss.flares.Manager = {
     container: new Zenoss.flares.Container(),
     INFO: 'x-flare-info',
@@ -136,15 +143,22 @@ Zenoss.flares.Manager = {
      * @param flare Zenoss.flares.Flare
      */
     flare: function(flare) {
-        flare.setAnimateTarget(this.container.el);
-        this.container.add(flare);
-        this.container.doLayout();
+        flare.setAnimateTarget(Zenoss.flares.Manager.container.el);
+        Zenoss.flares.Manager.container.add(flare);
+        Zenoss.flares.Manager.container.doLayout();
         flare.show();
     },
+    /**
+     * Format a message and create a Flare.
+     *
+     * @param message string A message template
+     * @param type string One of the status types assigned to this class (ex: INFO, ERROR)
+     * @param args array Optional orguments to fill in the message template
+     */
     _formatFlare: function(message, type, args) {
         args = Array.prototype.slice.call(args, 1);
         var flare = new Zenoss.flares.Flare(message, args, { iconCls: type });
-        this.flare(flare);
+        Zenoss.flares.Manager.flare(flare);
         return flare;
     },
     /**
@@ -154,22 +168,22 @@ Zenoss.flares.Manager = {
      * @param args mixed Optional orguments to fill in the message template
      */
     info: function(message, args) {
-        return this._formatFlare(message, this.INFO, arguments);
+        return Zenoss.flares.Manager._formatFlare(message, Zenoss.flares.Manager.INFO, arguments);
     },
     error: function(message, args) {
-        return this._formatFlare(message, this.ERROR, arguments);
+        return Zenoss.flares.Manager._formatFlare(message, Zenoss.flares.Manager.ERROR, arguments);
     },
     warning: function(message, args) {
-        return this._formatFlare(message, this.WARNING, arguments);
+        return Zenoss.flares.Manager._formatFlare(message, Zenoss.flares.Manager.WARNING, arguments);
     },
     debug: function(message, args) {
-        return this._formatFlare(message, this.DEBUG, arguments);
+        return Zenoss.flares.Manager._formatFlare(message, Zenoss.flares.Manager.DEBUG, arguments);
     },
     critical: function(message, args) {
-        return this._formatFlare(message, this.CRITICAL, arguments);
+        return Zenoss.flares.Manager._formatFlare(message, Zenoss.flares.Manager.CRITICAL, arguments);
     },
     success: function(message, args) {
-        return this._formatFlare(message, this.SUCCESS, arguments);
+        return Zenoss.flares.Manager._formatFlare(message, Zenoss.flares.Manager.SUCCESS, arguments);
     }
 };
 
@@ -250,6 +264,9 @@ Zenoss.flares.Flare = Ext.extend(Ext.Window, {
             this._task.delay(this.delay);
        }
     },
+    /**
+     * Make this Flare "stick". It will not fade away and must manually be dismissed by the user.
+     */
     sticky: function() {
         if ( this._task ) {
             this._task.cancel();
@@ -285,6 +302,9 @@ Zenoss.flares.Flare = Ext.extend(Ext.Window, {
 });
 
 Ext.namespace('Zenoss.messaging');
+/**
+ * Message for Zenoss.messaging.Messenger. This is for back-compat and should not be used directly.
+ */
 Zenoss.messaging.Message = Ext.extend(Object, {
     INFO: 0,                // Same as in messaging.py
     WARNING: 1,                // Same as in messaging.py
@@ -299,6 +319,9 @@ Zenoss.messaging.Message = Ext.extend(Object, {
     }
 });
 
+/**
+ * An interface to the old messaging API. This is for back-compat and should not be used directly.
+ */
 Zenoss.messaging.Messenger = Ext.extend(Ext.util.Observable, {
     constructor: function(config) {
         config = Ext.applyIf(config || {}, {
@@ -350,17 +373,39 @@ Ext.onReady(function() {
     Zenoss.messenger.init();
 });
 
-Zenoss.message = function(msg, success) {
-    if ( success === true ) {
-        Zenoss.flares.Manager.success(msg);
+/**
+ * Inform the user with a message. This is usually represented with a Flare. Use
+ * this interface to alert users.
+ */
+Zenoss.message = {
+     /**
+     * Show a message with the info status.
+     *
+     * @param message string A message template
+     * @param args mixed Optional orguments to fill in the message template
+     */
+    info: function(message, args) {
+        Zenoss.flares.Manager.info.apply(null, arguments);
+    },
+    error: function(message, args) {
+        Zenoss.flares.Manager.error.apply(null, arguments);
+    },
+    warning: function(message, args) {
+        Zenoss.flares.Manager.warning.apply(null, arguments);
+    },
+    debug: function(message, args) {
+        Zenoss.flares.Manager.debug.apply(null, arguments);
+    },
+    /**
+     * These messages have a critical error icon and stay until dismissed by the user.
+     */
+    critical: function(message, args) {
+        Zenoss.flares.Manager.critical.apply(null, arguments).sticky();
+    },
+    success: function(message, args) {
+        Zenoss.flares.Manager.success.apply(null, arguments);
     }
-    else if ( success === false ) {
-        Zenoss.flares.Manager.error(msg);
-    }
-    else {
-        Zenoss.flares.Manager.info(msg);
-    }
-};
+}
 
 /*
 * Add the ability to specify an axis for autoScroll.
@@ -887,10 +932,10 @@ Zenoss.FilterGridView = Ext.extend(Ext.ux.grid.livegrid.GridView, {
 
         var errors = this.getErrors();
         if ( errors ) {
-            Zenoss.flares.Manager.error(errors);
+            Zenoss.message.error(errors);
         }
         else {
-            Zenoss.flares.Manager.error('Error loading, grid has invalid filters.');
+            Zenoss.message.error(_t('Error loading, grid has invalid filters.'));
         }
     },
     updateHeaders: function() {

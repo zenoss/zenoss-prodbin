@@ -165,14 +165,13 @@ class DeviceRouter(TreeRouter):
             facade.setLockState(uids, deletion=deletion, updates=updates,
                                 sendEvent=sendEvent)
             if not deletion and not updates:
-                message = "Unlocked %s devices."
+                message = "Unlocked %s devices." % len(uids)
             else:
                 actions = []
                 if deletion: actions.append('deletion')
                 if updates: actions.append('updates')
-                message = "Locked %%s devices from %s." % ' and '.join(actions)
-            return DirectResponse.succeed(message)
-            message = message % len(uids)
+                message = "Locked %s devices from %s." % (len(uids), ' and '.join(actions))
+            return DirectResponse.succeed(message)            
         except Exception, e:
             log.exception(e)
             return DirectResponse.fail('Failed to lock devices.')

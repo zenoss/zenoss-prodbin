@@ -55,10 +55,10 @@ Zenoss.AddToZenPackWindow = Ext.extend(Ext.Window, {
                         fields: ['name'],
                         root: 'packs',
                         totalProperty: 'totalCount',
-                        directFn: 
+                        directFn:
                             Zenoss.remote.ZenPackRouter.getEligiblePacks
                     }),
-                    valueField: 'name', 
+                    valueField: 'name',
                     displayField: 'name',
                     forceSelection: true,
                     triggerAction: 'all',
@@ -71,7 +71,7 @@ Zenoss.AddToZenPackWindow = Ext.extend(Ext.Window, {
                     handler: function () {
                         var form;
                         form = Ext.getCmp('addzenpackform');
-                        var chosenzenpack = 
+                        var chosenzenpack =
                             form.getForm().findField('zpname').getValue();
                             Zenoss.remote.ZenPackRouter.addToZenPack({
                                 topack: Ext.getCmp('addToZenPackWindow').target,
@@ -79,7 +79,7 @@ Zenoss.AddToZenPackWindow = Ext.extend(Ext.Window, {
                             },
                             function (data) {
                                 Ext.getCmp('addToZenPackWindow').hide();
-                                Zenoss.message(String.format(_t("The item was added to the zenpack, {0}"), chosenzenpack));
+                                Zenoss.message.info(_t("The item was added to the zenpack, {0}"), chosenzenpack);
                             }
                         );
                     }

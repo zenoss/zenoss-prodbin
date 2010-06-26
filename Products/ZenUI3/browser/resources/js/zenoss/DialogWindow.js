@@ -381,12 +381,10 @@ Zenoss.dialog.DynamicDialog = Ext.extend(BaseDialog, {
         form.submit({
             params: params,
             success: function(form, action){
-                var msg = this.title + ' finished successfully';
-                Zenoss.message(msg, true);
+                Zenoss.message.success(_t('{0} finished successfully'), this.title);
             }.createDelegate(this),
-            failure: function(form, action){
-                var msg = this.title + ' had errors';
-                Zenoss.message(msg, false);
+            failure: function(form, action){                
+                Zenoss.message.error(_t('{0} had errors'), this.title);
             }
         });
     }
