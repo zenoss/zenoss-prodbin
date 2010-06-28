@@ -177,4 +177,117 @@ __EOF__
  from Products.ZenModel.ZenModelItem import ZenModelItem
 __EOF__
     fi
+
+    #
+    # Patch CiscoUCS to prevent the loading of any Zope components until
+    # it has been upgraded.
+    #
+    zenpack_name="CiscoUCS"
+    find_zenpack "${zenpack_name}"
+    configure_file="${zenpack_dir}/ZenPacks/zenoss/${zenpack_name}/browser/configure.zcml"
+    if [ -f "${configure_file}" ]; then
+        patch  "${configure_file}" <<__EOF__
+--- configure.zcml	2010-06-28 13:03:56.000000000 -0400
++++ configure.zcml.new	2010-06-28 13:38:42.000000000 -0400
+@@ -5,97 +5,4 @@
+     xmlns:browser="http://namespaces.zope.org/browser"
+     i18n_domain="ZenPacks.zenoss.CiscoUCS">
+ 
+-    <include package="Products.ZenModel" file="permissions.zcml"/>
+-
+-    <browser:resourceDirectory
+-        name="ucsui"
+-        directory="resources"
+-        />
+-
+-    <browser:page
+-        for="*"
+-        name="viewAddCiscoUCS"
+-        class=".views.AddCiscoUCS"
+-        permission="zenoss.ManageDMD"
+-        />
+-
+-    <browser:page
+-        for="*"
+-        name="addCiscoUCS"
+-        class=".views.AddCiscoUCS"
+-        attribute="submitForm"
+-        permission="zenoss.ManageDMD"
+-        />
+-
+-    <browser:page
+-        for="ZenPacks.zenoss.CiscoUCS.Chassis.Chassis"
+-        name="viewChassisDetails"
+-        class=".views.ChassisView"
+-        permission="zenoss.View"
+-        />
+-
+-    <browser:page
+-        for="ZenPacks.zenoss.CiscoUCS.FabricInterconnect.FabricInterconnect"
+-        name="viewFabricInterconnectDetails"
+-        class=".views.FabricInterconnectView"
+-        permission="zenoss.View"
+-        />
+-
+-    <browser:page
+-        for="ZenPacks.zenoss.CiscoUCS.SwitchCard.SwitchCard"
+-        name="viewSwitchCardDetails"
+-        class=".views.SwitchCardView"
+-        permission="zenoss.View"
+-        />
+-
+-    <browser:page
+-        for="ZenPacks.zenoss.CiscoUCS.EthPort.EthPort"
+-        name="viewEthPortDetails"
+-        class=".views.EthPortView"
+-        permission="zenoss.View"
+-        />
+-
+-    <browser:page
+-        for="ZenPacks.zenoss.CiscoUCS.Server.Server"
+-        name="viewServerDetails"
+-        class=".views.ServerView"
+-        permission="zenoss.View"
+-        />
+-
+-    <browser:page
+-        for="ZenPacks.zenoss.CiscoUCS.HostEthIf.HostEthIf"
+-        name="viewHostEthIfDetails"
+-        class=".views.HostEthIfView"
+-        permission="zenoss.View"
+-        />
+-
+-    <browser:page
+-        for="ZenPacks.zenoss.CiscoUCS.ServiceProfile.ServiceProfile"
+-        name="viewServiceProfileDetails"
+-        class=".views.ServiceProfileView"
+-        permission="zenoss.View"
+-        />
+-
+-    <browser:page
+-        for="ZenPacks.zenoss.CiscoUCS.Device.Device"
+-        name="viewServiceProfiles"
+-        class=".views.ServiceProfilesView"
+-        permission="zenoss.View"
+-        />
+-
+-    <browser:page
+-        for="ZenPacks.zenoss.CiscoUCS.FanModule.FanModule"
+-        name="viewFanModule"
+-        class=".views.FanModuleView"
+-        permission="zenoss.View"
+-        />
+-
+-    <browser:page
+-        for="*"
+-        name="ucs_macros"
+-        class=".views.MacrosView"
+-        permission="zenoss.View"
+-        />
+-
+-    
+ </configure>
+__EOF__
+    fi
 fi
+
