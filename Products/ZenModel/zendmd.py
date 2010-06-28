@@ -418,6 +418,7 @@ if __name__=="__main__":
     if opts.host or opts.port:
         set_db_config(opts.host, opts.port)
 
+    vars = _customStuff()
     if opts.script:
         if not os.path.exists(opts.script):
             print "Unable to open script file '%s' -- exiting" % opts.script
@@ -432,7 +433,6 @@ if __name__=="__main__":
              "'dmd' is bound to the DataRoot. 'zhelp()' to get a list of "
              "commands.")
 
-    vars = _customStuff()
     if IPShellEmbed:
         ipshell = IPShellEmbed(banner=_banner)
         ipshell(local_ns=vars)
