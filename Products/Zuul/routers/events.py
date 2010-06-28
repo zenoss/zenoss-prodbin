@@ -98,6 +98,7 @@ class EventsRouter(DirectRouter):
     @require('Manage Events')
     def write_log(self, evid=None, message=None, history=False):
         self.api.log(evid, message, history)
+        return DirectResponse.succeed()
 
     @require('Manage Events')
     def classify(self, evids, evclass, history=False):
