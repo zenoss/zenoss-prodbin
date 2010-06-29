@@ -38,6 +38,25 @@ function render_link(ob) {
 Zenoss.nav.register({
     Component: [{
         nodeType: 'subselect',
+        id: 'Graphs',
+        text: _t('Graphs'),
+        action: function(node, target, combo) {
+            var uid = combo.contextUid,
+                cardid = uid+'_graphs',
+                graphs = {
+                    id: cardid,
+                    xtype: 'backcompat',
+                    viewName: 'graphs',
+                    text: _t('Graphs')
+                };
+            if (!(cardid in target.items.keys)) {
+                target.add(graphs);
+            }
+            target.layout.setActiveItem(cardid);
+            target.layout.activeItem.setContext(uid);
+        }
+    },{
+        nodeType: 'subselect',
         id: 'Events',
         text: _t('Events'),
         action: function(node, target, combo) {
@@ -76,26 +95,6 @@ Zenoss.nav.register({
             }
             showPanel();
         }
-    },{
-        nodeType: 'subselect',
-        id: 'Graphs',
-        text: _t('Graphs'),
-        action: function(node, target, combo) {
-            var uid = combo.contextUid,
-                cardid = uid+'_graphs',
-                graphs = {
-                    id: cardid,
-                    xtype: 'backcompat',
-                    viewName: 'graphs',
-                    text: _t('Graphs')
-                };
-            if (!(cardid in target.items.keys)) {
-                target.add(graphs);
-            }
-            target.layout.setActiveItem(cardid);
-            target.layout.activeItem.setContext(uid);
-        }
-
     },{
         nodeType: 'subselect',
         id: 'Edit',
