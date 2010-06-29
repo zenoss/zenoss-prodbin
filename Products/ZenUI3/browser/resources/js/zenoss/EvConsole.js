@@ -618,6 +618,11 @@ Ext.onReady(function(){
     // Add it to the layout
     master_panel.add(grid);
 
+    var pageParameters = Ext.urlDecode(window.location.search.substring(1));
+    if (pageParameters.filter === "default") {
+        // reset eventconsole filters to the default
+        grid.resetGrid();
+    }
 
     /*
      * DETAIL PANEL STUFF

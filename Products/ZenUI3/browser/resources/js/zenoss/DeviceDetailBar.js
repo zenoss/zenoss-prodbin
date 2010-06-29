@@ -71,8 +71,10 @@ Zenoss.DeviceDetailBar = Ext.extend(Zenoss.LargeToolbar, {
                 ref: 'deviditem',
                 style: 'margin-right: 8px;'
             },'-',{
+                xtype: "eventrainbow",
                 ref: 'eventsitem',
-                label: _t('Events')
+                label: _t('Events'),
+                count: 4
             },'-',{
                 ref: 'statusitem',
                 label: _t('Device Status')
@@ -106,11 +108,11 @@ Zenoss.DeviceDetailBar = Ext.extend(Zenoss.LargeToolbar, {
             this.deviditem.ipAddress.setHeight(Ext.isEmpty(ipAddress) ? 0 : 'auto');
             this.deviditem.ipAddress.setText(ipAddress);
             this.deviditem.devclass.setText(ZR.DeviceClass(data.deviceClass.uid));
-            this.eventsitem.setText(ZR.events(data.events, 4));
+            this.eventsitem.updateRainbow(data.events);
             this.statusitem.setText(
                 ZR.pingStatusLarge(data.status));
             this.prodstateitem.setText(data.productionState);
-            this.fireEvent('contextchange', this, data)
+            this.fireEvent('contextchange', this, data);
         }, this);
     }
 });

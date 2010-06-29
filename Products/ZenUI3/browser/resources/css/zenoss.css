@@ -434,6 +434,10 @@ table.eventrainbow {
     width: 100%;
 }
 
+table.eventrainbow:hover {
+    cursor: pointer;
+}
+
 table.eventrainbow_cols_3 tr td { width: 33%; }
 table.eventrainbow_cols_4 tr td { width: 25%; }
 table.eventrainbow_cols_5 tr td { width: 20%; }

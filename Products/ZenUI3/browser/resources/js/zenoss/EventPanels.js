@@ -425,17 +425,34 @@ Ext.reg('EventGridPanel', Zenoss.EventGridPanel);
 
 Zenoss.EventRainbow = Ext.extend(Ext.Toolbar.TextItem, {
     constructor: function(config) {
+        var severityCounts = {
+            critical: 0,
+            error: 0,
+            warning: 0,
+            info: 0,
+            debug: 0,
+            clear: 0
+        }
         config = Ext.applyIf(config || {}, {
             height: 45,
             directFn: Zenoss.remote.DeviceRouter.getInfo,
-        text: Zenoss.render.events({'critical':0, 'error':0, 'warning':0})
+            text: Zenoss.render.events(severityCounts, config.count || 3)
         });
         Zenoss.EventRainbow.superclass.constructor.call(this, config);
     },
     setContext: function(uid){
         this.directFn({uid:uid}, function(result){
-            this.setText(Zenoss.render.events(result.data.events));
+            this.updateRainbow(result.data.events);
         }, this);
+    },
+    updateRainbow: function(severityCounts) {
+        this.setText(Zenoss.render.events(severityCounts, this.count));
+    },
+    onRender: function() {
+        Zenoss.EventRainbow.superclass.onRender.apply(this, arguments);
+        this.el.on("click", function(){
+            window.location = "/zport/dmd/Events/evconsole?filter=default";
+        });
     }
 });
 
@@ -513,7 +530,7 @@ Zenoss.events.EventPanelToolbarActions = {
             view.updateLiveRows(view.rowIndex, true, true);
         }
     })
-}
+};
 
 
 })(); // end of function namespace scoping
