@@ -663,6 +663,9 @@ class PerformanceConf(Monitor, StatusColor):
         zendiscCmd.extend(zendiscOptions)
         log.info('local zendiscCmd is "%s"' % ' '.join(zendiscCmd))
         return zendiscCmd
+    
+    def getCollectorCommand(self, command):
+        return [binPath(command)]
 
     def executeCollectorCommand(self, command, args, REQUEST=None):
         """
