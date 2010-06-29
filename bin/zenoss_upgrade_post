@@ -39,4 +39,4 @@ export PYTHON="**PYTHON**"
 . ${ZENHOME}/bin/install-functions.sh
 
 # run scripts needed after upgrade
-${ZENHOME}/bin/zencatalog start --createcatalog --forceindex --logpath=${ZENHOME}/log 
+${ZENHOME}/bin/remove_preupgrade_zenpack.sh
