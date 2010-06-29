@@ -102,7 +102,8 @@ Zenoss.HierarchyTreePanel = Ext.extend(Ext.tree.TreePanel, {
             autoScroll: true,
             containerScroll: true,
             selectRootOnLoad: true,
-            rootVisible: false
+            rootVisible: false,
+            allowOrganizerMove: true
         });
 
         if ( config.router ) {
@@ -329,11 +330,17 @@ Zenoss.HierarchyTreePanel = Ext.extend(Ext.tree.TreePanel, {
         var orgPieces = organizerUid.split('/'),
             targetPieces = targetUid.split('/');
         
+        // make sure we can actually move organizers
+        if (!this.allowOrganizerMove) {
+            return false;
+        }
+        
         // Relying on a coincidence that the third item
         // is the top level organizer (e.g. Locations, Groups)
         if (orgPieces[3] === targetPieces[3] ) {
             return true;
         }
+        
         return false;
     }
 }); // HierarchyTreePanel

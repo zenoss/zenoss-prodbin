@@ -756,6 +756,24 @@ function initializeTreeDrop(tree) {
         enableDD: Zenoss.Security.hasPermission('Change Device')
     });
 
+    // when the user is about to drop a node, let them know if it will be
+    // successful or not as far as we can tell
+    tree.on('nodedragover', function(e){
+        var targetnode = e.target,
+            targetuid = targetnode.attributes.uid,
+            organizerUid;
+        
+        if ( e.data.node) {
+            organizerUid = e.data.node.attributes.uid;
+            if (organizerUid && targetuid) {
+                return tree.canMoveOrganizer(organizerUid, targetuid);
+            }
+        }
+        // let before node drop figure it out
+        return true;
+    });
+
+    // fired when the user actually drops a node
     tree.on('beforenodedrop', function(e) {
         var grid = Ext.getCmp('device_grid'),
             targetnode = e.target,
@@ -886,6 +904,7 @@ var devtree = {
     id: 'devices',
     searchField: true,
     directFn: REMOTE.getTree,
+    allowOrganizerMove: false,
     ddAppendOnly: true,
     root: {
         id: 'Devices',
