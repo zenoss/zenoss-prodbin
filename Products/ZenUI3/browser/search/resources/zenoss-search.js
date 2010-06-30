@@ -217,5 +217,10 @@ if ( Ext.get('searchbox-container') === null ) {
         }
     });
     Ext.reg('managesavedsearchdialog', ManageSavedSearchDialog);
+    
+    ds.on("load", function(){
+        Zenoss.env.search.select(0);
+    });
+    
 }
 });
