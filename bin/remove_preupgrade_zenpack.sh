@@ -19,7 +19,7 @@
 echo "Testing for the pre-upgrade ZenPack..."
 if ${ZENHOME}/bin/zenpack --list | grep PreUpgrade30 2>/dev/null 1>&1 ;then
     echo "Adjusting class of global catalog"
-    ${ZENHOME}/bin/zendmd --script fix_catalog_class.py  --commit
+    ${ZENHOME}/bin/zendmd --script ${ZENHOME}/bin/fix_catalog_class.py  --commit
     
     echo "Removing the pre-upgrade zenpack"
     ${ZENHOME}/bin/zenpack --remove ZenPacks.zenoss.PreUpgrade30
