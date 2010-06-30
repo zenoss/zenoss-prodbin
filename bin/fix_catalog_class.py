@@ -12,9 +12,14 @@
 #NOTE: this only runs in zendmd. run like this
 #      zendmd ==script fix_catalog_class.py --commit
 from Products.Zuul.catalog.global_catalog import GlobalCatalog
-
+from Products.ZenUtils.MultiPathIndex import MultiPathIndex
 
 # change the catalog's class to belong to the base
 dmd.zport.global_catalog.__class__ = GlobalCatalog
 dmd.zport.global_catalog._p_changed = True
 
+# fix the multipath index class
+for idx in dmd.zport.global_catalog.Indexes.objectValues():
+    if idx.id == 'path':
+        idx.__class__ = MultiPathIndex
+        idx._p_changed = True
