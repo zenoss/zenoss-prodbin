@@ -64,7 +64,7 @@ if ( Ext.get('searchbox-container') === null ) {
                 height: 21,
                 listClass: 'saved-search-item',
                 valueField: 'id',
-                listWidth: 200,
+                listWidth: 250,
                 displayField: 'name',
                 applyTo: hiddeninput,
                 store: {
@@ -75,6 +75,11 @@ if ( Ext.get('searchbox-container') === null ) {
                     root: 'data',
                     baseParams: {
                         'addManageSavedSearch': true
+                    },
+                    listeners: {
+                        load: function() {
+                            Ext.fly("manage-search-link").parent().insertSibling({tag:"br"});
+                        }
                     }
                 },
                 listeners: {

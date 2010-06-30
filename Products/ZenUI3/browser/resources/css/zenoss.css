@@ -412,6 +412,8 @@ div.dialog-link a {
 .saved-search-item .x-combo-list-inner {
    background-image: url(../img/xtheme-zenoss/window/left-right.png);
    color: white;
+   padding: 15px;
+   overflow-y: hidden;
 }
 .saved-search-item .x-combo-list-item{
    border: none;
