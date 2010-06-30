@@ -117,6 +117,7 @@ class HRFileSystemMap(SnmpPlugin):
 
             om = self.objectMap(fs)
             om.id = self.prepId(om.mount)
+            om.title = om.mount
             rm.append(om)
         maps.append(rm)
         return maps
