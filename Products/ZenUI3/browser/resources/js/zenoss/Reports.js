@@ -229,13 +229,7 @@ treesm = new Ext.tree.DefaultSelectionModel({
             }
             if (newnode.attributes.leaf && !initialContextSet) {
                 initialContextSet = true;
-                var uid = newnode.attributes.uid,
-                    meta_type = newnode.attributes.meta_type;
-                if (meta_type == 'Report') {
-                    report_panel.setContext(uid + '?adapt=false');
-                } else {
-                    report_panel.setContext(uid + '/view' + meta_type);
-                }
+                report_panel.setContext(newnode.attributes.uid + '?adapt=false');
             }
             Ext.getCmp('add-organizer-button').setDisabled(newnode.attributes.leaf);
             Ext.getCmp('add-to-zenpack-button').setDisabled(newnode.attributes.leaf);
@@ -263,13 +257,7 @@ report_tree = new Zenoss.ReportTreePanel({
         render: initializeTreeDrop,
         click: function (node, e) {
             if (node.attributes.leaf) {
-                var uid = node.attributes.uid,
-                    meta_type = node.attributes.meta_type;
-                if (meta_type == 'Report') {
-                    report_panel.setContext(uid + '?adapt=false');
-                } else {
-                    report_panel.setContext(uid + '/view' + meta_type);
-                }
+                report_panel.setContext(node.attributes.uid + '?adapt=false');
             }
         }
     },

@@ -96,7 +96,8 @@ def CustomReport(ob):
     in the app (ZenPack provides table for instance) and need to take the user
     into the new reports screen.
     '''
-    if ob.REQUEST['QUERY_STRING'].find('adapt=false') != -1:
+    if ob.REQUEST['QUERY_STRING'].find('adapt=false') != -1 or \
+            ob.REQUEST['HTTP_REFERER'].find('/view' + ob.meta_type) != -1 :
         return ob.absolute_url_path() + '/view' + ob.meta_type
     id = '.'.join(ob.getPhysicalPath())
     return '/zport/dmd/reports#reporttree:' + id
