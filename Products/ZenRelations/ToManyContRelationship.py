@@ -11,9 +11,10 @@
 #
 ###########################################################################
 
-__doc__="""$Id: ToManyRelationship.py,v 1.48 2003/11/12 22:05:48 edahl Exp $"""
+__doc__ = """ToManyContRelationship
+A to-many container relationship
+"""
 
-__version__ = "$Revision: 1.48 $"[11:-2]
 
 import logging
 log = logging.getLogger("zen.Relations")
@@ -71,9 +72,22 @@ class ToManyContRelationship(ToManyRelationshipBase):
         self._objects = OOBTree()
 
 
+    def _safeOfObjects(self):
+        """
+        Try to safely return ZenPack objects rather than
+        causing imports to fail.
+        """
+        objs = []
+        for ob in self._objects.values():
+            try:
+                objs.append(ob.__of__(self))
+            except AttributeError:
+                log.info("Ignoring unresolvable object '%s'", str(ob))
+        return objs
+
     def __call__(self):
         """when we are called return our related object in our aq context"""
-        return [ob.__of__(self) for ob in self._objects.values()]
+        return self._safeOfObjects()
 
 
     def __getattr__(self, name):
@@ -206,7 +220,7 @@ class ToManyContRelationship(ToManyRelationshipBase):
             if type(spec)==type('s'): spec=[spec]
             return [ob.__of__(self) for ob in self._objects.values() \
                         if ob.meta_type in spec]
-        return [ob.__of__(self) for ob in self._objects.values()]
+        return self._safeOfObjects()
     security.declareProtected('View', 'objectValuesAll')
     objectValuesAll = objectValues
 
