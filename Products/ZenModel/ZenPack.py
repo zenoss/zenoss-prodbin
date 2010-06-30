@@ -634,16 +634,15 @@ registerDirectory("skins", globals())
             exportFileName = '%s.zip' % self.id
 
         if REQUEST:
-            if download == 'yes':
-                REQUEST['doDownload'] = 'yes'
+            js = 'location.href = "%s/manage_download"' % self.absolute_url_path()
             messaging.IMessageSender(self).sendToBrowser(
                 'ZenPack Exported',
-                'ZenPack exported to $ZENHOME/export/%s' % (exportFileName)
+                'ZenPack exported to $ZENHOME/export/%s' % (exportFileName),
+                jsAutoRun = js if download == 'yes' else None
             )
             return self.callZenScreen(REQUEST)
 
         return exportFileName
-
 
     def manage_download(self, REQUEST):
         """

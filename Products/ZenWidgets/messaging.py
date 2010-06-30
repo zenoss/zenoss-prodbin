@@ -36,9 +36,10 @@ class BrowserMessage(object):
     body = None
     timestamp = None
     priority = None
+    jsAutoRun = None
     _read = False
 
-    def __init__(self, title, body, priority=INFO, image=None):
+    def __init__(self, title, body, priority=INFO, image=None, jsAutoRun=None):
         """
         Initialization method.
 
@@ -56,6 +57,7 @@ class BrowserMessage(object):
         self.priority = priority
         self.image = image
         self.timestamp = time.time()
+        self.jsAutoRun = jsAutoRun
 
     def delete(self):
         """
@@ -168,7 +170,7 @@ class MessageSender(object):
         """
         self.context = context
 
-    def sendToBrowser(self, title, body, priority=INFO, image=None):
+    def sendToBrowser(self, title, body, priority=INFO, image=None, jsAutoRun=None):
         """
         Create a message and store it on the session object.
 
@@ -184,7 +186,7 @@ class MessageSender(object):
         context = self.context.REQUEST.SESSION.get('messages')
         if context is None:
             self.context.REQUEST.SESSION['messages'] = context = []
-        m = BrowserMessage(title, body, priority, image)
+        m = BrowserMessage(title, body, priority, image, jsAutoRun)
         m.__parent__ = context
         context.append(m)
 

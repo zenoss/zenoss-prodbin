@@ -33,7 +33,8 @@ class MessagingRouter(DirectRouter):
                 image = message.image,
                 title = message.title,
                 body = message.body,
-                priority = message.priority
+                priority = message.priority,
+                jsAutoRun = message.jsAutoRun
             ))
             message.mark_as_read()
 
