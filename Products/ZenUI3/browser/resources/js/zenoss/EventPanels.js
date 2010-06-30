@@ -305,7 +305,7 @@ Zenoss.SimpleEventGridPanel = Ext.extend(Ext.ux.grid.livegrid.GridPanel, {
             store: store,
             cm: cm,
             sm: new Zenoss.EventPanelSelectionModel(),
-            autoExpandColumn: 'summary',
+            autoExpandColumn: Zenoss.env.EVENT_AUTO_EXPAND_COLUMN || '',
             view: new Ext.ux.grid.livegrid.GridView({
                 nearLimit: 20,
                 rowHeight: 10,

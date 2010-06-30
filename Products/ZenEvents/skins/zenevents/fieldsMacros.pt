@@ -1,0 +1,139 @@
+<tal:block metal:define-macro="fieldsPicker">
+<tal:block metal:use-macro="here/zenuimacros/macros/zentable">
+<tal:block metal:fill-slot="zentablecontents">
+
+<style type="text/css">
+dl { margin: 0em; }
+</style>
+
+<tr><td style="background-color:white;padding:1em">
+
+<div id="fields"/>
+
+<script type="text/javascript" 
+    tal:define="defaultOrderby obj/defaultOrderby;
+                selectedDefaultFields python:', '.join(['\'%s\'' % x for x 
+                    in obj.defaultResultFields]);
+                availableDefaultFields python:', '.join(['\'%s\'' % x for x 
+                    in obj.getFieldList() if x not in obj.defaultResultFields]);
+                selectedDeviceFields python:', '.join(['\'%s\'' % x for x 
+                    in obj.DeviceResultFields]);
+                availableDeviceFields python:', '.join(['\'%s\'' % x for x 
+                    in obj.getFieldList() if x not in obj.DeviceResultFields]);
+    "
+    tal:content="string:
+        Zenoss.env.defaultOrderby = '${defaultOrderby}';
+        Zenoss.env.zenScreenName = '${zenScreenName}';
+        Zenoss.env.availableDefaultFields = [${availableDefaultFields}];
+        Zenoss.env.selectedDefaultFields = [${selectedDefaultFields}];
+        Zenoss.env.availableDeviceFields = [${availableDeviceFields}];
+        Zenoss.env.selectedDeviceFields = [${selectedDeviceFields}];
+"/>
+
+<script type="text/javascript">
+Ext.onReady(function(){
+    var defaultSort = {
+        id: 'default_sort',
+        name: 'defaultOrderby',
+        xtype: 'textfield',
+        width: 200,
+        value: Zenoss.env.defaultOrderby,
+        fieldLabel: 'Default Sort'
+    };
+
+    var hiddenRedirect = {
+        xtype: 'hidden',
+        name: 'redirect',
+        value: 'true'
+    };
+
+    var hiddenMethod = {
+        xtype: 'hidden',
+        name: 'zmanage_editProperties',
+        value: 'Save'
+    };
+
+    var hiddenZenScreenName = {
+        xtype: 'hidden',
+        name: 'zenScreenName',
+        value: Zenoss.env.zenScreenName
+    };
+
+    var defaultResultFields = {
+        id: 'default_result_fields',
+        name: 'defaultResultFields:lines',
+        xtype: 'itemselector',
+        width: 500,
+        fieldLabel: 'Default Result Fields',
+        imagePath: '/++resource++zenui/img/xtheme-zenoss/icon',
+        delimiter: '\n',
+        multiselects: [{
+            width: 200,
+            height: 200,
+            store: Zenoss.env.availableDefaultFields
+        },{
+            width: 200,
+            height: 200,
+            store: Zenoss.env.selectedDefaultFields
+        }]
+    };
+
+    var deviceResultFields = {
+        id: 'device_result_fields',
+        name: 'DeviceResultFields:lines',
+        xtype: 'itemselector',
+        width: 500,
+        fieldLabel: 'Device Result Fields',
+        imagePath: '/++resource++zenui/img/xtheme-zenoss/icon',
+        delimiter: '\n',
+        multiselects: [{
+            width: 200,
+            height: 200,
+            store: Zenoss.env.availableDeviceFields
+        },{
+            width: 200,
+            height: 200,
+            store: Zenoss.env.selectedDeviceFields
+        }]
+    };
+
+    var fieldsPanel = new Ext.FormPanel({
+        standardSubmit: true,
+        url: 'zmanage_editProperties',
+        bodyStyle: 'padding:5px 5px 0',
+        id: 'connection_info_panel',
+        frame: false,
+        border: false,
+        width: '60%',
+        buttonAlign: 'left',
+        defaults: {
+            frame: false,
+            border: false
+        },
+        items: [
+            defaultSort,
+            hiddenRedirect,
+            hiddenMethod,
+            hiddenZenScreenName,
+            defaultResultFields,
+            deviceResultFields
+        ],
+        buttons: [{
+            text: 'Submit',
+            handler: function(){
+                var fp = this.ownerCt.ownerCt,
+                    form = fp.getForm();
+                form.getEl().dom.action = form.url;
+                form.submit();
+            } 
+        }]
+    });
+    
+    fieldsPanel.render('fields');
+});
+</script>
+
+</td></tr>
+</tal:block>
+</tal:block>
+</tal:block>

@@ -70,17 +70,21 @@ class EventClasses(JavaScriptSnippet):
 class GridColumnDefinitions(JavaScriptSnippet):
 
     def snippet(self):
+        last_path_item = self.request['PATH_INFO'].split('/')[-1]
+        history = last_path_item.lower().find('history') != -1
         api = getFacade('event')
         result = ["Ext.onReady(function(){Zenoss.env.COLUMN_DEFINITIONS=["]
-        defs = column_config(api.fields(self.context), self.request)
+        fields = api.fields(self.context, history=history)
+        defs = column_config(fields, self.request)
         result.append(',\n'.join(defs))
-        result.append(']});')
+        result.append('];')
+        auto_expand_column = "Zenoss.env.EVENT_AUTO_EXPAND_COLUMN='"
+        for field in fields:
+            if field == 'summary' :
+                auto_expand_column += 'summary'
+                break
+        auto_expand_column += "';});"
+        result.append(auto_expand_column)
         result = '\n'.join(result)
         return result
-
-
-
-
-
-
 

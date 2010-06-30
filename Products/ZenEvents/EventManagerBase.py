@@ -2057,7 +2057,7 @@ class EventManagerBase(ZenModelRM, ObjectCache, DbAccessBase):
         '''
         assert(self == self.dmd.ZenEventManager)
         screenName = REQUEST.get('zenScreenName', '')
-        if screenName == 'editEventManagerHistoryFields.pt':
+        if screenName.find('editEventManagerHistoryFields') != -1 :
             obj = self.dmd.ZenEventHistory
         else:
             obj = self

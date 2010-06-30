@@ -600,7 +600,7 @@ Ext.onReady(function(){
         stateful: true,
         border: false,
         rowSelectorDepth: 5,
-        autoExpandColumn: 'summary',
+        autoExpandColumn: Zenoss.env.EVENT_AUTO_EXPAND_COLUMN || '',
         store: console_store, // defined above
         view: myView, // defined above
         // Zenoss.env.COLUMN_DEFINITIONS comes from the server, and depends on

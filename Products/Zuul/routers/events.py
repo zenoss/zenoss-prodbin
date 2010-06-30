@@ -114,10 +114,10 @@ class EventsRouter(DirectRouter):
                                eventClassKey=evclasskey, eventClass=evclass)
         return DirectResponse.succeed(evid=evid)
 
-    def column_config(self, uid=None):
+    def column_config(self, uid=None, history=False):
         if uid==None:
             uid = self.context
-        return column_config(self.api.fields(uid), self.request)
+        return column_config(self.api.fields(uid, history), self.request)
 
     def eventClasses(self):
         return marshal(self.api.eventClasses())
