@@ -631,6 +631,7 @@ Ext.getCmp('center_panel').add({
         split: 'true',
         id: 'master_panel',
         width: 275,
+        autoScroll: true,
         items: {
             xtype: 'detailcontainer',
             id: 'detailContainer',
