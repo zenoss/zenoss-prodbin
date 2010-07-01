@@ -29,7 +29,7 @@ import sys
 from textwrap import wrap
 import logging
 log = logging.getLogger('zen.migrate')
-
+HIGHER_THAN_CRITICAL = 100
 allSteps = []
 
 class MigrationFailed(Exception): pass
@@ -267,15 +267,22 @@ class Migration(ZenScriptBase):
             currentDbVers = self._currentVersion()
             if steps[-1].version > currentDbVers:
                 self.message('Database going to version %s'
-                                                % steps[-1].version.long())
+                                               % steps[-1].version.long())
+            # hide uncatalog error messages since they do not do any harm
+            log = logging.getLogger('Zope.ZCatalog')
+            oldLevel = log.getEffectiveLevel()
+            log.setLevel(HIGHER_THAN_CRITICAL)
             for m in steps:
+                
                 self.message('Installing %s (%s)' 
                                 % (m.name(), m.version.short()))
+                
                 m.cutover(self.dmd)
                 if m.version > currentDbVers:
                     self.dmd.version = m.version.long()
             for m in steps:
                 m.cleanup()
+            log.setLevel(oldLevel)
         cleanup()
 
         if not self.options.steps:
