@@ -81,6 +81,7 @@ class IpInterface(OSComponent, Layer2Linkable):
     speed = 0
     adminStatus = 0
     operStatus = 0
+    duplex = 0
     _ipAddresses =  []
 
 
@@ -95,6 +96,7 @@ class IpInterface(OSComponent, Layer2Linkable):
         {'id':'speed', 'type':'long', 'mode':'w'},
         {'id':'adminStatus', 'type':'int', 'mode':'w'},
         {'id':'operStatus', 'type':'int', 'mode':'w'},
+        {'id':'duplex', 'type':'int', 'mode':'w'},
         )
 
     _relations = OSComponent._relations + (
@@ -564,6 +566,16 @@ class IpInterface(OSComponent, Layer2Linkable):
         """
         return 'None'
 
+    def niceDuplex(self):
+        """
+        Return a string that expresses self.duplex into human readable format.
+        """
+
+        if self.duplex == 2:
+            return 'halfDuplex'
+        elif self.duplex == 3:
+            return 'fullDuplex'
+        return 'unknown'
 
 InitializeClass(IpInterface)
 

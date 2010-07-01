@@ -70,6 +70,7 @@ class IIpInterfaceInfo(IComponentInfo):
                                 group="Details", xtype="updownfield")
     operStatus = schema.Int(title=u"Operational Status", group="Details",
                                xtype="updownfield")
+    duplex = schema.Text(title=u"Duplex Mode", group="Details", readonly=True)
 
 
 class IFileSystemInfo(IComponentInfo):

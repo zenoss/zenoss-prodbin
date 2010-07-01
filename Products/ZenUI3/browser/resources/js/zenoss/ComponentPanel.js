@@ -504,7 +504,8 @@ ZC.IpInterfacePanel = Ext.extend(ZC.ComponentGridPanel, {
                 {name: 'usesMonitorAttribute'},
                 {name: 'monitor'},
                 {name: 'monitored'},
-                {name: 'locking'}
+                {name: 'locking'},
+                {name: 'duplex'}
             ],
             columns: [{
                 id: 'severity',

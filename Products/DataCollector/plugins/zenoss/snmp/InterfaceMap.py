@@ -60,6 +60,10 @@ class InterfaceMap(SnmpPlugin):
                  '.3': 'ipaddress',
                  '.4': 'iptype'}
         ),
+        # attempt to determine if the interface supports duplex mode
+        GetTableMap('duplex',  '.1.3.6.1.2.1.10.7.2.1',
+               {'.19' : 'duplex'}
+        ),
     )
 
     # Base interface tables, plus ones used locally.
@@ -104,6 +108,13 @@ class InterfaceMap(SnmpPlugin):
         self.prepIfTable(log, iftable, ifalias)
 
         omtable = {}
+        duplex = tabledata.get("duplex")
+        for key, iface in iftable.items():
+            if duplex.has_key(key):
+                iftable[key]['duplex'] = duplex[key]['duplex']
+            else:
+                iftable[key]['duplex'] = 0
+
         for ip, row in iptable.items():
             #FIXME - not getting ifindex back from HP printer
             if 'ifindex' not in row:

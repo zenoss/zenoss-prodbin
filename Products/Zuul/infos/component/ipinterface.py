@@ -55,3 +55,8 @@ class IpInterfaceInfo(ComponentInfo):
     speed = ProxyProperty('speed')
     adminStatus = ProxyProperty('adminStatus')
     operStatus = ProxyProperty('operStatus')
+    
+    @property
+    @info
+    def duplex(self):
+        return self._object.niceDuplex()
