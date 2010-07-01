@@ -634,7 +634,7 @@ registerDirectory("skins", globals())
             exportFileName = '%s.zip' % self.id
 
         if REQUEST:
-            js = 'location.href = "%s/manage_download"' % self.absolute_url_path()
+            js = 'window.open("%s/manage_download");' % self.absolute_url_path()
             messaging.IMessageSender(self).sendToBrowser(
                 'ZenPack Exported',
                 'ZenPack exported to $ZENHOME/export/%s' % (exportFileName),

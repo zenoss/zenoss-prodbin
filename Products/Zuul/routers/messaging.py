@@ -34,7 +34,7 @@ class MessagingRouter(DirectRouter):
                 title = message.title,
                 body = message.body,
                 priority = message.priority,
-                jsAutoRun = message.jsAutoRun
+                jsAutoRun = getattr(message, 'jsAutoRun', None)
             ))
             message.mark_as_read()
 
