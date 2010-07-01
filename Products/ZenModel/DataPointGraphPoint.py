@@ -42,6 +42,16 @@ class DataPointGraphPoint(ComplexGraphPoint):
     dpName = ''
     cFunc = 'AVERAGE'
 
+
+# rpn:     Reverse Polish Notation -- applied to the value for this graph point
+#          See Products/ZenRRD/utils.py (rpneval)
+# dpName:  The basename of the rrd file (without extension) that has the data
+# cFunc:   The consolidation function used when that datapoint resolution
+#          exceeds the graph.  See Products/ZenModel/RRDGraph dataSourceSum and
+#          http://oss.oetiker.ch/rrdtool/doc/rrdgraph_data.en.html
+# limit:   Maximum permitted value.  Values in excess of this are NaNed.
+#          Not used if negative
+
     _properties = ComplexGraphPoint._properties + (
         {'id':'limit', 'type':'long', 'mode':'w'},
         {'id':'rpn', 'type':'string', 'mode':'w'},
