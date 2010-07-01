@@ -40,6 +40,16 @@
 
 <tal:block metal:fill-slot="script_layout">
 <script>
+// A little pre-javascript layout hackery to prevent appearance of re-layout.
+// If there are breadcrumbs the tabs pane needs to be bumped up.
+if (Zenoss.env.pageHasBreadCrumbs) {
+    try {
+        Ext.get('newTabsPane').setStyle({
+            top: -23,
+            position: 'relative'
+        });
+    } catch(e) {}
+}
 Ext.onReady(function(){
     var outerItems = [],
     innerItems = [{
@@ -74,6 +84,26 @@ Ext.onReady(function(){
         },
         items: innerItems
     });
+
+    // Undo all the pre-layout css
+    try {
+        Ext.get('contentPaneContainer').setStyle({
+            marginLeft: 0
+        });
+    } catch(e) {}
+    try {
+        Ext.get('newTabsPane').setStyle({
+            top: 0,
+            position: 'static'
+        });
+    } catch(e) {}
+    try {
+        Ext.get('breadCrumbPane').setStyle({
+            marginLeft: 0,
+            position: 'static'
+        });
+    } catch(e) {}
+
     Ext.getCmp('center_panel').add({
         layout: 'border',
         id: 'backcompat-layout-panel',
@@ -84,7 +114,6 @@ Ext.onReady(function(){
         items: outerItems
     });
     Ext.getCmp('center_panel').doLayout();
-
 });
 </script>
 </tal:block>
