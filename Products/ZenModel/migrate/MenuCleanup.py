@@ -63,6 +63,7 @@ class MenuCleanup(Migrate.Step):
         more._getOb('zPropertyEdit').description = 'Configuration Properties'
         more._getOb('zPropertyEdit_os').description = 'Configuration Properties'
         more._getOb('collectorPlugins').description = 'Modeler Plugins'
+        more._getOb('deviceCustomEdit').description = 'Custom Properties'
 
 def removeItems(menu, items):
     for item in items:

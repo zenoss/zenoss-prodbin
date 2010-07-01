@@ -2586,7 +2586,7 @@ True
 </object>
 <object id='deviceCustomEdit' module='Products.ZenModel.ZenMenuItem' class='ZenMenuItem'>
 <property type="text" id="description" mode="w" >
-Custom
+Custom Properties
 </property>
 <property type="text" id="action" mode="w" >
 deviceCustomEdit
