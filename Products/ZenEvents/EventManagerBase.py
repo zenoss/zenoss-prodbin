@@ -448,9 +448,10 @@ class EventManagerBase(ZenModelRM, ObjectCache, DbAccessBase):
                 queryValues.append(v2)
             elif ftype=='multiselectmenu':
                 if isinstance(v, basestring): v = (v,)
-                sevstr = ' or '.join(['%s=%%s' % (k,) for s in v])
-                queryValues.extend(v)
-                newwhere += ' and (%s) ' % sevstr
+                if len(v)>0:
+                    sevstr = ' or '.join(['%s=%%s' % (k,) for s in v])
+                    queryValues.extend(v)
+                    newwhere += ' and (%s) ' % sevstr
         values.extend(queryValues)
         return where + newwhere
 
