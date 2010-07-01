@@ -42,14 +42,30 @@
   </tr>
 </table>
 
-<tal:block metal:define-macro="horizontal"
-    tal:on-error="structure python:here.dmd.error_handler(error)">
+<tal:block metal:define-macro="horizontal">
 <tal:block tal:define="
     zem python:here.ZenEventManager;
-    colors python:'red orange yellow blue grey green'.split();
+    colors python:'critical error warning info debug clear'.split();
     summaries python:zem.getEventSummaryME(here, 0);
-    totals python:[x[2] for x in summaries];
-    ackstatus python:[x[2]-x[1] for x in summaries]; " >
+    totals python:[x[2] for x in summaries];">
+    <table class="eventrainbow eventrainbow_cols_5"
+        tal:attributes="
+            onclick string:location.href='${here/absolute_url_path}/viewEvents';;
+        ">
+        <tr>
+            <tal:block tal:repeat="total python:totals[:-1]">
+            <td tal:define="
+                noevents python:'no-events' if total==0 else '';
+                idx repeat/total/index;
+                severity python:colors[idx];
+                "
+                tal:attributes="class string:severity-icon-small ${severity} ${noevents}"
+                tal:content="total">
+            </td>
+            </tal:block>
+        </tr>
+    </table>
+    <!--
     <div class="horizontal-rainbow"
     onclick="top.location.href=YAHOO.zenoss.templateFreeURL+'/viewEvents'">
         <tal:block tal:repeat="evnum python:totals[:-1]">
@@ -67,5 +83,6 @@
             </div>
         </div>
     </div>
+    -->
 </tal:block>
 </tal:block>

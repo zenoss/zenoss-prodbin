@@ -73,8 +73,11 @@ Zenoss.DeviceColumnModel = Ext.extend(Ext.grid.ColumnModel, {
                 filter: false,
                 dataIndex: 'events',
                 header: _t('Events'),
-                renderer: function(ev) {
-                    return Zenoss.render.events(ev);
+                renderer: function(ev, ignored, record) {
+                    var table = Zenoss.render.events(ev),
+                        url = record.data.uid + '/devicedetail?filter=default#deviceDetailNav:device_events';
+                    table = table.replace('table', 'table onclick="location.href=\''+url+'\';"');
+                    return table;
                 }
             }] // columns
         }); // Ext.applyIf

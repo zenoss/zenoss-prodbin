@@ -114,7 +114,7 @@ def getDashboardObjectsEventSummary(zem, objects, REQUEST=None):
     return getObjectsEventSummary(zem, objects, thold, REQUEST)
 
 
-def getEventPillME(zem, me, number=1, minSeverity=0, showGreen=True,
+def getEventPillME(zem, me, number=3, minSeverity=0, showGreen=True,
                    prodState=None):
     """
     Get HTML code displaying the maximum event severity and the number of
@@ -134,43 +134,37 @@ def getEventPillME(zem, me, number=1, minSeverity=0, showGreen=True,
     @return: HTML strings ready for template inclusion
     @rtype: list
     """
-    try:
-        evsum = zem.getEventSummaryME(me, minSeverity, prodState=prodState)
-        summary =[x[2] for x in evsum]
-        colors = "red orange yellow blue grey".split()
-        info = ["%s out of %s acknowledged" % (x[1],x[2])
-                for x in evsum]
-        results = zip(colors, [getEventsURL(me)]*5, info, summary)
-        template = ('<div class="evpill-%s" onclick="location.href='
-                    '\'%s\'" title="%s">%s</div>')
+    iconTemplate = """
+        <td class="severity-icon-small 
+            %(severity)s %(noevents)s">
+            %(count)s
+        </td>
+    """
+    rainbowTemplate = """
+    <table onclick="location.href='%(url)s';"
+        class="eventrainbow eventrainbow_cols_%(number)s">
+        <tr>%(cells)s</tr>
+    </table>
+    """
+    evsum = zem.getEventSummaryME(me, minSeverity, prodState=prodState)
+    summary =[x[2] for x in evsum]
+    stati = "critical error warning info debug".split()
+    info = ["%s out of %s acknowledged" % (x[1],x[2])
+            for x in evsum]
 
-        # Always show grey for devices that are not monitored.
-        disabled = False
-        from Products.ZenModel.Device import Device
-        if isinstance(me, Device) and not me.primaryAq().monitorDevice():
-            disabled = True
-
-        pills = []
-        for i, result in enumerate(results):
-            color, path, info, summary = result
-            if disabled:
-                color += ' evpill-disabled'
-            elif evsum[i][1]>=evsum[i][2]:
-                if color!='green': color += '-acked'
-            result = color, path, info, summary
-            if (result[3]): 
-                pills.append(template % result)
-            if len(pills)==number: return pills
-        if (showGreen):
-            color = 'green'
-            if disabled: color += ' evpill-disabled'
-            summary = ' '
-            info = 'No events'
-            result = (color, path, info, summary)
-            pills.append(template % result)
-        return pills
-    except:
-        return None
+    cells = []
+    for i, count in enumerate(summary[:number]):
+        cells.append(iconTemplate % {
+            'noevents': '' if count else 'no-events',
+            'severity': stati[i],
+            'count':count
+        })
+    url = getEventsURL(me)
+    return rainbowTemplate % {
+        'url': url,
+        'cells': ''.join(cells),
+        'number': number
+    }
 
 
 organizerTypes = {
@@ -182,13 +176,17 @@ organizerTypes = {
 
 
 def getEventsURL(me) :
+    from Products.ZenModel.Device import Device
     if isinstance(me, DeviceOrganizer) :
         path = me.getPrimaryPath()
-        return '/zport/dmd/itinfrastructure#%s:%s:events_grid' % \
-                (organizerTypes[path[3]], '.'.join(path))
-    from Products.ZenModel.Device import Device
-    if isinstance(me, Device) :
-        return me.getPrimaryUrlPath() + \
-                '/devicedetail#deviceDetailNav:device_events'
-    return me.getPrimaryUrlPath() + '/viewEvents'
+        url = ('/zport/dmd/itinfrastructure?filter=default#'
+               '%s:%s:events_grid' % (
+                   organizerTypes[path[3]], '.'.join(path)))
+    elif isinstance(me, Device) :
+        url = (me.getPrimaryUrlPath() +
+               '/devicedetail?filter=default#'
+               'deviceDetailNav:device_events')
+    else:
+        url = me.getPrimaryUrlPath()+'/viewEvents?filter=default'
+    return url
 

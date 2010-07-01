@@ -78,7 +78,7 @@
                 tal:content="device/titleOrId">device
             </a>
         </td>
-        <td class='tablevalues' tal:define="severity python:4;">
+        <td class='tablevalues horizontal-rainbow' tal:define="severity python:4;">
             <tal:block tal:condition="python:device.meta_type=='Device'" 
                        tal:content="structure device/getEventPill"/>
         </td>

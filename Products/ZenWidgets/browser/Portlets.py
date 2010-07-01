@@ -163,21 +163,7 @@ class DeviceIssuesPortletView(BrowserView):
                             severity=4, state=1)]
         devdata = []
         devclass = zem.getDmdRoot("Devices")
-        getcolor = re.compile(r'class=\"evpill-(.*?)\"', re.S|re.I|re.M).search
         colors = "red orange yellow blue grey green".split()
-        def pillcompare(a,b):
-            a, b = map(lambda x:getcolor(x[1]), (a, b))
-            def getindex(x):
-                try: 
-                    color = x.groups()[0]
-                    smallcolor = x.groups()[0].replace('-acked','')
-                    isacked = 'acked' in color
-                    index = colors.index(x.groups()[0].replace('-acked',''))
-                    if isacked: index += .5
-                    return index
-                except: return 5
-            a, b = map(getindex, (a, b))
-            return cmp(a, b)
         for devname in devices:
             dev = devclass.findDevice(devname)
             if dev and ( dev.id == devname or dev.titleOrId() == devname ):
@@ -187,12 +173,11 @@ class DeviceIssuesPortletView(BrowserView):
                     continue
                 alink = dev.getPrettyLink()
                 try:
-                    pill = getEventPillME(zem, dev)[0]
+                    pill = getEventPillME(zem, dev)
                 except IndexError:
                     continue
                 evts = [alink,pill]
                 devdata.append(evts)
-        devdata.sort(pillcompare)
         return devdata[:100]
 
 

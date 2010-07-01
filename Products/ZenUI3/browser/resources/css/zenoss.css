@@ -170,6 +170,10 @@ em { font-style: italic; }
     filter: alpha(opacity=20);
 }
 
+a.eventrainbow {
+    text-decoration: none;
+}
+
 .eventrainbow .severity-icon-small {
     background-image: url(/++resource++zenui/img/xtheme-zenoss/icon/severity-sprite-reverse.png)
 }
@@ -181,11 +185,17 @@ em { font-style: italic; }
 .severity-icon-small.debug    { background-position: 0px -80px; }
 .severity-icon-small.clear    { background-position: 0px -100px; }
 
+div.zenportlet .severity-icon-small.critical,
 .largetoolbar .severity-icon-small.critical { background-position: 2px  2px   }
+div.zenportlet .severity-icon-small.error,
 .largetoolbar .severity-icon-small.error    { background-position: 2px -18px  }
+div.zenportlet .severity-icon-small.warning,
 .largetoolbar .severity-icon-small.warning  { background-position: 2px -38px  }
+div.zenportlet .severity-icon-small.info,
 .largetoolbar .severity-icon-small.info     { background-position: 2px -58px  }
+div.zenportlet .severity-icon-small.debug,
 .largetoolbar .severity-icon-small.debug    { background-position: 2px -78px  }
+div.zenportlet .severity-icon-small.clear,
 .largetoolbar .severity-icon-small.clear    { background-position: 2px -98px }
 
 /** making a copy of the styles for the tree */
@@ -434,6 +444,8 @@ table.eventrainbow {
     border-collapse: collapse;
     height: 16px;
     width: 100%;
+    cursor: pointer;
+    cursor: hand;
 }
 
 table.eventrainbow:hover {
@@ -444,6 +456,12 @@ table.eventrainbow_cols_3 tr td { width: 33%; }
 table.eventrainbow_cols_4 tr td { width: 25%; }
 table.eventrainbow_cols_5 tr td { width: 20%; }
 
+div.portlet-body.yui-dt table.eventrainbow,
+div.zenportlet table.eventrainbow {
+    width: 18em;
+}
+
+div.zenportlet .eventrainbow td,
 .eventrainbow td {
     padding-left: 22px;
     color: white;
@@ -454,16 +472,26 @@ table.eventrainbow_cols_5 tr td { width: 20%; }
     width: 25px;
 }
 
+table.innerzentable table.eventrainbow tr td {
+    padding-left: 23px;
+}
+
+div.zenportlet .eventrainbow td,
 .largetoolbar .eventrainbow td {
     padding-left: 25px;
 }
 
+
+div.zenportlet table.eventrainbow,
 .largetoolbar table.eventrainbow {
-    margin-top: 8px;
     height: 23px;
     border: 1px solid #707070;
     border-right-color: #bbb;
     border-bottom-color: #bbb;
+}
+
+.largetoolbar table.eventrainbow {
+    margin-top: 8px;
 }
 
 table.eventrainbow td.critical { background-color: #d60000; }
