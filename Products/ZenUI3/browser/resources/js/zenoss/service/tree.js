@@ -150,6 +150,9 @@
                 },
                 this.moveServicesCallback, 
                 this);
+
+            // Immediately change form's context so we never request the old uid
+            Ext.getCmp('serviceForm').setContext(targetUid);
         },
         moveServicesCallback: function() {
             this.getRootNode().reload(this.rootNodeReloadCallback, this);
