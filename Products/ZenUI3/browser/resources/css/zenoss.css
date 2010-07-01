@@ -852,10 +852,14 @@ span.status-down-large {
     font-size: 11px;
     height: 23px;
     line-height: 23px;
-    padding-left: 26px;
+    padding-left: 10px;
     margin: 0px;
     position: relative;
     border-bottom: 1px solid #abc;
+}
+
+#breadCrumbPane.bc-notabs {
+    padding-left: 26px;
 }
 
 #breadCrumbPane a {

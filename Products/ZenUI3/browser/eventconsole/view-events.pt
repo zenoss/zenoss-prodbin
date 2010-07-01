@@ -1,7 +1,7 @@
 <tal:block metal:use-macro="context/page_macros/masterdetail-new">
 
 <tal:block metal:fill-slot="breadcrumbs">
-<div id="breadCrumbPane">
+<div id="breadCrumbPane" class="bc-notabs">
 <span metal:use-macro="here/miscmacros/macros/breadCrumbs" />
 </div>
 </tal:block>

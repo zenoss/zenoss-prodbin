@@ -2,7 +2,7 @@
 <tal:block metal:fill-slot="title">Event History</tal:block>
 
 <tal:block metal:fill-slot="breadcrumbs">
-<div id="breadCrumbPane">
+<div id="breadCrumbPane" class="bc-notabs">
 <span metal:use-macro="here/miscmacros/macros/breadCrumbs" />
 </div>
 </tal:block>

@@ -928,30 +928,11 @@ div.zentable-body {
 
 div.tabletitle-container {
     height: 25px;
-    border-bottom: 1px solid black;
     position: relative;
 }
 
-div.tabletitle-left {
-    height:100%;
-    padding-left: 20px;
-    background: transparent url(img/titlebar_left_corner.png) 
-                top left no-repeat;
-}
-div.tabletitle-right {
-    height:100%;
-    padding-right: 20px;
-    background: transparent url(img/titlebar_right_corner.png) 
-                top right no-repeat;
-}
 div.tabletitle-center {
-    position: relative;
-    color: white;
     font-weight: bold;
-    height:25px;
-    line-height:25px;
-    background: transparent url(img/titlebar_bg.gif) 
-                top repeat-x;
 }
 table.zentable-modified {
     width:100%;
@@ -1363,29 +1344,7 @@ div.zenportlet div.portlet-body {
 }
 div.zenportlet div.tabletitle-container {
     height: 25px;
-    border-bottom: 1px solid black;
     position: relative;
-}
-div.zenportlet div.tabletitle-left {
-    height:100%;
-    padding-left: 20px;
-    background: transparent url(img/titlebar_left_corner.png) 
-                top left no-repeat;
-}
-div.zenportlet div.tabletitle-right {
-    height:100%;
-    padding-right: 20px;
-    background: transparent url(img/titlebar_right_corner.png) 
-                top right no-repeat;
-}
-div.zenportlet div.tabletitle-center {
-    position: relative;
-    color: white;
-    font-weight: bold;
-    height:25px;
-    line-height:25px;
-    background: transparent url(img/titlebar_bg.gif) 
-                top repeat-x;
 }
 div.zenportlet div.portlet-body {
     margin-top: 2px;
