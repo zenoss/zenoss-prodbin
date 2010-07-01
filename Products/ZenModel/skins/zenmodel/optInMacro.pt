@@ -2,9 +2,9 @@
 
 <tal:block metal:define-macro="optIn">
 <tr>
-    <th class="tableheader">
+    <td class="tableheader">
         Send Anonymous Usage Info with Daily Update Check
-    </th>
+    </td>
     <td class="tablevalues">
         <input type="checkbox" name="optInOutMetrics" tal:attributes="checked here/dmd/reportMetricsOptIn; value here/dmd/reportMetricsOptIn" onchange="form.submit()"/>
     </td>

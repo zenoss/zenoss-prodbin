@@ -2,6 +2,76 @@
 <tal:block metal:fill-slot="breadcrumbs"/>
 <tal:block metal:fill-slot="contentPane">
 
+<tal:block tal:define=" tabletitle string:Software Component Versions">
+    <tal:block metal:use-macro="here/zenuimacros/macros/zentable">
+
+        <!--====Optional titlebar slots=============
+
+            <tal:block metal:fill-slot="filterslot">
+            </tal:block>
+
+            <tal:block metal:fill-slot="menuslot">
+            </tal:block>
+
+            ==========================================-->
+
+        <tal:block metal:fill-slot="zentablecontents">
+        <!-- BEGIN TABLE CONTENTS -->
+            
+    <thead>
+        
+    </thead>
+    <tbody>
+        <tr tal:repeat="version here/getAllVersions" >
+            <td class="tableheader" title="Project homepage" >
+               <a tal:attributes="href version/href" target="_blank" tal:content="version/header" > project name </a>
+            </td>
+            <td class="tablevalues" tal:content="version/data"/>
+        </tr>
+    </tbody>
+
+        <!-- END TABLE CONTENTS -->
+
+        </tal:block>
+    </tal:block>
+</tal:block>
+
+<br/>
+
+<tal:block tal:define=" tabletitle string:Uptimes">
+    <tal:block metal:use-macro="here/zenuimacros/macros/zentable">
+
+        <!--====Optional titlebar slots=============
+
+            <tal:block metal:fill-slot="filterslot">
+            </tal:block>
+
+            <tal:block metal:fill-slot="menuslot">
+            </tal:block>
+
+            ==========================================-->
+
+        <tal:block metal:fill-slot="zentablecontents">
+        <!-- BEGIN TABLE CONTENTS -->
+            
+    <thead>
+        
+    </thead>
+    <tbody>
+        <tr tal:repeat="uptime here/getAllUptimes">
+            <td class="tableheader" tal:content="uptime/header" />
+            <td class="tablevalues" tal:content="uptime/data" />
+        </tr>
+    </tbody>
+
+        <!-- END TABLE CONTENTS -->
+
+        </tal:block>
+    </tal:block>
+</tal:block>
+
+<br/>
+
 <form tal:attributes="action string:${here/absolute_url_path}" method="POST">
     <input type="hidden" name="zenScreenName" 
            tal:attributes="value string:zenossVersions" /> 
@@ -31,7 +101,7 @@
     </thead>
     <tbody>
         <tr>
-            <th class="tableheader" width="50%">Available Zenoss Version</th>
+            <td class="tableheader" width="50%">Available Zenoss Version</td>
             <td class="tablevalues">
                 <span tal:condition='here/versionBehind' 
                           tal:content="here/dmd/availableVersion" 
@@ -41,11 +111,11 @@
            </td>
         </tr>
         <tr>
-            <th class="tableheader">Last Checked</th>
+            <td class="tableheader">Last Checked</td>
             <td class="tablevalues" tal:content="here/lastVersionCheckedString"/>
         </tr>
         <tr>
-            <th class="tableheader">Check For Updates Daily</th>
+            <td class="tableheader">Check For Updates Daily</td>
             <td class="tablevalues">
                 <input type="checkbox" name="optInOut"
                        tal:attributes="checked here/dmd/versionCheckOptIn; value here/dmd/versionCheckOptIn"
@@ -56,17 +126,17 @@
         <tal:block metal:use-macro="here/optInMacro/macros/optIn"/>
         
         <tr>
-            <th class="tableheader">Server Key</th>
+            <td class="tableheader">Server Key</td>
             <td class="tablevalues">
             <span tal:content="here/dmd/uuid | string:">x</span>
             </td>
         </tr>
         <tr>
-            <th class="tableheader">
+            <td class="tableheader">
                <input type="submit" 
                       name="manage_checkVersion:method" 
                       value="Check Zenoss Version Now"/>
-            </th>
+            </td>
             <td class="tablevalues"/>
     </tbody>
 
@@ -78,79 +148,6 @@
         
 
 </form>
-<br />
-
-
-        <tal:block tal:define=" tabletitle string:Uptimes">
-        <tal:block metal:use-macro="here/zenuimacros/macros/zentable">
-
-        <!--====Optional titlebar slots=============
-
-            <tal:block metal:fill-slot="filterslot">
-            </tal:block>
-
-            <tal:block metal:fill-slot="menuslot">
-            </tal:block>
-
-            ==========================================-->
-
-        <tal:block metal:fill-slot="zentablecontents">
-        <!-- BEGIN TABLE CONTENTS -->
-            
-    <thead>
-        
-    </thead>
-    <tbody>
-        <tr tal:repeat="uptime here/getAllUptimes">
-            <th class="tableheader" tal:content="uptime/header" />
-            <td class="tablevalues" tal:content="uptime/data" />
-        </tr>
-    </tbody>
-
-        <!-- END TABLE CONTENTS -->
-
-        </tal:block>
-        </tal:block>
-        </tal:block>
-        
-
-<br />
-
-
-        <tal:block tal:define=" tabletitle string:Software Component Versions">
-        <tal:block metal:use-macro="here/zenuimacros/macros/zentable">
-
-        <!--====Optional titlebar slots=============
-
-            <tal:block metal:fill-slot="filterslot">
-            </tal:block>
-
-            <tal:block metal:fill-slot="menuslot">
-            </tal:block>
-
-            ==========================================-->
-
-        <tal:block metal:fill-slot="zentablecontents">
-        <!-- BEGIN TABLE CONTENTS -->
-            
-    <thead>
-        
-    </thead>
-    <tbody>
-        <tr tal:repeat="version here/getAllVersions" >
-            <th class="tableheader" title="Project homepage" >
-               <a tal:attributes="href version/href" target="_blank" tal:content="version/header" > project name </a>
-            </th>
-            <td class="tablevalues" tal:content="version/data"/>
-        </tr>
-    </tbody>
-
-        <!-- END TABLE CONTENTS -->
-
-        </tal:block>
-        </tal:block>
-        </tal:block>
-        
 
 </tal:block>
 </tal:block>
