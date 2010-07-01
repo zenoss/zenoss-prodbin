@@ -240,9 +240,14 @@ class ZenPackManager(ZenModelRM):
         tFile = None
         child = None
         try:
+            # zenpack.filename gives us filename of the zenpack with the
+            # path as it exists on the client. We need just the filename.
+            import re
+            base_filename = re.split(r"\\|/", zenpack.filename)[-1]
+            
             # Write the zenpack to the filesystem                
             tDir = tempfile.gettempdir()
-            tFile = open(os.path.join(tDir, zenpack.filename), 'wb')
+            tFile = open(os.path.join(tDir, base_filename), 'wb')
             tFile.write(zenpack.read())
             tFile.close()
         
