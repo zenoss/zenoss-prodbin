@@ -62,6 +62,7 @@ var hwManufacturers = {
 
 var hwProduct = {
     xtype: 'productcombo',
+    prodType: 'HW',
     minListWidth: 250,
     resizable: true,
     name: 'hwProductName',
@@ -81,6 +82,7 @@ var osManufacturers = {
 
 var osProduct = {
     xtype: 'productcombo',
+    prodType: 'OS',
     minListWidth: 250,
     resizable: true,
     name: 'osProductName',

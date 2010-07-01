@@ -177,7 +177,7 @@ class Manufacturer(ZenModelRM, ZenPackable):
         """return a list of all products this Manufacturer makes"""
         prods = [""]
         prods.extend(map(lambda x: x.getId(),
-                Manufacturer.products.objectValuesAll()))
+                         Manufacturer.products.objectValuesAll()))
         prods.sort()
         return prods
 

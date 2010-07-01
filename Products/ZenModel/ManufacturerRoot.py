@@ -149,14 +149,14 @@ class ManufacturerRoot(ZenModelItem, PrimaryPathBTreeFolder2, ZenPacker):
     def getProductNames(self, mname, type=None):
         """return a list of all products this Manufacturer makes"""
         productFilter = dict(getManufacturerName=mname)
-        if type == "OS": 
+        if type == "OS":
             productFilter['meta_type'] = "SoftwareClass"
             productFilter['isOS'] = True
         elif type:
             productFilter['meta_type'] = type
-        
+
         cat = getattr(self, self.default_catalog)
-        return sorted([''] + [ entry.id for entry in cat(productFilter) ])
+        return sorted(['']+[entry.id for entry in cat(productFilter)])
 
 
     def findProduct(self, query):

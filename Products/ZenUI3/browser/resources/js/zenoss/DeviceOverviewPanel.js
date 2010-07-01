@@ -55,6 +55,7 @@
 
         var hwProduct = {
             xtype: 'productcombo',
+            prodType: 'HW',
             width: FIELDWIDTH,
             value: name(vals.hwModel),
             resizable: true,
@@ -77,6 +78,7 @@
 
         var osProduct = {
             xtype: 'productcombo',
+            prodType: 'OS',
             width: FIELDWIDTH,
             value: name(vals.osModel),
             resizable: true,

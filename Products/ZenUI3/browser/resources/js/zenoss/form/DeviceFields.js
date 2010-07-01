@@ -78,7 +78,21 @@
         }
     });
 
-    ZD.ProductDataStore = Ext.extend(Ext.data.DirectStore, {
+    ZD.OSProductDataStore = Ext.extend(Ext.data.DirectStore, {
+        constructor: function(config) {
+            config = config || {};
+            var router = config.router || Zenoss.remote.DeviceRouter;
+            Ext.applyIf(config, {
+                root: 'productNames',
+                totalProperty: 'totalCount',
+                fields: ['name'],
+                directFn: router.getOSProductNames
+            });
+            ZD.ManufacturerDataStore.superclass.constructor.call(this, config);
+        }
+    });
+
+    ZD.HWProductDataStore = Ext.extend(Ext.data.DirectStore, {
         constructor: function(config) {
             config = config || {};
             var router = config.router || Zenoss.remote.DeviceRouter;
@@ -112,7 +126,9 @@
 
     ZD.ProductCombo = Ext.extend(Ext.form.ComboBox, {
         constructor: function(config) {
-            var store = (config||{}).store || new ZD.ProductDataStore();
+            var prodType = config.prodType || 'OS',
+                store = (config||{}).store || 
+                    prodType=='OS' ? new ZD.OSProductDataStore() : new ZD.HWProductDataStore();
             config = Ext.applyIf(config||{}, {
                 store: store,
                 triggerAction: 'all',
