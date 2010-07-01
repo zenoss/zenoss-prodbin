@@ -34,7 +34,7 @@ class ReportServer(ZenModelRM):
     security.setDefaultAccess('allow')
 
     security.declareProtected(ZEN_COMMON, 'plugin')
-    def plugin(self, name, REQUEST):
+    def plugin(self, name, REQUEST, templateArgs = None):
         "Run a plugin to generate the report object"
         dmd = self.dmd
         args = dict(zip(REQUEST.keys(), REQUEST.values()))
@@ -62,7 +62,10 @@ class ReportServer(ZenModelRM):
         if not klass:
             raise IOError('Unable to find plugin named "%s"' % name)
         instance = klass()
-        return instance.run(dmd, args)
+        if templateArgs == None:
+            return instance.run(dmd, args)
+        else:
+            return instance.run(dmd, args, templateArgs)
 
 def manage_addReportServer(context, id, REQUEST = None):
     """make a ReportServer"""
