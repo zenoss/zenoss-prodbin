@@ -2,6 +2,10 @@
  * Zenoss Theme
  */
 
+.x-form-item {
+    font-family: helvetica,arial,sans-serif;
+}
+
 /* Masks */
 .ext-el-mask{
     background-color:#c8cbd0;
@@ -227,7 +231,7 @@ ul.x-tab-strip-bottom{
 }
 
 .multiselect .x-fieldset-header-text {
-    font: 12px helvetica,arial,tahoma,sans-serif;
+    font: 12px helvetica,arial,sans-serif;
 }
 
 .multiselect .x-fieldset-body {
@@ -236,13 +240,13 @@ ul.x-tab-strip-bottom{
 
 .multiselect-dialog .x-fieldset-header-text {
     color: #FFFFFF;
-    font: 12px helvetica,arial,tahoma,sans-serif;
+    font: 12px helvetica,arial,sans-serif;
 }
 
 /* Buttons */
 
 .x-btn-text {
-    font-family:helvetica,tahoma,sans-serif;
+    font-family:helvetica,sans-serif;
     text-transform: uppercase;
 }
 
@@ -736,7 +740,7 @@ td.x-grid3-hd-over .x-grid3-hd-inner,td.sort-desc .x-grid3-hd-inner,td.sort-asc 
 
 .x-tree-node a span {
     font-size: 12px;
-    font-family: helvetica,arial,tahoma,sans-serif;
+    font-family: helvetica,arial,sans-serif;
     color: #454545;
 }
 
@@ -951,7 +955,7 @@ td.x-date-mp-sel a{
     border-width:0;
 }
 .x-panel-header{
-    font-family: helvetica,arial,tahoma,sans-serif;
+    font-family: helvetica,arial,sans-serif;
     color: #f8f8f8;
     border:1px solid #abc;
     background-color: #566d87;
@@ -1068,7 +1072,7 @@ td.x-date-mp-sel a{
     background-image:url(../img/xtheme-zenoss/window/right-corners.png);
 }
 .x-window-mc{
-    font-family: helvetica,tahoma,sans-serif;
+    font-family: helvetica,arial,sans-serif;
     color: #fafafa;
     font-size: 12px;
 }
@@ -1104,7 +1108,7 @@ td.x-date-mp-sel a{
 .x-window-ghost .x-window-tl .x-window-header,
 .x-window-tl .x-window-header {
     color: #fafafa;
-    font-family: helvetica,tahoma,sans-serif;
+    font-family: helvetica,sans-serif;
     text-align: left;
     font-size: 13pt;
     height: 21px;

@@ -80,7 +80,7 @@ class FormBuilder(object):
         if not fieldsets:
             fields = sorted(self.fields().values(), key=ordergetter)
             form = map(self._item, fields)
-            return form
+            return {'items':[{'xtype':'fieldset', 'items':form}]}
         # group the fields 
         groups = self.groups()
         form = {
@@ -118,13 +118,19 @@ class FormBuilder(object):
                 xtype = 'displayfield'
         else:
             xtype = item['xtype']
-        
+
+        labelProperty = 'boxLabel' if xtype=='checkbox' else 'fieldLabel'
+        labelStyle = 'display:none' if xtype=='checkbox' else None
+
         value = item['value']
+
         if xtype == 'linkfield':
             value = getattr(value, 'uid', value)
+
         field = {
             'xtype': xtype,
-            'fieldLabel': item['title'],
+            labelProperty: item['title'],
+            'labelStyle': labelStyle,
             'anchor':'85%',
             'name': item['name'],
             'value': value,

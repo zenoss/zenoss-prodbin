@@ -114,6 +114,7 @@ Zenoss.SimpleInstanceGridPanel = Ext.extend(Ext.ux.grid.livegrid.GridPanel, {
 
 Ext.reg('SimpleInstanceGridPanel', Zenoss.SimpleInstanceGridPanel);
 
+
 // supply the instances implementation in the config
 Zenoss.SimpleCardPanel = Ext.extend(Ext.Panel, {
 
@@ -121,6 +122,7 @@ Zenoss.SimpleCardPanel = Ext.extend(Ext.Panel, {
         Ext.applyIf(config, {
             layout: 'card',
             activeItem: 0,
+            height: Math.min(((Ext.getCmp('viewport').getHeight() - 75)/5)+30, 200),
             tbar: {
                 xtype: 'consolebar',
                 title: 'Display: ',

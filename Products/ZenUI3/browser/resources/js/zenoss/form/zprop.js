@@ -192,7 +192,7 @@ Zenoss.form.ZProperty = Ext.extend(Ext.form.FieldSet, {
                 hideLabels: true
             },
             items: [{
-                width: 107,
+                width: 130,
                 items: [{
                     xtype: 'radio',
                     ref: '../../localRadio',

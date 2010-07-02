@@ -326,7 +326,6 @@ Ext.getCmp('detail_panel').add({
     xtype: 'instancecardpanel',
     ref: 'detailCardPanel',
     region: 'south',
-    height: Ext.getCmp('viewport').getHeight() - 300,
     split: true,
     router: router,
     instancesTitle: 'Process Instances',

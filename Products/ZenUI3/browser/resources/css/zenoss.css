@@ -1,6 +1,12 @@
 strong { font-weight: bold; }
 em { font-style: italic; }
 
+a:link,
+a:visited {
+    color: #6386AE;
+    font-family: helvetica,arial,sans-serif;
+}
+
 .zenui3 { font-family: Helvetica,sans-serif; }
 
 .zenui3 a.resource-link:link,
@@ -705,6 +711,31 @@ table.search-result {
     border-top: 1px solid gray;
     background: #f5f9fd url();
 }
+
+.detail-form-panel .x-form-field,
+.detail-form-panel .display-field,
+.detail-form-panel .x-form-cb-label,
+.detail-form-panel .x-form-item-label,
+.detail-form-panel .x-fieldset-header-text {
+    font-family: helvetica,arial,sans-serif;
+    font-size: 13px;
+    color: #5a5a5a;
+}
+
+.detail-form-panel .x-form-display-field,
+.detail-form-panel .display-field {
+    color: #999;
+}
+
+.detail-form-panel .x-fieldset-header {
+    border: medium none;
+}
+
+.detail-form-panel .x-fieldset-header-text {
+    padding-left: 0;
+    font-weight: normal;
+}
+
 .consolebar .xtb-text {
     font-size: 13px;
     margin-top: 1px;
@@ -817,20 +848,29 @@ span.status-down-large {
     border: 1px solid #b7b7b7;
 }
 
-.device-overview-form a.z-entity:link,
-.device-overview-form a.z-entity:hover,
-.device-overview-form a.z-entity:visited {
-    color: #7595c1;
+a.z-entity:link,
+a.z-entity:hover,
+a.z-entity:visited {
     text-decoration: none;
     padding-right: 15px;
-    background: transparent url(/++resource++zenui/img/entity-link-arrow.png) center right no-repeat;
+    padding-bottom: 3px;
+    background: transparent url(/++resource++zenui/img/entity-link-arrow.png) top right no-repeat;
+}
+
+.x-grid3 a.z-entity:link,
+.x-grid3 a.z-entity:visited,
+.x-grid3 a.z-entity:hover {
+    background: none;
+    padding-right: 0;
+    text-decoration: underline;
 }
 
 .devdetail-devclass a.z-entity:link,
 .devdetail-devclass a.z-entity:hover,
 .devdetail-devclass a.z-entity:visited {
     color: #383838;
-    text-decoration: none;
+    padding-right: 0;
+    background: none;
 }
 .devdetail-devclass a.z-entity:hover {
     text-decoration: underline;
@@ -865,7 +905,7 @@ span.status-down-large {
 #breadCrumbPane a {
     padding-left: 2px;
     color: #f8f8f8;
-    font-family: helvetica,arial,tahoma,sans-serif;
+    font-family: helvetica,arial,sans-serif;
     font-weight: bold;
     text-decoration: none;
 }
@@ -897,7 +937,7 @@ span.status-down-large {
     right: 5px;
     color: #eef;
     font-size: 11px;
-    font-family: helvetica,arial,tahoma,sans-serif;
+    font-family: helvetica,arial,sans-serif;
     cursor: pointer;
 }
 

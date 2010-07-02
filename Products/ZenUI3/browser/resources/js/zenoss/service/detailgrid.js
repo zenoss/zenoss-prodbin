@@ -27,7 +27,6 @@ Ext.onReady( function() {
             xtype: 'instancecardpanel',
             ref: 'detailCardPanel',
             region: 'south',
-            height: Ext.getCmp('viewport').getHeight() - 300,
             split: true,
             router: Zenoss.remote.ServiceRouter,
             instancesTitle: 'Service Instances',

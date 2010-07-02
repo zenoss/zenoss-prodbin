@@ -18,8 +18,7 @@
 Zenoss.DisplayField = Ext.extend(Ext.form.DisplayField, {
     constructor: function(config) {
         Ext.applyIf(config, {
-            fieldClass: 'display-field',
-            labelStyle: 'font-weight:bold'
+            fieldClass: 'display-field'
         });
         Zenoss.DisplayField.superclass.constructor.call(this, config);
     },

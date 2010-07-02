@@ -347,10 +347,9 @@ ipAddressGrid.setContext = function(uid) {
 }.createDelegate(ipAddressGrid);
 
 Ext.getCmp('detail_panel').add({
-    xtype: 'simplecardpanel',
+    xtype: 'instancecardpanel',
     ref: 'detailCardPanel',
     region: 'south',
-    height: Ext.getCmp('viewport').getHeight() - 300,
     split: true,
     router: Zenoss.remote.NetworkRouter,
     instances: ipAddressGrid,
@@ -512,51 +511,17 @@ var formItems = {
     }]
 };
 
-var formConfig = {
-    xtype: 'form',
-    id: 'networkForm',
-    region: 'center',
-    paramsAsHash: true,
-    items: formItems,
-    border: false,
-    labelAlign: 'top',
-    autoScroll: true,
+var networkFormConfig =  {
+    xtype: 'basedetailform',
     trackResetOnLoad: true,
-    bbar: {
-        xtype: 'largetoolbar',
-        items: [{
-            xtype: 'button',
-            id: 'saveButton',
-            ref: '../saveButton',
-            text: _t('Save'),
-            disabled: Zenoss.Security.doesNotHavePermission('Manage DMD'),
-            handler: function(){
-                this.refOwner.getForm().submit({
-                    params: {
-                        uid: Ext.getCmp('networkForm').contextUid
-                    }
-                });
-            }
-        }, {
-            xtype: 'button',
-            id: 'cancelButton',
-            text: _t('Cancel'),
-            handler: resetForm
-        }]
-    },
-    api: {
-        load: Zenoss.remote.NetworkRouter.getInfo,
-        submit: Zenoss.form.createDirectSubmitFunction(Zenoss.remote.NetworkRouter)
-    }
-};
+    id: 'networkForm',
+    permission: 'Manage DMD',
+    region: 'center',
+    items: formItems,
+    router: Zenoss.remote.NetworkRouter
+}
 
-var networkForm = new Ext.form.FormPanel(formConfig);
-networkForm.setContext = function(uid) {
-    this.contextUid = uid;
-    this.load({ params: {uid: uid} });
-}.createDelegate(networkForm);
-
-Ext.getCmp('detail_panel').add(networkForm);
+var networkForm = Ext.getCmp('detail_panel').add(networkFormConfig);
 
 networkForm.getForm().on('actioncomplete', function(basicForm, action){
     if (action.type == 'directsubmit') {

@@ -17,6 +17,9 @@
 
 var ZF = Ext.ns('Zenoss.form');
 
+Ext.form.TextArea.prototype.grow = true;
+Ext.form.TextArea.prototype.growMin = 20;
+
 function isField(c) {
     return !!c.setValue && !!c.getValue && !!c.markInvalid && !!c.clearInvalid;
 }
