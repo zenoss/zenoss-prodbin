@@ -1324,7 +1324,7 @@ class EventManagerBase(ZenModelRM, ObjectCache, DbAccessBase):
         # We want no filter on the device so in effect "where 1" achieves
         # this in sql syntax
         if me.id == 'Devices':
-            return '1'
+            return '(DeviceCLass like \'/%\')'
         return eval(wheretmpl,{'me':me})
 
 
