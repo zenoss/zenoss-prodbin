@@ -108,10 +108,10 @@ class InterfaceMap(SnmpPlugin):
         self.prepIfTable(log, iftable, ifalias)
 
         omtable = {}
-        duplex = tabledata.get("duplex")
+        duplex = tabledata.get("duplex", {})
         for key, iface in iftable.items():
-            if duplex.has_key(key):
-                iftable[key]['duplex'] = duplex[key]['duplex']
+            if key in duplex:
+                iftable[key]['duplex'] = duplex[key].get('duplex', 0)
             else:
                 iftable[key]['duplex'] = 0
 
