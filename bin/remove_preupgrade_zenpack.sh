@@ -25,6 +25,10 @@ if ${ZENHOME}/bin/zenpack --list | grep PreUpgrade30 2>/dev/null 1>&1 ;then
     # since we are going from 2.4 to 2.6 the zenpack remove command is not quiet,
     # so hence the need for 2>/dev/null 
     ${ZENHOME}/bin/zenpack --remove ZenPacks.zenoss.PreUpgrade30 1>/dev/null 2>&1
+    
+    # also because of the 2.4 to 2.6 egg problem the directory is not completely removed
+    rm -rf ${ZENHOME}/ZenPacks/ZenPacks.zenoss.PreUpgrade30*
+    
 fi
 
 #
