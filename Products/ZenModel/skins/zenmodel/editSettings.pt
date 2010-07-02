@@ -55,49 +55,49 @@ loader.insert();
         <tal:block metal:fill-slot="zentablecontents">
         <!-- BEGIN TABLE CONTENTS -->
             
-    <tr>
+    <tr class="even">
         <td class="noselect tableheader" align="left">Instance Identifier</td>
         <td class="tablevalues">
             <input class="tablevalues" type="text" name="instanceIdentifier"
                 tal:attributes="value here/instanceIdentifier" />
         </td>
     </tr>
-    <tr>
+    <tr class="odd">
       <td class="tableheader noselect" title="Simple Mail Transport Protocol (aka E-mail server)" align="left">SMTP Host</td>
       <td class="tablevalues">
         <input class="tablevalues" title="Simple Mail Transport Protocol (aka E-mail server)" type="text" name="smtpHost"
             tal:attributes="value here/smtpHost" />
       </td>
     </tr>
-    <tr>
+    <tr class="even">
       <td class="noselect tableheader" title="TCP/IP port to access Simple Mail Transport Protocol (aka E-mail server)" align="left">SMTP Port (usually 25)</td>
       <td class="tablevalues">
         <input class="tablevalues" title="TCP/IP port to access Simple Mail Transport Protocol (aka E-mail server)" type="text" name="smtpPort"
             tal:attributes="value here/smtpPort" />
       </td>
     </tr>
-    <tr>
+    <tr class="odd">
       <td class="noselect tableheader" title="Use this only if authentication is required" align="left">SMTP Username (blank for none)</td>
       <td class="tablevalues">
         <input class="tablevalues" autocomplete="off" title="Use this only if authentication is required" type="text" name="smtpUser"
             tal:attributes="value here/smtpUser|string:" />
       </td>
     </tr>    
-    <tr>
+    <tr class="even">
       <td class="noselect tableheader" title="Use this only if authentication is required" align="left">SMTP Password (blank for none)</td>
       <td class="tablevalues">
         <input class="tablevalues" autocomplete="off" title="Use this only if authentication is required" type="password" name="smtpPass"
             tal:attributes="value here/smtpPass|string:" />
       </td>
     </tr>
-    <tr>
+    <tr class="odd">
       <td class="noselect tableheader" title="Defaults to 'root@localhost.localdomain'" align="left">From Address for Emails</td>
       <td class="tablevalues">
         <input class="tablevalues" title="Defaults to 'root@localhost.localdomain'" type="text" name="emailFrom"
             tal:attributes="value here/emailFrom|string:" />
       </td>
     </tr>
-    <tr>
+    <tr class="even">
         <td class="noselect tableheader" title="Use Transport Layer Security for E-mail?" align="left">Use TLS?</td>
         <td class="tablevalues">
         <input type="hidden" name="smtpUseTLS:int:default" value="0">
@@ -105,7 +105,7 @@ loader.insert();
          tal:attributes="checked request/smtpUseTLS | here/smtpUseTLS">
         </td>
     </tr>
-    <tr>
+    <tr class="odd">
       <td class="noselect tableheader" title="Command to execute to send a page" align="left">Page Command</td>
       <td class="tablevalues">
         <input class="tablevalues" title="Defaults to '$ZENHOME/bin/zensnpp localhost 444 $RECIPIENT" type="text" name="pageCommand"
@@ -113,7 +113,7 @@ loader.insert();
       </td>
     </tr>
 
-    <tr>
+    <tr class="even">
       <td class="noselect tableheader" title="" nowrap="nowrap" align="left">Dashboard Production State Threshold</td>
       <td class="tablevalues">
         <input class="tablevalues" title="" type="text" name="prodStateDashboardThresh"
@@ -121,7 +121,7 @@ loader.insert();
       </td>
     </tr>
 
-    <tr>
+    <tr class="odd">
       <td class="noselect tableheader" title="" align="left">Dashboard Priority Threshold</td>
       <td class="tablevalues">
         <input class="tablevalues" title="" type="text" name="priorityDashboardThresh"
@@ -129,7 +129,7 @@ loader.insert();
       </td>
     </tr>
         
-    <tr>
+    <tr class="even">
       <td class="noselect tableheader" title="" align="left">State Conversions</td>
       <td class="tablevalues">
         <textarea class="tablevalues" title="" name="prodStateConversions:lines"
@@ -137,7 +137,7 @@ loader.insert();
             tal:content="python: '\n'.join(here.prodStateConversions)"></textarea>
       </td>
      </tr>
-     <tr>
+     <tr class="odd">
       <td class="noselect tableheader" title="" align="left">Priority Conversions</td>
       <td class="tablevalues">
         <textarea class="tablevalues" title="" name="priorityConversions:lines"
@@ -163,7 +163,7 @@ loader.insert();
       </td>
     </tr>
     -->
-    <tr>
+    <tr class="even">
       <td class="noselect tableheader" title="Site-specific groups and categories of users" align="left">Administrative Roles</td>
       <td class="tablevalues">
         <textarea class="tablevalues" title="Site-specific groups and categories of users" name="administrativeRoles:lines"
@@ -171,7 +171,7 @@ loader.insert();
             tal:content="python: '\n'.join(here.administrativeRoles)"></textarea>
       </td>
     </tr>
-    <tr>
+    <tr class="odd">
      <td class="tableheader" align="left">Google Maps API Key 
          <a href="javascript:popupMapHelp()" style="font-size:80%">Help</a>
      </td>
@@ -181,7 +181,7 @@ loader.insert();
      </td>
    </tr>
 
-    <tr>
+    <tr class="even">
         <td class="tableheader"></td>
         <td class="tableheader" align="left">
             <input class="tableheader" type="submit" value=" Save " 

@@ -920,15 +920,13 @@ div.vertical-rainbow > div > div {
 }
 
 div.zentable-body {
-    border: 1px solid black;
-    border-top: medium none;
+    border: medium none;
+    border-bottom: 2px solid #CCCCCC;
     background-color: white;
-    margin-top: -4px;
 }
 
 div.tabletitle-container {
     height: 25px;
-    border-bottom: 1px solid black;
     position: relative;
 }
 

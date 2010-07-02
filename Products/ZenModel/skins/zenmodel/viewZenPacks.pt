@@ -30,38 +30,41 @@
         </tr>
 	
 	
-	<tr tal:repeat='pack objects'>
+    <tal:block tal:repeat='pack objects'>
+    <tr tal:define="odd repeat/pack/odd"
+        tal:attributes="class python:odd and 'odd' or 'even'">
 	    <tal:block tal:define="isBroken python: not hasattr(pack,'isBroken') or pack.isBroken();">
 	    <tal:block tal:condition="not: isBroken">
-          <td class="tablevalue"> 
+          <td class="tablevalues"> 
               <input type="checkbox" name="ids:list"  
                   tal:attributes="value pack/id"/> 
           </td>
-		  <td class="tablevalue">
+		  <td class="tablevalues">
 		    <a tal:attributes="href pack/getPrimaryUrlPath" 
 		       tal:content="pack/id"/>
 		  </td>
-		  <td class="tablevalue" tal:condition="pack/isEggPack"
+		  <td class="tablevalues" tal:condition="pack/isEggPack"
 		      tal:content="pack/getPackageName"/>
-		  <td class="tablevalue" tal:condition="not:pack/isEggPack"
+		  <td class="tablevalues" tal:condition="not:pack/isEggPack"
 		      tal:content="string:n/a"/>
-		  <td class="tablevalue" tal:content="pack/author"/>
-		  <td class="tablevalue" tal:content="pack/version"/>
-		  <td class="tablevalue" 
+		  <td class="tablevalues" tal:content="pack/author"/>
+		  <td class="tablevalues" tal:content="pack/version"/>
+		  <td class="tablevalues" 
 		    tal:content="python: pack.isEggPack() and 'Yes' or 'No'"/>
       </tal:block>
 	  <tal:block tal:condition="isBroken">
-	      <td class="tablevalue"></td>
-		  <td class="tablevalue">
+	      <td class="tablevalues"></td>
+		  <td class="tablevalues">
 			<tal:dummy tal:replace="python:here.dmd.ZenPackManager.getBrokenPackName(pack)" />
 		  </td>
-		  <td class="tablevalue" colspan="6">
+		  <td class="tablevalues" colspan="6">
 		      This pack was just installed, or is missing or broken. Please
               restart Zope.
 		  </td>
 	  </tal:block>
      </tal:block>
 	</tr>
+     </tal:block>
       
         <!-- END TABLE CONTENTS -->
 

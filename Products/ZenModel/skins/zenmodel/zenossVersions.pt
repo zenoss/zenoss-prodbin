@@ -22,12 +22,15 @@
         
     </thead>
     <tbody>
-        <tr tal:repeat="version here/getAllVersions" >
+    <tal:block tal:repeat="version here/getAllVersions">
+        <tr tal:define="odd repeat/version/odd"
+            tal:attributes="class python:odd and 'odd' or 'even'">
             <td class="tableheader" title="Project homepage" >
                <a tal:attributes="href version/href" target="_blank" tal:content="version/header" > project name </a>
             </td>
             <td class="tablevalues" tal:content="version/data"/>
         </tr>
+    </tal:block>
     </tbody>
 
         <!-- END TABLE CONTENTS -->
@@ -58,10 +61,13 @@
         
     </thead>
     <tbody>
-        <tr tal:repeat="uptime here/getAllUptimes">
+    <tal:block tal:repeat="uptime here/getAllUptimes">
+        <tr tal:define="odd repeat/uptime/odd"
+            tal:attributes="class python:odd and 'odd' or 'even'">
             <td class="tableheader" tal:content="uptime/header" />
             <td class="tablevalues" tal:content="uptime/data" />
         </tr>
+    </tal:block>
     </tbody>
 
         <!-- END TABLE CONTENTS -->
@@ -70,8 +76,7 @@
     </tal:block>
 </tal:block>
 
-<br/>
-
+<br/> 
 <form tal:attributes="action string:${here/absolute_url_path}" method="POST">
     <input type="hidden" name="zenScreenName" 
            tal:attributes="value string:zenossVersions" /> 
@@ -100,7 +105,7 @@
         
     </thead>
     <tbody>
-        <tr>
+        <tr class="odd">
             <td class="tableheader" width="50%">Available Zenoss Version</td>
             <td class="tablevalues">
                 <span tal:condition='here/versionBehind' 
@@ -110,11 +115,11 @@
                       tal:content="here/dmd/availableVersion"/>
            </td>
         </tr>
-        <tr>
+        <tr class="even">
             <td class="tableheader">Last Checked</td>
             <td class="tablevalues" tal:content="here/lastVersionCheckedString"/>
         </tr>
-        <tr>
+        <tr class="odd">
             <td class="tableheader">Check For Updates Daily</td>
             <td class="tablevalues">
                 <input type="checkbox" name="optInOut"
@@ -125,14 +130,14 @@
         
         <tal:block metal:use-macro="here/optInMacro/macros/optIn"/>
         
-        <tr>
+        <tr class="odd">
             <td class="tableheader">Server Key</td>
             <td class="tablevalues">
             <span tal:content="here/dmd/uuid | string:">x</span>
             </td>
         </tr>
         <tr>
-            <td class="tableheader">
+            <td class="tableheader" colspan="2">
                <input type="submit" 
                       name="manage_checkVersion:method" 
                       value="Check Zenoss Version Now"/>

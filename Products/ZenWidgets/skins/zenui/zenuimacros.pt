@@ -266,7 +266,7 @@ mypath python:test(item.action.startswith('javascript'),
                 <div class="tabletitle-container">
                     <div class="tabletitle-left">
                         <div class="tabletitle-right">
-                            <div class="tabletitle-center">
+                            <div class="tabletitle-center" style="height: 37px; padding-top: 2px;">
                             <tal:block metal:define-slot="title">
                                 Table Title
                             </tal:block>

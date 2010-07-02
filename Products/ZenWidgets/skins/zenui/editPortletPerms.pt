@@ -36,7 +36,7 @@ Available Portlets
 </td>
 </tr>
 </tal:block>
-<tr ><td style="border-top:1px solid #444" colspan="2" align="center">
+<tr ><td style="border-top:2px solid #CCC" colspan="2" align="center">
 <input type="submit" name="method:edit_portlet_perms" value="Save"/></td></tr>
 </table>
 </form>
