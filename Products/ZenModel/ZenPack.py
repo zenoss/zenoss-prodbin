@@ -634,11 +634,13 @@ registerDirectory("skins", globals())
             exportFileName = '%s.zip' % self.id
 
         if REQUEST:
-            js = 'window.open("%s/manage_download");' % self.absolute_url_path()
+            dlLink = '- <a target="_blank" href="%s/manage_download">' \
+                     'Download Zenpack</a>' % self.absolute_url_path()
             messaging.IMessageSender(self).sendToBrowser(
                 'ZenPack Exported',
-                'ZenPack exported to $ZENHOME/export/%s' % (exportFileName),
-                jsAutoRun = js if download == 'yes' else None
+                'ZenPack exported to $ZENHOME/export/%s %s' %
+                        (exportFileName, dlLink if download == 'yes' else ''),
+                messaging.CRITICAL if download == 'yes' else messaging.INFO
             )
             return self.callZenScreen(REQUEST)
 

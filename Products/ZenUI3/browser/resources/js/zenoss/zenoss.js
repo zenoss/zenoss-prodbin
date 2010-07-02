@@ -313,20 +313,9 @@ Zenoss.messaging.Message = Ext.extend(Object, {
         config = Ext.applyIf(config || {}, {
             body: '',
             priority: this.INFO,
-            sticky: false,
-            jsAutoRun: null
+            sticky: false
         });
         Ext.apply(this, config);
-
-        if (this.jsAutoRun) {
-            var stringToRun = this.jsAutoRun;
-            this.jsAutoRun = function() {
-                eval(stringToRun);
-            };
-        }
-        else {
-            this.jsAutoRun = function() {};
-        }
     }
 });
 
@@ -359,7 +348,6 @@ Zenoss.messaging.Messenger = Ext.extend(Ext.util.Observable, {
     send: function(msgConfig) {
         var message = new Zenoss.messaging.Message(msgConfig);
         this.fireEvent('message', this, message);
-        message.jsAutoRun();
 
         var flare;
         if ( message.priority  === Zenoss.messaging.Message.WARNING ) {

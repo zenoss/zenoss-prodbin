@@ -25,7 +25,6 @@ class IMessage(IContained):
     image = Attribute("Optional path to image to be displayed")
     priority = Attribute("Priority of the message")
     timestamp = Attribute("Time the message was sent")
-    jsAutoRun = Attribute("Optional javascript snippet to execute with message")
 
     def delete():
         """
