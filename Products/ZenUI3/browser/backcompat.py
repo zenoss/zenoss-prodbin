@@ -98,7 +98,11 @@ def CustomReport(ob):
     '''
     if ob.REQUEST['QUERY_STRING'].find('adapt=false') != -1 or \
             ob.REQUEST['HTTP_REFERER'].find('/view' + ob.meta_type) != -1 :
-        return ob.absolute_url_path() + '/view' + ob.meta_type
+        params = []
+        for key in ob.REQUEST.form.keys() :
+            params.append('%s=%s' % (key, ob.REQUEST.form[key]))
+        return ob.absolute_url_path() + '/view' + ob.meta_type + \
+                ('?' + '&'.join(params)) if params else ''
     id = '.'.join(ob.getPhysicalPath())
     return '/zport/dmd/reports#reporttree:' + id
 
