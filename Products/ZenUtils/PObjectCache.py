@@ -38,7 +38,19 @@ class PObjectCache(SimpleItem):
         self.clearcount = self.clearthresh = clearthresh
         self.cache = {}
 
-    
+
+    def _p_resolveConflict(self, oldstate, savedstate, newstate):
+        """
+        Any page that contains a lot of graphs is practically guaranteed to
+        cause read conflict errors on PObjectCache. Fortunately it's really
+        easy to do good conflict resolution on this simple object.
+        """
+        mergedstate = oldstate
+        mergedstate['cache'].update(savedstate['cache'])
+        mergedstate['cache'].update(newstate['cache'])
+        return mergedstate
+
+
     def checkCache(self, key):
         """check to see if key is in cache return None if not"""
         if self.cache.has_key(key):
