@@ -264,6 +264,10 @@ Ext.apply(Zenoss.devices, {
             });
         }
     }),
+    /*
+    * Currently causes a bus error on multiple devices: http://dev.zenoss.org/trac/ticket/6142
+    * Commenting out until that is fixed
+    *
     resetCommunity: new Zenoss.Action({
         text: _t('Reset Community'),
         iconCls: 'set',
@@ -288,6 +292,7 @@ Ext.apply(Zenoss.devices, {
             });
         }
     }),
+    */
     setProdState: new Zenoss.Action({
         text: _t('Set Production State')+'...',
         iconCls: 'set',
@@ -1170,7 +1175,7 @@ var device_grid = new Zenoss.DeviceGridPanel({
                     items: [
                         Zenoss.devices.lockDevices,
                         Zenoss.devices.resetIP,
-                        Zenoss.devices.resetCommunity,
+                        //Zenoss.devices.resetCommunity,
                         Zenoss.devices.setProdState,
                         Zenoss.devices.setPriority,
                         Zenoss.devices.setCollector

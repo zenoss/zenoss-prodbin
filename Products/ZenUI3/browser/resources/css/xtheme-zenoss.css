@@ -262,7 +262,7 @@ ul.x-tab-strip-bottom{
     color:#fff;
 }
 
-.x-item-disabled button.x-btn-text {
+.x-panel-footer .x-item-disabled button.x-btn-text {
     color: #eee !important;
 }
 
