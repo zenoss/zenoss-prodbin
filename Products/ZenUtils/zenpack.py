@@ -30,6 +30,8 @@ import Products.ZenModel.ZenPackLoader as ZPL
 from Products.ZenModel.ZenPackLoader import CONFIG_FILE, CONFIG_SECTION_ABOUT
 import ZenPackCmd as EggPackCmd
 
+HIGHER_THAN_CRITICAL = 100
+
 def RemoveZenPack(dmd, packName, log=None, 
                         skipDepsCheck=False, leaveObjects=True,
                         deleteFiles=True):
@@ -223,8 +225,13 @@ class ZenPackCmd(ZenScriptBase):
 
 
     def install(self, packName):
+        
         zp = None
         try:
+            # hide uncatalog error messages since they do not do any harm
+            log = logging.getLogger('Zope.ZCatalog')
+            oldLevel = log.getEffectiveLevel()
+            log.setLevel(HIGHER_THAN_CRITICAL)
             zp = self.dmd.ZenPackManager.packs._getOb(packName)
             self.log.info('Upgrading %s' % packName)
             zp.upgrade(self.app)
@@ -240,6 +247,8 @@ class ZenPackCmd(ZenScriptBase):
             self.dmd.ZenPackManager.packs._setObject(packName, zp)
             zp = self.dmd.ZenPackManager.packs._getOb(packName)
             zp.install(self.app)
+        finally:
+            log.setLevel(oldLevel)
         if zp:
             for required in zp.requires:
                 try:
