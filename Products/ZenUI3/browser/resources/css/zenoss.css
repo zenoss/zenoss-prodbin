@@ -963,6 +963,7 @@ a.z-entity:visited {
 }
 
 #user-link-container {
+    margin-left: 10px;
     padding-left: 10px;
     background: transparent url(/zport/dmd/img/usericon.png) left center no-repeat;
     font-family: helvetica,arial,sans-serif;
