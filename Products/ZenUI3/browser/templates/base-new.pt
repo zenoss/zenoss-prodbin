@@ -57,15 +57,13 @@
                             <div id="header-extra">
                                 <div id="searchbox-container"></div>
                                 <div id="saved-search-container"></div>
-                                <div>
+                                <div id="user-link-container">
                                     <a tal:attributes="href here/dmd/ZenUsers/getUserSettingsUrl">
                                     <tal:block tal:content="request/AUTHENTICATED_USER"/>
                                     </a>
                                 </div>
-                                <div>
-                                    <a id="sign-out-link"
-                                       href="/zport/dmd/logoutUser">sign out
-                                       </a>
+                                <div id="sign-out-link">
+                                    <a href="/zport/dmd/logoutUser">sign out</a>
                                 </div>
                                 <div>
                                     <div id="help-icon-container">

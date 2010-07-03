@@ -19,6 +19,7 @@ Ext.state.Manager.setProvider(new Ext.state.CookieProvider({
 }));
 */
 
+
 /*
  * Hook up all Ext.Direct requests to the connection error message box.
  */

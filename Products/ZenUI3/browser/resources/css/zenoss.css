@@ -618,20 +618,18 @@ table.eventrainbow td.clear { background-color: #62a700; }
     padding-top: 12px;
 }
 
-#sign-out-link {
-    text-transform: uppercase;
-}
 
 #help-icon-container a {
     height: 14px;
     width: 14px;
-    display: table-cell;
-    background-image: url(/++resource++zenui/img/help-icon.png);
-    background-repeat: no-repeat;
-    background-position: center;
+    background: transparent url(/++resource++zenui/img/help-icon.png) center center no-repeat;
     margin-right: 14px;
+    padding-top: 2px;
 }
 
+.ext-ie #help-icon-container a:hover {
+    text-decoration: none;
+}
 
 
 .searchbox-query {
@@ -865,6 +863,12 @@ a.z-entity:visited {
     text-decoration: underline;
 }
 
+.x-menu a:link,
+.x-menu a:visited,
+.x-menu a:hover {
+    color: #444;
+}
+
 .devdetail-devclass a.z-entity:link,
 .devdetail-devclass a.z-entity:hover,
 .devdetail-devclass a.z-entity:visited {
@@ -934,11 +938,16 @@ a.z-entity:visited {
 
 #page-help {
     position: absolute;
-    right: 5px;
+    right: 8px;
     color: #eef;
     font-size: 11px;
     font-family: helvetica,arial,sans-serif;
     cursor: pointer;
+}
+
+.ext-ie7 #page-help,
+.ext-border-box .ext-ie #page-help {
+    padding-top: 5px;
 }
 
 #page-level-help-tip li {
@@ -951,4 +960,18 @@ a.z-entity:visited {
 #page-level-help-tip p {
     padding-top: 7px;
     padding-bottom: 7px;
+}
+
+#user-link-container {
+    padding-left: 10px;
+    background: transparent url(/zport/dmd/img/usericon.png) left center no-repeat;
+    font-family: helvetica,arial,sans-serif;
+    font-size: 8pt;
+    font-weight: normal;
+}
+
+#sign-out-link {
+    font-size: 8pt;
+    text-transform: uppercase;
+    padding-right: 5px;
 }
