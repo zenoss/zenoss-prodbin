@@ -39,13 +39,9 @@ class IComponentInfo(IInfo):
                          readonly=True)
     usesMonitorAttribute = Attribute("Should the user be able to set the monitor attribute")
     monitor = Attribute("Has monitoring been enabled on the component")
-    monitored = schema.Bool(title=u"Monitored",
-                            readonly=True,
-                            order=0,
-                            description=u"Is the component being monitored"
+    monitored = Attribute(u"Is the component being monitored"
                             u" (depends on the monitor setting and other"
-                            u" factors). Empty string if not applicable.",
-                            group="Overview")
+                            u" factors). Empty string if not applicable.")
 
 
 class IIpInterfaceInfo(IComponentInfo):
