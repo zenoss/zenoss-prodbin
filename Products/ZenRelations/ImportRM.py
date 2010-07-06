@@ -29,7 +29,7 @@ import transaction
 import zope.component
 from zope.event import notify
 from DateTime import DateTime
-from xml.sax import make_parser, saxutils
+from xml.sax import make_parser, saxutils, SAXParseException
 from xml.sax.handler import ContentHandler
 
 from Acquisition import aq_base
@@ -456,6 +456,10 @@ for a ZenPack.
         parser.setContentHandler(self)
         try:
             parser.parse(self.infile)
+        except SAXParseException, ex:
+            self.log.error("XML parse error at line %d column %d: %s",
+                   ex.getLineNumber(), ex.getColumnNumber(),
+                   ex.getMessage())
         finally:
             self.infile.close()
 
