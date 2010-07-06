@@ -34,16 +34,17 @@
             autoHeight = true,
             that = this; // used in the save handler closure
             this.itemCount = 0;
-            
             // make sure the record was passed in
             if (!record) {
                 throw "EditDialog did not recieve a record to edit (config.record is undefined)";
             }
             
             if (!config.singleColumn) {
-                items = this.sortItems(items, record);  
+                items = this.sortItems(items, record);      
             }else{
-                // NOTE: this assumes there to be no fieldsets in the items 
+                // the items come in the form of a single fieldset
+                // and we can not have a fieldset because it looks ugly in a dialog
+                items = items.items[0].items;
                 for(i=0; i<items.length; i+=1) {
                     items[i].record = record;
                     this.itemCount += 1;
