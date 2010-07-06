@@ -11,13 +11,16 @@
 #
 ###########################################################################
 
-from PerformanceConfig import PerformanceConfig
+import logging
+log = logging.getLogger('zen.CommandConfig')
+
 from ZODB.POSException import POSError
+
+from PerformanceConfig import PerformanceConfig
 from Products.ZenRRD.zencommand import Cmd, DeviceConfig, DataPointConfig
 from Products.ZenHub.PBDaemon import translateError
 from Products.DataCollector.Plugins import getParserLoader
-import logging
-log = logging.getLogger('zen.CommandConfig')
+from Products.ZenEvents.ZenEventClasses import Warning
 
 def getComponentCommands(comp, commandCache, commandSet, dmd):
     """Return list of command definitions.
@@ -48,7 +51,22 @@ def getComponentCommands(comp, commandCache, commandSet, dmd):
                 points.append(dpc)
             cmd = Cmd()
             cmd.useSsh = getattr(ds, 'usessh', False)
-            cmd.cycleTime = ds.cycletime
+            try:
+                cmd.cycleTime = int(ds.cycletime)
+            except ValueError:
+                message = "Unable to convert the cycle time '%s' to an " \
+                          "integer for %s/%s on %s" \
+                          " -- setting to 300 seconds" % (
+                          ds.cycletime, templ.id, ds.id, comp.device().id)
+                log.error(message)
+                component = ds.getPrimaryUrlPath()
+                dedupid = "Unable to convert cycletime for %s" % component
+                dmd.ZenEventManager.sendEvent(dict(
+                    device=comp.device().id, component=component,
+                    eventClass='/Cmd', severity=Warning, summary=message,
+                    dedupid=dedupid,
+                ))
+                cmd.cycleTime = 300
             cmd.component = component_name
             cmd.eventClass = ds.eventClass
             cmd.eventKey = ds.eventKey or ds.id
@@ -66,9 +84,17 @@ def getDeviceCommands(dev):
         return None
     cache = {}
     cmds = set()
-    threshs = getComponentCommands(dev, cache, cmds, dev.getDmd())
+    try:
+        threshs = getComponentCommands(dev, cache, cmds, dev.getDmd())
+    except (SystemExit, KeyboardInterrupt), ex:
+        log.exception("Unable to process device commands for %s -- skipping",
+                          dev.id)
     for o in dev.getMonitoredComponents(collector="zencommand"):
-        threshs.extend(getComponentCommands(o, cache, cmds, dev.getDmd()))
+        try:
+            threshs.extend(getComponentCommands(o, cache, cmds, dev.getDmd()))
+        except (SystemExit, KeyboardInterrupt), ex:
+            log.exception("Unable to process component commands for %s %s -- skipping",
+                          dev.id, o.id)
     if cmds:
         d = DeviceConfig()
         d.lastChange = dev.getLastChange()
@@ -116,7 +142,8 @@ class CommandConfig(PerformanceConfig):
                 result.append(cmdinfo)
             except POSError: raise
             except:
-                self.log.exception("device %s", dev.id)
+                self.log.exception("getDeviceCommands() exception for device %s",
+                     dev.id)
         return result
 
     def update(self, object):
@@ -126,4 +153,4 @@ class CommandConfig(PerformanceConfig):
                 return
 
         PerformanceConfig.update(self, object)
-        
+
