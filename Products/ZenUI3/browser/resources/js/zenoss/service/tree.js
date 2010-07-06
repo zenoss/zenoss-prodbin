@@ -148,14 +148,13 @@
                     sourceUids: sourceUids, 
                     targetUid: targetUid
                 },
-                this.moveServicesCallback, 
+                this.moveServicesCallback(dropEvent.target.attributes.id),
                 this);
-
-            // Immediately change form's context so we never request the old uid
-            Ext.getCmp('serviceForm').setContext(targetUid);
         },
-        moveServicesCallback: function() {
-            this.getRootNode().reload(this.rootNodeReloadCallback, this);
+        moveServicesCallback: function(targetId) {
+            Ext.History.add('navTree' + Ext.History.DELIMITER + targetId);
+            window.location.reload(); // instructed to by management :)
+            //this.getRootNode().reload(this.rootNodeReloadCallback, this);
         },
         rootNodeReloadCallback: function() {
             this.getRootNode().select();
