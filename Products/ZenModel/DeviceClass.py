@@ -203,10 +203,12 @@ class DeviceClass(DeviceOrganizer, ZenPackable, TemplateContainer):
         if not moveTarget or not deviceNames: return self()
         target = self.getDmdRoot(self.dmdRootName).getOrganizer(moveTarget)
         if type(deviceNames) == types.StringType: deviceNames = (deviceNames,)
+        newPath = target.absolute_url_path() + '/'
         for devname in deviceNames:
             dev = self.findDeviceByIdExact(devname)
             if not dev: continue
             source = dev.deviceClass().primaryAq()
+            oldPath = source.absolute_url_path() + '/'
             if dev.__class__ != target.getPythonDeviceClass():
                 import StringIO
                 from Products.ZenRelations.ImportRM import NoLoginImportRM
@@ -236,7 +238,9 @@ class DeviceClass(DeviceOrganizer, ZenPackable, TemplateContainer):
                     nl = "<" + " ".join(al) + ">\n"
                     o.seek(0)
                     nf = ["<objects>", nl]
-                    nf.extend(o.readlines()[1:])
+                    data = [line.replace(oldPath, newPath) \
+                               for line in o.readlines()[1:]]
+                    nf.extend(data)
                     nf.append('</objects>')
                     return StringIO.StringIO("".join(nf))
 
@@ -272,7 +276,7 @@ class DeviceClass(DeviceOrganizer, ZenPackable, TemplateContainer):
                 else:
                     module = 'Products.ZenModel.Device'
                     klass = 'Device'
-                xmlfile = devExport(dev, module,klass)
+                xmlfile = devExport(dev, module, klass)
                 log.info('Removing device %s from %s', devname, source)
                 source.devices._delObject(devname)
                 devImport(xmlfile)
