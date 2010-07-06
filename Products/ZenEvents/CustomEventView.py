@@ -103,15 +103,26 @@ class CustomEventView(ZenModelRM, EventFilter):
         return crumbs
 
 
+    def getEventViewURL(self):
+        """Return the url for the default screen for this custom view.
+        """
+        tpl = 'viewEvents' if self.type == "status" else 'viewHistoryEvents'
+        return '%s/%s' % (self.absolute_url_path(), tpl)
+
+
     def getEventView(self):
         """Return the default screen for this custom view.
         """
-        if self.type == "status":
-            tpl = 'viewEvents'
-        else:
-            tpl = 'viewHistoryEvents'
-        url = '%s/%s' % (self.absolute_url_path(), tpl)
-        self.REQUEST.response.redirect(url)
+        self.REQUEST.response.redirect(self.getEventViewURL())
+
+
+    def getEventPill(self, number=5):
+        """
+        Get the event pill for this event view.
+        """
+        from Products.ZenEvents.browser.EventPillsAndSummaries import getEventPill
+        return getEventPill(self.getEventManager(), self.getWhere(), number,
+                            url=self.getEventViewURL())
 
 
     def getEventManager(self):

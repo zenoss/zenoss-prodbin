@@ -22,6 +22,7 @@ from zope.interface import Interface, implements
 from Products.ZenUtils.FakeRequest import FakeRequest
 from Products.ZenUtils.Utils import unused
 
+
 class IEventView(Interface):
     """
     Marker interface for objects which have event views.
@@ -69,7 +70,6 @@ class EventView(object):
         """Return an event summary list for this managed entity.
         """
         return self.getEventManager().getEventSummaryME(self, severity, state, prodState)
-
 
     def getEventOwnerList(self, severity=0, state=1):
         """Return list of event owners for this mangaed entity.

@@ -114,6 +114,40 @@ def getDashboardObjectsEventSummary(zem, objects, REQUEST=None):
     return getObjectsEventSummary(zem, objects, thold, REQUEST)
 
 
+def _getPill(summary, url=None, number=3):
+    iconTemplate = """
+        <td class="severity-icon-small 
+            %(severity)s %(noevents)s">
+            %(count)s
+        </td>
+    """
+    rainbowTemplate = """
+    <table onclick="location.href='%(url)s';"
+        class="eventrainbow eventrainbow_cols_%(number)s">
+        <tr>%(cells)s</tr>
+    </table>
+    """
+    stati = "critical error warning info debug".split()
+    summary =[x[2] for x in summary]
+
+    cells = []
+    for i, count in enumerate(summary[:number]):
+        cells.append(iconTemplate % {
+            'noevents': '' if count else 'no-events',
+            'severity': stati[i],
+            'count':count
+        })
+    return rainbowTemplate % {
+        'url': url,
+        'cells': ''.join(cells),
+        'number': number
+    }
+
+def getEventPill(zem, where, number=3, minSeverity=0, showGreen=True,
+                 prodState=None, url=None):
+    summary = zem.getEventSummary(where, minSeverity, prodState)
+    return _getPill(summary, url, number)
+
 def getEventPillME(zem, me, number=3, minSeverity=0, showGreen=True,
                    prodState=None):
     """
@@ -134,37 +168,9 @@ def getEventPillME(zem, me, number=3, minSeverity=0, showGreen=True,
     @return: HTML strings ready for template inclusion
     @rtype: list
     """
-    iconTemplate = """
-        <td class="severity-icon-small 
-            %(severity)s %(noevents)s">
-            %(count)s
-        </td>
-    """
-    rainbowTemplate = """
-    <table onclick="location.href='%(url)s';"
-        class="eventrainbow eventrainbow_cols_%(number)s">
-        <tr>%(cells)s</tr>
-    </table>
-    """
     evsum = zem.getEventSummaryME(me, minSeverity, prodState=prodState)
-    summary =[x[2] for x in evsum]
-    stati = "critical error warning info debug".split()
-    info = ["%s out of %s acknowledged" % (x[1],x[2])
-            for x in evsum]
-
-    cells = []
-    for i, count in enumerate(summary[:number]):
-        cells.append(iconTemplate % {
-            'noevents': '' if count else 'no-events',
-            'severity': stati[i],
-            'count':count
-        })
     url = getEventsURL(me)
-    return rainbowTemplate % {
-        'url': url,
-        'cells': ''.join(cells),
-        'number': number
-    }
+    return _getPill(evsum, url, number)
 
 
 organizerTypes = {

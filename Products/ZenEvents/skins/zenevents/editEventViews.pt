@@ -35,66 +35,27 @@
                             tableName,'type','Type')"/>
     <th class="tableheader">Events</th>
     </tr>
-    <tal:block tal:repeat="view batch">
-    <tr tal:define="odd repeat/view/odd"
+    <tal:block tal:repeat="vw batch">
+    <tr tal:define="odd repeat/vw/odd"
         tal:attributes="class python:odd and 'odd' or 'even'">
         <td class="tablevalues">
           <tal:block tal:condition="python:here.checkRemotePerm('Change Event Views',
              here)" >
             <input type="checkbox" name="ids:list" 
-                tal:attributes="value view/getId"/>
+                tal:attributes="value vw/getId"/>
           </tal:block>
-            <a tal:attributes="href view/getPrimaryUrlPath"
-                tal:content="view/getId">view</a>
+            <a tal:attributes="href vw/getPrimaryUrlPath"
+                tal:content="vw/getId">view</a>
         </td>
         <td class="tablevalues" 
         tal:condition="python:not here.checkRemotePerm('Change Event Views',
                 here)"
-            tal:content="view/getId"/>
-        <td class="tablevalues" tal:content="view/type"/>
+            tal:content="vw/getId"/>
+        <td class="tablevalues" tal:content="vw/type"/>
         <td class="tablevalues" width="300">
-<tal:block metal:define-macro="horizontal">
-<tal:block tal:define="
-    zem python:view.ZenEventManager;
-    colors python:'red orange yellow blue grey green'.split();
-    summaries python:view.getEventSummary();
-    totals python:[x[2] for x in summaries];
-    ackstatus python:[x[2]-x[1] for x in summaries];
-    ">
-    <div class="horizontal-rainbow"
-    onclick="location.href=YAHOO.zenoss.templateFreeURL+'/viewEvents'">
-        <tal:block tal:repeat="evnum python:totals[:-1]">
-        <div tal:define="color python:colors[repeat['evnum'].index]"
-            tal:attributes="class string:evpill-${color}"
-            style="float:left">
-            <span tal:content="evnum">0</span>
-            <div tal:condition="python:ackstatus[repeat['evnum'].index]<=0">
+            <div class="horizontal-rainbow">
+                <tal:block tal:content="structure python:vw.getEventPill(number=5)"/>
             </div>
-        </div>
-        </tal:block>
-        <div class="evpill-green" style="float:left">
-            <div tal:condition="python:filter(lambda x:x, 
-                                              map(int, totals[:-1]))">
-            </div>
-        </div>
-    </div>
-</tal:block>
-</tal:block>
-        
-       <!--
-       <table class=" zentable" border=0 cellpadding=0 cellspacing=1
-            metal:define-macro="eventrainbow"
-            tal:on-error="structure string:
-                <span class='errorvalues'>Events unavailable</span>">
-            <tr>
-                <td align=center width=16%
-                tal:repeat="evt view/getEventSummary"
-                tal:attributes="class python:evt[0]">
-                    <span tal:replace="python:'%d/%d' % (evt[1],evt[2])"/>
-                </td>
-          </tr>
-        </table>
--->
         </td>
     </tr>
     </tal:block>
