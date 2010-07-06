@@ -143,12 +143,14 @@
             }
             dropEvent.target.expand();
             targetUid = dropEvent.target.attributes.uid;
+            targetId = dropEvent.target.attributes.id;
             Zenoss.remote.ServiceRouter.moveServices(
                 {
                     sourceUids: sourceUids, 
                     targetUid: targetUid
+                }, function () {
+                    this.moveServicesCallback(targetId);
                 },
-                this.moveServicesCallback(dropEvent.target.attributes.id),
                 this);
         },
         moveServicesCallback: function(targetId) {
