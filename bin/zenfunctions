@@ -9,20 +9,28 @@
 # For complete information please visit: http://www.zenoss.com/oss/
 #############################################################################
 
-INSTANCE_HOME=$ZENHOME
-export INSTANCE_HOME
+# Bitrock installer sets the following variables properly for the stack
+# in setenv.sh.  Avoid undoing that goodness.
+# NB: This should probably be refactored per MT's idea of generalizing
+# setenv.sh for all artifacts.
 
+if [ -z "$ZENOSS_BITROCK_STACK" ];then
+   INSTANCE_HOME=$ZENHOME
+   export INSTANCE_HOME
+   if [ -d /usr/lib/zope ] ; then
+      # appliance
+      ZOPEHOME=/usr/lib/zope
+      PYTHONPATH=$ZENHOME/lib/python:$ZOPEHOME/lib/python
+   else
+      # rpm / source build
+      ZOPEHOME=$ZENHOME
+      PYTHONPATH=$ZENHOME/lib/python
+   fi
+   export PYTHONPATH
+fi
+PYTHON=$ZENHOME/bin/python
 SYBASE=$ZENHOME/sybase
 export SYBASE
-
-ZOPEHOME=$ZENHOME
-if [ -d /usr/lib/zope ] ; then
-   ZOPEHOME=/usr/lib/zope
-fi
-
-PYTHON=$ZOPEHOME/bin/python
-PYTHONPATH=$ZENHOME/lib/python:$ZOPEHOME/lib/python
-export PYTHONPATH
 
 VARDIR=$ZENHOME/var
 CFGDIR=$ZENHOME/etc
