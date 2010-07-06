@@ -77,16 +77,9 @@ Ext.onReady(function(){
         })
     ];
 
-    // Add the row info panel and bottom toolbar
-    Ext.getCmp('master_panel').add({
-        xtype: 'toolbar',
-        region: 'south',
-        border: false,
-        frame: false,
-        style: {'border-top':'1px solid #888'},
-        height: 25,
-        items: toolbar_items
-    });
+    Ext.each(toolbar_items, 
+            function(item) {this.add(item);}, 
+            Ext.getCmp('footer_bar'));
 });
 </script>
 </tal:block>

@@ -343,6 +343,7 @@ table.proptable {
     font-weight: bold;
     padding-right: 1em;
     padding-bottom: 3px;
+    margin-top: 4px;
     text-transform: uppercase;
 }
 

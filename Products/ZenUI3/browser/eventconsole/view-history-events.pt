@@ -79,7 +79,10 @@ Ext.state.Manager.setProvider(new Ext.state.CookieProvider({
 Ext.onReady(function(){
     var toolbar_items = [
         new Ext.Toolbar.TextItem({
-            text: '<a href="viewEvents'+location.search+'">Event Console...<'+'/a'+'>'
+            text: '<a href="viewEvents'+location.search+'">Event Console...<'+'/a'+'>',
+            style: {
+                marginTop: '4px'
+            }
         }),
         new Ext.Toolbar.Fill({}),
         new Zenoss.LiveGridInfoPanel({
@@ -87,16 +90,9 @@ Ext.onReady(function(){
         })
     ];
 
-    // Add the row info panel and bottom toolbar
-    Ext.getCmp('master_panel').add({
-        xtype: 'toolbar',
-        region: 'south',
-        border: false,
-        frame: false,
-        style: {'border-top':'1px solid #888'},
-        height: 25,
-        items: toolbar_items
-    });
+    Ext.each(toolbar_items, 
+            function(item) {this.add(item);}, 
+            Ext.getCmp('footer_bar'));
 });
 </script>
 </tal:block>
