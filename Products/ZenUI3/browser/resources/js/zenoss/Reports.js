@@ -198,6 +198,9 @@ Zenoss.ReportTreePanel = Ext.extend(Zenoss.HierarchyTreePanel, {
                 parentNode.removeChild(node);
                 node.destroy();
                 tree.update(data.tree);
+                // the select() above is insufficient; 
+                // the url refers to the deleted node still. 
+                parentNode.fireEvent('click', parentNode);
             }
         }
         this.router.deleteNode(params, callback);
@@ -227,14 +230,19 @@ treesm = new Ext.tree.DefaultSelectionModel({
             if (newnode == null) {
                 return;
             }
-            if (newnode.attributes.leaf && !initialContextSet) {
+            var attrs = newnode.attributes;
+            if (attrs.leaf && !initialContextSet) {
                 initialContextSet = true;
-                report_panel.setContext(newnode.attributes.uid + '?adapt=false');
+                report_panel.setContext(attrs.uid + '?adapt=false');
             }
-            Ext.getCmp('add-organizer-button').setDisabled(newnode.attributes.leaf);
-            Ext.getCmp('add-to-zenpack-button').setDisabled(newnode.attributes.leaf);
-            Ext.getCmp('edit-button').setDisabled(!/^(Device|(Multi)?Graph)Report$/.test(newnode.attributes.meta_type));
-            Ext.getCmp('delete-button').setDisabled(!newnode.attributes.deletable);
+            if (!attrs.leaf) {
+                report_panel.setContext('');
+            }
+            Ext.getCmp('add-organizer-button').setDisabled(attrs.leaf);
+            Ext.getCmp('add-to-zenpack-button').setDisabled(attrs.leaf);
+            Ext.getCmp('edit-button').setDisabled
+                    (!/^(Device|(Multi)?Graph)Report$/.test(attrs.meta_type));
+            Ext.getCmp('delete-button').setDisabled(!attrs.deletable);
         }
     }
 });

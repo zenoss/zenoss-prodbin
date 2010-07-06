@@ -105,7 +105,7 @@ class ReportRouter(DirectRouter):
         if represented.absolute_url_path() in ReportRouter._essentialNodes:
             return DirectResponse.fail('Not deleting "%s"' % \
                     represented.absolute_url_path())
-        represented.getParentNode().zmanage_delObjects([represented.titleOrId()])
+        represented.getParentNode().zmanage_delObjects([represented.id])
         return DirectResponse.succeed(tree=self.getTree())
 
 
