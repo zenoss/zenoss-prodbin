@@ -412,10 +412,10 @@ class EventManagerBase(ZenModelRM, ObjectCache, DbAccessBase):
                 # get all list of devices where title match the search term
                 deviceids = self._getDeviceIdsMatching(v)
                 if deviceids:
-                    newwhere += " and device IN ('%s') " % "','".join(deviceids)
+                    newwhere += " and (device REGEXP %%s OR device IN ('%s')) " % "','".join(deviceids)
                 else:
-                    newwhere += ' and (%s REGEXP %%s) ' % (k,)
-                    queryValues.append(v)
+                    newwhere += " and (%s REGEXP %%s) " % (k,)
+                queryValues.append(v)
             elif k=='component':
                 componentWhere = ""
                 componentids = self._getComponentIdsMatching(v)
