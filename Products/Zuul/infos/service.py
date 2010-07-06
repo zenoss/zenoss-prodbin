@@ -59,11 +59,6 @@ class ServiceInfoBase(InfoBase):
             return {False: 'No', True: 'Yes'}[rawValue]
         return getZPropertyInfo(self._object, 'zMonitor', True, translate)
 
-    def setZMonitor(self, data):
-        setZPropertyInfo(self._object, 'zMonitor', **data)
-
-    zMonitor = property(getZMonitor, setZMonitor)
-
     def getZFailSeverity(self):
         def translate(rawValue):
             return {5: 'Critical',
@@ -81,6 +76,14 @@ class ServiceInfoBase(InfoBase):
 
 class ServiceInfo(ServiceInfoBase):
     implements(IServiceInfo)
+
+    def setZMonitor(self, data):
+        oldZMonitor = self._object.zMonitor
+        setZPropertyInfo(self._object, 'zMonitor', **data)
+        if self._object.zMonitor != oldZMonitor:
+            self._object._indexInstances()
+
+    zMonitor = property(ServiceInfoBase.getZMonitor, setZMonitor)
 
     def getServiceKeys(self):
         return self._object.serviceKeys
@@ -125,3 +128,11 @@ class WinServiceClassInfo(ServiceInfo):
 class ServiceOrganizerInfo(ServiceInfoBase):
     implements(IServiceOrganizerInfo)
     adapts(ServiceOrganizer)
+
+    def setZMonitor(self, data):
+        oldZMonitor = self._object.zMonitor
+        setZPropertyInfo(self._object, 'zMonitor', **data)
+        if self._object.zMonitor != oldZMonitor:
+            self._object._indexServiceClassInstances()
+
+    zMonitor = property(ServiceInfoBase.getZMonitor, setZMonitor)
