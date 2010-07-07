@@ -140,18 +140,21 @@ class TreeFacade(ZuulFacade):
         brains = cat.search(self._instanceClass, start=start, limit=limit,
                             orderby=sort, reverse=reverse)
         objs = imap(unbrain, brains)
+        
         # the objects returned by the catalog search are wrapped in the
         # acquisition context of their primary path. Switch these objects
         # to the context of the parent indentified by the uid parameter.
-        def switchContext(obj):
-            parent = self._getSecondaryParent(obj)
-            parent = aq_base(parent).__of__(parent.getPrimaryParent())
+        def switchContext(objs):
+            for obj in objs:
+                parentInWrongContext = self._getSecondaryParent(obj)
+                if parentInWrongContext is None:
+                    continue
+                parent = aq_base(parentInWrongContext).__of__(parentInWrongContext.getPrimaryParent())
+                yield aq_base(obj).__of__(parent.instances)
 
-            return aq_base(obj).__of__(parent.instances)
-        instances = imap(switchContext, objs)
+        instances = switchContext(objs)
         # convert to info objects
-        return SearchResults(imap(IInfo, instances), brains.total,
-                             brains.hash_)
+        return SearchResults(imap(IInfo, instances), brains.total, brains.hash_)
 
     def _parameterizedWhere(self, uid=None):
         cat = ICatalogTool(self._dmd)
