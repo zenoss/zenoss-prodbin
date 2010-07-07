@@ -90,6 +90,7 @@ class MessageProcessor(object):
         self.message = message
         
         fromAddr = message.get('From')
+        origFromAddr = fromAddr
         log.debug("Found a 'from' address of %s" % fromAddr)
         if not fromAddr or fromAddr.find('@') == -1:
             log.warning("Unable to process the 'from' address %s -- ignoring mail" \
@@ -127,7 +128,8 @@ class MessageProcessor(object):
         secs = calendar.timegm(dt.utctimetuple())
         log.info('Timestamp of the event (should be in UTC): %f' % secs)
 
-        event = MailEvent(device=fromAddr, rcvtime=secs)
+        event = MailEvent(device=fromAddr, rcvtime=secs,
+                          fromEmailAddress=origFromAddr)
         if fromIp:
             event.ipAddress = fromIp
 
