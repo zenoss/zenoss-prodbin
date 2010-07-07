@@ -10,4 +10,4 @@
 # For complete information please visit: http://www.zenoss.com/oss/
 #
 ###########################################################################
-VERSION="2.5.70"
+VERSION="3.0.70"
