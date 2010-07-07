@@ -15,6 +15,8 @@ import logging
 from zope.interface import implements
 from Products.AdvancedQuery import MatchRegexp, And
 from Products.ZenModel.ServiceClass import ServiceClass
+from Products.ZenModel.IpServiceClass import IpServiceClass
+from Products.ZenModel.WinServiceClass import WinServiceClass
 from Products.ZenModel.ServiceOrganizer import ServiceOrganizer
 from Products.Zuul.facades import TreeFacade
 from Products.Zuul.utils import unbrain, UncataloguedObjectException
@@ -30,9 +32,14 @@ log = logging.getLogger('zen.ServiceFacade')
 class ServiceFacade(TreeFacade):
     implements(IServiceFacade, ITreeFacade)
 
-    @property
-    def _classFactory(self):
-        return ServiceClass
+    def _classFactory(self, contextUid):
+        if contextUid.startswith("/zport/dmd/Services/IpService"):
+            classFactory = IpServiceClass
+        elif contextUid.startswith("/zport/dmd/Services/WinService"):
+            classFactory = WinServiceClass
+        else:
+            raise Exception("Invalid service context UID: " + contextUid)
+        return classFactory
 
     @property
     def _classRelationship(self):

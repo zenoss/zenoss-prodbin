@@ -38,8 +38,7 @@ class DeviceFacade(TreeFacade):
     """
     implements(IDeviceFacade)
 
-    @property
-    def _classFactory(self):
+    def _classFactory(self, contextUid):
         return DeviceClass
 
     @property

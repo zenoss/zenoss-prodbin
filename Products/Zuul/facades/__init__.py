@@ -206,7 +206,7 @@ class TreeFacade(ZuulFacade):
 
     def addClass(self, contextUid, id):
         context = self._getObject(contextUid)
-        _class = self._classFactory(id)
+        _class = self._classFactory(contextUid)(id)
         relationship = getattr(context, self._classRelationship)
         checkValidId(relationship, id)
         relationship._setObject(id, _class)
