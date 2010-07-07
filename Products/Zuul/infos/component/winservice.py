@@ -23,7 +23,10 @@ class WinServiceInfo(ComponentInfo):
 
     def __init__(self, *args, **kwargs):
         super(ComponentInfo, self).__init__(*args, **kwargs)
-        self.serviceClassUid = self._object.serviceclass().getPrimaryUrlPath()
+        if self._object.serviceclass() is not None:
+            self.serviceClassUid = self._object.serviceclass().getPrimaryUrlPath()
+        else:
+            self.serviceClassUid = ""
 
     @property
     @info
