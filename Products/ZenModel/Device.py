@@ -1115,7 +1115,7 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable,
         Update the device relation and attributes, if passed. If any parameter
         is not passed it will not be updated; the value of any unpassed device
         propeties will remain the same.
-        
+
         @permission: ZEN_CHANGE_DEVICE
         Keyword arguments:
           title              -- device title [string]
@@ -1137,7 +1137,7 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable,
           groupPaths         -- group paths [list]
           systemPaths        -- systen paths [list]
           performanceMonitor -- collector name [string]
-          
+
         """
         if kwargs.has_key("title") and kwargs['title'] is not None:
             log.info("setting title to %r" % kwargs["title"])
@@ -1173,11 +1173,11 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable,
         if kwargs.has_key("productionState"):
             log.info("setting productionState to %r" % kwargs["productionState"])
             self.setProdState(kwargs["productionState"])
-            
+
         if kwargs.has_key("priority"):
             log.info("setting priority to %r" % kwargs["priority"])
             self.setPriority(kwargs["priority"])
-        
+
         if kwargs.has_key("comments"):
             log.info("setting comments to %r" % kwargs["comments"])
             self.comments = kwargs["comments"]
@@ -1243,7 +1243,7 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable,
                 hwManufacturer=hwManufacturer, hwProductName=hwProductName,
                 osManufacturer=osManufacturer, osProductName=osProductName,
                 locationPath=locationPath, groupPaths=groupPaths, systemPaths=systemPaths,
-                performanceMonitor=performanceMonitor, priority=priority, 
+                performanceMonitor=performanceMonitor, priority=priority,
                 zProperties=zProperties, title=title, REQUEST=REQUEST)
         if REQUEST:
             from Products.ZenUtils.Time import SaveMessage

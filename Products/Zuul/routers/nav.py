@@ -83,7 +83,7 @@ class DetailNavRouter(DirectRouter):
                 if menus:
                     detailItems.extend([menuToNav(menu) for menu in menus])
         return DirectResponse(detailConfigs=detailItems)
-    
+
     def getContextMenus(self, uid=None, menuIds=None):
         if uid:
             ob = self.context.dmd.unrestrictedTraverse(uid)

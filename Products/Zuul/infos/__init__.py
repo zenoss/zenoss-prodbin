@@ -47,7 +47,7 @@ class InfoBase(object):
     def __init__(self, object):
         super(InfoBase, self).__init__()
         self._object = object
-            
+
     @property
     def objectProperties(self):
         """
@@ -55,7 +55,7 @@ class InfoBase(object):
         this info is wrapping (ZenModel)
         """
         return self._object._properties
-    
+
     @property
     def uid(self):
         _uid = getattr(self, '_v_uid', None)
@@ -63,6 +63,14 @@ class InfoBase(object):
             _uid = self._v_uid = '/'.join(self._object.getPrimaryPath())
         return _uid
 
+    @property
+    def meta_type(self):
+        return self._object.meta_type
+
+    @property
+    def inspector_type(self):
+        return self._object.meta_type
+        
     @property
     def id(self):
         return self._object.id
@@ -88,7 +96,7 @@ class InfoBase(object):
         Call this when you wish to change the ID of the object, not just its title. This will recatalog it.
         """
         self._object.rename(newId)
-        
+
     def __repr__(self):
         return '<%s Info "%s">' % (self._object.__class__.__name__, self.id)
 

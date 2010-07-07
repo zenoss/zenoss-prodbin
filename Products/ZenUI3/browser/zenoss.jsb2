@@ -177,6 +177,9 @@
         },{
             "text": "MultiLineDisplayField.js",
             "path": "resources/js/zenoss/form/"
+        },{
+            "text": "inspector.js",
+            "path": "resources/js/zenoss/"
         }]
     }],
     "resources": []
