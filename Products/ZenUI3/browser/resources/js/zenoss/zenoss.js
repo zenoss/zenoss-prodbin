@@ -757,6 +757,12 @@ Zenoss.FilterGridView = Ext.extend(Ext.ux.grid.livegrid.GridView, {
     clearFilters: function() {
         this._valid = true;
         Ext.each(this.filters, function(ob){
+            // clear out any original values 
+            // (for instance when we come here from the device page)
+            if (ob.originalValue) {
+                ob.originalValue = null;
+                ob.setValue(null);
+            }
             ob.reset();
         }, this);
         this.updateLiveRows(this.rowIndex, true, true, false);
