@@ -264,7 +264,7 @@
         </tal:block>
         <tal:block metal:fill-slot="frameSlot">
         <div id="frame">
-            <div metal:define-slot="breadcrumbs" id="breadCrumbPane">
+            <div metal:define-slot="breadcrumbs" id="breadCrumbPane" style="margin-left: 0px;">
                <span metal:use-macro="here/miscmacros/macros/upToOrganizerBreadCrumbs" />
             </div>
             <div tal:omit-tag="exists:request/cookies/newui" id="rightPane">
