@@ -11,6 +11,7 @@
 #
 ###########################################################################
 from types import ListType, TupleType
+from BTrees.IIBTree import IISet
 import logging
 LOG = logging.getLogger('ZenUtils.MultiPathIndex')
 
@@ -44,6 +45,41 @@ class MultiPathIndex(ExtendedPathIndex):
     """
     meta_type = "MultiPathIndex"
 
+    def search(self, path, default_level=0, depth=-1, navtree=0,
+                                                             navtree_start=0):
+        
+        results = ExtendedPathIndex.search(self, path, default_level, depth, navtree,
+                                                             navtree_start)
+        return self._pathSanityCheck(path, results)
+
+    def _pathSanityCheck(self, searchPath, pathset):
+        """Extended path index uses a series of set "buckets" to store which items belong at
+        which point on the search path, this can sometimes cause issues if two points on the path
+        have the same name and thus belong to the same bucket
+        For instance:
+        /zport/dmd/Devices/Server/Windows/WMI/devices/test-winxp-1.zenoss.loc/os/software/VMware Tools
+        has another path at
+        /zport/dmd/Manfacturers/VMware/...
+
+        and our search returns a false positive because we search for
+        /zport/dmd/Devices/VMware
+
+        because we have the id for that component returned at each point along the path.
+        
+        So this function iterates through all the return paths and makes sure the path that we are searching
+        for is in the path that is returned
+        """
+        rids = IISet()
+        if not pathset:
+            return 
+        for rid in pathset:
+            paths = self._unindex[rid]
+            for path in paths:
+                if path.startswith(searchPath):
+                    rids.insert(rid)
+                    break            
+        return rids
+    
     def getIndexSourceNames(self):
         """ return names of indexed attributes """
         return (self.id, )
