@@ -539,7 +539,7 @@ class BaseZenActions(object):
         """Create events for failed heartbeats.
         """
         # build cache of existing heartbeat issues
-        q = ("SELECT monitor, component "
+        q = ("SELECT device, component "
              "FROM status WHERE eventClass = '%s'" % Status_Heartbeat)
         heartbeatState = Set(self.query(q))
            
