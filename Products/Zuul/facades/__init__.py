@@ -26,6 +26,7 @@ definition of the interface that they implement.
 import logging
 from itertools import imap
 from Acquisition import aq_base, aq_parent
+from zope.event import notify
 from OFS.ObjectManager import checkValidId
 from zope.interface import implements
 
@@ -37,6 +38,7 @@ from Products.Zuul.utils import unbrain, get_dmd, UncataloguedObjectException
 from Products.Zuul.tree import SearchResults
 from Products.ZenUtils.IpUtil import numbip, checkip, IpAddressError, ensureIp
 from Products.ZenUtils.IpUtil import getSubnetBounds
+from Products.Zuul.catalog.events import IndexingEvent
 
 log = logging.getLogger('zen.Zuul')
 
@@ -228,10 +230,15 @@ class TreeFacade(ZuulFacade):
         to move the organizer
         @param string organizerUid: unique id of the ogranizer we are moving
         """
+        
         organizer = self._getObject(organizerUid)
         parent = organizer.getPrimaryParent()
         parent.moveOrganizer(targetUid, [organizer.id])
         target = self._getObject(targetUid)
+        # reindex all the devices under the organizer
+        for dev in parent.getSubDevices():
+            dev.index_object()
+            notify(IndexingEvent(dev, 'path'))
         return IOrganizerInfo(target._getOb(organizer.id))
 
 
