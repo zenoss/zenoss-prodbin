@@ -65,7 +65,6 @@ Ext.onReady( function() {
             header: _t('Count'),
             id: 'count',
             width: 50,
-            renderer: zsn.nonZeroRenderer,
             filter: false
         }
     ];

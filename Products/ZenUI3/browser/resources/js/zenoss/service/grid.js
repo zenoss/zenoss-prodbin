@@ -42,10 +42,8 @@
         }
         
     });
-    
-    Ext.reg('servicenavgridview', zs.GridView);
 
-    zs.nonZeroRenderer = function(v) { return (v > 0 ? v : ''); };
+    Ext.reg('servicenavgridview', zs.GridView);
 
     // handles the SelectionModel's rowselect event
     zs.rowselectHandler = function(sm, rowIndex, dataRecord) {
@@ -83,8 +81,8 @@
             }, [
                 {name:'name', type:'string'},
                 {name:'description', type:'string'},
-                {name:'port', type:'string'},
-                {name:'count', type:'string'},
+                {name:'port', type:'int'},
+                {name:'count', type:'int', sortDir: 'DESC'},
                 {name:'uid', type:'string'}
                 ]) // reader
     };
@@ -104,7 +102,6 @@
                 header : _t('Count'),
                 id : 'count',
                 width : 50,
-                renderer : zs.nonZeroRenderer,
                 filter : false
             }
         ]
