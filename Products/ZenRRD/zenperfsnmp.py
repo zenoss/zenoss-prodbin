@@ -798,8 +798,8 @@ class zenperfsnmp(SnmpDaemon):
                 beenWaiting = time.time() - age
                 if beenWaiting >= self.perfsnmpCycleInterval \
                         * CYCLES_TO_WAIT_FOR_RESPONSE:
-                    summary = 'Slow snmp response from %s after %s cycles.'
-                        % (device, CYCLES_TO_WAIT_FOR_RESPONSE))
+                    summary = 'Slow snmp response from %s after %s cycles.' % \
+                        (device, CYCLES_TO_WAIT_FOR_RESPONSE,)
                     self.sendEvent(proxy.snmpStatus.snmpStatusEvent,
                        eventClass=Perf_Snmp,
                        device=deviceName,
