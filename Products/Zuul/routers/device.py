@@ -134,14 +134,14 @@ class DeviceRouter(TreeRouter):
 
         facade = self._getFacade()
         try:
-            facade.moveDevices(uids, target)
+            exports = facade.moveDevices(uids, target)
         except Exception, e:
             log.exception(e)
             return DirectResponse.fail('Failed to move devices.')
         else:
             target = '/'.join(target.split('/')[:4])
             tree = self.getTree(target)
-            return DirectResponse.succeed(tree=tree)
+            return DirectResponse.succeed(tree=tree, exports=exports)
 
     @require('Manage Device')
     def pushChanges(self, uids, hashcheck, ranges=(), uid=None, params=None,

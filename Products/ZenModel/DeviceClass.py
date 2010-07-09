@@ -204,12 +204,14 @@ class DeviceClass(DeviceOrganizer, ZenPackable, TemplateContainer):
         target = self.getDmdRoot(self.dmdRootName).getOrganizer(moveTarget)
         if type(deviceNames) == types.StringType: deviceNames = (deviceNames,)
         newPath = target.absolute_url_path() + '/'
+        targetClass = target.getPythonDeviceClass()
+        numExports = 0
         for devname in deviceNames:
             dev = self.findDeviceByIdExact(devname)
             if not dev: continue
             source = dev.deviceClass().primaryAq()
             oldPath = source.absolute_url_path() + '/'
-            if dev.__class__ != target.getPythonDeviceClass():
+            if dev.__class__ != targetClass:
                 import StringIO
                 from Products.ZenRelations.ImportRM import NoLoginImportRM
 
@@ -227,22 +229,28 @@ class DeviceClass(DeviceOrganizer, ZenPackable, TemplateContainer):
                     @return: XML representation of the class
                     @rtype: string
                     """
+                    from xml.dom.minidom import parse
+
                     o.seek(0)
-                    l = o.readline()
-                    al = l[1:-2].split()
-                    for i in range(len(al)):
-                        if al[i].startswith('module'):
-                            al[i] = "module='%s'" % module
-                        elif al[i].startswith('class'):
-                            al[i] = "class='%s'" % klass
-                    nl = "<" + " ".join(al) + ">\n"
-                    o.seek(0)
-                    nf = ["<objects>", nl]
-                    data = [line.replace(oldPath, newPath) \
-                               for line in o.readlines()[1:]]
-                    nf.extend(data)
-                    nf.append('</objects>')
-                    return StringIO.StringIO("".join(nf))
+                    dom = parse(o)
+                    root = dom.childNodes[0]
+                    root.setAttribute('module', module)
+                    root.setAttribute('class', klass)
+                    for obj in root.childNodes:
+                        if obj.nodeType != obj.ELEMENT_NODE:
+                            continue
+                        if obj.tagName != 'property':
+                            root.removeChild(obj)   
+                        else:
+                            name = obj.getAttribute('id')
+                            if name in ('zCollectorPlugins', 'zDeviceTemplates') or \
+                               name.endswith('Ignore'):
+                                root.removeChild(obj)
+
+                    importFile = StringIO.StringIO()
+                    dom.writexml(importFile)
+                    importFile.seek(0)
+                    return importFile
 
                 def devExport(d, module, klass):
                     """
@@ -276,10 +284,13 @@ class DeviceClass(DeviceOrganizer, ZenPackable, TemplateContainer):
                 else:
                     module = 'Products.ZenModel.Device'
                     klass = 'Device'
+                log.debug('Exporting device %s from %s', devname, source)
                 xmlfile = devExport(dev, module, klass)
-                log.info('Removing device %s from %s', devname, source)
+                log.debug('Removing device %s from %s', devname, source)
                 source.devices._delObject(devname)
+                log.debug('Importing device %s to %s', devname, target)
                 devImport(xmlfile)
+                numExports += 1
             else:
                 dev._operation = 1
                 source.devices._delObject(devname)
@@ -289,6 +300,7 @@ class DeviceClass(DeviceOrganizer, ZenPackable, TemplateContainer):
             dev.setAdminLocalRoles()
             dev.index_object()
             transaction.commit()
+        return numExports
 
 
     security.declareProtected(ZEN_DELETE_DEVICE, 'removeDevices')

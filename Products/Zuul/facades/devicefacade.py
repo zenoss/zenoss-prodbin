@@ -251,6 +251,7 @@ class DeviceFacade(TreeFacade):
         assert isinstance(target, DeviceOrganizer)
         devs = (self._getObject(uid) for uid in uids)
         targetname = target.getOrganizerName()
+        exports = 0
         if isinstance(target, DeviceGroup):
             for dev in devs:
                 paths = set(dev.getDeviceGroupNames())
@@ -265,7 +266,8 @@ class DeviceFacade(TreeFacade):
             for dev in devs:
                 dev.setLocation(targetname)
         elif isinstance(target, DeviceClass):
-            self._dmd.Devices.moveDevices(targetname,[dev.id for dev in devs])
+            exports = self._dmd.Devices.moveDevices(targetname,[dev.id for dev in devs])
+        return exports
 
 
     def addDevice(self, deviceName, deviceClass, title=None, snmpCommunity="",
