@@ -197,6 +197,9 @@ class TreeFacade(ZuulFacade):
     def getEventSummary(self, uid=None):
         zem = self._dmd.ZenEventManager
         where = self._parameterizedWhere(uid)
+        # we have nothing to search on so do not return everything
+        if not where:
+            return []
         summary = zem.getEventSummary(parameterizedWhere=where)
         severities = (c[0].lower() for c in zem.severityConversions)
         counts = (s[2] for s in summary)
