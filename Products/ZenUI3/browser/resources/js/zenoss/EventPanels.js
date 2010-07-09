@@ -511,10 +511,12 @@ Zenoss.events.EventPanelToolbarActions = {
                 matches = grid.view._context.match(pat),
                 st, url;
             opts.device = matches[1];
-            opts.component = matches[3];
+            if (matches[3]) {
+                opts.component = matches[3];
+            }
             filters.options = opts;
             curState.filters = filters;
-            st = Zenoss.util.base64.encode(Ext.encode(curState));
+            st = encodeURIComponent(Zenoss.util.base64.encode(Ext.encode(curState)));
             url = '/zport/dmd/Events/evconsole?state=' + st;
             window.open(url, '_newtab', "");
         }

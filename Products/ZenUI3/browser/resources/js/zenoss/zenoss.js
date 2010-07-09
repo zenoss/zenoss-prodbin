@@ -1056,7 +1056,7 @@ Zenoss.FilterGridPanel = Ext.extend(Ext.ux.grid.livegrid.GridPanel, {
             noop;
         if (state) {
             try {
-                state = Ext.decode(Zenoss.util.base64.decode(state));
+                state = Ext.decode(Zenoss.util.base64.decode(decodeURIComponent(state)));
                 this.applyState(state);
 
             } catch(e) { noop(); }
