@@ -80,6 +80,22 @@ Ext.onReady( function() {
         width: "100%"
     };
 
+    zsf.sendStringTextField = {
+        xtype: 'textfield',
+        id: 'sendStringTextField',
+        fieldLabel: _t('Send String'),
+        name: 'sendString',
+        width: "100%"
+    };
+
+    zsf.expectRegexTextField = {
+        xtype: 'textfield',
+        id: 'expectRegexTextField',
+        fieldLabel: _t('Expect Regex'),
+        name: 'expectRegex',
+        width: "100%"
+    };
+
     zsf.serviceKeysTextField = {
         xtype: 'textarea',
         id: 'serviceKeysTextField',
@@ -124,7 +140,11 @@ Ext.onReady( function() {
         // items is set in winservice.js and ipservice.js
     };
 
-    zsf.hiddenFieldIdsForOrganizer = [zsf.serviceKeysTextField.id];
+    zsf.hiddenFieldIdsForOrganizer = [
+        zsf.sendStringTextField.id,
+        zsf.expectRegexTextField.id,
+        zsf.serviceKeysTextField.id
+    ];
 
     zsf.formConfig = {
         xtype: 'basedetailform',

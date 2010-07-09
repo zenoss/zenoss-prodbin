@@ -112,6 +112,22 @@ class IpServiceClassInfo(ServiceInfo):
 
     port = property(getPort, setPort)
 
+    def getSendString(self):
+        return self._object.sendString
+
+    def setSendString(self, value):
+        self._object.sendString = value
+
+    sendString = property(getSendString, setSendString)
+
+    def getExpectRegex(self):
+        return self._object.expectRegex
+
+    def setExpectRegex(self, value):
+        self._object.expectRegex = value
+
+    expectRegex = property(getExpectRegex, setExpectRegex)
+
 
 class WinServiceClassInfo(ServiceInfo):
     adapts(WinServiceClass)

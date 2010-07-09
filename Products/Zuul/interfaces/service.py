@@ -53,6 +53,8 @@ class IServiceInfo(IInfo):
 
 class IIpServiceClassInfo(IServiceInfo):
     port = Attribute('The port that the service runs on')
+    sendString = Attribute('A value sent to the port')
+    expectRegex = Attribute('A regular expression matching the response to the send string')
 
 class IWinServiceClassInfo(IServiceInfo):
     monitoredStartModes = Attribute('Start modes that will be monitored')

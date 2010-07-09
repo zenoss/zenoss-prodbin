@@ -38,6 +38,8 @@ Ext.onReady( function() {
             zsf.nameTextField,
             zsf.descriptionTextField,
             portTextField,
+            zsf.sendStringTextField,
+            zsf.expectRegexTextField,
             zsf.serviceKeysTextField
         ]
     }, {

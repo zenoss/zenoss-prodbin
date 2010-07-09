@@ -94,6 +94,9 @@ class ServiceRouter(TreeRouter):
     @require('Manage DMD')
     def setInfo(self, **data):
         service = self.api.getInfo(data['uid'])
+        if data.has_key('serviceKeys') and isinstance(data['serviceKeys'], str):
+            data['serviceKeys'] = \
+                    tuple([l.strip() for l in data['serviceKeys'].split(',')])
         Zuul.unmarshal(data, service)
         return DirectResponse.succeed()
 
