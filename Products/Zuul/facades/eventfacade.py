@@ -11,6 +11,7 @@
 #
 ###########################################################################
 
+import cgi
 from zope.event import notify
 from zope.interface import implements
 from Products.ZenUtils.jsonutils import unjson
@@ -152,7 +153,7 @@ class EventFacade(ZuulFacade):
             if field not in data:
                 if isinstance(value, str):
                     value = value.decode('iso-8859-1')
-                data[field] = value
+                data[field] = cgi.escape(value)
         data['evid'] = zevent.evid
         data['id'] = zevent.evid
         return data
