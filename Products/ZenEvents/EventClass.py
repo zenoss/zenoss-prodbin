@@ -317,11 +317,11 @@ class EventClass(EventClassPropertyMixin, Organizer, ManagedEntity, ZenPackable)
         except:
             return "color:#FF0000;"
 
+    security.declareProtected(ZEN_MANAGE_EVENTS, 'manage_editEventClassTransform')
     def manage_editEventClassTransform(self, transform = '', REQUEST=None):
         "Save the transform"
         self.transform = transform
         if REQUEST: return self.callZenScreen(REQUEST)
-
 
     def getEventSeverities(self):
         """Return a list of tuples of severities [('Warning', 3), ...] 
