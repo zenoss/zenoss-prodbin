@@ -102,21 +102,21 @@ class MultiPathIndexTests(unittest.TestCase):
         tests = ( ("/",0, range(1,20)), )
 
         for comp,level,results in tests:
-            for path in [comp,"/"+comp,"/"+comp+"/"]:
-                res = self._index._apply_index(
-                                    {"path":{'query':path,"level":level}})
-                lst = list(res[0].keys())
-                self.assertEqual(lst,results)
+            path = '/'
+            res = self._index._apply_index(
+                {"path":{'query':path,"level":level}})
+            lst = list(res[0].keys())
+            self.assertEqual(lst,results)
 
         for comp,level,results in tests:
-            for path in [comp,"/"+comp,"/"+comp+"/"]:
-                res = self._index._apply_index(
-                                    {"path":{'query':( (path,level),)}})
-                lst = list(res[0].keys())
-                self.assertEqual(lst,results)
+            path = '/'
+            res = self._index._apply_index(
+                {"path":{'query':( (path,level),)}})
+            lst = list(res[0].keys())
+            self.assertEqual(lst,results)
 
     def testSimpleTests(self):
-
+        
         self._populateIndex()
         tests = [
             ("aa", 0, [1,2,3,4,5,6,7,8,9,19]),
@@ -134,7 +134,7 @@ class MultiPathIndexTests(unittest.TestCase):
             ("cc/18.html", -1, [18] ),
             ("cc/18.html", 2, [18] ),
         ]
-
+        
         for comp,level,results in tests:
             for path in [comp,"/"+comp,"/"+comp+"/"]:
                 res = self._index._apply_index(

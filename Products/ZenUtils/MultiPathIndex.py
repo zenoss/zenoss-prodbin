@@ -50,6 +50,10 @@ class MultiPathIndex(ExtendedPathIndex):
         
         results = ExtendedPathIndex.search(self, path, default_level, depth, navtree,
                                                              navtree_start)
+        # navtree is a special mode where you get the parents as well, obviously
+        # we can not do our special path sanity check in this case
+        if navtree or default_level:
+            return results        
         return self._pathSanityCheck(path, results)
 
     def _pathSanityCheck(self, searchPath, pathset):
@@ -69,6 +73,9 @@ class MultiPathIndex(ExtendedPathIndex):
         So this function iterates through all the return paths and makes sure the path that we are searching
         for is in the path that is returned
         """
+        # only workds for absolute paths not relative
+        if not isinstance(searchPath, basestring) or not searchPath.startswith('/'):
+            return pathset
         rids = IISet()
         if not pathset:
             return 
@@ -77,7 +84,8 @@ class MultiPathIndex(ExtendedPathIndex):
             for path in paths:
                 if path.startswith(searchPath):
                     rids.insert(rid)
-                    break            
+                    break
+                    
         return rids
     
     def getIndexSourceNames(self):
