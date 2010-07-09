@@ -46,7 +46,7 @@ class FileSystemInfo(ComponentInfo):
 
     @property
     def availableFiles(self):
-        return self._object.availableFiles()
+        return self._object.availFiles()
 
     @property
     def capacityFiles(self):
