@@ -58,8 +58,12 @@ class WinServiceInfo(ComponentInfo):
             self._object.deleteZenProperty('zFailSeverity')
     failSeverity = property(getFailSeverity, setFailSeverity)
 
+    @property
     def status(self):
-        return self._object.getStatus()
+        status = self._object.getStatus()
+        if status < 0: return 'none'
+        elif status == 0: return 'up'
+        else: return 'down'
 
     serviceName = ProxyProperty('serviceName')
     caption = ProxyProperty('caption')
