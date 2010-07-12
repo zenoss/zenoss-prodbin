@@ -73,6 +73,8 @@ Ext.onReady( function() {
 
 
     zsf.hiddenFieldIdsForOrganizer.push('portTextField');
+    zsf.hiddenFieldIdsForOrganizer.push(zsf.sendStringTextField.id);
+    zsf.hiddenFieldIdsForOrganizer.push(zsf.expectRegexTextField.id);
 
     zsn.initNav('/zport/dmd/Services/IpService');
     zsf.initForm();

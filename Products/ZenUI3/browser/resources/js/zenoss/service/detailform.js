@@ -141,8 +141,6 @@ Ext.onReady( function() {
     };
 
     zsf.hiddenFieldIdsForOrganizer = [
-        zsf.sendStringTextField.id,
-        zsf.expectRegexTextField.id,
         zsf.serviceKeysTextField.id
     ];
 
