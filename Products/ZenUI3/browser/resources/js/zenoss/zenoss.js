@@ -850,7 +850,7 @@ Zenoss.FilterGridView = Ext.extend(Ext.ux.grid.livegrid.GridView, {
         this.adjustScrollerPos(-this.liveScroller.dom.scrollTop,
             true);
         this.showLoadMask(false);
-        //this.reset(false);
+        // this.reset(false);
         this.updateLiveRows(this.rowIndex, true, true);
     },
     renderEditors: function() {
@@ -902,6 +902,7 @@ Zenoss.FilterGridView = Ext.extend(Ext.ux.grid.livegrid.GridView, {
             if (filter instanceof Ext.form.TextField) {
                 filter.on('valid', this.validFilter, this);
                 filter.on('invalid', this.onInvalidFilter, this);
+                filter.on('valid', this.reloadOnEmpty, this);
             }
 
             if (filter instanceof Zenoss.MultiselectMenu) {
@@ -924,10 +925,22 @@ Zenoss.FilterGridView = Ext.extend(Ext.ux.grid.livegrid.GridView, {
     isValid: function() {
         return this._valid;
     },
+    /**
+     * Strange bug on live grid when you clear a filter, the live grid
+     * reloads, but doesn't render properly. You get a scrollbar but nothing else.
+     * This just completely reloads the grid's datastore. 
+     **/
+    reloadOnEmpty: function(filter) {
+        var forceReload = true;
+        if (Ext.isEmpty(filter.getValue())) {
+            this.reset(forceReload);
+        }
+    },
     validFilter: function() {
         // Check all filters to determine if we are valid
         this.validateFilters();
         this.fireEvent('filterchange', this);
+        
         if (this.liveSearch) {
             this.nonDisruptiveReset();
         }
@@ -936,7 +949,6 @@ Zenoss.FilterGridView = Ext.extend(Ext.ux.grid.livegrid.GridView, {
         // If one filter is invalid, all are
         this._valid = false;
         this.fireEvent('filterchange', this);
-
         var errors = this.getErrors();
         if ( errors ) {
             Zenoss.message.error(errors);
@@ -1907,11 +1919,11 @@ Ext.override(Ext.form.Checkbox, {
 });
 
 String.prototype.startswith = function(){
-    return (this.match('^'+str)==str)
+    return (this.match('^'+str)==str);
 };
 
 String.prototype.endswith = function(){
-    return (this.match(str+'$')==str)
+    return (this.match(str+'$')==str);
 };
 
 })(); // End local scope
