@@ -807,7 +807,7 @@ Ext.getCmp('footer_bar').add([{
         handler: function() {
             var win = new Zenoss.CommandWindow({
                 uids: [UID],
-                target: '/zport/dmd/run_model',
+                target: 'run_model',
                 title: _t('Model Device')
             });
             win.show();
