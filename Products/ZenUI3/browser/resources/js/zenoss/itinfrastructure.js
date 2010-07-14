@@ -461,20 +461,35 @@ Ext.apply(Zenoss.devices, {
                         var opts = Ext.apply(gridOptions(), {
                             action: Ext.getCmp('removetype').getValue().value
                         });
-                        Zenoss.remote.DeviceRouter.removeDevices(opts,
-                             function(response) {
-                                 var devtree = Ext.getCmp('devices'),
-                                     loctree = Ext.getCmp('locs'),
-                                     systree = Ext.getCmp('systems'),
-                                     grptree = Ext.getCmp('groups');
-                                 resetGrid();
-                                 devtree.update(response.devtree);
-                                 loctree.update(response.loctree);
-                                 grptree.update(response.grptree);
-                                 systree.update(response.systree);
-                                 grid.view.showLoadMask(false);
-                             }
-                        );
+                        if (opts.uids.length > 0) {
+                            Zenoss.remote.DeviceRouter.removeDevices(opts,
+                                 function(response) {
+                                     var devtree = Ext.getCmp('devices'),
+                                         loctree = Ext.getCmp('locs'),
+                                         systree = Ext.getCmp('systems'),
+                                         grptree = Ext.getCmp('groups'),
+                                         deviceIds = [],
+                                         flare;
+                                     resetGrid();
+                                     devtree.update(response.devtree);
+                                     loctree.update(response.loctree);
+                                     grptree.update(response.grptree);
+                                     systree.update(response.systree);
+                                     grid.view.showLoadMask(false);
+                                     if (!Ext.isDefined(response.success) || response.success) {
+                                         Ext.each(opts.uids, function(uid) {
+                                             deviceIds.push( uid.split('/')[uid.split('/').length-1] );
+                                         });
+                                         if (['delete', 'remove'].indexOf(opts.action) !== -1) {
+                                             Zenoss.message.info('Successfully {0}d device{1}: {2}',
+                                                                 opts.action,
+                                                                 opts.uids.length > 1 ? 's' : '',
+                                                                 deviceIds.join(', '));
+                                         }
+                                     }
+                                 }
+                            );
+                        }
                     }
                 },
                 Zenoss.dialog.CANCEL
