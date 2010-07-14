@@ -29,7 +29,7 @@ class UpgradeMultiPathIndices(Migrate.Step):
             dmd.Devices.deviceSearch.delIndex('path')
             dmd.Devices.deviceSearch._catalog.addIndex('path', 
                     makeMultiPathIndex('path'))
-            log.info( 'Reindexing devices.  This may take while a...' )
+            log.info( 'Reindexing devices.  This may take a while ...' )
             dmd.Devices.reIndex()
 
         idx = dmd.searchRRDTemplates._catalog.indexes['getPhysicalPath']
