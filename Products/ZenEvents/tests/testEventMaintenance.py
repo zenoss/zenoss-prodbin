@@ -60,10 +60,11 @@ class testEventMaintenance(BaseTestCase):
         self.assertEquals(detail_count + 1, self._getEventCount('detail'))
         self.assertEquals(log_count + 1, self._getEventCount('log'))
 
-        # This call doesn't block, but we can wait for the subprocess 
-        # to finish.
         proc = zem.manage_deleteHistoricalEvents(agedDays=1)
-        proc.wait()
+
+        # manage_deleteHistoricalEvents() does not block, but we have to
+        # block for the test.
+        proc.communicate()
 
         # verify that the history is <= current history since other events
         # could have been added this day
