@@ -35,9 +35,29 @@ class NetworkRouter(DirectRouter):
 
     @require('Manage DMD')
     def addNode(self, newSubnet, contextUid):
-        newNet = self.api.addSubnet(newSubnet, contextUid)
-        node = ITreeNode(newNet)
-        return DirectResponse.succeed(newNode=Zuul.marshal(node))
+        
+        # If the user doesn't include a mask, reject the request.
+        if '/' not in newSubnet:
+            response = DirectResponse.fail('You must include a subnet mask.')
+        else:
+            try:
+                netip, netmask = newSubnet.split('/')
+                netmask = int(netmask)
+                foundSubnet = self.api.findSubnet(netip, netmask, '/zport/dmd/Networks')
+                
+                if foundSubnet is not None:
+                    response = DirectResponse.fail('Did not add duplicate subnet: %s (%s/%s)' %
+                                                   (newSubnet, foundSubnet.id, foundSubnet.netmask))
+                else:
+                    newNet = self.api.addSubnet(newSubnet, contextUid)
+                    node = ITreeNode(newNet)
+                    response = DirectResponse.succeed(newNode=Zuul.marshal(node))
+
+            except Exception as error:
+                log.exception(error)
+                response = DirectResponse.fail('Error adding subnet: %s (%s)' % (newSubnet, error))
+
+        return response
 
     @require('Manage DMD')
     def deleteNode(self, uid):

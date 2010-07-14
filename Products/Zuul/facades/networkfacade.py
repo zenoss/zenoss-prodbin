@@ -34,6 +34,43 @@ class NetworkFacade(TreeFacade):
     def addSubnet(self, newSubnet, contextUid):
         return self._root.restrictedTraverse(contextUid).createNet(newSubnet)
 
+    def findSubnet(self, netip, netmask, contextUid):
+        """
+        Try to find a subnet. Using the netip and netmask first try to find
+        an existing subnet. If nothing found, try to find the existing subnet to
+        which the ip belongs. If a subnet is found, compare the existing subnet's
+        mask with netmask. If they are the same, then the subnet that
+        the ip matched is returned.
+
+        if 7.0.0.0/8 exists, adding 7.1.2.3/8 will find 7.0.0.0. Because the
+        netmasks match, the 7.0.0.0/8 IpNetwork obj will be returned.
+        
+        Called by NetworkRouter.addNode
+
+        @param netip: network ip
+        @type netip: string
+        @param netmask: network mask
+        @type netmask: integer
+        @param contextUid:
+        @type contextUid: string
+        @todo: investigate IPv6 issues
+        """
+
+        if type(netmask) is not int:
+            raise TypeError('Netmask must be an integer')
+
+        netRoot = self._root.restrictedTraverse(contextUid).getNetworkRoot()
+        foundNet = netRoot.findNet(netip, netmask)
+        
+        if foundNet:
+            return foundNet
+
+        gotNet = netRoot.getNet(netip)
+        if gotNet and gotNet.netmask == netmask:
+            return gotNet
+
+        return None
+
     def deleteSubnet(self, uid):
         toDel = self._dmd.restrictedTraverse(uid)
         aq_parent(toDel)._delObject(toDel.id)
