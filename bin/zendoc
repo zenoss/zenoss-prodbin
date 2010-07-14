@@ -16,4 +16,5 @@ cd $ZENHOME/Products
 $ZENHOME/bin/zopectl run $ZENHOME/bin/epydoc -v --parse-only --html -o \
     $ZENHOME/zendocs/api --exclude='.*plugin.*' \
     --exclude='migrate' --exclude='tests' --exclude='twisted' \
+    --exclude='Products.DataCollector.EnterpriseOIDs' \
     --name=Zenoss --inheritance listed $ZENPRODUCTS
