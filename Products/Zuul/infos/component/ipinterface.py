@@ -25,7 +25,8 @@ class IpInterfaceInfo(ComponentInfo):
 
     @info
     def getIpAddresses(self):
-        return self._object.ipaddresses._objects.keys()
+        return [str(i) for i in self._object.ipaddresses._objects]
+        
     def setIpAddresses(self, ips):
         self._object.setIpAddresses(ips)
     ipAddresses = property(getIpAddresses, setIpAddresses)
@@ -55,7 +56,7 @@ class IpInterfaceInfo(ComponentInfo):
     speed = ProxyProperty('speed')
     adminStatus = ProxyProperty('adminStatus')
     operStatus = ProxyProperty('operStatus')
-    
+
     @property
     @info
     def duplex(self):
