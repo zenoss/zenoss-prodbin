@@ -15,9 +15,17 @@
 
 (function(){
 
-var ZC = Ext.ns('Zenoss.component');
+var ZC = Ext.ns('Zenoss.component'),
+    ZEvActions = Zenoss.events.EventPanelToolbarActions,
+    NM = ZC.nameMap = {};
 
-var ZEvActions = Zenoss.events.EventPanelToolbarActions;
+ZC.registerName = function(meta_type, name, plural) {
+    NM[meta_type] = [name, plural];
+}
+
+ZC.displayName = function(meta_type) {
+    return NM[meta_type] || meta_type;
+}
 
 function componentColumnDefinitions() {
     var defs = Zenoss.env.COLUMN_DEFINITIONS,
@@ -560,6 +568,7 @@ ZC.IpInterfacePanel = Ext.extend(ZC.ComponentGridPanel, {
 });
 
 Ext.reg('IpInterfacePanel', ZC.IpInterfacePanel);
+ZC.registerName('IpInterface', _t('Interface'), _t('Interfaces'));
 
 ZC.WinServicePanel = Ext.extend(ZC.ComponentGridPanel, {
     constructor: function(config) {
@@ -625,6 +634,7 @@ ZC.WinServicePanel = Ext.extend(ZC.ComponentGridPanel, {
 });
 
 Ext.reg('WinServicePanel', ZC.WinServicePanel);
+ZC.registerName('WinService', _t('Windows Service'), _t('Windows Services'));
 
 
 ZC.IpRouteEntryPanel = Ext.extend(ZC.ComponentGridPanel, {
@@ -682,6 +692,7 @@ ZC.IpRouteEntryPanel = Ext.extend(ZC.ComponentGridPanel, {
 });
 
 Ext.reg('IpRouteEntryPanel', ZC.IpRouteEntryPanel);
+ZC.registerName('IpRouteEntry', _t('Network Route'), _t('Network Routes'));
 
 ZC.IpServicePanel = Ext.extend(ZC.ComponentGridPanel, {
     constructor: function(config) {
@@ -749,6 +760,7 @@ ZC.IpServicePanel = Ext.extend(ZC.ComponentGridPanel, {
 });
 
 Ext.reg('IpServicePanel', ZC.IpServicePanel);
+ZC.registerName('IpService', _t('IP Service'), _t('IP Services'));
 
 
 ZC.OSProcessPanel = Ext.extend(ZC.ComponentGridPanel, {
@@ -815,6 +827,7 @@ ZC.OSProcessPanel = Ext.extend(ZC.ComponentGridPanel, {
 });
 
 Ext.reg('OSProcessPanel', ZC.OSProcessPanel);
+ZC.registerName('OSProcess', _t('OS Process'), _t('OS Processes'));
 
 
 ZC.FileSystemPanel = Ext.extend(ZC.ComponentGridPanel, {
@@ -898,6 +911,7 @@ ZC.FileSystemPanel = Ext.extend(ZC.ComponentGridPanel, {
 });
 
 Ext.reg('FileSystemPanel', ZC.FileSystemPanel);
+ZC.registerName('FileSystem', _t('File System'), _t('File Systems'));
 
 
 ZC.CPUPanel = Ext.extend(ZC.ComponentGridPanel, {
@@ -976,5 +990,6 @@ ZC.CPUPanel = Ext.extend(ZC.ComponentGridPanel, {
 });
 
 Ext.reg('CPUPanel', ZC.CPUPanel);
+ZC.registerName('CPU', _t('Processor'), _t('Processors'));
 
 })();

@@ -93,6 +93,13 @@ Zenoss.env.componentReloader = function(compType) {
     };
 };
 
+Zenoss.ComponentNodeUI = Ext.extend(Zenoss.HierarchyTreeNodeUI, {
+    renderElements: function(n, a, targetNode, bulkRender) {
+        a.text.text = Zenoss.component.displayName(a.text.text)[1]; // [1] is plural
+        Zenoss.ComponentNodeUI.superclass.renderElements.apply(this, arguments);
+    }
+});
+
 Zenoss.nav.register({
     Device: [{
         id: 'device_overview',
@@ -156,7 +163,7 @@ Zenoss.nav.register({
         loader: new Ext.tree.TreeLoader({
             directFn: Zenoss.remote.DeviceRouter.getComponentTree,
             baseAttrs: {
-                uiProvider: Zenoss.HierarchyTreeNodeUI
+                uiProvider: Zenoss.ComponentNodeUI
             },
             listeners: {
                 load: function(loader, node, response) {
@@ -388,7 +395,7 @@ var componentCard = {
     }],
     listeners: {
         contextchange: function(me, uid, type){
-            Ext.getCmp('component_type_label').setText(type);
+            Ext.getCmp('component_type_label').setText(Zenoss.component.displayName(type)[1]);
             var sf = Ext.getCmp('component_searchfield');
             sf.setRawValue(sf.emptyText);
             sf.el.addClass(sf.emptyClass);
