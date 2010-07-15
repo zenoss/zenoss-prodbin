@@ -123,8 +123,7 @@ var treesm = new Ext.tree.DefaultSelectionModel({
             fb.buttonContextMenu.setContext(uid);
             Zenoss.env.PARENT_CONTEXT = uid;
 
-            fb.buttonDelete.setDisabled(
-                (newnode.attributes.id == '.zport.dmd.Networks'));
+            fb.buttonDelete.setDisabled(uid == '/zport/dmd/Networks');
         }
     }
 });
@@ -559,7 +558,8 @@ Zenoss.footerHelper('Subnetwork', fb, {
                 text: _t('Discover Devices'),
                 iconCls: 'adddevice',
                 ref: 'buttonDiscoverDevices',
-                disabled: Zenoss.Security.doesNotHavePermission('Manage DMD'),
+                disabled: Zenoss.Security.doesNotHavePermission('Manage DMD') ||
+                    Zenoss.env.PARENT_CONTEXT == '/zport/dmd/Networks',
                 handler: discoverDevicesDialog.show.createDelegate(discoverDevicesDialog)
             }];
         }
