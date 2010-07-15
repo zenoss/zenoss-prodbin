@@ -29,14 +29,17 @@ class UpgradeMultiPathIndices(Migrate.Step):
             dmd.Devices.deviceSearch.delIndex('path')
             dmd.Devices.deviceSearch._catalog.addIndex('path', 
                     makeMultiPathIndex('path'))
+            # grab each device and manually reindex it
             log.info( 'Reindexing devices.  This may take a while ...' )
-            dmd.Devices.reIndex()
-
+            for device in dmd.Devices.getSubDevices_recursive():
+                dmd.Devices.deviceSearch.catalog_object(device, idxs=('path',))
+                
         idx = dmd.searchRRDTemplates._catalog.indexes['getPhysicalPath']
         if not idx.__class__.__name__=='ExtendedPathIndex':
             templates = dmd.searchRRDTemplates()
             dmd.searchRRDTemplates.delIndex('getPhysicalPath')
             dmd.searchRRDTemplates._catalog.addIndex('getPhysicalPath', 
                     makePathIndex('getPhysicalPath'))
-
+            for template in templates:
+                dmd.searchRRDTemplates.catalog_object(template.getObject(), idxs=('getPhysicalPath',))
 upgradeindices = UpgradeMultiPathIndices()
