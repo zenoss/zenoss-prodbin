@@ -42,6 +42,7 @@ from Products.Jobber.status import SUCCESS, FAILURE
 from ZenModelItem import ZenModelItem
 from zExceptions import BadRequest
 from Products.ZenModel.interfaces import IDeviceLoader
+from Products.ZenEvents.Event import Event
 
 
 def manage_addZDeviceLoader(context, id="", REQUEST = None):
@@ -230,6 +231,11 @@ class DeviceCreationJob(ShellCommandJob):
     def finished(self, r):
         if self._v_loader.deviceobj is not None and r!=FAILURE:
             result = SUCCESS
+            self.dmd.ZenEventManager.sendEvent(Event(
+                    summary='Added device: '+self.deviceName,
+                    severity=2, #info
+                    eventClass='/Change/Add', #zEventAction=history
+                    device=self.deviceName))
         else:
             result = FAILURE
         super(DeviceCreationJob, self).finished(result)

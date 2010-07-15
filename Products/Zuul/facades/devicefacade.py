@@ -30,6 +30,7 @@ from Products.ZenModel.Device import Device
 from Products.Zuul import getFacade
 from Products.Zuul.utils import ZuulMessageFactory as _t, UncataloguedObjectException
 from Products.Zuul.catalog.events import IndexingEvent
+from Products.ZenEvents.Event import Event
 
 
 class DeviceFacade(TreeFacade):
@@ -155,7 +156,12 @@ class DeviceFacade(TreeFacade):
     def deleteDevices(self, uids):
         devs = imap(self._getObject, uids)
         for dev in devs:
-            dev.deleteDevice()
+            dev.getPrimaryParent()._delObject(dev.getId())
+            self._dmd.ZenEventManager.sendEvent(Event(
+                    summary='Deleted device: '+dev.getId(),
+                    severity=2, #info
+                    eventClass='/Change/Remove', #zEventAction=history
+                    device=dev.getId()))
 
     def removeDevices(self, uids, organizer):
         # Resolve target if a path
