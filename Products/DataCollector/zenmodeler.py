@@ -878,7 +878,10 @@ class ZenModeler(PBDaemon):
                 self.log.warn("Client %s timeout", client.hostname)
                 self.finished.append(client)
                 client.timedOut = True
-                client.stop()
+                try:
+                    client.stop()
+                except AssertionError, ex:
+                    pass # session closed twice http://dev.zenoss.org/trac/ticket/6354
             else:
                 active.append(client)
         self.clients = active
