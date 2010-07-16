@@ -323,6 +323,8 @@ showOverrideDialog = function() {
 addTemplateDialogConfig = {
     title: _t('Add Template'),
     id: 'addNewTemplateDialog',
+    height: 250,
+    width: 350,
     listeners: {
         show: function() {
             var cmp = Ext.getCmp('addNewTemplateDialog');
