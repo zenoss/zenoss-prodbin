@@ -140,6 +140,7 @@ function setDeviceButtonsDisabled(bool){
         Zenoss.Security.doesNotHavePermission('Run Commands'));
     Ext.getCmp('actions-menu').setDisabled(bool ||
         Zenoss.Security.doesNotHavePermission('Manage Device'));
+    
 }
 
 function resetGrid() {
@@ -153,7 +154,7 @@ treesm = new Ext.tree.DefaultSelectionModel({
             if (newnode) {
                 var uid = newnode.attributes.uid;
                 Zenoss.util.setContext(uid, 'detail_panel', 'organizer_events',
-                                       'commands-menu', 'footer_bar');
+                                       'commands-menu', 'footer_bar', 'adddevice-button');
                 setDeviceButtonsDisabled(true);
 
                 // explicitly set the new security context (to update permissions)
@@ -726,7 +727,7 @@ Ext.apply(Zenoss.devices, {
     addMultiDevicePopUP: new Zenoss.Action({
         text: _t('Add Multiple Devices') + '...',
         id: 'addmultipledevices-item',
-        permission: 'Manage DMD',
+        permission: 'Manage Device',
         handler: function(btn, e){
             Ext.util.Cookies.set('newui', 'yes');
 
@@ -1159,12 +1160,19 @@ var device_grid = new Zenoss.DeviceGridPanel({
             {
                 id: 'adddevice-button',
                 iconCls: 'adddevice',
-                disabled: Zenoss.Security.doesNotHavePermission("Manage DMD"),
+                disabled: Zenoss.Security.doesNotHavePermission("Manage Device"),
                 menu:{
                     items: [
                         Zenoss.devices.addDevice,
                         Zenoss.devices.addMultiDevicePopUP
                     ].concat(EXTENSIONS_adddevice)
+                },
+                setContext: function(uid) {
+                    // if the user's permissions change when depending on the context update the
+                    // add device button
+                    Zenoss.Security.onPermissionsChange(function() {
+                        this.setDisabled(Zenoss.Security.doesNotHavePermission('Manage Device'));
+                    }, this);
                 }
             },
             Zenoss.devices.deleteDevices,
@@ -1390,6 +1398,7 @@ var footerBar = Ext.getCmp('footer_bar');
                 bindTemplatesDialog.setContext(uid);
                 resetTemplatesDialog.setContext(uid);
                 Zenoss.env.PARENT_CONTEXT = uid;
+                
             },
             onGetMenuItems: function(uid) {
                 var menuItems = [];

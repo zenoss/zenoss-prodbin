@@ -12,6 +12,7 @@
 ###########################################################################
 
 from itertools import islice
+from AccessControl import Unauthorized
 from Products.ZenUtils.Ext import DirectResponse
 from Products.ZenUtils.jsonutils import unjson
 from Products import Zuul
@@ -393,12 +394,16 @@ class DeviceRouter(TreeRouter):
         result = [{'name': name} for name in names];
         return DirectResponse(productNames=result, totalCount=len(result))
 
-    @require('Manage DMD')
     def addDevice(self, deviceName, deviceClass, title=None, snmpCommunity="", snmpPort=161,
                   model=False, collector='localhost',  rackSlot=0,
                   productionState=1000, comments="", hwManufacturer="",
                   hwProductName="", osManufacturer="", osProductName="",
                   priority = 3, tag="", serialNumber=""):
+        # check for permission in the device organizer to which we are adding the device
+        facade = self._getFacade()
+        organizer = facade._getObject('/zport/dmd/Devices' + deviceClass)
+        if not Zuul.checkPermission("Manage Device", organizer):
+            raise Unauthorized('Calling AddDevice requires Manage Device permission on %s' % deviceClass)
         jobStatus = self._getFacade().addDevice(deviceName,
                                                deviceClass,
                                                title,

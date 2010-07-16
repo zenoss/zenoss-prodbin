@@ -21,7 +21,8 @@
      
      // Defined in ZenUI3/security/security.py this is a dictionary of all the
      // permissions the current user has on the current context.
-     var all_permissions = _global_permissions();
+     var all_permissions = _global_permissions(),
+         callbacks = [];
 
      /**
       * The main method for ACL on the front end. It asks
@@ -47,9 +48,26 @@
       **/
      Zenoss.Security.doesNotHavePermission = function(permission) {
          return (!this.hasPermission(permission));           
+     };     
+
+     /**
+      * Add an callback to be executed every time the permissions
+      * are changed, usually this is done by changing context.
+      * Example Usage:
+      *     Zenoss.Security.onPermissionChange(function() {
+      *         Ext.getCmp('foo').setDisabled(Zenoss.Security.doesNotHavePermission('Manage DMD'));
+      * });
+      *@param callback: function to execute
+      *@param scope[Optional]: scope of the callback
+      **/
+     Zenoss.Security.onPermissionsChange = function(callback, scope) {
+         if (scope) {
+             callbacks.push(callback.createDelegate(scope));
+         }else {
+             callbacks.push(callback);   
+         }       
      };
-
-
+     
      /**
       * If the context you are working on changes call this
       * method to update the security permissions for that new context
@@ -59,8 +77,14 @@
              uid:uid
          };
          function callback(response) {
+             var i;
              if (response.success) {
                  all_permissions = response.data;
+                 if (callbacks) {
+                     for (i = 0; i < callbacks.length; i += 1) {
+                         callbacks[i]();
+                     }
+                 }
              }
          }
          Zenoss.remote.DetailNavRouter.getSecurityPermissions(params, callback);    
