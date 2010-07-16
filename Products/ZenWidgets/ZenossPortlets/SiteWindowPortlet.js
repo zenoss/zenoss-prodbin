@@ -8,7 +8,10 @@ SiteWindowDatasource.prototype = {
     get: function(callback) {
         this.callback = callback;
 		var url = this.baseLoc;
-        html = '<iframe src="' + url + '" ' +
+        if (url == YAHOO.zenoss.portlet.DEFAULT_SITEWINDOW_URL) {
+            url += '?v=' + YAHOO.zenoss.ZENOSS_VERSION + '&p=' + YAHOO.zenoss.ZENOSS_PRODUCT;
+        }
+        var html = '<iframe src="' + url + '" ' +
             'style="border:medium none;margin:0;padding:0;'+
             'background-color:#fff;'+
             'width:100%;height:100%;"/>';

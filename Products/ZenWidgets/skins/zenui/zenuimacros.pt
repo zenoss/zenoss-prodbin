@@ -324,8 +324,11 @@ var goExport = function() {
 addLoadEvent(function() {
 
     YAHOO.zenoss.templateFreeURL = '${templateFreeUrl}';
+    YAHOO.zenoss.ZENOSS_VERSION = '${here/dmd/getZenossVersionShort}';
+    YAHOO.zenoss.ZENOSS_PRODUCT = '${here/dmd/productName | string:core}';
 
 });
+
 
 
 ">s</script>
