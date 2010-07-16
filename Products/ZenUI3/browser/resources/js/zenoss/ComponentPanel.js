@@ -24,7 +24,7 @@ ZC.registerName = function(meta_type, name, plural) {
 }
 
 ZC.displayName = function(meta_type) {
-    return NM[meta_type] || meta_type;
+    return NM[meta_type] || [meta_type, meta_type];
 }
 
 function componentColumnDefinitions() {
