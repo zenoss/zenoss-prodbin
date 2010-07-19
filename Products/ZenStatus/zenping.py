@@ -119,7 +119,8 @@ class ZenPing(PBDaemon):
     def loadConfig(self, driver):
         "Get the configuration for zenping"
         try:
-            if self.loadingConfig:
+            # Retry if config hasn't finished loading after 2 hours
+            if self.loadingConfig and (time.time() - self.loadingConfig ) > 7200:
                 self.log.warning("Configuration still loading.  Started at %s" %
                                  time.asctime(time.localtime(self.loadingConfig)))
                 return
