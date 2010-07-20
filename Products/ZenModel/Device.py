@@ -2196,7 +2196,7 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable,
                     "<img class='device-icon' src='%s'/> "
                     "</div>%s")
         icon = self.getIconPath()
-        href = altHref if altHref else self.getPrimaryUrlPath().replace('%','%%')
+        href = altHref if altHref else self.getPrimaryUrlPath()
         name = self.titleOrId()
 
         rendered = template % (icon, name)
