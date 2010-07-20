@@ -146,8 +146,8 @@ class TemplateRouter(DirectRouter):
         uid = data['uid']
         del data['uid']
         facade = self._getFacade()
-        facade.setInfo(uid, data)
-        return DirectResponse.succeed()
+        info = facade.setInfo(uid, data)
+        return DirectResponse.succeed(data=Zuul.marshal(info))
 
     @require('Manage DMD')
     def addThreshold(self, **data):

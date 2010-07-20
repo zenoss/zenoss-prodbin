@@ -34,15 +34,18 @@ resetCombo = function(combo, uid) {
     combo.doQuery(combo.allQuery, true);
 };
 
-function reloadTree(shouldSelectFirstNode) {
+function reloadTree(selectedId) {
     var tree = Ext.getCmp(treeId);
-    if (shouldSelectFirstNode){
+    if (selectedId){
         tree.getRootNode().reload(function() {
+            tree.selectByToken(selectedId);
+        });
+    }else{
+        // select the first node
+        tree.getRootNode().reload(function(){
             tree.getRootNode().childNodes[0].expand();
             tree.getRootNode().childNodes[0].childNodes[0].select();
         });
-    }else{
-        tree.getRootNode().reload();
     }
 }
 
@@ -150,7 +153,9 @@ function showEditTemplateDialog(response) {
     handler = function() {
         var values = Ext.getCmp('editTemplateDialog').editForm.getForm().getFieldValues(dirtyOnly);
         values.uid = data.uid;
-        router.setInfo(values, reloadTree);
+        router.setInfo(values, function(response){
+            reloadTree(response.data.uid);
+        });
     };
 
     // form config
@@ -408,8 +413,8 @@ footerBar.on('buttonClick', function(actionName, id, values) {
                 id: values.id,
                 targetUid: values.targetUid
             };
-            router.addTemplate(params, function() {
-                reloadTree();
+            router.addTemplate(params, function(response) {
+                reloadTree(response.nodeConfig.uid);
                 tree.clearFilter();
             });
         break;
@@ -419,7 +424,7 @@ footerBar.on('buttonClick', function(actionName, id, values) {
             };
             router.deleteTemplate(params,
             function(){
-                reloadTree(true);
+                reloadTree();
                 tree.clearFilter();
                 footerBar.buttonDelete.setDisabled(true);
                 footerBar.buttonContextMenu.setDisabled(true);
