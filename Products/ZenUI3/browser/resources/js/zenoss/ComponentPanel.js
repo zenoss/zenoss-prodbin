@@ -142,7 +142,7 @@ ZC.ComponentDetailNav = Ext.extend(Zenoss.DetailNavPanel, {
         Ext.each(grid.store.data.items, function(record){
             if (record.data.monitor) { monitor = true; }
         });
-        Ext.each(Zenoss.nav.Component, function(item){
+        Zenoss.util.each(Zenoss.nav.get('Component'), function(item){
             if (!(item.id=='Graphs' && !monitor)) {
                 items.push(item);
             }
@@ -232,11 +232,11 @@ ZC.ComponentPanel = Ext.extend(Ext.Panel, {
                                 items = [],
                                 monitor = false;
                             Ext.each(grid.store.data.items, function(record){
-                                if (record.data.uid==uid && record.data.monitor) { 
-                                    monitor = true; 
+                                if (record.data.uid==uid && record.data.monitor) {
+                                    monitor = true;
                                 }
                             });
-                            Ext.each(Zenoss.nav.Component, function(item){
+                            Zenoss.util.each(Zenoss.nav.get('Component'), function(item){
                                 if (!(item.id=='Graphs' && !monitor)) {
                                     items.push(item);
                                 }
@@ -342,7 +342,7 @@ ZC.ComponentGridPanel = Ext.extend(Ext.ux.grid.livegrid.GridPanel, {
             autoExpandColumn: 'name',
             stripeRows: true,
             store: new ZC.BaseComponentStore({
-                fields:config.fields, 
+                fields:config.fields,
                 directFn:config.directFn || Zenoss.remote.DeviceRouter.getComponents
             }),
             colModel: new ZC.BaseComponentColModel({
@@ -364,7 +364,7 @@ ZC.ComponentGridPanel = Ext.extend(Ext.ux.grid.livegrid.GridPanel, {
         ZC.ComponentGridPanel.superclass.constructor.call(this, config);
         this.relayEvents(this.getSelectionModel(), ['selectionchange']);
         this.relayEvents(this.getSelectionModel(), ['rangeselect']);
-        this.store.proxy.on('load', 
+        this.store.proxy.on('load',
             function(proxy, o, options) {
                 this.lastHash = o.result.hash || this.lastHash;
             },
@@ -392,7 +392,7 @@ ZC.ComponentGridPanel = Ext.extend(Ext.ux.grid.livegrid.GridPanel, {
         if (this.componentName!=name) {
             this.componentName = name;
             this.view.updateLiveRows(0, true, true, false);
-        } 
+        }
     },
     setContext: function(uid) {
         this.contextUid = uid;
@@ -880,7 +880,7 @@ ZC.FileSystemPanel = Ext.extend(ZC.ComponentGridPanel, {
                     } else {
                         return Zenoss.render.bytesString(n);
                     }
-                    
+
                 }
             },{
                 id: 'capacityBytes',

@@ -30,14 +30,14 @@ Zenoss.SlidingCardLayout = Ext.extend(Ext.layout.CardLayout, {
                         this.renderItem(card, index, C.getLayoutTarget());
                     }
                     card.show();
-                    if(card.doLayout && (this.layoutOnCardChange || 
+                    if(card.doLayout && (this.layoutOnCardChange ||
                                          !card.rendered)) {
                         card.doLayout();
                     }
                     var _done = 0;
                     function shiftsCallback() {
                         _done++;
-                        if (_done==2) 
+                        if (_done==2)
                             C.fireEvent('cardchange', C, card, index, active,
                                         activeIndex);
                     }
@@ -96,7 +96,7 @@ Zenoss.HorizontalSlidePanel = Ext.extend(Ext.Panel, {
                 cls: index ? 'toleft' : 'toright',
                 handler: function() {
                     this.layout.setActiveItem(index ? 0 : 1);
-                    
+
                 },
                 scope: this
             }, this);
@@ -152,22 +152,130 @@ Zenoss.HorizontalSlidePanel = Ext.extend(Ext.Panel, {
 
 Ext.reg('horizontalslide', Zenoss.HorizontalSlidePanel);
 
-
-Ext.ns('Zenoss.nav');
-
-var ZN = Zenoss.nav;
-
-ZN.register = function (obj) {
-    for (var type in obj) {
-        var items = ZN[type] = ZN[type] || [],
-            toadd = obj[type];
-        Ext.each(toadd, function(item) {
-            if (!(item in items)) {
-                items.push(item);
-            }
+/**
+ * A MixedCollection for nav configs.
+ *
+ * Each item in the config is a normal dictionary with an xtype. The xtype specified will be used for the display
+ * when the item is clicked.
+ *
+ * Example item structure:
+ *
+ * {
+ *     text: 'Menu label',
+ *     id: 'View id',
+ *     xtype: 'somextype', // optional, defaults to Panel
+ *     filterNav: function(navTree) {
+ *         // An optional function that is called to determine if this item should be shown
+ *         // Use navTree.contextUid for the context.
+ *         // return true to display the item or false to remove it
+ *     }
+ * }
+ */
+Zenoss.NavConfig = Ext.extend(Ext.util.MixedCollection, {
+    constructor: function() {
+        Zenoss.NavConfig.superclass.constructor.call(this, true, function(item) {
+            return item.id;
         });
     }
-};
+});
+
+Zenoss.NavManager = Ext.extend(Object, {
+    all: null,
+    constructor: function() {
+        this.all = new Zenoss.NavConfig();
+        this.all.addEvents('navready');
+    },
+    /**
+     * Register a nav item tree. See `Zenoss.NavConfig` for item structure.
+     *
+     * Zenoss.nav.register({
+     *     DeviceGroup: [
+     *         {
+     *             id: 'device_grid',
+     *             text: 'Devices',
+     *             listeners: {
+     *                 render: updateNavTextWithCount
+     *             }
+     *         },
+     *         {
+     *             id: 'events_grid',
+     *             text: _t('Events')
+     *         }
+     *     ]
+     * });
+     *
+     * @param navSpec
+     */
+    register: function(navSpec) {
+        for ( var type in navSpec ) {
+            this.add(type, navSpec[type]);
+        }
+    },
+    /**
+     * Adds a nav of `type` with its `items`. If a nav of `type` already exists, the items are appended.
+     *
+     * @param type Type of nav menu to add (ex: Device, DeviceGroup)
+     * @param items An array of nav items. See `Zenoss.NavConfig` for item structure.
+     */
+    add: function(type, items) {
+        if ( !this.all.containsKey(type) ) {
+            // Create an empty nav container
+            var newNav = new Zenoss.NavConfig();
+            newNav.id = type;
+            this.all.add(type, newNav);
+
+            this.appendTo(type, items);
+
+            this.all.fireEvent('navready', newNav);
+        }
+        else {
+            this.appendTo(type, items);
+        }
+    },
+    /**
+     * Get a nav config if it exists.
+     *
+     * @param type
+     */
+    get: function(type) {
+        return this.all.key(type);
+    },
+    /**
+     * Add menu nodes to the end of a nav config
+     *
+     * @param type Nav config type
+     * @param items Array of items. See `Zenoss.NavConfig` for item structure.
+     */
+    appendTo: function(type, items) {
+        if ( this.all.containsKey(type) ) {
+            var nav = this.all.key(type);
+            nav.addAll(items);
+        }
+        else {
+            this.onAvailable(type, function(item) {
+                item.addAll(items);
+            });
+        }
+    },
+    /**
+     * Registers a callback to be called as soon as a nav tree matching navId is added.
+     *
+     * @param navId
+     * @param callback
+     */
+    onAvailable: function(navId, callback, scope) {
+        function onAdd(item) {
+            if ( item.id == navId ) {
+                callback.call(scope || item, item);
+                this.all.un('navready', onAdd, scope);
+            }
+        }
+
+        this.all.on('navready', onAdd, this);
+    }
+});
+
+Zenoss.nav = new Zenoss.NavManager();
 
 Zenoss.SubselectionNodeUI = Ext.extend(Ext.tree.TreeNodeUI, {
     render: function() {
@@ -235,9 +343,9 @@ Zenoss.SubselectionPanel = Ext.extend(Ext.Panel, {
     },
     setContext: function(uid) {
         var type = Zenoss.types.type(uid),
-            nodes = Zenoss.nav[type];
+            nodes = Zenoss.nav.get(type);
         if (nodes) {
-            Ext.each(nodes, function(node) {
+            Zenoss.util.each(nodes, function(node) {
                 Ext.applyIf(node, {
                     nodeType: 'subselect'
                 });
@@ -288,7 +396,7 @@ Ext.reg('detailnavtreepanel', Zenoss.DetailNavTreePanel);
 Ext.reg('subselection', Zenoss.SubselectionPanel);
 /**
  * Used to manage and display detail navigation tree for a contextId
- * 
+ *
  * @class Zenoss.DetailNavPanel
  * @extends Zenoss.SubselectionPanel
  */
@@ -346,7 +454,7 @@ Zenoss.DetailNavPanel = Ext.extend(Zenoss.SubselectionPanel,{
         Zenoss.DetailNavPanel.superclass.constructor.call(this, config);
     },
     initEvents: function() {
-        this.addEvents( 
+        this.addEvents(
             /**
              * @event navloaded
              * Fires after the navigation has been loaded
@@ -390,21 +498,32 @@ Zenoss.DetailNavPanel = Ext.extend(Zenoss.SubselectionPanel,{
         var myCallback = function(provider, response) {
             var detailConfigs = response.result.detailConfigs;
             var filterFn = function(val) {
-                return me.filterNav(me, val);
+                var show = true;
+                if (  Ext.isFunction(val.filterNav) ) {
+                    show = val.filterNav(me);
+                }
+
+                return show && me.filterNav(me, val);
             };
+
             detailConfigs = Zenoss.util.filter(detailConfigs, filterFn, me);
-            var panelMap = [];
-            Ext.each(detailConfigs, function(val) {
-                panelMap[val.id] = val;
-            });
-            me.panelConfigMap = panelMap;
+
             var nodes = me.onGetNavConfig(me.contextId);
-            if (!Ext.isDefined(nodes) || nodes === null){
+            if (!Ext.isDefined(nodes) || nodes === null) {
                 nodes = [];
             }
-            if (detailConfigs){
+
+            nodes = Zenoss.util.filter(nodes, filterFn, me);
+
+            if ( detailConfigs ) {
                 nodes = nodes.concat(detailConfigs);
             }
+
+            me.panelConfigMap = [];
+            Zenoss.util.each(nodes, function(val) {
+                me.panelConfigMap[val.id] = val;
+            });
+
             me.setNavTree(nodes);
         };
         var args = {
@@ -412,7 +531,7 @@ Zenoss.DetailNavPanel = Ext.extend(Zenoss.SubselectionPanel,{
         };
         if (this.menuIds !== null && this.menuIds.length >= 1){
             args['menuIds'] = this.menuIds;
-        } 
+        }
         Zenoss.remote.DetailNavRouter.getDetailNavConfigs(args, myCallback, this);
     },
     reset: function() {
@@ -430,18 +549,24 @@ Zenoss.DetailNavPanel = Ext.extend(Zenoss.SubselectionPanel,{
             }
         }
     },
+    /**
+     * Set the nodes to display in the nav tree.
+     * @param nodes Zenoss.NavConfig Nodes to set the nav to
+     */
     setNavTree: function(nodes){
         //get any configs registered by the page
         var root;
         if (nodes) {
             root = this.reset();
-            Ext.each(nodes, function(node){
+            Zenoss.util.each(nodes, function(node){
                 Ext.applyIf(node, {
                     nodeType: 'subselect'
                 });
                 root.appendChild(node);
             });
-            Ext.each(nodes, function(navConfig){
+
+            // Send an alert for all nodes after all nodes have been loaded
+            Zenoss.util.each(nodes, function(navConfig){
                 this.fireEvent('nodeloaded', this, navConfig);
             }, this);
         }

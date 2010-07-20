@@ -140,7 +140,7 @@ function setDeviceButtonsDisabled(bool){
         Zenoss.Security.doesNotHavePermission('Run Commands'));
     Ext.getCmp('actions-menu').setDisabled(bool ||
         Zenoss.Security.doesNotHavePermission('Manage Device'));
-    
+
 }
 
 function resetGrid() {
@@ -785,7 +785,7 @@ function initializeTreeDrop(tree) {
         var targetnode = e.target,
             targetuid = targetnode.attributes.uid,
             organizerUid;
-        
+
         if ( e.data.node) {
             organizerUid = e.data.node.attributes.uid;
             if (organizerUid && targetuid) {
@@ -1009,6 +1009,22 @@ var loctree = {
     listeners: { render: initializeTreeDrop }
 };
 
+Zenoss.nav.register({
+    DeviceGroup: [
+        {
+            id: 'device_grid',
+            text: 'Devices',
+            listeners: {
+                render: updateNavTextWithCount
+            }
+        },
+        {
+            id: 'events_grid',
+            text: _t('Events')
+        }
+    ]
+});
+
 Zenoss.InfraDetailNav = Ext.extend(Zenoss.DetailNavPanel, {
     constructor: function(config){
         Ext.applyIf(config, {
@@ -1023,8 +1039,9 @@ Zenoss.InfraDetailNav = Ext.extend(Zenoss.DetailNavPanel, {
                     };
                     if (!excluded[navConfig.id]){
                         var config = detailNavPanel.panelConfigMap[navConfig.id];
-                        Ext.applyIf(config, {refreshOnContextChange: true});
                         if(config && !Ext.getCmp(config.id)){
+                            Ext.applyIf(config, {refreshOnContextChange: true});
+
                             //create the panel in the center panel if needed
                             var detail_panel = Ext.getCmp('detail_panel');
                             detail_panel.add(config);
@@ -1067,26 +1084,7 @@ Zenoss.InfraDetailNav = Ext.extend(Zenoss.DetailNavPanel, {
         return !excluded[config.id];
     },
     onGetNavConfig: function(contextId) {
-        var deviceNav = [{
-            id: 'device_grid',
-            text: 'Devices',
-            listeners: {
-                render: updateNavTextWithCount
-            }
-        },{
-            id: 'events_grid',
-            text: _t('Events')
-        }];
-        var otherNav = [];
-        switch (Zenoss.types.type(contextId)) {
-            case 'DeviceLocation':
-                break;
-            case 'DeviceClass':
-                break;
-            default:
-                break;
-        }
-        return deviceNav.concat(otherNav);
+        return Zenoss.nav.get('DeviceGroup');
     },
     onSelectionChange: function(node) {
         if ( node ) {
@@ -1375,7 +1373,7 @@ var footerBar = Ext.getCmp('footer_bar');
                 rootId = tree.getRootNode().attributes.id,
                 msg = _t('Are you sure you want to delete the {0} {1}? <br/>There is <strong>no</strong> undo.');
             if (rootId==devtree.root.id) {
-                msg = [msg, '<br/><br/><strong>', 
+                msg = [msg, '<br/><br/><strong>',
                        _t('WARNING'), '</strong>:',
                        _t(' This will also delete all devices in this {0}.'),
                        '<br/>'].join('');
@@ -1398,7 +1396,7 @@ var footerBar = Ext.getCmp('footer_bar');
                 bindTemplatesDialog.setContext(uid);
                 resetTemplatesDialog.setContext(uid);
                 Zenoss.env.PARENT_CONTEXT = uid;
-                
+
             },
             onGetMenuItems: function(uid) {
                 var menuItems = [];

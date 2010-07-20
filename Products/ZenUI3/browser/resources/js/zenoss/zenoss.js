@@ -757,7 +757,7 @@ Zenoss.FilterGridView = Ext.extend(Ext.ux.grid.livegrid.GridView, {
     clearFilters: function() {
         this._valid = true;
         Ext.each(this.filters, function(ob){
-            // clear out any original values 
+            // clear out any original values
             // (for instance when we come here from the device page)
             if (ob.originalValue) {
                 ob.originalValue = null;
@@ -928,7 +928,7 @@ Zenoss.FilterGridView = Ext.extend(Ext.ux.grid.livegrid.GridView, {
     /**
      * Strange bug on live grid when you clear a filter, the live grid
      * reloads, but doesn't render properly. You get a scrollbar but nothing else.
-     * This just completely reloads the grid's datastore. 
+     * This just completely reloads the grid's datastore.
      **/
     reloadOnEmpty: function(filter) {
         var forceReload = true;
@@ -940,7 +940,7 @@ Zenoss.FilterGridView = Ext.extend(Ext.ux.grid.livegrid.GridView, {
         // Check all filters to determine if we are valid
         this.validateFilters();
         this.fireEvent('filterchange', this);
-        
+
         if (this.liveSearch) {
             this.nonDisruptiveReset();
         }
@@ -1805,19 +1805,36 @@ Zenoss.util.setContext = function(uid) {
 };
 
 /**
+ * Doing Ext.each's job for it. If it's an array, do Ext.each, if the obj has an each function, use it instead.
+ * @param {Object} obj Array or MixedCollection works here
+ * @param {Function} filterFn
+ * @param {Object} scope
+ */
+Zenoss.util.each = function(obj, filterFn, scope) {
+    if ( Ext.isFunction(obj.each) ) {
+        obj.each(filterFn, scope);
+    }
+    else {
+        Ext.each(obj, filterFn, scope);
+    }
+}
+
+/**
  * Return an array filtered by function argument; Filter function should
  * return true if a value should be included in the filtered result
  * @param {Object} arr; array to be filtered
  * @param {Object} filterFn; function used to filter
  */
 Zenoss.util.filter = function(arr, filterFn, scope) {
-    var result =[];
-    Ext.each(arr, function(val) {
+    var result = [];
+
+    Zenoss.util.each(arr, function(val) {
         var include = filterFn.call(scope || this, val);
         if (include) {
             result.push(val);
         }
     });
+
     return result;
 };
 

@@ -21,7 +21,7 @@ var REMOTE = Zenoss.remote.DeviceRouter,
 REMOTE.getProductionStates({}, function(d){
     Zenoss.env.PRODUCTION_STATES = d;
 });
-                
+
 REMOTE.getPriorities({}, function(d){
     Zenoss.env.PRIORITIES = d;
 });
@@ -139,7 +139,7 @@ Zenoss.nav.register({
                     node.ui.hide();
                     if (tbar){
                         tbar.hide();
-                    } 
+                    }
                     card.detailcontainer.removeAll();
                     try {
                         // This can fail if the device has no components at
@@ -566,7 +566,7 @@ Zenoss.DeviceDetailNav = Ext.extend(Zenoss.DetailNavPanel, {
         return (excluded.indexOf(config.id)==-1);
     },
     onGetNavConfig: function(contextId) {
-        return Zenoss.nav.Device;
+        return Zenoss.nav.get('Device');
     },
     selectByToken: function(token) {
         var root = this.treepanel.getRootNode(),
@@ -696,7 +696,7 @@ Ext.create({
     context: UID
 });
 
-                
+
 Ext.getCmp('footer_bar').add([{
     xtype: 'ContextConfigureMenu',
     id: 'component-add-menu',
@@ -797,8 +797,8 @@ Ext.getCmp('footer_bar').add([{
                 msg: _t('Are you sure you want to push changes to the collectors?'),
                 buttons: Ext.Msg.YESNO,
                 fn: function (btnid) {
-                    if (btnid!='yes') { 
-                        return; 
+                    if (btnid!='yes') {
+                        return;
                     }
                     REMOTE.pushChanges({
                         uids: [UID],
