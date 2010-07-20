@@ -428,17 +428,18 @@ table.proptable {
     display: block;
 }
 
-.x-grid3-row.rowcolor {
+.rowcolor {
     border-color: #999 #999 #999;
 }
 
-.x-grid3-row-over.rowcolor,
-.x-grid3-row-selected.rowcolor {
-    background:#999 !important;
+.x-grid3-row-over-rowcolor,
+.x-grid3-row-selected-rowcolor {
+    background: #999 !important;
 }
 
-.x-grid3-row-over.rowcolor .x-grid3-cell-inner a,
-.x-grid3-row-over.rowcolor .x-grid3-cell-inner {
+
+.x-grid3-row-over-rowcolor .x-grid3-cell-inner a,
+.x-grid3-row-over-rowcolor .x-grid3-cell-inner {
     color: white;
 }
 

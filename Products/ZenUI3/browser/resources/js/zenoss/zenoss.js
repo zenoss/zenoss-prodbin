@@ -1004,6 +1004,34 @@ Zenoss.FilterGridView = Ext.extend(Ext.ux.grid.livegrid.GridView, {
     getFilterButton: function(){
         return Ext.getCmp(this.filterbutton);
     },
+    onRowSelect: function(row) {
+        if (this.rowColors) {
+            this.addRowClass(row, this.selectedRowClass + '-rowcolor');
+        }
+        Zenoss.FilterGridView.superclass.onRowSelect.apply(this, arguments);
+    },
+    onRowDeselect: function(row) {
+        if (this.rowColors) {
+            this.removeRowClass(row, this.selectedRowClass + '-rowcolor');
+        }
+        Zenoss.FilterGridView.superclass.onRowDeselect.apply(this, arguments);
+    },
+    onRowOver: function(e, t) {
+        if (this.rowColors) {
+            if((row = this.findRowIndex(t)) !== false && !e.within(this.getRow(row), true)){
+                this.addRowClass(row, 'x-grid3-row-over-rowcolor');
+            }
+        }
+        Zenoss.FilterGridView.superclass.onRowOver.apply(this, arguments);
+    },
+    onRowOut: function(e, t) {
+        if (this.rowColors) {
+            if((row = this.findRowIndex(t)) !== false && !e.within(this.getRow(row), true)){
+                this.removeRowClass(row, 'x-grid3-row-over-rowcolor');
+            }
+        }
+        Zenoss.FilterGridView.superclass.onRowOut.apply(this, arguments);
+    },
     getRowClass: function(record, index) {
         var stateclass = record.get('eventState')=='New' ?
                             'unacknowledged':'acknowledged';
