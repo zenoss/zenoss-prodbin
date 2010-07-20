@@ -52311,7 +52311,7 @@ ZYMED-ZPP
 ['port']
 </property>
 <tomanycont id='serviceclasses'>
-<object id='ALG' module='Products.ZenModel.ServiceClass' class='ServiceClass'>
+<object id='ALG' module='Products.ZenModel.WinServiceClass' class='WinServiceClass'>
 <property type="string" id="name" mode="w" >
 ALG
 </property>
@@ -52325,7 +52325,7 @@ Application Layer Gateway Service
 0
 </property>
 </object>
-<object id='AeLookupSvc' module='Products.ZenModel.ServiceClass' class='ServiceClass'>
+<object id='AeLookupSvc' module='Products.ZenModel.WinServiceClass' class='WinServiceClass'>
 <property type="string" id="name" mode="w" >
 AeLookupSvc
 </property>
@@ -52339,7 +52339,7 @@ Application Experience Lookup Service
 0
 </property>
 </object>
-<object id='Alerter' module='Products.ZenModel.ServiceClass' class='ServiceClass'>
+<object id='Alerter' module='Products.ZenModel.WinServiceClass' class='WinServiceClass'>
 <property type="string" id="name" mode="w" >
 Alerter
 </property>
@@ -52353,7 +52353,7 @@ Alerter
 0
 </property>
 </object>
-<object id='AppMgmt' module='Products.ZenModel.ServiceClass' class='ServiceClass'>
+<object id='AppMgmt' module='Products.ZenModel.WinServiceClass' class='WinServiceClass'>
 <property type="string" id="name" mode="w" >
 AppMgmt
 </property>
@@ -52367,7 +52367,7 @@ Application Management
 0
 </property>
 </object>
-<object id='AudioSrv' module='Products.ZenModel.ServiceClass' class='ServiceClass'>
+<object id='AudioSrv' module='Products.ZenModel.WinServiceClass' class='WinServiceClass'>
 <property type="string" id="name" mode="w" >
 AudioSrv
 </property>
@@ -52381,7 +52381,7 @@ Windows Audio
 0
 </property>
 </object>
-<object id='BITS' module='Products.ZenModel.ServiceClass' class='ServiceClass'>
+<object id='BITS' module='Products.ZenModel.WinServiceClass' class='WinServiceClass'>
 <property type="string" id="name" mode="w" >
 BITS
 </property>
@@ -52395,7 +52395,7 @@ Background Intelligent Transfer Service
 0
 </property>
 </object>
-<object id='Browser' module='Products.ZenModel.ServiceClass' class='ServiceClass'>
+<object id='Browser' module='Products.ZenModel.WinServiceClass' class='WinServiceClass'>
 <property type="string" id="name" mode="w" >
 Browser
 </property>
@@ -52409,7 +52409,7 @@ Computer Browser
 0
 </property>
 </object>
-<object id='COMSysApp' module='Products.ZenModel.ServiceClass' class='ServiceClass'>
+<object id='COMSysApp' module='Products.ZenModel.WinServiceClass' class='WinServiceClass'>
 <property type="string" id="name" mode="w" >
 COMSysApp
 </property>
@@ -52423,7 +52423,7 @@ COM+ System Application
 0
 </property>
 </object>
-<object id='CiSvc' module='Products.ZenModel.ServiceClass' class='ServiceClass'>
+<object id='CiSvc' module='Products.ZenModel.WinServiceClass' class='WinServiceClass'>
 <property type="string" id="name" mode="w" >
 CiSvc
 </property>
@@ -52437,7 +52437,7 @@ Indexing Service
 0
 </property>
 </object>
-<object id='ClipSrv' module='Products.ZenModel.ServiceClass' class='ServiceClass'>
+<object id='ClipSrv' module='Products.ZenModel.WinServiceClass' class='WinServiceClass'>
 <property type="string" id="name" mode="w" >
 ClipSrv
 </property>
@@ -52451,7 +52451,7 @@ ClipBook
 0
 </property>
 </object>
-<object id='CryptSvc' module='Products.ZenModel.ServiceClass' class='ServiceClass'>
+<object id='CryptSvc' module='Products.ZenModel.WinServiceClass' class='WinServiceClass'>
 <property type="string" id="name" mode="w" >
 CryptSvc
 </property>
@@ -52465,7 +52465,7 @@ Cryptographic Services
 0
 </property>
 </object>
-<object id='DcomLaunch' module='Products.ZenModel.ServiceClass' class='ServiceClass'>
+<object id='DcomLaunch' module='Products.ZenModel.WinServiceClass' class='WinServiceClass'>
 <property type="string" id="name" mode="w" >
 DcomLaunch
 </property>
@@ -52479,7 +52479,7 @@ DCOM Server Process Launcher
 0
 </property>
 </object>
-<object id='Dfs' module='Products.ZenModel.ServiceClass' class='ServiceClass'>
+<object id='Dfs' module='Products.ZenModel.WinServiceClass' class='WinServiceClass'>
 <property type="string" id="name" mode="w" >
 Dfs
 </property>
@@ -52493,7 +52493,7 @@ Distributed File System
 0
 </property>
 </object>
-<object id='Dhcp' module='Products.ZenModel.ServiceClass' class='ServiceClass'>
+<object id='Dhcp' module='Products.ZenModel.WinServiceClass' class='WinServiceClass'>
 <property type="string" id="name" mode="w" >
 Dhcp
 </property>
@@ -52507,7 +52507,7 @@ DHCP Client
 0
 </property>
 </object>
-<object id='Dnscache' module='Products.ZenModel.ServiceClass' class='ServiceClass'>
+<object id='Dnscache' module='Products.ZenModel.WinServiceClass' class='WinServiceClass'>
 <property type="string" id="name" mode="w" >
 Dnscache
 </property>
@@ -52521,7 +52521,7 @@ DNS Client
 0
 </property>
 </object>
-<object id='ERSvc' module='Products.ZenModel.ServiceClass' class='ServiceClass'>
+<object id='ERSvc' module='Products.ZenModel.WinServiceClass' class='WinServiceClass'>
 <property type="string" id="name" mode="w" >
 ERSvc
 </property>
@@ -52535,7 +52535,7 @@ Error Reporting Service
 0
 </property>
 </object>
-<object id='EventSystem' module='Products.ZenModel.ServiceClass' class='ServiceClass'>
+<object id='EventSystem' module='Products.ZenModel.WinServiceClass' class='WinServiceClass'>
 <property type="string" id="name" mode="w" >
 EventSystem
 </property>
@@ -52549,7 +52549,7 @@ COM+ Event System
 0
 </property>
 </object>
-<object id='Eventlog' module='Products.ZenModel.ServiceClass' class='ServiceClass'>
+<object id='Eventlog' module='Products.ZenModel.WinServiceClass' class='WinServiceClass'>
 <property type="string" id="name" mode="w" >
 Eventlog
 </property>
@@ -52563,7 +52563,7 @@ Event Log
 0
 </property>
 </object>
-<object id='EvtSys' module='Products.ZenModel.ServiceClass' class='ServiceClass'>
+<object id='EvtSys' module='Products.ZenModel.WinServiceClass' class='WinServiceClass'>
 <property type="string" id="name" mode="w" >
 EvtSys
 </property>
@@ -52577,7 +52577,7 @@ Eventlog to Syslog
 0
 </property>
 </object>
-<object id='Fax' module='Products.ZenModel.ServiceClass' class='ServiceClass'>
+<object id='Fax' module='Products.ZenModel.WinServiceClass' class='WinServiceClass'>
 <property type="string" id="name" mode="w" >
 Fax
 </property>
@@ -52591,7 +52591,7 @@ Fax Service
 0
 </property>
 </object>
-<object id='HTTPFilter' module='Products.ZenModel.ServiceClass' class='ServiceClass'>
+<object id='HTTPFilter' module='Products.ZenModel.WinServiceClass' class='WinServiceClass'>
 <property type="string" id="name" mode="w" >
 HTTPFilter
 </property>
@@ -52605,7 +52605,7 @@ HTTP SSL
 0
 </property>
 </object>
-<object id='HidServ' module='Products.ZenModel.ServiceClass' class='ServiceClass'>
+<object id='HidServ' module='Products.ZenModel.WinServiceClass' class='WinServiceClass'>
 <property type="string" id="name" mode="w" >
 HidServ
 </property>
@@ -52619,7 +52619,7 @@ Human Interface Device Access
 0
 </property>
 </object>
-<object id='ImapiService' module='Products.ZenModel.ServiceClass' class='ServiceClass'>
+<object id='ImapiService' module='Products.ZenModel.WinServiceClass' class='WinServiceClass'>
 <property type="string" id="name" mode="w" >
 ImapiService
 </property>
@@ -52633,7 +52633,7 @@ IMAPI CD-Burning COM Service
 0
 </property>
 </object>
-<object id='IsmServ' module='Products.ZenModel.ServiceClass' class='ServiceClass'>
+<object id='IsmServ' module='Products.ZenModel.WinServiceClass' class='WinServiceClass'>
 <property type="string" id="name" mode="w" >
 IsmServ
 </property>
@@ -52647,7 +52647,7 @@ Intersite Messaging
 0
 </property>
 </object>
-<object id='LicenseService' module='Products.ZenModel.ServiceClass' class='ServiceClass'>
+<object id='LicenseService' module='Products.ZenModel.WinServiceClass' class='WinServiceClass'>
 <property type="string" id="name" mode="w" >
 LicenseService
 </property>
@@ -52661,7 +52661,7 @@ License Logging
 0
 </property>
 </object>
-<object id='LmHosts' module='Products.ZenModel.ServiceClass' class='ServiceClass'>
+<object id='LmHosts' module='Products.ZenModel.WinServiceClass' class='WinServiceClass'>
 <property type="string" id="name" mode="w" >
 LmHosts
 </property>
@@ -52675,7 +52675,7 @@ TCP/IP NetBIOS Helper Service
 0
 </property>
 </object>
-<object id='MSDTC' module='Products.ZenModel.ServiceClass' class='ServiceClass'>
+<object id='MSDTC' module='Products.ZenModel.WinServiceClass' class='WinServiceClass'>
 <property type="string" id="name" mode="w" >
 MSDTC
 </property>
@@ -52689,7 +52689,7 @@ Distributed Transaction Coordinator
 0
 </property>
 </object>
-<object id='MSIServer' module='Products.ZenModel.ServiceClass' class='ServiceClass'>
+<object id='MSIServer' module='Products.ZenModel.WinServiceClass' class='WinServiceClass'>
 <property type="string" id="name" mode="w" >
 MSIServer
 </property>
@@ -52703,7 +52703,7 @@ Windows Installer
 0
 </property>
 </object>
-<object id='Messenger' module='Products.ZenModel.ServiceClass' class='ServiceClass'>
+<object id='Messenger' module='Products.ZenModel.WinServiceClass' class='WinServiceClass'>
 <property type="string" id="name" mode="w" >
 Messenger
 </property>
@@ -52717,7 +52717,7 @@ Messenger
 0
 </property>
 </object>
-<object id='NTsyslog' module='Products.ZenModel.ServiceClass' class='ServiceClass'>
+<object id='NTsyslog' module='Products.ZenModel.WinServiceClass' class='WinServiceClass'>
 <property type="string" id="name" mode="w" >
 NTsyslog
 </property>
@@ -52731,7 +52731,7 @@ NTsyslog
 0
 </property>
 </object>
-<object id='NetDDE' module='Products.ZenModel.ServiceClass' class='ServiceClass'>
+<object id='NetDDE' module='Products.ZenModel.WinServiceClass' class='WinServiceClass'>
 <property type="string" id="name" mode="w" >
 NetDDE
 </property>
@@ -52745,7 +52745,7 @@ Network DDE
 0
 </property>
 </object>
-<object id='NetDDEdsdm' module='Products.ZenModel.ServiceClass' class='ServiceClass'>
+<object id='NetDDEdsdm' module='Products.ZenModel.WinServiceClass' class='WinServiceClass'>
 <property type="string" id="name" mode="w" >
 NetDDEdsdm
 </property>
@@ -52759,7 +52759,7 @@ Network DDE DSDM
 0
 </property>
 </object>
-<object id='Netlogon' module='Products.ZenModel.ServiceClass' class='ServiceClass'>
+<object id='Netlogon' module='Products.ZenModel.WinServiceClass' class='WinServiceClass'>
 <property type="string" id="name" mode="w" >
 Netlogon
 </property>
@@ -52773,7 +52773,7 @@ Net Logon
 0
 </property>
 </object>
-<object id='Netman' module='Products.ZenModel.ServiceClass' class='ServiceClass'>
+<object id='Netman' module='Products.ZenModel.WinServiceClass' class='WinServiceClass'>
 <property type="string" id="name" mode="w" >
 Netman
 </property>
@@ -52787,7 +52787,7 @@ Network Connections
 0
 </property>
 </object>
-<object id='Nla' module='Products.ZenModel.ServiceClass' class='ServiceClass'>
+<object id='Nla' module='Products.ZenModel.WinServiceClass' class='WinServiceClass'>
 <property type="string" id="name" mode="w" >
 Nla
 </property>
@@ -52801,7 +52801,7 @@ Network Location Awareness (NLA)
 0
 </property>
 </object>
-<object id='NtFrs' module='Products.ZenModel.ServiceClass' class='ServiceClass'>
+<object id='NtFrs' module='Products.ZenModel.WinServiceClass' class='WinServiceClass'>
 <property type="string" id="name" mode="w" >
 NtFrs
 </property>
@@ -52815,7 +52815,7 @@ File Replication
 0
 </property>
 </object>
-<object id='NtLmSsp' module='Products.ZenModel.ServiceClass' class='ServiceClass'>
+<object id='NtLmSsp' module='Products.ZenModel.WinServiceClass' class='WinServiceClass'>
 <property type="string" id="name" mode="w" >
 NtLmSsp
 </property>
@@ -52829,7 +52829,7 @@ NT LM Security Support Provider
 0
 </property>
 </object>
-<object id='NtmsSvc' module='Products.ZenModel.ServiceClass' class='ServiceClass'>
+<object id='NtmsSvc' module='Products.ZenModel.WinServiceClass' class='WinServiceClass'>
 <property type="string" id="name" mode="w" >
 NtmsSvc
 </property>
@@ -52843,7 +52843,7 @@ Removable Storage
 0
 </property>
 </object>
-<object id='PMTA' module='Products.ZenModel.ServiceClass' class='ServiceClass'>
+<object id='PMTA' module='Products.ZenModel.WinServiceClass' class='WinServiceClass'>
 <property type="string" id="name" mode="w" >
 PMTA
 </property>
@@ -52857,7 +52857,7 @@ MlfMTA
 0
 </property>
 </object>
-<object id='PlugPlay' module='Products.ZenModel.ServiceClass' class='ServiceClass'>
+<object id='PlugPlay' module='Products.ZenModel.WinServiceClass' class='WinServiceClass'>
 <property type="string" id="name" mode="w" >
 PlugPlay
 </property>
@@ -52871,7 +52871,7 @@ Plug and Play
 0
 </property>
 </object>
-<object id='PolicyAgent' module='Products.ZenModel.ServiceClass' class='ServiceClass'>
+<object id='PolicyAgent' module='Products.ZenModel.WinServiceClass' class='WinServiceClass'>
 <property type="string" id="name" mode="w" >
 PolicyAgent
 </property>
@@ -52885,7 +52885,7 @@ IPSEC Policy Agent
 0
 </property>
 </object>
-<object id='ProtectedStorage' module='Products.ZenModel.ServiceClass' class='ServiceClass'>
+<object id='ProtectedStorage' module='Products.ZenModel.WinServiceClass' class='WinServiceClass'>
 <property type="string" id="name" mode="w" >
 ProtectedStorage
 </property>
@@ -52899,7 +52899,7 @@ Protected Storage
 0
 </property>
 </object>
-<object id='RDSessMgr' module='Products.ZenModel.ServiceClass' class='ServiceClass'>
+<object id='RDSessMgr' module='Products.ZenModel.WinServiceClass' class='WinServiceClass'>
 <property type="string" id="name" mode="w" >
 RDSessMgr
 </property>
@@ -52913,7 +52913,7 @@ Remote Desktop Help Session Manager
 0
 </property>
 </object>
-<object id='RSVP' module='Products.ZenModel.ServiceClass' class='ServiceClass'>
+<object id='RSVP' module='Products.ZenModel.WinServiceClass' class='WinServiceClass'>
 <property type="string" id="name" mode="w" >
 RSVP
 </property>
@@ -52927,7 +52927,7 @@ QoS RSVP
 0
 </property>
 </object>
-<object id='RSoPProv' module='Products.ZenModel.ServiceClass' class='ServiceClass'>
+<object id='RSoPProv' module='Products.ZenModel.WinServiceClass' class='WinServiceClass'>
 <property type="string" id="name" mode="w" >
 RSoPProv
 </property>
@@ -52941,7 +52941,7 @@ Resultant Set of Policy Provider
 0
 </property>
 </object>
-<object id='RasAuto' module='Products.ZenModel.ServiceClass' class='ServiceClass'>
+<object id='RasAuto' module='Products.ZenModel.WinServiceClass' class='WinServiceClass'>
 <property type="string" id="name" mode="w" >
 RasAuto
 </property>
@@ -52955,7 +52955,7 @@ Remote Access Auto Connection Manager
 0
 </property>
 </object>
-<object id='RasMan' module='Products.ZenModel.ServiceClass' class='ServiceClass'>
+<object id='RasMan' module='Products.ZenModel.WinServiceClass' class='WinServiceClass'>
 <property type="string" id="name" mode="w" >
 RasMan
 </property>
@@ -52969,7 +52969,7 @@ Remote Access Connection Manager
 0
 </property>
 </object>
-<object id='RemoteAccess' module='Products.ZenModel.ServiceClass' class='ServiceClass'>
+<object id='RemoteAccess' module='Products.ZenModel.WinServiceClass' class='WinServiceClass'>
 <property type="string" id="name" mode="w" >
 RemoteAccess
 </property>
@@ -52983,7 +52983,7 @@ Routing and Remote Access
 0
 </property>
 </object>
-<object id='RemoteRegistry' module='Products.ZenModel.ServiceClass' class='ServiceClass'>
+<object id='RemoteRegistry' module='Products.ZenModel.WinServiceClass' class='WinServiceClass'>
 <property type="string" id="name" mode="w" >
 RemoteRegistry
 </property>
@@ -52997,7 +52997,7 @@ Remote Registry Service
 0
 </property>
 </object>
-<object id='RpcLocator' module='Products.ZenModel.ServiceClass' class='ServiceClass'>
+<object id='RpcLocator' module='Products.ZenModel.WinServiceClass' class='WinServiceClass'>
 <property type="string" id="name" mode="w" >
 RpcLocator
 </property>
@@ -53011,7 +53011,7 @@ Remote Procedure Call (RPC) Locator
 0
 </property>
 </object>
-<object id='RpcSs' module='Products.ZenModel.ServiceClass' class='ServiceClass'>
+<object id='RpcSs' module='Products.ZenModel.WinServiceClass' class='WinServiceClass'>
 <property type="string" id="name" mode="w" >
 RpcSs
 </property>
@@ -53025,7 +53025,7 @@ Remote Procedure Call (RPC)
 0
 </property>
 </object>
-<object id='SCardDrv' module='Products.ZenModel.ServiceClass' class='ServiceClass'>
+<object id='SCardDrv' module='Products.ZenModel.WinServiceClass' class='WinServiceClass'>
 <property type="string" id="name" mode="w" >
 SCardDrv
 </property>
@@ -53039,7 +53039,7 @@ Smart Card Helper
 0
 </property>
 </object>
-<object id='SCardSvr' module='Products.ZenModel.ServiceClass' class='ServiceClass'>
+<object id='SCardSvr' module='Products.ZenModel.WinServiceClass' class='WinServiceClass'>
 <property type="string" id="name" mode="w" >
 SCardSvr
 </property>
@@ -53053,7 +53053,7 @@ Smart Card
 0
 </property>
 </object>
-<object id='SENS' module='Products.ZenModel.ServiceClass' class='ServiceClass'>
+<object id='SENS' module='Products.ZenModel.WinServiceClass' class='WinServiceClass'>
 <property type="string" id="name" mode="w" >
 SENS
 </property>
@@ -53067,7 +53067,7 @@ System Event Notification
 0
 </property>
 </object>
-<object id='SNARE' module='Products.ZenModel.ServiceClass' class='ServiceClass'>
+<object id='SNARE' module='Products.ZenModel.WinServiceClass' class='WinServiceClass'>
 <property type="string" id="name" mode="w" >
 SNARE
 </property>
@@ -53081,7 +53081,7 @@ SNARE
 0
 </property>
 </object>
-<object id='SNMP' module='Products.ZenModel.ServiceClass' class='ServiceClass'>
+<object id='SNMP' module='Products.ZenModel.WinServiceClass' class='WinServiceClass'>
 <property type="string" id="name" mode="w" >
 SNMP
 </property>
@@ -53095,7 +53095,7 @@ SNMP Service
 0
 </property>
 </object>
-<object id='SNMPTRAP' module='Products.ZenModel.ServiceClass' class='ServiceClass'>
+<object id='SNMPTRAP' module='Products.ZenModel.WinServiceClass' class='WinServiceClass'>
 <property type="string" id="name" mode="w" >
 SNMPTRAP
 </property>
@@ -53109,7 +53109,7 @@ SNMP Trap Service
 0
 </property>
 </object>
-<object id='SamSs' module='Products.ZenModel.ServiceClass' class='ServiceClass'>
+<object id='SamSs' module='Products.ZenModel.WinServiceClass' class='WinServiceClass'>
 <property type="string" id="name" mode="w" >
 SamSs
 </property>
@@ -53123,7 +53123,7 @@ Security Accounts Manager
 0
 </property>
 </object>
-<object id='Schedule' module='Products.ZenModel.ServiceClass' class='ServiceClass'>
+<object id='Schedule' module='Products.ZenModel.WinServiceClass' class='WinServiceClass'>
 <property type="string" id="name" mode="w" >
 Schedule
 </property>
@@ -53137,7 +53137,7 @@ Task Scheduler
 0
 </property>
 </object>
-<object id='Server Administrator' module='Products.ZenModel.ServiceClass' class='ServiceClass'>
+<object id='Server Administrator' module='Products.ZenModel.WinServiceClass' class='WinServiceClass'>
 <property type="string" id="name" mode="w" >
 Server Administrator
 </property>
@@ -53151,7 +53151,7 @@ Secure Port Server
 0
 </property>
 </object>
-<object id='SharedAccess' module='Products.ZenModel.ServiceClass' class='ServiceClass'>
+<object id='SharedAccess' module='Products.ZenModel.WinServiceClass' class='WinServiceClass'>
 <property type="string" id="name" mode="w" >
 SharedAccess
 </property>
@@ -53165,7 +53165,7 @@ Internet Connection Sharing
 0
 </property>
 </object>
-<object id='ShellHWDetection' module='Products.ZenModel.ServiceClass' class='ServiceClass'>
+<object id='ShellHWDetection' module='Products.ZenModel.WinServiceClass' class='WinServiceClass'>
 <property type="string" id="name" mode="w" >
 ShellHWDetection
 </property>
@@ -53179,7 +53179,7 @@ Shell Hardware Detection
 0
 </property>
 </object>
-<object id='Spooler' module='Products.ZenModel.ServiceClass' class='ServiceClass'>
+<object id='Spooler' module='Products.ZenModel.WinServiceClass' class='WinServiceClass'>
 <property type="string" id="name" mode="w" >
 Spooler
 </property>
@@ -53193,7 +53193,7 @@ Print Spooler
 0
 </property>
 </object>
-<object id='SysmonLog' module='Products.ZenModel.ServiceClass' class='ServiceClass'>
+<object id='SysmonLog' module='Products.ZenModel.WinServiceClass' class='WinServiceClass'>
 <property type="string" id="name" mode="w" >
 SysmonLog
 </property>
@@ -53207,7 +53207,7 @@ Performance Logs and Alerts
 0
 </property>
 </object>
-<object id='TapiSrv' module='Products.ZenModel.ServiceClass' class='ServiceClass'>
+<object id='TapiSrv' module='Products.ZenModel.WinServiceClass' class='WinServiceClass'>
 <property type="string" id="name" mode="w" >
 TapiSrv
 </property>
@@ -53221,7 +53221,7 @@ Telephony
 0
 </property>
 </object>
-<object id='TermService' module='Products.ZenModel.ServiceClass' class='ServiceClass'>
+<object id='TermService' module='Products.ZenModel.WinServiceClass' class='WinServiceClass'>
 <property type="string" id="name" mode="w" >
 TermService
 </property>
@@ -53235,7 +53235,7 @@ Terminal Services
 0
 </property>
 </object>
-<object id='Themes' module='Products.ZenModel.ServiceClass' class='ServiceClass'>
+<object id='Themes' module='Products.ZenModel.WinServiceClass' class='WinServiceClass'>
 <property type="string" id="name" mode="w" >
 Themes
 </property>
@@ -53249,7 +53249,7 @@ Themes
 0
 </property>
 </object>
-<object id='TlntSvr' module='Products.ZenModel.ServiceClass' class='ServiceClass'>
+<object id='TlntSvr' module='Products.ZenModel.WinServiceClass' class='WinServiceClass'>
 <property type="string" id="name" mode="w" >
 TlntSvr
 </property>
@@ -53263,7 +53263,7 @@ Telnet
 0
 </property>
 </object>
-<object id='TrkSvr' module='Products.ZenModel.ServiceClass' class='ServiceClass'>
+<object id='TrkSvr' module='Products.ZenModel.WinServiceClass' class='WinServiceClass'>
 <property type="string" id="name" mode="w" >
 TrkSvr
 </property>
@@ -53277,7 +53277,7 @@ Distributed Link Tracking Server
 0
 </property>
 </object>
-<object id='TrkWks' module='Products.ZenModel.ServiceClass' class='ServiceClass'>
+<object id='TrkWks' module='Products.ZenModel.WinServiceClass' class='WinServiceClass'>
 <property type="string" id="name" mode="w" >
 TrkWks
 </property>
@@ -53291,7 +53291,7 @@ Distributed Link Tracking Client
 0
 </property>
 </object>
-<object id='Tssdis' module='Products.ZenModel.ServiceClass' class='ServiceClass'>
+<object id='Tssdis' module='Products.ZenModel.WinServiceClass' class='WinServiceClass'>
 <property type="string" id="name" mode="w" >
 Tssdis
 </property>
@@ -53305,7 +53305,7 @@ Terminal Services Session Directory
 0
 </property>
 </object>
-<object id='UMWdf' module='Products.ZenModel.ServiceClass' class='ServiceClass'>
+<object id='UMWdf' module='Products.ZenModel.WinServiceClass' class='WinServiceClass'>
 <property type="string" id="name" mode="w" >
 UMWdf
 </property>
@@ -53319,7 +53319,7 @@ Windows User Mode Driver Framework
 0
 </property>
 </object>
-<object id='UPS' module='Products.ZenModel.ServiceClass' class='ServiceClass'>
+<object id='UPS' module='Products.ZenModel.WinServiceClass' class='WinServiceClass'>
 <property type="string" id="name" mode="w" >
 UPS
 </property>
@@ -53333,7 +53333,7 @@ Uninterruptible Power Supply
 0
 </property>
 </object>
-<object id='UtilMan' module='Products.ZenModel.ServiceClass' class='ServiceClass'>
+<object id='UtilMan' module='Products.ZenModel.WinServiceClass' class='WinServiceClass'>
 <property type="string" id="name" mode="w" >
 UtilMan
 </property>
@@ -53347,7 +53347,7 @@ Utility Manager
 0
 </property>
 </object>
-<object id='VMTools' module='Products.ZenModel.ServiceClass' class='ServiceClass'>
+<object id='VMTools' module='Products.ZenModel.WinServiceClass' class='WinServiceClass'>
 <property type="string" id="name" mode="w" >
 VMTools
 </property>
@@ -53361,7 +53361,7 @@ VMware Tools Service
 0
 </property>
 </object>
-<object id='VSS' module='Products.ZenModel.ServiceClass' class='ServiceClass'>
+<object id='VSS' module='Products.ZenModel.WinServiceClass' class='WinServiceClass'>
 <property type="string" id="name" mode="w" >
 VSS
 </property>
@@ -53375,7 +53375,7 @@ Volume Shadow Copy
 0
 </property>
 </object>
-<object id='W32Time' module='Products.ZenModel.ServiceClass' class='ServiceClass'>
+<object id='W32Time' module='Products.ZenModel.WinServiceClass' class='WinServiceClass'>
 <property type="string" id="name" mode="w" >
 W32Time
 </property>
@@ -53389,7 +53389,7 @@ Windows Time
 0
 </property>
 </object>
-<object id='WZCSVC' module='Products.ZenModel.ServiceClass' class='ServiceClass'>
+<object id='WZCSVC' module='Products.ZenModel.WinServiceClass' class='WinServiceClass'>
 <property type="string" id="name" mode="w" >
 WZCSVC
 </property>
@@ -53403,7 +53403,7 @@ Wireless Configuration
 0
 </property>
 </object>
-<object id='WebClient' module='Products.ZenModel.ServiceClass' class='ServiceClass'>
+<object id='WebClient' module='Products.ZenModel.WinServiceClass' class='WinServiceClass'>
 <property type="string" id="name" mode="w" >
 WebClient
 </property>
@@ -53417,7 +53417,7 @@ WebClient
 0
 </property>
 </object>
-<object id='WinHttpAutoProxySvc' module='Products.ZenModel.ServiceClass' class='ServiceClass'>
+<object id='WinHttpAutoProxySvc' module='Products.ZenModel.WinServiceClass' class='WinServiceClass'>
 <property type="string" id="name" mode="w" >
 WinHttpAutoProxySvc
 </property>
@@ -53431,7 +53431,7 @@ WinHTTP Web Proxy Auto-Discovery Service
 0
 </property>
 </object>
-<object id='WinMgmt' module='Products.ZenModel.ServiceClass' class='ServiceClass'>
+<object id='WinMgmt' module='Products.ZenModel.WinServiceClass' class='WinServiceClass'>
 <property type="string" id="name" mode="w" >
 WinMgmt
 </property>
@@ -53445,7 +53445,7 @@ Windows Management Instrumentation
 0
 </property>
 </object>
-<object id='WmdmPmSN' module='Products.ZenModel.ServiceClass' class='ServiceClass'>
+<object id='WmdmPmSN' module='Products.ZenModel.WinServiceClass' class='WinServiceClass'>
 <property type="string" id="name" mode="w" >
 WmdmPmSN
 </property>
@@ -53459,7 +53459,7 @@ Portable Media Serial Number Service
 0
 </property>
 </object>
-<object id='Wmi' module='Products.ZenModel.ServiceClass' class='ServiceClass'>
+<object id='Wmi' module='Products.ZenModel.WinServiceClass' class='WinServiceClass'>
 <property type="string" id="name" mode="w" >
 Wmi
 </property>
@@ -53473,7 +53473,7 @@ Windows Management Instrumentation Driver Extensions
 0
 </property>
 </object>
-<object id='WmiApSrv' module='Products.ZenModel.ServiceClass' class='ServiceClass'>
+<object id='WmiApSrv' module='Products.ZenModel.WinServiceClass' class='WinServiceClass'>
 <property type="string" id="name" mode="w" >
 WmiApSrv
 </property>
@@ -53487,7 +53487,7 @@ WMI Performance Adapter
 0
 </property>
 </object>
-<object id='aspnet_state' module='Products.ZenModel.ServiceClass' class='ServiceClass'>
+<object id='aspnet_state' module='Products.ZenModel.WinServiceClass' class='WinServiceClass'>
 <property type="string" id="name" mode="w" >
 aspnet_state
 </property>
@@ -53501,7 +53501,7 @@ ASP.NET State Service
 0
 </property>
 </object>
-<object id='bprocsrvc' module='Products.ZenModel.ServiceClass' class='ServiceClass'>
+<object id='bprocsrvc' module='Products.ZenModel.WinServiceClass' class='WinServiceClass'>
 <property type="string" id="name" mode="w" >
 bprocsrvc
 </property>
@@ -53515,7 +53515,7 @@ bounce processor service
 0
 </property>
 </object>
-<object id='cisvc' module='Products.ZenModel.ServiceClass' class='ServiceClass'>
+<object id='cisvc' module='Products.ZenModel.WinServiceClass' class='WinServiceClass'>
 <property type="string" id="name" mode="w" >
 cisvc
 </property>
@@ -53529,7 +53529,7 @@ Indexing Service
 0
 </property>
 </object>
-<object id='dcevt32' module='Products.ZenModel.ServiceClass' class='ServiceClass'>
+<object id='dcevt32' module='Products.ZenModel.WinServiceClass' class='WinServiceClass'>
 <property type="string" id="name" mode="w" >
 dcevt32
 </property>
@@ -53543,7 +53543,7 @@ Systems Management Event Manager
 0
 </property>
 </object>
-<object id='dcstor32' module='Products.ZenModel.ServiceClass' class='ServiceClass'>
+<object id='dcstor32' module='Products.ZenModel.WinServiceClass' class='WinServiceClass'>
 <property type="string" id="name" mode="w" >
 dcstor32
 </property>
@@ -53557,7 +53557,7 @@ Systems Management Data Manager
 0
 </property>
 </object>
-<object id='dmadmin' module='Products.ZenModel.ServiceClass' class='ServiceClass'>
+<object id='dmadmin' module='Products.ZenModel.WinServiceClass' class='WinServiceClass'>
 <property type="string" id="name" mode="w" >
 dmadmin
 </property>
@@ -53571,7 +53571,7 @@ Logical Disk Manager Administrative Service
 0
 </property>
 </object>
-<object id='dmserver' module='Products.ZenModel.ServiceClass' class='ServiceClass'>
+<object id='dmserver' module='Products.ZenModel.WinServiceClass' class='WinServiceClass'>
 <property type="string" id="name" mode="w" >
 dmserver
 </property>
@@ -53585,7 +53585,7 @@ Logical Disk Manager
 0
 </property>
 </object>
-<object id='helpsvc' module='Products.ZenModel.ServiceClass' class='ServiceClass'>
+<object id='helpsvc' module='Products.ZenModel.WinServiceClass' class='WinServiceClass'>
 <property type="string" id="name" mode="w" >
 helpsvc
 </property>
@@ -53599,7 +53599,7 @@ Help and Support
 0
 </property>
 </object>
-<object id='kdc' module='Products.ZenModel.ServiceClass' class='ServiceClass'>
+<object id='kdc' module='Products.ZenModel.WinServiceClass' class='WinServiceClass'>
 <property type="string" id="name" mode="w" >
 kdc
 </property>
@@ -53613,7 +53613,7 @@ Kerberos Key Distribution Center
 0
 </property>
 </object>
-<object id='lanmanserver' module='Products.ZenModel.ServiceClass' class='ServiceClass'>
+<object id='lanmanserver' module='Products.ZenModel.WinServiceClass' class='WinServiceClass'>
 <property type="string" id="name" mode="w" >
 lanmanserver
 </property>
@@ -53627,7 +53627,7 @@ Server
 0
 </property>
 </object>
-<object id='lanmanworkstation' module='Products.ZenModel.ServiceClass' class='ServiceClass'>
+<object id='lanmanworkstation' module='Products.ZenModel.WinServiceClass' class='WinServiceClass'>
 <property type="string" id="name" mode="w" >
 lanmanworkstation
 </property>
@@ -53641,7 +53641,7 @@ Workstation
 0
 </property>
 </object>
-<object id='mnmsrvc' module='Products.ZenModel.ServiceClass' class='ServiceClass'>
+<object id='mnmsrvc' module='Products.ZenModel.WinServiceClass' class='WinServiceClass'>
 <property type="string" id="name" mode="w" >
 mnmsrvc
 </property>
@@ -53655,7 +53655,7 @@ NetMeeting Remote Desktop Sharing
 0
 </property>
 </object>
-<object id='mr2kserv' module='Products.ZenModel.ServiceClass' class='ServiceClass'>
+<object id='mr2kserv' module='Products.ZenModel.WinServiceClass' class='WinServiceClass'>
 <property type="string" id="name" mode="w" >
 mr2kserv
 </property>
@@ -53669,7 +53669,7 @@ mr2kserv
 0
 </property>
 </object>
-<object id='omsad' module='Products.ZenModel.ServiceClass' class='ServiceClass'>
+<object id='omsad' module='Products.ZenModel.WinServiceClass' class='WinServiceClass'>
 <property type="string" id="name" mode="w" >
 omsad
 </property>
@@ -53683,7 +53683,7 @@ OM Common Services
 0
 </property>
 </object>
-<object id='pmtamon' module='Products.ZenModel.ServiceClass' class='ServiceClass'>
+<object id='pmtamon' module='Products.ZenModel.WinServiceClass' class='WinServiceClass'>
 <property type="string" id="name" mode="w" >
 pmtamon
 </property>
@@ -53697,7 +53697,7 @@ MlfMTA Monitoring Service
 0
 </property>
 </object>
-<object id='sacsvr' module='Products.ZenModel.ServiceClass' class='ServiceClass'>
+<object id='sacsvr' module='Products.ZenModel.WinServiceClass' class='WinServiceClass'>
 <property type="string" id="name" mode="w" >
 sacsvr
 </property>
@@ -53711,7 +53711,7 @@ Special Administration Console Helper
 0
 </property>
 </object>
-<object id='seclogon' module='Products.ZenModel.ServiceClass' class='ServiceClass'>
+<object id='seclogon' module='Products.ZenModel.WinServiceClass' class='WinServiceClass'>
 <property type="string" id="name" mode="w" >
 seclogon
 </property>
@@ -53725,7 +53725,7 @@ RunAs Service
 0
 </property>
 </object>
-<object id='stisvc' module='Products.ZenModel.ServiceClass' class='ServiceClass'>
+<object id='stisvc' module='Products.ZenModel.WinServiceClass' class='WinServiceClass'>
 <property type="string" id="name" mode="w" >
 stisvc
 </property>
@@ -53739,7 +53739,7 @@ Windows Image Acquisition (WIA)
 0
 </property>
 </object>
-<object id='swprv' module='Products.ZenModel.ServiceClass' class='ServiceClass'>
+<object id='swprv' module='Products.ZenModel.WinServiceClass' class='WinServiceClass'>
 <property type="string" id="name" mode="w" >
 swprv
 </property>
@@ -53753,7 +53753,7 @@ Microsoft Software Shadow Copy Provider
 0
 </property>
 </object>
-<object id='vds' module='Products.ZenModel.ServiceClass' class='ServiceClass'>
+<object id='vds' module='Products.ZenModel.WinServiceClass' class='WinServiceClass'>
 <property type="string" id="name" mode="w" >
 vds
 </property>
@@ -53767,7 +53767,7 @@ Virtual Disk Service
 0
 </property>
 </object>
-<object id='winlogd' module='Products.ZenModel.ServiceClass' class='ServiceClass'>
+<object id='winlogd' module='Products.ZenModel.WinServiceClass' class='WinServiceClass'>
 <property type="string" id="name" mode="w" >
 winlogd
 </property>
@@ -53781,7 +53781,7 @@ winlogd
 0
 </property>
 </object>
-<object id='winmgmt' module='Products.ZenModel.ServiceClass' class='ServiceClass'>
+<object id='winmgmt' module='Products.ZenModel.WinServiceClass' class='WinServiceClass'>
 <property type="string" id="name" mode="w" >
 winmgmt
 </property>
@@ -53795,7 +53795,7 @@ Windows Management Instrumentation
 0
 </property>
 </object>
-<object id='winvnc' module='Products.ZenModel.ServiceClass' class='ServiceClass'>
+<object id='winvnc' module='Products.ZenModel.WinServiceClass' class='WinServiceClass'>
 <property type="string" id="name" mode="w" >
 winvnc
 </property>
@@ -53809,7 +53809,7 @@ VNC Server
 0
 </property>
 </object>
-<object id='wuauserv' module='Products.ZenModel.ServiceClass' class='ServiceClass'>
+<object id='wuauserv' module='Products.ZenModel.WinServiceClass' class='WinServiceClass'>
 <property type="string" id="name" mode="w" >
 wuauserv
 </property>
@@ -53823,7 +53823,7 @@ Automatic Updates
 0
 </property>
 </object>
-<object id='xmlprov' module='Products.ZenModel.ServiceClass' class='ServiceClass'>
+<object id='xmlprov' module='Products.ZenModel.WinServiceClass' class='WinServiceClass'>
 <property type="string" id="name" mode="w" >
 xmlprov
 </property>
