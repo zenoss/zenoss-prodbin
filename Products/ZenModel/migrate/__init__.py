@@ -206,3 +206,4 @@ import modifyZPropOverriddenMenuItem
 import AddWinServiceClass
 import renameCollectionItemsRelations
 import RemoveOldCpuFsAndComponentsReports
+import FixHighLoadThreshold
