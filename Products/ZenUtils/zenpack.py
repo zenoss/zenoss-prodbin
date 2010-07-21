@@ -125,6 +125,8 @@ class ZenPackCmd(ZenScriptBase):
                 ' to be out of date. Try running zenmigrate to update.')
 
         if self.options.installPackName:
+            if not self.preInstallCheck(eggInstall):
+                self.stop('%s not installed' % self.options.installPackName)
             if eggInstall:
                 return EggPackCmd.InstallEggAndZenPack(
                     self.dmd,
@@ -132,8 +134,6 @@ class ZenPackCmd(ZenScriptBase):
                     link=self.options.link,
                     filesOnly=False,
                     previousVersion= self.options.previousVersion)
-            if not self.preInstallCheck():
-                self.stop('%s not installed' % self.options.installPackName)
             if os.path.isfile(self.options.installPackName):
                 packName = self.extract(self.options.installPackName)
             elif os.path.isdir(self.options.installPackName):
@@ -185,11 +185,36 @@ class ZenPackCmd(ZenScriptBase):
         transaction.commit()
 
 
-    def preInstallCheck(self):
+    def preInstallCheck(self, eggInstall=True):
         ''' Check that prerequisite zenpacks are installed.
         Return True if no prereqs specified or if they are present.
         False otherwise.
         '''
+        if eggInstall:
+            installedPacks = dict((pack.id, pack.version) \
+                             for pack in self.dataroot.ZenPackManager.packs())
+
+            zf = ZipFile(self.options.installPackName)
+            for req in zf.read('EGG-INFO/requires.txt').split('\n'):
+                zpName, zpVersion = req.strip(), None
+                operatorPos = req.find('>=')
+                if operatorPos > 0:
+                    zpName = req[:operatorPos].strip()
+                    zpVersion = req[operatorPos+2:].strip()
+
+                if zpName in installedPacks:
+                    if zpVersion and installedPacks[zpName] < zpVersion:
+                        self.log.error(
+                            'Zenpack %s requires %s to be at version %s' %
+                            (self.options.installPackName, zpName, zpVersion))
+                        return False
+                else:
+                    self.log.error('Zenpack %s requires %s %s' %
+                                  (self.options.installPackName, zpName,
+                                  zpVersion if zpVersion else ''))
+                    return False
+            return True
+
         if os.path.isfile(self.options.installPackName):
             zf = ZipFile(self.options.installPackName)
             for name in zf.namelist():
@@ -406,6 +431,8 @@ if __name__ == '__main__':
         zp.run()
     except ConflictError:
         raise
+    except SystemExit:
+        pass
     except:
         log.exception('zenpack command failed')
         sys.exit(-1)
