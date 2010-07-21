@@ -18,7 +18,7 @@ from Products.ZenModel.ZenossSecurity import *
 from Products.ZenRelations.RelSchema import *
 from Products.ZenUtils.Utils import prepId
 from Products.ZenWidgets import messaging
-
+from Products.ZenModel.WinServiceClass import WinServiceClass
 from Service import Service
 
 def manage_addWinService(context, id, description, userCreated=None, 
@@ -143,7 +143,7 @@ class WinService(Service):
         path = "/WinService/"
         srvs = self.dmd.getDmdRoot("Services")
         srvclass = srvs.createServiceClass(
-            name=self.serviceName, description=self.caption, path=path)
+            name=self.serviceName, description=self.caption, path=path, factory=WinServiceClass)
         self.serviceclass.addRelation(srvclass)
 
 
