@@ -144,7 +144,7 @@ Zenoss.CommandWindow = Ext.extend(Ext.Window, {
     show: function() {
         if (Ext.isChrome || Ext.isSafari) {
             var url = 'no_streaming=1&data=';
-            url += Ext.encode({ uids: this.commandData.uids });
+            url += Ext.encode(this.commandData);
             if (this.commandData.command) {
                 url += "&command=";
                 url += this.commandDatacommandData.command;
