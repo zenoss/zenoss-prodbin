@@ -25,6 +25,7 @@ class IpInterfaceInfo(ComponentInfo):
 
     @info
     def getIpAddresses(self):
+        #TODO fix me, Ian
         return [str(i) for i in self._object.ipaddresses._objects]
         
     def setIpAddresses(self, ips):

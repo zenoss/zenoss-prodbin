@@ -92,6 +92,9 @@ Ext.apply(Zenoss.render, {
     },
 
     ipAddress: function(ip) {
+        if (Ext.isObject(ip)) {
+            ip = ip.name;
+        }
         if (!ip||ip=='0.0.0.0') {
             return '';
         }

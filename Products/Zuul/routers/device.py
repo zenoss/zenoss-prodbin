@@ -94,6 +94,7 @@ class DeviceRouter(TreeRouter):
     def getForm(self, uid):
         info = self._getFacade().getInfo(uid)
         form = IFormBuilder(info).render(fieldsets=False)
+        form = Zuul.marshal(form)
         return DirectResponse(form=form)
 
     def getInfo(self, uid, keys=None):

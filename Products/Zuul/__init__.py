@@ -48,6 +48,8 @@ from interfaces import IMarshallable
 from interfaces import IMarshaller
 from interfaces import IUnmarshaller
 from utils import safe_hasattr as hasattr, get_dmd
+from BTrees.IIBTree import IISet
+from ZODB.utils import u64 as u64_base
 
 
 def getFacade(name, context=None):
@@ -63,7 +65,7 @@ def getFacade(name, context=None):
     return component.getAdapter(context, IFacade, name)
 
 
-def marshal(obj, keys=None, marshallerName=''):
+def marshal(obj, keys=None, marshallerName='', oids=None):
     """
     Convert an object to a dictionary. keys is an optional list of keys to
     include in the returned dictionary.  if keys is None then all public
@@ -71,21 +73,30 @@ def marshal(obj, keys=None, marshallerName=''):
     adapter name. if it is an empty string then the default marshaller will be
     used.
     """
+    #to prevent recursing back over something twice, keep track of seen oids
+    if oids is None:
+        oids = IISet()
+
     # obj is itself marshallable, so make a marshaller and marshal away
     if IMarshallable.providedBy(obj):
+        if IInfo.providedBy(obj):
+            if int(u64_base(obj._object._p_oid)) in oids:
+                return None
+            else:
+                oids.insert(int(u64_base(obj._object._p_oid)))
         marshaller = component.getAdapter(obj, IMarshaller, marshallerName)
         verify.verifyObject(IMarshaller, marshaller)
-        return marshal(marshaller.marshal(keys), keys, marshallerName)
+        return marshal(marshaller.marshal(keys), keys, marshallerName, oids)
 
     # obj is a dict, so marshal its values recursively
     # Zuul.marshal({'foo':1, 'bar':2})
     if isinstance(obj, dict):
-        return dict((k, marshal(obj[k], keys, marshallerName)) for k in obj)
+        return dict((k, marshal(obj[k], keys, marshallerName, oids)) for k in obj)
 
     # obj is a non-string iterable, so marshal its members recursively
     # Zuul.marshal(set([o1, o2]))
     elif hasattr(obj, '__iter__'):
-        return [marshal(o, keys, marshallerName) for o in obj]
+        return [marshal(o, keys, marshallerName, oids) for o in obj]
 
     # Nothing matched, so it's a string or number or other unmarshallable. 
     else:
@@ -121,7 +132,7 @@ def info(obj, adapterName=''):
 
     # obj is a non-string iterable, so apply to its members recursively
     elif hasattr(obj, '__iter__') and not isinstance(obj, ObjectManager):
-        return imap(infoize, obj)
+        return map(infoize, obj)
 
     # attempt to adapt; if no adapter, return obj itself
     else:
