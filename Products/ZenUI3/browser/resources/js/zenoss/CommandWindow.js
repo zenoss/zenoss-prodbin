@@ -63,6 +63,9 @@ Ext.reg('commandpanel', Zenoss.CommandPanel);
 Zenoss.CommandWindow = Ext.extend(Ext.Window, {
     constructor: function(config) {
         this.cpanel = Ext.id();
+        this.commandData = config.data ||
+            { uids: config.uids, command: config.command };
+        this.target = config.target;
         config = Ext.applyIf(config || {}, {
             layout: 'fit',
             title: config.command || config.title,
@@ -74,8 +77,7 @@ Zenoss.CommandWindow = Ext.extend(Ext.Window, {
                 id: this.cpanel,
                 // default to command panel
                 xtype: config.panel || 'commandpanel',
-                data: config.data || 
-                      {uids: config.uids, command: config.command},
+                data: this.commandData,
                 target: config.target,
                 autoLoad: config.autoLoad,
                 parentWindow: this
@@ -138,6 +140,20 @@ Zenoss.CommandWindow = Ext.extend(Ext.Window, {
             win.scrollBy(0, body.scrollHeight);
         } catch(e) { Ext.emptyFn(); }
         this.task.delay(250);
+    },
+    show: function() {
+        if (Ext.isChrome || Ext.isSafari) {
+            var url = 'no_streaming=1&data=';
+            url += Ext.encode({ uids: this.commandData.uids });
+            if (this.commandData.command) {
+                url += "&command=";
+                url += this.commandDatacommandData.command;
+            }
+            window.open(this.target + '?'+ url,'',
+            'width=800,height=500,toolbar=0,location=0,directories=0,menubar=0,resizable=1,scrollbars=1');
+        } else {
+            Zenoss.CommandWindow.superclass.show.apply(this)
+        }
     }
 });
 
