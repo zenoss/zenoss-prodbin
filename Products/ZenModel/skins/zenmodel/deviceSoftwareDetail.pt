@@ -13,6 +13,15 @@
     batch python:here.ZenTableManager.getBatch(tableName,objects)">
 <tal:block metal:use-macro="here/zenuimacros/macros/zentable">
 <tal:block metal:fill-slot="zentablecontents">
+<script>
+Ext.addBehaviors({
+    'tbody * a@click' : function(a) {
+        if (/\/zport\/dmd\/Manufacturers\//.test(a.target.href)) {
+            window.parent.location.href = a.target.href;
+        }
+    }
+});
+</script>
 
 <!-- BEGIN TABLE CONTENTS -->
     <tr>
