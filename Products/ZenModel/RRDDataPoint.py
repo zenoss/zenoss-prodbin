@@ -16,9 +16,10 @@ __doc__="""RRDDataPoint
 Defines attributes for how a datasource will be graphed
 and builds the nessesary DEF and CDEF statements for it.
 
-$Id:$"""
+"""
 
-__version__ = "$Revision:$"[11:-2]
+import logging
+log = logging.getLogger('zen.RRDDatapoint')
 
 import Globals
 from AccessControl import ClassSecurityInfo, Permissions
@@ -48,6 +49,10 @@ def getDataPointsByAliases( context, aliases ):
     for brains in context.dmd.searchRRDTemplates():
         template = brains.getObject()
         for datasource in template.datasources():
+            if not hasattr(datasource, 'datapoints'):
+                log.error('The datasource %s on template %s is broken -- skipping',
+                          datasource, template.getPrimaryUrlPath())
+                continue
             for datapoint in datasource.datapoints():
                 thisDatapointsAliases = dict( 
                         [ ( dpAlias.id, dpAlias ) for dpAlias in 

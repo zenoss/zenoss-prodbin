@@ -10,24 +10,25 @@
 # For complete information please visit: http://www.zenoss.com/oss/
 #
 ###########################################################################
-__doc__="""ReportServer
+__doc__ = """ReportServer
 
 A front end to all the report plugins.
 
-$Id: $"""
+"""
 
-__version__ = "$Revision: $"[11:-2]
+
+import os
+import sys
+import logging
+log = logging.getLogger('zen.reportserver')
 
 from Globals import InitializeClass
-
 from AccessControl import ClassSecurityInfo
 
 from Products.ZenModel.ZenModelRM import ZenModelRM
 from Products.ZenUtils.Utils import importClass, zenPath
 from Products.ZenModel.ZenossSecurity import *
 
-import os
-import sys
 
 class ReportServer(ZenModelRM):
     security = ClassSecurityInfo()
@@ -45,10 +46,15 @@ class ReportServer(ZenModelRM):
         if 'RESPONSE' in args:
             del args['RESPONSE']
 
-        m = zenPath('Products/ZenReports/plugins')
-        directories = [
-            p.path('reports', 'plugins') for p in self.ZenPackManager.packs()
-            ] + [m]
+        directories = []
+        for p in self.ZenPackManager.packs():
+            try:
+                pluginpath = p.path('reports', 'plugins')
+                directories.append(pluginpath)
+            except AttributeError:
+                log.error("Unable to load report plugin %s for ZenPack %s",
+                          name, p.id)
+        directories.append(zenPath('Products/ZenReports/plugins'))
         
         klass = None
         for d in directories:
