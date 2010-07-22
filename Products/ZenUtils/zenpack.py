@@ -13,8 +13,12 @@
 __doc__ = "Manage ZenPacks"
 
 import os, sys
+import contextlib
 import logging
 import ConfigParser
+import shutil
+import subprocess
+import tempfile
 from zipfile import ZipFile
 from StringIO import StringIO
 
@@ -25,7 +29,7 @@ from ZODB.POSException import ConflictError
 from Products.ZenModel.ZenPack import ZenPack, ZenPackException
 from Products.ZenModel.ZenPack import ZenPackNeedMigrateException
 from Products.ZenUtils.ZenScriptBase import ZenScriptBase
-from Products.ZenUtils.Utils import cleanupSkins, zenPath
+from Products.ZenUtils.Utils import cleanupSkins, zenPath, binPath
 import Products.ZenModel.ZenPackLoader as ZPL
 from Products.ZenModel.ZenPackLoader import CONFIG_FILE, CONFIG_SECTION_ABOUT
 import ZenPackCmd as EggPackCmd
@@ -194,8 +198,39 @@ class ZenPackCmd(ZenScriptBase):
             installedPacks = dict((pack.id, pack.version) \
                              for pack in self.dataroot.ZenPackManager.packs())
 
-            zf = ZipFile(self.options.installPackName)
-            for req in zf.read('EGG-INFO/requires.txt').split('\n'):
+            if self.options.installPackName.lower().endswith('.egg'):
+                # standard prebuilt egg
+                zf = ZipFile(self.options.installPackName)
+                if 'EGG-INFO/requires.txt' in zf.namelist():
+                    reqZenpacks = zf.read('EGG-INFO/requires.txt').split('\n')
+                else:
+                    return True
+            else:
+                # source egg, no prebuilt egg-info
+                @contextlib.contextmanager
+                def tempDir():
+                    dirname = tempfile.mkdtemp()
+                    try:
+                        yield dirname
+                    finally:
+                        shutil.rmtree(dirname)
+
+                with tempDir() as tempEggDir:
+                    cmd = '%s setup.py egg_info -e %s' % \
+                                                (binPath('python'), tempEggDir)
+                    subprocess.call(cmd, shell=True,
+                                    stdout=open('/dev/null', 'w'),
+                                    cwd=self.options.installPackName)
+                    
+                    eggRequires = os.path.join(tempEggDir,
+                                    self.options.installPackName + '.egg-info',
+                                    'requires.txt')
+                    if os.path.isfile(eggRequires):
+                        reqZenpacks = open(eggRequires, 'r').read().split('\n')
+                    else:
+                        return True
+
+            for req in reqZenpacks:
                 zpName, zpVersion = req.strip(), None
                 operatorPos = req.find('>=')
                 if operatorPos > 0:
