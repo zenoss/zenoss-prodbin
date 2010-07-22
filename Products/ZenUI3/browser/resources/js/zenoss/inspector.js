@@ -247,7 +247,7 @@ ZI.DeviceInspector = Ext.extend(ZI.DirectInspector, {
         this.addPropertyTpl(_t('Events'), '{[Zenoss.render.events(values.events, 4)]}');
         this.addPropertyTpl(_t('Device Status'), '{[Zenoss.render.pingStatus(values.status)]}');
         this.addProperty(_t('Production State'), 'productionState');
-        this.addPropertyTpl(_t('Location'), '{[values.location.name]}');
+        this.addPropertyTpl(_t('Location'), '{[(values.location && values.location.name) || ""]}');
     }
 });
 
