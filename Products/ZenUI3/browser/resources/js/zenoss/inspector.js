@@ -208,7 +208,7 @@ ZI.DirectInspector = Ext.extend(ZI.BaseInspector, {
     load: function() {
         if ( this._contextUid ) {
             this.directFn(
-                { uid: this._contextUid },
+                { uid: this._contextUid, keys: this.keys },
                 function(result){
                     if ( result.success ) {
                         this.fireEvent('contextchange', result.data, this);
@@ -238,6 +238,7 @@ ZI.DeviceInspector = Ext.extend(ZI.DirectInspector, {
     constructor: function(config) {
         config = Ext.applyIf(config || {}, {
             directFn: Zenoss.remote.DeviceRouter.getInfo,
+            keys: ['ipAddress', 'device', 'deviceClass'],
             cls: 'inspector',
             titleTpl: '<div class="name"><a href="{uid}" target="_top">{name}</a></div><div class="info">{[Zenoss.render.DeviceClass(values.deviceClass.uid)]}</div><div class="info">{[Zenoss.render.ipAddress(values.ipAddress)]}</div>'
         });
@@ -257,6 +258,7 @@ ZI.ComponentInspector = Ext.extend(ZI.DirectInspector, {
     constructor: function(config) {
         config = Ext.applyIf(config || {}, {
             directFn: Zenoss.remote.DeviceRouter.getInfo,
+            keys: ['ipAddress', 'device'],
             cls: 'inspector',
             titleTpl: '<div class="name">{name}</div><div class="info"><a href="{[values.device.uid]}" target="_top">{[values.device.device]}</a></div><div class="info">{[Zenoss.render.ipAddress(values.ipAddress)]}</div>'
         });

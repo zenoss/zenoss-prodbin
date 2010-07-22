@@ -64,6 +64,8 @@ def getFacade(name, context=None):
         context = get_dmd()
     return component.getAdapter(context, IFacade, name)
 
+class AlreadySeenException(Exception):
+    pass
 
 def marshal(obj, keys=None, marshallerName='', oids=None):
     """
@@ -79,24 +81,47 @@ def marshal(obj, keys=None, marshallerName='', oids=None):
 
     # obj is itself marshallable, so make a marshaller and marshal away
     if IMarshallable.providedBy(obj):
-        if IInfo.providedBy(obj):
-            if int(u64_base(obj._object._p_oid)) in oids:
-                return None
-            else:
-                oids.insert(int(u64_base(obj._object._p_oid)))
         marshaller = component.getAdapter(obj, IMarshaller, marshallerName)
         verify.verifyObject(IMarshaller, marshaller)
-        return marshal(marshaller.marshal(keys), keys, marshallerName, oids)
+
+        if IInfo.providedBy(obj):
+            oid = int(u64_base(obj._object._p_oid))
+            if oid in oids:
+                raise AlreadySeenException()
+            else:
+                oids.insert(oid)
+                try:
+                    return marshal(marshaller.marshal(keys),
+                            keys, marshallerName, oids)
+                except AlreadySeenException:
+                    pass
+                finally:
+                    oids.remove(oid)
+        else:
+            return marshal(marshaller.marshal(keys), keys, marshallerName, oids)
+
 
     # obj is a dict, so marshal its values recursively
     # Zuul.marshal({'foo':1, 'bar':2})
     if isinstance(obj, dict):
-        return dict((k, marshal(obj[k], keys, marshallerName, oids)) for k in obj)
+        marshalled_dict = {}
+        for k in obj:
+            try:
+                marshalled_dict[k] = marshal(obj[k], keys, marshallerName, oids)
+            except AlreadySeenException:
+                pass
+        return marshalled_dict
 
     # obj is a non-string iterable, so marshal its members recursively
     # Zuul.marshal(set([o1, o2]))
     elif hasattr(obj, '__iter__'):
-        return [marshal(o, keys, marshallerName, oids) for o in obj]
+        marshalled_list = []
+        for o in obj:
+            try:
+                marshalled_list.append(marshal(o, keys, marshallerName, oids))
+            except AlreadySeenException:
+                pass
+        return marshalled_list
 
     # Nothing matched, so it's a string or number or other unmarshallable. 
     else:
