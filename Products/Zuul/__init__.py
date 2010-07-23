@@ -38,18 +38,15 @@ object.
 """
 
 import AccessControl
-from itertools import imap
 from OFS.ObjectManager import ObjectManager
 from zope import component
 from zope.interface import verify
-from OFS.ObjectManager import ObjectManager
 from interfaces import IFacade, IInfo
 from interfaces import IMarshallable
 from interfaces import IMarshaller
 from interfaces import IUnmarshaller
 from utils import safe_hasattr as hasattr, get_dmd
-from BTrees.IIBTree import IISet
-from ZODB.utils import u64 as u64_base
+from BTrees.OOBTree import OOSet
 
 
 def getFacade(name, context=None):
@@ -67,7 +64,7 @@ def getFacade(name, context=None):
 class AlreadySeenException(Exception):
     pass
 
-def marshal(obj, keys=None, marshallerName='', oids=None):
+def marshal(obj, keys=None, marshallerName='', objs=None):
     """
     Convert an object to a dictionary. keys is an optional list of keys to
     include in the returned dictionary.  if keys is None then all public
@@ -75,9 +72,9 @@ def marshal(obj, keys=None, marshallerName='', oids=None):
     adapter name. if it is an empty string then the default marshaller will be
     used.
     """
-    #to prevent recursing back over something twice, keep track of seen oids
-    if oids is None:
-        oids = IISet()
+    #to prevent recursing back over something twice, keep track of seen objs
+    if objs is None:
+        objs = OOSet()
 
     # obj is itself marshallable, so make a marshaller and marshal away
     if IMarshallable.providedBy(obj):
@@ -85,20 +82,20 @@ def marshal(obj, keys=None, marshallerName='', oids=None):
         verify.verifyObject(IMarshaller, marshaller)
 
         if IInfo.providedBy(obj):
-            oid = int(u64_base(obj._object._p_oid))
-            if oid in oids:
+            key = (obj._object._p_oid, obj.__class__)
+            if key in objs:
                 raise AlreadySeenException()
             else:
-                oids.insert(oid)
+                objs.insert(key)
                 try:
                     return marshal(marshaller.marshal(keys),
-                            keys, marshallerName, oids)
+                            keys, marshallerName, objs)
                 except AlreadySeenException:
                     pass
                 finally:
-                    oids.remove(oid)
+                    objs.remove(key)
         else:
-            return marshal(marshaller.marshal(keys), keys, marshallerName, oids)
+            return marshal(marshaller.marshal(keys), keys, marshallerName, objs)
 
 
     # obj is a dict, so marshal its values recursively
@@ -107,7 +104,7 @@ def marshal(obj, keys=None, marshallerName='', oids=None):
         marshalled_dict = {}
         for k in obj:
             try:
-                marshalled_dict[k] = marshal(obj[k], keys, marshallerName, oids)
+                marshalled_dict[k] = marshal(obj[k], keys, marshallerName, objs)
             except AlreadySeenException:
                 pass
         return marshalled_dict
@@ -118,7 +115,7 @@ def marshal(obj, keys=None, marshallerName='', oids=None):
         marshalled_list = []
         for o in obj:
             try:
-                marshalled_list.append(marshal(o, keys, marshallerName, oids))
+                marshalled_list.append(marshal(o, keys, marshallerName, objs))
             except AlreadySeenException:
                 pass
         return marshalled_list
