@@ -1,14 +1,14 @@
 <?xml version="1.0" encoding="ISO-8859-1" ?>
 
 <!--
-    Zenoss RelationshipManager export completed on 2009-09-25 16:23:00.245295
+    Zenoss RelationshipManager export completed on 2010-07-24 14:48:14.615582
 
     Use ImportRM to import this file.
 
     For more information about Zenoss, go to http://www.zenoss.com
  -->
 
-<objects version="[Zenoss, version 2.4.70]" export_date="2009-09-25 16:23:00.245295" zenoss_server="iansmbp.mcb.loc" >
+<objects version="[Zenoss, version 3.0.1]" export_date="2010-07-24 14:48:14.615582" zenoss_server="test-suse103-32-1" >
 <object id='/zport/dmd/Manufacturers' module='Products.ZenModel.ManufacturerRoot' class='ManufacturerRoot'>
 <object id='ATI' module='Products.ZenModel.Manufacturer' class='Manufacturer'>
 <property type="string" id="url" mode="w" >
@@ -585,6 +585,9 @@ False
 </property>
 </object>
 <object id='10005' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property id='zendoc' type='string'>
+Cisco 10000 platform with 7 slots
+</property>
 <property type="string" id="name" mode="w" >
 10005
 </property>
@@ -599,6 +602,9 @@ False
 </property>
 </object>
 <object id='10008' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property id='zendoc' type='string'>
+Cisco 10000 platform with 10 slots
+</property>
 <property type="string" id="name" mode="w" >
 10008
 </property>
@@ -657,6 +663,9 @@ False
 </property>
 </object>
 <object id='10400' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property id='zendoc' type='string'>
+Cisco 10000 platform with 10 slots
+</property>
 <property type="string" id="name" mode="w" >
 10400
 </property>
@@ -671,6 +680,9 @@ False
 </property>
 </object>
 <object id='10720' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property id='zendoc' type='string'>
+IP + Optical Access Router
+</property>
 <property type="string" id="name" mode="w" >
 10720
 </property>
@@ -729,6 +741,9 @@ False
 </property>
 </object>
 <object id='12006' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property id='zendoc' type='string'>
+Cisco 12000 platform with 6 slots
+</property>
 <property type="string" id="name" mode="w" >
 12006
 </property>
@@ -754,6 +769,9 @@ False
 </property>
 </object>
 <object id='12010' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property id='zendoc' type='string'>
+Cisco 12000 platform with 10 slots
+</property>
 <property type="string" id="name" mode="w" >
 12010
 </property>
@@ -779,6 +797,9 @@ False
 </property>
 </object>
 <object id='12016' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property id='zendoc' type='string'>
+Cisco 12000 platform with 16 slots
+</property>
 <property type="string" id="name" mode="w" >
 12016
 </property>
@@ -793,6 +814,9 @@ False
 </property>
 </object>
 <object id='12404' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property id='zendoc' type='string'>
+Cisco 12400 platform with 4 slots
+</property>
 <property type="string" id="name" mode="w" >
 12404
 </property>
@@ -807,6 +831,9 @@ False
 </property>
 </object>
 <object id='12406' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property id='zendoc' type='string'>
+Cisco 12400 platform with 6 slots
+</property>
 <property type="string" id="name" mode="w" >
 12406
 </property>
@@ -821,6 +848,9 @@ False
 </property>
 </object>
 <object id='12410' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property id='zendoc' type='string'>
+Cisco 12410 platform with 10 slots
+</property>
 <property type="string" id="name" mode="w" >
 12410
 </property>
@@ -835,6 +865,9 @@ False
 </property>
 </object>
 <object id='12416' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property id='zendoc' type='string'>
+Cisco 12000 platform with 16 slots and 10G fabric card
+</property>
 <property type="string" id="name" mode="w" >
 12416
 </property>
@@ -849,6 +882,9 @@ False
 </property>
 </object>
 <object id='1401' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property id='zendoc' type='string'>
+Router product with 1 ethernet and 1 ATM25 interface
+</property>
 <property type="string" id="name" mode="w" >
 1401
 </property>
@@ -863,6 +899,9 @@ False
 </property>
 </object>
 <object id='1407' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property id='zendoc' type='string'>
+Cisco 1400 series router with 1 Ethernet and 1 ADSL interface, with 1407 chipset
+</property>
 <property type="string" id="name" mode="w" >
 1407
 </property>
@@ -877,6 +916,9 @@ False
 </property>
 </object>
 <object id='1417' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property id='zendoc' type='string'>
+Cisco 1400 series router with 1 Ethernet and 1 ADSL interface, with 1417 chipset
+</property>
 <property type="string" id="name" mode="w" >
 1417
 </property>
@@ -891,6 +933,9 @@ False
 </property>
 </object>
 <object id='14MGX8830Pxm1E' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property id='zendoc' type='string'>
+PXM1E Controller based 14 slot MGX8830
+</property>
 <property type="string" id="name" mode="w" >
 14MGX8830Pxm1E
 </property>
@@ -927,6 +972,9 @@ False
 </property>
 </object>
 <object id='1538M' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property id='zendoc' type='string'>
+Cisco Network Office 8-port 10/100 Repeater
+</property>
 <property type="string" id="name" mode="w" >
 1538M
 </property>
@@ -941,6 +989,9 @@ False
 </property>
 </object>
 <object id='1548M' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property id='zendoc' type='string'>
+Cisco Network Office 10/100 Switch
+</property>
 <property type="string" id="name" mode="w" >
 1548M
 </property>
@@ -1010,6 +1061,9 @@ False
 </property>
 </object>
 <object id='1701ADSLBRI' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property id='zendoc' type='string'>
+Bacardi is a fixed configuration sku with ADSL WIC and ISDN BRI (S/T) or (S/T-V2) WIC
+</property>
 <property type="string" id="name" mode="w" >
 1701ADSLBRI
 </property>
@@ -1024,6 +1078,9 @@ False
 </property>
 </object>
 <object id='1710' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property id='zendoc' type='string'>
+VPN(Virtual Private Network) Security Router with 1 FastEthernet and 1 Ethernet interface onboard
+</property>
 <property type="string" id="name" mode="w" >
 1710
 </property>
@@ -1071,6 +1128,9 @@ False
 </property>
 </object>
 <object id='1721' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property id='zendoc' type='string'>
+Enhanced 1720 with support for onboard Fast Ethernet and 2 WAN Interface cards and optional hardware encryption module
+</property>
 <property type="string" id="name" mode="w" >
 1721
 </property>
@@ -1085,6 +1145,9 @@ False
 </property>
 </object>
 <object id='1750' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property id='zendoc' type='string'>
+VoIP (Voice over IP) capable Cisco 1700 platform with 2 WIC/VIC slots and 1 VIC-only slot
+</property>
 <property type="string" id="name" mode="w" >
 1750
 </property>
@@ -1099,6 +1162,9 @@ False
 </property>
 </object>
 <object id='1751' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property id='zendoc' type='string'>
+Digital voice capable Cisco 1700 platform with 2 WIC/VIC slots and 1 VIC-only slot
+</property>
 <property type="string" id="name" mode="w" >
 1751
 </property>
@@ -1113,6 +1179,9 @@ False
 </property>
 </object>
 <object id='1760' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property id='zendoc' type='string'>
+Analog/digital voice capable, 19" rack-mount (1RU) Cisco 1700 platform with 2 WIC/VIC slots and 2 VIC-only slots
+</property>
 <property type="string" id="name" mode="w" >
 1760
 </property>
@@ -1127,6 +1196,9 @@ False
 </property>
 </object>
 <object id='1841' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property id='zendoc' type='string'>
+1700 Next Generation data only router with 2 slots
+</property>
 <property type="string" id="name" mode="w" >
 1841
 </property>
@@ -1185,6 +1257,9 @@ False
 </property>
 </object>
 <object id='2430Iad24Fxs' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property id='zendoc' type='string'>
+IAD2430 with 24FXS, 2FE
+</property>
 <property type="string" id="name" mode="w" >
 2430Iad24Fxs
 </property>
@@ -1199,6 +1274,9 @@ False
 </property>
 </object>
 <object id='2431Iad16Fxs' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property id='zendoc' type='string'>
+IAD2431 with 16FXS, 2FE, 1T1/E1
+</property>
 <property type="string" id="name" mode="w" >
 2431Iad16Fxs
 </property>
@@ -1213,6 +1291,9 @@ False
 </property>
 </object>
 <object id='2431Iad1T1E1' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property id='zendoc' type='string'>
+IAD2431 with 2FE, 2T1/E1
+</property>
 <property type="string" id="name" mode="w" >
 2431Iad1T1E1
 </property>
@@ -1227,6 +1308,9 @@ False
 </property>
 </object>
 <object id='2431Iad8Fxs' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property id='zendoc' type='string'>
+IAD2431 with 8FXS, 2FE, 1T1/E1
+</property>
 <property type="string" id="name" mode="w" >
 2431Iad8Fxs
 </property>
@@ -1241,6 +1325,9 @@ False
 </property>
 </object>
 <object id='2432Iad24Fxs' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property id='zendoc' type='string'>
+IAD2432 with 24FXS, 2FE, 2T1E1
+</property>
 <property type="string" id="name" mode="w" >
 2432Iad24Fxs
 </property>
@@ -1574,6 +1661,9 @@ False
 </property>
 </object>
 <object id='2610' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property id='zendoc' type='string'>
+Cisco 2600 platform with 1 integrated ethernet interface
+</property>
 <property type="string" id="name" mode="w" >
 2610
 </property>
@@ -1588,6 +1678,9 @@ False
 </property>
 </object>
 <object id='2610M' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property id='zendoc' type='string'>
+c2600M with 1 integrated ethernet interface
+</property>
 <property type="string" id="name" mode="w" >
 2610M
 </property>
@@ -1602,6 +1695,9 @@ False
 </property>
 </object>
 <object id='2610XM' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property id='zendoc' type='string'>
+Cisco c2610XM platform 1 integrated fast ethernet interface with SDRAM
+</property>
 <property type="string" id="name" mode="w" >
 2610XM
 </property>
@@ -1616,6 +1712,9 @@ False
 </property>
 </object>
 <object id='2611' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property id='zendoc' type='string'>
+Cisco 2600 platform with 2 integrated ethernet interfaces
+</property>
 <property type="string" id="name" mode="w" >
 2611
 </property>
@@ -1630,6 +1729,9 @@ False
 </property>
 </object>
 <object id='2611M' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property id='zendoc' type='string'>
+c2600M with 2 integrated ethernet interfaces
+</property>
 <property type="string" id="name" mode="w" >
 2611M
 </property>
@@ -1644,6 +1746,9 @@ False
 </property>
 </object>
 <object id='2611XM' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property id='zendoc' type='string'>
+Cisco c2611XM platform 2 integrated fast ethernet interfaces with SDRAM
+</property>
 <property type="string" id="name" mode="w" >
 2611XM
 </property>
@@ -1658,6 +1763,9 @@ False
 </property>
 </object>
 <object id='2612' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property id='zendoc' type='string'>
+Cisco 2600 platform with an integrated ethernet and token ring
+</property>
 <property type="string" id="name" mode="w" >
 2612
 </property>
@@ -1672,6 +1780,9 @@ False
 </property>
 </object>
 <object id='2613' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property id='zendoc' type='string'>
+Cisco 2600 platform with 1 integrated token ring interface
+</property>
 <property type="string" id="name" mode="w" >
 2613
 </property>
@@ -1686,6 +1797,9 @@ False
 </property>
 </object>
 <object id='2620' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property id='zendoc' type='string'>
+Cisco 2600 chassis with 1 onboard FE
+</property>
 <property type="string" id="name" mode="w" >
 2620
 </property>
@@ -1700,6 +1814,9 @@ False
 </property>
 </object>
 <object id='2620XM' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property id='zendoc' type='string'>
+Cisco c2620XM platform 1 integrated fast ethernet interface with SDRAM
+</property>
 <property type="string" id="name" mode="w" >
 2620XM
 </property>
@@ -1714,6 +1831,9 @@ False
 </property>
 </object>
 <object id='2621' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property id='zendoc' type='string'>
+Cisco 2600 chassis with 2 onboard 10/100 FE ports
+</property>
 <property type="string" id="name" mode="w" >
 2621
 </property>
@@ -1728,6 +1848,9 @@ False
 </property>
 </object>
 <object id='2621XM' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property id='zendoc' type='string'>
+Cisco c2621XM platform 2 integrated fast ethernet interfaces with SDRAM
+</property>
 <property type="string" id="name" mode="w" >
 2621XM
 </property>
@@ -1742,6 +1865,9 @@ False
 </property>
 </object>
 <object id='2650' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property id='zendoc' type='string'>
+c2650 platform with 1 integrated fast ethernet interface
+</property>
 <property type="string" id="name" mode="w" >
 2650
 </property>
@@ -1756,6 +1882,9 @@ False
 </property>
 </object>
 <object id='2650XM' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property id='zendoc' type='string'>
+Cisco c2650XM platform 1 integrated fast ethernet interface with SDRAM
+</property>
 <property type="string" id="name" mode="w" >
 2650XM
 </property>
@@ -1770,6 +1899,9 @@ False
 </property>
 </object>
 <object id='2651' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property id='zendoc' type='string'>
+c2650 platform with 2 integrated fast ethernet interfaces
+</property>
 <property type="string" id="name" mode="w" >
 2651
 </property>
@@ -1784,6 +1916,9 @@ False
 </property>
 </object>
 <object id='2651XM' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property id='zendoc' type='string'>
+Cisco c2651XM platform 2 integrated fast ethernet interfaces with SDRAM
+</property>
 <property type="string" id="name" mode="w" >
 2651XM
 </property>
@@ -1798,6 +1933,9 @@ False
 </property>
 </object>
 <object id='2691' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property id='zendoc' type='string'>
+One Network Module slot, three WIC slot, two Fast Ethernet port MARS router
+</property>
 <property type="string" id="name" mode="w" >
 2691
 </property>
@@ -1812,6 +1950,9 @@ False
 </property>
 </object>
 <object id='2801' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property id='zendoc' type='string'>
+1700 Next Generation voice enabled router with 4 slots
+</property>
 <property type="string" id="name" mode="w" >
 2801
 </property>
@@ -1859,6 +2000,9 @@ False
 </property>
 </object>
 <object id='2908xl' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property id='zendoc' type='string'>
+Catalyst 2908XL switch with 8 10/100BaseTX ports
+</property>
 <property type="string" id="name" mode="w" >
 2908xl
 </property>
@@ -1873,6 +2017,9 @@ False
 </property>
 </object>
 <object id='2912LREXL' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property id='zendoc' type='string'>
+Cisco Catalyst c2912XL switch (WS-C2912-LRE-XL) with 12 10BaseS VDSL ports and 4 10/100BaseTX ports
+</property>
 <property type="string" id="name" mode="w" >
 2912LREXL
 </property>
@@ -1887,6 +2034,9 @@ False
 </property>
 </object>
 <object id='2912MfXL' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property id='zendoc' type='string'>
+Catalyst 2912MF-XL switch with 12 100BaseFX ports and 2 uplink slots; can only run Enterprise edition software.
+</property>
 <property type="string" id="name" mode="w" >
 2912MfXL
 </property>
@@ -1901,6 +2051,9 @@ False
 </property>
 </object>
 <object id='2912XL' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property id='zendoc' type='string'>
+Catalyst 2912XL switch with 12 autosensing 10/100BaseTX ports, can run Standard or Enterprise edition software.
+</property>
 <property type="string" id="name" mode="w" >
 2912XL
 </property>
@@ -1915,6 +2068,9 @@ False
 </property>
 </object>
 <object id='2924CXL' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property id='zendoc' type='string'>
+Catalyst 2924C-XL switch; doesn't support port-based VLANs.
+</property>
 <property type="string" id="name" mode="w" >
 2924CXL
 </property>
@@ -1929,6 +2085,9 @@ False
 </property>
 </object>
 <object id='2924CXLv' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property id='zendoc' type='string'>
+Catalyst 2924C-XL switch with 22 10BaseT/100BaseTX and 2 100BaseFX autosensing switch ports; supports port-based VLANs; can run Standard or Enterprise edition software.
+</property>
 <property type="string" id="name" mode="w" >
 2924CXLv
 </property>
@@ -1943,6 +2102,9 @@ False
 </property>
 </object>
 <object id='2924LREXL' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property id='zendoc' type='string'>
+Cisco Catalyst c2924XL switch (WS-C2924-LRE-XL) with 24 10BaseS VDSL ports and 4 10/100BaseTX ports
+</property>
 <property type="string" id="name" mode="w" >
 2924LREXL
 </property>
@@ -1957,6 +2119,9 @@ False
 </property>
 </object>
 <object id='2924MXL' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property id='zendoc' type='string'>
+Catalyst 2924M-XL switch with 24 autosensing 10/100BaseTX ports and 2 uplink slots, can run Standard or Enterprise edition software.
+</property>
 <property type="string" id="name" mode="w" >
 2924MXL
 </property>
@@ -1971,6 +2136,9 @@ False
 </property>
 </object>
 <object id='2924XL' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property id='zendoc' type='string'>
+Catalyst 2924XL switch with 24 10/100BaseTX ports; doesn't support port-based VLANs.
+</property>
 <property type="string" id="name" mode="w" >
 2924XL
 </property>
@@ -1985,6 +2153,9 @@ False
 </property>
 </object>
 <object id='2924XLv' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property id='zendoc' type='string'>
+Catalyst 2924XL switch with 24 10BaseT/100BaseTX autosensing switch ports; supports port-based VLANs; can run Standard or Enterprise edition software.
+</property>
 <property type="string" id="name" mode="w" >
 2924XLv
 </property>
@@ -2021,6 +2192,9 @@ False
 </property>
 </object>
 <object id='295012' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property id='zendoc' type='string'>
+Cisco Catalyst c2950 switch  with 12 10/100BaseTX ports (WS-c2950-12)
+</property>
 <property type="string" id="name" mode="w" >
 295012
 </property>
@@ -2035,6 +2209,9 @@ False
 </property>
 </object>
 <object id='295012G' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property id='zendoc' type='string'>
+Cisco Catalyst c2950 switch with 12 10/100 BaseTX ports and 2 GBIC (Gigabit Interface Converter) slots (WS-c2950g-12)
+</property>
 <property type="string" id="name" mode="w" >
 295012G
 </property>
@@ -2049,6 +2226,9 @@ False
 </property>
 </object>
 <object id='295024' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property id='zendoc' type='string'>
+Cisco Catalyst c2950 switch with 24 10/100 BaseTX ports (WS-c2950-24)
+</property>
 <property type="string" id="name" mode="w" >
 295024
 </property>
@@ -2063,6 +2243,9 @@ False
 </property>
 </object>
 <object id='295024C' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property id='zendoc' type='string'>
+Cisco Catalyst c2950 switch with 24 10/100 BaseTX ports and 2 100BASE-FX uplink ports (WS-c2950C-24)
+</property>
 <property type="string" id="name" mode="w" >
 295024C
 </property>
@@ -2077,6 +2260,9 @@ False
 </property>
 </object>
 <object id='295024G' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property id='zendoc' type='string'>
+Cisco Catalyst c2950 switch with 24 10/100 BaseTX ports and 2 GBIC (Gigabit Interface Converter) slots (WS-c2950g-12)
+</property>
 <property type="string" id="name" mode="w" >
 295024G
 </property>
@@ -2091,6 +2277,9 @@ False
 </property>
 </object>
 <object id='295024GDC' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property id='zendoc' type='string'>
+Cisco Catalyst c2950 switch with 24 10/100 BaseTX ports and 2 GBIC (Gigabit Interface Converter) slots and DC power(WS-c2950G-24-DC)
+</property>
 <property type="string" id="name" mode="w" >
 295024GDC
 </property>
@@ -2105,6 +2294,9 @@ False
 </property>
 </object>
 <object id='295024LREG' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property id='zendoc' type='string'>
+Cisco Catalyst c2950 switch with 24 10BaseS VDSL Ports and 2 GBIC ( Gigabit Interface Converter ) slots (WS-C2950G-24-LRE)
+</property>
 <property type="string" id="name" mode="w" >
 295024LREG
 </property>
@@ -2119,6 +2311,9 @@ False
 </property>
 </object>
 <object id='295024LRESt' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property id='zendoc' type='string'>
+Cisco Catalyst c2950 switch with 24 10BaseS VDSL Ports and 2 ST ( SFP or 10/100/1000 Base T) (WS-C2950ST-24-LRE)
+</property>
 <property type="string" id="name" mode="w" >
 295024LRESt
 </property>
@@ -2133,6 +2328,9 @@ False
 </property>
 </object>
 <object id='295024S' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property id='zendoc' type='string'>
+Cisco Catalyst c2950 switch with 24 10/100 BaseSX ports (Single Mode) and 2 GBIC (Gigabit Interface Converter) slots (WS-c2950g-12)
+</property>
 <property type="string" id="name" mode="w" >
 295024S
 </property>
@@ -2147,6 +2345,9 @@ False
 </property>
 </object>
 <object id='295024SX' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property id='zendoc' type='string'>
+Cisco Catalyst c2950 switch with 24 10/100 BaseTX ports and 2 fixed 1000Base Multimode fiber (SX) ports
+</property>
 <property type="string" id="name" mode="w" >
 295024SX
 </property>
@@ -2161,6 +2362,9 @@ False
 </property>
 </object>
 <object id='295048G' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property id='zendoc' type='string'>
+isco Catalyst c2950 switch with 48 10/100 BaseTX ports and 2 GBIC (Gigabit Interface Converter) slots (WS-c2950g-12)
+</property>
 <property type="string" id="name" mode="w" >
 295048G
 </property>
@@ -2175,6 +2379,9 @@ False
 </property>
 </object>
 <object id='295048SX' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property id='zendoc' type='string'>
+Cisco Catalyst c2950 switch with 48 10/100BaseT ports and 2 fixed 1000Base Multimode fiber (SX) ports
+</property>
 <property type="string" id="name" mode="w" >
 295048SX
 </property>
@@ -2189,6 +2396,9 @@ False
 </property>
 </object>
 <object id='295048T' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property id='zendoc' type='string'>
+Cisco Catalyst c2950 switch with 48 10/100BaseT ports and 2 fixed 10/100/1000BaseT ports
+</property>
 <property type="string" id="name" mode="w" >
 295048T
 </property>
@@ -2203,6 +2413,9 @@ False
 </property>
 </object>
 <object id='29508LRESt' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property id='zendoc' type='string'>
+Cisco Catalyst c2950 switch with 8 10BaseS VDSL Ports and 2 ST (SFP or 10/100/1000 Base T) (WS-C2950ST-8-LRE)
+</property>
 <property type="string" id="name" mode="w" >
 29508LRESt
 </property>
@@ -2217,6 +2430,9 @@ False
 </property>
 </object>
 <object id='2950St24LRE997' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property id='zendoc' type='string'>
+Catalyst2950 Long Reach Ethernet switch that confirms to ETSI 997 with 24 LRE interfaces, 2 10/100/1000 Small form factor copper interfaces and DC power supply(WS-C2950ST-24-LRE-997)
+</property>
 <property type="string" id="name" mode="w" >
 2950St24LRE997
 </property>
@@ -2231,6 +2447,9 @@ False
 </property>
 </object>
 <object id='2950t24' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property id='zendoc' type='string'>
+Cisco Catalyst c2950 switch with 24 10/100BaseT ports and 2 10/100/1000BaseT ports
+</property>
 <property type="string" id="name" mode="w" >
 2950t24
 </property>
@@ -2245,6 +2464,9 @@ False
 </property>
 </object>
 <object id='2955C12' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property id='zendoc' type='string'>
+Cisco Catalyst c2955 Industrial switch with 12 10/100 Base TX ports and 2 100 Base-FX ports
+</property>
 <property type="string" id="name" mode="w" >
 2955C12
 </property>
@@ -2259,6 +2481,9 @@ False
 </property>
 </object>
 <object id='2955S12' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property id='zendoc' type='string'>
+Cisco Catalyst c2955 Industrial switch with 12 10/100 Base T ports and 2 100 Base-LX Single Mode Uplink ports
+</property>
 <property type="string" id="name" mode="w" >
 2955S12
 </property>
@@ -2273,6 +2498,9 @@ False
 </property>
 </object>
 <object id='2955T12' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property id='zendoc' type='string'>
+Cisco Catalyst c2955 Industrial switch with 12 10/100 BaseTX ports and 2 10/100/1000 Base-TX ports
+</property>
 <property type="string" id="name" mode="w" >
 2955T12
 </property>
@@ -2287,6 +2515,9 @@ False
 </property>
 </object>
 <object id='297024' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property id='zendoc' type='string'>
+Catalyst 2970 24: 24 10/100/1000 ports fixed configuration Layer 2 Ethernet  switch
+</property>
 <property type="string" id="name" mode="w" >
 297024
 </property>
@@ -2301,6 +2532,9 @@ False
 </property>
 </object>
 <object id='297024TS' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property id='zendoc' type='string'>
+Catalyst 2970 24TS: 24 10/100/1000 ports + 4 Ethernet Gigabit SFP ports fixed configuration Layer 2 Ethernet  switch
+</property>
 <property type="string" id="name" mode="w" >
 297024TS
 </property>
@@ -2392,6 +2626,9 @@ False
 </property>
 </object>
 <object id='3220' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property id='zendoc' type='string'>
+3220 - Mobile Access Router (MAR)
+</property>
 <property type="string" id="name" mode="w" >
 3220
 </property>
@@ -2406,6 +2643,9 @@ False
 </property>
 </object>
 <object id='3250' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property id='zendoc' type='string'>
+cisco 3250 mobile Router
+</property>
 <property type="string" id="name" mode="w" >
 3250
 </property>
@@ -2420,6 +2660,9 @@ False
 </property>
 </object>
 <object id='3508GXL' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property id='zendoc' type='string'>
+Cisco Catalyst 3508G-XL switch with 8 GBIC Gigabit ports, can run Standard or Enterprise edition software.
+</property>
 <property type="string" id="name" mode="w" >
 3508GXL
 </property>
@@ -2434,6 +2677,9 @@ False
 </property>
 </object>
 <object id='3512XL' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property id='zendoc' type='string'>
+Cisco Catalyst 3512XL switch with 12 10/100BaseTX ports and 2 GBIC Gigabit ports, can run Standard or Enterprise edition software.
+</property>
 <property type="string" id="name" mode="w" >
 3512XL
 </property>
@@ -2448,6 +2694,9 @@ False
 </property>
 </object>
 <object id='3524XL' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property id='zendoc' type='string'>
+Cisco Catalyst 3524XL switch with 24 10/100BaseTX ports and 2 GBIC Gigabit ports, can run Standard or Enterprise edition software.
+</property>
 <property type="string" id="name" mode="w" >
 3524XL
 </property>
@@ -2462,6 +2711,9 @@ False
 </property>
 </object>
 <object id='355012G' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property id='zendoc' type='string'>
+10 Gig (GBIC) + 2 10/100/1000baseT ports, fixed configuration layer 2/3 Ethernet switch
+</property>
 <property type="string" id="name" mode="w" >
 355012G
 </property>
@@ -2476,6 +2728,9 @@ False
 </property>
 </object>
 <object id='355012T' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property id='zendoc' type='string'>
+Catalyst 3550 12 1000T ports fixed configuration Layer 2/Layer 3 Ethernet Switch
+</property>
 <property type="string" id="name" mode="w" >
 355012T
 </property>
@@ -2490,6 +2745,9 @@ False
 </property>
 </object>
 <object id='355024' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property id='zendoc' type='string'>
+Catalyst 3550 24 10/100 ports + 2 Gig uplinks fixed configuration Layer 2/Layer 3 Ethernet Switch
+</property>
 <property type="string" id="name" mode="w" >
 355024
 </property>
@@ -2504,6 +2762,9 @@ False
 </property>
 </object>
 <object id='355024PWR' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property id='zendoc' type='string'>
+Catalyst 3550 24 10/100 ports with inline power and 2 Gig uplinks fixed configuration Layer 2/Layer 3 Ethernet Switch
+</property>
 <property type="string" id="name" mode="w" >
 355024PWR
 </property>
@@ -2518,6 +2779,9 @@ False
 </property>
 </object>
 <object id='355048' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property id='zendoc' type='string'>
+Catalyst 3550 48 10/100 ports + 2 Gig uplinks fixed configuration Layer 2/Layer 3 Ethernet Switch
+</property>
 <property type="string" id="name" mode="w" >
 355048
 </property>
@@ -2532,6 +2796,9 @@ False
 </property>
 </object>
 <object id='356024PS' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property id='zendoc' type='string'>
+Catalyst 3750 24 10/100 ports with In-Line Power + 2 Gigabit SFP ports fixed configuration Layer 2/Layer 3 Ethernet Switch.(SFP Small Formfactor Pluggable)
+</property>
 <property type="string" id="name" mode="w" >
 356024PS
 </property>
@@ -2546,6 +2813,9 @@ False
 </property>
 </object>
 <object id='356048PS' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property id='zendoc' type='string'>
+Catalyst 3750 48 10/100 ports with In-Line Power + 4 Gigabit SFP ports fixed configuration Layer 2/Layer 3 Ethernet Switch.(SFP Small Formfactor Pluggable)
+</property>
 <property type="string" id="name" mode="w" >
 356048PS
 </property>
@@ -2571,6 +2841,9 @@ False
 </property>
 </object>
 <object id='3631Co' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property id='zendoc' type='string'>
+Two Network Module Slot , two WIC slot, one Fast Ethernet port MARS router
+</property>
 <property type="string" id="name" mode="w" >
 3631Co
 </property>
@@ -2596,6 +2869,9 @@ False
 </property>
 </object>
 <object id='3660' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property id='zendoc' type='string'>
+Six slot MARs router
+</property>
 <property type="string" id="name" mode="w" >
 3660
 </property>
@@ -2610,6 +2886,9 @@ False
 </property>
 </object>
 <object id='3661Ac' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property id='zendoc' type='string'>
+1 Fast Ethernet version of c3660 with a AC power supply
+</property>
 <property type="string" id="name" mode="w" >
 3661Ac
 </property>
@@ -2624,6 +2903,9 @@ False
 </property>
 </object>
 <object id='3661Dc' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property id='zendoc' type='string'>
+1 Fast Ethernet version of c3660 with a DC power supply
+</property>
 <property type="string" id="name" mode="w" >
 3661Dc
 </property>
@@ -2638,6 +2920,9 @@ False
 </property>
 </object>
 <object id='3662Ac' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property id='zendoc' type='string'>
+2 Fast Ethernet version of c3660 with a AC power supply
+</property>
 <property type="string" id="name" mode="w" >
 3662Ac
 </property>
@@ -2652,6 +2937,9 @@ False
 </property>
 </object>
 <object id='3662AcCo' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property id='zendoc' type='string'>
+2 Fast Ethernet version of c3660 with a AC power supply for Telco's
+</property>
 <property type="string" id="name" mode="w" >
 3662AcCo
 </property>
@@ -2666,6 +2954,9 @@ False
 </property>
 </object>
 <object id='3662Dc' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property id='zendoc' type='string'>
+2 Fast Ethernet version of c3660 with a DC power supply
+</property>
 <property type="string" id="name" mode="w" >
 3662Dc
 </property>
@@ -2680,6 +2971,9 @@ False
 </property>
 </object>
 <object id='3662DcCo' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property id='zendoc' type='string'>
+2 Fast Ethernet version of c3660 with a DC power supply for Telco's
+</property>
 <property type="string" id="name" mode="w" >
 3662DcCo
 </property>
@@ -2694,6 +2988,9 @@ False
 </property>
 </object>
 <object id='371098HP001' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property id='zendoc' type='string'>
+24 port Gigabit Ethernet switch module for HP ProLiant BL p-class server chassis
+</property>
 <property type="string" id="name" mode="w" >
 371098HP001
 </property>
@@ -2708,6 +3005,9 @@ False
 </property>
 </object>
 <object id='3725' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property id='zendoc' type='string'>
+Two Network Module slot, three WIC slot, two Fast Ethernet port MARS router
+</property>
 <property type="string" id="name" mode="w" >
 3725
 </property>
@@ -2722,6 +3022,9 @@ False
 </property>
 </object>
 <object id='3745' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property id='zendoc' type='string'>
+3700 family four slot modular router
+</property>
 <property type="string" id="name" mode="w" >
 3745
 </property>
@@ -2736,6 +3039,9 @@ False
 </property>
 </object>
 <object id='375024' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property id='zendoc' type='string'>
+Catalyst 3750 24 10/100 ports + 2 Ethernet Gigabit SFP ports fixed configuration Layer 2/Layer 3 Ethernet  Stackable switch.
+</property>
 <property type="string" id="name" mode="w" >
 375024
 </property>
@@ -2761,6 +3067,9 @@ False
 </property>
 </object>
 <object id='375024T' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property id='zendoc' type='string'>
+Catalyst 3750 24T: 24 10/100/1000 ports fixed configuration Layer 2/Layer 3 Ethernet  Stackable switch.
+</property>
 <property type="string" id="name" mode="w" >
 375024T
 </property>
@@ -2775,6 +3084,9 @@ False
 </property>
 </object>
 <object id='375024TS' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property id='zendoc' type='string'>
+Catalyst 3750 24TS: 24 10/100/1000 ports + 4 Ethernet Gigabit SFP ports fixed configuration Layer 2/Layer 3 Ethernet  Stackable switch.
+</property>
 <property type="string" id="name" mode="w" >
 375024TS
 </property>
@@ -2789,6 +3101,9 @@ False
 </property>
 </object>
 <object id='375048' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property id='zendoc' type='string'>
+Catalyst 3750 48 10/100 ports + 4 Ethernet Gigabit SFP ports fixed configuration Layer 2/Layer 3 Ethernet  Stackable switch.
+</property>
 <property type="string" id="name" mode="w" >
 375048
 </property>
@@ -2803,6 +3118,9 @@ False
 </property>
 </object>
 <object id='3750G16TD' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property id='zendoc' type='string'>
+Cisco Catalyst 3750 switch with 16 gigabit and one 10G ethernet port (WS-C3750G-16TD)
+</property>
 <property type="string" id="name" mode="w" >
 3750G16TD
 </property>
@@ -2817,6 +3135,9 @@ False
 </property>
 </object>
 <object id='3750Ge12Sfp' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property id='zendoc' type='string'>
+Cisco Catalyst c3750 switch with 12 SFP (Small Form  FactorPluggable) Gigabit Ethernet ports
+</property>
 <property type="string" id="name" mode="w" >
 3750Ge12Sfp
 </property>
@@ -2831,6 +3152,9 @@ False
 </property>
 </object>
 <object id='37xxStack' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property id='zendoc' type='string'>
+A stack of any catalyst37xx stack-able ethernet switches with unified identity (as a single unified switch), control and management.
+</property>
 <property type="string" id="name" mode="w" >
 37xxStack
 </property>
@@ -2845,6 +3169,9 @@ False
 </property>
 </object>
 <object id='3825' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property id='zendoc' type='string'>
+Two Network Module Slots, Four WIC slots, Two Gigabit Ethernet ports 3800 family router
+</property>
 <property type="string" id="name" mode="w" >
 3825
 </property>
@@ -2859,6 +3186,9 @@ False
 </property>
 </object>
 <object id='3845' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property id='zendoc' type='string'>
+Four Network Module Slots, Four WIC slots, Two Gigabit Ethernet ports 3800 family router
+</property>
 <property type="string" id="name" mode="w" >
 3845
 </property>
@@ -2884,6 +3214,9 @@ False
 </property>
 </object>
 <object id='4000NAM' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property id='zendoc' type='string'>
+Network analysis Module (NAM) for Catalyst 4000
+</property>
 <property type="string" id="name" mode="w" >
 4000NAM
 </property>
@@ -2898,6 +3231,9 @@ False
 </property>
 </object>
 <object id='4224' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property id='zendoc' type='string'>
+A standalone 24 port powered Ethernet switch, router and voice gateway
+</property>
 <property type="string" id="name" mode="w" >
 4224
 </property>
@@ -2945,6 +3281,9 @@ False
 </property>
 </object>
 <object id='4948' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property id='zendoc' type='string'>
+Fixed configuration Catalyst 4000 with 48 10/100/1000BaseT ports and 4 1000BaseX SFP ports (WS-C4948)
+</property>
 <property type="string" id="name" mode="w" >
 4948
 </property>
@@ -2959,6 +3298,9 @@ False
 </property>
 </object>
 <object id='494810GE' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property id='zendoc' type='string'>
+Catalyst 4000 series fixed configuration switch with 48 10/100/1000BaseT wirespeed ports and two 10Gbps ports
+</property>
 <property type="string" id="name" mode="w" >
 494810GE
 </property>
@@ -2973,6 +3315,9 @@ False
 </property>
 </object>
 <object id='4kGateway' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property id='zendoc' type='string'>
+Catalyst 4000 Access Gateway line card supporting voice and WAN (Wide Area Network) interfaces as well as conferencing and transcoding services for operation with the Cisco Call Manager
+</property>
 <property type="string" id="name" mode="w" >
 4kGateway
 </property>
@@ -2987,6 +3332,9 @@ False
 </property>
 </object>
 <object id='5kRsfc' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property id='zendoc' type='string'>
+Router Switching Feature Card for the Catalyst 5000 that is treated as a standalone system by the NMS
+</property>
 <property type="string" id="name" mode="w" >
 5kRsfc
 </property>
@@ -3001,6 +3349,9 @@ False
 </property>
 </object>
 <object id='6015' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property id='zendoc' type='string'>
+Cisco 6015 DSLAM chassis
+</property>
 <property type="string" id="name" mode="w" >
 6015
 </property>
@@ -3015,6 +3366,9 @@ False
 </property>
 </object>
 <object id='6100' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property id='zendoc' type='string'>
+Cisco 6100 DSLAM Chassis
+</property>
 <property type="string" id="name" mode="w" >
 6100
 </property>
@@ -3029,6 +3383,9 @@ False
 </property>
 </object>
 <object id='6130' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property id='zendoc' type='string'>
+Cisco 6130 DSLAM Chassis
+</property>
 <property type="string" id="name" mode="w" >
 6130
 </property>
@@ -3043,6 +3400,9 @@ False
 </property>
 </object>
 <object id='6160' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property id='zendoc' type='string'>
+Cisco 6160 DSLAM chassis
+</property>
 <property type="string" id="name" mode="w" >
 6160
 </property>
@@ -3068,6 +3428,9 @@ False
 </property>
 </object>
 <object id='626' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property id='zendoc' type='string'>
+Cisco 600 DSL CPE pltaform with ADSL, DMT issue 1, 25M ATM interface
+</property>
 <property type="string" id="name" mode="w" >
 626
 </property>
@@ -3082,6 +3445,9 @@ False
 </property>
 </object>
 <object id='6260' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property id='zendoc' type='string'>
+Cisco 6260 DSLAM Chassis
+</property>
 <property type="string" id="name" mode="w" >
 6260
 </property>
@@ -3096,6 +3462,9 @@ False
 </property>
 </object>
 <object id='627' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property id='zendoc' type='string'>
+Cisco 600 DSL CPE pltaform with ADSL, DMT issue 2, 25M ATM interface
+</property>
 <property type="string" id="name" mode="w" >
 627
 </property>
@@ -3110,6 +3479,9 @@ False
 </property>
 </object>
 <object id='633' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property id='zendoc' type='string'>
+Cisco 600 DSL CPE platform with SDSL, 2B1Q line coding, serial interface (V.35/X.21)
+</property>
 <property type="string" id="name" mode="w" >
 633
 </property>
@@ -3135,6 +3507,9 @@ False
 </property>
 </object>
 <object id='6400Nrp' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property id='zendoc' type='string'>
+Cisco 6400 Network Routing Processor
+</property>
 <property type="string" id="name" mode="w" >
 6400Nrp
 </property>
@@ -3149,6 +3524,9 @@ False
 </property>
 </object>
 <object id='6400UAC' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property id='zendoc' type='string'>
+Cisco 6400 Universal Access Concentrator
+</property>
 <property type="string" id="name" mode="w" >
 6400UAC
 </property>
@@ -3163,6 +3541,9 @@ False
 </property>
 </object>
 <object id='673' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property id='zendoc' type='string'>
+Cisco 600 DSL CPE platform with SDSL, 2B1Q line coding, ethernet interface
+</property>
 <property type="string" id="name" mode="w" >
 673
 </property>
@@ -3177,6 +3558,9 @@ False
 </property>
 </object>
 <object id='674' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property id='zendoc' type='string'>
+Cisco 600 DSL CPE platform with G.SHDSL, ethernet interface
+</property>
 <property type="string" id="name" mode="w" >
 674
 </property>
@@ -3191,6 +3575,9 @@ False
 </property>
 </object>
 <object id='675' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property id='zendoc' type='string'>
+Cisco 600 DSL CPE platform with ADSL, CAP, ethernet interface, POTS connector
+</property>
 <property type="string" id="name" mode="w" >
 675
 </property>
@@ -3205,6 +3592,9 @@ False
 </property>
 </object>
 <object id='675e' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property id='zendoc' type='string'>
+Cisco 600 DSL CPE platform with ADSL, CAP, ethernet interface, universal power supply
+</property>
 <property type="string" id="name" mode="w" >
 675e
 </property>
@@ -3219,6 +3609,9 @@ False
 </property>
 </object>
 <object id='676' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property id='zendoc' type='string'>
+Cisco 600 DSL CPE platform with ADSL, DMT issue 1, ethernet interface
+</property>
 <property type="string" id="name" mode="w" >
 676
 </property>
@@ -3233,6 +3626,9 @@ False
 </property>
 </object>
 <object id='677' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property id='zendoc' type='string'>
+Cisco 600 DSL CPE platform with ADSL, DMT issue 2, ethernet interface
+</property>
 <property type="string" id="name" mode="w" >
 677
 </property>
@@ -3247,6 +3643,9 @@ False
 </property>
 </object>
 <object id='677i' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property id='zendoc' type='string'>
+Cisco 600 DSL CPE platform with ASDL, DMT issue 2 over ISDN, ethernet interface
+</property>
 <property type="string" id="name" mode="w" >
 677i
 </property>
@@ -3261,6 +3660,9 @@ False
 </property>
 </object>
 <object id='678' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property id='zendoc' type='string'>
+Cisco 600 DSL CPE platform with ADSL, CAP/DMT/G.Lite, ethernet interface
+</property>
 <property type="string" id="name" mode="w" >
 678
 </property>
@@ -3275,6 +3677,9 @@ False
 </property>
 </object>
 <object id='6kGateway' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property id='zendoc' type='string'>
+Catalyst 6000 Acess Gateway line card supporting voice and WAN(Wide Area Network) interfaces as well as conferencing and transcoding services
+</property>
 <property type="string" id="name" mode="w" >
 6kGateway
 </property>
@@ -3289,6 +3694,9 @@ False
 </property>
 </object>
 <object id='6kMsfc' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property id='zendoc' type='string'>
+Multilevel Switching Feature Card for Catalyst 6000 that is treated as a standalone system by the NMS
+</property>
 <property type="string" id="name" mode="w" >
 6kMsfc
 </property>
@@ -3303,6 +3711,9 @@ False
 </property>
 </object>
 <object id='6kMsfc2' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property id='zendoc' type='string'>
+Multilevel Switching Feature Card Version 2 for Catalyst 6000 that is treated as a standalone system by the NMS
+</property>
 <property type="string" id="name" mode="w" >
 6kMsfc2
 </property>
@@ -3317,6 +3728,9 @@ False
 </property>
 </object>
 <object id='6kMsfc2a' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property id='zendoc' type='string'>
+Multilevel Switching Feature Card Version 2a for Catalyst 6000 that is treated as a standalone system by the NMS
+</property>
 <property type="string" id="name" mode="w" >
 6kMsfc2a
 </property>
@@ -3331,6 +3745,9 @@ False
 </property>
 </object>
 <object id='6kSup720' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property id='zendoc' type='string'>
+Catalyst 6500 Supervisor Module 720 CPU board that is treated as a standalone system by the NMS
+</property>
 <property type="string" id="name" mode="w" >
 6kSup720
 </property>
@@ -3367,6 +3784,9 @@ False
 </property>
 </object>
 <object id='7120Ae3' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property id='zendoc' type='string'>
+7120 Series chassis with 2 10/100 FE interfaces, 1 E3 ATM interface
+</property>
 <property type="string" id="name" mode="w" >
 7120Ae3
 </property>
@@ -3381,6 +3801,9 @@ False
 </property>
 </object>
 <object id='7120At3' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property id='zendoc' type='string'>
+7120 Series chassis with 2 10/100 FE interfaces, 1 T3 ATM interface
+</property>
 <property type="string" id="name" mode="w" >
 7120At3
 </property>
@@ -3395,6 +3818,9 @@ False
 </property>
 </object>
 <object id='7120E3' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property id='zendoc' type='string'>
+7120 Series chassis with 2 10/100 FE interfaces, 1 E3 interface
+</property>
 <property type="string" id="name" mode="w" >
 7120E3
 </property>
@@ -3409,6 +3835,9 @@ False
 </property>
 </object>
 <object id='7120Quadt1' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property id='zendoc' type='string'>
+7120 Series chassis with 2 10/100 FE interfaces, 4 T1/E1 interfaces
+</property>
 <property type="string" id="name" mode="w" >
 7120Quadt1
 </property>
@@ -3423,6 +3852,9 @@ False
 </property>
 </object>
 <object id='7120Smi3' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property id='zendoc' type='string'>
+7120 Series chassis with 2 10/100 FE interfaces, 1 OC3SMI ATM interface
+</property>
 <property type="string" id="name" mode="w" >
 7120Smi3
 </property>
@@ -3437,6 +3869,9 @@ False
 </property>
 </object>
 <object id='7120T3' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property id='zendoc' type='string'>
+7120 Series chassis with 2 10/100 FE interfaces, 1 T3 interface
+</property>
 <property type="string" id="name" mode="w" >
 7120T3
 </property>
@@ -3451,6 +3886,9 @@ False
 </property>
 </object>
 <object id='7140Dualae3' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property id='zendoc' type='string'>
+7140 Series chassis with 2 10/100 FE interfaces, 2 E3 ATM interfaces
+</property>
 <property type="string" id="name" mode="w" >
 7140Dualae3
 </property>
@@ -3465,6 +3903,9 @@ False
 </property>
 </object>
 <object id='7140Dualat3' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property id='zendoc' type='string'>
+7140 Series chassis with 2 10/100 FE interfaces, 2 T3 ATM interfaces
+</property>
 <property type="string" id="name" mode="w" >
 7140Dualat3
 </property>
@@ -3479,6 +3920,9 @@ False
 </property>
 </object>
 <object id='7140Duale3' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property id='zendoc' type='string'>
+7140 Series chassis with 2 10/100 FE interfaces, 2 E3 interfaces
+</property>
 <property type="string" id="name" mode="w" >
 7140Duale3
 </property>
@@ -3493,6 +3937,9 @@ False
 </property>
 </object>
 <object id='7140Dualfe' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property id='zendoc' type='string'>
+7140 Series chassis with 2 integrated 10/100 FE interfaces
+</property>
 <property type="string" id="name" mode="w" >
 7140Dualfe
 </property>
@@ -3507,6 +3954,9 @@ False
 </property>
 </object>
 <object id='7140Dualmm3' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property id='zendoc' type='string'>
+7140 Series chassis with 2 10/100 FE interfaces, 2 OC3MM ATM interfaces
+</property>
 <property type="string" id="name" mode="w" >
 7140Dualmm3
 </property>
@@ -3521,6 +3971,9 @@ False
 </property>
 </object>
 <object id='7140Dualt3' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property id='zendoc' type='string'>
+7140 Series chassis with 2 10/100 FE interfaces, 2 T3 interfaces
+</property>
 <property type="string" id="name" mode="w" >
 7140Dualt3
 </property>
@@ -3535,6 +3988,9 @@ False
 </property>
 </object>
 <object id='7140Octt1' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property id='zendoc' type='string'>
+7140 Series chassis with 8 integrated T1/E1 serial ports
+</property>
 <property type="string" id="name" mode="w" >
 7140Octt1
 </property>
@@ -3549,6 +4005,9 @@ False
 </property>
 </object>
 <object id='7150Dualfe' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property id='zendoc' type='string'>
+7150 Series chassis with 2 integrated 10/100 FE interfaces
+</property>
 <property type="string" id="name" mode="w" >
 7150Dualfe
 </property>
@@ -3563,6 +4022,9 @@ False
 </property>
 </object>
 <object id='7150Dualt3' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property id='zendoc' type='string'>
+7150 Series chassis with 2 10/100 FE interfaces, 2 T3 interfaces
+</property>
 <property type="string" id="name" mode="w" >
 7150Dualt3
 </property>
@@ -3577,6 +4039,9 @@ False
 </property>
 </object>
 <object id='7150Octt1' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property id='zendoc' type='string'>
+7150 Series chassis with 8 integrated T1/E1 serial ports
+</property>
 <property type="string" id="name" mode="w" >
 7150Octt1
 </property>
@@ -3591,6 +4056,9 @@ False
 </property>
 </object>
 <object id='7202' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property id='zendoc' type='string'>
+Modular two slot router in the cisco7200 family
+</property>
 <property type="string" id="name" mode="w" >
 7202
 </property>
@@ -3616,6 +4084,9 @@ False
 </property>
 </object>
 <object id='7204VXR' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property id='zendoc' type='string'>
+Cisco 7200 platform, VXR series chassis with 4 slots
+</property>
 <property type="string" id="name" mode="w" >
 7204VXR
 </property>
@@ -3641,6 +4112,9 @@ False
 </property>
 </object>
 <object id='7206VXR' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property id='zendoc' type='string'>
+Cisco 7200 platform, VXR series chassis with 6 slots
+</property>
 <property type="string" id="name" mode="w" >
 7206VXR
 </property>
@@ -3655,6 +4129,9 @@ False
 </property>
 </object>
 <object id='7301' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property id='zendoc' type='string'>
+Cisco 7300 platform, 1 Rack Unit (RU) application specific router with 1 slot
+</property>
 <property type="string" id="name" mode="w" >
 7301
 </property>
@@ -3669,6 +4146,9 @@ False
 </property>
 </object>
 <object id='7304' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property id='zendoc' type='string'>
+Cisco 7304 Chassis
+</property>
 <property type="string" id="name" mode="w" >
 7304
 </property>
@@ -3683,6 +4163,9 @@ False
 </property>
 </object>
 <object id='7401ASR' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property id='zendoc' type='string'>
+Cisco 7400 platform, ASR series with 1 slot
+</property>
 <property type="string" id="name" mode="w" >
 7401ASR
 </property>
@@ -3697,6 +4180,9 @@ False
 </property>
 </object>
 <object id='7401VXR' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property id='zendoc' type='string'>
+Cisco 7400 Family, 1 Slot router
+</property>
 <property type="string" id="name" mode="w" >
 7401VXR
 </property>
@@ -3788,6 +4274,9 @@ False
 </property>
 </object>
 <object id='7507mx' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property id='zendoc' type='string'>
+Cisco 7507mx chassis, Czbus capable, TDM (Time Division Multiplexing) backplane support, 7 slots
+</property>
 <property type="string" id="name" mode="w" >
 7507mx
 </property>
@@ -3802,6 +4291,9 @@ False
 </property>
 </object>
 <object id='7507z' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property id='zendoc' type='string'>
+Cisco 7507z chassis, Czbus capable, 7 slots
+</property>
 <property type="string" id="name" mode="w" >
 7507z
 </property>
@@ -3838,6 +4330,9 @@ False
 </property>
 </object>
 <object id='7513mx' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property id='zendoc' type='string'>
+Cisco 7513mx chassis, Czbus capable, TDM (Time Division Multiplexing) backplane support, 13 slots
+</property>
 <property type="string" id="name" mode="w" >
 7513mx
 </property>
@@ -3852,6 +4347,9 @@ False
 </property>
 </object>
 <object id='7513z' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property id='zendoc' type='string'>
+Cisco 7513z chassis, Czbus capable, 13 slots
+</property>
 <property type="string" id="name" mode="w" >
 7513z
 </property>
@@ -3888,6 +4386,9 @@ False
 </property>
 </object>
 <object id='7576' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property id='zendoc' type='string'>
+Dual Independent RSP platform, 13 slots
+</property>
 <property type="string" id="name" mode="w" >
 7576
 </property>
@@ -3902,6 +4403,9 @@ False
 </property>
 </object>
 <object id='7603' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property id='zendoc' type='string'>
+Cisco Optical Services Router 7600 Series Chassis with 3 slots
+</property>
 <property type="string" id="name" mode="w" >
 7603
 </property>
@@ -3916,6 +4420,9 @@ False
 </property>
 </object>
 <object id='7604' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property id='zendoc' type='string'>
+Cisco Optical Services Router 7600 Series Chassis with 4 slots
+</property>
 <property type="string" id="name" mode="w" >
 7604
 </property>
@@ -3930,6 +4437,9 @@ False
 </property>
 </object>
 <object id='7606' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property id='zendoc' type='string'>
+Cisco Optical Services Router 7600 Series Chassis with 6 slots
+</property>
 <property type="string" id="name" mode="w" >
 7606
 </property>
@@ -3944,6 +4454,9 @@ False
 </property>
 </object>
 <object id='7609' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property id='zendoc' type='string'>
+Cisco 7600 Series Chassis with 9 slots
+</property>
 <property type="string" id="name" mode="w" >
 7609
 </property>
@@ -3969,6 +4482,9 @@ False
 </property>
 </object>
 <object id='7613' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property id='zendoc' type='string'>
+Cisco Internet router 7600 Series Chassis with 13 slots
+</property>
 <property type="string" id="name" mode="w" >
 7613
 </property>
@@ -4049,6 +4565,9 @@ False
 </property>
 </object>
 <object id='7750' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property id='zendoc' type='string'>
+Cisco Integrated Communication System (ICS) 7750
+</property>
 <property type="string" id="name" mode="w" >
 7750
 </property>
@@ -4063,6 +4582,9 @@ False
 </property>
 </object>
 <object id='7750Mrp200' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property id='zendoc' type='string'>
+Cisco ICS 7750 Multiservice Route Processor 200
+</property>
 <property type="string" id="name" mode="w" >
 7750Mrp200
 </property>
@@ -4077,6 +4599,9 @@ False
 </property>
 </object>
 <object id='7750Mrp300' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property id='zendoc' type='string'>
+Cisco ICS 7750 Multiservice Route Processor 300
+</property>
 <property type="string" id="name" mode="w" >
 7750Mrp300
 </property>
@@ -4091,6 +4616,9 @@ False
 </property>
 </object>
 <object id='7750Ssp80' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property id='zendoc' type='string'>
+Cisco ICS 7750 System Switch Processor 80
+</property>
 <property type="string" id="name" mode="w" >
 7750Ssp80
 </property>
@@ -4116,6 +4644,9 @@ False
 </property>
 </object>
 <object id='801' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property id='zendoc' type='string'>
+Cisco 800 platform with 1 ethernet and 1 BRI S/T
+</property>
 <property type="string" id="name" mode="w" >
 801
 </property>
@@ -4130,6 +4661,9 @@ False
 </property>
 </object>
 <object id='802' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property id='zendoc' type='string'>
+Cisco 800 platform with 1 ethernet and 1 BRI U
+</property>
 <property type="string" id="name" mode="w" >
 802
 </property>
@@ -4144,6 +4678,9 @@ False
 </property>
 </object>
 <object id='802J' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property id='zendoc' type='string'>
+Cisco 800 platform with 1 ethernet, 1 BRI S/T, and 1 Japanese BRI U
+</property>
 <property type="string" id="name" mode="w" >
 802J
 </property>
@@ -4158,6 +4695,9 @@ False
 </property>
 </object>
 <object id='803' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property id='zendoc' type='string'>
+Cisco 800 platform with 1 ethernet 4-port HUB, 1 BRI S/T, and 2 POTs
+</property>
 <property type="string" id="name" mode="w" >
 803
 </property>
@@ -4172,6 +4712,9 @@ False
 </property>
 </object>
 <object id='804' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property id='zendoc' type='string'>
+Cisco 800 platform with 1 ethernet 4-port HUB, 1 BRI U, and 2 POTs
+</property>
 <property type="string" id="name" mode="w" >
 804
 </property>
@@ -4186,6 +4729,9 @@ False
 </property>
 </object>
 <object id='804J' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property id='zendoc' type='string'>
+Cisco 800 platform with 1 ethernet, 2 POTS, 1 BRI/ST, and 1 Japanese BRI U
+</property>
 <property type="string" id="name" mode="w" >
 804J
 </property>
@@ -4200,6 +4746,9 @@ False
 </property>
 </object>
 <object id='805' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property id='zendoc' type='string'>
+Cisco 800 platform with 1 ethernet and 1 serial WIC
+</property>
 <property type="string" id="name" mode="w" >
 805
 </property>
@@ -4214,6 +4763,9 @@ False
 </property>
 </object>
 <object id='806' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property id='zendoc' type='string'>
+Cisco SOHO (Small Office Home Office) router with 4 hubbed 10BaseT Ethernet LAN interfaces and 1 10BaseT Ethernet WAN interface
+</property>
 <property type="string" id="name" mode="w" >
 806
 </property>
@@ -4228,6 +4780,9 @@ False
 </property>
 </object>
 <object id='811' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property id='zendoc' type='string'>
+ISDN router for Japan with 1 10BaseT Ethernet port, 1 ISDN BRI(Basic Rate Interface) U, integrated DSU(Data Service Unit)
+</property>
 <property type="string" id="name" mode="w" >
 811
 </property>
@@ -4242,6 +4797,9 @@ False
 </property>
 </object>
 <object id='8110' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property id='zendoc' type='string'>
+Cisco 8110 (ATM network termination device) with 3 Line Interface module slots
+</property>
 <property type="string" id="name" mode="w" >
 8110
 </property>
@@ -4256,6 +4814,9 @@ False
 </property>
 </object>
 <object id='813' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property id='zendoc' type='string'>
+ISDN router forJapan with 10 BaseT 4 ports hub , 1 ISDN BRI(Basic Rate Interface) U, integrated DSU(Data Service Unit) and 2 RJ-11
+</property>
 <property type="string" id="name" mode="w" >
 813
 </property>
@@ -4270,6 +4831,9 @@ False
 </property>
 </object>
 <object id='826' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property id='zendoc' type='string'>
+Cisco 800 platform with 1 ethernet, 1 ADSL over ISDN
+</property>
 <property type="string" id="name" mode="w" >
 826
 </property>
@@ -4284,6 +4848,9 @@ False
 </property>
 </object>
 <object id='826QuadV' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property id='zendoc' type='string'>
+Cisco 800 platform with 1 ethernet, 1 ADSL over ISDN and 4 voice POTS FXS ports
+</property>
 <property type="string" id="name" mode="w" >
 826QuadV
 </property>
@@ -4298,6 +4865,9 @@ False
 </property>
 </object>
 <object id='827' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property id='zendoc' type='string'>
+Cisco 800 platform with 1 ethernet, 1 ADSL DMT issue 2
+</property>
 <property type="string" id="name" mode="w" >
 827
 </property>
@@ -4312,6 +4882,9 @@ False
 </property>
 </object>
 <object id='827H' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property id='zendoc' type='string'>
+Cisco 800 platform with 4-port 10Base-T Ethernet, and 1 ADSL over POTS Interface, data only model
+</property>
 <property type="string" id="name" mode="w" >
 827H
 </property>
@@ -4326,6 +4899,9 @@ False
 </property>
 </object>
 <object id='827QuadV' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property id='zendoc' type='string'>
+Cisco 800 platform with 1 ethernet, 1 ADSL DMT issue 2, and 4 voice POTS FXS ports
+</property>
 <property type="string" id="name" mode="w" >
 827QuadV
 </property>
@@ -4340,6 +4916,9 @@ False
 </property>
 </object>
 <object id='828' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property id='zendoc' type='string'>
+Cisco 800 platform with 1 Ethernet, 1 G.991.2 (G.shdsl) Interface, data only model
+</property>
 <property type="string" id="name" mode="w" >
 828
 </property>
@@ -4354,6 +4933,9 @@ False
 </property>
 </object>
 <object id='831' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property id='zendoc' type='string'>
+Cisco 831 platform with 4-port 10/100 Base-T Ethernet Switch, 1 10Base-T Ethernet WAN interface, hardware encryption
+</property>
 <property type="string" id="name" mode="w" >
 831
 </property>
@@ -4368,6 +4950,9 @@ False
 </property>
 </object>
 <object id='836' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property id='zendoc' type='string'>
+Cisco 836 platform with 4-port 10/100 Base-T Ethernet Switch, 1 ADSL over ISDN interface,1 ISDN BRI S/T interface, hardware encryption
+</property>
 <property type="string" id="name" mode="w" >
 836
 </property>
@@ -4382,6 +4967,9 @@ False
 </property>
 </object>
 <object id='837' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property id='zendoc' type='string'>
+Cisco 837 platform with 4-port 10/100 Base-T Ethernet Switch,1 ADSL over POTS interface,data only model, hardware encryption
+</property>
 <property type="string" id="name" mode="w" >
 837
 </property>
@@ -4396,6 +4984,9 @@ False
 </property>
 </object>
 <object id='8510' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property id='zendoc' type='string'>
+Cisco Catalyst 8510CSR (Campus Switching Router)
+</property>
 <property type="string" id="name" mode="w" >
 8510
 </property>
@@ -4410,6 +5001,9 @@ False
 </property>
 </object>
 <object id='8510msr' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property id='zendoc' type='string'>
+Catalyst ATM 8510 Multiservice Switching Router
+</property>
 <property type="string" id="name" mode="w" >
 8510msr
 </property>
@@ -4424,6 +5018,9 @@ False
 </property>
 </object>
 <object id='8515' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property id='zendoc' type='string'>
+Cisco Catalyst 8515CSR (Campus Switching Router)
+</property>
 <property type="string" id="name" mode="w" >
 8515
 </property>
@@ -4438,6 +5035,9 @@ False
 </property>
 </object>
 <object id='8515msr' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property id='zendoc' type='string'>
+Catalyst ATM 8515 Multiservice Switching Router
+</property>
 <property type="string" id="name" mode="w" >
 8515msr
 </property>
@@ -4452,6 +5052,9 @@ False
 </property>
 </object>
 <object id='8540csr' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property id='zendoc' type='string'>
+Catalyst 8540 Campus Switching Router
+</property>
 <property type="string" id="name" mode="w" >
 8540csr
 </property>
@@ -4466,6 +5069,9 @@ False
 </property>
 </object>
 <object id='8540msr' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property id='zendoc' type='string'>
+Catalyst 8540 Multiservice Switching Router
+</property>
 <property type="string" id="name" mode="w" >
 8540msr
 </property>
@@ -4491,6 +5097,9 @@ False
 </property>
 </object>
 <object id='9004' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property id='zendoc' type='string'>
+Cisco 9000 Chassis
+</property>
 <property type="string" id="name" mode="w" >
 9004
 </property>
@@ -4549,6 +5158,9 @@ False
 </property>
 </object>
 <object id='AIRAP1100' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property id='zendoc' type='string'>
+1100 series WLAN Access Point with 1 10/100TX port, 1 IEEE 802.11 radio port.
+</property>
 <property type="string" id="name" mode="w" >
 AIRAP1100
 </property>
@@ -4574,6 +5186,9 @@ False
 </property>
 </object>
 <object id='AIRAP1200' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property id='zendoc' type='string'>
+1200 series WLAN Access Point with 1 10/100TX port, 1 CardBus slot, 1 Mini PCI slot
+</property>
 <property type="string" id="name" mode="w" >
 AIRAP1200
 </property>
@@ -4588,6 +5203,9 @@ False
 </property>
 </object>
 <object id='AIRAP1210' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property id='zendoc' type='string'>
+1200 series WLAN Access Point on Cisco IOS platform with 1 10/100TX port, 1 CardBus slot, 1 Mini PCI slot.
+</property>
 <property type="string" id="name" mode="w" >
 AIRAP1210
 </property>
@@ -4602,6 +5220,9 @@ False
 </property>
 </object>
 <object id='AIRBR1300' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property id='zendoc' type='string'>
+Cisco Aironet 1300 Series Wireless Bridge with 1 10/100TX Ethernet port, 1 IEEE 802.11g radio port
+</property>
 <property type="string" id="name" mode="w" >
 AIRBR1300
 </property>
@@ -4616,6 +5237,9 @@ False
 </property>
 </object>
 <object id='AIRBR1410' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property id='zendoc' type='string'>
+1410 Series Wireless LAN Bridge on Cisco IOS platform with 1 10/100Tx port and 1 5-GHz radio
+</property>
 <property type="string" id="name" mode="w" >
 AIRBR1410
 </property>
@@ -4674,6 +5298,9 @@ False
 </property>
 </object>
 <object id='AS5350' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property id='zendoc' type='string'>
+Cisco low end Access server platform
+</property>
 <property type="string" id="name" mode="w" >
 AS5350
 </property>
@@ -4721,6 +5348,9 @@ False
 </property>
 </object>
 <object id='AirAp350IOS' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property id='zendoc' type='string'>
+Cisco Wireless LAN Access Point 350 series on IOS platform with 1 10/100TX port, 1 IEEE 802.11 radio port
+</property>
 <property type="string" id="name" mode="w" >
 AirAp350IOS
 </property>
@@ -4735,6 +5365,9 @@ False
 </property>
 </object>
 <object id='As5350XM' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property id='zendoc' type='string'>
+Low end AS5350XM platfrom
+</property>
 <property type="string" id="name" mode="w" >
 As5350XM
 </property>
@@ -4749,6 +5382,9 @@ False
 </property>
 </object>
 <object id='As5400' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property id='zendoc' type='string'>
+Cisco AS5400 platform
+</property>
 <property type="string" id="name" mode="w" >
 As5400
 </property>
@@ -4763,6 +5399,9 @@ False
 </property>
 </object>
 <object id='As5400XM' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property id='zendoc' type='string'>
+Cisco AS5400XM platform
+</property>
 <property type="string" id="name" mode="w" >
 As5400XM
 </property>
@@ -4777,6 +5416,9 @@ False
 </property>
 </object>
 <object id='As5850' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property id='zendoc' type='string'>
+High End Dial Access Server
+</property>
 <property type="string" id="name" mode="w" >
 As5850
 </property>
@@ -4791,6 +5433,9 @@ False
 </property>
 </object>
 <object id='BMGX8830Pxm1E' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property id='zendoc' type='string'>
+PXM1E based Multiservice Switch (Model B) with 14 half height slots
+</property>
 <property type="string" id="name" mode="w" >
 BMGX8830Pxm1E
 </property>
@@ -4805,6 +5450,9 @@ False
 </property>
 </object>
 <object id='BMGX8830Pxm45' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property id='zendoc' type='string'>
+PXM45 based Multiservice Switch (Model B) with 14 half height slots
+</property>
 <property type="string" id="name" mode="w" >
 BMGX8830Pxm45
 </property>
@@ -4819,6 +5467,9 @@ False
 </property>
 </object>
 <object id='BMGX8850Pxm1E' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property id='zendoc' type='string'>
+PXM1E based Multiservice Gigabit Switch (ModelB) with 32 half height slots
+</property>
 <property type="string" id="name" mode="w" >
 BMGX8850Pxm1E
 </property>
@@ -4833,6 +5484,9 @@ False
 </property>
 </object>
 <object id='BMGX8850Pxm45' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property id='zendoc' type='string'>
+PXM45 based Multiservice Gigabit Switch (ModelB) with 32 half height slots
+</property>
 <property type="string" id="name" mode="w" >
 BMGX8850Pxm45
 </property>
@@ -4847,6 +5501,9 @@ False
 </property>
 </object>
 <object id='BPX8620' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property id='zendoc' type='string'>
+Cisco BPX8600 (Broadband Packet eXchange) series basic wide-area switch with 15 slots
+</property>
 <property type="string" id="name" mode="w" >
 BPX8620
 </property>
@@ -4861,6 +5518,9 @@ False
 </property>
 </object>
 <object id='BPX8650' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property id='zendoc' type='string'>
+Cisco BPX8600 (Broadband Packet eXchange) series wide-area switch with integrated tag switching controller and 15 slots
+</property>
 <property type="string" id="name" mode="w" >
 BPX8650
 </property>
@@ -4875,6 +5535,9 @@ False
 </property>
 </object>
 <object id='BPX8680' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property id='zendoc' type='string'>
+Cisco BPX8600 (Broadband Packet eXchange) series wide-area switch with integrated MGX feeder and 15 slots
+</property>
 <property type="string" id="name" mode="w" >
 BPX8680
 </property>
@@ -4889,6 +5552,9 @@ False
 </property>
 </object>
 <object id='BPXSes' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property id='zendoc' type='string'>
+Cisco BPX (Broadband Packet eXchange) Service Expansion Slot controller
+</property>
 <property type="string" id="name" mode="w" >
 BPXSes
 </property>
@@ -4903,6 +5569,9 @@ False
 </property>
 </object>
 <object id='CAP340' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property id='zendoc' type='string'>
+Aironet Wireless LAN Access Point 340 series
+</property>
 <property type="string" id="name" mode="w" >
 CAP340
 </property>
@@ -4917,6 +5586,9 @@ False
 </property>
 </object>
 <object id='CAP350' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property id='zendoc' type='string'>
+Cisco Wireless LAN Access Point 350 series
+</property>
 <property type="string" id="name" mode="w" >
 CAP350
 </property>
@@ -4942,6 +5614,9 @@ False
 </property>
 </object>
 <object id='CDM4630' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property id='zendoc' type='string'>
+Cisco Content Distribution Manager Model 4630
+</property>
 <property type="string" id="name" mode="w" >
 CDM4630
 </property>
@@ -4956,6 +5631,9 @@ False
 </property>
 </object>
 <object id='CDM4650' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property id='zendoc' type='string'>
+Cisco Content Distribution Manager Model 4650
+</property>
 <property type="string" id="name" mode="w" >
 CDM4650
 </property>
@@ -4970,6 +5648,9 @@ False
 </property>
 </object>
 <object id='CE2636' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property id='zendoc' type='string'>
+Cisco Content Engine Module for 26xx and 36xx series platforms
+</property>
 <property type="string" id="name" mode="w" >
 CE2636
 </property>
@@ -4984,6 +5665,9 @@ False
 </property>
 </object>
 <object id='CE507AV' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property id='zendoc' type='string'>
+Cisco Content Engine Model 507-AV
+</property>
 <property type="string" id="name" mode="w" >
 CE507AV
 </property>
@@ -4998,6 +5682,9 @@ False
 </property>
 </object>
 <object id='CE508' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property id='zendoc' type='string'>
+Cisco Content Engine Model 508
+</property>
 <property type="string" id="name" mode="w" >
 CE508
 </property>
@@ -5012,6 +5699,9 @@ False
 </property>
 </object>
 <object id='CE510' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property id='zendoc' type='string'>
+Cisco Content Engine Model 510
+</property>
 <property type="string" id="name" mode="w" >
 CE510
 </property>
@@ -5026,6 +5716,9 @@ False
 </property>
 </object>
 <object id='CE560AV' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property id='zendoc' type='string'>
+Cisco Content Engine Model 560-AV
+</property>
 <property type="string" id="name" mode="w" >
 CE560AV
 </property>
@@ -5040,6 +5733,9 @@ False
 </property>
 </object>
 <object id='CE565' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property id='zendoc' type='string'>
+Cisco Content Engine Model 565
+</property>
 <property type="string" id="name" mode="w" >
 CE565
 </property>
@@ -5054,6 +5750,9 @@ False
 </property>
 </object>
 <object id='CE7305' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property id='zendoc' type='string'>
+Cisco Content Engine Model 7305
+</property>
 <property type="string" id="name" mode="w" >
 CE7305
 </property>
@@ -5068,6 +5767,9 @@ False
 </property>
 </object>
 <object id='CE7325' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property id='zendoc' type='string'>
+Cisco Content Engine Model 7325
+</property>
 <property type="string" id="name" mode="w" >
 CE7325
 </property>
@@ -5082,6 +5784,9 @@ False
 </property>
 </object>
 <object id='CR4430' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property id='zendoc' type='string'>
+Cisco Content Router Model 4430
+</property>
 <property type="string" id="name" mode="w" >
 CR4430
 </property>
@@ -5096,6 +5801,9 @@ False
 </property>
 </object>
 <object id='CR4450' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property id='zendoc' type='string'>
+Cisco Content Router Model 4450
+</property>
 <property type="string" id="name" mode="w" >
 CR4450
 </property>
@@ -5121,6 +5829,9 @@ False
 </property>
 </object>
 <object id='CRS8S' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property id='zendoc' type='string'>
+Cisco CRS-1 Series 8 Slots Carrier Routing System
+</property>
 <property type="string" id="name" mode="w" >
 CRS8S
 </property>
@@ -5146,6 +5857,9 @@ False
 </property>
 </object>
 <object id='CSM' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property id='zendoc' type='string'>
+Cisco Content Switching Module (CSM) which load balancing internet traffic based on the layer 4 through layer 7 information in the content.
+</property>
 <property type="string" id="name" mode="w" >
 CSM
 </property>
@@ -5160,6 +5874,9 @@ False
 </property>
 </object>
 <object id='CVA122' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property id='zendoc' type='string'>
+Cisco CVA122 Cable Voice Adapter (Residential Cable Modem with two Voice Ports)
+</property>
 <property type="string" id="name" mode="w" >
 CVA122
 </property>
@@ -5174,6 +5891,9 @@ False
 </property>
 </object>
 <object id='CVA122E' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property id='zendoc' type='string'>
+Cisco CVA122-e Cable Voice Adapter(Residential Cable Modem with two voice ports)- European version
+</property>
 <property type="string" id="name" mode="w" >
 CVA122E
 </property>
@@ -5188,6 +5908,9 @@ False
 </property>
 </object>
 <object id='CVA124' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property id='zendoc' type='string'>
+Cisco CVA124 Cable Voice Adapter (Residential Cable Modem with four Voice Ports)
+</property>
 <property type="string" id="name" mode="w" >
 CVA124
 </property>
@@ -5202,6 +5925,9 @@ False
 </property>
 </object>
 <object id='CVA124E' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property id='zendoc' type='string'>
+Cisco CVA124-e Cable Voice Adapter(Residential Cable Modem with four voice ports)- European version
+</property>
 <property type="string" id="name" mode="w" >
 CVA124E
 </property>
@@ -5216,6 +5942,9 @@ False
 </property>
 </object>
 <object id='CacheEngine' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property id='zendoc' type='string'>
+Cisco Cache Engine
+</property>
 <property type="string" id="name" mode="w" >
 CacheEngine
 </property>
@@ -5230,6 +5959,9 @@ False
 </property>
 </object>
 <object id='Cat6000' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property id='zendoc' type='string'>
+Cisco Catalyst 6000
+</property>
 <property type="string" id="name" mode="w" >
 Cat6000
 </property>
@@ -5266,6 +5998,9 @@ False
 </property>
 </object>
 <object id='Ce501K9' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property id='zendoc' type='string'>
+Cisco Content Engine Model CE-501-K9
+</property>
 <property type="string" id="name" mode="w" >
 Ce501K9
 </property>
@@ -5280,6 +6015,9 @@ False
 </property>
 </object>
 <object id='Ce507' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property id='zendoc' type='string'>
+Cisco Content Engine Model 507
+</property>
 <property type="string" id="name" mode="w" >
 Ce507
 </property>
@@ -5294,6 +6032,9 @@ False
 </property>
 </object>
 <object id='Ce511K9' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property id='zendoc' type='string'>
+Cisco Content Engine Model CE-511-K9
+</property>
 <property type="string" id="name" mode="w" >
 Ce511K9
 </property>
@@ -5308,6 +6049,9 @@ False
 </property>
 </object>
 <object id='Ce560' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property id='zendoc' type='string'>
+Cisco Content Engine Model 560
+</property>
 <property type="string" id="name" mode="w" >
 Ce560
 </property>
@@ -5322,6 +6066,9 @@ False
 </property>
 </object>
 <object id='Ce566K9' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property id='zendoc' type='string'>
+Cisco Content Engine Model CE-566-K9
+</property>
 <property type="string" id="name" mode="w" >
 Ce566K9
 </property>
@@ -5336,6 +6083,9 @@ False
 </property>
 </object>
 <object id='Ce590' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property id='zendoc' type='string'>
+Cisco Content Engine Model 590
+</property>
 <property type="string" id="name" mode="w" >
 Ce590
 </property>
@@ -5350,6 +6100,9 @@ False
 </property>
 </object>
 <object id='Ce611K9' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property id='zendoc' type='string'>
+Cisco Content Engine Model CE-611-K9
+</property>
 <property type="string" id="name" mode="w" >
 Ce611K9
 </property>
@@ -5364,6 +6117,9 @@ False
 </property>
 </object>
 <object id='Ce7306K9' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property id='zendoc' type='string'>
+Cisco Content Engine Model CE-7306-K9
+</property>
 <property type="string" id="name" mode="w" >
 Ce7306K9
 </property>
@@ -5378,6 +6134,9 @@ False
 </property>
 </object>
 <object id='Ce7320' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property id='zendoc' type='string'>
+Cisco Content Engine Model 7320
+</property>
 <property type="string" id="name" mode="w" >
 Ce7320
 </property>
@@ -5392,6 +6151,9 @@ False
 </property>
 </object>
 <object id='Ce7326K9' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property id='zendoc' type='string'>
+Cisco Content Engine Model CE-7326-K9
+</property>
 <property type="string" id="name" mode="w" >
 Ce7326K9
 </property>
@@ -5483,6 +6245,9 @@ False
 </property>
 </object>
 <object id='ContentEngine' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property id='zendoc' type='string'>
+Cisco Content Engine.  The Cisco Content Engine is a Content Networking product that accelerates content delivery, ensuring maximum scalability and availability of content.  The Content Engines offer caching, Content Delivery Network (CDN) services, employee internet management (e.g., URL filtering) and proxy services
+</property>
 <property type="string" id="name" mode="w" >
 ContentEngine
 </property>
@@ -5497,6 +6262,9 @@ False
 </property>
 </object>
 <object id='Crs18Linecard' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property id='zendoc' type='string'>
+Cisco CRS-1 Series 8 slot Line Card Chassis
+</property>
 <property type="string" id="name" mode="w" >
 Crs18Linecard
 </property>
@@ -5511,6 +6279,9 @@ False
 </property>
 </object>
 <object id='Crs1Fabric' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property id='zendoc' type='string'>
+Cisco CRS-1 Series Fabric Card Chassis
+</property>
 <property type="string" id="name" mode="w" >
 Crs1Fabric
 </property>
@@ -5525,6 +6296,9 @@ False
 </property>
 </object>
 <object id='DPA7610' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property id='zendoc' type='string'>
+The Cisco Digital PBX Adapter (DPA) enables the integration of Cisco Call Manager with Octel voice mail systems.
+</property>
 <property type="string" id="name" mode="w" >
 DPA7610
 </property>
@@ -5539,6 +6313,9 @@ False
 </property>
 </object>
 <object id='DPA7630' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property id='zendoc' type='string'>
+The Cisco Digital PBX Adapter (DPA) enables the integration of Cisco Call Manager with Octel voice mail systems
+</property>
 <property type="string" id="name" mode="w" >
 DPA7630
 </property>
@@ -5553,6 +6330,9 @@ False
 </property>
 </object>
 <object id='DSC9120CLK9' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property id='zendoc' type='string'>
+DS-C9120-CL-K9  - MDS 9120-CL, 20-Port 4 Gbps Fibre Channel Fabric Switch, Commercial
+</property>
 <property type="string" id="name" mode="w" >
 DSC9120CLK9
 </property>
@@ -5567,6 +6347,9 @@ False
 </property>
 </object>
 <object id='DSC9216K9' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property id='zendoc' type='string'>
+DS-C9216-K9    -  MDS 9216 16-port 2Gbps FC + 1-slot Modular Switch
+</property>
 <property type="string" id="name" mode="w" >
 DSC9216K9
 </property>
@@ -5581,6 +6364,9 @@ False
 </property>
 </object>
 <object id='DwCE' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property id='zendoc' type='string'>
+Double Wide Cisco Content Engine Module for 26xx
+</property>
 <property type="string" id="name" mode="w" >
 DwCE
 </property>
@@ -5595,6 +6381,9 @@ False
 </property>
 </object>
 <object id='ESSE' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property id='zendoc' type='string'>
+Cisco Ethernet Subscriber Solution Engine
+</property>
 <property type="string" id="name" mode="w" >
 ESSE
 </property>
@@ -5609,6 +6398,9 @@ False
 </property>
 </object>
 <object id='FE2636' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property id='zendoc' type='string'>
+Cisco File Engine Module for 26xx and 36xx series platforms
+</property>
 <property type="string" id="name" mode="w" >
 FE2636
 </property>
@@ -5623,6 +6415,9 @@ False
 </property>
 </object>
 <object id='FE6326K9' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property id='zendoc' type='string'>
+Cisco File Engine Model FE-6326-K9
+</property>
 <property type="string" id="name" mode="w" >
 FE6326K9
 </property>
@@ -5670,6 +6465,9 @@ False
 </property>
 </object>
 <object id='Fasthub100' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property id='zendoc' type='string'>
+Cisco Fast Hub 100 Series 10/100 Repeater
+</property>
 <property type="string" id="name" mode="w" >
 Fasthub100
 </property>
@@ -5684,6 +6482,9 @@ False
 </property>
 </object>
 <object id='Fe511K9' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property id='zendoc' type='string'>
+Cisco File Engine Model FE-511-K9
+</property>
 <property type="string" id="name" mode="w" >
 Fe511K9
 </property>
@@ -5698,6 +6499,9 @@ False
 </property>
 </object>
 <object id='Fe611K9' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property id='zendoc' type='string'>
+Cisco File Engine Model FE-611-K9
+</property>
 <property type="string" id="name" mode="w" >
 Fe611K9
 </property>
@@ -5712,6 +6516,9 @@ False
 </property>
 </object>
 <object id='Fe7326K9' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property id='zendoc' type='string'>
+Cisco File Engine Model FE-7326-K9
+</property>
 <property type="string" id="name" mode="w" >
 Fe7326K9
 </property>
@@ -5726,6 +6533,9 @@ False
 </property>
 </object>
 <object id='GSS' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property id='zendoc' type='string'>
+The Global Site Selector (GSS) is a network appliance that performs global server load balancing for geographically dispersed server load balancers and caches using DNS resolution.
+</property>
 <property type="string" id="name" mode="w" >
 GSS
 </property>
@@ -5751,6 +6561,9 @@ False
 </property>
 </object>
 <object id='HSE' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property id='zendoc' type='string'>
+Cisco Hosting Solution Engine 1105 manages Cisco powered data centers and Points of Presence with routers, switches, server load balancers, firewalls, intrusion detection systems and other layer 4-7 content delivery products
+</property>
 <property type="string" id="name" mode="w" >
 HSE
 </property>
@@ -5765,6 +6578,9 @@ False
 </property>
 </object>
 <object id='HSE1140' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property id='zendoc' type='string'>
+Cisco Hosting Solution Engine 1140 manages Cisco powered data centers and Points of Presence with routers, switches, server load balancers, firewalls, intrusion detection systems and other layer 4-7 content delivery products
+</property>
 <property type="string" id="name" mode="w" >
 HSE1140
 </property>
@@ -5779,6 +6595,9 @@ False
 </property>
 </object>
 <object id='IAD2420' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property id='zendoc' type='string'>
+Integrated Access Device 2420 (IAD2420) chassis with Analog (8/16) FXS ports with T1 or ADSL (Asymmetrical Digital Subscriber Line) Uplinks
+</property>
 <property type="string" id="name" mode="w" >
 IAD2420
 </property>
@@ -5793,6 +6612,9 @@ False
 </property>
 </object>
 <object id='ICM' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property id='zendoc' type='string'>
+Cisco Systems Intelligent Contact Management
+</property>
 <property type="string" id="name" mode="w" >
 ICM
 </property>
@@ -5807,6 +6629,9 @@ False
 </property>
 </object>
 <object id='IDS4210' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property id='zendoc' type='string'>
+Cisco Intrusion Detection System 4210
+</property>
 <property type="string" id="name" mode="w" >
 IDS4210
 </property>
@@ -5821,6 +6646,9 @@ False
 </property>
 </object>
 <object id='IDS4215' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property id='zendoc' type='string'>
+Cisco Intrusion Detection System 4215
+</property>
 <property type="string" id="name" mode="w" >
 IDS4215
 </property>
@@ -5835,6 +6663,9 @@ False
 </property>
 </object>
 <object id='IDS4220' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property id='zendoc' type='string'>
+Cisco Intrusion Detection System 4220
+</property>
 <property type="string" id="name" mode="w" >
 IDS4220
 </property>
@@ -5849,6 +6680,9 @@ False
 </property>
 </object>
 <object id='IDS4230' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property id='zendoc' type='string'>
+Cisco Intrusion Detection System 4230
+</property>
 <property type="string" id="name" mode="w" >
 IDS4230
 </property>
@@ -5863,6 +6697,9 @@ False
 </property>
 </object>
 <object id='IDS4235' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property id='zendoc' type='string'>
+Cisco Intrusion Detection System 4235
+</property>
 <property type="string" id="name" mode="w" >
 IDS4235
 </property>
@@ -5877,6 +6714,9 @@ False
 </property>
 </object>
 <object id='IDS4250' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property id='zendoc' type='string'>
+Cisco Intrusion Detection System 4250
+</property>
 <property type="string" id="name" mode="w" >
 IDS4250
 </property>
@@ -5891,6 +6731,9 @@ False
 </property>
 </object>
 <object id='IDS4250SX' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property id='zendoc' type='string'>
+Cisco Intrusion Detection System 4250 SX
+</property>
 <property type="string" id="name" mode="w" >
 IDS4250SX
 </property>
@@ -5905,6 +6748,9 @@ False
 </property>
 </object>
 <object id='IDS4250XL' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property id='zendoc' type='string'>
+Cisco Intrusion Detection System 4250 XL
+</property>
 <property type="string" id="name" mode="w" >
 IDS4250XL
 </property>
@@ -5919,6 +6765,9 @@ False
 </property>
 </object>
 <object id='IDSIDSM2' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property id='zendoc' type='string'>
+Cisco Intrusion Detection System Module IDSM2
+</property>
 <property type="string" id="name" mode="w" >
 IDSIDSM2
 </property>
@@ -5933,6 +6782,9 @@ False
 </property>
 </object>
 <object id='IDSNMCIDS' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property id='zendoc' type='string'>
+Cisco Intrusion Detection System Network Module NM-CIDS
+</property>
 <property type="string" id="name" mode="w" >
 IDSNMCIDS
 </property>
@@ -5947,6 +6799,9 @@ False
 </property>
 </object>
 <object id='IE2105' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property id='zendoc' type='string'>
+The Cisco Intelligence Engine 2100 series is a new form of network device that provides intelligent network interface to applications and users
+</property>
 <property type="string" id="name" mode="w" >
 IE2105
 </property>
@@ -5961,6 +6816,9 @@ False
 </property>
 </object>
 <object id='IGESM' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property id='zendoc' type='string'>
+Cisco Systems Intelligent Gigabit Ethernet Switch Module for IBM eServer BladeCenter (OS-CIGESM-18TT-E)
+</property>
 <property type="string" id="name" mode="w" >
 IGESM
 </property>
@@ -5986,6 +6844,9 @@ False
 </property>
 </object>
 <object id='IGX8410' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property id='zendoc' type='string'>
+Cisco IGX8400 (Integrated Gigabit eXchange) series wide-area switch with 8 slots
+</property>
 <property type="string" id="name" mode="w" >
 IGX8410
 </property>
@@ -6000,6 +6861,9 @@ False
 </property>
 </object>
 <object id='IGX8420' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property id='zendoc' type='string'>
+Cisco IGX8400 (Integrated Gigabit eXchange) series wide-area switch with 16 slots
+</property>
 <property type="string" id="name" mode="w" >
 IGX8420
 </property>
@@ -6014,6 +6878,9 @@ False
 </property>
 </object>
 <object id='IGX8430' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property id='zendoc' type='string'>
+Cisco IGX8400 (Integrated Gigabit eXchange) series wide-area switch with 32 slots
+</property>
 <property type="string" id="name" mode="w" >
 IGX8430
 </property>
@@ -6028,6 +6895,9 @@ False
 </property>
 </object>
 <object id='IGX8450' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property id='zendoc' type='string'>
+Cisco IGX8400 (Integrated Gigabit eXchange) series wide-area switch with integrated MGX feeder
+</property>
 <property type="string" id="name" mode="w" >
 IGX8450
 </property>
@@ -6042,6 +6912,9 @@ False
 </property>
 </object>
 <object id='IGXSes' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property id='zendoc' type='string'>
+Cisco IGX (Integrated Gigabit eXchange) Service Expansion Slot controller/feeder, used in IGX8410/IGX8420/IGX8430 switches.
+</property>
 <property type="string" id="name" mode="w" >
 IGXSes
 </property>
@@ -6298,6 +7171,9 @@ False
 </property>
 </object>
 <object id='IPS4240' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property id='zendoc' type='string'>
+Cisco Intrusion Prevention System 4240
+</property>
 <property type="string" id="name" mode="w" >
 IPS4240
 </property>
@@ -6312,6 +7188,9 @@ False
 </property>
 </object>
 <object id='IPS4255' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property id='zendoc' type='string'>
+Cisco Intrusion Prevention System 4255
+</property>
 <property type="string" id="name" mode="w" >
 IPS4255
 </property>
@@ -6326,6 +7205,9 @@ False
 </property>
 </object>
 <object id='IPSSSM10' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property id='zendoc' type='string'>
+Cisco Intrusion Prevention System Security Service Module SSM-10
+</property>
 <property type="string" id="name" mode="w" >
 IPSSSM10
 </property>
@@ -6340,6 +7222,9 @@ False
 </property>
 </object>
 <object id='IPSSSM20' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property id='zendoc' type='string'>
+Cisco Intrusion Prevention System Security Service Module SSM-20
+</property>
 <property type="string" id="name" mode="w" >
 IPSSSM20
 </property>
@@ -6376,6 +7261,9 @@ False
 </property>
 </object>
 <object id='LocalDirector' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property id='zendoc' type='string'>
+Cisco Local Director
+</property>
 <property type="string" id="name" mode="w" >
 LocalDirector
 </property>
@@ -6401,6 +7289,9 @@ False
 </property>
 </object>
 <object id='MCS7825I' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property id='zendoc' type='string'>
+Cisco Media Convergence Server 7825 (IBM)
+</property>
 <property type="string" id="name" mode="w" >
 MCS7825I
 </property>
@@ -6415,6 +7306,9 @@ False
 </property>
 </object>
 <object id='ME6340ACA' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property id='zendoc' type='string'>
+DSL Switch 48 port ADSL2/2+, Annex A, AC
+</property>
 <property type="string" id="name" mode="w" >
 ME6340ACA
 </property>
@@ -6429,6 +7323,9 @@ False
 </property>
 </object>
 <object id='ME6340DCA' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property id='zendoc' type='string'>
+DSL Switch 48 port ADSL2/2+, Annex A, DC
+</property>
 <property type="string" id="name" mode="w" >
 ME6340DCA
 </property>
@@ -6443,6 +7340,9 @@ False
 </property>
 </object>
 <object id='ME6340DCB' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property id='zendoc' type='string'>
+DSL Switch 48 port ADSL2/2+, Annex B, DC
+</property>
 <property type="string" id="name" mode="w" >
 ME6340DCB
 </property>
@@ -6457,6 +7357,9 @@ False
 </property>
 </object>
 <object id='MGX8230' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property id='zendoc' type='string'>
+Multi Service Switch with 16 half-height slots
+</property>
 <property type="string" id="name" mode="w" >
 MGX8230
 </property>
@@ -6471,6 +7374,9 @@ False
 </property>
 </object>
 <object id='MGX8240' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property id='zendoc' type='string'>
+High Density Circuit Emulation Service Gateway for Private Line Service
+</property>
 <property type="string" id="name" mode="w" >
 MGX8240
 </property>
@@ -6485,6 +7391,9 @@ False
 </property>
 </object>
 <object id='MGX8250' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property id='zendoc' type='string'>
+Multi Service Switch with 32 half-height slots
+</property>
 <property type="string" id="name" mode="w" >
 MGX8250
 </property>
@@ -6499,6 +7408,9 @@ False
 </property>
 </object>
 <object id='MGX8830' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property id='zendoc' type='string'>
+Cisco Multiservice Switch with 16 half-height slots
+</property>
 <property type="string" id="name" mode="w" >
 MGX8830
 </property>
@@ -6513,6 +7425,9 @@ False
 </property>
 </object>
 <object id='MGX8850' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property id='zendoc' type='string'>
+Cisco Multiservice Gigabit Switch with 32 half height slots
+</property>
 <property type="string" id="name" mode="w" >
 MGX8850
 </property>
@@ -6527,6 +7442,9 @@ False
 </property>
 </object>
 <object id='MGX8850Pxm1E' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property id='zendoc' type='string'>
+PXM1E Controller based 32 full-height slot MGX8850
+</property>
 <property type="string" id="name" mode="w" >
 MGX8850Pxm1E
 </property>
@@ -6541,6 +7459,9 @@ False
 </property>
 </object>
 <object id='MGX8880' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property id='zendoc' type='string'>
+Cisco MGX8880 switch with 32 half height slots
+</property>
 <property type="string" id="name" mode="w" >
 MGX8880
 </property>
@@ -6555,6 +7476,9 @@ False
 </property>
 </object>
 <object id='MGX8950' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property id='zendoc' type='string'>
+Multiservice Gigabit Switch(180Gb switch) with 32 half height slots
+</property>
 <property type="string" id="name" mode="w" >
 MGX8950
 </property>
@@ -6569,6 +7493,9 @@ False
 </property>
 </object>
 <object id='MPX' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property id='zendoc' type='string'>
+Cisco MeetingPlace Express
+</property>
 <property type="string" id="name" mode="w" >
 MPX
 </property>
@@ -6583,6 +7510,9 @@ False
 </property>
 </object>
 <object id='MWR1900' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property id='zendoc' type='string'>
+The Mobile Wireless router is a router targeted at application in a cell site Base Transciever Station (BTS) providing T1/E1 backhaul connections to the aggregation node in Radio Access Networks (RAN)
+</property>
 <property type="string" id="name" mode="w" >
 MWR1900
 </property>
@@ -6597,6 +7527,9 @@ False
 </property>
 </object>
 <object id='MWR1941DC' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property id='zendoc' type='string'>
+The Mobile Wireless Router (MWR-1941-DC) is a router with a universal power supply targeted at application in a cell site Base Transceiver Station (BTS) providing T1/E1 backhaul connections to the aggregation node in Radio Access Networks (RAN)
+</property>
 <property type="string" id="name" mode="w" >
 MWR1941DC
 </property>
@@ -6611,6 +7544,9 @@ False
 </property>
 </object>
 <object id='ManagementEngine1100' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property id='zendoc' type='string'>
+Cisco Management Engine 1100 for doing distributed SNMP polling
+</property>
 <property type="string" id="name" mode="w" >
 ManagementEngine1100
 </property>
@@ -6625,6 +7561,9 @@ False
 </property>
 </object>
 <object id='Mc3810V3' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property id='zendoc' type='string'>
+Cisco MC3810-V3, capable of data, voice and video.  Supports 2 additional ports than the MC3810-V, used for optional access cards.
+</property>
 <property type="string" id="name" mode="w" >
 Mc3810V3
 </property>
@@ -6661,6 +7600,9 @@ False
 </property>
 </object>
 <object id='NMCUEEC' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property id='zendoc' type='string'>
+Cisco Unity Express network module with enhanced capacity (NM-CUE-EC)
+</property>
 <property type="string" id="name" mode="w" >
 NMCUEEC
 </property>
@@ -6675,6 +7617,9 @@ False
 </property>
 </object>
 <object id='NetworkRegistrar' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property id='zendoc' type='string'>
+Cisco Network Registrar (CNR) is a full-featured DNS/DHCP system that provides scalable naming and addressing services for enterprise and service provider networks.
+</property>
 <property type="string" id="name" mode="w" >
 NetworkRegistrar
 </property>
@@ -6689,6 +7634,9 @@ False
 </property>
 </object>
 <object id='NmNam' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property id='zendoc' type='string'>
+Cisco NM-NAM, NAM for the branch office routers
+</property>
 <property type="string" id="name" mode="w" >
 NmNam
 </property>
@@ -6703,6 +7651,9 @@ False
 </property>
 </object>
 <object id='Nme16Es1Ge' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property id='zendoc' type='string'>
+EtherSwitch Service Module 16 10/100 ports + 1 Ethernet Gigabit port fixed configuration Layer 2/Layer 3 Ethernet switch.
+</property>
 <property type="string" id="name" mode="w" >
 Nme16Es1Ge
 </property>
@@ -6717,6 +7668,9 @@ False
 </property>
 </object>
 <object id='NmeX24Es1Ge' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property id='zendoc' type='string'>
+EtherSwitch Service Module 23 10/100 ports + 1 Ethernet Gigabit port fixed configuration Layer 2/Layer 3 Ethernet switch.
+</property>
 <property type="string" id="name" mode="w" >
 NmeX24Es1Ge
 </property>
@@ -6731,6 +7685,9 @@ False
 </property>
 </object>
 <object id='NmeXd24Es2St' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property id='zendoc' type='string'>
+EtherSwitch Service Module 24 10/100 ports + 1 Ethernet Gigabit SFP port fixed configuration Layer 2/Layer 3 Ethernet Stackable switch.
+</property>
 <property type="string" id="name" mode="w" >
 NmeXd24Es2St
 </property>
@@ -6745,6 +7702,9 @@ False
 </property>
 </object>
 <object id='NmeXd48Es2Ge' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property id='zendoc' type='string'>
+EtherSwitch Service Module 48 10/100 ports + 2 Ethernet Gigabit SFP ports fixed configuration Layer 2/Layer 3 Ethernet switch.
+</property>
 <property type="string" id="name" mode="w" >
 NmeXd48Es2Ge
 </property>
@@ -6759,6 +7719,9 @@ False
 </property>
 </object>
 <object id='ONS15327' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property id='zendoc' type='string'>
+Cisco ONS 15327 Platform
+</property>
 <property type="string" id="name" mode="w" >
 ONS15327
 </property>
@@ -6773,6 +7736,9 @@ False
 </property>
 </object>
 <object id='ONS15454' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property id='zendoc' type='string'>
+Cisco ONS 15454 Platform
+</property>
 <property type="string" id="name" mode="w" >
 ONS15454
 </property>
@@ -6787,6 +7753,9 @@ False
 </property>
 </object>
 <object id='ONS15530' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property id='zendoc' type='string'>
+Cisco ONS 15530 platform
+</property>
 <property type="string" id="name" mode="w" >
 ONS15530
 </property>
@@ -6801,6 +7770,9 @@ False
 </property>
 </object>
 <object id='ONS15530ETSI' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property id='zendoc' type='string'>
+Cisco ONS 15530 Chassis, ETSI compliant
+</property>
 <property type="string" id="name" mode="w" >
 ONS15530ETSI
 </property>
@@ -6815,6 +7787,9 @@ False
 </property>
 </object>
 <object id='ONS15530NEBS' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property id='zendoc' type='string'>
+Cisco ONS 15530 Chassis, NEBS compliant
+</property>
 <property type="string" id="name" mode="w" >
 ONS15530NEBS
 </property>
@@ -6829,6 +7804,9 @@ False
 </property>
 </object>
 <object id='ONS15540ESP' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property id='zendoc' type='string'>
+Cisco ONS 15540 Extended Services Platform
+</property>
 <property type="string" id="name" mode="w" >
 ONS15540ESP
 </property>
@@ -6843,6 +7821,9 @@ False
 </property>
 </object>
 <object id='ONS15540ESPx' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property id='zendoc' type='string'>
+Cisco ONS 15540 Extended Services Platform with external optical patch system
+</property>
 <property type="string" id="name" mode="w" >
 ONS15540ESPx
 </property>
@@ -6857,6 +7838,9 @@ False
 </property>
 </object>
 <object id='Olympus' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property id='zendoc' type='string'>
+Cisco VPN (Virtual Private Network) Router with  4 10/100/1000 Gigabitethernet integrated interfaces
+</property>
 <property type="string" id="name" mode="w" >
 Olympus
 </property>
@@ -6871,6 +7855,9 @@ False
 </property>
 </object>
 <object id='OpticalRegenerator' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property id='zendoc' type='string'>
+Cisco Optical Regenerator
+</property>
 <property type="string" id="name" mode="w" >
 OpticalRegenerator
 </property>
@@ -6885,6 +7872,9 @@ False
 </property>
 </object>
 <object id='PIXFirewall' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property id='zendoc' type='string'>
+Cisco PIX Firewall
+</property>
 <property type="string" id="name" mode="w" >
 PIXFirewall
 </property>
@@ -6899,6 +7889,9 @@ False
 </property>
 </object>
 <object id='PIXFirewall501' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property id='zendoc' type='string'>
+Cisco PIX Firewall 501
+</property>
 <property type="string" id="name" mode="w" >
 PIXFirewall501
 </property>
@@ -6913,6 +7906,9 @@ False
 </property>
 </object>
 <object id='PIXFirewall506' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property id='zendoc' type='string'>
+Cisco PIX Firewall 506
+</property>
 <property type="string" id="name" mode="w" >
 PIXFirewall506
 </property>
@@ -6927,6 +7923,9 @@ False
 </property>
 </object>
 <object id='PIXFirewall506E' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property id='zendoc' type='string'>
+Cisco PIX Firewall 506E
+</property>
 <property type="string" id="name" mode="w" >
 PIXFirewall506E
 </property>
@@ -6941,6 +7940,9 @@ False
 </property>
 </object>
 <object id='PIXFirewall515' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property id='zendoc' type='string'>
+Cisco PIX Firewall 515
+</property>
 <property type="string" id="name" mode="w" >
 PIXFirewall515
 </property>
@@ -6955,6 +7957,9 @@ False
 </property>
 </object>
 <object id='PIXFirewall515E' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property id='zendoc' type='string'>
+Cisco PIX Firewall 515E
+</property>
 <property type="string" id="name" mode="w" >
 PIXFirewall515E
 </property>
@@ -6969,6 +7974,9 @@ False
 </property>
 </object>
 <object id='PIXFirewall520' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property id='zendoc' type='string'>
+Cisco PIX Firewall 520
+</property>
 <property type="string" id="name" mode="w" >
 PIXFirewall520
 </property>
@@ -6983,6 +7991,9 @@ False
 </property>
 </object>
 <object id='PIXFirewall525' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property id='zendoc' type='string'>
+Cisco PIX Firewall 525
+</property>
 <property type="string" id="name" mode="w" >
 PIXFirewall525
 </property>
@@ -6997,6 +8008,9 @@ False
 </property>
 </object>
 <object id='PIXFirewall535' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property id='zendoc' type='string'>
+Cisco PIX Firewall 535
+</property>
 <property type="string" id="name" mode="w" >
 PIXFirewall535
 </property>
@@ -7011,6 +8025,9 @@ False
 </property>
 </object>
 <object id='PrimaryGSSM' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property id='zendoc' type='string'>
+The Primary Global Site Selector Manager (GSSM) serves as the central management station for a Global Site Selector (GSS) Network.
+</property>
 <property type="string" id="name" mode="w" >
 PrimaryGSSM
 </property>
@@ -7608,6 +8625,9 @@ False
 </property>
 </object>
 <object id='RPM' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property id='zendoc' type='string'>
+Router Processor Module
+</property>
 <property type="string" id="name" mode="w" >
 RPM
 </property>
@@ -7622,6 +8642,9 @@ False
 </property>
 </object>
 <object id='RPMPR' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property id='zendoc' type='string'>
+For RPM-PR router blade in MGX series switch
+</property>
 <property type="string" id="name" mode="w" >
 RPMPR
 </property>
@@ -7636,6 +8659,9 @@ False
 </property>
 </object>
 <object id='RpmXf' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property id='zendoc' type='string'>
+Chassis for RPM-XF router module
+</property>
 <property type="string" id="name" mode="w" >
 RpmXf
 </property>
@@ -7661,6 +8687,9 @@ False
 </property>
 </object>
 <object id='SCE1000' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property id='zendoc' type='string'>
+Cisco SCE1000 Service Control Engine
+</property>
 <property type="string" id="name" mode="w" >
 SCE1000
 </property>
@@ -7675,6 +8704,9 @@ False
 </property>
 </object>
 <object id='SCE2000' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property id='zendoc' type='string'>
+Cisco SCE2000 Service Control Engine
+</property>
 <property type="string" id="name" mode="w" >
 SCE2000
 </property>
@@ -7689,6 +8721,9 @@ False
 </property>
 </object>
 <object id='SCEDispatcher' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property id='zendoc' type='string'>
+Cisco Service Control Engine Dispatcher
+</property>
 <property type="string" id="name" mode="w" >
 SCEDispatcher
 </property>
@@ -7703,6 +8738,9 @@ False
 </property>
 </object>
 <object id='SIMSE' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property id='zendoc' type='string'>
+ciscoSIMSE is an appliance - CiscoWorks Security Information Management Solution Engine
+</property>
 <property type="string" id="name" mode="w" >
 SIMSE
 </property>
@@ -7717,6 +8755,9 @@ False
 </property>
 </object>
 <object id='SN5420' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property id='zendoc' type='string'>
+SRBU Storage Router 1 Fiber Channel port, 1 Gigabit Ethernet port
+</property>
 <property type="string" id="name" mode="w" >
 SN5420
 </property>
@@ -7731,6 +8772,9 @@ False
 </property>
 </object>
 <object id='SN5428' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property id='zendoc' type='string'>
+Storage Networking 5428 storage router with 2 SFP (Small Form  Factor Pluggable) GBIC Gigabit Ethernet ports and 8 SFP GBIC Fibre Channel ports
+</property>
 <property type="string" id="name" mode="w" >
 SN5428
 </property>
@@ -7745,6 +8789,9 @@ False
 </property>
 </object>
 <object id='SOHO76' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property id='zendoc' type='string'>
+Cisco SOHO (Small Office Home Office) ADSL over ISDN Router, 1 Ethernet and 1 ADSL ETSI/ITU-T G.992.1 Annex B (G.DMT) Interface
+</property>
 <property type="string" id="name" mode="w" >
 SOHO76
 </property>
@@ -7759,6 +8806,9 @@ False
 </property>
 </object>
 <object id='SOHO77' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property id='zendoc' type='string'>
+Cisco SOHO (Small Office Home Office) ADSL Router, 1 Ethernet and 1 ADSL G.992.1 (G.DMT) and G.992.2 (G.Lite) Interface
+</property>
 <property type="string" id="name" mode="w" >
 SOHO77
 </property>
@@ -7773,6 +8823,9 @@ False
 </property>
 </object>
 <object id='SOHO91' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property id='zendoc' type='string'>
+SOHO (Small Office Home Office)Router with 4-port 10/100 Base-T Ethernet Switch, 1 10Base-T Ethernet WAN interface
+</property>
 <property type="string" id="name" mode="w" >
 SOHO91
 </property>
@@ -7787,6 +8840,9 @@ False
 </property>
 </object>
 <object id='SOHO96' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property id='zendoc' type='string'>
+SOHO (Small Office Home Office)Router with 4-port 10/100 Base-T Ethernet Switch, 1 ADSL over ISDN interface, 1 ISDN BRI S/T interface
+</property>
 <property type="string" id="name" mode="w" >
 SOHO96
 </property>
@@ -7801,6 +8857,9 @@ False
 </property>
 </object>
 <object id='SOHO97' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property id='zendoc' type='string'>
+SOHO (Small Office Home Office) Router with 4-port 10/100 Base-T Ethernet Switch,1 ADSL over POTS interface,data only model
+</property>
 <property type="string" id="name" mode="w" >
 SOHO97
 </property>
@@ -7815,6 +8874,9 @@ False
 </property>
 </object>
 <object id='StandbyGSSM' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property id='zendoc' type='string'>
+The Standby Global Site Selector Manager (GSSM) serves as the backup to the Primary GSSM in a Global Site Selector(GSS) Network.
+</property>
 <property type="string" id="name" mode="w" >
 StandbyGSSM
 </property>
@@ -7851,6 +8913,9 @@ False
 </property>
 </object>
 <object id='UBR10012' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property id='zendoc' type='string'>
+Cisco uBR10000 platform with 8 broadband slots and 4 WAN slots
+</property>
 <property type="string" id="name" mode="w" >
 UBR10012
 </property>
@@ -7865,6 +8930,9 @@ False
 </property>
 </object>
 <object id='UBR7111' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property id='zendoc' type='string'>
+Low-end version of the Universal Broadband Router with 1 PA slot, 1 fixed RF line card (MC11C) and integrated upconvertor, designed for hotels, MDUs and smaller cable operators
+</property>
 <property type="string" id="name" mode="w" >
 UBR7111
 </property>
@@ -7879,6 +8947,9 @@ False
 </property>
 </object>
 <object id='UBR7111E' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property id='zendoc' type='string'>
+Low-end version of the Universal Broadband Router with 1 PA slot, 1 fixed RF line card (MC11E) and integrated upconvertor, designed for hotels, MDUs and smaller cable operators
+</property>
 <property type="string" id="name" mode="w" >
 UBR7111E
 </property>
@@ -7893,6 +8964,9 @@ False
 </property>
 </object>
 <object id='UBR7114' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property id='zendoc' type='string'>
+Low-end version of the Universal Broadband Router with 1 PA slot, 1 fixed RF line card (MC14C) and integrated upconvertor, designed for hotels, MDUs and smaller cable operators
+</property>
 <property type="string" id="name" mode="w" >
 UBR7114
 </property>
@@ -7907,6 +8981,9 @@ False
 </property>
 </object>
 <object id='UBR7114E' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property id='zendoc' type='string'>
+Low-end version of the Universal Broadband Router with 1 PA slot, 1 fixed RF line card (MC14E) and integrated upconvertor, designed for hotels, MDUs and smaller cable operators
+</property>
 <property type="string" id="name" mode="w" >
 UBR7114E
 </property>
@@ -7921,6 +8998,9 @@ False
 </property>
 </object>
 <object id='UBR7223' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property id='zendoc' type='string'>
+Universal Broadband Router
+</property>
 <property type="string" id="name" mode="w" >
 UBR7223
 </property>
@@ -7935,6 +9015,9 @@ False
 </property>
 </object>
 <object id='UBR7246' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property id='zendoc' type='string'>
+Universal Broadband Router
+</property>
 <property type="string" id="name" mode="w" >
 UBR7246
 </property>
@@ -7949,6 +9032,9 @@ False
 </property>
 </object>
 <object id='UBR7246VXR' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property id='zendoc' type='string'>
+Cisco 7246 Universal Broadband Router, VXR series
+</property>
 <property type="string" id="name" mode="w" >
 UBR7246VXR
 </property>
@@ -7963,6 +9049,9 @@ False
 </property>
 </object>
 <object id='UBR904' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property id='zendoc' type='string'>
+Cisco Cable Modem (UBR - Universal Broadband Router)
+</property>
 <property type="string" id="name" mode="w" >
 UBR904
 </property>
@@ -7977,6 +9066,9 @@ False
 </property>
 </object>
 <object id='UBR905' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property id='zendoc' type='string'>
+Cisco uBR905 Cable Modem with hardware accelerated IPSEC
+</property>
 <property type="string" id="name" mode="w" >
 UBR905
 </property>
@@ -7991,6 +9083,9 @@ False
 </property>
 </object>
 <object id='UBR912C' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property id='zendoc' type='string'>
+Cisco uBR912-C Cable Modem with CSU/DSU WIC
+</property>
 <property type="string" id="name" mode="w" >
 UBR912C
 </property>
@@ -8005,6 +9100,9 @@ False
 </property>
 </object>
 <object id='UBR912S' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property id='zendoc' type='string'>
+Cisco uBR912-S Cable Modem with Serial WIC
+</property>
 <property type="string" id="name" mode="w" >
 UBR912S
 </property>
@@ -8019,6 +9117,9 @@ False
 </property>
 </object>
 <object id='UBR914' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property id='zendoc' type='string'>
+Cisco uBR914 Cable Modem with removable WIC
+</property>
 <property type="string" id="name" mode="w" >
 UBR914
 </property>
@@ -8033,6 +9134,9 @@ False
 </property>
 </object>
 <object id='UBR924' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property id='zendoc' type='string'>
+Cisco UBR Cable Modem which is a UBR904 with 2 FXS Voice ports
+</property>
 <property type="string" id="name" mode="w" >
 UBR924
 </property>
@@ -8047,6 +9151,9 @@ False
 </property>
 </object>
 <object id='UBR925' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property id='zendoc' type='string'>
+Cisco UBR925 Cable Modem/Router with VOIP and hardware accelerated IPSEC
+</property>
 <property type="string" id="name" mode="w" >
 UBR925
 </property>
@@ -8061,6 +9168,9 @@ False
 </property>
 </object>
 <object id='URM' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property id='zendoc' type='string'>
+Universal Router Module for the IGX platform
+</property>
 <property type="string" id="name" mode="w" >
 URM
 </property>
@@ -8075,6 +9185,9 @@ False
 </property>
 </object>
 <object id='URM2FE' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property id='zendoc' type='string'>
+Universal router module with 2 Fast Ethernet interfaces for IGX platform
+</property>
 <property type="string" id="name" mode="w" >
 URM2FE
 </property>
@@ -8089,6 +9202,9 @@ False
 </property>
 </object>
 <object id='URM2FE2V' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property id='zendoc' type='string'>
+Universal Router Module, with 2 Fast Ethernet ports, and 2 digital voice ports (T1 or E1)
+</property>
 <property type="string" id="name" mode="w" >
 URM2FE2V
 </property>
@@ -8103,6 +9219,9 @@ False
 </property>
 </object>
 <object id='VG200' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property id='zendoc' type='string'>
+Cisco Voice Gateway 200 controlled by Cisco Call Manager
+</property>
 <property type="string" id="name" mode="w" >
 VG200
 </property>
@@ -8117,6 +9236,9 @@ False
 </property>
 </object>
 <object id='VG248' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property id='zendoc' type='string'>
+Cisco VoIP Voice Gateway for connecting analog telephones fax machines to a Cisco Call Manager based system
+</property>
 <property type="string" id="name" mode="w" >
 VG248
 </property>
@@ -8131,6 +9253,9 @@ False
 </property>
 </object>
 <object id='VPS1110' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property id='zendoc' type='string'>
+Cisco VLAN Policy Server 1110 manages VLAN-based policies to control user access to a LAN, leveraging existing authentication mechanisms such as Windows Domain Controllers and Novell's NDS. This policy server is part of CiscoWorks2000 User Registration Tool product.
+</property>
 <property type="string" id="name" mode="w" >
 VPS1110
 </property>
@@ -8145,6 +9270,9 @@ False
 </property>
 </object>
 <object id='WLSE1030' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property id='zendoc' type='string'>
+Cisco WLSE Express 1030 is a  WLSE that monitors and configures a WLAN with Cisco WAP and Bridges with AAA functionality
+</property>
 <property type="string" id="name" mode="w" >
 WLSE1030
 </property>
@@ -8159,6 +9287,9 @@ False
 </property>
 </object>
 <object id='WLSE1130' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property id='zendoc' type='string'>
+Cisco WLAN Solution Engine (WLSE) 1130 monitors and configures a WLAN with Cisco WAP and Bridges
+</property>
 <property type="string" id="name" mode="w" >
 WLSE1130
 </property>
@@ -8173,6 +9304,9 @@ False
 </property>
 </object>
 <object id='WLSE1132' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property id='zendoc' type='string'>
+Cisco Wireless LAN Solution Engine WLSE-1132-K9
+</property>
 <property type="string" id="name" mode="w" >
 WLSE1132
 </property>
@@ -8187,6 +9321,9 @@ False
 </property>
 </object>
 <object id='WLSEs20' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property id='zendoc' type='string'>
+Cisco Wireless LAN Solution Engine S20.
+</property>
 <property type="string" id="name" mode="w" >
 WLSEs20
 </property>
@@ -8201,6 +9338,9 @@ False
 </property>
 </object>
 <object id='WSC6503' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property id='zendoc' type='string'>
+Catalyst 6000 series chassis with 3 slots
+</property>
 <property type="string" id="name" mode="w" >
 WSC6503
 </property>
@@ -8215,6 +9355,9 @@ False
 </property>
 </object>
 <object id='WSC6504E' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property id='zendoc' type='string'>
+Catalyst 6000 series chassis with 4 slots
+</property>
 <property type="string" id="name" mode="w" >
 WSC6504E
 </property>
@@ -8229,6 +9372,9 @@ False
 </property>
 </object>
 <object id='WSC6509neba' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property id='zendoc' type='string'>
+Catalyst 6500 series chassis with 9 slots
+</property>
 <property type="string" id="name" mode="w" >
 WSC6509neba
 </property>
@@ -8243,6 +9389,9 @@ False
 </property>
 </object>
 <object id='WSC6513' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property id='zendoc' type='string'>
+Catalyst 6000 series chassis with 13 slots
+</property>
 <property type="string" id="name" mode="w" >
 WSC6513
 </property>
@@ -8279,6 +9428,9 @@ False
 </property>
 </object>
 <object id='WSX6302Msm' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property id='zendoc' type='string'>
+Catalyst 6000 or 6500 Series Multilayer Switch Module WS-X6302-MSM that directly interfaces to the switch's backplane to provide layer 3 switching.
+</property>
 <property type="string" id="name" mode="w" >
 WSX6302Msm
 </property>
@@ -8293,6 +9445,9 @@ False
 </property>
 </object>
 <object id='Wlse' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property id='zendoc' type='string'>
+Wireless LAN Solution Engine
+</property>
 <property type="string" id="name" mode="w" >
 Wlse
 </property>
@@ -8307,6 +9462,9 @@ False
 </property>
 </object>
 <object id='WsSvcMWAM1' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property id='zendoc' type='string'>
+Multiprocessor WAN Application Module (WS-SVC-MWAM-1) is a multipurpose blade built for the Cat6k platform
+</property>
 <property type="string" id="name" mode="w" >
 WsSvcMWAM1
 </property>
@@ -8321,6 +9479,9 @@ False
 </property>
 </object>
 <object id='WsSvcWLAN1K9' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property id='zendoc' type='string'>
+Wireless LAN Module (WS-SVC-WLAN-1-K9) is a Komodo+ based line card for Cat6K family of platforms, which provides wireless domain services (WDS) for IEEE 802.11 wireless clients
+</property>
 <property type="string" id="name" mode="w" >
 WsSvcWLAN1K9
 </property>
@@ -8335,6 +9496,9 @@ False
 </property>
 </object>
 <object id='cat2948gL3' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property id='zendoc' type='string'>
+Cisco Catalyst WS-C2948G-L3 48 port 10/100 Layer 3 switch with 2 GBIC ports
+</property>
 <property type="string" id="name" mode="w" >
 cat2948gL3
 </property>
@@ -8349,6 +9513,9 @@ False
 </property>
 </object>
 <object id='cat2948gL3Dc' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property id='zendoc' type='string'>
+A fixed-configuration Layer 3 Ethernet switch featuring IP, IPX, and IP mulitcast with 48 10/100BaseTX ports using DC power
+</property>
 <property type="string" id="name" mode="w" >
 cat2948gL3Dc
 </property>
@@ -8363,6 +9530,9 @@ False
 </property>
 </object>
 <object id='cat3524tXLEn' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property id='zendoc' type='string'>
+Cisco Catalyst 3524 switch (WS-C3524T-XL-EN) with 24 10/100 ports and 2 GBIC gigabit ports.  Runs Enterprise edition software and provides telephony power to attached IP telephones
+</property>
 <property type="string" id="name" mode="w" >
 cat3524tXLEn
 </property>
@@ -8377,6 +9547,9 @@ False
 </property>
 </object>
 <object id='cat3548XL' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property id='zendoc' type='string'>
+Catalyst 3548XL switch (WS-C3548-XL)
+</property>
 <property type="string" id="name" mode="w" >
 cat3548XL
 </property>
@@ -8391,6 +9564,9 @@ False
 </property>
 </object>
 <object id='cat355024Dc' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property id='zendoc' type='string'>
+Catalyst 3550 24 10/100Base-Tx ports + 2 Gig uplinks fixed configuration Layer 2/Layer 3 Ethernet Switch with DC power
+</property>
 <property type="string" id="name" mode="w" >
 cat355024Dc
 </property>
@@ -8405,6 +9581,9 @@ False
 </property>
 </object>
 <object id='cat355024Mmf' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property id='zendoc' type='string'>
+Catalyst 3550 24 10/100Mbps Multimode Fiber ports + 2 Gig uplinks fixed configuration Layer 2/Layer 3 Ethernet Switch
+</property>
 <property type="string" id="name" mode="w" >
 cat355024Mmf
 </property>
@@ -8419,6 +9598,9 @@ False
 </property>
 </object>
 <object id='cat4006' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property id='zendoc' type='string'>
+Catalyst 4000 with 6 slots (WS-C4006)
+</property>
 <property type="string" id="name" mode="w" >
 cat4006
 </property>
@@ -8433,6 +9615,9 @@ False
 </property>
 </object>
 <object id='cat4232L3' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property id='zendoc' type='string'>
+Cisco Catalyst 4232-L3 layer 3 line card that is treated as a standalone system by the NMS
+</property>
 <property type="string" id="name" mode="w" >
 cat4232L3
 </property>
@@ -8447,6 +9632,9 @@ False
 </property>
 </object>
 <object id='cat4503' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property id='zendoc' type='string'>
+Catalyst 4000 with 3 slots (WS-C4503)
+</property>
 <property type="string" id="name" mode="w" >
 cat4503
 </property>
@@ -8461,6 +9649,9 @@ False
 </property>
 </object>
 <object id='cat4506' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property id='zendoc' type='string'>
+Catalyst 4000 with 6 slots (WS-C4506)
+</property>
 <property type="string" id="name" mode="w" >
 cat4506
 </property>
@@ -8475,6 +9666,9 @@ False
 </property>
 </object>
 <object id='cat4507' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property id='zendoc' type='string'>
+Catalyst 4000 with 7 slots (WS-C4507)
+</property>
 <property type="string" id="name" mode="w" >
 cat4507
 </property>
@@ -8489,6 +9683,9 @@ False
 </property>
 </object>
 <object id='cat4840gL3' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property id='zendoc' type='string'>
+Catalyst 4840G-L3 (WS-C4840G) Layer 3 Ethernet Switching System with Server Load Balancing
+</property>
 <property type="string" id="name" mode="w" >
 cat4840gL3
 </property>
@@ -8503,6 +9700,9 @@ False
 </property>
 </object>
 <object id='cat4908gL3' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property id='zendoc' type='string'>
+Catalyst 4908G-L3 (WS-C4908G-L3) Mid-range fixed configuration layer 3 switch with 6 GBIC based Gigabit Ethernet ports
+</property>
 <property type="string" id="name" mode="w" >
 cat4908gL3
 </property>
@@ -8517,6 +9717,9 @@ False
 </property>
 </object>
 <object id='cat4908gL3Dc' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property id='zendoc' type='string'>
+A fixed-configuration L3 Ethernet switch featuring IP,IPX and IP multicast with 8 GBIC ports using DC power
+</property>
 <property type="string" id="name" mode="w" >
 cat4908gL3Dc
 </property>
@@ -8531,6 +9734,9 @@ False
 </property>
 </object>
 <object id='cat6006' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property id='zendoc' type='string'>
+Catalyst 6000 with 6 slots
+</property>
 <property type="string" id="name" mode="w" >
 cat6006
 </property>
@@ -8545,6 +9751,9 @@ False
 </property>
 </object>
 <object id='cat6009' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property id='zendoc' type='string'>
+Catalyst 6000 with 9 slots
+</property>
 <property type="string" id="name" mode="w" >
 cat6009
 </property>
@@ -8559,6 +9768,9 @@ False
 </property>
 </object>
 <object id='cat6500FirewallSm' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property id='zendoc' type='string'>
+High performance firewall blade for Catalyst 6500 Series
+</property>
 <property type="string" id="name" mode="w" >
 cat6500FirewallSm
 </property>
@@ -8573,6 +9785,9 @@ False
 </property>
 </object>
 <object id='cat6500SslSm' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property id='zendoc' type='string'>
+SSLSM is a High-Speed SSL Termination Engine for Catalyst 6000 family of platforms that terminates and accelarates Secure Socket Layer (SSL) transactions in Web server environement.
+</property>
 <property type="string" id="name" mode="w" >
 cat6500SslSm
 </property>
@@ -8587,6 +9802,9 @@ False
 </property>
 </object>
 <object id='cat6506' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property id='zendoc' type='string'>
+Catalyst 6000 Plus with 6 slots
+</property>
 <property type="string" id="name" mode="w" >
 cat6506
 </property>
@@ -8601,6 +9819,9 @@ False
 </property>
 </object>
 <object id='cat6509' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property id='zendoc' type='string'>
+Catalyst 6000 Plus with 9 slots
+</property>
 <property type="string" id="name" mode="w" >
 cat6509
 </property>
@@ -8615,6 +9836,9 @@ False
 </property>
 </object>
 <object id='cat6509Sp' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property id='zendoc' type='string'>
+9-slot Constellation+ vertical slot chassis
+</property>
 <property type="string" id="name" mode="w" >
 cat6509Sp
 </property>
@@ -8742,6 +9966,10 @@ http://www.debian.org/
 </property>
 <tomanycont id='products'>
 <object id='Etch' module='Products.ZenModel.SoftwareClass' class='SoftwareClass'>
+<property id='zendoc' type='string'>
+Debian GNU/Linux 4.0 (a.k.a. etch) was released April 8th, 2007.
+http://www.debian.org/releases/etch/
+</property>
 <property type="string" id="name" mode="w" >
 Etch
 </property>
@@ -8757,6 +9985,9 @@ True
 </property>
 </object>
 <object id='Lenny' module='Products.ZenModel.SoftwareClass' class='SoftwareClass'>
+<property id='zendoc' type='string'>
+'Lenny' is the next major Debian release after 'etch' and is not released yet.
+</property>
 <property type="string" id="name" mode="w" >
 Lenny
 </property>
@@ -8771,6 +10002,10 @@ True
 </property>
 </object>
 <object id='Sarge' module='Products.ZenModel.SoftwareClass' class='SoftwareClass'>
+<property id='zendoc' type='string'>
+Debian GNU/Linux 3.1 (a.k.a. sarge) was released on 6th of June, 2005.
+http://www.debian.org/releases/sarge/
+</property>
 <property type="string" id="name" mode="w" >
 Sarge
 </property>
@@ -8786,6 +10021,10 @@ True
 </property>
 </object>
 <object id='Woody' module='Products.ZenModel.SoftwareClass' class='SoftwareClass'>
+<property id='zendoc' type='string'>
+Debian GNU/Linux 3.0 (a.k.a. woody) was released on 19th of July, 2002.
+http://www.debian.org/releases/woody/
+</property>
 <property type="string" id="name" mode="w" >
 Woody
 </property>
@@ -8801,6 +10040,10 @@ True
 </property>
 </object>
 <object id='stable' module='Products.ZenModel.SoftwareClass' class='SoftwareClass'>
+<property id='zendoc' type='string'>
+The 'stable' distribution contains the latest officially released distribution of Debian.
+http://www.debian.org/releases/stable/
+</property>
 <property type="string" id="name" mode="w" >
 stable
 </property>
@@ -8816,6 +10059,10 @@ True
 </property>
 </object>
 <object id='testing' module='Products.ZenModel.SoftwareClass' class='SoftwareClass'>
+<property id='zendoc' type='string'>
+The 'testing' distribution contains packages that haven't been accepted into a 'stable' release yet, but they are in the queue for that.
+http://www.debian.org/releases/testing/
+</property>
 <property type="string" id="name" mode="w" >
 testing or sid
 </property>
@@ -8831,6 +10078,10 @@ True
 </property>
 </object>
 <object id='unstable' module='Products.ZenModel.SoftwareClass' class='SoftwareClass'>
+<property id='zendoc' type='string'>
+The 'unstable' distribution is where active development of Debian occurs. Generally, this distribution is run by developers and those who like to live on the edge.
+http://www.debian.org/releases/unstable/
+</property>
 <property type="string" id="name" mode="w" >
 unstable
 </property>

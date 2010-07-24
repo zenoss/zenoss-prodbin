@@ -1,14 +1,14 @@
 <?xml version="1.0" encoding="ISO-8859-1" ?>
 
 <!--
-    Zenoss RelationshipManager export completed on 2009-09-25 16:22:37.915058
+    Zenoss RelationshipManager export completed on 2010-07-24 14:47:51.763736
 
     Use ImportRM to import this file.
 
     For more information about Zenoss, go to http://www.zenoss.com
  -->
 
-<objects version="[Zenoss, version 2.4.70]" export_date="2009-09-25 16:22:37.915058" zenoss_server="iansmbp.mcb.loc" >
+<objects version="[Zenoss, version 3.0.1]" export_date="2010-07-24 14:47:51.763736" zenoss_server="test-suse103-32-1" >
 <object id='/zport/dmd/Devices' module='Products.ZenModel.DeviceClass' class='DeviceClass'>
 <property visible="True" type="int" id="zProdStateThreshold" >
 300
@@ -165,6 +165,9 @@ True
 <object id='More' module='Products.ZenModel.ZenMenu' class='ZenMenu'>
 <tomanycont id='zenMenuItems'>
 <object id='editCustSchema' module='Products.ZenModel.ZenMenuItem' class='ZenMenuItem'>
+<property id='zendoc' type='string'>
+Custom Schema
+</property>
 <property type="text" id="description" mode="w" >
 Custom Schema
 </property>
@@ -192,6 +195,9 @@ False
 </tomanycont>
 <tomanycont id='rrdTemplates'>
 <object id='Device' module='Products.ZenModel.RRDTemplate' class='RRDTemplate'>
+<property id='zendoc' type='string'>
+Basic template that only collects sysUpTime.
+</property>
 <property type="text" id="description" mode="w" >
 Basic template that only collects sysUpTime.
 </property>
@@ -200,6 +206,9 @@ Products.ZenModel.Device
 </property>
 <tomanycont id='datasources'>
 <object id='sysUpTime' module='Products.ZenModel.BasicDataSource' class='BasicDataSource'>
+<property id='zendoc' type='string'>
+This uses the sysUpTimeInstance object. This object is the length of time the system has been running.
+</property>
 <property select_variable="sourcetypes" type="selection" id="sourcetype" mode="w" >
 SNMP
 </property>
@@ -226,7 +235,7 @@ Auto
 </property>
 <tomanycont id='datapoints'>
 <object id='sysUpTime' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint'>
-<property type="text" id="zendoc" mode="w" >
+<property id='zendoc' type='string'>
 This uses the sysUpTimeInstance object. This object is the length of time the system has been running.
 </property>
 <property select_variable="rrdtypes" type="selection" id="rrdtype" mode="w" >
@@ -241,6 +250,9 @@ True
 </tomanycont>
 </object>
 <object id='IpService' module='Products.ZenModel.RRDTemplate' class='RRDTemplate'>
+<property id='zendoc' type='string'>
+Place holder for future use.
+</property>
 <property type="text" id="description" mode="w" >
 Place holder for future use.
 </property>
@@ -249,6 +261,9 @@ Products.ZenModel.IpService
 </property>
 </object>
 <object id='OSProcess' module='Products.ZenModel.RRDTemplate' class='RRDTemplate'>
+<property id='zendoc' type='string'>
+Monitors for OSProcess object
+</property>
 <property type="text" id="description" mode="w" >
 Monitors for OSProcess object
 </property>
@@ -257,6 +272,9 @@ Products.ZenModel.OSProcess
 </property>
 <tomanycont id='datasources'>
 <object id='count' module='Products.ZenModel.BasicDataSource' class='BasicDataSource'>
+<property id='zendoc' type='string'>
+Number of process matching process name.
+</property>
 <property select_variable="sourcetypes" type="selection" id="sourcetype" mode="w" >
 SNMP
 </property>
@@ -280,7 +298,7 @@ Auto
 </property>
 <tomanycont id='datapoints'>
 <object id='count' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint'>
-<property type="text" id="zendoc" mode="w" >
+<property id='zendoc' type='string'>
 Number of process matching process name.
 </property>
 <property select_variable="rrdtypes" type="selection" id="rrdtype" mode="w" >
@@ -293,6 +311,9 @@ True
 </tomanycont>
 </object>
 <object id='cpu' module='Products.ZenModel.BasicDataSource' class='BasicDataSource'>
+<property id='zendoc' type='string'>
+CPU consumed by processes.
+</property>
 <property select_variable="sourcetypes" type="selection" id="sourcetype" mode="w" >
 SNMP
 </property>
@@ -316,7 +337,7 @@ Auto
 </property>
 <tomanycont id='datapoints'>
 <object id='cpu' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint'>
-<property type="text" id="zendoc" mode="w" >
+<property id='zendoc' type='string'>
 CPU consumed by processes.
 </property>
 <property select_variable="rrdtypes" type="selection" id="rrdtype" mode="w" >
@@ -332,6 +353,9 @@ True
 </tomanycont>
 </object>
 <object id='mem' module='Products.ZenModel.BasicDataSource' class='BasicDataSource'>
+<property id='zendoc' type='string'>
+Memory consumed by processes.
+</property>
 <property select_variable="sourcetypes" type="selection" id="sourcetype" mode="w" >
 SNMP
 </property>
@@ -355,7 +379,7 @@ Auto
 </property>
 <tomanycont id='datapoints'>
 <object id='mem' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint'>
-<property type="text" id="zendoc" mode="w" >
+<property id='zendoc' type='string'>
 Memory consumed by processes.
 </property>
 <property select_variable="rrdtypes" type="selection" id="rrdtype" mode="w" >
@@ -671,6 +695,9 @@ AVERAGE
 </tomanycont>
 </object>
 <object id='WinService' module='Products.ZenModel.RRDTemplate' class='RRDTemplate'>
+<property id='zendoc' type='string'>
+Place holder for future use.
+</property>
 <property type="text" id="description" mode="w" >
 Place holder for future use.
 </property>
@@ -679,6 +706,9 @@ Products.ZenModel.WinService
 </property>
 </object>
 <object id='ethernetCsmacd' module='Products.ZenModel.RRDTemplate' class='RRDTemplate'>
+<property id='zendoc' type='string'>
+Standard ethernet interface template with 75% utilization threshold
+</property>
 <property type="text" id="description" mode="w" >
 Standard ethernet interface template with 75% utilization threshold
 </property>
@@ -687,6 +717,9 @@ Products.ZenModel.IpInterface
 </property>
 <tomanycont id='datasources'>
 <object id='ifInErrors' module='Products.ZenModel.BasicDataSource' class='BasicDataSource'>
+<property id='zendoc' type='string'>
+For packet-oriented interfaces, the number of inbound packets that contained errors preventing them from being deliverable to a higher-layer protocol. For character-oriented or fixed-length interfaces, the number of inbound transmission units that contained errors preventing them from being deliverable to a higher-layer protocol.
+</property>
 <property select_variable="sourcetypes" type="selection" id="sourcetype" mode="w" >
 SNMP
 </property>
@@ -713,8 +746,8 @@ Auto
 </property>
 <tomanycont id='datapoints'>
 <object id='ifInErrors' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint'>
-<property type="text" id="description" mode="w" >
-For packet-oriented interfaces, the number of inbound packets that contained errors preventing them from being deliverable to a higher-layer protocol. For character-oriented or fixed-length interfaces, the number of inbound transmission units that contained errors preventing them from being deliverable to a higher-layer protocol. 
+<property id='zendoc' type='string'>
+For packet-oriented interfaces, the number of inbound packets that contained errors preventing them from being deliverable to a higher-layer protocol. For character-oriented or fixed-length interfaces, the number of inbound transmission units that contained errors preventing them from being deliverable to a higher-layer protocol.
 </property>
 <property select_variable="rrdtypes" type="selection" id="rrdtype" mode="w" >
 DERIVE
@@ -725,10 +758,16 @@ True
 <property type="string" id="rrdmin" mode="w" >
 0
 </property>
+<property visible="True" type="text" id="description" >
+For packet-oriented interfaces, the number of inbound packets that contained errors preventing them from being deliverable to a higher-layer protocol. For character-oriented or fixed-length interfaces, the number of inbound transmission units that contained errors preventing them from being deliverable to a higher-layer protocol.
+</property>
 </object>
 </tomanycont>
 </object>
 <object id='ifInOctets' module='Products.ZenModel.BasicDataSource' class='BasicDataSource'>
+<property id='zendoc' type='string'>
+The total number of octets received on the interface, including framing characters.
+</property>
 <property select_variable="sourcetypes" type="selection" id="sourcetype" mode="w" >
 SNMP
 </property>
@@ -755,7 +794,7 @@ Auto
 </property>
 <tomanycont id='datapoints'>
 <object id='ifInOctets' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint'>
-<property type="text" id="description" mode="w" >
+<property id='zendoc' type='string'>
 The total number of octets received on the interface, including framing characters.
 </property>
 <property select_variable="rrdtypes" type="selection" id="rrdtype" mode="w" >
@@ -767,6 +806,9 @@ True
 <property type="string" id="rrdmin" mode="w" >
 0
 </property>
+<property visible="True" type="text" id="description" >
+The total number of octets received on the interface, including framing characters.
+</property>
 <tomanycont id='aliases'>
 <object id='inputOctets__bytes' module='Products.ZenModel.RRDDataPointAlias' class='RRDDataPointAlias'>
 </object>
@@ -775,6 +817,9 @@ True
 </tomanycont>
 </object>
 <object id='ifInUcastPackets' module='Products.ZenModel.BasicDataSource' class='BasicDataSource'>
+<property id='zendoc' type='string'>
+The number of packets, delivered by this sub-layer to a higher (sub-)layer, which were not addressed to a multicast or broadcast address at this sub-layer.
+</property>
 <property select_variable="sourcetypes" type="selection" id="sourcetype" mode="w" >
 SNMP
 </property>
@@ -801,7 +846,7 @@ Auto
 </property>
 <tomanycont id='datapoints'>
 <object id='ifInUcastPackets' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint'>
-<property type="text" id="description" mode="w" >
+<property id='zendoc' type='string'>
 The number of packets, delivered by this sub-layer to a higher (sub-)layer, which were not addressed to a multicast or broadcast address at this sub-layer.
 </property>
 <property select_variable="rrdtypes" type="selection" id="rrdtype" mode="w" >
@@ -812,6 +857,9 @@ True
 </property>
 <property type="string" id="rrdmin" mode="w" >
 0
+</property>
+<property visible="True" type="text" id="description" >
+The number of packets, delivered by this sub-layer to a higher (sub-)layer, which were not addressed to a multicast or broadcast address at this sub-layer.
 </property>
 </object>
 </tomanycont>
@@ -853,6 +901,9 @@ True
 </tomanycont>
 </object>
 <object id='ifOutErrors' module='Products.ZenModel.BasicDataSource' class='BasicDataSource'>
+<property id='zendoc' type='string'>
+For packet-oriented interfaces, the number of outbound packets that could not be transmitted because of errors. For character-oriented or fixed-length interfaces, the number of outbound transmission units that could not be transmitted because of errors.
+</property>
 <property select_variable="sourcetypes" type="selection" id="sourcetype" mode="w" >
 SNMP
 </property>
@@ -879,8 +930,8 @@ Auto
 </property>
 <tomanycont id='datapoints'>
 <object id='ifOutErrors' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint'>
-<property type="text" id="description" mode="w" >
-For packet-oriented interfaces, the number of outbound packets that could not be transmitted because of errors. For character-oriented or fixed-length interfaces, the number of outbound transmission units that could not be transmitted because of errors. 
+<property id='zendoc' type='string'>
+For packet-oriented interfaces, the number of outbound packets that could not be transmitted because of errors. For character-oriented or fixed-length interfaces, the number of outbound transmission units that could not be transmitted because of errors.
 </property>
 <property select_variable="rrdtypes" type="selection" id="rrdtype" mode="w" >
 DERIVE
@@ -891,10 +942,16 @@ True
 <property type="string" id="rrdmin" mode="w" >
 0
 </property>
+<property visible="True" type="text" id="description" >
+For packet-oriented interfaces, the number of outbound packets that could not be transmitted because of errors. For character-oriented or fixed-length interfaces, the number of outbound transmission units that could not be transmitted because of errors.
+</property>
 </object>
 </tomanycont>
 </object>
 <object id='ifOutOctets' module='Products.ZenModel.BasicDataSource' class='BasicDataSource'>
+<property id='zendoc' type='string'>
+The total number of octets transmitted out of the interface, including framing characters.
+</property>
 <property select_variable="sourcetypes" type="selection" id="sourcetype" mode="w" >
 SNMP
 </property>
@@ -921,7 +978,7 @@ Auto
 </property>
 <tomanycont id='datapoints'>
 <object id='ifOutOctets' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint'>
-<property type="text" id="description" mode="w" >
+<property id='zendoc' type='string'>
 The total number of octets transmitted out of the interface, including framing characters.
 </property>
 <property select_variable="rrdtypes" type="selection" id="rrdtype" mode="w" >
@@ -933,6 +990,9 @@ True
 <property type="string" id="rrdmin" mode="w" >
 0
 </property>
+<property visible="True" type="text" id="description" >
+The total number of octets transmitted out of the interface, including framing characters.
+</property>
 <tomanycont id='aliases'>
 <object id='outputOctets__bytes' module='Products.ZenModel.RRDDataPointAlias' class='RRDDataPointAlias'>
 </object>
@@ -941,6 +1001,9 @@ True
 </tomanycont>
 </object>
 <object id='ifOutUcastPackets' module='Products.ZenModel.BasicDataSource' class='BasicDataSource'>
+<property id='zendoc' type='string'>
+The total number of packets that higher-level protocols requested be transmitted, and which were not addressed to a multicast or broadcast address at this sub-layer, including those that were discarded or not sent.
+</property>
 <property select_variable="sourcetypes" type="selection" id="sourcetype" mode="w" >
 SNMP
 </property>
@@ -967,7 +1030,7 @@ Auto
 </property>
 <tomanycont id='datapoints'>
 <object id='ifOutUcastPackets' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint'>
-<property type="text" id="description" mode="w" >
+<property id='zendoc' type='string'>
 The total number of packets that higher-level protocols requested be transmitted, and which were not addressed to a multicast or broadcast address at this sub-layer, including those that were discarded or not sent.
 </property>
 <property select_variable="rrdtypes" type="selection" id="rrdtype" mode="w" >
@@ -978,6 +1041,9 @@ True
 </property>
 <property type="string" id="rrdmin" mode="w" >
 0
+</property>
+<property visible="True" type="text" id="description" >
+The total number of packets that higher-level protocols requested be transmitted, and which were not addressed to a multicast or broadcast address at this sub-layer, including those that were discarded or not sent.
 </property>
 </object>
 </tomanycont>
@@ -1119,10 +1185,10 @@ True
 </tomanycont>
 <tomanycont id='thresholds'>
 <object id='high utilization' module='Products.ZenModel.MinMaxThreshold' class='MinMaxThreshold'>
-<property type="lines" id="dsnames" mode="w" >
+<property label="DataPoints" type="lines" id="dsnames" mode="w" >
 ['ifInOctets_ifInOctets', 'ifOutOctets_ifOutOctets']
 </property>
-<property type="boolean" id="enabled" mode="w" >
+<property label="Enabled" type="boolean" id="enabled" mode="w" >
 True
 </property>
 <property type="string" id="maxval" mode="w" >
@@ -1412,6 +1478,9 @@ AVERAGE
 </tomanycont>
 </object>
 <object id='ethernetCsmacd_64' module='Products.ZenModel.RRDTemplate' class='RRDTemplate'>
+<property id='zendoc' type='string'>
+Template for 64-bit interface counters.  Must use SNMP v2c for it to work.
+</property>
 <property type="text" id="description" mode="w" >
 Template for 64-bit interface counters.  Must use SNMP v2c for it to work.
 </property>
@@ -1420,6 +1489,9 @@ Products.ZenModel.IpInterface
 </property>
 <tomanycont id='datasources'>
 <object id='ifHCInOctets' module='Products.ZenModel.BasicDataSource' class='BasicDataSource'>
+<property id='zendoc' type='string'>
+The total number of octets received on the interface, including framing characters. This object is a 64-bit version of ifInOctets.
+</property>
 <property select_variable="sourcetypes" type="selection" id="sourcetype" mode="w" >
 SNMP
 </property>
@@ -1446,7 +1518,7 @@ Auto
 </property>
 <tomanycont id='datapoints'>
 <object id='ifHCInOctets' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint'>
-<property type="text" id="description" mode="w" >
+<property id='zendoc' type='string'>
 The total number of octets received on the interface, including framing characters. This object is a 64-bit version of ifInOctets.
 </property>
 <property select_variable="rrdtypes" type="selection" id="rrdtype" mode="w" >
@@ -1458,6 +1530,9 @@ True
 <property type="string" id="rrdmin" mode="w" >
 0
 </property>
+<property visible="True" type="text" id="description" >
+The total number of octets received on the interface, including framing characters. This object is a 64-bit version of ifInOctets.
+</property>
 <tomanycont id='aliases'>
 <object id='inputOctets__bytes' module='Products.ZenModel.RRDDataPointAlias' class='RRDDataPointAlias'>
 </object>
@@ -1466,6 +1541,9 @@ True
 </tomanycont>
 </object>
 <object id='ifHCInUcastPkts' module='Products.ZenModel.BasicDataSource' class='BasicDataSource'>
+<property id='zendoc' type='string'>
+The number of packets, delivered by this sub-layer to a higher (sub-)layer, which were not addressed to a multicast or broadcast address at this sub-layer.  This object is a 64-bit version of ifInUcastPkts.
+</property>
 <property select_variable="sourcetypes" type="selection" id="sourcetype" mode="w" >
 SNMP
 </property>
@@ -1492,7 +1570,7 @@ Auto
 </property>
 <tomanycont id='datapoints'>
 <object id='ifHCInUcastPkts' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint'>
-<property type="text" id="description" mode="w" >
+<property id='zendoc' type='string'>
 The number of packets, delivered by this sub-layer to a higher (sub-)layer, which were not addressed to a multicast or broadcast address at this sub-layer.  This object is a 64-bit version of ifInUcastPkts.
 </property>
 <property select_variable="rrdtypes" type="selection" id="rrdtype" mode="w" >
@@ -1504,10 +1582,16 @@ True
 <property type="string" id="rrdmin" mode="w" >
 0
 </property>
+<property visible="True" type="text" id="description" >
+The number of packets, delivered by this sub-layer to a higher (sub-)layer, which were not addressed to a multicast or broadcast address at this sub-layer.  This object is a 64-bit version of ifInUcastPkts.
+</property>
 </object>
 </tomanycont>
 </object>
 <object id='ifHCOutOctets' module='Products.ZenModel.BasicDataSource' class='BasicDataSource'>
+<property id='zendoc' type='string'>
+The total number of octets transmitted out of the interface, including framing characters. This object is a 64-bit version of ifHCOutOctets.
+</property>
 <property select_variable="sourcetypes" type="selection" id="sourcetype" mode="w" >
 SNMP
 </property>
@@ -1534,7 +1618,7 @@ Auto
 </property>
 <tomanycont id='datapoints'>
 <object id='ifHCOutOctets' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint'>
-<property type="text" id="description" mode="w" >
+<property id='zendoc' type='string'>
 The total number of octets transmitted out of the interface, including framing characters. This object is a 64-bit version of ifHCOutOctets.
 </property>
 <property select_variable="rrdtypes" type="selection" id="rrdtype" mode="w" >
@@ -1546,6 +1630,9 @@ True
 <property type="string" id="rrdmin" mode="w" >
 0
 </property>
+<property visible="True" type="text" id="description" >
+The total number of octets transmitted out of the interface, including framing characters. This object is a 64-bit version of ifHCOutOctets.
+</property>
 <tomanycont id='aliases'>
 <object id='outputOctets__bytes' module='Products.ZenModel.RRDDataPointAlias' class='RRDDataPointAlias'>
 </object>
@@ -1554,6 +1641,9 @@ True
 </tomanycont>
 </object>
 <object id='ifHCOutUcastPkts' module='Products.ZenModel.BasicDataSource' class='BasicDataSource'>
+<property id='zendoc' type='string'>
+The total number of packets that higher-level protocols requested be transmitted, and which were not addressed to a multicast or broadcast address at this sub-layer, including those that were discarded or not sent. This object is a 64-bit version of ifHCOutUcastPkts.
+</property>
 <property select_variable="sourcetypes" type="selection" id="sourcetype" mode="w" >
 SNMP
 </property>
@@ -1580,7 +1670,7 @@ Auto
 </property>
 <tomanycont id='datapoints'>
 <object id='ifHCOutUcastPkts' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint'>
-<property type="text" id="description" mode="w" >
+<property id='zendoc' type='string'>
 The total number of packets that higher-level protocols requested be transmitted, and which were not addressed to a multicast or broadcast address at this sub-layer, including those that were discarded or not sent. This object is a 64-bit version of ifHCOutUcastPkts.
 </property>
 <property select_variable="rrdtypes" type="selection" id="rrdtype" mode="w" >
@@ -1592,10 +1682,16 @@ True
 <property type="string" id="rrdmin" mode="w" >
 0
 </property>
+<property visible="True" type="text" id="description" >
+The total number of packets that higher-level protocols requested be transmitted, and which were not addressed to a multicast or broadcast address at this sub-layer, including those that were discarded or not sent. This object is a 64-bit version of ifHCOutUcastPkts.
+</property>
 </object>
 </tomanycont>
 </object>
 <object id='ifInErrors' module='Products.ZenModel.BasicDataSource' class='BasicDataSource'>
+<property id='zendoc' type='string'>
+For packet-oriented interfaces, the number of inbound packets that contained errors preventing them from being deliverable to a higher-layer protocol. For character-oriented or fixed-length interfaces, the number of inbound transmission units that contained errors preventing them from being deliverable to a higher-layer protocol.
+</property>
 <property select_variable="sourcetypes" type="selection" id="sourcetype" mode="w" >
 SNMP
 </property>
@@ -1622,7 +1718,7 @@ Auto
 </property>
 <tomanycont id='datapoints'>
 <object id='ifInErrors' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint'>
-<property type="text" id="description" mode="w" >
+<property id='zendoc' type='string'>
 For packet-oriented interfaces, the number of inbound packets that contained errors preventing them from being deliverable to a higher-layer protocol. For character-oriented or fixed-length interfaces, the number of inbound transmission units that contained errors preventing them from being deliverable to a higher-layer protocol.
 </property>
 <property select_variable="rrdtypes" type="selection" id="rrdtype" mode="w" >
@@ -1634,10 +1730,16 @@ True
 <property type="string" id="rrdmin" mode="w" >
 0
 </property>
+<property visible="True" type="text" id="description" >
+For packet-oriented interfaces, the number of inbound packets that contained errors preventing them from being deliverable to a higher-layer protocol. For character-oriented or fixed-length interfaces, the number of inbound transmission units that contained errors preventing them from being deliverable to a higher-layer protocol.
+</property>
 </object>
 </tomanycont>
 </object>
 <object id='ifOutErrors' module='Products.ZenModel.BasicDataSource' class='BasicDataSource'>
+<property id='zendoc' type='string'>
+For packet-oriented interfaces, the number of outbound packets that could not be transmitted because of errors. For character-oriented or fixed-length interfaces, the number of outbound transmission units that could not be transmitted because of errors.
+</property>
 <property select_variable="sourcetypes" type="selection" id="sourcetype" mode="w" >
 SNMP
 </property>
@@ -1664,7 +1766,7 @@ Auto
 </property>
 <tomanycont id='datapoints'>
 <object id='ifOutErrors' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint'>
-<property type="text" id="description" mode="w" >
+<property id='zendoc' type='string'>
 For packet-oriented interfaces, the number of outbound packets that could not be transmitted because of errors. For character-oriented or fixed-length interfaces, the number of outbound transmission units that could not be transmitted because of errors.
 </property>
 <property select_variable="rrdtypes" type="selection" id="rrdtype" mode="w" >
@@ -1675,6 +1777,9 @@ True
 </property>
 <property type="string" id="rrdmin" mode="w" >
 0
+</property>
+<property visible="True" type="text" id="description" >
+For packet-oriented interfaces, the number of outbound packets that could not be transmitted because of errors. For character-oriented or fixed-length interfaces, the number of outbound transmission units that could not be transmitted because of errors.
 </property>
 </object>
 </tomanycont>
@@ -1807,10 +1912,10 @@ True
 </tomanycont>
 <tomanycont id='thresholds'>
 <object id='high utilization' module='Products.ZenModel.MinMaxThreshold' class='MinMaxThreshold'>
-<property type="lines" id="dsnames" mode="w" >
+<property label="DataPoints" type="lines" id="dsnames" mode="w" >
 ['ifHCInOctets_ifHCInOctets', 'ifHCOutOctets_ifHCOutOctets']
 </property>
-<property type="boolean" id="enabled" mode="w" >
+<property label="Enabled" type="boolean" id="enabled" mode="w" >
 True
 </property>
 <property type="string" id="maxval" mode="w" >
@@ -2134,10 +2239,13 @@ NewDeviceMap|DeviceMap|InterfaceMap|RouteMap|ifconfig|netstat_rn
 </object>
 <object id='Cisco' module='Products.ZenModel.DeviceClass' class='DeviceClass'>
 <property visible="True" type="lines" id="zCollectorPlugins" >
-('zenoss.snmp.NewDeviceMap', 'zenoss.snmp.DeviceMap', 'zenoss.snmp.CiscoMap', 'zenoss.snmp.InterfaceMap', 'zenoss.snmp.CiscoHSRP', 'zenoss.snmp.RouteMap')
+('zenoss.snmp.NewDeviceMap', 'zenoss.snmp.DeviceMap', 'zenoss.snmp.CiscoMap', 'zenoss.snmp.InterfaceMap', 'zenoss.snmp.RouteMap')
 </property>
 <tomanycont id='rrdTemplates'>
 <object id='Device' module='Products.ZenModel.RRDTemplate' class='RRDTemplate'>
+<property id='zendoc' type='string'>
+Cisco template that collects cpu and free memory.  Has CPU threshold at 90%
+</property>
 <property type="text" id="description" mode="w" >
 Cisco template that collects cpu and free memory.  Has CPU threshold at 90%
 </property>
@@ -2146,6 +2254,9 @@ Products.ZenModel.Device
 </property>
 <tomanycont id='datasources'>
 <object id='cpu5min' module='Products.ZenModel.BasicDataSource' class='BasicDataSource'>
+<property id='zendoc' type='string'>
+This data source uses the avgBusy5 object. This object is the 5 minute exponentially-decayed moving average of the CPU busy percentage.
+</property>
 <property select_variable="sourcetypes" type="selection" id="sourcetype" mode="w" >
 SNMP
 </property>
@@ -2172,7 +2283,7 @@ Auto
 </property>
 <tomanycont id='datapoints'>
 <object id='cpu5min' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint'>
-<property type="text" id="zendoc" mode="w" >
+<property id='zendoc' type='string'>
 This data source uses the avgBusy5 object. This object is the 5 minute exponentially-decayed moving average of the CPU busy percentage.
 </property>
 <property select_variable="rrdtypes" type="selection" id="rrdtype" mode="w" >
@@ -2189,6 +2300,9 @@ True
 </tomanycont>
 </object>
 <object id='mem5minFree' module='Products.ZenModel.BasicDataSource' class='BasicDataSource'>
+<property id='zendoc' type='string'>
+This data source uses the ciscoMemoryPoolFree object. This object indicates the number of bytes from the memory poolthat are currently unused on the managed device.
+</property>
 <property select_variable="sourcetypes" type="selection" id="sourcetype" mode="w" >
 SNMP
 </property>
@@ -2215,7 +2329,7 @@ Auto
 </property>
 <tomanycont id='datapoints'>
 <object id='mem5minFree' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint'>
-<property type="text" id="zendoc" mode="w" >
+<property id='zendoc' type='string'>
 This data source uses the ciscoMemoryPoolFree object. This object indicates the number of bytes from the memory poolthat are currently unused on the managed device.
 </property>
 <property select_variable="rrdtypes" type="selection" id="rrdtype" mode="w" >
@@ -2232,6 +2346,9 @@ True
 </tomanycont>
 </object>
 <object id='sysUpTime' module='Products.ZenModel.BasicDataSource' class='BasicDataSource'>
+<property id='zendoc' type='string'>
+This uses the sysUpTimeInstance object. This object is the length of time the system has been running.
+</property>
 <property select_variable="sourcetypes" type="selection" id="sourcetype" mode="w" >
 SNMP
 </property>
@@ -2258,7 +2375,7 @@ Auto
 </property>
 <tomanycont id='datapoints'>
 <object id='sysUpTime' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint'>
-<property type="text" id="zendoc" mode="w" >
+<property id='zendoc' type='string'>
 This uses the sysUpTimeInstance object. This object is the length of time the system has been running.
 </property>
 <property select_variable="rrdtypes" type="selection" id="rrdtype" mode="w" >
@@ -2363,10 +2480,10 @@ True
 </tomanycont>
 <tomanycont id='thresholds'>
 <object id='CPU' module='Products.ZenModel.MinMaxThreshold' class='MinMaxThreshold'>
-<property type="lines" id="dsnames" mode="w" >
+<property label="DataPoints" type="lines" id="dsnames" mode="w" >
 ['cpu5min_cpu5min']
 </property>
-<property type="boolean" id="enabled" mode="w" >
+<property label="Enabled" type="boolean" id="enabled" mode="w" >
 True
 </property>
 <property type="string" id="maxval" mode="w" >
@@ -2520,6 +2637,9 @@ AVERAGE
 </property>
 <tomanycont id='rrdTemplates'>
 <object id='Device' module='Products.ZenModel.RRDTemplate' class='RRDTemplate'>
+<property id='zendoc' type='string'>
+Net-SNMP template for late vintage unix device.  Has CPU threshold.
+</property>
 <property type="text" id="description" mode="w" >
 Net-SNMP template for late vintage unix device.  Has CPU threshold.
 </property>
@@ -2528,6 +2648,9 @@ Products.ZenModel.Device
 </property>
 <tomanycont id='datasources'>
 <object id='laLoadInt5' module='Products.ZenModel.BasicDataSource' class='BasicDataSource'>
+<property id='zendoc' type='string'>
+Template for system load five minute average
+</property>
 <property select_variable="sourcetypes" type="selection" id="sourcetype" mode="w" >
 SNMP
 </property>
@@ -2554,7 +2677,7 @@ Auto
 </property>
 <tomanycont id='datapoints'>
 <object id='laLoadInt5' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint'>
-<property type="text" id="zendoc" mode="w" >
+<property id='zendoc' type='string'>
 Template for system load five minute average
 </property>
 <property select_variable="rrdtypes" type="selection" id="rrdtype" mode="w" >
@@ -2574,6 +2697,9 @@ True
 </tomanycont>
 </object>
 <object id='memAvailReal' module='Products.ZenModel.BasicDataSource' class='BasicDataSource'>
+<property id='zendoc' type='string'>
+The amount of physical memory available.
+</property>
 <property select_variable="sourcetypes" type="selection" id="sourcetype" mode="w" >
 SNMP
 </property>
@@ -2600,7 +2726,7 @@ Auto
 </property>
 <tomanycont id='datapoints'>
 <object id='memAvailReal' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint'>
-<property type="text" id="zendoc" mode="w" >
+<property id='zendoc' type='string'>
 The amount of physical memory available.
 </property>
 <property select_variable="rrdtypes" type="selection" id="rrdtype" mode="w" >
@@ -2620,6 +2746,9 @@ True
 </tomanycont>
 </object>
 <object id='memAvailSwap' module='Products.ZenModel.BasicDataSource' class='BasicDataSource'>
+<property id='zendoc' type='string'>
+The amount of swap memory available.
+</property>
 <property select_variable="sourcetypes" type="selection" id="sourcetype" mode="w" >
 SNMP
 </property>
@@ -2646,7 +2775,7 @@ Auto
 </property>
 <tomanycont id='datapoints'>
 <object id='memAvailSwap' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint'>
-<property type="text" id="zendoc" mode="w" >
+<property id='zendoc' type='string'>
 The amount of swap memory available.
 </property>
 <property select_variable="rrdtypes" type="selection" id="rrdtype" mode="w" >
@@ -2659,6 +2788,9 @@ True
 </tomanycont>
 </object>
 <object id='memBuffer' module='Products.ZenModel.BasicDataSource' class='BasicDataSource'>
+<property id='zendoc' type='string'>
+The amount of buffer memory.
+</property>
 <property select_variable="sourcetypes" type="selection" id="sourcetype" mode="w" >
 SNMP
 </property>
@@ -2685,7 +2817,7 @@ Auto
 </property>
 <tomanycont id='datapoints'>
 <object id='memBuffer' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint'>
-<property type="text" id="zendoc" mode="w" >
+<property id='zendoc' type='string'>
 The amount of buffer memory.
 </property>
 <property select_variable="rrdtypes" type="selection" id="rrdtype" mode="w" >
@@ -2705,6 +2837,9 @@ True
 </tomanycont>
 </object>
 <object id='memCached' module='Products.ZenModel.BasicDataSource' class='BasicDataSource'>
+<property id='zendoc' type='string'>
+The amount of cached memory.
+</property>
 <property select_variable="sourcetypes" type="selection" id="sourcetype" mode="w" >
 SNMP
 </property>
@@ -2731,7 +2866,7 @@ Auto
 </property>
 <tomanycont id='datapoints'>
 <object id='memCached' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint'>
-<property type="text" id="zendoc" mode="w" >
+<property id='zendoc' type='string'>
 The amount of cached memory.
 </property>
 <property select_variable="rrdtypes" type="selection" id="rrdtype" mode="w" >
@@ -2751,6 +2886,9 @@ True
 </tomanycont>
 </object>
 <object id='ssCpuRawIdle' module='Products.ZenModel.BasicDataSource' class='BasicDataSource'>
+<property id='zendoc' type='string'>
+Template for CPU performance
+</property>
 <property select_variable="sourcetypes" type="selection" id="sourcetype" mode="w" >
 SNMP
 </property>
@@ -2777,7 +2915,7 @@ Auto
 </property>
 <tomanycont id='datapoints'>
 <object id='ssCpuRawIdle' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint'>
-<property type="text" id="zendoc" mode="w" >
+<property id='zendoc' type='string'>
 Template for CPU performance
 </property>
 <property select_variable="rrdtypes" type="selection" id="rrdtype" mode="w" >
@@ -2800,6 +2938,9 @@ __EVAL:str(len(here.hw.cpus())) + ',/,100,EXC,-,0,MAX'
 </tomanycont>
 </object>
 <object id='ssCpuRawSystem' module='Products.ZenModel.BasicDataSource' class='BasicDataSource'>
+<property id='zendoc' type='string'>
+Template for CPU performance
+</property>
 <property select_variable="sourcetypes" type="selection" id="sourcetype" mode="w" >
 SNMP
 </property>
@@ -2826,7 +2967,7 @@ Auto
 </property>
 <tomanycont id='datapoints'>
 <object id='ssCpuRawSystem' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint'>
-<property type="text" id="zendoc" mode="w" >
+<property id='zendoc' type='string'>
 Template for CPU performance
 </property>
 <property select_variable="rrdtypes" type="selection" id="rrdtype" mode="w" >
@@ -2842,6 +2983,9 @@ True
 </tomanycont>
 </object>
 <object id='ssCpuRawUser' module='Products.ZenModel.BasicDataSource' class='BasicDataSource'>
+<property id='zendoc' type='string'>
+Template for CPU performance
+</property>
 <property select_variable="sourcetypes" type="selection" id="sourcetype" mode="w" >
 SNMP
 </property>
@@ -2868,7 +3012,7 @@ Auto
 </property>
 <tomanycont id='datapoints'>
 <object id='ssCpuRawUser' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint'>
-<property type="text" id="zendoc" mode="w" >
+<property id='zendoc' type='string'>
 Template for CPU performance
 </property>
 <property select_variable="rrdtypes" type="selection" id="rrdtype" mode="w" >
@@ -2884,6 +3028,9 @@ True
 </tomanycont>
 </object>
 <object id='ssCpuRawWait' module='Products.ZenModel.BasicDataSource' class='BasicDataSource'>
+<property id='zendoc' type='string'>
+Template for CPU performance
+</property>
 <property select_variable="sourcetypes" type="selection" id="sourcetype" mode="w" >
 SNMP
 </property>
@@ -2910,7 +3057,7 @@ Auto
 </property>
 <tomanycont id='datapoints'>
 <object id='ssCpuRawWait' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint'>
-<property type="text" id="zendoc" mode="w" >
+<property id='zendoc' type='string'>
 Template for CPU performance
 </property>
 <property select_variable="rrdtypes" type="selection" id="rrdtype" mode="w" >
@@ -2926,6 +3073,9 @@ True
 </tomanycont>
 </object>
 <object id='sysUpTime' module='Products.ZenModel.BasicDataSource' class='BasicDataSource'>
+<property id='zendoc' type='string'>
+This uses the sysUpTimeInstance object. This object is the length of time the system has been running.
+</property>
 <property select_variable="sourcetypes" type="selection" id="sourcetype" mode="w" >
 SNMP
 </property>
@@ -2952,7 +3102,7 @@ Auto
 </property>
 <tomanycont id='datapoints'>
 <object id='sysUpTime' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint'>
-<property type="text" id="zendoc" mode="w" >
+<property id='zendoc' type='string'>
 This uses the sysUpTimeInstance object. This object is the length of time the system has been running.
 </property>
 <property select_variable="rrdtypes" type="selection" id="rrdtype" mode="w" >
@@ -3233,10 +3383,10 @@ True
 </tomanycont>
 <tomanycont id='thresholds'>
 <object id='CPU Utilization' module='Products.ZenModel.MinMaxThreshold' class='MinMaxThreshold'>
-<property type="lines" id="dsnames" mode="w" >
+<property label="DataPoints" type="lines" id="dsnames" mode="w" >
 ['ssCpuRawIdle_ssCpuRawIdle']
 </property>
-<property type="boolean" id="enabled" mode="w" >
+<property label="Enabled" type="boolean" id="enabled" mode="w" >
 True
 </property>
 <property type="string" id="minval" mode="w" >
@@ -3668,6 +3818,9 @@ AVERAGE
 </tomanycont>
 </object>
 <object id='FileSystem' module='Products.ZenModel.RRDTemplate' class='RRDTemplate'>
+<property id='zendoc' type='string'>
+Filesystem template that uses HOST-RESOURCES mib. Has a 90% threshold.
+</property>
 <property type="text" id="description" mode="w" >
 Filesystem template that uses HOST-RESOURCES mib. Has a 90% threshold.
 </property>
@@ -3676,6 +3829,9 @@ Products.ZenModel.FileSystem
 </property>
 <tomanycont id='datasources'>
 <object id='usedBlocks' module='Products.ZenModel.BasicDataSource' class='BasicDataSource'>
+<property id='zendoc' type='string'>
+Amount of blocks used on the database.
+</property>
 <property select_variable="sourcetypes" type="selection" id="sourcetype" mode="w" >
 SNMP
 </property>
@@ -3702,7 +3858,7 @@ Auto
 </property>
 <tomanycont id='datapoints'>
 <object id='usedBlocks' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint'>
-<property type="text" id="zendoc" mode="w" >
+<property id='zendoc' type='string'>
 Amount of blocks used on the database.
 </property>
 <property select_variable="rrdtypes" type="selection" id="rrdtype" mode="w" >
@@ -3774,10 +3930,10 @@ True
 </tomanycont>
 <tomanycont id='thresholds'>
 <object id='high disk usage' module='Products.ZenModel.MinMaxThreshold' class='MinMaxThreshold'>
-<property type="lines" id="dsnames" mode="w" >
+<property label="DataPoints" type="lines" id="dsnames" mode="w" >
 ['usedBlocks_usedBlocks']
 </property>
-<property type="boolean" id="enabled" mode="w" >
+<property label="Enabled" type="boolean" id="enabled" mode="w" >
 True
 </property>
 <property type="string" id="maxval" mode="w" >
@@ -3887,6 +4043,9 @@ HRSWInstalledMap
 </property>
 <tomanycont id='rrdTemplates'>
 <object id='Device' module='Products.ZenModel.RRDTemplate' class='RRDTemplate'>
+<property id='zendoc' type='string'>
+Net-SNMP template for Linux devices.
+</property>
 <property type="text" id="description" mode="w" >
 Net-SNMP template for Linux devices.
 </property>
@@ -3895,6 +4054,9 @@ Products.ZenModel.Device
 </property>
 <tomanycont id='datasources'>
 <object id='laLoadInt1' module='Products.ZenModel.BasicDataSource' class='BasicDataSource'>
+<property id='zendoc' type='string'>
+Template for system load one minute average
+</property>
 <property select_variable="sourcetypes" type="selection" id="sourcetype" mode="w" >
 SNMP
 </property>
@@ -3921,7 +4083,7 @@ Auto
 </property>
 <tomanycont id='datapoints'>
 <object id='laLoadInt1' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint'>
-<property type="text" id="zendoc" mode="w" >
+<property id='zendoc' type='string'>
 Template for system load one minute average
 </property>
 <property select_variable="rrdtypes" type="selection" id="rrdtype" mode="w" >
@@ -3934,6 +4096,9 @@ True
 </tomanycont>
 </object>
 <object id='laLoadInt15' module='Products.ZenModel.BasicDataSource' class='BasicDataSource'>
+<property id='zendoc' type='string'>
+Template for system load fifteen minute average
+</property>
 <property select_variable="sourcetypes" type="selection" id="sourcetype" mode="w" >
 SNMP
 </property>
@@ -3960,7 +4125,7 @@ Auto
 </property>
 <tomanycont id='datapoints'>
 <object id='laLoadInt15' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint'>
-<property type="text" id="zendoc" mode="w" >
+<property id='zendoc' type='string'>
 Template for system load fifteen minute average
 </property>
 <property select_variable="rrdtypes" type="selection" id="rrdtype" mode="w" >
@@ -3973,6 +4138,9 @@ True
 </tomanycont>
 </object>
 <object id='laLoadInt5' module='Products.ZenModel.BasicDataSource' class='BasicDataSource'>
+<property id='zendoc' type='string'>
+Template for system load five minute average
+</property>
 <property select_variable="sourcetypes" type="selection" id="sourcetype" mode="w" >
 SNMP
 </property>
@@ -3999,7 +4167,7 @@ Auto
 </property>
 <tomanycont id='datapoints'>
 <object id='laLoadInt5' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint'>
-<property type="text" id="zendoc" mode="w" >
+<property id='zendoc' type='string'>
 Template for system load five minute average
 </property>
 <property select_variable="rrdtypes" type="selection" id="rrdtype" mode="w" >
@@ -4019,6 +4187,9 @@ True
 </tomanycont>
 </object>
 <object id='memAvailReal' module='Products.ZenModel.BasicDataSource' class='BasicDataSource'>
+<property id='zendoc' type='string'>
+The amount of physical memory available.
+</property>
 <property select_variable="sourcetypes" type="selection" id="sourcetype" mode="w" >
 SNMP
 </property>
@@ -4045,7 +4216,7 @@ Auto
 </property>
 <tomanycont id='datapoints'>
 <object id='memAvailReal' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint'>
-<property type="text" id="zendoc" mode="w" >
+<property id='zendoc' type='string'>
 The amount of physical memory available.
 </property>
 <property select_variable="rrdtypes" type="selection" id="rrdtype" mode="w" >
@@ -4065,6 +4236,9 @@ True
 </tomanycont>
 </object>
 <object id='memAvailSwap' module='Products.ZenModel.BasicDataSource' class='BasicDataSource'>
+<property id='zendoc' type='string'>
+The amount of swap memory available.
+</property>
 <property select_variable="sourcetypes" type="selection" id="sourcetype" mode="w" >
 SNMP
 </property>
@@ -4091,7 +4265,7 @@ Auto
 </property>
 <tomanycont id='datapoints'>
 <object id='memAvailSwap' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint'>
-<property type="text" id="zendoc" mode="w" >
+<property id='zendoc' type='string'>
 The amount of swap memory available.
 </property>
 <property select_variable="rrdtypes" type="selection" id="rrdtype" mode="w" >
@@ -4104,6 +4278,9 @@ True
 </tomanycont>
 </object>
 <object id='memBuffer' module='Products.ZenModel.BasicDataSource' class='BasicDataSource'>
+<property id='zendoc' type='string'>
+The amount of buffer memory.
+</property>
 <property select_variable="sourcetypes" type="selection" id="sourcetype" mode="w" >
 SNMP
 </property>
@@ -4130,7 +4307,7 @@ Auto
 </property>
 <tomanycont id='datapoints'>
 <object id='memBuffer' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint'>
-<property type="text" id="zendoc" mode="w" >
+<property id='zendoc' type='string'>
 The amount of buffer memory.
 </property>
 <property select_variable="rrdtypes" type="selection" id="rrdtype" mode="w" >
@@ -4150,6 +4327,9 @@ True
 </tomanycont>
 </object>
 <object id='memCached' module='Products.ZenModel.BasicDataSource' class='BasicDataSource'>
+<property id='zendoc' type='string'>
+The amount of cached memory.
+</property>
 <property select_variable="sourcetypes" type="selection" id="sourcetype" mode="w" >
 SNMP
 </property>
@@ -4176,7 +4356,7 @@ Auto
 </property>
 <tomanycont id='datapoints'>
 <object id='memCached' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint'>
-<property type="text" id="zendoc" mode="w" >
+<property id='zendoc' type='string'>
 The amount of cached memory.
 </property>
 <property select_variable="rrdtypes" type="selection" id="rrdtype" mode="w" >
@@ -4196,6 +4376,9 @@ True
 </tomanycont>
 </object>
 <object id='ssCpuIdle' module='Products.ZenModel.BasicDataSource' class='BasicDataSource'>
+<property id='zendoc' type='string'>
+Template for CPU performance
+</property>
 <property select_variable="sourcetypes" type="selection" id="sourcetype" mode="w" >
 SNMP
 </property>
@@ -4222,7 +4405,7 @@ Auto
 </property>
 <tomanycont id='datapoints'>
 <object id='ssCpuIdle' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint'>
-<property type="text" id="zendoc" mode="w" >
+<property id='zendoc' type='string'>
 Template for CPU performance
 </property>
 <property select_variable="rrdtypes" type="selection" id="rrdtype" mode="w" >
@@ -4242,6 +4425,9 @@ True
 </tomanycont>
 </object>
 <object id='ssCpuRawWait' module='Products.ZenModel.BasicDataSource' class='BasicDataSource'>
+<property id='zendoc' type='string'>
+Template for CPU performance
+</property>
 <property select_variable="sourcetypes" type="selection" id="sourcetype" mode="w" >
 SNMP
 </property>
@@ -4268,7 +4454,7 @@ Auto
 </property>
 <tomanycont id='datapoints'>
 <object id='ssCpuRawWait' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint'>
-<property type="text" id="zendoc" mode="w" >
+<property id='zendoc' type='string'>
 Template for CPU performance
 </property>
 <property select_variable="rrdtypes" type="selection" id="rrdtype" mode="w" >
@@ -4284,6 +4470,9 @@ True
 </tomanycont>
 </object>
 <object id='ssCpuSystem' module='Products.ZenModel.BasicDataSource' class='BasicDataSource'>
+<property id='zendoc' type='string'>
+Template for CPU performance
+</property>
 <property select_variable="sourcetypes" type="selection" id="sourcetype" mode="w" >
 SNMP
 </property>
@@ -4310,7 +4499,7 @@ Auto
 </property>
 <tomanycont id='datapoints'>
 <object id='ssCpuSystem' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint'>
-<property type="text" id="zendoc" mode="w" >
+<property id='zendoc' type='string'>
 Template for CPU performance
 </property>
 <property select_variable="rrdtypes" type="selection" id="rrdtype" mode="w" >
@@ -4323,6 +4512,9 @@ True
 </tomanycont>
 </object>
 <object id='ssCpuUser' module='Products.ZenModel.BasicDataSource' class='BasicDataSource'>
+<property id='zendoc' type='string'>
+Template for CPU performance
+</property>
 <property select_variable="sourcetypes" type="selection" id="sourcetype" mode="w" >
 SNMP
 </property>
@@ -4349,7 +4541,7 @@ Auto
 </property>
 <tomanycont id='datapoints'>
 <object id='ssCpuUser' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint'>
-<property type="text" id="zendoc" mode="w" >
+<property id='zendoc' type='string'>
 Template for CPU performance
 </property>
 <property select_variable="rrdtypes" type="selection" id="rrdtype" mode="w" >
@@ -4362,6 +4554,9 @@ True
 </tomanycont>
 </object>
 <object id='ssIORawReceived' module='Products.ZenModel.BasicDataSource' class='BasicDataSource'>
+<property id='zendoc' type='string'>
+The value for total number of sectors read.
+</property>
 <property select_variable="sourcetypes" type="selection" id="sourcetype" mode="w" >
 SNMP
 </property>
@@ -4388,7 +4583,7 @@ Auto
 </property>
 <tomanycont id='datapoints'>
 <object id='ssIORawReceived' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint'>
-<property type="text" id="zendoc" mode="w" >
+<property id='zendoc' type='string'>
 The value for total number of sectors read.
 </property>
 <property select_variable="rrdtypes" type="selection" id="rrdtype" mode="w" >
@@ -4404,6 +4599,9 @@ True
 </tomanycont>
 </object>
 <object id='ssIORawSent' module='Products.ZenModel.BasicDataSource' class='BasicDataSource'>
+<property id='zendoc' type='string'>
+The value for total number of sectors written.
+</property>
 <property select_variable="sourcetypes" type="selection" id="sourcetype" mode="w" >
 SNMP
 </property>
@@ -4430,7 +4628,7 @@ Auto
 </property>
 <tomanycont id='datapoints'>
 <object id='ssIORawSent' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint'>
-<property type="text" id="zendoc" mode="w" >
+<property id='zendoc' type='string'>
 The value for total number of sectors written.
 </property>
 <property select_variable="rrdtypes" type="selection" id="rrdtype" mode="w" >
@@ -4446,6 +4644,9 @@ True
 </tomanycont>
 </object>
 <object id='sysUpTime' module='Products.ZenModel.BasicDataSource' class='BasicDataSource'>
+<property id='zendoc' type='string'>
+This uses the sysUpTimeInstance object. This object is the length of time the system has been running.
+</property>
 <property select_variable="sourcetypes" type="selection" id="sourcetype" mode="w" >
 SNMP
 </property>
@@ -4472,7 +4673,7 @@ Auto
 </property>
 <tomanycont id='datapoints'>
 <object id='sysUpTime' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint'>
-<property type="text" id="zendoc" mode="w" >
+<property id='zendoc' type='string'>
 This uses the sysUpTimeInstance object. This object is the length of time the system has been running.
 </property>
 <property select_variable="rrdtypes" type="selection" id="rrdtype" mode="w" >
@@ -4753,10 +4954,10 @@ True
 </tomanycont>
 <tomanycont id='thresholds'>
 <object id='high load' module='Products.ZenModel.MinMaxThreshold' class='MinMaxThreshold'>
-<property type="lines" id="dsnames" mode="w" >
+<property label="DataPoints" type="lines" id="dsnames" mode="w" >
 ['laLoadInt5_laLoadInt5']
 </property>
-<property type="boolean" id="enabled" mode="w" >
+<property label="Enabled" type="boolean" id="enabled" mode="w" >
 True
 </property>
 <property type="string" id="maxval" mode="w" >
@@ -4773,10 +4974,10 @@ True
 </property>
 </object>
 <object id='low CPU idle' module='Products.ZenModel.MinMaxThreshold' class='MinMaxThreshold'>
-<property type="lines" id="dsnames" mode="w" >
+<property label="DataPoints" type="lines" id="dsnames" mode="w" >
 ['ssCpuIdle_ssCpuIdle']
 </property>
-<property type="boolean" id="enabled" mode="w" >
+<property label="Enabled" type="boolean" id="enabled" mode="w" >
 True
 </property>
 <property type="string" id="minval" mode="w" >
@@ -5340,6 +5541,9 @@ False
 </property>
 <tomanycont id='rrdTemplates'>
 <object id='Device' module='Products.ZenModel.RRDTemplate' class='RRDTemplate'>
+<property id='zendoc' type='string'>
+Windows template that requires Informant MIB
+</property>
 <property type="text" id="description" mode="w" >
 Windows template that requires Informant MIB
 </property>
@@ -5348,6 +5552,9 @@ Products.ZenModel.Device
 </property>
 <tomanycont id='datasources'>
 <object id='cpuPercentProcessorTime' module='Products.ZenModel.BasicDataSource' class='BasicDataSource'>
+<property id='zendoc' type='string'>
+A measure of how much time the processor actually spends working on productive threads and how often it was busy servicing requests.
+</property>
 <property select_variable="sourcetypes" type="selection" id="sourcetype" mode="w" >
 SNMP
 </property>
@@ -5374,7 +5581,7 @@ Auto
 </property>
 <tomanycont id='datapoints'>
 <object id='cpuPercentProcessorTime' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint'>
-<property type="text" id="zendoc" mode="w" >
+<property id='zendoc' type='string'>
 A measure of how much time the processor actually spends working on productive threads and how often it was busy servicing requests.
 </property>
 <property select_variable="rrdtypes" type="selection" id="rrdtype" mode="w" >
@@ -5391,6 +5598,9 @@ True
 </tomanycont>
 </object>
 <object id='memoryAvailableKBytes' module='Products.ZenModel.BasicDataSource' class='BasicDataSource'>
+<property id='zendoc' type='string'>
+The Available Memory counter indicates the amount of memory that is left after nonpaged pool allocations, paged pool allocations, process' working sets, and the file system cache have all taken their piece.
+</property>
 <property select_variable="sourcetypes" type="selection" id="sourcetype" mode="w" >
 SNMP
 </property>
@@ -5417,8 +5627,8 @@ Auto
 </property>
 <tomanycont id='datapoints'>
 <object id='memoryAvailableKBytes' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint'>
-<property type="text" id="zendoc" mode="w" >
- The Available Memory counter indicates the amount of memory that is left after nonpaged pool allocations, paged pool allocations, process' working sets, and the file system cache have all taken their piece.
+<property id='zendoc' type='string'>
+The Available Memory counter indicates the amount of memory that is left after nonpaged pool allocations, paged pool allocations, process' working sets, and the file system cache have all taken their piece.
 </property>
 <property select_variable="rrdtypes" type="selection" id="rrdtype" mode="w" >
 GAUGE
@@ -5437,6 +5647,9 @@ True
 </tomanycont>
 </object>
 <object id='memoryPagesPerSec' module='Products.ZenModel.BasicDataSource' class='BasicDataSource'>
+<property id='zendoc' type='string'>
+The Pages/sec counter is a combination of Pages Input/sec and Pages Output/sec counters. Recall that Page Faults/sec is a combination of hard page faults and soft page faults. This counter, however, is a general indicator of how often the system is using the hard drive to store or retrieve memory associated data.
+</property>
 <property select_variable="sourcetypes" type="selection" id="sourcetype" mode="w" >
 SNMP
 </property>
@@ -5463,7 +5676,7 @@ Auto
 </property>
 <tomanycont id='datapoints'>
 <object id='memoryPagesPerSec' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint'>
-<property type="text" id="zendoc" mode="w" >
+<property id='zendoc' type='string'>
 The Pages/sec counter is a combination of Pages Input/sec and Pages Output/sec counters. Recall that Page Faults/sec is a combination of hard page faults and soft page faults. This counter, however, is a general indicator of how often the system is using the hard drive to store or retrieve memory associated data.
 </property>
 <property select_variable="rrdtypes" type="selection" id="rrdtype" mode="w" >
@@ -5476,6 +5689,9 @@ True
 </tomanycont>
 </object>
 <object id='sysUpTime' module='Products.ZenModel.BasicDataSource' class='BasicDataSource'>
+<property id='zendoc' type='string'>
+This uses the sysUpTimeInstance object. This object is the length of time the system has been running.
+</property>
 <property select_variable="sourcetypes" type="selection" id="sourcetype" mode="w" >
 SNMP
 </property>
@@ -5502,7 +5718,7 @@ Auto
 </property>
 <tomanycont id='datapoints'>
 <object id='sysUpTime' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint'>
-<property type="text" id="zendoc" mode="w" >
+<property id='zendoc' type='string'>
 This uses the sysUpTimeInstance object. This object is the length of time the system has been running.
 </property>
 <property select_variable="rrdtypes" type="selection" id="rrdtype" mode="w" >
@@ -5651,10 +5867,10 @@ True
 </tomanycont>
 <tomanycont id='thresholds'>
 <object id='CPU Utilization over 90' module='Products.ZenModel.MinMaxThreshold' class='MinMaxThreshold'>
-<property type="lines" id="dsnames" mode="w" >
+<property label="DataPoints" type="lines" id="dsnames" mode="w" >
 ['cpuPercentProcessorTime_cpuPercentProcessorTime']
 </property>
-<property type="boolean" id="enabled" mode="w" >
+<property label="Enabled" type="boolean" id="enabled" mode="w" >
 True
 </property>
 <property type="string" id="maxval" mode="w" >
@@ -5854,6 +6070,9 @@ AVERAGE
 </tomanycont>
 </object>
 <object id='HardDisk' module='Products.ZenModel.RRDTemplate' class='RRDTemplate'>
+<property id='zendoc' type='string'>
+HardDisk I/O template that requries Informat MIB
+</property>
 <property type="text" id="description" mode="w" >
 HardDisk I/O template that requries Informat MIB
 </property>
@@ -6071,6 +6290,9 @@ AVERAGE
 <object id='Solaris' module='Products.ZenModel.DeviceClass' class='DeviceClass'>
 <tomanycont id='rrdTemplates'>
 <object id='Device' module='Products.ZenModel.RRDTemplate' class='RRDTemplate'>
+<property id='zendoc' type='string'>
+Net-SNMP template for Solaris devices.
+</property>
 <property type="text" id="description" mode="w" >
 Net-SNMP template for Solaris devices.
 </property>
@@ -6079,6 +6301,9 @@ Products.ZenModel.Device
 </property>
 <tomanycont id='datasources'>
 <object id='laLoadInt1' module='Products.ZenModel.BasicDataSource' class='BasicDataSource'>
+<property id='zendoc' type='string'>
+Template for system load one minute average
+</property>
 <property select_variable="sourcetypes" type="selection" id="sourcetype" mode="w" >
 SNMP
 </property>
@@ -6105,7 +6330,7 @@ Auto
 </property>
 <tomanycont id='datapoints'>
 <object id='laLoadInt1' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint'>
-<property type="text" id="zendoc" mode="w" >
+<property id='zendoc' type='string'>
 Template for system load one minute average
 </property>
 <property select_variable="rrdtypes" type="selection" id="rrdtype" mode="w" >
@@ -6118,6 +6343,9 @@ True
 </tomanycont>
 </object>
 <object id='laLoadInt15' module='Products.ZenModel.BasicDataSource' class='BasicDataSource'>
+<property id='zendoc' type='string'>
+Template for system load fifteen minute average
+</property>
 <property select_variable="sourcetypes" type="selection" id="sourcetype" mode="w" >
 SNMP
 </property>
@@ -6144,7 +6372,7 @@ Auto
 </property>
 <tomanycont id='datapoints'>
 <object id='laLoadInt15' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint'>
-<property type="text" id="zendoc" mode="w" >
+<property id='zendoc' type='string'>
 Template for system load fifteen minute average
 </property>
 <property select_variable="rrdtypes" type="selection" id="rrdtype" mode="w" >
@@ -6157,6 +6385,9 @@ True
 </tomanycont>
 </object>
 <object id='laLoadInt5' module='Products.ZenModel.BasicDataSource' class='BasicDataSource'>
+<property id='zendoc' type='string'>
+Template for system load five minute average
+</property>
 <property select_variable="sourcetypes" type="selection" id="sourcetype" mode="w" >
 SNMP
 </property>
@@ -6183,7 +6414,7 @@ Auto
 </property>
 <tomanycont id='datapoints'>
 <object id='laLoadInt5' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint'>
-<property type="text" id="zendoc" mode="w" >
+<property id='zendoc' type='string'>
 Template for system load five minute average
 </property>
 <property select_variable="rrdtypes" type="selection" id="rrdtype" mode="w" >
@@ -6203,6 +6434,9 @@ True
 </tomanycont>
 </object>
 <object id='memAvailReal' module='Products.ZenModel.BasicDataSource' class='BasicDataSource'>
+<property id='zendoc' type='string'>
+The amount of physical memory available.
+</property>
 <property select_variable="sourcetypes" type="selection" id="sourcetype" mode="w" >
 SNMP
 </property>
@@ -6229,7 +6463,7 @@ Auto
 </property>
 <tomanycont id='datapoints'>
 <object id='memAvailReal' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint'>
-<property type="text" id="zendoc" mode="w" >
+<property id='zendoc' type='string'>
 The amount of physical memory available.
 </property>
 <property select_variable="rrdtypes" type="selection" id="rrdtype" mode="w" >
@@ -6249,6 +6483,9 @@ True
 </tomanycont>
 </object>
 <object id='memAvailSwap' module='Products.ZenModel.BasicDataSource' class='BasicDataSource'>
+<property id='zendoc' type='string'>
+The amount of swap memory available.
+</property>
 <property select_variable="sourcetypes" type="selection" id="sourcetype" mode="w" >
 SNMP
 </property>
@@ -6275,7 +6512,7 @@ Auto
 </property>
 <tomanycont id='datapoints'>
 <object id='memAvailSwap' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint'>
-<property type="text" id="zendoc" mode="w" >
+<property id='zendoc' type='string'>
 The amount of swap memory available.
 </property>
 <property select_variable="rrdtypes" type="selection" id="rrdtype" mode="w" >
@@ -6288,6 +6525,9 @@ True
 </tomanycont>
 </object>
 <object id='ssCpuIdle' module='Products.ZenModel.BasicDataSource' class='BasicDataSource'>
+<property id='zendoc' type='string'>
+Template for CPU performance
+</property>
 <property select_variable="sourcetypes" type="selection" id="sourcetype" mode="w" >
 SNMP
 </property>
@@ -6314,7 +6554,7 @@ Auto
 </property>
 <tomanycont id='datapoints'>
 <object id='ssCpuIdle' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint'>
-<property type="text" id="zendoc" mode="w" >
+<property id='zendoc' type='string'>
 Template for CPU performance
 </property>
 <property select_variable="rrdtypes" type="selection" id="rrdtype" mode="w" >
@@ -6334,6 +6574,9 @@ True
 </tomanycont>
 </object>
 <object id='ssCpuRawWait' module='Products.ZenModel.BasicDataSource' class='BasicDataSource'>
+<property id='zendoc' type='string'>
+Template for CPU performance
+</property>
 <property select_variable="sourcetypes" type="selection" id="sourcetype" mode="w" >
 SNMP
 </property>
@@ -6360,7 +6603,7 @@ Auto
 </property>
 <tomanycont id='datapoints'>
 <object id='ssCpuRawWait' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint'>
-<property type="text" id="zendoc" mode="w" >
+<property id='zendoc' type='string'>
 Template for CPU performance
 </property>
 <property select_variable="rrdtypes" type="selection" id="rrdtype" mode="w" >
@@ -6376,6 +6619,9 @@ True
 </tomanycont>
 </object>
 <object id='ssCpuSystem' module='Products.ZenModel.BasicDataSource' class='BasicDataSource'>
+<property id='zendoc' type='string'>
+Template for CPU performance
+</property>
 <property select_variable="sourcetypes" type="selection" id="sourcetype" mode="w" >
 SNMP
 </property>
@@ -6402,7 +6648,7 @@ Auto
 </property>
 <tomanycont id='datapoints'>
 <object id='ssCpuSystem' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint'>
-<property type="text" id="zendoc" mode="w" >
+<property id='zendoc' type='string'>
 Template for CPU performance
 </property>
 <property select_variable="rrdtypes" type="selection" id="rrdtype" mode="w" >
@@ -6415,6 +6661,9 @@ True
 </tomanycont>
 </object>
 <object id='ssCpuUser' module='Products.ZenModel.BasicDataSource' class='BasicDataSource'>
+<property id='zendoc' type='string'>
+Template for CPU performance
+</property>
 <property select_variable="sourcetypes" type="selection" id="sourcetype" mode="w" >
 SNMP
 </property>
@@ -6441,7 +6690,7 @@ Auto
 </property>
 <tomanycont id='datapoints'>
 <object id='ssCpuUser' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint'>
-<property type="text" id="zendoc" mode="w" >
+<property id='zendoc' type='string'>
 Template for CPU performance
 </property>
 <property select_variable="rrdtypes" type="selection" id="rrdtype" mode="w" >
@@ -6454,6 +6703,9 @@ True
 </tomanycont>
 </object>
 <object id='ssIORawReceived' module='Products.ZenModel.BasicDataSource' class='BasicDataSource'>
+<property id='zendoc' type='string'>
+The value for total number of sectors read.
+</property>
 <property select_variable="sourcetypes" type="selection" id="sourcetype" mode="w" >
 SNMP
 </property>
@@ -6480,7 +6732,7 @@ Auto
 </property>
 <tomanycont id='datapoints'>
 <object id='ssIORawReceived' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint'>
-<property type="text" id="zendoc" mode="w" >
+<property id='zendoc' type='string'>
 The value for total number of sectors read.
 </property>
 <property select_variable="rrdtypes" type="selection" id="rrdtype" mode="w" >
@@ -6493,6 +6745,9 @@ True
 </tomanycont>
 </object>
 <object id='ssIORawSent' module='Products.ZenModel.BasicDataSource' class='BasicDataSource'>
+<property id='zendoc' type='string'>
+The value for total number of sectors written.
+</property>
 <property select_variable="sourcetypes" type="selection" id="sourcetype" mode="w" >
 SNMP
 </property>
@@ -6519,7 +6774,7 @@ Auto
 </property>
 <tomanycont id='datapoints'>
 <object id='ssIORawSent' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint'>
-<property type="text" id="zendoc" mode="w" >
+<property id='zendoc' type='string'>
 The value for total number of sectors written.
 </property>
 <property select_variable="rrdtypes" type="selection" id="rrdtype" mode="w" >
@@ -6532,6 +6787,9 @@ True
 </tomanycont>
 </object>
 <object id='sysUpTime' module='Products.ZenModel.BasicDataSource' class='BasicDataSource'>
+<property id='zendoc' type='string'>
+This uses the sysUpTimeInstance object. This object is the length of time the system has been running.
+</property>
 <property select_variable="sourcetypes" type="selection" id="sourcetype" mode="w" >
 SNMP
 </property>
@@ -6558,7 +6816,7 @@ Auto
 </property>
 <tomanycont id='datapoints'>
 <object id='sysUpTime' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint'>
-<property type="text" id="zendoc" mode="w" >
+<property id='zendoc' type='string'>
 This uses the sysUpTimeInstance object. This object is the length of time the system has been running.
 </property>
 <property select_variable="rrdtypes" type="selection" id="rrdtype" mode="w" >
@@ -6839,10 +7097,10 @@ True
 </tomanycont>
 <tomanycont id='thresholds'>
 <object id='high load' module='Products.ZenModel.MinMaxThreshold' class='MinMaxThreshold'>
-<property type="lines" id="dsnames" mode="w" >
+<property label="DataPoints" type="lines" id="dsnames" mode="w" >
 ['laLoadInt5_laLoadInt5']
 </property>
-<property type="boolean" id="enabled" mode="w" >
+<property label="Enabled" type="boolean" id="enabled" mode="w" >
 True
 </property>
 <property type="string" id="maxval" mode="w" >
@@ -6859,10 +7117,10 @@ True
 </property>
 </object>
 <object id='low CPU idle' module='Products.ZenModel.MinMaxThreshold' class='MinMaxThreshold'>
-<property type="lines" id="dsnames" mode="w" >
+<property label="DataPoints" type="lines" id="dsnames" mode="w" >
 ['ssCpuIdle_ssCpuIdle']
 </property>
-<property type="boolean" id="enabled" mode="w" >
+<property label="Enabled" type="boolean" id="enabled" mode="w" >
 True
 </property>
 <property type="string" id="minval" mode="w" >
@@ -7347,6 +7605,9 @@ AVERAGE
 </property>
 <tomanycont id='rrdTemplates'>
 <object id='Device' module='Products.ZenModel.RRDTemplate' class='RRDTemplate'>
+<property id='zendoc' type='string'>
+Net-SNMP template for Mac OS X devices.
+</property>
 <property type="text" id="description" mode="w" >
 Net-SNMP template for Mac OS X devices.
 </property>
@@ -7355,6 +7616,9 @@ Products.ZenModel.Device
 </property>
 <tomanycont id='datasources'>
 <object id='laLoadInt1' module='Products.ZenModel.BasicDataSource' class='BasicDataSource'>
+<property id='zendoc' type='string'>
+Template for system load one minute average
+</property>
 <property select_variable="sourcetypes" type="selection" id="sourcetype" mode="w" >
 SNMP
 </property>
@@ -7381,7 +7645,7 @@ Auto
 </property>
 <tomanycont id='datapoints'>
 <object id='laLoadInt1' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint'>
-<property type="text" id="zendoc" mode="w" >
+<property id='zendoc' type='string'>
 Template for system load one minute average
 </property>
 <property select_variable="rrdtypes" type="selection" id="rrdtype" mode="w" >
@@ -7394,6 +7658,9 @@ True
 </tomanycont>
 </object>
 <object id='laLoadInt15' module='Products.ZenModel.BasicDataSource' class='BasicDataSource'>
+<property id='zendoc' type='string'>
+Template for system load fifteen minute average
+</property>
 <property select_variable="sourcetypes" type="selection" id="sourcetype" mode="w" >
 SNMP
 </property>
@@ -7420,7 +7687,7 @@ Auto
 </property>
 <tomanycont id='datapoints'>
 <object id='laLoadInt15' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint'>
-<property type="text" id="zendoc" mode="w" >
+<property id='zendoc' type='string'>
 Template for system load fifteen minute average
 </property>
 <property select_variable="rrdtypes" type="selection" id="rrdtype" mode="w" >
@@ -7433,6 +7700,9 @@ True
 </tomanycont>
 </object>
 <object id='laLoadInt5' module='Products.ZenModel.BasicDataSource' class='BasicDataSource'>
+<property id='zendoc' type='string'>
+Template for system load five minute average
+</property>
 <property select_variable="sourcetypes" type="selection" id="sourcetype" mode="w" >
 SNMP
 </property>
@@ -7459,7 +7729,7 @@ Auto
 </property>
 <tomanycont id='datapoints'>
 <object id='laLoadInt5' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint'>
-<property type="text" id="zendoc" mode="w" >
+<property id='zendoc' type='string'>
 Template for system load five minute average
 </property>
 <property select_variable="rrdtypes" type="selection" id="rrdtype" mode="w" >
@@ -7479,6 +7749,9 @@ True
 </tomanycont>
 </object>
 <object id='memAvailReal' module='Products.ZenModel.BasicDataSource' class='BasicDataSource'>
+<property id='zendoc' type='string'>
+The amount of physical memory available.
+</property>
 <property select_variable="sourcetypes" type="selection" id="sourcetype" mode="w" >
 SNMP
 </property>
@@ -7505,7 +7778,7 @@ Auto
 </property>
 <tomanycont id='datapoints'>
 <object id='memAvailReal' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint'>
-<property type="text" id="zendoc" mode="w" >
+<property id='zendoc' type='string'>
 The amount of physical memory available.
 </property>
 <property select_variable="rrdtypes" type="selection" id="rrdtype" mode="w" >
@@ -7518,6 +7791,9 @@ True
 </tomanycont>
 </object>
 <object id='memAvailSwap' module='Products.ZenModel.BasicDataSource' class='BasicDataSource'>
+<property id='zendoc' type='string'>
+The amount of swap memory available.
+</property>
 <property select_variable="sourcetypes" type="selection" id="sourcetype" mode="w" >
 SNMP
 </property>
@@ -7544,7 +7820,7 @@ Auto
 </property>
 <tomanycont id='datapoints'>
 <object id='memAvailSwap' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint'>
-<property type="text" id="zendoc" mode="w" >
+<property id='zendoc' type='string'>
 The amount of swap memory available.
 </property>
 <property select_variable="rrdtypes" type="selection" id="rrdtype" mode="w" >
@@ -7557,6 +7833,9 @@ True
 </tomanycont>
 </object>
 <object id='ssCpuIdle' module='Products.ZenModel.BasicDataSource' class='BasicDataSource'>
+<property id='zendoc' type='string'>
+Template for CPU performance
+</property>
 <property select_variable="sourcetypes" type="selection" id="sourcetype" mode="w" >
 SNMP
 </property>
@@ -7583,7 +7862,7 @@ Auto
 </property>
 <tomanycont id='datapoints'>
 <object id='ssCpuIdle' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint'>
-<property type="text" id="zendoc" mode="w" >
+<property id='zendoc' type='string'>
 Template for CPU performance
 </property>
 <property select_variable="rrdtypes" type="selection" id="rrdtype" mode="w" >
@@ -7603,6 +7882,9 @@ True
 </tomanycont>
 </object>
 <object id='ssCpuRawWait' module='Products.ZenModel.BasicDataSource' class='BasicDataSource'>
+<property id='zendoc' type='string'>
+Template for CPU performance
+</property>
 <property select_variable="sourcetypes" type="selection" id="sourcetype" mode="w" >
 SNMP
 </property>
@@ -7629,7 +7911,7 @@ Auto
 </property>
 <tomanycont id='datapoints'>
 <object id='ssCpuRawWait' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint'>
-<property type="text" id="zendoc" mode="w" >
+<property id='zendoc' type='string'>
 Template for CPU performance
 </property>
 <property select_variable="rrdtypes" type="selection" id="rrdtype" mode="w" >
@@ -7645,6 +7927,9 @@ True
 </tomanycont>
 </object>
 <object id='ssCpuSystem' module='Products.ZenModel.BasicDataSource' class='BasicDataSource'>
+<property id='zendoc' type='string'>
+Template for CPU performance
+</property>
 <property select_variable="sourcetypes" type="selection" id="sourcetype" mode="w" >
 SNMP
 </property>
@@ -7671,7 +7956,7 @@ Auto
 </property>
 <tomanycont id='datapoints'>
 <object id='ssCpuSystem' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint'>
-<property type="text" id="zendoc" mode="w" >
+<property id='zendoc' type='string'>
 Template for CPU performance
 </property>
 <property select_variable="rrdtypes" type="selection" id="rrdtype" mode="w" >
@@ -7684,6 +7969,9 @@ True
 </tomanycont>
 </object>
 <object id='ssCpuUser' module='Products.ZenModel.BasicDataSource' class='BasicDataSource'>
+<property id='zendoc' type='string'>
+Template for CPU performance
+</property>
 <property select_variable="sourcetypes" type="selection" id="sourcetype" mode="w" >
 SNMP
 </property>
@@ -7710,7 +7998,7 @@ Auto
 </property>
 <tomanycont id='datapoints'>
 <object id='ssCpuUser' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint'>
-<property type="text" id="zendoc" mode="w" >
+<property id='zendoc' type='string'>
 Template for CPU performance
 </property>
 <property select_variable="rrdtypes" type="selection" id="rrdtype" mode="w" >
@@ -7723,6 +8011,9 @@ True
 </tomanycont>
 </object>
 <object id='ssIORawReceived' module='Products.ZenModel.BasicDataSource' class='BasicDataSource'>
+<property id='zendoc' type='string'>
+The value for total number of sectors read.
+</property>
 <property select_variable="sourcetypes" type="selection" id="sourcetype" mode="w" >
 SNMP
 </property>
@@ -7749,7 +8040,7 @@ Auto
 </property>
 <tomanycont id='datapoints'>
 <object id='ssIORawReceived' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint'>
-<property type="text" id="zendoc" mode="w" >
+<property id='zendoc' type='string'>
 The value for total number of sectors read.
 </property>
 <property select_variable="rrdtypes" type="selection" id="rrdtype" mode="w" >
@@ -7762,6 +8053,9 @@ True
 </tomanycont>
 </object>
 <object id='ssIORawSent' module='Products.ZenModel.BasicDataSource' class='BasicDataSource'>
+<property id='zendoc' type='string'>
+The value for total number of sectors written.
+</property>
 <property select_variable="sourcetypes" type="selection" id="sourcetype" mode="w" >
 SNMP
 </property>
@@ -7788,7 +8082,7 @@ Auto
 </property>
 <tomanycont id='datapoints'>
 <object id='ssIORawSent' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint'>
-<property type="text" id="zendoc" mode="w" >
+<property id='zendoc' type='string'>
 The value for total number of sectors written.
 </property>
 <property select_variable="rrdtypes" type="selection" id="rrdtype" mode="w" >
@@ -7801,6 +8095,9 @@ True
 </tomanycont>
 </object>
 <object id='sysUpTime' module='Products.ZenModel.BasicDataSource' class='BasicDataSource'>
+<property id='zendoc' type='string'>
+This uses the sysUpTimeInstance object. This object is the length of time the system has been running.
+</property>
 <property select_variable="sourcetypes" type="selection" id="sourcetype" mode="w" >
 SNMP
 </property>
@@ -7827,7 +8124,7 @@ Auto
 </property>
 <tomanycont id='datapoints'>
 <object id='sysUpTime' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint'>
-<property type="text" id="zendoc" mode="w" >
+<property id='zendoc' type='string'>
 This uses the sysUpTimeInstance object. This object is the length of time the system has been running.
 </property>
 <property select_variable="rrdtypes" type="selection" id="rrdtype" mode="w" >
@@ -8108,10 +8405,10 @@ True
 </tomanycont>
 <tomanycont id='thresholds'>
 <object id='high load' module='Products.ZenModel.MinMaxThreshold' class='MinMaxThreshold'>
-<property type="lines" id="dsnames" mode="w" >
+<property label="DataPoints" type="lines" id="dsnames" mode="w" >
 ['laLoadInt5_laLoadInt5']
 </property>
-<property type="boolean" id="enabled" mode="w" >
+<property label="Enabled" type="boolean" id="enabled" mode="w" >
 True
 </property>
 <property type="string" id="maxval" mode="w" >
@@ -8128,10 +8425,10 @@ True
 </property>
 </object>
 <object id='low CPU idle' module='Products.ZenModel.MinMaxThreshold' class='MinMaxThreshold'>
-<property type="lines" id="dsnames" mode="w" >
+<property label="DataPoints" type="lines" id="dsnames" mode="w" >
 ['ssCpuIdle_ssCpuIdle']
 </property>
-<property type="boolean" id="enabled" mode="w" >
+<property label="Enabled" type="boolean" id="enabled" mode="w" >
 True
 </property>
 <property type="string" id="minval" mode="w" >
@@ -8621,6 +8918,9 @@ True
 </property>
 <tomanycont id='rrdTemplates'>
 <object id='Device' module='Products.ZenModel.RRDTemplate' class='RRDTemplate'>
+<property id='zendoc' type='string'>
+Blank device template.  No collection on port scanned devices.
+</property>
 <property type="text" id="description" mode="w" >
 Blank device template.  No collection on port scanned devices.
 </property>
@@ -8639,6 +8939,9 @@ True
 </property>
 <tomanycont id='rrdTemplates'>
 <object id='Device' module='Products.ZenModel.RRDTemplate' class='RRDTemplate'>
+<property id='zendoc' type='string'>
+ZenPlugin template for late vintage unix device.  Has CPU threshold.
+</property>
 <property type="text" id="description" mode="w" >
 ZenPlugin template for late vintage unix device.  Has CPU threshold.
 </property>
@@ -8673,7 +8976,7 @@ Auto
 </property>
 <tomanycont id='datapoints'>
 <object id='laLoadInt1' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint'>
-<property type="text" id="zendoc" mode="w" >
+<property id='zendoc' type='string'>
 Template for system load one minute average
 </property>
 <property select_variable="rrdtypes" type="selection" id="rrdtype" mode="w" >
@@ -8684,7 +8987,7 @@ True
 </property>
 </object>
 <object id='laLoadInt15' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint'>
-<property type="text" id="zendoc" mode="w" >
+<property id='zendoc' type='string'>
 Template for system load fifteen minute average
 </property>
 <property select_variable="rrdtypes" type="selection" id="rrdtype" mode="w" >
@@ -8695,7 +8998,7 @@ True
 </property>
 </object>
 <object id='laLoadInt5' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint'>
-<property type="text" id="zendoc" mode="w" >
+<property id='zendoc' type='string'>
 Template for system load five minute average
 </property>
 <property select_variable="rrdtypes" type="selection" id="rrdtype" mode="w" >
@@ -8713,7 +9016,7 @@ True
 </tomanycont>
 </object>
 <object id='ssCpuRawIdle' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint'>
-<property type="text" id="zendoc" mode="w" >
+<property id='zendoc' type='string'>
 Template for CPU performance
 </property>
 <property select_variable="rrdtypes" type="selection" id="rrdtype" mode="w" >
@@ -8734,7 +9037,7 @@ __EVAL:str(len(here.hw.cpus())) + ',/,100,EXC,-,0,MAX'
 </tomanycont>
 </object>
 <object id='ssCpuRawInterrupt' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint'>
-<property type="text" id="zendoc" mode="w" >
+<property id='zendoc' type='string'>
 Template for CPU performance
 </property>
 <property select_variable="rrdtypes" type="selection" id="rrdtype" mode="w" >
@@ -8748,7 +9051,7 @@ True
 </property>
 </object>
 <object id='ssCpuRawKernel' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint'>
-<property type="text" id="zendoc" mode="w" >
+<property id='zendoc' type='string'>
 Template for CPU performance
 </property>
 <property select_variable="rrdtypes" type="selection" id="rrdtype" mode="w" >
@@ -8762,7 +9065,7 @@ True
 </property>
 </object>
 <object id='ssCpuRawNice' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint'>
-<property type="text" id="zendoc" mode="w" >
+<property id='zendoc' type='string'>
 Template for CPU performance
 </property>
 <property select_variable="rrdtypes" type="selection" id="rrdtype" mode="w" >
@@ -8776,7 +9079,7 @@ True
 </property>
 </object>
 <object id='ssCpuRawSystem' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint'>
-<property type="text" id="zendoc" mode="w" >
+<property id='zendoc' type='string'>
 Template for CPU performance
 </property>
 <property select_variable="rrdtypes" type="selection" id="rrdtype" mode="w" >
@@ -8790,7 +9093,7 @@ True
 </property>
 </object>
 <object id='ssCpuRawUser' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint'>
-<property type="text" id="zendoc" mode="w" >
+<property id='zendoc' type='string'>
 Template for CPU performance
 </property>
 <property select_variable="rrdtypes" type="selection" id="rrdtype" mode="w" >
@@ -8804,7 +9107,7 @@ True
 </property>
 </object>
 <object id='ssCpuRawWait' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint'>
-<property type="text" id="zendoc" mode="w" >
+<property id='zendoc' type='string'>
 Template for CPU performance
 </property>
 <property select_variable="rrdtypes" type="selection" id="rrdtype" mode="w" >
@@ -8868,7 +9171,7 @@ Auto
 </property>
 <tomanycont id='datapoints'>
 <object id='hrMemorySize' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint'>
-<property type="text" id="zendoc" mode="w" >
+<property id='zendoc' type='string'>
 The total size of physical memory.
 </property>
 <property select_variable="rrdtypes" type="selection" id="rrdtype" mode="w" >
@@ -8879,7 +9182,7 @@ True
 </property>
 </object>
 <object id='hrSwapSize' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint'>
-<property type="text" id="zendoc" mode="w" >
+<property id='zendoc' type='string'>
 The total size of swap memory.
 </property>
 <property select_variable="rrdtypes" type="selection" id="rrdtype" mode="w" >
@@ -8890,7 +9193,7 @@ True
 </property>
 </object>
 <object id='memAvailReal' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint'>
-<property type="text" id="zendoc" mode="w" >
+<property id='zendoc' type='string'>
 The amount of physical memory available.
 </property>
 <property select_variable="rrdtypes" type="selection" id="rrdtype" mode="w" >
@@ -8908,7 +9211,7 @@ True
 </tomanycont>
 </object>
 <object id='memAvailSwap' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint'>
-<property type="text" id="zendoc" mode="w" >
+<property id='zendoc' type='string'>
 The amount of swap memory available.
 </property>
 <property select_variable="rrdtypes" type="selection" id="rrdtype" mode="w" >
@@ -8919,7 +9222,7 @@ True
 </property>
 </object>
 <object id='memBuffer' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint'>
-<property type="text" id="zendoc" mode="w" >
+<property id='zendoc' type='string'>
 The amount of buffer memory.
 </property>
 <property select_variable="rrdtypes" type="selection" id="rrdtype" mode="w" >
@@ -8930,7 +9233,7 @@ True
 </property>
 </object>
 <object id='memCached' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint'>
-<property type="text" id="zendoc" mode="w" >
+<property id='zendoc' type='string'>
 The amount of cached memory.
 </property>
 <property select_variable="rrdtypes" type="selection" id="rrdtype" mode="w" >
@@ -8951,6 +9254,9 @@ True
 </tomanycont>
 </object>
 <object id='uptime' module='Products.ZenModel.BasicDataSource' class='BasicDataSource'>
+<property id='zendoc' type='string'>
+This uses the sysUpTimeInstance object. This object is the length of time the system has been running.
+</property>
 <property select_variable="sourcetypes" type="selection" id="sourcetype" mode="w" >
 COMMAND
 </property>
@@ -8977,7 +9283,7 @@ Auto
 </property>
 <tomanycont id='datapoints'>
 <object id='sysUpTime' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint'>
-<property type="text" id="zendoc" mode="w" >
+<property id='zendoc' type='string'>
 This uses the sysUpTimeInstance object. This object is the length of time the system has been running.
 </property>
 <property select_variable="rrdtypes" type="selection" id="rrdtype" mode="w" >
@@ -9214,10 +9520,10 @@ True
 </tomanycont>
 <tomanycont id='thresholds'>
 <object id='CPU Utilization' module='Products.ZenModel.MinMaxThreshold' class='MinMaxThreshold'>
-<property type="lines" id="dsnames" mode="w" >
+<property label="DataPoints" type="lines" id="dsnames" mode="w" >
 ['cpu_ssCpuRawIdle']
 </property>
-<property type="boolean" id="enabled" mode="w" >
+<property label="Enabled" type="boolean" id="enabled" mode="w" >
 True
 </property>
 <property type="string" id="minval" mode="w" >
@@ -9644,6 +9950,9 @@ AVERAGE
 </tomanycont>
 </object>
 <object id='FileSystem' module='Products.ZenModel.RRDTemplate' class='RRDTemplate'>
+<property id='zendoc' type='string'>
+Filesystem template that uses ZenPlugins
+</property>
 <property type="text" id="description" mode="w" >
 Filesystem template that uses ZenPlugins
 </property>
@@ -9681,7 +9990,7 @@ Auto
 </property>
 <tomanycont id='datapoints'>
 <object id='availBlocks' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint'>
-<property type="text" id="zendoc" mode="w" >
+<property id='zendoc' type='string'>
 The value of how many blocks are free on the disk as calculated from the total blocks minus the Used.
 </property>
 <property select_variable="rrdtypes" type="selection" id="rrdtype" mode="w" >
@@ -9692,7 +10001,7 @@ True
 </property>
 </object>
 <object id='availInodes' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint'>
-<property type="text" id="zendoc" mode="w" >
+<property id='zendoc' type='string'>
 Inodes available.
 </property>
 <property select_variable="rrdtypes" type="selection" id="rrdtype" mode="w" >
@@ -9703,7 +10012,7 @@ True
 </property>
 </object>
 <object id='totalBlocks' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint'>
-<property type="text" id="zendoc" mode="w" >
+<property id='zendoc' type='string'>
 Total number of blocks.
 </property>
 <property select_variable="rrdtypes" type="selection" id="rrdtype" mode="w" >
@@ -9714,7 +10023,7 @@ True
 </property>
 </object>
 <object id='totalInodes' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint'>
-<property type="text" id="zendoc" mode="w" >
+<property id='zendoc' type='string'>
 Total Inodes on disk
 </property>
 <property select_variable="rrdtypes" type="selection" id="rrdtype" mode="w" >
@@ -9725,7 +10034,7 @@ True
 </property>
 </object>
 <object id='usedBlocks' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint'>
-<property type="text" id="zendoc" mode="w" >
+<property id='zendoc' type='string'>
 Amount of blocks used.
 </property>
 <property select_variable="rrdtypes" type="selection" id="rrdtype" mode="w" >
@@ -9743,7 +10052,7 @@ ${here/blockSize},*
 </tomanycont>
 </object>
 <object id='usedInodes' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint'>
-<property type="text" id="zendoc" mode="w" >
+<property id='zendoc' type='string'>
 Inodes used.
 </property>
 <property select_variable="rrdtypes" type="selection" id="rrdtype" mode="w" >
@@ -9856,10 +10165,10 @@ True
 </tomanycont>
 <tomanycont id='thresholds'>
 <object id='Free Space 90 Percent' module='Products.ZenModel.MinMaxThreshold' class='MinMaxThreshold'>
-<property type="lines" id="dsnames" mode="w" >
+<property label="DataPoints" type="lines" id="dsnames" mode="w" >
 ['disk_usedBlocks']
 </property>
-<property type="boolean" id="enabled" mode="w" >
+<property label="Enabled" type="boolean" id="enabled" mode="w" >
 True
 </property>
 <property type="string" id="maxval" mode="w" >
@@ -10038,6 +10347,9 @@ AVERAGE
 </tomanycont>
 </object>
 <object id='ethernetCsmacd' module='Products.ZenModel.RRDTemplate' class='RRDTemplate'>
+<property id='zendoc' type='string'>
+Ethernet interface template for ZenPlugins with 75% utilization threshold
+</property>
 <property type="text" id="description" mode="w" >
 Ethernet interface template for ZenPlugins with 75% utilization threshold
 </property>
@@ -10075,7 +10387,7 @@ Auto
 </property>
 <tomanycont id='datapoints'>
 <object id='ifInErrors' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint'>
-<property type="text" id="zendoc" mode="w" >
+<property id='zendoc' type='string'>
 For packet-oriented interfaces, the number of inbound packets that contained errors preventing them from being deliverable to a higher-layer protocol. For character-oriented or fixed-length interfaces, the number of inbound transmission units that contained errors preventing them from being deliverable to a higher-layer protocol.
 </property>
 <property select_variable="rrdtypes" type="selection" id="rrdtype" mode="w" >
@@ -10100,7 +10412,7 @@ True
 </property>
 </object>
 <object id='ifInOctets' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint'>
-<property type="text" id="zendoc" mode="w" >
+<property id='zendoc' type='string'>
 The total number of octets received on the interface, including framing characters.
 </property>
 <property select_variable="rrdtypes" type="selection" id="rrdtype" mode="w" >
@@ -10118,7 +10430,7 @@ True
 </tomanycont>
 </object>
 <object id='ifInUcastPackets' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint'>
-<property type="text" id="zendoc" mode="w" >
+<property id='zendoc' type='string'>
 The number of packets, delivered by this sub-layer to a higher (sub-)layer, which were not addressed to a multicast or broadcast address at this sub-layer.
 </property>
 <property select_variable="rrdtypes" type="selection" id="rrdtype" mode="w" >
@@ -10132,7 +10444,7 @@ True
 </property>
 </object>
 <object id='ifOutErrors' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint'>
-<property type="text" id="zendoc" mode="w" >
+<property id='zendoc' type='string'>
 For packet-oriented interfaces, the number of outbound packets that could not be transmitted because of errors. For character-oriented or fixed-length interfaces, the number of outbound transmission units that could not be transmitted because of errors.
 </property>
 <property select_variable="rrdtypes" type="selection" id="rrdtype" mode="w" >
@@ -10146,7 +10458,7 @@ True
 </property>
 </object>
 <object id='ifOutOctets' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint'>
-<property type="text" id="zendoc" mode="w" >
+<property id='zendoc' type='string'>
 The total number of octets transmitted out of the interface, including framing characters.
 </property>
 <property select_variable="rrdtypes" type="selection" id="rrdtype" mode="w" >
@@ -10164,7 +10476,7 @@ True
 </tomanycont>
 </object>
 <object id='ifOutUcastPackets' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint'>
-<property type="text" id="zendoc" mode="w" >
+<property id='zendoc' type='string'>
 The total number of packets that higher-level protocols requested be transmitted, and which were not addressed to a multicast or broadcast address at this sub-layer, including those that were discarded or not sent.
 </property>
 <property select_variable="rrdtypes" type="selection" id="rrdtype" mode="w" >
@@ -10316,10 +10628,10 @@ True
 </tomanycont>
 <tomanycont id='thresholds'>
 <object id='Utilization 75 perc' module='Products.ZenModel.MinMaxThreshold' class='MinMaxThreshold'>
-<property type="lines" id="dsnames" mode="w" >
+<property label="DataPoints" type="lines" id="dsnames" mode="w" >
 ['ifInOctets_ifInOctets', 'ifOutOctets_ifOutOctets']
 </property>
-<property type="boolean" id="enabled" mode="w" >
+<property label="Enabled" type="boolean" id="enabled" mode="w" >
 True
 </property>
 <property type="string" id="maxval" mode="w" >
@@ -10631,6 +10943,9 @@ Products.ZenModel.Device
 <object id='APC' module='Products.ZenModel.DeviceClass' class='DeviceClass'>
 <tomanycont id='rrdTemplates'>
 <object id='Device' module='Products.ZenModel.RRDTemplate' class='RRDTemplate'>
+<property id='zendoc' type='string'>
+APC Device Profile that tracks battery capacity, load and runtime
+</property>
 <property type="text" id="description" mode="w" >
 APC Device Profile that tracks battery capacity, load and runtime
 </property>
@@ -10747,6 +11062,9 @@ True
 </tomanycont>
 </object>
 <object id='sysUpTime' module='Products.ZenModel.BasicDataSource' class='BasicDataSource'>
+<property id='zendoc' type='string'>
+This uses the sysUpTimeInstance object. This object is the length of time the system has been running.
+</property>
 <property select_variable="sourcetypes" type="selection" id="sourcetype" mode="w" >
 SNMP
 </property>
@@ -10773,7 +11091,7 @@ Auto
 </property>
 <tomanycont id='datapoints'>
 <object id='sysUpTime' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint'>
-<property type="text" id="zendoc" mode="w" >
+<property id='zendoc' type='string'>
 This uses the sysUpTimeInstance object. This object is the length of time the system has been running.
 </property>
 <property select_variable="rrdtypes" type="selection" id="rrdtype" mode="w" >
@@ -11103,6 +11421,9 @@ True
 </property>
 <tomanycont id='rrdTemplates'>
 <object id='Device' module='Products.ZenModel.RRDTemplate' class='RRDTemplate'>
+<property id='zendoc' type='string'>
+Blank Template.
+</property>
 <property type="text" id="description" mode="w" >
 Blank Template.
 </property>

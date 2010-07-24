@@ -1,14 +1,14 @@
 <?xml version="1.0" encoding="ISO-8859-1" ?>
 
 <!--
-    Zenoss RelationshipManager export completed on 2009-09-25 16:22:56.901761
+    Zenoss RelationshipManager export completed on 2010-07-24 14:48:10.216609
 
     Use ImportRM to import this file.
 
     For more information about Zenoss, go to http://www.zenoss.com
  -->
 
-<objects version="[Zenoss, version 2.4.70]" export_date="2009-09-25 16:22:56.901761" zenoss_server="iansmbp.mcb.loc" >
+<objects version="[Zenoss, version 3.0.1]" export_date="2010-07-24 14:48:10.216609" zenoss_server="test-suse103-32-1" >
 <object id='/zport/dmd/Events' module='Products.ZenEvents.EventClass' class='EventClass'>
 <property visible="True" type="string" id="zEventAction" >
 status
@@ -5201,8 +5201,6 @@ if device and evt.eventKey:
         # Get the total blocks from the model. Adjust by specified offset.
         totalBlocks = f.totalBlocks * getattr(device, "zFileSystemSizeOffset", 1.0)
         totalBytes = totalBlocks * f.blockSize
-        if int(f.totalBlocks) == 0:
-            break
         usedBytes = None
 
         currentValue = float(m.groups()[0])

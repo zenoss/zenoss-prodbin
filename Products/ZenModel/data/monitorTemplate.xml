@@ -1,11 +1,23 @@
 <?xml version="1.0" encoding="ISO-8859-1" ?>
-<objects>
+
+<!--
+    Zenoss RelationshipManager export completed on 2010-07-24 14:48:24.089024
+
+    Use ImportRM to import this file.
+
+    For more information about Zenoss, go to http://www.zenoss.com
+ -->
+
+<objects version="[Zenoss, version 3.0.1]" export_date="2010-07-24 14:48:24.089024" zenoss_server="test-suse103-32-1" >
 <object id='/zport/dmd/Monitors' module='Products.ZenModel.MonitorClass' class='MonitorClass'>
 <property type="string" id="sub_class" mode="w" >
 MonitorClass
 </property>
 <tomanycont id='rrdTemplates'>
 <object id='PerformanceConf' module='Products.ZenModel.RRDTemplate' class='RRDTemplate'>
+<property id='zendoc' type='string'>
+Graphs and Thresholds for Core Collectors
+</property>
 <property type="text" id="description" mode="w" >
 Graphs and Thresholds for Core Collectors
 </property>
@@ -584,10 +596,10 @@ True
 </tomanycont>
 <tomanycont id='thresholds'>
 <object id='high event queue' module='Products.ZenModel.MinMaxThreshold' class='MinMaxThreshold'>
-<property type="lines" id="dsnames" mode="w" >
+<property label="DataPoints" type="lines" id="dsnames" mode="w" >
 ['zencommand_eventQueueLength', 'zeneventlog_eventQueueLength', 'zenmodeler_eventQueueLength', 'zenperfsnmp_eventQueueLength', 'zenping_eventQueueLength', 'zenprocess_eventQueueLength', 'zenstatus_eventQueueLength', 'zensyslog_eventQueueLength', 'zentrap_eventQueueLength', 'zenwin_eventQueueLength']
 </property>
-<property type="boolean" id="enabled" mode="w" >
+<property label="Enabled" type="boolean" id="enabled" mode="w" >
 True
 </property>
 <property type="string" id="maxval" mode="w" >
@@ -604,10 +616,10 @@ True
 </property>
 </object>
 <object id='zenmodeler cycle time' module='Products.ZenModel.MinMaxThreshold' class='MinMaxThreshold'>
-<property type="lines" id="dsnames" mode="w" >
+<property label="DataPoints" type="lines" id="dsnames" mode="w" >
 ['zenmodeler_cycleTime']
 </property>
-<property type="boolean" id="enabled" mode="w" >
+<property label="Enabled" type="boolean" id="enabled" mode="w" >
 True
 </property>
 <property type="string" id="maxval" mode="w" >
@@ -624,10 +636,10 @@ True
 </property>
 </object>
 <object id='zenperfsnmp cycle time' module='Products.ZenModel.MinMaxThreshold' class='MinMaxThreshold'>
-<property type="lines" id="dsnames" mode="w" >
+<property label="DataPoints" type="lines" id="dsnames" mode="w" >
 ['zenperfsnmp_cycleTime']
 </property>
-<property type="boolean" id="enabled" mode="w" >
+<property label="Enabled" type="boolean" id="enabled" mode="w" >
 True
 </property>
 <property type="string" id="maxval" mode="w" >
@@ -644,10 +656,10 @@ here.perfsnmpCycleInterval*0.8
 </property>
 </object>
 <object id='zenping cycle time' module='Products.ZenModel.MinMaxThreshold' class='MinMaxThreshold'>
-<property type="lines" id="dsnames" mode="w" >
+<property label="DataPoints" type="lines" id="dsnames" mode="w" >
 ['zenping_cycleTime']
 </property>
-<property type="boolean" id="enabled" mode="w" >
+<property label="Enabled" type="boolean" id="enabled" mode="w" >
 True
 </property>
 <property type="string" id="maxval" mode="w" >
@@ -664,10 +676,10 @@ here.pingCycleInterval * 0.8
 </property>
 </object>
 <object id='zenprocess cycle time' module='Products.ZenModel.MinMaxThreshold' class='MinMaxThreshold'>
-<property type="lines" id="dsnames" mode="w" >
+<property label="DataPoints" type="lines" id="dsnames" mode="w" >
 ['zenprocess_cycleTime']
 </property>
-<property type="boolean" id="enabled" mode="w" >
+<property label="Enabled" type="boolean" id="enabled" mode="w" >
 True
 </property>
 <property type="string" id="maxval" mode="w" >
@@ -1704,6 +1716,9 @@ ${graphPoint/id}
 </tomanycont>
 <tomanycont id='rrdTemplates'>
 <object id='PerformanceConf' module='Products.ZenModel.RRDTemplate' class='RRDTemplate'>
+<property id='zendoc' type='string'>
+Graphs and Thresholds for Core Collectors
+</property>
 <property type="text" id="description" mode="w" >
 Graphs and Thresholds for Core Collectors
 </property>
@@ -2282,10 +2297,10 @@ True
 </tomanycont>
 <tomanycont id='thresholds'>
 <object id='high event queue' module='Products.ZenModel.MinMaxThreshold' class='MinMaxThreshold'>
-<property type="lines" id="dsnames" mode="w" >
+<property label="DataPoints" type="lines" id="dsnames" mode="w" >
 ['zencommand_eventQueueLength', 'zeneventlog_eventQueueLength', 'zenmodeler_eventQueueLength', 'zenperfsnmp_eventQueueLength', 'zenping_eventQueueLength', 'zenprocess_eventQueueLength', 'zenstatus_eventQueueLength', 'zensyslog_eventQueueLength', 'zentrap_eventQueueLength', 'zenwin_eventQueueLength']
 </property>
-<property type="boolean" id="enabled" mode="w" >
+<property label="Enabled" type="boolean" id="enabled" mode="w" >
 True
 </property>
 <property type="string" id="maxval" mode="w" >
@@ -2302,10 +2317,10 @@ True
 </property>
 </object>
 <object id='zenmodeler cycle time' module='Products.ZenModel.MinMaxThreshold' class='MinMaxThreshold'>
-<property type="lines" id="dsnames" mode="w" >
+<property label="DataPoints" type="lines" id="dsnames" mode="w" >
 ['zenmodeler_cycleTime']
 </property>
-<property type="boolean" id="enabled" mode="w" >
+<property label="Enabled" type="boolean" id="enabled" mode="w" >
 True
 </property>
 <property type="string" id="maxval" mode="w" >
@@ -2322,10 +2337,10 @@ True
 </property>
 </object>
 <object id='zenperfsnmp cycle time' module='Products.ZenModel.MinMaxThreshold' class='MinMaxThreshold'>
-<property type="lines" id="dsnames" mode="w" >
+<property label="DataPoints" type="lines" id="dsnames" mode="w" >
 ['zenperfsnmp_cycleTime']
 </property>
-<property type="boolean" id="enabled" mode="w" >
+<property label="Enabled" type="boolean" id="enabled" mode="w" >
 True
 </property>
 <property type="string" id="maxval" mode="w" >
@@ -2342,10 +2357,10 @@ here.perfsnmpCycleInterval*0.8
 </property>
 </object>
 <object id='zenping cycle time' module='Products.ZenModel.MinMaxThreshold' class='MinMaxThreshold'>
-<property type="lines" id="dsnames" mode="w" >
+<property label="DataPoints" type="lines" id="dsnames" mode="w" >
 ['zenping_cycleTime']
 </property>
-<property type="boolean" id="enabled" mode="w" >
+<property label="Enabled" type="boolean" id="enabled" mode="w" >
 True
 </property>
 <property type="string" id="maxval" mode="w" >
@@ -2362,10 +2377,10 @@ here.pingCycleInterval * 0.8
 </property>
 </object>
 <object id='zenprocess cycle time' module='Products.ZenModel.MinMaxThreshold' class='MinMaxThreshold'>
-<property type="lines" id="dsnames" mode="w" >
+<property label="DataPoints" type="lines" id="dsnames" mode="w" >
 ['zenprocess_cycleTime']
 </property>
-<property type="boolean" id="enabled" mode="w" >
+<property label="Enabled" type="boolean" id="enabled" mode="w" >
 True
 </property>
 <property type="string" id="maxval" mode="w" >

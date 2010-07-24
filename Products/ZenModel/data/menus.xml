@@ -5,6 +5,9 @@
 <object id='ActionRuleWindow_list' module='Products.ZenModel.ZenMenu' class='ZenMenu'>
 <tomanycont id='zenMenuItems'>
 <object id='addActionRuleWindow' module='Products.ZenModel.ZenMenuItem' class='ZenMenuItem'>
+<property id='zendoc' type='string'>
+Add Rule Window...
+</property>
 <property type="text" id="description" mode="w" >
 Add Rule Window...
 </property>
@@ -25,6 +28,9 @@ True
 </property>
 </object>
 <object id='deleteActionRuleWindows' module='Products.ZenModel.ZenMenuItem' class='ZenMenuItem'>
+<property id='zendoc' type='string'>
+Delete Rule Windows...
+</property>
 <property type="text" id="description" mode="w" >
 Delete Rule Windows...
 </property>
@@ -49,6 +55,9 @@ True
 <object id='ActionRule_list' module='Products.ZenModel.ZenMenu' class='ZenMenu'>
 <tomanycont id='zenMenuItems'>
 <object id='addActionRule' module='Products.ZenModel.ZenMenuItem' class='ZenMenuItem'>
+<property id='zendoc' type='string'>
+Add Alerting Rule...
+</property>
 <property type="text" id="description" mode="w" >
 Add Alerting Rule...
 </property>
@@ -69,6 +78,9 @@ True
 </property>
 </object>
 <object id='deleteActionRules' module='Products.ZenModel.ZenMenuItem' class='ZenMenuItem'>
+<property id='zendoc' type='string'>
+Delete Rules...
+</property>
 <property type="text" id="description" mode="w" >
 Delete Rules...
 </property>
@@ -93,6 +105,9 @@ True
 <object id='Add' module='Products.ZenModel.ZenMenu' class='ZenMenu'>
 <tomanycont id='zenMenuItems'>
 <object id='addFileSystem' module='Products.ZenModel.ZenMenuItem' class='ZenMenuItem'>
+<property id='zendoc' type='string'>
+Add File System...
+</property>
 <property type="text" id="description" mode="w" >
 Add File System...
 </property>
@@ -116,6 +131,9 @@ True
 </property>
 </object>
 <object id='addIpInterface' module='Products.ZenModel.ZenMenuItem' class='ZenMenuItem'>
+<property id='zendoc' type='string'>
+Add IpInterface...
+</property>
 <property type="text" id="description" mode="w" >
 Add IpInterface...
 </property>
@@ -139,6 +157,9 @@ True
 </property>
 </object>
 <object id='addIpRouteEntry' module='Products.ZenModel.ZenMenuItem' class='ZenMenuItem'>
+<property id='zendoc' type='string'>
+Add Route...
+</property>
 <property type="text" id="description" mode="w" >
 Add Route...
 </property>
@@ -162,6 +183,9 @@ True
 </property>
 </object>
 <object id='addIpService' module='Products.ZenModel.ZenMenuItem' class='ZenMenuItem'>
+<property id='zendoc' type='string'>
+Add IpService...
+</property>
 <property type="text" id="description" mode="w" >
 Add IpService...
 </property>
@@ -185,6 +209,9 @@ True
 </property>
 </object>
 <object id='addOSProcess' module='Products.ZenModel.ZenMenuItem' class='ZenMenuItem'>
+<property id='zendoc' type='string'>
+Add OSProcess...
+</property>
 <property type="text" id="description" mode="w" >
 Add OSProcess...
 </property>
@@ -208,6 +235,9 @@ True
 </property>
 </object>
 <object id='addWinService' module='Products.ZenModel.ZenMenuItem' class='ZenMenuItem'>
+<property id='zendoc' type='string'>
+Add WinService...
+</property>
 <property type="text" id="description" mode="w" >
 Add WinService...
 </property>
@@ -235,6 +265,9 @@ True
 <object id='AdministeredObjects_list' module='Products.ZenModel.ZenMenu' class='ZenMenu'>
 <tomanycont id='zenMenuItems'>
 <object id='addAdministeredDevice' module='Products.ZenModel.ZenMenuItem' class='ZenMenuItem'>
+<property id='zendoc' type='string'>
+Add Device...
+</property>
 <property type="text" id="description" mode="w" >
 Add Device...
 </property>
@@ -255,6 +288,9 @@ True
 </property>
 </object>
 <object id='addAdministeredDeviceClass' module='Products.ZenModel.ZenMenuItem' class='ZenMenuItem'>
+<property id='zendoc' type='string'>
+Add Device Class...
+</property>
 <property type="text" id="description" mode="w" >
 Add Device Class...
 </property>
@@ -275,6 +311,9 @@ True
 </property>
 </object>
 <object id='addAdministeredGroup' module='Products.ZenModel.ZenMenuItem' class='ZenMenuItem'>
+<property id='zendoc' type='string'>
+Add Group...
+</property>
 <property type="text" id="description" mode="w" >
 Add Group...
 </property>
@@ -295,6 +334,9 @@ True
 </property>
 </object>
 <object id='addAdministeredLocation' module='Products.ZenModel.ZenMenuItem' class='ZenMenuItem'>
+<property id='zendoc' type='string'>
+Add Location...
+</property>
 <property type="text" id="description" mode="w" >
 Add Location...
 </property>
@@ -315,6 +357,9 @@ True
 </property>
 </object>
 <object id='addAdministeredSystem' module='Products.ZenModel.ZenMenuItem' class='ZenMenuItem'>
+<property id='zendoc' type='string'>
+Add System...
+</property>
 <property type="text" id="description" mode="w" >
 Add System...
 </property>
@@ -335,6 +380,9 @@ True
 </property>
 </object>
 <object id='deleteAdministeredObjects' module='Products.ZenModel.ZenMenuItem' class='ZenMenuItem'>
+<property id='zendoc' type='string'>
+Delete Admin Objects...
+</property>
 <property type="text" id="description" mode="w" >
 Delete Admin Objects...
 </property>
@@ -359,6 +407,9 @@ True
 <object id='Administrator_list' module='Products.ZenModel.ZenMenu' class='ZenMenu'>
 <tomanycont id='zenMenuItems'>
 <object id='addAdministrator' module='Products.ZenModel.ZenMenuItem' class='ZenMenuItem'>
+<property id='zendoc' type='string'>
+Add Administrator...
+</property>
 <property type="text" id="description" mode="w" >
 Add Administrator...
 </property>
@@ -379,6 +430,9 @@ True
 </property>
 </object>
 <object id='deleteAdministrators' module='Products.ZenModel.ZenMenuItem' class='ZenMenuItem'>
+<property id='zendoc' type='string'>
+Delete Admins...
+</property>
 <property type="text" id="description" mode="w" >
 Delete Admins...
 </property>
@@ -403,6 +457,9 @@ True
 <object id='AllTemplates' module='Products.ZenModel.ZenMenu' class='ZenMenu'>
 <tomanycont id='zenMenuItems'>
 <object id='addTemplate' module='Products.ZenModel.ZenMenuItem' class='ZenMenuItem'>
+<property id='zendoc' type='string'>
+Add Template...
+</property>
 <property type="text" id="description" mode="w" >
 Add Template...
 </property>
@@ -423,6 +480,9 @@ True
 </property>
 </object>
 <object id='deleteTemplates' module='Products.ZenModel.ZenMenuItem' class='ZenMenuItem'>
+<property id='zendoc' type='string'>
+Delete Templates...
+</property>
 <property type="text" id="description" mode="w" >
 Delete Templates...
 </property>
@@ -447,6 +507,9 @@ True
 <object id='BackupFiles_list' module='Products.ZenModel.ZenMenu' class='ZenMenu'>
 <tomanycont id='zenMenuItems'>
 <object id='deleteBackup' module='Products.ZenModel.ZenMenuItem' class='ZenMenuItem'>
+<property id='zendoc' type='string'>
+Delete Backup...
+</property>
 <property type="text" id="description" mode="w" >
 Delete Backup...
 </property>
@@ -471,6 +534,9 @@ True
 <object id='DataPointProperties_list' module='Products.ZenModel.ZenMenu' class='ZenMenu'>
 <tomanycont id='zenMenuItems'>
 <object id='addDataPointAlias' module='Products.ZenModel.ZenMenuItem' class='ZenMenuItem'>
+<property id='zendoc' type='string'>
+Add Data Point Alias...
+</property>
 <property type="text" id="description" mode="w" >
 Add Data Point Alias...
 </property>
@@ -491,6 +557,9 @@ True
 </property>
 </object>
 <object id='removeDataPointAlias' module='Products.ZenModel.ZenMenuItem' class='ZenMenuItem'>
+<property id='zendoc' type='string'>
+Remove Data Point Alias...
+</property>
 <property type="text" id="description" mode="w" >
 Remove Data Point Alias...
 </property>
@@ -515,6 +584,9 @@ True
 <object id='DataPoint_list' module='Products.ZenModel.ZenMenu' class='ZenMenu'>
 <tomanycont id='zenMenuItems'>
 <object id='addDataPoint' module='Products.ZenModel.ZenMenuItem' class='ZenMenuItem'>
+<property id='zendoc' type='string'>
+Add DataPoint...
+</property>
 <property type="text" id="description" mode="w" >
 Add DataPoint...
 </property>
@@ -535,6 +607,9 @@ True
 </property>
 </object>
 <object id='addDataPointsToGraphs' module='Products.ZenModel.ZenMenuItem' class='ZenMenuItem'>
+<property id='zendoc' type='string'>
+Add to Graphs...
+</property>
 <property type="text" id="description" mode="w" >
 Add to Graphs...
 </property>
@@ -555,6 +630,9 @@ True
 </property>
 </object>
 <object id='deleteDataPoint' module='Products.ZenModel.ZenMenuItem' class='ZenMenuItem'>
+<property id='zendoc' type='string'>
+Delete DataPoint...
+</property>
 <property type="text" id="description" mode="w" >
 Delete DataPoint...
 </property>
@@ -579,6 +657,9 @@ True
 <object id='DataSource_list' module='Products.ZenModel.ZenMenu' class='ZenMenu'>
 <tomanycont id='zenMenuItems'>
 <object id='addDataSource' module='Products.ZenModel.ZenMenuItem' class='ZenMenuItem'>
+<property id='zendoc' type='string'>
+Add DataSource...
+</property>
 <property type="text" id="description" mode="w" >
 Add DataSource...
 </property>
@@ -599,6 +680,9 @@ True
 </property>
 </object>
 <object id='addDataSourcesToGraphs' module='Products.ZenModel.ZenMenuItem' class='ZenMenuItem'>
+<property id='zendoc' type='string'>
+Add to Graphs...
+</property>
 <property type="text" id="description" mode="w" >
 Add to Graphs...
 </property>
@@ -619,6 +703,9 @@ True
 </property>
 </object>
 <object id='deleteDataSource' module='Products.ZenModel.ZenMenuItem' class='ZenMenuItem'>
+<property id='zendoc' type='string'>
+Delete DataSource...
+</property>
 <property type="text" id="description" mode="w" >
 Delete DataSource...
 </property>
@@ -643,6 +730,9 @@ True
 <object id='DeviceGrid_list' module='Products.ZenModel.ZenMenu' class='ZenMenu'>
 <tomanycont id='zenMenuItems'>
 <object id='lockDevices_grid' module='Products.ZenModel.ZenMenuItem' class='ZenMenuItem'>
+<property id='zendoc' type='string'>
+Lock devices...
+</property>
 <property type="text" id="description" mode="w" >
 Lock devices...
 </property>
@@ -663,6 +753,9 @@ True
 </property>
 </object>
 <object id='moveclass_grid' module='Products.ZenModel.ZenMenuItem' class='ZenMenuItem'>
+<property id='zendoc' type='string'>
+Move to Class...
+</property>
 <property type="text" id="description" mode="w" >
 Move to Class...
 </property>
@@ -683,6 +776,9 @@ True
 </property>
 </object>
 <object id='removeDevices_grid' module='Products.ZenModel.ZenMenuItem' class='ZenMenuItem'>
+<property id='zendoc' type='string'>
+Delete devices...
+</property>
 <property type="text" id="description" mode="w" >
 Delete devices...
 </property>
@@ -703,6 +799,9 @@ True
 </property>
 </object>
 <object id='setGroups_grid' module='Products.ZenModel.ZenMenuItem' class='ZenMenuItem'>
+<property id='zendoc' type='string'>
+Set Groups...
+</property>
 <property type="text" id="description" mode="w" >
 Set Groups...
 </property>
@@ -723,6 +822,9 @@ True
 </property>
 </object>
 <object id='setLocation_grid' module='Products.ZenModel.ZenMenuItem' class='ZenMenuItem'>
+<property id='zendoc' type='string'>
+Set Location...
+</property>
 <property type="text" id="description" mode="w" >
 Set Location...
 </property>
@@ -743,6 +845,9 @@ True
 </property>
 </object>
 <object id='setPerformanceMonitor_grid' module='Products.ZenModel.ZenMenuItem' class='ZenMenuItem'>
+<property id='zendoc' type='string'>
+Set Perf Monitor...
+</property>
 <property type="text" id="description" mode="w" >
 Set Perf Monitor...
 </property>
@@ -763,6 +868,9 @@ True
 </property>
 </object>
 <object id='setPriority' module='Products.ZenModel.ZenMenuItem' class='ZenMenuItem'>
+<property id='zendoc' type='string'>
+Set Priority...
+</property>
 <property type="text" id="description" mode="w" >
 Set Priority...
 </property>
@@ -783,6 +891,9 @@ True
 </property>
 </object>
 <object id='setProductionState_grid' module='Products.ZenModel.ZenMenuItem' class='ZenMenuItem'>
+<property id='zendoc' type='string'>
+Set Production State...
+</property>
 <property type="text" id="description" mode="w" >
 Set Production State...
 </property>
@@ -803,6 +914,9 @@ True
 </property>
 </object>
 <object id='setSystems_grid' module='Products.ZenModel.ZenMenuItem' class='ZenMenuItem'>
+<property id='zendoc' type='string'>
+Set Systems...
+</property>
 <property type="text" id="description" mode="w" >
 Set Systems...
 </property>
@@ -827,6 +941,9 @@ True
 <object id='Device_list' module='Products.ZenModel.ZenMenu' class='ZenMenu'>
 <tomanycont id='zenMenuItems'>
 <object id='lockDevices' module='Products.ZenModel.ZenMenuItem' class='ZenMenuItem'>
+<property id='zendoc' type='string'>
+Lock devices...
+</property>
 <property type="text" id="description" mode="w" >
 Lock devices...
 </property>
@@ -850,6 +967,9 @@ True
 </property>
 </object>
 <object id='moveclass' module='Products.ZenModel.ZenMenuItem' class='ZenMenuItem'>
+<property id='zendoc' type='string'>
+Move to Class...
+</property>
 <property type="text" id="description" mode="w" >
 Move to Class...
 </property>
@@ -873,6 +993,9 @@ True
 </property>
 </object>
 <object id='removeDevices' module='Products.ZenModel.ZenMenuItem' class='ZenMenuItem'>
+<property id='zendoc' type='string'>
+Delete devices...
+</property>
 <property type="text" id="description" mode="w" >
 Delete devices...
 </property>
@@ -893,6 +1016,9 @@ True
 </property>
 </object>
 <object id='setGroups' module='Products.ZenModel.ZenMenuItem' class='ZenMenuItem'>
+<property id='zendoc' type='string'>
+Set Groups...
+</property>
 <property type="text" id="description" mode="w" >
 Set Groups...
 </property>
@@ -916,6 +1042,9 @@ True
 </property>
 </object>
 <object id='setLocation' module='Products.ZenModel.ZenMenuItem' class='ZenMenuItem'>
+<property id='zendoc' type='string'>
+Set Location...
+</property>
 <property type="text" id="description" mode="w" >
 Set Location...
 </property>
@@ -939,6 +1068,9 @@ True
 </property>
 </object>
 <object id='setPerformanceMonitor' module='Products.ZenModel.ZenMenuItem' class='ZenMenuItem'>
+<property id='zendoc' type='string'>
+Set Perf Monitor...
+</property>
 <property type="text" id="description" mode="w" >
 Set Perf Monitor...
 </property>
@@ -962,6 +1094,9 @@ True
 </property>
 </object>
 <object id='setPriority' module='Products.ZenModel.ZenMenuItem' class='ZenMenuItem'>
+<property id='zendoc' type='string'>
+Set Priority...
+</property>
 <property type="text" id="description" mode="w" >
 Set Priority...
 </property>
@@ -985,6 +1120,9 @@ True
 </property>
 </object>
 <object id='setProductionState' module='Products.ZenModel.ZenMenuItem' class='ZenMenuItem'>
+<property id='zendoc' type='string'>
+Set Production State...
+</property>
 <property type="text" id="description" mode="w" >
 Set Production State...
 </property>
@@ -1008,6 +1146,9 @@ True
 </property>
 </object>
 <object id='setSystems' module='Products.ZenModel.ZenMenuItem' class='ZenMenuItem'>
+<property id='zendoc' type='string'>
+Set Systems...
+</property>
 <property type="text" id="description" mode="w" >
 Set Systems...
 </property>
@@ -1033,12 +1174,13 @@ True
 </tomanycont>
 </object>
 <object id='Edit' module='Products.ZenModel.ZenMenu' class='ZenMenu'>
-<tomanycont id='zenMenuItems'>
-</tomanycont>
 </object>
 <object id='EventMapping_list' module='Products.ZenModel.ZenMenu' class='ZenMenu'>
 <tomanycont id='zenMenuItems'>
 <object id='addInstance' module='Products.ZenModel.ZenMenuItem' class='ZenMenuItem'>
+<property id='zendoc' type='string'>
+Add Mapping...
+</property>
 <property type="text" id="description" mode="w" >
 Add Mapping...
 </property>
@@ -1059,6 +1201,9 @@ True
 </property>
 </object>
 <object id='addToZenPack' module='Products.ZenModel.ZenMenuItem' class='ZenMenuItem'>
+<property id='zendoc' type='string'>
+Add to ZenPack...
+</property>
 <property type="text" id="description" mode="w" >
 Add to ZenPack...
 </property>
@@ -1079,6 +1224,9 @@ True
 </property>
 </object>
 <object id='moveInstances' module='Products.ZenModel.ZenMenuItem' class='ZenMenuItem'>
+<property id='zendoc' type='string'>
+Move Mappings...
+</property>
 <property type="text" id="description" mode="w" >
 Move Mappings...
 </property>
@@ -1099,6 +1247,9 @@ True
 </property>
 </object>
 <object id='removeInstances' module='Products.ZenModel.ZenMenuItem' class='ZenMenuItem'>
+<property id='zendoc' type='string'>
+Delete Mappings...
+</property>
 <property type="text" id="description" mode="w" >
 Delete Mappings...
 </property>
@@ -1123,6 +1274,9 @@ True
 <object id='EventView_list' module='Products.ZenModel.ZenMenu' class='ZenMenu'>
 <tomanycont id='zenMenuItems'>
 <object id='addEventView' module='Products.ZenModel.ZenMenuItem' class='ZenMenuItem'>
+<property id='zendoc' type='string'>
+Add Event View...
+</property>
 <property type="text" id="description" mode="w" >
 Add Event View...
 </property>
@@ -1143,6 +1297,9 @@ True
 </property>
 </object>
 <object id='deleteEventViews' module='Products.ZenModel.ZenMenuItem' class='ZenMenuItem'>
+<property id='zendoc' type='string'>
+Delete Event Views...
+</property>
 <property type="text" id="description" mode="w" >
 Delete Event Views...
 </property>
@@ -1167,6 +1324,9 @@ True
 <object id='Event_list' module='Products.ZenModel.ZenMenu' class='ZenMenu'>
 <tomanycont id='zenMenuItems'>
 <object id='acknowledgeEvents' module='Products.ZenModel.ZenMenuItem' class='ZenMenuItem'>
+<property id='zendoc' type='string'>
+Acknowledge Events
+</property>
 <property type="text" id="description" mode="w" >
 Acknowledge Events
 </property>
@@ -1187,6 +1347,9 @@ False
 </property>
 </object>
 <object id='createEventMap' module='Products.ZenModel.ZenMenuItem' class='ZenMenuItem'>
+<property id='zendoc' type='string'>
+Map Events to Class...
+</property>
 <property type="text" id="description" mode="w" >
 Map Events to Class...
 </property>
@@ -1207,6 +1370,9 @@ True
 </property>
 </object>
 <object id='exportAllEvents' module='Products.ZenModel.ZenMenuItem' class='ZenMenuItem'>
+<property id='zendoc' type='string'>
+Download as CSV
+</property>
 <property type="text" id="description" mode="w" >
 Download as CSV
 </property>
@@ -1227,6 +1393,9 @@ False
 </property>
 </object>
 <object id='historifyEvents' module='Products.ZenModel.ZenMenuItem' class='ZenMenuItem'>
+<property id='zendoc' type='string'>
+Move to History...
+</property>
 <property type="text" id="description" mode="w" >
 Move to History...
 </property>
@@ -1251,6 +1420,9 @@ True
 <object id='FileSystem' module='Products.ZenModel.ZenMenu' class='ZenMenu'>
 <tomanycont id='zenMenuItems'>
 <object id='addFileSystem' module='Products.ZenModel.ZenMenuItem' class='ZenMenuItem'>
+<property id='zendoc' type='string'>
+Add File System...
+</property>
 <property type="text" id="description" mode="w" >
 Add File System...
 </property>
@@ -1270,71 +1442,14 @@ True
 90.0
 </property>
 </object>
-<object id='changeMonitoring' module='Products.ZenModel.ZenMenuItem' class='ZenMenuItem'>
-<property type="text" id="description" mode="w" >
-Monitoring...
-</property>
-<property type="text" id="action" mode="w" >
-dialog_changeMonitoring
-</property>
-<property type="boolean" id="isglobal" mode="w" >
-True
-</property>
-<property type="lines" id="permissions" mode="w" >
-('Manage DMD',)
-</property>
-<property type="boolean" id="isdialog" mode="w" >
-True
-</property>
-<property type="float" id="ordering" mode="w" >
-0.0
-</property>
-</object>
-<object id='deleteFileSystems' module='Products.ZenModel.ZenMenuItem' class='ZenMenuItem'>
-<property type="text" id="description" mode="w" >
-Delete FileSystems...
-</property>
-<property type="text" id="action" mode="w" >
-dialog_deleteFileSystems
-</property>
-<property type="boolean" id="isglobal" mode="w" >
-True
-</property>
-<property type="lines" id="permissions" mode="w" >
-('Change Device',)
-</property>
-<property type="boolean" id="isdialog" mode="w" >
-True
-</property>
-<property type="float" id="ordering" mode="w" >
-80.0
-</property>
-</object>
-<object id='lockFileSystems' module='Products.ZenModel.ZenMenuItem' class='ZenMenuItem'>
-<property type="text" id="description" mode="w" >
-Lock FileSystems...
-</property>
-<property type="text" id="action" mode="w" >
-dialog_lockFileSystems
-</property>
-<property type="boolean" id="isglobal" mode="w" >
-True
-</property>
-<property type="lines" id="permissions" mode="w" >
-('Change Device',)
-</property>
-<property type="boolean" id="isdialog" mode="w" >
-True
-</property>
-<property type="float" id="ordering" mode="w" >
-2.0
-</property>
-</object>
 </tomanycont>
 </object>
 <object id='GraphGroup_list' module='Products.ZenModel.ZenMenu' class='ZenMenu'>
 <tomanycont id='zenMenuItems'>
 <object id='addGraphGroup' module='Products.ZenModel.ZenMenuItem' class='ZenMenuItem'>
+<property id='zendoc' type='string'>
+Add Group...
+</property>
 <property type="text" id="description" mode="w" >
 Add Group...
 </property>
@@ -1355,6 +1470,9 @@ True
 </property>
 </object>
 <object id='deleteGraphGroups' module='Products.ZenModel.ZenMenuItem' class='ZenMenuItem'>
+<property id='zendoc' type='string'>
+Delete Group...
+</property>
 <property type="text" id="description" mode="w" >
 Delete Group...
 </property>
@@ -1375,6 +1493,9 @@ True
 </property>
 </object>
 <object id='resequenceCollectionItem' module='Products.ZenModel.ZenMenuItem' class='ZenMenuItem'>
+<property id='zendoc' type='string'>
+Re-sequence Items
+</property>
 <property type="text" id="description" mode="w" >
 Re-sequence Items
 </property>
@@ -1399,6 +1520,9 @@ False
 <object id='GraphPoint_list' module='Products.ZenModel.ZenMenu' class='ZenMenu'>
 <tomanycont id='zenMenuItems'>
 <object id='addGPCustom' module='Products.ZenModel.ZenMenuItem' class='ZenMenuItem'>
+<property id='zendoc' type='string'>
+Add Custom...
+</property>
 <property type="text" id="description" mode="w" >
 Add Custom...
 </property>
@@ -1419,6 +1543,9 @@ True
 </property>
 </object>
 <object id='addGPFromDataPoint' module='Products.ZenModel.ZenMenuItem' class='ZenMenuItem'>
+<property id='zendoc' type='string'>
+Add DataPoint...
+</property>
 <property type="text" id="description" mode="w" >
 Add DataPoint...
 </property>
@@ -1439,6 +1566,9 @@ True
 </property>
 </object>
 <object id='addGPFromThreshold' module='Products.ZenModel.ZenMenuItem' class='ZenMenuItem'>
+<property id='zendoc' type='string'>
+Add Threshold...
+</property>
 <property type="text" id="description" mode="w" >
 Add Threshold...
 </property>
@@ -1459,6 +1589,9 @@ True
 </property>
 </object>
 <object id='deleteGraphPoint' module='Products.ZenModel.ZenMenuItem' class='ZenMenuItem'>
+<property id='zendoc' type='string'>
+Delete GraphPoint...
+</property>
 <property type="text" id="description" mode="w" >
 Delete GraphPoint...
 </property>
@@ -1479,6 +1612,9 @@ True
 </property>
 </object>
 <object id='resequenceGraphPoints' module='Products.ZenModel.ZenMenuItem' class='ZenMenuItem'>
+<property id='zendoc' type='string'>
+Re-sequence GraphPoints
+</property>
 <property type="text" id="description" mode="w" >
 Re-sequence GraphPoints
 </property>
@@ -1503,6 +1639,9 @@ False
 <object id='GraphReportElement_list' module='Products.ZenModel.ZenMenu' class='ZenMenu'>
 <tomanycont id='zenMenuItems'>
 <object id='deleteGraph' module='Products.ZenModel.ZenMenuItem' class='ZenMenuItem'>
+<property id='zendoc' type='string'>
+Delete Graph...
+</property>
 <property type="text" id="description" mode="w" >
 Delete Graph...
 </property>
@@ -1523,6 +1662,9 @@ True
 </property>
 </object>
 <object id='resequenceGraphs' module='Products.ZenModel.ZenMenuItem' class='ZenMenuItem'>
+<property id='zendoc' type='string'>
+Re-sequence Graphs
+</property>
 <property type="text" id="description" mode="w" >
 Re-sequence Graphs
 </property>
@@ -1547,6 +1689,9 @@ False
 <object id='Graph_list' module='Products.ZenModel.ZenMenu' class='ZenMenu'>
 <tomanycont id='zenMenuItems'>
 <object id='addGraph' module='Products.ZenModel.ZenMenuItem' class='ZenMenuItem'>
+<property id='zendoc' type='string'>
+Add Graph...
+</property>
 <property type="text" id="description" mode="w" >
 Add Graph...
 </property>
@@ -1567,6 +1712,9 @@ True
 </property>
 </object>
 <object id='deleteGraph' module='Products.ZenModel.ZenMenuItem' class='ZenMenuItem'>
+<property id='zendoc' type='string'>
+Delete Graph...
+</property>
 <property type="text" id="description" mode="w" >
 Delete Graph...
 </property>
@@ -1587,6 +1735,9 @@ True
 </property>
 </object>
 <object id='resequenceGraphs' module='Products.ZenModel.ZenMenuItem' class='ZenMenuItem'>
+<property id='zendoc' type='string'>
+Re-sequence Graphs
+</property>
 <property type="text" id="description" mode="w" >
 Re-sequence Graphs
 </property>
@@ -1611,6 +1762,9 @@ False
 <object id='Graph_list_noseq' module='Products.ZenModel.ZenMenu' class='ZenMenu'>
 <tomanycont id='zenMenuItems'>
 <object id='addGraph' module='Products.ZenModel.ZenMenuItem' class='ZenMenuItem'>
+<property id='zendoc' type='string'>
+Add Graph...
+</property>
 <property type="text" id="description" mode="w" >
 Add Graph...
 </property>
@@ -1631,6 +1785,9 @@ True
 </property>
 </object>
 <object id='deleteGraph' module='Products.ZenModel.ZenMenuItem' class='ZenMenuItem'>
+<property id='zendoc' type='string'>
+Delete Graph...
+</property>
 <property type="text" id="description" mode="w" >
 Delete Graph...
 </property>
@@ -1655,6 +1812,9 @@ True
 <object id='GroupUser_list' module='Products.ZenModel.ZenMenu' class='ZenMenu'>
 <tomanycont id='zenMenuItems'>
 <object id='addUserToAGroup' module='Products.ZenModel.ZenMenuItem' class='ZenMenuItem'>
+<property id='zendoc' type='string'>
+Add User...
+</property>
 <property type="text" id="description" mode="w" >
 Add User...
 </property>
@@ -1675,6 +1835,9 @@ True
 </property>
 </object>
 <object id='deleteUsersFromGroup' module='Products.ZenModel.ZenMenuItem' class='ZenMenuItem'>
+<property id='zendoc' type='string'>
+Delete Users...
+</property>
 <property type="text" id="description" mode="w" >
 Delete Users...
 </property>
@@ -1699,6 +1862,9 @@ True
 <object id='Group_list' module='Products.ZenModel.ZenMenu' class='ZenMenu'>
 <tomanycont id='zenMenuItems'>
 <object id='addUserGroup' module='Products.ZenModel.ZenMenuItem' class='ZenMenuItem'>
+<property id='zendoc' type='string'>
+Add New Group...
+</property>
 <property type="text" id="description" mode="w" >
 Add New Group...
 </property>
@@ -1719,6 +1885,9 @@ True
 </property>
 </object>
 <object id='addUserToGroups' module='Products.ZenModel.ZenMenuItem' class='ZenMenuItem'>
+<property id='zendoc' type='string'>
+Add User...
+</property>
 <property type="text" id="description" mode="w" >
 Add User...
 </property>
@@ -1739,6 +1908,9 @@ True
 </property>
 </object>
 <object id='deleteUserGroups' module='Products.ZenModel.ZenMenuItem' class='ZenMenuItem'>
+<property id='zendoc' type='string'>
+Delete Groups...
+</property>
 <property type="text" id="description" mode="w" >
 Delete Groups...
 </property>
@@ -1763,6 +1935,9 @@ True
 <object id='HistoryEvent_list' module='Products.ZenModel.ZenMenu' class='ZenMenu'>
 <tomanycont id='zenMenuItems'>
 <object id='createEventMap' module='Products.ZenModel.ZenMenuItem' class='ZenMenuItem'>
+<property id='zendoc' type='string'>
+Map Events to Class...
+</property>
 <property type="text" id="description" mode="w" >
 Map Events to Class...
 </property>
@@ -1783,6 +1958,9 @@ True
 </property>
 </object>
 <object id='exportAllEvents' module='Products.ZenModel.ZenMenuItem' class='ZenMenuItem'>
+<property id='zendoc' type='string'>
+Download as CSV
+</property>
 <property type="text" id="description" mode="w" >
 Download as CSV
 </property>
@@ -1803,6 +1981,9 @@ False
 </property>
 </object>
 <object id='undeleteHistoryEvents' module='Products.ZenModel.ZenMenuItem' class='ZenMenuItem'>
+<property id='zendoc' type='string'>
+Undelete Events...
+</property>
 <property type="text" id="description" mode="w" >
 Undelete Events...
 </property>
@@ -1827,6 +2008,9 @@ True
 <object id='IpAddresses' module='Products.ZenModel.ZenMenu' class='ZenMenu'>
 <tomanycont id='zenMenuItems'>
 <object id='deleteIpAddress' module='Products.ZenModel.ZenMenuItem' class='ZenMenuItem'>
+<property id='zendoc' type='string'>
+Delete IpAddresses...
+</property>
 <property type="text" id="description" mode="w" >
 Delete IpAddresses...
 </property>
@@ -1851,6 +2035,9 @@ True
 <object id='IpInterface' module='Products.ZenModel.ZenMenu' class='ZenMenu'>
 <tomanycont id='zenMenuItems'>
 <object id='addIpInterface' module='Products.ZenModel.ZenMenuItem' class='ZenMenuItem'>
+<property id='zendoc' type='string'>
+Add IpInterface...
+</property>
 <property type="text" id="description" mode="w" >
 Add IpInterface...
 </property>
@@ -1870,71 +2057,14 @@ True
 90.0
 </property>
 </object>
-<object id='changeMonitoring' module='Products.ZenModel.ZenMenuItem' class='ZenMenuItem'>
-<property type="text" id="description" mode="w" >
-Monitoring...
-</property>
-<property type="text" id="action" mode="w" >
-dialog_changeMonitoring
-</property>
-<property type="boolean" id="isglobal" mode="w" >
-True
-</property>
-<property type="lines" id="permissions" mode="w" >
-('Manage DMD',)
-</property>
-<property type="boolean" id="isdialog" mode="w" >
-True
-</property>
-<property type="float" id="ordering" mode="w" >
-0.0
-</property>
-</object>
-<object id='deleteIpInterfaces' module='Products.ZenModel.ZenMenuItem' class='ZenMenuItem'>
-<property type="text" id="description" mode="w" >
-Delete IpInterfaces...
-</property>
-<property type="text" id="action" mode="w" >
-dialog_deleteIpInterfaces
-</property>
-<property type="boolean" id="isglobal" mode="w" >
-True
-</property>
-<property type="lines" id="permissions" mode="w" >
-('Change Device',)
-</property>
-<property type="boolean" id="isdialog" mode="w" >
-True
-</property>
-<property type="float" id="ordering" mode="w" >
-80.0
-</property>
-</object>
-<object id='lockIpInterfaces' module='Products.ZenModel.ZenMenuItem' class='ZenMenuItem'>
-<property type="text" id="description" mode="w" >
-Lock IpInterfaces...
-</property>
-<property type="text" id="action" mode="w" >
-dialog_lockIpInterfaces
-</property>
-<property type="boolean" id="isglobal" mode="w" >
-True
-</property>
-<property type="lines" id="permissions" mode="w" >
-('Change Device',)
-</property>
-<property type="boolean" id="isdialog" mode="w" >
-True
-</property>
-<property type="float" id="ordering" mode="w" >
-2.0
-</property>
-</object>
 </tomanycont>
 </object>
 <object id='IpRouteEntry' module='Products.ZenModel.ZenMenu' class='ZenMenu'>
 <tomanycont id='zenMenuItems'>
 <object id='addIpRouteEntry' module='Products.ZenModel.ZenMenuItem' class='ZenMenuItem'>
+<property id='zendoc' type='string'>
+Add IpRouteEntry...
+</property>
 <property type="text" id="description" mode="w" >
 Add IpRouteEntry...
 </property>
@@ -1954,51 +2084,14 @@ True
 90.0
 </property>
 </object>
-<object id='deleteIpRouteEntries' module='Products.ZenModel.ZenMenuItem' class='ZenMenuItem'>
-<property type="text" id="description" mode="w" >
-Delete Entries...
-</property>
-<property type="text" id="action" mode="w" >
-dialog_deleteIpRouteEntries
-</property>
-<property type="boolean" id="isglobal" mode="w" >
-True
-</property>
-<property type="lines" id="permissions" mode="w" >
-('Change Device',)
-</property>
-<property type="boolean" id="isdialog" mode="w" >
-True
-</property>
-<property type="float" id="ordering" mode="w" >
-80.0
-</property>
-</object>
-<object id='lockIpRouteEntries' module='Products.ZenModel.ZenMenuItem' class='ZenMenuItem'>
-<property type="text" id="description" mode="w" >
-Lock IpRouteEntries...
-</property>
-<property type="text" id="action" mode="w" >
-dialog_lockIpRouteEntries
-</property>
-<property type="boolean" id="isglobal" mode="w" >
-True
-</property>
-<property type="lines" id="permissions" mode="w" >
-('Change Device',)
-</property>
-<property type="boolean" id="isdialog" mode="w" >
-True
-</property>
-<property type="float" id="ordering" mode="w" >
-2.0
-</property>
-</object>
 </tomanycont>
 </object>
 <object id='IpService' module='Products.ZenModel.ZenMenu' class='ZenMenu'>
 <tomanycont id='zenMenuItems'>
 <object id='addIpService' module='Products.ZenModel.ZenMenuItem' class='ZenMenuItem'>
+<property id='zendoc' type='string'>
+Add IpService...
+</property>
 <property type="text" id="description" mode="w" >
 Add IpService...
 </property>
@@ -2018,71 +2111,14 @@ True
 90.0
 </property>
 </object>
-<object id='changeMonitoring' module='Products.ZenModel.ZenMenuItem' class='ZenMenuItem'>
-<property type="text" id="description" mode="w" >
-Monitoring...
-</property>
-<property type="text" id="action" mode="w" >
-dialog_changeMonitoring
-</property>
-<property type="boolean" id="isglobal" mode="w" >
-True
-</property>
-<property type="lines" id="permissions" mode="w" >
-('Manage DMD',)
-</property>
-<property type="boolean" id="isdialog" mode="w" >
-True
-</property>
-<property type="float" id="ordering" mode="w" >
-0.0
-</property>
-</object>
-<object id='deleteIpServices' module='Products.ZenModel.ZenMenuItem' class='ZenMenuItem'>
-<property type="text" id="description" mode="w" >
-Delete IpServices...
-</property>
-<property type="text" id="action" mode="w" >
-dialog_deleteIpServices
-</property>
-<property type="boolean" id="isglobal" mode="w" >
-True
-</property>
-<property type="lines" id="permissions" mode="w" >
-('Change Device',)
-</property>
-<property type="boolean" id="isdialog" mode="w" >
-True
-</property>
-<property type="float" id="ordering" mode="w" >
-80.0
-</property>
-</object>
-<object id='lockIpServices' module='Products.ZenModel.ZenMenuItem' class='ZenMenuItem'>
-<property type="text" id="description" mode="w" >
-Lock IpServices...
-</property>
-<property type="text" id="action" mode="w" >
-dialog_lockIpServices
-</property>
-<property type="boolean" id="isglobal" mode="w" >
-True
-</property>
-<property type="lines" id="permissions" mode="w" >
-('Change Device',)
-</property>
-<property type="boolean" id="isdialog" mode="w" >
-True
-</property>
-<property type="float" id="ordering" mode="w" >
-2.0
-</property>
-</object>
 </tomanycont>
 </object>
 <object id='MaintenanceWindow_list' module='Products.ZenModel.ZenMenu' class='ZenMenu'>
 <tomanycont id='zenMenuItems'>
 <object id='addMaintenanceWindow' module='Products.ZenModel.ZenMenuItem' class='ZenMenuItem'>
+<property id='zendoc' type='string'>
+Add Maint Window...
+</property>
 <property type="text" id="description" mode="w" >
 Add Maint Window...
 </property>
@@ -2103,6 +2139,9 @@ True
 </property>
 </object>
 <object id='deleteMaintenanceWindows' module='Products.ZenModel.ZenMenuItem' class='ZenMenuItem'>
+<property id='zendoc' type='string'>
+Delete Maint Windows...
+</property>
 <property type="text" id="description" mode="w" >
 Delete Maint Windows...
 </property>
@@ -2126,30 +2165,10 @@ True
 </object>
 <object id='Manage' module='Products.ZenModel.ZenMenu' class='ZenMenu'>
 <tomanycont id='zenMenuItems'>
-<object id='changeClass' module='Products.ZenModel.ZenMenuItem' class='ZenMenuItem'>
-<property type="text" id="description" mode="w" >
-Change Class...
-</property>
-<property type="text" id="action" mode="w" >
-dialog_changeClass
-</property>
-<property type="boolean" id="isglobal" mode="w" >
-True
-</property>
-<property type="lines" id="permissions" mode="w" >
-('Admin Device',)
-</property>
-<property type="lines" id="allowed_classes" mode="w" >
-['Device', 'OperatingSystem']
-</property>
-<property type="boolean" id="isdialog" mode="w" >
-True
-</property>
-<property type="float" id="ordering" mode="w" >
-85.0
-</property>
-</object>
 <object id='clearHeartbeats' module='Products.ZenModel.ZenMenuItem' class='ZenMenuItem'>
+<property id='zendoc' type='string'>
+Clear Heartbeats...
+</property>
 <property type="text" id="description" mode="w" >
 Clear Heartbeats...
 </property>
@@ -2173,6 +2192,9 @@ True
 </property>
 </object>
 <object id='deleteDevice' module='Products.ZenModel.ZenMenuItem' class='ZenMenuItem'>
+<property id='zendoc' type='string'>
+Delete Device...
+</property>
 <property type="text" id="description" mode="w" >
 Delete Device...
 </property>
@@ -2196,6 +2218,9 @@ True
 </property>
 </object>
 <object id='lockObject' module='Products.ZenModel.ZenMenuItem' class='ZenMenuItem'>
+<property id='zendoc' type='string'>
+Lock...
+</property>
 <property type="text" id="description" mode="w" >
 Lock...
 </property>
@@ -2219,6 +2244,9 @@ True
 </property>
 </object>
 <object id='modelDevice' module='Products.ZenModel.ZenMenuItem' class='ZenMenuItem'>
+<property id='zendoc' type='string'>
+Model Device
+</property>
 <property type="text" id="description" mode="w" >
 Model Device
 </property>
@@ -2242,6 +2270,9 @@ False
 </property>
 </object>
 <object id='pushConfig_os' module='Products.ZenModel.ZenMenuItem' class='ZenMenuItem'>
+<property id='zendoc' type='string'>
+Push Changes
+</property>
 <property type="text" id="description" mode="w" >
 Push Changes
 </property>
@@ -2265,6 +2296,9 @@ False
 </property>
 </object>
 <object id='renameDevice' module='Products.ZenModel.ZenMenuItem' class='ZenMenuItem'>
+<property id='zendoc' type='string'>
+Rename Device...
+</property>
 <property type="text" id="description" mode="w" >
 Rename Device...
 </property>
@@ -2292,6 +2326,9 @@ True
 <object id='Manufacturer_list' module='Products.ZenModel.ZenMenu' class='ZenMenu'>
 <tomanycont id='zenMenuItems'>
 <object id='addManufacturer' module='Products.ZenModel.ZenMenuItem' class='ZenMenuItem'>
+<property id='zendoc' type='string'>
+Add Manufacturer...
+</property>
 <property type="text" id="description" mode="w" >
 Add Manufacturer...
 </property>
@@ -2312,6 +2349,9 @@ True
 </property>
 </object>
 <object id='removeManufacturers' module='Products.ZenModel.ZenMenuItem' class='ZenMenuItem'>
+<property id='zendoc' type='string'>
+Delete Manufacturers...
+</property>
 <property type="text" id="description" mode="w" >
 Delete Manufacturers...
 </property>
@@ -2336,6 +2376,9 @@ True
 <object id='Menus' module='Products.ZenModel.ZenMenu' class='ZenMenu'>
 <tomanycont id='zenMenuItems'>
 <object id='addMenuItem' module='Products.ZenModel.ZenMenuItem' class='ZenMenuItem'>
+<property id='zendoc' type='string'>
+Add Menu Item...
+</property>
 <property type="text" id="description" mode="w" >
 Add Menu Item...
 </property>
@@ -2359,6 +2402,9 @@ True
 </property>
 </object>
 <object id='addToZenPack' module='Products.ZenModel.ZenMenuItem' class='ZenMenuItem'>
+<property id='zendoc' type='string'>
+Add to ZenPack...
+</property>
 <property type="text" id="description" mode="w" >
 Add to ZenPack...
 </property>
@@ -2379,6 +2425,9 @@ True
 </property>
 </object>
 <object id='deleteMenuItems' module='Products.ZenModel.ZenMenuItem' class='ZenMenuItem'>
+<property id='zendoc' type='string'>
+Delete Menu Items...
+</property>
 <property type="text" id="description" mode="w" >
 Delete Menu Items...
 </property>
@@ -2402,6 +2451,9 @@ True
 </property>
 </object>
 <object id='saveOrdering' module='Products.ZenModel.ZenMenuItem' class='ZenMenuItem'>
+<property id='zendoc' type='string'>
+Save Ordering...
+</property>
 <property type="text" id="description" mode="w" >
 Save Ordering...
 </property>
@@ -2429,6 +2481,9 @@ True
 <object id='Mib_list' module='Products.ZenModel.ZenMenu' class='ZenMenu'>
 <tomanycont id='zenMenuItems'>
 <object id='addMibModule' module='Products.ZenModel.ZenMenuItem' class='ZenMenuItem'>
+<property id='zendoc' type='string'>
+Add Mib...
+</property>
 <property type="text" id="description" mode="w" >
 Add Mib...
 </property>
@@ -2449,6 +2504,9 @@ True
 </property>
 </object>
 <object id='addToZenPack' module='Products.ZenModel.ZenMenuItem' class='ZenMenuItem'>
+<property id='zendoc' type='string'>
+Add to ZenPack...
+</property>
 <property type="text" id="description" mode="w" >
 Add to ZenPack...
 </property>
@@ -2469,6 +2527,9 @@ True
 </property>
 </object>
 <object id='moveMibModules' module='Products.ZenModel.ZenMenuItem' class='ZenMenuItem'>
+<property id='zendoc' type='string'>
+Move Mibs...
+</property>
 <property type="text" id="description" mode="w" >
 Move Mibs...
 </property>
@@ -2489,6 +2550,9 @@ True
 </property>
 </object>
 <object id='removeMibModules' module='Products.ZenModel.ZenMenuItem' class='ZenMenuItem'>
+<property id='zendoc' type='string'>
+Delete Mibs...
+</property>
 <property type="text" id="description" mode="w" >
 Delete Mibs...
 </property>
@@ -2513,6 +2577,9 @@ True
 <object id='More' module='Products.ZenModel.ZenMenu' class='ZenMenu'>
 <tomanycont id='zenMenuItems'>
 <object id='addToZenPack' module='Products.ZenModel.ZenMenuItem' class='ZenMenuItem'>
+<property id='zendoc' type='string'>
+Add to ZenPack...
+</property>
 <property type="text" id="description" mode="w" >
 Add to ZenPack...
 </property>
@@ -2539,6 +2606,9 @@ True
 </property>
 </object>
 <object id='collectorPlugins' module='Products.ZenModel.ZenMenuItem' class='ZenMenuItem'>
+<property id='zendoc' type='string'>
+Modeler Plugins
+</property>
 <property type="text" id="description" mode="w" >
 Modeler Plugins
 </property>
@@ -2562,6 +2632,9 @@ False
 </property>
 </object>
 <object id='deleteObject' module='Products.ZenModel.ZenMenuItem' class='ZenMenuItem'>
+<property id='zendoc' type='string'>
+Delete
+</property>
 <property type="text" id="description" mode="w" >
 Delete
 </property>
@@ -2585,6 +2658,9 @@ True
 </property>
 </object>
 <object id='deviceCustomEdit' module='Products.ZenModel.ZenMenuItem' class='ZenMenuItem'>
+<property id='zendoc' type='string'>
+Custom Properties
+</property>
 <property type="text" id="description" mode="w" >
 Custom Properties
 </property>
@@ -2608,6 +2684,9 @@ False
 </property>
 </object>
 <object id='deviceCustomEdit_os' module='Products.ZenModel.ZenMenuItem' class='ZenMenuItem'>
+<property id='zendoc' type='string'>
+Custom
+</property>
 <property type="text" id="description" mode="w" >
 Custom
 </property>
@@ -2631,6 +2710,9 @@ False
 </property>
 </object>
 <object id='deviceManagement' module='Products.ZenModel.ZenMenuItem' class='ZenMenuItem'>
+<property id='zendoc' type='string'>
+Administration
+</property>
 <property type="text" id="description" mode="w" >
 Administration
 </property>
@@ -2654,6 +2736,9 @@ False
 </property>
 </object>
 <object id='deviceManagement_os' module='Products.ZenModel.ZenMenuItem' class='ZenMenuItem'>
+<property id='zendoc' type='string'>
+Administration
+</property>
 <property type="text" id="description" mode="w" >
 Administration
 </property>
@@ -2677,6 +2762,9 @@ False
 </property>
 </object>
 <object id='editCustSchema' module='Products.ZenModel.ZenMenuItem' class='ZenMenuItem'>
+<property id='zendoc' type='string'>
+Custom Schema
+</property>
 <property type="text" id="description" mode="w" >
 Custom Schema
 </property>
@@ -2700,6 +2788,9 @@ False
 </property>
 </object>
 <object id='exportZenPack' module='Products.ZenModel.ZenMenuItem' class='ZenMenuItem'>
+<property id='zendoc' type='string'>
+Export ZenPack...
+</property>
 <property type="text" id="description" mode="w" >
 Export ZenPack...
 </property>
@@ -2723,6 +2814,9 @@ True
 </property>
 </object>
 <object id='historyEvents' module='Products.ZenModel.ZenMenuItem' class='ZenMenuItem'>
+<property id='zendoc' type='string'>
+Event History
+</property>
 <property type="text" id="description" mode="w" >
 Event History
 </property>
@@ -2749,6 +2843,9 @@ False
 </property>
 </object>
 <object id='objTemplates' module='Products.ZenModel.ZenMenuItem' class='ZenMenuItem'>
+<property id='zendoc' type='string'>
+Templates
+</property>
 <property type="text" id="description" mode="w" >
 Templates
 </property>
@@ -2772,6 +2869,9 @@ False
 </property>
 </object>
 <object id='objTemplates_os' module='Products.ZenModel.ZenMenuItem' class='ZenMenuItem'>
+<property id='zendoc' type='string'>
+Templates
+</property>
 <property type="text" id="description" mode="w" >
 Templates
 </property>
@@ -2795,6 +2895,9 @@ False
 </property>
 </object>
 <object id='overriddenObjects' module='Products.ZenModel.ZenMenuItem' class='ZenMenuItem'>
+<property id='zendoc' type='string'>
+Overridden Objects
+</property>
 <property type="text" id="description" mode="w" >
 Overridden Objects
 </property>
@@ -2818,6 +2921,9 @@ False
 </property>
 </object>
 <object id='overriddenObjects_new' module='Products.ZenModel.ZenMenuItem' class='ZenMenuItem'>
+<property id='zendoc' type='string'>
+Overridden Objects
+</property>
 <property type="text" id="description" mode="w" >
 Overridden Objects
 </property>
@@ -2841,6 +2947,9 @@ False
 </property>
 </object>
 <object id='performanceTemplates' module='Products.ZenModel.ZenMenuItem' class='ZenMenuItem'>
+<property id='zendoc' type='string'>
+All Templates
+</property>
 <property type="text" id="description" mode="w" >
 All Templates
 </property>
@@ -2864,6 +2973,9 @@ False
 </property>
 </object>
 <object id='transform' module='Products.ZenModel.ZenMenuItem' class='ZenMenuItem'>
+<property id='zendoc' type='string'>
+Transform
+</property>
 <property type="text" id="description" mode="w" >
 Transform
 </property>
@@ -2887,6 +2999,9 @@ False
 </property>
 </object>
 <object id='viewHistory' module='Products.ZenModel.ZenMenuItem' class='ZenMenuItem'>
+<property id='zendoc' type='string'>
+Modifications
+</property>
 <property type="text" id="description" mode="w" >
 Modifications
 </property>
@@ -2900,7 +3015,7 @@ True
 ('View History',)
 </property>
 <property type="lines" id="banned_classes" mode="w" >
-('IpNetwork',)
+['IpNetwork']
 </property>
 <property type="lines" id="allowed_classes" mode="w" >
 ['Device', 'System', 'DeviceGroup', 'Location', 'DeviceClass']
@@ -2912,7 +3027,39 @@ False
 2.0
 </property>
 </object>
+<object id='viewHistory_new' module='Products.ZenModel.ZenMenuItem' class='ZenMenuItem'>
+<property id='zendoc' type='string'>
+Modifications
+</property>
+<property type="text" id="description" mode="w" >
+Modifications
+</property>
+<property type="text" id="action" mode="w" >
+viewNewHistory
+</property>
+<property type="boolean" id="isglobal" mode="w" >
+True
+</property>
+<property type="lines" id="permissions" mode="w" >
+('View History',)
+</property>
+<property type="lines" id="banned_classes" mode="w" >
+['IpNetwork']
+</property>
+<property type="lines" id="allowed_classes" mode="w" >
+['EventClass']
+</property>
+<property type="boolean" id="isdialog" mode="w" >
+False
+</property>
+<property type="float" id="ordering" mode="w" >
+2.0
+</property>
+</object>
 <object id='viewHistory_os' module='Products.ZenModel.ZenMenuItem' class='ZenMenuItem'>
+<property id='zendoc' type='string'>
+Modifications
+</property>
 <property type="text" id="description" mode="w" >
 Modifications
 </property>
@@ -2935,33 +3082,10 @@ False
 2.0
 </property>
 </object>
-<object id='viewHistory_new' module='Products.ZenModel.ZenMenuItem' class='ZenMenuItem'>
-<property type="text" id="description" mode="w" >
-Modifications
-</property>
-<property type="text" id="action" mode="w" >
-viewNewHistory
-</property>
-<property type="boolean" id="isglobal" mode="w" >
-True
-</property>
-<property type="lines" id="permissions" mode="w" >
-('View History',)
-</property>
-<property type="lines" id="banned_classes" mode="w" >
-('IpNetwork',)
-</property>
-<property type="lines" id="allowed_classes" mode="w" >
-['EventClass']
-</property>
-<property type="boolean" id="isdialog" mode="w" >
-False
-</property>
-<property type="float" id="ordering" mode="w" >
-2.0
-</property>
-</object>
 <object id='zPropertyEdit' module='Products.ZenModel.ZenMenuItem' class='ZenMenuItem'>
+<property id='zendoc' type='string'>
+Configuration Properties
+</property>
 <property type="text" id="description" mode="w" >
 Configuration Properties
 </property>
@@ -2985,6 +3109,9 @@ False
 </property>
 </object>
 <object id='zPropertyEdit_os' module='Products.ZenModel.ZenMenuItem' class='ZenMenuItem'>
+<property id='zendoc' type='string'>
+Configuration Properties
+</property>
 <property type="text" id="description" mode="w" >
 Configuration Properties
 </property>
@@ -3012,6 +3139,9 @@ False
 <object id='OIDMappings' module='Products.ZenModel.ZenMenu' class='ZenMenu'>
 <tomanycont id='zenMenuItems'>
 <object id='addOIDMapping' module='Products.ZenModel.ZenMenuItem' class='ZenMenuItem'>
+<property id='zendoc' type='string'>
+Add OID Mapping...
+</property>
 <property type="text" id="description" mode="w" >
 Add OID Mapping...
 </property>
@@ -3032,6 +3162,9 @@ True
 </property>
 </object>
 <object id='deleteOIDMapping' module='Products.ZenModel.ZenMenuItem' class='ZenMenuItem'>
+<property id='zendoc' type='string'>
+Delete OID Mapping...
+</property>
 <property type="text" id="description" mode="w" >
 Delete OID Mapping...
 </property>
@@ -3056,6 +3189,9 @@ True
 <object id='OSProcess' module='Products.ZenModel.ZenMenu' class='ZenMenu'>
 <tomanycont id='zenMenuItems'>
 <object id='addOSProcess' module='Products.ZenModel.ZenMenuItem' class='ZenMenuItem'>
+<property id='zendoc' type='string'>
+Add OSProcess...
+</property>
 <property type="text" id="description" mode="w" >
 Add OSProcess...
 </property>
@@ -3075,71 +3211,14 @@ True
 90.0
 </property>
 </object>
-<object id='changeMonitoring' module='Products.ZenModel.ZenMenuItem' class='ZenMenuItem'>
-<property type="text" id="description" mode="w" >
-Monitoring...
-</property>
-<property type="text" id="action" mode="w" >
-dialog_changeMonitoring
-</property>
-<property type="boolean" id="isglobal" mode="w" >
-True
-</property>
-<property type="lines" id="permissions" mode="w" >
-('Manage DMD',)
-</property>
-<property type="boolean" id="isdialog" mode="w" >
-True
-</property>
-<property type="float" id="ordering" mode="w" >
-0.0
-</property>
-</object>
-<object id='deleteOSProcesses' module='Products.ZenModel.ZenMenuItem' class='ZenMenuItem'>
-<property type="text" id="description" mode="w" >
-Delete OSProcesses...
-</property>
-<property type="text" id="action" mode="w" >
-dialog_deleteOSProcesses
-</property>
-<property type="boolean" id="isglobal" mode="w" >
-True
-</property>
-<property type="lines" id="permissions" mode="w" >
-('Change Device',)
-</property>
-<property type="boolean" id="isdialog" mode="w" >
-True
-</property>
-<property type="float" id="ordering" mode="w" >
-80.0
-</property>
-</object>
-<object id='lockOSProcesses' module='Products.ZenModel.ZenMenuItem' class='ZenMenuItem'>
-<property type="text" id="description" mode="w" >
-Lock OSProcesses...
-</property>
-<property type="text" id="action" mode="w" >
-dialog_lockOSProcesses
-</property>
-<property type="boolean" id="isglobal" mode="w" >
-True
-</property>
-<property type="lines" id="permissions" mode="w" >
-('Change Device',)
-</property>
-<property type="boolean" id="isdialog" mode="w" >
-True
-</property>
-<property type="float" id="ordering" mode="w" >
-2.0
-</property>
-</object>
 </tomanycont>
 </object>
 <object id='OSProcessResequence_list' module='Products.ZenModel.ZenMenu' class='ZenMenu'>
 <tomanycont id='zenMenuItems'>
 <object id='resequenceOsProcesses' module='Products.ZenModel.ZenMenuItem' class='ZenMenuItem'>
+<property id='zendoc' type='string'>
+Re-sequence Processes
+</property>
 <property type="text" id="description" mode="w" >
 Re-sequence Processes
 </property>
@@ -3164,6 +3243,9 @@ False
 <object id='OSProcess_list' module='Products.ZenModel.ZenMenu' class='ZenMenu'>
 <tomanycont id='zenMenuItems'>
 <object id='addOSProcess' module='Products.ZenModel.ZenMenuItem' class='ZenMenuItem'>
+<property id='zendoc' type='string'>
+Add Process...
+</property>
 <property type="text" id="description" mode="w" >
 Add Process...
 </property>
@@ -3184,6 +3266,9 @@ True
 </property>
 </object>
 <object id='addToZenPack' module='Products.ZenModel.ZenMenuItem' class='ZenMenuItem'>
+<property id='zendoc' type='string'>
+Add to ZenPack...
+</property>
 <property type="text" id="description" mode="w" >
 Add to ZenPack...
 </property>
@@ -3204,6 +3289,9 @@ True
 </property>
 </object>
 <object id='moveOSProcesses' module='Products.ZenModel.ZenMenuItem' class='ZenMenuItem'>
+<property id='zendoc' type='string'>
+Move Processes...
+</property>
 <property type="text" id="description" mode="w" >
 Move Processes...
 </property>
@@ -3224,6 +3312,9 @@ True
 </property>
 </object>
 <object id='removeOSProcesses' module='Products.ZenModel.ZenMenuItem' class='ZenMenuItem'>
+<property id='zendoc' type='string'>
+Delete Processes...
+</property>
 <property type="text" id="description" mode="w" >
 Delete Processes...
 </property>
@@ -3248,6 +3339,9 @@ True
 <object id='Organizer_list' module='Products.ZenModel.ZenMenu' class='ZenMenu'>
 <tomanycont id='zenMenuItems'>
 <object id='addOrganizer' module='Products.ZenModel.ZenMenuItem' class='ZenMenuItem'>
+<property id='zendoc' type='string'>
+Add New Organizer...
+</property>
 <property type="text" id="description" mode="w" >
 Add New Organizer...
 </property>
@@ -3268,6 +3362,9 @@ True
 </property>
 </object>
 <object id='addToZenPack' module='Products.ZenModel.ZenMenuItem' class='ZenMenuItem'>
+<property id='zendoc' type='string'>
+Add to ZenPack...
+</property>
 <property type="text" id="description" mode="w" >
 Add to ZenPack...
 </property>
@@ -3291,6 +3388,9 @@ True
 </property>
 </object>
 <object id='moveOrganizer' module='Products.ZenModel.ZenMenuItem' class='ZenMenuItem'>
+<property id='zendoc' type='string'>
+Move Organizers...
+</property>
 <property type="text" id="description" mode="w" >
 Move Organizers...
 </property>
@@ -3311,6 +3411,9 @@ True
 </property>
 </object>
 <object id='removeOrganizers' module='Products.ZenModel.ZenMenuItem' class='ZenMenuItem'>
+<property id='zendoc' type='string'>
+Delete Organizers...
+</property>
 <property type="text" id="description" mode="w" >
 Delete Organizers...
 </property>
@@ -3335,6 +3438,9 @@ True
 <object id='PerformanceMonitor_list' module='Products.ZenModel.ZenMenu' class='ZenMenu'>
 <tomanycont id='zenMenuItems'>
 <object id='addPMonitor' module='Products.ZenModel.ZenMenuItem' class='ZenMenuItem'>
+<property id='zendoc' type='string'>
+Add Monitor...
+</property>
 <property type="text" id="description" mode="w" >
 Add Monitor...
 </property>
@@ -3355,6 +3461,9 @@ True
 </property>
 </object>
 <object id='performanceConf' module='Products.ZenModel.ZenMenuItem' class='ZenMenuItem'>
+<property id='zendoc' type='string'>
+Performance Template
+</property>
 <property type="text" id="description" mode="w" >
 Performance Template
 </property>
@@ -3375,6 +3484,9 @@ False
 </property>
 </object>
 <object id='removePMonitors' module='Products.ZenModel.ZenMenuItem' class='ZenMenuItem'>
+<property id='zendoc' type='string'>
+Delete Monitors...
+</property>
 <property type="text" id="description" mode="w" >
 Delete Monitors...
 </property>
@@ -3399,6 +3511,9 @@ True
 <object id='Product_list' module='Products.ZenModel.ZenMenu' class='ZenMenu'>
 <tomanycont id='zenMenuItems'>
 <object id='addHardware' module='Products.ZenModel.ZenMenuItem' class='ZenMenuItem'>
+<property id='zendoc' type='string'>
+Add New Hardware...
+</property>
 <property type="text" id="description" mode="w" >
 Add New Hardware...
 </property>
@@ -3419,6 +3534,9 @@ True
 </property>
 </object>
 <object id='addOS' module='Products.ZenModel.ZenMenuItem' class='ZenMenuItem'>
+<property id='zendoc' type='string'>
+Add New OS...
+</property>
 <property type="text" id="description" mode="w" >
 Add New OS...
 </property>
@@ -3439,6 +3557,9 @@ True
 </property>
 </object>
 <object id='addSoftware' module='Products.ZenModel.ZenMenuItem' class='ZenMenuItem'>
+<property id='zendoc' type='string'>
+Add New Software...
+</property>
 <property type="text" id="description" mode="w" >
 Add New Software...
 </property>
@@ -3459,6 +3580,9 @@ True
 </property>
 </object>
 <object id='addToZenPack' module='Products.ZenModel.ZenMenuItem' class='ZenMenuItem'>
+<property id='zendoc' type='string'>
+Add to ZenPack...
+</property>
 <property type="text" id="description" mode="w" >
 Add to ZenPack...
 </property>
@@ -3479,6 +3603,9 @@ True
 </property>
 </object>
 <object id='deleteProducts' module='Products.ZenModel.ZenMenuItem' class='ZenMenuItem'>
+<property id='zendoc' type='string'>
+Delete Products...
+</property>
 <property type="text" id="description" mode="w" >
 Delete Products...
 </property>
@@ -3499,6 +3626,9 @@ True
 </property>
 </object>
 <object id='moveToManufacturer' module='Products.ZenModel.ZenMenuItem' class='ZenMenuItem'>
+<property id='zendoc' type='string'>
+Move To Manufacturer...
+</property>
 <property type="text" id="description" mode="w" >
 Move To Manufacturer...
 </property>
@@ -3523,6 +3653,9 @@ True
 <object id='ReportClass_list' module='Products.ZenModel.ZenMenu' class='ZenMenu'>
 <tomanycont id='zenMenuItems'>
 <object id='addReportClass' module='Products.ZenModel.ZenMenuItem' class='ZenMenuItem'>
+<property id='zendoc' type='string'>
+Add Report Organizer...
+</property>
 <property type="text" id="description" mode="w" >
 Add Report Organizer...
 </property>
@@ -3546,6 +3679,9 @@ True
 </property>
 </object>
 <object id='addToZenPack' module='Products.ZenModel.ZenMenuItem' class='ZenMenuItem'>
+<property id='zendoc' type='string'>
+Add to ZenPack...
+</property>
 <property type="text" id="description" mode="w" >
 Add to ZenPack...
 </property>
@@ -3566,6 +3702,9 @@ True
 </property>
 </object>
 <object id='deleteReportClasses' module='Products.ZenModel.ZenMenuItem' class='ZenMenuItem'>
+<property id='zendoc' type='string'>
+Delete Report Organizers...
+</property>
 <property type="text" id="description" mode="w" >
 Delete Report Organizers...
 </property>
@@ -3593,6 +3732,9 @@ True
 <object id='Report_list' module='Products.ZenModel.ZenMenu' class='ZenMenu'>
 <tomanycont id='zenMenuItems'>
 <object id='addDeviceReport' module='Products.ZenModel.ZenMenuItem' class='ZenMenuItem'>
+<property id='zendoc' type='string'>
+Add Device Report...
+</property>
 <property type="text" id="description" mode="w" >
 Add Device Report...
 </property>
@@ -3616,6 +3758,9 @@ True
 </property>
 </object>
 <object id='addGraphReport' module='Products.ZenModel.ZenMenuItem' class='ZenMenuItem'>
+<property id='zendoc' type='string'>
+Add Graph Report...
+</property>
 <property type="text" id="description" mode="w" >
 Add Graph Report...
 </property>
@@ -3639,6 +3784,9 @@ True
 </property>
 </object>
 <object id='addMultiGraphReport' module='Products.ZenModel.ZenMenuItem' class='ZenMenuItem'>
+<property id='zendoc' type='string'>
+Add Multi-Graph Report...
+</property>
 <property type="text" id="description" mode="w" >
 Add Multi-Graph Report...
 </property>
@@ -3662,6 +3810,9 @@ True
 </property>
 </object>
 <object id='deleteDeviceReports' module='Products.ZenModel.ZenMenuItem' class='ZenMenuItem'>
+<property id='zendoc' type='string'>
+Delete Reports...
+</property>
 <property type="text" id="description" mode="w" >
 Delete Reports...
 </property>
@@ -3685,6 +3836,9 @@ True
 </property>
 </object>
 <object id='moveDeviceReports' module='Products.ZenModel.ZenMenuItem' class='ZenMenuItem'>
+<property id='zendoc' type='string'>
+Move Reports...
+</property>
 <property type="text" id="description" mode="w" >
 Move Reports...
 </property>
@@ -3712,6 +3866,9 @@ True
 <object id='Service_list' module='Products.ZenModel.ZenMenu' class='ZenMenu'>
 <tomanycont id='zenMenuItems'>
 <object id='addIpServiceClass' module='Products.ZenModel.ZenMenuItem' class='ZenMenuItem'>
+<property id='zendoc' type='string'>
+Add IP Service...
+</property>
 <property type="text" id="description" mode="w" >
 Add IP Service...
 </property>
@@ -3732,6 +3889,9 @@ True
 </property>
 </object>
 <object id='addServiceClass' module='Products.ZenModel.ZenMenuItem' class='ZenMenuItem'>
+<property id='zendoc' type='string'>
+Add Service...
+</property>
 <property type="text" id="description" mode="w" >
 Add Service...
 </property>
@@ -3752,6 +3912,9 @@ True
 </property>
 </object>
 <object id='addToZenPack' module='Products.ZenModel.ZenMenuItem' class='ZenMenuItem'>
+<property id='zendoc' type='string'>
+Add to ZenPack...
+</property>
 <property type="text" id="description" mode="w" >
 Add to ZenPack...
 </property>
@@ -3772,6 +3935,9 @@ True
 </property>
 </object>
 <object id='moveServiceClasses' module='Products.ZenModel.ZenMenuItem' class='ZenMenuItem'>
+<property id='zendoc' type='string'>
+Move Services...
+</property>
 <property type="text" id="description" mode="w" >
 Move Services...
 </property>
@@ -3792,6 +3958,9 @@ True
 </property>
 </object>
 <object id='removeServiceClasses' module='Products.ZenModel.ZenMenuItem' class='ZenMenuItem'>
+<property id='zendoc' type='string'>
+Delete Services...
+</property>
 <property type="text" id="description" mode="w" >
 Delete Services...
 </property>
@@ -3816,6 +3985,9 @@ True
 <object id='SimpleDataPoint_list' module='Products.ZenModel.ZenMenu' class='ZenMenu'>
 <tomanycont id='zenMenuItems'>
 <object id='addDataPointAlias' module='Products.ZenModel.ZenMenuItem' class='ZenMenuItem'>
+<property id='zendoc' type='string'>
+Add Data Point Alias...
+</property>
 <property type="text" id="description" mode="w" >
 Add Data Point Alias...
 </property>
@@ -3836,6 +4008,9 @@ True
 </property>
 </object>
 <object id='addDataPointsToGraphs' module='Products.ZenModel.ZenMenuItem' class='ZenMenuItem'>
+<property id='zendoc' type='string'>
+Add to Graphs...
+</property>
 <property type="text" id="description" mode="w" >
 Add to Graphs...
 </property>
@@ -3856,6 +4031,9 @@ True
 </property>
 </object>
 <object id='removeDataPointAlias' module='Products.ZenModel.ZenMenuItem' class='ZenMenuItem'>
+<property id='zendoc' type='string'>
+Remove Data Point Alias...
+</property>
 <property type="text" id="description" mode="w" >
 Remove Data Point Alias...
 </property>
@@ -3880,6 +4058,9 @@ True
 <object id='StatusMonitor_list' module='Products.ZenModel.ZenMenu' class='ZenMenu'>
 <tomanycont id='zenMenuItems'>
 <object id='performanceTemplates' module='Products.ZenModel.ZenMenuItem' class='ZenMenuItem'>
+<property id='zendoc' type='string'>
+Templates
+</property>
 <property type="text" id="description" mode="w" >
 Templates
 </property>
@@ -3904,6 +4085,9 @@ False
 <object id='Subnetworks' module='Products.ZenModel.ZenMenu' class='ZenMenu'>
 <tomanycont id='zenMenuItems'>
 <object id='addNetwork' module='Products.ZenModel.ZenMenuItem' class='ZenMenuItem'>
+<property id='zendoc' type='string'>
+Add Network...
+</property>
 <property type="text" id="description" mode="w" >
 Add Network...
 </property>
@@ -3927,6 +4111,9 @@ True
 </property>
 </object>
 <object id='deleteNetwork' module='Products.ZenModel.ZenMenuItem' class='ZenMenuItem'>
+<property id='zendoc' type='string'>
+Delete Networks...
+</property>
 <property type="text" id="description" mode="w" >
 Delete Networks...
 </property>
@@ -3950,6 +4137,9 @@ True
 </property>
 </object>
 <object id='discoverDevices' module='Products.ZenModel.ZenMenuItem' class='ZenMenuItem'>
+<property id='zendoc' type='string'>
+Discover Devices
+</property>
 <property type="text" id="description" mode="w" >
 Discover Devices
 </property>
@@ -3977,6 +4167,9 @@ False
 <object id='Templates' module='Products.ZenModel.ZenMenu' class='ZenMenu'>
 <tomanycont id='zenMenuItems'>
 <object id='addTemplate' module='Products.ZenModel.ZenMenuItem' class='ZenMenuItem'>
+<property id='zendoc' type='string'>
+Add Template...
+</property>
 <property type="text" id="description" mode="w" >
 Add Template...
 </property>
@@ -3997,6 +4190,9 @@ True
 </property>
 </object>
 <object id='bindTemplate' module='Products.ZenModel.ZenMenuItem' class='ZenMenuItem'>
+<property id='zendoc' type='string'>
+Bind Templates...
+</property>
 <property type="text" id="description" mode="w" >
 Bind Templates...
 </property>
@@ -4017,6 +4213,9 @@ True
 </property>
 </object>
 <object id='copyPasteTemplates' module='Products.ZenModel.ZenMenuItem' class='ZenMenuItem'>
+<property id='zendoc' type='string'>
+Copy Templates...
+</property>
 <property type="text" id="description" mode="w" >
 Copy Templates...
 </property>
@@ -4037,6 +4236,9 @@ True
 </property>
 </object>
 <object id='deleteTemplates' module='Products.ZenModel.ZenMenuItem' class='ZenMenuItem'>
+<property id='zendoc' type='string'>
+Delete Templates...
+</property>
 <property type="text" id="description" mode="w" >
 Delete Templates...
 </property>
@@ -4057,6 +4259,9 @@ True
 </property>
 </object>
 <object id='removeZDeviceTemplates' module='Products.ZenModel.ZenMenuItem' class='ZenMenuItem'>
+<property id='zendoc' type='string'>
+Reset Bindings
+</property>
 <property type="text" id="description" mode="w" >
 Reset Bindings
 </property>
@@ -4081,6 +4286,9 @@ True
 <object id='Threshold_list' module='Products.ZenModel.ZenMenu' class='ZenMenu'>
 <tomanycont id='zenMenuItems'>
 <object id='addThreshold' module='Products.ZenModel.ZenMenuItem' class='ZenMenuItem'>
+<property id='zendoc' type='string'>
+Add Threshold...
+</property>
 <property type="text" id="description" mode="w" >
 Add Threshold...
 </property>
@@ -4101,6 +4309,9 @@ True
 </property>
 </object>
 <object id='addThresholdsToGraphs' module='Products.ZenModel.ZenMenuItem' class='ZenMenuItem'>
+<property id='zendoc' type='string'>
+Add to Graphs...
+</property>
 <property type="text" id="description" mode="w" >
 Add to Graphs...
 </property>
@@ -4121,6 +4332,9 @@ True
 </property>
 </object>
 <object id='deleteThreshold' module='Products.ZenModel.ZenMenuItem' class='ZenMenuItem'>
+<property id='zendoc' type='string'>
+Delete Threshold...
+</property>
 <property type="text" id="description" mode="w" >
 Delete Threshold...
 </property>
@@ -4145,6 +4359,9 @@ True
 <object id='TopLevel' module='Products.ZenModel.ZenMenu' class='ZenMenu'>
 <tomanycont id='zenMenuItems'>
 <object id='addEvent' module='Products.ZenModel.ZenMenuItem' class='ZenMenuItem'>
+<property id='zendoc' type='string'>
+Add Event...
+</property>
 <property type="text" id="description" mode="w" >
 Add Event...
 </property>
@@ -4168,6 +4385,9 @@ True
 </property>
 </object>
 <object id='discoverMyNetwork' module='Products.ZenModel.ZenMenuItem' class='ZenMenuItem'>
+<property id='zendoc' type='string'>
+Discover Devices
+</property>
 <property type="text" id="description" mode="w" >
 Discover Devices
 </property>
@@ -4194,6 +4414,9 @@ False
 </property>
 </object>
 <object id='manage_clearCache' module='Products.ZenModel.ZenMenuItem' class='ZenMenuItem'>
+<property id='zendoc' type='string'>
+Clear Event Cache...
+</property>
 <property type="text" id="description" mode="w" >
 Clear Event Cache...
 </property>
@@ -4217,6 +4440,9 @@ True
 </property>
 </object>
 <object id='manage_clearHeartbeats' module='Products.ZenModel.ZenMenuItem' class='ZenMenuItem'>
+<property id='zendoc' type='string'>
+Clear All Heartbeats...
+</property>
 <property type="text" id="description" mode="w" >
 Clear All Heartbeats...
 </property>
@@ -4240,6 +4466,9 @@ True
 </property>
 </object>
 <object id='manage_refreshConversions' module='Products.ZenModel.ZenMenuItem' class='ZenMenuItem'>
+<property id='zendoc' type='string'>
+Refresh Event Schema...
+</property>
 <property type="text" id="description" mode="w" >
 Refresh Event Schema...
 </property>
@@ -4267,6 +4496,9 @@ True
 <object id='Traps' module='Products.ZenModel.ZenMenu' class='ZenMenu'>
 <tomanycont id='zenMenuItems'>
 <object id='addTrap' module='Products.ZenModel.ZenMenuItem' class='ZenMenuItem'>
+<property id='zendoc' type='string'>
+Add Trap...
+</property>
 <property type="text" id="description" mode="w" >
 Add Trap...
 </property>
@@ -4287,6 +4519,9 @@ True
 </property>
 </object>
 <object id='deleteTrap' module='Products.ZenModel.ZenMenuItem' class='ZenMenuItem'>
+<property id='zendoc' type='string'>
+Delete Trap...
+</property>
 <property type="text" id="description" mode="w" >
 Delete Trap...
 </property>
@@ -4311,6 +4546,9 @@ True
 <object id='UserCommand_list' module='Products.ZenModel.ZenMenu' class='ZenMenu'>
 <tomanycont id='zenMenuItems'>
 <object id='addToZenPack' module='Products.ZenModel.ZenMenuItem' class='ZenMenuItem'>
+<property id='zendoc' type='string'>
+Add to ZenPack...
+</property>
 <property type="text" id="description" mode="w" >
 Add to ZenPack...
 </property>
@@ -4334,6 +4572,9 @@ True
 </property>
 </object>
 <object id='addUserCommand' module='Products.ZenModel.ZenMenuItem' class='ZenMenuItem'>
+<property id='zendoc' type='string'>
+Add User Command...
+</property>
 <property type="text" id="description" mode="w" >
 Add User Command...
 </property>
@@ -4354,6 +4595,9 @@ True
 </property>
 </object>
 <object id='deleteUserCommands' module='Products.ZenModel.ZenMenuItem' class='ZenMenuItem'>
+<property id='zendoc' type='string'>
+Delete Commands...
+</property>
 <property type="text" id="description" mode="w" >
 Delete Commands...
 </property>
@@ -4378,6 +4622,9 @@ True
 <object id='UserSettings' module='Products.ZenModel.ZenMenu' class='ZenMenu'>
 <tomanycont id='zenMenuItems'>
 <object id='saveUserSettings' module='Products.ZenModel.ZenMenuItem' class='ZenMenuItem'>
+<property id='zendoc' type='string'>
+Save User Settings...
+</property>
 <property type="text" id="description" mode="w" >
 Save User Settings...
 </property>
@@ -4402,6 +4649,9 @@ True
 <object id='User_list' module='Products.ZenModel.ZenMenu' class='ZenMenu'>
 <tomanycont id='zenMenuItems'>
 <object id='addUser' module='Products.ZenModel.ZenMenuItem' class='ZenMenuItem'>
+<property id='zendoc' type='string'>
+Add New User...
+</property>
 <property type="text" id="description" mode="w" >
 Add New User...
 </property>
@@ -4422,6 +4672,9 @@ True
 </property>
 </object>
 <object id='deleteUser' module='Products.ZenModel.ZenMenuItem' class='ZenMenuItem'>
+<property id='zendoc' type='string'>
+Delete Users...
+</property>
 <property type="text" id="description" mode="w" >
 Delete Users...
 </property>
@@ -4446,6 +4699,9 @@ True
 <object id='WinService' module='Products.ZenModel.ZenMenu' class='ZenMenu'>
 <tomanycont id='zenMenuItems'>
 <object id='addWinService' module='Products.ZenModel.ZenMenuItem' class='ZenMenuItem'>
+<property id='zendoc' type='string'>
+Add WinService...
+</property>
 <property type="text" id="description" mode="w" >
 Add WinService...
 </property>
@@ -4465,71 +4721,14 @@ True
 90.0
 </property>
 </object>
-<object id='changeMonitoring' module='Products.ZenModel.ZenMenuItem' class='ZenMenuItem'>
-<property type="text" id="description" mode="w" >
-Monitoring...
-</property>
-<property type="text" id="action" mode="w" >
-dialog_changeMonitoring
-</property>
-<property type="boolean" id="isglobal" mode="w" >
-True
-</property>
-<property type="lines" id="permissions" mode="w" >
-('Manage DMD',)
-</property>
-<property type="boolean" id="isdialog" mode="w" >
-True
-</property>
-<property type="float" id="ordering" mode="w" >
-0.0
-</property>
-</object>
-<object id='deleteWinServices' module='Products.ZenModel.ZenMenuItem' class='ZenMenuItem'>
-<property type="text" id="description" mode="w" >
-Delete WinServices...
-</property>
-<property type="text" id="action" mode="w" >
-dialog_deleteWinServices
-</property>
-<property type="boolean" id="isglobal" mode="w" >
-True
-</property>
-<property type="lines" id="permissions" mode="w" >
-('Change Device',)
-</property>
-<property type="boolean" id="isdialog" mode="w" >
-True
-</property>
-<property type="float" id="ordering" mode="w" >
-80.0
-</property>
-</object>
-<object id='lockWinServices' module='Products.ZenModel.ZenMenuItem' class='ZenMenuItem'>
-<property type="text" id="description" mode="w" >
-Lock WinServices...
-</property>
-<property type="text" id="action" mode="w" >
-dialog_lockWinServices
-</property>
-<property type="boolean" id="isglobal" mode="w" >
-True
-</property>
-<property type="lines" id="permissions" mode="w" >
-('Change Device',)
-</property>
-<property type="boolean" id="isdialog" mode="w" >
-True
-</property>
-<property type="float" id="ordering" mode="w" >
-2.0
-</property>
-</object>
 </tomanycont>
 </object>
 <object id='ZenPack' module='Products.ZenModel.ZenMenu' class='ZenMenu'>
 <tomanycont id='zenMenuItems'>
 <object id='deleteFromZenPack' module='Products.ZenModel.ZenMenuItem' class='ZenMenuItem'>
+<property id='zendoc' type='string'>
+Delete from ZenPack...
+</property>
 <property type="text" id="description" mode="w" >
 Delete from ZenPack...
 </property>
@@ -4554,6 +4753,9 @@ True
 <object id='ZenPack_list' module='Products.ZenModel.ZenMenu' class='ZenMenu'>
 <tomanycont id='zenMenuItems'>
 <object id='addZenPack' module='Products.ZenModel.ZenMenuItem' class='ZenMenuItem'>
+<property id='zendoc' type='string'>
+Create a ZenPack...
+</property>
 <property type="text" id="description" mode="w" >
 Create a ZenPack...
 </property>
@@ -4574,6 +4776,9 @@ True
 </property>
 </object>
 <object id='installZenPack' module='Products.ZenModel.ZenMenuItem' class='ZenMenuItem'>
+<property id='zendoc' type='string'>
+Install ZenPack...
+</property>
 <property type="text" id="description" mode="w" >
 Install ZenPack...
 </property>
@@ -4594,6 +4799,9 @@ True
 </property>
 </object>
 <object id='removeZenPack' module='Products.ZenModel.ZenMenuItem' class='ZenMenuItem'>
+<property id='zendoc' type='string'>
+Delete ZenPack...
+</property>
 <property type="text" id="description" mode="w" >
 Delete ZenPack...
 </property>
@@ -4618,6 +4826,9 @@ True
 <object id='collectionItemList' module='Products.ZenModel.ZenMenu' class='ZenMenu'>
 <tomanycont id='zenMenuItems'>
 <object id='deleteCollectionItems' module='Products.ZenModel.ZenMenuItem' class='ZenMenuItem'>
+<property id='zendoc' type='string'>
+Delete Items...
+</property>
 <property type="text" id="description" mode="w" >
 Delete Items...
 </property>
@@ -4638,6 +4849,9 @@ True
 </property>
 </object>
 <object id='resequenceCollectionItem' module='Products.ZenModel.ZenMenuItem' class='ZenMenuItem'>
+<property id='zendoc' type='string'>
+Re-sequence Items
+</property>
 <property type="text" id="description" mode="w" >
 Re-sequence Items
 </property>
@@ -4662,6 +4876,9 @@ False
 <object id='collectionList' module='Products.ZenModel.ZenMenu' class='ZenMenu'>
 <tomanycont id='zenMenuItems'>
 <object id='addCollection' module='Products.ZenModel.ZenMenuItem' class='ZenMenuItem'>
+<property id='zendoc' type='string'>
+Add Collection...
+</property>
 <property type="text" id="description" mode="w" >
 Add Collection...
 </property>
@@ -4682,6 +4899,9 @@ True
 </property>
 </object>
 <object id='deleteCollections' module='Products.ZenModel.ZenMenuItem' class='ZenMenuItem'>
+<property id='zendoc' type='string'>
+Delete Collections...
+</property>
 <property type="text" id="description" mode="w" >
 Delete Collections...
 </property>
@@ -4704,9 +4924,6 @@ True
 </tomanycont>
 </object>
 <object id='objTemplates' module='Products.ZenModel.ZenMenu' class='ZenMenu'>
-<tomanycont id='zenMenuItems'>
-</tomanycont>
 </object>
 </tomanycont>
-</object>
-</objects>
+</object></objects>
