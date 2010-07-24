@@ -17,13 +17,14 @@ from zope.interface import implements
 from Products.ZenTestCase.BaseTestCase import BaseTestCase
 from Products.Zuul.interfaces import IInfo
 from Products.Zuul.decorators import decorator, marshalto, marshal
+from base import FakeInfo
 
-class Child(object):
+class Child(FakeInfo):
     implements(IInfo)
     x = '67890'
     notx = 'I should not be included'
 
-class Something(object):
+class Something(FakeInfo):
     implements(IInfo)
     x = '12345'
     hithere = "I am a banana!"

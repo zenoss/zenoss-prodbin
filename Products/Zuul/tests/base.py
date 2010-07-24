@@ -21,6 +21,18 @@ from Products.ZenTestCase.BaseTestCase import ZenossTestCaseLayer
 from Products.ZenEvents.Event import Event
 from Products.ZenUtils.ZCmdBase import ZCmdBase
 
+from itertools import count
+counter = count()
+
+class FakeAdaptee(object):
+    def __init__(self):
+        self._p_oid = counter.next()
+
+class FakeInfo(object):
+    def __init__(self):
+        self._object = FakeAdaptee()
+
+
 class ZuulFacadeTestCase(BaseTestCase):
     def test_interfaces(self):
         raise NotImplementedError("You're not verifying that the"

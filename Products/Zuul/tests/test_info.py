@@ -75,13 +75,13 @@ class InfoTest(BaseTestCase):
         nested = Zuul.info([{'a':[Target()], 'b':Target()}])
 
         self.assert_(isinfo(single))
-        self.assert_(isinstance(alist, imap))
+        self.assert_(isinstance(alist, list))
         for ob in alist:
             self.assert_(isinfo(ob))
         self.assert_(isinstance(adict, dict))
         for k, v in adict.items():
             self.assert_(isinfo(v))
-        self.assert_(isinstance(nested, imap))
+        self.assert_(isinstance(nested, list))
         
 def test_suite():
     return unittest.TestSuite((unittest.makeSuite(InfoTest),))

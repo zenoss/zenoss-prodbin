@@ -23,7 +23,10 @@ from Products.Zuul.interfaces import IMarshaller
 from Products.Zuul.interfaces import IUnmarshaller
 from Products.Zuul.interfaces import IInfo
 
-class TestClass(object):
+from base import FakeInfo
+
+
+class TestClass(FakeInfo):
     implements(IInfo)
 
     foo = 1
@@ -31,6 +34,7 @@ class TestClass(object):
     quux = 3
 
     def __init__(self):
+        super(TestClass, self).__init__()
         self.quux = 4
 
     def myMethod(self):
@@ -112,7 +116,7 @@ class MarshalTest(BaseTestCase):
             self.match(v, keys=keys)
 
     def test_recursion_with_callables(self):
-        class TestThing(object):
+        class TestThing(FakeInfo):
             implements(IInfo)
             foo = 5
             def children(self):
