@@ -195,7 +195,7 @@
     class=".command.BackupView"
     name="run_backup"
     for="*"
-    permission="zenoss.RunCommands"
+    permission="zenoss.ManageDMD"
     />
 
 <browser:page

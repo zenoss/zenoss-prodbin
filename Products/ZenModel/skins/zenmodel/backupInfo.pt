@@ -47,7 +47,7 @@ var backupLog = new Zenoss.CommandWindow({
         ]
     },
     redirectTarget: window.location,
-    target: '/run_backup',
+    target: '/zport/dmd/run_backup',
     title: _t('zenbackup')
 });
 backupLog.show();
