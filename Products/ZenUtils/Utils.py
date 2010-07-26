@@ -713,6 +713,7 @@ def sendPage(recipient, msg, pageCommand, deferred=False):
     import subprocess
     env = dict(os.environ)
     env["RECIPIENT"] = recipient
+    msg = str(msg)
     if deferred:
         from twisted.internet import reactor
         protocol = SendPageProtocol(msg)
