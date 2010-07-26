@@ -20,8 +20,12 @@ import re
 
 import Globals
 from transaction import commit
+from ZODB.POSException import ConflictError
+from zope.component import getUtility
 
+from Products.ZenModel.interfaces import IDeviceLoader
 from Products.ZenUtils.ZCmdBase import ZCmdBase
+from Products.ZenModel.Device import Device
 from Products.ZenRelations.ZenPropertyManager import iszprop
 from zExceptions import BadRequest
 
@@ -89,6 +93,16 @@ settingsDevice setManageIp='10.10.10.77', setLocation="123 Elm Street", \
 
 # If the device or device class contains a space, then it must be quoted (either ' or ")
 "/Server/Windows/WMI/Active Directory/2008"
+
+# Now, what if we have a device that isn't really a device, and requires
+# a special loader?
+# The 'loader' setting requires a registered utility, and 'loader_arg_keys' is
+# a list from which any other settings will be passed into the loader callable.
+#
+# Here is a commmented-out example of how a VMware endpoint might be added:
+#
+#/Devices/VMware loader='vmware', loader_arg_keys=['host', 'username', 'password', 'useSsl', 'id']
+#esxwin2 id='esxwin2', host='esxwin2.zenoss.loc', username='testuser', password='password', useSsl=True
 """
 
     def __init__(self):
@@ -189,10 +203,33 @@ settingsDevice setManageIp='10.10.10.77', setLocation="123 Elm Street", \
                     func(*value)
                 else:
                     func(value)
-            except (SystemExit, KeyboardInterrupt): raise
+            except (SystemExit, KeyboardInterrupt, ConflictError): raise
             except:
                 self.log.exception("Device %s device.%s(%s) failed" % (
                                    device.id, functor, value))
+
+    def runLoader(self, loader, device_specs):
+        """
+        It's up to the loader now to figure out what's going on.
+
+        @parameter loader: device loader
+        @type loader: callable
+        @parameter device_specs: device entries
+        @type device_specs: dictionary
+        """
+        argKeys = device_specs.get('loader_arg_keys', [])
+        loader_args = {}
+        for key in argKeys:
+            if key in device_specs:
+                loader_args[key] = device_specs[key]
+
+        result = loader().load_device(self.dmd, **loader_args)
+
+        # If the loader returns back a device object, carry
+        # on processing
+        if isinstance(result, Device):
+            return result
+        return None
 
     def processDevices(self, device_list):
         """
@@ -206,8 +243,23 @@ settingsDevice setManageIp='10.10.10.77', setLocation="123 Elm Street", \
         """
         processed = 0
         for device_specs in device_list:
-            devobj = self.getDevice(device_specs)
+            loaderName = device_specs.get('loader')
+            if loaderName is not None:
+                try:
+                    orgName = device_specs['devicePath']
+                    organizer = self.dmd.getObjByPath('dmd' + orgName)
+                    deviceLoader = getUtility(IDeviceLoader, loaderName, organizer)
+                    devobj = self.runLoader(deviceLoader, device_specs)
+                except (SystemExit, KeyboardInterrupt, ConflictError): raise
+                except:
+                    self.log.exception("Ignoring device loader issue for %s",
+                                       device_specs)
+                    continue
+            else:
+                devobj = self.getDevice(device_specs)
             if devobj is None:
+                if deviceLoader is not None:
+                    processed += 1
                 continue
 
             self.applyZProps(devobj, device_specs)
@@ -226,6 +278,7 @@ settingsDevice setManageIp='10.10.10.77', setLocation="123 Elm Street", \
                 except (SystemExit, KeyboardInterrupt):
                     self.log.info("User interrupted modeling")
                     break
+                except ConflictError, ex: raise
                 except Exception, ex:
                     self.log.exception("Modeling error for %s", devobj.id)
 
@@ -368,7 +421,8 @@ settingsDevice setManageIp='10.10.10.77', setLocation="123 Elm Street", \
             delim = line[0]
             eom = line.find(delim, 1)
             if eom == -1:
-                self.log.error( "Unable to parse the entry for %s -- skipping" % name )
+                self.log.error("While reading name, unable to parse" \
+                               " the entry for %s -- skipping", name )
                 self.log.error( "Raw string: %s" % options )
                 return None
             name = line[1:eom]
