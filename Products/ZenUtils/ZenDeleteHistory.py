@@ -13,7 +13,7 @@
 ###########################################################################
 
 __doc__="""
-ZenDeleteHistory performs cleanup and other maintenane tasks on the MySQL
+ZenDeleteHistory performs cleanup and other maintenance tasks on the MySQL
 events database.
 """
 
@@ -27,6 +27,9 @@ from Products.ZenUtils.ZenScriptBase import ZenScriptBase
 from _mysql_exceptions import OperationalError
 
 
+DEFAULT_CHUNK_SIZE = 10000
+
+
 class ZenDeleteHistory(ZenScriptBase):
     """
     Delete events and performance other maintenance tasks on the events
@@ -37,6 +40,9 @@ class ZenDeleteHistory(ZenScriptBase):
         self.parser.add_option('-n', '--numDays', dest='numDays',
             default=None,
             help='Number of days of history to keep')
+        self.parser.add_option('--chunksize', dest='chunksize',
+            default=DEFAULT_CHUNK_SIZE,
+            help='Number of evids to delete in a single query')
         self.parser.add_option('-d', '--device', dest='device',
             action='append', default=[],
             help='Specific device for which to delete events (optional)')
@@ -153,6 +159,7 @@ class ZenDeleteHistory(ZenScriptBase):
         deletion to the device specified with the "device" command line
         argument.
         """
+        begin = time.time()
         earliest_time = time.time() - (86400 * self.options.numDays)
 
         device_filter = ""
@@ -170,23 +177,78 @@ class ZenDeleteHistory(ZenScriptBase):
             severity_filter = " AND severity IN (%s)" % ','.join(
                 map(str, self.options.severity))
 
-        statements = [
-            "DROP TABLE IF EXISTS delete_evids",
-            ("CREATE TEMPORARY TABLE delete_evids "
-             "SELECT evid FROM history WHERE lastTime < %s%s%s" % (
-                earliest_time, device_filter, severity_filter)),
-            "CREATE INDEX evid ON delete_evids (evid)",
-            ]
+        zem = self.dmd.ZenEventManager
+        conn = zem.connect()
+        try:
+            conn.autocommit(0)
+            try:
+                curs = conn.cursor()
+                
+                # Create temp table containing events to delete
+                log.info("Building list of events to delete.")
+                curs.execute("DROP TABLE IF EXISTS delete_evids")
+                curs.execute(
+                    "CREATE TEMPORARY TABLE delete_evids "
+                    "SELECT evid FROM history WHERE lastTime < %s%s%s" % (
+                        earliest_time, device_filter, severity_filter))
 
-        for table in ("history", "detail", "log", "alert_state"):
-            statements.append((
-                "DELETE t FROM %s t "
-                "RIGHT JOIN delete_evids d ON d.evid = t.evid" % table))
+                curs.execute("CREATE INDEX evid ON delete_evids (evid)")
+                curs.execute("SELECT COUNT(evid) FROM delete_evids")
+                total_events = curs.fetchone()[0]
+                total_chunks = total_events / self.options.chunksize
+                start_time = time.time()
 
-        statements.append("DROP TABLE IF EXISTS delete_evids")
+                # chunk and remaining_time are used to commit deletes more often
+                # and inform the user, via log output, of the status of the
+                # query. You can often see large deletes, with thousands or
+                # millions of rows that take many hours to run, and can slow
+                # down zenoss performance. This splits the job into chunks, so
+                # that commits are done often enough that if the job is taking
+                # lots of time, you can stop in the middle of the delete and
+                # some events will be gone. Also, time remaining is given to
+                # the user, so that the user may estimate down time.
+                chunk = 0
+                remaining_time = None
+                while chunk < total_chunks:
+                    if remaining_time is not None:
+                        log.info(
+                            "Deleting chunk %s/%s. %1.1f seconds remaining",
+                            chunk+1, total_chunks, remaining_time)
+                    else:
+                        log.info(
+                            "Deleting chunk %s/%s.",
+                            chunk+1, total_chunks)
 
-        begin = time.time()
-        self.executeStatements(statements)
+                    # Determine events in chunk
+                    curs.execute("DROP TABLE IF EXISTS delete_evids_chunk")
+                    curs.execute(
+                        "CREATE TEMPORARY TABLE delete_evids_chunk "
+                        "SELECT evid FROM delete_evids LIMIT %s,%s" % (
+                            chunk*self.options.chunksize,
+                            self.options.chunksize))
+
+                    # Delete chunked events from tables
+                    for table in ("history", "detail", "log", "alert_state"):
+                        curs.execute(
+                            "DELETE t FROM %s t RIGHT JOIN "
+                            "delete_evids_chunk d ON d.evid = t.evid" % table)
+
+                    conn.commit()
+                    chunk += 1
+                    elapsed_time = time.time() - start_time
+                    remaining_time = \
+                        float(elapsed_time / chunk) * (total_chunks - chunk)
+
+                curs.execute("DROP TABLE IF EXISTS delete_evids")
+                conn.commit()
+            except OperationalError, ex:
+                log.error('MySQL error: (%s) %s', ex.args[0], ex.args[1])
+                log.error("Rolling back transaction.")
+                conn.rollback()
+        finally:
+            conn.autocommit(1)
+            zem.close(conn)
+
         log.info("Historical event deletion took %.3f seconds.",
             time.time() - begin)
 
