@@ -1,0 +1,56 @@
+<tal:block tal:define="
+    objects python:here.ReportServer.plugin('macaddress', here.REQUEST);
+
+    objects python: (hasattr(request, 'doExport') and list(objects)) or objects;
+    tableName string: macaddressesreport;
+    batch python:here.ZenTableManager.getBatch(tableName,objects, 
+                                           sortedHeader='device');
+    exportFields python:['deviceName', 'interfaceName', 'macaddress'];
+">
+<tal:block metal:use-macro="here/reportMacros/macros/exportableReport">
+<tal:block metal:fill-slot="report">
+
+<tal:block metal:use-macro="here/templates/macros/page1">
+<tal:block metal:fill-slot="breadCrumbPane">
+    <span metal:use-macro="here/miscmacros/macros/reportBreadCrumbsList"/>    
+</tal:block>
+<tal:block metal:fill-slot="contentPane">
+
+<form method="POST" tal:attributes="action request/URL; name string:macaddresses"
+			tal:define="tabletitle string:MAC Address Inventory;
+                        showfilterbox python:True;
+						tblcolspan string:3">
+<tal:block metal:use-macro="here/zenuimacros/macros/zentable">
+<tal:block metal:fill-slot="zentablecontents">
+<tr>
+    <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
+                        tableName,'deviceName','Device')"/>
+    <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
+                        tableName,'interfaceName','Interface ID')"/>
+    <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
+                        tableName,'macaddress','MAC Address')"/>
+</tr>
+    <tal:block tal:repeat="iface batch">
+        <tr tal:define="odd repeat/iface/odd"
+            tal:attributes="class python:test(odd,'odd','even')">
+           <td><a class="tablevalues" tal:content="iface/deviceName" tal:attributes="href iface/devicePath" /></td>
+           <td><a class="tablevalues" tal:content="iface/interfaceName" tal:attributes="href iface/interfacePath" /></td>
+           <td tal:content="iface/macaddress"/>
+        </tr>
+    </tal:block>
+    <tr>
+        <td colspan="3" class="tableheader" align='center'>
+        <form metal:use-macro="here/zenTableNavigation/macros/navtool"/>
+        </td>
+    </tr>
+</tal:block>
+</tal:block>
+</form>
+
+</tal:block>
+
+</tal:block>
+</tal:block>
+</tal:block>
+</tal:block>
+
