@@ -34,32 +34,9 @@ log = logging.getLogger('zen.MinMaxCheck')
 from Products.ZenUtils.Utils import unused, nanToNone
 import types
 
-
-def rpneval(value, rpn):
-    """
-    Simulate RPN evaluation: only handles simple arithmetic
-    """
-    if value is None: return value
-    operators = ('+','-','*','/')
-    rpn = rpn.split(',')
-    rpn.reverse()
-    stack = [value]
-    while rpn:
-        next = rpn.pop()
-        if next in operators:
-            first = stack.pop()
-            second = stack.pop()
-            try:
-                value = eval('%s %s %s' % (second, next, first))
-            except ZeroDivisionError:
-                value = 0
-            stack.append(value)
-        elif next.upper() == 'ABS':
-            stack.append(abs(float(stack.pop())))            
-        else:
-            stack.append(float(next))
-    return stack[0]
-
+# Note:  this import is for backwards compatibility.
+# Import Products.ZenRRD.utils.rpneval directy.
+from Products.ZenRRD.utils import rpneval
 
 class MinMaxThreshold(ThresholdClass):
     """
