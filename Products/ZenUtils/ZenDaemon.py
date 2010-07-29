@@ -78,12 +78,48 @@ class ZenDaemon(CmdBase):
         if self.options.watchdog and not self.options.watchdogPath:
             self.becomeWatchdog()
 
+    def convertSocketOption(self, optString):
+        """
+        Given a socket option string (eg 'so_rcvbufforce=1') convert
+        to a C-friendly command-line option for passing to zensocket.
+        """
+        optString = optString.upper()
+        if '=' not in optString: # Assume boolean
+            flag = optString
+            value = 1
+        else:
+            flag, value = optString.split('=', 1)
+            try:
+                value = int(value)
+            except ValueError:
+                self.log.warn("The value %s for flag %s cound not be converted",
+                          value, flag)
+                return None 
+
+        # Check to see if we can find the option
+        if flag not in dir(socket):
+            self.log.warn("The flag %s is not a valid socket option",
+                          flag)
+            return None 
+
+        numericFlag = getattr(socket, flag)
+        return '--socketOpt=%s:%s' % (numericFlag, value) 
+
     def openPrivilegedPort(self, *address):
-        """Execute under zensocket, providing the args to zensocket"""
+        """
+        Execute under zensocket, providing the args to zensocket
+        """
+        socketOptions = []
+        for optString in set(self.options.socketOption):
+            arg = self.convertSocketOption(optString)
+            if arg:
+                socketOptions.append(arg)
+
         zensocket = binPath('zensocket')
-        cmd = [zensocket, zensocket] + list(address) + ['--'] + \
-              [sys.executable] + sys.argv + \
+        cmd = [zensocket, zensocket] + list(address) + socketOptions +  ['--',
+              sys.executable] + sys.argv + \
               ['--useFileDescriptor=$privilegedSocket']
+        self.log.debug(cmd)
         os.execlp(*cmd)
 
 
@@ -351,3 +387,7 @@ class ZenDaemon(CmdBase):
                                dest='starttimeout',
                                type="int",
                                help="Wait seconds for initial heartbeat")
+        self.parser.add_option('--socketOption',
+                               dest='socketOption', default=[], action='append',
+                               help="Set listener socket options." \
+                                "For option details: man 7 socket")
