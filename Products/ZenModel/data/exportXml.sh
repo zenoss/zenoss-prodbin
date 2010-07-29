@@ -1,11 +1,22 @@
 #! /bin/sh
+stty -echo
+echo 'MySQL root password: \c'
+read MYSQLPW
+stty echo
+echo
+if [ -z "$MYSQLPW" ]; then
+    PWOPT=""
+else
+    PWOPT="-p$MYSQLPW"
+fi
 
-echo 'Running migrate'
-zenmigrate -v 10
+. $ZENHOME/bin/zenfunctions
 
-echo 'Dumping...\c'
-echo 'menus...\c'
-zendmd <<EOF
+echo 'Running migrate...'
+zenmigrate
+
+echo 'Dumping Menus...\c'
+zendmd >/dev/null 2>&1 <<EOF
 fp = open('menus.xml', 'w')
 fp.write('''<?xml version="1.0"?>
 <objects>
@@ -16,15 +27,17 @@ fp.write('</object></objects>\n')
 fp.close()
 EOF
 
-echo 'devices...\c'
+echo 'Dumping Devices...\c'
 zendump -R /zport/dmd/Devices --ignore devices -o devices.xml
-echo 'services...\c'
+echo 'Dumping Services...\c'
 zendump -R /zport/dmd/Services --ignore instances -o services.xml
-echo 'events...\c'
+echo 'Dumping Event Classes...\c'
 zendump -R /zport/dmd/Events -o events.xml
-echo 'manufacturers...\c'
+echo 'Dumping Manufacturers...\c'
 zendump -R /zport/dmd/Manufacturers --ignore instances -o manufacturers.xml
 replace "id='/zport/dmd'" "id='/zport/dmd/Manufacturers'" -- manufacturers.xml
-echo "monitor templates...\c"
-zendump -R /zport/dmd/Monitors --ignore devices --ignore instances -o monitorTemplate.xml
+echo "Dumping Collector Templates...\c"
+zendump -R /zport/dmd/Monitors --ignore devices --ignore instances -o monitorTemplates.xml
+echo "Dumping SQL...\c"
+mysqldump -u root $PWOPT zodb | gzip -c > zodb.sql.gz
 echo done

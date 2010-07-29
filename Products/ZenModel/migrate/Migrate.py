@@ -273,10 +273,10 @@ class Migration(ZenScriptBase):
             oldLevel = log.getEffectiveLevel()
             log.setLevel(HIGHER_THAN_CRITICAL)
             for m in steps:
-                
+
                 self.message('Installing %s (%s)' 
                                 % (m.name(), m.version.short()))
-                
+
                 m.cutover(self.dmd)
                 if m.version > currentDbVers:
                     self.dmd.version = m.version.long()

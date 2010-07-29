@@ -56,30 +56,29 @@ class ZCmdBase(ZenDaemon):
         self.app = app
         self.db = None
         if not app:
-            try:
-                self.zeoConnect()
-            except ValueError:
-                cache = os.path.join(self.options.pcachedir,
-                                     '%s.zec' % self.options.pcachename)
-                if os.path.exists(cache):
-                    self.log.warning("Deleting corrupted cache %s" % cache)
-                    os.unlink(cache)
-                    self.zeoConnect()
-                else:
-                    raise
+            self.zodbConnect()
         self.poollock = Lock()
         self.getDataRoot()
         self.login()
         setDescriptors(self.dmd.propertyTransformers)
 
-    def zeoConnect(self):
-        from ZEO.ClientStorage import ClientStorage
-        storage=ClientStorage((self.options.host, self.options.port),
-                              client=self.options.pcachename,
-                              var=self.options.pcachedir,
-                              cache_size=self.options.pcachesize*1024*1024)
+    def zodbConnect(self):
+        self.options.port = self.options.port or 3306
+        from relstorage.storage import RelStorage
+        from relstorage.adapters.mysql import MySQLAdapter
+        adapter = MySQLAdapter(
+            host=self.options.host,
+            port=self.options.port,
+            user=self.options.mysqluser,
+            passwd=self.options.mysqlpasswd,
+            db=self.options.mysqldb
+        )
+        kwargs = {}
+        if self.options.cacheservers:
+            kwargs['cache_servers'] = self.options.cacheservers
+        self.storage = RelStorage(adapter, **kwargs)
         from ZODB import DB
-        self.db = DB(storage, cache_size=self.options.cachesize)
+        self.db = DB(self.storage, cache_size=self.options.cachesize)
 
 
     def login(self, name='admin', userfolder=None):
@@ -169,16 +168,10 @@ class ZCmdBase(ZenDaemon):
 
     def sigTerm(self, signum=None, frame=None):
         pass
-    
+
     def buildOptions(self):
         """basic options setup sub classes can add more options here"""
         ZenDaemon.buildOptions(self)
-        self.parser.add_option('--host',
-                    dest="host",default="localhost",
-                    help="hostname of zeo server")
-        self.parser.add_option('--port',
-                    dest="port",type="int", default=8100,
-                    help="port of zeo server")
         self.parser.add_option('-R', '--dataroot',
                     dest="dataroot",
                     default="/zport/dmd",
@@ -186,12 +179,18 @@ class ZCmdBase(ZenDaemon):
         self.parser.add_option('--cachesize',
                     dest="cachesize",default=1000, type='int',
                     help="in memory cachesize default: 1000")
-        self.parser.add_option('--pcachename',
-                    dest="pcachename",default=None,
-                    help="persistent cache file name default:None")
-        self.parser.add_option('--pcachedir',
-                    dest="pcachedir",default=defaultCacheDir,
-                    help="persistent cache file directory")
-        self.parser.add_option('--pcachesize',
-                    dest="pcachesize",default=10, type='int',
-                    help="persistent cache file size in MB")
+        self.parser.add_option('--host',
+                    dest="host",default="localhost",
+                    help="hostname of MySQL object store")
+        self.parser.add_option('--port',
+                    dest="port", type="int", default=3306,
+                    help="port of MySQL object store")
+        self.parser.add_option('--mysqluser', dest='mysqluser', default='zenoss',
+                    help='username for MySQL object store')
+        self.parser.add_option('--mysqlpasswd', dest='mysqlpasswd', default='zenoss',
+                    help='passwd for MySQL object store')
+        self.parser.add_option('--mysqldb', dest='mysqldb', default='zodb',
+                    help='Name of database for MySQL object store')
+        self.parser.add_option('--cacheservers', dest='cacheservers', default="",
+                    help='memcached servers to use for object cache (eg. 127.0.0.1:11211)')
+

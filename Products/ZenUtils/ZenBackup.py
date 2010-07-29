@@ -38,7 +38,10 @@ MAX_UNIQUE_NAME_ATTEMPTS = 1000
 
 class ZenBackup(ZenBackupBase):
 
-    def __init__(self):
+    def __init__(self, argv):
+        # Store sys.argv so we can restore it for ZCmdBase.
+        self.argv = argv
+
         ZenBackupBase.__init__(self)
         self.log = logging.getLogger("zenbackup")
         logging.basicConfig()
@@ -64,11 +67,12 @@ class ZenBackup(ZenBackupBase):
         return output.startswith('Elapsed time:')
 
 
-    def readSettingsFromZeo(self):
+    def readSettingsFromZODB(self):
         '''
         Store the dbname, dbuser, dbpass from saved settings in the Event
         Manager (ie ZODB) to the 'options' parsed object.
         '''
+        sys.argv = self.argv
         zcmd = ZCmdBase(noopts=True)
         zem = zcmd.dmd.ZenEventManager
         for key, default, zemAttr in CONFIG_FIELDS:
@@ -90,6 +94,12 @@ class ZenBackup(ZenBackupBase):
         config.set(CONFIG_SECTION, 'dbhost', self.options.dbhost)
         config.set(CONFIG_SECTION, 'dbport', self.options.dbport)
 
+        config.set(CONFIG_SECTION, 'host', self.options.host)
+        config.set(CONFIG_SECTION, 'port', self.options.port)
+        config.set(CONFIG_SECTION, 'mysqldb', self.options.mysqldb)
+        config.set(CONFIG_SECTION, 'mysqluser', self.options.mysqluser)
+        config.set(CONFIG_SECTION, 'mysqlpasswd', self.options.mysqlpasswd)
+
 
         creds_file = os.path.join(self.tempDir, CONFIG_FILE)
         self.log.debug("Writing MySQL credentials to %s", creds_file)
@@ -99,18 +109,6 @@ class ZenBackup(ZenBackupBase):
         finally:
             f.close()
 
-
-    def getPassArg(self):
-        '''
-        Return string to be used as the -p (including the "-p")
-        to MySQL commands.  Overrides the one in ZenBackupBase
-
-        @return: password and flag
-        @rtype: string
-        '''
-        if self.options.dbpass == None:
-            return ''
-        return '--password=%s' % self.options.dbpass
 
     def getDefaultBackupFile(self):
         """
@@ -243,14 +241,8 @@ class ZenBackup(ZenBackupBase):
 
         # Setup defaults for db info
         if self.options.fetchArgs and not self.options.noEventsDb:
-            if self.isZeoUp():
-                self.log.info('Getting MySQL dbname, user, password from ZODB.')
-                self.readSettingsFromZeo()
-            else:
-                self.log.error('Unable to get MySQL credentials from ZODB.'
-                            ' Zeo may not be available.')
-                self.log.info("Skipping events database backup.")
-                return
+            self.log.info('Getting MySQL dbname, user, password from ZODB.')
+            self.readSettingsFromZODB()
 
         if not self.options.dbname:
             self.options.dbname = 'events'
@@ -272,7 +264,7 @@ class ZenBackup(ZenBackupBase):
         if self.options.dbport and self.options.dbport != '3306':
             cmd_p2.append( '--port=%s' % self.options.dbport)
 
-        cmd = cmd_p1 + [self.getPassArg()] + cmd_p2
+        cmd = cmd_p1 + self.getPassArg('dbpass') + cmd_p2
         obfuscated_cmd = cmd_p1 + ['*' * 8] + cmd_p2
 
         (output, warnings, returncode) = self.runCommand(cmd, obfuscated_cmd)
@@ -312,13 +304,21 @@ class ZenBackup(ZenBackupBase):
         partBeginTime = time.time()
 
         self.log.info('Backing up the ZODB.')
-        repozoDir = os.path.join(self.tempDir, 'repozo')
-        os.mkdir(repozoDir, 0750)
-        cmd = [binPath('python'), binPath('repozo'),
-                '--repository', repozoDir, '--file',
-                zenPath('var', 'Data.fs'),
-                '--backup', '--full' ]
-        (output, warnings, returncode) = self.runCommand(cmd)
+        if self.options.saveSettings:
+            self.saveSettings()
+
+        cmd_p1 = ['mysqldump', '-u%s' % self.options.mysqluser]
+        cmd_p2 = ['--single-transaction', self.options.mysqldb,
+                 '--result-file=' + os.path.join(self.tempDir, 'zodb.sql')]
+        if self.options.host and self.options.host != 'localhost':
+            cmd_p2.append('-h %s' % self.options.host)
+        if self.options.port and self.options.port != '3306':
+            cmd_p2.append('--port=%s' % self.options.port)
+
+        cmd = cmd_p1 + self.getPassArg('mysqlpasswd') + cmd_p2
+        obfuscated_cmd = cmd_p1 + ['*' * 8] + cmd_p2
+
+        output, warnings, returncode = self.runCommand(cmd, obfuscated_cmd)
         if returncode:
             self.log.critical("Backup terminated abnormally.")
             return -1
@@ -418,7 +418,7 @@ class ZenBackup(ZenBackupBase):
         self.log.info("Backup of config files completed.")
 
         self.backupZenPacks()
-            
+
         if self.options.noPerfData:
             self.log.info('Skipping backup of performance data.')
         else:
@@ -436,6 +436,6 @@ class ZenBackup(ZenBackupBase):
 
 
 if __name__ == '__main__':
-    zb = ZenBackup()
+    zb = ZenBackup(sys.argv)
     if zb.makeBackup():
         sys.exit(-1)

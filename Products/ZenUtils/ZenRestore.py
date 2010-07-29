@@ -21,6 +21,7 @@ import logging
 import sys
 import os
 import os.path
+import subprocess
 import ConfigParser
 
 import Globals
@@ -39,7 +40,7 @@ class ZenRestore(ZenBackupBase):
             self.log.setLevel(10)
         else:
             self.log.setLevel(40)
-            
+
     def buildOptions(self):
         """basic options setup sub classes can add more options here"""
         ZenBackupBase.buildOptions(self)
@@ -106,11 +107,11 @@ class ZenRestore(ZenBackupBase):
                                      'the backup. Some ZenPacks may not work '
                                      'properly. Reinstall ZenPacks if possible'))
 
-    def getSettings(self, tempDir):
+    def getSettings(self):
         ''' Retrieve some options from settings file
         '''
         try:
-            f = open(os.path.join(tempDir, CONFIG_FILE), 'r')
+            f = open(os.path.join(self.tempDir, CONFIG_FILE), 'r')
         except:
             return
         try:
@@ -126,60 +127,158 @@ class ZenRestore(ZenBackupBase):
                     setattr(self.options, key, default)
 
 
-    def createMySqlDb(self):
-        '''
-        Create the events schema in MySQL if it does not exist.
-        Return true if the command was able to complete, otherwise
-        (eg permissions or login error), return false.
-        '''
-        # The original dbname is stored in the backup within dbname.txt
-        # For now we ignore it and use the database specified on the command
-        # line.
-        sql = 'create database if not exists %s' % self.options.dbname
-        if self.runMysqlCmd(sql):
-            self.msg('MySQL events database creation was successful.')
-            return True
-        else:
-            self.msg('MySQL events database creation faild and returned %d' % result[2])
-            return False
+    def restoreMySqlDb(self, host, port, db, user, passwd, sqlFile):
+        """
+        Create MySQL database if it doesn't exist.
+        """
+        mysql_cmd = ['mysql', '-u%s' % user]
+        mysql_cmd.extend(passwd)
+        if host and host != 'localhost':
+            mysql_cmd.extend(['--host', host])
+        if port and str(port) != '3306':
+            mysql_cmd.extend(['--port', str(port)])
 
-    def restoreEventsDatabase(self, tempDir):
+        mysql_cmd = subprocess.list2cmdline(mysql_cmd)
+
+        cmd = 'echo "create database if not exists %s" | %s' % (db, mysql_cmd)
+        os.system(cmd)
+
+        cmd = '%s %s < %s' % (
+            mysql_cmd, db, os.path.join(self.tempDir, sqlFile)
+        )
+        os.system(cmd)
+
+
+    def restoreEventsDatabase(self):
         """
         Restore the MySQL events database
         """
-        eventsSql = os.path.join(tempDir, 'events.sql')
+        eventsSql = os.path.join(self.tempDir, 'events.sql')
         if not os.path.isfile(eventsSql):
             self.msg('This backup does not contain an events database backup.')
             return
 
-        # Create the MySQL db if it doesn't exist already
-        self.msg('Creating the events database (if necessary).')
-        if not self.createMySqlDb():
-            return
-
-        # Restore the mysql tables
         self.msg('Restoring events database.')
-        sql = 'source %s' % eventsSql
-        if self.runMysqlCmd(sql, switchDB=True):
-            self.msg('Successfully loaded events into MySQL database.')
-        else:
-            self.msg('FAILED to load events into MySQL events database.')
+        self.restoreMySqlDb(self.options.dbhost, self.options.dbport,
+                            self.options.dbname, self.options.dbuser,
+                            self.getPassArg('dbpass'), eventsSql)
+
+    def hasZeoBackup(self):
+        repozoDir = os.path.join(self.tempDir, 'repozo')
+        return os.path.isdir(repozoDir)
+
+    def hasSqlBackup(self):
+        return os.path.isfile(os.path.join(self.tempDir, 'zodb.sql'))
+
+    def hasZODBBackup(self):
+        return self.hasZeoBackup() or self.hasSqlBackup()
+
+    def restoreZODB(self):
+        if self.hasSqlBackup():
+            self.restoreZODBSQL()
+        elif self.hasZeoBackup():
+            self.restoreZODBZEO()
+
+    def restoreZODBSQL(self):
+        zodbSql = os.path.join(self.tempDir, 'zodb.sql')
+        if not os.path.isfile(zodbSql):
+            self.msg('This archive does not contain a ZODB backup.')
+            return
+        self.msg('Restoring ZODB database.')
+        self.restoreMySqlDb(self.options.host, self.options.port,
+                            self.options.mysqldb, self.options.mysqluser,
+                            self.getPassArg('mysqlpasswd'), zodbSql)
+
+    def restoreZODBZEO(self):
+        repozoDir = os.path.join(self.tempDir, 'repozo')
+        tempFilePath = os.path.join(self.tempDir, 'Data.fs')
+        tempZodbConvert = os.path.join(self.tempDir, 'convert.conf')
+
+        self.msg('Restoring ZEO backup into MySQL.')
+
+        # Create a Data.fs from the repozo backup
+        cmd = []
+        cmd.append(binPath('repozo'))
+        cmd.append('--recover')
+        cmd.append('--repository')
+        cmd.append(repozoDir)
+        cmd.append('--output')
+        cmd.append(tempFilePath)
+
+        rc = subprocess.call(cmd, stdout=PIPE, stderr=PIPE)
+        if rc:
+            return -1
+
+        # Now we have a Data.fs, restore into MySQL with zodbconvert
+        zodbconvert_conf = open(tempZodbConvert, 'w')
+        zodbconvert_conf.write('<filestorage source>\n')
+        zodbconvert_conf.write('  path %s\n' % tempFilePath)
+        zodbconvert_conf.write('</filestorage>\n\n')
+
+        zodbconvert_conf.write('<relstorage destination>\n')
+        zodbconvert_conf.write('  <mysql>\n')
+        zodbconvert_conf.write('    host %s\n' % self.options.host)
+        zodbconvert_conf.write('    port %s\n' % self.options.port)
+        zodbconvert_conf.write('    db %s\n' % self.options.mysqldb)
+        zodbconvert_conf.write('    user %s\n' % self.options.mysqluser)
+        zodbconvert_conf.write('    passwd %s\n' % self.options.mysqlpasswd or '')
+        zodbconvert_conf.write('  </mysql>\n')
+        zodbconvert_conf.write('</relstorage>\n')
+        zodbconvert_conf.close()
+
+        rc = subprocess.call(['zodbconvert', '--clear', tempZodbConvert],
+                             stdout=PIPE, stderr=PIPE)
+        if rc:
+            return -1
+
+
+    def restoreEtcFiles(self):
+        self.msg('Restoring config files.')
+        cmd = 'rm -rf %s' % zenPath('etc')
+        if os.system(cmd): return -1
+        cmd = 'tar Cxf %s %s' % (
+            zenPath(),
+            os.path.join(self.tempDir, 'etc.tar')
+        )
+        if os.system(cmd): return -1
+
+    def restoreZenPacks(self):
+        self.msg('Restoring ZenPacks.')
+        cmd = 'rm -rf %s' % zenPath('ZenPacks')
+        if os.system(cmd): return -1
+        cmd = 'tar Cxf %s %s' % (
+                        zenPath(),
+                        os.path.join(self.tempDir, 'ZenPacks.tar'))
+        if os.system(cmd): return -1
+        # restore bin dir when restoring zenpacks
+        #make sure bin dir is in tar
+        tempBin = os.path.join(self.tempDir, 'bin.tar')
+        if os.path.isfile(tempBin):
+            self.msg('Restoring bin dir.')
+            #k option prevents overwriting existing bin files
+            cmd = ['tar', 'Cxfk', zenPath(),
+                   os.path.join(self.tempDir, 'bin.tar')]
+            self.runCommand(cmd)
+
+    def restorePerfData(self):
+        cmd = 'rm -rf %s' % os.path.join(zenPath(), 'perf')
+        if os.system(cmd): return -1
+        self.msg('Restoring performance data.')
+        cmd = 'tar Cxf %s %s' % (
+                        zenPath(),
+                        os.path.join(self.tempDir, 'perf.tar'))
+        if os.system(cmd): return -1
 
     def doRestore(self):
-        '''
+        """
         Restore from a previous backup
-        '''
-        def hasZeoBackup(tempDir):
-            repozoDir = os.path.join(tempDir, 'repozo')
-            return os.path.isdir(repozoDir)
-
+        """
         if self.options.file and self.options.dir:
             sys.stderr.write('You cannot specify both --file and --dir.\n')
             sys.exit(-1)
         elif not self.options.file and not self.options.dir:
             sys.stderr.write('You must specify either --file or --dir.\n')
             sys.exit(-1)
-        
 
         # Maybe check to see if zeo is up and tell user to quit zenoss first
 
@@ -194,110 +293,56 @@ class ZenRestore(ZenBackupBase):
             rootTempDir = self.getTempDir()
             cmd = 'tar xzfC %s %s' % (self.options.file, rootTempDir)
             if os.system(cmd): return -1
-            tempDir = os.path.join(rootTempDir, BACKUP_DIR)
+            self.tempDir = os.path.join(rootTempDir, BACKUP_DIR)
         else:
             self.msg('Using %s as source of restore' % self.options.dir)
             if not os.path.isdir(self.options.dir):
                 sys.stderr.write('The specified backup directory does not exist:'
                                 ' %s\n' % self.options.dir)
                 sys.exit(-1)
-            tempDir = self.options.dir
-
-        if self.options.zenpacks and not hasZeoBackup(tempDir):
-            sys.stderr.write('archive does not contain ZEO database backup, '
-                             'cannot restore ZenPacks.\n')
-            sys.exit(-1)
+            self.tempDir = self.options.dir
 
         # Maybe use values from backup file as defaults for self.options.
-        self.getSettings(tempDir)
+        self.getSettings()
         if not self.options.dbname:
             self.options.dbname = 'events'
         if not self.options.dbuser:
             self.options.dbuser = 'zenoss'
 
-        # If there is not a Data.fs then create an empty one
-        # Maybe should read file location/name from zeo.conf
-        # but we're going to assume the standard location for now.
-        if not os.path.isfile(zenPath('var', 'Data.fs')):
-            self.msg('There does not appear to be a zeo database.'
-                        ' Starting zeo to create one.')
-            os.system(binPath('zeoctl') + 'start > /dev/null')
-            os.system(binPath('zeoctl') + 'stop > /dev/null')
+        if self.options.zenpacks and not self.hasZODBBackup():
+            sys.stderr.write('Archive does not contain ZODB backup; cannot'
+                             'restore ZenPacks')
+            sys.exit(-1)
 
-        # Restore zopedb
-        if self.options.noZODB:
-            self.msg('Skipping the ZEO database..')
-        elif hasZeoBackup(tempDir):
-            repozoDir = os.path.join(tempDir, 'repozo')
-            self.msg('Restoring the ZEO database.')
-            cmd ='%s %s --recover --repository %s --output %s' % (
-                        binPath('python'),
-                        binPath('repozo.py'),
-                        repozoDir,
-                        zenPath('var', 'Data.fs'))
-            if os.system(cmd): return -1
+        # ZODB
+        if self.hasZODBBackup():
+            self.restoreZODB()
         else:
-            self.msg('Archive does not contain ZEO database backup')
-        
-        # Copy etc files
-        self.msg('Restoring config files.')
-        cmd = 'rm -rf %s' % zenPath('etc')
-        if os.system(cmd): return -1
-        cmd = 'tar Cxf %s %s' % (
-                        zenPath(),
-                        os.path.join(tempDir, 'etc.tar'))
-        if os.system(cmd): return -1
+            self.msg('Archive does not contain a ZODB backup')
 
-        # Copy ZenPack files if requested
-        # check for existence of ZEO backup
-        if not self.options.noZODB and \
-           self.options.zenpacks and \
-           hasZeoBackup(tempDir):
-            tempPacks = os.path.join(tempDir, 'ZenPacks.tar')
+        # Configuration
+        self.restoreEtcFiles()
+
+        # ZenPacks
+        if self.options.zenpacks:
+            tempPacks = os.path.join(self.tempDir, 'ZenPacks.tar')
             if os.path.isfile(tempPacks):
-                self.msg('Restoring ZenPacks.')
-                cmd = 'rm -rf %s' % zenPath('ZenPacks')
-                if os.system(cmd): return -1
-                cmd = 'tar Cxf %s %s' % (
-                                zenPath(),
-                                os.path.join(tempDir, 'ZenPacks.tar'))
-                if os.system(cmd): return -1
-                # restore bin dir when restoring zenpacks
-                #make sure bin dir is in tar
-                tempBin = os.path.join(tempDir, 'bin.tar')
-                if os.path.isfile(tempBin):
-                    self.msg('Restoring bin dir.')
-                    #k option prevents overwriting existing bin files
-                    cmd = ['tar', 'Cxfk', zenPath(), 
-                           os.path.join(tempDir, 'bin.tar')]
-                    self.runCommand(cmd)
+                self.restoreZenPacks()
             else:
                 self.msg('Backup contains no ZenPacks.')
-        
-        # Restore perf files
-        if self.options.noPerfdata:
-            self.msg('Skipping performance data.')
+
+        # Performance Data
+        tempPerf = os.path.join(self.tempDir, 'perf.tar')
+        if os.path.isfile(tempPerf):
+            self.restorePerfData()
         else:
-            tempPerf = os.path.join(tempDir, 'perf.tar')
-            if os.path.isfile(tempPerf):
-                if self.options.deletePreviousPerfData:
-                    self.msg('Removing previous performance data...')
-                    cmd = 'rm -rf %s' % os.path.join(zenPath(), 'perf')
-                    if os.system(cmd):
-                        return -1
+            self.msg('Backup contains no perf data.')
 
-                self.msg('Restoring performance data.')
-                cmd = 'tar Cxf %s %s' % (
-                                zenPath(),
-                                os.path.join(tempDir, 'perf.tar'))
-                if os.system(cmd): return -1
-            else:
-                self.msg('Backup contains no perf data.')
-
+        # Events
         if self.options.noEventsDb:
             self.msg('Skipping the events database.')
         else:
-            self.restoreEventsDatabase(tempDir)
+            self.restoreEventsDatabase()
 
         # clean up
         if self.options.file:

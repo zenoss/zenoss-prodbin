@@ -109,8 +109,8 @@ class DbConnectionPool:
             port = int(port)
         try:
             conn = MySQLdb.connect(host=host, user=username,
-                                   port=port, passwd=password, 
-                                   db=database, conv=mysqlconv, reconnect=1)
+                                   port=port, passwd=password,
+                                   db=database, conv=mysqlconv)
             conn.autocommit(1)
             return conn
         except Exception, e:

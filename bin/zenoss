@@ -52,7 +52,6 @@ fi
 . $ZENHOME/bin/zenfunctions
 C=
 if [ ! -f $ZENHOME/etc/DAEMONS_TXT_ONLY ] ; then
-	C="$C zeoctl"
 	C="$C zopectl"
 	C="$C zenhub"
 	C="$C zenjobs"

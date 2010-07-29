@@ -35,7 +35,7 @@ from urllib import quote
 # See http://dev.zenoss.org/trac/ticket/3146 for details
 from Products.ZenUtils.PkgResources import pkg_resources
 
-from Products.ZenUtils.Utils import unused, load_config_override
+from Products.ZenUtils.Utils import unused, load_config_override, zenPath
 unused(pkg_resources)
 
 class DMDError: pass
@@ -76,6 +76,10 @@ class CmdBase(object):
         self.buildParser()
         self.buildOptions()
 
+        # Get defaults from global.conf. They will be overridden by
+        # daemon-specific config file or command line arguments.
+        self.getConfigFileDefaults(zenPath('etc', 'global.conf'), True)
+
         self.parseOptions()
         if self.options.configfile:
             self.getConfigFileDefaults( self.options.configfile )
@@ -88,12 +92,13 @@ class CmdBase(object):
             self.setupLogging()
 
 
-    def getConfigFileDefaults(self, filename):
+    def getConfigFileDefaults(self, filename, isGlobal=False):
         """
         Parse a config file which has key-value pairs delimited by white space,
         and update the parser's option defaults with these values.
 
         @parameter filename: name of configuration file
+        @parameter isGlobal: boolean to be set True for global config file
         @type filename: string
         """
         outlines = []
@@ -103,10 +108,11 @@ class CmdBase(object):
             lines = configFile.readlines()
             configFile.close()
         except:
-            import traceback
-            print >>sys.stderr, "WARN: unable to read config file %s -- skipping" % \
-                   filename
-            traceback.print_exc(0)
+            if not isGlobal:
+                import traceback
+                print >>sys.stderr, "WARN: unable to read config file %s -- skipping" % \
+                       filename
+                traceback.print_exc(0)
             return
 
         lineno = 0
@@ -125,12 +131,13 @@ class CmdBase(object):
             flag= "--%s" % key
             option= self.parser.get_option( flag )
             if option is None:
-                print >>sys.stderr, "INFO: Commenting out unknown option '%s' found " \
-                                    "on line %d in config file" % (key, lineno)
-                #take the last line off the buffer and comment it out
-                outlines = outlines[:-1]
-                outlines.append('## %s' % line)
-                modified = True
+                if not isGlobal:
+                    print >>sys.stderr, "INFO: Commenting out unknown option '%s' found " \
+                                        "on line %d in config file" % (key, lineno)
+                    #take the last line off the buffer and comment it out
+                    outlines = outlines[:-1]
+                    outlines.append('## %s' % line)
+                    modified = True
                 continue
 
             # NB: At this stage, optparse accepts even bogus values

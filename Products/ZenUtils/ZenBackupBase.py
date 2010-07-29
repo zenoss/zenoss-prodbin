@@ -64,35 +64,50 @@ class ZenBackupBase(CmdBase):
                                dest="tempDir",
                                default=None,
                                help='Directory to use for temporary storage.')
+        self.parser.add_option('--host',
+                    dest="host",default="localhost",
+                    help="hostname of MySQL object store")
+        self.parser.add_option('--port',
+                    dest="port", default='3306',
+                    help="port of MySQL object store")
+        self.parser.add_option('--mysqluser', dest='mysqluser', default='zenoss',
+                    help='username for MySQL object store')
+        self.parser.add_option('--mysqlpasswd', dest='mysqlpasswd', default='zenoss',
+                    help='passwd for MySQL object store')
+        self.parser.add_option('--mysqldb', dest='mysqldb', default='zodb',
+                    help='Name of database for MySQL object store')
+        self.parser.add_option('--cacheservers', dest='cacheservers',
+                    help='memcached servers to use for object cache (eg. 127.0.0.1:11211)')
 
 
-    def getPassArg(self):
-        '''
+    def getPassArg(self, optname='dbpass'):
+        """
         Return string to be used as the -p (including the "-p")
         to MySQL commands.
 
         @return: password and flag
         @rtype: string
-        '''
-        if self.options.dbpass == None:
-            return ''
-        return '--password="%s"' % self.options.dbpass
+        """
+        password = getattr(self.options, optname, None)
+        if not password:
+            return []
+        return ['-p%s' % password]
 
 
     def getTempDir(self):
-        '''
+        """
         Return directory to be used for temporary storage
         during backup or restore.
 
         @return: directory name
         @rtype: string
-        '''
+        """
         if self.options.tempDir:
             dir = tempfile.mkdtemp('', '', self.options.tempDir)
         else:
             dir = tempfile.mkdtemp()
         return dir
-    
+
 
     def runCommand(self, cmd=[], obfuscated_cmd=None):
         """
@@ -107,7 +122,6 @@ class ZenBackupBase(CmdBase):
             self.log.debug(' '.join(obfuscated_cmd))
         else:
             self.log.debug(' '.join(cmd))
-
         proc = Popen(cmd, stdout=PIPE, stderr=PIPE)
         output, warnings = proc.communicate()
         if proc.returncode:

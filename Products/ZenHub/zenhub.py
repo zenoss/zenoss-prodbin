@@ -253,7 +253,6 @@ class ZenHub(ZCmdBase):
         Hook ourselves up to the Zeo database and wait for collectors
         to connect.
         """
-        self.changes = []
         self.workers = []
         self.workList = []
         self.worker_processes=set()
@@ -294,47 +293,10 @@ class ZenHub(ZCmdBase):
 
         return rrdStats
 
-    def zeoConnect(self):
-        """
-        Override the kind of zeo connection we have so we can listen
-        to Zeo object updates.  Updates comes as OID invalidations.
-
-        @return: None
-        """
-        from ZEO.cache import ClientCache as ClientCacheBase
-        class ClientCache(object):
-            """
-            A ClientCache wrapper that hooks into invalidation so that zenhub
-            can notice when they occur.
-            """
-            def __init__(s, *args, **kwargs):
-                s._cache = ClientCacheBase(*args, **kwargs)
-
-            def __getattr__(s, name):
-                return getattr(s._cache, name)
-
-            def invalidate(s, oid, tid, server_invalidation=True):
-                self.changes.insert(0, oid)
-                return s._cache.invalidate(oid, tid,
-                                           server_invalidation)
-
-        from ZEO.ClientStorage import ClientStorage as ClientStorageBase
-        class ClientStorage(ClientStorageBase):
-            "Override the caching class to intercept messages"
-            ClientCacheClass = ClientCache
-
-        storage = ClientStorage((self.options.host, self.options.port),
-                                client=self.options.pcachename,
-                                var=self.options.pcachedir,
-                                cache_size=self.options.pcachesize*1024*1024)
-        from ZODB import DB
-        self.db = DB(storage, cache_size=self.options.cachesize)
-
-
     def processQueue(self):
         """
         Periodically (once a second) process database changes
-        
+
         @return: None
         """
         now = time.time()
@@ -354,21 +316,22 @@ class ZenHub(ZCmdBase):
 
         @return: None
         """
-        while self.changes:
-            oid = self.changes.pop()
-            self.log.debug("Got oid %r" % oid)
-            obj = self.dmd._p_jar[oid]
-            self.log.debug("Object %r changed" % obj)
-            try:
-                obj = obj.__of__(self.dmd).primaryAq()
-                self.log.debug("Noticing object %s changed" % obj.getPrimaryUrlPath())
-            except (AttributeError, KeyError), ex:
-                self.log.debug("Noticing object %s " % obj)
-                for s in self.services.values():
-                    s.deleted(obj)
-            else:
-                for s in self.services.values():
-                    s.update(obj)
+        changes_dict = self.storage.poll_invalidations()
+        if changes_dict is not None:
+            for oid in changes_dict:
+                self.log.debug("Got oid %r" % oid)
+                obj = self.dmd._p_jar[oid]
+                self.log.debug("Object %r changed" % obj)
+                try:
+                    obj = obj.__of__(self.dmd).primaryAq()
+                    self.log.debug("Noticing object %s changed" % obj.getPrimaryUrlPath())
+                except (AttributeError, KeyError), ex:
+                    self.log.debug("Noticing object %s " % obj)
+                    for s in self.services.values():
+                        s.deleted(obj)
+                else:
+                    for s in self.services.values():
+                        s.update(obj)
 
 
     def sendEvent(self, **kw):

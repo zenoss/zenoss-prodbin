@@ -16,10 +16,11 @@ __doc__="""ZenScriptBase
 
 from AccessControl.SecurityManagement import newSecurityManager
 from AccessControl.SecurityManagement import noSecurityManager
-from threading import Lock
 from transaction import commit
 from Utils import getObjByPath, zenPath, set_context
-from CmdBase import CmdBase
+from Products.ZenUtils.CmdBase import CmdBase
+from Products.ZenUtils.ZCmdBase import ZCmdBase
+
 from Products.Five import zcml
 
 from Products.ZenRelations.ZenPropertyManager import setDescriptors
@@ -43,15 +44,23 @@ class ZenScriptBase(CmdBase):
 
     def connect(self):
         if not self.app:
-            from ZEO import ClientStorage
+            self.options.port = self.options.port or 3306
+            from relstorage.storage import RelStorage
+            from relstorage.adapters.mysql import MySQLAdapter
+            adapter = MySQLAdapter(
+                host=self.options.host,
+                port=self.options.port,
+                user=self.options.mysqluser,
+                passwd=self.options.mysqlpasswd,
+                db=self.options.mysqldb
+            )
+
+            kwargs = {}
+            if self.options.cacheservers:
+                kwargs['cache_servers'] = self.options.cacheservers
+            self.storage = RelStorage(adapter, **kwargs)
             from ZODB import DB
-            addr = (self.options.host, self.options.port)
-            storage=ClientStorage.ClientStorage(addr, 
-                            client=self.options.pcachename,
-                            var=self.options.pcachedir,
-                            cache_size=self.options.pcachesize*1024*1024)
-            self.db=DB(storage, cache_size=self.options.cachesize)
-            self.poollock = Lock()
+            self.db = DB(self.storage, cache_size=self.options.cachesize)
         self.getDataRoot()
         self.login()
         if getattr(self.dmd, 'propertyTransformers', None) is None:
@@ -137,17 +146,11 @@ class ZenScriptBase(CmdBase):
         """return a device based on its FQDN"""
         devices = self.dataroot.getDmdRoot("Devices")
         return devices.findDevice(name)
-    
-    
+
+
     def buildOptions(self):
         """basic options setup sub classes can add more options here"""
         CmdBase.buildOptions(self)
-        self.parser.add_option('--host',
-                    dest="host",default="localhost",
-                    help="hostname of zeo server")
-        self.parser.add_option('--port',
-                    dest="port",type="int", default=8100,
-                    help="port of zeo server")
         self.parser.add_option('-R', '--dataroot',
                     dest="dataroot",
                     default="/zport/dmd",
@@ -155,12 +158,18 @@ class ZenScriptBase(CmdBase):
         self.parser.add_option('--cachesize',
                     dest="cachesize",default=1000, type='int',
                     help="in memory cachesize default: 1000")
-        self.parser.add_option('--pcachename',
-                    dest="pcachename",default=None,
-                    help="persistent cache file name default:None")
-        self.parser.add_option('--pcachedir',
-                    dest="pcachedir",default=defaultCacheDir,
-                    help="persistent cache file directory")
-        self.parser.add_option('--pcachesize',
-                    dest="pcachesize",default=10, type='int',
-                    help="persistent cache file size in MB")
+        self.parser.add_option('--host',
+                    dest="host",default="localhost",
+                    help="hostname of MySQL object store")
+        self.parser.add_option('--port',
+                    dest="port", type="int", default=3306,
+                    help="port of MySQL object store")
+        self.parser.add_option('--mysqluser', dest='mysqluser', default='zenoss',
+                    help='username for MySQL object store')
+        self.parser.add_option('--mysqlpasswd', dest='mysqlpasswd', default='zenoss',
+                    help='passwd for MySQL object store')
+        self.parser.add_option('--mysqldb', dest='mysqldb', default='zodb',
+                    help='Name of database for MySQL object store')
+        self.parser.add_option('--cacheservers', dest='cacheservers', default="",
+                    help='memcached servers to use for object cache (eg. 127.0.0.1:11211)')
+
