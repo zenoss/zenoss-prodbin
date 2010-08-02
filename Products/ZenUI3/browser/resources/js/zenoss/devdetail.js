@@ -823,6 +823,7 @@ Ext.getCmp('footer_bar').add([{
 },{
     id: 'commands-menu',
     text: _t('Commands'),
+    hidden: Zenoss.Security.doesNotHavePermission('Run Commands'),
     listeners: {
         render: function() {
             var menu = this.menu;

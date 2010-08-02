@@ -1212,6 +1212,7 @@ var device_grid = new Zenoss.DeviceGridPanel({
             {
                 id: 'commands-menu',
                 text: _t('Commands'),
+        
                 setContext: function(uid) {
                     var me = Ext.getCmp('commands-menu'),
                             menu = me.menu;
@@ -1225,6 +1226,10 @@ var device_grid = new Zenoss.DeviceGridPanel({
                             });
                         });
                     });
+                    // disable if they do not have permission to view
+                    Zenoss.Security.onPermissionsChange(function() { 
+                        this.setDisabled(Zenoss.Security.doesNotHavePermission('Run Commands')); 
+                    }, this); 
                 },
                 menu: {}
             }
