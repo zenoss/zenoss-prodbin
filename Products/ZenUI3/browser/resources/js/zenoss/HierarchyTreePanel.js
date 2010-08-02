@@ -236,7 +236,6 @@ Zenoss.HierarchyTreePanel = Ext.extend(Ext.tree.TreePanel, {
         }
         this.hiddenPkgs = [];
         if (!text) {
-            this.filter.clear();
             return;
         }
         this.expandAll();
