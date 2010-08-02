@@ -442,6 +442,20 @@ Ext.override(Ext.Panel, {
     }
 });
 
+var origGetDragData = Ext.grid.GridDragZone.prototype.getDragData;
+Ext.override(Ext.grid.GridDragZone, {
+    getDragData: function(e) {
+        var t = Ext.lib.Event.getTarget(e);
+        // If it's a link, set the target to the ancestor cell so the browser
+        // doesn't do the default anchor-drag behavior. Otherwise everything
+        // works fine, so proceed as normal.
+        if (t.tagName=='A') {
+            e.target = e.browserEvent.target = e.getTarget('div.x-grid3-cell-inner');
+        } 
+        return origGetDragData.call(this, e);
+    }
+});
+
 
 /**
  * @class Zenoss.PlaceholderPanel
