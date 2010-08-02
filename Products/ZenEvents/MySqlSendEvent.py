@@ -25,7 +25,7 @@ from _mysql_exceptions import ProgrammingError, OperationalError
 
 # Filter specific warnings coming from new version of mysql-python
 import warnings
-warnings.filterwarnings('ignore', r"Field '.+' doesn't have a default value'")
+warnings.filterwarnings('ignore', r"Field '.+' doesn't have a default value")
 
 from ZEO.Exceptions import ClientDisconnected
 
