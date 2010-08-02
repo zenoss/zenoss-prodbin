@@ -461,7 +461,6 @@ class ZenProcessTask(ObservableMixin):
         
         summary = 'Process table up for device %s' % self._devId
         self._clearSnmpError(summary)
-
         showrawtables = self._preferences.options.showrawtables
         args, procs = mapResultsToDicts(showrawtables, results)
         if self._preferences.options.showprocs:
@@ -469,6 +468,7 @@ class ZenProcessTask(ObservableMixin):
 
         # look for changes in processes
         beforePids = set(self._deviceStats.pids)
+        beforeByConfig = reverseDict(self._deviceStats._pidToProcess)
         afterPidToProcessStats = {}
         for pStats in self._deviceStats.processStats:
             for pid, (name, args) in procs:
@@ -480,7 +480,6 @@ class ZenProcessTask(ObservableMixin):
         afterByConfig = reverseDict(afterPidToProcessStats)
         newPids =  afterPids - beforePids
         deadPids = beforePids - afterPids
-
         # report pid restarts
         restarted = {}
         for pid in deadPids:
@@ -490,30 +489,40 @@ class ZenProcessTask(ObservableMixin):
                 ZenProcessTask.RESTARTED += 1
                 pConfig = procStats._config
                 if pConfig.restart:
-                    restarted[procStats] = True
-                    
-                    summary = 'Process restarted: %s' % pConfig.originalName
-                    
-                    self._eventService.sendEvent(self.statusEvent,
-                                                 device=self._devId,
-                                                 summary=summary,
-                                                 component=pConfig.originalName,
-                                                 eventKey=pConfig.processClass,
-                                                 severity=pConfig.severity)
-                    log.info(summary)
+                    restarted[procStats] = pConfig
+       
+        for procStats, pConfig in restarted.iteritems():
+            droppedPids=[]
+            for pid in beforeByConfig[procStats]:
+                if pid not in afterByConfig[procStats]:
+                    droppedPids.append(pid)
+            summary = 'Process restarted: %s' % pConfig.originalName
+            message = '%s\n Using regex \'%s\' Discarded dead pid(s) %s Using new pid(s) %s' \
+                    % (summary,pConfig.regex,droppedPids,afterByConfig[procStats])
+            self._eventService.sendEvent(self.statusEvent,
+                                         device=self._devId,
+                                         summary=summary,
+                                         message=message,
+                                         component=pConfig.originalName,
+                                         eventKey=pConfig.processClass,
+                                         severity=pConfig.severity)
+            log.info("(%s) %s" % (self._devId,message))
 
         # report alive processes
         for processStat in afterByConfig.keys():
             if processStat in restarted: continue
             summary = "Process up: %s" % processStat._config.originalName
+            message = '%s\n Using regex \'%s\' with pid\'s %s ' \
+                    % (summary,processStat._config.regex, afterByConfig[processStat])
             self._eventService.sendEvent(self.statusEvent,
                                          device=self._devId,
                                          summary=summary,
+                                         message=message,
                                          component=processStat._config.originalName,
                                          eventKey=processStat._config.processClass,
                                          severity=Event.Clear)
-            log.debug(summary)
-
+            log.debug("(%s) %s" % (self._devId,message))
+            
         for pid in newPids:
             log.debug("Found new %s pid %d on %s" % (
                 afterPidToProcessStats[pid]._config.originalName, pid, 
@@ -527,13 +536,16 @@ class ZenProcessTask(ObservableMixin):
                 procConfig = procStat._config
                 ZenProcessTask.MISSING += 1
                 summary = 'Process not running: %s' % procConfig.originalName
+                message = "%s\n Using regex \'%s\' \nAll Processes have stopped since the last model occurred. Last Modification time (%s)" \
+                        % (summary,procConfig.regex,self._device.lastmodeltime)
                 self._eventService.sendEvent(self.statusEvent,
                                              device=self._devId,
                                              summary=summary,
+                                             message=message,
                                              component=procConfig.originalName,
                                              eventKey=procConfig.processClass,
                                              severity=procConfig.severity)
-                log.warning(summary)
+                log.warning("(%s) %s" % (self._devId,message))
 
         # Store per-device, per-process statistics
         pidCounts = dict([(p, 0) for p in self._deviceStats.processStats])

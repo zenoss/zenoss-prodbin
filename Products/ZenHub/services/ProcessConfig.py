@@ -29,6 +29,7 @@ class ProcessProxy(pb.Copyable, pb.RemoteCopy):
     originalName = None
     ignoreParameters = False
     restart = None
+    regex = None
     severity = Event.Warning
     cycleTime = None
     processClass = None
@@ -68,6 +69,7 @@ class ProcessConfig(CollectorConfigService):
         proxy.configCycleInterval = self._prefs.processCycleInterval
 
         proxy.name = device.id
+        proxy.lastmodeltime = device.getLastChangeString()
         proxy.thresholds = []
         proxy.processes = {}
         proxy.snmpConnInfo = device.getSnmpConnInfo()
@@ -78,11 +80,12 @@ class ProcessConfig(CollectorConfigService):
             proc.originalName = p.name()
             proc.ignoreParameters = (
                 getattr(p.osProcessClass(), 'ignoreParameters', False))
+            proc.regex = (
+                getattr(p.osProcessClass(), 'regex', False))
             proc.restart = p.alertOnRestart()
             proc.severity = p.getFailSeverity()
             proc.processClass = p.getOSProcessClass()
             proxy.processes[p.id] = proc
-
         return proxy
     
     def _getNotifiableClasses(self):
