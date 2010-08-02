@@ -343,6 +343,59 @@ Zenoss.SimpleEventGridPanel = Ext.extend(Ext.ux.grid.livegrid.GridPanel, {
 }); // SimpleEventGridPanel
 Ext.reg('SimpleEventGridPanel', Zenoss.SimpleEventGridPanel);
 
+/**
+ * Select Menu
+ **/ 
+Zenoss.events.SelectMenu = {
+    text: _t('Select'),
+    id: 'select-button',
+    menu:{
+        xtype: 'menu',
+        items: [{
+            text: 'All',
+            handler: function(){
+                var grid = Ext.getCmp('select-button').ownerCt.ownerCt,
+                sm = grid.getSelectionModel();
+                sm.selectAll();
+            }
+        },{
+            text: 'None',
+            handler: function(){
+                var grid = Ext.getCmp('select-button').ownerCt.ownerCt,
+                sm = grid.getSelectionModel();
+                sm.selectNone();
+            }
+        },{
+            text: 'New',
+            iconCls: 'unacknowledge',
+            handler: function(){
+                // New == 0
+                var grid = Ext.getCmp('select-button').ownerCt.ownerCt,
+                sm = grid.getSelectionModel();
+                sm.selectNew();
+            }
+        },{
+            text: 'Acknowledged',
+            iconCls: 'acknowledge',
+            handler: function(){
+                // Acknowledged == 1
+                var grid = Ext.getCmp('select-button').ownerCt.ownerCt,
+                sm = grid.getSelectionModel();
+                sm.selectAck();
+            }
+        },{
+            text: 'Suppressed',
+            iconCls: 'suppress',
+            handler: function(){
+                // Suppressed == 2
+                var grid = Ext.getCmp('select-button').ownerCt.ownerCt,
+                sm = grid.getSelectionModel();
+                sm.selectSuppressed();
+            }
+        }
+               ]
+    }
+};
 
 Zenoss.EventGridPanel = Ext.extend(Zenoss.SimpleEventGridPanel, {
     constructor: function(config) {
@@ -352,7 +405,10 @@ Zenoss.EventGridPanel = Ext.extend(Zenoss.SimpleEventGridPanel, {
                 xtype: 'tbtext',
                 text: _t('Event Console')
             },
-            '-',
+                '-',
+                Zenoss.events.SelectMenu,
+               '-', 
+           
             {
                 xtype: 'tbtext',
                 text: _t('Display: ')
@@ -394,7 +450,7 @@ Zenoss.EventGridPanel = Ext.extend(Zenoss.SimpleEventGridPanel, {
             '-',
             Zenoss.events.EventPanelToolbarActions.acknowledge,
             Zenoss.events.EventPanelToolbarActions.close,
-            Zenoss.events.EventPanelToolbarActions.refresh
+            Zenoss.events.EventPanelToolbarActions.refresh                
         ];
         if (config.newwindowBtn) {
             tbarItems.push('-');
@@ -510,9 +566,12 @@ Zenoss.events.EventPanelToolbarActions = {
                 pat = /devices\/([^\/]+)(\/.*\/([^\/]+)$)?/,
                 matches = grid.view._context.match(pat),
                 st, url;
-            opts.device = matches[1];
-            if (matches[3]) {
-                opts.component = matches[3];
+            // on the device page
+            if (matches) {
+                opts.device = matches[1];
+                if (matches[3]) {
+                    opts.component = matches[3];
+                }
             }
             filters.options = opts;
             curState.filters = filters;

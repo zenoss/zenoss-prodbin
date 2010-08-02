@@ -1307,7 +1307,7 @@ Ext.getCmp('center_panel').add({
                 xtype: 'EventGridPanel',
                 id: 'events_grid',
                 stateful: false,
-                newwindowBtn: false,
+                newwindowBtn: true,
                 columns: Zenoss.env.COLUMN_DEFINITIONS
             }
         ]

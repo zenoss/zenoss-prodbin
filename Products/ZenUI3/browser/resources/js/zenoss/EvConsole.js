@@ -262,7 +262,7 @@ Ext.onReady(function(){
 
     // Add a CSS class to scope some styles that affect other parts of the UI
     container.on('render', function(){container.el.addClass('zenui3')});
-
+    
     // Add the toolbar to the container
     var tbar = new Zenoss.LargeToolbar({
             region:'north',
@@ -334,7 +334,7 @@ Ext.onReady(function(){
                                 view = grid.getView();
                                 view.updateLiveRows(view.rowIndex, true, true);
                             }
-                        )
+                        );
                     }
                 }
             },{
@@ -347,59 +347,9 @@ Ext.onReady(function(){
                 handler: showAddEventDialog
             },{
                 xtype: 'tbseparator'
-            },{
-                /*
-                 * SELECT MENU
-                 */
-                text: _t('Select'),
-                id: 'select-button',
-                menu:{
-                    xtype: 'menu',
-                    items: [{
-                        text: 'All',
-                        handler: function(){
-                            var grid = Ext.getCmp('events_grid'),
-                                sm = grid.getSelectionModel();
-                            sm.selectAll();
-                        }
-                    },{
-                        text: 'None',
-                        handler: function(){
-                            var grid = Ext.getCmp('events_grid'),
-                                sm = grid.getSelectionModel();
-                            sm.selectNone();
-                        }
-                    },{
-                        text: 'New',
-                        iconCls: 'unacknowledge',
-                        handler: function(){
-                            // New == 0
-                            var grid = Ext.getCmp('events_grid'),
-                                sm = grid.getSelectionModel();
-                            sm.selectNew()
-                        }
-                    },{
-                        text: 'Acknowledged',
-                        iconCls: 'acknowledge',
-                        handler: function(){
-                            // Acknowledged == 1
-                            var grid = Ext.getCmp('events_grid'),
-                                sm = grid.getSelectionModel();
-                            sm.selectAck();
-                        }
-                    },{
-                        text: 'Suppressed',
-                        iconCls: 'suppress',
-                        handler: function(){
-                            // Suppressed == 2
-                            var grid = Ext.getCmp('events_grid'),
-                                sm = grid.getSelectionModel();
-                            sm.selectSuppressed();
-                        }
-                    }
-                    ]
-                }
-            },{
+            },
+                Zenoss.events.SelectMenu,
+            {
                 text: _t('Export'),
                 id: 'export-button',
                 //iconCls: 'export',
