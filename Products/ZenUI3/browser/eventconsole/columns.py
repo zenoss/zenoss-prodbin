@@ -147,29 +147,7 @@ COLUMN_CONFIG = {
     'prodState' : dict(
         header='Production State',
         filter={
-            'xtype':'multiselectmenu',
-            'text':'...',
-            'source':[{
-                'value':1000,
-                'text':'Production'
-            },{
-                'value':500,
-                'text':'Pre-Production',
-                'checked':False
-            },{
-                'value':400,
-                'text':'Test',
-                'checked':False
-            },{
-                'value':300,
-                'text':'Maintenance',
-                'checked':False,
-            },{
-                'value':-1,
-                'text':'Decommissioned',
-                'checked':False
-            }
-            ]
+            'xtype':'multiselect-prodstate'
         }),
 
     'suppid'    : dict(

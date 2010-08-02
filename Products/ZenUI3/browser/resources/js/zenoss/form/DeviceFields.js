@@ -64,6 +64,23 @@
 
     Ext.reg('ProductionStateCombo', ZD.ProductionStateCombo);
 
+    ZD.ProductionStateMultiselectMenu = Ext.extend(Zenoss.MultiselectMenu, {
+        constructor: function(config) {
+            config = Ext.apply(config || {}, {
+                text:'...',
+                store: new Ext.data.DirectStore({
+                    directFn: Zenoss.remote.DeviceRouter.getProductionStates,
+                    root: 'data',
+                    fields: ['name', 'value']
+                }),
+                defaultValues: ['1000']
+            });
+            ZD.ProductionStateMultiselectMenu.superclass.constructor.call(this, config);
+        }
+    });
+
+    Ext.reg('multiselect-prodstate', ZD.ProductionStateMultiselectMenu);
+
     ZD.ManufacturerDataStore = Ext.extend(Ext.data.DirectStore, {
         constructor: function(config) {
             config = config || {};

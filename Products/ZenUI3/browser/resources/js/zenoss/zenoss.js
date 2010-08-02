@@ -1222,29 +1222,48 @@ Ext.reg('filtergridpanel', Zenoss.FilterGridPanel);
  * @constructor
  */
 Zenoss.MultiselectMenu = Ext.extend(Ext.Toolbar.Button, {
-    constructor: function(config) {
-        var items = [],
-            me = this;
-        Ext.each(config.source, function(o){
-            items[items.length] = {
-                checked: typeof(o.checked)=='undefined',
-                hideOnClick: false,
-                handler: function(){
-                    me.fireEvent('change');
-                },
-                value: o.value,
-                text: o.text
-            };
-        });
-        config.menu = {
-            items: items
+    makeItemConfig: function(text, value) {
+        var config = {
+            hideOnClick: false,
+            handler: function() {
+                this.fireEvent('change');
+            }.createDelegate(this),
+            value: value,
+            text: text
         };
+        return config;
+    },
+    constructor: function(config) {
+        config.menu = config.menu || [];
         Zenoss.MultiselectMenu.superclass.constructor.apply(this, arguments);
+        if (Ext.isDefined(config.store)) {
+            this.hasLoaded = false;
+            config.store.on('load', function(s, rows) {
+                this.menu.removeAll();
+                Ext.each(rows, function(row){
+                    var cfg = this.makeItemConfig(row.data.name, row.data.value);
+                    cfg.checked = (this.defaultValues.indexOf(row.data.value)>-1);
+                    this.menu.add(cfg);
+                }, this);
+                this.hasLoaded = true;
+            }, this);
+            config.store.load();
+        } else {
+            this.hasLoaded = true;
+            Ext.each(config.source, function(o){
+                var cfg = this.makeItemConfig(o.name, o.value);
+                cfg.checked = !Ext.isDefined(o.checked);
+                this.menu.add(cfg);
+            }, this);
+        }
     },
     reset: function() {
         this.setValue();
     },
     getValue: function() {
+        if (!this.hasLoaded) {
+            return this.defaultValues;
+        }
         var result = [];
         Ext.each(this.menu.items.items, function(item){
             if (item.checked) result[result.length] = item.value;
