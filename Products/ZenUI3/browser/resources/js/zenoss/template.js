@@ -223,7 +223,7 @@ override = function() {
         targetUid: Ext.getCmp('targetCombo').getValue()
     };
     callback = function() {
-        Ext.getCmp('templateTree').getRootNode().reload();
+        reloadTree();
     };
     router.copyTemplate(params, callback);
 };
@@ -283,6 +283,7 @@ new Zenoss.HideFormDialog({
         valueField: 'uid',
         displayField: 'label',
         typeAhead: true,
+        allowBlank: false,
         width: 450,
         store: {
             xtype: 'directstore',
@@ -291,7 +292,7 @@ new Zenoss.HideFormDialog({
             root: 'data'
         },
         listeners: {
-            select: function(){
+            valid: function(){
                 Ext.getCmp('overrideDialog').submit.enable();
             }
         }
