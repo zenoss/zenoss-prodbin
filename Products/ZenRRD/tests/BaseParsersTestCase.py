@@ -132,8 +132,11 @@ class BaseParsersTestCase(BaseTestCase):
         
         counter = 0
         
-        for value in results.values:
-            self.assertEqual(value[0].expected, value[1])
+        for expected, actual in results.values:
+            expectedValue = expected.expected
+            msg = '%s: %s expected %s but parsed out %s' % (
+                   filename, expected.id, expectedValue, actual)
+            self.assertEqual(expectedValue, actual, msg)
             counter += 1
             
         return counter
