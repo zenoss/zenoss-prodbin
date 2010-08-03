@@ -141,9 +141,23 @@ for a ZenPack.
              name, self.context().id, self._locator.getLineNumber() ))
         
         if name == 'object':
-            
-            obj = self.createObject(attrs)
+            if attrs.get('class') == 'Device':
+                devId = attrs['id'].split('/')[-1]
+                dev = self.dmd.Devices.findDeviceByIdOrIp(devId)
+                if dev:
+                    msg = 'The device %s already exists on this system! (Line %s)' % \
+                                    (devId, self._locator.getLineNumber())
+                    raise Exception(msg)
 
+            if attrs.get('class') == 'IpAddress':
+                ipAddress = attrs['id']
+                dev = self.dmd.Devices.findDeviceByIdOrIp(ipAddress)
+                if dev:
+                    msg = 'The IP address %s already exists on this system! (Line %s)' % \
+                                (ipAddress, self._locator.getLineNumber())
+                    raise Exception(msg)
+
+            obj = self.createObject(attrs)
             if obj is None:
                 formattedAttrs = ''
                 for key, value in attrs.items():
