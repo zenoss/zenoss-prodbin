@@ -358,7 +358,8 @@ for a ZenPack.
             try:
                 value = eval(value)
             except NameError:
-                self.log.exception( 'Error trying to evaluate %s', value )
+                self.log.critical('Error trying to evaluate %s at line %s',
+                                  value, linenum)
                 raise
             except SyntaxError:
                 self.log.debug("Non-fatal SyntaxError at line %s while eval'ing '%s'" % (
