@@ -147,7 +147,8 @@ class ZenPackManager(ZenModelRM):
         zpDir = ZenPackCmd.CreateZenPack(packId)
 
         # Install it
-        zenPacks = ZenPackCmd.InstallEggAndZenPack(self.dmd, zpDir, link=True)
+        zenPacks = ZenPackCmd.InstallEggAndZenPack(self.dmd, zpDir, link=True,
+                                                   forceRunExternal=True)
         zenPack = self.packs._getOb(packId, None)
         if REQUEST:
             if zenPack:
