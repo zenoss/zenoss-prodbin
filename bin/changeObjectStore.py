@@ -270,6 +270,7 @@ def convertZopeConfToMySql(host, db, user, passwd):
 
 
 def removeZeoctlFromStartup():
+    # Clean up zenoss init script
     l = []
     fname = zenPath('bin', 'zenoss')
     with open(fname, 'r') as f:
@@ -279,6 +280,19 @@ def removeZeoctlFromStartup():
     with open(fname, 'w') as f:
         for line in l:
             f.write(line)
+    # Clean up daemons.txt
+    l = []
+    fname = zenPath('etc', 'daemons.txt')
+    try:
+        with open(fname, 'r') as f:
+            for line in f:
+                if 'zeoctl' not in line:
+                    l.append(line)
+        with open(fname, 'w') as f:
+            for line in l:
+                f.write(line)
+    except IOError:
+        pass
 
 
 if __name__ == '__main__':

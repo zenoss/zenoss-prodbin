@@ -60,7 +60,7 @@ shebang
 
 # Move from ZODB to MySQL
 ${ZENHOME}/bin/python ${ZENHOME}/bin/changeObjectStore.py \
-    --host=$MYSQLHOST --port=3306 --passwd="$MYSQLPASS" \
+    --host=$MYSQLHOST --port=$MYSQLPORT --passwd="$MYSQLPASS" \
     --user=$MYSQLUSER --db=$MYSQLZODB --rootpw="$MYSQLROOTPASSWD"
 
 # migrate the zeo database

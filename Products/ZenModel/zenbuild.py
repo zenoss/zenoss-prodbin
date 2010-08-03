@@ -211,7 +211,8 @@ class zenbuild(CmdBase):
             f.write('mysqldb %s\n' % self.options.mysqldb)
             f.write('mysqluser %s\n' % self.options.mysqluser)
             f.write('mysqlpasswd %s\n' % self.options.mysqlpasswd)
-            f.write('cacheservers %s\n' % self.options.cacheservers)
+            if self.options.cacheservers:
+                f.write('cacheservers %s\n' % self.options.cacheservers)
 
         # Load reports
         from Products.ZenReports.ReportLoader import ReportLoader
