@@ -24,6 +24,7 @@ export OS_USERNAME="**OS_USERNAME**"
 export OS_UID="**OS_UID**"
 export ZENHOME="**ZENHOME**"
 export MYSQLHOST="**MYSQL_HOST**"
+export MYSQLZODB="**MYSQL_ZODB**"
 export MYSQLPORT="**MYSQL_PORT**"
 export MYSQLROOTUSER="**MYSQL_ROOT_USERNAME**"
 export MYSQLROOTPASSWD="**MYSQL_ROOT_PASSWD**"
@@ -52,6 +53,9 @@ restart_mysql
 # already exist (we don't want to clobber people's configs)
 update_conf_files
 
+# create the database for ZODB
+create_zodb_db
+
 # create the events mysql database
 create_database
 
@@ -61,16 +65,6 @@ run_zeneventbuild
 # set up the zope instance
 run_mkzopeinstance
 
-# create the zeodb instance
-run_mkzeoinstance
-
-# setup ZEO in a more secure default configuration
-/usr/bin/replace "address 8100" "address localhost:8100" -- \
-    $ZENHOME/etc/zeo.conf
-
-# create the zeo database
-start_zeodb
 # Remediate file ownership under $ZENHOME.
 fix_zenhome_owner_and_group ${OS_USERNAME}
 run_zenbuild
-stop_zeodb

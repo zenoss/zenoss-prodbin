@@ -22,6 +22,9 @@ import MySQLdb
 import optparse
 from _mysql_exceptions import OperationalError
 
+def zenPath(*args):
+    return os.path.abspath(os.path.join(os.environ['ZENHOME'], *args))
+
 
 # Config files for all Zope clients need to be converted.
 zopeClients = (
@@ -47,8 +50,7 @@ def main():
 
 
 def getZopeStore():
-    zope_conf = open(os.path.join(
-        os.environ['ZENHOME'], 'etc', 'zope.conf'), 'r')
+    zope_conf = open(zenPath('etc', 'zope.conf'), 'r')
     in_zodb_main = False
     for line in zope_conf:
         if line.strip().startswith('#'): continue
@@ -66,7 +68,7 @@ def getZopeStore():
 
 def findDataFs():
     zenhome = os.environ['ZENHOME']
-    zeo_conf = open(os.path.join(zenhome, 'etc', 'zeo.conf'), 'r')
+    zeo_conf = open(zenPath('etc', 'zeo.conf'), 'r')
     instance = zenhome
     in_filestorage = False
     for line in zeo_conf:
@@ -118,7 +120,7 @@ def createMySqlDatabase(host, port, db, user, passwd, root):
 
 
 def updateConf(conf, toAdd=[], toRemove=[]):
-    filename = os.path.join(os.environ['ZENHOME'], 'etc', '%s.conf' % conf)
+    filename = zenPath('etc', '%s.conf' % conf)
     new_contents = []
 
     try:
@@ -176,13 +178,17 @@ def convertFromZeoToMySql():
 
     print "Shutting down ZEO for the last time..."
     print "-"*79
-    call(["zeoctl", "stop"])
+    try:
+        call([zenPath("bin", "zeoctl"), "stop"])
+    except OSError:
+        pass
     print
 
     print "Analyzing ZODB..."
     print "-"*79
-    p = Popen(["zodbconvert", "--dry-run", fn], stdout=PIPE, stderr=PIPE)
+    p = Popen([zenPath("bin", "python"), zenPath("bin", "zodbconvert"), "--dry-run", fn], stdout=PIPE, stderr=PIPE)
     stdout, stderr = p.communicate()
+    print stdout, stderr
     totaltxs = int(stdout.splitlines()[-1].split()[2])
     print "%d transactions to be copied." % totaltxs
     print
@@ -232,7 +238,7 @@ def convertFromZeoToMySql():
 
 
 def convertZopeConfToMySql(host, db, user, passwd):
-    zc = os.path.join(os.environ['ZENHOME'], 'etc', 'zope.conf')
+    zc = zenPath('etc', 'zope.conf')
     zcf = open(zc, 'r')
     zeoclient = False
     nc = []
@@ -265,7 +271,7 @@ def convertZopeConfToMySql(host, db, user, passwd):
 
 def removeZeoctlFromStartup():
     l = []
-    fname = os.path.join(os.environ['ZENHOME'], 'bin', 'zenoss')
+    fname = zenPath('bin', 'zenoss')
     with open(fname, 'r') as f:
         for line in f:
             if 'C="$C zeoctl"' not in line:
