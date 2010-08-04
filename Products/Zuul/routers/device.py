@@ -494,6 +494,25 @@ class DeviceRouter(TreeRouter):
         facade.resetBoundTemplates(uid)
         return DirectResponse.succeed()
 
+    @require('Edit Local Templates')
+    def bindOrUnbindTemplate(self, uid, templateUid):
+        """
+        Given a templateuid and an organizer uid this method will
+        bind the template to the organizer if it is not bound or unbind
+        it if it is bound. It will also preserve the other template bindings
+        """
+        facade = self._getFacade()
+        template = facade._getObject(templateUid)
+        templateIds = [t.id for t in facade.getBoundTemplates(uid)]
+        # not bound
+        if not template.id in templateIds:
+            self.setBoundTemplates(uid, templateIds + [template.id])
+        else:
+            # already bound so unbind it
+            templateIds = [t for t in templateIds if t != template.id]
+            self.setBoundTemplates(uid, templateIds)
+        return DirectResponse.succeed()
+        
     def getOverridableTemplates(self, query, uid):
         """
         @returns A list of all the available templates at this context

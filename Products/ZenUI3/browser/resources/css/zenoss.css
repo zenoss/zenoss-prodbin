@@ -330,7 +330,11 @@ div.zenportlet .severity-icon-small.clear,
 .tree-severity-icon-small-warning,
 .tree-severity-icon-small-info,
 .tree-severity-icon-small-debug,
-.tree-severity-icon-small-clear {
+.tree-severity-icon-small-clear, 
+.tree-template-icon-component, 
+.tree-template-icon-bound,
+.tree-template-icon-bound-span,
+.tree-template-icon-component-span {
     width: 16px !important;
     height: 14px!important;
     background: transparent url(/++resource++zenui/img/xtheme-zenoss/icon/severity-sprite.png) no-repeat !important;
@@ -343,7 +347,13 @@ div.zenportlet .severity-icon-small.clear,
 .tree-severity-icon-small-info     { background-position: 0px -60px!important; }
 .tree-severity-icon-small-debug    { background-position: 0px -80px!important; }
 .tree-severity-icon-small-clear    { background-position: 0px -100px!important; }
-
+.tree-template-icon-component      { background-position: 0px -80px!important; }
+.tree-template-icon-bound    { background-position: 0px -100px!important; }
+.tree-template-icon-bound-span { background-position: 0px -95px!important; }
+.tree-template-icon-component-span    { background-position: 0px -74px!important; }
+.tree-node-no-icon{
+   width: 16px !important;
+}
 /**
  * FILTER GRID
  */

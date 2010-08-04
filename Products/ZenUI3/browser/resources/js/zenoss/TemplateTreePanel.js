@@ -20,6 +20,16 @@ var router, treeId, initTreeDialogs;
 router = Zenoss.remote.TemplateRouter;
 treeId = 'templateTree';
 
+
+
+/**
+ * The two default views
+ **/
+Ext.ns('Zenoss', 'Zenoss.templates');
+Zenoss.templates.templateView = 'template';    
+Zenoss.templates.deviceClassView = 'deviceClass';    
+
+     
 initTreeDialogs = function(tree) {
 
     new Zenoss.HideFormDialog({
@@ -72,6 +82,12 @@ Ext.ns('Zenoss');
 Zenoss.TemplateTreePanel = Ext.extend(Ext.tree.TreePanel, {
 
     constructor: function(config) {
+        var view = config.view,
+            directFn = router.getTemplates;
+        if (view == Zenoss.templates.deviceClassView) {
+            directFn = router.getDeviceClassTemplates;
+        }
+        
         Ext.applyIf(config, {
             id: treeId,
             rootVisible: false,
@@ -81,7 +97,7 @@ Zenoss.TemplateTreePanel = Ext.extend(Ext.tree.TreePanel, {
             useArrows: true,
             cls: 'x-tree-noicon',
             loader: {
-                directFn: router.getTemplates,
+                directFn: directFn,
                 baseAttrs: {singleClickExpand: true}
             },
             root: {
@@ -222,15 +238,21 @@ Zenoss.TemplateTreePanel = Ext.extend(Ext.tree.TreePanel, {
             }
         }
     },
-    
     selectByToken: function(uid) {
+        if (this.view == Zenoss.templates.deviceClassView){
+            this.selectPath(unescape(uid));
+        }else{
+            this.templateViewSelectByToken(uid);    
+        }        
+    },
+    templateViewSelectByToken: function(uid) {
         // called on Ext.History change event (see HistoryManager.js)
         // convert uid to path and select the path
         // example uid: '/zport/dmd/Devices/Power/UPS/APC/rrdTemplates/Device'
         // example path: '/root/Device/Device..Power.UPS.APC'
         var templateSplit, pathParts, nameParts,
             templateName, dmdPath, path, deviceName;
-
+        
         if (uid.search('/rrdTemplates/') != -1) {
             templateSplit = unescape(uid).split('/rrdTemplates/');
             pathParts = templateSplit[0].split('/');
@@ -251,7 +273,7 @@ Zenoss.TemplateTreePanel = Ext.extend(Ext.tree.TreePanel, {
         }
         path = String.format('/root/{0}/{0}..{1}', templateName, dmdPath);
         this.selectPath(path);
-    }
+    }        
     
 });
 

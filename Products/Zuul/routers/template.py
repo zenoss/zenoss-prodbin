@@ -30,6 +30,15 @@ class TemplateRouter(DirectRouter):
         templates = facade.getTemplates()
         return Zuul.marshal(templates)
 
+    def getDeviceClassTemplates(self, id):
+        """
+        Gets the templates but where the device class is the node and the
+        templates are the leaves
+        """
+        facade = self._getFacade()
+        templates = facade.getDeviceClassTemplates()
+        return [Zuul.marshal(templates)]
+    
     def getAddTemplateTargets(self, query):
         """
         @returns list of places where our new template can live

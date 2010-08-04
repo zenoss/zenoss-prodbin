@@ -14,6 +14,11 @@ from zope.interface import implements
 from Products.Zuul.infos import InfoBase, ProxyProperty
 from Products.Zuul.utils import severityId
 from Products.Zuul.interfaces import template as templateInterfaces
+from Products.Zuul.tree import TreeNode
+from Products.ZenModel.DeviceOrganizer import DeviceOrganizer
+from Products.ZenModel.RRDTemplate import RRDTemplate
+from Products.Zuul.interfaces import ICatalogTool
+from Products.Zuul.utils import ZuulMessageFactory as _t
 
 class TemplateInfo(InfoBase):
     description = ProxyProperty('description')
@@ -73,8 +78,118 @@ class TemplateLeaf(TemplateInfo):
     @property
     def leaf(self):
         return True
-        
 
+    @property
+    def iconCls(self):
+        """
+        If we are a component template show the component icon and
+        if we are bound show the bound icon
+        """
+        # component template
+        if self._object.targetPythonClass != 'Products.ZenModel.Device':
+            return 'tree-template-icon-component'
+        # see if it is bound
+        deviceClass = self._object.deviceClass()
+        if self._object.id in deviceClass.zDeviceTemplates:
+            return 'tree-template-icon-bound'
+        return 'tree-node-no-icon'
+
+    
+class DeviceClassTemplateNode(TreeNode):
+    """
+    This class is for the "Device class view" of the template tree.
+    Keep in mind that on this class "self._object" is actually
+    a brains not an object
+    """
+
+    @property
+    def id(self):
+        """
+        We have to make the template paths unique even though the same template shows up multiple times.
+        This is the acquired template path. NOTE that it relies on the _porganizerPath being set
+        """
+        if self.isOrganizer:
+            return super(DeviceClassTemplateNode, self).id
+        path = self._organizerPath + '/rrdTemplates/' + self._object.name
+        return path.replace('/', '.')
+    
+    @property
+    def qtip(self):
+        return self._object.getObject().description
+    
+    @property
+    def isOrganizer(self):
+        """
+        returns True if this node is an organizer
+        """
+        return isinstance(self._object.getObject(), DeviceOrganizer)
+
+    @property
+    def _evsummary(self):
+        return []
+
+    @property
+    def iconCls(self):
+        if self.isOrganizer:
+            return ''
+        # check to see if it is a component template
+        template = self._object.getObject()
+        if template.targetPythonClass != 'Products.ZenModel.Device':
+            return 'tree-template-icon-component'
+        # check to see if it is bound
+        organizer = template.unrestrictedTraverse(self._organizerPath)
+        if template.id in organizer.zDeviceTemplates:
+            return 'tree-template-icon-bound'
+        return 'tree-node-no-icon'
+    
+    @property
+    def leaf(self):
+        return not self.isOrganizer
+    
+    @property
+    def text(self):
+        """
+        If a template display the path otherwise just show what the parent shows
+        """
+        if self.isOrganizer:
+            return self._object.name
+        # it is a template
+        path = self._object.getObject().getUIPath()
+        if self._organizerPath in self._object.getObject().absolute_url_path():
+            path = _t('Locally Defined')
+        return "%s (%s)" % (self._object.name, path)
+    
+    @property
+    def children(self):
+        """
+        Must return all the device classes as well as templates available at this level (as leafs).
+        This will return all templates that are acquired as well.
+        """
+        if not self.isOrganizer:
+            return []
+        # get all organizers as brains
+        cat = ICatalogTool(self._object)
+        orgs = cat.search(DeviceOrganizer, paths=(self.uid,), depth=1)
+        
+        # get all templates as brains
+        templates = self._object.getObject().getRRDTemplates()
+        path = self.path
+        # return them both together
+        results = []
+        for brain in orgs:
+            item = DeviceClassTemplateNode(brain)
+            results.append(item)
+
+        
+        for template in templates:
+            brain = cat.getBrain(template.getPhysicalPath())
+            item = DeviceClassTemplateNode(brain)
+            item._organizerPath = path
+            results.append(item)
+                    
+        return results
+    
+        
 class RRDDataSourceInfo(InfoBase):
     implements(templateInterfaces.IRRDDataSourceInfo)
     """

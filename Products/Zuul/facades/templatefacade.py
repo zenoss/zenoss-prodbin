@@ -19,8 +19,8 @@ from Products.ZenUtils.Utils import prepId
 from Products import Zuul
 from Products.Zuul.interfaces import ITemplateFacade, ICatalogTool, ITemplateNode, IRRDDataSourceInfo, \
     IDataPointInfo, IThresholdInfo, IGraphInfo, IInfo, ITemplateLeaf, IGraphPointInfo
-from Products.Zuul.infos.template import SNMPDataSourceInfo, CommandDataSourceInfo
-from Products.Zuul.utils import unbrain, safe_hasattr as hasattr
+from Products.Zuul.infos.template import SNMPDataSourceInfo, CommandDataSourceInfo, DeviceClassTemplateNode
+from Products.Zuul.utils import unbrain, safe_hasattr as hasattr, UncataloguedObjectException
 from Products.Zuul.utils import UncataloguedObjectException
 from Products.Zuul.facades import ZuulFacade
 from Products.ZenModel.RRDTemplate import RRDTemplate
@@ -57,6 +57,16 @@ class TemplateFacade(ZuulFacade):
         for key in sorted(nodes.keys(), key=str.lower):
             yield nodes[key]
 
+    def getDeviceClassTemplates(self):
+        """
+        Returns the root node for the template tree when the nodes are
+        device classes
+        """
+        try:
+            return DeviceClassTemplateNode(self._dmd.Devices)
+        except UncataloguedObjectException:
+            pass
+        
     def getAddTemplateTargets(self):
         """
         @returns list of targets for our new template

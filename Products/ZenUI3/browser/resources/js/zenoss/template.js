@@ -19,14 +19,15 @@ var router, treeId, dataSourcesId, thresholdsId, graphsId,
     beforeselectHandler, updateDataSources, updateThresholds, updateGraphs,
     selectionchangeHandler, selModel, footerBar, override, overrideHtml1,
     overrideHtml2, showOverrideDialog, resetCombo, addTemplateDialogConfig,
-    addToZenPack;
-
+    addToZenPack, currentView;
+    
+Ext.ns('Zenoss', 'Zenoss.templates');
 router = Zenoss.remote.TemplateRouter;
 treeId = 'templateTree';
 dataSourcesId = 'dataSourceTreeGrid';
 thresholdsId = Zenoss.templates.thresholdsId;
 graphsId = 'graphGrid';
-
+    
 resetCombo = function(combo, uid) {
     combo.clearValue();
     combo.getStore().setBaseParam('uid', uid);
@@ -34,10 +35,38 @@ resetCombo = function(combo, uid) {
     combo.doQuery(combo.allQuery, true);
 };
 
+/**
+ * Returns which of the two views that the user has selected. Can be
+ * either:
+ * 1. "template" : the default view where nodes are templates and leaves are device classes
+ * 2. "deviceClass" : leaves are templates and nodes are deviceClasses
+ **/
+function getCurrentView(){
+    var currentView = Ext.util.Cookies.get('template_view');
+    if (currentView) {
+        return currentView;
+    }
+    currentView = 'template';
+    Ext.util.Cookies.set('template_view', currentView, new Date().add(Date.MONTH, 1));
+    return currentView;
+}
+
+/**
+ * Will set the cookie for the default view. This will cause a page reload.
+ **/
+function setDefaultView(view) {
+    var currentView = getCurrentView();
+    if (currentView != view){
+        Ext.util.Cookies.set('template_view', view, new Date().add(Date.MONTH, 1));
+        window.location = "/zport/dmd/template";
+    }    
+}
+    
 function reloadTree(selectedId) {
     var tree = Ext.getCmp(treeId);
     if (selectedId){
         tree.getRootNode().reload(function() {
+            tree.getRootNode().childNodes[0].expand();
             tree.selectByToken(selectedId);
         });
     }else{
@@ -68,7 +97,7 @@ updateDataSources = function(uid) {
         // create a new async node since we may have had a dummy one
         root = Ext.getCmp(dataSourcesId).getRootNode();
         root.setId(uid);
-        root.reload();      
+        root.reload();
     }
 };
 
@@ -100,7 +129,7 @@ updateGraphs = function(uid) {
     });
 };
 
-                
+
 selectionchangeHandler = function(sm, node) {
     if (node){
         updateDataSources(node.attributes.uid);
@@ -108,7 +137,13 @@ selectionchangeHandler = function(sm, node) {
         updateGraphs(node.attributes.uid);
         // set the context for the id fields (they validate their id against this context)
         Zenoss.env.PARENT_CONTEXT = node.attributes.uid;
-        Ext.History.add(treeId + Ext.History.DELIMITER + node.attributes.uid);
+        // unfortunately because multiple templates exist on device class view we
+        // have to track the history differently
+        if (getCurrentView() == Zenoss.templates.templateView){
+            Ext.History.add(treeId + Ext.History.DELIMITER + node.attributes.uid);   
+        }else {
+            Ext.History.add(treeId + Ext.History.DELIMITER + node.getPath());
+        }        
     }
 
     // enable the footer bar buttons
@@ -117,7 +152,7 @@ selectionchangeHandler = function(sm, node) {
     footerBar.buttonDelete.setDisabled(!node);
     footerBar.buttonAdd.setTooltip(_t('Add a monitoring template'));
 
-    // disable/enable the add buttons 
+    // disable/enable the add buttons
     Ext.getCmp(thresholdsId).addButton.setDisabled(!node);
     Ext.getCmp(graphsId).addButton.setDisabled(!node);
     Ext.getCmp(dataSourcesId).disableToolBarButtons(!node);
@@ -132,7 +167,8 @@ selModel = new Ext.tree.DefaultSelectionModel({
 
 Ext.getCmp('master_panel').add({
     xtype: 'TemplateTreePanel',
-    selModel: selModel
+    selModel: selModel,
+    view: getCurrentView()
 });
 
 /**********************************************************************
@@ -147,7 +183,7 @@ Ext.getCmp('master_panel').add({
 function showEditTemplateDialog(response) {
     var config, dialog, handler,
         data = response.data,
-        dirtyOnly = true;
+        dirtyOnly = true;        
 
     // save function (also reloads the tree, in case we change the name)
     handler = function() {
@@ -208,6 +244,7 @@ function editSelectedTemplate() {
     var params = {
         uid: Ext.getCmp(treeId).getSelectionModel().getSelectedNode().attributes.uid
     };
+    
     router.getInfo(params, showEditTemplateDialog);
 }
 /**********************************************************************
@@ -321,6 +358,32 @@ showOverrideDialog = function() {
     Ext.getCmp('overrideDialog').submit.disable();
 };
 
+function bindSelectedTemplateHere() {
+    var node = Ext.getCmp(treeId).getSelectionModel().getSelectedNode(),
+    remote = Zenoss.remote.DeviceRouter,
+    callback, path,
+    params, uid;
+    
+    if (getCurrentView() == Zenoss.templates.deviceClassView) {
+        uid = node.parentNode.attributes.uid;
+        path = node.getPath();
+    }else {
+        // template view
+        uid = node.attributes.uid.replace(/rrdTemplates\/(.)*$/, '');
+        path = node.attributes.uid;
+    }
+    
+    callback = function(response){
+        reloadTree(path);
+    };
+    params = {
+        uid: uid,
+        templateUid: node.attributes.uid
+    };
+    remote.bindOrUnbindTemplate(params, callback);
+}
+
+                
 /**********************************************************************
  *
  * Footer Bar
@@ -383,7 +446,7 @@ function showAddToZenPackDialog() {
     win.target = tree.getSelectionModel().getSelectedNode().attributes.uid;
     win.show();
 }
-                
+
 footerBar = Ext.getCmp('footer_bar');
 Zenoss.footerHelper(_t('Monitoring Template'),
                     footerBar, {
@@ -404,6 +467,11 @@ footerBar.buttonContextMenu.menu.add({
     xtype: 'menuitem',
     text: _t('Add to ZenPack'),
     handler: showAddToZenPackDialog
+    
+},{
+    text: _t('Toggle Template Binding'),
+    hidden: Zenoss.Security.doesNotHavePermission('Manage DMD'),
+    handler: bindSelectedTemplateHere
 });
 
 footerBar.on('buttonClick', function(actionName, id, values) {
@@ -436,4 +504,60 @@ footerBar.on('buttonClick', function(actionName, id, values) {
     }
 });
 
+/**
+ * Add the view buttons
+ **/
+footerBar.add([{
+    xtype: 'label',
+    text: _t('Group By: ')
+    },' ',{
+    xtype: 'button',
+    enableToggle: true,
+    toggleGroup: 'templateView',
+    pressed: getCurrentView() == Zenoss.templates.templateView,
+    text: _t('Template'),
+    toggleHandler: function(button, state) {
+        if (state) {
+            setDefaultView(Zenoss.templates.templateView);
+        } else {
+            // stay pressed, but don't do anything
+            this.toggle(true, true);
+        }
+        
+    }
+},{
+    xtype: 'button',
+    enableToggle: true,
+    pressed: getCurrentView() == Zenoss.templates.deviceClassView,
+    toggleGroup: 'templateView',
+    text: _t('Device Class'),
+    toggleHandler: function(button, state) {
+        if (state) {
+            setDefaultView(Zenoss.templates.deviceClassView);
+        } else {
+            // stay pressed, but don't do anything
+            this.toggle(true, true);
+        }      
+    }
+}]);
+
+
+footerBar.add(['-',{
+    xtype: 'label',
+    text: _t('Bound:')
+},{
+    xtype: 'label',        
+    ctCls: 'x-tree-node-icon tree-template-icon-bound-span'
+},' ',' ',{
+    xtype: 'label',
+    text: _t('Component:')        
+},{
+    xtype: 'label',
+    ctCls: 'x-tree-node-icon tree-template-icon-component-span'
+}
+]);
+
+
+
+                
 }); // Ext.onReady
