@@ -17,6 +17,7 @@ from zope.component import adapts
 from zope.interface import implements, providedBy
 from zope.schema.vocabulary import getVocabularyRegistry
 from zope.schema.vocabulary import VocabularyRegistryError
+from Products import Zuul
 from Products.Zuul.form.interfaces import IFormBuilder
 from Products.Zuul.interfaces import IInfo
 
@@ -125,7 +126,7 @@ class FormBuilder(object):
         value = item['value']
 
         if xtype == 'linkfield':
-            value = getattr(value, 'uid', value)
+            value = Zuul.marshal(value, keys=['uid', 'name'])
 
         field = {
             'xtype': xtype,
