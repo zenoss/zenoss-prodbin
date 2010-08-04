@@ -21,4 +21,5 @@ def test_suite():
     jsonsuite = DocTestSuite('Products.ZenUtils.jsonutils')
     guidsuite = DocTestSuite('Products.ZenUtils.guid')
     iputilsuite = DocTestSuite('Products.ZenUtils.IpUtil')
-    return unittest.TestSuite([suite, jsonsuite, guidsuite, iputilsuite])
+    skinssuite = DocTestSuite('Products.ZenUtils.Skins')
+    return unittest.TestSuite([suite, jsonsuite, guidsuite, iputilsuite, skinssuite])

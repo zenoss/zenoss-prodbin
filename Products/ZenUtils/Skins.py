@@ -21,13 +21,19 @@ warnings.filterwarnings('ignore', '.*non-existing path.*',
 def findZenPackRoot(base):
     """
     Search upwards for the root of a ZenPack.
+
+    >>> findZenPackRoot("/opt/zenoss/ZenPacks/ZenPacks.zenoss.NetAppMonitor-2.1.0-py2.6.egg/ZenPacks/zenoss/NetAppMonitor/skins")
+    '/opt/zenoss/ZenPacks/ZenPacks.zenoss.NetAppMonitor'
     """
     p = d = os.path.realpath(base)
     while d:
         if os.path.isdir(os.path.join(p, 'ZenPacks')):
             # Ditch version and extension if an egg
             if p.endswith('.egg'):
-                p = p.split('-')[0]
+                fullpath = p.split(os.sep)
+                name = fullpath.pop().split('-')[0]
+                fullpath.append(name)
+                p = os.sep.join(fullpath)
             return p
         p, d = os.path.split(p)
     return None
