@@ -21,7 +21,7 @@ import Migrate
 
 
 class FixCorruptedGraphDefs(Migrate.Step):
-    version = Migrate.Version(3, 1, 0)
+    version = Migrate.Version(3, 0, 2)
 
     def cutover(self, dmd):
         for template in dmd.Devices.getAllRRDTemplates():
