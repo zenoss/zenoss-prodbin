@@ -12,6 +12,7 @@
 ###########################################################################
 import os
 import time
+from Products.ZenUtils.Utils import rrd_daemon_running
 
 TMPDIR='/tmp/renderserver'
 if not os.path.exists(TMPDIR):
@@ -62,13 +63,17 @@ end='now'
 name='test'
 
 def basicArgs(env):
-    return ['--imgformat=PNG',
+    args = ['--imgformat=PNG',
             '--start=%(start)s' % env,
             '--end=%(end)s' % env,
             '--title=%(title)s' % env,
             '--height=%(height)s' % env,
             '--width=%(width)s' % env,
             '--vertical-label=%(label)s' % env]
+    daemon = rrd_daemon_running()
+    if daemon:
+        args.append('--daemon=%s' % daemon)
+    return args
 
 def getArgs(REQUEST, env):
     env.setdefault('arg', [])

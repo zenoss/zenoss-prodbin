@@ -16,6 +16,7 @@ Make threshold comparisons dynamic by using TALES expresssions,
 rather than just number bounds checking.
 """
 
+import os
 import rrdtool
 from AccessControl import Permissions
 
@@ -25,6 +26,7 @@ from ThresholdInstance import ThresholdInstance, ThresholdContext
 from Products.ZenEvents import Event
 from Products.ZenEvents.ZenEventClasses import Perf_Snmp
 from Products.ZenUtils.ZenTales import talesEval, talesEvalStr
+from Products.ZenUtils.Utils import zenPath, rrd_daemon_running
 from Products.ZenEvents.Exceptions import pythonThresholdException, \
         rpnThresholdException
 
@@ -156,7 +158,13 @@ class MinMaxThresholdInstance(ThresholdInstance):
     def rrdInfoCache(self, dp):
         if dp in self._rrdInfoCache:
             return self._rrdInfoCache[dp]
-        data = rrdtool.info(self.context().path(dp))
+
+        daemon_args = ()
+        daemon = rrd_daemon_running()
+        if daemon:
+            daemon_args = ('--daemon', daemon)
+
+        data = rrdtool.info(self.context().path(dp), *daemon_args)
         # handle both old and new style RRD versions   
         try:
             # old style 1.2.x

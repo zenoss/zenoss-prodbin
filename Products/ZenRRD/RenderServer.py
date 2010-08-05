@@ -44,7 +44,7 @@ except ImportError:
 
 from Products.ZenRRD.RRDUtil import fixMissingRRDs
 from Products.ZenUtils.PObjectCache import PObjectCache
-from Products.ZenUtils.Utils import zenPath
+from Products.ZenUtils.Utils import zenPath, rrd_daemon_running
 
 from RRDToolItem import RRDToolItem
 
@@ -132,6 +132,9 @@ class RenderServer(RRDToolItem):
                     imgtype = 'PNG'
                 else:
                     imgtype = ftype
+                daemon = rrd_daemon_running()
+                if daemon:
+                    gopts.insert(0, '--daemon=%s' % daemon)
                 gopts.insert(0, "--imgformat=%s" % imgtype)
                 #gopts.insert(0, "--lazy")
                 end = int(time.time())-300
@@ -333,6 +336,9 @@ class RenderServer(RRDToolItem):
         """
         gopts = fixMissingRRDs(gopts)
         gopts.insert(0, '/dev/null') #no graph generated
+        daemon = rrd_daemon_running()
+        if daemon:
+            gopts.insert(0, '--daemon=%s' % daemon)
         try:
             values = rrdtool.graph(*gopts)[2]
         except Exception, ex:
@@ -349,10 +355,12 @@ class RenderServer(RRDToolItem):
         if not end:
             end = "now"
         values = []
+        daemon = rrd_daemon_running()
+        args = ('--daemon', daemon) if daemon else ()
         try:
             for path in paths:
                 values.append(rrdtool.fetch(path, cf, "-r %d" % resolution,
-                    "-s %s" % start,"-e %s" % end))
+                    "-s %s" % start,"-e %s" % end, *args))
             return values
         except NameError:
             log.exception("It appears that the rrdtool bindings are not installed properly.")

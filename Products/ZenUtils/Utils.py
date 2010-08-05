@@ -1553,3 +1553,8 @@ def load_config_override(file, package=None, execute=True):
     if execute:
         _context.execute_actions()
 
+
+def rrd_daemon_running():
+    sockfile = zenPath('var', 'rrdcached.sock')
+    if os.path.exists(sockfile):
+        return sockfile

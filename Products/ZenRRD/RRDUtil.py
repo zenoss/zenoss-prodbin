@@ -22,7 +22,7 @@ log = logging.getLogger("zen.RRDUtil")
 import os
 import re
 
-from Products.ZenUtils.Utils import zenPath
+from Products.ZenUtils.Utils import zenPath, rrd_daemon_running
 
 
 EMPTY_RRD = zenPath('perf', 'empty.rrd')
@@ -173,7 +173,7 @@ class RRDUtil:
 
 
     def save(self, path, value, rrdType, rrdCommand=None, cycleTime=None,
-             min='U', max='U'):
+             min='U', max='U', useRRDDaemon=True):
         """
         Save the value provided in the command to the RRD file specified in path.
 
@@ -198,6 +198,12 @@ class RRDUtil:
         @rtype: number or None
         """
         import rrdtool, os
+
+        daemon_args = ()
+        if useRRDDaemon:
+            daemon = rrd_daemon_running()
+            if daemon:
+                daemon_args = ('--daemon', daemon)
 
         if value is None: return None
 
@@ -234,7 +240,7 @@ class RRDUtil:
             except (TypeError, ValueError):
                 return None
         try:
-            rrdtool.update(str(filename), 'N:%s' % value)
+            rrdtool.update(str(filename), *(daemon_args + ('N:%s' % value,)))
             log.debug('%s: %r', str(filename), value)
         except rrdtool.error, err:
             # may get update errors when updating too quickly
@@ -244,7 +250,7 @@ class RRDUtil:
             startStop, names, values = \
                 rrdtool.fetch(filename, 'AVERAGE',
                     '-s', 'now-%d' % (cycleTime*2),
-                    '-e', 'now')
+                    '-e', 'now', *daemon_args)
             values = [ v[0] for v in values if v[0] is not None ]
             if values: value = values[-1]
             else: value = None
