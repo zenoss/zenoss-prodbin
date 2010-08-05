@@ -14,7 +14,7 @@
 # completing an upgrade process. These ZenPacks will then be upgraded
 # following the upgrade of core and will be functional again.
 #
-
+PATCHCMD="patch -s -N" 
 find_zenpack()
 {
     local zenpack_name="$1"
@@ -49,9 +49,9 @@ else
     find_zenpack "${zenpack_name}"
     configure_file="${zenpack_dir}/ZenPacks/zenoss/${zenpack_name}/configure.zcml"
     if [ -f "${configure_file}" ]; then
-        patch  "${configure_file}" <<__EOF__
---- configure.zcml	2010-05-24 13:21:48.000000000 -0500
-+++ /home/zenoss/configure.zcml	2010-05-28 09:08:56.000000000 -0500
+        $PATCHCMD  "${configure_file}" > /dev/null 2>&1 <<__EOF__
+--- configure.zcml  2010-05-24 13:21:48.000000000 -0500
++++ /home/zenoss/configure.zcml 2010-05-28 09:08:56.000000000 -0500
 @@ -3,36 +3,4 @@
      xmlns:browser="http://namespaces.zope.org/browser"
      xmlns:five="http://namespaces.zope.org/five">
@@ -101,9 +101,9 @@ __EOF__
     find_zenpack "${zenpack_name}"
     mail_file="${zenpack_dir}/ZenPacks/zenoss/${zenpack_name}/Mail.py"
     if [ -f "${mail_file}" ]; then
-        patch "${mail_file}" << __EOF__
---- Mail.py	2010-05-24 13:16:55.000000000 -0500
-+++ /home/zenoss/Mail.py	2010-05-28 10:21:48.000000000 -0500
+        $PATCHCMD "${mail_file}" > /dev/null 2>&1 << __EOF__
+--- Mail.py 2010-05-24 13:16:55.000000000 -0500
++++ /home/zenoss/Mail.py    2010-05-28 10:21:48.000000000 -0500
 @@ -14,11 +14,6 @@
  sys.path.insert(0, os.path.join(os.path.dirname(__file__), 'lib'))
  
@@ -128,9 +128,9 @@ __EOF__
     find_zenpack "${zenpack_name}"
     init_file="${zenpack_dir}/ZenPacks/zenoss/${zenpack_name}/__init__.py"
     if [ -f "${init_file}" ]; then
-      patch "${init_file}" << __EOF__
---- __init__.py	2010-05-31 20:41:44.000000000 -0500
-+++ __init__.py.new	2010-05-31 20:41:41.000000000 -0500
+      $PATCHCMD "${init_file}"  > /dev/null 2>&1 << __EOF__
+--- __init__.py 2010-05-31 20:41:44.000000000 -0500
++++ __init__.py.new 2010-05-31 20:41:41.000000000 -0500
 @@ -107,4 +107,5 @@
          "remove the encryption transformer"
          if not leaveObjects and 'password' in app.dmd.propertyTransformers:
@@ -148,9 +148,9 @@ __EOF__
     find_zenpack "${zenpack_name}"
     init_file="${zenpack_dir}/ZenPacks/zenoss/${zenpack_name}/__init__.py"
     if [ -f "${init_file}" ]; then
-        patch "${init_file}" << __EOF__
---- __init__.py	2010-06-01 13:11:05.000000000 -0500
-+++ __init__.py.new	2010-06-01 13:11:19.000000000 -0500
+        $PATCHCMD "${init_file}" > /dev/null 2>&1 << __EOF__
+--- __init__.py 2010-06-01 13:11:05.000000000 -0500
++++ __init__.py.new 2010-06-01 13:11:19.000000000 -0500
 @@ -18,7 +18,7 @@
  from Products.CMFCore.DirectoryView import registerDirectory
  from Products.ZCatalog.ZCatalog import manage_addZCatalog
@@ -165,9 +165,9 @@ __EOF__
 
     file="${zenpack_dir}/ZenPacks/zenoss/${zenpack_name}/VIPerfCounterMap.py"
     if [ -f "${file}" ]; then
-        patch "${file}" << __EOF__
---- VIPerfCounterMap.py	2010-05-24 13:19:03.000000000 -0500
-+++ VIPerfCounterMap.py.new	2010-06-01 13:21:59.000000000 -0500
+        $PATCHCMD "${file}"  > /dev/null 2>&1 << __EOF__
+--- VIPerfCounterMap.py 2010-05-24 13:19:03.000000000 -0500
++++ VIPerfCounterMap.py.new 2010-06-01 13:21:59.000000000 -0500
 @@ -12,7 +12,7 @@
  from OFS.SimpleItem import SimpleItem
  from AccessControl import ClassSecurityInfo
@@ -186,9 +186,9 @@ __EOF__
     find_zenpack "${zenpack_name}"
     configure_file="${zenpack_dir}/ZenPacks/zenoss/${zenpack_name}/browser/configure.zcml"
     if [ -f "${configure_file}" ]; then
-        patch  "${configure_file}" <<__EOF__
---- configure.zcml	2010-06-28 13:03:56.000000000 -0400
-+++ configure.zcml.new	2010-06-28 13:38:42.000000000 -0400
+        $PATCHCMD  "${configure_file}"  > /dev/null 2>&1 <<__EOF__
+--- configure.zcml  2010-06-28 13:03:56.000000000 -0400
++++ configure.zcml.new  2010-06-28 13:38:42.000000000 -0400
 @@ -5,97 +5,4 @@
      xmlns:browser="http://namespaces.zope.org/browser"
      i18n_domain="ZenPacks.zenoss.CiscoUCS">
