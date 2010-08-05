@@ -224,6 +224,10 @@ class RRDDataSourceInfo(InfoBase):
     def _getSeverity(self):
         return self._object.getSeverityString()
 
+    @property
+    def newId(self):
+        return self._object.id
+    
     severity = property(_getSeverity, _setSeverity)
     enabled = ProxyProperty('enabled')
     component = ProxyProperty('component')
@@ -284,10 +288,14 @@ class BasicDataSourceInfo(InfoBase):
     def _getSeverity(self):
         return self._object.getSeverityString()
 
+    @property
+    def newId(self):
+        return self._object.id
+    
     severity = property(_getSeverity, _setSeverity)
     cycletime = ProxyProperty('cycletime')
     eventClass = ProxyProperty('eventClass')
-
+    
 
 class SNMPDataSourceInfo(BasicDataSourceInfo):
     implements(templateInterfaces.ISNMPDataSourceInfo)
@@ -323,6 +331,10 @@ class DataPointInfo(InfoBase):
     def type(self):
         return self._object.rrdtype
 
+    @property
+    def newId(self):
+        return self._object.id
+    
     # alias
     def _setAliases(self, value):
         """

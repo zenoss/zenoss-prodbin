@@ -39,7 +39,7 @@ class IRRDDataSourceInfo(IInfo):
 
     See the _properties on the RRDDatasouce ZenModel
     """
-    name = schema.Text(title=_t(u'Name'),
+    newId = schema.Text(title=_t(u'Name'),
                        xtype="idfield",
                        description=_t(u'The name of this datasource'))                       
     type = schema.Text(title=_t(u'Type'),
@@ -58,7 +58,7 @@ class IBasicDataSourceInfo(IInfo):
     Adapts BasicDataSource (the common properties between SNMP and
     COMMAND infos)
     """
-    name = schema.Text(title=_t(u'Name'),
+    newId = schema.Text(title=_t(u'Name'),
                        xtype="idfield",
                        description=_t(u'The name of this datasource'))                       
     type = schema.Text(title=_t(u'Type'),
@@ -88,7 +88,7 @@ class ISNMPDataSourceInfo(IInfo):
     """
     Adaps a basic Datasource of type SNMP
     """
-    name = schema.Text(title=_t(u'Name'),
+    newId = schema.Text(title=_t(u'Name'),
                        xtype="idfield",
                        description=_t(u'The name of this datasource'))
     type = schema.Text(title=_t(u'Type'),
@@ -101,7 +101,7 @@ class IDataPointInfo(IInfo):
     """
     Adapts RRDDataPoint.
     """
-    name = schema.Text(title=_t(u'Name'),
+    newId = schema.Text(title=_t(u'Name'),
                        xtype="idfield",
                        description=_t(u'The name of this data point'))
                        
