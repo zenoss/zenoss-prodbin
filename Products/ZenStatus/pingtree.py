@@ -224,10 +224,23 @@ pb.setUnjellyableForClass(PingTree, PingTree)
 
 
 def buildTree(root, rootnode=None, devs=None, memo=None, tree=None):
-    """Returns tree where tree that maps the network from root's
-    perspective  and nmap is a dict that points network ids to the
-    network objects in the tree.  nmap is used to add devices to be pinged
-    to the tree.
+    """
+    Returns a ping tree tree that maps the network from the root's
+    perspective, to each of the leaf devices.
+
+    Only root is expected to be passed, and the rest are supplied by
+    the recursion.
+
+    @parameter root: device where zenping lives (ie root node of the topology)
+    @type root: device object
+    @parameter rootnode: initial 'router' for the tree
+    @type rootnode: RouterNode()
+    @parameter devs:
+    @type devs:
+    @parameter memo: list of device ids that we have already added
+    @type memo: array of strings
+    @parameter tree:
+    @type tree: PingTree()
     """
     if memo is None: memo = []
     if devs is None:
@@ -240,10 +253,11 @@ def buildTree(root, rootnode=None, devs=None, memo=None, tree=None):
         tree.root = rootnode
         rootnode.addNet(tree, "default", "default")
         devs = [(root,rootnode)]
+
     nextdevs = []
     for dev, rnode in devs:
         if dev.id in memo: return
-        log.debug("mapping device '%s'", dev.id)
+        log.debug("Adding device '%s' to the topology", dev.id)
         memo.append(dev.id)
         for route in dev.os.routes():
             if route.routetype == "direct":
@@ -252,7 +266,7 @@ def buildTree(root, rootnode=None, devs=None, memo=None, tree=None):
                     netid = route.getTarget()
                     if rootnode.hasNet(tree, netid): continue
                     net = rnode.addNet(tree, netid,route.getInterfaceIp())
-                    log.debug("add net: %s to rnode: %s", net, rnode)
+                    log.debug("add net: %s to router node: %s", net, rnode)
             else:
                 ndev = route.getNextHopDevice()
                 if ndev:
@@ -264,7 +278,7 @@ def buildTree(root, rootnode=None, devs=None, memo=None, tree=None):
                     nrnode = rnode.addRouter(tree,
                                              nextHopIp,ndev.id,
                                              getStatus(ndev))
-                    log.debug("create rnode: %s", nrnode)
+                    log.debug("Created router node: %s", nrnode)
                     nextdevs.append((ndev, nrnode))
         for iface in dev.os.interfaces():
             for ip in iface.ipaddresses():
