@@ -59,17 +59,27 @@ class DeviceOrganizerNode(TreeNode):
         return getFacade('device').getEventSummary(where=where)
 
     @property
+    def _get_cache(self):
+        cache = getattr(self._root, '_cache', None)
+        prefix = '/'.join(self._root.uid.split('/')[:4])
+        if cache is None:
+            cache = TreeNode._buildCache(self,
+                                         'Products.ZenModel.DeviceOrganizer.DeviceOrganizer',
+                                         'Products.ZenModel.Device.Device',
+                                         'devices', prefix)
+        return cache
+
+
+    @property
     def children(self):
-        cat = ICatalogTool(self._object)
-        orgs = cat.search(DeviceOrganizer, paths=(self.uid,), depth=1)
-        return catalogAwareImap(DeviceOrganizerNode, orgs)
+        orgs = self._get_cache.search(self.uid)
+        return catalogAwareImap(lambda x:DeviceOrganizerNode(x, self._root, self), orgs)
 
     @property
     def text(self):
         # need to query the catalog from the permissions perspective of
         # the uid
-        cat = ICatalogTool(self._object.unrestrictedTraverse(self.uid))
-        numInstances = cat.count('Products.ZenModel.Device.Device', self.uid)
+        numInstances = self._get_cache.count(self.uid)
         text = super(DeviceOrganizerNode, self).text
         return {
             'text': text,

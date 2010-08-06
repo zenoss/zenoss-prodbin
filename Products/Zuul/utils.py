@@ -17,6 +17,8 @@ from operator import attrgetter
 from itertools import islice
 from Acquisition import aq_base, aq_chain
 from zope.interface import Interface
+from BTrees.OOBTree import OOBTree
+from BTrees.IOBTree import IOBTree
 from AccessControl import getSecurityManager
 from zope.i18nmessageid import MessageFactory
 from Products.ZCatalog.CatalogBrains import AbstractCatalogBrain
@@ -266,5 +268,68 @@ class CatalogLoggingFilter(logging.Filter):
 
     def matches(self, rec):
         return rec.msg.startswith('uncatalogObject unsuccessfully attempted')
+
+
+
+class PathIndexCache(object):
+    """
+    Cache tree search results for further queries.
+    """
+    def __init__(self, results, instanceresults=None, relnames=('devices',), treePrefix=None):
+        self._brains = IOBTree()
+        self._index = OOBTree()
+        self._instanceidx = OOBTree()
+        self.insert(self._index, results)
+        if instanceresults:
+            self.insert(self._instanceidx, instanceresults, relnames, treePrefix)
+
+    def insert(self, idx, results, relnames=None, treePrefix=None):
+        for brain in results:
+            rid = brain.getRID()
+            path = brain.getPath()
+            if treePrefix and not path.startswith(treePrefix):
+                paths = brain.global_catalog._catalog.indexes['path']._unindex[rid]
+                for p in paths:
+                    if p.startswith(treePrefix):
+                        path = p
+                        break
+            path = path.split('/', 3)[-1]
+            if relnames:
+                if isinstance(relnames, basestring):
+                    relnames = (relnames,)
+                for relname in relnames:
+                    path = path.replace('/'+relname, '')
+            self._brains[rid] = brain
+            for depth in xrange(path.count('/')+1):
+                comp = idx.setdefault(path, IOBTree())
+                comp.setdefault(depth, []).append(rid)
+                path = path.rsplit('/', 1)[0]
+
+    def search(self, path, depth=1):
+        path = path.split('/', 3)[-1]
+        try:
+            idx = self._index[path]
+            return map(self._brains.get, idx[depth])
+        except KeyError:
+            return []
+
+    def count(self, path, depth=None):
+        path = path.split('/', 3)[-1]
+        try:
+            idx = self._instanceidx[path]
+            if depth is None:
+                depth = max(idx.keys())
+            return sum(len(idx[d]) for d in xrange(depth+1) if d in idx.keys())
+        except KeyError:
+            return 0
+
+    @classmethod
+    def test(self, dmd):
+        from Products.Zuul.interfaces import ICatalogTool
+        results = ICatalogTool(dmd.Devices).search('Products.ZenModel.DeviceOrganizer.DeviceOrganizer')
+        instances = ICatalogTool(dmd.Devices).search('Products.ZenModel.Device.Device')
+        tree = PathIndexCache(results, instances, 'devices')
+
+
 
 

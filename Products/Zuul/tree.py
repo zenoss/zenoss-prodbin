@@ -17,7 +17,7 @@ from Products.AdvancedQuery import Eq, Or, Generic, And, In
 from Products.ZCatalog.CatalogBrains import AbstractCatalogBrain
 from Products.Zuul.interfaces import ITreeNode, ICatalogTool
 from Products.Zuul.utils import dottedname, unbrain, allowedRolesAndGroups
-from Products.Zuul.utils import UncataloguedObjectException
+from Products.Zuul.utils import UncataloguedObjectException, PathIndexCache
 from AccessControl import getSecurityManager
 
 
@@ -27,7 +27,7 @@ class TreeNode(object):
     """
     implements(ITreeNode)
 
-    def __init__(self, ob):
+    def __init__(self, ob, root=None, parent=None):
         if not isinstance(ob, AbstractCatalogBrain):
             brain = ICatalogTool(ob).getBrain(ob)
             if brain is None:
@@ -35,6 +35,21 @@ class TreeNode(object):
             else:
                 ob = brain
         self._object = ob
+        self._root = root or self
+        self._parent = parent or None
+
+    def _buildCache(self, orgtype=None, instancetype=None, relname=None,
+                    treePrefix=None):
+        if orgtype and not getattr(self._root, '_cache', None):
+            cat = ICatalogTool(self._object.unrestrictedTraverse(self.uid))
+            results = cat.search(orgtype)
+            if instancetype:
+                instanceresults = cat.search(instancetype)
+                self._root._cache = PathIndexCache(results, instanceresults,
+                                                   relname, treePrefix)
+            else:
+                self._root._cache = PathIndexCache(results)
+        return self._root._cache
 
     @property
     def uid(self):
@@ -104,7 +119,8 @@ class TreeNode(object):
         numInstances = cat.count('Products.ZenModel.DeviceOrganizer.DeviceOrganizer', self.uid)
         # if anything is returned we have view permissions on a child
         return not numInstances > 0
-    
+
+
 class StaleResultsException(Exception):
     """
     The hash check failed. Selections need to be refreshed.

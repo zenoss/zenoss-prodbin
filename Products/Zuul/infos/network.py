@@ -31,8 +31,8 @@ class IpNetworkNode(TreeNode):
 
     @property
     def text(self):
+        numInstances = self._get_cache.count(self.uid)
         text = super(IpNetworkNode, self).text
-        numInstances = ICatalogTool(self._object).count(IpAddress, self.uid)
         return {
             'text': text,
             'count': numInstances,
@@ -40,10 +40,16 @@ class IpNetworkNode(TreeNode):
         }
 
     @property
+    def _get_cache(self):
+        cache = getattr(self._root, '_cache', None)
+        if cache is None:
+            cache = TreeNode._buildCache(self, IpNetwork, IpAddress, 'ipaddresses')
+        return cache
+
+    @property
     def children(self):
-        cat = ICatalogTool(self._object)
-        nets = cat.search(IpNetwork, paths=(self.uid,), depth=1)
-        return imap(IpNetworkNode, nets)
+        nets = self._get_cache.search(self.uid)
+        return imap(lambda x:IpNetworkNode(x, self._root, self), nets)
 
     @property
     def leaf(self):

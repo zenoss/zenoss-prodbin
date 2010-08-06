@@ -36,16 +36,24 @@ class ServiceOrganizerNode(TreeNode):
         return getFacade('service').getEventSummary(self.uid)
 
     @property
+    def _get_cache(self):
+        cache = getattr(self._root, '_cache', None)
+        if cache is None:
+            cache = TreeNode._buildCache(self, ServiceOrganizer, ServiceClass,
+                                         'serviceclasses')
+        return cache
+
+    @property
     def text(self):
         text = super(ServiceOrganizerNode, self).text
-        count = ICatalogTool(self._object).count((ServiceClass,), self.uid)
+        count = self._get_cache.count(self.uid)
         return {'text': text, 'count': count}
 
     @property
     def children(self):
-        cat = ICatalogTool(self._object)
-        orgs = cat.search(ServiceOrganizer, paths=(self.uid,), depth=1)
-        return catalogAwareImap(ServiceOrganizerNode, orgs)
+        orgs = self._get_cache.search(self.uid)
+        return catalogAwareImap(lambda x:ServiceOrganizerNode(x, self._root,
+                                                              self), orgs)
 
     @property
     def leaf(self):

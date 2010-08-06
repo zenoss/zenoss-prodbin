@@ -39,7 +39,7 @@ class ProcessNode(TreeNode):
     @property
     def text(self):
         text = super(ProcessNode, self).text
-        numInstances = ICatalogTool(self._object).count(OSProcess, self.uid)
+        numInstances = self._get_cache.count(self.uid.replace('/osProcessClasses', ''))
         return {
             'text': text,
             'count': numInstances,
@@ -47,12 +47,23 @@ class ProcessNode(TreeNode):
         }
 
     @property
+    def _get_cache(self):
+        cache = getattr(self._root, '_cache', None)
+        if cache is None:
+            cache = TreeNode._buildCache(self, OSProcessOrganizer)
+            cat = ICatalogTool(self._object.unrestrictedTraverse(self.uid))
+            cache.insert(cache._instanceidx, cat.search(OSProcess),
+                         ('osProcessClasses', 'instances'),
+                         '/zport/dmd/Processes')
+            cat = ICatalogTool(self._object.unrestrictedTraverse(self.uid))
+            cache.insert(cache._index, cat.search(OSProcessClass),
+                         relnames='osProcessClasses')
+        return cache
+
+    @property
     def children(self):
-        cat = ICatalogTool(self._object)
-        orgs = cat.search(OSProcessOrganizer, paths=(self.uid,), depth=1)
-        # Must search at depth+1 to account for relationship
-        cls = cat.search(OSProcessClass, paths=(self.uid,), depth=2)
-        return catalogAwareImap(ProcessNode, chain(orgs, cls))
+        orgs = self._get_cache.search(self.uid)
+        return catalogAwareImap(lambda x:ProcessNode(x, self._root, self), orgs)
 
     @property
     def leaf(self):
