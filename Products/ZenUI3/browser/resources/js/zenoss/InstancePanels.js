@@ -67,12 +67,14 @@ Zenoss.InstanceStore = Ext.extend(Ext.ux.grid.livegrid.Store, {
     constructor: function(config) {
         Ext.applyIf(config, {
             bufferSize: 50,
+            nearLimit: 20,
             proxy: new Ext.data.DirectProxy({
                 directFn: config.directFn
             }),
             reader: new Ext.ux.grid.livegrid.JsonReader({
                 root: 'data',
                 idProperty: 'uid',
+                totalProperty: 'totalCount',
                 fields: [
                     {name: 'device'},
                     {name: config.nameDataIndex || 'name'},
@@ -101,7 +103,11 @@ Zenoss.SimpleInstanceGridPanel = Ext.extend(Ext.ux.grid.livegrid.GridPanel, {
                 xtype:'InstanceStore',
                 directFn: config.directFn,
                 nameDataIndex: config.nameDataIndex
-            }
+            },
+            sm: new Ext.ux.grid.livegrid.RowSelectionModel(),
+            view: new Ext.ux.grid.livegrid.GridView({
+                loadMask: {msg: _t('Loading. Please wait...')}
+            })
         });
         Zenoss.SimpleInstanceGridPanel.superclass.constructor.call(this, config);
     },

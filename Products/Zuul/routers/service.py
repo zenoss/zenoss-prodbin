@@ -128,7 +128,7 @@ class ServiceRouter(TreeRouter):
         keys = ['description', 'device', 'locking', 'monitored', 'name',
                 'status', 'uid']
         data = Zuul.marshal(instances, keys)
-        return DirectResponse.succeed(data=data)
+        return DirectResponse.succeed(data=data, totalCount=instances.total)
 
     @require('Manage DMD')
     def moveServices(self, sourceUids, targetUid):
