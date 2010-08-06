@@ -51,8 +51,9 @@ class HttpRender(resource.Resource):
         args.setdefault('ftype', 'PNG')
         ftype = args['ftype']
         del args['ftype']
-        mimetype = mimetypes.guess_type('.%s'%ftype)[0]
-        if not mimetype: mimetype = 'image/%s'%ftype
+        mimetype = mimetypes.guess_type('x.%s' % ftype)[0]
+        if mimetype is None:
+            mimetype = 'image/%s' % ftype.lower()
         request.setHeader('Content-type', mimetype)
         return getattr(zr, 'remote_' + command)(**args)
     
