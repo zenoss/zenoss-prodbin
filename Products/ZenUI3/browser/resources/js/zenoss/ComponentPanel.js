@@ -500,11 +500,13 @@ ZC.IpInterfacePanel = Ext.extend(ZC.ComponentGridPanel, {
     constructor: function(config) {
         config = Ext.applyIf(config||{}, {
             componentType: 'IpInterface',
+            autoExpandColumn: 'description',
             fields: [
                 {name: 'uid'},
                 {name: 'severity'},
                 {name: 'status'},
                 {name: 'name'},
+                {name: 'description'},
                 {name: 'ipAddress'},//, mapping:'ipAddress.uid'},
                 {name: 'network'},//, mapping:'network.uid'},
                 {name: 'macaddress'},
@@ -513,33 +515,34 @@ ZC.IpInterfacePanel = Ext.extend(ZC.ComponentGridPanel, {
                 {name: 'monitor'},
                 {name: 'monitored'},
                 {name: 'locking'},
-                {name: 'duplex'}
+                {name: 'duplex'},
+                {name: 'netmask'},
             ],
             columns: [{
                 id: 'severity',
                 dataIndex: 'severity',
                 header: _t('Events'),
                 renderer: Zenoss.render.severity,
-                width: 60
+                width: 50
             },{
                 id: 'name',
                 dataIndex: 'name',
-                header: _t('IP Interface')
+                header: _t('IP Interface'),
+                width: 150
             },{
                 id: 'ipAddress',
                 dataIndex: 'ipAddress',
                 header: _t('IP Address'),
-                renderer: render_link
-            },{
-                id: 'network',
-                dataIndex: 'network',
-                header: _t('Network'),
-                renderer: function(network){
-                    // network is the marshalled Info object
-                    if (network) {
-                        return Zenoss.render.link(network.uid, null, network.name);
+                renderer: function(ipaddress) {
+                    if (ipaddress && Ext.isObject(ipaddress) && ipaddress.netmask) {
+                        ipaddress.name += '/' + ipaddress.netmask;
                     }
+                    return Zenoss.render.link(ipaddress);
                 }
+            },{
+                id: 'description',
+                dataIndex: 'description',
+                header: _t('Description')
             },{
                 id: 'macaddress',
                 dataIndex: 'macaddress',
@@ -560,6 +563,7 @@ ZC.IpInterfacePanel = Ext.extend(ZC.ComponentGridPanel, {
                 id: 'locking',
                 dataIndex: 'locking',
                 header: _t('Locking'),
+                width: 72,
                 renderer: Zenoss.render.locking_icons
             }]
         });

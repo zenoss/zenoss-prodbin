@@ -157,6 +157,10 @@ class IpAddressInfo(InfoBase):
         return self._object.device()
 
     @property
+    def netmask(self):
+        return str(self._object._netmask)
+
+    @property
     @info
     def interface(self):
         return self._object.interface()
