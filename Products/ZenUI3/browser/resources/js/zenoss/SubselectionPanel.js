@@ -580,6 +580,7 @@ Ext.reg('detailnav', Zenoss.DetailNavPanel);
 Zenoss.DetailNavCombo = Ext.extend(Ext.form.ComboBox, {
     target: null,
     contextUid: null,
+    lastSelItem: null,
     panelConfigMap: null,
     mode: 'local',
     editable: false,
@@ -613,49 +614,54 @@ Zenoss.DetailNavCombo = Ext.extend(Ext.form.ComboBox, {
                 target.items.map[id].setContext(this.contextUid);
                 target.layout.setActiveItem(id);
             };
+        this.lastSelItem = item;
         action.call(this, item, target, this);
     },
     selectAt: function(idx) {
         var record = this.store.getAt(idx);
+        this.lastSelItem = record;
         this.onSelect(record, idx);
     },
-    setContext: function(uid) {
-        var lastUid = this.contextUid;
-        this.contextUid = uid;
-        if ( lastUid
-             && uid.match(/.*\//)[0] == lastUid.match(/.*\//)[0] ) {
-            // when clicking through rows of same component type, there is no
-            // need to reload the Display combobox
-            this.selectAt(this.getStore().indexOfId(this.getValue()));
-        } else {
-            var args = {uid:uid};
-            if (!Ext.isEmpty(this.menuIds)) {
-                args.menuIds = this.menuIds;
+    selectByItem: function(item) {
+        var idx = 0;
+        if (item) {
+            idx = this.store.indexOfId(item.id);
+            if (idx < 0) {
+                idx = 0;
             }
-            Zenoss.remote.DetailNavRouter.getDetailNavConfigs(args, function(r){
-                var detailConfigs = r.detailConfigs,
-                    items = [],
-                    panelMap = {};
-                detailConfigs = Zenoss.util.filter(detailConfigs, this.filterNav.createDelegate(this));
-                detailConfigs = this.onGetNavConfig(uid).concat(detailConfigs);
-                Ext.each(detailConfigs, function(cfg){
-                    items.push([cfg.id, cfg.text]);
-                    panelMap[cfg.id] = cfg;
-                });
-                this.panelConfigMap = panelMap;
-                this.store = new Ext.data.ArrayStore({
-                    'id':0,
-                    fields: ['value', 'text'],
-                    data: items,
-                    autoDestroy: true
-                });
-                this.valueField = 'value';
-                this.displayField = 'text';
-                this.list = null;
-                this.initList();
-                this.selectAt(0);
-            }, this);
         }
+        this.selectAt(idx);
+    },
+    setContext: function(uid) {
+        this.contextUid = uid;
+        var args = {uid:uid};
+        if (!Ext.isEmpty(this.menuIds)) {
+            args.menuIds = this.menuIds;
+        }
+        Zenoss.remote.DetailNavRouter.getDetailNavConfigs(args, function(r){
+            var detailConfigs = r.detailConfigs,
+                items = [],
+                panelMap = {};
+            detailConfigs = Zenoss.util.filter(detailConfigs, this.filterNav.createDelegate(this));
+            detailConfigs = this.onGetNavConfig(uid).concat(detailConfigs);
+            Ext.each(detailConfigs, function(cfg){
+                items.push([cfg.id, cfg.text]);
+                panelMap[cfg.id] = cfg;
+            });
+            this.panelConfigMap = panelMap;
+            this.store = new Ext.data.ArrayStore({
+                'id':0,
+                fields: ['value', 'text'],
+                data: items,
+                autoDestroy: true
+            });
+            this.valueField = 'value';
+            this.displayField = 'text';
+            this.list = null;
+            this.initList();
+            // "sticky" menu selection, show same item as was shown for last context
+            this.selectByItem(this.lastSelItem);
+        }, this);
     }
 });
 
