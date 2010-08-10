@@ -641,13 +641,29 @@ Zenoss.DetailNavCombo = Ext.extend(Ext.form.ComboBox, {
         Zenoss.remote.DetailNavRouter.getDetailNavConfigs(args, function(r){
             var detailConfigs = r.detailConfigs,
                 items = [],
+                nodes = [],
                 panelMap = {};
-            detailConfigs = Zenoss.util.filter(detailConfigs, this.filterNav.createDelegate(this));
-            detailConfigs = this.onGetNavConfig(uid).concat(detailConfigs);
-            Ext.each(detailConfigs, function(cfg){
+
+            var filterFn = function(val) {
+                var show = true;
+                if (  Ext.isFunction(val.filterNav) ) {
+                    show = val.filterNav(this);
+                }
+
+                return show && this.filterNav(this, val);
+            };
+
+            nodes = this.onGetNavConfig(uid);
+            nodes = Zenoss.util.filter(nodes, filterFn, this);
+
+            detailConfigs = Zenoss.util.filter(detailConfigs, filterFn, this);
+            nodes = nodes.concat(detailConfigs);
+
+            Ext.each(nodes, function(cfg){
                 items.push([cfg.id, cfg.text]);
                 panelMap[cfg.id] = cfg;
             });
+
             this.panelConfigMap = panelMap;
             this.store = new Ext.data.ArrayStore({
                 'id':0,
