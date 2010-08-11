@@ -83,6 +83,15 @@ set_perms() {
 init_install_log() {
     stage=$1
 
+    if [ ! -z "$ZENOSS_NO_INSTALL_LOGGING" ] ;then
+        # If run through ssh the logging hangs for the 'wait'
+        #
+        # Provide mechanism for turning off automatic logging
+        # (e.g. for test automation).  In that case we
+        # can log output from the test harness itself.
+        return
+    fi
+
     echo $DELIM >> $INSTALL_LOG
     echo $stage
     echo $stage >> $INSTALL_LOG
