@@ -150,7 +150,7 @@ class CollectorConfigService(HubService, ThresholdMixin):
     def deviceDeleted(self, object, event):
         devid = object.id
         for listener in self.listeners:
-            listener.callRemove('deleteDevice', devid)
+            listener.callRemote('deleteDevice', devid)
 
 
     @translateError
