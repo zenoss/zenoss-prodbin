@@ -19,6 +19,7 @@ from Products.ZenHub.HubService import HubService
 from Products.ZenHub.PBDaemon import translateError
 from Products.ZenHub.services.Procrastinator import Procrastinate
 from Products.ZenHub.services.ThresholdMixin import ThresholdMixin
+from Products.ZenHub.zodb import onUpdate, onDelete
 
 from Products.ZenModel.Device import Device
 from Products.ZenModel.DeviceClass import DeviceClass
@@ -102,62 +103,55 @@ class CollectorConfigService(HubService, ThresholdMixin):
             self.sendEvent(evt)
         return None
 
-    def update(self, object):
-        """
-        Called by ZenHub whenever it notices an object assigned to this
-        collector has changed.
-        """
-        if not self.listeners:
-            return
-
-        # the PerformanceConf changed
-        if isinstance(object, PerformanceConf) and object.id == self.instance:
+    @onUpdate(PerformanceConf)
+    def perfConfUpdated(self, object, event):
+        if object.id == self.instance:
             for listener in self.listeners:
                 listener.callRemote('setPropertyItems', object.propertyItems())
 
-        # a ZenPack is installed
-        if isinstance(object, ZenPack):
-            for listener in self.listeners:
-                try:
-                    listener.callRemote('updateThresholdClasses', # TODO
-                                        self.remote_getThresholdClasses())
-                except Exception, ex:
-                    self.log.warning("Error notifying a listener of new classes")
+    @onUpdate(ZenPack)
+    def zenPackUpdated(self, object, event):
+        for listener in self.listeners:
+            try:
+                listener.callRemote('updateThresholdClasses',
+                                    self.remote_getThresholdClasses())
+            except Exception, ex:
+                self.log.warning("Error notifying a listener of new classes")
 
-        # device has been changed:
-        if isinstance(object, Device):
-            self._notifyAll(object)
-            return
+    @onUpdate(Device)
+    def deviceUpdated(self, object, event):
+        self._notifyAll(object)
 
-        # somethinge else... mark the devices as out-of-date
+    @onUpdate(None) # Matches all
+    def notifyAffectedDevices(self, object, event):
+        # FIXME: This is horrible
 
         if isinstance(object, self._getNotifiableClasses()):
-            self.log.debug('object %s is instance of notifiable class' % object)
-            if self._notifyConfigChange(object):
-                self.log.debug('scheduling collector reconfigure')
-                self._reconfigProcrastinator.doLater(True)
+            self._reconfigureIfNotify(object)
+
         else:
+            if isinstance(object, Device):
+                return
+            # something else... mark the devices as out-of-date
             while object:
                 # walk up until you hit an organizer or a device
                 if isinstance(object, DeviceClass):
                     for device in object.getSubDevices():
                         self._notifyAll(device)
                     break
-    
+
                 if isinstance(object, Device):
                     self._notifyAll(object)
                     break
-    
+
                 object = aq_parent(object)
 
-    def deleted(self, object):
-        """
-        Called by ZenHub whenever it notices an object assigned to this
-        collector has been deleted.
-        """
-        if isinstance(object, Device):
-            for listener in self.listeners:
-                listener.callRemote('deleteDevice', object.id) # TODO
+    @onDelete(Device)
+    def deviceDeleted(self, object, event):
+        devid = object.id
+        for listener in self.listeners:
+            listener.callRemove('deleteDevice', devid)
+
 
     @translateError
     def remote_getConfigProperties(self):
@@ -281,17 +275,18 @@ class CollectorConfigService(HubService, ThresholdMixin):
         TODO
         """
         return listener.callRemote('updateDeviceConfig', proxy)
-    
+
+    # FIXME: Don't use _getNotifiableClasses, use @onUpdate(myclasses)
     def _getNotifiableClasses(self):
         """
         a tuple of classes. When any object of a type in the sequence is 
         modified the collector connected to the service will be notified to 
         update its configuration
-        
+
         @rtype: tuple
         """
         return ()
-    
+
     def _pushReconfigure(self, value):
         """
         notify the collector to reread the entire configuration
@@ -300,6 +295,11 @@ class CollectorConfigService(HubService, ThresholdMixin):
         for listener in self.listeners:
             listener.callRemote('notifyConfigChanged')
         self._reconfigProcrastinator.clear()
+
+    def _reconfigureIfNotify(self, object):
+        if self._notifyConfigChange(object):
+            self.log.debug('scheduling collector reconfigure')
+            self._reconfigProcrastinator.doLater(True)
 
     def _notifyConfigChange(self, object):
         """

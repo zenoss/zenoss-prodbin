@@ -17,6 +17,7 @@ from Products.ZenCollector.services.config import DeviceProxy
 from Products.ZenEvents import Event
 from Products.ZenModel.OSProcessClass import OSProcessClass
 from Products.ZenModel.OSProcessOrganizer import OSProcessOrganizer
+from Products.ZenHub.zodb import onUpdate
 unused(DeviceProxy)
 
 from twisted.spread import pb
@@ -57,7 +58,7 @@ class ProcessConfig(CollectorConfigService):
     def _filterDevice(self, device):
         include = CollectorConfigService._filterDevice(self, device)
         include = include and device.snmpMonitorDevice()
-            
+
         return include
 
     def _createDeviceProxy(self, device):
@@ -87,6 +88,7 @@ class ProcessConfig(CollectorConfigService):
             proc.processClass = p.getOSProcessClass()
             proxy.processes[p.id] = proc
         return proxy
-    
-    def _getNotifiableClasses(self):
-        return (OSProcessClass, OSProcessOrganizer)
+
+    @onUpdate(OSProcessClass, OSProcessOrganizer)
+    def processTreeUpdated(self, object, event):
+        self._reconfigureIfNotify(object)

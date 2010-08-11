@@ -42,9 +42,11 @@ class HubService(pb.Referenceable):
             self.callTime += secs
 
     def update(self, object):
+        # FIXME: No longer called
         pass
 
     def deleted(self, object):
+        # FIXME: No longer called
         pass
 
     def name(self):

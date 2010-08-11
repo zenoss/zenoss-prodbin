@@ -32,4 +32,4 @@ class Beat(HubService):
 
     def error(self, reason, unused):
         reason.printTraceback()
-        
+

@@ -54,7 +54,7 @@ class PingConfig(PerformanceConfig):
         if ip and ip.device() and \
             ip.device().getPerformanceServerName() == pm.id:
             return ip.device()
-        
+
 
     def prepDevices(self, pingtree, devices):
         """resolve dns names and make StatusTest objects"""

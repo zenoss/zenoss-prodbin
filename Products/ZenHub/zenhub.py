@@ -40,10 +40,12 @@ from Products.ZenUtils.Utils import zenPath, getExitMessage, unused
 from Products.ZenUtils.DaemonStats import DaemonStats
 from Products.ZenEvents.Event import Event, EventHeartbeat
 from Products.ZenEvents.ZenEventClasses import App_Start
-from Products.ZenUtils.Utils import unused
 
 from Products.ZenHub.PBDaemon import RemoteBadMonitor
 pb.setUnjellyableForClass(RemoteBadMonitor, RemoteBadMonitor)
+
+from BTrees.IIBTree import IITreeSet
+from Products.ZenHub.zodb import processInvalidations
 
 # Due to the manipulation of sys.path during the loading of plugins,
 # we can get ObjectMap imported both as DataMaps.ObjectMap and the
@@ -57,7 +59,6 @@ import sys
 sys.path.insert(0, zenPath('Products', 'DataCollector', 'plugins'))
 import DataMaps
 unused(DataMaps, ObjectMap)
-
 
 
 XML_RPC_PORT = 8081
@@ -274,7 +275,10 @@ class ZenHub(ZCmdBase):
         self.sendEvent(eventClass=App_Start, 
                        summary="%s started" % self.name,
                        severity=0)
+
+        self._invalidation_queue = IITreeSet()
         reactor.callLater(5, self.processQueue)
+
         self.rrdStats = self.getRRDStats()
         for i in range(int(self.options.workers)):
             self.createWorker()
@@ -317,21 +321,13 @@ class ZenHub(ZCmdBase):
         @return: None
         """
         changes_dict = self.storage.poll_invalidations()
+        queue = self._invalidation_queue
         if changes_dict is not None:
-            for oid in changes_dict:
-                self.log.debug("Got oid %r" % oid)
-                obj = self.dmd._p_jar[oid]
-                self.log.debug("Object %r changed" % obj)
-                try:
-                    obj = obj.__of__(self.dmd).primaryAq()
-                    self.log.debug("Noticing object %s changed" % obj.getPrimaryUrlPath())
-                except (AttributeError, KeyError), ex:
-                    self.log.debug("Noticing object %s " % obj)
-                    for s in self.services.values():
-                        s.deleted(obj)
-                else:
-                    for s in self.services.values():
-                        s.update(obj)
+            d = processInvalidations(self.dmd, self._invalidation_queue, changes_dict)
+            def done(n):
+                if n:
+                    self.log.debug('Processed %s oids' % n)
+            d.addCallback(done)
 
 
     def sendEvent(self, **kw):

@@ -25,6 +25,12 @@ from twisted.internet import defer
 from sets import Set
 
 from twisted.spread import pb
+
+from Products.ZenModel.ZenModelRM import ZenModelRM
+from Products.ZenModel.PerformanceConf import PerformanceConf
+
+from Products.ZenHub.zodb import onUpdate, onDelete
+
 class ServiceConfig(pb.Copyable, pb.RemoteCopy):
     
     def __init__(self, svc):
@@ -72,24 +78,19 @@ class StatusConfig(HubService, ThresholdMixin):
     def remote_getDefaultRRDCreateCommand(self):
         return self.config.getDefaultRRDCreateCommand()
 
-        
-    def update(self, object):
-        if not self.listeners: return
-
-        # the PerformanceConf changed
-        from Products.ZenModel.PerformanceConf import PerformanceConf
-        if isinstance(object, PerformanceConf):
-            for listener in self.listeners:
-                listener.callRemote('setPropertyItems', object.propertyItems())
+    @onUpdate(PerformanceConf)
+    def perfConfChanged(self, object, event):
+        for listener in self.listeners:
+            listener.callRemote('setPropertyItems', object.propertyItems())
         self.procrastinator.doLater()
+
+    @onDelete(Device)
+    def deviceDeleted(self, object, event):
+        for listener in self.listeners:
+            listener.callRemote('deleteDevice', object.id)
 
     def notify(self, unused):
         lst = []
         for listener in self.listeners:
             lst.append(listener.callRemote('notifyConfigChanged'))
         return defer.DeferredList(lst)
-
-    def deleted(self, obj):
-        for listener in self.listeners:
-            if isinstance(obj, Device):
-                listener.callRemote('deleteDevice', obj.id)

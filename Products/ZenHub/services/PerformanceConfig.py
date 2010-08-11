@@ -18,6 +18,9 @@ from Products.ZenHub.HubService import HubService
 from Products.ZenHub.PBDaemon import translateError
 
 from Products.ZenModel.Device import Device
+from Products.ZenModel.ZenPack import ZenPack
+from Products.ZenModel.PerformanceConf import PerformanceConf
+from Products.ZenHub.zodb import onUpdate, onDelete
 from Acquisition import aq_parent
 
 from twisted.internet import defer
@@ -196,32 +199,31 @@ class PerformanceConfig(HubService, ThresholdMixin):
         pass
 
 
-    def update(self, object):
-        if not self.listeners:
-            return
-
-        # the PerformanceConf changed
-        from Products.ZenModel.PerformanceConf import PerformanceConf
-        if isinstance(object, PerformanceConf) and object.id == self.instance:
+    @onUpdate(PerformanceConf)
+    def perfConfUpdated(self, object, event):
+        if object.id == self.instance:
             for listener in self.listeners:
                 listener.callRemote('setPropertyItems', object.propertyItems())
 
-        # a ZenPack is installed
-        from Products.ZenModel.ZenPack import ZenPack
-        if isinstance(object, ZenPack):
-            for listener in self.listeners:
-                try:
-                    listener.callRemote('updateThresholdClasses',
-                                        self.remote_getThresholdClasses())
-                except Exception, ex:
-                    self.log.warning("Error notifying a listener of new classes")
+    @onUpdate(ZenPack)
+    def zenPackUpdated(self, object, event):
+        for listener in self.listeners:
+            try:
+                listener.callRemote('updateThresholdClasses',
+                                    self.remote_getThresholdClasses())
+            except Exception, ex:
+                self.log.warning("Error notifying a listener of new classes")
 
-        # device has been changed:
+    @onUpdate(Device)
+    def deviceUpdated(self, object, event):
+        self.notifyAll(object)
+
+    @onUpdate(None) # Matches all
+    def notifyAffectedDevices(self, object, event):
         if isinstance(object, Device):
-            self.notifyAll(object)
             return
-            
-        # somethinge else... mark the devices as out-of-date
+
+        # something else... mark the devices as out-of-date
         from Products.ZenModel.DeviceClass import DeviceClass
 
         while object:
@@ -237,8 +239,8 @@ class PerformanceConfig(HubService, ThresholdMixin):
 
             object = aq_parent(object)
 
-
-    def deleted(self, obj):
+    @onDelete(Device)
+    def deviceDeleted(self, object, event):
+        devid = object.id
         for listener in self.listeners:
-            if isinstance(obj, Device):
-                listener.callRemote('deleteDevice', obj.id)
+            listener.callRemove('deleteDevice', devid)

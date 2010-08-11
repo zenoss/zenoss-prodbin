@@ -17,6 +17,8 @@ from Products.ZenHub.PBDaemon import translateError
 from sets import Set
 
 from Products.ZenRRD.zenperfsnmp import SnmpConfig
+from Products.ZenModel.RRDDataSource import RRDDataSource
+from Products.ZenHub.zodb import onUpdate
 
 import logging
 log = logging.getLogger('zen.SnmpPerfConfig')
@@ -127,11 +129,8 @@ class SnmpPerfConfig(PerformanceConfig):
         "Template method helper for PerformanceConfig.pushConfig"
         return listener.callRemote('updateDeviceConfig', config)
 
-
-    def update(self, object):
-        from Products.ZenModel.RRDDataSource import RRDDataSource
-        if isinstance(object, RRDDataSource):
-            if object.sourcetype != 'SNMP':
-                return
-        PerformanceConfig.update(self, object)
-
+    @onUpdate(None) # Matches all
+    def notifyAffectedDevices(self, object, event):
+        if isinstance(object, RRDDataSource) and object.sourcetype!='SNMP':
+            return
+        PerformanceConfig.notifyAffectedDevices(self, object, event)

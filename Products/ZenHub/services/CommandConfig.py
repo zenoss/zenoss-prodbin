@@ -19,8 +19,10 @@ from ZODB.POSException import POSError
 from PerformanceConfig import PerformanceConfig
 from Products.ZenRRD.zencommand import Cmd, DeviceConfig, DataPointConfig
 from Products.ZenHub.PBDaemon import translateError
+from Products.ZenHub.zodb import onUpdate
 from Products.DataCollector.Plugins import getParserLoader
 from Products.ZenEvents.ZenEventClasses import Warning
+from Products.ZenModel.RRDDataSource import RRDDataSource
 
 def getComponentCommands(comp, commandCache, commandSet, dmd):
     """Return list of command definitions.
@@ -146,11 +148,8 @@ class CommandConfig(PerformanceConfig):
                      dev.id)
         return result
 
-    def update(self, object):
-        from Products.ZenModel.RRDDataSource import RRDDataSource
-        if isinstance(object, RRDDataSource):
-            if object.sourcetype != 'COMMAND':
-                return
-
-        PerformanceConfig.update(self, object)
-
+    @onUpdate(None) # Matches all
+    def notifyAffectedDevices(self, object, event):
+        if isinstance(object, RRDDataSource) and object.sourcetype!='COMMAND':
+            return
+        PerformanceConfig.notifyAffectedDevices(self, object, event)
