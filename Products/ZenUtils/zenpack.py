@@ -16,9 +16,7 @@ import os, sys
 import contextlib
 import logging
 import ConfigParser
-import shutil
 import subprocess
-import tempfile
 from zipfile import ZipFile
 from StringIO import StringIO
 
@@ -29,7 +27,7 @@ from ZODB.POSException import ConflictError
 from Products.ZenModel.ZenPack import ZenPack, ZenPackException
 from Products.ZenModel.ZenPack import ZenPackNeedMigrateException
 from Products.ZenUtils.ZenScriptBase import ZenScriptBase
-from Products.ZenUtils.Utils import cleanupSkins, zenPath, binPath
+from Products.ZenUtils.Utils import cleanupSkins, zenPath, binPath, get_temp_dir
 import Products.ZenModel.ZenPackLoader as ZPL
 from Products.ZenModel.ZenPackLoader import CONFIG_FILE, CONFIG_SECTION_ABOUT
 import ZenPackCmd as EggPackCmd
@@ -87,7 +85,7 @@ class ZenPackCmd(ZenScriptBase):
             print "Require one of --install, --remove or --list flags."
             self.parser.print_help()
             return
-        
+
         if self.options.installPackName:
             eggInstall = (self.options.installPackName.lower().endswith('.egg')
                 or os.path.exists(os.path.join(self.options.installPackName,
@@ -207,15 +205,7 @@ class ZenPackCmd(ZenScriptBase):
                     return True
             else:
                 # source egg, no prebuilt egg-info
-                @contextlib.contextmanager
-                def tempDir():
-                    dirname = tempfile.mkdtemp()
-                    try:
-                        yield dirname
-                    finally:
-                        shutil.rmtree(dirname)
-
-                with tempDir() as tempEggDir:
+                with get_temp_dir() as tempEggDir:
                     cmd = '%s setup.py egg_info -e %s' % \
                                                 (binPath('python'), tempEggDir)
                     subprocess.call(cmd, shell=True,
@@ -245,7 +235,7 @@ class ZenPackCmd(ZenScriptBase):
                         return False
                 else:
                     self.log.error('Zenpack %s requires %s %s' %
-                                  (self.options.installPackName, zpName,
+                          (self.options.installPackName, zpName,
                                   zpVersion if zpVersion else ''))
                     return False
             return True
@@ -411,8 +401,8 @@ class ZenPackCmd(ZenScriptBase):
     def stop(self, why):
         self.log.error("zenpack stopped: %s", why)
         sys.exit(1)
-        
-    
+
+
     def buildOptions(self):
         self.parser.add_option('--install',
                                dest='installPackName',

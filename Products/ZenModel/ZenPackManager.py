@@ -219,15 +219,15 @@ class ZenPackManager(ZenModelRM):
         """
         Installs the given zenpack.  Zenpack is a file upload from the browser.
         """
-        import tempfile
-        import fcntl
-        import popen2
-        import signal
+        import os
+        import re
+        from subprocess import Popen, PIPE, STDOUT
         import time
-        import select
-        
+
+        from Products.ZenUtils.Utils import get_temp_dir
+
         ZENPACK_INSTALL_TIMEOUT = 120
-        
+
         if not getattr(self.dmd, 'ZenPackManager'):
             msg = 'Your Zenoss database appears to be out of date. Try ' \
                     'running zenmigrate to update.'
@@ -238,37 +238,44 @@ class ZenPackManager(ZenModelRM):
             from ZenPack import ZenPackNeedMigrateException
             raise ZenPackNeedMigrateException(msg)
 
-        tFile = None
-        child = None
-        try:
+        msg = None
+        with get_temp_dir() as tempDir:
             # zenpack.filename gives us filename of the zenpack with the
             # path as it exists on the client. We need just the filename.
-            import re
             base_filename = re.split(r"\\|/", zenpack.filename)[-1]
-            
-            # Write the zenpack to the filesystem                
-            tDir = tempfile.gettempdir()
-            tFile = open(os.path.join(tDir, base_filename), 'wb')
+            # Macs (and other broswers/OSs) always append a .zip to files they
+            # believe to be zip files. Remedy that:
+            if base_filename.endswith('.egg.zip'):
+                base_filename = base_filename[:-7] + 'egg'
+
+            # Write the zenpack to the filesystem
+            tFile = open(os.path.join(tempDir, base_filename), 'wb')
             tFile.write(zenpack.read())
             tFile.close()
-        
-            cmd = 'zenpack --install %s' % tFile.name
-            child = popen2.Popen4(cmd)
-            flags = fcntl.fcntl(child.fromchild, fcntl.F_GETFL)
-            fcntl.fcntl(child.fromchild, fcntl.F_SETFL, flags | os.O_NDELAY)
-            endtime = time.time() + ZENPACK_INSTALL_TIMEOUT
-            pollPeriod = 1
-            firstPass = True
-            while time.time() < endtime and (firstPass or child.poll()==-1):
-                firstPass = False
-                r, w, e = select.select([child.fromchild],[],[], pollPeriod)
-                if r:
-                    t = child.fromchild.read()
-        finally:
-            if child and child.poll() == -1:
-                os.kill(child.pid, signal.SIGKILL)
+            
+            p = None # zenpack install process
+            try:
+                # Run zenpack install
+                cmd = 'zenpack --install %s' % tFile.name
+                p = Popen(cmd, shell=True, stdout=PIPE, stderr=STDOUT)
+                endWait = time.time() + ZENPACK_INSTALL_TIMEOUT
+                # Wait for install to complete or fail
+                while p.poll() is None and time.time() < endWait:
+                    time.sleep(1)
+                if p.poll() is not None:
+                    msg = p.stdout.read()
+            finally:
+                if p and p.poll() is None:
+                    p.kill()
+                    msg += 'Zenpack install killed due to timeout'
 
-        REQUEST['RESPONSE'].redirect(REQUEST['HTTP_REFERER'])
+        if REQUEST:
+            # format command result for HTML
+            msg = '<br>'.join([line.strip() for line in msg.split('\n') if line])
+            messaging.IMessageSender(self).sendToBrowser('Zenpack', msg,
+                priority = messaging.CRITICAL if 'ERROR' in msg
+                                              else messaging.INFO)
+            return self.callZenScreen(REQUEST)
         
 
     def getZnetProjectOptions(self):

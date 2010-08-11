@@ -29,6 +29,7 @@ import re
 import socket
 import warnings
 import math
+import contextlib
 from decimal import Decimal
 from sets import Set
 import asyncore
@@ -1558,3 +1559,15 @@ def rrd_daemon_running():
     sockfile = zenPath('var', 'rrdcached.sock')
     if os.path.exists(sockfile):
         return sockfile
+
+@contextlib.contextmanager
+def get_temp_dir():
+    import tempfile
+    import shutil
+    
+    dirname = tempfile.mkdtemp()
+    try:
+        yield dirname
+    finally:
+        shutil.rmtree(dirname)
+
