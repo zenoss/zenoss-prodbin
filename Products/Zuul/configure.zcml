@@ -52,6 +52,16 @@
         />
 
     <five:implements
+        interface=".interfaces.IMibEntity"
+        class="Products.ZenModel.MibOrganizer.MibOrganizer"
+        />
+
+    <five:implements
+        interface=".interfaces.IMibEntity"
+        class="Products.ZenModel.MibModule.MibModule"
+        />
+
+    <five:implements
         interface=".interfaces.IDevice"
         class="Products.ZenModel.Device.Device"
         />
@@ -88,6 +98,12 @@
     <adapter factory=".facades.ServiceFacade"
              provides=".interfaces.IServiceFacade"
              name="service"
+             for="*"
+             />
+
+    <adapter factory=".facades.MibFacade"
+             provides=".interfaces.IFacade"
+             name="mibs"
              for="*"
              />
 

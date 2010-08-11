@@ -243,8 +243,30 @@ class TreeFacade(ZuulFacade):
             dev.index_object()
             notify(IndexingEvent(dev, 'path'))
         return IOrganizerInfo(target._getOb(organizer.id))
+    
+    def setInfo(self, uid, data):
+        """
+        Given a dictionary of {property name: property value}
+        this will populate the datapoint
+        @param string uid unique identifier of the object we are editing
+        @param Dictionary of properties to update
+        @return IInfo with the updated properties
+        """
+        info = self.getInfo(uid)
 
+        # see if we need to rename the object
+        newId = None
+        if 'newId' in data:
+            newId = data['newId']
+            del data['newId']
+            info.rename(newId)
+            
+        for key in data.keys():
+            if hasattr(info, key):
+                setattr(info, key, data[key])
+        return info
 
+    
 from eventfacade import EventFacade
 from networkfacade import NetworkFacade
 from processfacade import ProcessFacade
@@ -252,3 +274,4 @@ from servicefacade import ServiceFacade
 from devicefacade import DeviceFacade
 from templatefacade import TemplateFacade
 from zenpackfacade import ZenPackFacade
+from mibfacade import MibFacade

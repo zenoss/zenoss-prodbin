@@ -106,3 +106,7 @@ def CustomReport(ob):
     id = '.'.join(ob.getPhysicalPath())
     return '/zport/dmd/reports#reporttree:' + id
 
+def MibClass(ob):
+    id = '/'.join(ob.getPhysicalPath())
+    return '/zport/dmd/mibs#mibtree:' + id
+

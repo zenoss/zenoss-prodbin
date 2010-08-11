@@ -235,13 +235,14 @@
 
         <browser:viewlet
             name="MIBs"
-            url="/zport/dmd/Mibs"
+            url="/zport/dmd/mibs"
             weight="4"
             parentItem="Advanced"
             manager="..navigation.interfaces.ISecondaryNavigationMenu"
             class="..navigation.menuitem.SecondaryNavigationMenuItem"
             permission="zope2.Public"
             layer="..navigation.interfaces.IZenossNav"
+            subviews="/zport/dmd/Mibs"
             />
 
         <browser:viewlet

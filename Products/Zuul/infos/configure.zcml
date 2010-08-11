@@ -137,6 +137,21 @@
              factory=".network.IpAddressInfo"
              />
 
+    <adapter factory=".mib.MibInfo"
+             provides="..interfaces.IMibInfo"
+             for="Products.ZenModel.MibModule.MibModule"
+             />
+
+    <adapter factory=".mib.MibOrganizerInfo"
+             provides="..interfaces.IMibOrganizerInfo"
+             for="Products.ZenModel.MibOrganizer.MibOrganizer"
+             />
+
+    <adapter factory=".mib.MibOrganizerNode"
+             provides="..interfaces.IMibOrganizerNode"
+             for="Products.ZenModel.MibOrganizer.MibOrganizer"
+             />
+
     <adapter provides="..interfaces.IOrganizerInfo"
              for="Products.ZenModel.Organizer.Organizer"
              factory=".organizer.OrganizerInfo"

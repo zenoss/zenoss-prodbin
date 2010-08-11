@@ -73,6 +73,13 @@
     />
 
 <browser:directRouter
+    name="mib_router"
+    for="*"
+    class=".mibs.MibRouter"
+    namespace="Zenoss.remote"
+    />
+
+<browser:directRouter
     name="zenpack_router"
     for="*"
     class=".zenpack.ZenPackRouter"

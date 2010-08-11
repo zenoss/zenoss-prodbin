@@ -356,9 +356,10 @@
     permission="zenoss.View"
     />
 
-<browser:defaultView
+<adapter
     for="Products.ZenModel.MibOrganizer.MibOrganizer"
-    name="mibOrganizerOverview"
+    provides=".interfaces.INewPath"
+    factory=".backcompat.MibClass"
     />
 
 <browser:page

@@ -12,17 +12,21 @@
 ###########################################################################
 
 import types
+import os
+import logging
+log = logging.getLogger('zen.Mibs')
 
 from Globals import DTMLFile
 from Globals import InitializeClass
 from AccessControl import ClassSecurityInfo
 from AccessControl import Permissions
+from Products.Jobber.jobs import ShellCommandJob
 from Products.ZenModel.ZenossSecurity import *
 
 from Products.ZenRelations.RelSchema import *
 from Products.ZenUtils.Search import makeCaseInsensitiveKeywordIndex
 from Products.ZenWidgets import messaging
-
+from Products.ZenUtils.Utils import binPath
 from Organizer import Organizer
 from MibModule import MibModule
 from ZenPackable import ZenPackable
@@ -100,12 +104,21 @@ class MibOrganizer(Organizer, ZenPackable):
         )
 
 
-    def __init__(self, id=None, description=None):
+    def __init__(self, id=None, description=None, text=None, content_type='text/html'):
         if not id: id = self.dmdRootName
         super(MibOrganizer, self).__init__(id, description)
         if self.id == self.dmdRootName:
             self.createCatalog()
 
+    def getMibClass(self):
+        return MibOrganizer
+
+    def countMibs(self):
+        """Return a count of all our contained children."""
+        count = len(self.mibs())
+        for child in self.children():
+            count += child.countMibs()
+        return count
 
     def oid2name(self, oid, exactMatch=True, strip=False):
         """Return a name for an oid.
@@ -175,7 +188,7 @@ class MibOrganizer(Organizer, ZenPackable):
 
 
     def moveMibModules(self, moveTarget, ids=None, REQUEST=None):
-        """Move MibModules from this EventClass to moveTarget.
+        """Move MibModules from this organizer to moveTarget.
         """
         if not moveTarget or not ids: return self()
         if type(ids) == types.StringType: ids = (ids,)
@@ -218,8 +231,35 @@ class MibOrganizer(Organizer, ZenPackable):
         zcat.addColumn('id')
         zcat.addColumn('oid')
 
+    def handleUploadedFile(self, REQUEST):
+        """
+        Assumes the file to be a mib so we need to create a mib module with
+        its contents
+        File will be available with REQUEST.upload
+        """
+        filename = REQUEST.upload.filename
+        mibs = REQUEST.upload.read()
+        # write it to a temp file
+        path = '/tmp/%s' % filename
+        with open(path, 'w') as f:
+            f.write(mibs)
 
-
+        # create the job
+        mypath = self.absolute_url_path().replace('/zport/dmd/Mibs', '')
+        if not mypath:
+            mypath = '/'
+        commandArgs = [binPath('zenmib'), 'run', path,
+                '--path=%s' % mypath]
+        jobStatus = self.dmd.JobManager.addJob(ShellCommandJob, cmd=commandArgs)
+        
+        # send a user flare with the job id as a link
+        joblink = "<a href=\"%s\"> View Job Log </a>" % (jobStatus.absolute_url_path() + '/viewlog')
+        messaging.IMessageSender(self).sendToBrowser(
+            'Job Created',
+            'Successfully uploaded the MIB file, beginning processing now ' + joblink,
+            priority=messaging.INFO
+        )
+        
 
 InitializeClass(MibOrganizer)
 

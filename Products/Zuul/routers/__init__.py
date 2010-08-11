@@ -75,5 +75,4 @@ class TreeRouter(DirectRouter):
         # check the number of levels deep it is
         levels = len(uid.split('/'))
         return levels > 4
-
-
+    

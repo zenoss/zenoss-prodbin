@@ -1,0 +1,33 @@
+<form action=""
+      method="POST"
+      enctype="multipart/form-data"
+      tal:attributes="action string:${here/absolute_url_path}/uploadfile"
+      i18n:domain="zenoss"
+      >
+  
+    <input name="upload:file"
+           type="file"
+           />
+
+    <input name="submit"
+           type="submit"
+           value="Submit"
+           i18n:attributes="value"
+           />
+    <button onclick="closewindow()">Cancel</button>
+    
+    <script type="text/javascript">
+        function closewindow() {
+            var Ext = parent.window.Ext,    
+            cmp = Ext.getCmp('fileuploadwindow');
+            // close the window
+            if (cmp) {
+                cmp.close();
+            }
+        }
+
+    </script>
+    <script type="text/javascript" tal:condition="view/isPostBack">
+        closewindow();
+    </script>
+</form>
