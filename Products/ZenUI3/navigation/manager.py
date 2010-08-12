@@ -22,8 +22,8 @@ from interfaces import IPrimaryNavigationMenu, ISecondaryNavigationMenu
 
 def getWeight((name, viewlet)):
     try:
-        return int(viewlet.weight)
-    except AttributeError:
+        return float(viewlet.weight)
+    except (AttributeError, ValueError):
         return 0
 
 
