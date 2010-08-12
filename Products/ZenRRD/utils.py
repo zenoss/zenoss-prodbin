@@ -582,8 +582,10 @@ def rpneval(value, rpn):
     -1.0
     >>> rpneval(4, '5,exc,-')
     1.0
+    >>> rpneval(None, '2,*')
+    None
     """
-
+    if value is None: return value
     rpnOps = [op.strip().upper() for op in rpn.split(',')]
     stack = rpnStack(value)
     try:
