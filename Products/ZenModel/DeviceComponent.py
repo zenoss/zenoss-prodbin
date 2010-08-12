@@ -26,6 +26,7 @@ from Acquisition import aq_base
 import zope.interface
 from Products.ZenModel.interfaces import IIndexed
 from Products.ZenModel.ZenossSecurity import ZEN_VIEW
+from Products.ZenUtils.guid.interfaces import IGloballyIdentifiable
 
 from Lockable import Lockable
 
@@ -34,7 +35,7 @@ class DeviceComponent(Lockable):
     DeviceComponent is a mix-in class for all components of a device.
     These include LogicalComponent, Software, and Hardware.
     """
-    zope.interface.implements(IIndexed)
+    zope.interface.implements(IIndexed, IGloballyIdentifiable)
     __pychecker__='no-override'
     event_key = "Component"
 

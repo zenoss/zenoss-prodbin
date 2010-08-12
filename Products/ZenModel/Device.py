@@ -35,6 +35,7 @@ from Products.ZenUtils import Time
 import RRDView
 from Products.ZenUtils.IpUtil import checkip, IpAddressError, maskToBits
 from Products.ZenModel.interfaces import IIndexed
+from Products.ZenUtils.guid.interfaces import IGloballyIdentifiable
 
 # base classes for device
 from ManagedEntity import ManagedEntity
@@ -210,7 +211,7 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable,
     enabled but maybe this will change.
     """
 
-    implements(IEventView, IIndexed)
+    implements(IEventView, IIndexed, IGloballyIdentifiable)
 
     event_key = portal_type = meta_type = 'Device'
 

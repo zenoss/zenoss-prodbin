@@ -41,6 +41,7 @@ from Products.ZenUtils.Search import makeCaseInsensitiveFieldIndex
 from Products.ZenUtils.Search import makeCaseInsensitiveKeywordIndex
 from Products.ZenUtils.Search import makePathIndex, makeMultiPathIndex
 from Products.ZenUtils.Utils import importClass, zenPath
+from Products.ZenUtils.guid.interfaces import IGlobalIdentifier
 from Products.ZenWidgets import messaging
 from Products.ZenUtils.FakeRequest import FakeRequest
 from Products.Zuul.catalog.events import IndexingEvent
@@ -209,6 +210,7 @@ class DeviceClass(DeviceOrganizer, ZenPackable, TemplateContainer):
         for devname in deviceNames:
             dev = self.findDeviceByIdExact(devname)
             if not dev: continue
+            guid = IGlobalIdentifier(dev).create()
             source = dev.deviceClass().primaryAq()
             oldPath = source.absolute_url_path() + '/'
             if dev.__class__ != targetClass:
@@ -296,6 +298,7 @@ class DeviceClass(DeviceOrganizer, ZenPackable, TemplateContainer):
                 source.devices._delObject(devname)
                 target.devices._setObject(devname, dev)
             dev = target.devices._getOb(devname)
+            IGlobalIdentifier(dev).guid = guid
             dev.setLastChange()
             dev.setAdminLocalRoles()
             dev.index_object()
