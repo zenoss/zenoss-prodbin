@@ -136,7 +136,8 @@ class FormBuilder(object):
             'name': item['name'],
             'value': value,
             'vtype': item['vtype'],
-            'allowBlank': not item['required']
+            'allowBlank': not item['required'],
+            'disabled': item.get('disabled', False)
             }
 
         # fileupload has a superfluous button we must remove
