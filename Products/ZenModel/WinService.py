@@ -125,6 +125,16 @@ class WinService(Service):
         if startMode and startMode == "Disabled": return False
         return Service.monitored(self)
 
+
+    def getStatus(self, statClass=None):
+        """
+        Return the status number for this WinService
+        """
+        if self.startMode not in self.getMonitoredStartModes():
+            return -1
+        return Service.getStatus(self, statClass)
+
+
     def getServiceClass(self):
         """Return a dict like one set by zenwinmodeler for services.
         """

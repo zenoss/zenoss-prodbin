@@ -31,7 +31,7 @@ class SmartService(object):
     @property
     def isMonitored(self):
         "is the service monitored"
-        return self._service.getStatus() >= 0
+        return self._service.isMonitored()
         
     @property
     def name(self):
