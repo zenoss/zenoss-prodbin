@@ -691,7 +691,7 @@ Ext.create({
             var dialogWindow, basicForm, params;
             dialogWindow = submitButton.refOwner;
             basicForm = dialogWindow.formPanel.getForm();
-            params = Ext.applyIf(basicForm.getValues(), {
+            params = Ext.applyIf(basicForm.getFieldValues(true), {
                 uid: dialogWindow.uid
             });
             basicForm.api.submit(params, function() {
@@ -734,7 +734,7 @@ Ext.create({
         items: [{
             xtype: 'idfield',
             fieldLabel: _t('Name'),
-            name: 'name',
+            name: 'newId',
             allowBlank: false
         },{
             xtype: 'numberfield',

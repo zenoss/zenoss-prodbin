@@ -409,6 +409,10 @@ class ThresholdInfo(InfoBase):
     @property
     def id(self):
         return '/'.join(self._object.getPrimaryPath())
+
+    @property
+    def newId(self):
+        return self._object.id
     
     @property
     def type(self):
@@ -468,6 +472,10 @@ class GraphInfo(InfoBase):
     def id(self):
         return self._object.getId()
 
+    @property
+    def newId(self):
+        return self._object.id
+    
     @property
     def graphPoints(self):
         return self._object.getGraphPointNamesString()

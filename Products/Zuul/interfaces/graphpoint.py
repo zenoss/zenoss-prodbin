@@ -20,7 +20,7 @@ class IGraphPointInfo(IInfo):
     """
     Adapts GraphPoint.
     """
-    name = schema.Text(title=_t(u'Name'),
+    newId = schema.Text(title=_t(u'Name'),
                        required=True,
                        order=1)
     type = schema.Text(title=_t(u'Type'),

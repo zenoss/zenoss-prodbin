@@ -120,7 +120,7 @@ class IThresholdInfo(IInfo):
     """
     Adapts ThresholdClass.
     """
-    name = schema.Text(title=_t(u'Name'),
+    newId = schema.Text(title=_t(u'Name'),
                        xtype="idfield",
                         order=1)
     type = schema.Text(title=_t(u'Type'),
