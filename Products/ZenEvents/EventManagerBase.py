@@ -1712,10 +1712,7 @@ class EventManagerBase(ZenModelRM, ObjectCache, DbAccessBase):
             )
             return self.callZenScreen(REQUEST)
 
-        if 'RESPONSE' in REQUEST:
-            REQUEST['RESPONSE'].redirect('/zport/dmd/Events/viewEvents')
-        else:
-            return evid
+        return evid
 
 
     def deleteEvents(self, whereClause, reason):
