@@ -12,12 +12,12 @@
 ###########################################################################
 
 import time
+from copy import deepcopy
 from zope.interface import providedBy, ro, implements
 from zope.component import adapts
 from Acquisition import aq_base
 from AccessControl import getSecurityManager
 from AccessControl.PermissionRole import rolesForPermissionOn
-from Products.CMFCore.utils import _mergedLocalRoles
 from Products.ZCatalog.ZCatalog import ZCatalog
 from Products.ZenUtils.IpUtil import numbip
 from Products.ZenUtils.Search import makeMultiPathIndex
@@ -31,6 +31,33 @@ from Products.Zuul.utils import getZProperties
 
 from interfaces import IGloballyIndexed, IPathReporter, IIndexableWrapper
 
+def _mergedLocalRoles(object):
+    """
+    Replacement for Products.CMFCore.utils._mergedLocalRoles, which raises a
+    TypeError in certain situations.
+    """
+    merged = {}
+    object = getattr(object, 'aq_inner', object)
+    while 1:
+        if hasattr(object, '__ac_local_roles__'):
+            dict = object.__ac_local_roles__ or {}
+            if callable(dict): dict = dict()
+            for k, v in dict.items():
+                if merged.has_key(k):
+                    merged[k] = merged[k] + list(v)
+                else:
+                    merged[k] = list(v)
+        if hasattr(object, 'aq_parent'):
+            object=object.aq_parent
+            object=getattr(object, 'aq_inner', object)
+            continue
+        if hasattr(object, 'im_self'):
+            object=object.im_self
+            object=getattr(object, 'aq_inner', object)
+            continue
+        break
+
+    return deepcopy(merged)
 
 def _allowedRoles(user):
     roles = list(user.getRoles())
