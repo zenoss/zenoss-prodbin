@@ -119,6 +119,17 @@ class ServiceOrganizer(Organizer, Commandable, ZenPackable):
                         brain.getPrimaryId, self.default_catalog)
 
 
+    def checkValidId(self, id):
+        """Checks a valid id
+        """
+        relationship = getattr(self, 'serviceclasses')
+        try:
+            relationship.checkValidId(id)
+            return True
+        except Exception as e:
+            return str(e)
+
+
     def getSubClassesGen(self):
         """Return generator that goes through all process classes.
         """

@@ -181,7 +181,22 @@
         fb = Ext.getCmp('footer_bar');
         fb.on('buttonClick', zs.dispatcher);
         var footerHelperOptions = {
-            contextGetter: new ContextGetter()
+            contextGetter: new ContextGetter(),
+            customAddDialog: {
+                formListeners: {
+                    clientvalidation: function(form, valid) {
+                        form.refOwner.buttonSubmit.setDisabled(!valid);
+                    }
+                }
+            },
+            onGetAddDialogItems: function () {
+                return [{
+                    xtype: 'idfield',
+                    name: 'id',
+                    fieldLabel: _t('Name'),
+                    allowBlank: false
+                }];
+            }
         };
         Zenoss.footerHelper('Service', fb, footerHelperOptions);
     };

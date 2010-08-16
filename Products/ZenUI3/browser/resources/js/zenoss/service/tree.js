@@ -72,6 +72,7 @@
         if (node) {
             Ext.getCmp('serviceForm').setContext(node.attributes.uid);
             Ext.getCmp('detail_panel').detailCardPanel.setContext(node.attributes.uid);
+            Zenoss.env.PARENT_CONTEXT = node.attributes.uid;
             
             oldToken = unescape(Ext.History.getToken());
             newToken = 'navTree' + Ext.History.DELIMITER + node.id;

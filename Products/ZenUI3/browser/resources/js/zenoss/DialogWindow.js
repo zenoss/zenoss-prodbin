@@ -182,6 +182,8 @@ Zenoss.FormDialog = Ext.extend(Ext.Window, {
             },
             items: config.items,
             html: config.html,
+            monitorValid: true,
+            listeners: config.formListeners || {},
             paramsAsHash: true,
             api: config.formApi || {}
         });
