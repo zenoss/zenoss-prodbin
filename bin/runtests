@@ -241,7 +241,8 @@ def findZenossProducts():
         'ZenUtils',
         'ZenWidgets',
         'ZenWin',
-        'Zuul'
+        'Zuul',
+        'ZenCollector',
     )]
     zenpacks = findZenPackNames()
     return validProds + zenpacks
