@@ -168,7 +168,7 @@ for a ZenPack.
             if not self.options.noindex and hasattr(aq_base(obj),
                     'reIndex') and not self.rootpath:
                 self.rootpath = obj.getPrimaryId()
-                
+
             self.objstack.append(obj)
 
         elif name == 'tomanycont' or name == 'tomany':
@@ -506,6 +506,7 @@ class SpoofedOptions(object):
         self.infile = ''
         self.noCommit = True
         self.noindex = True
+        self.dataroot = '/zport/dmd'
 
 
 class NoLoginImportRM(ImportRM):
@@ -515,16 +516,21 @@ class NoLoginImportRM(ImportRM):
 
     def __init__(self, app):
         """
-        Initializer 
-        
+        Initializer
+
         @param app: app
         @type app: string
         """
-        self.app = app
-        ContentHandler.__init__(self)
+        import Products.ZenossStartup
+        from Products.Five import zcml
+        zcml.load_site()
         import logging
         self.log = logging.getLogger('zen.ImportRM')
+        self.app = app
+        ContentHandler.__init__(self)
         self.options = SpoofedOptions()
+        self.dataroot = None
+        self.getDataRoot()
 
 
 if __name__ == '__main__':

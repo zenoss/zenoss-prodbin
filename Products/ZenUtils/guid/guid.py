@@ -93,7 +93,7 @@ class GUIDManager(object):
         self.traverse = self.context.unrestrictedTraverse
         try:
             self.table = self.traverse(self._table_path)
-        except KeyError, e:
+        except (AttributeError, KeyError), e:
             parent, name = self._table_path.rsplit('/', 1)
             self.table = OOBTree()
             setattr(self.traverse(parent), name, self.table)
