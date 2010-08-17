@@ -109,6 +109,8 @@ class SnmpClient(BaseClient):
 
 
     def collect(self, driver):
+        maxOidsPerRequest = getattr(self.device, 'zMaxOIDPerRequest', DEFAULT_MAX_OIDS_BACK)
+        log.debug("Using a max of %s OIDs per request", maxOidsPerRequest)
         for plugin in self.plugins:
             try:
                 log.debug('running %s', plugin)
@@ -123,7 +125,7 @@ class SnmpClient(BaseClient):
                     self._getdata[pname] = results
                 for tmap in plugin.snmpGetTableMaps:
                     rowSize = len(tmap.getoids())
-                    maxRepetitions = max(DEFAULT_MAX_OIDS_BACK / rowSize, 1)
+                    maxRepetitions = max(maxOidsPerRequest / rowSize, 1)
                     yield self.proxy.getTable(tmap.getoids(),
                                               maxRepetitions=maxRepetitions,
                                               limit=sys.maxint)

@@ -253,6 +253,7 @@ class SnmpPlugin(CollectorPlugin):
     snmpGetTableMaps = []
     deviceProperties = CollectorPlugin.deviceProperties + ATTRIBUTES + (
         'snmpOid',
+        'zMaxOIDPerRequest',
         )
 
 
