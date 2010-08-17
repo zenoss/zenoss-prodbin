@@ -58,4 +58,4 @@ def initialize(registrar):
         setDescriptors(dmd.propertyTransformers)
     except Exception, e:
         args = (e.__class__.__name__, e)
-        log.error("Unable to set property descriptors: %s: %s", *args)
+        log.info("Unable to set property descriptors: %s: %s", *args)
