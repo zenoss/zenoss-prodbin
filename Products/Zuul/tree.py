@@ -15,7 +15,7 @@ from itertools import islice
 from zope.interface import implements
 from Products.AdvancedQuery import Eq, Or, Generic, And, In
 from Products.ZCatalog.CatalogBrains import AbstractCatalogBrain
-from Products.Zuul.interfaces import ITreeNode, ICatalogTool
+from Products.Zuul.interfaces import ITreeNode, ICatalogTool, IInfo
 from Products.Zuul.utils import dottedname, unbrain, allowedRolesAndGroups
 from Products.Zuul.utils import UncataloguedObjectException, PathIndexCache
 from AccessControl import getSecurityManager
@@ -260,7 +260,7 @@ class CatalogTool(object):
             if key in savedValues:
                 value = savedValues[key]
             else:
-                value = getattr(obj, orderby)
+                value = getattr(IInfo(obj), orderby)
                 if callable(value):
                     value = value()
                 savedValues[key] = value
