@@ -83,7 +83,7 @@ class FormBuilderTest(unittest.TestCase):
 
     def test_value(self):
         fields = self.fb.fields()
-        self.assertEqual(self.fb._item(fields['thing'])['value'], '/path/to/ob')
+        self.assert_(isinstance(self.fb._item(fields['thing'])['value'], LinkedTo))
         self.assertEqual(self.fb._item(fields['yoyo'])['value'], None)
 
 def test_suite():
