@@ -15,11 +15,20 @@ from Products.ZenUtils.Utils import set_context
 
 class ZeoConn(object):
 
-    def __init__(self, host="localhost", port=8100):
-        from ZEO import ClientStorage
+    def __init__(self, host="localhost", port=3306, user="zenoss",
+                 passwd="zenoss", db="zodb"):
+        from relstorage.storage import RelStorage
+        from relstorage.adapters.mysql import MySQLAdapter
+        adapter = MySQLAdapter(
+            host=host,
+            port=port,
+            user=user,
+            passwd=passwd,
+            db=db
+        )
+        kwargs = {}
+        storage = RelStorage(adapter, **kwargs)
         from ZODB import DB
-        addr = (host, port)
-        storage=ClientStorage.ClientStorage(addr)
         self.db=DB(storage)
         self.app = None
         self.dmd = None
@@ -27,7 +36,7 @@ class ZeoConn(object):
 
 
     def opendb(self):
-        if self.app: return 
+        if self.app: return
         self.connection=self.db.open()
         root=self.connection.root()
         app = root['Application']

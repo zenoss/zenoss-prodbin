@@ -52,10 +52,10 @@ class ZenDocTestRunner(object):
         zdtr.add_modules("Products.ZenModel.ZenModelBase")
         zdtr.run()
     """
-    
+
     modules = []
     conn = None
-    
+
     def setUp(self):
         zope.component.provideAdapter(DefaultTraversable, (None,))
         if not self.conn: self.conn = ZeoConn()
@@ -88,7 +88,7 @@ class ZenDocTestRunner(object):
         if not hasattr(user, 'aq_base'):
             user = user.__of__(userfolder)
         newSecurityManager(None, user)
-    
+
     def logout(self):
         noSecurityManager()
 
@@ -145,7 +145,7 @@ class ZenDocTestRunner(object):
         all suites.
         """
         suite = unittest.TestSuite()
-        for dtsuite in self.get_suites(): 
+        for dtsuite in self.get_suites():
             suite.addTest(dtsuite)
         runner = unittest.TextTestRunner()
         runner.run(suite)
