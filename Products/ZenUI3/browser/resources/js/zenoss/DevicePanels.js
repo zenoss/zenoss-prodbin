@@ -172,6 +172,18 @@ Zenoss.DeviceGridPanel = Ext.extend(Zenoss.FilterGridPanel,{
             stripeRows: true
         });
         Zenoss.DeviceGridPanel.superclass.constructor.call(this, config);
+        this.store.proxy.on('beforeload', function(){
+            this.view._loadMaskAnchor = Ext.get('center_panel_container');
+            Ext.apply(this.view.loadMask,{
+                msgCls : 'x-mask-loading'
+            });
+            this.view._loadMaskAnchor.mask(this.view.loadMask.msg, this.view.loadMask.msgCls);
+            this.view.showLoadMask(true);
+        }, this, {single:true});
+        this.store.proxy.on('load', function(){
+            this.view.showLoadMask(false);
+            this.view._loadMaskAnchor = Ext.get(this.view.mainBody.dom.parentNode.parentNode);
+        }, this, {single:true});
         this.store.proxy.on('load', 
             function(proxy, o, options) {
                 this.lastHash = o.result.hash || this.lastHash;
