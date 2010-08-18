@@ -650,7 +650,7 @@ Zenoss.DetailNavCombo = Ext.extend(Ext.form.ComboBox, {
                     show = val.filterNav(this);
                 }
 
-                return show && this.filterNav(this, val);
+                return show && this.filterNav(val);
             };
 
             nodes = this.onGetNavConfig(uid);
