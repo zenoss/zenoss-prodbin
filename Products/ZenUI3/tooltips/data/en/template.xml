@@ -10,7 +10,7 @@
     <tooltip>
         <target>datasourceDeleteButton</target>
         
-        <html>Remove data source</html>
+        <html>Remove data source/data point</html>
     </tooltip>
 
     <tooltip>
