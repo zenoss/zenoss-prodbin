@@ -450,7 +450,7 @@ Ext.override(Ext.grid.GridDragZone, {
         // doesn't do the default anchor-drag behavior. Otherwise everything
         // works fine, so proceed as normal.
         if (t.tagName=='A') {
-            e.target = e.browserEvent.target = e.getTarget('div.x-grid3-cell-inner');
+            e.target = e.getTarget('div.x-grid3-cell-inner');
         } 
         return origGetDragData.call(this, e);
     }
