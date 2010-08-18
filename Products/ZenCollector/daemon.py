@@ -150,7 +150,8 @@ class CollectorDaemon(RRDDaemon):
         frameworkFactory = zope.component.queryUtility(IFrameworkFactory)
         self._configProxy = frameworkFactory.getConfigurationProxy()
         self._scheduler = frameworkFactory.getScheduler()
-
+        self._scheduler.maxTasks = self.options.maxTasks
+        
         # OLD - set the initialServices attribute so that the PBDaemon class
         # will load all of the remote services we need.
         self.initialServices = PBDaemon.initialServices +\
@@ -168,6 +169,15 @@ class CollectorDaemon(RRDDaemon):
         command-line options for this collector daemon.
         """
         super(CollectorDaemon, self).buildOptions()
+
+        maxTasks = getattr(self._prefs, 'maxTasks', None)
+        defaultMax = maxTasks if maxTasks else 'Unlimited' 
+        
+        self.parser.add_option('--maxparallel',
+                                dest='maxTasks',
+                                type='int',
+                                default= maxTasks,
+                                help='Max number of tasks to run at once, default %s' % defaultMax)
 
         # give the collector configuration a chance to add options, too
         self._prefs.buildOptions(self.parser)

@@ -11,6 +11,7 @@
 #
 ###########################################################################
 import random
+from Products.ZenUtils.Executor import TwistedExecutor
 
 """
 Support for scheduling tasks and running them on a periodic interval. Tasks
@@ -102,16 +103,6 @@ class TaskStatistics(object):
 
         self.stateStartTime = now
 
-
-class CallableTaskFactory(object):
-    """
-    Our CallableTaskFactory just returns this module's CallableTask, instead
-    of the one in Core.
-    """
-    def getCallableTask(self, newTask, scheduler):
-        return CallableTask(newTask, scheduler)
-
-
 class CallableTask(object):
     """
     A CallableTask wraps an object providing IScheduledTask so that it can be
@@ -119,13 +110,14 @@ class CallableTask(object):
     Twisted framework's LoopingCall construct for simple interval-based
     scheduling.
     """
-    def __init__(self, task, scheduler):
+    def __init__(self, task, scheduler, executor):
         if not IScheduledTask.providedBy(task):
             raise TypeError("task must provide IScheduledTask")
         else:
             self.task = task
 
         self._scheduler = scheduler
+        self._executor = executor
         self.paused = False
         self.taskStats = None
 
@@ -149,6 +141,7 @@ class CallableTask(object):
         # TODO: report an event
         self.taskStats.missedRuns += 1
 
+
     def __call__(self):
         if self.task.state is TaskStates.STATE_PAUSED and not self.paused:
             self.task.state = TaskStates.STATE_IDLE
@@ -157,18 +150,23 @@ class CallableTask(object):
             if self.paused:
                 self.task.state = TaskStates.STATE_PAUSED
             else:
-                d = defer.maybeDeferred(self._run)
-                d.addBoth(self._finished)
-                # don't return the Deferred because we want LoopingCall to keep
-                # rescheduling so that we can keep track of late intervals
-
-                # dump the deferred chain if we're in ludicrous debug mode
-                if log.getEffectiveLevel() < logging.DEBUG:
-                    print "Callback Chain for Task %s" % self.task.name
-                    dumpCallbacks(d)
-
+                self.task.state = TaskStates.STATE_QUEUED
+                self._executor.submit(self._doCall)
         else:
             self._late()
+        # don't return a Deferred because we want LoopingCall to keep
+        # rescheduling so that we can keep track of late intervals
+
+
+    def _doCall(self):
+        d = defer.maybeDeferred(self._run)
+        d.addBoth(self._finished)
+
+        # dump the deferred chain if we're in ludicrous debug mode
+        if log.getEffectiveLevel() < logging.DEBUG:
+            print "Callback Chain for Task %s" % self.task.name
+            dumpCallbacks(d)
+        return d
 
     def _run(self):
         self.task.state = TaskStates.STATE_RUNNING
@@ -186,7 +184,8 @@ class CallableTask(object):
         self._scheduler.taskDone(self.task.name)
 
         self.finished(result)
-        # We handled any error; eat the result!
+        # return result for executor callbacks
+        return result
 
     def _late(self):
         log.debug("Task %s skipped because it was not idle", 
@@ -199,7 +198,7 @@ class CallableTaskFactory(object):
     easily subclassed or replaced in different scheduler implementations.
     """
     def getCallableTask(self, newTask, scheduler):
-        return CallableTask(newTask, scheduler)
+        return CallableTask(newTask, scheduler, scheduler.executor)
 
 
 class Scheduler(object):
@@ -224,6 +223,20 @@ class Scheduler(object):
         self._tasksToCleanup = {}
         self._cleanupTask = task.LoopingCall(self._cleanupTasks)
         self._cleanupTask.start(Scheduler.CLEANUP_TASKS_INTERVAL)
+        
+        self._executor = TwistedExecutor(1)
+
+    @property 
+    def executor(self):
+        return self._executor
+
+    def _getMaxTasks(self):
+        return self._executor.getMax()
+
+    def _setMaxTasks(self, max):
+        return self._executor.setMax(max)
+
+    maxTasks = property(_getMaxTasks, _setMaxTasks)
 
     def addTask(self, newTask, callback=None, now=False):
         """
@@ -385,6 +398,8 @@ class Scheduler(object):
 
         log.info("Tasks: %d Successful_Runs: %d Failed_Runs: %d Missed_Runs: %d",
                  totalTasks, totalRuns, totalFailedRuns, totalMissedRuns)
+        log.info("Queued_Tasks: %d Running_Tasks: %d ", self.executor.queued, 
+                 self.executor.running)
 
         if verbose:
             buffer = "Task States Summary:\n"

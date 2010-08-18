@@ -50,6 +50,10 @@ class ICollectorPreferences(zope.interface.Interface):
         buildOptions method).
         """)
 
+    maxTasks = zope.interface.Attribute("""
+        The max number of IScheduledTasks to be run at once
+        """)
+
     def buildOptions(self, parser):
         """
         Called by the framework during initial startup to allow the collector
@@ -169,6 +173,10 @@ class IScheduler(zope.interface.Interface):
     A service that provides execution scheduling for objects implementing the
     IScheduledTask interface.
     """
+
+    maxTasks = zope.interface.Attribute("""
+    Max tasks the scheduler should run at once; unlimited if None
+    """)
 
     def addTask(self, newTask, callback=None, now=False):
         """
