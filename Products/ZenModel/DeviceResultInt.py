@@ -88,9 +88,7 @@ class DeviceResultInt:
         dev = self.device()
         if dev:
             dev = dev.primaryAq()
-            if (dev.monitorDevice() and 
-                not getattr(dev, 'zPingMonitorIgnore', False)):
-                return dev.getStatus(Status_Ping)
+            return dev.getStatus(Status_Ping)
         else:
             return self.getStatus(Status_Ping)
         return -1
