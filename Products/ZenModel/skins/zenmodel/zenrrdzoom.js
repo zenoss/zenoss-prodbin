@@ -30,60 +30,44 @@ Function.prototype.bind = function(obj) {
     return temp;
 }
 
-
 var FakeXHR = Class.create();
 FakeXHR.prototype = {
     __init__: function(id) {
         bindMethods(this);
         this.id = id;
-        this.makeIFrame();
+        this.makeScriptTag();
         this.lock = new DeferredLock();
-        this.callback = function(r){noop()};
+        this.callback = noop;
         this.deferreds = {};
     },
-    makeIFrame: function() {
-        if (!this.IFrameProxy) {
-            var iframe = createDOM(
-                'iframe',
+    makeScriptTag: function() {
+        if (!this.ScriptTagProxy) {
+            var scripttag = createDOM(
+                'script',
                 {
-                    id:this.id+'IFrameProxy',
-                    style:'position:absolute;visibility:hidden;'
+                    id:this.id+'ScriptTagProxy',
+                    type: 'text/javascript'
                 },
                 null
             );
-            currentDocument().body.appendChild(iframe);
-            this.IFrameProxy = iframe;
+            this.ScriptTagProxy = scripttag;
         }
     },
     getData: function(url) {
         this.deferreds[url] = this.lock.acquire();
         this.deferreds[url].addCallback(bind(function(){
-            connect(this.IFrameProxy, 'onload', this.registerResponse);
-            this.IFrameProxy.src = url;
+            this.ScriptTagProxy.src = url;
+            currentDocument().body.appendChild(this.ScriptTagProxy);
         }, this));
-    },
-    registerResponse: function() {
-        var response = document.location.hash;
-        //window.history.go(-1);
-        response = response.replace('#','');
-        response = response.replace(';','');
-        parts = response.split(':');
-        response = {
-            graphid: parts[0],
-            responseText: parts[1]
-        };
-        this.callback(response);
-        if (this.lock.locked) this.lock.release();
     },
     getFakeXHR: function() {
         var myfunc = bind(function(url, callback) {
-            this.callback = callback;
+            CALLBACKS[this.id] = callback;
             this.getData(url);
         }, this);
         return myfunc;
     }
 }
-
 
 Date.prototype.minus = function(secs) {
     return new Date(this.valueOf()-(secs*1000));
@@ -91,6 +75,8 @@ Date.prototype.minus = function(secs) {
 Date.prototype.toPretty = function() {
     return toISOTimestamp(this);
 }
+
+var CALLBACKS = {};
 
 
 var table = function(obj, newme) {
@@ -142,8 +128,6 @@ ZenRRDGraph.prototype = {
         this.setDates();
         this.buildTables();
         this.registerListeners();
-        this.fakeXHR = new FakeXHR(this.obj.id);
-        this.doFakeXHR = this.fakeXHR.getFakeXHR();
         this.loadImage();
     },
 
@@ -251,9 +235,10 @@ ZenRRDGraph.prototype = {
         this.comment = escape(comment);
     },
     
-    setUrl : function() {
+    setUrl : function(obj) {
+        obj = obj || this.obj;
         var newurl, dashes;
-        var href = this.obj.src;
+        var href = obj.src;
         var start_url = this.startString();
         var end_url = this.endString();
         if ( href.match(end_re) ) {
@@ -277,7 +262,7 @@ ZenRRDGraph.prototype = {
         this.setZoom(e);
         this.setDates();
         this.setComment();
-        this.setUrl();
+        this.setUrl(this.obj);
         this.loadImage();
     },
     
@@ -316,23 +301,27 @@ ZenRRDGraph.prototype = {
     },
 
     loadImage : function() {
-        checkurl = this.url+'&getImage=&graphid='+this.obj.id+'&ftype=html'+
-            '&ms='+new Date().getTime();
-        var onSuccess = bind(function(r) {
-            if (r.responseText=='True') {
-                if (this.obj.src!=this.url) {
-                    this.obj.src = this.url;
-                };
-            }
-        }, this);
+        var checkurl = this.url+'&getImage=&graphid='+this.obj.id+'&ftype=html'+
+            '&ms='+new Date().getTime(),
+            url = this.url,
+            onSuccess = function(r) {
+                currentDocument().body.removeChild($(r.graphid+'ScriptTagProxy'));
+                var obj = $(r.graphid);
+                if (r.success) {
+                    if (obj.src!=url) {
+                        obj.src=url;
+                    };
+                }
+            };
         var setHeights = bind(function(e) {
             var myh = getElementDimensions(this.obj).h;
             setElementDimensions(this.panl, {'h':myh});
             setElementDimensions(this.panr, {'h':myh});
         }, this);
         var x = connect(this.obj, 'onload', setHeights);
-        if (this.url!=this.obj.src) {
-            defr = this.doFakeXHR(checkurl, onSuccess);
+        console.log('making a reauest')
+        if (url!=this.obj.src) {
+            defr = new FakeXHR(this.obj.id).getFakeXHR()(checkurl, onSuccess);
         }
     },
 

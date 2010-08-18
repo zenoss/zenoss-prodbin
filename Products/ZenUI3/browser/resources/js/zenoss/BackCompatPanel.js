@@ -96,7 +96,13 @@ Zenoss.BackCompatPanel = Ext.extend(Zenoss.ContextualIFrame, {
         Ext.util.Cookies.set('newui', 'yes');
         Zenoss.BackCompatPanel.superclass.setContext.apply(this, arguments);
         this.on('frameload', function(win){
-            win.document.body.className = win.document.body.className + ' z-bc';
+            if (win.document && win.document.body) {
+                win.document.body.className = win.document.body.className + ' z-bc';
+            } else {
+                win.onload = function() {
+                    win.document.body.className = win.document.body.className + ' z-bc';
+                };
+            }
         });
     }
 });

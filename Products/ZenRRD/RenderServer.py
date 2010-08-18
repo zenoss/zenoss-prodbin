@@ -23,6 +23,7 @@ import logging
 import urllib
 import zlib
 import mimetypes
+from json import dumps
 
 from AccessControl import ClassSecurityInfo
 from Globals import InitializeClass
@@ -127,8 +128,8 @@ class RenderServer(RRDToolItem):
                 f = open(filename, "w")
                 f.write(urllib.urlopen(remoteUrl).read())
                 f.close()
-            else:            
-                if ftype.lower()=='html': 
+            else:
+                if ftype.lower()=='html':
                     imgtype = 'PNG'
                 else:
                     imgtype = ftype
@@ -147,7 +148,7 @@ class RenderServer(RRDToolItem):
                 log.debug("RRD graphing options: %r", (gopts,))
                 try:
                     rrdtool.graph(*gopts)
-                except Exception, ex:    
+                except Exception, ex:
                     if ex.args[0].find('No such file or directory') > -1:
                         return None
                     log.exception("Failed to generate a graph")
@@ -157,16 +158,17 @@ class RenderServer(RRDToolItem):
             self.addGraph(id, filename)
             graph = self.getGraph(id, ftype, REQUEST)
 
-        if getImage: 
+        if getImage:
             return graph
-        else: 
+        else:
             return """
-            <script>
-                parent.location.hash = '%s:%s;';
-            </script>
-            """ % (graphid, str(bool(graph)))
+            CALLBACKS.%s(%s);
+            """ % (graphid, dumps({
+                'graphid':graphid,
+                'success':bool(graph)
+            }))
 
-    
+
     def deleteRRDFiles(self, device, 
                         datasource=None, datapoint=None, 
                         remoteUrl=None, REQUEST=None):
