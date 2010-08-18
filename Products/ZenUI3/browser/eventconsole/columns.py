@@ -62,23 +62,23 @@ COLUMN_CONFIG = {
             'text':'...',
             'source': [{
                 'value':5,
-                'text': 'Critical'
+                'name': 'Critical'
             },{
                 'value':4,
-                'text': 'Error'
+                'name': 'Error'
             },{
                 'value':3,
-                'text': 'Warning'
+                'name': 'Warning'
             },{
                 'value':2,
-                'text':'Info'
+                'name':'Info'
             },{
                 'value':1,
-                'text':'Debug',
+                'name':'Debug',
                 'checked':False
             },{
                 'value':0,
-                'text':'Clear',
+                'name':'Clear',
                 'checked':False
             }]
         },
@@ -92,13 +92,13 @@ COLUMN_CONFIG = {
             'text':'...',
             'source':[{
                 'value':0,
-                'text':'New'
+                'name':'New'
             },{
                 'value':1,
-                'text':'Acknowledged'
+                'name':'Acknowledged'
             },{
                 'value':2,
-                'text':'Suppressed',
+                'name':'Suppressed',
                 'checked':False
             }
             ]
@@ -197,22 +197,22 @@ COLUMN_CONFIG = {
             'xtype':'multiselectmenu',
             'source':[{
                 'value':5,
-                'text':'Highest'
+                'name':'Highest'
             },{
                 'value':4,
-                'text':'High'
+                'name':'High'
             },{
                 'value':3,
-                'text':'Normal'
+                'name':'Normal'
             },{
                 'value':2,
-                'text':'Low'
+                'name':'Low'
             },{
                 'value':1,
-                'text':'Lowest'
+                'name':'Lowest'
             },{
                 'value':0,
-                'text':'Trivial'
+                'name':'Trivial'
             }]
         }),
 
