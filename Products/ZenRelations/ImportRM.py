@@ -297,7 +297,23 @@ for a ZenPack.
                     return None
                 self.objstack.append(pathobj)
             self.log.debug('Building instance %s of class %s',id,klass.__name__)
-            obj = klass(id)
+            try:
+                if klass.__name__ == 'AdministrativeRole':
+                    user = [x for x in self.dmd.ZenUsers.objectValues() if x.id == id]
+                    if user:
+                        obj = klass(user[0], self.context().device())
+                    else:
+                        msg = "No AdminRole user %s exists (line %s)" % (
+                                       id, self._locator.getLineNumber())
+                        self.log.error(msg)
+                        raise Exception(msg)
+                else:
+                    obj = klass(id)
+            except TypeError, ex:
+                # This happens when the constructor expects more arguments
+                self.log.exception("Unable to build %s instance of class %s (line %s)",
+                                   id, klass.__name__, self._locator.getLineNumber())
+                raise
             self.context()._setObject(obj.id, obj)
             obj = self.context()._getOb(obj.id)
             self.objectnumber += 1
