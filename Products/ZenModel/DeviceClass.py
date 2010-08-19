@@ -233,6 +233,9 @@ class DeviceClass(DeviceOrganizer, ZenPackable, TemplateContainer):
                     """
                     from xml.dom.minidom import parse
 
+                    # Note: strips almost everything out of the move
+                    #       as the new class may not have the same relations etc.
+                    #       For example, moving SNMP host to a VMware class.
                     o.seek(0)
                     dom = parse(o)
                     root = dom.childNodes[0]
@@ -240,14 +243,34 @@ class DeviceClass(DeviceOrganizer, ZenPackable, TemplateContainer):
                     root.setAttribute('class', klass)
                     for obj in root.childNodes:
                         if obj.nodeType != obj.ELEMENT_NODE:
-                            continue
-                        if obj.tagName != 'property':
-                            root.removeChild(obj)   
-                        else:
-                            name = obj.getAttribute('id')
+                            continue # Keep XML-tree baggage
+
+                        name = obj.getAttribute('id')
+                        if obj.tagName == 'property':
+                            # Only remove modeler plugins, templates
+                            # and z*Ignore zprops
                             if name in ('zCollectorPlugins', 'zDeviceTemplates') or \
                                name.endswith('Ignore'):
                                 root.removeChild(obj)
+
+                        elif obj.tagName == 'toone' and \
+                             name in ('perfServer', 'location'):
+                            pass # Preserve collector name and location
+
+                        elif obj.tagName == 'tomany' and \
+                             name in ('systems', 'groups'):
+                            pass # Preserve the Groups and Systems groupings
+
+                        elif obj.tagName == 'tomanycont' and \
+                             name in ('maintenanceWindows', 
+                                      'adminRoles',
+                                      'userCommands'):
+                            pass # Preserve maintenance windows, admins, commands
+
+                        else:
+                            log.debug("Removing %s element id='%s'",
+                                         obj.tagName, name)
+                            root.removeChild(obj)   
 
                     importFile = StringIO.StringIO()
                     dom.writexml(importFile)
