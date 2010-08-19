@@ -260,7 +260,7 @@ ZI.ComponentInspector = Ext.extend(ZI.DirectInspector, {
             directFn: Zenoss.remote.DeviceRouter.getInfo,
             keys: ['ipAddress', 'device'],
             cls: 'inspector',
-            titleTpl: '<div class="name">{name}</div><div class="info"><a href="{[values.device.uid]}" target="_top">{[values.device.device]}</a></div><div class="info">{[Zenoss.render.ipAddress(values.ipAddress)]}</div>'
+            titleTpl: '<div class="name"><a href="{uid}" target="_top">{name}</a></div><div class="info"><a href="{[values.device.uid]}" target="_top">{[values.device.device]}</a></div><div class="info">{[Zenoss.render.ipAddress(values.ipAddress)]}</div>'
         });
 
         config.items = [
