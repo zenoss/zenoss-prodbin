@@ -63,6 +63,7 @@ class CmdBase(object):
                 zcml.load_config('configure.zcml', Products.ZenRelations)
                 zcml.load_config('configure.zcml', Products.Zuul)
                 zcml.load_config('configure.zcml', Products.ZenUtils)
+                zcml.load_config('configure.zcml', Products.ZenImpact)
             except AttributeError:
                 # Could be that we're in a pre-Product-installation Zope, e.g. in
                 # zenwipe. No problem, we won't need this stuff now anyway.

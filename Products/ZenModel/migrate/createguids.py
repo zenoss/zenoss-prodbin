@@ -12,6 +12,7 @@
 ###########################################################################
 import Migrate
 
+from zope.component import provideHandler
 from Products.Zuul.interfaces import ICatalogTool
 from Products.ZenUtils.guid.interfaces import IGlobalIdentifier
 
@@ -20,10 +21,16 @@ DeviceComponent = 'Products.ZenModel.DeviceComponent.DeviceComponent'
 
 class CreateGUIDsForDeviceAndComponent(Migrate.Step):
     version = Migrate.Version(3, 1, 0)
+    def __init__(self):
+        Migrate.Step.__init__(self)
+        import orm_tables
+        self.dependencies = [orm_tables.createORMTables]
 
     def cutover(self, dmd):
         if getattr(dmd, 'guid_table', None) is None:
+            from Products.ZenImpact.guids import updateTableOnGuidEvent
+            provideHandler(updateTableOnGuidEvent)
             for b in ICatalogTool(dmd).search((Device, DeviceComponent)):
-                IGlobalIdentifier(b.getObject()).create()
+                IGlobalIdentifier(b.getObject()).create(force=True)
 
 CreateGUIDsForDeviceAndComponent()

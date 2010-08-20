@@ -161,3 +161,19 @@ CREATE TABLE IF NOT EXISTS detail
     PRIMARY KEY ( evid, name ),
     Index evididx (evid)
 ) ENGINE=INNODB;
+
+
+CREATE TABLE IF NOT EXISTS `guids` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `guid` char(36) NOT NULL,
+  PRIMARY KEY (`id`)
+) ENGINE=INNODB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
+
+
+CREATE TABLE IF NOT EXISTS `impact` (
+  `id` int(11) NOT NULL,
+  `category` int(11) NOT NULL,
+  `lft` int(11) NOT NULL,
+  `rgt` int(11) NOT NULL,
+  PRIMARY KEY (`id`,`category`)
+) ENGINE=INNODB DEFAULT CHARSET=utf8;
