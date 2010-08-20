@@ -20,9 +20,11 @@ from Products.ZenModel.RRDTemplate import RRDTemplate
 from Products.Zuul.interfaces import ICatalogTool
 from Products.Zuul.utils import ZuulMessageFactory as _t
 
+
 class TemplateInfo(InfoBase):
     description = ProxyProperty('description')
     targetPythonClass = ProxyProperty('targetPythonClass')
+
 
 class TemplateNode(TemplateInfo):
 
@@ -41,7 +43,7 @@ class TemplateNode(TemplateInfo):
     @property
     def qtip(self):
         return self._object.description
-    
+
     @property
     def children(self):
         def caseInsensitive(x, y):
@@ -54,8 +56,8 @@ class TemplateNode(TemplateInfo):
 
     def getUIPath(self):
         return self._object.getUIPath()
-    
-        
+
+
 class TemplateLeaf(TemplateInfo):
 
     def __init__(self, template):
@@ -70,7 +72,7 @@ class TemplateLeaf(TemplateInfo):
     @property
     def qtip(self):
         return self._object.description
-    
+
     @property
     def text(self):
         return self._object.getUIPath()
@@ -90,11 +92,13 @@ class TemplateLeaf(TemplateInfo):
             return 'tree-template-icon-component'
         # see if it is bound
         deviceClass = self._object.deviceClass()
-        if self._object.id in deviceClass.zDeviceTemplates:
+        # if deviceClass is none it is a device template (and therefore bound)
+        if not deviceClass or (self._object.id in deviceClass.zDeviceTemplates):
             return 'tree-template-icon-bound'
+
         return 'tree-node-no-icon'
 
-    
+
 class DeviceClassTemplateNode(TreeNode):
     """
     This class is for the "Device class view" of the template tree.
@@ -105,18 +109,20 @@ class DeviceClassTemplateNode(TreeNode):
     @property
     def id(self):
         """
-        We have to make the template paths unique even though the same template shows up multiple times.
-        This is the acquired template path. NOTE that it relies on the _porganizerPath being set
+        We have to make the template paths unique even though the same
+        template shows up multiple times.  This is the acquired
+        template path.
+        NOTE that it relies on the _porganizerPath  being set
         """
         if self.isOrganizer:
             return super(DeviceClassTemplateNode, self).id
         path = self._organizerPath + '/rrdTemplates/' + self._object.name
         return path.replace('/', '.')
-    
+
     @property
     def qtip(self):
         return self._object.getObject().description
-    
+
     @property
     def isOrganizer(self):
         """
@@ -141,11 +147,11 @@ class DeviceClassTemplateNode(TreeNode):
         if template.id in organizer.zDeviceTemplates:
             return 'tree-template-icon-bound'
         return 'tree-node-no-icon'
-    
+
     @property
     def leaf(self):
         return not self.isOrganizer
-    
+
     @property
     def text(self):
         """
@@ -158,7 +164,7 @@ class DeviceClassTemplateNode(TreeNode):
         if self._organizerPath in self._object.getObject().absolute_url_path():
             path = _t('Locally Defined')
         return "%s (%s)" % (self._object.name, path)
-    
+
     @property
     def children(self):
         """
@@ -170,7 +176,7 @@ class DeviceClassTemplateNode(TreeNode):
         # get all organizers as brains
         cat = ICatalogTool(self._object)
         orgs = cat.search(DeviceOrganizer, paths=(self.uid,), depth=1)
-        
+
         # get all templates as brains
         templates = self._object.getObject().getRRDTemplates()
         path = self.path
@@ -180,16 +186,16 @@ class DeviceClassTemplateNode(TreeNode):
             item = DeviceClassTemplateNode(brain)
             results.append(item)
 
-        
+
         for template in templates:
             brain = cat.getBrain(template.getPhysicalPath())
             item = DeviceClassTemplateNode(brain)
             item._organizerPath = path
             results.append(item)
-                    
+
         return results
-    
-        
+
+
 class RRDDataSourceInfo(InfoBase):
     implements(templateInterfaces.IRRDDataSourceInfo)
     """
@@ -202,7 +208,7 @@ class RRDDataSourceInfo(InfoBase):
     @property
     def id(self):
         return '/'.join(self._object.getPrimaryPath())
-    
+
     @property
     def source(self):
         return self._object.getDescription()
@@ -227,7 +233,7 @@ class RRDDataSourceInfo(InfoBase):
     @property
     def newId(self):
         return self._object.id
-    
+
     severity = property(_getSeverity, _setSeverity)
     enabled = ProxyProperty('enabled')
     component = ProxyProperty('component')
@@ -255,7 +261,7 @@ class BasicDataSourceInfo(InfoBase):
     @property
     def id(self):
         return '/'.join(self._object.getPrimaryPath())
-    
+
     @property
     def source(self):
         return self._object.getDescription()
@@ -291,11 +297,11 @@ class BasicDataSourceInfo(InfoBase):
     @property
     def newId(self):
         return self._object.id
-    
+
     severity = property(_getSeverity, _setSeverity)
     cycletime = ProxyProperty('cycletime')
     eventClass = ProxyProperty('eventClass')
-    
+
 
 class SNMPDataSourceInfo(BasicDataSourceInfo):
     implements(templateInterfaces.ISNMPDataSourceInfo)
@@ -326,7 +332,7 @@ class DataPointInfo(InfoBase):
     @property
     def id(self):
         return '/'.join(self._object.getPrimaryPath())
-    
+
     @property
     def type(self):
         return self._object.rrdtype
@@ -334,7 +340,7 @@ class DataPointInfo(InfoBase):
     @property
     def newId(self):
         return self._object.id
-    
+
     # alias
     def _setAliases(self, value):
         """
@@ -413,7 +419,7 @@ class ThresholdInfo(InfoBase):
     @property
     def newId(self):
         return self._object.id
-    
+
     @property
     def type(self):
         return self._object.getTypeName()
@@ -462,7 +468,7 @@ class MinMaxThresholdInfo(ThresholdInfo):
     eventClass = ProxyProperty("eventClass")
     escalateCount = ProxyProperty("escalateCount")
 
-    
+
 class GraphInfo(InfoBase):
 
     def __init__(self, graph):
@@ -475,7 +481,7 @@ class GraphInfo(InfoBase):
     @property
     def newId(self):
         return self._object.id
-    
+
     @property
     def graphPoints(self):
         return self._object.getGraphPointNamesString()
