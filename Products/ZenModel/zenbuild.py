@@ -195,7 +195,7 @@ class zenbuild(CmdBase):
             site.dmd.smtpPort = self.options.smtpport
             site.dmd.pageCommand = self.options.pagecommand
             site.dmd.uuid = None
-            site.dmd._rq = True
+            site.dmd._rq = False
             for evmgr in (site.dmd.ZenEventManager, site.dmd.ZenEventHistory):
                 evmgr.username = self.options.evtuser
                 evmgr.password = self.options.evtpass
