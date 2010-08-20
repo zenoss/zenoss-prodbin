@@ -18,8 +18,8 @@ class CreateORMTables(Migrate.Step):
     version = Migrate.Version(3, 1, 0)
 
     def cutover(self, dmd):
-        from Products.ZenImpact.guids import Guid
-        from Products.ZenImpact.impacts import ImpactRelationship
+        from Products.ZenChain.guids import Guid
+        from Products.ZenChain.impacts import ImpactRelationship
         # Create tables imported above
         zem = dmd.ZenEventManager
         init_model(

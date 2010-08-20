@@ -28,7 +28,7 @@ class CreateGUIDsForDeviceAndComponent(Migrate.Step):
 
     def cutover(self, dmd):
         if getattr(dmd, 'guid_table', None) is None:
-            from Products.ZenImpact.guids import updateTableOnGuidEvent
+            from Products.ZenChain.guids import updateTableOnGuidEvent
             provideHandler(updateTableOnGuidEvent)
             for b in ICatalogTool(dmd).search((Device, DeviceComponent)):
                 IGlobalIdentifier(b.getObject()).create(force=True)

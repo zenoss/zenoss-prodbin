@@ -60,7 +60,7 @@ class TestGuidUpdates(BaseTestCase, ORMTestCase):
             <subscriber handler="Products.ZenUtils.guid.event.registerGUIDToPathMapping"/>
             <subscriber handler="Products.ZenUtils.guid.event.refireEventOnObjectAddOrMove"/>
             <subscriber handler="Products.ZenUtils.guid.event.refireEventOnObjectBeforeRemove"/>
-            <subscriber handler="Products.ZenImpact.guids.updateTableOnGuidEvent"/>
+            <subscriber handler="Products.ZenChain.guids.updateTableOnGuidEvent"/>
         </configure>
         """)
 
