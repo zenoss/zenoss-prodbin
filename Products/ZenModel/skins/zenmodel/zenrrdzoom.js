@@ -319,7 +319,6 @@ ZenRRDGraph.prototype = {
             setElementDimensions(this.panr, {'h':myh});
         }, this);
         var x = connect(this.obj, 'onload', setHeights);
-        console.log('making a reauest')
         if (url!=this.obj.src) {
             defr = new FakeXHR(this.obj.id).getFakeXHR()(checkurl, onSuccess);
         }
