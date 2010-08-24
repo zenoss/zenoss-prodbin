@@ -302,6 +302,7 @@ class DeviceClass(DeviceOrganizer, ZenPackable, TemplateContainer):
                     """
                     im = NoLoginImportRM(target.devices)
                     im.loadObjectFromXML(xmlfile)
+                    im.processLinks()
 
                 module = target.zPythonClass
                 if module:
