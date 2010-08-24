@@ -22,8 +22,11 @@ def findZenPackRoot(base):
     """
     Search upwards for the root of a ZenPack.
 
-    >>> findZenPackRoot("/opt/zenoss/ZenPacks/ZenPacks.zenoss.NetAppMonitor-2.1.0-py2.6.egg/ZenPacks/zenoss/NetAppMonitor/skins")
-    '/opt/zenoss/ZenPacks/ZenPacks.zenoss.NetAppMonitor'
+    >>> import os, tempfile; root = os.path.realpath(tempfile.mkdtemp())
+    >>> skindir = os.path.join(root, 'ZenPacks/ZenPacks.zenoss.NotAPack-1.2.3-py2.6.egg/ZenPacks/zenoss/NotAPack/skins')
+    >>> os.makedirs(skindir)
+    >>> findZenPackRoot(skindir).replace(root, '/opt/zenoss')
+    '/opt/zenoss/ZenPacks/ZenPacks.zenoss.NotAPack'
     """
     p = d = os.path.realpath(base)
     while d:
