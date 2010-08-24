@@ -235,6 +235,7 @@ class DeviceFacade(TreeFacade):
         comps = imap(self._getObject, uids)
         for comp in comps:
             IInfo(comp).monitor = monitor
+            self._root.componentSearch.catalog_object(comp, idxs=('monitored',))
 
     def pushChanges(self, uids):
         devs = imap(self._getObject, uids)

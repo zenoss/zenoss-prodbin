@@ -18,6 +18,9 @@ FileSystem is a file system on a server
 $Id: FileSystem.py,v 1.12 2004/04/06 22:33:23 edahl Exp $"""
 
 __version__ = "$Revision: 1.12 $"[11:-2]
+
+from math import isnan
+
 from Globals import DTMLFile
 from Globals import InitializeClass
 from AccessControl import ClassSecurityInfo
@@ -202,7 +205,7 @@ class FileSystem(OSComponent):
         Return the number of used blocks stored in the filesystem's rrd file
         """
         blocks = self.cacheRRDValue('usedBlocks', default)
-        if blocks is not None:
+        if blocks is not None and not isnan(blocks):
             return long(blocks)
         elif self.blockSize:
             # no usedBlocks datapoint, so this is probably a Windows device
