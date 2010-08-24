@@ -83,6 +83,7 @@ Zenoss.MibTreePanel = Ext.extend(Zenoss.HierarchyTreePanel, {
                 directFn: router.getOrganizerTree,
                 router: router,
                 selModel: treesm,
+                relationshipIdentifier: 'mibs',
                 selectRootOnLoad: true,
                 enableDD: true,
                 ddGroup: 'serviceDragDrop',
@@ -139,26 +140,7 @@ Zenoss.MibTreePanel = Ext.extend(Zenoss.HierarchyTreePanel, {
             token = token.replace(/\//g, '.');
             var path = this.getNodePathById(token);
             this.selectPath(path);
-        },
-        getNodePathById: function(nodeId) {
-            var part,
-            depth = this.root.attributes.uid.split('/').length - 1,
-            parts = nodeId.split('.'),
-            curpath = parts.slice(0, depth).join('.');
-
-            parts = parts.slice(depth);
-            
-            var path = [this.root.getPath()];
-            while ( part = parts.shift() ) {
-                if (part == "mibs") {
-                    curpath = [curpath, part, parts.shift()].join('.');
-                }else {
-                    curpath = [curpath, part].join('.');
-                }
-                path.push(curpath);
-            }
-            return path.join(this.pathSeparator);
-        },
+        },        
         initEvents: function() {
             Zenoss.MibTreePanel.superclass.initEvents.call(this);
             // don't add history token on click like HierarchyTreePanel does

@@ -100,6 +100,7 @@ Zenoss.HierarchyTreePanel = Ext.extend(Ext.tree.TreePanel, {
             useArrows: true,
             border: false,
             autoScroll: true,
+            relationshipIdentifier: null,
             containerScroll: true,
             selectRootOnLoad: true,
             rootVisible: false,
@@ -185,6 +186,7 @@ Zenoss.HierarchyTreePanel = Ext.extend(Ext.tree.TreePanel, {
             var sel = this.getSelectionModel().getSelectedNode();
             if ( !(sel && nodeId === sel.id) ) {
                 var path = this.getNodePathById(nodeId);
+                
                 this.selectPath(path);
             }
         }.createDelegate(this);
@@ -205,7 +207,14 @@ Zenoss.HierarchyTreePanel = Ext.extend(Ext.tree.TreePanel, {
 
         var path = [this.root.getPath()];
         while ( part = parts.shift() ) {
-            curpath = [curpath, part].join('.');
+            // this adjusts the path for things like "Service.Linux.devices.Dev1"
+            // where "devices" is the relationshipIdentifier"
+            if (this.relationshipIdentifier && part == this.relationshipIdentifier){
+                curpath = [curpath, part, parts.shift()].join('.');
+            }else{
+                curpath = [curpath, part].join('.');    
+            }
+            
             path.push(curpath);
         }
 
