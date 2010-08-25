@@ -136,7 +136,7 @@ class DeviceStats:
             
         #delete the left overs
         for id in unused:
-            del self.processes[id]
+            del self._processes[id]
 
     @property
     def processStats(self):
@@ -597,8 +597,8 @@ class ZenProcessTask(ObservableMixin):
         byConf = reverseDict(self._deviceStats._pidToProcess)
         for procStat, pids in byConf.items():
             if len(pids) != 1:
-                log.info("There are %d pids by the name %s",
-                         len(pids), procStat._config.name)
+                log.debug("There are %d pids by the name %s",
+                          len(pids), procStat._config.name)
             procName = procStat._config.name
             for pid in pids:
                 cpu = results.get(CPU + str(pid), None)
