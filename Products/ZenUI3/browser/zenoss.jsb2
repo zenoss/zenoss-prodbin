@@ -180,6 +180,9 @@
         },{
             "text": "inspector.js",
             "path": "resources/js/zenoss/"
+        },{
+            "text": "SimpleDrawerPanel.js",
+            "path": "resources/js/zenoss/"
         }]
     }],
     "resources": []
