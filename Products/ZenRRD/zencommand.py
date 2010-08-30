@@ -83,12 +83,12 @@ class ProcessRunner(ProcessProtocol):
 
     def start(self, cmd):
         "Kick off the process: run it local"
-        log.debug('running %r' % cmd.command)
+        log.debug('running %s', cmd.command.split()[0])
 
         shell = '/bin/sh'
         self.cmdline = (shell, '-c', 'exec %s' % cmd.command)
         self.command = ' '.join(self.cmdline)
-        log.debug('cmd line: %r' % self.command)
+
         reactor.spawnProcess(self, shell, self.cmdline, env=None)
 
         d = Timeout(defer.Deferred(), cmd.deviceConfig.commandTimeout, cmd)
@@ -101,7 +101,7 @@ class ProcessRunner(ProcessProtocol):
         try:
             self.transport.signalProcess('KILL')
         except error.ProcessExitedAlready:
-            log.debug("Command already exited: %s" % self.command)
+            log.debug("Command already exited: %s", self.command.split()[0])
         return value
 
 
@@ -113,9 +113,9 @@ class ProcessRunner(ProcessProtocol):
     def processEnded(self, reason):
         "notify the starter that their process is complete"
         self.exitCode = reason.value.exitCode
-        log.debug('Received exit code: %s' % self.exitCode)
-        log.debug('Command: %r' % self.command)
-        log.debug('Output: %r' % self.output)
+        log.debug('Received exit code: %s', self.exitCode)
+        log.debug('Command: %s', self.command.split()[0])
+        log.debug('Output: %r', self.output)
         
         if self.stopped:
             d, self.stopped = self.stopped, None
@@ -148,7 +148,7 @@ class MySshClient(SshClient):
         if d is None:
             log.error("Internal error where deferred object not in dictionary." \
                       " Command = '%s' Data = '%s' Code = '%s'",
-                      command, data, code)
+                      command.split()[0], data, code)
         elif not d.called:
             d.callback((data, code))
 
@@ -323,9 +323,10 @@ class Cmd(pb.Copyable, pb.RemoteCopy):
 
 
     def name(self):
-        cmd, args = (self.command + ' ').split(' ', 1)
-        cmd = cmd.split('/')[-1]
-        return '%s %s' % (cmd, args)
+        """
+        Only return the name of the command, not the full command.
+        """
+        return self.command.split()[0]
 
 
     def nextRun(self):
@@ -383,11 +384,6 @@ class Cmd(pb.Copyable, pb.RemoteCopy):
         # fetch datapoint name from filename path and add it to the event key
         return self.eventKey + '|' + point.rrdPath.split('/')[-1]
 
-    def commandKey(self):
-        "Provide a value that establishes the uniqueness of this command"
-        return '%'.join(map(str, [self.useSsh, self.cycleTime,
-                                  self.severity, self.command]))
-
 pb.setUnjellyableForClass(Cmd, Cmd)
 
 class Options:
@@ -442,7 +438,7 @@ class ConfigurationProcessor(object):
             log.warning(self._summary + ' for %s' % self._device)
             self._sendUsernameEvent(Error)
         msg = 'username not configured for %s. skipping %s.'
-        log.debug(msg % (self._device, command))
+        log.debug(msg, self._device, command.split()[0])
 
     def updateCommands(self):
         """
@@ -631,7 +627,7 @@ class zencommand(RRDDaemon):
         """
         exitCode = cmd.result.exitCode
         msg = 'Cmd: %s - Code: %s - Msg: %s' % (
-            cmd.command, exitCode, getExitMessage(exitCode))
+            cmd.command.split()[0], exitCode, getExitMessage(exitCode))
         if exitCode == 0:
             self.sendCmdEvent(cmd, Clear, msg)
 
@@ -643,7 +639,7 @@ class zencommand(RRDDaemon):
         if isinstance(err.value, TimeoutError):
             cmd, = err.value.args
             msg = "Command timed out on device %s: %r" % (
-                    cmd.deviceConfig.device, cmd.command)
+                    cmd.deviceConfig.device, cmd.command.split()[0])
             self.log.warning(msg)
             self.sendCmdEvent(cmd, cmd.severity, msg)
         else:
@@ -657,7 +653,8 @@ class zencommand(RRDDaemon):
         @param cmd: command
         @type: cmd object
         """
-        self.log.debug('The result of "%s" was "%r"', cmd.command, cmd.result.output)
+        self.log.debug('The result of "%s" was "%r"',
+                       cmd.command.split()[0], cmd.result.output)
         results = ParsedResults()
         try:
             parser = cmd.parser.create()
