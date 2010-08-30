@@ -11,7 +11,6 @@
 #
 ###########################################################################
 
-import sets
 import signal
 import time
 import logging
@@ -34,7 +33,7 @@ from Products.ZenHub.PBDaemon import PBDaemon, FakeRemote
 from Products.ZenRRD.RRDDaemon import RRDDaemon
 from Products.ZenRRD.RRDUtil import RRDUtil
 from Products.ZenRRD.Thresholds import Thresholds
-from Products.ZenUtils.Utils import importClass
+from Products.ZenUtils.Utils import importClass, readable_time
 
 log = logging.getLogger("zen.daemon")
 
@@ -135,9 +134,9 @@ class CollectorDaemon(RRDDaemon):
 
         super(CollectorDaemon, self).__init__(name=self._prefs.collectorName)
 
-        self._devices = sets.Set()
+        self._devices = set()
         self._thresholds = Thresholds()
-        self._unresponsiveDevices = sets.Set()
+        self._unresponsiveDevices = set()
         self._rrd = None
         self.reconfigureTimeout = None
 
@@ -474,8 +473,8 @@ class CollectorDaemon(RRDDaemon):
                                 "despite failure: %s" %
                                 result.getErrorMessage() )
             interval = _configCycleInterval()
-            self.log.debug("Rescheduling configuration check in %d seconds",
-                           interval)
+            self.log.debug("Rescheduling configuration check in %s",
+                           readable_time(interval))
             reactor.callLater(interval, self._configCycle)
             return defer.succeed(None)
 
@@ -525,7 +524,7 @@ class CollectorDaemon(RRDDaemon):
 
             # Device ping issues returns as a tuple of (deviceId, count, total)
             # and we just want the device id
-            newUnresponsiveDevices = sets.Set([i[0] for i in result])
+            newUnresponsiveDevices = set([i[0] for i in result])
 
             clearedDevices = self._unresponsiveDevices.difference(newUnresponsiveDevices)
             for devId in clearedDevices:

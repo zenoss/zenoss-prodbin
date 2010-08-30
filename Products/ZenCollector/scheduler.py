@@ -23,6 +23,7 @@ import logging
 import math
 import signal
 import time
+from StringIO import StringIO
 
 import zope.interface
 
@@ -103,6 +104,7 @@ class TaskStatistics(object):
 
         self.stateStartTime = now
 
+
 class CallableTask(object):
     """
     A CallableTask wraps an object providing IScheduledTask so that it can be
@@ -127,12 +129,23 @@ class CallableTask(object):
         """
         self.taskStats.totalRuns += 1
 
+    def logTwistedTraceback(self, reason):
+        """
+        Twisted errBack to record a traceback and log messages
+        """
+        out = StringIO()
+        reason.printTraceback(out)
+        # This shouldn't be necessary except for dev code
+        log.debug(out.getvalue())
+        out.close()
+
     def finished(self, result):
         """
         Called whenever this task has finished.
         """
         if isinstance(result, Failure):
             self.taskStats.failedRuns += 1
+            self.logTwistedTraceback(result)
 
     def late(self):
         """
@@ -191,6 +204,7 @@ class CallableTask(object):
         log.debug("Task %s skipped because it was not idle", 
                   self.task.name)
         self.late()
+
 
 class CallableTaskFactory(object):
     """
@@ -286,8 +300,9 @@ class Scheduler(object):
         """
         task = taskWrapper.task
 
-        # watch the task's state attribute changes
+        # watch the task's attribute changes
         task.attachAttributeObserver('state', self._taskStateChangeListener)
+        task.attachAttributeObserver('interval', self._taskIntervalChangeListener)
 
         # create the statistics data for this task
         self._taskStats[task.name] = TaskStatistics(task)
@@ -299,6 +314,7 @@ class Scheduler(object):
         """
         task = taskWrapper.task
         task.detachAttributeObserver('state', self._taskStateChangeListener)
+        task.detachAttributeObserver('interval', self._taskIntervalChangeListener)
 
     def taskPaused(self, taskWrapper):
         """
@@ -370,6 +386,17 @@ class Scheduler(object):
         taskStat = self._taskStats[task.name]
         taskStat.trackStateChange(oldValue, newValue)
 
+    def _taskIntervalChangeListener(self, observable, attrName, oldValue, newValue):
+        """
+        Allows tasks to change their collection interval on the fly
+        """
+        task = observable
+        log.debug("Task %s changing run interval from %s to %s", task.name, oldValue,
+                  newValue)
+
+        loopingCall = task._dataService._scheduler._loopingCalls[task.name]
+        loopingCall.interval = newValue
+
     def displayStatistics(self, verbose):
         totalRuns = 0
         totalFailedRuns = 0
@@ -396,10 +423,10 @@ class Scheduler(object):
                 totalStateStats.minElapsedTime = min(totalStateStats.minElapsedTime, stats.minElapsedTime)
                 totalStateStats.maxElapsedTime = max(totalStateStats.maxElapsedTime, stats.maxElapsedTime)
 
-        log.info("Tasks: %d Successful_Runs: %d Failed_Runs: %d Missed_Runs: %d",
-                 totalTasks, totalRuns, totalFailedRuns, totalMissedRuns)
-        log.info("Queued_Tasks: %d Running_Tasks: %d ", self.executor.queued, 
-                 self.executor.running)
+        log.info("Tasks: %d Successful_Runs: %d Failed_Runs: %d Missed_Runs: %d " \
+                 "Queued_Tasks: %d Running_Tasks: %d ",
+                 totalTasks, totalRuns, totalFailedRuns, totalMissedRuns,
+                 self.executor.queued, self.executor.running)
 
         if verbose:
             buffer = "Task States Summary:\n"
@@ -419,9 +446,16 @@ class Scheduler(object):
                 task = taskWrapper.task
                 taskStats = self._taskStats[task.name]
 
+                if not taskStats.states: # Hasn't run yet
+                    continue
+
                 buffer = self._displayStateStatistics(buffer,
                                              taskStats.states,
                                              "%s " % task.name)
+
+                if hasattr(task, 'displayStatistics'):
+                    buffer += task.displayStatistics()
+
                 buffer += "\n"
 
             log.info("Detailed Scheduler Statistics:\n%s", buffer)
