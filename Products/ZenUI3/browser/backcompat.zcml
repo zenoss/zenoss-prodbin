@@ -654,6 +654,12 @@
     />
 
 <adapter
+    for="Products.ZenModel.IpAddress.IpAddress"
+    provides=".interfaces.INewPath"
+    factory=".backcompat.IpNetwork"
+    />
+
+<adapter
     for="Products.ZenModel.IpNetwork.IpNetwork"
     provides=".interfaces.INewPath"
     factory=".backcompat.IpNetwork"
