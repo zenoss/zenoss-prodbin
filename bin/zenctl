@@ -226,6 +226,24 @@ upgrade_post() {
 # to the zenoss database through the web UI
 #
 
+# LSB exit code reference.
+#   0       program is running or service is OK
+#   1       program is dead and /var/run pid file exists
+#   2       program is dead and /var/lock lock file exists
+#   3       program is not running
+#   4       program or service status is unknown
+#   5-99    reserved for future LSB use
+#   100-149 reserved for distribution use
+#   150-199 reserved for application use
+#   200-254 reserved
+
+# When run in an HA configuration with $ZENHOME on shared storage the real
+# Zenoss startup script may not exist.
+if [ ! -f "${ZENHOME}/bin/zenoss" ]; then
+    echo "Startup script not found at ${ZENHOME}/bin/zenoss."
+    exit 3
+fi
+
 # run the firstboot if this is the first time zenoss was started
 if [ "$1" = start -a -f ${FRESH_INSTALL} ]; then
     fresh_install_pre
@@ -240,7 +258,7 @@ fi
 
 # delegate to the main zenoss script for control functions
 su - ${RUNUSER} sh -c "${ZENHOME}/bin/zenoss $@"
-
+EXITCODE=$?
 
 # run the post-script for firstboot and remove the firstboot flag
 if [ "$1" = start -a -f ${FRESH_INSTALL} ]; then
@@ -262,3 +280,5 @@ if [ ! -z "$tee_pid" ] ; then
     # Zombies are bad. Bad zombies
     wait $tee_pid
 fi
+
+exit $EXITCODE

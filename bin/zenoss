@@ -98,26 +98,56 @@ reverse() {
 FUNC=$CMD
 
 issue() {
-    HUBCODE=4
+    # To properly conform to LSB standards and be used under Linux-HA or RHCS
+    # we need to exit with a proper non-zero code when there is a problem with
+    # the service. We'll take the naive approach of responding with the highest
+    # and most likely worse condition of any of the configured daemons.
+    HIGHESTCODE=0
     for cmd in $CMDS
     do
         echo -n "Daemon: $cmd "
-        $ZENHOME/bin/$cmd "$FUNC"
-        CODE=$?
-        if [ $cmd == "zenhub" ]; then
-            HUBCODE=$CODE
+        
+        # Special status handling for zeoctl and zopectl because the stock
+        # scripts exit with a code of 0 no matter what state they're in.
+        if [ $FUNC == "status" -a \( $cmd == "zeoctl" -o $cmd == "zopectl" \) ]
+        then
+            PIDFILE="${ZENHOME}/var/Z2.pid"
+            [ $cmd == 'zeoctl' ] && PIDFILE="${ZENHOME}/var/ZEO.pid"
+
+            if running; then
+                echo program running\; pid=$PID
+                CODE=0
+            else
+                echo not running
+                if [ -f $PIDFILE ]; then
+                    rm -f $PIDFILE
+                    CODE=1
+                else
+                    CODE=3
+                fi
+            fi
+        else
+            $ZENHOME/bin/$cmd "$FUNC"
+            CODE=$?
+        fi
+        if [ $CODE -gt $HIGHESTCODE ]; then
+            HIGHESTCODE=$CODE
         fi
     done
-    return $HUBCODE
+    return $HIGHESTCODE
 }
+
+EXITCODE=4
 
 case "$FUNC" in
   start)
         issue
+        EXITCODE=$?
         ;;
   stop)
         CMDS=`reverse $CMDS`
         issue
+        EXITCODE=$?
 	rm -f $ZENHOME/var/.*watchdog-*
         ;;
   restart)
@@ -127,18 +157,21 @@ case "$FUNC" in
         CMDS=`reverse $CMDS`
 	FUNC=start
         issue
+        EXITCODE=$?
         ;;
   status)
         issue
+        EXITCODE=$?
         ;;
   list)
 	for i in $CMDS
 	do
 	    echo $i
+	    EXITCODE=0
 	done
 	;;
   *)
         echo $"Usage: $0 {start|stop|restart|status|list}"
         exit 1
 esac
-exit $?
+exit $EXITCODE
