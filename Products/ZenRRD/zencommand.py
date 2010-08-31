@@ -384,6 +384,11 @@ class Cmd(pb.Copyable, pb.RemoteCopy):
         # fetch datapoint name from filename path and add it to the event key
         return self.eventKey + '|' + point.rrdPath.split('/')[-1]
 
+    def commandKey(self): 
+        "Provide a value that establishes the uniqueness of this command" 
+        return '%'.join(map(str, [self.useSsh, self.cycleTime, 
+                        self.severity, self.command]))
+
 pb.setUnjellyableForClass(Cmd, Cmd)
 
 class Options:
