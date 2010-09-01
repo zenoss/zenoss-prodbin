@@ -22,14 +22,14 @@ var REMOTE = Zenoss.remote.DeviceRouter;
 /**
  * Updates the data store for the template tree
  **/
-     
+
 function refreshTemplateTree() {
     var cmp = Ext.getCmp('templateTree');
     if (cmp && cmp.isVisible()) {
         cmp.getRootNode().reload();
     }
 }
-     
+
 Zenoss.templates.Container = Ext.extend(Ext.Panel, {
     constructor: function(config) {
         Ext.applyIf(config, {
@@ -235,7 +235,7 @@ Zenoss.AddLocalTemplatesDialog = Ext.extend(Zenoss.HideFitDialog, {
                 show: function() {
                     this.formPanel.templateName.setValue('');
                 }
-                
+
             },
             buttons: [
             {
@@ -244,12 +244,12 @@ Zenoss.AddLocalTemplatesDialog = Ext.extend(Zenoss.HideFitDialog, {
                 text: _t('Submit'),
                 handler: function(){
                     var templateId = me.formPanel.templateName.getValue();
-                    
+
                     REMOTE.addLocalTemplate({
                        deviceUid: me.context,
                        templateId: templateId
                     }, refreshTemplateTree);
-                    
+
                 }
             }, {
                 xtype: 'HideDialogButton',
@@ -263,7 +263,7 @@ Zenoss.AddLocalTemplatesDialog = Ext.extend(Zenoss.HideFitDialog, {
     }
 });
 Ext.reg('addlocaltemplatesdialog', Zenoss.AddLocalTemplatesDialog);
-     
+
 Zenoss.BindTemplatesDialog = Ext.extend(Zenoss.HideFitDialog, {
     constructor: function(config){
         var me = this;
@@ -310,7 +310,7 @@ Ext.reg('bindtemplatesdialog', Zenoss.BindTemplatesDialog);
 
 Zenoss.ResetTemplatesDialog = Ext.extend(Zenoss.MessageDialog, {
     constructor: function(config) {
-        me = this;
+        var me = this;
         Ext.applyIf(config, {
             title: _t('Reset Template Bindings'),
             message: _t('Are you sure you want to delete all local template bindings and use default values?'),
