@@ -13,7 +13,6 @@
 
 from zope.interface import implements
 from zope.component import adapts
-from Acquisition import aq_base
 
 from Products.Zuul.interfaces import IComponentInfo, IComponent
 from Products.Zuul.infos import InfoBase, ProxyProperty
