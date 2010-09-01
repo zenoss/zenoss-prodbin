@@ -13,7 +13,7 @@
 
 from zope.interface import implements
 from Products.Zuul.interfaces import IWinServiceInfo
-from Products.Zuul.infos.component import ComponentInfo
+from Products.Zuul.infos.component import ComponentInfo, ServiceMonitor
 from Products.Zuul.infos import ProxyProperty
 from Products.Zuul.decorators import info
 from Products.Zuul.utils import safe_hasattr
@@ -35,13 +35,14 @@ class WinServiceInfo(ComponentInfo):
 
     @property
     def usesMonitorAttribute(self):
-        return ( self._object.getAqProperty("zMonitor")
-               and ( not safe_hasattr(self._object, "startMode")
-                     or self._object.startMode != "Disabled" ))
+        return (not safe_hasattr(self._object, "startMode") \
+                or self._object.startMode != "Disabled")
 
     @property
     def monitored(self):
         return self._object.monitored() if self.usesMonitorAttribute else ""
+
+    monitor = ServiceMonitor()
 
     @property
     def caption(self):

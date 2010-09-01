@@ -13,6 +13,8 @@
 
 from zope.interface import implements
 from zope.component import adapts
+from Acquisition import aq_base
+
 from Products.Zuul.interfaces import IComponentInfo, IComponent
 from Products.Zuul.infos import InfoBase, ProxyProperty
 from Products.Zuul.form.builder import FormBuilder
@@ -80,7 +82,6 @@ class ComponentInfo(InfoBase):
             return "Up"
         
 
-
 class ComponentFormBuilder(FormBuilder):
     def render(self, fieldsets=True):
         ob = self.context._object
@@ -95,3 +96,19 @@ class ComponentFormBuilder(FormBuilder):
                                                         readOnly=not userCreated)
         form['userCreated'] = userCreated
         return form
+
+
+def ServiceMonitor():
+    """
+    Closure for the 'monitor' property of ip/win services
+    """
+    def getMonitor(self):
+        return getattr(self._object, 'monitor')
+
+    def setMonitor(self, monitor):
+        self._object.setAqProperty('zMonitor', monitor, 'boolean')
+        self._object.monitor = monitor
+        self._object.index_object()
+        return
+
+    return property(getMonitor, setMonitor)

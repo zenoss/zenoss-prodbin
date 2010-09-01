@@ -13,7 +13,7 @@
 
 from zope.interface import implements
 from Products.Zuul.interfaces import IIpServiceInfo
-from Products.Zuul.infos.component import ComponentInfo
+from Products.Zuul.infos.component import ComponentInfo, ServiceMonitor
 from Products.Zuul.infos import ProxyProperty
 from Products.Zuul.decorators import info
 from zope.schema.vocabulary import SimpleVocabulary
@@ -37,12 +37,14 @@ class IpServiceInfo(ComponentInfo):
 
     @property
     def usesMonitorAttribute(self):
-        return self._object.getAqProperty("zMonitor") and not self._object.cantMonitor()
+        return not self._object.cantMonitor()
 
     @property
     def monitored(self):
         return self._object.monitored() if self.usesMonitorAttribute else ""
 
+    monitor = ServiceMonitor()
+    
     @property
     @info
     def serviceClass(self):
