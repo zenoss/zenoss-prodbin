@@ -43,8 +43,22 @@ class nested_transaction(object):
         ob = ModelItem()
         session.add_all([ob])
 
+    # optional
+    with nested_transaction(xadatamgr) as session:
+        # XA data manager will be joined with the zope and SQLAlchemy
+        # transactions, so that all commit or rollback together
+        etc.
+
     It'll be committed for you and rolled back if there's a problem.
     """
+    def __init__(self, xaDataManager=None):
+        session.autocommit = False
+        if xaDataManager is not None:
+            from zope.sqlalchemy import join_transaction
+            log.debug("enabling two-phase commit")
+            session.twophase = True
+            join_transaction(xaDataManager)
+
     def __enter__(self):
         if session.is_active:
             session.begin_nested()
@@ -53,19 +67,24 @@ class nested_transaction(object):
         return session
 
     def __exit__(self, type, value, traceback):
-        if type is not None:
-            # Error occurred
-            log.exception(value)
-            log.debug('Rolling back')
-            session.rollback()
-            raise type(value)
-        else:
-            try:
-                log.debug('Committing nested transaction')
-                session.commit()
-            except Exception, e:
-                log.exception(e)
-                log.debug('Rolling back after attempted commit')
+        try:
+            if type is None:
+                try:
+                    log.debug('Committing nested transaction')
+                    session.commit()
+                    return True
+                except Exception as e:
+                    log.exception(e)
+                    log.debug('Rolling back after attempted commit')
+                    session.rollback()
+                    raise
+            else:
+                # Error occurred
+                log.exception(value)
+                log.debug('Rolling back')
                 session.rollback()
-                raise
-        return False
+                return False
+        finally:
+            session.autocommit = True
+            session.twophase = False
+
