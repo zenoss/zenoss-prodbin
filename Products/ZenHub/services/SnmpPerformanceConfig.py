@@ -98,7 +98,7 @@ class SnmpPerformanceConfig(CollectorConfigService):
         proxy = CollectorConfigService._createDeviceProxy(self, device)
 
         proxy.configCycleInterval = self._prefs.perfsnmpCycleInterval
-        proxy.cycleInterval = device.zSnmpCollectionInterval
+        proxy.cycleInterval = getattr(device, 'zSnmpCollectionInterval', 300)
         proxy.name = device.id
         proxy.device = device.id
         proxy.lastmodeltime = device.getLastChangeString()
