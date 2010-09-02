@@ -49,7 +49,7 @@ run() {
 stop() {
     echo "stopping..."
     if [ ! -f $PIDFILE ]; then
-        echo "Already stopped."
+        echo "already stopped"
     else
         kill `cat $PIDFILE`
     fi
