@@ -331,9 +331,10 @@ class PBDaemon(ZenDaemon, pb.Referenceable):
             if severity == Clear and status == Clear:
                 self.log.debug("Dropping useless clear event %r", event)
                 return
-        self.log.debug("Queueing event %r", event)
         self.eventQueue.append(event)
-        self.log.debug("Total of %d queued events" % len(self.eventQueue))
+        self.log.debug("Queued event (total of %d) %r",
+                       len(self.eventQueue),
+                       event)
 
     def pushEventsLoop(self):
         """Periodially, wake up and flush events to ZenHub.
