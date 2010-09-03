@@ -1034,7 +1034,9 @@ def binPath(fileName):
     # ../common/bin and ../common/libexec are additional options for bitrock
     # $ZOPEHOME/bin is an additional option for appliance
     for path in (zenPath(d, fileName) for d in (
-                'bin', 'libexec', '../common/bin', '../common/libexec')):
+                'bin', 'libexec', '../common/bin', '../common/libexec',
+                os.environ.get('PATH','').split(':')
+                 )):
         if os.path.isfile(path):
             return path
     path = zopePath('bin', fileName)
