@@ -23,6 +23,7 @@ import sys
 from pprint import pformat
 import logging
 log = logging.getLogger("zen.SshClient")
+import socket
 
 import Globals
 
@@ -342,12 +343,24 @@ class SshUserAuth(userauth.SSHUserAuthClient):
         keyPath = os.path.expanduser(self.factory.keyPath)
         log.debug('Expanded SSH key path from zKeyPath %s to %s' % (
                 self.factory.keyPath, keyPath))
+        key = None
         if os.path.exists(keyPath):
-            data = ''.join(open(keyPath).readlines()).strip()
-            key = Key.fromString(data,
+            try:
+                data = ''.join(open(keyPath).readlines()).strip()
+                key = Key.fromString(data,
                                passphrase=self.factory.password)
+            except IOError, ex:
+                message = "Unable to read the SSH key file because %s" % (
+                             str(ex))
+                log.warn(message)
+                device = 'localhost' # Fallback
+                try:
+                    device = socket.getfqdn()
+                except:
+                    pass
+                sendEvent(self, device=device, message=message,
+                          severity=Event.Warning)
         else:
-            key = None
             log.debug( "SSH key path %s doesn't exist" % keyPath )
         return key
 
