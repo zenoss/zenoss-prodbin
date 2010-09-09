@@ -1033,10 +1033,10 @@ def binPath(fileName):
     # bin and libexec are the usual suspect locations.
     # ../common/bin and ../common/libexec are additional options for bitrock
     # $ZOPEHOME/bin is an additional option for appliance
-    for path in (zenPath(d, fileName) for d in (
-                'bin', 'libexec', '../common/bin', '../common/libexec',
+    for path in (zenPath(d, fileName) for d in [
+                'bin', 'libexec', '../common/bin', '../common/libexec'] + 
                 os.environ.get('PATH','').split(':')
-                 )):
+                 ):
         if os.path.isfile(path):
             return path
     path = zopePath('bin', fileName)
