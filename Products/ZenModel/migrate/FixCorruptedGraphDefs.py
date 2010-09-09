@@ -30,13 +30,13 @@ class FixCorruptedGraphDefs(Migrate.Step):
 
     def zenfixit(self, graphDef):
         try:
-            graphDef.miny = int(graph.miny)
-        except:
+            graphDef.miny = int(graphDef.miny)
+        except ValueError:
             graphDef.miny = -1
 
         try:
-            graphDef.maxy = int(graph.maxy)
-        except:
+            graphDef.maxy = int(graphDef.maxy)
+        except ValueError:
             graphDef.maxy = -1
 
 
