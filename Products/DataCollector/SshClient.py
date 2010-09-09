@@ -777,8 +777,7 @@ class SshClient(CollectorClient.CollectorClient):
         @param sshconn: connection to create channels on
         @type sshconn: Twisted SSH connection
         """
-
-        log.info("SshClient connected to device %s (%s)", self.hostname, self.ip)
+        log.debug("SshClient connected to device %s (%s)", self.hostname, self.ip)
         self.connection = sshconn
         self.runCommands()
 
