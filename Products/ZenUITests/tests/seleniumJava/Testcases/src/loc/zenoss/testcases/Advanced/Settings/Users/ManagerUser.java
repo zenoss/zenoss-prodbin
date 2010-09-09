@@ -69,55 +69,57 @@ public class ManagerUser {
 			// Click on Advanced
 			sClient.click("link=Advanced");
 			sClient.waitForPageToLoad("30000");
-			Thread.sleep(5000);
 			// Click Users
 			sClient.click("link=Users");
 			sClient.waitForPageToLoad("30000");
-			Thread.sleep(5000);
 			// Click on Add new User
 			sClient.click("//table[@id='ext-comp-1078']/tbody/tr[2]/td[2]/em");
+			Thread.sleep(2000);
+			sClient.click("UserlistaddUser");
+			Thread.sleep(2000);
 			sClient.type("new_id", "testing001");
 			sClient.type("email", "testing001@test.zenoss.com");
 			// Click on Ok button
 			sClient.click("dialog_submit");
-			sClient.click("dialog_submit");
 			// Verify that the user is created
+			Thread.sleep(6000);
 			selenese.verifyTrue(sClient.isTextPresent("User \"testing001\" has been created."));
 			//  Verify if the user and email are displayed on Users page
+			Thread.sleep(5000);
 			selenese.verifyTrue(sClient.isTextPresent("testing001"));
 			selenese.verifyTrue(sClient.isTextPresent("testing001@test.zenoss.com (test)"));
 			// Click on the new user
 			sClient.click("link=testing001");
 			sClient.waitForPageToLoad("30000");
-			Thread.sleep(6000);
 			// // Type new password
+			Thread.sleep(300);
 			sClient.type("password", "123");
 			sClient.type("sndpassword", "123");
-			sClient.removeSelection("roles:list", "label=ZenManager");
-			// elect ZenManager role
+			// Select ZenManager role
 			sClient.addSelection("roles:list", "label=ZenManager");
 			sClient.removeSelection("roles:list", "label=ZenUser");
 			// Enter password of the current user
-			sClient.type("pwconfirm", "zenoss");
+			sClient.typeKeys("pwconfirm", "zenoss");
 			// Click on Save button
 			sClient.click("formsave");
 			sClient.waitForPageToLoad("30000");
-			Thread.sleep(5000);
 			// Verify text that is indicating that the changes were saved
+			Thread.sleep(6000);
 			selenese.verifyTrue(sClient.isTextPresent("Saved at time:"));
 			// // Sign Out
 			sClient.click("link=sign out");
 			sClient.waitForPageToLoad("30000");
-			Thread.sleep(5000);
 			// // Log In with the new ZenManager user
+			Thread.sleep(3000);
 			sClient.type("username", "testing001");
 			sClient.type("__ac_password", "123");
 			// Click on Log in button
 			sClient.click("submitbutton");
 			sClient.waitForPageToLoad("30000");
-			Thread.sleep(9000);
 			// Verify that the new user is displayed on the dashboard
+			Thread.sleep(4000);
 			selenese.verifyTrue(sClient.isTextPresent("testing001"));
+						
 			testCaseResult = "p";
 		}
 
