@@ -450,6 +450,14 @@ class SshUserAuth(userauth.SSHUserAuthClient):
         log.debug( 'Sorted list of authentication methods: %s' % canContinue)
         for method in canContinue:
             if method not in self.authenticatedWith:
+                if self._key is None and method == 'publickey':
+                    # Attempting a publickey authentication with a blank key
+                    # causes timeouts that would be hard to track down.
+                    log.debug("Skipping %s method as the key was blank",
+                              method )
+                    self.authenticatedWith.append(method)
+                    continue
+
                 log.debug( "Attempting method %s" % method )
                 if self.tryAuth(method):
                     return
