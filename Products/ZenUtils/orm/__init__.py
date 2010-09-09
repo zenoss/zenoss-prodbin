@@ -10,6 +10,9 @@
 #############################################################################
 from sqlalchemy import create_engine
 import meta
+import transaction
+from zope.sqlalchemy.datamanager import join_transaction
+from zope.sqlalchemy import ZopeTransactionExtension
 
 session = meta.Session
 
@@ -29,9 +32,11 @@ def init_model(user="zenoss", passwd="zenoss", host="localhost", port="3306",
              '/%(db)s?charset=utf8') % locals(),
             pool_recycle=60)
         meta.metadata.bind = meta.engine
-        meta.Session.configure(autoflush=False, autocommit=True, binds={
-            meta.metadata:meta.engine
-        })
+        meta.Session.configure(autoflush=False, autocommit=False, binds={
+            meta.metadata:meta.engine}, 
+            twophase=True, 
+            extension=ZopeTransactionExtension()
+        )
         model_ready = True
 
 
@@ -52,39 +57,40 @@ class nested_transaction(object):
     It'll be committed for you and rolled back if there's a problem.
     """
     def __init__(self, xaDataManager=None):
-        session.autocommit = False
+        self.session = session()
+        self.session.expire_on_commit = True
+        self.session.autocommit = False
+        self.savepoint = transaction.savepoint()
+
         if xaDataManager is not None:
-            from zope.sqlalchemy import join_transaction
-            log.debug("enabling two-phase commit")
-            session.twophase = True
-            join_transaction(xaDataManager)
+            log.debug("nested_transaction.__init__: enabling two-phase commit")
+            self.session.twophase = True
+            join_transaction(self.session)
+            transaction.get().join(xaDataManager)
+        else:
+            log.debug("nested_transaction.__init__: local commit only")
 
     def __enter__(self):
-        if session.is_active:
-            session.begin_nested()
+        if self.session.is_active:
+            self.session.begin_nested()
         else:
-            session.begin(subtransactions=True)
-        return session
+            self.session.begin(subtransactions=True)
+        return self.session
 
     def __exit__(self, type, value, traceback):
-        try:
-            if type is None:
-                try:
-                    log.debug('Committing nested transaction')
-                    session.commit()
-                    return True
-                except Exception as e:
-                    log.exception(e)
-                    log.debug('Rolling back after attempted commit')
-                    session.rollback()
-                    raise
-            else:
-                # Error occurred
-                log.exception(value)
-                log.debug('Rolling back')
-                session.rollback()
-                return False
-        finally:
-            session.autocommit = True
-            session.twophase = False
+        if type is None:
+            try:
+                log.debug('nested_transaction.__exit__: Committing nested transaction')
+                if not self.session.twophase:
+                    self.session.commit()
+            except Exception as e:
+                log.exception(e)
+                log.error('nested_transaction.__exit__: Rolling back after commit failure')
+                self.savepoint.rollback()
+                raise
+        else:
+            # Error occurred
+            log.exception(value)
+            log.debug('nested_transaction.__exit__: Rolling back')
+            self.savepoint.rollback()
 
