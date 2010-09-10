@@ -49,6 +49,9 @@ class ZenDeleteHistory(ZenScriptBase):
         self.parser.add_option('--severity', dest='severity',
             action='append', default=[],
             help='Only delete events of this severity.')
+        self.parser.add_option('--eventClass', dest='eventClass',
+            action='append', default=[],
+            help='Only delete events of this eventClass.')
         self.parser.add_option('--cleanup', dest='cleanup',
             action='store_true', default=False,
             help='Cleanup alert_state, log and detail tables')
@@ -176,6 +179,11 @@ class ZenDeleteHistory(ZenScriptBase):
         if len(self.options.severity) > 0:
             severity_filter = " AND severity IN (%s)" % ','.join(
                 map(str, self.options.severity))
+        
+        eventClass_filter = ""
+        if len(self.options.eventClass) > 0:
+            eventClass_filter = " AND eventClass IN (%s)" % ','.join([
+                "'%s'" % d for d in self.options.eventClass])
 
         zem = self.dmd.ZenEventManager
         conn = zem.connect()
@@ -189,8 +197,8 @@ class ZenDeleteHistory(ZenScriptBase):
                 curs.execute("DROP TABLE IF EXISTS delete_evids")
                 curs.execute(
                     "CREATE TEMPORARY TABLE delete_evids "
-                    "SELECT evid FROM history WHERE lastTime < %s%s%s" % (
-                        earliest_time, device_filter, severity_filter))
+                    "SELECT evid FROM history WHERE lastTime < %s%s%s%s" % (
+                        earliest_time, device_filter, severity_filter,eventClass_filter))
 
                 curs.execute("CREATE INDEX evid ON delete_evids (evid)")
                 curs.execute("SELECT COUNT(evid) FROM delete_evids")
