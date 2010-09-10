@@ -103,9 +103,9 @@ class SubConfigurationTaskSplitter(SimpleTaskSplitter):
                 setattr(configCopy, self.subconfigName, subconfigGroup)
 
                 tasks[name] = self._newTask(name,
-                                                configId,
-                                                interval,
-                                                configCopy)
+                                            configId,
+                                            interval,
+                                            configCopy)
         return tasks
 
 
