@@ -188,28 +188,29 @@ class ZenDaemon(CmdBase):
         Switch to debug level if signaled by the user, and to
         default when signaled again.
         """
+        def getTwistedLogger():
+            mname = getattr(self, 'mname', self.__class__.__name__)
+            loggerName = "zen.%s.twisted" % mname
+            return twisted_log.PythonLoggingObserver(loggerName=loggerName)
+
         log = logging.getLogger('zen')
         currentLevel = log.getEffectiveLevel()
         if currentLevel == logging.DEBUG:
+            if self.options.logseverity == logging.DEBUG:
+                return
             log.setLevel(self.options.logseverity)
             log.info("Restoring logging level back to %s (%d)",
                      logging.getLevelName(self.options.logseverity) or "unknown",
                      self.options.logseverity)
-            # Stop twisted logging
-            if hasattr(self, 'mname'): mname = self.mname
-            else: mname = self.__class__.__name__
-            observer = twisted_log.PythonLoggingObserver(loggerName="zen."+ mname)
-            observer.stop()
+            try:
+                getTwistedLogger().stop()
+            except ValueError: # Twisted logging is somewhat broken
+                log.info("Unable to remove Twisted logger -- "
+                         "expect Twisted logging to continue.")
         else:
             log.setLevel(logging.DEBUG)
             log.info("Setting logging level to DEBUG")
-
-            # Setup twisted logging
-            if hasattr(self, 'mname'): mname = self.mname
-            else: mname = self.__class__.__name__
-            observer = twisted_log.PythonLoggingObserver(loggerName="zen."+ mname)
-            observer.start()
-
+            getTwistedLogger().start()
 
     def changeUser(self):
         """
