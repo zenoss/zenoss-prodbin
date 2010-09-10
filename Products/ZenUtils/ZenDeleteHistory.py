@@ -203,7 +203,8 @@ class ZenDeleteHistory(ZenScriptBase):
                 curs.execute("CREATE INDEX evid ON delete_evids (evid)")
                 curs.execute("SELECT COUNT(evid) FROM delete_evids")
                 total_events = curs.fetchone()[0]
-                total_chunks = total_events / self.options.chunksize
+                if total_events > 0 and total_chunks == 0:
+                    total_chunks = 1
                 start_time = time.time()
 
                 # chunk and remaining_time are used to commit deletes more often
