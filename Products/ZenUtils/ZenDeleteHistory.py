@@ -21,6 +21,7 @@ import logging
 log = logging.getLogger('zen.deleteHistory')
 
 import time
+from math import ceil
 
 import Globals
 from Products.ZenUtils.ZenScriptBase import ZenScriptBase
@@ -203,8 +204,10 @@ class ZenDeleteHistory(ZenScriptBase):
                 curs.execute("CREATE INDEX evid ON delete_evids (evid)")
                 curs.execute("SELECT COUNT(evid) FROM delete_evids")
                 total_events = curs.fetchone()[0]
-                if total_events > 0 and total_chunks == 0:
-                    total_chunks = 1
+
+                if self.options.chunksize <= 0:
+                    self.options.chunksize = DEFAULT_CHUNK_SIZE
+                total_chunks = int(ceil(total_events  * 1.0 / self.options.chunksize))
                 start_time = time.time()
 
                 # chunk and remaining_time are used to commit deletes more often
