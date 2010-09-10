@@ -1,7 +1,7 @@
 ###########################################################################
 #
 # This program is part of Zenoss Core, an open source monitoring platform.
-# Copyright (C) 2009 Zenoss Inc.
+# Copyright (C) 2009, 2010 Zenoss Inc.
 #
 # This program is free software; you can redistribute it and/or modify it
 # under the terms of the GNU General Public License version 2 as published by
@@ -12,17 +12,13 @@
 ###########################################################################
 
 import logging
+log = logging.getLogger("zen.collector.tasks")
+from copy import copy
 
 import zope.interface
 
 from Products.ZenCollector.interfaces import IScheduledTaskFactory,\
-                                             ITaskSplitter
-
-
-#
-# creating a logging context for this module to use
-#
-log = logging.getLogger("zen.collector.tasks")
+                                             ITaskSplitter, ISubTaskSplitter
 
 
 class SimpleTaskSplitter(object):
@@ -35,6 +31,7 @@ class SimpleTaskSplitter(object):
     def __init__(self, taskFactory):
         """
         Creates a new instance of DeviceTaskSpliter.
+
         @param taskClass the class to use when creating new tasks
         @type any Python class
         """
@@ -43,22 +40,72 @@ class SimpleTaskSplitter(object):
         else:
             self._taskFactory = taskFactory
 
+    def _newTask(self, name, configId, interval, config):
+        """
+        Handle the dirty work of creating a task
+        """
+        self._taskFactory.reset()
+        self._taskFactory.name = name
+        self._taskFactory.configId = configId
+        self._taskFactory.interval = interval
+        self._taskFactory.config = config
+
+        return self._taskFactory.build()
+
     def splitConfiguration(self, configs):
         tasks = {}
         for config in configs:
             log.debug("splitting config %r", config)
 
             configId = config.id
-            taskCycleInterval = config.configCycleInterval
+            interval = config.configCycleInterval
+            tasks[configId] = self._newTask(configId, configId,
+                                            interval, config)
+        return tasks
 
-            self._taskFactory.reset()
-            self._taskFactory.name = configId
-            self._taskFactory.configId = configId
-            self._taskFactory.interval = taskCycleInterval
-            self._taskFactory.config = config
-            task = self._taskFactory.build()
 
-            tasks[configId] = task
+class SubConfigurationTaskSplitter(SimpleTaskSplitter):
+    """
+    A task splitter that creates a single scheduled task by
+    device, cycletime and other criteria.
+    """
+    zope.interface.implements(ISubTaskSplitter)
+    subconfigName = 'datasources'
+
+    def makeConfigKey(self, config, subconfig):
+        raise NotImplementedError("Required method not implemented")
+
+    def _splitSubConfiguration(self, config):
+        subconfigs = {}
+        for subconfig in getattr(config, self.subconfigName):
+            key = self.makeConfigKey(config, subconfig)
+            subconfigList = subconfigs.setdefault(key, [])
+            subconfigList.append(subconfig)
+        return subconfigs
+
+    def splitConfiguration(self, configs):
+        # This name required by ITaskSplitter interface
+        tasks = {}
+        for config in configs:
+            log.debug("Splitting config %s", config)
+
+            # Group all of the subtasks under the same configId
+            # so that updates clean up any previous tasks
+            # (including renames)
+            configId = config.id
+
+            subconfigs = self._splitSubConfiguration(config)
+            for key, subconfigGroup in subconfigs.items():
+                name = ' '.join(map(str, key))
+                interval = key[1]
+
+                configCopy = copy(config)
+                setattr(configCopy, self.subconfigName, subconfigGroup)
+
+                tasks[name] = self._newTask(name,
+                                                configId,
+                                                interval,
+                                                configCopy)
         return tasks
 
 

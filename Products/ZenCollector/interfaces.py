@@ -339,6 +339,35 @@ class ITaskSplitter(zope.interface.Interface):
         pass
 
 
+class ISubTaskSplitter(ITaskSplitter):
+    """
+    An object that accepts a configuration returned from a zenhub service
+    and then creates scheduled tasks by device, cycletime and other criteria.
+    """
+    subconfigName = zope.interface.Attribute("""
+        Name of the array containing the subconfiguration items.
+        """)
+
+    def makeConfigKey(self, config, subconfig):
+        """
+        Generate a tuple which determines how a configuration
+        should be grouped into tasks.
+
+        The result of this method is used to create the task name.
+        The format of the result is:
+
+        (config.id, interval, other_data)
+
+        @parameter config: the device information
+        @type config: DeviceProxy
+        @parameter subconfig: a subconfiguration item
+        @type subconfig: an object
+        @return: a tuple that can be used to group datasources
+        @rtype: tuple
+        """
+        pass
+
+
 class IDataService(zope.interface.Interface):
     """
     A service that provides a mechanism to persist collected data.
