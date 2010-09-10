@@ -63,52 +63,43 @@ public class RemoveDevice {
 			Common.Login(sClient, ZenossConstants.adminUserName,ZenossConstants.adminPassword);
 			Thread.sleep(12000);
 			
-			//Dashboard page
-		    sClient.open("/zport/dmd/Dashboard");
-		    //Click on Infrastructure
-		    sClient.click("link=Infrastructure");
-		    sClient.waitForPageToLoad("30000");
-		    Thread.sleep(9500);
-		    sClient.click("//div[@id='extdd-27']/img[1]");
-		    //Go to Device Class Solaris
-		    sClient.click("ext-gen260");
-		    //Click on Add new single device
-		    sClient.click("ext-gen77");
-		    sClient.click("ext-gen281");
-		    //Verify that the correct class is selected on the device class dropdown list
-		    selenese.verifyEquals("/Server/Solaris", sClient.getValue("add-device_class"));
-			sClient.click("ext-gen312");
-			//Add new Solaris device
-			sClient.type("add-device-name", "test-solaris9.zenoss.loc");
-			//Click on view job log link.
-			sClient.click("link=View Job Log");
-			sClient.waitForPageToLoad("30000");
-			//Verify that the device is being created
-			Thread.sleep(12000);
-			selenese.verifyTrue(sClient.isTextPresent("DeviceCreationJob \"/opt/zenoss/bin/zendisc run --now -d test-solaris9.zenoss.loc --monitor localhost --deviceclass /Server/Solaris --job"));
-			selenese.verifyTrue(sClient.isTextPresent("Job completed"));
-			// The result should be successfull
-			selenese.verifyTrue(sClient.isTextPresent("Result: success"));
-			//Click on Infrastructure
+			sClient.open("/zport/dmd/Dashboard");
+			// Click on Infrastructure
 			sClient.click("link=Infrastructure");
 			sClient.waitForPageToLoad("30000");
-			Thread.sleep(9500);
-			sClient.click("//div[@id='extdd-27']/img[1]");
-			//Click on Server/Solaris class
-			sClient.click("ext-gen260");
-			//Verify that the device is added and using the correct IP address
-			selenese.verifyTrue(sClient.isTextPresent("test-solaris9.zenoss.loc"));
-			selenese.verifyTrue(sClient.isTextPresent("10.204.210.17"));
-			selenese.verifyTrue(sClient.isTextPresent("/Server/Solaris"));
-			//Click on Remove Device
-			sClient.click("ext-gen79");
-			//Click on Remove button 
-			sClient.click("ext-gen300");
-			//Click on device classes and verify that the device is not present in /Server/Solaris
-			selenese.verifyFalse(sClient.isTextPresent("test-solaris9.zenoss.loc"));	
-			//Click on device classes and verify that the device is not present.
-			sClient.click("ext-gen183");
-			selenese.verifyFalse(sClient.isTextPresent("test-solaris9.zenoss.loc"));	
+			Thread.sleep(5000);
+			// Add new Device
+			sClient.click("//table[@id='adddevice-button']/tbody/tr[2]/td[2]/em");
+			sClient.click("addsingledevice-item");
+			Thread.sleep(1000);
+			sClient.type("add-device-name", "test-solaris9.zenoss.loc");
+			Thread.sleep(1000);
+			sClient.typeKeys("add-device_class", "/Server/Solaris");
+			Thread.sleep(2000);
+			sClient.click("//table[@id='addsingledevice-submit']/tbody/tr[2]/td[2]/em/button");
+			Thread.sleep(6000);
+			sClient.click("link=View Job Log");
+			// Job verification
+			Thread.sleep(40000);
+			// Click on Infrastructure
+			sClient.click("link=Infrastructure");
+			sClient.waitForPageToLoad("30000");
+			Thread.sleep(6000);
+			// Select the device
+			sClient.mouseOver("//div[@class='x-grid3-body']//*[a='test-solaris9.zenoss.loc']");
+			sClient.mouseDown("//div[@class='x-grid3-body']//*[a='test-solaris9.zenoss.loc']");
+			// Click on Remove Devices
+			Thread.sleep(1000);
+			sClient.click("delete-button");
+			// Click on Remove button
+			Thread.sleep(1000);
+			sClient.click("//*[button='Remove']");
+			Thread.sleep(6000);
+			selenese.verifyTrue(sClient.isTextPresent("Successfully deleted device: test-solaris9.zenoss.loc"));
+			Thread.sleep(5000);
+			// Verify that the device is removed
+			selenese.verifyFalse(sClient.isElementPresent("test-solaris9.zenoss.loc"));
+						
 			testCaseResult = "p";
 
 		}
