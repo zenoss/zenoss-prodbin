@@ -374,7 +374,7 @@ class IDataService(zope.interface.Interface):
     """
 
     def writeRRD(self, path, value, rrdType, rrdCommand=None, cycleTime=None,
-                 min='U', max='U'):
+                 min='U', max='U', threshEventData=None):
         """
         Save the value provided in the command to the RRD file specified in path.
 
@@ -395,6 +395,8 @@ class IDataService(zope.interface.Interface):
         @type min: number
         @param max: maximum value acceptable for this metric
         @type max: number
+        @param threshEventData: on threshold violation, update the event with this data
+        @type threshEventData: dictionary
         @return: the parameter value converted to a number
         @rtype: number or None
         """
@@ -425,6 +427,19 @@ class IFrameworkFactory(zope.interface.Interface):
     def getScheduler(self):
         """
         Retrieve the framework's implementation of the IScheduler interface.
+        """
+        pass
+
+    def getConfigurationLoaderTask(self):
+        """
+        Retrieve the class definition used by the framework to load configuration
+        information from zenhub.
+        """
+        pass
+
+    def getFrameworkBuildOptions(self):
+        """
+        Retrieve the framework's buildOptions method.
         """
         pass
 

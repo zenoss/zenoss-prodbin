@@ -33,6 +33,9 @@ class DeviceProxy(pb.Copyable, pb.RemoteCopy):
         Do not use base classes initializers
         """
 
+    def __str__(self):
+        return self.name
+
 pb.setUnjellyableForClass(DeviceProxy, DeviceProxy)
 
 
@@ -60,7 +63,7 @@ class CollectorConfigService(HubService, ThresholdMixin):
 
         self._deviceProxyAttributes = BASE_ATTRIBUTES + deviceProxyAttributes
 
-        # TODO: wtf?
+        # Get the collector information (eg the 'localhost' collector)
         self._prefs = self.dmd.Monitors.Performance._getOb(self.instance)
         self.config = self._prefs # TODO fix me, needed for ThresholdMixin
 
@@ -152,10 +155,14 @@ class CollectorConfigService(HubService, ThresholdMixin):
         for listener in self.listeners:
             listener.callRemote('deleteDevice', devid)
 
-
     @translateError
     def remote_getConfigProperties(self):
         return self._prefs.propertyItems()
+
+    @translateError
+    def remote_getDeviceNames(self):
+        devices = self._prefs.devices()
+        return [x.id for x in self._filterDevices(devices)]
 
     @translateError
     def remote_getDeviceConfigs(self, deviceNames = None):

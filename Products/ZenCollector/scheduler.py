@@ -190,13 +190,18 @@ class CallableTask(object):
         log.debug("Task %s finished, result: %r", self.task.name, 
                   result)
 
-        # Make sure we always reset the state to IDLE once the task is
-        # finished, regardless of what the outcome was.
-        self.task.state = TaskStates.STATE_IDLE
+        # Unless the task completed, make sure that we always reset
+        # the state to IDLE once the task is finished.
+        if self.task.state != TaskStates.STATE_COMPLETED:
+            self.task.state = TaskStates.STATE_IDLE
 
         self._scheduler.taskDone(self.task.name)
 
         self.finished(result)
+
+        if self.task.state == TaskStates.STATE_COMPLETED:
+            self._scheduler.removeTasksForConfig(self.task.configId)
+
         # return result for executor callbacks
         return result
 
@@ -478,8 +483,7 @@ class Scheduler(object):
 
     def _cleanupTasks(self):
         """
-        Periodically cleanup and tasks that have been queued up for such 
-        activity.
+        Periodically cleanup tasks that have been queued up for cleaning. 
         """
         # Build a list of the tasks that need to be cleaned up so that there
         # is no issue with concurrent modifications to the _tasksToCleanup
@@ -507,5 +511,7 @@ class Scheduler(object):
         """
         Determines if a task is able to be cleaned up or not.
         """
-        return task.state in (TaskStates.STATE_IDLE, TaskStates.STATE_PAUSED)
+        return task.state in (TaskStates.STATE_IDLE,
+                              TaskStates.STATE_PAUSED,
+                              TaskStates.STATE_COMPLETED)
 

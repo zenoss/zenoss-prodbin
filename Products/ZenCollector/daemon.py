@@ -1,7 +1,7 @@
 ###########################################################################
 #
 # This program is part of Zenoss Core, an open source monitoring platform.
-# Copyright (C) 2009, Zenoss Inc.
+# Copyright (C) 2009, 2010 Zenoss Inc.
 #
 # This program is free software; you can redistribute it and/or modify it
 # under the terms of the GNU General Public License version 2 as published by
@@ -60,6 +60,7 @@ class DummyListener(object):
         log.debug('DummyListener: configuration %s updated' % newConfiguration)
 
 DUMMY_LISTENER = DummyListener()
+CONFIG_LOADER_NAME = 'configLoader'
 
 class CollectorDaemon(RRDDaemon):
     """
@@ -150,6 +151,7 @@ class CollectorDaemon(RRDDaemon):
         self._configProxy = frameworkFactory.getConfigurationProxy()
         self._scheduler = frameworkFactory.getScheduler()
         self._scheduler.maxTasks = self.options.maxTasks
+        self._ConfigurationLoaderTask = frameworkFactory.getConfigurationLoaderTask()
         
         # OLD - set the initialServices attribute so that the PBDaemon class
         # will load all of the remote services we need.
@@ -176,7 +178,12 @@ class CollectorDaemon(RRDDaemon):
                                 dest='maxTasks',
                                 type='int',
                                 default= maxTasks,
-                                help='Max number of tasks to run at once, default %s' % defaultMax)
+                                help='Max number of tasks to run at once, default %default')
+
+        frameworkFactory = zope.component.queryUtility(IFrameworkFactory)
+        self._frameworkBuildOptions = frameworkFactory.getFrameworkBuildOptions()
+        if self._frameworkBuildOptions:
+            self._frameworkBuildOptions(self.parser)
 
         # give the collector configuration a chance to add options, too
         self._prefs.buildOptions(self.parser)
@@ -207,6 +214,7 @@ class CollectorDaemon(RRDDaemon):
     def _startup(self):
         d = defer.maybeDeferred( self._getInitializationCallback() )
         d.addCallback( self._startConfigCycle )
+        d.addCallback( self._maintenanceCycle )
         d.addErrback( self._errorStop )
         return d
 
@@ -227,7 +235,7 @@ class CollectorDaemon(RRDDaemon):
                                  FakeRemote())
 
     def writeRRD(self, path, value, rrdType, rrdCommand=None, cycleTime=None,
-                 min='U', max='U'):
+                 min='U', max='U', threshEventData=None):
         now = time.time()
 
         # save the raw data directly to the RRD files
@@ -242,6 +250,8 @@ class CollectorDaemon(RRDDaemon):
         # check for threshold breaches and send events when needed
         for ev in self._thresholds.check(path, now, value):
             ev['eventKey'] = path.rsplit('/')[-1]
+            if threshEventData:
+                ev.update(threshEventData)
             self.sendEvent(ev)
 
     def stop(self, ignored=""):
@@ -272,10 +282,18 @@ class CollectorDaemon(RRDDaemon):
         """
         Called from zenhub to notify that the entire config should be updated  
         """
-        self.log.debug('notify config change received')
+        self.log.debug('zenhub is telling us to update the entire config')
         if self.reconfigureTimeout and not self.reconfigureTimeout.called:
             self.reconfigureTimeout.cancel()
-        self.reconfigureTimeout = reactor.callLater(30, self._configCycle, False)
+        d = defer.maybeDeferred(self._rebuildConfig)
+        self.reconfigureTimeout = reactor.callLater(30, d, False)
+
+    def _rebuildConfig(self):
+        """
+        Delete and re-add the configuration tasks to completely re-build the configuration.
+        """
+        self._scheduler.removeTasksForConfig(CONFIG_LOADER_NAME)
+        self._startConfigCycle()
 
     def _taskCompleteCallback(self, taskName):
         # if we're not running a normal daemon cycle then we need to shutdown
@@ -330,7 +348,7 @@ class CollectorDaemon(RRDDaemon):
         @param deviceConfigs a list of device configurations
         @type deviceConfigs list of name,value tuples
         """
-        self.log.debug("updateDeviceConfigs: updatedConfigs=%s", updatedConfigs)
+        self.log.debug("updateDeviceConfigs: updatedConfigs=%s", (map(str, updatedConfigs)))
 
         deleted = self._devices.copy()
 
@@ -365,23 +383,20 @@ class CollectorDaemon(RRDDaemon):
         self.stop()
 
     def _startConfigCycle(self, result=None):
-        def _startMaintenanceCycle(result):
-            # run initial maintenance cycle as soon as possible
-            # TODO: should we not run maintenance if running in non-cycle mode?
-            reactor.callLater(0, self._maintenanceCycle)
-            return result
-
-        # kick off the initial configuration cycle; once we're configured then
-        # we'll begin normal collection activity and the maintenance cycle
-        d = self._configCycle()
-        d.addCallback(_startMaintenanceCycle)
-        return d
+        configLoader = self._ConfigurationLoaderTask(CONFIG_LOADER_NAME,
+                                               taskConfig=self._prefs,
+                                               daemonRef=self)
+        # Run initial maintenance cycle as soon as possible
+        # TODO: should we not run maintenance if running in non-cycle mode?
+        self._scheduler.addTask(configLoader, now=True)
+        return defer.succeed(None)
 
     def _setCollectorPreferences(self, preferenceItems):
         for name, value in preferenceItems.iteritems():
             if not hasattr(self._prefs, name):
-                self.log.debug("Preferences object does not have attribute %s",
-                               name)
+                # TODO: make a super-low level debug mode?  The following message isn't helpful
+                #self.log.debug("Preferences object does not have attribute %s",
+                #               name)
                 setattr(self._prefs, name, value)
             elif getattr(self._prefs, name) != value:
                 self.log.debug("Updated %s preference to %s", name, value)
@@ -405,116 +420,11 @@ class CollectorDaemon(RRDDaemon):
     def _isRRDConfigured(self):
         return (self.rrdStats and self._rrd)
 
-    def _configCycle(self, reschedule=True):
-        """
-        Periodically retrieves collector configuration via the 
-        IConfigurationProxy service.
-        """
-        self.log.debug("_configCycle fetching configuration")
-        startTime = time.time()
-
-        def _configCycleInterval():
-            # TODO: why is configCycleInterval in minutes but every other
-            # interval appears to be in seconds? fix this!
-            return self._prefs.configCycleInterval * 60
-
-        def _processThresholds(thresholds, devices):
-            rrdCreateCommand = '\n'.join(self._prefs.defaultRRDCreateCommand)
-            self._configureRRD(rrdCreateCommand, thresholds)
-
-        def _processThresholdClasses(thresholdClasses, devices):
-            self._loadThresholdClasses(thresholdClasses)
-            
-            d = defer.maybeDeferred(self._configProxy.getThresholds,
-                                    self._prefs)
-            return d
-
-        def _processPropertyItems(propertyItems, devices):
-            self._setCollectorPreferences(propertyItems)
-
-            d = defer.maybeDeferred(self._configProxy.getThresholdClasses,
-                                    self._prefs)
-            return d
-
-        def _fetchConfig(result, devices):
-            return defer.maybeDeferred(self._configProxy.getConfigProxies,
-                                       self._prefs, devices)
-
-        def _processConfig(result):
-            # stop if a single device was requested and its configuration
-            # was not found
-            if self.options.device and not self.options.cycle:
-                configIds = [cfg.id for cfg in result]
-                if not self.options.device in configIds:
-                    self.log.error("Configuration for %s unavailable",
-                                   self.options.device)
-                    self.stop()
-            
-            self.heartbeatTimeout = self._prefs.cycleInterval * 3
-            self.log.debug("Heartbeat timeout set to %ds",
-                           self.heartbeatTimeout)
-
-            self._updateDeviceConfigs(result)
-            return result
-
-        def _reportStatistics(result):
-            """
-            Report the duration of the configuration cycle to our RRD file.
-            """
-            if self._isRRDConfigured():
-                self.sendEvents(self.rrdStats.gauge("configTime",
-                                                    _configCycleInterval(),
-                                                    time.time() - startTime))
-            return result
-
-        def _reschedule(result):
-            if isinstance( result, Failure ):
-                self.log.debug( "Rescheduling next configuration check " +
-                                "despite failure: %s" %
-                                result.getErrorMessage() )
-            interval = _configCycleInterval()
-            self.log.debug("Rescheduling configuration check in %s",
-                           readable_time(interval))
-            reactor.callLater(interval, self._configCycle)
-            return defer.succeed(None)
-
-        def _configure():
-            devices = []
-            # if we were given a command-line option to collect against a single
-            # device then make sure configure that information
-            if self.options.device:
-                devices = [self.options.device]
-
-            d = defer.maybeDeferred(self._configProxy.getPropertyItems,
-                                    self._prefs)
-            d.addCallback(_processPropertyItems, devices)
-            d.addCallback(_processThresholdClasses, devices)
-            d.addCallback(_processThresholds, devices)
-            d.addCallback(_fetchConfig, devices)
-            d.addCallback(_processConfig)
-            d.addCallback(_reportStatistics)
-            return d
-        
-        def _handleError(result):
-            if isinstance(result, Failure):
-                self.log.error("Configure failed: %s",
-                               result.getErrorMessage())
-
-                # stop if a single device was requested and nothing found
-                if self.options.device:
-                    self.stop()
-            return result
-        d = _configure()
-        d.addErrback(_handleError)
-        if reschedule:
-            d.addBoth(_reschedule)
-        return d
-
-    def _maintenanceCycle(self):
+    def _maintenanceCycle(self, ignored=None):
         """
         Perform daemon maintenance processing on a periodic schedule. Initially
-        called after the daemon is configured, but afterward will self-schedule
-        each run.
+        called after the daemon configuration loader task is added, but afterward
+        will self-schedule each run.
         """
         self.log.debug("Performing periodic maintenance")
         interval = self._prefs.cycleInterval
@@ -528,12 +438,12 @@ class CollectorDaemon(RRDDaemon):
 
             clearedDevices = self._unresponsiveDevices.difference(newUnresponsiveDevices)
             for devId in clearedDevices:
-                self.log.debug("resuming tasks for device %s", devId)
+                self.log.debug("Resuming tasks for device %s", devId)
                 self._scheduler.resumeTasksForConfig(devId)
 
             self._unresponsiveDevices = newUnresponsiveDevices
             for devId in self._unresponsiveDevices:
-                self.log.debug("pausing tasks for device %s", devId)
+                self.log.debug("Pausing tasks for device %s", devId)
                 self._scheduler.pauseTasksForConfig(devId)
 
             return result
@@ -587,8 +497,12 @@ class CollectorDaemon(RRDDaemon):
         return d
 
     def _displayStatistics(self, verbose=False):
-        self.log.info("%d devices processed (%d datapoints)",
-              len(self._devices), self._rrd.dataPoints)
+        if self._rrd:
+            self.log.info("%d devices processed (%d datapoints)",
+                          len(self._devices), self._rrd.dataPoints)
+        else:
+            self.log.info("%d devices processed (0 datapoints)",
+                          len(self._devices))
 
         self._scheduler.displayStatistics(verbose)
 

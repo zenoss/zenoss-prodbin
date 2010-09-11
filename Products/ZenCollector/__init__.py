@@ -78,7 +78,8 @@ import zope.component
 import zope.interface
 
 from Products.ZenCollector.interfaces import IFrameworkFactory
-from Products.ZenCollector.config import ConfigurationProxy
+from Products.ZenCollector.config import ConfigurationProxy, \
+                    ConfigurationLoaderTask
 from Products.ZenCollector.scheduler import Scheduler
 
 
@@ -88,12 +89,20 @@ class CoreCollectorFrameworkFactory(object):
     def __init__(self):
         self._configProxy = ConfigurationProxy()
         self._scheduler = Scheduler()
+        self._configurationLoader = ConfigurationLoaderTask
 
     def getConfigurationProxy(self):
         return self._configProxy
 
     def getScheduler(self):
         return self._scheduler
+
+    def getConfigurationLoaderTask(self):
+        return self._configurationLoader
+
+    def getFrameworkBuildOptions(self):
+        return None
+
 
 # Install the core collector framework factory as a Zope utility so it is
 # available to all, and replaceable if necessary.
