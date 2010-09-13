@@ -33,3 +33,17 @@ class FileUpload(BrowserView):
     @property
     def isPostBack(self):
         return self.request.get('submit')
+
+class Robots(BrowserView):
+    """
+    Returns a robots.txt
+    """
+
+    def __call__(self, *args, **kwargs):
+        """
+        Return the robots.txt in the resource dir
+        """
+        import os.path
+        with open(os.path.dirname(__file__) +'/resources/txt/robots.txt') as f:
+            return f.read()
+

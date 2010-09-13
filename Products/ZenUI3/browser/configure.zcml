@@ -233,6 +233,12 @@
     permission="zope2.Public"
     />
 
+<browser:view
+    class=".views.Robots"
+    name="robots.txt"
+    for="OFS.interfaces.IApplication"
+    permission="zope2.Public"
+    />
 
 <include package=".eventconsole"/>
 <include package=".search"/>
