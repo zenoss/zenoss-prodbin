@@ -23,6 +23,7 @@ from Products.ZenTestCase.BaseTestCase import BaseTestCase
 from Products.ZenUtils.orm import session, init_model, nested_transaction
 from Products.ZenChain.guids import Guid
 import random
+import os
 import string
 import subprocess
 import transaction
@@ -91,8 +92,9 @@ class TestTransactions(BaseTestCase):
         self.pub = Publisher()
 
         # start up message listener and wait for it to report "ready"
-        listener_cmd = "python listen_db_messages.py"
-        listener = subprocess.Popen(listener_cmd.split(), bufsize=1, shell=False, stdout=subprocess.PIPE)
+        localpath = os.path.dirname(__file__)
+        listener_script = os.path.join(localpath, "listen_db_messages.py")
+        listener = subprocess.Popen(["python",listener_script], bufsize=1, shell=False, stdout=subprocess.PIPE)
         listener.stdout.readline()
         self.listener = listener
 
