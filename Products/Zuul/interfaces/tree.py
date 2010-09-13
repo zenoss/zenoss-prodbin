@@ -43,7 +43,9 @@ class ICatalogTool(Interface):
     """
     Accesses the global catalog to pull objects of a certain type.
     """
-    def search(types, start, limit, orderby, reverse, paths, depth, query):
+    def search(types=(), start=0, limit=None, orderby='name',
+               reverse=False, paths=(), depth=None, query=None,
+               hashcheck=None):
         """
         Build and execute a query against the global catalog.
         """
