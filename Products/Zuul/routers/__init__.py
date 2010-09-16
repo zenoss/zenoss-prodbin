@@ -10,6 +10,9 @@
 # For complete information please visit: http://www.zenoss.com/oss/
 #
 ###########################################################################
+"""
+Zenoss JSON API
+"""
 
 from Products.ZenUtils.Ext import DirectRouter, DirectResponse
 from Products.Zuul.decorators import require
@@ -17,13 +20,31 @@ from Products import Zuul
 import logging
 log = logging.getLogger(__name__)
 
+
 class TreeRouter(DirectRouter):
     """
-    A common base class for routers that have Trees on them (more specifically
-    the HierarchyTreePanel and want to add/remove nodes
+    A common base class for routers that have a hierarchical tree structure.
     """
+
     @require('Manage DMD')
     def addNode(self, type, contextUid, id, description=None):
+        """
+        Add a node to the existing tree underneath the node specified
+        by the context UID
+
+        @type  type: string
+        @param type: Either 'class' or 'organizer'
+        @type  contextUid: string
+        @param contextUid: Path to the node that will
+                           be the new node's parent (ex. /zport/dmd/Devices)
+        @type  id: string
+        @param id: Identifier of the new node, must be unique in the
+                   parent context
+        @type  description: string
+        @param description: (optional) Describes this new node (default: None)
+        @rtype:   dictionary
+        @return:  Marshaled form of the created node
+        """
         result = {}
         try:
             facade = self._getFacade()
@@ -44,35 +65,55 @@ class TreeRouter(DirectRouter):
 
     @require('Manage DMD')
     def deleteNode(self, uid):
+        """
+        Deletesa node from the tree.
+        
+        B{NOTE}: You can not delete a root node of a tree
+
+        @type  uid: string
+        @param uid: Unique identifier of the node we wish to delete
+        @rtype:   DirectResponse
+        @return:  B{Properties}:
+             - msg: (string) Status message
+        """
         # make sure we are not deleting a root node
         if not self._canDeleteUid(uid):
             raise Exception('You cannot delete the root node')
         facade = self._getFacade()
         facade.deleteNode(uid)
         msg = "Deleted node '%s'" % uid
-        return {'success': True, 'msg': msg}
+        return DirectResponse.succeed(msg=msg)
 
     def moveOrganizer(self, targetUid, organizerUid):
         """
-        Moves the organizer uid to be underneath the targetuid
+        Move the organizer uid to be underneath the organizer
+        specified by the targetUid.
+
+        @type  targetUid: string
+        @param targetUid: New parent of the organizer
+        @type  organizerUid: string
+        @param organizerUid: The organizer to move
+        @rtype:   DirectResponse
+        @return:  B{Properties}:
+             - data: (dictionary) Moved organizer
         """
         facade = self._getFacade()
         data = facade.moveOrganizer(targetUid, organizerUid)
         return DirectResponse.succeed(data=Zuul.marshal(data))
-    
+
     def _getFacade(self):
         """
         Abstract method for child classes to use to get their facade
         """
-        raise NotImplementedError, " you must implement the _getFacade method"
+        raise NotImplementedError("You must implement the _getFacade method")
 
-    def _canDeleteUid(self,uid):
+    def _canDeleteUid(self, uid):
         """
         We can not delete top level UID's. For example:
-        '/zport/dmd/Processes' this will return False (we can NOT delete)
-        '/zport/dmd/Processes/Child' will return True (we can delete this)
+            - '/zport/dmd/Processes' this will return False (we can NOT delete)
+            - '/zport/dmd/Processes/Child' will return True
+                (we can delete this)
         """
         # check the number of levels deep it is
         levels = len(uid.split('/'))
         return levels > 4
-    

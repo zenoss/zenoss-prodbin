@@ -10,6 +10,11 @@
 # For complete information please visit: http://www.zenoss.com/oss/
 #
 ###########################################################################
+"""
+Operations for Reports.
+
+Available at:  /zport/dmd/report_router
+"""
 
 import logging
 from Products.ZenUtils.Ext import DirectRouter, DirectResponse
@@ -18,6 +23,9 @@ from Products.Zuul.utils import ZuulMessageFactory as _t
 
 log = logging.getLogger('zen.ReportRouter')
 class ReportRouter(DirectRouter):
+    """
+    A JSON/ExtDirect interface to operations on reports
+    """
 
     _newReportTypes = [
         'customDeviceReport',
@@ -52,11 +60,29 @@ class ReportRouter(DirectRouter):
 
 
     def getReportTypes(self):
+        """
+        Get the available report types.
+
+        @rtype:   DirectResponse
+        @return:  B{Properties}:
+           - menuText: ([string]) Human readable list of report types
+           - reportTypes: ([string]) A list of the available report types
+        """
         return DirectResponse.succeed(reportTypes=ReportRouter._newReportTypes,
                 menuText=ReportRouter._reportMenuItems)
 
 
     def getTree(self, id='/zport/dmd/Reports'):
+        """
+        Returns the tree structure of an organizer hierarchy where
+        the root node is the organizer identified by the id parameter.
+
+        @type  id: string
+        @param id: (optional) Id of the root node of the tree to be returned
+                   (default: Reports)
+        @rtype:   [dictionary]
+        @return:  Object representing the tree
+        """
         root_organizer = self.context.dmd.restrictedTraverse(id)
         root_node = self._getReportOrganizersTree(root_organizer)
         return [root_node]
@@ -73,6 +99,21 @@ class ReportRouter(DirectRouter):
 
     @require('Manage DMD')
     def addNode(self, nodeType, contextUid, id):
+        """
+        Add a new report or report organizer.
+
+        @type  nodeType: string
+        @param nodeType: Type of new node. Can either be 'organizer' or one of
+                         the report types returned from getReportTypes()
+        @type  contextUid: string
+        @param contextUid: The organizer where the new node should be added
+        @type  id: string
+        @param id: The new node's ID
+        @rtype:   DirectResponse
+        @return:  B{Properties}:
+           - tree: (dictionary) Object representing the new Reports tree
+           - newNode: (dictionary) Object representing the added node
+        """
         if nodeType not in ['organizer'] + ReportRouter._newReportTypes :
             return DirectResponse.fail('Not creating "%s"' % nodeType)
 
@@ -101,6 +142,15 @@ class ReportRouter(DirectRouter):
 
     @require('Manage DMD')
     def deleteNode(self, uid):
+        """
+        Remove a report or report organizer.
+
+        @type  uid: string
+        @param uid: The UID of the node to delete
+        @rtype:   [dictionary]
+        @return:  B{Properties}:
+           - tree: (dictionary) Object representing the new Reports tree
+        """
         represented = self.context.dmd.restrictedTraverse(uid)
         if represented.absolute_url_path() in ReportRouter._essentialNodes:
             return DirectResponse.fail('Not deleting "%s"' % \
@@ -111,7 +161,17 @@ class ReportRouter(DirectRouter):
 
     @require('Manage DMD')
     def moveNode(self, uids, target):
-        """Move a node from its current organizer to another.
+        """
+        Move a report or report organizer from one organizer to another.
+
+        @type  uids: [string]
+        @param uids: The UID's of nodes to move
+        @type  target: string
+        @param target: The UID of the target Report organizer
+        @rtype:   [dictionary]
+        @return:  B{Properties}:
+           - tree: (dictionary) Object representing the new Reports tree
+           - newNode: (dictionary) Object representing the moved node
         """
         targetNode = self.context.dmd.restrictedTraverse(target)
         for uid in uids:

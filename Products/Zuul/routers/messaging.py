@@ -10,6 +10,12 @@
 # For complete information please visit: http://www.zenoss.com/oss/
 #
 ###########################################################################
+"""
+Operations for Messaging.
+
+Available at:  /zport/dmd/messaging_router
+"""
+
 from Products.ZenUtils.Ext import DirectRouter
 from Products.ZenUtils.extdirect.router import DirectResponse
 from Products.ZenModel.ZenossSecurity import *
@@ -17,10 +23,21 @@ from Products.ZenWidgets.interfaces import IUserMessages, IBrowserMessages
 from Products.ZenWidgets import messaging
 
 class MessagingRouter(DirectRouter):
+    """
+    A JSON/ExtDirect interface to operations on messages
+    """
+
     def __init__(self, context, request):
         super(MessagingRouter, self).__init__(context, request)
 
     def getUserMessages(self):
+        """
+        Get the queued messages for the logged in user.
+
+        @rtype:   dictionary
+        @return:  B{Properties}:
+           - messages: ([string]) A list of queued messages.
+        """
         # user messages are stored in the logged in users "usersettings" object
         # which must be able to access ZenUsers (off of dmd)
         messages = IUserMessages(self.context.zport.dmd).get_unread()
