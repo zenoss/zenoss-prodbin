@@ -66,92 +66,75 @@ public class MonitoringWinServices {
 			Thread.sleep(12000);
 			
 			sClient.open("/zport/dmd/Dashboard");
-			// Click on Infrastructure
+			// Click Infrastructure
+			Thread.sleep(1000);
 			sClient.click("link=Infrastructure");
 			sClient.waitForPageToLoad("30000");
-			Thread.sleep(9500);
-			// Click on Windows Services
+			// Click Windows Services
+			Thread.sleep(3000);
 			sClient.click("link=Windows Services");
 			sClient.waitForPageToLoad("30000");
-			Thread.sleep(6500);
-			// Add new Win Service
+			Thread.sleep(3000);
+			// Add new WinService
 			sClient.click("//table[@id='footer_add_button']/tbody/tr[2]/td[2]/em");
-			sClient.click("ext-gen232");
-			sClient.type("ext-comp-1145", "testWinService");
-			sClient.click("ext-gen250");
+			sClient.click("ext-comp-1084");
+			Thread.sleep(1000);
+			sClient.typeKeys("//*[@name='id']", "testWinService");
+			Thread.sleep(2000);
+			sClient.click("//button[@type='submit']");
+			Thread.sleep(30000);
+			sClient.typeKeys("name", "testWinService");
+			Thread.sleep(5000);
+			sClient.clickAt("//div[@class='x-grid3-cell-inner x-grid3-col-name' and text() = 'testWinService']", "testWinService");
+			Thread.sleep(3000);
+			sClient.typeKeys("descriptionTextField", "new win service");
+			Thread.sleep(2000);
+			sClient.click("//*[button='Save']");
+			// Click Infrastructure
+			sClient.click("link=Infrastructure");
 			sClient.waitForPageToLoad("30000");
-			Thread.sleep(6500);
-			// Filter the results by the new entered WinService
-			sClient.type("name", "testWinService");
-			// Validate the WinService name
-			selenese.verifyEquals("testWinService", sClient.getValue("nameTextField"));
-			// Edit the details - Description field
-			sClient.type("descriptionTextField", "New windows service");
-			// Save button
-			sClient.click("ext-gen88");
-			// Click on Infrastructure->Device
-			sClient.click("link=Devices");
-			sClient.waitForPageToLoad("30000");
-	
-			// Go to Devices->Server/Windows
+			Thread.sleep(5000);
+			// Add new device
 			sClient.click("//div[@id='extdd-27']/img[1]");
-			sClient.click("//div[@id='extdd-57']/img[1]");
-			sClient.click("ext-gen280");
-			sClient.click("ext-gen77");
-			// Add new Windows device
+			sClient.click("//span[normalize-space(@class)='node-text' and text()='Windows']");
+			sClient.click("//table[@id='adddevice-button']/tbody/tr[2]/td[2]/em");
 			sClient.click("addsingledevice-item");
-			sClient.type("add-device-name", "test-winxp-1.zenoss.loc");
-			// Verify windows device class
-			selenese.verifyEquals("/Server/Windows/WMI", sClient.getValue("add-device_class"));
-			// Click Add button
-			sClient.click("ext-gen316");
-			// Verify that the new device is added
+			sClient.type("add-device-name", "test-win7-1.zenoss.loc");
+			Thread.sleep(1000);
+			selenese.verifyEquals("/Server/Windows", sClient.getValue("add-device_class"));
+			Thread.sleep(2000);
+			sClient.click("//table[@id='addsingledevice-submit']/tbody/tr[2]/td[2]/em/button");
+			Thread.sleep(2000);
+			selenese.verifyTrue(sClient.isTextPresent("Add Device Job submitted. View Job Log"));
+			Thread.sleep(1000);
 			sClient.click("link=View Job Log");
-			sClient.waitForPageToLoad("30000");
-			Thread.sleep(9500);
-			selenese.verifyTrue(sClient.isTextPresent("Job completed at"));
-			selenese.verifyTrue(sClient.isTextPresent("Result: success"));
+			Thread.sleep(50000);
 			// Click on Infrastructure
 			sClient.click("link=Infrastructure");
 			sClient.waitForPageToLoad("30000");
-
-			// Verify that the device is displayed on the list
-			selenese.verifyTrue(sClient.isTextPresent("test-winxp-1.zenoss.loc"));
 			// Click on the device added
-			sClient.click("link=test-winxp-1.zenoss.loc");
+			Thread.sleep(2000);
+			sClient.click("link=test-win7-1.zenoss.loc");
 			sClient.waitForPageToLoad("30000");
-			// Set Configuration Properties
-			sClient.click("//ul[@id='ext-gen243']/div/li[8]/div/a/span");
-			sClient.type("zWinUser", "Administrator");
-			sClient.type("zWinPassword", "ZenossQA1");
-			sClient.click("saveZenProperties:method");
-			// Model the device
-			sClient.click("//table[@id='device_configure_menu']/tbody/tr[2]/td[2]/em");
-			sClient.click("ext-gen284");
-
-			selenese.verifyTrue(sClient.isTextPresent("Daemon ZenModeler shutting down"));
-			// Close Model Device window
-			sClient.click("ext-gen303");
-			sClient.refresh();
-			sClient.waitForPageToLoad("30000");
-			// Add new Windows Service
+			Thread.sleep(2000);
+			// Add Win Service
 			sClient.click("//table[@id='component-add-menu']/tbody/tr[2]/td[2]/em");
+			// Click on Add Win Service
 			sClient.click("addwinservice");
-			sClient.click("ext-gen845");
-			selenese.verifyTrue(sClient.isTextPresent("testWinService"));
-			sClient.click("//div[@id='ext-gen848']/div[221]");
-			sClient.click("ext-gen832");
+			Thread.sleep(2000);
+			sClient.click("//div[@id='winServiceClassLiveSearch']//img");
+			Thread.sleep(1000);
+			sClient.click("//div[normalize-space(@class) = 'x-combo-list-item' and text()= 'testWinService']");
+			selenese.verifyEquals("testWinService", sClient.getValue("ext-comp-1222"));
+			sClient.click("//*[button='Submit']");
+			Thread.sleep(4000);
 			selenese.verifyTrue(sClient.isTextPresent("Add WinService finished successfully"));
-			selenese.verifyTrue(sClient.isTextPresent("WinService WinService/serviceclasses/testWinService was added."));
-			// Verify the new windows service added
-			sClient.click("ext-gen903");
-			selenese.verifyTrue(sClient.isTextPresent("testWinService"));
-			selenese.verifyTrue(sClient.isTextPresent("New windows service"));
-			// Click on the windows service
-			sClient.click("link=testWinService");
-			sClient.waitForPageToLoad("30000");
-			selenese.verifyTrue(sClient.isTextPresent("test-winxp-1.zenoss.loc"));
-			selenese.verifyEquals("testWinService", sClient.getValue("nameTextField"));
+			// Verify that win service is displayed in the components section
+			sClient.click("//span[normalize-space(@class)='node-text' and text()='Windows Services']");
+			Thread.sleep(3000);
+			// Verify that the windows service is displayed
+			selenese.verifyEquals("testWinService",sClient.getText("link=testWinService"));
+			selenese.verifyTrue(sClient.isTextPresent("new win service"));
 
 			testCaseResult = "p";
 
