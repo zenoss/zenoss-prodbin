@@ -48,6 +48,7 @@ from Products.ZenUtils.FakeRequest import FakeRequest
 from Products.ZenEvents.ZenEventClasses import Status_Ping, Status_Wmi_Conn
 from Products.ZenWidgets import messaging
 from Products.ZenUI3.browser.eventconsole.columns import COLUMN_CONFIG
+from _mysql import escape_string
 
 from ZenEventClasses import Unknown
 
@@ -147,7 +148,7 @@ class EventManagerBase(ZenModelRM, ObjectCache, DbAccessBase):
     DeviceResultFields = ("eventState", "severity", "component", "eventClass",
                           "summary", "firstTime", "lastTime", "count" )
     ComponentWhere = ("\"(device = '%s' and component = '%s')\""
-                      " % (me.device().getDmdKey(), me.name())")
+                      " % (me.device().getDmdKey(), escape_string(me.name()))")
     ComponentResultFields = ("eventState", "severity", "eventClass", "summary",
                              "firstTime", "lastTime", "count" )
     IpAddressWhere = "\"ipAddress='%s'\" % (me.getId())"
@@ -1325,7 +1326,7 @@ class EventManagerBase(ZenModelRM, ObjectCache, DbAccessBase):
         # this in sql syntax
         if me.id == 'Devices':
             return '(DeviceCLass like \'/%\')'
-        return eval(wheretmpl,{'me':me})
+        return eval(wheretmpl,{'me':me, 'escape_string':escape_string}) 
 
 
     def lookupManagedEntityField(self, event_key):
