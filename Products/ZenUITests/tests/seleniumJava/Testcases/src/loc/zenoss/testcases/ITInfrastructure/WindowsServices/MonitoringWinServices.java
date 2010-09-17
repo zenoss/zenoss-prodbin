@@ -95,7 +95,7 @@ public class MonitoringWinServices {
 			sClient.waitForPageToLoad("30000");
 			Thread.sleep(5000);
 			// Add new device
-			sClient.click("//div[@id='extdd-27']/img[1]");
+			sClient.doubleClick("//span[@class='node-text' and text()='Server']");
 			sClient.click("//span[normalize-space(@class)='node-text' and text()='Windows']");
 			sClient.click("//table[@id='adddevice-button']/tbody/tr[2]/td[2]/em");
 			sClient.click("addsingledevice-item");
