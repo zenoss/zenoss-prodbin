@@ -31,6 +31,9 @@ v1
 <property visible="True" type="int" id="zSnmpTries" >
 2
 </property>
+<property visible="True" type="int" id="zSnmpCollectionInterval" >
+300
+</property>
 <property visible="True" type="float" id="zSnmpTimeout" >
 2.5
 </property>
