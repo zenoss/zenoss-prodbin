@@ -73,7 +73,7 @@ public class ProductState {
 			sClient.click("//table[@id='adddevice-button']/tbody/tr[2]/td[2]/em");
 			sClient.click("addmultipledevices-item");
 			sClient.waitForPopUp("multi_add", "30000");
-			// Click on Autodiscover
+			// Click on Auto discover
 			sClient.selectWindow("name=multi_add");
 			sClient.click("autoradio");
 			// Type an IP range
@@ -111,7 +111,7 @@ public class ProductState {
 			// Select in Production State the state selected
 			Thread.sleep(1000);
 			sClient.click("//table[@id='productionState']/tbody/tr[2]/td[2]/em");
-			// Select Maintenace state
+			// Select Maintenance state
 			sClient.click("//span[@class='x-menu-item-text' and text()='Maintenance']");
 			// Verify that production state set to Maintenance 
 			Thread.sleep(3000);
