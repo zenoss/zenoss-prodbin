@@ -1,7 +1,7 @@
 ###########################################################################
 #
 # This program is part of Zenoss Core, an open source monitoring platform.
-# Copyright (C) 2007, 2009, Zenoss Inc.
+# Copyright (C) 2007, 2009, 2010 Zenoss Inc.
 #
 # This program is free software; you can redistribute it and/or modify it
 # under the terms of the GNU General Public License version 2 as published by
@@ -17,49 +17,124 @@ Run Command plugins periodically.
 
 """
 
+import random
 import time
 from pprint import pformat
 import logging
 log = logging.getLogger("zen.zencommand")
-from sets import Set
+import traceback
 
 from twisted.internet import reactor, defer, error
 from twisted.internet.protocol import ProcessProtocol
-from twisted.python import failure
+from twisted.python.failure import Failure
+
 from twisted.spread import pb
 
 import Globals
-from Products.ZenUtils.Driver import drive, driveLater
-from Products.ZenUtils.Utils import unused, getExitMessage
-from Products.ZenRRD.RRDDaemon import RRDDaemon
-from Products.ZenRRD.RRDUtil import RRDUtil
+import zope.interface
+
+from Products.ZenUtils.Utils import unused, getExitMessage, readable_time
 from Products.DataCollector.SshClient import SshClient
-from Products.ZenEvents.ZenEventClasses import Clear, Error
+from Products.ZenEvents.ZenEventClasses import Clear, Error, Cmd_Fail, Cmd_Ok
 from Products.ZenRRD.CommandParser import ParsedResults
+
+from Products.ZenCollector.daemon import CollectorDaemon
+from Products.ZenCollector.interfaces import ICollectorPreferences,\
+                                             IDataService,\
+                                             IEventService,\
+                                             IScheduledTask
+from Products.ZenCollector.tasks import SimpleTaskFactory,\
+                                        SubConfigurationTaskSplitter,\
+                                        TaskStates
+from Products.ZenCollector.pools import getPool
+from Products.ZenUtils.observable import ObservableMixin
+from Products.ZenEvents import Event
+from Products.ZenUtils.Executor import TwistedExecutor
 
 from Products.DataCollector import Plugins
 unused(Plugins)
-MAX_CONNECTIONS = 256
 
+MAX_CONNECTIONS = 250
+MAX_BACK_OFF_MINUTES = 20
+
+# We retrieve our configuration data remotely via a Twisted PerspectiveBroker
+# connection. To do so, we need to import the class that will be used by the
+# configuration service to send the data over, i.e. DeviceProxy.
+from Products.ZenCollector.services.config import DeviceProxy
+unused(DeviceProxy)
+
+COLLECTOR_NAME = "zencommand"
+POOL_NAME = 'SshConfigs'
+
+class SshPerformanceCollectionPreferences(object):
+    zope.interface.implements(ICollectorPreferences)
+
+    def __init__(self):
+        """
+        Constructs a new SshPerformanceCollectionPreferences instance and 
+        provides default values for needed attributes.
+        """
+        self.collectorName = COLLECTOR_NAME
+        self.defaultRRDCreateCommand = None
+        self.configCycleInterval = 20 # minutes
+        self.cycleInterval = 5 * 60 # seconds
+
+        # The configurationService attribute is the fully qualified class-name
+        # of our configuration service that runs within ZenHub
+        self.configurationService = 'Products.ZenHub.services.CommandPerformanceConfig'
+
+        # Provide a reasonable default for the max number of tasks
+        self.maxTasks = 50
+
+        # Will be filled in based on buildOptions
+        self.options = None
+
+    def buildOptions(self, parser):
+        parser.add_option('--showrawresults',
+                          dest='showrawresults',
+                          action="store_true",
+                          default=False,
+                          help="Show the raw RRD values. For debugging purposes only.")
+
+        parser.add_option('--maxbackoffminutes',
+                          dest='maxbackoffminutes',
+                          default=MAX_BACK_OFF_MINUTES,
+                          help="When a device fails to respond, increase the time to" \
+                               " check on the device until this limit.")
+
+        parser.add_option('--showfullcommand',
+                          dest='showfullcommand',
+                          action="store_true",
+                          default=False,
+                          help="Display the entire command and command-line arguments, " \
+                               " including any passwords.")
+
+    def postStartup(self):
+        pass
+
+
+class SshPerCycletimeTaskSplitter(SubConfigurationTaskSplitter):
+    subconfigName = 'datasources'
+
+    def makeConfigKey(self, config, subconfig):
+        return (config.id, subconfig.cycleTime, 'Remote' if subconfig.useSsh else 'Local')
 
 
 class TimeoutError(Exception):
     """
     Error for a defered call taking too long to complete
     """
-
     def __init__(self, *args):
         Exception.__init__(self)
         self.args = args
 
 
-def Timeout(deferred, seconds, obj):
+def timeoutCommand(deferred, seconds, obj):
     "Cause an error on a deferred when it is taking too long to complete"
 
     def _timeout(deferred, obj):
         "took too long... call an errback"
-        deferred.errback(failure.Failure(TimeoutError(obj)))
-
+        deferred.errback(Failure(TimeoutError(obj)))
 
     def _cb(arg, timer):
         "the command finished, possibly by timing out"
@@ -67,56 +142,74 @@ def Timeout(deferred, seconds, obj):
             timer.cancel()
         return arg
 
-
     timer = reactor.callLater(seconds, _timeout, deferred, obj)
+    deferred.mytimer = timer
     deferred.addBoth(_cb, timer)
     return deferred
 
 
 class ProcessRunner(ProcessProtocol):
     """
-    Provide deferred process execution
+    Provide deferred process execution for a *single* command
     """
     stopped = None
     exitCode = None
     output = ''
+    stderr = ''
 
     def start(self, cmd):
-        "Kick off the process: run it local"
-        log.debug('running %s', cmd.command.split()[0])
+        """
+        Kick off the process: run it local
+        """
+        log.debug('Running %s', cmd.command.split()[0])
 
+        self._cmd = cmd
         shell = '/bin/sh'
         self.cmdline = (shell, '-c', 'exec %s' % cmd.command)
         self.command = ' '.join(self.cmdline)
 
-        reactor.spawnProcess(self, shell, self.cmdline, env=None)
+        reactor.spawnProcess(self, shell, self.cmdline, env=cmd.env)
 
-        d = Timeout(defer.Deferred(), cmd.deviceConfig.commandTimeout, cmd)
+        d = timeoutCommand(defer.Deferred(), cmd.deviceConfig.zCommandCommandTimeout, cmd)
         self.stopped = d
         self.stopped.addErrback(self.timeout)
         return d
 
     def timeout(self, value):
-        "Kill a process if it takes too long"
+        """
+        Kill a process if it takes too long
+        """
         try:
             self.transport.signalProcess('KILL')
         except error.ProcessExitedAlready:
             log.debug("Command already exited: %s", self.command.split()[0])
         return value
 
-
     def outReceived(self, data):
-        "Store up the output as it arrives from the process"
+        """
+        Store up the output as it arrives from the process
+        """
         self.output += data
 
+    def errReceived(self, data):
+        """
+        Store up the output as it arrives from the process
+        """
+        self.stderr += data
 
     def processEnded(self, reason):
-        "notify the starter that their process is complete"
+        """
+        Notify the starter that their process is complete
+        """
         self.exitCode = reason.value.exitCode
-        log.debug('Received exit code: %s', self.exitCode)
-        log.debug('Command: %s', self.command.split()[0])
-        log.debug('Output: %r', self.output)
-        
+        if self.exitCode is not None:
+            msg = """Datasource: %s Received exit code: %s Output:\n%r"""
+            data = [self._cmd.ds, self.exitCode, self.output]
+            if self.stderr:
+                msg += "\nStandard Error:\n%r"
+                data.append(self.stderr)
+            log.debug(msg, *data)
+
         if self.stopped:
             d, self.stopped = self.stopped, None
             if not d.called:
@@ -127,21 +220,24 @@ class MySshClient(SshClient):
     """
     Connection to SSH server at the remote device
     """
-
     def __init__(self, *args, **kw):
         SshClient.__init__(self, *args, **kw)
         self.defers = {}
+        self._taskList = set()
 
     def addCommand(self, command):
-        "Run a command against the server"
+        """
+        Run a command against the server
+        """
         d = defer.Deferred()
         self.defers[command] = d
         SshClient.addCommand(self, command)
         return d
 
-
     def addResult(self, command, data, code):
-        "Forward the results of the command execution to the starter"
+        """
+        Forward the results of the command execution to the starter
+        """
         # don't call the CollectorClient.addResult which adds the result to a
         # member variable for zenmodeler
         d = self.defers.pop(command, None)
@@ -152,135 +248,93 @@ class MySshClient(SshClient):
         elif not d.called:
             d.callback((data, code))
 
-
     def check(self, ip, timeout=2):
-        "Turn off blocking SshClient.test method"
+        """
+        Turn off blocking SshClient.test method
+        """
         return True
 
-
     def clientFinished(self):
-        "We don't need to track commands/results when they complete"
+        """
+        We don't need to track commands/results when they complete
+        """
         SshClient.clientFinished(self)
         self.cmdmap = {}
         self._commands = []
         self.results = []
 
+    def clientConnectionFailed(self, connector, reason):
+        """
+        If we didn't connect let the modeler know
 
-class SshPool:
-    """
-    Cache all the Ssh connections so they can be managed
-    """
-
-    def __init__(self):
-        self.pool = {}
-        self.eventSender = None
-
-    def get(self, cmd):
-        "Make a new SSH connection if there isn't one available"
-        dc = cmd.deviceConfig
-        result = self.pool.get(dc.device, None)
-        if result is None:
-            log.debug("Creating connection to %s", dc.device)
-            options = Options(dc.username, dc.password,
-                              dc.loginTimeout, dc.commandTimeout,
-                              dc.keyPath, dc.concurrentSessions)
-            # New param KeyPath
-            result = MySshClient(dc.device, dc.ipAddress, dc.port,
-                                 options=options)
-            if self.eventSender is not None:
-                result.sendEvent = self.eventSender.sendEvent
-            result.run()
-            self.pool[dc.device] = result
-        return result
-
-    def reinitializeCollectorClients(self):
-        for collectorClient in self.pool.values():
-            collectorClient.reinitialize()
-
-    def _close(self, device):
-        "close the SSH connection to a device, if it exists"
-        c = self.pool.get(device, None)
-        if c:
-            log.debug("Closing connection to %s", device)
-            if c.transport:
-                c.transport.loseConnection()
-            del self.pool[device]
-
-        
-    def close(self, cmd):
-        "symetric close that matches get() method"
-        self._close(cmd.deviceConfig.device)
+        @param connector: connector associated with this failure
+        @type connector: object
+        @param reason: failure object
+        @type reason: object
+        """
+        self.clientFinished()
+        message= reason.getErrorMessage()
+        for task in list(self._taskList):
+            task.connectionFailed(message)
 
 
-    def trimConnections(self, schedule):
-        "reduce the number of connections using the schedule for guidance"
-        # compute device list in order of next use
-        devices = []
-        for c in schedule:
-            device = c.deviceConfig.device
-            if device not in devices:
-                devices.append(device)
-        # close as many devices as needed
-        while devices and len(self.pool) > MAX_CONNECTIONS:
-            self._close(devices.pop())
-            
+class SshOptions:
+    loginTries=1
+    searchPath=''
+    existenceTest=None
 
-class SshRunner:
+    def __init__(self, username, password, loginTimeout, commandTimeout,
+            keyPath, concurrentSessions):
+        self.username = username
+        self.password = password
+        self.loginTimeout=loginTimeout
+        self.commandTimeout=commandTimeout
+        self.keyPath = keyPath
+        self.concurrentSessions = concurrentSessions
+
+
+class SshRunner(object):
     """
     Run a single command across a cached SSH connection
     """
-    exitCode = None
-    output = None
 
-    def __init__(self, pool):
-        self.pool = pool
-
+    def __init__(self, connection):
+        self._connection = connection
+        self.exitCode = None
+        self.output = None
+        self.stderr = None
 
     def start(self, cmd):
         "Initiate a command on the remote device"
-        self.defer = defer.Deferred()
-        c = self.pool.get(cmd)
+        self.defer = defer.Deferred(canceller=self._canceller)
         try:
-            d = Timeout(c.addCommand(cmd.command),
-                        cmd.deviceConfig.commandTimeout,
+            d = timeoutCommand(self._connection.addCommand(cmd.command),
+                        self._connection.commandTimeout,
                         cmd)
         except Exception, ex:
             log.warning('Error starting command: %s', ex)
-            self.pool.close(cmd)
             return defer.fail(ex)
         d.addErrback(self.timeout)
         d.addBoth(self.processEnded)
         return d
 
+    def _canceller(self, deferToCancel):
+        if not deferToCancel.mytimer.called:
+            deferToCancel.mytimer.cancel()
+        return None
 
     def timeout(self, arg):
         "Deal with slow executing command/connection (close it)"
-        cmd, = arg.value.args
-        # we could send a kill signal, but then we would need to track
-        # the command channel to send it to: just close the connection
-        self.pool.close(cmd)
+        # We could send a kill signal, but then we would need to track
+        # the command channel to send it. Just close the connection.
         return arg
-
 
     def processEnded(self, value):
         "Deliver ourselves to the starter with the proper attributes"
-        if isinstance(value, failure.Failure):
+        if isinstance(value, Failure):
             return value
         self.output, self.exitCode = value
         return self
-
-
-class DeviceConfig(pb.Copyable, pb.RemoteCopy):
-    lastChange = 0.
-    device = ''
-    ipAddress = ''
-    port = 0
-    username = ''
-    password = ''
-    loginTimeout = 0.
-    commandTimeout = 0.
-    keyPath = ''
-pb.setUnjellyableForClass(DeviceConfig, DeviceConfig)
 
 
 class DataPointConfig(pb.Copyable, pb.RemoteCopy):
@@ -304,7 +358,9 @@ class Cmd(pb.Copyable, pb.RemoteCopy):
     """
     Holds the config of every command to be run
     """
+    device = ''
     command = None
+    ds = ''
     useSsh = False
     cycleTime = None
     eventClass = None
@@ -313,466 +369,540 @@ class Cmd(pb.Copyable, pb.RemoteCopy):
     lastStart = 0
     lastStop = 0
     result = None
-
+    env = None
 
     def __init__(self):
         self.points = []
 
-    def running(self):
-        return self.lastStop < self.lastStart 
-
-
-    def name(self):
+    def processCompleted(self, pr):
         """
-        Only return the name of the command, not the full command.
+        Return back the datasource with the ProcessRunner/SshRunner stored in
+        the the 'result' attribute.
         """
-        return self.command.split()[0]
-
-
-    def nextRun(self):
-        if self.running():
-            return self.lastStart + self.cycleTime
-        return self.lastStop + self.cycleTime
-
-
-    def start(self, pool):
-        if self.useSsh:
-            pr = SshRunner(pool)
-        else:
-            pr = ProcessRunner()
-        d = pr.start(self)
-        self.lastStart = time.time()
-        log.debug('Process %s started' % self.name())
-        d.addBoth(self.processEnded)
-        return d
-
-
-    def processEnded(self, pr):
         self.result = pr
         self.lastStop = time.time()
-        
+
         # Check for a condition that could cause zencommand to stop cycling.
         #   http://dev.zenoss.org/trac/ticket/4936
         if self.lastStop < self.lastStart:
            log.debug('System clock went back?')
            self.lastStop = self.lastStart
-        
-        if not isinstance(pr, failure.Failure):
-            log.debug('Process %s stopped (%s), %.2f seconds elapsed' % (
-                self.name(),
+
+        if isinstance(pr, Failure):
+            return pr
+
+        log.debug('Process %s stopped (%s), %.2f seconds elapsed',
+                self.name,
                 pr.exitCode,
-                self.lastStop - self.lastStart))
-            return self
-        return pr
-
-
-    def updateConfig(self, cfg, deviceConfig):
-        self.deviceConfig = deviceConfig
-        self.useSsh = cfg.useSsh
-        self.cycleTime = max(int(cfg.cycleTime), 1)
-        self.eventKey = cfg.eventKey
-        self.eventClass = cfg.eventClass
-        self.severity = cfg.severity
-        self.command = str(cfg.command)
-        self.points = cfg.points
-        if cfg.severity is None:
-            log.warning("severity is None: cfg,%r ;  deviceConfig, %r",
-                cfg, deviceConfig)
+                self.lastStop - self.lastStart)
         return self
 
     def getEventKey(self, point):
         # fetch datapoint name from filename path and add it to the event key
         return self.eventKey + '|' + point.rrdPath.split('/')[-1]
 
-    def commandKey(self): 
-        "Provide a value that establishes the uniqueness of this command" 
-        return '%'.join(map(str, [self.useSsh, self.cycleTime, 
+    def commandKey(self):
+        "Provide a value that establishes the uniqueness of this command"
+        return '%'.join(map(str, [self.useSsh, self.cycleTime,
                         self.severity, self.command]))
+    def __str__(self):
+        return ' '.join(map(str, [
+                        self.ds,
+                        'useSSH=%s' % self.useSsh,
+                        self.cycleTime, 
+                       ]))
 
 pb.setUnjellyableForClass(Cmd, Cmd)
 
-class Options:
-    loginTries=1
-    searchPath=''
-    existenceTest=None
 
-    def __init__(self, username, password, loginTimeout, commandTimeout,
-            keyPath, concurrentSessions):
-        self.username = username
-        self.password = password
-        self.loginTimeout=loginTimeout
-        self.commandTimeout=commandTimeout
-        self.keyPath = keyPath
-        self.concurrentSessions = concurrentSessions
+STATUS_EVENT = { 'eventClass' : Cmd_Fail,
+                    'component' : 'command',
+}
 
-
-class ConfigurationProcessor(object):
-    
-    def __init__(self, config, scheduledCmds, sendEvent):
-        """
-        config - one of the configurations that was returned by calling
-                getDataSourceCommands on zenhub.
-        scheduledCmds - a dictionary that maps (device, command) to Cmd object
-                for the commands currently on zencommand's schedule.
-        sendEvent - a function that sends events to zenhub using twisted
-                perspective broker.
-        """
-        self._config = config
-        self._scheduledCmds = scheduledCmds
-        self._sendEvent = sendEvent
-        self._device = config.device
-        self._suppressed = [] # log warning and send event once per device
-        self._summary = 'zCommandUsername is not set'
-        
-    def _sendUsernameEvent(self, severity):
-        "send an event (or clear it) for username not set"
-        self._sendEvent(dict(
-                device=self._device,
-                eventClass='/Cmd/Fail',
-                eventKey='zCommandUsername',
-                severity=severity,
-                component='zencommand',
-                summary=self._summary))
-
-    def _warnUsernameNotSet(self, command):
-        """
-        Warn that the username is not set for device and the SSH command cannot be
-        executed.
-        """
-        if self._device not in self._suppressed:
-            log.warning(self._summary + ' for %s' % self._device)
-            self._sendUsernameEvent(Error)
-        msg = 'username not configured for %s. skipping %s.'
-        log.debug(msg, self._device, command.split()[0])
-
-    def updateCommands(self):
-        """
-        Go through the Cmd objects in config.commands and update the config on
-        the command with config. If currentDict has the command on it then use
-        that one, otherwise use the command from config. If the device does not have a
-        username set, then don't yield commands that use SSH.
-        """
-        for cmd in self._config.commands:
-            key = (self._device, cmd.command)
-            if cmd.useSsh:
-                if self._config.username:
-                    self._sendUsernameEvent(Clear)
-                else:
-                    self._warnUsernameNotSet(cmd.command)
-                    if self._device not in self._suppressed:
-                        self._suppressed.append(self._device)
-                    if key in self._scheduledCmds:
-                        del self._scheduledCmds[key]
-                    continue
-            if key in self._scheduledCmds:
-                newCmd = self._scheduledCmds.pop(key)
-            else:
-                newCmd = cmd
-            yield newCmd.updateConfig(cmd, self._config)
-        self._suppressed = []
-
-
-class zencommand(RRDDaemon):
+class SshPerformanceCollectionTask(ObservableMixin):
     """
-    Daemon code to schedule commands and run them.
+    A task that performs periodic performance collection for devices providing
+    data via SSH connections.
     """
+    zope.interface.implements(IScheduledTask)
 
-    initialServices = RRDDaemon.initialServices + ['CommandConfig']
+    STATE_CONNECTING = 'CONNECTING'
+    STATE_FETCH_DATA = 'FETCH_DATA'
+    STATE_PARSE_DATA = 'PARSING_DATA'
+    STATE_STORE_PERF = 'STORE_PERF_DATA'
 
-    def __init__(self):
-        RRDDaemon.__init__(self, 'zencommand')
-        self.schedule = []
-        self.timeout = None
-        self.pool = SshPool()
-        self.pool.eventSender = self
+    def __init__(self,
+                 taskName,
+                 configId,
+                 scheduleIntervalSeconds,
+                 taskConfig):
+        """
+        @param taskName: the unique identifier for this task
+        @type taskName: string
+        @param configId: configuration to watch
+        @type configId: string
+        @param scheduleIntervalSeconds: the interval at which this task will be
+               collected
+        @type scheduleIntervalSeconds: int
+        @param taskConfig: the configuration for this task
+        """
+        super(SshPerformanceCollectionTask, self).__init__()
+
+        # Needed for interface
+        self.name = taskName
+        self.configId = configId
+        self.state = TaskStates.STATE_IDLE
+        self.interval = scheduleIntervalSeconds
+
+        # The taskConfig corresponds to a DeviceProxy
+        self._device = taskConfig
+
+        self._devId = self._device.id
+        self._manageIp = self._device.manageIp
+
+        self._dataService = zope.component.queryUtility(IDataService)
+        self._eventService = zope.component.queryUtility(IEventService)
+
+        self._preferences = zope.component.queryUtility(ICollectorPreferences,
+                                                        COLLECTOR_NAME)
+        self._lastErrorMsg = ''
+
+        self._maxbackoffseconds = self._preferences.options.maxbackoffminutes * 60
+
+        self._concurrentSessions = taskConfig.zSshConcurrentSessions
+        self._executor = TwistedExecutor(self._concurrentSessions)
+        self._useSsh = taskConfig.datasources[0].useSsh
+        self._connection = None
+
+        self._datasources = taskConfig.datasources
+        self.pool = getPool('SSH Connections')
         self.executed = 0
 
-    def remote_deleteDevice(self, doomed):
-        self.log.debug("zenhub has asked us to delete device %s" % doomed)
-        self.schedule = [c for c in self.schedule if c.deviceConfig.device != doomed]
-            
-    def remote_updateConfig(self, config):
-        self.log.debug("Configuration update from zenhub")
-        self.log.info("config: %r", config)
-        self.updateConfig([config], [config.device])
+    def __str__(self):
+        return "COMMAND schedule Name: %s configId: %s Datasources: %d" % (
+               self.name, self.configId, len(self._datasources))
 
-    def remote_updateDeviceList(self, devices):
-        self.log.debug("zenhub sent updated device list %s" % devices)
-        updated = []
-        lastChanges = dict(devices)     # map device name to last change
-        keep = []
-        for cmd in self.schedule:
-            if cmd.deviceConfig.device in lastChanges:
-                if cmd.lastChange > lastChanges[cmd.device]:
-                    updated.append(cmd.deviceConfig.device)
-                keep.append(cmd)
-            else:
-                self.log.info("Removing all commands for %s", cmd.deviceConfig.device)
-        self.schedule = keep
-        if updated:
-            self.log.info("Fetching the config for %s", updated)
-            d = self.model().callRemote('getDataSourceCommands', devices)
-            d.addCallback(self.updateConfig, updated)
-            d.addErrback(self.error)
+    def cleanup(self):
+        return self._close()
 
-    def updateConfig(self, configs, expected):
-        expected = Set(expected)
-        current = {}
-        for c in self.schedule:
-            if c.deviceConfig.device in expected:
-                current[c.deviceConfig.device,c.command] = c
-        # keep all the commands we didn't ask for
-        update = [c for c in self.schedule if c.deviceConfig.device not in expected]
-        for cfg in configs:
-            self.thresholds.updateForDevice(cfg.device, cfg.thresholds)
-            if self.options.device and self.options.device != cfg.device:
-                continue
-            processor = ConfigurationProcessor(cfg, current, self.sendEvent)
-            update.extend(processor.updateCommands())
-        for device, command in current.keys():
-            self.log.info("Deleting command %s from %s", device, command)
-        self.schedule = update
-        self.processSchedule()
+    def doTask(self):
+        """
+        Contact to one device and return a deferred which gathers data from
+        the device.
 
-    def heartbeatCycle(self, *ignored):
-        "There is no master 'cycle' to send the hearbeat"
-        self.heartbeat()
-        reactor.callLater(self.heartbeatTimeout/3, self.heartbeatCycle)
-        events = []
-        events += self.rrdStats.gauge('schedule',
-                                      self.heartbeatTimeout,
-                                      len(self.schedule))
-        events += self.rrdStats.counter('commands',
-                                        self.heartbeatTimeout,
-                                        self.executed)
-        events += self.rrdStats.counter('dataPoints',
-                                        self.heartbeatTimeout,
-                                        self.rrd.dataPoints)
-        events += self.rrdStats.gauge('cyclePoints',
-                                      self.heartbeatTimeout,
-                                      self.rrd.endCycle())
-        self.sendEvents(events)
-        
+        @return: A task to scan the OIDs on a device.
+        @rtype: Twisted deferred object
+        """
+        # See if we need to connect first before doing any collection
+        d = defer.maybeDeferred(self._connect)
+        d.addCallbacks(self._connectCallback, self._failure)
+        d.addCallback(self._fetchPerf)
 
-    def processSchedule(self, *unused):
-        """
-        Run through the schedule and start anything that needs to be done.
-        Set a timer if we have nothing to do.
-        """
-        if not self.options.cycle:
-            for cmd in self.schedule:
-                if cmd.running() or cmd.lastStart == 0:
-                    break
-            else:
-                self.stop()
-                return
-        try:
-            if self.timeout and not self.timeout.called:
-                self.timeout.cancel()
-                self.timeout = None
-            def compare(x, y):
-                return cmp(x.nextRun(), y.nextRun())
-            self.schedule.sort(compare)
-            self.pool.trimConnections(self.schedule)
-            earliest = None
-            running = 0
-            now = time.time()
-            for c in self.schedule:
-                if c.running():
-                    running += 1
+        # Call _finished for both success and error scenarois
+        d.addBoth(self._finished)
 
-            for c in self.schedule:
-                if running >= self.options.parallel:
-                    break
-                if c.nextRun() <= now:
-                    c.start(self.pool).addBoth(self.finished)
-                    running += 1
-                else:
-                    earliest = c.nextRun() - now
-                    break
+        # Wait until the Deferred actually completes
+        return d
 
-            if earliest is not None:
-                self.pool.reinitializeCollectorClients()
-                self.log.debug("Next command in %d seconds", int(earliest))
-                self.timeout = reactor.callLater(max(1, earliest),
-                                                 self.processSchedule)
-        except Exception, ex:
-            self.log.exception(ex)
-            
-    
-    def sendCmdEvent(self, cmd, severity, summary):
+    def _connect(self):
         """
-        Send an event using the info in the Cmd object.
-        """
-        self.sendEvent(dict(device=cmd.deviceConfig.device,
-                            component=cmd.component,
-                            eventClass=cmd.eventClass,
-                            eventKey=cmd.eventKey,
-                            severity=severity,
-                            summary=summary))
-                            
-    def finished(self, cmdOrErr):
-        """
-        The command has finished.  cmdOrErr is either a Cmd instance or a
-        twisted failure.
-        """
-        self.executed += 1
-        if isinstance(cmdOrErr, failure.Failure):
-            self.error(cmdOrErr)
-        else:
-            cmd = cmdOrErr
-            self._handleExitCode(cmd)
-            self.parseResults(cmd)
-        self.processSchedule()
-        
-    def _handleExitCode(self, cmd):
-        """
-        zencommand handles sending clears for exit code 0, all other exit codes
-        should be handled by the parser associated with the command
-        """
-        exitCode = cmd.result.exitCode
-        msg = 'Cmd: %s - Code: %s - Msg: %s' % (
-            cmd.command.split()[0], exitCode, getExitMessage(exitCode))
-        if exitCode == 0:
-            self.sendCmdEvent(cmd, Clear, msg)
+        If a local datasource executor, do nothing.
 
-    def error(self, err):
+        If an SSH datasource executor, create a connection to object the remote device.
+        Make a new SSH connection object if there isn't one available.  This doesn't
+        actually connect to the device.
         """
-        The finished method indicated that there was a failure.  This method
-        is also called by RRDDaemon.errorStop.
+        if not self._useSsh:
+            return defer.succeed(None)
+
+        connection = self.pool.get(self._devId, None)
+        if connection is None:
+            self.state = SshPerformanceCollectionTask.STATE_CONNECTING
+            log.debug("Creating connection object to %s", self._devId)
+            username = self._device.zCommandUsername
+            password = self._device.zCommandPassword
+            loginTimeout = self._device.zCommandLoginTimeout
+            commandTimeout = self._device.zCommandCommandTimeout
+            keypath = self._device.zKeyPath
+            options = SshOptions(username, password,
+                              loginTimeout, commandTimeout,
+                              keypath, self._concurrentSessions)
+
+            connection = MySshClient(self._devId, self._manageIp,
+                                 self._device.zCommandPort, options=options)
+            connection.sendEvent = self._eventService.sendEvent
+
+            self.pool[self._devId] = connection
+
+            # Opens SSH connection to device
+            connection.run()
+
+        self._connection = connection
+        self._connection._taskList.add(self)
+        return connection
+
+    def _close(self):
         """
-        if isinstance(err.value, TimeoutError):
-            cmd, = err.value.args
+        If a local datasource executor, do nothing.
+
+        If an SSH datasource executor, relinquish a connection to the remote device.
+        """
+        if self._connection:
+            self._connection._taskList.remove(self)
+            if len(self._connection._taskList) == 0:
+                log.debug("Closing connection to %s", self._devId)
+                if self._connection.transport:
+                    self._connection.transport.loseConnection()
+                del self.pool[self._devId]
+            # Note: deleting the connection from the pool means more work,
+            #   but it also means that we won't have weird synchronization bugs
+            #   with changes from the device not taking effect.
+
+    def connectionFailed(self, msg):
+        """
+        This method is called by the SSH client when the connection fails.
+
+        @parameter msg: message indicating the cause of the problem
+        @type msg: string
+        """
+        # Note: Raising an exception and then catching it doesn't work
+        #       as it appears that the exception is discarded in PBDaemon.py
+        self.state = TaskStates.STATE_PAUSED
+        log.error("Pausing task %s as %s [%s] connection failure: %s",
+                  self.name, self._devId, self._manageIp, msg)
+        self._eventService.sendEvent(STATUS_EVENT,
+                                     device=self._devId,
+                                     summary=msg,
+                                     component=COLLECTOR_NAME,
+                                     severity=Event.Error)
+        self._commandsToExecute.cancel()
+
+    def _failure(self, reason):
+        """
+        Twisted errBack to log the exception for a single device.
+
+        @parameter reason: explanation of the failure
+        @type reason: Twisted error instance
+        """
+        # Decode the exception
+        if isinstance(reason.value, TimeoutError):
+            cmd, = reason.value.args
             msg = "Command timed out on device %s: %r" % (
-                    cmd.deviceConfig.device, cmd.command.split()[0])
-            self.log.warning(msg)
-            self.sendCmdEvent(cmd, cmd.severity, msg)
+                    self._devId, cmd.command.split()[0])
+            log.warning(msg)
+            ev = self._makeCmdEvent(cmd, cmd.severity, msg)
+            self._eventService.sendEvent(ev)
+
+            # Don't log a traceback by not returning a result
+            reason = None
+
+        elif isinstance(reason.value, defer.CancelledError):
+            # The actual issue is logged by connectionFailed
+            # Don't log a traceback by not returning a result
+            msg = "Task %s paused due to connection error" % self.name
+            reason = None
+
         else:
-            self.log.exception(err.value)
-            
-    def parseResults(self, cmd):
-        """
-        Process the results of our command-line, send events
-        and check datapoints.
+            msg = reason.getErrorMessage()
+            if not msg: # Sometimes we get blank error messages
+                msg = reason.__class__
+            msg = '%s %s' % (self._devId, msg)
+            # Leave 'reason' alone to generate a traceback
 
-        @param cmd: command
-        @type: cmd object
+        if self._lastErrorMsg != msg:
+            self._lastErrorMsg = msg
+            if msg:
+                log.error(msg)
+
+        if reason:
+            self._eventService.sendEvent(STATUS_EVENT,
+                                     device=self._devId,
+                                     summary=msg,
+                                     severity=Event.Error)
+
+        if self._useSsh:
+            self._delayNextCheck()
+
+        return reason
+
+    def _connectCallback(self, result):
         """
-        self.log.debug('The result of "%s" was "%r"',
-                       cmd.command.split()[0], cmd.result.output)
-        results = ParsedResults()
+        Callback called after a successful connect to the remote device.
+        """
+        if self._useSsh:
+            log.debug("Connected to %s [%s]", self._devId, self._manageIp)
+        else:
+            log.debug("Running command(s) locally")
+        return result
+
+    def _addDatasource(self, datasource):
+        """
+        Add a new instantiation of ProcessRunner or SshRunner
+        for every datasource.
+        """
+        if self._preferences.options.showfullcommand:
+            log.info("Datasource %s command: %s", datasource.name,
+                     datasource.command)
+
+        if self._useSsh:
+            runner = SshRunner(self._connection)
+        else:
+            runner = ProcessRunner()
+
+        d = runner.start(datasource)
+        datasource.lastStart = time.time()
+        d.addBoth(datasource.processCompleted)
+        return d
+
+    def _fetchPerf(self, ignored):
+        """
+        Get performance data for all the monitored components on a device
+
+        @parameter ignored: required to keep Twisted's callback chain happy
+        @type ignored: result of previous callback
+        """
+        self.state = SshPerformanceCollectionTask.STATE_FETCH_DATA
+        # Bundle up the list of tasks
+        deferredCmds = []
+        for datasource in self._datasources:
+             datasource.deviceConfig = self._device
+             task = self._executor.submit(self._addDatasource, datasource)
+             deferredCmds.append(task)
+
+        # Run the tasks
+        dl = defer.DeferredList(deferredCmds, consumeErrors=True)
+        dl.addCallback(self._parseResults)
+        dl.addCallback(self._storeResults)
+        dl.addCallback(self._updateStatus)
+        dl.addErrback(self._failure)
+
+        # Save the list in case we need to cancel the commands
+        self._commandsToExecute = dl
+        return dl
+
+    def _parseResults(self, resultList):
+        """
+        Interpret the results retrieved from the commands and pass on
+        the datapoint values and events.
+
+        @parameter resultList: results of running the commands in a DeferredList
+        @type resultList: array of (boolean, datasource)
+        """
+        self.state = SshPerformanceCollectionTask.STATE_PARSE_DATA
+        parseableResults = []
+        for success, datasource in resultList:
+            results = ParsedResults()
+            if not success:
+                # In this case, our datasource is actually a defer.Failure
+                reason = datasource
+                datasource, = reason.value.args
+                msg = "Datasource %s command timed out" % (
+                         datasource.name)
+                ev = self._makeCmdEvent(datasource, msg)
+                results.events.append(ev)
+
+            else:
+                self._processDatasourceResults(datasource, results)
+
+            parseableResults.append( (datasource, results) )
+        return parseableResults
+
+    def _makeParser(self, datasource, eventList):
+        """
+        Create a parser object to process data
+
+        @parameter datasource: datasource containg information
+        @type datasource: Cmd object
+        @parameter eventList: list of events
+        @type eventList: list of dictionaries
+        """
+        parser = None
         try:
-            parser = cmd.parser.create()
+            parser = datasource.parser.create()
         except Exception, ex:
-            self.log.exception("Error loading parser %s" % cmd.parser)
-            import traceback
-            self.sendEvent(dict(device=cmd.deviceConfig.device,
-                           summary="Error loading parser %s" % cmd.parser,
-                           component="zencommand",
-                           message=traceback.format_exc(),
-                           agent="zencommand",
-                          ))
+            msg = "Error loading parser %s" % datasource.parser
+            log.exception("%s %s %s", self.name, datasource.name, msg)
+            ev = self._makeCmdEvent(datasource, msg)
+            ev['message'] = traceback.format_exc()
+            eventList.append(ev)
+        return parser
+
+    def _processDatasourceResults(self, datasource, results):
+        """
+        Process a single datasource's results
+
+        @parameter datasource: datasource containg information
+        @type datasource: Cmd object
+        @parameter results: empty results object
+        @type results: ParsedResults object
+        """
+        if not datasource.result.output:
+            msg = "No data returned for command"
+            log.warn("%s %s %s", self.name, datasource.name, msg)
+            ev = self._makeCmdEvent(datasource, msg)
+            results.events.append(ev)
             return
-        parser.processResults(cmd, results)
 
-        for ev in results.events:
-            self.sendEvent(ev, device=cmd.deviceConfig.device)
+        parser = self._makeParser(datasource, results.events)
+        if not parser:
+            return
 
-        for dp, value in results.values:
-            self.log.debug("Storing %s = %s into %s" % (dp.id, value, dp.rrdPath))
-            value = self.rrd.save(dp.rrdPath,
+        try:
+            parser.processResults(datasource, results)
+            if datasource.result.stderr:
+                self._addStderrMsg(datasource.result.stderr,
+                                               results.events)
+        except Exception, ex:
+            msg = "Error running parser %s" % datasource.parser
+            log.exception("%s %s %s", self.name, datasource.name, msg)
+            ev = self._makeCmdEvent(datasource, msg)
+            ev['message'] = traceback.format_exc()
+            ev['output'] = datasource.result.output
+            results.events.append(ev)
+
+    def _addStderrMsg(self, stderrMsg, eventList):
+        """
+        Add the stderr output to error events.
+
+        @parameter stderrMsg: stderr output from the command
+        @type stderrMsg: string
+        @parameter eventList: list of events
+        @type eventList: list of dictionaries
+        """
+        for event in eventList:
+            if event['severity'] not in ('Clear', 'Info', 'Debug'):
+                event['stderr'] = stderrMsg
+
+    def _storeResults(self, resultList):
+        """
+        Store the values in RRD files
+
+        @parameter resultList: results of running the commands
+        @type resultList: array of (datasource, dictionary)
+        """
+        self.state = SshPerformanceCollectionTask.STATE_STORE_PERF
+        for datasource, results in resultList:
+            for dp, value in results.values:
+                threshData = {
+                    'eventKey': datasource.getEventKey(dp),
+                    'component': dp.component,
+                }
+                self._dataService.writeRRD(
+                                  dp.rrdPath,
                                   value,
                                   dp.rrdType,
                                   dp.rrdCreateCommand,
-                                  cmd.cycleTime,
+                                  datasource.cycleTime,
                                   dp.rrdMin,
-                                  dp.rrdMax)
-            self.log.debug("RRD save result: %s" % value)
-            for ev in self.thresholds.check(dp.rrdPath, time.time(), value):
-                eventKey = cmd.getEventKey(dp)
-                if 'eventKey' in ev:
-                    ev['eventKey'] = '%s|%s' % (eventKey, ev['eventKey'])
-                else:
-                    ev['eventKey'] = eventKey
-                ev['component'] = dp.component
-                self.sendEvent(ev)
+                                  dp.rrdMax,
+                                  threshData)
 
-    def fetchConfig(self):
-        def doFetchConfig(driver):
-            try:
-                now = time.time()
-                
-                yield self.model().callRemote('propertyItems')
-                self.setPropertyItems(driver.next())
+        return resultList
 
-                yield self.model().callRemote('getDefaultRRDCreateCommand')
-                createCommand = driver.next()
-
-                yield self.model().callRemote('getThresholdClasses')
-                self.remote_updateThresholdClasses(driver.next())
-
-
-                yield self.model().callRemote('getCollectorThresholds')
-                self.rrdStats.config(self.options.monitor,
-                                     self.name,
-                                     driver.next(),
-                                     createCommand)
-
-                devices = []
-                if self.options.device:
-                    devices = [self.options.device]
-                yield self.model().callRemote('getDataSourceCommands',
-                                              devices)
-                if not devices:
-                    devices = list(Set([c.deviceConfig.device
-                                        for c in self.schedule]))
-                self.updateConfig(driver.next(), devices)
-
-                self.rrd = RRDUtil(createCommand, 60)
-
-                self.sendEvents(
-                    self.rrdStats.gauge('configTime',
-                                        self.configCycleInterval * 60,
-                                        time.time() - now))
-
-            except Exception, ex:
-                self.log.exception(ex)
-                raise
-
-        return drive(doFetchConfig)
-            
-
-    def start(self, driver):
+    def _updateStatus(self, resultList):
         """
-        Fetch the configuration and return a deferred for its completion.
-        Also starts the config cycle
+        Send any accumulated events
+
+        @parameter resultList: results of running the commands
+        @type resultList: array of (datasource, dictionary)
         """
-        ex = None
+        for datasource, results in resultList:
+            self._clearEvent(datasource, results.events)
+            for ev in results.events:
+                self._eventService.sendEvent(ev, device=self._devId)
+        return resultList
+
+    def _clearEvent(self, datasource, eventList):
+        """
+        Ensure that a CLEAR event is sent for any command that
+        successfully completes.
+        """
+        # If the result is a Failure, no exitCode exists
+        exitCode = getattr(datasource.result, 'exitCode', -1)
+        if exitCode is None or exitCode != 0:
+            return
+
+        clearEvents = [ev for ev in eventList if ev.severity == Clear]
+        if not clearEvents:
+            msg = 'Datasource %s command completed successfully' % (
+                    datasource.name)
+            ev = self._makeCmdEvent(datasource, msg, severity=Clear)
+            eventList.append(ev)
+
+    def _makeCmdEvent(self, datasource, msg, severity=None):
+        """
+        Create an event using the info in the Cmd object.
+        """
+        severity = datasource.severity if severity is None else severity
+        ev = dict(
+                  device=self._devId,
+                  component=datasource.component,
+                  eventClass=datasource.eventClass,
+                  eventKey=datasource.eventKey,
+                  severity=severity,
+                  summary=msg
+        )
+        return ev
+
+    def _finished(self, result):
+        """
+        Callback activated when the task is complete
+
+        @parameter result: results of the task
+        @type result: deferred object
+        """
         try:
-            self.log.debug('Fetching configuration from zenhub')
-            yield self.fetchConfig()
-            driver.next()
-            self.log.debug('Finished config fetch')
+            self._close()
         except Exception, ex:
-            self.log.exception(ex)
-        driveLater(self.configCycleInterval * 60, self.start)
-        if ex:
-            raise ex
+            log.warn("Failed to close device %s: error %s" %
+                     (self._devId, str(ex)))
 
-    def buildOptions(self):
-        RRDDaemon.buildOptions(self)
+        # Return the result so the framework can track success/failure
+        return result
 
-        self.parser.add_option('--parallel', dest='parallel', 
-                               default=10, type='int',
-                               help="Number of devices to collect at one time")
-        
-    def connected(self):
-        d = drive(self.start).addCallbacks(self.processSchedule, self.errorStop)
-        if self.options.cycle:
-            d.addCallback(self.heartbeatCycle)
+    def _delayNextCheck(self):
+        """
+        Rather than keep re-polling at the same periodicity to
+        determine if the device's agent is responding or not, 
+        let this task back up in the queue.
+        Add a random element to it so that we don't get the
+        thundering herd effect.
+        A maximum delay is used so that there is a bound on the
+        length of times between checks.
+        """
+        # If it's not responding, don't poll it so often
+        if self.interval != self._maxbackoffseconds:
+            delay = random.randint(int(self.interval / 2), self.interval) * 2
+            self.interval = min(self._maxbackoffseconds, self.interval + delay)
+            log.debug("Delaying next check for another %s",
+                      readable_time(self.interval))
+
+    def displayStatistics(self):
+        """
+        Called by the collector framework scheduler, and allows us to
+        see how each task is doing.
+        """
+        display = "%s useSSH: %s\n" % (
+            self.name, self._useSsh)
+        if self._lastErrorMsg:
+            display += "%s\n" % self._lastErrorMsg
+        return display
+
+def chunk(lst, n):
+    """
+    Break lst into n-sized chunks
+    """
+    return [lst[i:i+n] for i in range(0, len(lst), n)]
+
 
 
 if __name__ == '__main__':
-    from Products.ZenRRD.zencommand import zencommand
-    z = zencommand()
-    z.run()
+    # Required for passing classes from zenhub to here
+    from Products.ZenRRD.zencommand import Cmd, DataPointConfig
+
+    myPreferences = SshPerformanceCollectionPreferences()
+    myTaskFactory = SimpleTaskFactory(SshPerformanceCollectionTask)
+    myTaskSplitter = SshPerCycletimeTaskSplitter(myTaskFactory)
+    daemon = CollectorDaemon(myPreferences, myTaskSplitter)
+    daemon.run()
+
