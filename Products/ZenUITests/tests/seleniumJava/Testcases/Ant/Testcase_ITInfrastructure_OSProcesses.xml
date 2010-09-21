@@ -14,11 +14,11 @@
 	<description>
 			General JUnit ant script
 	</description>
-	<property name="src" value="Testcases/src/loc/zenoss/testcases/TInfrastructure/OSProcesses" />
+	<property name="src" value="Testcases/src/loc/zenoss/testcases/ITInfrastructure/OSProcesses" />
     <property name="Results" value="Results" />
 	<property name="lib" value="lib" />
 	<property name="classes" value="Testcases/bin" />
-	<property name="test" value="loc.zenoss.testcases.TInfrastructure.OSProcesses.AddOSProcess" />
+	<property name="test" value="loc.zenoss.testcases.ITInfrastructure.OSProcesses.AddOSProcess" />
 	
 	<path id="TestCases.classpath">
 	  <pathelement location="${classes}" />
