@@ -35,11 +35,26 @@ public class Common {
 	{
 		byte count = 0;
 		while(!sClient.isElementPresent(element))
-			Thread.sleep(2);
+			Thread.sleep(1000);
 			count++;
-
 			if(count > 30)
 			  throw new Exception("Element not found");
+
+	}
+	
+	/*
+	 * Waits for specified text to appear on the specified target
+	 * */
+	public static void waitForText(String target, String text, DefaultSelenium sClient) throws Exception
+	{
+		byte count = 0;
+		while(!sClient.getText(target).matches(text))
+		{
+			Thread.sleep(1000);
+			count++;
+			if(count > 30)
+			  throw new Exception("Text not found");
+		}
 	}
 	
 	/*
