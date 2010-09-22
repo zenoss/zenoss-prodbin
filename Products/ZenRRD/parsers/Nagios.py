@@ -111,8 +111,8 @@ class Nagios(CommandParser):
         )
 
         if msg is None:
-            evt['error_codes'] = 'Cmd: %s - Code: %s - Msg: %s' % (
-                           cmd.command, exitCode,
+            evt['error_codes'] = 'Datasource: %s - Code: %s - Msg: %s' % (
+                           cmd.name, exitCode,
                            getExitMessage(exitCode))
             result.events.append(evt)
             return

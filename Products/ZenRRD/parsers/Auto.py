@@ -33,8 +33,8 @@ class Auto(CommandParser):
             msg, values = '', output
         else:
             msg, values = output, ''
-        msg = msg.strip() or 'Cmd: %s - Code: %s - Msg: %s' % (
-            cmd.command, exitCode, getExitMessage(exitCode))
+        msg = msg.strip() or 'Datasource: %s - Code: %s - Msg: %s' % (
+            cmd.name, exitCode, getExitMessage(exitCode))
         if exitCode != 0:
             if exitCode == 2:
                 severity = min(severity + 1, 5)
