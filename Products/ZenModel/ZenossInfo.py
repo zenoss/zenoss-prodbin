@@ -442,7 +442,8 @@ class ZenossInfo(ZenModelItem, SimpleItem):
         masterScript = binPath('zenoss')
         daemons = []
         for line in os.popen("%s list" % masterScript).readlines():
-            daemons.append(line.strip())
+            if 'zenrrdcache' not in line:
+                daemons.append(line.strip())
         return daemons
 
 
