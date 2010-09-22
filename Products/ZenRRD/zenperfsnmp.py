@@ -403,11 +403,14 @@ class SnmpPerformanceCollectionTask(ObservableMixin):
         @type success: boolean
         """
         if success:
-            if self._snmpStatusFailures > 0:
-                summary = 'Gathered all OIDs'
-                self._eventService.sendEvent(STATUS_EVENT,
+            # As we might not be the process that detected
+            # something was down, always send clear events.
+            # These are deduped out by the daemon code.
+            summary = 'Gathered all OIDs'
+            self._eventService.sendEvent(STATUS_EVENT,
                         device=self._devId, summary=summary,
                         severity=Event.Clear)
+            if self._snmpStatusFailures > 0:
                 log.info("%s %s", self._devId, summary)
             self._snmpStatusFailures = 0
 
