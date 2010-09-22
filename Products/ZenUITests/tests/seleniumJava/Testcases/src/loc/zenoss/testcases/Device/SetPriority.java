@@ -24,7 +24,7 @@ import com.thoughtworks.selenium.SeleneseTestCase;
 import loc.zenoss.TestlinkXMLRPC;
 
 public class SetPriority {
-	private SeleneseTestCase selenese = null;
+	private static SeleneseTestCase selenese = null;
 	private static DefaultSelenium sClient = null;
 	
 	private static int testCaseID = 3771;
@@ -32,13 +32,15 @@ public class SetPriority {
 		
 	@BeforeClass
 	 public static void setUpBeforeClass() throws Exception {
+		 selenese = new SeleneseTestCase();
 	     sClient = new DefaultSelenium(ZenossConstants.SeleniumHubHostname, 4444,
 	 			ZenossConstants.browser, ZenossConstants.testedMachine)  {
 	        		public void open(String url) {
 	        			commandProcessor.doCommand("open", new String[] {url,"true"});
-	        		}     	};
+	        		}     	};	   
 	        		sClient.start();
 			sClient.deleteAllVisibleCookies();
+			
 		}
 
 		@AfterClass
@@ -59,6 +61,7 @@ public class SetPriority {
 
 		@Test
 		public void setPriority() throws Exception{
+			
 			Common.Login(sClient, ZenossConstants.adminUserName,ZenossConstants.adminPassword);
 			Thread.sleep(12000);
 			
@@ -87,8 +90,8 @@ public class SetPriority {
 			sClient.click("//span[normalize-space(@class)='node-text' and text()='Discovered']");
 			Thread.sleep(3000);
 			// Click [Select] button and then [All] option
-			sClient.click("ext-comp-1080");
-			sClient.click("ext-comp-1082");
+			sClient.click("//*[button='Select']");
+			sClient.click("//span[@class='x-menu-item-text' and text()='All']");
 			// Click the [Actions] button and then [Set Priority...] option
 			sClient.click("//table[@id='actions-menu']/tbody/tr[2]/td[2]/em");
 			sClient.click("//span[normalize-space(@class)='x-menu-item-text' and text()='Set Priority...']");
