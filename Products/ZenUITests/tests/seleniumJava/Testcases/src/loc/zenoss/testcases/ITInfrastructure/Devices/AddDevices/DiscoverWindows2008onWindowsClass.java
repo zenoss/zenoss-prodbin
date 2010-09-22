@@ -27,7 +27,7 @@ public class DiscoverWindows2008onWindowsClass {
 	private static SeleneseTestCase selenese = null;
 	private static DefaultSelenium sClient = null;
 	
-	private static int testCaseID = 3463;
+	private static int testCaseID = 2051;
 	private static String testCaseResult = "f"; //Fail by default
 		
 	@BeforeClass
