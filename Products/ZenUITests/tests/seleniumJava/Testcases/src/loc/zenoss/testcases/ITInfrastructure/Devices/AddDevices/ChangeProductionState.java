@@ -13,7 +13,6 @@
 package loc.zenoss.testcases.ITInfrastructure.Devices.AddDevices;
 
 
-import loc.zenoss.Common;
 import loc.zenoss.TestlinkXMLRPC;
 import loc.zenoss.ZenossConstants;
 
@@ -24,7 +23,6 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 
 import com.thoughtworks.selenium.DefaultSelenium;
-import com.thoughtworks.selenium.SeleneseTestCase;
 
 public class ChangeProductionState {
 

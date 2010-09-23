@@ -12,7 +12,6 @@
 */
 package loc.zenoss.testcases.ITInfrastructure.Networks;
 
-import loc.zenoss.Common;
 import loc.zenoss.TestlinkXMLRPC;
 import loc.zenoss.ZenossConstants;
 

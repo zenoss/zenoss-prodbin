@@ -20,17 +20,12 @@ import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
-import loc.zenoss.Common;
-import loc.zenoss.TestlinkXMLRPC;
-import loc.zenoss.ZenossConstants;
-
 import com.thoughtworks.selenium.DefaultSelenium;
 import com.thoughtworks.selenium.SeleneseTestCase;
 
 public class BackupDefaultSettings {
 
 	private static DefaultSelenium sClient = null;
-	private SeleneseTestCase selenese = null;
 	private static int testCaseID = 1790;
 	private static String testCaseResult = "f"; //Fail by default
     

@@ -16,7 +16,6 @@ import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
-import loc.zenoss.Common;
 import loc.zenoss.TestlinkXMLRPC;
 import loc.zenoss.ZenossConstants;
 

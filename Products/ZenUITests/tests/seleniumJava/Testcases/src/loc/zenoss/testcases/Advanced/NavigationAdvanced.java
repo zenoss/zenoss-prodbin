@@ -12,7 +12,6 @@
 */
 package loc.zenoss.testcases.Advanced;
 
-import loc.zenoss.Common;
 import loc.zenoss.TestlinkXMLRPC;
 import loc.zenoss.ZenossConstants;
 

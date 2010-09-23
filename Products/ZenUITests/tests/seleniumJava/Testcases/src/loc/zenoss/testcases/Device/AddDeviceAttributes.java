@@ -27,13 +27,7 @@ public class AddDeviceAttributes {
 	private SeleneseTestCase selenese = null;
 	private static DefaultSelenium sClient = null;
 	private String Devicename = "";
-	private String SnmpCommunity = "";
-	private String SnmpPort = "";
-	private String TagNumber = "";
-	private String SerialNumber = "";
-	private String Title = "";
-	private String Comments = "";
-		
+	
 	
 	@BeforeClass
 	public static void setUpBeforeClass() throws Exception {

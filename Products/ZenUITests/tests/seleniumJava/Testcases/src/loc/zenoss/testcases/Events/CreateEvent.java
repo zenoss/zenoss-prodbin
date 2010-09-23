@@ -21,7 +21,6 @@ import loc.zenoss.Common;
 import loc.zenoss.ZenossConstants;
 
 import com.thoughtworks.selenium.DefaultSelenium;
-import com.thoughtworks.selenium.SeleneseTestCase;
 
 public class CreateEvent {
 	

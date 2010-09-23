@@ -15,7 +15,6 @@ package loc.zenoss.testcases.ITInfrastructure.Devices.AddDevices;
 
 import loc.zenoss.TestlinkXMLRPC;
 import loc.zenoss.ZenossConstants;
-import loc.zenoss.testcases.Device.AddDevice;
 import loc.zenoss.Common;
 
 import org.junit.After;
