@@ -61,6 +61,7 @@ Z_PROPERTIES = [
     ('zSnmpPrivPassword', '', 'password'),
     ('zSnmpAuthType', '', 'string'),
     ('zSnmpPrivType', '', 'string'),
+    ('zSnmpCollectionInterval', 300, 'int'),
     ('zRouteMapCollectOnlyLocal', False, 'boolean'),
     ('zRouteMapCollectOnlyIndirect', False, 'boolean'),
     ('zRouteMapMaxRoutes', 500, 'int'),
