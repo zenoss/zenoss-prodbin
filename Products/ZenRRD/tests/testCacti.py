@@ -37,6 +37,7 @@ class TestCacti(BaseTestCase):
         cmd.result.exitCode = 2
         cmd.severity = 2
         cmd.command = "testCactiPlugin"
+        cmd.name = "testCactiPlugin"
         cmd.eventKey = "cactiKey"
         cmd.eventClass = "/Cmd"
         cmd.component = "zencommand"
