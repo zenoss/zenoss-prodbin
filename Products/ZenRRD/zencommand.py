@@ -822,7 +822,7 @@ class SshPerformanceCollectionTask(ObservableMixin):
         if exitCode is None or exitCode != 0:
             return
 
-        clearEvents = [ev for ev in eventList if ev.severity == Clear]
+        clearEvents = [ev for ev in eventList if ev['severity'] == Clear]
         if not clearEvents:
             msg = 'Datasource %s command completed successfully' % (
                     datasource.name)
