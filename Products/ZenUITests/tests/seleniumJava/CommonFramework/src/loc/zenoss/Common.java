@@ -12,7 +12,6 @@
 */
 package loc.zenoss;
 import com.thoughtworks.selenium.DefaultSelenium;
-import com.thoughtworks.selenium.SeleneseTestCase;
 
 
 public class Common {
