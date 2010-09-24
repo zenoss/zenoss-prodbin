@@ -10,7 +10,7 @@
 # For complete information please visit: http://www.zenoss.com/oss/
 #############################################################################
 */
-package loc.zenoss.testcases.Device;
+package loc.zenoss.testcases.ITInfrastructure.Devices;
 
 import org.junit.AfterClass;
 import org.junit.After;

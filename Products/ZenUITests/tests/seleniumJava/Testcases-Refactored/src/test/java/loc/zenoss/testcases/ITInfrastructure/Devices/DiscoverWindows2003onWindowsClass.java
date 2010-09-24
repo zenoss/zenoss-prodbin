@@ -1,7 +1,7 @@
 /**
 #############################################################################
 # This program is part of Zenoss Core, an open source monitoringplatform.
-# Copyright (C) 2007, Zenoss Inc.
+# Copyright (C) 2010, Zenoss Inc.
 #
 # This program is free software; you can redistribute it and/or modify it
 # under the terms of the GNU General Public License version 2 as published by
@@ -10,7 +10,7 @@
 # For complete information please visit: http://www.zenoss.com/oss/
 #############################################################################
 */
-package loc.zenoss.testcases.ITInfrastructure.Devices.AddDevices;
+package loc.zenoss.testcases.ITInfrastructure.Devices;
 
 
 import loc.zenoss.TestlinkXMLRPC;

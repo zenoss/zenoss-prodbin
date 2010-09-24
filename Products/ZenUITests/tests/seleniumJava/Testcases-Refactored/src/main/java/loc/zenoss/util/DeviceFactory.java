@@ -15,7 +15,7 @@ import org.apache.commons.configuration.PropertiesConfiguration;
 
 /**
  *
- * @author bakeneko
+ * @author wquesada
  */
 public class DeviceFactory {
 

@@ -1,7 +1,7 @@
 /**
 #############################################################################
 # This program is part of Zenoss Core, an open source monitoringplatform.
-# Copyright (C) 2007, Zenoss Inc.
+# Copyright (C) 2010, Zenoss Inc.
 #
 # This program is free software; you can redistribute it and/or modify it
 # under the terms of the GNU General Public License version 2 as published by
@@ -10,7 +10,7 @@
 # For complete information please visit: http://www.zenoss.com/oss/
 #############################################################################
 */
-package loc.zenoss.testcases.Device;
+package loc.zenoss.testcases.ITInfrastructure.Devices;
 
 import org.junit.After;
 import org.junit.AfterClass;
@@ -23,7 +23,7 @@ import loc.zenoss.ZenossConstants;
 import com.thoughtworks.selenium.DefaultSelenium;
 import com.thoughtworks.selenium.SeleneseTestCase;
 
-public class AddDevice {
+public class AddDeviceLinux {
 	private SeleneseTestCase selenese = null;
 	private static DefaultSelenium sClient = null;
 		
@@ -57,36 +57,37 @@ public class AddDevice {
 	
 	
 	@Test
-	public void addSingleDevice() throws Exception
+	public void addSingleDevice(String Devicename) throws Exception
 	{
+		//Login into System
 		Common.Login(sClient, ZenossConstants.adminUserName, ZenossConstants.adminPassword);
-		
-		sClient.click("link=IT Infrastructure");
+		//Go to INFRASTRUCTURE
+		sClient.click("link=Infrastructure");
 		sClient.waitForPageToLoad("30000");
-		Thread.sleep(8000);
-		sClient.click("ext-gen57");
 		Thread.sleep(5000);
-		sClient.click("//span[contains(text(), 'Add a Single Device')]/../..");
-		Thread.sleep(10000);
-		sClient.type("add-device-name", "test-winxp-1.zenoss.loc");
-		sClient.click("ext-gen360");
-		sClient.click("//div[@id='ext-gen424']/div[53]");
-		sClient.type("ext-comp-1139", "test-winxp-1");
-		sClient.click("ext-gen340");
-		sClient.click("ext-gen440");
+		//Click on Add Device Button
+		sClient.click("//table[@id='adddevice-button']/tbody/tr[2]/td[2]/em");
+		//Click on Single Device
+		sClient.click("ext-gen247");
+		//Enter Devicename or IP
+		sClient.type("add-device-name", Devicename);
+		//Click on DeviceClass Combobox
+		sClient.click("ext-gen292");
+		//Select Server/Linux entry
+		sClient.click("//div[@id='ext-gen356']/div[43]");
+		//Click on Submitt
+		sClient.click("ext-gen272");
+		//Wait until we get the job notification
+		Thread.sleep(5000);
 		sClient.waitForPageToLoad("30000");
-		selenese.verifyTrue(sClient.isTextPresent("Job completed at 2010-03-24 11:15:50. Result: success."));
+		//Verify notification message
+		selenese.verifyTrue(sClient.isTextPresent("View Job Log"));
+		//Verify Device was properly added
 		sClient.click("link=Dashboard");
 		sClient.waitForPageToLoad("30000");
-		sClient.click("link=IT Infrastructure");
+		sClient.click("link=Infrastructure");
 		sClient.waitForPageToLoad("30000");
-		sClient.click("//ul[@id='ext-gen108']/li[8]/div/a/span/span[1]");
-		sClient.click("link=test-winxp-1");
-		sClient.waitForPageToLoad("30000");
-		selenese.verifyTrue(sClient.isTextPresent("test-winxp-1"));
-		selenese.verifyTrue(sClient.isTextPresent("/Server/Windows"));
-		
-		
+		selenese.verifyTrue(sClient.isTextPresent(Devicename));		
 	}
 
 }

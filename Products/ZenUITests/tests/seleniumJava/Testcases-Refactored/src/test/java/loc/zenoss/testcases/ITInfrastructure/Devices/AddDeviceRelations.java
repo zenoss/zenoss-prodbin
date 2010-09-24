@@ -1,7 +1,7 @@
 /**
 #############################################################################
 # This program is part of Zenoss Core, an open source monitoringplatform.
-# Copyright (C) 2007, Zenoss Inc.
+# Copyright (C) 2010, Zenoss Inc.
 #
 # This program is free software; you can redistribute it and/or modify it
 # under the terms of the GNU General Public License version 2 as published by
@@ -10,7 +10,7 @@
 # For complete information please visit: http://www.zenoss.com/oss/
 #############################################################################
 */
-package loc.zenoss.testcases.Device;
+package loc.zenoss.testcases.ITInfrastructure.Devices;
 
 import org.junit.After;
 import org.junit.AfterClass;
@@ -23,9 +23,10 @@ import loc.zenoss.ZenossConstants;
 import com.thoughtworks.selenium.DefaultSelenium;
 import com.thoughtworks.selenium.SeleneseTestCase;
 
-public class AddDeviceWindows {
+public class AddDeviceRelations {
 	private SeleneseTestCase selenese = null;
 	private static DefaultSelenium sClient = null;
+	private String Devicename = "";
 		
 	
 	@BeforeClass
@@ -47,7 +48,7 @@ public class AddDeviceWindows {
 
 	@Before
 	public void setUp() throws Exception {
-		 selenese = new SeleneseTestCase();
+		 selenese = new SeleneseTestCase();		 
 	}
 
 	@After
@@ -57,7 +58,7 @@ public class AddDeviceWindows {
 	
 	
 	@Test
-	public void addSingleDevice(String Devicename) throws Exception
+	public void addSingleDevice() throws Exception
 	{
 		//Login into System
 		Common.Login(sClient, ZenossConstants.adminUserName, ZenossConstants.adminPassword);
@@ -66,16 +67,31 @@ public class AddDeviceWindows {
 		sClient.waitForPageToLoad("30000");
 		Thread.sleep(5000);
 		//Click on Add Device Button
-		sClient.click("ext-gen77");
+		sClient.click("//table[@id='adddevice-button']/tbody/tr[2]/td[2]/em");
 		//Click on Single Device
 		sClient.click("ext-gen247");
 		//Enter Devicename or IP
 		sClient.type("add-device-name", Devicename);
 		//Click on DeviceClass Combobox
 		sClient.click("ext-gen292");
-		sClient.click("//div[@id='ext-gen356']/div[57]");
+		//Select Server/Linux entry
+		sClient.click("//div[@id='ext-gen356']/div[43]");
+		//Click on More
+		sClient.click("link=More...");
+		//Click on HW Man and select Intel
+		sClient.click("ext-gen449");
+		sClient.click("//div[@id='ext-gen478']/div[23]");
+		// Click on HW Product and select Intel Celeron Model 4 Stepping 9
+		sClient.click("ext-gen453");
+		sClient.click("//div[@id='ext-gen480']/div[8]");
+		// Click on OS Man and selected RedHat
+		sClient.click("ext-gen457");
+		sClient.click("//div[@id='ext-gen483']/div[39]");
+		// Click on OS Product and selected REL ES 4.3
+		sClient.click("ext-gen410");
+		sClient.click("//div[@id='ext-gen488']/div[43]");
 		//Click on Submitt
-		sClient.click("ext-gen278");
+		sClient.click("ext-gen272");
 		//Wait until we get the job notification
 		Thread.sleep(5000);
 		sClient.waitForPageToLoad("30000");

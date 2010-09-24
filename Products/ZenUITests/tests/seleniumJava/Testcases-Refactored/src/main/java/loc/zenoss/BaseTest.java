@@ -1,7 +1,7 @@
 /**
 #############################################################################
 # This program is part of Zenoss Core, an open source monitoringplatform.
-# Copyright (C) 2007, Zenoss Inc.
+# Copyright (C) 2010, Zenoss Inc.
 #
 # This program is free software; you can redistribute it and/or modify it
 # under the terms of the GNU General Public License version 2 as published by
@@ -23,7 +23,7 @@ import static loc.zenoss.testcases.util.Constants.*;
 
 /**
  *
- * @author bakeneko
+ * @author wquesada
  */
 public abstract class BaseTest {
 

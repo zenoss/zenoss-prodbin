@@ -1,11 +1,11 @@
-package loc.zenoss.testcases.Backup;
+package loc.zenoss.testcases.Settings.Backups;
 
 import org.junit.runner.RunWith;
 import org.junit.runners.Suite.SuiteClasses;
 
 /**
  *
- * @author bakeneko
+ * @author wquesada
  */
 
 public class BackupSuite {

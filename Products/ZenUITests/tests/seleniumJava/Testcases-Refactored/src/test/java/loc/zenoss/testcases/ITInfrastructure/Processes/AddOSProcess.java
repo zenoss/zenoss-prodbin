@@ -10,10 +10,10 @@
 # For complete information please visit: http://www.zenoss.com/oss/
 #############################################################################
 */
-package loc.zenoss.testcases.Device;
+package loc.zenoss.testcases.ITInfrastructure.Processes;
 
-import org.junit.AfterClass;
 import org.junit.After;
+import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -23,14 +23,14 @@ import com.thoughtworks.selenium.DefaultSelenium;
 import com.thoughtworks.selenium.SeleneseTestCase;
 import loc.zenoss.TestlinkXMLRPC;
 
+public class AddOSProcess {
 
-public class RemoveDevice {
+	private static int testCaseID = 2230;
+	private static String testCaseResult = "f"; //Fail by default
+	
 	private SeleneseTestCase selenese = null;
 	private static DefaultSelenium sClient = null;
 	
-	private static int testCaseID = 3560;
-	private static String testCaseResult = "f"; //Fail by default
-		
 	@BeforeClass
 	 public static void setUpBeforeClass() throws Exception {
 	     sClient = new DefaultSelenium(ZenossConstants.SeleniumHubHostname, 4444,
@@ -42,10 +42,11 @@ public class RemoveDevice {
 			sClient.deleteAllVisibleCookies();
 		}
 
-		@AfterClass
+	 @AfterClass
 		public static void tearDownAfterClass() throws Exception {
 			sClient.stop();
 			TestlinkXMLRPC.UpdateTestCaseResult(testCaseID, ZenossConstants.testPlanID, testCaseResult);
+
 		}
 
 		
@@ -57,10 +58,10 @@ public class RemoveDevice {
 		@After
 		public void tearDown() throws Exception {
 		}
-
+		
 		@Test
-		public void removeDevice() throws Exception{
-			Common.Login(sClient, ZenossConstants.adminUserName,ZenossConstants.adminPassword);
+		public void addOSProcess() throws Exception{
+			Common.Login(sClient, ZenossConstants.adminUserName, ZenossConstants.adminPassword);
 			Thread.sleep(12000);
 			
 			sClient.open("/zport/dmd/Dashboard");
@@ -72,9 +73,9 @@ public class RemoveDevice {
 			sClient.click("//table[@id='adddevice-button']/tbody/tr[2]/td[2]/em");
 			sClient.click("addsingledevice-item");
 			Thread.sleep(1000);
-			sClient.type("add-device-name", "test-solaris9.zenoss.loc");
+			sClient.type("add-device-name", "test-sql2005-1d.zenoss.loc");
 			Thread.sleep(1000);
-			sClient.typeKeys("add-device_class", "/Server/Solaris");
+			sClient.typeKeys("add-device_class", "/Server/Windows/");
 			Thread.sleep(2000);
 			sClient.click("//table[@id='addsingledevice-submit']/tbody/tr[2]/td[2]/em/button");
 			Thread.sleep(6000);
@@ -85,23 +86,39 @@ public class RemoveDevice {
 			sClient.click("link=Infrastructure");
 			sClient.waitForPageToLoad("30000");
 			Thread.sleep(6000);
-			// Select the device
-			sClient.mouseOver("//div[@class='x-grid3-body']//*[a='test-solaris9.zenoss.loc']");
-			sClient.mouseDown("//div[@class='x-grid3-body']//*[a='test-solaris9.zenoss.loc']");
-			// Click on Remove Devices
+			// Click on the device added
+			sClient.click("link=test-sql2005-1d.zenoss.loc");
+			sClient.waitForPageToLoad("30000");
+			// Add new OS Process
+			Thread.sleep(2000);
+			sClient.click("//table[@id='component-add-menu']/tbody/tr[2]/td[2]/em");
 			Thread.sleep(1000);
-			sClient.click("delete-button");
-			// Click on Remove button
+			sClient.click("addosprocess");
 			Thread.sleep(1000);
-			sClient.click("//*[button='Remove']");
-			Thread.sleep(6000);
-			selenese.verifyTrue(sClient.isTextPresent("Successfully deleted device: test-solaris9.zenoss.loc"));
+			sClient.typeKeys("newClassName", "httpd");
+			Thread.sleep(1000);
+			selenese.verifyTrue(sClient.isTextPresent("httpd"));
+			Thread.sleep(1000);
+			sClient.click("//*[button='Submit']");
+			Thread.sleep(3000);
+			selenese.verifyTrue(sClient.isTextPresent("Add OSProcess finished successfully"));
+			// Select OS Processes component
+			Thread.sleep(2000);
+			sClient.click("//span[normalize-space(@class)='node-text' and text()='OS Processes']");
+			// Verify the http process 
 			Thread.sleep(5000);
-			// Verify that the device is removed
-			selenese.verifyFalse(sClient.isElementPresent("test-solaris9.zenoss.loc"));
-						
+			selenese.verifyTrue(sClient.isTextPresent("httpd"));
+			selenese.verifyEquals("httpd", sClient.getText("link=httpd"));
+			// Click on httpd Process
+			sClient.click("link=httpd");
+			sClient.waitForPageToLoad("30000");
+			Thread.sleep(5000);
+			selenese.verifyEquals("httpd", sClient.getValue("nameTextField"));
+			selenese.verifyEquals("Apache httpd web server process",sClient.getValue("ext-comp-1084"));
+			// Verify that the device is displayed on the httpd process
+			Thread.sleep(1000);
+			selenese.verifyEquals("test-sql2005-1d.zenoss.loc", sClient.getText("link=test-sql2005-1d.zenoss.loc"));
+			
 			testCaseResult = "p";
-
 		}
-
 }
