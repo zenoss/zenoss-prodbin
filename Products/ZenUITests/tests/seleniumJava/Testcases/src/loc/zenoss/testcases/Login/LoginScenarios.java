@@ -65,7 +65,7 @@ public class LoginScenarios {
 	public void testLoginAsAdmin() throws Exception{		
 		Common.Login(sClient, ZenossConstants.adminUserName,ZenossConstants.adminPassword);
 		Thread.sleep(12000);
-		SeleneseTestCase.assertTrue(sClient.isElementPresent("link=Getting Started Guide (PDF)"));		
+		SeleneseTestCase.assertTrue(sClient.isElementPresent("link=Getting Started Guide"));		
 		testCaseResult = "p";
 	}
 	
