@@ -36,6 +36,13 @@ class InterfaceAliasMap(InterfaceMap):
         ),
     )
 
+    def __init__(self, *args, **kwargs):
+        # save proxy to self as superclass, to guard against future
+        # reload of plugin module changing imported classes (making
+        # future super calls fail due to class mismatch)
+        self.as_super = super(InterfaceAliasMap,self)
+        self.as_super.__init__(*args, **kwargs)
+
     def process(self, device, results, log):
         """
         Pre-process the IF-MIB ifXTable to use the ifAlias as the interface's
@@ -47,4 +54,4 @@ class InterfaceAliasMap(InterfaceMap):
                     if a_idx == i_idx:
                         results[1]['iftable'][i_idx]['id'] = alias['ifName']
         
-        return super(InterfaceAliasMap, self).process(device, results, log)
+        return self.as_super.process(device, results, log)
