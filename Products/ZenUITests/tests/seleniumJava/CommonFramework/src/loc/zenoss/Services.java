@@ -39,7 +39,7 @@ public class Services {
 		}
 
 		sClient.click("//button[text()='Submit']");
-		// Refresh Windows Services page to load
+		// Refresh page and wait for Organizers list to load
 		sClient.click("link=Windows Services");
 		sClient.waitForPageToLoad("30000");
 		for (int second = 0;; second++) {
