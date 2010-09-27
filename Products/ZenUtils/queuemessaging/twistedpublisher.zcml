@@ -1,5 +1,0 @@
-<configure xmlns="http://namespaces.zope.org/zope">
-  <utility factory=".publisher.AsyncQueuePublisher"
-           provides=".interfaces.IQueuePublisher"
-           />
-</configure>

@@ -70,8 +70,6 @@ class CmdBase(object):
                 pass
         import Products.ZenWidgets
         load_config_override('scriptmessaging.zcml', Products.ZenWidgets)
-        # responsible for sending messages to the queues
-        load_config_override('twistedpublisher.zcml', Products.ZenUtils.queuemessaging)
 
         self.usage = "%prog [options]"
         self.noopts = noopts

@@ -30,7 +30,6 @@ from Products.Zuul.catalog.events import IndexingEvent
 from Exceptions import ObjectCreationError
 from Products.ZenEvents.ZenEventClasses import Change_Add,Change_Remove,Change_Set,Change_Add_Blocked,Change_Remove_Blocked,Change_Set_Blocked
 from Products.ZenModel.Lockable import Lockable
-from Products.ZenModel.ChangeEvents.events import ObjectModifiedEvent
 import Products.ZenEvents.Event as Event
 from zExceptions import NotFound
 
@@ -89,7 +88,7 @@ class ApplyDataMap(object):
         devname = device.device().id
         if (self.datacollector
             # why is this line here?  Blocks evnets from model in zope
-            #and getattr(self.datacollector, 'generateEvents', False)
+            #and getattr(self.datacollector, 'generateEvents', False) 
             and getattr(self.datacollector, 'dmd', None)):
             eventDict = {
                 'eventClass': eventClass,
@@ -102,7 +101,7 @@ class ApplyDataMap(object):
                 }
             self.datacollector.dmd.ZenEventManager.sendEvent(eventDict)
 
-
+        
     def processClient(self, device, collectorClient):
         """
         A modeler plugin specifies the protocol (eg SNMP, WMI) and
@@ -120,10 +119,10 @@ class ApplyDataMap(object):
         try:
             for pname, results in collectorClient.getResults():
                 log.debug("Processing plugin %s on device %s", pname, device.id)
-                if not results:
+                if not results: 
                     log.warn("Plugin %s did not return any results", pname)
                     continue
-                plugin = self.datacollector.collectorPlugins.get(pname, None)
+                plugin = self.datacollector.collectorPlugins.get(pname, None) 
                 if not plugin:
                     log.warn("Unable to get plugin %s from %s", pname,
                              self.datacollector.collectorPlugins)
@@ -132,7 +131,7 @@ class ApplyDataMap(object):
                 results = plugin.preprocess(results, log)
                 datamaps = plugin.process(device, results, log)
                 #allow multiple maps to be returned from one plugin
-                if (type(datamaps) != types.ListType
+                if (type(datamaps) != types.ListType 
                     and type(datamaps) != types.TupleType):
                     datamaps = [datamaps,]
                 for datamap in datamaps:
@@ -148,7 +147,7 @@ class ApplyDataMap(object):
             trans.setUser("datacoll")
             trans.note("data applied from automated collection")
             trans.commit()
-        except (SystemExit, KeyboardInterrupt):
+        except (SystemExit, KeyboardInterrupt): 
             raise
         except:
             transaction.abort()
@@ -160,7 +159,7 @@ class ApplyDataMap(object):
         """
         from plugins.DataMaps import RelationshipMap, ObjectMap
         if relname:
-            datamap = RelationshipMap(relname=relname, compname=compname,
+            datamap = RelationshipMap(relname=relname, compname=compname, 
                                 modname=modname, objmaps=datamap)
         else:
             datamap = ObjectMap(datamap, compname=compname, modname=modname)
@@ -174,7 +173,7 @@ class ApplyDataMap(object):
         """
         if deviceClass and device.getDeviceClassPath().startswith(CLASSIFIER_CLASS):
             device.changeDeviceClass(deviceClass)
-
+            
 
     def _applyDataMap(self, device, datamap):
         """Apply a datamap to a device.
@@ -185,7 +184,7 @@ class ApplyDataMap(object):
         except AttributeError:
             # This can occur in unit testing when the device is not persisted.
             persist = False
-
+        
         if hasattr(datamap, "compname"):
             if datamap.compname:
                 try:
@@ -193,7 +192,7 @@ class ApplyDataMap(object):
                 except NotFound:
                     log.warn("Unable to find compname '%s'" % datamap.compname)
                     return False
-            else:
+            else: 
                 tobj = device
             if hasattr(datamap, "relname"):
                 changed = self._updateRelationship(tobj, datamap)
@@ -211,8 +210,8 @@ class ApplyDataMap(object):
             trans.note("data applied from automated collection")
             trans.commit()
         return changed
-
-
+        
+        
     def _updateRelationship(self, device, relmap):
         """Add/Update/Remote objects to the target relationship.
         """
@@ -220,7 +219,7 @@ class ApplyDataMap(object):
         rname = relmap.relname
         rel = getattr(device, rname, None)
         if not rel:
-            log.warn("no relationship:%s found on:%s (%s %s)",
+            log.warn("no relationship:%s found on:%s (%s %s)", 
                           relmap.relname, device.id, device.__class__, device.zPythonClass)
             return changed
         relids = rel.objectIdsAll()
@@ -231,7 +230,7 @@ class ApplyDataMap(object):
                 if seenids.has_key(objmap.id):
                     seenids[objmap.id] += 1
                     objmap.id = "%s_%s" % (objmap.id, seenids[objmap.id])
-                else:
+                else: 
                     seenids[objmap.id] = 1
                 if objmap.id in relids:
                     obj = rel._getOb(objmap.id)
@@ -273,7 +272,7 @@ class ApplyDataMap(object):
                 if objchange: changed = True
                 if obj and obj.id in relids: relids.remove(obj.id)
 
-        for id in relids:
+        for id in relids: 
             obj = rel._getOb(id)
             if isinstance(obj, Lockable) and obj.isLockedFromDeletion():
                 objname = obj.id
@@ -283,7 +282,7 @@ class ApplyDataMap(object):
                         obj.meta_type, objname,obj.device().id)
                 log.warn(msg)
                 if obj.sendEventWhenBlocked():
-                    self.logEvent(device, obj, Change_Remove_Blocked,
+                    self.logEvent(device, obj, Change_Remove_Blocked, 
                                     msg, Event.Warning)
                 continue
             self.logChange(device, obj, Change_Remove,
@@ -319,7 +318,7 @@ class ApplyDataMap(object):
             if isinstance(value, basestring):
                 try:
                     # This looks confusing, and it is. The scenario is:
-                    #   A collector gathers some data as a raw byte stream,
+                    #   A collector gathers some data as a raw byte stream, 
                     #   but really it has a specific encoding specified by
                     #   by the zCollectorDecoding zProperty. Say, latin-1 or
                     #   utf-16, etc. We need to decode that byte stream to get
@@ -341,46 +340,46 @@ class ApplyDataMap(object):
                 log.warn('The attribute %s was not found on object %s from device %s',
                               attname, obj.id, device.id)
                 continue
-            if callable(att):
+            if callable(att): 
                 setter = getattr(obj, attname)
-                gettername = attname.replace("set","get")
+                gettername = attname.replace("set","get") 
                 getter = getattr(obj, gettername, None)
 
                 if not getter:
 
                     log.warn("getter '%s' not found on obj '%s', "
                                   "skipping", gettername, obj.id)
-
+                    
                 else:
-
+                    
                     from plugins.DataMaps import MultiArgs
                     if isinstance(value, MultiArgs):
-
+                        
                         args = value.args
                         change = not isSameData(value.args, getter())
-
+                        
                     else:
-
+                        
                         args = (value,)
                         try:
                             change = not isSameData(value, getter())
                         except UnicodeDecodeError:
                             change = True
-
+                            
                     if change:
                         setter(*args)
                         self.logChange(device, obj, Change_Set,
                                     "calling function '%s' with '%s' on "
                                     "object %s" % (attname, value, obj.id))
                         changed = True
-
+                        
             else:
                 try:
                     change = not isSameData(att, value)
                 except UnicodeDecodeError:
                     change = True
                 if change:
-                    setattr(aq_base(obj), attname, value)
+                    setattr(aq_base(obj), attname, value) 
                     self.logChange(device, obj, Change_Set,
                                    "set attribute '%s' "
                                    "to '%s' on object '%s'" %
@@ -392,13 +391,12 @@ class ApplyDataMap(object):
         if changed:
             if getattr(aq_base(obj), "index_object", False):
                 log.debug("indexing object %s", obj.id)
-                obj.index_object()
+                obj.index_object() 
             notify(IndexingEvent(obj))
-            notify(ObjectModifiedEvent(obj))
         else:
             obj._p_deactivate()
         return changed
-
+ 
 
     def _createRelObject(self, device, objmap, relname):
         """Create an object on a relationship using its objmap.
@@ -412,20 +410,20 @@ class ApplyDataMap(object):
             log.debug("Constructor returned None")
             return False, None
         id = remoteObj.id
-        if not remoteObj:
+        if not remoteObj: 
             raise ObjectCreationError(
                     "failed to create object %s in relation %s" % (id, relname))
 
         realdevice = device.device()
         if realdevice.isLockedFromUpdates():
             objtype = ""
-            try: objtype = objmap.modname.split(".")[-1]
+            try: objtype = objmap.modname.split(".")[-1] 
             except: pass
             msg = "Add Blocked: %s '%s' on %s" % (
                     objtype, id, realdevice.id)
             log.warn(msg)
             if realdevice.sendEventWhenBlocked():
-                self.logEvent(realdevice, id, Change_Add_Blocked,
+                self.logEvent(realdevice, id, Change_Add_Blocked, 
                                 msg, Event.Warning)
             return False, None
         rel = device._getOb(relname, None)
@@ -447,12 +445,12 @@ class ApplyDataMap(object):
         return self._updateObject(remoteObj, objmap) or changed, remoteObj
 
 
-    def stop(self): pass
+    def stop(self): pass 
 
 
 class ApplyDataMapThread(threading.Thread, ApplyDataMap):
     """
-    Thread that applies datamaps to a device.  It reads from a queue that
+    Thread that applies datamaps to a device.  It reads from a queue that 
     should have tuples of (devid, datamaps) where devid is the primaryId to
     the device and datamps is a list of datamaps to apply.  Cache is synced at
     the start of each transaction and there is one transaction per device.
@@ -487,7 +485,7 @@ class ApplyDataMapThread(threading.Thread, ApplyDataMap):
                 self.app._p_jar.sync()
                 device = getObjByPath(self.app, devpath)
                 ApplyDataMap.processClient(self, device, collectorClient)
-            except Queue.Empty: pass
+            except Queue.Empty: pass 
             except (SystemExit, KeyboardInterrupt): raise
             except:
                 transaction.abort()
