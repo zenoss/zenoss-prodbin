@@ -63,7 +63,7 @@ public class AssignDeviceToGroup {
 			Common.Login(sClient, ZenossConstants.adminUserName,ZenossConstants.adminPassword);
 			Thread.sleep(12000);
 			
-			String deviceName = "test-win7-18.zenoss.loc";
+			String deviceName = "testTest-win7-18.zenoss.loc";
 			sClient.open("/zport/dmd/Dashboard");
 			sClient.click("link=Infrastructure");
 			sClient.waitForPageToLoad("30000");
@@ -134,8 +134,10 @@ public class AssignDeviceToGroup {
 			sClient.click("link=" + deviceName);
 			sClient.waitForPageToLoad("30000");
 			Thread.sleep(4000);
-			selenese.verifyTrue(sClient.isElementPresent("link=/Server/Windows"));
-			
+			if (!sClient.isElementPresent("link=/Server/Windows"))
+			{
+				throw new Exception("Element not found: link=/Server/Windows");
+			}
 			testCaseResult = "p";
 		}
 
