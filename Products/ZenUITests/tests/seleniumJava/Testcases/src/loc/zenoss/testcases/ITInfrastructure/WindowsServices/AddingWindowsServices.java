@@ -18,7 +18,7 @@ import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import loc.zenoss.Common;
-import loc.zenoss.Services;
+import loc.zenoss.WinServices;
 import loc.zenoss.ZenossConstants;
 import com.thoughtworks.selenium.DefaultSelenium;
 import com.thoughtworks.selenium.SeleneseTestCase;
@@ -84,10 +84,10 @@ public class AddingWindowsServices {
 			sClient.waitForPageToLoad("30000");
 			
 			// Add Service Organizer
-			Services.addServiceOrganizer(orgName, sClient);
-			
+			WinServices.addWinServiceOrganizer(orgName, sClient);
+			/*
 			// Add Service to organizer
-            Services.addService(servName, orgName, sClient);
+            WinServices.addWinService(servName, orgName, sClient);
 			
             //Click service from the services list
 			sClient.mouseDownAt("//div[@class='x-grid3-cell-inner x-grid3-col-name' and text()='" + servName + "']", "");
@@ -105,7 +105,7 @@ public class AddingWindowsServices {
 			sClient.click("//input[@id='ext-comp-1111']");
 			sClient.click("//label[@class='x-form-cb-label' and text()='Inherit Value \"Critical\" from Services']");
 			sClient.click("//table[@class='x-table-layout']//span[text()='Available']");
-
+*/
 			testCaseResult = "p";
 		}
 
