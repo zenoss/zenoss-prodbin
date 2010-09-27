@@ -14,6 +14,7 @@
   <include package="Products.Jobber"/>
   <include package="Products.Zuul"/>
   <include package="Products.ZenUtils.guid"/>
+  <include package="Products.ZenUtils.queuemessaging"/>
 
 </configure>
 

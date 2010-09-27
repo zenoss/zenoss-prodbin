@@ -33,7 +33,7 @@ from AccessControl import Permissions as permissions
 
 from Products.AdvancedQuery import MatchGlob, Or, Eq, RankByQueries_Max
 from Products.CMFCore.utils import getToolByName
-
+from Products.ZenModel.ChangeEvents.events import DeviceClassMovedEvent
 from Products.ZenModel.ZenossSecurity import *
 from Products.ZenRelations.RelSchema import *
 from Products.ZenRelations.ZenPropertyManager import Z_PROPERTIES
@@ -212,6 +212,9 @@ class DeviceClass(DeviceOrganizer, ZenPackable, TemplateContainer):
             if not dev: continue
             guid = IGlobalIdentifier(dev).create()
             source = dev.deviceClass().primaryAq()
+
+            notify(DeviceClassMovedEvent(dev, dev.deviceClass().primaryAq(), target))
+
             oldPath = source.absolute_url_path() + '/'
             if dev.__class__ != targetClass:
                 import StringIO
@@ -262,7 +265,7 @@ class DeviceClass(DeviceOrganizer, ZenPackable, TemplateContainer):
                             pass # Preserve the Groups and Systems groupings
 
                         elif obj.tagName == 'tomanycont' and \
-                             name in ('maintenanceWindows', 
+                             name in ('maintenanceWindows',
                                       'adminRoles',
                                       'userCommands'):
                             pass # Preserve maintenance windows, admins, commands
@@ -270,7 +273,7 @@ class DeviceClass(DeviceOrganizer, ZenPackable, TemplateContainer):
                         else:
                             log.debug("Removing %s element id='%s'",
                                          obj.tagName, name)
-                            root.removeChild(obj)   
+                            root.removeChild(obj)
 
                     importFile = StringIO.StringIO()
                     dom.writexml(importFile)

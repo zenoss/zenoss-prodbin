@@ -39,6 +39,7 @@ from Products.Zuul.tree import SearchResults
 from Products.ZenUtils.IpUtil import numbip, checkip, IpAddressError, ensureIp
 from Products.ZenUtils.IpUtil import getSubnetBounds
 from Products.Zuul.catalog.events import IndexingEvent
+from Products.ZenModel.ChangeEvents.events import ObjectModifiedEvent
 
 log = logging.getLogger('zen.Zuul')
 
@@ -120,7 +121,7 @@ class TreeFacade(ZuulFacade):
                              for state in params['productionState']]))
         if qs:
             query = And(*qs)
-        
+
         brains = cat.search('Products.ZenModel.Device.Device', start=start,
                            limit=limit, orderby=sort, reverse=reverse,
                             query=query, hashcheck=hashcheck)
@@ -142,7 +143,7 @@ class TreeFacade(ZuulFacade):
         brains = cat.search(self._instanceClass, start=start, limit=limit,
                             orderby=sort, reverse=reverse)
         objs = imap(unbrain, brains)
-        
+
         # the objects returned by the catalog search are wrapped in the
         # acquisition context of their primary path. Switch these objects
         # to the context of the parent indentified by the uid parameter.
@@ -233,7 +234,7 @@ class TreeFacade(ZuulFacade):
         to move the organizer
         @param string organizerUid: unique id of the ogranizer we are moving
         """
-        
+
         organizer = self._getObject(organizerUid)
         parent = organizer.getPrimaryParent()
         parent.moveOrganizer(targetUid, [organizer.id])
@@ -243,7 +244,7 @@ class TreeFacade(ZuulFacade):
             dev.index_object()
             notify(IndexingEvent(dev, 'path'))
         return IOrganizerInfo(target._getOb(organizer.id))
-    
+
     def setInfo(self, uid, data):
         """
         Given a dictionary of {property name: property value}
@@ -260,13 +261,14 @@ class TreeFacade(ZuulFacade):
             newId = data['newId']
             del data['newId']
             info.rename(newId)
-            
+
         for key in data.keys():
             if hasattr(info, key):
                 setattr(info, key, data[key])
+        notify(ObjectModifiedEvent(info._object))
         return info
 
-    
+
 from eventfacade import EventFacade
 from networkfacade import NetworkFacade
 from processfacade import ProcessFacade

@@ -27,6 +27,8 @@ from Products.ZenModel.System import System
 from Products.ZenModel.Location import Location
 from Products.ZenModel.DeviceClass import DeviceClass
 from Products.ZenModel.Device import Device
+from Products.ZenModel.ChangeEvents.events import ObjectAddedToOrganizerEvent, \
+    ObjectRemovedFromOrganizerEvent
 from Products.Zuul import getFacade
 from Products.Zuul.utils import ZuulMessageFactory as _t, UncataloguedObjectException
 from Products.Zuul.catalog.events import IndexingEvent
@@ -170,17 +172,18 @@ class DeviceFacade(TreeFacade):
         assert isinstance(organizer, DeviceOrganizer)
         organizername = organizer.getOrganizerName()
         devs = imap(self._getObject, uids)
+        for dev in devs:
+            notify(ObjectRemovedFromOrganizerEvent(dev, organizer))
+
         if isinstance(organizer, DeviceGroup):
             for dev in devs:
                 groups = dev.getDeviceGroupNames()
-
                 newGroups = self._excludePath(organizername, groups)
                 if newGroups != groups:
                     dev.setGroups(newGroups)
         elif isinstance(organizer, System):
             for dev in devs:
                 systems = dev.getSystemNames()
-
                 newSystems = self._excludePath(organizername, systems)
                 if newSystems != systems:
                     dev.setSystems(newSystems)
@@ -264,14 +267,19 @@ class DeviceFacade(TreeFacade):
                 paths = set(dev.getDeviceGroupNames())
                 paths.add(targetname)
                 dev.setGroups(list(paths))
+                notify(ObjectAddedToOrganizerEvent(dev, target))
         elif isinstance(target, System):
             for dev in devs:
                 paths = set(dev.getSystemNames())
                 paths.add(targetname)
                 dev.setSystems(list(paths))
+                notify(ObjectAddedToOrganizerEvent(dev, target))
         elif isinstance(target, Location):
             for dev in devs:
+                if dev.location():
+                    notify(ObjectRemovedFromOrganizerEvent(dev, dev.location()))
                 dev.setLocation(targetname)
+                notify(ObjectAddedToOrganizerEvent(dev, target))
         elif isinstance(target, DeviceClass):
             exports = self._dmd.Devices.moveDevices(targetname,[dev.id for dev in devs])
         return exports
