@@ -17,6 +17,7 @@ import DateTime
 
 from Products.ZenUtils import Time as timeutils
 from Queue import Queue, Empty, Full
+from MySQLdb import OperationalError
 
 import logging
 log = logging.getLogger("zen.DbConnectionPool")
@@ -74,7 +75,7 @@ class DbConnectionPool:
                     obj.ping()
                 return obj
 
-        except Empty:
+        except (Empty, OperationalError):
             return self._createConnection(host=host, port=port, 
                                         username=username, 
                                         password=password,
