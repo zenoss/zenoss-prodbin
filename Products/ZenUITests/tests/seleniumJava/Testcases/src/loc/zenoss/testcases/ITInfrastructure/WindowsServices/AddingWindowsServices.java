@@ -62,17 +62,15 @@ public class AddingWindowsServices {
 
 		@Test
 		public void addWindowsServices() throws Exception{
-			
+		
 			Common.Login(sClient, ZenossConstants.adminUserName,ZenossConstants.adminPassword);
 			Thread.sleep(12000);
 			
 			// Set a variable for testing OrganizerName and WinServiceName
-			String orgName = "DummiOrganizer";
-			String servName = "DummiService";
+			String orgName = "TestOrganizer";
+			String servName = "TestService";
 			
-
 			// Go to Dashboard > Infrastructure
-			
 			sClient.click("link=Infrastructure");
 			sClient.waitForPageToLoad("30000");
 			// Wait for Windows Services link and click on it
@@ -84,68 +82,14 @@ public class AddingWindowsServices {
 
 			sClient.click("link=Windows Services");
 			sClient.waitForPageToLoad("30000");
-
-			// Add Service Organizer
-			sClient.click("//table[@id='footer_add_button']/tbody/tr[2]/td[2]/em");
-			sClient.click("//span[text()='Add Service Organizer']");
-			Thread.sleep(2000);
-			sClient.type("//input[@name='id']", orgName);
-			for (int second = 0;; second++) {
-				if (second >= 60) org.junit.Assert.fail("timeout");
-				try { if (sClient.isElementPresent("//table[@class='x-btn   x-btn-noicon ']//button[text()='Submit']")) break; } catch (Exception e) {}
-				Thread.sleep(1000);
-			}
-
-			sClient.click("//button[text()='Submit']");
-			// Refresh Windows Services page to load
-			sClient.click("link=Windows Services");
-			sClient.waitForPageToLoad("30000");
-			for (int second = 0;; second++) {
-				if (second >= 60) org.junit.Assert.fail("timeout");
-				try { if (sClient.isElementPresent("//ul[@class='x-tree-node-ct']/li")) break; } catch (Exception e) {}
-				Thread.sleep(1000);
-			}
-
-			//Services.addServiceOrganizer(orgName, sClient);
 			
-			// Click on the Service Organizer
-			sClient.click("//span[@class='node-text' and text()='" + orgName + "']");
-			// Add a Service
-			sClient.click("//table[@id='footer_add_button']/tbody/tr[2]/td[2]/em");
-			sClient.click("//span[text()='Add Service']");
-			Thread.sleep(2000);
-			sClient.type("//input[@name='id']", servName);
-			for (int second = 0;; second++) {
-				if (second >= 60) org.junit.Assert.fail("timeout");
-				try { if (sClient.isElementPresent("//table[@class='x-btn   x-btn-noicon ']//button[text()='Submit']")) break; } catch (Exception e) {}
-				Thread.sleep(1000);
-			}
-
-			sClient.click("//button[text()='Submit']");
-			// Refresh Windows Services page to load
-			sClient.click("link=Windows Services");
-			sClient.waitForPageToLoad("30000");
-			for (int second = 0;; second++) {
-				if (second >= 60) org.junit.Assert.fail("timeout");
-				try { if (sClient.isElementPresent("//ul[@class='x-tree-node-ct']/li")) break; } catch (Exception e) {}
-				Thread.sleep(1000);
-			}
-
-			for (int second = 0;; second++) {
-				if (second >= 60) org.junit.Assert.fail("timeout");
-				try { if (sClient.isElementPresent("//div[@class='x-grid3-body']/div")) break; } catch (Exception e) {}
-				Thread.sleep(1000);
-			}
-
-			// Click on the Service Organizer
-			sClient.click("//span[@class='node-text' and text()='" + orgName + "']");
-			// Wait for Services list to load and open the service
-			for (int second = 0;; second++) {
-				if (second >= 60) org.junit.Assert.fail("timeout");
-				try { if (sClient.isElementPresent("//div[@class='x-grid3-cell-inner x-grid3-col-name' and text()='" + servName + "']")) break; } catch (Exception e) {}
-				Thread.sleep(1000);
-			}
-
+			// Add Service Organizer
+			Services.addServiceOrganizer(orgName, sClient);
+			
+			// Add Service to organizer
+            Services.addService(servName, orgName, sClient);
+			
+            //Click service from the services list
 			sClient.mouseDownAt("//div[@class='x-grid3-cell-inner x-grid3-col-name' and text()='" + servName + "']", "");
 			sClient.mouseUp("//div[@class='x-grid3-cell-inner x-grid3-col-name' and text()='" + servName + "']");
 			
@@ -161,7 +105,7 @@ public class AddingWindowsServices {
 			sClient.click("//input[@id='ext-comp-1111']");
 			sClient.click("//label[@class='x-form-cb-label' and text()='Inherit Value \"Critical\" from Services']");
 			sClient.click("//table[@class='x-table-layout']//span[text()='Available']");
-			
+
 			testCaseResult = "p";
 		}
 
