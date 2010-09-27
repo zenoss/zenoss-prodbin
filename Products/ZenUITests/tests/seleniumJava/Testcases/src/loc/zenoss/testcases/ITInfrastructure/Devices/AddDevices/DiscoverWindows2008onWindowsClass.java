@@ -150,14 +150,21 @@ public class DiscoverWindows2008onWindowsClass {
 			selenese.verifyNotEquals("None", sClient.getText("//div[@name='hwManufacturer']/a"));
 			selenese.verifyNotEquals("None", sClient.getText("//div[@name='osManufacturer']/a"));
 			Thread.sleep(2000);
-			// Verify device has Componenets
-			selenese.verifyTrue(sClient.isElementPresent("//li[@style='']/div/a/span[text()=\"Components\"]"));
+			
+			// Verify device has Components
+			if (!sClient.isElementPresent("//li[@style='']/div/a/span[text()=\"Components\"]"))
+			{
+				throw new Exception("Element not found: //li[@style='']/div/a/span[text()=\"Components\"]");
+			}
 			// // Verify device has Hardware and Software data
 			sClient.click("//span[text()='Software']");
 
 			Common.waitForElement("//span[text()='Installed Software']", sClient);
 
-			selenese.verifyTrue(sClient.isElementPresent("//tbody[@id='InstalledSoftware']/tr[2]/td[2]"));
+			if (!sClient.isElementPresent("//tbody[@id='InstalledSoftware']/tr[2]/td[2]"))
+			{
+				throw new Exception("Element not found: //tbody[@id='InstalledSoftware']/tr[2]/td[2]");
+			}
 			// End
 
 			testCaseResult = "p";
