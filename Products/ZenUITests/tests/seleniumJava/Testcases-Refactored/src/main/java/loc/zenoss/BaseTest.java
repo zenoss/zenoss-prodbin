@@ -14,12 +14,13 @@ package loc.zenoss;
 
 import com.thoughtworks.selenium.DefaultSelenium;
 
+import java.util.Locale;
 import java.util.ResourceBundle;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.junit.Test;
 
-import static loc.zenoss.testcases.util.Constants.*;
+import static loc.zenoss.util.Constants.*;
 
 /**
  *
@@ -28,8 +29,8 @@ import static loc.zenoss.testcases.util.Constants.*;
 public abstract class BaseTest {
 
     private static DefaultSelenium sClient = null;
-    private static ResourceBundle bundle = ResourceBundle.getBundle("settings");
-    private static ResourceBundle strings = ResourceBundle.getBundle("strings");
+    private static ResourceBundle bundle = ResourceBundle.getBundle("settings",Locale.US);
+    private static ResourceBundle strings = ResourceBundle.getBundle("strings",Locale.US);
     protected int testCaseId = 0;
 
     /**
@@ -86,6 +87,17 @@ public abstract class BaseTest {
             clickable = arg;
         }
         sClient.click(clickable);
+    }
+    
+    protected void doubleClick(String arg, Object... vars) {
+        String clickable = null;
+
+        if (vars != null && vars.length > 0) {
+            clickable = String.format(arg, vars);
+        } else {
+            clickable = arg;
+        }
+        sClient.doubleClick(clickable);
     }
 
     protected boolean isTextPresent(String text) {
