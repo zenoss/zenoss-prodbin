@@ -29,14 +29,18 @@ public class ZenossConstants {
 	 */
 	public static final String SeleniumHubHostname = (System.getProperties().containsKey("SeleniumServerHost"))?System.getProperties().getProperty("SeleniumServerHost") : "localhost";
 	public static final String SeleniumHubPort = (System.getProperties().containsKey("SeleniumServerPort"))?System.getProperties().getProperty("SeleniumServerPort") : "4444";
+	
 	/**
 	 * Browser in which the testcase will be executed
 	 */
-	public static final String browser = (System.getProperties().containsKey("Browser"))?System.getProperties().getProperty("Browser") : "*chrome C:\\Program Files (x86)\\Mozilla Firefox\\firefox.exe";//"Compatible FF";//System.getProperty("Browser");// 
+	
+	public static final String browser = (System.getProperties().containsKey("Browser"))?System.getProperties().getProperty("Browser") : "*firefox3";//"Compatible FF";//System.getProperty("Browser");// 
+	
 	/**
 	 * The machine in which the test will be executed
 	 */
-	public static final String targetMachine=(System.getProperties().containsKey("TargetMachine"))?System.getProperties().getProperty("TargetMachine") : "test-rhel54-32-1.zenoss.loc";
+	
+	public static final String targetMachine=(System.getProperties().containsKey("TargetMachine"))?System.getProperties().getProperty("TargetMachine") : "test-rhel5-32-3.zenoss.loc";
 	public static final String testedMachine="http://" + targetMachine +":8080";
 	
 	public static final String build=(System.getProperties().containsKey("ZenossBuild"))?System.getProperties().getProperty("ZenossBuild") : "629";
