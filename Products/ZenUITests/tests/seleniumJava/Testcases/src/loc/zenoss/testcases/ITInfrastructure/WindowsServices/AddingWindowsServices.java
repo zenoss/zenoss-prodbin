@@ -67,8 +67,8 @@ public class AddingWindowsServices {
 			Thread.sleep(12000);
 			
 			// Set a variable for testing OrganizerName and WinServiceName
-			String orgName = "organizerXYZ";
-			String servName = "serviceXYZ";
+			String orgName = "DummiOrganizer";
+			String servName = "DummiService";
 			
 
 			// Go to Dashboard > Infrastructure
@@ -148,18 +148,19 @@ public class AddingWindowsServices {
 
 			sClient.mouseDownAt("//div[@class='x-grid3-cell-inner x-grid3-col-name' and text()='" + servName + "']", "");
 			sClient.mouseUp("//div[@class='x-grid3-cell-inner x-grid3-col-name' and text()='" + servName + "']");
-			// Verify expected UI is present: Name, Description, Service Keys, Enable Monitoring?, Failure Event Severity, Mornitored Start Modes
-			selenese.verifyTrue(sClient.isElementPresent("//input[@id='nameTextField']"));
-			selenese.verifyTrue(sClient.isElementPresent("//input[@id='descriptionTextField']"));
-			selenese.verifyTrue(sClient.isElementPresent("//textarea[@id='serviceKeysTextField']"));
-			selenese.verifyTrue(sClient.isElementPresent("//label[@class='x-form-cb-label' and @for='ext-comp-1101' and text()='Set Local Value:']"));
-			selenese.verifyTrue(sClient.isElementPresent("//input[@id='ext-comp-1103']"));
-			selenese.verifyTrue(sClient.isElementPresent("//label[@class='x-form-cb-label' and text()='Inherit Value \"No\" from Services']"));
-			selenese.verifyTrue(sClient.isElementPresent("//label[@class='x-form-cb-label' and @for='ext-comp-1109' and text()='Set Local Value:']"));
-			selenese.verifyTrue(sClient.isElementPresent("//input[@id='ext-comp-1111']"));
-			selenese.verifyTrue(sClient.isElementPresent("//label[@class='x-form-cb-label' and text()='Inherit Value \"Critical\" from Services']"));
-			selenese.verifyTrue(sClient.isElementPresent("//table[@class='x-table-layout']//span[text()='Available']"));
-
+			
+			//Clicks to verify expected UI is present: Name, Description, Service Keys, Enable Monitoring?, Failure Event Severity, Mornitored Start Modes
+			Thread.sleep(10000);
+			sClient.click("//input[@id='nameTextField']");
+			sClient.click("//input[@id='descriptionTextField']");
+			sClient.click("//textarea[@id='serviceKeysTextField']");
+			sClient.click("//label[@class='x-form-cb-label' and @for='ext-comp-1101' and text()='Set Local Value:']");
+			sClient.click("//input[@id='ext-comp-1103']");
+			sClient.click("//label[@class='x-form-cb-label' and text()='Inherit Value \"No\" from Services']");
+			sClient.click("//label[@class='x-form-cb-label' and @for='ext-comp-1109' and text()='Set Local Value:']");
+			sClient.click("//input[@id='ext-comp-1111']");
+			sClient.click("//label[@class='x-form-cb-label' and text()='Inherit Value \"Critical\" from Services']");
+			sClient.click("//table[@class='x-table-layout']//span[text()='Available']");
 			
 			testCaseResult = "p";
 		}
