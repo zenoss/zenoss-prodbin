@@ -18,7 +18,7 @@ import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import loc.zenoss.Common;
-import loc.zenoss.Services;
+import loc.zenoss.IPServices;
 import loc.zenoss.ZenossConstants;
 import com.thoughtworks.selenium.DefaultSelenium;
 import com.thoughtworks.selenium.SeleneseTestCase;
@@ -67,8 +67,8 @@ public class AddingIPServicesOrganizer {
 			Thread.sleep(12000);
 			
 			// Set a variable for testing OrganizerName and WinServiceName
-			String orgName = "ABCD";
-			String servName = "DEFG";
+			String orgName = "linuxServices";
+			String servName = "ipServiceTest";
 			
 
 			// Go to Dashboard > Infrastructure
@@ -86,66 +86,12 @@ public class AddingIPServicesOrganizer {
 			sClient.waitForPageToLoad("30000");
 
 			// Add Service Organizer
-			sClient.click("//table[@id='footer_add_button']/tbody/tr[2]/td[2]/em");
-			sClient.click("//span[text()='Add Service Organizer']");
-			Thread.sleep(2000);
-			sClient.type("//input[@name='id']", orgName);
-			for (int second = 0;; second++) {
-				if (second >= 60) org.junit.Assert.fail("timeout");
-				try { if (sClient.isElementPresent("//table[@class='x-btn   x-btn-noicon ']//button[text()='Submit']")) break; } catch (Exception e) {}
-				Thread.sleep(1000);
-			}
-
-			sClient.click("//button[text()='Submit']");
-			// Refresh IP Services page to load
-			sClient.click("link=IP Services");
-			sClient.waitForPageToLoad("30000");
-			for (int second = 0;; second++) {
-				if (second >= 60) org.junit.Assert.fail("timeout");
-				try { if (sClient.isElementPresent("//ul[@class='x-tree-node-ct']/li")) break; } catch (Exception e) {}
-				Thread.sleep(1000);
-			}
-
-			//Services.addServiceOrganizer(orgName, sClient);
+			IPServices.addIPServiceOrganizer(orgName, sClient);
 			
-			// Click on the Service Organizer
-			sClient.click("//span[@class='node-text' and text()='" + orgName + "']");
-			// Add a Service
-			sClient.click("//table[@id='footer_add_button']/tbody/tr[2]/td[2]/em");
-			sClient.click("//span[text()='Add Service']");
-			Thread.sleep(2000);
-			sClient.type("//input[@name='id']", servName);
-			for (int second = 0;; second++) {
-				if (second >= 60) org.junit.Assert.fail("timeout");
-				try { if (sClient.isElementPresent("//table[@class='x-btn   x-btn-noicon ']//button[text()='Submit']")) break; } catch (Exception e) {}
-				Thread.sleep(1000);
-			}
-
-			sClient.click("//button[text()='Submit']");
-			// Refresh IP Services page to load
-			sClient.click("link=IP Services");
-			sClient.waitForPageToLoad("30000");
-			for (int second = 0;; second++) {
-				if (second >= 60) org.junit.Assert.fail("timeout");
-				try { if (sClient.isElementPresent("//ul[@class='x-tree-node-ct']/li")) break; } catch (Exception e) {}
-				Thread.sleep(1000);
-			}
-
-			for (int second = 0;; second++) {
-				if (second >= 60) org.junit.Assert.fail("timeout");
-				try { if (sClient.isElementPresent("//div[@class='x-grid3-body']/div")) break; } catch (Exception e) {}
-				Thread.sleep(1000);
-			}
-
-			// Click on the Service Organizer
-			sClient.click("//span[@class='node-text' and text()='" + orgName + "']");
-			// Wait for Services list to load and open the service
-			for (int second = 0;; second++) {
-				if (second >= 60) org.junit.Assert.fail("timeout");
-				try { if (sClient.isElementPresent("//div[@class='x-grid3-cell-inner x-grid3-col-name' and text()='" + servName + "']")) break; } catch (Exception e) {}
-				Thread.sleep(1000);
-			}
-
+			// Add Service to organizer
+            IPServices.addIPService(servName, orgName, sClient);
+			
+            //Click service from the services list
 			sClient.mouseDownAt("//div[@class='x-grid3-cell-inner x-grid3-col-name' and text()='" + servName + "']", "");
 			sClient.mouseUp("//div[@class='x-grid3-cell-inner x-grid3-col-name' and text()='" + servName + "']");
 			
