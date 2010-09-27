@@ -149,7 +149,7 @@ public class AddingIPServicesOrganizer {
 			sClient.mouseDownAt("//div[@class='x-grid3-cell-inner x-grid3-col-name' and text()='" + servName + "']", "");
 			sClient.mouseUp("//div[@class='x-grid3-cell-inner x-grid3-col-name' and text()='" + servName + "']");
 			
-			// Verify expected UI is present: Name, Description, Service Keys, Enable Monitoring?, Failure Event Severity, Mornitored Start Modes
+			// Clicks to verify expected UI is present: Name, Description, Service Keys, Enable Monitoring?, Failure Event Severity
 			sClient.click("//input[@id='nameTextField']");
 			sClient.click("//input[@id='descriptionTextField']");
 			sClient.click("//input[@id='portTextField']");
