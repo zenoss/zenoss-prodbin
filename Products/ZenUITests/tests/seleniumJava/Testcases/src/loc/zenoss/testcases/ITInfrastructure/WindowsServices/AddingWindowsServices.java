@@ -84,10 +84,10 @@ public class AddingWindowsServices {
 			sClient.waitForPageToLoad("30000");
 			
 			// Add Service Organizer
-			WinServices.addWinServiceOrganizer(orgName, sClient);
-			/*
+			WinServices.addServiceOrganizer(orgName, sClient);
+			
 			// Add Service to organizer
-            WinServices.addWinService(servName, orgName, sClient);
+            WinServices.addService(servName, orgName, sClient);
 			
             //Click service from the services list
 			sClient.mouseDownAt("//div[@class='x-grid3-cell-inner x-grid3-col-name' and text()='" + servName + "']", "");
@@ -105,7 +105,6 @@ public class AddingWindowsServices {
 			sClient.click("//input[@id='ext-comp-1111']");
 			sClient.click("//label[@class='x-form-cb-label' and text()='Inherit Value \"Critical\" from Services']");
 			sClient.click("//table[@class='x-table-layout']//span[text()='Available']");
-*/
 			testCaseResult = "p";
 		}
 
