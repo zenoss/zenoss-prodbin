@@ -29,6 +29,7 @@ class IpInterfaceInfo(ComponentInfo):
         return [str(i) for i in self._object.ipaddresses._objects]
         
     def setIpAddresses(self, ips):
+        ips = ips.split(',')
         self._object.setIpAddresses(ips)
     ipAddresses = property(getIpAddresses, setIpAddresses)
 
@@ -41,6 +42,11 @@ class IpInterfaceInfo(ComponentInfo):
     @info
     def ipAddress(self):
         return self._ipAddressObj()
+
+    @property
+    @info
+    def ipAddressObjs(self):
+        return self._object.getIpAddressObjs()
 
     @property
     @info
