@@ -25,7 +25,7 @@ import loc.zenoss.TestlinkXMLRPC;
 
 
 public class RemoveDevice {
-	private SeleneseTestCase selenese = null;
+	private static SeleneseTestCase selenese = null;
 	private static DefaultSelenium sClient = null;
 	
 	private static int testCaseID = 3560;
@@ -33,7 +33,8 @@ public class RemoveDevice {
 		
 	@BeforeClass
 	 public static void setUpBeforeClass() throws Exception {
-	     sClient = new DefaultSelenium(ZenossConstants.SeleniumHubHostname, 4444,
+	    selenese = new SeleneseTestCase(); 
+		sClient = new DefaultSelenium(ZenossConstants.SeleniumHubHostname, 4444,
 	 			ZenossConstants.browser, ZenossConstants.testedMachine)  {
 	        		public void open(String url) {
 	        			commandProcessor.doCommand("open", new String[] {url,"true"});
@@ -80,7 +81,7 @@ public class RemoveDevice {
 			Thread.sleep(6000);
 			sClient.click("link=View Job Log");
 			// Job verification
-			Thread.sleep(40000);
+			Thread.sleep(45000);
 			// Click on Infrastructure
 			sClient.click("link=Infrastructure");
 			sClient.waitForPageToLoad("30000");
