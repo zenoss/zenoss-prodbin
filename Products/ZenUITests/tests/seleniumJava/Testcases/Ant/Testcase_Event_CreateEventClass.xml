@@ -10,15 +10,15 @@
 # For complete information please visit: http://www.zenoss.com/oss/
 #############################################################################
 -->
-<project name="Event" default="Report" basedir="../../">
+<project name="Events" default="Report" basedir="../../">
 	<description>
 			General JUnit ant script
 	</description>
-	<property name="src" value="Testcases/src/loc/zenoss/testcases/Event" />
+	<property name="src" value="Testcases/src/loc/zenoss/testcases/Events" />
 	<property name="Results" value="Results" />
 	<property name="lib" value="lib" />
 	<property name="classes" value="Testcases/bin" />
-	<property name="test" value="loc.zenoss.testcases.Event.CreateEventClass" />
+	<property name="test" value="loc.zenoss.testcases.Events.CreateEventClass" />
 	
 	<path id="TestCases.classpath">
 	  <pathelement location="${classes}" />
