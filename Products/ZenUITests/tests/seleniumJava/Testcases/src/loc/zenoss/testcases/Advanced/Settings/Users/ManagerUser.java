@@ -29,12 +29,13 @@ public class ManagerUser {
 	private static int testCaseID = 1801;
 	private static String testCaseResult = "f"; //Fail by default
 	
-	private SeleneseTestCase selenese = null;
+	private static SeleneseTestCase selenese = null;
 	private static DefaultSelenium sClient = null;
 	
 	@BeforeClass
 	 public static void setUpBeforeClass() throws Exception {
-	     sClient = new DefaultSelenium(ZenossConstants.SeleniumHubHostname, 4444,
+		selenese = new SeleneseTestCase();  
+		sClient = new DefaultSelenium(ZenossConstants.SeleniumHubHostname, 4444,
 	 			ZenossConstants.browser, ZenossConstants.testedMachine)  {
 	        		public void open(String url) {
 	        			commandProcessor.doCommand("open", new String[] {url,"true"});
