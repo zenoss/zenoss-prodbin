@@ -18,7 +18,7 @@ import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import loc.zenoss.Common;
-import loc.zenoss.IPServices;
+import loc.zenoss.IpService;
 import loc.zenoss.ZenossConstants;
 import com.thoughtworks.selenium.DefaultSelenium;
 import com.thoughtworks.selenium.SeleneseTestCase;
@@ -86,10 +86,10 @@ public class AddingIPServicesOrganizer {
 			sClient.waitForPageToLoad("30000");
 
 			// Add Service Organizer
-			IPServices.addIPServiceOrganizer(orgName, sClient);
+			IpService.addIpServiceOrganizer(orgName, sClient);
 			
 			// Add Service to organizer
-            IPServices.addIPService(servName, orgName, sClient);
+            IpService.addIpService(servName, orgName, sClient);
 			
             //Click service from the services list
 			sClient.mouseDownAt("//div[@class='x-grid3-cell-inner x-grid3-col-name' and text()='" + servName + "']", "");

@@ -18,7 +18,7 @@ import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import loc.zenoss.Common;
-import loc.zenoss.WinServices;
+import loc.zenoss.WinService;
 import loc.zenoss.ZenossConstants;
 import com.thoughtworks.selenium.DefaultSelenium;
 import com.thoughtworks.selenium.SeleneseTestCase;
@@ -84,10 +84,10 @@ public class AddingWindowsServices {
 			sClient.waitForPageToLoad("30000");
 			
 			// Add Service Organizer
-			WinServices.addServiceOrganizer(orgName, sClient);
+			WinService.addServiceOrganizer(orgName, sClient);
 			
 			// Add Service to organizer
-            WinServices.addService(servName, orgName, sClient);
+            WinService.addService(servName, orgName, sClient);
 			
             //Click service from the services list
 			sClient.mouseDownAt("//div[@class='x-grid3-cell-inner x-grid3-col-name' and text()='" + servName + "']", "");
