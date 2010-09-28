@@ -25,7 +25,7 @@ import loc.zenoss.TestlinkXMLRPC;
 
 public class ProductState {
 
-	private SeleneseTestCase selenese = null;
+	private static SeleneseTestCase selenese = null;
 	private static DefaultSelenium sClient = null;
 	
 	private static int testCaseID = 3769;
@@ -33,6 +33,7 @@ public class ProductState {
 		
 	@BeforeClass
 	 public static void setUpBeforeClass() throws Exception {
+		 selenese = new SeleneseTestCase(); 
 	     sClient = new DefaultSelenium(ZenossConstants.SeleniumHubHostname, 4444,
 	 			ZenossConstants.browser, ZenossConstants.testedMachine)  {
 	        		public void open(String url) {
