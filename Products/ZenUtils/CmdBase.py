@@ -192,7 +192,12 @@ class CmdBase(object):
         mname = self.__class__.__name__
         self.log = logging.getLogger("zen."+ mname)
         zlog = logging.getLogger("zen")
-        zlog.setLevel(self.options.logseverity)
+        try:
+            loglevel = int(self.options.logseverity)
+        except ValueError:
+            loglevel = getattr(logging, self.options.logseverity.upper(), logging.INFO)
+        zlog.setLevel(loglevel)
+
         logdir = self.checkLogpath()
         if logdir:
             logfile = os.path.join(logdir, mname.lower()+".log")
