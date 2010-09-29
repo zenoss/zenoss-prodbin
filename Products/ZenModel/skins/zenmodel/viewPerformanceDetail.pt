@@ -5,9 +5,14 @@
     tal:attributes="action string:${here/absolute_url_path}/${template/id}">
 
 <script language="javascript" type="text/javascript">
-var ZenGraphs = new Array();
+    var ZenGraphs = {};
 </script>
-
+<style> 
+    /* Override some uglifying styles */ 
+    table.innerzentable tr td { padding: 0; } 
+</style>
+<script type="text/javascript" src="/zport/javascript/zenoss-utils.js"></script>
+<script type="text/javascript" src="/zport/dmd/zenrrdzoom.js"></script>
 
 <tal:block tal:define="tableName string:perfdetail;
     tabletitle tabletitle | string:Performance Graphs;
@@ -18,21 +23,15 @@ var ZenGraphs = new Array();
 
 <tal:block metal:fill-slot="filterslot">
         &nbsp;&nbsp;&nbsp;&nbsp;Range
-        <select class="tableheader" name="drange:int"
-            onchange="resetGraphs(this.value)"
-            id="drange_select">
+        <select class="tableheader" name="drange:int" id="drange_select">
             <option tal:repeat="r here/performanceDateRanges" 
                 tal:content='python:r[0]' 
                 tal:attributes="value python:r[1]; 
                                 selected python:r[1]==drange"/>
         </select>
-    <input class="tableheader" type="button" value="Reset"
-    onclick="resetGraphs($('drange_select').value);"
-    style="margin-left:2em;"/>
+    <input id="graphreset" class="tableheader" type="button" value="Reset" style="margin-left:2em;"/>
     <span style="margin-left:2em;" id="linkcheck_label">Link graphs?</span>
-    <input type="checkbox" style="border:1px solid black;padding-top:0.5em;" 
-           checked onchange="linkGraphs(this.checked)" id="linkcheck"/>
-
+    <input type="checkbox" style="border:1px solid black;padding-top:0.5em;" checked id="linkcheck"/>
     &nbsp;&nbsp;&nbsp;&nbsp;
     <input class="navcontrol" type="button" id="refreshButton"
         name="refresh" 
@@ -41,36 +40,6 @@ var ZenGraphs = new Array();
                cursor:pointer;height:20px;"/>
     <input class="tableheader" type="text" name="refreshRate" 
         id="refreshRate" size='2' value='300'/>
-    <script>
-        var button = $('refreshButton');
-        var refreshMgr, turnRefreshOff, turnRefreshOn;
-    addLoadEvent(function() {
-        var loader = YAHOO.zenoss.getLoader();
-        loader.require(['swoopygraphs']);
-        loader.insert({onSuccess:function(){
-            zenRRDInit();
-            turnRefreshOff = function() {
-                if (refreshMgr)
-                    refreshMgr.cancelRefresh();
-                setStyle(button,
-                    {'background-image':'url(img/refresh_on.png)'});
-                button.onclick = turnRefreshOn;
-                button.blur();
-            }
-            turnRefreshOn = function() {
-                var rate = $('refreshRate').value;
-                refreshMgr = new RefreshManager(rate, 
-                    function(){resetGraphs($('drange_select').value)}
-                );
-                setStyle(button, 
-                    {'background-image':'url(img/refresh_off.png)'});
-                button.onclick = turnRefreshOff;
-                button.blur();
-            }
-            turnRefreshOn();
-        }});
-    });
-    </script>
     <tal:block metal:define-slot="filterslot">
     </tal:block>
 </tal:block>
@@ -91,17 +60,10 @@ var ZenGraphs = new Array();
         <td>
         <table>
         <tr>
-            <td class="tableheader" tal:content="graph/title">title
-            </td>
-        </tr>
-        <tr>
-            <td class="tablevalues">
-                <img src="_" 
-                tal:attributes="src graph/url;
-                                id graphid;
-                                title graph/title;"/>
+            <td class="tablevalues" tal:attributes="id string:td_${graphid}">
                 <script language="javascript" type="text/javascript"
-                    tal:content="string:ZenGraphs[ZenGraphs.length]='${graphid}';">
+                    tal:content="string:ZenGraphs['${graphid}']=['${graph/url}', 
+                                                  '${graph/title}'];">
                 </script>
             </td>
         </tr>

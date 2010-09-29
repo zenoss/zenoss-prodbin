@@ -1,3 +1,4 @@
+/*global RefreshManager */
 /*
 #####################################################
 #
@@ -7,484 +8,305 @@
 #####################################################
 */
 
-var zoom_factor = 1.5;
-var pan_factor = 3; // Fraction of graph to move
-var drange_re = /&drange=([0-9]*)/;
-var end_re = /&end=now-([0-9]*)s/;
-var width_re  = /&width=([0-9]*)/;
-var height_re = /--height%3D([0-9]*)%7C/;
-var start_re = /&start=end-([0-9]*)s/;
-var comment_re = /&comment=.*$/;
-var dashes_re = /(--.*?%7C)([^\-])/;
-
-var linked_mode = 1;
-var ZenQueue;
-
-var Class = YAHOO.zenoss.Class;
-
-Function.prototype.bind = function(obj) {
-    var method = this;
-    temp = function() {
-        return method.apply(obj, arguments);
-        };
-    return temp;
-}
-
-var FakeXHR = Class.create();
-FakeXHR.prototype = {
-    __init__: function(id) {
-        bindMethods(this);
-        this.id = id;
-        this.makeScriptTag();
-        this.lock = new DeferredLock();
-        this.callback = noop;
-        this.deferreds = {};
-    },
-    makeScriptTag: function() {
-        if (!this.ScriptTagProxy) {
-            var scripttag = createDOM(
-                'script',
-                {
-                    id:this.id+'ScriptTagProxy',
-                    type: 'text/javascript'
-                },
-                null
-            );
-            this.ScriptTagProxy = scripttag;
-        }
-    },
-    getData: function(url) {
-        this.deferreds[url] = this.lock.acquire();
-        this.deferreds[url].addCallback(bind(function(){
-            this.ScriptTagProxy.src = url;
-            currentDocument().body.appendChild(this.ScriptTagProxy);
-        }, this));
-    },
-    getFakeXHR: function() {
-        var myfunc = bind(function(url, callback) {
-            CALLBACKS[this.id] = callback;
-            this.getData(url);
-        }, this);
-        return myfunc;
-    }
-}
-
 Date.prototype.minus = function(secs) {
     return new Date(this.valueOf()-(secs*1000));
 }
+
 Date.prototype.toPretty = function() {
     return toISOTimestamp(this);
 }
 
-var CALLBACKS = {};
-
-
-var table = function(obj, newme) {
-    return "<table id='"+obj.id+"_table'"+
-    "><tbody id='"+obj.id+"_tbody'></tbody></table>"
-    /*
-    return TABLE({'id':obj.id + '_table'},
-    TBODY({'id':obj.id + '_tbody'}, 
-    null));
-    */
-}
-var firstrow = function(obj, newme) {
-    _height = function(o) {
-	return String(getElementDimensions(o).h + 14)+'px'; 
-    };
-    return TR({'style':'height:80px;'},[
-    TD({'rowSpan':1,'style':'background:#ddd none;min-height:1%;'},
-    INPUT({'type':'button',
-    'id':obj.id + '_panl','style':'border:1px solid #aaa;width:3em;'+ 
-    'cursor:pointer','value':'<', 'onfocus':'this.blur();'},null)),
-    TD({'rowSpan':1}, newme),
-    TD({'rowSpan':1, 'style':'background:#ddd none;' },
-    INPUT({'type':'button',
-    'id':obj.id + '_panr','style':'border:1px solid #aaa;'+
-    'cursor:pointer;width:3em;','value':'>','onfocus':'this.blur();'},null)),
-    TD({'style':'width:3em;'},
-    DIV({'style':'width:3em;height:100%;min-height:164px;'},
-    DIV({'id' : obj.id + '_zin','style':'cursor:pointer;background-color:#aaa;'+
-    'width:3em;text-align:center;border:1px solid #aaa;vertical-align:middle;'+
-    'background:#aaa url(zoomin.gif) center center no-repeat;height:50%;'+
-    'min-height:82px;', 
-    'valign':'middle'},''),
-    DIV({'id':obj.id +'_zout','style':'cursor:pointer;background-color:#aaa;'+
-    'width:3em;text-align:center;border:1px solid #aaa;height:50%;'+
-    'background:transparent url(zoomout.gif) center center no-repeat;'+
-    'min-height:82px;', 
-    'valign':'middle'}, '')))]);
+function fixBase64Padding(s) {
+    s = s.split('=',1)[0];
+    var a = [s];
+    for (var i = 0; i <= 4 - (s.length % 4); i++) {
+        a.push('=');
+    }
+    return a.join('');
 }
 
-ZenRRDGraph = Class.create();
-ZenRRDGraph.prototype = {
+var ZenGraphs = ZenGraphs || {},
+    zoom_factor = 1.5,
+    pan_factor = 3,
+    end_re = /now-([0-9]*)s/,
+    start_re = /end-([0-9]*)s/;
 
-    zoom_factor: 1.5,
-    pan_factor: 3,
+Ext.ns('Zenoss');
 
-    __init__: function(obj) {
-        this.obj = obj;
-        this.updateFromUrl();
-        this.setDates();
-        this.buildTables();
-        this.registerListeners();
-        this.loadImage();
-    },
+Zenoss.SWOOPIES = [];
+Zenoss.SWOOP_CALLBACKS = {};
 
-    updateFromUrl: function() {
-        var href = this.obj.src;
-        this.drange = Number(drange_re.exec(href)[1]);
-        this.width  = Number(width_re.exec(href)[1]);
-        this.end    = Number(end_re.exec(href)?end_re.exec(href)[1]:0);
-        this.start  = Number(start_re.exec(href)?start_re.exec(href)[1]
-                             :this.drange);
-    },
-
-    imgPos: function() {
-        obj = this.obj;
-        var curleft = curtop = 0;
-        if (obj.offsetParent) {
-            curleft = obj.offsetLeft;
-            curtop = obj.offsetTop;
-            while (obj=obj.offsetParent) {
-                curleft += obj.offsetLeft;
-                curtop += obj.offsetTop;
+Zenoss.SwoopyGraph = Ext.extend(Ext.Panel, {
+    constructor: function(config) {
+        var cls = Ext.isGecko ? '-moz-zoom-in' : 
+                  Ext.isWebKit ? '-webkit-zoom-in' :
+                  'crosshair';
+        config = Ext.applyIf(config||{}, {
+            html: {
+                tag: 'img',
+                src: config.graphUrl,
+                id: config.graphId, 
+                style: 'cursor:' + cls
+            },
+            tbar: {
+                items: [{
+                    xtype: 'tbtext',
+                    text: config.graphTitle
+                },'->',{
+                    text: '&lt;',
+                    width: 67,
+                    handler: function(btn, e) {
+                        this.onPanLeft(this);
+                    }.createDelegate(this)
+                },{
+                    text: 'Zoom In',
+                    enableToggle: true,
+                    pressed: true,
+                    ref: '../zoomin',
+                    handler: function(btn, e) {
+                        this.fireEventsToAll("zoommodechange", this, !btn.pressed);
+                    }.createDelegate(this)
+                },{
+                    text: 'Zoom Out',
+                    ref: '../zoomout',
+                    enableToggle: true,
+                    handler: function(btn, e) {
+                        this.fireEventsToAll("zoommodechange", this, btn.pressed);
+                    }.createDelegate(this)
+                },{
+                    text: '&gt;',
+                    width: 67,
+                    handler: function(btn, e) {
+                        this.onPanRight(this);
+                    }.createDelegate(this)
+                }]
             }
-        }
-        var element = {x:curleft,y:curtop};
-        return element;
+        });
+        Zenoss.SwoopyGraph.superclass.constructor.call(this, config);
+        this.linkcheck = Ext.get('linkcheck');
+        Zenoss.SWOOPIES.push(this);
     },
-
-    setxpos: function(e) {
-        e = e || window.event;
-        var cursor = {x:0,y:0};
-        var element = this.imgPos();
-        if (e.pageX || e.pageY) {
-            cursor.x = e.pageX;
-            cursor.y = e.pageY;
-        } else {
-            var de = document.documentElement;
-            var b = document.body;
-            cursor.x = e.mouse().client.x +
-                (de.scrollLeft||b.scrollLeft)-(de.clientLeft||0);
-            cursor.y = e.mouse().client.y +
-                (de.scrollTop||b.scrollTop)-(de.clientTop||0);
-        }
-        return cursor.x - element.x;
-    },
-
-    startString : function(s) {
-        s = s || this.start;
-        var x = "&start=end-" + String(s) + "s";
-        return x;
-    },
-
-    endString : function(e) {
-        e = e || this.end;
-        var x = "&end=now-" + String(e) + "s";
-        return x;
-    },
-
-    setZoom : function(e) {
-        var x = this.setxpos(e)-67;
-        var href = this.obj.src;
-        if (x<0||x>this.width){return href};
-        var drange = Math.round(this.drange/this.zoom_factor);
-        var delta = ((this.width/2)-x)*(this.drange/this.width) +
-                (this.drange-drange)/2;
-        var end = Math.round(this.end+delta>=0?this.end+delta:0);
-        this.drange = drange;
-        this.start = drange;
-        this.end = end;
-        return [this.drange, this.start, this.end];
-    },
-
-    pan_left : function() {
-        var delta = Math.round(this.drange/this.pan_factor);
-        this.end = this.end+delta>0?this.end+delta:0;
-        this.setDates();
-        this.setComment();
-        this.setUrl();
-        this.loadImage();
-    },
-
-    pan_right : function() {
-        var delta = Math.round(this.drange/this.pan_factor);
-        this.end = this.end-delta>0?this.end-delta:0;
-        this.setDates();
-        this.setComment();
-        this.setUrl();
-        this.loadImage();
-    },
-
-    setDates : function() {
-        var sD, eD;
-        now = new Date();
-        eD = now.minus(this.end); 
-        sD = now.minus(this.start+this.end);
-        this.sDate=sD.toPretty();
-        this.eDate=eD.toPretty();
-        delete now;
-    },
-
-    setComment : function(comment) {
-        var com_ctr = "\\t\\t\\t to \\t\\t\\t";
-        comment = comment || this.sDate + com_ctr + this.eDate;
-        comment = comment.replace(/:/g, '\\:');
-        //this.comment = escape("COMMENT:" + comment + "\\c|");
-        this.comment = escape(comment);
-    },
-    
-    setUrl : function(obj) {
-        obj = obj || this.obj;
-        var newurl, dashes;
-        var href = obj.src;
-        var start_url = this.startString();
-        var end_url = this.endString();
-        if ( href.match(end_re) ) {
-            newurl = href.replace(end_re, end_url);
-            newurl = newurl.replace(start_re, start_url);
-        } else {
-            newurl = href+=start_url+end_url;
-        };
-        newurl = newurl.replace(drange_re, "&drange=" + String(this.drange));
-        this.setDates();
-        this.setComment();
-        if (newurl.match(comment_re)) {
-            newurl = newurl.replace(comment_re, "&comment=" + this.comment);
-        } else {
-            newurl = newurl + "&comment=" + this.comment;
-        }
-        this.url = newurl;
-    },
-
-    doZoom : function(e) {
-        this.setZoom(e);
-        this.setDates();
-        this.setComment();
-        this.setUrl(this.obj);
-        this.loadImage();
-    },
-    
-    buildTables : function() {
-        this.setComment();
-        this.setUrl();
-        var newme = this.obj.cloneNode(false);
-        newme.src = this.url;
-        newme.style.cursor = 'crosshair';
-        var t = table(this.obj, newme);
-        var f = firstrow(this.obj, newme);
-        var old = this.obj.parentNode.innerHTML;
-        var objid = this.obj.id;
-        this.obj.parentNode.innerHTML = old+t;
-        this.obj = $(objid);
-        var tb = $(this.obj.id + '_tbody');
-        tb.appendChild(f);
-        this.obj.parentNode.removeChild(this.obj);
-        this.obj = newme;
-        this.zin = $(this.obj.id + '_zin');
-        this.zout = $(this.obj.id + '_zout');
-        this.panl = $(this.obj.id + '_panl');
-        this.panr = $(this.obj.id + '_panr');
-    },
-
-    zoom_in : function() {
-        setStyle(this.zin, {'background':'#aaa url(zoomin.gif) center center no-repeat'});
-        setStyle(this.zout, {'background':'transparent url(zoomout.gif) center center no-repeat'});
-        if (this.zoom_factor < 1) this.zoom_factor=1/this.zoom_factor;
-    },
-
-    zoom_out: function() {
-        setStyle(this.zin, {'background':'transparent url(zoomin.gif) center center no-repeat'});
-        setStyle(this.zout, {'background':'#aaa url(zoomout.gif) center center no-repeat'});
-        if (this.zoom_factor > 1) this.zoom_factor=1/this.zoom_factor;
-    },
-
-    loadImage : function() {
-        var checkurl = this.url+'&getImage=&graphid='+this.obj.id+'&ftype=html'+
-            '&ms='+new Date().getTime(),
-            url = this.url,
-            onSuccess = function(r) {
-                currentDocument().body.removeChild($(r.graphid+'ScriptTagProxy'));
-                var obj = $(r.graphid);
-                if (r.success) {
-                    if (obj.src!=url) {
-                        obj.src=url;
-                    };
-                }
-            };
-        var setHeights = bind(function(e) {
-            var myh = getElementDimensions(this.obj).h;
-            setElementDimensions(this.panl, {'h':myh});
-            setElementDimensions(this.panr, {'h':myh});
-        }, this);
-        var x = connect(this.obj, 'onload', setHeights);
-        if (url!=this.obj.src) {
-            defr = new FakeXHR(this.obj.id).getFakeXHR()(checkurl, onSuccess);
-        }
-    },
-
-    registerListeners : function() {
-        if (!this.listeners) this.listeners=new Array();
-        this.clearListeners();
-        var l = this.listeners;
-        l[0] = connect(this.obj, 'onclick', this.doZoom.bind(this));
-        l[1] = connect(this.zin, 'onclick', this.zoom_in.bind(this));
-        l[2] = connect(this.zout,'onclick', this.zoom_out.bind(this));
-        l[3] = connect(this.panl,'onclick', this.pan_left.bind(this));
-        l[4] = connect(this.panr,'onclick', this.pan_right.bind(this));
-    },
-
-    clearListeners : function() {
-        for (l=0;l<this.listeners.length;l++){
-            disconnect(this.listeners[l]);
-        }
-    }
-
-}
-
-ZenGraphQueue = Class.create();
-
-ZenGraphQueue.prototype = {
-    graphs : [],
-    __init__: function() {
-        for (var g=0; g<this.graphs.length; g++) {
-            graph = this.graphs[g];
-            this.add.bind(this)(graph);
-        }
-    },
-    add: function(graph) {
-        this.graphs[this.graphs.length] = graph;
-        this.registerListeners(graph);
-    },
-    reset: function(graph) {
-        for (g=0; g<graphs.length; g++) {
-            this.registerListeners(this.graphs[g]);
-        }
-    },
-    registerListeners: function(graph) {
-        if (!graph.listeners) graph.listeners=new Array();
-        var l = graph.listeners;
-        graph.clearListeners();
-        l[0] = connect(graph.obj, 'onclick', this.doZoom.bind(this));
-        l[1] = connect(graph.zin, 'onclick', this.zoom_in.bind(this));
-        l[2] = connect(graph.zout,'onclick', this.zoom_out.bind(this));
-        l[3] = connect(graph.panl,'onclick', this.pan_left.bind(this));
-        l[4] = connect(graph.panr,'onclick', this.pan_right.bind(this));
-    },
-    remove: function(graph) {
-        graph.registerListeners();
-    },
-    removeAll: function() {
-        for (g=0; g<this.graphs.length; g++) {
-            this.remove(this.graphs[g]);
-        }
-    },
-    updateAll: function(vars) {
-        var end = vars[2];
-        var start = vars[1];
-        var drange = vars[0];
-        for (var i=0; i<this.graphs.length; i++) {
-            var x = this.graphs[i];
-            x.end = end;
-            x.start = start;
-            x.drange = drange;
-            x.setDates();
-            x.setComment();
-            x.setUrl();
-            x.loadImage();
-        }
-    },
-    doZoom: function(e) {
-        var g = this.find_graph(e.target());
-        var graph = this.graphs[g];
-        var vars = graph.setZoom.bind(graph)(e);
-        this.updateAll(vars);
-    },
-    zoom_in: function(e) {
-        for (g=0; g<this.graphs.length; g++) {
-            graph = this.graphs[g];
-            bind(graph.zoom_in, graph)(e);
-        }
-    },
-    zoom_out: function(e) {
-        for (g=0; g<this.graphs.length; g++) {
-            graph = this.graphs[g];
-            graph.zoom_out.bind(graph)(e);
-        }
-    },
-    pan_left: function(e) {
-        for (g=0; g<this.graphs.length; g++) {
-            graph = this.graphs[g];
-            graph.pan_left.bind(graph)(e);
-        }
-    },
-    pan_right: function(e) {
-        for (g=0; g<this.graphs.length; g++) {
-            graph = this.graphs[g];
-            graph.pan_right.bind(graph)(e);
-        }
-    },
-    find_graph: function(obj) {
-        var obj = $(obj);
-        for (g=0; g<this.graphs.length; g++) {
-            if (this.graphs[g].obj==obj) return g;
-        }
-    }
-};
-
-function linkGraphs(bool) {
-    linked_mode = bool;
-    if (!linked_mode) {
-        ZenQueue.removeAll();
-    } else {
-        resetGraphs($('drange_select').value);
-        ZenQueue.reset();
-    }
-}
-
-function resetGraphs(drange) {
-    var end = 0;
-    var start = Number(drange);
-    var drange = Number(drange);
-    ZenQueue.updateAll([drange, start, end]);
-}
-
-function registerGraph(id) {
-    var graph = new ZenRRDGraph($(id));
-}
-
-var ZenQueue = new ZenGraphQueue();
-var fakexhr = {
-    registerResponse: function(r) {
-        log('response received from'+r.responseText);
-        var graph = ZenQueue.find_graph(r.graphid);
-        graph = ZenQueue.graphs[graph];
-        graph.fakeXHR.registerResponse(r);
-    }
-};
-
-function showErrorGraph(graphid) {
-       var mydiv = DIV({'style':'height:100px;width:500px;'},
-        "There was a problem rendering this graph. Either the file does not exist or an error has occurred.  Initial graph creation can take up to 5 minutes.  If the graph still does not appear, look in the Zope log file $ZENHOME/log/event.log for errors.");
-       swapDOM($(ZenGraphs[graphid]), mydiv);
-}
-
-function zenRRDInit() {
-    for (var graphid=0; graphid<ZenGraphs.length; graphid++) {
-        try {
-            var img = $(ZenGraphs[graphid]);
-            if (!img.height || !img.width) {
-                showErrorGraph(graphid);
+    initEvents: function() {
+        this.addEvents("zoommodechange", "updateimage");
+        Zenoss.SwoopyGraph.superclass.initEvents.call(this);
+        this.on("zoommodechange", this.onZoomModeChange, this);
+        this.on("updateimage", this.updateImage, this);
+        this.graphEl = Ext.get(this.graphId);
+        this.graphEl.on('click', this.onGraphClick, this);
+        this.graphEl.on('load', function(){
+            var size = this.graphEl.getSize();
+            if (!size.width || !size.height){ 
+                this.showFailure();
             } else {
-                var graph = new ZenRRDGraph(img);
-                ZenQueue.add(graph);
+                this.parseGraphParams();
             }
-        } catch(e) { 
-            showErrorGraph(graphid);
+        }, this, {single:true});
+    },
+    showFailure: function() {
+        this.failureMask = this.failureMask || Ext.DomHelper.insertAfter(this.graphEl, {
+            tag: 'div',
+            html: "There was a problem rendering this graph. Either the file does not exist or an error has occurred.  Initial graph creation can take up to 5 minutes.  If the graph still does not appear, look in the Zope log file $ZENHOME/log/event.log for errors."
+        });
+        var el = Ext.fly(this.failureMask);
+        var size = this.graphEl.getSize();
+        if (!size.width || !size.height) {
+            size = {height:150, width:500};
         }
+        el.setSize(size);
+        Ext.fly(this.failureMask).setDisplayed(true);
+        this.graphEl.setDisplayed(false);
+    },
+    hideFailure: function() {
+        if (this.failureMask) {
+            this.graphEl.setDisplayed(true);
+            Ext.fly(this.failureMask).setDisplayed(false);
+        }
+    },
+    parseGraphParams: function(url) {
+        url = url || this.graphEl.dom.src;
+        var href = url.split('?'),
+            gp = Ext.apply({url:href[0]}, Ext.urlDecode(href[1]));
+        // Encoding can screw with the '=' padding at the end of gopts, so
+        // strip and recreate it
+        gp.gopts = fixBase64Padding(gp.gopts);
+        gp.width = Number(gp.width); 
+        gp.drange = Number(gp.drange); 
+        gp.start = Ext.isDefined(gp.start) ? Number(start_re.exec(gp.start)[1]) : gp.drange;
+        gp.end = Ext.isDefined(gp.end) ? Number(end_re.exec(gp.end)[1]) : 0;
+        this.graph_params = gp;
+    },
+    getComment: function(start, end) {
+        var now = new Date(),
+            endDate = now.minus(end).toPretty(),
+            startDate = now.minus(start + end).toPretty();
+        var com_ctr = "\\t\\t to \\t\\t";
+        var comment = startDate + com_ctr + endDate;
+        comment = comment.replace(/:/g, '\\:');
+        return comment;
+    },
+    fireEventsToAll: function() {
+        if (this.linked()) {
+            var args = arguments;
+            Ext.each(Zenoss.SWOOPIES, function(g) {
+                g.fireEvent.apply(g, args);
+            });
+        } else {
+            this.fireEvent.apply(this, arguments);
+        }
+    },
+    linked: function() {
+        return Ext.get('linkcheck').dom.checked;
+    },
+    updateImage: function(params) {
+        /*
+        * params should look like:
+        * {drange:n, start:n, end:n}
+        */
+        var gp = Ext.apply({}, params, this.graph_params);
+        gp.comment = this.getComment(gp.start, gp.end);
+        gp.end = 'now-' + gp.end + 's';
+        gp.start = 'end-' + gp.start + 's';
+        this.sendRequest(gp);
+    },
+    sendRequest: function(params) {
+        var url = params.url;
+        delete params.url;
+        params.getImage = null;
+        var now = new Date().getTime();
+        var graphid = now + '_' + this.graphId;
+        params.graphid = graphid;
+        var fullurl = Ext.urlAppend(url, Ext.urlEncode(params));
+        Zenoss.SWOOP_CALLBACKS[graphid] = function(packet) {
+            var ob = Ext.decode(packet);
+            if (ob.success) {
+                this.hideFailure();
+                this.graphEl.dom.src = "data:image/png;base64," + ob.data;
+                this.parseGraphParams(fullurl);
+            } else {
+                this.showFailure();
+            }
+            // Clean up callbacks and script tags
+            delete Zenoss.SWOOP_CALLBACKS[graphid];
+            Ext.get(graphid).remove();
+        }.createDelegate(this);
+        var sc = Ext.DomHelper.createDom({
+            tag: 'script',
+            id: graphid,
+            type: 'text/javascript',
+            src: fullurl
+        });
+        Ext.getDoc().dom.getElementsByTagName('head')[0].appendChild(sc);
+    },
+    onPanLeft: function(graph) {
+        var gp = this.graph_params;
+        var delta = Math.round(gp.drange/pan_factor);
+        var newend = gp.end + delta > 0 ? gp.end + delta : 0;
+        this.fireEventsToAll("updateimage", {end:newend});
+    },
+    onPanRight: function(graph) {
+        var gp = this.graph_params;
+        var delta = Math.round(gp.drange/pan_factor);
+        var newend = gp.end - delta > 0 ? gp.end - delta : 0;
+        this.fireEventsToAll("updateimage", {end:newend});
+    },
+    onZoomModeChange: function(graph, zoomOut) {
+        this.zoomout.toggle(zoomOut);
+        this.zoomin.toggle(!zoomOut);
+        var dir = zoomOut ? 'out' : 'in',
+            cls = Ext.isGecko ? '-moz-zoom-'+dir : 
+                 (Ext.isWebKit ? '-webkit-zoom-'+dir : 'crosshair');
+        this.graphEl.setStyle({'cursor': cls});
+    },
+    doZoom: function(xpos, factor) {
+        var gp = this.graph_params;
+        if (xpos < 0 || xpos > gp.width) {
+            return;
+        }
+        var drange = Math.round(gp.drange/factor),
+            delta = ((gp.width/2) - xpos) * (gp.drange/gp.width) + (gp.drange - drange)/2,
+            end = Math.round(gp.end + delta >= 0 ? gp.end + delta : 0);
+        this.fireEventsToAll("updateimage", {
+            drange: drange,
+            start: drange,
+            end: end
+        });
+    },
+    onGraphClick: function(e) {
+        var graph = e.getTarget(null, null, true),
+            x = e.getPageX() - graph.getX() - 67,
+            func = this.zoomin.pressed ? this.onZoomIn : this.onZoomOut;
+        func.call(this, this, x);
+    },
+    onZoomIn: function(graph, xpos) {
+        this.doZoom(xpos, zoom_factor);
+    },
+    onZoomOut: function(graph, xpos) {
+        this.doZoom(xpos, 1/zoom_factor);
+    }
+});
+
+function resetSwoopies(drange) {
+    drange = drange || Ext.get('drange_select').dom.value;
+    Ext.each(Zenoss.SWOOPIES, function(g) {
+        g.fireEventsToAll("updateimage", {
+            drange: drange,
+            start: drange,
+            end: 0
+        });
+    });
+}
+
+function onLinkCheck(e, el) {
+    if (el.checked) {
+        resetSwoopies();
     }
 }
 
-YAHOO.register('swoopygraphs', YAHOO.zenoss, {});
+Ext.onReady(function(){
+    var graphid;
+    Ext.get('linkcheck').on('click', onLinkCheck);
+    Ext.get('drange_select').on('change', function(e, el){
+        resetSwoopies(el.value);
+    });
+    var resetButton = Ext.get('graphreset');
+    if (resetButton) {
+        resetButton.on('click', function(){resetSwoopies();});
+    }
+    for (graphid in ZenGraphs) {
+        if (true) {
+            var graphinfo = ZenGraphs[graphid];
+            var x = new Zenoss.SwoopyGraph({
+                graphUrl: graphinfo[0],
+                graphTitle: graphinfo[1],
+                graphId: graphid
+            }).render(Ext.get('td_'+graphid));
+        }
+    }
+
+    // Old code I don't want to rewrite right now 
+    var button = Ext.get('refreshButton');
+    var refreshMgr;
+    function turnRefreshOff () {
+        if (refreshMgr) {
+            refreshMgr.cancelRefresh();
+        }
+        button.setStyle({'background-image':'url(img/refresh_on.png)'});
+        button.un('click', turnRefreshOff);
+        button.on('click', turnRefreshOn);
+        button.blur();
+    }
+    function turnRefreshOn () {
+        var refrate = $('refreshRate');
+        if (refrate) {
+            var rate = refrate.value;
+            refreshMgr = new RefreshManager(rate, function(){resetSwoopies();});
+            button.setStyle({'background-image':'url(img/refresh_off.png)'});
+            button.un('click', turnRefreshOn);
+            button.on('click', turnRefreshOff);
+            button.blur();
+        }
+    }
+    turnRefreshOn();
+});
+
 

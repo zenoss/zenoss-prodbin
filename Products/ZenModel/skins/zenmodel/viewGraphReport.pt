@@ -6,6 +6,15 @@ var absoluteUrlPath = &quot;${here/absolute_url_path}&quot;;
 var reportId = &quot;${here/getPrimaryId}&quot;;
 </script>" />
 
+<script language="javascript" type="text/javascript">
+    var ZenGraphs = {};
+</script>
+<style> 
+    /* Override some uglifying styles */ 
+    table.innerzentable tr td { padding: 0; } 
+</style>
+<script type="text/javascript" src="http://localhost:8080/zport/dmd/zenrrdzoom.js"></script>
+
 <form method="post" target="_blank" id="printableForm" tal:attributes=" 
         action python:here.absolute_url_path() + '/viewGraphReportClean';">
 </form>
@@ -14,7 +23,6 @@ var reportId = &quot;${here/getPrimaryId}&quot;;
     tal:attributes="action string:${here/absolute_url_path}/${template/id}">
 
 <script language="javascript" type="text/javascript">
-var ZenGraphs = new Array();
 
 function CreateFormField(theForm, name, value) {
     var newField = document.createElement('INPUT');
@@ -38,11 +46,6 @@ function ShowPrintable() {
     }
     printableForm.submit();
 }
-addLoadEvent(function() {
-    var loader = YAHOO.zenoss.getLoader();
-    loader.require(['swoopygraphs']);
-    loader.insert({onSuccess:function(){zenRRDInit()}});
-});
 </script>
 
 
@@ -55,20 +58,15 @@ addLoadEvent(function() {
 
 <tal:block metal:fill-slot="filterslot">
         &nbsp;&nbsp;&nbsp;&nbsp;Range
-        <select class="tableheader" name="drange:int"
-            onchange="resetGraphs(this.value)"
-            id="drange_select">
+        <select class="tableheader" name="drange:int" id="drange_select">
             <option tal:repeat="r here/performanceDateRanges" 
                 tal:content='python:r[0]' 
                 tal:attributes="value python:r[1]; 
                                 selected python:r[1]==drange"/>
         </select>
-    <input class="tableheader" type="button" value="Reset"
-    onclick="resetGraphs($('drange_select').value);"
-    style="margin-left:2em;"/>
+    <input id="graphreset" class="tableheader" type="button" value="Reset" style="margin-left:2em;"/>
     <span style="margin-left:2em;" id="linkcheck_label">Link graphs?</span>
-    <input type="checkbox" style="border:1px solid black;padding-top:0.5em;" 
-           checked onchange="linkGraphs(this.checked)" id="linkcheck"/>
+    <input type="checkbox" style="border:1px solid black;padding-top:0.5em;" checked id="linkcheck"/>
     &nbsp;&nbsp;&nbsp;&nbsp;
     <input class="tableheader" type="button" value="Printable"
     onclick="ShowPrintable()"
@@ -94,10 +92,10 @@ addLoadEvent(function() {
 		    </td>
 		</tr>
         <tr>
-            <td class="tablevalues">
-                <img src="_" tal:attributes="src graphUrl; id graphid"/>
+            <td class="tablevalues" tal:attributes="id string:td_${graphid}">
                 <script language="javascript" type="text/javascript"
-                tal:content="string:ZenGraphs[ZenGraphs.length]='${graphid}';">
+                    tal:content="string:ZenGraphs['${graphid}']=['${graphUrl}', 
+                                                  ''];">
                 </script>
             </td>
         </tr>

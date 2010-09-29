@@ -20,6 +20,7 @@ and then returns an URL to access the rendered graphic file.
 import os
 import time
 import logging
+import json
 import urllib
 import zlib
 import mimetypes
@@ -35,6 +36,7 @@ try:
 except ImportError:
     pass
 
+from base64 import b64encode
 try:
     from base64 import urlsafe_b64decode
     raise ImportError
@@ -161,12 +163,12 @@ class RenderServer(RRDToolItem):
         if getImage:
             return graph
         else:
-            return """
-            CALLBACKS.%s(%s);
-            """ % (graphid, dumps({
-                'graphid':graphid,
-                'success':bool(graph)
-            }))
+            success = bool(graph)
+            ret = {'success':success}
+            if success:
+                ret['data'] = b64encode(graph)
+            REQUEST.RESPONSE.setHeader('Content-Type', 'text/javascript')
+            return """Zenoss.SWOOP_CALLBACKS["%s"]('%s')""" % (graphid, json.dumps(ret))
 
 
     def deleteRRDFiles(self, device, 
