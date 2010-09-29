@@ -13,7 +13,7 @@ var reportId = &quot;${here/getPrimaryId}&quot;;
     /* Override some uglifying styles */ 
     table.innerzentable tr td { padding: 0; } 
 </style>
-<script type="text/javascript" src="http://localhost:8080/zport/dmd/zenrrdzoom.js"></script>
+<script type="text/javascript" src="/zport/dmd/zenrrdzoom.js"></script>
 
 <form method="post" target="_blank" id="printableForm" tal:attributes=" 
         action python:here.absolute_url_path() + '/viewGraphReportClean';">
