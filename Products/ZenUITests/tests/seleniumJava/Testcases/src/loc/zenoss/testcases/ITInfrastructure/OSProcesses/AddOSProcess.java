@@ -91,11 +91,11 @@ public class AddOSProcess {
 			sClient.click("link=test-sql2005-1d.zenoss.loc");
 			sClient.waitForPageToLoad("30000");
 			// Add new OS Process
-			Thread.sleep(2000);
+			Thread.sleep(8000);
 			sClient.click("//table[@id='component-add-menu']/tbody/tr[2]/td[2]/em");
-			Thread.sleep(1000);
+			Thread.sleep(3000);
 			sClient.click("addosprocess");
-			Thread.sleep(1000);
+			Thread.sleep(2000);
 			sClient.typeKeys("newClassName", "httpd");
 			Thread.sleep(1000);
 			selenese.verifyTrue(sClient.isTextPresent("httpd"));
