@@ -8,7 +8,8 @@ class ORMTestCase(unittest.TestCase):
     _tables = ()
 
     def setUp(self):
-        self.engine = create_engine('sqlite://', echo=False)
+        #self.engine = create_engine('sqlite://', echo=False)
+        self.engine = create_engine('mysql://root@localhost:3306/events', echo=True)
         meta.metadata.bind = self.engine
         meta.Session.configure(autoflush=True, autocommit=True, binds={
             meta.metadata:self.engine
