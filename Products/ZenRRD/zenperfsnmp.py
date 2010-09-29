@@ -284,7 +284,11 @@ class SnmpPerformanceCollectionTask(ObservableMixin):
                 continue
 
             successCount += 1
-            for oid, value in update.items():
+
+            # Casting update to a dict here is unnecessary in all known cases.
+            # See ticket #7347 for a bug where update would be a tuple at this
+            # point instead of a dict. This cast fixes that problem.
+            for oid, value in dict(update).items():
                 oid = oid.strip('.')
                 if oid not in self._oids:
                     log.error("OID %s is not in %s", oid, self._oids.keys())
