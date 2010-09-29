@@ -85,7 +85,7 @@ public class MonitoringWinServices {
 			sClient.click("//button[@type='submit']");
 			Thread.sleep(30000);
 			sClient.typeKeys("name", "testWinService");
-			Thread.sleep(5000);
+			Thread.sleep(10000);
 			sClient.clickAt("//div[@class='x-grid3-cell-inner x-grid3-col-name' and text() = 'testWinService']", "testWinService");
 			Thread.sleep(3000);
 			sClient.typeKeys("descriptionTextField", "new win service");
@@ -112,19 +112,19 @@ public class MonitoringWinServices {
 			Thread.sleep(50000);
 			// Click on Infrastructure
 			sClient.click("link=Infrastructure");
-			sClient.waitForPageToLoad("30000");
+			sClient.waitForPageToLoad("40000");
 			// Click on the device added
-			Thread.sleep(2000);
+			Thread.sleep(6000);
 			sClient.click("link=test-win7-1.zenoss.loc");
 			sClient.waitForPageToLoad("30000");
-			Thread.sleep(2000);
+			Thread.sleep(8000);
 			// Add Win Service
 			sClient.click("//table[@id='component-add-menu']/tbody/tr[2]/td[2]/em");
 			// Click on Add Win Service
 			sClient.click("addwinservice");
-			Thread.sleep(2000);
+			Thread.sleep(6000);
 			sClient.click("//div[@id='winServiceClassLiveSearch']//img");
-			Thread.sleep(1000);
+			Thread.sleep(6000);
 			sClient.click("//div[normalize-space(@class) = 'x-combo-list-item' and text()= 'testWinService']");
 			selenese.verifyEquals("testWinService", sClient.getValue("ext-comp-1222"));
 			sClient.click("//*[button='Submit']");
