@@ -321,6 +321,7 @@ class CommandDataSourceInfo(BasicDataSourceInfo):
     component = ProxyProperty('component')
     eventKey = ProxyProperty('eventKey')
     commandTemplate = ProxyProperty('commandTemplate')
+    resultsCacheable = ProxyProperty('resultsCacheable')
 
 
 class DataPointInfo(InfoBase):

@@ -23,6 +23,7 @@ from pprint import pformat
 import logging
 log = logging.getLogger("zen.zencommand")
 import traceback
+from copy import deepcopy
 
 from twisted.internet import reactor, defer, error
 from twisted.internet.protocol import ProcessProtocol
@@ -370,6 +371,7 @@ class Cmd(pb.Copyable, pb.RemoteCopy):
     lastStop = 0
     result = None
     env = None
+    resultsCacheable = False
 
     def __init__(self):
         self.points = []
@@ -662,16 +664,33 @@ class SshPerformanceCollectionTask(ObservableMixin):
         @type ignored: result of previous callback
         """
         self.state = SshPerformanceCollectionTask.STATE_FETCH_DATA
+
+        # The keys are the datasource names, which are composed of the
+        # template name and the datasource name.  This combination is unique.
+        cacheableDS = {}
+
         # Bundle up the list of tasks
         deferredCmds = []
         for datasource in self._datasources:
+             if datasource.resultsCacheable:
+                 if datasource.name in cacheableDS:
+                     log.debug("Will re-use results for datasource %s" 
+                               " component %s",
+                               datasource.name, datasource.component)
+                     cacheableDS[datasource.name].append(datasource)
+                     continue
+                 log.debug("Will cache results from datasource %s" 
+                           " component %s",
+                           datasource.name, datasource.component)
+                 cacheableDS[datasource.name] = []
+                  
              datasource.deviceConfig = self._device
              task = self._executor.submit(self._addDatasource, datasource)
              deferredCmds.append(task)
 
         # Run the tasks
         dl = defer.DeferredList(deferredCmds, consumeErrors=True)
-        dl.addCallback(self._parseResults)
+        dl.addCallback(self._parseResults, cacheableDS)
         dl.addCallback(self._storeResults)
         dl.addCallback(self._updateStatus)
         dl.addErrback(self._failure)
@@ -680,13 +699,15 @@ class SshPerformanceCollectionTask(ObservableMixin):
         self._commandsToExecute = dl
         return dl
 
-    def _parseResults(self, resultList):
+    def _parseResults(self, resultList, cacheableDS):
         """
         Interpret the results retrieved from the commands and pass on
         the datapoint values and events.
 
         @parameter resultList: results of running the commands in a DeferredList
         @type resultList: array of (boolean, datasource)
+        @parameter cacheableDS: other datasources that can use the same results
+        @type cacheableDS: dictionary of arrays of datasources
         """
         self.state = SshPerformanceCollectionTask.STATE_PARSE_DATA
         parseableResults = []
@@ -702,6 +723,15 @@ class SshPerformanceCollectionTask(ObservableMixin):
                 results.events.append(ev)
 
             else:
+                # Re-use our results for any similar datasources
+                cachedDsList = cacheableDS.get(datasource.name)
+                if cachedDsList:
+                    for ds in cachedDsList:
+                        ds.result = deepcopy(datasource.result)
+                        results = ParsedResults()
+                        self._processDatasourceResults(ds, results)
+                        parseableResults.append( (ds, results) )
+
                 self._processDatasourceResults(datasource, results)
 
             parseableResults.append( (datasource, results) )

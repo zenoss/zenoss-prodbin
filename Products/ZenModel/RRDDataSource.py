@@ -49,6 +49,7 @@ class RRDDataSource(ZenModelRM, ZenPackable):
     severity = 3
     commandTemplate = ""
     cycletime = 300
+    resultsCacheable = False
 
     _properties = (
         {'id':'sourcetype', 'type':'selection',
@@ -60,6 +61,7 @@ class RRDDataSource(ZenModelRM, ZenPackable):
         {'id':'severity', 'type':'int', 'mode':'w'},
         {'id':'commandTemplate', 'type':'string', 'mode':'w'},
         {'id':'cycletime', 'type':'int', 'mode':'w'},
+        {'id':'resultsCacheable', 'type':'boolean', 'mode':'w'},
         )
 
     _relations = ZenPackable._relations + (

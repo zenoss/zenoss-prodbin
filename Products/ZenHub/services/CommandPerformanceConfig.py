@@ -145,7 +145,7 @@ class CommandPerformanceConfig(CollectorConfigService):
 
                 cmd = Cmd()
                 cmd.useSsh = useSsh
-                cmd.name = ds.id
+                cmd.name = "%s/%s" % (templ.id, ds.id)
                 cmd.cycleTime = self._getDsCycleTime(comp, templ, ds)
                 cmd.component = ds.getComponent(comp)
                 cmd.eventClass = ds.eventClass
@@ -153,6 +153,7 @@ class CommandPerformanceConfig(CollectorConfigService):
                 cmd.severity = ds.severity
                 cmd.parser = ploader
                 cmd.ds = ds.titleOrId()
+                cmd.resultsCacheable = getattr(ds, 'resultsCacheable', False)
 
                 # If the datasource supports an environment dictionary, use it
                 cmd.env = getattr(ds, 'env', None)
