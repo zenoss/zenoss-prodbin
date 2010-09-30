@@ -19,7 +19,7 @@ class Dummy:
 
     meta_type="foo"
 
-    def __init__( self, *path):
+    def __init__( self, path):
         self.path = path
 
     def __str__( self ):
@@ -241,8 +241,8 @@ class MultiPathIndexTests(unittest.TestCase):
     def testSimilarPaths(self):
         index = self._index
         index.index_object(1, Dummy('/zport/dmd/Devices/VMware/devices/MyDevice'))
-        index.index_object(2, Dummy('/zport/dmd/Manufacturers/VMware/vmware-tools/MyDevice2',
-                                    '/zport/dmd/Devices/Server/devices/MyDevice2'))
+        index.index_object(2, Dummy(['/zport/dmd/Manufacturers/VMware/vmware-tools/MyDevice2',
+                                    '/zport/dmd/Devices/Server/devices/MyDevice2']))
         res = index._apply_index({'path':{'query':'/zport/dmd/Devices/VMware'}})[0].keys()
         self.assertEqual(list(res), [1])
 
