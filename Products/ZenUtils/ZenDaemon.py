@@ -151,7 +151,11 @@ class ZenDaemon(CmdBase):
         else: mname = self.__class__.__name__
         self.log = logging.getLogger("zen."+ mname)
         zlog = logging.getLogger("zen")
-        zlog.setLevel(self.options.logseverity)
+        try:
+            loglevel = int(self.options.logseverity)
+        except ValueError:
+            loglevel = getattr(logging, self.options.logseverity.upper(), logging.INFO)
+        zlog.setLevel(loglevel)
         if self.options.watchdogPath or \
            self.options.daemon:
             logdir = self.checkLogpath()
