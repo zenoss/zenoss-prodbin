@@ -10,8 +10,8 @@
 # For complete information please visit: http://www.zenoss.com/oss/
 #
 ###########################################################################
+import time
 from types import ListType, TupleType
-from BTrees.IIBTree import IISet
 import logging
 LOG = logging.getLogger('ZenUtils.MultiPathIndex')
 
@@ -22,7 +22,7 @@ from Products.PluginIndexes.common import safe_callable
 from BTrees.OOBTree import OOSet
 
 def _isSequenceOfSequences(seq):
-    if not seq: 
+    if not seq:
         return False
     if not isinstance(seq, (TupleType, ListType)):
         return False
@@ -34,9 +34,9 @@ def _isSequenceOfSequences(seq):
 def _recursivePathSplit(seq):
     if isinstance(seq, (TupleType, ListType)):
         return map(_recursivePathSplit, seq)
-    if '/' in seq: 
+    if '/' in seq:
         return seq.split('/')
-    else: 
+    else:
         return seq
 
 class MultiPathIndex(ExtendedPathIndex):
@@ -45,49 +45,27 @@ class MultiPathIndex(ExtendedPathIndex):
     """
     meta_type = "MultiPathIndex"
 
-    def search(self, path, default_level=0, depth=-1, navtree=0,
-                                                             navtree_start=0):
-        
-        results = ExtendedPathIndex.search(self, path, default_level, depth, navtree,
-                                                             navtree_start)
-        # navtree is a special mode where you get the parents as well, obviously
-        # we can not do our special path sanity check in this case
-        if navtree or default_level:
-            return results        
-        return self._pathSanityCheck(path, results)
+    def search(self, path, default_level=0, depth=-1, navtree=0, navtree_start=0):
+        results = super(MultiPathIndex, self).search(path, default_level,
+                                                     depth, navtree,
+                                                     navtree_start)
+        parents = self._index_parents
+        if not isinstance(path, basestring):
+            path = path[0]
+        for comp in path.split('/')[4:]:
+            m = '/%s' % comp
+            roots = set(x[:x.find(comp)] for x in parents if m in x)
+            if len(roots)>1:
+                # Same segment, same depth, different prefixes, thus we need to verify our results
+                for r in tuple(results):
+                    for p in self._unindex[r]:
+                        if p.startswith(path):
+                            break
+                    else:
+                        results.remove(r)
+                break
+        return results
 
-    def _pathSanityCheck(self, searchPath, pathset):
-        """Extended path index uses a series of set "buckets" to store which items belong at
-        which point on the search path, this can sometimes cause issues if two points on the path
-        have the same name and thus belong to the same bucket
-        For instance:
-        /zport/dmd/Devices/Server/Windows/WMI/devices/test-winxp-1.zenoss.loc/os/software/VMware Tools
-        has another path at
-        /zport/dmd/Manfacturers/VMware/...
-
-        and our search returns a false positive because we search for
-        /zport/dmd/Devices/VMware
-
-        because we have the id for that component returned at each point along the path.
-        
-        So this function iterates through all the return paths and makes sure the path that we are searching
-        for is in the path that is returned
-        """
-        # only workds for absolute paths not relative
-        if not isinstance(searchPath, basestring) or not searchPath.startswith('/'):
-            return pathset
-        rids = IISet()
-        if not pathset:
-            return 
-        for rid in pathset:
-            paths = self._unindex[rid]
-            for path in paths:
-                if path.startswith(searchPath):
-                    rids.insert(rid)
-                    break
-                    
-        return rids
-    
     def getIndexSourceNames(self):
         """ return names of indexed attributes """
         return (self.id, )

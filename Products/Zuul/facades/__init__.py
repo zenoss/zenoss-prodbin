@@ -120,7 +120,7 @@ class TreeFacade(ZuulFacade):
                              for state in params['productionState']]))
         if qs:
             query = And(*qs)
-        
+
         brains = cat.search('Products.ZenModel.Device.Device', start=start,
                            limit=limit, orderby=sort, reverse=reverse,
                             query=query, hashcheck=hashcheck)

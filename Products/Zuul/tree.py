@@ -172,7 +172,7 @@ class CatalogTool(object):
             path = '/'.join(self.context.getPhysicalPath())
         results = self._queryCatalog(types, orderby=None, paths=(path,))
         return len(results)
-        
+
     def _queryCatalog(self, types=(), orderby='name', reverse=False, paths=(),
                      depth=None, query=None):
         qs = []
@@ -197,7 +197,7 @@ class CatalogTool(object):
 
         # filter based on permissions
         qs.append(In('allowedRolesAndUsers', allowedRolesAndGroups(self.context)))
-                
+
         # Consolidate into one query
         query = And(*qs)
 
