@@ -24,6 +24,10 @@ public class Common {
 	public static void Login(DefaultSelenium sClient, String username, String password) throws Exception
 	{
 		sClient.open("/");
+		
+		//By JRodriguez: Maximize window to avoid known issues loading elements when window is not big enough
+		sClient.windowMaximize();
+		
 		sClient.type("username", username);
 		sClient.type("__ac_password", password);	
 		sClient.click("submitbutton");
