@@ -84,9 +84,41 @@ public class Users {
 			result = true;			
 		}
 		return result;
-
 	}
-
+	
+	/*
+	 * This method assumes that Users page is already loaded
+	 * Create new user Group
+	 * @author Catalina Rojas 
+	 * @param sClient Selenium client connection
+	 * @return Boolean true if the group was successfully created
+	 * @throws Generic Exception
+	 */
+	public static boolean newUserGroup(DefaultSelenium sClient,String idGroup) throws Exception{
+		
+		//Click on the gear menu
+		sClient.click("//table[@id='ext-comp-1081']/tbody/tr[2]/td[2]/em");
+		Thread.sleep(1000);
+		//Click on Add new Group
+		sClient.click("GrouplistaddUserGroup");
+		Thread.sleep(1000);
+		//Type the group Id
+		sClient.type("new_id", idGroup);
+		//Click on Ok Submit button.
+		sClient.click("//input[@type='submit']");
+		Thread.sleep(4000);
+		
+		boolean result = true;
+		if(sClient.isTextPresent("Group \""+idGroup+"\" has been created.") ){
+			result = true;
+		}
+		else
+		{
+			result = false;
+			throw new Exception("The new group was not created");
+		}
+		return result;
+	}
 
 
 }
