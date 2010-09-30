@@ -18,6 +18,7 @@ import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import loc.zenoss.Common;
+import loc.zenoss.Users;
 import loc.zenoss.ZenossConstants;
 import com.thoughtworks.selenium.DefaultSelenium;
 import com.thoughtworks.selenium.SeleneseTestCase;
@@ -62,64 +63,61 @@ public class ManagerUser {
 		
 		@Test
 		public void managerUser() throws Exception{
-			
+			String user = "testing001";
+		
 			Common.Login(sClient, ZenossConstants.adminUserName,ZenossConstants.adminPassword);
 			Thread.sleep(12000);
-			
+							
 			sClient.open("/zport/dmd/?submitted=true");
-			// Click on Advanced
+			// Click on Advanced page
 			sClient.click("link=Advanced");
 			sClient.waitForPageToLoad("30000");
-			// Click Users
+			
+			// Click Users page
 			sClient.click("link=Users");
 			sClient.waitForPageToLoad("30000");
-			// Click on Add new User
-			sClient.click("//table[@id='ext-comp-1078']/tbody/tr[2]/td[2]/em");
-			Thread.sleep(2000);
-			sClient.click("UserlistaddUser");
-			Thread.sleep(2000);
-			sClient.type("new_id", "testing001");
-			sClient.type("email", "testing001@test.zenoss.com");
-			// Click on Ok button
-			sClient.click("dialog_submit");
-			// Verify that the user is created
-			Thread.sleep(6000);
-			selenese.verifyTrue(sClient.isTextPresent("User \"testing001\" has been created."));
-			//  Verify if the user and email are displayed on Users page
-			Thread.sleep(5000);
-			selenese.verifyTrue(sClient.isTextPresent("testing001"));
-			selenese.verifyTrue(sClient.isTextPresent("testing001@test.zenoss.com (test)"));
+			
+			//Add new user
+			Users.addNewUser(sClient, "testing001", "testing001@test.zenoss.com");
+			
 			// Click on the new user
-			sClient.click("link=testing001");
+			sClient.click("link="+user);
 			sClient.waitForPageToLoad("30000");
-			// // Type new password
+			
+			// Type new password
 			Thread.sleep(300);
 			sClient.type("password", "123");
 			sClient.type("sndpassword", "123");
+			
 			// Select ZenManager role
 			sClient.addSelection("roles:list", "label=ZenManager");
 			sClient.removeSelection("roles:list", "label=ZenUser");
 			// Enter password of the current user
-			sClient.typeKeys("pwconfirm", "zenoss");
+			//sClient.typeKeys("pwconfirm", "zenoss");
+			sClient.typeKeys("pwconfirm", ZenossConstants.adminPassword);
 			// Click on Save button
 			sClient.click("formsave");
 			sClient.waitForPageToLoad("30000");
+			
 			// Verify text that is indicating that the changes were saved
 			Thread.sleep(6000);
 			selenese.verifyTrue(sClient.isTextPresent("Saved at time:"));
+			
 			// // Sign Out
 			sClient.click("link=sign out");
 			sClient.waitForPageToLoad("30000");
+			
 			// // Log In with the new ZenManager user
 			Thread.sleep(3000);
-			sClient.type("username", "testing001");
+			sClient.type("username", user);
 			sClient.type("__ac_password", "123");
 			// Click on Log in button
 			sClient.click("submitbutton");
 			sClient.waitForPageToLoad("30000");
+			
 			// Verify that the new user is displayed on the dashboard
 			Thread.sleep(4000);
-			selenese.verifyTrue(sClient.isTextPresent("testing001"));
+			selenese.verifyTrue(sClient.isTextPresent(user));
 						
 			testCaseResult = "p";
 		}
