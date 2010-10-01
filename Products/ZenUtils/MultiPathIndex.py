@@ -49,6 +49,10 @@ class MultiPathIndex(ExtendedPathIndex):
         results = super(MultiPathIndex, self).search(path, default_level,
                                                      depth, navtree,
                                                      navtree_start)
+        # navtree is a special mode which won't be affected by false positives
+        # and which this verification step would break
+        if navtree or default_level:
+            return results
         parents = self._index_parents
         if not isinstance(path, basestring):
             path = path[0]
