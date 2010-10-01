@@ -120,5 +120,49 @@ public class Users {
 		return result;
 	}
 
+	/*
+	 * This method assumes that Users page is already loaded
+	 * This method assumes that User is already created
+	 * This method assumes that Group is already created
+	 * Create new user Group
+	 * @author Catalina Rojas 
+	 * @param sClient Selenium client connection
+	 * @return Boolean true if the user was successfully added to the group selected
+	 * @throws Generic Exception
+	 */
+	public static boolean UserToGroup(DefaultSelenium sClient,String idUser, String idGroup) throws Exception{
+		// Add new User to a group
+		sClient.click("//input[@name='groupids:list' and @value='"+idGroup+"']");
+		// //Click gear menu - Group section
+		Thread.sleep(2000);
+		Thread.sleep(1000);
+		sClient.click("//table[@id='ext-comp-1081']/tbody/tr[2]/td[2]/em");
+		Thread.sleep(2000);
+		sClient.click("GrouplistaddUserToGroups");
+		// Click on Add User...
+		// Select a user
+		Thread.sleep(2000);
+		sClient.addSelection("userids", "label="+idUser+"");
+		// Click OK button
+		sClient.click("//input[@type='submit']");
+		sClient.waitForPageToLoad("30000");
+		Thread.sleep(3000);
+		sClient.isTextPresent("Users "+idUser+" were added to group "+idGroup+".");
+		Thread.sleep(2000);
+		
+		boolean result = true;
+
+		if(sClient.isElementPresent("//tbody[@id='Groups']//td[text()='"+idUser+"']")){
+			result = true;
+			
+		}
+		else
+		{
+			result = false;	
+			throw new Exception("The user was not added to the selected group");					
+		}
+		return result;
+				
+	}
 
 }
