@@ -19,8 +19,9 @@ would like to run these tests from python, simply to the following:
 import unittest
 from zope.interface import implements
 
-from Products.ZenTestCase.BaseTestCase import BaseTestCase
+from Products.ZenUtils.tests.orm import ORMTestCase
 from Products.ZenUtils.orm import session, init_model, nested_transaction
+from Products.ZenUtils.orm.ASMQDataManager import ASMQDataManager
 from Products.ZenChain.guids import Guid
 import random
 import os
@@ -39,9 +40,13 @@ log.setLevel(logging.DEBUG)
 # faux guid generator
 randomStr = lambda n=8 : ''.join(random.choice(string.ascii_letters+"0123456789") for i in xrange(n))
 generateGuid = lambda : "TEST" + randomStr(32)
+new_state = lambda : random.choice("RED ORANGE YELLOW GREEN BLUE PURPLE".split())
 
 # context managers for transaction and state commit/rollback
 from contextlib import contextmanager
+
+# define test-specific exception, so as not to accidentally mask real exceptions
+class TestTxnsException(Exception): pass
 
 @contextmanager
 def revertAttributeOnError(obj, attrname):
@@ -50,20 +55,38 @@ def revertAttributeOnError(obj, attrname):
         yield
     except:
         log.debug( "restore %s to previous value %r" % (attrname, prev_value) )
-        setattr(obj, attrname, prev_valuef)
+        setattr(obj, attrname, prev_value)
         raise
+
+# define exception type to catch cases where current transaction is explicitly
+# committed or aborted with in the body of the with statement (only necessary on
+# abort)
+class InvalidTransactionError(Exception): pass
 
 @contextmanager
 def zodb_transaction():
     try:
-        yield transaction.get()
+        txn = transaction.get()
+        yield txn
     except:
         log.debug( "aborting uber-transaction")
-        transaction.get().abort()
+        if txn is not transaction.get():
+            raise InvalidTransactionError(
+                "could not abort transaction, was already aborted/committed within 'with' body")
+        try:
+            txn.abort()
+        # catch any internal exceptions that happen during abort
+        except Exception:
+            pass
         raise
     else:
         log.debug( "commiting uber-transaction")
-        transaction.get().commit()
+        try:
+            if txn is transaction.get():
+                txn.commit()
+        # catch any internal exceptions that happen during commit
+        except Exception:
+            pass
 
 @contextmanager
 def msg_publish(chan):
@@ -81,7 +104,8 @@ def msg_publish(chan):
         chan.close()
 
 
-class TestTransactions(BaseTestCase):
+class TestTransactions(ORMTestCase):
+    _tables = (Guid,)
 
     def setUp(self):
         super(TestTransactions, self).setUp()
@@ -104,6 +128,8 @@ class TestTransactions(BaseTestCase):
             log.warning( "failed to setup amqp connection" )
 
     def tearDown(self):
+        super(TestTransactions,self).tearDown()
+
         if not self.connected:
             log.debug( "skipping tearDown")
             return
@@ -112,10 +138,6 @@ class TestTransactions(BaseTestCase):
         with msg_publish(self.pub.channel):
             self.pub.publish("FIN")
 
-        # clean up trash GUIDs from database
-        with zodb_transaction():
-          with nested_transaction() as session:
-            result = session.query(Guid).filter("guid like 'TEST%'").delete('fetch')
 
     def template_test_transaction_fn(self, n=10, raise_exception=False, raise_internal_only=False):
         global session
@@ -161,11 +183,11 @@ class TestTransactions(BaseTestCase):
                                 log.debug("state changed to " + self.state)
                                 msg = self.pub.publish("STATE", self.state)
                                 if raise_exception:
-                                    raise Exception("undo db and messages")
-                except Exception:
+                                    raise TestTxnsException("undo db and messages")
+                except TestTxnsException:
                     if not raise_internal_only:
                         raise
-        except Exception:
+        except TestTxnsException:
             pass
 
         with msg_publish(self.pub.channel):
