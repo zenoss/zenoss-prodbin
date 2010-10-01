@@ -87,6 +87,86 @@ public class Users {
 	}
 	
 	/*
+	 * This method assumes that Users page is already loaded and the user is created
+	 * This method ssumes that the user created is selected
+	 * Edit a user created using Role 
+	 * @author Catalina Rojas 
+	 * @param sClient Selenium client connection
+	 * @return Boolean false if the user was not successfully deleted 
+	 * @throws Generic Exception
+	 */
+	public static boolean editUserWithRole(DefaultSelenium sClient,String pass, String sndpass, String role,String roleSelected) throws Exception{
+		// Type new password
+		Thread.sleep(300);
+		sClient.type("password", ""+pass+"");
+		sClient.type("sndpassword", ""+sndpass+"");
+		
+		// Select ZenManager role
+		sClient.addSelection("roles:list", "label="+role+"");
+		sClient.removeSelection("roles:list", "label="+roleSelected +"");
+		// Enter password of the current user
+		//sClient.typeKeys("pwconfirm", "zenoss");
+		sClient.typeKeys("pwconfirm", ZenossConstants.adminPassword);
+		// Click on Save button
+		sClient.click("formsave");
+		sClient.waitForPageToLoad("30000");
+		
+		// Verify text that is indicating that the changes were saved
+		Thread.sleep(6000);
+		
+		boolean result = true;
+		if(sClient.isTextPresent("Saved at time:")){
+			result = true;
+		}
+		else
+		{
+			result = false;
+			throw new Exception("The changes was not saved");
+		}
+		return result;
+	}
+	
+	/*
+	 * This method assumes that Users page is already loaded and the user is created
+	 * This method ssumes that the user created is selected
+	 * Edit a user created without Role - Restricted User
+	 * @author Catalina Rojas 
+	 * @param sClient Selenium client connection
+	 * @return Boolean false if the user was not successfully deleted 
+	 * @throws Generic Exception
+	 */
+	public static boolean editUserWithOutRole(DefaultSelenium sClient,String pass, String sndpass, String roleSelected ) throws Exception{
+		// Type new password
+		Thread.sleep(300);
+		sClient.type("password", ""+pass+"");
+		sClient.type("sndpassword", ""+sndpass+"");
+		
+		// Select ZenManager role
+		sClient.removeSelection("roles:list", "label="+roleSelected +"");
+		// Enter password of the current user
+		//sClient.typeKeys("pwconfirm", "zenoss");
+		sClient.typeKeys("pwconfirm", ZenossConstants.adminPassword);
+		// Click on Save button
+		sClient.click("formsave");
+		sClient.waitForPageToLoad("30000");
+		
+		// Verify text that is indicating that the changes were saved
+		Thread.sleep(6000);
+		
+		boolean result = true;
+		if(sClient.isTextPresent("Saved at time:")){
+			result = true;
+		}
+		else
+		{
+			result = false;
+			throw new Exception("The changes was not saved");
+		}
+		return result;
+	}
+	
+	
+	/*
 	 * This method assumes that Users page is already loaded
 	 * Create new user Group
 	 * @author Catalina Rojas 
@@ -124,7 +204,7 @@ public class Users {
 	 * This method assumes that Users page is already loaded
 	 * This method assumes that User is already created
 	 * This method assumes that Group is already created
-	 * Create new user Group
+	 * Add user to a group
 	 * @author Catalina Rojas 
 	 * @param sClient Selenium client connection
 	 * @return Boolean true if the user was successfully added to the group selected
@@ -161,8 +241,7 @@ public class Users {
 			result = false;	
 			throw new Exception("The user was not added to the selected group");					
 		}
-		return result;
-				
+		return result;			
 	}
 
 }
