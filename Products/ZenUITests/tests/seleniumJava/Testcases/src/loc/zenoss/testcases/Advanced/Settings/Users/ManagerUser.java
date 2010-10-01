@@ -64,7 +64,11 @@ public class ManagerUser {
 		@Test
 		public void managerUser() throws Exception{
 			String user = "testing001";
-		
+			String pass = "123";
+			String sndpass = "123";
+			String role = "ZenManager";
+			String roleSelected = "ZenUser"; 
+			
 			Common.Login(sClient, ZenossConstants.adminUserName,ZenossConstants.adminPassword);
 			Thread.sleep(12000);
 							
@@ -78,30 +82,14 @@ public class ManagerUser {
 			sClient.waitForPageToLoad("30000");
 			
 			//Add new user
-			Users.addNewUser(sClient, "testing001", "testing001@test.zenoss.com");
+			Users.addNewUser(sClient, user, "testing001@test.zenoss.com");
 			
 			// Click on the new user
 			sClient.click("link="+user);
 			sClient.waitForPageToLoad("30000");
 			
-			// Type new password
-			Thread.sleep(300);
-			sClient.type("password", "123");
-			sClient.type("sndpassword", "123");
-			
-			// Select ZenManager role
-			sClient.addSelection("roles:list", "label=ZenManager");
-			sClient.removeSelection("roles:list", "label=ZenUser");
-			// Enter password of the current user
-			//sClient.typeKeys("pwconfirm", "zenoss");
-			sClient.typeKeys("pwconfirm", ZenossConstants.adminPassword);
-			// Click on Save button
-			sClient.click("formsave");
-			sClient.waitForPageToLoad("30000");
-			
-			// Verify text that is indicating that the changes were saved
-			Thread.sleep(6000);
-			selenese.verifyTrue(sClient.isTextPresent("Saved at time:"));
+			//Edit user
+			Users.editUserWithRole(sClient, pass, sndpass, role, roleSelected);
 			
 			// // Sign Out
 			sClient.click("link=sign out");
@@ -110,7 +98,7 @@ public class ManagerUser {
 			// // Log In with the new ZenManager user
 			Thread.sleep(3000);
 			sClient.type("username", user);
-			sClient.type("__ac_password", "123");
+			sClient.type("__ac_password", pass);
 			// Click on Log in button
 			sClient.click("submitbutton");
 			sClient.waitForPageToLoad("30000");
@@ -118,7 +106,8 @@ public class ManagerUser {
 			// Verify that the new user is displayed on the dashboard
 			Thread.sleep(4000);
 			selenese.verifyTrue(sClient.isTextPresent(user));
-						
+			selenese.verifyTrue(sClient.isTextPresent("link=Advanced"));
+			
 			testCaseResult = "p";
 		}
 
