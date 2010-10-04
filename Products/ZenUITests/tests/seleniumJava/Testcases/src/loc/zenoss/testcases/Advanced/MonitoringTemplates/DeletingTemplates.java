@@ -85,10 +85,11 @@ public class DeletingTemplates {
 				Thread.sleep(1000);
 			}
 
+			Thread.sleep(2000);
 			sClient.click("//div[text()='Devices in Devices']");
-			Thread.sleep(1000);
+			Thread.sleep(2000);
 			sClient.click("//button[text()='Submit']");
-			Thread.sleep(5000);
+			Thread.sleep(10000);
 			// Wait for templates list to refresh and show the new template
 			for (int second = 0;; second++) {
 				if (second >= 60) org.junit.Assert.fail("timeout");
@@ -103,11 +104,10 @@ public class DeletingTemplates {
 			}
 
 			Thread.sleep(2000);
-			// Delete template
 			sClient.click("//table[@id='footer_delete_button']//button[@class=' x-btn-text delete']");
+			Thread.sleep(2000);
 			sClient.click("//button[text()='OK']");
-			Thread.sleep(5000);
-			//Wait for template to go away when page refreshes();
+			Thread.sleep(10000);
 			for (int second = 0;; second++) {
 				if (second >= 60) org.junit.Assert.fail("timeout");
 				try { if (!sClient.isElementPresent("//span[text()='" + templateName + "']")) break; } catch (Exception e) {}
@@ -115,9 +115,6 @@ public class DeletingTemplates {
 			}
 
 			// End
-
-
-			Thread.sleep(1000);
 			testCaseResult = "p";
 		}
 
