@@ -1,7 +1,7 @@
 /**
 #############################################################################
 # This program is part of Zenoss Core, an open source monitoringplatform.
-# Copyright (C) 2007, Zenoss Inc.
+# Copyright (C) 2010, Zenoss Inc.
 #
 # This program is free software; you can redistribute it and/or modify it
 # under the terms of the GNU General Public License version 2 as published by
@@ -17,9 +17,8 @@ import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
-import loc.zenoss.Common;
-import loc.zenoss.ZenossConstants;
-
+import loc.zenoss.*;
+import com.thoughtworks.selenium.SeleneseTestCase;
 import com.thoughtworks.selenium.DefaultSelenium;
 
 public class CreateEvent {
@@ -55,27 +54,20 @@ public class CreateEvent {
 		@Test
 		public void createEvent() throws Exception{
 		
-			
-			Common.Login(sClient,ZenossConstants.adminUserName, ZenossConstants.adminPassword);
-			Thread.sleep(10000);
+			boolean result = false;
+			Common.Login(sClient, ZenossConstants.adminUserName, ZenossConstants.adminPassword);
 			sClient.click("link=Events");
 			sClient.waitForPageToLoad("30000");
-			sClient.click("ext-gen40");
-			sClient.type("ext-comp-1075", "This is a test event");
-			sClient.type("ext-comp-1076", "test-rhel54-64-3");
-			sClient.click("ext-gen139");
-			sClient.click("//div[@id='ext-gen150']/div[1]");
-			sClient.click("ext-gen121");
-
-			
-			
-		}
-		
-		
-		
-
-		
-		
+			// Add one Event
+			String summary = "MySummary";
+			String severity = "Critical";
+			String device = "MyDevice";
+			String component = "MyComponent";
+			String eventclass = "/Status";
+			String eventclassKey = "ClassKey";
+			result = Event.addSingleEvent(sClient, summary, severity, device, component, eventclass, eventclassKey);
+			SeleneseTestCase.assertEquals(true, result);			
+		}		
 
 	}
 
