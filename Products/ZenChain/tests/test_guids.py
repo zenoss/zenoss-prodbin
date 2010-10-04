@@ -75,11 +75,12 @@ class TestGuidUpdates(BaseTestCase, ORMTestCase):
         self.assertEqual(result.guid, guid)
 
     def test_delete_guid(self):
+        before = set(self.session.query(Guid).all())
         dev = self.dmd.Devices.createInstance('newdevice')
         guid = dev._guid
         dev.deleteDevice()
-        result = self.session.query(Guid).all()
-        self.assertEqual(result, [])
+        result = set(self.session.query(Guid).all())
+        self.assertEqual(result, before)
 
 
 def test_suite():
