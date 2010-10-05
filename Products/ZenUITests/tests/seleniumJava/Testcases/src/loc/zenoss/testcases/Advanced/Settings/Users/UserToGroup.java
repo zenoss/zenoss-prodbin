@@ -87,5 +87,7 @@ public class UserToGroup {
 			//Add user to a group
 			Users.UserToGroup(sClient, user, group);
 			
+			testCaseResult = "p";
+			
 		}
 }
