@@ -64,7 +64,7 @@ public class NewUserGroup {
 	@Test
 	public void managerUser() throws Exception{
 		String group = "GroupZenoss1";
-		
+
 		Common.Login(sClient, ZenossConstants.adminUserName,ZenossConstants.adminPassword);
 		Thread.sleep(12000);
 
@@ -80,6 +80,8 @@ public class NewUserGroup {
 		Users.newUserGroup(sClient, group);
 		Thread.sleep(1000);
 		selenese.verifyTrue(sClient.isElementPresent("//a[text()='"+group+"']"));
+
+		testCaseResult = "p";
 
 	}
 }
