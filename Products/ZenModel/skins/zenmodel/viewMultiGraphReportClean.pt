@@ -61,7 +61,7 @@ body {
         tal:replace="structure string:</tr>"/>
     </tal:block>
     <tal:block tal:condition="python: not request.has_key('numGraphs')"
-        tal:repeat="graph here/getDefaultGraphDefs">
+     tal:repeat="graph python:here.getDefaultGraphDefs(request.get('drange'))">
 
     <tal:block tal:condition="python:path('repeat/graph/index') % getattr(here, 'numColumns', 1) == 0"
         tal:replace="structure string:<tr>"/>

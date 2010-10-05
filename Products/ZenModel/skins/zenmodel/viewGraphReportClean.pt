@@ -42,7 +42,7 @@ body {
         </td>
         <td tal:define="i repeat/element/index;
                 key python: 'graph_%s' % i;
-                graphSrc python:request.has_key(key) and request[key] or element.getGraphUrl()"
+                graphSrc python:request.get(key, element.getGraphUrl(request.get('drange')))"
             align="right">
             <img src="_" 
                 tal:attributes="src graphSrc" />

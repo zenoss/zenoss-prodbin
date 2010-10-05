@@ -78,8 +78,8 @@ function ShowPrintable() {
 <!-- BEGIN TABLE CONTENTS -->
     
     <tal:block tal:repeat="element here/getElements">
-    <tal:block tal:define="graphUrl element/getGraphUrl;
-                            graphid string:graph_${repeat/element/index}">
+    <tal:block tal:define="graphid string:graph_${repeat/element/index};
+                           graphUrl python:element.getGraphUrl(request.get('drange', drange));">
         
         <tal:block tal:condition="python:path('repeat/element/index') % here.numColumns == 0"
             tal:replace="structure string:<tr>"/>
