@@ -83,6 +83,7 @@ public class DeleteUser {
 			//Delete user
 			Users.deleteUser(sClient, user);
 			
+			testCaseResult = "p";
 			
 		}
 }
