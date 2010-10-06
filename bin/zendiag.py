@@ -208,7 +208,7 @@ def zenossInfo():
 
         tail_data = [
             ('Evt Rules', zsb.dmd.Events.countInstances()),
-            ('Evt Count', zsb.dmd.ZenEventManager.countEventsSince(event_start)),
+            ('Evt Count (Last 24 Hours)', zsb.dmd.ZenEventManager.countEventsSince(event_start)),
             ('Reports', zsb.dmd.Reports.countReports()),
             ('Templates', zsb.dmd.Devices.rrdTemplates.countObjects()),
             ('Systems', zsb.dmd.Systems.countChildren()),
