@@ -69,6 +69,7 @@ files = [
 # commands to run to get information about resources, the os, etc.
 commands = [
     # name, program args
+    ('lsZENHOME', ('ls', '-laR', zenhome)),
     ('df', ('df', '-a')),
     ('top', ('top', '-b', '-n', '3', '-c')),
     ('vmstat', ('vmstat', '1', '3')),
@@ -183,6 +184,28 @@ def zenossInfo():
         uuid_data = [('uuid', zsb.dmd.uuid)]
 
         event_start = time.time() - 24 * 60 * 60
+
+        product_count=0
+        for name in zsb.dmd.Manufacturers.getManufacturerNames():
+            for product_name in zsb.dmd.Manufacturers.getProductNames(name):
+                product_count = product_count + 1 
+
+        # Hub collector Data
+        collector_header = ['Hub and Collector Information']
+        hub_data = []
+        remote_count = 0
+        local_count = 0 
+        for hub in zsb.dmd.Monitors.Hub.getHubs():
+            hub_data.append("Hub: %s" % hub.id)
+            for collector in hub.collectors():
+                    hub_data.append("\tCollector: %s IsLocal(): %s" % (collector.id,collector.isLocalHost()))
+                    if not collector.isLocalHost():
+                        hub_data.append("\tCollector(Remote): %s" % collector.id)
+                        remote_count = remote_count + 1
+                    else:
+                        hub_data.append("\tCollector(Local): %s " % collector.id)
+                        local_count = local_count + 1
+
         tail_data = [
             ('Evt Rules', zsb.dmd.Events.countInstances()),
             ('Evt Count', zsb.dmd.ZenEventManager.countEventsSince(event_start)),
@@ -190,7 +213,11 @@ def zenossInfo():
             ('Templates', zsb.dmd.Devices.rrdTemplates.countObjects()),
             ('Systems', zsb.dmd.Systems.countChildren()),
             ('Groups', zsb.dmd.Groups.countChildren()),
-            ('Locations', zsb.dmd.Locations.countChildren())]
+            ('Locations', zsb.dmd.Locations.countChildren()),
+            ('Users', len(zsb.dmd.ZenUsers.getUsers())),
+            ('Product Count', product_count),
+            ('Local Collector Count', local_count),
+            ('Remote Collector Count', remote_count)]
 
         detail_prefix = '    '
         std_key_data_fmt = '%s: %s'
@@ -206,6 +233,8 @@ def zenossInfo():
             zenpacks_header +
             format_data(detail_data_fmt, zenpack_ids) +
             format_data(center_justify_fmt, zenoss_versions_data + uuid_data) +
+            collector_header +
+            format_data('%s', hub_data) +
             format_data(std_key_data_fmt, tail_data))
 
         return '\n'.join(return_data)
