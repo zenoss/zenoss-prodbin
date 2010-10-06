@@ -15,37 +15,115 @@ import com.thoughtworks.selenium.DefaultSelenium;
 
 public class MIBs {
 
-		/*
-		 * This method assumes that MIBs page is already loaded
-		 * Ceate new Mibs
-		 * @author Catalina Rojas 
-		 * @param sClient Selenium client connection
-		 * @return Boolean true if the Mib was successfully added or false in other way
-		 * @throws Generic Exception
-		 */
-		public static boolean addMIB(DefaultSelenium sClient, String newMIB) throws Exception{
-			sClient.click("//table[@id='add-organizer-button']/tbody/tr[2]/td[2]/em");
-			Thread.sleep(1000);
-			sClient.click("//span[@class='x-menu-item-text' and text()='Add blank MIB...']");
-			Thread.sleep(1000);
-			sClient.typeKeys("name", newMIB);
-			Thread.sleep(2000);
-			sClient.click("//*[button='Submit']");
-			Thread.sleep(3000);
-			sClient.doubleClick("//span[@class='node-text' and text()='Mib Classes']");			
-			Thread.sleep(10000);
-			
-			boolean result = true;
-			if(sClient.isElementPresent("//span[@class='node-text' and text()='"+newMIB+"']") ){
-				result = true;
-			}
-			else
-			{
-				result = false;
-				throw new Exception("The new MIB was not created");
-			}
-			return result;
+	/*
+	 * This method assumes that MIBs page is already loaded
+	 * Create new Mibs
+	 * @author Catalina Rojas 
+	 * @param sClient Selenium client connection
+	 * @return Boolean true if the Mib was successfully added or false in other way
+	 * @throws Generic Exception
+	 */
+	public static boolean addMIB(DefaultSelenium sClient, String newMIB) throws Exception{
+		sClient.click("//table[@id='add-organizer-button']/tbody/tr[2]/td[2]/em");
+		Thread.sleep(1000);
+		sClient.click("//span[@class='x-menu-item-text' and text()='Add blank MIB...']");
+		Thread.sleep(1000);
+		sClient.typeKeys("name", newMIB);
+		Thread.sleep(2000);
+		sClient.click("//*[button='Submit']");
+		Thread.sleep(3000);
+		sClient.doubleClick("//span[@class='node-text' and text()='Mib Classes']");			
+		Thread.sleep(10000);
 
+		boolean result = true;
+		if(sClient.isElementPresent("//span[@class='node-text' and text()='"+newMIB+"']") ){
+			result = true;
 		}
-	
+		else
+		{
+			result = false;
+			throw new Exception("The new MIB was not created");
+		}
+		return result;
+
+	}
+
+	/*
+	 * This method assumes that MIBs page is already loaded
+	 * Delete new Mibs
+	 * @author Catalina Rojas 
+	 * @param sClient Selenium client connection
+	 * @return Boolean true if the Mib was successfully deleted or false in other way
+	 * @throws Generic Exception
+	 */
+	public static boolean deleteMIB(DefaultSelenium sClient, String newMIB) throws Exception{
+		sClient.doubleClick("//span[@class='node-text' and text()='Mib Classes']");
+		Thread.sleep(1000);
+		sClient.click("//span[@class='node-text' and text()='"+newMIB+"']");
+		// Click delete option
+		Thread.sleep(1000);
+		sClient.click("//table[@id='delete-button']");
+		// Click on Delete button
+		Thread.sleep(1000);
+		sClient.click("//*[button='Delete']");
+		// Verify Mib is deleted
+		Thread.sleep(4000);
+		sClient.doubleClick("//span[@class='node-text' and text()='Mib Classes']");
+		Thread.sleep(8000);
+		boolean result = false;
+
+		if(sClient.isElementPresent("//span[@class='node-text' and text()='"+newMIB+"']")){
+			result = false;
+			throw new Exception("The MIB was not deleted");
+		}
+		else
+		{
+			result = true;			
+		}
+		return result;
+	}
+
+	/*
+	 * This method assumes that MIBs page is already loaded and the MIB is created
+	 * Create new OID Mappings
+	 * @author Catalina Rojas 
+	 * @param sClient Selenium client connection
+	 * @return Boolean true if the Mib was successfully deleted or false in other way
+	 * @throws Generic Exception
+	 */
+	public static boolean addOIDMappings(DefaultSelenium sClient,String newMIB, String Id, String Oid) throws Exception{
+		sClient.doubleClick("//span[@class='node-text' and text()='Mib Classes']");
+		sClient.click("//span[@class='node-text' and text()='"+newMIB+"']");
+		sClient.selectWindow("null");
+		// OID Mappings - Click gear menu
+		// Click Add OID Mapping
+		Thread.sleep(8000);
+		sClient.click("//table[@id='ext-comp-1001']/tbody/tr[2]/td[2]/em");
+		Thread.sleep(1000);
+		sClient.click("OIDMappingsaddOIDMapping");
+		Thread.sleep(2000);
+		// Add Id
+		sClient.typeKeys("new_id", Id);
+		// Add OID
+		sClient.typeKeys("oid", Oid);
+		Thread.sleep(1000);
+		sClient.selectWindow("null");
+		sClient.click("//input[@id='dialog_submit']");
+		Thread.sleep(5000);
+		sClient.isTextPresent("Node "+Id+" was created with oid "+Oid+".");
+
+		boolean result = true;
+		if(sClient.isTextPresent(Id)){
+			result = true;
+		}
+		else
+		{
+			result = false;
+			throw new Exception("The OID Mappings was not created");
+		}
+		return result;
+	}
+
+
 }
+
