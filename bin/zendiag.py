@@ -242,12 +242,58 @@ def zenossInfo():
     except Exception, ex:
         log.exception(ex)
 
+def md5s():
+    "Calculate the md5sums of all files in zenhome"
+    from os import listdir, sep
+    from os.path import isdir,isfile
+    try:
+        # python 2.6+ version
+        import hashlib as md5
+    except Exception, ex:
+        # python 2.4 version
+        import md5
+        md5.md5 = md5.new
+
+    def sumfile(fobj):
+        '''Returns an md5 hash for an object with read() method.'''
+        m = md5.md5()
+        while True:
+            d = fobj.read(8096)
+            if not d:
+                break
+            m.update(d)
+        return m.hexdigest()
+
+    def walk(dir,prefix='',results=[]):
+        if prefix == '':
+            prefix = dir
+            if not prefix.endswith(sep):
+                prefix = prefix + sep
+        for fileobj in listdir(dir):
+            path = dir + sep + fileobj
+            if isdir(path):
+                ignoredirs = [ 'backups','doc','skel','perf','log' ]
+                if fileobj in ignoredirs: continue
+                walk(path,prefix=prefix,results=results)
+            elif isfile(path):
+                ignoreFiletypes = [ 'pyc','pyo','rrd' ]
+                if fileobj.rsplit('.',1)[-1] in ignoreFiletypes: continue
+                try:
+                    f = file(path,'rb')
+                    results.append("%s %s" % ( sumfile(f), path[len(prefix):]))
+                except:
+                    log.warning('Unable to access %s for md5' % path)
+        return results
+
+    return '\n'.join(walk(zenhome))
+
 # the python functions we'll call
 functions = [
     # name, python function, args
     ('hubConn', zenhubConnections, (), {}),
     ('mysqlfiles', mysqlfiles, (), {}),
     ('zenossInfo', zenossInfo, (), {}),
+    ('md5s', md5s, (), {}),
     ]
 
 
