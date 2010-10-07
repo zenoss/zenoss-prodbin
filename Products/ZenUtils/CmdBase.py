@@ -22,12 +22,12 @@ import sys
 import datetime
 import logging
 import re
-
+from copy import copy
 import zope.component
 from zope.traversing.adapters import DefaultTraversable
 from Products.Five import zcml
 
-from optparse import OptionParser, SUPPRESS_HELP, NO_DEFAULT, OptionValueError
+from optparse import OptionParser, SUPPRESS_HELP, NO_DEFAULT, OptionValueError, BadOptionError, Values, Option
 from urllib import quote
 
 # There is a nasty incompatibility between pkg_resources and twisted.
@@ -40,6 +40,26 @@ unused(pkg_resources)
 
 class DMDError: pass
 
+
+def checkLogLevel(option, opt, value):
+    if re.match(r'^\d+$', value):
+        value = int(value)
+    else:
+        intval = getattr(logging, value.upper(), None)
+        if intval:
+            value = intval
+        else:
+            raise OptionValueError('"%s" is not a valid log level.' % value)
+
+    return value
+
+
+class LogSeverityOption(Option):
+    TYPES = Option.TYPES + ("loglevel",)
+    TYPE_CHECKER = copy(Option.TYPE_CHECKER)
+    TYPE_CHECKER["loglevel"] = checkLogLevel
+
+
 class CmdBase(object):
     """
     Class used for all Zenoss commands
@@ -47,8 +67,8 @@ class CmdBase(object):
 
     doesLogging = True
 
-    def __init__(self, noopts=0):
-
+    def __init__(self, noopts=0, args=None):
+        
         zope.component.provideAdapter(DefaultTraversable, (None,))
         # We must import ZenossStartup at this point so that all Zenoss daemons
         # and tools will have any ZenPack monkey-patched methods available.
@@ -70,146 +90,35 @@ class CmdBase(object):
                 pass
         import Products.ZenWidgets
         load_config_override('scriptmessaging.zcml', Products.ZenWidgets)
-
+        
         self.usage = "%prog [options]"
         self.noopts = noopts
-        self.args = []
+        self.inputArgs = args
+        
+        # inputArgs was created to allow unit tests to pass in command line
+        # arguments and get around whatever Zope was doing to sys.argv.
+        if self.inputArgs is None:
+            self.inputArgs = sys.argv[1:]
+            
         self.parser = None
+        self.args = []
+        
         self.buildParser()
         self.buildOptions()
-
+        
         # Get defaults from global.conf. They will be overridden by
         # daemon-specific config file or command line arguments.
-        self.getConfigFileDefaults(zenPath('etc', 'global.conf'), True)
-
+        self.parser.defaults = self.getGlobalConfigFileDefaults()
         self.parseOptions()
         if self.options.configfile:
-            self.getConfigFileDefaults( self.options.configfile )
-
+            self.parser.defaults = self.getConfigFileDefaults(self.options.configfile)
             # We've updated the parser with defaults from configs, now we need
             # to reparse our command-line to get the correct overrides from
             # the command-line
             self.parseOptions()
+            
         if self.doesLogging:
             self.setupLogging()
-
-
-    def getConfigFileDefaults(self, filename, isGlobal=False):
-        """
-        Parse a config file which has key-value pairs delimited by white space,
-        and update the parser's option defaults with these values.
-
-        @parameter filename: name of configuration file
-        @parameter isGlobal: boolean to be set True for global config file
-        @type filename: string
-        """
-        outlines = []
-
-        try:
-            configFile = open(filename)
-            lines = configFile.readlines()
-            configFile.close()
-        except:
-            if not isGlobal:
-                import traceback
-                print >>sys.stderr, "WARN: unable to read config file %s -- skipping" % \
-                       filename
-                traceback.print_exc(0)
-            return
-
-        lineno = 0
-        modified = False
-        for line in lines:
-            outlines.append(line)
-            lineno += 1
-            if line.lstrip().startswith('#'): continue
-            if line.strip() == '': continue
-
-            try:
-                key, value = line.strip().split(None, 1)
-            except ValueError:
-                print >>sys.stderr, "WARN: missing value on line %d" % lineno
-                continue
-            flag= "--%s" % key
-            option= self.parser.get_option( flag )
-            if option is None:
-                if not isGlobal:
-                    print >>sys.stderr, "INFO: Commenting out unknown option '%s' found " \
-                                        "on line %d in config file" % (key, lineno)
-                    #take the last line off the buffer and comment it out
-                    outlines = outlines[:-1]
-                    outlines.append('## %s' % line)
-                    modified = True
-                continue
-
-            # NB: At this stage, optparse accepts even bogus values
-            #     It will report unhappiness when it parses the arguments
-            try:
-                if option.action in [ "store_true", "store_false" ]:
-                    if value in ['True', 'true']:
-                        value = True
-                    else:
-                        value = False
-                    self.parser.set_default( option.dest, value )
-                else:
-                    self.parser.set_default( option.dest, type(option.type)(value) )
-            except:
-                print >>sys.stderr, "Bad configuration value for" \
-                    " %s at line %s, value = %s (type %s)" % (
-                    option.dest, lineno, value, option.type )
-
-        #if we found bogus options write out the file with commented out bogus
-        #values
-        if modified:
-            configFile = file(filename, 'w')
-            configFile.writelines(outlines)
-            configFile.close()
-
-    def checkLogpath(self):
-        """
-        Validate the logpath is valid
-        """
-        if not self.options.logpath:
-            return None
-        else:
-            logdir = self.options.logpath
-            if not os.path.exists(logdir):
-                # try creating the directory hierarchy if it doesn't exist...
-                try:
-                    os.makedirs(logdir)
-                except OSError, ex:
-                    raise SystemExit("logpath:%s doesn't exist and cannot be created" % logdir)
-            elif not os.path.isdir(logdir):
-                raise SystemExit("logpath:%s exists but is not a directory" % logdir)
-            return logdir
-
-    def setupLogging(self):
-        """
-        Set common logging options
-        """
-        rlog = logging.getLogger()
-        rlog.setLevel(logging.WARN)
-        mname = self.__class__.__name__
-        self.log = logging.getLogger("zen."+ mname)
-        zlog = logging.getLogger("zen")
-        try:
-            loglevel = int(self.options.logseverity)
-        except ValueError:
-            loglevel = getattr(logging, self.options.logseverity.upper(), logging.INFO)
-        zlog.setLevel(loglevel)
-
-        logdir = self.checkLogpath()
-        if logdir:
-            logfile = os.path.join(logdir, mname.lower()+".log")
-            maxBytes = self.options.maxLogKiloBytes * 1024
-            backupCount = self.options.maxBackupLogs
-            h = logging.handlers.RotatingFileHandler(logfile, maxBytes, backupCount)
-            h.setFormatter(logging.Formatter(
-                "%(asctime)s %(levelname)s %(name)s: %(message)s",
-                "%Y-%m-%d %H:%M:%S"))
-            rlog.addHandler(h)
-        else:
-            logging.basicConfig()
 
 
     def buildParser(self):
@@ -225,7 +134,9 @@ class CmdBase(object):
                 from Products.ZenModel.ZVersion import VERSION
                 version= VERSION
             self.parser = OptionParser(usage=self.usage,
-                                       version="%prog " + version )
+                                       version="%prog " + version,
+                                       option_class=LogSeverityOption)
+
 
     def buildOptions(self):
         """
@@ -234,25 +145,12 @@ class CmdBase(object):
         """
         self.buildParser()
         if self.doesLogging:
-            def parseLogSeverity(option, opt, value, parser):
-                if re.match(r'^\d+$', value):
-                    value = int(value)
-                else:
-                    intval = getattr(logging, value.upper(), None)
-                    if intval:
-                        value = intval
-                    else:
-                        raise OptionValueError('"%s" is not a valid log level.' % value)
-
-                setattr(parser.values, option.dest, value)
-
             self.parser.add_option('-v', '--logseverity',
                         dest='logseverity',
-                        default=20,
-                        type='string',
-                        action='callback',
+                        default='INFO',
+                        type='loglevel',
                         help='Logging severity threshold',
-                        callback=parseLogSeverity)
+                        )
 
             self.parser.add_option('--logpath',dest='logpath',
                         help='Override the default logging path')
@@ -289,6 +187,219 @@ class CmdBase(object):
                                help="Generate an XML file containing command-line switches." )
 
 
+    def parseOptions(self):
+        """
+        Uses the optparse parse previously populated and performs common options.
+        """
+
+        if self.noopts:
+            args = []
+        else:
+            args = self.inputArgs
+        
+        (self.options, self.args) = self.parser.parse_args(args=args)
+
+        if self.options.genconf:
+            self.generate_configs( self.parser, self.options )
+
+        if self.options.genxmltable:
+            self.generate_xml_table( self.parser, self.options )
+
+        if self.options.genxmlconfigs:
+            self.generate_xml_configs( self.parser, self.options )
+
+
+    def getConfigFileDefaults(self, filename):
+        """
+        Parse a config file which has key-value pairs delimited by white space,
+        and update the parser's option defaults with these values.
+
+        @parameter filename: name of configuration file
+        @type filename: string
+        """
+        
+        options = self.parser.get_default_values()
+        lines = self.loadConfigFile(filename)
+        if lines:
+            lines, errors = self.validateConfigFile(filename, lines)
+            
+            args = self.getParamatersFromConfig(lines)
+            try:
+                self.parser._process_args([], args, options)
+            except (BadOptionError, OptionValueError) as err:
+                print >>sys.stderr, 'WARN: %s in config file %s' % (err, filename)
+                
+        return options.__dict__
+
+
+    def getGlobalConfigFileDefaults(self):
+        """
+        Parse a config file which has key-value pairs delimited by white space,
+        and update the parser's option defaults with these values.
+        """
+        
+        filename = zenPath('etc', 'global.conf')
+        options = self.parser.get_default_values()
+        lines = self.loadConfigFile(filename)
+        if lines:
+            args = self.getParamatersFromConfig(lines)
+            
+            try:
+                self.parser._process_args([], args, options)
+            except (BadOptionError, OptionValueError) as err:
+                # Ignore it, we only care about our own options as defined in the parser
+                pass
+                
+        return options.__dict__
+
+
+    def loadConfigFile(self, filename):
+        """
+        Parse a config file which has key-value pairs delimited by white space.
+        
+        @parameter filename: path to the configuration file
+        @type filename: string
+        """
+        lines = []
+        try:
+            with open(filename) as file:
+                for line in file:
+                    if line.lstrip().startswith('#') or line.strip() == '':
+                        lines.append(dict(type='comment', line=line))
+                    else:
+                        try:
+                            key, value = line.strip().split(None, 1)
+                        except ValueError:
+                            lines.append(dict(type='option', line=line, key=line.strip(), value=None, option=None))
+                        else:
+                            option = self.parser.get_option('--%s' % key)
+                            lines.append(dict(type='option', line=line, key=key, value=value, option=option))
+        except IOError as e:
+            errorMessage = 'WARN: unable to read config file {filename} \
+                -- skipping. ({exceptionName}: {exception})'.format(
+                filename=filename,
+                exceptionName=e.__class__.__name__,
+                exception=e
+            )
+            print >>sys.stderr, errorMessage
+            return []
+            
+        return lines
+
+
+    def validateConfigFile(self, filename, lines, correctErrors=True, warnErrors=True):
+        """
+        Validate config file lines which has key-value pairs delimited by white space,
+        and validate that the keys exist for this command's option parser. If
+        the option does not exist or has an empty value it will comment it out
+        in the config file.
+        
+        @parameter filename: path to the configuration file
+        @type filename: string
+        @parameter lines: lines from config parser
+        @type lines: list
+        @parameter correctErrors: Whether or not invalid conf values should be
+            commented out.
+        @type correctErrors: boolean
+        """
+        
+        output = []
+        errors = []
+        validLines = []
+        date = datetime.datetime.now().isoformat()
+        errorTemplate = '## Commenting out by config parser on %s: %%s\n' % date
+        
+        for lineno, line in enumerate(lines):
+            if line['type'] == 'comment':
+                output.append(line['line'])
+            elif line['type'] == 'option':
+                if line['value'] is None:
+                    errors.append((lineno + 1, 'missing value for "%s"' % line['key']))
+                    output.append(errorTemplate % 'missing value')
+                    output.append('## %s' % line['line'])
+                elif line['option'] is None:
+                    errors.append((lineno + 1, 'unknown option "%s"' % line['key']))
+                    output.append(errorTemplate % 'unknown option')
+                    output.append('## %s' % line['line'])
+                else:
+                    validLines.append(line)
+                    output.append(line['line'])
+            else:
+                errors.append((lineno + 1, 'unknown line "%s"' % line['line']))
+                output.append(errorTemplate % 'unknown line')
+                output.append('## %s' % line['line'])
+                
+        if errors:
+            if correctErrors:
+                for lineno, message in errors:
+                    print >>sys.stderr, 'INFO: Commenting out %s on line %d in %s' % (message, lineno, filename)
+                    
+                with open(filename, 'w') as file:
+                    file.writelines(output)
+            
+            if warnErrors:
+                for lineno, message in errors:
+                    print >>sys.stderr, 'WARN: %s on line %d in %s' % (message, lineno, filename)
+                
+        return validLines, errors
+
+
+    def getParamatersFromConfig(self, lines):
+        args = []
+        
+        for line in lines:
+            if line.get('type', None) == 'option':
+                args += ['--%s' % line['key'], line['value']]
+                
+        return args
+
+
+    def setupLogging(self):
+        """
+        Set common logging options
+        """
+        rlog = logging.getLogger()
+        rlog.setLevel(logging.WARN)
+        mname = self.__class__.__name__
+        self.log = logging.getLogger("zen."+ mname)
+        zlog = logging.getLogger("zen")
+        try:
+            loglevel = int(self.options.logseverity)
+        except ValueError:
+            loglevel = getattr(logging, self.options.logseverity.upper(), logging.INFO)
+        zlog.setLevel(loglevel)
+        
+        logdir = self.checkLogpath()
+        if logdir:
+            logfile = os.path.join(logdir, mname.lower()+".log")
+            maxBytes = self.options.maxLogKiloBytes * 1024
+            backupCount = self.options.maxBackupLogs
+            h = logging.handlers.RotatingFileHandler(logfile, maxBytes, backupCount)
+            h.setFormatter(logging.Formatter(
+                "%(asctime)s %(levelname)s %(name)s: %(message)s",
+                "%Y-%m-%d %H:%M:%S"))
+            rlog.addHandler(h)
+        else:
+            logging.basicConfig()
+
+
+    def checkLogpath(self):
+        """
+        Validate the logpath is valid
+        """
+        if not self.options.logpath:
+            return None
+        else:
+            logdir = self.options.logpath
+            if not os.path.exists(logdir):
+                # try creating the directory hierarchy if it doesn't exist...
+                try:
+                    os.makedirs(logdir)
+                except OSError, ex:
+                    raise SystemExit("logpath:%s doesn't exist and cannot be created" % logdir)
+            elif not os.path.isdir(logdir):
+                raise SystemExit("logpath:%s exists but is not a directory" % logdir)
+            return logdir
 
 
     def pretty_print_config_comment( self, comment ):
@@ -628,23 +739,4 @@ be seen on the display.
 
 
 
-    def parseOptions(self):
-        """
-        Uses the optparse parse previously populated and performs common options.
-        """
 
-        if self.noopts:
-            args = []
-        else:
-            import sys
-            args = sys.argv[1:]
-        (self.options, self.args) = self.parser.parse_args(args=args)
-
-        if self.options.genconf:
-            self.generate_configs( self.parser, self.options )
-
-        if self.options.genxmltable:
-            self.generate_xml_table( self.parser, self.options )
-
-        if self.options.genxmlconfigs:
-            self.generate_xml_configs( self.parser, self.options )
