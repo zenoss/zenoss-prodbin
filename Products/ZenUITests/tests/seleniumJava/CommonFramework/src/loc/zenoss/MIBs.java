@@ -88,6 +88,54 @@ public class MIBs {
 	 * Create new OID Mappings
 	 * @author Catalina Rojas 
 	 * @param sClient Selenium client connection
+	 * @return Boolean true if the Mib was successfully edited or false in other way
+	 * @throws Generic Exception
+	 */
+	public static boolean ediMIBName(DefaultSelenium sClient, String newName, String oldName) throws Exception{
+		// Edit MIB name
+		// Select a MIB
+		sClient.doubleClick("//span[@class='node-text' and text()='Mib Classes']");
+		Thread.sleep(1000);
+		sClient.click("//span[@class='node-text' and text()='"+oldName+"']");
+		// Click gear menu
+		Thread.sleep(1000);
+		sClient.click("//table[@id='mibs-configure-menu']/tbody/tr[2]/td[2]/em");
+		// Click on Edit Mib
+		Thread.sleep(1000);
+		sClient.click("edit-mib-action");
+		// Change the MIB name
+		Thread.sleep(2000);
+		sClient.type("newId", newName);
+		// Click Submit button
+		Thread.sleep(3000);
+		sClient.click("//*[button='Submit']");
+		sClient.refresh();
+		Thread.sleep(20000);
+		// Click in the MIB
+		sClient.doubleClick("//span[@class='node-text' and text()='Mib Classes']");
+		Thread.sleep(1000);
+		sClient.click("//span[@class='node-text' and text()='"+newName+"']");
+
+		Thread.sleep(6000);
+		sClient.isElementPresent("//td[text()='"+newName+"']");
+
+		boolean result = true;
+		if(sClient.isElementPresent("//span[@class='node-text' and text()='"+newName+"']") ){
+			result = true;
+		}
+		else
+		{
+			result = false;
+			throw new Exception("The MIB was not edited");
+		}
+		return result;
+	}
+
+	/*
+	 * This method assumes that MIBs page is already loaded and the MIB is created
+	 * Create new OID Mappings
+	 * @author Catalina Rojas 
+	 * @param sClient Selenium client connection
 	 * @return Boolean true if the Mib was successfully deleted or false in other way
 	 * @throws Generic Exception
 	 */
