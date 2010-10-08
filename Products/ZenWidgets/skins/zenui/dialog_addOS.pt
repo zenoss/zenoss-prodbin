@@ -4,7 +4,7 @@
 <p style="text-align:right;">
 <span id="new_id_label">Name:&nbsp;</span>
 <input id="new_id" name="prodName"/>
-<input type="hidden" name="isOS" value="True"/>
+<input type="hidden" name="isOS:int" value="1"/>
 <input type="hidden" id="checkValidIdPath" 
        tal:attributes="value here/absolute_url_path">
 </p>

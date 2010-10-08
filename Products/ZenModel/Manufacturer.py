@@ -135,8 +135,7 @@ class Manufacturer(ZenModelRM, ZenPackable):
         """
         if prodName:
             from Products.ZenModel.SoftwareClass import SoftwareClass
-            prod = self._getProduct(prodName, SoftwareClass)
-            prod.isOS = isOS
+            prod = self._getProduct(prodName, SoftwareClass, isOS=isOS)
         if REQUEST: return self.callZenScreen(REQUEST)
 
    
@@ -154,12 +153,14 @@ class Manufacturer(ZenModelRM, ZenPackable):
         if REQUEST: return self.callZenScreen(REQUEST)
 
 
-    def _getProduct(self, prodName, factory):
+    def _getProduct(self, prodName, factory, **kwargs):
         """Add a product to this manufacturer based on its factory type.
         """
         prod = self.products._getOb(prodName, None)
         if not prod:
             prod = factory(prodName)
+            for k, v in kwargs.iteritems():
+                setattr(prod, k, v)
             self.products._setObject(prod.id, prod)
             prod = self.products._getOb(prod.id)
         return prod 
