@@ -106,7 +106,7 @@ class MessageProcessor(object):
             fromIp = None
             log.info('Hostname lookup failed for host: %s' % fromAddr)
 
-        subject = message.get('Subject')
+        subject = message.get('Subject').replace("\r","").replace("\n", "")
 
         # This is tricky...  date comes in with an offset value that
         # represents the number of seconds of difference between the
