@@ -385,7 +385,15 @@ class ZenTrap(EventServer, CaptureReplay):
             if pdu.version == 0 or pdu.enterprise_length > 0:
                 # SNMP v1
                 variables = self.getResult(pdu)
-                addr[0] = '.'.join(map(str, [pdu.agent_addr[i] for i in range(4)]))
+
+                # Sometimes the agent_addr is useless. Use addr[0] unchanged in
+                # this case.
+                new_addr = '.'.join(map(str, [
+                    pdu.agent_addr[i] for i in range(4)]))
+
+                if new_addr != '0.0.0.0':
+                    addr[0] = new_addr
+
                 enterprise = self.getEnterpriseString(pdu)
                 eventType = self.oid2name(
                     enterprise, exactMatch=False, strip=False)
