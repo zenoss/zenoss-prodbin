@@ -68,7 +68,7 @@ class CmdBase(object):
     doesLogging = True
 
     def __init__(self, noopts=0, args=None):
-        
+
         zope.component.provideAdapter(DefaultTraversable, (None,))
         # We must import ZenossStartup at this point so that all Zenoss daemons
         # and tools will have any ZenPack monkey-patched methods available.
@@ -90,22 +90,24 @@ class CmdBase(object):
                 pass
         import Products.ZenWidgets
         load_config_override('scriptmessaging.zcml', Products.ZenWidgets)
-        
+        # responsible for sending messages to the queues
+        load_config_override('twistedpublisher.zcml', Products.ZenUtils.queuemessaging)
+
         self.usage = "%prog [options]"
         self.noopts = noopts
         self.inputArgs = args
-        
+
         # inputArgs was created to allow unit tests to pass in command line
         # arguments and get around whatever Zope was doing to sys.argv.
         if self.inputArgs is None:
             self.inputArgs = sys.argv[1:]
-            
+
         self.parser = None
         self.args = []
-        
+
         self.buildParser()
         self.buildOptions()
-        
+
         # Get defaults from global.conf. They will be overridden by
         # daemon-specific config file or command line arguments.
         self.parser.defaults = self.getGlobalConfigFileDefaults()
@@ -116,7 +118,7 @@ class CmdBase(object):
             # to reparse our command-line to get the correct overrides from
             # the command-line
             self.parseOptions()
-            
+
         if self.doesLogging:
             self.setupLogging()
 
@@ -196,7 +198,7 @@ class CmdBase(object):
             args = []
         else:
             args = self.inputArgs
-        
+
         (self.options, self.args) = self.parser.parse_args(args=args)
 
         if self.options.genconf:
@@ -217,18 +219,18 @@ class CmdBase(object):
         @parameter filename: name of configuration file
         @type filename: string
         """
-        
+
         options = self.parser.get_default_values()
         lines = self.loadConfigFile(filename)
         if lines:
             lines, errors = self.validateConfigFile(filename, lines)
-            
+
             args = self.getParamatersFromConfig(lines)
             try:
                 self.parser._process_args([], args, options)
             except (BadOptionError, OptionValueError) as err:
                 print >>sys.stderr, 'WARN: %s in config file %s' % (err, filename)
-                
+
         return options.__dict__
 
 
@@ -237,26 +239,26 @@ class CmdBase(object):
         Parse a config file which has key-value pairs delimited by white space,
         and update the parser's option defaults with these values.
         """
-        
+
         filename = zenPath('etc', 'global.conf')
         options = self.parser.get_default_values()
         lines = self.loadConfigFile(filename)
         if lines:
             args = self.getParamatersFromConfig(lines)
-            
+
             try:
                 self.parser._process_args([], args, options)
             except (BadOptionError, OptionValueError) as err:
                 # Ignore it, we only care about our own options as defined in the parser
                 pass
-                
+
         return options.__dict__
 
 
     def loadConfigFile(self, filename):
         """
         Parse a config file which has key-value pairs delimited by white space.
-        
+
         @parameter filename: path to the configuration file
         @type filename: string
         """
@@ -283,7 +285,7 @@ class CmdBase(object):
             )
             print >>sys.stderr, errorMessage
             return []
-            
+
         return lines
 
 
@@ -293,7 +295,7 @@ class CmdBase(object):
         and validate that the keys exist for this command's option parser. If
         the option does not exist or has an empty value it will comment it out
         in the config file.
-        
+
         @parameter filename: path to the configuration file
         @type filename: string
         @parameter lines: lines from config parser
@@ -302,13 +304,13 @@ class CmdBase(object):
             commented out.
         @type correctErrors: boolean
         """
-        
+
         output = []
         errors = []
         validLines = []
         date = datetime.datetime.now().isoformat()
         errorTemplate = '## Commenting out by config parser on %s: %%s\n' % date
-        
+
         for lineno, line in enumerate(lines):
             if line['type'] == 'comment':
                 output.append(line['line'])
@@ -328,29 +330,29 @@ class CmdBase(object):
                 errors.append((lineno + 1, 'unknown line "%s"' % line['line']))
                 output.append(errorTemplate % 'unknown line')
                 output.append('## %s' % line['line'])
-                
+
         if errors:
             if correctErrors:
                 for lineno, message in errors:
                     print >>sys.stderr, 'INFO: Commenting out %s on line %d in %s' % (message, lineno, filename)
-                    
+
                 with open(filename, 'w') as file:
                     file.writelines(output)
-            
+
             if warnErrors:
                 for lineno, message in errors:
                     print >>sys.stderr, 'WARN: %s on line %d in %s' % (message, lineno, filename)
-                
+
         return validLines, errors
 
 
     def getParamatersFromConfig(self, lines):
         args = []
-        
+
         for line in lines:
             if line.get('type', None) == 'option':
                 args += ['--%s' % line['key'], line['value']]
-                
+
         return args
 
 
@@ -368,7 +370,7 @@ class CmdBase(object):
         except ValueError:
             loglevel = getattr(logging, self.options.logseverity.upper(), logging.INFO)
         zlog.setLevel(loglevel)
-        
+
         logdir = self.checkLogpath()
         if logdir:
             logfile = os.path.join(logdir, mname.lower()+".log")

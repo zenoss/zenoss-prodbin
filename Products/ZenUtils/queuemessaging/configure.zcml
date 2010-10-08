@@ -1,0 +1,19 @@
+<configure xmlns="http://namespaces.zope.org/zope">
+  <utility factory=".publisher.BlockingQueuePublisher"
+           provides=".interfaces.IQueuePublisher"
+           />
+
+  <adapter provides=".interfaces.IProtobufSerializer"
+           for="Products.ZenModel.Device.Device"
+           factory=".adapters.DeviceProtobuf"
+           />
+  <adapter provides=".interfaces.IProtobufSerializer"
+           for="Products.ZenModel.DeviceOrganizer.DeviceOrganizer"
+           factory=".adapters.OrganizerProtobuf"
+           />
+  <adapter provides=".interfaces.IProtobufSerializer"
+           for="Products.ZenModel.DeviceComponent.DeviceComponent"
+           factory=".adapters.DeviceComponentProtobuf"
+           />
+
+</configure>

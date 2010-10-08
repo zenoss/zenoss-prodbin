@@ -9,6 +9,7 @@
     <include file="zendoc.zcml"/>
 
     <include package=".browser"/>
+    <include package=".ChangeEvents"/>
 
     <browser:page
         for="*"

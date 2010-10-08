@@ -11,6 +11,7 @@
 #
 ###########################################################################
 
+
 __doc__ = """DeviceOrganizer
 Base class for device organizers
 """
@@ -18,6 +19,7 @@ Base class for device organizers
 from itertools import ifilter
 from types import StringTypes
 from zope.event import notify
+from zope.interface import implements
 from AccessControl import ClassSecurityInfo
 from Globals import InitializeClass
 
@@ -34,20 +36,21 @@ from Products.ZenRelations.RelSchema import *
 from Products.ZenWidgets.interfaces import IMessageSender
 
 from ZenossSecurity import *
-
 from Products.ZenUtils.Utils import unused, getObjectsFromCatalog
+from Products.ZenUtils.guid.interfaces import IGloballyIdentifiable
 from Products.ZenWidgets import messaging
 
 import logging
 LOG = logging.getLogger('ZenModel.DeviceOrganizer')
 
-class DeviceOrganizer(Organizer, DeviceManagerBase, Commandable, ZenMenuable, 
+class DeviceOrganizer(Organizer, DeviceManagerBase, Commandable, ZenMenuable,
                         MaintenanceWindowable, AdministrativeRoleable):
     """
     DeviceOrganizer is the base class for device organizers.
     It has lots of methods for rolling up device statistics and information.
     """
-    
+    implements(IGloballyIdentifiable)
+
     security = ClassSecurityInfo()
 
     # Screen action bindings (and tab definitions)
@@ -89,18 +92,18 @@ class DeviceOrganizer(Organizer, DeviceManagerBase, Commandable, ZenMenuable,
             ToOne, 'Products.ZenModel.UserCommand', 'commandable')),
         ('zenMenus', ToManyCont(
             ToOne, 'Products.ZenModel.ZenMenu', 'menuable')),
-       ) 
+       )
 
     security.declareProtected(ZEN_COMMON, "getSubDevices")
     def getSubDevices(self, devfilter=None):
         """
         Get all the devices under an instance of a DeviceOrganizer
-        
+
         @param devfilter: Filter function applied to returned list
         @type devfilter: function
         @return: Devices
         @rtype: list
-        
+
         """
         catalog = getToolByName(self.dmd.Devices, self.dmd.Devices.default_catalog)
 
@@ -147,7 +150,7 @@ class DeviceOrganizer(Organizer, DeviceManagerBase, Commandable, ZenMenuable,
     def getSubDevicesGen_recursive(self, devrel="devices"):
         """get all the devices under and instance of a DeviceGroup"""
         devrelobj = getattr(self, devrel, None)
-        if not devrelobj: 
+        if not devrelobj:
             raise AttributeError( "%s not found on %s" % (devrel, self.id) )
         for dev in devrelobj.objectValuesGen():
             yield dev
@@ -158,7 +161,7 @@ class DeviceOrganizer(Organizer, DeviceManagerBase, Commandable, ZenMenuable,
     def getSubDevicesGenTest(self, devrel="devices"):
         """get all the devices under and instance of a DeviceGroup"""
         devices = getattr(self, devrel, None)
-        if not devices: 
+        if not devices:
             raise AttributeError( "%s not found on %s" % (devrel, self.id) )
 
 
@@ -206,7 +209,7 @@ class DeviceOrganizer(Organizer, DeviceManagerBase, Commandable, ZenMenuable,
             status += group.pingStatus()
         return status
 
-    
+
     def snmpStatus(self, devrel="devices"):
         """aggrigate snmp status for all devices in this group and below"""
         status = self._status("Snmp", devrel)
@@ -220,7 +223,7 @@ class DeviceOrganizer(Organizer, DeviceManagerBase, Commandable, ZenMenuable,
         if isinstance(deviceNames, basestring):
             deviceNames = [deviceNames]
         return [d.primaryAq() for d in self.getSubDevices()
-                if deviceNames is None or d.id in deviceNames 
+                if deviceNames is None or d.id in deviceNames
                 or d.getPrimaryId() in deviceNames]
 
 
@@ -249,7 +252,7 @@ class DeviceOrganizer(Organizer, DeviceManagerBase, Commandable, ZenMenuable,
     def _handleOrganizerCall(self, arg=None, deviceNames=None, \
                                 isOrganizer=False, REQUEST=None, \
                                 deviceMethod=None):
-        """ Handle the many many methods that simply call one 
+        """ Handle the many many methods that simply call one
         method on device differently"""
         #check to see if we have the essentials to work with
         if not deviceMethod: return
@@ -288,7 +291,7 @@ class DeviceOrganizer(Organizer, DeviceManagerBase, Commandable, ZenMenuable,
 
 
     security.declareProtected(ZEN_CHANGE_DEVICE_PRODSTATE, 'setProdState')
-    def setProdState(self, state, deviceNames=None, 
+    def setProdState(self, state, deviceNames=None,
                         isOrganizer=False, REQUEST=None):
         """Set production state of all devices in this Organizer.
         """
@@ -301,7 +304,7 @@ class DeviceOrganizer(Organizer, DeviceManagerBase, Commandable, ZenMenuable,
             return self._buildReturnMessage("Production State Changed", msg)
 
 
-    def setPriority(self, priority, deviceNames=None, 
+    def setPriority(self, priority, deviceNames=None,
                     isOrganizer=False, REQUEST=None):
         """Set prioirty of all devices in this Organizer.
         """
@@ -313,12 +316,12 @@ class DeviceOrganizer(Organizer, DeviceManagerBase, Commandable, ZenMenuable,
                                                   " ".join(deviceNames))
             return self._buildReturnMessage('Priority Changed', msg)
 
-    
-    def setPerformanceMonitor(self, performanceMonitor=None, deviceNames=None, 
+
+    def setPerformanceMonitor(self, performanceMonitor=None, deviceNames=None,
                                 isOrganizer=False, REQUEST=None):
         """ Provide a method to set performance monitor from any organizer """
         if not performanceMonitor:
-            if REQUEST: 
+            if REQUEST:
                 messaging.IMessageSender(self).sendToBrowser(
                     'Error',
                     'No monitor was selected',
@@ -327,12 +330,12 @@ class DeviceOrganizer(Organizer, DeviceManagerBase, Commandable, ZenMenuable,
             return self.callZenScreen(REQUEST)
         self._handleOrganizerCall(performanceMonitor, deviceNames, isOrganizer, \
                                     REQUEST, "setPerformanceMonitor")
-        if REQUEST: 
+        if REQUEST:
             msg = "Collector set to %s" % (performanceMonitor)
             return self._buildReturnMessage('Collector Set', msg)
- 
 
-    def setGroups(self, groupPaths=None, deviceNames=None, 
+
+    def setGroups(self, groupPaths=None, deviceNames=None,
                     isOrganizer=False, REQUEST=None):
         """ Provide a method to set device groups from any organizer """
         if not groupPaths: groupPaths = []
@@ -340,10 +343,10 @@ class DeviceOrganizer(Organizer, DeviceManagerBase, Commandable, ZenMenuable,
                                     REQUEST, "setGroups")
         if REQUEST:
             msg = "Groups set to"
-            return self._buildReturnMessage('Groups Set', msg, groupPaths, True) 
+            return self._buildReturnMessage('Groups Set', msg, groupPaths, True)
 
 
-    def setSystems(self, systemPaths=None, deviceNames=None, 
+    def setSystems(self, systemPaths=None, deviceNames=None,
                     isOrganizer=False, REQUEST=None):
         """ Provide a method to set device systems from any organizer """
         if not systemPaths: systemPaths = []
@@ -351,14 +354,14 @@ class DeviceOrganizer(Organizer, DeviceManagerBase, Commandable, ZenMenuable,
                                     REQUEST, "setSystems")
         if REQUEST:
             msg = "Systems set to"
-            return self._buildReturnMessage('Systems Set', msg, systemPaths, True) 
+            return self._buildReturnMessage('Systems Set', msg, systemPaths, True)
 
     def setLocation(self, locationPath="", deviceNames=None,
                     isOrganizer=False, REQUEST=None):
         """ Provide a method to set device location from any organizer """
         self._handleOrganizerCall(locationPath, deviceNames, isOrganizer, \
                                     REQUEST, "setLocation")
-        if REQUEST: 
+        if REQUEST:
             msg = "Location set to %s" % locationPath
             return self._buildReturnMessage('Location Set', msg)
 
@@ -370,7 +373,7 @@ class DeviceOrganizer(Organizer, DeviceManagerBase, Commandable, ZenMenuable,
             msg = "Devices unlocked"
             return self._buildReturnMessage('Devices Unlocked', msg)
 
-    def lockDevicesFromDeletion(self, deviceNames=None, 
+    def lockDevicesFromDeletion(self, deviceNames=None,
                     sendEventWhenBlocked=None, isOrganizer=False, REQUEST=None):
         """Lock devices from being deleted"""
         self._handleOrganizerCall(sendEventWhenBlocked, deviceNames, isOrganizer, \
@@ -379,7 +382,7 @@ class DeviceOrganizer(Organizer, DeviceManagerBase, Commandable, ZenMenuable,
             msg = "Devices locked from deletion"
             return self._buildReturnMessage('Devices Locked', msg)
 
-    def lockDevicesFromUpdates(self, deviceNames=None, 
+    def lockDevicesFromUpdates(self, deviceNames=None,
                 sendEventWhenBlocked=None, isOrganizer=False, REQUEST=None):
         """Lock devices from being deleted or updated"""
         self._handleOrganizerCall(sendEventWhenBlocked, deviceNames, isOrganizer, \
@@ -390,26 +393,26 @@ class DeviceOrganizer(Organizer, DeviceManagerBase, Commandable, ZenMenuable,
 
 
     def index_object(self):
-        """No action. 
+        """No action.
         Index of subdevices will happen in manage_addAdministrativeRole
         """
         pass
 
     def unindex_object(self):
-        """No action. 
+        """No action.
         Unindex of subdevices will happen in manage_deleteAdministrativeRole
         """
-        pass 
+        pass
 
     def manage_addAdministrativeRole(self, newId, REQUEST=None):
         """
         Overrides AdministrativeRoleable.manage_addAdministrativeRole
         Adds an administrator to this DeviceOrganizer
-        
+
         @param userid: User to make an administrator of this Organizer
         @type userid: string
         """
-        
+
         AdministrativeRoleable.manage_addAdministrativeRole(self, newId)
         for dev in self.getSubDevices():
             dev = dev.primaryAq()
@@ -424,7 +427,7 @@ class DeviceOrganizer(Organizer, DeviceManagerBase, Commandable, ZenMenuable,
             return self.callZenScreen(REQUEST)
 
 
-    def manage_editAdministrativeRoles(self, ids=(), role=(), 
+    def manage_editAdministrativeRoles(self, ids=(), role=(),
                                         level=(), REQUEST=None):
         """
         Overrides AdministrativeRoleable.manage_editAdministrativeRoles
@@ -435,7 +438,7 @@ class DeviceOrganizer(Organizer, DeviceManagerBase, Commandable, ZenMenuable,
         for dev in self.getSubDevices():
             dev = dev.primaryAq()
             dev.setAdminLocalRoles()
-                        
+
         notify(IndexingEvent(self, ('allowedRolesAndUsers',), False))
         if REQUEST:
             messaging.IMessageSender(self).sendToBrowser(
@@ -457,7 +460,7 @@ class DeviceOrganizer(Organizer, DeviceManagerBase, Commandable, ZenMenuable,
         for dev in self.getSubDevices():
             dev = dev.primaryAq()
             dev.setAdminLocalRoles()
-        
+
         notify(IndexingEvent(self, ('allowedRolesAndUsers',), False))
         if REQUEST:
             if delids:
@@ -474,14 +477,14 @@ class DeviceOrganizer(Organizer, DeviceManagerBase, Commandable, ZenMenuable,
         [ d.manage_snmpCommunity() for d in self.getSubDevices() ]
         if REQUEST:
             return self.callZenScreen(REQUEST)
-    
+
     def setManageIp(self, REQUEST=None):
         """reset ip on all devices in this Organizer.
         """
         [ d.setManageIp() for d in self.getSubDevices() ]
         if REQUEST:
             return self.callZenScreen(REQUEST)
-    
+
     def collectDevice(self, REQUEST=None):
         """model all devices in this Organizer.
         """
@@ -494,7 +497,7 @@ class DeviceOrganizer(Organizer, DeviceManagerBase, Commandable, ZenMenuable,
         status = 0
         statatt = "get%sStatusNumber" % type
         devices = getattr(self, devrel, None)
-        if not devices: 
+        if not devices:
             raise AttributeError( "%s not found on %s" % (devrel, self.id) )
         for device in devices():
             if getattr(device, statatt, -1)() > 0:
@@ -548,7 +551,7 @@ class DeviceOrganizer(Organizer, DeviceManagerBase, Commandable, ZenMenuable,
         href = self.getPrimaryUrlPath().replace('%','%%')
         linktemplate = "<a href='"+href+"' class='prettylink'>%s</a>"
         icon = ("<div class='device-icon-container'> "
-                "<img class='device-icon' src='%s'/> " 
+                "<img class='device-icon' src='%s'/> "
                 "</div>") % self.getIconPath()
         name = self.getPrimaryDmdId()
         if noicon: icon=''

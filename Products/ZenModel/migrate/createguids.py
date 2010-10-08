@@ -15,6 +15,7 @@ import Migrate
 from zope.component import provideHandler
 from Products.Zuul.interfaces import ICatalogTool
 from Products.ZenUtils.guid.interfaces import IGlobalIdentifier
+from Products.ZenModel.DeviceOrganizer import DeviceOrganizer
 
 Device = 'Products.ZenModel.Device.Device'
 DeviceComponent = 'Products.ZenModel.DeviceComponent.DeviceComponent'
@@ -30,7 +31,8 @@ class CreateGUIDsForDeviceAndComponent(Migrate.Step):
         if getattr(dmd, 'guid_table', None) is None:
             from Products.ZenChain.guids import updateTableOnGuidEvent
             provideHandler(updateTableOnGuidEvent)
-            for b in ICatalogTool(dmd).search((Device, DeviceComponent)):
+            for b in ICatalogTool(dmd).search((Device, DeviceComponent, 
+                                               DeviceOrganizer)):
                 IGlobalIdentifier(b.getObject()).create(force=True)
 
 CreateGUIDsForDeviceAndComponent()

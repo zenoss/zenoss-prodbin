@@ -1,4 +1,6 @@
 <configure xmlns="http://namespaces.zope.org/zope">
     <include package=".extdirect.zope"/>
     <include package=".guid"/>
+    <include package=".queuemessaging" />
+
 </configure>
