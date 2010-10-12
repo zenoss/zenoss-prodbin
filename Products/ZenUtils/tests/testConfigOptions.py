@@ -16,6 +16,7 @@ import unittest
 import logging
 from optparse import OptionParser, SUPPRESS_HELP, NO_DEFAULT, OptionValueError
 from Products.ZenUtils.CmdBase import CmdBase
+from Products.ZenTestCase.BaseTestCase import BaseTestCase
 from StringIO import StringIO
 
 """
@@ -57,7 +58,7 @@ class MockCmdBase(CmdBase):
             type='int',
         )
         
-class TestConfigOptions(unittest.TestCase):
+class TestConfigOptions(BaseTestCase):
     """
     Test loading config options for CmdBase from conf files, command line args,
     and defaults defined in OptParse options.
@@ -90,6 +91,7 @@ class TestConfigOptions(unittest.TestCase):
         return argv
                 
     def setUp(self):
+        super(TestConfigOptions, self).setUp()
         
         # test command line args
         args = self._get_args(self.example_cmds)
