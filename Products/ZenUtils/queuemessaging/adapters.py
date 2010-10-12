@@ -24,7 +24,7 @@ class ObjectProtobuf(object):
         self.obj = obj
 
     def _getGUID(self, obj):
-        return IGlobalIdentifier(obj).getGUID()
+        return IGlobalIdentifier(obj).create()
 
     def autoMapFields(self, proto):
         """
@@ -58,7 +58,8 @@ class DeviceProtobuf(ObjectProtobuf):
         proto.ipAddress.ip = self.obj.manageIp
         # className
         deviceClass = self.obj.deviceClass()
-        proto.className.guid = self._getGUID(deviceClass)
+        if deviceClass:
+            proto.className.guid = self._getGUID(deviceClass)
         # groups
         for group in self.obj.groups():
             groupProto = proto.groups.add()
@@ -71,7 +72,7 @@ class DeviceProtobuf(ObjectProtobuf):
 
         # location
         if self.obj.location():
-            proto.location.guid = self._getGuid(self.obj.location())
+            proto.location.guid = self._getGUID(self.obj.location())
 
         return proto
 

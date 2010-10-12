@@ -45,8 +45,12 @@ class ModelChangePublisher(object):
             proto = event.device
         elif isinstance(ob, DeviceComponent):
             proto = event.component
-        serializer = IProtobufSerializer(ob)
-        return serializer.fill(proto)
+        try:
+            serializer = IProtobufSerializer(ob)
+            return serializer.fill(proto)
+        except TypeError:
+            log.warn("Could not adapt %s to a protobuf" % ob)
+            return proto
 
     def _createModelEventProtobuf(self, ob, eventType):
         """

@@ -91,15 +91,7 @@ class TestPublishModelChanges(BaseTestCase):
         # clear the event list
         self.publisher._eventList = ModelEventList()
 
-        # we are going to simulate a device moving from device class
-        # by first adding/removing a component then the deviec
-        # then sending the device move event
-        # only one move event should show up
-        component = WinService('foo')
         device = self.device
-        # component
-        self.publisher.publishRemove(component)
-        self.publisher.publishAdd(component)
 
         # device
         self.publisher.publishRemove(device)
