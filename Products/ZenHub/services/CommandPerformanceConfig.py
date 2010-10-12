@@ -95,13 +95,6 @@ class CommandPerformanceConfig(CollectorConfigService):
             ))
         return cycleTime
 
-    def _hashCommand(self, cmd):
-        """
-        Return an index into the command cache
-        """
-        return '%'.join(map(str, [cmd.useSsh, cmd.cycleTime,
-                                  cmd.severity, cmd.command]))
-
     def _safeGetComponentConfig(self, comp, device, perfServer,
                                 commands, thresholds):
         """
@@ -141,8 +134,6 @@ class CommandPerformanceConfig(CollectorConfigService):
                     log.error("Could not load %s plugin", parserName)
                     continue
 
-                points = self._getDsDatapoints(comp, ds, ploader, perfServer)
-
                 cmd = Cmd()
                 cmd.useSsh = useSsh
                 cmd.name = "%s/%s" % (templ.id, ds.id)
@@ -154,6 +145,7 @@ class CommandPerformanceConfig(CollectorConfigService):
                 cmd.parser = ploader
                 cmd.ds = ds.titleOrId()
                 cmd.resultsCacheable = getattr(ds, 'resultsCacheable', False)
+                cmd.points = self._getDsDatapoints(comp, ds, ploader, perfServer)
 
                 # If the datasource supports an environment dictionary, use it
                 cmd.env = getattr(ds, 'env', None)
@@ -178,10 +170,6 @@ class CommandPerformanceConfig(CollectorConfigService):
                     self._sendCmdEvent('localhost', details)
                     continue
 
-                # Try to reduce the number of Cmd objs
-                key = self._hashCommand(cmd)
-                cmd = self._cache.setdefault(key, cmd)
-                cmd.points.extend(points)
                 cmds.add(cmd)
 
         return comp.getThresholdInstances('COMMAND')
@@ -203,7 +191,6 @@ class CommandPerformanceConfig(CollectorConfigService):
         commands = set()
 
         # First for the device....
-        self._cache = {}
         proxy.threshs = []
         self._safeGetComponentConfig(device, device, perfServer,
                                 commands, proxy.threshs)
