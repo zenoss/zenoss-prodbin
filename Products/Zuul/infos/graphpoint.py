@@ -27,6 +27,10 @@ class GraphPointInfo(InfoBase):
     Base class for all of the graph point definitions
     """
     @property
+    def newId(self):
+        return self._object.id
+
+    @property
     def type(self):
         return self._object.getType()
 
