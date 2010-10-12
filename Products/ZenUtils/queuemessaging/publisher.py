@@ -25,7 +25,7 @@ class AsyncQueuePublisher(object):
     def __init__(self):
         self._amqpClient = AMQPFactory()
 
-    def publish(self, exchange, routing_key, message):
+    def publish(self, exchange, routing_key, message, exchange_type="topic"):
         """
         Publishes a message to an exchange. If twisted is running
         this will use the twisted amqp library, otherwise it will
@@ -37,7 +37,7 @@ class AsyncQueuePublisher(object):
         @type  message: string or Protobuff
         @param message: message we are sending in the queue
         """
-        self._amqpClient.send(exchange, routing_key, message)
+        self._amqpClient.send(exchange, routing_key, message, exchange_type)
 
 
 class BlockingQueuePublisher(object):
@@ -45,7 +45,7 @@ class BlockingQueuePublisher(object):
     Class that is responsible for sending messages to the amqp exchange.
     """
 
-    def publish(self, exchange, routing_key, message):
+    def publish(self, exchange, routing_key, message, exchange_type="topic"):
         """
         Publishes a message to an exchange. If twisted is running
         this will use the twisted amqp library, otherwise it will
@@ -57,5 +57,5 @@ class BlockingQueuePublisher(object):
         @type  message: string or Protobuff
         @param message: message we are sending in the queue
         """
-        blockingpublish(exchange, routing_key, message)
+        blockingpublish(exchange, routing_key, message, exchange_type)
 

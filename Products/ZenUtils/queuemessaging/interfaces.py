@@ -17,7 +17,7 @@ class IQueuePublisher(Interface):
     """
     Interface for publishing to a queue
     """
-    def publish(exchange, routing_key, message):
+    def publish(exchange, routing_key, message, exchange_type):
         """
         Publishes a message to an exchange. If twisted is running
         this will use the twisted amqp library, otherwise it will
