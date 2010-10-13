@@ -45,6 +45,7 @@ class TestGuid(BaseTestCase):
 
     def setUp(self):
         super(TestGuid, self).setUp()
+
         self.ob = Identifiable('identifiable', self.dmd)
         self.dmd._setOb(self.ob.id, self.ob)
         self.aq_ob = self.dmd.identifiable
@@ -93,7 +94,7 @@ class TestGuid(BaseTestCase):
         # Make a new identifier and see that it persists
         self.assertEqual(IGlobalIdentifier(self.ob).guid, newguid)
 
-    def test_table_creation(self):
+    def skip_this_test__table_creation(self):
         # Make sure it isn't there first
         self.assertEqual(getattr(self.dmd, 'guid_table', None), None)
         # Make a manager

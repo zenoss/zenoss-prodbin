@@ -24,13 +24,9 @@ class CreateGUIDsForDeviceAndComponent(Migrate.Step):
     version = Migrate.Version(3, 1, 0)
     def __init__(self):
         Migrate.Step.__init__(self)
-        import orm_tables
-        self.dependencies = [orm_tables.createORMTables]
 
     def cutover(self, dmd):
         if getattr(dmd, 'guid_table', None) is None:
-            from Products.ZenChain.guids import updateTableOnGuidEvent
-            provideHandler(updateTableOnGuidEvent)
             for b in ICatalogTool(dmd).search((Device, DeviceComponent, 
                                                DeviceOrganizer)):
                 IGlobalIdentifier(b.getObject()).create(force=True)

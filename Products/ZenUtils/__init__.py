@@ -23,8 +23,6 @@ from Products.ZenUtils.MultiPathIndex import MultiPathIndex , \
                                              manage_addMultiPathIndex, \
                                              manage_addMultiPathIndexForm
 
-from .orm import init_model
-
 def initialize(context):
     context.registerClass(
         MultiPathIndex,
@@ -38,11 +36,4 @@ def initialize(context):
         zem = app.zport.dmd.ZenEventManager
     except AttributeError, e:
         pass
-    else:
-        init_model(
-            host=zem.host,
-            db=zem.database,
-            port=zem.port,
-            user=zem.username,
-            passwd=zem.password
-        )
+
