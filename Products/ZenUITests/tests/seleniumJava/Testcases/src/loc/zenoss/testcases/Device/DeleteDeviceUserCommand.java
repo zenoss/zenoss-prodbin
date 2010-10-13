@@ -61,7 +61,7 @@ public class DeleteDeviceUserCommand {
 	}
 
 	@Test
-	public void addDeviceUserCommand() throws Exception{
+	public void deleteDeviceUserCommand() throws Exception{
 		String device = "test-hpux.zenoss.loc";
 		String deviceClass = "/Server/SSH/HP-UX";
 		String commandID = "NewUserCommand";
@@ -131,7 +131,7 @@ public class DeleteDeviceUserCommand {
 		selenese.verifyFalse(sClient.isElementPresent("//a[text()='"+commandID+"']"));
 		selenese.verifyFalse(sClient.isElementPresent("//td[text()='"+description+"']"));
 		selenese.verifyFalse(sClient.isElementPresent("//td[text()='"+command+"']"));
-			
+
 		testCaseResult = "p";
 	}
 }
