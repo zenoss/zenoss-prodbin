@@ -235,7 +235,6 @@ def findZenossProducts():
         'ZenHub',
         'ZenModel',
         'ZenRRD',
-        'ZenChain',
         'ZenRelations',
         'ZenReports',
         'ZenStatus',
