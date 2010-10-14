@@ -16,7 +16,7 @@
 import transaction
 
 from Products.ZenUtils.jsonutils import json, unjson
-from Products.ZenUtils.extdirect.zope.router import ZopeDirectRouter
+from Products.ZenUtils.extdirect.zope.router import ZopeDirectRouter as DirectRouter
 from Products.ZenUtils.extdirect.router import DirectResponse
 
 class FormResponse(object):
@@ -63,14 +63,4 @@ def form_action(f):
         return result
     return inner
 
-
-class DirectRouter(ZopeDirectRouter):
-    _asof = None
-
-    def _set_asof(self, asof):
-        self._asof = asof
-
-    def __call__(self):
-        result = unjson(super(DirectRouter, self).__call__())
-        return json(result)
 

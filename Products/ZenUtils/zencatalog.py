@@ -178,10 +178,12 @@ class ZenCatalog(ZCmdBase):
 
         catalog = self._getCatalog(zport)
         if catalog is None:
-            log.info('Global catalog already exists.')
             # Create the catalog
             createGlobalCatalog(zport)
             catalog = self._getCatalog(zport)
+            transaction.commit()
+        else:
+            log.info('Global catalog already exists.')
 
         def recurse(obj):
             if _reconnect[0]:

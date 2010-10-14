@@ -930,6 +930,7 @@ function detailSelectByToken(nodeId) {
 
 var devtree = {
     xtype: 'HierarchyTreePanel',
+    loadMask: false,
     id: 'devices',
     searchField: true,
     directFn: REMOTE.getTree,
@@ -956,6 +957,7 @@ var devtree = {
 
 var grouptree = {
     xtype: 'HierarchyTreePanel',
+    loadMask: false,
     id: 'groups',
     searchField: false,
     directFn: REMOTE.getTree,
@@ -974,6 +976,7 @@ var grouptree = {
 
 var systree = {
     xtype: 'HierarchyTreePanel',
+    loadMask: false,
     id: 'systems',
     searchField: false,
     directFn: REMOTE.getTree,
@@ -992,6 +995,7 @@ var systree = {
 
 var loctree = {
     xtype: 'HierarchyTreePanel',
+    loadMask: false,
     id: 'locs',
     searchField: false,
     directFn: REMOTE.getTree,

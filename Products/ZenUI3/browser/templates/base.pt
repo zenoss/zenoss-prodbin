@@ -73,24 +73,22 @@ Ext.state.Manager.setProvider(new Ext.state.CookieProvider({
  <tal:block metal:define-slot="script_beforeLayout"/>
 
 <script type="text/javascript">
-Ext.onReady(function(){
-   var viewport = new Ext.Panel({
-       id: 'viewport',
-       layout: 'border',
-       border: false,
-       renderTo: 'contentPane',
-       items: [{
-           region: 'center',
-           id: 'center_panel',
-           layout: 'fit',
-           border: false
-       }/*,{
-           region: 'south',
-           id: 'footer_bar',
-           height: 30,
-           border: false
-       }*/]
-   });
+var viewport = new Ext.Panel({
+    id: 'viewport',
+    layout: 'border',
+    border: false,
+    renderTo: 'contentPane',
+    items: [{
+        region: 'center',
+        id: 'center_panel',
+        layout: 'fit',
+        border: false
+    }/*,{
+        region: 'south',
+        id: 'footer_bar',
+        height: 30,
+        border: false
+    }*/]
 });
 </script>
 
@@ -108,4 +106,3 @@ Ext.onReady(function(){
 </tal:block> 
 </tal:block>
 </tal:block>
-

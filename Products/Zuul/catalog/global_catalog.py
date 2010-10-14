@@ -27,6 +27,8 @@ from Products.ZenUtils.Search import makeCaseSensitiveKeywordIndex
 from Products.ZenUtils.Search import makeCaseInsensitiveKeywordIndex
 from Products.ZenModel.DeviceComponent import DeviceComponent
 from Products.ZenModel.Device import Device
+from Products.ZenModel.Software import Software
+from Products.ZenModel.OperatingSystem import OperatingSystem
 from Products.Zuul.utils import getZProperties
 
 from interfaces import IGloballyIndexed, IPathReporter, IIndexableWrapper
@@ -100,9 +102,6 @@ class IndexableWrapper(object):
         This is a KeywordIndex on the catalog.
         """
         dottednames = set()
-        # Add all interfaces provided by object
-        for iface in providedBy(self._context).flattened():
-            dottednames.add(iface.__identifier__)
         # Add the highest five classes in resolution order. 5 is
         # an arbitrary number; essentially, we only care about indexing
         # Zenoss classes, and our inheritance tree isn't that deep. Past
@@ -289,15 +288,17 @@ class GlobalCatalog(ZCatalog):
         return ZCatalog.searchResults(self, **kw)
 
     def catalog_object(self, obj, **kwargs):
-        ob = IIndexableWrapper(obj)
-        ZCatalog.catalog_object(self, ob, **kwargs)
+        if not isinstance(obj, self._get_forbidden_classes()):
+            ob = IIndexableWrapper(obj)
+            ZCatalog.catalog_object(self, ob, **kwargs)
 
     def index_object_under_paths(self, obj, paths):
-        p = '/'.join(obj.getPrimaryPath())
-        uid = self._catalog.uids.get(p, None)
-        if uid:
-            idx = self._catalog.getIndex('path')
-            idx.index_paths(uid, paths)
+        if not isinstance(obj, self._get_forbidden_classes()):
+            p = '/'.join(obj.getPrimaryPath())
+            uid = self._catalog.uids.get(p, None)
+            if uid:
+                idx = self._catalog.getIndex('path')
+                idx.index_paths(uid, paths)
 
     def unindex_object_from_paths(self, obj, paths):
         p = '/'.join(obj.getPrimaryPath())
@@ -308,6 +309,9 @@ class GlobalCatalog(ZCatalog):
 
     def getIndexes(self):
         return self._catalog.indexes
+
+    def _get_forbidden_classes(self):
+        return (Software, OperatingSystem)
 
 
 def createGlobalCatalog(portal):

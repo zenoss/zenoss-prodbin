@@ -41,11 +41,13 @@ COMPILED_JS_EXISTS = _checkForCompiledJSFile()
 
 class ExtJSShortcut(BrowserView):
     def __getitem__(self, name):
+        self.request.response.enableHTTPCompression()
         return self.context.unrestrictedTraverse('++resource++extjs')[name]
 
 
 class ZenUIResourcesShortcut(BrowserView):
     def __getitem__(self, name):
+        self.request.response.enableHTTPCompression()
         return self.context.unrestrictedTraverse('++resource++zenui')[name]
 
 
@@ -77,6 +79,8 @@ class ZenossJavaScript(BrowserView):
     the source files instead of just giving up.
     """
     def __call__(self):
+        self.request.response.setHeader('Content-Type', 'text/javascript')
+        self.request.response.enableHTTPCompression()
         if Globals.DevelopmentMode or not COMPILED_JS_EXISTS:
             return self.dev()
         else:

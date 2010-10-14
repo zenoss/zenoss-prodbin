@@ -16,6 +16,7 @@ Zenoss JSON API
 
 from Products.ZenUtils.Ext import DirectRouter, DirectResponse
 from Products.Zuul.decorators import require
+from Products.Zuul.marshalling import Marshaller
 from Products import Zuul
 import logging
 log = logging.getLogger(__name__)
@@ -66,8 +67,8 @@ class TreeRouter(DirectRouter):
     @require('Manage DMD')
     def deleteNode(self, uid):
         """
-        Deletesa node from the tree.
-        
+        Deletes a node from the tree.
+
         B{NOTE}: You can not delete a root node of a tree
 
         @type  uid: string
@@ -106,6 +107,38 @@ class TreeRouter(DirectRouter):
         Abstract method for child classes to use to get their facade
         """
         raise NotImplementedError("You must implement the _getFacade method")
+
+    def asyncGetTree(self, id=None):
+        """
+        Server side method for asynchronous tree calls. Retrieves
+        the immediate children of the node specified by "id"
+
+        NOTE: our convention on the UI side is if we are asking
+        for the root node then return the root and its children
+        otherwise just return the children
+
+        @type  id: string
+        @param id: The uid of the node we are getting the children for
+        @rtype:   [dictionary]
+        @return:  Object representing the immediate children
+        """
+        facade = self._getFacade()
+        currentNode = facade.getTree(id)
+        # we want every tree property except the "children" one
+        keys = ('id', 'path', 'uid', 'iconCls', 'text', 'hidden', 'leaf')
+        children = []
+        # explicitly marshall the children
+        for child in currentNode.children:
+            childData = Marshaller(child).marshal(keys)
+            children.append(childData)
+
+        # check to see if we are asking for the root
+        primaryId = facade._root.getPrimaryId()
+        if id == primaryId:
+            root = Marshaller(currentNode).marshal(keys)
+            root['children'] = children
+            return [root]
+        return children
 
     def _canDeleteUid(self, uid):
         """

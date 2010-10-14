@@ -137,13 +137,14 @@ var NetworkNavTree = Ext.extend(Zenoss.HierarchyTreePanel, {
                 load: this.onLoad
             },
             id: 'networks',
-            directFn: Zenoss.remote.NetworkRouter.getTree,
+            directFn: Zenoss.remote.NetworkRouter.asyncGetTree,
             router: Zenoss.remote.NetworkRouter,
             searchField: true,
             selModel: treesm,
             root: {
                 id: '.zport.dmd.Networks',
                 uid: '/zport/dmd/Networks',
+                type: 'async',
                 text: null, // Use the name loaded from the remote
                 allowDrop: false
             }
@@ -173,9 +174,9 @@ var NetworkNavTree = Ext.extend(Zenoss.HierarchyTreePanel, {
 
             if ( node.id === tokenParentId ) {
                 this.selectByToken(tokenRightPart);
-                
+
             } else if ( tokenParentId.indexOf(node.id) === 0 ) {
-                // for nodes that aren't expanded by default, expand this 
+                // for nodes that aren't expanded by default, expand this
                 // loaded ancestor so it loads its children
                 var ancestorIdLength = node.id.split('.').length + 4;
                 var ancestorId = tokenNodeIdParts.slice(0, ancestorIdLength).join('.');
@@ -184,14 +185,14 @@ var NetworkNavTree = Ext.extend(Zenoss.HierarchyTreePanel, {
                     ancestorNode.expand();
                 }
             }
-            
+
         }
-        
+
     },
 
     selectByToken: function(tokenRightPart) {
         // called from onLoad and Ext.History.selectByToken defined in
-        // HistoryManager.js. If node is null when called fomr the History 
+        // HistoryManager.js. If node is null when called fomr the History
         // change event, then the TreePanel load event will call this function
         // when getNodeById is ready.
         var subParts = unescape(tokenRightPart).split('.ipaddresses.');
@@ -203,7 +204,7 @@ var NetworkNavTree = Ext.extend(Zenoss.HierarchyTreePanel, {
                 var instanceGrid = Ext.getCmp('ipAddressGrid');
                 var store = instanceGrid.getStore();
                 var selModel = instanceGrid.getSelectionModel();
-                
+
                 function selectIpAddress() {
                     store.un('load', selectIpAddress);
                     store.each(function(record){
@@ -213,9 +214,9 @@ var NetworkNavTree = Ext.extend(Zenoss.HierarchyTreePanel, {
                         }
                     });
                 }
-                
+
                 selectIpAddress();
-                
+
                 if ( ! selModel.hasSelection() ) {
                     // no row selectected, wait for the store to load and try again
                     store.on('load', selectIpAddress);
@@ -340,7 +341,7 @@ ipAddressGrid.setContext = function(uid) {
         params: {
             uid: uid,
             start: 0,
-            limit: 300
+            limit: 50
         }
     });
 }.createDelegate(ipAddressGrid);
@@ -454,7 +455,7 @@ var zIcon = {
     name: 'zIcon',
     localField: {
         xtype: 'textfield'
-    }  
+    }
 };
 
 var zSnmpStrictDiscovery = {

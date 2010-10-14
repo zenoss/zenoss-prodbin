@@ -41,5 +41,6 @@ class I18N(BrowserView):
         dname = self.request.get('domain')
         if dname:
             msgs.update(getDomainMessages(dname, self.request))
+        self.request.response.setHeader('Content-Type', 'text/javascript')
         return tpl % json(msgs)
 

@@ -58,14 +58,6 @@ class DevicePathReporter(DefaultPathReporter):
         paths.extend(relPath(dev, 'location'))
         paths.extend(relPath(dev, 'systems'))
         paths.extend(relPath(dev, 'groups'))
-        for comp in chain(
-            dev.os.interfaces.objectValuesGen(),
-            dev.os.ipservices.objectValuesGen(),
-            dev.os.winservices.objectValuesGen(),
-            dev.os.processes.objectValuesGen(),
-            dev.os.software.objectValuesGen()
-            ):
-            paths.extend(devicePathsFromComponent(comp))
         return paths
 
 

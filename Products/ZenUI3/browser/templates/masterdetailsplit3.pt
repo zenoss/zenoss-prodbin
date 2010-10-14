@@ -32,44 +32,42 @@
 
 <tal:block metal:fill-slot="script_layout">
 <script>
-Ext.onReady(function(){
-    Ext.getCmp('center_panel').add(
-        new Ext.Panel({
+Ext.getCmp('center_panel').add(
+    new Ext.Panel({
+        layout: 'border',
+        defaults: {'border':false},
+        items: [{
+            region: 'west',
+            width: 250,
+            id: 'master_panel',
+            layout: 'fit',
+            split: true
+        },{
+            region: 'center',
+            id: 'center_detail_panel',
+            split: true,
+            layout: 'fit'
+        },{
+            region: 'east',
             layout: 'border',
             defaults: {'border':false},
+            width: '35%',
+            split: true,
             items: [{
-                region: 'west',
-                width: 250,
-                id: 'master_panel',
+                region: 'north',
+                id: 'top_detail_panel',
+                split: true,
                 layout: 'fit',
-                split: true
+                height: 300
             },{
                 region: 'center',
-                id: 'center_detail_panel',
+                id: 'bottom_detail_panel',
                 split: true,
                 layout: 'fit'
-            },{
-                region: 'east',
-                layout: 'border',
-                defaults: {'border':false},
-                width: '35%',
-                split: true,
-                items: [{
-                    region: 'north',
-                    id: 'top_detail_panel',
-                    split: true,
-                    layout: 'fit',
-                    height: 300
-                },{
-                    region: 'center',
-                    id: 'bottom_detail_panel',
-                    split: true,
-                    layout: 'fit'
-                }]
             }]
-        }
-    ));
-});
+        }]
+    }
+));
 </script>
 <!-- Chain the macro -->
 <tal:block metal:define-slot="script_layout">

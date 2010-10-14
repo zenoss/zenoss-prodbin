@@ -134,6 +134,7 @@ class Tooltips(BrowserView):
         tpl = "Zenoss.registerTooltip(%s);"
         for tip in tips:
             results.append(tpl % json(tip))
+        self.request.response.setHeader('Content-Type', 'text/javascript')
         return "Ext.onReady(function(){%s})" % '\n'.join(results)
 
 

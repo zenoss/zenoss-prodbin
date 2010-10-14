@@ -18,7 +18,7 @@ from zope.component import adapts
 from Products.ZenModel.IpNetwork import IpNetwork
 from Products.ZenModel.IpAddress import IpAddress
 from Products.Zuul import getFacade
-from Products.Zuul.interfaces import IIpNetworkInfo, IIpAddressInfo, IIpNetworkNode 
+from Products.Zuul.interfaces import IIpNetworkInfo, IIpAddressInfo, IIpNetworkNode
 from Products.Zuul.interfaces import ICatalogTool
 from Products.Zuul.infos import InfoBase
 from Products.Zuul.decorators import info
@@ -53,11 +53,12 @@ class IpNetworkNode(TreeNode):
 
     @property
     def leaf(self):
-        return False
+        nets = self._get_cache.search(self.uid)
+        return not nets
 
     @property
     def iconCls(self):
-        return 
+        return  ''
 
 
 class IpNetworkInfo(InfoBase):
@@ -96,7 +97,7 @@ class IpNetworkInfo(InfoBase):
     def getZDefaultNetworkTree(self):
         def translate(rawValue):
             return ', '.join( [str(x) for x in rawValue] )
-        return getZPropertyInfo(self._object, 'zDefaultNetworkTree', 
+        return getZPropertyInfo(self._object, 'zDefaultNetworkTree',
                                 translate=translate, translateLocal=True)
 
     _decimalDigits = re.compile('\d+')
@@ -107,7 +108,7 @@ class IpNetworkInfo(InfoBase):
         # delimeters) to tuple of integers
         digits = self._decimalDigits.findall( data['localValue'] )
         data['localValue'] = tuple( int(x) for x in digits )
-        
+
         setZPropertyInfo(self._object, 'zDefaultNetworkTree', **data)
 
     zDefaultNetworkTree = property(getZDefaultNetworkTree, setZDefaultNetworkTree)

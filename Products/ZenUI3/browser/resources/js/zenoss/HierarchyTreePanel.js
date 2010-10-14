@@ -38,10 +38,14 @@ Ext.ns('Zenoss');
 
 Zenoss.HierarchyTreeNodeUI = Ext.extend(Ext.tree.TreeNodeUI, {
     renderElements: function(n, a, targetNode, bulkRender) {
-        // Hack this in here because baseAttrs doesn't work on loader
-        n.hasChildNodes = function() {
-            return (a.children && a.children.length>0);
-        }.createDelegate(n);
+        // if children was explicitly set use it, otherwise assume the tree to be
+        // asynchronous
+        if (Ext.isDefined(a.children)) {
+            // Hack this in here because baseAttrs doesn't work on loader
+            n.hasChildNodes = function() {
+                return (a.children && a.children.length>0);
+            }.createDelegate(n);
+        }
 
         Zenoss.HierarchyTreeNodeUI.superclass.renderElements.apply(this, arguments);
 
@@ -104,6 +108,7 @@ Zenoss.HierarchyTreePanel = Ext.extend(Ext.tree.TreePanel, {
             containerScroll: true,
             selectRootOnLoad: true,
             rootVisible: false,
+            loadMask: true,
             allowOrganizerMove: true
         });
 
@@ -128,6 +133,14 @@ Zenoss.HierarchyTreePanel = Ext.extend(Ext.tree.TreePanel, {
                 },
                 getParams: function(node) {
                     return [node.attributes.uid];
+                },
+                listeners: {
+                    beforeload: function(){
+                        this.showLoadMask(true);
+                    }.createDelegate(this),
+                    load: function(){
+                        this.showLoadMask(false);
+                    }.createDelegate(this)
                 }
             });
             Ext.destroyMembers(config, 'directFn');
@@ -148,6 +161,13 @@ Zenoss.HierarchyTreePanel = Ext.extend(Ext.tree.TreePanel, {
 
         Zenoss.HierarchyTreePanel.superclass.constructor.apply(this,
             arguments);
+    },
+    showLoadMask: function(bool) {
+        if (!this.loadMask) { return; } 
+        var container = this.container;
+        container._treeLoadMask = container._treeLoadMask || new Ext.LoadMask(this.container);
+        var mask = container._treeLoadMask,
+            _ = bool ? mask.show() : [mask.hide(), mask.disable()];
     },
     initEvents: function() {
         Zenoss.HierarchyTreePanel.superclass.initEvents.call(this);
@@ -186,7 +206,7 @@ Zenoss.HierarchyTreePanel = Ext.extend(Ext.tree.TreePanel, {
             var sel = this.getSelectionModel().getSelectedNode();
             if ( !(sel && nodeId === sel.id) ) {
                 var path = this.getNodePathById(nodeId);
-                
+
                 this.selectPath(path);
             }
         }.createDelegate(this);
@@ -212,9 +232,9 @@ Zenoss.HierarchyTreePanel = Ext.extend(Ext.tree.TreePanel, {
             if (this.relationshipIdentifier && part == this.relationshipIdentifier){
                 curpath = [curpath, part, parts.shift()].join('.');
             }else{
-                curpath = [curpath, part].join('.');    
+                curpath = [curpath, part].join('.');
             }
-            
+
             path.push(curpath);
         }
 
@@ -333,23 +353,19 @@ Zenoss.HierarchyTreePanel = Ext.extend(Ext.tree.TreePanel, {
         }
         this.deleteNodeFn(params, callback);
     },
-                                           
+
     canMoveOrganizer: function(organizerUid, targetUid) {
         var orgPieces = organizerUid.split('/'),
             targetPieces = targetUid.split('/');
-        
+
         // make sure we can actually move organizers
         if (!this.allowOrganizerMove) {
             return false;
         }
-        
+
         // Relying on a coincidence that the third item
         // is the top level organizer (e.g. Locations, Groups)
-        if (orgPieces[3] === targetPieces[3] ) {
-            return true;
-        }
-        
-        return false;
+        return orgPieces[3] === targetPieces[3];
     }
 }); // HierarchyTreePanel
 

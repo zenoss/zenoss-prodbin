@@ -15,6 +15,7 @@ import logging
 from itertools import imap
 from Acquisition import aq_parent
 from zope.interface import implements
+from Products.AdvancedQuery import Eq
 from Products.ZenUtils.Utils import prepId
 from Products import Zuul
 from Products.Zuul.interfaces import ITemplateFacade, ICatalogTool, ITemplateNode, IRRDDataSourceInfo, \
@@ -38,35 +39,55 @@ log = logging.getLogger('zen.TemplateFacade')
 class TemplateFacade(ZuulFacade):
     implements(ITemplateFacade)
 
-    def getTemplates(self):
+    @property
+    def _root(self):
+        return self._dmd.Devices
+
+    def _getTemplateNodes(self):
         catalog = self._getCatalog('/zport/dmd/Devices')
         brains = catalog.search(types=RRDTemplate)
-        templates = imap(unbrain, brains)
         nodes = {}
-        for template in templates:
-            if template.id not in nodes:
+        # create 1 node for each template type
+        for brain in brains:
+            if brain.id not in nodes:
                 try:
-                    nodes[template.id] = ITemplateNode(template)
-                except UncataloguedObjectException, e:
+                    nodes[brain.id] = ITemplateNode(brain.getObject())
+                except UncataloguedObjectException:
                     pass
-            try:
-                leaf = ITemplateLeaf(template)
-                nodes[template.id]._addChild(leaf)
-            except UncataloguedObjectException, e:
-                pass
         for key in sorted(nodes.keys(), key=str.lower):
             yield nodes[key]
 
-    def getDeviceClassTemplates(self):
+    def _getTemplateLeaves(self, id):
+        obj = self._getObject(id)
+        # search for all the templates with the same id
+        query = Eq('id', obj.id)
+        catalog = self._getCatalog('/zport/dmd/Devices')
+        brains = catalog.search(types=RRDTemplate, query=query)
+        templates = imap(unbrain, brains)
+        for template in templates:
+            try:
+                yield ITemplateLeaf(template)
+            except UncataloguedObjectException:
+                pass
+
+    def getTemplates(self, id):
+        # see if we are asking for all templates
+        if id == self._root.getPrimaryId():
+            return  self._getTemplateNodes()
+        # otherwise we are asking for instance of a template
+        return self._getTemplateLeaves(id)
+
+    def getTree(self, id):
         """
         Returns the root node for the template tree when the nodes are
         device classes
         """
+        obj = self._getObject(id)
         try:
-            return DeviceClassTemplateNode(self._dmd.Devices)
+            return DeviceClassTemplateNode(obj)
         except UncataloguedObjectException:
             pass
-        
+
     def getAddTemplateTargets(self):
         """
         @returns list of targets for our new template
@@ -81,7 +102,7 @@ class TemplateFacade(ZuulFacade):
             label = "%s in %s" % (brain.name, path)
             results.append(dict(uid=brain.getPath(), label=label))
         return results
-                        
+
     def addTemplate(self, id, targetUid):
         id = prepId(id)
         # make the assumption targetUid is always a device class
@@ -93,7 +114,7 @@ class TemplateFacade(ZuulFacade):
         leaf = ITemplateLeaf(template)
         node._addChild(leaf)
         return node
-    
+
     def _deleteObject(self, uid):
         """
         Deletes the object by getting the parent
@@ -103,7 +124,7 @@ class TemplateFacade(ZuulFacade):
         obj = self._getObject(uid)
         context = aq_parent(obj)
         context._delObject(obj.id)
-        
+
     def deleteTemplate(self, uid):
         return self._deleteObject(uid)
 
@@ -114,7 +135,7 @@ class TemplateFacade(ZuulFacade):
         obj = self._getObject(uid)
         template = obj.rrdTemplate()
         template.manage_deleteRRDDataSources((obj.id,))
-        
+
     def deleteDataPoint(self, uid):
         """
         @param String uid: Unique Identifier of the data point we wish to delete
@@ -122,7 +143,7 @@ class TemplateFacade(ZuulFacade):
         obj = self._getObject(uid)
         datasource = obj.datasource()
         datasource.manage_deleteRRDDataPoints((obj.id,))
-        
+
     def _editDetails(self, info, data):
         """
         Will apply every property in data to the info if
@@ -135,7 +156,7 @@ class TemplateFacade(ZuulFacade):
             if hasattr(info, key):
                 setattr(info, key, data[key])
         return info
-    
+
     def getDataSources(self, uid):
         catalog = self._getCatalog(uid)
         if isinstance(catalog.context, RRDTemplate):
@@ -157,20 +178,20 @@ class TemplateFacade(ZuulFacade):
         This defaults to using the adapters to return the correct info if not a datasource.
         """
         info = None
-        
+
         # look for datasource type
         if isinstance(obj, BasicDataSource):
             if obj.sourcetype == 'SNMP':
                 info = SNMPDataSourceInfo(obj)
             if obj.sourcetype == 'COMMAND':
                 info = CommandDataSourceInfo(obj)
-                
-        # use the default adapter    
+
+        # use the default adapter
         if not info:
             info = IInfo(obj)
-        
+
         return info
-    
+
     def getDataSourceDetails(self, uid):
         """
         Given the unique id of the datasource we will
@@ -180,7 +201,7 @@ class TemplateFacade(ZuulFacade):
         """
         obj = self._getObject(uid)
         return self._getDataSourceInfoFromObject(obj)
-            
+
     def setInfo(self, uid, data):
         """
         Given a dictionary of {property name: property value}
@@ -198,27 +219,27 @@ class TemplateFacade(ZuulFacade):
             newId = data['newId']
             del data['newId']
             info.rename(newId)
-            
+
         return self._editDetails(info, data)
-    
+
     def getDataPointDetails(self, uid):
         """
         @param string unique Identifier of a datapoint
-        @returns IDataPointInfo 
+        @returns IDataPointInfo
         """
         obj = self._getObject(uid)
         return IDataPointInfo(obj)
-    
+
     def getThresholds(self, uid):
         catalog = self._getCatalog(uid)
         brains = catalog.search(types=ThresholdClass)
         thresholds = imap(unbrain, brains)
         return imap(IThresholdInfo, thresholds)
-    
+
     def getThresholdDetails(self, uid):
         """
         @param String uid: the id of the threshold
-        @returns IThresholdInfo 
+        @returns IThresholdInfo
         """
         threshold = self._getObject(uid)
         template = threshold.rrdTemplate()
@@ -231,11 +252,11 @@ class TemplateFacade(ZuulFacade):
         """
         Adds a datapoint to the datasource specified by the UID
         @param string dataSourceUid unique identifier of a datasource
-        @parma string name 
+        @parma string name
         """
         datasource = self._getObject(dataSourceUid)
         return datasource.manage_addRRDDataPoint(str(name))
-    
+
     def addDataSource(self, templateUid, name, type):
         """
         Adds a datasource to a template
@@ -244,21 +265,21 @@ class TemplateFacade(ZuulFacade):
         @param string type must be a valid datasource type (see RRDTemplate getDataSourceOptions)
         """
         template = self._getObject(templateUid)
-        
+
         # get our option information based on the string type inputed
         selectedOption = None
         options = template.getDataSourceOptions() # comes back in a (name, typeinformation) tuple
         for option in options:
             if option[0] == type:
                 selectedOption = option[1]
-                
+
         if selectedOption is None:
             raise "%s is not a valid DataSource Type" % type
-        
+
         # create the datasource and return it
         datasource = template.manage_addRRDDataSource(name, selectedOption)
         return datasource
-    
+
     def getDataSourceTypes(self):
         """
         @returns [] List of all of the datasource types (in string form)
@@ -268,7 +289,7 @@ class TemplateFacade(ZuulFacade):
         for name, dsOption in template.getDataSourceOptions():
             data.append({'type': name})
         return data
-    
+
     def getThresholdTypes(self):
         data = []
         template = self._dmd.Devices.rrdTemplates.Device
@@ -277,7 +298,7 @@ class TemplateFacade(ZuulFacade):
         return data
 
     def addThreshold(self, uid, thresholdType, thresholdId, dataPoints=None):
-        
+
         thresholdId = prepId(thresholdId)
         template = self._getObject(uid)
         thresholds = template.thresholds
@@ -303,13 +324,13 @@ class TemplateFacade(ZuulFacade):
             dataPoint = self._getObject(dataPointUid)
             dsnames.append( dataPoint.name() )
         return dsnames
-            
+
     def removeThreshold(self, uid):
         """Removes the threshold
         @param string uid
         """
         return self._deleteObject(uid)
-    
+
     def getGraphs(self, uid):
         catalog = self._getCatalog(uid)
         brains = catalog.search(types=GraphDefinition)
@@ -325,7 +346,7 @@ class TemplateFacade(ZuulFacade):
     def getCopyTargets(self, uid, query=''):
         template = self._getTemplate(uid)
         catalog = ICatalogTool(self._dmd)
-        types = ['Products.ZenModel.DeviceClass.DeviceClass']                 
+        types = ['Products.ZenModel.DeviceClass.DeviceClass']
         brains = catalog.search(types=types)
         objs = imap(unbrain, brains)
         def genTargets():
@@ -345,7 +366,7 @@ class TemplateFacade(ZuulFacade):
         def byLabel(left, right):
             return cmp(left['label'].lower(), right['label'].lower())
         return sorted(genTargets(), byLabel)
-        
+
     def copyTemplate(self, uid, targetUid):
         template = self._getTemplate(uid)
         target = self._getObject(targetUid)
@@ -401,7 +422,7 @@ class TemplateFacade(ZuulFacade):
         """
         obj = self._getObject(uid)
         return IInfo(obj)
-        
+
     def addThresholdToGraph(self, graphUid, thresholdUid):
         graphDefinition = self._getObject(graphUid)
         thresholdClass = self._getThresholdClass(thresholdUid)
@@ -438,12 +459,12 @@ class TemplateFacade(ZuulFacade):
         if not isinstance(obj, GraphDefinition):
             raise Exception('Cannot find GraphDefinition at "%s".' % uid)
         return IInfo(obj)
-        
+
     def setGraphDefinition(self, uid, data):
         graphDef = self._getObject(uid)
         Zuul.unmarshal(data, graphDef)
 
-        
+
     def _setGraphDefinitionSequence(self, uids):
         for i, uid in enumerate(uids):
             graphDefinition = self.getGraphDefinition(uid)

@@ -18,11 +18,7 @@ class ZopeDirectRouter(DirectRouter):
         self.request = request
 
     def __call__(self):
-        try:
-            # Zope 3
-            body = self.request.bodyStream.getCacheStream().getvalue()
-        except AttributeError:
-            # Zope 2
-            body = self.request.get('BODY')
+        body = self.request.get('BODY')
         self.request.response.setHeader('Content-Type', 'application/json')
+        self.request.response.enableHTTPCompression()
         return super(ZopeDirectRouter, self).__call__(body)

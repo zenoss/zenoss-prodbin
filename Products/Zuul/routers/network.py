@@ -17,15 +17,16 @@ Available at:  /zport/dmd/network_router
 """
 
 import logging
-from Products.ZenUtils.Ext import DirectRouter, DirectResponse
+from Products.ZenUtils.Ext import DirectResponse
 from Products.Zuul.decorators import require
 from Products.Zuul.interfaces import ITreeNode
 from Products.ZenUtils.jsonutils import unjson
 from Products import Zuul
+from Products.Zuul.routers import TreeRouter
 
 log = logging.getLogger('zen.NetworkRouter')
 
-class NetworkRouter(DirectRouter):
+class NetworkRouter(TreeRouter):
     """
     A JSON/ExtDirect interface to operations on networks
     """
@@ -33,6 +34,9 @@ class NetworkRouter(DirectRouter):
     def __init__(self, context, request):
         super(NetworkRouter, self).__init__(context, request)
         self.api = Zuul.getFacade('network')
+
+    def _getFacade(self):
+        return Zuul.getFacade('network', self.context)
 
     @require('Manage DMD')
     def discoverDevices(self, uid):
@@ -72,7 +76,7 @@ class NetworkRouter(DirectRouter):
                 netip, netmask = newSubnet.split('/')
                 netmask = int(netmask)
                 foundSubnet = self.api.findSubnet(netip, netmask, '/zport/dmd/Networks')
-                
+
                 if foundSubnet is not None:
                     response = DirectResponse.fail('Did not add duplicate subnet: %s (%s/%s)' %
                                                    (newSubnet, foundSubnet.id, foundSubnet.netmask))
@@ -100,6 +104,7 @@ class NetworkRouter(DirectRouter):
         """
         self.api.deleteSubnet(uid)
         return DirectResponse.succeed(tree=self.getTree())
+
 
     def getTree(self, id='/zport/dmd/Networks'):
         """
@@ -176,4 +181,5 @@ class NetworkRouter(DirectRouter):
 
         keys = ['name', 'device', 'interface', 'pingstatus', 'snmpstatus', 'uid']
         data = Zuul.marshal(instances, keys)
-        return DirectResponse.succeed(data=data, totalCount=instances.total)
+        return DirectResponse.succeed(data=data, totalCount=instances.total,
+                                      hash=instances.hash_)

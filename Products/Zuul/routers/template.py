@@ -17,11 +17,13 @@ Available at:  /zport/dmd/template_router
 """
 
 from Products import Zuul
-from Products.ZenUtils.Ext import DirectRouter, DirectResponse
+from Products.ZenUtils.Ext import DirectResponse
 from Products.Zuul.decorators import require
 from Products.Zuul.form.interfaces import IFormBuilder
+from Products.Zuul.routers import TreeRouter
 
-class TemplateRouter(DirectRouter):
+
+class TemplateRouter(TreeRouter):
     """
     A JSON/ExtDirect interface to operations on templates
     """
@@ -39,7 +41,7 @@ class TemplateRouter(DirectRouter):
         @return:  List of objects representing the templates in tree hierarchy
         """
         facade = self._getFacade()
-        templates = facade.getTemplates()
+        templates = facade.getTemplates(id)
         return Zuul.marshal(templates)
 
     def getDeviceClassTemplates(self, id):
@@ -55,7 +57,7 @@ class TemplateRouter(DirectRouter):
         facade = self._getFacade()
         templates = facade.getDeviceClassTemplates()
         return [Zuul.marshal(templates)]
-    
+
     def getAddTemplateTargets(self, query):
         """
         Get a list of available device classes where new templates can be added.
@@ -71,7 +73,7 @@ class TemplateRouter(DirectRouter):
         facade = self._getFacade()
         data = facade.getAddTemplateTargets()
         return DirectResponse.succeed(data=data)
-    
+
     @require('Manage DMD')
     def addTemplate(self, id, targetUid):
         """
@@ -316,7 +318,7 @@ class TemplateRouter(DirectRouter):
         """
         facade = self._getFacade()
         data = facade.getThresholdTypes()
-        return DirectResponse.succeed(data=data) 
+        return DirectResponse.succeed(data=data)
 
     def getDataSourceTypes(self, query):
         """
@@ -329,7 +331,7 @@ class TemplateRouter(DirectRouter):
         """
         facade = self._getFacade()
         data = facade.getDataSourceTypes()
-        return DirectResponse.succeed(data=data) 
+        return DirectResponse.succeed(data=data)
 
     def getGraphs(self, uid, query=None):
         """
@@ -382,7 +384,7 @@ class TemplateRouter(DirectRouter):
         facade = self._getFacade()
         data = Zuul.marshal( facade.getCopyTargets(uid, query) )
         return DirectResponse.succeed(data=data)
-    
+
     @require('Manage DMD')
     def copyTemplate(self, uid, targetUid):
         """
@@ -442,7 +444,7 @@ class TemplateRouter(DirectRouter):
         facade = self._getFacade()
         facade.deleteDataPoint(uid)
         return DirectResponse.succeed()
-    
+
     @require('Manage DMD')
     def deleteGraphDefinition(self, uid):
         """
@@ -608,7 +610,7 @@ class TemplateRouter(DirectRouter):
         facade = self._getFacade()
         facade.setInfo(uid, data)
         return DirectResponse.succeed()
-        
+
     @require('Manage DMD')
     def setGraphDefinitionSequence(self, uids):
         """

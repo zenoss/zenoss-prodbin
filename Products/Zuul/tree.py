@@ -107,13 +107,13 @@ class TreeNode(object):
         pieces = self.uid.split('/')
         if len(pieces) != 4:
             return False
-        
+
         # check for our permission
         manager = getSecurityManager()
         obj = self._object.unrestrictedTraverse(self.uid)
         if manager.checkPermission("View", obj):
             return False
-        
+
         # search the catalog to see if we have permission with any of the children
         cat = ICatalogTool(obj)
         numInstances = cat.count('Products.ZenModel.DeviceOrganizer.DeviceOrganizer', self.uid)

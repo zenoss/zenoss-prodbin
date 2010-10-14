@@ -17,6 +17,7 @@ from Products.Zuul.interfaces import template as templateInterfaces
 from Products.Zuul.tree import TreeNode
 from Products.ZenModel.DeviceOrganizer import DeviceOrganizer
 from Products.ZenModel.RRDTemplate import RRDTemplate
+from Products.ZCatalog.CatalogBrains import AbstractCatalogBrain
 from Products.Zuul.interfaces import ICatalogTool
 from Products.Zuul.utils import ZuulMessageFactory as _t
 
@@ -43,13 +44,6 @@ class TemplateNode(TemplateInfo):
     @property
     def qtip(self):
         return self._object.description
-
-    @property
-    def children(self):
-        def caseInsensitive(x, y):
-            return cmp(x.text.lower(), y.text.lower())
-        self._children.sort(caseInsensitive)
-        return self._children
 
     def _addChild(self, leaf):
         self._children.append(leaf)
@@ -95,8 +89,20 @@ class TemplateLeaf(TemplateInfo):
         # if deviceClass is none it is a device template (and therefore bound)
         if not deviceClass or (self._object.id in deviceClass.zDeviceTemplates):
             return 'tree-template-icon-bound'
-
         return 'tree-node-no-icon'
+
+
+MARKER = object()
+def memoize(f):
+    def inner(self, *args, **kwargs):
+        d = getattr(self._get_cache, '_memo', None)
+        if d is None:
+            setattr(self._get_cache, '_memo', {})
+            d = self._get_cache._memo
+        if d.setdefault(self._object, {}).get(f.__name__, MARKER) is MARKER:
+            d[self._object][f.__name__] = f(self, *args, **kwargs)
+        return d[self._object][f.__name__]
+    return inner
 
 
 class DeviceClassTemplateNode(TreeNode):
@@ -105,8 +111,19 @@ class DeviceClassTemplateNode(TreeNode):
     Keep in mind that on this class "self._object" is actually
     a brains not an object
     """
+    @property
+    def _get_cache(self):
+        cache = getattr(self._root, '_cache', None)
+        if cache is None:
+            prefix = '/'.join(self._root.uid.split('/')[:4])
+            cache = TreeNode._buildCache(self,
+                                         'Products.ZenModel.DeviceClass.DeviceClass',
+                                         'Products.ZenModel.RRDTemplate.RRDTemplate',
+                                         'rrdTemplates', prefix)
+        return cache
 
     @property
+    @memoize
     def id(self):
         """
         We have to make the template paths unique even though the same
@@ -120,35 +137,47 @@ class DeviceClassTemplateNode(TreeNode):
         return path.replace('/', '.')
 
     @property
+    @memoize
     def qtip(self):
-        return self._object.getObject().description
+        return self._get_object.description
 
     @property
+    @memoize
     def isOrganizer(self):
         """
         returns True if this node is an organizer
         """
-        return isinstance(self._object.getObject(), DeviceOrganizer)
+        return self._object.meta_type == 'DeviceClass'
 
     @property
     def _evsummary(self):
         return []
 
     @property
+    def _organizer(self):
+        return self if self.isOrganizer else self._parent._get_object
+
+    @property
+    @memoize
+    def _get_object(self):
+        return self._object.getObject()
+
+    @property
     def iconCls(self):
         if self.isOrganizer:
             return ''
         # check to see if it is a component template
-        template = self._object.getObject()
+        template = self._get_object
         if template.targetPythonClass != 'Products.ZenModel.Device':
             return 'tree-template-icon-component'
         # check to see if it is bound
-        organizer = template.unrestrictedTraverse(self._organizerPath)
+        organizer = self._organizer
         if template.id in organizer.zDeviceTemplates:
             return 'tree-template-icon-bound'
         return 'tree-node-no-icon'
 
     @property
+    @memoize
     def leaf(self):
         return not self.isOrganizer
 
@@ -160,12 +189,28 @@ class DeviceClassTemplateNode(TreeNode):
         if self.isOrganizer:
             return self._object.name
         # it is a template
-        path = self._object.getObject().getUIPath()
-        if self._organizerPath in self._object.getObject().absolute_url_path():
+        if self._organizerPath in self.uid:
             path = _t('Locally Defined')
+        else:
+            path = self._get_object.getUIPath()
         return "%s (%s)" % (self._object.name, path)
 
+    def _get_templates(self):
+        idx = self._get_cache._instanceidx
+        parts = self.uid.split('/')[3:]
+        path = ''
+        templates = {}
+        brains = self._get_cache._brains
+        while parts:
+            path = '/'.join((path, parts.pop(0))).lstrip('/')
+            rids = idx.get(path, {}).get(1, ())
+            for rid in rids:
+                brain = brains[rid]
+                templates[brain.name] = brain
+        return templates.values()
+
     @property
+    @memoize
     def children(self):
         """
         Must return all the device classes as well as templates available at this level (as leafs).
@@ -174,26 +219,21 @@ class DeviceClassTemplateNode(TreeNode):
         if not self.isOrganizer:
             return []
         # get all organizers as brains
-        cat = ICatalogTool(self._object)
-        orgs = cat.search(DeviceOrganizer, paths=(self.uid,), depth=1)
-
-        # get all templates as brains
-        templates = self._object.getObject().getRRDTemplates()
+        orgs = self._get_cache.search(self.uid)
+        templates = self._get_templates()
         path = self.path
         # return them both together
         results = []
         for brain in orgs:
-            item = DeviceClassTemplateNode(brain)
+            item = DeviceClassTemplateNode(brain, self._root, self)
             results.append(item)
-
 
         for template in templates:
-            brain = cat.getBrain(template.getPhysicalPath())
-            item = DeviceClassTemplateNode(brain)
+            item = DeviceClassTemplateNode(template, self._root, self)
             item._organizerPath = path
             results.append(item)
-
         return results
+
 
 
 class RRDDataSourceInfo(InfoBase):
