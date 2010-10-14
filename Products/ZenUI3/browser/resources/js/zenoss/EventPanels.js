@@ -48,18 +48,20 @@ Zenoss.EventPanelSelectionModel = Ext.extend(Zenoss.ExtraHooksSelectionModel, {
         }
     },
     selectEventState: function(state){
-        var start, end, record;
-        start = this.grid.store.bufferRange[0];
-        end = this.grid.store.bufferRange[1];
+        var record,
+            start = this.grid.store.bufferRange[0],
+            end = this.grid.store.bufferRange[1];
+
+        this.clearSelections(true);
+
         for (var i = start; i <= end; i++) {
             record = this.grid.store.getAt(i);
             if (state === 'All' || record.data.eventState == state) {
                 this.selectRow(i, true);
             }
         }
-        this.clearSelections(true);
-        this.selectState = state;
 
+        this.selectState = state;
     },
     selectAll: function(){
     
