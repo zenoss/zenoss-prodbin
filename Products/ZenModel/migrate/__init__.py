@@ -210,3 +210,4 @@ import FixHighLoadThreshold
 import FixCorruptedGraphDefs
 import createguids
 import addzSnmpCollectionInterval
+import RemoveCommandsEditPermission
