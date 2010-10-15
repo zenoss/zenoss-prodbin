@@ -19,6 +19,9 @@ __doc__ = """PBUtil
 Base classes handy for use with PB clients.
 """
 
+import logging
+zenlog = logging.getLogger("zen.pbclientfactory")
+
 from twisted.spread import pb
 
 from twisted.spread.pb import PBClientFactory
@@ -161,6 +164,12 @@ class ReconnectingPBClientFactory(PBClientFactory,
             log.msg("we lost the brand-new connection")
             # retrying might help here, let clientConnectionLost decide
             return
-        # probably authorization
+
         self.stopTrying() # logging in harder won't help
-        log.err(why)
+        if why.type == 'twisted.cred.error.UnauthorizedLogin':
+            zenlog.critical("zenhub username/password combination is incorrect!")
+            # Don't exit as Enterprise caches info and can survive
+        else:
+            zenlog.critical("Unknown connection problem to zenhub %s", why.type)
+            log.err(why)
+
