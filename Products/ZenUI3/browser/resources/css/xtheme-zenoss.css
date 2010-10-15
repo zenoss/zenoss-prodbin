@@ -28,9 +28,11 @@
 }
 
 .x-layout-split {
-    height: 1px;
-    width: 1px;
+    height: 5px;
+    width: 2px;
+    background-color: #a5a5a5;
 }
+
 
 .x-tree-node span.node-extra {
     color: #8a8b8c;

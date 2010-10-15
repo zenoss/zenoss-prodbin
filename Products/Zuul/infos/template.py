@@ -119,7 +119,7 @@ class DeviceClassTemplateNode(TreeNode):
             cache = TreeNode._buildCache(self,
                                          'Products.ZenModel.DeviceClass.DeviceClass',
                                          'Products.ZenModel.RRDTemplate.RRDTemplate',
-                                         'rrdTemplates', prefix)
+                                         'rrdTemplates', prefix, orderby='name')
         return cache
 
     @property

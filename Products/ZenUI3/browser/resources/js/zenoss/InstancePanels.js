@@ -67,7 +67,6 @@ Zenoss.InstanceStore = Ext.extend(Ext.ux.grid.livegrid.Store, {
     constructor: function(config) {
         Ext.applyIf(config, {
             bufferSize: 50,
-            nearLimit: 20,
             proxy: new Ext.data.DirectProxy({
                 directFn: config.directFn
             }),
@@ -96,20 +95,23 @@ Zenoss.SimpleInstanceGridPanel = Ext.extend(Ext.ux.grid.livegrid.GridPanel, {
         Ext.applyIf(config, {
             autoExpandColumn: 'name',
             stripeRows: true,
-            cm: new InstanceColumnModel({
+            cm: config.cm || new InstanceColumnModel({
                 nameDataIndex: config.nameDataIndex
             }),
-            store: {
-                xtype:'InstanceStore',
+            store: config.store || {
+                xtype: 'InstanceStore',
                 directFn: config.directFn,
                 nameDataIndex: config.nameDataIndex
             },
-            sm: new Ext.ux.grid.livegrid.RowSelectionModel(),
+            sm: config.sm || new Ext.ux.grid.livegrid.RowSelectionModel(),
             view: new Ext.ux.grid.livegrid.GridView({
-                loadMask: {msg: _t('Loading. Please wait...')}
+                nearLimit: 20,
+                loadMask: {msg: _t('Loading...'),
+                          msgCls: 'x-mask-loading'}
             })
         });
         Zenoss.SimpleInstanceGridPanel.superclass.constructor.call(this, config);
+        Zenoss.util.addLoadingMaskToGrid(this);
     },
 
     setContext: function(uid) {
@@ -125,9 +127,11 @@ Ext.reg('SimpleInstanceGridPanel', Zenoss.SimpleInstanceGridPanel);
 Zenoss.SimpleCardPanel = Ext.extend(Ext.Panel, {
 
     constructor: function(config) {
+        this.contextUid = null;
         Ext.applyIf(config, {
             layout: 'card',
             activeItem: 0,
+            collapsed: true,
             height: Math.min(((Ext.getCmp('viewport').getHeight() - 75)/5)+30, 200),
             tbar: {
                 xtype: 'consolebar',
@@ -145,6 +149,12 @@ Zenoss.SimpleCardPanel = Ext.extend(Ext.Panel, {
                     }
                 }]
             },
+            listeners:{
+                scope: this,
+                expand: function(panel){
+                    this.loadInstances();
+                }
+            },
             items: [
                 config.instances,
             {
@@ -159,9 +169,23 @@ Zenoss.SimpleCardPanel = Ext.extend(Ext.Panel, {
     },
 
     setContext: function(uid) {
+        // only reload our datastores if we are not collapsed
+        this.contextUid = uid;
+        if (!this.collapsed){
+            this.loadInstances(uid);
+        }
+    },
+    loadInstances: function(){
+        if (!this.contextUid){
+            return;
+        }
+        var contextUid = this.contextUid;
+        // if we have not set our store since we last updated the
+        // context uid update it now
         this.items.each(function(item) {
-            item.setContext(uid);
+            item.setContext(contextUid);
         });
+        this.contextUid = null;
     }
 
 });
@@ -177,7 +201,10 @@ Zenoss.InstanceCardPanel = Ext.extend(Zenoss.SimpleCardPanel, {
                 xtype: 'SimpleInstanceGridPanel',
                 ref: 'instancesGrid',
                 directFn: config.router.getInstances,
-                nameDataIndex: config.nameDataIndex || "name"
+                nameDataIndex: config.nameDataIndex || "name",
+                cm: config.cm,
+                sm: config.sm,
+                store: config.store
             }]
         });
         Zenoss.InstanceCardPanel.superclass.constructor.call(this, config);

@@ -32,8 +32,8 @@ class ServiceOrganizerNode(TreeNode):
     adapts(ServiceOrganizer)
 
     @property
-    def _evsummary(self):
-        return getFacade('service').getEventSummary(self.uid)
+    def iconCls(self):
+        return ''
 
     @property
     def _get_cache(self):
@@ -105,7 +105,6 @@ class ServiceInfo(ServiceInfoBase):
     def count(self):
         numInstances = ICatalogTool(self._object).count(
             (Service,), self.uid)
-
         return numInstances
 
 class IpServiceClassInfo(ServiceInfo):

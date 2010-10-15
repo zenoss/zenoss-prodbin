@@ -19,7 +19,6 @@ Ext.state.Manager.setProvider(new Ext.state.CookieProvider({
 }));
 */
 
-
 /*
  * Hook up all Ext.Direct requests to the connection error message box.
  */
@@ -451,7 +450,7 @@ Ext.override(Ext.grid.GridDragZone, {
         // works fine, so proceed as normal.
         if (t.tagName=='A') {
             e.target = e.getTarget('div.x-grid3-cell-inner');
-        } 
+        }
         return origGetDragData.call(this, e);
     }
 });
@@ -689,7 +688,6 @@ Zenoss.FilterGridView = Ext.extend(Ext.ux.grid.livegrid.GridView, {
         this.addEvents('filtertoggle');
     },
     initData: function(ds, cm) {
-
         this.un('beforebuffer', this.onBeforeBuffer,  this);
         cm.un('hiddenchange',   this.updateHeaders,   this);
 
@@ -1695,6 +1693,22 @@ Ext.reg('ColumnFieldSet', Zenoss.ColumnFieldSet);
  * General utilities
  */
 Ext.namespace('Zenoss.util');
+
+Zenoss.util.addLoadingMaskToGrid = function(grid){
+    // load mask stuff
+    grid.store.proxy.on('beforeload', function(){
+        var container = this.container;
+        container._treeLoadMask = container._treeLoadMask || new Ext.LoadMask(this.container);
+        var mask = container._treeLoadMask;
+        mask.show();
+    }, grid);
+    grid.store.proxy.on('load', function(){
+        var container = this.container;
+        container._treeLoadMask = container._treeLoadMask || new Ext.LoadMask(this.container);
+        var mask = container._treeLoadMask;
+        mask.hide();
+    }, grid);
+}
 
 Zenoss.env.SEVERITIES = [
     [5, 'Critical'],

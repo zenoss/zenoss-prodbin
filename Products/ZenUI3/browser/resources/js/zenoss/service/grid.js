@@ -21,9 +21,9 @@
     * Grid Navigation Functionality
     *
     */
-    
+
     zs.GridView = Ext.extend(Zenoss.FilterGridView, {
-        
+
         constructor: function(config) {
             this.addEvents({
                 /**
@@ -35,19 +35,19 @@
             });
             zs.GridView.superclass.constructor.call(this, config);
         },
-        
+
         liveBufferUpdate: function() {
             zs.GridView.superclass.liveBufferUpdate.apply(this, arguments);
             this.fireEvent('livebufferupdated', this);
         }
-        
+
     });
 
     Ext.reg('servicenavgridview', zs.GridView);
 
     // handles the SelectionModel's rowselect event
     zs.rowselectHandler = function(sm, rowIndex, dataRecord) {
-        var selectedOrganizer, token, tokenParts;
+        var selectedOrganizer, token, tokenParts, detail;
         selectedOrganizer = Ext.getCmp('navTree').getSelectionModel().getSelectedNode();
         if ( selectedOrganizer ) {
             // unselect the organizer, but leave it highlighted
@@ -55,7 +55,9 @@
             selectedOrganizer.getUI().addClass('x-tree-selected');
         }
         Ext.getCmp('serviceForm').setContext(dataRecord.data.uid);
-        Ext.getCmp('detail_panel').detailCardPanel.setContext(dataRecord.data.uid);
+        detail = Ext.getCmp('detail_panel');
+        detail.detailCardPanel.setContext(dataRecord.data.uid);
+        detail.detailCardPanel.expand();
         Ext.getCmp('footer_bar').buttonDelete.setDisabled(false);
         token = Ext.History.getToken();
         if ( ! token ) {
@@ -124,7 +126,8 @@
                 view: Ext.create({
                     xtype: 'servicenavgridview',
                     nearLimit: 20,
-                    loadMask: {msg: _t('Loading. Please wait...')},
+                    loadMask: {msg: _t('Loading...'),
+                               msgCls: 'x-mask-loading'},
                     listeners: {
                         beforeBuffer: function(view, ds, idx, len, total, opts) {
                             opts.params.uid = view._context;
@@ -133,8 +136,15 @@
                 })
             });
             zs.GridPanel.superclass.constructor.call(this, config);
+            // load mask stuff
+            this.store.proxy.on('beforeload', function(){
+                this.view.showLoadMask(true);
+            }, this);
+            this.store.proxy.on('load', function(){
+                this.view.showLoadMask(false);
+            }, this);
         },
-        
+
         filterAndSelectRow: function(serviceClassName) {
             var selectedRecord;
             if (serviceClassName) {
@@ -160,7 +170,7 @@
             this.getView().un('livebufferupdated', this.selectRow, this);
             this.getStore().each(this.selectRowByName, this);
         },
-                
+
         selectRowByName: function(record) {
             if ( record.data.name === this.serviceClassName ) {
                 this.getSelectionModel().selectRow( this.getStore().indexOf(record) );
@@ -169,7 +179,7 @@
         }
 
     });
-    
+
     Ext.reg('servicegridpanel', zs.GridPanel);
 
 })();

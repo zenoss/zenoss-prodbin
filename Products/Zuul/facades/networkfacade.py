@@ -44,7 +44,7 @@ class NetworkFacade(TreeFacade):
 
         if 7.0.0.0/8 exists, adding 7.1.2.3/8 will find 7.0.0.0. Because the
         netmasks match, the 7.0.0.0/8 IpNetwork obj will be returned.
-        
+
         Called by NetworkRouter.addNode
 
         @param netip: network ip
@@ -61,7 +61,7 @@ class NetworkFacade(TreeFacade):
 
         netRoot = self._root.restrictedTraverse(contextUid).getNetworkRoot()
         foundNet = netRoot.findNet(netip, netmask)
-        
+
         if foundNet:
             return foundNet
 

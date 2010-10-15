@@ -66,7 +66,7 @@ class DeviceOrganizerNode(TreeNode):
             cache = TreeNode._buildCache(self,
                                          'Products.ZenModel.DeviceOrganizer.DeviceOrganizer',
                                          'Products.ZenModel.Device.Device',
-                                         'devices', prefix)
+                                         'devices', prefix, orderby='name')
         return cache
 
 

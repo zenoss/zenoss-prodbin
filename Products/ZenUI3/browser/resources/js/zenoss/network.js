@@ -201,12 +201,11 @@ var NetworkNavTree = Ext.extend(Zenoss.HierarchyTreePanel, {
         if (node) {
             this.selectPath(node.getPath(), null, function(){
                 var ipAddress = subParts[1];
-                var instanceGrid = Ext.getCmp('ipAddressGrid');
+                var instanceGrid = Ext.getCmp('detail_panel').detailCardPanel.instancesGrid;
                 var store = instanceGrid.getStore();
                 var selModel = instanceGrid.getSelectionModel();
 
                 function selectIpAddress() {
-                    store.un('load', selectIpAddress);
                     store.each(function(record){
                         if ( record.data.name === ipAddress ) {
                             selModel.selectRow( store.indexOf(record) );
@@ -219,7 +218,7 @@ var NetworkNavTree = Ext.extend(Zenoss.HierarchyTreePanel, {
 
                 if ( ! selModel.hasSelection() ) {
                     // no row selectected, wait for the store to load and try again
-                    store.on('load', selectIpAddress);
+                    store.on('load', selectIpAddress, store, {single:true});
                 }
             });
         }
@@ -264,7 +263,7 @@ var ipAddressColumnConfig = {
             header: _t('Device'),
             width: 200,
             renderer: function(device, row, record){
-                if (device === null) return 'No Device';
+                if (!device) return 'No Device';
                 return Zenoss.render.link(device.uid, undefined,
                                           device.name);
            }
@@ -274,7 +273,7 @@ var ipAddressColumnConfig = {
             header: _t('Interface'),
             width: 200,
             renderer: function(iface, row, record){
-                if (iface === null) return 'No Interface';
+                if (!iface) return 'No Interface';
                 return Zenoss.render.link(iface.uid, null, iface.name);
            }
         }, {
@@ -304,21 +303,39 @@ var ipAddressStoreConfig = {
         }),
         reader: new Ext.ux.grid.livegrid.JsonReader({
             root: 'data',
+            idProperty: 'uid',
+            totalProperty: 'totalCount',
             fields: [
                 {name: 'name'},
                 {name: 'device'},
                 {name: 'interface'},
                 {name: 'pingstatus'},
-                {name: 'snmpstatus'}
+                {name: 'snmpstatus'},
+                {name: 'uid'}
             ]
         })
     };
 
+
 var ipAddressGridConfig = {
-        id: 'ipAddressGrid',
+        xtype: 'instancecardpanel',
+        ref: 'detailCardPanel',
+        region: 'south',
         border: false,
+        collapsed: false,
+        split: true,
         autoExpandColumn: 'name',
         stripeRows: true,
+        router: Zenoss.remote.NetworkRouter,
+        instancesTitle: 'IP Addresses',
+        zPropertyEditListeners: {
+            frameload: function() {
+                var formPanel = Ext.getCmp('networkForm');
+                if (formPanel.contextUid) {
+                    formPanel.setContext(formPanel.contextUid);
+                }
+            }
+        },
         cm: new Ext.grid.ColumnModel(ipAddressColumnConfig),
         store: new Ext.ux.grid.livegrid.Store(ipAddressStoreConfig),
         sm: new Ext.ux.grid.livegrid.RowSelectionModel({
@@ -326,43 +343,20 @@ var ipAddressGridConfig = {
             listeners: {
                 rowselect: function(selModel, rowIndex, record) {
                     var token = Ext.History.getToken();
-                    var network = token.split('.ipaddresses.')[0];
-                    Ext.History.add(network + '.ipaddresses.' + record.data.name);
+                    if ( ! token ) {
+                        token = 'networks' + ':' + Ext.getCmp('networks').getRootNode().attributes.uid.replace(/\//g, '.');
+                    }
+                    var tokenParts = token.split('.ipaddresses.');
+                    if ( tokenParts[1] !== record.data.name ) {
+                        Ext.History.add( tokenParts[0] + '.ipaddresses.' + record.data.name);
+                    }
                 }
             }
         })
     };
 
-var ipAddressGrid = new Ext.ux.grid.livegrid.GridPanel(ipAddressGridConfig);
+Ext.getCmp('detail_panel').add(ipAddressGridConfig);
 
-ipAddressGrid.setContext = function(uid) {
-    this.contextUid = uid;
-    this.getStore().load({
-        params: {
-            uid: uid,
-            start: 0,
-            limit: 50
-        }
-    });
-}.createDelegate(ipAddressGrid);
-
-Ext.getCmp('detail_panel').add({
-    xtype: 'instancecardpanel',
-    ref: 'detailCardPanel',
-    region: 'south',
-    split: true,
-    router: Zenoss.remote.NetworkRouter,
-    instances: ipAddressGrid,
-    instancesTitle: 'IP Addresses',
-    zPropertyEditListeners: {
-        frameload: function() {
-            var formPanel = Ext.getCmp('networkForm');
-            if (formPanel.contextUid) {
-                formPanel.setContext(formPanel.contextUid);
-            }
-        }
-    }
-});
 
 //********************************************
 // Network form

@@ -43,7 +43,7 @@ class IpNetworkNode(TreeNode):
     def _get_cache(self):
         cache = getattr(self._root, '_cache', None)
         if cache is None:
-            cache = TreeNode._buildCache(self, IpNetwork, IpAddress, 'ipaddresses')
+            cache = TreeNode._buildCache(self, IpNetwork, IpAddress, 'ipaddresses', orderby='name' )
         return cache
 
     @property

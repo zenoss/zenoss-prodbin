@@ -33,8 +33,8 @@ class ProcessNode(TreeNode):
     adapts(IProcessEntity)
 
     @property
-    def _evsummary(self):
-        return getFacade('process', self._object).getEventSummary(self.uid)
+    def iconCls(self):
+        return ''
 
     @property
     def text(self):
@@ -55,9 +55,6 @@ class ProcessNode(TreeNode):
             cache.insert(cache._instanceidx, cat.search(OSProcess),
                          ('osProcessClasses', 'instances'),
                          '/zport/dmd/Processes')
-            cat = ICatalogTool(self._object.unrestrictedTraverse(self.uid))
-            cache.insert(cache._index, cat.search(OSProcessClass),
-                         relnames='osProcessClasses')
         return cache
 
     @property
@@ -141,3 +138,9 @@ class ProcessInfo(InfoBase):
             self._object.ignoreParameters = ignoreParameters
 
     ignoreParameters = property(getIgnoreParameters, setIgnoreParameters)
+
+    @property
+    def count(self):
+        numInstances = ICatalogTool(self._object).count(
+            (OSProcess,), self.uid)
+        return numInstances

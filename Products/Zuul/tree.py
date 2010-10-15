@@ -10,9 +10,11 @@
 # For complete information please visit: http://www.zenoss.com/oss/
 #
 ###########################################################################
-
+import time
 from itertools import islice
 from zope.interface import implements
+from BTrees.OOBTree import OOBTree
+from BTrees.IIBTree import IIBTree
 from Products.AdvancedQuery import Eq, Or, Generic, And, In
 from Products.ZCatalog.CatalogBrains import AbstractCatalogBrain
 from Products.Zuul.interfaces import ITreeNode, ICatalogTool, IInfo
@@ -39,12 +41,12 @@ class TreeNode(object):
         self._parent = parent or None
 
     def _buildCache(self, orgtype=None, instancetype=None, relname=None,
-                    treePrefix=None):
+                    treePrefix=None, orderby=None):
         if orgtype and not getattr(self._root, '_cache', None):
             cat = ICatalogTool(self._object.unrestrictedTraverse(self.uid))
-            results = cat.search(orgtype)
+            results = cat.search(orgtype, orderby=orderby)
             if instancetype:
-                instanceresults = cat.search(instancetype)
+                instanceresults = cat.search(instancetype, orderby=None)
                 self._root._cache = PathIndexCache(results, instanceresults,
                                                    relname, treePrefix)
             else:
@@ -142,12 +144,52 @@ class SearchResults(object):
         return self.results
 
 
+
+class CountCache(PathIndexCache):
+    def __init__(self, results, path, expires):
+        PathIndexCache.__init__(self, (), results, (), path)
+        self.expires = expires
+
+    def insert(self, idx, results, relnames=None, treePrefix=None):
+        unindex = None
+        for brain in results:
+            # Use the first brain to get a reference to the index, then reuse
+            # that reference
+            unindex = unindex or brain.global_catalog._catalog.indexes['path']._unindex
+            path = brain.getPath()
+            if treePrefix and not path.startswith(treePrefix):
+                for p in unindex[brain.getRID()]:
+                    if p.startswith(treePrefix):
+                        path = p
+                        break
+            path = path.split('/', 3)[-1]
+            for depth in xrange(path.count('/')+1):
+                comp = idx.setdefault(path, IIBTree())
+                comp[depth] = comp.get(depth, 0) + 1
+                path = path.rsplit('/', 1)[0]
+
+    def count(self, path, depth=None):
+        path = path.split('/', 3)[-1]
+        try:
+            idx = self._instanceidx[path]
+            depth = depth or max(idx.keys())
+            return sum(idx[d] for d in xrange(depth+1) if d in idx.keys())
+        except KeyError:
+            return 0
+
+    @property
+    def expired(self):
+        return time.time() >= self.expires
+
+
 class CatalogTool(object):
     implements(ICatalogTool)
 
     def __init__(self, context):
         self.context = context
         self.catalog = context.getPhysicalRoot().zport.global_catalog
+        self.catalog._v_caches = getattr(self.catalog, "_v_caches", OOBTree())
+
 
     def getBrain(self, path):
         # Make sure it's actually a path
@@ -170,10 +212,25 @@ class CatalogTool(object):
     def count(self, types=(), path=None):
         if path is None:
             path = '/'.join(self.context.getPhysicalPath())
-        results = self._queryCatalog(types, orderby=None, paths=(path,))
-        return len(results)
 
-    def _queryCatalog(self, types=(), orderby='name', reverse=False, paths=(),
+        # Check for a cache
+        caches = self.catalog._v_caches
+        types = (types,) if isinstance(types, basestring) else types
+        types = tuple(sorted(map(dottedname, types)))
+        for key in caches:
+            if path.startswith(key):
+                cache = caches[key].get(types, None)
+                if cache is not None and not cache.expired:
+                    return cache.count(path)
+        else:
+            # No cache; make one
+            results = self._queryCatalog(types, orderby=None, paths=(path,))
+            cache = CountCache(results, path, time.time() + (1000*60))
+            caches[path] = caches.get(path, OOBTree())
+            caches[path][types] = cache
+            return len(results)
+
+    def _queryCatalog(self, types=(), orderby=None, reverse=False, paths=(),
                      depth=None, query=None):
         qs = []
         if query is not None:
@@ -182,7 +239,8 @@ class CatalogTool(object):
         # Build the path query
         if not paths:
             paths = ('/'.join(self.context.getPhysicalPath()),)
-        q = {'query':paths}
+        paths = [p.lstrip('/zport/dmd/') for p in paths]
+        q = {'query':paths, 'level':2}
         if depth is not None:
             q['depth'] = depth
         pathq = Generic('path', q)
@@ -215,13 +273,13 @@ class CatalogTool(object):
         result = self.catalog.evalAdvancedQuery(*args)
         return result
 
-    def search(self, types=(), start=0, limit=None, orderby='name',
+    def search(self, types=(), start=0, limit=None, orderby=None,
                reverse=False, paths=(), depth=None, query=None,
                hashcheck=None):
 
         # if orderby is not an index then _queryCatalog, then query results
         # will be unbrained and sorted
-        areBrains = orderby in self.catalog.getIndexes()
+        areBrains = orderby in self.catalog.getIndexes() or orderby is None
         queryOrderby = orderby if areBrains else None
 
         queryResults = self._queryCatalog(types, queryOrderby, reverse, paths, depth, query)

@@ -354,6 +354,8 @@ ZC.ComponentGridPanel = Ext.extend(Ext.ux.grid.livegrid.GridPanel, {
             view: new Ext.ux.grid.livegrid.GridView({
                 rowHeight: 22,
                 nearLimit: 20,
+                loadMask: {msg: _t('Loading. Please wait...'),
+                           msgCls: 'x-mask-loading'},
                 listeners: {
                     beforeload: this.onBeforeLoad,
                     beforebuffer: this.onBeforeBuffer,
@@ -369,6 +371,7 @@ ZC.ComponentGridPanel = Ext.extend(Ext.ux.grid.livegrid.GridPanel, {
                 this.lastHash = o.result.hash || this.lastHash;
             },
             this);
+        Zenoss.util.addLoadingMaskToGrid(this);
     },
     onBeforeLoad: function(store, options) {
         this.applyOptions(options);

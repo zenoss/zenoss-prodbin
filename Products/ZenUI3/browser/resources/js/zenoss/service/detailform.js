@@ -32,6 +32,10 @@ Ext.onReady( function() {
             form.isLoadInProgress = false;
             Ext.each(zsf.hiddenFieldIdsForOrganizer, function(i){
                     var o = Ext.getCmp(i);
+                    // make sure comp exists
+                    if (!o){
+                        return;
+                    }
                     o.setVisible(isClass);
                     o.label.setVisible(isClass);
                     o.setDisabled(!isClass);

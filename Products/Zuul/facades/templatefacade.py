@@ -34,6 +34,7 @@ from Products.ZenModel.GraphPoint import GraphPoint
 from Products.ZenModel.Device import Device
 from Products.ZenModel.DeviceClass import DeviceClass
 
+
 log = logging.getLogger('zen.TemplateFacade')
 
 class TemplateFacade(ZuulFacade):

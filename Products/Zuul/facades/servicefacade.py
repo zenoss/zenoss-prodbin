@@ -26,6 +26,8 @@ from Products.Zuul.interfaces import ITreeFacade, IServiceFacade
 from Products.Zuul.interfaces import IInfo, ICatalogTool
 from Products.Zuul.infos.service import ServiceOrganizerNode
 from Acquisition import aq_base, aq_parent
+from Products.ZenUtils.debugtools import profile
+
 
 log = logging.getLogger('zen.ServiceFacade')
 
@@ -80,6 +82,10 @@ class ServiceFacade(TreeFacade):
         cat = ICatalogTool(self._getObject(uid))
         reverse = dir=='DESC'
 
+        # Prime the cache
+        if start==0:
+            cat.count("Products.ZenModel.Service.Service", uid)
+
         qs = []
         query = None
         if params:
@@ -114,25 +120,25 @@ class ServiceFacade(TreeFacade):
         else:
             serviceClasses = searchResults
         # the info decorator changes the returned serviceClasses to serviceInfos
-        return {'serviceInfos': serviceClasses, 
+        return {'serviceInfos': serviceClasses,
                 'total': searchResults.total,
                 'hash': searchResults.hash_,
                 }
 
     def moveServices(self, sourceUids, targetUid):
         moveTarget = targetUid.replace('/zport/dmd/Services/', '')
-        
+
         for sourceUid in sourceUids:
             sourceObj = self._getObject(sourceUid)
-            
+
             if isinstance(sourceObj, ServiceOrganizer):
                 sourceParent = aq_parent(sourceObj)
                 sourceParent.moveOrganizer( moveTarget, (sourceObj.id,) )
-                
+
             elif isinstance(sourceObj, ServiceClass):
                 sourceParent = sourceObj.serviceorganizer()
                 sourceParent.moveServiceClasses( moveTarget, (sourceObj.id,) )
-                
+
             else:
                 args = (sourceUid, sourceObj.__class__.__name__)
                 raise Exception('Cannot move service %s of type %s' % args)

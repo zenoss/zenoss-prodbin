@@ -20,6 +20,8 @@ from Products import Zuul
 from Products.Zuul.decorators import require
 from Products.Zuul.routers import TreeRouter
 from Products.ZenUtils.Ext import DirectResponse
+from Products.ZenUtils.jsonutils import unjson
+
 
 class ProcessRouter(TreeRouter):
     """
@@ -126,8 +128,9 @@ class ProcessRouter(TreeRouter):
         """
         facade = self._getFacade()
         instances = facade.getInstances(uid, start, limit, sort, dir, params)
-        data = Zuul.marshal(instances)
-        return DirectResponse.succeed(data=data, total=instances.total)
+        keys = ['device', 'monitored', 'status', 'processName', 'name', 'uid']
+        data = Zuul.marshal(instances, keys)
+        return DirectResponse.succeed(data=data, totalCount=instances.total)
 
     def getSequence(self):
         """
@@ -155,3 +158,51 @@ class ProcessRouter(TreeRouter):
         facade = self._getFacade()
         facade.setSequence(uids)
         return DirectResponse.succeed()
+
+
+    def query(self, limit=None, start=None, sort=None, dir=None, params=None,
+              history=False, uid=None, criteria=()):
+        """
+        Retrieve a list of processes based on a set of parameters.
+
+        @type  limit: integer
+        @param limit: (optional) Number of items to return; used in pagination
+                      (default: None)
+        @type  start: integer
+        @param start: (optional) Offset to return the results from; used in
+                      pagination (default: None)
+        @type  sort: string
+        @param sort: (optional) Key on which to sort the return results (default:
+                     None)
+        @type  dir: string
+        @param dir: (optional) Sort order; can be either 'ASC' or 'DESC'
+                    (default: None)
+        @type  params: dictionary
+        @param params: (optional) Key-value pair of filters for this search.
+        @type  history: boolean
+        @param history: not used
+        @type  uid: string
+        @param uid: Service class UID to query
+        @type  criteria: list
+        @param criteria: not used
+        @rtype:   DirectResponse
+        @return:  B{Properties}:
+             - processes: ([dictionary]) List of objects representing processes
+             - totalCount: (integer) Total number of processes
+             - hash: (string) Hashcheck of the current processes state
+             - disabled: (boolean) True if current user cannot manage processes
+        """
+        facade = self._getFacade()
+        if uid is None:
+            uid = self.context
+
+        if isinstance(params, basestring):
+            params = unjson(params)
+
+        processes = facade.getList(limit, start, sort, dir, params, uid,
+                                  criteria)
+        disabled = not Zuul.checkPermission('Manage DMD')
+
+        data = Zuul.marshal(processes)
+        return DirectResponse(processes=data, totalCount=processes.total,
+                              hash=processes.hash_, disabled=disabled)

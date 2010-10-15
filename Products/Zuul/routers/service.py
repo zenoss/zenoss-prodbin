@@ -22,6 +22,7 @@ from Products.Zuul.decorators import require
 from Products.ZenUtils.Ext import DirectResponse
 from Products.ZenUtils.jsonutils import unjson
 
+
 class ServiceRouter(TreeRouter):
     """
     A JSON/ExtDirect interface to operations on services
@@ -116,6 +117,7 @@ class ServiceRouter(TreeRouter):
         data = Zuul.marshal(services['serviceInfos'])
         return DirectResponse(services=data, totalCount=services['total'],
                               hash=services['hash'], disabled=disabled)
+
 
     def getTree(self, id):
         """

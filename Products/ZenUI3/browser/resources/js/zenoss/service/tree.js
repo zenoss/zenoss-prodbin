@@ -116,6 +116,7 @@
             Ext.applyIf(config, {
                 id: 'navTree',
                 flex: 1,
+                cls: 'x-tree-noicon',
                 searchField: false,
                 directFn: Zenoss.remote.ServiceRouter.getOrganizerTree,
                 router: Zenoss.remote.ServiceRouter,
