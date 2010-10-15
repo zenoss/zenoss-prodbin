@@ -84,7 +84,8 @@ class ProductionStatePortletView(BrowserView):
                 'Device' : dev.getPrettyLink(),
                 'Prod State' : dev.getProdState()
             })
-        mydict['data'] = mydict['data'][:100]
+            if len(mydict['data'])>=100:
+                break
         return mydict
 
 
@@ -178,7 +179,9 @@ class DeviceIssuesPortletView(BrowserView):
                     continue
                 evts = [alink,pill]
                 devdata.append(evts)
-        return devdata[:100]
+            if len(devdata)>=100:
+                break
+        return devdata
 
 
 class HeartbeatPortletView(BrowserView):
