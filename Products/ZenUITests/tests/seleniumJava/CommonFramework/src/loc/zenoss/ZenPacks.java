@@ -36,11 +36,15 @@ public class ZenPacks {
 		// Click Ok button
 		Thread.sleep(2000);
 		sClient.click("//input[@value='OK']");
-		Thread.sleep(20000);
+		Thread.sleep(12000);
+		sClient.click("link=ZenPacks");
+		sClient.refresh();
+		sClient.waitForPageToLoad("30000");
+		Thread.sleep(10000);
 		// Verify Zenpack
 
 		boolean result = true;
-		if(sClient.isTextPresent(zenpack)){
+		if(sClient.isElementPresent("//tbody[@id='LoadedZenPacks']/tr/td/a[text()='"+zenpack+"']")){
 			result = true;
 		}
 		else
