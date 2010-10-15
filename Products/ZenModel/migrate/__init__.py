@@ -211,3 +211,4 @@ import FixCorruptedGraphDefs
 import createguids
 import addzSnmpCollectionInterval
 import RemoveCommandsEditPermission
+import SpeedUpGlobalCatalog
