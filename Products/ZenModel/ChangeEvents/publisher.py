@@ -118,7 +118,7 @@ def getModelChangePublisher():
     import transaction
     tx = transaction.get()
     # check to see if there is a publisher on the transaction
-    log.info("getting publisher on tx %s" % tx)
+    log.debug("getting publisher on tx %s" % tx)
     if not getattr(tx, '_synchronziedPublisher', None):
         tx._synchronziedPublisher = ModelChangePublisher()
         tx.addBeforeCommitHook(PUBLISH_SYNC.beforeCompletionHook, [tx])
@@ -178,14 +178,14 @@ class PublishSynchronizer(object):
 
     def beforeCompletionHook(self, tx):
         try:
-            log.info("beforeCompletionHook on tx %s" % tx)
+            log.debug("beforeCompletionHook on tx %s" % tx)
             publisher = getattr(tx, '_synchronziedPublisher', None)
             if publisher:
                 msg = self.correlateEvents(publisher.msg)
                 queuePublisher = getUtility(IQueuePublisher)
                 queuePublisher.publish(EXCHANGE, ROUTE_KEY, msg)
             else:
-                log.info("no publisher found on tx %s" % tx)
+                log.debug("no publisher found on tx %s" % tx)
         finally:
             if hasattr(tx, '_synchronziedPublisher'):
                 tx._synchronziedPublisher = None
