@@ -19,8 +19,6 @@ A monkey patch that enables gzip compression on static files
 
 from Products.CMFCore.utils import _setCacheHeaders, _ViewEmulator
 from Products.CMFCore.utils import _checkConditionalGET
-from DateTime import DateTime
-from webdav.common import rfc1123_date
 from Products.CMFCore.FSFile import FSFile
 from Products.CMFCore.FSImage import FSImage
 def index_html(self, REQUEST, RESPONSE):
@@ -58,7 +56,7 @@ def index_html(self, REQUEST, RESPONSE):
 
     ###### ZENOSS PATCH #####
     # Patch to use gzip compression
-    RESPONSE.enableHTTPCompression(force=1)
+    RESPONSE.enableHTTPCompression(REQUEST)
     #########################
 
     #There are 2 Cache Managers which can be in play....
@@ -73,3 +71,11 @@ def index_html(self, REQUEST, RESPONSE):
 FSFile.index_html = index_html
 FSImage.index_html = index_html
 
+from zope.browserresource.file import FileResource
+from Products.ZenUtils.Utils import monkeypatch
+
+oldget = FileResource.GET
+@monkeypatch(FileResource)
+def GET(self):
+    self.request.response.enableHTTPCompression(self.request)
+    return oldget(self)

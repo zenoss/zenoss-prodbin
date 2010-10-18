@@ -20,5 +20,5 @@ class ZopeDirectRouter(DirectRouter):
     def __call__(self):
         body = self.request.get('BODY')
         self.request.response.setHeader('Content-Type', 'application/json')
-        self.request.response.enableHTTPCompression()
+        self.request.response.enableHTTPCompression(self.request)
         return super(ZopeDirectRouter, self).__call__(body)
