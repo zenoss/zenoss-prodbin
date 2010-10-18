@@ -73,5 +73,3 @@ def index_html(self, REQUEST, RESPONSE):
 FSFile.index_html = index_html
 FSImage.index_html = index_html
 
-from ZPublisher.HTTPResponse import HTTPResponse
-HTTPResponse.use_HTTP_content_compression = 1

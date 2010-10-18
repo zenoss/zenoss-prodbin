@@ -32,7 +32,7 @@ class ProcessFacadeTest(EventTestCase, ZuulFacadeTestCase):
         super(ProcessFacadeTest, self).setUp()
         self.facade = Zuul.getFacade('process', self.dmd)
         manage_addOSProcessOrganizer(self.dmd.Processes, 'foo')
-        self.dmd.Processes.foo.manage_addOSProcessClass('bar')
+        manage_addOSProcessOrganizer(self.dmd.Processes.foo, 'bar')        
 
     def test_interfaces(self):
         verifyClass(IProcessNode, ProcessNode)
@@ -40,6 +40,9 @@ class ProcessFacadeTest(EventTestCase, ZuulFacadeTestCase):
         verifyClass(IProcessFacade, ProcessFacade)
 
     def test_getTree(self):
+        """
+        NOTE: The process tree only returns organizers, not process classes
+        """
         root = self.facade.getTree('/zport/dmd/Processes')
         self.assertEqual('.zport.dmd.Processes', root.id)
         self.assertEqual('Processes', root.text['text'])
@@ -59,13 +62,13 @@ class ProcessFacadeTest(EventTestCase, ZuulFacadeTestCase):
         fooChildren = list(foo.children)
         self.assertEqual(1, len(fooChildren))
         bar = fooChildren[0]
-        self.assertEqual('/zport/dmd/Processes/foo/osProcessClasses/bar', bar.uid)
-        self.assertEqual('.zport.dmd.Processes.foo.osProcessClasses.bar', bar.id)
+        self.assertEqual('/zport/dmd/Processes/foo/bar', bar.uid)
+        self.assertEqual('.zport.dmd.Processes.foo.bar', bar.id)
         self.assertEqual('Processes/foo/bar', bar.path)
         self.assertEqual('bar', bar.text['text'])
         self.assertEqual(0, bar.text['count'])
         self.assertEqual('instances', bar.text['description'])
-        self.assert_(bar.leaf)
+        self.assertFalse(bar.leaf)
         self.assertEqual([], list(bar.children))
         obj = Zuul.marshal(root)
         self.assertEqual('.zport.dmd.Processes', obj['id'])
@@ -82,12 +85,9 @@ class ProcessFacadeTest(EventTestCase, ZuulFacadeTestCase):
         self.assertEqual(False, fooObj['leaf'])
         self.assertEqual(1, len(fooObj['children']))
         barObj = fooObj['children'][0]
-        self.assertEqual('/zport/dmd/Processes/foo/osProcessClasses/bar', barObj['uid'])
-        self.assertEqual('.zport.dmd.Processes.foo.osProcessClasses.bar', barObj['id'])
         self.assertEqual('Processes/foo/bar', barObj['path'])
         self.assertEqual('bar', barObj['text']['text'])
-        self.assert_(barObj['leaf'])
-        self.failIf('children' in barObj)
+        self.assertFalse(barObj['leaf'])        
 
     def test_getInfo(self):
         obj = self.facade.getInfo('/zport/dmd/Processes/foo/osProcessClasses/bar')
