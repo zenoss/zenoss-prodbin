@@ -136,7 +136,9 @@ Zenoss.HierarchyTreePanel = Ext.extend(Ext.tree.TreePanel, {
                 },
                 listeners: {
                     beforeload: function(){
-                        this.showLoadMask(true);
+                        this.on('afterlayout', function(){
+                            this.showLoadMask(true);
+                        }, this, {single:true});
                     }.createDelegate(this),
                     load: function(){
                         this.showLoadMask(false);
