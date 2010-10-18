@@ -8,6 +8,7 @@
 <link type="text/css" rel="stylesheet" href="/zport/dmd/yui/autocomplete/assets/skins/sam/autocomplete.css" /> 
 <script type="text/javascript" src="/zport/dmd/yui/yahoo-dom-event/yahoo-dom-event.js"></script>
 <script type="text/javascript" src="/zport/dmd/yui/animation/animation-min.js"></script>
+<script type="text/javascript" src="/zport/dmd/yui/datasource/datasource-min.js"></script>
 <script type="text/javascript" src="/zport/dmd/yui/autocomplete/autocomplete-min.js"></script>
 
 <tal:block tal:replace='structure string:<script type="text/javascript">' />
