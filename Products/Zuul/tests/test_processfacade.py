@@ -32,7 +32,7 @@ class ProcessFacadeTest(EventTestCase, ZuulFacadeTestCase):
         super(ProcessFacadeTest, self).setUp()
         self.facade = Zuul.getFacade('process', self.dmd)
         manage_addOSProcessOrganizer(self.dmd.Processes, 'foo')
-        manage_addOSProcessOrganizer(self.dmd.Processes.foo, 'bar')        
+        self.dmd.Processes.foo.manage_addOSProcessClass('bar')        
 
     def test_interfaces(self):
         verifyClass(IProcessNode, ProcessNode)
@@ -60,16 +60,8 @@ class ProcessFacadeTest(EventTestCase, ZuulFacadeTestCase):
         self.assertEqual('instances', foo.text['description'])
         self.failIf(foo.leaf)
         fooChildren = list(foo.children)
-        self.assertEqual(1, len(fooChildren))
-        bar = fooChildren[0]
-        self.assertEqual('/zport/dmd/Processes/foo/bar', bar.uid)
-        self.assertEqual('.zport.dmd.Processes.foo.bar', bar.id)
-        self.assertEqual('Processes/foo/bar', bar.path)
-        self.assertEqual('bar', bar.text['text'])
-        self.assertEqual(0, bar.text['count'])
-        self.assertEqual('instances', bar.text['description'])
-        self.assertFalse(bar.leaf)
-        self.assertEqual([], list(bar.children))
+        self.assertEqual(0, len(fooChildren))
+                
         obj = Zuul.marshal(root)
         self.assertEqual('.zport.dmd.Processes', obj['id'])
         self.assertEqual('Processes', obj['text']['text'])
@@ -82,12 +74,7 @@ class ProcessFacadeTest(EventTestCase, ZuulFacadeTestCase):
         self.assertEqual('.zport.dmd.Processes.foo', fooObj['id'])
         self.assertEqual('Processes/foo', fooObj['path'])
         self.assertEqual('foo', fooObj['text']['text'])
-        self.assertEqual(False, fooObj['leaf'])
-        self.assertEqual(1, len(fooObj['children']))
-        barObj = fooObj['children'][0]
-        self.assertEqual('Processes/foo/bar', barObj['path'])
-        self.assertEqual('bar', barObj['text']['text'])
-        self.assertFalse(barObj['leaf'])        
+        self.assertEqual(False, fooObj['leaf'])        
 
     def test_getInfo(self):
         obj = self.facade.getInfo('/zport/dmd/Processes/foo/osProcessClasses/bar')
