@@ -224,7 +224,7 @@ def findZenPackDirectories():
     return dirs
 
 
-def findZenossProducts():
+def findZenossProducts(include_zenpacks):
     """
     Get all Zenoss products + ZenPacks.
     """
@@ -244,7 +244,10 @@ def findZenossProducts():
         'Zuul',
         'ZenCollector',
     )]
-    zenpacks = findZenPackNames()
+    if include_zenpacks:
+        zenpacks = findZenPackNames()
+    else:
+        zenpacks = []
     return validProds + zenpacks
 
 
@@ -330,7 +333,7 @@ def runSeleniumTests(
         exitcodes.append(rc)
 
 
-def runUnitTests(packages=[], modules=[], names=[], coverage="", count=0):
+def runUnitTests(packages=[], modules=[], names=[], coverage="", count=0, include_zenpacks=True):
     """
     Run unit tests for any packages that match the regular expression.
 
@@ -343,7 +346,7 @@ def runUnitTests(packages=[], modules=[], names=[], coverage="", count=0):
     @param show_tests: run or just display the test name?
     @type show_tests: boolean
     """
-    valid_packages = findZenossProducts()
+    valid_packages = findZenossProducts(include_zenpacks)
     invalid_packages = []
     if not modules:
         modules = []
@@ -428,7 +431,9 @@ def main():
     parser.add_option('--zenoss-server',
                       help='The Zenoss server against which Selenium should test'
                       )
-
+    parser.add_option('-Z', '--no-zenpacks', dest='no_zenpacks', help='only run core tests, even if ZenPacks are installed',
+                      action="store_true"
+                      )
     (options, args) = parser.parse_args()
 
     if options.type not in ('unit', 'selenium', 'all'):
@@ -437,7 +442,7 @@ def main():
 
     if options.type in ('unit', 'all'):
         runUnitTests(args, options.module, options.name, options.coverage,
-                     options.count)
+                     options.count, not options.no_zenpacks)
 
     if options.type in ('selenium', 'all'):
         runSeleniumTests(args, options.name, options.zenoss_server,
