@@ -42,6 +42,10 @@ class ServiceRouter(TreeRouter):
         levels = len(uid.split('/'))
         return levels > 5
 
+    def getClassNames(self, uid=None, query=None):
+        data = self.api.getClassNames(uid, query)
+        return DirectResponse.succeed(data=data)
+    
     @require('Manage DMD')
     def addClass(self, contextUid, id, posQuery=None):
         """

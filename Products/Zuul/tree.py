@@ -178,7 +178,7 @@ class CountCache(PathIndexCache):
             return 0
 
     @property
-    def expired(self):
+    def expired(self):        
         return time.time() >= self.expires
 
 
@@ -225,7 +225,8 @@ class CatalogTool(object):
         else:
             # No cache; make one
             results = self._queryCatalog(types, orderby=None, paths=(path,))
-            cache = CountCache(results, path, time.time() + (1000*60))
+            # cache the results for 5 seconds
+            cache = CountCache(results, path, time.time() + 5)
             caches[path] = caches.get(path, OOBTree())
             caches[path][types] = cache
             return len(results)
