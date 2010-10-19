@@ -60,7 +60,7 @@ public class EditTemplate_DeviceClass {
 		}
 
 		@Test
-		public void addingTemplate_DeviceClass() throws Exception{
+		public void editTemplate_DeviceClass() throws Exception{
 			
 			Common.Login(sClient, ZenossConstants.adminUserName,ZenossConstants.adminPassword);
 			Thread.sleep(12000);
