@@ -19,6 +19,38 @@ import zope.interface
 
 from Products.ZenCollector.interfaces import IScheduledTaskFactory,\
                                              ITaskSplitter, ISubTaskSplitter
+from Products.ZenUtils.observable import ObservableMixin
+
+
+class BaseTask(ObservableMixin):
+    """
+    Convenience class that consolidates some shared code.
+    """
+    def cleanup(self): # Required by interface
+        pass
+
+    def _delayNextCheck(self):
+        """
+        Rather than keep re-polling at the same periodicity to
+        determine if the device's agent is responding or not,
+        let this task back up in the queue.
+        Add a random element to it so that we don't get the
+        thundering herd effect.
+        A maximum delay is used so that there is a bound on the
+        length of times between checks.
+        """
+        # If it's not responding, don't poll it so often
+        if self.interval != self._maxbackoffseconds:
+            delay = random.randint(int(self.interval / 2), self.interval) * 2
+            self.interval = min(self._maxbackoffseconds, self.interval + delay)
+            log.debug("Delaying next check for another %s",
+                      readable_time(self.interval))
+
+    def chunk(self, lst, n):
+        """
+        Break lst into n-sized chunks
+        """
+        return [lst[i:i+n] for i in range(0, len(lst), n)]
 
 
 class SimpleTaskSplitter(object):
