@@ -27,7 +27,7 @@ from Products.ZenModel.System import System
 from Products.ZenModel.Location import Location
 from Products.ZenModel.DeviceClass import DeviceClass
 from Products.ZenModel.Device import Device
-from Products.ZenModel.ChangeEvents.events import ObjectAddedToOrganizerEvent, \
+from Products.ZenMessaging.ChangeEvents.events import ObjectAddedToOrganizerEvent, \
     ObjectRemovedFromOrganizerEvent
 from Products.Zuul import getFacade
 from Products.Zuul.utils import ZuulMessageFactory as _t, UncataloguedObjectException

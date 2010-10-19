@@ -21,7 +21,7 @@ from Products.Zuul.interfaces import IMarshaller
 from Products.Zuul.interfaces import IUnmarshaller
 from Products.Zuul.interfaces import IInfo
 from Products.Zuul.interfaces import ITreeNode
-from Products.ZenModel.ChangeEvents.events import ObjectModifiedEvent
+from Products.ZenMessaging.ChangeEvents.events import ObjectModifiedEvent
 
 def _marshalImplicitly(obj):
     """

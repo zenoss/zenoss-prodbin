@@ -8,11 +8,11 @@ import logging
 import transaction
 from Products.ZenTestCase.BaseTestCase import BaseTestCase
 from zope.interface import implements
-from Products.ZenUtils.queuemessaging.interfaces import IQueuePublisher
-from Products.ZenModel.ChangeEvents.publisher import getModelChangePublisher, PUBLISH_SYNC
+from Products.ZenMessaging.queuemessaging.interfaces import IQueuePublisher
+from Products.ZenMessaging.queuemessaging.publisher import getModelChangePublisher, PUBLISH_SYNC
 from zenoss.protocols.protobufs.modelevents_pb2 import ModelEventList
 from Products.ZenModel.DeviceClass import DeviceClass
-from Products.ZenModel.WinService import WinService
+
 
 log = logging.getLogger("zen.dynamicservices")
 

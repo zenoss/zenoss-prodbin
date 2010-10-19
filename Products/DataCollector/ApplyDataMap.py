@@ -30,8 +30,8 @@ from Products.Zuul.catalog.events import IndexingEvent
 from Exceptions import ObjectCreationError
 from Products.ZenEvents.ZenEventClasses import Change_Add,Change_Remove,Change_Set,Change_Add_Blocked,Change_Remove_Blocked,Change_Set_Blocked
 from Products.ZenModel.Lockable import Lockable
-from Products.ZenModel.ChangeEvents.events import ObjectModifiedEvent
-import Products.ZenEvents.Event as Event
+from Products.ZenMessaging.ChangeEvents.events import ObjectModifiedEvent
+from Products.ZenEvents import Event
 from zExceptions import NotFound
 
 zenmarker = "__ZENMARKER__"

@@ -28,25 +28,25 @@
 
     <subscriber
         for="Products.ZenUtils.guid.interfaces.IGloballyIdentifiable
-             Products.ZenModel.ChangeEvents.interfaces.IObjectModifiedEvent"
+             Products.ZenMessaging.ChangeEvents.interfaces.IObjectModifiedEvent"
         handler=".subscribers.publishModified"
         />
 
     <subscriber
         for="Products.ZenUtils.guid.interfaces.IGloballyIdentifiable
-             Products.ZenModel.ChangeEvents.interfaces.IObjectAddedToOrganizerEvent"
+             Products.ZenMessaging.ChangeEvents.interfaces.IObjectAddedToOrganizerEvent"
         handler=".subscribers.publishAddEdge"
         />
 
     <subscriber
         for="Products.ZenUtils.guid.interfaces.IGloballyIdentifiable
-             Products.ZenModel.ChangeEvents.interfaces.IObjectRemovedFromOrganizerEvent"
+             Products.ZenMessaging.ChangeEvents.interfaces.IObjectRemovedFromOrganizerEvent"
         handler=".subscribers.publishRemoveEdge"
         />
 
     <subscriber
         for="Products.ZenModel.Device.Device
-             Products.ZenModel.ChangeEvents.interfaces.IDeviceClassMoveEvent"
+             Products.ZenMessaging.ChangeEvents.interfaces.IDeviceClassMoveEvent"
         handler=".subscribers.publishObjectMove"
         />
 

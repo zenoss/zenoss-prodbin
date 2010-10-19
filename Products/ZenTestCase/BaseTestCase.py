@@ -30,7 +30,7 @@ from Products.ZenEvents.EventManagerBase import EventManagerBase
 from Products.ZenEvents.MySqlSendEvent import MySqlSendEventMixin
 from Products.ZenRelations.ZenPropertyManager import setDescriptors
 from Products.ZenEvents.MySqlEventManager import log
-from Products.ZenUtils.Utils import unused
+from Products.ZenUtils.Utils import unused, load_config_override
 from zope.testing.cleanup import cleanUp
 
 log.warn = lambda *args, **kwds: None
@@ -100,7 +100,8 @@ class ZenossTestCaseLayer(ZopeLite):
         zope.component.testing.setUp(cls)
         zope.component.provideAdapter(DefaultTraversable, (None,))
         zcml.load_config('testing.zcml', Products.ZenTestCase)
-
+        import Products.ZenMessaging.queuemessaging
+        load_config_override('nopublisher.zcml', Products.ZenMessaging.queuemessaging)
     @classmethod
     def testTearDown(cls):
         cleanUp()

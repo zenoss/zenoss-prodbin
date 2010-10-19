@@ -11,7 +11,7 @@
 #
 ###########################################################################
 from zope.interface import implements
-from Products.ZenModel.ChangeEvents.interfaces import IObjectModifiedEvent, \
+from Products.ZenMessaging.ChangeEvents.interfaces import IObjectModifiedEvent, \
     IObjectAddedToOrganizerEvent, IObjectRemovedFromOrganizerEvent, IDeviceClassMoveEvent
 from Products.ZenModel.DeviceOrganizer import DeviceOrganizer
 

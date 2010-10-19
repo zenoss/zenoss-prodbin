@@ -19,7 +19,7 @@ def decorator(decorator_func):
     Turns a function into a well-behaved decorator.
 
     Requires the signature (func, *args, **kwargs).
-    
+
     Updates the inner function to look like the decorated version by
     copying attributes from the one to the other.
     """
@@ -89,3 +89,4 @@ def require(permission):
             raise Unauthorized('Calling %s requires "%s" permission.' % args)
         return f(self, *args, **kwargs)
     return wrapped_fn
+

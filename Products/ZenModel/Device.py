@@ -45,7 +45,7 @@ from Globals import DTMLFile
 from Globals import InitializeClass
 from DateTime import DateTime
 from zExceptions import NotFound
-from Products.ZenModel.ChangeEvents.events import ObjectModifiedEvent
+from Products.ZenMessaging.ChangeEvents.events import ObjectModifiedEvent
 from ZODB.POSException import POSError
 
 

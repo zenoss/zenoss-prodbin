@@ -16,4 +16,9 @@
            factory=".adapters.DeviceComponentProtobuf"
            />
 
+  <adapter provides=".interfaces.IProtobufSerializer"
+           for="Products.ZenEvents.Event.Event"
+           factory=".adapters.EventProtobuf"
+           />
+
 </configure>

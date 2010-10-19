@@ -20,8 +20,8 @@ import threading
 from Queue import Queue, Empty
 import logging
 log = logging.getLogger("zen.Events")
-
 from _mysql_exceptions import ProgrammingError, OperationalError
+
 
 # Filter specific warnings coming from new version of mysql-python
 import warnings
@@ -63,6 +63,8 @@ class MySqlSendEventMixin:
     sends the event to the backend.
     """
 
+    
+
     def sendEvent(self, event):
         """
         Send an event to the backend.
@@ -82,7 +84,7 @@ class MySqlSendEventMixin:
                       getattr(event, 'component', 'Unknown'),
                       getattr(event, 'timeout', 'Unknown'))
             return self._sendHeartbeat(event)
-        
+
         for field in self.requiredEventFields:
             if not hasattr(event, field):
                 log.error("Required event field %s not found" \
@@ -92,7 +94,7 @@ class MySqlSendEventMixin:
                 if detaildata:
                     log.error("Detail data: %s", detaildata)
                 return None
-        
+
         #FIXME - ungly hack to make sure severity is an int
         try:
             event.severity = int(event.severity)
@@ -105,13 +107,13 @@ class MySqlSendEventMixin:
                         ]
         if hasattr( event, '_action' ) and event._action not in known_actions:
             event._action = 'status'
-        
+
         # If either message or summary is empty then try to copy from the other.
         # Make sure summary is truncated to 128
         if not getattr(event, 'message', False):
             event.message = getattr(event, 'summary', '')
         event.summary = (getattr(event, 'summary', '') or event.message)[:128]
-        
+
         statusdata, detaildata = self.eventDataMaps(event)
         log.debug("Event info: %s", statusdata)
         if detaildata:
@@ -126,12 +128,12 @@ class MySqlSendEventMixin:
         if not event:
             log.debug("Unable to obtain event -- ignoring.(%s)", event)
             return
-        
+
         # check again for heartbeat after context processing
         if getattr(event, 'eventClass', Unknown) == Heartbeat:
             log.debug("Transform created a heartbeat event.")
             return self._sendHeartbeat(event)
-            
+
 
         if not hasattr(event, 'dedupid'):
             dedupfields = event.getDedupFields(self.defaultEventId)
@@ -173,7 +175,7 @@ class MySqlSendEventMixin:
         """
         Actually write the sanitized event into the database
 
-        @param event: event   
+        @param event: event
         @type event: Event class
         @return: event id or None
         @rtype: string
@@ -229,8 +231,17 @@ class MySqlSendEventMixin:
                     log.debug("No matches found")
                     evid = None
         finally: self.close(conn)
+        self._publishEvent(event)
         return evid
-           
+
+    def _publishEvent(self, event):
+        """
+        Sends this event to the event fan out queue
+        """
+        from Products.ZenMessaging.queuemessaging.publisher import EventPublisher
+        publisher = EventPublisher()        
+        publisher.setDmd(self.dmd)
+        publisher.publish(event)
 
     def _findByIp(self, ipaddress, networks):
         """
@@ -277,12 +288,12 @@ class MySqlSendEventMixin:
         devices = self.getDmdRoot("Devices")
         networks, evt = self.getNetworkRoot(evt)
 
-        # if the event has a monitor field use the PerformanceConf 
+        # if the event has a monitor field use the PerformanceConf
         # findDevice so that the find is scoped to the monitor (collector)
         if getattr(evt, 'monitor', False):
             monitorObj = self.getDmdRoot('Monitors'
                             ).Performance._getOb(evt.monitor, None)
-            if monitorObj: 
+            if monitorObj:
                 devices = monitorObj
 
         # Look for the device by name, then IP 'globally'
@@ -309,7 +320,7 @@ class MySqlSendEventMixin:
             evt = evtclass.applyValues(evt)
             evt = evtclass.applyTransform(evt, device)
 
-        if evt._action == "drop": 
+        if evt._action == "drop":
             log.debug("Dropping event")
             return None
 
@@ -401,9 +412,9 @@ class MySqlSendEventMixin:
             if statusdata.has_key('prodState'):
                 insert += "prodState=%d," % int(statusdata['prodState'])
             insert += "summary='%s',message='%s',%s=%s+1,%s=%.3f" % (
-                        self.escape(decode(self.dmd.Devices, statusdata.get('summary',''))), 
+                        self.escape(decode(self.dmd.Devices, statusdata.get('summary',''))),
                         self.escape(decode(self.dmd.Devices, statusdata.get('message', ''))),
-                        self.countField, self.countField, 
+                        self.countField, self.countField,
                         self.lastTimeField,statusdata['lastTime'])
         return insert
 
@@ -421,12 +432,12 @@ class MySqlSendEventMixin:
         @rtype: string
         """
         insert = "insert into %s (evid, name, value) values " % self.detailTable
-        var = [] 
+        var = []
         for field, value in detaildict.items():
             if type(value) in types.StringTypes:
                 value = self.escape(decode(self.dmd.Devices, value))
-            var.append("('%s','%s','%s')" % (evid, field, value)) 
-        insert += ",".join(var)        
+            var.append("('%s','%s','%s')" % (evid, field, value))
+        insert += ",".join(var)
         return insert
 
 
@@ -477,13 +488,13 @@ class MySqlSendEventMixin:
 
         w = []
         for cls in clearcls:
-            w.append("%s='%s'" % (self.eventClassField, self.escape(cls))) 
+            w.append("%s='%s'" % (self.eventClassField, self.escape(cls)))
         if w:
             update += " and (" + " or ".join(w) + ")"
         log.debug("Clear command: %s", update)
         return update
 
-    
+
     def eventDataMaps(self, event):
         """
         Return tuple (statusdata, detaildata) for this event.
@@ -500,9 +511,9 @@ class MySqlSendEventMixin:
             if name.startswith("_") or name == "dedupfields": continue
             if name in statusfields:
                 statusdata[name] = value
-            else: 
+            else:
                 detaildata[name] = value
-        return statusdata, detaildata 
+        return statusdata, detaildata
 
 
     def escape(self, value):
@@ -516,7 +527,7 @@ class MySqlSendEventMixin:
         """
         if type(value) not in types.StringTypes:
             return value
-            
+
         import _mysql
         if type(value) == type(u''):
             return _mysql.escape_string(value.encode('iso-8859-1'))
@@ -558,7 +569,7 @@ class MySqlSendEvent(MySqlSendEventMixin):
             value = getattr(zem, att)
             setattr(self, att, value)
         self._fieldlist = zem.getFieldList()
-        
+
     def stop(self):
         """
         To be implemented by the subclass
@@ -580,10 +591,10 @@ class MySqlSendEventThread(threading.Thread, MySqlSendEvent):
     """
     Wrapper around MySQL database connection
     """
-  
+
     running = True
 
-    def __init__(self, zem): 
+    def __init__(self, zem):
         threading.Thread.__init__(self)
         MySqlSendEvent.__init__(self, zem)
         self.setDaemon(1)
@@ -612,8 +623,8 @@ class MySqlSendEventThread(threading.Thread, MySqlSendEvent):
             except Exception, e:
                 log.exception(e)
         log.info("Stopped")
-                
-    
+
+
     def stop(self):
         """
         Called from main thread to stop this thread.

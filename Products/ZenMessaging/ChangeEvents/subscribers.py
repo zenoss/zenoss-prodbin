@@ -14,14 +14,13 @@
 import logging
 from zope.component import adapter
 from zope.app.container.interfaces import IObjectAddedEvent,\
-    IObjectRemovedEvent, IObjectMovedEvent
-from publisher import getModelChangePublisher
-from Products.ZenModel.ChangeEvents.interfaces import IObjectModifiedEvent, \
+    IObjectRemovedEvent
+from Products.ZenMessaging.queuemessaging.publisher import getModelChangePublisher
+from Products.ZenMessaging.ChangeEvents.interfaces import IObjectModifiedEvent, \
     IObjectAddedToOrganizerEvent, IObjectRemovedFromOrganizerEvent, IDeviceClassMoveEvent
 from Products.ZenUtils.guid.interfaces import IGloballyIdentifiable
 
 log = logging.getLogger('zen.modelchanges')
-
 
 
 def publishAdd(ob, event):

@@ -33,7 +33,7 @@ from AccessControl import Permissions as permissions
 
 from Products.AdvancedQuery import MatchGlob, Or, Eq, RankByQueries_Max
 from Products.CMFCore.utils import getToolByName
-from Products.ZenModel.ChangeEvents.events import DeviceClassMovedEvent
+from Products.ZenMessaging.ChangeEvents.events import DeviceClassMovedEvent
 from Products.ZenModel.ZenossSecurity import *
 from Products.ZenRelations.RelSchema import *
 from Products.ZenRelations.ZenPropertyManager import Z_PROPERTIES

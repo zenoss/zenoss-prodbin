@@ -39,7 +39,7 @@ from Products.Zuul.tree import SearchResults
 from Products.ZenUtils.IpUtil import numbip, checkip, IpAddressError, ensureIp
 from Products.ZenUtils.IpUtil import getSubnetBounds
 from Products.Zuul.catalog.events import IndexingEvent
-from Products.ZenModel.ChangeEvents.events import ObjectModifiedEvent
+from Products.ZenMessaging.ChangeEvents.events import ObjectModifiedEvent
 
 log = logging.getLogger('zen.Zuul')
 

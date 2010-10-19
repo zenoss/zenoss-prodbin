@@ -91,7 +91,7 @@ class TestEvents(EventTestCase, ZuulFacadeTestCase):
 
         # Make sure notification occurred
         self.assertEqual(len(_notified), 1)
-
+        
         # Make sure we get back a valid event id
         self.assert_(evid)
         self.assert_(isinstance(evid, basestring))
