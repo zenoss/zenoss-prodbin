@@ -167,7 +167,7 @@
     template="templates/reports.pt"
     name="reports"
     for="*"
-    permission="zenoss.View"
+    permission="zenoss.Common"
     />
 
 <browser:page
