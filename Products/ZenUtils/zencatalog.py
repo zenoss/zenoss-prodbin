@@ -169,6 +169,7 @@ class ZenCatalog(ZCmdBase):
             transaction.commit()
         else:
             log.warning('Global Catalog does not exist, try --createcatalog option')
+        return defer.succeed(None)
 
     def _createCatalog(self, zport):
 
