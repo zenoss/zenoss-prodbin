@@ -38,6 +38,11 @@ def removeModelerPlugin(obj, plugin_name):
 class RemoveCiscoHSRP(Migrate.Step):
     version = Migrate.Version(3, 0, 0)
 
+    def __init__(self):
+        Migrate.Step.__init__(self)
+        import reindexdevices
+        self.dependencies = [reindexdevices.upgradeindices]
+
     def cutover(self, dmd):
         plugin_name = 'zenoss.snmp.CiscoHSRP'
 
