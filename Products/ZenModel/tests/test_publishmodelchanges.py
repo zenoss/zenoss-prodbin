@@ -7,29 +7,13 @@
 import logging
 import transaction
 from Products.ZenTestCase.BaseTestCase import BaseTestCase
-from zope.interface import implements
 from Products.ZenMessaging.queuemessaging.interfaces import IQueuePublisher
-from Products.ZenMessaging.queuemessaging.publisher import getModelChangePublisher, PUBLISH_SYNC
+from Products.ZenMessaging.queuemessaging.publisher import getModelChangePublisher, PUBLISH_SYNC, DummyQueuePublisher
 from zenoss.protocols.protobufs.modelevents_pb2 import ModelEventList
 from Products.ZenModel.DeviceClass import DeviceClass
 
 
 log = logging.getLogger("zen.dynamicservices")
-
-
-class MockQueuePublisher(object):
-    """
-    This is the fake queue we are putting in place for the unit tests to test
-    transactions.
-    """
-    implements(IQueuePublisher)
-
-    def __init__(self):
-        self.msgs = []
-
-    def publish(self, exchange, routing_key, msg):
-        self.msgs.append( (exchange, routing_key, msg))
-
 
 class TestPublishModelChanges(BaseTestCase):
 
@@ -39,7 +23,7 @@ class TestPublishModelChanges(BaseTestCase):
         from zope.component import getGlobalSiteManager
         # register the component
         gsm = getGlobalSiteManager()
-        queue = MockQueuePublisher()
+        queue = DummyQueuePublisher()
         gsm.registerUtility(queue, IQueuePublisher)
         self.queue = queue
         # create a dummy device
@@ -75,8 +59,7 @@ class TestPublishModelChanges(BaseTestCase):
         sync = PUBLISH_SYNC
         sync.beforeCompletionHook(transaction.get())
         publisher = getModelChangePublisher()
-        self.assertEqual(len(publisher.msg.events), 0)
-        self.assertEqual(len(self.queue.msgs), 1, " should have one transaction published to the queue")
+        self.assertEqual(len(publisher.msg.events), 0)        
 
     def testDeviceClassMove(self):
         """

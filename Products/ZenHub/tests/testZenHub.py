@@ -22,8 +22,10 @@ from twisted.cred import credentials
 from twisted.spread import pb
 import sys
 
-count = 0
+from Products.ZenMessaging.queuemessaging.interfaces import IQueuePublisher
+from Products.ZenMessaging.queuemessaging.publisher import DummyQueuePublisher
 
+count = 0
 def stop(ignored=None, connector=None):
     if isinstance(ignored, Exception):
         raise ignored
@@ -72,6 +74,7 @@ class SendEventClient(TestClient):
 
     def test(self, service):
         def Test(driver):
+            
             evt = dict(device='localhost',
                        severity='5',
                        summary='This is a test message')
@@ -97,6 +100,12 @@ class TestZenHub(unittest.TestCase):
                                            '--pbport=%d' % base,
                                            '--xmlrpcport=%d' % xbase]
         self.zenhub = ZenHub()
+        from zope.component import getGlobalSiteManager
+        # The call to zenhub above overrides the queue so we need to
+        # re-override it
+        gsm = getGlobalSiteManager()
+        queue = DummyQueuePublisher()
+        gsm.registerUtility(queue, IQueuePublisher)
 
     def tearDown(self):
         sys.argv = self.before
@@ -112,7 +121,7 @@ class TestZenHub(unittest.TestCase):
         self.assertTrue(client.success)
 
     def testSendEvent(self):
-        client = SendEventClient(self, self.base + count)
+        client = SendEventClient(self, self.base + count)        
         self.zenhub.main()
         self.assertTrue(client.success)
 
