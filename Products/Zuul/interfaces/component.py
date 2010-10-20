@@ -97,10 +97,10 @@ class IOSProcessInfo(IComponentInfo):
     """
     Info adapter for OSProcess components.
     """
-    processClass = schema.Entity(title=u"Process Class", group="Overview",
+    processClass = schema.Entity(title=u"Process Class", group="Overview", 
                                  order=1)
     processName = schema.TextLine(title=u"Process Name", group="Overview",
-                                  order=-1)
+                                  readonly=True, order=-1)
     alertOnRestart = schema.Bool(title=u"Alert on Restart", group="Details")
     failSeverity = schema.Int(title=u"Fail Severity", xtype="severity",
                               group="Details")
