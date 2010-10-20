@@ -1,4 +1,4 @@
-###########################################################################
+##########################################################################
 #
 # This program is part of Zenoss Core, an open source monitoring platform.
 # Copyright (C) 2010, Zenoss Inc.
@@ -17,26 +17,22 @@ would like to run these tests from python, simply to the following:
     python ZenUtils/test_txns.py
 '''
 import unittest
-from zope.interface import implements
 
-from Products.ZenTestCase.BaseTestCase import BaseTestCase
+from Testing.ZopeTestCase import ZopeTestCase
+
 import random
 import os
-import string
 import subprocess
 import transaction
 
-from asmqTestDefns import Publisher
-
+from amqpTestDefns import Publisher
+from ..AmqpDataManager import AmqpDataManager
 import logging
 log = logging.getLogger("ZenUtils.tests.txns")
-
 log.setLevel(logging.DEBUG)
 
+from ..transaction_contextmanagers import nested_transaction, zodb_transaction
 
-# faux guid generator
-randomStr = lambda n=8 : ''.join(random.choice(string.ascii_letters+"0123456789") for i in xrange(n))
-generateGuid = lambda : "TEST" + randomStr(32)
 new_state = lambda : random.choice("RED ORANGE YELLOW GREEN BLUE PURPLE".split())
 
 # context managers for transaction and state commit/rollback
@@ -55,36 +51,6 @@ def revertAttributeOnError(obj, attrname):
         setattr(obj, attrname, prev_value)
         raise
 
-# define exception type to catch cases where current transaction is explicitly
-# committed or aborted with in the body of the with statement (only necessary on
-# abort)
-class InvalidTransactionError(Exception): pass
-
-@contextmanager
-def zodb_transaction():
-    try:
-        txn = transaction.get()
-        yield txn
-    except:
-        log.debug( "aborting uber-transaction")
-        if txn is not transaction.get():
-            raise InvalidTransactionError(
-                "could not abort transaction, was already aborted/committed within 'with' body")
-        try:
-            txn.abort()
-        # catch any internal exceptions that happen during abort
-        except Exception:
-            pass
-        raise
-    else:
-        log.debug( "commiting uber-transaction")
-        try:
-            if txn is transaction.get():
-                txn.commit()
-        # catch any internal exceptions that happen during commit
-        except Exception:
-            pass
-
 @contextmanager
 def msg_publish(chan):
     try:
@@ -101,18 +67,22 @@ def msg_publish(chan):
         chan.close()
 
 
-class TestTransactions(BaseTestCase):
+class TestTransactions(ZopeTestCase):
+
+    # must define this class constant to avoid problems with 'test_folder_1_'
+    _setup_fixture = 0
 
     def setUp(self):
-        super(TestTransactions, self).setUp()
-        self.connected = False
+        super(TestTransactions,self).setUp()
+
+        self.app.txn_test_objectx = 0
+        transaction.commit()
+
+        self.connected_to_mq = False
 
         try:
-            # connect to events database
-            init_model()
-
             self.pub = Publisher()
-            self.connected = True
+            self.connected_to_mq = True
 
             # start up message listener and wait for it to report "ready"
             localpath = os.path.dirname(__file__)
@@ -123,27 +93,36 @@ class TestTransactions(BaseTestCase):
         except Exception as e:
             log.warning( "failed to setup amqp connection: %s",e )
 
+
     def tearDown(self):
-        super(TestTransactions,self).tearDown()
+        try:
+            if not self.connected_to_mq:
+                log.debug( "no connection to mq, skipping tearDown")
+                return
 
-        if not self.connected:
-            log.debug( "skipping tearDown")
-            return
+            log.debug("tearing down")
+            self.connected_to_mq = False
 
-        # shut down listener subprocess
-        with msg_publish(self.pub.channel):
-            self.pub.publish("FIN")
+            self.app._delObject('txn_test_objectx')
+            transaction.commit()
 
+            # shut down listener subprocess
+            with msg_publish(self.pub.channel):
+                self.pub.publish("FIN")
+
+        finally:
+            super(TestTransactions,self).tearDown()
+            pass
 
     def template_test_transaction_fn(self, n=10, raise_exception=False, raise_internal_only=False):
-        global session
 
-        if not self.connected:
+        if not self.connected_to_mq:
             log.debug("skipping current test, no connection")
             return
 
-        # get current count of guids in the database
-        tally = session.query(Guid).count()
+        # get current value of object in the database
+        tally = self.app.txn_test_objectx
+
         self.state = "VIOLET"
         with msg_publish(self.pub.channel):
             log.debug("set listener record count (%d) %r" % (tally, self.pub.channel))
@@ -153,13 +132,14 @@ class TestTransactions(BaseTestCase):
         last_tally = tally
         self.added_recs = 0
 
-        # start a transaction, update some guids, and send corresponding messages
+        # start a transaction, perform some database updates, and send corresponding messages
         try:
             with zodb_transaction() as txn:
                 if raise_internal_only:
-                    # store records and send messages outside of nested txn
-                    with nested_transaction() as session:
-                        session.add_all(Guid(guid=generateGuid()) for i in xrange(n))
+                    # store data and send messages outside of nested txn
+                    with nested_transaction():
+                        for i in range(n):
+                            self.app.txn_test_objectx += 1
 
                     with msg_publish(self.pub.channel):
                         msg = self.pub.publish("ADDRECS",str(n))
@@ -171,8 +151,11 @@ class TestTransactions(BaseTestCase):
                 try:
                     with revertAttributeOnError(self, "state"):
                         with revertAttributeOnError(self, "added_recs"):
-                            with nested_transaction(ASMQDataManager(self.pub.channel)) as session:
-                                session.add_all(Guid(guid=generateGuid()) for i in xrange(n))
+                            with nested_transaction(AmqpDataManager(self.pub.channel, txn._manager)):
+                                log.debug("using TransactionManager %r", txn._manager)
+                                for i in range(n):
+                                    self.app.txn_test_objectx += 1
+
                                 msg = self.pub.publish("ADDRECS",str(n))
                                 self.added_recs += n
                                 self.state = new_state()
@@ -184,39 +167,50 @@ class TestTransactions(BaseTestCase):
                     if not raise_internal_only:
                         raise
         except TestTxnsException:
-            pass
+            log.debug("zodb transaction got aborted...")
+        except Exception as e:
+            log.debug("caught unexpected exception %s", e)
+            raise
 
         with msg_publish(self.pub.channel):
             msg = self.pub.publish("STATUS")
 
         # read status line from listener, compare with current tally and state
+        log.debug("get status from listener, compare with current")
         listener_status = self.listener.stdout.readline()
 
-        # now get actual record count from database
-        tally = session.query(Guid).count()
+        # now get actual object value from database
+        try:
+            tally = self.app.txn_test_objectx
 
-        expected_tally = last_tally + self.added_recs
-        log.debug( "Expected/actual tally: %d/%d %s" % (expected_tally, tally, (("FAIL","OK")[expected_tally==tally])) )
-        self.assertEqual(expected_tally, tally)
+            expected_tally = last_tally + self.added_recs
+            log.debug( "Expected/actual tally: %d/%d %s" % (expected_tally, tally, (("FAIL","OK")[expected_tally==tally])) )
+            self.assertEqual(expected_tally, tally)
+        
+            expected_status = "%d %s\n" % (tally, self.state)
+            log.debug( "Expected: " + expected_status.strip())
+            log.debug( "Received: " + listener_status.strip() )
+            self.assertEqual(expected_status, listener_status)
+        except AttributeError as ae:
+            log.debug("skip test validation steps, dmd corrupted")
 
-        expected_status = "%d %s\n" % (tally, self.state)
-        log.debug( "Expected: " + expected_status.strip())
-        log.debug( "Received: " + listener_status.strip() )
-        self.assertEqual(expected_status, listener_status)
-
-
-    # TODO - re-visit these tests after backing out SQLAlchemy, to merge ZopeDB and AMQP transactions
-    def skip_this_test_0transaction_commit(self):
+    def test_0transaction_commit(self):
         return self.template_test_transaction_fn()
 
-    def skip_this_test_1transaction_rollback(self):
+    def test_1transaction_rollback(self):
         return self.template_test_transaction_fn(raise_exception=True)
 
-    def skip_this_test_2nested_transaction_rollback(self):
+    def test_2nested_transaction_rollback(self):
         return self.template_test_transaction_fn(raise_exception=True, raise_internal_only=True)
 
-
+# class for easy disabling of these tests
+class DummyTester(unittest.TestCase):
+    def test_nada(self):
+        pass
 
 def test_suite():
-    return unittest.makeSuite(TestTransactions)
+    if 0:
+        return unittest.makeSuite(TestTransactions)
+    else:
+        return unittest.makeSuite(DummyTester)
 

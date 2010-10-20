@@ -1,4 +1,14 @@
-import asmqTestDefns
+#############################################################################
+# This program is part of Zenoss Core, an open source monitoring platform.
+# Copyright (C) 2010, Zenoss Inc.
+#
+# This program is free software; you can redistribute it and/or modify it
+# under the terms of the GNU General Public License version 2 as published by
+# the Free Software Foundation.
+#
+# For complete information please visit: http://www.zenoss.com/oss/
+#############################################################################
+import amqpTestDefns
 import sys
 
 state = ""
@@ -47,7 +57,7 @@ def finMessageHandler(msg):
 
 def main():
 
-    consumer = asmqTestDefns.Consumer()
+    consumer = amqpTestDefns.Consumer()
     consumer.register("ADDRECS", addrecsMessageHandler)
     consumer.register("INIT", initMessageHandler)
     consumer.register("STATE", stateMessageHandler)
