@@ -634,7 +634,7 @@ ul.x-tab-strip-bottom{
 
 /* Grids */
 
-.x-grid-panel .x-panel-mc .x-panel-body{
+.x-grid-panel .x-panel-mc {
     border:1px solid #abc;
 }
 .x-grid3-row-selected{
@@ -744,10 +744,6 @@ td.x-grid3-hd-over .x-grid3-hd-inner,td.sort-desc .x-grid3-hd-inner,td.sort-asc 
     font-size: 12px;
     font-family: helvetica,arial,sans-serif;
     color: #454545;
-}
-
-#master_panel {
-    border-right: 1px solid #949494;
 }
 
 #master_panel .x-panel-body {
@@ -981,6 +977,7 @@ td.x-date-mp-sel a{
 
 .x-panel-body{
     border-color:#abc;
+    border-style: none;
 }
 .x-panel-bbar .x-toolbar{
     border-color:#abc;
