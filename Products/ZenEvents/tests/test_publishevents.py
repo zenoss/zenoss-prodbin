@@ -11,7 +11,7 @@ from zope.interface import implements
 from Products.ZenMessaging.queuemessaging.interfaces import IQueuePublisher
 from Products.ZenMessaging.queuemessaging.adapters import EventProtobuf as Serializer
 from Products.ZenMessaging.queuemessaging.publisher import EventPublisher, getModelChangePublisher
-from zenoss.protocols.protobufs.zep_pb2 import Event
+from zenoss.protocols.protobufs.zep_pb2 import RawEvent
 from Products.ZenEvents.Event import buildEventFromDict
 
 
@@ -63,12 +63,12 @@ class TestPublishEvents(BaseTestCase):
             device= device.id,
             component= "",
             eventClass= "/Status/Snmp",
-            eventKey="",
+            eventKey="pepe1",
             summary= "2.5 second timeout connecting to device 10.87.209.147",
             message= "2.5 second timeout connecting to device 10.87.209.147",
             severity= 4,
             eventState= 0,
-            eventClassKey= "",
+            eventClassKey= "testEventClassKey",
             eventGroup= "SnmpTest",
             stateChange= "2010-09-24 07:12:19",
             count= 1,
@@ -94,28 +94,39 @@ class TestPublishEvents(BaseTestCase):
         # setup event and device
         device = self.device
         event = self._createDummyEvent()
-        proto = Event()
+        event.detaildata = dict(foo="bar")
+        proto = RawEvent()
         serializer = Serializer(event)
         
         # fill the protobuf
-        proto = serializer.fill(proto, self.dmd)
+        proto = serializer.fill(proto)
 
         # check the results
-        self.assertEqual(proto.owner_id, "admin")
-        self.assertEqual(proto.ip_address, "10.87.209.147")
+        self.assertEqual(proto.agent, event.agent)
+        self.assertEqual(proto.event_key, event.eventKey)
+        
         # make sure the actor was set
-        self.assertEqual(proto.actor.device.id, device.id)
+        self.assertEqual(proto.actor.element_identifier, device.id)
         # make sure we have at least one detail
         self.assertTrue(len(proto.details) >= 1)
         # the new severity value
         self.assertEqual(proto.severity, 5)
 
-    def testUsingPubliserh(self):        
+    def testFacilityConversion(self):        
         event = self._createDummyEvent()
-        publisher = EventPublisher()
-        publisher.setDmd(self.dmd)
-        publisher.publish(event)
-        self.assertTrue(len(self.queue.msgs) > 0)
+        proto = RawEvent()
+        serializer = Serializer(event)
+        event.facility = "1"
+        # fill the protobuf
+        proto = serializer.fill(proto)
+        # should have converted to an int
+        self.assertEqual(proto.syslog_facility, 1)
+        self.assertEqual(proto.event_class_key, event.eventClassKey)
+        
+    def testUsingPublisher(self):        
+        event = self._createDummyEvent()
+        publisher = EventPublisher()        
+        publisher.publish(event)        
         
 def test_suite():
     from unittest import TestSuite, makeSuite

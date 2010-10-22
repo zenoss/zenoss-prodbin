@@ -231,16 +231,16 @@ class MySqlSendEventMixin:
                     log.debug("No matches found")
                     evid = None
         finally: self.close(conn)
-        self._publishEvent(event)
+        self._publishEvent(event, detaildata)
         return evid
 
-    def _publishEvent(self, event):
+    def _publishEvent(self, event, detaildata):
         """
         Sends this event to the event fan out queue
         """
         from Products.ZenMessaging.queuemessaging.publisher import EventPublisher
-        publisher = EventPublisher()        
-        publisher.setDmd(self.dmd)
+        publisher = EventPublisher()
+        event.detaildata = detaildata        
         publisher.publish(event)
 
     def _findByIp(self, ipaddress, networks):

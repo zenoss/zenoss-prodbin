@@ -175,7 +175,7 @@ class SyslogProcessor(object):
         elif msg and msg[0] < ' ':
             fac, pri = LOG_KERN, ord(msg[0])
             msg = msg[1:]
-        evt['facility'] = fac_names.get(fac,"unknown")
+        evt['facility'] = fac
         evt['priority'] = pri
         evt['severity'] = self.defaultSeverityMap(pri)
         slog.debug("fac=%s pri=%s", fac, pri)

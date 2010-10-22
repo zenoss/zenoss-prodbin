@@ -16,7 +16,7 @@ from zenoss.protocols.amqp import publish as blockingpublish
 from Products.ZenUtils.guid.interfaces import IGlobalIdentifier
 from Products.ZenUtils.guid import generate
 from zope.component import getUtility
-from zenoss.protocols.protobufs.zep_pb2 import Event as EventProtobuf
+from zenoss.protocols.protobufs.zep_pb2 import RawEvent as EventProtobuf
 from interfaces import IQueuePublisher, IProtobufSerializer
 from zenoss.protocols.protobufs.modelevents_pb2 import ModelEventList
 from Products.ZenModel.Device import Device
@@ -194,22 +194,10 @@ class EventPublisher(object):
 
     EXCHANGE_NAME = "zenoss.zenevents.raw"
 
-    def __init__(self):
-        self._dmd = None
-
-    def setDmd(self, dmd):
-        self._dmd = dmd
-
-    def getDmd(self):
-        if not self._dmd:            
-            self._dmd = get_dmd()
-        return self._dmd
-    
-    def publish(self, event):
-        dmd = self.getDmd()        
+    def publish(self, event):        
         serializer = IProtobufSerializer(event)
         proto = EventProtobuf()
-        serializer.fill(proto, dmd)
+        serializer.fill(proto)
         eventClass = "/Unknown"
         if hasattr(event, 'eventClass'):
             eventClass = event.eventClass

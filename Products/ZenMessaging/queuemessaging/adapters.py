@@ -15,7 +15,8 @@ from zope.interface import implements
 from interfaces import IProtobufSerializer
 from Products.ZenUtils.guid.interfaces import IGlobalIdentifier, \
     IGloballyIdentifiable
-
+from zenoss.protocols.protobufs import zep_pb2 as eventConstants
+from zenoss.protocols.protobufs import model_pb2 as modelConstants
 
 class ProtobufMappings:
     """
@@ -28,13 +29,14 @@ class ProtobufMappings:
         '2': 'STATUS_SUPPRESSED'}
 
     priorities = {
-        '-1': 'PRIORITY_NONE',
-        '0': 'PRIORITY_EMERGENCY',
-        '1': 'PRIORITY_ALERT',
-        '2': 'PRIORITY_CRITICAL',
-        '3': 'PRIORITY_ERROR',
-        '4': 'PRIORITY_WARNING',
-        '6': 'PRIORITY_NOTICE'}
+        '-1': 'SYSLOG_PRIORITY_DEBUG',
+        '0': 'SYSLOG_PRIORITY_EMERG',
+        '1': 'SYSLOG_PRIORITY_ALERT',
+        '2': 'SYSLOG_PRIORITY_CRIT',
+        '3': 'SYSLOG_PRIORITY_ERR',
+        '4': 'SYSLOG_PRIORITY_WARNING',
+        '5': 'SYSLOG_PRIORITY_NOTICE',
+        '6': 'SYSLOG_PRIORITY_INFO'}
 
     severities = {
         '0': 'SEVERITY_CLEAR',
@@ -58,7 +60,7 @@ class ProtobufMappings:
             return
         if not str(constant) in mapping.keys():
             raise AssertionError("%s is not a valid value of %s " % (constant, mapping))
-        value = getattr(proto, mapping[str(constant)])
+        value = getattr(eventConstants, mapping[str(constant)])
         setattr(proto, field, value)
 
     def setSeverity(self, proto, zenossSeverityConstant):
@@ -79,19 +81,9 @@ class ProtobufMappings:
         @type  zenossPriorityConstant: int
         @param zenossPriorityConstant:
         """
-        self._setMapping(proto, 'priority', zenossPriorityConstant, self.priorities)
+        self._setMapping(proto, 'syslog_priority', zenossPriorityConstant, self.priorities)
 
-    def setEventStatus(self, proto, zenossStatusConstant):
-        """
-        Assumes the constant to be one of our status mappings
-        @type  proto: Protobuf
-        @param proto: Protobuf we want the status set on
-        @type  zenossStatusConstant: int
-        @param zenossStatusConstant:
-        """
-        self._setMapping(proto, 'status', zenossStatusConstant, self.event_statuses)
-
-
+        
 class ObjectProtobuf(object):
     """
     Base class for common methods on the protobuf populators
@@ -134,6 +126,7 @@ class DeviceProtobuf(ObjectProtobuf):
     def fill(self, proto):
         self.autoMapFields(proto)
         proto.ip_address = self.obj.manageIp
+        proto.production_state = self.obj.productionState
         # className
         deviceClass = self.obj.deviceClass()
         if deviceClass:
@@ -176,8 +169,9 @@ class DeviceComponentProtobuf(ObjectProtobuf):
         self.autoMapFields(proto)
         # use device protobuf to fill out our device property
         device = self.obj.device()
-        populator = DeviceProtobuf(device)
-        populator.fill(proto.device)
+        if device:
+            populator = DeviceProtobuf(device)
+            populator.fill(proto.device)
         return proto
 
 
@@ -185,95 +179,88 @@ class EventProtobuf(ObjectProtobuf):
     """
     Fills up the properties of an event
     """
+    # event property, protobuf property
+    fieldMappings = {
+        'dedupid': 'fingerprint',
+        'eventClassKey': 'event_class_key',
+        'summary': 'summary',
+        'message': 'message',        
+        'clearid': 'cleared_by_event_uuid',
+        'monitor': 'monitor',
+        'manager': 'manager',
+        'agent': 'agent',
+        'eventGroup': 'event_group',
+        'eventKey': 'event_key',
+        'ntevid': 'nt_event_code'}
 
-    detailFields = ('stateChange', 'suppid', 'ntevid')
-
-    def __init__(self, obj, dmd=False):
+    def __init__(self, obj):
         ObjectProtobuf.__init__(self, obj)
         self.mapping = ProtobufMappings()
-
-    def _lookupActor(self, event,  actorId, type):
-        """
-        This returns the zope object for the actor
-        that we are looking at specifically for this event
-        """
-        if type == "device":
-            return self.dmd.Devices.findDevice(actorId)
-        if type == "component":
-            device = self.dmd.Devices.findDevice(event.device)
-            if device:
-                for component in device.getDeviceComponents():
-                    if component.id == actorId:
-                        return component
 
     def setActor(self, proto):
         """
         This sets the "actor" attribute of the event.
         Can be any combination of device/component/service (including
         all three).
-        """
-        # type is defaulted to 1 need to know if I set it or not
+        """        
         event = self.obj
-        for type in ('component', 'device', 'service'):
-            if hasattr(event, type):
-                # device doesn't exist in our database, just id it
-                actorName = getattr(event, type)
-                # set type
-                obj = self._lookupActor(event, getattr(event, type), type)
-                subproto = getattr(proto.actor, type)
-                if obj:
-                    # fill out all the properties we can
-                    populator = IProtobufSerializer(obj)
-                    populator.fill(subproto)
-                elif actorName:
-                     # it doesn't exist in our database (yet)
-                    subproto.id = actorName
-
+        actor = proto.actor
+        # there should always be a device
+        actor.element_type_id = modelConstants.DEVICE
+        actor.element_identifier = event.device
+        # there is not always a component
+        if hasattr(event, 'component') and event.component:
+            actor.element_sub_type_id = modelConstants.COMPONENT
+            actor.element_sub_identifier = event.component
+        
     def fillDetails(self, proto):
         """
         These are just extra fields on the event. The specific
         fields are defined in "self.detailFields"
         """
         event = self.obj
-        for field in self.detailFields:
-            if hasattr(event, field):
-                value = getattr(event, field)
-                if not value:
-                    continue
+        # make sure details were set
+        if not hasattr(event, 'detaildata'):
+            return
+        # make sure something is there
+        if not event.detaildata:
+            return
+        for (field, value) in event.detaildata.iteritems():
                 detail = proto.details.add()
                 detail.name = field
                 detail.value.append(value)
 
-    def fill(self, proto, dmd):
+    def fill(self, proto):
         """
         Sets up the event protobuf properties from the event.  If the name of
         the protobuf property is the same as the event property, then it will be
         mapped automatically assuming they are the same type.
-        """
-        self.dmd = dmd
+        """        
         event = self.obj
-        # evid must be set at this point
-        proto.uuid = event.evid
+                
         if hasattr(event, 'eventClass'):
-            proto.event_class.className = event.eventClass
+            proto.event_class = event.eventClass
         else:
-            proto.event_class.className = "/Unknown"
-        self.autoMapFields(proto)
-        proto.event_class.key = event.eventKey
-        proto.created_time = int(event.firstTime)
-        proto.first_seen_time = int(event.firstTime)
-        proto.last_seen_time = int(event.lastTime)
+            proto.event_class = "/Unknown"
+
         self.mapping.setSeverity(proto, event.severity)
+
         if hasattr(event, 'priority'):
             self.mapping.setPriority(proto, event.priority)
-        if hasattr(event, 'eventState'):
-            self.mapping.setEventStatus(proto, event.eventState)
-        if hasattr(event, 'eventKey'):
-            proto.event_key = event.eventKey
-        if hasattr(event, 'ipAddress'):
-            proto.ip_address = event.ipAddress
-        if hasattr(event, 'ownerid'):
-            proto.owner_id = event.ownerid
+        
+        # facility may be a string and we expect an integer
+        if hasattr(event, 'facility'):
+            try:
+                proto.syslog_facility = int(event.facility)
+            except (ValueError, TypeError):
+                # we can't set it so ignore it
+                pass
+
+        # do our simple mappings
+        for eventProperty,protoProperty in self.fieldMappings.iteritems():
+            if hasattr(event, eventProperty):
+                value = getattr(event, eventProperty)
+                setattr(proto, protoProperty, value)
 
         self.setActor(proto)
         self.fillDetails(proto)
