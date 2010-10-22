@@ -127,8 +127,8 @@ class SpeedUpGlobalCatalog(Migrate.Step):
         cat = ICatalogTool(dmd)
         brains = cat.search(types=(OperatingSystem,Software))
         for brain in brains:
-            dmd.global_catalog.uncatalog_object(brain.getObject())
-
+            dmd.global_catalog.uncatalog_object(brain.getPath())
+            
     def cutover(self, dmd):
         """
         """
