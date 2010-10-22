@@ -165,6 +165,11 @@
         </td>
         <td class="tableheader" colspan="2">
             <select class="tablevalues" name="eventAgingSeverity:int">
+                <!-- Select a value higher than all known severities
+                     for next option so that all severity levels can be aged.-->
+                <option value="11"
+                    tal:attributes="selected python:11== here.eventAgingSeverity" 
+                    tal:content="python:'Age All Severities'"/>
                 <option tal:repeat="sev here/getSeverities"
                     tal:content="python:sev[0]"
                     tal:attributes="value python:sev[1];
