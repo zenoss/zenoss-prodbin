@@ -68,8 +68,8 @@ public class OverrideTemplateToDevice {
 			Thread.sleep(12000);
 			
 			// Define name of test devices to be added at /Server/Linux class
-			String testDeviceName = "test-tomcat_001";
-			String testDeviceName2 = "test-tomcat_002";
+			String testDeviceName = "test-tomcat_01";
+			String testDeviceName2 = "test-tomcat_02";
 			
 			//Open page
 			sClient.open("/zport/dmd/Dashboard");
