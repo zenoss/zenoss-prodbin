@@ -15,9 +15,7 @@ __doc__="""DeviceComponent
 
 All device components inherit from this class
 
-$Id: DeviceComponent.py,v 1.1 2004/04/06 21:05:03 edahl Exp $"""
-
-__version__ = "$Revision: 1.1 $"[11:-2]
+"""
 
 from Globals import InitializeClass
 from AccessControl import ClassSecurityInfo
@@ -41,7 +39,8 @@ class DeviceComponent(Lockable):
 
     default_catalog = "componentSearch"
 
-    collectors = ('zenperfsnmp', 'zencommand', 'zenwinperf')
+    collectors = ('zenperfsnmp', 'zencommand', 'zenwinperf',
+                  'zenping')
 
     security = ClassSecurityInfo()
 

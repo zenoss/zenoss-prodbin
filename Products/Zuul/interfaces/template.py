@@ -98,6 +98,14 @@ class ISNMPDataSourceInfo(IInfo):
     enabled = schema.Bool(title=_t(u'Enabled'))
 
 
+class IPingDataSourceInfo(IRRDDataSourceInfo):
+    """
+    Adaps a basic Datasource of type PING
+    """
+    attempts = schema.Int(title=_t(u'Number of pings to determine up/down status'),
+                                   vtype='positive')
+
+
 class IDataPointInfo(IInfo):
     """
     Adapts RRDDataPoint.

@@ -25,6 +25,7 @@ from Products.ZenRelations.RelSchema import *
 from Products.ZenModel.RRDDataSource import SimpleRRDDataSource
 from Products.ZenModel.BasicDataSource import BasicDataSource
 from Products.ZenModel.BuiltInDS import BuiltInDS
+from Products.ZenModel.PingDataSource import PingDataSource
 from Products.ZenModel.ConfigurationError import ConfigurationError
 from Products.ZenUtils.Utils import importClass
 from Products.ZenWidgets import messaging
@@ -453,7 +454,7 @@ class RRDTemplate(ZenModelRM, ZenPackable):
 
 
     def getDataSourceClasses(self):
-        dsClasses = [BasicDataSource, BuiltInDS]
+        dsClasses = [BasicDataSource, BuiltInDS, PingDataSource]
         for zp in self.dmd.ZenPackManager.packs():
             dsClasses += zp.getDataSourceClasses()
         return dsClasses

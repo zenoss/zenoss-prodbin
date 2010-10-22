@@ -364,6 +364,14 @@ class CommandDataSourceInfo(BasicDataSourceInfo):
     resultsCacheable = ProxyProperty('resultsCacheable')
 
 
+class PingDataSourceInfo(RRDDataSourceInfo):
+    implements(templateInterfaces.IPingDataSourceInfo)
+    """
+    DataSource for PING
+    """
+    attempts = ProxyProperty('attempts')
+
+
 class DataPointInfo(InfoBase):
     implements(templateInterfaces.IDataPointInfo)
 

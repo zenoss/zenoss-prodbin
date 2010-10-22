@@ -126,6 +126,7 @@ productNames = (
     'Organizer',
     'PerformanceConf',
     'PerformanceView',
+    'PingDataSource',
     'PowerSupply',
     'PrintGraphPoint',
     'ProductClass',

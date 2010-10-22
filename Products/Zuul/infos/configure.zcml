@@ -64,6 +64,10 @@
              for="Products.ZenModel.BasicDataSource.BasicDataSource"
              provides="..interfaces.IBasicDataSourceInfo"/>
 
+    <adapter factory=".template.PingDataSourceInfo"
+             for="Products.ZenModel.PingDataSource.PingDataSource"
+             provides="..interfaces.IPingDataSourceInfo"/>
+
     <adapter factory=".template.DataPointAliasInfo"
              for="Products.ZenModel.RRDDataPointAlias.RRDDataPointAlias"
              provides="..interfaces.IDataPointAlias"/>
