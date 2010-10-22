@@ -67,7 +67,7 @@ public class OverrideTemplateToClass {
 			Common.Login(sClient, ZenossConstants.adminUserName,ZenossConstants.adminPassword);
 			Thread.sleep(12000);
 			
-			// Defime name and add test device at /Ping class
+			// Define name and add test device at /Ping class
 			String pingDeviceName = "pingDeviceTest";
 			Device addDevice = new Device("" + pingDeviceName + "",sClient);
 			addDevice.add(""+"/Ping"+"");
