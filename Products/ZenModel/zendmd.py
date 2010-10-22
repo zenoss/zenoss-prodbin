@@ -1,4 +1,4 @@
-#!/usr/bin/env python2.4
+#!/usr/bin/env python
 ###########################################################################
 #
 # This program is part of Zenoss Core, an open source monitoring platform.
@@ -20,6 +20,7 @@ import atexit
 import logging
 from subprocess import Popen, PIPE
 from optparse import OptionParser
+import re
 
 try:
     import readline
@@ -65,6 +66,8 @@ from AccessControl.SecurityManagement import newSecurityManager
 from AccessControl.SecurityManagement import noSecurityManager
 from Products.ZenUtils.Utils import zenPath, set_context
 from Products.ZenModel.IpNetwork import IpNetworkPrinterFactory
+from Products.ZenRelations.ZenPropertyManager import PropertyDescriptor
+from Products.ZenUtils.Utils import monkeypatch
 
 _CUSTOMSTUFF = []
 
@@ -411,6 +414,18 @@ class HistoryConsole(code.InteractiveConsole):
             return False
         return code.InteractiveConsole.runsource(self, source, filename)
 
+# prevent someone trying to set a python property when they meant to use
+# zen property.
+looksLikeZProp = re.compile('z([A-Z]{1}[\w]+)+').match
+
+PROPERTY_DESCRIPTOR__SET = PropertyDescriptor.__set__
+@monkeypatch(PropertyDescriptor)
+def __set__(self, instance, value):
+    if looksLikeZProp(self.id):
+        print "You can not set zProperties in this fashion. Consult the documentation for setZenProperty."
+    else:
+        PROPERTY_DESCRIPTOR__SET(self, instance, value)
+    
 
 if __name__=="__main__":
     # Do we want to connect to a database other than the one specified in
