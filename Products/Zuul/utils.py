@@ -185,7 +185,7 @@ def _translateZPropertyValue(zProp, translate, value):
     try:
         return translate(value)
     except Exception, e:
-        args = zProp, ancestorValue, e.__class__.__name__, e
+        args = zProp, value, e.__class__.__name__, e
         raise Exception('Unable to translate %s "%s" (%s: %s)' % args)
 
 def getAcquiredZPropertyInfo(obj, zProp, translate=lambda x: x):
