@@ -32,7 +32,11 @@ from Products.ZenUtils.IpUtil import isip
 parsers = (
 # generic mark
 r"^(?P<summary>-- (?P<eventClassKey>MARK) --)",
-    
+
+# Cisco UCS
+# : 2010 Oct 19 15:47:45 CDT: snmpd: SNMP Operation (GET) failed. Reason:2 reqId (257790979) errno (42) error index (1)
+r'^: \d{4} \w{3}\s+\d{1,2}\s+\d{1,2}:\d\d:\d\d \w{3}: (?P<eventClassKey>[^:]+): (?P<summary>.*)',
+
 # ntsyslog windows msg
 r"^(?P<component>.+)\[(?P<ntseverity>\D+)\] (?P<ntevid>\d+) (?P<summary>.*)",
 
