@@ -167,7 +167,8 @@ class RenderServer(RRDToolItem):
             ret = {'success':success}
             if success:
                 ret['data'] = b64encode(graph)
-            REQUEST.RESPONSE.setHeader('Content-Type', 'text/javascript')
+            if REQUEST:
+                REQUEST.RESPONSE.setHeader('Content-Type', 'text/javascript')
             return """Zenoss.SWOOP_CALLBACKS["%s"]('%s')""" % (graphid, json.dumps(ret))
 
 
