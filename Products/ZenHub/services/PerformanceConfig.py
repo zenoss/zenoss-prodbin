@@ -173,7 +173,7 @@ class PerformanceConfig(HubService, ThresholdMixin):
 
         # Push a deleteDevice call if the device was previously assigned to
         # this collector.
-        elif prev_collector in (None, self.instance):
+        elif prev_collector and prev_collector == self.instance:
             cfg = None
 
         # Don't do anything if this collector is not, and has not been involved
