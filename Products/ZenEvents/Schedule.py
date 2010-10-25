@@ -144,6 +144,7 @@ class Schedule:
                     eventClass=Status_Update,
                     eventClassKey="mw_change",
                     summary=msg,
+                    eventKey='|'.join([mwId,devices]),
                     maintenance_window=mwId,
                     maintenance_devices=devices,
                     device=self.monitor,
