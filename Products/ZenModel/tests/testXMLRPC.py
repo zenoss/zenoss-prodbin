@@ -55,7 +55,7 @@ class TestXmlRpc(unittest.TestCase):
             self.fail( msg )
 
 
-    def testGetEvents(self):
+    def _testGetEvents(self):
         "Look for events in the Event Console using XML-RPC"
         try:
             serv = ServerProxy( self.baseUrl + 'ZenEventManager' )
@@ -67,7 +67,7 @@ class TestXmlRpc(unittest.TestCase):
         # NB: it's possible that we don't have any events yet
 
 
-    def testCreateEvent(self):
+    def _testCreateEvent(self):
         "Create an event using XML-RPC"
         serv = ServerProxy( self.baseUrl + 'ZenEventManager' )
         evt = {
@@ -88,7 +88,7 @@ class TestXmlRpc(unittest.TestCase):
         self.assert_( len(post_events) >= 1 )
 
 
-    def testClearEvent(self):
+    def _testClearEvent(self):
         "Clear an event using XML-RPC"
         serv = ServerProxy( self.baseUrl + 'ZenEventManager' )
         evt = {
