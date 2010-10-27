@@ -105,6 +105,9 @@ class ObjectProtobuf(object):
 
         # attempt to match the fields that are named the same
         for field in fields:
+            # already set
+            if field.name == "uuid":
+                continue
             value = getattr(self.obj, field.name, None)
             # we want 0's
             if value is None:
@@ -154,10 +157,9 @@ class OrganizerProtobuf(ObjectProtobuf):
 
     implements(IProtobufSerializer)
 
-    def fill(self, proto):
-        self.autoMapFields(proto)
+    def fill(self, proto):        
+        self.autoMapFields(proto)        
         return proto
-
 
 class DeviceComponentProtobuf(ObjectProtobuf):
     """

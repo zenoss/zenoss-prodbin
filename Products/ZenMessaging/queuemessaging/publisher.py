@@ -50,8 +50,10 @@ class ModelChangePublisher(object):
             serializer = IProtobufSerializer(ob)
             return serializer.fill(proto)
         except TypeError:
-            log.warn("Could not adapt %s to a protobuf" % ob)
-            return proto
+            import traceback
+            tc = traceback.format_exc()
+            log.warn("Could not adapt %s to a protobuf serializer: %s " % (ob, tc))
+        return proto
 
     def _createModelEventProtobuf(self, ob, eventType):
         """
@@ -194,14 +196,14 @@ class EventPublisher(object):
 
     EXCHANGE_NAME = "zenoss.zenevents.raw"
 
-    def publish(self, event):        
+    def publish(self, event):
         serializer = IProtobufSerializer(event)
         proto = EventProtobuf()
         serializer.fill(proto)
         eventClass = "/Unknown"
         if hasattr(event, 'eventClass'):
             eventClass = event.eventClass
-        routing_key = "zenoss.zenevent%s" % eventClass.replace('/', '.')
+        routing_key = "zenoss.zenevent%s" % eventClass.replace('/', '.').lower()
         publisher = getUtility(IQueuePublisher)
         log.debug("About to publish this event to the raw event queue:%s, with this routing key: %s" % (proto, routing_key))
         publisher.publish(self.EXCHANGE_NAME, routing_key, proto, exchange_type='topic')
@@ -251,13 +253,13 @@ class BlockingQueuePublisher(object):
         """
         blockingpublish(exchange, routing_key, message, exchange_type)
 
-        
+
 class DummyQueuePublisher(object):
     """
     Class for the unit tests that ignores all messages
     """
     implements(IQueuePublisher)
-    
+
     def publish(self, exchange, routing_key, message, exchange_type="topic"):
         """
         Publishes a message to an exchange. If twisted is running

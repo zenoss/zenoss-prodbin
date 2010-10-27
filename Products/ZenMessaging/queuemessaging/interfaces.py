@@ -10,7 +10,7 @@
 # For complete information please visit: http://www.zenoss.com/oss/
 #
 ###########################################################################
-from zope.interface import Interface
+from zope.interface import Interface, Attribute
 
 
 class IQueuePublisher(Interface):
@@ -44,4 +44,20 @@ class IProtobufSerializer(Interface):
         @return:  The same protobuf passed in but with its properties set
         """
 
+class IQueueConsumerTask(Interface):
+    """
+    A Task that is called once for every message that comes from the Queue. It is
+    up to the task to acknowledge that message.
+    """
 
+    queueConsumer = Attribute("The consumer this task is proceessing a message for")
+    exchange = Attribute("The name of the exchange the task wants to listen to")
+    routing_key = Attribute("The Routing Key used to bind the queue to the exchange")
+    queue_name = Attribute("The name of the queue that this task will listen to.")
+    exchange_type = Attribute("The type of exchange (topic, direct, fanout)")
+    
+    def processMessage(message):
+        """
+        Handles a queue message, can call "acknowledge" on the Queue Consumer
+        class when it is done with the message        
+        """

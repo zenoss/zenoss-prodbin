@@ -18,6 +18,7 @@ and higher.
 See http://zestyping.livejournal.com/157957.html for more info and
 the code is available from http://zesty.ca/python/
 """
+import urllib
 from uuid import uuid1, uuid3, uuid4, uuid5
 from BTrees.OOBTree import OOBTree
 from zope.event import notify
@@ -104,6 +105,7 @@ class GUIDManager(object):
     def getObject(self, guid):
         path = self.getPath(guid)
         if path is not None:
+            path =urllib.unquote(path)
             return self.traverse(path)
 
     def setPath(self, guid, path):
