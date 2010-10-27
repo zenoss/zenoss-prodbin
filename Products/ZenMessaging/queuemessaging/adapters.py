@@ -83,7 +83,7 @@ class ProtobufMappings:
         """
         self._setMapping(proto, 'syslog_priority', zenossPriorityConstant, self.priorities)
 
-        
+
 class ObjectProtobuf(object):
     """
     Base class for common methods on the protobuf populators
@@ -157,8 +157,8 @@ class OrganizerProtobuf(ObjectProtobuf):
 
     implements(IProtobufSerializer)
 
-    def fill(self, proto):        
-        self.autoMapFields(proto)        
+    def fill(self, proto):
+        self.autoMapFields(proto)
         return proto
 
 class DeviceComponentProtobuf(ObjectProtobuf):
@@ -191,7 +191,7 @@ class EventProtobuf(ObjectProtobuf):
         'monitor': 'monitor',
         'agent': 'agent',
         'eventGroup': 'event_group',
-        'eventKey': 'event_key'}        
+        'eventKey': 'event_key'}
 
     def __init__(self, obj):
         ObjectProtobuf.__init__(self, obj)
@@ -200,23 +200,23 @@ class EventProtobuf(ObjectProtobuf):
     def coerceToInteger(self, event, field, proto, protoField):
         """
         Some of our protobufs expect integers where the collectors deliver
-        strings. This method forces them to be integers.        
+        strings. This method forces them to be integers.
         """
         if hasattr(event, field):
             try:
                 value = getattr(event, field)
-                value = int(value)                
+                value = int(value)
                 setattr(proto, protoField, value)
             except (ValueError, TypeError):
                 # we can't convert, it so ignore it
                 pass
-            
+
     def setActor(self, proto):
         """
         This sets the "actor" attribute of the event.
         Can be any combination of device/component/service (including
         all three).
-        """        
+        """
         event = self.obj
         actor = proto.actor
         # there should always be a device
@@ -226,7 +226,7 @@ class EventProtobuf(ObjectProtobuf):
         if hasattr(event, 'component') and event.component:
             actor.element_sub_type_id = modelConstants.COMPONENT
             actor.element_sub_identifier = event.component
-        
+
     def fillDetails(self, proto):
         """
         These are just extra fields on the event. The specific
@@ -242,16 +242,16 @@ class EventProtobuf(ObjectProtobuf):
         for (field, value) in event.detaildata.iteritems():
                 detail = proto.details.add()
                 detail.name = field
-                detail.value.append(value)
+                detail.value.append(str(value))
 
     def fill(self, proto):
         """
         Sets up the event protobuf properties from the event.  If the name of
         the protobuf property is the same as the event property, then it will be
         mapped automatically assuming they are the same type.
-        """        
+        """
         event = self.obj
-                
+
         if hasattr(event, 'eventClass'):
             proto.event_class = event.eventClass
         else:
@@ -261,14 +261,14 @@ class EventProtobuf(ObjectProtobuf):
 
         if hasattr(event, 'priority'):
             self.mapping.setPriority(proto, event.priority)
-        
-        # facility may be a string and we expect an integer        
+
+        # facility may be a string and we expect an integer
         self.coerceToInteger(event, 'facility', proto, 'syslog_facility')
         self.coerceToInteger(event, 'ntevid', proto, 'nt_event_code')
-        
+
         # do our simple mappings
         for eventProperty,protoProperty in self.fieldMappings.iteritems():
-            if hasattr(event, eventProperty):                
+            if hasattr(event, eventProperty):
                 value = getattr(event, eventProperty)
                 setattr(proto, protoProperty, value)
 
