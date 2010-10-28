@@ -1,4 +1,4 @@
-#! /usr/bin/env python 
+#! /usr/bin/env python
 ###########################################################################
 #
 # This program is part of Zenoss Core, an open source monitoring platform.
@@ -36,7 +36,8 @@ from zope.interface import implements
 
 from Products.DataCollector.Plugins import loadPlugins
 from Products.ZenUtils.ZCmdBase import ZCmdBase
-from Products.ZenUtils.Utils import zenPath, getExitMessage, unused
+from Products.ZenUtils.Utils import zenPath, getExitMessage, unused,\
+    load_config_override
 from Products.ZenUtils.DaemonStats import DaemonStats
 from Products.ZenEvents.Event import Event, EventHeartbeat
 from Products.ZenEvents.ZenEventClasses import App_Start
@@ -88,8 +89,8 @@ class AuthXmlRpcService(XmlRpcService):
         @return: None
         """
         self._cbRender(xmlrpc.Fault(self.FAILURE, "Unauthorized"), request)
-        
-    
+
+
     def render(self, request):
         """
         Unpack the authorization header and check the credentials.
@@ -134,7 +135,7 @@ class HubAvitar(pb.Avatar):
         Allow a collector to find a Hub service by name.  It also
         associates the service with a collector so that changes can be
         pushed back out to collectors.
-        
+
         @type serviceName: string
         @param serviceName: a name, like 'EventService'
         @type instance: string
@@ -151,7 +152,7 @@ class HubAvitar(pb.Avatar):
     def perspective_reportingForWork(self, worker):
         """
         Allow a worker register for work.
-        
+
         @type worker: a pb.RemoteReference
         @param worker: a reference to zenhubworker
         @return None
@@ -208,11 +209,11 @@ class WorkerInterceptor(pb.Referenceable):
     def addListener(self, listener):
         "Implement the HubService interface by forwarding to the local service"
         return self.service.addListener(listener)
-        
+
     def removeListener(self, listener):
         "Implement the HubService interface by forwarding to the local service"
         return self.service.removeListener(listener)
-        
+
     def update(self, object):
         "Implement the HubService interface by forwarding to the local service"
         return self.service.update(object)
@@ -271,8 +272,11 @@ class ZenHub(ZCmdBase):
         xmlsvc = AuthXmlRpcService(self.dmd, checker)
         reactor.listenTCP(self.options.xmlrpcport, server.Site(xmlsvc))
 
+        # responsible for sending messages to the queues
+        import Products.ZenMessaging.queuemessaging
+        load_config_override('twistedpublisher.zcml', Products.ZenMessaging.queuemessaging)
 
-        self.sendEvent(eventClass=App_Start, 
+        self.sendEvent(eventClass=App_Start,
                        summary="%s started" % self.name,
                        severity=0)
 
@@ -404,17 +408,17 @@ class ZenHub(ZCmdBase):
 
     def deferToWorker(self, args):
         """Take a remote request and queue it for worker processes.
-        
+
         @type args: tuple
         @param args: the arguments to the remote_execute() method in the worker
-        @return: a Deferred for the eventual results of the method call 
-        
+        @return: a Deferred for the eventual results of the method call
+
         """
         d = defer.Deferred()
         svcName, instance, method = args[:3]
         service = self.getService(svcName, instance).service
         priority = service.getMethodPriority(method)
-        
+
         if self.options.prioritize:
             # Insert job into workList so that it stays sorted by priority.
             for i, job in enumerate(self.workList):
@@ -426,7 +430,7 @@ class ZenHub(ZCmdBase):
         else:
             # Run jobs on a first come, first serve basis.
             self.workList.append( (d, priority, args) )
-        
+
         self.giveWorkToWorkers()
         return d
 
@@ -497,7 +501,7 @@ class ZenHub(ZCmdBase):
 
             def errReceived(s, data):
                 self.log.info("Worker reports %s" % (data,))
-                
+
             def processEnded(s, reason):
                 os.unlink(tmp)
                 self.worker_processes.discard(s)
@@ -512,7 +516,7 @@ class ZenHub(ZCmdBase):
         """
         Since we don't do anything on a regular basis, just
         push heartbeats regularly.
-        
+
         @return: None
         """
         seconds = 30
@@ -530,7 +534,7 @@ class ZenHub(ZCmdBase):
             r.gauge('workListLength', seconds, len(self.workList))
             )
 
-        
+
     def main(self):
         """
         Start the main event loop.

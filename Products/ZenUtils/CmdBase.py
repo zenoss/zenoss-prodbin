@@ -86,15 +86,13 @@ class CmdBase(object):
                 zcml.load_config('configure.zcml', Products.ZenChain)
             except AttributeError:
                 # Could be that we're in a pre-Product-installation Zope, e.g. in
-                # zenwipe. No problem, we won't need this stuff now anyway.                
+                # zenwipe. No problem, we won't need this stuff now anyway.
                 pass
         import Products.ZenMessaging
-        zcml.load_config('configure.zcml', Products.ZenMessaging)        
+        zcml.load_config('configure.zcml', Products.ZenMessaging)
         import Products.ZenWidgets
         load_config_override('scriptmessaging.zcml', Products.ZenWidgets)
-        # responsible for sending messages to the queues
-        import Products.ZenMessaging.queuemessaging
-        load_config_override('twistedpublisher.zcml', Products.ZenMessaging.queuemessaging)
+
         self.usage = "%prog [options]"
         self.noopts = noopts
         self.inputArgs = args
