@@ -30,6 +30,8 @@ class IQueuePublisher(Interface):
         @param message: message we are sending in the queue
         """
 
+    channel = Attribute("Retrieves the connection to the queue")
+
 class IProtobufSerializer(Interface):
     """
     Interfaces fro converting a Zope object to a protobuf.
@@ -55,9 +57,9 @@ class IQueueConsumerTask(Interface):
     routing_key = Attribute("The Routing Key used to bind the queue to the exchange")
     queue_name = Attribute("The name of the queue that this task will listen to.")
     exchange_type = Attribute("The type of exchange (topic, direct, fanout)")
-    
+
     def processMessage(message):
         """
         Handles a queue message, can call "acknowledge" on the Queue Consumer
-        class when it is done with the message        
+        class when it is done with the message
         """

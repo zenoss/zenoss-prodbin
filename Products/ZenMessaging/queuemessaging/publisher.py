@@ -12,7 +12,7 @@
 ###########################################################################
 from zope.interface import implements
 from zenoss.protocols.twisted.amqp import AMQPFactory
-from zenoss.protocols.amqp import publish as blockingpublish
+from zenoss.protocols.amqp import Publisher as BlockingPublisher
 from Products.ZenUtils.guid.interfaces import IGlobalIdentifier
 from Products.ZenUtils.guid import generate
 from zope.component import getUtility
@@ -21,8 +21,8 @@ from interfaces import IQueuePublisher, IProtobufSerializer
 from zenoss.protocols.protobufs.modelevents_pb2 import ModelEventList
 from Products.ZenModel.Device import Device
 from Products.ZenModel.DeviceComponent import DeviceComponent
-from Products.Zuul.utils import get_dmd
-
+from Products.ZenUtils.transaction_contextmanagers import nested_transaction
+from Products.ZenUtils.AmqpDataManager import AmqpDataManager
 
 import logging
 log = logging.getLogger('zen.queuepublisher')
@@ -181,6 +181,8 @@ class PublishSynchronizer(object):
             if publisher:
                 msg = self.correlateEvents(publisher.msg)
                 queuePublisher = getUtility(IQueuePublisher)
+                dataManager = AmqpDataManager(queuePublisher.channel, tx._manager)
+                tx.join(dataManager)
                 queuePublisher.publish(EXCHANGE, ROUTE_KEY, msg)
             else:
                 log.debug("no publisher found on tx %s" % tx)
@@ -233,11 +235,23 @@ class AsyncQueuePublisher(object):
         self._amqpClient.send(exchange, routing_key, message, exchange_type)
 
 
+    @property
+    def channel(self):
+        return self._amqpClient.channel
+
+    def close(self):
+        self.channel.close()
+
 class BlockingQueuePublisher(object):
     """
     Class that is responsible for sending messages to the amqp exchange.
     """
     implements(IQueuePublisher)
+
+    def __init__(self):
+        """
+        """
+        self._client = BlockingPublisher()
 
     def publish(self, exchange, routing_key, message, exchange_type="topic"):
         """
@@ -251,8 +265,18 @@ class BlockingQueuePublisher(object):
         @type  message: string or Protobuff
         @param message: message we are sending in the queue
         """
-        blockingpublish(exchange, routing_key, message, exchange_type)
+        self._client.publish(exchange, routing_key, message, exchange_type)
 
+    @property
+    def channel(self):
+        return self._client.getChannel()
+
+    def close(self):
+        """
+        Closes the channel and connection
+        """
+        self.channel.close()
+        self._client.connection.close()
 
 class DummyQueuePublisher(object):
     """
@@ -274,3 +298,6 @@ class DummyQueuePublisher(object):
         """
         pass
 
+    @property
+    def channel(self):
+        return None
