@@ -80,6 +80,13 @@
     />
 
 <browser:directRouter
+    name="triggers_router"
+    for="*"
+    class=".triggers.TriggersRouter"
+    namespace="Zenoss.remote"
+    />
+
+<browser:directRouter
     name="zenpack_router"
     for="*"
     class=".zenpack.ZenPackRouter"

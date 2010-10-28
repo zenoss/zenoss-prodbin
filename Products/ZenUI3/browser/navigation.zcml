@@ -81,7 +81,7 @@
         <browser:viewlet
             name="Event Classes"
             url="/zport/dmd/Events/eventClassStatus"
-            subviews="/zport/dmd/Events(?!/evconsole$|/evhistory$)"
+            subviews="/zport/dmd/Events(?!/evconsole$|/evhistory$|/triggers$)"
             weight="2"
             parentItem="Events"
             manager="..navigation.interfaces.ISecondaryNavigationMenu"
@@ -101,6 +101,17 @@
             layer="..navigation.interfaces.IZenossNav"
             />
 
+        <browser:viewlet
+            name="Triggers"
+            url="/zport/dmd/Events/triggers"
+            weight="4"
+            parentItem="Events"
+            manager="..navigation.interfaces.ISecondaryNavigationMenu"
+            class="..navigation.menuitem.SecondaryNavigationMenuItem"
+            permission="zenoss.Common"
+            layer="..navigation.interfaces.IZenossNav"
+            />
+    
     <browser:viewlet
         name="Infrastructure"
         url="/zport/dmd/itinfrastructure"

@@ -71,6 +71,7 @@ from device import *
 from component import *
 from info import *
 from tree import *
+from triggers import *
 from template import *
 from command import *
 from network import *

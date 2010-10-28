@@ -278,3 +278,4 @@ from devicefacade import DeviceFacade
 from templatefacade import TemplateFacade
 from zenpackfacade import ZenPackFacade
 from mibfacade import MibFacade
+from triggersfacade import TriggersFacade

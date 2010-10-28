@@ -149,6 +149,12 @@
              factory=".tree.CatalogTool"
              />
 
+    <adapter factory=".facades.TriggersFacade"
+             provides=".interfaces.IFacade"
+             name="triggers"
+             for="*"
+             />
+
     <include package=".routers"/>
     <include package=".catalog"/>
     <include package=".search"/>
