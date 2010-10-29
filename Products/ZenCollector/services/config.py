@@ -34,7 +34,7 @@ class DeviceProxy(pb.Copyable, pb.RemoteCopy):
         """
 
     def __str__(self):
-        return self.name
+        return self.id
 
 pb.setUnjellyableForClass(DeviceProxy, DeviceProxy)
 
