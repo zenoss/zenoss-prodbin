@@ -38,7 +38,7 @@ echo "creating database" >&2
 echo "CREATE DATABASE IF NOT EXISTS $MYSQLDB" | \
 mysql -h $MYSQLHOST -u $MYSQLUSER --password=$MYSQLPASS --port=$MYSQLPORT
 
-echo "dropping any triggers that my already exist" >&2
+echo "dropping existing triggers" >&2
 echo "DROP TRIGGER status_delete"  | \
 mysql -h $MYSQLHOST -u $MYSQLUSER --password=$MYSQLPASS --port=$MYSQLPORT $MYSQLDB 2>/dev/null
 

@@ -1,0 +1,122 @@
+#!/usr/bin/env python
+###########################################################################
+#
+# This program is part of Zenoss Core, an open source monitoring platform.
+# Copyright (C) 2010, Zenoss Inc.
+#
+# This program is free software; you can redistribute it and/or modify it
+# under the terms of the GNU General Public License version 2 as published by
+# the Free Software Foundation.
+#
+# For complete information please visit: http://www.zenoss.com/oss/
+#
+###########################################################################
+
+import optparse
+import os
+import re
+import sys
+import tempfile
+
+# Handles updating or removing settings from $ZENHOME/etc/global.conf. All
+# updates are performed atomically using a temporary file to prevent losing
+# configuration.
+
+SETTINGS_DELIM = re.compile(r'\s+')
+
+def zenPath(*args):
+    return os.path.abspath(os.path.join(os.environ['ZENHOME'], *args))
+
+def parse_settings(conf_file):
+    if not os.path.isfile(conf_file):
+        return
+    with open(conf_file) as global_conf:
+        for line in global_conf:
+            fields = re.split(SETTINGS_DELIM, line, 1)
+            name = None
+            if len(fields) > 1:
+                name = fields[0]
+            yield (line, name)
+
+def remove_settings(settings_to_remove):
+    filename = zenPath('etc', 'global.conf')
+    (tmpfd,tmpname) = tempfile.mkstemp(suffix='.conf',text=True)
+    output_file = os.fdopen(tmpfd, 'wb')
+    found_settings = set()
+    try:
+        for line, name in parse_settings(filename):
+            if name is None or name not in settings_to_remove:
+                output_file.write(line)
+            else:
+                found_settings.add(name)
+        output_file.close()
+        if len(found_settings) > 0:
+            os.rename(tmpname, filename)
+    finally:
+        try:
+            os.remove(tmpname)
+        except OSError:
+            pass
+
+def update_settings(settings_dict):
+    filename = zenPath('etc', 'global.conf')
+    (tmpfd,tmpname) = tempfile.mkstemp(suffix='.conf',text=True)
+    output_file = os.fdopen(tmpfd, 'wb')
+    found_settings = set()
+    try:
+        for line, name in parse_settings(filename):
+            if name is None or not name in settings_dict:
+                output_file.write(line)
+            elif name not in found_settings:
+                newval = settings_dict.get(name)
+                output_file.write("%s %s\n" % (name, newval))
+                found_settings.add(name)
+
+        for name, val in settings_dict.iteritems():
+            if not name in found_settings:
+                output_file.write("%s %s\n" % (name, val))
+
+        output_file.close()
+        os.rename(tmpname, filename)
+    finally:
+        try:
+            os.remove(tmpname)
+        except OSError:
+            pass
+
+def main():
+    if 'ZENHOME' not in os.environ:
+        print >> sys.stderr, (
+            "ZENHOME not set. You must run this script as the zenoss user.")
+        sys.exit(1)
+
+    parser = optparse.OptionParser(usage='%prog <-r|-u> prop_name[=prop_val] [...]')
+    parser.add_option('-r', '--remove', dest='remove', action="store_true",
+            help='Removes settings from the configuration file.')
+    parser.add_option('-u', '--update', dest='update', action="store_true",
+            help='Adds or updates settings in the configuration file.')
+    (options, args) = parser.parse_args(args=sys.argv[1:])
+
+    if len(args) == 0:
+        parser.error("required property names not provided")
+
+    if options.remove and options.update:
+        parser.error("options -r and -u are mutually exclusive")
+
+    if options.remove:
+        remove_settings(args)
+    else:
+        argsdict = {}
+        for arg in args:
+            splitargs = arg.split('=', 1)
+            if len(splitargs) != 2:
+                parser.error("invalid argument: %s" % arg)
+            name = splitargs[0].strip()
+            value = splitargs[1].strip()
+            if len(name) == 0 or len(value) == 0:
+                parser.error("invalid argument: %s" % arg)
+            argsdict[name] = value
+        update_settings(argsdict)
+
+if __name__ == '__main__':
+    main()
