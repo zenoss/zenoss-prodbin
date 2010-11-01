@@ -17,6 +17,7 @@ from Products.ZenUtils.guid.interfaces import IGlobalIdentifier, \
     IGloballyIdentifiable
 from zenoss.protocols.protobufs import zep_pb2 as eventConstants
 from zenoss.protocols.protobufs import model_pb2 as modelConstants
+from time import time
 
 class ProtobufMappings:
     """
@@ -191,7 +192,9 @@ class EventProtobuf(ObjectProtobuf):
         'monitor': 'monitor',
         'agent': 'agent',
         'eventGroup': 'event_group',
-        'eventKey': 'event_key'}
+        'eventKey': 'event_key',
+        'evid' : 'uuid',
+    }
 
     def __init__(self, obj):
         ObjectProtobuf.__init__(self, obj)
@@ -251,6 +254,9 @@ class EventProtobuf(ObjectProtobuf):
         mapped automatically assuming they are the same type.
         """
         event = self.obj
+
+        if not proto.created_time:
+            proto.created_time = int(time() * 1000)
 
         if hasattr(event, 'eventClass'):
             proto.event_class = event.eventClass
