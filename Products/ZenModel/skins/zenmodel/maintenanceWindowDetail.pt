@@ -6,11 +6,11 @@
 <form method=post 
     tal:attributes="action string:${here/absolute_url_path}">
     <input type="hidden" name="zenScreenName" 
-        tal:attributes="value here/id" /> 
+        tal:attributes="value here/id" />
 
 
         <tal:block tal:define="
-            editable python:here.has_permission('Maintenance Windows Edit');
+            editable python:here.has_permission('Maintenance Windows Edit', here);
             message string:State at time:;
             tabletitle string: ${message} ${here/getNowString}">
         <tal:block metal:use-macro="here/zenuimacros/macros/zentable">

@@ -1,6 +1,6 @@
 <form method="post" tal:attributes="action here/absolute_url_path"
     metal:define-macro="userCommandsTable"
-    tal:condition="python:here.has_permission('Define Commands View')">
+    tal:condition="python:here.has_permission('Define Commands View', here)">
 <input type="hidden" name="zenScreenName" tal:attributes="value template/id"/>
 <input type="hidden" name="editScreenName" tal:attributes="value string:userCommandDetailNew"/>
 
@@ -71,7 +71,7 @@ Optional titlebar stuff
 
 <form method="post" tal:attributes="action here/absolute_url_path"
     metal:define-macro="userCommandsTableBackCompat"
-    tal:condition="python:here.has_permission('Define Commands View')">
+    tal:condition="python:here.has_permission('Define Commands View', here)">
 <input type="hidden" name="zenScreenName" tal:attributes="value template/id"/>
 <input type="hidden" name="editScreenName" tal:attributes="value string:userCommandDetail"/>
 
