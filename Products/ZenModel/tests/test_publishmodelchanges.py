@@ -53,14 +53,6 @@ class TestPublishModelChanges(BaseTestCase):
         self.publisher.removeFromOrganizer(self.device, self.dmd.Devices)
         self.assertEqual(len(self.publisher.msg.events), 2)
 
-    def testCompletingTransaction(self):
-        # get some stuff in the queue
-        self.testAddToOrganizer()
-        sync = PUBLISH_SYNC
-        sync.beforeCompletionHook(transaction.get())
-        publisher = getModelChangePublisher()
-        self.assertEqual(len(publisher.msg.events), 0)        
-
     def testDeviceClassMove(self):
         """
         This test is a little tricky. When we move device classes

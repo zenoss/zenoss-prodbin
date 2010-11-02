@@ -36,8 +36,7 @@ from zope.interface import implements
 
 from Products.DataCollector.Plugins import loadPlugins
 from Products.ZenUtils.ZCmdBase import ZCmdBase
-from Products.ZenUtils.Utils import zenPath, getExitMessage, unused,\
-    load_config_override
+from Products.ZenUtils.Utils import zenPath, getExitMessage, unused, load_config_override
 from Products.ZenUtils.DaemonStats import DaemonStats
 from Products.ZenEvents.Event import Event, EventHeartbeat
 from Products.ZenEvents.ZenEventClasses import App_Start
@@ -275,7 +274,6 @@ class ZenHub(ZCmdBase):
         # responsible for sending messages to the queues
         import Products.ZenMessaging.queuemessaging
         load_config_override('twistedpublisher.zcml', Products.ZenMessaging.queuemessaging)
-
         self.sendEvent(eventClass=App_Start,
                        summary="%s started" % self.name,
                        severity=0)

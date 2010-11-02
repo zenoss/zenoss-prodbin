@@ -32,9 +32,9 @@ from Products.PluggableAuthService import plugins
 from MySQLdb import OperationalError
 
 class zenbuild(CmdBase):
-    
+
     sitename = "zport"
-    
+
     def connect(self):
         zopeconf = zenPath("etc/zope.conf")
         import Zope2
@@ -44,9 +44,9 @@ class zenbuild(CmdBase):
     def buildOptions(self):
         CmdBase.buildOptions(self)
         self.parser.add_option('--xml', dest="fromXml",
-                action='store_true', default=False, 
+                action='store_true', default=False,
                 help="Load data from XML files instead of SQL")
-        self.parser.add_option('-s','--evthost', dest="evthost", 
+        self.parser.add_option('-s','--evthost', dest="evthost",
                 default="127.0.0.1", help="events database hostname")
         self.parser.add_option('-u','--evtuser', dest="evtuser", default="root",
                 help="username used to connect to the events database")
@@ -80,6 +80,17 @@ class zenbuild(CmdBase):
                     help='memcached servers to use for object cache (eg. 127.0.0.1:11211)')
         self.parser.add_option('--pagecommand', dest="pagecommand", default="$ZENHOME/bin/zensnpp localhost 444 $RECIPIENT",
                 help="page command")
+        # amqp stuff
+        self.parser.add_option('--amqphost', dest="amqphost", default="localhost",
+                               help="AMQP Host Location")
+        self.parser.add_option('--amqpport', dest="amqport", default=5672,
+                               help="AMQP Server Port")
+        self.parser.add_option('--amqpvhost', dest="amqpvhost", default="/zenoss",
+                               help="Default Virtual Host")
+        self.parser.add_option('--amqpuser', dest="amqpuser", default="zenoss",
+                               help="AMQP User Name")
+        self.parser.add_option('--amqppassword', dest="amqppassword", default="zenoss",
+                               help="AMQP Password")
 
     def build(self):
         mysqlcmd = ['mysql', '-u', self.options.mysqluser]
@@ -154,7 +165,7 @@ class zenbuild(CmdBase):
             acl = site.acl_users
             if not hasattr(acl, 'groupManager'):
                 plugins.ZODBGroupManager.addZODBGroupManager(acl, 'groupManager')
-            acl.groupManager.manage_activateInterfaces(['IGroupsPlugin',]) 
+            acl.groupManager.manage_activateInterfaces(['IGroupsPlugin',])
 
             trans = transaction.get()
             trans.note("Initial ZentinelPortal load by zenbuild.py")
@@ -211,6 +222,12 @@ class zenbuild(CmdBase):
             f.write('mysqldb %s\n' % self.options.mysqldb)
             f.write('mysqluser %s\n' % self.options.mysqluser)
             f.write('mysqlpasswd %s\n' % self.options.mysqlpasswd)
+            f.write('amqphost %s\n' % self.options.amqphost)
+            f.write('amqpport %s\n' % self.options.amqpport)
+            f.write('amqpvhost %s\n' % self.options.amqvhost)
+            f.write('amqpuser %s\n' % self.options.amqpuser)
+            f.write('amqppassword %s\n' % self.options.amqppassword)
+
             if self.options.cacheservers:
                 f.write('cacheservers %s\n' % self.options.cacheservers)
 

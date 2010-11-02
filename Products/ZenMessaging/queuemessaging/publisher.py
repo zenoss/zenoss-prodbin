@@ -16,12 +16,10 @@ from zenoss.protocols.amqp import Publisher as BlockingPublisher
 from Products.ZenUtils.guid.interfaces import IGlobalIdentifier
 from Products.ZenUtils.guid import generate
 from zope.component import getUtility
-from zenoss.protocols.protobufs.zep_pb2 import RawEvent as EventProtobuf
 from interfaces import IQueuePublisher, IProtobufSerializer
-from zenoss.protocols.protobufs.modelevents_pb2 import ModelEventList
+from zenoss.protocols.amqpconfig import getAMQPConfiguration
 from Products.ZenModel.Device import Device
 from Products.ZenModel.DeviceComponent import DeviceComponent
-from Products.ZenUtils.transaction_contextmanagers import nested_transaction
 from Products.ZenUtils.AmqpDataManager import AmqpDataManager
 
 import logging
@@ -36,7 +34,8 @@ class ModelChangePublisher(object):
     """
 
     def __init__(self):
-        self._eventList = ModelEventList()
+        config = getAMQPConfiguration()
+        self._eventList = config.getNewProtobuf("$ModelEventList")
         self._eventList.event_uuid = generate()
 
     def _setFieldProperties(self, ob, event):
@@ -50,9 +49,7 @@ class ModelChangePublisher(object):
             serializer = IProtobufSerializer(ob)
             return serializer.fill(proto)
         except TypeError:
-            import traceback
-            tc = traceback.format_exc()
-            log.warn("Could not adapt %s to a protobuf serializer: %s " % (ob, tc))
+            log.info("Could not adapt %s to a protobuf serializer: %s " % (ob))
         return proto
 
     def _createModelEventProtobuf(self, ob, eventType):
@@ -127,11 +124,6 @@ def getModelChangePublisher():
     return tx._synchronziedPublisher
 
 
-# TODO: turn into config options
-EXCHANGE = 'zenoss.model'
-ROUTE_KEY = 'zenoss.protocols.protobufs.modelevent_pb2.ModelEventList'
-
-
 class PublishSynchronizer(object):
 
     def findNonImpactingEvents(self, msg, attribute):
@@ -167,7 +159,8 @@ class PublishSynchronizer(object):
 
         # protobuf is odd about setting properties, so we have to make a new
         # event list and then copy the events we want into it
-        returnMsg = ModelEventList()
+        config = getAMQPConfiguration()
+        returnMsg = config.getNewProtobuf("$ModelEventList")
         returnMsg.event_uuid = generate()
         for event in eventsToKeep:
             newEvent = returnMsg.events.add()
@@ -179,11 +172,13 @@ class PublishSynchronizer(object):
             log.debug("beforeCompletionHook on tx %s" % tx)
             publisher = getattr(tx, '_synchronziedPublisher', None)
             if publisher:
+                config = getAMQPConfiguration()
+                exchange = config.getExchange("$ModelChangeEvents")
                 msg = self.correlateEvents(publisher.msg)
                 queuePublisher = getUtility(IQueuePublisher)
                 dataManager = AmqpDataManager(queuePublisher.channel, tx._manager)
                 tx.join(dataManager)
-                queuePublisher.publish(EXCHANGE, ROUTE_KEY, msg)
+                queuePublisher.publish(exchange.name, "zenoss.event.modelchange", msg, exchange_type=exchange.type)
             else:
                 log.debug("no publisher found on tx %s" % tx)
         finally:
@@ -196,19 +191,26 @@ PUBLISH_SYNC = PublishSynchronizer()
 
 class EventPublisher(object):
 
-    EXCHANGE_NAME = "zenoss.zenevents.raw"
 
     def publish(self, event):
+        config = getAMQPConfiguration()
+
+        # create the protobuf
         serializer = IProtobufSerializer(event)
-        proto = EventProtobuf()
+        proto = config.getNewProtobuf("$RawEvent")
         serializer.fill(proto)
+
+        # fill out the routing key
         eventClass = "/Unknown"
         if hasattr(event, 'eventClass'):
             eventClass = event.eventClass
         routing_key = "zenoss.zenevent%s" % eventClass.replace('/', '.').lower()
+
+        # publish event
         publisher = getUtility(IQueuePublisher)
+        exchange = config.getExchange("$RawZenEvents")
         log.debug("About to publish this event to the raw event queue:%s, with this routing key: %s" % (proto, routing_key))
-        publisher.publish(self.EXCHANGE_NAME, routing_key, proto, exchange_type='topic')
+        publisher.publish(exchange.name, routing_key, proto, exchange_type=exchange.type)
 
 
 class AsyncQueuePublisher(object):
