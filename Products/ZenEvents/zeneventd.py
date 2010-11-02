@@ -109,11 +109,8 @@ class ProcessEventMessageTask(object):
             event = self.identifyEvent(event)
             event = self.transformEvent(event)
 
-            eventsummary = EventSummaryProtobuf()
-            eventsummary.occurences[0] = event
-
             # forward event to output queue
-            self.publishEvent(eventsummary)
+            self.publishEvent(event)
 
         finally:
             # all done, ack message
