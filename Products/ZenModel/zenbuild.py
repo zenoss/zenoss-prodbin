@@ -83,7 +83,7 @@ class zenbuild(CmdBase):
         # amqp stuff
         self.parser.add_option('--amqphost', dest="amqphost", default="localhost",
                                help="AMQP Host Location")
-        self.parser.add_option('--amqpport', dest="amqport", default=5672,
+        self.parser.add_option('--amqpport', dest="amqpport", default=5672,
                                help="AMQP Server Port")
         self.parser.add_option('--amqpvhost', dest="amqpvhost", default="/zenoss",
                                help="Default Virtual Host")
@@ -224,7 +224,7 @@ class zenbuild(CmdBase):
             f.write('mysqlpasswd %s\n' % self.options.mysqlpasswd)
             f.write('amqphost %s\n' % self.options.amqphost)
             f.write('amqpport %s\n' % self.options.amqpport)
-            f.write('amqpvhost %s\n' % self.options.amqvhost)
+            f.write('amqpvhost %s\n' % self.options.amqpvhost)
             f.write('amqpuser %s\n' % self.options.amqpuser)
             f.write('amqppassword %s\n' % self.options.amqppassword)
 
