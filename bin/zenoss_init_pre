@@ -31,6 +31,13 @@ export MYSQLROOTPASSWD="**MYSQL_ROOT_PASSWD**"
 export MYSQLUSER="**MYSQL_USERNAME**"
 export MYSQLPASS="**MYSQL_PASSWD**"
 export MYSQLEVENTDB="**MYSQL_DATABASE**"
+export MYSQLZEPDB="**MYSQL_ZEP**"
+export RABBITMQ_HOST="**RABBITMQ_HOST**"
+export RABBITMQ_SSL="**RABBITMQ_SSL**"
+export RABBITMQ_PORT="**RABBITMQ_PORT**"
+export RABBITMQ_VHOST="**RABBITMQ_VHOST**"
+export RABBITMQ_USER="**RABBITMQ_USER**"
+export RABBITMQ_PASS="**RABBITMQ_PASS**"
 export ZOPEPASSWORD="**ZOPE_PASSWD**"
 export ZOPEHOME="**ZOPEHOME**"
 export PYTHON="**PYTHON**"
@@ -62,9 +69,18 @@ create_database
 # populate the events database
 run_zeneventbuild
 
+# create the ZEP database
+create_zep_db
+
+# Update ZEP configuration files
+update_zep_cfg
+
 # set up the zope instance
 run_mkzopeinstance
 
 # Remediate file ownership under $ZENHOME.
 fix_zenhome_owner_and_group ${OS_USERNAME}
 run_zenbuild
+
+# Update AMQP configuration files
+update_amqp_cfg
