@@ -41,7 +41,7 @@ class IRRDDataSourceInfo(IInfo):
     """
     newId = schema.Text(title=_t(u'Name'),
                        xtype="idfield",
-                       description=_t(u'The name of this datasource'))                       
+                       description=_t(u'The name of this datasource'))
     type = schema.Text(title=_t(u'Type'),
                        readonly=True)
     enabled = schema.Bool(title=_t(u'Enabled'))
@@ -60,7 +60,7 @@ class IBasicDataSourceInfo(IInfo):
     """
     newId = schema.Text(title=_t(u'Name'),
                        xtype="idfield",
-                       description=_t(u'The name of this datasource'))                       
+                       description=_t(u'The name of this datasource'))
     type = schema.Text(title=_t(u'Type'),
                        readonly=True)
     enabled = schema.Bool(title=_t(u'Enabled'))
@@ -113,7 +113,8 @@ class IDataPointInfo(IInfo):
     newId = schema.Text(title=_t(u'Name'),
                        xtype="idfield",
                        description=_t(u'The name of this data point'))
-                       
+    description = schema.TextLine(title=_t(u'Description'),
+                              description=_t(u'The description of this data point'))
     rrdtype = schema.Text(title=_t(u'Type'),
                           description=_t(u'The type of data point we have'),
                           xtype='rrdtype')
@@ -168,7 +169,7 @@ class ITemplateFacade(IFacade):
     """
     A facade for monitoring templates.
     """
-    
+
     def getTemplates():
         """
         Get all the monitoring templates in the system. This is used to fill
@@ -178,7 +179,7 @@ class ITemplateFacade(IFacade):
         """
         Returns a list of targets for a new template
         """
-        
+
     def addTemplate(id):
         """
         Add a new monitoring template to the dmd/Devices device class.

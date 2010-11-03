@@ -40,7 +40,7 @@ def manage_addRRDDataPoint(context, id, REQUEST = None):
     context._setObject(dp.id, dp)
     if REQUEST is not None:
         REQUEST['RESPONSE'].redirect(context.absolute_url()+'/manage_main')
-        
+
 def getDataPointsByAliases( context, aliases ):
     """
     Retrieve the datapoint/alias pairs for the passed aliases.
@@ -54,15 +54,15 @@ def getDataPointsByAliases( context, aliases ):
                           datasource, template.getPrimaryUrlPath())
                 continue
             for datapoint in datasource.datapoints():
-                thisDatapointsAliases = dict( 
-                        [ ( dpAlias.id, dpAlias ) for dpAlias in 
+                thisDatapointsAliases = dict(
+                        [ ( dpAlias.id, dpAlias ) for dpAlias in
                            datapoint.aliases() ] )
                 found = False
                 foundAlias = None
                 for alias in aliases:
                     if thisDatapointsAliases.has_key( alias ):
                         found = True
-                        yield thisDatapointsAliases[alias], datapoint                        
+                        yield thisDatapointsAliases[alias], datapoint
                 if alias == datapoint.id:
                     yield None, datapoint
 
@@ -72,7 +72,7 @@ def getDataPointsByAlias( context, alias ):
     """
     return getDataPointsByAliases( context, [alias] )
 
-                                     
+
 #addRRDDataPoint = DTMLFile('dtml/addRRDDataPoint',globals())
 
 SEPARATOR = '_'
@@ -93,15 +93,15 @@ class RRDDataPointError(Exception): pass
 class RRDDataPoint(ZenModelRM, ZenPackable):
 
     meta_type = 'RRDDataPoint'
-  
+
     rrdtypes = ('COUNTER', 'GAUGE', 'DERIVE', 'ABSOLUTE')
-    
+
     createCmd = ""
     rrdtype = 'GAUGE'
     isrow = True
     rrdmin = None
     rrdmax = None
-    
+
     ## These attributes can be removed post 2.1
     ## They should remain in 2.1 so the migrate script works correctly
     linetypes = ('', 'AREA', 'LINE')
@@ -110,7 +110,7 @@ class RRDDataPoint(ZenModelRM, ZenPackable):
     linetype = ''
     limit = -1
     format = '%5.2lf%s'
-    
+
 
     _properties = (
         {'id':'rrdtype', 'type':'selection',
@@ -119,6 +119,7 @@ class RRDDataPoint(ZenModelRM, ZenPackable):
         {'id':'isrow', 'type':'boolean', 'mode':'w'},
         {'id':'rrdmin', 'type':'string', 'mode':'w'},
         {'id':'rrdmax', 'type':'string', 'mode':'w'},
+        {'id':'description', 'type':'string', 'mode':'w'},
         )
 
 
@@ -126,13 +127,13 @@ class RRDDataPoint(ZenModelRM, ZenPackable):
         ("datasource", ToOne(ToManyCont,"Products.ZenModel.RRDDataSource","datapoints")),
         ("aliases", ToManyCont(ToOne, "Products.ZenModel.RRDDataPointAlias","datapoint"))
         )
-    
+
     # Screen action bindings (and tab definitions)
-    factory_type_information = ( 
-    { 
+    factory_type_information = (
+    {
         'immediate_view' : 'editRRDDataPoint',
         'actions'        :
-        ( 
+        (
             { 'id'            : 'edit'
             , 'name'          : 'Data Point'
             , 'action'        : 'editRRDDataPoint'
@@ -190,7 +191,7 @@ class RRDDataPoint(ZenModelRM, ZenPackable):
         if self.hasAlias( aliasId ):
             self.aliases._delObject( aliasId )
 
-    
+
     def getAliasNames(self):
         """
         Return all the ids of this datapoint's aliases
