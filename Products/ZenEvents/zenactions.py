@@ -361,6 +361,7 @@ class BaseZenActions(object):
             data['eventUrl'] = self.getEventUrl(evid, device)
             if device:
                 data['eventsUrl'] = self.getEventsUrl(device)
+                data['device'] = device.titleOrId()
             else:
                 data['eventsUrl'] = 'n/a'
                 data['device'] = data.get('device', None) or ''
