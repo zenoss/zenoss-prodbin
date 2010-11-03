@@ -49,7 +49,7 @@ class ModelChangePublisher(object):
             serializer = IProtobufSerializer(ob)
             return serializer.fill(proto)
         except TypeError:
-            log.info("Could not adapt %s to a protobuf serializer: %s " % (ob))
+            log.debug("Could not adapt %r to a protobuf serializer." % (ob))
         return proto
 
     def _createModelEventProtobuf(self, ob, eventType):
