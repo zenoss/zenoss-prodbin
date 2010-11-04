@@ -55,16 +55,15 @@ class ZenTcpTest(protocol.Protocol):
 
         if self.cfg.sendString:
             sendString = self.cfg.sendString.decode("string_escape")
-            log.debug("Sending: %s" % sendString)
+            log.debug("Sending: %s", sendString)
             self.transport.write(sendString)
 
         if self.cfg.expectRegex:
-            log.debug("Waiting for results to check against regex '%s'" % (
-                      self.cfg.expectRegex ))
+            log.debug("Waiting for results to check against regex '%s'",
+                      self.cfg.expectRegex)
             self.defer = reactor.callLater(self.cfg.timeout, self.expectTimeout)
         else:
             self.loseConnection()
-
 
     def dataReceived(self, data):
         """
@@ -74,18 +73,17 @@ class ZenTcpTest(protocol.Protocol):
         @parameter data: output from remote service
         @type data: string
         """
-        log.debug("%s %s received data: %s" % (self.cfg.device,
-                  self.cfg.component, data))
+        log.debug("%s %s received data: %s", self.cfg.device,
+                  self.cfg.component, data)
         self.data += data
         if self.cfg.expectRegex:
             if re.search(self.cfg.expectRegex, data):
-                log.debug("Found %s in '%s' -- closing connection" % (
-                          self.cfg.expectRegex, data))
+                log.debug("Found %s in '%s' -- closing connection",
+                          self.cfg.expectRegex, data)
                 self.loseConnection()
             else:
-                log.debug("No match for %s in '%s' -- looking for more data" % (
-                          self.cfg.expectRegex, data))
-
+                log.debug("No match for %s in '%s' -- looking for more data",
+                          self.cfg.expectRegex, data)
 
     def expectTimeout(self):
         """
@@ -94,25 +92,23 @@ class ZenTcpTest(protocol.Protocol):
         """
         msg = "IP Service %s TIMEOUT waiting for '%s'" % (
                     self.cfg.component, self.cfg.expectRegex)
-        log.debug( "%s %s" % (self.cfg.ip, msg) )
+        log.debug("%s %s", self.cfg.ip, msg)
         self.factory.msg = msg
         self.loseConnection()
-
 
     def loseConnection(self):
         """
         Shut down the connection and cleanup.
         """
         ip, port = self.transport.addr
-        log.debug("Closed connection to %s on port %s for %s" % (
-                  ip, port, self.cfg.component))
+        log.debug("Closed connection to %s on port %s for %s",
+                  ip, port, self.cfg.component)
         self.data = ""
         try:
             self.defer.cancel()
         except:
             self.defer = None
         self.transport.loseConnection()
-
 
 
 class ZenTcpClient(protocol.ClientFactory):
@@ -137,13 +133,14 @@ class ZenTcpClient(protocol.ClientFactory):
         @type reason: Twisted error object
         """
         unused(connector)
-        log.debug("Lost connection to %s (%s) port %s : %s" % (
+        errorMsg = reason.getErrorMessage()
+        if errorMsg != 'Connection was closed cleanly.':
+            log.debug("Lost connection to %s (%s) port %s: %s",
                   self.cfg.device, self.cfg.ip, self.cfg.port,
-                  reason.getErrorMessage() ))
+                  reason.getErrorMessage() )
         if self.deferred:
             self.deferred.callback(self)
         self.deferred = None
-
 
     def clientConnectionFailed(self, connector, reason):
         """
@@ -155,15 +152,13 @@ class ZenTcpClient(protocol.ClientFactory):
         @type reason: Twisted error object
         """
         unused(connector)
-        log.debug("Connection to %s (%s) port %s  failed: %s" % (
+        log.debug("Connection to %s (%s) port %s failed: %s",
                   self.cfg.device, self.cfg.ip, self.cfg.port,
-                  reason.getErrorMessage() ))
-        log.debug(reason.type)
+                  reason.getErrorMessage() )
         self.msg = "IP Service %s is down" % self.cfg.component
         if self.deferred:
             self.deferred.callback(self)
         self.deferred = None
-
 
     def getEvent(self):
         """
@@ -172,21 +167,22 @@ class ZenTcpClient(protocol.ClientFactory):
         @return: event of what happened to our service test
         @rtype: dictionary
         """
-        log.debug("status:%s msg:%s", self.status, self.msg)
         if self.msg == "pass" and self.status > 0:
             self.status = sev = 0
             self.msg = "IP Service %s back up" % self.cfg.component
-            log.info(self.msg)
 
         elif self.msg != "pass":
             self.status += 1
             sev = self.cfg.failSeverity
-            log.warn(self.msg)
 
         else:
-            # Don't send an event as there's no problem and
-            # nothing to clear.
-            return None
+            # Send an event even though there's no problem and
+            # nothing to clear __internally__ to zenstatus.
+            # The event console might have an event that will
+            # otherwise never be cleared.
+            # Code higher up discards duplicate clears.
+            self.status = sev = 0
+            self.msg = "IP Service %s back up" % self.cfg.component
 
         return dict(device=self.cfg.device,
                     component=self.cfg.component,

@@ -18,8 +18,11 @@ Check the TCP/IP connectivity of IP services.
 UDP is specifically not supported.
 """
 
-import Globals
 import logging
+
+from twisted.internet import defer
+
+import Globals
 import zope.component
 import zope.interface
 from Products.ZenStatus.ZenTcpClient import ZenTcpClient
@@ -28,7 +31,7 @@ from Products.ZenCollector.interfaces import ICollectorPreferences,\
                                              IEventService,\
                                              IScheduledTask
 from Products.ZenCollector.tasks import SimpleTaskFactory,\
-                                        SimpleTaskSplitter,\
+                                        SubConfigurationTaskSplitter,\
                                         TaskStates
 
 from Products.ZenUtils.observable import ObservableMixin
@@ -38,7 +41,7 @@ from Products.ZenUtils.observable import ObservableMixin
 # configuration service to send the data over, i.e. DeviceProxy.
 from Products.ZenUtils.Utils import unused
 from Products.ZenCollector.services.config import DeviceProxy
-from Products.ZenStatus.ZenStatusConfig import ServiceProxy
+from Products.ZenHub.services.ZenStatusConfig import ServiceProxy
 unused(ServiceProxy)
 unused(DeviceProxy)
 
@@ -48,32 +51,10 @@ unused(DeviceProxy)
 log = logging.getLogger("zen.zenstatus")
 
 
-class ServiceTaskSplitter(SimpleTaskSplitter):
-    """
-    Splits up tasks by services
-    """
-
-    def splitConfiguration(self, configs):
-        """
-        Separates the configurations into tasks based upon services.
-        Each tasks has an id of "devicenamecomponent".
-        """
-        tasks = {}
-        for config in configs:
-            log.debug("Splitting Config %r", config)
-            for component in config.components:
-                taskName = config.id + component.component
-                taskCycleInterval = config.configCycleInterval
-                self._taskFactory.reset()
-                self._taskFactory.name = taskName
-                # this must be the id of the device for scheduling tasks
-                self._taskFactory.configId = config.id
-                self._taskFactory.interval = taskCycleInterval
-                self._taskFactory.config = component
-                task = self._taskFactory.build()
-
-                tasks[taskName] = task
-        return tasks
+class ServiceTaskSplitter(SubConfigurationTaskSplitter):
+    subconfigName = 'components'
+    def makeConfigKey(self, config, subconfig):
+        return (config.id, config.configCycleInterval, subconfig.component)
 
 
 # Create an implementation of the ICollectorPreferences interface so that the
@@ -95,7 +76,7 @@ class ZenStatusPreferences(object):
 
         # the configurationService attribute is the fully qualified class-name
         # of our configuration service that runs within ZenHub
-        self.configurationService = 'Products.ZenStatus.ZenStatusConfig'
+        self.configurationService = 'Products.ZenHub.services.ZenStatusConfig'
 
     def buildOptions(self, parser):
         """
@@ -137,7 +118,7 @@ class ZenStatusTask(ObservableMixin):
         self.interval = scheduleIntervalSeconds
         self.state = TaskStates.STATE_IDLE
         self.log = log
-        self.cfg = taskConfig
+        self.cfg = taskConfig.components[0]
         self._devId = self.cfg.device
         self._manageIp = self.cfg.ip
         self._eventService = zope.component.queryUtility(IEventService)
@@ -145,40 +126,47 @@ class ZenStatusTask(ObservableMixin):
                                                         "zenstatus")
 
     def doTask(self):
-        log.debug("Scanning device service %s [%s]",
-                  self._devId, self._manageIp)
+        log.debug("Scanning device %s (%s) port %s",
+                  self._devId, self._manageIp, self.cfg.port)
         job = ZenTcpClient(self.cfg, self.cfg.status)
         d = job.start()
-        d.addCallbacks(self.processTest, self.processError)
+        d.addCallback(self.processTest)
+        d.addErrback(self.handleExceptions)
+        return d
 
-    def processTest(self, job):
+    def processTest(self, result):
         """
         Test a connection to a device.
 
-        @parameter job: device and TCP service to test
-        @type job: ZenTcpClient object
+        @parameter result: device and TCP service to test
+        @type result: ZenTcpClient object
         """
-        evt = job.getEvent()
+        evt = result.getEvent()
         if evt:
             self._eventService.sendEvent(evt)
+            if evt['severity'] != 0:
+                return defer.succeed("Failed")
 
-    def processError(self, error):
-        """
-        Log errors that have occurred from testing TCP services
+        return defer.succeed("Connected")
 
-        @param error: error message
-        @type error: Twisted error instance
+    def handleExceptions(self, reason):
         """
-        evt = dict(device=self.cfg.device,
-                   component=self.cfg.component,
-                   summary=error.getErrorMessage(),
+        Log internal exceptions that have occurred
+        from testing TCP services
+
+        @param reason: error message
+        @type reason: Twisted error instance
+        """
+        msg = reason.getErrorMessage()
+        evt = dict(device=self._preferences.options.monitor,
+                   summary=msg,
                    severity=4,  # error
-                   agent='zenstatus')
+                   component='zenstatus',
+                   traceback=reason.getTraceback())
         self._eventService.sendEvent(evt)
+        return defer.succeed("Failed due to internal error")
 
     def cleanup(self):
-        """
-        """
         pass
 
 
