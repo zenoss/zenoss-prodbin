@@ -166,6 +166,11 @@
              factory=".organizer.LocationOrganizerInfo"
              />
 
+    <adapter provides="..interfaces.IReportable"
+             for="Products.ZenModel.ZenModelRM.ZenModelRM"
+             factory="..reportable.BaseReportable"
+             />
+
     <include package=".component"/>
     <include file="graphpoint.zcml"/>
 </configure>
