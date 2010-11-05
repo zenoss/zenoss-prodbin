@@ -172,13 +172,11 @@ class PublishSynchronizer(object):
             log.debug("beforeCompletionHook on tx %s" % tx)
             publisher = getattr(tx, '_synchronziedPublisher', None)
             if publisher:
-                config = getAMQPConfiguration()
-                exchange = config.getExchange("$ModelChangeEvents")
                 msg = self.correlateEvents(publisher.msg)
                 queuePublisher = getUtility(IQueuePublisher)
                 dataManager = AmqpDataManager(queuePublisher.channel, tx._manager)
                 tx.join(dataManager)
-                queuePublisher.publish(exchange.name, "zenoss.event.modelchange", msg, exchange_type=exchange.type)
+                queuePublisher.publish("$ModelChangeEvents", "zenoss.event.modelchange", msg)
             else:
                 log.debug("no publisher found on tx %s" % tx)
         finally:
@@ -208,9 +206,8 @@ class EventPublisher(object):
 
         # publish event
         publisher = getUtility(IQueuePublisher)
-        exchange = config.getExchange("$RawZenEvents")
         log.debug("About to publish this event to the raw event queue:%s, with this routing key: %s" % (proto, routing_key))
-        publisher.publish(exchange.name, routing_key, proto, exchange_type=exchange.type)
+        publisher.publish("$RawZenEvents", routing_key, proto)
 
 
 class AsyncQueuePublisher(object):
@@ -255,7 +252,7 @@ class BlockingQueuePublisher(object):
         """
         self._client = BlockingPublisher()
 
-    def publish(self, exchange, routing_key, message, exchange_type="topic"):
+    def publish(self, exchange, routing_key, message):
         """
         Publishes a message to an exchange. If twisted is running
         this will use the twisted amqp library, otherwise it will
@@ -267,7 +264,7 @@ class BlockingQueuePublisher(object):
         @type  message: string or Protobuff
         @param message: message we are sending in the queue
         """
-        self._client.publish(exchange, routing_key, message, exchange_type)
+        self._client.publish(exchange, routing_key, message)
 
     @property
     def channel(self):
@@ -286,7 +283,7 @@ class DummyQueuePublisher(object):
     """
     implements(IQueuePublisher)
 
-    def publish(self, exchange, routing_key, message, exchange_type="topic"):
+    def publish(self, exchange, routing_key, message):
         """
         Publishes a message to an exchange. If twisted is running
         this will use the twisted amqp library, otherwise it will
