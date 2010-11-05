@@ -20,21 +20,19 @@ Apply up-front preprocessing to events.
 import Globals
 import os
 
-# set up the zope environment
-import Zope2
-CONF_FILE = os.path.join(os.environ['ZENHOME'], 'etc', 'zope.conf')
-Zope2.configure(CONF_FILE)
-
-import logging
-
-from Products.ZenMessaging.queuemessaging.QueueConsumer import QueueConsumerProcess
+from Products.ZenMessaging.queuemessaging.QueueConsumer import QueueConsumer
 from Products.ZenMessaging.queuemessaging.interfaces import IQueueConsumerTask, IProtobufSerializer
-from zenoss.protocols.protobufs.zep_pb2 import RawEvent, EventDetail, EventIndex
+from zenoss.protocols.protobufs.zep_pb2 import RawEvent, EventDetail, EventIndex, EventActor, SEVERITY_CLEAR
 from zenoss.protocols.protobufs.model_pb2 import DEVICE, COMPONENT, SERVICE
 from zenoss.protocols.amqpconfig import getAMQPConfiguration
-#from twisted.internet import reactor, protocol, defer
+from twisted.internet import reactor, protocol, defer
+from twisted.internet.error import ReactorNotRunning
 from zope.interface import implements
 
+TRANSFORM_EVENT_IN_EVENTD = False
+if TRANSFORM_EVENT_IN_EVENTD:
+    from Products.ZenEvents.MySqlSendEvent import EventTransformer
+    from Products.ZenEvents.transformApi import Event as TransformEvent
 
 import logging
 log = logging.getLogger("zen.eventd")
@@ -55,6 +53,7 @@ class ProcessEventMessageTask(object):
         config = getAMQPConfiguration()
         # set by the constructor of queueConsumer
         self.queueConsumer = None
+        self.defaultEventId = "/Unknown"
 
         queue = config.getQueue("$RawZenEvents")
         binding = queue.getBinding("$RawZenEvents")
@@ -95,32 +94,27 @@ class ProcessEventMessageTask(object):
 
     def addEventControlDetails(self, event, details):
         details["_ACTION"] = 'ACTION_NEW'
+        details["_CLEAR_CLASSES"] = []
+        if event.severity == SEVERITY_CLEAR and event.event_class:
+            details["_CLEAR_CLASSES"].append(event.event_class)
 
-    def identifyEvent(self, event, details):
-        # verify all required fields are present
-
-        # convert severity to int
-
-        # force action -> good value
-
-        # if message or summary is blank, copy one to the other
-
-        # extract event data -> attributes dict and details dict
-
-        # event context (get device, from device, ip, or /Networks)
-
-        # apply event class extraction/values/transform
-
-        # add device context (prodstate, location, etc.)
-
-        # compose dedupid
-
-        pass
-
-    def transformEvent(self, event, details):
-        # run transform(s)
-        pass
+    def getIdentifiersForUuids(self, evtproto, event):
+        # translate uuids to identifiers, if not provided
         
+        pass
+
+    def extractActorElements(self, evtproto, event):
+        if evtproto.actor.element_type_id == DEVICE:
+            event.device = evtproto.actor.element_identifier
+        elif evtproto.actor.element_type_id == COMPONENT:
+            event.device = evtproto.actor.element_identifier
+            event.component = evtproto.actor.element_sub_identifier
+        elif evtproto.actor.element_type_id == SERVICE:
+            event.service = evtproto.actor.element_identifier
+            event.device = evtproto.actor.element_sub_identifier
+        else:
+            log.error("Unknown event actor type: %d", evtproto.actor.element_type_id)
+
     def addEventIndexTerms(self, event, details):
         # add search terms for this event
         #indexattrs = [f.name for f in EventIndex.DESCRIPTOR.fields]
@@ -155,15 +149,17 @@ class ProcessEventMessageTask(object):
         """
 
         try:
-            # read message from queue - if terminating sentinel marker, return
+            # read message from queue; if MARKER, just return
             if message.content.body == self.queueConsumer.MARKER:
-                log.info("Received MARKER sentinel, exiting message loop")
                 return
 
             # extract event from message body
             event = RawEvent()
             event.ParseFromString(message.content.body)
             evtdetails = self.eventDetailsToDict(event)
+            log.debug("Received event: %s", dict((f.name,getattr(event,f.name,None)) for f in RawEvent.DESCRIPTOR.fields))
+            log.debug("- with actor: %s", dict((f.name, getattr(event.actor,f.name,None)) for f in EventActor.DESCRIPTOR.fields))
+            log.debug("- with details: %s", evtdetails)
 
             # ensure required fields are present, otherwise discard this event
             for reqdattr in "actor summary severity".split():
@@ -175,18 +171,50 @@ class ProcessEventMessageTask(object):
             # add details for control during event processing
             self.addEventControlDetails(event, evtdetails)
 
-            # run event thru identity and transforms
-            log.debug("identify event devices: %s", event.uuid)
-            self.identifyEvent(event, evtdetails)
-            if evtdetails["_ACTION"].upper() == "ACTION_DROP":
-                log.debug("dropped event after identify: %s", event.uuid);
-                return
+            if TRANSFORM_EVENT_IN_EVENTD:
+                # initialize adapter with event properties
+                event_attributes = dict((f.name,getattr(event,f.name,None)) for f in RawEvent.DESCRIPTOR.fields)
+                evtproxy = TransformEvent(**event_attributes)
+                # translate actor to device/component/service
+                self.getIdentifiersForUuids(event, evtproxy)
+                self.extractActorElements(event, evtproxy)
+                evtproxy.action = evtdetails["_ACTION"]
+                evtproxy.freeze()
+                evtproxy.mark()
 
-            log.debug("invoke transforms on event: %s", event.uuid)
-            self.transformEvent(event, evtdetails)
-            if evtdetails["_ACTION"].upper() == "ACTION_DROP":
-                log.debug("dropped event after transforms: %s", event.uuid);
-                return
+                transformer = EventTransformer(self, evtproxy)
+                # run event thru identity and transforms
+                log.debug("identify event devices: %s", event.uuid)
+                transformer.prepEvent()
+                if "action" in evtproxy.get_changes():
+                    evtdetails["_ACTION"] = "ACTION_" + evtproxy.get_changes()["action"].upper()
+
+                if evtdetails["_ACTION"].upper() == "ACTION_DROP":
+                    log.debug("dropped event after identify: %s", event.uuid);
+                    return
+
+                log.debug("invoke transforms on event: %s", event.uuid)
+                transformer.transformEvent()
+                if "action" in evtproxy.get_changes():
+                    evtdetails["_ACTION"] = "ACTION_" + evtproxy.get_changes()["action"].upper()
+
+                if evtdetails["_ACTION"].upper() == "ACTION_DROP":
+                    log.debug("dropped event after transforms: %s", event.uuid);
+                    return
+
+                # copy adapter changes back to event attribs and details
+                stdFields = set(f.name for f in RawEvent.DESCRIPTOR.fields)
+                log.debug("Event attributes updated: %s", evtproxy.get_changes())
+                for (attr,val) in evtproxy.get_changes().items():
+                    if attr in stdFields:
+                        setattr(event, attr, val)
+                    else:
+                        if attr in "service device component".split():
+                            # TODO - udpate actor uuids/identifiers
+                            pass
+                        else:
+                            # TODO - copy extra attributes to details
+                            pass
 
             # add event index tags for fast event retrieval
             log.debug("add index values for event: %s", event.uuid)
@@ -209,10 +237,40 @@ class ProcessEventMessageTask(object):
         logfn("Event info: %s", statusdata)
         if details:
             logfn("Detail data: %s", details)
-                        
+
+    def getFieldList(self):
+        return [f.name for f in RawEvent.DESCRIPTOR.fields]
+ 
+    def getDmd(self):
+        return self.dmd
+
+class ZenEventD(object):
+    def run(self):
+        task = ProcessEventMessageTask()
+        self._consumer = QueueConsumer(task)
+        if self._consumer.options.cycle:
+            reactor.callWhenRunning(self._start)
+            reactor.run()
+        else:
+            log.info('Shutting down: use cycle option ')
+
+
+    def _start(self):
+        log.info('starting queue consumer task')
+        reactor.addSystemEventTrigger('before', 'shutdown', self._shutdown)
+        self._consumer.run()
+
+
+    @defer.inlineCallbacks
+    def _shutdown(self, *ignored):
+        if self._consumer:
+            yield self._consumer.shutdown()
+        try:
+            reactor.stop()
+        except ReactorNotRunning:
+            pass
+
 if __name__ == '__main__':
-    task = ProcessEventMessageTask()
-    consumer = QueueConsumerProcess(task)
-    options, args = consumer.server.parser.parse_args()
-    logging.basicConfig(level=options.logseverity)
-    consumer.run()
+    zed = ZenEventD()
+    zed.run()
+
