@@ -147,6 +147,7 @@ class ZenPOP3(EventServer):
 
     def connected(self):
         self.checkForMessages()
+        self.heartbeat()
     
 
     def checkForMessages(self):
@@ -161,8 +162,6 @@ class ZenPOP3(EventServer):
             reactor.connectTCP(self.options.pophost, self.options.popport,
                 self.factory)
         
-        self.heartbeat()
-
 
     def handleError(self, err):
         if err.type == error.TimeoutError:
