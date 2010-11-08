@@ -1,7 +1,9 @@
+#! /usr/bin/env python
+# -*- coding: utf-8 -*-
 ###########################################################################
 #
 # This program is part of Zenoss Core, an open source monitoring platform.
-# Copyright (C) 2007, Zenoss Inc.
+# Copyright (C) 2007, 2010 Zenoss Inc.
 #
 # This program is free software; you can redistribute it and/or modify it
 # under the terms of the GNU General Public License version 2 as published by
@@ -11,378 +13,235 @@
 #
 ###########################################################################
 
+__doc__ = """zenping
 
-__doc__=''' ZenPing
+Determines the availability of a IP addresses using ping (ICMP).
 
-Determines the availability of an IP address using ping.
+"""
 
-$Id$'''
-
+import os
+import os.path
+import sys
+import re
 from socket import gethostbyname, getfqdn, gaierror
-
 import time
+import logging
+log = logging.getLogger("zen.zenping")
 
-import Globals # make zope imports work
+import Globals
+import zope.interface
+import zope.component
+
+from Products.ZenCollector.daemon import CollectorDaemon
+from Products.ZenCollector.interfaces import ICollector, ICollectorPreferences,\
+                                             IConfigurationListener
+from Products.ZenCollector.tasks import SimpleTaskFactory,\
+                                        SubConfigurationTaskSplitter
 
 from Products.ZenStatus.AsyncPing import Ping
 from Products.ZenStatus.TestPing import Ping as TestPing
-from Products.ZenStatus import pingtree
+from Products.ZenStatus.TracerouteTask import TracerouteTask
+from Products.ZenStatus.PingTask import PingCollectionTask
+from Products.ZenStatus.CorrelatorTask import TopologyCorrelatorTask
+from Products.ZenStatus.NetworkModel import NetworkModel
+
 from Products.ZenUtils.Utils import unused
-unused(pingtree)                        # needed for pb
+from Products.ZenCollector.services.config import DeviceProxy
+unused(DeviceProxy)
+from Products.ZenHub.services.PingPerformanceConfig import PingPerformanceConfig
+unused(PingPerformanceConfig)
 
-from Products.ZenEvents.ZenEventClasses import Status_Ping, Clear
-from Products.ZenHub.PBDaemon import FakeRemote, PBDaemon
-from Products.ZenUtils.DaemonStats import DaemonStats
-from Products.ZenUtils.Driver import drive, driveLater
 
-from twisted.internet import reactor
-from twisted.python import failure
+COLLECTOR_NAME = "zenping"
+TOPOLOGY_MODELER_NAME = "topology_modeler"
+TOPOLOGY_CORRELATOR_NAME = "topology_correlator"
+MAX_BACK_OFF_MINUTES = 20
+MAX_IFACE_PING_JOBS = 10
 
-class ZenPing(PBDaemon):
 
-    name = agent = "zenping"
-    eventGroup = "Ping"
-    initialServices = PBDaemon.initialServices + ['PingConfig']
-
-    pingTimeOut = 1.5
-    pingTries = 2
-    pingChunk = 75
-    pingCycleInterval = 60
-    configCycleInterval = 20*60
-    maxPingFailures = 2
-
-    pinger = None
-    pingTreeIter = None
-    startTime = None
-    jobs = 0
-    reconfigured = True
-    loadingConfig = None
-    lastConfig = None
-
+class PingCollectionPreferences(object):
+    zope.interface.implements(ICollectorPreferences)
 
     def __init__(self):
-        self.pingtree = None
-        PBDaemon.__init__(self, keeproot=True)
+        """
+        Constructs a new PingCollectionPreferences instance and
+        provides default values for needed attributes.
+        """
+        self.collectorName = COLLECTOR_NAME
+        self.defaultRRDCreateCommand = None
+        self.configCycleInterval = 20 # minutes
+        self.cycleInterval = 5 * 60 # seconds
+
+        # The configurationService attribute is the fully qualified class-name
+        # of our configuration service that runs within ZenHub
+        self.configurationService = 'Products.ZenHub.services.PingPerformanceConfig'
+
+        # Will be filled in based on buildOptions
+        self.options = None
+
+        self.pingTimeOut = 1.5
+        self.pingTries = 2
+        self.pingChunk = 75
+        self.pingCycleInterval = 60
+        self.configCycleInterval = 20*60
+        self.maxPingFailures = 2
+        self.pinger = None
+
+        self.topologySaveTime = time.time()
+
+    def buildOptions(self, parser):
+        parser.add_option('--showrawresults',
+                          dest='showrawresults',
+                          action="store_true",
+                          default=False,
+                          help="Show the raw RRD values. For debugging purposes only.")
+        parser.add_option('--name',
+                          dest='name',
+                          default=findIp(),
+                          help=("Host that roots the ping dependency "
+                                "tree: typically the collecting hosts' "
+                                "name; defaults to our fully qualified "
+                                "domain name (%default)"))
+        parser.add_option('--test',
+                          dest='test',
+                          default=False,
+                          action="store_true",
+                          help="Run in test mode: doesn't really ping,"
+                               " but reads the list of IP Addresses that "
+                               " are up from /tmp/testping")
+        parser.add_option('--useFileDescriptor',
+                          dest='useFileDescriptor',
+                          default=None,
+                          help="Use the given (privileged) file descriptor")
+        parser.add_option('--maxbackoffminutes',
+                          dest='maxbackoffminutes',
+                          default=MAX_BACK_OFF_MINUTES,
+                          type='int',
+                          help="When a device fails to respond, increase the time to" \
+                               " check on the device until this limit.")
+        parser.add_option('--tracetimeoutseconds',
+                          dest='tracetimeoutseconds',
+                          default=40,
+                          type='int',
+                          help="Wait for a maximum of this time before stopping"
+                               " the traceroute")
+        parser.add_option('--tracechunk',
+                          dest='tracechunk',
+                          default=5,
+                          type='int',
+                          help="Number of devices to traceroute at once.")
+        parser.add_option('--topofile',
+                          dest='topofile',
+                          default='',
+                          help="Use this file rather than the default.")
+        parser.add_option('--savetopominutes',
+                          dest='savetopominutes',
+                          default=45,
+                          type='int',
+                          help="When cycling, save the topology this number of minutes.")
+        parser.add_option('--showroute',
+                          dest='showroute',
+                          default='',
+                          help="Show the route from the collector to the end point.")
+
+    def postStartup(self):
+        daemon = zope.component.getUtility(ICollector)
+
         if not self.options.useFileDescriptor:
-            self.openPrivilegedPort('--ping')
-        self.rrdStats = DaemonStats()
-        self.lastConfig = time.time() - self.options.minconfigwait
-        self.log.info("started")
+            daemon.openPrivilegedPort('--ping')
 
+        daemon.network = NetworkModel()
+        if self.options.showroute:
+            daemon.network.showRoute(self.options.showroute)
+            sys.exit(0)
 
-    def getPinger(self):
+        # Initialize our connection to the ping socket
+        self._getPinger()
+
+        # Start modeling network topology
+        task = TracerouteTask(TOPOLOGY_MODELER_NAME,
+                                   taskConfig=daemon._prefs,
+                                   daemonRef=daemon)
+        daemon._scheduler.addTask(task, now=True)
+
+        # Start the event correlator
+        task = TopologyCorrelatorTask(TOPOLOGY_CORRELATOR_NAME,
+                                   taskConfig=daemon._prefs,
+                                   daemonRef=daemon)
+        daemon._scheduler.addTask(task, now=True)
+
+    def preShutdown(self):
+        daemon = zope.component.getUtility(ICollector)
+
+        # Run the correlator one last time
+        tasks = daemon._scheduler.getTasksForConfig(TOPOLOGY_CORRELATOR_NAME)
+        if tasks:
+            tasks[0].doTask()
+        else:
+            log.warn("Unable to run correlator as the task has been removed")
+
+        # If we're running as a daemon, save the topology
+        daemon.network._saveTopology()
+
+    def _getPinger(self):
         if self.pinger:
-            self.pinger.reconfigure(self.pingTries, self.pingTimeOut)
+            self.pinger.reconfigure(self.pingTimeOut)
         else:
             if self.options.test:
-                self.pinger = TestPing(self.pingTries, self.pingTimeOut)
+                self.pinger = TestPing(self.pingTimeOut)
             else:
                 fd = None
                 if self.options.useFileDescriptor is not None:
                     fd = int(self.options.useFileDescriptor)
-                self.pinger = Ping(self.pingTries, self.pingTimeOut, fd)
+                self.pinger = Ping(self.pingTimeOut, fd)
 
 
-    def config(self):
-        return self.services.get('PingConfig', FakeRemote())
+class PerIpAddressTaskSplitter(SubConfigurationTaskSplitter):
+    subconfigName = 'monitoredIps'
+
+    def makeConfigKey(self, config, subconfig):
+        return (config.id, subconfig.cycleTime, subconfig.ip)
 
 
-    def stopOnError(self, error):
-        self.log.exception(error)
-        self.stop()
-        return error
+class TopologyUpdater(object):
+    """
+    This updates the link between a device and the topology.
+    """
+    zope.interface.implements(IConfigurationListener)
+      
+    def deleted(self, configurationId):
+        """
+        Called when a configuration is deleted from the collector
+        """
+        # Note: having the node in the topology doesn't bother us,
+        #       so don't worry about it
+        pass
 
+    def added(self, configuration):
+        """
+        Called when a configuration is added to the collector.
+        This links the schedulable tasks to the topology so that we can
+        check on the status of the network devices.
+        """
+        daemon = zope.component.getUtility(ICollector)
+        if daemon.network.topology is None:
+            return
 
-    def connected(self):
-        self.log.debug("Connected, getting config")
-        d = drive(self.loadConfig)
-        d.addCallback(self.pingCycle)
-        d.addErrback(self.stopOnError)
+        ipAddress = configuration.manageIp
+        if ipAddress not in daemon.network.topology:
+            daemon.network.notModeled.add(ipAddress)
+            log.debug("zenhub asked us to add new device: %s (%s)",
+                      configuration.id, ipAddress)
+            daemon.network.topology.add_node(ipAddress)
+        #daemon.network.topology.node[ipAddress]['task'] = configuration
 
-
-    def sendPingEvent(self, pj):
-        "Send an event based on a ping job to the event backend."
-        evt = dict(device=pj.hostname, 
-                   ipAddress=pj.ipaddr, 
-                   summary=pj.message, 
-                   severity=pj.severity,
-                   eventClass=Status_Ping,
-                   eventGroup=self.eventGroup, 
-                   agent=self.agent, 
-                   component='',
-                   manager=self.options.monitor)
-        evstate = getattr(pj, 'eventState', None)
-        if evstate is not None:
-            evt['eventState'] = evstate
-        self.sendEvent(evt)
-
-    def loadConfig(self, driver):
-        "Get the configuration for zenping"
-        try:
-            # Retry if config hasn't finished loading after 2 hours
-            if self.loadingConfig and (time.time() - self.loadingConfig ) > 7200:
-                self.log.warning("Configuration still loading.  Started at %s" %
-                                 time.asctime(time.localtime(self.loadingConfig)))
-                return
-
-            if self.lastConfig:
-                configwait = time.time() - self.lastConfig
-                delay = self.options.minconfigwait - configwait
-                if delay > 0:
-                    reactor.callLater(delay, self.remote_updateConfig)
-                    self.log.debug("Config recently updated: not fetching")
-                    return
-
-            self.loadingConfig = time.time()
-
-            self.log.info('fetching monitor properties')
-            yield self.config().callRemote('propertyItems')
-            self.copyItems(driver.next())
-
-            driveLater(self.configCycleInterval, self.loadConfig)
-
-            self.log.info("fetching default RRDCreateCommand")
-            yield self.config().callRemote('getDefaultRRDCreateCommand')
-            createCommand = driver.next()
-
-            self.log.info("getting threshold classes")
-            yield self.config().callRemote('getThresholdClasses')
-            self.remote_updateThresholdClasses(driver.next())
-
-            self.log.info("getting collector thresholds")
-            yield self.config().callRemote('getCollectorThresholds')
-            self.rrdStats.config(self.options.monitor,
-                                 self.name,
-                                 driver.next(), 
-                                 createCommand)
-
-            self.log.info("getting ping tree")
-            yield self.config().callRemote('getPingTree',
-                                           self.options.name,
-                                           findIp())
-            oldtree, self.pingtree = self.pingtree, driver.next()
-            self.clearDeletedDevices(oldtree)
-
-            self.rrdStats.gauge('configTime',
-                                self.configCycleInterval,
-                                time.time() - self.loadingConfig)
-            self.loadingConfig = None
-            self.lastConfig = time.time()
-        except Exception, ex:
-            self.log.exception(ex)
-
-
-    def buildOptions(self):
-        PBDaemon.buildOptions(self)
-        self.parser.add_option('--name',
-                               dest='name',
-                               default=getfqdn(),
-                               help=("host that roots the ping dependency "
-                                     "tree: typically the collecting hosts' "
-                                     "name; defaults to our fully qualified "
-                                     "domain name (%s)" % getfqdn()))
-        self.parser.add_option('--test',
-                               dest='test',
-                               default=False,
-                               action="store_true",
-                               help="Run in test mode: doesn't really ping,"
-                               " but reads the list of IP Addresses that "
-                               " are up from /tmp/testping")
-        self.parser.add_option('--useFileDescriptor',
-                               dest='useFileDescriptor',
-                               default=None,
-                               help=
-                               "use the given (privileged) file descriptor")
-        self.parser.add_option('--minConfigWait',
-                               dest='minconfigwait',
-                               default=300,
-                               type='int',
-                               help=
-                               "the minimal time, in seconds, "
-                               "between refreshes of the config")
-
-
-    def pingCycle(self, unused=None):
-        "Start a new run against the ping job tree"
-        if self.options.cycle:
-            reactor.callLater(self.pingCycleInterval, self.pingCycle)
-
-        if self.pingTreeIter == None:
-            self.start = time.time()
-            self.jobs = 0
-            self.pingTreeIter = self.pingtree.pjgen()
-        while self.pinger.jobCount() < self.pingChunk and self.startOne():
-            pass
-
-
-    def startOne(self):
-        "Initiate the next ping job"
-        if not self.pingTreeIter:
-            return False
-        while 1:
-            try:
-                pj = self.pingTreeIter.next()
-                if pj.status < self.maxPingFailures or self.reconfigured:
-                    self.ping(pj)
-                    return True
-            except StopIteration:
-                self.pingTreeIter = None
-                return False
-
-    def ping(self, pj):
-        "Perform a ping"
-        self.log.debug("starting %s", pj.ipaddr)
-        pj.reset()
-        self.pinger.sendPacket(pj)
-        pj.deferred.addCallbacks(self.pingSuccess, self.pingFailed)
-        
-    def next(self):
-        "Pull up the next ping job, which may throw StopIteration"
-        self.jobs += 1
-        self.startOne()
-        if self.pinger.jobCount() == 0:
-            self.endCycle()
-
-    
-    def endCycle(self, *unused):
-        "Note the end of the ping list with a successful status message"
-        runtime = time.time() - self.start
-        self.log.info("Finished pinging %d jobs in %.2f seconds",
-                      self.jobs, runtime)
-        self.reconfigured = False
-        if not self.options.cycle:
-            reactor.stop()
-        else:
-            self.heartbeat()
-
-    def heartbeat(self):
-        'Send a heartbeat event for this monitor.'
-        PBDaemon.heartbeat(self)
-        for ev in (self.rrdStats.gauge('cycleTime',
-                                       self.pingCycleInterval,
-                                       time.time() - self.start) +
-                   self.rrdStats.gauge('devices',
-                                       self.pingCycleInterval,
-                                       self.jobs)):
-            self.sendEvent(ev)
-
-    def pingSuccess(self, pj):
-        "Callback for a good ping response"
-        pj.deferred = None
-        if pj.status > 1:
-            pj.severity = 0
-            self.sendPingEvent(pj)
-        self.log.debug("Success %s", pj.ipaddr)
-        pj.status = 0
-        self.next()
-
-    def pingFailed(self, err):
-        try:
-            self.doPingFailed(err)
-        except Exception, ex:
-            import traceback
-            from StringIO import StringIO
-            out = StringIO()
-            traceback.print_exc(ex, out)
-            self.log.error("Exception: %s", out.getvalue())
-
-    def doPingFailed(self, err):
-        "Callback for a bad (no) ping response"
-        pj = err.value
-        pj.deferred = None
-        pj.status += 1
-        self.log.debug("Failed %s %s", pj.ipaddr, pj.status)
-        if pj.status == 1:         
-            self.log.debug("first failure '%s'", pj.hostname)
-            # if our path back is currently clear add our parent
-            # to the ping list again to see if path is really clear
-            if not pj.checkpath():
-                routerpj = pj.routerpj()
-                if routerpj:
-                    self.ping(routerpj)
-            # We must now re-run this ping job to actually generate a ping down
-            # event. If there is a problem in the path, it will be suppressed.
-            self.ping(pj)
-        else:
-            failname = pj.checkpath()
-            # walk up the ping tree and find router node with failure
-            if failname:
-                pj.eventState = 2 # suppressed FIXME
-                pj.message += (", failed at %s" % failname)
-            self.log.warn(pj.message)
-            self.sendPingEvent(pj)
-            # not needed since it will cause suppressed ping events 
-            # to show up twice, once from if failname: sections
-            # and second from markChildrenDown
-            # the "marking" of children never took place anyway
-            # due to iterator status check
-            # self.markChildrenDown(pj)
-        
-        self.next()
-
-
-    def remote_setPropertyItems(self, items):
-        "The config has changed, maybe the device list is different"
-        self.copyItems(items)
-        self.remote_updateConfig()
-
-        
-    def remote_updateConfig(self):
-        self.log.debug("Asynch update config")
-        d = drive(self.loadConfig)
-        def logResults(v):
-            if isinstance(v, failure.Failure):
-                self.log.error("Unable to reload config for async update")
-                
-                # Reset loadingConfig so we don't get stuck in a mode where all
-                # asynchronous updates are blocked.
-                self.loadingConfig = None
-                
-                # Try loading the config again in 30 seconds to give zenhub
-                # time to restart.
-                driveLater(30, self.loadConfig)
-        
-        d.addBoth(logResults)
-
-
-    def copyItems(self, items):
-        items = dict(items)
-        for att in ("pingTimeOut",
-                    "pingTries",
-                    "pingChunk",
-                    "pingCycleInterval",
-                    "configCycleInterval",
-                    "maxPingFailures",
-                    ):
-            before = getattr(self, att)
-            after = items.get(att, before)
-            setattr(self, att, after)
-        self.configCycleInterval *= 60
-        self.reconfigured = True
-        self.getPinger()
-
-
-    def clearDevice(self, device):
-        self.sendEvent(dict(device=device,
-                            eventClass=Status_Ping,
-                            summary="No longer testing device",
-                            severity=Clear))
-
-
-    def clearDeletedDevices(self, oldtree):
-        "Send clears for any device we stop pinging"
-        down = set()
-        if oldtree:
-            down = set([pj.hostname for pj in oldtree.pjgen() if pj.status])
-        all = set([pj.hostname for pj in self.pingtree.pjgen()])
-        for device in down - all:
-            self.clearDevice(device)
-
-
-    def remote_deleteDevice(self, device):
-        self.log.debug("Asynch delete device %s" % device)
-        self.clearDevice(device)
-        self.remote_updateConfig()
+    def updated(self, newConfiguration):
+        """
+        Called when a configuration is updated in collector
+        """
+        log.debug("zenhub asked us to update device: %s (%s)",
+                      newConfiguration.id, newConfiguration.manageIp)
+        pass
 
 
 def findIp():
@@ -390,8 +249,6 @@ def findIp():
         return gethostbyname(getfqdn())
     except gaierror:
         # find the first non-loopback interface address
-        import os
-        import re
         ifconfigs = ['/sbin/ifconfig',
                      '/usr/sbin/ifconfig',
                      '/usr/bin/ifconfig',
@@ -416,8 +273,14 @@ def findIp():
             return results[0]
     return '127.0.0.1'
 
+
 if __name__=='__main__':
-    pm = ZenPing()
-    import logging
-    logging.getLogger('zen.Events').setLevel(20)
-    pm.run()
+    myPreferences = PingCollectionPreferences()
+    myTaskFactory = SimpleTaskFactory(PingCollectionTask)
+    myTaskSplitter = PerIpAddressTaskSplitter(myTaskFactory)
+    myListener = TopologyUpdater()
+    daemon = CollectorDaemon(myPreferences, myTaskSplitter,
+                            configurationLister=myListener,
+                            stoppingCallback=myPreferences.preShutdown)
+    daemon.run()
+

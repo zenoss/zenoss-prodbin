@@ -99,11 +99,14 @@ class ISNMPDataSourceInfo(IInfo):
 
 
 class IPingDataSourceInfo(IRRDDataSourceInfo):
-    """
-    Adaps a basic Datasource of type PING
-    """
-    attempts = schema.Int(title=_t(u'Number of pings to determine up/down status'),
-                                   vtype='positive')
+    cycleTime = schema.Int(title=_t(u'Cycle Time (seconds)'),
+                           vtype='positive')
+    eventClass = schema.Text(title=_t(u'Event Class'),
+                             xtype='eventclass', readonly=True)
+    sampleSize = schema.Int(title=_t(u'Number of pings to send per cycle'),
+                          vtype='positive')
+    attempts = schema.Int(title=_t(u'Maximum ping retries'),
+                          vtype='positive')
 
 
 class IDataPointInfo(IInfo):

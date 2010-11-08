@@ -170,7 +170,6 @@ class CallableTask(object):
         # don't return a Deferred because we want LoopingCall to keep
         # rescheduling so that we can keep track of late intervals
 
-
     def _doCall(self):
         d = defer.maybeDeferred(self._run)
         d.addBoth(self._finished)
@@ -190,8 +189,8 @@ class CallableTask(object):
         log.debug("Task %s finished, result: %r", self.task.name, 
                   result)
 
-        # Unless the task completed, make sure that we always reset
-        # the state to IDLE once the task is finished.
+        # Unless the task completed or paused itself, make sure
+        # that we always reset the state to IDLE once the task is finished.
         if self.task.state != TaskStates.STATE_COMPLETED:
             self.task.state = TaskStates.STATE_IDLE
 
@@ -333,11 +332,23 @@ class Scheduler(object):
         """
         pass
 
+    def getTasksForConfig(self, configId):
+        """
+        Get all tasks associated with the specified identifier.
+        """
+        tasks = []
+        for (taskName, taskWrapper) in self._tasks.iteritems():
+            task = taskWrapper.task
+            if task.configId == configId:
+                tasks.append(task)
+        return tasks
+
     def removeTasksForConfig(self, configId):
         """
         Remove all tasks associated with the specified identifier.
-        @param configId the identifier to search for
-        @type configId string
+
+        @paramater configId: the identifier to search for
+        @type configId: string
         """
         doomedTasks = []
         for (taskName, taskWrapper) in self._tasks.iteritems():

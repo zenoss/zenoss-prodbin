@@ -369,7 +369,9 @@ class PingDataSourceInfo(RRDDataSourceInfo):
     """
     DataSource for PING
     """
+    cycleTime = ProxyProperty('cycleTime')
     attempts = ProxyProperty('attempts')
+    sampleSize = ProxyProperty('sampleSize')
 
 
 class DataPointInfo(InfoBase):
