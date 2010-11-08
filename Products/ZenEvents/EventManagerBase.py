@@ -447,7 +447,7 @@ class EventManagerBase(ZenModelRM, ObjectCache, DbAccessBase):
                 v2 = Time.isoToTimestamp(v)
                 newwhere += ' and %s >= %%s ' % (k, )
                 queryValues.append(v2)
-            elif ftype=='multiselectmenu':
+            elif ftype.startswith('multiselect'):
                 if isinstance(v, basestring): v = (v,)
                 if len(v)>0:
                     sevstr = ' or '.join(['%s=%%s' % (k,) for s in v])
