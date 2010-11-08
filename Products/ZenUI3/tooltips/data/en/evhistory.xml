@@ -8,7 +8,7 @@
   </tooltip>
 
   <tooltip>
-    <target>unack-button</target>
+    <target>reopen-button</target>
 
     <html>Return selected events to New status</html>
   </tooltip>
@@ -43,8 +43,7 @@
     the default list.</li>
     <li><strong>Save this
     configuration</strong> - Save your custom event console by
-    bookmarking it for quick access later.<br /><br />Watch:
-    Saving a custom view</li></ul></html>
+    bookmarking it for quick access later.</li></ul></html>
   </tooltip>
 
   <tooltip>

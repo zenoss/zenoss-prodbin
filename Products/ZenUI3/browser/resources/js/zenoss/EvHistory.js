@@ -223,6 +223,7 @@ Ext.onReady(function(){
                  * SELECT MENU
                  */
                 text: _t('Select'),
+                id: 'select-button',
                 menu:{
                     xtype: 'menu',
                     items: [{
@@ -271,6 +272,7 @@ Ext.onReady(function(){
                 }
             },{
                 text: _t('Export'),
+                id: 'export-button',
                 //iconCls: 'export',
                 menu: {
                 items: [{
@@ -316,6 +318,7 @@ Ext.onReady(function(){
                  * CONFIGURE MENU
                  */
                 text: _t('Configure'),
+                id: 'configure-button',
                 //iconCls: 'customize',
                 menu: {
                     items: [{
@@ -399,6 +402,7 @@ Ext.onReady(function(){
                 text: 'Updating...'
             },{
                 xtype: 'refreshmenu',
+                id: 'refresh-button',
                 text: _t('Refresh'),
                 handler: function(){
                     view = Ext.getCmp('events_grid').getView();
