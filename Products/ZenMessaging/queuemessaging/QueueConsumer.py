@@ -35,16 +35,16 @@ class ManagedProcess(object):
         raise NotImplementedError
 
 
-class QueueConsumer(ZCmdBase):
+class QueueConsumer(object):
     """
     Listens to the model change queue and translates the
     events into graph protobufs
     """
     MARKER = str(hash(object()))
     
-    def __init__(self, task, persistent=False):
+    def __init__(self, task, dmd, persistent=False):
         ManagedProcess.__init__(self)
-        ZCmdBase.__init__(self)
+        self.dmd = dmd
         self.consumer = AMQPFactory()        
         self.onReady = self._ready()
         self.onShutdown = self._shutdown()
@@ -115,6 +115,9 @@ class QueueConsumer(ZCmdBase):
                            routing_key,
                            message,
                            exchange_type)
+    
+    def syncdb(self):
+        self.dmd.getPhysicalRoot()._p_jar.sync()
     
 class QueueConsumerProcess(ManagedProcess):
     """

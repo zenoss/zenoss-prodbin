@@ -34,7 +34,7 @@ class IQueuePublisher(Interface):
 
 class IProtobufSerializer(Interface):
     """
-    Interfaces fro converting a Zope object to a protobuf.
+    Interfaces for converting a Zope object to a protobuf.
     """
 
     def fill(protobuf):

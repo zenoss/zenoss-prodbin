@@ -10,7 +10,6 @@
 # For complete information please visit: http://www.zenoss.com/oss/
 #
 ###########################################################################
-
 __doc__='''zeneventd
 
 Apply up-front preprocessing to events.
@@ -22,6 +21,7 @@ import os
 
 from Products.ZenMessaging.queuemessaging.QueueConsumer import QueueConsumer
 from Products.ZenMessaging.queuemessaging.interfaces import IQueueConsumerTask, IProtobufSerializer
+from Products.ZenUtils.ZCmdBase import ZCmdBase
 from zenoss.protocols.protobufs.zep_pb2 import RawEvent, EventDetail, EventIndex, EventActor, SEVERITY_CLEAR
 from zenoss.protocols.protobufs.model_pb2 import DEVICE, COMPONENT, SERVICE
 from zenoss.protocols.amqpconfig import getAMQPConfiguration
@@ -244,11 +244,11 @@ class ProcessEventMessageTask(object):
     def getDmd(self):
         return self.dmd
 
-class ZenEventD(object):
+class ZenEventD(ZCmdBase):
     def run(self):
         task = ProcessEventMessageTask()
-        self._consumer = QueueConsumer(task)
-        if self._consumer.options.cycle:
+        self._consumer = QueueConsumer(task,self.dmd)
+        if self.options.cycle:
             reactor.callWhenRunning(self._start)
             reactor.run()
         else:
