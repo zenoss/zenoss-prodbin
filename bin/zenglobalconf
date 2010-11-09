@@ -40,7 +40,7 @@ def parse_settings(conf_file):
 
 def remove_settings(settings_to_remove):
     filename = zenPath('etc', 'global.conf')
-    (tmpfd,tmpname) = tempfile.mkstemp(suffix='.conf',text=True)
+    (tmpfd,tmpname) = tempfile.mkstemp(suffix='.conf',dir=os.path.dirname(filename),text=True)
     output_file = os.fdopen(tmpfd, 'wb')
     found_settings = set()
     try:
@@ -60,7 +60,7 @@ def remove_settings(settings_to_remove):
 
 def update_settings(settings_dict):
     filename = zenPath('etc', 'global.conf')
-    (tmpfd,tmpname) = tempfile.mkstemp(suffix='.conf',text=True)
+    (tmpfd,tmpname) = tempfile.mkstemp(suffix='.conf',dir=os.path.dirname(filename),text=True)
     output_file = os.fdopen(tmpfd, 'wb')
     found_settings = set()
     try:
