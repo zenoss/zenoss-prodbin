@@ -48,7 +48,7 @@
 
   <tooltip>
     <target>refresh-button</target>
-
+    <anchor>left</anchor>
     <html>Click to refresh the list of events, or select an automatic refresh
     interval (1, 5, 10, 30, or 60 seconds).</html>
   </tooltip>
