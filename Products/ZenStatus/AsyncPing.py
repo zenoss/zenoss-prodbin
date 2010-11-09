@@ -20,7 +20,7 @@ import icmp
 import errno
 from math import fsum, sqrt, pow
 import logging
-plog = logging.getLogger("zen.Ping")
+log = logging.getLogger("zen.Ping")
 
 from twisted.internet import reactor, defer
 from twisted.spread import pb
@@ -100,14 +100,6 @@ class PingJob(pb.Copyable, pb.RemoteCopy):
         total = fsum( map(lambda x: pow(x - avg, 2), self.results) )
         # Bessel's correction uses n - 1 rather than n
         return sqrt( total / (n - 1) )
-
-    def checkpath(self):
-        if self.parent:
-            return self.parent.checkpath()
-
-    def routerpj(self):
-        if self.parent:
-            return self.parent.routerpj()
 
     def __str__(self):
         return "%s %s" % (self.hostname, self.ipaddr)
@@ -196,13 +188,13 @@ class Ping(object):
                 try:
                     icmppkt = icmp.disassemble(ipreply.data)
                 except ValueError:
-                    plog.debug("Checksum failure on packet %r", ipreply.data)
+                    log.debug("Checksum failure on packet %r", ipreply.data)
                     try:
                         icmppkt = icmp.disassemble(ipreply.data, 0)
                     except ValueError:
                         continue            # probably Unknown type
                 except Exception, ex:
-                    plog.debug("Unable to decode reply packet payload %s", ex)
+                    log.debug("Unable to decode reply packet payload %s", ex)
                     continue
                 sip =  ipreply.src
                 if (icmppkt.get_type() == icmp.ICMP_ECHOREPLY and 
@@ -212,7 +204,7 @@ class Ping(object):
                     pj.rcvCount += 1
                     pj.rtt = time.time() - pj.start
                     pj.results.append(pj.rtt)
-                    plog.debug("%d bytes from %s: icmp_seq=%d time=%0.3f ms",
+                    log.debug("%d bytes from %s: icmp_seq=%d time=%0.3f ms",
                                len(icmppkt.get_data()), sip, icmppkt.get_seq(),
                                pj.rtt * 1000)
                     if pj.rcvCount >= pj.sampleSize:
@@ -226,12 +218,12 @@ class Ping(object):
                         dip = origpkt.dst
                         if (origpkt.data.find(self.pktdata) > -1
                             and self.jobqueue.has_key(dip)):
-                            plog.debug("ICMP unreachable message for %s", dip)
+                            log.debug("ICMP unreachable message for %s", dip)
                             self.pingJobFail(self.jobqueue[dip])
                     except ValueError, ex:
-                        plog.warn("Failed to parse host unreachable packet")
+                        log.warn("Failed to parse host unreachable packet")
                 #else:
-                    #plog.debug("Unexpected pkt %s %s", sip, icmppkt)
+                    #log.debug("Unexpected pkt %s %s", sip, icmppkt)
             except (SystemExit, KeyboardInterrupt): raise
             except socket.error, err:
                 errnum, errmsg = err.args
@@ -239,7 +231,7 @@ class Ping(object):
                     return
                 raise err
             except Exception, ex:
-                plog.exception("Error while receiving packet: %s" % ex)
+                log.exception("Error while receiving packet: %s" % ex)
 
     def pingJobSucceed(self, pj):
         """PingJob completed successfully.
@@ -271,14 +263,14 @@ class Ping(object):
             runtime = time.time() - pj.start
             if runtime > self.timeout:
                 pj.loss += 1
-                plog.debug("%s pingjob timeout on attempt %d (%s sec)",
+                log.debug("%s pingjob timeout on attempt %d (%s sec)",
                            pj.ipaddr, pj.loss, self.timeout)
                 if pj.loss >= pj.maxtries:
                     self.pingJobFail(pj)
                 else:
                     self.sendPacket(pj)
             else:
-                plog.debug("Calling checkTimeout needlessly for %s", pj.ipaddr)
+                log.debug("Calling checkTimeout needlessly for %s", pj.ipaddr)
 
     def jobCount(self):
         return len(self.jobqueue)
