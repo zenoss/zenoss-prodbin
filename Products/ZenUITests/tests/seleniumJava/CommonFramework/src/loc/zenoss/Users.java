@@ -14,17 +14,16 @@ package loc.zenoss;
 
 import com.thoughtworks.selenium.DefaultSelenium;
 
-/*
- * This method assumes that Users page is already loaded
- * and create new users. 
- * @author Catalina Rojas 
- * @param sClient Selenium client connection
- * @return Boolean true if the user was successfully added or false in other way
- * @throws Generic Exception
- */
-
 public class Users {
 
+	/*
+	 * This method assumes that Users page is already loaded
+	 * and create new users. 
+	 * @author Catalina Rojas 
+	 * @param sClient Selenium client connection
+	 * @return Boolean true if the user was successfully added or false in other way
+	 * @throws Generic Exception
+	 */
 	public static boolean addNewUser(DefaultSelenium sClient, String newIDUser, String email) throws Exception{
 		// Click on Add new User
 		sClient.click("//table[@id='ext-comp-1078']/tbody/tr[2]/td[2]/em");
@@ -85,11 +84,11 @@ public class Users {
 		}
 		return result;
 	}
-	
+
 	/*
 	 * This method assumes that Users page is already loaded and the user is created
-	 * This method ssumes that the user created is selected
-	 * Edit a user created using Role 
+	 * This method assumes that the user created is selected
+	 * Edit a user created using Role (If the user is ZenUser and you should select Zen , this method does not work)
 	 * @author Catalina Rojas 
 	 * @param sClient Selenium client connection
 	 * @return Boolean false if the user was not successfully deleted 
@@ -97,23 +96,22 @@ public class Users {
 	 */
 	public static boolean editUserWithRole(DefaultSelenium sClient,String pass, String sndpass, String role,String roleSelected) throws Exception{
 		// Type new password
-		Thread.sleep(300);
+		Thread.sleep(3000);
 		sClient.type("password", ""+pass+"");
 		sClient.type("sndpassword", ""+sndpass+"");
-		
-		// Select ZenManager role
+
 		sClient.addSelection("roles:list", "label="+role+"");
+		Thread.sleep(2000);
 		sClient.removeSelection("roles:list", "label="+roleSelected +"");
 		// Enter password of the current user
-		//sClient.typeKeys("pwconfirm", "zenoss");
 		sClient.typeKeys("pwconfirm", ZenossConstants.adminPassword);
 		// Click on Save button
 		sClient.click("formsave");
 		sClient.waitForPageToLoad("30000");
-		
+
 		// Verify text that is indicating that the changes were saved
 		Thread.sleep(6000);
-		
+
 		boolean result = true;
 		if(sClient.isTextPresent("Saved at time:")){
 			result = true;
@@ -125,7 +123,7 @@ public class Users {
 		}
 		return result;
 	}
-	
+
 	/*
 	 * This method assumes that Users page is already loaded and the user is created
 	 * This method ssumes that the user created is selected
@@ -140,7 +138,7 @@ public class Users {
 		Thread.sleep(300);
 		sClient.type("password", ""+pass+"");
 		sClient.type("sndpassword", ""+sndpass+"");
-		
+
 		// Select ZenManager role
 		sClient.removeSelection("roles:list", "label="+roleSelected +"");
 		// Enter password of the current user
@@ -149,10 +147,10 @@ public class Users {
 		// Click on Save button
 		sClient.click("formsave");
 		sClient.waitForPageToLoad("30000");
-		
+
 		// Verify text that is indicating that the changes were saved
 		Thread.sleep(6000);
-		
+
 		boolean result = true;
 		if(sClient.isTextPresent("Saved at time:")){
 			result = true;
@@ -164,8 +162,8 @@ public class Users {
 		}
 		return result;
 	}
-	
-	
+
+
 	/*
 	 * This method assumes that Users page is already loaded
 	 * Create new user Group
@@ -175,7 +173,7 @@ public class Users {
 	 * @throws Generic Exception
 	 */
 	public static boolean newUserGroup(DefaultSelenium sClient,String idGroup) throws Exception{
-		
+
 		//Click on the gear menu
 		sClient.click("//table[@id='ext-comp-1081']/tbody/tr[2]/td[2]/em");
 		Thread.sleep(1000);
@@ -187,7 +185,7 @@ public class Users {
 		//Click on Ok Submit button.
 		sClient.click("//input[@type='submit']");
 		Thread.sleep(4000);
-		
+
 		boolean result = true;
 		if(sClient.isTextPresent("Group \""+idGroup+"\" has been created.") ){
 			result = true;
@@ -229,12 +227,12 @@ public class Users {
 		Thread.sleep(3000);
 		sClient.isTextPresent("Users "+idUser+" were added to group "+idGroup+".");
 		Thread.sleep(2000);
-		
+
 		boolean result = true;
 
 		if(sClient.isElementPresent("//tbody[@id='Groups']//td[text()='"+idUser+"']")){
 			result = true;
-			
+
 		}
 		else
 		{
