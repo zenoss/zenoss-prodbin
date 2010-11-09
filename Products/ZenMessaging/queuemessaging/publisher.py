@@ -10,6 +10,7 @@
 # For complete information please visit: http://www.zenoss.com/oss/
 #
 ###########################################################################
+from twisted.internet import defer
 from zope.interface import implements
 from zenoss.protocols.twisted.amqp import AMQPFactory
 from zenoss.protocols.amqp import Publisher as BlockingPublisher
@@ -219,7 +220,8 @@ class AsyncQueuePublisher(object):
     def __init__(self):
         self._amqpClient = AMQPFactory()
 
-    def publish(self, exchange, routing_key, message, exchange_type="topic"):
+    @defer.inlineCallbacks
+    def publish(self, exchange, routing_key, message, exchange_type="topic", createQueue=None):
         """
         Publishes a message to an exchange. If twisted is running
         this will use the twisted amqp library, otherwise it will
@@ -233,7 +235,12 @@ class AsyncQueuePublisher(object):
         """
         config = getAMQPConfiguration()
         exchange = config.getExchange(exchange).name
-        return self._amqpClient.send(exchange, routing_key, message, exchange_type)
+        if createQueue:
+            qName = config.getQueue(createQueue).name
+            yield self._amqpClient.createQueue(exchange, exchange_type, routing_key, qName)
+        result = yield self._amqpClient.send(exchange, routing_key, message, exchange_type)
+        defer.returnValue(result)
+
 
     @property
     def channel(self):
