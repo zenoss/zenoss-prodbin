@@ -10,6 +10,9 @@
 <tal:block metal:fill-slot="script_beforeLayout">
 <link rel="stylesheet"
     href="/++resource++zenui/js/livegrid/resources/css/ext-ux-livegrid.css"/>
+<tal:block tal:content="structure provider:jssnippets"/>
+</tal:block>
+
 <tal:block metal:fill-slot="script_layout">
 <form id="exportform" method="post" action="export">
     <input type="hidden" id="export_body" name="body"/>
