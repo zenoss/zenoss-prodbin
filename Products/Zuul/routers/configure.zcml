@@ -22,6 +22,13 @@
     />
 
 <browser:directRouter
+    name="zep_router"
+    for="*"
+    class=".zep.ZepRouter"
+    namespace="Zenoss.remote"
+    />
+
+<browser:directRouter
     name="process_router"
     for="*"
     class=".process.ProcessRouter"

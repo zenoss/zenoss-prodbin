@@ -50,7 +50,13 @@ class JavaScriptRegex(JavaScript):
     def __str__(self):
         return '/' + self.value + '/'
 
-class JavaScriptEncoder(_json.JSONEncoder):
+class ObjectEncoder(_json.JSONEncoder):
+    def default(self, obj):
+        if hasattr(obj, '__json__') and callable(obj.__json__):
+            return obj.__json__()
+        return _json.JSONEncoder.default(self, obj)
+
+class JavaScriptEncoder(ObjectEncoder):
     """A JavaScript encoder based on JSON. It encodes like normal JSON except it passes JavaScript objects un-encoded."""
 
     _js_start = '__js_start__'
@@ -61,7 +67,7 @@ class JavaScriptEncoder(_json.JSONEncoder):
         if isinstance(obj, JavaScript):
             return [self._js_start, str(obj), self._js_end]
         else:
-            return _json.JSONEncoder.default(self, obj)
+            return ObjectEncoder.default(self, obj)
 
     def _js_clean(self, jsonstr):
         # This re replace is not ideal but at least the dirtyness of it is encapsulated in these classes
@@ -72,7 +78,7 @@ class JavaScriptEncoder(_json.JSONEncoder):
         return self._js_re.sub(fix, jsonstr)
 
     def encode(self, obj):
-        return self._js_clean(_json.JSONEncoder.encode(self, obj))
+        return self._js_clean(ObjectEncoder.encode(self, obj))
 
 def json(value, **kw):
     """
@@ -99,7 +105,7 @@ def json(value, **kw):
     if callable(value):
         # Decorate the given callable
         def inner(*args, **kwargs):
-            return _json.dumps(value(*args, **kwargs))
+            return json(value(*args, **kwargs))
         # Well-behaved decorators look like the decorated function
         inner.__name__ = value.__name__
         inner.__dict__.update(value.__dict__)
@@ -107,11 +113,22 @@ def json(value, **kw):
         return inner
     else:
         # Simply serialize the value passed
-        return _json.dumps(value, **kw)
+        return _json.dumps(value, cls=ObjectEncoder, **kw)
 
-def javascript(data):
+def javascript(value):
     """A JavaScript encoder based on JSON. It encodes like normal JSON except it passes JavaScript objects un-encoded."""
-    return json(data, cls=JavaScriptEncoder)
+    if callable(value):
+        # Decorate the given callable
+        def inner(*args, **kwargs):
+            return javascript(value(*args, **kwargs))
+        # Well-behaved decorators look like the decorated function
+        inner.__name__ = value.__name__
+        inner.__dict__.update(value.__dict__)
+        inner.__doc__ = value.__doc__
+        return inner
+    else:
+        # Simply serialize the value passed
+        return _json.dumps(value, cls=JavaScriptEncoder)
 
 def unjson(value, **kw):
     """

@@ -83,6 +83,12 @@
              for="*"
              />
 
+    <adapter factory=".facades.ZepFacade"
+             provides=".interfaces.IZepFacade"
+             name="zep"
+             for="*"
+             />
+
     <adapter factory=".facades.NetworkFacade"
              provides=".interfaces.INetworkFacade"
              name="network"

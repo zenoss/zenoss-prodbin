@@ -12,12 +12,14 @@
 ###########################################################################
 import inspect
 import logging
+from Products.ZenUtils.jsonutils import json, unjson
+from uuid import uuid4
+
 log = logging.getLogger('extdirect')
 
 class DirectException(Exception):
     pass
 
-from Products.ZenUtils.jsonutils import json, unjson
 
 
 class DirectResponse(object):
@@ -41,13 +43,42 @@ class DirectResponse(object):
         self._data[key] = value
 
     @staticmethod
+    def exception(exception, **kwargs):
+        msg = exception.__class__.__name__ + ': ' + str(exception)
+        return DirectResponse(msg, success=False, type='exception', **kwargs)
+
+    @staticmethod
     def fail(msg=None, **kwargs):
-        return DirectResponse(msg, success=False, **kwargs)
+        return DirectResponse(msg, success=False, type='error', **kwargs)
 
     @staticmethod
     def succeed(msg=None, **kwargs):
         return DirectResponse(msg, success=True, **kwargs)
 
+    def __json__(self):
+        return self.data
+
+class DirectMethodResponse(object):
+    """
+    Encapsulation of the response of a method call for Ext Direct.
+    """
+    def __init__(self, tid, action, method, uuid):
+        self.tid = tid
+        self.type = 'rpc'
+        self.action = action
+        self.method = method
+        self.uuid = uuid
+        self.result = None
+
+    def __json__(self):
+        return {
+            'tid': self.tid,
+            'type' : self.type,
+            'action': self.action,
+            'method': self.method,
+            'uuid': self.uuid,
+            'result': self.result
+        }
 
 class DirectRouter(object):
     """
@@ -64,9 +95,9 @@ class DirectRouter(object):
 
     Call an instance of this class with the JSON from an Ext.Direct request.
     """
+
+    @json
     def __call__(self, body):
-        """
-        """
         # Decode the request data
         body = unjson(body)
         self._body = body
@@ -85,9 +116,11 @@ class DirectRouter(object):
         if len(directResponses) == 1:
             directResponses = directResponses[0]
 
-        return json(directResponses)
+        return directResponses
 
     def _processDirectRequest(self, directRequest):
+        # Add a UUID so we can track it in the logs
+        uuid = str(uuid4())
 
         # Double-check that this request is meant for this class
         action = directRequest.get('action')
@@ -123,27 +156,17 @@ class DirectRouter(object):
         data = dict((str(k), v) for k,v in data.iteritems())
         self._data = data
 
+        response = DirectMethodResponse(tid=directRequest['tid'], method=method, action=action, uuid=uuid)
+
         # Finally, call the target method, passing in the data
         try:
-            result = _targetfn(**data)
-        except Exception, e:
+            response.result = _targetfn(**data)
+        except Exception as e:
+            log.error('DirectRouter suppressed the following exception (Response %s):' % response.uuid)
             log.exception(e)
-            message = e.__class__.__name__ + ' ' + str(e)
-            return {
-                'type':'exception',
-                'message':message
-            }
+            response.result = DirectResponse.exception(e)
 
-        if isinstance(result, DirectResponse):
-            result = result.data
-
-        return {
-            'type':'rpc',
-            'tid': directRequest['tid'],
-            'action': action,
-            'method': method,
-            'result': result
-        }
+        return response
 
 
 class DirectProviderDefinition(object):

@@ -93,15 +93,31 @@ COLUMN_CONFIG = {
             'source':[{
                 'value':0,
                 'name':'New'
-            },{
+            },
+            {
                 'value':1,
                 'name':'Acknowledged'
-            },{
+            },
+            {
                 'value':2,
                 'name':'Suppressed',
                 'checked':False
-            }
-            ]
+            },
+            {
+                'value':3,
+                'name':'Cleared',
+                'checked':False
+            },
+            {
+                'value':4,
+                'name':'Closed',
+                'checked':False
+            },
+            {
+                'value':5,
+                'name':'Auto Closed',
+                'checked':False
+            }]
         },
         renderer='Zenoss.util.render_status'),
 

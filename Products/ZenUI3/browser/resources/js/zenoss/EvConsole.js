@@ -262,7 +262,7 @@ Ext.onReady(function(){
 
     // Add a CSS class to scope some styles that affect other parts of the UI
     container.on('render', function(){container.el.addClass('zenui3')});
-    
+
     // Add the toolbar to the container
     var tbar = new Zenoss.LargeToolbar({
             region:'north',

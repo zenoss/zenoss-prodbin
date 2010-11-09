@@ -111,7 +111,7 @@
             permission="zenoss.Common"
             layer="..navigation.interfaces.IZenossNav"
             />
-    
+
     <browser:viewlet
         name="Infrastructure"
         url="/zport/dmd/itinfrastructure"

@@ -53,8 +53,8 @@
     class=".javascript.MainSnippetManager"
     permission="zope2.Public"
     />
-    
-<!-- Viewlet manager for javascript src includes -->   
+
+<!-- Viewlet manager for javascript src includes -->
 <browser:viewletManager
     name="all-js"
     provides=".interfaces.IJavaScriptSrcManager"
@@ -62,7 +62,7 @@
     permission="zope2.Public"
     />
 
-<!-- Viewlet manager for javascript src includes -->   
+<!-- Viewlet manager for javascript src includes -->
 <browser:viewletManager
     name="head-extra"
     provides=".interfaces.IHeadExtraManager"
@@ -161,7 +161,7 @@
     for="*"
     permission="zenoss.View"
     />
-    
+
 
 <browser:page
     template="templates/reports.pt"
