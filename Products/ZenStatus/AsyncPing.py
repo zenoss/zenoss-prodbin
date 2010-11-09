@@ -112,9 +112,10 @@ class Ping(object):
     Class that provides asynchronous ping (ICMP packets) capability.
     """
     
-    def __init__(self, timeout=2, sock=None):
+    def __init__(self, timeout=2, sock=None, defaultTries=2):
         self.reconfigure(timeout)
         self.procId = os.getpid()
+        self.defaultTries = defaultTries
         self.jobqueue = {}
         self.pktdata = 'zenping %s %s' % (socket.getfqdn(), self.procId)
         self.createPingSocket(sock)
@@ -277,7 +278,7 @@ class Ping(object):
 
     def ping(self, ip):
         "Ping the IP address and return the result in a deferred"
-        pj = PingJob(ip)
+        pj = PingJob(ip, maxtries=self.defaultTries)
         self.sendPacket(pj)
         return pj.deferred
 

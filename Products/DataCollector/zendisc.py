@@ -74,10 +74,9 @@ class ZenDisc(ZenModeler):
         sock = None
         if self.options.useFileDescriptor:
             sock = int(self.options.useFileDescriptor)
-        self.ping = Ping(self.options.tries,
-                         self.options.timeout,
-                         sock=sock)
-
+        self.ping = Ping(timeout=self.options.timeout,
+                         sock=sock,
+                         defaultTries=self.options.tries)
 
     def config(self):
         """
