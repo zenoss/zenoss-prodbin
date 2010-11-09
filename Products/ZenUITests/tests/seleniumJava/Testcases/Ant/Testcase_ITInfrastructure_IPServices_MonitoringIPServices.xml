@@ -1,0 +1,58 @@
+<!--
+#############################################################################
+# This program is part of Zenoss Core, an open source monitoringplatform.
+# Copyright (C) 2007, Zenoss Inc.
+#
+# This program is free software; you can redistribute it and/or modify it
+# under the terms of the GNU General Public License version 2 as published by
+# the Free Software Foundation.
+#
+# For complete information please visit: http://www.zenoss.com/oss/
+#############################################################################
+-->
+<project name="ITInfrastructure.IPServices" default="Report" basedir="../../">
+	<description>
+			General JUnit ant script
+	</description>
+	<property name="src" value="Testcases/src/loc/zenoss/testcases/ITInfrastructure/IPServices" />
+    <property name="Results" value="Results" />
+	<property name="lib" value="lib" />
+	<property name="classes" value="Testcases/bin" />
+	<property name="test" value="loc.zenoss.testcases.ITInfrastructure.IPServices.MonitoringIPServices" />
+	
+	<path id="TestCases.classpath">
+	  <pathelement location="${classes}" />
+	  <pathelement location="." />
+	  <pathelement location="lib/CommonFramework.jar"/>
+	  <pathelement location="lib/junit-4.4.jar"/>
+      <pathelement location="lib/selenium-java-client-driver.jar"/>
+	  <pathelement location="lib/commons-logging-1.1.jar"/>
+      <pathelement location="lib/ws-commons-util-1.0.2.jar"/>
+      <pathelement location="lib/xmlrpc-client-3.1.jar"/>
+      <pathelement location="lib/xmlrpc-client-3.1-sources.jar"/>
+      <pathelement location="lib/xmlrpc-common-3.1.jar"/>
+      <pathelement location="lib/xmlrpc-common-3.1-sources.jar"/>
+	</path>
+	
+	<target name="JUnitTest">    
+		<junit fork="yes" printsummary="withOutAndErr">
+			<sysproperty key="Env.Browser" value="${Browser}"/>
+			<sysproperty key="Env.TargetMachine" value="${TargetMachine}"/>
+			<sysproperty key="Env.SeleniumServerHost" value="${SeleniumServerHost}"/>
+			<sysproperty key="Env.SeleniumServerPort" value="${SeleniumServerPort}"/>
+			
+		            <formatter type="xml"/>
+					<test name="${test}" todir="${Results}" />
+		            <classpath refid="TestCases.classpath"/>
+		        </junit>
+	</target>
+	
+	<target name="Report" depends="JUnitTest">
+		<junitreport todir="${Results}">
+			    <fileset dir="${Results}">
+			      <include name="TEST-*.xml" />
+			    </fileset>
+		     <report todir="${Results}/HTML" />
+	 	</junitreport>
+	</target>
+</project>
