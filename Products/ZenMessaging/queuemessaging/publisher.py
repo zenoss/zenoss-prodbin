@@ -231,6 +231,8 @@ class AsyncQueuePublisher(object):
         @type  message: string or Protobuff
         @param message: message we are sending in the queue
         """
+        config = getAMQPConfiguration()
+        exchange = config.getExchange(exchange).name
         self._amqpClient.send(exchange, routing_key, message, exchange_type)
 
 
