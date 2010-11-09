@@ -123,7 +123,7 @@ public class MonitoringIPServices {
 		sClient.click("addipservice");
 		Thread.sleep(2000);
 		sClient.click("//div[@id='ipServiceClassLiveSearch']//img");
-		Thread.sleep(8000);
+		Thread.sleep(15000);
 		sClient.click("//div[normalize-space(@class) = 'x-combo-list-item' and text()= '1atestService']");
 		sClient.click("//*[button='Submit']");
 		Thread.sleep(4000);
