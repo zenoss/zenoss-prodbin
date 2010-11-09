@@ -2047,13 +2047,13 @@ Ext.ComponentMgr.onAvailable('footer_bar', function(config) {
 });
 
 if ( Ext.state.Manager.get('event_console_toggle', false) && Ext.state.Manager.get('event_console_toggle').checked ) {
-    if ( console ) {
-        console.warn('Using old event console.');
+    if ( window.console ) {
+        window.console.warn('Using old event console.');
     }
 }
 else {
-    if ( console ) {
-        console.warn('Using ZEP event console.');
+    if ( window.console ) {
+        window.console.warn('Using ZEP event console.');
     }
     Zenoss.remote.EventsRouter = Zenoss.remote.ZepRouter;
 }
