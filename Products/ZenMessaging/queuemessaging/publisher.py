@@ -233,15 +233,15 @@ class AsyncQueuePublisher(object):
         """
         config = getAMQPConfiguration()
         exchange = config.getExchange(exchange).name
-        self._amqpClient.send(exchange, routing_key, message, exchange_type)
-
+        return self._amqpClient.send(exchange, routing_key, message, exchange_type)
 
     @property
     def channel(self):
         return self._amqpClient.channel
 
     def close(self):
-        self.channel.close()
+        return self._amqpClient.shutdown()
+
 
 class BlockingQueuePublisher(object):
     """
