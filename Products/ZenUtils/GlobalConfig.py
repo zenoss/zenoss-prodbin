@@ -12,39 +12,20 @@
 ###########################################################################
 
 from Products.ZenUtils.Utils import zenPath
+from Products.ZenUtils.config import Config, ConfigLoader
+
 CONFIG_FILE = zenPath('etc', 'global.conf')
 
-class GlobalConfig(object):
+class GlobalConfig(Config):
     """
     A method for retrieving the global configuration options
     outside of a daemon. This is used to configure the
     AMQP connection in Zope and zenhub
+
+    @todo Add validation for expected keys and values
     """
-    def __init__(self):
-        options = {}
-        # read the global.conf
-        with open(CONFIG_FILE, 'r') as fp:
-            for line in fp.readlines():
-                if line.lstrip().startswith('#') or line.strip() == '':
-                    # comment
-                    continue
-                option, value = line.split(None, 1)
-                options[option] = value.strip()
+    pass
 
-        def _createProperty(name):
-            def getter(self):
-                return getattr(self, '_' + name)
-            return property(getter)
-
-        # create a read only property for each option and value
-        for option, value in options.iteritems():
-            setattr(self, '_' + option, value)
-            setattr(self.__class__, option, _createProperty(option))
-
-
-_GLOBALCONFIG = None
+_GLOBAL_CONFIG = ConfigLoader(CONFIG_FILE, GlobalConfig)
 def getGlobalConfiguration():
-    global _GLOBALCONFIG
-    if not _GLOBALCONFIG:
-        _GLOBALCONFIG = GlobalConfig()
-    return _GLOBALCONFIG
+    return _GLOBAL_CONFIG()
