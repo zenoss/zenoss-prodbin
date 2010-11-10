@@ -20,6 +20,7 @@ from Products.Zuul.interfaces import IZepFacade
 import pkg_resources
 from zenoss.protocols.services.zep import ZepServiceClient
 from zenoss.protocols.jsonformat import to_dict
+from Products.ZenUtils.GlobalConfig import getGlobalConfiguration
 
 log = logging.getLogger(__name__)
 
@@ -29,7 +30,10 @@ class ZepFacade(ZuulFacade):
 
     def __init__(self, context):
         super(ZepFacade, self).__init__(context)
-        self.client = ZepServiceClient('http://172.16.228.128:8084/')
+
+        config = getGlobalConfiguration()
+
+        self.client = ZepServiceClient(config.get('zep_uri', 'http://localhost:8084'))
 
     def getEventSummaries(self, offset, limit=100, keys=None, sort=None, filter={}):
         response, content = self.client.getEventSummaries(offset, limit, keys, sort)
@@ -40,5 +44,4 @@ class ZepFacade(ZuulFacade):
 
     def getEventSummary(self, uuid):
         response, content = self.client.getEventSummary(uuid)
-        print content
         return to_dict(content)
