@@ -25,9 +25,9 @@
         <link rel="shortcut icon" href="/zport/dmd/favicon.ico" type="image/x-icon"/>
         <link rel="stylesheet" type="text/css"
             href="/++resource++extjs/resources/css/ext-all.css" />
-        <link rel="stylesheet" type="text/css" 
+        <link rel="stylesheet" type="text/css"
             href="/++resource++extjs/treegrid/treegrid.css" />
-        <link rel="stylesheet" type="text/css" 
+        <link rel="stylesheet" type="text/css"
             href="/++resource++zenui/js/livegrid/resources/css/ext-ux-livegrid.css"/>
         <link rel="stylesheet" type="text/css"
             href="/++resource++zenui/css/xtheme-zenoss.css" />
@@ -42,7 +42,7 @@
         " tal:on-error="string:"></script>
         <tal:block tal:content="structure provider:head-extra"/>
         <tal:block metal:define-slot="head-local"/>
-        
+
     </head>
 
     <body>
@@ -92,6 +92,7 @@
 <tal:block metal:define-slot="script_beforeLayout"/>
 
 <script type="text/javascript">
+Ext.onReady(function(){
 var viewport = new Ext.Viewport({
     id: 'viewport',
     layout: 'border',
@@ -134,6 +135,7 @@ var viewport = new Ext.Viewport({
             }
         }
     ]
+});
 });
 </script>
 

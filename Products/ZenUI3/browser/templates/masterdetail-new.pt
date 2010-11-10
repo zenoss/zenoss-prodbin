@@ -39,37 +39,39 @@
 
 <tal:block metal:fill-slot="script_layout">
 <script>
-var items = [{
-    id: 'master_panel',
-    contentEl: 'master_panel_content',
-    layout: 'fit',
-    region: 'center',
-    split: true
-},{
-    split: true,
-    width: '50%',
-    id: 'detail_panel',
-    contentEl: 'detail_panel_content',
-    region: 'east',
-    layout: 'fit',
-    collapseMode: 'mini'
-}];
-if (Zenoss.env.pageHasBreadCrumbs) {
-    items.push({
-        region: 'north',
-        height: 24,
-        bodyCssClass: 'z-bc-bread-crumb-pane',
-        contentEl: 'breadCrumbPane'
-    });
-}
-Ext.getCmp('center_panel').add(new Ext.Panel({
-    id: 'center_panel_container',
-    layout: 'border',
-    defaults: {
-        'border': false
-    },
-    items: items
-}));
+Ext.onReady(function(){
+    var items = [{
+        id: 'master_panel',
+        contentEl: 'master_panel_content',
+        layout: 'fit',
+        region: 'center',
+        split: true
+    },{
+        split: true,
+        width: '50%',
+        id: 'detail_panel',
+        contentEl: 'detail_panel_content',
+        region: 'east',
+        layout: 'fit',
+        collapseMode: 'mini'
+    }];
+    if (Zenoss.env.pageHasBreadCrumbs) {
+        items.push({
+            region: 'north',
+            height: 24,
+            bodyCssClass: 'z-bc-bread-crumb-pane',
+            contentEl: 'breadCrumbPane'
+        });
+    }
+    Ext.getCmp('center_panel').add(new Ext.Panel({
+        id: 'center_panel_container',
+        layout: 'border',
+        defaults: {
+            'border': false
+        },
+        items: items
+    }));
+});
 </script>
 <!-- Chain the macro -->
 <tal:block metal:define-slot="script_layout">

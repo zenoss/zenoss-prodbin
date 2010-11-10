@@ -272,6 +272,8 @@ class ZenHub(ZCmdBase):
         reactor.listenTCP(self.options.xmlrpcport, server.Site(xmlsvc))
 
         # responsible for sending messages to the queues
+        import pdb
+        pdb.set_trace()
         import Products.ZenMessaging.queuemessaging
         load_config_override('twistedpublisher.zcml', Products.ZenMessaging.queuemessaging)
         self.sendEvent(eventClass=App_Start,

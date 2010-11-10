@@ -55,7 +55,7 @@
 </script>
 <script type="text/javascript" src="/++resource++extjs/ext-all.js"></script>
 <script type="text/javascript"
-    src="/++resource++zenui/js/livegrid/livegrid-all.js"></script>
+        src="/++resource++zenui/js/livegrid/livegrid-all.js"></script>
 <script type="text/javascript" src="/++resource++zenui/js/zenoss.js"></script>
 <script type="text/javascript" src="zenoss-all.js"></script>
 <style>#contentPane{padding:0}</style>
@@ -68,22 +68,24 @@
  <tal:block metal:define-slot="script_beforeLayout"/>
 
 <script type="text/javascript">
-var viewport = new Ext.Panel({
-    id: 'viewport',
-    layout: 'border',
-    border: false,
-    renderTo: 'contentPane',
-    items: [{
-        region: 'center',
-        id: 'center_panel',
-        layout: 'fit',
-        border: false
-    }/*,{
-        region: 'south',
-        id: 'footer_bar',
-        height: 30,
-        border: false
-    }*/]
+Ext.onReady(function(){
+   var viewport = new Ext.Panel({
+       id: 'viewport',
+       layout: 'border',
+       border: false,
+       renderTo: 'contentPane',
+       items: [{
+           region: 'center',
+           id: 'center_panel',
+           layout: 'fit',
+           border: false
+       }/*,{
+           region: 'south',
+           id: 'footer_bar',
+           height: 30,
+           border: false
+       }*/]
+   });
 });
 </script>
 
@@ -101,3 +103,4 @@ var viewport = new Ext.Panel({
 </tal:block>
 </tal:block>
 </tal:block>
+

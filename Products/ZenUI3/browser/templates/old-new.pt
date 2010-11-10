@@ -137,7 +137,7 @@ Ext.onReady(function(){
 </tal:block>
 
 <tal:block metal:fill-slot="head-local">
-    <tal:block metal:define-slot="head-local"/>
+  <tal:block metal:define-slot="head-local"/>
 </tal:block>
 
 <tal:block metal:fill-slot="center_content">
