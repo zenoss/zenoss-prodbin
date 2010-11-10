@@ -27,6 +27,10 @@ Ext.onReady(function(){
 
     master_panel.layout = 'border';
 
+    // Make this instance of the detail panel use a unique state ID so
+    // it doesn't interfere with the state of other instances of this panel.
+    detail_panel.stateId = 'Zenoss.ui.EvConsole.detail_panel';
+
     // Make the detail panel collapsible
     detail_panel.animCollapse = false;
     detail_panel.collapsible =false;

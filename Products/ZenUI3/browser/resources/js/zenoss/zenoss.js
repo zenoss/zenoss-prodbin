@@ -13,11 +13,9 @@ Ext.namespace('Zenoss.env');
 
 Ext.QuickTips.init();
 
-/*
 Ext.state.Manager.setProvider(new Ext.state.CookieProvider({
-    expires: new Date(new Date().getTime()+(1000*60*60*24*30))
+    expires: new Date(new Date().getTime()+(1000*60*60*24*30)) //30 days from now
 }));
-*/
 
 /*
  * Hook up all Ext.Direct requests to the connection error message box.
@@ -2018,9 +2016,6 @@ String.prototype.endswith = function(){
     return (this.match(str+'$')==str);
 };
 
-Ext.state.Manager.setProvider(new Ext.state.CookieProvider({
-    expires: new Date(new Date().getTime()+(1000*60*60*24*7)) //7 days from now
-}));
 
 // TODO Temporary checkbox to allow switching between old and new event console
 Ext.ComponentMgr.onAvailable('footer_bar', function(config) {
