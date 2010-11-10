@@ -160,10 +160,20 @@
              for="Products.ZenModel.Organizer.Organizer"
              factory=".organizer.OrganizerInfo"
              />
-    
+
     <adapter provides="..interfaces.ILocationOrganizerInfo"
              for="Products.ZenModel.Location.Location"
              factory=".organizer.LocationOrganizerInfo"
+             />
+    
+    <adapter provides="..interfaces.INotificationSubscriptionInfo"
+             for="Products.ZenModel.NotificationSubscription.NotificationSubscription"
+             factory=".triggers.NotificationSubscriptionInfo"
+             />
+    
+    <adapter provides="Products.Zuul.interfaces.INotificationWindowInfo"
+             for="Products.ZenModel.NotificationSubscriptionWindow.NotificationSubscriptionWindow"
+             factory="Products.Zuul.infos.triggers.NotificationWindowInfo"
              />
 
     <include package=".component"/>

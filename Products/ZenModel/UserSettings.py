@@ -36,10 +36,12 @@ from Products.ZenUtils import Time
 from Products.ZenUtils.Utils import unused, prepId
 from Products.ZenUtils import DotNetCommunication
 from Products.ZenWidgets import messaging
+from Products.ZenModel.interfaces import IProvidesEmailAddresses, IProvidesPagerAddresses
 
 from ZenossSecurity import *
 from ZenModelRM import ZenModelRM
 from Products.ZenUtils import Utils
+from zope.interface import implements
 
 
 class LocalAndLDAPUserEntries(Exception): pass
@@ -546,6 +548,7 @@ addUserSettings = DTMLFile('dtml/addUserSettings',globals())
 class UserSettings(ZenModelRM):
     """zenoss user folder has users preferences.
     """
+    implements(IProvidesEmailAddresses, IProvidesPagerAddresses)
 
     meta_type = "UserSettings"
 
@@ -1157,7 +1160,7 @@ class UserSettings(ZenModelRM):
         return session
 
 class GroupSettings(UserSettings):
-
+    implements(IProvidesEmailAddresses, IProvidesPagerAddresses)
     meta_type = 'GroupSettings'
     
     factory_type_information = (

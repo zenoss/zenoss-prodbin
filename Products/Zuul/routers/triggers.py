@@ -27,11 +27,11 @@ class TriggersRouter(DirectRouter):
     def _getFacade(self):
         return Zuul.getFacade('triggers', self)
     
-    def getTriggers(self):
+    def getTriggers(self, **kwargs):
         return DirectResponse.succeed(data=self._getFacade().getTriggers())
     
-    def addTrigger(self, name):
-        return DirectResponse.succeed(data=self._getFacade().addTrigger(name))
+    def addTrigger(self, newId):
+        return DirectResponse.succeed(data=self._getFacade().addTrigger(newId))
         
     def removeTrigger(self, uuid):
         return DirectResponse.succeed(data=self._getFacade().removeTrigger(uuid))
@@ -51,4 +51,47 @@ class TriggersRouter(DirectRouter):
             log.exception(e)
             return DirectResponse.fail(
                 'Error parsing filter source. Please check your syntax.')
-
+    
+    
+    # notification subscriptions
+    def getNotifications(self):
+        response = self._getFacade().getNotifications()
+        return DirectResponse.succeed(data=Zuul.marshal(response))
+    
+    def addNotification(self, newId):
+        response = self._getFacade().addNotification(newId)
+        return DirectResponse.succeed(data=Zuul.marshal(response))
+    
+    def removeNotification(self, uid):
+        response = self._getFacade().removeNotification(uid)
+        return DirectResponse.succeed(data=response)
+    
+    def getNotification(self, uid):
+        response = self._getFacade().getNotification(uid)
+        return DirectResponse.succeed(data=Zuul.marshal(response))
+        
+    def updateNotification(self, **data):
+        response = self._getFacade().updateNotification(**data)
+        return DirectResponse.succeed(data=Zuul.marshal(response))
+    
+    
+    # subscription windows
+    def getWindows(self, uid):
+        response = self._getFacade().getWindows(uid)
+        return DirectResponse.succeed(data=Zuul.marshal(response))
+    
+    def addWindow(self, contextUid, newId):
+        response = self._getFacade().addWindow(contextUid, newId)
+        return DirectResponse.succeed(data=Zuul.marshal(response))
+    
+    def removeWindow(self, uid):
+        response = self._getFacade().removeWindow(uid)
+        return DirectResponse.succeed(data=Zuul.marshal(response))
+    
+    def getWindow(self, uid):
+        response = self._getFacade().getWindow(uid)
+        return DirectResponse.succeed(data=Zuul.marshal(response))
+    
+    def updateWindow(self, **data):
+        response = self._getFacade().updateWindow(data)
+        return DirectResponse.succeed(data=Zuul.marshal(response))

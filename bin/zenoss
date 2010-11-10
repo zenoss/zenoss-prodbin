@@ -54,6 +54,7 @@ C=
 if [ ! -f $ZENHOME/etc/DAEMONS_TXT_ONLY ] ; then
 	C="$C zenoss-zep"
 	C="$C zeneventd"
+	C="$C zenactiond"
 	C="$C zopectl"
 	C="$C zenhub"
 	C="$C zenjobs"

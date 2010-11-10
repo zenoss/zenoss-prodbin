@@ -59,10 +59,9 @@ class UrlDispatcher(object):
             response = conn.getresponse()
             
             # 204 means request was  ok, but there was no information returned
-            if response.status != 200 and \
-               response.status != 204:
-                raise Exception( "Bad response: %s" % str(response.status) )
             responseString = response.read()
+            if response.status != 200 and response.status != 204:
+                raise Exception( "Bad response: %s" % str(response.status) )
             
         except Exception:
             import traceback
@@ -91,7 +90,7 @@ class TriggersService(object):
     _DEFAULT_TRIGGERS_HOST = 'localhost'
     _DEFAULT_TRIGGERS_PORT = '8084'
     _DEFAULT_TRIGGERS_TIMEOUT = 60
-    _BASE_TRIGGERS_URL = '/api/triggers'
+    _BASE_TRIGGERS_URL = '/zenoss-zep/api/1.0/triggers'
     
     def __init__(self):
         self._dispatcher = UrlDispatcher(
@@ -126,6 +125,7 @@ class TriggersService(object):
                 'Accept': 'application/x-protobuf'
             }
         )
+        log.debug(response)
         trigger_set = zep.EventTriggerSet()
         trigger_set.ParseFromString(response)
         return trigger_set
@@ -192,9 +192,12 @@ class TriggersService(object):
         @type source: string
         @todo: make this not allow nasty python.
         """
-        tree = parser.expr(source)
-        if parser.isexpr(tree):
-            return source
-        else:
-            raise Exception('Invalid filter expression.')
-            
+        if isinstance(source, basestring):
+            if source:
+                tree = parser.expr(source)
+                if parser.isexpr(tree):
+                    return source
+                else:
+                    raise Exception('Invalid filter expression.')
+            else:
+                return True # source is empty string

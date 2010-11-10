@@ -19,8 +19,26 @@ from AccessControl import ClassSecurityInfo
 from Products.ZenModel.ZenossSecurity import * 
 from Products.ZenRelations.RelSchema import *
 from Products.ZenModel.ZenModelRM import ZenModelRM
+from Products.ZenUtils.guid.interfaces import IGUIDManager
+from Products.ZenUtils.template import Template
 
 NotificationSubscriptionsId = 'NotificationSubscriptions'
+
+class InvalidRecipient(Exception):
+    """
+    Raised when trying to find a recipient
+    """
+
+class RecipientManager(object):
+    def __init__(self, dmd):
+        self.guidManager = IGUIDManager(dmd)
+    
+    def findRecipient(self, uuid):
+        recipient = self.guidManager.getObject(uuid)
+        if not recipient:
+            raise InvalidRecipient('Could not find recipient for uuid: "%s"' % uuid)
+        return recipient
+
 
 def manage_addNotificationSubscriptionManager(context, REQUEST=None):
     """Create the notification subscription manager."""
@@ -107,17 +125,19 @@ class NotificationSubscription(ZenModelRM):
         "Message:\n%(message)s\n" \
         "<a href=\"%(undeleteUrl)s\">Undelete</a>\n"
         
-    # targets may be: page numbers, email addresses, users, groups, roles, or urls.
-    # this list should be all the same type.
-    targets = []
+    # recipients is a list of uuids that will recieve the push from this
+    # notification. (the User, Group or Role to email/page/etc.)
+    # the uuid objects will need to implement some form of actionable target
+    # See IAction classes for more info.
+    recipients = []
     
-    # the targets_source property will hold whatever the user types in, such
+    # the manual_recipients property will hold whatever the user types in, such
     # as a list of emails or whatever else they put in. For each action this
     # will be combined with the targets - the result will filter duplicates out.
-    targets_source = ''
+    explicit_recipients = ''
 
-    # a list of triggers that this notification is subscribed to.
-    subscription_uuids = []
+    # a list of trigger uuids that this notification is subscribed to.
+    subscriptions = []
 
     _properties = ZenModelRM._properties + (
         {'id':'enabled', 'type':'boolean', 'mode':'w'},
@@ -127,7 +147,8 @@ class NotificationSubscription(ZenModelRM):
         {'id':'body_format', 'type':'text', 'mode':'w'},
         {'id':'clear_subject_format', 'type':'text', 'mode':'w'},
         {'id':'clear_body_format', 'type':'text', 'mode':'w'},
-        {'id':'targets_source', 'type':'text', 'mode':'w'},
+        {'id':'explicit_recipients', 'type':'text', 'mode':'w'},
+        {'id':'subscriptions', 'type':'text', 'mode':'w'},
     )
 
     _relations = (
@@ -168,16 +189,31 @@ class NotificationSubscription(ZenModelRM):
         """Update notification subscription properties"""
         return self.zmanage_editProperties(REQUEST)
     
-    def getTargets(self):
+    def getRecipients(self):
         """
-        Return the list of all of the 'targets' for this subscription. If 
-        groups, roles or zenoss users are subscribing, this will determine
-        the actual targets for the notifications (if a group is subscribed, 
-        the emails for all of the group members will become targets).
+        Return the list of all of the recipient objects of this subscription.
+        """
+        recipients = []
+        for uuid in self.recipients:
+            obj = self.recipientManager.findRecipient(uuid)
+            recipients.append(obj)
+            log.debug('Found %s when looking up uuid: %s' % (obj, uuid))
+        return recipients
         
-        @todo implement
+    def addRecipient(self, uuid):
         """
-        return self.targets_source.split(',')
+        Add a recipient to the list of recipients of this particular notification.
+        
+        @param uuid: The uuid of the recipient object (User, Group, etc.)
+        @type uuid: string
+        """
+        self.recipients.append(uuid)
+    
+    def getExplicitRecipients(self):
+        if self.explicit_recipients:
+            return self.explicit_recipients.split(',')
+        else:
+            return []
     
     def isActive(self):
         """
@@ -185,32 +221,34 @@ class NotificationSubscription(ZenModelRM):
         is active for right now.
         """
         if self.enabled:
-            log.debug('Notification is enabled: %s' %  self.id)
+            log.info('Notification is enabled: %s' %  self.id)
             windows = self.windows()
             if windows:
-                log.debug('Notification has (%s) windows.' % len(windows))
+                log.info('Notification has (%s) windows.' % len(windows))
                 for window in windows:
                     if window.isActive():
                         log.debug('Notification has active window: %s' % window.id)
                         return True
+                log.info('Notification has no active windows, it is NOT enabled.')
+                return False
             else:
-                log.debug('Notification is enabled, but has no windows, it is active.')
+                log.info('Notification is enabled, but has no windows, it is active.')
                 return True
         else:
-            log.debug('Notification NOT enabled: %s' %  self.id)
+            log.info('Notification NOT enabled: %s' %  self.id)
             return False
     
-    def matchesSignal(self, signal):
-        """
-        Determine if this notification subscription matches the specified signal.
+    def getBody(self, signal):
+        return Template(self.body_format).fill(signal=signal)
         
-        @param trigger: The signal to match.
-        @type trigger: zenoss.protocols.protbufs.zep_pb2.Signal
+    def getSubject(self, signal):
+        return Template(self.subject_format).fill(signal=signal)
         
-        @rtype boolean
-        """
-        log.debug('Trying to match uuid to subscriptions.')
-        return signal.trigger.uuid in self.subscription_uuids
-
+    def getClearBody(self, signal):
+        return Template(self.clear_body_format).fill(signal=signal)
+        
+    def getSubjectBody(self, signal):
+        return Template(self.clear_subject_format).fill(signal=signal)
+    
 InitializeClass(NotificationSubscriptionManager)
 InitializeClass(NotificationSubscription)

@@ -60,4 +60,21 @@ class IZenDocProvider(Interface):
 
     def exportZendocXml(self):
         pass
-        
+
+class IAction(Interface):
+    def execute(target, notification, signal):
+        pass
+    
+    def getActionableTargets(target):
+        """
+        @param target: An object that can be inspected for targets.
+        """
+        pass
+
+class IProvidesEmailAddresses(Interface):
+    def getEmailAddresses():
+        pass
+
+class IProvidesPagerAddresses(Interface):
+    def getPagerAddresses():
+        pass
