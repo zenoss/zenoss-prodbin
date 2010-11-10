@@ -144,7 +144,6 @@ class CommandPerformanceConfig(CollectorConfigService):
                 cmd.severity = ds.severity
                 cmd.parser = ploader
                 cmd.ds = ds.titleOrId()
-                cmd.resultsCacheable = getattr(ds, 'resultsCacheable', False)
                 cmd.points = self._getDsDatapoints(comp, ds, ploader, perfServer)
 
                 # If the datasource supports an environment dictionary, use it

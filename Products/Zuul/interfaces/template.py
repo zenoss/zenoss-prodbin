@@ -80,7 +80,6 @@ class ICommandDataSourceInfo(IBasicDataSourceInfo):
     usessh = schema.Bool(title=_t(u'Use SSH'))
     component = schema.Text(title=_t(u'Component'))
     eventKey = schema.Text(title=_t(u'Event Key'))
-    resultsCacheable = schema.Bool(title=_t(u'Re-use output?'))
     commandTemplate = schema.TextLine(title=_t(u'Command Template'),
                                       xtype='twocolumntextarea')
 
