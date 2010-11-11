@@ -77,7 +77,7 @@ public class AddingIPServicesOrganizer {
 			sClient.waitForPageToLoad("30000");
 			// Wait for IP Services link and click on it
 			for (int second = 0;; second++) {
-				if (second >= 60) org.junit.Assert.fail("timeout");
+				if (second >= 60) break;
 				try { if (sClient.isElementPresent("link=IP Services")) break; } catch (Exception e) {}
 				Thread.sleep(1000);
 			}

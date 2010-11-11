@@ -75,7 +75,7 @@ public class AddingWindowsServices {
 			sClient.waitForPageToLoad("30000");
 			// Wait for Windows Services link and click on it
 			for (int second = 0;; second++) {
-				if (second >= 60) org.junit.Assert.fail("timeout");
+				if (second >= 60) break;
 				try { if (sClient.isElementPresent("link=Windows Services")) break; } catch (Exception e) {}
 				Thread.sleep(1000);
 			}

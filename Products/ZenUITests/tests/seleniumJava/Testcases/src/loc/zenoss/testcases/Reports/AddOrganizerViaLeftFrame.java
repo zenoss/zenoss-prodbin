@@ -78,7 +78,7 @@ public class AddOrganizerViaLeftFrame {
 			Thread.sleep(2000);
 			sClient.type("//input[@name='name']", organizerName);
 			for (int second = 0;; second++) {
-				if (second >= 60) org.junit.Assert.fail("timeout");
+				if (second >= 60) break;
 				try { if (sClient.isElementPresent("//table//button[text()='Submit']")) break; } catch (Exception e) {}
 				Thread.sleep(1000);
 			}
@@ -86,7 +86,7 @@ public class AddOrganizerViaLeftFrame {
 			sClient.click("//table//button[text()='Submit']");
 			// Wait for new Organizer to show up and click on it
 			for (int second = 0;; second++) {
-				if (second >= 60) org.junit.Assert.fail("timeout");
+				if (second >= 60) break;
 				try { if (sClient.isElementPresent("//span[@class='node-text' and text()='" + organizerName + "']")) break; } catch (Exception e) {}
 				Thread.sleep(1000);
 			}
@@ -98,7 +98,7 @@ public class AddOrganizerViaLeftFrame {
 			Thread.sleep(2000);
 			sClient.type("//input[@name='name']", nestedOrganizerName);
 			for (int second = 0;; second++) {
-				if (second >= 60) org.junit.Assert.fail("timeout");
+				if (second >= 60) break;
 				try { if (sClient.isElementPresent("//table//button[text()='Submit']")) break; } catch (Exception e) {}
 				Thread.sleep(1000);
 			}
@@ -106,7 +106,7 @@ public class AddOrganizerViaLeftFrame {
 			sClient.click("//table//button[text()='Submit']");
 			// Wait for new nestedOrganizer to show up and click on it
 			for (int second = 0;; second++) {
-				if (second >= 60) org.junit.Assert.fail("timeout");
+				if (second >= 60) break;
 				try { if (sClient.isElementPresent("//span[@class='node-text' and text()='" + nestedOrganizerName + "']")) break; } catch (Exception e) {}
 				Thread.sleep(1000);
 			}
