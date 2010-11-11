@@ -82,14 +82,14 @@ public class OverrideTemplateToClass {
 			sClient.click("//button[text()='Template']");
 			Thread.sleep(4);
 			for (int second = 0;; second++) {
-				if (second >= 60) org.junit.Assert.fail("timeout");
+				if (second >= 60) break;
 				try { if (sClient.isElementPresent("//div[@id='templateTree']//span[text()='Apache']")) break; } catch (Exception e) {}
 				Thread.sleep(1000);
 			}
 
 			sClient.click("//div[@id='templateTree']//span[text()='Apache']");
 			for (int second = 0;; second++) {
-				if (second >= 60) org.junit.Assert.fail("timeout");
+				if (second >= 60) break;
 				try { if (sClient.isElementPresent("//div[@id='templateTree']//span[text()='Apache']/../../..//span[text()='/Server']")) break; } catch (Exception e) {}
 				Thread.sleep(1000);
 			}
@@ -104,7 +104,7 @@ public class OverrideTemplateToClass {
 			sClient.click("//ul[@class='x-menu-list']/li/a/span[text()='Override Template']");
 			sClient.click("//div[@id='x-form-el-targetCombo']/div/img");
 			for (int second = 0;; second++) {
-				if (second >= 60) org.junit.Assert.fail("timeout");
+				if (second >= 60) break;
 				try { if (sClient.isElementPresent("//div[text()='Ping in /Devices']")) break; } catch (Exception e) {}
 				Thread.sleep(1000);
 			}
@@ -114,21 +114,21 @@ public class OverrideTemplateToClass {
 			Thread.sleep(8000);
 			// verify Apache template has 2 instances: /Server and /Ping
 			for (int second = 0;; second++) {
-				if (second >= 60) org.junit.Assert.fail("timeout");
+				if (second >= 60) break;
 				try { if (sClient.isElementPresent("//div[@id='templateTree']//span[text()='Apache']/../../..//img")) break; } catch (Exception e) {}
 				Thread.sleep(1000);
 			}
 
 			sClient.click("//div[@id='templateTree']//span[text()='Apache']/../../..//img");
 			for (int second = 0;; second++) {
-				if (second >= 60) org.junit.Assert.fail("timeout");
+				if (second >= 60) break;
 				try { if (sClient.isElementPresent("//div[@id='templateTree']//span[text()='Apache']/../../..//span[text()='/Server']")) break; } catch (Exception e) {}
 				Thread.sleep(1000);
 			}
 
 			sClient.click("//div[@id='templateTree']//span[text()='Apache']/../../..//span[text()='/Server']");
 			for (int second = 0;; second++) {
-				if (second >= 60) org.junit.Assert.fail("timeout");
+				if (second >= 60) break;
 				try { if (sClient.isElementPresent("//div[@id='templateTree']//span[text()='Apache']/../../..//span[text()='/Ping']")) break; } catch (Exception e) {}
 				Thread.sleep(1000);
 			}
@@ -142,7 +142,7 @@ public class OverrideTemplateToClass {
 			sClient.click("link=Infrastructure");
 			sClient.waitForPageToLoad("30000");
 			for (int second = 0;; second++) {
-				if (second >= 60) org.junit.Assert.fail("timeout");
+				if (second >= 60) break;
 				try { if (sClient.isElementPresent("//div[@id='devices']//span[@class='node-text' and text()='Ping']")) break; } catch (Exception e) {}
 				Thread.sleep(1000);
 			}
@@ -150,7 +150,7 @@ public class OverrideTemplateToClass {
 			Thread.sleep(4000);
 			sClient.click("//div[@id='devices']//span[@class='node-text' and text()='Ping']");
 			for (int second = 0;; second++) {
-				if (second >= 60) org.junit.Assert.fail("timeout");
+				if (second >= 60) break;
 				try { if (sClient.isElementPresent("//div[@id='device_grid']//div[@class='x-grid3-body']/div/table/tbody/tr/td/div/a[text()='" + pingDeviceName + "']")) break; } catch (Exception e) {}
 				Thread.sleep(1000);
 			}
@@ -159,7 +159,7 @@ public class OverrideTemplateToClass {
 			sClient.waitForPageToLoad("30000");
 			// Verify the template copy is available to bind within /devices/ping
 			for (int second = 0;; second++) {
-				if (second >= 60) org.junit.Assert.fail("timeout");
+				if (second >= 60) break;
 				try { if (sClient.isElementPresent("//table[@class='x-btn x-btn-icon' and @id='device_configure_menu']//button")) break; } catch (Exception e) {}
 				Thread.sleep(1000);
 			}
@@ -168,7 +168,7 @@ public class OverrideTemplateToClass {
 			Thread.sleep(2000);
 			sClient.click("//span[text()='Bind Templates']");
 			for (int second = 0;; second++) {
-				if (second >= 60) org.junit.Assert.fail("timeout");
+				if (second >= 60) break;
 				try { if (sClient.isElementPresent("//dt/em[text()='Apache (/Ping)']")) break; } catch (Exception e) {}
 				Thread.sleep(1000);
 			}

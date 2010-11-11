@@ -77,14 +77,14 @@ public class EditTemplate_DeviceClass {
 			sClient.click("//button[text()='Device Class']");
 			// Go to device class Server/Linux
 			for (int second = 0;; second++) {
-				if (second >= 60) org.junit.Assert.fail("timeout");
+				if (second >= 60) break;
 				try { if (sClient.isElementPresent("//div[@id='templateTree']//span[text()='Server']")) break; } catch (Exception e) {}
 				Thread.sleep(1000);
 			}
 
 			sClient.click("//div[@id='templateTree']//span[text()='Server']");
 			for (int second = 0;; second++) {
-				if (second >= 60) org.junit.Assert.fail("timeout");
+				if (second >= 60) break;
 				try { if (sClient.isElementPresent("//div[@id='templateTree']//span[text()='Linux']")) break; } catch (Exception e) {}
 				Thread.sleep(1000);
 			}
@@ -97,7 +97,7 @@ public class EditTemplate_DeviceClass {
 			// Click Template Path list, wait for list to populate and select "Linux in Devices/Server"
 			sClient.click("//html/body/div[@id='addNewTemplateDialog']//form/div[2]/div/div/img");
 			for (int second = 0;; second++) {
-				if (second >= 60) org.junit.Assert.fail("timeout");
+				if (second >= 60) break;
 				try { if (sClient.isElementPresent("//div[text()='Linux in Devices/Server']")) break; } catch (Exception e) {}
 				Thread.sleep(1000);
 			}
@@ -108,21 +108,21 @@ public class EditTemplate_DeviceClass {
 			Thread.sleep(5000);
 			// Wait for templates list to refresh and show the new template
 			for (int second = 0;; second++) {
-				if (second >= 60) org.junit.Assert.fail("timeout");
+				if (second >= 60) break;
 				try { if (sClient.isElementPresent("//div[@id='templateTree']//span[text()='Server']")) break; } catch (Exception e) {}
 				Thread.sleep(1000);
 			}
 
 			sClient.click("//div[@id='templateTree']//span[text()='Server']");
 			for (int second = 0;; second++) {
-				if (second >= 60) org.junit.Assert.fail("timeout");
+				if (second >= 60) break;
 				try { if (sClient.isElementPresent("//div[@id='templateTree']//span[text()='Linux']")) break; } catch (Exception e) {}
 				Thread.sleep(1000);
 			}
 
 			sClient.click("//div[@id='templateTree']//span[text()='Linux']");
 			for (int second = 0;; second++) {
-				if (second >= 60) org.junit.Assert.fail("timeout");
+				if (second >= 60) break;
 				try { if (sClient.isElementPresent("//span[text()='Linux']/../../../ul/li/div/a/span[contains(.,'" + templateName + "')]")) break; } catch (Exception e) {}
 				Thread.sleep(1000);
 			}
@@ -139,7 +139,7 @@ public class EditTemplate_DeviceClass {
 			sClient.click("//button[text()='Submit']");
 			// Wait for templates list to refresh and show the updated template
 			for (int second = 0;; second++) {
-				if (second >= 60) org.junit.Assert.fail("timeout");
+				if (second >= 60) break;
 				try { if (sClient.isElementPresent("//div[@id='templateTree']//span[text()='Server']")) break; } catch (Exception e) {}
 				Thread.sleep(1000);
 			}
@@ -147,7 +147,7 @@ public class EditTemplate_DeviceClass {
 			Thread.sleep(2000);
 			sClient.click("//div[@id='templateTree']//span[text()='Server']");
 			for (int second = 0;; second++) {
-				if (second >= 60) org.junit.Assert.fail("timeout");
+				if (second >= 60) break;
 				try { if (sClient.isElementPresent("//div[@id='templateTree']//span[text()='Linux']")) break; } catch (Exception e) {}
 				Thread.sleep(1000);
 			}
@@ -155,7 +155,7 @@ public class EditTemplate_DeviceClass {
 			Thread.sleep(2000);
 			sClient.click("//div[@id='templateTree']//span[text()='Linux']");
 			for (int second = 0;; second++) {
-				if (second >= 60) org.junit.Assert.fail("timeout");
+				if (second >= 60) break;
 				try { if (sClient.isElementPresent("//span[text()='Linux']/../../../ul/li/div/a/span[contains(.,'" + templateName + "_updated')]")) break; } catch (Exception e) {}
 				Thread.sleep(1000);
 			}

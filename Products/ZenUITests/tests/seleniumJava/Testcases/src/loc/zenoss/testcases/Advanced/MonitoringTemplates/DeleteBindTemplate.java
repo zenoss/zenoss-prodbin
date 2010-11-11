@@ -81,7 +81,7 @@ public class DeleteBindTemplate {
 			// Click Template Path list, wait for list to populate and select "Devices in Devices"
 			sClient.click("//html/body/div[@id='addNewTemplateDialog']//form/div[2]/div/div/img");
 			for (int second = 0;; second++) {
-				if (second >= 60) org.junit.Assert.fail("timeout");
+				if (second >= 60) break;
 				try { if (sClient.isElementPresent("//div[text()='Devices in Devices']")) break; } catch (Exception e) {}
 				Thread.sleep(1000);
 			}
@@ -92,13 +92,13 @@ public class DeleteBindTemplate {
 			Thread.sleep(5000);
 			// Wait for templates list to refresh and show the new template
 			for (int second = 0;; second++) {
-				if (second >= 60) org.junit.Assert.fail("timeout");
+				if (second >= 60) break;
 				try { if (sClient.isElementPresent("//span[text()='" + templateName + "']")) break; } catch (Exception e) {}
 				Thread.sleep(1000);
 			}
 
 			for (int second = 0;; second++) {
-				if (second >= 60) org.junit.Assert.fail("timeout");
+				if (second >= 60) break;
 				try { if (sClient.isElementPresent("//span[text()='/Devices']")) break; } catch (Exception e) {}
 				Thread.sleep(1000);
 			}
@@ -121,7 +121,7 @@ public class DeleteBindTemplate {
 			sClient.click("//html/body/div/div/div/div/div/div/div/div/div/div/div/div/div/div/table/tbody/tr/td/img");
 			// Wait for DataSource to show up
 			for (int second = 0;; second++) {
-				if (second >= 60) org.junit.Assert.fail("timeout");
+				if (second >= 60) break;
 				try { if (sClient.isElementPresent("//html/body/div/div/div/div/div/div/div/div/div/div/div/div/div/div/table/tbody/tr/td/table/tbody/tr/td/a/span[text()='" + dataSourceName + "']")) break; } catch (Exception e) {}
 				Thread.sleep(1000);
 			}
@@ -130,7 +130,7 @@ public class DeleteBindTemplate {
 			sClient.click("link=Infrastructure");
 			sClient.waitForPageToLoad("30000");
 			for (int second = 0;; second++) {
-				if (second >= 60) org.junit.Assert.fail("timeout");
+				if (second >= 60) break;
 				try { if (sClient.isElementPresent("//div[@id='device_grid']//div[@class='x-grid3-body']/div/table/tbody/tr/td/div/a[text()='" + deviceName + "']")) break; } catch (Exception e) {}
 				Thread.sleep(1000);
 			}
@@ -138,7 +138,7 @@ public class DeleteBindTemplate {
 			sClient.click("//div[@id='device_grid']//div[@class='x-grid3-body']/div/table/tbody/tr/td/div/a[text()='" + deviceName + "']");
 			sClient.waitForPageToLoad("30000");
 			for (int second = 0;; second++) {
-				if (second >= 60) org.junit.Assert.fail("timeout");
+				if (second >= 60) break;
 				try { if (sClient.isElementPresent("//table[@id='device_configure_menu' and  @class='x-btn x-btn-icon']")) break; } catch (Exception e) {}
 				Thread.sleep(1000);
 			}
@@ -148,7 +148,7 @@ public class DeleteBindTemplate {
 			Thread.sleep(2000);
 			sClient.click("//span[text()='Bind Templates']");
 			for (int second = 0;; second++) {
-				if (second >= 60) org.junit.Assert.fail("timeout");
+				if (second >= 60) break;
 				try { if (sClient.isElementPresent("//dt/em[text()='" + templateName + " (/Devices)']")) break; } catch (Exception e) {}
 				Thread.sleep(1000);
 			}
@@ -157,7 +157,7 @@ public class DeleteBindTemplate {
 			sClient.doubleClick("//dt/em[text()='" + templateName + " (/Devices)']");
 			sClient.click("//div[@id='bindTemplatesDialog']//button[text()='Save']");
 			for (int second = 0;; second++) {
-				if (second >= 60) org.junit.Assert.fail("timeout");
+				if (second >= 60) break;
 				try { if (sClient.isElementPresent("//div[@id='templateTree']//span[text()='" + templateName + " (/Devices)']")) break; } catch (Exception e) {}
 				Thread.sleep(1000);
 			}
@@ -168,7 +168,7 @@ public class DeleteBindTemplate {
 			sClient.click("link=Monitoring Templates");
 			sClient.waitForPageToLoad("30000");
 			for (int second = 0;; second++) {
-				if (second >= 60) org.junit.Assert.fail("timeout");
+				if (second >= 60) break;
 				try { if (sClient.isElementPresent("//a/span[text()='" + templateName + "']")) break; } catch (Exception e) {}
 				Thread.sleep(1000);
 			}
@@ -182,7 +182,7 @@ public class DeleteBindTemplate {
 			sClient.click("//button[text()='OK']");
 			// Wait for confirmation message to show up in the top of the page
 			for (int second = 0;; second++) {
-				if (second >= 60) org.junit.Assert.fail("timeout");
+				if (second >= 60) break;
 				try { if (sClient.isElementPresent("//div[contains(., " + templateName + ") and @class='x-flare-message']")) break; } catch (Exception e) {}
 				Thread.sleep(1000);
 			}
@@ -191,7 +191,7 @@ public class DeleteBindTemplate {
 			sClient.click("link=Infrastructure");
 			sClient.waitForPageToLoad("30000");
 			for (int second = 0;; second++) {
-				if (second >= 60) org.junit.Assert.fail("timeout");
+				if (second >= 60) break;
 				try { if (sClient.isElementPresent("//div[@id='device_grid']//div[@class='x-grid3-body']/div/table/tbody/tr/td/div/a[text()='" + deviceName + "']")) break; } catch (Exception e) {}
 				Thread.sleep(1000);
 			}
@@ -199,7 +199,7 @@ public class DeleteBindTemplate {
 			sClient.click("//div[@id='device_grid']//div[@class='x-grid3-body']/div/table/tbody/tr/td/div/a[text()='" + deviceName + "']");
 			sClient.waitForPageToLoad("30000");
 			for (int second = 0;; second++) {
-				if (second >= 60) org.junit.Assert.fail("timeout");
+				if (second >= 60) break;
 				try { if (sClient.isElementPresent("//a/span[text()='Monitoring Templates']")) break; } catch (Exception e) {}
 				Thread.sleep(1000);
 			}

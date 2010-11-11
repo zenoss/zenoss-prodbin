@@ -78,7 +78,7 @@ public class OverrideTemplate {
 		    //Click on the button "Device Class"
 			sClient.click("//button[text()='Device Class']");
 			for (int second = 0;; second++) {
-				if (second >= 60) org.junit.Assert.fail("timeout");
+				if (second >= 60) break;
 				try { if (sClient.isElementPresent("//div[@id='templateTree']//span[text()='Server']")) break; } catch (Exception e) {}
 				Thread.sleep(1000);
 			}
@@ -86,14 +86,14 @@ public class OverrideTemplate {
 			//On the left tree-view list, select the Server/Linux and then the selected template.
 			sClient.click("//div[@id='templateTree']//span[text()='Server']");
 			for (int second = 0;; second++) {
-				if (second >= 60) org.junit.Assert.fail("timeout");
+				if (second >= 60) break;
 				try { if (sClient.isElementPresent("//div[@id='templateTree']//span[text()='Linux']")) break; } catch (Exception e) {}
 				Thread.sleep(1000);
 			}
 
 			sClient.click("//div[@id='templateTree']//span[text()='Linux']");
 			for (int second = 0;; second++) {
-				if (second >= 60) org.junit.Assert.fail("timeout");
+				if (second >= 60) break;
 				try { if (sClient.isElementPresent("//div[@id='templateTree']//span[text()='" + templateName + "']")) break; } catch (Exception e) {}
 				Thread.sleep(1000);
 			}
@@ -101,7 +101,7 @@ public class OverrideTemplate {
 			sClient.click("//div[@id='templateTree']//span[text()='" + templateName + "']");
 			sClient.assignId("//div[@id='dataSourceTreeGrid']//table[@class='x-treegrid-root-table']", "tempSourceGrid_Id");
 			for (int second = 0;; second++) {
-				if (second >= 60) org.junit.Assert.fail("timeout");
+				if (second >= 60) break;
 				try { if (sClient.isElementPresent("//table[@id='tempSourceGrid_Id']")) break; } catch (Exception e) {}
 				Thread.sleep(1000);
 			}
@@ -121,7 +121,7 @@ public class OverrideTemplate {
 			//Expands the the target drop down menu and select VMware in /Devices
 			sClient.click("//div[@id='x-form-el-targetCombo']/div/img");
 			for (int second = 0;; second++) {
-				if (second >= 60) org.junit.Assert.fail("timeout");
+				if (second >= 60) break;
 				try { if (sClient.isElementPresent("//div[text()='VMware in /Devices']")) break; } catch (Exception e) {}
 				Thread.sleep(1000);
 			}
@@ -131,14 +131,14 @@ public class OverrideTemplate {
 			sClient.click("//div[@id='overrideDialog']//button[text()='Submit']");
 			Thread.sleep(5000);
 			for (int second = 0;; second++) {
-				if (second >= 60) org.junit.Assert.fail("timeout");
+				if (second >= 60) break;
 				try { if (sClient.isElementPresent("//div[@id='templateTree']//span[text()='VMware']")) break; } catch (Exception e) {}
 				Thread.sleep(1000);
 			}
 			//Go to the device class selected: VMware and verify the selected template is displayed as Locally Defined.
 			sClient.click("//div[@id='templateTree']//span[text()='VMware']");
 			for (int second = 0;; second++) {
-				if (second >= 60) org.junit.Assert.fail("timeout");
+				if (second >= 60) break;
 				try { if (sClient.isElementPresent("//div[@id='templateTree']//span[text()='" + templateName2 + "']")) break; } catch (Exception e) {}
 				Thread.sleep(1000);
 			}
@@ -149,7 +149,7 @@ public class OverrideTemplate {
 			//by comparing the content of the datasource tables
 			sClient.assignId("//div[@id='dataSourceTreeGrid']//table[@class='x-treegrid-root-table']", "tempSourceGrid2_Id");
 			for (int second = 0;; second++) {
-				if (second >= 60) org.junit.Assert.fail("timeout");
+				if (second >= 60) break;
 				try { if (sClient.isElementPresent("//table[@id='tempSourceGrid2_Id']")) break; } catch (Exception e) {}
 				Thread.sleep(1000);
 			}

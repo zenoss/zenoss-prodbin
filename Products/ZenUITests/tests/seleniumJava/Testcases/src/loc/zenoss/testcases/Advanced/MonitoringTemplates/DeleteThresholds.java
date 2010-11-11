@@ -77,7 +77,7 @@ public class DeleteThresholds {
 			sClient.click("//button[text()='Template']");
 			Thread.sleep(4000);
 			for (int second = 0;; second++) {
-				if (second >= 60) org.junit.Assert.fail("timeout");
+				if (second >= 60) break;
 				try { if (sClient.isElementPresent("//div[@id='templateTree']/div/div/ul/div/li[1]/div/a/span")) break; } catch (Exception e) {}
 				Thread.sleep(1000);
 			}
@@ -88,7 +88,7 @@ public class DeleteThresholds {
 			// Click Template Path list, wait for list to populate and select "Linux in Devices/Server"
 			sClient.click("//html/body/div[@id='addNewTemplateDialog']//form/div[2]/div/div/img");
 			for (int second = 0;; second++) {
-				if (second >= 60) org.junit.Assert.fail("timeout");
+				if (second >= 60) break;
 				try { if (sClient.isElementPresent("//div[text()='Linux in Devices/Server']")) break; } catch (Exception e) {}
 				Thread.sleep(1000);
 			}
@@ -99,13 +99,13 @@ public class DeleteThresholds {
 			sClient.click("//button[text()='Submit']");
 			// Wait for templates list to refresh and show the new template
 			for (int second = 0;; second++) {
-				if (second >= 60) org.junit.Assert.fail("timeout");
+				if (second >= 60) break;
 				try { if (sClient.isElementPresent("//span[text()='" + templateName + "']")) break; } catch (Exception e) {}
 				Thread.sleep(1000);
 			}
 
 			for (int second = 0;; second++) {
-				if (second >= 60) org.junit.Assert.fail("timeout");
+				if (second >= 60) break;
 				try { if (sClient.isElementPresent("//span[text()='/Server/Linux']")) break; } catch (Exception e) {}
 				Thread.sleep(1000);
 			}
@@ -115,7 +115,7 @@ public class DeleteThresholds {
 			// Click the type list, wait for list to populate and select "MinMaxThreshold" type
 			sClient.click("//html/body/div[@id='addThresholdDialog']//form/div/div/div/img");
 			for (int second = 0;; second++) {
-				if (second >= 60) org.junit.Assert.fail("timeout");
+				if (second >= 60) break;
 				try { if (sClient.isElementPresent("//div[text()='MinMaxThreshold']")) break; } catch (Exception e) {}
 				Thread.sleep(1000);
 			}
@@ -128,7 +128,7 @@ public class DeleteThresholds {
 			sClient.click("//button[text()='Add']");
 			// Wait for the new threshold to show up and click on it
 			for (int second = 0;; second++) {
-				if (second >= 60) org.junit.Assert.fail("timeout");
+				if (second >= 60) break;
 				try { if (sClient.isElementPresent("//div[@id='thresholdGrid']//td/div[text()='" + thresholdName + "']")) break; } catch (Exception e) {}
 				Thread.sleep(1000);
 			}
@@ -138,7 +138,7 @@ public class DeleteThresholds {
 			// Click the button to Edit the new threshold
 			sClient.click("//table[@id='thresholdDeleteButton']//button");
 			for (int second = 0;; second++) {
-				if (second >= 60) org.junit.Assert.fail("timeout");
+				if (second >= 60) break;
 				try { if (sClient.isElementPresent("//td/em/button[text()='Remove']")) break; } catch (Exception e) {}
 				Thread.sleep(1000);
 			}
@@ -146,7 +146,7 @@ public class DeleteThresholds {
 			sClient.click("//td/em/button[text()='Remove']");
 			Thread.sleep(4000);
 			for (int second = 0;; second++) {
-				if (second >= 60) org.junit.Assert.fail("timeout");
+				if (second >= 60) break;
 				try { if (!sClient.isElementPresent("//div[@id='thresholdGrid']//td/div[text()='" + thresholdName + "']")) break; } catch (Exception e) {}
 				Thread.sleep(1000);
 			}

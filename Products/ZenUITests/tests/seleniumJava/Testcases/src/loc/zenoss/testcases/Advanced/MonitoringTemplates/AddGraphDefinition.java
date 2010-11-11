@@ -76,7 +76,7 @@ public class AddGraphDefinition {
 			sClient.click("//button[text()='Template']");
 			Thread.sleep(4000);
 			for (int second = 0;; second++) {
-				if (second >= 60) org.junit.Assert.fail("timeout");
+				if (second >= 60) break;
 				try { if (sClient.isElementPresent("//div[@id='templateTree']//span[text()='Apache']")) break; } catch (Exception e) {}
 				Thread.sleep(1000);
 			}
@@ -85,7 +85,7 @@ public class AddGraphDefinition {
 			sClient.click("//div[@id='templateTree']//span[text()='Apache']");
 			// Click Apache template
 			for (int second = 0;; second++) {
-				if (second >= 60) org.junit.Assert.fail("timeout");
+				if (second >= 60) break;
 				try { if (sClient.isElementPresent("//div[@id='templateTree']//span[text()='Apache']/../../..//span[text()='/Server']")) break; } catch (Exception e) {}
 				Thread.sleep(1000);
 			}
@@ -94,7 +94,7 @@ public class AddGraphDefinition {
 			sClient.click("//table[@id='addGraphDefinitionButton']//button");
 			sClient.typeKeys("//input[@id='graphDefinitionIdTextfield']", graphDefinitionName);
 			for (int second = 0;; second++) {
-				if (second >= 60) org.junit.Assert.fail("timeout");
+				if (second >= 60) break;
 				try { if (sClient.isElementPresent("//table[@id='addGraphDefinitionSubmit' and @class='x-btn   x-btn-noicon ']//button")) break; } catch (Exception e) {}
 				Thread.sleep(1000);
 			}

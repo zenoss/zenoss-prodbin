@@ -80,7 +80,7 @@ public class DeletingTemplates {
 			// Click Template Path list, wait for list to populate and select "Devices in Devices"
 			sClient.click("//html/body/div[@id='addNewTemplateDialog']//form/div[2]/div/div/img");
 			for (int second = 0;; second++) {
-				if (second >= 60) org.junit.Assert.fail("timeout");
+				if (second >= 60) break;
 				try { if (sClient.isElementPresent("//div[text()='Devices in Devices']")) break; } catch (Exception e) {}
 				Thread.sleep(1000);
 			}
@@ -92,13 +92,13 @@ public class DeletingTemplates {
 			Thread.sleep(10000);
 			// Wait for templates list to refresh and show the new template
 			for (int second = 0;; second++) {
-				if (second >= 60) org.junit.Assert.fail("timeout");
+				if (second >= 60) break;
 				try { if (sClient.isElementPresent("//span[text()='" + templateName + "']")) break; } catch (Exception e) {}
 				Thread.sleep(1000);
 			}
 
 			for (int second = 0;; second++) {
-				if (second >= 60) org.junit.Assert.fail("timeout");
+				if (second >= 60) break;
 				try { if (sClient.isElementPresent("//span[text()='/Devices']")) break; } catch (Exception e) {}
 				Thread.sleep(1000);
 			}
@@ -109,7 +109,7 @@ public class DeletingTemplates {
 			sClient.click("//button[text()='OK']");
 			Thread.sleep(10000);
 			for (int second = 0;; second++) {
-				if (second >= 60) org.junit.Assert.fail("timeout");
+				if (second >= 60) break;
 				try { if (!sClient.isElementPresent("//span[text()='" + templateName + "']")) break; } catch (Exception e) {}
 				Thread.sleep(1000);
 			}
