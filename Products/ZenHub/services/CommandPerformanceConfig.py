@@ -19,6 +19,7 @@ import logging
 log = logging.getLogger('zen.HubService.CommandPerformanceConfig')
 import traceback
 
+import Globals
 from ZODB.POSException import ConflictError
 
 from Products.ZenCollector.services.config import CollectorConfigService
@@ -40,19 +41,8 @@ class CommandPerformanceConfig(CollectorConfigService):
         CollectorConfigService.__init__(self, dmd, instance, 
                                         deviceProxyAttributes)
 
-    def _filterDevice(self, device):
-        include = CollectorConfigService._filterDevice(self, device)
-
-        if not device.monitorDevice():
-            include = False
-
-        # Use case: create a dummy device to act as a placeholder to execute commands
-        #if not device.getManageIp():
-            #self.log.debug("Device %s skipped because its management IP address is blank.",
-                           #device.id)
-            #include = False
-
-        return include
+    # Use case: create a dummy device to act as a placeholder to execute commands
+    #           So don't filter out devices that don't have IP addresses.
 
     def _getDsDatapoints(self, comp, ds, ploader, perfServer):
         """
@@ -238,4 +228,11 @@ class CommandPerformanceConfig(CollectorConfigService):
 
         self._sendCmdEvent(device.titleOrId(), {'severity':Clear})
         self._sentNoUsernameSetClear = True
+
+if __name__ == '__main__':
+    from Products.ZenUtils.ZCmdBase import ZCmdBase
+    dmd = ZCmdBase().dmd
+    configService = CommandPerformanceConfig(dmd, 'localhost')
+    devices = sorted([x.id for x in configService.remote_getDeviceConfigs()])
+    print "COMMAND Devices = %s" % devices
 
