@@ -17,7 +17,6 @@ class IReportable(Interface):
     uid = Attribute("The path in the object graph to the object")
     entity_class_name = Attribute("The name of the entity class, to be used" \
             + " when generating reporting schemas")
-    exportable = Attribute("Flag indicating whether to export this")
 
     def reportProperties():
         """
@@ -29,3 +28,9 @@ class IReportMetaData(Interface):
 
     attributes = Attribute("name, expression, and type of attributes that"
                            " should be extracted for reporting.")
+
+class IReportableFactory(Interface):
+    def exports():
+        """
+        return an iterable of IReportables adapting the context
+        """
