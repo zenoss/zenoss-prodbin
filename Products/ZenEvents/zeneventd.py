@@ -136,11 +136,10 @@ class ProcessEventMessageTask(object):
 
 
     def publishEvent(self, event):
-        self.queueConsumer.publishMessage(self.dest_exchange.name, 
+        self.queueConsumer.publishMessage("$ZepZenEvents", 
                                           self.dest_routing_key_prefix + 
                                               event.event_class.replace('/','.'),
-                                          event, 
-                                          self.dest_exchange.type)
+                                          event)
 
     def processMessage(self, message):
         """

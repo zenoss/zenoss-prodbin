@@ -232,13 +232,12 @@ class AsyncQueuePublisher(object):
         @param routing_key: Key by which consumers will setup the queus to route
         @type  message: string or Protobuff
         @param message: message we are sending in the queue
+        @param createQueue: Identifier of queue to create
+        @type createQueue: string
         """
-        config = getAMQPConfiguration()
-        exchange = config.getExchange(exchange).name
         if createQueue:
-            qName = config.getQueue(createQueue).name
-            yield self._amqpClient.createQueue(exchange, exchange_type, routing_key, qName)
-        result = yield self._amqpClient.send(exchange, routing_key, message, exchange_type)
+            yield self._amqpClient.createQueue(exchange, createQueue)
+        result = yield self._amqpClient.send(exchange, routing_key, message)
         defer.returnValue(result)
 
 

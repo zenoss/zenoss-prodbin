@@ -106,15 +106,14 @@ class QueueConsumer(object):
         """
         self.consumer.acknowledge(message)
     
-    def publishMessage(self, exchange, routing_key, message, exchange_type):
+    def publishMessage(self, exchange, routing_key, message):
         """
         Publishes a message to another queue. This is for tasks that are both
         consumers and producers.
         """
         self.consumer.send(exchange,
                            routing_key,
-                           message,
-                           exchange_type)
+                           message )
     
     def syncdb(self):
         self.dmd.getPhysicalRoot()._p_jar.sync()
