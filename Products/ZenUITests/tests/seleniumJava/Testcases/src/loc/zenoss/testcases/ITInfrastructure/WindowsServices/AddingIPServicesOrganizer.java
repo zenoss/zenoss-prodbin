@@ -89,7 +89,7 @@ public class AddingIPServicesOrganizer {
 			IpService.addIpServiceOrganizer(orgName, sClient);
 			
 			// Add Service to organizer
-            IpService.addIpService(servName, orgName, sClient);
+            IpService.addIpServiceToOrganizer(servName, orgName, sClient);
 			
             //Click service from the services list
 			sClient.mouseDownAt("//div[@class='x-grid3-cell-inner x-grid3-col-name' and text()='" + servName + "']", "");
