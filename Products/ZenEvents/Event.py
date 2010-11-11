@@ -86,9 +86,10 @@ class Event(pb.Copyable, pb.RemoteCopy):
         return [(x, getattr(self, x)) for x in self._fields]
 
 
-    def getEventData(self):
-        """return an list of event data"""
-        return [ getattr(self, x) for x in self._fields]
+    # DEPRECATE THIS METHOD - not used anywhere
+    #def getEventData(self):
+    #    """return an list of event data"""
+    #    return [ getattr(self, x) for x in self._fields]
 
 
     def updateFromFields(self, fields, data):
@@ -98,9 +99,9 @@ class Event(pb.Copyable, pb.RemoteCopy):
         from the backend db.
         """
         self._fields = fields
-        for i in range(len(fields)):
-            if data[i] is None: data[i] = ''
-            setattr(self, fields[i], data[i])
+        data = [d if d is not None else '' for d in data]
+        for field,val in zip(fields, data):
+            setattr(self, field, val)
 
 
     def updateFromDict(self, data):
@@ -119,14 +120,19 @@ class Event(pb.Copyable, pb.RemoteCopy):
         clearcls = self._clearClasses
         evclass = getattr(self, "eventClass", None)
         sev = getattr(self, 'severity', None)
-        if evclass and sev == 0: clearcls.append(self.eventClass)
+        if evclass and sev == 0: 
+            clearcls.append(self.eventClass)
+
+        # collapse out duplicates
+        clearcls = list(set(clearcls))
         return clearcls
 
 
-    def getDataList(self, fields):
-        """return a list of data elements that map to the fields parameter.
-        """
-        return map(lambda x: getattr(self, x), fields)
+    # DEPRECATE THIS METHOD - not used anywhere
+    #def getDataList(self, fields):
+    #    """return a list of data elements that map to the fields parameter.
+    #    """
+    #    return map(lambda x: getattr(self, x), fields)
 
 
     def getDedupFields(self, default):

@@ -18,6 +18,7 @@ from Products.ZenUtils.guid.interfaces import IGlobalIdentifier, \
 from zenoss.protocols.protobufs import zep_pb2 as eventConstants
 from zenoss.protocols.protobufs import model_pb2 as modelConstants
 from time import time
+from Products.ZenEvents.EventManagerBase import EventManagerBase
 
 class ProtobufMappings:
     """
@@ -242,10 +243,15 @@ class EventProtobuf(ObjectProtobuf):
         # make sure something is there
         if not event.detaildata:
             return
+        isIterable = lambda x : hasattr(x, '__iter__')
         for (field, value) in event.detaildata.iteritems():
                 detail = proto.details.add()
                 detail.name = field
-                detail.value.append(str(value))
+                if isIterable(value):
+                    for v in value:
+                        detail.value.append(str(v))
+                else:
+                    detail.value.append(str(value))
 
     def fill(self, proto):
         """
@@ -277,6 +283,18 @@ class EventProtobuf(ObjectProtobuf):
             if hasattr(event, eventProperty):
                 value = getattr(event, eventProperty)
                 setattr(proto, protoProperty, value)
+
+        # copy all other event fields into details
+        for field in event.getEventFields():
+            if field not in self.fieldMappings:
+                event.detaildata[field] = getattr(event, field)
+
+        # record event control values into special details fields
+        if not hasattr(event,'detaildata'):
+            event.detaildata = {}
+        event.detaildata["_REQUIRED_FIELDS"] = EventManagerBase.requiredEventFields
+        event.detaildata["_CLEAR_CLASSES"] = event.clearClasses()
+        event.detaildata["_DEDUP_FIELDS"] = event.getDedupFields(default=EventManagerBase.defaultEventId)
 
         self.setActor(proto)
         self.fillDetails(proto)

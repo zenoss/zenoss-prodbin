@@ -23,7 +23,7 @@ class Event(object):
     
     fields = ("fingerprint eventState severity summary message event_class "
             "event_key event_class_key event_group component device service "
-            "action")
+            "_action _clearClasses")
     # fingerprint = "Dynamically generated fingerprint that allows the system to perform de-duplication on repeating events that share similar characteristics."
     # message = "event message"
     # severity = "event severity"

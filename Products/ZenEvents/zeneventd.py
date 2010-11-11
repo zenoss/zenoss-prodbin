@@ -22,20 +22,44 @@ import os
 from Products.ZenMessaging.queuemessaging.QueueConsumer import QueueConsumer
 from Products.ZenMessaging.queuemessaging.interfaces import IQueueConsumerTask, IProtobufSerializer
 from Products.ZenUtils.ZCmdBase import ZCmdBase
-from zenoss.protocols.protobufs.zep_pb2 import RawEvent, EventDetail, EventIndex, EventActor, SEVERITY_CLEAR
+from zenoss.protocols.protobufs.zep_pb2 import RawEvent, ZepRawEvent, EventDetail, EventIndex, EventActor, SEVERITY_CLEAR
+from zenoss.protocols.protobufs.zep_pb2 import ACTION_NEW, ACTION_CLOSE, ACTION_DROP
 from zenoss.protocols.protobufs.model_pb2 import DEVICE, COMPONENT, SERVICE
 from zenoss.protocols.amqpconfig import getAMQPConfiguration
 from twisted.internet import reactor, protocol, defer
 from twisted.internet.error import ReactorNotRunning
 from zope.interface import implements
 
-TRANSFORM_EVENT_IN_EVENTD = False
-if TRANSFORM_EVENT_IN_EVENTD:
-    from Products.ZenEvents.MySqlSendEvent import EventTransformer
-    from Products.ZenEvents.transformApi import Event as TransformEvent
+from Products.ZenEvents.MySqlSendEvent import EventTransformer, TRANSFORM_EVENTS_IN_ZENHUB
+TRANSFORM_EVENT_IN_EVENTD = not TRANSFORM_EVENTS_IN_ZENHUB
+
+from Products.ZenEvents.transformApi import Event as TransformEvent
+from Products.ZenEvents.EventManagerBase import EventManagerBase
+from Products.ZenUtils.guid.interfaces import IGUIDManager, IGlobalIdentifier
+from Products.Zuul.interfaces import ICatalogTool
+from Products.ZenModel.Device import Device
+from Products.ZenModel.DeviceComponent import DeviceComponent
+from Products.AdvancedQuery import Eq
+from Products.ZenModel.DeviceClass import DeviceClass
 
 import logging
 log = logging.getLogger("zen.eventd")
+
+# 'action' value mappings
+actionConvertToOld = {
+    "ACTION_NEW" : "status",
+    "ACTION_CLOSE" : "history",
+    "ACTION_DROP" : "drop",
+    }
+actionConvertToNew = dict((v,k) for k,v in actionConvertToOld.items())
+actionConvertToEnum = {
+    "ACTION_NEW" : ACTION_NEW,
+    "ACTION_CLOSE" : ACTION_CLOSE,
+    "ACTION_DROP" : ACTION_DROP,
+    }
+
+ACTION = "_ACTION"
+CLEAR_CLASSES = "_CLEAR_CLASSES"
 
 
 class ProcessEventMessageTask(object):
@@ -53,7 +77,6 @@ class ProcessEventMessageTask(object):
         config = getAMQPConfiguration()
         # set by the constructor of queueConsumer
         self.queueConsumer = None
-        self.defaultEventId = "/Unknown"
 
         queue = config.getQueue("$RawZenEvents")
         binding = queue.getBinding("$RawZenEvents")
@@ -93,52 +116,172 @@ class ProcessEventMessageTask(object):
                     ed.value.append(v)
 
     def addEventControlDetails(self, event, details):
-        details["_ACTION"] = 'ACTION_NEW'
-        details["_CLEAR_CLASSES"] = []
-        if event.severity == SEVERITY_CLEAR and event.event_class:
-            details["_CLEAR_CLASSES"].append(event.event_class)
+        if not ACTION in details or details[ACTION] is None:
+            details[ACTION] = 'ACTION_NEW'
 
-    def getIdentifiersForUuids(self, evtproto, event):
+        if not CLEAR_CLASSES in details or details[CLEAR_CLASSES] is None:
+            details[CLEAR_CLASSES] = []
+
+        if isinstance(details[CLEAR_CLASSES], basestring):
+            details[CLEAR_CLASSES] = details[CLEAR_CLASSES].split(',')
+
+        if (event.severity == SEVERITY_CLEAR and
+            hasattr(event, 'event_class') and  
+            event.event_class and
+            event.event_class not in details[CLEAR_CLASSES]):
+            details[CLEAR_CLASSES].append(event.event_class)
+
+    def removeEventControlDetails(self, event, details):
+        for name in [ACTION, CLEAR_CLASSES,] + "_DEDUP_FIELDS _REQUIRED_FIELDS".split():
+            if name in details:
+                del details[name]
+
+    def getObjectForUuid(self, uuid):
+        gm = IGUIDManager(self.dmd)
+        return gm.getObject(uuid)
+
+    def getObjectUuid(self, objid, idattr, objcls, parentUuid=None):
+        element = None
+
+        # if a parent uuid was provided, get its corresponding object to scope search;
+        # else just use the global dmd
+        if parentUuid:
+            catalog = self.getObjectForUuid(parentUuid)
+        else:
+            catalog = self.dmd
+
+        # search for object by identifying attribute
+        result = ICatalogTool(catalog).search(objcls, query=Eq(idattr, objid)).results
+
+        try:
+            element = result.next().getObject()
+        except StopIteration:
+            pass
+        if element:
+            return IGlobalIdentifier(element).getGUID()
+
+        return ''
+
+    def resolveEntityIdAndUuid(self, entityType, identifier, uuid, parentUuid=None):
+        if uuid:
+            # lookup device by uuid, fill in identifier
+            element  = self.getObjectForUuid(uuid)
+            if element:
+                identifier = element.name()
+        else:
+            # lookup device by identifier, fill in uuid
+            cls = { DEVICE    : Device, 
+                    COMPONENT : DeviceComponent, 
+                    SERVICE   : None }[entityType]
+            uuid = self.getObjectUuid(identifier, 'id', cls, parentUuid)
+
+        return identifier, uuid
+
+    def getIdentifiersForUuids(self, evtproto):
         # translate uuids to identifiers, if not provided
-        
-        pass
+        if evtproto.actor.element_type_id:
+            ident,uuid = self.resolveEntityIdAndUuid(evtproto.actor.element_type_id,
+                                evtproto.actor.element_identifier,
+                                evtproto.actor.element_uuid)
+            evtproto.actor.element_identifier = ident
+            evtproto.actor.element_uuid = uuid
+        if evtproto.actor.element_sub_type_id:
+            ident,uuid = self.resolveEntityIdAndUuid(evtproto.actor.element_sub_type_id, 
+                                evtproto.actor.element_sub_identifier,
+                                evtproto.actor.element_sub_uuid,
+                                evtproto.actor.element_uuid)
+            evtproto.actor.element_sub_identifier = ident
+            evtproto.actor.element_sub_uuid = uuid
 
     def extractActorElements(self, evtproto, event):
-        if evtproto.actor.element_type_id == DEVICE:
-            event.device = evtproto.actor.element_identifier
-        elif evtproto.actor.element_type_id == COMPONENT:
-            event.device = evtproto.actor.element_identifier
-            event.component = evtproto.actor.element_sub_identifier
-        elif evtproto.actor.element_type_id == SERVICE:
-            event.service = evtproto.actor.element_identifier
-            event.device = evtproto.actor.element_sub_identifier
-        else:
-            log.error("Unknown event actor type: %d", evtproto.actor.element_type_id)
+        elementTypeAttrMap = { DEVICE : 'device', COMPONENT : 'component', SERVICE : 'service' }
+        # initialize element attributes to ''
+        for attr in elementTypeAttrMap.values():
+            setattr(event, attr, '')
 
-    def addEventIndexTerms(self, event, details):
-        # add search terms for this event
+        # set primary element attribute
+        if evtproto.actor.element_type_id and evtproto.actor.element_identifier:
+            attr = elementTypeAttrMap[evtproto.actor.element_type_id]
+            log.debug("Setting event attribute %s to '%s'", attr, evtproto.actor.element_identifier)
+            setattr(event, attr, evtproto.actor.element_identifier)
+
+        # set secondary element attribute
+        if evtproto.actor.element_sub_type_id and evtproto.actor.element_sub_identifier:
+            attr = elementTypeAttrMap[evtproto.actor.element_sub_type_id]
+            log.debug("Setting event attribute %s to '%s'", attr, evtproto.actor.element_sub_identifier)
+            setattr(event, attr, evtproto.actor.element_sub_identifier)
+
+    def updateActorReferences(self, evtproto, evt_changes):
+        elementTypeAttrMap = { DEVICE : 'device', COMPONENT : 'component', SERVICE : 'service' }
+        if evtproto.actor.element_type_id:
+            attr = elementTypeAttrMap[evtproto.actor.element_type_id]
+            if attr in evt_changes:
+                evtproto.actor.element_identifier = evt_changes[attr]
+                evtproto.actor.element_uuid = ''
+        if evtproto.actor.element_sub_type_id:
+            attr = elementTypeAttrMap[evtproto.actor.element_sub_type_id]
+            if attr in evt_changes:
+                evtproto.actor.element_sub_identifier = evt_changes[attr]
+                evtproto.actor.element_sub_uuid = ''
+        self.getIdentifiersForUuids(evtproto)
+
+    def getLocationUuid(self, locn):
+        if locn is not None:
+            return IGlobalIdentifier(locn).getGUID()
+        else:
+            return ''
+
+    def addEventIndexTerms(self, event, evtindex):
         #indexattrs = [f.name for f in EventIndex.DESCRIPTOR.fields]
-        """['device_id', 'device_title', 'device_priority', 'device_ip_address', 
+        """['device_id', 'device_title', 'device_priority', 
          'device_class_name_uuid', 'device_location_uuid', 'device_production_state', 
          'device_group_uuids', 'device_system_uuids', 'device_service_uuids', 
          'component_id', 'component_title', 'component_uuid', 'service_title', 
          'service_uuid']"""
-        if event.actor.element_type_id == DEVICE:
-            event.index.device_uuid = event.actor.element_uuid
-        elif event.actor.element_type_id == COMPONENT:
-            event.index.device_uuid = event.actor.element_uuid
-            event.index.component_uuid = event.actor.sub_element_uuid
-        elif event.actor.element_type_id == SERVICE:
-            event.index.service_uuid = event.actor.element_uuid
-            event.index.device_uuid = event.actor.sub_element_uuid
-        else:
-            log.error("Unknown event actor type: %d", event.actor.element_type_id)
 
+        # extract device, component, and/or service from event actor uuid's
+        elementrefs = { DEVICE : None, COMPONENT : None, SERVICE : None }
+        for elementType in (DEVICE, COMPONENT, SERVICE):
+            if event.actor.element_type_id == elementType and event.actor.element_uuid:
+                elementrefs[elementType] = self.getObjectForUuid(event.actor.element_uuid)
+            if event.actor.element_sub_type_id == elementType and event.actor.element_sub_uuid:
+                elementrefs[elementType] = self.getObjectForUuid(event.actor.element_sub_uuid)
+
+        # set device search terms
+        device = elementrefs[DEVICE]
+        if device is not None:
+            attrs = "id title priority".split()
+            for attr in attrs:
+                attrval = getattr(device, attr, None)
+                if attrval is not None:
+                    setattr(evtindex, 'device_'+attr, attrval)
+            evtindex.device_production_state = device.productionState
+            evtindex.device_class_name_uuid = device.deviceClass().uuid
+            evtindex.device_location_uuid = self.getLocationUuid(device.location())
+            # TODO - get uuids for device groups, systems, and services
+
+        # set component search terms
+        component = elementrefs[COMPONENT]
+        if component is not None:
+            attrs = "id title uuid".split()
+            for attr in attrs:
+                attrval = getattr(service,attr,None)
+                if attrval is not None:
+                    setattr(evtindex, 'component_'+attr, attrval)
+
+        # set service search terms
+        service = elementrefs[SERVICE]
+        if service  is not None:
+            attrs = "uuid title".split()
+            for attr in attrs:
+                attrval = getattr(service,attr,None)
+                if attrval is not None:
+                    setattr(evtindex, 'service_'+attr, attrval)
 
     def publishEvent(self, event):
         self.queueConsumer.publishMessage("$ZepZenEvents", 
                                           self.dest_routing_key_prefix + 
-                                              event.event_class.replace('/','.'),
+                                              event.raw_event.event_class.replace('/','.').lower(),
                                           event)
 
     def processMessage(self, message):
@@ -146,15 +289,15 @@ class ProcessEventMessageTask(object):
         Handles a queue message, can call "acknowledge" on the Queue Consumer
         class when it is done with the message
         """
-
         try:
             # read message from queue; if MARKER, just return
             if message.content.body == self.queueConsumer.MARKER:
                 return
 
             # extract event from message body
-            event = RawEvent()
-            event.ParseFromString(message.content.body)
+            zepevent = ZepRawEvent()
+            zepevent.raw_event.ParseFromString(message.content.body)
+            event = zepevent.raw_event
             evtdetails = self.eventDetailsToDict(event)
             log.debug("Received event: %s", dict((f.name,getattr(event,f.name,None)) for f in RawEvent.DESCRIPTOR.fields))
             log.debug("- with actor: %s", dict((f.name, getattr(event.actor,f.name,None)) for f in EventActor.DESCRIPTOR.fields))
@@ -175,55 +318,74 @@ class ProcessEventMessageTask(object):
                 event_attributes = dict((f.name,getattr(event,f.name,None)) for f in RawEvent.DESCRIPTOR.fields)
                 evtproxy = TransformEvent(**event_attributes)
                 # translate actor to device/component/service
-                self.getIdentifiersForUuids(event, evtproxy)
+                self.getIdentifiersForUuids(event)
                 self.extractActorElements(event, evtproxy)
-                evtproxy.action = evtdetails["_ACTION"]
-                evtproxy.freeze()
+                if evtdetails[ACTION] in actionConvertToOld:
+                    evtproxy._action = actionConvertToOld[evtdetails[ACTION]]
+                else:
+                    evtproxy._action = actionConvertToOld["ACTION_NEW"]
                 evtproxy.mark()
 
-                transformer = EventTransformer(self, evtproxy)
+                transformer = EventTransformer(self, evtproxy, 
+                                               evtFields=[f.name for f in RawEvent.DESCRIPTOR.fields],
+                                               reqdEvtFields=evtdetails["_REQUIRED_FIELDS"],
+                                               dedupEvtFields=evtdetails["_DEDUP_FIELDS"]
+                                               )
                 # run event thru identity and transforms
-                log.debug("identify event devices: %s", event.uuid)
+                log.debug("identify devices for event: %s", event.uuid)
                 transformer.prepEvent()
-                if "action" in evtproxy.get_changes():
-                    evtdetails["_ACTION"] = "ACTION_" + evtproxy.get_changes()["action"].upper()
+                log.debug("Event attributes updated (prepEvent): %s", evtproxy.get_changes())
+                if "_action" in evtproxy.get_changes():
+                    if evtproxy.get_changes()["_action"] == "drop":
+                        log.debug("dropped event after identify: %s", event.uuid);
+                        return
 
-                if evtdetails["_ACTION"].upper() == "ACTION_DROP":
-                    log.debug("dropped event after identify: %s", event.uuid);
-                    return
+                # add clearClasses sent in with event
+                evtproxy._clearClasses.extend(evtdetails[CLEAR_CLASSES])
+                evtproxy.freeze()
 
                 log.debug("invoke transforms on event: %s", event.uuid)
                 transformer.transformEvent()
-                if "action" in evtproxy.get_changes():
-                    evtdetails["_ACTION"] = "ACTION_" + evtproxy.get_changes()["action"].upper()
-
-                if evtdetails["_ACTION"].upper() == "ACTION_DROP":
-                    log.debug("dropped event after transforms: %s", event.uuid);
-                    return
+                log.debug("Event attributes updated (transformEvent): %s", evtproxy.get_changes())
+                if "_action" in evtproxy.get_changes():
+                    if evtproxy.get_changes()["_action"] == "drop":
+                        log.debug("dropped event after transforms: %s", event.uuid);
+                        return
 
                 # copy adapter changes back to event attribs and details
                 stdFields = set(f.name for f in RawEvent.DESCRIPTOR.fields)
-                log.debug("Event attributes updated: %s", evtproxy.get_changes())
                 for (attr,val) in evtproxy.get_changes().items():
                     if attr in stdFields:
                         setattr(event, attr, val)
+                    elif attr in "service device component".split():
+                        # update actor uuids/identifiers - skip these for now
+                        pass
+                    elif attr in "_action _clearClasses".split():
+                        # skip these now, we'll always copy into output whether changed or not
+                        pass
                     else:
-                        if attr in "service device component".split():
-                            # TODO - udpate actor uuids/identifiers
-                            pass
-                        else:
-                            # TODO - copy extra attributes to details
-                            pass
+                        # copy extra attributes to details
+                        evtdetails[attr] = val
+
+                # fix up any service/device/component refs and get uuids
+                self.updateActorReferences(event, evtproxy.get_changes())
+
+                # set zepevent control fields
+                zepevent.clear_event_class.extend(list(set(evtproxy._clearClasses)))
+                zepevent.action = actionConvertToEnum[actionConvertToNew.get(evtproxy._action, ACTION_NEW)]
+
+                # strip off details used internally
+                self.removeEventControlDetails(event, evtdetails)
 
             # add event index tags for fast event retrieval
             log.debug("add index values for event: %s", event.uuid)
-            self.addEventIndexTerms(event, evtdetails)
+            self.addEventIndexTerms(event, zepevent.index)
 
             # convert event details dict back to event details name-values
             self.eventDetailDictToNameValues(event, evtdetails)
 
             # forward event to output queue
-            self.publishEvent(event)
+            self.publishEvent(zepevent)
             log.debug("published event: %s", event.uuid);
             self.logEvent(log.debug, event, evtdetails)
 

@@ -22,8 +22,8 @@ import logging
 log = logging.getLogger("zen.Events")
 from _mysql_exceptions import ProgrammingError, OperationalError
 
-TRANSFORM_EVENTS_IN_ZENHUB = True 
-STORE_EVENTS_IN_ZENHUB = True
+TRANSFORM_EVENTS_IN_ZENHUB = False
+STORE_EVENTS_IN_ZENHUB = TRANSFORM_EVENTS_IN_ZENHUB and True
 
 # Filter specific warnings coming from new version of mysql-python
 import warnings
@@ -60,24 +60,26 @@ def execute(cursor, statement):
 
 
 class EventTransformer(object):
-    def __init__(self, dbref, evt):
+    def __init__(self, dbref, evt, evtFields, reqdEvtFields, dedupEvtFields):
         self.dmd = dbref.getDmd()
-        self.eventFields = dbref.getFieldList()
-        self.defaultEventId = dbref.defaultEventId
+        self.eventFields = evtFields
+        self.requiredEventFields = reqdEvtFields
+        self.dedupEventFields = dedupEvtFields
         self.event = evt
     
     def prepEvent(self):
         event = self.event
-        for field in "device summary severity".split():
-            if not hasattr(event, field):
-                log.error("Required event field %s not found" \
-                          " -- ignoring event", field)
-                statusdata, detaildata = self._eventDataMaps()
-                log.error("Event info: %s", statusdata)
-                if detaildata:
-                    log.error("Detail data: %s", detaildata)
-                self.evtdetails = detaildata
-                return False
+        if not all(getattr(event,field,None) is not None for field in self.requiredEventFields):
+            for field in self.requiredEventFields:
+                if getattr(event, field, None) is None:
+                    log.error("Required event field %s not found" \
+                              " -- ignoring event", field)
+                    statusdata, detaildata = self._eventDataMaps()
+                    log.error("Event info: %s", statusdata)
+                    if detaildata:
+                        log.error("Detail data: %s", detaildata)
+                    self.evtdetails = detaildata
+                    return False
         
         #FIXME - ungly hack to make sure severity is an int
         try:
@@ -89,7 +91,7 @@ class EventTransformer(object):
         known_actions = [ 'history', 'drop', 'status', 'heartbeat',
                           'alert_state', 'log', 'detail',
                         ]
-        if hasattr( event, '_action' ) and event._action not in known_actions:
+        if getattr( event, '_action', None ) not in known_actions:
             event._action = 'status'
 
         # If either message or summary is empty then try to copy from the other.
@@ -97,15 +99,6 @@ class EventTransformer(object):
         if not getattr(event, 'message', False):
             event.message = getattr(event, 'summary', '')
         event.summary = (getattr(event, 'summary', '') or event.message)[:128]
-
-        return True
-    
-    def transformEvent(self):
-        event = self.event
-        statusdata, detaildata = self._eventDataMaps()
-        log.debug("Event info: %s", statusdata)
-        if detaildata:
-            log.debug("Detail data: %s", detaildata)
 
         if getattr(self, "_getDmdRoot", False):
             try:
@@ -117,8 +110,17 @@ class EventTransformer(object):
                 log.debug("Unable to obtain event -- ignoring.(%s)", event)
                 return False
 
-        if not hasattr(event, 'dedupid'):
-            dedupfields = event.getDedupFields(self.defaultEventId)
+        return True
+    
+    def transformEvent(self):
+        event = self.event
+        statusdata, detaildata = self._eventDataMaps()
+        log.debug("Event info: %s", statusdata)
+        if detaildata:
+            log.debug("Detail data: %s", detaildata)
+
+        if not getattr(event, 'dedupid', ''):
+            dedupfields = self.dedupEventFields
             if not getattr(event, "eventKey", ""):
                 if isinstance(dedupfields, basestring):
                     dedupfields = [dedupfields]
@@ -219,7 +221,7 @@ class EventTransformer(object):
             
             # apply device context info
             # evt = self.applyDeviceContext(device, evt)
-            if not hasattr(evt, 'ipAddress'):
+            if not getattr(evt, 'ipAddress', None):
                 evt.ipAddress = device.manageIp
             evt.prodState = device.productionState
             evt.Location = device.getLocationName()
@@ -269,7 +271,10 @@ class MySqlSendEventMixin:
             return self._sendHeartbeat(event)
 
         if TRANSFORM_EVENTS_IN_ZENHUB:
-            transformer = EventTransformer(self, event)
+            transformer = EventTransformer(self, event,
+                                           evtFields=event.getEventFields(),
+                                           reqdEvtFields=self.requiredEventFields,
+                                           dedupEvtFields=event.getDedupFields(self.defaultEventId))
             if not transformer.prepEvent():
                 return None
             if not transformer.transformEvent():
@@ -279,6 +284,8 @@ class MySqlSendEventMixin:
             if getattr(event, 'eventClass', Unknown) == Heartbeat:
                 log.debug("Transform created a heartbeat event.")
                 return self._sendHeartbeat(event)
+        else:
+            event.dedupid = ""
 
         evid = None
         try:
@@ -287,7 +294,6 @@ class MySqlSendEventMixin:
                     evid = self.storeAndPublishEvent(event)
                 else:
                     event.evid = guid.generate()
-                    event.dedupid = ""
                     _, detaildata = self.eventDataMaps(event)
                     self._publishEvent(event, detaildata)
             except ProgrammingError, e:
@@ -369,6 +375,8 @@ class MySqlSendEventMixin:
                     evid = None
         finally:
             self.close(conn)
+        log.debug("detail data after: %s", detaildata)
+
         self._publishEvent(event, detaildata)
         return evid
 
