@@ -79,7 +79,7 @@ public class SetPriority {
 			sClient.click("autoradio");
 			// Enter IP range and click OK
 			sClient.type("ext-comp-1003", "10.175.211.3-5");
-			sClient.click("ext-gen84");
+			sClient.click("//div[@id='autodiscoverform']//button[text()='Discover']");
 			sClient.selectWindow("null");
 			// Wait 60 s for devices to be discovered
 			Thread.sleep(60000);
