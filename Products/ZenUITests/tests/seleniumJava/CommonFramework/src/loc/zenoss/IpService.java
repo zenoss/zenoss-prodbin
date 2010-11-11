@@ -32,7 +32,7 @@ public class IpService {
 		Thread.sleep(2000);
 		sClient.type("//input[@name='id']", organizerName);
 		for (int second = 0;; second++) {
-			if (second >= 60) org.junit.Assert.fail("timeout");
+			if (second >= 60) break;
 			try { if (sClient.isElementPresent("//table[@class='x-btn   x-btn-noicon ']//button[text()='Submit']")) break; } catch (Exception e) {}
 			Thread.sleep(1000);
 		}
@@ -42,7 +42,7 @@ public class IpService {
 		sClient.click("link=IP Services");
 		sClient.waitForPageToLoad("30000");
 		for (int second = 0;; second++) {
-			if (second >= 60) org.junit.Assert.fail("timeout");
+			if (second >= 60) break;
 			try { if (sClient.isElementPresent("//ul[@class='x-tree-node-ct']/li")) break; } catch (Exception e) {}
 			Thread.sleep(1000);
 		}
@@ -77,7 +77,7 @@ public class IpService {
 		Thread.sleep(2000);
 		sClient.type("//input[@name='id']", serviceName);
 		for (int second = 0;; second++) {
-			if (second >= 60) org.junit.Assert.fail("timeout");
+			if (second >= 60) break;
 			try { if (sClient.isElementPresent("//table[@class='x-btn   x-btn-noicon ']//button[text()='Submit']")) break; } catch (Exception e) {}
 			Thread.sleep(1000);
 		}
@@ -87,22 +87,25 @@ public class IpService {
 		sClient.click("link=IP Services");
 		sClient.waitForPageToLoad("30000");
 		for (int second = 0;; second++) {
-			if (second >= 60) org.junit.Assert.fail("timeout");
+			if (second >= 60) break;
 			try { if (sClient.isElementPresent("//ul[@class='x-tree-node-ct']/li")) break; } catch (Exception e) {}
 			Thread.sleep(1000);
 		}
 
 		for (int second = 0;; second++) {
-			if (second >= 60) org.junit.Assert.fail("timeout");
+			if (second >= 60) break;
 			try { if (sClient.isElementPresent("//div[@class='x-grid3-body']/div")) break; } catch (Exception e) {}
 			Thread.sleep(1000);
 		}
 
-		// Click on the Service Organizer
+		// Click on the Service Organizer and give 10 seconds for service list to load
 		sClient.click("//span[@class='node-text' and text()='" + organizerName + "']");
-		// Wait for Services list to load
+		Thread.sleep(10000);
+		
+		//Type service name in the search box and wait for it to show up in the service list
+		sClient.typeKeys("//input[@id='name']", serviceName);
 		for (int second = 0;; second++) {
-			if (second >= 60) org.junit.Assert.fail("timeout");
+			if (second >= 60) break;
 			try { if (sClient.isElementPresent("//div[@class='x-grid3-cell-inner x-grid3-col-name' and text()='" + serviceName + "']")) break; } catch (Exception e) {}
 			Thread.sleep(1000);
 		}
@@ -135,7 +138,7 @@ public class IpService {
 		Thread.sleep(2000);
 		sClient.type("//input[@name='id']", serviceName);
 		for (int second = 0;; second++) {
-			if (second >= 60) org.junit.Assert.fail("timeout");
+			if (second >= 60) break;
 			try { if (sClient.isElementPresent("//table[@class='x-btn   x-btn-noicon ']//button[text()='Submit']")) break; } catch (Exception e) {}
 			Thread.sleep(1000);
 		}
@@ -145,20 +148,23 @@ public class IpService {
 		sClient.click("link=IP Services");
 		sClient.waitForPageToLoad("30000");
 		for (int second = 0;; second++) {
-			if (second >= 60) org.junit.Assert.fail("timeout");
+			if (second >= 60) break;
 			try { if (sClient.isElementPresent("//ul[@class='x-tree-node-ct']/li")) break; } catch (Exception e) {}
 			Thread.sleep(1000);
 		}
-
+		
+		//Wait 10 seconds and verify Services list is loaded
+		Thread.sleep(10000);
 		for (int second = 0;; second++) {
-			if (second >= 60) org.junit.Assert.fail("timeout");
+			if (second >= 60) break;
 			try { if (sClient.isElementPresent("//div[@class='x-grid3-body']/div")) break; } catch (Exception e) {}
 			Thread.sleep(1000);
 		}
 
-		// Wait for Services list to load
+		// Type service name in the search box and wait for it to show up in the service list
+		sClient.typeKeys("//input[@id='name']", serviceName);
 		for (int second = 0;; second++) {
-			if (second >= 60) org.junit.Assert.fail("timeout");
+			if (second >= 60) break;
 			try { if (sClient.isElementPresent("//div[@class='x-grid3-cell-inner x-grid3-col-name' and text()='" + serviceName + "']")) break; } catch (Exception e) {}
 			Thread.sleep(1000);
 		}
