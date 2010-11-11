@@ -22,7 +22,6 @@ from Products.ZenModel.ZenModelRM import ZenModelRM
 from Products.ZenUtils.guid.interfaces import IGUIDManager
 from Products.ZenUtils.template import Template
 
-NotificationSubscriptionsId = 'NotificationSubscriptions'
 
 class InvalidRecipient(Exception):
     """
@@ -42,8 +41,8 @@ class RecipientManager(object):
 
 def manage_addNotificationSubscriptionManager(context, REQUEST=None):
     """Create the notification subscription manager."""
-    nsm = NotificationSubscriptionManager(NotificationSubscriptionsId)
-    context._setObject(NotificationSubscriptionsId, nsm)
+    nsm = NotificationSubscriptionManager(NotificationSubscriptionManager.root)
+    context._setObject(NotificationSubscriptionManager.root, nsm)
     if REQUEST is not None:
         REQUEST['RESPONSE'].redirect(context.absolute_url() + '/manage_main') 
 
