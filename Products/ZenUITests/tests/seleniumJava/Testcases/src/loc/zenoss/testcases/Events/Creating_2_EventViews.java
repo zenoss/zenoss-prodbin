@@ -73,7 +73,7 @@ public class Creating_2_EventViews {
 			sClient.waitForPageToLoad("30000");
 			// Wait for Event Classes link and click on it
 			for (int second = 0;; second++) {
-				if (second >= 60) org.junit.Assert.fail("timeout");
+				if (second >= 60) break;
 				try { if (sClient.isElementPresent("link=Users")) break; } catch (Exception e) {}
 				Thread.sleep(1000);
 			}
@@ -94,7 +94,7 @@ public class Creating_2_EventViews {
 			sClient.click("//input[@id='dialog_submit']");
 			// Wait for confirmation of Event View creation
 			for (int second = 0;; second++) {
-				if (second >= 60) org.junit.Assert.fail("timeout");
+				if (second >= 60) break;
 				try { if (sClient.isElementPresent("//tbody[@id='EventViews']//a[text()='" + eventViewName + "']")) break; } catch (Exception e) {}
 				Thread.sleep(1000);
 			}
@@ -104,7 +104,7 @@ public class Creating_2_EventViews {
 			sClient.waitForPageToLoad("30000");
 			// Wait for Event View page to load (Save button displayed)
 			for (int second = 0;; second++) {
-				if (second >= 60) org.junit.Assert.fail("timeout");
+				if (second >= 60) break;
 				try { if (sClient.isElementPresent("//input[@value=' Save ']")) break; } catch (Exception e) {}
 				Thread.sleep(1000);
 			}
@@ -128,7 +128,7 @@ public class Creating_2_EventViews {
 			sClient.click("//input[@id='dialog_submit']");
 			// Wait for confirmation of Event View creation
 			for (int second = 0;; second++) {
-				if (second >= 60) org.junit.Assert.fail("timeout");
+				if (second >= 60) break;
 				try { if (sClient.isElementPresent("//tbody[@id='EventViews']//a[text()='" + eventViewName2 + "']")) break; } catch (Exception e) {}
 				Thread.sleep(1000);
 			}
@@ -138,7 +138,7 @@ public class Creating_2_EventViews {
 			sClient.waitForPageToLoad("30000");
 			// Wait for Event View page to load (Save button displayed)
 			for (int second = 0;; second++) {
-				if (second >= 60) org.junit.Assert.fail("timeout");
+				if (second >= 60) break;
 				try { if (sClient.isElementPresent("//input[@value=' Save ']")) break; } catch (Exception e) {}
 				Thread.sleep(1000);
 			}
@@ -163,7 +163,7 @@ public class Creating_2_EventViews {
 			sClient.click("//tbody[@id='EventViews']/tr/td/div/table[contains(@onclick,'" + eventViewName + "')]/tbody/tr/td[2]");
 			sClient.waitForPageToLoad("30000");
 			for (int second = 0;; second++) {
-				if (second >= 60) org.junit.Assert.fail("timeout");
+				if (second >= 60) break;
 				try { if (sClient.isElementPresent("//div/div/table/tbody/tr/td/div/div[@class='severity-icon-small error']")) break; } catch (Exception e) {}
 				Thread.sleep(1000);
 			}
@@ -175,7 +175,7 @@ public class Creating_2_EventViews {
 			sClient.click("//tbody[@id='EventViews']/tr/td/div/table[contains(@onclick,'" + eventViewName2 + "')]/tbody/tr/td[2]");
 			sClient.waitForPageToLoad("30000");
 			for (int second = 0;; second++) {
-				if (second >= 60) org.junit.Assert.fail("Timeout");
+				if (second >= 60) break;
 				try { if (sClient.isElementPresent("//div/div/table/tbody/tr/td/div/div[@class='severity-icon-small error']")) break; } catch (Exception e) {}
 				Thread.sleep(1000);
 			}
