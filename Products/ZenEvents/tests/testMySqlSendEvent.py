@@ -292,5 +292,6 @@ class MySqlSendEventTest(BaseTestCase):
 def test_suite():
     from unittest import TestSuite, makeSuite
     suite = TestSuite()
-    suite.addTest(makeSuite(MySqlSendEventTest))
+    #suite.addTest(makeSuite(MySqlSendEventTest))
+    suite.addTest(makeSuite(BaseTestCase))
     return suite

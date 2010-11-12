@@ -40,6 +40,7 @@ class MockNotificationSubscription(NotificationSubscription):
 trigger_uuid1 = str(uuid4())
 trigger_uuid2 = str(uuid4())
 trigger_uuid3 = str(uuid4())
+interval_uuid1 = str(uuid4())
 
 active_notification = MockNotificationSubscription('active_notification')
 active_notification.enabled = True
@@ -73,11 +74,11 @@ disabled_notification.action = 'email'
 
 
 test_signal1 = Signal()
+test_signal1.uuid = str(uuid4())
+test_signal1.created_time = 1;
 test_signal1.message = 'Testing Signal Processing'
-test_signal1.trigger.uuid = trigger_uuid1
-test_signal1.trigger.filter.api_version = 1
-test_signal1.trigger.filter.content_type = 'text/python'
-test_signal1.trigger.filter.content = 'True'
+test_signal1.trigger_uuid = trigger_uuid1
+test_signal1.interval_uuid = interval_uuid1
 
 
 class MockNotificationDao(NotificationDao):
