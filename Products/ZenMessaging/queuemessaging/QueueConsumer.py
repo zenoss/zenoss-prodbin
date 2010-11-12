@@ -87,9 +87,8 @@ class QueueConsumer(object):
                              queue_name=task.queue_name,
                              callback=task.processMessage)
         # sending a test message
-        self.consumer.send(task.exchange,
-                           task.routing_key, self.MARKER,
-                           task.exchange_type)
+#        self.consumer.send(task.exchange,
+#                           task.routing_key, self.MARKER)
         return self.onReady
 
     def shutdown(self, *args):
