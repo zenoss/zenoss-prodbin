@@ -280,8 +280,8 @@ class EventProtobuf(ObjectProtobuf):
 
         # do our simple mappings
         for eventProperty,protoProperty in self.fieldMappings.iteritems():
-            if hasattr(event, eventProperty):
-                value = getattr(event, eventProperty)
+            value = getattr(event, eventProperty, None)
+            if value is not None:
                 setattr(proto, protoProperty, value)
 
         # copy all other event fields into details
