@@ -29,7 +29,7 @@ Zenoss.EventPanelSelectionModel = Ext.extend(Zenoss.ExtraHooksSelectionModel, {
         this.on('beforerowselect', this.handleBeforeRowSelect, this);
         this.on('rowselect', this.handleRowSelect, this);
         this.on('rowdeselect', this.handleRowDeSelect, this);
-        
+
     },
     handleBeforeRowSelect: function(sm, index, keepExisting, record){
         if (!keepExisting) {
@@ -64,7 +64,7 @@ Zenoss.EventPanelSelectionModel = Ext.extend(Zenoss.ExtraHooksSelectionModel, {
         this.selectState = state;
     },
     selectAll: function(){
-    
+
         this.clearSelections();
         this.selectEventState('All');
     },
@@ -83,22 +83,53 @@ Zenoss.EventPanelSelectionModel = Ext.extend(Zenoss.ExtraHooksSelectionModel, {
         this.clearSelections();
         this.selectEventState('Suppressed');
     },
+    /**
+     * Override handle mouse down method from "Ext.grid.RowSelectionModel"
+     * to handle shift select more intelligently.
+     * We need to disallow shift select when the selection range crosses
+     * a buffer to prevent a user from taking action upon an event they they
+     * may not have seen yet. See trac #6959
+     **/
     handleMouseDown: function(g, rowIndex, e){
-        //override from base class to disable shift-click 
-        if (e.button !== 0 || this.isLocked()) {
+        if(e.button !== 0 || this.isLocked()){
             return;
         }
-        
+        var view = this.grid.getView();
+        // handle shift select
+        if(e.shiftKey && !this.singleSelect && this.last !== false){
+            // last is the index of the previous row they selected
+            var last = this.last;
+
+            // bufferRange is the first and last item in our current view
+            var startIndex = this.grid.store.bufferRange[0];
+            var endIndex = this.grid.store.bufferRange[1];
+
+            // only allow shift select if the range is in our current view
+            if (last >= startIndex && last <= endIndex){
+                this.selectRange(last, rowIndex, e.ctrlKey);
+                this.last = last; // reset the last
+                view.focusRow(rowIndex);
+            }else{
+                // unselect everything (in case they shift select, then jump around buffers and shift select again)
+                this.clearSelections();
+                this.doSingleSelect(rowIndex, e);
+            }
+        }else{
+            this.doSingleSelect(rowIndex, e);
+        }
+    },
+    /**
+     * Used by handleMouseDown to handle a single selection
+     **/
+    doSingleSelect: function(rowIndex, e){
         var view = this.grid.getView();
         var isSelected = this.isSelected(rowIndex);
-        if (e.ctrlKey && isSelected) {
+        if(e.ctrlKey && isSelected){
             this.deselectRow(rowIndex);
+        }else if(!isSelected || this.getCount() > 1){
+            this.selectRow(rowIndex, e.ctrlKey || e.shiftKey);
+            view.focusRow(rowIndex);
         }
-        else 
-            if (!isSelected || this.getCount() > 1 || this.selectState) {
-                this.selectRow(rowIndex, e.ctrlKey);
-                view.focusRow(rowIndex);
-            }
     },
     clearSelections: function(fast){
         var start, end, record;
@@ -121,7 +152,7 @@ Zenoss.EventPanelSelectionModel = Ext.extend(Zenoss.ExtraHooksSelectionModel, {
         Zenoss.EventPanelSelectionModel.superclass.clearSelections.apply(this, arguments);
     },
     onRefresh: function(){
-        //override from base class to prevent reslect after sorting 
+        //override from base class to prevent reslect after sorting
         var ds = this.grid.store, index;
         var s = this.getSelections();
         this.clearSelections(false);
@@ -151,7 +182,7 @@ Zenoss.EventPanelSelectionModel = Ext.extend(Zenoss.ExtraHooksSelectionModel, {
             }
         }
         return selected;
-        
+
     }
 });
 // the column model for the device grid
@@ -168,7 +199,7 @@ Zenoss.EventStore = Ext.extend(Ext.ux.grid.livegrid.Store, {
                 root: 'events',
                 totalProperty: 'totalCount'
                 }, [
-                // List all possible columns. 
+                // List all possible columns.
                 // FIXME: This should come from the server.
                     'dedupid',
                     'evid',
@@ -206,9 +237,9 @@ Zenoss.EventStore = Ext.extend(Ext.ux.grid.livegrid.Store, {
                     'iprealm',
                     {name:'count', type:'int'},
                     {name:'severity', type:'int'},
-                    {name:'firstTime', type:'date', 
+                    {name:'firstTime', type:'date',
                         dateFormat:Zenoss.date.ISO8601Long},
-                    {name:'lastTime', type:'date', 
+                    {name:'lastTime', type:'date',
                         dateFormat:Zenoss.date.ISO8601Long},
                     {name:'stateChange', type:'date',
                         dateFormat:Zenoss.date.ISO8601Long}
@@ -347,7 +378,7 @@ Ext.reg('SimpleEventGridPanel', Zenoss.SimpleEventGridPanel);
 
 /**
  * Select Menu
- **/ 
+ **/
 Zenoss.events.SelectMenu = {
     text: _t('Select'),
     id: 'select-button',
@@ -409,8 +440,8 @@ Zenoss.EventGridPanel = Ext.extend(Zenoss.SimpleEventGridPanel, {
             },
                 '-',
                 Zenoss.events.SelectMenu,
-               '-', 
-           
+               '-',
+
             {
                 xtype: 'tbtext',
                 text: _t('Display: ')
@@ -452,7 +483,7 @@ Zenoss.EventGridPanel = Ext.extend(Zenoss.SimpleEventGridPanel, {
             '-',
             Zenoss.events.EventPanelToolbarActions.acknowledge,
             Zenoss.events.EventPanelToolbarActions.close,
-            Zenoss.events.EventPanelToolbarActions.refresh                
+            Zenoss.events.EventPanelToolbarActions.refresh
         ];
         if (config.newwindowBtn) {
             tbarItems.push('-');
