@@ -23,6 +23,7 @@ log = logging.getLogger('zen.HubService.PingPerformanceConfig')
 
 from twisted.spread import pb
 
+import Globals
 from Products.ZenCollector.services.config import CollectorConfigService
 from Products.ZenEvents.ZenEventClasses import Error, Clear
 
@@ -140,4 +141,12 @@ class PingPerformanceConfig(CollectorConfigService):
             proxy.monitoredIps.append(ipProxy)
 
         return proxy
+
+
+if __name__ == '__main__':
+    from Products.ZenUtils.ZCmdBase import ZCmdBase
+    dmd = ZCmdBase().dmd
+    configService = PingPerformanceConfig(dmd, 'localhost')
+    devices = sorted([x.id for x in configService.remote_getDeviceConfigs()])
+    print "PING Devices = %s" % devices
 
