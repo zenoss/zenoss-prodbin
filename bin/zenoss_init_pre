@@ -84,4 +84,3 @@ run_zenbuild
 
 # Update AMQP configuration files
 update_amqp_cfg
-configure_amqp

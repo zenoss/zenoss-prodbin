@@ -38,9 +38,17 @@ def parse_settings(conf_file):
                 name = fields[0]
             yield (line, name)
 
+def create_tmpfile(path):
+    statinfo = os.stat(path)
+    (tmpfd,tmpname) = tempfile.mkstemp(suffix='.conf',dir=os.path.dirname(path),text=True)
+    # Clone permissions from original file
+    os.chmod(tmpname, statinfo.st_mode)
+    os.chown(tmpname, statinfo.st_uid, statinfo.st_gid)
+    return (tmpfd,tmpname)
+
 def remove_settings(settings_to_remove):
     filename = zenPath('etc', 'global.conf')
-    (tmpfd,tmpname) = tempfile.mkstemp(suffix='.conf',dir=os.path.dirname(filename),text=True)
+    (tmpfd,tmpname) = create_tmpfile(filename)
     output_file = os.fdopen(tmpfd, 'wb')
     found_settings = set()
     try:
@@ -60,7 +68,7 @@ def remove_settings(settings_to_remove):
 
 def update_settings(settings_dict):
     filename = zenPath('etc', 'global.conf')
-    (tmpfd,tmpname) = tempfile.mkstemp(suffix='.conf',dir=os.path.dirname(filename),text=True)
+    (tmpfd,tmpname) = create_tmpfile(filename)
     output_file = os.fdopen(tmpfd, 'wb')
     found_settings = set()
     try:
