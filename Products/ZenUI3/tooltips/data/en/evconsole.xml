@@ -21,7 +21,7 @@
   <tooltip>
     <target>unack-button</target>
 
-    <html>Return events to New</html>
+    <html>Return events to new status</html>
   </tooltip>
 
   <tooltip>
@@ -44,7 +44,6 @@
 
  <tooltip>
     <target>configure-button</target>
-
     <html>Configure view</html>
   </tooltip>
 
