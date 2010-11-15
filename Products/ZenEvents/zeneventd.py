@@ -30,13 +30,13 @@ from twisted.internet import reactor, protocol, defer
 from twisted.internet.error import ReactorNotRunning
 from zope.interface import implements
 
-from Products.ZenEvents.MySqlSendEvent import EventTransformer, TRANSFORM_EVENTS_IN_ZENHUB
-TRANSFORM_EVENT_IN_EVENTD = not TRANSFORM_EVENTS_IN_ZENHUB
+from Products.ZenEvents.MySqlSendEvent import EventTransformer
+TRANSFORM_EVENT_IN_EVENTD = True
 
 from Products.ZenEvents.transformApi import Event as TransformEvent
 from Products.ZenEvents.EventManagerBase import EventManagerBase
 from Products.ZenUtils.guid.interfaces import IGUIDManager, IGlobalIdentifier
-from Products.Zuul.interfaces import ICatalogTool
+from Products.Zuul.interfaces import ICatalogTool, IInfo
 from Products.ZenModel.Device import Device
 from Products.ZenModel.DeviceComponent import DeviceComponent
 from Products.AdvancedQuery import Eq
@@ -167,7 +167,7 @@ class ProcessEventMessageTask(object):
             # lookup device by uuid, fill in identifier
             element  = self.getObjectForUuid(uuid)
             if element:
-                identifier = element.name()
+                identifier = IInfo(element).name
         else:
             # lookup device by identifier, fill in uuid
             cls = { DEVICE    : Device, 

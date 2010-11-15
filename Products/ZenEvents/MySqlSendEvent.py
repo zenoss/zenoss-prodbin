@@ -22,7 +22,7 @@ import logging
 log = logging.getLogger("zen.Events")
 from _mysql_exceptions import ProgrammingError, OperationalError
 
-TRANSFORM_EVENTS_IN_ZENHUB = False
+TRANSFORM_EVENTS_IN_ZENHUB = True
 STORE_EVENTS_IN_ZENHUB = TRANSFORM_EVENTS_IN_ZENHUB and True
 
 # Filter specific warnings coming from new version of mysql-python
@@ -271,6 +271,7 @@ class MySqlSendEventMixin:
             return self._sendHeartbeat(event)
 
         if TRANSFORM_EVENTS_IN_ZENHUB:
+            originalEvent = event.clone()
             transformer = EventTransformer(self, event,
                                            evtFields=event.getEventFields(),
                                            reqdEvtFields=self.requiredEventFields,
@@ -291,7 +292,10 @@ class MySqlSendEventMixin:
         try:
             try:
                 if STORE_EVENTS_IN_ZENHUB:
-                    evid = self.storeAndPublishEvent(event)
+                    self.storeEvent(event)
+                    originalEvent.evid = event.evid
+                    _, detaildata = self.eventDataMaps(originalEvent)
+                    self._publishEvent(originalEvent, detaildata)
                 else:
                     event.evid = guid.generate()
                     _, detaildata = self.eventDataMaps(event)
@@ -313,7 +317,7 @@ class MySqlSendEventMixin:
         return evid
 
 
-    def storeAndPublishEvent(self, event):
+    def storeEvent(self, event):
         """
         Actually write the sanitized event into the database
 
@@ -377,7 +381,6 @@ class MySqlSendEventMixin:
             self.close(conn)
         log.debug("detail data after: %s", detaildata)
 
-        self._publishEvent(event, detaildata)
         return evid
 
     def _publishEvent(self, event, detaildata):

@@ -111,6 +111,12 @@ class Event(pb.Copyable, pb.RemoteCopy):
         for key, value in data.items():
             setattr(self, key, value)
 
+    def clone(self):
+        ret = self.__class__(**self.__dict__)
+        # make copies of lists, instead of just duplicating refs to them
+        ret._fields = self._fields[:]
+        ret._clearClasses = self._clearClasses[:]
+        return ret
 
     def clearClasses(self):
         """Return a list of classes that this event clears.
