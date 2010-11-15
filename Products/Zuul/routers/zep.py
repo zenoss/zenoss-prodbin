@@ -58,25 +58,24 @@ class ZepRouter(EventsRouter):
 
             return map[enum.values_by_number[severity].name]
 
-        eventClass = event_summary['occurrence'][0]['event_class']
+        eventOccurrence = event_summary['occurrence'][0]
+        eventClass = eventOccurrence['event_class']
         event = {
             'id' : event_summary['uuid'],
             'evid' : event_summary['uuid'],
-            'device' : {'text': event_summary['occurrence'][0]['actor'].get('element_identifier', None), 'uid': None},
-            'component' : {'text': event_summary['occurrence'][0]['actor'].get('element_sub_identifier', None), 'uid': None},
-            'created' : str(datetime.utcfromtimestamp(event_summary['occurrence'][0]['created_time'] / 1000)),
+            'device' : {'text': eventOccurrence['actor'].get('element_identifier', None), 'uid': None},
+            'component' : {'text': eventOccurrence['actor'].get('element_sub_identifier', None), 'uid': None},
+            'created' : str(datetime.utcfromtimestamp(eventOccurrence['created_time'] / 1000)),
             'firstTime' : str(datetime.utcfromtimestamp(event_summary['first_seen_time'] / 1000)),
             'lastTime' : str(datetime.utcfromtimestamp(event_summary['last_seen_time'] / 1000)),
             'eventClass' : {"text": eventClass, "uid": "/zport/dmd/Events%s" % eventClass},
-            'dedupid' : event_summary['occurrence'][0]['fingerprint'],
-            'eventKey' : event_summary['occurrence'][0]['event_class_key'],
-            'summary' : event_summary['occurrence'][0]['summary'],
-            'severity' : severityToName(event_summary['occurrence'][0]['severity']),
+            'dedupid' : eventOccurrence['fingerprint'],
+            'eventKey' : eventOccurrence.get('event_key', None),
+            'summary' : eventOccurrence['summary'],
+            'severity' : severityToName(eventOccurrence['severity']),
             'eventState' : statusToName(event_summary['status']),
             'count' : event_summary['count'],
-
             #IGuidManager(dmd).getObject(uuid)
-
         }
 
         return event
