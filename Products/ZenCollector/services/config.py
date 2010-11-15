@@ -161,11 +161,10 @@ class CollectorConfigService(HubService, ThresholdMixin):
 
     @translateError
     def remote_getDeviceNames(self):
-        devices = self._prefs.devices()
+        devices = self._getDevices()
         return [x.id for x in self._filterDevices(devices)]
 
-    @translateError
-    def remote_getDeviceConfigs(self, deviceNames = None):
+    def _getDevices(self, deviceNames=None):
         if not deviceNames:
             devices = self._prefs.devices()
         else:
@@ -176,7 +175,11 @@ class CollectorConfigService(HubService, ThresholdMixin):
                     continue
                 else:
                     devices.append(device)
+        return devices
 
+    @translateError
+    def remote_getDeviceConfigs(self, deviceNames = None):
+        devices = self._getDevices(deviceNames)
         devices = self._filterDevices(devices)
 
         deviceConfigs = []
