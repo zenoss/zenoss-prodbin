@@ -119,12 +119,14 @@ The Devices page is divided into two main areas. The <em>device list</em> shows 
 <pagehelp target="Reports" title="Reports">
 <p>Zenoss aggregates and reports, over time, on the data you set it up to monitor. The system provides a range of defined and custom report options.</p>
 
-<p>The Reports list appears in the tree view. Expand a list item to see available reports in that category.</p>
+<p>Select <b>Base</b> to work with defined system reports, or <b>Advanced</b> to define ad hoc reports.</p>
 
-<p><strong>Organizing Reports</strong><br />
+<p>The list of base reports appears in the tree view. Expand a list item to see available reports in that category.</p>
+
+<p><strong>Organizing Base Reports</strong><br />
 You can organize reports and report organizers by dragging and dropping them in the tree view. To create a report organizer, select Add Report Organizer from <img src="/++resource++pagehelp/Add_Menu.png"/> (Add Menu).</p>
 
-<p><strong>Exporting Reports</strong><br />
+<p><strong>Exporting Bbase Reports</strong><br />
 You can export data from any report as a comma-separated value <tt>(.csv)</tt> file. Click <strong>Export All</strong> (located at the bottom of a report).</p>
 
 <p><strong>More Information</strong><br />
