@@ -17,16 +17,19 @@ function ConfirmPagerTest() {
 <tal:block metal:fill-slot="breadcrumbs"/>
 
 <tal:block metal:fill-slot="contentPane">
-<form method="get" name="usersTable" tal:attributes="action here/absolute_url_path" id="users">
+<form method="POST"  tal:attributes="action request/URL">
 
 
         <tal:block tal:define="tableName string:userlist;
        ztm here/ZenTableManager;
        objects here/getAllUserSettings;
        showfilterbox python:True;
-       batch python:ztm.getBatch(tableName, objects); 
+       batch python:ztm.getBatch(tableName, objects);
        tabletitle string:Users;
        menu_id string:User_list">
+          <input type='hidden' name='tableName' tal:attributes="value tableName" />
+          <input type="hidden" name="zenScreenName"
+           tal:attributes="value template/id"/>
         <tal:block metal:use-macro="here/zenuimacros/macros/zentable">
 
         <!--====Optional titlebar slots=============
@@ -41,8 +44,8 @@ function ConfirmPagerTest() {
 
         <tal:block metal:fill-slot="zentablecontents">
         <!-- BEGIN TABLE CONTENTS -->
-            
-    
+
+
     <tr>
         <th tal:replace="structure python:ztm.getTableHeader(
                             tableName,'primarySortKey','UserId')"/>
@@ -57,13 +60,13 @@ function ConfirmPagerTest() {
     <tr tal:define="odd repeat/user/odd"
         tal:attributes="class python:odd and 'odd' or 'even'">
         <td class="tablevalues">
-            <input type="checkbox" name="userids:list" 
-               tal:condition="user/isManager" 
+            <input type="checkbox" name="userids:list"
+               tal:condition="user/isManager"
                tal:attributes="value user/getId" />
             <a tal:attributes="href user/getPrimaryUrlPath"
-               tal:condition="user/iseditable" 
+               tal:condition="user/iseditable"
                tal:content="user/getId">edahl</a>
-            <span tal:condition="not: user/iseditable" 
+            <span tal:condition="not: user/iseditable"
                   tal:content="user/getId"/>
         </td>
         <td class="tablevalues">
@@ -80,13 +83,13 @@ function ConfirmPagerTest() {
             tal:attributes="href string:${here/absolute_url_path}?manage_pagerTestAdmin:method=1&userid=${user/getId}">test</a>)
             </tal:block>
         </td>
-        <td class="tablevalues" 
+        <td class="tablevalues"
             tal:content="python:', '.join(user.getUserRoles())"/>
     </tr>
     </tal:block>
     <tr>
         <td colspan="4" class="tableheader">
-            <span metal:use-macro="here/zenTableNavigation/macros/navtool"/>
+            <span metal:use-macro="here/zenTableNavigation/macros/navbody"/>
         </td>
     </tr>
 
@@ -95,20 +98,24 @@ function ConfirmPagerTest() {
         </tal:block>
         </tal:block>
         </tal:block>
-        
+
 
 </form>
 
-<form method="get" tal:attributes="action here/absolute_url_path" id="groups">
-
+<form method="POST"  tal:attributes="action request/URL">
 
         <tal:block tal:define="tableName string:grouplist;
        ztm here/ZenTableManager;
        objects here/getAllGroupSettings;
        showfilterbox python:True;
-       batch python:ztm.getBatch(tableName, objects); 
+       batch python:ztm.getBatch(tableName, objects);
        tabletitle string:Groups;
        menu_id string:Group_list">
+
+          <input type='hidden' name='tableName' tal:attributes="value tableName" />
+          <input type="hidden" name="zenScreenName"
+           tal:attributes="value template/id"/>
+
         <tal:block metal:use-macro="here/zenuimacros/macros/zentable">
         <tal:block metal:fill-slot="zentablecontents">
     <tr>
@@ -121,15 +128,15 @@ function ConfirmPagerTest() {
     <tr tal:define="odd repeat/group/odd"
         tal:attributes="class python:odd and 'odd' or 'even'">
         <td class="tablevalues">
-            <input type="checkbox" name="groupids:list" 
-               tal:condition="group/iseditable" 
+            <input type="checkbox" name="groupids:list"
+               tal:condition="group/iseditable"
                tal:attributes="value group/getId" />
             <input type="checkbox" disabled
-               tal:condition="not:group/iseditable"> 
+               tal:condition="not:group/iseditable">
             <a tal:attributes="href group/getPrimaryUrlPath"
-               tal:condition="group/iseditable" 
+               tal:condition="group/iseditable"
                tal:content="group/getId">edahl</a>
-            <span tal:condition="not: group/iseditable" 
+            <span tal:condition="not: group/iseditable"
                   tal:content="group/getId"/>
         </td>
         <td class="tablevalues" tal:content="group/printUsers"
@@ -138,14 +145,14 @@ function ConfirmPagerTest() {
     </tal:block>
     <tr>
         <td colspan="4" class="tableheader">
-            <span metal:use-macro="here/zenTableNavigation/macros/navtool"/>
+            <span metal:use-macro="here/zenTableNavigation/macros/navbody"/>
         </td>
     </tr>
 
         </tal:block>
         </tal:block>
         </tal:block>
-        
+
 
 </form>
 </tal:block>
