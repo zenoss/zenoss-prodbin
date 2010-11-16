@@ -645,6 +645,8 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable,
                 if rel.meta_type != "ToManyContRelationship": continue
                 for obj in rel():
                     if not isinstance(obj, DeviceComponent): break
+                    for subComp in obj.getSubComponentsNoIndexGen():
+                        yield subComp
                     yield obj
 
 

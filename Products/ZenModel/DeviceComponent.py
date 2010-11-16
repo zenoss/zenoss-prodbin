@@ -25,8 +25,9 @@ import zope.interface
 from Products.ZenModel.interfaces import IIndexed
 from Products.ZenModel.ZenossSecurity import ZEN_VIEW
 from Products.ZenUtils.guid.interfaces import IGloballyIdentifiable
-
+from Products.ZenRelations.ToManyContRelationship import ToManyContRelationship
 from Lockable import Lockable
+from Products.ZenUtils.Utils import getAllConfmonObjects
 
 class DeviceComponent(Lockable):
     """
@@ -65,7 +66,7 @@ class DeviceComponent(Lockable):
         dev = self.device()
         if dev: url = dev.absolute_url()
         return url
-    
+
     security.declareProtected(ZEN_VIEW, 'name')
     def name(self):
         """
@@ -94,7 +95,7 @@ class DeviceComponent(Lockable):
         """
         return self.name()
 
-        
+
     def getStatus(self, statClass=None):
         """
         Return the status number for this component of class statClass.
@@ -106,7 +107,7 @@ class DeviceComponent(Lockable):
         return self.getEventManager().getComponentStatus(
                 self.getParentDeviceName(), self.name(), statclass=statClass)
 
-  
+
     def getStatusString(self, statClass=None):
         """
         Return a text representation of this component's status
@@ -135,7 +136,7 @@ class DeviceComponent(Lockable):
         if getattr(aq_base(self), prop, None) is not None:
             return getattr(self, prop)
         classObj = self.getClassObject()
-        if classObj: 
+        if classObj:
             classObj = classObj.primaryAq()
             return getattr(classObj, prop)
 
@@ -161,7 +162,7 @@ class DeviceComponent(Lockable):
             msg = "Update local %s" % prop
         return msg
 
-    
+
     def getClassObject(self):
         """
         If you are going to use acquisition up different class path
@@ -172,7 +173,7 @@ class DeviceComponent(Lockable):
 
     def getIconPath(self):
         """
-        Override the device's zProperty and return an icon based on the class 
+        Override the device's zProperty and return an icon based on the class
         name
         """
         return "/zport/dmd/img/icons/%s.png" % self.meta_type.lower()
@@ -192,12 +193,27 @@ class DeviceComponent(Lockable):
         appropriate for this object.  Lets us ignore detectable gunk
         that's not very interesting to model, like most processes, and
         loopback network devices, CDROM file systems, etc.
-        
+
         Returns False if the object should not be added.
 
         The object will have its full acquisition path, but will not
         have been added to the database.
         """
         return True
-   
+
+    def getSubComponentsNoIndexGen(self):
+        """Recursively gets every sub component for this component.
+        We use the slow method of just looking at every object
+        underneath this object and yielding those that are DeviceComponents.
+
+        NOTE: this does not use a catalog and is used only to index a catalog. It
+        is painfully inefficient
+        @rtype:   generator
+        @return:  Every subcomponent directly under this component
+        """
+        subObjects = getAllConfmonObjects(self)
+        for obj in subObjects:
+            if isinstance(obj, DeviceComponent):
+                yield obj
+
 InitializeClass(DeviceComponent)
