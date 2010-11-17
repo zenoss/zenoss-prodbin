@@ -24,11 +24,6 @@ class IReportable(Interface):
         contains the id, type, and value of the property
         """
 
-class IReportMetaData(Interface):
-
-    attributes = Attribute("name, expression, and type of attributes that"
-                           " should be extracted for reporting.")
-
 class IReportableFactory(Interface):
     def exports():
         """
