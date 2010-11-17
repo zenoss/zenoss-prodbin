@@ -114,7 +114,7 @@ class BaseTestCase(ZopeTestCase.ZopeTestCase):
     def afterSetUp(self):
         gen = PortalGenerator()
         if hasattr( self.app, 'zport' ):
-            self.app._delObject( 'zport' )
+            self.app._delObject( 'zport', suppress_events=True)
         gen.create(self.app, 'zport', True)
         # builder params:
         # portal, cvthost, evtuser, evtpass, evtdb,
