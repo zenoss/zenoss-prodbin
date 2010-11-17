@@ -842,22 +842,6 @@ Ext.onReady(function () {
                 width: 200,
                 sortable: true
             }, {
-                id: 'delay',
-                dataIndex: 'delay_seconds',
-                header: _t('Delay'),
-                xtype: 'numbercolumn',
-                width: 70,
-                format: '0',
-                sortable: true
-            }, {
-                id: 'repeat',
-                dataIndex: 'repeat_seconds',
-                header: _t('Repeat'),
-                xtype: 'numbercolumn',
-                width: 70,
-                format: '0',
-                sortable: true
-            }, {
                 id: 'send_clear',
                 dataIndex: 'send_clear',
                 header: _t('Send Clear?'),
@@ -961,22 +945,6 @@ Ext.onReady(function () {
                             allowBlank: false,
                             fieldLabel: _t('Name')
                         },{
-                            xtype: 'numberfield',
-                            name: 'delay_seconds',
-                            ref: 'delay_seconds',
-                            allowBlank: true,
-                            allowNegative: false,
-                            allowDecimals: false,
-                            fieldLabel: _t('Delay (seconds)')
-                        },{
-                            xtype: 'numberfield',
-                            name: 'repeat_seconds',
-                            ref: 'repeat_seconds',
-                            allowBlank: true,
-                            allowNegative: false,
-                            allowDecimals: false,
-                            fieldLabel: _t('Repeat (seconds)')
-                        },{
                             xtype: 'checkbox',
                             name: 'enabled',
                             ref: 'enabled',
@@ -988,11 +956,11 @@ Ext.onReady(function () {
                             fieldLabel: _t('Send Clear')
                         },{
                             xtype: 'textarea',
-                            name: 'filter',
-                            ref: 'filter',
+                            name: 'rule',
+                            ref: 'rule',
                             width: 400,
                             height: 400,
-                            fieldLabel: _t('Filter Source')
+                            fieldLabel: _t('Rule Source')
                         }
                     ],
                     buttons:[
@@ -1003,8 +971,8 @@ Ext.onReady(function () {
                             formBind: true,
                             handler: function(button) {
                                 var params = button.refOwner.editForm.getForm().getFieldValues(),
-                                    _filter = params.filter;
-                                params.filter = {'content':_filter};
+                                    _rule = params.rule;
+                                params.rule = {'source':_rule};
                                 
                                 config.directFn(params, function(){
                                     button.refOwner.hide();
@@ -1021,14 +989,14 @@ Ext.onReady(function () {
                         },{
                             xtype: 'button',
                             ref: '../../validateSource',
-                            text: _t('Check Filter'),
+                            text: _t('Check Rule'),
                             handler: function(button) {
                                 var params = {
-                                    source: button.refOwner.editForm.filter.getValue()
+                                    source: button.refOwner.editForm.rule.getValue()
                                 };
                                 config.validateFn(params, function(response){
                                     if (response.success) {
-                                        Zenoss.message.success('Filter source validated successfully.');
+                                        Zenoss.message.success('Rule source validated successfully.');
                                     }
                                 });
                                 
@@ -1042,10 +1010,8 @@ Ext.onReady(function () {
             this.editForm.uuid.setValue(data.uuid);
             this.editForm.enabled.setValue(data.enabled);
             this.editForm.name.setValue(data.name);
-            this.editForm.delay_seconds.setValue(data.delay_seconds);
-            this.editForm.repeat_seconds.setValue(data.repeat_seconds);
             this.editForm.send_clear.setValue(data.send_clear);
-            this.editForm.filter.setValue(data.filter.content);
+            this.editForm.rule.setValue(data.rule.source);
         }
     });
     Ext.reg('edittriggerdialogue', EditTriggerDialogue);
@@ -1087,7 +1053,7 @@ Ext.onReady(function () {
                     directFn: router.getTriggers,
                     root: 'data',
                     autoLoad: true,
-                    fields: ['uuid', 'enabled', 'name', 'delay_seconds', 'repeat_seconds', 'send_clear', 'filter']
+                    fields: ['uuid', 'enabled', 'name', 'send_clear', 'rule']
                 },
                 sm: new Ext.grid.RowSelectionModel({
                     singleSelect: true,

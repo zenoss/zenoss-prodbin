@@ -14,6 +14,7 @@
 from Products import Zuul
 from Products.ZenUtils.Ext import DirectRouter
 from Products.ZenUtils.extdirect.router import DirectResponse
+from zenoss.protocols.protobufs.zep_pb2 import RULE_TYPE_JYTHON
 
 import logging
 
@@ -40,6 +41,8 @@ class TriggersRouter(DirectRouter):
         return DirectResponse.succeed(data=self._getFacade().getTrigger(uuid))
         
     def updateTrigger(self, **data):
+        data['rule']['api_version'] = 1
+        data['rule']['type'] = RULE_TYPE_JYTHON
         response = self._getFacade().updateTrigger(**data)
         return DirectResponse.succeed(data=response)
     

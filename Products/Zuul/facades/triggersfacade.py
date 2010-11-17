@@ -11,64 +11,84 @@
 #
 ###########################################################################
 
+from Products.ZenUtils.PkgResources import pkg_resources
 import logging
 import uuid
 from Acquisition import aq_parent
 from zope.interface import implements
-from zope.component import getUtility
 from Products.Zuul.facades import ZuulFacade
-from Products.Zuul.interfaces import ITriggersFacade, IInfo
+from Products.Zuul.interfaces import IInfo
 from Products.ZenModel.NotificationSubscription import NotificationSubscription
 from Products.ZenModel.NotificationSubscriptionWindow import NotificationSubscriptionWindow
-from Products.ZenMessaging.interfaces import ITriggersService, IProtobufJsonizable
 import zenoss.protocols.protobufs.zep_pb2 as zep
+from zenoss.protocols.jsonformat import to_dict, from_dict
+from Products.ZenUtils.GlobalConfig import getGlobalConfiguration
+
+from zenoss.protocols.services.triggers import TriggerServiceClient
 
 log = logging.getLogger('zen.TriggersFacade')
 
 
 class TriggersFacade(ZuulFacade):
-    implements(ITriggersFacade)
+    
+    def __init__(self, context):
+        super(TriggersFacade, self).__init__(context)
+        
+        config = getGlobalConfiguration()
+        self.triggers_service = TriggerServiceClient(config.get('zep_uri', 'http://localhost:8084'))
     
     def removeNode(self, uid):
         obj = self._getObject(uid)
         context = aq_parent(obj)
         return context._delObject(obj.id)
         
-    @property
-    def triggers_service(self):
-        return getUtility(ITriggersService)
-        
     def getTriggers(self):
-        trigger_set = self.triggers_service.getTriggers()
-        return IProtobufJsonizable(trigger_set).json_friendly()
+        response, trigger_set = self.triggers_service.getTriggers()
+        if trigger_set:
+            trigger_set = to_dict(trigger_set)
+        return trigger_set['triggers']
+    
+    def parseFilter(self, source):
+        """
+        Parse a filter to make sure it's sane.
+        
+        @param source: The python expression to test.
+        @type source: string
+        @todo: make this not allow nasty python.
+        """
+        if isinstance(source, basestring):
+            if source:
+                tree = parser.expr(source)
+                if parser.isexpr(tree):
+                    return source
+                else:
+                    raise Exception('Invalid filter expression.')
+            else:
+                return True # source is empty string
+        
 
     def addTrigger(self, newId):
         trigger = zep.EventTrigger()
         trigger.uuid = str(uuid.uuid4())
         trigger.name = newId
-        trigger.filter.api_version = 1
-        trigger.filter.content_type = 'python'
-        trigger.filter.content = ''
-        return self.triggers_service.addTrigger(trigger)
+        trigger.rule.api_version = 1
+        trigger.rule.type = zep.RULE_TYPE_JYTHON
+        trigger.rule.source = ''
+        response, content = self.triggers_service.addTrigger(trigger)
+        return content
 
     def removeTrigger(self, uuid):
-        trigger = zep.EventTrigger()
-        trigger.uuid = uuid
-        return self.triggers_service.removeTrigger(trigger)
+        response, content = self.triggers_service.removeTrigger(uuid)
+        return content
 
     def getTrigger(self, uuid):
-        trigger = self.triggers_service.getTrigger(uuid)
-        return IProtobufJsonizable(trigger).json_friendly()
+        response, trigger = self.triggers_service.getTrigger(uuid)
+        return to_dict(trigger)
     
     def updateTrigger(self, **kwargs):
-        trigger = zep.EventTrigger()
-        IProtobufJsonizable(trigger).fill(kwargs)
-        return self.triggers_service.updateTrigger(trigger)
-    
-    def parseFilter(self, source):
-        return self.triggers_service.parseFilter(source)
-    
-    
+        trigger = from_dict(zep.EventTrigger, kwargs)
+        response, content = self.triggers_service.updateTrigger(trigger)
+        return content
     
     
     def _getManager(self):

@@ -4,18 +4,5 @@
     xmlns:browser="http://namespaces.zope.org/browser">
     <include package=".ChangeEvents"/>
     <include package=".queuemessaging"/>
-    
-    <utility factory=".services.TriggersService"
-             provides=".interfaces.ITriggersService"
-             />
-    
-    <adapter provides=".interfaces.IProtobufJsonizable"
-             for="zenoss.protocols.protobufs.zep_pb2.EventTrigger"
-             factory=".adapters.EventTriggerProtobuf"
-             />
-    
-    <adapter provides=".interfaces.IProtobufJsonizable"
-             for="zenoss.protocols.protobufs.zep_pb2.EventTriggerSet"
-             factory=".adapters.EventTriggerSetProtobuf"
-             />
+
 </configure>
