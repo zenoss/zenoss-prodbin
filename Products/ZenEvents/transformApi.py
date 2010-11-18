@@ -21,9 +21,9 @@ from propertyMonitor import PropertyMonitor
 class Event(object):
     __metaclass__ = PropertyMonitor
     
-    fields = ("fingerprint eventState severity summary message event_class "
+    fields = ("fingerprint status severity summary message event_class "
             "event_key event_class_key event_group component device service "
-            "_action _clearClasses")
+            "_clearClasses")
     # fingerprint = "Dynamically generated fingerprint that allows the system to perform de-duplication on repeating events that share similar characteristics."
     # message = "event message"
     # severity = "event severity"
@@ -85,6 +85,7 @@ class Event(object):
         "ownerid" : "acknowledged_by_user_uuid",
         "clearid" : "cleared_by_event_uuid",
         "suppid" : "suppressed_by_event_uuid",
+        "_action" : "status",
         }
         
 class EventSummary(object):
@@ -131,53 +132,6 @@ class Device(object):
         "location" : "location_uuid",
         "priority" : "device_priority",
         }
-
-
-class _LegacyDevice(object):
-    __metaclass__ = PropertyMonitor
-    
-    readonly_fields = ("manageIp productionState productionStateString "
-            "snmpAgent snmpDescr snmpOid snmpContact snmpSysName "
-            "snmpLocation snmpLastCollection snmpLastCollectionString "
-            "rackSlot comments priority priorityString "
-            "hwManufacturerName hwProductName hwProductKey "
-            "osManufacturerName osProductName osProductKey "
-            "hwSerialNumber locationName locationLink systemNames "
-            "deviceGroupNames osVersion lastChangeString "
-            "lastPollSnmpUpTime uptimeStr pingStatusString snmpStatusString")
-    # manageIp = "The IP address used to contact the device in most situations"
-    # productionState = "The production status of the device: Production, Pre-Production, Test, Mainte- nance or Decommisioned. This attribute is a numeric value, use getProductionStateString for a textual representation."
-    # productionStateString= "Returns a textual representation of the productionState"
-    # snmpAgent = "The agent returned from SNMP collection"
-    # snmpDescr = "The description returned by the SNMP agent"
-    # snmpOid = "The oid returned by the SNMP agent"
-    # snmpContact = "The contact returned by the SNMP agent"
-    # snmpSysName = "The system name returned by the SNMP agent"
-    # snmpLocation = "The location returned by the SNMP agent"
-    # snmpLastCollection = "When SNMP collection was last performed on the device. This is a DateTime object."
-    # snmpLastCollectionString = "Textual representation of snmpLastCollection"
-    # rackSlot = "The slot name/number in the rack where this physical device is installed"
-    # comments = "User entered comments regarding the device"
-    # priority = "A numeric value: 0 (Trivial), 1 (Lowest), 2 (Low), 3 (Normal), 4 (High), 5 (Highest)"
-    # priorityString = "A textual representation of the priority"
-    # hwManufacturerName = "Name of the manufacturer of this hardware"
-    # hwProductName = "Name of this physical product"
-    # hwProductKey = "Used to associate this device with a hardware product class"
-    # osManufacturerName = "Name of the manufacturer of this device's operating system."
-    # osProductName = "Name of the operating system running on this device."
-    # osProductKey = "Used to associate the operating system with a software product class"
-    # hwSerialNumber = "Serial number for this physical device"
-    # locationName = "Name of the Location assigned to this device"
-    # locationLink = "Link to the system page for the assigned Location"
-    # systemNames = "A list of names of the Systems this device is associated with"
-    # deviceGroupNames = "A list of names of the Groups this device is associated with"
-    # osVersion = "Version of the operating system running on this device"
-    # lastChangeString = "When the last change was made to this device"
-    # lastPollSnmpUpTime = "Uptime returned from SNMP"
-    # uptimeStr = "Textual representation of the SNMP uptime for this device"
-    # pingStatusString = "Textual representation of the ping status of the device"
-    # snmpStatusString = "Textual representation of the SNMP status of the device"
-
 
 class Component(object):
     __metaclass__ = PropertyMonitor

@@ -23,7 +23,14 @@ from Products.ZenMessaging.queuemessaging.QueueConsumer import QueueConsumer
 from Products.ZenMessaging.queuemessaging.interfaces import IQueueConsumerTask, IProtobufSerializer
 from Products.ZenUtils.ZCmdBase import ZCmdBase
 from zenoss.protocols.protobufs.zep_pb2 import RawEvent, ZepRawEvent, EventDetail, EventIndex, EventActor, SEVERITY_CLEAR
-from zenoss.protocols.protobufs.zep_pb2 import ACTION_NEW, ACTION_CLOSE, ACTION_DROP
+from zenoss.protocols.protobufs.zep_pb2 import (
+    STATUS_NEW,
+    STATUS_ACKNOWLEDGED,
+    STATUS_SUPPRESSED,
+    STATUS_CLOSED,
+    STATUS_CLEARED,
+    STATUS_DROPPED,
+    STATUS_AGED)
 from zenoss.protocols.protobufs.model_pb2 import DEVICE, COMPONENT, SERVICE
 from zenoss.protocols.amqpconfig import getAMQPConfiguration
 from twisted.internet import reactor, protocol, defer
@@ -45,22 +52,23 @@ from Products.ZenModel.DeviceClass import DeviceClass
 import logging
 log = logging.getLogger("zen.eventd")
 
-# 'action' value mappings
-actionConvertToOld = {
-    "ACTION_NEW" : "status",
-    "ACTION_CLOSE" : "history",
-    "ACTION_DROP" : "drop",
-    }
-actionConvertToNew = dict((v,k) for k,v in actionConvertToOld.items())
-actionConvertToEnum = {
-    "ACTION_NEW" : ACTION_NEW,
-    "ACTION_CLOSE" : ACTION_CLOSE,
-    "ACTION_DROP" : ACTION_DROP,
-    }
-
-ACTION = "_ACTION"
 CLEAR_CLASSES = "_CLEAR_CLASSES"
 
+statusConvertToEnum = {
+    "new" : STATUS_NEW,
+    "ack" : STATUS_ACKNOWLEDGED,
+    "suppressed" : STATUS_SUPPRESSED,
+    "closed" : STATUS_CLOSED,
+    "cleared" : STATUS_CLEARED,
+    "dropped" : STATUS_DROPPED,
+    "aged" : STATUS_AGED,
+}
+statusConvertToString = dict((v,k) for k,v in statusConvertToEnum.items())
+
+# add for legacy compatibility
+statusConvertToEnum['status'] = STATUS_NEW
+statusConvertToEnum['history'] = STATUS_CLOSED
+statusConvertToEnum['drop'] = STATUS_DROPPED
 
 class ProcessEventMessageTask(object):
     implements(IQueueConsumerTask)
@@ -116,9 +124,6 @@ class ProcessEventMessageTask(object):
                     ed.value.append(v)
 
     def addEventControlDetails(self, event, details):
-        if not ACTION in details or details[ACTION] is None:
-            details[ACTION] = 'ACTION_NEW'
-
         if not CLEAR_CLASSES in details or details[CLEAR_CLASSES] is None:
             details[CLEAR_CLASSES] = []
 
@@ -132,7 +137,7 @@ class ProcessEventMessageTask(object):
             details[CLEAR_CLASSES].append(event.event_class)
 
     def removeEventControlDetails(self, event, details):
-        for name in [ACTION, CLEAR_CLASSES,] + "_DEDUP_FIELDS _REQUIRED_FIELDS".split():
+        for name in [CLEAR_CLASSES,] + "_DEDUP_FIELDS _REQUIRED_FIELDS".split():
             if name in details:
                 del details[name]
 
@@ -316,14 +321,11 @@ class ProcessEventMessageTask(object):
             if TRANSFORM_EVENT_IN_EVENTD:
                 # initialize adapter with event properties
                 event_attributes = dict((f.name,getattr(event,f.name,None)) for f in RawEvent.DESCRIPTOR.fields)
+                event_attributes["status"] = statusConvertToString[event_attributes.get("status", STATUS_NEW)]
                 evtproxy = TransformEvent(**event_attributes)
                 # translate actor to device/component/service
                 self.getIdentifiersForUuids(event)
                 self.extractActorElements(event, evtproxy)
-                if evtdetails[ACTION] in actionConvertToOld:
-                    evtproxy._action = actionConvertToOld[evtdetails[ACTION]]
-                else:
-                    evtproxy._action = actionConvertToOld["ACTION_NEW"]
                 evtproxy.mark()
 
                 transformer = EventTransformer(self, evtproxy, 
@@ -352,6 +354,14 @@ class ProcessEventMessageTask(object):
                         log.debug("dropped event after transforms: %s", event.uuid);
                         return
 
+                # if status was updated in transform, map back to enum for storage in outbound event
+                if "status" in evtproxy.get_changes():
+                    if evtproxy.status in statusConvertToEnum:
+                        evtproxy.status = statusConvertToEnum[evtproxy.status]
+                    else:
+                        log.warning("invalid event state '%s' set in transform", evtproxy.status)
+                        return
+
                 # copy adapter changes back to event attribs and details
                 stdFields = set(f.name for f in RawEvent.DESCRIPTOR.fields)
                 for (attr,val) in evtproxy.get_changes().items():
@@ -360,7 +370,7 @@ class ProcessEventMessageTask(object):
                     elif attr in "service device component".split():
                         # update actor uuids/identifiers - skip these for now
                         pass
-                    elif attr in "_action _clearClasses".split():
+                    elif attr in "status _clearClasses".split():
                         # skip these now, we'll always copy into output whether changed or not
                         pass
                     else:
@@ -372,7 +382,7 @@ class ProcessEventMessageTask(object):
 
                 # set zepevent control fields
                 zepevent.clear_event_class.extend(list(set(evtproxy._clearClasses)))
-                zepevent.action = actionConvertToEnum[actionConvertToNew.get(evtproxy._action, ACTION_NEW)]
+                zepevent.status = evtproxy.status
 
                 # strip off details used internally
                 self.removeEventControlDetails(event, evtdetails)
