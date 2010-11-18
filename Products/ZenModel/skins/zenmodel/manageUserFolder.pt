@@ -19,7 +19,6 @@ function ConfirmPagerTest() {
 <tal:block metal:fill-slot="contentPane">
 <form method="GET"  tal:attributes="action request/URL">
 
-
         <tal:block tal:define="tableName string:userlist;
        ztm here/ZenTableManager;
        objects here/getAllUserSettings;

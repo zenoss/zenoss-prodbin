@@ -343,5 +343,5 @@ def createGlobalCatalog(portal):
     catalog.addColumn('searchIcon')
     catalog.addColumn('searchExcerpt')
 
-    portal._setOb(catalog.getId(), catalog)
+    portal._setObject(catalog.getId(), catalog)
 

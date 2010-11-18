@@ -1107,3 +1107,27 @@ a.z-entity:visited {
     text-transform: uppercase;
     padding-right: 5px;
 }
+
+.rule-clause {
+    background: transparent url();
+    border: medium none;
+    border-bottom: 1px solid #f2f2f3;
+}
+
+.nested-rule-header {
+    background-color: #f2f2f3;
+}
+
+.nested-rule {
+    background-color: white;
+    border-bottom: 1px solid #f2f2f3;
+}
+
+.rule-clause-container {
+    padding-left: 20px;
+    border-left: 5px solid #f2f2f3;
+}
+
+.rule-builder {
+    border-right: 2px solid #f2f2f3;
+}

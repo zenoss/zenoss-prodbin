@@ -183,6 +183,9 @@
         },{
             "text": "SimpleDrawerPanel.js",
             "path": "resources/js/zenoss/"
+        },{
+            "text": "RuleBuilder.js",
+            "path": "resources/js/zenoss/form/"
         }]
     }],
     "resources": []
