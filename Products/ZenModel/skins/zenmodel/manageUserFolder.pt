@@ -17,7 +17,7 @@ function ConfirmPagerTest() {
 <tal:block metal:fill-slot="breadcrumbs"/>
 
 <tal:block metal:fill-slot="contentPane">
-<form method="POST"  tal:attributes="action request/URL">
+<form method="GET"  tal:attributes="action request/URL">
 
 
         <tal:block tal:define="tableName string:userlist;
@@ -102,7 +102,7 @@ function ConfirmPagerTest() {
 
 </form>
 
-<form method="POST"  tal:attributes="action request/URL">
+<form method="GET"  tal:attributes="action request/URL">
 
         <tal:block tal:define="tableName string:grouplist;
        ztm here/ZenTableManager;

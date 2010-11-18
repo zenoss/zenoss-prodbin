@@ -105,16 +105,19 @@ Ext.onReady(function(){
         });
     } catch(e) {}
 
-    Ext.getCmp('center_panel').add({
-        layout: 'border',
-        id: 'backcompat-layout-panel',
-        defaults: {
-            border: false
-        },
-        bodyCssClass: 'z-bc', // Zenoss back compat
-        items: outerItems
+
+    Zenoss.util.callWhenReady('center_panel', function(){
+        Ext.getCmp('center_panel').add({
+           layout: 'border',
+            id: 'backcompat-layout-panel',
+            defaults: {
+                border: false
+            },
+            bodyCssClass: 'z-bc', // Zenoss back compat
+            items: outerItems
+        });
+        Ext.getCmp('center_panel').doLayout();
     });
-    Ext.getCmp('center_panel').doLayout();
 });
 </script>
 </tal:block>
@@ -141,7 +144,7 @@ Ext.onReady(function(){
 </tal:block>
 
 <tal:block metal:fill-slot="center_content">
-<tal:block tal:condition="here/breadCrumbs">
+<tal:block tal:condition="python: len(here.breadCrumbs()) > 1">
 <div metal:define-slot="breadcrumbs" id="breadCrumbPane">
     <span metal:use-macro="here/miscmacros/macros/breadCrumbs"/>
 </div>

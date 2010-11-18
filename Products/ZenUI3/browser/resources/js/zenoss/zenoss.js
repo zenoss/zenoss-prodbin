@@ -1902,6 +1902,27 @@ Zenoss.util.applyNotIf = function(orig, values) {
 };
 
 /**
+ * Calls a function when a component is available. If it is already
+ * available then the function is called immediately
+ * @param {String} componentId The id of the component we want available
+ * @param {Function} func Callable function, no arguments
+ * @param {Object} scope (optional) the scope in which we want to call this func
+ **/
+Zenoss.util.callWhenReady = function(componentId, func, scope) {
+    var cmp = Ext.getCmp(componentId);
+    if (Ext.isDefined(cmp)){
+        if (scope){
+            func.createDelegate(scope)();
+        }else{
+            func();
+        }
+    }else{
+        Ext.ComponentMgr.onAvailable(componentId, func, scope);
+    }
+
+};
+
+/**
  * This converts server side types to Ext Controls,
  * it first looks for specific types based on the field name
  * and then reverts to a translation of the type.
