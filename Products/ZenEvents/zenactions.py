@@ -10,7 +10,7 @@
 # For complete information please visit: http://www.zenoss.com/oss/
 #
 ###########################################################################
-#! /usr/bin/env python 
+#! /usr/bin/env python
 
 __doc__='''zenactions
 
@@ -26,7 +26,7 @@ from email.Utils import formatdate
 
 import Globals
 from ZODB.POSException import POSError, ConflictError
-from _mysql_exceptions import OperationalError, ProgrammingError 
+from _mysql_exceptions import OperationalError, ProgrammingError
 
 from twisted.internet import reactor
 from twisted.internet.protocol import ProcessProtocol
@@ -35,7 +35,7 @@ from Products.ZenUtils.ProcessQueue import ProcessQueue
 from Products.ZenUtils.ZCmdBase import ZCmdBase
 from Products.ZenUtils.ZenTales import talesCompile, getEngine
 from Products.ZenEvents.Exceptions import ZenEventNotFound, MySQLConnectionError
-from ZenEventClasses import App_Start, App_Stop, Status_Heartbeat 
+from ZenEventClasses import App_Start, App_Stop, Status_Heartbeat
 from ZenEventClasses import Cmd_Fail
 import Event
 from Schedule import Schedule
@@ -123,7 +123,7 @@ class EventCommandProtocol(ProcessProtocol):
 
     def errReceived(self, text):
         self.error += text
-        
+
 
 class BaseZenActions(object):
     """
@@ -134,23 +134,23 @@ class BaseZenActions(object):
     addstate = ("INSERT INTO alert_state "
                 "VALUES ('%s', '%s', '%s', NULL) "
                 "ON DUPLICATE KEY UPDATE lastSent = now()")
-    
+
 
     clearstate = ("DELETE FROM alert_state "
                   " WHERE evid='%s' "
                   "   AND userid='%s' "
                   "   AND rule='%s'")
 
-#FIXME attempt to convert subquery to left join that doesn't work 
+#FIXME attempt to convert subquery to left join that doesn't work
 #    newsel = """select %s, evid from status s left join alert_state a
-#                on s.evid=a.evid where a.evid is null and  
-#                a.userid='%s' and a.rule='%s'""" 
+#                on s.evid=a.evid where a.evid is null and
+#                a.userid='%s' and a.rule='%s'"""
 
     newsel = ("SELECT %s, evid FROM status WHERE "
-              "%s AND evid NOT IN " 
+              "%s AND evid NOT IN "
               " (SELECT evid FROM alert_state "
               "  WHERE userid='%s' AND rule='%s' %s)")
-            
+
     clearsel = ("SELECT %s, h.evid FROM history h, alert_state a "
                 " WHERE h.evid=a.evid AND a.userid='%s' AND a.rule='%s'")
 
@@ -184,7 +184,7 @@ class BaseZenActions(object):
             curs = conn.cursor()
             rowsAffected = curs.execute(stmt)
             result = callback(cursor=curs, rowsAffected=rowsAffected)
-        finally: 
+        finally:
             zem.close(conn)
         return result
 
@@ -220,7 +220,7 @@ class BaseZenActions(object):
 
     def _columnNames(self, table):
         """
-        Returns the column names for the table using a ZenEventManager 
+        Returns the column names for the table using a ZenEventManager
         connection.
         """
         description = self._describe("SELECT * FROM %s LIMIT 0" % table)
@@ -293,15 +293,15 @@ class BaseZenActions(object):
         if not 'device' in whereClause:
             return whereClause
         matches = deviceFilterRegex.findall(whereClause)
-        
+
         # incase our awesome regex fails
         if not matches:
             return whereClause
-        
+
         # get the devices from the event manager
         deviceids = []
         include = 'IN'
-        
+
         # should be of the form "LIKE '%bar%'" or "NOT LIKE '%bar%'"
         for match in matches:
             operator = match[0]
@@ -316,7 +316,7 @@ class BaseZenActions(object):
 
             # search the catalog
             deviceids = zem._getDeviceIdsMatching(searchTerm.replace("%", ""), globSearch=False)
-                
+
             # if we didn't find anything in the catalog just search the mysql
             if not deviceids:
                 continue
@@ -325,10 +325,10 @@ class BaseZenActions(object):
                 include = 'NOT IN'
             deviceFilter = " %s ('%s') " % (include, "','".join(deviceids))
             whereClause = whereClause.replace(originalDeviceFilter, deviceFilter)
-            
+
         return whereClause
-        
-                
+
+
     def processEvent(self, zem, context, action):
         userFields = context.getEventFields()
         columnNames = self._columnNames('status')
@@ -369,7 +369,7 @@ class BaseZenActions(object):
             data['deleteUrl'] = self.getDeleteUrl(evid, device)
             severity = data.get('severity', -1)
             data['severityString'] = zem.getSeverityString(severity)
-            if action(context, data, False):            
+            if action(context, data, False):
                 addcmd = self.addstate % (evid, userid, context.getId())
                 self.execute(addcmd)
 
@@ -392,7 +392,7 @@ class BaseZenActions(object):
             # get clear columns
             cfields = [('clear.%s' % x) for x in fields]
             q = self.clearEventSelect % (",".join(cfields), evid)
-            
+
             # convert clear columns to clear names
             cfields = [('clear%s' % _capitalize(x)) for x in fields]
 
@@ -427,6 +427,9 @@ class BaseZenActions(object):
             data['undeleteUrl'] = self.getUndeleteUrl(evid, device)
             severity = data.get('severity', -1)
             data['severityString'] = zem.getSeverityString(severity)
+            # set the device title
+            if device:
+                data['device'] = device.titleOrId()
             delcmd = self.clearstate % (evid, userid, context.getId())
             if getattr(context, 'sendClear', True):
                 if action(context, data, True):
@@ -452,7 +455,7 @@ class BaseZenActions(object):
         If force then run the deletion statement regardless of when it was
         last run (the deletion will still not run if the historyMaxAgeDays
         setting in the event manager is not greater than zero.)
-        If deferred then we are running in a twisted reactor.  Run the 
+        If deferred then we are running in a twisted reactor.  Run the
         deletion script in a non-blocking manner (if it is to be run) and
         return a deferred (if the deletion script is run.)
         In all cases return None if the deletion script is not run.
@@ -463,7 +466,7 @@ class BaseZenActions(object):
         import Products.ZenUtils.Utils as Utils
         import transaction
         import subprocess
-        
+
         def onSuccess(unused, startTime):
             self.log.info('Done deleting historical events in %.2f seconds' %
                             (time.time() - startTime))
@@ -473,11 +476,11 @@ class BaseZenActions(object):
                             '%s seconds: %s' % (time.time()-startTime,
                             error))
             return None
-        
+
         # d is the return value.  It is a deferred if the deferred argument
         # is true and if we run the deletion script.  Otherwise it is None
         d = None
-        
+
         # Unless the event manager has a positive number of days for its
         # historyMaxAgeDays setting then there is never any point in
         # performing the deletion.
@@ -488,7 +491,7 @@ class BaseZenActions(object):
         if maxDays > 0:
             # lastDeleteHistoricalEvents_datetime is when the deletion
             # script was last run
-            lastRun = getattr(self.dmd, 
+            lastRun = getattr(self.dmd,
                                 'lastDeleteHistoricalEvents_datetime', None)
             # lastDeleteHistoricalEvents_days is the value of historyMaxAgeDays
             # the last time the deletion script was run.  If this value has
@@ -504,7 +507,7 @@ class BaseZenActions(object):
                 self.log.info('Deleting historical events older than %s days' %
                                 maxDays)
                 startTime = time.time()
-                cmd = Utils.zenPath('Products', 'ZenUtils', 
+                cmd = Utils.zenPath('Products', 'ZenUtils',
                                         'ZenDeleteHistory.py')
                 args = ['--numDays=%s' % maxDays]
                 if deferred:
@@ -558,7 +561,7 @@ class BaseZenActions(object):
         q = ("SELECT device, component "
              "FROM status WHERE eventClass = '%s'" % Status_Heartbeat)
         heartbeatState = set(self.query(q))
-           
+
         # Find current heartbeat failures
         # Note: 'device' in the heartbeat table is actually filled with the
         #        collector name
@@ -568,7 +571,7 @@ class BaseZenActions(object):
             hostname = self.fetchMonitorHostname(monitor)
             self.sendEvent(
                 Event.Event(device=hostname, component=comp,
-                            eventClass=Status_Heartbeat, 
+                            eventClass=Status_Heartbeat,
                             summary="%s %s heartbeat failure" % (monitor, comp),
                             prodState=self.prodState,
                             severity=Event.Error))
@@ -578,8 +581,8 @@ class BaseZenActions(object):
         for monitor, comp in heartbeatState:
             hostname = self.fetchMonitorHostname(monitor)
             self.sendEvent(
-                Event.Event(device=hostname, component=comp, 
-                            eventClass=Status_Heartbeat, 
+                Event.Event(device=hostname, component=comp,
+                            eventClass=Status_Heartbeat,
                             summary="%s %s heartbeat clear" % (monitor, comp),
                             prodState=self.prodState,
                             severity=Event.Clear))
@@ -608,13 +611,13 @@ class BaseZenActions(object):
             if res:
                 self.log.info('Queueing %s' % res)
                 self._processQ.queueProcess('/bin/sh', ('/bin/sh', '-c', res),
-                                        env=None, processProtocol=prot, 
+                                        env=None, processProtocol=prot,
                                         timeout=cmd.defaultTimeout,
                                         timeout_callback=prot.timedOut)
         except Exception:
             self.log.exception('Error running command %s', cmd.id)
         return True
-        
+
 
     def eventCommands(self, zem):
         now = time.time()
@@ -624,7 +627,7 @@ class BaseZenActions(object):
                 count += 1
                 self.processEvent(zem, command, self.runEventCommand)
         self.log.info("Processed %d commands in %f", count, time.time() - now)
-            
+
 
     def mainbody(self):
         """main loop to run actions.
@@ -678,8 +681,8 @@ class BaseZenActions(object):
     def stop(self):
         self.running = False
         self.log.info("stopping")
-        self.sendEvent(Event.Event(device=self.options.monitor, 
-                        eventClass=App_Stop, 
+        self.sendEvent(Event.Event(device=self.options.monitor,
+                        eventClass=App_Stop,
                         summary="zenactions stopped",
                         severity=3, component="zenactions"))
 
@@ -735,7 +738,7 @@ class BaseZenActions(object):
 
             if success:
                 self.log.info('sent page to %s: %s', recipient, fmt)
-                # return True if anyone got the page 
+                # return True if anyone got the page
                 result = result or success
             else:
                 self.log.info('failed to send page to %s: %s %s',
@@ -743,7 +746,7 @@ class BaseZenActions(object):
                               fmt,
                               errorMsg)
         return result
-        
+
     def sendEmail(self, action, data, clear = None):
         """Send an event to an email address.
         Return True if we think the email was sent, False otherwise.
@@ -755,7 +758,7 @@ class BaseZenActions(object):
             self.log.warning('Failed to email %s on rule %s: %s',
                 action.getUser().id, action.id, 'Unspecified address.')
             return True
-        
+
         fmt, htmlbody = self.format(action, data, clear)
         htmlbody = htmlbody.replace('\n','<br/>\n')
         body = self.stripTags(htmlbody)
@@ -778,7 +781,7 @@ class BaseZenActions(object):
         emsg['To'] = ', '.join(addr)
         emsg['Date'] = formatdate(None, True)
         result, errorMsg = Utils.sendEmail(emsg, self.dmd.smtpHost,
-                    self.dmd.smtpPort, self.dmd.smtpUseTLS, self.dmd.smtpUser, 
+                    self.dmd.smtpPort, self.dmd.smtpUseTLS, self.dmd.smtpUser,
                     self.dmd.smtpPass)
         if result:
             self.log.info("rule '%s' sent email:%s to:%s",
@@ -826,7 +829,6 @@ class ZenActions(BaseZenActions, ZCmdBase):
         # appropriately to issues.
         reactor.wrappedMainLoop = reactor.mainLoop
         reactor.mainLoop = self.runtimeErrorWrapper
-
         self.connected = False
         self.startTime = time.time()
         self.startAttempts = 0
@@ -999,7 +1001,7 @@ class ZenActions(BaseZenActions, ZCmdBase):
     def panicPage(self, message):
         """
         When an error occurs, send out a distress call email.
-            
+
         @parameter message: failure reason
         @type message: string
         """
@@ -1142,4 +1144,5 @@ if __name__ == "__main__":
     import logging
     logging.getLogger('zen.Events').setLevel(20)
     za.run()
+
 
