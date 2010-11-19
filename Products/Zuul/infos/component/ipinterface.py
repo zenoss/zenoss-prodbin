@@ -61,8 +61,18 @@ class IpInterfaceInfo(ComponentInfo):
     type = ProxyProperty('type')
     mtu = ProxyProperty('mtu')
     speed = ProxyProperty('speed')
-    adminStatus = ProxyProperty('adminStatus')
-    operStatus = ProxyProperty('operStatus')
+
+    @property
+    def adminStatus(self):
+        return self._object.getAdminStatusString()
+
+    @property
+    def operStatus(self):
+        return self._object.getOperStatusString()
+
+    @property
+    def ifStatus(self):
+        return {'adminStatus': self.adminStatus, 'operStatus': self.operStatus}
 
     @property
     @info

@@ -48,25 +48,56 @@ class IIpInterfaceInfo(IComponentInfo):
     """
     Info adapter for IPInterface components.
     """
-    description = schema.TextLine(title=u"Description",
-                         order=2,
-                         group="Overview")
-    ipAddress = schema.Entity(title=u"IP Address",
-                              description=u"Primary IP address",
-                              group="Overview",
-                              order=3)
-    interfaceName = schema.Text(title=u"Interface Name", group="Overview",
-                                order=-1)
-    macaddress = schema.Text(title=u"MAC Address", group="Details")
-    type = schema.Text(title=u"Type", group="Details")
-    mtu = schema.Text(title=u"MTU", group="Details")
-    speed = schema.Text(title=u"Speed", group="Details")
-    ipAddresses = schema.List(title=u'IP Addresses', group="Details")
-    adminStatus = schema.Int(title=u"Administrative Status",
-                                group="Details", xtype="updownfield")
-    operStatus = schema.Int(title=u"Operational Status", group="Details",
-                               xtype="updownfield")
-    duplex = schema.Text(title=u"Duplex Mode", group="Details", readonly=True)
+    interfaceName = schema.Text(
+        title=u"Interface Name", group="Overview",
+        readonly=True, order=1)
+
+    description = schema.TextLine(
+        title=u"Description", group="Overview",
+        readonly=True, order=2)
+
+    adminStatus = schema.Text(
+        title=u"Administrative Status", group="Overview",
+        readonly=True, order=3)
+
+    operStatus = schema.Text(
+        title=u"Operational Status", group="Overview",
+        readonly=True, order=4)
+
+    status = schema.Text(
+        title=u"Status", group="Overview",
+        description=u"Are there any active status events for this component?"
+                    u" for this component?",
+        readonly=True, order=5)
+
+    ipAddress = schema.Entity(
+        title=u"IP Address (Primary)", group="Overview",
+        description=u"Primary IP address",
+        readonly=True, order=6)
+
+    ipAddresses = schema.List(
+        title=u'IP Addresses (All)', group="Details",
+        readonly=True, order=7)
+
+    macaddress = schema.Text(
+        title=u"MAC Address", group="Details",
+        readonly=True, order=8)
+
+    type = schema.Text(
+        title=u"Type", group="Details",
+        readonly=True, order=9)
+
+    speed = schema.Text(
+        title=u"Speed", group="Details",
+        readonly=True, order=10)
+
+    duplex = schema.Text(
+        title=u"Duplex Mode", group="Details",
+        readonly=True, order=11)
+
+    mtu = schema.Text(
+        title=u"MTU", group="Details",
+        readonly=True, order=12)
 
 
 class IFileSystemInfo(IComponentInfo):

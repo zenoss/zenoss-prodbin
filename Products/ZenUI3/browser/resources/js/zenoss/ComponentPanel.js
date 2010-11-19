@@ -513,8 +513,8 @@ ZC.IpInterfacePanel = Ext.extend(ZC.ComponentGridPanel, {
                 {name: 'ipAddressObjs'},
                 {name: 'network'},//, mapping:'network.uid'},
                 {name: 'macaddress'},
-                {name: 'status'},
                 {name: 'usesMonitorAttribute'},
+                {name: 'ifStatus'},
                 {name: 'monitor'},
                 {name: 'monitored'},
                 {name: 'locking'},
@@ -535,7 +535,7 @@ ZC.IpInterfacePanel = Ext.extend(ZC.ComponentGridPanel, {
             },{
                 id: 'ipAddresses',
                 dataIndex: 'ipAddressObjs',
-                header: _t('IP Address(es)'),
+                header: _t('IP Addresses'),
                 renderer: function(ipaddresses) {
                     var returnString = '';
                     Ext.each(ipaddresses, function(ipaddress, index) {
@@ -557,11 +557,11 @@ ZC.IpInterfacePanel = Ext.extend(ZC.ComponentGridPanel, {
                 header: _t('MAC Address'),
                 width: 120
             },{
-                id: 'status',
-                dataIndex: 'status',
+                id: 'ifStatus',
+                dataIndex: 'ifStatus',
                 header: _t('Status'),
-                renderer: Zenoss.render.pingStatus,
-                width: 60
+                renderer: Zenoss.render.ipInterfaceStatus,
+                width: 80
             },{
                 id: 'monitored',
                 dataIndex: 'monitored',

@@ -15,6 +15,10 @@ var upDownTemplate = new Ext.Template(
     '<span class="status-{0}{2}">{1}</span>');
 upDownTemplate.compile();
 
+var ipInterfaceStatusTemplate = new Ext.Template(
+    '<span title="Administrative / Operational">{adminStatus} / {operStatus}</span>');
+ipInterfaceStatusTemplate.compile();
+
 function convertToUnits(num, divby, unitstr, places){
     unitstr = unitstr || "B";
     places = places || 2;
@@ -89,6 +93,10 @@ Ext.apply(Zenoss.render, {
 
     upDownUnknownLarge: function(status,displayString){
         return upDownTemplate.apply([status.toLowerCase(),displayString,'-large']);
+    },
+
+    ipInterfaceStatus: function(ifStatus) {
+        return ipInterfaceStatusTemplate.apply(ifStatus);
     },
 
     ipAddress: function(ip) {

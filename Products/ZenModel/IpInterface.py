@@ -513,6 +513,15 @@ class IpInterface(OSComponent, Layer2Linkable):
         return s
 
 
+    def getAdminStatusString(self):
+        """
+        Return the current administrative state of the interface converted to
+        its string version.
+        """
+        return {1: 'Up', 2: 'Down', 3: 'Testing'}.get(
+            self.getAdminStatus(), 'Unknown')
+
+
     def getOperStatus(self):
         """
         Get the current operational state of the interface. Prefer real-time
@@ -521,6 +530,17 @@ class IpInterface(OSComponent, Layer2Linkable):
         s = self.cacheRRDValue('ifOperStatus', None)
         if s is None: s = self.operStatus
         return s
+
+
+    def getOperStatusString(self):
+        """
+        Return the current operational state of the interface converted to
+        its string version.
+        """
+        return {
+            1: 'Up', 2: 'Down', 3: 'Testing', 5: 'Dormant', 6: 'Not Present',
+            7: 'Lower Layer Down'}.get(
+                self.getOperStatus(), 'Unknown')
 
 
     def getStatus(self, statClass=None):
