@@ -46,6 +46,13 @@ class IProtobufSerializer(Interface):
         @return:  The same protobuf passed in but with its properties set
         """
 
+class IModelProtobufSerializer(IProtobufSerializer):
+    """
+    Interfaces for converting a Zenoss model object to a Model protobuf.
+    """
+    modelType = Attribute("the model type for the object")
+    
+
 class IQueueConsumerTask(Interface):
     """
     A Task that is called once for every message that comes from the Queue. It is

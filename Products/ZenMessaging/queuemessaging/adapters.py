@@ -19,6 +19,7 @@ from zenoss.protocols.protobufs import zep_pb2 as eventConstants
 from zenoss.protocols.protobufs import model_pb2 as modelConstants
 from time import time
 from Products.ZenEvents.EventManagerBase import EventManagerBase
+from Products.ZenMessaging.queuemessaging.interfaces import IModelProtobufSerializer
 
 class ProtobufMappings:
     """
@@ -126,12 +127,17 @@ class DeviceProtobuf(ObjectProtobuf):
     Fills up the properties of a device protobuf.
     """
 
-    implements(IProtobufSerializer)
+    implements(IModelProtobufSerializer)
+
+    @property
+    def modelType(self):
+        return "DEVICE"
 
     def fill(self, proto):
         self.autoMapFields(proto)
         proto.ip_address = self.obj.manageIp
         proto.production_state = self.obj.productionState
+        proto.title = self.obj.titleOrId()
         # className
         deviceClass = self.obj.deviceClass()
         if deviceClass:
@@ -157,18 +163,29 @@ class OrganizerProtobuf(ObjectProtobuf):
     Fills up the properties of an organizer protobuf.
     """
 
-    implements(IProtobufSerializer)
+    implements(IModelProtobufSerializer)
+
+    @property
+    def modelType(self):
+        return "ORGANIZER"
 
     def fill(self, proto):
         self.autoMapFields(proto)
+        proto.title = self.obj.titleOrId()
+        #get path minus first 3 '', 'zport', 'dmd'
+        proto.path = '/'.join(self.obj.getPrimaryPath()[3:])
         return proto
 
 class DeviceComponentProtobuf(ObjectProtobuf):
     """
     Fills up the properties of a Device Component
     """
-    implements(IProtobufSerializer)
+    implements(IModelProtobufSerializer)
 
+    @property
+    def modelType(self):
+        return "COMPONENT"
+    
     def fill(self, proto):
         self.autoMapFields(proto)
         # use device protobuf to fill out our device property

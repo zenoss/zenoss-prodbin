@@ -24,6 +24,8 @@ from Products.ZenModel.DeviceComponent import DeviceComponent
 from Products.ZenUtils.AmqpDataManager import AmqpDataManager
 
 import logging
+from Products.ZenModel.DeviceOrganizer import DeviceOrganizer
+from Products.ZenMessaging.queuemessaging.interfaces import IModelProtobufSerializer
 log = logging.getLogger('zen.queuepublisher')
 
 
@@ -39,58 +41,44 @@ class ModelChangePublisher(object):
         self._eventList = config.getNewProtobuf("$ModelEventList")
         self._eventList.event_uuid = generate()
 
-    def _setFieldProperties(self, ob, event):
-        # find out which field we are editing
-        proto = event.service
-        if isinstance(ob, Device):
-            proto = event.device
-        elif isinstance(ob, DeviceComponent):
-            proto = event.component
-        try:
-            serializer = IProtobufSerializer(ob)
-            return serializer.fill(proto)
-        except TypeError:
-            log.debug("Could not adapt %r to a protobuf serializer." % (ob))
-        return proto
-
     def _createModelEventProtobuf(self, ob, eventType):
         """
         Creates and returns a ModelEvent. This is tightly
         coupled to the modelevent.proto protobuf.
         """
         # eventList will "remember" all the events it creates
-        event = self._eventList.events.add()
-        event.event_uuid = generate()
-        event.type = getattr(event, eventType)
-        guid = self._getGUID(ob)
+        try:
+            serializer = IModelProtobufSerializer(ob)
+            event = self._eventList.events.add()
+            event.event_uuid = generate()
+            event.type = getattr(event, eventType)
+    
+            # Fight with protobuf to set the modelType property
+            type = serializer.modelType
+            event.model_type = getattr(event, type)
+            proto = getattr(event, type.lower(), None)
+            if proto:
+                if eventType == 'REMOVED':
+                    guid = self._getGUID(ob)
+                    proto.uuid = guid
+                else:
+                    serializer.fill(proto)
+            return event
+        except TypeError:
+            log.warn("Could not adapt %r to a protobuf serializer." % (ob))
 
-        # Fight with protobuf to set the modelType property
-        if isinstance(ob, Device):
-            event.model_type = event.DEVICE
-            event.device.uuid = guid
-        elif isinstance(ob, DeviceComponent):
-            event.model_type = event.COMPONENT
-            event.component.uuid = guid
-        else:
-            # it is a service (or organizer)
-            event.model_type = event.SERVICE
-            event.service.uuid = guid
-
-        return event
 
     def _getGUID(self, ob):
         return str(IGlobalIdentifier(ob).create())
 
     def publishAdd(self, ob):
         event = self._createModelEventProtobuf(ob, 'ADDED')
-        self._setFieldProperties(ob, event)
 
     def publishRemove(self, ob):
         self._createModelEventProtobuf(ob, 'REMOVED')
 
     def publishModified(self, ob):
         event = self._createModelEventProtobuf(ob, 'MODIFIED')
-        self._setFieldProperties(ob, event)
 
     def addToOrganizer(self, ob, org):
         event = self._createModelEventProtobuf(ob, 'ADDRELATION')
