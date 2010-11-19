@@ -96,19 +96,23 @@
         },
         lessthan: {
             text: _t('less than'),
-            tpl: '{0} < {1}'
+            tpl: '{0} < {1}',
+            field: {xtype: 'numberfield'}
         },
         greaterthan: {
             text: _t('greater than'),
-            tpl: '{0} > {1}'
+            tpl: '{0} > {1}',
+            field: {xtype: 'numberfield'}
         },
         lessthanorequalto: {
             text: _t('less than or equal to'),
-            tpl: '{0} <= {1}'
+            tpl: '{0} <= {1}',
+            field: {xtype: 'numberfield'}
         },
         greaterthanorequalto: {
             text: _t('greater than or equal to'),
-            tpl: '{0} >= {1}'
+            tpl: '{0} >= {1}',
+            field: {xtype: 'numberfield'}
         /*},
         between: {
             text: _t('between'),
@@ -135,9 +139,33 @@
                     editable: false,
                     forceSelection: true,
                     triggerAction: 'all',
-                    store: [],
+                    hiddenName: 'doesntmatter',
+                    store: [[null,null]],
+                    getSubject: function() {
+                        return this.getBuilder().subject_map[this.subject.hiddenField.value];
+                    }.createDelegate(this),
                     listeners: {
                         valid: function() {
+                            // Get the associated subject
+                            var subject = this.subject.getSubject(),
+                                comparisons = [];
+
+                            // Update comparisons
+                            if (subject.comparisons) {
+                                Ext.each(subject.comparisons, function(cmp) {
+                                    var c = ZF.COMPARISONS[cmp];
+                                    if (!c) {
+                                        return;
+                                    }
+                                    var jtext = c.text;
+                                    comparisons.push([cmp, jtext]);
+                                });
+                            } else {
+                                comparisons = ZF.COMPARISON_STORE;
+                            }
+                            this.comparison.store.loadData(comparisons);
+                            this.comparison.setValue(comparisons[0][0]);
+
                             this.getBuilder().fireEvent(
                                 'rulechange',
                                 this
@@ -157,10 +185,28 @@
                     triggerAction: 'all',
                     listeners: {
                         valid: function() {
+                            var cmp = ZF.COMPARISONS[this.comparison.hiddenField.value],
+                                field = this.subject.getSubject().field || cmp.field || {xtype:'textfield'};
+                            var idx = this.items.items.indexOf(this.predicate);
+                            this.remove(this.predicate);
+                            this.insert(idx, Ext.apply({
+                                ref: 'predicate',
+                                listeners: {
+                                    valid: function() {
+                                        this.getBuilder().fireEvent(
+                                            'rulechange',
+                                            this
+                                        );
+                                    },
+                                    scope: this
+                                }
+                            }, field));
+                            this.doLayout();
                             this.getBuilder().fireEvent(
                                 'rulechange',
                                 this
                             );
+                            this.predicate.focus();
                         },
                         scope: this
                     }
@@ -182,9 +228,9 @@
                 config.items.push(btn);
             });
             ZF.RuleClause.superclass.constructor.call(this, config);
-            var subjects = this.getBuilder().subjects;
+            var subjects = this.getBuilder().subject_store;
             this.subject.store.loadData(subjects);
-            this.subject.setValue(subjects[0]);
+            this.subject.setValue(subjects[0][0]);
             this.on('added', function(){
                 this.getBuilder().fireEvent('rulechange', this);
             }, this);
@@ -319,6 +365,7 @@
         constructor: function(config) {
             config = Ext.applyIf(config||{}, {
                 cls: 'rule-builder',
+                prefix: '',
                 width: 690,
                 items: [{
                     ref: 'rootrule',
@@ -326,6 +373,15 @@
                     showButtons: false
                 }]
             });
+            this.subject_store = [];
+            this.subject_map = {};
+            Ext.each(config.subjects, function(subject) {
+                if (!Ext.isObject(subject)) {
+                    subject = {value: subject};
+                }
+                this.subject_store.push([subject.value, subject.text || subject.value]);
+                this.subject_map[subject.value] = subject;
+            }, this);
             ZF.RuleBuilder.superclass.constructor.call(this, config);
             this.addEvents('rulechange');
         },
@@ -335,5 +391,57 @@
     });
 
     Ext.reg('rulebuilder', ZF.RuleBuilder);
+
+    ZF.NUMBERCOMPARISONS = [
+        'equals',
+        'doesnotequal',
+        'lessthan',
+        'greaterthan',
+        'lessthanorequalto',
+        'greaterthanorequalto'
+    ];
+
+    ZF.IDENTITYCOMPARISONS = [
+        'equals',
+        'doesnotequal'
+    ];
+
+    Ext.apply(ZF, {
+        PRODUCTIONSTATE: {
+            text: _t('Production state'),
+            value: 'productionState',
+            field: { 
+                xtype: 'ProductionStateCombo'
+            },
+            comparisons: ZF.NUMBERCOMPARISONS
+        },
+        DEVICEPRIORITY: {
+            text: _t('Device priority'),
+            value: 'priority',
+            field: {
+                xtype: 'PriorityCombo'
+            },
+            comparisons: ZF.NUMBERCOMPARISONS
+        },
+        DEVICE: {
+            text: _t('Device'),
+            value: 'device_uuid',
+            comparisons: ZF.IDENTITYCOMPARISONS,
+            field: {
+                xtype: 'combo',
+                mode: 'remote',
+                store: new Ext.data.DirectStore({
+                    directFn: Zenoss.remote.DeviceRouter.getDeviceUuidsByName,
+                    root: 'data',
+                    fields: ['name', 'uuid']
+                }),
+                typeAhead: true,
+                valueField: 'uuid',
+                displayField: 'name',
+                forceSelection: true,
+                triggerAction: 'all'
+            }
+        }
+    });
 
 })();

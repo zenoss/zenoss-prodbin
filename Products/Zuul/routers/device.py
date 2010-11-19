@@ -25,6 +25,7 @@ from Products import Zuul
 from Products.Zuul.routers import TreeRouter
 from Products.Zuul.form.interfaces import IFormBuilder
 from Products.Zuul.decorators import require
+from Products.ZenUtils.guid.interfaces import IGlobalIdentifier
 
 log = logging.getLogger('zen.Zuul')
 
@@ -281,6 +282,19 @@ class DeviceRouter(TreeRouter):
         facade = self._getFacade()
         facade.setProductInfo(uid, **data)
         return DirectResponse()
+
+    def getDeviceUuidsByName(self, query=""):
+        """
+        Retrieves a list of device uuids. For use in combos.
+        """
+        facade = self._getFacade()
+        devices = facade.getDevices(params={'name':query})
+        result = []
+        for dev in devices:
+            result.append({'name':dev.name,
+                           'uuid':IGlobalIdentifier(dev._object).getGUID()})
+        return DirectResponse.succeed(data=result)
+
 
     def getDevices(self, uid=None, start=0, params=None, limit=50, sort='name',
                    dir='ASC'):
