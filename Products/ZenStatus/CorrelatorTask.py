@@ -108,12 +108,15 @@ class TopologyCorrelatorTask(BaseTask):
         @rtype: Twisted deferred object
         """
         log.debug('---- Correlation begins ----')
+        # Prune out intermediate devices that we don't ping
+        pingGraph = self._daemon.network.subgraphPingNodes()
+
         # The subgraph() call preserves the base graph's structure (DAG), but
         # returns the connected subtrees (ie all down nodes and their connected
         # edges).  A copy(), not deepcopy() is done to the meta-data.
-        downGraph = self._topology.subgraph(self._downDevices)
+        downGraph = pingGraph.subgraph(self._downDevices)
 
-        # Assume all nodes are possible roots of down-trees
+        # All down-nodes are possible roots of down-trees
         rootEvents = 0
         victimEvents = 0
         for root in downGraph.nodes_iter():

@@ -370,3 +370,50 @@ class NetworkModel(object):
         self.topology.remove_node(device)
         log.debug("Deleted device %s from topology", device)
 
+
+    def subgraphPingNodes(self):
+        """
+        Prune out nodes from the topology which we don't monitor.
+        This means that if we model the route x -> y -> z
+        but we only ping nodes x + z, that if x and z are down
+        that we associate the cause of z being down as x, rather than being
+        independent.
+        """
+        # Based on the code from networkx for dfs_tree/dfs_successor
+        G = self.topology
+        seen = set()
+        ignoreList = set()
+        def keepNode(node):
+            if node in ignoreList:
+                return False
+            elif 'task' not in self.topology.node[node]:
+                ignoreList.add(node)
+                return False
+            return True
+    
+        tree = {}
+        for root in self.topology.nodes_iter():
+            if root in seen:
+                continue
+    
+            queue = [ root ]
+            lastValidRoot = None
+            while queue:
+                node = queue[-1]
+                if node not in seen:
+                    seen.add(node)
+                    if keepNode(node):
+                        tree[node] = []
+                        lastValidRoot = node
+
+                for w in self.topology.neighbors_iter(node):
+                    if w not in seen:
+                        queue.append(w)
+                        if keepNode(w) and lastValidRoot:
+                            tree[lastValidRoot].append(w)
+                        break
+                else:
+                    queue.pop()
+    
+        return DiGraph(tree)
+    
