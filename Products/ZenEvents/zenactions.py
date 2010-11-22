@@ -37,7 +37,7 @@ from Products.ZenUtils.ZenTales import talesCompile, getEngine
 from Products.ZenEvents.Exceptions import ZenEventNotFound, MySQLConnectionError
 from ZenEventClasses import App_Start, App_Stop, Status_Heartbeat
 from ZenEventClasses import Cmd_Fail
-import Event
+from Products.ZenEvents import Event
 from Schedule import Schedule
 from UpdateCheck import UpdateCheck
 from Products.ZenUtils import Utils
