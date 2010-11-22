@@ -141,6 +141,14 @@ def _customStuff():
                 if pattern.search(key):
                     print key
 
+    def lookupGuid(guid):
+        """
+        Given a guid this returns the object that it identifies
+        """
+        from Products.ZenUtils.guid.interfaces import IGUIDManager
+        manager = IGUIDManager(dmd)
+        return manager.getObject(guid)
+
     def version():
         for info in zport.About.getAllVersions():
             print "%10s: %s" % (info['header'], info['data'])
