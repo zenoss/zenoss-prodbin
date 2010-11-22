@@ -1,6 +1,7 @@
 (function() {
 
-    var ZF = Ext.ns('Zenoss.form.rule');
+    var ZF = Ext.ns('Zenoss.form.rule'),
+        conjunctions_inverse = {};
 
     ZF.CONJUNCTIONS = {
         any: {
@@ -56,24 +57,13 @@
     ZF.CONJUNCTION_STORE = [];
     for (var conjunction in ZF.CONJUNCTIONS) {
         if (ZF.CONJUNCTIONS.hasOwnProperty(conjunction)) {
-            var text = ZF.CONJUNCTIONS[conjunction].text;
-            ZF.CONJUNCTION_STORE.push([conjunction, text]);
+            var conj = ZF.CONJUNCTIONS[conjunction];
+            ZF.CONJUNCTION_STORE.push([conjunction, conj.text]);
+            conjunctions_inverse[conj.tpl.trim()] = conjunction;
         }
     }
 
     ZF.COMPARISONS = {
-        contains: {
-            text: _t('contains'),
-            tpl: '{1} in {0}'
-        },
-        startswith: {
-            text: _t('starts with'),
-            tpl: '{0}.startswith({1})'
-        },
-        endswith: {
-            text: _t('ends with'),
-            tpl: '{0}.endswith({1})'
-        },
         doesnotcontain: {
             text: _t('does not contain'),
             tpl: '{1} not in {0}'
@@ -85,6 +75,18 @@
         doesnotendwith: {
             text: _t('does not end with'),
             tpl: 'not {0}.endswith({1})'
+        },
+        contains: {
+            text: _t('contains'),
+            tpl: '{1} in {0}'
+        },
+        startswith: {
+            text: _t('starts with'),
+            tpl: '{0}.startswith({1})'
+        },
+        endswith: {
+            text: _t('ends with'),
+            tpl: '{0}.endswith({1})'
         },
         equals: {
             text: _t('equals'),
@@ -121,10 +123,16 @@
         }
     };
     ZF.COMPARISON_STORE = [];
+    var comparison_patterns = {};
     for (var comparison in ZF.COMPARISONS) {
         if (ZF.COMPARISONS.hasOwnProperty(comparison)) {
-            var jtext = ZF.COMPARISONS[comparison].text;
-            ZF.COMPARISON_STORE.push([comparison, jtext]);
+            var cmp = ZF.COMPARISONS[comparison];
+            ZF.COMPARISON_STORE.push([comparison, cmp.text]);
+            comparison_patterns[comparison] = new RegExp(
+                cmp.tpl.replace('(', '\\(')
+                       .replace(')', '\\)')
+                       .split(/\{\d+\}/)
+                       .join('(.*)'));
         }
     }
 
@@ -135,6 +143,7 @@
                 items: [{
                     ref: 'subject',
                     xtype: 'combo',
+                    autoSelect: true,
                     allowBlank: false,
                     editable: false,
                     forceSelection: true,
@@ -157,8 +166,7 @@
                                     if (!c) {
                                         return;
                                     }
-                                    var jtext = c.text;
-                                    comparisons.push([cmp, jtext]);
+                                    comparisons.push([cmp, c.text]);
                                 });
                             } else {
                                 comparisons = ZF.COMPARISON_STORE;
@@ -177,6 +185,7 @@
                     ref: 'comparison',
                     hiddenName: 'doesntmatter',
                     xtype: 'combo',
+                    autoSelect: true,
                     editable: false,
                     allowBlank: false,
                     store: ZF.COMPARISON_STORE,
@@ -242,6 +251,31 @@
             if (!field || !sub || !pred) { return; }
             var cmp = ZF.COMPARISONS[field.value];
             return String.format(cmp.tpl, this.getBuilder().prefix + sub, Ext.encode(pred));
+        },
+        setValue: function(expression) {
+            for (var cmp in comparison_patterns) {
+                if (comparison_patterns.hasOwnProperty(cmp)) {
+                    var pat = comparison_patterns[cmp];
+                    if (pat.test(expression)) {
+                        var vals = pat.exec(expression).slice(1),
+                            spots = pat.exec(ZF.COMPARISONS[cmp].tpl).slice(1),
+                            sorted = Ext.zip.apply(this, Ext.zip(spots, vals).sort())[1],
+                            subject = sorted[0],
+                            value = sorted[1],
+                            cleansub = subject.replace(
+                                new RegExp("^"+this.getBuilder().prefix), '');
+                        this.subject.on('valid', function(){
+                            this.comparison.setValue(cmp);
+                        }, this, {single:true});
+                        this.comparison.on('valid', function(){
+                            this.predicate.setValue(Ext.decode(value));
+                        }, this, {single:true});
+                        this.subject.setValue(cleansub);
+                        this.comparison.setValue(cmp);
+                        break;
+                    }
+                }
+            }
         },
         getBuilder: function() {
             if (!this.builder) {
@@ -356,6 +390,91 @@
                 }
             }, this);
             return values.join(joiner);
+        },
+        setValue: function(expression) {
+            var c, q, i=0, p=0, tokens=[], token=[], 
+                unparen=/\((.*)\)/, funcflag=false;
+            c = expression.charAt(i);
+            var savetoken = function() {
+                var v = token.join('').trim();
+                if (v) {
+                    tokens.push(v);
+                }
+                token = [];
+            };
+            while (c) {
+                //token.push(c);
+                // Don't deal with contents of string literals
+                if (c=='"'||c=='\'') {
+                    q = c;
+                    token.push(c);
+                    for (;;) {
+                        i++;
+                        c = expression.charAt(i);
+                        token.push(c);
+                        if (c===q) {
+                            // Closing quote
+                            break;
+                        }
+                        if (c === '\\') {
+                            // Skip escaped chars
+                            i++;
+                            token.push(expression.charAt(i));
+                        }
+                    }
+                } else if (c=="("||c==")"){
+                    if (p===0) {
+                        savetoken();
+                    }
+                    token.push(c);
+                    if (c=='(') {
+                        var prev = expression[i-1];
+                        if (i>0 && prev!=' ' && prev!='(') {
+                            funcflag = true;
+                        } else {
+                            p++;
+                        }
+                    } else if (c==')') {
+                        if (funcflag) {
+                            funcflag = false;
+                        } else {
+                            p--;
+                        }
+                    /*
+                    } else if (expression[i+1]!='('){
+                        continue;
+                    */
+                    }
+                    if (p===0) {
+                        savetoken();
+                    }
+                } else {
+                    token.push(c);
+                }
+                i++;
+                c = expression.charAt(i);
+            }
+            savetoken();
+            if (tokens) {
+                this.clauses.removeAll();
+                var conjunction, rule;
+                Ext.each(tokens, function(t) {
+                    if (t) {
+                        if (conjunction = conjunctions_inverse[t]){
+                             this.conjunction.setValue(conjunction);
+                             return;
+                        } else if (/( and | or )/.test(t)) {
+                            // TODO: This condition isn't good enough because of strings
+                            // Nested rule
+                            rule = this.clauses.add({xtype:'nestedrule'});
+                        } else {
+                            // Clause
+                            rule = this.clauses.add({xtype: 'ruleclause'});
+                        }
+                        rule.setValue(unparen.exec(t)[1]);
+                    }
+                }, this);
+            }
         }
     });
 
@@ -387,6 +506,10 @@
         },
         getValue: function() {
             return this.rootrule.getValue();
+        },
+        setValue: function(expression) {
+            this.rootrule.setValue(expression);
+            this.doLayout();
         }
     });
 
@@ -406,12 +529,34 @@
         'doesnotequal'
     ];
 
+    var smarterSetValue = function(val) {
+        if (!this.loaded) {
+            this.store.load({
+                callback: function(){
+                    this.loaded = true;
+                    Ext.form.ComboBox.prototype.setValue.call(this, val);
+                    this.taTask.cancel();
+                    this.collapse();
+                },
+                scope: this
+            });
+        } else {
+            Ext.form.ComboBox.prototype.setValue.call(this, val);
+        }
+    };
+
+    var smarterSetIntValue = function(val) {
+        val = parseInt(val, 0);
+        smarterSetValue.call(this, val);
+    };
+
     Ext.apply(ZF, {
         PRODUCTIONSTATE: {
             text: _t('Production state'),
             value: 'productionState',
             field: { 
-                xtype: 'ProductionStateCombo'
+                xtype: 'ProductionStateCombo',
+                setValue: smarterSetIntValue
             },
             comparisons: ZF.NUMBERCOMPARISONS
         },
@@ -419,7 +564,8 @@
             text: _t('Device priority'),
             value: 'priority',
             field: {
-                xtype: 'PriorityCombo'
+                xtype: 'PriorityCombo',
+                setValue: smarterSetIntValue
             },
             comparisons: ZF.NUMBERCOMPARISONS
         },
@@ -429,6 +575,7 @@
             comparisons: ZF.IDENTITYCOMPARISONS,
             field: {
                 xtype: 'combo',
+                setValue: smarterSetValue,
                 mode: 'remote',
                 store: new Ext.data.DirectStore({
                     directFn: Zenoss.remote.DeviceRouter.getDeviceUuidsByName,
