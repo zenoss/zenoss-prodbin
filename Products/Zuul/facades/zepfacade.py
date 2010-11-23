@@ -45,23 +45,28 @@ class ZepFacade(ZuulFacade):
         self.client = ZepServiceClient(config.get('zep_uri', 'http://localhost:8084'))
 
     def createFilter(self,
+        uuid=[],
         summary=None,
         event_class=None,
-        status=None,
-        severity=None,
-        first_time=None,
-        last_time=None,
-        tags=None,
+        status=[],
+        severity=[],
+        first_seen=None,
+        last_seen=None,
+        status_change=None,
+        tags=[],
         count=None,
         element_identifier=None,
         element_sub_identifier=None):
         filter = {}
 
+        if uuid:
+            filter['uuid'] = uuid
+
         if summary:
-            filter['summary'] = summary
+            filter['event_summary'] = str(summary).strip()
 
         if event_class:
-            filter['event_class'] = event_class
+            filter['event_class'] = str(event_class).strip()
 
         if status:
             filter['status'] = status
@@ -69,11 +74,14 @@ class ZepFacade(ZuulFacade):
         if severity:
             filter['severity'] = severity
 
-        if first_time:
-            filter['first_time'] = first_time
+        if first_seen:
+            filter['first_seen'] = first_seen
 
-        if last_time:
-            filter['last_time'] = last_time
+        if last_seen:
+            filter['last_seen'] = last_seen
+
+        if status_change:
+            filter['status_change'] = status_change
 
         if tags:
             filter['tag_uuids'] = tags
@@ -82,12 +90,22 @@ class ZepFacade(ZuulFacade):
             filter['count'] = count
 
         if element_identifier:
-            filter['element_identifier'] = element_identifier
+            filter['element_identifier'] = str(element_identifier).strip()
 
         if element_sub_identifier:
-            filter['element_sub_identifier'] = element_sub_identifier
+            filter['element_sub_identifier'] = str(element_sub_identifier).strip()
 
         return filter
+
+    def _timeRange(self, timeRange):
+        d = {
+            'start_time' : timeRange[0],
+        }
+
+        if len(timeRange) == 2:
+            d['end_time'] = timeRange[1]
+
+        return d
 
     def getEventSummaries(self, offset, limit=100, keys=None, sort=None, filter={}):
         filterBuf = None
@@ -102,6 +120,12 @@ class ZepFacade(ZuulFacade):
                     }
                 else:
                     raise Exception('Invalid count filter %s' % filter['count'])
+
+            if 'first_seen' in filter:
+                filter['first_seen'] = self._timeRange(filter['first_seen'])
+
+            if 'last_seen' in filter:
+                filter['last_seen'] = self._timeRange(filter['last_seen'])
 
             filterBuf = from_dict(EventSummaryFilter, filter)
 

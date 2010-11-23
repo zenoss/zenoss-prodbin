@@ -91,21 +91,16 @@ COLUMN_CONFIG = {
             'xtype':'multiselectmenu',
             'text':'...',
             'source':[{
-                'value':0,
+                'value':1,
                 'name':'New'
             },
             {
-                'value':1,
+                'value':2,
                 'name':'Acknowledged'
             },
             {
-                'value':2,
-                'name':'Suppressed',
-                'checked':False
-            },
-            {
                 'value':3,
-                'name':'Cleared',
+                'name':'Suppressed',
                 'checked':False
             },
             {
@@ -115,7 +110,12 @@ COLUMN_CONFIG = {
             },
             {
                 'value':5,
-                'name':'Auto Closed',
+                'name':'Cleared',
+                'checked':False
+            },
+            {
+                'value':7,
+                'name':'Aged',
                 'checked':False
             }]
         },

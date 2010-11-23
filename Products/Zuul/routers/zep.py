@@ -18,7 +18,7 @@ Available at:  /zport/dmd/evconsole_router
 
 import time
 import logging
-
+import DateTime # Zope DateTime, not python datetime
 from Products.ZenUtils.Ext import DirectRouter
 from Products.ZenUtils.extdirect.router import DirectResponse
 from Products.Zuul import getFacade
@@ -26,6 +26,7 @@ from Products.Zuul.decorators import require
 from Products.Zuul.routers.events import EventsRouter
 from datetime import datetime
 from zenoss.protocols.protobufs.zep_pb2 import EventSummary, Event
+from zenoss.protocols.services.zep import EventSeverity, EventStatus
 from json import loads
 
 log = logging.getLogger(__name__)
@@ -46,25 +47,42 @@ class ZepRouter(EventsRouter):
         eventOccurrence = event_summary['occurrence'][0]
 
         eventClass = eventOccurrence['event_class']
+
+        # FIXME Lookup the item by UUID to create a link, or better yet just use the UUID in the front end
+        #element = eventOccurrence['actor'].get('element_identifier', None)
+        #if element:
+        #    IGuidManager(self._dmd).getObject(uuid)
+
         event = {
             'id' : event_summary['uuid'],
             'evid' : event_summary['uuid'],
-            'device' : {'text': eventOccurrence['actor'].get('element_identifier', None), 'uid': None},
-            'component' : {'text': eventOccurrence['actor'].get('element_sub_identifier', None), 'uid': None},
-#            'created' : str(datetime.utcfromtimestamp(eventOccurrence['created_time'] / 1000)),
+            'device' : {
+                'text': eventOccurrence['actor'].get('element_identifier', None),
+                'uid': None,
+                'uuid' : eventOccurrence['actor'].get('element_uuid', None)
+            },
+            'component' : {
+                'text': eventOccurrence['actor'].get('element_sub_identifier', None),
+                'uid': None,
+                'uuid' : eventOccurrence['actor'].get('element_sub_uuid', None)
+            },
             'firstTime' : str(datetime.utcfromtimestamp(event_summary['first_seen_time'] / 1000)),
             'lastTime' : str(datetime.utcfromtimestamp(event_summary['last_seen_time'] / 1000)),
             'eventClass' : {"text": eventClass, "uid": "/zport/dmd/Events%s" % eventClass},
-            #'dedupid' : eventOccurrence['fingerprint'],
             'eventKey' : eventOccurrence.get('event_key', None),
             'summary' : eventOccurrence['summary'],
-#            'severity' : EventSeverity.getNumber(eventOccurrence['severity']),
-#            'eventState' : EventStatus.getPrettyName(event_summary['status']),
+            'severity' : eventOccurrence['severity'],
+            'eventState' : EventStatus.getPrettyName(event_summary['status']),
             'count' : event_summary['count'],
-            #IGuidManager(dmd).getObject(uuid)
         }
 
         return event
+
+    def _timeRange(self, value):
+        values = []
+        for t in value.split('/'):
+            values.append(DateTime.DateTime(value, datefmt='us').millis())
+        return values
 
     @require('ZenCommon')
     def query(self, limit=0, start=0, sort='lastTime', dir='DESC', params=None,
@@ -106,15 +124,14 @@ class ZepRouter(EventsRouter):
         filter = self.zep.createFilter(
             summary = params.get('summary'),
             event_class = params.get('eventClass'),
-            # FIXME Status from front-end is off by 1
-            status = [i + 1 for i in params.get('eventState', [])],
+            status = params.get('eventState'),
             severity = params.get('severity'),
-            first_time = params.get('firstTime'),
-            last_time = params.get('lastTime'),
             tags = params.get('tags'),
             count = params.get('count'),
             element_identifier = params.get('device'),
             element_sub_identifier = params.get('component'),
+            first_seen = params.get('firstTime') and self._timeRange(params.get('firstTime')),
+            last_seen = params.get('lastTime') and self._timeRange(params.get('lastTime')),
         )
 
         events = self.zep.getEventSummaries(limit=limit, offset=start, sort=sort, filter=filter)
@@ -142,4 +159,14 @@ class ZepRouter(EventsRouter):
         """
         event = self.zep.getEventSummary(evid)
         if event:
-            return DirectResponse.succeed(event=[self._mapToOldEvent(event)])
+            eventData = {
+                'properties' : self._mapToOldEvent(event),
+                'log' : [],
+                'device_url' : None,
+                'device_title' : None,
+                'component_url' : None,
+                'component_title' : None,
+                'eventClass_url' : None,
+            }
+
+            return DirectResponse.succeed(event=[eventData])
