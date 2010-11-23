@@ -247,6 +247,12 @@
     permission="zope2.Public"
     />
 
+<browser:view
+    class=".views.GotoRedirect"
+    name="goto"
+    for="Products.ZenModel.interfaces.IDataRoot"
+    permission="zenoss.View"
+    />
 <include package=".eventconsole"/>
 <include package=".search"/>
 

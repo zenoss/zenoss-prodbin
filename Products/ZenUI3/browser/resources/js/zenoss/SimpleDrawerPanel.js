@@ -30,10 +30,11 @@
             }
             if (!config.drawerItems) {
                 throw "SimpleDrawerPanel did not receive a drawerItems config option";
-            }            
+            }
             Ext.applyIf(config, {
                 split: true,
                 layout: 'border',
+                border: true,
                 items: [{
                     region: 'center',
                     layout: 'fit',
@@ -47,47 +48,10 @@
                     align: 'right',
                     animCollapse: false,
                     collapsed: true,
-                    layout: 'border',
+                    layout: 'fit',
                     border: false,
-                    items:[ {
-                        id: 'evdetail_hd',
-                        region: 'north',
-                        height: 50,
-                        cls: 'evdetail_hd',
-                        defaults: {border: false},
-                        items: [{
-                            region: 'west',
-                            width: 77,
-                            layout: 'hbox',
-                            defaults: {border: false},
-                            items: [{
-                                id: 'severity-icon',
-                                cls: 'severity-icon'
-                            },{
-                                id: 'evdetail-sep',
-                                cls: 'evdetail-sep'
-                            }]
-                        },{
-                            region: 'center',
-                            id: 'evdetail-summary',
-                            html: ''
-                        },{
-                            region: 'east',
-                            id: 'evdetail-tools',
-                            layout: 'hbox',
-                            width: 57,
-                            defaults: {border: false},
-                            items: [{
-                                id: 'evdetail-popout',
-                                cls: 'evdetail-popout'
-                            },{
-                                id: 'evdetail_tool_close',
-                                cls: 'evdetail_close'
-                            }]
-                        }]
-                    },{
+                    items:[{
                         id: 'evdetail_bd',
-                        region: 'center',
                         defaults: {
                             frame: false,
                             border: false,

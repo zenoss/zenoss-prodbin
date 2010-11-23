@@ -12,6 +12,7 @@
 ###########################################################################
 from Products.Five.browser import BrowserView
 from Products.Five.browser.pagetemplatefile import ViewPageTemplateFile
+from Products.ZenUtils.guid.interfaces import IGUIDManager
 
 class FileUpload(BrowserView):
     """
@@ -19,7 +20,7 @@ class FileUpload(BrowserView):
     """
 
     template = ViewPageTemplateFile('./templates/formUpload.pt')
-    
+
     def __call__(self, *args, **kwargs):
         """
         If we are in postback (submit is present) then we save the file.
@@ -27,9 +28,9 @@ class FileUpload(BrowserView):
         if self.isPostBack:
             if self.request.upload.filename:
                 self.context.handleUploadedFile(self.request)
-        
+
         return self.template()
-    
+
     @property
     def isPostBack(self):
         return self.request.get('submit')
@@ -46,4 +47,30 @@ class Robots(BrowserView):
         import os.path
         with open(os.path.dirname(__file__) +'/resources/txt/robots.txt') as f:
             return f.read()
+
+
+class GotoRedirect(BrowserView):
+    """
+    Given a guid in the url request redirect to the correct page
+    """
+
+    def __call__(self, *args, **kwargs):
+        """
+        Takes a guid in the request and redirects the browser to the
+        object's url
+        """
+        manager = IGUIDManager(self.context)
+        request = self.request
+        response = self.request.response
+        guid = request.get('guid', None)
+
+        if not guid:
+            return response.write("The guid paramater is required")
+        
+        obj = manager.getObject(guid)
+        if not obj:
+            return response.write("Could not look up guid %s" % guid)
+
+        path = obj.absolute_url_path()
+        return response.redirect(path)
 
