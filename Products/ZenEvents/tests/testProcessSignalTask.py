@@ -37,48 +37,67 @@ class MockNotificationSubscription(NotificationSubscription):
         """
         return []
 
+
 trigger_uuid1 = str(uuid4())
 trigger_uuid2 = str(uuid4())
 trigger_uuid3 = str(uuid4())
-interval_uuid1 = str(uuid4())
-
-active_notification = MockNotificationSubscription('active_notification')
-active_notification.enabled = True
-active_notification.explicit_recipients = 'test@zenoss.com,test2@zenoss.com'
-active_notification.subscriptions = [trigger_uuid1, trigger_uuid2]
-active_notification.action = 'email'
-
-active_notification2 = MockNotificationSubscription('active_notification')
-active_notification2.enabled = True
-active_notification2.explicit_recipients = 'test2@zenoss.com,test3@zenoss.com'
-active_notification2.subscriptions = [trigger_uuid1, trigger_uuid2]
-active_notification2.action = 'email'
-
-active_page_notification = MockNotificationSubscription('active_notification')
-active_page_notification.enabled = True
-active_page_notification.explicit_recipients = '512-555-1234,512-555-4321'
-active_page_notification.subscriptions = [trigger_uuid1, trigger_uuid2]
-active_page_notification.action = 'page'
-
-active_notification_zero = MockNotificationSubscription('active_notification_zero')
-active_notification_zero.enabled = True
-active_notification_zero.explicit_recipients = ''
-active_notification_zero.subscriptions = [trigger_uuid3]
-active_notification_zero.action = 'email'
-
-disabled_notification = MockNotificationSubscription('active_notification')
-disabled_notification.enabled = False
-disabled_notification.explicit_recipients = 'test@zenoss.com,test2@zenoss.com'
-disabled_notification.subscriptions = [trigger_uuid1, trigger_uuid2]
-disabled_notification.action = 'email'
-
+subscriber_uuid = str(uuid4())
 
 test_signal1 = Signal()
 test_signal1.uuid = str(uuid4())
 test_signal1.created_time = 1;
 test_signal1.message = 'Testing Signal Processing'
 test_signal1.trigger_uuid = trigger_uuid1
-test_signal1.interval_uuid = interval_uuid1
+test_signal1.subscriber_uuid = subscriber_uuid
+
+
+manual_recipient = {
+    'type':'manual',
+    'label':'manual recipient',
+    'value':'manual_recipient@example.com'
+}
+
+manual_page_recipient = {
+    'type':'manual',
+    'label':'manual page recipient',
+    'value':'555-555-1234'
+}
+
+# All of these mock notifications have their uuid set to the same 
+# subscriber_uuid. This is to ensure that they all match the test signal.
+active_notification = MockNotificationSubscription('active_notification')
+active_notification.uuid = subscriber_uuid
+active_notification.enabled = True
+active_notification.recipients = [manual_recipient]
+active_notification.subscriptions = [trigger_uuid1, trigger_uuid2]
+active_notification.action = 'email'
+
+active_notification2 = MockNotificationSubscription('active_notification')
+active_notification2.uuid = subscriber_uuid
+active_notification2.enabled = True
+active_notification2.recipients = [manual_recipient]
+active_notification2.subscriptions = [trigger_uuid1, trigger_uuid2]
+active_notification2.action = 'email'
+
+active_page_notification = MockNotificationSubscription('active_notification')
+active_page_notification.uuid = subscriber_uuid
+active_page_notification.enabled = True
+active_page_notification.recipients = [manual_page_recipient]
+active_page_notification.subscriptions = [trigger_uuid1, trigger_uuid2]
+active_page_notification.action = 'page'
+
+active_notification_zero = MockNotificationSubscription('active_notification_zero')
+active_notification_zero.uuid = subscriber_uuid
+active_notification_zero.recipients = []
+active_notification_zero.subscriptions = [trigger_uuid3]
+active_notification_zero.action = 'email'
+
+disabled_notification = MockNotificationSubscription('active_notification')
+disabled_notification.uuid = subscriber_uuid
+disabled_notification.enabled = False
+disabled_notification.recipients = [manual_recipient]
+disabled_notification.subscriptions = [trigger_uuid1, trigger_uuid2]
+disabled_notification.action = 'email'
 
 
 class MockNotificationDao(NotificationDao):
@@ -107,8 +126,9 @@ class MockAction(object):
 class ProcessSignalTaskTest(unittest.TestCase):
         
     def setUp(self):
+        dmd = Zope2.app().zport.dmd
         self.mockDao = MockNotificationDao()
-        self.taskProcessor = ProcessSignalTask(self.mockDao)
+        self.taskProcessor = ProcessSignalTask(self.mockDao, dmd)
         
         self.emailAction = MockAction()
         self.pageAction = MockAction()
@@ -121,12 +141,12 @@ class ProcessSignalTaskTest(unittest.TestCase):
         Test that a notification subscription matches a signal and that the
         action for the notification executes.
         """
+        
         self.mockDao.notifications = [active_notification]
         self.taskProcessor.processSignal(test_signal1)
         
         expected_recipients = list(set(
-            active_notification.getExplicitRecipients() + \
-                active_notification.getRecipients()
+            [recipient['value'] for recipient in active_notification.recipients]
         ))
         assert self.emailAction.result == expected_recipients
     
@@ -134,15 +154,13 @@ class ProcessSignalTaskTest(unittest.TestCase):
         self.mockDao.notifications = [active_page_notification]
         self.taskProcessor.processSignal(test_signal1)
         expected_recipients = list(set(
-            active_page_notification.getExplicitRecipients() + \
-                active_page_notification.getRecipients()
+            [recipient['value'] for recipient in active_page_notification.recipients]
         ))
         assert self.pageAction.result == expected_recipients
         
     def testDisabledNotification(self):
         """
-        Test that a notification subscription matches a signal and that the
-        action for the notification executes.
+        Test that a disabled notification does not execute any actions.
         """
         self.mockDao.notifications = [disabled_notification]
         self.taskProcessor.processSignal(test_signal1)

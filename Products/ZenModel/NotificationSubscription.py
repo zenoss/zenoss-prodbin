@@ -115,11 +115,6 @@ class NotificationSubscription(ZenModelRM):
     # the uuid objects will need to implement some form of actionable target
     # See IAction classes for more info.
     recipients = []
-    
-    # the manual_recipients property will hold whatever the user types in, such
-    # as a list of emails or whatever else they put in. For each action this
-    # will be combined with the targets - the result will filter duplicates out.
-    # explicit_recipients = ''
 
     # a list of trigger uuids that this notification is subscribed to.
     subscriptions = []

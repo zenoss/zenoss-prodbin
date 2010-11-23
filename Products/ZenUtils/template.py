@@ -16,5 +16,4 @@ class Template(object):
         self.template_body = template_body
     
     def fill(self, **kwargs):
-        _str = self.template_body % kwargs
-        return _str.format(**kwargs)
+        return self.template_body.format(**kwargs)

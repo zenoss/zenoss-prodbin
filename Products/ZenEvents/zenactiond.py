@@ -24,11 +24,15 @@ CONF_FILE = os.path.join(os.environ['ZENHOME'], 'etc', 'zope.conf')
 Zope2.configure(CONF_FILE)
 
 from Products.ZenUtils import Utils
+from Products.ZenUtils.ZCmdBase import ZCmdBase
+from Products.ZenUtils.guid.guid import GUIDManager
 from zenoss.protocols.protobufs.zep_pb2 import Signal
 from Products.ZenModel.interfaces import IAction, IProvidesEmailAddresses, IProvidesPagerAddresses
 from Products.ZenModel.NotificationSubscription import NotificationSubscriptionManager
 from Products.ZenMessaging.queuemessaging.QueueConsumer import QueueConsumerProcess
 from Products.ZenMessaging.queuemessaging.interfaces import IQueueConsumerTask
+from twisted.internet import reactor, protocol, defer
+from twisted.internet.error import ReactorNotRunning
 
 from zenoss.protocols.amqpconfig import getAMQPConfiguration
 from zope.interface import implements
@@ -58,15 +62,11 @@ class NotificationDao(object):
         """
         active_matching_notifications = []
         for notification in self.getNotifications():
-            # if notification.isActive() and self.notificationSubscribesToSignal(notification, signal):
-            
-            # @TODO: This condition is temporary; exists only to start QA.
-            # if notification.isActive() and self.notificationSubscribesToSignal(notification, signal):
-            if notification.isActive():
+            if notification.isActive() and self.notificationSubscribesToSignal(notification, signal):
                 active_matching_notifications.append(notification)
-                log.info('Found matching notification: %s' % notification)
+                log.debug('Found matching notification: %s' % notification)
             else:
-                log.info('Notification "%s" is not active.' % notification)
+                log.debug('Notification "%s" is not active or does not match this signal.' % notification)
         return active_matching_notifications
     
     def notificationSubscribesToSignal(self, notification, signal):
@@ -80,7 +80,7 @@ class NotificationDao(object):
         
         @rtype boolean
         """
-        return signal.trigger.uuid in notification.subscriptions
+        return signal.subscriber_uuid == notification.uuid
     
 
 class EmailAction(object):
@@ -140,7 +140,7 @@ class EmailAction(object):
             log.info("Notification '%s' sent email to:%s",
                 notification.id, target)
         else:
-            log.info("Notification '%s' failed to send email to %s: %s",
+            log.error("Notification '%s' failed to send email to %s: %s",
                 notification.id, target, errorMsg)
     
     def getActionableTargets(self, target):
@@ -173,7 +173,7 @@ class PageAction(object):
         """
         log.debug('Executing action: Page')
         
-        subject = self._parseFormat(notification.subject_format, signal)
+        subject = notification.getSubject(signal)
         
         success, errorMsg = Utils.sendPage(
             target, subject, self.page_command,
@@ -193,8 +193,8 @@ class PageAction(object):
 class ProcessSignalTask(object):
     implements(IQueueConsumerTask)
 
-    def __init__(self, notificationDao):
-        super(ProcessSignalTask, self).__init__()
+    def __init__(self, notificationDao, dmd):
+        self.guidManager = GUIDManager(dmd)
         self.notificationDao = notificationDao
         
         # set by the constructor of queueConsumer
@@ -229,6 +229,7 @@ class ProcessSignalTask(object):
         Handles a queue message, can call "acknowledge" on the Queue Consumer
         class when it is done with the message
         """
+        log.debug('processing message.')
         
         if message.content.body == self.queueConsumer.MARKER:
             log.info("Received MARKER sentinel, exiting message loop")
@@ -256,53 +257,60 @@ class ProcessSignalTask(object):
         log.debug('Found these matching notifications: %s' % matches)
         
         for notification in matches:
-            # this getAction maps an instance of each action (when registered 
-            # via registerAction())
             action = self.getAction(notification.action)
             
-            # For User/Group/Role targets, figure out their end-targets and 
-            # add them to this list. After we figure out all the end-targets
-            # we will parse the excplicit recipients as well. After we do that
-            # we can create a set from this list and end up with a unique list
-            # so we don't inadvertantly send out multiple emails to multiple
-            # peple.
             targets = []
-            
-            # recipients are objects like Users, Groups, Roles
-            for recipient in notification.getRecipients():
-                
-                for target in action.getActionableTargets(recipient):
-                    targets.append(target)
-            
-            # these derived targets handle anything the user has manually
-            # input as a target. We have to assume that the derived targets
-            # make sense for this notification's action.
-            for derived_target in notification.getExplicitRecipients():
-                targets.append(derived_target)
+            for recipient in notification.recipients:
+                if recipient['type'] in ['group', 'user']:
+                    guid = recipient['value']
+                    target_obj = self.guidManager.getObject(guid)
+                    for target in action.getActionableTargets(target_obj):
+                        targets.append(target)
+                else:
+                    targets.append(recipient['value'])
             
             for target in set(targets):
                 log.debug('executing action for target: %s' % target)
                 action.execute(target, notification, signal)
-                
+                log.debug('Done executing action for target: %s' % target)
+
+class ZenActionD(ZCmdBase):
+    def run(self):
+        dmd = Zope2.app().zport.dmd
+        task = ProcessSignalTask(NotificationDao(), dmd)
+            
+        email_action = EmailAction(
+            email_from = dmd.getEmailFrom(),
+            host = dmd.smtpHost,
+            port = dmd.smtpPort,
+            useTls = dmd.smtpUseTLS,
+            user = dmd.smtpUser,
+            password = dmd.smtpPass
+        )
+        task.registerAction('email', email_action)
+        task.registerAction('page', PageAction(page_command=dmd.pageCommand))
+        
+        self._consumer = QueueConsumerProcess(task)
+        
+        log.debug('starting zenactiond consumer.')
+        self._consumer.run()
+
+
+    def _start(self):
+        log.info('starting queue consumer task')
+        reactor.addSystemEventTrigger('before', 'shutdown', self._shutdown)
+        self._consumer.run()
+
+
+    @defer.inlineCallbacks
+    def _shutdown(self, *ignored):
+        if self._consumer:
+            yield self._consumer.shutdown()
+        try:
+            reactor.stop()
+        except ReactorNotRunning:
+            pass
 
 if __name__ == '__main__':
-    
-    task = ProcessSignalTask(NotificationDao())
-    
-    dmd = Zope2.app().zport.dmd
-    email_action = EmailAction(
-        email_from = dmd.getEmailFrom(),
-        host = dmd.smtpHost,
-        port = dmd.smtpPort,
-        useTls = dmd.smtpUseTLS,
-        user = dmd.smtpUser,
-        password = dmd.smtpPass
-    )
-    task.registerAction('email', email_action)
-    task.registerAction('page', PageAction(page_command=dmd.pageCommand))
-    
-    consumer = QueueConsumerProcess(task)
-    options, args = consumer.server.parser.parse_args()
-    logging.basicConfig(level=options.logseverity)
-    
-    consumer.run()
+    zad = ZenActionD()
+    zad.run()
