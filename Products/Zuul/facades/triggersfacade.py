@@ -118,37 +118,31 @@ class TriggersFacade(ZuulFacade):
         
     def updateNotification(self, **data):
         log.debug(data)
-        try:
-            uid = data['uid']
-            del data['uid']
-            notification = self._getObject(uid)
-            if not notification:
-                log.info('Could not find notification to update: %s' % uid)
-                return
-                
-            for field in notification._properties:
-                log.debug('setting: %s: %s' % (field['id'], data.get(field['id'])))
-                setattr(notification, field['id'], data.get(field['id']))
+        
+        uid = data['uid']
+        
+        notification = self._getObject(uid)
+        if not notification:
+            raise Exception('Could not find notification to update: %s' % uid)
             
-            notification.recipients = data.get('recipients')
-            
-            # editing as a text field, but storing as a list for now.
-            notification.subscriptions = [data.get('subscriptions')]
-            
-            
-            #TODO: take into account updating the trigger interval stuff
-            # post to /triggers/subscriptions/{notification_uuid}
-            # body = {
-            #     delay_seconds = 234
-            #     repeat_seconds = 68
-            #     trigger_uuid = '{uuid}'
-            # }
-            
-            log.debug('updated notification: %s' % notification)
-        except KeyError, e:
-            log.error('Could not update notification:')
-            log.exception(e)
-            raise Exception('There was an error updating the notificaton: missing required field.')
+        for field in notification._properties:
+            setattr(notification, field['id'], data.get(field['id']))
+        
+        notification.recipients = data.get('recipients')
+        
+        # editing as a text field, but storing as a list for now.
+        notification.subscriptions = [data.get('subscriptions')]
+        
+        
+        #TODO: take into account updating the trigger interval stuff
+        # post to /triggers/subscriptions/{notification_uuid}
+        # body = {
+        #     delay_seconds = 234
+        #     repeat_seconds = 68
+        #     trigger_uuid = '{uuid}'
+        # }
+        
+        log.debug('updated notification: %s' % notification)
 
     def getRecipientOptions(self):
         users = self._dmd.ZenUsers.getAllUserSettings()
@@ -191,21 +185,13 @@ class TriggersFacade(ZuulFacade):
         return IInfo(window)
     
     def updateWindow(self, data):
-        try:
-            uid = data['uid']
-            del data['uid']
-            window = self._getObject(uid)
-            if not window:
-                log.info('could not find schedule window to update: %s' % uid)
-                return
-            
-            for field in window._properties:
-                log.debug('setting: %s: %s' % (field['id'], data.get(field['id'])))
-                setattr(window, field['id'], data.get(field['id']))
-            log.debug('updated window')
-            
-        except KeyError, e:
-            log.error('Could not update schedule window:')
-            log.exception(e)
-            raise Exception('There was an error updating the schedule window: missing required field.')
+        uid = data['uid']
+        window = self._getObject(uid)
+        if not window:
+            raise Exception('Could not find window to update: %s' % uid)
+        for field in window._properties:
+            setattr(window, field['id'], data.get(field['id']))
+        
+        log.debug('updated window')
+
     
