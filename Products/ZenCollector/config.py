@@ -212,6 +212,8 @@ class ConfigurationLoaderTask(ObservableMixin):
             ex = result.value
             if isinstance(ex, HubDown):
                 result = str(ex)
+                # Allow the loader to be reaped and re-added
+                self.state = TaskStates.STATE_COMPLETED
         return result
 
     def _processThresholds(self, thresholds):

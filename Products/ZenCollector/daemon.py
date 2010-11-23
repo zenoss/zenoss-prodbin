@@ -389,7 +389,7 @@ class CollectorDaemon(RRDDaemon):
         # Run initial maintenance cycle as soon as possible
         # TODO: should we not run maintenance if running in non-cycle mode?
         self._scheduler.addTask(configLoader, now=True)
-        return defer.succeed(None)
+        return defer.succeed("Configuration loader task started")
 
     def _setCollectorPreferences(self, preferenceItems):
         for name, value in preferenceItems.iteritems():
