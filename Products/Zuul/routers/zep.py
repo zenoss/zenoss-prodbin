@@ -28,7 +28,7 @@ from datetime import datetime
 from zenoss.protocols.protobufs.zep_pb2 import EventSummary, Event
 from zenoss.protocols.services.zep import EventSeverity, EventStatus
 from json import loads
-
+from Products.Zuul.utils import resolve_context
 log = logging.getLogger(__name__)
 
 
@@ -37,6 +37,17 @@ class ZepRouter(EventsRouter):
     """
     A JSON/ExtDirect interface to operations on events in ZEP
     """
+
+    _sortMap = {
+        'eventState' : 'status',
+        'severity' : 'event_severity',
+        'firstTime' : 'first_seen_time',
+        'lastTime' : 'last_seen_time',
+        'eventClass' : 'event_event_class',
+        'device' : 'event_actor_element_identifier',
+        'component' : 'event_actor_element_sub_identifier',
+        'count' : 'count',
+    }
 
     def __init__(self, context, request):
         super(ZepRouter, self).__init__(context, request)
@@ -81,11 +92,11 @@ class ZepRouter(EventsRouter):
     def _timeRange(self, value):
         values = []
         for t in value.split('/'):
-            values.append(DateTime.DateTime(value, datefmt='us').millis())
+            values.append(DateTime.DateTime(t, datefmt='us').millis())
         return values
 
     @require('ZenCommon')
-    def query(self, limit=0, start=0, sort='lastTime', dir='DESC', params=None,
+    def query(self, limit=0, start=0, sort='lastTime', dir='desc', params=None,
               history=False, uid=None, criteria=()):
         """
         Query for events.
@@ -117,24 +128,40 @@ class ZepRouter(EventsRouter):
            - totalCount: (integer) Total count of events returned
            - asof: (float) Current time
         """
+        if params:
+            params = loads(params)
+            filter = self.zep.createFilter(
+                summary = params.get('summary'),
+                event_class = params.get('eventClass'),
+                # FIXME Front end has the status off by one, has many places in JS this would need to be fixed
+                status = [i + 1 for i in params.get('eventState', [])],
+                severity = params.get('severity'),
+                tags = params.get('tags'),
+                count = params.get('count'),
+                element_identifier = params.get('device'),
+                element_sub_identifier = params.get('component'),
+                first_seen = params.get('firstTime') and self._timeRange(params.get('firstTime')),
+                last_seen = params.get('lastTime') and self._timeRange(params.get('lastTime')),
+            )
+        else:
+            filter = {}
+
         if uid is None:
             uid = self.context
 
-        params = loads(params)
-        filter = self.zep.createFilter(
-            summary = params.get('summary'),
-            event_class = params.get('eventClass'),
-            status = params.get('eventState'),
-            severity = params.get('severity'),
-            tags = params.get('tags'),
-            count = params.get('count'),
-            element_identifier = params.get('device'),
-            element_sub_identifier = params.get('component'),
-            first_seen = params.get('firstTime') and self._timeRange(params.get('firstTime')),
-            last_seen = params.get('lastTime') and self._timeRange(params.get('lastTime')),
-        )
+        context = resolve_context(uid)
 
-        events = self.zep.getEventSummaries(limit=limit, offset=start, sort=sort, filter=filter)
+        if context and context.id != 'Events':
+            tags = filter.get('tag_uuids', [])
+            tags.append(context.uuid)
+            filter['tag_uuids'] = tags
+
+        if sort in self._sortMap:
+            sort = self._sortMap[sort]
+        else:
+            raise Exception('"%s" is not a valid sort option' % sort)
+
+        events = self.zep.getEventSummaries(limit=limit, offset=start, sort=sort+'-'+dir.lower(), filter=filter)
 
         return DirectResponse.succeed(
             events = [self._mapToOldEvent(e) for e in events['events']],
@@ -150,23 +177,64 @@ class ZepRouter(EventsRouter):
         @type  evid: string
         @param evid: Event ID to get details
         @type  history: boolean
-        @param history: (optional) True to search the event history table instead
-                        of active events (default: False)
+        @param history: Deprecated
         @rtype:   DirectResponse
         @return:  B{Properties}:
            - event: ([dictionary]) List containing a dictionary representing
                     event details
         """
-        event = self.zep.getEventSummary(evid)
-        if event:
+        event_summary = self.zep.getEventSummary(evid)
+        if event_summary:
+            eventOccurrence = event_summary['occurrence'][0]
+
+            eventClass = eventOccurrence['event_class']
+            print eventOccurrence
             eventData = {
-                'properties' : self._mapToOldEvent(event),
-                'log' : [],
+                'evid' : event_summary['uuid'],
+                'device' : eventOccurrence['actor'].get('element_identifier', None),
+                'device_title' : eventOccurrence['actor'].get('element_identifier', None),
                 'device_url' : None,
-                'device_title' : None,
+                'device_uuid' : eventOccurrence['actor'].get('element_uuid', None),
+                'component' : eventOccurrence['actor'].get('element_sub_identifier', None),
+                'component_title' : eventOccurrence['actor'].get('element_sub_identifier', None),
                 'component_url' : None,
-                'component_title' : None,
-                'eventClass_url' : None,
+                'component_uuid' : eventOccurrence['actor'].get('element_sub_uuid', None),
+                'firstTime' : str(datetime.utcfromtimestamp(event_summary['first_seen_time'] / 1000)),
+                'lastTime' : str(datetime.utcfromtimestamp(event_summary['last_seen_time'] / 1000)),
+                'eventClass' : eventClass,
+                'eventClass_url' : "/zport/dmd/Events%s" % eventClass,
+                'severity' : eventOccurrence['severity'],
+                'eventState' : EventStatus.getPrettyName(event_summary['status']),
+                'count' : event_summary['count'],
+                'summary' : eventOccurrence.get('summary'),
+                'message' : eventOccurrence.get('message'),
+                'properties' : {
+                    'evid' : event_summary['uuid'],
+                    'device' : eventOccurrence['actor'].get('element_identifier', None),
+                    'component' : eventOccurrence['actor'].get('element_sub_identifier', None),
+                    'firstTime' : str(datetime.utcfromtimestamp(event_summary['first_seen_time'] / 1000)),
+                    'lastTime' : str(datetime.utcfromtimestamp(event_summary['last_seen_time'] / 1000)),
+                    'stateChange' : str(datetime.utcfromtimestamp(event_summary['status_change_time'] / 1000)),
+                    'dedupid' : eventOccurrence['fingerprint'],
+                    'eventClass' : eventClass,
+                    'eventClassKey' :  eventOccurrence['event_class'],
+                    'eventClassMapping_uuid' :  eventOccurrence.get('event_class_mapping_uuid'),
+                    'eventKey' : eventOccurrence.get('event_key', None),
+                    'summary' : eventOccurrence.get('summary'),
+                    'severity' : eventOccurrence.get('severity'),
+                    'eventState' : EventStatus.getPrettyName(event_summary['status']),
+                    'count' : event_summary['count'],
+                    'monitor' : eventOccurrence.get('monitor'),
+                    'agent' : eventOccurrence.get('agent'),
+                    'message' : eventOccurrence.get('message'),
+                },
+                'log' : []
             }
 
+            if 'details' in eventOccurrence:
+                for detail in eventOccurrence['details']:
+                    eventData['properties'][detail['name']] = detail['value']
+
             return DirectResponse.succeed(event=[eventData])
+        else:
+            raise Exception('Could not find event %s' % evid)

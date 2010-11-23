@@ -26,16 +26,16 @@
 <!-- Template for rendering the detail pane -->
 <textarea class="dontexpand" style="display:none" id="detail_table_template">
 <table>
-    <tr><td class="dt">Device:</td> 
-        <td><tpl if="device"><a href="{device_url}" 
+    <tr><td class="dt">Device:</td>
+        <td><tpl if="device"><a href="{device_url}"
                 class="resource-link">{device}</a></tpl></td>
         </tr>
-    <tr><td class="dt">Component:</td> 
+    <tr><td class="dt">Component:</td>
         <td><tpl if="component">
-            <a href="{component_url}" 
+            <a href="{component_url}"
                 class="resource-link">{component}</a></tpl></td>
         </tr>
-    <tr><td class="dt">Event Class:</td> 
+    <tr><td class="dt">Event Class:</td>
         <td><tpl if="eventClass"><a href="{eventClass_url}"
                 class="resource-link">{eventClass}</a></tpl></td>
         </tr>
@@ -81,6 +81,10 @@ Ext.onReady(function(){
         master_panel = Ext.getCmp('master_panel');
 
     master_panel.layout = 'border';
+
+    // Make this instance of the detail panel use a unique state ID so
+    // it doesn't interfere with the state of other instances of this panel.
+    detail_panel.stateId = 'Zenoss.ui.EvConsole.detail_panel';
 
     // Make the detail panel collapsible
     detail_panel.animCollapse = false;
@@ -271,7 +275,7 @@ Ext.onReady(function(){
                             'evids': evids
                         }, function(result){
                             win.hide();
-                            var title = result.success ?  
+                            var title = result.success ?
                                         'Classified':
                                         'Error';
                             Ext.MessageBox.show({
@@ -305,7 +309,7 @@ Ext.onReady(function(){
                 var sm = grid.getSelectionModel();
                 sm.clearSelections();
                 Ext.each(result, function(range){
-                    if (range.length==1) 
+                    if (range.length==1)
                         range[1] = grid.getStore().totalLength + 1;
                    sm.selectRange(range[0]-1, range[1]-1, true);
                 });
@@ -315,7 +319,7 @@ Ext.onReady(function(){
 
     // Get the container surrounding master/detail, for adding the toolbar
     var container = Ext.getCmp('center_panel_container');
-    
+
     // Add a CSS class to scope some styles that affect other parts of the UI
     container.on('render', function(){container.el.addClass('zenui3')});
 
@@ -324,10 +328,10 @@ Ext.onReady(function(){
             region:'north',
             border: false,
             items: [{
-                /* 
-                 * ACKNOWLEDGE BUTTON 
+                /*
+                 * ACKNOWLEDGE BUTTON
                  */
-                //text: 'Acknowledge', 
+                //text: 'Acknowledge',
                 iconCls: 'acknowledge',
                 tooltip: 'Acknowledge selected events',
                 handler: function() {
@@ -346,8 +350,8 @@ Ext.onReady(function(){
                     }
                 }
             },{
-                /* 
-                 * CLOSE BUTTON 
+                /*
+                 * CLOSE BUTTON
                  */
                 //text: 'Close',
                 iconCls: 'close',
@@ -391,8 +395,8 @@ Ext.onReady(function(){
                     }
                 }
             },{
-                /* 
-                 * ADD BUTTON 
+                /*
+                 * ADD BUTTON
                  */
                 //text: 'Add',
                 tooltip: 'Add an event',
@@ -487,7 +491,7 @@ Ext.onReady(function(){
                     }]
                 }
             },{
-                /* 
+                /*
                  * CONFIGURE MENU
                  */
                 text: 'Configure',
@@ -609,7 +613,7 @@ Ext.onReady(function(){
         livesearchitem: 'livesearch_checkitem',
         loadMask  : { msg :  'Loading. Please wait...' }
     });
-    
+
     var console_store = new Zenoss.EventStore({ autoLoad: true });
 
     // Selection model
@@ -688,8 +692,8 @@ Ext.onReady(function(){
     // Finally, add the detail panel (have to do it after function defs to hook
     // up the hide callback)
     detail_panel.add({
-        xtype:'detailpanel', 
-        id: 'dpanelcontainer', 
+        xtype:'detailpanel',
+        id: 'dpanelcontainer',
         onDetailHide: hideEventDetail
     });
 
@@ -746,7 +750,7 @@ Ext.onReady(function(){
     maximizeContentPanel();
     // Have this happen on window resize
     connect(currentWindow(), 'onresize', maximizeContentPanel);
-    
+
 
 });
 </script>

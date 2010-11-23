@@ -88,33 +88,34 @@ COLUMN_CONFIG = {
         header='Status',
         width=60,
         filter={
+            # Values are offset from actual values by -1
             'xtype':'multiselectmenu',
             'text':'...',
             'source':[{
-                'value':1,
+                'value':0,
                 'name':'New'
             },
             {
-                'value':2,
+                'value':1,
                 'name':'Acknowledged'
             },
             {
-                'value':3,
+                'value':2,
                 'name':'Suppressed',
                 'checked':False
             },
             {
-                'value':4,
+                'value':3,
                 'name':'Closed',
                 'checked':False
             },
             {
-                'value':5,
+                'value':4,
                 'name':'Cleared',
                 'checked':False
             },
             {
-                'value':7,
+                'value':6,
                 'name':'Aged',
                 'checked':False
             }]
