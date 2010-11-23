@@ -92,4 +92,4 @@ class ThresholdClass(ZenModelRM, ZenPackable):
                 names.append(dsName)
             else:
                 names.append('%s(<span style="color: red">missing</span>)' % dsName)
-        return ', '.join(names)
+        return ','.join(names)

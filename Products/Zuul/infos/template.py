@@ -487,7 +487,7 @@ class ThresholdInfo(InfoBase):
         """
         if value and isinstance(value, str):
             # strip out the empty chars
-            value = [name for name in value.split(',') if name]
+            value = [name.strip() for name in value.split(',') if name]
         self._object.dsnames = value
 
     def _getDsnames(self):
