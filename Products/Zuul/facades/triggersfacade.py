@@ -106,6 +106,9 @@ class TriggersFacade(ZuulFacade):
         notification = NotificationSubscription(newId)
         notification.action = action
         self._getManager()._setObject(newId, notification)
+        
+        self.updateNotificationSubscriptions(notification)
+        
         return IInfo(self._getManager().findChild(newId))
     
     def removeNotification(self, uid):
@@ -115,7 +118,24 @@ class TriggersFacade(ZuulFacade):
         notification = self._getObject(uid)
         if notification:
             return IInfo(notification)
+    
+    def updateNotificationSubscriptions(self, notification):
+        triggerSubscriptions = []
+        notification_guid = IGlobalIdentifier(notification).guid
+        for subscription in notification.subscriptions:
+            triggerSubscriptions.append(dict(
+                delay_seconds = notification.delay_seconds,
+                repeat_seconds = notification.repeat_seconds,
+                subscriber_uuid = notification_guid,
+                trigger_uuid = subscription,
+            ));
+        subscriptionSet = from_dict(zep.EventTriggerSubscriptionSet, dict(
+            subscriptions = triggerSubscriptions
+        ))
         
+        self.triggers_service.updateSubscriptions(notification_guid, subscriptionSet)
+
+            
     def updateNotification(self, **data):
         log.debug(data)
         
@@ -133,14 +153,7 @@ class TriggersFacade(ZuulFacade):
         # editing as a text field, but storing as a list for now.
         notification.subscriptions = [data.get('subscriptions')]
         
-        
-        #TODO: take into account updating the trigger interval stuff
-        # post to /triggers/subscriptions/{notification_uuid}
-        # body = {
-        #     delay_seconds = 234
-        #     repeat_seconds = 68
-        #     trigger_uuid = '{uuid}'
-        # }
+        self.updateNotificationSubscriptions(notification)
         
         log.debug('updated notification: %s' % notification)
 

@@ -20,6 +20,8 @@ from Products.ZenModel.ZenossSecurity import *
 from Products.ZenRelations.RelSchema import *
 from Products.ZenModel.ZenModelRM import ZenModelRM
 from Products.ZenUtils.guid.interfaces import IGUIDManager
+from zope.interface import implements
+from Products.ZenUtils.guid.interfaces import IGloballyIdentifiable
 from Products.ZenUtils.template import Template
 
 def manage_addNotificationSubscriptionManager(context, REQUEST=None):
@@ -77,6 +79,8 @@ class NotificationSubscription(ZenModelRM):
     A subscription to a signal that produces notifications in the form of
     actions.
     """
+    implements(IGloballyIdentifiable)
+    
     _id = "NotificationSubscription"
     meta_type = _id
     
