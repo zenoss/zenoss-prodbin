@@ -65,6 +65,21 @@
              factory=".cpu.CPUInfo"
              />
 
+    <adapter provides="...interfaces.IPowerSupplyInfo"
+             for="Products.ZenModel.PowerSupply.PowerSupply"
+             factory=".powersupply.PowerSupplyInfo"
+             />
+
+    <adapter provides="...interfaces.ITemperatureSensorInfo"
+             for="Products.ZenModel.TemperatureSensor.TemperatureSensor"
+             factory=".temperaturesensor.TemperatureSensorInfo"
+             />
+
+    <adapter provides="...interfaces.IFanInfo"
+             for="Products.ZenModel.Fan.Fan"
+             factory=".fan.FanInfo"
+             />
+
     <adapter provides="...form.interfaces.IFormBuilder"
              for="...interfaces.component.IComponentInfo"
              factory=".ComponentFormBuilder"

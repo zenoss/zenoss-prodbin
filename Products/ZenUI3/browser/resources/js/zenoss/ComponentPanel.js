@@ -1004,4 +1004,173 @@ ZC.CPUPanel = Ext.extend(ZC.ComponentGridPanel, {
 Ext.reg('CPUPanel', ZC.CPUPanel);
 ZC.registerName('CPU', _t('Processor'), _t('Processors'));
 
+
+ZC.PowerSupplyPanel = Ext.extend(ZC.ComponentGridPanel, {
+    constructor: function(config) {
+        config = Ext.applyIf(config||{}, {
+            componentType: 'PowerSupply',
+            autoExpandColumn: 'name',
+            fields: [
+                {name: 'uid'},
+                {name: 'severity'},
+                {name: 'name'},
+                {name: 'watts'},
+                {name: 'type'},
+                {name: 'state'},
+                {name: 'millivolts'},
+                {name: 'locking'},
+                {name: 'usesMonitorAttribute'},
+                {name: 'monitor'},
+                {name: 'monitored'}
+            ],
+            columns: [{
+                id: 'severity',
+                dataIndex: 'severity',
+                header: _t('Events'),
+                renderer: Zenoss.render.severity,
+                width: 60
+            },{
+                id: 'name',
+                dataIndex: 'name',
+                header: _t('Name')
+            },{
+                id: 'watts',
+                dataIndex: 'watts',
+                header: _t('Watts')
+            },{
+                id: 'type',
+                dataIndex: 'type',
+                header: _t('Type')
+            },{
+                id: 'state',
+                dataIndex: 'state',
+                header: _t('State')
+            },{
+                id: 'millivolts',
+                dataIndex: 'millivolts',
+                header: _t('Millivolts')
+            },{
+                id: 'locking',
+                dataIndex: 'locking',
+                header: _t('Locking'),
+                renderer: Zenoss.render.locking_icons
+            }]
+        });
+        ZC.PowerSupplyPanel.superclass.constructor.call(this, config);
+    }
+});
+
+Ext.reg('PowerSupplyPanel', ZC.PowerSupplyPanel);
+ZC.registerName('PowerSupply', _t('Power Supply'), _t('Power Supplies'));
+
+
+ZC.TemperatureSensorPanel = Ext.extend(ZC.ComponentGridPanel, {
+    constructor: function(config) {
+        config = Ext.applyIf(config||{}, {
+            componentType: 'TemperatureSensor',
+            autoExpandColumn: 'name',
+            fields: [
+                {name: 'uid'},
+                {name: 'severity'},
+                {name: 'name'},
+                {name: 'state'},
+                {name: 'temperature'},
+                {name: 'locking'},
+                {name: 'usesMonitorAttribute'},
+                {name: 'monitor'},
+                {name: 'monitored'}
+            ],
+            columns: [{
+                id: 'severity',
+                dataIndex: 'severity',
+                header: _t('Events'),
+                renderer: Zenoss.render.severity,
+                width: 60
+            },{
+                id: 'name',
+                dataIndex: 'name',
+                header: _t('Name')
+            },{
+                id: 'state',
+                dataIndex: 'state',
+                header: _t('State')
+            },{
+                id: 'temperature',
+                dataIndex: 'temperature',
+                header: _t('Temperature'),
+                renderer: function(x) {
+                    if (x == null) {
+                        return "";
+                    } else {
+                        return x + " F";
+                    }
+                }
+            },{
+                id: 'locking',
+                dataIndex: 'locking',
+                header: _t('Locking'),
+                renderer: Zenoss.render.locking_icons
+            }]
+        });
+        ZC.TemperatureSensorPanel.superclass.constructor.call(this, config);
+    }
+});
+
+Ext.reg('TemperatureSensorPanel', ZC.TemperatureSensorPanel);
+ZC.registerName('TemperatureSensor', _t('Temperature Sensor'), _t('Temperature Sensors'));
+
+
+ZC.FanPanel = Ext.extend(ZC.ComponentGridPanel, {
+    constructor: function(config) {
+        config = Ext.applyIf(config||{}, {
+            componentType: 'Fan',
+            autoExpandColumn: 'name',
+            fields: [
+                {name: 'uid'},
+                {name: 'severity'},
+                {name: 'name'},
+                {name: 'state'},
+                {name: 'type'},
+                {name: 'rpm'},
+                {name: 'locking'},
+                {name: 'usesMonitorAttribute'},
+                {name: 'monitor'},
+                {name: 'monitored'}
+            ],
+            columns: [{
+                id: 'severity',
+                dataIndex: 'severity',
+                header: _t('Events'),
+                renderer: Zenoss.render.severity,
+                width: 60
+            },{
+                id: 'name',
+                dataIndex: 'name',
+                header: _t('Name')
+            },{
+                id: 'state',
+                dataIndex: 'state',
+                header: _t('State')
+            },{
+                id: 'type',
+                dataIndex: 'type',
+                header: _t('Type')
+            },{
+                id: 'rpm',
+                dataIndex: 'rpm',
+                header: _t('RPM')
+            },{
+                id: 'locking',
+                dataIndex: 'locking',
+                header: _t('Locking'),
+                renderer: Zenoss.render.locking_icons
+            }]
+        });
+        ZC.FanPanel.superclass.constructor.call(this, config);
+    }
+});
+
+Ext.reg('FanPanel', ZC.FanPanel);
+ZC.registerName('Fan', _t('Fan'), _t('Fans'));
+
 })();

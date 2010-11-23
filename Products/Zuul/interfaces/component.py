@@ -198,3 +198,31 @@ class ICPUInfo(IComponentInfo):
     product = schema.Entity(title=u"Model", readonly=True)
     manufacturer = schema.Entity(title=u"Manufacturer", readonly=True)
 
+
+class IPowerSupplyInfo(IComponentInfo):
+    """
+    Info adapter for PowerSupply components.
+    """
+    watts = schema.Int(title=u'Watts', group='Overview', readonly=True)
+    type = schema.Text(title=u'Type', group='Overview', readonly=True)
+    state = schema.Text(title=u'State', group='Overview', readonly=True)
+    millivolts = schema.Int(
+        title=u'Millivolts', group='Overview', readonly=True)
+
+
+class ITemperatureSensorInfo(IComponentInfo):
+    """
+    Info adapter for TemperatureSensor components.
+    """
+    state = schema.Text(title=u'State', group='Overview', readonly=True)
+    temperature = schema.Int(
+        title=u'Temperature (Fahrenheit)', group='Overview', readonly=True)
+
+
+class IFanInfo(IComponentInfo):
+    """
+    Info adapter for Fan components.
+    """
+    state = schema.Text(title=u'State', group='Overview', readonly=True)
+    type = schema.Text(title=u'Type', group='Overview', readonly=True)
+    rpm = schema.Int(title=u'RPM', group='Overview', readonly=True)
