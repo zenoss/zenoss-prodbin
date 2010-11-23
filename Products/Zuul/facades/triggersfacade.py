@@ -14,6 +14,7 @@
 from Products.ZenUtils.PkgResources import pkg_resources
 import logging
 import uuid
+import parser
 from Acquisition import aq_parent
 from zope.interface import implements
 from Products.Zuul.facades import ZuulFacade
@@ -23,6 +24,7 @@ from Products.ZenModel.NotificationSubscriptionWindow import NotificationSubscri
 import zenoss.protocols.protobufs.zep_pb2 as zep
 from zenoss.protocols.jsonformat import to_dict, from_dict
 from Products.ZenUtils.GlobalConfig import getGlobalConfiguration
+from Products.ZenUtils.guid.interfaces import IGloballyIdentifiable, IGlobalIdentifier, IGUIDManager
 
 from zenoss.protocols.services.triggers import TriggerServiceClient
 
@@ -44,9 +46,11 @@ class TriggersFacade(ZuulFacade):
         
     def getTriggers(self):
         response, trigger_set = self.triggers_service.getTriggers()
-        if trigger_set:
-            trigger_set = to_dict(trigger_set)
-        return trigger_set['triggers']
+        trigger_set = to_dict(trigger_set)
+        if 'triggers' in trigger_set:
+            return trigger_set['triggers']
+        else:
+            return []
     
     def parseFilter(self, source):
         """
@@ -95,13 +99,12 @@ class TriggersFacade(ZuulFacade):
         return self._dmd.findChild('NotificationSubscriptions')
         
     def getNotifications(self):
-        # don't think I'm doing this correctly, don't know yet how to manage
-        # ownership and what not.
         for notification in self._getManager().getChildNodes():
             yield IInfo(notification)
     
-    def addNotification(self, newId):
+    def addNotification(self, newId, action):
         notification = NotificationSubscription(newId)
+        notification.action = action
         self._getManager()._setObject(newId, notification)
         return IInfo(self._getManager().findChild(newId))
     
@@ -127,14 +130,46 @@ class TriggersFacade(ZuulFacade):
                 log.debug('setting: %s: %s' % (field['id'], data.get(field['id'])))
                 setattr(notification, field['id'], data.get(field['id']))
             
+            notification.recipients = data.get('recipients')
+            
             # editing as a text field, but storing as a list for now.
             notification.subscriptions = [data.get('subscriptions')]
+            
+            
+            #TODO: take into account updating the trigger interval stuff
+            # post to /triggers/subscriptions/{notification_uuid}
+            # body = {
+            #     delay_seconds = 234
+            #     repeat_seconds = 68
+            #     trigger_uuid = '{uuid}'
+            # }
             
             log.debug('updated notification: %s' % notification)
         except KeyError, e:
             log.error('Could not update notification:')
             log.exception(e)
             raise Exception('There was an error updating the notificaton: missing required field.')
+
+    def getRecipientOptions(self):
+        users = self._dmd.ZenUsers.getAllUserSettings()
+        groups = self._dmd.ZenUsers.getAllGroupSettings()
+        
+        data = []
+        
+        for u in users:
+            data.append(dict(
+                type = 'user',
+                label = '%s (User)' % u.getId(),
+                value = IGlobalIdentifier(u).create()
+            ))
+        
+        for g in groups:
+            data.append(dict(
+                type = 'group',
+                label = '%s (Group)' % g.getId(),
+                value = IGlobalIdentifier(g).create()
+            ))
+        return data
     
     def getWindows(self, uid):
         notification = self._getObject(uid)

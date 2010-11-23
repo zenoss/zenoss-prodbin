@@ -61,8 +61,8 @@ class TriggersRouter(DirectRouter):
         response = self._getFacade().getNotifications()
         return DirectResponse.succeed(data=Zuul.marshal(response))
     
-    def addNotification(self, newId):
-        response = self._getFacade().addNotification(newId)
+    def addNotification(self, newId, action):
+        response = self._getFacade().addNotification(newId, action)
         return DirectResponse.succeed(data=Zuul.marshal(response))
     
     def removeNotification(self, uid):
@@ -77,7 +77,10 @@ class TriggersRouter(DirectRouter):
         response = self._getFacade().updateNotification(**data)
         return DirectResponse.succeed(data=Zuul.marshal(response))
     
-    
+    def getRecipientOptions(self):
+        data = self._getFacade().getRecipientOptions()
+        return DirectResponse.succeed(data=data);
+        
     # subscription windows
     def getWindows(self, uid):
         response = self._getFacade().getWindows(uid)

@@ -141,12 +141,6 @@ Ext.onReady(function () {
         Ext.getCmp(notificationPanelConfig.id).getStore().reload();
     };
     
-    displayNotificationEditDialogue = function(data) {
-        console.log(data);
-        var dialogue = Ext.getCmp(editNotificationDialogueConfig.id);
-        dialogue.loadData(data);
-        dialogue.show();
-    };
     
     reloadScheduleGrid = function() {
         var panel = Ext.getCmp(notificationPanelConfig.id),
@@ -160,23 +154,6 @@ Ext.onReady(function () {
         var dialogue = Ext.getCmp(editScheduleDialogueConfig.id);
         dialogue.loadData(data);
         dialogue.show();
-    };
-    
-    
-    editNotificationDialogueConfig = {
-        id: 'edit_notification_dialogue',
-        xtype: 'editnotificationdialogue',
-        title: _t('Edit Notification Subscription'),
-        directFn: router.updateNotification,
-        reloadFn: reloadNotificationGrid
-    };
-    
-    addNotificationDialogueConfig = {
-        id: 'add_notification_dialogue',
-        xtype: 'adddialogue',
-        title: _t('Add Notification Subscription'),
-        directFn: router.addNotification,
-        reloadFn: reloadNotificationGrid
     };
     
     editScheduleDialogueConfig = {
@@ -209,39 +186,236 @@ Ext.onReady(function () {
     };
     
     
-    EditNotificationDialogue = Ext.extend(Ext.Window, {
+    var NotificationTabContent = Ext.extend(Ext.Panel, {
         constructor: function(config) {
             config = config || {};
             Ext.applyIf(config, {
-                modal: true,
-                plain: true,
-                width: 450,
-                height: 600,
-                autoScroll: true,
+                padding: 20,
+                unstyled: true,
                 border: false,
-                closeAction: 'hide',
-                listeners: {
-                    beforeshow: function(window) {
-                        window.editForm.setEmailFieldState(
-                            window.editForm.action_combo.value
-                        );
-                    }
+                layout: 'form',
+                autoScroll: true,
+                height: 380,
+                width: 400
+            });
+            NotificationTabContent.superclass.constructor.apply(this, arguments);
+        }
+    });
+    
+    var NotificationTabPanel = Ext.extend(Ext.TabPanel, {
+        constructor: function(config) {
+            config = config || {};
+            Ext.applyIf(config, {
+                ref: '../tabPanel',
+                activeTab: 0,
+                activeIndex: 0,
+                unstyled: true,
+                loadData: function(data) {
+                    Ext.each(this.items.items, function(item, index, allitems) {
+                        item.loadData(data);
+                    });
+                }
+            });
+            NotificationTabPanel.superclass.constructor.apply(this, arguments);
+        }
+    });
+
+    var triggersComboStore = new Ext.data.DirectStore({
+        fields:['uuid','name'],
+        directFn: router.getTriggers,
+        root: 'data',
+        autoLoad: true
+    });
+    
+    displayNotificationEditDialogue = function(data) {
+        var tab_content;
+        var _width, _height;
+        
+        // This action map is used to make the 'type' display in the
+        // recipients grid more user friendly.
+        var ACTION_TYPE_MAP = {
+            'email': _t('Email'),
+            'page': _t('Page')
+        };
+        
+        if (data.action == 'email') {
+            tab_content = new NotificationTabContent({
+                title: 'Content',
+                defaults: {
+                    width: 280
                 },
-                items:{
-                    xtype:'form',
-                    ref: 'editForm',
-                    border: false,
-                    buttonAlign: 'center',
-                    monitorValid: true,
-                    autoWidth: true,
-                    setEmailFieldState: function(value) {
-                        if (value === 'page') {
-                            this.email_fields.collapse();
-                        } else {
-                            this.email_fields.expand();
+                items:[
+                    new Ext.form.ComboBox({
+                        id: 'htmltextcombo',
+                        store: new Ext.data.ArrayStore({
+                            autoDestroy: true,
+                            id: 0,
+                            fields:['value','label'],
+                            data: [
+                                ['html','HTML'],
+                                ['text','Text']
+                            ]
+                        }),
+                        name: 'body_content_type',
+                        ref: 'body_content_type',
+                        allowBlank:false,
+                        required:true,
+                        editable:false,
+                        displayField:'label',
+                        valueField:'value',
+                        fieldLabel: _t('Body Content Type'),
+                        mode:'local',
+                        triggerAction: 'all'
+                    }),{
+                        xtype: 'textfield',
+                        name: 'subject_format',
+                        ref: 'subject_format',
+                        fieldLabel: _t('Message (Subject) Format')
+                    },{
+                        xtype: 'textarea',
+                        name: 'body_format',
+                        ref: 'body_format',
+                        fieldLabel: _t('Body Format')
+                    },{
+                        xtype: 'textfield',
+                        name: 'clear_subject_format',
+                        ref: 'clear_subject_format',
+                        fieldLabel: _t('Clear Message (Subject) Format')
+                    },{
+                        xtype: 'textarea',
+                        name: 'clear_body_format',
+                        ref: 'clear_body_format',
+                        fieldLabel: _t('Clear Body Format')
+                    }
+                ],
+                loadData: function(data) {
+                    this.body_content_type.setValue(data.body_content_type);
+                    this.subject_format.setValue(data.subject_format);
+                    this.body_format.setValue(data.body_format);
+                    this.clear_subject_format.setValue(data.clear_subject_format);
+                    this.clear_body_format.setValue(data.clear_body_format);
+                }
+            });
+        }
+        else {
+            tab_content = new NotificationTabContent({
+                title: 'Content',
+                defaults: {
+                    width: 280
+                },
+                items: [{
+                    xtype: 'textfield',
+                    name: 'subject_format',
+                    ref: 'subject_format',
+                    fieldLabel: _t('Message (Subject) Format')
+                }],
+                loadData: function(data) {
+                    this.subject_format.setValue(data.subject_format);
+                }
+            });
+        }
+        
+        // TOOLBAR
+        // *******
+        var recipients_toolbar = [{
+            xtype: 'combo',
+            ref: 'recipient_combo',
+            typeAhead: true,
+            triggerAction: 'all',
+            lazyRender:true,
+            mode: 'local',
+            store: {
+                xtype: 'directstore',
+                directFn: router.getRecipientOptions,
+                root: 'data',
+                autoLoad: true,
+                idProperty: 'value',
+                fields: [
+                    'type',
+                    'label',
+                    'value'
+                ]
+            },
+            valueField: 'value',
+            displayField: 'label'
+        },{
+            xtype: 'button',
+            text: 'Add',
+            ref: 'add_button',
+            handler: function(btn, event) {
+                var val = btn.refOwner.recipient_combo.getValue(),
+                    row = btn.refOwner.recipient_combo.getStore().getById(val),
+                    type = 'manual',
+                    label = val;
+                    
+                if (row) {
+                    type = row.data.type;
+                    label = row.data.label;
+                }
+                var record = new Ext.data.Record({
+                    type:type,
+                    value:val,
+                    label:label
+                });
+                btn.refOwner.ownerCt.getStore().add(record);
+                btn.refOwner.ownerCt.getView().refresh();
+            }
+        },{
+            xtype: 'button',
+            ref: 'delete_button',
+            iconCls: 'delete',
+            handler: function(btn, event) {
+                var row = btn.refOwner.ownerCt.getSelectionModel().getSelected();
+                btn.refOwner.ownerCt.getStore().remove(row);
+                btn.refOwner.ownerCt.getView().refresh();
+            }
+        }];
+        
+        
+        /**
+         * This awesome function from Ian fixes dumb ext combo boxes.
+         */
+        var smarterSetValue = function(val) {
+            if (!this.loaded) {
+                this.store.load({
+                    callback: function(){
+                        this.loaded = true;
+                        Ext.form.ComboBox.prototype.setValue.call(this, val);
+                        if (this.typeAhead) {
+                            this.taTask.cancel();
                         }
+                        this.collapse();
                     },
-                    items:[
+                    scope: this
+                });
+            } else {
+                Ext.form.ComboBox.prototype.setValue.call(this, val);
+            }
+        };
+        
+        var triggersComboBox = new Ext.form.ComboBox({
+            store: triggersComboStore,
+            setValue: smarterSetValue,
+            mode: 'local',
+            lazyRender: false,
+            ref: 'subscriptions',
+            name: 'subscriptions',
+            allowBlank:false,
+            required:true,
+            editable:false,
+            displayField:'name',
+            valueField:'uuid',
+            triggerAction: 'all',
+            fieldLabel: _t('Trigger'),
+            typeAhead: true
+        });
+        
+        var tab_panel = new NotificationTabPanel({
+            items: [
+                // NOTIFICATION INFO
+                new NotificationTabContent({
+                    title: 'Notification',
+                    items: [
                         {
                             xtype: 'hidden',
                             name: 'uid',
@@ -251,150 +425,214 @@ Ext.onReady(function () {
                             name: 'enabled',
                             ref: 'enabled',
                             fieldLabel: _t('Enabled')
-                        }, 
-                        new Ext.form.ComboBox({
-                            store: new Ext.data.ArrayStore({
-                                autoDestroy: true,
-                                fields:['value','label'],
-                                id: 0,
-                                data: [
-                                    ['email','Email'],
-                                    ['page','Page']
-                                ]
-                            }),
-                            listeners: {
-                                beforeselect: function(combo, record, index) {
-                                    combo.refOwner.setEmailFieldState(record.data.value);
-                                }
+                        },{
+                            xtype: 'textfield',
+                            name: 'delay_seconds',
+                            ref: 'delay_seconds',
+                            fieldLabel: _t('Delay (seconds)')
+                        },{
+                            xtype: 'textfield',
+                            name: 'repeat_seconds',
+                            ref: 'repeat_seconds',
+                            fieldLabel: _t('Repeat (seconds)')
+                        },
+                        triggersComboBox
+                    ],
+                    loadData: function(data) {
+                        this.uid.setValue(data.uid);
+                        this.enabled.setValue(data.enabled);
+                        this.delay_seconds.setValue(data.delay_seconds);
+                        this.repeat_seconds.setValue(data.repeat_seconds);
+                        this.subscriptions.setValue(data.subscriptions);
+                    }
+                }),
+                
+                // CONTENT TAB
+                tab_content,
+                
+                // RECIPIENTS
+                new NotificationTabContent({
+                    title: 'Subscribers',
+                    ref: 'recipients_tab',
+                    items: [{
+                        id: 'recipients_grid_panel',
+                        xtype: 'grid',
+                        ref: 'recipients_grid',
+                        height: 330,
+                        loadMask: {msg:'Loading...'},
+                        tbar: { items: recipients_toolbar },
+                        store: new Ext.data.JsonStore({
+                            autoDestroy: true,
+                            storeId: 'recipients_combo_store',
+                            autoLoad: false,
+                            idProperty: 'value',
+                            fields: [
+                                'type',
+                                'label',
+                                'value'
+                            ],
+                            data: []
+                        }),
+                        colModel: new Ext.grid.ColumnModel({
+                            defaults: {
+                                width: 120,
+                                sortable: true
                             },
-                            name:'action',
-                            ref: 'action_combo',
-                            allowBlank:false,
-                            required:true,
-                            editable:false,
-                            displayField:'label',
-                            valueField:'value',
-                            fieldLabel: _t('Action'),
-                            mode:'local',
-                            triggerAction: 'all'
-                        }),{
-                            xtype: 'fieldset',
-                            ref: 'email_fields',
-                            unstyled: true,
-                            border: false,
-                            collapsed: true,
-                            hideBorders: true,
-                            items: [
-                                new Ext.form.ComboBox({
-                                    id: 'htmltextcombo',
-                                    store: new Ext.data.ArrayStore({
-                                        autoDestroy: true,
-                                        id: 0,
-                                        fields:['value','label'],
-                                        data: [
-                                            ['html','HTML'],
-                                            ['text','Text']
-                                        ]
-                                    }),
-                                    name: 'body_content_type',
-                                    ref: '../body_content_type',
-                                    allowBlank:false,
-                                    required:true,
-                                    editable:false,
-                                    displayField:'label',
-                                    valueField:'value',
-                                    fieldLabel: _t('Body Content Type'),
-                                    mode:'local',
-                                    triggerAction: 'all',
-                                    width: 'auto'
-                                }),{
-                                    xtype: 'textfield',
-                                    name: 'subject_format',
-                                    ref: '../subject_format',
-                                    width: 300,
-                                    fieldLabel: _t('Message (Subject) Format')
+                            columns: [
+                                {
+                                    header: _t('Type'),
+                                    dataIndex: 'type'
                                 },{
-                                    xtype: 'textarea',
-                                    name: 'body_format',
-                                    ref: '../body_format',
-                                    width: 300,
-                                    height: 300,
-                                    fieldLabel: _t('Body Format')
-                                },{
-                                    xtype: 'textfield',
-                                    name: 'clear_subject_format',
-                                    ref: '../clear_subject_format',
-                                    width: 300,
-                                    fieldLabel: _t('Clear Message (Subject) Format')
-                                },{
-                                    xtype: 'textarea',
-                                    name: 'clear_body_format',
-                                    ref: '../clear_body_format',
-                                    width: 300,
-                                    height: 300,
-                                    fieldLabel: _t('Clear Body Format')
+                                    header: _t('Subscriber'),
+                                    dataIndex: 'label'
                                 }
                             ]
-                        }, {
-                            xtype: 'textfield',
-                            name: 'explicit_recipients',
-                            ref: 'explicit_recipients',
-                            width: 300,
-                            fieldLabel: _t('Explicit Recipients')
-                        },
-                        new Ext.form.ComboBox({
-                            store: new Ext.data.DirectStore({
-                                fields:['uuid','name'],
-                                directFn: router.getTriggers,
-                                root: 'data',
-                                autoLoad: true
-                            }),
-                            name: 'subscriptions',
-                            allowBlank:false,
-                            required:true,
-                            editable:false,
-                            displayField:'name',
-                            valueField:'uuid',
-                            triggerAction: 'all',
-                            fieldLabel: _t('Subscribe To')
-                        })
-                        
-                    ],
-                    buttons:[
-                        {
-                            xtype: 'button',
-                            text: _t('Submit'),
-                            ref: '../../submitButton',
-                            formBind: true,
-                            handler: function(button) {
-                                var params = button.refOwner.editForm.getForm().getFieldValues();
-                                config.directFn(params, function(){
-                                    button.refOwner.hide();
-                                    config.reloadFn();
-                                });
-                            }
-                        },{
-                            xtype: 'button',
-                            ref: '../../cancelButton',
-                            text: _t('Cancel'),
-                            handler: function(button) {
-                                button.refOwner.hide();
-                            }
-                        }]
+                        }),
+                        viewConfig: {forceFit: true},
+                        sm: new Ext.grid.RowSelectionModel({singleSelect:true}),
+                        frame: true,
+                        header: false
+                    }],
+                    loadData: function(data) {
+                        this.recipients_grid.getStore().loadData(data.recipients);
                     }
+                })
+            ]
+        });
+        
+        var dialogue = new EditNotificationDialogue({
+            id: 'edit_notification_dialogue',
+            title: _t('Edit Notification Subscription'),
+            directFn: router.updateNotification,
+            reloadFn: reloadNotificationGrid,
+            tabPanel: tab_panel
+        });
+        
+        dialogue.loadData(data);
+        dialogue.show();
+    };
+    
+    var displayNotificationAddDialogue = function() {
+        var dialogue = new Ext.Window({
+            title: 'Add Notification',
+            height: 140,
+            width: 300,
+            modal: true,
+            plain: true,
+            items: [{
+                xtype:'form',
+                ref: '../addForm',
+                border: false,
+                monitorValid: true,
+                buttonAlign: 'center',
+                items:[
+                    {
+                        xtype: 'textfield',
+                        name: 'newId',
+                        ref: '../newId',
+                        allowBlank: false,
+                        vtype: 'alphanum',
+                        fieldLabel: _t('Id')
+                    }, new Ext.form.ComboBox({
+                        store: new Ext.data.ArrayStore({
+                            autoDestroy: true,
+                            fields:['value','label'],
+                            id: 0,
+                            data: [
+                                ['email','Email'],
+                                ['page','Page']
+                            ]
+                        }),
+                        name:'action',
+                        ref: 'action_combo',
+                        allowBlank:false,
+                        required:true,
+                        editable:false,
+                        displayField:'label',
+                        valueField:'value',
+                        fieldLabel: _t('Action'),
+                        mode:'local',
+                        triggerAction: 'all'
+                    })
+                ],
+                buttons:[
+                    {
+                        xtype: 'button',
+                        ref: 'submitButton',
+                        text: _t('Submit'),
+                        formBind: true,
+                        handler: function(button) {
+                            var params = button.refOwner.ownerCt.getForm().getFieldValues();
+                            router.addNotification(params, function(){
+                                reloadNotificationGrid();
+                                button.refOwner.ownerCt.ownerCt.close();
+                            });
+                        }
+                    },{
+                        xtype: 'button',
+                        ref: 'cancelButton',
+                        text: _t('Cancel'),
+                        handler: function(button) {
+                            button.refOwner.close();
+                        }
+                    }
+                ]
+            }]
+        });
+        dialogue.show();
+    };
+    
+    EditNotificationDialogue = Ext.extend(Ext.Window, {
+        constructor: function(config) {
+            config = config || {};
+            Ext.applyIf(config, {
+                modal: true,
+                plain: true,
+                autoScroll: true,
+                border: false,
+                width: 400,
+                height: 380,
+                layout: 'fit',
+                items: [{
+                    xtype:'form',
+                    ref: 'editForm',
+                    border: false,
+                    buttonAlign: 'center',
+                    monitorValid: true,
+                    items:[config.tabPanel],
+                    buttons:[{
+                        xtype: 'button',
+                        text: _t('Submit'),
+                        ref: '../../submitButton',
+                        formBind: true,
+                        handler: function(button) {
+                            var params = button.refOwner.editForm.getForm().getFieldValues();
+                            params.recipients = [];
+                            Ext.each(
+                                button.refOwner.tabPanel.recipients_tab.recipients_grid.getStore().getRange(), 
+                                function(item, index, allItems){
+                                    params.recipients.push(item.data);
+                                }
+                            );
+                            config.directFn(params, function(){
+                                button.refOwner.close();
+                                config.reloadFn();
+                            });
+                        }
+                    },{
+                        xtype: 'button',
+                        ref: '../../cancelButton',
+                        text: _t('Cancel'),
+                        handler: function(button) {
+                            button.refOwner.close();
+                        }
+                    }]
+                }]
             });
             EditNotificationDialogue.superclass.constructor.apply(this, arguments);
         },
         loadData: function(data) {
-            Ext.each(this.editForm.items.items, function(item, index, allitems) {
-                if (item.xtype === 'fieldset') {
-                    Ext.each(item.items.items, function(item, index, allitems) {
-                        item.setValue(eval('data.'+item.name));
-                    });
-                } else {
-                    item.setValue(eval('data.'+item.name));
-                }
-            });
+            this.tabPanel.loadData(data);
         }
     });
     Ext.reg('editnotificationdialogue', EditNotificationDialogue);
@@ -494,10 +732,6 @@ Ext.onReady(function () {
     });
     Ext.reg('editscheduledialogue', EditScheduleDialogue);
     
-    
-    editNotificationDialogue = new EditNotificationDialogue(editNotificationDialogueConfig);
-    addNotificationDialogue = new AddDialogue(addNotificationDialogueConfig);
-    
     editScheduleDialogue = new EditScheduleDialogue(editScheduleDialogueConfig);
     addScheduleDialogue = new AddDialogue(addScheduleDialogueConfig);
     
@@ -547,25 +781,44 @@ Ext.onReady(function () {
                         'newId',
                         'enabled',
                         'action',
+                        'delay_seconds',
+                        'repeat_seconds',
                         'body_content_type',
                         'subject_format',
                         'body_format',
                         'clear_subject_format',
                         'clear_body_format',
-                        'explicit_recipients',
+                        'recipients',
                         'subscriptions'
                     ]
                 },
                 colModel: new Ext.grid.ColumnModel({
                     columns: [{
+                        xtype: 'booleancolumn',
+                        trueText: _t('Yes'),
+                        falseText: _t('No'),
                         dataIndex: 'enabled',
                         header: _t('Enabled'),
                         sortable: true
                     },{
                         dataIndex: 'newId',
                         header: _t('Id'),
-                        width:200,
                         sortable: true
+                    },{
+                        dataIndex: 'subscriptions',
+                        header: _t('Trigger'),
+                        sortable: true,
+                        // use a fancy renderer that get's it's display value 
+                        // from the store that already has the triggers.
+                        renderer: function(value, metaData, record, rowIndex, colIndex, store) {
+                            var idx = triggersComboStore.find('uuid', value);
+                            if (idx > -1) {
+                                return triggersComboStore.getAt(idx).data.name;
+                            }
+                            else {
+                                return value;
+                            }
+                       }
                     },{
                         dataIndex: 'action',
                         header: _t('Action'),
@@ -577,7 +830,7 @@ Ext.onReady(function () {
                     iconCls: 'add',
                     ref: '../addButton',
                     handler: function(button) {
-                        Ext.getCmp(addNotificationDialogueConfig.id).show();
+                        displayNotificationAddDialogue();
                     }
                 },{
                     xtype: 'button',
@@ -723,7 +976,6 @@ Ext.onReady(function () {
                             params;
                         if (row){
                             uid = row.data.uid;
-                            console.log(row.data);
                             // show a confirmation
                             Ext.Msg.show({
                                 title: _t('Delete Subscription Schedule'),

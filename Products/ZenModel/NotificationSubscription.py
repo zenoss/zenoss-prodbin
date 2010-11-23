@@ -22,23 +22,6 @@ from Products.ZenModel.ZenModelRM import ZenModelRM
 from Products.ZenUtils.guid.interfaces import IGUIDManager
 from Products.ZenUtils.template import Template
 
-
-class InvalidRecipient(Exception):
-    """
-    Raised when trying to find a recipient
-    """
-
-class RecipientManager(object):
-    def __init__(self, dmd):
-        self.guidManager = IGUIDManager(dmd)
-    
-    def findRecipient(self, uuid):
-        recipient = self.guidManager.getObject(uuid)
-        if not recipient:
-            raise InvalidRecipient('Could not find recipient for uuid: "%s"' % uuid)
-        return recipient
-
-
 def manage_addNotificationSubscriptionManager(context, REQUEST=None):
     """Create the notification subscription manager."""
     nsm = NotificationSubscriptionManager(NotificationSubscriptionManager.root)
@@ -103,6 +86,9 @@ class NotificationSubscription(ZenModelRM):
     content_types = ('text', 'html')
     body_content_type = 'html'
     
+    delay_seconds = 0
+    repeat_seconds = 0
+    
     subject_format = "[zenoss] %(device)s %(summary)s"
     body_format =  "Device: %(device)s\n" \
         "Component: %(component)s\n" \
@@ -133,21 +119,23 @@ class NotificationSubscription(ZenModelRM):
     # the manual_recipients property will hold whatever the user types in, such
     # as a list of emails or whatever else they put in. For each action this
     # will be combined with the targets - the result will filter duplicates out.
-    explicit_recipients = ''
+    # explicit_recipients = ''
 
     # a list of trigger uuids that this notification is subscribed to.
     subscriptions = []
 
     _properties = ZenModelRM._properties + (
         {'id':'enabled', 'type':'boolean', 'mode':'w'},
-        {'id':'action', 'type':'text', 'mode':'w'},
+        #{'id':'action', 'type':'text', 'mode':'w'},
         {'id':'body_content_type', 'type':'text', 'mode':'w'},
+        {'id':'delay_seconds', 'type':'int', 'mode':'w'},
+        {'id':'repeat_seconds', 'type':'int', 'mode':'w'},
         {'id':'subject_format', 'type':'text', 'mode':'w'},
         {'id':'body_format', 'type':'text', 'mode':'w'},
         {'id':'clear_subject_format', 'type':'text', 'mode':'w'},
         {'id':'clear_body_format', 'type':'text', 'mode':'w'},
-        {'id':'explicit_recipients', 'type':'text', 'mode':'w'},
-        {'id':'subscriptions', 'type':'text', 'mode':'w'},
+        #{'id':'recipients', 'type':'text', 'mode':'w'},
+        #{'id':'subscriptions', 'type':'text', 'mode':'w'},
     )
 
     _relations = (
@@ -187,32 +175,6 @@ class NotificationSubscription(ZenModelRM):
     def manage_editNotificationSubscription(self, REQUEST=None):
         """Update notification subscription properties"""
         return self.zmanage_editProperties(REQUEST)
-    
-    def getRecipients(self):
-        """
-        Return the list of all of the recipient objects of this subscription.
-        """
-        recipients = []
-        for uuid in self.recipients:
-            obj = self.recipientManager.findRecipient(uuid)
-            recipients.append(obj)
-            log.debug('Found %s when looking up uuid: %s' % (obj, uuid))
-        return recipients
-        
-    def addRecipient(self, uuid):
-        """
-        Add a recipient to the list of recipients of this particular notification.
-        
-        @param uuid: The uuid of the recipient object (User, Group, etc.)
-        @type uuid: string
-        """
-        self.recipients.append(uuid)
-    
-    def getExplicitRecipients(self):
-        if self.explicit_recipients:
-            return self.explicit_recipients.split(',')
-        else:
-            return []
     
     def isActive(self):
         """

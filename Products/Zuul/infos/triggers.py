@@ -28,14 +28,20 @@ class NotificationSubscriptionInfo(InfoBase):
         return self._object.id
         
     enabled = ProxyProperty('enabled')
-    title = ProxyProperty('title')
+    
+    delay_seconds = ProxyProperty('delay_seconds')
+    repeat_seconds = ProxyProperty('repeat_seconds')
+    
     action = ProxyProperty('action')
     body_content_type = ProxyProperty('body_content_type')
+    
     subject_format =ProxyProperty('subject_format')
     body_format = ProxyProperty('body_format')
     clear_subject_format =ProxyProperty('clear_subject_format')
     clear_body_format = ProxyProperty('clear_body_format')
-    explicit_recipients = ProxyProperty('explicit_recipients')
+    
+    recipients = ProxyProperty('recipients')
+    #explicit_recipients = ProxyProperty('explicit_recipients')
     
     def _getSubscriptions(self):
         if self._object.subscriptions:

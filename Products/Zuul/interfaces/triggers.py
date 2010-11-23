@@ -15,6 +15,7 @@ from Products.Zuul.interfaces import IFacade, IInfo
 from Products.Zuul.form import schema
 from Products.Zuul.utils import ZuulMessageFactory as _t
 
+
 class ITriggersFacade(IFacade):
     """
     When dealing with triggers, there are some variables named 'uuid' - these
@@ -63,6 +64,9 @@ class ITriggersFacade(IFacade):
     def updateNotification(**data):
         pass
     
+    def getRecipientOptions():
+        pass
+    
     # subscription windows
     def getWindows(uid):
         pass
@@ -79,7 +83,6 @@ class ITriggersFacade(IFacade):
     def updateWindow(**data):
         pass
 
-
 class INotificationSubscriptionInfo(IInfo):
     """
     Notification information regarding signals that occur as a result of an
@@ -93,16 +96,13 @@ class INotificationSubscriptionInfo(IInfo):
     
     enabled = schema.Bool(title=_t(u'Enabled'))
     
+    delay_seconds = schema.Int(title=_t(u'Delay (seconds)'))
+    repeat_seconds = schema.Int(title=_t(u'Repeat (seconds)'))
+    
     action = schema.Choice(
         title=_t(u'Action'),
         vocabulary='notificationActionTypeVocabulary'
     )
-    
-    target_source = schema.Text(
-        title=_t(u'Specific Targets'),
-        description=_t('Manually specify comma separated targets for this action.')
-    )
-    
     body_content_type = schema.Choice(
         title=_t(u'Body Content Type'),
         vocabulary='notificationActionTypeVocabulary'
@@ -112,13 +112,11 @@ class INotificationSubscriptionInfo(IInfo):
         title=_t(u'Message (or Subject)'),
         group=_t(u'Message')
     )
-    
     body_format = schema.Text(
         title=_t(u'Body'), 
         group=_t(u'Message'),
         xtype='twocolumntextarea'
     )
-    
     clear_subject_format = schema.Text(
         title=_t(u'Clear Message (or Subject)'), 
         group=_t(u'Clear Message')
@@ -128,6 +126,15 @@ class INotificationSubscriptionInfo(IInfo):
         group=_t(u'Clear Message'),
         xtype='twocolumntextarea'
     )
+    
+    # this is a list of the user/group/roles that have subscribed to this
+    # notification.
+    recipients = schema.List(title=_t(u'Subscribers'));
+    
+    # explicit_recipients = schema.Text(
+    #     title=_t(u'Specific Recipients'),
+    #     description=_t('Manually specify comma separated targets for this action.')
+    # )
 
 class INotificationWindowInfo(IInfo):
     """

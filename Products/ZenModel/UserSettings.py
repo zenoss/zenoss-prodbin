@@ -35,6 +35,7 @@ from Products.ZenRelations.RelSchema import *
 from Products.ZenUtils import Time
 from Products.ZenUtils.Utils import unused, prepId
 from Products.ZenUtils import DotNetCommunication
+from Products.ZenUtils.guid.interfaces import IGloballyIdentifiable
 from Products.ZenWidgets import messaging
 from Products.ZenModel.interfaces import IProvidesEmailAddresses, IProvidesPagerAddresses
 
@@ -548,7 +549,7 @@ addUserSettings = DTMLFile('dtml/addUserSettings',globals())
 class UserSettings(ZenModelRM):
     """zenoss user folder has users preferences.
     """
-    implements(IProvidesEmailAddresses, IProvidesPagerAddresses)
+    implements(IProvidesEmailAddresses, IProvidesPagerAddresses, IGloballyIdentifiable)
 
     meta_type = "UserSettings"
 
