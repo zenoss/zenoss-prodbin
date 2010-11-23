@@ -26,8 +26,10 @@ from Products.Zuul.decorators import require
 from Products.Zuul.routers.events import EventsRouter
 from datetime import datetime
 from zenoss.protocols.protobufs.zep_pb2 import EventSummary, Event
+from json import loads
 
 log = logging.getLogger(__name__)
+
 
 # TODO Temporarily extend EventsRouter till all methods are implemented
 class ZepRouter(EventsRouter):
@@ -41,39 +43,23 @@ class ZepRouter(EventsRouter):
         self.api = getFacade('event', context)
 
     def _mapToOldEvent(self, event_summary):
-        def statusToName(status):
-            enum = EventSummary.DESCRIPTOR.fields_by_name['status'].enum_type
-            return enum.values_by_number[status].name.replace('STATUS_', '').lower().title()
-
-        def severityToName(severity):
-            enum = Event.DESCRIPTOR.fields_by_name['severity'].enum_type
-            map = {
-                'SEVERITY_CLEAR' : 0,
-                'SEVERITY_DEBUG' : 1,
-                'SEVERITY_INFO' : 2,
-                'SEVERITY_WARNING' : 3,
-                'SEVERITY_ERROR' :  4,
-                'SEVERITY_CRITICAL' : 5,
-            }
-
-            return map[enum.values_by_number[severity].name]
-
         eventOccurrence = event_summary['occurrence'][0]
+
         eventClass = eventOccurrence['event_class']
         event = {
             'id' : event_summary['uuid'],
             'evid' : event_summary['uuid'],
             'device' : {'text': eventOccurrence['actor'].get('element_identifier', None), 'uid': None},
             'component' : {'text': eventOccurrence['actor'].get('element_sub_identifier', None), 'uid': None},
-            'created' : str(datetime.utcfromtimestamp(eventOccurrence['created_time'] / 1000)),
+#            'created' : str(datetime.utcfromtimestamp(eventOccurrence['created_time'] / 1000)),
             'firstTime' : str(datetime.utcfromtimestamp(event_summary['first_seen_time'] / 1000)),
             'lastTime' : str(datetime.utcfromtimestamp(event_summary['last_seen_time'] / 1000)),
             'eventClass' : {"text": eventClass, "uid": "/zport/dmd/Events%s" % eventClass},
-            'dedupid' : eventOccurrence['fingerprint'],
+            #'dedupid' : eventOccurrence['fingerprint'],
             'eventKey' : eventOccurrence.get('event_key', None),
             'summary' : eventOccurrence['summary'],
-            'severity' : severityToName(eventOccurrence['severity']),
-            'eventState' : statusToName(event_summary['status']),
+#            'severity' : EventSeverity.getNumber(eventOccurrence['severity']),
+#            'eventState' : EventStatus.getPrettyName(event_summary['status']),
             'count' : event_summary['count'],
             #IGuidManager(dmd).getObject(uuid)
         }
@@ -116,7 +102,22 @@ class ZepRouter(EventsRouter):
         if uid is None:
             uid = self.context
 
-        events = self.zep.getEventSummaries(limit, start, sort)
+        params = loads(params)
+        filter = self.zep.createFilter(
+            summary = params.get('summary'),
+            event_class = params.get('eventClass'),
+            # FIXME Status from front-end is off by 1
+            status = [i + 1 for i in params.get('eventState', [])],
+            severity = params.get('severity'),
+            first_time = params.get('firstTime'),
+            last_time = params.get('lastTime'),
+            tags = params.get('tags'),
+            count = params.get('count'),
+            element_identifier = params.get('device'),
+            element_sub_identifier = params.get('component'),
+        )
+
+        events = self.zep.getEventSummaries(limit=limit, offset=start, sort=sort, filter=filter)
 
         return DirectResponse.succeed(
             events = [self._mapToOldEvent(e) for e in events['events']],
