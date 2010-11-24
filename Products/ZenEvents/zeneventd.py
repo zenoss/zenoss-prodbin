@@ -19,10 +19,12 @@ Apply up-front preprocessing to events.
 import Globals
 import os
 
+from zope.component import getUtilitiesFor
 from Products.ZenMessaging.queuemessaging.QueueConsumer import QueueConsumer
-from Products.ZenMessaging.queuemessaging.interfaces import IQueueConsumerTask, IProtobufSerializer
+from Products.ZenMessaging.queuemessaging.interfaces import IQueueConsumerTask
 from Products.ZenUtils.ZCmdBase import ZCmdBase
-from zenoss.protocols.protobufs.zep_pb2 import RawEvent, ZepRawEvent, EventDetail, EventIndex, EventActor, SEVERITY_CLEAR
+from zenoss.protocols.protobufs.zep_pb2 import RawEvent, ZepRawEvent
+from zenoss.protocols.protobufs.zep_pb2 import EventActor, SEVERITY_CLEAR
 from zenoss.protocols.protobufs.zep_pb2 import (
     STATUS_NEW,
     STATUS_ACKNOWLEDGED,
@@ -33,7 +35,7 @@ from zenoss.protocols.protobufs.zep_pb2 import (
     STATUS_AGED)
 from zenoss.protocols.protobufs.model_pb2 import DEVICE, COMPONENT, SERVICE
 from zenoss.protocols.amqpconfig import getAMQPConfiguration
-from twisted.internet import reactor, protocol, defer
+from twisted.internet import reactor, defer
 from twisted.internet.error import ReactorNotRunning
 from zope.interface import implements
 
@@ -41,13 +43,13 @@ from Products.ZenEvents.MySqlSendEvent import EventTransformer
 TRANSFORM_EVENT_IN_EVENTD = True
 
 from Products.ZenEvents.transformApi import Event as TransformEvent
-from Products.ZenEvents.EventManagerBase import EventManagerBase
 from Products.ZenUtils.guid.interfaces import IGUIDManager, IGlobalIdentifier
 from Products.Zuul.interfaces import ICatalogTool, IInfo
 from Products.ZenModel.Device import Device
 from Products.ZenModel.DeviceComponent import DeviceComponent
 from Products.AdvancedQuery import Eq
-from Products.ZenModel.DeviceClass import DeviceClass
+
+from Products.ZenEvents.interfaces import IEventPlugin
 
 import logging
 log = logging.getLogger("zen.eventd")
@@ -294,6 +296,7 @@ class ProcessEventMessageTask(object):
         Handles a queue message, can call "acknowledge" on the Queue Consumer
         class when it is done with the message
         """
+        self.dmd._p_jar.sync()
         try:
             # read message from queue; if MARKER, just return
             if message.content.body == self.queueConsumer.MARKER:
@@ -393,6 +396,14 @@ class ProcessEventMessageTask(object):
 
             # convert event details dict back to event details name-values
             self.eventDetailDictToNameValues(event, evtdetails)
+
+            # Apply any event plugins
+            for name, plugin in getUtilitiesFor(IEventPlugin):
+                try:
+                    plugin.apply(zepevent, self.dmd)
+                except Exception, e:
+                    log.exception('Event plugin %s encountered an error; skipping.' % name)
+                    continue
 
             # forward event to output queue
             self.publishEvent(zepevent)

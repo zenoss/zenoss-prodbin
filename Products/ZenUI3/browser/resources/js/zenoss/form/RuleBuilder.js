@@ -383,13 +383,19 @@
         getValue: function() {
             var values = [],
                 joiner = ZF.CONJUNCTIONS[this.conjunction.getValue()].tpl;
-            Ext.each(this.clauses.items.items, function(clause) {
-                var value = clause.getValue();
-                if (value) {
-                    values.push(String.format("({0})", value));
-                }
-            }, this);
-            return values.join(joiner);
+            if (this.clauses.items.items.length==1) {
+                // If there's only one, we don't want to wrap it in the extra
+                // parens, so treat it like it's just a regular clause
+                return this.clauses.items.items[0].getValue();
+            } else {
+                Ext.each(this.clauses.items.items, function(clause) {
+                    var value = clause.getValue();
+                    if (value) {
+                        values.push(String.format("({0})", value));
+                    }
+                }, this);
+                return values.join(joiner);
+            }
         },
         setValue: function(expression) {
             var c, q, i=0, p=0, tokens=[], token=[], 
@@ -508,12 +514,33 @@
             return this.rootrule.getValue();
         },
         setValue: function(expression) {
-            this.rootrule.setValue(expression);
+            if (!expression) {
+                this.reset();
+            } else {
+                this.rootrule.setValue(expression);
+            }
             this.doLayout();
+        },
+        reset: function() {
+            this.rootrule.clauses.removeAll();
+            this.rootrule.clauses.add({
+                xtype: 'ruleclause'
+            });
         }
     });
 
     Ext.reg('rulebuilder', ZF.RuleBuilder);
+
+    ZF.STRINGCOMPARISONS = [
+        'doesnotcontain',
+        'doesnotstartwith',
+        'doesnotendwith',
+        'contains',
+        'startswith',
+        'endswith',
+        'equals',
+        'doesnotequal'
+    ]
 
     ZF.NUMBERCOMPARISONS = [
         'equals',
@@ -551,6 +578,36 @@
     };
 
     Ext.apply(ZF, {
+        EVENTSEVERITY: {
+            text: _t('Severity'),
+            value: 'severity',
+            comparisons: ZF.NUMBERCOMPARISONS,
+            field: {
+                xtype: 'combo',
+                mode: 'local',
+                valueField: 'value',
+                displayField: 'name',
+                typeAhead: false,
+                forceSelection: true,
+                triggerAction: 'all',
+                store: new Ext.data.ArrayStore({
+                    fields: ['name', 'value'],
+                    data: [[
+                        _t('Critical'), 5
+                    ],[
+                        _t('Error'), 4
+                    ],[
+                        _t('Warning'), 3
+                    ],[
+                        _t('Info'), 2
+                    ],[
+                        _t('Debug'), 1
+                    ],[
+                        _t('Clear'), 0
+                    ]]
+                })
+            }
+        },
         PRODUCTIONSTATE: {
             text: _t('Production state'),
             value: 'productionState',
@@ -572,6 +629,26 @@
         DEVICE: {
             text: _t('Device'),
             value: 'device_uuid',
+            comparisons: ZF.IDENTITYCOMPARISONS,
+            field: {
+                xtype: 'combo',
+                setValue: smarterSetValue,
+                mode: 'remote',
+                store: new Ext.data.DirectStore({
+                    directFn: Zenoss.remote.DeviceRouter.getDeviceUuidsByName,
+                    root: 'data',
+                    fields: ['name', 'uuid']
+                }),
+                typeAhead: true,
+                valueField: 'uuid',
+                displayField: 'name',
+                forceSelection: true,
+                triggerAction: 'all'
+            }
+        },
+        COMPONENT: {
+            text: _t('Component'),
+            value: 'component_uuid',
             comparisons: ZF.IDENTITYCOMPARISONS,
             field: {
                 xtype: 'combo',

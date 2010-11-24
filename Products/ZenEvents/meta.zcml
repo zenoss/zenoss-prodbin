@@ -1,0 +1,11 @@
+<configure xmlns="http://namespaces.zope.org/meta">
+<directives namespace="http://namespaces.zope.org/zope">
+
+    <directive
+        name="eventPlugin"
+        schema=".metadirectives.IEventPluginDirective"
+        handler=".metaconfigure.eventPlugin"
+        />
+
+</directives>
+</configure>
