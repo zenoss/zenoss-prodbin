@@ -33,13 +33,20 @@ def LocalDateTime(gmtSecondsSince1970 = None):
     secs = value % 60
     return time.strftime("%Y/%m/%d %H:%M:%%06.3f", time.localtime(value)) % secs
 
+def LocalDateTimeFromMilli(milliseconds):
+    """
+    @param milliseconds:: UTC timestamp in milliseconds
+    """
+    return LocalDateTime(milliseconds / 1000)
+
+
 def isoDateTime(gmtSecondsSince1970 = None):
     value = _maybenow(gmtSecondsSince1970)
     return time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(value))
 
 def LocalDateTimeSecsResolution(gmtSecondsSince1970 = None):
     value = _maybenow(gmtSecondsSince1970)
-    return time.strftime("%Y/%m/%d %H:%M:%S", time.localtime(value)) 
+    return time.strftime("%Y/%m/%d %H:%M:%S", time.localtime(value))
 
 def USDate(gmtSecondsSince1970 = None):
     value = _maybenow(gmtSecondsSince1970)
@@ -84,8 +91,8 @@ def getEndOfDay(gmtSecondsSince1970=None):
 
 def isoToTimestamp(value):
     """
-    converts a iso time string that does not contain a timezone, ie. 
-    YYYY-MM-DD HH:MM:SS, to a timestamp in seconds since 1970; uses the system 
+    converts a iso time string that does not contain a timezone, ie.
+    YYYY-MM-DD HH:MM:SS, to a timestamp in seconds since 1970; uses the system
     timezone
     """
     timeStr = value.replace('T', ' ')

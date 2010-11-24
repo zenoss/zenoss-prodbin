@@ -20,7 +20,9 @@ import time
 import logging
 import DateTime # Zope DateTime, not python datetime
 from Products.ZenUtils.Ext import DirectRouter
+from AccessControl import getSecurityManager
 from Products.ZenUtils.extdirect.router import DirectResponse
+from Products.ZenUtils.Time import LocalDateTimeFromMilli
 from Products.Zuul import getFacade
 from Products.Zuul.decorators import require
 from Products.Zuul.routers.events import EventsRouter
@@ -70,15 +72,17 @@ class ZepRouter(EventsRouter):
             'device' : {
                 'text': eventOccurrence['actor'].get('element_identifier', None),
                 'uid': None,
+                'url' : self._uuidUrl(eventOccurrence['actor'].get('element_uuid', None)),
                 'uuid' : eventOccurrence['actor'].get('element_uuid', None)
             },
             'component' : {
                 'text': eventOccurrence['actor'].get('element_sub_identifier', None),
                 'uid': None,
+                'url' : self._uuidUrl(eventOccurrence['actor'].get('element_sub_uuid', None)),
                 'uuid' : eventOccurrence['actor'].get('element_sub_uuid', None)
             },
-            'firstTime' : str(datetime.utcfromtimestamp(event_summary['first_seen_time'] / 1000)),
-            'lastTime' : str(datetime.utcfromtimestamp(event_summary['last_seen_time'] / 1000)),
+            'firstTime' : LocalDateTimeFromMilli(event_summary['first_seen_time']),
+            'lastTime' : LocalDateTimeFromMilli(event_summary['last_seen_time'] ),
             'eventClass' : {"text": eventClass, "uid": "/zport/dmd/Events%s" % eventClass},
             'eventKey' : eventOccurrence.get('event_key', None),
             'summary' : eventOccurrence['summary'],
@@ -169,6 +173,10 @@ class ZepRouter(EventsRouter):
             asof = time.time()
         )
 
+    def _uuidUrl(self, uuid):
+        if uuid:
+            return '/zport/dmd/goto?guid=%s' % uuid;
+
     @require('ZenCommon')
     def detail(self, evid, history=False):
         """
@@ -193,14 +201,14 @@ class ZepRouter(EventsRouter):
                 'evid' : event_summary['uuid'],
                 'device' : eventOccurrence['actor'].get('element_identifier', None),
                 'device_title' : eventOccurrence['actor'].get('element_identifier', None),
-                'device_url' : None,
+                'device_url' : self._uuidUrl(eventOccurrence['actor'].get('element_uuid', None)),
                 'device_uuid' : eventOccurrence['actor'].get('element_uuid', None),
                 'component' : eventOccurrence['actor'].get('element_sub_identifier', None),
                 'component_title' : eventOccurrence['actor'].get('element_sub_identifier', None),
-                'component_url' : None,
+                'component_url' : self._uuidUrl(eventOccurrence['actor'].get('element_sub_uuid', None)),
                 'component_uuid' : eventOccurrence['actor'].get('element_sub_uuid', None),
-                'firstTime' : str(datetime.utcfromtimestamp(event_summary['first_seen_time'] / 1000)),
-                'lastTime' : str(datetime.utcfromtimestamp(event_summary['last_seen_time'] / 1000)),
+                'firstTime' : LocalDateTimeFromMilli(event_summary['first_seen_time']),
+                'lastTime' : LocalDateTimeFromMilli(event_summary['last_seen_time']),
                 'eventClass' : eventClass,
                 'eventClass_url' : "/zport/dmd/Events%s" % eventClass,
                 'severity' : eventOccurrence['severity'],
@@ -212,13 +220,13 @@ class ZepRouter(EventsRouter):
                     'evid' : event_summary['uuid'],
                     'device' : eventOccurrence['actor'].get('element_identifier', None),
                     'component' : eventOccurrence['actor'].get('element_sub_identifier', None),
-                    'firstTime' : str(datetime.utcfromtimestamp(event_summary['first_seen_time'] / 1000)),
-                    'lastTime' : str(datetime.utcfromtimestamp(event_summary['last_seen_time'] / 1000)),
-                    'stateChange' : str(datetime.utcfromtimestamp(event_summary['status_change_time'] / 1000)),
+                    'firstTime' : LocalDateTimeFromMilli(event_summary['first_seen_time']),
+                    'lastTime' : LocalDateTimeFromMilli(event_summary['last_seen_time']),
+                    'stateChange' : LocalDateTimeFromMilli(event_summary['status_change_time']),
                     'dedupid' : eventOccurrence['fingerprint'],
                     'eventClass' : eventClass,
                     'eventClassKey' :  eventOccurrence['event_class'],
-                    'eventClassMapping_uuid' :  eventOccurrence.get('event_class_mapping_uuid'),
+                    'eventClassMapping_uuid' : self._uuidUrl(eventOccurrence.get('event_class_mapping_uuid')),
                     'eventKey' : eventOccurrence.get('event_key', None),
                     'summary' : eventOccurrence.get('summary'),
                     'severity' : eventOccurrence.get('severity'),
@@ -231,6 +239,10 @@ class ZepRouter(EventsRouter):
                 'log' : []
             }
 
+            if 'notes' in event_summary:
+                for note in event_summary['notes']:
+                    eventData['log'].append((note['user_name'], LocalDateTimeFromMilli(note['created_time']), note['message']))
+
             if 'details' in eventOccurrence:
                 for detail in eventOccurrence['details']:
                     eventData['properties'][detail['name']] = detail['value']
@@ -238,3 +250,153 @@ class ZepRouter(EventsRouter):
             return DirectResponse.succeed(event=[eventData])
         else:
             raise Exception('Could not find event %s' % evid)
+
+    @require('Manage Events')
+    def write_log(self, evid=None, message=None, history=False):
+        """
+        Write a message to an event's log.
+
+        @type  evid: string
+        @param evid: Event ID to log to
+        @type  message: string
+        @param message: Message to log
+        @type  history: Deprecated
+        @rtype:   DirectResponse
+        @return:  Success message
+        """
+
+        userName = getSecurityManager().getUser().getId()
+
+        self.zep.addNote(uuid=evid, message=message, userName=userName)
+
+        return DirectResponse.succeed()
+
+    @require('Manage Events')
+    def close(self, evids=None, excludeIds=None, selectState=None, field=None,
+              direction=None, params=None, history=False, uid=None, asof=None):
+        """
+        Close event(s).
+
+        @type  evids: [string]
+        @param evids: (optional) List of event IDs to close (default: None)
+        @type  excludeIds: [string]
+        @param excludeIds: (optional) List of event IDs to exclude from
+                           close (default: None)
+        @type  selectState: string
+        @param selectState: (optional) Select event ids based on select state.
+                            Available values are: All, New, Acknowledged, and
+                            Suppressed (default: None)
+        @type  field: string
+        @param field: (optional) Field key to filter gathered events (default:
+                      None)
+        @type  direction: string
+        @param direction: (optional) Sort order; can be either 'ASC' or 'DESC'
+                          (default: 'DESC')
+        @type  params: dictionary
+        @param params: (optional) Key-value pair of filters for this search.
+                       (default: None)
+        @type  history: boolean
+        @param history: (optional) True to use the event history table instead
+                        of active events (default: False)
+        @type  uid: string
+        @param uid: (optional) Context for the query (default: None)
+        @type  asof: float
+        @param asof: (optional) Only close if there has been no state
+                     change since this time (default: None)
+        @rtype:   DirectResponse
+        @return:  Success message
+        """
+        if uid is None:
+            uid = self.context
+        self.zep.closeEventSummary(evids[0])
+        return DirectResponse.succeed()
+
+    @require('Manage Events')
+    def acknowledge(self, evids=None, excludeIds=None, selectState=None,
+                    field=None, direction=None, params=None, history=False,
+                    uid=None, asof=None):
+        """
+        Acknowledge event(s).
+
+        @type  evids: [string]
+        @param evids: (optional) List of event IDs to acknowledge (default: None)
+        @type  excludeIds: [string]
+        @param excludeIds: (optional) List of event IDs to exclude from
+                           acknowledgment (default: None)
+        @type  selectState: string
+        @param selectState: (optional) Select event ids based on select state.
+                            Available values are: All, New, Acknowledged, and
+                            Suppressed (default: None)
+        @type  field: string
+        @param field: (optional) Field key to filter gathered events (default:
+                      None)
+        @type  direction: string
+        @param direction: (optional) Sort order; can be either 'ASC' or 'DESC'
+                          (default: 'DESC')
+        @type  params: dictionary
+        @param params: (optional) Key-value pair of filters for this search.
+                       (default: None)
+        @type  history: boolean
+        @param history: (optional) True to use the event history table instead
+                        of active events (default: False)
+        @type  uid: string
+        @param uid: (optional) Context for the query (default: None)
+        @type  asof: float
+        @param asof: (optional) Only acknowledge if there has been no state
+                     change since this time (default: None)
+        @rtype:   DirectResponse
+        @return:  Success message
+        """
+        if uid is None:
+            uid = self.context
+
+        userName = getSecurityManager().getUser().getId()
+        self.zep.acknowledgeEventSummary(evids[0], userName=userName)
+        return DirectResponse.succeed()
+
+    @require('Manage Events')
+    def unacknowledge(self, *args, **kwargs):
+        """
+        @Deprecated Use reopen
+        """
+        return self.reopen(*args, **kwargs)
+
+    @require('Manage Events')
+    def reopen(self, evids=None, excludeIds=None, selectState=None, field=None,
+               direction=None, params=None, history=False, uid=None, asof=None):
+        """
+        Reopen event(s).
+
+        @type  evids: [string]
+        @param evids: (optional) List of event IDs to reopen (default: None)
+        @type  excludeIds: [string]
+        @param excludeIds: (optional) List of event IDs to exclude from
+                           reopen (default: None)
+        @type  selectState: string
+        @param selectState: (optional) Select event ids based on select state.
+                            Available values are: All, New, Acknowledged, and
+                            Suppressed (default: None)
+        @type  field: string
+        @param field: (optional) Field key to filter gathered events (default:
+                      None)
+        @type  direction: string
+        @param direction: (optional) Sort order; can be either 'ASC' or 'DESC'
+                          (default: 'DESC')
+        @type  params: dictionary
+        @param params: (optional) Key-value pair of filters for this search.
+                       (default: None)
+        @type  history: boolean
+        @param history: (optional) True to use the event history table instead
+                        of active events (default: False)
+        @type  uid: string
+        @param uid: (optional) Context for the query (default: None)
+        @type  asof: float
+        @param asof: (optional) Only reopen if there has been no state
+                     change since this time (default: None)
+        @rtype:   DirectResponse
+        @return:  Success message
+        """
+        if uid is None:
+            uid = self.context
+        self.zep.reopenEventSummary(evids[0])
+        return DirectResponse.succeed()

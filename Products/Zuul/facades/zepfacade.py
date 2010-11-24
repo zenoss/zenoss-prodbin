@@ -135,6 +135,34 @@ class ZepFacade(ZuulFacade):
             'events' : (to_dict(event) for event in content.events),
         }
 
+    def _getUserUuid(self, userName):
+        # Lookup the user uuid
+        user = self._dmd.ZenUsers.getUser(userName)
+        if user:
+            return IGlobalIdentifier(user).getGUID()
+
     def getEventSummary(self, uuid):
         response, content = self.client.getEventSummary(uuid)
         return to_dict(content)
+
+    def addNote(self, uuid, message, userName, userUuid=None):
+        if userName and not userUuid:
+            userUuid = self._getUserUuid(userName)
+            if not userUuid:
+                raise Exception('Could not find user "%s"' % userName)
+
+        self.client.addNote(uuid, message, userUuid, userName)
+
+    def closeEventSummary(self, uuid):
+        return self.client.closeEventSummary(uuid)
+
+    def acknowledgeEventSummary(self, uuid, userName=None, userUuid=None):
+        if userName and not userUuid:
+            userUuid = self._getUserUuid(userName)
+            if not userUuid:
+                raise Exception('Could not find user "%s"' % userName)
+
+        return self.client.acknowledgeEventSummary(uuid, userUuid)
+
+    def reopenEventSummary(self, uuid):
+        return self.client.reopenEventSummary(uuid)
