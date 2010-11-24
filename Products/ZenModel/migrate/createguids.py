@@ -10,25 +10,30 @@
 # For complete information please visit: http://www.zenoss.com/oss/
 #
 ###########################################################################
+
+import logging
 import Migrate
 
-from zope.component import provideHandler
 from Products.Zuul.interfaces import ICatalogTool
-from Products.ZenUtils.guid.interfaces import IGlobalIdentifier
-from Products.ZenModel.DeviceOrganizer import DeviceOrganizer
+from Products.ZenUtils.guid.interfaces import IGloballyIdentifiable, IGlobalIdentifier
 
-Device = 'Products.ZenModel.Device.Device'
-DeviceComponent = 'Products.ZenModel.DeviceComponent.DeviceComponent'
+log = logging.getLogger("zen.migrate")
 
-class CreateGUIDsForDeviceAndComponent(Migrate.Step):
+class CreateMissingGuids(Migrate.Step):
     version = Migrate.Version(3, 1, 0)
     def __init__(self):
         Migrate.Step.__init__(self)
 
     def cutover(self, dmd):
-        if getattr(dmd, 'guid_table', None) is None:
-            for b in ICatalogTool(dmd).search((Device, DeviceComponent, 
-                                               DeviceOrganizer)):
-                IGlobalIdentifier(b.getObject()).create(force=True)
+        force = getattr(dmd, 'guid_table', None) is None
 
-CreateGUIDsForDeviceAndComponent()
+        log.debug('Creating GUIDs...')
+        identifiables = [o.__name__ for o in IGloballyIdentifiable.dependents.keys()]
+        for brain in ICatalogTool(dmd).search(identifiables):
+            obj = brain.getObject()
+            identifier = IGlobalIdentifier(obj)
+            if force or not identifier.getGUID():
+                guid = identifier.create(force)
+                log.debug('Created guid for %s: %s', '/'.join(obj.getPrimaryPath()[3:]), guid)
+
+CreateMissingGuids()
