@@ -40,6 +40,7 @@ from zope.interface import implements
 import logging
 log = logging.getLogger("zen.zenactiond")
 
+class ActionExecutionException(Exception): pass
 
 class NotificationDao(object):
     def __init__(self):
@@ -140,8 +141,10 @@ class EmailAction(object):
             log.info("Notification '%s' sent email to:%s",
                 notification.id, target)
         else:
-            log.error("Notification '%s' failed to send email to %s: %s",
-                notification.id, target, errorMsg)
+            raise ActionExecutionException(
+                "Notification '%s' failed to send email to %s: %s" % 
+                (notification.id, target, errorMsg)
+            )
     
     def getActionableTargets(self, target):
         if IProvidesEmailAddresses.providedBy(target):
@@ -183,7 +186,7 @@ class PageAction(object):
         if success:
             log.info('Success sending page to %s: %s' % (target, subject))
         else:
-            log.info('Failed to send page to %s: %s %s' % (target, subject, errorMsg))
+            raise ActionExecutionException('Failed to send page to %s: %s %s' % (target, subject, errorMsg))
     
     def getActionableTargets(self, target):
         if IProvidesPagerAddresses.providedBy(target):
@@ -242,14 +245,12 @@ class ProcessSignalTask(object):
             self.processSignal(signal)
             
         except Exception, e:
-            # Do not acknowledge the message, let it go and try again.
-            # @TODO: make this submit this error to some sort of queue.
             log.exception(e)
+            # FIXME: Send to an error queue instead of acknowledge.
             log.error('Acknowledging broken message.')
             self.queueConsumer.acknowledge(message)
             
         else:
-            # ack only if no errors
             self.queueConsumer.acknowledge(message)
         
     def processSignal(self, signal):
@@ -271,7 +272,22 @@ class ProcessSignalTask(object):
             
             for target in set(targets):
                 log.debug('executing action for target: %s' % target)
-                action.execute(target, notification, signal)
+                try:
+                    action.execute(target, notification, signal)
+                except ActionExecutionException, e:
+                    # If there is an error executing this action on a target, 
+                    # we need to handle it, but we don't want to prevent other
+                    # actions from executing on any other targets that may be
+                    # about to be acted on.
+                    # @FIXME: Make this do something better for failed execution
+                    # per target.
+                    log.exception(e)
+                    log.error('Error executing action for target: {target}, {notification} with signal: {signal}'.format(
+                        target = target,
+                        notification = notification,
+                        signal = signal,
+                    ))
+                
                 log.debug('Done executing action for target: %s' % target)
 
 class ZenActionD(ZCmdBase):
