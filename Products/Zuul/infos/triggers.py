@@ -31,6 +31,7 @@ class NotificationSubscriptionInfo(InfoBase):
     
     delay_seconds = ProxyProperty('delay_seconds')
     repeat_seconds = ProxyProperty('repeat_seconds')
+    action_timeout = ProxyProperty('action_timeout')
     
     action = ProxyProperty('action')
     body_content_type = ProxyProperty('body_content_type')

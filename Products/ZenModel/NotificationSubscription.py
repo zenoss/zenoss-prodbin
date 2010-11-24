@@ -92,6 +92,7 @@ class NotificationSubscription(ZenModelRM):
     
     delay_seconds = 0
     repeat_seconds = 0
+    action_timeout = 60
     
     subject_format = "[zenoss] %(device)s %(summary)s"
     body_format =  "Device: %(device)s\n" \
@@ -125,16 +126,14 @@ class NotificationSubscription(ZenModelRM):
 
     _properties = ZenModelRM._properties + (
         {'id':'enabled', 'type':'boolean', 'mode':'w'},
-        #{'id':'action', 'type':'text', 'mode':'w'},
         {'id':'body_content_type', 'type':'text', 'mode':'w'},
         {'id':'delay_seconds', 'type':'int', 'mode':'w'},
         {'id':'repeat_seconds', 'type':'int', 'mode':'w'},
+        {'id':'action_timeout', 'type':'int', 'mode':'w'},
         {'id':'subject_format', 'type':'text', 'mode':'w'},
         {'id':'body_format', 'type':'text', 'mode':'w'},
         {'id':'clear_subject_format', 'type':'text', 'mode':'w'},
         {'id':'clear_body_format', 'type':'text', 'mode':'w'},
-        #{'id':'recipients', 'type':'text', 'mode':'w'},
-        #{'id':'subscriptions', 'type':'text', 'mode':'w'},
     )
 
     _relations = (

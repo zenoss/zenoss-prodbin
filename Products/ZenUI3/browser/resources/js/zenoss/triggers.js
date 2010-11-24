@@ -235,7 +235,8 @@ Ext.onReady(function () {
         // recipients grid more user friendly.
         var ACTION_TYPE_MAP = {
             'email': _t('Email'),
-            'page': _t('Page')
+            'page': _t('Page'),
+            'command': _t('Command')
         };
         
         if (data.action == 'email') {
@@ -294,6 +295,35 @@ Ext.onReady(function () {
                     this.body_format.setValue(data.body_format);
                     this.clear_subject_format.setValue(data.clear_subject_format);
                     this.clear_body_format.setValue(data.clear_body_format);
+                }
+            });
+        }
+        else if (data.action == 'command') {
+            tab_content = new NotificationTabContent({
+                title: 'Content',
+                defaults: {
+                    width: 280
+                },
+                items: [{
+                    xtype: 'textfield',
+                    name: 'action_timeout',
+                    ref: 'action_timeout',
+                    fieldLabel: _t('Command Timeout')
+                },{
+                    xtype: 'textarea',
+                    name: 'body_format',
+                    ref: 'body_format',
+                    fieldLabel: _t('Shell Command')
+                },{
+                    xtype: 'textarea',
+                    name: 'clear_body_format',
+                    ref: 'clear_body_format',
+                    fieldLabel: _t('Clear Shell Command')
+                }],
+                loadData: function(data) {
+                    this.body_format.setValue(data.body_format);
+                    this.clear_body_format.setValue(data.clear_body_format);
+                    this.action_timeout.setValue(data.action_timeout);
                 }
             });
         }
@@ -540,7 +570,8 @@ Ext.onReady(function () {
                             id: 0,
                             data: [
                                 ['email','Email'],
-                                ['page','Page']
+                                ['page','Page'],
+                                ['command','Command']
                             ]
                         }),
                         name:'action',
@@ -783,6 +814,7 @@ Ext.onReady(function () {
                         'action',
                         'delay_seconds',
                         'repeat_seconds',
+                        'action_timeout',
                         'body_content_type',
                         'subject_format',
                         'body_format',
