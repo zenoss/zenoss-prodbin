@@ -196,7 +196,6 @@ class ZepRouter(EventsRouter):
             eventOccurrence = event_summary['occurrence'][0]
 
             eventClass = eventOccurrence['event_class']
-            print eventOccurrence
             eventData = {
                 'evid' : event_summary['uuid'],
                 'device' : eventOccurrence['actor'].get('element_identifier', None),

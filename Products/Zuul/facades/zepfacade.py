@@ -22,6 +22,7 @@ from zenoss.protocols.services.zep import ZepServiceClient, EventSeverity, Event
 from zenoss.protocols.jsonformat import to_dict, from_dict
 from zenoss.protocols.protobufs.zep_pb2 import EventSummaryFilter, EventSummary, Event, NumberCondition
 from Products.ZenUtils.GlobalConfig import getGlobalConfiguration
+from Products.ZenUtils.guid.interfaces import IGlobalIdentifier
 
 log = logging.getLogger(__name__)
 
@@ -137,7 +138,7 @@ class ZepFacade(ZuulFacade):
 
     def _getUserUuid(self, userName):
         # Lookup the user uuid
-        user = self._dmd.ZenUsers.getUser(userName)
+        user = self._dmd.ZenUsers.getUserSettings(userName)
         if user:
             return IGlobalIdentifier(user).getGUID()
 

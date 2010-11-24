@@ -43,11 +43,10 @@ class IGlobalIdentifier(Interface):
         """
         Sets the GUID for this object.
         """
-    def createGUID():
+    def create(force):
         """
         Creates a new GUID and applies it to this object.
         """
-
 
 class IGUIDManager(Interface):
     """
