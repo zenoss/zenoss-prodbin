@@ -55,7 +55,6 @@ class Event(object):
     # event_class_mapping_uuid  If this event was matched by one of the configured event class mappings, contains the name of that mapping rule.
     # ownerid   Name of the user who acknowledged this event.
     # clearid   Only present on events in history that were auto-cleared. The evid of the event that cleared this one.
-    # suppid    If this event has been suppressed by another event, then suppid contains the other event's evid.
 
     # map legacy names for these attributes to new names, for compatibility with old transforms
     compatibility_map = { 
@@ -84,7 +83,6 @@ class Event(object):
         "lastSeen" : "last_seen_time",
         "ownerid" : "acknowledged_by_user_uuid",
         "clearid" : "cleared_by_event_uuid",
-        "suppid" : "suppressed_by_event_uuid",
         "_action" : "status",
         }
         
