@@ -28,7 +28,7 @@ If there is an icon for the product it should be called class name + _icon.gif
 
 import os
 import logging
-log = logging.getLogger("zen")
+log = logging.getLogger("zenmodel")
 
 if 0:
     __path__ = None                     # keep pyflakes quiet

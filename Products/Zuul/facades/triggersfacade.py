@@ -121,7 +121,7 @@ class TriggersFacade(ZuulFacade):
     
     def updateNotificationSubscriptions(self, notification):
         triggerSubscriptions = []
-        notification_guid = IGlobalIdentifier(notification).guid
+        notification_guid = IGlobalIdentifier(notification).getGUID()
         for subscription in notification.subscriptions:
             triggerSubscriptions.append(dict(
                 delay_seconds = notification.delay_seconds,
@@ -167,14 +167,14 @@ class TriggersFacade(ZuulFacade):
             data.append(dict(
                 type = 'user',
                 label = '%s (User)' % u.getId(),
-                value = IGlobalIdentifier(u).create()
+                value = IGlobalIdentifier(u).getGUID()
             ))
         
         for g in groups:
             data.append(dict(
                 type = 'group',
                 label = '%s (Group)' % g.getId(),
-                value = IGlobalIdentifier(g).create()
+                value = IGlobalIdentifier(g).getGUID()
             ))
         return data
     

@@ -62,14 +62,16 @@ class IZenDocProvider(Interface):
         pass
 
 class IAction(Interface):
-    def execute(target, notification, signal):
+    
+    def execute(notification, signal):
+        """
+        @param notification: The notification that should be sent.
+        @type notification: NotificationSubscription
+        @param signal: The signal that caused this notification to be executed.
+        @type signal: zenoss.protocols.protobufs.zep_pb2.Signal
+        """
         pass
     
-    def getActionableTargets(target):
-        """
-        @param target: An object that can be inspected for targets.
-        """
-        pass
 
 class IProvidesEmailAddresses(Interface):
     def getEmailAddresses():

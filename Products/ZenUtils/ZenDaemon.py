@@ -138,6 +138,10 @@ class ZenDaemon(CmdBase):
         fp = open(self.pidfile, 'w')
         fp.write(str(os.getpid()))
         fp.close()
+        
+    @property
+    def logname(self):
+        return getattr(self, 'mname', self.__class__.__name__)
 
     def setupLogging(self):
         """
@@ -145,37 +149,36 @@ class ZenDaemon(CmdBase):
         """
 
         # Setup python logging module
-        rlog = logging.getLogger()
-        rlog.setLevel(logging.WARN)
-        if hasattr(self, 'mname'): mname = self.mname
-        else: mname = self.__class__.__name__
-        self.log = logging.getLogger("zen."+ mname)
-        zlog = logging.getLogger("zen")
-        try:
-            loglevel = int(self.options.logseverity)
-        except ValueError:
-            loglevel = getattr(logging, self.options.logseverity.upper(), logging.INFO)
-        zlog.setLevel(loglevel)
-        if self.options.watchdogPath or \
-           self.options.daemon:
-            logdir = self.checkLogpath()
-            if not logdir:
-                logdir = zenPath("log")
-            logfile = os.path.join(logdir, mname.lower()+".log")
-            maxBytes = self.options.maxLogKiloBytes * 1024
-            backupCount = self.options.maxBackupLogs
-            h = logging.handlers.RotatingFileHandler(filename=logfile, maxBytes=maxBytes, backupCount=backupCount)
-            h.setFormatter(logging.Formatter(
-                "%(asctime)s %(levelname)s %(name)s: %(message)s"))
-            rlog.addHandler(h)
+        rootLog = logging.getLogger()
+        rootLog.setLevel(logging.WARN)
+        
+        zenLog = logging.getLogger('zen')
+        zenLog.setLevel(self.options.logseverity)
+        
+        formatter = logging.Formatter('%(asctime)s %(levelname)s %(name)s: %(message)s')
+        
+        if self.options.watchdogPath or self.options.daemon:
+            logdir = self.checkLogpath() or zenPath("log") 
+ 
+            handler = logging.handlers.RotatingFileHandler(
+                 filename = os.path.join(logdir, '%s.log' % self.logname.lower()), 
+                 maxBytes = self.options.maxLogKiloBytes * 1024, 
+                 backupCount = self.options.maxBackupLogs
+            )
+            handler.setFormatter(formatter)
+            rootLog.addHandler(handler)
         else:
-            logging.basicConfig()
+            # We are logging to the console
+            # Find the stream handler and make it match our desired log level
             if self.options.weblog:
-                [ h.setFormatter(HtmlFormatter()) for h in rlog.handlers ]
-            else:
-                f = logging.Formatter("%(asctime)s %(levelname)s %(name)s: %(message)s")
-                [ h.setFormatter(f) for h in rlog.handlers ]
-
+                formatter = HtmlFormatter()
+            
+            for handler in (h for h in rootLog.handlers if isinstance(h, logging.StreamHandler)):
+                handler.setLevel(self.options.logseverity)
+                handler.setFormatter(formatter)
+        
+        self.log = logging.getLogger('zen.%s' % self.logname)
+        
         # Allow the user to dynamically lower and raise the logging
         # level without restarts.
         import signal
@@ -193,8 +196,7 @@ class ZenDaemon(CmdBase):
         default when signaled again.
         """
         def getTwistedLogger():
-            mname = getattr(self, 'mname', self.__class__.__name__)
-            loggerName = "zen.%s.twisted" % mname
+            loggerName = "zen.%s.twisted" %  self.logname
             return twisted_log.PythonLoggingObserver(loggerName=loggerName)
 
         log = logging.getLogger('zen')

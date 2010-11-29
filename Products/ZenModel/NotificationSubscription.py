@@ -85,7 +85,6 @@ class NotificationSubscription(ZenModelRM):
     meta_type = _id
     
     enabled = False
-    action_types = ('email', 'page')
     action = 'email'
     content_types = ('text', 'html')
     body_content_type = 'html'
@@ -180,34 +179,34 @@ class NotificationSubscription(ZenModelRM):
         is active for right now.
         """
         if self.enabled:
-            log.info('Notification is enabled: %s' %  self.id)
+            log.debug('Notification is enabled: %s' %  self.id)
             windows = self.windows()
             if windows:
-                log.info('Notification has (%s) windows.' % len(windows))
+                log.debug('Notification has (%s) windows.' % len(windows))
                 for window in windows:
                     if window.isActive():
                         log.debug('Notification has active window: %s' % window.id)
                         return True
-                log.info('Notification has no active windows, it is NOT enabled.')
+                log.debug('Notification has no active windows, it is NOT enabled.')
                 return False
             else:
-                log.info('Notification is enabled, but has no windows, it is active.')
+                log.debug('Notification is enabled, but has no windows, it is active.')
                 return True
         else:
-            log.info('Notification NOT enabled: %s' %  self.id)
+            log.debug('Notification NOT enabled: %s' %  self.id)
             return False
     
-    def getBody(self, signal):
-        return Template(self.body_format).fill(signal=signal)
+    def getBody(self, **kwargs):
+        return Template(self.body_format).fill(**kwargs)
         
-    def getSubject(self, signal):
-        return Template(self.subject_format).fill(signal=signal)
+    def getSubject(self, **kwargs):
+        return Template(self.subject_format).fill(**kwargs)
         
-    def getClearBody(self, signal):
-        return Template(self.clear_body_format).fill(signal=signal)
+    def getClearBody(self, **kwargs):
+        return Template(self.clear_body_format).fill(**kwargs)
         
-    def getSubjectBody(self, signal):
-        return Template(self.clear_subject_format).fill(signal=signal)
+    def getSubjectBody(self, **kwargs):
+        return Template(self.clear_subject_format).fill(**kwargs)
     
 InitializeClass(NotificationSubscriptionManager)
 InitializeClass(NotificationSubscription)
