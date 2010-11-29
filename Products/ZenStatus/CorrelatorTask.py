@@ -55,6 +55,9 @@ STATUS_EVENT = {
                 'component' : 'zenping',
                 'eventGroup' : 'Ping' }
 
+# Event 'suppressed' state
+SUPPRESSED = 2
+
 class TopologyCorrelatorTask(BaseTask):
     zope.interface.implements(IScheduledTask)
 
@@ -150,9 +153,10 @@ class TopologyCorrelatorTask(BaseTask):
 
         for victim in victims:
             task = self._topology.node[victim]['task']
-            self.sendPingEvent(task.pingjob, root=root)
+            self.sendPingEvent(task.pingjob, root=root,
+                               eventState=SUPPRESSED)
 
-    def sendPingEvent(self, pj, root):
+    def sendPingEvent(self, pj, root, eventState=None):
         """
         Send an event based on a ping job to the event backend.
         """
@@ -164,9 +168,8 @@ class TopologyCorrelatorTask(BaseTask):
                    eventGroup='Ping',
                    rootDevice=root,
                    component=pj.iface)
-        evstate = getattr(pj, 'eventState', None)
-        if evstate is not None:
-            evt['eventState'] = evstate
+        if eventState is not None:
+            evt['eventState'] = eventState
         self._eventService.sendEvent(evt)
 
     def displayStatistics(self):

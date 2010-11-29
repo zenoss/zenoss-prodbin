@@ -58,7 +58,6 @@ class PingJob(pb.Copyable, pb.RemoteCopy):
         self.severity = 5
         self.inprocess = False
         self.pathcheck = 0
-        self.eventState = 0
 
         self.results = []
         self.rtt = 0
@@ -225,7 +224,6 @@ class Ping(object):
                         log.warn("Failed to parse host unreachable packet")
                 #else:
                     #log.debug("Unexpected pkt %s %s", sip, icmppkt)
-            except (SystemExit, KeyboardInterrupt): raise
             except socket.error, err:
                 errnum, errmsg = err.args
                 if errnum == errno.EAGAIN:
@@ -253,10 +251,7 @@ class Ping(object):
             del self.jobqueue[pj.ipaddr]
         except KeyError:
             pass
-        # also free the deferred from further reporting
-        if pj.rtt < 0:
-            pj.deferred.errback(pj)
-        elif not pj.deferred.called:
+        if not pj.deferred.called:
             pj.deferred.callback(pj)
 
     def checkTimeout(self, pj):

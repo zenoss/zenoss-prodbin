@@ -137,10 +137,6 @@ class PingCollectionTask(BaseTask):
         pingFail = "%s %s" % (self._devId, self.config.ip)
         if not msg: # Sometimes we get blank error messages
             msg = reason.__class__
-        elif msg == pingFail:
-            # We really only care about bizarre exceptions
-            log.critical("Got a ping failure for %s", self.config.ip)
-            return self.pingjob.deferred
 
         msg = '%s %s' % (self._devId, msg)
 
