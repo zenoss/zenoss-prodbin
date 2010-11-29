@@ -63,6 +63,7 @@ Ext.onReady(function () {
             Ext.applyIf(config, {
                 height: 120,
                 width: 300,
+                boxMaxWidth: 300, // for chrome, safari
                 modal: true,
                 plain: true,
                 closeAction: 'hide',
@@ -604,7 +605,7 @@ Ext.onReady(function () {
                         ref: 'cancelButton',
                         text: _t('Cancel'),
                         handler: function(button) {
-                            button.refOwner.close();
+                            button.refOwner.ownerCt.ownerCt.close();
                         }
                     }
                 ]
@@ -1209,6 +1210,8 @@ Ext.onReady(function () {
             Ext.applyIf(config, {
                 modal: true,
                 plain: true,
+                width: 500,
+                boxMaxWidth: 500, // for chrome, safari
                 border: false,
                 closeAction: 'hide',
                 items:{
