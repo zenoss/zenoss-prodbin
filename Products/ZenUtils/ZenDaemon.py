@@ -173,6 +173,11 @@ class ZenDaemon(CmdBase):
             if self.options.weblog:
                 formatter = HtmlFormatter()
             
+            if not rootLog.handlers:
+                # Add a stream handler to stream to the console
+                consoleHandler = logging.StreamHandler(sys.stderr)                
+                rootLog.addHandler(consoleHandler)
+                            
             for handler in (h for h in rootLog.handlers if isinstance(h, logging.StreamHandler)):
                 handler.setLevel(self.options.logseverity)
                 handler.setFormatter(formatter)
