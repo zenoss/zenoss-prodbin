@@ -2029,14 +2029,13 @@ Ext.override(Ext.form.Checkbox, {
     }
 });
 
-String.prototype.startswith = function(){
+String.prototype.startswith = function(str){
     return (this.match('^'+str)==str);
 };
 
-String.prototype.endswith = function(){
+String.prototype.endswith = function(str){
     return (this.match(str+'$')==str);
 };
-
 
 // TODO Temporary checkbox to allow switching between old and new event console
 Ext.ComponentMgr.onAvailable('footer_bar', function(config) {
