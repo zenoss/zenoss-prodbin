@@ -31,6 +31,7 @@ from zenoss.protocols.protobufs.zep_pb2 import EventSummary, Event
 from zenoss.protocols.services.zep import EventSeverity, EventStatus
 from json import loads
 from Products.Zuul.utils import resolve_context
+from Products.ZenUtils.guid.interfaces import IGlobalIdentifier
 log = logging.getLogger(__name__)
 
 
@@ -158,7 +159,7 @@ class ZepRouter(EventsRouter):
         if context and context.id != 'Events':
             if context.uuid:
                 tags = filter.setdefault('tag_uuids', [])
-                tags.append(context.uuid)
+                tags.append(IGlobalIdentifier(context).getGUID())
 
         if sort in self._sortMap:
             sort = self._sortMap[sort]
