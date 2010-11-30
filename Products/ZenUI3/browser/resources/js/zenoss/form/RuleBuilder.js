@@ -477,7 +477,11 @@
                             // Clause
                             rule = this.clauses.add({xtype: 'ruleclause'});
                         }
-                        rule.setValue(unparen.exec(t)[1]);
+                        var clause = t;
+                        try {
+                            clause = unparen.exec(t)[1];
+                        } catch(ignored) {}
+                        rule.setValue(clause);
                     }
                 }, this);
             }

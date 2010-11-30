@@ -156,9 +156,9 @@ class ZepRouter(EventsRouter):
         context = resolve_context(uid)
 
         if context and context.id != 'Events':
-            tags = filter.get('tag_uuids', [])
-            tags.append(context.uuid)
-            filter['tag_uuids'] = tags
+            if context.uuid:
+                tags = filter.setdefault('tag_uuids', [])
+                tags.append(context.uuid)
 
         if sort in self._sortMap:
             sort = self._sortMap[sort]

@@ -266,14 +266,17 @@ Zenoss.SimpleEventColumnModel = Ext.extend(Ext.grid.ColumnModel, {
                 id: 'severity',
                 renderer: Zenoss.util.render_severity
             }, {
+                id: 'device',
                 dataIndex: 'device',
                 header: _t('Device'),
                 renderer: Zenoss.render.linkFromGrid
             }, {
+                id: 'component',
                 dataIndex: 'component',
                 header: _t('Component'),
                 renderer: Zenoss.render.linkFromGrid
             }, {
+                id: 'eventClass',
                 dataIndex: 'eventClass',
                 header: _t('Event Class'),
                 renderer: Zenoss.render.linkFromGrid
