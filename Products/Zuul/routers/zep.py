@@ -23,7 +23,7 @@ from uuid import uuid4
 from Products.ZenUtils.Ext import DirectRouter
 from AccessControl import getSecurityManager
 from Products.ZenUtils.extdirect.router import DirectResponse
-from Products.ZenUtils.Time import LocalDateTimeFromMilli
+from Products.ZenUtils.Time import isoDateTimeFromMilli
 from Products.Zuul import getFacade
 from Products.Zuul.decorators import require
 from Products.Zuul.routers.events import EventsRouter
@@ -74,8 +74,8 @@ class ZepRouter(EventsRouter):
                 'url' : self._uuidUrl(eventOccurrence['actor'].get('element_sub_uuid', None)),
                 'uuid' : eventOccurrence['actor'].get('element_sub_uuid', None)
             },
-            'firstTime' : LocalDateTimeFromMilli(event_summary['first_seen_time']),
-            'lastTime' : LocalDateTimeFromMilli(event_summary['last_seen_time'] ),
+            'firstTime' : isoDateTimeFromMilli(event_summary['first_seen_time']),
+            'lastTime' : isoDateTimeFromMilli(event_summary['last_seen_time'] ),
             'eventClass' : {"text": eventClass, "uid": "/zport/dmd/Events%s" % eventClass},
             'eventKey' : eventOccurrence.get('event_key', None),
             'summary' : eventOccurrence['summary'],
@@ -194,8 +194,8 @@ class ZepRouter(EventsRouter):
                 'component_title' : eventOccurrence['actor'].get('element_sub_identifier', None),
                 'component_url' : self._uuidUrl(eventOccurrence['actor'].get('element_sub_uuid', None)),
                 'component_uuid' : eventOccurrence['actor'].get('element_sub_uuid', None),
-                'firstTime' : LocalDateTimeFromMilli(event_summary['first_seen_time']),
-                'lastTime' : LocalDateTimeFromMilli(event_summary['last_seen_time']),
+                'firstTime' : isoDateTimeFromMilli(event_summary['first_seen_time']),
+                'lastTime' : isoDateTimeFromMilli(event_summary['last_seen_time']),
                 'eventClass' : eventClass,
                 'eventClass_url' : "/zport/dmd/Events%s" % eventClass,
                 'severity' : eventOccurrence['severity'],
@@ -207,9 +207,9 @@ class ZepRouter(EventsRouter):
                     'evid' : event_summary['uuid'],
                     'device' : eventOccurrence['actor'].get('element_identifier', None),
                     'component' : eventOccurrence['actor'].get('element_sub_identifier', None),
-                    'firstTime' : LocalDateTimeFromMilli(event_summary['first_seen_time']),
-                    'lastTime' : LocalDateTimeFromMilli(event_summary['last_seen_time']),
-                    'stateChange' : LocalDateTimeFromMilli(event_summary['status_change_time']),
+                    'firstTime' : isoDateTimeFromMilli(event_summary['first_seen_time']),
+                    'lastTime' : isoDateTimeFromMilli(event_summary['last_seen_time']),
+                    'stateChange' : isoDateTimeFromMilli(event_summary['status_change_time']),
                     'dedupid' : eventOccurrence['fingerprint'],
                     'eventClass' : eventClass,
                     'eventClassKey' :  eventOccurrence['event_class'],
@@ -228,7 +228,7 @@ class ZepRouter(EventsRouter):
 
             if 'notes' in event_summary:
                 for note in event_summary['notes']:
-                    eventData['log'].append((note['user_name'], LocalDateTimeFromMilli(note['created_time']), note['message']))
+                    eventData['log'].append((note['user_name'], isoDateTimeFromMilli(note['created_time']), note['message']))
 
             if 'details' in eventOccurrence:
                 for detail in eventOccurrence['details']:

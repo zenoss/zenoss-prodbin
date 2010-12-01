@@ -44,6 +44,12 @@ def isoDateTime(gmtSecondsSince1970 = None):
     value = _maybenow(gmtSecondsSince1970)
     return time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(value))
 
+def isoDateTimeFromMilli(milliseconds):
+    """
+    @param milliseconds:: UTC timestamp in milliseconds
+    """
+    return isoDateTime(milliseconds / 1000)
+
 def LocalDateTimeSecsResolution(gmtSecondsSince1970 = None):
     value = _maybenow(gmtSecondsSince1970)
     return time.strftime("%Y/%m/%d %H:%M:%S", time.localtime(value))
