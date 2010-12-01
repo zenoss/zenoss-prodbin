@@ -36,6 +36,7 @@ from Products.ZenUtils.Utils import zdecode as decode
 from Event import buildEventFromDict
 from ZenEventClasses import Heartbeat, Unknown
 from Products.ZenEvents.Exceptions import *
+from Products.ZenUtils.Utils import zdecode
 
 def execute(cursor, statement):
     """
@@ -66,7 +67,8 @@ class EventTransformer(object):
         self.requiredEventFields = reqdEvtFields
         self.dedupEventFields = dedupEvtFields
         self.event = evt
-    
+        self.deviceObj = None
+
     def prepEvent(self):
         event = self.event
         if not all(getattr(event,field,None) is not None for field in self.requiredEventFields):
@@ -135,6 +137,17 @@ class EventTransformer(object):
                 dedupidlist = []
             event.dedupid = "|".join(dedupidlist)
             log.debug("Created dedupid of %s", event.dedupid)
+
+        # fix string encoding on selected fields that are likely to contain 
+        # characters outside the ASCII 7-bit range
+        if self.deviceObj is not None:
+            devicecontext = self.deviceObj
+        else:
+            devicecontext = self.dmd.Devices
+
+        for attrname in "summary message device component service".split():
+            if getattr(event, attrname, False):
+                setattr(event, attrname, zdecode(devicecontext, getattr(event, attrname)))
 
         return True
 
@@ -215,6 +228,7 @@ class EventTransformer(object):
             device = self._findByIp(evt.ipAddress, networks)
 
         if device:
+            self.deviceObj = device
             evt.device = device.id
             log.debug("Found device %s and adding device-specific"
                       " data", evt.device)

@@ -242,6 +242,17 @@ class EventProtobuf(ObjectProtobuf):
                 # we can't convert, it so ignore it
                 pass
 
+    def safestr(self, s):
+        """Defensive catchall to be sure that any string going into a protobuf can be
+           decoded safely with 7-bit ASCII.  If any specialized encoding is desired, it 
+           is the responsibility of the caller/sender to take care of it."""
+        try:
+            if isinstance(s, str):
+                unicode(s, 'ascii')
+        except UnicodeDecodeError:
+            s = str(s.decode('ascii','ignore'))
+        return s
+
     def setActor(self, proto):
         """
         This sets the "actor" attribute of the event.
@@ -252,11 +263,11 @@ class EventProtobuf(ObjectProtobuf):
         actor = proto.actor
         # there should always be a device
         actor.element_type_id = modelConstants.DEVICE
-        actor.element_identifier = event.device
+        actor.element_identifier = self.safestr(event.device)
         # there is not always a component
         if hasattr(event, 'component') and event.component:
             actor.element_sub_type_id = modelConstants.COMPONENT
-            actor.element_sub_identifier = event.component
+            actor.element_sub_identifier = self.safestr(event.component)
 
     def fillDetails(self, proto):
         """
@@ -276,9 +287,9 @@ class EventProtobuf(ObjectProtobuf):
                 detail.name = field
                 if isIterable(value):
                     for v in value:
-                        detail.value.append(str(v))
+                        detail.value.append(self.safestr(str(v)))
                 else:
-                    detail.value.append(str(value))
+                    detail.value.append(self.safestr(str(value)))
 
     def fill(self, proto):
         """
@@ -292,7 +303,7 @@ class EventProtobuf(ObjectProtobuf):
             proto.created_time = int(time() * 1000)
 
         if hasattr(event, 'eventClass'):
-            proto.event_class = event.eventClass
+            proto.event_class = self.safestr(event.eventClass)
         else:
             proto.event_class = "/Unknown"
 
@@ -309,12 +320,19 @@ class EventProtobuf(ObjectProtobuf):
         for eventProperty,protoProperty in self.fieldMappings.iteritems():
             value = getattr(event, eventProperty, None)
             if value is not None:
-                setattr(proto, protoProperty, value)
+                if isinstance(value, basestring):
+                    setattr(proto, protoProperty, self.safestr(value))
+                else:
+                    setattr(proto, protoProperty, value)
 
         # copy all other event fields into details
         for field in event.getEventFields():
             if field not in self.fieldMappings:
-                event.detaildata[field] = getattr(event, field)
+                value = getattr(event, field)
+                if isinstance(value, basestring):
+                    event.detaildata[field] = self.safestr(value)
+                else:
+                    event.detaildata[field] = value
 
         # record event control values into special details fields
         if not hasattr(event,'detaildata'):
@@ -326,3 +344,4 @@ class EventProtobuf(ObjectProtobuf):
         self.setActor(proto)
         self.fillDetails(proto)
         return proto
+
