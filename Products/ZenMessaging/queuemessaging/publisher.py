@@ -20,6 +20,7 @@ from zope.component import getUtility
 from zenoss.protocols.amqpconfig import getAMQPConfiguration
 from Products.ZenUtils.AmqpDataManager import AmqpDataManager
 from Products.ZenMessaging.queuemessaging.interfaces import IModelProtobufSerializer, IQueuePublisher, IProtobufSerializer
+from contextlib import closing
 
 import logging
 
@@ -189,9 +190,9 @@ class EventPublisher(object):
         routing_key = "zenoss.zenevent%s" % eventClass.replace('/', '.').lower()
 
         # publish event
-        publisher = getUtility(IQueuePublisher)
-        log.debug("About to publish this event to the raw event queue:%s, with this routing key: %s" % (proto, routing_key))
-        publisher.publish("$RawZenEvents", routing_key, proto, mandatory=mandatory)
+        with closing(getUtility(IQueuePublisher)) as publisher:
+            log.debug("About to publish this event to the raw event queue:%s, with this routing key: %s" % (proto, routing_key))
+            publisher.publish("$RawZenEvents", routing_key, proto, mandatory=mandatory)
 
 
 class AsyncQueuePublisher(object):
@@ -245,9 +246,7 @@ class BlockingQueuePublisher(object):
 
     def publish(self, exchange, routing_key, message, mandatory=False):
         """
-        Publishes a message to an exchange. If twisted is running
-        this will use the twisted amqp library, otherwise it will
-        be blocking.
+        Publishes a message to an exchange.
         @type  exchange: string
         @param exchange: destination exchange for the amqp server
         @type  routing_key: string
@@ -255,7 +254,8 @@ class BlockingQueuePublisher(object):
         @type  message: string or Protobuff
         @param message: message we are sending in the queue
         """
-        self._client.publish(exchange, routing_key, message, mandatory=mandatory)
+        with self._client as publish:
+            publish(exchange, routing_key, message, mandatory=mandatory)
 
     @property
     def channel(self):
