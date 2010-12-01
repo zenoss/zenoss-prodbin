@@ -14,15 +14,15 @@
 import logging
 import re
 from zope.interface import implements
-from zope.component import getUtility
 from Products.Zuul.facades import ZuulFacade
 from Products.Zuul.interfaces import IZepFacade
 import pkg_resources
-from zenoss.protocols.services.zep import ZepServiceClient, EventSeverity, EventStatus
+from zenoss.protocols.services.zep import ZepServiceClient
 from zenoss.protocols.jsonformat import to_dict, from_dict
-from zenoss.protocols.protobufs.zep_pb2 import EventSummaryFilter, EventSummary, Event, NumberCondition
+from zenoss.protocols.protobufs.zep_pb2 import EventSummaryFilter, NumberCondition, EventSort
 from Products.ZenUtils.GlobalConfig import getGlobalConfiguration
 from Products.ZenUtils.guid.interfaces import IGlobalIdentifier
+
 
 log = logging.getLogger(__name__)
 
@@ -36,6 +36,23 @@ class ZepFacade(ZuulFacade):
         '<=' : NumberCondition.LTEQ,
         '=' : NumberCondition.EQ,
         None : NumberCondition.EQ,
+    }
+
+    _sortMap = {
+        'eventstate' : EventSort.STATUS,
+        'severity' : EventSort.SEVERITY,
+        'firsttime' : EventSort.FIRST_SEEN,
+        'lasttime' : EventSort.LAST_SEEN,
+        'eventclass' : EventSort.EVENT_CLASS,
+        'device' : EventSort.ELEMENT_IDENTIFIER,
+        'component' : EventSort.ELEMENT_SUB_IDENTIFIER,
+        'count' : EventSort.COUNT,
+        'summary' : EventSort.EVENT_SUMMARY,
+    }
+
+    _sortDirectionMap  = {
+        'asc' : EventSort.ASCENDING,
+        'desc' : EventSort.DESCENDING,
     }
 
     def __init__(self, context):
@@ -130,7 +147,16 @@ class ZepFacade(ZuulFacade):
 
             filterBuf = from_dict(EventSummaryFilter, filter)
 
-        response, content = self.client.getEventSummaries(offset=offset, limit=limit, keys=keys, sort=sort, filter=filterBuf)
+        eventSort = None
+        if isinstance(sort, (list, tuple)):
+            eventSort = from_dict(EventSort, {
+                'field' : self._sortMap[sort[0].lower()],
+                'direction' : self._sortDirectionMap[sort[1].lower()]
+            })
+        elif sort:
+            eventSort = from_dict(EventSort, { 'field' : self._sortMap[sort.lower()] })
+
+        response, content = self.client.getEventSummaries(offset=offset, limit=limit, keys=keys, sort=eventSort, filter=filterBuf)
         return {
             'total' : content.total,
             'events' : (to_dict(event) for event in content.events),

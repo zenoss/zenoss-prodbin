@@ -17,15 +17,12 @@ from zenoss.protocols.amqp import Publisher as BlockingPublisher
 from Products.ZenUtils.guid.interfaces import IGlobalIdentifier
 from Products.ZenUtils.guid import generate
 from zope.component import getUtility
-from interfaces import IQueuePublisher, IProtobufSerializer
 from zenoss.protocols.amqpconfig import getAMQPConfiguration
-from Products.ZenModel.Device import Device
-from Products.ZenModel.DeviceComponent import DeviceComponent
 from Products.ZenUtils.AmqpDataManager import AmqpDataManager
+from Products.ZenMessaging.queuemessaging.interfaces import IModelProtobufSerializer, IQueuePublisher, IProtobufSerializer
 
 import logging
-from Products.ZenModel.DeviceOrganizer import DeviceOrganizer
-from Products.ZenMessaging.queuemessaging.interfaces import IModelProtobufSerializer
+
 log = logging.getLogger('zen.queuepublisher')
 
 
@@ -52,7 +49,7 @@ class ModelChangePublisher(object):
             event = self._eventList.events.add()
             event.event_uuid = generate()
             event.type = getattr(event, eventType)
-    
+
             # Fight with protobuf to set the modelType property
             type = serializer.modelType
             event.model_type = getattr(event, type)
@@ -177,9 +174,7 @@ PUBLISH_SYNC = PublishSynchronizer()
 
 
 class EventPublisher(object):
-
-
-    def publish(self, event):
+    def publish(self, event, mandatory=False):
         config = getAMQPConfiguration()
 
         # create the protobuf
@@ -196,7 +191,7 @@ class EventPublisher(object):
         # publish event
         publisher = getUtility(IQueuePublisher)
         log.debug("About to publish this event to the raw event queue:%s, with this routing key: %s" % (proto, routing_key))
-        publisher.publish("$RawZenEvents", routing_key, proto)
+        publisher.publish("$RawZenEvents", routing_key, proto, mandatory=mandatory)
 
 
 class AsyncQueuePublisher(object):
@@ -209,7 +204,7 @@ class AsyncQueuePublisher(object):
         self._amqpClient = AMQPFactory()
 
     @defer.inlineCallbacks
-    def publish(self, exchange, routing_key, message, exchange_type="topic", createQueue=None):
+    def publish(self, exchange, routing_key, message, createQueue=None, mandatory=False):
         """
         Publishes a message to an exchange. If twisted is running
         this will use the twisted amqp library, otherwise it will
@@ -225,7 +220,7 @@ class AsyncQueuePublisher(object):
         """
         if createQueue:
             yield self._amqpClient.createQueue(exchange, createQueue)
-        result = yield self._amqpClient.send(exchange, routing_key, message)
+        result = yield self._amqpClient.send(exchange, routing_key, message, mandatory=mandatory)
         defer.returnValue(result)
 
 
@@ -248,7 +243,7 @@ class BlockingQueuePublisher(object):
         """
         self._client = BlockingPublisher()
 
-    def publish(self, exchange, routing_key, message):
+    def publish(self, exchange, routing_key, message, mandatory=False):
         """
         Publishes a message to an exchange. If twisted is running
         this will use the twisted amqp library, otherwise it will
@@ -260,7 +255,7 @@ class BlockingQueuePublisher(object):
         @type  message: string or Protobuff
         @param message: message we are sending in the queue
         """
-        self._client.publish(exchange, routing_key, message)
+        self._client.publish(exchange, routing_key, message, mandatory=mandatory)
 
     @property
     def channel(self):
@@ -270,8 +265,7 @@ class BlockingQueuePublisher(object):
         """
         Closes the channel and connection
         """
-        self.channel.close()
-        self._client.connection.close()
+        self._client.close()
 
 class DummyQueuePublisher(object):
     """

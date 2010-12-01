@@ -19,6 +19,7 @@ Available at:  /zport/dmd/evconsole_router
 import time
 import logging
 import DateTime # Zope DateTime, not python datetime
+from uuid import uuid4
 from Products.ZenUtils.Ext import DirectRouter
 from AccessControl import getSecurityManager
 from Products.ZenUtils.extdirect.router import DirectResponse
@@ -26,13 +27,13 @@ from Products.ZenUtils.Time import LocalDateTimeFromMilli
 from Products.Zuul import getFacade
 from Products.Zuul.decorators import require
 from Products.Zuul.routers.events import EventsRouter
-from datetime import datetime
-from zenoss.protocols.protobufs.zep_pb2 import EventSummary, Event
-from zenoss.protocols.services.zep import EventSeverity, EventStatus
+from Products.ZenEvents.Event import Event as ZenEvent
+from Products.ZenMessaging.queuemessaging.publisher import EventPublisher
+from zenoss.protocols.services.zep import EventStatus
 from json import loads
 from Products.Zuul.utils import resolve_context
-from Products.ZenUtils.guid.interfaces import IGlobalIdentifier
-log = logging.getLogger(__name__)
+
+log = logging.getLogger('zen.%s' % __name__)
 
 
 # TODO Temporarily extend EventsRouter till all methods are implemented
@@ -41,16 +42,6 @@ class ZepRouter(EventsRouter):
     A JSON/ExtDirect interface to operations on events in ZEP
     """
 
-    _sortMap = {
-        'eventState' : 'status',
-        'severity' : 'event_severity',
-        'firstTime' : 'first_seen_time',
-        'lastTime' : 'last_seen_time',
-        'eventClass' : 'event_event_class',
-        'device' : 'event_actor_element_identifier',
-        'component' : 'event_actor_element_sub_identifier',
-        'count' : 'count',
-    }
 
     def __init__(self, context, request):
         super(ZepRouter, self).__init__(context, request)
@@ -161,12 +152,7 @@ class ZepRouter(EventsRouter):
                 tags = filter.setdefault('tag_uuids', [])
                 tags.append(IGlobalIdentifier(context).getGUID())
 
-        if sort in self._sortMap:
-            sort = self._sortMap[sort]
-        else:
-            raise Exception('"%s" is not a valid sort option' % sort)
-
-        events = self.zep.getEventSummaries(limit=limit, offset=start, sort=sort+'-'+dir.lower(), filter=filter)
+        events = self.zep.getEventSummaries(limit=limit, offset=start, sort=(sort, dir), filter=filter)
 
         return DirectResponse.succeed(
             events = [self._mapToOldEvent(e) for e in events['events']],
@@ -400,3 +386,39 @@ class ZepRouter(EventsRouter):
             uid = self.context
         self.zep.reopenEventSummary(evids[0])
         return DirectResponse.succeed()
+
+    @require('Manage Events')
+    def add_event(self, summary, device, component, severity, evclasskey, evclass):
+        """
+        Create a new event.
+
+        @type  summary: string
+        @param summary: New event's summary
+        @type  device: string
+        @param device: Device uid to use for new event
+        @type  component: string
+        @param component: Component uid to use for new event
+        @type  severity: string
+        @param severity: Severity of new event. Can be one of the following:
+                         Critical, Error, Warning, Info, Debug, or Clear
+        @type  evclasskey: string
+        @param evclasskey: The Event Class Key to assign to this event
+        @type  evclass: string
+        @param evclass: Event class for the new event
+        @rtype:   DirectResponse
+        """
+
+        event = ZenEvent(
+            evid=str(uuid4()),
+            summary=summary,
+            device=device,
+            component=component,
+            severity=severity,
+            eventClassKey=evclasskey,
+            eventClass=evclass,
+        )
+
+        publisher = EventPublisher()
+        publisher.publish(event, mandatory=True)
+
+        return DirectResponse.succeed(evid=event.evid)

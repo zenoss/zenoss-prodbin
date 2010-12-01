@@ -27,64 +27,70 @@ class ProtobufMappings:
     and protobuf constants
     """
     event_statuses = {
-        '0': 'STATUS_NEW',
-        '1': 'STATUS_ACKNOWLEDGED',
-        '2': 'STATUS_SUPPRESSED'}
+        '0': eventConstants.STATUS_NEW,
+        '1': eventConstants.STATUS_ACKNOWLEDGED,
+        '2': eventConstants.STATUS_SUPPRESSED,
+    }
 
     priorities = {
-        '-1': 'SYSLOG_PRIORITY_DEBUG',
-        '0': 'SYSLOG_PRIORITY_EMERG',
-        '1': 'SYSLOG_PRIORITY_ALERT',
-        '2': 'SYSLOG_PRIORITY_CRIT',
-        '3': 'SYSLOG_PRIORITY_ERR',
-        '4': 'SYSLOG_PRIORITY_WARNING',
-        '5': 'SYSLOG_PRIORITY_NOTICE',
-        '6': 'SYSLOG_PRIORITY_INFO'}
+        '-1': eventConstants.SYSLOG_PRIORITY_DEBUG,
+        '0': eventConstants.SYSLOG_PRIORITY_EMERG,
+        '1': eventConstants.SYSLOG_PRIORITY_ALERT,
+        '2': eventConstants.SYSLOG_PRIORITY_CRIT,
+        '3': eventConstants.SYSLOG_PRIORITY_ERR,
+        '4': eventConstants.SYSLOG_PRIORITY_WARNING,
+        '5': eventConstants.SYSLOG_PRIORITY_NOTICE,
+        '6': eventConstants.SYSLOG_PRIORITY_INFO,
+    }
 
     severities = {
-        '0': 'SEVERITY_CLEAR',
-        '1': 'SEVERITY_DEBUG',
-        '2': 'SEVERITY_INFO',
-        '3': 'SEVERITY_WARNING',
-        '4': 'SEVERITY_ERROR',
-        '5': 'SEVERITY_CRITICAL'}
+        '0': eventConstants.SEVERITY_CLEAR,
+        '1': eventConstants.SEVERITY_DEBUG,
+        '2': eventConstants.SEVERITY_INFO,
+        '3': eventConstants.SEVERITY_WARNING,
+        '4': eventConstants.SEVERITY_ERROR,
+        '5': eventConstants.SEVERITY_CRITICAL,
+        'CLEAR': eventConstants.SEVERITY_CLEAR,
+        'DEBUG': eventConstants.SEVERITY_DEBUG,
+        'INFO': eventConstants.SEVERITY_INFO,
+        'WARNING': eventConstants.SEVERITY_WARNING,
+        'ERROR': eventConstants.SEVERITY_ERROR,
+        'CRITICAL': eventConstants.SEVERITY_CRITICAL,
+    }
 
     def _setMapping(self, proto, field,  constant, mapping):
         """
         Checks to make sure we are sending a correct value and then
         updates the protobuf with the correct attribute.
-        NOTE: enums are attributes on the object. For instance,
-              To get the PRIORITY_NONE enum value you would call:
-               - eventProtobuf.PRIORITY_NONE
-               where eventProtobuf is an instance of the Event Protobuf Class
         """
-        # it is possible it was set to None
-        if not str(constant):
-            return
-        if not str(constant) in mapping.keys():
-            raise AssertionError("%s is not a valid value of %s " % (constant, mapping))
-        value = getattr(eventConstants, mapping[str(constant)])
-        setattr(proto, field, value)
+        if constant:
+            key = str(constant).upper()
+            try:
+                value = mapping[key]
+            except KeyError:
+                raise KeyError("%s is not a valid value of %s " % (constant, mapping))
 
-    def setSeverity(self, proto, zenossSeverityConstant):
+            setattr(proto, field, value)
+
+    def setSeverity(self, proto, severity):
         """
         Assumes the constant to be one of our severity mappings
         @type  proto: Protobuf
         @param proto: Protobuf we want the severity set on
-        @type  zenossSeverityConstant: int
-        @param zenossSeverityConstant:
+        @type  severity: mixed
+        @param severity: Event severity
         """
-        self._setMapping(proto, 'severity', zenossSeverityConstant, self.severities)
+        self._setMapping(proto, 'severity', severity, self.severities)
 
-    def setPriority(self, proto, zenossPriorityConstant):
+    def setPriority(self, proto, priority):
         """
         Assumes the constant to be one of our priority mappings
         @type  proto: Protobuf
         @param proto: Protobuf we want the priority set on
-        @type  zenossPriorityConstant: int
-        @param zenossPriorityConstant:
+        @type  priority: mixed
+        @param priority: Event priority
         """
-        self._setMapping(proto, 'syslog_priority', zenossPriorityConstant, self.priorities)
+        self._setMapping(proto, 'syslog_priority', priority, self.priorities)
 
 
 class ObjectProtobuf(object):
@@ -185,7 +191,7 @@ class DeviceComponentProtobuf(ObjectProtobuf):
     @property
     def modelType(self):
         return "COMPONENT"
-    
+
     def fill(self, proto):
         self.autoMapFields(proto)
         proto.title = self.obj.name()
@@ -201,6 +207,9 @@ class EventProtobuf(ObjectProtobuf):
     """
     Fills up the properties of an event
     """
+
+    implements(IProtobufSerializer)
+
     # event property, protobuf property
     fieldMappings = {
         'dedupid': 'fingerprint',
