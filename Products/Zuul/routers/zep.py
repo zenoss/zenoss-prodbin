@@ -29,6 +29,7 @@ from Products.Zuul.decorators import require
 from Products.Zuul.routers.events import EventsRouter
 from Products.ZenEvents.Event import Event as ZenEvent
 from Products.ZenMessaging.queuemessaging.publisher import EventPublisher
+from Products.ZenUtils.guid.interfaces import IGlobalIdentifier
 from zenoss.protocols.services.zep import EventStatus
 from json import loads
 from Products.Zuul.utils import resolve_context
