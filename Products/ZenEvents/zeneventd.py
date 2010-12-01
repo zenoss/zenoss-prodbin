@@ -272,7 +272,7 @@ class ProcessEventMessageTask(object):
         if component is not None:
             attrs = "id title uuid".split()
             for attr in attrs:
-                attrval = getattr(service,attr,None)
+                attrval = getattr(component,attr,None)
                 if attrval is not None:
                     setattr(evtindex, 'component_'+attr, attrval)
 
@@ -325,6 +325,7 @@ class ProcessEventMessageTask(object):
                 # initialize adapter with event properties
                 event_attributes = dict((f.name,getattr(event,f.name,None)) for f in RawEvent.DESCRIPTOR.fields)
                 event_attributes["status"] = statusConvertToString[event_attributes.get("status", STATUS_NEW)]
+                event_attributes["event_class"] = str( event_attributes["event_class"] )
                 evtproxy = TransformEvent(**event_attributes)
                 # translate actor to device/component/service
                 self.getIdentifiersForUuids(event)
