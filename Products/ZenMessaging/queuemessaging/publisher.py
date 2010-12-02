@@ -190,7 +190,7 @@ class EventPublisher(object):
         routing_key = "zenoss.zenevent%s" % eventClass.replace('/', '.').lower()
 
         # publish event
-        with closing(getUtility(IQueuePublisher)) as publisher:
+        with closing(getUtility(IQueuePublisher, 'class')()) as publisher:
             log.debug("About to publish this event to the raw event queue:%s, with this routing key: %s" % (proto, routing_key))
             publisher.publish("$RawZenEvents", routing_key, proto, mandatory=mandatory)
 
@@ -240,8 +240,6 @@ class BlockingQueuePublisher(object):
     implements(IQueuePublisher)
 
     def __init__(self):
-        """
-        """
         self._client = BlockingPublisher()
 
     def publish(self, exchange, routing_key, message, mandatory=False):
@@ -254,8 +252,7 @@ class BlockingQueuePublisher(object):
         @type  message: string or Protobuff
         @param message: message we are sending in the queue
         """
-        with self._client as publish:
-            publish(exchange, routing_key, message, mandatory=mandatory)
+        self._client.publish(exchange, routing_key, message, mandatory=mandatory)
 
     @property
     def channel(self):

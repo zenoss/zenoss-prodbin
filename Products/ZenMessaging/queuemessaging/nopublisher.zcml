@@ -1,5 +1,9 @@
 <configure xmlns="http://namespaces.zope.org/zope">
-  <utility factory=".publisher.DummyQueuePublisher"
-           provides=".interfaces.IQueuePublisher"
-           />
+    <utility factory=".publisher.DummyQueuePublisher"
+             provides=".interfaces.IQueuePublisher"
+            />
+    <utility component=".publisher.DummyQueuePublisher"
+             provides=".interfaces.IQueuePublisher"
+             name="class"
+            />
 </configure>

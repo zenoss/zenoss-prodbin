@@ -22,12 +22,6 @@ log = logging.getLogger('zen.AmqpDataManager')
 #      publisher.publish(msg)
 #
 class AmqpDataManager(object):
-
-    def __init__(self, channel, txnmgr = None):
-        self.channel = channel
-        self.channel.tx_select()
-        self.transaction_manager = txnmgr
-    
     """Objects that manage transactional storage.
 
     These objects may manage data for other objects, or they may manage
@@ -38,6 +32,13 @@ class AmqpDataManager(object):
     join a transaction so that data can be committed when the user commits
     the transaction.
     """
+
+    def __init__(self, channel, txnmgr = None):
+        self.channel = channel
+        self.channel.tx_select()
+        self.transaction_manager = txnmgr
+
+
 
         #"""The transaction manager (TM) used by this data manager.
 
@@ -141,14 +142,14 @@ class AmqpDataManager(object):
             log.debug("tpc_abort failed with exception")
         else:
             log.debug("tpc_abort completed")
-        
+
 
     def sortKey(self):
         """Return a key to use for ordering registered DataManagers.
         """
-        
+
         # this data manager must always go last
-        return "~~~~~~~" 
+        return "~~~~~~~"
 
 #
 # usage outside of zope transaction
