@@ -268,8 +268,10 @@ settingsDevice setManageIp='10.10.10.77', setLocation="123 Elm Street", \
             # We need to commit in order to model, so don't bother
             # trying to model unless we can do both
             if not self.options.nocommit and not self.options.nomodel:
-                # What if zSnmpCommunity isn't set in the file?
-                devobj.manage_snmpCommunity()
+                # Discover the SNMP community if it isn't explicitly set.
+                if 'zSnmpCommunity' not in device_specs:
+                    self.log.debug('Discovering SNMP version and community')
+                    devobj.manage_snmpCommunity()
 
                 # Make sure that ZODB has changes before modeling
                 commit()
