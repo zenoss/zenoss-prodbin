@@ -273,7 +273,7 @@ class DummyQueuePublisher(object):
     """
     implements(IQueuePublisher)
 
-    def publish(self, exchange, routing_key, message):
+    def publish(self, exchange, routing_key, message, mandatory=False):
         """
         Publishes a message to an exchange. If twisted is running
         this will use the twisted amqp library, otherwise it will
@@ -290,3 +290,6 @@ class DummyQueuePublisher(object):
     @property
     def channel(self):
         return None
+
+    def close(self):
+        pass
