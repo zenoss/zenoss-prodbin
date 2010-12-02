@@ -204,26 +204,28 @@ class ZepRouter(EventsRouter):
                 'count' : event_summary['count'],
                 'summary' : eventOccurrence.get('summary'),
                 'message' : eventOccurrence.get('message'),
-                'properties' : {
-                    'evid' : event_summary['uuid'],
-                    'device' : eventOccurrence['actor'].get('element_identifier', None),
-                    'component' : eventOccurrence['actor'].get('element_sub_identifier', None),
-                    'firstTime' : isoDateTimeFromMilli(event_summary['first_seen_time']),
-                    'lastTime' : isoDateTimeFromMilli(event_summary['last_seen_time']),
-                    'stateChange' : isoDateTimeFromMilli(event_summary['status_change_time']),
-                    'dedupid' : eventOccurrence['fingerprint'],
-                    'eventClass' : eventClass,
-                    'eventClassKey' :  eventOccurrence['event_class'],
-                    'eventClassMapping_uuid' : self._uuidUrl(eventOccurrence.get('event_class_mapping_uuid')),
-                    'eventKey' : eventOccurrence.get('event_key', None),
-                    'summary' : eventOccurrence.get('summary'),
-                    'severity' : eventOccurrence.get('severity'),
-                    'eventState' : EventStatus.getPrettyName(event_summary['status']),
-                    'count' : event_summary['count'],
-                    'monitor' : eventOccurrence.get('monitor'),
-                    'agent' : eventOccurrence.get('agent'),
-                    'message' : eventOccurrence.get('message'),
-                },
+                'properties' : [
+                    dict(key=k, value=v) for (k, v) in {
+                        'evid' : event_summary['uuid'],
+                        'device' : eventOccurrence['actor'].get('element_identifier', None),
+                        'component' : eventOccurrence['actor'].get('element_sub_identifier', None),
+                        'firstTime' : isoDateTimeFromMilli(event_summary['first_seen_time']),
+                        'lastTime' : isoDateTimeFromMilli(event_summary['last_seen_time']),
+                        'stateChange' : isoDateTimeFromMilli(event_summary['status_change_time']),
+                        'dedupid' : eventOccurrence['fingerprint'],
+                        'eventClass' : eventClass,
+                        'eventClassKey' :  eventOccurrence['event_class'],
+                        'eventClassMapping_uuid' : self._uuidUrl(eventOccurrence.get('event_class_mapping_uuid')),
+                        'eventKey' : eventOccurrence.get('event_key', None),
+                        'summary' : eventOccurrence.get('summary'),
+                        'severity' : eventOccurrence.get('severity'),
+                        'eventState' : EventStatus.getPrettyName(event_summary['status']),
+                        'count' : event_summary['count'],
+                        'monitor' : eventOccurrence.get('monitor'),
+                        'agent' : eventOccurrence.get('agent'),
+                        'message' : eventOccurrence.get('message'),
+                    }.iteritems() if v
+                ],
                 'log' : []
             }
 
@@ -233,7 +235,12 @@ class ZepRouter(EventsRouter):
 
             if 'details' in eventOccurrence:
                 for detail in eventOccurrence['details']:
-                    eventData['properties'][detail['name']] = detail['value']
+                    values = detail['value']
+                    if not isinstance(values, list):
+                        values = list(values)
+
+                    for value in (v for v in values if v):
+                        eventData['properties'].append(dict(key=detail['name'], value=value))
 
             return DirectResponse.succeed(event=[eventData])
         else:
