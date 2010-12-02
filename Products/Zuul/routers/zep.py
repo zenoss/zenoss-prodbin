@@ -20,6 +20,7 @@ import time
 import logging
 import DateTime # Zope DateTime, not python datetime
 from uuid import uuid4
+from zope.component import getUtility
 from Products.ZenUtils.Ext import DirectRouter
 from AccessControl import getSecurityManager
 from Products.ZenUtils.extdirect.router import DirectResponse
@@ -28,7 +29,7 @@ from Products.Zuul import getFacade
 from Products.Zuul.decorators import require
 from Products.Zuul.routers.events import EventsRouter
 from Products.ZenEvents.Event import Event as ZenEvent
-from Products.ZenMessaging.queuemessaging.publisher import EventPublisher
+from Products.ZenMessaging.queuemessaging.interfaces import IEventPublisher
 from Products.ZenUtils.guid.interfaces import IGlobalIdentifier
 from zenoss.protocols.services.zep import EventStatus
 from json import loads
@@ -419,7 +420,7 @@ class ZepRouter(EventsRouter):
             eventClass=evclass,
         )
 
-        publisher = EventPublisher()
+        publisher = getUtility(IEventPublisher)
         publisher.publish(event, mandatory=True)
 
         return DirectResponse.succeed(evid=event.evid)

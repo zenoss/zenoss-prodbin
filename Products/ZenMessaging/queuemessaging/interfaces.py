@@ -70,3 +70,12 @@ class IQueueConsumerTask(Interface):
         Handles a queue message, can call "acknowledge" on the Queue Consumer
         class when it is done with the message
         """
+
+class IEventPublisher(Interface):
+    """
+    Publishes events.
+    """
+    def publish():
+        """
+        Publish
+        """

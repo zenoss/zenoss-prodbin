@@ -175,6 +175,10 @@ PUBLISH_SYNC = PublishSynchronizer()
 
 
 class EventPublisher(object):
+
+    def _publish(self, exchange, routing_key, proto, mandatory=False):
+        raise NotImplementedError
+
     def publish(self, event, mandatory=False):
         config = getAMQPConfiguration()
 
@@ -188,11 +192,21 @@ class EventPublisher(object):
         if hasattr(event, 'eventClass'):
             eventClass = event.eventClass
         routing_key = "zenoss.zenevent%s" % eventClass.replace('/', '.').lower()
+        log.debug("About to publish this event to the raw event queue:%s, with this routing key: %s" % (proto, routing_key))
+        self._publish("$RawZenEvents", routing_key, proto, mandatory=mandatory)
 
-        # publish event
+
+class BlockingEventPublisher(EventPublisher):
+    def _publish(self, exchange, routing_key, proto, mandatory=False):
         with closing(getUtility(IQueuePublisher, 'class')()) as publisher:
-            log.debug("About to publish this event to the raw event queue:%s, with this routing key: %s" % (proto, routing_key))
-            publisher.publish("$RawZenEvents", routing_key, proto, mandatory=mandatory)
+            publisher.publish(exchange, routing_key, proto, mandatory=mandatory)
+
+
+class AsyncEventPublisher(EventPublisher):
+    def _publish(self, exchange, routing_key, proto, mandatory=False):
+        publisher = getUtility(IQueuePublisher, 'class')()
+        d = publisher.publish(exchange, routing_key, proto, mandatory=mandatory)
+        d.addCallback(lambda r:publisher.close())
 
 
 class AsyncQueuePublisher(object):

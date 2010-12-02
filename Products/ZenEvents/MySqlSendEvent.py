@@ -29,6 +29,7 @@ STORE_EVENTS_IN_ZENHUB = TRANSFORM_EVENTS_IN_ZENHUB and True
 import warnings
 warnings.filterwarnings('ignore', r"Field '.+' doesn't have a default value")
 
+from zope.component import getUtility
 from ZEO.Exceptions import ClientDisconnected
 
 import Products.ZenUtils.guid as guid
@@ -37,6 +38,7 @@ from Event import buildEventFromDict
 from ZenEventClasses import Heartbeat, Unknown
 from Products.ZenEvents.Exceptions import *
 from Products.ZenUtils.Utils import zdecode
+from Products.ZenMessaging.queuemessaging.interfaces import IEventPublisher
 
 def execute(cursor, statement):
     """
@@ -401,9 +403,8 @@ class MySqlSendEventMixin:
         """
         Sends this event to the event fan out queue
         """
-        from Products.ZenMessaging.queuemessaging.publisher import EventPublisher
-        publisher = EventPublisher()
-        event.detaildata = detaildata        
+        publisher = getUtility(IEventPublisher)
+        event.detaildata = detaildata
         publisher.publish(event)
 
     def _sendHeartbeat(self, event):
