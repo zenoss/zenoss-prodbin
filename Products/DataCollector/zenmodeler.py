@@ -649,12 +649,13 @@ class ZenModeler(PBDaemon):
                         datamaps = [datamaps,]
                     if datamaps:
                         maps += [m for m in datamaps if m]
-                if maps:                             
+                if maps:
                     deviceClass = Classifier.classifyDevice(pluginStats,
                                                 self.classCollectorPlugins)
                     yield self.config().callRemote(
                                                 'applyDataMaps', device.id,
                                                 maps, deviceClass)
+
                     if driver.next():
                         devchanged = True
                 if devchanged:

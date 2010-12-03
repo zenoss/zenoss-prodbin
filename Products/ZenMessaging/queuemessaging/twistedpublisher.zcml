@@ -9,8 +9,4 @@
              name="class"
             />
 
-    <utility factory=".publisher.AsyncEventPublisher"
-             provides=".interfaces.IEventPublisher"
-             />
-
 </configure>

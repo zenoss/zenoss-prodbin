@@ -12,6 +12,7 @@
 ###########################################################################
 
 from Acquisition import aq_base
+from twisted.internet import defer, reactor
 
 from PerformanceConfig import PerformanceConfig
 from Products.ZenHub.PBDaemon import translateError
@@ -104,11 +105,22 @@ class ModelerService(PerformanceConfig):
         device = self.getPerformanceMonitor().findDevice(device)
         adm = ApplyDataMap(self)
         adm.setDeviceClass(device, devclass)
-        changed = False
-        for map in maps:
+        def inner(d, map):
             if adm._applyDataMap(device, map):
                 changed = True
-        return changed
+            else:
+                changed = False
+            d.callback(changed)
+        @defer.inlineCallbacks
+        def applydatamap():
+            changed = False
+            for map in maps:
+                d = defer.Deferred()
+                reactor.callLater(0, inner, d, map)
+                result = yield d
+                changed = changed or result
+            defer.returnValue(changed)
+        return applydatamap()
 
     @translateError
     def remote_setSnmpLastCollection(self, device):

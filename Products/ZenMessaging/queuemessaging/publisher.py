@@ -198,13 +198,13 @@ class EventPublisher(object):
 
 class BlockingEventPublisher(EventPublisher):
     def _publish(self, exchange, routing_key, proto, mandatory=False):
-        with closing(getUtility(IQueuePublisher, 'class')()) as publisher:
+        with closing(BlockingQueuePublisher()) as publisher:
             publisher.publish(exchange, routing_key, proto, mandatory=mandatory)
 
 
 class AsyncEventPublisher(EventPublisher):
     def _publish(self, exchange, routing_key, proto, mandatory=False):
-        publisher = getUtility(IQueuePublisher, 'class')()
+        publisher = AsyncQueuePublisher()
         d = publisher.publish(exchange, routing_key, proto, mandatory=mandatory)
         d.addCallback(lambda r:publisher.close())
 

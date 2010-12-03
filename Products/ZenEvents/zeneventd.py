@@ -263,7 +263,9 @@ class ProcessEventMessageTask(object):
                 if attrval is not None:
                     setattr(evtindex, 'device_'+attr, attrval)
             evtindex.device_production_state = device.productionState
-            evtindex.device_class_name_uuid = device.deviceClass().uuid
+            devclassuuid = device.deviceClass().uuid
+            if devclassuuid:
+                evtindex.device_class_name_uuid = devclassuuid
             evtindex.device_location_uuid = self.getLocationUuid(device.location())
             # TODO - get uuids for device groups, systems, and services
 
@@ -286,11 +288,12 @@ class ProcessEventMessageTask(object):
                     setattr(evtindex, 'service_'+attr, attrval)
 
     def publishEvent(self, event):
-        self.queueConsumer.publishMessage("$ZepZenEvents", 
-                                          self.dest_routing_key_prefix + 
-                                              event.raw_event.event_class.replace('/','.').lower(),
-                                          event)
+        return self.queueConsumer.publishMessage("$ZepZenEvents",
+                                                 self.dest_routing_key_prefix +
+                                                 event.raw_event.event_class.replace('/','.').lower(),
+                                                 event)
 
+    @defer.inlineCallbacks
     def processMessage(self, message):
         """
         Handles a queue message, can call "acknowledge" on the Queue Consumer
@@ -407,13 +410,13 @@ class ProcessEventMessageTask(object):
                     continue
 
             # forward event to output queue
-            self.publishEvent(zepevent)
+            yield self.publishEvent(zepevent)
             log.debug("published event: %s", event.uuid);
             self.logEvent(log.debug, event, evtdetails)
 
         finally:
             # all done, ack message
-            self.queueConsumer.acknowledge(message)
+            yield self.queueConsumer.acknowledge(message)
 
     def logEvent(self, logfn, event, details):
         statusdata = dict((f.name,getattr(event,f.name,None)) for f in RawEvent.DESCRIPTOR.fields)
