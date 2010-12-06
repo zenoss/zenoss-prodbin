@@ -1550,8 +1550,9 @@ Zenoss.DetailPanel = Ext.extend(Ext.Panel, {
         // when we go to the new UI
 
         // device_link
-        event.device_link = Zenoss.render.Device(event.device_url,
-                                                event.device_title);
+        event.device_link = Zenoss.render.default_uid_renderer(
+                             event.device_url,
+                             event.device_title);
         // component_link
         if (event.component_url) {
             event.component_link = Zenoss.render.default_uid_renderer(
