@@ -143,11 +143,17 @@ class ProcessEventMessageTask(object):
             if name in details:
                 del details[name]
 
+    def getObjectUuid(self, obj):
+        if obj is not None:
+            return IGlobalIdentifier(obj).getGUID()
+        else:
+            return ''
+
     def getObjectForUuid(self, uuid):
         gm = IGUIDManager(self.dmd)
         return gm.getObject(uuid)
 
-    def getObjectUuid(self, objid, idattr, objcls, parentUuid=None):
+    def getObjectUuidForId(self, objid, idattr, objcls, parentUuid=None):
         element = None
 
         # if a parent uuid was provided, get its corresponding object to scope search;
@@ -165,7 +171,7 @@ class ProcessEventMessageTask(object):
         except StopIteration:
             pass
         if element:
-            return IGlobalIdentifier(element).getGUID()
+            return self.getObjectUuid(element)
 
         return ''
 
@@ -180,7 +186,7 @@ class ProcessEventMessageTask(object):
             cls = { DEVICE    : Device, 
                     COMPONENT : DeviceComponent, 
                     SERVICE   : None }[entityType]
-            uuid = self.getObjectUuid(identifier, 'id', cls, parentUuid)
+            uuid = self.getObjectUuidForId(identifier, 'id', cls, parentUuid)
 
         return identifier, uuid
 
@@ -232,60 +238,77 @@ class ProcessEventMessageTask(object):
                 evtproto.actor.element_sub_uuid = ''
         self.getIdentifiersForUuids(evtproto)
 
-    def getLocationUuid(self, locn):
-        if locn is not None:
-            return IGlobalIdentifier(locn).getGUID()
-        else:
-            return ''
+    def addEventIndexTerms(self, actor, uuidTags, evtDetails):
 
-    def addEventIndexTerms(self, event, evtindex):
-        #indexattrs = [f.name for f in EventIndex.DESCRIPTOR.fields]
-        """['device_id', 'device_title', 'device_priority', 
-         'device_class_name_uuid', 'device_location_uuid', 'device_production_state', 
-         'device_group_uuids', 'device_system_uuids', 'device_service_uuids', 
-         'component_id', 'component_title', 'component_uuid', 'service_title', 
-         'service_uuid']"""
+        def addTag(tagtype, taguuid, tags_add=uuidTags.add):
+            if taguuid:
+                newtag = tags_add()
+                newtag.type = tagtype
+                newtag.uuid = taguuid
 
-        # extract device, component, and/or service from event actor uuid's
+        def addDetail(detname, detvalue, det_add=evtDetails.add):
+            ed = det_add()
+            ed.name = detname
+            ed.value.append(detvalue)
+
+        # extract device, component, and/or service from actor uuid's
         elementrefs = { DEVICE : None, COMPONENT : None, SERVICE : None }
         for elementType in (DEVICE, COMPONENT, SERVICE):
-            if event.actor.element_type_id == elementType and event.actor.element_uuid:
-                elementrefs[elementType] = self.getObjectForUuid(event.actor.element_uuid)
-            if event.actor.element_sub_type_id == elementType and event.actor.element_sub_uuid:
-                elementrefs[elementType] = self.getObjectForUuid(event.actor.element_sub_uuid)
+            if actor.element_type_id == elementType and actor.element_uuid:
+                obj = self.getObjectForUuid(actor.element_uuid)
+                elementrefs[elementType] = obj
+                actor.element_identifier = obj.id
+            if actor.element_sub_type_id == elementType and actor.element_sub_uuid:
+                subobj = self.getObjectForUuid(actor.element_sub_uuid)
+                elementrefs[elementType] = subobj
+                actor.element_sub_identifier = subobj.id
 
         # set device search terms
+        dmd = self.dmd
         device = elementrefs[DEVICE]
         if device is not None:
-            attrs = "id title priority".split()
-            for attr in attrs:
-                attrval = getattr(device, attr, None)
-                if attrval is not None:
-                    setattr(evtindex, 'device_'+attr, attrval)
-            evtindex.device_production_state = device.productionState
-            devclassuuid = device.deviceClass().uuid
-            if devclassuuid:
-                evtindex.device_class_name_uuid = devclassuuid
-            evtindex.device_location_uuid = self.getLocationUuid(device.location())
-            # TODO - get uuids for device groups, systems, and services
+            deviceuuid = self.getObjectUuid(device)
+            addTag('zenoss.device', deviceuuid)
+
+            devclassRoot = dmd.Devices
+            devclass = device.deviceClass()
+            while devclass != devclassRoot:
+                addTag('zenoss.device.device_class', self.getObjectUuid(devclass))
+                devclass = devclass.getPrimaryParent()
+
+            locationRoot = dmd.Locations
+            locn = device.location()
+            while locn != locationRoot:
+                addTag('zenoss.device.location', self.getObjectUuid(locn))
+                locn = locn.getPrimaryParent()
+
+            # get uuids for device groups, systems, and (later) services
+            systemRoot = dmd.Systems
+            for s in device.systems():
+                while s != systemRoot:
+                    addTag('zenoss.device.system', self.getObjectUuid(s))
+                    s = s.getPrimaryParent()
+
+            groupRoot = dmd.Groups
+            for g in device.groups():
+                while g != groupRoot:
+                    addTag('zenoss.device.group', self.getObjectUuid(g))
+                    g = g.getPrimaryParent()
+
+            # add event details for other searchable device attributes
+            addDetail('zenoss.device.production_state', str(device.productionState))
+            addDetail('zenoss.device.priority', str(device.priority))
 
         # set component search terms
         component = elementrefs[COMPONENT]
         if component is not None:
-            attrs = "id title uuid".split()
-            for attr in attrs:
-                attrval = getattr(component,attr,None)
-                if attrval is not None:
-                    setattr(evtindex, 'component_'+attr, attrval)
+            addTag('zenoss.component', self.getObjectUuid(component))
 
         # set service search terms
         service = elementrefs[SERVICE]
         if service  is not None:
-            attrs = "uuid title".split()
-            for attr in attrs:
-                attrval = getattr(service,attr,None)
-                if attrval is not None:
-                    setattr(evtindex, 'service_'+attr, attrval)
+            addTag('zenoss.service', self.getObjectUuid(service))
+
 
     def publishEvent(self, event):
         return self.queueConsumer.publishMessage("$ZepZenEvents",
@@ -344,8 +367,8 @@ class ProcessEventMessageTask(object):
                 log.debug("identify devices for event: %s", event.uuid)
                 transformer.prepEvent()
                 log.debug("Event attributes updated (prepEvent): %s", evtproxy.get_changes())
-                if "_action" in evtproxy.get_changes():
-                    if evtproxy.get_changes()["_action"] == "drop":
+                if "status" in evtproxy.get_changes():
+                    if evtproxy.get_changes()["status"] == "drop":
                         log.debug("dropped event after identify: %s", event.uuid);
                         return
 
@@ -356,8 +379,8 @@ class ProcessEventMessageTask(object):
                 log.debug("invoke transforms on event: %s", event.uuid)
                 transformer.transformEvent()
                 log.debug("Event attributes updated (transformEvent): %s", evtproxy.get_changes())
-                if "_action" in evtproxy.get_changes():
-                    if evtproxy.get_changes()["_action"] == "drop":
+                if "status" in evtproxy.get_changes():
+                    if evtproxy.get_changes()["status"] == "drop":
                         log.debug("dropped event after transforms: %s", event.uuid);
                         return
 
@@ -394,12 +417,11 @@ class ProcessEventMessageTask(object):
                 # strip off details used internally
                 self.removeEventControlDetails(event, evtdetails)
 
-            # add event index tags for fast event retrieval
-            log.debug("add index values for event: %s", event.uuid)
-            self.addEventIndexTerms(event, zepevent.index)
-
             # convert event details dict back to event details name-values
             self.eventDetailDictToNameValues(event, evtdetails)
+
+            # add event index tags for fast event retrieval
+            self.addEventIndexTerms(event.actor, zepevent.tags, event.details)
 
             # Apply any event plugins
             for name, plugin in getUtilitiesFor(IEventPlugin):
