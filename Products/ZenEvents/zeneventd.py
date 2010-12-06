@@ -278,7 +278,7 @@ class ProcessEventMessageTask(object):
 
             locationRoot = dmd.Locations
             locn = device.location()
-            while locn != locationRoot:
+            while locn and locn != locationRoot:
                 addTag('zenoss.device.location', self.getObjectUuid(locn))
                 locn = locn.getPrimaryParent()
 
