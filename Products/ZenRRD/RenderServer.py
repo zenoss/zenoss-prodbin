@@ -54,6 +54,7 @@ from RRDToolItem import RRDToolItem
 from Products.ZenModel.PerformanceConf import performancePath
 import glob
 import tarfile
+import urllib
 
 log = logging.getLogger("RenderServer")
 
@@ -110,7 +111,12 @@ class RenderServer(RRDToolItem):
         @param REQUEST: URL-marshalled object containg URL options
         @return: graph or script location
         """
+
+        gopts = urllib.unquote(gopts)
         gopts = zlib.decompress(urlsafe_b64decode(gopts))
+
+        comment = urllib.unquote(comment) if comment else ''
+
         gopts = gopts.split('|')
         gopts = fixMissingRRDs(gopts)
         gopts.append('HRULE:INF#00000000')
