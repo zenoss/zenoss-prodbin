@@ -28,7 +28,7 @@
 
     <subscriber
         for="Products.ZenUtils.guid.interfaces.IGloballyIdentifiable
-             Products.ZenMessaging.ChangeEvents.interfaces.IObjectModifiedEvent"
+             Products.Zuul.catalog.interfaces.IIndexingEvent"
         handler=".subscribers.publishModified"
         />
 

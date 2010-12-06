@@ -15,14 +15,6 @@ from zope.interface import Attribute
 from zope.component.interfaces import IObjectEvent
 
 
-class IObjectModifiedEvent(IObjectEvent):
-    """
-    An event that is fired when an object is modified. This doesn't say what
-    changed, just notifies that a property of the object changed. It is up to
-    the subscriber to determine what changed
-    """
-
-
 class IObjectAddedToOrganizerEvent(IObjectEvent):
     """
     An event that is fired when an object is added to an organizer. For instance

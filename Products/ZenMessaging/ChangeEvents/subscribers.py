@@ -16,7 +16,8 @@ from zope.component import adapter
 from zope.app.container.interfaces import IObjectAddedEvent,\
     IObjectRemovedEvent
 from Products.ZenMessaging.queuemessaging.publisher import getModelChangePublisher
-from Products.ZenMessaging.ChangeEvents.interfaces import IObjectModifiedEvent, \
+from Products.Zuul.catalog.interfaces import IIndexingEvent
+from Products.ZenMessaging.ChangeEvents.interfaces import \
     IObjectAddedToOrganizerEvent, IObjectRemovedFromOrganizerEvent, IDeviceClassMoveEvent
 from Products.ZenUtils.guid.interfaces import IGloballyIdentifiable
 
@@ -33,7 +34,7 @@ def publishRemove(ob, event):
     publisher.publishRemove(ob)
 
 
-@adapter(IGloballyIdentifiable, IObjectModifiedEvent)
+@adapter(IGloballyIdentifiable, IIndexingEvent)
 def publishModified(ob, event):
     publisher = getModelChangePublisher()
     publisher.publishModified(ob)

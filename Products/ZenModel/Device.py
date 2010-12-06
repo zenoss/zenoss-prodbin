@@ -45,7 +45,6 @@ from Globals import DTMLFile
 from Globals import InitializeClass
 from DateTime import DateTime
 from zExceptions import NotFound
-from Products.ZenMessaging.ChangeEvents.events import ObjectModifiedEvent
 from ZODB.POSException import POSError
 
 
@@ -989,7 +988,6 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable,
             else:
                 self.manageIp = ip
                 self.index_object()
-                notify(ObjectModifiedEvent(self))
                 notify(IndexingEvent(self, ('ipAddress',), True))
                 log.info("%s's IP address has been set to %s.",
                          self.id, ip)

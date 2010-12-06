@@ -30,7 +30,6 @@ from Products.Zuul.catalog.events import IndexingEvent
 from Exceptions import ObjectCreationError
 from Products.ZenEvents.ZenEventClasses import Change_Add,Change_Remove,Change_Set,Change_Add_Blocked,Change_Remove_Blocked,Change_Set_Blocked
 from Products.ZenModel.Lockable import Lockable
-from Products.ZenMessaging.ChangeEvents.events import ObjectModifiedEvent
 from Products.ZenEvents import Event
 from zExceptions import NotFound
 
@@ -394,7 +393,6 @@ class ApplyDataMap(object):
                 log.debug("indexing object %s", obj.id)
                 obj.index_object()
             notify(IndexingEvent(obj))
-            notify(ObjectModifiedEvent(obj))
         else:
             obj._p_deactivate()
         return changed

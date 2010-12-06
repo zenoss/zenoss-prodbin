@@ -39,7 +39,6 @@ from Products.Zuul.tree import SearchResults
 from Products.ZenUtils.IpUtil import numbip, checkip, IpAddressError, ensureIp
 from Products.ZenUtils.IpUtil import getSubnetBounds
 from Products.Zuul.catalog.events import IndexingEvent
-from Products.ZenMessaging.ChangeEvents.events import ObjectModifiedEvent
 
 log = logging.getLogger('zen.Zuul')
 
@@ -266,7 +265,6 @@ class TreeFacade(ZuulFacade):
         for key in data.keys():
             if hasattr(info, key):
                 setattr(info, key, data[key])
-        notify(ObjectModifiedEvent(info._object))
         return info
 
 

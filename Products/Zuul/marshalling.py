@@ -21,7 +21,6 @@ from Products.Zuul.interfaces import IMarshaller
 from Products.Zuul.interfaces import IUnmarshaller
 from Products.Zuul.interfaces import IInfo
 from Products.Zuul.interfaces import ITreeNode
-from Products.ZenMessaging.ChangeEvents.events import ObjectModifiedEvent
 
 def _marshalImplicitly(obj):
     """
@@ -146,4 +145,3 @@ class DefaultUnmarshaller(object):
     def unmarshal(self, data):
         for key, value in data.iteritems():
             setattr(self.obj, key, value)
-        notify(ObjectModifiedEvent(self.obj._object))

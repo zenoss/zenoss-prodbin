@@ -11,22 +11,12 @@
 #
 ###########################################################################
 from zope.interface import implements
-from Products.ZenMessaging.ChangeEvents.interfaces import IObjectModifiedEvent, \
+from Products.ZenMessaging.ChangeEvents.interfaces import \
     IObjectAddedToOrganizerEvent, IObjectRemovedFromOrganizerEvent, IDeviceClassMoveEvent
 from Products.ZenModel.DeviceOrganizer import DeviceOrganizer
 
 import logging
 log = logging.getLogger('zen.modelchanges')
-
-
-class ObjectModifiedEvent(object):
-    """
-    Fired when an object is modified.
-    """
-    implements(IObjectModifiedEvent)
-
-    def __init__(self, object):
-        self.object = object
 
 
 class ObjectAddedToOrganizerEvent(object):
