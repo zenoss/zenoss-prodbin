@@ -63,7 +63,7 @@ class ProtobufMappings:
         Checks to make sure we are sending a correct value and then
         updates the protobuf with the correct attribute.
         """
-        if constant:
+        if constant is not None:
             key = str(constant).upper()
             try:
                 value = mapping[key]

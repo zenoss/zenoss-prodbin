@@ -358,10 +358,12 @@ class ProcessEventMessageTask(object):
                 self.extractActorElements(event, evtproxy)
                 evtproxy.mark()
 
-                transformer = EventTransformer(self, evtproxy, 
+                transformer = EventTransformer(self, evtproxy,
                                                evtFields=[f.name for f in RawEvent.DESCRIPTOR.fields],
-                                               reqdEvtFields=evtdetails["_REQUIRED_FIELDS"],
-                                               dedupEvtFields=evtdetails["_DEDUP_FIELDS"]
+                                               reqdEvtFields=evtdetails.get("_REQUIRED_FIELDS",
+                                                                           self.dmd.ZenEventManager.requiredEventFields),
+                                               dedupEvtFields=evtdetails.get("_DEDUP_FIELDS",
+                                                                         self.dmd.ZenEventManager.defaultEventId)
                                                )
                 # run event thru identity and transforms
                 log.debug("identify devices for event: %s", event.uuid)
