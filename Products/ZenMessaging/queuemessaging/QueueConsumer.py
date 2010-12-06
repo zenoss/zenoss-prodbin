@@ -110,7 +110,7 @@ class QueueConsumer(object):
         Publishes a message to another queue. This is for tasks that are both
         consumers and producers.
         """
-        self.consumer.send(exchange,
+        return self.consumer.send(exchange,
                            routing_key,
                            message )
     
