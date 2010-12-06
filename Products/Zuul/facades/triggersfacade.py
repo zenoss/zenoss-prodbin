@@ -12,6 +12,7 @@
 ###########################################################################
 
 from Products.ZenUtils.PkgResources import pkg_resources
+from datetime import datetime
 import logging
 import uuid
 import parser
@@ -200,10 +201,17 @@ class TriggersFacade(ZuulFacade):
     def updateWindow(self, data):
         uid = data['uid']
         window = self._getObject(uid)
+        
         if not window:
             raise Exception('Could not find window to update: %s' % uid)
         for field in window._properties:
-            setattr(window, field['id'], data.get(field['id']))
+            if field['id'] == 'start':
+                start = data['start']
+                start = start.replace('T00:00:00', 'T' + data['starttime'])
+                startDT = datetime.strptime(start, "%Y-%m-%dT%H:%M")
+                setattr(window, 'start', startDT.strftime('%s'))
+            else:
+                setattr(window, field['id'], data.get(field['id']))
         
         log.debug('updated window')
 

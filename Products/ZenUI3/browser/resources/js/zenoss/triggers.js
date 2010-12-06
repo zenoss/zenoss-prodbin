@@ -699,7 +699,15 @@ Ext.onReady(function () {
                             xtype: 'datefield',
                             name: 'start',
                             ref: 'start',
-                            fieldLabel: _t('Start')
+                            allowBlank: false,
+                            fieldLabel: _t('Start Date')
+                        }, {
+                            xtype: 'timefield',
+                            name: 'starttime',
+                            ref: 'starttime',
+                            allowBlank: false,
+                            format: 'H:i',
+                            fieldLabel: _t('Start Time')
                         },
                         new Ext.form.ComboBox({
                             store: new Ext.data.ArrayStore({
@@ -717,11 +725,11 @@ Ext.onReady(function () {
                             }),
                             mode: 'local',
                             name: 'repeat',
-                            allowBlank:false,
-                            required:true,
-                            editable:false,
-                            displayField:'value',
-                            valueField:'value',
+                            allowBlank: false,
+                            required: true,
+                            editable: false,
+                            displayField: 'value',
+                            valueField: 'value',
                             triggerAction: 'all',
                             fieldLabel: _t('Repeat')
                         }),{
@@ -971,6 +979,7 @@ Ext.onReady(function () {
                         'newId',
                         'enabled',
                         'start',
+                        'starttime',
                         'repeat',
                         'duration'
                     ]
@@ -996,6 +1005,7 @@ Ext.onReady(function () {
                     xtype: 'button',
                     iconCls: 'add',
                     ref: '../addButton',
+                    disabled: true,
                     handler: function(button) {
                         addScheduleDialogue.show();
                     }
@@ -1003,6 +1013,7 @@ Ext.onReady(function () {
                     xtype: 'button',
                     iconCls: 'delete',
                     ref: '../deleteButton',
+                    disabled: true,
                     handler: function(button) {
                         var row = button.refOwner.getSelectionModel().getSelected(),
                             uid, 

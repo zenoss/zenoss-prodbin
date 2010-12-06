@@ -78,8 +78,21 @@ class NotificationWindowInfo(InfoBase):
         # expecting the time to always be in the following format
         dt = datetime.strptime(value, "%Y-%m-%dT%H:%M:%S")
         self._object.start = dt.strftime('%s')
+        
+    def _getStartTime(self):
+        starttime = time()
+        try:
+            starttime = float(self._object.start)
+        except (ValueError, TypeError):
+            pass
+        dt = datetime.fromtimestamp(starttime)
+        return '%.2d:%.2d' % (dt.hour, dt.minute)
+    
+    def _setStartTime(self, value):
+        pass
     
     start = property(_getStart, _setStart)
+    starttime = property(_getStartTime, _setStartTime)
     enabled = ProxyProperty('enabled')
     repeat = ProxyProperty('repeat')
     duration = ProxyProperty('duration')
