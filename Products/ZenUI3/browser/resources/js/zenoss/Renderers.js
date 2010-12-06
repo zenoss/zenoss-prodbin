@@ -290,7 +290,7 @@ Ext.apply(Zenoss.render, {
         var uid = record.data.serviceClassUid.replace(/\//g, '.');
         return Zenoss.render.serviceClass('ipservice', uid, value);
     },
-    
+
     WinServiceClass: function(value, metadata, record, rowIndex, colIndex, store) {
         // this is intended to set directly as a column renderer instead of
         // using Types.js. See the Ext.grid.ColumnModel.setRenderer
@@ -335,7 +335,7 @@ Ext.apply(Zenoss.render, {
         }
         return Zenoss.render.link(null, url, name);
     },
-    
+
     Process: function(uid, name) {
         var url = '/zport/dmd/process#processTree:' + uid.replace(/\//g, '.');
         if (!name) {

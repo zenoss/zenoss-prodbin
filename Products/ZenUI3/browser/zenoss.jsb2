@@ -183,6 +183,9 @@
         },{
             "text": "RuleBuilder.js",
             "path": "resources/js/zenoss/form/"
+        },{
+            "text": "SettingsGrid.js",
+            "path": "resources/js/zenoss/form/"
         }]
     }],
     "resources": []

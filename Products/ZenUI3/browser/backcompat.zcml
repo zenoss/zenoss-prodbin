@@ -308,6 +308,13 @@
     />
 
 <browser:page
+    template="../../ZenEvents/skins/zenevents/zepConfig.pt"
+    name="eventConfig"
+    for="*"
+    permission="zenoss.View"
+    />
+
+<browser:page
     template="../../ZenModel/skins/zenmodel/zenossInfo.pt"
     name="zenossInfo"
     for="*"

@@ -31,10 +31,10 @@ from Products.Zuul.routers.events import EventsRouter
 from Products.ZenEvents.Event import Event as ZenEvent
 from Products.ZenMessaging.queuemessaging.interfaces import IEventPublisher
 from Products.ZenUtils.guid.interfaces import IGlobalIdentifier
-from zenoss.protocols.services.zep import EventStatus
+from zenoss.protocols.services.zep import EventStatus, EventSeverity
 from json import loads
 from Products.Zuul.utils import resolve_context
-
+from Products.Zuul.utils import ZuulMessageFactory as _t
 log = logging.getLogger('zen.%s' % __name__)
 
 
@@ -431,3 +431,57 @@ class ZepRouter(EventsRouter):
         publisher.publish(event, mandatory=True)
 
         return DirectResponse.succeed(evid=event.evid)
+
+    def configSchema(self):
+        configSchema =[{
+                'id': 'event_age_disable_severity',
+                'name': _t('Event Age Disable Severity'),
+                'xtype': 'severity',
+                }, {
+                'id': 'event_age_interval_minutes',
+                'name': _t('Event Age Interval (minutes)'),
+                'xtype': 'numberfield',
+                'allowNegative': False,
+                }, { 
+                'id': 'event_archive_purge_interval_days',
+                'maxValue': 90,
+                'name': _t('Event Archive Purge Interval (days)'),
+                'xtype': 'numberfield',
+                'allowNegative': False,
+                }, {
+                'id': 'event_occurrence_purge_interval_days',
+                'maxValue': 30,
+                'name': _t('Event Occurrence Purge Interval (Days)'),
+                'xtype': 'numberfield',
+                'allowNegative': False,
+                }
+                       ]
+        return configSchema
+    
+    @require('ZenCommon')
+    def getConfig(self):
+        data = self.zep.getConfig()
+        config = self.configSchema()
+        # copy the values and defaults from ZEP to our schema
+        for conf in config:
+            prop = data[conf['id']]
+            for key in prop.keys():
+                conf[key] = prop[key]
+            # our drop down expects severity to be the number constant
+            if conf['id'] == 'event_age_disable_severity':
+                conf['defaultValue'] = EventSeverity.getNumber(prop['defaultValue'])                
+                if prop['value']:
+                    conf['value'] = EventSeverity.getNumber(prop['value'])
+        return DirectResponse.succeed(data=config)
+
+    @require('Manage DMD')
+    def setConfigValues(self, values):
+        """
+        @type  values: Dictionary
+        @param values: Key Value pairs of config values
+        """
+        if values.get('event_age_disable_severity'):
+            sev = values.get('event_age_disable_severity')
+            values['event_age_disable_severity'] = EventSeverity.getName(sev)
+        self.zep.setConfigValues(values)
+        return DirectResponse.succeed()

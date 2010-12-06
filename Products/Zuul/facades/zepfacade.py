@@ -17,7 +17,7 @@ from zope.interface import implements
 from Products.Zuul.facades import ZuulFacade
 from Products.Zuul.interfaces import IZepFacade
 import pkg_resources
-from zenoss.protocols.services.zep import ZepServiceClient
+from zenoss.protocols.services.zep import ZepServiceClient, EventSeverity, EventStatus, ZepConfigClient
 from zenoss.protocols.jsonformat import to_dict, from_dict
 from zenoss.protocols.protobufs.zep_pb2 import EventSummaryFilter, NumberCondition, EventSort
 from Products.ZenUtils.GlobalConfig import getGlobalConfiguration
@@ -59,8 +59,9 @@ class ZepFacade(ZuulFacade):
         super(ZepFacade, self).__init__(context)
 
         config = getGlobalConfiguration()
-
-        self.client = ZepServiceClient(config.get('zep_uri', 'http://localhost:8084'))
+        zep_url = config.get('zep_uri', 'http://localhost:8084')
+        self.client = ZepServiceClient(zep_url)
+        self.configClient = ZepConfigClient(zep_url)
 
     def createFilter(self,
         uuid=[],
@@ -193,3 +194,20 @@ class ZepFacade(ZuulFacade):
 
     def reopenEventSummary(self, uuid):
         return self.client.reopenEventSummary(uuid)
+
+    def getConfig(self):
+        config = self.configClient.getConfig()
+        return config
+
+    def setConfigValues(self, values):
+        """
+        @type  values: Dictionary
+        @param values: Key Value pairs of config values
+        """
+        self.configClient.setConfigValues(values)
+    
+    def setConfigValue(self, name, value):
+        self.configClient.setConfigValue(name, value)        
+
+    def removeConfigValue(self, name):
+        self.configClient.removeConfigValue(name)        
