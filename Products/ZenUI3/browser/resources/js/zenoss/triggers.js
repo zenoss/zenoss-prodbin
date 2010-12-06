@@ -16,9 +16,11 @@
 Ext.ns('Zenoss.ui.Triggers');
 
 Ext.onReady(function () {
-    
+
     var router = Zenoss.remote.TriggersRouter,
-        
+        ZFR = Zenoss.form.rule,
+        STRINGCMPS = ZFR.STRINGCOMPARISONS,
+        NUMCMPS = ZFR.NUMBERCOMPARISONS,
         AddDialogue,
         addNotificationDialogue,
         addNotificationDialogueConfig,
@@ -56,7 +58,7 @@ Ext.onReady(function () {
         TriggersGridPanel,
         triggersPanelConfig;
 
-    
+
     AddDialogue = Ext.extend(Ext.Window, {
         constructor: function(config) {
             config = config || {};
@@ -121,28 +123,28 @@ Ext.onReady(function () {
         }
     });
     Ext.reg('triggersadddialogue', AddDialogue);
-    
-    
+
+
     /**
      * NOTIFICATIONS
      **/
-    
+
     notificationPanelConfig = {
         id: 'notification_panel',
         xtype: 'notificationsubscriptions'
     };
-    
+
     schedulesPanelConfig = {
         id: 'schedules_panel',
         xtype: 'schedulespanel'
     };
-    
-    
+
+
     reloadNotificationGrid = function() {
         Ext.getCmp(notificationPanelConfig.id).getStore().reload();
     };
-    
-    
+
+
     reloadScheduleGrid = function() {
         var panel = Ext.getCmp(notificationPanelConfig.id),
             row = panel.getSelectionModel().getSelected();
@@ -150,13 +152,13 @@ Ext.onReady(function () {
             Ext.getCmp(schedulesPanelConfig.id).getStore().reload({uid:row.data.uid});
         }
     };
-    
+
     displayScheduleEditDialogue = function(data) {
         var dialogue = Ext.getCmp(editScheduleDialogueConfig.id);
         dialogue.loadData(data);
         dialogue.show();
     };
-    
+
     editScheduleDialogueConfig = {
         id: 'edit_schedule_dialogue',
         xtype: 'editscheduledialogue',
@@ -164,7 +166,7 @@ Ext.onReady(function () {
         directFn: router.updateWindow,
         reloadFn: reloadScheduleGrid
     };
-    
+
     addScheduleDialogueConfig = {
         id: 'add_schedule_dialogue',
         xtype: 'addialogue',
@@ -177,7 +179,7 @@ Ext.onReady(function () {
                     newId: button.refOwner.addForm.newId.getValue(),
                     contextUid: row.data.uid
                 };
-            
+
             router.addWindow(params, function(){
                 button.refOwner.addForm.newId.setValue('');
                 button.refOwner.hide();
@@ -185,8 +187,8 @@ Ext.onReady(function () {
             });
         }
     };
-    
-    
+
+
     var NotificationTabContent = Ext.extend(Ext.Panel, {
         constructor: function(config) {
             config = config || {};
@@ -202,7 +204,7 @@ Ext.onReady(function () {
             NotificationTabContent.superclass.constructor.apply(this, arguments);
         }
     });
-    
+
     var NotificationTabPanel = Ext.extend(Ext.TabPanel, {
         constructor: function(config) {
             config = config || {};
@@ -227,11 +229,11 @@ Ext.onReady(function () {
         root: 'data',
         autoLoad: true
     });
-    
+
     displayNotificationEditDialogue = function(data) {
         var tab_content;
         var _width, _height;
-        
+
         // This action map is used to make the 'type' display in the
         // recipients grid more user friendly.
         var ACTION_TYPE_MAP = {
@@ -239,7 +241,7 @@ Ext.onReady(function () {
             'page': _t('Page'),
             'command': _t('Command')
         };
-        
+
         if (data.action == 'email') {
             tab_content = new NotificationTabContent({
                 title: 'Content',
@@ -345,7 +347,7 @@ Ext.onReady(function () {
                 }
             });
         }
-        
+
         // TOOLBAR
         // *******
         var recipients_toolbar = [{
@@ -378,7 +380,7 @@ Ext.onReady(function () {
                     row = btn.refOwner.recipient_combo.getStore().getById(val),
                     type = 'manual',
                     label = val;
-                    
+
                 if (row) {
                     type = row.data.type;
                     label = row.data.label;
@@ -401,8 +403,8 @@ Ext.onReady(function () {
                 btn.refOwner.ownerCt.getView().refresh();
             }
         }];
-        
-        
+
+
         /**
          * This awesome function from Ian fixes dumb ext combo boxes.
          */
@@ -423,7 +425,7 @@ Ext.onReady(function () {
                 Ext.form.ComboBox.prototype.setValue.call(this, val);
             }
         };
-        
+
         var triggersComboBox = new Ext.form.ComboBox({
             store: triggersComboStore,
             setValue: smarterSetValue,
@@ -440,7 +442,7 @@ Ext.onReady(function () {
             fieldLabel: _t('Trigger'),
             typeAhead: true
         });
-        
+
         var tab_panel = new NotificationTabPanel({
             items: [
                 // NOTIFICATION INFO
@@ -477,10 +479,10 @@ Ext.onReady(function () {
                         this.subscriptions.setValue(data.subscriptions);
                     }
                 }),
-                
+
                 // CONTENT TAB
                 tab_content,
-                
+
                 // RECIPIENTS
                 new NotificationTabContent({
                     title: 'Subscribers',
@@ -530,7 +532,7 @@ Ext.onReady(function () {
                 })
             ]
         });
-        
+
         var dialogue = new EditNotificationDialogue({
             id: 'edit_notification_dialogue',
             title: _t('Edit Notification Subscription'),
@@ -538,11 +540,11 @@ Ext.onReady(function () {
             reloadFn: reloadNotificationGrid,
             tabPanel: tab_panel
         });
-        
+
         dialogue.loadData(data);
         dialogue.show();
     };
-    
+
     var displayNotificationAddDialogue = function() {
         var dialogue = new Ext.Window({
             title: 'Add Notification',
@@ -613,7 +615,7 @@ Ext.onReady(function () {
         });
         dialogue.show();
     };
-    
+
     EditNotificationDialogue = Ext.extend(Ext.Window, {
         constructor: function(config) {
             config = config || {};
@@ -641,7 +643,7 @@ Ext.onReady(function () {
                             var params = button.refOwner.editForm.getForm().getFieldValues();
                             params.recipients = [];
                             Ext.each(
-                                button.refOwner.tabPanel.recipients_tab.recipients_grid.getStore().getRange(), 
+                                button.refOwner.tabPanel.recipients_tab.recipients_grid.getStore().getRange(),
                                 function(item, index, allItems){
                                     params.recipients.push(item.data);
                                 }
@@ -668,8 +670,8 @@ Ext.onReady(function () {
         }
     });
     Ext.reg('editnotificationdialogue', EditNotificationDialogue);
-    
-    
+
+
     EditScheduleDialogue = Ext.extend(Ext.Window, {
         constructor: function(config) {
             config = config || {};
@@ -771,11 +773,11 @@ Ext.onReady(function () {
         }
     });
     Ext.reg('editscheduledialogue', EditScheduleDialogue);
-    
+
     editScheduleDialogue = new EditScheduleDialogue(editScheduleDialogueConfig);
     addScheduleDialogue = new AddDialogue(addScheduleDialogueConfig);
-    
-    
+
+
     NotificationSubscriptions = Ext.extend(Ext.grid.GridPanel, {
         constructor: function(config) {
             config = config || {};
@@ -849,7 +851,7 @@ Ext.onReady(function () {
                         dataIndex: 'subscriptions',
                         header: _t('Trigger'),
                         sortable: true,
-                        // use a fancy renderer that get's it's display value 
+                        // use a fancy renderer that get's it's display value
                         // from the store that already has the triggers.
                         renderer: function(value, metaData, record, rowIndex, colIndex, store) {
                             var idx = triggersComboStore.find('uuid', value);
@@ -879,8 +881,8 @@ Ext.onReady(function () {
                     ref: '../deleteButton',
                     handler: function(button) {
                         var row = button.refOwner.getSelectionModel().getSelected(),
-                            uid, 
-                            params, 
+                            uid,
+                            params,
                             callback;
                         if (row){
                             uid = row.data.uid;
@@ -935,10 +937,10 @@ Ext.onReady(function () {
         }
     });
     Ext.reg('notificationsubscriptions', NotificationSubscriptions);
-    
+
     notification_panel = Ext.create(notificationPanelConfig);
-    
-    
+
+
     SchedulesPanel = Ext.extend(Ext.grid.GridPanel, {
         constructor: function(config) {
             config = config || {};
@@ -1016,7 +1018,7 @@ Ext.onReady(function () {
                     disabled: true,
                     handler: function(button) {
                         var row = button.refOwner.getSelectionModel().getSelected(),
-                            uid, 
+                            uid,
                             params;
                         if (row){
                             uid = row.data.uid;
@@ -1070,10 +1072,10 @@ Ext.onReady(function () {
         }
     });
     Ext.reg('schedulespanel', SchedulesPanel);
-    
+
     schedules_panel = Ext.create(schedulesPanelConfig);
-    
-    
+
+
     NotificationPageLayout = Ext.extend(Ext.Panel, {
         constructor: function(config) {
             config = config || {};
@@ -1103,22 +1105,22 @@ Ext.onReady(function () {
         }
     });
     Ext.reg('notificationsubscriptions', NotificationPageLayout);
-    
-    
+
+
     notificationsPanelConfig = {
         id: 'notifications_panel',
         xtype: 'notificationsubscriptions',
         schedulePanel: schedules_panel,
         notificationPanel: notification_panel
     };
-    
-    
-    
-    
+
+
+
+
     /***
      * TRIGGERS
      **/
-     
+
     colModelConfig = {
         defaults: {
             menuDisabled: true
@@ -1147,12 +1149,12 @@ Ext.onReady(function () {
             }
         ]
     };
-    
+
     triggersPanelConfig = {
         id: 'triggers_grid_panel',
         xtype: 'TriggersGridPanel'
     };
-    
+
     detailPanelConfig = {
         id: 'triggers_detail_panel',
         xtype: 'contextcardpanel',
@@ -1162,7 +1164,7 @@ Ext.onReady(function () {
         activeItem: 0,
         items: [triggersPanelConfig, notificationsPanelConfig]
     };
-    
+
     navSelectionModel = new Ext.tree.DefaultSelectionModel({
         listeners: {
             selectionchange: function (sm, newnode) {
@@ -1172,7 +1174,7 @@ Ext.onReady(function () {
             }
         }
     });
-    
+
     masterPanelConfig = {
         id: 'master_panel',
         region: 'west',
@@ -1214,21 +1216,25 @@ Ext.onReady(function () {
             }
         ]
     };
-    
+
     EditTriggerDialogue = Ext.extend(Ext.Window, {
         constructor: function(config) {
             config = config || {};
             Ext.applyIf(config, {
                 modal: true,
                 plain: true,
-                width: 500,
-                boxMaxWidth: 500, // for chrome, safari
+                width: 820,
+                boxMaxWidth: 820, // for chrome, safari
                 border: false,
+                autoScroll: true,
                 closeAction: 'hide',
                 items:{
                     xtype:'form',
                     ref: 'editForm',
+                    autoScroll: true,
                     border: false,
+                    width: 800,
+                    height: 400,
                     buttonAlign: 'center',
                     monitorValid: true,
                     items:[
@@ -1253,12 +1259,98 @@ Ext.onReady(function () {
                             ref: 'send_clear',
                             fieldLabel: _t('Send Clear')
                         },{
-                            xtype: 'textarea',
-                            name: 'rule',
+                            xtype: 'rulebuilder',
+                            fieldLabel: _t('Rule'),
+                            name: 'criteria',
+                            id: 'rulebuilder',
                             ref: 'rule',
-                            width: 400,
-                            height: 400,
-                            fieldLabel: _t('Rule Source')
+                            subjects: [{
+                                text: _t('Device Priority'),
+                                value: 'dev.priority',
+                                comparisons: STRINGCMPS
+                            },{
+                                text: _t('Device Production State'),
+                                value: 'dev.production_state',
+                                comparisons: STRINGCMPS
+                            },
+                                Ext.apply(ZFR.DEVICE,{
+                                    value: 'dev.uuid'
+                                }),
+                                Ext.apply(ZFR.COMPONENT,{
+                                    value: 'component.uuid'
+                                }),
+                            {
+                                text: _t('Event Class'),
+                                value: 'evt.event_class',
+                                comparisons: STRINGCMPS,
+                                field: {
+                                    xtype: 'eventclass'
+                                }
+                            },{
+                                text: _t('Event Key'),
+                                value: 'evt.event_key',
+                                comparisons: STRINGCMPS
+                            },{
+                                text: _t('Summary'),
+                                value: 'evt.summary',
+                                comparisons: STRINGCMPS
+                            },{
+                                text: _t('Message'),
+                                value: 'evt.message',
+                                comparisons: STRINGCMPS
+                            },
+                                ZFR.EVENTSEVERITY,
+                            {
+                                text: _t('Fingerprint'),
+                                value: 'evt.fingerprint',
+                                comparisons: STRINGCMPS
+                            },{
+                                text: _t('Agent'),
+                                value: 'evt.agent',
+                                comparisons: STRINGCMPS
+                            },{
+                                text: _t('Monitor'),
+                                value: 'evt.monitor',
+                                comparisons: STRINGCMPS
+                            },{
+                                text: _t('Count'),
+                                value: 'evt.count',
+                                comparisons: NUMCMPS,
+                                field: {
+                                    xtype: 'numberfield'
+                                }
+                            },{
+                                text: _t('Status'),
+                                value: 'evt.status',
+                                comparisons: NUMCMPS,
+                                field: {
+                                    xtype: 'combo',
+                                    mode: 'local',
+                                    valueField: 'value',
+                                    displayField: 'name',
+                                    typeAhead: false,
+                                    forceSelection: true,
+                                    triggerAction: 'all',
+                                    store: new Ext.data.ArrayStore({
+                                        fields: ['name', 'value'],
+                                        data: [[
+                                            _t('New'), 1
+                                        ],[
+                                            _t('Acknowledged'), 2
+                                        ],[
+                                            _t('Suppressed'), 3
+                                        ],[
+                                            _t('Closed'), 4
+                                        ],[
+                                            _t('Cleared'), 5
+                                        ],[
+                                            _t('Dropped'), 6
+                                        ],[
+                                            _t('Aged'), 7
+                                        ]]
+                                    })
+                                }
+                            }]
                         }
                     ],
                     buttons:[
@@ -1268,10 +1360,17 @@ Ext.onReady(function () {
                             ref: '../../submitButton',
                             formBind: true,
                             handler: function(button) {
-                                var params = button.refOwner.editForm.getForm().getFieldValues(),
-                                    _rule = params.rule;
-                                params.rule = {'source':_rule};
-                                
+                                var editForm = button.refOwner.editForm;
+                                var params = {
+                                    uuid: editForm.uuid.getValue(),
+                                    enabled: editForm.enabled.getValue(),
+                                    send_clear: editForm.send_clear.getValue(),
+                                    name: editForm.name.getValue(),
+                                    rule: {
+                                        source: button.refOwner.editForm.rule.getValue()
+                                    }
+                                };
+
                                 config.directFn(params, function(){
                                     button.refOwner.hide();
                                     config.reloadFn();
@@ -1284,23 +1383,8 @@ Ext.onReady(function () {
                             handler: function(button) {
                                 button.refOwner.hide();
                             }
-                        },{
-                            xtype: 'button',
-                            ref: '../../validateSource',
-                            text: _t('Check Rule'),
-                            handler: function(button) {
-                                var params = {
-                                    source: button.refOwner.editForm.rule.getValue()
-                                };
-                                config.validateFn(params, function(response){
-                                    if (response.success) {
-                                        Zenoss.message.success('Rule source validated successfully.');
-                                    }
-                                });
-                                
-                            }
                         }]
-                    }
+                }
             });
             EditTriggerDialogue.superclass.constructor.apply(this, arguments);
         },
@@ -1313,23 +1397,23 @@ Ext.onReady(function () {
         }
     });
     Ext.reg('edittriggerdialogue', EditTriggerDialogue);
-    
-    
+
+
     reloadTriggersGrid = function() {
         Ext.getCmp(triggersPanelConfig.id).getStore().reload();
     };
-    
+
     displayEditTriggerDialogue = function(data) {
         editTriggerDialogue.loadData(data);
         editTriggerDialogue.show();
     };
-    
+
     addTriggerDialogue = new AddDialogue({
         title: _t('Add Trigger'),
         directFn: router.addTrigger,
         reloadFn: reloadTriggersGrid
     });
-    
+
     editTriggerDialogue = new EditTriggerDialogue({
         title: _t('Edit Trigger'),
         directFn: router.updateTrigger,
@@ -1338,7 +1422,7 @@ Ext.onReady(function () {
     });
 
     colModel = new Ext.grid.ColumnModel(colModelConfig);
-    
+
     TriggersGridPanel = Ext.extend(Ext.grid.GridPanel, {
         constructor: function(config) {
             Ext.applyIf(config, {
@@ -1410,7 +1494,7 @@ Ext.onReady(function () {
                                                 reloadTriggersGrid();
                                             };
                                             router.removeTrigger(params, callback);
-                                            
+
                                         } else {
                                             Ext.Msg.hide();
                                         }
@@ -1440,7 +1524,7 @@ Ext.onReady(function () {
         }
     });
     Ext.reg('TriggersGridPanel', TriggersGridPanel);
-    
+
     Ext.getCmp('center_panel').add({
         id: 'center_panel_container',
         layout: 'border',
