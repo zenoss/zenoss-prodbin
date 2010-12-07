@@ -2038,40 +2038,4 @@ String.prototype.endswith = function(str){
     return (this.match(str+'$')==str);
 };
 
-// TODO Temporary checkbox to allow switching between old and new event console
-Ext.ComponentMgr.onAvailable('footer_bar', function(config) {
-    config.items = config.items || [];
-    config.items.push({
-        xtype: 'checkbox',
-        id: 'event_console_toggle',
-        stateful: true,
-        stateEvents: ['check'],
-        getState: function() {
-            return {checked: this.getValue()}
-        },
-        applyState: function(state) {
-            this.setValue(state.checked);
-        }
-    });
-
-    config.items.push({
-        xtype: 'tbtext',
-        text: 'Use Old Event Store'
-    });
-
-    config.items.push('-');
-});
-
-if ( Ext.state.Manager.get('event_console_toggle', false) && Ext.state.Manager.get('event_console_toggle').checked ) {
-    if ( window.console ) {
-        window.console.warn('Using old event console.');
-    }
-}
-else {
-    if ( window.console ) {
-        window.console.warn('Using ZEP event console.');
-    }
-    Zenoss.remote.EventsRouter = Zenoss.remote.ZepRouter;
-}
-
 })(); // End local scope

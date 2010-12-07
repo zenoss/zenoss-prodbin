@@ -15,7 +15,7 @@
 Ext.ns('Zenoss.ui.EvHistory');
 
 Ext.onReady(function(){
-    
+
     // Make severity filter show clear events by default
     var cds = Zenoss.env.COLUMN_DEFINITIONS;
     for (i=0;i<cds.length;i++) {
@@ -25,7 +25,7 @@ Ext.onReady(function(){
             Zenoss.env.COLUMN_DEFINITIONS[i] = def;
         }
     }
-    
+
     // Global dialogs, will be reused after first load
     var win,
     // Date renderer object, used throughout
@@ -36,11 +36,15 @@ Ext.onReady(function(){
 
     master_panel.layout = 'border';
 
+    // Make this instance of the detail panel use a unique state ID so
+    // it doesn't interfere with the state of other instances of this panel.
+    detail_panel.stateId = 'Zenoss.ui.EvHistory.detail_panel';
+
     // Make the detail panel collapsible
     detail_panel.animCollapse = false;
     detail_panel.collapsible = false;
     detail_panel.collapsed = true;
-    
+
     /*
      * Assemble the parameters that define the grid state.
      */
@@ -136,7 +140,7 @@ Ext.onReady(function(){
                             'history':true
                         }, function(result){
                             win.hide();
-                            var title = result.success ?  
+                            var title = result.success ?
                                         'Classified':
                                         'Error';
                             Ext.MessageBox.show({
@@ -170,7 +174,7 @@ Ext.onReady(function(){
                 var sm = grid.getSelectionModel();
                 sm.clearSelections();
                 Ext.each(result, function(range){
-                    if (range.length==1) 
+                    if (range.length==1)
                         range[1] = grid.getStore().totalLength + 1;
                    sm.selectRange(range[0]-1, range[1]-1, true);
                 });
@@ -180,7 +184,7 @@ Ext.onReady(function(){
 
     // Get the container surrounding master/detail, for adding the toolbar
     var container = Ext.getCmp('center_panel_container');
-    
+
     // Add a CSS class to scope some styles that affect other parts of the UI
     container.on('render', function(){container.el.addClass('zenui3')});
 
@@ -314,7 +318,7 @@ Ext.onReady(function(){
                 }]
                 }
             },{
-                /* 
+                /*
                  * CONFIGURE MENU
                  */
                 text: _t('Configure'),
@@ -438,14 +442,14 @@ Ext.onReady(function(){
     // Show filters by default on history console
     // State restoration occurs after render, so this won't persist if unwanted
     myView.on('render', function(){myView.showFilters()});
-    
+
 
     // Store to hold the events data
     var console_store = new Zenoss.EventStore({
         proxy: new Zenoss.ThrottlingProxy({
             directFn:Zenoss.remote.EventsRouter.queryHistory,
             listeners: {
-                
+
                 'exception': function(proxy, type, action, options,
                 response, arg){
                     if (response.result && response.result.msg){
@@ -460,7 +464,7 @@ Ext.onReady(function(){
                 'load': function(proxy, transaction, options) {
                     var disabled = Zenoss.Security.doesNotHavePermission('Manage Events');
                     var buttonIds = [
-                        'reopen-button', 
+                        'reopen-button',
                         'classify-button'
                     ];
                     Ext.each(buttonIds, function(buttonId) {
@@ -549,20 +553,20 @@ Ext.onReady(function(){
     // Finally, add the detail panel (have to do it after function defs to hook
     // up the hide callback)
     detail_panel.add({
-        xtype:'detailpanel', 
-        id: 'dpanelcontainer', 
+        xtype:'detailpanel',
+        id: 'dpanelcontainer',
         isHistory: true,
         onDetailHide: hideEventDetail
     });
 
     detail_panel.on('expand', function(ob, state) {
-        toggleEventDetailContent();    
+        toggleEventDetailContent();
     });
-    
+
     detail_panel.on('collapse', function(ob, state) {
         eventDetailCollapsed()
     });
-    
+
     // Hook up the "Last Updated" text
     var store = grid.getStore(),
         view = grid.getView();
