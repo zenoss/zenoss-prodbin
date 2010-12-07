@@ -9,4 +9,8 @@
              name="class"
             />
 
+    <utility factory=".publisher.TwistedEventPublisher"
+             provides=".interfaces.IEventPublisher"
+             />
+
 </configure>

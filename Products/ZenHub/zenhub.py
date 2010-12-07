@@ -32,7 +32,7 @@ banana.SIZE_LIMIT = 1024 * 1024 * 10
 from twisted.internet import reactor, protocol, defer
 from twisted.web import server, xmlrpc
 from zope.interface import implements
-
+from zope.component import getUtility
 
 from Products.DataCollector.Plugins import loadPlugins
 from Products.ZenUtils.ZCmdBase import ZCmdBase
@@ -40,6 +40,7 @@ from Products.ZenUtils.Utils import zenPath, getExitMessage, unused, load_config
 from Products.ZenUtils.DaemonStats import DaemonStats
 from Products.ZenEvents.Event import Event, EventHeartbeat
 from Products.ZenEvents.ZenEventClasses import App_Start
+from Products.ZenMessaging.queuemessaging.interfaces import IEventPublisher
 
 from Products.ZenHub.PBDaemon import RemoteBadMonitor
 pb.setUnjellyableForClass(RemoteBadMonitor, RemoteBadMonitor)
@@ -542,6 +543,7 @@ class ZenHub(ZCmdBase):
         reactor.run()
         for proc in self.worker_processes:
             proc.signalProcess('KILL')
+        getUtility(IEventPublisher).close()
 
     def buildOptions(self):
         """

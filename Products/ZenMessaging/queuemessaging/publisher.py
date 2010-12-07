@@ -202,6 +202,21 @@ class BlockingEventPublisher(EventPublisher):
             publisher.publish(exchange, routing_key, proto, mandatory=mandatory)
 
 
+class TwistedEventPublisher(EventPublisher):
+    _publisher = None
+
+    def _publish(self, exchange, routing_key, proto, mandatory=False):
+        if TwistedEventPublisher._publisher is None:
+            TwistedEventPublisher._publisher = BlockingQueuePublisher()
+        TwistedEventPublisher._publisher.publish(exchange, routing_key, proto,
+                                                mandatory)
+
+    def close(self):
+        if TwistedEventPublisher._publisher:
+            TwistedEventPublisher._publisher.close()
+            TwistedEventPublisher
+
+
 class AsyncEventPublisher(EventPublisher):
     def _publish(self, exchange, routing_key, proto, mandatory=False):
         publisher = AsyncQueuePublisher()
@@ -277,6 +292,7 @@ class BlockingQueuePublisher(object):
         Closes the channel and connection
         """
         self._client.close()
+
 
 class DummyQueuePublisher(object):
     """
