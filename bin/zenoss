@@ -61,6 +61,7 @@ if [ ! -f $ZENHOME/etc/DAEMONS_TXT_ONLY ] ; then
 	C="$C zensyslog"
 	C="$C zenstatus"
 	C="$C zenactions"
+	C="$C zenactiond"
 	C="$C zentrap"
 	C="$C zenmodeler"
 	#C="$C zenrender"

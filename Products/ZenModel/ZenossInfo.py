@@ -350,6 +350,7 @@ class ZenossInfo(ZenModelItem, SimpleItem):
       "zensyslog": "Collection of and classification of syslog events",
       "zenstatus": "Active TCP connection testing of remote daemons",
       "zenactions": "Alerts (SMTP, SNPP and Maintenance Windows)",
+      "zenactiond": "Receives signals from processed events to execute notifications.",
       "zentrap": "Receives SNMP traps and turns them into events",
       "zenmodeler": "Configuration collection and configuration",
       "zenperfsnmp": "High performance asynchronous SNMP performance collection",
@@ -357,9 +358,7 @@ class ZenossInfo(ZenModelItem, SimpleItem):
       "zenprocess": "Process monitoring using SNMP host resources MIB",
       "zenwin": "Windows Service Monitoring (WMI)",
       "zeneventlog": "Collect (WMI) event log events (aka NT Eventlog)",
-      "zenwinmodeler": "MS Windows configuration collection and configuration",
-      "zendisc": "Discover the network topology to find active IPs and devices",
-      "zenperfxmlrpc": "XML RPC data collection",
+      "zendisc": "Discover the network topology to find active IPs and devices"
     }
 
 
