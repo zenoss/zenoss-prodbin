@@ -20,10 +20,6 @@ import threading
 from Queue import Queue, Empty
 import logging
 log = logging.getLogger("zen.Events")
-from _mysql_exceptions import ProgrammingError, OperationalError
-
-TRANSFORM_EVENTS_IN_ZENHUB = True
-STORE_EVENTS_IN_ZENHUB = TRANSFORM_EVENTS_IN_ZENHUB and True
 
 # Filter specific warnings coming from new version of mysql-python
 import warnings
@@ -274,7 +270,6 @@ class MySqlSendEventMixin:
         @return: event id or None
         @rtype: string
         """
-
         log.debug('%s%s%s' % ('=' * 15, '  incoming event  ', '=' * 15))
         if isinstance(event, dict):
             event = buildEventFromDict(event)
@@ -286,51 +281,10 @@ class MySqlSendEventMixin:
                       getattr(event, 'timeout', 'Unknown'))
             return self._sendHeartbeat(event)
 
-        if TRANSFORM_EVENTS_IN_ZENHUB:
-            originalEvent = event.clone()
-            transformer = EventTransformer(self, event,
-                                           evtFields=event.getEventFields(),
-                                           reqdEvtFields=self.requiredEventFields,
-                                           dedupEvtFields=event.getDedupFields(self.defaultEventId))
-            if not transformer.prepEvent():
-                return None
-            if not transformer.transformEvent():
-                return None
-
-            # check again for heartbeat after transform
-            if getattr(event, 'eventClass', Unknown) == Heartbeat:
-                log.debug("Transform created a heartbeat event.")
-                return self._sendHeartbeat(event)
-        else:
-            event.dedupid = ""
-
-        evid = None
-        try:
-            try:
-                if STORE_EVENTS_IN_ZENHUB:
-                    self.storeEvent(event)
-                    originalEvent.evid = event.evid
-                    _, detaildata = self.eventDataMaps(originalEvent)
-                    self._publishEvent(originalEvent, detaildata)
-                else:
-                    event.evid = guid.generate()
-                    _, detaildata = self.eventDataMaps(event)
-                    self._publishEvent(event, detaildata)
-            except ProgrammingError, e:
-                log.exception(e)
-            except OperationalError, e:
-                log.exception(e)
-                raise ZenBackendFailure(str(e))
-        finally:
-            pass
-
-        if STORE_EVENTS_IN_ZENHUB:
-            if evid:
-                log.debug("New event id = %s", evid)
-            else:
-                log.debug("Duplicate event, updated database.")
-
-        return evid
+        event.evid = guid.generate()
+        _, detaildata = self.eventDataMaps(event)
+        self._publishEvent(event, detaildata)
+        return event.evid
 
 
     def storeEvent(self, event):
