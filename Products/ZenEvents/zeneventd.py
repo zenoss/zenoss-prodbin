@@ -19,6 +19,7 @@ Apply up-front preprocessing to events.
 import Globals
 import os
 
+from Acquisition import aq_chain
 from zope.component import getUtilitiesFor
 from Products.ZenMessaging.queuemessaging.QueueConsumer import QueueConsumer
 from Products.ZenMessaging.queuemessaging.interfaces import IQueueConsumerTask
@@ -98,6 +99,8 @@ class ProcessEventMessageTask(object):
         self.dest_exchange = config.getExchange("$ZepZenEvents")
         self.dest_routing_key_prefix = 'zenoss.zenevent'
 
+        self.guidManager = None
+
     def eventDetailsToDict(self, event):
         # convert event details name-values to temporary dict
         event_detailmap = {}
@@ -150,8 +153,8 @@ class ProcessEventMessageTask(object):
             return ''
 
     def getObjectForUuid(self, uuid):
-        gm = IGUIDManager(self.dmd)
-        return gm.getObject(uuid)
+        self.guidManager = self.guidManager or IGUIDManager(self.dmd)
+        return self.guidManager.getObject(uuid)
 
     def getObjectUuidForId(self, objid, idattr, objcls, parentUuid=None):
         element = None
@@ -181,7 +184,7 @@ class ProcessEventMessageTask(object):
             element  = self.getObjectForUuid(uuid)
             if element:
                 identifier = IInfo(element).name
-        else:
+        elif identifier:
             # lookup device by identifier, fill in uuid
             cls = { DEVICE    : Device, 
                     COMPONENT : DeviceComponent, 
@@ -271,29 +274,34 @@ class ProcessEventMessageTask(object):
             addTag('zenoss.device', deviceuuid)
 
             devclassRoot = dmd.Devices
-            devclass = device.deviceClass()
-            while devclass != devclassRoot:
+            devclass = device.deviceClass().primaryAq()
+            for devclass in aq_chain(devclass):
+                if devclass == devclassRoot:
+                    break
                 addTag('zenoss.device.device_class', self.getObjectUuid(devclass))
-                devclass = devclass.getPrimaryParent()
 
             locationRoot = dmd.Locations
             locn = device.location()
-            while locn and locn != locationRoot:
-                addTag('zenoss.device.location', self.getObjectUuid(locn))
-                locn = locn.getPrimaryParent()
+            if locn:
+                for locn in aq_chain(locn.primaryAq()):
+                    if locn == locationRoot:
+                        break
+                    addTag('zenoss.device.location', self.getObjectUuid(locn))
 
             # get uuids for device groups, systems, and (later) services
             systemRoot = dmd.Systems
-            for s in device.systems():
-                while s != systemRoot:
+            for system in device.systems():
+                for s in aq_chain(system.primaryAq()):
+                    if s == systemRoot:
+                        break
                     addTag('zenoss.device.system', self.getObjectUuid(s))
-                    s = s.getPrimaryParent()
 
             groupRoot = dmd.Groups
-            for g in device.groups():
-                while g != groupRoot:
+            for group in device.groups():
+                for g in aq_chain(group.primaryAq()):
+                    if g == groupRoot:
+                        break
                     addTag('zenoss.device.group', self.getObjectUuid(g))
-                    g = g.getPrimaryParent()
 
             # add event details for other searchable device attributes
             addDetail('zenoss.device.production_state', str(device.productionState))
@@ -347,77 +355,77 @@ class ProcessEventMessageTask(object):
             # add details for control during event processing
             self.addEventControlDetails(event, evtdetails)
 
-            if TRANSFORM_EVENT_IN_EVENTD:
-                # initialize adapter with event properties
-                event_attributes = dict((f.name,getattr(event,f.name,None)) for f in RawEvent.DESCRIPTOR.fields)
-                event_attributes["status"] = statusConvertToString[event_attributes.get("status", STATUS_NEW)]
-                event_attributes["event_class"] = str( event_attributes["event_class"] )
-                evtproxy = TransformEvent(**event_attributes)
-                # translate actor to device/component/service
-                self.getIdentifiersForUuids(event)
-                self.extractActorElements(event, evtproxy)
-                evtproxy.mark()
+            # initialize adapter with event properties
+            event_attributes = dict((f.name,getattr(event,f.name,None)) for f in RawEvent.DESCRIPTOR.fields)
+            event_attributes["status"] = statusConvertToString[event_attributes.get("status", STATUS_NEW)]
+            event_attributes["event_class"] = str( event_attributes["event_class"] )
+            evtproxy = TransformEvent(**event_attributes)
+            # translate actor to device/component/service
+            self.getIdentifiersForUuids(event)
+            self.extractActorElements(event, evtproxy)
+            evtproxy.mark()
 
-                transformer = EventTransformer(self, evtproxy,
-                                               evtFields=[f.name for f in RawEvent.DESCRIPTOR.fields],
-                                               reqdEvtFields=evtdetails.get("_REQUIRED_FIELDS",
-                                                                           self.dmd.ZenEventManager.requiredEventFields),
-                                               dedupEvtFields=evtdetails.get("_DEDUP_FIELDS",
-                                                                         self.dmd.ZenEventManager.defaultEventId)
-                                               )
-                # run event thru identity and transforms
-                log.debug("identify devices for event: %s", event.uuid)
-                transformer.prepEvent()
-                log.debug("Event attributes updated (prepEvent): %s", evtproxy.get_changes())
-                if "status" in evtproxy.get_changes():
-                    if evtproxy.get_changes()["status"] == "drop":
-                        log.debug("dropped event after identify: %s", event.uuid);
-                        return
+            transformer = EventTransformer(self, evtproxy,
+                                           evtFields=[f.name for f in RawEvent.DESCRIPTOR.fields],
+                                           reqdEvtFields=evtdetails.get("_REQUIRED_FIELDS",
+                                                                       self.dmd.ZenEventManager.requiredEventFields),
+                                           dedupEvtFields=evtdetails.get("_DEDUP_FIELDS",
+                                                                     self.dmd.ZenEventManager.defaultEventId)
+                                           )
+            # run event thru identity and transforms
+            log.debug("identify devices for event: %s", event.uuid)
+            if not transformer.prepEvent():
+                return
 
-                # add clearClasses sent in with event
-                evtproxy._clearClasses.extend(evtdetails[CLEAR_CLASSES])
-                evtproxy.freeze()
+            log.debug("Event attributes updated (prepEvent): %s", evtproxy.get_changes())
+            if "status" in evtproxy.get_changes():
+                if evtproxy.get_changes()["status"] == "drop":
+                    log.debug("dropped event after identify: %s", event.uuid);
+                    return
 
-                log.debug("invoke transforms on event: %s", event.uuid)
-                transformer.transformEvent()
-                log.debug("Event attributes updated (transformEvent): %s", evtproxy.get_changes())
-                if "status" in evtproxy.get_changes():
-                    if evtproxy.get_changes()["status"] == "drop":
-                        log.debug("dropped event after transforms: %s", event.uuid);
-                        return
+            # add clearClasses sent in with event
+            evtproxy._clearClasses.extend(evtdetails[CLEAR_CLASSES])
+            evtproxy.freeze()
+
+            log.debug("invoke transforms on event: %s", event.uuid)
+            transformer.transformEvent()
+            log.debug("Event attributes updated (transformEvent): %s", evtproxy.get_changes())
+            if "status" in evtproxy.get_changes():
+                if evtproxy.get_changes()["status"] == "drop":
+                    log.debug("dropped event after transforms: %s", event.uuid);
+                    return
 
                 # if status was updated in transform, map back to enum for storage in outbound event
-                if "status" in evtproxy.get_changes():
-                    if evtproxy.status in statusConvertToEnum:
-                        evtproxy.status = statusConvertToEnum[evtproxy.status]
-                    else:
-                        log.warning("invalid event state '%s' set in transform", evtproxy.status)
-                        return
+                if evtproxy.status in statusConvertToEnum:
+                    evtproxy.status = statusConvertToEnum[evtproxy.status]
+                else:
+                    log.warning("invalid event state '%s' set in transform", evtproxy.status)
+                    return
 
-                # copy adapter changes back to event attribs and details
-                stdFields = set(f.name for f in RawEvent.DESCRIPTOR.fields)
-                for (attr,val) in evtproxy.get_changes().items():
-                    if attr in stdFields:
-                        setattr(event, attr, val)
-                    elif attr in "service device component".split():
-                        # update actor uuids/identifiers - skip these for now
-                        pass
-                    elif attr in "status _clearClasses".split():
-                        # skip these now, we'll always copy into output whether changed or not
-                        pass
-                    else:
-                        # copy extra attributes to details
-                        evtdetails[attr] = val
+            # copy adapter changes back to event attribs and details
+            stdFields = set(f.name for f in RawEvent.DESCRIPTOR.fields)
+            for (attr,val) in evtproxy.get_changes().items():
+                if attr in stdFields:
+                    setattr(event, attr, val)
+                elif attr in "service device component".split():
+                    # update actor uuids/identifiers - skip these for now
+                    pass
+                elif attr in "status _clearClasses".split():
+                    # skip these now, we'll always copy into output whether changed or not
+                    pass
+                else:
+                    # copy extra attributes to details
+                    evtdetails[attr] = val
 
-                # fix up any service/device/component refs and get uuids
-                self.updateActorReferences(event, evtproxy.get_changes())
+            # fix up any service/device/component refs and get uuids
+            self.updateActorReferences(event, evtproxy.get_changes())
 
-                # set zepevent control fields
-                zepevent.clear_event_class.extend(list(set(evtproxy._clearClasses)))
-                zepevent.status = evtproxy.status
+            # set zepevent control fields
+            zepevent.clear_event_class.extend(list(set(evtproxy._clearClasses)))
+            zepevent.status = evtproxy.status
 
-                # strip off details used internally
-                self.removeEventControlDetails(event, evtdetails)
+            # strip off details used internally
+            self.removeEventControlDetails(event, evtdetails)
 
             # convert event details dict back to event details name-values
             self.eventDetailDictToNameValues(event, evtdetails)
@@ -458,18 +466,13 @@ class ZenEventD(ZCmdBase):
     def run(self):
         task = ProcessEventMessageTask()
         self._consumer = QueueConsumer(task,self.dmd)
-        if self.options.cycle:
-            reactor.callWhenRunning(self._start)
-            reactor.run()
-        else:
-            log.info('Shutting down: use cycle option ')
-
+        reactor.callWhenRunning(self._start)
+        reactor.run()
 
     def _start(self):
         log.info('starting queue consumer task')
         reactor.addSystemEventTrigger('before', 'shutdown', self._shutdown)
         self._consumer.run()
-
 
     @defer.inlineCallbacks
     def _shutdown(self, *ignored):
