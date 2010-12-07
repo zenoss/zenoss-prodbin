@@ -17,7 +17,7 @@
 <browser:directRouter
     name="evconsole_router"
     for="*"
-    class=".events.ZepRouter"
+    class=".zep.ZepRouter"
     namespace="Zenoss.remote"
     />
 
