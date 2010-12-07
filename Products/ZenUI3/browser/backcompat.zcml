@@ -174,7 +174,7 @@
 
 <browser:defaultView
     for="Products.ZenEvents.EventManagerBase.EventManagerBase"
-    name="editEventManager"
+    name="editEventManagerFields"
     />
 
 <browser:page

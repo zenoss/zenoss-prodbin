@@ -229,14 +229,9 @@ class EventManagerBase(ZenModelRM, ObjectCache, DbAccessBase):
 
     factory_type_information = (
         {
-            'immediate_view' : 'editEventManager',
+            'immediate_view' : 'editEventManagerFields',
             'actions'        :
             (
-                { 'id'            : 'edit'
-                , 'name'          : 'Edit'
-                , 'action'        : 'editEventManager'
-                , 'permissions'   : ( "Manage DMD", )
-                },
                 { 'id'            : 'edit'
                 , 'name'          : 'Fields'
                 , 'action'        : 'editEventManagerFields'

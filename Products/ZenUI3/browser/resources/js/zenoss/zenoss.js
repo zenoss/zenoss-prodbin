@@ -12,7 +12,7 @@ Ext.namespace('Zenoss');
 Ext.namespace('Zenoss.env');
 
 Ext.QuickTips.init();
-
+Zenoss.remote.EventsRouter = Zenoss.remote.ZepRouter;
 Ext.state.Manager.setProvider(new Ext.state.CookieProvider({
     expires: new Date(new Date().getTime()+(1000*60*60*24*30)) //30 days from now
 }));

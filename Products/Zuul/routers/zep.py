@@ -435,23 +435,24 @@ class ZepRouter(EventsRouter):
     def configSchema(self):
         configSchema =[{
                 'id': 'event_age_disable_severity',
-                'name': _t('Event Age Disable Severity'),
+                'name': _t("Don't Age This Severity and Above"),
                 'xtype': 'severity',
                 }, {
                 'id': 'event_age_interval_minutes',
-                'name': _t('Event Age Interval (minutes)'),
+                'name': _t('Event Aging Threshold (minutes)'),
                 'xtype': 'numberfield',
+                'minValue': 60,
                 'allowNegative': False,
                 }, { 
                 'id': 'event_archive_purge_interval_days',
                 'maxValue': 90,
-                'name': _t('Event Archive Purge Interval (days)'),
+                'name': _t('Delete Historical Events Older Than (days)'),
                 'xtype': 'numberfield',
                 'allowNegative': False,
                 }, {
                 'id': 'event_occurrence_purge_interval_days',
                 'maxValue': 30,
-                'name': _t('Event Occurrence Purge Interval (Days)'),
+                'name': _t('Event Occurrence Purge Interval (days)'),
                 'xtype': 'numberfield',
                 'allowNegative': False,
                 }
@@ -469,7 +470,7 @@ class ZepRouter(EventsRouter):
                 conf[key] = prop[key]
             # our drop down expects severity to be the number constant
             if conf['id'] == 'event_age_disable_severity':
-                conf['defaultValue'] = EventSeverity.getNumber(prop['defaultValue'])                
+                conf['defaultValue'] = EventSeverity.getNumber(prop['defaultValue'])
                 if prop['value']:
                     conf['value'] = EventSeverity.getNumber(prop['value'])
         return DirectResponse.succeed(data=config)
@@ -482,6 +483,6 @@ class ZepRouter(EventsRouter):
         """
         if values.get('event_age_disable_severity'):
             sev = values.get('event_age_disable_severity')
-            values['event_age_disable_severity'] = EventSeverity.getName(sev)
+            values['event_age_disable_severity'] = EventSeverity.getName(sev)        
         self.zep.setConfigValues(values)
         return DirectResponse.succeed()
