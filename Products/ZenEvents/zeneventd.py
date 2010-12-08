@@ -84,7 +84,7 @@ class ProcessEventMessageTask(object):
     exchange_type = Attribute("The type of exchange (topic, direct, fanout)")
     """
 
-    def __init__(self):
+    def __init__(self, dmd):
         config = getAMQPConfiguration()
         # set by the constructor of queueConsumer
         self.queueConsumer = None
@@ -99,7 +99,11 @@ class ProcessEventMessageTask(object):
         self.dest_exchange = config.getExchange("$ZepZenEvents")
         self.dest_routing_key_prefix = 'zenoss.zenevent'
 
-        self.guidManager = None
+        self.dmd = dmd
+        self.guidManager = IGUIDManager(dmd)
+
+        self.stdEventFields = list(f.name for f in RawEvent.DESCRIPTOR.fields
+                                       if f.type!=f.TYPE_MESSAGE and f.label!=f.LABEL_REPEATED)
 
     def eventDetailsToDict(self, event):
         # convert event details name-values to temporary dict
@@ -136,8 +140,7 @@ class ProcessEventMessageTask(object):
             details[CLEAR_CLASSES] = details[CLEAR_CLASSES].split(',')
 
         if (event.severity == SEVERITY_CLEAR and
-            hasattr(event, 'event_class') and  
-            event.event_class and
+            event.HasField('event_class') and  
             event.event_class not in details[CLEAR_CLASSES]):
             details[CLEAR_CLASSES].append(event.event_class)
 
@@ -153,7 +156,6 @@ class ProcessEventMessageTask(object):
             return ''
 
     def getObjectForUuid(self, uuid):
-        self.guidManager = self.guidManager or IGUIDManager(self.dmd)
         return self.guidManager.getObject(uuid)
 
     def getObjectUuidForId(self, objid, idattr, objcls, parentUuid=None):
@@ -341,13 +343,13 @@ class ProcessEventMessageTask(object):
             zepevent.raw_event.ParseFromString(message.content.body)
             event = zepevent.raw_event
             evtdetails = self.eventDetailsToDict(event)
-            log.debug("Received event: %s", dict((f.name,getattr(event,f.name,None)) for f in RawEvent.DESCRIPTOR.fields))
-            log.debug("- with actor: %s", dict((f.name, getattr(event.actor,f.name,None)) for f in EventActor.DESCRIPTOR.fields))
-            log.debug("- with details: %s", evtdetails)
+            if log.isEnabledFor(logging.DEBUG):
+                log.debug("Received event: %s", event.uuid)
+                self.logEvent(log.debug, event, evtdetails)
 
             # ensure required fields are present, otherwise discard this event
             for reqdattr in "actor summary severity".split():
-                if not str(getattr(event, reqdattr)):
+                if not event.HasField(reqdattr):
                     log.error("Required event field %s not found -- ignoring event", reqdattr)
                     self.logEvent(log.error, event, evtdetails)
                     return
@@ -356,9 +358,12 @@ class ProcessEventMessageTask(object):
             self.addEventControlDetails(event, evtdetails)
 
             # initialize adapter with event properties
-            event_attributes = dict((f.name,getattr(event,f.name,None)) for f in RawEvent.DESCRIPTOR.fields)
+            event_attributes = dict((f.name, fvalue) 
+                                    for f,fvalue in event.ListFields()
+                                        if f.label!=f.LABEL_REPEATED)
             event_attributes["status"] = statusConvertToString[event_attributes.get("status", STATUS_NEW)]
-            event_attributes["event_class"] = str( event_attributes["event_class"] )
+            event_attributes["event_class"] = (str( event_attributes["event_class"] ) 
+                                                   if event.HasField('event_class') else '')
             evtproxy = TransformEvent(**event_attributes)
             # translate actor to device/component/service
             self.getIdentifiersForUuids(event)
@@ -366,7 +371,7 @@ class ProcessEventMessageTask(object):
             evtproxy.mark()
 
             transformer = EventTransformer(self, evtproxy,
-                                           evtFields=[f.name for f in RawEvent.DESCRIPTOR.fields],
+                                           evtFields=self.stdEventFields,
                                            reqdEvtFields=evtdetails.get("_REQUIRED_FIELDS",
                                                                        self.dmd.ZenEventManager.requiredEventFields),
                                            dedupEvtFields=evtdetails.get("_DEDUP_FIELDS",
@@ -403,9 +408,8 @@ class ProcessEventMessageTask(object):
                     return
 
             # copy adapter changes back to event attribs and details
-            stdFields = set(f.name for f in RawEvent.DESCRIPTOR.fields)
             for (attr,val) in evtproxy.get_changes().items():
-                if attr in stdFields:
+                if attr in self.stdEventFields:
                     setattr(event, attr, val)
                 elif attr in "service device component".split():
                     # update actor uuids/identifiers - skip these for now
@@ -443,28 +447,31 @@ class ProcessEventMessageTask(object):
 
             # forward event to output queue
             yield self.publishEvent(zepevent)
-            log.debug("published event: %s", event.uuid);
-            self.logEvent(log.debug, event, evtdetails)
+            if log.isEnabledFor(logging.DEBUG):
+                log.debug("published event: %s", event.uuid);
+                self.logEvent(log.debug, event, evtdetails)
 
         finally:
             # all done, ack message
             yield self.queueConsumer.acknowledge(message)
 
     def logEvent(self, logfn, event, details):
-        statusdata = dict((f.name,getattr(event,f.name,None)) for f in RawEvent.DESCRIPTOR.fields)
+        statusdata = dict((f.name, fvalue) for f,fvalue in event.ListFields()
+                              if f.type!=f.TYPE_MESSAGE and f.label!=f.LABEL_REPEATED)
+        statusdata.update(dict(('actor.'+f.name, fvalue) for f,fvalue in event.actor.ListFields()))
         logfn("Event info: %s", statusdata)
         if details:
             logfn("Detail data: %s", details)
 
     def getFieldList(self):
-        return [f.name for f in RawEvent.DESCRIPTOR.fields]
+        return [f.name for f in RawEvent.DESCRIPTOR.fields if f.type!=f.TYPE_MESSAGE and f.label!=f.LABEL_REPEATED]
  
     def getDmd(self):
         return self.dmd
 
 class ZenEventD(ZCmdBase):
     def run(self):
-        task = ProcessEventMessageTask()
+        task = ProcessEventMessageTask(self.dmd)
         self._consumer = QueueConsumer(task,self.dmd)
         reactor.callWhenRunning(self._start)
         reactor.run()
