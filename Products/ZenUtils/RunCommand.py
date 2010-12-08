@@ -60,6 +60,8 @@ class RunCommand(ZenScriptBase):
 
     def run(self):
         collectors = self._getCollectors()
+        if collectors is None:
+            return
         for collector in collectors:
             self._runCommandOnCollector(collector)
         self.report(collectors)
