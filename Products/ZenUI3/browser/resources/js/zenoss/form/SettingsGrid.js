@@ -55,7 +55,7 @@
                         });
                         config.saveFn({values: values}, function(response){
                             if (response.success){
-                                var message = _t("Zep Configuration updated");
+                                var message = _t("Configuration updated");
                                 Zenoss.message.info(message);
                                 btn.setDisabled(true);
                                 btn.refOwner.cancelbtn.setDisabled(true);
