@@ -195,13 +195,13 @@ class ProcessEventMessageTask(object):
 
     def getIdentifiersForUuids(self, evtproto):
         # translate uuids to identifiers, if not provided
-        if evtproto.actor.element_type_id:
+        if evtproto.actor.HasField('element_type_id'):
             ident,uuid = self.resolveEntityIdAndUuid(evtproto.actor.element_type_id,
                                 evtproto.actor.element_identifier,
                                 evtproto.actor.element_uuid)
             evtproto.actor.element_identifier = ident
             evtproto.actor.element_uuid = uuid
-        if evtproto.actor.element_sub_type_id:
+        if evtproto.actor.HasField('element_sub_type_id'):
             ident,uuid = self.resolveEntityIdAndUuid(evtproto.actor.element_sub_type_id, 
                                 evtproto.actor.element_sub_identifier,
                                 evtproto.actor.element_sub_uuid,
@@ -216,25 +216,25 @@ class ProcessEventMessageTask(object):
             setattr(event, attr, '')
 
         # set primary element attribute
-        if evtproto.actor.element_type_id and evtproto.actor.element_identifier:
+        if evtproto.actor.HasField('element_type_id') and evtproto.actor.element_identifier:
             attr = elementTypeAttrMap[evtproto.actor.element_type_id]
             log.debug("Setting event attribute %s to '%s'", attr, evtproto.actor.element_identifier)
             setattr(event, attr, evtproto.actor.element_identifier)
 
         # set secondary element attribute
-        if evtproto.actor.element_sub_type_id and evtproto.actor.element_sub_identifier:
+        if evtproto.actor.HasField('element_sub_type_id') and evtproto.actor.element_sub_identifier:
             attr = elementTypeAttrMap[evtproto.actor.element_sub_type_id]
             log.debug("Setting event attribute %s to '%s'", attr, evtproto.actor.element_sub_identifier)
             setattr(event, attr, evtproto.actor.element_sub_identifier)
 
     def updateActorReferences(self, evtproto, evt_changes):
         elementTypeAttrMap = { DEVICE : 'device', COMPONENT : 'component', SERVICE : 'service' }
-        if evtproto.actor.element_type_id:
+        if evtproto.actor.HasField('element_type_id'):
             attr = elementTypeAttrMap[evtproto.actor.element_type_id]
             if attr in evt_changes:
                 evtproto.actor.element_identifier = evt_changes[attr]
                 evtproto.actor.element_uuid = ''
-        if evtproto.actor.element_sub_type_id:
+        if evtproto.actor.HasField('element_sub_type_id'):
             attr = elementTypeAttrMap[evtproto.actor.element_sub_type_id]
             if attr in evt_changes:
                 evtproto.actor.element_sub_identifier = evt_changes[attr]
@@ -257,11 +257,11 @@ class ProcessEventMessageTask(object):
         # extract device, component, and/or service from actor uuid's
         elementrefs = { DEVICE : None, COMPONENT : None, SERVICE : None }
         for elementType in (DEVICE, COMPONENT, SERVICE):
-            if actor.element_type_id == elementType and actor.element_uuid:
+            if actor.HasField('element_type_id') and actor.element_type_id == elementType and actor.element_uuid:
                 obj = self.getObjectForUuid(actor.element_uuid)
                 elementrefs[elementType] = obj
                 actor.element_identifier = obj.id
-            if actor.element_sub_type_id == elementType and actor.element_sub_uuid:
+            if actor.HasField('element_sub_type_id') and actor.element_sub_type_id == elementType and actor.element_sub_uuid:
                 subobj = self.getObjectForUuid(actor.element_sub_uuid)
                 elementrefs[elementType] = subobj
                 actor.element_sub_identifier = subobj.id
