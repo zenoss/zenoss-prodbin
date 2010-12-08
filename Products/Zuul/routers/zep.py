@@ -453,6 +453,13 @@ class ZepRouter(EventsRouter):
                 'minValue': 60,
                 'allowNegative': False,
                 },{
+                'id': 'event_archive_interval_days',
+                'name': _t('Event Archive Interval (days)'),
+                'xtype': 'numberfield',
+                'minValue': 1,
+                'maxValue': 30,
+                'allowNegative': False,
+                },{
                 'id': 'event_archive_purge_interval_days',
                 'maxValue': 90,
                 'name': _t('Delete Historical Events Older Than (days)'),
