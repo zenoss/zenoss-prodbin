@@ -165,6 +165,9 @@ class ProcessEventMessageTask(object):
         # else just use the global dmd
         if parentUuid:
             catalog = self.getObjectForUuid(parentUuid)
+            if not catalog:
+                log.warning("Failed to find object for uuid '%s', uuid->object link has been lost (1)", parentUuid)
+                return ''
         elif parentUuid == '':
             return ''
         else:
@@ -195,6 +198,9 @@ class ProcessEventMessageTask(object):
             element  = self.getObjectForUuid(uuid)
             if element:
                 identifier = IInfo(element).name
+            else:
+                log.warning("Failed to find object for uuid '%s', uuid->object link has been lost (2)", uuid)
+                identifier = ''
         elif identifier:
             # lookup device by identifier, fill in uuid
             cls = { DEVICE    : Device, 
@@ -270,13 +276,18 @@ class ProcessEventMessageTask(object):
         for elementType in (DEVICE, COMPONENT, SERVICE):
             if actor.HasField('element_type_id') and actor.element_type_id == elementType and actor.element_uuid:
                 obj = self.getObjectForUuid(actor.element_uuid)
-                elementrefs[elementType] = obj
-                actor.element_identifier = obj.id
+                if obj:
+                    elementrefs[elementType] = obj
+                    actor.element_identifier = obj.id
+                else:
+                    log.warning("Failed to find object for uuid '%s', uuid->object link has been lost (3)", parentUuid)
             if actor.HasField('element_sub_type_id') and actor.element_sub_type_id == elementType and actor.element_sub_uuid:
                 subobj = self.getObjectForUuid(actor.element_sub_uuid)
-                elementrefs[elementType] = subobj
-                actor.element_sub_identifier = subobj.id
-
+                if subobj:
+                    elementrefs[elementType] = subobj
+                    actor.element_sub_identifier = subobj.id
+                else:
+                    log.warning("Failed to find object for uuid '%s', uuid->object link has been lost (4)", parentUuid)
         # set device search terms
         dmd = self.dmd
         device = elementrefs[DEVICE]
