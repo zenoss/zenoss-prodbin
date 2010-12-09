@@ -678,6 +678,7 @@ Ext.onReady(function () {
             Ext.applyIf(config, {
                 modal: true,
                 plain: true,
+                width: 450,
                 border: false,
                 closeAction: 'hide',
                 items:{
