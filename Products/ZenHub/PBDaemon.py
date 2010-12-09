@@ -356,7 +356,10 @@ class PBDaemon(ZenDaemon, pb.Referenceable):
             # Set a maximum size on the eventQueue to avoid consuming all RAM.
             queueLen = len(self.eventQueue)
             if queueLen > self.options.maxqueuelen:
-                self.log.warn('Queue exceeded maximum length: %d/%d. Trimming',
+                self.log.error(
+                    'Discarding oldest %d events because maxqueuelen was '
+                    'exceeded: %d/%d',
+                    queueLen - self.options.maxqueuelen,
                     queueLen, self.options.maxqueuelen)
                 diff = queueLen - self.options.maxqueuelen
                 self.eventQueue = self.eventQueue[diff:]
