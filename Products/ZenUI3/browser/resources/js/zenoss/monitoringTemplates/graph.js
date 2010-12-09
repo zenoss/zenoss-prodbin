@@ -155,7 +155,7 @@ function addDataPointToGraph() {
         };
     router.addDataPointToGraph(params, callback);
 }
-     
+
 new Zenoss.HideFormDialog({
     id: 'addDataPointToGraphDialog',
     title: _t('Add Data Point'),
@@ -563,7 +563,7 @@ Zenoss.GraphPointGrid = Ext.extend(Zenoss.BaseSequenceGrid, {
                 menu: 'graphPointMenu',
                 listeners: {
                     render: function() {
-                        Zenoss.registerTooltipFor('addGraphPointButton');       
+                        Zenoss.registerTooltipFor('addGraphPointButton');
                     }
                 }
             }, {
@@ -573,7 +573,7 @@ Zenoss.GraphPointGrid = Ext.extend(Zenoss.BaseSequenceGrid, {
                 disabled: true,
                 listeners: {
                     render: function() {
-                        Zenoss.registerTooltipFor('deleteGraphPointButton');       
+                        Zenoss.registerTooltipFor('deleteGraphPointButton');
                     }
                 },
                 handler: function() {
@@ -582,11 +582,11 @@ Zenoss.GraphPointGrid = Ext.extend(Zenoss.BaseSequenceGrid, {
                     html = _t("Are you sure you want to remove the graph point, {0}?") + "<br />" +
                         _t("There is no undo.");
                     html = String.format(html, getSelectedGraphPoint().data.name);
-                    
+
                     // show the dialog
                     dialog = Ext.getCmp('deleteGraphPointDialog');
                     dialog.show();
-                    dialog.getComponent('message').update(html);                    
+                    dialog.getComponent('message').update(html);
                 }
             }, {
                 xtype: 'button',
@@ -595,7 +595,7 @@ Zenoss.GraphPointGrid = Ext.extend(Zenoss.BaseSequenceGrid, {
                 disabled: true,
                 listeners: {
                     render: function() {
-                        Zenoss.registerTooltipFor('editGraphPointButton');       
+                        Zenoss.registerTooltipFor('editGraphPointButton');
                     }
                 },
                 handler: displayGraphPointForm
@@ -691,12 +691,12 @@ Ext.create({
             var dialogWindow, basicForm, params;
             dialogWindow = submitButton.refOwner;
             basicForm = dialogWindow.formPanel.getForm();
-            params = Ext.applyIf(basicForm.getFieldValues(true), {
+            params = Ext.apply(basicForm.getFieldValues(), {
                 uid: dialogWindow.uid
             });
             basicForm.api.submit(params, function() {
-                                     Ext.getCmp('graphGrid').getStore().reload();
-                                 });
+                Ext.getCmp('graphGrid').getStore().reload();
+            });
             dialogWindow.hide();
         }
     },{
@@ -724,8 +724,8 @@ Ext.create({
                 var dialogWindow;
                 dialogWindow = formPanel.refOwner;
                 if (Zenoss.Security.hasPermission('Manage DMD')) {
-                    dialogWindow.submitButton.setDisabled( ! valid );   
-                }                
+                    dialogWindow.submitButton.setDisabled( ! valid );
+                }
             },
             show: function(formPanel){
                 formPanel.getForm().load();
@@ -866,8 +866,8 @@ Zenoss.templates.GraphGrid = Ext.extend(Zenoss.BaseSequenceGrid, {
                     rowselect: function() {
                         if (Zenoss.Security.hasPermission('Manage DMD')){
                             Ext.getCmp('deleteGraphDefinitionButton').enable();
-                            Ext.getCmp('graphDefinitionMenuButton').enable();   
-                        }                        
+                            Ext.getCmp('graphDefinitionMenuButton').enable();
+                        }
                     }
                 }
             }),

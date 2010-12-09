@@ -598,9 +598,6 @@ class TemplateRouter(TreeRouter):
         """
         uid = data['uid']
         del data['uid']
-        data['log'] = 'log' in data
-        data['base'] = 'base' in data
-        data['hasSummary'] = 'hasSummary' in data
         for int_attr in ('miny', 'maxy'):
             try:
                 x = int(data[int_attr])
