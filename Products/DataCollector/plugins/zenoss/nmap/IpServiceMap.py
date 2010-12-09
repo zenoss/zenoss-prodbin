@@ -43,6 +43,7 @@ class IpServiceMap(PythonPlugin):
         try:
             tales = talesCompile('string:' + nmapoptions)
             readyopts = tales(getEngine().getContext({'here':device, 'device':device, 'dev':device}))
+            readyopts = readyopts + " " + device.manageIp
         #if there was an error make a best effort
         except Exception, e:
             log.error("zNmapPortscanOptions contain illegal Tales expression, please review: %s" % e)
