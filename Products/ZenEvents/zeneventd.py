@@ -165,7 +165,16 @@ class ProcessEventMessageTask(object):
         # else just use the global dmd
         if parentUuid:
             catalog = self.getObjectForUuid(parentUuid)
+        elif parentUuid == '':
+            return ''
         else:
+            if objcls is Device:
+                dev = self.dmd.Devices.deviceSearch({idattr : objid})
+                if not dev:
+                    return ''
+                else:
+                    obj = dev[0].getObject()
+                    return self.getObjectUuid(obj)
             catalog = self.dmd
 
         # search for object by identifying attribute
