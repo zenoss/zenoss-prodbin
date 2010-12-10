@@ -56,19 +56,18 @@ class CommandView(StreamingView):
             while time.time() < end:
                 while True:
                     line = p.stdout.readline()
-                    if not line: break
+                    if not line:
+                        time.sleep(0.5)
                     try:
                         self.write(line)
                     except StreamClosed:
-                        # FIXME: In Python 2.6, use p.terminate() or p.kill()
-                        os.kill(p.pid, signal.SIGKILL)
+                        p.kill()
                         raise
                 retcode = p.poll()
                 if retcode is not None:
                     break
             else:
-                # FIXME: In Python 2.6, use p.terminate() or p.kill()
-                os.kill(p.pid, signal.SIGKILL)
+                p.kill()
                 self.write('Command timed out for %s (timeout is %s seconds)'%(
                                 target.titleOrId(), timeout)
                           )
