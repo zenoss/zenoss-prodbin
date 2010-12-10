@@ -12,7 +12,7 @@ Ext.namespace('Zenoss');
 Ext.namespace('Zenoss.env');
 
 Ext.QuickTips.init();
-Zenoss.remote.EventsRouter = Zenoss.remote.ZepRouter;
+
 Ext.state.Manager.setProvider(new Ext.state.CookieProvider({
     expires: new Date(new Date().getTime()+(1000*60*60*24*30)) //30 days from now
 }));
@@ -1646,8 +1646,7 @@ Zenoss.DetailPanel = Ext.extend(Ext.Panel, {
     },
     load: function(event_id){
         Zenoss.remote.EventsRouter.detail({
-                evid:event_id,
-                history:this.isHistory
+                evid:event_id
             },
             function(result){
                 var event = result.event[0];

@@ -21,8 +21,10 @@ from Products.Zuul.interfaces import ITreeNode, ICatalogTool, IInfo
 from Products.Zuul.utils import dottedname, unbrain, allowedRolesAndGroups
 from Products.Zuul.utils import UncataloguedObjectException, PathIndexCache
 from AccessControl import getSecurityManager
+from Products.ZenUtils.guid.interfaces import IGlobalIdentifier
+from Products.Zuul import getFacade
 
-
+Empty = object()
 class TreeNode(object):
     """
     Adapts a brain.
@@ -39,6 +41,7 @@ class TreeNode(object):
         self._object = ob
         self._root = root or self
         self._parent = parent or None
+        self._uuid = Empty
 
     def _buildCache(self, orgtype=None, instancetype=None, relname=None,
                     treePrefix=None, orderby=None):
@@ -52,6 +55,17 @@ class TreeNode(object):
             else:
                 self._root._cache = PathIndexCache(results)
         return self._root._cache
+
+    @property
+    def uuid(self):
+        # FIXME When we start to store UUIDs on the brain, get it from there
+        if self._uuid is Empty:
+            try:
+                self._uuid = IGlobalIdentifier(self._object.getObject()).getGUID()
+            except TypeError:
+                self._uuid = None
+
+        return self._uuid
 
     @property
     def uid(self):
@@ -80,17 +94,16 @@ class TreeNode(object):
         return self._object.name
 
     @property
-    def _evsummary(self):
-        raise NotImplementedError
-
-    @property
     def iconCls(self):
-        for sev, count in self._evsummary:
-            if count:
-                break
-        else:
-            sev = 'clear'
-        return 'tree-severity-icon-small-%s' % sev
+        raise Exception('should not be callsed')
+        sev = None
+        if self.uuid:
+            zep = getFacade('zep')
+            sev = zep.getSeverityName(zep.getWorstSeverity([self.uuid]).get(self.uuid, 0)).lower()
+        return self.getIconCls(sev)
+
+    def getIconCls(self, sev):
+        return 'tree-severity-icon-small-%s' % (sev or 'clear')
 
     @property
     def children(self):
@@ -178,7 +191,7 @@ class CountCache(PathIndexCache):
             return 0
 
     @property
-    def expired(self):        
+    def expired(self):
         return time.time() >= self.expires
 
 

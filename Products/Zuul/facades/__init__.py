@@ -39,6 +39,8 @@ from Products.Zuul.tree import SearchResults
 from Products.ZenUtils.IpUtil import numbip, checkip, IpAddressError, ensureIp
 from Products.ZenUtils.IpUtil import getSubnetBounds
 from Products.Zuul.catalog.events import IndexingEvent
+from Products.ZenUtils.guid.interfaces import IGlobalIdentifier
+from Products.Zuul import getFacade
 
 log = logging.getLogger('zen.Zuul')
 
@@ -132,8 +134,15 @@ class TreeFacade(ZuulFacade):
 
         brains = self.getDeviceBrains(uid, start, limit, sort, dir, params,
                                       hashcheck)
-        wrapped = imap(IInfo, imap(unbrain, brains))
-        return SearchResults(wrapped, brains.total, brains.hash_)
+
+        devices = list(imap(IInfo, imap(unbrain, brains)))
+
+        zep = getFacade('zep')
+        severities = zep.getEventSeverities(set(dev.uuid for dev in devices))
+        for device in devices:
+            device.setEventSeverities(severities[device.uuid])
+
+        return SearchResults(iter(devices), brains.total, brains.hash_)
 
     def getInstances(self, uid=None, start=0, limit=50, sort='name',
                      dir='ASC', params=None):
@@ -158,53 +167,6 @@ class TreeFacade(ZuulFacade):
         instances = switchContext(objs)
         # convert to info objects
         return SearchResults(imap(IInfo, instances), brains.total, brains.hash_)
-
-    def _parameterizedWhere(self, uid=None):
-        cat = ICatalogTool(self._dmd)
-        brains = cat.search(self._instanceClass, paths=(uid,))
-        criteria = []
-        for instance in brains:
-            component = instance.id
-            path = instance.getPath().split('/')
-            device = path[path.index('devices') + 1]
-            criteria.append(dict(device=device, component=component))
-
-        # Build parameterizedWhere
-        where = []
-        vals = []
-        for criterion in criteria:
-            s = []
-            # criterion is a dict
-            for k, v in criterion.iteritems():
-                s.append('%s=%%s' % k)
-                vals.append(v)
-            crit = ' and '.join(s)
-            where.append('(%s)' % crit)
-        if where:
-            crit = ' or '.join(where)
-            parameterizedWhere = ('(%s)' % crit, vals)
-        else:
-            parameterizedWhere = None
-        return parameterizedWhere
-
-    def getEvents(self, uid=None):
-        zem = self._dmd.ZenEventManager
-        events = zem.getEventList(
-            parameterizedWhere=self._parameterizedWhere(uid))
-        # return IInfos
-        for e in imap(IEventInfo, events):
-            yield e
-
-    def getEventSummary(self, uid=None):
-        zem = self._dmd.ZenEventManager
-        where = self._parameterizedWhere(uid)
-        # we have nothing to search on so do not return everything
-        if not where:
-            return []
-        summary = zem.getEventSummary(parameterizedWhere=where)
-        severities = (c[0].lower() for c in zem.severityConversions)
-        counts = (s[2] for s in summary)
-        return zip(severities, counts)
 
     def addOrganizer(self, contextUid, id, description = ''):
         context = self._getObject(contextUid)

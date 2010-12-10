@@ -43,7 +43,7 @@ class IDeviceInfo(IInfo):
     events = Attribute('A list of (severity, count) tuples for the three most'
                        ' severe event severities')
     availability = Attribute('The availability percentage')
-    
+
     def getDevice():
         """
         Returns the device attribute. Handy as a key when sorting a list of
@@ -55,17 +55,6 @@ class IDeviceFacade(IFacade):
     Responsible for navigating the Device Class hierarchy and managing devices
     and components.
     """
-    def getEventSummary(uid, where):
-        """
-        Get tuples describing the number of active events of each severity on
-        the object either represented by C{uid} or described by C{where}.
-
-        @param uid: (Optional) object for which to retrieve event totals
-        @type uid: str
-        @param where: (Optional) SQL where clause describing objects for which
-        to retrieve event totals
-        @type where: str
-        """
     def getComponents(uid, types, meta_type):
         """
         Get C{IInfo} objects representing all components of type C{types} or
@@ -164,19 +153,19 @@ class IDeviceFacade(IFacade):
         @rtype: void
         """
 
-    def addDevice(deviceName, deviceClass, title=None, snmpCommunity="", 
-                  snmpPort=161, model=False, collector='localhost', 
-                  rackSlot=0, productionState=1000, comments="", 
-                  hwManufacturer="", hwProductName="", osManufacturer="", 
+    def addDevice(deviceName, deviceClass, title=None, snmpCommunity="",
+                  snmpPort=161, model=False, collector='localhost',
+                  rackSlot=0, productionState=1000, comments="",
+                  hwManufacturer="", hwProductName="", osManufacturer="",
                   osProductName="", priority = 3, tag="", serialNumber=""):
         """
         Add a device using the deviceName and deviceClass
-        
+
         @param deviceName: host name or IP of the device
         @type deviceName: string
         @param deviceClass: path for device creation, e.g. /Server/Linux
         @type deviceClass: string
-        @param title: title to be displayed for device if if different than 
+        @param title: title to be displayed for device if if different than
                     deviceName
         @type title: string
         @param snmpCommunity: snmp community to use
@@ -188,7 +177,7 @@ class IDeviceFacade(IFacade):
         @param collector: name of the collector for the device
         @type collector: string
         @rtype: IJobStatus
-        
+
         """
 
     def getUnboundTemplates(uid):
@@ -214,14 +203,14 @@ class IDeviceFacade(IFacade):
     def setBoundTemplates(self, uid, templateIds):
         """
         Set the zDeviceTemplates property on the DeviceClass or Device
-        uniquely identified by the uid parameter to the value of the 
+        uniquely identified by the uid parameter to the value of the
         templateIds parameter.
         """
-    
+
     def resetBoundTemplates(self, uid):
         """
         Remove templates bound to the Device identified by C{uid}.
-        
+
         @param uid: The primary path of the object
         @type uid: str
         @rtype: void

@@ -11,7 +11,6 @@
 #
 ###########################################################################
 
-from itertools import imap
 from zope.component import adapts
 from zope.interface import implements
 from Products.ZenModel.DeviceOrganizer import DeviceOrganizer
@@ -19,11 +18,14 @@ from Products.ZenUtils import IpUtil
 from Products.Zuul.tree import TreeNode
 from Products.Zuul.interfaces import IDeviceOrganizerNode
 from Products.Zuul.interfaces import IDeviceOrganizerInfo
-from Products.Zuul.interfaces import IDeviceInfo, IDevice, ICatalogTool
-from Products.Zuul.infos import InfoBase
+from Products.Zuul.interfaces import IDeviceInfo, IDevice
+from Products.Zuul.infos import InfoBase, HasEventsInfoMixin
 from Products.Zuul import getFacade, info
 from Products.Zuul.marshalling import TreeNodeMarshaller
 from Products.Zuul.utils import catalogAwareImap
+from Products.ZenUtils.guid.interfaces import IGlobalIdentifier
+from zenoss.protocols.protobufs.zep_pb2 import SEVERITY_CLEAR, SEVERITY_INFO, SEVERITY_DEBUG
+from Products.ZenEvents.EventManagerBase import EventManagerBase
 
 ORGTYPES = {
     'Devices':'DeviceClass',
@@ -32,31 +34,9 @@ ORGTYPES = {
     'Groups':'DeviceGroups'
 }
 
-def _organizerWhere(uid):
-    """
-    Duplicating a little code in EventManagerBase so as to avoid pulling
-    all the objects. When we fix the event system we can probably do away
-    with this.
-    """
-    orgname = uid.lstrip('/zport/dmd')
-    if orgname.startswith('Devices'):
-        return "DeviceClass like '%s%%'" % orgname.lstrip('Devices')
-    elif orgname.startswith('Groups'):
-        return "DeviceGroups like '%%|%s%%'" % orgname.lstrip('Groups')
-    elif orgname.startswith('Systems'):
-        return "Systems like '%%|%s%%'" % orgname.lstrip('Systems')
-    elif orgname.startswith('Locations'):
-        return "Location like '%s%%'" % orgname.lstrip('Locations')
-
-
 class DeviceOrganizerNode(TreeNode):
     implements(IDeviceOrganizerNode)
     adapts(DeviceOrganizer)
-
-    @property
-    def _evsummary(self):
-        where = _organizerWhere(self.uid)
-        return getFacade('device').getEventSummary(where=where)
 
     @property
     def _get_cache(self):
@@ -96,53 +76,67 @@ class DeviceOrganizerTreeNodeMarshaller(TreeNodeMarshaller):
     Doesn't get iconCls for each individually. Loads up max sevs for all nodes
     first, then each node can look up its severity from that single query.
     """
-    def getSeverities(self):
-        f = getFacade('event')
-        root = self.root.uid.split('/')[3]
-        orgcol = ORGTYPES[root]
-        q = 'select %s, max(severity) from status group by %s' % (orgcol,
-                                                                  orgcol)
-        result = {}
-        for org, sev in f._run_query(q, ()):
-            for org in org.split('|'):
-                result[org] = max(result.get(org, sev), sev)
-        return sorted(result.items())
 
-    def getKeys(self):
-        keys = super(DeviceOrganizerTreeNodeMarshaller, self).getKeys()
-        if 'iconCls' in keys:
-            keys.remove('iconCls')
-        return keys
+    def __init__(self, root):
+        super(DeviceOrganizerTreeNodeMarshaller, self).__init__(root)
+        self._severities = {}
+        self._eventFacade = getFacade('zep')
+        self._uuids = {}
 
-    def marshal(self, keys=None, severities=None):
-        obj = self.getValues(keys)
-        if self.root.leaf:
+    def _getNodeUuid(self, node):
+        if node not in self._uuids:
+            self._uuids[node] = IGlobalIdentifier(node._object.getObject()).getGUID()
+
+        return self._uuids[node]
+
+    def _getUuids(self, node):
+        uuids = set([self._getNodeUuid(node)])
+        if not node.leaf:
+            for child in node.children:
+                uuids.update(self._getUuids(child))
+        return uuids
+
+    @property
+    def _allSeverities(self):
+        if not self._severities:
+            # Get UUIDs for all items in the tree
+            uuids = self._getUuids(self.root)
+            self._severities = dict(
+                (uuid, self._eventFacade.getSeverityName(severity).lower())
+                    for (uuid, severity) in self._eventFacade.getWorstSeverity(uuids, ignore=(SEVERITY_INFO, SEVERITY_DEBUG)).iteritems()
+            )
+
+        return self._severities
+
+    def _marshalNode(self, keys, node, iconCls=False):
+        obj = self.getValues(keys, node)
+        if node.leaf:
             obj['leaf'] = True
-        if severities is None:
-            severities = self.getSeverities()
 
-        name = '/' + self.root.uid.split('/', 4)[-1]
+        if 'uuid' in keys:
+            obj['uuid'] = self._getNodeUuid(node)
 
-        zem = getFacade('event')._event_manager()
-        sevnames = [c[0].lower() for c in reversed(zem.severityConversions)]
-        sev = 0
-        for p, s in severities:
-            if p.startswith(name):
-                sev = max(sev, s)
-                if p==name:
-                    break
-        sev = sevnames[sev]
-        obj['iconCls'] = 'tree-severity-icon-small-%s' % sev
+        if iconCls:
+            severity = self._allSeverities.get(self._getNodeUuid(node), 'clear')
+            obj['iconCls'] = node.getIconCls(severity)
+
         obj['children'] = []
-        for childNode in self.root.children:
-            # We want to adapt explicitly because the signature of marshal() is
-            # different (we need to pass the severities dict down)
-            node = DeviceOrganizerTreeNodeMarshaller(childNode)
-            obj['children'].append(node.marshal(keys, severities))
+        for childNode in node.children:
+            obj['children'].append(self._marshalNode(keys, childNode, iconCls=iconCls))
         return obj
 
+    def marshal(self, keys=None, node=None):
+        # Remove iconCls key so we don't get its intrinsic value, instead we want to get it in batches
+        keys = keys or self.getKeys()
+        iconCls = False
+        if 'iconCls' in keys:
+            iconCls = True
+            keys.remove('iconCls')
 
-class DeviceInfo(InfoBase):
+        return self._marshalNode(keys, node or self.root, iconCls=iconCls)
+
+
+class DeviceInfo(InfoBase, HasEventsInfoMixin):
     implements(IDeviceInfo)
     adapts(IDevice)
 
@@ -187,13 +181,6 @@ class DeviceInfo(InfoBase):
         self._object.setPerformanceMonitor(collector)
 
     collector = property(getCollectorName, setCollector)
-
-    @property
-    def events(self):
-        manager = self._object.getEventManager()
-        severities = (c[0].lower() for c in manager.severityConversions)
-        counts = (s[2] for s in self._object.getEventSummary())
-        return dict(zip(severities, counts))
 
     def availability(self):
         return self._object.availability().availability
@@ -343,21 +330,13 @@ class DeviceInfo(InfoBase):
 
 
 
-class DeviceOrganizerInfo(InfoBase):
+class DeviceOrganizerInfo(InfoBase, HasEventsInfoMixin):
     implements(IDeviceOrganizerInfo)
     adapts(DeviceOrganizer)
 
     @property
     def path(self):
         return self._object.getPrimaryDmdId()
-
-    @property
-    def events(self):
-        mgr = self._object.getEventManager()
-        sevs = (c[0].lower() for c in mgr.severityConversions)
-        counts = (s[2] for s in self._object.getEventSummary())
-        return dict(zip(sevs, counts))
-
 
 def _removeZportDmd(path):
     if path.startswith('/zport/dmd'):

@@ -27,26 +27,24 @@ from Products.ZenUtils.extdirect.router import DirectResponse
 from Products.ZenUtils.Time import isoDateTimeFromMilli
 from Products.Zuul import getFacade
 from Products.Zuul.decorators import require
-from Products.Zuul.routers.events import EventsRouter
 from Products.ZenEvents.Event import Event as ZenEvent
 from Products.ZenMessaging.queuemessaging.interfaces import IEventPublisher
 from Products.ZenUtils.guid.interfaces import IGlobalIdentifier
+from Products.ZenEvents.EventClass import EventClass
 from zenoss.protocols.services.zep import EventStatus, EventSeverity
 from json import loads
 from Products.Zuul.utils import resolve_context
 from Products.Zuul.utils import ZuulMessageFactory as _t
 log = logging.getLogger('zen.%s' % __name__)
 
-
-# TODO Temporarily extend EventsRouter till all methods are implemented
-class ZepRouter(EventsRouter):
+class EventsRouter(DirectRouter):
     """
     A JSON/ExtDirect interface to operations on events in ZEP
     """
 
 
     def __init__(self, context, request):
-        super(ZepRouter, self).__init__(context, request)
+        super(EventsRouter, self).__init__(context, request)
         self.zep = getFacade('zep', context)
         self.api = getFacade('event', context)
 
@@ -94,6 +92,19 @@ class ZepRouter(EventsRouter):
         return values
 
     @require('ZenCommon')
+    def queryArchive(self, limit=0, start=0, sort='lastTime', dir='desc', params=None,
+              history=False, uid=None, criteria=()):
+        filter = self._buildFilter(uid, params)
+
+        events = self.zep.getEventSummariesFromArchive(limit=limit, offset=start, sort=(sort, dir), filter=filter)
+
+        return DirectResponse.succeed(
+            events = [self._mapToOldEvent(e) for e in events['events']],
+            totalCount = events['total'],
+            asof = time.time()
+        )
+
+    @require('ZenCommon')
     def query(self, limit=0, start=0, sort='lastTime', dir='desc', params=None,
               history=False, uid=None, criteria=()):
         """
@@ -126,6 +137,25 @@ class ZepRouter(EventsRouter):
            - totalCount: (integer) Total count of events returned
            - asof: (float) Current time
         """
+        filter = self._buildFilter(uid, params)
+
+        events = self.zep.getEventSummaries(limit=limit, offset=start, sort=(sort, dir), filter=filter)
+
+        return DirectResponse.succeed(
+            events = [self._mapToOldEvent(e) for e in events['events']],
+            totalCount = events['total'],
+            asof = time.time()
+        )
+
+    def _buildFilter(self, uid, params):
+        """
+        Query for events.
+        @type  params: dictionary
+        @param params: (optional) Key-value pair of filters for this search.
+                       (default: None)
+        @type  uid: string
+        @param uid: (optional) Context for the query (default: None)
+        """
         if params:
             params = loads(params)
             filter = self.zep.createFilter(
@@ -150,17 +180,17 @@ class ZepRouter(EventsRouter):
         context = resolve_context(uid)
 
         if context and context.id != 'Events':
-            if context.uuid:
-                tags = filter.setdefault('tag_uuids', [])
+            tags = filter.setdefault('tag_uuids', [])
+
+            try:
                 tags.append(IGlobalIdentifier(context).getGUID())
+            except TypeError:
+                if isinstance(context, EventClass):
+                    filter['event_class'] = context.getDmdKey()
+                else:
+                    raise Exception('Unknown context %s' % context)
 
-        events = self.zep.getEventSummaries(limit=limit, offset=start, sort=(sort, dir), filter=filter)
-
-        return DirectResponse.succeed(
-            events = [self._mapToOldEvent(e) for e in events['events']],
-            totalCount = events['total'],
-            asof = time.time()
-        )
+        return filter
 
     def _uuidUrl(self, uuid):
         if uuid:
@@ -432,78 +462,46 @@ class ZepRouter(EventsRouter):
 
         return DirectResponse.succeed(evid=event.evid)
 
-    def _convertSeverityToNumber(self, sev):
-        return EventSeverity.getNumber(sev)
-
-    def _convertSeverityToName(self, sevId):
-        return EventSeverity.getName(sevId)
-
-    @property
     def configSchema(self):
         configSchema =[{
                 'id': 'event_age_disable_severity',
-                'name': _t("Don't Age This Severity and Above"),
+                'name': _t('Event Age Disable Severity'),
                 'xtype': 'severity',
-                'fromZep': self._convertSeverityToNumber,
-                'toZep': self._convertSeverityToName,
-                },{
+                }, {
                 'id': 'event_age_interval_minutes',
-                'name': _t('Event Aging Threshold (minutes)'),
+                'name': _t('Event Age Interval (minutes)'),
                 'xtype': 'numberfield',
-                'minValue': 60,
                 'allowNegative': False,
-                },{
-                'id': 'event_archive_interval_days',
-                'name': _t('Event Archive Interval (days)'),
-                'xtype': 'numberfield',
-                'minValue': 1,
-                'maxValue': 30,
-                'allowNegative': False,
-                },{
+                }, {
                 'id': 'event_archive_purge_interval_days',
                 'maxValue': 90,
-                'name': _t('Delete Historical Events Older Than (days)'),
+                'name': _t('Event Archive Purge Interval (days)'),
                 'xtype': 'numberfield',
                 'allowNegative': False,
-                },{
+                }, {
                 'id': 'event_occurrence_purge_interval_days',
                 'maxValue': 30,
-                'name': _t('Event Occurrence Purge Interval (days)'),
+                'name': _t('Event Occurrence Purge Interval (Days)'),
                 'xtype': 'numberfield',
                 'allowNegative': False,
-                },{
-                'id': 'default_syslog_priority',
-                'name': _t('Default Syslog Priority'),
-                'xtype': 'numberfield',
-                'allowNegative': False,
-                'value': self.context.dmd.ZenEventManager.defaultPriority
-                }]
+                }
+                       ]
         return configSchema
-
-    def _mergeSchemaAndZepConfig(self, data, config):
-        """
-        Copy the values and defaults from ZEP to our schema
-        """
-        for conf in config:
-            if not data.get(conf['id']):
-                continue
-            prop = data[conf['id']]
-            for key in prop.keys():
-                conf[key] = prop[key]
-            # our drop down expects severity to be the number constant
-            if conf.get('fromZep'):
-                conf['defaultValue'] = conf['fromZep']((prop['defaultValue']))
-                if prop['value']:
-                    conf['value'] = conf['fromZep']((prop['value']))
-                del conf['fromZep']
-            if conf.get('toZep'):
-                del conf['toZep']
-        return config
 
     @require('ZenCommon')
     def getConfig(self):
         data = self.zep.getConfig()
-        config = self._mergeSchemaAndZepConfig(data, self.configSchema)
+        config = self.configSchema()
+        # copy the values and defaults from ZEP to our schema
+        for conf in config:
+            prop = data[conf['id']]
+            for key in prop.keys():
+                conf[key] = prop[key]
+            # our drop down expects severity to be the number constant
+            if conf['id'] == 'event_age_disable_severity':
+                conf['defaultValue'] = EventSeverity.getNumber(prop['defaultValue'])
+                if prop['value']:
+                    conf['value'] = EventSeverity.getNumber(prop['value'])
         return DirectResponse.succeed(data=config)
 
     @require('Manage DMD')
@@ -512,15 +510,8 @@ class ZepRouter(EventsRouter):
         @type  values: Dictionary
         @param values: Key Value pairs of config values
         """
-        for config in self.configSchema:
-            id = config['id']
-            if config.get('toZep'):
-                values[id] = config['toZep'](values[id])
-
-        # we store default syslog priority on the event manager
-        if values.get('default_syslog_priority'):
-            pri = values.get('default_syslog_priority')
-            self.context.dmd.ZenEventManager.defaultPriority = pri
-            del values['default_syslog_priority']
+        if values.get('event_age_disable_severity'):
+            sev = values.get('event_age_disable_severity')
+            values['event_age_disable_severity'] = EventSeverity.getName(sev)
         self.zep.setConfigValues(values)
         return DirectResponse.succeed()

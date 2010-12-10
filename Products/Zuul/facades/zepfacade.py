@@ -13,16 +13,19 @@
 
 import logging
 import re
+import random
 from zope.interface import implements
 from Products.Zuul.facades import ZuulFacade
 from Products.Zuul.interfaces import IZepFacade
+from Products.Zuul.utils import resolve_context
+
 import pkg_resources
 from zenoss.protocols.services.zep import ZepServiceClient, EventSeverity, EventStatus, ZepConfigClient
 from zenoss.protocols.jsonformat import to_dict, from_dict
 from zenoss.protocols.protobufs.zep_pb2 import EventSummaryFilter, NumberCondition, EventSort
 from Products.ZenUtils.GlobalConfig import getGlobalConfiguration
 from Products.ZenUtils.guid.interfaces import IGlobalIdentifier
-
+from zenoss.protocols.protobufs.zep_pb2 import SEVERITY_CLEAR, SEVERITY_INFO, SEVERITY_DEBUG
 
 log = logging.getLogger(__name__)
 
@@ -62,6 +65,34 @@ class ZepFacade(ZuulFacade):
         zep_url = config.get('zep_uri', 'http://localhost:8084')
         self.client = ZepServiceClient(zep_url)
         self.configClient = ZepConfigClient(zep_url)
+
+    def _event_manager(self, archive=False):
+        if archive:
+            return self._dmd.ZenEventHistory
+        else:
+            return self._dmd.ZenEventManager
+
+
+    def _resolve_context(self, context, default):
+        if context and getattr(context, 'id', None) == 'dmd':
+            context = None
+        return resolve_context(context, default)
+
+    def fields(self, context=None, archive=False):
+        context = self._resolve_context(context, self._dmd.Events)
+        zem = self._event_manager(archive)
+        if hasattr(context, 'getResultFields'):
+            fs = context.getResultFields()
+        else:
+            # Use default result fields
+            if hasattr(context, 'event_key'):
+                base = context
+            else:
+                base = self._dmd.Events.primaryAq()
+            fs = zem.lookupManagedEntityResultFields(base.event_key)
+        if 'component' in fs and 'device' not in fs:
+            fs += ('device',)
+        return fs
 
     def createFilter(self,
         uuid=[],
@@ -126,42 +157,56 @@ class ZepFacade(ZuulFacade):
 
         return d
 
+    def getEventSummariesFromArchive(self, offset, limit=100, keys=None, sort=None, filter={}):
+        return self._getEventSummaries(self.client.getEventSummariesFromArchive, offset=offset, limit=limit, keys=keys, sort=sort, filter=filter)
+
     def getEventSummaries(self, offset, limit=100, keys=None, sort=None, filter={}):
+        return self._getEventSummaries(self.client.getEventSummaries, offset=offset, limit=limit, keys=keys, sort=sort, filter=filter)
+
+    def _getEventSummaries(self, source, offset, limit=100, keys=None, sort=None, filter={}):
         filterBuf = None
         if filter:
-            # Build protobuf filter
-            if 'count' in filter:
-                m = re.match(r'^(?P<op>>|<|=|>=|<=)?(?P<num>[0-9]+)$', filter['count'])
-                if m:
-                    filter['count'] = {
-                        'op' : self._opMap[m.groupdict()['op']],
-                        'value' : int(m.groupdict()['num']),
-                    }
-                else:
-                    raise Exception('Invalid count filter %s' % filter['count'])
-
-            if 'first_seen' in filter:
-                filter['first_seen'] = self._timeRange(filter['first_seen'])
-
-            if 'last_seen' in filter:
-                filter['last_seen'] = self._timeRange(filter['last_seen'])
-
-            filterBuf = from_dict(EventSummaryFilter, filter)
+            filterBuf = self._buildFilterProtobuf(filter)
 
         eventSort = None
+        if sort:
+            eventSort = self._buildSortProtobuf(sort)
+
+        response, content = source(offset=offset, limit=limit, keys=keys, sort=eventSort, filter=filterBuf)
+        return {
+            'total' : content.total,
+            'events' : (to_dict(event) for event in content.events),
+        }
+
+    def _buildSortProtobuf(self, sort):
         if isinstance(sort, (list, tuple)):
             eventSort = from_dict(EventSort, {
                 'field' : self._sortMap[sort[0].lower()],
                 'direction' : self._sortDirectionMap[sort[1].lower()]
             })
-        elif sort:
+        else:
             eventSort = from_dict(EventSort, { 'field' : self._sortMap[sort.lower()] })
+        return eventSort
 
-        response, content = self.client.getEventSummaries(offset=offset, limit=limit, keys=keys, sort=eventSort, filter=filterBuf)
-        return {
-            'total' : content.total,
-            'events' : (to_dict(event) for event in content.events),
-        }
+    def _buildFilterProtobuf(self, filter):
+        # Build protobuf filter
+        if 'count' in filter:
+            m = re.match(r'^(?P<op>>|<|=|>=|<=)?(?P<num>[0-9]+)$', filter['count'])
+            if m:
+                filter['count'] = {
+                    'op' : self._opMap[m.groupdict()['op']],
+                    'value' : int(m.groupdict()['num']),
+                }
+            else:
+                raise Exception('Invalid count filter %s' % filter['count'])
+
+        if 'first_seen' in filter:
+            filter['first_seen'] = self._timeRange(filter['first_seen'])
+
+        if 'last_seen' in filter:
+            filter['last_seen'] = self._timeRange(filter['last_seen'])
+
+        return from_dict(EventSummaryFilter, filter)
 
     def _getUserUuid(self, userName):
         # Lookup the user uuid
@@ -205,9 +250,58 @@ class ZepFacade(ZuulFacade):
         @param values: Key Value pairs of config values
         """
         self.configClient.setConfigValues(values)
-    
+
     def setConfigValue(self, name, value):
-        self.configClient.setConfigValue(name, value)        
+        self.configClient.setConfigValue(name, value)
 
     def removeConfigValue(self, name):
-        self.configClient.removeConfigValue(name)        
+        self.configClient.removeConfigValue(name)
+
+    def getEventSeveritiesByUuid(self, tagUuid):
+        return self.getEventSeverities([tagUuid])[tagUuid]
+
+    def getEventSeverities(self, tagUuids):
+        """
+        Get a dictionary of the event severity counds for each UUID.
+
+        @param tagUuids: A sequence of element UUIDs
+        @rtype: dict
+        @return: A dictionary of UUID -> { C{EventSeverity} -> count }
+        """
+        response, content = self.client.getEventSeverities(tagUuids)
+        if content:
+            # Prepopulate the list with count = 0
+            severities = dict.fromkeys(tagUuids, dict.fromkeys(EventSeverity.numbers, 0))
+            for tag in content.severities:
+                severities[tag.tag_uuid] = dict((sev.severity, sev.count) for sev in tag.severities)
+
+            return severities
+
+    def getWorstSeverityByUuid(self, tagUuid, default=SEVERITY_CLEAR, ignore=None):
+        return self.getWorstSeverity([tagUuid], default=default, ignore=ignore)[tagUuid]
+
+    def getWorstSeverity(self, tagUuids, default=SEVERITY_CLEAR, ignore=None):
+        """
+        Get a dictionary of the worst event severity for each UUID.
+
+        @param tagUuids: A sequence of element UUIDs
+        @param default: The default severity to use if there are no results or if a severity is ignored
+        @type default: An C{EventSeverity} enum value
+        @param ignore: Severities to not include as worst, use the default instead.
+        @type ignore: A list of C{EventSeverity} enum values
+        @rtype: dict
+        @return: A dictionary of UUID -> C{EventSeverity}
+        """
+
+        # Prepopulate the list with defaults
+        severities = dict.fromkeys(tagUuids, default)
+        response, content = self.client.getWorstSeverity(tagUuids)
+        if content:
+            for tag in content.severities:
+                sev = tag.severities[0].severity
+                severities[tag.tag_uuid] = default if ignore and sev in ignore else sev
+
+            return severities
+
+    def getSeverityName(self, severity):
+        return EventSeverity.getPrettyName(severity)

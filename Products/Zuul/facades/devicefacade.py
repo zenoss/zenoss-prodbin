@@ -33,6 +33,8 @@ from Products.Zuul import getFacade
 from Products.Zuul.utils import ZuulMessageFactory as _t, UncataloguedObjectException
 from Products.Zuul.catalog.events import IndexingEvent
 from Products.ZenEvents.Event import Event
+from Products.ZenUtils.guid.interfaces import IGlobalIdentifier
+from Products.ZenEvents.EventManagerBase import EventManagerBase
 
 
 class DeviceFacade(TreeFacade):
@@ -51,27 +53,6 @@ class DeviceFacade(TreeFacade):
     @property
     def _instanceClass(self):
         return 'Products.ZenModel.Device.Device'
-
-    def _parameterizedWhere(self, uid=None, where=None):
-        # Override the default to avoid searching instances and just
-        # look up the where clause for the thing itself
-        zem = self._dmd.ZenEventManager
-        if not where:
-            ob = self._getObject(uid)
-            where = zem.lookupManagedEntityWhere(ob)
-        where = where.replace('%', '%%')
-        return where, []
-
-    def getEventSummary(self, uid=None, where=None):
-        zem = self._dmd.ZenEventManager
-        if where:
-            pw = self._parameterizedWhere(where=where)
-        else:
-            pw = self._parameterizedWhere(uid)
-        summary = zem.getEventSummary(parameterizedWhere=pw)
-        severities = (c[0].lower() for c in zem.severityConversions)
-        counts = (s[2] for s in summary)
-        return zip(severities, counts)
 
     def findComponentIndex(self, componentUid, uid=None, meta_type=None,
                            sort='name', dir='ASC', name=None):
@@ -109,45 +90,33 @@ class DeviceFacade(TreeFacade):
         return SearchResults(wrapped, brains.total, brains.hash_)
 
     def getComponentTree(self, uid=None, types=(), meta_type=()):
-        d = {}
+        componentTypes = {}
+        uuidMap = {}
+
         # Build a dictionary with device/component
-        for b in self._componentSearch(uid, types, meta_type):
-            component = b.id
-            path = b.getPath().split('/')
-            device = path[path.index('devices') + 1]
-            d.setdefault(b.meta_type, []).append(dict(device=device,
-                                                      component=component))
-        # Get count, status per meta_type
+        for brain in self._componentSearch(uid, types, meta_type):
+            uuid = IGlobalIdentifier(brain.getObject()).getGUID()
+            uuidMap[uuid] = brain.meta_type
+
+            compType = componentTypes.setdefault(brain.meta_type, { 'count' : 0, 'severity' : 0 })
+            compType['count'] += 1
+
+        # Do one big lookup of component events and merge back in to type later
+
+        zep = getFacade('zep')
+        severities = zep.getWorstSeverity(uuidMap.keys())
+        for uuid, sev in severities.iteritems():
+            compType = componentTypes[uuidMap[uuid]]
+            compType['severity'] = max(compType['severity'], sev)
+
         result = []
-        for compType in d:
-            # Number of components
-            compCount = len(d[compType])
-            # Severity counts
-            where = []
-            vals = []
-            for criterion in d[compType]:
-                s = []
-                # criterion is a dict
-                for k, v in criterion.iteritems():
-                    s.append('%s=%%s' % k)
-                    vals.append(v)
-                crit = ' and '.join(s)
-                where.append('(%s)' % crit)
-            zem = self._dmd.ZenEventManager
-            severities = (c[0].lower() for c in zem.severityConversions)
-            if where:
-                crit = ' or '.join(where)
-                pw = ('(%s)' % crit, vals)
-                summary = zem.getEventSummary(parameterizedWhere=pw)
-                counts = (s[2] for s in summary)
-            else:
-                counts = [0]*5
-            for sev, count in zip(severities, counts):
-                if count:
-                    break
-            else:
-                sev = 'clear'
-            result.append({'type':compType, 'count':compCount, 'severity':sev})
+        for name, compType in componentTypes.iteritems():
+            result.append({
+                'type' : name,
+                'count' : compType['count'],
+                'severity' : EventManagerBase.severities.get(compType['severity'], 0).lower()
+            })
+
         return result
 
     def deleteComponents(self, uids):

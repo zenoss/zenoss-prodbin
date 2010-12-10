@@ -150,10 +150,6 @@ class DeviceClassTemplateNode(TreeNode):
         return self._object.meta_type == 'DeviceClass'
 
     @property
-    def _evsummary(self):
-        return []
-
-    @property
     def _organizer(self):
         return self if self.isOrganizer else self._parent._get_object
 

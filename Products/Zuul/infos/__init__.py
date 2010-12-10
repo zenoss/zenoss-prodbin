@@ -15,6 +15,10 @@ from zope.interface import implements
 from zope.component import adapts
 from Products.ZenModel.ZenModelRM import ZenModelRM
 from Products.Zuul.interfaces import IInfo
+from Products.ZenEvents.EventManagerBase import EventManagerBase
+from zenoss.protocols.protobufs.zep_pb2 import SEVERITY_CLEAR, SEVERITY_INFO, SEVERITY_DEBUG
+from Products.Zuul import getFacade
+from Products.ZenUtils.guid.interfaces import IGlobalIdentifier
 
 
 def ProxyProperty(propertyName):
@@ -70,7 +74,7 @@ class InfoBase(object):
     @property
     def inspector_type(self):
         return self._object.meta_type
-        
+
     @property
     def id(self):
         return self._object.id
@@ -100,3 +104,43 @@ class InfoBase(object):
     def __repr__(self):
         return '<%s Info "%s">' % (self._object.__class__.__name__, self.id)
 
+class HasUuidInfoMixin(object):
+    @property
+    def uuid(self):
+        return IGlobalIdentifier(self._object).getGUID()
+
+class HasEventsInfoMixin(HasUuidInfoMixin):
+    _eventSeverities = None
+    _worstEventSeverity = None
+
+    @property
+    def severity(self):
+        zep = getFacade('zep')
+        if self._worstEventSeverity is None:
+            self.setWorstEventSeverity(zep.getWorstSeverityByUuid(self.uuid))
+
+        return zep.getSeverityName(self._worstEventSeverity).lower()
+
+    @property
+    def events(self):
+        zep = getFacade('zep')
+        if self._eventSeverities is None:
+            self.setEventSeverities(zep.getEventSeveritiesByUuid(self.uuid))
+
+        return dict((zep.getSeverityName(sev).lower(), count) for (sev, count) in self._eventSeverities.iteritems())
+
+    def setWorstEventSeverity(self, severity):
+        """
+        Allow event severities to be set so they can be loaded in batches.
+        """
+        if severity in (SEVERITY_INFO, SEVERITY_DEBUG):
+            # Ignore info and debug
+            severity = SEVERITY_CLEAR
+
+        self._worstEventSeverity = severity
+
+    def setEventSeverities(self, severities):
+        """
+        Allow event severities to be set so they can be loaded in batches.
+        """
+        self._eventSeverities = severities

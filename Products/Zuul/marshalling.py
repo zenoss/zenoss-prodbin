@@ -21,6 +21,18 @@ from Products.Zuul.interfaces import IMarshaller
 from Products.Zuul.interfaces import IUnmarshaller
 from Products.Zuul.interfaces import IInfo
 from Products.Zuul.interfaces import ITreeNode
+import inspect
+
+def getPublicProperties(obj):
+    """
+    Get all public __get__'ables like @property's.
+
+    Note: This intentionally ignores regular properties and methods.
+    """
+    return [
+        k for k in dir(obj)
+            if inspect.isdatadescriptor(getattr(obj.__class__, k, None)) and not k.startswith('_')
+    ]
 
 def _marshalImplicitly(obj):
     """
@@ -28,11 +40,8 @@ def _marshalImplicitly(obj):
     those that begin with '_'
     """
     data = {}
-    for key in dir(obj):
-        if not key.startswith('_'):
-            value = getattr(obj, key)
-            if not callable(value):
-                data[key] = value
+    for key in getPublicProperties(obj):
+        data[key] = value = getattr(obj, key)
     return data
 
 
@@ -100,17 +109,17 @@ class TreeNodeMarshaller(object):
     def __init__(self, root):
         self.root = root
 
-    def getKeys(self):
-        validkey = lambda k:not k.startswith('_')
-        keys = filter(validkey, dir(self.root))
-        return keys
+    def getKeys(self, node=None):
+        node = node or self.root
+        return getPublicProperties(node)
 
-    def getValues(self, keys=None):
+    def getValues(self, keys=None, node=None):
+        node = node or self.root
         values = {}
         if keys is None:
-            keys = self.getKeys()
+            keys = self.getKeys(node)
         for attr in keys:
-            val = getattr(self.root, attr)
+            val = getattr(node, attr)
             try:
                 json(val)
             except TypeError:
@@ -119,14 +128,15 @@ class TreeNodeMarshaller(object):
             values[attr] = val
         return values
 
-    def marshal(self, keys=None):
-        obj = self.getValues(keys)
-        if self.root.leaf:
+    def marshal(self, keys=None, node=None):
+        node = node or self.root
+        obj = self.getValues(keys, node)
+        if node.leaf:
             obj['leaf'] = True
         else:
             obj['children'] = []
-            for childNode in self.root.children:
-                obj['children'].append(Zuul.marshal(childNode))
+            for childNode in node.children:
+                obj['children'].append(self.marshal(node=childNode))
         return obj
 
 

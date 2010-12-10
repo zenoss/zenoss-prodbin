@@ -15,13 +15,13 @@ from zope.interface import implements
 from zope.component import adapts
 
 from Products.Zuul.interfaces import IComponentInfo, IComponent
-from Products.Zuul.infos import InfoBase, ProxyProperty
+from Products.Zuul.infos import InfoBase, ProxyProperty, HasEventsInfoMixin
 from Products.Zuul.form.builder import FormBuilder
 from Products.Zuul.decorators import info
 from Products.Zuul.utils import safe_hasattr as hasattr
 
 
-class ComponentInfo(InfoBase):
+class ComponentInfo(InfoBase, HasEventsInfoMixin):
     implements(IComponentInfo)
     adapts(IComponent)
 
@@ -29,25 +29,6 @@ class ComponentInfo(InfoBase):
     @info
     def device(self):
         return self._object.device()
-
-    @property
-    def events(self):
-        manager = self._object.getEventManager()
-        severities = (c[0].lower() for c in manager.severityConversions)
-        counts = (s[2] for s in self._object.getEventSummary())
-        return dict(zip(severities, counts))
-
-    @property
-    def severity(self):
-        manager = self._object.getEventManager()
-        severities = (c[0].lower() for c in manager.severityConversions)
-        counts = (s[2] for s in self._object.getEventSummary())
-        for sev, count in zip(severities, counts):
-            if count:
-                break
-        else:
-            sev = 'clear'
-        return sev
 
     @property
     def locking(self):
@@ -74,22 +55,22 @@ class ComponentInfo(InfoBase):
         value =  self._object.convertStatus(statusCode)
         if isinstance(value, str):
             return value
-        
+
         if value > 0:
             return "Down"
         else:
             return "Up"
-        
+
 
 class ComponentFormBuilder(FormBuilder):
     def render(self, fieldsets=True):
         ob = self.context._object
-        
+
         # find out if we can edit this form
         userCreated = False
         if hasattr(ob, 'isUserCreated'):
             userCreated = ob.isUserCreated()
-        
+
         # construct the form
         form = super(ComponentFormBuilder, self).render(fieldsets,
                                                         readOnly=not userCreated)
