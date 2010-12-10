@@ -33,6 +33,11 @@ def registerGUIDToPathMapping(object, event):
     mgr = IGUIDManager(object)
     if event.new:
         mgr.setObject(event.new, object)
+        try:
+            catalog = object.global_catalog
+            catalog.catalog_object(object, idxs=(), update_metadata=True)
+        except Exception:
+            pass
     if event.old:
         mgr.remove(event.old)
 

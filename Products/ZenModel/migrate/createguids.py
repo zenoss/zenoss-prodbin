@@ -14,6 +14,7 @@
 import logging
 import Migrate
 
+from Products.ZCatalog.Catalog import CatalogError
 from Products.Zuul.interfaces import ICatalogTool
 from Products.ZenUtils.guid.interfaces import IGloballyIdentifiable, IGlobalIdentifier
 
@@ -29,11 +30,22 @@ class CreateMissingGuids(Migrate.Step):
 
         log.debug('Creating GUIDs...')
         identifiables = [o.__name__ for o in IGloballyIdentifiable.dependents.keys()]
+        catalog = dmd.global_catalog
+        update_metadata = False
+        try:
+            catalog._catalog.addColumn('uuid')
+            update_metadata = True
+        except CatalogError:
+            # Column exists
+            pass
         for brain in ICatalogTool(dmd).search(identifiables):
             obj = brain.getObject()
             identifier = IGlobalIdentifier(obj)
             if force or not identifier.getGUID():
                 guid = identifier.create(force)
                 log.debug('Created guid for %s: %s', '/'.join(obj.getPrimaryPath()[3:]), guid)
+            if update_metadata:
+                catalog.catalog_object(obj, idxs=(), update_metadata=True)
+
 
 CreateMissingGuids()

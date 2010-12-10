@@ -18,8 +18,10 @@ from zope.component import adapts
 from Acquisition import aq_base
 from AccessControl import getSecurityManager
 from AccessControl.PermissionRole import rolesForPermissionOn
+from ZODB.POSException import ConflictError
 from Products.ZCatalog.ZCatalog import ZCatalog
 from Products.ZenUtils.IpUtil import numbip
+from Products.ZenUtils.guid.interfaces import IGlobalIdentifier
 from Products.ZenUtils.Search import makeMultiPathIndex
 from Products.ZenUtils.Search import makeCaseSensitiveFieldIndex
 from Products.ZenUtils.Search import makeCaseInsensitiveFieldIndex
@@ -169,6 +171,17 @@ class IndexableWrapper(object):
         This is a FieldIndex on the catalog and a metadata column.
         """
         return aq_base(self._context).meta_type
+
+    def uuid(self):
+        """
+        Object's uuid. This is a metadata column.
+        """
+        try:
+            return IGlobalIdentifier(self._context).getGUID()
+        except ConflictError:
+            raise
+        except Exception:
+            pass
 
     def productionState(self):
         """
@@ -334,6 +347,7 @@ def createGlobalCatalog(portal):
                  makeCaseInsensitiveKeywordIndex('searchKeywords'))
 
     catalog.addColumn('id')
+    catalog.addColumn('uuid')
     catalog.addColumn('name')
     catalog.addColumn('meta_type')
     catalog.addColumn('monitored')
