@@ -76,6 +76,17 @@ class ZCmdBase(ZenDaemon):
         kwargs = {}
         if self.options.cacheservers:
             kwargs['cache_servers'] = self.options.cacheservers
+        if self.options.pollinterval:
+            if 'cache_servers' in kwargs:
+                if self.options.pollinterval is None:
+                    self.log.info("Using default poll-interval of 60 seconds because "
+                        "cache-servers was set.")
+                    kwargs['poll_interval'] = 60
+                else:
+                    kwargs['poll_interval'] = self.options.pollinterval
+            else:
+                self.log.warn("poll-interval of %r is being ignored because "
+                    "cache-servers was not set." % self.options.pollinterval)
         self.storage = RelStorage(adapter, **kwargs)
         from ZODB import DB
         self.db = DB(self.storage, cache_size=self.options.cachesize)
@@ -193,4 +204,7 @@ class ZCmdBase(ZenDaemon):
                     help='Name of database for MySQL object store')
         self.parser.add_option('--cacheservers', dest='cacheservers', default="",
                     help='memcached servers to use for object cache (eg. 127.0.0.1:11211)')
+        self.parser.add_option('--poll-interval', dest='pollinterval', default=None, type='int',
+                    help='Defer polling the database for the specified maximum time interval, in seconds.'
+                    ' This will default to 60 only if --cacheservers is set.')
 
