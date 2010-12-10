@@ -56,7 +56,7 @@ from DbAccessBase import DbAccessBase
 
 from Products.ZenUtils.Utils import unused
 
-__pychecker__="maxargs=16"  
+__pychecker__="maxargs=16"
 
 def evtprep(evts):
     """
@@ -154,7 +154,7 @@ class EventManagerBase(ZenModelRM, ObjectCache, DbAccessBase):
     IpAddressWhere = "\"ipAddress='%s'\" % (me.getId())"
     EventClassWhere = "\"eventClass like '%s%%'\" % me.getDmdKey()"
     EventClassInstWhere = """\"eventClass = '%s' and eventClassKey = '%s'\" % (\
-                                me.getEventClass(), me.eventClassKey)""" 
+                                me.getEventClass(), me.eventClassKey)"""
     DeviceClassWhere = "\"(DeviceClass = '%s' or DeviceClass like '%s/%%') \" % \
                          ( me.getDmdKey(), me.getDmdKey() )"
 
@@ -241,16 +241,6 @@ class EventManagerBase(ZenModelRM, ObjectCache, DbAccessBase):
                 , 'name'          : 'History Fields'
                 , 'action'        : 'editEventManagerHistoryFields'
                 , 'permissions'   : ( "Manage DMD", )
-                },
-                { 'id'            : 'commands'
-                , 'name'          : 'Commands'
-                , 'action'        : 'listEventCommands'
-                , 'permissions'   : ( "Manage DMD", )
-                },
-                { 'id'            : 'changes'
-                , 'name'          : 'Modifications'
-                , 'action'        : 'viewNewHistory'
-                , 'permissions'   : (ZEN_VIEW_MODIFICATIONS,)
                 },
             )
           },
@@ -1315,13 +1305,13 @@ class EventManagerBase(ZenModelRM, ObjectCache, DbAccessBase):
         wheretmpl = getattr(aq_base(self), key, False)
         if not wheretmpl:
             raise ValueError("No 'where' clause found for event_key %s" % me.event_key)
-       
+
         # This code snippet is meant to fake out the where requirement
         # We want no filter on the device so in effect "where 1" achieves
         # this in sql syntax
         if me.id == 'Devices':
             return '(DeviceCLass like \'/%\')'
-        return eval(wheretmpl,{'me':me, 'escape_string':escape_string}) 
+        return eval(wheretmpl,{'me':me, 'escape_string':escape_string})
 
 
     def lookupManagedEntityField(self, event_key):

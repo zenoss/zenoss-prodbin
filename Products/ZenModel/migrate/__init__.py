@@ -213,3 +213,4 @@ import addzSnmpCollectionInterval
 import RemoveCommandsEditPermission
 import SpeedUpGlobalCatalog
 import addNotificationSubscriptions
+import removeMenusForAvalon

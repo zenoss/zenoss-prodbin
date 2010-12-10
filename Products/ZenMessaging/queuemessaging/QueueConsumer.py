@@ -41,28 +41,28 @@ class QueueConsumer(object):
     events into graph protobufs
     """
     MARKER = str(hash(object()))
-    
+
     def __init__(self, task, dmd, persistent=False):
         ManagedProcess.__init__(self)
         self.dmd = dmd
-        self.consumer = AMQPFactory()        
+        self.consumer = AMQPFactory()
         self.onReady = self._ready()
         self.onShutdown = self._shutdown()
         self.onTestMessage = defer.Deferred()
         if not IQueueConsumerTask.providedBy(task):
-            raise AssertionError("%s does not implement IQueueConsumerTask" % task)        
+            raise AssertionError("%s does not implement IQueueConsumerTask" % task)
         self.task = task
         self.task.dmd = self.dmd
         # give a reference to the consumer to the task
         self.task.queueConsumer = self
-        
+
 
     @defer.inlineCallbacks
     def _ready(self):
         """
         Calls back once everything's ready and test message went through.
         """
-        yield self.consumer.onConnectionMade        
+        yield self.consumer.onConnectionMade
         yield self.onTestMessage
         log.info('Queue consumer ready.')
         defer.returnValue(None)
@@ -72,7 +72,7 @@ class QueueConsumer(object):
         """
         Calls back once everything has shut down.
         """
-        yield self.consumer.onConnectionLost        
+        yield self.consumer.onConnectionLost
         defer.returnValue(None)
 
     def run(self):
@@ -94,17 +94,17 @@ class QueueConsumer(object):
     def shutdown(self, *args):
         """
         Tell all the services to shut down.
-        """        
+        """
         self.consumer.shutdown()
         return self.onShutdown
-    
+
     def acknowledge(self, message):
         """
         Called from a task when it is done successfully processing
         the message
         """
         self.consumer.acknowledge(message)
-    
+
     def publishMessage(self, exchange, routing_key, message):
         """
         Publishes a message to another queue. This is for tasks that are both
@@ -113,10 +113,10 @@ class QueueConsumer(object):
         return self.consumer.send(exchange,
                            routing_key,
                            message )
-    
+
     def syncdb(self):
         self.dmd.getPhysicalRoot()._p_jar.sync()
-    
+
 class QueueConsumerProcess(ManagedProcess):
     """
     ManagedProcess wrapper for the graph server; merely starts and stops the
