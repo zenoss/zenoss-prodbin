@@ -273,7 +273,7 @@ class ZepFacade(ZuulFacade):
             # Prepopulate the list with count = 0
             severities = dict.fromkeys(tagUuids, dict.fromkeys(EventSeverity.numbers, 0))
             for tag in content.severities:
-                severities[tag.tag_uuid] = dict((sev.severity, sev.count) for sev in tag.severities)
+                severities[tag.tag_uuid].update((sev.severity, sev.count) for sev in tag.severities)
 
             return severities
 

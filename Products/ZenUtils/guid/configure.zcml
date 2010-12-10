@@ -11,7 +11,12 @@
         provides=".interfaces.IGUIDManager"
         factory=".guid.GUIDManager"
         />
-    
+
+    <adapter
+        provides=".interfaces.IGlobalIdentifier"
+        factory=".guid.BrainGlobalIdentifier"
+        />
+
     <subscriber handler=".event.registerGUIDToPathMapping"/>
     <subscriber handler=".event.refireEventOnObjectAddOrMove"/>
     <subscriber handler=".event.refireEventOnObjectBeforeRemove"/>

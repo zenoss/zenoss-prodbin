@@ -24,7 +24,6 @@ from AccessControl import getSecurityManager
 from Products.ZenUtils.guid.interfaces import IGlobalIdentifier
 from Products.Zuul import getFacade
 
-Empty = object()
 class TreeNode(object):
     """
     Adapts a brain.
@@ -41,7 +40,6 @@ class TreeNode(object):
         self._object = ob
         self._root = root or self
         self._parent = parent or None
-        self._uuid = Empty
 
     def _buildCache(self, orgtype=None, instancetype=None, relname=None,
                     treePrefix=None, orderby=None):
@@ -58,14 +56,7 @@ class TreeNode(object):
 
     @property
     def uuid(self):
-        # FIXME When we start to store UUIDs on the brain, get it from there
-        if self._uuid is Empty:
-            try:
-                self._uuid = IGlobalIdentifier(self._object.getObject()).getGUID()
-            except TypeError:
-                self._uuid = None
-
-        return self._uuid
+        return IGlobalIdentifier(self._object).getGUID()
 
     @property
     def uid(self):

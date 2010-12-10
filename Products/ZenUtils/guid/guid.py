@@ -10,6 +10,7 @@
 # For complete information please visit: http://www.zenoss.com/oss/
 #
 ###########################################################################
+
 __doc__="""guid
 
 Generate a globally unique id that is used for events.
@@ -27,6 +28,7 @@ from zope.component import adapts
 from .interfaces import IGloballyIdentifiable, IGlobalIdentifier, IGUIDManager
 
 from Products.ZenUtils.guid.event import GUIDEvent
+from Products.ZCatalog.CatalogBrains import AbstractCatalogBrain
 
 # Dictionary of known UUID types
 known_uuid_types= {
@@ -117,3 +119,13 @@ class GUIDManager(object):
     def remove(self, guid):
         if guid in self.table:
             del self.table[guid]
+
+class BrainGlobalIdentifier(object):
+    adapts(AbstractCatalogBrain)
+    implements(IGlobalIdentifier)
+
+    def __init__(self, context):
+        self.context = context
+
+    def getGUID(self):
+        return self.context.uuid
