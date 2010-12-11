@@ -1,14 +1,14 @@
 <?xml version="1.0" encoding="ISO-8859-1" ?>
 
 <!--
-    Zenoss RelationshipManager export completed on 2010-07-24 14:47:51.763736
+    Zenoss RelationshipManager export completed on 2010-12-11 14:59:01.694121
 
     Use ImportRM to import this file.
 
     For more information about Zenoss, go to http://www.zenoss.com
  -->
 
-<objects version="[Zenoss, version 3.0.1]" export_date="2010-07-24 14:47:51.763736" zenoss_server="test-suse103-32-1" >
+<objects version="[Zenoss, version 3.0.70]" export_date="2010-12-11 14:59:01.694121" zenoss_server="iansmbp.mcb.loc" >
 <object id='/zport/dmd/Devices' module='Products.ZenModel.DeviceClass' class='DeviceClass'>
 <property visible="True" type="int" id="zProdStateThreshold" >
 300
@@ -31,11 +31,11 @@ v1
 <property visible="True" type="int" id="zSnmpTries" >
 2
 </property>
-<property visible="True" type="int" id="zSnmpCollectionInterval" >
-300
-</property>
 <property visible="True" type="float" id="zSnmpTimeout" >
 2.5
+</property>
+<property visible="True" type="int" id="zSnmpCollectionInterval" >
+300
 </property>
 <property visible="True" type="boolean" id="zRouteMapCollectOnlyLocal" >
 False
@@ -761,7 +761,7 @@ True
 <property type="string" id="rrdmin" mode="w" >
 0
 </property>
-<property visible="True" type="text" id="description" >
+<property type="string" id="description" mode="w" >
 For packet-oriented interfaces, the number of inbound packets that contained errors preventing them from being deliverable to a higher-layer protocol. For character-oriented or fixed-length interfaces, the number of inbound transmission units that contained errors preventing them from being deliverable to a higher-layer protocol.
 </property>
 </object>
@@ -809,7 +809,7 @@ True
 <property type="string" id="rrdmin" mode="w" >
 0
 </property>
-<property visible="True" type="text" id="description" >
+<property type="string" id="description" mode="w" >
 The total number of octets received on the interface, including framing characters.
 </property>
 <tomanycont id='aliases'>
@@ -861,7 +861,7 @@ True
 <property type="string" id="rrdmin" mode="w" >
 0
 </property>
-<property visible="True" type="text" id="description" >
+<property type="string" id="description" mode="w" >
 The number of packets, delivered by this sub-layer to a higher (sub-)layer, which were not addressed to a multicast or broadcast address at this sub-layer.
 </property>
 </object>
@@ -945,7 +945,7 @@ True
 <property type="string" id="rrdmin" mode="w" >
 0
 </property>
-<property visible="True" type="text" id="description" >
+<property type="string" id="description" mode="w" >
 For packet-oriented interfaces, the number of outbound packets that could not be transmitted because of errors. For character-oriented or fixed-length interfaces, the number of outbound transmission units that could not be transmitted because of errors.
 </property>
 </object>
@@ -993,7 +993,7 @@ True
 <property type="string" id="rrdmin" mode="w" >
 0
 </property>
-<property visible="True" type="text" id="description" >
+<property type="string" id="description" mode="w" >
 The total number of octets transmitted out of the interface, including framing characters.
 </property>
 <tomanycont id='aliases'>
@@ -1045,7 +1045,7 @@ True
 <property type="string" id="rrdmin" mode="w" >
 0
 </property>
-<property visible="True" type="text" id="description" >
+<property type="string" id="description" mode="w" >
 The total number of packets that higher-level protocols requested be transmitted, and which were not addressed to a multicast or broadcast address at this sub-layer, including those that were discarded or not sent.
 </property>
 </object>
@@ -1533,7 +1533,7 @@ True
 <property type="string" id="rrdmin" mode="w" >
 0
 </property>
-<property visible="True" type="text" id="description" >
+<property type="string" id="description" mode="w" >
 The total number of octets received on the interface, including framing characters. This object is a 64-bit version of ifInOctets.
 </property>
 <tomanycont id='aliases'>
@@ -1585,7 +1585,7 @@ True
 <property type="string" id="rrdmin" mode="w" >
 0
 </property>
-<property visible="True" type="text" id="description" >
+<property type="string" id="description" mode="w" >
 The number of packets, delivered by this sub-layer to a higher (sub-)layer, which were not addressed to a multicast or broadcast address at this sub-layer.  This object is a 64-bit version of ifInUcastPkts.
 </property>
 </object>
@@ -1633,7 +1633,7 @@ True
 <property type="string" id="rrdmin" mode="w" >
 0
 </property>
-<property visible="True" type="text" id="description" >
+<property type="string" id="description" mode="w" >
 The total number of octets transmitted out of the interface, including framing characters. This object is a 64-bit version of ifHCOutOctets.
 </property>
 <tomanycont id='aliases'>
@@ -1685,7 +1685,7 @@ True
 <property type="string" id="rrdmin" mode="w" >
 0
 </property>
-<property visible="True" type="text" id="description" >
+<property type="string" id="description" mode="w" >
 The total number of packets that higher-level protocols requested be transmitted, and which were not addressed to a multicast or broadcast address at this sub-layer, including those that were discarded or not sent. This object is a 64-bit version of ifHCOutUcastPkts.
 </property>
 </object>
@@ -1733,7 +1733,7 @@ True
 <property type="string" id="rrdmin" mode="w" >
 0
 </property>
-<property visible="True" type="text" id="description" >
+<property type="string" id="description" mode="w" >
 For packet-oriented interfaces, the number of inbound packets that contained errors preventing them from being deliverable to a higher-layer protocol. For character-oriented or fixed-length interfaces, the number of inbound transmission units that contained errors preventing them from being deliverable to a higher-layer protocol.
 </property>
 </object>
@@ -1781,7 +1781,7 @@ True
 <property type="string" id="rrdmin" mode="w" >
 0
 </property>
-<property visible="True" type="text" id="description" >
+<property type="string" id="description" mode="w" >
 For packet-oriented interfaces, the number of outbound packets that could not be transmitted because of errors. For character-oriented or fixed-length interfaces, the number of outbound transmission units that could not be transmitted because of errors.
 </property>
 </object>
