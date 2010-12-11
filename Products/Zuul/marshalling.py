@@ -12,16 +12,13 @@
 ###########################################################################
 
 from zope.interface import implements
-from zope.event import notify
 from zope.component import adapts
 from Products.ZenUtils.jsonutils import json
-from Products import Zuul
 from Products.Zuul.interfaces import IMarshallable
 from Products.Zuul.interfaces import IMarshaller
 from Products.Zuul.interfaces import IUnmarshaller
 from Products.Zuul.interfaces import IInfo
 from Products.Zuul.interfaces import ITreeNode
-import inspect
 
 def getPublicProperties(obj):
     """
