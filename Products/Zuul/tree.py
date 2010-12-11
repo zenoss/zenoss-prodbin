@@ -86,7 +86,6 @@ class TreeNode(object):
 
     @property
     def iconCls(self):
-        raise Exception('should not be callsed')
         sev = None
         if self.uuid:
             zep = getFacade('zep')

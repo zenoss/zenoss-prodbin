@@ -29,10 +29,12 @@ def getPublicProperties(obj):
 
     Note: This intentionally ignores regular properties and methods.
     """
-    return [
-        k for k in dir(obj)
-            if inspect.isdatadescriptor(getattr(obj.__class__, k, None)) and not k.startswith('_')
+    keys = [
+        key for key in dir(obj)
+            if not key.startswith('_') and not callable(getattr(obj, key))
     ]
+
+    return keys
 
 def _marshalImplicitly(obj):
     """
@@ -41,7 +43,8 @@ def _marshalImplicitly(obj):
     """
     data = {}
     for key in getPublicProperties(obj):
-        data[key] = value = getattr(obj, key)
+        value = getattr(obj, key)
+        data[key] = value
     return data
 
 
