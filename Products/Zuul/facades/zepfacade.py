@@ -270,9 +270,12 @@ class ZepFacade(ZuulFacade):
         """
         response, content = self.client.getEventSeverities(tagUuids)
         if content:
-            # Prepopulate the list with count = 0
+            # Pre-populate the list with count = 0 to make sure all tags request exist in the result
             severities = dict.fromkeys(tagUuids, dict.fromkeys(EventSeverity.numbers, 0))
             for tag in content.severities:
+                # Since every element is using a shared default dict we can't just updated it, we
+                # have to create a new copy, otherwise we are just updating the same dict.
+                severities[tag.tag_uuid] = dict.fromkeys(EventSeverity.numbers, 0)
                 severities[tag.tag_uuid].update((sev.severity, sev.count) for sev in tag.severities)
 
             return severities

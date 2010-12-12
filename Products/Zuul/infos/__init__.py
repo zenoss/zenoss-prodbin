@@ -121,13 +121,17 @@ class HasEventsInfoMixin(HasUuidInfoMixin):
 
         return zep.getSeverityName(self._worstEventSeverity).lower()
 
+    def getEventSeverities(self):
+        if self._eventSeverities is None:
+            zep = getFacade('zep')
+            self.setEventSeverities(zep.getEventSeveritiesByUuid(self.uuid))
+        return self._eventSeverities
+
     @property
     def events(self):
+        severities = self.getEventSeverities()
         zep = getFacade('zep')
-        if self._eventSeverities is None:
-            self.setEventSeverities(zep.getEventSeveritiesByUuid(self.uuid))
-
-        return dict((zep.getSeverityName(sev).lower(), count) for (sev, count) in self._eventSeverities.iteritems())
+        return dict((zep.getSeverityName(sev).lower(), count) for (sev, count) in severities.iteritems())
 
     def setWorstEventSeverity(self, severity):
         """

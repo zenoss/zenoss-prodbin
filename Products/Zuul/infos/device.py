@@ -338,6 +338,23 @@ class DeviceOrganizerInfo(InfoBase, HasEventsInfoMixin):
     def path(self):
         return self._object.getPrimaryDmdId()
 
+    def getEventSeverities(self):
+        if self._eventSeverities is None and self._object.getDmdKey() == '/':
+            # This is a top level organizer, it doesn't have events so we have to get the events
+            # of its immediate children
+            node = DeviceOrganizerNode(self._object)
+            uuids = [IGlobalIdentifier(n._object).getGUID() for n in node.children]
+
+            zep = getFacade('zep')
+            severities = {}
+            for uuid, sevs in zep.getEventSeverities(uuids).iteritems():
+                for sev, count in sevs.iteritems():
+                    severities[sev] = severities.get(sev, 0) + count
+
+            self.setEventSeverities(severities)
+
+        return super(DeviceOrganizerInfo, self).getEventSeverities()
+
 def _removeZportDmd(path):
     if path.startswith('/zport/dmd'):
         path = path[10:]
