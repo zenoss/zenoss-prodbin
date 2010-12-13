@@ -195,28 +195,18 @@ class NotificationSubscription(ZenModelRM):
         else:
             log.debug('Notification NOT enabled: %s' %  self.id)
             return False
-
-    def _getFilledTemplate(self, tpl, data):
-        """
-        Account for the case where templates are still string formatting.
-        """
-        # FIXME: Don't do this later
-        result = Template(tpl).fill(**data)
-        if result == tpl:
-            result = tpl % data
-        return result
-
+    
     def getBody(self, **kwargs):
-        return self._getFilledTemplate(self.body_format, kwargs)
-
+        return Template(self.body_format).fill(**kwargs)
+        
     def getSubject(self, **kwargs):
-        return self._getFilledTemplate(self.subject_format, kwargs)
-
+        return Template(self.subject_format).fill(**kwargs)
+        
     def getClearBody(self, **kwargs):
-        return self._getFilledTemplate(self.clear_body_format, kwargs)
-
+        return Template(self.clear_body_format).fill(**kwargs)
+        
     def getSubjectBody(self, **kwargs):
-        return self._getFilledTemplate(self.clear_subject_format, kwargs)
-
+        return Template(self.clear_subject_format).fill(**kwargs)
+    
 InitializeClass(NotificationSubscriptionManager)
 InitializeClass(NotificationSubscription)
