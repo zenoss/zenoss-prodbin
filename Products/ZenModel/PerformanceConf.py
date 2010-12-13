@@ -20,6 +20,7 @@ The configuration object for Performance servers
 import os
 import zlib
 import socket
+from urllib import urlencode
 import logging
 log = logging.getLogger('zen.PerformanceConf')
 
@@ -285,16 +286,20 @@ class PerformanceConf(Monitor, StatusColor):
                 width = o.split('=')[1].strip()
                 continue
             newOpts.append(o)
+        
         encodedOpts = urlsafe_b64encode(
-                         zlib.compress('|'.join(newOpts), 9))
-        url = '%s/render?gopts=%s&drange=%d&width=%s' % (
-                 self.renderurl, encodedOpts, drange, width)
+            zlib.compress('|'.join(newOpts), 9))
+        params = {
+            'gopts': encodedOpts,
+            'drange': drange,
+            'width': width,
+        }
         if self.renderurl.startswith('proxy'):
-            url = url.replace('proxy', 'http')
-            return '/zport/RenderServer/render?remoteUrl=%s&gopts=%s&drange=%d&width=%s' % (
-                 url_quote(url), encodedOpts, drange, width)
+            url = url.replace('proxy', 'http', 1)
+            params['remoteUrl'] = url
+            return '/zport/RenderServer/render?%s' % (urlencode(params),)
         else:
-            return url
+            return '%s/render?%s' % (self.renderurl, urlencode(params),)
 
 
     def performanceGraphUrl(self, context, targetpath, targettype, view, drange):

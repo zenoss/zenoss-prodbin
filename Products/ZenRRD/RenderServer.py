@@ -112,11 +112,7 @@ class RenderServer(RRDToolItem):
         @return: graph or script location
         """
 
-        gopts = urllib.unquote(gopts)
         gopts = zlib.decompress(urlsafe_b64decode(gopts))
-
-        comment = urllib.unquote(comment) if comment else ''
-
         gopts = gopts.split('|')
         gopts = fixMissingRRDs(gopts)
         gopts.append('HRULE:INF#00000000')
