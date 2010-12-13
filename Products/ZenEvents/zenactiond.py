@@ -94,96 +94,94 @@ class NotificationDao(object):
         return signal.subscriber_uuid == IGlobalIdentifier(notification).getGUID()
     
 def _signalToContextDict(signal):
-        """
-        Returns a dict that looks something like:
-        
-        {
-            'signal': {
-                'uuid': u '0e25a363-47c9-4535-a981-ae2149c279af',
-                'clear': False,
-                'trigger_uuid': u 'ccd90790-53c7-4970-a1c4-585c77c3bdca',
-                'created_time': 1290666301343L,
-                'message': u 'Example test message.',
-                'subscriber_uuid': u 'ef089864-7008-412f-9db4-d717ac53c16e'
+    """
+    Returns a dict that looks something like:
+    
+    {
+        'signal': {
+            'uuid': u '0e25a363-47c9-4535-a981-ae2149c279af',
+            'clear': False,
+            'trigger_uuid': u 'ccd90790-53c7-4970-a1c4-585c77c3bdca',
+            'created_time': 1290666301343L,
+            'message': u 'Example test message.',
+            'subscriber_uuid': u 'ef089864-7008-412f-9db4-d717ac53c16e'
+        },
+        'eventSummary': {
+            'status': 1,
+            'count': 47,
+            'status_change_time': 1290638268357L,
+            'first_seen_time': 1290638268357L,
+            'last_seen_time': 1290666301246L,
+            'uuid': u '1c3f8493-6eb9-4ba8-9260-9e33abd8e390'
+        },
+        'event': {
+            'severity': 2,
+            'actor': {
+                'element_identifier': u 'local vm',
+                'element_sub_identifier': u '',
+                'element_uuid': u '0f7c9fce-8417-46b2-90f9-f9a132a2490a',
+                'element_type_id': 1
             },
-            'eventSummary': {
-                'status': 1,
-                'count': 47,
-                'status_change_time': 1290638268357L,
-                'first_seen_time': 1290638268357L,
-                'last_seen_time': 1290666301246L,
-                'uuid': u '1c3f8493-6eb9-4ba8-9260-9e33abd8e390'
-            },
-            'event': {
-                'severity': 2,
-                'actor': {
-                    'element_identifier': u 'local vm',
-                    'element_sub_identifier': u '',
-                    'element_uuid': u '0f7c9fce-8417-46b2-90f9-f9a132a2490a',
-                    'element_type_id': 1
-                },
-                'summary': u 'Example test message.',
-                'fingerprint': u 'localhost||/Unknown||6|Example test message.',
-                'created_time': 1290666301246L,
-                'message': u 'Example test message.',
-                'event_key': u '',
-                'event_class': u '/Unknown',
-                'monitor': u 'localhost'
-            }
+            'summary': u 'Example test message.',
+            'fingerprint': u 'localhost||/Unknown||6|Example test message.',
+            'created_time': 1290666301246L,
+            'message': u 'Example test message.',
+            'event_key': u '',
+            'event_class': u '/Unknown',
+            'monitor': u 'localhost'
         }
-        """
+    }
+    """
+    
+    data = {}
+    signal = to_dict(signal)
+    summary = signal['event']
+    del signal['event']
+    
+    data['signal'] = signal
+    
+    if 'occurrence' in summary and summary['occurrence']:
+        event = summary['occurrence'][0]
+        del summary['occurrence']
         
-        data = {}
-        signal = to_dict(signal)
-        summary = signal['event']
-        del signal['event']
+        # TODO: pass in device obj
+        event['eventUrl'] = getEventUrl(summary['uuid'])
+        event['ackUrl'] = getAckUrl(summary['uuid'])
+        event['deleteUrl'] = getDeleteUrl(summary['uuid'])
+        event['eventsUrl'] = getEventsUrl(summary['uuid'])
+        event['undeleteUrl'] = getUndeleteUrl(summary['uuid'])
         
-        data['signal'] = signal
+        data['event'] = event
         
-        if 'occurrence' in summary and summary['occurrence']:
-            event = summary['occurrence'][0]
-            del summary['occurrence']
-            
-            # TODO: pass in device obj
-            event['eventUrl'] = self.getEventUrl(summary['uuid'])
-            event['ackUrl'] = self.getAckUrl(summary['uuid'])
-            event['deleteUrl'] = self.getDeleteUrl(summary['uuid'])
-            event['eventsUrl'] = self.getEventsUrl(summary['uuid'])
-            event['undeleteUrl'] = self.getUndeleteUrl(summary['uuid'])
-            
-            data['event'] = event
+    data['eventSummary'] = summary
+    return data
         
-        data['eventSummary'] = summary
+def getBaseUrl(device=None):
+    url = 'http://%s:%d' % (socket.getfqdn(), 8080)
+    if device:
+        return "%s%s" % (url, device.getPrimaryUrlPath())
+    else:
+        return "%s/zport/dmd/Events" % (url)
         
-        return data
+def getEventUrl(evid, device=None):
+    return "%s/viewDetail?evid=%s" % (getBaseUrl(device), evid)
+    
+def getEventsUrl(device=None):
+    return "%s/viewEvents" % getBaseUrl(device)
+    
+def getAckUrl(evid, device=None):
+    return "%s/manage_ackEvents?evids=%s&zenScreenName=viewEvents" % (
+        getBaseUrl(device), evid)
         
+def getDeleteUrl(evid, device=None):
+    return "%s/manage_deleteEvents?evids=%s" % (
+        getBaseUrl(device), evid) + \
+        "&zenScreenName=viewHistoryEvents"
         
-    def getBaseUrl(self, device=None):
-        url = 'http://%s:%d' % (socket.getfqdn(), 8080)
-        if device:
-            return "%s%s" % (url, device.getPrimaryUrlPath())
-        else:
-            return "%s/zport/dmd/Events" % (url)
-            
-    def getEventUrl(self, evid, device=None):
-        return "%s/viewDetail?evid=%s" % (self.getBaseUrl(device), evid)
-        
-    def getEventsUrl(self, device=None):
-        return "%s/viewEvents" % self.getBaseUrl(device)
-        
-    def getAckUrl(self, evid, device=None):
-        return "%s/manage_ackEvents?evids=%s&zenScreenName=viewEvents" % (
-            self.getBaseUrl(device), evid)
-            
-    def getDeleteUrl(self, evid, device=None):
-        return "%s/manage_deleteEvents?evids=%s" % (
-            self.getBaseUrl(device), evid) + \
-            "&zenScreenName=viewHistoryEvents"
-            
-    def getUndeleteUrl(self, evid, device=None):
-        return "%s/manage_undeleteEvents?evids=%s" % (
-            self.getBaseUrl(device), evid) + \
-            "&zenScreenName=viewEvents"
+def getUndeleteUrl(evid, device=None):
+    return "%s/manage_undeleteEvents?evids=%s" % (
+        getBaseUrl(device), evid) + \
+        "&zenScreenName=viewEvents"
             
     
 class TargetableAction(object):
