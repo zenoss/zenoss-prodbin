@@ -88,7 +88,6 @@
 "></script>
 <script type="text/javascript">
     Ext.onReady(function(){
-
         Ext.QuickTips.init();
         Ext.form.Field.prototype.msgTarget = 'side';
 
@@ -597,24 +596,23 @@
         tabpanel.render();
 
         addDeviceRow();
+        var closeWindowIfPopup = function(form, action) {
+            var url = action.result.redirect;
+            // opener is defined as the window that opened the popup
+            if (url && action.result.success &&
+                !Ext.isEmpty(opener)
+               ){
+                window.close();
+            }
+        };
 
         // Redirection for the forms
         autodiscover.on({'actioncomplete':
-            function(form, action) {
-                var url = action.result.redirect;
-                if (url && action.result.success){
-                    window.close();
-                }
-            }
+            closeWindowIfPopup
         });
 
         manualdiscover.on({'actioncomplete':
-            function(form, action) {
-                var url = action.result.redirect;
-                if (url && action.result.success){
-                    window.close();
-                }
-            }
+            closeWindowIfPopup
         });
 
         // Wire up the radio buttons
