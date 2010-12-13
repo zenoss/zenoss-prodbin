@@ -201,7 +201,7 @@ class NotificationSubscription(ZenModelRM):
         Account for the case where templates are still string formatting.
         """
         # FIXME: Don't do this later
-        result = Template(tpl).fill(data)
+        result = Template(tpl).fill(**data)
         if result == tpl:
             result = tpl % data
         return result
