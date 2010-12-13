@@ -63,7 +63,7 @@ class ModelChangePublisher(object):
                     serializer.fill(proto)
             return event
         except TypeError:
-            log.warn("Could not adapt %r to a protobuf serializer." % (ob))
+            log.debug("Could not adapt %r to a protobuf serializer." % (ob))
 
 
     def _getGUID(self, ob):
