@@ -11,9 +11,19 @@
 #
 ###########################################################################
 
+class SpecialDict(object):
+    def __init__(self, data):
+        self.__dict__.update(data)
+
 class Template(object):
     def __init__(self, template_body):
         self.template_body = template_body
     
     def fill(self, **kwargs):
-        return self.template_body.format(**kwargs)
+        def dict_to_obj(d):
+            for k,v in d.iteritems():
+                if isinstance(v, dict):
+                    d[k] = dict_to_obj(v)
+            return SpecialDict(d)
+        
+        return self.template_body.format(**dict_to_obj(kwargs).__dict__)

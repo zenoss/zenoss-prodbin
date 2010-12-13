@@ -93,26 +93,27 @@ class NotificationSubscription(ZenModelRM):
     repeat_seconds = 0
     action_timeout = 60
     
-    subject_format = "[zenoss] %(device)s %(summary)s"
-    body_format =  "Device: %(device)s\n" \
-        "Component: %(component)s\n" \
-        "Severity: %(severityString)s\n" \
-        "Time: %(firstTime)s\n" \
-        "Message:\n%(message)s\n" \
-        "<a href=\"%(eventUrl)s\">Event Detail</a>\n" \
-        "<a href=\"%(ackUrl)s\">Acknowledge</a>\n" \
-        "<a href=\"%(deleteUrl)s\">Delete</a>\n" \
-        "<a href=\"%(eventsUrl)s\">Device Events</a>\n"
+    subject_format = "[zenoss] {event.actor.element_identifier} {event.summary}"
+    body_format =  "Device: {event.actor.element_identifier}\n" \
+        "Component: {event.actor.element_sub_identifier}\n" \
+        "Severity: {event.severity}\n" \
+        "Time: {eventSummary.last_seen_time}\n" \
+        "Message:\n{event.message}\n" \
+        "<a href=\"{event.eventUrl}\">Event Detail</a>\n" \
+        "<a href=\"{event.ackUrl}\">Acknowledge</a>\n" \
+        "<a href=\"{event.deleteUrl}\">Delete</a>\n" \
+        "<a href=\"{event.eventsUrl}\">Device Events</a>\n"
     
-    clear_subject_format = "[zenoss] CLEAR: %(device)s %(clearOrEventSummary)s"
-    clear_body_format =  "Event: '%(summary)s'\n" \
-        "Cleared by: '%(clearSummary)s'\n" \
-        "At: %(clearFirstTime)s\n" \
-        "Device: %(device)s\n" \
-        "Component: %(component)s\n" \
-        "Severity: %(severityString)s\n" \
-        "Message:\n%(message)s\n" \
-        "<a href=\"%(undeleteUrl)s\">Undelete</a>\n"
+    clear_subject_format = "[zenoss] CLEAR: {event.actor.element_identifier} {event.summary}"
+    clear_body_format =  "Event: '{event.summary}'\n" \
+        "Cleared by: '{event.cleared_by_event_uuid}'\n" \
+        "At: {event.status_change_time}\n" \
+        "Device: {event.actor.element_identifier}\n" \
+        "Component: {event.actor.element_sub_identifier}\n" \
+        "Severity: {event.severity}\n" \
+        "Message:\n{event.message}\n" \
+        "<a href=\"{event.undeleteUrl}\">Undelete</a>\n"
+        
         
     # recipients is a list of uuids that will recieve the push from this
     # notification. (the User, Group or Role to email/page/etc.)
@@ -205,7 +206,7 @@ class NotificationSubscription(ZenModelRM):
     def getClearBody(self, **kwargs):
         return Template(self.clear_body_format).fill(**kwargs)
         
-    def getSubjectBody(self, **kwargs):
+    def getClearSubject(self, **kwargs):
         return Template(self.clear_subject_format).fill(**kwargs)
     
 InitializeClass(NotificationSubscriptionManager)

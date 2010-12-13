@@ -14,6 +14,7 @@
 import Globals
 import os
 import re
+import socket
 from email.MIMEText import MIMEText
 from email.MIMEMultipart import MIMEMultipart
 from email.Utils import formatdate
@@ -142,11 +143,48 @@ def _signalToContextDict(signal):
         if 'occurrence' in summary and summary['occurrence']:
             event = summary['occurrence'][0]
             del summary['occurrence']
+            
+            # TODO: pass in device obj
+            event['eventUrl'] = self.getEventUrl(summary['uuid'])
+            event['ackUrl'] = self.getAckUrl(summary['uuid'])
+            event['deleteUrl'] = self.getDeleteUrl(summary['uuid'])
+            event['eventsUrl'] = self.getEventsUrl(summary['uuid'])
+            event['undeleteUrl'] = self.getUndeleteUrl(summary['uuid'])
+            
             data['event'] = event
         
         data['eventSummary'] = summary
+        
         return data
-    
+        
+        
+    def getBaseUrl(self, device=None):
+        url = 'http://%s:%d' % (socket.getfqdn(), 8080)
+        if device:
+            return "%s%s" % (url, device.getPrimaryUrlPath())
+        else:
+            return "%s/zport/dmd/Events" % (url)
+            
+    def getEventUrl(self, evid, device=None):
+        return "%s/viewDetail?evid=%s" % (self.getBaseUrl(device), evid)
+        
+    def getEventsUrl(self, device=None):
+        return "%s/viewEvents" % self.getBaseUrl(device)
+        
+    def getAckUrl(self, evid, device=None):
+        return "%s/manage_ackEvents?evids=%s&zenScreenName=viewEvents" % (
+            self.getBaseUrl(device), evid)
+            
+    def getDeleteUrl(self, evid, device=None):
+        return "%s/manage_deleteEvents?evids=%s" % (
+            self.getBaseUrl(device), evid) + \
+            "&zenScreenName=viewHistoryEvents"
+            
+    def getUndeleteUrl(self, evid, device=None):
+        return "%s/manage_undeleteEvents?evids=%s" % (
+            self.getBaseUrl(device), evid) + \
+            "&zenScreenName=viewEvents"
+            
     
 class TargetableAction(object):
     implements(IAction)
