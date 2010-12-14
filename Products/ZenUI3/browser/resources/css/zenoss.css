@@ -380,7 +380,6 @@ div.zenportlet .severity-icon-small.clear,
     background: transparent url() no-repeat;
     margin: 0 auto;
 }
-
 .status-icon-small-acknowledged {
     width: 16px;
     height: 14px;
@@ -394,6 +393,15 @@ div.zenportlet .severity-icon-small.clear,
     background: transparent url() no-repeat;
     margin: 0 auto;
     background-image: url(/++resource++zenui/img/xtheme-zenoss/icon/suppress-small.png)
+}
+.status-icon-small-aged,
+.status-icon-small-cleared,
+.status-icon-small-closed {
+    width: 16px;
+    height: 14px;
+    background: transparent url() no-repeat;
+    margin: 0 auto;
+    background-image: url(/++resource++zenui/img/xtheme-zenoss/icon/close-small.png)
 }
 
 .full_event_props {
