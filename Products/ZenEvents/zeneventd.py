@@ -10,22 +10,14 @@
 # For complete information please visit: http://www.zenoss.com/oss/
 #
 ###########################################################################
-__doc__='''zeneventd
-
-Apply up-front preprocessing to events.
-
-'''
-
 import Globals
-import os
 
 from Acquisition import aq_chain
 from zope.component import getUtilitiesFor
-from Products.ZenMessaging.queuemessaging.QueueConsumer import QueueConsumer
 from Products.ZenMessaging.queuemessaging.interfaces import IQueueConsumerTask
 from Products.ZenUtils.ZCmdBase import ZCmdBase
 from zenoss.protocols.protobufs.zep_pb2 import RawEvent, ZepRawEvent
-from zenoss.protocols.protobufs.zep_pb2 import EventActor, SEVERITY_CLEAR
+from zenoss.protocols.protobufs.zep_pb2 import SEVERITY_CLEAR
 from zenoss.protocols.protobufs.zep_pb2 import (
     STATUS_NEW,
     STATUS_ACKNOWLEDGED,
@@ -35,9 +27,10 @@ from zenoss.protocols.protobufs.zep_pb2 import (
     STATUS_DROPPED,
     STATUS_AGED)
 from zenoss.protocols.protobufs.model_pb2 import DEVICE, COMPONENT, SERVICE
-from zenoss.protocols.amqpconfig import getAMQPConfiguration
-from twisted.internet import reactor, defer
-from twisted.internet.error import ReactorNotRunning
+from zenoss.protocols.eventlet.amqp import getProtobufPubSub
+from zenoss.protocols.eventlet.amqp import Publishable
+from Products.ZenMessaging.queuemessaging.eventlet import BasePubSubMessageTask
+
 from zope.interface import implements
 
 from Products.ZenEvents.MySqlSendEvent import EventTransformer
@@ -58,52 +51,35 @@ log = logging.getLogger("zen.eventd")
 CLEAR_CLASSES = "_CLEAR_CLASSES"
 
 statusConvertToEnum = {
-    "new" : STATUS_NEW,
-    "ack" : STATUS_ACKNOWLEDGED,
-    "suppressed" : STATUS_SUPPRESSED,
-    "closed" : STATUS_CLOSED,
-    "cleared" : STATUS_CLEARED,
-    "dropped" : STATUS_DROPPED,
-    "aged" : STATUS_AGED,
+    "new": STATUS_NEW,
+    "ack": STATUS_ACKNOWLEDGED,
+    "suppressed": STATUS_SUPPRESSED,
+    "closed": STATUS_CLOSED,
+    "cleared": STATUS_CLEARED,
+    "dropped": STATUS_DROPPED,
+    "aged": STATUS_AGED,
 }
-statusConvertToString = dict((v,k) for k,v in statusConvertToEnum.items())
+statusConvertToString = dict((v, k) for k, v in statusConvertToEnum.items())
 
 # add for legacy compatibility
 statusConvertToEnum['status'] = STATUS_NEW
 statusConvertToEnum['history'] = STATUS_CLOSED
 statusConvertToEnum['drop'] = STATUS_DROPPED
 
-class ProcessEventMessageTask(object):
+
+class ProcessEventMessageTask(BasePubSubMessageTask):
+
     implements(IQueueConsumerTask)
 
-    """
-    queueConsumer = Attribute("The consumer this task is proceessing a message for")
-    exchange = Attribute("The name of the exchange the task wants to listen to")
-    routing_key = Attribute("The Routing Key used to bind the queue to the exchange")
-    queue_name = Attribute("The name of the queue that this task will listen to.")
-    exchange_type = Attribute("The type of exchange (topic, direct, fanout)")
-    """
-
     def __init__(self, dmd):
-        config = getAMQPConfiguration()
-        # set by the constructor of queueConsumer
-        self.queueConsumer = None
-
-        queue = config.getQueue("$RawZenEvents")
-        binding = queue.getBinding("$RawZenEvents")
-        self.exchange = binding.exchange.name
-        self.routing_key = binding.routing_key
-        self.exchange_type = binding.exchange.type
-        self.queue_name = queue.name
-
-        self.dest_exchange = config.getExchange("$ZepZenEvents")
+        self.dmd = dmd
         self.dest_routing_key_prefix = 'zenoss.zenevent'
 
-        self.dmd = dmd
         self.guidManager = IGUIDManager(dmd)
 
         self.stdEventFields = list(f.name for f in RawEvent.DESCRIPTOR.fields
-                                       if f.type!=f.TYPE_MESSAGE and f.label!=f.LABEL_REPEATED)
+                                   if f.type != f.TYPE_MESSAGE and
+                                   f.label != f.LABEL_REPEATED)
 
     def eventDetailsToDict(self, event):
         # convert event details name-values to temporary dict
@@ -122,8 +98,8 @@ class ProcessEventMessageTask(object):
         # convert event details temporary dict back to protobuf name-value
         del event.details[:]
 
-        isiterable = lambda v : hasattr(v, '__iter__')
-        for k,v in event_detailmap.items():
+        isiterable = lambda v: hasattr(v, '__iter__')
+        for k, v in event_detailmap.items():
             ed = event.details.add()
             ed.name = k
             if v is not None:
@@ -140,12 +116,12 @@ class ProcessEventMessageTask(object):
             details[CLEAR_CLASSES] = details[CLEAR_CLASSES].split(',')
 
         if (event.severity == SEVERITY_CLEAR and
-            event.HasField('event_class') and  
+            event.HasField('event_class') and
             event.event_class not in details[CLEAR_CLASSES]):
             details[CLEAR_CLASSES].append(event.event_class)
 
     def removeEventControlDetails(self, event, details):
-        for name in [CLEAR_CLASSES,] + "_DEDUP_FIELDS _REQUIRED_FIELDS".split():
+        for name in [CLEAR_CLASSES, "_DEDUP_FILELDS", "_REQUIRED_FIELDS"]:
             if name in details:
                 del details[name]
 
@@ -161,8 +137,8 @@ class ProcessEventMessageTask(object):
     def getObjectUuidForId(self, objid, idattr, objcls, parentUuid=None):
         element = None
 
-        # if a parent uuid was provided, get its corresponding object to scope search;
-        # else just use the global dmd
+        # if a parent uuid was provided, get its corresponding object to scope
+        # search; else just use the global dmd
         if parentUuid:
             catalog = self.getObjectForUuid(parentUuid)
             if not catalog:
@@ -181,7 +157,9 @@ class ProcessEventMessageTask(object):
             catalog = self.dmd
 
         # search for object by identifying attribute
-        result = ICatalogTool(catalog).search(objcls, query=Eq(idattr, objid)).results
+        result = ICatalogTool(catalog).search(
+            objcls, query=Eq(idattr, objid)
+        ).results
 
         try:
             element = result.next().getObject()
@@ -192,10 +170,11 @@ class ProcessEventMessageTask(object):
 
         return ''
 
-    def resolveEntityIdAndUuid(self, entityType, identifier, uuid, parentUuid=None):
+    def resolveEntityIdAndUuid(self, entityType, identifier, uuid,
+                               parentUuid=None):
         if uuid:
             # lookup device by uuid, fill in identifier
-            element  = self.getObjectForUuid(uuid)
+            element = self.getObjectForUuid(uuid)
             if element:
                 identifier = IInfo(element).name
             else:
@@ -203,9 +182,9 @@ class ProcessEventMessageTask(object):
                 identifier = ''
         elif identifier:
             # lookup device by identifier, fill in uuid
-            cls = { DEVICE    : Device, 
-                    COMPONENT : DeviceComponent, 
-                    SERVICE   : None }[entityType]
+            cls = {DEVICE    : Device,
+                   COMPONENT : DeviceComponent,
+                   SERVICE   : None}[entityType]
             uuid = self.getObjectUuidForId(identifier, 'id', cls, parentUuid)
 
         return identifier, uuid
@@ -213,13 +192,15 @@ class ProcessEventMessageTask(object):
     def getIdentifiersForUuids(self, evtproto):
         # translate uuids to identifiers, if not provided
         if evtproto.actor.HasField('element_type_id'):
-            ident,uuid = self.resolveEntityIdAndUuid(evtproto.actor.element_type_id,
+            ident, uuid = self.resolveEntityIdAndUuid(
+                                evtproto.actor.element_type_id,
                                 evtproto.actor.element_identifier,
                                 evtproto.actor.element_uuid)
             evtproto.actor.element_identifier = ident
             evtproto.actor.element_uuid = uuid
         if evtproto.actor.HasField('element_sub_type_id'):
-            ident,uuid = self.resolveEntityIdAndUuid(evtproto.actor.element_sub_type_id, 
+            ident, uuid = self.resolveEntityIdAndUuid(
+                                evtproto.actor.element_sub_type_id,
                                 evtproto.actor.element_sub_identifier,
                                 evtproto.actor.element_sub_uuid,
                                 evtproto.actor.element_uuid)
@@ -227,25 +208,33 @@ class ProcessEventMessageTask(object):
             evtproto.actor.element_sub_uuid = uuid
 
     def extractActorElements(self, evtproto, event):
-        elementTypeAttrMap = { DEVICE : 'device', COMPONENT : 'component', SERVICE : 'service' }
+        elementTypeAttrMap = {DEVICE: 'device',
+                              COMPONENT: 'component',
+                              SERVICE: 'service'}
         # initialize element attributes to ''
         for attr in elementTypeAttrMap.values():
             setattr(event, attr, '')
 
         # set primary element attribute
-        if evtproto.actor.HasField('element_type_id') and evtproto.actor.element_identifier:
+        if (evtproto.actor.HasField('element_type_id') and
+            evtproto.actor.element_identifier):
             attr = elementTypeAttrMap[evtproto.actor.element_type_id]
-            log.debug("Setting event attribute %s to '%s'", attr, evtproto.actor.element_identifier)
+            log.debug("Setting event attribute %s to '%s'", attr,
+                      evtproto.actor.element_identifier)
             setattr(event, attr, evtproto.actor.element_identifier)
 
         # set secondary element attribute
-        if evtproto.actor.HasField('element_sub_type_id') and evtproto.actor.element_sub_identifier:
+        if (evtproto.actor.HasField('element_sub_type_id') and
+            evtproto.actor.element_sub_identifier):
             attr = elementTypeAttrMap[evtproto.actor.element_sub_type_id]
-            log.debug("Setting event attribute %s to '%s'", attr, evtproto.actor.element_sub_identifier)
+            log.debug("Setting event attribute %s to '%s'", attr,
+                      evtproto.actor.element_sub_identifier)
             setattr(event, attr, evtproto.actor.element_sub_identifier)
 
     def updateActorReferences(self, evtproto, evt_changes):
-        elementTypeAttrMap = { DEVICE : 'device', COMPONENT : 'component', SERVICE : 'service' }
+        elementTypeAttrMap = {DEVICE: 'device',
+                              COMPONENT: 'component',
+                              SERVICE: 'service'}
         if evtproto.actor.HasField('element_type_id'):
             attr = elementTypeAttrMap[evtproto.actor.element_type_id]
             if attr in evt_changes:
@@ -272,16 +261,20 @@ class ProcessEventMessageTask(object):
             ed.value.append(detvalue)
 
         # extract device, component, and/or service from actor uuid's
-        elementrefs = { DEVICE : None, COMPONENT : None, SERVICE : None }
+        elementrefs = {DEVICE: None, COMPONENT: None, SERVICE: None}
         for elementType in (DEVICE, COMPONENT, SERVICE):
-            if actor.HasField('element_type_id') and actor.element_type_id == elementType and actor.element_uuid:
+            if (actor.HasField('element_type_id') and
+                actor.element_type_id == elementType and
+                actor.element_uuid):
                 obj = self.getObjectForUuid(actor.element_uuid)
                 if obj:
                     elementrefs[elementType] = obj
                     actor.element_identifier = obj.id
                 else:
                     log.warning("Failed to find object for uuid '%s', uuid->object link has been lost (3)", parentUuid)
-            if actor.HasField('element_sub_type_id') and actor.element_sub_type_id == elementType and actor.element_sub_uuid:
+            if (actor.HasField('element_sub_type_id') and
+                actor.element_sub_type_id == elementType and
+                actor.element_sub_uuid):
                 subobj = self.getObjectForUuid(actor.element_sub_uuid)
                 if subobj:
                     elementrefs[elementType] = subobj
@@ -300,7 +293,8 @@ class ProcessEventMessageTask(object):
             for devclass in aq_chain(devclass):
                 if devclass == devclassRoot:
                     break
-                addTag('zenoss.device.device_class', self.getObjectUuid(devclass))
+                addTag('zenoss.device.device_class',
+                       self.getObjectUuid(devclass))
 
             locationRoot = dmd.Locations
             locn = device.location()
@@ -326,7 +320,8 @@ class ProcessEventMessageTask(object):
                     addTag('zenoss.device.group', self.getObjectUuid(g))
 
             # add event details for other searchable device attributes
-            addDetail('zenoss.device.production_state', str(device.productionState))
+            addDetail('zenoss.device.production_state',
+                      str(device.productionState))
             addDetail('zenoss.device.priority', str(device.priority))
 
         # set component search terms
@@ -339,178 +334,173 @@ class ProcessEventMessageTask(object):
         if service  is not None:
             addTag('zenoss.service', self.getObjectUuid(service))
 
+    def _routing_key(self, event):
+        return (self.dest_routing_key_prefix +
+                event.raw_event.event_class.replace('/', '.').lower())
 
-    def publishEvent(self, event):
-        return self.queueConsumer.publishMessage("$ZepZenEvents",
-                                                 self.dest_routing_key_prefix +
-                                                 event.raw_event.event_class.replace('/','.').lower(),
-                                                 event)
-
-    @defer.inlineCallbacks
     def processMessage(self, message):
         """
         Handles a queue message, can call "acknowledge" on the Queue Consumer
         class when it is done with the message
         """
         self.dmd._p_jar.sync()
-        try:
-            # read message from queue; if MARKER, just return
-            if message.content.body == self.queueConsumer.MARKER:
+
+        # extract event from message body
+        zepevent = ZepRawEvent()
+        zepevent.raw_event.MergeFrom(message)
+        event = zepevent.raw_event
+        evtdetails = self.eventDetailsToDict(event)
+        if log.isEnabledFor(logging.DEBUG):
+            log.debug("Received event: %s", event.uuid)
+            self.logEvent(log.debug, event, evtdetails)
+
+        # ensure required fields are present, otherwise discard this event
+        for reqdattr in "actor summary severity".split():
+            if not event.HasField(reqdattr):
+                log.error("Required event field %s not found -- ignoring"
+                          "event", reqdattr)
+                self.logEvent(log.error, event, evtdetails)
                 return
 
-            # extract event from message body
-            zepevent = ZepRawEvent()
-            zepevent.raw_event.ParseFromString(message.content.body)
-            event = zepevent.raw_event
-            evtdetails = self.eventDetailsToDict(event)
-            if log.isEnabledFor(logging.DEBUG):
-                log.debug("Received event: %s", event.uuid)
-                self.logEvent(log.debug, event, evtdetails)
+        # add details for control during event processing
+        self.addEventControlDetails(event, evtdetails)
 
-            # ensure required fields are present, otherwise discard this event
-            for reqdattr in "actor summary severity".split():
-                if not event.HasField(reqdattr):
-                    log.error("Required event field %s not found -- ignoring event", reqdattr)
-                    self.logEvent(log.error, event, evtdetails)
-                    return
+        # initialize adapter with event properties
+        event_attributes = dict((f.name, fvalue)
+                                for f, fvalue in event.ListFields()
+                                if f.label != f.LABEL_REPEATED)
+        status = event_attributes.get("status", STATUS_NEW)
+        event_attributes["status"] = statusConvertToString[status]
+        event_attributes["event_class"] = (str(event_attributes["event_class"])
+                                               if event.HasField('event_class')
+                                               else '')
+        evtproxy = TransformEvent(**event_attributes)
+        # translate actor to device/component/service
+        self.getIdentifiersForUuids(event)
+        self.extractActorElements(event, evtproxy)
+        evtproxy.mark()
 
-            # add details for control during event processing
-            self.addEventControlDetails(event, evtdetails)
+        reqdEvtFields = evtdetails.get("_REQUIRED_FIELDS",
+                                self.dmd.ZenEventManager.requiredEventFields)
+        dedupEvtFields = evtdetails.get("_DEDUP_FIELDS",
+                                  self.dmd.ZenEventManager.defaultEventId)
+        transformer = EventTransformer(self, evtproxy,
+                                       evtFields=self.stdEventFields,
+                                       reqdEvtFields=reqdEvtFields,
+                                       dedupEvtFields=dedupEvtFields)
+        # run event thru identity and transforms
+        log.debug("identify devices for event: %s", event.uuid)
+        if not transformer.prepEvent():
+            return
 
-            # initialize adapter with event properties
-            event_attributes = dict((f.name, fvalue) 
-                                    for f,fvalue in event.ListFields()
-                                        if f.label!=f.LABEL_REPEATED)
-            event_attributes["status"] = statusConvertToString[event_attributes.get("status", STATUS_NEW)]
-            event_attributes["event_class"] = (str( event_attributes["event_class"] ) 
-                                                   if event.HasField('event_class') else '')
-            evtproxy = TransformEvent(**event_attributes)
-            # translate actor to device/component/service
-            self.getIdentifiersForUuids(event)
-            self.extractActorElements(event, evtproxy)
-            evtproxy.mark()
-
-            transformer = EventTransformer(self, evtproxy,
-                                           evtFields=self.stdEventFields,
-                                           reqdEvtFields=evtdetails.get("_REQUIRED_FIELDS",
-                                                                       self.dmd.ZenEventManager.requiredEventFields),
-                                           dedupEvtFields=evtdetails.get("_DEDUP_FIELDS",
-                                                                     self.dmd.ZenEventManager.defaultEventId)
-                                           )
-            # run event thru identity and transforms
-            log.debug("identify devices for event: %s", event.uuid)
-            if not transformer.prepEvent():
+        log.debug("Event attributes updated (prepEvent): %s",
+                  evtproxy.get_changes())
+        if "status" in evtproxy.get_changes():
+            if evtproxy.get_changes()["status"] == "drop":
+                log.debug("dropped event after identify: %s", event.uuid)
                 return
 
-            log.debug("Event attributes updated (prepEvent): %s", evtproxy.get_changes())
-            if "status" in evtproxy.get_changes():
-                if evtproxy.get_changes()["status"] == "drop":
-                    log.debug("dropped event after identify: %s", event.uuid);
-                    return
+        # add clearClasses sent in with event
+        evtproxy._clearClasses.extend(evtdetails[CLEAR_CLASSES])
+        evtproxy.freeze()
 
-            # add clearClasses sent in with event
-            evtproxy._clearClasses.extend(evtdetails[CLEAR_CLASSES])
-            evtproxy.freeze()
+        log.debug("invoke transforms on event: %s", event.uuid)
+        transformer.transformEvent()
+        log.debug("Event attributes updated (transformEvent): %s",
+                  evtproxy.get_changes())
+        if "status" in evtproxy.get_changes():
+            if evtproxy.get_changes()["status"] == "drop":
+                log.debug("dropped event after transforms: %s", event.uuid)
+                return
 
-            log.debug("invoke transforms on event: %s", event.uuid)
-            transformer.transformEvent()
-            log.debug("Event attributes updated (transformEvent): %s", evtproxy.get_changes())
-            if "status" in evtproxy.get_changes():
-                if evtproxy.get_changes()["status"] == "drop":
-                    log.debug("dropped event after transforms: %s", event.uuid);
-                    return
+            # if status was updated in transform, map back to enum for storage
+            # in outbound event
+            if evtproxy.status in statusConvertToEnum:
+                evtproxy.status = statusConvertToEnum[evtproxy.status]
+            else:
+                log.warning("invalid event state '%s' set in transform",
+                            evtproxy.status)
+                return
 
-                # if status was updated in transform, map back to enum for storage in outbound event
-                if evtproxy.status in statusConvertToEnum:
-                    evtproxy.status = statusConvertToEnum[evtproxy.status]
-                else:
-                    log.warning("invalid event state '%s' set in transform", evtproxy.status)
-                    return
+        # copy adapter changes back to event attribs and details
+        for (attr, val) in evtproxy.get_changes().items():
+            if attr in self.stdEventFields:
+                setattr(event, attr, val)
+            elif attr in "service device component".split():
+                # update actor uuids/identifiers - skip these for now
+                pass
+            elif attr in "status _clearClasses".split():
+                # skip these now, we'll always copy into output whether changed
+                # or not
+                pass
+            else:
+                # copy extra attributes to details
+                evtdetails[attr] = val
 
-            # copy adapter changes back to event attribs and details
-            for (attr,val) in evtproxy.get_changes().items():
-                if attr in self.stdEventFields:
-                    setattr(event, attr, val)
-                elif attr in "service device component".split():
-                    # update actor uuids/identifiers - skip these for now
-                    pass
-                elif attr in "status _clearClasses".split():
-                    # skip these now, we'll always copy into output whether changed or not
-                    pass
-                else:
-                    # copy extra attributes to details
-                    evtdetails[attr] = val
+        # fix up any service/device/component refs and get uuids
+        self.updateActorReferences(event, evtproxy.get_changes())
 
-            # fix up any service/device/component refs and get uuids
-            self.updateActorReferences(event, evtproxy.get_changes())
+        # set zepevent control fields
+        zepevent.clear_event_class.extend(list(set(evtproxy._clearClasses)))
+        zepevent.status = evtproxy.status
 
-            # set zepevent control fields
-            zepevent.clear_event_class.extend(list(set(evtproxy._clearClasses)))
-            zepevent.status = evtproxy.status
+        # strip off details used internally
+        self.removeEventControlDetails(event, evtdetails)
 
-            # strip off details used internally
-            self.removeEventControlDetails(event, evtdetails)
+        # convert event details dict back to event details name-values
+        self.eventDetailDictToNameValues(event, evtdetails)
 
-            # convert event details dict back to event details name-values
-            self.eventDetailDictToNameValues(event, evtdetails)
+        # add event index tags for fast event retrieval
+        self.addEventIndexTerms(event.actor, zepevent.tags, event.details)
 
-            # add event index tags for fast event retrieval
-            self.addEventIndexTerms(event.actor, zepevent.tags, event.details)
+        # Apply any event plugins
+        for name, plugin in getUtilitiesFor(IEventPlugin):
+            try:
+                plugin.apply(zepevent, self.dmd)
+            except Exception:
+                log.exception('Event plugin %s encountered an error; skipping.'
+                              % name)
+                continue
 
-            # Apply any event plugins
-            for name, plugin in getUtilitiesFor(IEventPlugin):
-                try:
-                    plugin.apply(zepevent, self.dmd)
-                except Exception, e:
-                    log.exception('Event plugin %s encountered an error; skipping.' % name)
-                    continue
-
-            # forward event to output queue
-            yield self.publishEvent(zepevent)
-            if log.isEnabledFor(logging.DEBUG):
-                log.debug("published event: %s", event.uuid);
-                self.logEvent(log.debug, event, evtdetails)
-
-        finally:
-            # all done, ack message
-            yield self.queueConsumer.acknowledge(message)
+        # forward event to output queue
+        yield Publishable(zepevent, exchange='$ZepZenEvents',
+                          routingKey=self._routing_key(zepevent))
+        log.debug("published event: %s", event.uuid)
+        self.logEvent(log.debug, event, evtdetails)
 
     def logEvent(self, logfn, event, details):
-        statusdata = dict((f.name, fvalue) for f,fvalue in event.ListFields()
-                              if f.type!=f.TYPE_MESSAGE and f.label!=f.LABEL_REPEATED)
-        statusdata.update(dict(('actor.'+f.name, fvalue) for f,fvalue in event.actor.ListFields()))
+        statusdata = dict((f.name, fvalue) for f, fvalue in event.ListFields()
+                          if (f.type != f.TYPE_MESSAGE and
+                              f.label != f.LABEL_REPEATED))
+        statusdata.update(dict(('actor.' + f.name, fvalue) for f, fvalue in
+                               event.actor.ListFields()))
         logfn("Event info: %s", statusdata)
         if details:
             logfn("Detail data: %s", details)
 
     def getFieldList(self):
-        return [f.name for f in RawEvent.DESCRIPTOR.fields if f.type!=f.TYPE_MESSAGE and f.label!=f.LABEL_REPEATED]
- 
+        return [f.name for f in RawEvent.DESCRIPTOR.fields if
+                f.type != f.TYPE_MESSAGE and f.label != f.LABEL_REPEATED]
+
     def getDmd(self):
         return self.dmd
+
 
 class ZenEventD(ZCmdBase):
     def run(self):
         task = ProcessEventMessageTask(self.dmd)
-        self._consumer = QueueConsumer(task,self.dmd)
-        reactor.callWhenRunning(self._start)
-        reactor.run()
+        self._pubsub = getProtobufPubSub('$RawZenEvents')
+        self._pubsub.registerHandler('$RawEvent', task)
 
-    def _start(self):
-        log.info('starting queue consumer task')
-        reactor.addSystemEventTrigger('before', 'shutdown', self._shutdown)
-        self._consumer.run()
-
-    @defer.inlineCallbacks
-    def _shutdown(self, *ignored):
-        if self._consumer:
-            yield self._consumer.shutdown()
         try:
-            reactor.stop()
-        except ReactorNotRunning:
+            self._pubsub.run()
+        except KeyboardInterrupt:
             pass
+
+        finally:
+            log.info('Shutting down...')
+            self._pubsub.shutdown()
 
 if __name__ == '__main__':
     zed = ZenEventD()
     zed.run()
-
