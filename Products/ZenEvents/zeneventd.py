@@ -121,7 +121,7 @@ class ProcessEventMessageTask(BasePubSubMessageTask):
             details[CLEAR_CLASSES].append(event.event_class)
 
     def removeEventControlDetails(self, event, details):
-        for name in [CLEAR_CLASSES, "_DEDUP_FILELDS", "_REQUIRED_FIELDS"]:
+        for name in [CLEAR_CLASSES, "_DEDUP_FIELDS", "_REQUIRED_FIELDS"]:
             if name in details:
                 del details[name]
 
