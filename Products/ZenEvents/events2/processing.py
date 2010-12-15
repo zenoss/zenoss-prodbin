@@ -101,7 +101,7 @@ class Manager(object):
                 results = ICatalogTool(catalog).search(cls, query=Eq('id', id))
 
                 if results.total:
-                    return results[0].uuid
+                    return results.results.next().uuid
 
     def getElementById(self, catalog, element_type_id, id):
         """
@@ -141,7 +141,7 @@ class Manager(object):
         results = cat.search(types=Device, query=querySet, limit=1)
 
         if results.total:
-            return results[0].uuid
+            return results.results.next().uuid
         else:
             querySet = Or(Eq('ipAddress', identifier),
                         Eq('ipAddress', ipAddress))
@@ -149,7 +149,7 @@ class Manager(object):
             # search the components
             results = cat.search(types=DeviceComponent, query=querySet, limit=1)
             if results.total:
-                return self.getElementUuid(results[0].getObject().device())
+                return self.getElementUuid(results.results.next().getObject().device())
             else:
                 return None
 
