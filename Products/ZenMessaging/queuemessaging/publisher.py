@@ -19,7 +19,7 @@ from Products.ZenUtils.guid import generate
 from zope.component import getUtility
 from zenoss.protocols.amqpconfig import getAMQPConfiguration
 from Products.ZenUtils.AmqpDataManager import AmqpDataManager
-from Products.ZenMessaging.queuemessaging.interfaces import IModelProtobufSerializer, IQueuePublisher, IProtobufSerializer
+from Products.ZenMessaging.queuemessaging.interfaces import IModelProtobufSerializer, IQueuePublisher, IProtobufSerializer, IEventPublisher
 from contextlib import closing
 
 import logging
@@ -175,6 +175,7 @@ PUBLISH_SYNC = PublishSynchronizer()
 
 
 class EventPublisher(object):
+    implements(IEventPublisher)
 
     def _publish(self, exchange, routing_key, proto, mandatory=False):
         raise NotImplementedError

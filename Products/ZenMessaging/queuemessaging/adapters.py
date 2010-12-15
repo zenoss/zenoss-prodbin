@@ -334,13 +334,6 @@ class EventProtobuf(ObjectProtobuf):
                 else:
                     event.detaildata[field] = value
 
-        # record event control values into special details fields
-        if not hasattr(event,'detaildata'):
-            event.detaildata = {}
-        event.detaildata["_REQUIRED_FIELDS"] = EventManagerBase.requiredEventFields
-        event.detaildata["_CLEAR_CLASSES"] = event.clearClasses()
-        event.detaildata["_DEDUP_FIELDS"] = event.getDedupFields(default=EventManagerBase.defaultEventId)
-
         self.setActor(proto)
         self.fillDetails(proto)
         return proto
