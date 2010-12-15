@@ -26,7 +26,8 @@ function createClickHandler(bubbleTargetId) {
 //      addToZenPack: true puts the Add To ZenPack icon in, default true
 //      hasOrganizers: true puts the Add ___  Organizer in, default true
 //      customAddDialog: config for a SmartFormDialog to override the default
-//      deleteMenu: needs separate menu items for deleting organizers and items
+//      deleteMenu: needs separate menu items for deleting organizers and items,
+//                  works in conjunction with hasOrganizers
 //      contextGetter: fetches the context UIDs for the specific page
 
 Zenoss.footerHelper = function(itemName, footerBar, options) {
@@ -35,6 +36,7 @@ Zenoss.footerHelper = function(itemName, footerBar, options) {
     options = Ext.applyIf(options || {}, {
         addToZenPack: true,
         hasOrganizers: true,
+        deleteMenu: true,
         hasContextMenu: true,
         customAddDialog: {},
         buttonContextMenu: {},
@@ -156,27 +158,30 @@ Zenoss.footerHelper = function(itemName, footerBar, options) {
             },
             ref: 'buttonAddOrganizer'
         });
-
-        footerBar.buttonDelete.add({
-            text: String.format(_t('Delete {0} Organizer'), itemName),
-            ref: 'buttonDeleteOrganizer',
-            listeners: {
-                click: function() {
-                    var itemName = options.onGetItemName();
-                    Ext.MessageBox.show({
-                        title: String.format(_t('Delete {0} Organizer'), itemName),
-                        msg: String.format(_t('The selected {0} organizer will be deleted.'),
-                                itemName.toLowerCase()),
-                        fn: function(buttonid){
-                            if (buttonid=='ok') {
-                                footerBar.fireEvent('buttonClick', 'deleteOrganizer');
-                            }
-                        },
-                        buttons: Ext.MessageBox.OKCANCEL
-                    });
+        
+        if (options.deleteMenu)
+        {
+            footerBar.buttonDelete.add({
+                text: String.format(_t('Delete {0} Organizer'), itemName),
+                ref: 'buttonDeleteOrganizer',
+                listeners: {
+                    click: function() {
+                        var itemName = options.onGetItemName();
+                        Ext.MessageBox.show({
+                            title: String.format(_t('Delete {0} Organizer'), itemName),
+                            msg: String.format(_t('The selected {0} organizer will be deleted.'),
+                                    itemName.toLowerCase()),
+                            fn: function(buttonid){
+                                if (buttonid=='ok') {
+                                    footerBar.fireEvent('buttonClick', 'deleteOrganizer');
+                                }
+                            },
+                            buttons: Ext.MessageBox.OKCANCEL
+                        });
+                    }
                 }
-            }
-        });
+            });
+        }
     }
 
     if (options.addToZenPack) {
