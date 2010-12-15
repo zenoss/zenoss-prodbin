@@ -92,7 +92,75 @@ class NotificationDao(object):
         @rtype boolean
         """
         return signal.subscriber_uuid == IGlobalIdentifier(notification).getGUID()
-    
+
+def _convertDetails( detailList ):
+    """
+    Converts signal like:
+          [{'name': 'UserName',
+            'value': ['jlouis']},
+           {'name': 'ChainId',
+            'value': ['6528645']},
+           {'name': 'ComputeResourceName',
+            'value': ['Lab Cluster']},
+           {'name': 'ComputeResourceRef',
+            'value': ['domain-c1046']},
+           {'name': 'HostName',
+            'value': ['esx6.zenoss.loc']},
+           {'name': 'SourceHostRef',
+            'value': ['host-1049']},
+           {'name': 'DatacenterName',
+            'value': ['Hosting.com CoLo']},
+           {'name': 'endpoint',
+            'value': ['esxwin2']},
+           {'name': 'HostRef',
+            'value': ['host-1460']},
+           {'name': 'Key',
+            'value': ['6528649']},
+           {'name': 'SourceHostName',
+            'value': ['esx5.zenoss.loc']},
+           {'name': 'VmName',
+            'value': ['cholden-dev']},
+           {'name': 'VmRef',
+            'value': ['vm-23712']},
+           {'name': 'DataCenterRef',
+            'value': ['datacenter-2']},
+           {'name': 'zenoss.device.production_state',
+            'value': ['1000']},
+           {'name': 'zenoss.device.priority',
+            'value': ['3']},
+           {'name': 'testArray',
+            'value': ['a','b','c']}]
+    to dict like:
+          {'UserName':'jlouis',
+           'ChainId':'6528645',
+           'ComputeResourceName':'Lab Cluster',
+           'ComputeResourceRef':'domain-c1046',
+           'HostName':'esx6.zenoss.loc',
+           'SourceHostRef':'host-1049',
+           'DatacenterName':'Hosting.com CoLo',
+           'endpoint':'esxwin2',
+           'HostRef':'host-1460',
+           'Key':'6528649',
+           'SourceHostName':'esx5.zenoss.loc',
+           'VmName':'cholden-dev',
+           'VmRef':'vm-23712',
+           'DataCenterRef':'datacenter-2',
+           'zenoss.device.production_state':'1000',
+           'zenoss.device.priority':'3',
+           'testArray':['a','b','c']}
+    """
+    details = None
+    if detailList is not None:
+        details = {}
+        for nameValue in detailList:
+            name = str(nameValue['name'])
+            value = nameValue['value']
+            if len( value ) == 0: value = ''
+            if len( value ) == 1: value = value[0]
+            details[name] = value
+    return details
+
+
 def _signalToContextDict(signal):
     """
     Returns a dict that looks something like:
@@ -122,13 +190,31 @@ def _signalToContextDict(signal):
                 'element_uuid': u '0f7c9fce-8417-46b2-90f9-f9a132a2490a',
                 'element_type_id': 1
             },
-            'summary': u 'Example test message.',
-            'fingerprint': u 'localhost||/Unknown||6|Example test message.',
-            'created_time': 1290666301246L,
-            'message': u 'Example test message.',
-            'event_key': u '',
-            'event_class': u '/Unknown',
-            'monitor': u 'localhost'
+            'eventSummary': {
+                'status': 1,
+                'count': 47,
+                'status_change_time': 1290638268357L,
+                'first_seen_time': 1290638268357L,
+                'last_seen_time': 1290666301246L,
+                'uuid': u '1c3f8493-6eb9-4ba8-9260-9e33abd8e390'
+            },
+            'event': {
+                'severity': 2,
+                'actor': {
+                    'element_identifier': u 'local vm',
+                    'element_sub_identifier': u '',
+                    'element_uuid': u '0f7c9fce-8417-46b2-90f9-f9a132a2490a',
+                    'element_type_id': 1
+                },
+                'summary': u 'Example test message.',
+                'fingerprint': u 'localhost||/Unknown||6|Example test message.',
+                'created_time': 1290666301246L,
+                'message': u 'Example test message.',
+                'event_key': u '',
+                'event_class': u '/Unknown',
+                'monitor': u 'localhost',
+                'details': {'detail1':u'value1','detail2':['a','b','c']}
+            }
         }
     }
     """
@@ -142,13 +228,17 @@ def _signalToContextDict(signal):
     
     if 'occurrence' in summary and summary['occurrence']:
         event = summary['occurrence'][0]
+        details = _convertDetails( event.get('details', None) )
+        del event['details']
         del summary['occurrence']
-        
+        if details is not None:
+            event.update( details )
+       
         # TODO: pass in device obj
         event['eventUrl'] = getEventUrl(summary['uuid'])
         event['ackUrl'] = getAckUrl(summary['uuid'])
         event['deleteUrl'] = getDeleteUrl(summary['uuid'])
-        event['eventsUrl'] = getEventsUrl(summary['uuid'])
+        event['eventsUrl'] = getEventsUrl()
         event['undeleteUrl'] = getUndeleteUrl(summary['uuid'])
         
         data['event'] = event
@@ -162,7 +252,7 @@ def getBaseUrl(device=None):
         return "%s%s" % (url, device.getPrimaryUrlPath())
     else:
         return "%s/zport/dmd/Events" % (url)
-        
+
 def getEventUrl(evid, device=None):
     return "%s/viewDetail?evid=%s" % (getBaseUrl(device), evid)
     
@@ -398,12 +488,11 @@ class CommandAction(object):
     def execute(self, notification, signal):
         log.debug('Executing action: Command')
         
-        
         data = _signalToContextDict(signal)
         if signal.clear:
-            command = notification.getClearBody(**data)
+            command = notification.clear_body_format
         else:
-            command = notification.getBody(**data)
+            command = notification.body_format
         
         log.debug('Executing this command: %s' % command)
         
@@ -411,7 +500,6 @@ class CommandAction(object):
         # FIXME: Construct the context for this command before parsing with TAL
         device = None
         component = None
-        data = {}
         
         compiled = talesCompile('string:' + command)
         environ = {'dev':device, 'component':component, 'evt':data }
@@ -491,7 +579,7 @@ class ProcessSignalTask(object):
             log.exception(e)
             # FIXME: Send to an error queue instead of acknowledge.
             log.error('Acknowledging broken message.')
-            self.queueConsumer.acknowledge(message)
+            #self.queueConsumer.acknowledge(message)
             
         else:
             log.info('Acknowledging message. (%s)' % signal.message)
