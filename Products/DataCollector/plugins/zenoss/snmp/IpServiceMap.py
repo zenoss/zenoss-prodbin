@@ -40,8 +40,8 @@ class IpServiceMap(SnmpPlugin):
         """collect snmp information from this device"""
         log.info('processing %s for device %s', self.name(), device.id)
         getdata, tabledata = results
-        tcptable = tabledata.get("tcptable")
-        udptable = tabledata.get("udptable")
+        tcptable = tabledata.get("tcptable", {})
+        udptable = tabledata.get("udptable", {})
         rm = self.relMap()
         maxport = getattr(device, 'zIpServiceMapMaxPort', 1024)
         #tcp services
