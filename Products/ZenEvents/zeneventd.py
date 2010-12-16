@@ -10,15 +10,20 @@
 # For complete information please visit: http://www.zenoss.com/oss/
 #
 ###########################################################################
-import Globals
+import os
+import signal
+import multiprocessing
 
-from Acquisition import aq_chain
+import Globals
 from zope.component import getUtilitiesFor
+from zope.interface import implements
+
 from Products.ZenMessaging.queuemessaging.interfaces import IQueueConsumerTask
 from Products.ZenUtils.ZCmdBase import ZCmdBase
+from Products.ZenUtils.ZenDaemon import ZenDaemon
 from zenoss.protocols import queueschema
-from zenoss.protocols.protobufs.zep_pb2 import RawEvent, ZepRawEvent
-from zenoss.protocols.protobufs.zep_pb2 import SEVERITY_CLEAR
+from zenoss.protocols.eventlet.amqp import getProtobufPubSub
+from zenoss.protocols.protobufs.zep_pb2 import ZepRawEvent
 from zenoss.protocols.protobufs.zep_pb2 import (
     STATUS_NEW,
     STATUS_ACKNOWLEDGED,
@@ -27,24 +32,10 @@ from zenoss.protocols.protobufs.zep_pb2 import (
     STATUS_CLEARED,
     STATUS_DROPPED,
     STATUS_AGED)
-from zenoss.protocols.protobufs.model_pb2 import DEVICE, COMPONENT, SERVICE
-from zenoss.protocols.eventlet.amqp import getProtobufPubSub
 from zenoss.protocols.eventlet.amqp import Publishable
 from zenoss.protocols.jsonformat import to_dict
 from Products.ZenMessaging.queuemessaging.eventlet import BasePubSubMessageTask
 from Products.ZenEvents.events2.processing import *
-
-from zope.interface import implements
-
-from Products.ZenEvents.MySqlSendEvent import EventTransformer
-TRANSFORM_EVENT_IN_EVENTD = True
-
-from Products.ZenEvents.transformApi import Event as TransformEvent
-from Products.ZenUtils.guid.interfaces import IGUIDManager, IGlobalIdentifier
-from Products.Zuul.interfaces import ICatalogTool, IInfo
-from Products.ZenModel.Device import Device
-from Products.ZenModel.DeviceComponent import DeviceComponent
-from Products.AdvancedQuery import Eq
 
 from Products.ZenEvents.interfaces import IEventPlugin
 
@@ -124,22 +115,92 @@ class ProcessEventMessageTask(BasePubSubMessageTask):
                               eventContext.zepRawEvent))
 
 
-class ZenEventD(ZCmdBase):
+class EventDWorker(ZCmdBase):
+
     def run(self):
         task = ProcessEventMessageTask(self.dmd)
         self._pubsub = getProtobufPubSub('$RawZenEvents')
         self._pubsub.registerHandler('$RawEvent', task)
         self._pubsub.registerExchange('$ZepZenEvents')
-
         try:
             self._pubsub.run()
         except KeyboardInterrupt:
             pass
-
         finally:
-            log.info('Shutting down...')
             self._pubsub.shutdown()
+
+    def buildOptions(self):
+        super(EventDWorker, self).buildOptions()
+        self.parser.add_option('--workers',
+                    type="int",
+                    default=2,
+                    help="The number of event processing workers to run "
+                         "(ignored when running in the foreground)")
+
+    def parseOptions(self):
+        """
+        Don't ever allow a worker to be a daemon
+        """
+        super(EventDWorker, self).parseOptions()
+        self.options.daemon = False
+
+
+def run_worker():
+    name = multiprocessing.current_process().name
+    pid = multiprocessing.current_process().pid
+    log.info("Starting: %s (pid %s)" % (name, pid))
+    try:
+        worker = EventDWorker()
+        worker.run()
+    finally:
+        log.info("Shutting down: %s" % (name,))
+
+
+class ZenEventD(ZenDaemon):
+
+    def __init__(self, *args, **kwargs):
+        super(ZenEventD, self).__init__(*args, **kwargs)
+        self._workers = []
+
+    def sigterm(self, signum=None, frame=None):
+        log.info("Shutting down...")
+        for worker in self._workers:
+            os.kill(worker.pid, signal.SIGTERM)
+            worker.join(0.5)
+            worker.terminate()
+
+    def sighandler_USR1(self, signum, frame):
+        super(ZenEventD, self).sighandler_USR1(signum, frame)
+        for worker in self._workers:
+            os.kill(worker.pid, signal.SIGUSR1)
+
+    def run(self):
+        if self.options.daemon and self.options.workers > 1:
+            numworkers = self.options.workers
+            pid = multiprocessing.current_process().pid
+            log.info("Starting event daemon (pid %s)" % pid)
+            for i in range(numworkers):
+                p = multiprocessing.Process(
+                    target=run_worker,
+                    name='Event worker %s' % (i+1))
+                p.start()
+                self._workers.append(p)
+            signal.signal(signal.SIGTERM, self.sigterm)
+            for worker in self._workers:
+                worker.join()
+        else:
+            EventDWorker().run()
+
+    def buildOptions(self):
+        super(ZenEventD, self).buildOptions()
+        self.parser.add_option('--workers',
+                    type="int",
+                    default=2,
+                    help="The number of event processing workers to run "
+                         "(ignored when running in the foreground)")
+
 
 if __name__ == '__main__':
     zed = ZenEventD()
     zed.run()
+
