@@ -344,14 +344,14 @@ class DeviceOrganizerInfo(InfoBase, HasEventsInfoMixin):
             # of its immediate children
             node = DeviceOrganizerNode(self._object)
             uuids = [IGlobalIdentifier(n._object).getGUID() for n in node.children]
+            if uuids:
+                zep = getFacade('zep')
+                severities = {}
+                for uuid, sevs in zep.getEventSeverities(uuids).iteritems():
+                    for sev, count in sevs.iteritems():
+                        severities[sev] = severities.get(sev, 0) + count
 
-            zep = getFacade('zep')
-            severities = {}
-            for uuid, sevs in zep.getEventSeverities(uuids).iteritems():
-                for sev, count in sevs.iteritems():
-                    severities[sev] = severities.get(sev, 0) + count
-
-            self.setEventSeverities(severities)
+                self.setEventSeverities(severities)
 
         return super(DeviceOrganizerInfo, self).getEventSeverities()
 

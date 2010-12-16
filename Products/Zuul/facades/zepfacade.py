@@ -175,6 +175,8 @@ class ZepFacade(ZuulFacade):
         response, content = source(offset=offset, limit=limit, keys=keys, sort=eventSort, filter=filterBuf)
         return {
             'total' : content.total,
+            'limit' : content.limit,
+            'next_offset' : content.next_offset,
             'events' : (to_dict(event) for event in content.events),
         }
 

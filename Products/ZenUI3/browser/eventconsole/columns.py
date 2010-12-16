@@ -17,6 +17,21 @@ console. This is used both to generate the JavaScript defining the columns and
 to evaluate filters.
 """
 
+from zenoss.protocols.protobufs.zep_pb2 import (
+    STATUS_NEW,
+    STATUS_ACKNOWLEDGED,
+    STATUS_AGED,
+    STATUS_CLEARED,
+    STATUS_CLOSED,
+    STATUS_SUPPRESSED,
+    SEVERITY_CRITICAL,
+    SEVERITY_CLEAR,
+    SEVERITY_DEBUG,
+    SEVERITY_ERROR,
+    SEVERITY_INFO,
+    SEVERITY_WARNING
+)
+
 COLUMN_CONFIG = {
 
     'dedupid'   : dict(
@@ -61,23 +76,23 @@ COLUMN_CONFIG = {
             'xtype':'multiselectmenu',
             'text':'...',
             'source': [{
-                'value':5,
+                'value': SEVERITY_CRITICAL,
                 'name': 'Critical'
             },{
-                'value':4,
+                'value': SEVERITY_ERROR,
                 'name': 'Error'
             },{
-                'value':3,
+                'value': SEVERITY_WARNING,
                 'name': 'Warning'
             },{
-                'value':2,
+                'value': SEVERITY_INFO,
                 'name':'Info'
             },{
-                'value':1,
+                'value': SEVERITY_DEBUG,
                 'name':'Debug',
                 'checked':False
             },{
-                'value':0,
+                'value': SEVERITY_CLEAR,
                 'name':'Clear',
                 'checked':False
             }]
@@ -92,30 +107,30 @@ COLUMN_CONFIG = {
             'xtype':'multiselectmenu',
             'text':'...',
             'source':[{
-                'value':0,
+                'value':STATUS_NEW,
                 'name':'New'
             },
             {
-                'value':1,
+                'value':STATUS_ACKNOWLEDGED,
                 'name':'Acknowledged'
             },
             {
-                'value':2,
+                'value':STATUS_SUPPRESSED,
                 'name':'Suppressed',
                 'checked':False
             },
             {
-                'value':3,
+                'value':STATUS_CLOSED,
                 'name':'Closed',
                 'checked':False
             },
             {
-                'value':4,
+                'value':STATUS_CLEARED,
                 'name':'Cleared',
                 'checked':False
             },
             {
-                'value':6,
+                'value':STATUS_AGED,
                 'name':'Aged',
                 'checked':False
             }]
@@ -166,14 +181,6 @@ COLUMN_CONFIG = {
         filter={
             'xtype':'multiselect-prodstate'
         }),
-
-    'suppid'    : dict(
-        header='Supplemental ID',
-        filter='textfield'),
-
-    'manager'   : dict(
-        header='Manager',
-        filter='textfield'),
 
     'agent'     : dict(
         header='Agent',
@@ -258,3 +265,55 @@ COLUMN_CONFIG = {
         filter='textfield')
 }
 
+ARCHIVE_COLUMN_CONFIG = COLUMN_CONFIG.copy()
+ARCHIVE_COLUMN_CONFIG['eventState'] = dict(
+        header='Status',
+        width=60,
+        filter={
+            # Values are offset from actual values by -1
+            'xtype':'multiselectmenu',
+            'text':'...',
+            'source':[{
+                'value':STATUS_CLOSED,
+                'name':'Closed',
+            },
+            {
+                'value':STATUS_CLEARED,
+                'name':'Cleared',
+            },
+            {
+                'value':STATUS_AGED,
+                'name':'Aged',
+            }]
+        },
+        renderer='Zenoss.util.render_status'
+)
+ARCHIVE_COLUMN_CONFIG['severity'] = dict(
+        header='Severity',
+        width=60,
+        filter={
+            'xtype':'multiselectmenu',
+            'text':'...',
+            'source': [{
+                'value': SEVERITY_CRITICAL,
+                'name': 'Critical'
+            },{
+                'value': SEVERITY_ERROR,
+                'name': 'Error'
+            },{
+                'value': SEVERITY_WARNING,
+                'name': 'Warning'
+            },{
+                'value': SEVERITY_INFO,
+                'name':'Info'
+            },{
+                'value': SEVERITY_DEBUG,
+                'name':'Debug',
+                'checked':False
+            },{
+                'value': SEVERITY_CLEAR,
+                'name':'Clear',
+            }]
+        },
+        renderer='Zenoss.util.render_severity'
+)

@@ -68,7 +68,7 @@
         />
 
         <browser:viewlet
-            name="History"
+            name="Event Archive"
             url="/zport/dmd/Events/evhistory"
             weight="1"
             parentItem="Events"

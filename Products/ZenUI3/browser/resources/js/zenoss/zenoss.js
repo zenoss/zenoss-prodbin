@@ -6,6 +6,24 @@
 Ext.namespace('Zenoss');
 
 /**
+ * Constants
+ */
+
+Zenoss.SEVERITY_CLEAR = 0;
+Zenoss.SEVERITY_DEBUG = 1;
+Zenoss.SEVERITY_INFO = 2;
+Zenoss.SEVERITY_WARNING = 3;
+Zenoss.SEVERITY_ERROR = 4;
+Zenoss.SEVERITY_CRITICAL = 5;
+Zenoss.STATUS_NEW = 1;
+Zenoss.STATUS_ACKNOWLEDGED = 2;
+Zenoss.STATUS_SUPPRESSED = 3;
+Zenoss.STATUS_CLOSED = 4; // Closed by the user.
+Zenoss.STATUS_CLEARED = 5; // Closed by a matching clear event.
+Zenoss.STATUS_DROPPED = 6; // Dropped via a transform.
+Zenoss.STATUS_AGED = 7; // Closed via automatic aging.
+
+/**
  * Namespace for anonymous scripts to attach data to avoid dumping it into
  * the global namespace.
  */
@@ -769,10 +787,8 @@ Zenoss.FilterGridView = Ext.extend(Ext.ux.grid.livegrid.GridView, {
         Ext.each(this.filters, function(ob){
             // clear out any original values
             // (for instance when we come here from the device page)
-            if (ob.originalValue) {
-                ob.originalValue = null;
-                ob.setValue(null);
-            }
+            console.log('clearing', ob);
+            ob.originalValue = null;
             ob.reset();
         }, this);
         this.updateLiveRows(this.rowIndex, true, true, false);

@@ -15,17 +15,6 @@
 Ext.ns('Zenoss.ui.EvHistory');
 
 Ext.onReady(function(){
-
-    // Make severity filter show clear events by default
-    var cds = Zenoss.env.COLUMN_DEFINITIONS;
-    for (i=0;i<cds.length;i++) {
-        var def = cds[i];
-        if (def.id=='severity') {
-            delete def.filter.source[5].checked;
-            Zenoss.env.COLUMN_DEFINITIONS[i] = def;
-        }
-    }
-
     // Global dialogs, will be reused after first load
     var win,
     // Date renderer object, used throughout
@@ -79,86 +68,6 @@ Ext.onReady(function(){
     }
 
     /*
-     * Show the dialog that allows one to add an event.
-     */
-    function showClassifyDialog(e) {
-        if(!win){
-            win = new Ext.Window({
-                title: 'Classify Events',
-                width: 250,
-                autoHeight: true,
-                closeAction: 'hide',
-                plain: true,
-                items: [{
-                    border: false,
-                    frame: false,
-                    autoHeight: true,
-                    padding: 10,
-                    style: {'font-size':'10pt'},
-                    html: 'Select the event class with which'+
-                          ' you want to associate these events.'
-                },{
-                padding: 10,
-                frame: false,
-                border: false,
-                items: [{
-                    xtype: 'combo',
-                    store: Zenoss.env.EVENT_CLASSES,
-                    typeAhead: true,
-                    forceSelection: true,
-                    triggerAction: 'all',
-                    emptyText: 'Select an event class',
-                    selectOnFocus: true,
-                    id: 'evclass_combo'
-                }]}],
-                buttons: [{
-                    text: 'Cancel',
-                    handler: function(){
-                        win.hide();
-                    }
-                },{
-                    text: 'Submit',
-                    handler: function(){
-                        var cb = Ext.getCmp('evclass_combo'),
-                            sm = grid.getSelectionModel(),
-                            rs = sm.getSelections(),
-                            evids = [];
-                        Ext.each(rs, function(record){
-                            evids[evids.length] = record.data.evid;
-                        });
-                        if (!evids.length) {
-                            win.hide();
-                            Ext.Msg.show({
-                                title: 'Error',
-                                msg: 'No events were selected.',
-                                buttons: Ext.MessageBox.OK
-                            })
-                        } else {
-                        Zenoss.remote.EventsRouter.classify({
-                            'evclass': cb.getValue(),
-                            'evids': evids,
-                            'history':true
-                        }, function(result){
-                            win.hide();
-                            var title = result.success ?
-                                        'Classified':
-                                        'Error';
-                            Ext.MessageBox.show({
-                                title: title,
-                                msg: result.msg,
-                                buttons: Ext.MessageBox.OK
-                            })
-                        });
-                        }
-                    }
-                }
-                ]
-            })
-        }
-        win.show(this);
-    }
-
-    /*
      * Select all events with a given state.
      * This requires a call to the back end, since we don't know anything about
      * records that are outside the current buffer. So we let the server
@@ -194,36 +103,6 @@ Ext.onReady(function(){
             border: false,
             items: [{
                 /*
-                 * ClASSIFY BUTTON
-                 */
-                //text: 'Classify',
-                id: 'classify-button',
-                iconCls: 'classify',
-                handler: showClassifyDialog
-            },{
-                //text: 'Reopen',
-                id: 'reopen-button',
-                iconCls: 'reopen',
-                handler: function(){
-                    // Get params describing selected events
-                    var params = getSelectionParameters();
-                    if (params) {
-                        // Send to server, then refresh view to see fewer
-                        // events
-                        params.asof = Zenoss.env.asof;
-                        params.history = true;
-                        Zenoss.remote.EventsRouter.reopen(params,
-                            function(provider, response){
-                                view = grid.getView();
-                                view.updateLiveRows(view.rowIndex, true, true);
-                            }
-                        );
-                    }
-                }
-            },{
-                xtype: 'tbseparator'
-            },{
-                /*
                  * SELECT MENU
                  */
                 text: _t('Select'),
@@ -245,31 +124,28 @@ Ext.onReady(function(){
                             sm.selectNone();
                         }
                     },{
-                        text: 'New',
-                        iconCls: 'unacknowledge',
+                        text: 'Closed',
+                        iconCls: 'closed',
                         handler: function(){
-                            // New == 0
                             var grid = Ext.getCmp('events_grid'),
                                 sm = grid.getSelectionModel();
-                            sm.selectNew()
+                            sm.selectClosed()
                         }
                     },{
-                        text: 'Acknowledged',
-                        iconCls: 'acknowledge',
+                        text: 'Cleared',
+                        iconCls: 'cleared',
                         handler: function(){
-                            // Acknowledged == 1
                             var grid = Ext.getCmp('events_grid'),
                                 sm = grid.getSelectionModel();
-                            sm.selectAck()
+                            sm.selectCleared()
                         }
                     },{
-                        text: 'Suppressed',
-                        iconCls: 'suppress',
+                        text: 'Aged',
+                        iconCls: 'aged',
                         handler: function(){
-                            // Suppressed == 2
                             var grid = Ext.getCmp('events_grid'),
                                 sm = grid.getSelectionModel();
-                            sm.selectSuppressed()
+                            sm.selectAged()
                         }
                     }
                     ]
@@ -424,15 +300,12 @@ Ext.onReady(function(){
     };
 
     // View to render the grid
-    var yesterday = new Date();
-    yesterday.setDate(yesterday.getDate() - 1);
     var myView = new Zenoss.FilterGridView({
         nearLimit : 20,
         filterbutton: 'showfilters',
         defaultFilters: {
-            severity: [5, 4, 3, 2],
-            eventState: [0, 1],
-            lastTime: yesterday
+            severity: [Zenoss.SEVERITY_CRITICAL, Zenoss.SEVERITY_ERROR, Zenoss.SEVERITY_WARNING, Zenoss.SEVERITY_INFO],
+            eventState: [Zenoss.STATUS_CLOSED, Zenoss.STATUS_CLEARED, Zenoss.STATUS_AGED]
         },
         rowcoloritem: 'rowcolors_checkitem',
         livesearchitem: 'livesearch_checkitem',
@@ -447,7 +320,7 @@ Ext.onReady(function(){
     // Store to hold the events data
     var console_store = new Zenoss.EventStore({
         proxy: new Zenoss.ThrottlingProxy({
-            directFn:Zenoss.remote.EventsRouter.queryHistory,
+            directFn:Zenoss.remote.EventsRouter.queryArchive,
             listeners: {
 
                 'exception': function(proxy, type, action, options,
@@ -460,18 +333,8 @@ Ext.onReady(function(){
                             minWidth: 300
                             });
                         }
-                    },
-                'load': function(proxy, transaction, options) {
-                    var disabled = Zenoss.Security.doesNotHavePermission('Manage Events');
-                    var buttonIds = [
-                        'reopen-button',
-                        'classify-button'
-                    ];
-                    Ext.each(buttonIds, function(buttonId) {
-                        var button = Ext.getCmp(buttonId);
-                        button.setDisabled(disabled);
-                    });
-                }}
+                    }
+                }
         }),
         sortInfo: {field:'lastTime', direction:'DESC'},
         defaultSort: {field:'lastTime', direction:'DESC'},

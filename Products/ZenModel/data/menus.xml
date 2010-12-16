@@ -2815,10 +2815,10 @@ True
 </object>
 <object id='historyEvents' module='Products.ZenModel.ZenMenuItem' class='ZenMenuItem'>
 <property id='zendoc' type='string'>
-Event History
+Event Archive
 </property>
 <property type="text" id="description" mode="w" >
-Event History
+Event Archive
 </property>
 <property type="text" id="action" mode="w" >
 viewHistoryEvents

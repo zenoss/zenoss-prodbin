@@ -928,6 +928,19 @@ td.x-date-mp-sel a{
 .x-menu-item-icon.suppress {
     background-image: url(../img/xtheme-zenoss/icon/suppress.png);
 }
+.x-menu-item-icon.acknowledge {
+    background-image: url(../img/xtheme-zenoss/icon/acknowledge.png);
+}
+
+.x-menu-item-icon.aged,
+.x-menu-item-icon.cleared,
+.x-menu-item-icon.closed {
+    width: 16px;
+    height: 14px;
+    background: transparent url() no-repeat;
+    margin: 0 auto;
+    background-image: url(/++resource++zenui/img/xtheme-zenoss/icon/close-small.png)
+}
 
 
 /* Combos */

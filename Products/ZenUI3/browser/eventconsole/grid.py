@@ -19,9 +19,9 @@ _ = MessageFactory('zenoss')
 from Products.Five.browser import BrowserView
 from Products.Five.browser.pagetemplatefile import ViewPageTemplateFile
 
-from Products.ZenUtils.jsonutils import json, unjson, JavaScript, javascript
+from Products.ZenUtils.jsonutils import JavaScript, javascript
 from Products.ZenUI3.utils.javascript import JavaScriptSnippet
-from Products.ZenUI3.browser.eventconsole.columns import COLUMN_CONFIG
+from Products.ZenUI3.browser.eventconsole.columns import COLUMN_CONFIG, ARCHIVE_COLUMN_CONFIG
 from Products.Zuul import getFacade
 
 
@@ -33,10 +33,14 @@ class HistoryConsoleView(BrowserView):
     __call__ = ViewPageTemplateFile('view-history-events.pt')
 
 
-def column_config(fields, request=None):
+def column_config(fields, request=None, archive=False):
+    columns = COLUMN_CONFIG
+    if archive:
+        columns = ARCHIVE_COLUMN_CONFIG
+
     defs = []
     for field in fields:
-        col = COLUMN_CONFIG[field].copy()
+        col = columns[field].copy()
         if request:
             msg = _(col['header'])
             col['header'] = zope.i18n.translate(msg, context=request)
@@ -45,7 +49,6 @@ def column_config(fields, request=None):
         if isinstance(col['filter'], basestring):
             col['filter'] = {'xtype':col['filter']}
         col['sortable'] = True
-        renderer = None
         if 'renderer' in col:
             col['renderer'] = JavaScript(col['renderer'])
 
@@ -71,11 +74,12 @@ class GridColumnDefinitions(JavaScriptSnippet):
 
     def snippet(self):
         last_path_item = self.request['PATH_INFO'].split('/')[-1]
-        history = last_path_item.lower().find('history') != -1
-        api = getFacade('event')
+        archive = last_path_item.lower().find('history') != -1 or last_path_item.lower().find('archive') != -1
+
+        api = getFacade('zep')
         result = ["Ext.onReady(function(){Zenoss.env.COLUMN_DEFINITIONS=["]
-        fields = api.fields(self.context, history=history)
-        defs = column_config(fields, self.request)
+        fields = api.fields(self.context, archive=archive)
+        defs = column_config(fields, self.request, archive=archive)
         result.append(',\n'.join(defs))
         result.append('];')
         auto_expand_column = "Zenoss.env.EVENT_AUTO_EXPAND_COLUMN='"

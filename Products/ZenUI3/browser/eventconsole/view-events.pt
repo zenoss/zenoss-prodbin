@@ -87,7 +87,7 @@
 Ext.onReady(function(){
     var toolbar_items = [
         new Ext.Toolbar.TextItem({
-            text: '<a href="viewHistoryEvents'+location.search+'">Event History...<'+'/a'+'>',
+            text: '<a href="viewHistoryEvents'+location.search+'">Event Archive...<'+'/a'+'>',
             style: {
                 marginTop: '4px'
             }

@@ -707,7 +707,7 @@ Ext.onReady(function(){
         height: 25,
         items: [{
             xtype: 'tbtext',
-            text: '<a href="viewHistoryEvents'+location.search+'">Event History...<'+'/a'+'>'
+            text: '<a href="viewHistoryEvents'+location.search+'">Event Archive...<'+'/a'+'>'
         },{
             xtype: 'tbfill'
         },{

@@ -83,6 +83,18 @@ Zenoss.EventPanelSelectionModel = Ext.extend(Zenoss.ExtraHooksSelectionModel, {
         this.clearSelections();
         this.selectEventState('Suppressed');
     },
+    selectClosed: function(){
+        this.clearSelections();
+        this.selectEventState('Closed');
+    },
+    selectCleared: function(){
+        this.clearSelections();
+        this.selectEventState('Cleared');
+    },
+    selectAged: function(){
+        this.clearSelections();
+        this.selectEventState('Aged');
+    },
     /**
      * Override handle mouse down method from "Ext.grid.RowSelectionModel"
      * to handle shift select more intelligently.
@@ -206,9 +218,11 @@ Zenoss.EventStore = Ext.extend(Ext.ux.grid.livegrid.Store, {
                     'device',
                     'device_title',
                     'device_url',
+                    'device_uuid',
                     'component',
                     'component_url',
                     'component_title',
+                    'component_uuid',
                     'summary',
                     'eventState',
                     'eventClass',
@@ -218,8 +232,6 @@ Zenoss.EventStore = Ext.extend(Ext.ux.grid.livegrid.Store, {
                     'eventClassKey',
                     'eventGroup',
                     'prodState',
-                    'suppid',
-                    'manager',
                     'agent',
                     'DeviceClass',
                     'Location',
@@ -455,7 +467,7 @@ Zenoss.EventGridPanel = Ext.extend(Zenoss.SimpleEventGridPanel, {
                 mode: 'local',
                 store: new Ext.data.SimpleStore({
                     fields: ['id', 'event_type'],
-                    data: [[0,'Events'],[1,'Event History']]
+                    data: [[0,'Events'],[1,'Event Archive']]
                 }),
                 displayField: 'event_type',
                 valueField: 'id',
@@ -466,20 +478,14 @@ Zenoss.EventGridPanel = Ext.extend(Zenoss.SimpleEventGridPanel, {
                 editable: false,
                 listeners: {
                     select: function(selection) {
-                        var getHistory = selection.value == 1,
-                            params = {
-                                uid: evtGrid.view._context,
-                                history: getHistory
-                            },
-                            yesterday;
-                        if (getHistory) {
-                            yesterday = new Date();
-                            yesterday.setDate(yesterday.getDate() - 1);
-                            params['params'] = { lastTime: yesterday };
-                        }
+                        var archive = selection.value == 1;
+                        var params = {
+                            uid: evtGrid.view._context,
+                            archive: archive
+                        };
                         evtGrid.getStore().load({ params: params });
-                        Zenoss.events.EventPanelToolbarActions.acknowledge.setHidden(getHistory);
-                        Zenoss.events.EventPanelToolbarActions.close.setHidden(getHistory);
+                        Zenoss.events.EventPanelToolbarActions.acknowledge.setHidden(archive);
+                        Zenoss.events.EventPanelToolbarActions.close.setHidden(archive);
                     }
                 }
             },

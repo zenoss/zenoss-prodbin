@@ -137,10 +137,12 @@ class TreeFacade(ZuulFacade):
 
         devices = list(imap(IInfo, imap(unbrain, brains)))
 
-        zep = getFacade('zep')
-        severities = zep.getEventSeverities(set(dev.uuid for dev in devices))
-        for device in devices:
-            device.setEventSeverities(severities[device.uuid])
+        uuids = set(dev.uuid for dev in devices)
+        if uuids:
+            zep = getFacade('zep')
+            severities = zep.getEventSeverities(uuids)
+            for device in devices:
+                device.setEventSeverities(severities[device.uuid])
 
         return SearchResults(iter(devices), brains.total, brains.hash_)
 

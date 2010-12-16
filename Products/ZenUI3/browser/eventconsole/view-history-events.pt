@@ -1,5 +1,5 @@
 <tal:block metal:use-macro="context/page_macros/masterdetail-new">
-<tal:block metal:fill-slot="title">Event History</tal:block>
+<tal:block metal:fill-slot="title">Event Archive</tal:block>
 
 <tal:block metal:fill-slot="breadcrumbs">
 <div id="breadCrumbPane" class="bc-notabs">

@@ -35,6 +35,8 @@ from zenoss.protocols.services.zep import EventStatus, EventSeverity
 from json import loads
 from Products.Zuul.utils import resolve_context
 from Products.Zuul.utils import ZuulMessageFactory as _t
+from Products.ZenUI3.browser.eventconsole.grid import column_config
+
 log = logging.getLogger('zen.%s' % __name__)
 
 class EventsRouter(DirectRouter):
@@ -92,8 +94,7 @@ class EventsRouter(DirectRouter):
         return values
 
     @require('ZenCommon')
-    def queryArchive(self, limit=0, start=0, sort='lastTime', dir='desc', params=None,
-              history=False, uid=None, criteria=()):
+    def queryArchive(self, limit=0, start=0, sort='lastTime', dir='desc', params=None, uid=None):
         filter = self._buildFilter(uid, params)
 
         events = self.zep.getEventSummariesFromArchive(limit=limit, offset=start, sort=(sort, dir), filter=filter)
@@ -106,7 +107,7 @@ class EventsRouter(DirectRouter):
 
     @require('ZenCommon')
     def query(self, limit=0, start=0, sort='lastTime', dir='desc', params=None,
-              history=False, uid=None, criteria=()):
+              archive=False, uid=None, criteria=()):
         """
         Query for events.
 
@@ -137,6 +138,9 @@ class EventsRouter(DirectRouter):
            - totalCount: (integer) Total count of events returned
            - asof: (float) Current time
         """
+        if archive:
+            return self.queryArchive(limit=limit, start=start, sort=sort, dir=dir, params=params, uid=uid)
+
         filter = self._buildFilter(uid, params)
 
         events = self.zep.getEventSummaries(limit=limit, offset=start, sort=(sort, dir), filter=filter)
@@ -161,8 +165,7 @@ class EventsRouter(DirectRouter):
             filter = self.zep.createFilter(
                 summary = params.get('summary'),
                 event_class = params.get('eventClass'),
-                # FIXME Front end has the status off by one, has many places in JS this would need to be fixed
-                status = [i + 1 for i in params.get('eventState', [])],
+                status = [i for i in params.get('eventState', [])],
                 severity = params.get('severity'),
                 tags = params.get('tags'),
                 count = params.get('count'),
@@ -197,7 +200,7 @@ class EventsRouter(DirectRouter):
             return '/zport/dmd/goto?guid=%s' % uuid;
 
     @require('ZenCommon')
-    def detail(self, evid, history=False):
+    def detail(self, evid):
         """
         Get event details.
 
@@ -463,29 +466,30 @@ class EventsRouter(DirectRouter):
         return DirectResponse.succeed(evid=event.evid)
 
     def configSchema(self):
-        configSchema =[{
-                'id': 'event_age_disable_severity',
-                'name': _t('Event Age Disable Severity'),
-                'xtype': 'severity',
+        configSchema = [
+                {
+                    'id': 'event_age_disable_severity',
+                    'name': _t('Event Age Disable Severity'),
+                    'xtype': 'severity',
                 }, {
-                'id': 'event_age_interval_minutes',
-                'name': _t('Event Age Interval (minutes)'),
-                'xtype': 'numberfield',
-                'allowNegative': False,
+                    'id': 'event_age_interval_minutes',
+                    'name': _t('Event Age Interval (minutes)'),
+                    'xtype': 'numberfield',
+                    'allowNegative': False,
                 }, {
-                'id': 'event_archive_purge_interval_days',
-                'maxValue': 90,
-                'name': _t('Event Archive Purge Interval (days)'),
-                'xtype': 'numberfield',
-                'allowNegative': False,
+                    'id': 'event_archive_purge_interval_days',
+                    'maxValue': 1000,
+                    'name': _t('Event Archive Purge Interval (days)'),
+                    'xtype': 'numberfield',
+                    'allowNegative': False,
                 }, {
-                'id': 'event_occurrence_purge_interval_days',
-                'maxValue': 30,
-                'name': _t('Event Occurrence Purge Interval (Days)'),
-                'xtype': 'numberfield',
-                'allowNegative': False,
+                    'id': 'event_occurrence_purge_interval_days',
+                    'maxValue': 250,
+                    'name': _t('Event Occurrence Purge Interval (Days)'),
+                    'xtype': 'numberfield',
+                    'allowNegative': False,
                 }
-                       ]
+        ]
         return configSchema
 
     @require('ZenCommon')
@@ -515,3 +519,19 @@ class EventsRouter(DirectRouter):
             values['event_age_disable_severity'] = EventSeverity.getName(sev)
         self.zep.setConfigValues(values)
         return DirectResponse.succeed()
+
+    def column_config(self, uid=None, archive=False):
+        """
+        Get the current event console field column configuration.
+
+        @type  uid: string
+        @param uid: (optional) UID context to use (default: None)
+        @type  archive: boolean
+        @param archive: (optional) True to use the event archive instead
+                        of active events (default: False)
+        @rtype:   [dictionary]
+        @return:  A list of objects representing field columns
+        """
+        if uid is None:
+            uid = self.context
+        return column_config(self.api.fields(uid, archive), self.request)

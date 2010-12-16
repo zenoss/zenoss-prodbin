@@ -16,7 +16,7 @@
 Ext.onReady(function(){
 
     Ext.ns('Zenoss.settings');
-    var router = Zenoss.remote.ZepRouter;
+    var router = Zenoss.remote.EventsRouter;
 
     function buildPropertyGrid(response) {
         var propsGrid,
