@@ -59,12 +59,6 @@ class IProcessFacade(IFacade):
         IProcessEntity identified by the id parameter.
         """
 
-    def getEvents(id):
-        """
-        Get the events associated with OSProcess instances that fall under the
-        IProcessEntity identified by the id parameter.
-        """
-
     def moveProcess(uid, targetUid):
         """
         Move an OSProcessOrganizer or OSProcessClass uniquely identified by

@@ -203,27 +203,29 @@ class TestLayer3Linking(ZenModelBaseTest):
 
         self._linkDevices({1:devs[1], 2:devs[2]})
 
-        evt = dict(device=devs[0].id, summary="Test Event", 
-                   eventClass='/Status/Ping', severity=5)
+        # evt = dict(device=devs[0].id, summary="Test Event", 
+        #            eventClass='/Status/Ping', severity=5)
 
-        self.evids.append(self.zem.sendEvent(evt))
-
-        links = self.dmd.ZenLinkManager.getChildLinks(self.dmd.Locations)
-        links = json.loads(links)
-
-        self.assertEqual(len(links), 1)
-        self.assertEqual(links[0][1], 0)
-
-        evt = dict(device=devs[1].id, summary="Test Event", 
-                   eventClass='/Status/Ping', severity=5)
-
-        self.evids.append(self.zem.sendEvent(evt))
+        # self.evids.append(self.zem.sendEvent(evt))
 
         links = self.dmd.ZenLinkManager.getChildLinks(self.dmd.Locations)
         links = json.loads(links)
 
         self.assertEqual(len(links), 1)
-        self.assertEqual(links[0][1], 5)
+        # Can't test event severity anymore because events are async
+        # self.assertEqual(links[0][1], 0)
+
+        # evt = dict(device=devs[1].id, summary="Test Event", 
+        #            eventClass='/Status/Ping', severity=5)
+
+        # self.evids.append(self.zem.sendEvent(evt))
+
+        links = self.dmd.ZenLinkManager.getChildLinks(self.dmd.Locations)
+        links = json.loads(links)
+
+        self.assertEqual(len(links), 1)
+        # Can't test event severity anymore because events are async
+        # self.assertEqual(links[0][1], 5)
 
     def tearDown(self):
         if self.evids:

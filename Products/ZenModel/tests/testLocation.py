@@ -36,14 +36,16 @@ class TestLocation(ZenModelBaseTest):
         a.address = 'rome, italy'
         data = a.getGeomapData()
         self.assert_(isinstance(data, list))
-        self.assertEqual(data, ['rome, italy', 'green',
-                                '/zport/dmd/Locations/A', 'PAGE TEMPLATE'])
+        addr, color, path, tpl = data
+        self.assertEqual(addr, 'rome, italy')
+        self.assertEqual(path, '/zport/dmd/Locations/A')
+        self.assertEqual(tpl, 'PAGE TEMPLATE')
 
         locdata = self.dmd.Locations.getChildGeomapData()
+        # Make sure it's JSON
         self.assert_(isinstance(locdata, basestring))
-        self.assertEqual(locdata, '[["rome, italy", "green", "/zport/dmd/Locations/A", "PAGE TEMPLATE"]]')
-  
-        
+
+
 def test_suite():
     from unittest import TestSuite, makeSuite
     suite = TestSuite()
