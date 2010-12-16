@@ -140,7 +140,7 @@ class DeviceFacade(TreeFacade):
             organizer = self._getObject(organizer)
         assert isinstance(organizer, DeviceOrganizer)
         organizername = organizer.getOrganizerName()
-        devs = imap(self._getObject, uids)
+        devs = map(self._getObject, uids)
         for dev in devs:
             notify(ObjectRemovedFromOrganizerEvent(dev, organizer))
 
