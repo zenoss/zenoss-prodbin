@@ -17,6 +17,7 @@ console. This is used both to generate the JavaScript defining the columns and
 to evaluate filters.
 """
 
+import copy
 from zenoss.protocols.protobufs.zep_pb2 import (
     STATUS_NEW,
     STATUS_ACKNOWLEDGED,
@@ -275,7 +276,7 @@ COLUMN_CONFIG = {
         filter='textfield')
 }
 
-ARCHIVE_COLUMN_CONFIG = COLUMN_CONFIG.copy()
+ARCHIVE_COLUMN_CONFIG = copy.deepcopy(COLUMN_CONFIG)
 ARCHIVE_COLUMN_CONFIG['eventState']['filter'] = {
     'xtype':'multiselectmenu',
     'text':'...',
