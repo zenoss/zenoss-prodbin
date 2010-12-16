@@ -19,11 +19,6 @@ from email.MIMEText import MIMEText
 from email.MIMEMultipart import MIMEMultipart
 from email.Utils import formatdate
 
-# set up the zope environment
-import Zope2
-CONF_FILE = os.path.join(os.environ['ZENHOME'], 'etc', 'zope.conf')
-Zope2.configure(CONF_FILE)
-
 from Products.ZenUtils import Utils
 from Products.ZenUtils.ZCmdBase import ZCmdBase
 from Products.ZenUtils.guid.guid import GUIDManager
@@ -49,12 +44,12 @@ log = logging.getLogger("zen.zenactiond")
 class ActionExecutionException(Exception): pass
 
 class NotificationDao(object):
-    def __init__(self):
-        self.app = Zope2.app()
-        self.dmd = self.app.zport.dmd
+    def __init__(self, dmd):
+        self.dmd = dmd
         self.notification_manager = self.dmd.getDmdRoot(NotificationSubscriptionManager.root)
     
     def getNotifications(self):
+        self.dmd._p_jar.sync()
         return self.notification_manager.getChildNodes()
     
     def getSignalNotifications(self, signal):
@@ -249,7 +244,7 @@ def _signalToContextDict(signal):
 def getBaseUrl(device=None):
     url = 'http://%s:%d' % (socket.getfqdn(), 8080)
     if device:
-        return "%s%s" % (url, device.getPrimaryUrlPath())
+        return "%s%s" % (url, device)#.getPrimaryUrlPath())
     else:
         return "%s/zport/dmd/Events" % (url)
 
@@ -605,9 +600,7 @@ class ProcessSignalTask(object):
 
 class ZenActionD(ZCmdBase):
     def run(self):
-        
-        dmd = Zope2.app().zport.dmd
-        task = ProcessSignalTask(NotificationDao(), dmd)
+        task = ProcessSignalTask(NotificationDao(self.dmd), self.dmd)
           
         # FIXME: Make this parameter an option on the daemon.
         # 10 is the number of parallel processes to use.
