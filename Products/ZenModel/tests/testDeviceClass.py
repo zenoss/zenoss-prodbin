@@ -150,6 +150,14 @@ class TestDeviceClass(ZenModelBaseTest):
         dev = self.dmd.Devices.Server.devices.testdev
         self.assert_(dev.os.interfaces)
 
+    def testMoveDevicesRetainsGuid(self):
+        guid = IGlobalIdentifier(self.dev).getGUID()
+        self.dmd.Devices.moveDevices('/Server', 'testdev')
+        newguid = IGlobalIdentifier(self.dmd.Devices.Server.devices.testdev).getGUID()
+        self.assertEqual(guid, newguid)
+        path = self.dmd.guid_table.get(newguid, None)
+        self.assertEqual(path, '/zport/dmd/Devices/Server/devices/testdev')
+
     def testMoveDevicesWithPotentialCaseIssue(self):
         self.dmd.Devices.createInstance( 'TESTDEV' )
         self.dmd.Devices.moveDevices('/Server', 'testdev')

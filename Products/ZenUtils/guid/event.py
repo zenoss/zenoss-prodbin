@@ -38,7 +38,7 @@ def registerGUIDToPathMapping(object, event):
             catalog.catalog_object(object, idxs=(), update_metadata=True)
         except Exception:
             pass
-    if event.old:
+    if event.old and event.old != event.new:
         mgr.remove(event.old)
 
 

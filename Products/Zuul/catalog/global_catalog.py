@@ -305,6 +305,19 @@ class GlobalCatalog(ZCatalog):
             ob = IIndexableWrapper(obj)
             ZCatalog.catalog_object(self, ob, **kwargs)
 
+    def uncatalog_object(self, path):
+        try:
+            # If path points to an object, we can ignore the uncataloguing if
+            # it's a forbidden class (because it was never indexed in the first
+            # place)
+            obj = self.unrestrictedTraverse(path)
+            if not isinstance(obj, self._get_forbidden_classes()):
+                super(GlobalCatalog, self).uncatalog_object(path)
+        except KeyError:
+            # Can't find the object, so maybe a bad path or something; just get
+            # rid of it
+            super(GlobalCatalog, self).uncatalog_object(path)
+
     def index_object_under_paths(self, obj, paths):
         if not isinstance(obj, self._get_forbidden_classes()):
             p = '/'.join(obj.getPrimaryPath())
