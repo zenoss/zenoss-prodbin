@@ -9,7 +9,7 @@
              name="class"
             />
 
-    <utility factory=".publisher.TwistedEventPublisher"
+    <utility factory=".publisher.EventPublisher"
              provides=".interfaces.IEventPublisher"
              />
 

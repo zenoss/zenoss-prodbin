@@ -4,7 +4,7 @@
              provides=".interfaces.IQueuePublisher"
             />
 
-    <utility factory=".publisher.BlockingEventPublisher"
+    <utility factory=".publisher.ClosingEventPublisher"
              provides=".interfaces.IEventPublisher"
              />
 

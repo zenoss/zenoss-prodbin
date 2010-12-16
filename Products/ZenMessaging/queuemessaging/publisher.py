@@ -174,7 +174,7 @@ class PublishSynchronizer(object):
 PUBLISH_SYNC = PublishSynchronizer()
 
 
-class EventPublisher(object):
+class EventPublisherBase(object):
     implements(IEventPublisher)
 
     def _publish(self, exchange, routing_key, proto, mandatory=False):
@@ -182,7 +182,8 @@ class EventPublisher(object):
 
     def publish(self, event, mandatory=False):
         config = getAMQPConfiguration()
-
+        if not hasattr(event, "evid"):
+            event.evid = generate()
         # create the protobuf
         serializer = IProtobufSerializer(event)
         proto = config.getNewProtobuf("$RawEvent")
@@ -197,25 +198,25 @@ class EventPublisher(object):
         self._publish("$RawZenEvents", routing_key, proto, mandatory=mandatory)
 
 
-class BlockingEventPublisher(EventPublisher):
+class ClosingEventPublisher(EventPublisherBase):
     def _publish(self, exchange, routing_key, proto, mandatory=False):
         with closing(BlockingQueuePublisher()) as publisher:
             publisher.publish(exchange, routing_key, proto, mandatory=mandatory)
 
 
-class TwistedEventPublisher(EventPublisher):
+class EventPublisher(EventPublisherBase):
     _publisher = None
 
     def _publish(self, exchange, routing_key, proto, mandatory=False):
-        if TwistedEventPublisher._publisher is None:
-            TwistedEventPublisher._publisher = BlockingQueuePublisher()
-        TwistedEventPublisher._publisher.publish(exchange, routing_key, proto,
+        if EventPublisher._publisher is None:
+            EventPublisher._publisher = BlockingQueuePublisher()
+        EventPublisher._publisher.publish(exchange, routing_key, proto,
                                                 mandatory)
 
     def close(self):
-        if TwistedEventPublisher._publisher:
-            TwistedEventPublisher._publisher.close()
-            TwistedEventPublisher
+        if EventPublisher._publisher:
+            EventPublisher._publisher.close()
+            EventPublisher
 
 
 class AsyncEventPublisher(EventPublisher):
