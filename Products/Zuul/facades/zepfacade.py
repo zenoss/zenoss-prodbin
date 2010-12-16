@@ -66,34 +66,6 @@ class ZepFacade(ZuulFacade):
         self.client = ZepServiceClient(zep_url)
         self.configClient = ZepConfigClient(zep_url)
 
-    def _event_manager(self, archive=False):
-        if archive:
-            return self._dmd.ZenEventHistory
-        else:
-            return self._dmd.ZenEventManager
-
-
-    def _resolve_context(self, context, default):
-        if context and getattr(context, 'id', None) == 'dmd':
-            context = None
-        return resolve_context(context, default)
-
-    def fields(self, context=None, archive=False):
-        context = self._resolve_context(context, self._dmd.Events)
-        zem = self._event_manager(archive)
-        if hasattr(context, 'getResultFields'):
-            fs = context.getResultFields()
-        else:
-            # Use default result fields
-            if hasattr(context, 'event_key'):
-                base = context
-            else:
-                base = self._dmd.Events.primaryAq()
-            fs = zem.lookupManagedEntityResultFields(base.event_key)
-        if 'component' in fs and 'device' not in fs:
-            fs += ('device',)
-        return fs
-
     def createFilter(self,
         uuid=[],
         summary=None,
@@ -106,11 +78,12 @@ class ZepFacade(ZuulFacade):
         tags=[],
         count=None,
         element_identifier=None,
-        element_sub_identifier=None):
+        element_sub_identifier=None,
+        fingerprint=None):
         filter = {}
 
         if uuid:
-            filter['uuid'] = uuid
+            filter['uuid'] = [uuid]
 
         if summary:
             filter['event_summary'] = str(summary).strip()
@@ -138,6 +111,9 @@ class ZepFacade(ZuulFacade):
 
         if count:
             filter['count'] = count
+
+        if fingerprint:
+            filter['fingerprint'] = fingerprint
 
         if element_identifier:
             filter['element_identifier'] = str(element_identifier).strip()

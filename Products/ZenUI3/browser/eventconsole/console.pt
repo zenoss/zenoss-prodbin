@@ -606,8 +606,8 @@ Ext.onReady(function(){
         nearLimit : 20,
         filterbutton: 'showfilters',
         defaultFilters: {
-            severity: [5, 4, 3, 2],
-            eventState: [0, 1]
+            severity: [Zenoss.SEVERITY_CRITICAL, Zenoss.SEVERITY_ERROR, Zenoss.SEVERITY_WARNING, Zenoss.SEVERITY_INFO],
+            eventState: [Zenoss.STATUS_NEW, Zenoss.STATUS_ACKNOWLEDGED]
         },
         rowcoloritem: 'rowcolors_checkitem',
         livesearchitem: 'livesearch_checkitem',

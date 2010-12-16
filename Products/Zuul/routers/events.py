@@ -197,7 +197,7 @@ class EventsRouter(DirectRouter):
         return DirectResponse.succeed()
 
     @require('Manage Events')
-    def reopen(self, evids=None, excludeIds=None, selectState=None, field=None, 
+    def reopen(self, evids=None, excludeIds=None, selectState=None, field=None,
                direction=None, params=None, history=False, uid=None, asof=None):
         """
         Reopen event(s).
@@ -233,12 +233,12 @@ class EventsRouter(DirectRouter):
         """
         if uid is None:
             uid = self.context
-        self.api.reopen(evids, excludeIds, selectState, field, direction, 
+        self.api.reopen(evids, excludeIds, selectState, field, direction,
                         params, asof=asof, context=uid, history=history)
         return DirectResponse.succeed()
 
     @require('Manage Events')
-    def close(self, evids=None, excludeIds=None, selectState=None, field=None, 
+    def close(self, evids=None, excludeIds=None, selectState=None, field=None,
               direction=None, params=None, history=False, uid=None, asof=None):
         """
         Close event(s).
@@ -376,7 +376,5 @@ class EventsRouter(DirectRouter):
         @rtype:   [dictionary]
         @return:  A list of objects representing field columns
         """
-        if uid==None:
-            uid = self.context
-        return column_config(self.api.fields(uid, history), self.request)
+        return column_config(self.request, history)
 

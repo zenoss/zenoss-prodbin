@@ -55,11 +55,6 @@ class EventsRouter(DirectRouter):
 
         eventClass = eventOccurrence['event_class']
 
-        # FIXME Lookup the item by UUID to create a link, or better yet just use the UUID in the front end
-        #element = eventOccurrence['actor'].get('element_identifier', None)
-        #if element:
-        #    IGuidManager(self._dmd).getObject(uuid)
-
         event = {
             'id' : event_summary['uuid'],
             'evid' : event_summary['uuid'],
@@ -107,7 +102,7 @@ class EventsRouter(DirectRouter):
 
     @require('ZenCommon')
     def query(self, limit=0, start=0, sort='lastTime', dir='desc', params=None,
-              archive=False, uid=None, criteria=()):
+              archive=False, uid=None):
         """
         Query for events.
 
@@ -129,9 +124,6 @@ class EventsRouter(DirectRouter):
                         of active events (default: False)
         @type  uid: string
         @param uid: (optional) Context for the query (default: None)
-        @type  criteria: [dictionary]
-        @param criteria: (optional) A list of key-value pairs to to build query's
-                         where clause (default: None)
         @rtype:   dictionary
         @return:  B{Properties}:
            - events: ([dictionary]) List of objects representing events
@@ -163,6 +155,8 @@ class EventsRouter(DirectRouter):
         if params:
             params = loads(params)
             filter = self.zep.createFilter(
+                uuid = params.get('evid'),
+                fingerprint = params.get('dedupid'),
                 summary = params.get('summary'),
                 event_class = params.get('eventClass'),
                 status = [i for i in params.get('eventState', [])],
@@ -532,6 +526,4 @@ class EventsRouter(DirectRouter):
         @rtype:   [dictionary]
         @return:  A list of objects representing field columns
         """
-        if uid is None:
-            uid = self.context
-        return column_config(self.api.fields(uid, archive), self.request)
+        return column_config(self.request, archive)

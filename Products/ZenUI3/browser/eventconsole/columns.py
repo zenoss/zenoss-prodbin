@@ -40,22 +40,26 @@ COLUMN_CONFIG = {
 
     'evid'      : dict(
         header='Event ID',
-        filter='textfield'),
+        filter='textfield',
+        sortable=True),
 
     'device'    : dict(
         header='Device',
         filter='textfield',
-        renderer='Zenoss.render.linkFromGrid'),
+        renderer='Zenoss.render.linkFromGrid',
+        sortable=True),
 
     'component' : dict(
         header='Component',
         filter='textfield',
-        renderer='Zenoss.render.DeviceComponent'),
+        renderer='Zenoss.render.DeviceComponent',
+        sortable=True),
 
     'eventClass': dict(
         header='Event Class',
         filter='textfield',
-        renderer='Zenoss.render.linkFromGrid'),
+        renderer='Zenoss.render.linkFromGrid',
+        sortable=True),
 
     'eventKey'  : dict(
         header='Event Key',
@@ -63,7 +67,8 @@ COLUMN_CONFIG = {
 
     'summary'   : dict(
         header='Summary',
-        filter='textfield'),
+        filter='textfield',
+        sortable=True),
 
     'message'   : dict(
         header='Message',
@@ -72,6 +77,7 @@ COLUMN_CONFIG = {
     'severity'  : dict(
         header='Severity',
         width=60,
+        sortable=True,
         filter={
             'xtype':'multiselectmenu',
             'text':'...',
@@ -102,8 +108,8 @@ COLUMN_CONFIG = {
     'eventState': dict(
         header='Status',
         width=60,
+        sortable=True,
         filter={
-            # Values are offset from actual values by -1
             'xtype':'multiselectmenu',
             'text':'...',
             'source':[{
@@ -147,10 +153,12 @@ COLUMN_CONFIG = {
 
     'stateChange': dict(
         header='State Change',
-        filter='datefield'),
+        filter='datefield',
+        sortable=True),
 
     'firstTime' : dict(
         header='First Seen',
+        sortable=True,
         filter={
             'xtype':'datefield',
             'format':'Y-m-d H:i:s'
@@ -160,6 +168,7 @@ COLUMN_CONFIG = {
 
     'lastTime'  : dict(
         header='Last Seen',
+        sortable=True,
         filter={
             'xtype':'datefield',
             'format':'Y-m-d H:i:s'
@@ -169,6 +178,7 @@ COLUMN_CONFIG = {
 
     'count'     : dict(
         header='Count',
+        sortable=True,
         width=60,
         filter={
             'xtype': 'textfield',
@@ -266,54 +276,92 @@ COLUMN_CONFIG = {
 }
 
 ARCHIVE_COLUMN_CONFIG = COLUMN_CONFIG.copy()
-ARCHIVE_COLUMN_CONFIG['eventState'] = dict(
-        header='Status',
-        width=60,
-        filter={
-            # Values are offset from actual values by -1
-            'xtype':'multiselectmenu',
-            'text':'...',
-            'source':[{
-                'value':STATUS_CLOSED,
-                'name':'Closed',
-            },
-            {
-                'value':STATUS_CLEARED,
-                'name':'Cleared',
-            },
-            {
-                'value':STATUS_AGED,
-                'name':'Aged',
-            }]
-        },
-        renderer='Zenoss.util.render_status'
-)
-ARCHIVE_COLUMN_CONFIG['severity'] = dict(
-        header='Severity',
-        width=60,
-        filter={
-            'xtype':'multiselectmenu',
-            'text':'...',
-            'source': [{
-                'value': SEVERITY_CRITICAL,
-                'name': 'Critical'
-            },{
-                'value': SEVERITY_ERROR,
-                'name': 'Error'
-            },{
-                'value': SEVERITY_WARNING,
-                'name': 'Warning'
-            },{
-                'value': SEVERITY_INFO,
-                'name':'Info'
-            },{
-                'value': SEVERITY_DEBUG,
-                'name':'Debug',
-                'checked':False
-            },{
-                'value': SEVERITY_CLEAR,
-                'name':'Clear',
-            }]
-        },
-        renderer='Zenoss.util.render_severity'
-)
+ARCHIVE_COLUMN_CONFIG['eventState']['filter'] = {
+    'xtype':'multiselectmenu',
+    'text':'...',
+    'source':[{
+        'value':STATUS_CLOSED,
+        'name':'Closed',
+    },
+    {
+        'value':STATUS_CLEARED,
+        'name':'Cleared',
+    },
+    {
+        'value':STATUS_AGED,
+        'name':'Aged',
+    }]
+}
+
+ARCHIVE_COLUMN_CONFIG['severity']['filter'] = {
+    'xtype':'multiselectmenu',
+    'text':'...',
+    'source': [{
+        'value': SEVERITY_CRITICAL,
+        'name': 'Critical'
+    },{
+        'value': SEVERITY_ERROR,
+        'name': 'Error'
+    },{
+        'value': SEVERITY_WARNING,
+        'name': 'Warning'
+    },{
+        'value': SEVERITY_INFO,
+        'name':'Info'
+    },{
+        'value': SEVERITY_DEBUG,
+        'name':'Debug',
+        'checked':False
+    },{
+        'value': SEVERITY_CLEAR,
+        'name':'Clear',
+    }]
+}
+
+DEFAULT_COLUMNS = [
+    'eventState',
+    'severity',
+    'device',
+    'component',
+    'eventClass',
+    'summary',
+    'firstTime',
+    'lastTime',
+    'count',
+]
+
+DEFAULT_COLUMN_ORDER = [
+    'evid',
+    'dedupid',
+
+    'eventState',
+    'severity',
+    'device',
+    'component',
+    'eventClass',
+    'summary',
+    'firstTime',
+    'lastTime',
+    'count',
+
+    'prodState',
+    'DevicePriority',
+    'stateChange',
+    'eventClassKey',
+    'eventGroup',
+    'eventKey',
+    'agent',
+    'monitor',
+    'ownerid',
+    'facility',
+    'priority',
+    'eventClassMapping',
+    'clearid',
+    'ntevid',
+    'ipAddress',
+    'message',
+    'Location',
+    'DeviceGroups',
+    'Systems',
+    'DeviceClass',
+]

@@ -21,9 +21,7 @@ from Products.Five.browser.pagetemplatefile import ViewPageTemplateFile
 
 from Products.ZenUtils.jsonutils import JavaScript, javascript
 from Products.ZenUI3.utils.javascript import JavaScriptSnippet
-from Products.ZenUI3.browser.eventconsole.columns import COLUMN_CONFIG, ARCHIVE_COLUMN_CONFIG
-from Products.Zuul import getFacade
-
+from Products.ZenUI3.browser.eventconsole.columns import COLUMN_CONFIG, ARCHIVE_COLUMN_CONFIG, DEFAULT_COLUMN_ORDER, DEFAULT_COLUMNS
 
 class EventConsoleView(BrowserView):
     __call__ = ViewPageTemplateFile('view-events.pt')
@@ -33,13 +31,13 @@ class HistoryConsoleView(BrowserView):
     __call__ = ViewPageTemplateFile('view-history-events.pt')
 
 
-def column_config(fields, request=None, archive=False):
+def column_config(request=None, archive=False):
     columns = COLUMN_CONFIG
     if archive:
         columns = ARCHIVE_COLUMN_CONFIG
 
     defs = []
-    for field in fields:
+    for field in DEFAULT_COLUMN_ORDER:
         col = columns[field].copy()
         if request:
             msg = _(col['header'])
@@ -48,7 +46,9 @@ def column_config(fields, request=None, archive=False):
         col['dataIndex'] = field
         if isinstance(col['filter'], basestring):
             col['filter'] = {'xtype':col['filter']}
-        col['sortable'] = True
+        col['sortable'] = col.get('sortable', False)
+        col['hidden'] = col.get('hidden', field not in DEFAULT_COLUMNS)
+
         if 'renderer' in col:
             col['renderer'] = JavaScript(col['renderer'])
 
@@ -67,7 +67,7 @@ class EventClasses(JavaScriptSnippet):
         Ext.onReady(function(){
             Zenoss.env.EVENT_CLASSES = %s;
         })
-        """ % paths;
+        """ % paths
 
 
 class GridColumnDefinitions(JavaScriptSnippet):
@@ -76,19 +76,15 @@ class GridColumnDefinitions(JavaScriptSnippet):
         last_path_item = self.request['PATH_INFO'].split('/')[-1]
         archive = last_path_item.lower().find('history') != -1 or last_path_item.lower().find('archive') != -1
 
-        api = getFacade('zep')
-        result = ["Ext.onReady(function(){Zenoss.env.COLUMN_DEFINITIONS=["]
-        fields = api.fields(self.context, archive=archive)
-        defs = column_config(fields, self.request, archive=archive)
+        result = ["Ext.onReady(function(){"]
+
+        defs = column_config(self.request, archive=archive)
+        result.append('Zenoss.env.COLUMN_DEFINITIONS=[')
         result.append(',\n'.join(defs))
         result.append('];')
-        auto_expand_column = "Zenoss.env.EVENT_AUTO_EXPAND_COLUMN='"
-        for field in fields:
-            if field == 'summary' :
-                auto_expand_column += 'summary'
-                break
-        auto_expand_column += "';});"
-        result.append(auto_expand_column)
-        result = '\n'.join(result)
-        return result
 
+        result.append("Zenoss.env.EVENT_AUTO_EXPAND_COLUMN='summary';")
+
+        result.append('});')
+
+        return '\n'.join(result)

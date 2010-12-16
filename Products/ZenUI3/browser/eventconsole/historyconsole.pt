@@ -458,15 +458,12 @@ Ext.onReady(function(){
     });
 
     // View to render the grid
-    var yesterday = new Date();
-    yesterday.setDate(yesterday.getDate() - 1);
     var myView = new Zenoss.FilterGridView({
         nearLimit : 20,
         filterbutton: 'showfilters',
         defaultFilters: {
-            severity: [5, 4, 3, 2],
-            eventState: [0, 1],
-            lastTime: yesterday
+            severity: [Zenoss.SEVERITY_CRITICAL, Zenoss.SEVERITY_ERROR, Zenoss.SEVERITY_WARNING, Zenoss.SEVERITY_INFO],
+            eventState: [Zenoss.STATUS_CLOSED, Zenoss.STATUS_CLEARED, Zenoss.STATUS_AGED]
         },
         rowcoloritem: 'rowcolors_checkitem',
         livesearchitem: 'livesearch_checkitem',

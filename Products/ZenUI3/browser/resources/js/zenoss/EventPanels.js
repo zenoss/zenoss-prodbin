@@ -307,8 +307,7 @@ Ext.reg('SimpleEventColumnModel', Zenoss.SimpleEventColumnModel);
 
 Zenoss.FullEventColumnModel = Ext.extend(Ext.grid.ColumnModel, {
     constructor: function(config){
-        // Zenoss.env.COLUMN_DEFINITIONS comes from the server, and depends on
-        // the resultFields associated with the context.
+        // Zenoss.env.COLUMN_DEFINITIONS comes from the server
         // FIXME: This shouldn't come from the server.
         config = Ext.applyIf(config || {}, {
             columns:Zenoss.env.COLUMN_DEFINITIONS
