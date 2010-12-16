@@ -464,11 +464,14 @@ class EventTagPipe(EventProcessorPipe):
         device = eventContext.deviceObject
         if device:
             for tagType, func in self.DEVICE_TAGGERS.iteritems():
-                obj = func(device)
-                if obj:
-                    uuids = self._manager.getUuidsOfPath(obj)
-                    if uuids:
-                        eventContext.eventProxy.tags.addAll(tagType, uuids)
+                objList = func(device)
+                if objList:
+                    if not isinstance(objList, list):
+                        objList = [objList]
+                    for obj in objList:
+                        uuids = self._manager.getUuidsOfPath(obj)
+                        if uuids:
+                            eventContext.eventProxy.tags.addAll(tagType, uuids)
 
             eventContext.eventProxy.tags.sync()
 
