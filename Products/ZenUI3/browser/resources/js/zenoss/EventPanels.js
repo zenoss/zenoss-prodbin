@@ -56,8 +56,10 @@ Zenoss.EventPanelSelectionModel = Ext.extend(Zenoss.ExtraHooksSelectionModel, {
 
         for (var i = start; i <= end; i++) {
             record = this.grid.store.getAt(i);
-            if (state === 'All' || record.data.eventState == state) {
-                this.selectRow(i, true);
+            if (record) {
+                if (state === 'All' || record.data.eventState == state) {
+                    this.selectRow(i, true);
+                }
             }
         }
 
@@ -200,6 +202,7 @@ Zenoss.EventPanelSelectionModel = Ext.extend(Zenoss.ExtraHooksSelectionModel, {
 // the column model for the device grid
 Zenoss.EventStore = Ext.extend(Ext.ux.grid.livegrid.Store, {
     constructor: function(config){
+
         Ext.applyIf(config, {
             proxy: new Ext.data.DirectProxy({
                 directFn: Zenoss.remote.EventsRouter.query

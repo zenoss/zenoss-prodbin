@@ -32,6 +32,7 @@ from zenoss.protocols.protobufs.zep_pb2 import (
 )
 
 import logging
+log = logging.getLogger("zen.eventd")
 
 class ProcessingException(Exception):
     def __init__(self, message, event):
@@ -474,5 +475,4 @@ class EventTagPipe(EventProcessorPipe):
                             eventContext.eventProxy.tags.addAll(tagType, uuids)
 
             eventContext.eventProxy.tags.sync()
-
         return eventContext

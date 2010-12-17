@@ -102,7 +102,8 @@ class DeviceFacade(TreeFacade):
             compType['count'] += 1
 
         # Do one big lookup of component events and merge back in to type later
-
+        if not uuidMap:
+            return []
         zep = getFacade('zep')
         severities = zep.getWorstSeverity(uuidMap.keys())
         for uuid, sev in severities.iteritems():

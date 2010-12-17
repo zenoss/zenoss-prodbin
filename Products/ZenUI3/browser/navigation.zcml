@@ -63,7 +63,7 @@
         weight="2"
         manager="..navigation.interfaces.IPrimaryNavigationMenu"
         class="..navigation.menuitem.PrimaryNavigationMenuItem"
-        permission="zenoss.View"
+        permission="zenoss.Common"
         layer="..navigation.interfaces.IZenossNav"
         />
 

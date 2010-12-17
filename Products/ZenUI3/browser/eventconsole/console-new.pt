@@ -6,6 +6,9 @@
 <tal:block metal:fill-slot="detail_panel_content">
 </tal:block>
 
+<tal:block metal:fill-slot="title">
+  Events
+</tal:block>
 
 <tal:block metal:fill-slot="script_beforeLayout">
 <link rel="stylesheet"

@@ -510,34 +510,47 @@ Ext.onReady(function(){
         filterbutton: 'showfilters',
         defaultFilters: {
             severity: [Zenoss.SEVERITY_CRITICAL, Zenoss.SEVERITY_ERROR, Zenoss.SEVERITY_WARNING, Zenoss.SEVERITY_INFO],
-            eventState: [Zenoss.STATUS_NEW, Zenoss.STATUS_ACKNOWLEDGED]
+            eventState: [Zenoss.STATUS_NEW, Zenoss.STATUS_ACKNOWLEDGED],
+            // _managed_objects is a global function sent from the server, see ZenUI3/security/security.py
+            tags: _managed_objects()
         },
         rowcoloritem: 'rowcolors_checkitem',
         livesearchitem: 'livesearch_checkitem',
         loadMask  : { msg :  'Loading. Please wait...' }
     });
 
+    function disableEventConsoleButtons() {
+        var disabled = Zenoss.Security.doesNotHavePermission('Manage Events');
+        var buttonIds = [
+            'ack-button',
+            'close-button',
+            'classify-button',
+            'unack-button',
+            'add-button'
+        ];
+        Ext.each(buttonIds, function(buttonId) {
+            var button = Ext.getCmp(buttonId);
+            button.setDisabled(disabled);
+        });
+    }
+
     var console_store = new Zenoss.EventStore({
         autoLoad: true,
         proxy: new Zenoss.ThrottlingProxy({
-            directFn:Zenoss.remote.EventsRouter.query,
+            directFn: Zenoss.remote.EventsRouter.query,
             listeners: {
                 'load': function(proxy, transaction, options) {
-                    var disabled = Zenoss.Security.doesNotHavePermission('Manage Events');
-                    var buttonIds = [
-                        'ack-button',
-                        'close-button',
-                        'classify-button',
-                        'unack-button',
-                        'add-button'
-                    ];
-                    Ext.each(buttonIds, function(buttonId) {
-                        var button = Ext.getCmp(buttonId);
-                        button.setDisabled(disabled);
-                    });
+                   disableEventConsoleButtons();
                 }}
         })
     });
+
+    // if the user has no global roles and does not have any admin. objects
+    // do not show any events.
+    if (!_has_global_roles() && _managed_objects().length == 0){
+        console_store = new Ext.ux.grid.livegrid.Store({});
+        disableEventConsoleButtons();
+    }
 
     // Selection model
     var console_selection_model = new Zenoss.EventPanelSelectionModel();

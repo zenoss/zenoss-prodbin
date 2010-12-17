@@ -1621,6 +1621,7 @@ Zenoss.DetailPanel = Ext.extend(Ext.Panel, {
         if (this.isPropsVisible)
             Ext.getCmp('full_event_props').show();
         Ext.getCmp('log-container').show();
+
     },
     isPropsVisible: false,
     showProps: function(){

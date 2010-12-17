@@ -29,35 +29,35 @@
         name="viewEvents"
         for="Products.ZenModel.EventView.IEventView"
         class=".grid.EventConsoleView"
-        permission="zope2.Public"
+        permission="zenoss.Common"
         />
 
     <browser:page
         name="evconsole"
         for="Products.ZenModel.EventView.IEventView"
         template="console-new.pt"
-        permission="zope2.Public"
+        permission="zenoss.Common"
         />
 
     <browser:page
         name="viewHistoryEvents"
         for="Products.ZenModel.EventView.IEventView"
         class=".grid.HistoryConsoleView"
-        permission="zope2.Public"
+        permission="zenoss.Common"
         />
 
     <browser:page
         name="evhistory"
         for="Products.ZenModel.EventView.IEventView"
         template="historyconsole-new.pt"
-        permission="zope2.Public"
+        permission="zenoss.Common"
         />
 
     <browser:page
         name="viewDetail"
         for="Products.ZenModel.EventView.IEventView"
         template="detail.pt"
-        permission="zenoss.View"
+        permission="zenoss.Common"
         />
 
     <browser:page

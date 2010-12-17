@@ -1525,7 +1525,7 @@ Ext.onReady(function () {
         }
     });
     Ext.reg('TriggersGridPanel', TriggersGridPanel);
-
+    
     Ext.getCmp('center_panel').add({
         id: 'center_panel_container',
         layout: 'border',
