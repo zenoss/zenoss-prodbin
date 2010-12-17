@@ -439,7 +439,7 @@ class EventPluginPipe(EventProcessorPipe):
     def __init__(self, manager):
         super(EventPluginPipe, self).__init__(manager)
 
-        self._eventPlugins = getUtilitiesFor(IEventPlugin)
+        self._eventPlugins = tuple(getUtilitiesFor(IEventPlugin))
 
     def __call__(self, eventContext):
         for name, plugin in self._eventPlugins:
