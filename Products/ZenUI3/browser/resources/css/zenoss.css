@@ -330,8 +330,8 @@ div.zenportlet .severity-icon-small.clear,
 .tree-severity-icon-small-warning,
 .tree-severity-icon-small-info,
 .tree-severity-icon-small-debug,
-.tree-severity-icon-small-clear, 
-.tree-template-icon-component, 
+.tree-severity-icon-small-clear,
+.tree-template-icon-component,
 .tree-template-icon-bound,
 .tree-template-icon-bound-span,
 .tree-template-icon-component-span {
@@ -1138,4 +1138,16 @@ a.z-entity:visited {
 
 .rule-builder {
     border-right: 2px solid #f2f2f3;
+}
+
+/*
+If you have an organizer with no children set the iconCls to folder. and
+it will appear as an empty folder.
+*/
+.x-tree-node img.folder, .x-tree-node-collapsed img.folder{
+    background: url("/++resource++extjs/resources/images/default/tree/folder.gif")
+}
+
+.x-tree-node-expanded img.folder {
+    background: url("/++resource++extjs/resources/images/default/tree/folder-open.gif")
 }
