@@ -459,47 +459,78 @@ class EventsRouter(DirectRouter):
 
         return DirectResponse.succeed(evid=event.evid)
 
+    def _convertSeverityToNumber(self, sev):
+        return EventSeverity.getNumber(sev)
+
+    def _convertSeverityToName(self, sevId):
+        return EventSeverity.getName(sevId)
+
+    @property
     def configSchema(self):
-        configSchema = [
-                {
-                    'id': 'event_age_disable_severity',
-                    'name': _t('Event Age Disable Severity'),
-                    'xtype': 'severity',
-                }, {
-                    'id': 'event_age_interval_minutes',
-                    'name': _t('Event Age Interval (minutes)'),
-                    'xtype': 'numberfield',
-                    'allowNegative': False,
-                }, {
-                    'id': 'event_archive_purge_interval_days',
-                    'maxValue': 1000,
-                    'name': _t('Event Archive Purge Interval (days)'),
-                    'xtype': 'numberfield',
-                    'allowNegative': False,
-                }, {
-                    'id': 'event_occurrence_purge_interval_days',
-                    'maxValue': 250,
-                    'name': _t('Event Occurrence Purge Interval (Days)'),
-                    'xtype': 'numberfield',
-                    'allowNegative': False,
-                }
-        ]
+        configSchema =[{
+                'id': 'event_age_disable_severity',
+                'name': _t("Don't Age This Severity and Above"),
+                'xtype': 'severity',
+                'fromZep': self._convertSeverityToNumber,
+                'toZep': self._convertSeverityToName,
+                },{
+                'id': 'event_age_interval_minutes',
+                'name': _t('Event Aging Threshold (minutes)'),
+                'xtype': 'numberfield',
+                'minValue': 60,
+                'allowNegative': False,
+                },{
+                'id': 'event_archive_interval_days',
+                'name': _t('Event Archive Interval (days)'),
+                'xtype': 'numberfield',
+                'minValue': 1,
+                'maxValue': 30,
+                'allowNegative': False,
+                },{
+                'id': 'event_archive_purge_interval_days',
+                'maxValue': 90,
+                'name': _t('Delete Historical Events Older Than (days)'),
+                'xtype': 'numberfield',
+                'allowNegative': False,
+                },{
+                'id': 'event_occurrence_purge_interval_days',
+                'maxValue': 30,
+                'name': _t('Event Occurrence Purge Interval (days)'),
+                'xtype': 'numberfield',
+                'allowNegative': False,
+                },{
+                'id': 'default_syslog_priority',
+                'name': _t('Default Syslog Priority'),
+                'xtype': 'numberfield',
+                'allowNegative': False,
+                'value': self.context.dmd.ZenEventManager.defaultPriority
+                }]
         return configSchema
 
-    @require('ZenCommon')
-    def getConfig(self):
-        data = self.zep.getConfig()
-        config = self.configSchema()
-        # copy the values and defaults from ZEP to our schema
+    def _mergeSchemaAndZepConfig(self, data, config):
+        """
+        Copy the values and defaults from ZEP to our schema
+        """
         for conf in config:
+            if not data.get(conf['id']):
+                continue
             prop = data[conf['id']]
             for key in prop.keys():
                 conf[key] = prop[key]
             # our drop down expects severity to be the number constant
-            if conf['id'] == 'event_age_disable_severity':
-                conf['defaultValue'] = EventSeverity.getNumber(prop['defaultValue'])
+            if conf.get('fromZep'):
+                conf['defaultValue'] = conf['fromZep']((prop['defaultValue']))
                 if prop['value']:
-                    conf['value'] = EventSeverity.getNumber(prop['value'])
+                    conf['value'] = conf['fromZep']((prop['value']))
+                del conf['fromZep']
+            if conf.get('toZep'):
+                del conf['toZep']
+        return config
+
+    @require('ZenCommon')
+    def getConfig(self):
+        data = self.zep.getConfig()
+        config = self._mergeSchemaAndZepConfig(data, self.configSchema)
         return DirectResponse.succeed(data=config)
 
     @require('Manage DMD')
@@ -508,9 +539,16 @@ class EventsRouter(DirectRouter):
         @type  values: Dictionary
         @param values: Key Value pairs of config values
         """
-        if values.get('event_age_disable_severity'):
-            sev = values.get('event_age_disable_severity')
-            values['event_age_disable_severity'] = EventSeverity.getName(sev)
+        for config in self.configSchema:
+            id = config['id']
+            if config.get('toZep'):
+                values[id] = config['toZep'](values[id])
+
+        # we store default syslog priority on the event manager
+        if values.get('default_syslog_priority'):
+            pri = values.get('default_syslog_priority')
+            self.context.dmd.ZenEventManager.defaultPriority = pri
+            del values['default_syslog_priority']
         self.zep.setConfigValues(values)
         return DirectResponse.succeed()
 
