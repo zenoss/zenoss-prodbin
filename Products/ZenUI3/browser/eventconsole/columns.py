@@ -53,7 +53,7 @@ COLUMN_CONFIG = {
     'component' : dict(
         header='Component',
         filter='textfield',
-        renderer='Zenoss.render.DeviceComponent',
+        renderer='Zenoss.render.linkFromGrid',
         sortable=True),
 
     'eventClass': dict(
