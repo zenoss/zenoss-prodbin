@@ -32,6 +32,7 @@ import zope.component
 from twisted.internet import defer, error
 
 from Products.ZenCollector.interfaces import IScheduledTask,\
+                                             ICollector,\
                                              IStatisticsService
 from Products.ZenCollector.tasks import TaskStates
 from Products.ZenUtils.observable import ObservableMixin
@@ -51,8 +52,7 @@ class TracerouteTask(ObservableMixin):
                  taskName,
                  configId=None,
                  scheduleIntervalSeconds=60,
-                 taskConfig=None,
-                 daemonRef=None):
+                 taskConfig=None):
         """
         @param deviceId: the Zenoss deviceId to watch
         @type deviceId: string
@@ -62,7 +62,6 @@ class TracerouteTask(ObservableMixin):
                collected
         @type scheduleIntervalSeconds: int
         @param taskConfig: the configuration for this task
-        @param daemonRef: a reference to the daemon
         """
         super(TracerouteTask, self).__init__()
 
@@ -76,9 +75,8 @@ class TracerouteTask(ObservableMixin):
             raise TypeError("taskConfig cannot be None")
         self._preferences = taskConfig
 
-        if daemonRef is None:
-            raise TypeError("daemonRef cannot be None")
-        self._daemon = daemonRef
+        self._daemon = zope.component.getUtility(ICollector)
+
         self._notModeled = self._daemon.network.notModeled
         self._traceTimedOut = self._daemon.network.traceTimedOut
         self._errorDevices = []

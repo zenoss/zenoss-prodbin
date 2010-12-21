@@ -160,14 +160,12 @@ class PingCollectionPreferences(object):
 
         # Start modeling network topology
         task = TracerouteTask(TOPOLOGY_MODELER_NAME,
-                                   taskConfig=daemon._prefs,
-                                   daemonRef=daemon)
+                                   taskConfig=daemon._prefs)
         daemon._scheduler.addTask(task, now=True)
 
         # Start the event correlator
         task = TopologyCorrelatorTask(TOPOLOGY_CORRELATOR_NAME,
-                                   taskConfig=daemon._prefs,
-                                   daemonRef=daemon)
+                                   taskConfig=daemon._prefs)
         daemon._scheduler.addTask(task, now=True)
 
     def preShutdown(self):

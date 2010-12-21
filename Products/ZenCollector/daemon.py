@@ -384,8 +384,7 @@ class CollectorDaemon(RRDDaemon):
 
     def _startConfigCycle(self, result=None):
         configLoader = self._ConfigurationLoaderTask(CONFIG_LOADER_NAME,
-                                               taskConfig=self._prefs,
-                                               daemonRef=self)
+                                               taskConfig=self._prefs)
         # Run initial maintenance cycle as soon as possible
         # TODO: should we not run maintenance if running in non-cycle mode?
         self._scheduler.addTask(configLoader, now=True)

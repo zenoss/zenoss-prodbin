@@ -133,8 +133,7 @@ class ConfigurationLoaderTask(ObservableMixin):
                  name,
                  configId=None,
                  scheduleIntervalSeconds=None,
-                 taskConfig=None,
-                 daemonRef=None):
+                 taskConfig=None):
         super(ConfigurationLoaderTask, self).__init__()
 
         # Needed for interface
@@ -151,9 +150,7 @@ class ConfigurationLoaderTask(ObservableMixin):
         self.interval = self._prefs.configCycleInterval * 60
         self.options = self._prefs.options
 
-        if daemonRef is None:
-            raise TypeError("daemonRef cannot be None")
-        self._daemon = daemonRef
+        self._daemon = zope.component.getUtility(ICollector)
         self._daemon.heartbeatTimeout = self._prefs.cycleInterval * 3
         log.debug("Heartbeat timeout set to %ds", self._daemon.heartbeatTimeout)
 

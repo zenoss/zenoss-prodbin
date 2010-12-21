@@ -43,6 +43,7 @@ import zope.component
 from twisted.internet import defer
 
 from Products.ZenCollector.interfaces import IDataService,\
+                                             ICollector,\
                                              IEventService,\
                                              IScheduledTask
 from Products.ZenCollector.tasks import BaseTask,\
@@ -65,8 +66,7 @@ class TopologyCorrelatorTask(BaseTask):
                  taskName,
                  configId=None,
                  scheduleIntervalSeconds=60,
-                 taskConfig=None,
-                 daemonRef=None):
+                 taskConfig=None):
         """
         @param deviceId: the Zenoss deviceId to watch
         @type deviceId: string
@@ -76,7 +76,6 @@ class TopologyCorrelatorTask(BaseTask):
                collected
         @type scheduleIntervalSeconds: int
         @param taskConfig: the configuration for this task
-        @param daemonRef: a reference to the daemon
         """
         super(TopologyCorrelatorTask, self).__init__()
 
@@ -90,9 +89,7 @@ class TopologyCorrelatorTask(BaseTask):
             raise TypeError("taskConfig cannot be None")
         self._preferences = taskConfig
 
-        if daemonRef is None:
-            raise TypeError("daemonRef cannot be None")
-        self._daemon = daemonRef
+        self._daemon = zope.component.getUtility(ICollector)
         self._topology = self._daemon.network.topology
         self._downDevices = self._daemon.network.downDevices
         self._notModeled = self._daemon.network.notModeled
