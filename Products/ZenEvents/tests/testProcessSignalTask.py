@@ -26,6 +26,8 @@ log = logging.getLogger('signalProcessorTest')
 from zenoss.protocols.protobufs.zep_pb2 import Signal
 from Products.ZenEvents.zenactiond import ProcessSignalTask, NotificationDao, TargetableAction
 from Products.ZenModel.NotificationSubscription import NotificationSubscription
+from Products.ZenTestCase.BaseTestCase import BaseTestCase
+
 
 class MockNotificationSubscription(NotificationSubscription):
     def __init__(self, id):
@@ -121,12 +123,11 @@ class MockAction(TargetableAction):
         # can test who would have recieved this notification/action.
         self.result.append(target['value'])
 
-class ProcessSignalTaskTest(unittest.TestCase):
-        
+class ProcessSignalTaskTest(BaseTestCase):
+    
     def setUp(self):
-        dmd = Zope2.app().zport.dmd
         self.mockDao = MockNotificationDao()
-        self.taskProcessor = ProcessSignalTask(self.mockDao, dmd)
+        self.taskProcessor = ProcessSignalTask(self.mockDao)
         
         self.emailAction = MockAction()
         self.pageAction = MockAction()
@@ -175,6 +176,8 @@ class ProcessSignalTaskTest(unittest.TestCase):
         
         assert self.emailAction.result == []
         
-
-if __name__ == '__main__':
-    unittest.main()
+def test_suite():
+    from unittest import TestSuite, makeSuite
+    suite = TestSuite()
+    suite.addTest(makeSuite(ProcessSignalTaskTest))
+    return suite

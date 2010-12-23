@@ -272,8 +272,9 @@ def getUndeleteUrl(evid, device=None):
 class TargetableAction(object):
     implements(IAction)
     
-    def __init__(self):
-        self.guidManager = GUIDManager(Zope2.app().zport.dmd)    
+    def __init__(self, dmd):
+        self.dmd = dmd
+        self.guidManager = GUIDManager(self.dmd)
     
     def getTargets(self, notification):
         targets = set([])
@@ -315,14 +316,14 @@ class TargetableAction(object):
 
 class EmailAction(TargetableAction):
     
-    def __init__(self, email_from, host, port, useTls, user, password):
+    def __init__(self, dmd, email_from, host, port, useTls, user, password):
         self.email_from = email_from
         self.host = host
         self.port = port
         self.useTls = useTls
         self.user = user
         self.password = password
-        super(EmailAction, self).__init__()
+        super(EmailAction, self).__init__(dmd)
     
     def executeOnTarget(self, notification, signal, target):
         log.debug('Executing action: Email')
@@ -403,9 +404,9 @@ class EmailAction(TargetableAction):
 
 class PageAction(TargetableAction):
     
-    def __init__(self, page_command=None):
+    def __init__(self, dmd, page_command=None):
         self.page_command = page_command
-        super(PageAction, self).__init__()
+        super(PageAction, self).__init__(dmd)
     
     def executeOnTarget(self, notification, signal, target):
         """
@@ -523,7 +524,7 @@ class CommandAction(object):
 class ProcessSignalTask(object):
     implements(IQueueConsumerTask)
 
-    def __init__(self, notificationDao, dmd):
+    def __init__(self, notificationDao):
         self.notificationDao = notificationDao
         
         # set by the constructor of queueConsumer
@@ -600,7 +601,7 @@ class ProcessSignalTask(object):
 
 class ZenActionD(ZCmdBase):
     def run(self):
-        task = ProcessSignalTask(NotificationDao(self.dmd), self.dmd)
+        task = ProcessSignalTask(NotificationDao(self.dmd))
           
         # FIXME: Make this parameter an option on the daemon.
         # 10 is the number of parallel processes to use.
@@ -608,15 +609,16 @@ class ZenActionD(ZCmdBase):
         self._processQueue.start()
         
         email_action = EmailAction(
-            email_from = dmd.getEmailFrom(),
-            host = dmd.smtpHost,
-            port = dmd.smtpPort,
-            useTls = dmd.smtpUseTLS,
-            user = dmd.smtpUser,
-            password = dmd.smtpPass
+            dmd = self.dmd,
+            email_from = self.dmd.getEmailFrom(),
+            host = self.dmd.smtpHost,
+            port = self.dmd.smtpPort,
+            useTls = self.dmd.smtpUseTLS,
+            user = self.dmd.smtpUser,
+            password = self.dmd.smtpPass
         )
         task.registerAction('email', email_action)
-        task.registerAction('page', PageAction(page_command=dmd.pageCommand))
+        task.registerAction('page', PageAction( dmd=self.dmd, page_command=self.dmd.pageCommand))
         task.registerAction('command', CommandAction(self._processQueue))
         
         self._consumer = QueueConsumerProcess(task)
