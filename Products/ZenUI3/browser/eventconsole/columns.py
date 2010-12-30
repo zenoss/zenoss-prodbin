@@ -257,7 +257,9 @@ COLUMN_CONFIG = {
 
     'ownerid': dict(
         header='Owner',
-        filter='textfield'),
+        filter='textfield',
+        sortable=True
+    ),
 
     'clearid': dict(
         header='Clear ID',

@@ -51,6 +51,7 @@ class ZepFacade(ZuulFacade):
         'component' : EventSort.ELEMENT_SUB_IDENTIFIER,
         'count' : EventSort.COUNT,
         'summary' : EventSort.EVENT_SUMMARY,
+        'ownerid' : EventSort.ACKNOWLEDGED_BY_USER_NAME
     }
 
     _sortDirectionMap  = {
@@ -207,13 +208,13 @@ class ZepFacade(ZuulFacade):
     def closeEventSummary(self, uuid):
         return self.client.closeEventSummary(uuid)
 
-    def acknowledgeEventSummary(self, uuid, userName=None, userUuid=None):
+    def acknowledgeEventSummary(self, uuid, userUuid=None, userName=None):
         if userName and not userUuid:
             userUuid = self._getUserUuid(userName)
             if not userUuid:
                 raise Exception('Could not find user "%s"' % userName)
 
-        return self.client.acknowledgeEventSummary(uuid, userUuid)
+        return self.client.acknowledgeEventSummary(uuid, userUuid, userName)
 
     def reopenEventSummary(self, uuid):
         return self.client.reopenEventSummary(uuid)

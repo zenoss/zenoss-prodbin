@@ -52,6 +52,7 @@ class EventsRouter(DirectRouter):
 
     def _mapToOldEvent(self, event_summary):
         eventOccurrence = event_summary['occurrence'][0]
+        eventActor = eventOccurrence['actor']
 
         eventClass = eventOccurrence['event_class']
 
@@ -59,16 +60,16 @@ class EventsRouter(DirectRouter):
             'id' : event_summary['uuid'],
             'evid' : event_summary['uuid'],
             'device' : {
-                'text': eventOccurrence['actor'].get('element_identifier', None),
+                'text': eventActor.get('element_identifier', None),
                 'uid': None,
-                'url' : self._uuidUrl(eventOccurrence['actor'].get('element_uuid', None)),
-                'uuid' : eventOccurrence['actor'].get('element_uuid', None)
+                'url' : self._uuidUrl(eventActor.get('element_uuid', None)),
+                'uuid' : eventActor.get('element_uuid', None)
             },
             'component' : {
-                'text': eventOccurrence['actor'].get('element_sub_identifier', None),
+                'text': eventActor.get('element_sub_identifier', None),
                 'uid': None,
-                'url' : self._uuidUrl(eventOccurrence['actor'].get('element_sub_uuid', None)),
-                'uuid' : eventOccurrence['actor'].get('element_sub_uuid', None)
+                'url' : self._uuidUrl(eventActor.get('element_sub_uuid', None)),
+                'uuid' : eventActor.get('element_sub_uuid', None)
             },
             'firstTime' : isoDateTimeFromMilli(event_summary['first_seen_time']),
             'lastTime' : isoDateTimeFromMilli(event_summary['last_seen_time'] ),
@@ -78,6 +79,7 @@ class EventsRouter(DirectRouter):
             'severity' : eventOccurrence['severity'],
             'eventState' : EventStatus.getPrettyName(event_summary['status']),
             'count' : event_summary['count'],
+            'ownerid': event_summary.get('acknowledged_by_user_name', None)
         }
 
         return event
@@ -373,7 +375,7 @@ class EventsRouter(DirectRouter):
             uid = self.context
 
         userName = getSecurityManager().getUser().getId()
-        self.zep.acknowledgeEventSummary(evids[0], userName=userName)
+        self.zep.acknowledgeEventSummary(evids[0], userName = userName)
         return DirectResponse.succeed()
 
     @require('Manage Events')
