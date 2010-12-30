@@ -79,7 +79,9 @@ class EventsRouter(DirectRouter):
             'severity' : eventOccurrence['severity'],
             'eventState' : EventStatus.getPrettyName(event_summary['status']),
             'count' : event_summary['count'],
-            'ownerid': event_summary.get('acknowledged_by_user_name', None)
+            'ownerid': event_summary.get('acknowledged_by_user_name', None),
+            'dedupid': eventOccurrence.get('fingerprint', None),
+            'agent': eventOccurrence.get('agent', None),
         }
 
         return event
