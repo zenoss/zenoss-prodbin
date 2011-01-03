@@ -1,7 +1,9 @@
 (function() {
 
     var ZF = Ext.ns('Zenoss.form.rule'),
-        conjunctions_inverse = {};
+         unparen=/^\((.*)\)$/,
+         nested=/\)( and | or )\(/,
+         conjunctions_inverse = {};
 
     ZF.CONJUNCTIONS = {
         any: {
@@ -250,7 +252,8 @@
                 pred = this.predicate.getValue();
             if (!field || !sub || !pred) { return; }
             var cmp = ZF.COMPARISONS[field.value];
-            return String.format(cmp.tpl, this.getBuilder().prefix + sub, Ext.encode(pred));
+            var clause = String.format(cmp.tpl, this.getBuilder().prefix + sub, Ext.encode(pred));
+            return String.format("({0})", clause);
         },
         setValue: function(expression) {
             for (var cmp in comparison_patterns) {
@@ -382,24 +385,23 @@
         },
         getValue: function() {
             var values = [],
-                joiner = ZF.CONJUNCTIONS[this.conjunction.getValue()].tpl;
-            if (this.clauses.items.items.length==1) {
-                // If there's only one, we don't want to wrap it in the extra
-                // parens, so treat it like it's just a regular clause
-                return this.clauses.items.items[0].getValue();
-            } else {
-                Ext.each(this.clauses.items.items, function(clause) {
-                    var value = clause.getValue();
-                    if (value) {
-                        values.push(String.format("({0})", value));
-                    }
-                }, this);
-                return values.join(joiner);
+                joiner = ZF.CONJUNCTIONS[this.conjunction.getValue()].tpl,
+                result;
+            Ext.each(this.clauses.items.items, function(clause) {
+                var value = clause.getValue();
+                if (value) {
+                    values.push(value);
+                }
+            }, this);
+            result = values.join(joiner);
+            if (this.clauses.items.items.length > 1) {
+                result = String.format('({0})', result);
             }
+            return result;
         },
         setValue: function(expression) {
-            var c, q, i=0, p=0, tokens=[], token=[], 
-                unparen=/\((.*)\)/, funcflag=false;
+            var c, q, i=0, p=0, tokens=[], token=[],
+                funcflag=false;
             c = expression.charAt(i);
             var savetoken = function() {
                 var v = token.join('').trim();
@@ -446,10 +448,6 @@
                         } else {
                             p--;
                         }
-                    /*
-                    } else if (expression[i+1]!='('){
-                        continue;
-                    */
                     }
                     if (p===0) {
                         savetoken();
@@ -469,8 +467,7 @@
                         if (conjunction = conjunctions_inverse[t]){
                              this.conjunction.setValue(conjunction);
                              return;
-                        } else if (/( and | or )/.test(t)) {
-                            // TODO: This condition isn't good enough because of strings
+                        } else if (nested.test(t)) {
                             // Nested rule
                             rule = this.clauses.add({xtype:'nestedrule'});
                         } else {
@@ -515,7 +512,14 @@
             this.addEvents('rulechange');
         },
         getValue: function() {
-            return this.rootrule.getValue();
+            var result = this.rootrule.getValue();
+            if (result && nested.test(result)) {
+                // There will be one extra paren set wrapping the clause as a
+                // whole that is hard to prevent earlier than this; don't save
+                // it, as it will be treated as an unnecessary nested rule
+                result = unparen.exec(result)[1];
+            }
+            return result;
         },
         setValue: function(expression) {
             if (!expression) {
