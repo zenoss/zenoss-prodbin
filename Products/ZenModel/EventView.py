@@ -21,6 +21,9 @@ from zope.interface import Interface, implements
 
 from Products.ZenUtils.FakeRequest import FakeRequest
 from Products.ZenUtils.Utils import unused
+from Products.Zuul import getFacade
+from Products.Zuul.decorators import deprecated
+from Products.ZenUtils.guid.interfaces import IGlobalIdentifier
 
 
 class IEventView(Interface):
@@ -29,11 +32,16 @@ class IEventView(Interface):
     """
 
 class EventView(object):
-
+    """
+    This class provides convenience methods for retrieving events to any subclass. Note that
+    this class is currently transitioning between the old event system and ZEP. Most of the methods
+    are marked as deprecated except those that go through ZEP.
+    """
     implements(IEventView)
 
     security = ClassSecurityInfo()
 
+    @deprecated
     def getEventManager(self, table='status'):
         """Return the current event manager for this object.
         """
@@ -41,22 +49,21 @@ class EventView(object):
             return self.ZenEventHistory
         return self.ZenEventManager
 
-
+    @deprecated
     def getEventHistory(self):
         """Return the current event history for this object.
         """
         return self.ZenEventHistory
 
-
+    @deprecated
     def getStatus(self, statusclass=None, **kwargs):
         """Return the status number for this device of class statClass.
         """
         try:
             return self.getEventManager().getStatusME(self, statusclass=statusclass, **kwargs)
-        except MySQLError: 
+        except MySQLError:
             log.exception("exception getting status")
             return -1
-
 
     def getStatusString(self, statclass, **kwargs):
         """Return the status number for this device of class statClass.
@@ -65,7 +72,7 @@ class EventView(object):
         f = self.getStatus
         return self.convertStatus(f(statclass, **kwargs))
 
-
+    @deprecated
     def getEventSummary(self, severity=1, state=1, prodState=None):
         """Return an event summary list for this managed entity.
         """
@@ -76,19 +83,17 @@ class EventView(object):
         """
         return self.getEventManager().getEventOwnerListME(self, severity, state)
 
-
     def getStatusImgSrc(self, status):
         ''' Return the image source for a status number
         '''
         return self.getEventManager().getStatusImgSrc(status)
 
-
     def getStatusCssClass(self, status):
         """Return the css class for a status number.
         """
-        return self.getEventManager().getStatusCssClass(status) 
+        return self.getEventManager().getStatusCssClass(status)
 
-    
+    @deprecated
     def getEventDetail(self, evid=None, dedupid=None, better=False):
         """
         Return an EventDetail for an event on this object.
@@ -96,23 +101,24 @@ class EventView(object):
         evt = self.getEventManager().getEventDetail(evid, dedupid, better)
         return evt.__of__(self)
 
-
-    def getEventDetailFromStatusOrHistory(self, evid=None, 
+    @deprecated
+    def getEventDetailFromStatusOrHistory(self, evid=None,
                                             dedupid=None, better=False):
         """
         Return the event detail for an event within the context of a device
-        or other device organizer 
+        or other device organizer
         """
         evt = self.getEventManager().getEventDetailFromStatusOrHistory(
                                         evid, dedupid, better)
         return evt.__of__(self)
-        
-        
+
+    @deprecated
     def convertEventField(self, field, value, default=""):
         return self.getEventManager().convertEventField(field, value, default)
 
 
     security.declareProtected('Manage Events','manage_addLogMessage')
+    @deprecated
     def manage_addLogMessage(self, evid=None, message='', REQUEST=None):
         """
         Add a log message to an event
@@ -120,8 +126,8 @@ class EventView(object):
         self.getEventManager().manage_addLogMessage(evid, message)
         if REQUEST: return self.callZenScreen(REQUEST)
 
-
     security.declareProtected('Manage Events','manage_deleteEvents')
+    @deprecated
     def manage_deleteEvents(self, evids=(), REQUEST=None):
         """Delete events form this managed entity.
         """
@@ -138,26 +144,27 @@ class EventView(object):
 
 
     security.declareProtected('Manage Events','manage_deleteBatchEvents')
+    @deprecated
     def manage_deleteBatchEvents(self, selectstatus='none', goodevids=[],
-                                    badevids=[], filter='', 
-                                    offset=0, count=50, fields=[], 
-                                    getTotalCount=True, 
+                                    badevids=[], filter='',
+                                    offset=0, count=50, fields=[],
+                                    getTotalCount=True,
                                     startdate=None, enddate=None,
                                     severity=2, state=1, orderby='',
                                     REQUEST=None, **kwargs):
         """Delete events form this managed entity.
         """
         unused(count)
-        evids = self.getEventManager().getEventBatchME(self, 
+        evids = self.getEventManager().getEventBatchME(self,
                                             selectstatus=selectstatus,
-                                            goodevids=goodevids, 
-                                            badevids=badevids, 
+                                            goodevids=goodevids,
+                                            badevids=badevids,
                                             filter=filter,
                                             offset=offset, fields=fields,
                                             getTotalCount=getTotalCount,
-                                            startdate=startdate, 
+                                            startdate=startdate,
                                             enddate=enddate, severity=severity,
-                                            state=state, orderby=orderby, 
+                                            state=state, orderby=orderby,
                                             **kwargs)
         request = FakeRequest()
         self.manage_deleteEvents(evids, request)
@@ -165,6 +172,7 @@ class EventView(object):
 
 
     security.declareProtected('Manage Events','manage_undeleteEvents')
+    @deprecated
     def manage_undeleteEvents(self, evids=(), REQUEST=None):
         """Delete events form this managed entity.
         """
@@ -176,28 +184,29 @@ class EventView(object):
 
 
     #security.declareProtected('Manage Events','manage_undeleteBatchEvents')
+    @deprecated
     def manage_undeleteBatchEvents(self, selectstatus='none', goodevids=[],
-                                    badevids=[], filter='', 
-                                    offset=0, count=50, fields=[], 
-                                    getTotalCount=True, 
+                                    badevids=[], filter='',
+                                    offset=0, count=50, fields=[],
+                                    getTotalCount=True,
                                     startdate=None, enddate=None,
                                     severity=2, state=1, orderby='',
                                     REQUEST=None, **kwargs):
-        """Delete events form this managed entity.  
+        """Delete events form this managed entity.
         Only called from event console, so uses FakeRequest to avoid
         page rendering.
         """
         unused(count)
-        evids = self.getEventHistory().getEventBatchME(self, 
+        evids = self.getEventHistory().getEventBatchME(self,
                                             selectstatus=selectstatus,
-                                            goodevids=goodevids, 
-                                            badevids=badevids, 
+                                            goodevids=goodevids,
+                                            badevids=badevids,
                                             filter=filter,
                                             offset=offset, fields=fields,
                                             getTotalCount=getTotalCount,
-                                            startdate=startdate, 
+                                            startdate=startdate,
                                             enddate=enddate, severity=severity,
-                                            state=state, orderby=orderby, 
+                                            state=state, orderby=orderby,
                                             **kwargs)
         request = FakeRequest()
         self.manage_undeleteEvents(evids, request)
@@ -209,13 +218,14 @@ class EventView(object):
         """Delete events form this managed entity.
         """
         dev = self.device()
-        if dev: 
+        if dev:
             return self.getEventManager().manage_deleteHeartbeat(dev.id, REQUEST)
         if REQUEST:
             return self.callZenScreen(REQUEST)
 
 
     security.declareProtected('Manage Events','manage_ackEvents')
+    @deprecated
     def manage_ackEvents(self, evids=(), REQUEST=None):
         """Set event state form this managed entity.
         """
@@ -223,10 +233,11 @@ class EventView(object):
 
 
     security.declareProtected('Manage Events','manage_ackBatchEvents')
+    @deprecated
     def manage_ackBatchEvents(self, selectstatus='none', goodevids=[],
-                                    badevids=[], filter='', 
-                                    offset=0, count=50, fields=[], 
-                                    getTotalCount=True, 
+                                    badevids=[], filter='',
+                                    offset=0, count=50, fields=[],
+                                    getTotalCount=True,
                                     startdate=None, enddate=None,
                                     severity=2, state=1, orderby='',
                                     REQUEST=None, **kwargs):
@@ -235,16 +246,16 @@ class EventView(object):
         page rendering.
         """
         unused(count)
-        evids = self.getEventManager().getEventBatchME(self, 
+        evids = self.getEventManager().getEventBatchME(self,
                                             selectstatus=selectstatus,
-                                            goodevids=goodevids, 
-                                            badevids=badevids, 
+                                            goodevids=goodevids,
+                                            badevids=badevids,
                                             filter=filter,
                                             offset=offset, fields=fields,
                                             getTotalCount=getTotalCount,
-                                            startdate=startdate, 
+                                            startdate=startdate,
                                             enddate=enddate, severity=severity,
-                                            state=state, orderby=orderby, 
+                                            state=state, orderby=orderby,
                                             **kwargs)
         request = FakeRequest()
         self.manage_ackEvents(evids, request)
@@ -252,6 +263,7 @@ class EventView(object):
 
 
     security.declareProtected('Manage Events','manage_setEventStates')
+    @deprecated
     def manage_setEventStates(self, eventState=None, evids=(), REQUEST=None):
         """Set event state form this managed entity.
         """
@@ -260,7 +272,8 @@ class EventView(object):
 
 
     security.declareProtected('Manage Events','manage_createEventMap')
-    def manage_createEventMap(self, eventClass=None, evids=(), 
+    @deprecated
+    def manage_createEventMap(self, eventClass=None, evids=(),
                               table='status', REQUEST=None):
         """Create an event map from an event or list of events.
         """
@@ -270,5 +283,25 @@ class EventView(object):
             if screen: return screen
             return self.callZenScreen(REQUEST)
 
+    def getUUID(self):
+        return IGlobalIdentifier(self).getGUID()
+
+    def getEventSeverities(self):
+        """
+        Uses the zep facade to return a list of
+        event summaries for this entity
+        """
+        zep = getFacade('zep')
+        severities = zep.getEventSeveritiesByUuid(self.getUUID())
+        results = dict((zep.getSeverityName(sev).lower(), count) for (sev, count) in severities.iteritems())
+        return results
+
+    def getWorstEventSeverity(self):
+        """
+        Uses Zep to return the worst severity for this object
+        """
+        zep = getFacade('zep')
+        result =  zep.getWorstSeverityByUuid(self.getUUID())
+        return result
 
 InitializeClass(EventView)

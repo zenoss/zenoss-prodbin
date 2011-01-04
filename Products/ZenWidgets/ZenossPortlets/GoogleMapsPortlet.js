@@ -7,7 +7,7 @@ GoogleMapsDatasource.prototype = {
     },
     get: function(callback) {
         this.callback = callback;
-        var url = '/zport/dmd' + escape(this.baseLoc) + 
+        var url = '/zport/dmd' + escape(this.baseLoc) +
                   '/simpleLocationGeoMap';
         html = '<iframe src="' + url + '" ' +
                'style="border:medium none;margin:-2px 0px;padding:0px;'+
@@ -29,7 +29,7 @@ GoogleMapsPortlet.prototype = {
         title = 'title' in args? args.title: "Locations";
         refreshTime = 'refreshTime' in args? args.refreshTime : 60;
         this.mapobject = null;
-        var datasource = 'datasource' in args? 
+        var datasource = 'datasource' in args?
             args.datasource:
             new YAHOO.zenoss.portlet.GoogleMapsDatasource(
                 {'baseLoc':baseLoc?baseLoc:'/Locations'});
@@ -49,7 +49,7 @@ GoogleMapsPortlet.prototype = {
         s = this.settingsSlot;
         this.locsearch = YAHOO.zenoss.zenautocomplete.LocationSearch(
             'Base Location', s);
-        addElementClass(this.locsearch.container, 
+        addElementClass(this.locsearch.container,
                         'portlet-settings-control');
     },
     submitSettings: function(e, settings) {

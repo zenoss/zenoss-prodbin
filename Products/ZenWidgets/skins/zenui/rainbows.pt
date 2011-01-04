@@ -7,7 +7,7 @@
     totals python:[x[2] for x in summaries];
     ackstatus python:[x[2]-x[1] for x in summaries];
     ">
-    
+
     <div class="vertical-rainbow"
     onclick="location.href=YAHOO.zenoss.templateFreeURL+'/viewEvents'">
         <tal:block tal:repeat="evnum python:totals[:-1]">
@@ -19,7 +19,7 @@
         </div>
         </tal:block>
         <div class="evpill-green">
-            <div tal:condition="python:filter(lambda x:x, 
+            <div tal:condition="python:filter(lambda x:x,
                                               map(int, totals[:-1]))">
             </div>
         </div>
@@ -35,7 +35,7 @@
     <tr>
         <td align=center width=16%
         tal:repeat="evt python:here.getEventSummary(severity=severity)"
-        tal:attributes="class python:test(evt[1]-evt[2]>=0, 
+        tal:attributes="class python:test(evt[1]-evt[2]>=0,
                         evt[0]+' empty', evt[0])">
             <span tal:replace="python:'%d/%d' % (evt[1],evt[2])"/>
         </td>
@@ -46,8 +46,8 @@
 <tal:block tal:define="
     zem python:here.ZenEventManager;
     colors python:'critical error warning info debug clear'.split();
-    summaries python:zem.getEventSummaryME(here, 0);
-    totals python:[x[2] for x in summaries];">
+    summaries python:here.getEventSeverities();
+    totals python:[summaries[x] for x in colors]">
     <table class="eventrainbow eventrainbow_cols_5"
         tal:attributes="
             onclick string:location.href='${here/absolute_url_path}/viewEvents';;
@@ -66,7 +66,7 @@
         </tr>
     </table>
     <!--
-    <div class="horizontal-rainbow"
+        <div class="horizontal-rainbow"
     onclick="top.location.href=YAHOO.zenoss.templateFreeURL+'/viewEvents'">
         <tal:block tal:repeat="evnum python:totals[:-1]">
         <div tal:define="color python:colors[repeat['evnum'].index]"
@@ -78,7 +78,7 @@
         </div>
         </tal:block>
         <div class="evpill-green" style="float:left">
-            <div tal:condition="python:filter(lambda x:x, 
+            <div tal:condition="python:filter(lambda x:x,
                                               map(int, totals[:-1]))">
             </div>
         </div>

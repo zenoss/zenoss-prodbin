@@ -128,14 +128,16 @@ class Location(DeviceOrganizer, ZenPackable):
         into a data structure appropriate for JS consumption by another method
         (specifically, getChildGeomapData, below).
         """
-        psthresh = self.dmd.prodStateDashboardThresh
-        summary = self.getEventSummary(prodState=psthresh)
+        worstSeverity = self.getWorstEventSeverity()
         colors = 'red orange yellow green green'.split()
+        colors.reverse()
         color = 'green'
-        for i in range(5):
-            if summary[i][1]+summary[i][2]>0:
-                color = colors[i]
-                break
+        if worstSeverity:
+            try:
+                color = colors[worstSeverity - 1]
+            except IndexError:
+                # show green rather than error
+                pass
         link = self.absolute_url_path()
         linkToMap = self.numMappableChildren()
         if linkToMap:
