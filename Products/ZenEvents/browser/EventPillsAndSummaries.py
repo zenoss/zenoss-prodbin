@@ -130,8 +130,7 @@ def _getPill(summary, url=None, number=3):
     </table>
     """
     stati = "critical error warning info debug".split()
-    summary = summary.values()
-    summary.reverse()
+    summary = [summary[x] for x in stati]
 
     cells = []
     for i, count in enumerate(summary[:number]):
@@ -171,11 +170,8 @@ def getEventPillME(zem, me, number=3, minSeverity=0, showGreen=True,
     @return: HTML strings ready for template inclusion
     @rtype: list
     """
-    zep = getFacade('zep')
-    guid = IGlobalIdentifier(me).getGUID()
-    severities = zep.getEventSeveritiesByUuid(guid)
     url = getEventsURL(me)
-    return _getPill(severities, url, number)
+    return _getPill(me.getEventSeverities(), url, number)
 
 
 organizerTypes = {
