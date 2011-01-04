@@ -16,6 +16,8 @@ import re
 from Products.Five.browser import BrowserView
 from Products.ZenUtils.jsonutils import json
 from Products.ZenModel.DeviceOrganizer import DeviceOrganizer
+from Products.Zuul import getFacade
+from Products.ZenUtils.guid.interfaces import IGlobalIdentifier
 
 class SinglePill(BrowserView):
     def __call__(self):
@@ -77,7 +79,7 @@ def getObjectsEventSummary(zem, objects, prodState=None, REQUEST=None):
     @return: A JSON-formatted string representation of the columns and rows
         of the table
     @rtype: string
-    """ 
+    """
     mydict = {'columns':[], 'data':[]}
     mydict['columns'] = ['Object', 'Events']
     getcolor = re.compile(r'class=\"evpill-(.*?)\"', re.S|re.I|re.M).search
@@ -85,7 +87,7 @@ def getObjectsEventSummary(zem, objects, prodState=None, REQUEST=None):
     def pillcompare(a,b):
         a, b = map(lambda x:getcolor(x[1]), (a, b))
         def getindex(x):
-            try: 
+            try:
                 color = x.groups()[0]
                 smallcolor = x.groups()[0].replace('-acked','')
                 isacked = 'acked' in color
@@ -116,7 +118,7 @@ def getDashboardObjectsEventSummary(zem, objects, REQUEST=None):
 
 def _getPill(summary, url=None, number=3):
     iconTemplate = """
-        <td class="severity-icon-small 
+        <td class="severity-icon-small
             %(severity)s %(noevents)s">
             %(count)s
         </td>
@@ -128,7 +130,8 @@ def _getPill(summary, url=None, number=3):
     </table>
     """
     stati = "critical error warning info debug".split()
-    summary =[x[2] for x in summary]
+    summary = summary.values()
+    summary.reverse()
 
     cells = []
     for i, count in enumerate(summary[:number]):
@@ -168,9 +171,11 @@ def getEventPillME(zem, me, number=3, minSeverity=0, showGreen=True,
     @return: HTML strings ready for template inclusion
     @rtype: list
     """
-    evsum = zem.getEventSummaryME(me, minSeverity, prodState=prodState)
+    zep = getFacade('zep')
+    guid = IGlobalIdentifier(me).getGUID()
+    severities = zep.getEventSeveritiesByUuid(guid)
     url = getEventsURL(me)
-    return _getPill(evsum, url, number)
+    return _getPill(severities, url, number)
 
 
 organizerTypes = {
