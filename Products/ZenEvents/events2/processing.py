@@ -472,10 +472,13 @@ class EventTagPipe(EventProcessorPipe):
         """
         eventClassPath = eventContext.eventProxy.eventClass
         if eventClassPath:
-            eventClass = self._manager.dmd.Events.getOrganizer(str(eventClassPath))
-            eventClassUuids = self._manager.getUuidsOfPath(eventClass)
-            if eventClassUuids:
-                eventContext.eventProxy.tags.addAll(self.EVENT_CLASS_TAG, eventClassUuids)
+            try:
+                eventClass = self._manager.dmd.Events.getOrganizer(str(eventClassPath))
+                eventClassUuids = self._manager.getUuidsOfPath(eventClass)
+                if eventClassUuids:
+                    eventContext.eventProxy.tags.addAll(self.EVENT_CLASS_TAG, eventClassUuids)
+            except (KeyError, AttributeError):
+                log.info("Event has nonexistent event class %s." % eventClassPath)
 
     def __call__(self, eventContext):
         self._tagEventClasses(eventContext)

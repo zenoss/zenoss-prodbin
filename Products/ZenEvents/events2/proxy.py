@@ -201,7 +201,7 @@ class EventProxy(object):
 
     @property
     def component(self):
-        return self._event.actor.element_identifier
+        return self._event.actor.element_sub_identifier
 
     @component.setter
     def component(self, val):
