@@ -20,6 +20,7 @@ import logging
 log = logging.getLogger("zen.Events")
 
 import transaction
+from zope.interface import implements
 from Globals import InitializeClass
 from Globals import DTMLFile
 from AccessControl import ClassSecurityInfo
@@ -34,7 +35,7 @@ from Products.ZenEvents.ZenEventClasses import Unknown
 
 from Products.ZenModel.Organizer import Organizer
 from Products.ZenModel.ZenPackable import ZenPackable
-
+from Products.ZenUtils.guid.interfaces import IGloballyIdentifiable
 from Products.ZenUtils.Utils import prepId as globalPrepId
 
 __pychecker__='no-argsused'
@@ -48,7 +49,7 @@ def manage_addEventClass(context, id="Events", REQUEST=None):
         ed.createCatalog()
         ed.buildZProperties()
     if REQUEST is not None:
-        REQUEST['RESPONSE'].redirect(context.absolute_url() + '/manage_main') 
+        REQUEST['RESPONSE'].redirect(context.absolute_url() + '/manage_main')
 
 
 addEventClass = DTMLFile('dtml/addEventClass',globals())
@@ -57,6 +58,8 @@ class EventClass(EventClassPropertyMixin, Organizer, ManagedEntity, ZenPackable)
     """
     EventClass organizer
     """
+
+    implements(IGloballyIdentifiable)
 
     isInTree = True
 
@@ -80,8 +83,8 @@ class EventClass(EventClassPropertyMixin, Organizer, ManagedEntity, ZenPackable)
 
 
     # Screen action bindings (and tab definitions)
-    factory_type_information = ( 
-        { 
+    factory_type_information = (
+        {
             'id'             : 'EventClass',
             'meta_type'      : 'EventClass',
             'description'    : """Base class for all event classes""",
@@ -90,7 +93,7 @@ class EventClass(EventClassPropertyMixin, Organizer, ManagedEntity, ZenPackable)
             'factory'        : 'manage_addEventClass',
             'immediate_view' : 'eventClassStatus',
             'actions'        :
-            ( 
+            (
                 { 'id'            : 'classes'
                 , 'name'          : 'Classes'
                 , 'action'        : 'eventClassStatus'
@@ -122,15 +125,15 @@ class EventClass(EventClassPropertyMixin, Organizer, ManagedEntity, ZenPackable)
 
     severityConversions = (
         ('Critical', 5),
-        ('Error', 4), 
-        ('Warning', 3), 
-        ('Info', 2), 
-        ('Debug', 1), 
-        ('Clear', 0), 
+        ('Error', 4),
+        ('Warning', 3),
+        ('Info', 2),
+        ('Debug', 1),
+        ('Clear', 0),
         ('Original', -1),
     )
     severities = dict([(b, a) for a, b in severityConversions])
-    
+
     def getSubEventClasses(self):
         """
         Return all EventClass objects below this one.
@@ -149,7 +152,7 @@ class EventClass(EventClassPropertyMixin, Organizer, ManagedEntity, ZenPackable)
         """
         Returns a list of all organizer names under this organizer. Overridden
         here so that restricted users can get a list of event classes.
-        
+
         @param addblank: If True, add a blank item in the list.
         @type addblank: boolean
         @return: The DMD paths of all Organizers below this instance.
@@ -178,7 +181,7 @@ class EventClass(EventClassPropertyMixin, Organizer, ManagedEntity, ZenPackable)
             insts.extend(self.find("defaultmapping"))
         return insts
 
-    
+
     def lookup(self, evt, device):
         """
         Given an event, return an event class organizer object
@@ -211,7 +214,7 @@ class EventClass(EventClassPropertyMixin, Organizer, ManagedEntity, ZenPackable)
 
         for evtcl in evtcls:
             m = evtcl.match(evt, device)
-            if m: 
+            if m:
                 log.debug("EventClass %s matched", evtcl.getOrganizerName())
                 break
         else:
@@ -237,7 +240,7 @@ class EventClass(EventClassPropertyMixin, Organizer, ManagedEntity, ZenPackable)
         for subclass in self.children():
             insts.extend(subclass.getInstances())
         return insts
-   
+
 
     def nextSequenceNumber(self, key):
         """Get next sequence number for instance.
@@ -250,7 +253,7 @@ class EventClass(EventClassPropertyMixin, Organizer, ManagedEntity, ZenPackable)
 
     def prepId(self, id, subchar='_'):
         return globalPrepId(id, subchar)
-            
+
     def createInstance(self, id=None, REQUEST=None):
         """Add an EventClassInst to this EventClass.
         """
@@ -324,12 +327,12 @@ class EventClass(EventClassPropertyMixin, Organizer, ManagedEntity, ZenPackable)
         if REQUEST: return self.callZenScreen(REQUEST)
 
     def getEventSeverities(self):
-        """Return a list of tuples of severities [('Warning', 3), ...] 
+        """Return a list of tuples of severities [('Warning', 3), ...]
         """
         return self.severityConversions
 
     def getEventSeverityString(self, severity):
-        """Return a list of tuples of severities [('Warning', 3), ...] 
+        """Return a list of tuples of severities [('Warning', 3), ...]
         """
         try:
             return self.severities[severity]
@@ -343,7 +346,7 @@ class EventClass(EventClassPropertyMixin, Organizer, ManagedEntity, ZenPackable)
         zcat.manage_catalogClear()
         transaction.savepoint()
         for evtclass in self.getSubEventClasses():
-            for ip in evtclass.instances(): 
+            for ip in evtclass.instances():
                 ip.index_object()
         transaction.savepoint()
 
@@ -351,7 +354,7 @@ class EventClass(EventClassPropertyMixin, Organizer, ManagedEntity, ZenPackable)
     def createCatalog(self):
         """Create a catalog for EventClassRecord searching"""
         from Products.ZCatalog.ZCatalog import manage_addZCatalog
-        manage_addZCatalog(self, self.default_catalog, 
+        manage_addZCatalog(self, self.default_catalog,
                             self.default_catalog)
         zcat = self._getOb(self.default_catalog)
         zcat.addIndex('eventClassKey', 'FieldIndex')
@@ -360,14 +363,14 @@ class EventClass(EventClassPropertyMixin, Organizer, ManagedEntity, ZenPackable)
 
     security.declareProtected(ZEN_ZPROPERTIES_VIEW, 'getOverriddenObjects')
     def getOverriddenObjects(self, propname, showDevices=False):
-        """ 
+        """
         Get the objects that override a property somewhere below in the tree
         This method overrides ZenPropertyManager
         """
         objects = []
         for inst in self.getSubInstances('instances'):
             if inst.isLocal(propname) and inst not in objects:
-                objects.append(inst) 
+                objects.append(inst)
         for suborg in self.children():
             if suborg.isLocal(propname):
                 objects.append(suborg)
@@ -375,7 +378,7 @@ class EventClass(EventClassPropertyMixin, Organizer, ManagedEntity, ZenPackable)
                 if inst not in objects:
                     objects.append(inst)
         return objects
-        
+
     security.declareProtected(ZEN_VIEW, 'getIconPath')
     def getIconPath(self):
         """ Override the zProperty icon path and return a folder
@@ -388,7 +391,7 @@ class EventClass(EventClassPropertyMixin, Organizer, ManagedEntity, ZenPackable)
         href = self.getPrimaryUrlPath().replace('%','%%')
         linktemplate = "<a href='"+href+"' class='prettylink'>%s</a>"
         icon = ("<div class='device-icon-container'> "
-                "<img class='device-icon' src='%s'/> " 
+                "<img class='device-icon' src='%s'/> "
                 "</div>") % self.getIconPath()
         name = self.getPrimaryDmdId()
         if noicon: icon=''

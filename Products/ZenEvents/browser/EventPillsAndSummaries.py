@@ -171,7 +171,7 @@ def getEventPillME(zem, me, number=3, minSeverity=0, showGreen=True,
     @rtype: list
     """
     url = getEventsURL(me)
-    return _getPill(me.getEventSeverities(), url, number)
+    return _getPill(me.getEventSeveritiesCount(), url, number)
 
 
 organizerTypes = {

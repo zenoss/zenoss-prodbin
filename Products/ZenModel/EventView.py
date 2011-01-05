@@ -286,7 +286,7 @@ class EventView(object):
     def getUUID(self):
         return IGlobalIdentifier(self).getGUID()
 
-    def getEventSeverities(self):
+    def getEventSeveritiesCount(self):
         """
         Uses the zep facade to return a list of
         event summaries for this entity

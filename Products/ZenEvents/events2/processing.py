@@ -453,7 +453,11 @@ class EventPluginPipe(EventProcessorPipe):
 
         return eventContext
 
+
 class EventTagPipe(EventProcessorPipe):
+
+    EVENT_CLASS_TAG = 'zenoss.event.event_class'
+
     DEVICE_TAGGERS = {
         'zenoss.device.device_class' : lambda device: device.deviceClass(),
         'zenoss.device.location' : lambda device: device.location(),
@@ -461,7 +465,20 @@ class EventTagPipe(EventProcessorPipe):
         'zenoss.device.group' : lambda device: device.groups(),
     }
 
+    def _tagEventClasses(self, eventContext):
+        """
+        Adds a set of tags for the hierarchy of event classes for this event
+        """
+        eventClassPath = eventContext.eventProxy.eventClass
+        if eventClassPath:
+            eventClass = self._manager.dmd.Events.getOrganizer(str(eventClassPath))
+            eventClassUuids = self._manager.getUuidsOfPath(eventClass)
+            if eventClassUuids:
+                eventContext.eventProxy.tags.addAll(self.EVENT_CLASS_TAG, eventClassUuids)
+
     def __call__(self, eventContext):
+        self._tagEventClasses(eventContext)
+
         device = eventContext.deviceObject
         if device:
             for tagType, func in self.DEVICE_TAGGERS.iteritems():

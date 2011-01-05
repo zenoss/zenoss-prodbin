@@ -46,7 +46,7 @@
 <tal:block tal:define="
     zem python:here.ZenEventManager;
     colors python:'critical error warning info debug clear'.split();
-    summaries python:here.getEventSeverities();
+    summaries python:here.getEventSeveritiesCount();
     totals python:[summaries[x] for x in colors]">
     <table class="eventrainbow eventrainbow_cols_5"
         tal:attributes="
