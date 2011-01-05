@@ -55,7 +55,7 @@ class EventTagProxy(object):
         self._load()
         self._eventProtobuf.ClearField('tags')
         for type, tags in self._tags.iteritems():
-            for uuid in tags:
+            for uuid in filter(None, tags):
                 tag = self._eventProtobuf.tags.add()
                 tag.type = type
                 tag.uuid = uuid

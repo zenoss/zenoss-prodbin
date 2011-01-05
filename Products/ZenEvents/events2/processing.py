@@ -396,7 +396,8 @@ class FingerprintPipe(EventProcessorPipe):
 
         if not event.HasField(EventField.FINGERPRINT):
             dedupFields = self.DEFAULT_FINGERPRINT_FIELDS
-            if not event.HasField(EventField.EVENT_KEY):
+            if not (event.HasField(EventField.EVENT_KEY) and
+                    getattr(event, EventField.EVENT_KEY, None)):
                 dedupFields = self.NO_EVENT_KEY_FINGERPRINT_FIELDS
 
             dedupIdList = [str(getattr(eventContext.eventProxy, field, '')) for field in dedupFields]
