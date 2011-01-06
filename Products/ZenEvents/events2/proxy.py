@@ -211,8 +211,11 @@ class EventProxy(object):
 
     @property
     def eventClass(self):
-        return self._event.get(EventField.EVENT_CLASS)
-
+        eventClassValue = self._event.get(EventField.EVENT_CLASS)
+        if isinstance( eventClassValue, unicode ):
+            eventClassValue = str( eventClassValue )
+        return eventClassValue
+        
     @eventClass.setter
     def eventClass(self, val):
         self._event.set(EventField.EVENT_CLASS, val)
