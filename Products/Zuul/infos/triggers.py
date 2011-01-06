@@ -22,28 +22,29 @@ from Products.Zuul.interfaces import INotificationWindowInfo, INotificationSubsc
 
 class NotificationSubscriptionInfo(InfoBase):
     implements(INotificationSubscriptionInfo)
-    
+
     @property
     def newId(self):
         return self._object.id
-        
+
     enabled = ProxyProperty('enabled')
-    
+    send_clear = ProxyProperty('send_clear')
+
     delay_seconds = ProxyProperty('delay_seconds')
     repeat_seconds = ProxyProperty('repeat_seconds')
     action_timeout = ProxyProperty('action_timeout')
-    
+
     action = ProxyProperty('action')
     body_content_type = ProxyProperty('body_content_type')
-    
+
     subject_format =ProxyProperty('subject_format')
     body_format = ProxyProperty('body_format')
     clear_subject_format =ProxyProperty('clear_subject_format')
     clear_body_format = ProxyProperty('clear_body_format')
-    
+
     recipients = ProxyProperty('recipients')
     #explicit_recipients = ProxyProperty('explicit_recipients')
-    
+
     def _getSubscriptions(self):
         if self._object.subscriptions:
             return self._object.subscriptions[0]
@@ -51,17 +52,17 @@ class NotificationSubscriptionInfo(InfoBase):
             return ''
     def _setSubscriptions(self, value):
         self._object.subscriptions = [value]
-    
+
     subscriptions = property(_getSubscriptions, _setSubscriptions)
-    
-   
+
+
 class NotificationWindowInfo(InfoBase):
     implements(INotificationWindowInfo)
-    
+
     @property
     def newId(self):
         return self._object.id
-    
+
     def _getStart(self):
         # is a unix timestamp convert to string
         start = time()
@@ -72,13 +73,13 @@ class NotificationWindowInfo(InfoBase):
         dt = datetime.utcfromtimestamp(start)
         # we want the format in mm/dd/yyyy
         return "%.2d/%.2d/%d" % (dt.month, dt.day, dt.year)
-    
+
     def _setStart(self, value):
         # convert string to unix time stamp
         # expecting the time to always be in the following format
         dt = datetime.strptime(value, "%Y-%m-%dT%H:%M:%S")
         self._object.start = dt.strftime('%s')
-        
+
     def _getStartTime(self):
         starttime = time()
         try:
@@ -87,10 +88,10 @@ class NotificationWindowInfo(InfoBase):
             pass
         dt = datetime.fromtimestamp(starttime)
         return '%.2d:%.2d' % (dt.hour, dt.minute)
-    
+
     def _setStartTime(self, value):
         pass
-    
+
     start = property(_getStart, _setStart)
     starttime = property(_getStartTime, _setStartTime)
     enabled = ProxyProperty('enabled')

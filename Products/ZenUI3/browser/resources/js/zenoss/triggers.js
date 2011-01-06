@@ -459,6 +459,11 @@ Ext.onReady(function () {
                             ref: 'enabled',
                             fieldLabel: _t('Enabled')
                         },{
+                            xtype: 'checkbox',
+                            name: 'send_clear',
+                            ref: 'send_clear',
+                            fieldLabel: _t('Send Clear')
+                        },{
                             xtype: 'textfield',
                             name: 'delay_seconds',
                             ref: 'delay_seconds',
@@ -475,6 +480,7 @@ Ext.onReady(function () {
                         this.uid.setValue(data.uid);
                         this.enabled.setValue(data.enabled);
                         this.delay_seconds.setValue(data.delay_seconds);
+                        this.send_clear.setValue(data.send_clear);
                         this.repeat_seconds.setValue(data.repeat_seconds);
                         this.subscriptions.setValue(data.subscriptions);
                     }
@@ -825,6 +831,7 @@ Ext.onReady(function () {
                         'enabled',
                         'action',
                         'delay_seconds',
+                        'send_clear',
                         'repeat_seconds',
                         'action_timeout',
                         'body_content_type',
@@ -1140,13 +1147,6 @@ Ext.onReady(function () {
                 header: _t('Name'),
                 width: 200,
                 sortable: true
-            }, {
-                id: 'send_clear',
-                dataIndex: 'send_clear',
-                header: _t('Send Clear?'),
-                xtype: 'booleancolumn',
-                width: 110,
-                sortable: true
             }
         ]
     };
@@ -1255,11 +1255,6 @@ Ext.onReady(function () {
                             ref: 'enabled',
                             fieldLabel: _t('Enabled')
                         },{
-                            xtype: 'checkbox',
-                            name: 'send_clear',
-                            ref: 'send_clear',
-                            fieldLabel: _t('Send Clear')
-                        },{
                             xtype: 'rulebuilder',
                             fieldLabel: _t('Rule'),
                             name: 'criteria',
@@ -1273,14 +1268,15 @@ Ext.onReady(function () {
                                 text: _t('Device Production State'),
                                 value: 'dev.production_state',
                                 comparisons: STRINGCMPS
-                            },
-                                Ext.apply(ZFR.DEVICE,{
-                                    value: 'dev.uuid'
-                                }),
-                                Ext.apply(ZFR.COMPONENT,{
-                                    value: 'component.uuid'
-                                }),
-                            {
+                            },{
+                                text: _t('Device (Element)'),
+                                value: 'dev.name',
+                                comparisons: STRINGCMPS
+                            },{
+                                text: _t('Component (Sub-Element)'),
+                                value: 'component.name',
+                                comparisons: STRINGCMPS
+                            },{
                                 text: _t('Event Class'),
                                 value: 'evt.event_class',
                                 comparisons: STRINGCMPS,
@@ -1365,7 +1361,6 @@ Ext.onReady(function () {
                                 var params = {
                                     uuid: editForm.uuid.getValue(),
                                     enabled: editForm.enabled.getValue(),
-                                    send_clear: editForm.send_clear.getValue(),
                                     name: editForm.name.getValue(),
                                     rule: {
                                         source: button.refOwner.editForm.rule.getValue()
@@ -1393,7 +1388,6 @@ Ext.onReady(function () {
             this.editForm.uuid.setValue(data.uuid);
             this.editForm.enabled.setValue(data.enabled);
             this.editForm.name.setValue(data.name);
-            this.editForm.send_clear.setValue(data.send_clear);
             this.editForm.rule.setValue(data.rule.source);
         }
     });
@@ -1436,7 +1430,7 @@ Ext.onReady(function () {
                     directFn: router.getTriggers,
                     root: 'data',
                     autoLoad: true,
-                    fields: ['uuid', 'enabled', 'name', 'send_clear', 'rule']
+                    fields: ['uuid', 'enabled', 'name', 'rule']
                 },
                 sm: new Ext.grid.RowSelectionModel({
                     singleSelect: true,
@@ -1525,7 +1519,7 @@ Ext.onReady(function () {
         }
     });
     Ext.reg('TriggersGridPanel', TriggersGridPanel);
-    
+
     Ext.getCmp('center_panel').add({
         id: 'center_panel_container',
         layout: 'border',
