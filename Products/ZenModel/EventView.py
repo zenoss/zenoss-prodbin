@@ -36,6 +36,7 @@ class EventView(object):
     This class provides convenience methods for retrieving events to any subclass. Note that
     this class is currently transitioning between the old event system and ZEP. Most of the methods
     are marked as deprecated except those that go through ZEP.
+
     """
     implements(IEventView)
 
@@ -54,16 +55,6 @@ class EventView(object):
         """Return the current event history for this object.
         """
         return self.ZenEventHistory
-
-    @deprecated
-    def getStatus(self, statusclass=None, **kwargs):
-        """Return the status number for this device of class statClass.
-        """
-        try:
-            return self.getEventManager().getStatusME(self, statusclass=statusclass, **kwargs)
-        except MySQLError:
-            log.exception("exception getting status")
-            return -1
 
     def getStatusString(self, statclass, **kwargs):
         """Return the status number for this device of class statClass.
@@ -282,6 +273,22 @@ class EventView(object):
         if REQUEST:
             if screen: return screen
             return self.callZenScreen(REQUEST)
+
+    def getStatus(self, statusclass=None, **kwargs):
+        """
+        Return the status number for this device of class statClass.
+        """
+        zep = getFacade('zep')
+        filter = {
+            'tag_uuids': [self.getUUID()],
+            'severity': [3,4,5],
+            'status': [1, 2]
+            }
+        if statusclass:
+            filter['event_class'] = statusclass
+        events = zep.getEventSummaries(0, filter=filter)
+        count = len(list(events['events']))
+        return count
 
     def getUUID(self):
         return IGlobalIdentifier(self).getGUID()

@@ -40,7 +40,7 @@ def manage_addEventClassInst(context, id, REQUEST = None):
     dc = EventClassInst(id)
     context._setObject(id, dc)
     if REQUEST is not None:
-        REQUEST['RESPONSE'].redirect(context.absolute_url() + '/manage_main') 
+        REQUEST['RESPONSE'].redirect(context.absolute_url() + '/manage_main')
 
 
 addEventClassInst = DTMLFile('dtml/addEventClassInst',globals())
@@ -123,7 +123,7 @@ Transform:
             component=transformName,
             summary=summary,
             severity=4,
-            message = "Problem with line %s: %s" % (badLineNo, 
+            message = "Problem with line %s: %s" % (badLineNo,
                       transformLines[badLineNo]),
             transform=transformFormatted,
             exception=exceptionText,
@@ -154,7 +154,7 @@ Transform:
                 self.sendTransformException(eventclass, evt)
 
         return variables_and_funcs['evt']
-                 
+
 
     def inheritedTransforms(self):
         """
@@ -164,14 +164,14 @@ Transform:
         transpath = self._eventClassPath()
         transtext = []
         for obj in transpath:
-            if not obj.transform: continue 
+            if not obj.transform: continue
             if obj.transform == self.transform: break
             transtext.append("""<a href='%s/editEventClassTransform'>%s<a>
                 """ % (obj.getPrimaryUrlPath(), obj.getPrimaryDmdId()))
             transtext.append("<pre>%s</pre>" % obj.transform)
         return "\n".join(transtext)
-            
-  
+
+
     def testTransformStyle(self):
         """Test our transform by compiling it.
         """
@@ -181,7 +181,7 @@ Transform:
         except:
             return "color:#FF0000;"
 
-        
+
     def _eventClassPath(self):
         """
         Return the path to our current EventClassInst from the top level
@@ -196,7 +196,7 @@ Transform:
             transpath.append(obj)
         transpath.reverse()
         return transpath
-        
+
 # Why is this a subclass of EventView?
 
 class EventClassInst(EventClassPropertyMixin, ZenModelRM, EventView,
@@ -228,8 +228,8 @@ class EventClassInst(EventClassPropertyMixin, ZenModelRM, EventView,
 
 
     # Screen action bindings (and tab definitions)
-    factory_type_information = ( 
-        { 
+    factory_type_information = (
+        {
             'id'             : 'EventClassInst',
             'meta_type'      : 'EventClassInst',
             'description'    : """Base class for all devices""",
@@ -238,7 +238,7 @@ class EventClassInst(EventClassPropertyMixin, ZenModelRM, EventView,
             'factory'        : 'manage_addEventClassInst',
             'immediate_view' : 'eventClassInstStatus',
             'actions'        :
-            ( 
+            (
                 { 'id'            : 'status'
                 , 'name'          : 'Status'
                 , 'action'        : 'eventClassInstStatus'
@@ -285,7 +285,7 @@ class EventClassInst(EventClassPropertyMixin, ZenModelRM, EventView,
         self.eventClassKey = id
         self.sequence = None
         self.rule = ""
-        self.regex = ""    
+        self.regex = ""
         self.example = ""
         self.explanation = ""
         self.resolution = ""
@@ -294,10 +294,7 @@ class EventClassInst(EventClassPropertyMixin, ZenModelRM, EventView,
     def getStatus(self, **kwargs):
         """Return the status number for this device of class statClass.
         """
-        return self.getEventManager().getStatusME(self, 
-                                statusclass=self.getEventClass(), 
-                                **kwargs)
-
+        return EventView.getStatus(self, self.getEventClass())
 
     def getEventClass(self):
         """Return the full EventClass of this EventClassInst."""
@@ -371,7 +368,7 @@ class EventClassInst(EventClassPropertyMixin, ZenModelRM, EventView,
             except sre_constants.error: pass
         return value
 
-    
+
     def testRegexStyle(self):
         """Test our regex using the example event string.
         """

@@ -27,6 +27,7 @@ from Products.ZenModel.ZenossSecurity import ZEN_VIEW
 from Products.ZenUtils.guid.interfaces import IGloballyIdentifiable
 from Products.ZenRelations.ToManyContRelationship import ToManyContRelationship
 from Lockable import Lockable
+from EventView import EventView
 from Products.ZenUtils.Utils import getAllConfmonObjects
 
 class DeviceComponent(Lockable):
@@ -104,9 +105,7 @@ class DeviceComponent(Lockable):
             or not self.device() \
             or not self.device().monitorDevice(): return -1
         if not statClass: statClass = "/Status/%s" % self.meta_type
-        return self.getEventManager().getComponentStatus(
-                self.getParentDeviceName(), self.name(), statclass=statClass)
-
+        return EventView.getStatus(self, statClass)
 
     def getStatusString(self, statClass=None):
         """

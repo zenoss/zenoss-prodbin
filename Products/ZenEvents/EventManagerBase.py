@@ -55,6 +55,7 @@ from ZenEventClasses import Unknown
 from DbAccessBase import DbAccessBase
 
 from Products.ZenUtils.Utils import unused
+from Products.Zuul.decorators import deprecated
 
 __pychecker__="maxargs=16"
 
@@ -886,7 +887,7 @@ class EventManagerBase(ZenModelRM, ObjectCache, DbAccessBase):
         self.cleanCache()
         return event
 
-
+    @deprecated
     def getStatusME(self, me, statusclass=None, **kwargs):
         """
         """
@@ -902,7 +903,7 @@ class EventManagerBase(ZenModelRM, ObjectCache, DbAccessBase):
         else:
             return self.getGenericStatus(me)
 
-
+    @deprecated
     def getGenericStatus(self, me):
         """Return status based on a where clause defined for the me event_type.
         No fancy caching done this might be a little slow if there are a lot
@@ -923,7 +924,7 @@ class EventManagerBase(ZenModelRM, ObjectCache, DbAccessBase):
             self.addToCache(select,statusCount)
         return statusCount
 
-
+    @deprecated
     def getOrganizerStatus(self, org, statusclass=None, severity=None,
                            state=0, where=""):
         """see IEventStatus
@@ -959,7 +960,7 @@ class EventManagerBase(ZenModelRM, ObjectCache, DbAccessBase):
                 countevts += value
         return countevts
 
-
+    @deprecated
     def getOrganizerStatusIssues(self, event_key,severity=4,state=0,
                                 where="", limit=0):
         """Return list of tuples (org, count) for all organizers with events.
@@ -997,7 +998,7 @@ class EventManagerBase(ZenModelRM, ObjectCache, DbAccessBase):
             finally: self.close(conn)
         return statusCache
 
-
+    @deprecated
     def getDevicePingIssues(self, state=2, limit=0):
         """Return devices with ping problems.
         """
@@ -1006,14 +1007,14 @@ class EventManagerBase(ZenModelRM, ObjectCache, DbAccessBase):
                                     state=state,
                                     limit=limit)
 
-
+    @deprecated
     def getDeviceStatusIssues(self, severity=4, state=1, limit=0):
         """Return only status issues.
         """
         return self.getDeviceIssues(where="eventClass like '/Status%'",
                             severity=severity, state=state, limit=limit)
 
-
+    @deprecated
     def getDeviceIssues(self,severity=1,state=0,where="",mincount=0,limit=0):
         """Return list of tuples (device, count, total) of events for
         all devices with events.
@@ -1042,7 +1043,7 @@ class EventManagerBase(ZenModelRM, ObjectCache, DbAccessBase):
                 raise
         return statusCache
 
-
+    @deprecated
     def getDeviceStatus(self, device, statclass=None, countField=None,
                         severity=3, state=None, where=""):
         """see IEventStatus

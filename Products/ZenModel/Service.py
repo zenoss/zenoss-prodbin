@@ -29,6 +29,7 @@ from Products.CMFCore.utils import getToolByName
 from Products.ZenRelations.RelSchema import *
 from Products.ZenWidgets import messaging
 
+from EventView import EventView
 from OSComponent import OSComponent
 from ZenPackable import ZenPackable
 
@@ -63,7 +64,7 @@ class Service(OSComponent, Commandable, ZenPackable):
 
     def monitored(self):
         """
-        Should this service be monitored or not. Use ServiceClass aq path. 
+        Should this service be monitored or not. Use ServiceClass aq path.
         """
         return self.monitor and self.getAqProperty("zMonitor")
 
@@ -90,9 +91,7 @@ class Service(OSComponent, Commandable, ZenPackable):
             or not self.device() \
             or not self.device().monitorDevice(): return -1
         if not statClass: statClass = "/Status/%s" % self.meta_type
-        return self.getEventManager().getComponentStatus(
-                self.getParentDeviceName(), self.name(), statclass=statClass)
-
+        return EventView.getStatus(self, statClass)
 
     def getSeverities(self):
         """

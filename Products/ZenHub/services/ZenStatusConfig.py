@@ -62,7 +62,6 @@ class ZenStatusConfig(CollectorConfigService):
 
     def _createDeviceProxy(self, device):
         proxy = CollectorConfigService._createDeviceProxy(self, device)
-        zem = self.dmd.ZenEventManager
         proxy.configCycleInterval = self._prefs.statusCycleInterval
 
         # add each component
@@ -70,9 +69,7 @@ class ZenStatusConfig(CollectorConfigService):
         for svc in device.getMonitoredComponents(collector='zenstatus'):
             if svc.getProtocol() == 'tcp':
                 # get component status
-                status = zem.getComponentStatus(svc.hostname(),
-                                                svc.name(),
-                                                Status_IpService)
+                status = svc.getStatus(Status_IpService)
                 proxy.components.append(ServiceProxy(svc, status))
 
         # don't bother adding this device proxy if there aren't any services
