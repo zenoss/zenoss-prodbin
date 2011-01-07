@@ -93,7 +93,7 @@ class RenderServer(RRDToolItem):
     security.declareProtected('View', 'render')
     def render(self, gopts=None, start=None, end=None, drange=None, 
                remoteUrl=None, width=None, ftype='PNG', getImage=True, 
-               graphid='', comment=None, ms=None, REQUEST=None):
+               graphid='', comment=None, ms=None, REQUEST=None, zenrenderRequest=None):
         """
         Render a graph and return it
 
@@ -171,6 +171,8 @@ class RenderServer(RRDToolItem):
                 ret['data'] = b64encode(graph)
             if REQUEST:
                 REQUEST.RESPONSE.setHeader('Content-Type', 'text/javascript')
+            else:
+                zenrenderRequest.setHeader('Content-Type', 'text/javascript')
             return """Zenoss.SWOOP_CALLBACKS["%s"]('%s')""" % (graphid, json.dumps(ret))
 
 

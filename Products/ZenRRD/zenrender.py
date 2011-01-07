@@ -55,6 +55,7 @@ class HttpRender(resource.Resource):
         if mimetype is None:
             mimetype = 'image/%s' % ftype.lower()
         request.setHeader('Content-type', mimetype)
+        args['zenrenderRequest'] = request
         return getattr(zr, 'remote_' + command)(**args)
     
     def render_POST(self, request):
