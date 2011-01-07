@@ -1269,11 +1269,11 @@ Ext.onReady(function () {
                                 value: 'dev.production_state',
                                 comparisons: STRINGCMPS
                             },{
-                                text: _t('Device (Element)'),
+                                text: _t('Device'),
                                 value: 'dev.name',
                                 comparisons: STRINGCMPS
                             },{
-                                text: _t('Component (Sub-Element)'),
+                                text: _t('Component'),
                                 value: 'component.name',
                                 comparisons: STRINGCMPS
                             },{

@@ -1,4 +1,4 @@
-###########################################################################
+ ###########################################################################
 #
 # This program is part of Zenoss Core, an open source monitoring platform.
 # Copyright (C) 2007, Zenoss Inc.
@@ -15,7 +15,7 @@ log = logging.getLogger("zen.EventView")
 
 from _mysql_exceptions import MySQLError
 
-from AccessControl import ClassSecurityInfo
+from AccessControl import ClassSecurityInfo, getSecurityManager
 from Globals import InitializeClass
 from zope.interface import Interface, implements
 
@@ -24,7 +24,8 @@ from Products.ZenUtils.Utils import unused
 from Products.Zuul import getFacade
 from Products.Zuul.decorators import deprecated
 from Products.ZenUtils.guid.interfaces import IGlobalIdentifier
-
+from Products.ZenWidgets import messaging
+from zenoss.protocols.services import ServiceResponseError
 
 class IEventView(Interface):
     """
@@ -117,23 +118,6 @@ class EventView(object):
         self.getEventManager().manage_addLogMessage(evid, message)
         if REQUEST: return self.callZenScreen(REQUEST)
 
-    security.declareProtected('Manage Events','manage_deleteEvents')
-    @deprecated
-    def manage_deleteEvents(self, evids=(), REQUEST=None):
-        """Delete events form this managed entity.
-        """
-        # If we pass REQUEST in to the getEventManager().manage_deleteEvents()
-        # call we don't get a proper refresh of the event console.  It only
-        # works if self.callZenScreen() is called from here rather than down
-        # in the event manager.  I'm not sure why.  Using FakeResult to fetch
-        # the message seems like best workaround for now.
-        request = FakeRequest()
-        self.getEventManager().manage_deleteEvents(evids, request)
-        if REQUEST:
-            request.setMessage(REQUEST)
-            return self.callZenScreen(REQUEST)
-
-
     security.declareProtected('Manage Events','manage_deleteBatchEvents')
     @deprecated
     def manage_deleteBatchEvents(self, selectstatus='none', goodevids=[],
@@ -161,17 +145,6 @@ class EventView(object):
         self.manage_deleteEvents(evids, request)
         return request.get('message', '')
 
-
-    security.declareProtected('Manage Events','manage_undeleteEvents')
-    @deprecated
-    def manage_undeleteEvents(self, evids=(), REQUEST=None):
-        """Delete events form this managed entity.
-        """
-        request = FakeRequest()
-        self.getEventManager().manage_undeleteEvents(evids, request)
-        if REQUEST:
-            request.setMessage(REQUEST)
-            return self.callZenScreen(REQUEST)
 
 
     #security.declareProtected('Manage Events','manage_undeleteBatchEvents')
@@ -214,13 +187,6 @@ class EventView(object):
         if REQUEST:
             return self.callZenScreen(REQUEST)
 
-
-    security.declareProtected('Manage Events','manage_ackEvents')
-    @deprecated
-    def manage_ackEvents(self, evids=(), REQUEST=None):
-        """Set event state form this managed entity.
-        """
-        return self.getEventManager().manage_ackEvents(evids, REQUEST)
 
 
     security.declareProtected('Manage Events','manage_ackBatchEvents')
@@ -273,6 +239,60 @@ class EventView(object):
         if REQUEST:
             if screen: return screen
             return self.callZenScreen(REQUEST)
+
+    def _getCurrentUserName(self):
+        return getSecurityManager().getUser().getId()
+
+    def _redirectToEventConsole(self, msg, REQUEST=None):
+        messaging.IMessageSender(self).sendToBrowser("Events",
+                                                     msg,
+                                                     priority=messaging.INFO)
+        if REQUEST:
+            dest = '/zport/dmd/Events/evconsole'
+            REQUEST['RESPONSE'].redirect(dest)
+
+    security.declareProtected('Manage Events','manage_ackEvents')
+    def manage_ackEvents(self, evids=(), REQUEST=None):
+        """Set event state from this managed entity.
+        """
+        zep = getFacade('zep')
+        if isinstance(evids, basestring):
+            evids = [evids]
+
+        try:
+            for evid in evids:
+                zep.acknowledgeEventSummary(evid, userName=self._getCurrentUserName())
+            self._redirectToEventConsole("Acknowledged events: %s" % ", ".join(evids), REQUEST)
+        except ServiceResponseError, e:
+            self._redirectToEventConsole("Error acknowledging events: %s" % str(e), REQUEST)
+
+    security.declareProtected('Manage Events','manage_deleteEvents')
+    def manage_deleteEvents(self, evids=(), REQUEST=None):
+        """Delete events from this managed entity.
+        """
+        zep = getFacade('zep')
+        if isinstance(evids, basestring):
+            evids = [evids]
+        try:
+            for evid in evids:
+                zep.closeEventSummary(evid)
+            self._redirectToEventConsole("Closed events: %s" % ", ".join(evids), REQUEST)
+        except ServiceResponseError, e:
+            self._redirectToEventConsole("Error Closing events: %s" % str(e), REQUEST)
+
+    security.declareProtected('Manage Events','manage_undeleteEvents')
+    def manage_undeleteEvents(self, evids=(), REQUEST=None):
+        """Delete events from this managed entity.
+        """
+        zep = getFacade('zep')
+        if isinstance(evids, basestring):
+            evids = [evids]
+        try:
+            for evid in evids:
+                zep.reopenEventSummary(evid)
+            self._redirectToEventConsole("Reopened events: %s" % ", ".join(evids), REQUEST)
+        except ServiceResponseError, e:
+            self._redirectToEventConsole("Error Reopening events: %s" % str(e), REQUEST)
 
     def getStatus(self, statusclass=None, **kwargs):
         """
