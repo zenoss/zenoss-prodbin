@@ -255,7 +255,7 @@ class ComponentWrapper(SearchableMixin,IndexableWrapper):
     def searchExcerpt(self):
         o = self._context
         return '%s <span style="font-size:smaller">(%s)</span>' % (
-            o.name(), o.getParentDeviceName())
+            o.name(), o.device().titleOrId())
 
 
 class DeviceWrapper(SearchableMixin,IndexableWrapper):

@@ -99,7 +99,7 @@ class Manager(object):
         if cls:
             catalog = catalog or self._catalogs.get(element_type_id)
             if catalog:
-                results = ICatalogTool(catalog).search(cls, query=Eq('id', id))
+                results = ICatalogTool(catalog).search(cls, query=Or(Eq('id', id),Eq('name',id)))
 
                 if results.total:
                     return results.results.next().uuid
@@ -136,6 +136,7 @@ class Manager(object):
         cat = ICatalogTool(self._devices)
 
         querySet = Or(MatchGlob('id', identifier),
+                    MatchGlob('name', identifier),
                     Eq('ipAddress', identifier),
                     Eq('ipAddress', ipAddress))
 

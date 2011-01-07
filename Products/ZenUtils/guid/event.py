@@ -39,7 +39,11 @@ def registerGUIDToPathMapping(object, event):
         except Exception:
             pass
     if event.old and event.old != event.new:
-        mgr.remove(event.old)
+        # When we move a component around,
+        # we don't want to remove the guid
+        # from the catalog
+        if mgr.getPath(event.old) == object.getPrimaryUrlPath():
+            mgr.remove(event.old)
 
 
 @adapter(IGloballyIdentifiable, IObjectMovedEvent)
