@@ -73,6 +73,20 @@ Ext.Direct.on('exception', function(e) {
     });
 });
 
+/*
+ * Hide the server exception MessageBox if we get a good response. Primarily
+ * used to have the event console starting functioning after a temporary
+ * inability to reach the server.
+ */
+Ext.Direct.on('event', function(e){
+    var message_box = Ext.Msg.getDialog();
+    if (message_box != null && message_box.title == 'Server Exception') {
+        if (Ext.isDefined(e.result)) {
+            Ext.Msg.hide();
+        }
+    }
+});
+
 Ext.namespace('Zenoss.flares');
 
 /**
