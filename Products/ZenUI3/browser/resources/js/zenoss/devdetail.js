@@ -58,7 +58,8 @@ function setEventButtonsDisplayed(bool) {
     var actions = [
         ZEvActions.acknowledge,
         ZEvActions.close,
-        ZEvActions.newwindow
+        ZEvActions.newwindow,
+        ZEvActions.reopen
     ];
     var method = bool ? 'show' : 'hide';
     Ext.each(actions, function(action) {
@@ -528,8 +529,6 @@ var event_console = Ext.create({
     newwindowBtn: true,
     columns: deviceColumnDefinitions()
 });
-
-
 
 Zenoss.DeviceDetailNav = Ext.extend(Zenoss.DetailNavPanel, {
     constructor: function(config) {

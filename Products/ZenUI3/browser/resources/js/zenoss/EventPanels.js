@@ -328,7 +328,7 @@ Ext.reg('FullEventColumnModel', Zenoss.FullEventColumnModel);
  * Fixed columns.
  * @constructor
  */
-Zenoss.SimpleEventGridPanel = Ext.extend(Ext.ux.grid.livegrid.GridPanel, {
+Zenoss.SimpleEventGridPanel = Ext.extend(Zenoss.FilterGridPanel, {
     constructor: function(config){
         var store = {xtype:'EventStore'},
             cmConfig = {};
@@ -343,6 +343,16 @@ Zenoss.SimpleEventGridPanel = Ext.extend(Ext.ux.grid.livegrid.GridPanel, {
                 })
             });
         }
+        config.listeners = config.listeners || {};
+        Ext.applyIf(config.listeners, {
+            afterrender: function() {
+                if (Ext.isEmpty(this.getView().filters)) {
+
+                    this.getView().renderEditors();
+                }
+            },
+            scope: this
+        });
         var id = config.id || Ext.id();
         Ext.applyIf(config, {
             id: 'eventGrid' + id,
@@ -356,15 +366,15 @@ Zenoss.SimpleEventGridPanel = Ext.extend(Ext.ux.grid.livegrid.GridPanel, {
             cm: cm,
             sm: new Zenoss.EventPanelSelectionModel(),
             autoExpandColumn: Zenoss.env.EVENT_AUTO_EXPAND_COLUMN || '',
-            view: new Ext.ux.grid.livegrid.GridView({
+            view: new Zenoss.FilterGridView({
                 nearLimit: 20,
+                displayFilters: Ext.isDefined(config.displayFilters) ? config.displayFilters : true,
                 rowHeight: 10,
                 emptyText: _t('No events'),
                 loadMask: {msg: 'Loading. Please wait...'},
-                listeners: {
-                    beforeBuffer: function(view, ds, idx, len, total, opts){
-                        opts.params.uid = view._context;
-                    }
+                defaultFilters: {
+                    severity: [Zenoss.SEVERITY_CRITICAL, Zenoss.SEVERITY_ERROR, Zenoss.SEVERITY_WARNING, Zenoss.SEVERITY_INFO],
+                    eventState: [Zenoss.STATUS_NEW, Zenoss.STATUS_ACKNOWLEDGED]
                 },
                 getRowClass: function(record, index) {
                     var stateclass = record.get('eventState')=='New' ?
@@ -380,8 +390,7 @@ Zenoss.SimpleEventGridPanel = Ext.extend(Ext.ux.grid.livegrid.GridPanel, {
         this.on('rowdblclick', this.onRowDblClick, this);
     }, // constructor
     setContext: function(uid){
-        this.view._context = uid;
-        this.view.updateLiveRows(this.view.rowIndex, true, true);
+        this.view.setContext(uid);
     },
     onRowDblClick: function(grid, rowIndex, e) {
         var row = grid.getStore().getAt(rowIndex),
@@ -449,6 +458,7 @@ Zenoss.events.SelectMenu = {
 
 Zenoss.EventGridPanel = Ext.extend(Zenoss.SimpleEventGridPanel, {
     constructor: function(config) {
+
         var evtGrid = this,
             tbarItems = [
             {
@@ -494,6 +504,7 @@ Zenoss.EventGridPanel = Ext.extend(Zenoss.SimpleEventGridPanel, {
             '-',
             Zenoss.events.EventPanelToolbarActions.acknowledge,
             Zenoss.events.EventPanelToolbarActions.close,
+            Zenoss.events.EventPanelToolbarActions.reopen,
             Zenoss.events.EventPanelToolbarActions.refresh
         ];
         if (config.newwindowBtn) {
@@ -532,7 +543,7 @@ Zenoss.EventRainbow = Ext.extend(Ext.Toolbar.TextItem, {
             info: 0,
             debug: 0,
             clear: 0
-        }
+        };
         config = Ext.applyIf(config || {}, {
             height: 45,
             directFn: Zenoss.remote.DeviceRouter.getInfo,
@@ -597,6 +608,24 @@ Zenoss.events.EventPanelToolbarActions = {
             );
         }
     }),
+    reopen: new Zenoss.Action({
+        iconCls: 'unacknowledge',
+        permission: 'Manage Events',
+        tooltip: _t('Unacknowledge Events'),
+        handler: function(btn) {
+            var grid = btn.grid || this.ownerCt.ownerCt,
+                sm = grid.getSelectionModel(),
+                selected = sm.getSelections(),
+                evids = Ext.pluck(selected, 'id');
+            Zenoss.remote.EventsRouter.reopen(
+                {evids:evids},
+                function(provider, response){
+                    var view = grid.getView();
+                    view.updateLiveRows(view.rowIndex, true, true);
+                }
+            );
+        }
+    }),
     newwindow: new Zenoss.Action({
         //text: _t('Open in new window'),
         iconCls: 'newwindow',
@@ -608,7 +637,7 @@ Zenoss.events.EventPanelToolbarActions = {
                 filters = curState.filters || {},
                 opts = filters.options || {},
                 pat = /devices\/([^\/]+)(\/.*\/([^\/]+)$)?/,
-                matches = grid.view._context.match(pat),
+                matches = grid.view.getContext().match(pat),
                 st, url;
             // on the device page
             if (matches) {

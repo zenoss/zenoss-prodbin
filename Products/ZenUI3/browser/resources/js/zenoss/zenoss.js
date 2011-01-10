@@ -757,6 +757,9 @@ Zenoss.FilterGridView = Ext.extend(Ext.ux.grid.livegrid.GridView, {
         this.contextUid = uid;
         this.updateLiveRows(this.rowIndex, true, true, false);
     },
+    getContext: function() {
+        return this.contextUid;
+    },
     updateLiveRows: function(index, forceRepaint, forceReload) {
         if ( this.isValid() ) {
             return Zenoss.FilterGridView.superclass.updateLiveRows.call(this, index, forceRepaint, forceReload);
@@ -834,6 +837,7 @@ Zenoss.FilterGridView = Ext.extend(Ext.ux.grid.livegrid.GridView, {
                 ' {cellAttr}> <div class="x-grid3-cell-inner',
                 ' x-grid3-col-{id}" unselectable="on" {attr}>',
                 '{value}</div></td>'),
+            gridId = this.grid.id,
             buf = [],
             p = {},
             rp = {},
@@ -845,7 +849,7 @@ Zenoss.FilterGridView = Ext.extend(Ext.ux.grid.livegrid.GridView, {
             c = cs[i];
             p.id = c.id;
             p.css = 'x-grid3-cell-filter';
-            p.attr ='id="filtergrid-'+c.id+'"';
+            p.attr ='id="filtergrid-'+ gridId + '_' +c.id+'"';
             p.cellAttr = "";
             p.value = '';
             buf[buf.length] = ct.apply(p);
@@ -853,8 +857,8 @@ Zenoss.FilterGridView = Ext.extend(Ext.ux.grid.livegrid.GridView, {
         rp.tstyle = 'width:'+this.getTotalWidth()+';';
         rp.cols = buf.length;
         rp.cells = buf.join("");
-        //rp.display = this.displayFilters?'':'style="display:none"'
-        rp.display = '';
+        rp.display = this.displayFilters?'':'style="display:none"';
+        //rp.display = '';
         return rt.apply(rp);
     },
     filters: [],
@@ -879,15 +883,19 @@ Zenoss.FilterGridView = Ext.extend(Ext.ux.grid.livegrid.GridView, {
         this.updateLiveRows(this.rowIndex, true, true);
     },
     renderEditors: function() {
+        if (!this.displayFilters){
+            return;
+        }
         Ext.each(this.filters, function(ob){ob.destroy();});
         this.filters = [];
         var cs = this.getColumnData(),
+            gridId = this.grid.id,
             i, len, c, config, fieldid, id;
         for (i=0,len=cs.length; i<len; i++) {
             if (this.cm.isHidden(i)) continue;
             c = cs[i];
             fieldid = c.id;
-            id = 'filtergrid-' + fieldid;
+            id = 'filtergrid-' + gridId + '_' + fieldid;
             config = this.cm.config[i].filter;
             if (config===false) {
                 config = {xtype: 'panel', reset: function(){},

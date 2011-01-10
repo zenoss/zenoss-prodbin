@@ -30,7 +30,7 @@ ZC.displayName = function(meta_type) {
 function componentColumnDefinitions() {
     var defs = Zenoss.env.COLUMN_DEFINITIONS,
         bad = ['component', 'device'];
-    return Zenoss.util.filter(defs, function(d){
+    return  Zenoss.util.filter(defs, function(d){
         return bad.indexOf(d.id)==-1;
     });
 }
@@ -78,6 +78,7 @@ Zenoss.nav.register({
                 var panel = target.add({
                     id: cardid,
                     xtype: 'SimpleEventGridPanel',
+                    displayFilters: false,
                     stateful: false,
                     columns: componentColumnDefinitions()
                 });
