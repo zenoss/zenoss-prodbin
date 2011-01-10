@@ -29,7 +29,11 @@ class ITriggersFacade(IFacade):
         """Get all existing triggers"""
 
     def addTrigger(newId):
-        """ Add a trigger given a name"""
+        """ 
+        Add a trigger given a name
+        @return: guid of trigger created
+        @rtype: str
+        """
 
     def removeTrigger(uuid):
         """ Remove a trigger by uuid"""

@@ -80,7 +80,7 @@ class TriggersFacade(ZuulFacade):
         trigger.rule.type = zep.RULE_TYPE_JYTHON
         trigger.rule.source = ''
         response, content = self.triggers_service.addTrigger(trigger)
-        return content
+        return trigger.uuid
 
     def removeTrigger(self, uuid):
         response, content = self.triggers_service.removeTrigger(uuid)

@@ -44,6 +44,9 @@ from Products.Zuul import getFacade
 
 log = logging.getLogger('zen.Zuul')
 
+class ObjectNotFoundException(Exception):
+    pass
+
 class ZuulFacade(object):
     implements(IFacade)
 
@@ -65,9 +68,8 @@ class ZuulFacade(object):
             obj = self._dmd.unrestrictedTraverse(str(uid))
         except Exception, e:
             args = (uid, e.__class__.__name__, e)
-            raise Exception('Cannot find "%s". %s: %s' % args)
+            raise ObjectNotFoundException('Cannot find "%s". %s: %s' % args)
         return obj
-
 
 class TreeFacade(ZuulFacade):
     implements(ITreeFacade)

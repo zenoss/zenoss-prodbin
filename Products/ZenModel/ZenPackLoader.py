@@ -358,3 +358,68 @@ class ZPLAbout(ZenPackLoader):
 
     def list(self, pack, unused):
         return [('%s %s' % av) for av in self.getAttributeValues(pack)]
+
+class ZPTriggerAction:
+
+    name = "Triggers and Actions"
+
+    def load(self, pack, app):
+        """Load things from the ZenPack and put it
+        into the app"""
+        log.debug("ZPTriggerAction: load")
+        import Products.Zuul as Zuul
+        tf = Zuul.getFacade('triggers')
+        for conf in findFiles(pack, 'actions',lambda f: f.endswith('.conf')):
+            import json
+            data = json.load(open(conf, "r"))
+            log.debug("DATA IS: %s" % data)
+            actionConf = data.get('conf', [])
+            for triggerActions in actionConf:
+                actions = triggerActions.get('actions', [])
+                trigger = triggerActions.get('trigger', None)
+                triggerGuid = None
+                if trigger:
+                    triggerGuid = self._getTriggerGuid(tf, trigger['name'])
+                    trigger['uuid'] = triggerGuid
+                    tf.updateTrigger(**trigger)
+                for action in actions:
+                    #test if notification is already  there
+                    uid = '/zport/dmd/NotificationSubscriptions/%s' % action['id']
+                    notification = None
+                    from Products.Zuul.facades import ObjectNotFoundException
+                    try:
+                        notification = tf.getNotification(uid)
+                    except ObjectNotFoundException:
+                        pass
+                    if not notification:
+                        log.debug("ZPTriggerAction: adding notification %s %s" %  (action['id'], action['action']))
+                        notification = tf.addNotification(str(action['id']), str(action['action']))
+                    elif notification.action != action['action']:
+                        raise("action types are not compatible")
+                    action['uid']= notification.uid
+                    if triggerGuid:
+                        action['subscriptions'] = triggerGuid
+                    tf.updateNotification(**action)
+    
+    def _getTriggerGuid(self, facade, name):
+        triggers = facade.getTriggers()
+        guid = None
+        for trigger in triggers:
+            if trigger['name'] == name:
+                guid = trigger['uuid']
+                break
+        if not guid:
+            guid = facade.addTrigger(name)
+        return guid
+    
+    def unload(self, pack, app, leaveObjects=False):
+        """Remove things from Zenoss defined in the ZenPack"""
+        log.debug("ZPTriggerAction: unload")
+
+    def list(self, pack, app):
+        "List the items that would be loaded from the given (unpacked) ZenPack"
+        log.debug("ZPTriggerAction: list")
+
+    def upgrade(self, pack, app):
+        "Run an upgrade on an existing pack"
+        log.debug("ZPTriggerAction: upgrade")

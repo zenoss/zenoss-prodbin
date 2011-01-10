@@ -189,7 +189,7 @@ class ZenPack(ZenModelRM):
     requires = () # deprecated
 
     loaders = (ZPLObject(), ZPLReport(), ZPLDaemons(), ZPLBin(), ZPLLibExec(),
-                ZPLSkins(), ZPLDataSources(), ZPLLibraries(), ZPLAbout())
+                ZPLSkins(), ZPLDataSources(), ZPLLibraries(), ZPLAbout(), ZPTriggerAction())
                 
     _properties = ZenModelRM._properties + (
         {'id':'objectPaths','type':'lines','mode':'w'},
