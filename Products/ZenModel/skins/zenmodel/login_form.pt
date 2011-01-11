@@ -116,8 +116,7 @@
                                   tal:content="structure msg" />
                         </tal:block>
                     </div>
-                    <input type="submit" name="submitbutton" 
-                           class="submitbutton" value=""/>
+                    <tal:block tal:content="structure here/getLoginButton"/>
                     <div id="copyright">
                         <p>Copyright &copy; 2005-2011 Zenoss, Inc. | Version
                         <span tal:content="here/getZenossVersionShort"/>

@@ -171,6 +171,10 @@ class ZentinelPortal ( PortalObjectBase ):
     def getZenossVersionShort(self):
         return self.About.getZenossVersionShort()
 
+    def getLoginButton(self):
+        return """<input type="submit" name="submitbutton" 
+                class="submitbutton" value=""/>"""
+
     def getExtraLoginFormContents(self):
         """
         On first run, log us in as admin automatically.
