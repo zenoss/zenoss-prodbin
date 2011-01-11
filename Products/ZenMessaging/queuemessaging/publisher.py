@@ -21,11 +21,14 @@ from zenoss.protocols.amqpconfig import getAMQPConfiguration
 from Products.ZenUtils.AmqpDataManager import AmqpDataManager
 from Products.ZenMessaging.queuemessaging.interfaces import IModelProtobufSerializer, IQueuePublisher, IProtobufSerializer, IEventPublisher
 from contextlib import closing
+from zenoss.protocols.protobufutil import ProtobufEnum
+from zenoss.protocols.protobufs import modelevents_pb2
 
 import logging
 
 log = logging.getLogger('zen.queuepublisher')
 
+MODEL_TYPE = ProtobufEnum(modelevents_pb2.ModelEvent, 'model_type');
 
 class ModelChangePublisher(object):
     """
@@ -51,9 +54,8 @@ class ModelChangePublisher(object):
             event.event_uuid = generate()
             event.type = getattr(event, eventType)
 
-            # Fight with protobuf to set the modelType property
             type = serializer.modelType
-            event.model_type = getattr(event, type)
+            event.model_type = MODEL_TYPE.getNumber(type)
             proto = getattr(event, type.lower(), None)
             if proto:
                 if eventType == 'REMOVED':
