@@ -81,11 +81,8 @@ class EventClassPropertyMixin(object):
         """
         Convenience function to number the transform info
         """
-        numberedTransform = []
-        for lineNo in range(0, len(transformLines)):
-            line = "%3s %s" % (lineNo, transformLines[lineNo])
-            numberedTransform.append(line)
-        return '\n'.join(numberedTransform)
+        return '\n'.join("%3s %s" % enumText
+                         for enumText in enumerate(transformLines))
 
     def sendTransformException(self, eventclass, evt):
         """
@@ -98,18 +95,41 @@ class EventClassPropertyMixin(object):
 
         import sys
         from traceback import format_exc, extract_tb
-        badLineNo = extract_tb(sys.exc_info()[2])[-1][1] - 1
+        tb = extract_tb(sys.exc_info()[2])
+        exceptionText = format_exc(0).splitlines()[1]
 
         transformLines = eventclass.transform.splitlines()
         transformFormatted = self.formatTransform(transformLines)
-        exceptionText = format_exc(0).splitlines()[1]
+
+        # try to extract line number and code from traceback, but set up
+        # default values in case this fails - don't want to throw a traceback
+        # when cleaning up a traceback
+        badLineNo = None
+        badLineText = ''
+        try:
+            # if tb has only 1 entry, then the transform didn't compile/run at all
+            if len(tb) > 1:
+                # runtime error, get line number from last entry in traceback
+                # (subtract 1, since traceback numbering is 1-based)
+                badLineNo = tb[-1][1] - 1
+                badLineText = transformLines[badLineNo]
+            else:
+                # assume compile error, with exceptionText in the form:
+                # '  File "<string>", line 4'
+                badLineText = "<transform failed to compile>>"
+                badLineNo = int(exceptionText.rsplit(None,1)[1]) - 1
+                badLineText = transformLines[badLineNo]
+                exceptionText = "compile error on line %d" % badLineNo
+        except Exception:
+            pass
+
         message = """%s
 Problem on line %s: %s
 %s
 
 Transform:
 %s
-""" % (summary, badLineNo, exceptionText, transformLines[badLineNo],
+""" % (summary, badLineNo, exceptionText, badLineText,
         transformFormatted)
         log.warn(message)
 
@@ -124,8 +144,7 @@ Transform:
             component=transformName,
             summary=summary,
             severity=4,
-            message = "Problem with line %s: %s" % (badLineNo,
-                      transformLines[badLineNo]),
+            message = "Problem with line %s: %s" % (badLineNo, badLineText),
             transform=transformFormatted,
             exception=exceptionText,
         )
