@@ -85,7 +85,9 @@ class ZepFacade(ZuulFacade):
         filter = {}
 
         if uuid:
-            filter['uuid'] = [uuid]
+            if not isinstance(uuid, (list, tuple)):
+                uuid = [uuid]
+            filter['uuid'] = uuid
 
         if summary:
             filter['event_summary'] = str(summary).strip()

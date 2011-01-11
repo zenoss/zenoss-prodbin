@@ -366,7 +366,7 @@ Zenoss.SimpleEventGridPanel = Ext.extend(Zenoss.FilterGridPanel, {
             cm: cm,
             sm: new Zenoss.EventPanelSelectionModel(),
             autoExpandColumn: Zenoss.env.EVENT_AUTO_EXPAND_COLUMN || '',
-            view: new Zenoss.FilterGridView({
+            view: new Zenoss.FilterGridView(Ext.applyIf(config.viewConfig ||  {}, {
                 nearLimit: 20,
                 displayFilters: Ext.isDefined(config.displayFilters) ? config.displayFilters : true,
                 rowHeight: 10,
@@ -384,7 +384,7 @@ Zenoss.SimpleEventGridPanel = Ext.extend(Zenoss.FilterGridPanel, {
                     var cls = rowcolors + sev + '-' + stateclass + ' ' + stateclass;
                     return cls;
                 }
-            })
+            }))
         }); // Ext.applyIf
         Zenoss.SimpleEventGridPanel.superclass.constructor.call(this, config);
         this.on('rowdblclick', this.onRowDblClick, this);
@@ -463,18 +463,20 @@ Zenoss.EventGridPanel = Ext.extend(Zenoss.SimpleEventGridPanel, {
             tbarItems = [
             {
                 xtype: 'tbtext',
-                text: _t('Event Console')
+                text: config.text || _t('Event Console')
             },
                 '-',
-                Zenoss.events.SelectMenu,
+                config.selectMenu || Zenoss.events.SelectMenu,
                '-',
 
             {
                 xtype: 'tbtext',
+                hidden: config.hideDisplayCombo || false,
                 text: _t('Display: ')
             },{
                 xtype: 'combo',
                 id: 'history_combo',
+                hidden: config.hideDisplayCombo || false,
                 name: 'event_display',
                 mode: 'local',
                 store: new Ext.data.SimpleStore({
@@ -500,8 +502,10 @@ Zenoss.EventGridPanel = Ext.extend(Zenoss.SimpleEventGridPanel, {
                         Zenoss.events.EventPanelToolbarActions.close.setHidden(archive);
                     }
                 }
+            },{
+                xtype: 'tbseparator',
+                hidden: config.hideDisplayCombo || false
             },
-            '-',
             Zenoss.events.EventPanelToolbarActions.acknowledge,
             Zenoss.events.EventPanelToolbarActions.close,
             Zenoss.events.EventPanelToolbarActions.reopen,
@@ -516,7 +520,7 @@ Zenoss.EventGridPanel = Ext.extend(Zenoss.SimpleEventGridPanel, {
                 xtype: 'largetoolbar',
                 cls: 'largetoolbar consolebar',
                 height: 35,
-                items: tbarItems
+                items: config.tbarItems || tbarItems
             }
         });
         Zenoss.EventGridPanel.superclass.constructor.call(this, config);

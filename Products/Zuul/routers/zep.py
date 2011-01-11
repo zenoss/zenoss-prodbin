@@ -177,7 +177,7 @@ class EventsRouter(DirectRouter):
             filter = {}
 
         if uid is None:
-            uid = self.context
+            uid = self.context.dmd.Events
 
         context = resolve_context(uid)
 
