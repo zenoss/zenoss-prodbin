@@ -283,9 +283,10 @@ class Scheduler(object):
             loopingCall.start(newTask.interval)
         d = defer.Deferred()
         d.addCallback(_startTask)
-        startDelay = 0
-        if not now:
-            startDelay = self._getStartDelay(newTask)
+
+        startDelay = getattr(newTask, 'startDelay', None)
+        if startDelay is None:
+            startDelay = 0 if now else self._getStartDelay(newTask)
         reactor.callLater(startDelay, d.callback, None)
 
     def _getStartDelay(self, task):
