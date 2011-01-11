@@ -1263,20 +1263,70 @@ Ext.onReady(function () {
                             subjects: [{
                                 text: _t('Device Priority'),
                                 value: 'dev.priority',
-                                comparisons: STRINGCMPS
+                                comparisons: NUMCMPS
                             },{
                                 text: _t('Device Production State'),
                                 value: 'dev.production_state',
+                                comparisons: NUMCMPS
+                            },{
+                                text: _t('Device (Element)'),
+                                value: 'elem.name',
                                 comparisons: STRINGCMPS
                             },{
-                                text: _t('Device'),
-                                value: 'dev.name',
+                                text: _t('Component (Sub-Element)'),
+                                value: 'sub_elem.name',
                                 comparisons: STRINGCMPS
                             },{
-                                text: _t('Component'),
-                                value: 'component.name',
-                                comparisons: STRINGCMPS
+                                text: _t('Element Type'),
+                                value: 'elem.type',
+                                comparisons: ZFR.IDENTITYCOMPARISONS,
+                                field: {
+                                    xtype: 'combo',
+                                    mode: 'local',
+                                    valueField: 'name',
+                                    displayField: 'name',
+                                    typeAhead: false,
+                                    forceSelection: true,
+                                    triggerAction: 'all',
+                                    store: new Ext.data.ArrayStore({
+                                        fields: ['name'],
+                                        data: [[
+                                            'COMPONENT'
+                                        ],[
+                                            'DEVICE'
+                                        ],[
+                                            'SERVICE'
+                                        ],[
+                                            'ORGANIZER'
+                                        ]]
+                                    })
+                                }
                             },{
+                                text: _t('Sub Element Type'),
+                                value: 'sub_elem.type',
+                                comparisons: ZFR.IDENTITYCOMPARISONS,
+                                field: {
+                                    xtype: 'combo',
+                                    mode: 'local',
+                                    valueField: 'name',
+                                    displayField: 'name',
+                                    typeAhead: false,
+                                    forceSelection: true,
+                                    triggerAction: 'all',
+                                    store: new Ext.data.ArrayStore({
+                                        fields: ['name'],
+                                        data: [[
+                                            'COMPONENT'
+                                        ],[
+                                            'DEVICE'
+                                        ],[
+                                            'SERVICE'
+                                        ],[
+                                            'ORGANIZER'
+                                        ]]
+                                    })
+                                }
+                            }, {
                                 text: _t('Event Class'),
                                 value: 'evt.event_class',
                                 comparisons: STRINGCMPS,

@@ -296,7 +296,7 @@
         // If we're somewhere in the middle of initialization don't do anything
         if (items.length===0) {
             return;
-        } 
+        }
 
         var item = items[0],
             delbtn = item instanceof ZF.NestedRule ?
@@ -548,7 +548,7 @@
         'endswith',
         'equals',
         'doesnotequal'
-    ]
+    ];
 
     ZF.NUMBERCOMPARISONS = [
         'equals',
@@ -619,7 +619,7 @@
         PRODUCTIONSTATE: {
             text: _t('Production state'),
             value: 'productionState',
-            field: { 
+            field: {
                 xtype: 'ProductionStateCombo',
                 setValue: smarterSetIntValue
             },
