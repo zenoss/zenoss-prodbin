@@ -55,33 +55,34 @@ class EventsRouter(DirectRouter):
         eventActor = eventOccurrence['actor']
 
         eventClass = eventOccurrence['event_class']
-
         event = {
             'id' : event_summary['uuid'],
             'evid' : event_summary['uuid'],
             'device' : {
-                'text': eventActor.get('element_identifier', None),
+                'text': eventActor.get('element_identifier'),
                 'uid': None,
-                'url' : self._uuidUrl(eventActor.get('element_uuid', None)),
-                'uuid' : eventActor.get('element_uuid', None)
+                'url' : self._uuidUrl(eventActor.get('element_uuid')),
+                'uuid' : eventActor.get('element_uuid')
             },
             'component' : {
-                'text': eventActor.get('element_sub_identifier', None),
+                'text': eventActor.get('element_sub_identifier'),
                 'uid': None,
-                'url' : self._uuidUrl(eventActor.get('element_sub_uuid', None)),
-                'uuid' : eventActor.get('element_sub_uuid', None)
+                'url' : self._uuidUrl(eventActor.get('element_sub_uuid')),
+                'uuid' : eventActor.get('element_sub_uuid')
             },
             'firstTime' : isoDateTimeFromMilli(event_summary['first_seen_time']),
             'lastTime' : isoDateTimeFromMilli(event_summary['last_seen_time'] ),
             'eventClass' : {"text": eventClass, "uid": "/zport/dmd/Events%s" % eventClass},
-            'eventKey' : eventOccurrence.get('event_key', None),
+            'eventClassKey': eventOccurrence.get('event_class_key'),
+            'eventKey' : eventOccurrence.get('event_key'),
             'summary' : eventOccurrence['summary'],
+            'message' : eventOccurrence.get('message'),
             'severity' : eventOccurrence['severity'],
             'eventState' : EventStatus.getPrettyName(event_summary['status']),
             'count' : event_summary['count'],
-            'ownerid': event_summary.get('acknowledged_by_user_name', None),
-            'dedupid': eventOccurrence.get('fingerprint', None),
-            'agent': eventOccurrence.get('agent', None),
+            'ownerid': event_summary.get('acknowledged_by_user_name'),
+            'dedupid': eventOccurrence.get('fingerprint'),
+            'agent': eventOccurrence.get('agent'),
         }
 
         return event
@@ -457,7 +458,6 @@ class EventsRouter(DirectRouter):
             eventClassKey=evclasskey,
             eventClass=evclass,
         )
-
         publisher = getUtility(IEventPublisher)
         publisher.publish(event, mandatory=True)
 
@@ -569,3 +569,25 @@ class EventsRouter(DirectRouter):
         @return:  A list of objects representing field columns
         """
         return column_config(self.request, archive)
+
+    @require('Manage Events')
+    def classify(self, evrows, evclass, history=False):
+        """
+        Associate event(s) with an event class.
+
+        @type  evrows: [dictionary]
+        @param evrows: List of event rows to classify
+        @type  evclass: string
+        @param evclass: Event class to associate events to
+        @type  history: boolean
+        @param history: (optional) True to use the event history table instead
+                        of active events (default: False)
+        @rtype:   DirectResponse
+        @return:  B{Properties}:
+           - msg: (string) Success/failure message
+           - success: (boolean) True if class update successful
+        """
+        msg, url = self.zep.createEventMapping(evrows, evclass, history)
+        if url:
+            msg += "<br/><a href='%s'>Go to the new mapping.</a>" % url
+        return DirectResponse(msg, success=bool(url))

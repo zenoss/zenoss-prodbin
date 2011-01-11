@@ -1888,6 +1888,7 @@ class EventManagerBase(ZenModelRM, ObjectCache, DbAccessBase):
 
 
     security.declareProtected(ZEN_MANAGE_EVENTS,'manage_setEventStates')
+    @deprecated
     def manage_createEventMap(self, eventClass=None, evids=(),
                               REQUEST=None):
         """Create an event map from an event or list of events.

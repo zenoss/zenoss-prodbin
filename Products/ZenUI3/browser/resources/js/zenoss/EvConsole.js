@@ -133,17 +133,17 @@ Ext.onReady(function(){
                     text: 'Submit',
                     formBind: true,
                     handler: function(){
-                        form = Ext.getCmp('addeventform');
+                        var form = Ext.getCmp('addeventform');
                         Zenoss.remote.EventsRouter.add_event(
                             form.getForm().getValues(),
                             function(){
                                 addevent.hide();
-                                grid = Ext.getCmp('events_grid')
+                                grid = Ext.getCmp('events_grid');
                                 view = grid.getView();
                                 view.updateLiveRows(
                                     view.rowIndex, true, true);
                             }
-                        )
+                        );
                     }
                 },{
                     text: 'Cancel',
@@ -164,75 +164,80 @@ Ext.onReady(function(){
     function showClassifyDialog(e) {
         if(!win){
             win = new Ext.Window({
-                title: 'Classify Events',
-                width: 250,
+                title: _t('Classify Events'),
+                width: 300,
                 autoHeight: true,
                 closeAction: 'hide',
                 plain: true,
                 items: [{
+                    id: 'classifyEventForm',
+                    xtype: 'form',
+                    monitorValid: true,
+                    autoHeight: true,
                     border: false,
                     frame: false,
-                    autoHeight: true,
-                    padding: 10,
-                    style: {'font-size':'10pt'},
-                    html: 'Select the event class with which'+
-                          ' you want to associate these events.'
-                },{
-                padding: 10,
-                frame: false,
-                border: false,
-                items: [{
-                    xtype: 'combo',
-                    store: Zenoss.env.EVENT_CLASSES,
-                    typeAhead: true,
-                    forceSelection: true,
-                    triggerAction: 'all',
-                    emptyText: 'Select an event class',
-                    selectOnFocus: true,
-                    id: 'evclass_combo'
-                }]}],
-                buttons: [{
-                    text: 'Submit',
-                    handler: function(){
-                        var cb = Ext.getCmp('evclass_combo'),
+                    items: [{
+                        padding: 10,
+                        style: {'font-size':'10pt'},
+                        html: _t('Select the event class with which'+
+                            ' you want to associate these events.')
+                    },{
+                        xtype: 'combo',
+                        store: Zenoss.env.EVENT_CLASSES,
+                        typeAhead: true,
+                        allowBlank: false,
+                        forceSelection: true,
+                        triggerAction: 'all',
+                        emptyText: _t('Select an event class'),
+                        selectOnFocus: true,
+                        id: 'evclass_combo'
+                    }],
+                    buttons: [{
+                        text: _t('Submit'),
+                        formBind: true,
+                        disabled: true,
+                        handler: function(){
+                            var cb = Ext.getCmp('evclass_combo'),
                             sm = grid.getSelectionModel(),
                             rs = sm.getSelections(),
-                            evids = [];
-                        Ext.each(rs, function(record){
-                            evids[evids.length] = record.data.evid;
-                        });
-                        if (!evids.length) {
+                            evrows = [];
+                            Ext.each(rs, function(record){
+                                evrows[evrows.length] = record.data;
+                            });
+                            if (!evrows.length) {
+                                win.hide();
+                                Ext.Msg.show({
+                                    title: 'Error',
+                                    msg: _t('No events were selected.'),
+                                    buttons: Ext.MessageBox.OK
+                                });
+                            } else {
+                                Zenoss.remote.EventsRouter.classify({
+                                    'evclass': cb.getValue(),
+                                    'evrows': evrows
+                                }, function(result){
+                                    win.hide();
+                                    var title = result.success ?
+                                        _t('Classified'):
+                                        _t('Error');
+                                    Ext.MessageBox.show({
+                                        title: title,
+                                        msg: result.msg,
+                                        buttons: Ext.MessageBox.OK
+                                    });
+                                });
+                            }
+                        }
+                    },{
+                        text: _t('Cancel'),
+                        handler: function(){
                             win.hide();
-                            Ext.Msg.show({
-                                title: 'Error',
-                                msg: 'No events were selected.',
-                                buttons: Ext.MessageBox.OK
-                            })
-                        } else {
-                        Zenoss.remote.EventsRouter.classify({
-                            'evclass': cb.getValue(),
-                            'evids': evids
-                        }, function(result){
-                            win.hide();
-                            var title = result.success ?
-                                        'Classified':
-                                        'Error';
-                            Ext.MessageBox.show({
-                                title: title,
-                                msg: result.msg,
-                                buttons: Ext.MessageBox.OK
-                            })
-                        });
                         }
                     }
-                },{
-                    text: 'Cancel',
-                    handler: function(){
-                        win.hide();
-                    }
-                }
-                ]
-            })
+                             ]
+                }]
+
+            });
         }
         win.show(this);
     }

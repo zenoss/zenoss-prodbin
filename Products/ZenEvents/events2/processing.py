@@ -173,7 +173,10 @@ class Manager(object):
             chain.append(n)
 
         for obj in chain:
-            uuids.add(self.getElementUuid(obj))
+            try:
+                uuids.add(self.getElementUuid(obj))
+            except TypeError:
+                log.debug("Unable to get a uuid for %s " % obj)
 
         return uuids
 
@@ -412,6 +415,8 @@ class FingerprintPipe(EventProcessorPipe):
 class TransformPipe(EventProcessorPipe):
     dependencies = [AddDeviceContextPipe]
 
+    EVENT_CLASS_TAG = 'zenoss.event.event_class'
+
     ACTION_HISTORY = 'history'
     ACTION_DROP = 'drop'
     ACTION_STATUS = 'status'
@@ -426,12 +431,26 @@ class TransformPipe(EventProcessorPipe):
         ACTION_DROP : STATUS_DROPPED,
     }
 
+    def _tagEventClasses(self, eventContext, eventClass):
+        """
+        Adds a set of tags for the hierarchy of event classes for this event
+        NOTE: We must tag the event classes at this part of the pipeline
+        before a mapping has been applied otherwise the mapping instance
+        won't be tagged, just the Event Class that was mapped.
+        """
+        try:
+            eventClassUuids = self._manager.getUuidsOfPath(eventClass)
+            if eventClassUuids:
+                eventContext.eventProxy.tags.addAll(self.EVENT_CLASS_TAG, eventClassUuids)
+        except (KeyError, AttributeError):
+            log.info("Event has nonexistent event class %s." % eventClass)
+
     def __call__(self, eventContext):
         if eventContext.deviceObject:
             eventContext.log.debug('Mapping and Transforming event')
             evtclass = self._manager.lookupEventClass(eventContext)
-
             if evtclass:
+                self._tagEventClasses(eventContext, evtclass)
                 evtclass.applyExtraction(eventContext.eventProxy)
                 evtclass.applyValues(eventContext.eventProxy)
                 evtclass.applyTransform(eventContext.eventProxy, eventContext.deviceObject)
@@ -458,7 +477,6 @@ class EventPluginPipe(EventProcessorPipe):
 
 class EventTagPipe(EventProcessorPipe):
 
-    EVENT_CLASS_TAG = 'zenoss.event.event_class'
 
     DEVICE_TAGGERS = {
         'zenoss.device.device_class' : lambda device: device.deviceClass(),
@@ -467,22 +485,9 @@ class EventTagPipe(EventProcessorPipe):
         'zenoss.device.group' : lambda device: device.groups(),
     }
 
-    def _tagEventClasses(self, eventContext):
-        """
-        Adds a set of tags for the hierarchy of event classes for this event
-        """
-        eventClassPath = eventContext.eventProxy.eventClass
-        if eventClassPath:
-            try:
-                eventClass = self._manager.dmd.Events.getOrganizer(str(eventClassPath))
-                eventClassUuids = self._manager.getUuidsOfPath(eventClass)
-                if eventClassUuids:
-                    eventContext.eventProxy.tags.addAll(self.EVENT_CLASS_TAG, eventClassUuids)
-            except (KeyError, AttributeError):
-                log.info("Event has nonexistent event class %s." % eventClassPath)
+
 
     def __call__(self, eventContext):
-        self._tagEventClasses(eventContext)
 
         device = eventContext.deviceObject
         if device:

@@ -17,6 +17,7 @@ import random
 from zope.interface import implements
 from Products.Zuul.facades import ZuulFacade
 from Products.Zuul.interfaces import IZepFacade
+from Products.ZenEvents.ZenEventClasses import Unknown
 from Products.Zuul.utils import resolve_context
 
 import pkg_resources
@@ -287,3 +288,56 @@ class ZepFacade(ZuulFacade):
 
     def getSeverityName(self, severity):
         return EventSeverity.getPrettyName(severity)
+
+    def createEventMapping(self, evdata, eventClassId, history=False):
+        """
+        Associates event(s) with an event class.
+        """
+        evmap = None
+        evclass = self._dmd.Events.getOrganizer(eventClassId)
+        numCreated = 0
+        numNotUnknown = 0
+        numNoKey = 0
+
+        for data in evdata:
+            evclasskey = data.get('eventClassKey')
+            if data.get('eventClass'):
+                curevclass = data.get('eventClass')['text']
+            else:
+                curevclass = Unknown
+            example = data.get('message')
+            if curevclass != Unknown:
+                numNotUnknown += 1
+                continue
+            if not evclasskey:
+                numNoKey += 1
+                continue
+            evmap = evclass.createInstance(evclasskey)
+            evmap.eventClassKey = evclasskey
+            evmap.example = example
+            evmap.index_object()
+            numCreated += 1
+        # message
+        msg = ''
+        if numNotUnknown:
+            msg += ((msg and ' ') +
+                    '%s event%s %s not of the class Unknown.' % (
+                        numNotUnknown,
+                        (numNotUnknown != 1 and 's') or '',
+                        (numNotUnknown != 1 and 'are') or 'is'))
+        if numNoKey:
+            msg += ((msg and ' ') +
+                    '%s event%s %s not have an event class key.' % (
+                        numNoKey,
+                        (numNoKey != 1 and 's') or '',
+                        (numNoKey != 1 and 'do') or 'does'))
+        msg += (msg and ' ') + 'Created %s event mapping%s.' % (
+                        numCreated,
+                        (numCreated != 1 and 's') or '')
+        # redirect
+        url = None
+        if len(evdata) == 1 and evmap:
+            url = evmap.absolute_url()
+        elif evclass and evmap:
+            url = evclass.absolute_url()
+        return msg, url

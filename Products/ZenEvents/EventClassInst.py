@@ -32,6 +32,7 @@ from Products.ZenModel.ZenModelRM import ZenModelRM
 from Products.ZenModel.EventView import EventView
 from Products.ZenModel.ZenPackable import ZenPackable
 from Products.ZenWidgets import messaging
+from Products.ZenUtils.guid.interfaces import IGloballyIdentifiable
 from Products.ZenUtils.Utils import convToUnits, zdecode
 
 
@@ -204,7 +205,8 @@ class EventClassInst(EventClassPropertyMixin, ZenModelRM, EventView,
     """
     EventClassInst.
     """
-    implements(IIndexed)
+    implements(IIndexed, IGloballyIdentifiable)
+
     event_key = meta_type = "EventClassInst"
 
     default_catalog = "eventClassSearch"

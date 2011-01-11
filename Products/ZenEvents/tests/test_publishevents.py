@@ -4,8 +4,6 @@
 #
 ######################################################################
 
-import logging
-import transaction
 from Products.ZenTestCase.BaseTestCase import BaseTestCase
 from zope.interface import implements
 from Products.ZenMessaging.queuemessaging.interfaces import IQueuePublisher
@@ -13,9 +11,6 @@ from Products.ZenMessaging.queuemessaging.adapters import EventProtobuf as Seria
 from Products.ZenMessaging.queuemessaging.publisher import EventPublisher, getModelChangePublisher
 from zenoss.protocols.protobufs.zep_pb2 import RawEvent
 from Products.ZenEvents.Event import buildEventFromDict
-
-
-log = logging.getLogger("zen.dynamicservices")
 
 
 class MockQueuePublisher(object):
@@ -97,14 +92,14 @@ class TestPublishEvents(BaseTestCase):
         event.detaildata = dict(foo="bar")
         proto = RawEvent()
         serializer = Serializer(event)
-        
+
         # fill the protobuf
         proto = serializer.fill(proto)
 
         # check the results
         self.assertEqual(proto.agent, event.agent)
         self.assertEqual(proto.event_key, event.eventKey)
-        
+
         # make sure the actor was set
         self.assertEqual(proto.actor.element_identifier, device.id)
         # make sure we have at least one detail
@@ -112,7 +107,7 @@ class TestPublishEvents(BaseTestCase):
         # the new severity value
         self.assertEqual(proto.severity, 5)
 
-    def testFacilityConversion(self):        
+    def testFacilityConversion(self):
         event = self._createDummyEvent()
         proto = RawEvent()
         serializer = Serializer(event)
@@ -122,12 +117,12 @@ class TestPublishEvents(BaseTestCase):
         # should have converted to an int
         self.assertEqual(proto.syslog_facility, 1)
         self.assertEqual(proto.event_class_key, event.eventClassKey)
-        
-    def testUsingPublisher(self):        
+
+    def testUsingPublisher(self):
         event = self._createDummyEvent()
-        publisher = EventPublisher()        
-        publisher.publish(event)        
-        
+        publisher = EventPublisher()
+        publisher.publish(event)
+
 def test_suite():
     from unittest import TestSuite, makeSuite
     suite = TestSuite()
