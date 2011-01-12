@@ -93,6 +93,7 @@ class NotificationSubscription(ZenModelRM):
     delay_seconds = 0
     repeat_seconds = 0
     action_timeout = 60
+    send_initial_occurrence = True
 
     subject_format = "[zenoss] {event.actor.element_identifier} {event.summary}"
     body_format =  "Device: {event.actor.element_identifier}\n" \
@@ -128,6 +129,7 @@ class NotificationSubscription(ZenModelRM):
     _properties = ZenModelRM._properties + (
         {'id':'enabled', 'type':'boolean', 'mode':'w'},
         {'id':'send_clear', 'type':'boolean', 'mode':'w'},
+        {'id':'send_initial_occurrence', 'type':'boolean', 'mode':'w'},
         {'id':'body_content_type', 'type':'text', 'mode':'w'},
         {'id':'delay_seconds', 'type':'int', 'mode':'w'},
         {'id':'repeat_seconds', 'type':'int', 'mode':'w'},

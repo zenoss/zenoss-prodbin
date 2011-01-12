@@ -29,6 +29,7 @@ class NotificationSubscriptionInfo(InfoBase):
 
     enabled = ProxyProperty('enabled')
     send_clear = ProxyProperty('send_clear')
+    send_initial_occurrence = ProxyProperty('send_initial_occurrence')
 
     delay_seconds = ProxyProperty('delay_seconds')
     repeat_seconds = ProxyProperty('repeat_seconds')

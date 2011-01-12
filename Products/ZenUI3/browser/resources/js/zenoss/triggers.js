@@ -464,12 +464,21 @@ Ext.onReady(function () {
                             ref: 'send_clear',
                             fieldLabel: _t('Send Clear')
                         },{
-                            xtype: 'textfield',
+                            xtype: 'checkbox',
+                            name: 'send_initial_occurrence',
+                            ref: 'send_initial_occurrence',
+                            fieldLabel: _t('Send only on Initial Occurence?')
+                        },{
+                            xtype: 'numberfield',
                             name: 'delay_seconds',
+                            allowNegative: false,
+                            allowBlank: false,
                             ref: 'delay_seconds',
                             fieldLabel: _t('Delay (seconds)')
                         },{
-                            xtype: 'textfield',
+                            xtype: 'numberfield',
+                            allowNegative: false,
+                            allowBlank: false,
                             name: 'repeat_seconds',
                             ref: 'repeat_seconds',
                             fieldLabel: _t('Repeat (seconds)')
@@ -483,6 +492,7 @@ Ext.onReady(function () {
                         this.send_clear.setValue(data.send_clear);
                         this.repeat_seconds.setValue(data.repeat_seconds);
                         this.subscriptions.setValue(data.subscriptions);
+                        this.send_initial_occurrence.setValue(data.send_initial_occurrence);
                     }
                 }),
 
@@ -599,6 +609,7 @@ Ext.onReady(function () {
                     {
                         xtype: 'button',
                         ref: 'submitButton',
+                        formBind: true,
                         text: _t('Submit'),
                         formBind: true,
                         handler: function(button) {
@@ -832,6 +843,7 @@ Ext.onReady(function () {
                         'action',
                         'delay_seconds',
                         'send_clear',
+                        'send_initial_occurrence',
                         'repeat_seconds',
                         'action_timeout',
                         'body_content_type',

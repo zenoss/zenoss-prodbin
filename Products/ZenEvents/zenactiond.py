@@ -590,6 +590,11 @@ class ProcessSignalTask(object):
                 log.debug('Ignoring clearing signal since send_clear is set to False on this subscription %s' % notification.id)
                 continue
 
+            if notification.send_initial_occurrence and not signal.initial_occurrence:
+                log.debug('Ignoring non-initial occurrence because' + \
+                'subscription %s is set to only send on initial occurrence' %
+                          notification.id)
+                continue
             action = self.getAction(notification.action)
             try:
                 action.execute(notification, signal)
