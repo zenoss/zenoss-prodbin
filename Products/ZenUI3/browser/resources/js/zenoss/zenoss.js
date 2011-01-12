@@ -1696,6 +1696,172 @@ Zenoss.DetailPanel = Ext.extend(Ext.Panel, {
 });
 Ext.reg('detailpanel', Zenoss.DetailPanel);
 
+Zenoss.EventActionManager = Ext.extend(Ext.util.Observable, {
+    constructor: function(config) {
+        var me = this;
+        config = config || {};
+        Ext.applyIf(config, {
+            cancelled: false,
+            dialog: new Ext.Window({
+                width: 300,
+                modal: true,
+                title: _t('Processing...'),
+                layout: 'form',
+                closable: false,
+                bodyBorder: false,
+                border: false,
+                hideBorders: true,
+                plain: true,
+                buttonAlign: 'left',
+                items: [{
+                    xtype: 'panel',
+                    ref: 'panel',
+                    layout: 'form',
+                    items: [{
+                        xtype: 'box',
+                        ref: '../status',
+                        autoEl: {
+                            tag: 'p',
+                            html: _t('Processing...')
+                        },
+                        height: 20
+                    },{
+                        xtype: 'progress',
+                        width: '100%',
+                        unstyled: true,
+                        ref: '../progressBar'
+                    }]
+                }],
+                buttons: [{
+                    xtype: 'button',
+                    text: _t('Cancel'),
+                    ref: '../cancelButton',
+                    handler: function(btn, evt) {
+                        me.cancelled = true;
+                        me.finishAction();
+                    }
+                }]
+            }),
+            events: {
+                'updateRequestIncomplete': true, 
+                'updateRequestComplete': true
+            },
+            listeners: {
+                updateRequestIncomplete: function(data) {
+                    if (!me.cancelled) {
+                        me.params.asof = data.data.request.update_time;
+                        me.run();
+                    }
+                    else {
+                        // if the action has been cancelled after the
+                        // request was issued, let the user know what
+                        // exactly happened.
+                        Ext.Msg.show({
+                            title: _t('Info - Cancelled'),
+                            msg: String.format(_t('Event processing cancelled. A total of {0} events were updated.'), me.eventsUpdated),
+                            buttons: Ext.MessageBox.OK
+                        });
+                    }
+                },
+                updateRequestComplete: function(data) {
+                    var msg = String.format(_t('Event processing completed. A total of {0} events were updated.'), me.eventsUpdated);
+                    if (me.isLargeRequest()) {
+                        Ext.Msg.show({
+                            title: _t('Info - Complete'),
+                            msg: msg,
+                            buttons: Ext.MessageBox.OK
+                        });
+                    }
+                    else {
+                        Zenoss.message.success(msg);
+                    }
+                    me.finishAction();
+                }
+            },
+            isLargeRequest: function() {
+                // determine if this request is going to require batch 
+                // requests. If you have selected more than 100 ids, show
+                // a progress bar. also if you have not selected ANY and
+                // are just executing on a filter, we don't have any idea
+                // how many will be updated, so show a progress bar just
+                // in case.
+                return me.params.evids.length > 100 || me.params.evids.length == 0;
+            },
+            action: function(params, callback) {
+                throw('The EventActionManager action must be implemented before use.');
+            },
+            startAction: function() {
+                me.cancelled = false;
+                if (me.isLargeRequest()) {
+                    me.dialog.show();
+                    me.dialog.status.update(_t('Processing...'));
+                }
+                me.run();
+            },
+            run: function() {
+                me.action(me.params, me.requestCallback);
+            },
+            finishAction: function() {
+                me.dialog.hide();
+                if (me.grid) {
+                    var v = Ext.getCmp(me.grid).getView();
+                    v.updateLiveRows(v.rowIndex, true, true);
+                }
+            },
+            requestCallback: function(provider, response) {
+                var data = response.result.data;
+                
+                // no data due to an error. Handle it.
+                if (!data) {
+                    Ext.Msg.show({
+                        title: _t('Error'),
+                        msg: _t('There was an error handling your request.'),
+                        buttons: Ext.MessageBox.OK
+                    });
+                    me.finishAction();
+                    return;
+                }
+                
+                me.eventsUpdated += data.updated;
+                
+                if (me.remaining === null) {
+                    me.remaining = (data.remaining + data.updated);
+                }
+                
+                // don't try to update the progress bar if it hasn't
+                // been created due to this being a small request.
+                if (me.isLargeRequest()) {
+                    var progress = null;
+                    if (me.remaining != 0) {
+                        progress = me.eventsUpdated/me.remaining;
+                        me.dialog.status.update(String.format(_t('Progress: {0} of {1}'), me.eventsUpdated, me.remaining));
+                        me.dialog.progressBar.updateProgress(progress);
+                    }
+                }
+                
+                if (data.remaining) {
+                    me.fireEvent('updateRequestIncomplete', {data:data});
+                }
+                else {
+                    me.fireEvent('updateRequestComplete', {data:data});
+                }
+            },
+            reset: function() {
+                me.eventsUpdated = 0;
+                me.remaining = null;
+                me.dialog.progressBar.reset();
+            },
+            execute: function(actionFunction, params) {
+                me.action = actionFunction;
+                me.params = params;
+                me.reset();
+                me.startAction();
+            }
+        });
+        Ext.apply(this, config);
+        Zenoss.EventActionManager.superclass.constructor.call(this, config);
+    }
+});
 
 /**
  * @class Zenoss.ColumnFieldSet

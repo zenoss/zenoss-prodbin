@@ -56,6 +56,13 @@ Ext.onReady(function(){
             ranges = sm.getPendingSelections(true),
             evids = [],
             sels = sm.getSelections();
+        
+        if (sm.selectState == 'All') {
+            // If we are selecting all, we don't want to send back any evids.
+            // this will make the operation happen on the filter's result
+            // instead of whatever the view seems to have selected.
+            sels = [];
+        }
         Ext.each(sels, function(record){
             evids[evids.length] = record.data.evid;
         });
@@ -265,13 +272,17 @@ Ext.onReady(function(){
             }
         );
     }
-
+    
     // Get the container surrounding master/detail, for adding the toolbar
     var container = Ext.getCmp('center_panel_container');
-
+    
     // Add a CSS class to scope some styles that affect other parts of the UI
-    container.on('render', function(){container.el.addClass('zenui3')});
-
+    container.on('render', function(){container.el.addClass('zenui3');});
+    
+    var eam = new Zenoss.EventActionManager({
+        grid: 'events_grid'
+    });
+    
     // Add the toolbar to the container
     var tbar = new Zenoss.LargeToolbar({
             region:'north',
@@ -287,16 +298,7 @@ Ext.onReady(function(){
                     // Get params describing selected events
                     var params = getSelectionParameters();
                     if (params) {
-                        // Send to server, then refresh view to see new event
-                        // states
-                        params.asof = Zenoss.env.asof;
-                        Zenoss.remote.EventsRouter.acknowledge(
-                            params,
-                            function(provider, response){
-                                view = grid.getView();
-                                view.updateLiveRows(view.rowIndex, true, true);
-                            }
-                        );
+                        eam.execute(Zenoss.remote.EventsRouter.acknowledge, params);
                     }
                 }
             },{
@@ -310,15 +312,7 @@ Ext.onReady(function(){
                     // Get params describing selected events
                     var params = getSelectionParameters();
                     if (params) {
-                        // Send to server, then refresh view to see fewer
-                        // events
-                        params.asof = Zenoss.env.asof;
-                        Zenoss.remote.EventsRouter.close(params,
-                            function(provider, response){
-                                view = grid.getView();
-                                view.updateLiveRows(view.rowIndex, true, true);
-                            }
-                        );
+                        eam.execute(Zenoss.remote.EventsRouter.close, params);
                     }
                 }
             },{
@@ -336,14 +330,7 @@ Ext.onReady(function(){
                 handler: function() {
                     var params = getSelectionParameters();
                     if (params) {
-                        params.asof = Zenoss.env.asof;
-                        Zenoss.remote.EventsRouter.unacknowledge(
-                            params,
-                            function(provider, response) {
-                                view = grid.getView();
-                                view.updateLiveRows(view.rowIndex, true, true);
-                            }
-                        );
+                        eam.execute(Zenoss.remote.EventsRouter.reopen, params);
                     }
                 }
             },{
@@ -459,7 +446,7 @@ Ext.onReady(function(){
                              link + '">'+
                              'Event Console<'+'/a><'+'/div>',
                             buttons: Ext.Msg.OK
-                            })
+                            });
                         }
                     },{
                         text: "Restore defaults",
@@ -620,7 +607,7 @@ Ext.onReady(function(){
 
     // Wipe event detail values
     function wipeEventDetail() {
-        Ext.getCmp('dpanelcontainer').wipe()
+        Ext.getCmp('dpanelcontainer').wipe();
     }
 
     // Collapse the event detail pane and switch triggers (double select
@@ -646,7 +633,7 @@ Ext.onReady(function(){
     });
 
     detail_panel.on('collapse', function(ob, state) {
-        eventDetailCollapsed()
+        eventDetailCollapsed();
     });
     // Hook up the "Last Updated" text
     var store = grid.getStore(),

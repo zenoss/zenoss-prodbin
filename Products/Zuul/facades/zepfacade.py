@@ -14,6 +14,7 @@
 import logging
 import re
 import random
+from AccessControl import getSecurityManager
 from zope.interface import implements
 from Products.Zuul.facades import ZuulFacade
 from Products.Zuul.interfaces import IZepFacade
@@ -23,7 +24,7 @@ from Products.Zuul.utils import resolve_context
 import pkg_resources
 from zenoss.protocols.services.zep import ZepServiceClient, EventSeverity, EventStatus, ZepConfigClient
 from zenoss.protocols.jsonformat import to_dict, from_dict
-from zenoss.protocols.protobufs.zep_pb2 import EventSummaryFilter, NumberCondition, EventSort
+from zenoss.protocols.protobufs.zep_pb2 import EventSummaryFilter, NumberCondition, EventSort, EventFilter
 from Products.ZenUtils.GlobalConfig import getGlobalConfiguration
 from Products.ZenUtils.guid.interfaces import IGlobalIdentifier
 from zenoss.protocols.protobufs.zep_pb2 import SEVERITY_CLEAR, SEVERITY_INFO, SEVERITY_DEBUG
@@ -68,29 +69,31 @@ class ZepFacade(ZuulFacade):
         self.client = ZepServiceClient(zep_url)
         self.configClient = ZepConfigClient(zep_url)
 
-    def createFilter(self,
-        uuid=[],
-        summary=None,
-        event_class=None,
-        status=[],
+    def createEventFilter(self,
         severity=[],
+        status=[],
+        event_class=None,
         first_seen=None,
         last_seen=None,
         status_change=None,
-        tags=[],
-        count=None,
+        update_time=None,
+        count_range=None,
         element_identifier=None,
         element_sub_identifier=None,
-        fingerprint=None):
+        uuid=[],
+        event_summary=None,
+        tags=[]):
+        # no details?
+        
         filter = {}
 
         if uuid:
-            if not isinstance(uuid, (list, tuple)):
-                uuid = [uuid]
+            if not isinstance(uuid, list):
+                raise ValueError('When creating an EventFilter, "uuid" must be a list.')
             filter['uuid'] = uuid
 
-        if summary:
-            filter['event_summary'] = str(summary).strip()
+        if event_summary:
+            filter['event_summary'] = str(event_summary).strip()
 
         if event_class:
             filter['event_class'] = str(event_class).strip()
@@ -113,11 +116,8 @@ class ZepFacade(ZuulFacade):
         if tags:
             filter['tag_uuids'] = tags
 
-        if count:
-            filter['count'] = count
-
-        if fingerprint:
-            filter['fingerprint'] = fingerprint
+        if count_range:
+            filter['count_range'] = count_range
 
         if element_identifier:
             filter['element_identifier'] = str(element_identifier).strip()
@@ -136,12 +136,6 @@ class ZepFacade(ZuulFacade):
             d['end_time'] = timeRange[1]
 
         return d
-
-    def getEventSummariesFromArchive(self, offset, limit=100, keys=None, sort=None, filter={}):
-        return self._getEventSummaries(self.client.getEventSummariesFromArchive, offset=offset, limit=limit, keys=keys, sort=sort, filter=filter)
-
-    def getEventSummaries(self, offset, limit=100, keys=None, sort=None, filter={}):
-        return self._getEventSummaries(self.client.getEventSummaries, offset=offset, limit=limit, keys=keys, sort=sort, filter=filter)
 
     def _getEventSummaries(self, source, offset, limit=100, keys=None, sort=None, filter={}):
         filterBuf = None
@@ -195,11 +189,11 @@ class ZepFacade(ZuulFacade):
         user = self._dmd.ZenUsers.getUserSettings(userName)
         if user:
             return IGlobalIdentifier(user).getGUID()
-
-    def getEventSummary(self, uuid):
-        response, content = self.client.getEventSummary(uuid)
-        return to_dict(content)
-
+    
+    def _findUserInfo(self):
+        userName = getSecurityManager().getUser().getId()
+        return self._getUserUuid(userName), userName
+    
     def addNote(self, uuid, message, userName, userUuid=None):
         if userName and not userUuid:
             userUuid = self._getUserUuid(userName)
@@ -207,21 +201,62 @@ class ZepFacade(ZuulFacade):
                 raise Exception('Could not find user "%s"' % userName)
 
         self.client.addNote(uuid, message, userUuid, userName)
+        
+    def getEventSummariesFromArchive(self, offset, limit=100, keys=None, sort=None, filter={}):
+        return self._getEventSummaries(self.client.getEventSummariesFromArchive, offset=offset, limit=limit, keys=keys, sort=sort, filter=filter)
 
-    def closeEventSummary(self, uuid):
-        return self.client.closeEventSummary(uuid)
+    def getEventSummaries(self, offset, limit=100, keys=None, sort=None, filter={}):
+        return self._getEventSummaries(self.client.getEventSummaries, offset=offset, limit=limit, keys=keys, sort=sort, filter=filter)
 
-    def acknowledgeEventSummary(self, uuid, userUuid=None, userName=None):
-        if userName and not userUuid:
-            userUuid = self._getUserUuid(userName)
-            if not userUuid:
-                raise Exception('Could not find user "%s"' % userName)
-
-        return self.client.acknowledgeEventSummary(uuid, userUuid, userName)
-
-    def reopenEventSummary(self, uuid):
-        return self.client.reopenEventSummary(uuid)
-
+    def getEventSummary(self, uuid):
+        response, content = self.client.getEventSummary(uuid)
+        return to_dict(content)
+        
+    def closeEventSummaries(self, 
+            eventFilter=None,
+            exclusionFilter=None,
+            updateTime=None,
+            limit=None):
+        
+        eventFilter = from_dict(EventFilter, eventFilter)
+        if exclusionFilter:
+            exclusionFilter = from_dict(EventFilter, exclusionFilter)
+        
+        userUuid, userName = self._findUserInfo()
+        status, response = self.client.closeEventSummaries(
+            userUuid, userName, eventFilter, exclusionFilter, updateTime, limit)
+        return status, to_dict(response)
+    
+    def acknowledgeEventSummaries(self, 
+            eventFilter=None,
+            exclusionFilter=None,
+            updateTime=None,
+            limit=None):
+        
+        eventFilter = from_dict(EventFilter, eventFilter)
+        if exclusionFilter:
+            exclusionFilter = from_dict(EventFilter, exclusionFilter)
+        
+        userUuid, userName = self._findUserInfo()
+        status, response = self.client.acknowledgeEventSummaries(
+            userUuid, userName, eventFilter, exclusionFilter, updateTime, limit)
+        return status, to_dict(response)
+    
+    def reopenEventSummaries(self, 
+            eventFilter=None,
+            exclusionFilter=None,
+            updateTime=None,
+            limit=None):
+                
+        eventFilter = from_dict(EventFilter, eventFilter)
+        if exclusionFilter:
+            exclusionFilter = from_dict(EventFilter, exclusionFilter)
+            
+        userUuid, userName = self._findUserInfo()
+        status, response = self.client.reopenEventSummaries(
+            userUuid, userName, eventFilter, exclusionFilter, updateTime, limit)
+        return status, to_dict(response)
+    
     def getConfig(self):
         config = self.configClient.getConfig()
         return config

@@ -123,30 +123,6 @@ Ext.onReady(function(){
                                 sm = grid.getSelectionModel();
                             sm.selectNone();
                         }
-                    },{
-                        text: 'Closed',
-                        iconCls: 'closed',
-                        handler: function(){
-                            var grid = Ext.getCmp('events_grid'),
-                                sm = grid.getSelectionModel();
-                            sm.selectClosed()
-                        }
-                    },{
-                        text: 'Cleared',
-                        iconCls: 'cleared',
-                        handler: function(){
-                            var grid = Ext.getCmp('events_grid'),
-                                sm = grid.getSelectionModel();
-                            sm.selectCleared()
-                        }
-                    },{
-                        text: 'Aged',
-                        iconCls: 'aged',
-                        handler: function(){
-                            var grid = Ext.getCmp('events_grid'),
-                                sm = grid.getSelectionModel();
-                            sm.selectAged()
-                        }
                     }
                     ]
                 }

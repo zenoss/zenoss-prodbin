@@ -77,6 +77,7 @@
         Zenoss.env.EVENTSGRID_STATEID = 'evconsole';
     });
 "></script>
+
 <script src="/++resource++zenui/js/zenoss/EvConsole.js">
 </script>
 <script>
@@ -93,6 +94,7 @@ Ext.onReady(function(){
             Ext.getCmp('footer_bar'));
 });
 </script>
+
 </tal:block>
 
 </tal:block>

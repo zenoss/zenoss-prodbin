@@ -43,13 +43,12 @@ class EventsRouter(DirectRouter):
     """
     A JSON/ExtDirect interface to operations on events in ZEP
     """
-
-
+    
     def __init__(self, context, request):
         super(EventsRouter, self).__init__(context, request)
         self.zep = getFacade('zep', context)
         self.api = getFacade('event', context)
-
+        
     def _mapToOldEvent(self, event_summary):
         eventOccurrence = event_summary['occurrence'][0]
         eventActor = eventOccurrence['actor']
@@ -86,13 +85,13 @@ class EventsRouter(DirectRouter):
         }
 
         return event
-
+        
     def _timeRange(self, value):
         values = []
         for t in value.split('/'):
             values.append(DateTime.DateTime(t, datefmt='us').millis())
         return values
-
+        
     @require('ZenCommon')
     def queryArchive(self, limit=0, start=0, sort='lastTime', dir='desc', params=None, uid=None):
         filter = self._buildFilter(uid, params)
@@ -104,7 +103,7 @@ class EventsRouter(DirectRouter):
             totalCount = events['total'],
             asof = time.time()
         )
-
+        
     @require('ZenCommon')
     def query(self, limit=0, start=0, sort='lastTime', dir='desc', params=None,
               archive=False, uid=None):
@@ -148,9 +147,10 @@ class EventsRouter(DirectRouter):
             asof = time.time()
         )
 
-    def _buildFilter(self, uid, params):
+    def _buildFilter(self, uid, params, uuid=[]):
         """
-        Query for events.
+        Construct a dictionary that can be converted into an EventFilter protobuf.
+        
         @type  params: dictionary
         @param params: (optional) Key-value pair of filters for this search.
                        (default: None)
@@ -158,32 +158,41 @@ class EventsRouter(DirectRouter):
         @param uid: (optional) Context for the query (default: None)
         """
         if params:
+            log.debug('logging params for building filter.')
+            log.debug(params)
             params = loads(params)
-            filter = self.zep.createFilter(
-                uuid = params.get('evid'),
-                fingerprint = params.get('dedupid'),
-                summary = params.get('summary'),
-                event_class = params.get('eventClass'),
-                status = [i for i in params.get('eventState', [])],
+            filter = self.zep.createEventFilter(
                 severity = params.get('severity'),
-                tags = params.get('tags'),
-                count = params.get('count'),
-                element_identifier = params.get('device'),
-                element_sub_identifier = params.get('component'),
+                status = [i for i in params.get('eventState', [])],
+                event_class = params.get('eventClass'),
                 first_seen = params.get('firstTime') and self._timeRange(params.get('firstTime')),
                 last_seen = params.get('lastTime') and self._timeRange(params.get('lastTime')),
+                # status_change
+                # update_time
+                uuid = uuid,
+                count_range = params.get('count'),
+                element_identifier = params.get('device'),
+                element_sub_identifier = params.get('component'),
+                event_summary = params.get('summary'),
+                tags = params.get('tags')
             )
+            log.debug('Found params for building filter, ended up building  the following:')
+            log.debug(filter)
         else:
+            log.debug('Did not get parameters, using empty filter.')
             filter = {}
-
+        
+        ###
         if uid is None:
             uid = self.context.dmd.Events
-
+        ###
+        
+        
         context = resolve_context(uid)
-
+        
         if context and context.id != 'Events':
             tags = filter.setdefault('tag_uuids', [])
-
+            
             try:
                 tags.append(IGlobalIdentifier(context).getGUID())
             except TypeError:
@@ -191,7 +200,10 @@ class EventsRouter(DirectRouter):
                     filter['event_class'] = context.getDmdKey()
                 else:
                     raise Exception('Unknown context %s' % context)
-
+        
+        log.debug('Final filter will be:')
+        log.debug(filter)
+        
         return filter
 
     def _uuidUrl(self, uuid):
@@ -298,9 +310,53 @@ class EventsRouter(DirectRouter):
 
         return DirectResponse.succeed()
 
+    
+    def _buildRequestFilters(self, evids, excludeIds, selectState, field, 
+        direction, params, history, uid):
+        """
+        Given common request parameters, build the inclusive and exclusive 
+        filters for event update requests.
+        """
+        
+        if uid is None:
+            uid = self.context
+        
+        # if the request contains specific event summaries to act on, they will
+        # be passed in as evids. Excluded event summaries are passed in under
+        # the keyword argument 'excludeIds'. If these exist, pass them in as
+        # parameters to be used to construct the EventFilter.
+        uuids = []
+        if evids and isinstance(evids, list):
+            log.debug('Found specific event ids, adding to params.')
+            uuids = evids
+        
+        includeFilter = self._buildFilter(uid, params, uuids)
+        
+        # the only thing excluded in an event filter is a list of event uuids
+        # which are passed as EventTagFilter using the OR operator.
+        excludeFilter = None
+        if excludeIds:
+            # TODO: Fix the keyword argument. it's confusing.
+            excludeFilter = self._buildFilter(uid, params, uuid=excludeIds.keys())
+        
+        log.debug('The exclude filter:' + str(excludeFilter))
+        log.debug('Finished building request filters.')
+        
+        return includeFilter, excludeFilter
+
+    
     @require('Manage Events')
-    def close(self, evids=None, excludeIds=None, selectState=None, field=None,
-              direction=None, params=None, history=False, uid=None, asof=None):
+    def close(self,
+        evids=None,
+        excludeIds=None,
+        selectState=None,
+        field=None,
+        direction=None,
+        params={},
+        history=False,
+        uid=None,
+        asof=None,
+        limit=None):
         """
         Close event(s).
 
@@ -333,15 +389,36 @@ class EventsRouter(DirectRouter):
         @rtype:   DirectResponse
         @return:  Success message
         """
-        if uid is None:
-            uid = self.context
-        self.zep.closeEventSummary(evids[0])
-        return DirectResponse.succeed()
-
+        
+        log.debug('Issuing a close request.')
+        
+        includeFilter, excludeFilter = self._buildRequestFilters(
+            evids, excludeIds, selectState, field, direction, params, history, uid);
+        
+        status, summaryUpdateResponse = self.zep.closeEventSummaries(
+            eventFilter=includeFilter,
+            exclusionFilter=excludeFilter,
+            updateTime=asof,
+            limit=limit,
+        )
+        
+        log.debug('Done issuing close request.')
+        log.debug(summaryUpdateResponse)
+        
+        return DirectResponse.succeed(data=summaryUpdateResponse)
+        
     @require('Manage Events')
-    def acknowledge(self, evids=None, excludeIds=None, selectState=None,
-                    field=None, direction=None, params=None, history=False,
-                    uid=None, asof=None):
+    def acknowledge(self,
+        evids=None,
+        excludeIds=None,
+        selectState=None,
+        field=None,
+        direction=None,
+        params={},
+        history=False,
+        uid=None,
+        asof=None,
+        limit=None):
         """
         Acknowledge event(s).
 
@@ -374,13 +451,23 @@ class EventsRouter(DirectRouter):
         @rtype:   DirectResponse
         @return:  Success message
         """
-        if uid is None:
-            uid = self.context
-
-        userName = getSecurityManager().getUser().getId()
-        self.zep.acknowledgeEventSummary(evids[0], userName = userName)
-        return DirectResponse.succeed()
-
+        log.debug('Issuing an acknowledge request.')
+        
+        includeFilter, excludeFilter = self._buildRequestFilters(
+            evids, excludeIds, selectState, field, direction, params, history, uid);
+        
+        status, summaryUpdateResponse = self.zep.acknowledgeEventSummaries(
+            eventFilter=includeFilter,
+            exclusionFilter=excludeFilter,
+            updateTime=asof,
+            limit=limit,
+        )
+        
+        log.debug('Done issuing acknowledge request.')
+        log.debug(summaryUpdateResponse)
+        
+        return DirectResponse.succeed(data=summaryUpdateResponse)
+        
     @require('Manage Events')
     def unacknowledge(self, *args, **kwargs):
         """
@@ -389,8 +476,17 @@ class EventsRouter(DirectRouter):
         return self.reopen(*args, **kwargs)
 
     @require('Manage Events')
-    def reopen(self, evids=None, excludeIds=None, selectState=None, field=None,
-               direction=None, params=None, history=False, uid=None, asof=None):
+    def reopen(self,
+        evids=None,
+        excludeIds=None,
+        selectState=None,
+        field=None,
+        direction=None,
+        params={},
+        history=False,
+        uid=None,
+        asof=None,
+        limit=None):
         """
         Reopen event(s).
 
@@ -423,11 +519,24 @@ class EventsRouter(DirectRouter):
         @rtype:   DirectResponse
         @return:  Success message
         """
-        if uid is None:
-            uid = self.context
-        self.zep.reopenEventSummary(evids[0])
-        return DirectResponse.succeed()
-
+        
+        log.debug('Issuing a reopen request.')
+        
+        includeFilter, excludeFilter = self._buildRequestFilters(
+            evids, excludeIds, selectState, field, direction, params, history, uid);
+        
+        status, summaryUpdateResponse = self.zep.reopenEventSummaries(
+            eventFilter=includeFilter,
+            exclusionFilter=excludeFilter,
+            updateTime=asof,
+            limit=limit,
+        )
+        
+        log.debug('Done issuing reopen request.')
+        log.debug(summaryUpdateResponse)
+        
+        return DirectResponse.succeed(data=summaryUpdateResponse)
+    
     @require('Manage Events')
     def add_event(self, summary, device, component, severity, evclasskey, evclass):
         """

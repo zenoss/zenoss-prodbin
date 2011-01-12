@@ -416,6 +416,7 @@ Zenoss.events.SelectMenu = {
                 var grid = Ext.getCmp('select-button').ownerCt.ownerCt,
                 sm = grid.getSelectionModel();
                 sm.selectAll();
+                grid.selectedState = 'all';
             }
         },{
             text: 'None',
@@ -423,36 +424,9 @@ Zenoss.events.SelectMenu = {
                 var grid = Ext.getCmp('select-button').ownerCt.ownerCt,
                 sm = grid.getSelectionModel();
                 sm.selectNone();
+                sm.selectedState = 'none';
             }
-        },{
-            text: 'New',
-            iconCls: 'unacknowledge',
-            handler: function(){
-                // New == 0
-                var grid = Ext.getCmp('select-button').ownerCt.ownerCt,
-                sm = grid.getSelectionModel();
-                sm.selectNew();
-            }
-        },{
-            text: 'Acknowledged',
-            iconCls: 'acknowledge',
-            handler: function(){
-                // Acknowledged == 1
-                var grid = Ext.getCmp('select-button').ownerCt.ownerCt,
-                sm = grid.getSelectionModel();
-                sm.selectAck();
-            }
-        },{
-            text: 'Suppressed',
-            iconCls: 'suppress',
-            handler: function(){
-                // Suppressed == 2
-                var grid = Ext.getCmp('select-button').ownerCt.ownerCt,
-                sm = grid.getSelectionModel();
-                sm.selectSuppressed();
-            }
-        }
-               ]
+        }]
     }
 };
 
