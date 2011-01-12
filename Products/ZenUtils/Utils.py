@@ -1210,11 +1210,11 @@ def unsigned(v):
 
 
 def nanToNone(value):
-    import cPickle
     try:
-        cPickle.dumps(value)
-    except SystemError:
-        return None
+        if math.isnan(value):
+            return None
+    except TypeError:
+        pass
     return value
 
 

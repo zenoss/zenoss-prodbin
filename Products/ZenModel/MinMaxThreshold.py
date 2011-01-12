@@ -40,6 +40,8 @@ import types
 # Import Products.ZenRRD.utils.rpneval directy.
 from Products.ZenRRD.utils import rpneval
 
+NaN = float('nan')
+
 class MinMaxThreshold(ThresholdClass):
     """
     Threshold class that can evaluate RPNs and Python expressions
@@ -306,7 +308,11 @@ class MinMaxThresholdInstance(ThresholdInstance):
         if not color.startswith('#'):
             color = '#%s' % color
         minval = self.minimum
+        if minval is None:
+            minval = NaN
         maxval = self.maximum
+        if maxval is None:
+            maxval = NaN
         if not self.dataPointNames:
             return gopts
         gp = relatedGps[self.dataPointNames[0]]
@@ -335,6 +341,8 @@ class MinMaxThresholdInstance(ThresholdInstance):
         minstr = self.setPower(minval)
         maxstr = self.setPower(maxval)
 
+        minval = nanToNone(minval)
+        maxval = nanToNone(maxval)
         if legend:
             gopts.append(
                 "HRULE:%s%s:%s\\j" % (minval or maxval, color, legend))
