@@ -18,11 +18,13 @@ appropriately and then return back a string
 """
 
 import StringIO
+import json
 
 from Products.Five.browser import BrowserView
 
 from Products.ZenModel.ZenModelBase import ZenModelBase
 from Products.ZenUtils.jsonutils import unjson
+from Products.Zuul.routers.zep import EventsRouter
 
 from interfaces import IEventManagerProxy
 
@@ -46,29 +48,30 @@ class EventsExporter(BrowserView):
 
 
     def _query(self, history, fields, sort, dir, params=None):
-        evutil = IEventManagerProxy(self)
-        zem = evutil.event_manager(history)
-        if isinstance(params, basestring):
-            params = unjson(params)
-        if not params:
-            params = {}
-        args = dict(
-            resultFields=['evid'],
-            orderby="%s %s" % (sort, dir),
-            filters=params
-        )
-        all_events = zem.getEventListME(self.context, **args)
-        # First item is the list of default fields
-        field_names = set(zem.getFieldList())
-        events = []
-        for evt in all_events:
-            evobj = zem.getEventDetailFromStatusOrHistory(evid=evt.evid)
-            evt_dict = dict(evobj.getEventFields())
-            evt_dict.update(dict(evobj.getEventDetails()))
-            field_names.update(evt_dict.keys())
-            events.append(evt_dict)
-            
-        return list(field_names), events
+        jsonParams = params
+        if isinstance(params, dict):
+            jsonParams = json.dumps(params)
+        limit = 1000
+        zepRouter = EventsRouter(self.context, self.request)
+        archive = history
+        summaryEvents = zepRouter.query(archive=archive, limit=limit, sort=sort, 
+                                    dir=dir, params=jsonParams, detailFormat=True)
+        data = summaryEvents.data.get('events', [])
+        eventData = []
+        field_names = set()
+        for event in data:
+            eventDict = {}
+            # default values for fields some optional fields in ZEP events
+            eventDict['DeviceClass']= "NOT IMPLEMENTED"
+            eventDict['ipAddress']= ''
+
+            eventDict.update(event)
+            del eventDict['properties']
+            for prop in event['properties']:
+                eventDict[prop['key']]=prop['value']
+            eventData.append(eventDict)
+            map(field_names.add, eventDict.keys())
+        return list(field_names), eventData
 
 
     def csv(self, fields, events):

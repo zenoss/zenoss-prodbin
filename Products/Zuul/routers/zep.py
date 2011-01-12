@@ -93,20 +93,24 @@ class EventsRouter(DirectRouter):
         return values
         
     @require('ZenCommon')
-    def queryArchive(self, limit=0, start=0, sort='lastTime', dir='desc', params=None, uid=None):
+    def queryArchive(self, limit=0, start=0, sort='lastTime', dir='desc', params=None, uid=None, detailFormat=False):
         filter = self._buildFilter(uid, params)
 
         events = self.zep.getEventSummariesFromArchive(limit=limit, offset=start, sort=(sort, dir), filter=filter)
-
+        
+        eventFormat = self._mapToOldEvent
+        if detailFormat:
+            eventFormat = self._mapToDetailEvent
+        
         return DirectResponse.succeed(
-            events = [self._mapToOldEvent(e) for e in events['events']],
+            events = [eventFormat(e) for e in events['events']],
             totalCount = events['total'],
             asof = time.time()
         )
         
     @require('ZenCommon')
     def query(self, limit=0, start=0, sort='lastTime', dir='desc', params=None,
-              archive=False, uid=None):
+              archive=False, uid=None, detailFormat=False):
         """
         Query for events.
 
@@ -135,14 +139,20 @@ class EventsRouter(DirectRouter):
            - asof: (float) Current time
         """
         if archive:
-            return self.queryArchive(limit=limit, start=start, sort=sort, dir=dir, params=params, uid=uid)
+            return self.queryArchive(limit=limit, start=start, sort=sort, 
+                                     dir=dir, params=params, uid=uid, 
+                                     detailFormat=detailFormat)
 
         filter = self._buildFilter(uid, params)
 
         events = self.zep.getEventSummaries(limit=limit, offset=start, sort=(sort, dir), filter=filter)
 
+        eventFormat = self._mapToOldEvent
+        if detailFormat:
+            eventFormat = self._mapToDetailEvent
+
         return DirectResponse.succeed(
-            events = [self._mapToOldEvent(e) for e in events['events']],
+            events = [eventFormat(e) for e in events['events']],
             totalCount = events['total'],
             asof = time.time()
         )
@@ -211,6 +221,63 @@ class EventsRouter(DirectRouter):
             return '/zport/dmd/goto?guid=%s' % uuid;
 
     @require('ZenCommon')
+
+    def _mapToDetailEvent(self, event_summary):
+        eventOccurrence = event_summary['occurrence'][0]
+        eventClass = eventOccurrence['event_class']
+        eventData = {
+            'evid':event_summary['uuid'], 
+            'device':eventOccurrence['actor'].get('element_identifier', None), 
+            'device_title':eventOccurrence['actor'].get('element_identifier', None), 
+            'device_url':self._uuidUrl(eventOccurrence['actor'].get('element_uuid', None)), 
+            'device_uuid':eventOccurrence['actor'].get('element_uuid', None), 
+            'component':eventOccurrence['actor'].get('element_sub_identifier', None), 
+            'component_title':eventOccurrence['actor'].get('element_sub_identifier', None), 
+            'component_url':self._uuidUrl(eventOccurrence['actor'].get('element_sub_uuid', None)), 
+            'component_uuid':eventOccurrence['actor'].get('element_sub_uuid', None), 
+            'firstTime':isoDateTimeFromMilli(event_summary['first_seen_time']), 
+            'lastTime':isoDateTimeFromMilli(event_summary['last_seen_time']), 
+            'eventClass':eventClass, 
+            'eventClass_url':"/zport/dmd/Events%s" % eventClass, 
+            'severity':eventOccurrence['severity'], 
+            'eventState':EventStatus.getPrettyName(event_summary['status']), 
+            'count':event_summary['count'], 
+            'summary':eventOccurrence.get('summary'), 
+            'message':eventOccurrence.get('message'), 
+            'properties':[
+                dict(key=k, value=v) for (k, v) in {'evid':event_summary['uuid'], 
+                                                    'device':eventOccurrence['actor'].get('element_identifier', None), 
+                                                    'component':eventOccurrence['actor'].get('element_sub_identifier', None), 
+                                                    'firstTime':isoDateTimeFromMilli(event_summary['first_seen_time']), 
+                                                    'lastTime':isoDateTimeFromMilli(event_summary['last_seen_time']), 
+                                                    'stateChange':isoDateTimeFromMilli(event_summary['status_change_time']), 
+                                                    'dedupid':eventOccurrence['fingerprint'], 
+                                                    'eventClass':eventClass, 
+                                                    'eventClassKey':eventOccurrence['event_class'], 
+                                                    'eventClassMapping_uuid':self._uuidUrl(eventOccurrence.get('event_class_mapping_uuid')), 
+                                                    'eventKey':eventOccurrence.get('event_key', None), 
+                                                    'summary':eventOccurrence.get('summary'), 
+                                                    'severity':eventOccurrence.get('severity'), 
+                                                    'eventState':EventStatus.getPrettyName(event_summary['status']), 
+                                                    'count':event_summary['count'], 
+                                                    'monitor':eventOccurrence.get('monitor'), 
+                                                    'agent':eventOccurrence.get('agent'), 
+                                                    'message':eventOccurrence.get('message')}.iteritems() if v], 
+            'log':[]}
+        if 'notes' in event_summary:
+            for note in event_summary['notes']:
+                eventData['log'].append((note['user_name'], isoDateTimeFromMilli(note['created_time']), note['message']))
+        
+        if 'details' in eventOccurrence:
+            for detail in eventOccurrence['details']:
+                values = detail['value']
+                if not isinstance(values, list):
+                    values = list(values)
+                for value in (v for v in values if v):
+                    eventData['properties'].append(dict(key=detail['name'], value=value))
+        
+        return eventData
+
     def detail(self, evid):
         """
         Get event details.
@@ -226,65 +293,7 @@ class EventsRouter(DirectRouter):
         """
         event_summary = self.zep.getEventSummary(evid)
         if event_summary:
-            eventOccurrence = event_summary['occurrence'][0]
-
-            eventClass = eventOccurrence['event_class']
-            eventData = {
-                'evid' : event_summary['uuid'],
-                'device' : eventOccurrence['actor'].get('element_identifier', None),
-                'device_title' : eventOccurrence['actor'].get('element_identifier', None),
-                'device_url' : self._uuidUrl(eventOccurrence['actor'].get('element_uuid', None)),
-                'device_uuid' : eventOccurrence['actor'].get('element_uuid', None),
-                'component' : eventOccurrence['actor'].get('element_sub_identifier', None),
-                'component_title' : eventOccurrence['actor'].get('element_sub_identifier', None),
-                'component_url' : self._uuidUrl(eventOccurrence['actor'].get('element_sub_uuid', None)),
-                'component_uuid' : eventOccurrence['actor'].get('element_sub_uuid', None),
-                'firstTime' : isoDateTimeFromMilli(event_summary['first_seen_time']),
-                'lastTime' : isoDateTimeFromMilli(event_summary['last_seen_time']),
-                'eventClass' : eventClass,
-                'eventClass_url' : "/zport/dmd/Events%s" % eventClass,
-                'severity' : eventOccurrence['severity'],
-                'eventState' : EventStatus.getPrettyName(event_summary['status']),
-                'count' : event_summary['count'],
-                'summary' : eventOccurrence.get('summary'),
-                'message' : eventOccurrence.get('message'),
-                'properties' : [
-                    dict(key=k, value=v) for (k, v) in {
-                        'evid' : event_summary['uuid'],
-                        'device' : eventOccurrence['actor'].get('element_identifier', None),
-                        'component' : eventOccurrence['actor'].get('element_sub_identifier', None),
-                        'firstTime' : isoDateTimeFromMilli(event_summary['first_seen_time']),
-                        'lastTime' : isoDateTimeFromMilli(event_summary['last_seen_time']),
-                        'stateChange' : isoDateTimeFromMilli(event_summary['status_change_time']),
-                        'dedupid' : eventOccurrence['fingerprint'],
-                        'eventClass' : eventClass,
-                        'eventClassKey' :  eventOccurrence['event_class'],
-                        'eventClassMapping_uuid' : self._uuidUrl(eventOccurrence.get('event_class_mapping_uuid')),
-                        'eventKey' : eventOccurrence.get('event_key', None),
-                        'summary' : eventOccurrence.get('summary'),
-                        'severity' : eventOccurrence.get('severity'),
-                        'eventState' : EventStatus.getPrettyName(event_summary['status']),
-                        'count' : event_summary['count'],
-                        'monitor' : eventOccurrence.get('monitor'),
-                        'agent' : eventOccurrence.get('agent'),
-                        'message' : eventOccurrence.get('message'),
-                    }.iteritems() if v
-                ],
-                'log' : []
-            }
-
-            if 'notes' in event_summary:
-                for note in event_summary['notes']:
-                    eventData['log'].append((note['user_name'], isoDateTimeFromMilli(note['created_time']), note['message']))
-
-            if 'details' in eventOccurrence:
-                for detail in eventOccurrence['details']:
-                    values = detail['value']
-                    if not isinstance(values, list):
-                        values = list(values)
-
-                    for value in (v for v in values if v):
-                        eventData['properties'].append(dict(key=detail['name'], value=value))
+            eventData = self._mapToDetailEvent(event_summary)
 
             return DirectResponse.succeed(event=[eventData])
         else:
