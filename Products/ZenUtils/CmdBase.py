@@ -348,9 +348,10 @@ class CmdBase(object):
 
     def getParamatersFromConfig(self, lines):
         args = []
+        validkeys = self.parser.get_default_values().__dict__.keys()
 
         for line in lines:
-            if line.get('type', None) == 'option':
+            if line.get('type', None) == 'option' and line['key'] in validkeys:
                 args += ['--%s' % line['key'], line['value']]
 
         return args
