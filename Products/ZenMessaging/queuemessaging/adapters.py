@@ -304,8 +304,6 @@ class EventProtobuf(ObjectProtobuf):
 
         if hasattr(event, 'eventClass'):
             proto.event_class = self.safestr(event.eventClass)
-        else:
-            proto.event_class = "/Unknown"
 
         self.mapping.setSeverity(proto, event.severity)
 
