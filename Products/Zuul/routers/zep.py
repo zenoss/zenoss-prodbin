@@ -29,7 +29,7 @@ from Products.Zuul import getFacade
 from Products.Zuul.decorators import require
 from Products.ZenEvents.Event import Event as ZenEvent
 from Products.ZenMessaging.queuemessaging.interfaces import IEventPublisher
-from Products.ZenUtils.guid.interfaces import IGlobalIdentifier
+from Products.ZenUtils.guid.interfaces import IGlobalIdentifier, IGUIDManager
 from Products.ZenEvents.EventClass import EventClass
 from zenoss.protocols.services.zep import EventStatus, EventSeverity
 from json import loads
@@ -43,12 +43,12 @@ class EventsRouter(DirectRouter):
     """
     A JSON/ExtDirect interface to operations on events in ZEP
     """
-    
+
     def __init__(self, context, request):
         super(EventsRouter, self).__init__(context, request)
         self.zep = getFacade('zep', context)
         self.api = getFacade('event', context)
-        
+
     def _mapToOldEvent(self, event_summary):
         eventOccurrence = event_summary['occurrence'][0]
         eventActor = eventOccurrence['actor']
@@ -85,29 +85,50 @@ class EventsRouter(DirectRouter):
         }
 
         return event
-        
+
     def _timeRange(self, value):
         values = []
         for t in value.split('/'):
             values.append(DateTime.DateTime(t, datefmt='us').millis())
         return values
-        
+
+    def _filterInvalidUuids(self, events):
+        """
+        When querying archived events we need to make sure that
+        we do not link to devices and components that are no longer valid
+        """
+        manager = IGUIDManager(self.context.dmd)
+        for event_summary in events:
+            occurrence = event_summary['occurrence'][0]
+            actor = occurrence['actor']
+            # element
+            if actor.get('element_uuid') and \
+                   actor.get('element_uuid') not in manager.table:
+                del actor['element_uuid']
+
+            # sub element
+            if actor.get('element_sub_uuid') and \
+                   actor.get('element_sub_uuid') not in manager.table:
+                del actor['element_sub_uuid']
+            yield event_summary
+
     @require('ZenCommon')
     def queryArchive(self, limit=0, start=0, sort='lastTime', dir='desc', params=None, uid=None, detailFormat=False):
         filter = self._buildFilter(uid, params)
 
         events = self.zep.getEventSummariesFromArchive(limit=limit, offset=start, sort=(sort, dir), filter=filter)
-        
+
         eventFormat = self._mapToOldEvent
         if detailFormat:
             eventFormat = self._mapToDetailEvent
-        
+        # filter out the component and device guids that no longer exist in our system
+        evdata = self._filterInvalidUuids(events['events'])
         return DirectResponse.succeed(
-            events = [eventFormat(e) for e in events['events']],
+            events = [eventFormat(e) for e in evdata],
             totalCount = events['total'],
             asof = time.time()
         )
-        
+
     @require('ZenCommon')
     def query(self, limit=0, start=0, sort='lastTime', dir='desc', params=None,
               archive=False, uid=None, detailFormat=False):
@@ -139,8 +160,8 @@ class EventsRouter(DirectRouter):
            - asof: (float) Current time
         """
         if archive:
-            return self.queryArchive(limit=limit, start=start, sort=sort, 
-                                     dir=dir, params=params, uid=uid, 
+            return self.queryArchive(limit=limit, start=start, sort=sort,
+                                     dir=dir, params=params, uid=uid,
                                      detailFormat=detailFormat)
 
         filter = self._buildFilter(uid, params)
@@ -160,7 +181,7 @@ class EventsRouter(DirectRouter):
     def _buildFilter(self, uid, params, uuid=[]):
         """
         Construct a dictionary that can be converted into an EventFilter protobuf.
-        
+
         @type  params: dictionary
         @param params: (optional) Key-value pair of filters for this search.
                        (default: None)
@@ -191,18 +212,18 @@ class EventsRouter(DirectRouter):
         else:
             log.debug('Did not get parameters, using empty filter.')
             filter = {}
-        
+
         ###
         if uid is None:
             uid = self.context.dmd.Events
         ###
-        
-        
+
+
         context = resolve_context(uid)
-        
+
         if context and context.id != 'Events':
             tags = filter.setdefault('tag_uuids', [])
-            
+
             try:
                 tags.append(IGlobalIdentifier(context).getGUID())
             except TypeError:
@@ -210,10 +231,10 @@ class EventsRouter(DirectRouter):
                     filter['event_class'] = context.getDmdKey()
                 else:
                     raise Exception('Unknown context %s' % context)
-        
+
         log.debug('Final filter will be:')
         log.debug(filter)
-        
+
         return filter
 
     def _uuidUrl(self, uuid):
@@ -226,48 +247,48 @@ class EventsRouter(DirectRouter):
         eventOccurrence = event_summary['occurrence'][0]
         eventClass = eventOccurrence['event_class']
         eventData = {
-            'evid':event_summary['uuid'], 
-            'device':eventOccurrence['actor'].get('element_identifier', None), 
-            'device_title':eventOccurrence['actor'].get('element_identifier', None), 
-            'device_url':self._uuidUrl(eventOccurrence['actor'].get('element_uuid', None)), 
-            'device_uuid':eventOccurrence['actor'].get('element_uuid', None), 
-            'component':eventOccurrence['actor'].get('element_sub_identifier', None), 
-            'component_title':eventOccurrence['actor'].get('element_sub_identifier', None), 
-            'component_url':self._uuidUrl(eventOccurrence['actor'].get('element_sub_uuid', None)), 
-            'component_uuid':eventOccurrence['actor'].get('element_sub_uuid', None), 
-            'firstTime':isoDateTimeFromMilli(event_summary['first_seen_time']), 
-            'lastTime':isoDateTimeFromMilli(event_summary['last_seen_time']), 
-            'eventClass':eventClass, 
-            'eventClass_url':"/zport/dmd/Events%s" % eventClass, 
-            'severity':eventOccurrence['severity'], 
-            'eventState':EventStatus.getPrettyName(event_summary['status']), 
-            'count':event_summary['count'], 
-            'summary':eventOccurrence.get('summary'), 
-            'message':eventOccurrence.get('message'), 
+            'evid':event_summary['uuid'],
+            'device':eventOccurrence['actor'].get('element_identifier', None),
+            'device_title':eventOccurrence['actor'].get('element_identifier', None),
+            'device_url':self._uuidUrl(eventOccurrence['actor'].get('element_uuid', None)),
+            'device_uuid':eventOccurrence['actor'].get('element_uuid', None),
+            'component':eventOccurrence['actor'].get('element_sub_identifier', None),
+            'component_title':eventOccurrence['actor'].get('element_sub_identifier', None),
+            'component_url':self._uuidUrl(eventOccurrence['actor'].get('element_sub_uuid', None)),
+            'component_uuid':eventOccurrence['actor'].get('element_sub_uuid', None),
+            'firstTime':isoDateTimeFromMilli(event_summary['first_seen_time']),
+            'lastTime':isoDateTimeFromMilli(event_summary['last_seen_time']),
+            'eventClass':eventClass,
+            'eventClass_url':"/zport/dmd/Events%s" % eventClass,
+            'severity':eventOccurrence['severity'],
+            'eventState':EventStatus.getPrettyName(event_summary['status']),
+            'count':event_summary['count'],
+            'summary':eventOccurrence.get('summary'),
+            'message':eventOccurrence.get('message'),
             'properties':[
-                dict(key=k, value=v) for (k, v) in {'evid':event_summary['uuid'], 
-                                                    'device':eventOccurrence['actor'].get('element_identifier', None), 
-                                                    'component':eventOccurrence['actor'].get('element_sub_identifier', None), 
-                                                    'firstTime':isoDateTimeFromMilli(event_summary['first_seen_time']), 
-                                                    'lastTime':isoDateTimeFromMilli(event_summary['last_seen_time']), 
-                                                    'stateChange':isoDateTimeFromMilli(event_summary['status_change_time']), 
-                                                    'dedupid':eventOccurrence['fingerprint'], 
-                                                    'eventClass':eventClass, 
-                                                    'eventClassKey':eventOccurrence['event_class'], 
-                                                    'eventClassMapping_uuid':self._uuidUrl(eventOccurrence.get('event_class_mapping_uuid')), 
-                                                    'eventKey':eventOccurrence.get('event_key', None), 
-                                                    'summary':eventOccurrence.get('summary'), 
-                                                    'severity':eventOccurrence.get('severity'), 
-                                                    'eventState':EventStatus.getPrettyName(event_summary['status']), 
-                                                    'count':event_summary['count'], 
-                                                    'monitor':eventOccurrence.get('monitor'), 
-                                                    'agent':eventOccurrence.get('agent'), 
-                                                    'message':eventOccurrence.get('message')}.iteritems() if v], 
+                dict(key=k, value=v) for (k, v) in {'evid':event_summary['uuid'],
+                                                    'device':eventOccurrence['actor'].get('element_identifier', None),
+                                                    'component':eventOccurrence['actor'].get('element_sub_identifier', None),
+                                                    'firstTime':isoDateTimeFromMilli(event_summary['first_seen_time']),
+                                                    'lastTime':isoDateTimeFromMilli(event_summary['last_seen_time']),
+                                                    'stateChange':isoDateTimeFromMilli(event_summary['status_change_time']),
+                                                    'dedupid':eventOccurrence['fingerprint'],
+                                                    'eventClass':eventClass,
+                                                    'eventClassKey':eventOccurrence['event_class'],
+                                                    'eventClassMapping_uuid':self._uuidUrl(eventOccurrence.get('event_class_mapping_uuid')),
+                                                    'eventKey':eventOccurrence.get('event_key', None),
+                                                    'summary':eventOccurrence.get('summary'),
+                                                    'severity':eventOccurrence.get('severity'),
+                                                    'eventState':EventStatus.getPrettyName(event_summary['status']),
+                                                    'count':event_summary['count'],
+                                                    'monitor':eventOccurrence.get('monitor'),
+                                                    'agent':eventOccurrence.get('agent'),
+                                                    'message':eventOccurrence.get('message')}.iteritems() if v],
             'log':[]}
         if 'notes' in event_summary:
             for note in event_summary['notes']:
                 eventData['log'].append((note['user_name'], isoDateTimeFromMilli(note['created_time']), note['message']))
-        
+
         if 'details' in eventOccurrence:
             for detail in eventOccurrence['details']:
                 values = detail['value']
@@ -275,7 +296,7 @@ class EventsRouter(DirectRouter):
                     values = list(values)
                 for value in (v for v in values if v):
                     eventData['properties'].append(dict(key=detail['name'], value=value))
-        
+
         return eventData
 
     def detail(self, evid):
@@ -319,17 +340,17 @@ class EventsRouter(DirectRouter):
 
         return DirectResponse.succeed()
 
-    
-    def _buildRequestFilters(self, evids, excludeIds, selectState, field, 
+
+    def _buildRequestFilters(self, evids, excludeIds, selectState, field,
         direction, params, history, uid):
         """
-        Given common request parameters, build the inclusive and exclusive 
+        Given common request parameters, build the inclusive and exclusive
         filters for event update requests.
         """
-        
+
         if uid is None:
             uid = self.context
-        
+
         # if the request contains specific event summaries to act on, they will
         # be passed in as evids. Excluded event summaries are passed in under
         # the keyword argument 'excludeIds'. If these exist, pass them in as
@@ -338,22 +359,22 @@ class EventsRouter(DirectRouter):
         if evids and isinstance(evids, list):
             log.debug('Found specific event ids, adding to params.')
             uuids = evids
-        
+
         includeFilter = self._buildFilter(uid, params, uuids)
-        
+
         # the only thing excluded in an event filter is a list of event uuids
         # which are passed as EventTagFilter using the OR operator.
         excludeFilter = None
         if excludeIds:
             # TODO: Fix the keyword argument. it's confusing.
             excludeFilter = self._buildFilter(uid, params, uuid=excludeIds.keys())
-        
+
         log.debug('The exclude filter:' + str(excludeFilter))
         log.debug('Finished building request filters.')
-        
+
         return includeFilter, excludeFilter
 
-    
+
     @require('Manage Events')
     def close(self,
         evids=None,
@@ -398,24 +419,24 @@ class EventsRouter(DirectRouter):
         @rtype:   DirectResponse
         @return:  Success message
         """
-        
+
         log.debug('Issuing a close request.')
-        
+
         includeFilter, excludeFilter = self._buildRequestFilters(
             evids, excludeIds, selectState, field, direction, params, history, uid);
-        
+
         status, summaryUpdateResponse = self.zep.closeEventSummaries(
             eventFilter=includeFilter,
             exclusionFilter=excludeFilter,
             updateTime=asof,
             limit=limit,
         )
-        
+
         log.debug('Done issuing close request.')
         log.debug(summaryUpdateResponse)
-        
+
         return DirectResponse.succeed(data=summaryUpdateResponse)
-        
+
     @require('Manage Events')
     def acknowledge(self,
         evids=None,
@@ -461,22 +482,22 @@ class EventsRouter(DirectRouter):
         @return:  Success message
         """
         log.debug('Issuing an acknowledge request.')
-        
+
         includeFilter, excludeFilter = self._buildRequestFilters(
             evids, excludeIds, selectState, field, direction, params, history, uid);
-        
+
         status, summaryUpdateResponse = self.zep.acknowledgeEventSummaries(
             eventFilter=includeFilter,
             exclusionFilter=excludeFilter,
             updateTime=asof,
             limit=limit,
         )
-        
+
         log.debug('Done issuing acknowledge request.')
         log.debug(summaryUpdateResponse)
-        
+
         return DirectResponse.succeed(data=summaryUpdateResponse)
-        
+
     @require('Manage Events')
     def unacknowledge(self, *args, **kwargs):
         """
@@ -528,24 +549,24 @@ class EventsRouter(DirectRouter):
         @rtype:   DirectResponse
         @return:  Success message
         """
-        
+
         log.debug('Issuing a reopen request.')
-        
+
         includeFilter, excludeFilter = self._buildRequestFilters(
             evids, excludeIds, selectState, field, direction, params, history, uid);
-        
+
         status, summaryUpdateResponse = self.zep.reopenEventSummaries(
             eventFilter=includeFilter,
             exclusionFilter=excludeFilter,
             updateTime=asof,
             limit=limit,
         )
-        
+
         log.debug('Done issuing reopen request.')
         log.debug(summaryUpdateResponse)
-        
+
         return DirectResponse.succeed(data=summaryUpdateResponse)
-    
+
     @require('Manage Events')
     def add_event(self, summary, device, component, severity, evclasskey, evclass):
         """
