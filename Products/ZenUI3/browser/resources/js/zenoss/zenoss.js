@@ -949,7 +949,6 @@ Zenoss.FilterGridView = Ext.extend(Ext.ux.grid.livegrid.GridView, {
             if (filter instanceof Ext.form.TextField) {
                 filter.on('valid', this.validFilter, this);
                 filter.on('invalid', this.onInvalidFilter, this);
-                filter.on('valid', this.reloadOnEmpty, this);
             }
 
             if (filter instanceof Zenoss.MultiselectMenu) {
@@ -972,18 +971,13 @@ Zenoss.FilterGridView = Ext.extend(Ext.ux.grid.livegrid.GridView, {
     isValid: function() {
         return this._valid;
     },
-    /**
-     * Strange bug on live grid when you clear a filter, the live grid
-     * reloads, but doesn't render properly. You get a scrollbar but nothing else.
-     * This just completely reloads the grid's datastore.
-     **/
-    reloadOnEmpty: function(filter) {
-        var forceReload = true;
-        if (Ext.isEmpty(filter.getValue())) {
-            this.reset(forceReload);
+    validFilter: function(filter) {
+        // Ext calls valid twice when a textfield is emptied
+        if (Ext.isObject(filter) && Ext.isEmpty(filter.getValue())) {
+            filter.liveSearchTask.delay(500);
+            return;
         }
-    },
-    validFilter: function() {
+
         // Check all filters to determine if we are valid
         this.validateFilters();
         this.fireEvent('filterchange', this);
@@ -1743,7 +1737,7 @@ Zenoss.EventActionManager = Ext.extend(Ext.util.Observable, {
                 }]
             }),
             events: {
-                'updateRequestIncomplete': true, 
+                'updateRequestIncomplete': true,
                 'updateRequestComplete': true
             },
             listeners: {
@@ -1779,7 +1773,7 @@ Zenoss.EventActionManager = Ext.extend(Ext.util.Observable, {
                 }
             },
             isLargeRequest: function() {
-                // determine if this request is going to require batch 
+                // determine if this request is going to require batch
                 // requests. If you have selected more than 100 ids, show
                 // a progress bar. also if you have not selected ANY and
                 // are just executing on a filter, we don't have any idea
@@ -1810,7 +1804,7 @@ Zenoss.EventActionManager = Ext.extend(Ext.util.Observable, {
             },
             requestCallback: function(provider, response) {
                 var data = response.result.data;
-                
+
                 // no data due to an error. Handle it.
                 if (!data) {
                     Ext.Msg.show({
@@ -1821,13 +1815,13 @@ Zenoss.EventActionManager = Ext.extend(Ext.util.Observable, {
                     me.finishAction();
                     return;
                 }
-                
+
                 me.eventsUpdated += data.updated;
-                
+
                 if (me.remaining === null) {
                     me.remaining = (data.remaining + data.updated);
                 }
-                
+
                 // don't try to update the progress bar if it hasn't
                 // been created due to this being a small request.
                 if (me.isLargeRequest()) {
@@ -1838,7 +1832,7 @@ Zenoss.EventActionManager = Ext.extend(Ext.util.Observable, {
                         me.dialog.progressBar.updateProgress(progress);
                     }
                 }
-                
+
                 if (data.remaining) {
                     me.fireEvent('updateRequestIncomplete', {data:data});
                 }
