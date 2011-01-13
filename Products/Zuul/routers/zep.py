@@ -178,7 +178,7 @@ class EventsRouter(DirectRouter):
             asof = time.time()
         )
 
-    def _buildFilter(self, uid, params, uuid=[]):
+    def _buildFilter(self, uid, params, uuid=None):
         """
         Construct a dictionary that can be converted into an EventFilter protobuf.
 
@@ -192,6 +192,15 @@ class EventsRouter(DirectRouter):
             log.debug('logging params for building filter.')
             log.debug(params)
             params = loads(params)
+
+            if uuid is None:
+                uuid = []
+            evid = params.get('evid')
+            if evid:
+                if not isinstance(evid, (tuple, list)):
+                    evid = (evid,)
+                uuid.extend(evid)
+
             filter = self.zep.createEventFilter(
                 severity = params.get('severity'),
                 status = [i for i in params.get('eventState', [])],
@@ -213,15 +222,12 @@ class EventsRouter(DirectRouter):
             log.debug('Did not get parameters, using empty filter.')
             filter = {}
 
-        ###
         if uid is None:
             uid = self.context.dmd.Events
-        ###
-
 
         context = resolve_context(uid)
 
-        if context and context.id != 'Events':
+        if context and context.id not in ('Events', 'dmd'):
             tags = filter.setdefault('tag_uuids', [])
 
             try:
