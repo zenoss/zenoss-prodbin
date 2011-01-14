@@ -27,7 +27,9 @@ from zenoss.protocols.jsonformat import to_dict, from_dict
 from zenoss.protocols.protobufs.zep_pb2 import EventSummaryFilter, NumberCondition, EventSort, EventFilter
 from Products.ZenUtils.GlobalConfig import getGlobalConfiguration
 from Products.ZenUtils.guid.interfaces import IGlobalIdentifier
-from zenoss.protocols.protobufs.zep_pb2 import SEVERITY_CLEAR, SEVERITY_INFO, SEVERITY_DEBUG
+from zenoss.protocols.protobufs.zep_pb2 import SEVERITY_CLEAR, SEVERITY_CRITICAL, SEVERITY_DEBUG, SEVERITY_ERROR,\
+     STATUS_NEW, STATUS_ACKNOWLEDGED
+
 
 log = logging.getLogger(__name__)
 
@@ -84,7 +86,7 @@ class ZepFacade(ZuulFacade):
         event_summary=None,
         tags=[]):
         # no details?
-        
+
         filter = {}
 
         if uuid:
@@ -189,11 +191,11 @@ class ZepFacade(ZuulFacade):
         user = self._dmd.ZenUsers.getUserSettings(userName)
         if user:
             return IGlobalIdentifier(user).getGUID()
-    
+
     def _findUserInfo(self):
         userName = getSecurityManager().getUser().getId()
         return self._getUserUuid(userName), userName
-    
+
     def addNote(self, uuid, message, userName, userUuid=None):
         if userName and not userUuid:
             userUuid = self._getUserUuid(userName)
@@ -201,7 +203,7 @@ class ZepFacade(ZuulFacade):
                 raise Exception('Could not find user "%s"' % userName)
 
         self.client.addNote(uuid, message, userUuid, userName)
-        
+
     def getEventSummariesFromArchive(self, offset, limit=100, keys=None, sort=None, filter={}):
         return self._getEventSummaries(self.client.getEventSummariesFromArchive, offset=offset, limit=limit, keys=keys, sort=sort, filter=filter)
 
@@ -211,52 +213,52 @@ class ZepFacade(ZuulFacade):
     def getEventSummary(self, uuid):
         response, content = self.client.getEventSummary(uuid)
         return to_dict(content)
-        
-    def closeEventSummaries(self, 
+
+    def closeEventSummaries(self,
             eventFilter=None,
             exclusionFilter=None,
             updateTime=None,
             limit=None):
-        
+
         eventFilter = from_dict(EventFilter, eventFilter)
         if exclusionFilter:
             exclusionFilter = from_dict(EventFilter, exclusionFilter)
-        
+
         userUuid, userName = self._findUserInfo()
         status, response = self.client.closeEventSummaries(
             userUuid, userName, eventFilter, exclusionFilter, updateTime, limit)
         return status, to_dict(response)
-    
-    def acknowledgeEventSummaries(self, 
+
+    def acknowledgeEventSummaries(self,
             eventFilter=None,
             exclusionFilter=None,
             updateTime=None,
             limit=None):
-        
+
         eventFilter = from_dict(EventFilter, eventFilter)
         if exclusionFilter:
             exclusionFilter = from_dict(EventFilter, exclusionFilter)
-        
+
         userUuid, userName = self._findUserInfo()
         status, response = self.client.acknowledgeEventSummaries(
             userUuid, userName, eventFilter, exclusionFilter, updateTime, limit)
         return status, to_dict(response)
-    
-    def reopenEventSummaries(self, 
+
+    def reopenEventSummaries(self,
             eventFilter=None,
             exclusionFilter=None,
             updateTime=None,
             limit=None):
-                
+
         eventFilter = from_dict(EventFilter, eventFilter)
         if exclusionFilter:
             exclusionFilter = from_dict(EventFilter, exclusionFilter)
-            
+
         userUuid, userName = self._findUserInfo()
         status, response = self.client.reopenEventSummaries(
             userUuid, userName, eventFilter, exclusionFilter, updateTime, limit)
         return status, to_dict(response)
-    
+
     def getConfig(self):
         config = self.configClient.getConfig()
         return config
@@ -277,15 +279,7 @@ class ZepFacade(ZuulFacade):
     def getEventSeveritiesByUuid(self, tagUuid):
         return self.getEventSeverities([tagUuid])[tagUuid]
 
-    def getEventSeverities(self, tagUuids):
-        """
-        Get a dictionary of the event severity counds for each UUID.
-
-        @param tagUuids: A sequence of element UUIDs
-        @rtype: dict
-        @return: A dictionary of UUID -> { C{EventSeverity} -> count }
-        """
-        response, content = self.client.getEventSeverities(tagUuids)
+    def _createSeveritiesDict(self, content, tagUuids):
         if content:
             # Pre-populate the list with count = 0 to make sure all tags request exist in the result
             severities = dict.fromkeys(tagUuids, dict.fromkeys(EventSeverity.numbers, 0))
@@ -296,6 +290,17 @@ class ZepFacade(ZuulFacade):
                 severities[tag.tag_uuid].update((sev.severity, sev.count) for sev in tag.severities)
 
             return severities
+
+    def getEventSeverities(self, tagUuids):
+        """
+        Get a dictionary of the event severity counds for each UUID.
+
+        @param tagUuids: A sequence of element UUIDs
+        @rtype: dict
+        @return: A dictionary of UUID -> { C{EventSeverity} -> count }
+        """
+        response, content = self.client.getEventSeverities(tagUuids)
+        return self._createSeveritiesDict(content, tagUuids)
 
     def getWorstSeverityByUuid(self, tagUuid, default=SEVERITY_CLEAR, ignore=None):
         return self.getWorstSeverity([tagUuid], default=default, ignore=ignore)[tagUuid]
@@ -378,3 +383,19 @@ class ZepFacade(ZuulFacade):
         elif evclass and evmap:
             url = evclass.absolute_url()
         return msg, url
+
+    def getDeviceIssues(self):
+        """
+        Returns the same data structure as getEventSeverities, but this
+        will return it for all devices that have issues with severity > Error and
+        a status of new or acknowledged.
+        """
+        filters = self.createEventFilter(
+            severity=[SEVERITY_CRITICAL, SEVERITY_ERROR],
+            status=[STATUS_NEW, STATUS_ACKNOWLEDGED]
+            )
+
+        response, content = self.client.getDeviceIssues(self._buildFilterProtobuf(filters))
+        if content:
+            uuids = [severities.tag_uuid for severities in content.severities]
+            return self._createSeveritiesDict(content, uuids)

@@ -151,7 +151,7 @@ def getEventPill(zem, where, number=3, minSeverity=0, showGreen=True,
     return _getPill(summary, url, number)
 
 def getEventPillME(zem, me, number=3, minSeverity=0, showGreen=True,
-                   prodState=None):
+                   prodState=None, severities={}):
     """
     Get HTML code displaying the maximum event severity and the number of
     events of that severity on a particular L{ManagedEntity} in a pleasing
@@ -169,9 +169,16 @@ def getEventPillME(zem, me, number=3, minSeverity=0, showGreen=True,
     @type showGreen: bool
     @return: HTML strings ready for template inclusion
     @rtype: list
+    @param severities: The severity counts that you can pass in if
+    you do not want the getEventSeveritiesCount to be called. This isuseful
+    for batch pills queries
+    @param type: dictionary
     """
     url = getEventsURL(me)
-    return _getPill(me.getEventSeveritiesCount(), url, number)
+    sevs = severities
+    if not severities:
+        sevs = me.getEventSeveritiesCount()
+    return _getPill(sevs, url, number)
 
 
 organizerTypes = {

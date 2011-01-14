@@ -18,6 +18,9 @@ from Products.Five.browser import BrowserView
 from Products.AdvancedQuery import Eq, Or
 
 from Products.ZenUtils.Utils import relative_time
+from Products.Zuul import getFacade
+from zenoss.protocols.services import ServiceException
+from Products.ZenUtils.guid.interfaces import IGUIDManager
 from Products.ZenUtils.jsonutils import json
 from Products.ZenUtils.Utils import nocache, formreq, extractPostContent
 from Products.ZenWidgets import messaging
@@ -109,7 +112,7 @@ class WatchListPortletView(BrowserView):
 
     @json
     def getEntityListEventSummary(self, entities=None):
-        if entities is None: 
+        if entities is None:
             entities = []
         elif isinstance(entities, basestring):
             entities = [entities]
@@ -137,7 +140,7 @@ class DeviceIssuesPortletView(BrowserView):
 
     @json
     def getDeviceIssuesJSON(self):
-        """ 
+        """
         Get devices with issues in a form suitable for a portlet on the
         dashboard.
 
@@ -153,29 +156,31 @@ class DeviceIssuesPortletView(BrowserView):
         mydict['columns'] = ['Device', 'Events']
         deviceinfo = self.getDeviceDashboard()
         for alink, pill in deviceinfo:
-            mydict['data'].append({'Device':alink, 
+            mydict['data'].append({'Device':alink,
                                    'Events':pill})
         return mydict
 
     def getDeviceDashboard(self):
         """return device info for bad device to dashboard"""
+        zep = getFacade('zep')
+        manager = IGUIDManager(self.context.dmd)
+        deviceSeverities = zep.getDeviceIssues()
         zem = self.context.dmd.ZenEventManager
-        devices = [d[0] for d in zem.getDeviceIssues(
-                            severity=4, state=1)]
+
         devdata = []
-        devclass = zem.getDmdRoot("Devices")
-        colors = "red orange yellow blue grey green".split()
-        for devname in devices:
-            dev = devclass.findDevice(devname)
-            if dev and ( dev.id == devname or dev.titleOrId() == devname ):
+        for uuid in deviceSeverities.keys():
+            dev = manager.getObject(uuid)
+            if dev:
                 if (not zem.checkRemotePerm(ZEN_VIEW, dev)
                     or dev.productionState < zem.prodStateDashboardThresh
                     or dev.priority < zem.priorityDashboardThresh):
                     continue
                 alink = dev.getPrettyLink()
                 try:
-                    pill = getEventPillME(zem, dev)
-                except IndexError:
+                    severities = deviceSeverities[uuid]
+                    severities = dict((zep.getSeverityName(sev).lower(), count) for (sev, count) in severities.iteritems())
+                    pill = getEventPillME(zem, dev, severities=severities)
+                except ServiceException:
                     continue
                 evts = [alink,pill]
                 devdata.append(evts)
