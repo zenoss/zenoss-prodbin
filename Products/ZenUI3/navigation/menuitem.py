@@ -25,6 +25,7 @@ class PrimaryNavigationMenuItem(viewlet.ViewletBase):
     template = ViewPageTemplateFile('nav_item.pt')
 
     url = ''
+    target = '_self'
     active_class = 'active'
     inactive_class = 'inactive'
     subviews = ()
