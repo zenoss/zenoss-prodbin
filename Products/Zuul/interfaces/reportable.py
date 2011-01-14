@@ -12,6 +12,12 @@
 ###########################################################################
 from zope.interface import Attribute, Interface
 
+class IReportableFactory(Interface):
+    def exports():
+        """
+        return an iterable of IReportables adapting the context
+        """
+
 class IReportable(Interface):
     id = Attribute("Identifier of the represented object (usually path)")
     uid = Attribute("The path in the object graph to the object")
@@ -24,8 +30,11 @@ class IReportable(Interface):
         contains the id, type, and value of the property
         """
 
-class IReportableFactory(Interface):
-    def exports():
-        """
-        return an iterable of IReportables adapting the context
-        """
+class IReportableSubscriber(IReportable):
+    """
+    This type of IReportable is called from a factory that expects to get
+    a list of subscribers.  In order to differentiate between a subscriber
+    intended for factory A rather than from factory B, a factoryId is used.
+    """
+    zenpack = Attribute("ZenPack in which this subscriber lives.")
+    factoryId = Attribute("Value used by factory to search for applicable reportables.")
