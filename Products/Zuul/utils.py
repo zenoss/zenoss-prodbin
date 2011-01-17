@@ -287,23 +287,28 @@ class PathIndexCache(object):
         for brain in results:
             rid = brain.getRID()
             path = brain.getPath()
+            paths = None
             if treePrefix and not path.startswith(treePrefix):
                 paths = brain.global_catalog._catalog.indexes['path']._unindex[rid]
                 for p in paths:
                     if p.startswith(treePrefix):
                         path = p
                         break
-            path = path.split('/', 3)[-1]
-            if relnames:
-                if isinstance(relnames, basestring):
-                    relnames = (relnames,)
-                for relname in relnames:
-                    path = path.replace('/'+relname, '')
-            self._brains[rid] = brain
-            for depth in xrange(path.count('/')+1):
-                comp = idx.setdefault(path, IOBTree())
-                comp.setdefault(depth, []).append(rid)
-                path = path.rsplit('/', 1)[0]
+            else:
+                paths = [path]
+
+            for path in paths:                
+                path = path.split('/', 3)[-1]
+                if relnames:
+                    if isinstance(relnames, basestring):
+                        relnames = (relnames,)
+                    for relname in relnames:
+                        path = path.replace('/'+relname, '')
+                self._brains[rid] = brain
+                for depth in xrange(path.count('/')+1):
+                    comp = idx.setdefault(path, IOBTree())
+                    comp.setdefault(depth, []).append(rid)
+                    path = path.rsplit('/', 1)[0]
 
     def search(self, path, depth=1):
         path = path.split('/', 3)[-1]
@@ -319,7 +324,16 @@ class PathIndexCache(object):
             idx = self._instanceidx[path]
             if depth is None:
                 depth = max(idx.keys())
-            return sum(len(idx[d]) for d in xrange(depth+1) if d in idx.keys())
+
+            # De-duplicate so we don't repeatedly count the same device in
+            # multiple sub-organizers.
+            unique_keys = set()
+            for d in xrange(depth+1):
+                if d not in idx.keys(): continue
+                for key in idx[d]:
+                    unique_keys.add(key)
+
+            return len(unique_keys)
         except KeyError:
             return 0
 
