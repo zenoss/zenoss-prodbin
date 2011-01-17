@@ -229,7 +229,6 @@ class EventsRouter(DirectRouter):
 
         if context and context.id not in ('Events', 'dmd'):
             tags = filter.setdefault('tag_uuids', [])
-
             try:
                 tags.append(IGlobalIdentifier(context).getGUID())
             except TypeError:
