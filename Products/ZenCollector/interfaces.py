@@ -71,6 +71,15 @@ class ICollectorPreferences(zope.interface.Interface):
         """
         pass
 
+    #def postStartupTasks(self):
+        """
+        Called by the framework after the preferences from zenhub have been
+        received.  Configuration tasks may be started before these tasks are
+        started.
+        It is expected that if this optional method is provided that the result
+        is an array of tasks.
+        """
+
 
 class ICollector(zope.interface.Interface):
     """

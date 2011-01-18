@@ -163,6 +163,7 @@ class CollectorDaemon(RRDDaemon):
 
         # let the configuration do any additional startup it might need
         self._prefs.postStartup()
+        self.addedPostStartupTasks = False
 
     def buildOptions(self):
         """
@@ -493,6 +494,18 @@ class CollectorDaemon(RRDDaemon):
 
         d = _maintenance()
         d.addBoth(_reschedule)
+
+        if not self.addedPostStartupTasks:
+            # Add post-startup tasks from the preferences.
+            # Adding tasks from the postStartup() method results
+            # in the task being started before configs are downloaded
+            # from zenhub.
+            postStartupTasks = getattr(self._prefs, 'postStartupTasks',
+                                       lambda : [])
+            for task in postStartupTasks():
+                self._scheduler.addTask(task, now=True)
+            self.addedPostStartupTasks = True
+
         return d
 
     def _displayStatistics(self, verbose=False):
