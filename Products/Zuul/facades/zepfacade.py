@@ -33,6 +33,12 @@ from zenoss.protocols.protobufs.zep_pb2 import SEVERITY_CLEAR, SEVERITY_CRITICAL
 
 log = logging.getLogger(__name__)
 
+
+def listify(ob):
+    if not isinstance(ob, (tuple, list, set)):
+        return [ob]
+    return ob
+
 class ZepFacade(ZuulFacade):
     implements(IZepFacade)
 
@@ -72,26 +78,24 @@ class ZepFacade(ZuulFacade):
         self.configClient = ZepConfigClient(zep_url)
 
     def createEventFilter(self,
-        severity=[],
-        status=[],
+        severity=(),
+        status=(),
         event_class=None,
         first_seen=None,
         last_seen=None,
         status_change=None,
-        update_time=None,
         count_range=None,
         element_identifier=None,
         element_sub_identifier=None,
-        uuid=[],
+        uuid=(),
         event_summary=None,
-        tags=[]):
+        tags=(),
+        fingerprint=()):
         # no details?
 
         filter = {}
 
         if uuid:
-            if not isinstance(uuid, list):
-                raise ValueError('When creating an EventFilter, "uuid" must be a list.')
             filter['uuid'] = uuid
 
         if event_summary:
@@ -116,7 +120,7 @@ class ZepFacade(ZuulFacade):
             filter['status_change'] = status_change
 
         if tags:
-            filter['tag_uuids'] = tags
+            filter['tag_filter'] = {'tag_uuids': tags}
 
         if count_range:
             filter['count_range'] = count_range
@@ -126,6 +130,9 @@ class ZepFacade(ZuulFacade):
 
         if element_sub_identifier:
             filter['element_sub_identifier'] = str(element_sub_identifier).strip()
+
+        if fingerprint:
+            filter['fingerprint'] = fingerprint
 
         return filter
 
@@ -184,7 +191,10 @@ class ZepFacade(ZuulFacade):
         if 'last_seen' in filter:
             filter['last_seen'] = self._timeRange(filter['last_seen'])
 
-        return from_dict(EventSummaryFilter, filter)
+        # Everything's repeated on the protobuf, so listify
+        newfilter = dict((k, listify(v)) for k,v in filter.iteritems())
+        result = from_dict(EventFilter, newfilter)
+        return result
 
     def _getUserUuid(self, userName):
         # Lookup the user uuid
@@ -204,11 +214,11 @@ class ZepFacade(ZuulFacade):
 
         self.client.addNote(uuid, message, userUuid, userName)
 
-    def getEventSummariesFromArchive(self, offset, limit=100, keys=None, sort=None, filter={}):
-        return self._getEventSummaries(self.client.getEventSummariesFromArchive, offset=offset, limit=limit, keys=keys, sort=sort, filter=filter)
+    def getEventSummariesFromArchive(self, offset, limit=100, sort=None, filter={}):
+        return self._getEventSummaries(self.client.getEventSummariesFromArchive, offset=offset, limit=limit, sort=sort, filter=filter)
 
-    def getEventSummaries(self, offset, limit=100, keys=None, sort=None, filter={}):
-        return self._getEventSummaries(self.client.getEventSummaries, offset=offset, limit=limit, keys=keys, sort=sort, filter=filter)
+    def getEventSummaries(self, offset, limit=100, sort=None, filter={}):
+        return self._getEventSummaries(self.client.getEventSummaries, offset=offset, limit=limit, sort=sort, filter=filter)
 
     def getEventSummary(self, uuid):
         response, content = self.client.getEventSummary(uuid)

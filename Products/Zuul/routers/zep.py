@@ -228,7 +228,7 @@ class EventsRouter(DirectRouter):
         context = resolve_context(uid)
 
         if context and context.id not in ('Events', 'dmd'):
-            tags = filter.setdefault('tag_uuids', [])
+            tags = filter.setdefault('tag_filter', {}).setdefault('tag_uuids', [])
             try:
                 tags.append(IGlobalIdentifier(context).getGUID())
             except TypeError:
@@ -300,7 +300,8 @@ class EventsRouter(DirectRouter):
                 if not isinstance(values, list):
                     values = list(values)
                 for value in (v for v in values if v):
-                    eventData['properties'].append(dict(key=detail['name'], value=value))
+                    if not detail['name'].startswith('__meta__'):
+                        eventData['properties'].append(dict(key=detail['name'], value=value))
 
         return eventData
 
