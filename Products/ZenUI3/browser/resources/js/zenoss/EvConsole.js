@@ -36,45 +36,6 @@ Ext.onReady(function(){
     detail_panel.collapsible =false;
     detail_panel.collapsed = true;
 
-    /*
-     * Assemble the parameters that define the grid state.
-     */
-    function getQueryParameters() {
-        var grid = Ext.getCmp('events_grid'),
-            sortInfo = grid.view.ds.sortInfo;
-        grid.view.applyFilterParams({'params':sortInfo});
-        return sortInfo;
-    }
-
-    /*
-     * Assemble the parameters that define the records selected. This by
-     * necessity includes query parameters, since ranges need row indices.
-     */
-    function getSelectionParameters() {
-        var grid = Ext.getCmp('events_grid'),
-            sm = grid.getSelectionModel(),
-            ranges = sm.getPendingSelections(true),
-            evids = [],
-            sels = sm.getSelections();
-        
-        if (sm.selectState == 'All') {
-            // If we are selecting all, we don't want to send back any evids.
-            // this will make the operation happen on the filter's result
-            // instead of whatever the view seems to have selected.
-            sels = [];
-        }
-        Ext.each(sels, function(record){
-            evids[evids.length] = record.data.evid;
-        });
-        if (!ranges && !evids) return false;
-        var params = {
-            evids:evids,
-            excludeIds: sm.badIds,
-            selectState: sm.selectState
-        };
-        Ext.apply(params, getQueryParameters());
-        return params;
-    }
 
     /*
      * Show the dialog that allows one to add an event.
@@ -278,214 +239,163 @@ Ext.onReady(function(){
     
     // Add a CSS class to scope some styles that affect other parts of the UI
     container.on('render', function(){container.el.addClass('zenui3');});
-    
-    var eam = new Zenoss.EventActionManager({
-        grid: 'events_grid'
+
+
+    Zenoss.EventActionManager.configure({
+        onFinishAction: function() {
+            Ext.getCmp('events_grid').updateRows();
+        },
+        findParams: function() {
+            return Ext.getCmp('events_grid').getSelectionParameters();
+        }
     });
-    
+
     // Add the toolbar to the container
     var tbar = new Zenoss.LargeToolbar({
             region:'north',
             border: false,
-            items: [{
-                /*
-                 * ACKNOWLEDGE BUTTON
-                 */
-                //text: 'Acknowledge',
-                iconCls: 'acknowledge',
-                id: 'ack-button',
-                handler: function() {
-                    // Get params describing selected events
-                    var params = getSelectionParameters();
-                    if (params) {
-                        eam.execute(Zenoss.remote.EventsRouter.acknowledge, params);
-                    }
-                }
-            },{
-                /*
-                 * CLOSE BUTTON
-                 */
-                //text: 'Close',
-                iconCls: 'close',
-                id: 'close-button',
-                handler: function(){
-                    // Get params describing selected events
-                    var params = getSelectionParameters();
-                    if (params) {
-                        eam.execute(Zenoss.remote.EventsRouter.close, params);
-                    }
-                }
-            },{
-                /*
-                 * ClASSIFY BUTTON
-                 */
-                //text: 'Classify',
-                id: 'classify-button',
-                iconCls: 'classify',
-                handler: showClassifyDialog
-            },{
-                //text: 'Unacknowledge',
-                id: 'unack-button',
-                iconCls: 'unacknowledge',
-                handler: function() {
-                    var params = getSelectionParameters();
-                    if (params) {
-                        eam.execute(Zenoss.remote.EventsRouter.reopen, params);
-                    }
-                }
-            },{
-                /*
-                 * ADD BUTTON
-                 */
-                // text: _t('Add'),
-                id: 'add-button',
-                iconCls: 'add',
-                handler: showAddEventDialog
-            },{
-                xtype: 'tbseparator'
-            },
-                Zenoss.events.SelectMenu,
-            {
-                text: _t('Export'),
-                id: 'export-button',
-                //iconCls: 'export',
-                menu: {
-                    items: [{
-                        text: 'XML',
-                        handler: function(){
-                            var state = Ext.getCmp('events_grid').getState(),
-                                params = {
-                                    type: 'xml',
-                                    params: {
-                                        fields: Ext.pluck(state.columns, 'id'),
-                                        sort: state.sort.field,
-                                        dir: state.sort.direction,
-                                        params: state.filters.options
-                                    }
-                                };
-                            Ext.get('export_body').dom.value =
-                                Ext.encode(params);
-                            Ext.get('exportform').dom.submit();
-                        }
-                    }, {
-                        text: 'CSV',
-                        handler: function(){
-                            var state = Ext.getCmp('events_grid').getState(),
-                                params = {
-                                    type: 'csv',
-                                    params: {
-                                        fields: Ext.pluck(state.columns, 'id'),
-                                        sort: state.sort.field,
-                                        dir: state.sort.direction,
-                                        params: state.filters.options
-                                    }
-                                };
-                            Ext.get('export_body').dom.value =
-                                Ext.encode(params);
-                            Ext.get('exportform').dom.submit();
-                        }
-                    }]
-                }
-            },{
-                /*
-                 * CONFIGURE MENU
-                 */
-                text: _t('Configure'),
-                id: 'configure-button',
-                //iconCls: 'customize',
-                menu: {
-                    items: [{
-                        id: 'rowcolors_checkitem',
-                        xtype: 'menucheckitem',
-                        text: 'Show severity row colors',
-                        handler: function(checkitem) {
-                            var checked = !checkitem.checked;
-                            var view = Ext.getCmp('events_grid').getView();
-                            view.toggleRowColors(checked);
-                        }
-                    },{
-                        id: 'livesearch_checkitem',
-                        checked: true,
-                        xtype: 'menucheckitem',
-                        text: 'Enable live search',
-                        handler: function(checkitem) {
-                            var checked = !checkitem.checked;
-                            var view = Ext.getCmp('events_grid').getView();
-                            view.toggleLiveSearch(checked);
-                        }
-                    },{
-                        id: 'clearfilters',
-                        text: 'Clear filters',
-                        listeners: {
-                            click: function(){
-                                grid.clearFilters();
+            items: [
+                Zenoss.events.EventPanelToolbarActions.acknowledge,
+                Zenoss.events.EventPanelToolbarActions.close,
+                new Zenoss.Action(Ext.apply(Zenoss.events.EventPanelToolbarConfigs.reclassify, {
+                    handler: showClassifyDialog
+                })),
+                Zenoss.events.EventPanelToolbarActions.reopen,
+                new Zenoss.Action(Ext.apply(Zenoss.events.EventPanelToolbarConfigs.addEvent, {
+                    handler: showAddEventDialog
+                })),
+                {
+                    xtype: 'tbseparator'
+                },
+                Zenoss.events.EventPanelToolbarSelectMenu,
+                {
+                    text: _t('Export'),
+                    id: 'export-button',
+                    //iconCls: 'export',
+                    menu: {
+                        items: [{
+                            text: 'XML',
+                            handler: function(){
+                                var state = Ext.getCmp('events_grid').getState(),
+                                    params = {
+                                        type: 'xml',
+                                        params: {
+                                            fields: Ext.pluck(state.columns, 'id'),
+                                            sort: state.sort.field,
+                                            dir: state.sort.direction,
+                                            params: state.filters.options
+                                        }
+                                    };
+                                Ext.get('export_body').dom.value =
+                                    Ext.encode(params);
+                                Ext.get('exportform').dom.submit();
                             }
-                        }
-                    },/*{
-                        id: 'showfilters',
-                        text: 'Show filters',
-                        checked: false,
-                        listeners: {
-                            'checkchange' : function(ob, on) {
-                                if(on) grid.showFilters()
-                                else grid.hideFilters()
+                        }, {
+                            text: 'CSV',
+                            handler: function(){
+                                var state = Ext.getCmp('events_grid').getState(),
+                                    params = {
+                                        type: 'csv',
+                                        params: {
+                                            fields: Ext.pluck(state.columns, 'id'),
+                                            sort: state.sort.field,
+                                            dir: state.sort.direction,
+                                            params: state.filters.options
+                                        }
+                                    };
+                                Ext.get('export_body').dom.value =
+                                    Ext.encode(params);
+                                Ext.get('exportform').dom.submit();
                             }
-                        }
-                    },*/{
-                        text: 'Save this configuration...',
-                        handler: function(){
-                            var grid = Ext.getCmp('events_grid'),
-                                link = grid.getPermalink();
-                           Ext.Msg.show({
-                            title: 'Permalink',
-                            msg: '<'+'div class="dialog-link">'+
-                            'Drag this link to your bookmark' +
-                            ' bar <'+'br/>to return to this grid '+
-                             'configuration later.'+
-                             '<'+'br/><'+'br/><'+'a href="'+
-                             link + '">'+
-                             'Event Console<'+'/a><'+'/div>',
-                            buttons: Ext.Msg.OK
-                            });
-                        }
-                    },{
-                        text: "Restore defaults",
-                        handler: function(){
-                            Ext.Msg.show({
-                                title: 'Confirm Restore',
-                                msg: 'Are you sure you want to restore '+
-                                  'the default grid configuration? All' +
-                                  ' filters, column sizing, and column order '+
-                                  'will be lost.',
-                                buttons: Ext.Msg.OKCANCEL,
-                                fn: function(val){
-                                    if (val=='ok')
-                                        Ext.getCmp('events_grid').resetGrid();
+                        }]
+                    }
+                },
+                {
+                    text: _t('Configure'),
+                    id: 'configure-button',
+                    //iconCls: 'customize',
+                    menu: {
+                        items: [
+                            {
+                                id: 'rowcolors_checkitem',
+                                xtype: 'menucheckitem',
+                                text: 'Show severity row colors',
+                                handler: function(checkitem) {
+                                    var checked = !checkitem.checked;
+                                    var view = Ext.getCmp('events_grid').getView();
+                                    view.toggleRowColors(checked);
                                 }
-                            });
-                        }
-                    }]
+                            },{
+                                id: 'livesearch_checkitem',
+                                checked: true,
+                                xtype: 'menucheckitem',
+                                text: 'Enable live search',
+                                handler: function(checkitem) {
+                                    var checked = !checkitem.checked;
+                                    var view = Ext.getCmp('events_grid').getView();
+                                    view.toggleLiveSearch(checked);
+                                }
+                            },{
+                                id: 'clearfilters',
+                                text: 'Clear filters',
+                                listeners: {
+                                    click: function(){
+                                        grid.clearFilters();
+                                    }
+                                }
+                            },{
+                                text: 'Save this configuration...',
+                                handler: function(){
+                                    var grid = Ext.getCmp('events_grid'),
+                                        link = grid.getPermalink();
+                                   Ext.Msg.show({
+                                    title: 'Permalink',
+                                    msg: '<'+'div class="dialog-link">'+
+                                    'Drag this link to your bookmark' +
+                                    ' bar <'+'br/>to return to this grid '+
+                                     'configuration later.'+
+                                     '<'+'br/><'+'br/><'+'a href="'+
+                                     link + '">'+
+                                     'Event Console<'+'/a><'+'/div>',
+                                    buttons: Ext.Msg.OK
+                                    });
+                                }
+                            },{
+                                text: "Restore defaults",
+                                handler: function(){
+                                    Ext.Msg.show({
+                                        title: 'Confirm Restore',
+                                        msg: 'Are you sure you want to restore '+
+                                          'the default grid configuration? All' +
+                                          ' filters, column sizing, and column order '+
+                                          'will be lost.',
+                                        buttons: Ext.Msg.OKCANCEL,
+                                        fn: function(val){
+                                            if (val=='ok')
+                                                Ext.getCmp('events_grid').resetGrid();
+                                        }
+                                    });
+                                }
+                            }
+                        ]
+                    }
+                },{
+                    xtype: 'tbfill'
+                },{
+                    id: 'lastupdated',
+                    xtype: 'tbtext',
+                    cls: 'lastupdated',
+                    text: 'Updating...'
+                },{
+                    xtype: 'refreshmenu',
+                    ref: 'refreshmenu',
+                    id: 'refresh-button',
+                    iconCls: 'refresh',
+                    text: _t('Refresh'),
+                    handler: function() {
+                        Ext.getCmp('events_grid').updateRows();
+                    }
                 }
-            },{
-                xtype: 'tbfill'
-            },{
-                id: 'lastupdated',
-                xtype: 'tbtext',
-                cls: 'lastupdated',
-                text: 'Updating...'
-            },{
-                xtype: 'refreshmenu',
-                ref: 'refreshmenu',
-                id: 'refresh-button',
-                iconCls: 'refresh',
-                text: _t('Refresh'),
-                handler: function(){
-                    view = Ext.getCmp('events_grid').getView();
-
-
-                    view.updateLiveRows(view.rowIndex, true, true);
-                }
-            }
             ]
         });
 
@@ -511,29 +421,11 @@ Ext.onReady(function(){
         loadMask  : { msg :  'Loading. Please wait...' }
     });
 
-    function disableEventConsoleButtons() {
-        var disabled = Zenoss.Security.doesNotHavePermission('Manage Events');
-        var buttonIds = [
-            'ack-button',
-            'close-button',
-            'classify-button',
-            'unack-button',
-            'add-button'
-        ];
-        Ext.each(buttonIds, function(buttonId) {
-            var button = Ext.getCmp(buttonId);
-            button.setDisabled(disabled);
-        });
-    }
 
     var console_store = new Zenoss.EventStore({
         autoLoad: true,
         proxy: new Zenoss.ThrottlingProxy({
-            directFn: Zenoss.remote.EventsRouter.query,
-            listeners: {
-                'load': function(proxy, transaction, options) {
-                   disableEventConsoleButtons();
-                }}
+            directFn: Zenoss.remote.EventsRouter.query
         })
     });
 
@@ -541,7 +433,6 @@ Ext.onReady(function(){
     // do not show any events.
     if (!_has_global_roles() && _managed_objects().length == 0){
         console_store = new Ext.ux.grid.livegrid.Store({});
-        disableEventConsoleButtons();
     }
 
     // Selection model

@@ -178,7 +178,7 @@ class EventsRouter(DirectRouter):
             asof = time.time()
         )
 
-    def _buildFilter(self, uid, params, uuid=None):
+    def _buildFilter(self, uid, params, specificEventUuids=None):
         """
         Construct a dictionary that can be converted into an EventFilter protobuf.
 
@@ -188,32 +188,52 @@ class EventsRouter(DirectRouter):
         @type  uid: string
         @param uid: (optional) Context for the query (default: None)
         """
+
+
         if params:
-            log.debug('logging params for building filter.')
-            log.debug(params)
+            log.debug('logging params for building filter: %s', params)
             params = loads(params)
 
-            if uuid is None:
-                uuid = []
-            evid = params.get('evid')
-            if evid:
-                if not isinstance(evid, (tuple, list)):
-                    evid = (evid,)
-                uuid.extend(evid)
+            filterEventUuids = []
 
+            # No specific event uuids passed in-
+            # check for event ids from the grid parameters
+            if specificEventUuids is None:
+                log.debug('No specific event uuids were passed in.')
+
+                # The evid's from params only ever mean anything for filtering - if
+                # specific uuids are passed in, this filter will ignore the grid
+                # parameters and just act on or filter using these specific event uuids.
+                evid = params.get('evid')
+                if evid:
+                    if not isinstance(evid,(list, tuple)):
+                        evid = [evid]
+                    filterEventUuids.extend(evid)
+
+            # Specific event uuids were passed in, use those for this filter.
+            else:
+                log.debug('Specific event uuids passed in: %s', specificEventUuids)
+                if not isinstance(specificEventUuids,(list, tuple)):
+                    filterEventUuids = [specificEventUuids]
+                else:
+                    filterEventUuids = specificEventUuids
+
+            log.debug('FilterEventUuids is: %s', filterEventUuids)
+            
             filter = self.zep.createEventFilter(
                 severity = params.get('severity'),
                 status = [i for i in params.get('eventState', [])],
                 event_class = params.get('eventClass'),
                 first_seen = params.get('firstTime') and self._timeRange(params.get('firstTime')),
                 last_seen = params.get('lastTime') and self._timeRange(params.get('lastTime')),
-                # status_change
-                # update_time
-                uuid = uuid,
+                uuid = filterEventUuids,
                 count_range = params.get('count'),
                 element_identifier = params.get('device'),
                 element_sub_identifier = params.get('component'),
                 event_summary = params.get('summary'),
+
+                # 'tags' comes from managed object guids.
+                # see Zuul/security/security.py
                 tags = params.get('tags')
             )
             log.debug('Found params for building filter, ended up building  the following:')
@@ -228,9 +248,15 @@ class EventsRouter(DirectRouter):
         context = resolve_context(uid)
 
         if context and context.id not in ('Events', 'dmd'):
-            tags = filter.setdefault('tag_filter', {}).setdefault('tag_uuids', [])
             try:
-                tags.append(IGlobalIdentifier(context).getGUID())
+                # make a specific instance of tag_filter just for the context tag.
+                context_tag_filter = {
+                    'tag_uuids': [IGlobalIdentifier(context).getGUID()]
+                }
+                # if it exists, filter['tag_filter'] will be a list. just append the special
+                # context tag filter to whatever that list is.
+                tag_filter = filter.setdefault('tag_filter', [])
+                tag_filter.append(context_tag_filter)
             except TypeError:
                 if isinstance(context, EventClass):
                     filter['event_class'] = context.getDmdKey()
@@ -346,9 +372,7 @@ class EventsRouter(DirectRouter):
 
         return DirectResponse.succeed()
 
-
-    def _buildRequestFilters(self, evids, excludeIds, selectState, field,
-        direction, params, history, uid):
+    def _buildRequestFilters(self, uid, params, evids, excludeIds):
         """
         Given common request parameters, build the inclusive and exclusive
         filters for event update requests.
@@ -357,24 +381,25 @@ class EventsRouter(DirectRouter):
         if uid is None:
             uid = self.context
 
+        log.debug('Context while building request filters is: %s', uid)
+        
         # if the request contains specific event summaries to act on, they will
         # be passed in as evids. Excluded event summaries are passed in under
         # the keyword argument 'excludeIds'. If these exist, pass them in as
         # parameters to be used to construct the EventFilter.
-        uuids = []
-        if evids and isinstance(evids, list):
+        includeUuids = None
+        if evids and isinstance(evids, (list, tuple)):
             log.debug('Found specific event ids, adding to params.')
-            uuids = evids
-
-        includeFilter = self._buildFilter(uid, params, uuids)
-
+            includeUuids = evids
+        
+        includeFilter = self._buildFilter(uid, params, specificEventUuids=includeUuids)
+        
         # the only thing excluded in an event filter is a list of event uuids
         # which are passed as EventTagFilter using the OR operator.
         excludeFilter = None
         if excludeIds:
-            # TODO: Fix the keyword argument. it's confusing.
-            excludeFilter = self._buildFilter(uid, params, uuid=excludeIds.keys())
-
+            excludeFilter = self._buildFilter(uid, params, specificEventUuids=excludeIds.keys())
+        
         log.debug('The exclude filter:' + str(excludeFilter))
         log.debug('Finished building request filters.')
 
@@ -424,13 +449,14 @@ class EventsRouter(DirectRouter):
                      change since this time (default: None)
         @rtype:   DirectResponse
         @return:  Success message
+
+        @TODO: Update this method signature if we can (back compat).
         """
 
         log.debug('Issuing a close request.')
 
-        includeFilter, excludeFilter = self._buildRequestFilters(
-            evids, excludeIds, selectState, field, direction, params, history, uid);
-
+        includeFilter, excludeFilter = self._buildRequestFilters(uid, params, evids, excludeIds);
+        
         status, summaryUpdateResponse = self.zep.closeEventSummaries(
             eventFilter=includeFilter,
             exclusionFilter=excludeFilter,
@@ -486,12 +512,13 @@ class EventsRouter(DirectRouter):
                      change since this time (default: None)
         @rtype:   DirectResponse
         @return:  Success message
+
+        @TODO: Update this method signature if we can (back compat).
         """
         log.debug('Issuing an acknowledge request.')
-
-        includeFilter, excludeFilter = self._buildRequestFilters(
-            evids, excludeIds, selectState, field, direction, params, history, uid);
-
+        
+        includeFilter, excludeFilter = self._buildRequestFilters(uid, params, evids, excludeIds);
+        
         status, summaryUpdateResponse = self.zep.acknowledgeEventSummaries(
             eventFilter=includeFilter,
             exclusionFilter=excludeFilter,
@@ -554,12 +581,13 @@ class EventsRouter(DirectRouter):
                      change since this time (default: None)
         @rtype:   DirectResponse
         @return:  Success message
+
+        @TODO: Update this method signature if we can (back compat).
         """
 
         log.debug('Issuing a reopen request.')
-
-        includeFilter, excludeFilter = self._buildRequestFilters(
-            evids, excludeIds, selectState, field, direction, params, history, uid);
+        
+        includeFilter, excludeFilter = self._buildRequestFilters(uid, params, evids, excludeIds);
 
         status, summaryUpdateResponse = self.zep.reopenEventSummaries(
             eventFilter=includeFilter,

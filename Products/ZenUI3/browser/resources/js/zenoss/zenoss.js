@@ -749,7 +749,9 @@ Zenoss.FilterGridView = Ext.extend(Ext.ux.grid.livegrid.GridView, {
         for(i=0;i<this.filters.length;i++){
             filter = this.filters[i];
             query = filter.getValue();
+
             if (query) {
+
                 params[filter.id] = query;
                 if (filter.xtype=='datefield'){
                     dt = new Date(query);
@@ -1236,7 +1238,54 @@ Zenoss.FilterGridPanel = Ext.extend(Ext.ux.grid.livegrid.GridPanel, {
     },
     hideFilters: function() { this.getView().hideFilters(); },
     showFilters: function() { this.getView().showFilters(); },
-    clearFilters: function() { this.getView().clearFilters(); }
+    clearFilters: function() { this.getView().clearFilters(); },
+
+
+    /*
+     * Assemble the parameters that define the grid state.
+     */
+    getQueryParameters: function() {
+        this.view.applyFilterParams({'params':this.view.ds.sortInfo});
+        return this.view.ds.sortInfo;
+    },
+
+    /*
+     * Assemble the parameters that define the records selected. This by
+     * necessity includes query parameters, since ranges need row indices.
+     */
+    getSelectionParameters: function() {
+        var grid = this,
+            sm = grid.getSelectionModel(),
+            ranges = sm.getPendingSelections(true),
+            evids = [],
+            sels = sm.getSelections();
+
+        if (sm.selectState == 'All') {
+            // If we are selecting all, we don't want to send back any evids.
+            // this will make the operation happen on the filter's result
+            // instead of whatever the view seems to have selected.
+            sels = [];
+        }
+        Ext.each(sels, function(record){
+            evids[evids.length] = record.data.evid;
+        });
+        if (!ranges && !evids) return false;
+        var params = {
+            evids:evids,
+            excludeIds: sm.badIds,
+            selectState: sm.selectState
+        };
+        Ext.apply(params, this.getQueryParameters());
+        return params;
+    },
+
+    /*
+     * A shortcut for updated grid rows.
+     */
+    updateRows: function() {
+        var view = this.getView();
+        view.updateLiveRows(view.rowIndex, true, true);
+    }
 });
 
 Ext.reg('filtergridpanel', Zenoss.FilterGridPanel);
@@ -1690,7 +1739,16 @@ Zenoss.DetailPanel = Ext.extend(Ext.Panel, {
 });
 Ext.reg('detailpanel', Zenoss.DetailPanel);
 
-Zenoss.EventActionManager = Ext.extend(Ext.util.Observable, {
+
+/*
+ * This EventActionManager class will handle issuing a router request for
+ * actions to be taken on events. When constructing this class you must
+ * provide the findParams() method and may provide the onFinishAction() method.
+ * Unless you mimic the existing params structure, you'll need to override
+ * isLargeRequest() as well in order to determine whether or not a dialog and
+ * progress bar should be shown.
+ */
+var EventActionManager = Ext.extend(Ext.util.Observable, {
     constructor: function(config) {
         var me = this;
         config = config || {};
@@ -1797,9 +1855,8 @@ Zenoss.EventActionManager = Ext.extend(Ext.util.Observable, {
             },
             finishAction: function() {
                 me.dialog.hide();
-                if (me.grid) {
-                    var v = Ext.getCmp(me.grid).getView();
-                    v.updateLiveRows(v.rowIndex, true, true);
+                if (me.onFinishAction) {
+                    me.onFinishAction();
                 }
             },
             requestCallback: function(provider, response) {
@@ -1845,18 +1902,30 @@ Zenoss.EventActionManager = Ext.extend(Ext.util.Observable, {
                 me.remaining = null;
                 me.dialog.progressBar.reset();
             },
-            execute: function(actionFunction, params) {
+            findParams: function() {
+                throw('The EventActionManager findParams() method must be implemented before use.');
+            },
+            execute: function(actionFunction) {
                 me.action = actionFunction;
-                me.params = params;
-                me.reset();
-                me.startAction();
+                me.params = me.findParams();
+                if (me.params) {
+                    me.reset();
+                    me.startAction();
+                }
+            },
+            configure: function(config) {
+                Ext.apply(this, config);
             }
         });
         Ext.apply(this, config);
-        Zenoss.EventActionManager.superclass.constructor.call(this, config);
+        EventActionManager.superclass.constructor.call(this, config);
     }
 });
 
+Ext.onReady(function() {
+    Zenoss.EventActionManager = new EventActionManager();
+});
+    
 /**
  * @class Zenoss.ColumnFieldSet
  * @extends Ext.form.FieldSet

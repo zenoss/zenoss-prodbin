@@ -26,7 +26,7 @@
              
              // call the parent's constructor
              Zenoss.Action.superclass.constructor.apply(this, arguments);   
-         }             
+         }
      });
 
      Ext.reg('Action', Zenoss.Action);

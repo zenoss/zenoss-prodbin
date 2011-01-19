@@ -36,17 +36,6 @@ function selectOnRender(n) {
     }
 }
 
-var ZEvActions = Zenoss.events.EventPanelToolbarActions;
-
-var _action = ZEvActions.close;
-_action.setHandler(_action.initialConfig.handler.createInterceptor(
-    function() {
-        Ext.Direct.on('event', function(){
-            Ext.getCmp('devdetailbar').refresh();
-        }, null, {single:true});
-    }
-));
-
 function deviceColumnDefinitions() {
     var defs = Zenoss.env.COLUMN_DEFINITIONS;
     return Zenoss.util.filter(defs, function(d){
@@ -54,18 +43,6 @@ function deviceColumnDefinitions() {
     });
 }
 
-function setEventButtonsDisplayed(bool) {
-    var actions = [
-        ZEvActions.acknowledge,
-        ZEvActions.close,
-        ZEvActions.newwindow,
-        ZEvActions.reopen
-    ];
-    var method = bool ? 'show' : 'hide';
-    Ext.each(actions, function(action) {
-        action[method]();
-    });
-}
 
 function refreshComponentTreeAndGrid(compType) {
     var tree = Ext.getCmp('deviceDetailNav').treepanel,
@@ -521,6 +498,16 @@ var overview = {
     xtype: 'deviceoverview',
     id: 'device_overview'
 };
+
+Zenoss.EventActionManager.configure({
+    onFinishAction: function() {
+        Ext.getCmp('device_events').updateRows();
+        Ext.getCmp('devdetailbar').refresh();
+    },
+    findParams: function() {
+        return Ext.getCmp('device_events').getSelectionParameters();
+    }
+});
 
 var event_console = Ext.create({
     xtype: 'EventGridPanel',

@@ -403,10 +403,10 @@ Zenoss.SimpleEventGridPanel = Ext.extend(Zenoss.FilterGridPanel, {
 }); // SimpleEventGridPanel
 Ext.reg('SimpleEventGridPanel', Zenoss.SimpleEventGridPanel);
 
-/**
- * Select Menu
- **/
-Zenoss.events.SelectMenu = {
+
+
+// Define all of the items that could be shown in an EventConsole toolbar.
+Zenoss.events.EventPanelToolbarSelectMenu = {
     text: _t('Select'),
     id: 'select-button',
     menu:{
@@ -431,24 +431,28 @@ Zenoss.events.SelectMenu = {
     }
 };
 
+
 Zenoss.EventGridPanel = Ext.extend(Zenoss.SimpleEventGridPanel, {
     constructor: function(config) {
-
+        
         var evtGrid = this,
             tbarItems = [
-            {
-                xtype: 'tbtext',
-                text: config.text || _t('Event Console')
-            },
+                Zenoss.events.EventPanelToolbarActions.acknowledge,
+                Zenoss.events.EventPanelToolbarActions.close,
+                Zenoss.events.EventPanelToolbarActions.reopen,
                 '-',
-                config.selectMenu || Zenoss.events.SelectMenu,
-               '-',
+                config.selectMenu || Zenoss.events.EventPanelToolbarSelectMenu,
+                Zenoss.events.EventPanelToolbarActions.refresh
+            ];
 
-            {
+        if (!config.hideDisplayCombo) {
+            tbarItems.push('->');
+            tbarItems.push(Ext.create({
                 xtype: 'tbtext',
                 hidden: config.hideDisplayCombo || false,
                 text: _t('Display: ')
-            },{
+            }));
+            tbarItems.push(Ext.create({
                 xtype: 'combo',
                 id: 'history_combo',
                 hidden: config.hideDisplayCombo || false,
@@ -477,15 +481,9 @@ Zenoss.EventGridPanel = Ext.extend(Zenoss.SimpleEventGridPanel, {
                         Zenoss.events.EventPanelToolbarActions.close.setHidden(archive);
                     }
                 }
-            },{
-                xtype: 'tbseparator',
-                hidden: config.hideDisplayCombo || false
-            },
-            Zenoss.events.EventPanelToolbarActions.acknowledge,
-            Zenoss.events.EventPanelToolbarActions.close,
-            Zenoss.events.EventPanelToolbarActions.reopen,
-            Zenoss.events.EventPanelToolbarActions.refresh
-        ];
+            }));
+
+        }
         if (config.newwindowBtn) {
             tbarItems.push('-');
             tbarItems.push(Zenoss.events.EventPanelToolbarActions.newwindow);
@@ -545,71 +543,38 @@ Zenoss.EventRainbow = Ext.extend(Ext.Toolbar.TextItem, {
         });
     }
 });
-
 Ext.reg('eventrainbow', Zenoss.EventRainbow);
+
 
 Zenoss.events.EventPanelToolbarActions = {
     acknowledge: new Zenoss.Action({
-        //text: _t('Acknowledge'),
         iconCls: 'acknowledge',
         tooltip: _t('Acknowledge events'),
         permission: 'Manage Events',
-        handler: function(btn) {
-            var grid = btn.grid || this.ownerCt.ownerCt,
-                sm = grid.getSelectionModel(),
-                selected = sm.getSelections(),
-                evids = Ext.pluck(selected, 'id');
-            Zenoss.remote.EventsRouter.acknowledge(
-                {evids:evids},
-                function(provider, response){
-                    var view = grid.getView();
-                    view.updateLiveRows(view.rowIndex, true, true);
-                }
-            );
+        handler: function() {
+            Zenoss.EventActionManager.execute(Zenoss.remote.EventsRouter.acknowledge);
         }
     }),
     close: new Zenoss.Action({
-        //text: _t('Close'),
         iconCls: 'close',
-        permission: 'Manage Events',
         tooltip: _t('Close events'),
-        handler: function(btn) {
-            var grid = btn.grid || this.ownerCt.ownerCt,
-                sm = grid.getSelectionModel(),
-                selected = sm.getSelections(),
-                evids = Ext.pluck(selected, 'id');
-            Zenoss.remote.EventsRouter.close(
-                {evids:evids},
-                function(provider, response){
-                    var view = grid.getView();
-                    view.updateLiveRows(view.rowIndex, true, true);
-                }
-            );
+        permission: 'Manage Events',
+        handler: function() {
+            Zenoss.EventActionManager.execute(Zenoss.remote.EventsRouter.close);
         }
     }),
     reopen: new Zenoss.Action({
         iconCls: 'unacknowledge',
+        tooltip: _t('Unacknowledge events'),
         permission: 'Manage Events',
-        tooltip: _t('Unacknowledge Events'),
-        handler: function(btn) {
-            var grid = btn.grid || this.ownerCt.ownerCt,
-                sm = grid.getSelectionModel(),
-                selected = sm.getSelections(),
-                evids = Ext.pluck(selected, 'id');
-            Zenoss.remote.EventsRouter.reopen(
-                {evids:evids},
-                function(provider, response){
-                    var view = grid.getView();
-                    view.updateLiveRows(view.rowIndex, true, true);
-                }
-            );
+        handler: function() {
+            Zenoss.EventActionManager.execute(Zenoss.remote.EventsRouter.reopen);
         }
     }),
     newwindow: new Zenoss.Action({
-        //text: _t('Open in new window'),
         iconCls: 'newwindow',
-        tooltip: _t('Go to event console'),
         permission: 'View',
+        tooltip: _t('Go to event console'),
         handler: function(btn) {
             var grid = btn.grid || this.ownerCt.ownerCt,
                 curState = Ext.state.Manager.get('evconsole') || {},
@@ -633,7 +598,6 @@ Zenoss.events.EventPanelToolbarActions = {
         }
     }),
     refresh: new Zenoss.Action({
-        //text: _t('refresh'),
         iconCls: 'refresh',
         permission: 'View',
         tooltip: _t('Refresh events'),
@@ -643,7 +607,17 @@ Zenoss.events.EventPanelToolbarActions = {
             view.updateLiveRows(view.rowIndex, true, true);
         }
     })
-};
+}
 
+Zenoss.events.EventPanelToolbarConfigs = {
+    addEvent: {
+        iconCls: 'add',
+        tooltip: _t('Add an event')
+    },
+    reclassify: {
+        iconCls: 'classify',
+        tooltip: _t('Reclassify an event')
+    }
+};
 
 })(); // end of function namespace scoping

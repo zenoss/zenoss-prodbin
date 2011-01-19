@@ -35,39 +35,6 @@ Ext.onReady(function(){
     detail_panel.collapsed = true;
 
     /*
-     * Assemble the parameters that define the grid state.
-     */
-    function getQueryParameters() {
-        var grid = Ext.getCmp('events_grid'),
-            sortInfo = grid.view.ds.sortInfo;
-        grid.view.applyFilterParams({'params':sortInfo});
-        return sortInfo;
-    }
-
-    /*
-     * Assemble the parameters that define the records selected. This by
-     * necessity includes query parameters, since ranges need row indices.
-     */
-    function getSelectionParameters() {
-        var grid = Ext.getCmp('events_grid'),
-            sm = grid.getSelectionModel(),
-            ranges = sm.getPendingSelections(true),
-            evids = [],
-            sels = sm.getSelections();
-        Ext.each(sels, function(record){
-            evids[evids.length] = record.data.evid;
-        });
-        if (!ranges && !evids) return false;
-        var params = {
-            evids:evids,
-            excludeIds: sm.badIds,
-            selectState: sm.selectState
-        };
-        Ext.apply(params, getQueryParameters());
-        return params;
-    }
-
-    /*
      * Select all events with a given state.
      * This requires a call to the back end, since we don't know anything about
      * records that are outside the current buffer. So we let the server

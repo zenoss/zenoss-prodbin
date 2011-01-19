@@ -1317,11 +1317,23 @@ Ext.getCmp('center_panel').add({
                 id: 'events_grid',
                 stateful: false,
                 newwindowBtn: true,
-                columns: Zenoss.env.COLUMN_DEFINITIONS
+                columns: Zenoss.env.COLUMN_DEFINITIONS,
+                initComponent: Zenoss.EventGridPanel.prototype.initComponent.createSequence(function(){
+                    var events_grid = Ext.getCmp('events_grid');
+                    Zenoss.EventActionManager.configure({
+                        onFinishAction: function() {
+                            events_grid.updateRows();
+                        },
+                        findParams: function() {
+                            return events_grid.getSelectionParameters();
+                        }
+                    });
+               })
             }
         ]
     }]
 });
+
 
 var bindTemplatesDialog = Ext.create({
     xtype: 'bindtemplatesdialog',

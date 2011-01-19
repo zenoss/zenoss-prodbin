@@ -24,7 +24,8 @@ from Products.Zuul.utils import resolve_context
 import pkg_resources
 from zenoss.protocols.services.zep import ZepServiceClient, EventSeverity, EventStatus, ZepConfigClient
 from zenoss.protocols.jsonformat import to_dict, from_dict
-from zenoss.protocols.protobufs.zep_pb2 import EventSummaryFilter, NumberCondition, EventSort, EventFilter
+from zenoss.protocols.protobufs.zep_pb2 import NumberCondition, EventSort, EventFilter
+from zenoss.protocols.protobufutil import listify
 from Products.ZenUtils.GlobalConfig import getGlobalConfiguration
 from Products.ZenUtils.guid.interfaces import IGlobalIdentifier
 from zenoss.protocols.protobufs.zep_pb2 import SEVERITY_CLEAR, SEVERITY_CRITICAL, SEVERITY_DEBUG, SEVERITY_ERROR,\
@@ -32,12 +33,6 @@ from zenoss.protocols.protobufs.zep_pb2 import SEVERITY_CLEAR, SEVERITY_CRITICAL
 
 
 log = logging.getLogger(__name__)
-
-
-def listify(ob):
-    if not isinstance(ob, (tuple, list, set)):
-        return [ob]
-    return ob
 
 class ZepFacade(ZuulFacade):
     implements(IZepFacade)
@@ -111,19 +106,25 @@ class ZepFacade(ZuulFacade):
             filter['severity'] = severity
 
         if first_seen:
-            filter['first_seen'] = first_seen
+            filter['first_seen'] = self._timeRange(first_seen)
 
         if last_seen:
-            filter['last_seen'] = last_seen
+            filter['last_seen'] = self._timeRange(last_seen)
 
         if status_change:
             filter['status_change'] = status_change
 
+        # These tags come from params, which means for some reason someone is filtering manually on a tag.
         if tags:
             filter['tag_filter'] = {'tag_uuids': tags}
 
         if count_range:
-            filter['count_range'] = count_range
+            if not isinstance(count_range, (tuple, list)):
+                count_range = (count_range, count_range)
+            filter['count_range'] = {
+                'from': count_range[0],
+                'to': count_range[1],
+            }
 
         if element_identifier:
             filter['element_identifier'] = str(element_identifier).strip()
@@ -134,7 +135,9 @@ class ZepFacade(ZuulFacade):
         if fingerprint:
             filter['fingerprint'] = fingerprint
 
-        return filter
+        # Everything's repeated on the protobuf, so listify
+        return dict((k, listify(v)) for k,v in filter.iteritems())
+    
 
     def _timeRange(self, timeRange):
         d = {
@@ -149,11 +152,17 @@ class ZepFacade(ZuulFacade):
     def _getEventSummaries(self, source, offset, limit=100, keys=None, sort=None, filter={}):
         filterBuf = None
         if filter:
-            filterBuf = self._buildFilterProtobuf(filter)
+            filterBuf = from_dict(EventFilter, filter)
 
         eventSort = None
         if sort:
-            eventSort = self._buildSortProtobuf(sort)
+            if isinstance(sort, (list, tuple)):
+                eventSort = from_dict(EventSort, {
+                    'field' : self._sortMap[sort[0].lower()],
+                    'direction' : self._sortDirectionMap[sort[1].lower()]
+                })
+            else:
+                eventSort = from_dict(EventSort, { 'field' : self._sortMap[sort.lower()] })
 
         response, content = source(offset=offset, limit=limit, keys=keys, sort=eventSort, filter=filterBuf)
         return {
@@ -162,39 +171,6 @@ class ZepFacade(ZuulFacade):
             'next_offset' : content.next_offset,
             'events' : (to_dict(event) for event in content.events),
         }
-
-    def _buildSortProtobuf(self, sort):
-        if isinstance(sort, (list, tuple)):
-            eventSort = from_dict(EventSort, {
-                'field' : self._sortMap[sort[0].lower()],
-                'direction' : self._sortDirectionMap[sort[1].lower()]
-            })
-        else:
-            eventSort = from_dict(EventSort, { 'field' : self._sortMap[sort.lower()] })
-        return eventSort
-
-    def _buildFilterProtobuf(self, filter):
-        # Build protobuf filter
-        if 'count' in filter:
-            m = re.match(r'^(?P<op>>|<|=|>=|<=)?(?P<num>[0-9]+)$', filter['count'])
-            if m:
-                filter['count'] = {
-                    'op' : self._opMap[m.groupdict()['op']],
-                    'value' : int(m.groupdict()['num']),
-                }
-            else:
-                raise Exception('Invalid count filter %s' % filter['count'])
-
-        if 'first_seen' in filter:
-            filter['first_seen'] = self._timeRange(filter['first_seen'])
-
-        if 'last_seen' in filter:
-            filter['last_seen'] = self._timeRange(filter['last_seen'])
-
-        # Everything's repeated on the protobuf, so listify
-        newfilter = dict((k, listify(v)) for k,v in filter.iteritems())
-        result = from_dict(EventFilter, newfilter)
-        return result
 
     def _getUserUuid(self, userName):
         # Lookup the user uuid
@@ -246,6 +222,7 @@ class ZepFacade(ZuulFacade):
             limit=None):
 
         eventFilter = from_dict(EventFilter, eventFilter)
+
         if exclusionFilter:
             exclusionFilter = from_dict(EventFilter, exclusionFilter)
 
@@ -405,7 +382,7 @@ class ZepFacade(ZuulFacade):
             status=[STATUS_NEW, STATUS_ACKNOWLEDGED]
             )
 
-        response, content = self.client.getDeviceIssues(self._buildFilterProtobuf(filters))
+        response, content = self.client.getDeviceIssues(from_dict(EventFilter, filters))
         if content:
             uuids = [severities.tag_uuid for severities in content.severities]
             return self._createSeveritiesDict(content, uuids)
