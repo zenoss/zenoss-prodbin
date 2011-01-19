@@ -46,7 +46,6 @@ test_signal1 = Signal()
 test_signal1.uuid = str(uuid4())
 test_signal1.created_time = 1;
 test_signal1.message = 'Testing Signal Processing'
-test_signal1.initial_occurrence = True
 test_signal1.trigger_uuid = trigger_uuid
 test_signal1.subscriber_uuid = subscriber_uuid
 
