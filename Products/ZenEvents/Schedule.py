@@ -24,7 +24,7 @@ import transaction
 from twisted.internet import reactor
 
 from Products.ZenEvents.ZenEventClasses import Status_Update
-import Event
+from Products.ZenEvents import Event
 
 class Schedule:
 

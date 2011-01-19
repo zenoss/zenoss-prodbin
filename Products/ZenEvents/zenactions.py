@@ -1130,8 +1130,8 @@ restart Zenoss.
 
         signal.alarm(timeout)
         if not hasattr(self, 'db') or \
-           not hasattr(self.db, 'storage') or \
-           not self.db.storage.is_connected():
+           not hasattr(self.db, 'storage') or\
+           self.db.storage._closed:
             raise ZeoWatcher("ZEO is not connected!")
 
         # If we're okay, then reset the notification count
