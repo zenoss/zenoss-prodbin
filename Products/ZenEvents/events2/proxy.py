@@ -154,6 +154,8 @@ class ProtobufWrapper(object):
         return self._pb.HasField(name)
 
 class EventProxy(object):
+    DEVICE_PRIORITY_DETAIL_KEY = "zenoss.device.priority"
+    PRODUCTION_STATE_DETAIL_KEY = "zenoss.device.production_state"
     """
     Wraps an org.zenoss.protobufs.zep.Event or org.zenoss.protobufs.zep.RawEvent
     and makes it look like an old style Event.
@@ -222,13 +224,13 @@ class EventProxy(object):
 
     @property
     def prodState(self):
-        state = self.details.get('prodState')
+        state = self.details.get(EventProxy.PRODUCTION_STATE_DETAIL_KEY)
         if state:
             return int(state)
 
     @prodState.setter
     def prodState(self, val):
-        self.details.set('prodState', int(val))
+        self.details.set(EventProxy.PRODUCTION_STATE_DETAIL_KEY, int(val))
 
     @property
     def summary(self):
@@ -288,13 +290,13 @@ class EventProxy(object):
 
     @property
     def DevicePriority(self):
-        priority = self.details.get('DevicePriority')
+        priority = self.details.get(EventProxy.DEVICE_PRIORITY_DETAIL_KEY)
         if priority:
             return int(priority)
 
     @DevicePriority.setter
     def DevicePriority(self, val):
-        self.details.set('DevicePriority', int(val))
+        self.details.set(EventProxy.DEVICE_PRIORITY_DETAIL_KEY, int(val))
 
     @property
     def priority(self):
