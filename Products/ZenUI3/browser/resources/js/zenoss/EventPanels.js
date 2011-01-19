@@ -250,6 +250,7 @@ Zenoss.EventStore = Ext.extend(Ext.ux.grid.livegrid.Store, {
                     'eventClassMapping',
                     'monitor',
                     'iprealm',
+                    'propagation_path',
                     {name:'count', type:'int'},
                     {name:'severity', type:'int'},
                     {name:'firstTime', type:'date',
