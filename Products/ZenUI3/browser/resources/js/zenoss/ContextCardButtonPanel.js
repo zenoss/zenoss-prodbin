@@ -84,4 +84,25 @@ Zenoss.ContextCardPanel = Ext.extend(Ext.Panel, {
 });
 Ext.reg('contextcardpanel', Zenoss.ContextCardPanel);
 
+
+Zenoss.ContextCardTabPanel = Ext.extend(Ext.TabPanel, {
+    contextUid: null,
+    initEvents: function() {
+        Zenoss.ContextCardTabPanel.superclass.initEvents.call(this);
+        this.on('beforetabchange', this.cardChangeHandler, this);
+    },
+    setContext: function(uid) {
+        this.contextUid = uid;
+        this.cardChangeHandler(this, this.layout.activeItem);
+    },
+    cardChangeHandler: function(tabpanel, tab, oldtab) {
+        if (tab!=oldtab && tab.setContext) {
+            tab.setContext.call(tab, this.contextUid);
+        }
+    }
+
+});
+Ext.reg('contextcardtabpanel', Zenoss.ContextCardTabPanel);
+
+
 })();

@@ -68,7 +68,7 @@
 ul.x-tab-strip-top{
     background:#dbdbdb url(../img/xtheme-zenoss/tabs/tab-strip-bg.gif) repeat-x left top;
     border-color:#4c647e;
-    padding-top:2px;
+    padding-top:7px;
 }
 ul.x-tab-strip-bottom{
     background-image:url(../img/xtheme-zenoss/tabs/tab-strip-btm-bg.gif);
