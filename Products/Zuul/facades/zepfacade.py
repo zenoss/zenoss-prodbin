@@ -75,7 +75,7 @@ class ZepFacade(ZuulFacade):
     def createEventFilter(self,
         severity=(),
         status=(),
-        event_class=None,
+        event_class=(),
         first_seen=None,
         last_seen=None,
         status_change=None,
@@ -97,7 +97,7 @@ class ZepFacade(ZuulFacade):
             filter['event_summary'] = str(event_summary).strip()
 
         if event_class:
-            filter['event_class'] = str(event_class).strip()
+            filter['event_class'] = event_class
 
         if status:
             filter['status'] = status

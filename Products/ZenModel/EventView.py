@@ -26,6 +26,8 @@ from Products.Zuul.decorators import deprecated
 from Products.ZenUtils.guid.interfaces import IGlobalIdentifier
 from Products.ZenWidgets import messaging
 from zenoss.protocols.services import ServiceResponseError
+from zenoss.protocols.protobufs.zep_pb2 import STATUS_NEW, STATUS_ACKNOWLEDGED, \
+    SEVERITY_CRITICAL, SEVERITY_ERROR, SEVERITY_WARNING
 
 class IEventView(Interface):
     """
@@ -299,14 +301,11 @@ class EventView(object):
         Return the status number for this device of class statClass.
         """
         zep = getFacade('zep')
-        filter = {
-            'tag_uuids': [self.getUUID()],
-            'severity': [3,4,5],
-            'status': [1, 2]
-            }
-        if statusclass:
-            filter['event_class'] = statusclass
-        events = zep.getEventSummaries(0, filter=filter)
+        event_filter = zep.createEventFilter(tags=[self.getUUID()],
+                                             severity=[SEVERITY_WARNING,SEVERITY_ERROR,SEVERITY_CRITICAL],
+                                             status=[STATUS_NEW,STATUS_ACKNOWLEDGED],
+                                             event_class=filter(None, [statusclass]))
+        events = zep.getEventSummaries(0, filter=event_filter)
         count = len(list(events['events']))
         return count
 

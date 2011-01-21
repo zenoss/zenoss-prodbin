@@ -220,10 +220,10 @@ class EventsRouter(DirectRouter):
 
             log.debug('FilterEventUuids is: %s', filterEventUuids)
             
-            filter = self.zep.createEventFilter(
+            event_filter = self.zep.createEventFilter(
                 severity = params.get('severity'),
                 status = [i for i in params.get('eventState', [])],
-                event_class = params.get('eventClass'),
+                event_class = filter(None, [params.get('eventClass')]),
                 first_seen = params.get('firstTime') and self._timeRange(params.get('firstTime')),
                 last_seen = params.get('lastTime') and self._timeRange(params.get('lastTime')),
                 uuid = filterEventUuids,
@@ -237,10 +237,10 @@ class EventsRouter(DirectRouter):
                 tags = params.get('tags')
             )
             log.debug('Found params for building filter, ended up building  the following:')
-            log.debug(filter)
+            log.debug(event_filter)
         else:
             log.debug('Did not get parameters, using empty filter.')
-            filter = {}
+            event_filter = {}
 
         if uid is None:
             uid = self.context.dmd.Events
@@ -255,18 +255,18 @@ class EventsRouter(DirectRouter):
                 }
                 # if it exists, filter['tag_filter'] will be a list. just append the special
                 # context tag filter to whatever that list is.
-                tag_filter = filter.setdefault('tag_filter', [])
+                tag_filter = event_filter.setdefault('tag_filter', [])
                 tag_filter.append(context_tag_filter)
             except TypeError:
                 if isinstance(context, EventClass):
-                    filter['event_class'] = context.getDmdKey()
+                    event_filter['event_class'] = [context.getDmdKey()]
                 else:
                     raise Exception('Unknown context %s' % context)
 
         log.debug('Final filter will be:')
-        log.debug(filter)
+        log.debug(event_filter)
 
-        return filter
+        return event_filter
 
     def _uuidUrl(self, uuid):
         if uuid:
