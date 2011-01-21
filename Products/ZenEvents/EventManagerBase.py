@@ -1820,6 +1820,9 @@ class EventManagerBase(ZenModelRM, ObjectCache, DbAccessBase):
 
     security.declareProtected(ZEN_MANAGE_EVENTS,'manage_deleteHeartbeat')
     def manage_deleteHeartbeat(self, devname, REQUEST=None):
+        """
+        Delete all heartbeats for a given device name.
+        """
         if devname:
             delete = "delete from heartbeat where device = '%s'" % devname
             conn = self.connect()
@@ -1850,7 +1853,7 @@ class EventManagerBase(ZenModelRM, ObjectCache, DbAccessBase):
                 REQUEST['RESPONSE'].redirect(dest)
 
 
-    security.declareProtected(ZEN_MANAGE_EVENTS,'manage_ackEvents')
+    security.declareProtected(ZEN_MANAGE_EVENTS,'manage_unackEvents')
     def manage_unackEvents(self, evids=(), REQUEST=None):
         "Unacknowledge the given event ids"
         if type(evids) == type(''):
@@ -1868,6 +1871,11 @@ class EventManagerBase(ZenModelRM, ObjectCache, DbAccessBase):
     security.declareProtected(ZEN_MANAGE_EVENTS,'manage_setEventStates')
     def manage_setEventStates(self, eventState=None, evids=(),
                               userid="", REQUEST=None):
+        """
+        Change state for one or more events with explicit userid.
+        """
+        if isinstance(evids, basestring):
+            evids = [evids]
         reason = None
         if eventState is not None and evids:
             eventState = int(eventState)
@@ -1887,7 +1895,7 @@ class EventManagerBase(ZenModelRM, ObjectCache, DbAccessBase):
             return self.callZenScreen(REQUEST)
 
 
-    security.declareProtected(ZEN_MANAGE_EVENTS,'manage_setEventStates')
+    security.declareProtected(ZEN_MANAGE_EVENTS,'manage_createEventMap')
     @deprecated
     def manage_createEventMap(self, eventClass=None, evids=(),
                               REQUEST=None):
