@@ -1804,29 +1804,8 @@ var EventActionManager = Ext.extend(Ext.util.Observable, {
                         me.params.asof = data.data.request.update_time;
                         me.run();
                     }
-                    else {
-                        // if the action has been cancelled after the
-                        // request was issued, let the user know what
-                        // exactly happened.
-                        Ext.Msg.show({
-                            title: _t('Info - Cancelled'),
-                            msg: String.format(_t('Event processing cancelled. A total of {0} events were updated.'), me.eventsUpdated),
-                            buttons: Ext.MessageBox.OK
-                        });
-                    }
                 },
                 updateRequestComplete: function(data) {
-                    var msg = String.format(_t('Event processing completed. A total of {0} events were updated.'), me.eventsUpdated);
-                    if (me.isLargeRequest()) {
-                        Ext.Msg.show({
-                            title: _t('Info - Complete'),
-                            msg: msg,
-                            buttons: Ext.MessageBox.OK
-                        });
-                    }
-                    else {
-                        Zenoss.message.success(msg);
-                    }
                     me.finishAction();
                 }
             },
@@ -1885,7 +1864,7 @@ var EventActionManager = Ext.extend(Ext.util.Observable, {
                     var progress = null;
                     if (me.remaining != 0) {
                         progress = me.eventsUpdated/me.remaining;
-                        me.dialog.status.update(String.format(_t('Progress: {0} of {1}'), me.eventsUpdated, me.remaining));
+                        me.dialog.status.update(String.format(_t('Progress: {0}%'), Math.ceil((me.eventsUpdated/me.remaining)*100)));
                         me.dialog.progressBar.updateProgress(progress);
                     }
                 }
