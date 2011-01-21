@@ -437,6 +437,11 @@ Zenoss.EventGridPanel = Ext.extend(Zenoss.SimpleEventGridPanel, {
         
         var evtGrid = this,
             tbarItems = [
+                {
+                    xtype: 'tbtext',
+                    text: config.text || _t('Event Console')
+                },
+                '-',
                 Zenoss.events.EventPanelToolbarActions.acknowledge,
                 Zenoss.events.EventPanelToolbarActions.close,
                 Zenoss.events.EventPanelToolbarActions.reopen,
