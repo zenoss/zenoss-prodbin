@@ -593,9 +593,6 @@ class TemplateRouter(TreeRouter):
         @return: B{Properties}:
             - data: (dictionary) The modified object
         """
-        """
-        Set a graph definition.
-        """
         uid = data['uid']
         del data['uid']
         for int_attr in ('miny', 'maxy'):

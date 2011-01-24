@@ -20,14 +20,14 @@ var router, treeId, dataSourcesId, thresholdsId, graphsId,
     selectionchangeHandler, selModel, footerBar, override, overrideHtml1,
     overrideHtml2, showOverrideDialog, resetCombo, addTemplateDialogConfig,
     addToZenPack, currentView;
-    
+
 Ext.ns('Zenoss', 'Zenoss.templates');
 router = Zenoss.remote.TemplateRouter;
 treeId = 'templateTree';
 dataSourcesId = 'dataSourceTreeGrid';
 thresholdsId = Zenoss.templates.thresholdsId;
 graphsId = 'graphGrid';
-    
+
 resetCombo = function(combo, uid) {
     combo.clearValue();
     combo.getStore().setBaseParam('uid', uid);
@@ -59,9 +59,9 @@ function setDefaultView(view) {
     if (currentView != view){
         Ext.util.Cookies.set('template_view', view, new Date().add(Date.MONTH, 1));
         window.location = "/zport/dmd/template";
-    }    
+    }
 }
-    
+
 function reloadTree(selectedId) {
     var tree = Ext.getCmp(treeId);
     if (selectedId){
@@ -140,10 +140,10 @@ selectionchangeHandler = function(sm, node) {
         // unfortunately because multiple templates exist on device class view we
         // have to track the history differently
         if (getCurrentView() == Zenoss.templates.templateView){
-            Ext.History.add(treeId + Ext.History.DELIMITER + node.attributes.uid);   
+            Ext.History.add(treeId + Ext.History.DELIMITER + node.attributes.uid);
         }else {
             Ext.History.add(treeId + Ext.History.DELIMITER + node.getPath());
-        }        
+        }
     }
 
     // enable the footer bar buttons
@@ -183,7 +183,7 @@ Ext.getCmp('master_panel').add({
 function showEditTemplateDialog(response) {
     var config, dialog, handler,
         data = response.data,
-        dirtyOnly = true;        
+        dirtyOnly = true;
 
     // save function (also reloads the tree, in case we change the name)
     handler = function() {
@@ -244,7 +244,7 @@ function editSelectedTemplate() {
     var params = {
         uid: Ext.getCmp(treeId).getSelectionModel().getSelectedNode().attributes.uid
     };
-    
+
     router.getInfo(params, showEditTemplateDialog);
 }
 /**********************************************************************
@@ -363,7 +363,7 @@ function bindSelectedTemplateHere() {
     remote = Zenoss.remote.DeviceRouter,
     callback, path,
     params, uid;
-    
+
     if (getCurrentView() == Zenoss.templates.deviceClassView) {
         uid = node.parentNode.attributes.uid;
         path = node.getPath();
@@ -372,7 +372,7 @@ function bindSelectedTemplateHere() {
         uid = node.attributes.uid.replace(/rrdTemplates\/(.)*$/, '');
         path = node.attributes.uid;
     }
-    
+
     callback = function(response){
         reloadTree(path);
     };
@@ -383,7 +383,7 @@ function bindSelectedTemplateHere() {
     remote.bindOrUnbindTemplate(params, callback);
 }
 
-                
+
 /**********************************************************************
  *
  * Footer Bar
@@ -467,7 +467,7 @@ footerBar.buttonContextMenu.menu.add({
     xtype: 'menuitem',
     text: _t('Add to ZenPack'),
     handler: showAddToZenPackDialog
-    
+
 },{
     text: _t('Toggle Template Binding'),
     hidden: Zenoss.Security.doesNotHavePermission('Manage DMD'),
@@ -523,7 +523,7 @@ footerBar.add([{
             // stay pressed, but don't do anything
             this.toggle(true, true);
         }
-        
+
     }
 },{
     xtype: 'button',
@@ -537,7 +537,7 @@ footerBar.add([{
         } else {
             // stay pressed, but don't do anything
             this.toggle(true, true);
-        }      
+        }
     }
 }]);
 
@@ -546,11 +546,11 @@ footerBar.add(['-',{
     xtype: 'label',
     text: _t('Bound:')
 },{
-    xtype: 'label',        
+    xtype: 'label',
     ctCls: 'x-tree-node-icon tree-template-icon-bound-span'
 },' ',' ',{
     xtype: 'label',
-    text: _t('Component:')        
+    text: _t('Component:')
 },{
     xtype: 'label',
     ctCls: 'x-tree-node-icon tree-template-icon-component-span'
@@ -559,5 +559,5 @@ footerBar.add(['-',{
 
 
 
-                
+
 }); // Ext.onReady

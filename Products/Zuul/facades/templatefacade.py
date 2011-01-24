@@ -22,7 +22,7 @@ from Products.Zuul.interfaces import ITemplateFacade, ICatalogTool, ITemplateNod
     IDataPointInfo, IThresholdInfo, IGraphInfo, IInfo, ITemplateLeaf, IGraphPointInfo
 from Products.Zuul.infos.template import SNMPDataSourceInfo, CommandDataSourceInfo, DeviceClassTemplateNode
 from Products.Zuul.utils import unbrain, safe_hasattr as hasattr, UncataloguedObjectException
-from Products.Zuul.utils import UncataloguedObjectException
+from Products.Zuul.utils import UncataloguedObjectException, ZuulMessageFactory as _t
 from Products.Zuul.facades import ZuulFacade
 from Products.ZenModel.RRDTemplate import RRDTemplate
 from Products.ZenModel.RRDDataSource import RRDDataSource
@@ -345,25 +345,21 @@ class TemplateFacade(ZuulFacade):
         graph.manage_addDataPointGraphPoints([dataPoint.name()], includeThresholds)
 
     def getCopyTargets(self, uid, query=''):
-        template = self._getTemplate(uid)
         catalog = ICatalogTool(self._dmd)
+        template = self._getObject(uid)
         types = ['Products.ZenModel.DeviceClass.DeviceClass']
         brains = catalog.search(types=types)
         objs = imap(unbrain, brains)
         def genTargets():
             for obj in objs:
-                if isinstance(obj, Device):
-                    container = obj
-                    last = -2
-                else:
-                    container = obj.rrdTemplates
-                    last = -1
-                if template.id not in container.objectIds():
-                    organizer = '/' + '/'.join(obj.getPrimaryPath()[3:last])
-                    label = '%s in %s' % (obj.titleOrId(), organizer)
-                    if label.lower().startswith(query.lower()):
-                        uid = '/'.join(obj.getPrimaryPath())
-                        yield dict(uid=uid, label=label)
+                container = obj.rrdTemplates
+                organizer = '/' + '/'.join(obj.getPrimaryPath()[4:])
+                label = organizer
+                if template.id in container.objectIds():
+                    label += " (%s)" % _t('Create Copy')
+                if label.lower().startswith(query.lower()):
+                    uid = '/'.join(obj.getPrimaryPath())
+                    yield dict(uid=uid, label=label)
         def byLabel(left, right):
             return cmp(left['label'].lower(), right['label'].lower())
         return sorted(genTargets(), byLabel)
@@ -378,7 +374,7 @@ class TemplateFacade(ZuulFacade):
             source = template.deviceClass()
             source.manage_copyAndPasteRRDTemplates((template.id,), targetUid)
             # Do not bind component templates to a DeviceClass
-            if issubclass(template.getTargetPythonClass(), (Device, DeviceClass)): 
+            if issubclass(template.getTargetPythonClass(), (Device, DeviceClass)):
                 target.bindTemplates(target.zDeviceTemplates + [template.id])
         else:
             if isinstance(target, DeviceClass):
@@ -394,7 +390,7 @@ class TemplateFacade(ZuulFacade):
             copy = template._getCopy(container)
             container._setObject(copy.id, copy)
             # Do not bind component templates to a Device
-            if issubclass(template.getTargetPythonClass(), (Device, DeviceClass)): 
+            if issubclass(template.getTargetPythonClass(), (Device, DeviceClass)):
                 target.bindTemplates(target.zDeviceTemplates + [copy.id])
 
     def addGraphDefinition(self, templateUid, graphDefinitionId):
