@@ -10,6 +10,9 @@
 
 <objects version="[Zenoss, version 3.0.70]" export_date="2010-12-11 14:59:01.694121" zenoss_server="iansmbp.mcb.loc" >
 <object id='/zport/dmd/Devices' module='Products.ZenModel.DeviceClass' class='DeviceClass'>
+<property type="lines" id="devtypes" mode="w" >
+[('','')]
+</property>
 <property visible="True" type="int" id="zProdStateThreshold" >
 300
 </property>

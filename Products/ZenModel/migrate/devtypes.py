@@ -40,3 +40,14 @@ class AddDeviceClassDescriptionAndProtocol(Migrate.Step):
 
 
 AddDeviceClassDescriptionAndProtocol()
+
+
+class RegisterRootDevtype(Migrate.Step):
+    """Register root devtype, to support propertyItems access at all device type levels."""
+    version = Migrate.Version(3,1,0)
+
+    def cutover(self, dmd):
+        dmd.Devices.register_devtype('','')
+
+RegisterRootDevtype()
+
