@@ -37,16 +37,7 @@ log = logging.getLogger(__name__)
 class ZepFacade(ZuulFacade):
     implements(IZepFacade)
 
-    _opMap = {
-        '<' : NumberCondition.LT,
-        '>' : NumberCondition.GT,
-        '>=' : NumberCondition.GTEQ,
-        '<=' : NumberCondition.LTEQ,
-        '=' : NumberCondition.EQ,
-        None : NumberCondition.EQ,
-    }
-
-    _sortMap = {
+    SORT_MAP = {
         'eventstate' : EventSort.STATUS,
         'severity' : EventSort.SEVERITY,
         'firsttime' : EventSort.FIRST_SEEN,
@@ -58,15 +49,16 @@ class ZepFacade(ZuulFacade):
         'summary' : EventSort.EVENT_SUMMARY,
         'ownerid' : EventSort.ACKNOWLEDGED_BY_USER_NAME
     }
-
-    _sortDirectionMap  = {
+    
+    SORT_DIRECTIONAL_MAP  = {
         'asc' : EventSort.ASCENDING,
         'desc' : EventSort.DESCENDING,
     }
-
+    
     def __init__(self, context):
         super(ZepFacade, self).__init__(context)
 
+        self._details = None
         config = getGlobalConfiguration()
         zep_url = config.get('zep_uri', 'http://localhost:8084')
         self.client = ZepServiceClient(zep_url)
@@ -158,11 +150,11 @@ class ZepFacade(ZuulFacade):
         if sort:
             if isinstance(sort, (list, tuple)):
                 eventSort = from_dict(EventSort, {
-                    'field' : self._sortMap[sort[0].lower()],
-                    'direction' : self._sortDirectionMap[sort[1].lower()]
+                    'field' : self.SORT_MAP[sort[0].lower()],
+                    'direction' : self.SORT_DIRECTIONAL_MAP[sort[1].lower()]
                 })
             else:
-                eventSort = from_dict(EventSort, { 'field' : self._sortMap[sort.lower()] })
+                eventSort = from_dict(EventSort, { 'field' : self.SORT_MAP[sort.lower()] })
 
         response, content = source(offset=offset, limit=limit, keys=keys, sort=eventSort, filter=filterBuf)
         return {
@@ -386,3 +378,15 @@ class ZepFacade(ZuulFacade):
         if content:
             uuids = [severities.tag_uuid for severities in content.severities]
             return self._createSeveritiesDict(content, uuids)
+
+
+    def getDetails(self):
+        """
+        Retrieve all of the indexed detail items.
+
+        @rtype zenoss.protocols.protobufs.zep_pb2.EventDetailResponse
+        """
+        if self._details is None:
+            response, content = self.client.getDetails()
+            self._details = content
+        return self._details
