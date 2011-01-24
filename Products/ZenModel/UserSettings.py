@@ -319,19 +319,25 @@ class UserSettingsManager(ZenModelRM):
         except _SWALLOWABLE_PLUGIN_EXCEPTIONS:
             authenticators = ()
 
+        # try each authenticator until a non-None user_id is returned
         for authenticator_id, auth in authenticators:
             try:
                 uid_and_info = auth.authenticateCredentials(
                     {'login':login, 'password':password})
 
-                if uid_and_info is None:
-                    continue
+                if isinstance(uid_and_info, tuple):
+                    # make sure tuple has enough values to unpack
+                    user_id, info = (uid_and_info + (None,None))[:2]
 
-                user_id, info = uid_and_info
+                    # return if authentication was a success
+                    if user_id is not None:
+                        return True
+
             except _SWALLOWABLE_PLUGIN_EXCEPTIONS:
-                continue
+                pass
 
-            return user_id is not None
+        # indicate no successful authentications
+        return False
 
 
     security.declareProtected(ZEN_MANAGE_DMD, 'manage_changeUser')
