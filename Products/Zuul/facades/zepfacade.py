@@ -24,7 +24,7 @@ from Products.Zuul.utils import resolve_context
 import pkg_resources
 from zenoss.protocols.services.zep import ZepServiceClient, EventSeverity, EventStatus, ZepConfigClient
 from zenoss.protocols.jsonformat import to_dict, from_dict
-from zenoss.protocols.protobufs.zep_pb2 import NumberCondition, EventSort, EventFilter
+from zenoss.protocols.protobufs.zep_pb2 import EventSort, EventFilter
 from zenoss.protocols.protobufutil import listify
 from Products.ZenUtils.GlobalConfig import getGlobalConfiguration
 from Products.ZenUtils.guid.interfaces import IGlobalIdentifier
