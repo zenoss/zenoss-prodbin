@@ -84,6 +84,7 @@ Zenoss.SwoopyGraph = Ext.extend(Ext.Panel, {
         });
         Zenoss.SwoopyGraph.superclass.constructor.call(this, config);
         this.linkcheck = Ext.get('linkcheck');
+        this.mustUseImageUri = Ext.isIE6 || Ext.isIE7;
         Zenoss.SWOOPIES.push(this);
     },
     initEvents: function() {
@@ -129,8 +130,8 @@ Zenoss.SwoopyGraph = Ext.extend(Ext.Panel, {
         // Encoding can screw with the '=' padding at the end of gopts, so
         // strip and recreate it
         gp.gopts = fixBase64Padding(gp.gopts);
-        gp.width = Number(gp.width); 
-        gp.drange = Number(gp.drange); 
+        gp.width = Number(gp.width);
+        gp.drange = Number(gp.drange);
         gp.start = Ext.isDefined(gp.start) ? Number(start_re.exec(gp.start)[1]) : gp.drange;
         gp.end = Ext.isDefined(gp.end) ? Number(end_re.exec(gp.end)[1]) : 0;
         this.graph_params = gp;
@@ -171,31 +172,43 @@ Zenoss.SwoopyGraph = Ext.extend(Ext.Panel, {
     sendRequest: function(params) {
         var url = params.url;
         delete params.url;
-        params.getImage = null;
+        params.getImage = this.mustUseImageUri;
         var now = new Date().getTime();
         var graphid = now + '_' + this.graphId;
         params.graphid = graphid;
+
         var fullurl = Ext.urlAppend(url, Ext.urlEncode(params));
-        Zenoss.SWOOP_CALLBACKS[graphid] = function(packet) {
-            var ob = Ext.decode(packet);
-            if (ob.success) {
-                this.hideFailure();
-                this.graphEl.dom.src = "data:image/png;base64," + ob.data;
-                this.parseGraphParams(fullurl);
-            } else {
-                this.showFailure();
-            }
-            // Clean up callbacks and script tags
-            delete Zenoss.SWOOP_CALLBACKS[graphid];
-            Ext.get(graphid).remove();
-        }.createDelegate(this);
-        var sc = Ext.DomHelper.createDom({
-            tag: 'script',
-            id: graphid,
-            type: 'text/javascript',
-            src: fullurl
-        });
-        Ext.getDoc().dom.getElementsByTagName('head')[0].appendChild(sc);
+
+        if (this.mustUseImageUri) {
+            // IE 6 and 7 Cannoy display data:image stuff in image
+            // src. If it's one of those browsers,
+            // skip the SWOOP stuff and just set the image src.
+            this.graphEl.dom.src = fullurl;
+            this.parseGraphParams(fullurl);
+        }
+        else {
+            Zenoss.SWOOP_CALLBACKS[graphid] = function(packet) {
+                var ob = Ext.decode(packet);
+                if (ob.success) {
+                    this.hideFailure();
+                    this.graphEl.dom.src = "data:image/png;base64," + ob.data;
+                    this.parseGraphParams(fullurl);
+                } else {
+                    this.showFailure();
+                }
+                // Clean up callbacks and script tags
+                delete Zenoss.SWOOP_CALLBACKS[graphid];
+                Ext.get(graphid).remove();
+            }.createDelegate(this);
+            var sc = Ext.DomHelper.createDom({
+                tag: 'script',
+                id: graphid,
+                type: 'text/javascript',
+                src: fullurl
+            });
+            Ext.getDoc().dom.getElementsByTagName('head')[0].appendChild(sc);
+        }
+
     },
     onPanLeft: function(graph) {
         var gp = this.graph_params;
