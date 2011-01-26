@@ -26,9 +26,12 @@ class ReportLoader(ZCmdBase):
         self.parser.add_option('-f', '--force', dest='force', 
                                action='store_true', default=0,
                                help="Force load all the reports")
+        self.parser.add_option('-d', '--dir', dest='dir',
+                               default="reports",
+                               help="Directory from which to load reports from")
 
     def loadDatabase(self):
-        repdir = os.path.join(os.path.dirname(__file__),"reports")
+        repdir = os.path.join(os.path.dirname(__file__), self.options.dir)
         self.loadDirectory(repdir)
         transaction.commit()
 
