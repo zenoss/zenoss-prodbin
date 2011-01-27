@@ -223,11 +223,12 @@ class EventView(object):
 
     security.declareProtected('Manage Events','manage_setEventStates')
     @deprecated
-    def manage_setEventStates(self, eventState=None, evids=(), REQUEST=None):
+    def manage_setEventStates(self, eventState=None, evids=(),
+                              userid="", REQUEST=None):
         """Set event state form this managed entity.
         """
         return self.getEventManager().manage_setEventStates(
-                                                eventState, evids, REQUEST)
+            eventState, evids, userid, REQUEST)
 
 
     security.declareProtected('Manage Events','manage_createEventMap')
