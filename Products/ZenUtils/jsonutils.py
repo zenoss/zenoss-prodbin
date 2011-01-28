@@ -66,8 +66,8 @@ class JavaScriptEncoder(ObjectEncoder):
     def default(self, obj):
         if isinstance(obj, JavaScript):
             return [self._js_start, str(obj), self._js_end]
-        else:
-            return ObjectEncoder.default(self, obj)
+
+        return ObjectEncoder.default(self, obj)
 
     def _js_clean(self, jsonstr):
         # This re replace is not ideal but at least the dirtyness of it is encapsulated in these classes
@@ -79,6 +79,41 @@ class JavaScriptEncoder(ObjectEncoder):
 
     def encode(self, obj):
         return self._js_clean(ObjectEncoder.encode(self, obj))
+
+def _sanitize_value(value, errors='replace'):
+    """
+    JSONEncoder doesn't allow overriding the encoding of built-in types
+    (in particular strings), and allows specifying an encoding but not
+    a policy for errors when decoding strings to UTF-8. This function
+    replaces all strings in a nested collection with unicode strings
+    with 'replace' as the error policy.
+    """
+    newvalue = value
+    if isinstance(value,str):
+        newvalue = value.decode('utf8', errors)
+    elif isinstance(value, dict):
+        newvalue = {}
+        for k, v in value.iteritems():
+            if isinstance(v, (str,set,list,dict,tuple)):
+                newvalue[k] = _sanitize_value(v)
+            else:
+                newvalue[k] = v
+    elif isinstance(value,(list,tuple)):
+        newvalue = []
+        for v in value:
+            if isinstance(v, (str,set,list,dict,tuple)):
+                newvalue.append(_sanitize_value(v))
+            else:
+                newvalue.append(v)
+    elif isinstance(value,set):
+        newvalue = set()
+        for v in value:
+            if isinstance(v, (str,set,list,dict,tuple)):
+                newvalue.add(_sanitize_value(v))
+            else:
+                newvalue.add(v)
+
+    return newvalue
 
 def json(value, **kw):
     """
@@ -112,8 +147,12 @@ def json(value, **kw):
         inner.__doc__ = value.__doc__
         return inner
     else:
-        # Simply serialize the value passed
-        return _json.dumps(value, cls=ObjectEncoder, **kw)
+        # Simply serialize the value
+        try:
+            return _json.dumps(value, cls=ObjectEncoder, **kw)
+        except UnicodeDecodeError:
+            sanitized = _sanitize_value(value)
+            return _json.dumps(sanitized, cls=ObjectEncoder, **kw)
 
 def javascript(value):
     """A JavaScript encoder based on JSON. It encodes like normal JSON except it passes JavaScript objects un-encoded."""

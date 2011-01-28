@@ -21,6 +21,8 @@ import time
 import sys
 import socket
 import cPickle
+import base64
+from struct import unpack
 from exceptions import EOFError, IOError
 
 # Magical interfacing with C code
@@ -74,7 +76,7 @@ class FakePacket(object):
     """
     def __init__(self):
         self.fake = True
-   
+
 class ZenTrap(EventServer, CaptureReplay):
     """
     Listen for SNMP traps and turn them into events
@@ -113,7 +115,7 @@ class ZenTrap(EventServer, CaptureReplay):
         @returns True if we are replaying a packet instead of capturing one
         """
         return len(self.options.replayFilePrefix) > 0
-        
+
     def configure(self):
         def inner(driver):
             self.log.info("fetching default RRDCreateCommand")
@@ -237,7 +239,7 @@ class ZenTrap(EventServer, CaptureReplay):
         """
         ts = time.time()
         d = self.asyncHandleTrap([pdu.host, pdu.port], pdu, ts)
-        
+
 
     def oid2name(self, oid, exactMatch=True, strip=False):
         """
@@ -347,6 +349,68 @@ class ZenTrap(EventServer, CaptureReplay):
         d = self.asyncHandleTrap(addr, dup.contents, ts)
         d.addBoth(cleanup)
 
+    def _value_from_dateandtime(self, value):
+        """
+        Tries convering a DateAndTime value to printable string.
+        A date-time specification.
+        field  octets  contents                  range
+                -----  ------  --------                  -----
+                  1      1-2   year*                     0..65536
+                  2       3    month                     1..12
+                  3       4    day                       1..31
+                  4       5    hour                      0..23
+                  5       6    minutes                   0..59
+                  6       7    seconds                   0..60
+                               (use 60 for leap-second)
+                  7       8    deci-seconds              0..9
+                  8       9    direction from UTC        '+' / '-'
+                  9      10    hours from UTC*           0..13
+                 10      11    minutes from UTC          0..59
+        """
+        strval = None
+        vallen = len(value)
+        if vallen == 8 or (vallen == 11 and value[8] in ('+','-')):
+            (year, mon, day, hour, mins, secs, dsecs) = unpack(">HBBBBBB", value[:8])
+            # Ensure valid date representation
+            if mon < 1 or mon > 12:
+                return None
+            if day < 1 or day > 31:
+                return None
+            if hour < 0 or hour > 23:
+                return None
+            if mins > 60:
+                return None
+            if secs > 60:
+                return None
+            if dsecs > 9:
+                return None
+            if vallen == 11:
+                utc_dir = value[8]
+                (utc_hours, utc_mins) = unpack(">BB", value[9:])
+            else:
+                tz_mins = time.timezone / 60
+                if tz_mins < 0:
+                    utc_dir = '-'
+                    tz_mins = -tz_mins
+                else:
+                    utc_dir = '+'
+                utc_hours = tz_mins / 60
+                utc_mins = tz_mins % 60
+            strval = "%04d-%02d-%02dT%02d:%02d:%02d.%d00%s%02d:%02d" % (year,
+                mon, day, hour, mins, secs, dsecs, utc_dir, utc_hours, utc_mins)
+
+        return strval
+
+    def _convert_value(self, value):
+        try:
+            value.decode('utf8')
+            return value
+        except UnicodeDecodeError:
+            # Try converting to a date
+            decoded = self._value_from_dateandtime(value)
+            if not decoded:
+                decoded = 'BASE64:' + base64.b64encode(value)
+            return decoded
 
     def asyncHandleTrap(self, addr, pdu, ts):
         """
@@ -427,6 +491,7 @@ class ZenTrap(EventServer, CaptureReplay):
                 # Decode all variable bindings. Allow partial matches and strip
                 # off any index values.
                 for vb_oid, vb_value in variables:
+                    vb_value = self._convert_value(vb_value)
                     vb_oid = '.'.join(map(str, vb_oid))
                     # Add a detail for the variable binding.
                     r = self.oid2name(vb_oid, exactMatch=False, strip=False)
@@ -439,6 +504,7 @@ class ZenTrap(EventServer, CaptureReplay):
                 # SNMP v2
                 variables = self.getResult(pdu)
                 for vb_oid, vb_value in variables:
+                    vb_value = self._convert_value(vb_value)
                     vb_oid = '.'.join(map(str, vb_oid))
                     # SNMPv2-MIB/snmpTrapOID
                     if vb_oid == '1.3.6.1.6.3.1.1.4.1.0':
