@@ -171,15 +171,18 @@ Zenoss.SwoopyGraph = Ext.extend(Ext.Panel, {
     },
     sendRequest: function(params) {
         var url = params.url;
-        delete params.url;
-        params.getImage = this.mustUseImageUri;
+        delete params.url;        params.getImage = null; 
+        if (this.mustUseImageUri === true) {
+            params.getImage = true;
+        }
+        
         var now = new Date().getTime();
         var graphid = now + '_' + this.graphId;
         params.graphid = graphid;
 
         var fullurl = Ext.urlAppend(url, Ext.urlEncode(params));
 
-        if (this.mustUseImageUri) {
+        if (this.mustUseImageUri === true) {
             // IE 6 and 7 Cannoy display data:image stuff in image
             // src. If it's one of those browsers,
             // skip the SWOOP stuff and just set the image src.
