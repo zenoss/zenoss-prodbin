@@ -44,7 +44,7 @@ class IpServiceInfo(ComponentInfo):
         return self._object.monitored() if self.usesMonitorAttribute else ""
 
     monitor = ServiceMonitor()
-    
+
     @property
     @info
     def serviceClass(self):

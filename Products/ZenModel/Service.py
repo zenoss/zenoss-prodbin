@@ -52,7 +52,6 @@ class Service(OSComponent, Commandable, ZenPackable):
         """
         return (self.getManageIp(), self.name())
 
-
     def name(self):
         """
         Return the name of this service. (short name for net stop/start).
@@ -61,6 +60,7 @@ class Service(OSComponent, Commandable, ZenPackable):
         if svccl: return svccl.name
         return ""
 
+    title = name
 
     def monitored(self):
         """

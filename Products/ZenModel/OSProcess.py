@@ -164,7 +164,7 @@ class OSProcess(OSComponent, Commandable, ZenPackable):
                 return proccl.getOSProcessClassName()
         return ""
 
-        
+
     def name(self):
         """
         Return a string that is the process name and, if ignoreParamaters
@@ -175,6 +175,7 @@ class OSProcess(OSComponent, Commandable, ZenPackable):
             return self.procName
         return self.procName + " " + self.parameters
 
+    title = name
 
     def monitored(self):
         """

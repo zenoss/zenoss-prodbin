@@ -200,6 +200,7 @@ class UserSettingsManager(ZenModelRM):
         if not userid: raise Unauthorized
         folder = self._getOb(userid,None)
         if not folder and userid:
+            userid = str(userid)
             ufolder = UserSettings(userid)
             self._setObject(ufolder.getId(), ufolder)
             folder = self._getOb(userid)
