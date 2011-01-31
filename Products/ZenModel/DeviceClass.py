@@ -885,7 +885,7 @@ class DeviceClass(DeviceOrganizer, ZenPackable, TemplateContainer):
         contain and the protocol by which they would normally be monitored.
         """
         t = (description, protocol)
-        if not hasattr(self, 'devtypes'):
+        if not hasattr(self, 'devtypes') or self.devtypes == [('','')]:
             self._setProperty('devtypes', [], 'lines')
         if t not in self.devtypes:
             self.devtypes.append(t)
