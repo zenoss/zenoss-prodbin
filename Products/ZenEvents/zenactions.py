@@ -575,7 +575,7 @@ class BaseZenActions(object):
                             summary="%s %s heartbeat failure" % (monitor, comp),
                             prodState=self.prodState,
                             severity=Event.Error))
-            heartbeatState.discard((monitor, comp))
+            heartbeatState.discard((hostname, comp))
 
         # clear heartbeats
         for monitor, comp in heartbeatState:
