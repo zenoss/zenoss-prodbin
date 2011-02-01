@@ -84,9 +84,9 @@ class BasePluginsTestCase(BaseTestCase):
                 if P.command == command and P.__name__ in expected]
 
         if not plugins:
-        #if we fail to find a plugin the first time we might be dealing
-        #with a multiline command, let's try to re-parse the datafile once more
-        command, output = self.__parseCommandAndOutput(filename, singleLine=False)
+            #if we fail to find a plugin the first time we might be dealing
+            #with a multiline command, let's try to re-parse the datafile once more
+            command, output = self.__parseCommandAndOutput(filename, singleLine=False)
             plugins = [P() for P in Plugins 
                 if P.command == command and P.__name__ in expected]
         if not plugins:
