@@ -23,7 +23,7 @@ from Products.DataCollector.plugins.DataMaps \
         import RelationshipMap, ObjectMap, MultiArgs
 
 class BasePluginsTestCase(BaseTestCase):
-    
+
     def _testDataFiles(self, datadir, Plugins):
         """
         Run tests for all of the data files in the data directory.
@@ -46,62 +46,84 @@ class BasePluginsTestCase(BaseTestCase):
             print self.__class__.__name__, "had no counters or failed to parse."
 
 
+
+    def __parseCommandAndOutput(self, filename, singleLine=True):
+    """
+    Parse out the command that was used to generate the output included in the file
+    """
+        datafile = open(filename)
+        line = datafile.readline()
+        command = ""
+        if not singleLine:
+            log.debug("failed to find plugin on first go around, trying 2nd time")
+            while line != "___HOST_OUTPUT___\n" and line != "":
+               command += line
+               line = datafile.readline()
+        else:
+            command = line
+        command = command.rstrip("\n")
+        output = "".join(datafile.readlines())
+        datafile.close()    
+        return command, output
+
+
+
+
     def _testDataFile(self, filename, Plugins):
         """
         Test a data file.
         """
-        
-        # read the data file
-        datafile = open(filename)
-        command = datafile.readline().rstrip("\n")
-        output = "".join(datafile.readlines())
-        datafile.close()
-        
+        command, output = self.__parseCommandAndOutput(filename) 
+
         # read the file containing the expected values
         expectedfile = open('%s.py' % (filename,))
         expected = eval("".join(expectedfile.readlines()))
         expectedfile.close()
-        
+
         plugins = [P() for P in Plugins 
                 if P.command == command and P.__name__ in expected]
-        
+
         if not plugins:
-            self.fail("No plugins for %s" % command)
-        
+        #if we fail to find a plugin the first time we might be dealing
+        #with a multiline command, let's try to re-parse the datafile once more
+        command, output = self.__parseCommandAndOutput(filename, singleLine=False)
+            plugins = [P() for P in Plugins 
+                if P.command == command and P.__name__ in expected]
+        if not plugins:
+                self.fail("No plugins for %s" % command)
+
         device = Object()
         device.id = filename.split(os.path.sep)[-2]
-        
+
         expecteds = [expected[p.__class__.__name__] for p in plugins]
         dataMaps = [p.process(device, output, logging) or [] for p in plugins]
-        #pprint(dataMaps)
         return self._testDataMaps(zip(expecteds, dataMaps), filename)
-        
-        
+
+
     def _testDataMaps(self, expectedActuals, filename):
         """
         Test the DataMaps contained in the expectedActuals list.
         """
-        
+
         counter = 0
-        
         for expected, actual in expectedActuals:
-            
+
             if isinstance(expected, list):
-                
+
                 for exp, act in zip(expected, actual):
                     counter += self._testDataMap(exp, act, filename)
-                    
+
             else: 
-                
+
                 counter += self._testDataMap(expected, actual, filename)
-        
-        return counter        
-                
+
+        return counter
+
     def _testDataMap(self, expected, actual, filename):
         """
         Test the DataMap returned by a plugin.
         """
-        
+
         counter = 0
 
         if isinstance(actual, RelationshipMap):
@@ -113,17 +135,17 @@ class BasePluginsTestCase(BaseTestCase):
                 counter += self._testDataMap(exp, act, filename)
         else:
             self.fail("Data map type %s not supported." % (type(actual),))
-            
+
         return counter
-        
-        
+
+
     def _testRelationshipMap(self, expected, relationshipMap, filename):
         """
         Check all of the objectMaps found in the provided relationshipMaps
         maps attribute.
         """
         counter = 0
-        
+
         # all ObjectMaps have an id except for OSProcess which uses procName
         objectMapDct = {}
         for objectMap in relationshipMap.maps:
@@ -132,7 +154,7 @@ class BasePluginsTestCase(BaseTestCase):
             else:
                 keyName = 'id'
             objectMapDct[getattr(objectMap, keyName)] = objectMap
-            
+
         for id in expected:
             if id in objectMapDct:
                 counter += self._testObjectMap(expected[id], 
@@ -142,37 +164,35 @@ class BasePluginsTestCase(BaseTestCase):
                 self.fail("No ObjectMap with id=%s in the RelationshipMap " \
                           "returned by the plugin (%s).\n%s" % (
                           id, plugin, relationshipMap))
-        
+
         return counter
-        
+
     def _testObjectMap(self, expectedDct, actualObjMap, filename):
         """
         Check the expected values against those in the actual ObjectMap that
         was returned by the plugin.
         """
-        
+
         counter = 0
-        
         for key in expectedDct:
-            
+
             if hasattr(actualObjMap, key):
-                
+
                 actual = getattr(actualObjMap, key)
-                
+
                 if isinstance(actual, MultiArgs): actual = actual.args
-                
+
                 if isinstance(actual, str): format = "'%s' != '%s' in %s"
                 else                      : format = "%s != %s in %s"
-                
+
                 testPath = os.path.join(*filename.split(os.path.sep)[-2:])
                 msg = format % (expectedDct[key], actual, testPath)
                 self.assertEqual(expectedDct[key], actual, msg)
                 counter += 1
-                
+
             else:
-                
+
                 self.fail("ObjectMap %s does not have a %s attribute." % (
                         actualObjMap, key))
-                        
+
         return counter
-        
