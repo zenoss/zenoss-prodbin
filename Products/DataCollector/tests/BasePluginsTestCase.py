@@ -48,9 +48,9 @@ class BasePluginsTestCase(BaseTestCase):
 
 
     def __parseCommandAndOutput(self, filename, singleLine=True):
-    """
-    Parse out the command that was used to generate the output included in the file
-    """
+        """
+        Parse out the command that was used to generate the output included in the file
+        """
         datafile = open(filename)
         line = datafile.readline()
         command = ""
@@ -172,7 +172,6 @@ class BasePluginsTestCase(BaseTestCase):
         Check the expected values against those in the actual ObjectMap that
         was returned by the plugin.
         """
-
         counter = 0
         for key in expectedDct:
 
