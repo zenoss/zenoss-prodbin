@@ -71,6 +71,7 @@ class EventsRouter(DirectRouter):
             },
             'firstTime' : isoDateTimeFromMilli(event_summary['first_seen_time']),
             'lastTime' : isoDateTimeFromMilli(event_summary['last_seen_time'] ),
+            'stateChange' : isoDateTimeFromMilli(event_summary['status_change_time']),
             'eventClass' : {"text": eventClass, "uid": "/zport/dmd/Events%s" % eventClass},
             'eventClassKey': eventOccurrence.get('event_class_key'),
             'eventKey' : eventOccurrence.get('event_key'),
@@ -82,6 +83,9 @@ class EventsRouter(DirectRouter):
             'ownerid': event_summary.get('acknowledged_by_user_name'),
             'dedupid': eventOccurrence.get('fingerprint'),
             'agent': eventOccurrence.get('agent'),
+            'monitor': eventOccurrence.get('monitor'),
+            'eventGroup': eventOccurrence.get('event_group'),
+            'clearid': event_summary.get('cleared_by_event_uuid'),
         }
 
         return event
@@ -116,7 +120,8 @@ class EventsRouter(DirectRouter):
     def queryArchive(self, limit=0, start=0, sort='lastTime', dir='desc', params=None, uid=None, detailFormat=False):
         filter = self._buildFilter(uid, params)
 
-        events = self.zep.getEventSummariesFromArchive(limit=limit, offset=start, sort=(sort, dir), filter=filter)
+        events = self.zep.getEventSummariesFromArchive(limit=limit, offset=start, sort=self._buildSort(sort,dir),
+                                                       filter=filter)
 
         eventFormat = self._mapToOldEvent
         if detailFormat:
@@ -166,7 +171,7 @@ class EventsRouter(DirectRouter):
 
         filter = self._buildFilter(uid, params)
 
-        events = self.zep.getEventSummaries(limit=limit, offset=start, sort=(sort, dir), filter=filter)
+        events = self.zep.getEventSummaries(limit=limit, offset=start, sort=self._buildSort(sort,dir), filter=filter)
 
         eventFormat = self._mapToOldEvent
         if detailFormat:
@@ -177,6 +182,13 @@ class EventsRouter(DirectRouter):
             totalCount = events['total'],
             asof = time.time()
         )
+
+    def _buildSort(self, sort='lastTime', dir='desc'):
+        sort_list = [(sort,dir)]
+        # Add secondary sort of last time descending
+        if sort not in ('lastTime','evid'):
+            sort_list.append(('lastTime','desc'))
+        return sort_list
 
     def _buildFilter(self, uid, params, specificEventUuids=None):
         """
@@ -231,6 +243,9 @@ class EventsRouter(DirectRouter):
                 element_identifier = params.get('device'),
                 element_sub_identifier = params.get('component'),
                 event_summary = params.get('summary'),
+                acknowledged_by_user_name = params.get('ownerid'),
+                agent = params.get('agent'),
+                monitor = params.get('monitor'),
 
                 # 'tags' comes from managed object guids.
                 # see Zuul/security/security.py

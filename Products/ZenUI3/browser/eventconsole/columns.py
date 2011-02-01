@@ -154,8 +154,13 @@ COLUMN_CONFIG = {
 
     'stateChange': dict(
         header='State Change',
-        filter='datefield',
-        sortable=True),
+        sortable=True,
+        filter={
+            'xtype':'datefield',
+            'format':'Y-m-d H:i:s'
+        },
+        width=120,
+        renderer='Ext.util.Format.dateRenderer(Zenoss.date.ISO8601Long)'),
 
     'firstTime' : dict(
         header='First Seen',
@@ -195,7 +200,8 @@ COLUMN_CONFIG = {
 
     'agent'     : dict(
         header='Agent',
-        filter='textfield'),
+        filter='textfield',
+        sortable=True),
 
     'DeviceClass': dict(
         header='Device Class',
@@ -275,7 +281,8 @@ COLUMN_CONFIG = {
 
     'monitor': dict(
         header='Collector',
-        filter='textfield')
+        filter='textfield',
+        sortable=True)
 }
 
 ARCHIVE_COLUMN_CONFIG = copy.deepcopy(COLUMN_CONFIG)

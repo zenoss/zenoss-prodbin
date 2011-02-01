@@ -47,7 +47,11 @@ class ZepFacade(ZuulFacade):
         'component' : EventSort.ELEMENT_SUB_IDENTIFIER,
         'count' : EventSort.COUNT,
         'summary' : EventSort.EVENT_SUMMARY,
-        'ownerid' : EventSort.ACKNOWLEDGED_BY_USER_NAME
+        'ownerid' : EventSort.ACKNOWLEDGED_BY_USER_NAME,
+        'agent': EventSort.AGENT,
+        'monitor': EventSort.MONITOR,
+        'evid': EventSort.UUID,
+        'statechange': EventSort.STATUS_CHANGE,
     }
     
     SORT_DIRECTIONAL_MAP  = {
@@ -77,7 +81,10 @@ class ZepFacade(ZuulFacade):
         uuid=(),
         event_summary=None,
         tags=(),
-        fingerprint=()):
+        fingerprint=(),
+        agent=(),
+        monitor=(),
+        acknowledged_by_user_name=()):
         # no details?
 
         filter = {}
@@ -127,6 +134,15 @@ class ZepFacade(ZuulFacade):
         if fingerprint:
             filter['fingerprint'] = fingerprint
 
+        if agent:
+            filter['agent'] = agent
+
+        if monitor:
+            filter['monitor'] = monitor
+
+        if acknowledged_by_user_name:
+            filter['acknowledged_by_user_name'] = acknowledged_by_user_name
+
         # Everything's repeated on the protobuf, so listify
         return dict((k, listify(v)) for k,v in filter.iteritems())
     
@@ -149,10 +165,19 @@ class ZepFacade(ZuulFacade):
         eventSort = None
         if sort:
             if isinstance(sort, (list, tuple)):
-                eventSort = from_dict(EventSort, {
-                    'field' : self.SORT_MAP[sort[0].lower()],
-                    'direction' : self.SORT_DIRECTIONAL_MAP[sort[1].lower()]
-                })
+                # Multiple sort fields
+                if isinstance(sort[0], (list,tuple)):
+                    eventSort = []
+                    for s in sort:
+                        eventSort.append(from_dict(EventSort, {
+                            'field' : self.SORT_MAP[s[0].lower()],
+                            'direction' : self.SORT_DIRECTIONAL_MAP[s[1].lower()]
+                        }))
+                else:
+                    eventSort = from_dict(EventSort, {
+                        'field' : self.SORT_MAP[sort[0].lower()],
+                        'direction' : self.SORT_DIRECTIONAL_MAP[sort[1].lower()]
+                    })
             else:
                 eventSort = from_dict(EventSort, { 'field' : self.SORT_MAP[sort.lower()] })
 
