@@ -47,7 +47,9 @@ class RegisterRootDevtype(Migrate.Step):
     version = Migrate.Version(3,1,0)
 
     def cutover(self, dmd):
-        dmd.Devices.register_devtype('','')
+        if not dmd.Devices.hasProperty('devtypes'):
+            dmd.Devices._setProperty('devtypes', [], 'lines')
+
 
 RegisterRootDevtype()
 

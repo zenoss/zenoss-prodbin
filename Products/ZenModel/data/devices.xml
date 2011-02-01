@@ -11,7 +11,7 @@
 <objects version="[Zenoss, version 3.1.70]" export_date="2011-01-31 10:47:56.086115" zenoss_server="tintin.local" >
 <object id='/zport/dmd/Devices' module='Products.ZenModel.DeviceClass' class='DeviceClass'>
 <property type="lines" id="devtypes" mode="w" >
-[('', '')]
+[]
 </property>
 <property visible="True" type="int" id="zProdStateThreshold" >
 300
