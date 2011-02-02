@@ -74,6 +74,13 @@ Zenoss.DeviceDetailBar = Ext.extend(Zenoss.LargeToolbar, {
                 xtype: "eventrainbow",
                 ref: 'eventsitem',
                 label: _t('Events'),
+                listeners: {
+                    'render': function(me) {
+                        me.getEl().on('click', function(){
+                            Ext.History.add('#deviceDetailNav:device_events');
+                        });
+                    }
+                },
                 count: 4
             },'-',{
                 ref: 'statusitem',

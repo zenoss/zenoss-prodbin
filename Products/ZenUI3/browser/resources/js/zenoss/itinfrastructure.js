@@ -1156,7 +1156,14 @@ var device_grid = new Zenoss.DeviceGridPanel({
         items: [
             {
                 xtype: 'eventrainbow',
-                id: 'organizer_events'
+                id: 'organizer_events',
+                listeners: {
+                    'render': function(me) {
+                        me.getEl().on('click', function(){
+                            Ext.History.add(Ext.History.getToken() + ':events_grid');
+                        });
+                    }
+                }
             },
             '-',
             {

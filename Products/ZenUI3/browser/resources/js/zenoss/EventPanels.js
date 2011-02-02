@@ -540,12 +540,6 @@ Zenoss.EventRainbow = Ext.extend(Ext.Toolbar.TextItem, {
     },
     updateRainbow: function(severityCounts) {
         this.setText(Zenoss.render.events(severityCounts, this.count));
-    },
-    onRender: function() {
-        Zenoss.EventRainbow.superclass.onRender.apply(this, arguments);
-        this.el.on("click", function(){
-            window.location = "/zport/dmd/Events/evconsole?filter=default";
-        });
     }
 });
 Ext.reg('eventrainbow', Zenoss.EventRainbow);
