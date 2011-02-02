@@ -364,6 +364,7 @@ Zenoss.SimpleEventGridPanel = Ext.extend(Zenoss.FilterGridPanel, {
             border: false,
             rowSelectorDepth: 5,
             store: store,
+            appendGlob: true,
             cm: cm,
             sm: new Zenoss.EventPanelSelectionModel(),
             autoExpandColumn: Zenoss.env.EVENT_AUTO_EXPAND_COLUMN || '',

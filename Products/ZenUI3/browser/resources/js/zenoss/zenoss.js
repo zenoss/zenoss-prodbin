@@ -742,16 +742,18 @@ Zenoss.FilterGridView = Ext.extend(Ext.ux.grid.livegrid.GridView, {
     },
     // Gather the current values of the filter and apply them to a given
     // object.
-    applyFilterParams: function(options) {
+    applyFilterParams: function(options, globbing) {
         var params = this.lastOptions || {},
             i, filter, oldformat, query, dt;
         options = options || {};
+        globbing = (this.appendGlob && (Ext.isDefined(globbing) ? globbing : true));
         for(i=0;i<this.filters.length;i++){
             filter = this.filters[i];
             query = filter.getValue();
-
             if (query) {
-
+                if (globbing && filter.xtype=="textfield" && filter.vtype != "numcmp") {
+                    query += "*";
+                }
                 params[filter.id] = query;
                 if (filter.xtype=='datefield'){
                     dt = new Date(query);
@@ -1015,7 +1017,7 @@ Zenoss.FilterGridView = Ext.extend(Ext.ux.grid.livegrid.GridView, {
     },
     getState: function(){
         // Update last options from the filter widgets
-        this.applyFilterParams();
+        this.applyFilterParams(this.lastOptions, false);
         // Iterate over last options, setting defaults where appropriate
         var options = {};
         Ext.iterate(this.lastOptions, function(k){

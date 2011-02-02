@@ -410,6 +410,7 @@ Ext.onReady(function(){
     var myView = new Zenoss.FilterGridView({
         nearLimit : 100,
         filterbutton: 'showfilters',
+        appendGlob: true,
         defaultFilters: {
             severity: [Zenoss.SEVERITY_CRITICAL, Zenoss.SEVERITY_ERROR, Zenoss.SEVERITY_WARNING, Zenoss.SEVERITY_INFO],
             eventState: [Zenoss.STATUS_NEW, Zenoss.STATUS_ACKNOWLEDGED],
