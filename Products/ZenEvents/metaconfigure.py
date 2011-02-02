@@ -11,9 +11,15 @@
 #
 ###########################################################################
 from zope.component.zcml import utility
-from .interfaces import IEventPlugin
+from .interfaces import IPreEventPlugin, IPostEventPlugin
 
-def eventPlugin(_context, plugin, name=None):
+def _eventPlugin( _context, plugin, pluginInterface, name=None):
     if name is None:
         name = '.'.join((plugin.__module__, plugin.__name__))
-    utility(_context, name=name, factory=plugin, provides=IEventPlugin)
+    utility(_context, name=name, factory=plugin, provides=pluginInterface)
+
+def preEventPlugin(_context, plugin, name=None):
+    _eventPlugin( _context, plugin, IPreEventPlugin, name )
+
+def postEventPlugin(_context, plugin, name=None):
+    _eventPlugin( _context, plugin, IPostEventPlugin, name )

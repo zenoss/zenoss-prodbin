@@ -21,3 +21,14 @@ class IEventPluginDirective(Interface):
         title=u"Plugin",
         description=u"The class of the plugin to register"
     )
+
+class IPreEventPluginDirective(IEventPluginDirective):
+    """
+    Registers an event plugin as a named utility.
+    """
+
+
+class IPostEventPluginDirective(IEventPluginDirective):
+    """
+    Registers an event plugin as a named utility.
+    """

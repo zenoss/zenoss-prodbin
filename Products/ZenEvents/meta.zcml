@@ -2,10 +2,17 @@
 <directives namespace="http://namespaces.zope.org/zope">
 
     <directive
-        name="eventPlugin"
-        schema=".metadirectives.IEventPluginDirective"
-        handler=".metaconfigure.eventPlugin"
+        name="preEventPlugin"
+        schema=".metadirectives.IPreEventPluginDirective"
+        handler=".metaconfigure.preEventPlugin"
         />
+
+    <directive
+        name="postEventPlugin"
+        schema=".metadirectives.IPostEventPluginDirective"
+        handler=".metaconfigure.postEventPlugin"
+        />
+
 
 </directives>
 </configure>

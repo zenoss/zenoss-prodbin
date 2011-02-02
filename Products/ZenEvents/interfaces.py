@@ -117,10 +117,19 @@ class ISendEvents(Interface):
 
 class IEventPlugin(Interface):
     """
-    Plugins that are looked up by zeneventd and applied after transforms and
-    before passing to ZEP.
+    Plugins that are looked up by zeneventd and executed.
     """
     def apply(event):
         """
         Apply the plugin to an event.
         """
+
+class IPreEventPlugin(IEventPlugin):
+    """
+    Event plugins applied before transforms.
+    """
+
+class IPostEventPlugin(IEventPlugin):
+    """
+    Event plugins applied after transforms and before passing to ZEP.
+    """

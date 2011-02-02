@@ -20,7 +20,6 @@ from Products.ZenUtils.guid.interfaces import IGUIDManager, IGlobalIdentifier
 from Products.Zuul.interfaces import ICatalogTool
 from Products.ZenUtils import cache
 from Products.AdvancedQuery import Eq, MatchGlob, Or
-from Products.ZenEvents.interfaces import IEventPlugin
 from zope.component import getUtilitiesFor
 from Acquisition import aq_chain
 
@@ -458,10 +457,10 @@ class TransformPipe(EventProcessorPipe):
         return eventContext
 
 class EventPluginPipe(EventProcessorPipe):
-    def __init__(self, manager):
+    def __init__(self, manager, pluginInterface):
         super(EventPluginPipe, self).__init__(manager)
 
-        self._eventPlugins = tuple(getUtilitiesFor(IEventPlugin))
+        self._eventPlugins = tuple(getUtilitiesFor(pluginInterface))
 
     def __call__(self, eventContext):
         for name, plugin in self._eventPlugins:
@@ -473,7 +472,6 @@ class EventPluginPipe(EventProcessorPipe):
                 continue
 
         return eventContext
-
 
 class EventTagPipe(EventProcessorPipe):
 

@@ -37,7 +37,7 @@ from zenoss.protocols.jsonformat import to_dict
 from Products.ZenMessaging.queuemessaging.eventlet import BasePubSubMessageTask
 from Products.ZenEvents.events2.processing import *
 
-from Products.ZenEvents.interfaces import IEventPlugin
+from Products.ZenEvents.interfaces import IPreEventPlugin, IPostEventPlugin
 
 import logging
 log = logging.getLogger("zen.eventd")
@@ -70,9 +70,10 @@ class ProcessEventMessageTask(BasePubSubMessageTask):
         self.dest_routing_key_prefix = 'zenoss.zenevent'
 
         self._dest_exchange = queueschema.getExchange("$ZepZenEvents")
-        self._eventPlugins = getUtilitiesFor(IEventPlugin)
+        #self._eventPlugins = getUtilitiesFor(IEventPlugin)
         self._manager = Manager(self.dmd)
         self._pipes = (
+            EventPluginPipe(self._manager, IPreEventPlugin),
             CheckInputPipe(self._manager),
             IdentifierPipe(self._manager),
             AddDeviceContextPipe(self._manager),
@@ -83,7 +84,7 @@ class ProcessEventMessageTask(BasePubSubMessageTask):
             AddDeviceContextPipe(self._manager),
             FingerprintPipe(self._manager),
             SerializeContextPipe(self._manager),
-            EventPluginPipe(self._manager),
+            EventPluginPipe(self._manager, IPostEventPlugin),
             EventTagPipe(self._manager),
         )
 
