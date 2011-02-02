@@ -207,7 +207,7 @@ Zenoss.EventStore = Ext.extend(Ext.ux.grid.livegrid.Store, {
             proxy: new Ext.data.DirectProxy({
                 directFn: Zenoss.remote.EventsRouter.query
             }),
-            bufferSize: 100,
+            bufferSize: 400,
         defaultSort: {field:'severity', direction:'DESC'},
         sortInfo: {field:'severity', direction:'DESC'},
             reader: new Ext.ux.grid.livegrid.JsonReader({
@@ -368,7 +368,7 @@ Zenoss.SimpleEventGridPanel = Ext.extend(Zenoss.FilterGridPanel, {
             sm: new Zenoss.EventPanelSelectionModel(),
             autoExpandColumn: Zenoss.env.EVENT_AUTO_EXPAND_COLUMN || '',
             view: new Zenoss.FilterGridView(Ext.applyIf(config.viewConfig ||  {}, {
-                nearLimit: 20,
+                nearLimit: 100,
                 displayFilters: Ext.isDefined(config.displayFilters) ? config.displayFilters : true,
                 rowHeight: 10,
                 emptyText: _t('No events'),

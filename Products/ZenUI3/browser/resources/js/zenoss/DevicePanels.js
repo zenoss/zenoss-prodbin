@@ -83,7 +83,7 @@ Zenoss.DeviceStore = Ext.extend(Ext.ux.grid.livegrid.Store, {
         config = config || {};
         Ext.applyIf(config, {
             autoLoad: true,
-            bufferSize: 50,
+            bufferSize: 400,
             defaultSort: {field: 'name', direction:'ASC'},
             sortInfo: {field: 'name', direction:'ASC'},
             proxy: new Ext.data.DirectProxy({
@@ -163,7 +163,7 @@ Zenoss.DeviceGridPanel = Ext.extend(Zenoss.FilterGridPanel,{
             rowSelectorDepth: 5,
             view: new Zenoss.FilterGridView({
                 rowHeight: 24,
-                nearLimit: 10,
+                nearLimit: 100,
                 loadMask: {msg: 'Loading. Please wait...'}
             }),
             autoExpandColumn: 'name',

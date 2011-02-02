@@ -297,7 +297,7 @@ var ipAddressColumnConfig = {
 };
 
 var ipAddressStoreConfig = {
-        bufferSize: 50,
+        bufferSize: 256,
         proxy: new Ext.data.DirectProxy({
             directFn: Zenoss.remote.NetworkRouter.getIpAddresses
         }),

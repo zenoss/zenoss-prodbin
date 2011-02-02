@@ -226,7 +226,7 @@ var ProcessGridPanel = Ext.extend(Zenoss.FilterGridPanel, {
                         directFn:Zenoss.remote.ProcessRouter.query
                     }),
                     autoLoad: false,
-                    bufferSize: 100,
+                    bufferSize: 400,
                     defaultSort: {field:'name', direction:'ASC'},
                     sortInfo: {field:'name', direction:'ASC'},
                     reader: new Ext.ux.grid.livegrid.JsonReader({
@@ -279,7 +279,7 @@ var ProcessGridPanel = Ext.extend(Zenoss.FilterGridPanel, {
                     }]
                 }),
                 view:  new ProcessGridView({
-                    nearLimit: 20,
+                    nearLimit: 100,
                     loadMask: {msg: 'Loading...',
                               msgCls: 'x-mask-loading'},
                     listeners: {

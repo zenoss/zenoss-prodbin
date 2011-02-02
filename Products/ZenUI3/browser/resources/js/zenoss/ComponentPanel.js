@@ -354,7 +354,7 @@ ZC.ComponentGridPanel = Ext.extend(Ext.ux.grid.livegrid.GridPanel, {
             }),
             view: new Ext.ux.grid.livegrid.GridView({
                 rowHeight: 22,
-                nearLimit: 20,
+                nearLimit: 100,
                 loadMask: {msg: _t('Loading. Please wait...'),
                            msgCls: 'x-mask-loading'},
                 listeners: {
@@ -424,7 +424,7 @@ ZC.BaseComponentStore = Ext.extend(Ext.ux.grid.livegrid.Store, {
             {name: 'status'}
         ];
         Ext.applyIf(config, {
-            bufferSize: 50,
+            bufferSize: 300,
             proxy: new Ext.data.DirectProxy({
                 directFn: config.directFn
             }),

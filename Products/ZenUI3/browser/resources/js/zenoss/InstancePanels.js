@@ -66,7 +66,7 @@ Zenoss.InstanceStore = Ext.extend(Ext.ux.grid.livegrid.Store, {
 
     constructor: function(config) {
         Ext.applyIf(config, {
-            bufferSize: 50,
+            bufferSize: 300,
             proxy: new Ext.data.DirectProxy({
                 directFn: config.directFn
             }),
@@ -105,7 +105,7 @@ Zenoss.SimpleInstanceGridPanel = Ext.extend(Ext.ux.grid.livegrid.GridPanel, {
             },
             sm: config.sm || new Ext.ux.grid.livegrid.RowSelectionModel(),
             view: new Ext.ux.grid.livegrid.GridView({
-                nearLimit: 20,
+                nearLimit: 100,
                 loadMask: {msg: _t('Loading...'),
                           msgCls: 'x-mask-loading'}
             })

@@ -408,7 +408,7 @@ Ext.onReady(function(){
 
     // View to render the grid
     var myView = new Zenoss.FilterGridView({
-        nearLimit : 20,
+        nearLimit : 100,
         filterbutton: 'showfilters',
         defaultFilters: {
             severity: [Zenoss.SEVERITY_CRITICAL, Zenoss.SEVERITY_ERROR, Zenoss.SEVERITY_WARNING, Zenoss.SEVERITY_INFO],
