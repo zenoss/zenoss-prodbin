@@ -169,8 +169,8 @@ class SnmpPerformanceCollectionTask(ObservableMixin):
         self._snmpStatusFailures += 1
         # Decode the exception
         if isinstance(reason.value, error.TimeoutError):
-            msg = '%s second timeout connecting to device %s' % (
-                      self._snmpConnInfo.zSnmpTimeout, self._devId)
+            msg = ('SNMP agent down (%s second timeout connecting to'
+                   ' device %s)') % (self._snmpConnInfo.zSnmpTimeout, self._devId)
             # Indicate that we've handled the error by 
             # not returning a result
             reason = None
