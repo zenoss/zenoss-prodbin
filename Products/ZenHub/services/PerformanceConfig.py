@@ -124,33 +124,6 @@ class PerformanceConfig(HubService, ThresholdMixin):
         return self.config.propertyItems()
 
 
-    @translateError
-    def remote_getSnmpStatus(self, devname=None):
-        "Return the failure counts for Snmp" 
-        counts = {}
-        try:
-            # get all the events with /Status/Snmp
-            conn = self.zem.connect()
-            try:
-                curs = conn.cursor()
-                cmd = ('SELECT device, sum(count)  ' +
-                       '  FROM status ' +
-                       ' WHERE eventClass = "%s"' % Status_Snmp)
-                if devname:
-                    cmd += ' AND device = "%s"' % devname
-                cmd += ' GROUP BY device'
-                curs.execute(cmd);
-                counts = dict([(d, int(c)) for d, c in curs.fetchall()])
-            finally:
-                self.zem.close(conn)
-        except Exception, ex:
-            self.log.exception('Unable to get Snmp Status')
-            raise
-        if devname:
-            return [(devname, counts.get(devname, 0))]
-        return [(dev.id, counts.get(dev.id, 0)) for dev in self.config.devices()]
-
-
     def remote_getDefaultRRDCreateCommand(self, *args, **kwargs):
         return self.config.getDefaultRRDCreateCommand(*args, **kwargs)
 
