@@ -402,6 +402,8 @@ class ZenTrap(EventServer, CaptureReplay):
         return strval
 
     def _convert_value(self, value):
+        if not isinstance(value, basestring):
+            return value
         try:
             value.decode('utf8')
             return value
