@@ -29,13 +29,16 @@ from zenoss.protocols.protobufutil import listify
 from Products.ZenUtils.GlobalConfig import getGlobalConfiguration
 from Products.ZenUtils.guid.interfaces import IGlobalIdentifier
 from zenoss.protocols.protobufs.zep_pb2 import SEVERITY_CLEAR, SEVERITY_CRITICAL, SEVERITY_DEBUG, SEVERITY_ERROR,\
-     STATUS_NEW, STATUS_ACKNOWLEDGED
+     STATUS_NEW, STATUS_ACKNOWLEDGED, OR, AND
 
 
 log = logging.getLogger(__name__)
 
 class ZepFacade(ZuulFacade):
     implements(IZepFacade)
+
+    AND = AND
+    OR = OR
 
     SORT_MAP = {
         'eventstate' : EventSort.STATUS,
@@ -76,15 +79,17 @@ class ZepFacade(ZuulFacade):
         last_seen=None,
         status_change=None,
         count_range=None,
-        element_identifier=None,
-        element_sub_identifier=None,
+        element_identifier=(),
+        element_sub_identifier=(),
         uuid=(),
         event_summary=None,
         tags=(),
         fingerprint=(),
         agent=(),
         monitor=(),
-        acknowledged_by_user_name=()):
+        acknowledged_by_user_name=(),
+        subfilter=(),
+        operator=None):
         # no details?
 
         filter = {}
@@ -93,7 +98,9 @@ class ZepFacade(ZuulFacade):
             filter['uuid'] = uuid
 
         if event_summary:
-            filter['event_summary'] = str(event_summary).strip()
+            if not isinstance(event_summary, (tuple, list, set)):
+                event_summary = (event_summary,)
+            filter['event_summary'] = map(lambda s:str(s).strip(), event_summary)
 
         if event_class:
             filter['event_class'] = event_class
@@ -126,10 +133,15 @@ class ZepFacade(ZuulFacade):
             }
 
         if element_identifier:
-            filter['element_identifier'] = str(element_identifier).strip()
+            if not isinstance(element_identifier, (tuple, list, set)):
+                element_identifier = (element_identifier,)
+            filter['element_identifier'] = map(lambda s:str(s).strip(), element_identifier)
 
         if element_sub_identifier:
-            filter['element_sub_identifier'] = str(element_sub_identifier).strip()
+            if not isinstance(element_sub_identifier, (tuple, list, set)):
+                element_sub_identifier = (element_sub_identifier,)
+            filter['element_sub_identifier'] = map(lambda s:str(s).strip(),
+                                                   element_sub_identifier)
 
         if fingerprint:
             filter['fingerprint'] = fingerprint
@@ -143,9 +155,16 @@ class ZepFacade(ZuulFacade):
         if acknowledged_by_user_name:
             filter['acknowledged_by_user_name'] = acknowledged_by_user_name
 
-        # Everything's repeated on the protobuf, so listify
-        return dict((k, listify(v)) for k,v in filter.iteritems())
-    
+        if subfilter:
+            filter['subfilter'] = subfilter
+
+        # Everything's repeated on the protobuf except operator, so listify
+        result = dict((k, listify(v)) for k,v in filter.iteritems())
+        if operator:
+            result['operator'] = operator
+
+        return result
+
 
     def _timeRange(self, timeRange):
         d = {
