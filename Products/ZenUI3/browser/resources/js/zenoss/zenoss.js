@@ -1346,9 +1346,11 @@ Zenoss.MultiselectMenu = Ext.extend(Ext.Toolbar.Button, {
     reset: function() {
         this.setValue();
     },
+    _initialValue: null,
     getValue: function() {
         if (!this.hasLoaded) {
-            return this.defaultValues;
+            // Check state, otherwise return default
+            return this._initialValue || this.defaultValues;
         }
         var result = [];
         Ext.each(this.menu.items.items, function(item){
@@ -1360,13 +1362,21 @@ Zenoss.MultiselectMenu = Ext.extend(Ext.Toolbar.Button, {
         if (!val) {
             this.constructor(this.initialConfig);
         } else {
-            Ext.each(this.menu.items.items, function(item){
+            function check(item) {
                 var shouldCheck = false;
                 try{
                     shouldCheck = val.indexOf(item.value)!=-1;
                 } catch(e) {var _x;}
                 item.setChecked(shouldCheck);
-            });
+            }
+            if (!this.hasLoaded) {
+                this._initialValue = val;
+                this.menu.on('add', function(menu, item) {
+                    check(item);
+                });
+            } else {
+                Ext.each(this.menu.items.items, check);
+            }
         }
     }
 
