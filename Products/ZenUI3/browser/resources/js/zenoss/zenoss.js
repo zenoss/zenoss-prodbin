@@ -744,7 +744,7 @@ Zenoss.FilterGridView = Ext.extend(Ext.ux.grid.livegrid.GridView, {
     // object.
     applyFilterParams: function(options, globbing) {
         var params = this.lastOptions || {},
-            i, filter, oldformat, query, dt;
+            i, filter, query, dt;
         options = options || {};
         globbing = (this.appendGlob && (Ext.isDefined(globbing) ? globbing : true));
         for(i=0;i<this.filters.length;i++){
@@ -1252,6 +1252,15 @@ Zenoss.FilterGridPanel = Ext.extend(Ext.ux.grid.livegrid.GridPanel, {
     },
 
     /*
+     * Build parameters for updates (don't need to include sort information).
+     */
+    getUpdateParameters: function() {
+        var o = {};
+        this.view.applyFilterParams({params: o});
+        return o;
+    },
+
+    /*
      * Assemble the parameters that define the records selected. This by
      * necessity includes query parameters, since ranges need row indices.
      */
@@ -1273,11 +1282,10 @@ Zenoss.FilterGridPanel = Ext.extend(Ext.ux.grid.livegrid.GridPanel, {
         });
         if (!ranges && !evids) return false;
         var params = {
-            evids:evids,
-            excludeIds: sm.badIds,
-            selectState: sm.selectState
+            evids: evids,
+            excludeIds: sm.badIds
         };
-        Ext.apply(params, this.getQueryParameters());
+        Ext.apply(params, this.getUpdateParameters());
         return params;
     },
 
@@ -1585,7 +1593,7 @@ Zenoss.DetailPanel = Ext.extend(Ext.Panel, {
                     handler: function(btn, e){
                         var form = Ext.getCmp('log-container'),
                             vals = form.getForm().getValues(),
-                            params = {history:this.isHistory};
+                            params = {};
                         Ext.apply(params, vals);
                         Zenoss.remote.EventsRouter.write_log(
                          params,
@@ -1803,7 +1811,6 @@ var EventActionManager = Ext.extend(Ext.util.Observable, {
             listeners: {
                 updateRequestIncomplete: function(data) {
                     if (!me.cancelled) {
-                        me.params.asof = data.data.request.update_time;
                         me.run();
                     }
                 },
@@ -1832,7 +1839,15 @@ var EventActionManager = Ext.extend(Ext.util.Observable, {
                 me.run();
             },
             run: function() {
-                me.action(me.params, me.requestCallback);
+                // First request
+                if (me.next_request === null) {
+                    Ext.apply(me.params, {limit: 100})
+                    me.action(me.params, me.requestCallback);
+                }
+                else {
+                    Zenoss.remote.EventsRouter.nextEventSummaryUpdate({next_request: me.next_request},
+                            me.requestCallback);
+                }
             },
             finishAction: function() {
                 me.dialog.hide();
@@ -1856,31 +1871,25 @@ var EventActionManager = Ext.extend(Ext.util.Observable, {
 
                 me.eventsUpdated += data.updated;
 
-                if (me.remaining === null) {
-                    me.remaining = (data.remaining + data.updated);
-                }
-
-                // don't try to update the progress bar if it hasn't
-                // been created due to this being a small request.
-                if (me.isLargeRequest()) {
-                    var progress = null;
-                    if (me.remaining != 0) {
-                        progress = me.eventsUpdated/me.remaining;
-                        me.dialog.status.update(String.format(_t('Progress: {0}%'), Math.ceil((me.eventsUpdated/me.remaining)*100)));
+                if (data.next_request) {
+                    me.next_request = data.next_request;
+                    // don't try to update the progress bar if it hasn't
+                    // been created due to this being a small request.
+                    if (me.isLargeRequest()) {
+                        var progress = data.next_request.offset/data.total;
+                        me.dialog.status.update(String.format(_t('Progress: {0}%'), Math.ceil(progress*100)));
                         me.dialog.progressBar.updateProgress(progress);
                     }
-                }
-
-                if (data.remaining) {
                     me.fireEvent('updateRequestIncomplete', {data:data});
                 }
                 else {
+                    me.next_request = null;
                     me.fireEvent('updateRequestComplete', {data:data});
                 }
             },
             reset: function() {
                 me.eventsUpdated = 0;
-                me.remaining = null;
+                me.next_request = null;
                 me.dialog.progressBar.reset();
             },
             findParams: function() {
@@ -2119,8 +2128,8 @@ Zenoss.util.each = function(obj, filterFn, scope) {
 /**
  * Return an array filtered by function argument; Filter function should
  * return true if a value should be included in the filtered result
- * @param {Object} arr; array to be filtered
- * @param {Object} filterFn; function used to filter
+ * @param {Object} arr array to be filtered
+ * @param {Object} filterFn function used to filter
  */
 Zenoss.util.filter = function(arr, filterFn, scope) {
     var result = [];

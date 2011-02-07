@@ -12,23 +12,20 @@
 ###########################################################################
 
 import logging
-import re
-import random
 from AccessControl import getSecurityManager
 from zope.interface import implements
 from Products.Zuul.facades import ZuulFacade
 from Products.Zuul.interfaces import IZepFacade
 from Products.ZenEvents.ZenEventClasses import Unknown
-from Products.Zuul.utils import resolve_context
 
 import pkg_resources
-from zenoss.protocols.services.zep import ZepServiceClient, EventSeverity, EventStatus, ZepConfigClient
+from zenoss.protocols.services.zep import ZepServiceClient, EventSeverity, ZepConfigClient
 from zenoss.protocols.jsonformat import to_dict, from_dict
-from zenoss.protocols.protobufs.zep_pb2 import EventSort, EventFilter
+from zenoss.protocols.protobufs.zep_pb2 import EventSort, EventFilter, EventSummaryUpdateRequest
 from zenoss.protocols.protobufutil import listify
 from Products.ZenUtils.GlobalConfig import getGlobalConfiguration
 from Products.ZenUtils.guid.interfaces import IGlobalIdentifier
-from zenoss.protocols.protobufs.zep_pb2 import SEVERITY_CLEAR, SEVERITY_CRITICAL, SEVERITY_DEBUG, SEVERITY_ERROR,\
+from zenoss.protocols.protobufs.zep_pb2 import SEVERITY_CLEAR, SEVERITY_CRITICAL, SEVERITY_ERROR,\
      STATUS_NEW, STATUS_ACKNOWLEDGED, OR, AND
 
 
@@ -176,7 +173,7 @@ class ZepFacade(ZuulFacade):
 
         return d
 
-    def _getEventSummaries(self, source, offset, limit=100, keys=None, sort=None, filter={}):
+    def _getEventSummaries(self, source, offset, limit=100, keys=None, sort=None, filter=None):
         filterBuf = None
         if filter:
             filterBuf = from_dict(EventFilter, filter)
@@ -226,60 +223,54 @@ class ZepFacade(ZuulFacade):
 
         self.client.addNote(uuid, message, userUuid, userName)
 
-    def getEventSummariesFromArchive(self, offset, limit=100, sort=None, filter={}):
-        return self._getEventSummaries(self.client.getEventSummariesFromArchive, offset=offset, limit=limit, sort=sort, filter=filter)
+    def getEventSummariesFromArchive(self, offset, limit=100, sort=None, filter=None):
+        return self._getEventSummaries(self.client.getEventSummariesFromArchive, offset=offset, limit=limit, sort=sort,
+                                       filter=filter)
 
-    def getEventSummaries(self, offset, limit=100, sort=None, filter={}):
-        return self._getEventSummaries(self.client.getEventSummaries, offset=offset, limit=limit, sort=sort, filter=filter)
+    def getEventSummaries(self, offset, limit=100, sort=None, filter=None):
+        return self._getEventSummaries(self.client.getEventSummaries, offset=offset, limit=limit, sort=sort,
+                                       filter=filter)
 
     def getEventSummary(self, uuid):
         response, content = self.client.getEventSummary(uuid)
         return to_dict(content)
 
-    def closeEventSummaries(self,
-            eventFilter=None,
-            exclusionFilter=None,
-            updateTime=None,
-            limit=None):
+    def nextEventSummaryUpdate(self, next_request):
+        status, response = self.client.nextEventSummaryUpdate(from_dict(EventSummaryUpdateRequest, next_request))
+        return status, to_dict(response)
 
-        eventFilter = from_dict(EventFilter, eventFilter)
+    def closeEventSummaries(self, eventFilter=None, exclusionFilter=None, limit=None):
+        if eventFilter:
+            eventFilter = from_dict(EventFilter, eventFilter)
         if exclusionFilter:
             exclusionFilter = from_dict(EventFilter, exclusionFilter)
 
         userUuid, userName = self._findUserInfo()
         status, response = self.client.closeEventSummaries(
-            userUuid, userName, eventFilter, exclusionFilter, updateTime, limit)
+            userUuid, userName, eventFilter, exclusionFilter, limit)
         return status, to_dict(response)
 
-    def acknowledgeEventSummaries(self,
-            eventFilter=None,
-            exclusionFilter=None,
-            updateTime=None,
-            limit=None):
-
-        eventFilter = from_dict(EventFilter, eventFilter)
+    def acknowledgeEventSummaries(self, eventFilter=None, exclusionFilter=None, limit=None):
+        if eventFilter:
+            eventFilter = from_dict(EventFilter, eventFilter)
 
         if exclusionFilter:
             exclusionFilter = from_dict(EventFilter, exclusionFilter)
 
         userUuid, userName = self._findUserInfo()
-        status, response = self.client.acknowledgeEventSummaries(
-            userUuid, userName, eventFilter, exclusionFilter, updateTime, limit)
+        status, response = self.client.acknowledgeEventSummaries(userUuid, userName, eventFilter, exclusionFilter,
+                                                                 limit)
         return status, to_dict(response)
 
-    def reopenEventSummaries(self,
-            eventFilter=None,
-            exclusionFilter=None,
-            updateTime=None,
-            limit=None):
-
-        eventFilter = from_dict(EventFilter, eventFilter)
+    def reopenEventSummaries(self, eventFilter=None, exclusionFilter=None, limit=None):
+        if eventFilter:
+            eventFilter = from_dict(EventFilter, eventFilter)
         if exclusionFilter:
             exclusionFilter = from_dict(EventFilter, exclusionFilter)
 
         userUuid, userName = self._findUserInfo()
         status, response = self.client.reopenEventSummaries(
-            userUuid, userName, eventFilter, exclusionFilter, updateTime, limit)
+            userUuid, userName, eventFilter, exclusionFilter, limit)
         return status, to_dict(response)
 
     def getConfig(self):
@@ -354,7 +345,7 @@ class ZepFacade(ZuulFacade):
     def getSeverityName(self, severity):
         return EventSeverity.getPrettyName(severity)
 
-    def createEventMapping(self, evdata, eventClassId, history=False):
+    def createEventMapping(self, evdata, eventClassId):
         """
         Associates event(s) with an event class.
         """

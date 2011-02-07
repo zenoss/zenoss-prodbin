@@ -126,7 +126,7 @@ class EventsRouter(DirectRouter):
         eventFormat = self._mapToOldEvent
         if detailFormat:
             eventFormat = self._mapToDetailEvent
-        # filter out the component and device guids that no longer exist in our system
+        # filter out the component and device UUIDs that no longer exist in our system
         evdata = self._filterInvalidUuids(events['events'])
         return DirectResponse.succeed(
             events = [eventFormat(e) for e in evdata],
@@ -285,7 +285,7 @@ class EventsRouter(DirectRouter):
 
     def _uuidUrl(self, uuid):
         if uuid:
-            return '/zport/dmd/goto?guid=%s' % uuid;
+            return '/zport/dmd/goto?guid=%s' % uuid
 
     @require('ZenCommon')
 
@@ -368,7 +368,7 @@ class EventsRouter(DirectRouter):
             raise Exception('Could not find event %s' % evid)
 
     @require('Manage Events')
-    def write_log(self, evid=None, message=None, history=False):
+    def write_log(self, evid=None, message=None):
         """
         Write a message to an event's log.
 
@@ -376,7 +376,6 @@ class EventsRouter(DirectRouter):
         @param evid: Event ID to log to
         @type  message: string
         @param message: Message to log
-        @type  history: Deprecated
         @rtype:   DirectResponse
         @return:  Success message
         """
@@ -403,7 +402,7 @@ class EventsRouter(DirectRouter):
         # the keyword argument 'excludeIds'. If these exist, pass them in as
         # parameters to be used to construct the EventFilter.
         includeUuids = None
-        if evids and isinstance(evids, (list, tuple)):
+        if isinstance(evids, (list, tuple)):
             log.debug('Found specific event ids, adding to params.')
             includeUuids = evids
         
@@ -420,19 +419,28 @@ class EventsRouter(DirectRouter):
 
         return includeFilter, excludeFilter
 
+    @require('Manage Events')
+    def nextEventSummaryUpdate(self, next_request):
+        """
+        When performing updates from the event console, updates are performed in batches
+        to allow the user to see the progress of event changes and cancel out of updates
+        while they are in progress. This works by specifying a limit to one of the close,
+        acknowledge, or reopen calls in this router. The response will contain an
+        EventSummaryUpdateResponse, and if there are additional updates to be performed,
+        it will contain a next_request field with all of the parameters used to update
+        the next range of events.
+
+        @type  next_request: dictionary
+        @param next_request: The next_request field from the previous updates.
+        """
+        log.debug('Starting next batch of updates')
+        status, summaryUpdateResponse = self.zep.nextEventSummaryUpdate(next_request)
+
+        log.debug('Completed updates: %s', summaryUpdateResponse)
+        return DirectResponse.succeed(data=summaryUpdateResponse)
 
     @require('Manage Events')
-    def close(self,
-        evids=None,
-        excludeIds=None,
-        selectState=None,
-        field=None,
-        direction=None,
-        params={},
-        history=False,
-        uid=None,
-        asof=None,
-        limit=None):
+    def close(self, evids=None, excludeIds=None, params=None, uid=None, asof=None, limit=None):
         """
         Close event(s).
 
@@ -441,41 +449,27 @@ class EventsRouter(DirectRouter):
         @type  excludeIds: [string]
         @param excludeIds: (optional) List of event IDs to exclude from
                            close (default: None)
-        @type  selectState: string
-        @param selectState: (optional) Select event ids based on select state.
-                            Available values are: All, New, Acknowledged, and
-                            Suppressed (default: None)
-        @type  field: string
-        @param field: (optional) Field key to filter gathered events (default:
-                      None)
-        @type  direction: string
-        @param direction: (optional) Sort order; can be either 'ASC' or 'DESC'
-                          (default: 'DESC')
         @type  params: dictionary
         @param params: (optional) Key-value pair of filters for this search.
                        (default: None)
-        @type  history: boolean
-        @param history: (optional) True to use the event history table instead
-                        of active events (default: False)
         @type  uid: string
         @param uid: (optional) Context for the query (default: None)
         @type  asof: float
         @param asof: (optional) Only close if there has been no state
                      change since this time (default: None)
+        @type  limit: The maximum number of events to update in this batch.
+        @param limit: (optional) Maximum number of events to update (default: None).
         @rtype:   DirectResponse
         @return:  Success message
-
-        @TODO: Update this method signature if we can (back compat).
         """
 
         log.debug('Issuing a close request.')
 
-        includeFilter, excludeFilter = self._buildRequestFilters(uid, params, evids, excludeIds);
+        includeFilter, excludeFilter = self._buildRequestFilters(uid, params, evids, excludeIds)
         
         status, summaryUpdateResponse = self.zep.closeEventSummaries(
             eventFilter=includeFilter,
             exclusionFilter=excludeFilter,
-            updateTime=asof,
             limit=limit,
         )
 
@@ -485,17 +479,7 @@ class EventsRouter(DirectRouter):
         return DirectResponse.succeed(data=summaryUpdateResponse)
 
     @require('Manage Events')
-    def acknowledge(self,
-        evids=None,
-        excludeIds=None,
-        selectState=None,
-        field=None,
-        direction=None,
-        params={},
-        history=False,
-        uid=None,
-        asof=None,
-        limit=None):
+    def acknowledge(self, evids=None, excludeIds=None, params=None, uid=None, asof=None, limit=None):
         """
         Acknowledge event(s).
 
@@ -504,40 +488,26 @@ class EventsRouter(DirectRouter):
         @type  excludeIds: [string]
         @param excludeIds: (optional) List of event IDs to exclude from
                            acknowledgment (default: None)
-        @type  selectState: string
-        @param selectState: (optional) Select event ids based on select state.
-                            Available values are: All, New, Acknowledged, and
-                            Suppressed (default: None)
-        @type  field: string
-        @param field: (optional) Field key to filter gathered events (default:
-                      None)
-        @type  direction: string
-        @param direction: (optional) Sort order; can be either 'ASC' or 'DESC'
-                          (default: 'DESC')
         @type  params: dictionary
         @param params: (optional) Key-value pair of filters for this search.
                        (default: None)
-        @type  history: boolean
-        @param history: (optional) True to use the event history table instead
-                        of active events (default: False)
         @type  uid: string
         @param uid: (optional) Context for the query (default: None)
         @type  asof: float
         @param asof: (optional) Only acknowledge if there has been no state
                      change since this time (default: None)
+        @type  limit: The maximum number of events to update in this batch.
+        @param limit: (optional) Maximum number of events to update (default: None).
         @rtype:   DirectResponse
         @return:  Success message
-
-        @TODO: Update this method signature if we can (back compat).
         """
         log.debug('Issuing an acknowledge request.')
         
-        includeFilter, excludeFilter = self._buildRequestFilters(uid, params, evids, excludeIds);
+        includeFilter, excludeFilter = self._buildRequestFilters(uid, params, evids, excludeIds)
         
         status, summaryUpdateResponse = self.zep.acknowledgeEventSummaries(
             eventFilter=includeFilter,
             exclusionFilter=excludeFilter,
-            updateTime=asof,
             limit=limit,
         )
 
@@ -554,17 +524,7 @@ class EventsRouter(DirectRouter):
         return self.reopen(*args, **kwargs)
 
     @require('Manage Events')
-    def reopen(self,
-        evids=None,
-        excludeIds=None,
-        selectState=None,
-        field=None,
-        direction=None,
-        params={},
-        history=False,
-        uid=None,
-        asof=None,
-        limit=None):
+    def reopen(self, evids=None, excludeIds=None, params=None, uid=None, asof=None, limit=None):
         """
         Reopen event(s).
 
@@ -573,41 +533,27 @@ class EventsRouter(DirectRouter):
         @type  excludeIds: [string]
         @param excludeIds: (optional) List of event IDs to exclude from
                            reopen (default: None)
-        @type  selectState: string
-        @param selectState: (optional) Select event ids based on select state.
-                            Available values are: All, New, Acknowledged, and
-                            Suppressed (default: None)
-        @type  field: string
-        @param field: (optional) Field key to filter gathered events (default:
-                      None)
-        @type  direction: string
-        @param direction: (optional) Sort order; can be either 'ASC' or 'DESC'
-                          (default: 'DESC')
         @type  params: dictionary
         @param params: (optional) Key-value pair of filters for this search.
                        (default: None)
-        @type  history: boolean
-        @param history: (optional) True to use the event history table instead
-                        of active events (default: False)
         @type  uid: string
         @param uid: (optional) Context for the query (default: None)
         @type  asof: float
         @param asof: (optional) Only reopen if there has been no state
                      change since this time (default: None)
+        @type  limit: The maximum number of events to update in this batch.
+        @param limit: (optional) Maximum number of events to update (Default: None).
         @rtype:   DirectResponse
         @return:  Success message
-
-        @TODO: Update this method signature if we can (back compat).
         """
 
         log.debug('Issuing a reopen request.')
-        
-        includeFilter, excludeFilter = self._buildRequestFilters(uid, params, evids, excludeIds);
+
+        includeFilter, excludeFilter = self._buildRequestFilters(uid, params, evids, excludeIds)
 
         status, summaryUpdateResponse = self.zep.reopenEventSummaries(
             eventFilter=includeFilter,
             exclusionFilter=excludeFilter,
-            updateTime=asof,
             limit=limit,
         )
 
@@ -759,7 +705,7 @@ class EventsRouter(DirectRouter):
         return column_config(self.request, archive)
 
     @require('Manage Events')
-    def classify(self, evrows, evclass, history=False):
+    def classify(self, evrows, evclass):
         """
         Associate event(s) with an event class.
 
@@ -767,15 +713,12 @@ class EventsRouter(DirectRouter):
         @param evrows: List of event rows to classify
         @type  evclass: string
         @param evclass: Event class to associate events to
-        @type  history: boolean
-        @param history: (optional) True to use the event history table instead
-                        of active events (default: False)
         @rtype:   DirectResponse
         @return:  B{Properties}:
            - msg: (string) Success/failure message
            - success: (boolean) True if class update successful
         """
-        msg, url = self.zep.createEventMapping(evrows, evclass, history)
+        msg, url = self.zep.createEventMapping(evrows, evclass)
         if url:
             msg += "<br/><a href='%s'>Go to the new mapping.</a>" % url
         return DirectResponse(msg, success=bool(url))

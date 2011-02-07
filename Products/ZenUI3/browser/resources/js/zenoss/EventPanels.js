@@ -184,17 +184,6 @@ Zenoss.EventPanelSelectionModel = Ext.extend(Zenoss.ExtraHooksSelectionModel, {
         else if (this.selectState == 'All') {
                 selected = true;
         }
-        else if (r && !selected && this.selectState) {
-            if (this.selectState == 'Acknowledged') {
-                selected = r.data.eventState == 'Acknowledged';
-            }
-            else if (this.selectState == 'Suppressed') {
-                selected = r.data.eventState == 'Suppressed';
-            }
-            else if (this.selectState == 'New') {
-                selected = r.data.eventState == 'New';
-            }
-        }
         return selected;
 
     }
