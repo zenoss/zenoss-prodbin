@@ -180,14 +180,14 @@ class CommandPerformanceConfig(CollectorConfigService):
         commands = set()
 
         # First for the device....
-        proxy.threshs = []
+        proxy.thresholds = []
         self._safeGetComponentConfig(device, device, perfServer,
-                                commands, proxy.threshs)
+                                commands, proxy.thresholds)
 
         # And now for its components
         for comp in device.getMonitoredComponents(collector='zencommand'):
             self._safeGetComponentConfig(comp, device, perfServer,
-                                commands, proxy.threshs)
+                                commands, proxy.thresholds)
 
         if commands:
             proxy.datasources = list(commands)

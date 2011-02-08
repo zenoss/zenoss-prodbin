@@ -110,11 +110,11 @@ class SnmpPerformanceConfig(CollectorConfigService):
         perfServer = device.getPerformanceServer()
         proxy.oids = {}
         # First for the device....
-        proxy.threshs = self._getComponentConfig(device, perfServer, proxy.oids)
+        proxy.thresholds = self._getComponentConfig(device, perfServer, proxy.oids)
         # And now for its components
         for comp in device.os.getMonitoredComponents(collector="zenperfsnmp"):
             threshs = self._getComponentConfig(comp, perfServer, proxy.oids)
             if threshs:
-                proxy.threshs.extend(threshs)
+                proxy.thresholds.extend(threshs)
 
         return proxy

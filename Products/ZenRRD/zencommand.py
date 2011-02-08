@@ -675,7 +675,7 @@ class SshPerformanceCollectionTask(ObservableMixin):
                  cacheableDS[datasource.name].append(datasource)
                  continue
              cacheableDS[datasource.name] = []
-                  
+
              datasource.deviceConfig = self._device
              task = self._executor.submit(self._addDatasource, datasource)
              deferredCmds.append(task)

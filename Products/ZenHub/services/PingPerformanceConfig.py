@@ -117,13 +117,13 @@ class PingPerformanceConfig(CollectorConfigService):
         proxy.lastChangeTime = float(device.getLastChange())
 
         perfServer = device.getPerformanceServer()
-        proxy.threshs = []
+        proxy.thresholds = []
         proxy.monitoredIps = []
         for iface in device.os.interfaces():
             self._getComponentConfig(iface, perfServer, proxy.monitoredIps)
             threshs = iface.getThresholdInstances('PING')
             if threshs:
-                proxy.threshs.extend(threshs)
+                proxy.thresholds.extend(threshs)
 
         if not proxy.monitoredIps:
             log.debug("%s not modeled yet -- faking interfaces for %s",
