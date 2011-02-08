@@ -106,13 +106,13 @@ YAHOO.zenoss.zenautocomplete.GroupSearch = partial(
     _getlivesearchwidget, "Groups");
 
 var _getAllOrganizers = function(callback) {
-    orgs = ['Locations', 'Systems', 'Devices', 'Groups'];
-    i = 0;
+    var orgs = ['Locations', 'Systems', 'Devices', 'Groups'];
+    var i = 0;
     var payload = []
     function getNextOrganizer(newpayload) {
         payload = concat(payload, newpayload);
         if (i<orgs.length) {
-            org = orgs[i]; i++;
+            var org = orgs[i]; i++;
             YAHOO.zenoss.getOrganizers(org, getNextOrganizer);
         } else {
             payload.sort();
