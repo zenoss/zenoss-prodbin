@@ -85,8 +85,8 @@ class ps(CommandParser):
             try:
                 pid, rss, cpu, cmdAndArgs = self.getProcInfo(line)
                 log.debug("line '%s' -> pid=%s " \
-                              "rss=%s cpu=% cmdAndArgs=%s",
-                               pid, rss, cpu, cmdAndArgs)
+                              "rss=%s cpu=%s cmdAndArgs=%s",
+                               line, pid, rss, cpu, cmdAndArgs)
 
             except (SystemExit, KeyboardInterrupt): raise
             except:
@@ -130,7 +130,7 @@ class ps(CommandParser):
             except (SystemExit, KeyboardInterrupt): raise
             except:
                 log.exception("Unable to convert entry data pid=%s " \
-                              "rss=%s cpu=% cmdAndArgs=%s",
+                              "rss=%s cpu=%s cmdAndArgs=%s",
                                pid, rss, cpu, cmdAndArgs)
                 continue
         return dpsToProcs
