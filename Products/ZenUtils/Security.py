@@ -17,7 +17,6 @@ from datetime import datetime
 from sets import Set as set
 
 from OFS.Folder import Folder
-from plone.session.plugins import session
 from Products.PluggableAuthService import plugins
 from Products.PluggableAuthService import interfaces
 from Products.PluggableAuthService import PluggableAuthService
@@ -25,17 +24,6 @@ from Products.PluggableAuthService import PluggableAuthService
 
 ZENOSS_ROLES = ['ZenUser', 'ZenManager']
 
-
-class ZenSessionPlugin(session.SessionPlugin):
-    """
-    Override the default credentials update. The default
-    SessionPlugin only update credentials against users at
-    the current level. The admin user is the app level and
-    the session plugin installed at the zport level.
-    """
-    # ICredentialsUpdatePlugin implementation
-    def updateCredentials(self, request, response, login, new_password):
-        self._setupSession(login, response)
 
 def backupACLUserFolder(context):
     timestamp = datetime.now().strftime('%Y.%d.%m-%H%M%S')
@@ -141,16 +129,16 @@ def setupSessionHelper(context):
     acl = context.acl_users
     id = 'sessionAuthHelper'
     if not hasattr(acl, id):
-        sp = ZenSessionPlugin(id)
-        acl._setObject(id, sp)
+        plugins.SessionAuthHelper.manage_addSessionAuthHelper(acl, id)
+
     interfaces = []
     # note that we are only enabling SessionAuth for the Zenoss portal
     # acl_users, not for the root acl_users.
     interfaces = ['IExtractionPlugin',
-                  'IAuthenticationPlugin',
                   'ICredentialsUpdatePlugin',
                   'ICredentialsResetPlugin']
     acl.sessionAuthHelper.manage_activateInterfaces(interfaces)
+
 
 def setupRoleManager(context):
     acl = context.acl_users

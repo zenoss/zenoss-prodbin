@@ -26,5 +26,6 @@ class SessionAuthentication(Migrate.Step):
         setupCookieHelper(zport)
         setupSessionHelper(zport)
 
+
 SessionAuthentication()
 

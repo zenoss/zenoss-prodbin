@@ -50,7 +50,7 @@ def manage_afterAdd(self, item, container):
 CookieAuthHelper.CookieAuthHelper.manage_afterAdd = manage_afterAdd
 
 def login(self):
-    """ 
+    """
     Set a cookie and redirect to the url that we tried to
     authenticate against originally.
 

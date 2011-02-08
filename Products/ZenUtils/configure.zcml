@@ -2,9 +2,4 @@
            >
     <include package=".extdirect.zope"/>
     <include package=".guid"/>
-
-    <!-- set up our key manager -->
-    <utility factory="plone.keyring.keymanager.KeyManager"
-           provides="plone.keyring.interfaces.IKeyManager"
-           />
 </configure>
