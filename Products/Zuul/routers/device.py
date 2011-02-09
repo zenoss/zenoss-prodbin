@@ -241,7 +241,7 @@ class DeviceRouter(TreeRouter):
         facade = self._getFacade()
         process = facade.getInfo(uid)
         data = Zuul.marshal(process, keys)
-        disabled = not Zuul.checkPermission('Manage DMD')
+        disabled = not Zuul.checkPermission('Manage DMD', self.context)
         return DirectResponse(data=data, disabled=disabled)
 
     def setInfo(self, **data):
@@ -255,7 +255,7 @@ class DeviceRouter(TreeRouter):
         @rtype: DirectResponse
         """
         facade = self._getFacade()
-        if not Zuul.checkPermission('Manage DMD'):
+        if not Zuul.checkPermission('Manage DMD', self.context):
             raise Exception('You do not have permission to save changes.')
         process = facade.getInfo(data['uid'])
         Zuul.unmarshal(data, process)
