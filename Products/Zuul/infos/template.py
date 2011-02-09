@@ -378,6 +378,11 @@ class DataPointInfo(InfoBase):
     description = ProxyProperty('description')
 
     @property
+    def name(self):
+        return "%s.%s" % (self._object.datasource().titleOrId(),
+                          self._object.titleOrId())
+
+    @property
     def id(self):
         return '/'.join(self._object.getPrimaryPath())
 
