@@ -329,7 +329,7 @@ class ZenTrap(EventServer, CaptureReplay):
         """
         # At the end of this callback, pdu will be deleted, so copy it
         # for asynchronous processing
-        dup = netsnmp.lib.snmp_clone_pdu(c.addressof(pdu))
+        dup = netsnmp.lib.snmp_clone_pdu(c.byref(pdu))
         if not dup:
             self.log.error("Could not clone PDU for asynchronous processing")
             return
@@ -548,7 +548,7 @@ class ZenTrap(EventServer, CaptureReplay):
 
             # respond to INFORM requests
             if pdu.command == netsnmp.SNMP_MSG_INFORM:
-                reply = netsnmp.lib.snmp_clone_pdu(c.addressof(pdu))
+                reply = netsnmp.lib.snmp_clone_pdu(c.byref(pdu))
                 if not reply:
                     self.log.error("Could not clone PDU for INFORM response")
                     raise RuntimeError("Cannot respond to INFORM PDU")
