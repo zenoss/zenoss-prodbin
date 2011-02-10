@@ -135,7 +135,7 @@ Zenoss.SimpleCardPanel = Ext.extend(Ext.Panel, {
             height: Math.min(((Ext.getCmp('viewport').getHeight() - 75)/5)+30, 200),
             tbar: {
                 xtype: 'consolebar',
-                title: 'Display: ',
+                title: _t('Display: '),
                 leftItems: [{
                     xtype: 'select',
                     ref: '../displaySelect',

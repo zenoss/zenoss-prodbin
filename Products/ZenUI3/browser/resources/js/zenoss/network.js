@@ -113,7 +113,6 @@ var treesm = new Ext.tree.DefaultSelectionModel({
             var uid = newnode.attributes.uid,
                 fb = Ext.getCmp('footer_bar');
 
-            Ext.getCmp('networkForm').setContext(uid);
             Ext.getCmp('detail_panel').detailCardPanel.setContext(uid);
 
             if (Zenoss.Security.doesNotHavePermission('Manage DMD')) {
@@ -255,18 +254,22 @@ var ipAddressColumnConfig = {
     columns: [{
             id: 'name',
             dataIndex: 'name',
-            header: _t('Address'),
-            width: 50
+            header: _t('Address / Netmask'),
+            width: 50,
+            renderer: function(name, row, record) {
+                return record.data.netmask ? name + ' / ' + record.data.netmask :
+                                             name;
+            }
         }, {
             id: 'device',
             dataIndex: 'device',
             header: _t('Device'),
             width: 200,
-            renderer: function(device, row, record){
+            renderer: function(device, row, record) {
                 if (!device) return 'No Device';
                 return Zenoss.render.link(device.uid, undefined,
                                           device.name);
-           }
+            }
         }, {
             id: 'interface',
             dataIndex: 'interface',
@@ -307,6 +310,7 @@ var ipAddressStoreConfig = {
             totalProperty: 'totalCount',
             fields: [
                 {name: 'name'},
+                {name: 'netmask'},
                 {name: 'device'},
                 {name: 'interface'},
                 {name: 'pingstatus'},
@@ -320,22 +324,14 @@ var ipAddressStoreConfig = {
 var ipAddressGridConfig = {
         xtype: 'instancecardpanel',
         ref: 'detailCardPanel',
-        region: 'south',
+        region: 'center',
         border: false,
         collapsed: false,
         split: true,
         autoExpandColumn: 'name',
         stripeRows: true,
         router: Zenoss.remote.NetworkRouter,
-        instancesTitle: 'IP Addresses',
-        zPropertyEditListeners: {
-            frameload: function() {
-                var formPanel = Ext.getCmp('networkForm');
-                if (formPanel.contextUid) {
-                    formPanel.setContext(formPanel.contextUid);
-                }
-            }
-        },
+        instancesTitle: _t('IP Addresses'),
         cm: new Ext.grid.ColumnModel(ipAddressColumnConfig),
         store: new Ext.ux.grid.livegrid.Store(ipAddressStoreConfig),
         sm: new Ext.ux.grid.livegrid.RowSelectionModel({
@@ -357,172 +353,48 @@ var ipAddressGridConfig = {
 
 Ext.getCmp('detail_panel').add(ipAddressGridConfig);
 
-
-//********************************************
-// Network form
-//********************************************
-
-// *** Form functions
-
-var resetForm = function() {
-    Ext.getCmp('networkForm').getForm().reset();
-};
-
-// *** Form field declarations
-
-var addressDisplayField = {
-    xtype: 'displayfield',
-    id: 'addressDisplayField',
-    fieldLabel: _t('Address'),
-    name: 'name',
-    width: "100%"
-};
-
-var ipcountDisplayField = {
-    xtype: 'displayfield',
-    id: 'ipcountDisplayField',
-    fieldLabel: _t('IPs Used/Free'),
-    name: 'ipcount',
-    width: "100%"
-};
-
-var descriptionTextField = {
-    xtype: 'textarea',
-    id: 'descriptionTextArea',
-    fieldLabel: _t('Description'),
-    name: 'description',
-    grow: true,
-    width: "100%"
-};
-
-// *** Configuration Properties
-
-var zAutoDiscover = {
-    xtype: 'zprop',
-    ref: '../../zAutoDiscover',
-    title: _t('Perform Auto-discovery? (zAutoDiscover)'),
-    name: 'zAutoDiscover',
-    localField: {
-        xtype: 'select',
-        mode: 'local',
-        store: [[true, 'Yes'], [false, 'No']]
+(function(){
+    // Remove extraneous toolbar items since we don't hide this panel
+    var detailCardPanel = Ext.getCmp('detail_panel').detailCardPanel;
+    Ext.each(detailCardPanel.getTopToolbar().items.items.slice(2), function(item) {
+        detailCardPanel.getTopToolbar().remove(item);
+    });
+    // Set the toolbar's height since we removed the large icon
+    detailCardPanel.getTopToolbar().setHeight(29);
+    
+    detailCardPanel.getTopToolbar().add( {
+            xtype: 'tbspacer',
+            width: 5
+        }, {
+            ref: '../descriptionField',
+            xtype: 'tbtext'
+        },
+        '->',
+        {
+            ref: '../ipcountField',
+            xtype: 'tbtext'
+    });
+    
+    var oldSetContext = detailCardPanel.setContext;
+    
+    detailCardPanel.setContext = function(contextUid) {
+        Zenoss.remote.NetworkRouter.getInfo( {
+            uid: contextUid,
+            keys: ['id', 'description', 'ipcount']
+            },
+            function(infoData) {
+                detailCardPanel.descriptionField.setText(
+                    infoData.success ? infoData.data.description : '');
+                detailCardPanel.ipcountField.setText(
+                    infoData.success ? 'IPs Used/Free: ' + infoData.data.ipcount : '');
+                detailCardPanel.doLayout();
+            }
+        );
+        
+        return oldSetContext.call(this, contextUid);
     }
-};
+})();
 
-var zDefaultNetworkTree = {
-    xtype: 'zprop',
-    ref: '../../zDefaultNetworkTree',
-    title: _t('Prefix Lengths of Organizers (zDefaultNetworkTree)'),
-    name: 'zDefaultNetworkTree',
-    localField: {
-        xtype: 'textfield',
-        width: '100%'
-    }
-};
-
-var zPingFailThresh = {
-    xtype: 'zprop',
-    ref: '../../zPingFailThresh',
-    title: _t('Number of Ping Failures for Down Device (zPingFailThresh)'),
-    name: 'zPingFailThresh',
-    localField: {
-        xtype: 'numberfield'
-    }
-};
-
-var zDrawMapLinks = {
-    xtype: 'zprop',
-    ref: '../../zDrawMapLinks',
-    title: _t('Draw Map Links? (zDrawMapLinks)'),
-    name: 'zDrawMapLinks',
-    localField: {
-        xtype: 'select',
-        mode: 'local',
-        store: [[true, 'Yes'], [false, 'No']]
-    }
-};
-
-var zIcon = {
-    xtype: 'zprop',
-    ref: '../../zIcon',
-    title: _t('Icon to Represent the Network (zIcon)'),
-    name: 'zIcon',
-    localField: {
-        xtype: 'textfield'
-    }
-};
-
-var zSnmpStrictDiscovery = {
-    xtype: 'zprop',
-    ref: '../../zSnmpStrictDiscovery',
-    title: _t('Only Create Devices If SNMP Succeeds? (zSnmpStrictDiscovery)'),
-    name: 'zSnmpStrictDiscovery',
-    localField: {
-        xtype: 'select',
-        mode: 'local',
-        store: [[true, 'Yes'], [false, 'No']]
-    }
-};
-
-var zPreferSnmpNaming = {
-    xtype: 'zprop',
-    ref: '../../zPreferSnmpNaming',
-    title: _t('Prefer Name Discovered Via SNMP to DNS? (zPreferSnmpNaming)'),
-    name: 'zPreferSnmpNaming',
-    localField: {
-        xtype: 'select',
-        mode: 'local',
-        store: [[true, 'Yes'], [false, 'No']]
-    }
-};
-
-
-var formItems = {
-    layout: 'column',
-    border: false,
-    defaults: {
-        layout: 'form',
-        border: false,
-        bodyStyle: 'padding: 15px',
-        columnWidth: 0.5
-    },
-    items: [{
-        items: [
-            addressDisplayField,
-            ipcountDisplayField,
-            descriptionTextField
-        ]
-    }, {
-        items: [
-            zAutoDiscover,
-            zDefaultNetworkTree,
-            zPingFailThresh,
-            zPreferSnmpNaming,
-            zSnmpStrictDiscovery,
-            zDrawMapLinks,
-            zIcon
-        ]
-    }]
-};
-
-var networkFormConfig =  {
-    xtype: 'basedetailform',
-    trackResetOnLoad: true,
-    id: 'networkForm',
-    permission: 'Manage DMD',
-    region: 'center',
-    items: formItems,
-    router: Zenoss.remote.NetworkRouter
-}
-
-var networkForm = Ext.getCmp('detail_panel').add(networkFormConfig);
-
-networkForm.getForm().on('actioncomplete', function(basicForm, action){
-    if (action.type == 'directsubmit') {
-        var uid = Ext.getCmp('networks').getSelectionModel().getSelectedNode().attributes.uid;
-        Ext.getCmp('detail_panel').detailCardPanel.setContext(uid);
-    }
-});
 
 //********************************************
 // Footer
@@ -534,6 +406,39 @@ var dispatcher = function(actionName, value) {
         case 'delete': deleteNetwork(); break;
         default: break;
     }
+};
+
+// Edit description dialog
+var showEditDescriptionDialog = function() {
+    var dialog = new Zenoss.SmartFormDialog({
+        title: _t('Edit Description'),
+        formId: 'editDescriptionDialog',
+        items: [{
+            xtype: 'textfield',
+            id: 'description',
+            fieldLabel: _t('Description'),
+            allowBlank: true
+            }],
+        formApi: {
+            load: Zenoss.remote.NetworkRouter.getInfo
+        }
+    });
+    
+    dialog.setSubmitHandler(function(values) {
+        values.uid = Zenoss.env.PARENT_CONTEXT;
+        Zenoss.remote.NetworkRouter.setInfo(values);
+        Ext.getCmp('detail_panel').detailCardPanel.setContext(values.uid);
+    });
+    
+    dialog.getForm().load({
+        params: { uid: Zenoss.env.PARENT_CONTEXT, keys: ['id', 'description'] },
+        success: function(form, action) {
+            dialog.show();
+        },
+        failure: function(form, action) {
+            Ext.Msg.alert('Error', action.result.msg);
+        }
+    });
 };
 
 
@@ -556,6 +461,13 @@ Zenoss.footerHelper('Subnetwork', fb, {
                 disabled: Zenoss.Security.doesNotHavePermission('Manage DMD') ||
                     Zenoss.env.PARENT_CONTEXT == '/zport/dmd/Networks',
                 handler: discoverDevicesDialog.show.createDelegate(discoverDevicesDialog)
+            },{
+                tooltip: _t('Edit network description'),
+                text: _t('Edit description'),
+                ref: 'buttonEditDescription',
+                disabled: Zenoss.Security.doesNotHavePermission('Manage DMD')  ||
+                    Zenoss.env.PARENT_CONTEXT == '/zport/dmd/Networks',
+                handler: showEditDescriptionDialog
             }];
         }
     }

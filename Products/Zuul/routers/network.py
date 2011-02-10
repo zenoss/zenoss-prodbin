@@ -179,7 +179,8 @@ class NetworkRouter(TreeRouter):
         instances = self.api.getIpAddresses(uid=uid, start=start, params=params,
                                           limit=limit, sort=sort, dir=order)
 
-        keys = ['name', 'device', 'interface', 'pingstatus', 'snmpstatus', 'uid']
+        keys = ['name', 'device', 'interface', 'netmask', 'pingstatus',
+                'snmpstatus', 'uid']
         data = Zuul.marshal(instances, keys)
         return DirectResponse.succeed(data=data, totalCount=instances.total,
                                       hash=instances.hash_)
