@@ -29,6 +29,6 @@ url = req.form.get('came_from') or ''
 if 'terms' in url:
     msg = 'You did not accept the<br/>Zenoss Terms.'
 elif 'submitted' in url:
-    msg = 'The entered password or<br/>username is incorrect.'
+    msg = 'Your session has expired,<br/>or the entered password or<br/>username is incorrect.'
 return msg
 

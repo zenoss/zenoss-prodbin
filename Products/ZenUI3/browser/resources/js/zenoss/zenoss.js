@@ -57,6 +57,11 @@ Ext.Direct.on('event', function(e){
 });
 
 Ext.Direct.on('exception', function(e) {
+    if (e.message.startswith("Error parsing json response") &&
+        e.message.endswith("null")) {
+        window.location.reload();
+        return;
+    }
     Ext.Msg.show({
         title: _t('Server Exception'),
         msg: '<p>' + _t('The server reported the following error:') + '</p>' +
