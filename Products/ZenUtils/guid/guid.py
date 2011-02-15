@@ -107,7 +107,7 @@ class GUIDManager(object):
     def getObject(self, guid):
         path = self.getPath(guid)
         if path is not None:
-            path =urllib.unquote(path)
+            path = urllib.unquote(path)
             return self.traverse(path)
 
     def setPath(self, guid, path):

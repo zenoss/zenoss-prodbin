@@ -18,6 +18,7 @@ Available at:  /zport/dmd/evconsole_router
 
 import time
 import logging
+import urllib
 import DateTime # Zope DateTime, not python datetime
 from uuid import uuid4
 from zope.component import getUtility
@@ -36,6 +37,7 @@ from json import loads
 from Products.Zuul.utils import resolve_context
 from Products.Zuul.utils import ZuulMessageFactory as _t
 from Products.ZenUI3.browser.eventconsole.grid import column_config
+from Products.Zuul.interfaces import ICatalogTool
 
 log = logging.getLogger('zen.%s' % __name__)
 
@@ -48,6 +50,51 @@ class EventsRouter(DirectRouter):
         super(EventsRouter, self).__init__(context, request)
         self.zep = getFacade('zep', context)
         self.api = getFacade('event', context)
+        self.catalog = ICatalogTool(context)
+        self.manager = IGUIDManager(context.dmd)
+
+    def _getNameFromUuid(self, uuid):
+        """
+        Given a uuid this returns the objects name
+        from the catalog, it does not wake the object up
+        """
+        path = self.manager.getPath(uuid)
+        brain = self.catalog.getBrain(urllib.unquote(path))
+        return brain.name
+
+    def _lookupTags(self, tags):
+        """
+        Returns an array of dictionary with uuid and
+        name fields or an empty string if there are no tags.
+        """
+        if not tags:
+            return ""
+        names = []
+        for tag in tags:
+            names.append({'uuid': tag,
+                          'name': self._getNameFromUuid(tag)})
+        return names
+
+    def _lookupDeviceClass(self, tags):
+        """
+        Returns an array with a  dictionary of the
+        uuid and name of the device. This is for the link in
+        the event console
+        """
+        if not tags:
+            return ""
+
+        # the longest tag will be the deepest device class this device belongs in
+        orgPath = ""
+        uuid = None
+        for tag in tags:
+            path = urllib.unquote(self.manager.getPath(tag))
+            if len(path.split("/")) > len(orgPath.split("/")):
+                orgPath = path
+                uuid = tag
+        if uuid is None:
+            return ""
+        return [{'uuid': uuid, 'name': orgPath.replace("/zport/dmd/Devices", "")}]
 
     def _findDetails(self, event):
         """
@@ -84,9 +131,18 @@ class EventsRouter(DirectRouter):
         eventClass = eventOccurrence['event_class']
 
         eventDetails = self._findDetails(eventOccurrence)
-
         # TODO: Finish mapping out these properties.
         notYetMapped = ''
+
+        # build a tag dictionary indexed by type
+        tags = {}
+        if eventOccurrence.get('tags'):
+            for tag in eventOccurrence.get('tags'):
+                if tags.get(tag['type']) is None:
+                    tags[tag['type']] = [tag['uuid']]
+                else:
+                    tags[tag['type']].append(tag['uuid'])
+
         event = {
             'id' : event_summary['uuid'],
             'evid' : event_summary['uuid'],
@@ -126,10 +182,10 @@ class EventsRouter(DirectRouter):
             'ntevid' : eventOccurrence.get('nt_event_code'),
             'ipAddress' : notYetMapped, # will be a detail
             'message' : eventOccurrence.get('message'),
-            'Location' : notYetMapped, # comes from tags property
-            'DeviceGroups' : notYetMapped, # comes from tags property
-            'Systems' : notYetMapped, # comes from tags property
-            'DeviceClass' : notYetMapped, # comes from tags property
+            'Location' : self._lookupTags(tags.get('zenoss.device.location')),
+            'DeviceGroups' : self._lookupTags(tags.get('zenoss.device.group')),
+            'Systems' : self._lookupTags(tags.get('zenoss.device.system')),
+            'DeviceClass' : self._lookupDeviceClass(tags.get('zenoss.device.device_class')),
         }
 
 
@@ -161,7 +217,7 @@ class EventsRouter(DirectRouter):
         When querying archived events we need to make sure that
         we do not link to devices and components that are no longer valid
         """
-        manager = IGUIDManager(self.context.dmd)
+        manager = self.manager
         for event_summary in events:
             occurrence = event_summary['occurrence'][0]
             actor = occurrence['actor']
@@ -232,7 +288,6 @@ class EventsRouter(DirectRouter):
         filter = self._buildFilter(uid, params)
 
         events = self.zep.getEventSummaries(limit=limit, offset=start, sort=self._buildSort(sort,dir), filter=filter)
-
         eventFormat = self._mapToOldEvent
         if detailFormat:
             eventFormat = self._mapToDetailEvent
@@ -298,7 +353,7 @@ class EventsRouter(DirectRouter):
                     filterEventUuids = specificEventUuids
 
             log.debug('FilterEventUuids is: %s', filterEventUuids)
-            
+
             event_filter = self.zep.createEventFilter(
                 severity = params.get('severity'),
                 status = [i for i in params.get('eventState', [])],
@@ -362,7 +417,7 @@ class EventsRouter(DirectRouter):
     def _mapToDetailEvent(self, event_summary):
         eventOccurrence = event_summary['occurrence'][0]
         eventClass = eventOccurrence['event_class']
-        
+
 
         # TODO: Update this mapping to more reflect _mapToOldEvent.
         eventData = {
@@ -469,7 +524,7 @@ class EventsRouter(DirectRouter):
             uid = self.context
 
         log.debug('Context while building request filters is: %s', uid)
-        
+
         # if the request contains specific event summaries to act on, they will
         # be passed in as evids. Excluded event summaries are passed in under
         # the keyword argument 'excludeIds'. If these exist, pass them in as
@@ -478,15 +533,15 @@ class EventsRouter(DirectRouter):
         if isinstance(evids, (list, tuple)):
             log.debug('Found specific event ids, adding to params.')
             includeUuids = evids
-        
+
         includeFilter = self._buildFilter(uid, params, specificEventUuids=includeUuids)
-        
+
         # the only thing excluded in an event filter is a list of event uuids
         # which are passed as EventTagFilter using the OR operator.
         excludeFilter = None
         if excludeIds:
             excludeFilter = self._buildFilter(uid, params, specificEventUuids=excludeIds.keys())
-        
+
         log.debug('The exclude filter:' + str(excludeFilter))
         log.debug('Finished building request filters.')
 
@@ -539,7 +594,7 @@ class EventsRouter(DirectRouter):
         log.debug('Issuing a close request.')
 
         includeFilter, excludeFilter = self._buildRequestFilters(uid, params, evids, excludeIds)
-        
+
         status, summaryUpdateResponse = self.zep.closeEventSummaries(
             eventFilter=includeFilter,
             exclusionFilter=excludeFilter,
@@ -575,9 +630,9 @@ class EventsRouter(DirectRouter):
         @return:  Success message
         """
         log.debug('Issuing an acknowledge request.')
-        
+
         includeFilter, excludeFilter = self._buildRequestFilters(uid, params, evids, excludeIds)
-        
+
         status, summaryUpdateResponse = self.zep.acknowledgeEventSummaries(
             eventFilter=includeFilter,
             exclusionFilter=excludeFilter,

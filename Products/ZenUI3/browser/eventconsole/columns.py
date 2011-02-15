@@ -304,25 +304,28 @@ COLUMN_CONFIG = {
         header='Location',
         sortable=False,
         filter='textfield',
-        #renderer='Zenoss.render.linkFromGrid'
+        renderer='Zenoss.render.LinkFromGridGuidGroup'
         ),
 
     'DeviceGroups': dict(
         header='Groups',
         sortable=False,
         filter='textfield',
-        renderer='Zenoss.util.render_device_group_link'),
+        renderer='Zenoss.render.LinkFromGridGuidGroup'
+        ),
 
     'Systems'   : dict(
         header='Systems',
         sortable=False,
+        renderer='Zenoss.render.LinkFromGridGuidGroup',
         filter='textfield'),
 
     'DeviceClass': dict(
         header='Device Class',
         sortable=False,
         filter='textfield',
-        #renderer='Zenoss.render.linkFromGrid'
+        renderer='Zenoss.render.LinkFromGridGuidGroup',
+
         ),
 }
 

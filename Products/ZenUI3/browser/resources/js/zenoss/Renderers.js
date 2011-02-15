@@ -241,6 +241,20 @@ Ext.apply(Zenoss.render, {
         return name;
     },
 
+    LinkFromGridGuidGroup: function(name, col, record) {
+        if (!name) {
+            return name;
+        }
+
+        var url, results = [];
+        Ext.each(name, function(item){
+            url = "/zport/dmd/goto?guid=" + item.uuid;
+            results.push(Zenoss.render.link(null, url, item.name));
+        });
+
+        return results.join(" | ");
+    },
+
     Device: function(uid, name) {
         // For now, link to the old device page
         return Zenoss.render.link(null, uid+'/devicedetail', name);
@@ -344,6 +358,7 @@ Ext.apply(Zenoss.render, {
         }
         return Zenoss.render.link(null, url, name);
     }
+
 
 }); // Ext.apply
 
