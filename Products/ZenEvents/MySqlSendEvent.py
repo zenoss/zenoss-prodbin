@@ -36,7 +36,7 @@ from Products.ZenEvents.Exceptions import *
 from Products.ZenUtils.Utils import zdecode
 from Products.ZenMessaging.queuemessaging.interfaces import IEventPublisher
 
-def execute(cursor, statement):
+def _execute(cursor, statement):
     """
     Run a MySQL statement and return the results.
     If there's an error, logs it then re-raises the exception.
@@ -286,73 +286,6 @@ class MySqlSendEventMixin:
         self._publishEvent(event, detaildata)
         return event.evid
 
-
-    def storeEvent(self, event):
-        """
-        Actually write the sanitized event into the database
-
-        @param event: event
-        @type event: Event class
-        @return: event id or None
-        @rtype: string
-        """
-        insert = ""
-        statusdata, detaildata = self.eventDataMaps(event)
-        if int(event.severity) == 0:
-            log.debug("Clear event found with event data %s",
-                  statusdata)
-        else:
-            log.debug("Performing action '%s' on event %s",
-                  event._action, statusdata)
-        if detaildata:
-            log.debug("Detail data: %s", detaildata)
-
-        conn = self.connect()
-        try:
-            curs = conn.cursor()
-            evid = guid.generate()
-            event.evid = evid
-            event.dedupid = self.escape(event.dedupid)
-            rows = 0
-            if int(event.severity) == 0:
-                event._action = "history"
-                clearcls = event.clearClasses()
-                if not clearcls:
-                    log.debug("No clear classes in event -- no action taken.")
-                else:
-                    rows = execute(curs, self.buildClearUpdate(event, clearcls))
-                    log.debug("%d events matched clear criteria", rows)
-                    if not rows:
-                        return None
-                    insert = ('insert into log '
-                              '(evid, userName, text) '
-                              'select evid, "admin", "auto cleared"'
-                              ' from status where clearid = "%s"'  % evid)
-                    execute(curs, insert)
-                    delete = 'DELETE FROM status WHERE clearid IS NOT NULL'
-                    execute(curs, delete)
-            stmt = self.buildStatusInsert(statusdata, event._action, evid)
-            rescount = execute(curs, stmt)
-            if detaildata and rescount == 1:
-                execute(curs, self.buildDetailInsert(evid, detaildata))
-            if rescount != 1:
-                sql = ('select evid from %s where dedupid="%s"' % (
-                        event._action, decode(self.dmd.Devices, event.dedupid)))
-                log.debug("%d events returned from insert -- selecting first match from %s.",
-                          rescount, sql)
-                execute(curs, sql)
-                rs = curs.fetchone()
-                if rs:
-                    evid = rs[0]
-                else:
-                    log.debug("No matches found")
-                    evid = None
-        finally:
-            self.close(conn)
-        log.debug("detail data after: %s", detaildata)
-
-        return evid
-
     def _publishEvent(self, event, detaildata):
         """
         Sends this event to the event fan out queue
@@ -390,69 +323,13 @@ class MySqlSendEventMixin:
             conn = self.connect()
             try:
                 curs = conn.cursor()
-                execute(curs, insert)
+                _execute(curs, insert)
             finally: self.close(conn)
         except ProgrammingError, e:
             log.error(insert)
             log.exception(e)
         except OperationalError, e:
             raise ZenBackendFailure(str(e))
-
-
-    def buildStatusInsert(self, statusdata, table, evid):
-        """
-        Build an insert statement for the status table that looks like this:
-        insert into status set device='box', count=1, ...
-            on duplicate key update count=count+1, lastTime=23424.34;
-
-        @param statusdata: event
-        @type statusdata: dictionary
-        @param table: name of the table to insert into
-        @type table: string
-        @param evid: event id
-        @type evid: string
-        @return: MySQL insert command string
-        @rtype: string
-        """
-        insert = self.buildInsert(statusdata, table)
-        fields = []
-        if table == "history":
-            fields.append("deletedTime=null")
-        fields.append("evid='%s'" % evid)
-        insert += ","+",".join(fields)
-        if table == self.statusTable:
-            insert += " on duplicate key update "
-            if statusdata.has_key('prodState'):
-                insert += "prodState=%d," % int(statusdata['prodState'])
-            insert += "summary='%s',message='%s',%s=%s+1,%s=%.3f" % (
-                        self.escape(decode(self.dmd.Devices, statusdata.get('summary',''))),
-                        self.escape(decode(self.dmd.Devices, statusdata.get('message', ''))),
-                        self.countField, self.countField,
-                        self.lastTimeField,statusdata['lastTime'])
-        return insert
-
-
-    def buildDetailInsert(self, evid, detaildict):
-        """
-        Build an insert to add detail values from an event to the details
-        table.
-
-        @param evid: event id
-        @type evid: string
-        @param detaildict: event
-        @type detaildict: dictionary
-        @return: MySQL insert command string
-        @rtype: string
-        """
-        insert = "insert into %s (evid, name, value) values " % self.detailTable
-        var = []
-        for field, value in detaildict.items():
-            if isinstance(value, basestring):
-                value = self.escape(decode(self.dmd.Devices, value))
-            var.append("('%s','%s','%s')" % (evid, field, value))
-        insert += ",".join(var)
-        return insert
-
 
     def buildInsert(self, datadict, table):
         """
@@ -477,34 +354,6 @@ class MySqlSendEventMixin:
                 fields.append("%s=%s" % (name, value))
         insert = str(insert) + str(','.join(fields))
         return insert
-
-    def buildClearUpdate(self, evt, clearcls):
-        """
-        Build an update statement that will clear related events.
-
-        @param evt: event
-        @type evt: Event class
-        @param clearcls: other fields to use to define 'related events'
-        @type clearcls: list of strings
-        @return: MySQL update command string
-        @rtype: string
-        """
-        update = "update %s " % self.statusTable
-        update += "set clearid = '%s' where " % evt.evid
-        w = []
-        w.append("%s='%s'" % (self.deviceField, self.escape(evt.device)))
-        w.append("%s='%s'" % (self.componentField,
-            self.escape(evt.component)[:255]))
-        w.append("eventKey='%s'" % self.escape(evt.eventKey)[:128])
-        update += " and ".join(w)
-
-        w = []
-        for cls in clearcls:
-            w.append("%s='%s'" % (self.eventClassField, self.escape(cls)))
-        if w:
-            update += " and (" + " or ".join(w) + ")"
-        log.debug("Clear command: %s", update)
-        return update
 
     def eventDataMaps(self, event):
         """
