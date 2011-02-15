@@ -49,14 +49,51 @@ class EventsRouter(DirectRouter):
         self.zep = getFacade('zep', context)
         self.api = getFacade('event', context)
 
+    def _findDetails(self, event):
+        """
+        Event details are created as a dictionary like the following:
+            detail = {
+                'name': 'zenoss.foo.bar',
+                'value': 'baz'
+            }
+        This method maps these detail items to a flat dictionary to facilitate
+        looking up details by key easier.
+
+        @rtype dict
+        """
+        details = {}
+        if 'details' in event:
+            for d in event['details']:
+                details[d['name']] = d['value']
+        return details
+
+
+    def _singleDetail(self, value):
+        """
+        A convenience method for fetching a single detail from a property which
+        correlates to a repeated field on the protobuf.
+        """
+        if isinstance(value, (tuple, list, set)) and value:
+            return value[0]
+
+
     def _mapToOldEvent(self, event_summary):
         eventOccurrence = event_summary['occurrence'][0]
         eventActor = eventOccurrence['actor']
 
         eventClass = eventOccurrence['event_class']
+
+        eventDetails = self._findDetails(eventOccurrence)
+
+        # TODO: Finish mapping out these properties.
+        notYetMapped = ''
         event = {
             'id' : event_summary['uuid'],
             'evid' : event_summary['uuid'],
+            'dedupid': eventOccurrence.get('fingerprint'),
+
+            'eventState' : EventStatus.getPrettyName(event_summary['status']),
+            'severity' : eventOccurrence['severity'],
             'device' : {
                 'text': eventActor.get('element_identifier'),
                 'uid': None,
@@ -69,26 +106,41 @@ class EventsRouter(DirectRouter):
                 'url' : self._uuidUrl(eventActor.get('element_sub_uuid')),
                 'uuid' : eventActor.get('element_sub_uuid')
             },
+            'eventClass' : {"text": eventClass, "uid": "/zport/dmd/Events%s" % eventClass},
+            'summary' : eventOccurrence['summary'],
             'firstTime' : isoDateTimeFromMilli(event_summary['first_seen_time']),
             'lastTime' : isoDateTimeFromMilli(event_summary['last_seen_time'] ),
-            'stateChange' : isoDateTimeFromMilli(event_summary['status_change_time']),
-            'eventClass' : {"text": eventClass, "uid": "/zport/dmd/Events%s" % eventClass},
-            'eventClassKey': eventOccurrence.get('event_class_key'),
-            'eventKey' : eventOccurrence.get('event_key'),
-            'summary' : eventOccurrence['summary'],
-            'message' : eventOccurrence.get('message'),
-            'severity' : eventOccurrence['severity'],
-            'eventState' : EventStatus.getPrettyName(event_summary['status']),
             'count' : event_summary['count'],
-            'ownerid': event_summary.get('acknowledged_by_user_name'),
-            'dedupid': eventOccurrence.get('fingerprint'),
+
+            'prodState' : self.context.convertProdState(self._singleDetail(eventDetails.get('zenoss.device.production_state'))),
+            'DevicePriority' : self.context.convertPriority(self._singleDetail(eventDetails.get('zenoss.device.priority'))),
+            'stateChange' : isoDateTimeFromMilli(event_summary['status_change_time']),
+            'eventClassKey': eventOccurrence.get('event_class_key'),
+            'eventGroup': eventOccurrence.get('event_group'),
+            'eventKey' : eventOccurrence.get('event_key'),
             'agent': eventOccurrence.get('agent'),
             'monitor': eventOccurrence.get('monitor'),
-            'eventGroup': eventOccurrence.get('event_group'),
-            'clearid': event_summary.get('cleared_by_event_uuid'),
+            'ownerid': event_summary.get('acknowledged_by_user_name'),
+            'facility' : eventOccurrence.get('syslog_facility'),
+            'priority' : notYetMapped, # need to map from protobuf enum to Pretty Name.
+            'eventClassMapping' : eventOccurrence.get('event_class_mapping_uuid'),
+            'clearid' : event_summary.get('cleared_by_event_uuid'),
+            'ntevid' : eventOccurrence.get('nt_event_code'),
+            'ipAddress' : notYetMapped, # will be a detail
+            'message' : eventOccurrence.get('message'),
+            'Location' : notYetMapped, # comes from tags property
+            'DeviceGroups' : notYetMapped, # comes from tags property
+            'Systems' : notYetMapped, # comes from tags property
+            'DeviceClass' : notYetMapped, # comes from tags property
         }
 
+        # make custom details actually show up. This does not include the manually
+        # mapped zenoss details.
+        for d in self.zep.getUnmappedDetails():
+            event[d['key']] = eventDetails.get(d['key'])
+
         return event
+
 
     def _timeRange(self, value):
         values = []
@@ -206,6 +258,13 @@ class EventsRouter(DirectRouter):
             log.debug('logging params for building filter: %s', params)
             params = loads(params)
 
+
+            # params comes from the grid's filtering column -
+            # some of these properties are normal properties on an event
+            # while others are considered event details. Separate the
+            # two here.
+            params, details = self.zep.parseParameterDetails(params)
+
             filterEventUuids = []
 
             # No specific event uuids passed in-
@@ -249,7 +308,10 @@ class EventsRouter(DirectRouter):
 
                 # 'tags' comes from managed object guids.
                 # see Zuul/security/security.py
-                tags = params.get('tags')
+                tags = params.get('tags'),
+
+                details = details
+
             )
             log.debug('Found params for building filter, ended up building  the following:')
             log.debug(event_filter)
@@ -292,6 +354,9 @@ class EventsRouter(DirectRouter):
     def _mapToDetailEvent(self, event_summary):
         eventOccurrence = event_summary['occurrence'][0]
         eventClass = eventOccurrence['event_class']
+        
+
+        # TODO: Update this mapping to more reflect _mapToOldEvent.
         eventData = {
             'evid':event_summary['uuid'],
             'device':eventOccurrence['actor'].get('element_identifier', None),

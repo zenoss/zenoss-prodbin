@@ -920,6 +920,7 @@ Zenoss.FilterGridView = Ext.extend(Ext.ux.grid.livegrid.GridView, {
             fieldid = c.id;
             id = 'filtergrid-' + gridId + '_' + fieldid;
             config = this.cm.config[i].filter;
+            enable_filtering = this.cm.config[i].sortable;
             if (config===false) {
                 config = {xtype: 'panel', reset: function(){},
                           getValue: function(){}};
@@ -928,6 +929,11 @@ Zenoss.FilterGridView = Ext.extend(Ext.ux.grid.livegrid.GridView, {
             } else if (!config) {
                 config = {xtype:'textfield'};
             }
+
+            if (enable_filtering !== true) {
+                config.disabled = true;
+            }
+
             Ext.apply(config, {
                 id:fieldid,
                 enableKeyEvents: true,
@@ -2024,7 +2030,6 @@ Zenoss.util.render_linkable = function(name, col, record) {
 
 
 Zenoss.util.render_device_group_link = function(name, col, record) {
-
     var links = record.data.DeviceGroups.split('|'),
         returnString = "",
         link = undefined;

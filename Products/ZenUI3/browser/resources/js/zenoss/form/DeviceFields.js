@@ -40,6 +40,22 @@
 
     Ext.reg('PriorityCombo', ZD.PriorityCombo);
 
+    ZD.DevicePriorityMultiselectMenu = Ext.extend(Zenoss.MultiselectMenu, {
+        constructor: function(config) {
+            config = Ext.apply(config || {}, {
+                text:'...',
+                store: new Ext.data.DirectStore({
+                    directFn: Zenoss.remote.DeviceRouter.getPriorities,
+                    root: 'data',
+                    fields: ['name', 'value']
+                }),
+                defaultValues: []
+            });
+            ZD.DevicePriorityMultiselectMenu.superclass.constructor.call(this, config);
+        }
+    });
+
+    Ext.reg('multiselect-devicepriority', ZD.DevicePriorityMultiselectMenu);
 
     ZD.ProductionStateCombo = Ext.extend(Ext.form.ComboBox, {
         constructor: function(config) {

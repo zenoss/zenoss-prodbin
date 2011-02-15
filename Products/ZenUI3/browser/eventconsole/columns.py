@@ -33,78 +33,54 @@ from zenoss.protocols.protobufs.zep_pb2 import (
     SEVERITY_WARNING
 )
 
-COLUMN_CONFIG = {
 
-    'dedupid'   : dict(
-        header='Deduplication ID',
-        filter='textfield'),
+
+__doc__="""
+
+The COLUMN_CONFIG dictionary contains the full definitions for all of
+the columns that show up in grids. The following definition covers all
+of the 'base' Zenoss properties. This dictionary is augmented later to
+add any new or custom fields that ZenPacks provide. When new event
+details are added via zenpacks, they will show up as custom details.
+
+These details are added to the grid with the following specifications:
+
+    header = item.name
+    filter = 'textfield'
+    sortable = True
+
+The 'id' and 'dataIndex' properties of each column are taken from the
+string in the DEFAULT_COLUMN_ORDER list. The key in the COLUMN_CONFIG
+dictionary should match one of these entries exactly. When columns are
+being parsed, the following properties are supported:
+
+    sortable    : Defaults to False.
+    hidden      : Defaults to False if not present in the DEFAULT_COLUMNS
+                  list.
+    filter      : If present, will be rendered as: `{'xtype': filter}`.
+    renderer    : If present, it is expected to be a Javascript class.
+
+The definitions for columns may also specify a 'field_definition' column
+that specifies how the field is parsed in the UI. This should be a json
+object string like the following:
+
+    field_definition= "{name:'stateChange', type:'date', dateFormat:Zenoss.date.ISO8601Long}"
+
+"""
+COLUMN_CONFIG = {
 
     'evid'      : dict(
         header='Event ID',
         filter='textfield',
         sortable=True),
 
-    'device'    : dict(
-        header='Device',
+    'dedupid'   : dict(
+        header='Deduplication ID',
         filter='textfield',
-        renderer='Zenoss.render.linkFromGrid',
-        sortable=True),
-
-    'component' : dict(
-        header='Component',
-        filter='textfield',
-        renderer='Zenoss.render.linkFromGrid',
-        sortable=True),
-
-    'eventClass': dict(
-        header='Event Class',
-        filter='textfield',
-        renderer='Zenoss.render.linkFromGrid',
-        sortable=True),
-
-    'eventKey'  : dict(
-        header='Event Key',
-        filter='textfield'),
-
-    'summary'   : dict(
-        header='Summary',
-        filter='textfield',
-        sortable=True),
-
-    'message'   : dict(
-        header='Message',
-        filter='textfield'),
-
-    'severity'  : dict(
-        header='Severity',
-        width=60,
         sortable=True,
-        filter={
-            'xtype':'multiselectmenu',
-            'text':'...',
-            'source': [{
-                'value': SEVERITY_CRITICAL,
-                'name': 'Critical'
-            },{
-                'value': SEVERITY_ERROR,
-                'name': 'Error'
-            },{
-                'value': SEVERITY_WARNING,
-                'name': 'Warning'
-            },{
-                'value': SEVERITY_INFO,
-                'name':'Info'
-            },{
-                'value': SEVERITY_DEBUG,
-                'name':'Debug',
-                'checked':False
-            },{
-                'value': SEVERITY_CLEAR,
-                'name':'Clear',
-                'checked':False
-            }]
-        },
-        renderer='Zenoss.util.render_severity'),
+        ),
+
+
 
     'eventState': dict(
         header='Status',
@@ -144,23 +120,61 @@ COLUMN_CONFIG = {
         },
         renderer='Zenoss.util.render_status'),
 
-    'eventClassKey': dict(
-        header='Event Class Key',
-        filter='textfield'),
-
-    'eventGroup': dict(
-        header='Event Group',
-        filter='textfield'),
-
-    'stateChange': dict(
-        header='State Change',
+    'severity'  : dict(
+        header='Severity',
+        width=60,
         sortable=True,
         filter={
-            'xtype':'datefield',
-            'format':'Y-m-d H:i:s'
+            'xtype':'multiselectmenu',
+            'text':'...',
+            'source': [{
+                'value': SEVERITY_CRITICAL,
+                'name': 'Critical'
+            },{
+                'value': SEVERITY_ERROR,
+                'name': 'Error'
+            },{
+                'value': SEVERITY_WARNING,
+                'name': 'Warning'
+            },{
+                'value': SEVERITY_INFO,
+                'name':'Info'
+            },{
+                'value': SEVERITY_DEBUG,
+                'name':'Debug',
+                'checked':False
+            },{
+                'value': SEVERITY_CLEAR,
+                'name':'Clear',
+                'checked':False
+            }]
         },
-        width=120,
-        renderer='Ext.util.Format.dateRenderer(Zenoss.date.ISO8601Long)'),
+        renderer='Zenoss.util.render_severity',
+        field_definition = "{name:'severity',type:'int'}"
+    ),
+
+    'device'    : dict(
+        header='Device',
+        filter='textfield',
+        renderer='Zenoss.render.linkFromGrid',
+        sortable=True),
+
+    'component' : dict(
+        header='Component',
+        filter='textfield',
+        renderer='Zenoss.render.linkFromGrid',
+        sortable=True),
+
+    'eventClass': dict(
+        header='Event Class',
+        filter='textfield',
+        renderer='Zenoss.render.linkFromGrid',
+        sortable=True),
+
+    'summary'   : dict(
+        header='Summary',
+        filter='textfield',
+        sortable=True),
 
     'firstTime' : dict(
         header='First Seen',
@@ -170,7 +184,9 @@ COLUMN_CONFIG = {
             'format':'Y-m-d H:i:s'
         },
         width=120,
-        renderer='Ext.util.Format.dateRenderer(Zenoss.date.ISO8601Long)'),
+        renderer='Ext.util.Format.dateRenderer(Zenoss.date.ISO8601Long)',
+        field_definition = "{name:'firstTime',type:'date',dateFormat:Zenoss.date.ISO8601Long}"
+    ),
 
     'lastTime'  : dict(
         header='Last Seen',
@@ -180,7 +196,9 @@ COLUMN_CONFIG = {
             'format':'Y-m-d H:i:s'
         },
         width=120,
-        renderer='Ext.util.Format.dateRenderer(Zenoss.date.ISO8601Long)'),
+        renderer='Ext.util.Format.dateRenderer(Zenoss.date.ISO8601Long)',
+        field_definition="{name:'lastTime', type:'date',dateFormat:Zenoss.date.ISO8601Long}"
+    ),
 
     'count'     : dict(
         header='Count',
@@ -189,77 +207,59 @@ COLUMN_CONFIG = {
         filter={
             'xtype': 'textfield',
             'vtype': 'numcmp'
-        }
+        },
+        field_definition = "{name:'count',type:'int'}"
     ),
+
+
 
     'prodState' : dict(
         header='Production State',
+        sortable=True,
         filter={
             'xtype':'multiselect-prodstate'
         }),
+
+    'DevicePriority': dict(
+        header='Device Priority',
+        sortable=True,
+        filter={
+            'xtype':'multiselect-devicepriority'
+        }),
+
+    'stateChange': dict(
+        header='State Change',
+        sortable=True,
+        filter={
+            'xtype':'datefield',
+            'format':'Y-m-d H:i:s'
+        },
+        width=120,
+        renderer='Ext.util.Format.dateRenderer(Zenoss.date.ISO8601Long)',
+        field_definition="{name:'stateChange', type:'date',dateFormat:Zenoss.date.ISO8601Long}"
+    ),
+
+    'eventClassKey': dict(
+        header='Event Class Key',
+        filter='textfield'),
+
+    'eventGroup': dict(
+        header='Event Group',
+        filter='textfield'),
+
+    'eventKey'  : dict(
+        header='Event Key',
+        filter='textfield'),
 
     'agent'     : dict(
         header='Agent',
         filter='textfield',
         sortable=True),
 
-    'DeviceClass': dict(
-        header='Device Class',
+    'monitor': dict(
+        header='Collector',
         filter='textfield',
-        renderer='Zenoss.render.linkFromGrid'
-        ),
-
-    'Location'  : dict(
-        header='Location',
-        filter='textfield',
-        renderer='Zenoss.render.linkFromGrid'
-        ),
-
-    'Systems'   : dict(
-        header='Systems',
-        filter='textfield'),
-
-    'DeviceGroups': dict(
-        header='Groups',
-        filter='textfield',
-        renderer='Zenoss.util.render_device_group_link'),
-
-    'ipAddress' : dict(
-        header='IP Address',
-        filter='textfield'),
-
-    'facility' : dict(
-        header='Facility',
-        filter='textfield'),
-
-    'priority' : dict(
-        header='Priority',
-        filter={
-            'xtype':'multiselectmenu',
-            'source':[{
-                'value':5,
-                'name':'Highest'
-            },{
-                'value':4,
-                'name':'High'
-            },{
-                'value':3,
-                'name':'Normal'
-            },{
-                'value':2,
-                'name':'Low'
-            },{
-                'value':1,
-                'name':'Lowest'
-            },{
-                'value':0,
-                'name':'Trivial'
-            }]
-        }),
-
-    'ntevid': dict(
-        header='NT Event ID',
-        filter='textfield'),
+        sortable=True),
 
     'ownerid': dict(
         header='Owner',
@@ -267,23 +267,65 @@ COLUMN_CONFIG = {
         sortable=True
     ),
 
-    'clearid': dict(
-        header='Clear ID',
+    'facility' : dict(
+        header='Facility',
+        sortable=False,
         filter='textfield'),
 
-    'DevicePriority': dict(
-        header='Device Priority',
+    'priority' : dict(
+        header='Priority',
+        sortable=False,
         filter='textfield'),
 
     'eventClassMapping': dict(
         header='Event Class Mapping',
+        sortable=False,
         filter='textfield'),
 
-    'monitor': dict(
-        header='Collector',
+    'clearid': dict(
+        header='Clear ID',
+        filter='textfield'),
+
+    'ntevid': dict(
+        header='NT Event ID',
+        sortable=False,
+        filter='textfield'),
+
+    'ipAddress' : dict(
+        header='IP Address',
+        sortable=False,
+        filter='textfield'),
+
+    'message'   : dict(
+        header='Message',
+        filter='textfield'),
+
+    'Location'  : dict(
+        header='Location',
+        sortable=False,
         filter='textfield',
-        sortable=True)
+        #renderer='Zenoss.render.linkFromGrid'
+        ),
+
+    'DeviceGroups': dict(
+        header='Groups',
+        sortable=False,
+        filter='textfield',
+        renderer='Zenoss.util.render_device_group_link'),
+
+    'Systems'   : dict(
+        header='Systems',
+        sortable=False,
+        filter='textfield'),
+
+    'DeviceClass': dict(
+        header='Device Class',
+        sortable=False,
+        filter='textfield',
+        #renderer='Zenoss.render.linkFromGrid'
+        ),
 }
+
 
 ARCHIVE_COLUMN_CONFIG = copy.deepcopy(COLUMN_CONFIG)
 ARCHIVE_COLUMN_CONFIG['eventState']['filter'] = {
@@ -373,5 +415,6 @@ DEFAULT_COLUMN_ORDER = [
     'Location',
     'DeviceGroups',
     'Systems',
-    'DeviceClass',
+    'DeviceClass'
 ]
+

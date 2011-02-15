@@ -21,7 +21,7 @@ from Products.ZenEvents.ZenEventClasses import Unknown
 import pkg_resources
 from zenoss.protocols.services.zep import ZepServiceClient, EventSeverity, ZepConfigClient
 from zenoss.protocols.jsonformat import to_dict, from_dict
-from zenoss.protocols.protobufs.zep_pb2 import EventSort, EventFilter, EventSummaryUpdateRequest
+from zenoss.protocols.protobufs.zep_pb2 import EventSort, EventFilter, EventSummaryUpdateRequest, EventDetailItem
 from zenoss.protocols.protobufutil import listify
 from Products.ZenUtils.GlobalConfig import getGlobalConfiguration
 from Products.ZenUtils.guid.interfaces import IGlobalIdentifier
@@ -58,15 +58,25 @@ class ZepFacade(ZuulFacade):
         'asc' : EventSort.ASCENDING,
         'desc' : EventSort.DESCENDING,
     }
+
+    ZENOSS_DETAIL_MAPPING = {
+        'prodState' : 'zenoss.device.production_state',
+        'DevicePriority' : 'zenoss.device.priority',
+    }
+    ZENOSS_DETAIL_KEYS = (ZENOSS_DETAIL_MAPPING.values())
+
     
     def __init__(self, context):
         super(ZepFacade, self).__init__(context)
 
         self._details = None
+        self._detailsMap = None
+        self._unmappedDetails = None
         config = getGlobalConfiguration()
         zep_url = config.get('zep_uri', 'http://localhost:8084')
         self.client = ZepServiceClient(zep_url)
         self.configClient = ZepConfigClient(zep_url)
+        self.initDetails();
 
     def createEventFilter(self,
         severity=(),
@@ -86,8 +96,8 @@ class ZepFacade(ZuulFacade):
         monitor=(),
         acknowledged_by_user_name=(),
         subfilter=(),
-        operator=None):
-        # no details?
+        operator=None,
+        details=None):
 
         filter = {}
 
@@ -155,13 +165,41 @@ class ZepFacade(ZuulFacade):
         if subfilter:
             filter['subfilter'] = subfilter
 
-        # Everything's repeated on the protobuf except operator, so listify
+        if details:
+            filter['details'] = self._createEventDetailFilter(details)
+
+
+        # Everything's repeated on the protobuf, so listify
         result = dict((k, listify(v)) for k,v in filter.iteritems())
+
         if operator:
             result['operator'] = operator
 
         return result
 
+    
+    def _createEventDetailFilter(self, details):
+        """
+        @param details: All details present in this filter request.
+
+        Example: {
+            'zenoss.device.production_state' = 4,
+            'zenoss.device.priority' : 2
+        }
+
+        @type details: dict
+        """
+        
+        detailFilterItems = []
+
+        for key, val in details.iteritems():
+            detailFilterItems.append({
+               'key': key,
+                'value': val,
+            })
+                
+        log.debug('Final detail filter: %r' % detailFilterItems)
+        return detailFilterItems
 
     def _timeRange(self, timeRange):
         d = {
@@ -175,9 +213,10 @@ class ZepFacade(ZuulFacade):
 
     def _getEventSummaries(self, source, offset, limit=100, keys=None, sort=None, filter=None):
         filterBuf = None
+
         if filter:
             filterBuf = from_dict(EventFilter, filter)
-
+        
         eventSort = None
         if sort:
             if isinstance(sort, (list, tuple)):
@@ -185,17 +224,22 @@ class ZepFacade(ZuulFacade):
                 if isinstance(sort[0], (list,tuple)):
                     eventSort = []
                     for s in sort:
-                        eventSort.append(from_dict(EventSort, {
-                            'field' : self.SORT_MAP[s[0].lower()],
-                            'direction' : self.SORT_DIRECTIONAL_MAP[s[1].lower()]
-                        }))
+                        if s[0].lower() in self.SORT_MAP:
+                            eventSort.append(from_dict(EventSort, {
+                                'field' : self.SORT_MAP[s[0].lower()],
+                                'direction' : self.SORT_DIRECTIONAL_MAP[s[1].lower()]
+                            }))
+
                 else:
-                    eventSort = from_dict(EventSort, {
-                        'field' : self.SORT_MAP[sort[0].lower()],
-                        'direction' : self.SORT_DIRECTIONAL_MAP[sort[1].lower()]
-                    })
+                    if sort[0].lower() in self.SORT_MAP:
+                        eventSort = from_dict(EventSort, {
+                            'field' : self.SORT_MAP[sort[0].lower()],
+                            'direction' : self.SORT_DIRECTIONAL_MAP[sort[1].lower()]
+                        })
             else:
-                eventSort = from_dict(EventSort, { 'field' : self.SORT_MAP[sort.lower()] })
+                if sort.lower() in self.SORT_MAP:
+                    eventSort = from_dict(EventSort, { 'field' : self.SORT_MAP[sort.lower()] })
+
 
         response, content = source(offset=offset, limit=limit, keys=keys, sort=eventSort, filter=filterBuf)
         return {
@@ -415,13 +459,53 @@ class ZepFacade(ZuulFacade):
             return self._createSeveritiesDict(content, uuids)
 
 
+    def initDetails(self):
+        response, content = self.configClient.getDetails()
+        self._details = content
+        self._unmappedDetails = [d for d in self.getDetails() if d['key'] not in self.ZENOSS_DETAIL_KEYS]
+
+        self._detailsMap = {}
+        for detail_item in self.getDetails():
+            self._detailsMap[detail_item['key']] = detail_item['name']
+
     def getDetails(self):
         """
         Retrieve all of the indexed detail items.
 
-        @rtype zenoss.protocols.protobufs.zep_pb2.EventDetailResponse
+        @rtype zenoss.protocols.protobufs.zep_pb2.EventDetailSet
         """
-        if self._details is None:
-            response, content = self.client.getDetails()
-            self._details = content
-        return self._details
+        return self._details['details']
+
+    def getUnmappedDetails(self):
+        """
+        Return only non-zenoss details. This is used to get details that will not be mapped to another key.
+        (zenoss.device.production_state maps back to prodState, so will be excluded here)
+        """
+        return self._unmappedDetails
+
+    def getDetailsMap(self):
+        """
+        Return a mapping of detail keys to detail names.
+        """
+        return self._detailsMap
+
+    def parseParameterDetails(self, parameters):
+        """
+        Given grid parameters, split into keys that are details and keys that are other parameters.
+        """
+
+        params = {}
+        details = {}
+
+        detail_keys = self.getDetailsMap().keys()
+        for k, v in parameters.iteritems():
+
+            if k in self.ZENOSS_DETAIL_MAPPING:
+                k = self.ZENOSS_DETAIL_MAPPING[k]
+                
+            if k in detail_keys:
+                details[k] = v
+            else:
+                params[k] = v
+
+        return params, details

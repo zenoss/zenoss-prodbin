@@ -19,9 +19,14 @@ _ = MessageFactory('zenoss')
 from Products.Five.browser import BrowserView
 from Products.Five.browser.pagetemplatefile import ViewPageTemplateFile
 
+from Products.Zuul import getFacade
+
 from Products.ZenUtils.jsonutils import JavaScript, javascript
 from Products.ZenUI3.utils.javascript import JavaScriptSnippet
 from Products.ZenUI3.browser.eventconsole.columns import COLUMN_CONFIG, ARCHIVE_COLUMN_CONFIG, DEFAULT_COLUMN_ORDER, DEFAULT_COLUMNS
+
+import logging
+log = logging.getLogger('zep.grid')
 
 class EventConsoleView(BrowserView):
     __call__ = ViewPageTemplateFile('view-events.pt')
@@ -31,13 +36,75 @@ class HistoryConsoleView(BrowserView):
     __call__ = ViewPageTemplateFile('view-history-events.pt')
 
 
-def column_config(request=None, archive=False):
+
+def _find_column_fields():
+    """
+    Given a list of event details that are being indexed by ZEP,
+    add any custom fields to the default column list.
+
+    TODO: We need to map these details to the old property names.
+    """
+    details = getFacade('zep').getUnmappedDetails()
+    for item in details:
+        if item['key'] not in DEFAULT_COLUMN_ORDER:
+            DEFAULT_COLUMN_ORDER.append(item['key'])
+
+    return DEFAULT_COLUMN_ORDER
+
+
+def _find_column_definitions(archive=False):
+    """
+    Given a list of event details that are being indexed by ZEP,
+    add any custom fields to the list of column definitions.
+    
+    TODO: We need to map these details to the old property names.
+    """
+
     columns = COLUMN_CONFIG
     if archive:
         columns = ARCHIVE_COLUMN_CONFIG
 
-    defs = []
-    for field in DEFAULT_COLUMN_ORDER:
+    details = getFacade('zep').getUnmappedDetails()
+    for item in details:
+
+        # add or update anything that already exists in our column definition
+        # with the result from ZEP. This will override known columns and create
+        # new column definitions for new custom fields. The id for these columns
+        # is implied from the key used to store in columns.
+        columns[item['key']] = dict(
+            header = item['name'],
+            filter = 'textfield',
+            sortable = True,
+        )
+
+        
+
+    return columns
+
+
+def reader_config(archive=False):
+    columns = _find_column_definitions(archive)
+
+    readerFields = []
+    fields = _find_column_fields()
+    for field in fields:
+        # If the column definition also has a property for defining the field on
+        # the reader, use that. If not, we have to just use the defaults.
+        if 'field_definition' in columns[field]:
+            col = JavaScript(columns[field]['field_definition'])
+        else:
+            col = field
+        readerFields.append(javascript(col))
+    return readerFields
+
+
+
+def column_config(request=None, archive=False):
+    columns = _find_column_definitions(archive)
+
+    column_definitions = []
+    fields = _find_column_fields()
+    for field in fields:
         col = columns[field].copy()
         if request:
             msg = _(col['header'])
@@ -52,9 +119,8 @@ def column_config(request=None, archive=False):
         if 'renderer' in col:
             col['renderer'] = JavaScript(col['renderer'])
 
-        s = javascript(col)
-        defs.append(s)
-    return defs
+        column_definitions.append(javascript(col))
+    return column_definitions
 
 
 class EventClasses(JavaScriptSnippet):
@@ -79,9 +145,17 @@ class GridColumnDefinitions(JavaScriptSnippet):
         result = ["Ext.onReady(function(){"]
 
         defs = column_config(self.request, archive=archive)
+
+        reader_fields = reader_config(archive=archive)
+
         result.append('Zenoss.env.COLUMN_DEFINITIONS=[')
         result.append(',\n'.join(defs))
         result.append('];')
+
+        result.append('Zenoss.env.READER_DEFINITIONS=[')
+        result.append(',\n'.join(reader_fields))
+        result.append('];')
+
 
         result.append("Zenoss.env.EVENT_AUTO_EXPAND_COLUMN='summary';")
 
