@@ -14,7 +14,7 @@
 __doc__="""DataRoot
 
 DataRoot is the object manager which contains all confmon
-data objects.  It can be used as a global acquisition 
+data objects.  It can be used as a global acquisition
 name space.
 """
 
@@ -32,6 +32,7 @@ from Products.ZenModel.ZenMenuable import ZenMenuable
 from Products.ZenRelations.RelSchema import *
 from Products.ZenUtils.IpUtil import IpAddressError
 from Products.ZenWidgets import messaging
+from Products.ZenUtils.Security import activateSessionBasedAuthentication, activateCookieBasedAuthentication
 from Commandable import Commandable
 import socket
 import os
@@ -94,6 +95,12 @@ class DataRoot(ZenModelRM, OrderedFolder, Commandable, ZenMenuable):
     geocache = ''
     version = ""
 
+    # how we should store our user credentials
+    AUTH_TYPE_SESSION = "session"
+    AUTH_TYPE_COOKIE = "cookie"
+    userAuthType = AUTH_TYPE_SESSION
+
+
     _properties=(
         {'id':'title', 'type': 'string', 'mode':'w'},
         {'id':'prodStateDashboardThresh','type':'int','mode':'w'},
@@ -118,7 +125,9 @@ class DataRoot(ZenModelRM, OrderedFolder, Commandable, ZenMenuable):
         {'id':'smtpUseTLS', 'type': 'int', 'mode':'w'},
         {'id':'emailFrom', 'type': 'string', 'mode':'w'},
         {'id':'geomapapikey', 'type': 'string', 'mode':'w'},
+        {'id':'userAuthType', 'type': 'string', 'mode':'w'},
         {'id':'geocache', 'type': 'string', 'mode':'w'},
+
         )
 
     _relations =  (
@@ -201,7 +210,7 @@ class DataRoot(ZenModelRM, OrderedFolder, Commandable, ZenMenuable):
 
     # production state threshold at which devices show on dashboard
     prodStateDashboardThresh = 1000
-    
+
     # priority threshold at which devices show on dashboard
     priorityDashboardThresh = 2
 
@@ -245,7 +254,7 @@ class DataRoot(ZenModelRM, OrderedFolder, Commandable, ZenMenuable):
         "Tester",
     )
 
-    defaultDateRange = 129600 
+    defaultDateRange = 129600
     performanceDateRanges = [
         ('Hourly',129600,),
         ('Daily',864000,),
@@ -291,15 +300,15 @@ class DataRoot(ZenModelRM, OrderedFolder, Commandable, ZenMenuable):
 
     def exportXmlHook(self,ofile, ignorerels):
         map(lambda x: x.exportXml(ofile, ignorerels), self.getDmdRoots())
-            
-    
+
+
     security.declareProtected(ZEN_COMMON, 'getProdStateConversions')
     def getProdStateConversions(self):
-        """getProdStateConversions() -> return a list of tuples 
+        """getProdStateConversions() -> return a list of tuples
         for prodstat select edit box"""
         return self.getConversions(self.prodStateConversions)
 
-    
+
     security.declareProtected(ZEN_COMMON, 'convertProdState')
     def convertProdState(self, prodState):
         '''convert a numeric production state to a
@@ -350,7 +359,7 @@ class DataRoot(ZenModelRM, OrderedFolder, Commandable, ZenMenuable):
     security.declareProtected(ZEN_COMMON, 'convertStatusToDot')
     def convertStatusToDot(self, status):
         colors = ['green', 'yellow', 'orange', 'red']
-        try: 
+        try:
             return colors[status]
         except IndexError:
             return 'grey'
@@ -397,7 +406,7 @@ class DataRoot(ZenModelRM, OrderedFolder, Commandable, ZenMenuable):
     def getAllUserGroups(self):
         return self.acl_users.getGroups()
 
-    
+
     security.declareProtected(ZEN_VIEW, 'zenoss_error_message')
     def zenoss_error_message(self,error_type,error_value,
                             error_traceback,error_message):
@@ -463,7 +472,7 @@ class DataRoot(ZenModelRM, OrderedFolder, Commandable, ZenMenuable):
         '''Write out csv rows with the given objects and fields.
         If out is not None then call out.write() with the result and return None
         otherwise return the result.
-        Each item in fieldsAndLabels is either a string representing a 
+        Each item in fieldsAndLabels is either a string representing a
          field/key/index (see getDataField) or it is a tuple of (field, label)
          where label is the string to be used in the first row as label
          for that column.
@@ -523,11 +532,11 @@ class DataRoot(ZenModelRM, OrderedFolder, Commandable, ZenMenuable):
         a UserCommand should be executed.
         '''
         raise NotImplemented
-        
-        
+
+
     def getUrlForUserCommands(self):
         return self.getPrimaryUrlPath() + '/dataRootManage'
-        
+
 
     def getEmailFrom(self):
         ''' Return self.emailFrom or a suitable default
@@ -613,21 +622,21 @@ class DataRoot(ZenModelRM, OrderedFolder, Commandable, ZenMenuable):
             obj = self.Networks.getNet(objid)
         if not obj:
             return '<graph><Start name="%s"/></graph>' % objid
-        return obj.getXMLEdges(int(depth), filter, 
+        return obj.getXMLEdges(int(depth), filter,
                                start=(obj.id,obj.getPrimaryUrlPath()))
 
 
     security.declareProtected(ZEN_MANAGE_DMD, 'getBackupFilesInfo')
     def getBackupFilesInfo(self):
         """
-        Retrieve a list of dictionaries describing the files in 
+        Retrieve a list of dictionaries describing the files in
         $ZENHOME/backups.
         """
         import stat
         import os
         import datetime
         import operator
-                
+
         def FmtFileSize(size):
             for power, units in ((3, 'GB'), (2, 'MB'), (1, 'KB')):
                 if size > pow(1024, power):
@@ -664,7 +673,7 @@ class DataRoot(ZenModelRM, OrderedFolder, Commandable, ZenMenuable):
         """
         Create a new backup file using zenbackup and the options specified
         in the request.
-        
+
         This method makes use of the fact that DataRoot is a Commandable
         in order to use Commandable.write
         """
@@ -672,7 +681,7 @@ class DataRoot(ZenModelRM, OrderedFolder, Commandable, ZenMenuable):
         import fcntl
         import time
         import select
-        
+
         def write(s):
             if writeMethod:
                 writeMethod(s)
@@ -682,7 +691,7 @@ class DataRoot(ZenModelRM, OrderedFolder, Commandable, ZenMenuable):
         footer = None
         if REQUEST and not writeMethod:
             header, footer = self.commandOutputTemplate().split('OUTPUT_TOKEN')
-            REQUEST.RESPONSE.write(str(header))        
+            REQUEST.RESPONSE.write(str(header))
         write('')
         try:
             cmd = binPath('zenbackup') + ' -v10'
@@ -713,7 +722,7 @@ class DataRoot(ZenModelRM, OrderedFolder, Commandable, ZenMenuable):
                     # but the conditional below seems to be necessary.
                     if t:
                         write(t)
-                    
+
             if child.poll() == -1:
                 write('Backup timed out after %s seconds.' % timeout)
                 import signal
@@ -788,8 +797,8 @@ class DataRoot(ZenModelRM, OrderedFolder, Commandable, ZenMenuable):
         elif error.type in [ pythonThresholdException, rpnThresholdException ]:
             msg= error.value
 
-        else: 
-            raise 
+        else:
+            raise
 
         return '<b class="errormsg">%s</b>' % msg
 
@@ -807,6 +816,20 @@ class DataRoot(ZenModelRM, OrderedFolder, Commandable, ZenMenuable):
         """
         return self.About.getZenossVersion().full().replace(
             'Zenoss','').replace(' ','').replace('.','')
+
+    security.declareProtected('Manage DMD', 'zmanage_editProperties')
+    def zmanage_editProperties(self, REQUEST=None, redirect=False):
+        """Handle our authentication mechanism
+        """
+        if REQUEST:
+            app = self.unrestrictedTraverse('/')
+            if REQUEST.get('userAuthType') == self.AUTH_TYPE_SESSION:
+                activateSessionBasedAuthentication(self.zport)
+                activateSessionBasedAuthentication(app) # for admin
+            elif REQUEST.get('userAuthType') == self.AUTH_TYPE_COOKIE:
+                activateCookieBasedAuthentication(self.zport)
+                activateCookieBasedAuthentication(app) # for admin
+        return super(DataRoot, self).zmanage_editProperties(REQUEST, redirect)
 
 
 InitializeClass(DataRoot)

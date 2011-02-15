@@ -33,12 +33,12 @@ loader.insert();
 </script>
 
 <form method=post tal:attributes="action string:${here/absolute_url_path}">
-<input type="hidden" name="zenScreenName" tal:attributes="value string:editSettings" /> 
-<input type="hidden" name="redirect" value="true"/> 
+<input type="hidden" name="zenScreenName" tal:attributes="value string:editSettings" />
+<input type="hidden" name="redirect" value="true"/>
 
 
         <tal:block tal:define="message request/message | string:State at time:;
-	    noselectionbar python:True;
+        noselectionbar python:True;
             tabletitle string:${message} ${here/getNowString}">
         <tal:block metal:use-macro="here/zenuimacros/macros/zentable">
 
@@ -54,7 +54,7 @@ loader.insert();
 
         <tal:block metal:fill-slot="zentablecontents">
         <!-- BEGIN TABLE CONTENTS -->
-            
+
     <tr class="even">
         <td class="noselect tableheader" align="left">Instance Identifier</td>
         <td class="tablevalues">
@@ -82,7 +82,7 @@ loader.insert();
         <input class="tablevalues" autocomplete="off" title="Use this only if authentication is required" type="text" name="smtpUser"
             tal:attributes="value here/smtpUser|string:" />
       </td>
-    </tr>    
+    </tr>
     <tr class="even">
       <td class="noselect tableheader" title="Use this only if authentication is required" align="left">SMTP Password (blank for none)</td>
       <td class="tablevalues">
@@ -128,7 +128,7 @@ loader.insert();
             tal:attributes="value here/priorityDashboardThresh" />
       </td>
     </tr>
-        
+
     <tr class="even">
       <td class="noselect tableheader" title="" align="left">State Conversions</td>
       <td class="tablevalues">
@@ -172,7 +172,7 @@ loader.insert();
       </td>
     </tr>
     <tr class="odd">
-     <td class="tableheader" align="left">Google Maps API Key 
+     <td class="tableheader" align="left">Google Maps API Key
          <a href="javascript:popupMapHelp()" style="font-size:80%">Help</a>
      </td>
      <td class="tablevalues">
@@ -180,22 +180,51 @@ loader.insert();
            tal:attributes="value here/geomapapikey"/>
      </td>
    </tr>
+   <tr class="even">
+        <td class="tableheader">Authentication <br /> <i>You will have to log off for this setting to take effect.</i></td>
+        <td class="tablevalues" align="left">
+            <input class="tablevalues"
+                   name="userAuthType"
+                   id="cookieAuthentication"
 
-    <tr class="even">
+                   group="session"
+                   type="radio"
+                   tal:attributes="checked python:here.userAuthType == here.AUTH_TYPE_COOKIE;
+                                   value here/AUTH_TYPE_COOKIE"
+                   />
+            <label for="cookieAuthentication">
+              Cookie-based Authentication
+            </label>
+            <br />
+            <input class="tablevalues"
+                   name="userAuthType"
+                   id="sessionAuthentication"
+                   group="session"
+                   tal:attributes="checked python:here.userAuthType == here.AUTH_TYPE_SESSION;
+                                   value here/AUTH_TYPE_SESSION"
+                   type="radio" />
+            <label for="sessionAuthentication">
+              Session-based Authentication (More Secure)
+            </label>
+        </td>
+    </tr>
+    <tr class="odd">
         <td class="tableheader"></td>
         <td class="tableheader" align="left">
-            <input class="tableheader" type="submit" value=" Save " 
+            <input class="tableheader" type="submit" value=" Save "
                 name="zmanage_editProperties:method" />
         </td>
     </tr>
-    
+
+
+
 
         <!-- END TABLE CONTENTS -->
 
         </tal:block>
         </tal:block>
         </tal:block>
-        
+
 
 </form>
 

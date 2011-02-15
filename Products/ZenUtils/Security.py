@@ -108,7 +108,7 @@ def setupBasciAuthHelper(context):
     acl.basicAuthHelper.manage_activateInterfaces(interfaces)
 
 
-def setupCookieHelper(context):
+def setupCookieHelper(context, primaryAuth=False):
     acl = context.acl_users
     id = 'cookieAuthHelper'
     if not hasattr(acl, id):
@@ -123,22 +123,39 @@ def setupCookieHelper(context):
         interfaces = ['IExtractionPlugin',
                       'ICredentialsResetPlugin',
                       'IChallengePlugin']
+    if primaryAuth:
+        interfaces.append('ICredentialsUpdatePlugin')
     acl.cookieAuthHelper.manage_activateInterfaces(interfaces)
 
-def setupSessionHelper(context):
+def setupSessionHelper(context, primaryAuth=True):
     acl = context.acl_users
     id = 'sessionAuthHelper'
     if not hasattr(acl, id):
         plugins.SessionAuthHelper.manage_addSessionAuthHelper(acl, id)
 
-    interfaces = []
-    # note that we are only enabling SessionAuth for the Zenoss portal
-    # acl_users, not for the root acl_users.
     interfaces = ['IExtractionPlugin',
-                  'ICredentialsUpdatePlugin',
                   'ICredentialsResetPlugin']
+    if primaryAuth:
+        interfaces.append('ICredentialsUpdatePlugin')
     acl.sessionAuthHelper.manage_activateInterfaces(interfaces)
 
+def activateCookieBasedAuthentication(context):
+    """
+    This sets cookie authentication as the primary auth
+    mechanism. This means that the users credentials will be stored
+    encoded in a cookie.
+    """
+    setupCookieHelper(context, primaryAuth=True)
+    setupSessionHelper(context, primaryAuth=False)
+
+def activateSessionBasedAuthentication(context):
+    """
+    Stores the user credentials in the session and the token is sent
+    to the server.  The user will be forced to re-login when zope
+    restarts or the session times out.
+    """
+    setupCookieHelper(context, primaryAuth=False)
+    setupSessionHelper(context, primaryAuth=True)
 
 def setupRoleManager(context):
     acl = context.acl_users
