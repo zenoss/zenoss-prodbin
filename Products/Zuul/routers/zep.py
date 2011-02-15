@@ -112,8 +112,6 @@ class EventsRouter(DirectRouter):
             'lastTime' : isoDateTimeFromMilli(event_summary['last_seen_time'] ),
             'count' : event_summary['count'],
 
-            'prodState' : self.context.convertProdState(self._singleDetail(eventDetails.get('zenoss.device.production_state'))),
-            'DevicePriority' : self.context.convertPriority(self._singleDetail(eventDetails.get('zenoss.device.priority'))),
             'stateChange' : isoDateTimeFromMilli(event_summary['status_change_time']),
             'eventClassKey': eventOccurrence.get('event_class_key'),
             'eventGroup': eventOccurrence.get('event_group'),
@@ -133,6 +131,16 @@ class EventsRouter(DirectRouter):
             'Systems' : notYetMapped, # comes from tags property
             'DeviceClass' : notYetMapped, # comes from tags property
         }
+
+
+        prodState = self._singleDetail(eventDetails.get('zenoss.device.production_state'))
+        if prodState is not None:
+            event['prodState'] = self.context.convertProdState(prodState)
+
+        DevicePriority = self._singleDetail(eventDetails.get('zenoss.device.priority'))
+        if DevicePriority is not None:
+            event['DevicePriority'] = self.context.convertPriority(DevicePriority)
+
 
         # make custom details actually show up. This does not include the manually
         # mapped zenoss details.
