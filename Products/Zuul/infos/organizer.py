@@ -13,8 +13,8 @@
 
 from zope.interface import implements
 from Products.Zuul.interfaces import IOrganizerInfo, ILocationOrganizerInfo
-from Products.Zuul.infos import InfoBase, ConfigProperty
-from Products.Zuul.decorators import info
+from Products.Zuul.infos import InfoBase, HasEventsInfoMixin
+
 
 class OrganizerInfo(InfoBase):
     implements(IOrganizerInfo)
@@ -30,7 +30,10 @@ class OrganizerInfo(InfoBase):
 
     description = property(_getDescription, _setDescription)
 
-class LocationOrganizerInfo(OrganizerInfo):
+
+class LocationOrganizerInfo(OrganizerInfo, HasEventsInfoMixin):
+    implements(ILocationOrganizerInfo)
+
     def _getAddress(self):
         return self._object.address
 
@@ -38,3 +41,8 @@ class LocationOrganizerInfo(OrganizerInfo):
         self._object.address = value
 
     address = property(_getAddress, _setAddress)
+
+    def getEventSeverities(self):
+        if self._eventSeverities is None and self._object.getDmdKey() == '/':
+            self.getTopLevelOrganizerSeverities()
+        return super(LocationOrganizerInfo, self).getEventSeverities()

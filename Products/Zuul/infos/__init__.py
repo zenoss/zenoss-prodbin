@@ -21,6 +21,7 @@ from Products.Zuul import getFacade
 from Products.ZenUtils.guid.interfaces import IGlobalIdentifier
 
 
+
 def ProxyProperty(propertyName):
     """This uses a closure to make a getter and
     setter for the property (assuming it exists).
@@ -148,3 +149,20 @@ class HasEventsInfoMixin(HasUuidInfoMixin):
         Allow event severities to be set so they can be loaded in batches.
         """
         self._eventSeverities = severities
+
+    def getTopLevelOrganizerSeverities(self):
+        # This is a top level organizer, it doesn't have events so we have to get the events
+        # of its immediate children
+        from Products.Zuul.infos.device import DeviceOrganizerNode
+        node = DeviceOrganizerNode(self._object)
+        uuids = [IGlobalIdentifier(n._object).getGUID() for n in node.children]
+        if uuids:
+            zep = getFacade('zep')
+            severities = {}
+            for uuid, sevs in zep.getEventSeverities(uuids).iteritems():
+                for sev, count in sevs.iteritems():
+                    severities[sev] = severities.get(sev, 0) + count
+
+            self.setEventSeverities(severities)
+
+
