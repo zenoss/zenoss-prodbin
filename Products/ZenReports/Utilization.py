@@ -32,11 +32,25 @@ def reversedSummary(summary):
 
 def filteredDevices(dmd, args):
     import re
-    deviceClass = args.get('deviceClass', '/') or '/'
+
     deviceFilter = args.get('deviceFilter', '') or ''
     deviceMatch = re.compile('.*%s.*' % deviceFilter)
 
-    for d in dmd.Devices.getOrganizer(deviceClass).getSubDevices():
+    # Fall back for backwards compatibility
+    if args.has_key('deviceClass'):
+        args['organizer'] = '/Devices/' + args.get('deviceClass')
+
+    # Get organizer
+    organizer = args.get('organizer', '/Devices') or '/Devices'
+
+    # Determine the root organizer
+    try:
+        root = dmd.getObjByPath(organizer.lstrip('/'))
+    except KeyError:
+        root = dmd.Devices # Show all if org not found
+
+    # Iterate all sub-organizers and devices
+    for d in root.getSubDevices():
         if not d.monitorDevice(): continue
         if not deviceMatch.match(d.id): continue
         yield d
