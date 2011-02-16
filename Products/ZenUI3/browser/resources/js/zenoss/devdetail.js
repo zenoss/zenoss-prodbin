@@ -14,7 +14,7 @@
 */
 
 Ext.onReady(function(){
-
+ 
 var REMOTE = Zenoss.remote.DeviceRouter,
     UID = Zenoss.env.device_uid;
 
@@ -87,7 +87,7 @@ Zenoss.nav.register({
         id: 'device_events',
         nodeType: 'subselect',
         text: _t('Events')
-    },{
+    },{    	
         id: UID,
         nodeType: 'async',
         text: _t('Components'),
@@ -492,8 +492,6 @@ var hwosInformation = {
     }]
 };
 
-
-
 var overview = {
     xtype: 'deviceoverview',
     id: 'device_overview'
@@ -616,8 +614,13 @@ Ext.getCmp('center_panel').add({
         listeners: {
             render: function(me) {
                 me.setContext(UID);
+            },
+            contextchange: function(bar, data) {
+            	Zenoss.env.deviceUUID = data.uuid;
             }
+            
         }
+
     },
     items: [{
         region: 'west',
@@ -648,7 +651,7 @@ Ext.getCmp('center_panel').add({
         split: true,
         activeItem: 0,
         region: 'center',
-        items: [overview, event_console, componentCard]
+        items: [overview, event_console, componentCard] 
     }]
 });
 

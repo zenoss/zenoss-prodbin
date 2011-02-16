@@ -312,6 +312,7 @@ ZC.ComponentPanel = Ext.extend(Ext.Panel, {
                     selectionchange: function(sm, node) {
                         var row = sm.getSelected();
                         if (row) {
+                            Zenoss.env.compUUID = row.data.uuid;                        	
                             this.componentnav.setContext(row.data.uid);
                             var delimiter = Ext.History.DELIMITER,
                                 token = Ext.History.getToken().split(delimiter, 2).join(delimiter);
@@ -338,6 +339,9 @@ Ext.reg('componentpanel', ZC.ComponentPanel);
 ZC.ComponentGridPanel = Ext.extend(Ext.ux.grid.livegrid.GridPanel, {
     lastHash: null,
     constructor: function(config) {
+        config = config || {};
+        config.fields = config.fields || [];
+        config.fields.push({'name': 'uuid'});    	
         config = Ext.applyIf(config||{}, {
             border: false,
             autoExpandColumn: 'name',
@@ -364,6 +368,7 @@ ZC.ComponentGridPanel = Ext.extend(Ext.ux.grid.livegrid.GridPanel, {
                 }
             })
         });
+
         ZC.ComponentGridPanel.superclass.constructor.call(this, config);
         this.relayEvents(this.getSelectionModel(), ['selectionchange']);
         this.relayEvents(this.getSelectionModel(), ['rangeselect']);

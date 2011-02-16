@@ -12,5 +12,5 @@ Zenoss.i18n.translate = function(s, d) {
 
 // Shortcut
 window._t = Zenoss.i18n.translate;
-
+ 
 })();

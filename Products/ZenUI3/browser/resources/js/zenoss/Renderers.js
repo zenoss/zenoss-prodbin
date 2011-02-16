@@ -229,7 +229,6 @@ Ext.apply(Zenoss.render, {
         var item;
         if (typeof(record.data[col.id]) == 'object') {
             item = record.data[col.id];
-
             if (item.url) {
                 return Zenoss.render.link(null, item.url, item.text);
             } else if (item.uid) {
