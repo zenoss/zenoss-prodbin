@@ -18,10 +18,10 @@ from Products.ZenModel.DataRoot import DataRoot
 from Products.ZenEvents.events2.proxy import ZepRawEventProxy
 from Products.ZenUtils.guid.interfaces import IGUIDManager, IGlobalIdentifier
 from Products.Zuul.interfaces import ICatalogTool
-from Products.ZenUtils import cache
 from Products.AdvancedQuery import Eq, MatchGlob, Or
 from zope.component import getUtilitiesFor
 from Acquisition import aq_chain
+from Products.ZenEvents import ZenEventClasses
 
 from zenoss.protocols.protobufs.model_pb2 import DEVICE, COMPONENT
 from zenoss.protocols.protobufs.zep_pb2 import (
@@ -73,6 +73,13 @@ class Manager(object):
         self._catalogs = {
             DEVICE : self._devices,
         }
+
+    def getEventClassOrganizer(self, eventClassName):
+        try:
+            return self._events.getOrganizer(eventClassName)
+        except KeyError:
+            # Unknown organizer
+            return None
 
     def lookupEventClass(self, eventContext):
         """
@@ -475,15 +482,12 @@ class EventPluginPipe(EventProcessorPipe):
 
 class EventTagPipe(EventProcessorPipe):
 
-
     DEVICE_TAGGERS = {
         'zenoss.device.device_class' : lambda device: device.deviceClass(),
         'zenoss.device.location' : lambda device: device.location(),
         'zenoss.device.system' : lambda device: device.systems(),
         'zenoss.device.group' : lambda device: device.groups(),
     }
-
-
 
     def __call__(self, eventContext):
 
@@ -499,5 +503,17 @@ class EventTagPipe(EventProcessorPipe):
                         if uuids:
                             eventContext.eventProxy.tags.addAll(tagType, uuids)
 
-            eventContext.eventProxy.tags.sync()
+        eventClassName = eventContext.eventProxy.eventClass
+        # Set event class to Unknown if not specified
+        if not eventClassName:
+            eventContext.eventProxy.eventClass = eventClassName = ZenEventClasses.Unknown
+
+        # If we failed to tag an event class - can happen if there is not a device
+        # or event class is not defined.
+        if not eventContext.eventProxy.tags.getByType(TransformPipe.EVENT_CLASS_TAG):
+            eventClass = self._manager.getEventClassOrganizer(eventClassName)
+            if eventClass:
+                eventClassUuids = self._manager.getUuidsOfPath(eventClass)
+                eventContext.eventProxy.tags.addAll(TransformPipe.EVENT_CLASS_TAG, eventClassUuids)
+
         return eventContext

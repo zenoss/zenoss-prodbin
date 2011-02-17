@@ -110,6 +110,10 @@ class ProcessEventMessageTask(BasePubSubMessageTask):
             eventContext = pipe(eventContext)
             if eventContext.zepRawEvent.status == STATUS_DROPPED:
                 raise DropEvent('Dropped by %s' % pipe, eventContext.event)
+
+        if log.isEnabledFor(logging.DEBUG):
+            log.debug("Publishing event: %s", to_dict(eventContext.zepRawEvent))
+
         yield Publishable(eventContext.zepRawEvent,
                           exchange=self._dest_exchange,
                           routingKey=self._routing_key(

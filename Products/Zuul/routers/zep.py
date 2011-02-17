@@ -382,8 +382,8 @@ class EventsRouter(DirectRouter):
             log.debug('Did not get parameters, using empty filter.')
             event_filter = {}
 
-        if uid is None:
-            uid = self.context.dmd.Events
+        if uid is None and isinstance(self.context, EventClass):
+            uid = self.context
 
         context = resolve_context(uid)
 
@@ -520,7 +520,7 @@ class EventsRouter(DirectRouter):
         filters for event update requests.
         """
 
-        if uid is None:
+        if uid is None and isinstance(self.context, EventClass):
             uid = self.context
 
         log.debug('Context while building request filters is: %s', uid)

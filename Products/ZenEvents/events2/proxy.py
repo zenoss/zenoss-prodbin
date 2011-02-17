@@ -39,27 +39,27 @@ class EventTagProxy(object):
 
     def _load(self):
         for tag in self._eventProtobuf.tags:
-            self.add(tag.type, tag.uuid)
+            tag_uuids = self._tags.get(tag.type)
+            if not tag_uuids:
+                self._tags[tag.type] = tag_uuids = set()
+            tag_uuids.add(tag.uuid)
 
     def add(self, type, uuid):
-        if not type in self._tags:
-            self._tags[type] = set([])
-
-        self._tags[type].add(uuid)
+        tag_uuids = self._tags.get(type)
+        if not tag_uuids:
+            self._tags[type] = tag_uuids = set()
+        if not uuid in tag_uuids:
+            tag_uuids.add(uuid)
+            tag = self._eventProtobuf.tags.add()
+            tag.type = type
+            tag.uuid = uuid
 
     def addAll(self, type, uuids):
         for uuid in uuids:
             self.add(type, uuid)
 
-    def sync(self):
-        self._load()
-        self._eventProtobuf.ClearField('tags')
-        for type, tags in self._tags.iteritems():
-            for uuid in filter(None, tags):
-                tag = self._eventProtobuf.tags.add()
-                tag.type = type
-                tag.uuid = uuid
-
+    def getByType(self, type):
+        return self._tags.get(type, ())
 
 
 class EventDetailProxy(object):
@@ -97,7 +97,7 @@ class EventDetailProxy(object):
         if len(item.value) == 1:
             return item.value[0]
         else:
-            raise Exception('Detail %s has more than one value but the old event system expects only one: %s' % (name, item.value))
+            raise Exception('Detail %s has more than one value but the old event system expects only one: %s' % (item.name, item.value))
 
     def __setitem__(self, key, value):
         if not key in self._map:
@@ -154,12 +154,14 @@ class ProtobufWrapper(object):
         return self._pb.HasField(name)
 
 class EventProxy(object):
-    DEVICE_PRIORITY_DETAIL_KEY = "zenoss.device.priority"
-    PRODUCTION_STATE_DETAIL_KEY = "zenoss.device.production_state"
     """
     Wraps an org.zenoss.protobufs.zep.Event or org.zenoss.protobufs.zep.RawEvent
     and makes it look like an old style Event.
     """
+    
+    DEVICE_PRIORITY_DETAIL_KEY = "zenoss.device.priority"
+    PRODUCTION_STATE_DETAIL_KEY = "zenoss.device.production_state"
+
     def __init__(self, eventProtobuf):
         self.__dict__['_event'] = ProtobufWrapper(eventProtobuf)
         self.__dict__['_clearClasses'] = set([])
