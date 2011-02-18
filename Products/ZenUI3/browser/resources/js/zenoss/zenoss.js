@@ -757,6 +757,7 @@ Zenoss.FilterGridView = Ext.extend(Ext.ux.grid.livegrid.GridView, {
             query = filter.getValue();
             if (query) {
                 if (globbing && filter.xtype=="textfield" && filter.vtype != "numcmp" &&
+                        filter.vtype != "numrange" &&
                         excludeGlobChars.indexOf(query.charAt(query.length-1)) === -1) {
                     query += "*";
                 }

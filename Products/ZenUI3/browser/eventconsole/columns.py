@@ -206,7 +206,7 @@ COLUMN_CONFIG = {
         width=60,
         filter={
             'xtype': 'textfield',
-            'vtype': 'numcmp'
+            'vtype': 'numrange'
         },
         field_definition = "{name:'count',type:'int'}"
     ),

@@ -12,6 +12,7 @@
 ###########################################################################
 
 import logging
+import re
 from AccessControl import getSecurityManager
 from zope.interface import implements
 from Products.Zuul.facades import ZuulFacade
@@ -65,7 +66,8 @@ class ZepFacade(ZuulFacade):
     }
     ZENOSS_DETAIL_KEYS = (ZENOSS_DETAIL_MAPPING.values())
 
-    
+    COUNT_REGEX = re.compile(r'(?P<from>\d+)?:?(?P<to>\d+)?')
+
     def __init__(self, context):
         super(ZepFacade, self).__init__(context)
 
@@ -133,11 +135,21 @@ class ZepFacade(ZuulFacade):
 
         if count_range:
             if not isinstance(count_range, (tuple, list)):
-                count_range = (count_range, count_range)
-            filter['count_range'] = {
-                'from': count_range[0],
-                'to': count_range[1],
-            }
+                try:
+                    count = int(count_range)
+                    count_range = (count, count)
+                except ValueError:
+                    match = ZepFacade.COUNT_REGEX.match(count_range)
+                    if not match or (not match.group('from') and not match.group('to')):
+                        raise ValueError('Invalid range: %s' % (count_range))
+                    count_range = (match.group('from'), match.group('to'))
+
+            filter['count_range'] = {}
+            count_from, count_to = count_range
+            if count_from is not None:
+                filter['count_range']['from'] = int(count_from)
+            if count_to is not None:
+                filter['count_range']['to'] = int(count_to)
 
         if element_identifier:
             if not isinstance(element_identifier, (tuple, list, set)):

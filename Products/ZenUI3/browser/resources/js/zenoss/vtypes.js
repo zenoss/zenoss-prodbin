@@ -4,6 +4,7 @@
     var ip_regex = new RegExp("(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)");
     var hex_regex = new RegExp("^#?([a-f]|[A-F]|[0-9]){3}(([a-f]|[A-F]|[0-9]){3,5})?$");
     var numcmp_regex = new RegExp("^(\>=|\<=|\>|\<|=)?\s*([0-9]+)$");
+    var numrange_regex = new RegExp("^([0-9]+)?:?([0-9]+)?$");
     var alpha_num_space = new RegExp(/[a-z_\s\d]/i);
 
     /**
@@ -20,6 +21,24 @@
             return numcmp_regex.test(val);
         },
         numcmpText: _t('Enter a valid comparison (ex: 4, <2, >=1)'),
+
+        numrange: function(val, field) {
+            var result, from, to;
+            result = numrange_regex.exec(val);
+            if (!result) {
+                return false;
+            }
+            from = result[1];
+            to = result[2];
+            if (!from && !to) {
+                return false;
+            }
+            if (from && to) {
+                return parseInt(from) <= parseInt(to);
+            }
+            return true;
+        },
+        numrangeText: _t('Enter a valid numeric range (ex: 2, 5:, 6:8, :9)'),
 
         /**
          * The number must be greater than zero. Designed for us in NumberFields
