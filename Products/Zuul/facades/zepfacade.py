@@ -22,7 +22,7 @@ from Products.ZenEvents.ZenEventClasses import Unknown
 import pkg_resources
 from zenoss.protocols.services.zep import ZepServiceClient, EventSeverity, ZepConfigClient
 from zenoss.protocols.jsonformat import to_dict, from_dict
-from zenoss.protocols.protobufs.zep_pb2 import EventSort, EventFilter, EventSummaryUpdateRequest, EventDetailItem, ZepConfig
+from zenoss.protocols.protobufs.zep_pb2 import EventSort, EventFilter, EventSummaryUpdateRequest, EventDetailItem, EventDetailItemSet, ZepConfig
 from zenoss.protocols.protobufutil import listify
 from Products.ZenUtils.GlobalConfig import getGlobalConfiguration
 from Products.ZenUtils.guid.interfaces import IGlobalIdentifier
@@ -525,3 +525,22 @@ class ZepFacade(ZuulFacade):
                 params[k] = v
 
         return params, details
+
+
+    def addIndexedDetails(self, detailItemSet):
+        """
+        @type detailItemSet: zenoss.protocols.protobufs.zep_pb2.EventDetailItemSet
+        """
+        return self.configClient.addIndexedDetails(detailItemSet)
+
+    def updateIndexedDetail(self, item):
+        """
+        @type item: zenoss.protocols.protobufs.zep_pb2.EventDetailItem
+        """
+        return self.configClient.updateIndexedDetail(item)
+    
+    def removeIndexedDetail(self, key):
+        """
+        @type key: string
+        """
+        return self.configClient.removeIndexedDetail(key)

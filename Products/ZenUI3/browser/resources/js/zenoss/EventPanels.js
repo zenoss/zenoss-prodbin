@@ -188,6 +188,26 @@ Zenoss.EventPanelSelectionModel = Ext.extend(Zenoss.ExtraHooksSelectionModel, {
 
     }
 });
+
+
+/**
+ * @class Zenoss.EventsJsonReader
+ * @extends Zenoss.ExtraHooksSelectionModel
+ *
+ * Subclass the LiveGrid JsonReader so that we can override how data is fetched
+ * from a record that is returned by the router. Custom details use keys that
+ * contain dots (zenpacks.foo.bar.baz) so we need to force key-method access.
+ */
+Zenoss.EventsJsonReader = Ext.extend(Ext.ux.grid.livegrid.JsonReader, {
+    createAccessor : function(){
+        return function(expr) {
+            return function(obj){
+                return obj[expr];
+            }
+        };
+    }()
+});
+
 // the column model for the device grid
 Zenoss.EventStore = Ext.extend(Ext.ux.grid.livegrid.Store, {
     constructor: function(config){
@@ -198,7 +218,7 @@ Zenoss.EventStore = Ext.extend(Ext.ux.grid.livegrid.Store, {
             bufferSize: 400,
             defaultSort: {field:'severity', direction:'DESC'},
             sortInfo: {field:'severity', direction:'DESC'},
-            reader: new Ext.ux.grid.livegrid.JsonReader(
+            reader: new Zenoss.EventsJsonReader(
                 {
                     root: 'events',
                     totalProperty: 'totalCount'
@@ -378,7 +398,6 @@ Zenoss.events.EventPanelToolbarSelectMenu = {
 
 Zenoss.EventGridPanel = Ext.extend(Zenoss.SimpleEventGridPanel, {
     constructor: function(config) {
-        
         var evtGrid = this,
             tbarItems = [
                 {

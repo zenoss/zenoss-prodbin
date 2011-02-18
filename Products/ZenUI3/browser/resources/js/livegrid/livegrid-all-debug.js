@@ -1913,7 +1913,6 @@ Ext.extend(Ext.ux.grid.livegrid.JsonReader, Ext.data.JsonReader, {
             intercept.version = (v === undefined || v === "") ? null : v;
         }
 
-
         return intercept;
     }
 

@@ -16,8 +16,12 @@ __doc__='Base Classes for loading gunk in a ZenPack'
 import Globals
 from Products.ZenReports.ReportLoader import ReportLoader
 from Products.ZenUtils.Utils import zenPath, binPath
+from Products.Zuul import getFacade
+from zenoss.protocols.jsonformat import from_dict
+from zenoss.protocols.protobufs.zep_pb2 import EventDetailItemSet, EventDetailItem
 
 import os
+import json
 import ConfigParser
 import subprocess
 import logging
@@ -359,7 +363,7 @@ class ZPLAbout(ZenPackLoader):
     def list(self, pack, unused):
         return [('%s %s' % av) for av in self.getAttributeValues(pack)]
 
-class ZPTriggerAction:
+class ZPTriggerAction(ZenPackLoader):
 
     name = "Triggers and Actions"
 
@@ -398,7 +402,7 @@ class ZPTriggerAction:
                         raise("action types are not compatible")
                     action['uid']= notification.uid
                     if triggerGuid:
-                        action['subscriptions'] = triggerGuid
+                        action['subscriptions'] = [triggerGuid]
                     tf.updateNotification(**action)
     
     def _getTriggerGuid(self, facade, name):
@@ -411,7 +415,7 @@ class ZPTriggerAction:
         if not guid:
             guid = facade.addTrigger(name)
         return guid
-    
+
     def unload(self, pack, app, leaveObjects=False):
         """Remove things from Zenoss defined in the ZenPack"""
         log.debug("ZPTriggerAction: unload")
@@ -423,3 +427,88 @@ class ZPTriggerAction:
     def upgrade(self, pack, app):
         "Run an upgrade on an existing pack"
         log.debug("ZPTriggerAction: upgrade")
+
+
+class ZPZep(ZenPackLoader):
+
+    name = "ZEP"
+
+    def _data(self, conf):
+        data = {}
+        with open(conf, "r") as configFile:
+            data = json.load(configFile)
+        return data
+
+    def _prepare(self, pack, app):
+        """
+        Load in the Zep configuration file which should be located here:
+        $ZENPACK/zep/zep.conf
+        """
+
+        self.handlers = (EventDetailItemHandler(), )
+        p = pack.path('zep')
+        confFile = os.path.join(p, 'zep.json')
+        data = self._data(confFile)
+
+        return data
+
+    def load(self, pack, app):
+        data = self._prepare(pack, app)
+        for handler in self.handlers:
+            handler.load(data)
+    
+    def unload(self, pack, app, leaveObjects=False):
+        data = self._prepare(pack, app)
+        for handler in self.handlers:
+            handler.unload(data, leaveObjects)
+
+    def list(self, pack, app):
+        data = self._prepare(pack, app)
+        info = []
+        for handler in self.handlers:
+            info.extend(handler.list(data))
+
+    def upgrade(self, pack, app):
+        data = self._prepare(pack, app)
+        for handler in self.handlers:
+            handler.upgrade(data)
+
+
+class BaseZepConfigItemHandler(object):
+    def __init__(self):
+        self.zep = getFacade('zep')
+
+class EventDetailItemHandler(BaseZepConfigItemHandler):
+    key = 'EventDetailItem'
+    
+    def load(self, configData):
+        """
+        configData is a json dict. This is the entire config structure.
+        """
+        items = configData.get(EventDetailItemHandler.key, [])
+        detailItemSet = from_dict(EventDetailItemSet, dict(
+            details = items
+        ))
+        self.zep.addIndexedDetails(detailItemSet)
+        
+    def list(self, configData):
+        items = configData.get(EventDetailItemHandler.key, [])
+        info = []
+        for item in items:
+            info.append("Would be adding the following detail to be indexed by ZEP: %s" % item.key)
+        return info
+    
+    def unload(self, configData, leaveObjects):
+        if not leaveObjects:
+            items = configData.get(EventDetailItemHandler.key, [])
+            for item in items:
+                log.info("Removing the following currently indexed detail by ZEP: %s" % item)
+                self.zep.removeIndexedDetail(item['key'])
+
+    def upgrade(self, configData):
+        items = configData.get(EventDetailItemHandler.key, [])
+        for item in items:
+            log.info("Upgrading the following to be indexed by ZEP: %s" % item)
+            detailItem = from_dict(EventDetailItem, item)
+            self.zep.updateIndexedDetailItem(detailItem)
+

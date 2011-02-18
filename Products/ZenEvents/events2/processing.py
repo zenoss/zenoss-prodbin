@@ -178,7 +178,7 @@ class Manager(object):
                 break
             chain.append(n)
 
-        for obj in chain:
+        for obj in filter(chain, None):
             try:
                 uuids.add(self.getElementUuid(obj))
             except TypeError:
