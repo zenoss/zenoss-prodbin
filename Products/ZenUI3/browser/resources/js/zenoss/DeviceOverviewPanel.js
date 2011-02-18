@@ -9,24 +9,36 @@
         //combo.doQuery(combo.allQuery, true);
     };
 
-    var ClickToEditField = Ext.extend(Zenoss.form.LinkField, {
-        constructor: function(config) {
-            var editLink = '<a href="javascript:" class="manu-edit-link">'+
-                           _t('Edit') + '</a>';
-            config.fieldLabel += editLink;
-            config.listeners = Ext.apply(config.listeners||{}, {
-                render: function(p) {
-                    p.editlink = p.label.select('a.manu-edit-link');
-                    p.editlink.on('click', function(){
-                        p.fireEvent('labelclick', p);
-                    }, p);
-                }
-            });
-            ClickToEditField.superclass.constructor.call(this, config);
-            this.addEvents('labelclick');
+    var clickToEditConfig = function(obj) {
+        return {
+            constructor: function(config) {
+                var editLink = '<a href="javascript:" class="manu-edit-link">'+
+                                _t('Edit') + '</a>';
+                config.fieldLabel += editLink;
+                config.listeners = Ext.apply(config.listeners||{}, {
+                    render: function(p) {
+                        p.editlink = p.label.select('a.manu-edit-link');
+                        p.editlink.on('click', function(){
+                            p.fireEvent('labelclick', p);
+                        }, p);
+                    }
+                });
+                obj.superclass.constructor.call(this, config);
+                this.addEvents('labelclick');
+            }
         }
-    });
+    }
+    
+    var ClickToEditField = Ext.extend(Zenoss.form.LinkField, {});
+    ClickToEditField = Ext.extend(Zenoss.form.LinkField,
+                                  clickToEditConfig(ClickToEditField));
     Ext.reg('clicktoedit', ClickToEditField);
+    
+    var ClickToEditNoLink = Ext.extend(Ext.form.DisplayField, {});
+    ClickToEditNoLink = Ext.extend(Ext.form.DisplayField,
+                                   clickToEditConfig(ClickToEditNoLink));
+    Ext.reg('clicktoeditnolink', ClickToEditNoLink);
+    
 
     function editManuInfo (vals, uid) {
         function name(uid) {
@@ -125,6 +137,329 @@
         win.show();
         win.doLayout();
     }
+    
+    var editDeviceClass = function(values, uid) {
+        var win = new Zenoss.FormDialog({
+            autoHeight: true,
+            width: 300,
+            title: _t('Set Device Class'),
+            items: [{
+                xtype: 'combo',
+                name: 'deviceClass',
+                fieldLabel: _t('Select a device class'),
+                store: new Ext.data.DirectStore({
+                    directFn: Zenoss.remote.DeviceRouter.getDeviceClasses,
+                    root: 'deviceClasses',
+                    fields: ['name']
+                }),
+                valueField: 'name',
+                displayField: 'name',
+                value: values.deviceClass.uid.slice(18),
+                forceSelection: true,
+                editable: false,
+                autoSelect: true,
+                triggerAction: 'all'
+            }],
+            buttons: [{
+                text: _t('Save'),
+                ref: '../savebtn',
+                disabled: Zenoss.Security.doesNotHavePermission('Manage Device'),
+                handler: function(btn) {
+                    var vals = btn.refOwner.editForm.getForm().getFieldValues();
+                    var submitVals = {
+                        uids: [uid],
+                        target: '/zport/dmd/Devices' + vals.deviceClass,
+                        hashcheck: ''
+                    };
+                    Zenoss.remote.DeviceRouter.moveDevices(submitVals, function(data) {
+                        var moveToNewDevicePage = function() {
+                            hostString = window.location.protocol + '//' +
+                                         window.location.host;
+                            window.location = hostString + '/zport/dmd/Devices' +
+                                              vals.deviceClass + '/devices' +
+                                              uid.slice(uid.lastIndexOf('/'));
+                        };
+                        if (data.success) {
+                            if (data.exports) {
+                                Ext.Msg.show({
+                                    title: _t('Remodel Required'),
+                                    msg: _t("Not all of the configuration could be preserved, so a remodel of the device is required. Performance templates have been reset to the defaults for the device class."),
+                                    buttons: Ext.Msg.OK,
+                                    fn: moveToNewDevicePage
+                                });
+                            }
+                            else {
+                                moveToNewDevicePage();
+                            }
+                        }
+                    });
+                    win.destroy();
+                }
+            }, {
+                text: _t('Cancel'),
+                handler: function(btn) {
+                    win.destroy();
+                }
+            }]
+        });
+        win.show();
+        win.doLayout();
+    };
+    
+    Zenoss.remote.DeviceRouter.getCollectors({}, function(d){
+        var collectors = [];
+        Ext.each(d, function(r){collectors.push([r]);});
+        Zenoss.env.COLLECTORS = collectors;
+    });
+    
+    var editCollector = function(values, uid) {
+        var win = new Zenoss.FormDialog({
+            autoHeight: true,
+            width: 300,
+            title: _t('Set Collector'),
+            items: [{
+                xtype: 'combo',
+                name: 'collector',
+                fieldLabel: _t('Select a collector'),
+                mode: 'local',
+                store: new Ext.data.ArrayStore({
+                    data: Zenoss.env.COLLECTORS,
+                    fields: ['name']
+                }),
+                valueField: 'name',
+                displayField: 'name',
+                value: values.collector,
+                forceSelection: true,
+                editable: false,
+                autoSelect: true,
+                triggerAction: 'all'
+            }],
+            buttons: [{
+                text: _t('Save'),
+                ref: '../savebtn',
+                disabled: Zenoss.Security.doesNotHavePermission('Manage Device'),
+                handler: function(btn) {
+                    var vals = btn.refOwner.editForm.getForm().getFieldValues();
+                    var submitVals = {
+                        uids: [uid],
+                        collector: vals.collector,
+                        hashcheck: ''
+                    };
+                    Zenoss.remote.DeviceRouter.setCollector(submitVals, function(data) {
+                        Ext.getCmp('device_overview').load();
+                    });
+                    win.destroy();
+                }
+            }, {
+                text: _t('Cancel'),
+                handler: function(btn) {
+                    win.destroy();
+                }
+            }]
+        });
+        win.show();
+        win.doLayout();
+    };
+    
+    var editGroups = function(currentGroups, uid, config) {
+        var win = new Zenoss.FormDialog({
+            width: 350,
+            height: 150,
+            title: config.title,
+            items: [{
+                xtype: 'panel',
+                html: config.instructions
+            }, {
+                xtype: 'spacer',
+                height: 5
+            }, {
+                xtype: 'panel',
+                layout: 'hbox',
+                width: '100%',
+                items: [{
+                    xtype: 'combo',
+                    ref: '../../selectgroup',
+                    name: 'group',
+                    store: new Ext.data.DirectStore({
+                        directFn: config.getGroupFn,
+                        root: config.getGroupRoot,
+                        fields: ['name']
+                    }),
+                    valueField: 'name',
+                    displayField: 'name',
+                    forceSelection: true,
+                    editable: false,
+                    autoSelect: true,
+                    triggerAction: 'all',
+                    flex: 4
+                }, {
+                    xtype: 'button',
+                    ref: '../../addgroupbutton',
+                    text: _t('Add'),
+                    handler: function(btn) {
+                        var selectedGroup = btn.refOwner.selectgroup.getValue();
+                        if (selectedGroup) {
+                            btn.refOwner.grouplist.addGroup(selectedGroup);
+                        }
+                    },
+                    flex: 1
+                }]
+            }, {
+                xtype: 'panel',
+                ref: '../grouplist',
+                addGroup: function(group, displayOnly) {
+                    if (group in this.groups) {
+                        if (this.groups[group] == 'del')
+                            this.groups[group] = '';
+                        else
+                            return;
+                    }
+                    else {
+                        this.groups[group] = displayOnly ? '' : 'add';
+                    }
+                    
+                    var grouplist = this;
+                    var oldHeight = this.getHeight();
+                    this.add({xtype: 'spacer', height: 5});
+                    this.add({
+                        xtype: 'panel',
+                        layout: 'hbox',
+                        width: '100%',
+                        layoutConfig: {
+                            align:'middle'
+                        },
+                        items: [{
+                            xtype: 'panel',
+                            html: group
+                        }, {
+                            xtype: 'spacer',
+                            flex: 1
+                        }, {
+                            xtype: 'button',
+                            text: _t('Remove'),
+                            ref: 'delbutton',
+                            group: group,
+                            handler: function(btn) {
+                                grouplist.delGroup(group, btn.refOwner);
+                            }
+                        }]
+                    });
+                    this.bubble(function() {this.doLayout();});
+                    
+                    if (displayOnly) return;
+                    win.setHeight(win.getHeight() + this.getHeight() - oldHeight);
+                },
+                delGroup: function(group, panel) {
+                    if (this.groups[group] == 'add')
+                        delete this.groups[group];
+                    else
+                        this.groups[group] = 'del';
+                    
+                    var oldHeight = this.getHeight();
+                    panel.destroy();
+                    this.bubble(function() {this.doLayout();});
+                    win.setHeight(win.getHeight() + this.getHeight() - oldHeight);
+                },
+                groups: {},
+                listeners: {
+                    render: function(thisPanel) {
+                        Ext.each(currentGroups, function(group){
+                            thisPanel.addGroup(group.uid.slice(config.dmdPrefix.length), true);
+                        });
+                    }
+                }
+            }],
+            buttons: [{
+                text: _t('Save'),
+                ref: '../savebtn',
+                disabled: Zenoss.Security.doesNotHavePermission('Manage Device'),
+                handler: function(btn) {
+                    Ext.iterate(btn.refOwner.grouplist.groups, function(group, op) {
+                        var submitVals = {
+                            uids: [uid],
+                            hashcheck: ''
+                        };
+                        
+                        if (op == 'del') {
+                            submitVals['uid'] = config.dmdPrefix + group;
+                            Zenoss.remote.DeviceRouter.removeDevices(submitVals, function(data) {
+                                Ext.getCmp('device_overview').load();
+                            });
+                        }
+                        if (op == 'add') {
+                            submitVals['target'] = config.dmdPrefix + group;
+                            Zenoss.remote.DeviceRouter.moveDevices(submitVals, function(data) {
+                                Ext.getCmp('device_overview').load();
+                            });
+                        }
+                    });
+                    win.destroy();
+                }
+            }, {
+                text: _t('Cancel'),
+                handler: function(btn) {
+                    win.destroy();
+                }
+            }]
+        });
+        win.show();
+        win.doLayout();
+        win.setHeight(win.getHeight() + win.grouplist.getHeight());
+    };
+    
+    var editLocation = function(values, uid) {
+        var win = new Zenoss.FormDialog({
+            autoHeight: true,
+            width: 300,
+            title: _t('Set Location'),
+            items: [{
+                xtype: 'combo',
+                name: 'location',
+                fieldLabel: _t('Select a location'),
+                store: new Ext.data.DirectStore({
+                    directFn: Zenoss.remote.DeviceRouter.getLocations,
+                    root: 'locations',
+                    fields: ['name']
+                }),
+                valueField: 'name',
+                displayField: 'name',
+                value: values.location ? values.location.uid.slice(20) : '',
+                forceSelection: true,
+                editable: false,
+                autoSelect: true,
+                triggerAction: 'all'
+            }],
+            buttons: [{
+                text: _t('Save'),
+                ref: '../savebtn',
+                disabled: Zenoss.Security.doesNotHavePermission('Manage Device'),
+                handler: function(btn) {
+                    var vals = btn.refOwner.editForm.getForm().getFieldValues();
+                    
+                    if (vals.location) {
+                        var submitVals = {
+                            uids: [uid],
+                            target: '/zport/dmd/Locations' + vals.location,
+                            hashcheck: ''
+                        };
+                        Zenoss.remote.DeviceRouter.moveDevices(submitVals, function(data) {
+                            if (data.success) {
+                                Ext.getCmp('device_overview').load();
+                            }
+                        });
+                    }
+                    win.destroy();
+                }
+            }, {
+                text: _t('Cancel'),
+                handler: function(btn) {
+                    win.destroy();
+                }
+            }]
+        });
+        win.show();
+        win.doLayout();
+    };
 
 
     function isField(c) {
@@ -316,18 +651,65 @@
                             fieldLabel: _t('Priority'),
                             name: 'priority'
                         },{
+                            xtype: 'clicktoedit',
+                            listeners: {
+                                labelclick: function(p){
+                                    editDeviceClass(this.getValues(), this.contextUid);
+                                },
+                                scope: this
+                            },
+                            fieldLabel: _t('Device Class'),
+                            name: 'deviceClass'
+                        },{
+                            xtype: 'clicktoeditnolink',
+                            listeners: {
+                                labelclick: function(p){
+                                    editCollector(this.getValues(), this.contextUid);
+                                },
+                                scope: this
+                            },
                             fieldLabel: _t('Collector'),
                             name: 'collector'
                         },{
-                            xtype: 'linkfield',
+                            xtype: 'clicktoedit',
+                            listeners: {
+                                labelclick: function(p){
+                                    editGroups(this.getValues().systems, this.contextUid, {
+                                        title: _t('Set Systems'),
+                                        instructions: _t('Add/Remove systems'),
+                                        getGroupFn: Zenoss.remote.DeviceRouter.getSystems,
+                                        getGroupRoot: 'systems',
+                                        dmdPrefix: '/zport/dmd/Systems'
+                                    });
+                                },
+                                scope: this
+                            },
                             fieldLabel: _t('Systems'),
                             name: 'systems'
                         },{
-                            xtype: 'linkfield',
+                            xtype: 'clicktoedit',
+                            listeners: {
+                                labelclick: function(p){
+                                    editGroups(this.getValues().groups, this.contextUid, {
+                                        title: _t('Set Groups'),
+                                        instructions: _t('Add/Remove groups'),
+                                        getGroupFn: Zenoss.remote.DeviceRouter.getGroups,
+                                        getGroupRoot: 'groups',
+                                        dmdPrefix: '/zport/dmd/Groups'
+                                    });
+                                },
+                                scope: this
+                            },
                             fieldLabel: _t('Groups'),
                             name: 'groups'
                         },{
-                            xtype: 'linkfield',
+                            xtype: 'clicktoedit',
+                            listeners: {
+                                labelclick: function(p){
+                                    editLocation(this.getValues(), this.contextUid);
+                                },
+                                scope: this
+                            },
                             fieldLabel: _t('Location'),
                             name: 'location'
                         }]

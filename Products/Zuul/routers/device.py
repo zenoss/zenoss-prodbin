@@ -1066,6 +1066,45 @@ class DeviceRouter(TreeRouter):
         deviceClasses = devices.getOrganizerNames(addblank=True)
         result = [{'name': name} for name in deviceClasses]
         return DirectResponse(deviceClasses=result, totalCount=len(result))
+    
+    def getSystems(self, **data):
+        """
+        Get a list of all systems.
+
+        @rtype:   DirectResponse
+        @return:  B{Properties}:
+             - systems: ([dictionary]) List of systems
+             - totalCount: (integer) Total number of systems
+        """
+        systems = self.context.dmd.Systems.getOrganizerNames()
+        result = [{'name': name} for name in systems if name != '/']
+        return DirectResponse(systems=result, totalCount=len(result))
+    
+    def getGroups(self, **data):
+        """
+        Get a list of all groups.
+
+        @rtype:   DirectResponse
+        @return:  B{Properties}:
+             - systems: ([dictionary]) List of groups
+             - totalCount: (integer) Total number of groups
+        """
+        groups = self.context.dmd.Groups.getOrganizerNames()
+        result = [{'name': name} for name in groups if name != '/']
+        return DirectResponse(groups=result, totalCount=len(result))
+    
+    def getLocations(self, **data):
+        """
+        Get a list of all locations.
+
+        @rtype:   DirectResponse
+        @return:  B{Properties}:
+             - systems: ([dictionary]) List of locations
+             - totalCount: (integer) Total number of locations
+        """
+        locations = self.context.dmd.Locations.getOrganizerNames()
+        result = [{'name': name} for name in locations if name != '/']
+        return DirectResponse(locations=result, totalCount=len(result))
 
     def getManufacturerNames(self, **data):
         """

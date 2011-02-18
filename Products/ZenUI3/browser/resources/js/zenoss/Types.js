@@ -3,7 +3,7 @@
 var _tm = {
     'DeviceLocation':   ["^/zport/dmd/Locations(/[A-Z][^/]*)*/?$"],
     'DeviceGroup':      ["^/zport/dmd/Groups(/[A-Z][^/]*)*/?$"],
-    'DeviceClass':      ["^/zport/dmd/Devices(/[A-Z][^/]*)*/?$"],
+    'DeviceClass':      ["^/zport/dmd/Devices(/[A-Za-z][^/]*)*/?$"],
     'Device':           ["^/zport/dmd/.*/devices/[^/]*/?$"],
     'EventClass':       ["^/zport/dmd/Events(/[A-Z][^/]*)*/?$"],
     'Network':          ["^/zport/dmd/Networks(/(?!ipaddresses)[^/]+)*/?$"],

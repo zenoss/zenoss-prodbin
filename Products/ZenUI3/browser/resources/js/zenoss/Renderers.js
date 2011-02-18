@@ -195,6 +195,7 @@ Ext.apply(Zenoss.render, {
      * passing in null for the first argument.
      */
     link: function(uid, url, name) {
+        if (uid && uid.uid) uid = uid.uid;
         if (!url) {
             var dflt = 'default_uid_renderer',
                 type = Zenoss.types.type(uid) || dflt,
