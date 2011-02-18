@@ -110,6 +110,11 @@ class ZenossInfo(ZenModelItem, SimpleItem):
                 , 'action'        : '../dmd/backupInfo'
                 , 'permissions'   : ( "Manage DMD", )
                 },
+                { 'id'            : 'eventConfig'
+                , 'name'          : 'Events'
+                , 'action'        : 'eventConfig'
+                , 'permissions'   : ( "Manage DMD", )
+                },
            )
           },
         )

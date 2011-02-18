@@ -105,6 +105,11 @@ class ZenPackManager(ZenModelRM):
                 , 'action'        : '../backupInfo'
                 , 'permissions'   : ( "Manage DMD", )
                 },
+                { 'id'            : 'eventConfig'
+                , 'name'          : 'Events'
+                , 'action'        : 'eventConfig'
+                , 'permissions'   : ( "Manage DMD", )
+                },
             )
          },
         )

@@ -737,13 +737,11 @@ class EventsRouter(DirectRouter):
                 'id': 'event_age_disable_severity',
                 'name': _t("Don't Age This Severity and Above"),
                 'xtype': 'severity',
-                'fromZep': self._convertSeverityToNumber,
-                'toZep': self._convertSeverityToName,
                 },{
                 'id': 'event_age_interval_minutes',
                 'name': _t('Event Aging Threshold (minutes)'),
                 'xtype': 'numberfield',
-                'minValue': 60,
+                'minValue': 0,
                 'allowNegative': False,
                 },{
                 'id': 'event_archive_interval_days',
@@ -754,13 +752,13 @@ class EventsRouter(DirectRouter):
                 'allowNegative': False,
                 },{
                 'id': 'event_archive_purge_interval_days',
-                'maxValue': 90,
+                'minValue': 1,
                 'name': _t('Delete Historical Events Older Than (days)'),
                 'xtype': 'numberfield',
                 'allowNegative': False,
                 },{
                 'id': 'event_occurrence_purge_interval_days',
-                'maxValue': 30,
+                'minValue': 1,
                 'name': _t('Event Occurrence Purge Interval (days)'),
                 'xtype': 'numberfield',
                 'allowNegative': False,
@@ -773,28 +771,22 @@ class EventsRouter(DirectRouter):
                 }]
         return configSchema
 
-    def _mergeSchemaAndZepConfig(self, data, config):
+    def _mergeSchemaAndZepConfig(self, data, configSchema):
         """
         Copy the values and defaults from ZEP to our schema
         """
-        for conf in config:
+        for conf in configSchema:
             if not data.get(conf['id']):
                 continue
             prop = data[conf['id']]
-            for key in prop.keys():
-                conf[key] = prop[key]
-            # our drop down expects severity to be the number constant
-            if conf.get('fromZep'):
-                conf['defaultValue'] = conf['fromZep']((prop['defaultValue']))
-                if prop['value']:
-                    conf['value'] = conf['fromZep']((prop['value']))
-                del conf['fromZep']
-            if conf.get('toZep'):
-                del conf['toZep']
-        return config
+            conf.update(prop)
+        return configSchema
 
     @require('ZenCommon')
     def getConfig(self):
+        # this data var is not a ZepConfig, it's a config structure that has been
+        # constructed to include default values and be keyed by the protobuf
+        # property name.
         data = self.zep.getConfig()
         config = self._mergeSchemaAndZepConfig(data, self.configSchema)
         return DirectResponse.succeed(data=config)
@@ -805,10 +797,10 @@ class EventsRouter(DirectRouter):
         @type  values: Dictionary
         @param values: Key Value pairs of config values
         """
-        for config in self.configSchema:
-            id = config['id']
-            if config.get('toZep'):
-                values[id] = config['toZep'](values[id])
+        # Remove empty strings from values
+        empty_keys = [k for k,v in values.iteritems() if isinstance(v, basestring) and not len(v)]
+        for empty_key in empty_keys:
+            del values[empty_key]
 
         # we store default syslog priority on the event manager
         if values.get('default_syslog_priority'):

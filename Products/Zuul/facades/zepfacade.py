@@ -21,7 +21,7 @@ from Products.ZenEvents.ZenEventClasses import Unknown
 import pkg_resources
 from zenoss.protocols.services.zep import ZepServiceClient, EventSeverity, ZepConfigClient
 from zenoss.protocols.jsonformat import to_dict, from_dict
-from zenoss.protocols.protobufs.zep_pb2 import EventSort, EventFilter, EventSummaryUpdateRequest, EventDetailItem
+from zenoss.protocols.protobufs.zep_pb2 import EventSort, EventFilter, EventSummaryUpdateRequest, EventDetailItem, ZepConfig
 from zenoss.protocols.protobufutil import listify
 from Products.ZenUtils.GlobalConfig import getGlobalConfiguration
 from Products.ZenUtils.guid.interfaces import IGlobalIdentifier
@@ -318,6 +318,8 @@ class ZepFacade(ZuulFacade):
         return status, to_dict(response)
 
     def getConfig(self):
+        # the config client doesn't return a ZepConfig. It merges the ZepConfig
+        # with some other properties to create a config structure.
         config = self.configClient.getConfig()
         return config
 
@@ -326,7 +328,8 @@ class ZepFacade(ZuulFacade):
         @type  values: Dictionary
         @param values: Key Value pairs of config values
         """
-        self.configClient.setConfigValues(values)
+        zepConfigProtobuf = from_dict(ZepConfig, values)
+        self.configClient.setConfigValues(zepConfigProtobuf)
 
     def setConfigValue(self, name, value):
         self.configClient.setConfigValue(name, value)
@@ -461,7 +464,8 @@ class ZepFacade(ZuulFacade):
 
     def initDetails(self):
         response, content = self.configClient.getDetails()
-        self._details = content
+
+        self._details = to_dict(content)
         self._unmappedDetails = [d for d in self.getDetails() if d['key'] not in self.ZENOSS_DETAIL_KEYS]
 
         self._detailsMap = {}

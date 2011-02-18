@@ -132,6 +132,11 @@ class UserSettingsManager(ZenModelRM):
                 , 'action'        : '../backupInfo'
                 , 'permissions'   : ( ZEN_MANAGE_DMD, )
                 },
+                { 'id'            : 'eventConfig'
+                , 'name'          : 'Events'
+                , 'action'        : 'eventConfig'
+                , 'permissions'   : ( "Manage DMD", )
+                },
            )
          },
         )
