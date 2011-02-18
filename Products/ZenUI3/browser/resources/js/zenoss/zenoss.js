@@ -749,14 +749,15 @@ Zenoss.FilterGridView = Ext.extend(Ext.ux.grid.livegrid.GridView, {
     // object.
     applyFilterParams: function(options, globbing) {
         var params = this.lastOptions || {},
-            i, filter, query, dt;
+            i, filter, query, dt, excludeGlobChars = ['*','"'];
         options = options || {};
         globbing = (this.appendGlob && (Ext.isDefined(globbing) ? globbing : true));
         for(i=0;i<this.filters.length;i++){
             filter = this.filters[i];
             query = filter.getValue();
             if (query) {
-                if (globbing && filter.xtype=="textfield" && filter.vtype != "numcmp") {
+                if (globbing && filter.xtype=="textfield" && filter.vtype != "numcmp" &&
+                        excludeGlobChars.indexOf(query.charAt(query.length-1)) === -1) {
                     query += "*";
                 }
                 params[filter.id] = query;
