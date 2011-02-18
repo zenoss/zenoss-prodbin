@@ -66,7 +66,7 @@ class ZepFacade(ZuulFacade):
     }
     ZENOSS_DETAIL_KEYS = (ZENOSS_DETAIL_MAPPING.values())
 
-    COUNT_REGEX = re.compile(r'(?P<from>\d+)?:?(?P<to>\d+)?')
+    COUNT_REGEX = re.compile(r'^(?P<from>\d+)?:?(?P<to>\d+)?$')
 
     def __init__(self, context):
         super(ZepFacade, self).__init__(context)
