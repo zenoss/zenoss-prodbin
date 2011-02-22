@@ -171,18 +171,19 @@ class Manager(object):
         Looks up all the UUIDs in the tree path of an Organizer
         """
         uuids = set([])
-        chain = []
+        acquisition_chain = []
         for n in aq_chain(node.primaryAq()):
             if isinstance(n, DataRoot):
-                chain.pop()
+                acquisition_chain.pop()
                 break
-            chain.append(n)
+            acquisition_chain.append(n)
 
-        for obj in filter(chain, None):
-            try:
-                uuids.add(self.getElementUuid(obj))
-            except TypeError:
-                log.debug("Unable to get a uuid for %s " % obj)
+        if acquisition_chain:
+            for obj in filter(None, acquisition_chain):
+                try:
+                    uuids.add(self.getElementUuid(obj))
+                except TypeError:
+                    log.debug("Unable to get a uuid for %s " % obj)
 
         return uuids
 

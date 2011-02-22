@@ -435,8 +435,13 @@ class ZPZep(ZenPackLoader):
 
     def _data(self, conf):
         data = {}
-        with open(conf, "r") as configFile:
-            data = json.load(configFile)
+        try:
+            with open(conf, "r") as configFile:
+                data = json.load(configFile)
+        except IOError, e:
+            # this file doesn't exist in this zenpack.
+            log.debug("File could not be opened for reading: %s" % conf)
+            pass
         return data
 
     def _prepare(self, pack, app):
@@ -485,30 +490,34 @@ class EventDetailItemHandler(BaseZepConfigItemHandler):
         """
         configData is a json dict. This is the entire config structure.
         """
-        items = configData.get(EventDetailItemHandler.key, [])
-        detailItemSet = from_dict(EventDetailItemSet, dict(
-            details = items
-        ))
-        self.zep.addIndexedDetails(detailItemSet)
+        if configData:
+            items = configData.get(EventDetailItemHandler.key, [])
+            detailItemSet = from_dict(EventDetailItemSet, dict(
+                details = items
+            ))
+            self.zep.addIndexedDetails(detailItemSet)
         
     def list(self, configData):
-        items = configData.get(EventDetailItemHandler.key, [])
-        info = []
-        for item in items:
-            info.append("Would be adding the following detail to be indexed by ZEP: %s" % item.key)
-        return info
+        if configData:
+            items = configData.get(EventDetailItemHandler.key, [])
+            info = []
+            for item in items:
+                info.append("Would be adding the following detail to be indexed by ZEP: %s" % item.key)
+            return info
     
     def unload(self, configData, leaveObjects):
-        if not leaveObjects:
+        if not leaveObjects and configData:
             items = configData.get(EventDetailItemHandler.key, [])
             for item in items:
                 log.info("Removing the following currently indexed detail by ZEP: %s" % item)
                 self.zep.removeIndexedDetail(item['key'])
 
+
     def upgrade(self, configData):
-        items = configData.get(EventDetailItemHandler.key, [])
-        for item in items:
-            log.info("Upgrading the following to be indexed by ZEP: %s" % item)
-            detailItem = from_dict(EventDetailItem, item)
-            self.zep.updateIndexedDetailItem(detailItem)
+        if configData:
+            items = configData.get(EventDetailItemHandler.key, [])
+            for item in items:
+                log.info("Upgrading the following to be indexed by ZEP: %s" % item)
+                detailItem = from_dict(EventDetailItem, item)
+                self.zep.updateIndexedDetailItem(detailItem)
 
