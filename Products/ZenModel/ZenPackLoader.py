@@ -402,7 +402,7 @@ class ZPTriggerAction(ZenPackLoader):
                         raise("action types are not compatible")
                     action['uid']= notification.uid
                     if triggerGuid:
-                        action['subscriptions'] = [triggerGuid]
+                        action['subscriptions'] = triggerGuid
                     tf.updateNotification(**action)
     
     def _getTriggerGuid(self, facade, name):
