@@ -1,0 +1,49 @@
+<!--
+###########################################################################
+#
+# This program is part of Zenoss Core, an open source monitoring platform.
+# Copyright (C) 2009, Zenoss Inc.
+#
+# This program is free software; you can redistribute it and/or modify it
+# under the terms of the GNU General Public License version 2 as published by
+# the Free Software Foundation.
+#
+# For complete information please visit: http://www.zenoss.com/oss/
+#
+###########################################################################
+-->
+
+<tal:block metal:use-macro="context/page_macros/base-new">
+
+<tal:block metal:fill-slot="title">Learn more about Zenoss Datacenter Impact</tal:block>
+
+<tal:block metal:fill-slot="head-local">
+
+
+</tal:block>
+
+
+<tal:block metal:fill-slot="center_panel_content">
+
+</tal:block>
+
+<tal:block metal:fill-slot="script_layout">
+
+    <script language="javascript" type="text/javascript">
+	 Ext.onReady(function() {
+		var getUrl;
+	 	Zenoss.env.INTERNET_CONNECTION ?  getUrl = 'http://www2.zenoss.com/get-impact' : getUrl = '/zport/dmd/noservices_fail_load';
+		function makeIframe(){
+			  Ext.getCmp('center_panel').add({
+			  	xtype: 'iframe',
+			  	url: getUrl,
+			  });
+			  Ext.getCmp('center_panel').doLayout();
+		 } 
+		 makeIframe();
+		
+		});
+    </script>
+	<script language="javascript" type="text/javascript" src="http://www2.zenoss.com/javascript/env.js" />
+</tal:block>
+</tal:block> <!-- metal:use-macro="context/page_macros/masterdetailsplit2" -->

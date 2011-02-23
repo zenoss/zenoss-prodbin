@@ -80,7 +80,6 @@ Zenoss.ContextualIFrame = Ext.extend(Zenoss.IFramePanel, {
 
 Ext.reg('contextiframe', Zenoss.ContextualIFrame);
 
-
 /**
  * Panel used for displaying old zenoss ui pages in an iframe. Set Context
  * should be called by page to initialze panel for viewing.
