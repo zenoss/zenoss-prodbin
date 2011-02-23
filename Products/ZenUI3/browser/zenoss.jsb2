@@ -186,6 +186,9 @@
         },{
             "text": "SettingsGrid.js",
             "path": "resources/js/zenoss/form/"
+        },{
+            "text": "organizerdropdown.js",
+            "path": "resources/js/zenoss/form/"
         }]
     }],
     "resources": []

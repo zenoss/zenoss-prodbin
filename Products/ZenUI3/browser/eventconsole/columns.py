@@ -46,8 +46,9 @@ details are added via zenpacks, they will show up as custom details.
 These details are added to the grid with the following specifications:
 
     header = item.name
-    filter = 'textfield'
+    filter = 'textfield' # or None if not filterable
     sortable = True
+
 
 The 'id' and 'dataIndex' properties of each column are taken from the
 string in the DEFAULT_COLUMN_ORDER list. The key in the COLUMN_CONFIG
@@ -270,31 +271,31 @@ COLUMN_CONFIG = {
     'facility' : dict(
         header='Facility',
         sortable=False,
-        filter='textfield'),
+        filter=None),
 
     'priority' : dict(
         header='Priority',
         sortable=False,
-        filter='textfield'),
+        filter=None),
 
     'eventClassMapping': dict(
         header='Event Class Mapping',
         sortable=False,
-        filter='textfield'),
+        filter=None),
 
     'clearid': dict(
         header='Clear ID',
-        filter='textfield'),
+        filter=None),
 
     'ntevid': dict(
         header='NT Event ID',
         sortable=False,
-        filter='textfield'),
+        filter=None),
 
     'ipAddress' : dict(
         header='IP Address',
         sortable=False,
-        filter='textfield'),
+        filter=None),
 
     'message'   : dict(
         header='Message',
@@ -303,14 +304,14 @@ COLUMN_CONFIG = {
     'Location'  : dict(
         header='Location',
         sortable=False,
-        filter='textfield',
+        filter='locationdropdown',
         renderer='Zenoss.render.LinkFromGridGuidGroup'
         ),
 
     'DeviceGroups': dict(
         header='Groups',
         sortable=False,
-        filter='textfield',
+        filter='groupdropdown',
         renderer='Zenoss.render.LinkFromGridGuidGroup'
         ),
 
@@ -318,12 +319,12 @@ COLUMN_CONFIG = {
         header='Systems',
         sortable=False,
         renderer='Zenoss.render.LinkFromGridGuidGroup',
-        filter='textfield'),
+        filter='systemdropdown'),
 
     'DeviceClass': dict(
         header='Device Class',
         sortable=False,
-        filter='textfield',
+        filter='deviceclassdropdown',
         renderer='Zenoss.render.LinkFromGridGuidGroup',
 
         ),

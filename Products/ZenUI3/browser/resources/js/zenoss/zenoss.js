@@ -922,7 +922,9 @@ Zenoss.FilterGridView = Ext.extend(Ext.ux.grid.livegrid.GridView, {
             fieldid = c.id;
             id = 'filtergrid-' + gridId + '_' + fieldid;
             config = this.cm.config[i].filter;
-            enable_filtering = this.cm.config[i].sortable;
+            // if there was no explicit filter then
+            // the column is not filterable
+            var enable_filtering = !Ext.isEmpty(this.cm.config[i].filter);
             if (config===false) {
                 config = {xtype: 'panel', reset: function(){},
                           getValue: function(){}};
@@ -1938,7 +1940,7 @@ var EventActionManager = Ext.extend(Ext.util.Observable, {
 Ext.onReady(function() {
     Zenoss.EventActionManager = new EventActionManager();
 });
-    
+
 /**
  * @class Zenoss.ColumnFieldSet
  * @extends Ext.form.FieldSet

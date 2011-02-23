@@ -305,6 +305,32 @@ class EventsRouter(DirectRouter):
             sort_list.append(('lastTime','desc'))
         return sort_list
 
+    def _getTagsFromOrganizers(self, params):
+        """
+        This builds a tag list from any organizers that were
+        selected as filterable.
+        The organizers come in from the server without their base
+        group so we need to append it.
+        """
+        tags = []
+        organizersPrefixes = {
+            'Location': '/zport/dmd/Locations',
+            'DeviceClass': '/zport/dmd/Devices',
+            'Systems': '/zport/dmd/Systems',
+            'DeviceGroups': '/zport/dmd/Groups'
+            }
+        for key, prefix in organizersPrefixes.iteritems():
+            if params.get(key):
+                path = prefix + str(params[key])
+                try:
+                    obj = self.context.dmd.unrestrictedTraverse(path)
+                except KeyError:
+                    # couldn't find the object
+                    continue
+                tags.append(IGlobalIdentifier(obj).getGUID())
+        return tags
+
+
     def _buildFilter(self, uid, params, specificEventUuids=None):
         """
         Construct a dictionary that can be converted into an EventFilter protobuf.
@@ -329,7 +355,11 @@ class EventsRouter(DirectRouter):
             params, details = self.zep.parseParameterDetails(params)
 
             filterEventUuids = []
-
+            # look up organizer tags
+            tags = self._getTagsFromOrganizers(params)
+            if tags:
+                for tag in tags:
+                    params['tags'].append(tag)
             # No specific event uuids passed in-
             # check for event ids from the grid parameters
             if specificEventUuids is None:
