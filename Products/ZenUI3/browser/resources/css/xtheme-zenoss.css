@@ -1667,3 +1667,42 @@ body.x-body-masked .x-window-mc, body.x-body-masked .x-window-plain .x-window-mc
     width: 95%;
 }
 
+
+/*
+Wizard
+*/
+
+.ext-ux-wiz-Header {
+    border-bottom:1px solid #99BBE8;
+}
+
+.ext-ux-wiz-Header-title {
+    font-weight: bold;
+    padding: 4px 0px 0px 4px;
+}
+
+.ext-ux-wiz-Header-step {
+    color:#767676;
+    text-align:right;
+    padding:2px 4px 0px 0px;
+}
+
+.ext-ux-wiz-Header-stepIndicator-container {
+    float:right;
+    margin-right:6px;
+    margin-top:8px;
+}
+
+.ext-ux-wiz-Header-stepIndicator {
+    margin-left:28px;
+    float:left;
+    background-image:url(../img/xtheme-zenoss/toolbar/ext-ux-wiz-stepIndicator.png);
+    background-position:6px 0px;
+    background-repeat:repeat-x;
+    height:6px;
+    width:6px;
+}
+
+.ext-ux-wiz-Header-stepIndicator-active {
+    background-position:0px 0px !important;
+}
