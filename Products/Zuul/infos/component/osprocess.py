@@ -14,7 +14,7 @@
 from zope.interface import implements
 from Products.Zuul.decorators import info
 from Products.Zuul.interfaces import IOSProcessInfo
-from Products.Zuul.infos.component import ComponentInfo
+from Products.Zuul.infos.component import ComponentInfo, ServiceMonitor
 
 class OSProcessInfo(ComponentInfo):
     implements(IOSProcessInfo)
@@ -46,9 +46,8 @@ class OSProcessInfo(ComponentInfo):
             self._object.deleteZenProperty('zFailSeverity')
     failSeverity = property(getFailSeverity, setFailSeverity)
 
+    monitor = ServiceMonitor()
+
     @property
-    def usesMonitorAttribute(self):
-        """OSProcess monitored() does not check the monitor attribute, so do
-        not allow the user to set it. canBeMonitor is True (from the base
-        class)"""
-        return False
+    def monitored(self):
+        return self._object.monitored()
