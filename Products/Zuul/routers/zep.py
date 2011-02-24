@@ -85,16 +85,20 @@ class EventsRouter(DirectRouter):
             return ""
 
         # the longest tag will be the deepest device class this device belongs in
-        orgPath = ""
+        currentPath = ""
         uuid = None
         for tag in tags:
-            path = urllib.unquote(self.manager.getPath(tag))
-            if len(path.split("/")) > len(orgPath.split("/")):
-                orgPath = path
+            path = self.manager.getPath(tag)
+            if not path:
+                #if a portion of the device class is not found that should mean the device class is no longer valid
+                return ""
+            path = urllib.unquote(path)
+            if len(path) > len(currentPath):
+                currentPath = path
                 uuid = tag
         if uuid is None:
             return ""
-        return [{'uuid': uuid, 'name': orgPath.replace("/zport/dmd/Devices", "")}]
+        return [{'uuid': uuid, 'name': currentPath.replace("/zport/dmd/Devices", "")}]
 
     def _findDetails(self, event):
         """
