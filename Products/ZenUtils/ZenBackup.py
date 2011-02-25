@@ -286,6 +286,7 @@ class ZenBackup(ZenBackupBase):
             # Copy /ZenPacks to backup dir
             self.log.info('Backing up ZenPacks.')
             etcTar = tarfile.open(os.path.join(self.tempDir, 'ZenPacks.tar'), 'w')
+            etcTar.dereference = True
             etcTar.add(zenPath('ZenPacks'), 'ZenPacks')
             etcTar.close()
             self.log.info("Backup of ZenPacks completed.")
@@ -293,6 +294,7 @@ class ZenBackup(ZenBackupBase):
             # Copy /bin to backup dir 
             self.log.info('Backing up bin dir.')
             etcTar = tarfile.open(os.path.join(self.tempDir, 'bin.tar'), 'w')
+            etcTar.dereference = True
             etcTar.add(zenPath('bin'), 'bin')
             etcTar.close()
             self.log.info("Backup of bin completed.")
@@ -342,7 +344,7 @@ class ZenBackup(ZenBackupBase):
         self.log.info('Backing up performance data (RRDs).')
         tarFile = os.path.join(self.tempDir, 'perf.tar')
         #will change dir to ZENHOME so that tar dir structure is relative
-        cmd = ['tar', 'cfC', tarFile, zenPath(), 'perf']
+        cmd = ['tar', 'chfC', tarFile, zenPath(), 'perf']
         (output, warnings, returncode) = self.runCommand(cmd)
         if returncode:
             self.log.critical("Backup terminated abnormally.")
@@ -413,6 +415,7 @@ class ZenBackup(ZenBackupBase):
         # Copy /etc to backup dir (except for sockets)
         self.log.info('Backing up config files.')
         etcTar = tarfile.open(os.path.join(self.tempDir, 'etc.tar'), 'w')
+        etcTar.dereference = True
         etcTar.add(zenPath('etc'), 'etc')
         etcTar.close()
         self.log.info("Backup of config files completed.")
