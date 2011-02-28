@@ -1,6 +1,11 @@
 (function(){ // Local scope
 
 /**
+ * Global Ext settings.
+ */
+Ext.BLANK_IMAGE_URL = '/++resource++zenui/img/s.gif';
+
+/**
  * Base namespace to contain all Zenoss-specific JavaScript.
  */
 Ext.namespace('Zenoss');
