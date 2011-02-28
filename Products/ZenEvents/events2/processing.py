@@ -204,6 +204,9 @@ class EventContext(object):
     def setDeviceObject(self, device):
         self._deviceObject = device
 
+    def refreshClearClasses(self):
+        self._eventProxy._refreshClearClasses()
+        
     @property
     def deviceObject(self):
         return self._deviceObject
@@ -473,7 +476,7 @@ class EventPluginPipe(EventProcessorPipe):
     def __call__(self, eventContext):
         for name, plugin in self._eventPlugins:
             try:
-                plugin.apply(eventContext.zepRawEvent, self._manager.dmd)
+                plugin.apply(eventContext._eventProxy, self._manager.dmd)
             except Exception as e:
                 eventContext.log.error('Event plugin %s encountered an error -- skipping.' % name)
                 eventContext.log.exception(e)
@@ -491,7 +494,6 @@ class EventTagPipe(EventProcessorPipe):
     }
 
     def __call__(self, eventContext):
-
         device = eventContext.deviceObject
         if device:
             for tagType, func in self.DEVICE_TAGGERS.iteritems():
@@ -517,4 +519,10 @@ class EventTagPipe(EventProcessorPipe):
                 eventClassUuids = self._manager.getUuidsOfPath(eventClass)
                 eventContext.eventProxy.tags.addAll(TransformPipe.EVENT_CLASS_TAG, eventClassUuids)
 
+        return eventContext
+
+class ClearClassRefreshPipe(EventProcessorPipe):
+
+    def __call__(self, eventContext):
+        eventContext.refreshClearClasses()
         return eventContext

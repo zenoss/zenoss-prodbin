@@ -85,6 +85,7 @@ class ProcessEventMessageTask(BasePubSubMessageTask):
             FingerprintPipe(self._manager),
             SerializeContextPipe(self._manager),
             EventPluginPipe(self._manager, IPostEventPlugin),
+            ClearClassRefreshPipe(self._manager),
             EventTagPipe(self._manager),
         )
 
@@ -108,6 +109,8 @@ class ProcessEventMessageTask(BasePubSubMessageTask):
 
         for pipe in self._pipes:
             eventContext = pipe(eventContext)
+            if log.isEnabledFor(logging.DEBUG):
+                log.debug('After pipe %s, event context is %s' % ( pipe, eventContext ))
             if eventContext.zepRawEvent.status == STATUS_DROPPED:
                 raise DropEvent('Dropped by %s' % pipe, eventContext.event)
 
