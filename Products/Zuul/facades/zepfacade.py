@@ -22,7 +22,7 @@ from Products.ZenEvents.ZenEventClasses import Unknown
 import pkg_resources
 from zenoss.protocols.services.zep import ZepServiceClient, EventSeverity, ZepConfigClient
 from zenoss.protocols.jsonformat import to_dict, from_dict
-from zenoss.protocols.protobufs.zep_pb2 import EventSort, EventFilter, EventSummaryUpdateRequest, EventDetailItem, EventDetailItemSet, ZepConfig
+from zenoss.protocols.protobufs.zep_pb2 import EventSort, EventFilter, EventSummaryUpdateRequest, ZepConfig
 from zenoss.protocols.protobufutil import listify
 from Products.ZenUtils.GlobalConfig import getGlobalConfiguration
 from Products.ZenUtils.guid.interfaces import IGlobalIdentifier
@@ -39,46 +39,44 @@ class ZepFacade(ZuulFacade):
     OR = OR
 
     SORT_MAP = {
-        'eventstate' : EventSort.STATUS,
-        'severity' : EventSort.SEVERITY,
-        'firsttime' : EventSort.FIRST_SEEN,
-        'lasttime' : EventSort.LAST_SEEN,
-        'eventclass' : EventSort.EVENT_CLASS,
-        'device' : EventSort.ELEMENT_IDENTIFIER,
-        'component' : EventSort.ELEMENT_SUB_IDENTIFIER,
-        'count' : EventSort.COUNT,
-        'summary' : EventSort.EVENT_SUMMARY,
-        'ownerid' : EventSort.ACKNOWLEDGED_BY_USER_NAME,
-        'agent': EventSort.AGENT,
-        'monitor': EventSort.MONITOR,
-        'evid': EventSort.UUID,
-        'statechange': EventSort.STATUS_CHANGE,
+        'eventstate':  { 'field': EventSort.STATUS },
+        'severity':    { 'field': EventSort.SEVERITY },
+        'firsttime':   { 'field': EventSort.FIRST_SEEN },
+        'lasttime':    { 'field': EventSort.LAST_SEEN },
+        'eventclass':  { 'field': EventSort.EVENT_CLASS },
+        'device':      { 'field': EventSort.ELEMENT_IDENTIFIER },
+        'component':   { 'field': EventSort.ELEMENT_SUB_IDENTIFIER },
+        'count':       { 'field': EventSort.COUNT },
+        'summary':     { 'field': EventSort.EVENT_SUMMARY },
+        'ownerid':     { 'field': EventSort.ACKNOWLEDGED_BY_USER_NAME },
+        'agent':       { 'field': EventSort.AGENT },
+        'monitor':     { 'field': EventSort.MONITOR },
+        'evid':        { 'field': EventSort.UUID },
+        'statechange': { 'field': EventSort.STATUS_CHANGE },
     }
     
-    SORT_DIRECTIONAL_MAP  = {
+    SORT_DIRECTIONAL_MAP = {
         'asc' : EventSort.ASCENDING,
         'desc' : EventSort.DESCENDING,
     }
 
-    ZENOSS_DETAIL_MAPPING = {
+    ZENOSS_DETAIL_OLD_TO_NEW_MAPPING = {
         'prodState' : 'zenoss.device.production_state',
         'DevicePriority' : 'zenoss.device.priority',
     }
-    ZENOSS_DETAIL_KEYS = (ZENOSS_DETAIL_MAPPING.values())
+    ZENOSS_DETAIL_NEW_TO_OLD_MAPPING = dict([(new, old) for old, new in ZENOSS_DETAIL_OLD_TO_NEW_MAPPING.iteritems()])
 
     COUNT_REGEX = re.compile(r'^(?P<from>\d+)?:?(?P<to>\d+)?$')
 
     def __init__(self, context):
         super(ZepFacade, self).__init__(context)
-
-        self._details = None
-        self._detailsMap = None
-        self._unmappedDetails = None
+        self._sortMap = {}
+        self._sortMap.update(ZepFacade.SORT_MAP)
         config = getGlobalConfiguration()
         zep_url = config.get('zep_uri', 'http://localhost:8084')
         self.client = ZepServiceClient(zep_url)
         self.configClient = ZepConfigClient(zep_url)
-        self.initDetails();
+        self.initDetails()
 
     def createEventFilter(self,
         severity=(),
@@ -223,6 +221,16 @@ class ZepFacade(ZuulFacade):
 
         return d
 
+    def _getEventSort(self, sortParam):
+        eventSort = {}
+        if isinstance(sortParam, (list, tuple)):
+            field, direction = sortParam
+            eventSort['direction'] = self.SORT_DIRECTIONAL_MAP[direction.lower()]
+        else:
+            field = sortParam
+        eventSort.update(self._sortMap[field.lower()])
+        return from_dict(EventSort, eventSort)
+
     def _getEventSummaries(self, source, offset, limit=100, keys=None, sort=None, filter=None):
         filterBuf = None
 
@@ -234,24 +242,11 @@ class ZepFacade(ZuulFacade):
             if isinstance(sort, (list, tuple)):
                 # Multiple sort fields
                 if isinstance(sort[0], (list,tuple)):
-                    eventSort = []
-                    for s in sort:
-                        if s[0].lower() in self.SORT_MAP:
-                            eventSort.append(from_dict(EventSort, {
-                                'field' : self.SORT_MAP[s[0].lower()],
-                                'direction' : self.SORT_DIRECTIONAL_MAP[s[1].lower()]
-                            }))
-
+                    eventSort = [self._getEventSort(s) for s in sort]
                 else:
-                    if sort[0].lower() in self.SORT_MAP:
-                        eventSort = from_dict(EventSort, {
-                            'field' : self.SORT_MAP[sort[0].lower()],
-                            'direction' : self.SORT_DIRECTIONAL_MAP[sort[1].lower()]
-                        })
+                    eventSort = self._getEventSort(sort)
             else:
-                if sort.lower() in self.SORT_MAP:
-                    eventSort = from_dict(EventSort, { 'field' : self.SORT_MAP[sort.lower()] })
-
+                eventSort = self._getEventSort(sort)
 
         response, content = source(offset=offset, limit=limit, keys=keys, sort=eventSort, filter=filterBuf)
         return {
@@ -477,20 +472,29 @@ class ZepFacade(ZuulFacade):
     def initDetails(self):
         response, content = self.configClient.getDetails()
 
-        self._details = to_dict(content)
-        self._unmappedDetails = [d for d in self.getDetails() if d['key'] not in self.ZENOSS_DETAIL_KEYS]
-
+        detailsResponseDict = to_dict(content)
+        self._details = detailsResponseDict.get('details', [])
+        self._unmappedDetails = []
         self._detailsMap = {}
-        for detail_item in self.getDetails():
-            self._detailsMap[detail_item['key']] = detail_item['name']
+        for detail_item in self._details:
+            detailKey = detail_item['key']
+            sortField = { 'field': EventSort.DETAIL, 'detail_key': detailKey }
+            mappedName = ZepFacade.ZENOSS_DETAIL_NEW_TO_OLD_MAPPING.get(detailKey, None)
+            # If we have a mapped name, add it to the sort map to support sorting using old or new names
+            if mappedName:
+                self._sortMap[mappedName.lower()] = sortField
+            else:
+                self._unmappedDetails.append(detail_item)
+            self._sortMap[detailKey.lower()] = sortField
+            self._detailsMap[detailKey] = detail_item
 
     def getDetails(self):
         """
         Retrieve all of the indexed detail items.
 
-        @rtype zenoss.protocols.protobufs.zep_pb2.EventDetailSet
+        @rtype list of EventDetailItem dicts
         """
-        return self._details['details']
+        return self._details
 
     def getUnmappedDetails(self):
         """
@@ -501,7 +505,7 @@ class ZepFacade(ZuulFacade):
 
     def getDetailsMap(self):
         """
-        Return a mapping of detail keys to detail names.
+        Return a mapping of detail keys to dicts of detail items
         """
         return self._detailsMap
 
@@ -516,8 +520,8 @@ class ZepFacade(ZuulFacade):
         detail_keys = self.getDetailsMap().keys()
         for k, v in parameters.iteritems():
 
-            if k in self.ZENOSS_DETAIL_MAPPING:
-                k = self.ZENOSS_DETAIL_MAPPING[k]
+            if k in self.ZENOSS_DETAIL_OLD_TO_NEW_MAPPING:
+                k = self.ZENOSS_DETAIL_OLD_TO_NEW_MAPPING[k]
                 
             if k in detail_keys:
                 details[k] = v
