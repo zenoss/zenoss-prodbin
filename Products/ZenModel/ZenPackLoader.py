@@ -479,11 +479,8 @@ class ZPZep(ZenPackLoader):
             handler.upgrade(data)
 
 
-class BaseZepConfigItemHandler(object):
-    def __init__(self):
-        self.zep = getFacade('zep')
 
-class EventDetailItemHandler(BaseZepConfigItemHandler):
+class EventDetailItemHandler(object):
     key = 'EventDetailItem'
     
     def load(self, configData):
@@ -491,6 +488,7 @@ class EventDetailItemHandler(BaseZepConfigItemHandler):
         configData is a json dict. This is the entire config structure.
         """
         if configData:
+            self.zep = getFacade('zep')
             items = configData.get(EventDetailItemHandler.key, [])
             detailItemSet = from_dict(EventDetailItemSet, dict(
                 details = items
@@ -499,6 +497,7 @@ class EventDetailItemHandler(BaseZepConfigItemHandler):
         
     def list(self, configData):
         if configData:
+            self.zep = getFacade('zep')
             items = configData.get(EventDetailItemHandler.key, [])
             info = []
             for item in items:
@@ -507,6 +506,7 @@ class EventDetailItemHandler(BaseZepConfigItemHandler):
     
     def unload(self, configData, leaveObjects):
         if not leaveObjects and configData:
+            self.zep = getFacade('zep')
             items = configData.get(EventDetailItemHandler.key, [])
             for item in items:
                 log.info("Removing the following currently indexed detail by ZEP: %s" % item)
@@ -515,6 +515,7 @@ class EventDetailItemHandler(BaseZepConfigItemHandler):
 
     def upgrade(self, configData):
         if configData:
+            self.zep = getFacade('zep')
             items = configData.get(EventDetailItemHandler.key, [])
             for item in items:
                 log.info("Upgrading the following to be indexed by ZEP: %s" % item)
