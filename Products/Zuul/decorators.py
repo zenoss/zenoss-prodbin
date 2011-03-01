@@ -114,3 +114,23 @@ def require(permission):
         return f(self, *args, **kwargs)
     return wrapped_fn
 
+
+def contextRequire(permission, contextKeywordArgument):
+    """
+    Decorator that checks if the current user has the permission on a passed in context.
+    The argument can be either the unique string of an object (uid) or the object itself.
+
+    NOTE: This decorator assumes that the arguments to the method will be passed
+    in as keyword arguments.  It is mainly used by the routers where this is the
+    case.
+    """
+    @decorator
+    def wrapped_fn(f, self, *args, **kwargs):
+        context = kwargs[contextKeywordArgument]
+        if isinstance(context, basestring):
+            context = self.context.unrestrictedTraverse(context)
+        if not Zuul.checkPermission(permission, context):
+            args = (f.__name__, permission)
+            raise Unauthorized('Calling %s requires "%s" permission.' % args)
+        return f(self, *args, **kwargs)
+    return wrapped_fn

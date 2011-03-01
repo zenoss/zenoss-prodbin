@@ -188,15 +188,15 @@
             permission="zenoss.View"
             layer="..navigation.interfaces.IZenossNav"
             />
-            
-            
+
+
   <browser:viewlet
       name="Services"
       url="/zport/dmd/noservices"
       weight="3"
         manager="..navigation.interfaces.IPrimaryNavigationMenu"
         class="..navigation.menuitem.PrimaryNavigationMenuItem"
-      	permission="zenoss.Common"
+        permission="zenoss.Common"
         layer="..navigation.interfaces.IZenossNav"
       />
 

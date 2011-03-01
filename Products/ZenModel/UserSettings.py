@@ -34,6 +34,7 @@ from Products.ZenEvents.CustomEventView import CustomEventView
 from Products.ZenRelations.RelSchema import *
 from Products.ZenUtils import Time
 from Products.ZenUtils.Utils import unused, prepId
+from Products.ZenUtils.guid.interfaces import IGUIDManager
 from Products.ZenUtils import DotNetCommunication
 from Products.ZenUtils.guid.interfaces import IGloballyIdentifiable
 from Products.ZenWidgets import messaging
@@ -965,23 +966,32 @@ class UserSettings(ZenModelRM):
 
     security.declareProtected(ZEN_CHANGE_ADMIN_OBJECTS,
         'manage_addAdministrativeRole')
-    def manage_addAdministrativeRole(self, name=None, type='device',
-                                    role=None, REQUEST=None):
+    def manage_addAdministrativeRole(self, name=None, type='device', role=None,
+                                     guid=None, uid=None, REQUEST=None):
         "Add a Admin Role to this device"
         unused(role)
         mobj = None
-        if not name:
-            name = REQUEST.deviceName
-        if type == 'device':
-            mobj =self.getDmdRoot("Devices").findDevice(name)
+        if guid or uid:
+            # look up our object by either guid or uid
+            if guid:
+                manager = IGUIDManager(self.dmd)
+                mobj = manager.getObject(guid)
+            elif uid:
+                mobj = self.unrestrictedTraverse(uid)
         else:
-            try:
-                root = type.capitalize()+'s'
-                if type == "deviceClass":
-                    mobj = self.getDmdRoot("Devices").getOrganizer(name)
-                else:
-                    mobj = self.getDmdRoot(root).getOrganizer(name)
-            except KeyError: pass
+            # use magic to look up our object
+            if not name:
+                name = REQUEST.deviceName
+            if type == 'device':
+                mobj =self.getDmdRoot("Devices").findDevice(name)
+            else:
+                try:
+                    root = type.capitalize()+'s'
+                    if type == "deviceClass":
+                        mobj = self.getDmdRoot("Devices").getOrganizer(name)
+                    else:
+                        mobj = self.getDmdRoot(root).getOrganizer(name)
+                except KeyError: pass
         if not mobj:
             if REQUEST:
                 messaging.IMessageSender(self).sendToBrowser(

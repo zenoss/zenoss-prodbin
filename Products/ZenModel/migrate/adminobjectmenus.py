@@ -23,57 +23,57 @@ class AdminObjectMenus(Migrate.Step):
     version = Migrate.Version(2, 3, 0)
 
     def cutover(self, dmd):
-        
+
         dmd.buildMenus(
-            {'AdministeredObjects_list': [{ 
-               'action': 'dialog_addAdministeredDevice', 
-                'description': 'Add Device...', 
-                'id': 'addAdministeredDevice', 
-                'isdialog': True, 
-                'ordering': 90.5, 
+            {'AdministeredObjects_list': [{
+               'action': 'dialog_addAdministeredDevice',
+                'description': 'Add Device...',
+                'id': 'addAdministeredDevice',
+                'isdialog': True,
+                'ordering': 90.5,
                 'permissions': (ZEN_CHANGE_ADMIN_OBJECTS,)
             },
-            {  'action': 'dialog_addAdministeredDeviceClass', 
-                'description': 'Add Device Class...', 
-                'id': 'addAdministeredDeviceClass', 
-                'isdialog': True, 
-                'ordering': 90.4, 
+            {  'action': 'dialog_addAdministeredDeviceClass',
+                'description': 'Add Device Class...',
+                'id': 'addAdministeredDeviceClass',
+                'isdialog': True,
+                'ordering': 90.4,
                 'permissions': (ZEN_CHANGE_ADMIN_OBJECTS,)
             },
-            {  'action': 'dialog_addAdministeredSystem', 
-                'description': 'Add System...', 
-                'id': 'addAdministeredSystem', 
-                'isdialog': True, 
-                'ordering': 90.3, 
+            {  'action': 'dialog_addAdministeredSystem',
+                'description': 'Add System...',
+                'id': 'addAdministeredSystem',
+                'isdialog': True,
+                'ordering': 90.3,
                 'permissions': (ZEN_CHANGE_ADMIN_OBJECTS,)
             },
-            {  'action': 'dialog_addAdministeredGroup', 
-                'description': 'Add Group...', 
-                'id': 'addAdministeredGroup', 
-                'isdialog': True, 
-                'ordering': 90.2, 
+            {  'action': 'dialog_addAdministeredGroup',
+                'description': 'Add Group...',
+                'id': 'addAdministeredGroup',
+                'isdialog': True,
+                'ordering': 90.2,
                 'permissions': (ZEN_CHANGE_ADMIN_OBJECTS,)
             },
-            {  'action': 'dialog_addAdministeredLocation', 
-                'description': 'Add Location...', 
-                'id': 'addAdministeredLocation', 
-                'isdialog': True, 
-                'ordering': 90.1, 
+            {  'action': 'dialog_addAdministeredLocation',
+                'description': 'Add Location...',
+                'id': 'addAdministeredLocation',
+                'isdialog': True,
+                'ordering': 90.1,
                 'permissions': (ZEN_CHANGE_ADMIN_OBJECTS,)
             },
-            {  'action': 'dialog_deleteAdministeredObjects', 
-                'description': 'Delete Admin Objects...', 
-                'id': 'deleteAdministeredObjects', 
-                'isdialog': True, 
-                'ordering': 80.0, 
+            {  'action': 'dialog_deleteAdministeredObjects',
+                'description': 'Delete Admin Objects...',
+                'id': 'deleteAdministeredObjects',
+                'isdialog': True,
+                'ordering': 80.0,
                 'permissions': (ZEN_CHANGE_ADMIN_OBJECTS,)
             }],
-            'UserSettings': [{ 'action': 'dialog_saveUserSettings', 
-                'description': 'Save User Settings...', 
-                'id': 'saveUserSettings', 
-                'isdialog': True, 
-                'ordering': 0.0, 
-                'permissions': (ZEN_CHANGE_SETTINGS,) 
+            'UserSettings': [{ 'action': 'dialog_saveUserSettings',
+                'description': 'Save User Settings...',
+                'id': 'saveUserSettings',
+                'isdialog': True,
+                'ordering': 0.0,
+                'permissions': (ZEN_CHANGE_SETTINGS,)
             }],
             'ActionRule_list': [  {  'action': 'dialog_addActionRule',
                 'description': 'Add Alerting Rule...',
@@ -98,7 +98,7 @@ class AdminObjectMenus(Migrate.Step):
                 'id': 'deleteActionRuleWindows',
                 'isdialog': True,
                 'ordering': 80.0,
-                'permissions': (ZEN_CHANGE_ALERTING_RULES,)}], 
+                'permissions': (ZEN_CHANGE_ALERTING_RULES,)}],
            'EventView_list': [  {  'action': 'dialog_addEventView',
                 'description': 'Add Event View...',
                 'id': 'addEventView',
@@ -112,10 +112,10 @@ class AdminObjectMenus(Migrate.Step):
                 'ordering': 80.0,
                 'permissions': (ZEN_CHANGE_EVENT_VIEWS,)}],
         })
-        if hasattr(dmd.zenMenus.AdministeredObjects_list.zenMenuItems, 
-            'saveAdministeredObjects'):  
+        if hasattr(dmd.zenMenus.AdministeredObjects_list.zenMenuItems,
+            'saveAdministeredObjects'):
             dmd.zenMenus.AdministeredObjects_list.manage_deleteZenMenuItem(
                 'saveAdministeredObjects')
-                                      
-                                      
+
+
 AdminObjectMenus()

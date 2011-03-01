@@ -20,26 +20,29 @@ import types
 from AccessControl import ClassSecurityInfo
 from Products.ZenModel.AdministrativeRole import AdministrativeRole
 from Globals import InitializeClass
+from zope.event import notify
+from Products.Zuul.catalog.events import IndexingEvent
 from ZenossSecurity import *
 from Products.ZenWidgets import messaging
 
 class AdministrativeRoleable:
-    
+
     security = ClassSecurityInfo()
 
-    security.declareProtected(ZEN_ADMINISTRATORS_VIEW, 
+    security.declareProtected(ZEN_ADMINISTRATORS_VIEW,
         'getAdministrativeRoles')
     def getAdministrativeRoles(self):
         "Get the Admin Roles on this device"
         return self.adminRoles.objectValuesAll()
 
-    security.declareProtected(ZEN_ADMINISTRATORS_EDIT, 
+    security.declareProtected(ZEN_ADMINISTRATORS_EDIT,
         'manage_addAdministrativeRole')
     def manage_addAdministrativeRole(self, newId=None, REQUEST=None):
         "Add a Admin Role to this device"
         us = self.ZenUsers.getUserSettings(newId)
         AdministrativeRole(us, self)
         self.setAdminLocalRoles()
+        notify(IndexingEvent(self))
         if REQUEST:
             if us:
                 messaging.IMessageSender(self).sendToBrowser(
@@ -50,7 +53,7 @@ class AdministrativeRoleable:
 
     security.declareProtected(ZEN_ADMINISTRATORS_EDIT,
         'manage_editAdministrativeRoles')
-    def manage_editAdministrativeRoles(self, ids=(), role=(), 
+    def manage_editAdministrativeRoles(self, ids=(), role=(),
                                         level=(), REQUEST=None):
         """Edit list of admin roles.
         """
@@ -62,6 +65,7 @@ class AdministrativeRoleable:
             ar = self.adminRoles._getOb(id)
             ar.update(role[i], level[i])
         self.setAdminLocalRoles()
+        notify(IndexingEvent(self))
         if REQUEST:
             messaging.IMessageSender(self).sendToBrowser(
                 'Admin Roles Updated',
@@ -82,6 +86,7 @@ class AdministrativeRoleable:
             if ar is not None: ar.delete()
             self.manage_delLocalRoles((userid,))
         self.setAdminLocalRoles()
+        notify(IndexingEvent(self))
         if REQUEST:
             if delids:
                 messaging.IMessageSender(self).sendToBrowser(
@@ -95,7 +100,7 @@ class AdministrativeRoleable:
         """List the user and their roles on an object"""
         return [ (ar.id, (ar.role,)) for ar in self.adminRoles() ]
 
-    
+
     def setAdminLocalRoles(self):
         """Hook for setting permissions"""
         pass
