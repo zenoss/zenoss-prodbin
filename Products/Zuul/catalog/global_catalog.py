@@ -124,7 +124,10 @@ class IndexableWrapper(object):
         getter = getattr(self._context, 'getIpAddress', None)
         if getter is None:
             getter = getattr(self._context, 'getManageIp', None)
-        return str(numbip(getter()))
+        ip = getter()
+        if ip:
+            ip = ip.partition('/')[0]
+        return str(numbip(ip))
 
     def zProperties(self):
         """

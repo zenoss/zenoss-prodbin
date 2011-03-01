@@ -257,7 +257,7 @@ var ipAddressColumnConfig = {
             header: _t('Address / Netmask'),
             width: 50,
             renderer: function(name, row, record) {
-                return record.data.netmask ? name + ' / ' + record.data.netmask :
+                return record.data.netmask ? name + '/' + record.data.netmask :
                                              name;
             }
         }, {

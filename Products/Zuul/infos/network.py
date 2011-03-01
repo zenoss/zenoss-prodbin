@@ -32,7 +32,7 @@ class IpNetworkNode(TreeNode):
     @property
     def text(self):
         numInstances = self._get_cache.count(self.uid)
-        text = super(IpNetworkNode, self).text
+        text = super(IpNetworkNode, self).text + '/' + str(self._object.getObject().netmask)
         return {
             'text': text,
             'count': numInstances,

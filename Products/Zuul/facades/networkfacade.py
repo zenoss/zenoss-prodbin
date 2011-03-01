@@ -76,7 +76,7 @@ class NetworkFacade(TreeFacade):
         aq_parent(toDel)._delObject(toDel.id)
         return True
 
-    def getIpAddresses(self, limit=0, start=0, sort='name', dir='DESC',
+    def getIpAddresses(self, limit=0, start=0, sort='ipAddress', dir='DESC',
               params=None, uid=None, criteria=()):
 
         cat = ICatalogTool(self._getObject(uid))

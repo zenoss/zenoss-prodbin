@@ -154,7 +154,7 @@ class NetworkRouter(TreeRouter):
         Zuul.unmarshal(data, network)
         return DirectResponse.succeed()
 
-    def getIpAddresses(self, uid, start=0, params=None, limit=50, sort='name',
+    def getIpAddresses(self, uid, start=0, params=None, limit=50, sort='ipAddress',
                    order='ASC'):
         """
         Given a subnet, get a list of IP addresses and their relations.
