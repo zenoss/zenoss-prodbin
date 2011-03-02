@@ -63,8 +63,8 @@ class Card(object):
         # Optional values
         self.parent    = slot >= 0 and parent or None
         self.serial    = str(serial).strip() # get rid of padding
-        self.manuf     = manuf
-        self.model     = model
+        self.manuf     = str(manuf).strip()
+        self.model     = str(model).strip()
         self._slot     = slot >= 0 and slot or 0
 
         self.__class__._CARDS.add(self)
