@@ -22,8 +22,13 @@ from ZenModelRM import ZenModelRM
 from DeviceResultInt import DeviceResultInt
 from RRDView import RRDView
 from EventView import EventView
+from zope.event import notify
+from Products.Zuul.catalog.events import IndexingEvent
 
 from Products.ZenRelations.RelSchema import *
+from .ZenossSecurity import *
+from AccessControl import ClassSecurityInfo
+from Products.ZenWidgets.interfaces import IMessageSender
 
 class ManagedEntity(ZenModelRM, DeviceResultInt, EventView, RRDView):
     """
@@ -43,15 +48,79 @@ class ManagedEntity(ZenModelRM, DeviceResultInt, EventView, RRDView):
     _properties = (
      {'id':'snmpindex', 'type':'string', 'mode':'w'},
      {'id':'monitor', 'type':'boolean', 'mode':'w'},
+     {'id':'productionState', 'type':'keyedselection', 'mode':'w',
+      'select_variable':'getProdStateConversions','setter':'setProdState'},
+     {'id':'preMWProductionState', 'type':'keyedselection', 'mode':'w',
+      'select_variable':'getProdStateConversions','setter':'setProdState'},
     )
 
     _relations = (
         ("dependencies", ToMany(ToMany, "Products.ZenModel.ManagedEntity", "dependents")),
         ("dependents", ToMany(ToMany, "Products.ZenModel.ManagedEntity", "dependencies")),
     )
+
+    security = ClassSecurityInfo()
     
     def device(self):
         """Overridden in lower classes if a device relationship exists.
         """
         return None
+
+    def getProductionStateString(self):
+        """
+        Return the prodstate as a string.
+
+        @rtype: string
+        """
+        return self.convertProdState(self.productionState)
+
+
+    security.declareProtected(ZEN_CHANGE_DEVICE_PRODSTATE, 'setProdState')
+    def setProdState(self, state, maintWindowChange=False, REQUEST=None):
+        """
+        Set the device's production state.
+
+        @parameter state: new production state
+        @type state: int
+        @parameter maintWindowChange: are we resetting state from inside a MW?
+        @type maintWindowChange: boolean
+        @permission: ZEN_CHANGE_DEVICE
+        """
+        self.productionState = int(state)
+        self.primaryAq().index_object()
+        notify(IndexingEvent(self.primaryAq(), ('productionState',), True))
+        if not maintWindowChange:
+            # Saves our production state for use at the end of the
+            # maintenance window.
+            self.preMWProductionState = self.productionState
+
+        # TODO: ZEP?
+#        try:
+#            zem = self.dmd.ZenEventManager
+#            conn = zem.connect()
+#            try:
+#                curs = conn.cursor()
+#                curs.execute(
+#                    "update status set prodState=%d where device='%s'" % (
+#                    self.productionState, self.id))
+#            finally: zem.close(conn)
+#        except OperationalError:
+#            msg = "Failed to update events for %s with new prodState %s" % (
+#                        self.id, state)
+#            log.exception(msg)
+#            if REQUEST:
+#                IMessageSender(self).sendToBrowser(
+#                    "Update Failed",
+#                    msg,
+#                    priority=messaging.WARNING
+#                )
+#                return self.callZenScreen(REQUEST)
+
+        if REQUEST:
+            IMessageSender(self).sendToBrowser(
+                "Production State Set",
+                "%s's production state was set to %s." % (self.id,
+                                      self.getProductionStateString())
+            )
+            return self.callZenScreen(REQUEST)
 

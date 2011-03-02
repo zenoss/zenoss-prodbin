@@ -195,6 +195,7 @@ class DeviceComponentProtobuf(ObjectProtobuf):
     def fill(self, proto):
         self.autoMapFields(proto)
         proto.title = self.obj.name()
+        proto.production_state = self.obj.productionState
         # use device protobuf to fill out our device property
         device = self.obj.device()
         if device:

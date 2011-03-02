@@ -237,10 +237,6 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable,
 
     _properties = ManagedEntity._properties + (
         {'id':'manageIp', 'type':'string', 'mode':'w'},
-        {'id':'productionState', 'type':'keyedselection', 'mode':'w',
-           'select_variable':'getProdStateConversions','setter':'setProdState'},
-        {'id':'preMWProductionState', 'type':'keyedselection', 'mode':'w',
-           'select_variable':'getProdStateConversions','setter':'setProdState'},
         {'id':'snmpAgent', 'type':'string', 'mode':'w'},
         {'id':'snmpDescr', 'type':'string', 'mode':''},
         {'id':'snmpOid', 'type':'string', 'mode':''},
@@ -1281,15 +1277,6 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable,
                 and not self.zSnmpMonitorIgnore)
 
 
-    def getProductionStateString(self):
-        """
-        Return the prodstate as a string.
-
-        @rtype: string
-        """
-        return self.convertProdState(self.productionState)
-
-
     def getPriority(self):
         """
         Return the numeric device priority.
@@ -1334,42 +1321,12 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable,
         @type maintWindowChange: boolean
         @permission: ZEN_CHANGE_DEVICE
         """
-        self.productionState = int(state)
-        self.primaryAq().index_object()
-        notify(IndexingEvent(self.primaryAq(), ('productionState',), True))
-        if not maintWindowChange:
-            # Saves our production state for use at the end of the
-            # maintenance window.
-            self.preMWProductionState = self.productionState
-
-        try:
-            zem = self.dmd.ZenEventManager
-            conn = zem.connect()
-            try:
-                curs = conn.cursor()
-                curs.execute(
-                    "update status set prodState=%d where device='%s'" % (
-                    self.productionState, self.id))
-            finally: zem.close(conn)
-        except OperationalError:
-            msg = "Failed to update events for %s with new prodState %s" % (
-                        self.id, state)
-            log.exception(msg)
-            if REQUEST:
-                IMessageSender(self).sendToBrowser(
-                    "Update Failed",
-                    msg,
-                    priority=messaging.WARNING
-                )
-                return self.callZenScreen(REQUEST)
-
-        if REQUEST:
-            IMessageSender(self).sendToBrowser(
-                "Production State Set",
-                "%s's production state was set to %s." % (self.id,
-                                      self.getProductionStateString())
-            )
-            return self.callZenScreen(REQUEST)
+        # Set production state on all components that inherit from this device
+        ret = super(Device, self).setProdState(state, maintWindowChange, REQUEST)
+        for component in self.getDeviceComponents():
+            if isinstance(component, ManagedEntity) and self.productionState == component.productionState:
+                notify(IndexingEvent(component.primaryAq(), ('productionState',), True))
+        return ret
 
     security.declareProtected(ZEN_CHANGE_DEVICE, 'setPriority')
     def setPriority(self, priority, REQUEST=None):
