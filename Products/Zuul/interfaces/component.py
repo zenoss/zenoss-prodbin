@@ -199,6 +199,16 @@ class ICPUInfo(IComponentInfo):
     manufacturer = schema.Entity(title=u"Manufacturer", readonly=True)
 
 
+class IExpansionCardInfo(IComponentInfo):
+    """
+    Info adapter for ExpansionCard components.
+    """
+    slot = schema.Text(title=u'Slot', group='Overview', readonly=True)
+    serialNumber = schema.Text(title=u'Serial Number', readonly=True)
+    product = schema.Entity(title=u'Model', readonly=True)
+    manufacturer = schema.Entity(title=u'Manufacturer', readonly=True)
+
+
 class IPowerSupplyInfo(IComponentInfo):
     """
     Info adapter for PowerSupply components.

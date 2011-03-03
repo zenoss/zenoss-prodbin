@@ -65,6 +65,11 @@
              factory=".cpu.CPUInfo"
              />
 
+    <adapter provides="...interfaces.IExpansionCardInfo"
+             for="Products.ZenModel.ExpansionCard.ExpansionCard"
+             factory=".expansioncard.ExpansionCardInfo"
+             />
+
     <adapter provides="...interfaces.IPowerSupplyInfo"
              for="Products.ZenModel.PowerSupply.PowerSupply"
              factory=".powersupply.PowerSupplyInfo"

@@ -525,7 +525,7 @@ ZC.IpInterfacePanel = Ext.extend(ZC.ComponentGridPanel, {
                 {name: 'monitored'},
                 {name: 'locking'},
                 {name: 'duplex'},
-                {name: 'netmask'},
+                {name: 'netmask'}
             ],
             columns: [{
                 id: 'severity',
@@ -1009,6 +1009,63 @@ ZC.CPUPanel = Ext.extend(ZC.ComponentGridPanel, {
 
 Ext.reg('CPUPanel', ZC.CPUPanel);
 ZC.registerName('CPU', _t('Processor'), _t('Processors'));
+
+
+ZC.ExpansionCardPanel = Ext.extend(ZC.ComponentGridPanel, {
+    constructor: function(config) {
+        config = Ext.applyIf(config||{}, {
+            componentType: 'ExpansionCard',
+            autoExpandColumn: 'name',
+            fields: [
+                {name: 'uid'},
+                {name: 'slot'},
+                {name: 'name'},
+                {name: 'serialNumber'},
+                {name: 'manufacturer'},
+                {name: 'product'},
+                {name: 'locking'},
+                {name: 'usesMonitorAttribute'},
+                {name: 'monitored'}
+            ],
+            columns: [{
+                id: 'slot',
+                dataIndex: 'slot',
+                header: _t('Slot'),
+                width: 80
+            },{
+                id: 'name',
+                dataIndex: 'name',
+                header: _t('Name')
+            },{
+                id: 'serialNumber',
+                dataIndex: 'serialNumber',
+                header: _t('Serial Number'),
+                width: 110
+            },{
+                id: 'manufacturer',
+                dataIndex: 'manufacturer',
+                header: _t('Manufacturer'),
+                renderer: render_link,
+                width: 110
+            },{
+                id: 'product',
+                dataIndex: 'product',
+                header: _t('Model'),
+                renderer: render_link,
+                width: 130
+            },{
+                id: 'locking',
+                dataIndex: 'locking',
+                header: _t('Locking'),
+                renderer: Zenoss.render.locking_icons
+            }]
+        });
+        ZC.ExpansionCardPanel.superclass.constructor.call(this, config);
+    }
+});
+
+Ext.reg('ExpansionCardPanel', ZC.ExpansionCardPanel);
+ZC.registerName('ExpansionCard', _t('Card'), _t('Cards'));
 
 
 ZC.PowerSupplyPanel = Ext.extend(ZC.ComponentGridPanel, {
