@@ -120,6 +120,7 @@ class PingPerformanceConfig(CollectorConfigService):
         proxy.thresholds = []
         proxy.monitoredIps = []
         for iface in device.os.interfaces():
+            continue
             self._getComponentConfig(iface, perfServer, proxy.monitoredIps)
             threshs = iface.getThresholdInstances('PING')
             if threshs:
