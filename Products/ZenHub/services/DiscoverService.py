@@ -91,8 +91,7 @@ class DiscoverService(ModelerService):
                 ipobj.setPtrName()
             if not ipobj.device():
                 ips.append(ip)
-            if ipobj.getStatus(Status_Ping) > 0:
-                self.sendIpStatusEvent(ipobj, sev=0)
+            self.sendIpStatusEvent(ipobj, sev=0)
         for ip in badips:
             ipobj = self.dmd.Networks.getNetworkRoot().findIp(ip)
             if not ipobj and addInactive:

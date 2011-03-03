@@ -306,9 +306,8 @@ class EventView(object):
                                              severity=[SEVERITY_WARNING,SEVERITY_ERROR,SEVERITY_CRITICAL],
                                              status=[STATUS_NEW,STATUS_ACKNOWLEDGED],
                                              event_class=filter(None, [statusclass]))
-        events = zep.getEventSummaries(0, filter=event_filter)
-        count = len(list(events['events']))
-        return count
+        result = zep.getEventSummaries(0, filter=event_filter, limit=0)
+        return int(result['total'])
 
     def getUUID(self):
         return IGlobalIdentifier(self).getGUID()
