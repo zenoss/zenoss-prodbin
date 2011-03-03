@@ -30,7 +30,7 @@ class PersistentMessage(ZenModelRM):
     implements(IMessage)
 
     _relations = (("messageQueue", ToOne(
-      ToManyCont, "Products.ZenModel.UserSettings.UserSettings", "messageQueue")
+      ToManyCont, "Products.ZenModel.UserSettings.UserSettings", "messages")
     ),)
 
     title = None
