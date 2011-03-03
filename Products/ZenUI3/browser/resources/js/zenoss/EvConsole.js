@@ -37,178 +37,7 @@ Ext.onReady(function(){
     detail_panel.collapsed = true;
 
 
-    /*
-     * Show the dialog that allows one to add an event.
-     */
-    function showAddEventDialog() {
-        if(!addevent){
-        addevent = new Ext.Window({
-            title: 'Create Event',
-            layout: 'fit',
-            autoHeight: true,
-            width: 310,
-            closeAction: 'hide',
-            plain: true,
-            items: [{
-                id: 'addeventform',
-                xtype: 'form',
-                monitorValid: true,
-                defaults: {width: 180},
-                autoHeight: true,
-                border: false,
-                frame: false,
-                labelWidth: 100,
-                items: [{
-                    xtype: 'textarea',
-                    name: 'summary',
-                    fieldLabel: 'Summary',
-                    allowBlank: false
-                },{
-                    xtype: 'textfield',
-                    fieldLabel: 'Device',
-                    name: 'device',
-                    allowBlank: false
-                },{
-                    xtype: 'textfield',
-                    fieldLabel: 'Component',
-                    name: 'component'
-                },{
-                    fieldLabel: 'Severity',
-                    name: 'severity',
-                    xtype: 'combo',
-                    store: Zenoss.env.SEVERITIES,
-                    typeAhead: true,
-                    allowBlank: false,
-                    forceSelection: true,
-                    triggerAction: 'all',
-                    value: 5,
-                    selectOnFocus: true
-                },{
-                    xtype: 'textfield',
-                    fieldLabel: 'Event Class Key',
-                    name: 'evclasskey'
-                },{
-                    fieldLabel: 'Event Class',
-                    name: 'evclass',
-                    xtype: 'combo',
-                    store: Zenoss.env.EVENT_CLASSES,
-                    typeAhead: true,
-                    forceSelection: true,
-                    triggerAction: 'all',
-                    selectOnFocus: true
-                }],
-                buttons: [{
-                    text: 'Submit',
-                    formBind: true,
-                    handler: function(){
-                        var form = Ext.getCmp('addeventform');
-                        Zenoss.remote.EventsRouter.add_event(
-                            form.getForm().getValues(),
-                            function(){
-                                addevent.hide();
-                                grid = Ext.getCmp('events_grid');
-                                view = grid.getView();
-                                view.updateLiveRows(
-                                    view.rowIndex, true, true);
-                            }
-                        );
-                    }
-                },{
-                    text: 'Cancel',
-                    handler: function(){
-                        addevent.hide();
-                    }
-                }]
-            }]
 
-        });
-        }
-        addevent.show(this);
-    }
-
-    /*
-     * Show the dialog that allows one to add an event.
-     */
-    function showClassifyDialog(e) {
-        if(!win){
-            win = new Ext.Window({
-                title: _t('Classify Events'),
-                width: 300,
-                autoHeight: true,
-                closeAction: 'hide',
-                plain: true,
-                items: [{
-                    id: 'classifyEventForm',
-                    xtype: 'form',
-                    monitorValid: true,
-                    autoHeight: true,
-                    border: false,
-                    frame: false,
-                    items: [{
-                        padding: 10,
-                        style: {'font-size':'10pt'},
-                        html: _t('Select the event class with which'+
-                            ' you want to associate these events.')
-                    },{
-                        xtype: 'combo',
-                        store: Zenoss.env.EVENT_CLASSES,
-                        typeAhead: true,
-                        allowBlank: false,
-                        forceSelection: true,
-                        triggerAction: 'all',
-                        emptyText: _t('Select an event class'),
-                        selectOnFocus: true,
-                        id: 'evclass_combo'
-                    }],
-                    buttons: [{
-                        text: _t('Submit'),
-                        formBind: true,
-                        disabled: true,
-                        handler: function(){
-                            var cb = Ext.getCmp('evclass_combo'),
-                            sm = grid.getSelectionModel(),
-                            rs = sm.getSelections(),
-                            evrows = [];
-                            Ext.each(rs, function(record){
-                                evrows[evrows.length] = record.data;
-                            });
-                            if (!evrows.length) {
-                                win.hide();
-                                Ext.Msg.show({
-                                    title: 'Error',
-                                    msg: _t('No events were selected.'),
-                                    buttons: Ext.MessageBox.OK
-                                });
-                            } else {
-                                Zenoss.remote.EventsRouter.classify({
-                                    'evclass': cb.getValue(),
-                                    'evrows': evrows
-                                }, function(result){
-                                    win.hide();
-                                    var title = result.success ?
-                                        _t('Classified'):
-                                        _t('Error');
-                                    Ext.MessageBox.show({
-                                        title: title,
-                                        msg: result.msg,
-                                        buttons: Ext.MessageBox.OK
-                                    });
-                                });
-                            }
-                        }
-                    },{
-                        text: _t('Cancel'),
-                        handler: function(){
-                            win.hide();
-                        }
-                    }
-                             ]
-                }]
-
-            });
-        }
-        win.show(this);
-    }
 
     /*
      * Select all events with a given state.
@@ -233,178 +62,15 @@ Ext.onReady(function(){
             }
         );
     }
-    
+
     // Get the container surrounding master/detail, for adding the toolbar
     var container = Ext.getCmp('center_panel_container');
-    
+
     // Add a CSS class to scope some styles that affect other parts of the UI
     container.on('render', function(){container.el.addClass('zenui3');});
 
 
-    Zenoss.EventActionManager.configure({
-        onFinishAction: function() {
-            Ext.getCmp('events_grid').updateRows();
-        },
-        findParams: function() {
-            return Ext.getCmp('events_grid').getSelectionParameters();
-        }
-    });
 
-    // Add the toolbar to the container
-    var tbar = new Zenoss.LargeToolbar({
-            region:'north',
-            border: false,
-            items: [
-                Zenoss.events.EventPanelToolbarActions.acknowledge,
-                Zenoss.events.EventPanelToolbarActions.close,
-                new Zenoss.Action(Ext.apply(Zenoss.events.EventPanelToolbarConfigs.reclassify, {
-                    handler: showClassifyDialog
-                })),
-                Zenoss.events.EventPanelToolbarActions.reopen,
-                new Zenoss.Action(Ext.apply(Zenoss.events.EventPanelToolbarConfigs.addEvent, {
-                    handler: showAddEventDialog
-                })),
-                {
-                    xtype: 'tbseparator'
-                },
-                Zenoss.events.EventPanelToolbarSelectMenu,
-                {
-                    text: _t('Export'),
-                    id: 'export-button',
-                    //iconCls: 'export',
-                    menu: {
-                        items: [{
-                            text: 'XML',
-                            handler: function(){
-                                var state = Ext.getCmp('events_grid').getState(),
-                                    params = {
-                                        type: 'xml',
-                                        params: {
-                                            fields: Ext.pluck(state.columns, 'id'),
-                                            sort: state.sort.field,
-                                            dir: state.sort.direction,
-                                            params: state.filters.options
-                                        }
-                                    };
-                                Ext.get('export_body').dom.value =
-                                    Ext.encode(params);
-                                Ext.get('exportform').dom.submit();
-                            }
-                        }, {
-                            text: 'CSV',
-                            handler: function(){
-                                var state = Ext.getCmp('events_grid').getState(),
-                                    params = {
-                                        type: 'csv',
-                                        params: {
-                                            fields: Ext.pluck(state.columns, 'id'),
-                                            sort: state.sort.field,
-                                            dir: state.sort.direction,
-                                            params: state.filters.options
-                                        }
-                                    };
-                                Ext.get('export_body').dom.value =
-                                    Ext.encode(params);
-                                Ext.get('exportform').dom.submit();
-                            }
-                        }]
-                    }
-                },
-                {
-                    text: _t('Configure'),
-                    id: 'configure-button',
-                    //iconCls: 'customize',
-                    menu: {
-                        items: [
-                            {
-                                id: 'rowcolors_checkitem',
-                                xtype: 'menucheckitem',
-                                text: 'Show severity row colors',
-                                handler: function(checkitem) {
-                                    var checked = !checkitem.checked;
-                                    var view = Ext.getCmp('events_grid').getView();
-                                    view.toggleRowColors(checked);
-                                }
-                            },{
-                                id: 'livesearch_checkitem',
-                                checked: true,
-                                xtype: 'menucheckitem',
-                                text: 'Enable live search',
-                                handler: function(checkitem) {
-                                    var checked = !checkitem.checked;
-                                    var view = Ext.getCmp('events_grid').getView();
-                                    view.toggleLiveSearch(checked);
-                                }
-                            },{
-                                id: 'clearfilters',
-                                text: 'Clear filters',
-                                listeners: {
-                                    click: function(){
-                                        grid.clearFilters();
-                                    }
-                                }
-                            },{
-                                text: 'Save this configuration...',
-                                handler: function(){
-                                    var grid = Ext.getCmp('events_grid'),
-                                        link = grid.getPermalink();
-                                   Ext.Msg.show({
-                                    title: 'Permalink',
-                                    msg: '<'+'div class="dialog-link">'+
-                                    'Drag this link to your bookmark' +
-                                    ' bar <'+'br/>to return to this grid '+
-                                     'configuration later.'+
-                                     '<'+'br/><'+'br/><'+'a href="'+
-                                     link + '">'+
-                                     'Event Console<'+'/a><'+'/div>',
-                                    buttons: Ext.Msg.OK
-                                    });
-                                }
-                            },{
-                                text: "Restore defaults",
-                                handler: function(){
-                                    Ext.Msg.show({
-                                        title: 'Confirm Restore',
-                                        msg: 'Are you sure you want to restore '+
-                                          'the default grid configuration? All' +
-                                          ' filters, column sizing, and column order '+
-                                          'will be lost.',
-                                        buttons: Ext.Msg.OKCANCEL,
-                                        fn: function(val){
-                                            if (val=='ok')
-                                                Ext.getCmp('events_grid').resetGrid();
-                                        }
-                                    });
-                                }
-                            }
-                        ]
-                    }
-                },{
-                    xtype: 'tbfill'
-                },{
-                    id: 'lastupdated',
-                    xtype: 'tbtext',
-                    cls: 'lastupdated',
-                    text: 'Updating...'
-                },{
-                    xtype: 'refreshmenu',
-                    ref: 'refreshmenu',
-                    id: 'refresh-button',
-                    iconCls: 'refresh',
-                    text: _t('Refresh'),
-                    handler: function() {
-                        Ext.getCmp('events_grid').updateRows();
-                    }
-                }
-            ]
-        });
-
-    function doLastUpdated() {
-        var box = Ext.getCmp('lastupdated'),
-            dt = new Date(),
-            dtext = dt.format('g:i:sA');
-            box.setText(_t('Last updated at ') + dtext);
-    };
 
     // View to render the grid
     var myView = new Zenoss.FilterGridView({
@@ -442,9 +108,15 @@ Ext.onReady(function(){
     /*
      * THE GRID ITSELF!
      */
+
     var grid = new Zenoss.FilterGridPanel({
         region: 'center',
-        tbar: tbar,
+        tbar: new Zenoss.EventConsoleTBar({
+            region: 'north',
+            gridId: 'events_grid',
+            hideDisplayCombo: true,
+            newwindowBtn: false
+        }),
         id: 'events_grid',
         stateId: Zenoss.env.EVENTSGRID_STATEID,
         enableDragDrop: false,
@@ -527,19 +199,7 @@ Ext.onReady(function(){
     detail_panel.on('collapse', function(ob, state) {
         eventDetailCollapsed();
     });
-    // Hook up the "Last Updated" text
-    var store = grid.getStore(),
-        view = grid.getView();
-    store.on('load', doLastUpdated);
-    view.on('buffer', doLastUpdated);
-    view.on('filterchange', function() {
-        tbar.refreshmenu.setDisabled(!view.isValid());
 
-        if ( !view.isValid() ) {
-            var box = Ext.getCmp('lastupdated');
-            box.setText(_t(''));
-        }
-    });
 
     // Detail pane should pop open when double-click on event
     grid.on("rowdblclick", toggleEventDetailContent);

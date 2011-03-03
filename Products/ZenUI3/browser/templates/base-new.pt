@@ -90,7 +90,9 @@
         </div>
 
 <tal:block metal:define-slot="script_beforeLayout"/>
-
+<form id="exportform" method="post" action="/zport/dmd/Events/export">
+    <input type="hidden" id="export_body" name="body"/>
+</form>
 <script type="text/javascript">
 Ext.onReady(function(){
 var viewport = new Ext.Viewport({

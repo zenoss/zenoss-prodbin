@@ -21,9 +21,6 @@
 </tal:block>
 
 <tal:block metal:fill-slot="script_layout">
-<form id="exportform" method="post" action="export">
-    <input type="hidden" id="export_body" name="body"/>
-</form>
 <!-- NOTE: Template for rendering the detail pane. This is Ext's XTemplate language. The template gets
      rendered in Zenoss.DetailedPanel in zenoss.js
 

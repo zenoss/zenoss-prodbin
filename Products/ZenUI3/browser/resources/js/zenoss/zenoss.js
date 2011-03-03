@@ -1181,7 +1181,7 @@ Zenoss.FilterGridPanel = Ext.extend(Ext.ux.grid.livegrid.GridPanel, {
     },
     getPermalink: function() {
         var l = window.location,
-            path = l.protocol + '//' + l.host + l.pathname,
+            path = l.protocol + '//' + l.host + l.pathname + l.hash,
             st = Zenoss.util.base64.encode(Ext.encode(this.getState()));
         return path + '?state=' + st;
     },

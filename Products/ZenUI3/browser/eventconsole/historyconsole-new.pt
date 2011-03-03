@@ -14,9 +14,6 @@
 </tal:block>
 
 <tal:block metal:fill-slot="script_layout">
-<form id="exportform" method="post" action="export">
-    <input type="hidden" id="export_body" name="body"/>
-</form>
 <!-- Template for rendering the detail pane -->
 <textarea class="dontexpand" style="display:none" id="detail_table_template">
 <table>

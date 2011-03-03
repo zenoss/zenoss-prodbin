@@ -26,8 +26,7 @@ var EXTENSIONS_adddevice = Zenoss.extensions.adddevice instanceof Array ?
 var REMOTE = Zenoss.remote.DeviceRouter,
     treesm,
     treeId = 'groups',
-    nodeType = 'Organizer',
-    ZEvActions = Zenoss.events.EventPanelToolbarActions;
+    nodeType = 'Organizer';
 
 REMOTE.getProductionStates({}, function(d){
     Zenoss.env.PRODUCTION_STATES = d;
@@ -1223,7 +1222,7 @@ var device_grid = new Zenoss.DeviceGridPanel({
             {
                 id: 'commands-menu',
                 text: _t('Commands'),
-        
+
                 setContext: function(uid) {
                     var me = Ext.getCmp('commands-menu'),
                             menu = me.menu;
@@ -1238,9 +1237,9 @@ var device_grid = new Zenoss.DeviceGridPanel({
                         });
                     });
                     // disable if they do not have permission to view
-                    Zenoss.Security.onPermissionsChange(function() { 
-                        this.setDisabled(Zenoss.Security.doesNotHavePermission('Run Commands')); 
-                    }, this); 
+                    Zenoss.Security.onPermissionsChange(function() {
+                        this.setDisabled(Zenoss.Security.doesNotHavePermission('Run Commands'));
+                    }, this);
                 },
                 menu: {}
             }
@@ -1322,7 +1321,7 @@ Ext.getCmp('center_panel').add({
             {
                 xtype: 'EventGridPanel',
                 id: 'events_grid',
-                stateful: false,
+                stateId: 'organizer_event_panel',
                 newwindowBtn: true,
                 columns: Zenoss.env.COLUMN_DEFINITIONS,
                 initComponent: Zenoss.EventGridPanel.prototype.initComponent.createSequence(function(){

@@ -28,17 +28,17 @@
             }
         }
     }
-    
+
     var ClickToEditField = Ext.extend(Zenoss.form.LinkField, {});
     ClickToEditField = Ext.extend(Zenoss.form.LinkField,
                                   clickToEditConfig(ClickToEditField));
     Ext.reg('clicktoedit', ClickToEditField);
-    
+
     var ClickToEditNoLink = Ext.extend(Ext.form.DisplayField, {});
     ClickToEditNoLink = Ext.extend(Ext.form.DisplayField,
                                    clickToEditConfig(ClickToEditNoLink));
     Ext.reg('clicktoeditnolink', ClickToEditNoLink);
-    
+
 
     function editManuInfo (vals, uid) {
         function name(uid) {
@@ -137,7 +137,7 @@
         win.show();
         win.doLayout();
     }
-    
+
     var editDeviceClass = function(values, uid) {
         var win = new Zenoss.FormDialog({
             autoHeight: true,
@@ -205,13 +205,13 @@
         win.show();
         win.doLayout();
     };
-    
+
     Zenoss.remote.DeviceRouter.getCollectors({}, function(d){
         var collectors = [];
         Ext.each(d, function(r){collectors.push([r]);});
         Zenoss.env.COLLECTORS = collectors;
     });
-    
+
     var editCollector = function(values, uid) {
         var win = new Zenoss.FormDialog({
             autoHeight: true,
@@ -260,7 +260,7 @@
         win.show();
         win.doLayout();
     };
-    
+
     var editGroups = function(currentGroups, uid, config) {
         var win = new Zenoss.FormDialog({
             width: 350,
@@ -317,7 +317,7 @@
                     else {
                         this.groups[group] = displayOnly ? '' : 'add';
                     }
-                    
+
                     var grouplist = this;
                     var oldHeight = this.getHeight();
                     this.add({xtype: 'spacer', height: 5});
@@ -345,7 +345,7 @@
                         }]
                     });
                     this.bubble(function() {this.doLayout();});
-                    
+
                     if (displayOnly) return;
                     win.setHeight(win.getHeight() + this.getHeight() - oldHeight);
                 },
@@ -354,7 +354,7 @@
                         delete this.groups[group];
                     else
                         this.groups[group] = 'del';
-                    
+
                     var oldHeight = this.getHeight();
                     panel.destroy();
                     this.bubble(function() {this.doLayout();});
@@ -379,7 +379,7 @@
                             uids: [uid],
                             hashcheck: ''
                         };
-                        
+
                         if (op == 'del') {
                             submitVals['uid'] = config.dmdPrefix + group;
                             Zenoss.remote.DeviceRouter.removeDevices(submitVals, function(data) {
@@ -406,7 +406,7 @@
         win.doLayout();
         win.setHeight(win.getHeight() + win.grouplist.getHeight());
     };
-    
+
     var editLocation = function(values, uid) {
         var win = new Zenoss.FormDialog({
             autoHeight: true,
@@ -435,7 +435,7 @@
                 disabled: Zenoss.Security.doesNotHavePermission('Manage Device'),
                 handler: function(btn) {
                     var vals = btn.refOwner.editForm.getForm().getFieldValues();
-                    
+
                     if (vals.location) {
                         var submitVals = {
                             uids: [uid],
@@ -523,7 +523,7 @@
             if (Zenoss.Security.hasPermission('Manage Device')) {
                 this.savebtn.setDisabled(b);
             }
-            this.cancelbtn.setDisabled(b);  
+            this.cancelbtn.setDisabled(b);
         },
         onFieldAdd: function(field) {
             if (!field.isXType('displayfield')) {
@@ -764,7 +764,7 @@
                                 scope: this
                             },
                             name: 'osModel',
-                            fieldLabel: _t('OS Model') 
+                            fieldLabel: _t('OS Model')
                         }]
                     }]
                 },{

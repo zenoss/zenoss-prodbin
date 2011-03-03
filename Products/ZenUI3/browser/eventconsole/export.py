@@ -47,7 +47,7 @@ class EventsExporter(BrowserView):
         return result
 
 
-    def _query(self, history, fields, sort, dir, params=None):
+    def _query(self, history, fields, sort, dir, uid=None, params=None):
         jsonParams = params
         if isinstance(params, dict):
             jsonParams = json.dumps(params)
@@ -55,7 +55,7 @@ class EventsExporter(BrowserView):
         zepRouter = EventsRouter(self.context, self.request)
         archive = history
         summaryEvents = zepRouter.query(archive=archive, limit=limit, sort=sort, 
-                                    dir=dir, params=jsonParams, detailFormat=True)
+                                    dir=dir, params=jsonParams, uid=uid, detailFormat=True)
         data = summaryEvents.data.get('events', [])
         eventData = []
         field_names = set()

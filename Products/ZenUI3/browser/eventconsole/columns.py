@@ -184,7 +184,7 @@ COLUMN_CONFIG = {
             'xtype':'datefield',
             'format':'Y-m-d H:i:s'
         },
-        width=120,
+        width=100,
         renderer='Ext.util.Format.dateRenderer(Zenoss.date.ISO8601Long)',
         field_definition = "{name:'firstTime',type:'date',dateFormat:Zenoss.date.ISO8601Long}"
     ),
@@ -196,7 +196,7 @@ COLUMN_CONFIG = {
             'xtype':'datefield',
             'format':'Y-m-d H:i:s'
         },
-        width=120,
+        width=100,
         renderer='Ext.util.Format.dateRenderer(Zenoss.date.ISO8601Long)',
         field_definition="{name:'lastTime', type:'date',dateFormat:Zenoss.date.ISO8601Long}"
     ),

@@ -165,7 +165,7 @@ Zenoss.HierarchyTreePanel = Ext.extend(Ext.tree.TreePanel, {
             arguments);
     },
     showLoadMask: function(bool) {
-        if (!this.loadMask) { return; } 
+        if (!this.loadMask) { return; }
         var container = this.container;
         container._treeLoadMask = container._treeLoadMask || new Ext.LoadMask(this.container);
         var mask = container._treeLoadMask,

@@ -14,7 +14,7 @@
 */
 
 Ext.onReady(function(){
- 
+
 var REMOTE = Zenoss.remote.DeviceRouter,
     UID = Zenoss.env.device_uid;
 
@@ -87,7 +87,7 @@ Zenoss.nav.register({
         id: 'device_events',
         nodeType: 'subselect',
         text: _t('Events')
-    },{    	
+    },{
         id: UID,
         nodeType: 'async',
         text: _t('Components'),
@@ -510,7 +510,7 @@ Zenoss.EventActionManager.configure({
 var event_console = Ext.create({
     xtype: 'EventGridPanel',
     id: 'device_events',
-    stateful: false,
+    stateId: 'device_events',
     newwindowBtn: true,
     columns: deviceColumnDefinitions()
 });
@@ -616,9 +616,9 @@ Ext.getCmp('center_panel').add({
                 me.setContext(UID);
             },
             contextchange: function(bar, data) {
-            	Zenoss.env.deviceUUID = data.uuid;
+                Zenoss.env.deviceUUID = data.uuid;
             }
-            
+
         }
 
     },
@@ -651,7 +651,7 @@ Ext.getCmp('center_panel').add({
         split: true,
         activeItem: 0,
         region: 'center',
-        items: [overview, event_console, componentCard] 
+        items: [overview, event_console, componentCard]
     }]
 });
 

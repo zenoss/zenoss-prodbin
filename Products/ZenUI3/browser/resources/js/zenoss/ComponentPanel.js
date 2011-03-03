@@ -79,7 +79,7 @@ Zenoss.nav.register({
                     id: cardid,
                     xtype: 'SimpleEventGridPanel',
                     displayFilters: false,
-                    stateful: false,
+                    stateId: 'component-event-console',
                     columns: componentColumnDefinitions()
                 });
                 var tbar = target.getTopToolbar();
@@ -90,8 +90,9 @@ Zenoss.nav.register({
                     '-',
                     ZEvActions.acknowledge,
                     ZEvActions.close,
-                    ZEvActions.newwindow,
-                    ZEvActions.refresh
+                    ZEvActions.refresh,
+                    '-',
+                    ZEvActions.newwindow
                 ]);
                 Ext.each(btns, function(b){b.grid = panel;});
                 tbar.doLayout();
@@ -312,7 +313,7 @@ ZC.ComponentPanel = Ext.extend(Ext.Panel, {
                     selectionchange: function(sm, node) {
                         var row = sm.getSelected();
                         if (row) {
-                            Zenoss.env.compUUID = row.data.uuid;                        	
+                            Zenoss.env.compUUID = row.data.uuid;
                             this.componentnav.setContext(row.data.uid);
                             var delimiter = Ext.History.DELIMITER,
                                 token = Ext.History.getToken().split(delimiter, 2).join(delimiter);
@@ -341,7 +342,7 @@ ZC.ComponentGridPanel = Ext.extend(Ext.ux.grid.livegrid.GridPanel, {
     constructor: function(config) {
         config = config || {};
         config.fields = config.fields || [];
-        config.fields.push({'name': 'uuid'});    	
+        config.fields.push({'name': 'uuid'});
         config = Ext.applyIf(config||{}, {
             border: false,
             autoExpandColumn: 'name',
