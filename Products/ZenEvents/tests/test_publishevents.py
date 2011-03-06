@@ -89,7 +89,7 @@ class TestPublishEvents(BaseTestCase):
         # setup event and device
         device = self.device
         event = self._createDummyEvent()
-        event.detaildata = dict(foo="bar")
+        event.foo = "bar"
         proto = RawEvent()
         serializer = Serializer(event)
 

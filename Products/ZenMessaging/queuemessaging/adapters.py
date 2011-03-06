@@ -17,81 +17,7 @@ from Products.ZenUtils.guid.interfaces import IGlobalIdentifier, \
     IGloballyIdentifiable
 from zenoss.protocols.protobufs import zep_pb2 as eventConstants
 from zenoss.protocols.protobufs import model_pb2 as modelConstants
-from time import time
-from Products.ZenEvents.EventManagerBase import EventManagerBase
 from Products.ZenMessaging.queuemessaging.interfaces import IModelProtobufSerializer
-
-class ProtobufMappings:
-    """
-    Handles the mapping between zenoss constants
-    and protobuf constants
-    """
-    event_statuses = {
-        '0': eventConstants.STATUS_NEW,
-        '1': eventConstants.STATUS_ACKNOWLEDGED,
-        '2': eventConstants.STATUS_SUPPRESSED,
-    }
-
-    priorities = {
-        '-1': eventConstants.SYSLOG_PRIORITY_DEBUG,
-        '0': eventConstants.SYSLOG_PRIORITY_EMERG,
-        '1': eventConstants.SYSLOG_PRIORITY_ALERT,
-        '2': eventConstants.SYSLOG_PRIORITY_CRIT,
-        '3': eventConstants.SYSLOG_PRIORITY_ERR,
-        '4': eventConstants.SYSLOG_PRIORITY_WARNING,
-        '5': eventConstants.SYSLOG_PRIORITY_NOTICE,
-        '6': eventConstants.SYSLOG_PRIORITY_INFO,
-    }
-
-    severities = {
-        '0': eventConstants.SEVERITY_CLEAR,
-        '1': eventConstants.SEVERITY_DEBUG,
-        '2': eventConstants.SEVERITY_INFO,
-        '3': eventConstants.SEVERITY_WARNING,
-        '4': eventConstants.SEVERITY_ERROR,
-        '5': eventConstants.SEVERITY_CRITICAL,
-        'CLEAR': eventConstants.SEVERITY_CLEAR,
-        'DEBUG': eventConstants.SEVERITY_DEBUG,
-        'INFO': eventConstants.SEVERITY_INFO,
-        'WARNING': eventConstants.SEVERITY_WARNING,
-        'ERROR': eventConstants.SEVERITY_ERROR,
-        'CRITICAL': eventConstants.SEVERITY_CRITICAL,
-    }
-
-    def _setMapping(self, proto, field,  constant, mapping):
-        """
-        Checks to make sure we are sending a correct value and then
-        updates the protobuf with the correct attribute.
-        """
-        if constant is not None:
-            key = str(constant).upper()
-            try:
-                value = mapping[key]
-            except KeyError:
-                raise KeyError("%s is not a valid value of %s " % (constant, mapping))
-
-            setattr(proto, field, value)
-
-    def setSeverity(self, proto, severity):
-        """
-        Assumes the constant to be one of our severity mappings
-        @type  proto: Protobuf
-        @param proto: Protobuf we want the severity set on
-        @type  severity: mixed
-        @param severity: Event severity
-        """
-        self._setMapping(proto, 'severity', severity, self.severities)
-
-    def setPriority(self, proto, priority):
-        """
-        Assumes the constant to be one of our priority mappings
-        @type  proto: Protobuf
-        @param proto: Protobuf we want the priority set on
-        @type  priority: mixed
-        @param priority: Event priority
-        """
-        self._setMapping(proto, 'syslog_priority', priority, self.priorities)
-
 
 class ObjectProtobuf(object):
     """
@@ -203,6 +129,133 @@ class DeviceComponentProtobuf(ObjectProtobuf):
             populator.fill(proto.device)
         return proto
 
+def _safestr(s):
+    """
+    Defensive catchall to be sure that any string going into a protobuf can be
+    decoded safely with 7-bit ASCII.  If any specialized encoding is desired, it
+    is the responsibility of the caller/sender to take care of it.
+    """
+    if isinstance(s, str):
+        try:
+            unicode(s, 'ascii')
+        except UnicodeDecodeError:
+            s = str(s.decode('ascii','ignore'))
+    elif not isinstance(s, basestring):
+        s = str(s)
+    return s
+
+class EventProtobufMapper(object):
+    """
+    Base class for mapping a Event value (old-style) to a protobuf RawEvent.
+    """
+    def mapEvent(self, proto, value):
+        """
+        Maps the event value to the protobuf.
+        """
+        pass
+
+class EventProtobufStringMapper(EventProtobufMapper):
+    """
+    Performs a 1-1 mapping of an old event attribute to a corresponding
+    field in the RawEvent protobuf.
+    """
+
+    def __init__(self, fieldName):
+        self._fieldName = fieldName
+
+    def mapEvent(self, proto, value):
+        setattr(proto, self._fieldName, _safestr(value))
+
+class EventProtobufDeviceMapper(EventProtobufMapper):
+    """
+    Maps a 'device' to the corresponding location in the RawEvent.EventActor.
+    """
+
+    def mapEvent(self, proto, value):
+        proto.actor.element_type_id = modelConstants.DEVICE
+        proto.actor.element_identifier = _safestr(value)
+
+class EventProtobufComponentMapper(EventProtobufMapper):
+    """
+    Maps a 'component' to the corresponding location in the RawEvent.EventActor.
+    """
+
+    def mapEvent(self, proto, value):
+        if value:
+            proto.actor.element_sub_type_id = modelConstants.COMPONENT
+            proto.actor.element_sub_identifier = _safestr(value)
+
+class EventProtobufSeverityMapper(EventProtobufMapper):
+    """
+    Maps an event severity to the EventSeverity enum value.
+    """
+
+    _SEVERITIES = {
+        '': eventConstants.SEVERITY_CLEAR,
+        '0': eventConstants.SEVERITY_CLEAR,
+        '1': eventConstants.SEVERITY_DEBUG,
+        '2': eventConstants.SEVERITY_INFO,
+        '3': eventConstants.SEVERITY_WARNING,
+        '4': eventConstants.SEVERITY_ERROR,
+        '5': eventConstants.SEVERITY_CRITICAL,
+        'CLEAR': eventConstants.SEVERITY_CLEAR,
+        'DEBUG': eventConstants.SEVERITY_DEBUG,
+        'INFO': eventConstants.SEVERITY_INFO,
+        'WARNING': eventConstants.SEVERITY_WARNING,
+        'ERROR': eventConstants.SEVERITY_ERROR,
+        'CRITICAL': eventConstants.SEVERITY_CRITICAL,
+    }
+
+    def mapEvent(self, proto, value):
+        proto.severity = self._SEVERITIES[str(value).upper()]
+
+class EventProtobufIntMapper(EventProtobufMapper):
+    """
+    Maps an event to an integer value in the protobuf.
+    """
+
+    def __init__(self, fieldName):
+        self._fieldName = fieldName
+
+    def mapEvent(self, proto, value):
+        try:
+            setattr(proto, self._fieldName, int(value))
+        except ValueError:
+            pass
+
+class EventProtobufSyslogPriorityMapper(EventProtobufMapper):
+    """
+    Maps a syslog priority value to the corresponding SyslogPriority.*.
+    """
+
+    _SYSLOG_PRIORITIES = {
+        0: eventConstants.SYSLOG_PRIORITY_EMERG,
+        1: eventConstants.SYSLOG_PRIORITY_ALERT,
+        2: eventConstants.SYSLOG_PRIORITY_CRIT,
+        3: eventConstants.SYSLOG_PRIORITY_ERR,
+        4: eventConstants.SYSLOG_PRIORITY_WARNING,
+        5: eventConstants.SYSLOG_PRIORITY_NOTICE,
+        6: eventConstants.SYSLOG_PRIORITY_INFO,
+        7: eventConstants.SYSLOG_PRIORITY_DEBUG,
+    }
+
+    def mapEvent(self, proto, value):
+        try:
+            proto.syslog_priority = self._SYSLOG_PRIORITIES[value]
+        except KeyError:
+            pass
+
+class EventProtobufDateMapper(EventProtobufMapper):
+    """
+    Maps a time.time() floating point value to the time in
+    milliseconds as used by RawEvent.
+    """
+
+    def __init__(self, fieldName):
+        self._fieldName = fieldName
+
+    def mapEvent(self, proto, value):
+        setattr(proto, self._fieldName, int(value * 1000))
 
 class EventProtobuf(ObjectProtobuf):
     """
@@ -212,128 +265,72 @@ class EventProtobuf(ObjectProtobuf):
     implements(IProtobufSerializer)
 
     # event property, protobuf property
-    fieldMappings = {
-        'dedupid': 'fingerprint',
-        'eventClassKey': 'event_class_key',
-        'summary': 'summary',
-        'message': 'message',
-        'clearid': 'cleared_by_event_uuid',
-        'monitor': 'monitor',
-        'agent': 'agent',
-        'eventGroup': 'event_group',
-        'eventKey': 'event_key',
-        'evid' : 'uuid',
+    _FIELD_MAPPERS = {
+        'dedupid': EventProtobufStringMapper('fingerprint'),
+        'evid' : EventProtobufStringMapper('uuid'),
+        'device': EventProtobufDeviceMapper(),
+        'component': EventProtobufComponentMapper(),
+        'eventClass': EventProtobufStringMapper('event_class'),
+        'eventKey': EventProtobufStringMapper('event_key'),
+        'summary': EventProtobufStringMapper('summary'),
+        'message': EventProtobufStringMapper('message'),
+        'severity': EventProtobufSeverityMapper(),
+        # eventState -> Managed by zeneventd/ZEP
+        'eventClassKey': EventProtobufStringMapper('event_class_key'),
+        'eventGroup': EventProtobufStringMapper('event_group'),
+        # stateChange -> Managed by ZEP
+        # firstTime -> Managed by ZEP
+        'lastTime': EventProtobufDateMapper('created_time'),
+        # count -> Managed by ZEP
+        # prodState -> Added by zeneventd
+        # suppid -> No longer available
+        # manager -> No longer available
+        'agent': EventProtobufStringMapper('agent'),
+        # DeviceClass -> Added by zeneventd
+        # Location -> Added by zeneventd
+        # Systems -> Added by zeneventd
+        # DeviceGroups -> Added by zeneventd
+        # ipAddress -> Added by zeneventd but can be specified as detail
+        'facility': EventProtobufIntMapper('syslog_facility'),
+        'priority': EventProtobufSyslogPriorityMapper(),
+        'ntevid': EventProtobufIntMapper('nt_event_code'),
+        # ownerid -> Managed by ZEP
+        # clearid -> Managed by ZEP
+        # DevicePriority -> Added by zeneventd
+        # eventClassMapping -> Added by zeneventd
+        'monitor': EventProtobufStringMapper('monitor'),
     }
+
+    # If these attributes are found on the Event they are not mapped and are not
+    # placed into event details.
+    _IGNORED_ATTRS = set(['_action','_clearClasses','_fields','eventState','stateChange','firstTime',\
+                          'count','prodState','suppid','manager','DeviceClass','Location','Systems',\
+                          'DeviceGroups','ownerid','clearid','DevicePriority','eventClassMapping'])
 
     def __init__(self, obj):
         ObjectProtobuf.__init__(self, obj)
-        self.mapping = ProtobufMappings()
 
-    def coerceToInteger(self, event, field, proto, protoField):
-        """
-        Some of our protobufs expect integers where the collectors deliver
-        strings. This method forces them to be integers.
-        """
-        if hasattr(event, field):
-            try:
-                value = getattr(event, field)
-                value = int(value)
-                setattr(proto, protoField, value)
-            except (ValueError, TypeError):
-                # we can't convert, it so ignore it
-                pass
-
-    def safestr(self, s):
-        """Defensive catchall to be sure that any string going into a protobuf can be
-           decoded safely with 7-bit ASCII.  If any specialized encoding is desired, it 
-           is the responsibility of the caller/sender to take care of it."""
-        try:
-            if isinstance(s, str):
-                unicode(s, 'ascii')
-        except UnicodeDecodeError:
-            s = str(s.decode('ascii','ignore'))
-        return s
-
-    def setActor(self, proto):
-        """
-        This sets the "actor" attribute of the event.
-        Can be any combination of device/component/service (including
-        all three).
-        """
-        event = self.obj
-        actor = proto.actor
-        # there should always be a device
-        actor.element_type_id = modelConstants.DEVICE
-        actor.element_identifier = self.safestr(event.device)
-        # there is not always a component
-        if hasattr(event, 'component') and event.component:
-            actor.element_sub_type_id = modelConstants.COMPONENT
-            actor.element_sub_identifier = self.safestr(event.component)
-
-    def fillDetails(self, proto):
-        """
-        These are just extra fields on the event. The specific
-        fields are defined in "self.detailFields"
-        """
-        event = self.obj
-        # make sure details were set
-        if not hasattr(event, 'detaildata'):
-            return
-        # make sure something is there
-        if not event.detaildata:
-            return
+    def addDetail(self, proto, name, value):
         isIterable = lambda x : hasattr(x, '__iter__')
-        for (field, value) in event.detaildata.iteritems():
-                detail = proto.details.add()
-                detail.name = field
-                if isIterable(value):
-                    for v in value:
-                        detail.value.append(self.safestr(str(v)))
-                else:
-                    detail.value.append(self.safestr(str(value)))
+        detail = proto.details.add()
+        detail.name = name
+        if isIterable(value):
+            for v in value:
+                detail.value.append(_safestr(v))
+        else:
+            detail.value.append(_safestr(value))
 
     def fill(self, proto):
-        """
-        Sets up the event protobuf properties from the event.  If the name of
-        the protobuf property is the same as the event property, then it will be
-        mapped automatically assuming they are the same type.
-        """
         event = self.obj
 
-        if not proto.created_time:
-            proto.created_time = int(time() * 1000)
+        for key, value in event.__dict__.iteritems():
+            if key in self._IGNORED_ATTRS:
+                continue
+            mapper = self._FIELD_MAPPERS.get(key)
+            if mapper:
+                mapper.mapEvent(proto, value)
+            else:
+                self.addDetail(proto, key, value)
 
-        if hasattr(event, 'eventClass'):
-            proto.event_class = self.safestr(event.eventClass)
-
-        self.mapping.setSeverity(proto, event.severity)
-
-        if hasattr(event, 'priority'):
-            self.mapping.setPriority(proto, event.priority)
-
-        # facility may be a string and we expect an integer
-        self.coerceToInteger(event, 'facility', proto, 'syslog_facility')
-        self.coerceToInteger(event, 'ntevid', proto, 'nt_event_code')
-
-        # do our simple mappings
-        for eventProperty,protoProperty in self.fieldMappings.iteritems():
-            value = getattr(event, eventProperty, None)
-            if value is not None:
-                if isinstance(value, basestring):
-                    setattr(proto, protoProperty, self.safestr(value))
-                else:
-                    setattr(proto, protoProperty, value)
-
-        # copy all other event fields into details
-        for field in event.getEventFields():
-            if field not in self.fieldMappings:
-                value = getattr(event, field)
-                if isinstance(value, basestring):
-                    event.detaildata[field] = self.safestr(value)
-                else:
-                    event.detaildata[field] = value
-
-        self.setActor(proto)
-        self.fillDetails(proto)
         return proto
 
