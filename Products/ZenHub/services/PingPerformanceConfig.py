@@ -102,10 +102,7 @@ class PingPerformanceConfig(CollectorConfigService):
                 if dsList:
                     ipProxy = IpAddressProxy(ip, iface=title, ds=dsList[0],
                                              basepath=basepath, perfServer=perfServer)
-                else:
-                    log.debug("No PING datasources found for %s -- faking.",
-                              ip)
-                    ipProxy = IpAddressProxy(ip, iface=title, perfServer=perfServer)
+
                 monitoredIps.append(ipProxy)
 
     def _createDeviceProxy(self, device):
@@ -120,7 +117,6 @@ class PingPerformanceConfig(CollectorConfigService):
         proxy.thresholds = []
         proxy.monitoredIps = []
         for iface in device.os.interfaces():
-            continue
             self._getComponentConfig(iface, perfServer, proxy.monitoredIps)
             threshs = iface.getThresholdInstances('PING')
             if threshs:
