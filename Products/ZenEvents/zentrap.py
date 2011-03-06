@@ -533,7 +533,7 @@ class ZenTrap(EventServer, CaptureReplay):
             result.setdefault('component', '')
             result.setdefault('eventClassKey', eventType)
             result.setdefault('eventGroup', 'trap')
-            result.setdefault('severity', 3)
+            result.setdefault('severity', 2)
             result.setdefault('summary', summary)
             result.setdefault('community', community)
             result.setdefault('firstTime', ts)
