@@ -451,19 +451,20 @@ class EventsRouter(DirectRouter):
     def _mapToDetailEvent(self, event_summary):
         eventOccurrence = event_summary['occurrence'][0]
         eventClass = eventOccurrence['event_class']
+        eventActor = eventOccurrence['actor']
 
 
         # TODO: Update this mapping to more reflect _mapToOldEvent.
         eventData = {
             'evid':event_summary['uuid'],
-            'device':eventOccurrence['actor'].get('element_identifier', None),
-            'device_title':eventOccurrence['actor'].get('element_identifier', None),
-            'device_url':self._uuidUrl(eventOccurrence['actor'].get('element_uuid', None)),
-            'device_uuid':eventOccurrence['actor'].get('element_uuid', None),
-            'component':eventOccurrence['actor'].get('element_sub_identifier', None),
-            'component_title':eventOccurrence['actor'].get('element_sub_identifier', None),
-            'component_url':self._uuidUrl(eventOccurrence['actor'].get('element_sub_uuid', None)),
-            'component_uuid':eventOccurrence['actor'].get('element_sub_uuid', None),
+            'device':eventActor.get('element_identifier'),
+            'device_title':eventActor.get('element_identifier'),
+            'device_url':self._uuidUrl(eventActor.get('element_uuid')),
+            'device_uuid':eventActor.get('element_uuid'),
+            'component':eventActor.get('element_sub_identifier'),
+            'component_title':eventActor.get('element_sub_identifier'),
+            'component_url':self._uuidUrl(eventActor.get('element_sub_uuid')),
+            'component_uuid':eventActor.get('element_sub_uuid'),
             'firstTime':isoDateTimeFromMilli(event_summary['first_seen_time']),
             'lastTime':isoDateTimeFromMilli(event_summary['last_seen_time']),
             'eventClass':eventClass,
@@ -475,16 +476,16 @@ class EventsRouter(DirectRouter):
             'message':eventOccurrence.get('message'),
             'properties':[
                 dict(key=k, value=v) for (k, v) in {'evid':event_summary['uuid'],
-                                                    'device':eventOccurrence['actor'].get('element_identifier', None),
-                                                    'component':eventOccurrence['actor'].get('element_sub_identifier', None),
+                                                    'device':eventActor.get('element_identifier'),
+                                                    'component':eventActor.get('element_sub_identifier'),
                                                     'firstTime':isoDateTimeFromMilli(event_summary['first_seen_time']),
                                                     'lastTime':isoDateTimeFromMilli(event_summary['last_seen_time']),
                                                     'stateChange':isoDateTimeFromMilli(event_summary['status_change_time']),
                                                     'dedupid':eventOccurrence['fingerprint'],
                                                     'eventClass':eventClass,
-                                                    'eventClassKey':eventOccurrence['event_class'],
+                                                    'eventClassKey':eventOccurrence.get('event_class_key'),
                                                     'eventClassMapping_uuid':self._uuidUrl(eventOccurrence.get('event_class_mapping_uuid')),
-                                                    'eventKey':eventOccurrence.get('event_key', None),
+                                                    'eventKey':eventOccurrence.get('event_key'),
                                                     'summary':eventOccurrence.get('summary'),
                                                     'severity':eventOccurrence.get('severity'),
                                                     'eventState':EventStatus.getPrettyName(event_summary['status']),
