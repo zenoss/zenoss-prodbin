@@ -138,7 +138,7 @@ class ZepFacade(ZuulFacade):
                     count_range = (count, count)
                 except ValueError:
                     match = ZepFacade.COUNT_REGEX.match(count_range)
-                    if not match or (not match.group('from') and not match.group('to')):
+                    if not match:
                         raise ValueError('Invalid range: %s' % (count_range))
                     count_range = (match.group('from'), match.group('to'))
 

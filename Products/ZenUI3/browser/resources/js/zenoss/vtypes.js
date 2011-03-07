@@ -4,7 +4,8 @@
     var ip_regex = new RegExp("(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)");
     var hex_regex = new RegExp("^#?([a-f]|[A-F]|[0-9]){3}(([a-f]|[A-F]|[0-9]){3,5})?$");
     var numcmp_regex = new RegExp("^(\>=|\<=|\>|\<|=)?\s*([0-9]+)$");
-    var numrange_regex = new RegExp("^([0-9]+)?:?([0-9]+)?$");
+    var numrange_regex = new RegExp("^(-?[0-9]+)?:?(-?[0-9]+)?$");
+    var range_regex = new RegExp("^([^:]*):?([^:]*)$");
     var alpha_num_space = new RegExp(/[a-z_\s\d]/i);
 
     /**
@@ -30,15 +31,35 @@
             }
             from = result[1];
             to = result[2];
-            if (!from && !to) {
-                return false;
-            }
             if (from && to) {
                 return parseInt(from) <= parseInt(to);
             }
             return true;
         },
         numrangeText: _t('Enter a valid numeric range (ex: 2, 5:, 6:8, :9)'),
+
+        floatrange: function(val, field) {
+            var result, from, to;
+            result = range_regex.exec(val);
+            if (!result) {
+                return false;
+            }
+            from = result[1];
+            to = result[2];
+            if (from && to) {
+                from = parseFloat(from);
+                to = parseFloat(to);
+                return !isNaN(from) && !isNaN(to) && from <= to;
+            }
+            if (from) {
+                return !isNaN(parseFloat(from));
+            }
+            if (to) {
+                return !isNaN(parseFloat(to));
+            }
+            return true;
+        },
+        floatrangeText: _t('Enter a valid floating point range (ex: 1, 2.5:5.5, 2.5:, :9.5'),
 
         /**
          * The number must be greater than zero. Designed for us in NumberFields

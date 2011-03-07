@@ -24,6 +24,7 @@ from Products.Zuul import getFacade
 from Products.ZenUtils.jsonutils import JavaScript, javascript
 from Products.ZenUI3.utils.javascript import JavaScriptSnippet
 from Products.ZenUI3.browser.eventconsole.columns import COLUMN_CONFIG, ARCHIVE_COLUMN_CONFIG, DEFAULT_COLUMN_ORDER, DEFAULT_COLUMNS
+from zenoss.protocols.protobufs.zep_pb2 import EventDetailItem
 
 import logging
 log = logging.getLogger('zep.grid')
@@ -66,18 +67,22 @@ def _find_column_definitions(archive=False):
 
     details = getFacade('zep').getUnmappedDetails()
     for item in details:
-
         # add or update anything that already exists in our column definition
         # with the result from ZEP. This will override known columns and create
         # new column definitions for new custom fields. The id for these columns
         # is implied from the key used to store in columns.
-        columns[item['key']] = dict(
-            header = item['name'],
-            filter = 'textfield',
-            sortable = True,
-        )
-
+        detailConfig = {
+            'header': item['name'],
+            'filter': { 'xtype': 'textfield' },
+            'sortable': True,
+        }
         
+        if item['type'] in (EventDetailItem.INTEGER, EventDetailItem.LONG):
+            detailConfig['filter']['vtype'] = 'numrange'
+        elif item['type'] in (EventDetailItem.DOUBLE, EventDetailItem.FLOAT):
+            detailConfig['filter']['vtype'] = 'floatrange'
+
+        columns[item['key']] = detailConfig
 
     return columns
 
