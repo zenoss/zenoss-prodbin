@@ -354,6 +354,7 @@
                     new Zenoss.Action({
                         iconCls: 'classify',
                         tooltip: _t('Reclassify an event'),
+                        permission: 'Manage Events',
                         handler: function(button) {
                             showClassifyDialog(gridId);
                         }
@@ -362,6 +363,7 @@
                     new Zenoss.Action({
                         iconCls: 'add',
                         tooltip: _t('Add an event'),
+                        permission: 'Manage Events',
                         handler: function(button) {
 
                             showAddEventDialog(gridId);
@@ -379,10 +381,16 @@
                             items: [{
                                 text: 'XML',
                                 handler: function(){
+                                    var context = Zenoss.env.device_uid || Zenoss.env.PARENT_CONTEXT;
+                                    if (context == "/zport/dmd/Events") {
+                                        context = location.pathname.replace('/viewEvents', '');
+                                    }
+
                                     var state = Ext.getCmp(gridId).getState(),
-                                        context = Zenoss.env.device_uid || Zenoss.env.PARENT_CONTEXT;
+                                        historyCombo = Ext.getCmp('history_combo'),
                                         params = {
                                             type: 'xml',
+                                            isHistory: false,
                                             params: {
                                                 uid: context,
                                                 fields: Ext.pluck(state.columns, 'id'),
@@ -391,7 +399,9 @@
                                                 params: state.filters.options
                                             }
                                         };
-
+                                    if (historyCombo && historyCombo.getValue() == 1) {
+                                        params.isHistory = true;
+                                    }
                                     Ext.get('export_body').dom.value =
                                         Ext.encode(params);
                                     Ext.get('exportform').dom.submit();
@@ -399,8 +409,12 @@
                             }, {
                                 text: 'CSV',
                                 handler: function(){
+                                    var context = Zenoss.env.device_uid || Zenoss.env.PARENT_CONTEXT;
+                                    if (context == "/zport/dmd/Events") {
+                                        context = location.pathname.replace('/viewEvents', '');
+                                    }
                                     var state = Ext.getCmp(gridId).getState(),
-                                        context = Zenoss.env.device_uid || Zenoss.env.PARENT_CONTEXT;
+                                        historyCombo = Ext.getCmp('history_combo'),
                                         params = {
                                             type: 'csv',
                                             params: {
@@ -411,7 +425,9 @@
                                                 params: state.filters.options
                                             }
                                         };
-
+                                    if (historyCombo && historyCombo.getValue() == 1) {
+                                        params.isHistory = true;
+                                    }
                                     Ext.get('export_body').dom.value =
                                         Ext.encode(params);
                                     Ext.get('exportform').dom.submit();

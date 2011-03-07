@@ -53,7 +53,7 @@ class EventsExporter(BrowserView):
             jsonParams = json.dumps(params)
         limit = 1000
         zepRouter = EventsRouter(self.context, self.request)
-        archive = history
+        archive = history        
         summaryEvents = zepRouter.query(archive=archive, limit=limit, sort=sort, 
                                     dir=dir, params=jsonParams, uid=uid, detailFormat=True)
         data = summaryEvents.data.get('events', [])
