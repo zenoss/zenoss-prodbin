@@ -33,6 +33,7 @@ import contextlib
 from decimal import Decimal
 from sets import Set
 import asyncore
+import copy
 log = logging.getLogger("zen.Utils")
 
 from popen2 import Popen4
@@ -1263,6 +1264,33 @@ def monkeypatch(target):
         >>> DataRoot('dummy').do_nothing_at_all()
         I do nothing at all.
 
+    You can also call the original within the new method
+    using a special variable available only locally.
+
+        >>> @monkeypatch('Products.ZenModel.DataRoot.DataRoot')
+        ... def getProductName(self):
+        ...     print "Doing something additional."
+        ...     return original(self)
+        ...
+        >>> from Products.ZenModel.DataRoot import DataRoot
+        >>> DataRoot('dummy').getProductName()
+        Doing something additional.
+        'enterprise'
+
+    You can also stack monkeypatches.
+
+        >>> @monkeypatch('Products.ZenModel.System.System')
+        ... @monkeypatch('Products.ZenModel.DeviceGroup.DeviceGroup')
+        ... @monkeypatch('Products.ZenModel.Location.Location')
+        ... def foo(self):
+        ...     print "bar!"
+        ...
+        >>> dmd.Systems.foo()
+        bar!
+        >>> dmd.Groups.foo()
+        bar!
+        >>> dmd.Locations.foo()
+        bar!
 
     @param target: class
     @type target: class object
@@ -1273,7 +1301,19 @@ def monkeypatch(target):
         mod, klass = target.rsplit('.', 1)
         target = importClass(mod, klass)
     def patcher(func):
-        setattr(target, func.__name__, func)
+        original = getattr(target, func.__name__, None)
+        if original is None:
+            setattr(target, func.__name__, func)
+            return func
+
+        new_globals = copy.copy(func.func_globals)
+        new_globals['original'] = original
+        new_func = types.FunctionType(func.func_code,
+                                      globals=new_globals,
+                                      name=func.func_name,
+                                      argdefs=func.func_defaults,
+                                      closure=func.func_closure)
+        setattr(target, func.__name__, new_func)
         return func
     return patcher
 
