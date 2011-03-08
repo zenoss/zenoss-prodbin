@@ -103,7 +103,7 @@ class PingPerformanceConfig(CollectorConfigService):
                     ipProxy = IpAddressProxy(ip, iface=title, ds=dsList[0],
                                              basepath=basepath, perfServer=perfServer)
 
-                monitoredIps.append(ipProxy)
+                    monitoredIps.append(ipProxy)
 
     def _createDeviceProxy(self, device):
         proxy = CollectorConfigService._createDeviceProxy(self, device)
