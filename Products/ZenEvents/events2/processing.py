@@ -89,9 +89,8 @@ class Manager(object):
         """
         Find a Device's EventClass
         """
-        if eventContext.deviceObject:
-            return self._events.lookup(eventContext.eventProxy,
-                                       eventContext.deviceObject)
+        return self._events.lookup(eventContext.eventProxy,
+                                   eventContext.deviceObject)
 
     def getElementByUuid(self, uuid):
         """
@@ -451,19 +450,18 @@ class FingerprintPipe(EventProcessorPipe):
     def __call__(self, eventContext):
         event = eventContext.event
 
-        if not event.HasField(EventField.FINGERPRINT):
-            dedupFields = self.DEFAULT_FINGERPRINT_FIELDS
-            if not (event.HasField(EventField.EVENT_KEY) and
-                    getattr(event, EventField.EVENT_KEY, None)):
-                dedupFields = self.NO_EVENT_KEY_FINGERPRINT_FIELDS
+        dedupFields = self.DEFAULT_FINGERPRINT_FIELDS
+        if not (event.HasField(EventField.EVENT_KEY) and
+                getattr(event, EventField.EVENT_KEY, None)):
+            dedupFields = self.NO_EVENT_KEY_FINGERPRINT_FIELDS
 
-            dedupIdList = [str(getattr(eventContext.eventProxy, field, '')) for
-                           field in dedupFields]
+        dedupIdList = [str(getattr(eventContext.eventProxy, field, '')) for
+                       field in dedupFields]
 
-            eventContext.eventProxy.dedupid = '|'.join(dedupIdList)
+        eventContext.eventProxy.dedupid = '|'.join(dedupIdList)
 
-            eventContext.log.debug('Created dedupid of %s from %s',
-                                   eventContext.eventProxy.dedupid, dedupIdList)
+        eventContext.log.debug('Created dedupid of %s from %s',
+                               eventContext.eventProxy.dedupid, dedupIdList)
 
         return eventContext
 
@@ -502,15 +500,14 @@ class TransformPipe(EventProcessorPipe):
             log.info("Event has nonexistent event class %s." % eventClass)
 
     def __call__(self, eventContext):
-        if eventContext.deviceObject:
-            eventContext.log.debug('Mapping and Transforming event')
-            evtclass = self._manager.lookupEventClass(eventContext)
-            if evtclass:
-                self._tagEventClasses(eventContext, evtclass)
-                evtclass.applyExtraction(eventContext.eventProxy)
-                evtclass.applyValues(eventContext.eventProxy)
-                evtclass.applyTransform(eventContext.eventProxy,
-                                        eventContext.deviceObject)
+        eventContext.log.debug('Mapping and Transforming event')
+        evtclass = self._manager.lookupEventClass(eventContext)
+        if evtclass:
+            self._tagEventClasses(eventContext, evtclass)
+            evtclass.applyExtraction(eventContext.eventProxy)
+            evtclass.applyValues(eventContext.eventProxy)
+            evtclass.applyTransform(eventContext.eventProxy,
+                                    eventContext.deviceObject)
 
         return eventContext
 
