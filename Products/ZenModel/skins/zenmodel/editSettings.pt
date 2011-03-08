@@ -209,6 +209,17 @@ loader.insert();
         </td>
     </tr>
     <tr class="odd">
+        <td class="tableheader"><label for="enableLiveSearch">Enable live search?</label></td>
+        <td class="tablevalues" align="left">
+          <input type="hidden" name="enableLiveSearch:bool:default" value="False">
+            <input type="checkbox"
+                   value="True"
+                   name="enableLiveSearch:bool"
+                   id="enableLiveSearch"
+                   tal:attributes="checked request/enableLiveSearch | here/enableLiveSearch">            
+        </td>
+    </tr>
+    <tr class="event">
         <td class="tableheader"></td>
         <td class="tableheader" align="left">
             <input class="tableheader" type="submit" value=" Save "

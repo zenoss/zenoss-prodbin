@@ -20,8 +20,6 @@
 <tal:block metal:fill-slot="script_layout">
 
 
-<!-- Snippets is for the Event Classes Store -->
-<tal:block tal:content="structure provider:jssnippets"/>
 
 <script src="/++resource++zenui/js/zenoss/template.js"></script>
 

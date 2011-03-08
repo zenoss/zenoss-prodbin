@@ -712,9 +712,11 @@ Ext.reg('livegridinfo', Zenoss.LiveGridInfoPanel);
 Zenoss.FilterGridView = Ext.extend(Ext.ux.grid.livegrid.GridView, {
     rowHeight: 22,
     rowColors: false,
-    liveSearch: true,
     _valid: true,
     constructor: function(config) {
+        // live search is set on the admin page
+        this.liveSearch = Zenoss.settings.enableLiveSearch;
+
         if (typeof(config.displayFilters)=='undefined')
             config.displayFilters = true;
         Zenoss.FilterGridView.superclass.constructor.apply(this,
@@ -929,7 +931,14 @@ Zenoss.FilterGridView = Ext.extend(Ext.ux.grid.livegrid.GridView, {
             config = this.cm.config[i].filter;
             // if there was no explicit filter then
             // the column is not filterable
-            var enable_filtering = !Ext.isEmpty(this.cm.config[i].filter);
+            var enable_filtering;
+            if (!Ext.isDefined(this.cm.config[i].filter)) {
+                enable_filtering = true;
+            }else {
+                // if it is explicitly set to empty
+                enable_filtering = !Ext.isEmpty(this.cm.config[i].filter);
+            }
+
             if (config===false) {
                 config = {xtype: 'panel', reset: function(){},
                           getValue: function(){}};
@@ -947,7 +956,13 @@ Zenoss.FilterGridView = Ext.extend(Ext.ux.grid.livegrid.GridView, {
                 id:fieldid,
                 enableKeyEvents: true,
                 selectOnFocus: true,
+                enableKeyEvents: true,
                 listeners: {
+                    keypress: function(field, e) {
+                        if (e.getKey() === e.ENTER) {
+                            Ext.getCmp(gridId).updateRows();
+                        }
+                    },
                     render: function(){
                         Zenoss.registerTooltipFor(fieldid);
                     }

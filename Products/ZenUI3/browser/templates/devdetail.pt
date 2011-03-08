@@ -22,7 +22,6 @@
 <script tal:content='string:
     Zenoss.env.device_uid = decodeURI("${context/absolute_url_path}");
 '></script>
-<tal:block tal:content="structure provider:jssnippets"/>
 <script src="/++resource++zenui/js/zenoss/devdetail.js"></script>
 <script>
 function changeDetail() {

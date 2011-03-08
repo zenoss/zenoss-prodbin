@@ -26,7 +26,6 @@
 </tal:block>
 
 <tal:block metal:fill-slot="script_layout">
-<tal:block tal:content="structure provider:jssnippets"/>
 <script src="/++resource++zenui/js/zenoss/itinfrastructure.js/"></script>
 <script>
 function changeDetail() {

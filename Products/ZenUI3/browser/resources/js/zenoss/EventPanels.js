@@ -451,16 +451,6 @@
                                         view.toggleRowColors(checked);
                                     }
                                 },{
-                                    id: 'livesearch_checkitem',
-                                    checked: true,
-                                    xtype: 'menucheckitem',
-                                    text: 'Enable live search',
-                                    handler: function(checkitem) {
-                                        var checked = !checkitem.checked;
-                                        var view = Ext.getCmp(gridId).getView();
-                                        view.toggleLiveSearch(checked);
-                                    }
-                                },{
                                     id: 'clearfilters',
                                     text: 'Clear filters',
                                     listeners: {

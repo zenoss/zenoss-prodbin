@@ -127,7 +127,7 @@ Zenoss.TemplateTreePanel = Ext.extend(Ext.tree.TreePanel, {
         this.on('buttonClick', this.buttonClickHandler, this);
     },
     showLoadMask: function(bool) {
-        if (!this.loadMask) { return; } 
+        if (!this.loadMask) { return; }
         var container = this.container;
         container._treeLoadMask = container._treeLoadMask || new Ext.LoadMask(this.container);
         var mask = container._treeLoadMask,
@@ -182,15 +182,28 @@ Zenoss.TemplateTreePanel = Ext.extend(Ext.tree.TreePanel, {
     afterRender: function() {
         Zenoss.TemplateTreePanel.superclass.afterRender.call(this);
 
+        var liveSearch = Zenoss.settings.enableLiveSearch,
+            listeners = {
+                scope: this,
+                keypress: function(field, e) {
+
+                    if (e.getKey() === e.ENTER) {
+
+                        this.filterTree(field);
+                    }
+                }
+            };
+
+        if (liveSearch) {
+            listeners.valid = this.filterTree;
+        }
         // add the search text box
         this.add({
             xtype: 'searchfield',
             ref: 'searchField',
+            enableKeyEvents: true,
             bodyStyle: {padding: 10},
-            listeners: {
-                valid: this.filterTree,
-                scope: this
-            }
+            listeners: listeners
         });
     },
 

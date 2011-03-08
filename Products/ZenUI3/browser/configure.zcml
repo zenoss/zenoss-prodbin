@@ -267,6 +267,14 @@
     for="Products.ZenModel.interfaces.IDataRoot"
     permission="zenoss.View"
     />
+
+<browser:viewlet
+    name="zenoss_settings"
+    manager=".interfaces.IMainSnippetManager"
+    class=".javascript.ZenossSettings"
+    permission="zope2.Public"
+    />
+
 <include package=".eventconsole"/>
 <include package=".search"/>
 

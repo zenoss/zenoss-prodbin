@@ -1,12 +1,12 @@
 ###########################################################################
-#       
+#
 # This program is part of Zenoss Core, an open source monitoring platform.
 # Copyright (C) 2009, Zenoss Inc.
-#       
+#
 # This program is free software; you can redistribute it and/or modify it
 # under the terms of the GNU General Public License version 2 as published by
 # the Free Software Foundation.
-#       
+#
 # For complete information please visit: http://www.zenoss.com/oss/
 #
 ###########################################################################
@@ -24,15 +24,18 @@ from Products.ZenModel.ZVersion import VERSION
 
 SCRIPT_TAG_SRC_TEMPLATE = '<script type="text/javascript" src="%s"></script>\n'
 
+
 class MainSnippetManager(JavaScriptSnippetManager):
     """
     A viewlet manager to handle Ext.Direct API definitions.
     """
     zope.interface.implements(IMainSnippetManager)
 
+
 class JavaScriptSrcManager(WeightOrderedViewletManager):
     zope.interface.implements(IJavaScriptSrcManager)
-    
+
+
 class JavaScriptSrcViewlet(ViewletBase):
     zope.interface.implements(IJavaScriptSrcViewlet)
     path = None
@@ -43,10 +46,12 @@ class JavaScriptSrcViewlet(ViewletBase):
             val = SCRIPT_TAG_SRC_TEMPLATE % self.path
         return val
 
+
 class JavaScriptSrcBundleViewlet(ViewletBase):
     zope.interface.implements(IJavaScriptBundleViewlet)
     #space delimited string of src paths
     paths = ''
+
     def render(self):
         vals = []
         if self.paths:
@@ -56,40 +61,50 @@ class JavaScriptSrcBundleViewlet(ViewletBase):
         if vals:
             js = "".join(vals)
         return js
-    
+
+
 class ExtBaseJs(JavaScriptSrcViewlet):
     zope.interface.implements(IJavaScriptSrcViewlet)
+
     def update(self):
         if Globals.DevelopmentMode:
             self.path = "/++resource++extjs/adapters/ext/ext-base-debug.js"
         else:
             self.path = "/++resource++extjs/adapters/ext/ext-base.js"
 
+
 class ZenossAllJs(JavaScriptSrcViewlet):
     zope.interface.implements(IJavaScriptSrcViewlet)
+
     def update(self):
         self.path = '%s?v=%s' % ("zenoss-all.js", VERSION)
+
 
 class ExtAllJs(JavaScriptSrcViewlet):
     zope.interface.implements(IJavaScriptSrcViewlet)
     path = None
+
     def update(self):
         if Globals.DevelopmentMode:
             self.path = "/++resource++extjs/ext-all-debug.js"
         else:
             self.path = "/++resource++extjs/ext-all.js"
 
+
 class LiveGridJs(JavaScriptSrcViewlet):
     zope.interface.implements(IJavaScriptSrcViewlet)
+
     def update(self):
         if Globals.DevelopmentMode:
             self.path = "/++resource++zenui/js/livegrid/livegrid-all-debug.js"
         else:
             self.path = "/++resource++zenui/js/livegrid/livegrid-all.js"
 
+
 class FireFoxExtCompat(JavaScriptSnippet):
+
     def snippet(self):
-        js ="""
+        js = """
          (function() {
             var ua = navigator.userAgent.toLowerCase();
             if (ua.indexOf("firefox/3.6") > -1) {
@@ -101,4 +116,18 @@ class FireFoxExtCompat(JavaScriptSnippet):
             }
         })();
         """
-        return  SCRIPT_TAG_TEMPLATE% js
+        return  SCRIPT_TAG_TEMPLATE % js
+
+
+class ZenossSettings(JavaScriptSnippet):
+    """
+    Renders client side settings.
+    """
+
+    def snippet(self):
+        js = """
+            Ext.namespace('Zenoss.settings');
+            Zenoss.settings.enableLiveSearch = %s;
+        
+        """ % str(self.context.dmd.enableLiveSearch).lower()  # a javascript Boolean is lowercase
+        return js

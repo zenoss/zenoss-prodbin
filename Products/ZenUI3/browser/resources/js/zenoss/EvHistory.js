@@ -154,16 +154,6 @@ Ext.onReady(function(){
                             view.toggleRowColors(checked);
                         }
                     },{
-                        id: 'livesearch_checkitem',
-                        checked: true,
-                        xtype: 'menucheckitem',
-                        text: 'Enable live search',
-                        handler: function(checkitem) {
-                            var checked = !checkitem.checked;
-                            var view = Ext.getCmp('events_grid').getView();
-                            view.toggleLiveSearch(checked);
-                        }
-                    },{
                         id: 'clearfilters',
                         text: 'Clear filters',
                         listeners: {

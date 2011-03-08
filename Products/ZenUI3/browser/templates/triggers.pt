@@ -10,8 +10,7 @@
 <tal:block metal:fill-slot="center_panel_content">
 </tal:block>
 
-<tal:block metal:fill-slot="script_layout">
-    <tal:block tal:content="structure provider:jssnippets"/>
+<tal:block metal:fill-slot="script_layout">    
         <script src="/++resource++zenui/js/zenoss/triggers.js"></script>
         <script>
         function changeDetail() {

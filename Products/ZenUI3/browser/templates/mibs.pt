@@ -18,7 +18,6 @@
 <tal:block metal:fill-slot="title">MIBs</tal:block>
 
 <tal:block metal:fill-slot="script_layout">
-  <tal:block tal:content="structure provider:jssnippets"/>
   <script src="/++resource++zenui/js/zenoss/MIBs.js"></script>
 </tal:block>
 </tal:block>

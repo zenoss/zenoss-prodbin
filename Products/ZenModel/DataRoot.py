@@ -94,7 +94,7 @@ class DataRoot(ZenModelRM, OrderedFolder, Commandable, ZenMenuable):
     geomapapikey = ''
     geocache = ''
     version = ""
-
+    enableLiveSearch = True
     # how we should store our user credentials
     AUTH_TYPE_SESSION = "session"
     AUTH_TYPE_COOKIE = "cookie"
@@ -127,7 +127,7 @@ class DataRoot(ZenModelRM, OrderedFolder, Commandable, ZenMenuable):
         {'id':'geomapapikey', 'type': 'string', 'mode':'w'},
         {'id':'userAuthType', 'type': 'string', 'mode':'w'},
         {'id':'geocache', 'type': 'string', 'mode':'w'},
-
+        {'id':'enableLiveSearch', 'type': 'boolean', 'mode':'w'},
         )
 
     _relations =  (

@@ -7,7 +7,7 @@ var Class={
         return function(){
             bindMethods(this);
             this.__init__.apply(this,arguments);
-        } 
+        }
     }
 }
 
@@ -120,7 +120,7 @@ YAHOO.zenoss.getSelectValues = getSelectValues;
  *   Less universally useful stuff
  *   (formerly separate scripts)
  ***********************************/
- 
+
 function toggleElement(elementid) {
     var element = $(elementid);
     if (element.visible == 0) {
@@ -383,7 +383,7 @@ function insertSelBar(table, index) {
     }
     var all = LI({id:'selectall_' + index}, 'All');
     var nun = LI({id:'selectnone_' + index}, 'None');
-    var selbar = DIV({'class':'zentable_selectionbar'}, 
+    var selbar = DIV({'class':'zentable_selectionbar'},
         [ 'Select:  ', UL(null, [all, nun ]) ]);
     insertSiblingNodesBefore(table, selbar);
     connect(all, 'onclick', getselall());
@@ -435,7 +435,7 @@ var removeElementAutoCompletes = function() {
 postJSONDoc = function (url, postVars) {
         var req = getXMLHttpRequest();
         req.open("POST", url, true);
-        req.setRequestHeader("Content-type", 
+        req.setRequestHeader("Content-type",
                              "application/x-www-form-urlencoded");
         var data = queryString(postVars);
         var d = sendXMLHttpRequest(req, data);
@@ -443,37 +443,37 @@ postJSONDoc = function (url, postVars) {
 
 }
 
-var cancelWithTimeout = function (deferred, timeout) { 
-    var canceller = callLater(timeout, function () { 
-        // cancel the deferred after timeout seconds 
-        deferred.cancel(); 
+var cancelWithTimeout = function (deferred, timeout) {
+    var canceller = callLater(timeout, function () {
+        // cancel the deferred after timeout seconds
+        deferred.cancel();
         //log("cancel load data")
-    }); 
-    return deferred.addCallback(function (res) { 
-        // if the deferred fires successfully, cancel the timeout 
-        canceller.cancel(); 
-        return res; 
-    }); 
+    });
+    return deferred.addCallback(function (res) {
+        // if the deferred fires successfully, cancel the timeout
+        canceller.cancel();
+        return res;
+    });
 };
 
 function handle(delta) {
-	if (delta < 0)
-		/* something. */;
-	else
-		/* something. */;
+    if (delta < 0)
+        /* something. */;
+    else
+        /* something. */;
 }
 
 function wheel(event){
-	var delta = 0;
-	if (!event) event = window.event;
-	if (event.wheelDelta) {
-		delta = event.wheelDelta/120; 
-		if (window.opera) delta = -delta;
-	} else if (event.detail) {
-		delta = -event.detail/3;
-	}
-	if (delta)
-		handle(delta);
+    var delta = 0;
+    if (!event) event = window.event;
+    if (event.wheelDelta) {
+        delta = event.wheelDelta/120;
+        if (window.opera) delta = -delta;
+    } else if (event.detail) {
+        delta = -event.detail/3;
+    }
+    if (delta)
+        handle(delta);
        if (event.preventDefault)
            event.preventDefault();
        event.returnValue = false;
@@ -497,14 +497,14 @@ function checkValidId(e){
     var new_id = escape(input.value);
     var submit = $('dialog_submit');
     var path = $('checkValidIdPath').value
-    
+
     errmsg.innerHTML = "";
     Morph(input, {"style": {"color": "black"}});
     Morph(label, {"style": {"color": "white"}});
-    
+
     d = callLater(0, doXHR, path+'/checkValidId', {queryString:{'id':new_id}});
-    d.addCallback(function (r) { 
-        if (r.responseText == 'True') { 
+    d.addCallback(function (r) {
+        if (r.responseText == 'True') {
             submit.disabled = false;
             if (e && e.key().string == 'KEY_ENTER') submit.click();
         } else {
@@ -515,7 +515,7 @@ function checkValidId(e){
             shake(input);
             shake(label);
             shake(errmsg);
-        }   
+        }
     });
 }
 
@@ -703,18 +703,21 @@ var registerMenu = function(button, menu) {
 
 function notifyParentOfNewUrl() {
     try {
-          var parwin = currentWindow().parent;
-          var url = location.href;
-          parwin.zmlistener.checkForDomainChange(url);
-        } 
-    catch(e){ noop() }
+        var parwin = currentWindow().parent;
+        var url = location.href;
+        if (parwin && parwin.zmlistener) {
+            parwin.zmlistener.checkForDomainChange(url);
+        }
+
+    }
+    catch(e){ noop(); }
 }
 
 
 /* Selection stuff */
 var checkboxes;
 var currentCheckbox;
-var isCheckbox = function(elem) { 
+var isCheckbox = function(elem) {
     return (elem.type=='checkbox') }
 
 function getCheckboxes(elem) {
@@ -769,11 +772,11 @@ function zenPageInit(){
 
     var as = $$('#leftPane a');
     for(var i=0; i< as.length; i++){
-        if (location.href.indexOf('notabs') != -1 && 
+        if (location.href.indexOf('notabs') != -1 &&
             location.href==as[i].href) {
                 as[i].className = 'selected';
         }
-        else if( location.href.indexOf('notabs')==-1 && 
+        else if( location.href.indexOf('notabs')==-1 &&
                  as[i].href.indexOf('notabs')==-1 &&
                  location.pathname.indexOf(as[i].pathname) != -1){
             as[i].className = 'selected';
@@ -794,7 +797,7 @@ function submitViaEnter(evt, submitName) {
     evt = (evt) ? evt : event;
     var target = (evt.target) ? evt.target : evt.srcElement;
     var form = target.form;
-    var charCode = (evt.charCode) ? evt.charCode : 
+    var charCode = (evt.charCode) ? evt.charCode :
         ((evt.which) ? evt.which : evt.keyCode);
     if (charCode == 13 || charCode == 3) {
         if (submitName) { form.action += "/" + submitName }
@@ -806,7 +809,7 @@ function submitViaEnter(evt, submitName) {
 
 function blockSubmitViaEnter(evt) {
     evt = (evt) ? evt : event;
-    var charCode = (evt.charCode) ? evt.charCode : 
+    var charCode = (evt.charCode) ? evt.charCode :
         ((evt.which) ? evt.which : evt.keyCode);
     if (charCode == 13 || charCode == 3) {
         return false;
@@ -833,7 +836,7 @@ function toggleSelect(form) {
         }
         isSelected = false;
         form.SelectButton.value = "Select All";
-        return isSelected;       
+        return isSelected;
     }
 }
 
@@ -848,7 +851,7 @@ function getFormElements(parentbox) {
         if ((node.tagName=='SELECT'||node.tagName=='INPUT'||
             node.tagName=='TEXTAREA')&&node.type!='hidden') {
                 formElements[formElements.length]=node;
-                if (!firstElement) 
+                if (!firstElement)
                     firstElement = node;
         }
         if (node.tagName=='INPUT'&&(node.type=='text'||node.type=='password'))
@@ -959,7 +962,7 @@ Dialog.Box.prototype = {
         setStyle(this.framework, {'z-index':'1','display':'block'});
         var bdims = getElementDimensions(this.framework);
         setStyle(this.framework, {'z-index':'10002','display':'none'});
-        map(function(menu) {setStyle(menu, {'z-index':'3000'})}, 
+        map(function(menu) {setStyle(menu, {'z-index':'3000'})},
             concat($$('.menu'), $$('.littlemenu'), $$('#messageSlot')));
         setElementDimensions(this.dimbg, getViewportDimensions());
         setElementPosition(this.dimbg, getViewportPosition());
@@ -970,7 +973,7 @@ Dialog.Box.prototype = {
         });
         this.moveBox('front');
         connect('dialog_close','onclick',function(){$('dialog').hide()});
-        var d2 = this.lock.acquire(); 
+        var d2 = this.lock.acquire();
         d2.addCallback(bind(function() {
             try {
                 connect('new_id','onkeyup', captureSubmit);
@@ -1044,8 +1047,8 @@ Dialog.Box.prototype = {
         var d = doSimpleXMLHttpRequest(path+'/checkValidId',
             {'id':new_id, 'prep_id':prep_id});
 
-        d.addCallback(bind(function (r) { 
-            if (r.responseText == 'True') { 
+        d.addCallback(bind(function (r) {
+            if (r.responseText == 'True') {
                 var f = formname?document.forms[formname]:
                     (this.form?this.form:$('proxy_form'));
                 setStyle(this.box, {'z-index':'-1'});

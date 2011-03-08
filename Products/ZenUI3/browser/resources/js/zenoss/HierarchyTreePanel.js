@@ -244,15 +244,25 @@ Zenoss.HierarchyTreePanel = Ext.extend(Ext.tree.TreePanel, {
     },
     afterRender: function() {
         Zenoss.HierarchyTreePanel.superclass.afterRender.call(this);
+        var liveSearch = Zenoss.settings.enableLiveSearch,
+            listeners = {
+                scope: this,
+                keypress: function(field, e) {
+                    if (e.getKey() === e.ENTER) {
+                        this.filterTree(field);
+                    }
+                }
+            };
 
+        if (liveSearch) {
+            listeners.valid = this.filterTree;
+        }
         if (this.searchField) {
             this.searchField = this.add({
                 xtype: 'searchfield',
                 bodyStyle: {padding: 10},
-                listeners: {
-                    valid: this.filterTree,
-                    scope: this
-                }
+                enableKeyEvents: true,
+                listeners: listeners
             });
         }
         this.getRootNode().expand(false, true, function(node) {
