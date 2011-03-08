@@ -37,3 +37,18 @@ def initialize(context):
     except AttributeError, e:
         pass
 
+def safeTuple(arg):
+    """
+    >>> safeTuple(["foo", "blam"])
+    ('foo', 'blam')
+    >>> safeTuple([])
+    ()
+    >>> safeTuple(None)
+    ()
+    >>> safeTuple("foo")
+    ('foo',)
+    """
+    if arg is not None:
+        return tuple(arg) if hasattr(arg, '__iter__') else (arg,)
+    else:
+        return ()
