@@ -361,19 +361,20 @@ class ZepFacade(ZuulFacade):
 
     def getEventSeverities(self, tagUuids):
         """
-        Get a dictionary of the event severity counds for each UUID.
+        Get a dictionary of the event severity counts for each UUID.
 
         @param tagUuids: A sequence of element UUIDs
         @rtype: dict
         @return: A dictionary of UUID -> { C{EventSeverity} -> count }
         """
-        response, content = self.client.getEventSeverities(tagUuids)
+        eventFilter = self.createEventFilter(status=[STATUS_NEW, STATUS_ACKNOWLEDGED], tags=tagUuids)
+        response, content = self.client.getEventTagSeverities(from_dict(EventFilter, eventFilter))
         return self._createSeveritiesDict(content, tagUuids)
 
-    def getWorstSeverityByUuid(self, tagUuid, default=SEVERITY_CLEAR, ignore=None):
+    def getWorstSeverityByUuid(self, tagUuid, default=SEVERITY_CLEAR, ignore=()):
         return self.getWorstSeverity([tagUuid], default=default, ignore=ignore)[tagUuid]
 
-    def getWorstSeverity(self, tagUuids, default=SEVERITY_CLEAR, ignore=None):
+    def getWorstSeverity(self, tagUuids, default=SEVERITY_CLEAR, ignore=()):
         """
         Get a dictionary of the worst event severity for each UUID.
 
@@ -388,13 +389,13 @@ class ZepFacade(ZuulFacade):
 
         # Prepopulate the list with defaults
         severities = dict.fromkeys(tagUuids, default)
-        response, content = self.client.getWorstSeverity(tagUuids)
-        if content:
-            for tag in content.severities:
-                sev = tag.severities[0].severity
-                severities[tag.tag_uuid] = default if ignore and sev in ignore else sev
-
-            return severities
+        eventFilter = self.createEventFilter(status=[STATUS_NEW, STATUS_ACKNOWLEDGED], tags=tagUuids)
+        response, content = self.client.getEventTagSeverities(from_dict(EventFilter, eventFilter))
+        for tag in content.severities:
+            for sev in tag.severities:
+                if sev.severity not in ignore:
+                    severities[tag.tag_uuid] = max(sev.severity, severities[tag.tag_uuid])
+        return severities
 
     def getSeverityName(self, severity):
         return EventSeverity.getPrettyName(severity)
@@ -455,15 +456,15 @@ class ZepFacade(ZuulFacade):
     def getDeviceIssues(self):
         """
         Returns the same data structure as getEventSeverities, but this
-        will return it for all devices that have issues with severity > Error and
+        will return it for all devices that have issues with severity >= Error and
         a status of new or acknowledged.
         """
-        filters = self.createEventFilter(
+        eventFilter = self.createEventFilter(
             severity=[SEVERITY_CRITICAL, SEVERITY_ERROR],
             status=[STATUS_NEW, STATUS_ACKNOWLEDGED]
             )
 
-        response, content = self.client.getDeviceIssues(from_dict(EventFilter, filters))
+        response, content = self.client.getEventTagSeverities(from_dict(EventFilter, eventFilter))
         if content:
             uuids = [severities.tag_uuid for severities in content.severities]
             return self._createSeveritiesDict(content, uuids)
