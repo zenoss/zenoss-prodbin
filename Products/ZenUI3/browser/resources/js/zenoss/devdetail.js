@@ -364,10 +364,21 @@ var componentCard = {
         id: 'component_searchfield',
         validateOnBlur: false,
         emptyText: _t('Type to filter by name...'),
+        enableKeyEvents: true,
+        filterGrid: function() {
+            var grid = Ext.getCmp('component_card').componentgrid;
+            grid.filter(this.getValue());
+        },
         listeners: {
             valid: function(field) {
-                var grid = Ext.getCmp('component_card').componentgrid;
-                grid.filter(field.getValue());
+                if (Zenoss.settings.enableLiveSearch) {
+                    field.filterGrid();
+                }
+            },
+            keypress: function(field, e) {
+                if (e.getKey() === e.ENTER) {
+                    field.filterGrid();
+                }
             }
         }
     }],

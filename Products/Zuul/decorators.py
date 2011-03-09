@@ -11,11 +11,12 @@
 #
 ###########################################################################
 
-import warnings
+import Globals
+import logging
+import traceback
 import functools
 from AccessControl import Unauthorized
 from Products import Zuul
-
 
 def deprecated(func):
     """
@@ -23,17 +24,15 @@ def deprecated(func):
     as deprecated. It will result in a warning being emitted
     when the function is used.
     """
-
+    log = logging.getLogger('zen.Deprecated')
     @functools.wraps(func)
     def new_func(*args, **kwargs):
-        warnings.warn_explicit(
-            "Call to deprecated function %(funcname)s." % {
-                'funcname': func.__name__,
-            },
-            category=DeprecationWarning,
-            filename=func.func_code.co_filename,
-            lineno=func.func_code.co_firstlineno + 1
-        )
+        if Globals.DevelopmentMode:                        
+            log.warning("Call to deprecated function %s (%s:%d) StackTrace: %s",
+                        func.__name__, func.func_code.co_filename,
+                        func.func_code.co_firstlineno + 1,
+                        "".join(traceback.format_stack()))
+        
         return func(*args, **kwargs)
     return new_func
 
