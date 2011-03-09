@@ -13,7 +13,15 @@
 
 class SpecialDict(object):
     def __init__(self, data):
-        self.__dict__.update(data)
+        self_dict = object.__getattribute__(self, '__dict__')
+        self_dict.update(data)
+
+    def __getattr__(self, item):
+        self_dict = object.__getattribute__(self, '__dict__')
+        try:
+            return self_dict[item]
+        except KeyError:
+            return None
 
 class Template(object):
     def __init__(self, template_body):
