@@ -198,8 +198,10 @@ class EventClass(EventClassPropertyMixin, Organizer, ManagedEntity, ZenPackable)
             try:
                 log.debug("Looking for event class named in event: %s",
                           evt.eventClass)
-                return self.getDmdRoot("Events").getOrganizer(evt.eventClass)
-            except KeyError:
+                path = evt.eventClass
+                if path.startswith("/"): path = path[1:]
+                return self.getDmdRoot('Events').findChild(path)
+            except (AttributeError, KeyError):
                 log.debug("Unable to find '%s' organizer" % evt.eventClass)
 
         # Use defaultmapping if no eventClassKey is set, or if it blank.
