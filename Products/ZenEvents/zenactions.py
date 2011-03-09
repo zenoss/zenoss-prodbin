@@ -26,7 +26,7 @@ from email.Utils import formatdate
 
 import Globals
 from ZODB.POSException import ConflictError
-from _mysql_exceptions import OperationalError, ProgrammingError
+from _mysql_exceptions import OperationalError
 
 from twisted.internet import reactor
 
@@ -54,6 +54,8 @@ MYSQL_PANIC_MESSAGE = "Encountered a MySQL connection error."
 ZEO_PANIC_MESSAGE = "Encountered a ZEO connection error."
 GENERIC_PANIC_MESSAGE = "Encountered an unexpected error."
 
+class ZeoWatcher(Exception):
+    pass
 
 class BaseZenActions(object):
     """
@@ -194,111 +196,6 @@ class BaseZenActions(object):
                         eventClass=App_Stop,
                         summary="zenactions stopped",
                         severity=3, component="zenactions"))
-
-    def format(self, action, data, clear):
-        fmt = action.format
-        body = action.body
-        if clear:
-            fmt = action.clearFormat
-            body = action.clearBody
-        try:
-            fmt = fmt % data
-        except Exception, ex:
-            fmt = "Error formatting event: %s" % (str(ex),)
-        try:
-            body = body % data
-        except Exception, ex:
-            body = "Error formatting event body: %s" % (str(ex),)
-        return fmt, body
-
-    def stripTags(self, data):
-        """A quick html => plaintext converter
-           that retains and displays anchor hrefs
-        """
-        import re
-        tags = re.compile(r'<(.|\n)+?>', re.I|re.M)
-        aattrs = re.compile(r'<a(.|\n)+?href=["\']([^"\']*)[^>]*?>([^<>]*?)</a>', re.I|re.M)
-        anchors = re.finditer(aattrs, data)
-        for x in anchors: data = data.replace(x.group(), "%s: %s" % (x.groups()[2], x.groups()[1]))
-        data = re.sub(tags, '', data)
-        return data
-
-    def sendPage(self, action, data, clear = None):
-        """Send and event to a pager.  Return True if we think page was sent,
-        False otherwise.
-        """
-        if self.options.cycle and not reactor.running:
-           # Give the reactor time to startup if necessary.
-           return False
-
-        fmt, body = self.format(action, data, clear)
-        recipients = action.getAddresses()
-        if not recipients:
-            self.log.warning('failed to page %s on rule %s: %s',
-                             action.getUser().id, action.id,
-                             'Unspecified address.')
-            return True
-
-        result = False
-        for recipient in recipients:
-            success, errorMsg = Utils.sendPage(
-                recipient, fmt, self.dmd.pageCommand,
-                deferred=self.options.cycle)
-
-            if success:
-                self.log.info('sent page to %s: %s', recipient, fmt)
-                # return True if anyone got the page
-                result = result or success
-            else:
-                self.log.info('failed to send page to %s: %s %s',
-                              recipient,
-                              fmt,
-                              errorMsg)
-        return result
-
-    def sendEmail(self, action, data, clear = None):
-        """Send an event to an email address.
-        Return True if we think the email was sent, False otherwise.
-        """
-        from email.MIMEText import MIMEText
-        from email.MIMEMultipart import MIMEMultipart
-        addr = action.getAddresses()
-        if not addr:
-            self.log.warning('Failed to email %s on rule %s: %s',
-                action.getUser().id, action.id, 'Unspecified address.')
-            return True
-
-        fmt, htmlbody = self.format(action, data, clear)
-        htmlbody = htmlbody.replace('\n','<br/>\n')
-        body = self.stripTags(htmlbody)
-        plaintext = MIMEText(body)
-
-        emsg = None
-        if action.plainText:
-            emsg = plaintext
-        else:
-            emsg = MIMEMultipart('related')
-            emsgAlternative = MIMEMultipart('alternative')
-            emsg.attach( emsgAlternative )
-            html = MIMEText(htmlbody)
-            html.set_type('text/html')
-            emsgAlternative.attach(plaintext)
-            emsgAlternative.attach(html)
-
-        emsg['Subject'] = fmt
-        emsg['From'] = self.dmd.getEmailFrom()
-        emsg['To'] = ', '.join(addr)
-        emsg['Date'] = formatdate(None, True)
-        result, errorMsg = Utils.sendEmail(emsg, self.dmd.smtpHost,
-                    self.dmd.smtpPort, self.dmd.smtpUseTLS, self.dmd.smtpUser,
-                    self.dmd.smtpPass)
-        if result:
-            self.log.info("rule '%s' sent email:%s to:%s",
-                action.id, fmt, addr)
-        else:
-            self.log.info("rule '%s' failed to send email to %s: %s %s",
-                action.id, ','.join(addr), fmt, errorMsg)
-        return result
 
 
     def buildOptions(self):
