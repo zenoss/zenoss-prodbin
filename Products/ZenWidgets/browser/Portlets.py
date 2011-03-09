@@ -164,7 +164,7 @@ class DeviceIssuesPortletView(BrowserView):
         """return device info for bad device to dashboard"""
         zep = getFacade('zep')
         manager = IGUIDManager(self.context.dmd)
-        deviceSeverities = zep.getDeviceIssues()
+        deviceSeverities = zep.getDeviceIssuesDict()
         zem = self.context.dmd.ZenEventManager
 
         devdata = []

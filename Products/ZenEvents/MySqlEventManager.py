@@ -22,7 +22,9 @@ from AccessControl import ClassSecurityInfo
 from EventManagerBase import EventManagerBase
 from MySqlSendEvent import MySqlSendEventMixin
 from Exceptions import *
+from Products.Zuul.decorators import deprecated
 
+@deprecated
 def manage_addMySqlEventManager(context, id=None, evthost="localhost",
                                 evtuser="root", evtpass="", evtdb="events",
                                 evtport=3306,
@@ -61,6 +63,7 @@ class MySqlEventManager(MySqlSendEventMixin, EventManagerBase):
 
     security = ClassSecurityInfo()
 
+    @deprecated
     def getEventSummary(self, where="", severity=1, state=1, prodState=None,
                         parameterizedWhere=None):
         """
@@ -127,6 +130,7 @@ class MySqlEventManager(MySqlSendEventMixin, EventManagerBase):
         self.cleanCache()
         return sevsum
 
+    @deprecated
     def countEventsSince(self, since):
         ''' since is number of seconds since epoch, see documentation
         for python time.time()

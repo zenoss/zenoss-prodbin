@@ -354,6 +354,7 @@ class EventManagerBase(ZenModelRM, ObjectCache, DbAccessBase):
                                  **kwargs)
 
 
+    @deprecated
     def filteredWhere(self, where, filters, values):
         """
         Create SQL representing conditions that match passed filters and append
@@ -488,6 +489,7 @@ class EventManagerBase(ZenModelRM, ObjectCache, DbAccessBase):
         querySet = MatchRegexp('titleOrId', searchTerm)
         return self._filterCatalogResultsForIds(catalog, querySet)
 
+    @deprecated
     def getEventBatchME(self, me, selectstatus=None, resultFields=[],
                         where="", orderby="", severity=None, state=2,
                         startdate=None, enddate=None, offset=0, rows=0,
@@ -571,6 +573,7 @@ class EventManagerBase(ZenModelRM, ObjectCache, DbAccessBase):
                                     where=where,**kwargs)
         return [ev.evid for ev in events]
 
+    @deprecated
     def getEventIds(self, me, selectstatus=None,
                         orderby="", filters=None, evids=[],
                         excludeIds=[], asof=None):
@@ -627,6 +630,7 @@ class EventManagerBase(ZenModelRM, ObjectCache, DbAccessBase):
         """This is a hook do not delete me!"""
         return where
 
+    @deprecated
     def getEventList(self, resultFields=None, where="", orderby="",
             severity=None, state=2, startdate=None, enddate=None, offset=0,
             rows=0, getTotalCount=False, filter="", filters=None,
@@ -767,6 +771,7 @@ class EventManagerBase(ZenModelRM, ObjectCache, DbAccessBase):
             raise
 
 
+    @deprecated
     def getEventSummaryME(self, me, severity=1, state=1, prodState=None):
         """
         Return the CSS class, number of acknowledged events, and number of
@@ -791,7 +796,7 @@ class EventManagerBase(ZenModelRM, ObjectCache, DbAccessBase):
             log.exception("event summary for %s failed" % me.getDmdKey())
             raise
 
-
+    @deprecated
     def getEventSummary(self, where="", severity=1, state=1, prodState=None):
         """
         Return a list of tuples with number of events and the color of the
@@ -814,6 +819,7 @@ class EventManagerBase(ZenModelRM, ObjectCache, DbAccessBase):
         raise NotImplementedError
 
 
+    @deprecated
     def getEventDetailFromStatusOrHistory(self, evid=None, dedupid=None,
                                                             better=False):
         try:
@@ -825,6 +831,7 @@ class EventManagerBase(ZenModelRM, ObjectCache, DbAccessBase):
         return event
 
 
+    @deprecated
     def getEventDetail(self, evid=None, dedupid=None, better=False):
         """
         Return an EventDetail object for a particular event.
@@ -999,51 +1006,6 @@ class EventManagerBase(ZenModelRM, ObjectCache, DbAccessBase):
         return statusCache
 
     @deprecated
-    def getDevicePingIssues(self, state=2, limit=0):
-        """Return devices with ping problems.
-        """
-        return self.getDeviceIssues(where="eventClass = '%s'" % Status_Ping,
-                                    severity=3,
-                                    state=state,
-                                    limit=limit)
-
-    @deprecated
-    def getDeviceStatusIssues(self, severity=4, state=1, limit=0):
-        """Return only status issues.
-        """
-        return self.getDeviceIssues(where="eventClass like '/Status%'",
-                            severity=severity, state=state, limit=limit)
-
-    @deprecated
-    def getDeviceIssues(self,severity=1,state=0,where="",mincount=0,limit=0):
-        """Return list of tuples (device, count, total) of events for
-        all devices with events.
-        """
-        where = self._wand(where, "%s >= %s", self.severityField, severity)
-        where = self._wand(where, "%s <= %s", self.stateField, state)
-        select = """select distinct device, count(device) as evcount,
-                    sum(count) from status where %s group by device
-                    having evcount > %s""" % (where, mincount)
-        statusCache = self.checkCache(select)
-        if not statusCache:
-            try:
-                conn = self.connect()
-                try:
-                    curs = conn.cursor()
-                    curs.execute(select)
-                    statusCache = [ [d,int(c),int(s)] for d,c,s in curs.fetchall() ]
-                    #statusCache = list(curs.fetchall())
-                    statusCache.sort(lambda x,y: cmp(x[1],y[1]))
-                    statusCache.reverse()
-                    if limit:
-                        statusCache = statusCache[:limit]
-                finally: self.close(conn)
-            except:
-                log.exception(select)
-                raise
-        return statusCache
-
-    @deprecated
     def getDeviceStatus(self, device, statclass=None, countField=None,
                         severity=3, state=None, where=""):
         """see IEventStatus
@@ -1142,7 +1104,7 @@ class EventManagerBase(ZenModelRM, ObjectCache, DbAccessBase):
         return [{'alink':b[0], 'comp':b[1], 'dtime':b[2], 'devId':b[3]}
                 for b in beats]
 
-
+    @deprecated
     def getAllComponentStatus(self,
                               statclass,
                               countField=None,
@@ -1171,7 +1133,7 @@ class EventManagerBase(ZenModelRM, ObjectCache, DbAccessBase):
         finally:
             self.close(conn)
 
-
+    @deprecated
     def getMaxSeverity(self, me):
         """ Returns the severity of the most severe event. """
         where = self.lookupManagedEntityWhere(me.device())
@@ -1190,6 +1152,7 @@ class EventManagerBase(ZenModelRM, ObjectCache, DbAccessBase):
         return max(severity, 0)
 
 
+    @deprecated
     def getComponentStatus(self, device, component, statclass=None,
                     countField=None, severity=3, state=1, where=""):
         """see IEventStatus
@@ -1217,6 +1180,7 @@ class EventManagerBase(ZenModelRM, ObjectCache, DbAccessBase):
             finally: self.close(conn)
         return statusCache.get(device+component, 0)
 
+    @deprecated
     def getBatchComponentInfo(self, components):
         """
         Given a list of dicts with keys 'device', 'component', make a query to
@@ -1260,6 +1224,7 @@ class EventManagerBase(ZenModelRM, ObjectCache, DbAccessBase):
         maxstatus = doQuery(statquery)[0][0]
         return maxseverity, maxstatus
 
+    @deprecated
     def getEventOwnerListME(self, me, severity=0, state=1):
         """Return list of event owners based on passed in managed entity.
         """
@@ -1271,6 +1236,7 @@ class EventManagerBase(ZenModelRM, ObjectCache, DbAccessBase):
             raise
 
 
+    @deprecated
     def getEventOwnerList(self, where="", severity=0, state=1):
         """Return a list of userids that correspond to the events in where.
         select distinct ownerid from status where
@@ -1292,7 +1258,7 @@ class EventManagerBase(ZenModelRM, ObjectCache, DbAccessBase):
         finally: self.close(conn)
         return statusCache
 
-
+    @deprecated
     def lookupManagedEntityWhere(self, me):
         """
         Lookup and build where clause for managed entity.
@@ -1314,7 +1280,7 @@ class EventManagerBase(ZenModelRM, ObjectCache, DbAccessBase):
             return '(DeviceCLass like \'/%\')'
         return eval(wheretmpl,{'me':me, 'escape_string':escape_string})
 
-
+    @deprecated
     def lookupManagedEntityField(self, event_key):
         """
         Lookup database field for managed entity default
@@ -1328,7 +1294,7 @@ class EventManagerBase(ZenModelRM, ObjectCache, DbAccessBase):
         key = event_key + "Field"
         return getattr(aq_base(self), key, event_key)
 
-
+    @deprecated
     def lookupManagedEntityResultFields(self, event_key):
         """
         Gets the column names that should be requested in an event query for
@@ -1415,6 +1381,7 @@ class EventManagerBase(ZenModelRM, ObjectCache, DbAccessBase):
         log.debug("final orderby is %s" % orderby)
         return orderby
 
+    @deprecated
     def getAvgFieldLength(self, fieldname):
         conn = self.connect()
         try:
@@ -1620,6 +1587,7 @@ class EventManagerBase(ZenModelRM, ObjectCache, DbAccessBase):
         raise NotImplementedError
 
 
+    @deprecated
     def loadSchema(self):
         """Load schema from database. If field is a date set value to true."""
         schema = {}
@@ -1647,6 +1615,7 @@ class EventManagerBase(ZenModelRM, ObjectCache, DbAccessBase):
             return 1
         return 0
 
+    @deprecated
     def updateEvents(self, stmt, whereClause, reason,
                      table="status", toLog=True):
         userId = getSecurityManager().getUser().getId()
@@ -1702,11 +1671,13 @@ class EventManagerBase(ZenModelRM, ObjectCache, DbAccessBase):
         return evid
 
 
+    @deprecated
     def deleteEvents(self, whereClause, reason):
         self.updateEvents('DELETE FROM status', whereClause, reason)
 
 
     security.declareProtected(ZEN_MANAGE_EVENTS,'manage_deleteEvents')
+    @deprecated
     def manage_deleteEvents(self, evids=(), REQUEST=None):
         "Delete the given event ids"
         if type(evids) == type(''):
@@ -1727,6 +1698,7 @@ class EventManagerBase(ZenModelRM, ObjectCache, DbAccessBase):
             )
             return self.callZenScreen(REQUEST)
 
+    @deprecated
     def undeleteEvents(self, whereClause, reason):
         fields = self.getFieldList()
         if 'deletedTime' in fields:
@@ -1744,6 +1716,7 @@ class EventManagerBase(ZenModelRM, ObjectCache, DbAccessBase):
                            reason, 'history')
 
     security.declareProtected(ZEN_MANAGE_EVENTS,'manage_undeleteEvents')
+    @deprecated
     def manage_undeleteEvents(self, evids=(), REQUEST=None):
         "Move the given event ids into status and delete from history"
         if type(evids) == type(''):
@@ -1762,6 +1735,7 @@ class EventManagerBase(ZenModelRM, ObjectCache, DbAccessBase):
 
 
     security.declareProtected(ZEN_MANAGE_EVENTS,'manage_deleteAllEvents')
+    @deprecated
     def manage_deleteAllEvents(self, devname, REQUEST=None):
         "Delete the events for a given Device (used for deleting the device"
         whereClause = 'where device = "%s"' % devname
@@ -1775,6 +1749,7 @@ class EventManagerBase(ZenModelRM, ObjectCache, DbAccessBase):
 
 
     security.declareProtected(ZEN_MANAGE_EVENTS,'manage_deleteHistoricalEvents')
+    @deprecated
     def manage_deleteHistoricalEvents(self, devname=None, agedDays=None,
                                         REQUEST=None):
         """
@@ -1869,6 +1844,7 @@ class EventManagerBase(ZenModelRM, ObjectCache, DbAccessBase):
 
 
     security.declareProtected(ZEN_MANAGE_EVENTS,'manage_setEventStates')
+    @deprecated
     def manage_setEventStates(self, eventState=None, evids=(),
                               userid="", REQUEST=None):
         """
@@ -2066,6 +2042,7 @@ class EventManagerBase(ZenModelRM, ObjectCache, DbAccessBase):
         if REQUEST: return self.callZenScreen(REQUEST)
 
     security.declareProtected(ZEN_MANAGE_EVENTS, 'manage_addLogMessage')
+    @deprecated
     def manage_addLogMessage(self, evid=None, message='', REQUEST=None):
         """
         Add a log message to an event

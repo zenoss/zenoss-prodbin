@@ -20,6 +20,7 @@ pb.setUnjellyableForClass(Event, Event)
 from Products.ZenHub.HubService import HubService
 from Products.ZenHub.services.ThresholdMixin import ThresholdMixin
 from Products.ZenHub.PBDaemon import translateError
+from Products.Zuul import getFacade
 
 class EventService(HubService, ThresholdMixin):
 
@@ -41,21 +42,19 @@ class EventService(HubService, ThresholdMixin):
             log = logging.getLogger('log')
             log.exception(ex)
 
-
     @translateError
     def remote_sendEvents(self, evts):
         return self.zem.sendEvents(evts)
 
-
     @translateError
     def remote_getDevicePingIssues(self, *args, **kwargs):
-        return self.zem.getDevicePingIssues(*args, **kwargs)
-
+        zep = getFacade('zep')
+        return zep.getDevicePingIssues()
 
     @translateError
     def remote_getDeviceIssues(self, *args, **kwargs):
-        return self.zem.getDeviceIssues(*args, **kwargs)
-
+        zep = getFacade('zep')
+        return zep.getDeviceIssues()
 
     @translateError
     def remote_getDefaultRRDCreateCommand(self):

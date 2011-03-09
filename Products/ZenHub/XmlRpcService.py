@@ -24,7 +24,7 @@ import DateTime
 
 from Products.ZenHub.services.RRDImpl import RRDImpl
 from Products.DataCollector.ApplyDataMap import ApplyDataMap
-
+from Products.Zuul import getFacade
 from Products.ZenUtils.ZenTales import talesEval
 
 class XmlRpcService(xmlrpc.XMLRPC):
@@ -51,7 +51,8 @@ class XmlRpcService(xmlrpc.XMLRPC):
         return self.zem.sendEvents(data)
 
     def xmlrpc_getDevicePingIssues(self, *unused):
-        return self.zem.getDevicePingIssues()
+        zep = getFacade('zep')
+        return zep.getDevicePingIssues()
     
     def xmlrpc_getDeviceWinInfo(self, *args):
         return self.dmd.Devices.Server.Windows.getDeviceWinInfo(*args)
