@@ -38,7 +38,7 @@ class ZepFacade(ZuulFacade):
     AND = AND
     OR = OR
 
-    SORT_MAP = {
+    DEFAULT_SORT_MAP = {
         'eventstate':  { 'field': EventSort.STATUS },
         'severity':    { 'field': EventSort.SEVERITY },
         'firsttime':   { 'field': EventSort.FIRST_SEEN },
@@ -54,7 +54,7 @@ class ZepFacade(ZuulFacade):
         'evid':        { 'field': EventSort.UUID },
         'statechange': { 'field': EventSort.STATUS_CHANGE },
     }
-    
+
     SORT_DIRECTIONAL_MAP = {
         'asc' : EventSort.ASCENDING,
         'desc' : EventSort.DESCENDING,
@@ -70,13 +70,10 @@ class ZepFacade(ZuulFacade):
 
     def __init__(self, context):
         super(ZepFacade, self).__init__(context)
-        self._sortMap = {}
-        self._sortMap.update(ZepFacade.SORT_MAP)
         config = getGlobalConfiguration()
         zep_url = config.get('zep_uri', 'http://localhost:8084')
         self.client = ZepServiceClient(zep_url)
         self.configClient = ZepConfigClient(zep_url)
-        self.initDetails()
 
     def createEventFilter(self,
         severity=(),
@@ -228,7 +225,7 @@ class ZepFacade(ZuulFacade):
             eventSort['direction'] = self.SORT_DIRECTIONAL_MAP[direction.lower()]
         else:
             field = sortParam
-        eventSort.update(self._sortMap[field.lower()])
+        eventSort.update(getDetailsInfo().getSortMap()[field.lower()])
         return from_dict(EventSort, eventSort)
 
     def _getEventSummaries(self, source, offset, limit=100, keys=None, sort=None, filter=None):
@@ -469,46 +466,26 @@ class ZepFacade(ZuulFacade):
             uuids = [severities.tag_uuid for severities in content.severities]
             return self._createSeveritiesDict(content, uuids)
 
-
-    def initDetails(self):
-        response, content = self.configClient.getDetails()
-
-        detailsResponseDict = to_dict(content)
-        self._details = detailsResponseDict.get('details', [])
-        self._unmappedDetails = []
-        self._detailsMap = {}
-        for detail_item in self._details:
-            detailKey = detail_item['key']
-            sortField = { 'field': EventSort.DETAIL, 'detail_key': detailKey }
-            mappedName = ZepFacade.ZENOSS_DETAIL_NEW_TO_OLD_MAPPING.get(detailKey, None)
-            # If we have a mapped name, add it to the sort map to support sorting using old or new names
-            if mappedName:
-                self._sortMap[mappedName.lower()] = sortField
-            else:
-                self._unmappedDetails.append(detail_item)
-            self._sortMap[detailKey.lower()] = sortField
-            self._detailsMap[detailKey] = detail_item
-
     def getDetails(self):
         """
         Retrieve all of the indexed detail items.
 
         @rtype list of EventDetailItem dicts
         """
-        return self._details
+        return getDetailsInfo().getDetails()
 
     def getUnmappedDetails(self):
         """
         Return only non-zenoss details. This is used to get details that will not be mapped to another key.
         (zenoss.device.production_state maps back to prodState, so will be excluded here)
         """
-        return self._unmappedDetails
+        return getDetailsInfo().getUnmappedDetails()
 
     def getDetailsMap(self):
         """
         Return a mapping of detail keys to dicts of detail items
         """
-        return self._detailsMap
+        return getDetailsInfo().getDetailsMap()
 
     def parseParameterDetails(self, parameters):
         """
@@ -549,3 +526,85 @@ class ZepFacade(ZuulFacade):
         @type key: string
         """
         return self.configClient.removeIndexedDetail(key)
+
+class ZepDetailsInfo:
+    """
+    Contains information about the indexed event details on ZEP.
+    """
+
+    def __init__(self):
+        config = getGlobalConfiguration()
+        zep_url = config.get('zep_uri', 'http://localhost:8084')
+        self._configClient = ZepConfigClient(zep_url)
+        self._initialized = False
+
+    def _initDetails(self):
+        self._sortMap = dict(ZepFacade.DEFAULT_SORT_MAP)
+        response, content = self._configClient.getDetails()
+
+        detailsResponseDict = to_dict(content)
+        self._details = detailsResponseDict.get('details', [])
+        self._unmappedDetails = []
+        self._detailsMap = {}
+        for detail_item in self._details:
+            detailKey = detail_item['key']
+            sortField = { 'field': EventSort.DETAIL, 'detail_key': detailKey }
+            mappedName = ZepFacade.ZENOSS_DETAIL_NEW_TO_OLD_MAPPING.get(detailKey, None)
+            # If we have a mapped name, add it to the sort map to support sorting using old or new names
+            if mappedName:
+                self._sortMap[mappedName.lower()] = sortField
+            else:
+                self._unmappedDetails.append(detail_item)
+            self._sortMap[detailKey.lower()] = sortField
+            self._detailsMap[detailKey] = detail_item
+        self._initialized = True
+
+    def reload(self):
+        """
+        Reloads the event details configuration from ZEP.
+        """
+        self._initialized = False
+        self._initDetails()
+
+    def getDetails(self):
+        """
+        Retrieve all of the indexed detail items.
+
+        @rtype list of EventDetailItem dicts
+        """
+        if not self._initialized:
+            self._initDetails()
+        return self._details
+
+    def getUnmappedDetails(self):
+        """
+        Return only non-zenoss details. This is used to get details that will not be mapped to another key.
+        (zenoss.device.production_state maps back to prodState, so will be excluded here)
+        """
+        if not self._initialized:
+            self._initDetails()
+        return self._unmappedDetails
+
+    def getDetailsMap(self):
+        """
+        Return a mapping of detail keys to dicts of detail items
+        """
+        if not self._initialized:
+            self._initDetails()
+        return self._detailsMap
+
+    def getSortMap(self):
+        """
+        Returns a mapping of a lowercase event field name to a dictionary which can be used
+        to build the EventSort object to pass to ZEP.
+        """
+        if not self._initialized:
+            self._initDetails()
+        return self._sortMap
+
+_ZEP_DETAILS_INFO = ZepDetailsInfo()
+
+# Lazy-loaded cache of event details from ZEP
+def getDetailsInfo():
+    global _ZEP_DETAILS_INFO
+    return _ZEP_DETAILS_INFO
