@@ -20,6 +20,7 @@ import transaction
 from Products.ZenUtils.Version import Version
 from Products.ZenEvents import Event
 from Products.ZenEvents.ZenEventClasses import Status_Update
+from Products.Zuul import getFacade
 import urllib
 import string
 import time
@@ -67,8 +68,8 @@ class UpdateCheck:
             args['nd'] = dmd.Devices.countDevices()
             args['nu'] = len(dmd.ZenUsers.objectIds())
             args['nm'] = dmd.Events.countInstances()
-            args['ne'] = dmd.ZenEventManager.countEventsSince(
-                                            time.time() - 24 * 60 * 60)
+            zep = getFacade('zep')
+            args['ne'] = zep.countEventsSince(time.time() - 24 * 60 * 60)
             numProducts = 0
             manufacturers = dmd.Manufacturers.objectValues(spec='Manufacturer')
             for m in manufacturers:

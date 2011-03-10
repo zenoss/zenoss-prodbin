@@ -230,7 +230,7 @@ class ZepFacade(ZuulFacade):
         eventSort.update(getDetailsInfo().getSortMap()[field.lower()])
         return from_dict(EventSort, eventSort)
 
-    def _getEventSummaries(self, source, offset, limit=100, keys=None, sort=None, filter=None):
+    def _getEventSummaries(self, source, offset, limit=1000, keys=None, sort=None, filter=None):
         filterBuf = None
 
         if filter:
@@ -273,11 +273,11 @@ class ZepFacade(ZuulFacade):
 
         self.client.addNote(uuid, message, userUuid, userName)
 
-    def getEventSummariesFromArchive(self, offset, limit=100, sort=None, filter=None):
+    def getEventSummariesFromArchive(self, offset, limit=1000, sort=None, filter=None):
         return self._getEventSummaries(self.client.getEventSummariesFromArchive, offset=offset, limit=limit, sort=sort,
                                        filter=filter)
 
-    def getEventSummaries(self, offset, limit=100, sort=None, filter=None):
+    def getEventSummaries(self, offset, limit=1000, sort=None, filter=None):
         return self._getEventSummaries(self.client.getEventSummaries, offset=offset, limit=limit, sort=sort,
                                        filter=filter)
 
@@ -553,6 +553,23 @@ class ZepFacade(ZuulFacade):
         @type key: string
         """
         return self.configClient.removeIndexedDetail(key)
+
+    def countEventsSince(self, since):
+        """
+        Returns the total number of events in summary and archive that have been
+        seen since the specified time (in seconds).
+
+        @type  since: int
+        @param since: Time (in seconds) from the epoch.
+        @rtype:       int
+        @return:      The number of events in summary and archive that have been seen
+                      since the specified time.
+        """
+        sinceInMillis = int(since * 1000)
+        eventFilter = self.createEventFilter(last_seen=[sinceInMillis])
+        total = self.getEventSummaries(0, filter=eventFilter, limit=0)['total']
+        total += self.getEventSummariesFromArchive(0, filter=eventFilter, limit=0)['total']
+        return total
 
 class ZepDetailsInfo:
     """

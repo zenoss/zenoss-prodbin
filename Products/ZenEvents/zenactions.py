@@ -37,6 +37,8 @@ from Products.ZenEvents import Event
 from Schedule import Schedule
 from UpdateCheck import UpdateCheck
 from Products.ZenUtils import Utils
+from Products.Zuul import getFacade
+from zenoss.protocols.protobufs.zep_pb2 import STATUS_NEW, STATUS_ACKNOWLEDGED
 
 
 DEFAULT_MONITOR = "localhost"
@@ -117,10 +119,19 @@ class BaseZenActions(object):
     def heartbeatEvents(self):
         """Create events for failed heartbeats.
         """
-        # build cache of existing heartbeat issues
-        q = ("SELECT device, component "
-             "FROM status WHERE eventClass = '%s'" % Status_Heartbeat)
-        heartbeatState = set(self.query(q))
+        zep = getFacade('zep')
+        eventFilter = {
+            'event_class': [Status_Heartbeat],
+            'status': [STATUS_NEW, STATUS_ACKNOWLEDGED],
+        }
+        events = zep.getEventSummaries(0, filter = eventFilter)['events']
+        heartbeatState = set()
+        for event in events:
+            actor = event['occurrence'][0]['actor']
+            identifier, sub_identifier = actor.get('element_identifier'), actor.get('element_sub_identifier')
+            if identifier and sub_identifier:
+                heartbeatState.add((identifier, sub_identifier))
+        self.log.debug("Heartbeat state: %s", heartbeatState)
 
         # Find current heartbeat failures
         # Note: 'device' in the heartbeat table is actually filled with the
@@ -355,12 +366,13 @@ class ZenActions(BaseZenActions, ZCmdBase):
                 self.log.error("Encountered ZODB conflict error at %s", ex)
             except (MySQLConnectionError, OperationalError), ex:
                 self.mysqlproblem = True
+                self.log.exception("MySQL error")
                 self.panic(MYSQL_PANIC_MESSAGE)
             except ZeoWatcher, ex:
-                self.log.error("Encountered a zeo issue")
+                self.log.exception("ZEO error")
                 self.panic(ZEO_PANIC_MESSAGE)
             except Exception, ex:
-                self.log.error("Encountered an unknown issue")
+                self.log.exception("Unknown error")
                 self.panic(GENERIC_PANIC_MESSAGE)
 
     def runCycle(self):
@@ -381,19 +393,18 @@ class ZenActions(BaseZenActions, ZCmdBase):
             self.log.error("Encountered ZODB conflict error at %s", ex)
         except (MySQLConnectionError, OperationalError), ex:
             cycleDelay = RUN_PANIC_SLEEP
+            self.log.exception("MySQL error")
             self.panic(MYSQL_PANIC_MESSAGE)
 
         except Exception, e:
             cycleDelay = RUN_PANIC_SLEEP
+            self.log.exception("Unknown error")
             self.panic(GENERIC_PANIC_MESSAGE)
 
         if self.options.cycle:
             reactor.callLater(cycleDelay, self.runCycle)
         else:
-            def shutdown(value):
-                reactor.stop()
-                return value
-            d.addBoth(shutdown)
+            reactor.stop()
 
     def panicPage(self, message):
         """
