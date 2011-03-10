@@ -239,7 +239,8 @@ Ext.onReady(function () {
         var ACTION_TYPE_MAP = {
             'email': _t('Email'),
             'page': _t('Page'),
-            'command': _t('Command')
+            'command': _t('Command'),
+            'trap': _t('SNMP Trap')
         };
 
         if (data.action == 'email') {
@@ -327,6 +328,23 @@ Ext.onReady(function () {
                     this.body_format.setValue(data.body_format);
                     this.clear_body_format.setValue(data.clear_body_format);
                     this.action_timeout.setValue(data.action_timeout);
+                }
+            });
+        }
+        else if (data.action == 'trap') {
+            tab_content = new NotificationTabContent({
+                title: 'Content',
+                defaults: {
+                    width: 280
+                },
+                items: [{
+                    xtype: 'textfield',
+                    name: 'action_destination',
+                    ref: 'action_destination',
+                    fieldLabel: _t('SNMP Trap Destination')
+                }],
+                loadData: function(data) {
+                    this.action_destination.setValue(data.action_destination);
                 }
             });
         }
@@ -590,7 +608,8 @@ Ext.onReady(function () {
                             data: [
                                 ['email','Email'],
                                 ['page','Page'],
-                                ['command','Command']
+                                ['command','Command'],
+                                ['trap', 'SNMP Trap']
                             ]
                         }),
                         name:'action',
@@ -846,6 +865,7 @@ Ext.onReady(function () {
                         'send_initial_occurrence',
                         'repeat_seconds',
                         'action_timeout',
+                        'action_destination',
                         'body_content_type',
                         'subject_format',
                         'body_format',

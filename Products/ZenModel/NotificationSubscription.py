@@ -93,6 +93,7 @@ class NotificationSubscription(ZenModelRM):
     delay_seconds = 0
     repeat_seconds = 0
     action_timeout = 60
+    action_destination = ''
     send_initial_occurrence = True
 
     subject_format = "[zenoss] {event.actor.element_identifier} {event.summary}"
@@ -134,6 +135,7 @@ class NotificationSubscription(ZenModelRM):
         {'id':'delay_seconds', 'type':'int', 'mode':'w'},
         {'id':'repeat_seconds', 'type':'int', 'mode':'w'},
         {'id':'action_timeout', 'type':'int', 'mode':'w'},
+        {'id':'action_destination', 'type':'string', 'model':'w'},
         {'id':'subject_format', 'type':'text', 'mode':'w'},
         {'id':'body_format', 'type':'text', 'mode':'w'},
         {'id':'clear_subject_format', 'type':'text', 'mode':'w'},

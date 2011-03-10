@@ -38,6 +38,8 @@ from twisted.internet.error import ReactorNotRunning
 from zenoss.protocols.amqpconfig import getAMQPConfiguration
 from zope.interface import implements
 
+from pynetsnmp import netsnmp
+
 import logging
 log = logging.getLogger("zen.zenactiond")
 
@@ -224,7 +226,10 @@ def _signalToContextDict(signal):
     if 'occurrence' in summary and summary['occurrence']:
         event = summary['occurrence'][0]
         details = _convertDetails( event.get('details', None) )
-        del event['details']
+
+        if 'details' in event:
+            del event['details']
+
         del summary['occurrence']
         if details is not None:
             event.update( details )
@@ -521,6 +526,61 @@ class CommandAction(object):
         """
         pass
 
+class SNMPTrapAction(object):
+    implements(IAction)
+
+    _sessions = {}
+
+    def _getSession(self, destination):
+        if destination not in self._sessions:
+            log.debug("Creating SNMP trap session to %s", destination)
+            self._sessions[destination] = netsnmp.Session((
+                '-v2c', '-c', 'public', '%s:162' % destination))
+            self._sessions[destination].open()
+
+        return self._sessions.get(destination)
+
+    def execute(self, notification, signal):
+        """
+        Send out an SNMP trap according to the definition in ZENOSS-MIB.
+        """
+        log.debug('Processing SNMP Trap action.')
+
+        data = _signalToContextDict(signal)
+        event = data.get('event', {})
+        eventSummary = data.get('eventSummary', {})
+        actor = event.get('actor', {})
+
+        baseOID = '1.3.6.1.4.1.14296.1.100'
+
+        fields = {
+           'uuid' :                   ( 1, eventSummary),
+           'fingerprint' :            ( 2, event),
+           'element_identifier' :     ( 3, actor),
+           'element_sub_identifier' : ( 4, actor),
+           'event_class' :            ( 5, event),
+           'event_key' :              ( 6, event),
+           'summary' :                ( 7, event),
+           'severity' :               ( 9, event),
+           'status' :                 (10, eventSummary),
+           'event_class_key' :        (11, event),
+           'event_group' :            (12, event),
+           'state_change_time' :      (13, eventSummary),
+           'first_seen_time' :        (14, eventSummary),
+           'last_seen_time' :         (14, eventSummary),
+           }
+
+        varbinds = []
+
+        for field, oidspec in sorted(fields.items(), key=lambda x : x[1][0]):
+            i, source = oidspec
+            val = source.get(field, None)
+            if val is not None:
+                varbinds.append(("%s.%d.0" % (baseOID,i), 's', str(val)))
+
+        self._getSession(notification.action_destination).sendTrap(
+            baseOID + '.0.0.1', varbinds=varbinds)
+
 class ProcessSignalTask(object):
     implements(IQueueConsumerTask)
 
@@ -623,6 +683,7 @@ class ZenActionD(ZCmdBase):
         task.registerAction('email', email_action)
         task.registerAction('page', PageAction( dmd=self.dmd, page_command=self.dmd.pageCommand))
         task.registerAction('command', CommandAction(self._processQueue))
+        task.registerAction('trap', SNMPTrapAction())
 
         self._consumer = QueueConsumerProcess(task)
 
