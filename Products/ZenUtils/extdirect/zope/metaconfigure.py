@@ -40,7 +40,7 @@ def JavaScriptSourceViewlet(source):
 
 
 def directRouter(_context, name, class_, namespace=None, for_=Interface,
-                 layer=IDefaultBrowserLayer, timeout="30000", 
+                 layer=IDefaultBrowserLayer, timeout="180000", 
                  permission='zenoss.Common'):
 
     # Register the view at which the class will be available
