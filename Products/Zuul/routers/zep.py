@@ -49,7 +49,6 @@ class EventsRouter(DirectRouter):
     def __init__(self, context, request):
         super(EventsRouter, self).__init__(context, request)
         self.zep = getFacade('zep', context)
-        self.api = getFacade('event', context)
         self.catalog = ICatalogTool(context)
         self.manager = IGUIDManager(context.dmd)
 

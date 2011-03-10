@@ -64,7 +64,6 @@ class IDataRootFactory(Interface):
     """
 
 
-from events import *
 from process import *
 from service import *
 from device import *

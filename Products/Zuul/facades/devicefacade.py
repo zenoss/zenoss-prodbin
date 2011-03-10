@@ -187,8 +187,6 @@ class DeviceFacade(TreeFacade):
             if isinstance(dev, Device):
                 dev.setProdState(int(state))
                 devids.append(dev.id)
-        evfacade = getFacade('event', self._dmd)
-        evfacade.setProductionState(devids, state)
 
     def setLockState(self, uids, deletion=False, updates=False,
                      sendEvent=False):

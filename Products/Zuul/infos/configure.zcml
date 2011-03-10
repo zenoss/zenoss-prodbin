@@ -121,11 +121,6 @@
              factory=".InfoBase"
              />
 
-    <adapter provides="..interfaces.IEventInfo"
-             for="..interfaces.IEventEntity"
-             factory=".event.EventInfo"
-             />
-
     <adapter provides="..interfaces.IIpNetworkInfo"
              for="Products.ZenModel.IpNetwork.IpNetwork"
              factory=".network.IpNetworkInfo"

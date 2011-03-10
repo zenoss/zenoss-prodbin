@@ -33,13 +33,11 @@ from zope.interface import implements
 from Products.AdvancedQuery import MatchRegexp, And, Or, Eq, Between
 from Products.Zuul.interfaces import IFacade, ITreeNode
 from Products.Zuul.interfaces import ITreeFacade, IInfo, ICatalogTool, IOrganizerInfo
-from Products.Zuul.interfaces import IEventInfo
 from Products.Zuul.utils import unbrain, get_dmd, UncataloguedObjectException
 from Products.Zuul.tree import SearchResults
 from Products.ZenUtils.IpUtil import numbip, checkip, IpAddressError, ensureIp
 from Products.ZenUtils.IpUtil import getSubnetBounds
 from Products.Zuul.catalog.events import IndexingEvent
-from Products.ZenUtils.guid.interfaces import IGlobalIdentifier
 from Products.Zuul import getFacade
 
 log = logging.getLogger('zen.Zuul')
@@ -234,7 +232,6 @@ class TreeFacade(ZuulFacade):
         return info
 
 
-from eventfacade import EventFacade
 from networkfacade import NetworkFacade
 from processfacade import ProcessFacade
 from servicefacade import ServiceFacade

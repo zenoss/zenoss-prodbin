@@ -47,11 +47,6 @@
         />
 
     <five:implements
-        interface=".interfaces.IEventEntity"
-        class="Products.ZenEvents.ZEvent.ZEvent"
-        />
-
-    <five:implements
         interface=".interfaces.IMibEntity"
         class="Products.ZenModel.MibOrganizer.MibOrganizer"
         />
@@ -74,12 +69,6 @@
     <adapter factory=".facades.DeviceFacade"
              provides=".interfaces.IDeviceFacade"
              name="device"
-             for="*"
-             />
-
-    <adapter factory=".facades.EventFacade"
-             provides=".interfaces.IEventFacade"
-             name="event"
              for="*"
              />
 
