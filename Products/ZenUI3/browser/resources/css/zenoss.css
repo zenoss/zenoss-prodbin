@@ -475,14 +475,17 @@ table.proptable {
 .x-grid3-row.rowcolor-debug-unacknowledged { background-color: #afafaf; }
 .x-grid3-row.rowcolor-clear-unacknowledged { background-color: #488d43; }
 
+
 .xtb-text.livegridinfopanel {
     font-size: 10px;
-    color: #373737;
+    color: #373737;    
     font-weight: bold;
     padding-right: 1em;
     padding-bottom: 3px;
     margin-top: 4px;
     text-transform: uppercase;
+    position: relative;
+    top: -8px;
 }
 
 div.dialog-link {

@@ -840,7 +840,7 @@
                 sm: new Zenoss.EventPanelSelectionModel(),
                 autoExpandColumn: Zenoss.env.EVENT_AUTO_EXPAND_COLUMN || '',
                 view: new Zenoss.FilterGridView(Ext.applyIf(config.viewConfig ||  {}, {
-                        nearLimit: 100,
+                    nearLimit: 100,
                     displayFilters: Ext.isDefined(config.displayFilters) ? config.displayFilters : true,
                     rowHeight: 10,
                     emptyText: _t('No events'),

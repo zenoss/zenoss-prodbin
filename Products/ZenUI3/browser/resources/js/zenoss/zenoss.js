@@ -89,10 +89,12 @@ Ext.Direct.on('exception', function(e) {
  * inability to reach the server.
  */
 Ext.Direct.on('event', function(e){
-    var message_box = Ext.Msg.getDialog();
-    if (message_box != null && message_box.title == 'Server Exception') {
-        if (Ext.isDefined(e.result)) {
-            Ext.Msg.hide();
+    if (Ext.Msg.isVisible()) {
+        var message_box = Ext.Msg.getDialog();
+        if (message_box != null && message_box.title == 'Server Exception') {
+            if (Ext.isDefined(e.result)) {
+                Ext.Msg.hide();
+            }
         }
     }
 });
@@ -639,14 +641,16 @@ Ext.extend(Zenoss.PostRefreshHookableDataView, Ext.DataView, {
  */
 Zenoss.LiveGridInfoPanel = Ext.extend(Ext.Toolbar.TextItem, {
 
-    displayMsg : 'Displaying {0} - {1} of {2} events',
-    emptyMsg: 'No events',
+    displayMsg : 'Displaying {0} - {1} of {2} Rows',
+    emptyMsg: 'No Results',
     cls: 'livegridinfopanel',
 
     initComponent: function() {
         this.setText(this.emptyMsg);
         if (this.grid) {
-            this.grid = Ext.getCmp(this.grid);
+            if (!Ext.isObject(this.grid)) {
+                this.grid = Ext.getCmp(this.grid);
+            }
             var me = this;
             this.view = this.grid.getView();
             this.view.init = this.view.init.createSequence(function(){
@@ -1159,6 +1163,26 @@ Zenoss.FilterGridView = Ext.extend(Ext.ux.grid.livegrid.GridView, {
  * @constructor
  */
 Zenoss.FilterGridPanel = Ext.extend(Ext.ux.grid.livegrid.GridPanel, {
+
+    constructor: function(config) {
+        if (config.displayTotal !== false) {
+            Ext.applyIf(config, {
+                fbar:{
+                    border: false,
+                    frame: false,
+                    height: 7,
+                    items: {
+                        xtype: 'livegridinfo',
+                        text: '',
+                        grid: this
+                    }
+                }
+
+            });
+        }
+        Zenoss.FilterGridPanel.superclass.constructor.apply(this,
+                                                            arguments);
+    },
     initStateEvents: function(){
         Zenoss.FilterGridPanel.superclass.initStateEvents.call(this);
         this.mon(this.view, 'filterchange', this.saveState, this);
@@ -1172,8 +1196,8 @@ Zenoss.FilterGridPanel = Ext.extend(Ext.ux.grid.livegrid.GridPanel, {
     },
     restoreURLState: function() {
         var qs = window.location.search.replace(/^\?/, ''),
-            state = Ext.urlDecode(qs).state,
-            noop;
+        state = Ext.urlDecode(qs).state,
+        noop;
         if (state) {
             try {
                 state = Ext.decode(Zenoss.util.base64.decode(decodeURIComponent(state)));

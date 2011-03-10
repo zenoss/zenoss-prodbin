@@ -303,6 +303,7 @@ Ext.onReady(function(){
             key: Ext.EventObject.ENTER,
             fn: toggleEventDetailContent
         }],
+        displayTotal: false,
         sm: console_selection_model // defined above
     });
     // Add it to the layout
@@ -333,7 +334,7 @@ Ext.onReady(function(){
 
     // Wipe event detail values
     function wipeEventDetail() {
-        Ext.getCmp('dpanelcontainer').wipe()
+        Ext.getCmp('dpanelcontainer').wipe();
     }
 
     // Collapse the event detail pane and switch triggers (double select

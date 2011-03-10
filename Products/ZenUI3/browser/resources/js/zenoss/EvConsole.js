@@ -130,6 +130,7 @@ Ext.onReady(function(){
         // the resultFields associated with the context.
         cm: new Zenoss.FullEventColumnModel(),
         stripeRows: true,
+        displayTotal: false,
         // Map some other keys
         keys: [{
         // Enter to pop open the detail panel

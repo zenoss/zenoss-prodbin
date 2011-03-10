@@ -25,6 +25,10 @@
     zs.GridView = Ext.extend(Zenoss.FilterGridView, {
 
         constructor: function(config) {
+            Ext.applyIf(config,{
+                // in chrome the larger row size was causing a gap on the left hand side grid
+                rowHeight: 12
+            });
             this.addEvents({
                 /**
                  * @event livebufferupdated
@@ -115,6 +119,7 @@
             Ext.applyIf(config, {
                 id: 'navGrid',
                 flex: 3,
+                layout: 'auto',
                 stateId: 'servicesNavGridState',
                 enableDrag: true,
                 ddGroup: 'serviceDragDrop',

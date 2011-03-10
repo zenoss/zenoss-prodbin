@@ -95,6 +95,7 @@ Zenoss.SimpleInstanceGridPanel = Ext.extend(Ext.ux.grid.livegrid.GridPanel, {
         Ext.applyIf(config, {
             autoExpandColumn: 'name',
             stripeRows: true,
+            layout: 'fit',
             cm: config.cm || new InstanceColumnModel({
                 nameDataIndex: config.nameDataIndex
             }),
@@ -108,7 +109,18 @@ Zenoss.SimpleInstanceGridPanel = Ext.extend(Ext.ux.grid.livegrid.GridPanel, {
                 nearLimit: 100,
                 loadMask: {msg: _t('Loading...'),
                           msgCls: 'x-mask-loading'}
-            })
+
+            }),
+            fbar: {
+                border: false,
+                frame: false,
+                height: 10,
+                items: {
+                    xtype: 'livegridinfo',
+                    text: '',
+                    grid: this
+                }
+            }
         });
         Zenoss.SimpleInstanceGridPanel.superclass.constructor.call(this, config);
         Zenoss.util.addLoadingMaskToGrid(this);

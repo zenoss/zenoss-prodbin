@@ -108,7 +108,7 @@ class ServiceRouter(TreeRouter):
              - disabled: (boolean) True if current user cannot manage services
         """
         if uid is None:
-            uid = self.context
+            uid = "/".join(self.context.getPhysicalPath())
 
         if isinstance(params, basestring):
             params = unjson(params)
