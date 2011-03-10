@@ -12,7 +12,8 @@
     var clickToEditConfig = function(obj) {
         return {
             constructor: function(config) {
-                var editLink = '<a href="javascript:" class="manu-edit-link">'+
+                var title = _t('Click to edit this field');
+                var editLink = '<a href="javascript:" title="' + title  + '" class="manu-edit-link">'+
                                 _t('Edit') + '</a>';
                 config.fieldLabel += editLink;
                 config.listeners = Ext.apply(config.listeners||{}, {

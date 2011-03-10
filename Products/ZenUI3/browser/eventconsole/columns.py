@@ -164,11 +164,13 @@ COLUMN_CONFIG = {
         header='Component',
         filter='textfield',
         renderer='Zenoss.render.linkFromGrid',
+        width=80,
         sortable=True),
 
     'eventClass': dict(
         header='Event Class',
         filter='textfield',
+        width=80,
         renderer='Zenoss.render.linkFromGrid',
         sortable=True),
 

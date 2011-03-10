@@ -1,11 +1,11 @@
 (function(){
 
 var _tm = {
-    'DeviceLocation':   ["^/zport/dmd/Locations(/[A-Z][^/]*)*/?$"],
-    'DeviceGroup':      ["^/zport/dmd/Groups(/[A-Z][^/]*)*/?$"],
+    'DeviceLocation':   ["^/zport/dmd/Locations(/[A-Za-z][^/]*)*/?$"],
+    'DeviceGroup':      ["^/zport/dmd/Groups(/[A-Za-z][^/]*)*/?$"],
     'DeviceClass':      ["^/zport/dmd/Devices(/[A-Za-z][^/]*)*/?$"],
     'Device':           ["^/zport/dmd/.*/devices/[^/]*/?$"],
-    'EventClass':       ["^/zport/dmd/Events(/[A-Z][^/]*)*/?$"],
+    'EventClass':       ["^/zport/dmd/Events(/[A-Za-z][^/]*)*/?$"],
     'Network':          ["^/zport/dmd/Networks(/(?!ipaddresses)[^/]+)*/?$"],
     'IpAddress':        ["^/zport/dmd/.*/ipaddresses/[^/]*/?$"],
     'Process':          ["^/zport/dmd/Processes(.*)$"],

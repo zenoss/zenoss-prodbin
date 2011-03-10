@@ -367,17 +367,7 @@ ZC.ComponentGridPanel = Ext.extend(Ext.ux.grid.livegrid.GridPanel, {
                     beforebuffer: this.onBeforeBuffer,
                     scope: this
                 }
-            }),
-            fbar: {
-                border: false,
-                frame: false,
-                height: 10,
-                items: {
-                    xtype: 'livegridinfo',
-                    text: '',
-                    grid: this
-                }
-            }
+            })
         });
 
         ZC.ComponentGridPanel.superclass.constructor.call(this, config);
