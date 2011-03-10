@@ -76,7 +76,7 @@ COLUMN_CONFIG = {
         sortable=True),
 
     'dedupid'   : dict(
-        header='Deduplication ID',
+        header='Fingerprint',
         filter='textfield',
         sortable=True,
         ),
@@ -269,12 +269,12 @@ COLUMN_CONFIG = {
     ),
 
     'facility' : dict(
-        header='Facility',
+        header='Syslog Facility',
         sortable=False,
         filter=None),
 
     'priority' : dict(
-        header='Priority',
+        header='Syslog Priority',
         sortable=False,
         filter=None),
 
@@ -284,11 +284,11 @@ COLUMN_CONFIG = {
         filter=None),
 
     'clearid': dict(
-        header='Clear ID',
+        header='Cleared by Event ID',
         filter=None),
 
     'ntevid': dict(
-        header='NT Event ID',
+        header='NT Event Code',
         sortable=False,
         filter=None),
 

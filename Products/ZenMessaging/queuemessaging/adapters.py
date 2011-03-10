@@ -241,8 +241,8 @@ class EventProtobufSyslogPriorityMapper(EventProtobufMapper):
 
     def mapEvent(self, proto, value):
         try:
-            proto.syslog_priority = self._SYSLOG_PRIORITIES[value]
-        except KeyError:
+            proto.syslog_priority = self._SYSLOG_PRIORITIES[int(value)]
+        except (KeyError, ValueError):
             pass
 
 class EventProtobufDateMapper(EventProtobufMapper):
