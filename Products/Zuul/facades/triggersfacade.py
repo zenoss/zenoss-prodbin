@@ -25,7 +25,7 @@ from Products.ZenModel.NotificationSubscriptionWindow import NotificationSubscri
 import zenoss.protocols.protobufs.zep_pb2 as zep
 from zenoss.protocols.jsonformat import to_dict, from_dict
 from Products.ZenUtils.GlobalConfig import getGlobalConfiguration
-from Products.ZenUtils.guid.interfaces import IGloballyIdentifiable, IGlobalIdentifier, IGUIDManager
+from Products.ZenUtils.guid.interfaces import IGlobalIdentifier
 
 from zenoss.protocols.services.triggers import TriggerServiceClient
 
@@ -130,7 +130,7 @@ class TriggersFacade(ZuulFacade):
                 subscriber_uuid = notification_guid,
                 send_initial_occurrence = notification.send_initial_occurrence,
                 trigger_uuid = subscription,
-            ));
+            ))
         subscriptionSet = from_dict(zep.EventTriggerSubscriptionSet, dict(
             subscriptions = triggerSubscriptions
         ))
@@ -148,9 +148,9 @@ class TriggersFacade(ZuulFacade):
             raise Exception('Could not find notification to update: %s' % uid)
 
         for field in notification._properties:
-            setattr(notification, field['id'], data.get(field['id']))
+            notification._updateProperty(field['id'], data.get(field['id']))
 
-        notification.recipients = data.get('recipients')
+        notification.recipients = data.get('recipients', [])
 
         # editing as a text field, but storing as a list for now.
         notification.subscriptions = [data.get('subscriptions')]

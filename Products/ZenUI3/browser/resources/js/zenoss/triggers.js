@@ -309,7 +309,9 @@ Ext.onReady(function () {
                     width: 280
                 },
                 items: [{
-                    xtype: 'textfield',
+                    xtype: 'numberfield',
+                    allowNegative: false,
+                    allowBlank: false,
                     name: 'action_timeout',
                     ref: 'action_timeout',
                     fieldLabel: _t('Command Timeout')
@@ -630,7 +632,6 @@ Ext.onReady(function () {
                         ref: 'submitButton',
                         formBind: true,
                         text: _t('Submit'),
-                        formBind: true,
                         handler: function(button) {
                             var params = button.refOwner.ownerCt.getForm().getFieldValues();
                             router.addNotification(params, function(){
