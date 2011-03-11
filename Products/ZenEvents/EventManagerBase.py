@@ -59,37 +59,6 @@ from Products.Zuul.decorators import deprecated
 
 __pychecker__="maxargs=16"
 
-def evtprep(evts):
-    """
-    Prepares data from L{Products.ZenEvents.EventManagerBase.getEventSummary}
-    for rendering in the eventrainbow template macro.
-
-    Each cell of the old-style event rainbow needs a CSS class specified in
-    order to render its color, fill and border style.  evtprep determines the
-    proper class and returns it, along with a string representation of the
-    number of live and acknowledged events.
-
-        >>> from Products.ZenEvents.EventManagerBase import evtprep
-        >>> evtprep(['zenevents_5_noack noack', 2, 2])
-        {'cssclass': 'zenevents_5_noack noack empty thin', 'data': '2/2'}
-        >>> evtprep(['zenevents_5_noack noack', 1, 2])
-        {'cssclass': 'zenevents_5_noack noack', 'data': '1/2'}
-
-    @param evts: A tuple of the form (Severity string, Number Acknowledged int,
-        Number Live int)
-    @type evts: tuple
-    @return: A dictionary of the form {'cssclass': Class string, 'data': Event
-        count representation string}
-
-    """
-    evtsdata = "%d/%d" % (evts[1],evts[2])
-    if evts[1]==evts[2] or evts[2]==0:
-        return {'cssclass':evts[0] + " empty thin",
-                'data':evtsdata}
-    else:
-        return {'cssclass':evts[0], 'data':evtsdata}
-
-
 class EventManagerBase(ZenModelRM, ObjectCache, DbAccessBase):
     """
     Data connector to backend of the event management system.

@@ -46,7 +46,4 @@ mysql -h $MYSQLHOST -u $MYSQLUSER --password=$MYSQLPASS --port=$MYSQLPORT $MYSQL
 echo "loading schema" >&2
 mysql -h $MYSQLHOST -u $MYSQLUSER --password=$MYSQLPASS --port=$MYSQLPORT $MYSQLDB < zenevents.sql
 
-# Load stored procedures
-echo "loading stored procedures" >&2
-mysql -h $MYSQLHOST -u $MYSQLUSER --password=$MYSQLPASS --port=$MYSQLPORT $MYSQLDB < zenprocs.sql
 echo "events database created and loaded" >&2
