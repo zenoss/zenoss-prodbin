@@ -1734,65 +1734,6 @@ class EventManagerBase(ZenModelRM, ObjectCache, DbAccessBase):
             return self.callZenScreen(REQUEST)
 
 
-    security.declareProtected(ZEN_MANAGE_EVENTS,'manage_deleteAllEvents')
-    @deprecated
-    def manage_deleteAllEvents(self, devname, REQUEST=None):
-        "Delete the events for a given Device (used for deleting the device"
-        whereClause = 'where device = "%s"' % devname
-        self.deleteEvents(whereClause, 'Device deleted')
-        if REQUEST:
-            messaging.IMessageSender(self).sendToBrowser(
-                'Events Deleted',
-                'Deleted all events for %s' % devname
-            )
-            return self.callZenScreen(REQUEST)
-
-
-    security.declareProtected(ZEN_MANAGE_EVENTS,'manage_deleteHistoricalEvents')
-    @deprecated
-    def manage_deleteHistoricalEvents(self, devname=None, agedDays=None,
-                                        REQUEST=None):
-        """
-        Delete historical events.  If devices is given then only delete
-        events for that device.  If agedDays is given then only delete
-        events that are older than that many days.
-        devname and agedDays are mutually exclusive.  No real reason for this
-        other than there is no current need to use both in same call and I
-        don't want to test the combination.
-        This is an option during device deletion.  It is also used
-        by zenactions to keep history table clean.
-
-        NB: Device.deleteDevice() is not currently calling this when devices
-        are deleted.  See ticket #2996.
-        """
-        import subprocess
-        import os
-        import Products.ZenUtils.Utils as Utils
-
-        cmd = Utils.zenPath('Products', 'ZenUtils', 'ZenDeleteHistory.py')
-        if devname:
-            args = ['--device=%s' % devname]
-        elif agedDays:
-            args = ['--numDays=%s' % agedDays]
-        else:
-            return
-        proc = subprocess.Popen(
-                [cmd]+args, stdout=subprocess.PIPE,
-                stderr=subprocess.STDOUT, env=os.environ)
-        # We are abandoning this proc to do it's thing. or not.  We don't
-        # want to block because we would delay user feedback on a device
-        # delete when this might take a while to perform.
-        if REQUEST:
-            messaging.IMessageSender(self).sendToBrowser(
-                'Events Deleted',
-                'Historical events have been deleted.'
-            )
-            return self.callZenScreen(REQUEST)
-        else:
-            # Maybe, just maybe, we might want to wait on the subprocess...
-            return proc
-
-
     security.declareProtected(ZEN_MANAGE_EVENTS,'manage_deleteHeartbeat')
     def manage_deleteHeartbeat(self, devname, REQUEST=None):
         """
@@ -1803,7 +1744,7 @@ class EventManagerBase(ZenModelRM, ObjectCache, DbAccessBase):
             conn = self.connect()
             try:
                 curs = conn.cursor()
-                curs.execute(delete);
+                curs.execute(delete)
             finally: self.close(conn)
         if REQUEST:
             messaging.IMessageSender(self).sendToBrowser(

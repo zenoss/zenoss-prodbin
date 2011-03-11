@@ -94,28 +94,6 @@ class ManagedEntity(ZenModelRM, DeviceResultInt, EventView, RRDView):
             # maintenance window.
             self.preMWProductionState = self.productionState
 
-        # TODO: ZEP?
-#        try:
-#            zem = self.dmd.ZenEventManager
-#            conn = zem.connect()
-#            try:
-#                curs = conn.cursor()
-#                curs.execute(
-#                    "update status set prodState=%d where device='%s'" % (
-#                    self.productionState, self.id))
-#            finally: zem.close(conn)
-#        except OperationalError:
-#            msg = "Failed to update events for %s with new prodState %s" % (
-#                        self.id, state)
-#            log.exception(msg)
-#            if REQUEST:
-#                IMessageSender(self).sendToBrowser(
-#                    "Update Failed",
-#                    msg,
-#                    priority=messaging.WARNING
-#                )
-#                return self.callZenScreen(REQUEST)
-
         if REQUEST:
             IMessageSender(self).sendToBrowser(
                 "Production State Set",

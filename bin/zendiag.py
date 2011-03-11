@@ -141,6 +141,7 @@ def zenossInfo():
         print "Gathering info from zodb..."
         import Globals
         from Products.ZenUtils.ZenScriptBase import ZenScriptBase
+        from Products.Zuul import getFacade
         zsb = ZenScriptBase(noopts=True, connect=True)
         zsb.getDataRoot()
 
@@ -206,9 +207,10 @@ def zenossInfo():
                         hub_data.append("\tCollector(Local): %s " % collector.id)
                         local_count = local_count + 1
 
+        zep = getFacade('zep')
         tail_data = [
             ('Evt Rules', zsb.dmd.Events.countInstances()),
-            ('Evt Count (Last 24 Hours)', zsb.dmd.ZenEventManager.countEventsSince(event_start)),
+            ('Evt Count (Last 24 Hours)', zep.countEventsSince(event_start)),
             ('Reports', zsb.dmd.Reports.countReports()),
             ('Templates', zsb.dmd.Devices.rrdTemplates.countObjects()),
             ('Systems', zsb.dmd.Systems.countChildren()),

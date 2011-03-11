@@ -35,7 +35,7 @@ from Products.ZenUtils import Time
 import RRDView
 from Products.ZenUtils.IpUtil import checkip, IpAddressError, maskToBits
 from Products.ZenModel.interfaces import IIndexed
-from Products.ZenUtils.guid.interfaces import IGloballyIdentifiable
+from Products.ZenUtils.guid.interfaces import IGloballyIdentifiable, IGlobalIdentifier
 
 # base classes for device
 from ManagedEntity import ManagedEntity
@@ -74,6 +74,7 @@ from Products.ZenWidgets.interfaces import IMessageSender
 from Products.ZenWidgets import messaging
 from Products.ZenEvents.browser.EventPillsAndSummaries import getEventPillME
 from OFS.CopySupport import CopyError # Yuck, a string exception
+from Products.Zuul import getFacade
 
 
 def getNetworkRoot(context, performanceMonitor):
@@ -1337,24 +1338,6 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable,
         @permission: ZEN_CHANGE_DEVICE
         """
         self.priority = int(priority)
-        try:
-            zem = self.dmd.ZenEventManager
-            conn = zem.connect()
-            try:
-                curs = conn.cursor()
-                curs.execute("update status set DevicePriority=%d where device='%s'" % (
-                                self.priority, self.id))
-            finally: zem.close(conn)
-        except OperationalError:
-            log.exception("failed to update events with new priority")
-            if REQUEST:
-                messaging.IMessageSender(self).sendToBrowser(
-                    'Update Failed',
-                    "Failed to update events with new priority",
-                    priority=messaging.WARNING
-                )
-                return self.callZenScreen(REQUEST)
-
         if REQUEST:
             messaging.IMessageSender(self).sendToBrowser(
                 'Priority Udpdated',
@@ -1786,14 +1769,21 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable,
         circumstances it was causing many subprocesses to be spawned
         and creating a gridlock situation.
 
+        NOTE: deleteStatus no longer deletes events from the summary
+        table, but closes them.
+
         @permission: ZEN_ADMIN_DEVICE
         """
         parent = self.getPrimaryParent()
         if deleteStatus:
             self.getEventManager().manage_deleteHeartbeat(self.getId())
-            self.getEventManager().manage_deleteAllEvents(self.getId())
-        # if deleteHistory:
-        #     self.getEventManager().manage_deleteHistoricalEvents(self.getId())
+
+            # Close events for this device
+            zep = getFacade('zep')
+            tagFilter = { 'tag_uuids': [IGlobalIdentifier(self).getGUID()] }
+            eventFilter = { 'tag_filter': [ tagFilter ] }
+            log.debug("Closing events for device: %s", self.getId())
+            zep.closeEventSummaries(eventFilter=eventFilter)
         if deletePerf:
             perfserv = self.getPerformanceServer()
             if perfserv:
@@ -1861,7 +1851,6 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable,
             if self.title:
                 self.title = newId
             parent.manage_renameObject(oldId, newId)
-            self.renameDeviceInEvents(oldId, newId)
             self.renameDeviceInPerformance(oldId, newId)
             self.setLastChange()
 
@@ -1869,23 +1858,6 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable,
 
         except CopyError, e:
             raise Exception("Device rename failed.")
-
-
-    def renameDeviceInEvents(self, old, new):
-        """update the device column in the status and history tables for rows
-           associated with this device"""
-        zem=self.dmd.ZenEventManager
-        query="update %%s set device='%s' where device='%s';"%(new, old)
-        sqlscript=''.join([query%t for t in ('status', 'history')])
-        args=['mysql',
-              '-h%s'%zem.host,
-              '-P%s'%zem.port,
-              '-u%s'%zem.username,
-              '-p%s'%zem.password,
-              '-e%s'%sqlscript,
-              zem.database,
-              ]
-        if not os.fork(): os.execvp('mysql', args)
 
     def renameDeviceInPerformance(self, old, new):
         """
