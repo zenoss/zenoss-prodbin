@@ -160,7 +160,7 @@ Zenoss.nav.register({
                                 selectOnRender(tosel);
                             }
                             var card = Ext.getCmp('component_card');
-                            card.selectByToken(rest);
+                            card.selectByToken(unescape(rest));
                         }
                     }
                 }
