@@ -169,11 +169,59 @@ settingsDevice setManageIp='10.10.10.77', setLocation="123 Elm Street", \
                 try:
                     device.setZenProperty(zprop, value)
                 except BadRequest:
-                    self.log.warn( "Device %s zproperty %s is invalid or duplicate" % (
-                       device_specs['deviceName'], zprop) )
+                    self.log.warn( "Object %s zproperty %s is invalid or duplicate" % (
+                       device.titleOrId(), zprop) )
             else:
                 self.log.warn( "The zproperty %s doesn't exist in %s" % (
                        zprop, device_specs['deviceName']))
+
+    def addAllLGSOrganizers(self, device_specs):
+        location = device_specs.get('setLocation')
+        if location:
+            self.addLGSOrganizer('Locations', [location])
+
+        systems = device_specs.get('setSystems')
+        if systems:
+            self.addLGSOrganizer('Systems', systems)
+
+        groups = device_specs.get('setGroups')
+        if groups:
+            self.addLGSOrganizer('Groups', groups)
+
+    def addLGSOrganizer(self, lgsType, paths=[]):
+        """
+        Add any new locations, groups or organizers
+        """
+        prefix = '/zport/dmd/' + lgsType
+        base = getattr(self.dmd, lgsType)
+        base.sync()
+        existing = [x.getPrimaryUrlPath().replace(prefix, '') \
+                                      for x in base.getSubOrganizers()]
+        for path in paths:
+            if path in existing:
+                continue
+            base.manage_addOrganizer(path)
+
+    def addOrganizer(self, device_specs):
+        """
+        Add any organizers as required, and apply zproperties to them.
+        """
+        path = device_specs.get('devicePath')
+        baseOrg = path.split('/', 2)[1]
+        base = getattr(self.dmd, baseOrg, None)
+        if base is None:
+            self.log.error("The base of path %s (%s) does not exist -- skipping",
+                           baseOrg, path)
+            return
+
+        try:
+            org = base.getDmdObj(path)
+        except KeyError:
+            self.log.info("Creating organizer %s", path)
+            base.manage_addOrganizer(path)
+            commit()
+            org = base.getDmdObj(path)
+        self.applyZProps(org, device_specs)
 
     def applyOtherProps(self, device, device_specs):
         """
@@ -262,6 +310,7 @@ settingsDevice setManageIp='10.10.10.77', setLocation="123 Elm Street", \
                     processed += 1
                 continue
 
+            self.addAllLGSOrganizers(device_specs)
             self.applyZProps(devobj, device_specs)
             self.applyOtherProps(devobj, device_specs)
 
@@ -397,6 +446,7 @@ settingsDevice setManageIp='10.10.10.77', setLocation="123 Elm Street", \
                 else:
                     defaults['devicePath'] = defaults['deviceName']
                     del defaults['deviceName']
+                self.addOrganizer(defaults)
 
             else:
                 configs = self.parseDeviceEntry(line, defaults)
