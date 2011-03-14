@@ -864,7 +864,7 @@ table.search-result {
 
 .detail-form-panel .x-form-display-field,
 .detail-form-panel .display-field {
-    color: #999;
+    color: black;
 }
 
 .detail-form-panel .x-fieldset-header {
@@ -968,7 +968,7 @@ span.status-down-large {
 
 .device-overview-form .x-form-display-field,
 .device-overview-form .display-field {
-    color: #999;
+    color: black;
 }
 
 .device-overview-form-wrapper .x-panel-tl,
