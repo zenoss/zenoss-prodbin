@@ -1115,7 +1115,9 @@ var device_grid = new Zenoss.DeviceGridPanel({
         }
     }),
     setContext: function(uid) {
-        Zenoss.DeviceGridPanel.superclass.setContext.call(this, uid);
+        var view = this.getView();
+        view.contextUid = uid;
+        view.nonDisruptiveReset();
 
         this.getSelectionModel().clearSelections();
 

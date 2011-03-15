@@ -36,7 +36,7 @@ Zenoss.DeviceColumnModel = Ext.extend(Ext.grid.ColumnModel, {
                 renderer: Zenoss.render.ipAddress
             },{
                 dataIndex: 'uid',
-                header: _t('Device Class'), 
+                header: _t('Device Class'),
                 id: 'deviceClass',
                 width: 120,
                 renderer: Zenoss.render.DeviceClass
@@ -162,7 +162,7 @@ Zenoss.DeviceGridPanel = Ext.extend(Zenoss.FilterGridPanel,{
             border: false,
             rowSelectorDepth: 5,
             view: new Zenoss.FilterGridView({
-                rowHeight: 24,
+                rowHeight: 22,
                 nearLimit: 100,
                 loadMask: {msg: 'Loading. Please wait...'}
             }),
@@ -184,7 +184,7 @@ Zenoss.DeviceGridPanel = Ext.extend(Zenoss.FilterGridPanel,{
             this.view.showLoadMask(false);
             this.view._loadMaskAnchor = Ext.get(this.view.mainBody.dom.parentNode.parentNode);
         }, this, {single:true});
-        this.store.proxy.on('load', 
+        this.store.proxy.on('load',
             function(proxy, o, options) {
                 this.lastHash = o.result.hash || this.lastHash;
             },
