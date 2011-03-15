@@ -190,7 +190,7 @@ class Manager(object):
         """
         Looks up all the UUIDs in the tree path of an Organizer
         """
-        uuids = set([])
+        uuids = set()
         acquisition_chain = []
         for n in aq_chain(node.primaryAq()):
             if isinstance(n, DataRoot):
@@ -205,7 +205,8 @@ class Manager(object):
                 except TypeError:
                     log.debug("Unable to get a uuid for %s " % obj)
 
-        return uuids
+        return filter(None, uuids)
+
 
 class EventContext(object):
     """
