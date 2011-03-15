@@ -14,7 +14,7 @@
 
     <browser:page
         name="extdirect.js"
-        template="extdirect.js.pt"
+        class=".views.ExtDirectJsView"
         for="*"
         permission="zope.Public"
         />
