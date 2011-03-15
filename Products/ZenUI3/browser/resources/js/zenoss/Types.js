@@ -1,15 +1,15 @@
 (function(){
 
 var _tm = {
+    'IpAddress':        ["^/zport/dmd/.*/ipaddresses/[^/]*/?$"],
+    'IpInterface':      ["^/zport/dmd/Devices/.*/devices/.*/os/interfaces/.*"],
+    'Device':           ["^/zport/dmd/.*/devices/[^/]*/?$"],
     'DeviceLocation':   ["^/zport/dmd/Locations(/[A-Za-z][^/]*)*/?$"],
     'DeviceGroup':      ["^/zport/dmd/Groups(/[A-Za-z][^/]*)*/?$"],
     'DeviceClass':      ["^/zport/dmd/Devices(/[A-Za-z][^/]*)*/?$"],
-    'Device':           ["^/zport/dmd/.*/devices/[^/]*/?$"],
     'EventClass':       ["^/zport/dmd/Events(/[A-Za-z][^/]*)*/?$"],
     'Network':          ["^/zport/dmd/Networks(/(?!ipaddresses)[^/]+)*/?$"],
-    'IpAddress':        ["^/zport/dmd/.*/ipaddresses/[^/]*/?$"],
-    'Process':          ["^/zport/dmd/Processes(.*)$"],
-    'IpInterface':      ["^/zport/dmd/Devices/.*/devices/.*/os/interfaces/.*"]
+    'Process':          ["^/zport/dmd/Processes(.*)$"]
 };
 
 var T = Ext.ns('Zenoss.types');

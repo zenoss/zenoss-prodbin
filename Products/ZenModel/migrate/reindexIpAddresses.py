@@ -15,16 +15,20 @@ import Globals
 import Migrate
 
 import logging
+from zope.event import notify
+from Products.Zuul.catalog.events import IndexingEvent
+from zExceptions import NotFound
 log = logging.getLogger("zen.migrate")
 
 class ReindexIpAddresses(Migrate.Step):
     version = Migrate.Version(3, 1, 70)
 
     def cutover(self, dmd):
-        for x in zport.global_catalog():
-            zport = dmd.getPhysicalRoot().zport
-            zport.global_catalog.catalog_object(x.getObject(),
-                                                idxs=['ipAddress'],
-                                                update_metadata=True)
+        for x in dmd.global_catalog():
+            try:
+                notify(IndexingEvent(x.getObject(), ('ipAddress',)))
+            except NotFound:
+                pass
+            
 
 ReindexIpAddresses()

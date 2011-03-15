@@ -214,3 +214,4 @@ import RemoveCommandsEditPermission
 import SpeedUpGlobalCatalog
 import addNotificationSubscriptions
 import SessionAuthentication
+import reindexIpAddresses

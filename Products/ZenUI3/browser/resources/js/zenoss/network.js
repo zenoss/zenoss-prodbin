@@ -266,9 +266,8 @@ var ipAddressColumnConfig = {
             header: _t('Device'),
             width: 200,
             renderer: function(device, row, record) {
-                if (!device) return 'No Device';
-                return Zenoss.render.link(device.uid, undefined,
-                                          device.name);
+                if (!device) return _t('No Device');
+                return Zenoss.render.link(device.uid,  device.name);
             }
         }, {
             id: 'interface',
@@ -276,7 +275,7 @@ var ipAddressColumnConfig = {
             header: _t('Interface'),
             width: 200,
             renderer: function(iface, row, record){
-                if (!iface) return 'No Interface';
+                if (!iface) return _t('No Interface');
                 return Zenoss.render.link(iface.uid, null, iface.name);
            }
         }, {
@@ -361,7 +360,7 @@ Ext.getCmp('detail_panel').add(ipAddressGridConfig);
     });
     // Set the toolbar's height since we removed the large icon
     detailCardPanel.getTopToolbar().setHeight(29);
-    
+
     detailCardPanel.getTopToolbar().add( {
             xtype: 'tbspacer',
             width: 5
@@ -374,9 +373,9 @@ Ext.getCmp('detail_panel').add(ipAddressGridConfig);
             ref: '../ipcountField',
             xtype: 'tbtext'
     });
-    
+
     var oldSetContext = detailCardPanel.setContext;
-    
+
     detailCardPanel.setContext = function(contextUid) {
         Zenoss.remote.NetworkRouter.getInfo( {
             uid: contextUid,
@@ -390,7 +389,7 @@ Ext.getCmp('detail_panel').add(ipAddressGridConfig);
                 detailCardPanel.doLayout();
             }
         );
-        
+
         return oldSetContext.call(this, contextUid);
     }
 })();
@@ -423,13 +422,13 @@ var showEditDescriptionDialog = function() {
             load: Zenoss.remote.NetworkRouter.getInfo
         }
     });
-    
+
     dialog.setSubmitHandler(function(values) {
         values.uid = Zenoss.env.PARENT_CONTEXT;
         Zenoss.remote.NetworkRouter.setInfo(values);
         Ext.getCmp('detail_panel').detailCardPanel.setContext(values.uid);
     });
-    
+
     dialog.getForm().load({
         params: { uid: Zenoss.env.PARENT_CONTEXT, keys: ['id', 'description'] },
         success: function(form, action) {
