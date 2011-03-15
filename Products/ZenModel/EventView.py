@@ -302,10 +302,14 @@ class EventView(object):
         Return the status number for this device of class statClass.
         """
         zep = getFacade('zep')
-        event_filter = zep.createEventFilter(tags=[self.getUUID()],
-                                             severity=[SEVERITY_WARNING,SEVERITY_ERROR,SEVERITY_CRITICAL],
-                                             status=[STATUS_NEW,STATUS_ACKNOWLEDGED],
-                                             event_class=filter(None, [statusclass]))
+        try:
+            event_filter = zep.createEventFilter(tags=[self.getUUID()],
+                                                 severity=[SEVERITY_WARNING,SEVERITY_ERROR,SEVERITY_CRITICAL],
+                                                 status=[STATUS_NEW,STATUS_ACKNOWLEDGED],
+                                                 event_class=filter(None, [statusclass]))
+        except TypeError, e:
+            log.warn("Attempted to query events for %r which does not have a uuid" % self)
+            return 0
         result = zep.getEventSummaries(0, filter=event_filter, limit=0)
         return int(result['total'])
 
@@ -318,7 +322,11 @@ class EventView(object):
         event summaries for this entity
         """
         zep = getFacade('zep')
-        severities = zep.getEventSeveritiesByUuid(self.getUUID())
+        try:
+            severities = zep.getEventSeveritiesByUuid(self.getUUID())
+        except TypeError, e:
+            log.warn("Attempted to query events for %r which does not have a uuid" % self)
+            return {}
         results = dict((zep.getSeverityName(sev).lower(), count) for (sev, count) in severities.iteritems())
         return results
 
@@ -327,7 +335,11 @@ class EventView(object):
         Uses Zep to return the worst severity for this object
         """
         zep = getFacade('zep')
-        result =  zep.getWorstSeverityByUuid(self.getUUID())
+        try:
+            result =  zep.getWorstSeverityByUuid(self.getUUID())
+        except TypeError, e:
+            log.warn("Attempted to query events for %r which does not have a uuid" % self)
+            result = 0
         return result
 
 InitializeClass(EventView)
