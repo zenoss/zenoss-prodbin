@@ -69,6 +69,37 @@ class ZuulFacade(object):
             raise ObjectNotFoundException('Cannot find "%s". %s: %s' % args)
         return obj
 
+    def getInfo(self, uid=None):
+        obj = self._getObject(uid)
+        return IInfo(obj)
+
+    def setInfo(self, uid, data):
+        """
+        Given a dictionary of {property name: property value}
+        this will populate the datapoint
+        @param string uid unique identifier of the object we are editing
+        @param Dictionary of properties to update
+        @return IInfo with the updated properties
+        """
+        info = self.getInfo(uid)
+
+        # see if we need to rename the object
+        newId = None
+        if 'newId' in data:
+            newId = data['newId']
+            del data['newId']
+            info.rename(newId)
+
+        for key in data.keys():
+            if hasattr(info, key):
+                setattr(info, key, data[key])
+        return info
+
+    def deleteObject(self, uid):
+        obj = self._getObject(uid)
+        context = aq_parent(obj)
+        context._delObject(obj.id)
+
 class TreeFacade(ZuulFacade):
     implements(ITreeFacade)
 
@@ -79,10 +110,6 @@ class TreeFacade(ZuulFacade):
             return ITreeNode(obj)
         except UncataloguedObjectException, e:
             pass
-
-    def getInfo(self, uid=None):
-        obj = self._getObject(uid)
-        return IInfo(obj)
 
     def _getObject(self, uid=None):
         if not uid:
@@ -186,9 +213,7 @@ class TreeFacade(ZuulFacade):
         return '%s/%s/%s' % (contextUid, self._classRelationship, id)
 
     def deleteNode(self, uid):
-        obj = self._getObject(uid)
-        context = aq_parent(obj)
-        context._delObject(obj.id)
+        self.deleteObject(uid)
 
     def moveOrganizer(self, targetUid, organizerUid):
         """
@@ -208,28 +233,6 @@ class TreeFacade(ZuulFacade):
             dev.index_object()
             notify(IndexingEvent(dev, 'path'))
         return IOrganizerInfo(target._getOb(organizer.id))
-
-    def setInfo(self, uid, data):
-        """
-        Given a dictionary of {property name: property value}
-        this will populate the datapoint
-        @param string uid unique identifier of the object we are editing
-        @param Dictionary of properties to update
-        @return IInfo with the updated properties
-        """
-        info = self.getInfo(uid)
-
-        # see if we need to rename the object
-        newId = None
-        if 'newId' in data:
-            newId = data['newId']
-            del data['newId']
-            info.rename(newId)
-
-        for key in data.keys():
-            if hasattr(info, key):
-                setattr(info, key, data[key])
-        return info
 
 
 from networkfacade import NetworkFacade

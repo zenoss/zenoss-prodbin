@@ -42,6 +42,15 @@ class ModelChangePublisher(object):
         self._eventList = config.getNewProtobuf("$ModelEventList")
         self._eventList.event_uuid = generate()
 
+
+        self._msgs = []
+        self._addedGuids = set()
+        self._modifiedGuids = set()
+        self._removedGuids = set()
+        self._publishable = []
+        self._discarded = 0
+        self._total = 0
+
     def _createModelEventProtobuf(self, ob, eventType):
         """
         Creates and returns a ModelEvent. This is tightly
@@ -72,29 +81,56 @@ class ModelChangePublisher(object):
         return str(IGlobalIdentifier(ob).create())
 
     def publishAdd(self, ob):
-        event = self._createModelEventProtobuf(ob, 'ADDED')
+        self._total+=1
+        guid = self._getGUID(ob)
+        if not guid in self._addedGuids:
+            self._msgs.append((self._createModelEventProtobuf, (ob, 'ADDED')))
+            self._addedGuids.add(guid)
+        else:
+            self._discarded+=1
 
     def publishRemove(self, ob):
-        self._createModelEventProtobuf(ob, 'REMOVED')
+        self._total+=1
+        guid = self._getGUID(ob)
+        if not guid in self._removedGuids:
+            self._msgs.append((self._createModelEventProtobuf, (ob, 'REMOVED')))
+            self._removedGuids.add(guid)
+        else:
+            self._discarded+=1
 
     def publishModified(self, ob):
-        event = self._createModelEventProtobuf(ob, 'MODIFIED')
+        self._total+=1
+        guid = self._getGUID(ob)
+        if not guid in self._addedGuids and not guid in self._modifiedGuids:
+            self._msgs.append((self._createModelEventProtobuf, (ob, 'MODIFIED')))
+            self._modifiedGuids.add(guid)
+        else:
+            self._discarded+=1
 
     def addToOrganizer(self, ob, org):
-        event = self._createModelEventProtobuf(ob, 'ADDRELATION')
-        event.add_relation.destination_uuid = self._getGUID(org)
+        def createEvent(ob, organizer):
+            event = self._createModelEventProtobuf(ob, 'ADDRELATION')
+            event.add_relation.destination_uuid = self._getGUID(organizer)
+        self._msgs.append((createEvent, (ob, org)))
 
     def removeFromOrganizer(self, ob, org):
-        event = self._createModelEventProtobuf(ob, 'REMOVERELATION')
-        event.remove_relation.destination_uuid = self._getGUID(org)
+        def createEvent(ob, organizer):
+            event = self._createModelEventProtobuf(ob, 'REMOVERELATION')
+            event.remove_relation.destination_uuid = self._getGUID(organizer)
+        self._msgs.append((createEvent, (ob, org)))
 
     def moveObject(self, ob, fromOb, toOb):
-        event = self._createModelEventProtobuf(ob, 'MOVED')
-        event.moved.origin = self._getGUID(fromOb)
-        event.moved.destination = self._getGUID(toOb)
+        def createEvent(ob, fromObj, toObj):
+            event = self._createModelEventProtobuf(ob, 'MOVED')
+            event.moved.origin = self._getGUID(fromObj)
+            event.moved.destination = self._getGUID(toObj)
+        self._msgs.append((createEvent, (ob, fromOb, toOb)))
 
     @property
     def msg(self):
+        log.debug("discarded %s messages of %s total" % (self._discarded, self._total))
+        for fn, args in self._msgs:
+            fn(*args)
         return self._eventList
 
 

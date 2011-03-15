@@ -55,35 +55,44 @@ class FormBuilder(object):
                                  field.vocabularyName)
         return [(t.value, t.token) for t in vocabulary._terms]
 
-    def fields(self):
+    def fields(self, fieldFilter=None):
         d = {}
         for iface in providedBy(self.context):
             f = zope.schema.getFields(iface)
-            for k,v in f.iteritems():
-                c = self._dict(v)
-                c['name'] = k
-                c['value'] = getattr(self.context, k, None)
-                if c['xtype'] in ('autoformcombo', 'itemselector'):
-                    c['values'] = self.vocabulary(v)
-                d[k] = c
+            def _filter(item):
+                include = True
+                if fieldFilter:
+                    key=item[0]
+                    include = fieldFilter(key)
+                else:
+                    include = bool(item)
+                return include
+            if f:
+                for k,v in filter(_filter, f.iteritems()):
+                    c = self._dict(v)
+                    c['name'] = k
+                    c['value'] = getattr(self.context, k, None)
+                    if c['xtype'] in ('autoformcombo', 'itemselector'):
+                        c['values'] = self.vocabulary(v)
+                    d[k] = c
         return d
 
-    def groups(self):
+    def groups(self, fieldFilter=None):
         g = {}
-        for k, v in self.fields().iteritems():
+        for k, v in self.fields(fieldFilter).iteritems():
             g.setdefault(v['group'], []).append(v)
         for l in g.values():
             l.sort(key=ordergetter)
         return g
 
-    def render(self, fieldsets=True, readOnly=False):
+    def render(self, fieldsets=True, readOnly=False, fieldFilter=None):
         self.readOnly = readOnly
         if not fieldsets:
-            fields = sorted(self.fields().values(), key=ordergetter)
+            fields = sorted(self.fields(fieldFilter).values(), key=ordergetter)
             form = map(self._item, fields)
             return {'items':[{'xtype':'fieldset', 'items':form}]}
         # group the fields 
-        groups = self.groups()
+        groups = self.groups(fieldFilter)
         form = {
             'items': [self._fieldset(k, v) for k,v in groups.iteritems()]
         }
