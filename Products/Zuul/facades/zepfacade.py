@@ -24,12 +24,14 @@ from zenoss.protocols.services.zep import ZepServiceClient, EventSeverity, ZepCo
 from zenoss.protocols.jsonformat import to_dict, from_dict
 from zenoss.protocols.protobufs.zep_pb2 import EventSort, EventFilter, EventSummaryUpdateRequest, ZepConfig
 from zenoss.protocols.protobufutil import listify
+from Products.ZenUtils import safeTuple
 from Products.ZenUtils.GlobalConfig import getGlobalConfiguration
 from Products.ZenUtils.guid.interfaces import IGlobalIdentifier
 from zenoss.protocols.protobufs.zep_pb2 import SEVERITY_CRITICAL, SEVERITY_ERROR, SEVERITY_WARNING, SEVERITY_INFO, \
      SEVERITY_DEBUG, SEVERITY_CLEAR, STATUS_NEW, STATUS_ACKNOWLEDGED, STATUS_SUPPRESSED, OR, AND
 from Products.ZenUtils.guid.interfaces import IGUIDManager
 from Products.ZenEvents.ZenEventClasses import Status_Ping
+from functools import partial
 
 log = logging.getLogger(__name__)
 
@@ -230,31 +232,6 @@ class ZepFacade(ZuulFacade):
         eventSort.update(getDetailsInfo().getSortMap()[field.lower()])
         return from_dict(EventSort, eventSort)
 
-    def _getEventSummaries(self, source, offset, limit=1000, keys=None, sort=None, filter=None):
-        filterBuf = None
-
-        if filter:
-            filterBuf = from_dict(EventFilter, filter)
-        
-        eventSort = None
-        if sort:
-            if isinstance(sort, (list, tuple)):
-                # Multiple sort fields
-                if isinstance(sort[0], (list,tuple)):
-                    eventSort = [self._getEventSort(s) for s in sort]
-                else:
-                    eventSort = self._getEventSort(sort)
-            else:
-                eventSort = self._getEventSort(sort)
-
-        response, content = source(offset=offset, limit=limit, keys=keys, sort=eventSort, filter=filterBuf)
-        return {
-            'total' : content.total,
-            'limit' : content.limit,
-            'next_offset' : content.next_offset,
-            'events' : (to_dict(event) for event in content.events),
-        }
-
     def _getUserUuid(self, userName):
         # Lookup the user uuid
         user = self._dmd.ZenUsers.getUserSettings(userName)
@@ -273,13 +250,57 @@ class ZepFacade(ZuulFacade):
 
         self.client.addNote(uuid, message, userUuid, userName)
 
-    def getEventSummariesFromArchive(self, offset, limit=1000, sort=None, filter=None):
-        return self._getEventSummaries(self.client.getEventSummariesFromArchive, offset=offset, limit=limit, sort=sort,
-                                       filter=filter)
+    def _getEventSummaries(self, source, offset, limit=1000):
+        response, content = source(offset=offset, limit=limit)
+        return {
+            'total' : content.total,
+            'limit' : content.limit,
+            'next_offset' : content.next_offset if content.HasField('next_offset') else None,
+            'events' : (to_dict(event) for event in content.events),
+        }
 
-    def getEventSummaries(self, offset, limit=1000, sort=None, filter=None):
-        return self._getEventSummaries(self.client.getEventSummaries, offset=offset, limit=limit, sort=sort,
-                                       filter=filter)
+    def getEventSummariesFromArchive(self, offset, limit=1000, sort=None, filter=None):
+        return self.getEventSummaries(offset, limit, sort, filter,
+                                      client_fn=self.client.getEventSummariesFromArchive)
+
+    def getEventSummaries(self, offset, limit=1000, sort=None, filter=None, client_fn=None):
+        if client_fn is None:
+            client_fn = self.client.getEventSummaries
+        if filter is not None and isinstance(filter,dict):
+            filter = from_dict(EventFilter, filter)
+        if sort is not None:
+            sort = tuple(self._getEventSort(s) for s in safeTuple(sort))
+        return self._getEventSummaries(source=partial(client_fn,
+                                               filter=filter,
+                                               sort=sort
+                                               ),
+                                       offset=offset, limit=limit
+                                       )
+
+    def getEventSummariesGenerator(self, filter=None, exclude=None, sort=None):
+        if exclude is not None and isinstance(exclude,dict):
+            exclude = from_dict(EventFilter, exclude)
+        if filter is not None and isinstance(filter,dict):
+            filter = from_dict(EventFilter, filter)
+        if sort is not None:
+            sort = tuple(self._getEventSort(s) for s in safeTuple(sort))
+        searchid = self.client.createSavedSearch(event_filter=filter, exclusion_filter=exclude, sort=sort)
+        eventSearchFn = partial(self.client.savedSearch, searchid)
+        offset = 0
+        limit = 500
+        try:
+            while True:
+                result = self._getEventSummaries(eventSearchFn, offset, limit)
+                for evt in result['events']:
+                    yield evt
+                if result['next_offset'] is not None:
+                    offset = result['next_offset']
+                else:
+                    break
+        except Exception as e:
+            pass
+
+        self.client.deleteSavedSearch(searchid)
 
     def getEventSummary(self, uuid):
         response, content = self.client.getEventSummary(uuid)

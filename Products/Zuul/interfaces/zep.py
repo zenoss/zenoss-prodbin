@@ -46,6 +46,11 @@ class IZepFacade(IFacade):
         @rtype dict
         """
 
+    def getEventSummariesGenerator(filter={}, exclude={}, sort=None):
+        """
+        Query the events database for a set of events.
+        """
+
 #    def create(summary, severity, device=None, component=None, **kwargs):
 #        """
 #        Create an event.

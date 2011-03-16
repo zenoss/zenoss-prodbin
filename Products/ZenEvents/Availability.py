@@ -12,11 +12,55 @@
 ###########################################################################
 
 import time
+from collections import defaultdict
+from itertools import takewhile, chain
 
 from Globals import InitializeClass
+from Products.ZenModel.DeviceClass import DeviceClass
+from Products.ZenModel.DeviceGroup import DeviceGroup
+from Products.ZenModel.Location import Location
+from Products.ZenModel.System import System
 from Products.ZenUtils import Map
 from Products.ZenEvents.ZenEventClasses import Status_Ping, Status_Snmp
 from Products.ZenEvents.ZenEventClasses import Status_OSProcess
+from Products.Zuul import getFacade
+from Products.Zuul.interfaces import ICatalogTool
+from Products.AdvancedQuery import Eq, Or, Not
+from zenoss.protocols.protobufs.zep_pb2 import (SEVERITY_CRITICAL, SEVERITY_ERROR,
+                                                SEVERITY_WARNING, SEVERITY_INFO,
+                                                SEVERITY_DEBUG, SEVERITY_CLEAR)
+from zenoss.protocols.protobufs.zep_pb2 import (STATUS_NEW, STATUS_ACKNOWLEDGED,
+                                                STATUS_SUPPRESSED, STATUS_CLOSED,
+                                                STATUS_CLEARED, STATUS_DROPPED,
+                                                STATUS_AGED)
+
+ALL_EVENT_STATUSES = set([STATUS_NEW, STATUS_ACKNOWLEDGED,
+                        STATUS_SUPPRESSED, STATUS_CLOSED,
+                        STATUS_CLEARED, STATUS_DROPPED,
+                        STATUS_AGED])
+CLOSED_EVENT_STATUSES = set([STATUS_CLOSED, STATUS_CLEARED,
+                             STATUS_DROPPED, STATUS_AGED])
+OPEN_EVENT_STATUSES = ALL_EVENT_STATUSES - CLOSED_EVENT_STATUSES
+
+def _severityGreaterThanOrEqual(sev):
+    """function to return a list of severities >= the given severity;
+       defines severity priority using arbitrary order, instead of
+       assuming numeric ordering"""
+    severities_in_order = (SEVERITY_CRITICAL,
+                           SEVERITY_ERROR,
+                           SEVERITY_WARNING,
+                           SEVERITY_INFO,
+                           SEVERITY_DEBUG,
+                           SEVERITY_CLEAR)
+    return list(takewhile(lambda x : x != sev, severities_in_order)) + [sev,]
+
+def _lookupUuid(catalog, cls, identifier):
+    """function to retrieve uuid given an object's catalog, type, and identifier"""
+    results = ICatalogTool(catalog).search(cls,
+                                           query=Or(Eq('id', identifier),
+                                                    Eq('name', identifier)))
+    if results.total:
+        return results.results.next().uuid
 
 from AccessControl import ClassSecurityInfo
 
@@ -34,11 +78,21 @@ def _findComponent(device, name):
             return c
     return None
 
-class Availability:
+class Availability(object):
     security = ClassSecurityInfo()
     security.setDefaultAccess('allow')
-    
-    "Simple record for holding availability information"
+
+    defaultAvailabilityDays = 7
+
+    @staticmethod
+    def getDefaultAvailabilityStart():
+        return time.time() - Availability.defaultAvailabilityDays*24*60*60
+
+    @staticmethod
+    def getDefaultAvailabilityEnd():
+        return time.time()
+
+    # Simple record for holding availability information
     def __init__(self, device, component, downtime, total, systems=''):
         self.device = device
         self.systems = systems
@@ -48,7 +102,7 @@ class Availability:
         if total <= 0:
             self.availability = 0 if downtime else 1
         else:
-            self.availability = max(0, 1 - (downtime / total))
+            self.availability = max(0, 1 - (float(downtime) / total))
 
     def floatStr(self):
         return '%2.3f%%' % (self.availability * 100)
@@ -87,7 +141,7 @@ class Availability:
 
 InitializeClass(Availability)
 
-class Report:
+class Report(object):
     "Determine availability by counting the amount of time down"
 
     def __init__(self,
@@ -109,17 +163,17 @@ class Report:
         self.startDate = _round(startDate)
         self.endDate = _round(endDate)
         self.eventClass = eventClass
-        self.severity = severity
+        self.severity = int(severity) if severity is not None else None
         self.device = device
         self.component = component
-        self.prodState = prodState
+        self.prodState = int(prodState) if prodState is not None else None
         self.manager = manager
         self.agent = agent
         self.DeviceClass = DeviceClass
         self.Location = Location
         self.System = System
         self.DeviceGroup = DeviceGroup
-        self.DevicePriority = DevicePriority
+        self.DevicePriority = int(DevicePriority) if DevicePriority is not None else None
         self.monitor = monitor
 
     def tuple(self):
@@ -141,162 +195,168 @@ class Report:
         # Note: we don't handle overlapping "down" events, so down
         # time could get get double-counted.
         __pychecker__='no-local'
-        zem = dmd.ZenEventManager
-        cols = 'device, component, firstTime, lastTime'
-        endDate = self.endDate or time.time()
+        now = time.time()
+        zep = getFacade("zep", dmd)
+        endDate = self.endDate or Availability.getDefaultAvailabilityEnd()
+        endDate = min(endDate, now)
         startDate = self.startDate
         if not startDate:
-            days = zem.defaultAvailabilityDays
-            startDate = time.time() - days*60*60*24
-        env = self.__dict__.copy()
-        env.update(locals())
-        w =  ' WHERE severity >= %(severity)s '
-        w += ' AND lastTime > %(startDate)s '
-        w += ' AND firstTime <= %(endDate)s '
-        w += ' AND firstTime != lastTime '
-        w += " AND (eventClass = '%s' OR eventClass LIKE '%s/%%%%') " % (self.eventClass,
-                                                                         self.eventClass.rstrip('/'))
-        w += " AND prodState >= %(prodState)s "
+            startDate = Availability.getDefaultAvailabilityStart()
+
+        # convert start and end date to integer milliseconds for defining filters
+        startDate = int(startDate*1000)
+        endDate = int(endDate*1000)
+        total_report_window = endDate - startDate
+        now_ms = int(now * 1000)
+
+        create_filter_args = {
+            'operator' : zep.AND,
+            'severity' : _severityGreaterThanOrEqual(self.severity),
+            'last_seen' : (startDate,),
+            'first_seen' : (0, endDate),
+            'event_class' : self.eventClass +
+                            ('/' if not self.eventClass.endswith('/') else '')
+            }
         if self.device:
-            w += " AND device = '%(device)s' "
+            create_filter_args['element_identifier'] = '"%s"' % self.device
         if self.component:
-            w += " AND component like '%%%(component)s%%' "
-        if self.manager is not None:
-            w += " AND manager = '%(manager)s' "
-        if self.agent is not None:
-            w += " AND agent = '%(agent)s' "
-        if self.DeviceClass is not None:
-            w += " AND (DeviceClass = '%s' " % self.DeviceClass
-            w += " OR DeviceClass LIKE '%s/%%%%') " % self.DeviceClass.rstrip('/')
-        if self.Location is not None:
-            w += " AND (Location = '%s' " % self.Location
-            w += " OR Location LIKE '%s/%%%%') " % self.Location.rstrip('/')
-        if self.System is not None:
-            w += " AND Systems LIKE '%%%(System)s%%' "
-        if self.DeviceGroup is not None:
-            w += " AND DeviceGroups LIKE '%%%(DeviceGroup)s%%' "
-        if self.DevicePriority is not None:
-            w += " AND DevicePriority = %(DevicePriority)s "
+            create_filter_args['element_sub_identifier'] = '"%s"' % self.component
+        if self.agent:
+            create_filter_args['agent'] = self.agent
         if self.monitor is not None:
-            w += " AND monitor = '%(monitor)s' "
-        env['w'] = w % env
-        s = ('SELECT %(cols)s FROM ( '
-             ' SELECT %(cols)s FROM history %(w)s '
-             '  UNION '
-             ' SELECT %(cols)s FROM status %(w)s '
-             ') AS U  ' % env)
-                  
-        devices = {}
-        conn = zem.connect()
-        try:
-            curs = conn.cursor()
-            curs.execute(s)
-            while 1:
-                rows = curs.fetchmany()
-                if not rows: break
-                for row in rows:
-                    device, component, first, last = row
-                    last = min(last, endDate)
-                    first = max(first, startDate)
+            create_filter_args['monitor'] = self.monitor
 
-                    # Only treat component specially if a component filter was
-                    # specified.
-                    k = None
-                    if self.component:
-                        k = (device, component)
-                    else:
-                        k = (device, '')
+        # add filters on details
+        filter_details = {}
+        if self.DevicePriority is not None:
+            filter_details['zenoss.device.priority'] = "%d:" % self.DevicePriority
+        if self.prodState:
+            filter_details['zenoss.device.production_state'] = "%d:" % self.prodState
+        if filter_details:
+            create_filter_args['details'] = filter_details
 
-                    try:
-                        devices[k] += last - first
-                    except KeyError:
-                        devices[k] = last - first
-        finally: zem.close(conn)
-        total = endDate - startDate
+        # add filters on tagged values
+        tag_uuids = []
+        if self.DeviceClass:
+            tag_uuids.append(_lookupUuid(dmd.Devices, DeviceClass, self.DeviceClass))
+        if self.Location:
+            tag_uuids.append(_lookupUuid(dmd.Locations, Location, self.Location))
+        if self.System is not None:
+            tag_uuids.append(_lookupUuid(dmd.Systems, System, self.System))
+        if self.DeviceGroup is not None:
+            tag_uuids.append(_lookupUuid(dmd.Groups, DeviceGroup, self.DeviceGroup))
+        tag_uuids = filter(None, tag_uuids)
+        if tag_uuids:
+            create_filter_args['tags'] = tag_uuids
+
+        # construct filter with assembled filter args
+        event_filter = zep.createEventFilter(**create_filter_args)
+
+        # query zep for matching event summaries
+        events = zep.getEventSummariesGenerator(event_filter)
+
+        # get previous events that occurred before the report window, that have not yet closed
+        create_filter_args['last_seen'] = (0,startDate)
+        create_filter_args['status'] = OPEN_EVENT_STATUSES
+        event_filter = zep.createEventFilter(**create_filter_args)
+        previousEvents = zep.getEventSummariesGenerator(event_filter)
+
+        # walk events, tallying up downtime
+        accumulator = defaultdict(int)
+        for evtsumm in chain(previousEvents, events):
+            first = evtsumm['first_seen_time']
+            # if event is still open, severity persists up to the present
+            # (converted to milliseconds)
+            if evtsumm['status'] not in CLOSED_EVENT_STATUSES:
+                last = now_ms
+            else:
+                last = evtsumm['last_seen_time']
+
+            # discard any events that have no elapsed time
+            if first == last:
+                continue
+
+            # discard if event was resolved before report period
+            if last <= startDate:
+                continue
+
+            evt = evtsumm['occurrence'][0]
+            evt_actor = evt['actor']
+            device = evt_actor.get('element_identifier')
+            component = evt_actor.get('element_sub_identifier')
+
+            # limit first and last within report time window
+            first = max(first, startDate)
+            last = min(last, endDate)
+
+            # Only treat component specially if a component filter was specified.
+            if self.component:
+                accumKey = (device, component)
+            else:
+                accumKey = (device, '')
+
+            accumulator[accumKey] += (last-first)
+
         if self.device:
             deviceList = []
             device = dmd.Devices.findDevice(self.device)
             if device:
                 deviceList = [device]
-                devices.setdefault( (self.device, self.component), 0)
+                accumulator[(self.device, self.component)] += 0
         else:
             deviceList = []
-            if not self.DeviceClass and not self.Location \
-                and not self.System and not self.DeviceGroup:
+            if (not self.DeviceClass and not self.Location and
+                not self.System and not self.DeviceGroup):
                 deviceList = dmd.Devices.getSubDevices()
             else:
-                allDevices = {}
-                for d in dmd.Devices.getSubDevices():
-                    allDevices[d.id] = d
+                allDevices = dict((dev.id,dev) for dev in dmd.Devices.getSubDevices())
+                allDeviceIds = set(allDevices.keys())
 
-                deviceClassDevices = set()
-                if self.DeviceClass:
-                    try:
-                        org = dmd.Devices.getOrganizer(self.DeviceClass)
-                        for d in org.getSubDevices():
-                            deviceClassDevices.add(d.id)
-                    except KeyError:
-                        pass
-                else:
-                    deviceClassDevices = set(allDevices.keys())
-
-                locationDevices = set()
-                if self.Location:
-                    try:
-                        org = dmd.Locations.getOrganizer(self.Location)
-                        for d in org.getSubDevices():
-                            locationDevices.add(d.id)
-                    except KeyError:
-                        pass
-                else:
-                    locationDevices = set(allDevices.keys())
-
-                systemDevices = set()
-                if self.System:
-                    try:
-                        org = dmd.Systems.getOrganizer(self.System)
-                        for d in org.getSubDevices():
-                            systemDevices.add(d.id)
-                    except KeyError:
-                        pass
-                else:
-                    systemDevices = set(allDevices.keys())
-
-                deviceGroupDevices = set()
-                if self.DeviceGroup:
-                    try:
-                        org = dmd.Groups.getOrganizer(self.DeviceGroup)
-                        for d in org.getSubDevices():
-                            deviceGroupDevices.add(d.id)
-                    except KeyError:
-                        pass
-                else:
-                    deviceGroupDevices = set(allDevices.keys())
+                def getOrgSubDevices(cat, orgId, allIds=allDeviceIds):
+                    if orgId:
+                        try:
+                            org = cat.getOrganizer(orgId)
+                        except KeyError:
+                            pass
+                        else:
+                            return set(d.id for d in org.getSubDevices())
+                    return allIds
+                deviceClassDevices = getOrgSubDevices(dmd.Devices, self.DeviceClass)
+                locationDevices    = getOrgSubDevices(dmd.Locations, self.Location)
+                systemDevices      = getOrgSubDevices(dmd.Systems, self.System)
+                deviceGroupDevices = getOrgSubDevices(dmd.Groups, self.DeviceGroup)
 
                 # Intersect all of the organizers.
-                for deviceId in (deviceClassDevices & locationDevices & \
-                    systemDevices & deviceGroupDevices):
-                    deviceList.append(allDevices[deviceId])
+                deviceList.extend(allDevices[deviceId]
+                                 for deviceId in (deviceClassDevices & locationDevices &
+                                                       systemDevices & deviceGroupDevices))
 
             if not self.component:
-                for d in dmd.Devices.getSubDevices():
-                    devices.setdefault( (d.id, self.component), 0)
-        deviceLookup = dict([(d.id, d) for d in deviceList])
+                for dev in dmd.Devices.getSubDevices():
+                    accumulator[(dev.id, '')] += 0
+
+        # walk accumulator, generate report results
+        deviceLookup = dict((dev.id, dev) for dev in deviceList)
         result = []
-        for (d, c), v in devices.items():
-            dev = deviceLookup.get(d, None)
-            if dev is None:
-                continue
-            sys = dev.getSystemNamesString()
-            result.append( Availability(d, c, v, total, sys) )
-        # add in the devices that have the component, but no events
+        lastdevid = None
+        for (devid, compid), downtime in sorted(accumulator.items()):
+            if devid != lastdevid:
+                dev = deviceLookup.get(devid, None)
+                if dev:
+                    sysname = dev.getSystemNamesString()
+                else:
+                    sysname = ''
+                lastdevid = devid
+            result.append(Availability(devid, compid, downtime, total_report_window, sysname))
+
+        # add in the devices that have the component, but no events - assume this means no downtime
         if self.component:
-            for d in deviceList:
-                for c in d.getMonitoredComponents():
-                    if c.name().find(self.component) >= 0:
-                        a = Availability(d.id, c.name(), 0, total,
-                            d.getSystemNamesString())
-                        result.append(a)
+            downtime = 0
+            for dev in deviceList:
+                sysname = dev.getSystemNamesString()
+                for comp in dev.getMonitoredComponents():
+                    if self.component in comp.name():
+                        result.append(Availability(dev.id, comp.name(), downtime, total_report_window, sysname))
         return result
 
 
