@@ -281,7 +281,9 @@ class IScheduledTask(IObservable):
         finished with the cleanup until the deferred has completed and fired
         all callbacks.
 
-        The framework will not call this method if the state is not IDLE.
+        The framework will not call this method if the state is not IDLE,
+        except during shutdowns.  If the framework is shutting down, the
+        cleanup task will be required to handle this situation.
 
         Tasks should cleanup expensive resources in their implementation of
         this method and not rely upon the __del__ method being called to do

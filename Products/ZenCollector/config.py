@@ -175,6 +175,7 @@ class ConfigurationLoaderTask(ObservableMixin):
 
         d = self._baseConfigs()
         self._deviceConfigs(d, self.devices)
+        d.addCallback(self._notifyConfigLoaded)
         d.addErrback(self._handleError)
         return d
 
@@ -196,6 +197,10 @@ class ConfigurationLoaderTask(ObservableMixin):
         d.addCallback(self._fetchConfig, devices)
         d.addCallback(self._processConfig)
         d.addCallback(self._reportStatistics)
+
+    def _notifyConfigLoaded(self, result):
+        self._daemon.runPostConfigTasks()
+        return defer.succeed("Configuration loaded")
 
     def _handleError(self, result):
         if isinstance(result, Failure):

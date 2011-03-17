@@ -244,6 +244,61 @@ class Scheduler(object):
         
         self._executor = TwistedExecutor(1)
 
+        # Ensure that we can cleanly shutdown all of our tasks
+        reactor.addSystemEventTrigger('before', 'shutdown', self.shutdown, 'before')
+        reactor.addSystemEventTrigger('during', 'shutdown', self.shutdown, 'during')
+        reactor.addSystemEventTrigger('after', 'shutdown', self.shutdown, 'after')
+
+    def shutdown(self, phase):
+        """
+        The reactor shutdown has three phases for event types:
+
+               before - tasks can shut down safely at this time with access to all
+                        services (eg EventService, their own services)
+               during - EventService and other services are gone before this starts
+               after  - not a lot left -- be careful
+
+        Tasks that have the attribute 'stopPhase' can set the state for which
+        they should be run, otherwise they will be shut down in the 'before' phase.
+
+        Tasks that have the attribute 'stopOrder' can set the order in which they
+        are shut down (lowest first).  A stopOrder of 0 (zero) is assumed for tasks
+        which do not declare a stopOrder.
+
+        Returns a list of deferreds to wait on.
+        """
+        doomedTasks = []
+        stopQ = {}
+        log.debug("In shutdown stage %s", phase)
+        for (taskName, taskWrapper) in self._tasks.iteritems():
+            task = taskWrapper.task
+            stopPhase = getattr(task, 'stopPhase', 'before')
+            if stopPhase in ('before', 'after', 'during') and \
+               stopPhase != phase:
+                continue
+            stopOrder = getattr(task, 'stopOrder', 0)
+            queue = stopQ.setdefault(stopOrder, [])
+            queue.append( (taskName, taskWrapper, task) )
+
+        for stopOrder in sorted(stopQ):
+            for (taskName, taskWrapper, task) in stopQ[stopOrder]:
+                loopTask = self._loopingCalls[taskName]
+                if loopTask.running:
+                    log.debug("Stopping running task %s", taskName)
+                    loopTask.stop()
+                log.debug("Removing task %s", taskName)
+                doomedTasks.append(taskName)
+                self.taskRemoved(taskWrapper)
+
+        for taskName in doomedTasks:
+            self._tasksToCleanup[taskName] = self._tasks[taskName].task
+
+            del self._loopingCalls[taskName]
+            del self._tasks[taskName]
+
+        cleanupList = self._cleanupTasks()
+        return defer.DeferredList(cleanupList)
+
     @property 
     def executor(self):
         return self._executor
@@ -503,6 +558,7 @@ class Scheduler(object):
         todoList = [task for task in self._tasksToCleanup.values()
                              if self._isTaskCleanable(task)]
 
+        cleanupWaitList = []
         for task in todoList:
             # changing the state of the task will keep the next cleanup run
             # from processing it again
@@ -510,6 +566,8 @@ class Scheduler(object):
 
             d = defer.maybeDeferred(task.cleanup)
             d.addBoth(self._cleanupTaskComplete, task)
+            cleanupWaitList.append(d)
+        return cleanupWaitList
 
     def _cleanupTaskComplete(self, result, task):
         """

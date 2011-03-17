@@ -31,7 +31,7 @@ from Products.ZenCollector.interfaces import ICollector,\
                                              IStatisticsService
 from Products.ZenHub.PBDaemon import PBDaemon, FakeRemote
 from Products.ZenRRD.RRDDaemon import RRDDaemon
-from Products.ZenRRD.RRDUtil import RRDUtil
+from Products.ZenRRD import RRDUtil
 from Products.ZenRRD.Thresholds import Thresholds
 from Products.ZenUtils.Utils import importClass, readable_time
 
@@ -255,6 +255,9 @@ class CollectorDaemon(RRDDaemon):
                 ev.update(threshEventData)
             self.sendEvent(ev)
 
+    def readRRD(self, path, consolidationFunction, start, end):
+        return RRDUtil.read(path, consolidationFunction, start, end)
+
     def stop(self, ignored=""):
         if self._stoppingCallback is not None:
             try:
@@ -411,7 +414,7 @@ class CollectorDaemon(RRDDaemon):
                 log.exception("Unable to import class %s", c)
 
     def _configureRRD(self, rrdCreateCommand, thresholds):
-        self._rrd = RRDUtil(rrdCreateCommand, self._prefs.cycleInterval)
+        self._rrd = RRDUtil.RRDUtil(rrdCreateCommand, self._prefs.cycleInterval)
         self.rrdStats.config(self.options.monitor,
                              self.name,
                              thresholds,
@@ -480,7 +483,7 @@ class CollectorDaemon(RRDDaemon):
                 d.addCallback(_getDeviceIssues)
                 d.addCallback(_processDeviceIssues)
             else:
-                d = defer.succeed(None)
+                d = defer.succeed("No maintenance required")
             return d
 
         def _reschedule(result):
@@ -495,18 +498,23 @@ class CollectorDaemon(RRDDaemon):
         d = _maintenance()
         d.addBoth(_reschedule)
 
-        if not self.addedPostStartupTasks:
-            # Add post-startup tasks from the preferences.
-            # Adding tasks from the postStartup() method results
-            # in the task being started before configs are downloaded
-            # from zenhub.
+        return d
+
+    def runPostConfigTasks(self, result=None):
+        """
+        Add post-startup tasks from the preferences.
+
+        This may be called with the failure code as well.
+        """
+        if isinstance(result, Failure):
+            pass
+
+        elif not self.addedPostStartupTasks:
             postStartupTasks = getattr(self._prefs, 'postStartupTasks',
                                        lambda : [])
             for task in postStartupTasks():
                 self._scheduler.addTask(task, now=True)
             self.addedPostStartupTasks = True
-
-        return d
 
     def _displayStatistics(self, verbose=False):
         if self._rrd:
