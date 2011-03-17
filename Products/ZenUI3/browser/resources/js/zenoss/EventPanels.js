@@ -802,7 +802,7 @@
      */
     Zenoss.SimpleEventGridPanel = Ext.extend(Zenoss.FilterGridPanel, {
         constructor: function(config){
-            var store = {xtype:'EventStore'},
+            var store = config.store || {xtype:'EventStore'},
             cmConfig = {};
             if (Ext.isDefined(config.columns)) {
                 cmConfig.columns = config.columns;
