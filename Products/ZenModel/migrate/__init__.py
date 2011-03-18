@@ -215,3 +215,4 @@ import SpeedUpGlobalCatalog
 import addNotificationSubscriptions
 import SessionAuthentication
 import reindexIpAddresses
+import addIpv6Network
