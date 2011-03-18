@@ -11,10 +11,15 @@
 #
 ###########################################################################
 
+import math
+import re
+from ipaddr import IPAddress, IPNetwork
 import logging
 log = logging.getLogger('zen.DiscoverService')
 
-from Products.ZenUtils.IpUtil import numbip, strip
+import Globals
+
+from Products.ZenUtils.IpUtil import strip, ipwrap, ipunwrap, isip
 from Products.ZenEvents.Event import Event
 from Products.ZenEvents.ZenEventClasses import Status_Ping
 from Products.ZenModel.Device import manage_createDevice
@@ -25,8 +30,6 @@ from Products.ZenModel.Exceptions import DeviceExistsError
 import transaction
 
 from twisted.spread import pb
-import math
-import re
 
 from ModelerService import ModelerService
 
@@ -53,17 +56,19 @@ class IpNetProxy(pb.Copyable, pb.RemoteCopy):
 
     def fullIpList(self):
         "copied from IpNetwork"
-        if (self.netmask == 32): return [self.id]
-        ipnumb = numbip(self.id)
-        maxip = math.pow(2, 32 - self.netmask)
-        start = int(ipnumb + 1)
-        end = int(ipnumb + maxip - 1)
+        net = IPNetwork(ipunwrap(self.id))
+        if self.netmask == net.max_prefixlen: return [ipunwrap(self.id)]
+        ipnumb = long(int(net))
+        maxip = math.pow(2, net.max_prefixlen - self.netmask)
+        start = int(ipnumb+1)
+        end = int(ipnumb+maxip-1)
         return map(strip, range(start,end))
     
     def getNetworkName(self):
-        return "%s/%d" % (self.id, self.netmask)
+        return "%s/%d" % (ipunwrap(self.id), self.netmask)
 
 pb.setUnjellyableForClass(IpNetProxy, IpNetProxy)
+
 
 class DiscoverService(ModelerService):
 
@@ -77,7 +82,6 @@ class DiscoverService(ModelerService):
         if includeSubNets:
             nets += netObj.getSubNetworks()
         return map(IpNetProxy, nets)
-
 
     @translateError
     def remote_pingStatus(self, net, goodips, badips, resetPtr, addInactive):
@@ -150,15 +154,17 @@ class DiscoverService(ModelerService):
             # If we're not supposed to discover this IP, return None
             if not force and not autoDiscover:
                 return None, False
-            kw['manageIp'] = ip
+            kw['manageIp'] = ipunwrap(ip)
             dev = manage_createDevice(self.dmd, **kw)
         except DeviceExistsError, e:
             # Update device with latest info from zendisc
             e.dev.setManageIp(kw['manageIp'])
+
             # only overwrite title if it has not been set
-            if e.dev.title is None or len(e.dev.title) <= 0 or \
-               re.match('^(0*([0-9]{1,2}|1[0-9]{2}|2[0-4][0-9]|25[0-5])\.){3}0*([0-9]{1,2}|1[0-9]{2}|2[0-4][0-9]|25[0-5]){1}$', e.dev.title):
-                e.dev.setTitle(kw['deviceName'])
+            if not e.dev.title or isip(e.dev.title):
+                if not isip(kw.get('deviceName')):
+                    e.dev.setTitle(kw['deviceName'])
+
             for key in ('manageIp', 'deviceName', 'devicePath', 
                         'discoverProto'): 
                 del kw[key]
@@ -167,7 +173,7 @@ class DiscoverService(ModelerService):
             # Make and return a device proxy
             return self.createDeviceProxy(e.dev), False
         except Exception, ex:
-            log.exception("IP address %s (kw = %s) encountered error", ip, kw)
+            log.exception("IP address %s (kw = %s) encountered error", ipunwrap(ip), kw)
             raise pb.CopyableFailure(ex)
         transaction.commit()
         return self.createDeviceProxy(dev), True

@@ -46,6 +46,7 @@ class ifconfig(LinuxCommandPlugin):
     ifstart = re.compile(r"^(\S+)\s+Link encap:(.+)HWaddr (\S+)"
                          "|^(\S+)\s+Link encap:(.+)")
     v4addr = re.compile(r"inet addr:(\S+).*Mask:(\S+)")
+    v6addr = re.compile(r"inet6 addr: (\S+).*")
     flags = re.compile(r"^(.*) MTU:(\d+)\s+Metric:.*")
     
     def process(self, device, results, log):
@@ -97,13 +98,23 @@ class ifconfig(LinuxCommandPlugin):
                 relMap.append(iface)
                 continue
 
-            # get the ip address of an interface
+            # get the IP addresses of an interface
             maddr = self.v4addr.search(line)
             if maddr and iface:
-                # get ip and netmask
+                # get IP address and netmask
                 ip, netmask = maddr.groups()
                 netmask = self.maskToBits(netmask)
-                iface.setIpAddresses = ["%s/%s" % (ip, netmask)]
+                if not hasattr(iface, 'setIpAddresses'):
+                    iface.setIpAddresses = []
+                iface.setIpAddresses.append("%s/%s" % (ip, netmask))
+
+            maddr = self.v6addr.search(line)
+            if maddr and iface:
+                # get IP address
+                ip = maddr.groups()[0]
+                if not hasattr(iface, 'setIpAddresses'):
+                    iface.setIpAddresses = []
+                iface.setIpAddresses.append(ip)
 
             # get the state UP/DOWN of the interface
             mstatus = self.flags.search(line)

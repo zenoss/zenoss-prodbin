@@ -184,6 +184,7 @@ class DmdBuilder(object):
         manage_addLinkManager(self.dmd)
         manage_addJobManager(self.dmd)
         manage_addIpNetwork(self.dmd, "Networks")
+        manage_addIpNetwork(self.dmd, "IPv6 Networks", 64, version=6)
         manage_addZenPackManager(self.dmd)
         CreateZenPackPersistenceCatalog(self.dmd)
         CreateRRDTemplatesCatalog(self.dmd)

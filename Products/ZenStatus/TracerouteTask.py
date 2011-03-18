@@ -67,7 +67,7 @@ class TracerouteTask(ObservableMixin):
 
         # Needed for interface
         self.name = taskName
-        self.configId = configId if configId else taskName
+        self.configId = configId
         self.state = TaskStates.STATE_IDLE
         self.interval = scheduleIntervalSeconds
 
@@ -77,13 +77,21 @@ class TracerouteTask(ObservableMixin):
 
         self._daemon = zope.component.getUtility(ICollector)
 
-        self._notModeled = self._daemon.network.notModeled
-        self._traceTimedOut = self._daemon.network.traceTimedOut
+        if taskName.endswith('IPv6'):
+            self.version = 6 
+            self._network = self._daemon.ipv6network
+        else:
+            self.version = 4 
+            self._network = self._daemon.network
+
+        self._notModeled = self._network.notModeled
+        self._traceTimedOut = self._network.traceTimedOut
         self._errorDevices = []
 
         # add our collector's custom statistics
         self._statService = zope.component.queryUtility(IStatisticsService)
-        self._statService.addStatistic("traceroute_time", "GAUGE")
+        self._traceTimeStatName = "%s_traceroute_time" % self.version
+        self._statService.addStatistic(self._traceTimeStatName, "GAUGE")
 
         self._modeledCount = 0
         self._failedModeledCount = 0
@@ -130,8 +138,8 @@ class TracerouteTask(ObservableMixin):
         @return: A task to traceroute devices
         @rtype: Twisted deferred object
         """
-        self._daemon.network.saveTopology()
-        deferredCmds = []
+        self._network.saveTopology()
+        self.deferredCmds = []
         devices = self._chooseDevicesToTrace()
         if not devices:
             return defer.succeed("No devices to trace at this time.")
@@ -139,9 +147,9 @@ class TracerouteTask(ObservableMixin):
         log.debug("Devices to trace: %s", devices)
         for devIp in devices:
             d = defer.maybeDeferred(self._modelRoute, devIp)
-            deferredCmds.append(d)
+            self.deferredCmds.append(d)
 
-        dl = defer.DeferredList(deferredCmds, consumeErrors=True)
+        dl = defer.DeferredList(self.deferredCmds, consumeErrors=True)
         dl.addCallback(self._parseResults)
         dl.addCallback(self._processResults)
         return dl
@@ -155,7 +163,7 @@ class TracerouteTask(ObservableMixin):
         """
         # Get the first chunkSize or fewer devices
         chunkSize = self._preferences.options.tracechunk
-        traceDevices = self._daemon.network.disconnectedNodes()[:chunkSize]
+        traceDevices = self._network.disconnectedNodes()[:chunkSize]
         if not traceDevices:
             traceDevices = self._reTraceDevices(chunkSize)
         return traceDevices
@@ -218,7 +226,11 @@ class TracerouteTask(ObservableMixin):
                 self._failedModeledCount += 1
 
                 reason = command
-                command, = reason.value.args
+                if isinstance(reason.value, defer.CancelledError):
+                    log.debug("Cancelled a traceroute process during shutdown")
+                    continue
+
+                command = reason.value.args[0]
                 self._errorDevices.append(command.ip)
                 if isinstance(reason.value, TimeoutError):
                     msg = "Traceroute of %s timed out" % command.ip
@@ -250,7 +262,7 @@ class TracerouteTask(ObservableMixin):
         """
         Track our traceroute statistics
         """
-        stat = self._statService.getStatistic("traceroute_time")
+        stat = self._statService.getStatistic(self._traceTimeStatName)
         stat.value = command.lastStop - command.lastStart
 
     def _processResults(self, resultList):
@@ -262,7 +274,7 @@ class TracerouteTask(ObservableMixin):
         updates = 0
         for success, route in resultList:
             if success:
-                if self._daemon.network.updateTopology(route):
+                if self._network.updateTopology(route):
                     updates += 1
 
         return "Updated %d routes." % updates
@@ -280,6 +292,10 @@ class TracerouteTask(ObservableMixin):
             display += "%s\n" % self._lastErrorMsg
         return display
 
+    def cleanup(self):
+        for pr in self.deferredCmds:
+            pr.cancel()
+
 
 if __name__=='__main__':
     from twisted.internet import reactor
@@ -294,6 +310,7 @@ if __name__=='__main__':
     def postStartup():
         daemon = zope.component.getUtility(ICollector)
         daemon.network = NetworkModel()
+        daemon.ipv6network = NetworkModel(version=6)
 
     myPreferences = PingCollectionPreferences()
     myPreferences.postStartup = postStartup
@@ -306,7 +323,7 @@ if __name__=='__main__':
     # Now run traceroutes on devices
     daemon.network.notModeled = set(daemon.args)
     task = TracerouteTask('traceroute', 'traceroute', 300,
-                               daemon._prefs, daemon)
+                               daemon._prefs)
     daemon._scheduler.addTask(task, daemon._taskCompleteCallback, True)
     log.setLevel(logging.DEBUG)
     reactor.run()

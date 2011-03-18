@@ -53,6 +53,13 @@
     />
 
 <browser:directRouter
+    name="network_6_router"
+    for="*"
+    class=".network.Network6Router"
+    namespace="Zenoss.remote"
+    />
+
+<browser:directRouter
     name="template_router"
     for="*"
     class=".template.TemplateRouter"

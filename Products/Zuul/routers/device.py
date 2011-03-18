@@ -330,7 +330,7 @@ class DeviceRouter(TreeRouter):
         if isinstance(params, basestring):
             params = unjson(params)
         devices = facade.getDevices(uid, start, limit, sort, dir, params)
-        keys = ['name', 'ipAddress', 'productionState', 'events']
+        keys = ['name', 'ipAddress', 'productionState', 'events', 'ipAddressString']
         data = Zuul.marshal(devices, keys)
         return DirectResponse(devices=data, totalCount=devices.total,
                               hash=devices.hash_)

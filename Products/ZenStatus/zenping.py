@@ -28,6 +28,8 @@ import time
 import logging
 log = logging.getLogger("zen.zenping")
 
+from ipaddr import IPAddress
+
 import Globals
 import zope.interface
 import zope.component
@@ -38,7 +40,9 @@ from Products.ZenCollector.interfaces import ICollector, ICollectorPreferences,\
 from Products.ZenCollector.tasks import SimpleTaskFactory,\
                                         SubConfigurationTaskSplitter
 
-from Products.ZenStatus.AsyncPing import Ping
+from Products.ZenUtils.IpUtil import ipunwrap
+
+from Products.ZenStatus.PingService import PingService
 from Products.ZenStatus.TestPing import Ping as TestPing
 from Products.ZenStatus.TracerouteTask import TracerouteTask
 from Products.ZenStatus.PingTask import PingCollectionTask
@@ -130,10 +134,14 @@ class PingCollectionPreferences(object):
                           default=5,
                           type='int',
                           help="Number of devices to traceroute at once.")
-        parser.add_option('--topofile',
-                          dest='topofile',
+        parser.add_option('--ipv4topofile',
+                          dest='ipv4topofile',
                           default='',
-                          help="Use this file rather than the default.")
+                          help="Use this file rather than the default for IPv6.")
+        parser.add_option('--ipv6topofile',
+                          dest='ipv6topofile',
+                          default='',
+                          help="Use this file rather than the default for IPv6.")
         parser.add_option('--savetopominutes',
                           dest='savetopominutes',
                           default=45,
@@ -151,35 +159,50 @@ class PingCollectionPreferences(object):
             daemon.openPrivilegedPort('--ping')
 
         daemon.network = NetworkModel()
+        daemon.ipv6network = NetworkModel(version=6)
         if self.options.showroute:
-            daemon.network.showRoute(self.options.showroute)
+            targetNode = self.options.showroute
+            if daemon.network.resolveName(targetNode):
+                daemon.network.showRoute(targetNode)
+
+            elif daemon.ipv6network.resolveName(targetNode):
+                daemon.ipv6network.showRoute(targetNode)
+            else:
+                log.error("The IP address %s does not exist in IPv4 or IPv6 topologies.",
+                          targetNode)
             sys.exit(0)
 
         # Initialize our connection to the ping socket
         self._getPinger()
 
         # Start modeling network topology
-        task = TracerouteTask(TOPOLOGY_MODELER_NAME,
+        task = TracerouteTask(TOPOLOGY_MODELER_NAME + ' IPv4',
+                                   configId=TOPOLOGY_MODELER_NAME,
                                    taskConfig=daemon._prefs)
         daemon._scheduler.addTask(task, now=True)
 
-        # Start the event correlator
-        task = TopologyCorrelatorTask(TOPOLOGY_CORRELATOR_NAME,
+        task = TracerouteTask(TOPOLOGY_MODELER_NAME + ' IPv6',
+                                   configId=TOPOLOGY_MODELER_NAME,
+                                   taskConfig=daemon._prefs)
+        daemon._scheduler.addTask(task, now=True)
+
+        # Start the event correlators
+        task = TopologyCorrelatorTask(TOPOLOGY_CORRELATOR_NAME + ' IPv4',
+                                   configId=TOPOLOGY_CORRELATOR_NAME,
+                                   taskConfig=daemon._prefs)
+        daemon._scheduler.addTask(task, now=True)
+
+        task = TopologyCorrelatorTask(TOPOLOGY_CORRELATOR_NAME + ' IPv6',
+                                   configId=TOPOLOGY_CORRELATOR_NAME,
                                    taskConfig=daemon._prefs)
         daemon._scheduler.addTask(task, now=True)
 
     def preShutdown(self):
         daemon = zope.component.getUtility(ICollector)
 
-        # Run the correlator one last time
-        tasks = daemon._scheduler.getTasksForConfig(TOPOLOGY_CORRELATOR_NAME)
-        if tasks:
-            tasks[0].doTask()
-        else:
-            log.warn("Unable to run correlator as the task has been removed")
-
         # If we're running as a daemon, save the topology
         daemon.network._saveTopology()
+        daemon.ipv6network._saveTopology()
 
     def _getPinger(self):
         if self.pinger:
@@ -191,14 +214,14 @@ class PingCollectionPreferences(object):
                 fd = None
                 if self.options.useFileDescriptor is not None:
                     fd = int(self.options.useFileDescriptor)
-                self.pinger = Ping(self.pingTimeOut, fd)
+                self.pinger = PingService(self.pingTimeOut, fd)
 
 
 class PerIpAddressTaskSplitter(SubConfigurationTaskSplitter):
     subconfigName = 'monitoredIps'
 
     def makeConfigKey(self, config, subconfig):
-        return (config.id, subconfig.cycleTime, subconfig.ip)
+        return (config.id, subconfig.cycleTime, ipunwrap(subconfig.ip))
 
 
 class TopologyUpdater(object):

@@ -106,8 +106,8 @@ class IpInterface(OSComponent, Layer2Linkable):
         )
 
     zNoPropertiesCopy = ('ips','macaddress')
-   
-    localipcheck = re.compile(r'^127.|^0.').search
+
+    localipcheck = re.compile(r'^127.|^0.|^::1$|^fe80:').search
     localintcheck = re.compile(r'^lo0').search
     
     defaultIgnoreTypes = ('Other', 'softwareLoopback', 'CATV MAC Layer')
@@ -336,7 +336,7 @@ class IpInterface(OSComponent, Layer2Linkable):
 
     def getIpSortKey(self):
         """
-        Return the ipaddress as a 32bit integter for sorting purposes.
+        Return the IP address as an integter for sorting purposes.
         """
         if self.ipaddresses.countObjects():
             return self.ipaddresses()[0].primarySortKey()
@@ -346,7 +346,7 @@ class IpInterface(OSComponent, Layer2Linkable):
 
     def getIpAddress(self):
         """
-        Return the first ipaddress with its netmask ie: 1.1.1.1/24.
+        Return the first IP address with its netmask ie: 1.1.1.1/24.
         """
         if self.ipaddresses.countObjects():
             return self.ipaddresses()[0].getIpAddress()
@@ -356,7 +356,7 @@ class IpInterface(OSComponent, Layer2Linkable):
 
     def getIpAddressObj(self):
         """
-        Return the first real ipaddress object or None if none are found.
+        Return the first real IP address object or None if none are found.
         """
         if len(self.ipaddresses()):
             return self.ipaddresses()[0]

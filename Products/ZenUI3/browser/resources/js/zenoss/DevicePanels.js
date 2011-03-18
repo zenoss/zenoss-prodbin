@@ -33,7 +33,9 @@ Zenoss.DeviceColumnModel = Ext.extend(Ext.grid.ColumnModel, {
                 width: 100,
                 dataIndex: 'ipAddress',
                 header: _t('IP Address'),
-                renderer: Zenoss.render.ipAddress
+                renderer: function(ip, row, record) {
+                    return record.data.ipAddressString;
+                }
             },{
                 dataIndex: 'uid',
                 header: _t('Device Class'),
@@ -97,6 +99,7 @@ Zenoss.DeviceStore = Ext.extend(Ext.ux.grid.livegrid.Store, {
                   {name: 'uid', type: 'string'},
                   {name: 'name', type: 'string'},
                   {name: 'ipAddress', type: 'int'},
+                  {name: 'ipAddressString', type: 'string'},
                   {name: 'productionState', type: 'string'},
                   {name: 'events', type: 'auto'},
                   {name: 'availability', type: 'float'}

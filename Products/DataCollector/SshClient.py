@@ -33,6 +33,7 @@ from twisted.conch.ssh.keys import Key
 from twisted.internet import defer, reactor
 from Products.ZenEvents import Event
 from Products.ZenUtils.Utils import getExitMessage
+from Products.ZenUtils.IpUtil import getHostByName
 
 from Exceptions import *
 
@@ -837,7 +838,6 @@ def main():
     Each command must be enclosed in quotes (") to be interpreted
     properly as a complete unit.
     """
-    import socket
     from itertools import chain
     import pprint
 
@@ -848,7 +848,7 @@ def main():
     log.setLevel(options.logseverity)
 
     client = SshClient(options.hostname,
-                       socket.gethostbyname(options.hostname),
+                       getHostByName(options.hostname),
                        options.port,
                        options=options)
 

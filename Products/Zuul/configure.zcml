@@ -84,6 +84,12 @@
              for="*"
              />
 
+    <adapter factory=".facades.Network6Facade"
+             provides=".interfaces.INetworkFacade"
+             name="network6"
+             for="*"
+             />
+
     <adapter factory=".facades.ProcessFacade"
              provides=".interfaces.IProcessFacade"
              name="process"

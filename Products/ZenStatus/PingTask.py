@@ -24,21 +24,21 @@ import Globals
 import zope.interface
 import zope.component
 
-from twisted.python.failure import Failure
-
 from Products.ZenCollector.interfaces import ICollector, ICollectorPreferences,\
                                              IDataService,\
                                              IEventService,\
                                              IScheduledTask
 from Products.ZenCollector.tasks import TaskStates, BaseTask
 
-from Products.ZenStatus.AsyncPing import PingJob
+from Products.ZenStatus.PingJob import PingJob
 from Products.ZenUtils.Utils import unused
 from Products.ZenCollector.services.config import DeviceProxy
 unused(DeviceProxy)
 
 from Products.ZenEvents.ZenEventClasses import Status_Ping
 from Products.ZenEvents import Event
+
+from Products.ZenUtils.IpUtil import ipunwrap
 
 
 # Try a circular import?
@@ -84,7 +84,7 @@ class PingCollectionTask(BaseTask):
         # The taskConfig corresponds to a DeviceProxy
         self._device = taskConfig
         self._devId = deviceId
-        self._manageIp = self._device.manageIp
+        self._manageIp = ipunwrap(self._device.manageIp)
         self.interval = scheduleIntervalSeconds
 
         self._daemon = zope.component.queryUtility(ICollector)
@@ -101,7 +101,7 @@ class PingCollectionTask(BaseTask):
         # Split up so that every interface's IP gets its own ping job
         self.config = self._device.monitoredIps[0]
         self._iface = self.config.iface
-        self.pingjob = PingJob(self.config.ip, self._devId,
+        self.pingjob = PingJob(ipunwrap(self.config.ip), self._devId,
                                 maxtries=self.config.tries,
                                 sampleSize=self.config.sampleSize,
                                 iface=self._iface)
@@ -134,7 +134,6 @@ class PingCollectionTask(BaseTask):
         """
         # Decode the exception
         msg = reason.getErrorMessage()
-        pingFail = "%s %s" % (self._devId, self.config.ip)
         if not msg: # Sometimes we get blank error messages
             msg = reason.__class__
 

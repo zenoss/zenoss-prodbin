@@ -23,6 +23,7 @@ import socket
 import cPickle
 import base64
 from struct import unpack
+from ipaddr import IPAddress
 from exceptions import EOFError, IOError
 
 # Magical interfacing with C code
@@ -52,6 +53,15 @@ class sockaddr_in(c.Structure):
         ('addr', c.c_ubyte * 4)
         ];
 
+class sockaddr_in6(c.Structure):
+    _fields_ = family + [
+        ('port', c.c_ubyte * 2),        # need to decode from net-byte-order
+        ('flow', c.c_ubyte * 4),
+        ('addr', c.c_ubyte * 16),
+        ('scope_id', c.c_ubyte * 4)
+        ];
+
+
 # teach python that the return type of snmp_clone_pdu is a pdu pointer
 netsnmp.lib.snmp_clone_pdu.restype = netsnmp.netsnmp_pdu_p
 
@@ -62,12 +72,8 @@ except socket.error:
     pass
 
 def lp2oid(ptr, length):
-    "Convert a pointer to an array of longs to an oid"
+    "Convert a pointer to an array of longs to an OID"
     return '.'.join([str(ptr[i]) for i in range(length)])
-
-def bp2ip(ptr):
-    "Convert a pointer to 4 bytes to a dotted-ip-address"
-    return '.'.join([str(ptr[i]) for i in range(4)])
 
 
 class FakePacket(object):
@@ -76,6 +82,7 @@ class FakePacket(object):
     """
     def __init__(self):
         self.fake = True
+
 
 class ZenTrap(EventServer, CaptureReplay):
     """
@@ -94,18 +101,24 @@ class ZenTrap(EventServer, CaptureReplay):
         # Command-line argument sanity checking
         self.processCaptureReplayOptions()
 
+        # Check for IPv6-ness
+        listenip = self.options.listenip
+        #if IPAddress(listenip).version == 6:
+        #    listenip = 'udp6:' + listenip
+
         if not self.options.useFileDescriptor and self.options.trapport < 1024:
+            # Makes call to zensocket here
             self.openPrivilegedPort('--listen', '--proto=udp',
-                '--port=%s:%d' % (self.options.listenip,
-                self.options.trapport))
+                '--port=%s:%d' % (listenip, self.options.trapport))
+
         self.session = netsnmp.Session()
         if self.options.useFileDescriptor is not None:
             fileno = int(self.options.useFileDescriptor)
             # open port 1162, but then dup fileno onto it
-            self.session.awaitTraps('%s:1162' % self.options.listenip, fileno)
+            self.session.awaitTraps('%s:1162' % listenip, fileno)
         else:
-            self.session.awaitTraps('%s:%d' % (
-                self.options.listenip, self.options.trapport))
+            # NOTE: on bad input listenip, pukes with SnmpError exception
+            self.session.awaitTraps('%s:%d' % (listenip, self.options.trapport))
         self.session.callback = self.receiveTrap
 
         twistedsnmp.updateReactor()
@@ -149,7 +162,6 @@ class ZenTrap(EventServer, CaptureReplay):
         d.addErrback(error)
         return d
 
-
     def getEnterpriseString(self, pdu):
         """
         Get the enterprise string from the PDU or replayed packet
@@ -165,7 +177,6 @@ class ZenTrap(EventServer, CaptureReplay):
             enterprise = lp2oid(pdu.enterprise, pdu.enterprise_length)
         return enterprise
 
-
     def getResult(self, pdu):
         """
         Get the values from the PDU or replayed packet
@@ -180,8 +191,6 @@ class ZenTrap(EventServer, CaptureReplay):
         else:
             variables = netsnmp.getResult(pdu)
         return variables
-
-
 
     def getCommunity(self, pdu):
         """
@@ -199,7 +208,6 @@ class ZenTrap(EventServer, CaptureReplay):
                 community = c.string_at(pdu.community, pdu.community_len)
 
         return community
-
 
     def convertPacketToPython(self, addr, pdu):
         """
@@ -221,6 +229,7 @@ class ZenTrap(EventServer, CaptureReplay):
         packet.enterprise_length = pdu.enterprise_length
         # Here's where we start to encounter differences between packet types
         if pdu.version == 0:
+            # SNMPv1 can't be received via IPv6
             packet.agent_addr =  [pdu.agent_addr[i] for i in range(4)]
             packet.trap_type = pdu.trap_type
             packet.specific_type = pdu.specific_type
@@ -228,7 +237,6 @@ class ZenTrap(EventServer, CaptureReplay):
             packet.community = self.getCommunity(pdu)
 
         return packet
-
 
     def replay(self, pdu):
         """
@@ -239,7 +247,6 @@ class ZenTrap(EventServer, CaptureReplay):
         """
         ts = time.time()
         d = self.asyncHandleTrap([pdu.host, pdu.port], pdu, ts)
-
 
     def oid2name(self, oid, exactMatch=True, strip=False):
         """
@@ -278,7 +285,6 @@ class ZenTrap(EventServer, CaptureReplay):
 
         return oid
 
-
     def receiveTrap(self, pdu):
         """
         Accept a packet from the network and spin off a Twisted
@@ -303,18 +309,54 @@ class ZenTrap(EventServer, CaptureReplay):
         #   for now, we'll make the scary assumption this data is a
         #   sockaddr_in
         transport = c.cast(pdu.transport_data, c.POINTER(sockaddr_in))
-        if not transport: return
-        transport = transport.contents
+        if not transport:
+            self.log.warn("Not able to convert a trap into a readable object -- ignoring")
+            return
 
-        #   Just to make sure, check to see that it is type AF_INET
-        if transport.family != socket.AF_INET: return
+        if transport.contents.family == socket.AF_INET6:
+            transport = c.cast(pdu.transport_data, c.POINTER(sockaddr_in6))
+            if not transport:
+                self.log.warn("Not able to convert a trap into a readable object -- ignoring")
+                return
+
+        transport = transport.contents
+        import pdb;pdb.set_trace()
+
+        #  Just to make sure, check to see that it is type AF_INET or AF_INET6
+        if transport.family not in (socket.AF_INET, socket.AF_INET6):
+            self.log.warn("Got a packet with unrecognized network family: %s",
+                          transport.family)
+            return
+
         # get the address out as ( host-ip, port)
-        addr = [bp2ip(transport.addr),
-                transport.port[0] << 8 | transport.port[1]]
+        addr = [self.getPacketIp(transport), transport.port[0] << 8 | transport.port[1]]
 
         self.log.debug( "Received packet from %s at port %s" % (addr[0], addr[1]) )
         self.processPacket(addr, pdu, ts)
 
+    def getPacketIp(self, transport):
+        """
+        For IPv4, convert a pointer to 4 bytes to a dotted-ip-address
+        For IPv6, convert a pointer to 16 bytes to a canonical IPv6 address.
+        """
+        if transport.family == socket.AF_INET:
+            return '.'.join([str(transport.addr[i]) for i in range(4)])
+        elif transport.family == socket.AF_INET6:
+            # To form an IPv6 address, need to combine pairs of octets (in hex)
+            # and join them with a colon
+            self.log.error("transport.addr = %s", [i for i in transport.addr])
+            ipv6 = ':'.join([ "%x%x" % tuple(map(int, x)) \
+                                  for x in zip(transport.addr[::2], transport.addr[1::2]) ])
+            # Now canonicalize the IP
+            try:
+                ip = str(IPAddress(ipv6))
+                return ip
+            except ValueError:
+                self.log.warn("The IPv6 address is incorrect: %s", ipv6)
+                return "::"
+
+        self.log.error("Unknown address family %s", transport.family)
+        return "0.0.0.0"
 
     def processPacket(self, addr, pdu, ts):
         """
@@ -436,7 +478,7 @@ class ZenTrap(EventServer, CaptureReplay):
             @return: Twisted deferred object
             @rtype: Twisted deferred object
             """
-            self.capturePacket( addr[0], addr, pdu)
+            self.capturePacket(addr[0], addr, pdu)
 
             oid = ''
             eventType = 'unknown'
@@ -454,6 +496,7 @@ class ZenTrap(EventServer, CaptureReplay):
 
                 # Sometimes the agent_addr is useless. Use addr[0] unchanged in
                 # this case.
+                # Note that SNMPv1 packets *cannot* come in via IPv6
                 new_addr = '.'.join(map(str, [
                     pdu.agent_addr[i] for i in range(4)]))
 
@@ -555,6 +598,7 @@ class ZenTrap(EventServer, CaptureReplay):
                 reply.contents.command = netsnmp.SNMP_MSG_RESPONSE
                 reply.contents.errstat = 0
                 reply.contents.errindex = 0
+                # FIXME: might need to add udp6 for IPv6 addresses
                 sess = netsnmp.Session(peername='%s:%d' % tuple(addr),
                                        version=pdu.version)
                 sess.open()
@@ -578,8 +622,10 @@ class ZenTrap(EventServer, CaptureReplay):
             dest='trapport', type='int', default=TRAP_PORT,
             help="Listen for SNMP traps on this port rather than the default")
         self.parser.add_option('--listenip',
+            # FIXME: need :: to listen on all IPv6 + IPv4
+            #dest='listenip', default='::',
             dest='listenip', default='0.0.0.0',
-            help="IP address to listen on. Default is 0.0.0.0")
+            help="IP address to listen on. Default is ::")
         self.parser.add_option('--useFileDescriptor',
                                dest='useFileDescriptor',
                                type='int',

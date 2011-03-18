@@ -157,6 +157,11 @@ class DeviceInfo(InfoBase, HasEventsInfoMixin):
             raise Exception(msg)
 
     ipAddress = property(getIpAddress, setIpAddress)
+    
+    @property
+    def ipAddressString(self):
+        if self._object.manageIp:
+            return str(IpUtil.IPAddress(self._object.manageIp))
 
     def getProductionState(self):
         return self._object.convertProdState(self._object.productionState)

@@ -15,13 +15,13 @@ __doc__="""ZDeviceLoader.py
 
 load devices from a GUI screen in the ZMI
 
-$Id: ZDeviceLoader.py,v 1.19 2004/04/22 02:14:12 edahl Exp $"""
-
-__version__ = "$Revision: 1.19 $"[11:-2]
+"""
 
 import socket
 from logging import StreamHandler, Formatter, getLogger
 log = getLogger("zen.DeviceLoader")
+
+from ipaddr import IPAddress
 
 import transaction
 from zope.interface import implements
@@ -32,6 +32,8 @@ from OFS.SimpleItem import SimpleItem
 
 from Products.ZenUtils.Utils import isXmlRpc, setupLoggingHeader 
 from Products.ZenUtils.Utils import binPath, clearWebLoggingStream
+from Products.ZenUtils.IpUtil import getHostByName, ipwrap
+
 from Products.ZenUtils.Exceptions import ZentinelException
 from Products.ZenModel.Exceptions import DeviceExistsError, NoSnmp
 from Products.ZenModel.Device import manage_createDevice
@@ -104,12 +106,21 @@ class BaseDeviceLoader(object):
             deviceName = deviceName.replace(' ', '')
             manageIp = manageIp.replace(' ', '')
 
+            # Check to see if we got passed in an IPv6 address
+            try:
+                ipv6addr = IPAddress(deviceName)
+                manageIp = deviceName
+                deviceName = ipwrap(deviceName)
+                deviceProperties.setdefault('title', manageIp)
+            except ValueError:
+                pass
+
             # If we're not discovering and we have no IP, attempt the IP lookup
             # locally
             if discoverProto=='none':
                 if not manageIp:
                     try:
-                        manageIp = socket.gethostbyname(deviceName)
+                        manageIp = getHostByName(deviceName)
                     except socket.error:
                         pass
 

@@ -23,6 +23,8 @@ import socket
 # the wrong reactor.
 import pysamba.twisted.reactor
 
+from ipaddr import IPAddress
+
 import Globals
 from optparse import SUPPRESS_HELP
 
@@ -30,19 +32,19 @@ from Products.DataCollector.zenmodeler import ZenModeler
 from Products.ZenUtils.Exceptions import ZentinelException
 from Products.ZenUtils.Utils import unused
 from Products.ZenUtils.Driver import drive
-from Products.ZenUtils.IpUtil import asyncNameLookup
-from Products.ZenUtils.IpUtil import isip
-from Products.ZenUtils.IpUtil import parse_iprange
+from Products.ZenUtils.IpUtil import asyncNameLookup, isip, parse_iprange, \
+                                     getHostByName, ipunwrap
 from Products.ZenUtils.NJobs import NJobs
 from Products.ZenUtils.snmp import SnmpV1Config, SnmpV2cConfig
 from Products.ZenUtils.snmp import SnmpAgentDiscoverer
 from Products.ZenModel.Exceptions import NoIPAddress
 from Products.ZenEvents.ZenEventClasses import Status_Snmp
 from Products.ZenEvents.Event import Info
-from Products.ZenStatus.AsyncPing import Ping
+from Products.ZenStatus.PingService import PingService as Ping
 from Products.ZenHub.PBDaemon import FakeRemote, PBDaemon
 from Products.ZenHub.services  import DiscoverService, ModelerService
 unused(DiscoverService, ModelerService) # for pb
+
 
 
 from twisted.internet.defer import succeed
@@ -439,7 +441,7 @@ class ZenDisc(ZenModeler):
 
 
                 # now create the device by calling zenhub
-                yield self.config().callRemote('createDevice', ip, 
+                yield self.config().callRemote('createDevice', ipunwrap(ip), 
                                    force=forceDiscovery, **kw)
 
                 result = driver.next()
@@ -604,13 +606,13 @@ class ZenDisc(ZenModeler):
         deviceName = self.options.device
         self.log.info("Looking for %s" % deviceName)
         ip = None
-        if isip(deviceName):
-            ip = deviceName
+        if isip(ipunwrap(deviceName)):
+            ip = ipunwrap(deviceName)
         else:
             try:
                 # FIXME ZenUtils.IpUtil.asyncIpLookup is probably a better tool
                 # for this, but it hasn't been tested, so it's for another day
-                ip = socket.gethostbyname(deviceName)
+                ip = getHostByName(deviceName)
             except socket.error: 
                 ip = ""
         if not ip:
@@ -638,7 +640,7 @@ class ZenDisc(ZenModeler):
         self.log.debug("My hostname = %s", myname)
         myip = None
         try:
-            myip = socket.gethostbyname(myname)
+            myip = getHostByName(myname)
             self.log.debug("My IP address = %s", myip)
         except (socket.error, DNSNameError):
             raise SystemExit("Failed lookup of my IP for name %s", myname)
@@ -724,8 +726,7 @@ class ZenDisc(ZenModeler):
         script = getattr(device, "zAutoAllocateScript", None)
         self.log.debug("no auto-allocation script found")
         if script:
-            import string
-            script = string.join(script, "\n")
+            script = '\n'.join(script)
             self.log.debug("using script\n%s" % script)
             try:
                 compile(script, "zAutoAllocateScript", "exec")

@@ -13,14 +13,74 @@
 
 __doc__ = """IpUtil
 
-IPv4 utility functions
+IPv4 and IPv6 utility functions
+
+Internally, IPv6 addresses will use another character rather than ':' as an underscore
+is representable in URLs.  Zope object names *MUST* be okay in URLs.
 
 """
 
 import types
 import re
+import socket
+
+from ipaddr import IPAddress, IPNetwork
+
 from Products.ZenUtils.Exceptions import ZentinelException
 from twisted.names.client import lookupPointer
+from twisted.internet import threads
+
+IP_DELIM = '..'
+
+def ipwrap(ip):
+    """
+    Convert IP addresses to a Zope-friendly format.
+    """
+    if isinstance(ip, str):
+        return ip.replace(':', IP_DELIM)
+    return ip
+
+def ipunwrap(ip):
+    """
+    Convert IP addresses from a Zope-friendly format to a real address.
+    """
+    if isinstance(ip, str):
+        return ip.replace(IP_DELIM, ':')
+    return ip
+
+
+def bytesToCanonIpv6(byteString):
+    """
+    SNMP provides a 16-byte index to table items, where the index
+    represents the IPv6 address.
+    Return an empty string or the canonicalized IPv6 address.
+
+    >>> bytesToCanonIpv6( ['254','128','0','0','0','0','0','0','2','80','86','255','254','138','46','210'])
+    'fe80::250:56ff:fe8a:2ed2'
+    >>> bytesToCanonIpv6( ['253','0','0','0','0','0','0','0','0','0','0','0','10','175','210','5'])
+    'fd00::aaf:d205'
+    >>> bytesToCanonIpv6( ['hello','world'])
+    ''
+    >>> bytesToCanonIpv6( ['253','0','0','0','0','0','0','0','0','0','0','0','10','175','210','5'])
+    'fd00::aaf:d205'
+    """
+    # To form an IPv6 address, need to combine pairs of octets (in hex)
+    # and join them with a colon
+    try:
+        left =  map(int, byteString[::2])
+        right = map(int, byteString[1::2])
+    except ValueError:
+        return ''
+    ipv6 = ':'.join([ "%x%02x" % tuple(x) for x in zip(left, right) ])
+
+    # Now canonicalize the IP
+    ip = ''
+    try:
+        ip = str(IPAddress(ipv6))
+    except ValueError:
+        pass
+    return ip
+
 
 class IpAddressError(ZentinelException): pass
 
@@ -30,8 +90,18 @@ class InvalidIPRangeError(Exception):
     """
 
 
-# Match if this is an IPv4 address
-isip = re.compile("^\d+\.\d+\.\d+\.\d+$").search
+def isip(ip):
+    uIp = str(ipunwrap(ip))
+    try:
+        socket.inet_pton(socket.AF_INET, uIp)
+    except socket.error:
+        try:
+            socket.inet_pton(socket.AF_INET6, uIp)
+        except socket.error:
+            return False
+    return True
+
+
 def checkip(ip):
     """
     Check that an IPv4 address is valid. Return true
@@ -41,38 +111,19 @@ def checkip(ip):
     True
     >>> try: checkip(10)
     ... except IpAddressError, ex: print ex
-    10 is not a dot delimited address
+    10 is an invalid address
     >>> try: checkip('10')
     ... except IpAddressError, ex: print ex
     10 is an invalid address
     >>> try: checkip('10.10.20.500')
     ... except IpAddressError, ex: print ex
     10.10.20.500 is an invalid address
-    >>> checkip('10.10.20.00')
-    True
     >>> checkip('10.10.20.0')
     True
     >>> checkip('10.10.20.255')
     True
     """
-    success = True
-    if ip == '': 
-        success = False
-    else:
-        try:
-            octs = ip.split('.')
-        except:
-            raise IpAddressError( '%s is not a dot delimited address' % ip )
-        if len(octs) != 4:
-            success = False
-        else:
-            for o in octs:
-                try:
-                    if not (0 <= int(o) <= 255):
-                        success = False
-                except:
-                    success = False
-    if not success:
+    if not isip(ip):
         raise IpAddressError( "%s is an invalid address" % ip )
     return True
 
@@ -98,13 +149,9 @@ def ipToDecimal(ip):
     10.10.20.500 is an invalid address
     """
     checkip(ip)
-    octs = ip.split('.')
-    octs.reverse()
-    i = 0L
-    for j in range(len(octs)):
-        i += (256l ** j) * int(octs[j])
-    return i    
-
+    # The unit tests expect to always get a long, while the
+    # ipaddr.IPaddress class doesn't provide a direct "to long" capability
+    return long(int(IPAddress(ipunwrap(ip))))
 
 def ipFromIpMask(ipmask):
     """
@@ -116,7 +163,6 @@ def ipFromIpMask(ipmask):
     '1.1.1.1'
     """
     return ipmask.split("/")[0]
-
 
 def strip(ip):
     """
@@ -134,20 +180,7 @@ def decimalIpToStr(ip):
     >>> decimalIpToStr(ipToDecimal('10.23.44.57'))
     '10.23.44.57'
     """
-    _masks = (
-        0x000000ffL,
-        0x0000ff00L,
-        0x00ff0000L,
-        0xff000000L,
-    )
-    o = []
-    for i in range(len(_masks)):
-        t = ip & _masks[i]
-        s = str(t >> (i*8))
-        o.append(s)
-    o.reverse()
-    return '.'.join(o)
-
+    return str(IPAddress(ipunwrap(ip)))
 
 def hexToBits(hex):
     """
@@ -269,18 +302,7 @@ def decimalNetFromIpAndNet(ip, netmask):
     168564992L
     """
     checkip(ip)
-    ip = ipToDecimal(ip)
-
-    try: netbits = int(netmask)
-    except ValueError: netbits = -1
-
-    if 0 < netbits <= 32:
-        netmask = bitsToDecimalMask(netbits)
-    else:
-        checkip(netmask)
-        netmask = ipToDecimal(netmask)
-    return ip & netmask
-
+    return long(int(IPNetwork( ipunwrap(ip) + '/' + str(netmask)).network))
 
 def getnetstr(ip, netmask):
     """
@@ -301,7 +323,8 @@ def netFromIpAndNet(ip, netmask):
     >>> netFromIpAndNet('10.12.25.33', 32)
     '10.12.25.33'
     """
-    return decimalIpToStr(getnet(ip, netmask))
+    checkip(ip)
+    return str(IPNetwork( ipunwrap(ip) + '/' + str(netmask)).network)
 
 def asyncNameLookup(address, uselibcresolver = True):
     """
@@ -309,8 +332,6 @@ def asyncNameLookup(address, uselibcresolver = True):
     """
     if uselibcresolver:
         # This is the most reliable way to do a lookup use it 
-        from twisted.internet import threads
-        import socket
         return threads.deferToThread(lambda : socket.gethostbyaddr(address)[0])
     else:
         # There is a problem with this method because it will ignore /etc/hosts
@@ -328,10 +349,31 @@ def asyncIpLookup(name):
 
     This hasn't been tested.
     """
-    from twisted.internet import threads
-    import socket
     return threads.deferToThread(lambda : socket.gethostbyname(name))
 
+def generateAddrInfos(hostname):
+    """
+    generator for dicts from addrInfo structs for hostname
+    """
+    for addrInfo in socket.getaddrinfo(hostname, None):
+        yield {"ipAddress": addrInfo[-1][0],
+                "ipFamily": addrInfo[0]}
+
+def getHostByName(hostname, preferredIpVersion=None):
+    """
+    Look up an IP based on the name passed in, synchronously. Not using
+    socket.gethostbyname() because it does not support IPv6.
+
+    preferredIpVersion should equal something like socket.AF_INET or
+    socket.AF_INET6
+    """
+    addrInfos = generateAddrInfos(hostname)
+    if preferredIpVersion is not None:
+        for addrInfo in addrInfos:
+            if addrInfo['ipFamily'] == preferredIpVersion:
+                return addrInfo['ipAddress']
+    firstInfo = addrInfos.next()
+    return firstInfo['ipAddress']
 
 def parse_iprange(iprange):
     """
@@ -381,6 +423,8 @@ def getSubnetBounds(ip):
         >>> map(decimalIpToStr, getSubnetBounds('10.0.0.0'))
         ['10.0.0.0', '10.255.255.255']
         >>> map(decimalIpToStr, getSubnetBounds('100.0.0.0'))
+        ['100.0.0.0', '100.255.255.255']
+        >>> map(decimalIpToStr, getSubnetBounds('::100.0.0.0'))
         ['100.0.0.0', '100.255.255.255']
 
     """

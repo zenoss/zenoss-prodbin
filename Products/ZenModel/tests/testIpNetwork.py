@@ -17,6 +17,7 @@ if __name__ == '__main__':
 from Products.ZenModel.Exceptions import *
 
 from ZenModelBaseTest import ZenModelBaseTest
+from Products.ZenUtils.IpUtil import IP_DELIM
 
 class TestIpNetwork(ZenModelBaseTest):
 
@@ -26,14 +27,33 @@ class TestIpNetwork(ZenModelBaseTest):
         net = self.dmd.Networks.createNet("1.2.3.0/24")
         self.assert_("1.2.3.0" in self.dmd.Networks.objectIds())
         self.assert_(self.dmd.Networks.getNet('1.2.3.0') == net)
+
         net = self.dmd.Networks.createNet('2.3.4.0',24)
         self.assert_('2.3.4.0' in self.dmd.Networks.objectIds())
         self.assert_(self.dmd.Networks.getNet('2.3.4.0') == net)
         
-        
+    def testIpNetCreation(self):
+        "Test IPv6 networks"
+        # Test a correctly specified address
+        net = self.dmd.Networks.createNet('2002:ac10:10a:1234:21e:52ff:fe74:40e', 64)
+        goodNetId = IP_DELIM.join(['2002', 'ac10', '10a', '', ''])
+        self.assert_(goodNetId in self.dmd.Networks.getNetworkRoot(version=6).objectIds())
+
+        # Subnet splitting is only done on /48 and /64 bit boundaries,
+        # with the maximum length of subnets being /64
+        net = self.dmd.Networks.createNet('2002:ac10:10a:1234:21e:52ff:fe74:40e', 70)
+        self.assert_(goodNetId == net.getId())
+
+        net = self.dmd.Networks.createNet('2002:ac10:10a:1234:21e:52ff:fe74:40e', 20)
+        self.assert_(goodNetId == net.getId())
+
     def testBadIpNetCreation(self):
         "Test evil network masks"
         net = self.dmd.Networks.createNet("1.2.3.4/24", None)
+        self.assert_("1.2.3.0" in self.dmd.Networks.objectIds())
+        self.assert_(self.dmd.Networks.getNet('1.2.3.0') == net)
+
+        net = self.dmd.Networks.createNet("1.2.3.4/24", 70)
         self.assert_("1.2.3.0" in self.dmd.Networks.objectIds())
         self.assert_(self.dmd.Networks.getNet('1.2.3.0') == net)
 

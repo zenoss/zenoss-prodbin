@@ -187,7 +187,8 @@ class DeviceResultInt:
             ip_list = ( obj.getIpAddress() 
                          for obj in dev.os.interfaces.objectValuesAll() )
             ip_list = [ ip for ip in ip_list if ip and \
-                         not ip.startswith('127.0.0.1')]
+                         not ip.startswith('127.0.0.1') and \
+                         not ip.startswith('::1')]
         else:
             manage_ip = self.getDeviceIp()
             if manage_ip:

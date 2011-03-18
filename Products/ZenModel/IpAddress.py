@@ -23,6 +23,7 @@ log = logging.getLogger("zen.IpAddress")
 #base classes for IpAddress
 from ManagedEntity import ManagedEntity
 
+from ipaddr import IPAddress
 
 from AccessControl import ClassSecurityInfo
 from Globals import DTMLFile
@@ -31,12 +32,13 @@ import zope.interface
 
 from Products.ZenModel.interfaces import IIndexed
 from Products.ZenModel.Linkable import Layer3Linkable
-from Products.ZenRelations.RelSchema import *
-from Products.ZenUtils.IpUtil import *
-from Products.ZenModel.Exceptions import *
+from Products.ZenRelations.RelSchema import ToOne, ToMany, ToManyCont
+from Products.ZenUtils.IpUtil import maskToBits, checkip, ipToDecimal, netFromIpAndNet, \
+                                     ipwrap, ipunwrap
+from Products.ZenModel.Exceptions import WrongSubnetError
 
 def manage_addIpAddress(context, id, netmask=24, REQUEST = None):
-    """make a IpAddress"""
+    """make an IpAddress"""
     ip = IpAddress(id, netmask)
     context._setObject(ip.id, ip)
     if REQUEST is not None:
@@ -55,9 +57,12 @@ class IpAddress(ManagedEntity, Layer3Linkable):
 
     default_catalog = 'ipSearch'
 
+    version = 4
+
     _properties = (
         {'id':'netmask', 'type':'string', 'mode':'w', 'setter':'setNetmask'},
         {'id':'ptrName', 'type':'string', 'mode':'w'},
+        {'id':'version', 'type':'int', 'mode':'w'},
         )
     _relations = ManagedEntity._relations + (
         ("network", ToOne(ToManyCont,"Products.ZenModel.IpNetwork","ipaddresses")),
@@ -89,38 +94,43 @@ class IpAddress(ManagedEntity, Layer3Linkable):
 
     def __init__(self, id, netmask=24):
         checkip(id)
-        ManagedEntity.__init__(self, id)
+        ManagedEntity.__init__(self, ipwrap(id))
+        ipobj = IPAddress(ipunwrap(id))
+        if ipobj.version == 6:
+            # No user-definable subnet masks for IPv6
+            netmask = 64
         self._netmask = maskToBits(netmask)
         self.ptrName = None
-        #self.setPtrName()
-
+        self.title = ipunwrap(id)
+        self.version = ipobj.version
 
     def setPtrName(self):
         try:
-            data = socket.gethostbyaddr(self.id)
+            data = socket.gethostbyaddr(ipunwrap(self.id))
             if data: self.ptrName = data[0]
         except socket.error, e:
             self.ptrName = ""
-            log.warn("%s: %s", self.id, e)
-
+            log.warn("%s: %s", self.title, e)
 
     security.declareProtected('View', 'primarySortKey')
     def primarySortKey(self):
-        """make sure that networks sort correctly"""
-        return numbip(self.id)
-
+        """
+        Make sure that networks sort correctly
+        """
+        return ipToDecimal(self.id)
 
     def setNetmask(self, value):
         self._netmask = maskToBits(value)
 
     def _setPropValue(self, id, value):
-        """override from PerpertyManager to handle checks and ip creation"""
+        """
+        Override from PerpertyManager to handle checks and IP creation
+        """
         self._wrapperCheck(value)
         if id == 'netmask':
             self.setNetmask(value)
         else:
             setattr(self,id,value)
-
 
     def __getattr__(self, name):
         if name == 'netmask':
@@ -128,10 +138,11 @@ class IpAddress(ManagedEntity, Layer3Linkable):
         else:
             raise AttributeError( name )
 
-
     security.declareProtected('Change Device', 'setIpAddress')
     def setIpAddress(self, ip):
-        """set the ipaddress can be in the form 1.1.1.1/24 to also set mask"""
+        """
+        Set the IP address. Use the format 1.1.1.1/24 to also set the netmask
+        """
         iparray = ip.split("/")
         if len(iparray) > 1:
             ip = iparray[0]
@@ -139,30 +150,29 @@ class IpAddress(ManagedEntity, Layer3Linkable):
         checkip(ip)
         aqself = self.primaryAq() #set aq path
         network = aqself.aq_parent
-        netip = getnetstr(ip, network.netmask)
+        netip = netFromIpAndNet(ip, network.netmask)
         if netip == network.id:
-            network._renameObject(aqself.id, ip)
+            network._renameObject(aqself.id, ipwrap(ip))
         else:
             raise WrongSubnetError(
-                    "Ip %s is in a different subnet than %s" % (ip, self.id) )
-                    
-
+                    "IP %s is in a different subnet than %s" % (ipunwrap(ip), ipunwrap(self.id)) )
 
     security.declareProtected('View', 'getIp')
     def getIp(self):
-        """return only the ip"""
-        return self.id
-
+        """
+        Return only the IP address
+        """
+        return ipunwrap(self.id)
 
     security.declareProtected('View', 'getIpAddress')
     def getIpAddress(self):
-        """return the ip with its netmask in the form 1.1.1.1/24"""
-        return self.id + "/" + str(self._netmask)
-
+        """
+        Return the IP with its netmask in the form 1.1.1.1/24
+        """
+        return ipunwrap(self.id) + "/" + str(self._netmask)
 
     def __str__(self):
         return self.getIpAddress()
-
 
     security.declareProtected('View', 'getInterfaceName')
     def getInterfaceName(self):
@@ -170,13 +180,11 @@ class IpAddress(ManagedEntity, Layer3Linkable):
             return self.interface().name()
         return "No Interface"
 
-
     security.declareProtected('View', 'getNetworkName')
     def getNetworkName(self):
         if self.network():
             return self.network().getNetworkName()
         return "No Network"
-
 
     security.declareProtected('View', 'getNetworkUrl')
     def getNetworkUrl(self):
@@ -184,11 +192,11 @@ class IpAddress(ManagedEntity, Layer3Linkable):
             return self.network().absolute_url()
         return ""
 
-    
     security.declareProtected('View', 'getDeviceUrl')
     def getDeviceUrl(self):
-        """Get the primary url path of the device in which this ip
-        is associated with.  If no device return url to the ip itself.
+        """
+        Get the primary URL path of the device to which this IP
+        is associated.  If no device return the URL to the IP itself.
         """
         d = self.device()
         if d:
@@ -196,11 +204,12 @@ class IpAddress(ManagedEntity, Layer3Linkable):
         else:
             return self.getPrimaryUrlPath()
 
-
     def device(self):
-        """Reuturn the device for this ip for DeviceResultInt"""
-        int = self.interface()
-        if int: return int.device()
+        """
+        Return the device for this IP
+        """
+        iface = self.interface()
+        if iface: return iface.device()
         return None
 
     def index_object(self):
@@ -240,5 +249,6 @@ class IpAddress(ManagedEntity, Layer3Linkable):
         n = self.network()
         if n: return n.getPrimaryId()
         else: return None
+
 
 InitializeClass(IpAddress)

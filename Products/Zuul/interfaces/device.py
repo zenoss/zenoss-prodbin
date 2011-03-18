@@ -39,6 +39,7 @@ class IDeviceInfo(IInfo):
     """
     device = Attribute('The ID of the device')
     ipAddress = Attribute('The management IP address')
+    ipAddressString = Attribute('A string representation of the management IP address')
     productionState = Attribute('The production state of the device')
     events = Attribute('A list of (severity, count) tuples for the three most'
                        ' severe event severities')

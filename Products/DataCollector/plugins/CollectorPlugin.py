@@ -43,7 +43,8 @@ class CollectorPlugin(object):
                         'zCollectorClientTimeout',
                         )
 
-    isip = iputil.isip
+    def isip(self, ip):
+        return iputil.isip(ip)
     
     def prepId(self, id, subchar='_'):
         """Return the global prep ID

@@ -23,6 +23,8 @@ from xml.dom import minidom
 import logging
 log = logging.getLogger('zen')
 
+from ipaddr import IPAddress, IPNetwork
+
 from Globals import DTMLFile
 from Globals import InitializeClass
 from Acquisition import aq_base
@@ -48,9 +50,9 @@ from Products.Jobber.jobs import ShellCommandJob, JobMessenger
 from Products.Jobber.status import SUCCESS, FAILURE
 from Products.ZenWidgets import messaging
 
-def manage_addIpNetwork(context, id, netmask=24, REQUEST = None):
+def manage_addIpNetwork(context, id, netmask=24, REQUEST = None, version=4):
     """make a IpNetwork"""
-    net = IpNetwork(id, netmask=netmask)
+    net = IpNetwork(id, netmask=netmask, version=version)
     context._setObject(net.id, net)
     if id == "Networks":
         net = context._getOb(net.id)
@@ -64,7 +66,7 @@ def manage_addIpNetwork(context, id, netmask=24, REQUEST = None):
 addIpNetwork = DTMLFile('dtml/addIpNetwork',globals())
 
 
-# when an ip is added the defaul location will be
+# When an IP is added the default location will be
 # into class A->B->C network tree
 defaultNetworkTree = (32,)
 
@@ -83,9 +85,12 @@ class IpNetwork(DeviceOrganizer):
 
     portal_type = meta_type = 'IpNetwork'
 
+    version = 4
+
     _properties = (
         {'id':'netmask', 'type':'int', 'mode':'w'},
         {'id':'description', 'type':'text', 'mode':'w'},
+        {'id':'version', 'type':'int', 'mode':'w'},
         )
 
     _relations = DeviceOrganizer._relations + (
@@ -129,13 +134,15 @@ class IpNetwork(DeviceOrganizer):
     security = ClassSecurityInfo()
 
 
-    def __init__(self, id, netmask=24, description=''):
+    def __init__(self, id, netmask=24, description='', version=4):
         if id.find("/") > -1: id, netmask = id.split("/",1)
         DeviceOrganizer.__init__(self, id, description)
-        if id != "Networks":
+        if not id.endswith("Networks"):
             checkip(id)
         self.netmask = maskToBits(netmask)
+        self.version = version
         self.description = description
+        self.title = ipunwrap(id)
 
     security.declareProtected('Change Network', 'manage_addIpNetwork')
     def manage_addIpNetwork(self, newPath, REQUEST=None):
@@ -153,8 +160,12 @@ class IpNetwork(DeviceOrganizer):
         return super(IpNetwork, self).checkValidId(id, prep_id)
 
 
-    def getNetworkRoot(self):
+    def getNetworkRoot(self, version=None):
         """This is a hook method do not remove!"""
+        if not isinstance(version, int):
+            version = self.version
+        if version is 6:
+            return self.dmd.getDmdRoot("IPv6 Networks")
         return self.dmd.getDmdRoot("Networks")
 
 
@@ -172,25 +183,39 @@ class IpNetwork(DeviceOrganizer):
         @type netmask: integer
         @todo: investigate IPv6 issues
         """
-        if netip.find("/") > -1: netip, netmask = netip.split("/",1)
+        if '/' in  netip:
+            netip, netmask = netip.split("/",1)
+
+        checkip(netip)
+        ipobj = IPAddress(ipunwrap(netip))
         try:
             netmask = int(netmask)
         except (TypeError, ValueError):
             netmask = 24
-        if netmask < 0 or netmask >= 64:
-            netmask = 24
+        netmask = netmask if netmask < ipobj.max_prefixlen else 24
 
         #hook method do not remove!
-        netroot = self.getNetworkRoot()
+        netroot = self.getNetworkRoot(ipobj.version)
         netobj = netroot.getNet(netip)
         if netmask == 0:
             raise ValueError("netip '%s' without netmask" % netip)
         if netobj and netobj.netmask >= netmask: # Network already exists.
             return netobj
 
-        netip = getnetstr(netip,netmask)
-        netTree = getattr(self, 'zDefaultNetworkTree', defaultNetworkTree)
-        netTree = map(int, netTree)
+        ipNetObj = IPNetwork(netip)
+        if ipNetObj.version == 4:
+            netip = getnetstr(netip, netmask)
+            netTree = getattr(self, 'zDefaultNetworkTree', defaultNetworkTree)
+            netTree = map(int, netTree)
+            if ipobj.max_prefixlen not in netTree:
+                netTree.append(ipobj.max_prefixlen)
+        else:
+            # IPv6 doesn't use subnet masks the same way
+            netip = getnetstr(netip, 64)
+            netmask = 64
+            # ISPs are supposed to provide the 48-bit prefix to orgs (RFC 3177)
+            netTree = (48,)
+
         if netobj:
             # strip irrelevant values from netTree if we're not starting at /0
             netTree = [ m for m in netTree if m > netobj.netmask ]
@@ -247,7 +272,7 @@ class IpNetwork(DeviceOrganizer):
     def getNet(self, ip):
         """Return the net starting form the Networks root for ip.
         """
-        return self._getNet(ip)
+        return self._getNet(ipunwrap(ip))
 
 
     def _getNet(self, ip):
@@ -289,26 +314,35 @@ class IpNetwork(DeviceOrganizer):
     def freeIps(self):
         """Number of free Ips left in this network.
         """
-        freeips = int(math.pow(2,32-self.netmask)-(self.countIpAddresses()))
-        if self.netmask >= 31:
+        freeips = 0
+        try:
+            net = IPNetwork(ipunwrap(self.id))
+            freeips = int(math.pow(2, net.max_prefixlen - self.netmask) - self.countIpAddresses())
+            if self.netmask > net.max_prefixlen:
+                return freeips
+            return freeips - 2
+        except ValueError:
+            for net in self.children():
+                freeips += net.freeIps()
             return freeips
-        return freeips - 2
 
 
     def hasIp(self, ip):
-        """Does network have (contain) this ip.
         """
-        start = numbip(self.id)
-        end = start + math.pow(2,32-self.netmask)
+        Could this network contain this IP?
+        """
+        net = IPNetwork(ipunwrap(self.id))
+        start = long(int(net.network))
+        end = start + math.pow(2, net.max_prefixlen - self.netmask)
         return start <= numbip(ip) < end
 
-
     def fullIpList(self):
-        """Return a list of all ips in this network.
+        """Return a list of all IPs in this network.
         """
-        if (self.netmask == 32): return [self.id]
-        ipnumb = numbip(self.id)
-        maxip = math.pow(2,32-self.netmask)
+        net = IPNetwork(ipunwrap(self.id))
+        if (self.netmask == net.max_prefixlen): return [self.id]
+        ipnumb = long(int(net))
+        maxip = math.pow(2, net.max_prefixlen - self.netmask)
         start = int(ipnumb+1)
         end = int(ipnumb+maxip-1)
         return map(strip, range(start,end))
@@ -358,15 +392,15 @@ class IpNetwork(DeviceOrganizer):
         """
         netobj = self.getSubNetwork(ip)
         if not netobj:
-            net = IpNetwork(ip, netmask)
-            self._setObject(ip, net)
+            net = IpNetwork(ipwrap(ip), netmask)
+            self._setObject(ipwrap(ip), net)
         return self.getSubNetwork(ip)
 
 
     security.declareProtected('View', 'getSubNetwork')
     def getSubNetwork(self, ip):
         """get an ip on this network"""
-        return self._getOb(ip, None)
+        return self._getOb(ipwrap(ip), None)
 
 
     def getSubNetworks(self):
@@ -381,14 +415,14 @@ class IpNetwork(DeviceOrganizer):
     def addIpAddress(self, ip, netmask=24):
         """add ip to this network and return it"""
         ipobj = IpAddress(ip,netmask)
-        self.ipaddresses._setObject(ip, ipobj)
+        self.ipaddresses._setObject(ipwrap(ip), ipobj)
         return self.getIpAddress(ip)
 
 
     security.declareProtected('View', 'getIpAddress')
     def getIpAddress(self, ip):
         """get an ip on this network"""
-        return self.ipaddresses._getOb(ip, None)
+        return self.ipaddresses._getOb(ipwrap(ip), None)
 
     security.declareProtected('Change Network', 'manage_deleteIpAddresses')
     def manage_deleteIpAddresses(self, ipaddresses=(), REQUEST=None):
@@ -456,8 +490,8 @@ class IpNetwork(DeviceOrganizer):
     def findIp(self, ip):
         """Find an ipAddress.
         """
-        searchCatalog = self.getDmdRoot("Networks").ipSearch
-        ret = searchCatalog(dict(id=ip))
+        searchCatalog = self.getNetworkRoot().ipSearch
+        ret = searchCatalog(dict(id=ipwrap(ip)))
         if not ret: return None
         if len(ret) > 1:
             raise IpAddressConflict( "IP address conflict for IP: %s" % ip )
@@ -620,7 +654,6 @@ class IpNetwork(DeviceOrganizer):
             return '<a href="%s">%s</a>' % (url, text)
 
 InitializeClass(IpNetwork)
-
 
 
 class AutoDiscoveryJob(ShellCommandJob):

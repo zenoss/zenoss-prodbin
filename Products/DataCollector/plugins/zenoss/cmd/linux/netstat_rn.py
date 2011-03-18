@@ -42,7 +42,8 @@ class netstat_rn(LinuxCommandPlugin):
         rlines = results.split("\n")
         for line in rlines:
             aline = line.split()
-            if len(aline) != 8 or not self.isip(aline[0]): continue
+            if len(aline) != 8 or not self.isip(aline[0]):
+                continue
             route = self.objectMap()
             
             route.routemask = self.maskToBits(aline[NETMASK])

@@ -184,3 +184,15 @@ class NetworkRouter(TreeRouter):
         data = Zuul.marshal(instances, keys)
         return DirectResponse.succeed(data=data, totalCount=instances.total,
                                       hash=instances.hash_)
+
+class Network6Router(NetworkRouter):
+    """
+    A JSON/ExtDirect interface to operations on IPv6 networks
+    """
+
+    def __init__(self, context, request):
+        super(NetworkRouter, self).__init__(context, request)
+        self.api = Zuul.getFacade('network6')
+
+    def _getFacade(self):
+        return Zuul.getFacade('network6', self.context)

@@ -235,7 +235,7 @@ class TreeFacade(ZuulFacade):
         return IOrganizerInfo(target._getOb(organizer.id))
 
 
-from networkfacade import NetworkFacade
+from networkfacade import NetworkFacade, Network6Facade
 from processfacade import ProcessFacade
 from servicefacade import ServiceFacade
 from devicefacade import DeviceFacade

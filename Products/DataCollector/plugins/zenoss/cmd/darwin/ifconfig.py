@@ -27,15 +27,13 @@ class ifconfig(CommandPlugin):
     relname = "interfaces"
     modname = "Products.ZenModel.IpInterface"
 
-
     flags = re.compile(".+flags=\d+<(.+)>.+").search
     v4addr = re.compile("inet (\S+).*netmask (\S+)").search
+    v6addr = re.compile("inet6 (\S+).*").search
     ether = re.compile("ether (\S+)").search
-
 
     def condition(self, device, log):
         return device.os.uname == 'Darwin' 
-
 
     def chunk(self, output):
         '''splits the ifconfig output into a [] where each item in the list
@@ -85,7 +83,18 @@ class ifconfig(CommandPlugin):
             if maddr and iface:
                 ip, netmask = maddr.groups()
                 netmask = self.hexToBits(netmask)
-                iface.setIpAddresses = ["%s/%s" % (ip, netmask)]
+                if not hasattr(iface, 'setIpAddresses'):
+                    iface.setIpAddresses = []
+                iface.setIpAddresses.append("%s/%s" % (ip, netmask))
+
+            maddr = self.v6addr(chunk)
+            if maddr and iface:
+                # For some link-local scope IPs, Darwin adds in '%ifacename'
+                # Ignore that bit
+                ip = maddr.groups()[0].split('%')[0]
+                if not hasattr(iface, 'setIpAddresses'):
+                    iface.setIpAddresses = []
+                iface.setIpAddresses.append(ip)
                 
             mether = self.ether(chunk)
             if mether and iface:

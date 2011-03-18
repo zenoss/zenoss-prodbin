@@ -292,7 +292,7 @@ def parseOptions(parser, port):
         parser.print_help()
         sys.exit(1)
     if args[0].find(':') > -1:
-        hostname,port = args[0].split(':')
+        hostname,port = args[0].rsplit(':', 1)
     else:
         hostname = args[0]
     options.hostname = hostname

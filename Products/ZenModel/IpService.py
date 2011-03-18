@@ -137,7 +137,7 @@ class IpService(Service):
         """
         return self.protocol == 'udp' \
                 or ( len(self.ipaddresses) == 1 
-                     and "127.0.0.1" in self.ipaddresses )
+                     and ("127.0.0.1" in self.ipaddresses or "::1" in self.ipaddresses))
                   
 
 
@@ -218,7 +218,7 @@ class IpService(Service):
             return bare_ip
 
         for ip in self.ipaddresses:
-            if ip != '0.0.0.0' and ip != '127.0.0.1':
+            if ip != '0.0.0.0' and ip != '127.0.0.1' and ip != '::1':
                 return ip
         return bare_ip
 
@@ -259,7 +259,7 @@ class IpService(Service):
         @rtype: array of strings
         """
         ips = [ ip for ip in self.ipaddresses \
-            if ip != '0.0.0.0' and ip != '127.0.0.1' ]
+            if ip != '0.0.0.0' and ip != '127.0.0.1' and ip != '::1']
         if not ips:
             ips = Service.getNonLoopbackIpAddresses(self)
             ips = [ x.split('/',1)[0] for x in ips ]

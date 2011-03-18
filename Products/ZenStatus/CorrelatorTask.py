@@ -63,8 +63,7 @@ class TopologyCorrelatorTask(BaseTask):
     zope.interface.implements(IScheduledTask)
 
     def __init__(self,
-                 taskName,
-                 configId=None,
+                 taskName, configId,
                  scheduleIntervalSeconds=60,
                  taskConfig=None):
         """
@@ -81,18 +80,29 @@ class TopologyCorrelatorTask(BaseTask):
 
         # Needed for interface
         self.name = taskName
-        self.configId = configId if configId else taskName
+        self.configId = configId
         self.state = TaskStates.STATE_IDLE
         self.interval = scheduleIntervalSeconds
+
+        # This needs to run after other processes have stopped
+        self.stopPhase = 'before'
+        self.stopOrder = 10
 
         if taskConfig is None:
             raise TypeError("taskConfig cannot be None")
         self._preferences = taskConfig
 
         self._daemon = zope.component.getUtility(ICollector)
-        self._topology = self._daemon.network.topology
-        self._downDevices = self._daemon.network.downDevices
-        self._notModeled = self._daemon.network.notModeled
+        if taskName.endswith('IPv6'):
+            self.version = 6
+            self._network = self._daemon.ipv6network
+        else:
+            self.version = 4
+            self._network = self._daemon.network
+
+        self._topology = self._network.topology
+        self._downDevices = self._network.downDevices
+        self._notModeled = self._network.notModeled
 
         self._dataService = zope.component.queryUtility(IDataService)
         self._eventService = zope.component.queryUtility(IEventService)
@@ -101,15 +111,11 @@ class TopologyCorrelatorTask(BaseTask):
 
     def doTask(self):
         """
-        Traceroute from the collector to the endpoint nodes,
-        with chunking.
-
-        @return: A task to traceroute devices
-        @rtype: Twisted deferred object
+        Determine root cause for IPs being down and send events.
         """
-        log.debug('---- Correlation begins ----')
+        log.debug('---- IPv%d correlation begins ----', self.version)
         # Prune out intermediate devices that we don't ping
-        pingGraph = self._daemon.network.subgraphPingNodes()
+        pingGraph = self._network.subgraphPingNodes()
 
         # The subgraph() call preserves the base graph's structure (DAG), but
         # returns the connected subtrees (ie all down nodes and their connected
@@ -128,10 +134,10 @@ class TopologyCorrelatorTask(BaseTask):
                 victimEvents += len(victims)
                 self._sendPingDown(root, victims)
 
-        stats = 'Correlator sent %d root cause and %d victim events' % (
-                rootEvents, victimEvents)
+        stats = 'IPv%d correlator sent %d root cause and %d victim events' % (
+                self.version, rootEvents, victimEvents)
         log.debug(stats)
-        log.debug('---- Correlation ends ----')
+        log.debug('---- IPv%d correlation ends ----', self.version)
         return defer.succeed(stats)
 
     def _sendPingDown(self, root, victims):
@@ -174,15 +180,19 @@ class TopologyCorrelatorTask(BaseTask):
         Called by the collector framework scheduler, and allows us to
         see how each task is doing.
         """
-        nodes = self._daemon.network.topology.number_of_nodes()
-        edges = self._daemon.network.topology.number_of_edges()
-        down = len(self._daemon.network.downDevices)
+        nodes = self._network.topology.number_of_nodes()
+        edges = self._network.topology.number_of_edges()
+        down = len(self._network.downDevices)
         display = "%s nodes: %d edges: %d down: %d\n" % (
             self.name, nodes, edges, down)
 
         if self._lastErrorMsg:
             display += "%s\n" % self._lastErrorMsg
         return display
+
+    def cleanup(self):
+        # Do one last round of correlation before exiting zenping
+        return self.doTask()
 
 
 #if __name__=='__main__':

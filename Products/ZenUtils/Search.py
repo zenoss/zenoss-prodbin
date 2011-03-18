@@ -16,8 +16,6 @@ __doc__="""Search
 Utilities to help build zcatalog indexes
 """
 
-__version__ = "$Revision: 1.3 $"[11:-2]
-
 from Products.ManagableIndex import FieldIndex, KeywordIndex
 from Products.ZenUtils.ExtendedPathIndex import ExtendedPathIndex
 from Products.ZenUtils.MultiPathIndex import MultiPathIndex
@@ -58,3 +56,4 @@ def makePathIndex(indexName):
 
 def makeMultiPathIndex(indexName):
     return MultiPathIndex(indexName)
+

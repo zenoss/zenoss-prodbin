@@ -20,8 +20,49 @@ Ext.onReady(function () {
 // Add/remove sub-network buttons and dialog
 //********************************************
 
+var treeConfigs = new Ext.util.MixedCollection(false, function(config) {
+    return config.root.uid;
+});
+
+treeConfigs.addAll([{
+    id: 'networks',
+    root: {
+        id: '.zport.dmd.Networks',
+        uid: '/zport/dmd/Networks',
+        text: null, // Use the name loaded from the remote
+        allowDrop: false
+    },
+    directFn: Zenoss.remote.NetworkRouter.asyncGetTree,
+    router: Zenoss.remote.NetworkRouter
+}, {
+    id: 'ipv6networks',
+    root: {
+        id: '.zport.dmd.IPv6 Networks',
+        uid: '/zport/dmd/IPv6 Networks',
+        text: null, // Use the name loaded from the remote
+        allowDrop: false
+    },
+    directFn: Zenoss.remote.Network6Router.asyncGetTree,
+    router: Zenoss.remote.Network6Router
+}]);
+
+var getRootId = function(fn) {
+    var config;
+    treeConfigs.each(function(item) {
+        if (Zenoss.env.PARENT_CONTEXT.indexOf(item.root.uid) === 0) {
+            config = item;
+            return false; //stops iteration
+        }
+        return true;
+    });
+    if (fn) {
+        return fn(config);
+    }
+    return config.id;
+};
+
 var addNetwork = function(id) {
-    var tree = Ext.getCmp('networks');
+    var tree = Ext.getCmp(getRootId());
 
     tree.router.addNode({newSubnet: id, contextUid: Zenoss.env.PARENT_CONTEXT},
         function(data) {
@@ -37,7 +78,7 @@ var addNetwork = function(id) {
 };
 
 var deleteNetwork = function() {
-    var tree = Ext.getCmp('networks'),
+    var tree = Ext.getCmp(getRootId()),
         node = tree.getSelectionModel().getSelectedNode(),
         parentNode = node.parentNode,
         uid = node.attributes.uid;
@@ -56,7 +97,7 @@ var deleteNetwork = function() {
 };
 
 var discoverDevicesDialogSubmit = function() {
-    var tree = Ext.getCmp('networks'),
+    var tree = Ext.getCmp(getRootId()),
         node = tree.getSelectionModel().getSelectedNode();
 
     tree.router.discoverDevices( {uid: node.attributes.uid},
@@ -122,7 +163,7 @@ var treesm = new Ext.tree.DefaultSelectionModel({
             fb.buttonContextMenu.setContext(uid);
             Zenoss.env.PARENT_CONTEXT = uid;
 
-            fb.buttonDelete.setDisabled(uid == '/zport/dmd/Networks');
+            fb.buttonDelete.setDisabled(treeConfigs.containsKey(uid));
         }
     }
 });
@@ -135,18 +176,7 @@ var NetworkNavTree = Ext.extend(Zenoss.HierarchyTreePanel, {
                 scope: this,
                 load: this.onLoad
             },
-            id: 'networks',
-            directFn: Zenoss.remote.NetworkRouter.asyncGetTree,
-            router: Zenoss.remote.NetworkRouter,
-            searchField: true,
-            selModel: treesm,
-            root: {
-                id: '.zport.dmd.Networks',
-                uid: '/zport/dmd/Networks',
-                type: 'async',
-                text: null, // Use the name loaded from the remote
-                allowDrop: false
-            }
+            selModel: treesm
         });
         NetworkNavTree.superclass.constructor.call(this, config);
     },
@@ -157,44 +187,39 @@ var NetworkNavTree = Ext.extend(Zenoss.HierarchyTreePanel, {
         // selectByToken returns the node instead of null. This is a good time
         // to select the correct node based on the history token in the URL.
 
-        // example token: 'networks:.zport.dmd.Networks.204.12.105.0.204.12.105.192'
+        // example token:
+        //'networks:.zport.dmd.Networks.204.12.105.0.ipaddresses.204.12.105.192'
         var token = Ext.History.getToken();
 
         if (token) {
-
             // Ext.History.DELIMITER is ':'
-            var tokenRightPart = unescape( token.split(Ext.History.DELIMITER).slice(1) );
-            var tokenNodeId = tokenRightPart.split('.ipaddresses.')[0];
-            var tokenNodeIdParts = tokenNodeId.split('.');
+            var fromIndex = token.indexOf(Ext.History.DELIMITER)
+                    + Ext.History.DELIMITER.length,
+                tokenTreePath = token.substring(fromIndex);
 
-            // strip the last network id off the token id
-            // example tokenParentId: '.zport.dmd.Networks.204.12.105.0'
-            var tokenParentId = tokenNodeIdParts.slice(0, tokenNodeIdParts.length - 4).join('.');
+            function expandToHistory(anode) {
+                anode.expand();
+                Ext.each(anode.childNodes, function(item) {
+                    if (tokenTreePath.indexOf(item.id) === 0) {
+                        expandToHistory(item);
+                    }
+                });
+            };
+            expandToHistory(node);
 
-            if ( node.id === tokenParentId ) {
-                this.selectByToken(tokenRightPart);
-
-            } else if ( tokenParentId.indexOf(node.id) === 0 ) {
-                // for nodes that aren't expanded by default, expand this
-                // loaded ancestor so it loads its children
-                var ancestorIdLength = node.id.split('.').length + 4;
-                var ancestorId = tokenNodeIdParts.slice(0, ancestorIdLength).join('.');
-                var ancestorNode = this.getNodeById(ancestorId);
-                if (ancestorNode) {
-                    ancestorNode.expand();
-                }
-            }
-
+            this.selectByToken(tokenTreePath);
+        } else {
+            var networktree = Ext.getCmp("networks");
+            networktree.selectByToken(networktree.root.id);
         }
-
     },
 
-    selectByToken: function(tokenRightPart) {
+    selectByToken: function(tokenTreePath) {
         // called from onLoad and Ext.History.selectByToken defined in
-        // HistoryManager.js. If node is null when called fomr the History
+        // HistoryManager.js. If node is null when called from the History
         // change event, then the TreePanel load event will call this function
         // when getNodeById is ready.
-        var subParts = unescape(tokenRightPart).split('.ipaddresses.');
+        var subParts = unescape(tokenTreePath).split('.ipaddresses.');
         var tokenNodeId = subParts[0];
         var node = this.getNodeById(tokenNodeId);
         if (node) {
@@ -221,13 +246,31 @@ var NetworkNavTree = Ext.extend(Zenoss.HierarchyTreePanel, {
                 }
             });
         }
+    },
+
+    afterRender: function() {
+        NetworkNavTree.superclass.afterRender.call(this);
+
+        Ext.getCmp("networkSearchField").addListener('valid',
+                this.filterTree,
+                this);
     }
 
 });
 
 Ext.reg('networknavtree', NetworkNavTree);
 
-Ext.getCmp('master_panel').add(new NetworkNavTree());
+var treePanelItems = [{
+    id: 'networkSearchField',
+    xtype: 'searchfield',
+    bodyStyle: {padding: 10}
+}];
+treeConfigs.each(function() {
+    treePanelItems.push(new NetworkNavTree(this));
+    return true;
+});
+
+Ext.getCmp('master_panel').add({items: treePanelItems});
 
 //********************************************
 // IP Addresses grid
@@ -339,7 +382,9 @@ var ipAddressGridConfig = {
                 rowselect: function(selModel, rowIndex, record) {
                     var token = Ext.History.getToken();
                     if ( ! token ) {
-                        token = 'networks' + ':' + Ext.getCmp('networks').getRootNode().attributes.uid.replace(/\//g, '.');
+                        token = getRootId(function(config) {
+                            return config.id + ':' + config.root.id;
+                        });
                     }
                     var tokenParts = token.split('.ipaddresses.');
                     if ( tokenParts[1] !== record.data.name ) {
@@ -458,14 +503,14 @@ Zenoss.footerHelper('Subnetwork', fb, {
                 iconCls: 'adddevice',
                 ref: 'buttonDiscoverDevices',
                 disabled: Zenoss.Security.doesNotHavePermission('Manage DMD') ||
-                    Zenoss.env.PARENT_CONTEXT == '/zport/dmd/Networks',
+                    treeConfigs.containsKey(Zenoss.env.PARENT_CONTEXT),
                 handler: discoverDevicesDialog.show.createDelegate(discoverDevicesDialog)
             },{
                 tooltip: _t('Edit network description'),
                 text: _t('Edit description'),
                 ref: 'buttonEditDescription',
-                disabled: Zenoss.Security.doesNotHavePermission('Manage DMD')  ||
-                    Zenoss.env.PARENT_CONTEXT == '/zport/dmd/Networks',
+                disabled: Zenoss.Security.doesNotHavePermission('Manage DMD') ||
+                    treeConfigs.containsKey(Zenoss.env.PARENT_CONTEXT),
                 handler: showEditDescriptionDialog
             }];
         }

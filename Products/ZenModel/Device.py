@@ -27,13 +27,16 @@ log = logging.getLogger("zen.Device")
 from _mysql_exceptions import OperationalError
 
 from urllib import quote as urlquote
+from ipaddr import IPAddress
 
 from zope.event import notify
 from Products.Zuul.catalog.events import IndexingEvent
 from Products.ZenUtils.Utils import isXmlRpc, unused, getObjectsFromCatalog
 from Products.ZenUtils import Time
+
 import RRDView
-from Products.ZenUtils.IpUtil import checkip, IpAddressError, maskToBits
+from Products.ZenUtils.IpUtil import checkip, IpAddressError, maskToBits, \
+                                     ipunwrap, getHostByName
 from Products.ZenModel.interfaces import IIndexed
 from Products.ZenUtils.guid.interfaces import IGloballyIdentifiable, IGlobalIdentifier
 
@@ -865,10 +868,10 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable,
         return ''
 
 
-    def getNetworkRoot(self):
+    def getNetworkRoot(self, version=None):
         """Return the network root object
         """
-        return self.getDmdRoot('Networks')
+        return self.getDmdRoot('Networks').getNetworkRoot(version)
 
     security.declareProtected(ZEN_VIEW, 'getLastChange')
     def getLastChange(self):
@@ -926,6 +929,14 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable,
                     raise NoNetMask()
             else:
                 checkip(ip)
+            if ip:
+                # Strip out subnet mask before checking if it's a good IP
+                netmask = ''
+                if '/' in ip:
+                    netmask = ip.split('/')[1]
+                ip = str(IPAddress(ipunwrap(ip.split('/')[0])))
+                if netmask:
+                    ip = '/'.join([ip, netmask])
         except (IpAddressError, ValueError, NoNetMask), ex:
             log.warn("%s is an invalid IP address", ip)
             ip = ''
@@ -956,7 +967,7 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable,
 
         if not ip: # What if they put in a DNS name?
             try:
-                ip = socket.gethostbyname(origip)
+                ip = getHostByName(origip)
                 if ip == '0.0.0.0':
                     # Host resolution failed
                     ip = ''
@@ -965,7 +976,7 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable,
 
         if not ip:
             try:
-                ip = socket.gethostbyname(self.id)
+                ip = getHostByName(ipunwrap(self.id))
             except socket.error:
                 ip = ''
                 if origip:

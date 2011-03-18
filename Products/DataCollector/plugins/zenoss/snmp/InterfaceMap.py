@@ -1,7 +1,7 @@
 ###########################################################################
 #
 # This program is part of Zenoss Core, an open source monitoring platform.
-# Copyright (C) 2007, 2009, Zenoss Inc.
+# Copyright (C) 2007, 2009, 2011 Zenoss Inc.
 #
 # This program is free software; you can redistribute it and/or modify it
 # under the terms of the GNU General Public License version 2 as published by
@@ -13,7 +13,7 @@
 
 __doc__ = """InterfaceMap
 
-Gather IP network interface information from SNMP, and 
+Gather IPv4 and IPv6 network interface information from SNMP, and 
 create DMD interface objects
 
 """
@@ -22,13 +22,13 @@ import re
 
 from Products.ZenUtils.Utils import cleanstring, unsigned
 from Products.DataCollector.plugins.CollectorPlugin import SnmpPlugin, GetTableMap
+from Products.ZenUtils.IpUtil import bytesToCanonIpv6
 
 class InterfaceMap(SnmpPlugin):
     """
-    Map IP network names and aliases to DMD 'interface' objects
+    Map IPv4 and IPv6 network names and aliases to DMD 'interface' objects
     """
     order = 80
-    maptype = "InterfaceMap" 
     compname = "os"
     relname = "interfaces"
     modname = "Products.ZenModel.IpInterface"
@@ -53,6 +53,11 @@ class InterfaceMap(SnmpPlugin):
                 {'.1': 'ipAddress',
                  '.2': 'ifindex',
                  '.3': 'netmask'}
+        ),
+
+        # IP-MIB::ipAddressIfIndex can give us IPv6 addresses.
+        GetTableMap('ipAddressIfIndex', '.1.3.6.1.2.1.4.34.1.3.2',
+                 {'.16': 'ifindex',}
         ),
         # Use the ipNetToMediaTable as a backup to the ipAddrTable
         GetTableMap('ipNetToMediaTable', '.1.3.6.1.2.1.4.22.1',
@@ -85,7 +90,7 @@ class InterfaceMap(SnmpPlugin):
         """
         getdata, tabledata = results
         log.info('Modeler %s processing data for device %s', self.name(), device.id)
-        log.debug( "%s tabledata = %s" % (device.id,tabledata) )
+        log.debug("%s tabledata = %s", device.id, tabledata)
         rm = self.relMap()
         iptable = tabledata.get("ipAddrTable")
         sourceTable = 'ipAddrTable'
@@ -97,6 +102,11 @@ class InterfaceMap(SnmpPlugin):
             else:
                 log.warn("Unable to get data for %s from either ipAddrTable or"
                           " ipNetToMediaTable" % device.id)
+
+        # Add in IPv6 info
+        ipv6table = tabledata.get("ipAddressIfIndex")
+        if ipv6table:
+            iptable.update(ipv6table)
 
         iftable = tabledata.get("iftable")
         if iftable is None:
@@ -129,6 +139,7 @@ class InterfaceMap(SnmpPlugin):
             # later anyway.
             if len(ip_parts) == 5 and sourceTable == 'ipAddrTable':
                 ip = '.'.join(ip_parts[:-1])
+
             # If we are using the ipNetToMediaTable, we use the
             # last 4 octets.
             elif len(ip_parts) == 5 and sourceTable == 'ipNetToMediaTable':
@@ -139,6 +150,13 @@ class InterfaceMap(SnmpPlugin):
                 ip = '.'.join(ip_parts[1:])
                 log.warn("Can't find netmask -- using /24")
                 row['netmask'] = '255.255.255.0'
+
+            elif len(ip_parts) == 16:
+                ip = bytesToCanonIpv6(ip_parts)
+                if not ip:
+                    log.warn("The IPv6 address for ifindex %s is incorrect: %s",
+                             row['ifindex'], ip)
+                    continue
 
             strindex = str(row['ifindex'])
             if strindex not in omtable and strindex not in iftable:
@@ -172,11 +190,11 @@ class InterfaceMap(SnmpPlugin):
                 log.warn("Ignoring IP address with 0.0.0.0 netmask: %s", ip)
             else:
                 om.setIpAddresses.append(ip)
-            #om.ifindex = row.ifindex #FIXME ifindex is not set!
 
         for iface in iftable.values():
             om = self.processInt(log, device, iface)
-            if om: rm.append(om)
+            if om:
+                rm.append(om)
 
         return rm
 

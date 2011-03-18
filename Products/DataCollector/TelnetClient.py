@@ -54,6 +54,7 @@ from Exceptions import *
 
 from Products.ZenUtils.Utils import unused
 
+
 defaultPromptTimeout = 10 
 defaultLoginRegex = 'ogin:.$'
 defaultPasswordRegex = 'assword:'
@@ -712,7 +713,8 @@ def main():
     Each command must be enclosed in quotes (") to be interpreted
     properly as a complete unit.
     """
-    import socket
+    from Products.ZenUtils.IpUtil import getHostByName
+
     import getpass
     import pprint
 
@@ -725,7 +727,7 @@ def main():
     log.setLevel(options.logseverity)
     commands = commandsToPlugins( options.commands )
     client = TelnetClient(options.hostname,
-                          socket.gethostbyname(options.hostname),
+                          getHostByName(options.hostname),
                           options.port,
                           plugins=commands, options=options)
     client.run()

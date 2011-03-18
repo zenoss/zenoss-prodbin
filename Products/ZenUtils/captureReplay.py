@@ -38,6 +38,7 @@ __doc__ = """captureReplay
 import sys
 import cPickle
 from exceptions import EOFError, IOError
+import glob
 
 import Globals
 from twisted.internet import defer, reactor
@@ -65,7 +66,6 @@ class CaptureReplay(object):
     Overrides the self.connected() method if called to replay packets.
     """
 
-
     def processCaptureReplayOptions(self):
         """
         Inside of the initializing class, call these functions first.
@@ -87,7 +87,6 @@ class CaptureReplay(object):
         self.captureSerialNum = 0
         self.captureIps = self.options.captureIps.split(',')
 
-
     def convertPacketToPython(*packetInfo):
         """
         Convert arguments into an plain object (no functions) suitable
@@ -107,8 +106,8 @@ class CaptureReplay(object):
         # Save the raw data if requested to do so
         if not self.options.captureFilePrefix:
             return
-        if not self.options.captureAll and host not in self.captureIps:
-            self.log.debug( "Received packet from %s, but not in %s" % (host,
+        if not self.options.captureAll and hostname not in self.captureIps:
+            self.log.debug( "Received packet from %s, but not in %s" % (hostname,
                             self.captureIps))
             return
 
@@ -124,7 +123,6 @@ class CaptureReplay(object):
         except:
             self.log.exception("Couldn't write capture data to '%s'" % name )
 
-
     def replayAll(self):
         """
         Replay all captured packets using the files specified in
@@ -132,7 +130,6 @@ class CaptureReplay(object):
 
         Note that this calls the Twisted stop() method
         """
-        
         if hasattr(self, 'configure'):
             d = self.configure()
             d.addCallback(self._replayAll)
@@ -142,15 +139,13 @@ class CaptureReplay(object):
     def _replayAll(self, ignored):
         # Note what you are about to see below is a direct result of optparse
         # adding in the arguments *TWICE* each time --replayFilePrefix is used.
-        import glob
         files = []
         for filespec in self.options.replayFilePrefix:
             files += glob.glob( filespec + '*' )
 
         self.loaded = 0
         self.replayed = 0
-        from sets import Set
-        for file in Set(files):
+        for file in set(files):
             self.log.debug( "Attempting to read packet data from '%s'" % file )
             try:
                 fp = open( file, "rb" )
@@ -168,7 +163,6 @@ class CaptureReplay(object):
 
         self.replayStop()
 
-
     def replay(self, packet):
         """
         Replay a captured packet.  This must be overridden.
@@ -178,7 +172,6 @@ class CaptureReplay(object):
         """
         pass
     
-
     def replayStop(self):
         """
         Twisted method that we use to override the default stop() method
@@ -191,7 +184,6 @@ class CaptureReplay(object):
             self.stop()
         else:
             reactor.callLater(1, self.replayStop)
-
 
     def buildCaptureReplayOptions(self):
         """
@@ -216,5 +208,4 @@ class CaptureReplay(object):
                                action='append',
                                default=[],
              help="Filename prefix containing captured packet data. Can specify more than once.")
-
 

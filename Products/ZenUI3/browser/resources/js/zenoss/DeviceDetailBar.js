@@ -111,7 +111,7 @@ Zenoss.DeviceDetailBar = Ext.extend(Zenoss.LargeToolbar, {
                 'background-image' : 'url(' + data.icon + ')'
             });
             this.deviditem.devname.setText(data.name);
-            var ipAddress = ZR.ipAddress(data.ipAddress);
+            var ipAddress = data.ipAddressString;
             this.deviditem.ipAddress.setHeight(Ext.isEmpty(ipAddress) ? 0 : 'auto');
             this.deviditem.ipAddress.setText(ipAddress);
             this.deviditem.devclass.setText(ZR.DeviceClass(data.deviceClass.uid));

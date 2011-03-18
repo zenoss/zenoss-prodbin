@@ -26,6 +26,7 @@ from twisted.spread import pb
 import Globals
 from Products.ZenCollector.services.config import CollectorConfigService
 from Products.ZenEvents.ZenEventClasses import Error, Clear
+from Products.ZenUtils.IpUtil import ipunwrap
 
 
 class IpAddressProxy(pb.Copyable, pb.RemoteCopy):
@@ -34,11 +35,12 @@ class IpAddressProxy(pb.Copyable, pb.RemoteCopy):
     DeviceProxy config will have multiple IP address proxy components
     (for each IP address on each IP interface zenping should monitor)
     """
-    def __init__(self, ip, iface='', basepath='', ds=None,
+    def __init__(self, ip, ipVersion=4, iface='', basepath='', ds=None,
                  perfServer='localhost'):
-        self.ip = ip
+        self.ip = ipunwrap(ip)
+        self.ipVersion = ipVersion
         self.iface = iface
-        self.cycleTime =  getattr(ds, 'cycleTime', 300)
+        self.cycleTime =  getattr(ds, 'cycleTime', 60)
         self.tries =      getattr(ds, 'attempts', 2)
         self.sampleSize = getattr(ds, 'sampleSize', 1)
         self.points = []
@@ -92,7 +94,7 @@ class PingPerformanceConfig(CollectorConfigService):
         for templ in iface.getRRDTemplates():
             for ipAddress in iface.ipaddresses():
                 ip = ipAddress.id
-                if not ip or ip in ('127.0.0.1', '0.0.0.0'):
+                if not ip or ip in ('127.0.0.1', '0.0.0.0', '::1'):
                     log.debug("The %s interface IP is '%s' -- ignoring",
                               title, ip)
                     continue
@@ -100,7 +102,8 @@ class PingPerformanceConfig(CollectorConfigService):
                 dsList = [ds for ds in templ.getRRDDataSources('PING') \
                              if ds.enabled]
                 if dsList:
-                    ipProxy = IpAddressProxy(ip, iface=title, ds=dsList[0],
+                    ipVersion = getattr(ipAddress, 'version', 4)
+                    ipProxy = IpAddressProxy(ip, ipVersion=ipVersion, iface=title, ds=dsList[0],
                                              basepath=basepath, perfServer=perfServer)
 
                     monitoredIps.append(ipProxy)

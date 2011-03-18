@@ -108,8 +108,7 @@ class IpRouteEntry(OSComponent):
 
     security = ClassSecurityInfo()
 
-    ipcheck = re.compile(r'^127\.|^0\.0\.|^169\.254\.|^224\.').search
-
+    ipcheck = re.compile(r'^127\.|^0\.0\.|^169\.254\.|^224\.|^::1$|^fe80:|^ff').search
     
     def __getattr__(self, name):
         """
@@ -124,7 +123,7 @@ class IpRouteEntry(OSComponent):
     security.declareProtected('View', 'getNextHopDeviceLink')
     def getNextHopDeviceLink(self):
         """
-        Figure out which hop to return and if its a relation build link
+        Figure out which hop to return and if it's a relation build link
         """
         ipobj = self.nexthop()
         retval = "" 

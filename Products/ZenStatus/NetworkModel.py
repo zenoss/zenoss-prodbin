@@ -42,9 +42,10 @@ from Products.ZenUtils.Utils import zenPath
 
 class NetworkModel(object):
 
-    def __init__(self, loadCache=True):
+    def __init__(self, version=4, loadCache=True):
         self._preferences = queryUtility(ICollector)._prefs
 
+        self.version = version
         self.notModeled = set()
         self.traceTimedOut = set()
 
@@ -146,7 +147,7 @@ class NetworkModel(object):
     def saveTopology(self):
         """
         Checkpoint the topology to disk to preserve changes even
-        in the face of crashes etc.
+        in the event of crashes etc.
         """
         now = time.time()
         checkpointAge = (now - self.topologySaveTime) / 60
@@ -156,9 +157,12 @@ class NetworkModel(object):
     def _getTopoCacheName(self):
         # The graphml library supports automatic compression of the file
         # if the filename ends in .gz or .bz2
-        if self._preferences.options.topofile:
-            return self._preferences.options.topofile
-        return zenPath('perf/Daemons/%s.topology.graphml' % self._preferences.options.monitor)
+        topofile = getattr(self._preferences.options,
+                            "ipv%dtopofile" % self.version, None)
+        if topofile:
+            return topofile
+        return zenPath('perf/Daemons/%s.ipv%s.topology.graphml' % (
+                        self._preferences.options.monitor, self.version))
 
     def reloadCache(self, topologyCache=None):
         """
@@ -170,9 +174,10 @@ class NetworkModel(object):
             try:
                 start = time.time()
                 self.topology = read_graphml(topologyCache)
-                log.info("Read %s nodes and %s edges from topology cache in %0.1f s.",
+                log.info("Read %s nodes and %s edges from IPv%d topology cache in %0.1f s.",
                          self.topology.number_of_nodes(),
                          self.topology.number_of_edges(),
+                         self.version,
                          time.time() - start)
             except IOError, ex:
                 log.warn("Unable to read topology file %s because %s",
@@ -218,9 +223,10 @@ class NetworkModel(object):
             start = time.time()
             self._stripUncacheableMetaData()
             write_graphml(self.topology, topologyCache)
-            log.info("Saved %s nodes and %s edges in topology cache in %0.1fs.",
+            log.info("Saved %s nodes and %s edges in IPv%d topology cache in %0.1fs.",
                      self.topology.number_of_nodes(),
                      self.topology.number_of_edges(),
+                     self.version,
                      time.time() - start)
         except IOError, ex:
             log.warn("Unable to write topology file %s because %s",
@@ -370,7 +376,6 @@ class NetworkModel(object):
         self.topology.remove_node(device)
         log.debug("Deleted device %s from topology", device)
 
-
     def subgraphPingNodes(self):
         """
         Prune out nodes from the topology which we don't monitor.
@@ -380,7 +385,6 @@ class NetworkModel(object):
         independent.
         """
         # Based on the code from networkx for dfs_tree/dfs_successor
-        G = self.topology
         seen = set()
         ignoreList = set()
         def keepNode(node):
@@ -416,4 +420,4 @@ class NetworkModel(object):
                     queue.pop()
     
         return DiGraph(tree)
-    
+

@@ -551,6 +551,9 @@ ZC.IpInterfacePanel = Ext.extend(ZC.ComponentGridPanel, {
                             ipaddress.name += '/' + ipaddress.netmask;
                             returnString += Zenoss.render.link(ipaddress);
                         }
+                        else if (Ext.isString(ipaddress)) {
+                            returnString += ipaddress;
+                        }
                     });
                     return returnString;
                 }

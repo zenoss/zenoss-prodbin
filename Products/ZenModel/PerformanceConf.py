@@ -21,8 +21,11 @@ import os
 import zlib
 import socket
 from urllib import urlencode
+from ipaddr import IPAddress
 import logging
 log = logging.getLogger('zen.PerformanceConf')
+
+from Products.ZenUtils.IpUtil import ipwrap
 
 try:
     from base64 import urlsafe_b64encode
@@ -258,14 +261,14 @@ class PerformanceConf(Monitor, StatusColor):
             return brains[0].getObject()
 
 
-    def getNetworkRoot(self):
+    def getNetworkRoot(self, version=None):
         """
         Get the root of the Network object in the DMD
         
         @return: base DMD Network object
         @rtype: Network object
         """
-        return self.dmd.Networks
+        return self.dmd.Networks.getNetworkRoot(version)
 
 
     def buildGraphUrlFromCommands(self, gopts, drange):
@@ -602,6 +605,15 @@ class PerformanceConf(Monitor, StatusColor):
                              hwManufacturer="", hwProductName="",
                              osManufacturer="", osProductName="", priority = 3,
                              tag="", serialNumber="", zProperties={}):
+
+        # Check to see if we got passed in an IPv6 address
+        try:
+            ipv6addr = IPAddress(deviceName)
+            if not title:
+                title = deviceName
+            deviceName = ipwrap(deviceName)
+        except ValueError:
+            pass
 
         zendiscCmd = self._getZenDiscCommand(deviceName, devicePath, 
                                              performanceMonitor)
