@@ -261,8 +261,12 @@ class EventProcessorPipe(object):
     """
     dependencies = []
 
-    def __init__(self, manager):
+    def __init__(self, manager, name=None):
         self._manager = manager
+        if name:
+            self._name = name
+        else:
+            self._name = self.__class__.__name__
 
     def __call__(self, eventContext):
         """
@@ -451,18 +455,23 @@ class FingerprintPipe(EventProcessorPipe):
     def __call__(self, eventContext):
         event = eventContext.event
 
-        dedupFields = self.DEFAULT_FINGERPRINT_FIELDS
-        if not (event.HasField(EventField.EVENT_KEY) and
-                getattr(event, EventField.EVENT_KEY, None)):
-            dedupFields = self.NO_EVENT_KEY_FINGERPRINT_FIELDS
+        if event.HasField(EventField.FINGERPRINT):
+            fp = event.fingerprint
+            eventContext.eventProxy.dedupid = fp
+            eventContext.log.debug("incoming event has a preset fingerprint %s" % fp)
+        else:
+            dedupFields = self.DEFAULT_FINGERPRINT_FIELDS
+            if not (event.HasField(EventField.EVENT_KEY) and
+                    getattr(event, EventField.EVENT_KEY, None)):
+                dedupFields = self.NO_EVENT_KEY_FINGERPRINT_FIELDS
 
-        dedupIdList = [str(getattr(eventContext.eventProxy, field, '')) for
-                       field in dedupFields]
+            dedupIdList = [str(getattr(eventContext.eventProxy, field, '')) for
+                           field in dedupFields]
 
-        eventContext.eventProxy.dedupid = '|'.join(dedupIdList)
+            eventContext.eventProxy.dedupid = '|'.join(dedupIdList)
 
-        eventContext.log.debug('Created dedupid of %s from %s',
-                               eventContext.eventProxy.dedupid, dedupIdList)
+            eventContext.log.debug('Created dedupid of %s from %s',
+                                   eventContext.eventProxy.dedupid, dedupIdList)
 
         return eventContext
 
