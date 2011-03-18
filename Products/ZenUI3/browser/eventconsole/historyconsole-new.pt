@@ -33,6 +33,13 @@
     <tr><td class="dt">Start Time:</td> <td>{firstTime}</td></tr>
     <tr><td class="dt">Stop Time:</td> <td>{lastTime}</td></tr>
     <tr><td class="dt">Count:</td> <td>{count}</td></tr>
+    <tr><td class="dt">Message:</td> <td><pre>{message}</pre></td></tr>
+    <tr><td class="dt">Systems:</td> <td>{Systems}</td></tr>
+    <tr><td class="dt">Groups:</td> <td>{DeviceGroups}</td></tr>
+    <tr><td class="dt">Location:</td> <td>{Location}</td></tr>
+    <tr><td class="dt">Device Class:</td> <td>{DeviceClass}</td></tr>
+    <tr><td class="dt">Production State:</td> <td>{prodState}</td></tr>
+    <tr><td class="dt">Device Priority:</td> <td>{DevicePriority}</td></tr>
 </table>
 </textarea>
 <textarea class="dontexpand" style="display:none" id="log_table_template">

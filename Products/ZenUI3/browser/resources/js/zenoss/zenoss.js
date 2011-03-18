@@ -714,7 +714,7 @@ Ext.reg('livegridinfo', Zenoss.LiveGridInfoPanel);
  * @constructor
  */
 Zenoss.FilterGridView = Ext.extend(Ext.ux.grid.livegrid.GridView, {
-    rowHeight: 22,
+    rowHeight: 12,
     rowColors: false,
     _valid: true,
     constructor: function(config) {
@@ -1729,6 +1729,14 @@ Zenoss.DetailPanel = Ext.extend(Ext.Panel, {
         event.eventClass_link = Zenoss.render.EventClass(event.eventClass_url,
                                                         event.eventClass);
 
+        // render the organizers as links
+        var organizerFields = ['Systems', 'DeviceGroups', 'DeviceClass', 'Location'];
+        Ext.each(organizerFields, function(field){
+            if (event[field]) {
+                event[field] = Zenoss.render.LinkFromGridGuidGroup(event[field]);
+            }
+        });
+
         var top_prop_template = new
             Ext.XTemplate.from('detail_table_template');
         var full_prop_template = new
@@ -1810,6 +1818,7 @@ Zenoss.DetailPanel = Ext.extend(Ext.Panel, {
             },
             function(result){
                 var event = result.event[0];
+
                 this.update(event);
                 this.bind();
                 this.show();

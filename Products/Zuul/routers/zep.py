@@ -126,6 +126,19 @@ class EventsRouter(DirectRouter):
         if isinstance(value, (tuple, list, set)) and value:
             return value[0]
 
+    def _getTagsFromOccurrence(self, eventOccurrence):
+        """
+        Build a tag dictionary where the keys are the type of tags and
+        the value is an array of guids.
+        """
+        tags = {}
+        if eventOccurrence.get('tags'):
+            for tag in eventOccurrence.get('tags'):
+                if tags.get(tag['type']) is None:
+                    tags[tag['type']] = [tag['uuid']]
+                else:
+                    tags[tag['type']].append(tag['uuid'])
+        return tags
 
     def _mapToOldEvent(self, event_summary):
         eventOccurrence = event_summary['occurrence'][0]
@@ -137,14 +150,8 @@ class EventsRouter(DirectRouter):
         # TODO: Finish mapping out these properties.
         notYetMapped = ''
 
-        # build a tag dictionary indexed by type
-        tags = {}
-        if eventOccurrence.get('tags'):
-            for tag in eventOccurrence.get('tags'):
-                if tags.get(tag['type']) is None:
-                    tags[tag['type']] = [tag['uuid']]
-                else:
-                    tags[tag['type']].append(tag['uuid'])
+        
+        tags = self._getTagsFromOccurrence(eventOccurrence)        
 
         event = {
             'id' : event_summary['uuid'],
@@ -451,8 +458,9 @@ class EventsRouter(DirectRouter):
         eventOccurrence = event_summary['occurrence'][0]
         eventClass = eventOccurrence['event_class']
         eventActor = eventOccurrence['actor']
-
-
+        tags = self._getTagsFromOccurrence(eventOccurrence)
+        eventDetails = self._findDetails(eventOccurrence)
+        
         # TODO: Update this mapping to more reflect _mapToOldEvent.
         eventData = {
             'evid':event_summary['uuid'],
@@ -473,6 +481,10 @@ class EventsRouter(DirectRouter):
             'count':event_summary['count'],
             'summary':eventOccurrence.get('summary'),
             'message':eventOccurrence.get('message'),
+            'Location' : self._lookupTags(tags.get('zenoss.device.location')),
+            'DeviceGroups' : self._lookupTags(tags.get('zenoss.device.group')),
+            'Systems' : self._lookupTags(tags.get('zenoss.device.system')),
+            'DeviceClass' : self._lookupDeviceClass(tags.get('zenoss.device.device_class')),
             'properties':[
                 dict(key=k, value=v) for (k, v) in {'evid':event_summary['uuid'],
                                                     'device':eventActor.get('element_identifier'),
@@ -490,9 +502,18 @@ class EventsRouter(DirectRouter):
                                                     'eventState':EventStatus.getPrettyName(event_summary['status']),
                                                     'count':event_summary['count'],
                                                     'monitor':eventOccurrence.get('monitor'),
-                                                    'agent':eventOccurrence.get('agent'),
-                                                    'message':eventOccurrence.get('message')}.iteritems() if v],
+                                                    'agent':eventOccurrence.get('agent'),}.iteritems() if v],
+                                                    
             'log':[]}
+
+        prodState = self._singleDetail(eventDetails.get('zenoss.device.production_state'))
+        if prodState is not None:
+            eventData['prodState'] = self.context.convertProdState(prodState)
+
+        DevicePriority = self._singleDetail(eventDetails.get('zenoss.device.priority'))
+        if DevicePriority is not None:
+            eventData['DevicePriority'] = self.context.convertPriority(DevicePriority)
+            
         if 'notes' in event_summary:
             for note in event_summary['notes']:
                 eventData['log'].append((note['user_name'], isoDateTimeFromMilli(note['created_time']), note['message']))
