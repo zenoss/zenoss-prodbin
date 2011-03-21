@@ -215,6 +215,7 @@ Zenoss.TemplateTreePanel = Ext.extend(Ext.tree.TreePanel, {
 
     filterTree: function(e) {
         var re,
+            root = this.getRootNode(),
             text = e.getValue();
 
         // show all of our hidden nodes
@@ -229,6 +230,14 @@ Zenoss.TemplateTreePanel = Ext.extend(Ext.tree.TreePanel, {
 
         this.hiddenPkgs = [];
         if (!text) {
+            // reset the tree to the initial state
+            this.collapseAll();
+            if (root) {
+                root.expand();
+                if (root.childNodes && root.childNodes.length > 0) {
+                    root.childNodes[0].expand();
+                }
+            }
             return;
         }
         this.expandAll();

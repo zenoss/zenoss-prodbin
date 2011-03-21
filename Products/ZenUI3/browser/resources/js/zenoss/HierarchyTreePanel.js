@@ -270,13 +270,22 @@ Zenoss.HierarchyTreePanel = Ext.extend(Ext.tree.TreePanel, {
         });
     },
     filterTree: function(e) {
-        var text = e.getValue();
+        var text = e.getValue(),
+            root = this.getRootNode();
         this.fireEvent('filter', e);
         if (this.hiddenPkgs) {
             Ext.each(this.hiddenPkgs, function(n){n.ui.show();});
         }
         this.hiddenPkgs = [];
         if (!text) {
+            // reset the tree to the initial state
+            this.collapseAll();
+            if (root) {
+                root.expand();
+                if (root.childNodes) {
+                    root.childNodes[0].expand();
+                }
+            }
             return;
         }
         this.expandAll();
