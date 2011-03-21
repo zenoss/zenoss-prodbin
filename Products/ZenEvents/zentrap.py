@@ -320,7 +320,6 @@ class ZenTrap(EventServer, CaptureReplay):
                 return
 
         transport = transport.contents
-        import pdb;pdb.set_trace()
 
         #  Just to make sure, check to see that it is type AF_INET or AF_INET6
         if transport.family not in (socket.AF_INET, socket.AF_INET6):
