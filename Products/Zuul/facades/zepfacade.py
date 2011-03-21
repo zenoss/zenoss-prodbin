@@ -86,6 +86,7 @@ class ZepFacade(ZuulFacade):
         first_seen=None,
         last_seen=None,
         status_change=None,
+        update_time=None,
         count_range=None,
         element_identifier=(),
         element_sub_identifier=(),
@@ -126,7 +127,10 @@ class ZepFacade(ZuulFacade):
             filter['last_seen'] = self._timeRange(last_seen)
 
         if status_change:
-            filter['status_change'] = status_change
+            filter['status_change'] = self._timeRange(status_change)
+
+        if update_time:
+            filter['update_time'] = self._timeRange(update_time)
 
         # These tags come from params, which means for some reason someone is filtering manually on a tag.
         if tags:
@@ -277,15 +281,16 @@ class ZepFacade(ZuulFacade):
                                        offset=offset, limit=limit
                                        )
 
-    def getEventSummariesGenerator(self, filter=None, exclude=None, sort=None):
+    def getEventSummariesGenerator(self, filter=None, exclude=None, sort=None, archive=False):
         if exclude is not None and isinstance(exclude,dict):
             exclude = from_dict(EventFilter, exclude)
         if filter is not None and isinstance(filter,dict):
             filter = from_dict(EventFilter, filter)
         if sort is not None:
             sort = tuple(self._getEventSort(s) for s in safeTuple(sort))
-        searchid = self.client.createSavedSearch(event_filter=filter, exclusion_filter=exclude, sort=sort)
-        eventSearchFn = partial(self.client.savedSearch, searchid)
+        searchid = self.client.createSavedSearch(event_filter=filter, exclusion_filter=exclude, sort=sort, archive=archive)
+        log.debug("created saved search %s", searchid)
+        eventSearchFn = partial(self.client.savedSearch, searchid, archive=archive)
         offset = 0
         limit = 500
         try:
@@ -300,7 +305,11 @@ class ZepFacade(ZuulFacade):
         except Exception as e:
             pass
 
-        self.client.deleteSavedSearch(searchid)
+        log.debug("closing saved search %s", searchid)
+        try:
+            self.client.deleteSavedSearch(searchid, archive=archive)
+        except Exception as e:
+            log.debug("error closing saved search %s (%s) - %s", searchid, type(e), e)
 
     def getEventSummary(self, uuid):
         response, content = self.client.getEventSummary(uuid)

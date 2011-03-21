@@ -212,8 +212,6 @@ class Report(object):
         create_filter_args = {
             'operator' : zep.AND,
             'severity' : _severityGreaterThanOrEqual(self.severity),
-            'last_seen' : (startDate,),
-            'first_seen' : (0, endDate),
             'event_class' : self.eventClass +
                             ('/' if not self.eventClass.endswith('/') else '')
             }
@@ -249,45 +247,52 @@ class Report(object):
         if tag_uuids:
             create_filter_args['tags'] = tag_uuids
 
-        # construct filter with assembled filter args
-        event_filter = zep.createEventFilter(**create_filter_args)
-
         # query zep for matching event summaries
-        events = zep.getEventSummariesGenerator(event_filter)
+        # 1. get all open events that:
+        #    - first_seen < endDate
+        #    (only need to check active events)
+        # 2. get all closed events that:
+        #    - first_seen < endDate
+        #    - status_change > startDate
+        #    (must get both active and archived events)
 
-        # get previous events that occurred before the report window, that have not yet closed
-        create_filter_args['last_seen'] = (0,startDate)
+        # 1. get open events
+        create_filter_args['first_seen'] = (0,endDate)
         create_filter_args['status'] = OPEN_EVENT_STATUSES
         event_filter = zep.createEventFilter(**create_filter_args)
-        previousEvents = zep.getEventSummariesGenerator(event_filter)
+        open_events = zep.getEventSummariesGenerator(event_filter)
+
+        # 2. get closed events
+        create_filter_args['status_change'] = (startDate+1,)
+        create_filter_args['status'] = CLOSED_EVENT_STATUSES
+        event_filter = zep.createEventFilter(**create_filter_args)
+        closed_events = zep.getEventSummariesGenerator(event_filter)
+        # must also get events from archive
+        closed_events_from_archive = zep.getEventSummariesGenerator(event_filter, archive=True)
 
         # walk events, tallying up downtime
         accumulator = defaultdict(int)
-        for evtsumm in chain(previousEvents, events):
+        for evtsumm in chain(open_events, closed_events, closed_events_from_archive):
+
             first = evtsumm['first_seen_time']
-            # if event is still open, severity persists up to the present
-            # (converted to milliseconds)
+            # if event is still open, downtime persists til end of report window
             if evtsumm['status'] not in CLOSED_EVENT_STATUSES:
-                last = now_ms
+                last = endDate
             else:
-                last = evtsumm['last_seen_time']
+                last = evtsumm['status_change_time']
 
             # discard any events that have no elapsed time
             if first == last:
                 continue
 
-            # discard if event was resolved before report period
-            if last <= startDate:
-                continue
+            # clip first and last within report time window
+            first = max(first, startDate)
+            last = min(last, endDate)
 
             evt = evtsumm['occurrence'][0]
             evt_actor = evt['actor']
             device = evt_actor.get('element_identifier')
             component = evt_actor.get('element_sub_identifier')
-
-            # limit first and last within report time window
-            first = max(first, startDate)
-            last = min(last, endDate)
 
             # Only treat component specially if a component filter was specified.
             if self.component:
@@ -339,6 +344,7 @@ class Report(object):
         deviceLookup = dict((dev.id, dev) for dev in deviceList)
         result = []
         lastdevid = None
+        sysname = ''
         for (devid, compid), downtime in sorted(accumulator.items()):
             if devid != lastdevid:
                 dev = deviceLookup.get(devid, None)
