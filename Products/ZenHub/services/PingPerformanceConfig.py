@@ -21,6 +21,7 @@ Provides configuration to zenping per-device based on:
 import logging
 log = logging.getLogger('zen.HubService.PingPerformanceConfig')
 
+from ipaddr import IPAddress
 from twisted.spread import pb
 
 import Globals
@@ -58,6 +59,11 @@ class IpAddressProxy(pb.Copyable, pb.RemoteCopy):
 
             self.points.append(ipdData)
 
+    def __str__(self):
+        return "IPv%d %s iface: '%s' cycleTime: %ss attempts: %d" % (
+               self.ipVersion, self.ip, self.iface, self.cycleTime,
+               self.tries)
+
 pb.setUnjellyableForClass(IpAddressProxy, IpAddressProxy)
 
 
@@ -94,7 +100,7 @@ class PingPerformanceConfig(CollectorConfigService):
         for templ in iface.getRRDTemplates():
             for ipAddress in iface.ipaddresses():
                 ip = ipAddress.id
-                if not ip or ip in ('127.0.0.1', '0.0.0.0', '::1'):
+                if not ip or ip in ('127.0.0.1', '0.0.0.0', '::', '::1'):
                     log.debug("The %s interface IP is '%s' -- ignoring",
                               title, ip)
                     continue
@@ -103,10 +109,44 @@ class PingPerformanceConfig(CollectorConfigService):
                              if ds.enabled]
                 if dsList:
                     ipVersion = getattr(ipAddress, 'version', 4)
-                    ipProxy = IpAddressProxy(ip, ipVersion=ipVersion, iface=title, ds=dsList[0],
+                    ipProxy = IpAddressProxy(ip, ipVersion=ipVersion,
+                                             iface=title, ds=dsList[0],
                                              basepath=basepath, perfServer=perfServer)
-
                     monitoredIps.append(ipProxy)
+
+    def _addManageIp(self, device, perfServer, proxy):
+        """
+        Add the management IP and any associated datapoints to the IPs to monitor.
+        """
+        basepath = device.rrdPath()
+        title = "Manage_IP"
+        ip = device.manageIp
+        if not ip or ip in ('127.0.0.1', '0.0.0.0', '::', '::1'):
+            return
+        ipObj = IPAddress(ip)
+
+        # Look for device-level templates with PING datasources
+        addedIp = False
+        for templ in device.getRRDTemplates():
+            dsList = [ds for ds in templ.getRRDDataSources('PING') \
+                             if ds.enabled]
+            if dsList:
+                ipProxy = IpAddressProxy(ip, ipVersion=ipObj.version,
+                                         iface=title, ds=dsList[0],
+                                         basepath=basepath, perfServer=perfServer)
+                proxy.monitoredIps.append(ipProxy)
+                addedIp = True
+
+        threshs = device.getThresholdInstances('PING')
+        if threshs:
+            proxy.thresholds.extend(threshs)
+
+        # Add without datapoints if nothing's defined....
+        if not addedIp:
+            ipProxy = IpAddressProxy(ip, ipVersion=ipObj.version,
+                                     iface=title,
+                                     basepath=basepath, perfServer=perfServer)
+            proxy.monitoredIps.append(ipProxy)
 
     def _createDeviceProxy(self, device):
         proxy = CollectorConfigService._createDeviceProxy(self, device)
@@ -126,10 +166,9 @@ class PingPerformanceConfig(CollectorConfigService):
                 proxy.thresholds.extend(threshs)
 
         if not proxy.monitoredIps:
-            log.debug("%s not modeled yet -- faking interfaces for %s",
+            log.debug("%s has no interface templates -- just using management IP %s",
                       device.titleOrId(), device.manageIp)
-            ipProxy = IpAddressProxy(device.manageIp, perfServer=perfServer)
-            proxy.monitoredIps.append(ipProxy)
+            self._addManageIp(device, perfServer, proxy)
 
         elif device.manageIp not in [x.ip for x in proxy.monitoredIps]:
             # Note: most commonly occurs for SNMP fakeout devices which replay
@@ -137,16 +176,16 @@ class PingPerformanceConfig(CollectorConfigService):
             #       than what captured the data
             log.debug("%s doesn't have an interface for management IP %s",
                       device.titleOrId(), device.manageIp)
-            ipProxy = IpAddressProxy(device.manageIp, perfServer=perfServer)
-            proxy.monitoredIps.append(ipProxy)
+            self._addManageIp(device, perfServer, proxy)
 
         return proxy
 
 
 if __name__ == '__main__':
-    from Products.ZenUtils.ZCmdBase import ZCmdBase
-    dmd = ZCmdBase().dmd
-    configService = PingPerformanceConfig(dmd, 'localhost')
-    devices = sorted([x.id for x in configService.remote_getDeviceConfigs()])
-    print "PING Devices = %s" % devices
-
+    from Products.ZenHub.ServiceTester import ServiceTester
+    tester = ServiceTester(PingPerformanceConfig)
+    def printer(config):
+        for ip in config.monitoredIps:
+            print '\t', ip
+    tester.printDeviceProxy = printer
+    tester.showDeviceInfo()

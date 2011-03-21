@@ -17,12 +17,16 @@ Determines the availability of a IP addresses using ping (ICMP).
 
 """
 
+import re
+import time
 import logging
 log = logging.getLogger("zen.zenping")
 
 import Globals
 import zope.interface
 import zope.component
+
+from zenoss.protocols.protobufs.zep_pb2 import SEVERITY_CLEAR
 
 from Products.ZenCollector.interfaces import ICollector, ICollectorPreferences,\
                                              IDataService,\
@@ -39,6 +43,9 @@ from Products.ZenEvents.ZenEventClasses import Status_Ping
 from Products.ZenEvents import Event
 
 from Products.ZenUtils.IpUtil import ipunwrap
+
+# Temporarily run ping6 from a command-line
+from Products.ZenRRD.zencommand import Cmd, ProcessRunner, TimeoutError
 
 
 # Try a circular import?
@@ -58,6 +65,7 @@ class PingCollectionTask(BaseTask):
     STATE_PING_START = 'PING_START'
     STATE_PING_STOP  = 'PING_STOP'
     STATE_STORE_PERF = 'STORE_PERF_DATA'
+    STATE_UPDATE_TOPOLOGY = 'UPDATE_TOPOLOGY'
 
     def __init__(self,
                  taskName,
@@ -107,6 +115,11 @@ class PingCollectionTask(BaseTask):
                                 iface=self._iface)
         self.pingjob.points = self.config.points
 
+        if self.config.ipVersion == 6:
+            self._network = self._daemon.ipv6network
+        else:
+            self._network = self._daemon.network
+
         self._addToTopology()
 
         self._lastErrorMsg = ''
@@ -116,14 +129,14 @@ class PingCollectionTask(BaseTask):
         Update the topology with our local knowledge of how we're connected.
         """
         ip = self.config.ip
-        if ip not in self._daemon.network.topology:
-            self._daemon.network.topology.add_node(ip)
-        self._daemon.network.topology.node[ip]['task'] = self
+        if ip not in self._network.topology:
+            self._network.topology.add_node(ip)
+        self._network.topology.node[ip]['task'] = self
 
         internalEdge = (self._manageIp, ip)
         if ip != self._manageIp and \
-           not self._daemon.network.topology.has_edge(*internalEdge):
-            self._daemon.network.topology.add_edge(*internalEdge)
+           not self._network.topology.has_edge(*internalEdge):
+            self._network.topology.add_edge(*internalEdge)
 
     def _failure(self, reason):
         """
@@ -144,7 +157,6 @@ class PingCollectionTask(BaseTask):
             self._lastErrorMsg = msg
             if msg:
                 log.error(msg)
-
         self._eventService.sendEvent(STATUS_EVENT,
                                      device=self._devId,
                                      summary=msg,
@@ -166,8 +178,11 @@ class PingCollectionTask(BaseTask):
 
         # Start the ping job
         self.state = PingCollectionTask.STATE_PING_START
-        self._pinger.sendPacket(self.pingjob)
-        d = self.pingjob.deferred
+        if self.config.ipVersion == 6:
+            d = self._ping6()
+        else:
+            self._pinger.sendPacket(self.pingjob)
+            d = self.pingjob.deferred
 
         d.addCallback(self._storeResults)
         d.addCallback(self._updateStatus)
@@ -176,13 +191,60 @@ class PingCollectionTask(BaseTask):
         # Wait until the Deferred actually completes
         return d
 
+    def _ping6(self):
+       """
+       Temporary hack to be able to veriy IPv6 ping functionality end-to-end
+       """
+       # FIXME: use a Python-level library rather than spawning a process
+       cmd = Cmd()
+       cmd.ds = "PING6"
+       cmd.ip = ipunwrap(self.config.ip)
+       cmd.command = "ping6 -n -c %d %s" % (self.config.tries, cmd.ip)
+       cmd.name = cmd.command
+       class DevProxy(object):
+           zCommandCommandTimeout = self._preferences.options.tracetimeoutseconds
+       cmd.deviceConfig = DevProxy()
+
+       runner = ProcessRunner()
+       d = runner.start(cmd)
+       cmd.lastStart = time.time()
+       d.addBoth(cmd.processCompleted)
+       d.addCallback(self._updatePingJob6)
+       return d
+
+    def _updatePingJob6(self, result):
+        self.pingjob.sent = self.config.tries
+        if result.result.exitCode != 0:
+            self.pingjob.rtt = -1
+            return result.result.output
+        else:
+            output = result.result.output.strip().split('\n')
+
+            # rtt min/avg/max/mdev = 1.211/2.322/3.434/1.112 ms, pipe 2'
+            statsLine = output[-1]
+            stats = statsLine.rsplit('=',1)[1].split()[0]
+            rttMin, rttAvg, rttMax, rttStdDev = map(float, stats.split('/'))
+            self.pingjob.rtt = rttAvg
+            self.pingjob.rtt_avg = rttAvg
+            self.pingjob.rtt_min = rttMin
+            self.pingjob.rtt_max = rttMax
+            self.pingjob.rtt_stddev = rttStdDev
+
+            # 2 packets transmitted, 2 received, 0% packet loss, time 1000ms
+            lossLine = output[-2]
+            lossPct = lossLine.split()[5][:-1]
+            self.pingjob.rtt_losspct = int(lossPct)
+
+        return result.result.output
+
     def _storeResults(self, result):
         """
         Store the datapoint results asked for by the RRD template.
         """
         self.state = PingCollectionTask.STATE_STORE_PERF
         if self.pingjob.rtt >= 0 and self.pingjob.points:
-            self.pingjob.calculateStatistics()
+            if self.config.ipVersion == 4:
+                self.pingjob.calculateStatistics()
             for rrdMeta in self.pingjob.points:
                 name, path, rrdType, rrdCommand, rrdMin, rrdMax = rrdMeta
                 value = getattr(self.pingjob, name, None)
@@ -203,14 +265,15 @@ class PingCollectionTask(BaseTask):
         @parameter result: results of Ping or a failure
         @type result: array of (boolean, dictionaries)
         """
+        self.state = PingCollectionTask.STATE_UPDATE_TOPOLOGY
         ip = self.pingjob.ipaddr
         if self.pingjob.rtt >= 0:
             success = 'Success'
-            self._daemon.network.downDevices.discard(ip)
-            self.sendPingEvent(self.pingjob)
+            self._network.downDevices.discard(ip)
+            self.sendPingClearEvent(self.pingjob)
         else:
             success = 'Failed'
-            self._daemon.network.downDevices.add(ip)
+            self._network.downDevices.add(ip)
             log.warning("No ping response for %s in %d tries",
                         self.pingjob.ipaddr, self.pingjob.sent)
         resultMsg = "%s RTT = %s sec (%s)" % (
@@ -218,14 +281,15 @@ class PingCollectionTask(BaseTask):
 
         return resultMsg
 
-    def sendPingEvent(self, pj):
+    def sendPingClearEvent(self, pj):
         """
         Send an event based on a ping job to the event backend.
         """
+        msg = "%s is UP!" % self._devId
         evt = dict(device=self._devId,
                    ipAddress=pj.ipaddr,
-                   summary=pj.message,
-                   severity=pj.severity,
+                   summary=msg,
+                   severity=SEVERITY_CLEAR,
                    eventClass=Status_Ping,
                    eventGroup='Ping',
                    component=self._iface)

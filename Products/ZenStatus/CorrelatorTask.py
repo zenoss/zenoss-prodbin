@@ -163,9 +163,15 @@ class TopologyCorrelatorTask(BaseTask):
         """
         Send an event based on a ping job to the event backend.
         """
+        message = pj.message
+        if not message:
+            if pj.severity == 0:
+                message = "Device %s is UP!" % pj.hostname
+            else:
+                message = "Device %s is DOWN!" % pj.hostname
         evt = dict(device=pj.hostname,
                    ipAddress=pj.ipaddr,
-                   summary=pj.message,
+                   summary=message,
                    severity=pj.severity,
                    eventClass=Status_Ping,
                    eventGroup='Ping',
