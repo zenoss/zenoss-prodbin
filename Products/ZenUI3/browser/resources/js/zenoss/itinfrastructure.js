@@ -1187,6 +1187,15 @@ var device_grid = new Zenoss.DeviceGridPanel({
             },
             Zenoss.devices.deleteDevices,
             {
+                id: 'refreshdevice-button',
+                iconCls: 'refresh',
+                tooltip: _t('Refresh Device List'),
+                handler: function(btn) {
+                    var grid = Ext.getCmp('device_grid'),
+                        view = grid.getView();
+                    view.updateLiveRows(view.rowIndex, true, true);
+                }
+            }, {
                 text: _t('Select'),
                 menu:[
                     {
