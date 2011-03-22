@@ -134,11 +134,15 @@ class INotificationSubscriptionInfo(IInfo):
     # this is a list of the user/group/roles that have subscribed to this
     # notification.
     recipients = schema.List(title=_t(u'Subscribers'));
+
+    globalRead = schema.Bool(title=_t(u'Global View'))
+    globalWrite = schema.Bool(title=_t(u'Global Write'))
+    globalManageSubscriptions = schema.Bool(title=_t(u'Global Manage Subscriptions'))
+
+    userRead = schema.Bool(title=_t(u'Current User View'))
+    userWrite = schema.Bool(title=_t(u'Current User Write'))
+    userManageSubscriptions = schema.Bool(title=_t(u'Current User Manage Subscriptions'))
     
-    # explicit_recipients = schema.Text(
-    #     title=_t(u'Specific Recipients'),
-    #     description=_t('Manually specify comma separated targets for this action.')
-    # )
 
 class INotificationWindowInfo(IInfo):
     """

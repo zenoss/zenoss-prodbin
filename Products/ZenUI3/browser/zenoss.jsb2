@@ -94,6 +94,9 @@
             "text": "multiselect.js",
             "path": "resources/js/zenoss/lib/"
         }, {
+            "text": "checkcolumn.js",
+            "path": "resources/js/zenoss/lib/"
+        }, {
             "text": "TemplateTreePanel.js",
             "path": "resources/js/zenoss/"
         }, {

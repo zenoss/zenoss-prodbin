@@ -168,4 +168,16 @@
       title="Administrators View"
       />
 
+  <permission
+      id="zenoss.NotificationView"
+      title="View Notification"
+      />
+  <permission
+      id="zenoss.NotificationUpdate"
+      title="Update Notification"
+      />
+  <permission
+      id="zenoss.ManageNotificationSubscriptions"
+      title="Manage Notification Subscriptions"
+      />
 </configure>

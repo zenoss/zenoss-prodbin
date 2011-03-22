@@ -16,10 +16,10 @@ log = logging.getLogger("zen.notifications")
 from Globals import InitializeClass
 from Globals import DTMLFile
 from AccessControl import ClassSecurityInfo
+from AdministrativeRoleable import AdministrativeRoleable
 from Products.ZenModel.ZenossSecurity import *
 from Products.ZenRelations.RelSchema import *
 from Products.ZenModel.ZenModelRM import ZenModelRM
-from Products.ZenUtils.guid.interfaces import IGUIDManager
 from zope.interface import implements
 from Products.ZenUtils.guid.interfaces import IGloballyIdentifiable
 from Products.ZenUtils.template import Template
@@ -36,8 +36,6 @@ class NotificationSubscriptionManager(ZenModelRM):
 
     @todo: change the icon parameter in factory_type_information.
     """
-
-    security = ClassSecurityInfo()
 
     _id = "NotificationSubscriptionManager"
     root = 'NotificationSubscriptions'
@@ -74,7 +72,7 @@ def manage_addNotificationSubscription(context, id, title = None, REQUEST = None
     if REQUEST:
         REQUEST['RESPONSE'].redirect(context.absolute_url() + '/manage_main')
 
-class NotificationSubscription(ZenModelRM):
+class NotificationSubscription(ZenModelRM, AdministrativeRoleable):
     """
     A subscription to a signal that produces notifications in the form of
     actions.
@@ -143,6 +141,12 @@ class NotificationSubscription(ZenModelRM):
     )
 
     _relations = (
+        ("adminRoles",
+        ToManyCont(
+            ToOne,
+            "Products.ZenModel.AdministrativeRole",
+            "managedObject"
+        )),
         ("windows",
         ToManyCont(
             ToOne,
@@ -174,6 +178,15 @@ class NotificationSubscription(ZenModelRM):
     )
 
     security = ClassSecurityInfo()
+
+    def __init__(self, id, title=None, buildRelations=True):
+        self.globalRead = False
+        self.globalWrite = False
+        self.globalManageSubscriptions = False
+
+        self.subscriptionManagers = []
+        
+        super(ZenModelRM, self).__init__(id, title=title, buildRelations=buildRelations)
 
     security.declareProtected(ZEN_CHANGE_ALERTING_RULES, 'manage_editNotificationSubscription')
     def manage_editNotificationSubscription(self, REQUEST=None):

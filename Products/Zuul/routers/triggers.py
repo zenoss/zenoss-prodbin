@@ -67,7 +67,7 @@ class TriggersRouter(DirectRouter):
 
     def removeNotification(self, uid):
         response = self._getFacade().removeNotification(uid)
-        return DirectResponse.succeed(data=response)
+        return DirectResponse.succeed(msg="Notification removed without a problem.", data=response)
 
     def getNotification(self, uid):
         response = self._getFacade().getNotification(uid)
@@ -75,7 +75,7 @@ class TriggersRouter(DirectRouter):
 
     def updateNotification(self, **data):
         response = self._getFacade().updateNotification(**data)
-        return DirectResponse.succeed(data=Zuul.marshal(response))
+        return DirectResponse.succeed(msg="Notification updated without a problem.", data=Zuul.marshal(response))
 
     def getRecipientOptions(self):
         data = self._getFacade().getRecipientOptions()

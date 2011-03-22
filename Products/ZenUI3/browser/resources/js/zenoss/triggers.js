@@ -56,7 +56,8 @@ Ext.onReady(function () {
         schedulesPanelConfig,
         schedules_panel,
         TriggersGridPanel,
-        triggersPanelConfig;
+        triggersPanelConfig,
+        disableTabContents;
 
 
     AddDialogue = Ext.extend(Ext.Window, {
@@ -140,6 +141,15 @@ Ext.onReady(function () {
     };
 
 
+    disableTabContents = function(tab) {
+        // disable everything in this tab, but then re-enable the tab itself so
+        // that we can still view it's contents.
+        tab.cascade(function(){
+            this.disable();
+        });
+        tab.setDisabled(false);
+    };
+
     reloadNotificationGrid = function() {
         Ext.getCmp(notificationPanelConfig.id).getStore().reload();
     };
@@ -199,7 +209,10 @@ Ext.onReady(function () {
                 layout: 'form',
                 autoScroll: true,
                 height: 380,
-                width: 400
+                width: 500,
+                defaults: {
+                    width: 450
+                }
             });
             NotificationTabContent.superclass.constructor.apply(this, arguments);
         }
@@ -213,6 +226,7 @@ Ext.onReady(function () {
                 activeTab: 0,
                 activeIndex: 0,
                 unstyled: true,
+                autoHeight: true,
                 loadData: function(data) {
                     Ext.each(this.items.items, function(item, index, allitems) {
                         item.loadData(data);
@@ -231,7 +245,7 @@ Ext.onReady(function () {
     });
 
     displayNotificationEditDialogue = function(data) {
-        var tab_content;
+        var tab_notification, tab_content, tab_subscriptions;
         var _width, _height;
 
         // This action map is used to make the 'type' display in the
@@ -246,10 +260,7 @@ Ext.onReady(function () {
         if (data.action == 'email') {
             tab_content = new NotificationTabContent({
                 title: 'Content',
-                defaults: {
-                    width: 280
-                },
-                items:[
+                items: [
                     new Ext.form.ComboBox({
                         id: 'htmltextcombo',
                         store: new Ext.data.ArrayStore({
@@ -292,6 +303,7 @@ Ext.onReady(function () {
                         ref: 'clear_body_format',
                         fieldLabel: _t('Clear Body Format')
                     }
+
                 ],
                 loadData: function(data) {
                     this.body_content_type.setValue(data.body_content_type);
@@ -305,9 +317,6 @@ Ext.onReady(function () {
         else if (data.action == 'command') {
             tab_content = new NotificationTabContent({
                 title: 'Content',
-                defaults: {
-                    width: 280
-                },
                 items: [{
                     xtype: 'numberfield',
                     allowNegative: false,
@@ -336,9 +345,6 @@ Ext.onReady(function () {
         else if (data.action == 'trap') {
             tab_content = new NotificationTabContent({
                 title: 'Content',
-                defaults: {
-                    width: 280
-                },
                 items: [{
                     xtype: 'textfield',
                     name: 'action_destination',
@@ -353,9 +359,6 @@ Ext.onReady(function () {
         else {
             tab_content = new NotificationTabContent({
                 title: 'Content',
-                defaults: {
-                    width: 280
-                },
                 items: [{
                     xtype: 'textfield',
                     name: 'subject_format',
@@ -367,6 +370,45 @@ Ext.onReady(function () {
                 }
             });
         }
+
+
+        if (!data['userWrite']) {
+            disableTabContents(tab_content);
+        }
+
+
+        var addRecipient = function() {
+            var rgrid = Ext.getCmp('recipients_grid_panel');
+            var val = rgrid.getTopToolbar().recipient_combo.getValue(),
+                row = rgrid.getTopToolbar().recipient_combo.getStore().getById(val),
+                type = 'manual',
+                label;
+
+            if (row) {
+                type = row.data.type;
+                label = row.data.label;
+            }
+            else {
+                val = rgrid.getTopToolbar().recipient_combo.getRawValue();
+                label = val;
+            }
+
+            var existingIndex = rgrid.getStore().findExact('value', val);
+
+            if (!Ext.isEmpty(val) && existingIndex == -1) {
+                var record = new Ext.data.Record({
+                    type:type,
+                    value:val,
+                    label:label,
+                    write:false,
+                    manage_subscriptions: false
+                });
+
+                rgrid.getStore().add(record);
+                rgrid.getView().refresh();
+                rgrid.getTopToolbar().recipient_combo.clearValue();
+            }
+        };
 
         // TOOLBAR
         // *******
@@ -396,22 +438,7 @@ Ext.onReady(function () {
             text: 'Add',
             ref: 'add_button',
             handler: function(btn, event) {
-                var val = btn.refOwner.recipient_combo.getValue(),
-                    row = btn.refOwner.recipient_combo.getStore().getById(val),
-                    type = 'manual',
-                    label = val;
-
-                if (row) {
-                    type = row.data.type;
-                    label = row.data.label;
-                }
-                var record = new Ext.data.Record({
-                    type:type,
-                    value:val,
-                    label:label
-                });
-                btn.refOwner.ownerCt.getStore().add(record);
-                btn.refOwner.ownerCt.getView().refresh();
+                addRecipient();
             }
         },{
             xtype: 'button',
@@ -463,109 +490,184 @@ Ext.onReady(function () {
             typeAhead: true
         });
 
+        var writeColumn = new Ext.grid.CheckColumn({
+            header: _t('Write'),
+            dataIndex: 'write'
+        });
+
+        var manageSubscriptionsColumn = new Ext.grid.CheckColumn({
+            header: _t('Subscriptions'),
+            dataIndex: 'manage_subscriptions'
+        });
+
+
+        tab_notification = new NotificationTabContent({
+            title: 'Notification',
+            items: [
+                {
+                    xtype: 'hidden',
+                    name: 'uid',
+                    ref: 'uid'
+                },{
+                    xtype: 'checkbox',
+                    name: 'enabled',
+                    ref: 'enabled',
+                    fieldLabel: _t('Enabled')
+                },{
+                    xtype: 'checkbox',
+                    name: 'send_clear',
+                    ref: 'send_clear',
+                    fieldLabel: _t('Send Clear')
+                },{
+                    xtype: 'checkbox',
+                    name: 'send_initial_occurrence',
+                    ref: 'send_initial_occurrence',
+                    fieldLabel: _t('Send only on Initial Occurence?')
+                },{
+                    xtype: 'numberfield',
+                    name: 'delay_seconds',
+                    allowNegative: false,
+                    allowBlank: false,
+                    ref: 'delay_seconds',
+                    fieldLabel: _t('Delay (seconds)')
+                },{
+                    xtype: 'numberfield',
+                    allowNegative: false,
+                    allowBlank: false,
+                    name: 'repeat_seconds',
+                    ref: 'repeat_seconds',
+                    fieldLabel: _t('Repeat (seconds)')
+                },
+                triggersComboBox
+            ],
+            loadData: function(data) {
+                this.uid.setValue(data.uid);
+                this.enabled.setValue(data.enabled);
+                this.delay_seconds.setValue(data.delay_seconds);
+                this.send_clear.setValue(data.send_clear);
+                this.repeat_seconds.setValue(data.repeat_seconds);
+                this.subscriptions.setValue(data.subscriptions);
+                this.send_initial_occurrence.setValue(data.send_initial_occurrence);
+            }
+        });
+
+        if (!data['userWrite']) {
+            disableTabContents(tab_notification);
+        }
+
+        tab_recipients = new NotificationTabContent({
+            title: 'Subscribers',
+            ref: 'recipients_tab',
+            layout: {
+                type: 'vbox',
+                align: 'stretch'
+            },
+            items: [{
+                xtype: 'panel',
+                unstyled: true,
+                border: false,
+                layout: 'form',
+                autoScroll: true,
+                title: _t('Global Options'),
+                items: [
+                    {
+                        xtype:'checkbox',
+                        name: 'notification_globalRead',
+                        ref: '../globalRead',
+                        boxLabel: _t('Everyone can view'),
+                        hideLabel: true
+                    },
+                    {
+                        xtype:'checkbox',
+                        name: 'notification_globalWrite',
+                        ref: '../globalWrite',
+                        boxLabel: _t('Everyone can edit content'),
+                        hideLabel: true
+                    },
+                    {
+                        xtype:'checkbox',
+                        name: 'notification_globalManageSubscriptions',
+                        ref: '../globalManageSubscriptions',
+                        boxLabel: _t('Everyone can manage subscriptions'),
+                        hideLabel: true
+                    }
+                ]
+
+            },{
+                id: 'recipients_grid_panel',
+                xtype: 'editorgrid',
+                ref: 'recipients_grid',
+                viewConfig: {forceFit: true},
+                frame: false,
+                header: true,
+                title: _t('Recipients'),
+                layout: 'anchor',
+                autoHeight: true,
+                autoExpandColumn: 'manage_subscriptions',
+                loadMask: {msg:'Loading...'},
+                plugins: [writeColumn, manageSubscriptionsColumn],
+                keys: [
+                    {
+                        key: [Ext.EventObject.ENTER],
+                        handler: addRecipient
+                    }
+                ],
+                tbar: { items: recipients_toolbar },
+                store: new Ext.data.JsonStore({
+                    autoDestroy: true,
+                    storeId: 'recipients_combo_store',
+                    autoLoad: false,
+                    idProperty: 'value',
+                    fields: [
+                        'type',
+                        'label',
+                        'value',
+                        {name: 'write', type: 'bool'},
+                        {name: 'manage_subscriptions', type: 'bool'}
+                    ],
+                    data: []
+                }),
+                colModel: new Ext.grid.ColumnModel({
+                    defaults: {
+                        width: 120,
+                        sortable: true
+                    },
+                    columns: [
+                        {
+                            header: _t('Type'),
+                            dataIndex: 'type'
+                        },{
+                            header: _t('Subscriber'),
+                            dataIndex: 'label'
+                        },
+                        writeColumn,
+                        manageSubscriptionsColumn
+                    ]
+                }),
+                sm: new Ext.grid.RowSelectionModel({singleSelect:true})
+            }],
+            loadData: function(data) {
+                this.recipients_grid.getStore().loadData(data.recipients);
+                this.globalRead.setValue(data.globalRead);
+                this.globalWrite.setValue(data.globalWrite);
+                this.globalManageSubscriptions.setValue(data.globalManageSubscriptions);
+            }
+        });
+
+        if (!data['userManageSubscriptions']) {
+            disableTabContents(tab_recipients);
+        }
+
         var tab_panel = new NotificationTabPanel({
             items: [
                 // NOTIFICATION INFO
-                new NotificationTabContent({
-                    title: 'Notification',
-                    items: [
-                        {
-                            xtype: 'hidden',
-                            name: 'uid',
-                            ref: 'uid'
-                        },{
-                            xtype: 'checkbox',
-                            name: 'enabled',
-                            ref: 'enabled',
-                            fieldLabel: _t('Enabled')
-                        },{
-                            xtype: 'checkbox',
-                            name: 'send_clear',
-                            ref: 'send_clear',
-                            fieldLabel: _t('Send Clear')
-                        },{
-                            xtype: 'checkbox',
-                            name: 'send_initial_occurrence',
-                            ref: 'send_initial_occurrence',
-                            fieldLabel: _t('Send only on Initial Occurence?')
-                        },{
-                            xtype: 'numberfield',
-                            name: 'delay_seconds',
-                            allowNegative: false,
-                            allowBlank: false,
-                            ref: 'delay_seconds',
-                            fieldLabel: _t('Delay (seconds)')
-                        },{
-                            xtype: 'numberfield',
-                            allowNegative: false,
-                            allowBlank: false,
-                            name: 'repeat_seconds',
-                            ref: 'repeat_seconds',
-                            fieldLabel: _t('Repeat (seconds)')
-                        },
-                        triggersComboBox
-                    ],
-                    loadData: function(data) {
-                        this.uid.setValue(data.uid);
-                        this.enabled.setValue(data.enabled);
-                        this.delay_seconds.setValue(data.delay_seconds);
-                        this.send_clear.setValue(data.send_clear);
-                        this.repeat_seconds.setValue(data.repeat_seconds);
-                        this.subscriptions.setValue(data.subscriptions);
-                        this.send_initial_occurrence.setValue(data.send_initial_occurrence);
-                    }
-                }),
+                tab_notification,
 
                 // CONTENT TAB
                 tab_content,
 
                 // RECIPIENTS
-                new NotificationTabContent({
-                    title: 'Subscribers',
-                    ref: 'recipients_tab',
-                    items: [{
-                        id: 'recipients_grid_panel',
-                        xtype: 'grid',
-                        ref: 'recipients_grid',
-                        height: 330,
-                        loadMask: {msg:'Loading...'},
-                        tbar: { items: recipients_toolbar },
-                        store: new Ext.data.JsonStore({
-                            autoDestroy: true,
-                            storeId: 'recipients_combo_store',
-                            autoLoad: false,
-                            idProperty: 'value',
-                            fields: [
-                                'type',
-                                'label',
-                                'value'
-                            ],
-                            data: []
-                        }),
-                        colModel: new Ext.grid.ColumnModel({
-                            defaults: {
-                                width: 120,
-                                sortable: true
-                            },
-                            columns: [
-                                {
-                                    header: _t('Type'),
-                                    dataIndex: 'type'
-                                },{
-                                    header: _t('Subscriber'),
-                                    dataIndex: 'label'
-                                }
-                            ]
-                        }),
-                        viewConfig: {forceFit: true},
-                        sm: new Ext.grid.RowSelectionModel({singleSelect:true}),
-                        frame: true,
-                        header: false
-                    }],
-                    loadData: function(data) {
-                        this.recipients_grid.getStore().loadData(data.recipients);
-                    }
-                })
+                tab_recipients
             ]
         });
 
@@ -661,11 +763,12 @@ Ext.onReady(function () {
                 plain: true,
                 autoScroll: true,
                 border: false,
-                width: 400,
+                width: 500,
                 height: 380,
                 layout: 'fit',
                 items: [{
                     xtype:'form',
+                    autoHeight: true,
                     ref: 'editForm',
                     border: false,
                     buttonAlign: 'center',
@@ -873,7 +976,14 @@ Ext.onReady(function () {
                         'clear_subject_format',
                         'clear_body_format',
                         'recipients',
-                        'subscriptions'
+                        'subscriptions',
+                        'globalRead',
+                        'globalWrite',
+                        'globalManageSubscriptions',
+                        'userRead',
+                        'userWrite',
+                        'userManageSubscriptions'
+
                     ]
                 },
                 colModel: new Ext.grid.ColumnModel({

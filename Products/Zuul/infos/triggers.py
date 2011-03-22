@@ -47,6 +47,14 @@ class NotificationSubscriptionInfo(InfoBase):
     recipients = ProxyProperty('recipients')
     #explicit_recipients = ProxyProperty('explicit_recipients')
 
+    globalRead = ProxyProperty('globalRead')
+    globalWrite = ProxyProperty('globalWrite')
+    globalManageSubscriptions = ProxyProperty('globalManageSubscriptions')
+
+    userRead = ProxyProperty('userRead')
+    userWrite = ProxyProperty('userWrite')
+    userManageSubscriptions = ProxyProperty('userManageSubscriptions')
+
     def _getSubscriptions(self):
         if self._object.subscriptions:
             return self._object.subscriptions[0]

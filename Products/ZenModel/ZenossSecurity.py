@@ -20,6 +20,13 @@ ZEN_MANAGER_ROLE = 'ZenManager'
 OWNER_ROLE = 'Owner'
 MANAGER_ROLE = 'Manager'
 
+# notifications get their own roles which are managed locally on the objects
+# themselves. We cannot reuse ZEN_USER_ROLE or ZEN_MANAGER_ROLE because we need
+# finer grained control at the object level, not the action level.
+NOTIFICATION_VIEW_ROLE = "Notification View"
+NOTIFICATION_UPDATE_ROLE = "Notification Update"
+NOTIFICATION_SUBSCRIPTION_MANAGER_ROLE = "Notification Subscription Manager"
+
 
 # Zenoss Permissions
 ZEN_COMMON = 'ZenCommon'
@@ -27,6 +34,13 @@ ZEN_MANAGE_DMD = 'Manage DMD'
 ZEN_UPDATE = "ZenUpdate"
 ZEN_DELETE = "Delete objects"
 ZEN_ADD = 'Add DMD Objects'
+
+
+# Notification specific permissions
+VIEW_NOTIFICATION = "View Notification"
+UPDATE_NOTIFICATION = "Update Notification"
+MANAGE_NOTIFICATION_SUBSCRIPTIONS = "Manage Notification Subscriptions"
+
 
 ZEN_VIEW = 'View'
 ZEN_VIEW_HISTORY = 'View History'
@@ -75,5 +89,4 @@ ZEN_MAINTENANCE_WINDOW_EDIT='Maintenance Windows Edit'
 ZEN_MAINTENANCE_WINDOW_VIEW='Maintenance Windows View'
 ZEN_ADMINISTRATORS_EDIT='Administrators Edit'
 ZEN_ADMINISTRATORS_VIEW='Administrators View' 
-
 

@@ -25,9 +25,22 @@ from Products.ZenModel.NotificationSubscriptionWindow import NotificationSubscri
 import zenoss.protocols.protobufs.zep_pb2 as zep
 from zenoss.protocols.jsonformat import to_dict, from_dict
 from Products.ZenUtils.GlobalConfig import getGlobalConfiguration
-from Products.ZenUtils.guid.interfaces import IGlobalIdentifier
+from Products.ZenUtils.guid.interfaces import IGlobalIdentifier, IGUIDManager
+from AccessControl import getSecurityManager
 
 from zenoss.protocols.services.triggers import TriggerServiceClient
+
+from Products.ZenModel.ZenossSecurity import (
+    OWNER_ROLE,
+    ZEN_MANAGER_ROLE,
+    MANAGER_ROLE,
+    NOTIFICATION_VIEW_ROLE,
+    NOTIFICATION_UPDATE_ROLE,
+    NOTIFICATION_SUBSCRIPTION_MANAGER_ROLE,
+    VIEW_NOTIFICATION,
+    UPDATE_NOTIFICATION,
+    MANAGE_NOTIFICATION_SUBSCRIPTIONS
+    )
 
 log = logging.getLogger('zen.TriggersFacade')
 
@@ -37,8 +50,12 @@ class TriggersFacade(ZuulFacade):
     def __init__(self, context):
         super(TriggersFacade, self).__init__(context)
 
+        self._guidManager = IGUIDManager(self._dmd)
+        
         config = getGlobalConfiguration()
         self.triggers_service = TriggerServiceClient(config.get('zep_uri', 'http://localhost:8084'))
+
+        self.notificationPermissions = NotificationPermissionManager()
 
     def removeNode(self, uid):
         obj = self._getObject(uid)
@@ -99,26 +116,46 @@ class TriggersFacade(ZuulFacade):
     def _getManager(self):
         return self._dmd.findChild('NotificationSubscriptions')
 
+
     def getNotifications(self):
-        for notification in self._getManager().getChildNodes():
-            yield IInfo(notification)
+        user = getSecurityManager().getUser()
+        for n in self.notificationPermissions.findNotifications(user, self._getManager().getChildNodes()):
+            n.userRead = True
+            n.userWrite = self.notificationPermissions.userCanUpdateNotification(user, n)
+            n.userManageSubscriptions = self.notificationPermissions.userCanManageNotification(user, n)
+            log.debug(n)
+            yield IInfo(n)
 
     def addNotification(self, newId, action):
         notification = NotificationSubscription(newId)
         notification.action = action
+
         self._getManager()._setObject(newId, notification)
+
+        acquired_notification = self._getManager().findChild(newId)
+        self.notificationPermissions.setupNotification(acquired_notification)
 
         self.updateNotificationSubscriptions(notification)
 
         return IInfo(self._getManager().findChild(newId))
 
     def removeNotification(self, uid):
-        return self.removeNode(uid)
+        user = getSecurityManager().getUser()
+        notification = self._getObject(uid)
+        if self.notificationPermissions.userCanUpdateNotification(user, notification):
+            return self.removeNode(uid)
+        else:
+            log.warning('User not authorized to remove notification: User: %s, Notification: %s' % (user.getId(), notification.id))
+            raise Exception('User not authorized to remove notification.')
 
     def getNotification(self, uid):
+        user = getSecurityManager().getUser()
         notification = self._getObject(uid)
-        if notification:
+        if self.notificationPermissions.userCanViewNotification(user, notification):
             return IInfo(notification)
+        else:
+            log.warning('User not authorized to view this notification: %s' % uid)
+            raise Exception('User not authorized to view this notification: %s' % uid)
 
     def updateNotificationSubscriptions(self, notification):
         triggerSubscriptions = []
@@ -144,18 +181,44 @@ class TriggersFacade(ZuulFacade):
         uid = data['uid']
 
         notification = self._getObject(uid)
+
         if not notification:
             raise Exception('Could not find notification to update: %s' % uid)
 
-        for field in notification._properties:
-            notification._updateProperty(field['id'], data.get(field['id']))
+        # if these values are not sent (in the case that the fields have been
+        # disabled, do not set the value.
+        if 'notification_globalRead' in data:
+            notification.globalRead = data.get('notification_globalRead', False)
+            log.debug('setting globalRead')
 
-        notification.recipients = data.get('recipients', [])
+        if 'notification_globalWrite' in data:
+            notification.globalWrite = data.get('notification_globalWrite', False)
+            log.debug('setting globalWrite')
 
-        # editing as a text field, but storing as a list for now.
-        notification.subscriptions = [data.get('subscriptions')]
+        if 'notification_globalManageSubscriptions' in data:
+            notification.globalManageSubscriptions = data.get('notification_globalManageSubscriptions', False)
+            log.debug('setting globalManageSubscriptions')
 
-        self.updateNotificationSubscriptions(notification)
+        # don't update any properties unless the current user has the correct
+        # permission.
+        user = getSecurityManager().getUser()
+        if self.notificationPermissions.userCanUpdateNotification(user, notification):
+            for field in notification._properties:
+                notification._updateProperty(field['id'], data.get(field['id']))
+
+            # editing as a text field, but storing as a list for now.
+            notification.subscriptions = [data.get('subscriptions')]
+
+            self.updateNotificationSubscriptions(notification)
+
+
+        # don't allow updating of the recipients properties unless the current
+        # user has the correct permission.
+        if self.notificationPermissions.userCanManageNotification(user, notification):
+            notification.recipients = data.get('recipients', [])
+
+            self.notificationPermissions.clearPermissions(notification)
+            self.notificationPermissions.updatePermissions(self._guidManager, notification)
 
         log.debug('updated notification: %s' % notification)
 
@@ -217,3 +280,117 @@ class TriggersFacade(ZuulFacade):
         log.debug('updated window')
 
 
+class NotificationPermissionManager(object):
+    """
+    This object helps manage permissions with regard to a notification.
+    """
+
+    def __init__(self):
+        self.securityManager = getSecurityManager()
+
+
+    def userCanViewNotification(self, user, notification):
+        """
+        Check to see if the current user can view this notification. Take into
+        account global settings of the notification, and then just defer a
+        permission check to zope.
+        """
+        log.debug('Checking user "%s" can view notification "%s": %s' % (
+            user.getId(),
+            notification.id,
+            self.securityManager.checkPermission(VIEW_NOTIFICATION, notification)
+        ))
+        return notification.globalRead or self.securityManager.checkPermission(VIEW_NOTIFICATION, notification)
+
+    def userCanUpdateNotification(self, user, notification):
+        """
+        check to see if the current user can update the notification. Take into
+        account global settings of the notification, and then just defer a
+        permission check to zope.
+        """
+        log.debug('Checking user "%s" can update notification "%s": %s' % (
+            user.getId(),
+            notification.id,
+            self.securityManager.checkPermission(UPDATE_NOTIFICATION, notification)
+        ))
+        return notification.globalWrite or self.securityManager.checkPermission(UPDATE_NOTIFICATION, notification)
+
+    def userCanManageNotification(self, user, notification):
+        log.debug('Checking user "%s" for managing notification "%s": %s' % (
+            user.getId(),
+            notification.id,
+            self.securityManager.checkPermission(MANAGE_NOTIFICATION_SUBSCRIPTIONS, notification)
+        ))
+        return notification.globalManageSubscriptions or self.securityManager.checkPermission(MANAGE_NOTIFICATION_SUBSCRIPTIONS, notification)
+
+
+    def findNotifications(self, user, notifications):
+        """
+        Find all notifications that the current user at least has the 'View'
+        permission on.
+        """
+        for notification in notifications:
+            if self.userCanViewNotification(user, notification):
+                yield notification
+
+    def clearPermissions(self, notification):    
+        # remove all previous local roles, besides 'Owner'
+        removeUserIds = []
+        for userId, roles in notification.get_local_roles():
+            if OWNER_ROLE not in roles:
+                removeUserIds.append(userId)
+        log.debug('Removing all local roles for users: %s' % removeUserIds)
+        notification.manage_delLocalRoles(removeUserIds)
+
+    def updatePermissions(self, guidManager, notification):
+       # then add local roles back for all the users/groups that we just added
+        for recipient in notification.recipients:
+            if recipient['type'] != 'manual':
+                userOrGroup = guidManager.getObject(recipient['value'])
+
+                notification.manage_addLocalRoles(userOrGroup.id, [NOTIFICATION_VIEW_ROLE])
+                log.debug('Added role: %s for user or group: %s' % (NOTIFICATION_VIEW_ROLE, userOrGroup.id))
+
+                log.debug(recipient);
+
+                if recipient.get('write'):
+                    notification.manage_addLocalRoles(userOrGroup.id, [NOTIFICATION_UPDATE_ROLE])
+                    log.debug('Added role: %s for user or group: %s' % (NOTIFICATION_UPDATE_ROLE, userOrGroup.id))
+
+                if recipient.get('manage_subscriptions'):
+                    notification.manage_addLocalRoles(userOrGroup.id, [NOTIFICATION_SUBSCRIPTION_MANAGER_ROLE])
+                    log.debug('Added role: %s for user or group: %s' % (NOTIFICATION_SUBSCRIPTION_MANAGER_ROLE, userOrGroup.id))
+
+
+    def setupNotification(self, notification):
+        # Permissions are managed here because managing these default permissions
+        # on the class was not preventing the permissions from being acquired
+        # elsewhere.
+        notification.manage_permission(
+            VIEW_NOTIFICATION,
+            (OWNER_ROLE,
+             MANAGER_ROLE,
+             ZEN_MANAGER_ROLE,
+             NOTIFICATION_VIEW_ROLE,
+             NOTIFICATION_UPDATE_ROLE,
+             NOTIFICATION_SUBSCRIPTION_MANAGER_ROLE),
+            acquire=False
+        )
+
+        notification.manage_permission(
+            UPDATE_NOTIFICATION,
+            (OWNER_ROLE,
+             MANAGER_ROLE,
+             ZEN_MANAGER_ROLE,
+             NOTIFICATION_UPDATE_ROLE),
+            acquire=False
+        )
+
+        notification.manage_permission(
+            MANAGE_NOTIFICATION_SUBSCRIPTIONS,
+            (OWNER_ROLE,
+             MANAGER_ROLE,
+             ZEN_MANAGER_ROLE,
+             NOTIFICATION_SUBSCRIPTION_MANAGER_ROLE),
+            acquire=False
+        )
