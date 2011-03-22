@@ -7,10 +7,10 @@ Ext.onReady(function(){
 if ( Ext.get('searchbox-container') === null ) {
             return;
 }else {
-    
+
     var combo,
         router = Zenoss.remote.SearchRouter,
-        ManageSavedSearchDialog,     
+        ManageSavedSearchDialog,
         ds = new Ext.data.DirectStore({
             directFn: Zenoss.remote.SearchRouter.getLiveResults,
             root: 'results',
@@ -43,6 +43,8 @@ if ( Ext.get('searchbox-container') === null ) {
         //triggerAction: 'all',
         width: 120,
         pageSize: 0,
+        // delay all requests by one second
+        delayQuery: 1000,
         minChars: 3,
         hideTrigger: false,
         tpl: resultTpl,
@@ -222,10 +224,10 @@ if ( Ext.get('searchbox-container') === null ) {
         }
     });
     Ext.reg('managesavedsearchdialog', ManageSavedSearchDialog);
-    
+
     ds.on("load", function(){
         Zenoss.env.search.select(0);
     });
-    
+
 }
 });
