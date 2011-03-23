@@ -165,7 +165,7 @@ Zenoss.DeviceGridPanel = Ext.extend(Zenoss.FilterGridPanel,{
             border: false,
             rowSelectorDepth: 5,
             view: new Zenoss.FilterGridView({
-                rowHeight: 22,
+                rowHeight: 24,
                 nearLimit: 100,
                 loadMask: {msg: 'Loading. Please wait...'}
             }),
