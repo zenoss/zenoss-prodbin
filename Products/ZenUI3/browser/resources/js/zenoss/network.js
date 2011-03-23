@@ -310,7 +310,7 @@ var ipAddressColumnConfig = {
             width: 200,
             renderer: function(device, row, record) {
                 if (!device) return _t('No Device');
-                return Zenoss.render.link(device.uid,  device.name);
+                return Zenoss.render.link(device.uid, null, device.name);
             }
         }, {
             id: 'interface',
