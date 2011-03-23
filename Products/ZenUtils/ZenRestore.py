@@ -234,6 +234,8 @@ class ZenRestore(ZenBackupBase):
 
     def restoreEtcFiles(self):
         self.msg('Restoring config files.')
+        cmd = 'cp -p %s %s' % (os.path.join(zenPath('etc'), 'global.conf'), self.tempDir)
+        if os.system(cmd): return -1
         cmd = 'rm -rf %s' % zenPath('etc')
         if os.system(cmd): return -1
         cmd = 'tar Cxf %s %s' % (
@@ -241,6 +243,10 @@ class ZenRestore(ZenBackupBase):
             os.path.join(self.tempDir, 'etc.tar')
         )
         if os.system(cmd): return -1
+        if not os.path.exists(os.path.join(zenPath('etc'), 'global.conf')):
+            print 'Restoring default global.conf'
+            cmd = 'mv %s %s' % (os.path.join(self.tempDir, 'global.conf'), zenPath('etc'))
+            if os.system(cmd): return -1
 
     def restoreZenPacks(self):
         self.msg('Restoring ZenPacks.')
