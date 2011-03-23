@@ -409,12 +409,12 @@ class EventSummaryProxy(EventProxy):
     @property
     def ownerid(self):
         # FIXME Expects username, not uuid
-        return self._eventSummary.get(EventSummaryField.ACKNOWLEDGED_BY_USER_UUID)
+        return self._eventSummary.get(EventSummaryField.CURRENT_USER_UUID)
 
     @ownerid.setter
     def ownerid(self, val):
         # FIXME Expects uuid, not username
-        self._eventSummary.set(EventSummaryField.ACKNOWLEDGED_BY_USER_UUID, val)
+        self._eventSummary.set(EventSummaryField.CURRENT_USER_UUID, val)
 
     @property
     def eventState(self):

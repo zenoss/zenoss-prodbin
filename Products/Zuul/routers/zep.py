@@ -184,7 +184,7 @@ class EventsRouter(DirectRouter):
             'eventKey' : eventOccurrence.get('event_key'),
             'agent': eventOccurrence.get('agent'),
             'monitor': eventOccurrence.get('monitor'),
-            'ownerid': event_summary.get('acknowledged_by_user_name'),
+            'ownerid': event_summary.get('current_user_name'),
             'facility' : eventOccurrence.get('syslog_facility'),
             'priority' : notYetMapped, # need to map from protobuf enum to Pretty Name.
             'eventClassMapping' : eventOccurrence.get('event_class_mapping_uuid'),
@@ -405,7 +405,7 @@ class EventsRouter(DirectRouter):
                 element_identifier = params.get('device'),
                 element_sub_identifier = params.get('component'),
                 event_summary = params.get('summary'),
-                acknowledged_by_user_name = params.get('ownerid'),
+                current_user_name = params.get('ownerid'),
                 agent = params.get('agent'),
                 monitor = params.get('monitor'),
 
@@ -485,8 +485,6 @@ class EventsRouter(DirectRouter):
             'summary':eventOccurrence.get('summary'),
             'message':eventOccurrence.get('message'),
             'dedupid':eventOccurrence['fingerprint'],
-            'eventState':EventStatus.getPrettyName(event_summary['status']),
-            'count':event_summary['count'],
             'monitor':eventOccurrence.get('monitor'),
             'facility': eventOccurrence.get('syslog_facility'),
             'ntevid': eventOccurrence.get('nt_event_code'),
@@ -498,7 +496,7 @@ class EventsRouter(DirectRouter):
             'Systems' : self._lookupTags(tags.get('zenoss.device.system')),
             'eventClassMapping':self._uuidUrl(eventOccurrence.get('event_class_mapping_uuid')),
             'DeviceClass' : self._lookupDeviceClass(tags.get('zenoss.device.device_class')),
-            'owner': event_summary.get('acknowledged_by_user_name'),
+            'owner': event_summary.get('current_user_name'),
             'priority': eventOccurrence.get('syslog_priority'),
             'clearedevent': event_summary.get('cleared_by_event_uuid'),
             'log':[]}

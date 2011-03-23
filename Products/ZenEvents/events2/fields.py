@@ -56,9 +56,11 @@ class EventSummaryField:
     STATUS_CHANGE_TIME = 'status_change_time'
     LAST_SEEN_TIME = 'last_seen_time'
     COUNT = 'count'
-    ACKNOWLEDGED_BY_USER_UUID = 'acknowledged_by_user_uuid'
+    CURRENT_USER_UUID = 'current_user_uuid'
+    CURRENT_USER_NAME = 'current_user_name'
     CLEARED_BY_EVENT_UUID = 'cleared_by_event_uuid'
     NOTES = 'notes'
+    AUDIT_LOG = 'audit_log'
 
 class ZepRawEventField:
     RAW_EVENT = 'raw_event'

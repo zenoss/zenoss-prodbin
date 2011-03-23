@@ -51,7 +51,7 @@ class ZepFacade(ZuulFacade):
         'component':   { 'field': EventSort.ELEMENT_SUB_IDENTIFIER },
         'count':       { 'field': EventSort.COUNT },
         'summary':     { 'field': EventSort.EVENT_SUMMARY },
-        'ownerid':     { 'field': EventSort.ACKNOWLEDGED_BY_USER_NAME },
+        'ownerid':     { 'field': EventSort.CURRENT_USER_NAME },
         'agent':       { 'field': EventSort.AGENT },
         'monitor':     { 'field': EventSort.MONITOR },
         'evid':        { 'field': EventSort.UUID },
@@ -96,7 +96,7 @@ class ZepFacade(ZuulFacade):
         fingerprint=(),
         agent=(),
         monitor=(),
-        acknowledged_by_user_name=(),
+        current_user_name=(),
         subfilter=(),
         operator=None,
         details=None):
@@ -174,8 +174,8 @@ class ZepFacade(ZuulFacade):
         if monitor:
             filter['monitor'] = monitor
 
-        if acknowledged_by_user_name:
-            filter['acknowledged_by_user_name'] = acknowledged_by_user_name
+        if current_user_name:
+            filter['current_user_name'] = current_user_name
 
         if subfilter:
             filter['subfilter'] = subfilter
