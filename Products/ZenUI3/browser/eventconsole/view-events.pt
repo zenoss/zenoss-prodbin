@@ -21,58 +21,7 @@
 </tal:block>
 
 <tal:block metal:fill-slot="script_layout">
-<!-- NOTE: Template for rendering the detail pane. This is Ext's XTemplate language. The template gets
-     rendered in Zenoss.DetailedPanel in zenoss.js
 
-     ANOTHER NOTE: This functionality is duplicated in detail.pt. Make sure you make any changes there in
-     addition to here
-  -->
-<textarea class="dontexpand" style="display:none" id="detail_table_template">
-    <table>
-        <tr><td class="dt">Device:</td>
-            <td>
-                <tpl if="device">
-                    {device_link}
-                </tpl>
-            </td>
-        </tr>
-        <tr><td class="dt">Component:</td>
-            <td>
-                <tpl if="component">
-                    {component_link}
-                </tpl>
-            </td>
-        </tr>
-        <tr><td class="dt">Event Class:</td>
-            <td>
-                <tpl if="eventClass">
-                    {eventClass_link}
-                </tpl>
-            </td>
-        </tr>
-        <tr><td class="dt">Status:</td> <td>{eventState}</td></tr>
-        <tr><td class="dt">Start Time:</td> <td>{firstTime}</td></tr>
-        <tr><td class="dt">Stop Time:</td> <td>{lastTime}</td></tr>
-        <tr><td class="dt">Count:</td> <td>{count}</td></tr>
-    </table>
-</textarea>
-<textarea class="dontexpand" style="display:none" id="log_table_template">
-    <table>
-    <tpl for="log">
-    <tr><td class="time">{1} {0} said: </td>
-        <td class="message">{2}</td></tr>
-    </tpl>
-    </table>
-</textarea>
-<textarea class="dontexpand" style="display:none" id="fullprop_table_template">
-<table class="proptable">
-    <tpl for="properties">
-    <tr class='{[xindex % 2 === 0 ? "even" : "odd"]}'>
-        <td class="proptable_key">{key}</td>
-        <td class="proptable_value">{value}</td></tr>
-    </tpl>
-</table>
-</textarea>
 <script tal:content="string:
     Ext.onReady(function(){
         Zenoss.env.EVENTSGRID_STATEID = 'evconsole';

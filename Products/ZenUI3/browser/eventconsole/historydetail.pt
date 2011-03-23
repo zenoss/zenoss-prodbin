@@ -13,50 +13,7 @@
     </head>
     <body class="zenui3">
 <!-- Template for rendering the detail pane -->
-<textarea class="dontexpand" style="display:none" id="detail_table_template">
-<table>
-    <tr><td class="dt">Device:</td> 
-        <td><tpl if="device"><a href="{device_url}" 
-                class="resource-link">{device_title}</a></tpl></td>
-        </tr>
-    <tr><td class="dt">Component:</td> 
-        <td><tpl if="component">
-            <a href="{component_url}" 
-                class="resource-link">{component_title}</a></tpl></td>
-        </tr>
-    <tr><td class="dt">Event Class:</td> 
-        <td><tpl if="eventClass"><a href="{eventClass_url}"
-                class="resource-link">{eventClass}</a></tpl></td>
-        </tr>
-    <tr><td class="dt">Status:</td> <td>{eventState}</td></tr>
-    <tr><td class="dt">Start Time:</td> <td>{firstTime}</td></tr>
-    <tr><td class="dt">Stop Time:</td> <td>{lastTime}</td></tr>
-    <tr><td class="dt">Count:</td> <td>{count}</td></tr>
-    <tr><td class="dt">Message:</td> <td><pre>{message}</pre></td></tr>
-    <tr><td class="dt">Systems:</td> <td>{Systems}</td></tr>
-    <tr><td class="dt">Groups:</td> <td>{DeviceGroups}</td></tr>
-    <tr><td class="dt">Location:</td> <td>{Location}</td></tr>
-    <tr><td class="dt">Device Class:</td> <td>{DeviceClass}</td></tr>
-    <tr><td class="dt">Production State:</td> <td>{prodState}</td></tr>
-    <tr><td class="dt">Device Priority:</td> <td>{DevicePriority}</td></tr>
-</table>
-</textarea>
-<textarea class="dontexpand" style="display:none" id="log_table_template">
-    <table>
-    <tpl for="log">
-    <tr><td class="time">{1} {0} said: </td>
-        <td class="message">{2}</td></tr>
-    </tpl>
-    </table>
-</textarea>
-<textarea class="dontexpand" style="display:none" id="fullprop_table_template">
-<table class="proptable">
-    <tpl for="properties">
-    <tr><td class="proptable_key">{key}</td>
-        <td class="proptable_value">{value}</td></tr>
-    </tpl>
-</table>
-</textarea>
+
 <script tal:content="string:
     Ext.onReady(function(){
         Zenoss.env.EVENTSGRID_STATEID = '${context/id}_evconsole';

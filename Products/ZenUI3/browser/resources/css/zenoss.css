@@ -410,7 +410,7 @@ div.zenportlet .severity-icon-small.clear,
 
 td.proptable_key {
     font-weight: bold;
-    text-align: right;
+    text-align: left;
     padding-right: 1em;
 }
 
@@ -419,14 +419,23 @@ table.proptable {
 }
 
 
-#show_details {
+.show_details {
     cursor: hand;
     cursor: pointer;
     font-size: 13px;
     color: #7199e6;
     text-decoration: none;
     padding-left: 3em;
+    padding-top: .5em;
+    padding-bottom: .5em;
+}
+
+.event_details {    
+    font-size: 13px;    
+    text-decoration: none;
+    padding-left: 3em;
     padding-bottom: 1em;
+    padding-top: 1em;
 }
 
 .x-toolbar div.xtb-text.lastupdated {

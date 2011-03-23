@@ -465,8 +465,9 @@ class EventsRouter(DirectRouter):
         eventData = {
             'evid':event_summary['uuid'],
             'device':eventActor.get('element_identifier'),
-            'device_title':eventActor.get('element_identifier'),
+            'device_title':eventActor.get('element_identifier'),            
             'device_url':self._uuidUrl(eventActor.get('element_uuid')),
+            'ipAddress': eventDetails.get('ipAddress'),
             'device_uuid':eventActor.get('element_uuid'),
             'component':eventActor.get('element_sub_identifier'),
             'component_title':eventActor.get('element_sub_identifier'),
@@ -474,38 +475,35 @@ class EventsRouter(DirectRouter):
             'component_uuid':eventActor.get('element_sub_uuid'),
             'firstTime':isoDateTimeFromMilli(event_summary['first_seen_time']),
             'lastTime':isoDateTimeFromMilli(event_summary['last_seen_time']),
+            'stateChange':isoDateTimeFromMilli(event_summary['status_change_time']),
             'eventClass':eventClass,
             'eventClass_url':"/zport/dmd/Events%s" % eventClass,
+            'eventKey':eventOccurrence.get('event_key'),
             'severity':eventOccurrence['severity'],
             'eventState':EventStatus.getPrettyName(event_summary['status']),
             'count':event_summary['count'],
             'summary':eventOccurrence.get('summary'),
             'message':eventOccurrence.get('message'),
+            'dedupid':eventOccurrence['fingerprint'],
+            'eventState':EventStatus.getPrettyName(event_summary['status']),
+            'count':event_summary['count'],
+            'monitor':eventOccurrence.get('monitor'),
+            'facility': eventOccurrence.get('syslog_facility'),
+            'ntevid': eventOccurrence.get('nt_event_code'),
+            'agent':eventOccurrence.get('agent'),
+            'eventGroup': eventOccurrence.get('event_group'),
+            'eventClassKey':eventOccurrence.get('event_class_key'),
             'Location' : self._lookupTags(tags.get('zenoss.device.location')),
             'DeviceGroups' : self._lookupTags(tags.get('zenoss.device.group')),
             'Systems' : self._lookupTags(tags.get('zenoss.device.system')),
+            'eventClassMapping':self._uuidUrl(eventOccurrence.get('event_class_mapping_uuid')),
             'DeviceClass' : self._lookupDeviceClass(tags.get('zenoss.device.device_class')),
-            'properties':[
-                dict(key=k, value=v) for (k, v) in {'evid':event_summary['uuid'],
-                                                    'device':eventActor.get('element_identifier'),
-                                                    'component':eventActor.get('element_sub_identifier'),
-                                                    'firstTime':isoDateTimeFromMilli(event_summary['first_seen_time']),
-                                                    'lastTime':isoDateTimeFromMilli(event_summary['last_seen_time']),
-                                                    'stateChange':isoDateTimeFromMilli(event_summary['status_change_time']),
-                                                    'dedupid':eventOccurrence['fingerprint'],
-                                                    'eventClass':eventClass,
-                                                    'eventClassKey':eventOccurrence.get('event_class_key'),
-                                                    'eventClassMapping_uuid':self._uuidUrl(eventOccurrence.get('event_class_mapping_uuid')),
-                                                    'eventKey':eventOccurrence.get('event_key'),
-                                                    'summary':eventOccurrence.get('summary'),
-                                                    'severity':eventOccurrence.get('severity'),
-                                                    'eventState':EventStatus.getPrettyName(event_summary['status']),
-                                                    'count':event_summary['count'],
-                                                    'monitor':eventOccurrence.get('monitor'),
-                                                    'agent':eventOccurrence.get('agent'),}.iteritems() if v],
-                                                    
+            'owner': event_summary.get('acknowledged_by_user_name'),
+            'priority': eventOccurrence.get('syslog_priority'),
+            'clearedevent': event_summary.get('cleared_by_event_uuid'),
             'log':[]}
 
+        
         prodState = self._singleDetail(eventDetails.get('zenoss.device.production_state'))
         if prodState is not None:
             eventData['prodState'] = self.context.convertProdState(prodState)
@@ -518,15 +516,15 @@ class EventsRouter(DirectRouter):
             for note in event_summary['notes']:
                 eventData['log'].append((note['user_name'], isoDateTimeFromMilli(note['created_time']), note['message']))
 
-        if 'details' in eventOccurrence:
-            for detail in eventOccurrence['details']:
+        eventData['details'] = []
+        if 'details' in eventOccurrence:            
+            for detail in sorted(eventOccurrence['details'], key=lambda detail: detail['name'].lower()):  
                 values = detail['value']
                 if not isinstance(values, list):
-                    values = list(values)
+                    values = list(values)                
                 for value in (v for v in values if v):
                     if not detail['name'].startswith('__meta__'):
-                        eventData['properties'].append(dict(key=detail['name'], value=value))
-
+                        eventData['details'].append(dict(key=detail['name'], value=value))        
         return eventData
 
     def detail(self, evid):
