@@ -32,7 +32,6 @@ from OFS.event import ObjectWillBeRemovedEvent
 from zope.event import notify
 from zope.app.container.contained import ObjectAddedEvent
 from zope.app.container.contained import ObjectRemovedEvent
-from zope.app.container.contained import ContainerModifiedEvent
 from zope.app.container.contained import dispatchToSublocations
 
 from BTrees.OOBTree import OOBTree
@@ -117,7 +116,6 @@ class ToManyContRelationship(ToManyRelationshipBase):
         ToManyRelationshipBase.addRelation(self, obj)
         obj = obj.__of__(self)
         notify(ObjectAddedEvent(obj, self, obj.getId()))
-        notify(ContainerModifiedEvent(self))
 
 
     def _setObject(self,id,object,roles=None,user=None,set_owner=1):
@@ -175,7 +173,6 @@ class ToManyContRelationship(ToManyRelationshipBase):
         if not suppress_events:
             for robj in objs:
                 notify(ObjectRemovedEvent(robj, self, robj.getId()))
-            notify(ContainerModifiedEvent(self))
 
 
     def _remoteRemove(self, obj=None):

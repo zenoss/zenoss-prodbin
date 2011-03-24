@@ -28,7 +28,7 @@ from _mysql_exceptions import OperationalError
 
 from urllib import quote as urlquote
 from ipaddr import IPAddress
-
+from Acquisition import aq_base
 from zope.event import notify
 from Products.Zuul.catalog.events import IndexingEvent
 from Products.ZenUtils.Utils import isXmlRpc, unused, getObjectsFromCatalog
@@ -532,31 +532,13 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable,
         a MultiPathIndex.
         """
         orgs = (
-                self.systems() +
-                self.groups() +
-                [self.location()] +
-                [self.deviceClass()]
-               )
-        orgs = filter(None, orgs)
-        paths = []
-        myPrimaryId = self.getPrimaryId()
-        myId = self.getId()
-        for org in orgs:
-            rel = org.primaryAq().devices
-            try:
-                orgself = rel._getOb(myPrimaryId)
-            except AttributeError:
-                # Device class wants an id, not a path
-                try:
-                    orgself = rel._getOb(myId)
-                except AttributeError:
-                    log.warn("Unable to find %s (%s) in organizer %s",
-                        myId, myPrimaryId,
-                        '/'.join(org.getPrimaryPath()[3:]))
-                    continue
-            paths.append(orgself.getPhysicalPath())
-
-        return paths
+            self.systems() +
+            self.groups() +
+            [self.location()] +
+            [self.deviceClass()]
+            )
+        return [ aq_base(self).__of__(o.primaryAq()).getPhysicalPath() \
+                     for o in orgs if o is not None ]
 
 
     def traceRoute(self, target, ippath=None):

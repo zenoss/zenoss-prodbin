@@ -139,8 +139,6 @@ class TestToManyContRelationship(EventTest):
              ('ob1', 'ObjectWillBeAddedEvent'),
              ('container', 'ObjectAddedEvent'),
              ('ob1', 'ObjectAddedEvent'),
-             ('contained', 'ContainerModifiedEvent'),
-             ('ob1', 'ContainerModifiedEvent'),
             ]
         )
 
@@ -154,7 +152,6 @@ class TestToManyContRelationship(EventTest):
              ('ob1', 'ObjectWillBeRemovedEvent'),
              ('container', 'ObjectRemovedEvent'),
              ('ob1', 'ObjectRemovedEvent'),
-             ('contained', 'ContainerModifiedEvent')
             ]
         )
 
@@ -178,7 +175,6 @@ class TestToManyContRelationship(EventTest):
                 ('sonny', 'ObjectRemovedEvent'),
                 ('container', 'ObjectRemovedEvent'),
                 ('pops', 'ObjectRemovedEvent'),
-                ('contained', 'ContainerModifiedEvent')
             ]
         )
 
