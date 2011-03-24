@@ -363,7 +363,10 @@ class ZenossInfo(ZenModelItem, SimpleItem):
       "zenprocess": "Process monitoring using SNMP host resources MIB",
       "zenwin": "Windows Service Monitoring (WMI)",
       "zeneventlog": "Collect (WMI) event log events (aka NT Eventlog)",
-      "zendisc": "Discover the network topology to find active IPs and devices"
+      "zendisc": "Discover the network topology to find active IPs and devices",
+      "zenrrdcached": "Controls the write cache for performance data",
+      "zenmail": "Listen for e-mail and convert messages to Zenoss events",
+      "zenpop3": "Connect via pop3 to an e-mail server and convert messages to Zenoss events",
     }
 
 
@@ -375,10 +378,14 @@ class ZenossInfo(ZenModelItem, SimpleItem):
         states = []
         activeButtons = {'button1': 'Restart', 'button2': 'Stop', 'button2state': True}
         inactiveButtons = {'button1': 'Start', 'button2': 'Stop', 'button2state': False}
+        alwaysOnButtons = {'button1': 'Restart', 'button2': 'Stop', 'button2state': False}
         for daemon in self._getDaemonList():
             pid = self._getDaemonPID(daemon)
             if pid:
-                buttons = activeButtons
+                if daemon == 'zopectl':
+                    buttons = alwaysOnButtons
+                else:
+                    buttons = activeButtons
                 msg = 'Up'
                 color = '#0F0'
             else:
