@@ -322,7 +322,7 @@
             var event_management_html  = this.createPropertyTable(['summary', 'message',
                                                                    'severity', 'component',
                                                                    'eventClass', 'eventClassKey',
-                                                                   'dedupid', 'evid',
+                                                                   'eventKey', 'dedupid', 'evid',
                                                                    'eventClassMapping', 'eventState',
                                                                    'eventGroup', 'priority',
                                                                    'facility', 'ntevid',
