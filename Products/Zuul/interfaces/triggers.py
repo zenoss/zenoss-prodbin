@@ -137,11 +137,11 @@ class INotificationSubscriptionInfo(IInfo):
 
     globalRead = schema.Bool(title=_t(u'Global View'))
     globalWrite = schema.Bool(title=_t(u'Global Write'))
-    globalManageSubscriptions = schema.Bool(title=_t(u'Global Manage Subscriptions'))
+    globalManage = schema.Bool(title=_t(u'Global Manage Subscriptions'))
 
     userRead = schema.Bool(title=_t(u'Current User View'))
     userWrite = schema.Bool(title=_t(u'Current User Write'))
-    userManageSubscriptions = schema.Bool(title=_t(u'Current User Manage Subscriptions'))
+    userManage = schema.Bool(title=_t(u'Current User Manage Subscriptions'))
     
 
 class INotificationWindowInfo(IInfo):

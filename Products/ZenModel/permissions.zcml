@@ -180,4 +180,17 @@
       id="zenoss.ManageNotificationSubscriptions"
       title="Manage Notification Subscriptions"
       />
+
+  <permission
+      id="zenoss.TriggerView"
+      title="View Trigger"
+      />
+  <permission
+      id="zenoss.TriggerUpdate"
+      title="Update Trigger"
+      />
+  <permission
+      id="zenoss.ManageTrigger"
+      title="Manage Trigger"
+      />
 </configure>

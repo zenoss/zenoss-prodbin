@@ -27,6 +27,13 @@ NOTIFICATION_VIEW_ROLE = "Notification View"
 NOTIFICATION_UPDATE_ROLE = "Notification Update"
 NOTIFICATION_SUBSCRIPTION_MANAGER_ROLE = "Notification Subscription Manager"
 
+# Triggers also get their own roles which are managed locally on 'stub' objects.
+# the real data for triggers is persisted externally in the event processing
+# system.
+TRIGGER_VIEW_ROLE = "Trigger View"
+TRIGGER_UPDATE_ROLE = "Trigger Update"
+TRIGGER_MANAGER_ROLE = "Trigger Manager"
+
 
 # Zenoss Permissions
 ZEN_COMMON = 'ZenCommon'
@@ -40,6 +47,11 @@ ZEN_ADD = 'Add DMD Objects'
 VIEW_NOTIFICATION = "View Notification"
 UPDATE_NOTIFICATION = "Update Notification"
 MANAGE_NOTIFICATION_SUBSCRIPTIONS = "Manage Notification Subscriptions"
+
+# Trigger specific permissions
+VIEW_TRIGGER = "View Trigger"
+UPDATE_TRIGGER = "Update Trigger"
+MANAGE_TRIGGER = "Manage Trigger"
 
 
 ZEN_VIEW = 'View'

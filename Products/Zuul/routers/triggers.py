@@ -35,7 +35,7 @@ class TriggersRouter(DirectRouter):
         return DirectResponse.succeed(data=self._getFacade().addTrigger(newId))
 
     def removeTrigger(self, uuid):
-        return DirectResponse.succeed(data=self._getFacade().removeTrigger(uuid))
+        return DirectResponse.succeed(msg="Trigger removed without a problem.", data=self._getFacade().removeTrigger(uuid))
 
     def getTrigger(self, uuid):
         return DirectResponse.succeed(data=self._getFacade().getTrigger(uuid))
@@ -44,7 +44,7 @@ class TriggersRouter(DirectRouter):
         data['rule']['api_version'] = 1
         data['rule']['type'] = RULE_TYPE_JYTHON
         response = self._getFacade().updateTrigger(**data)
-        return DirectResponse.succeed(data=response)
+        return DirectResponse.succeed(msg="Trigger updated without a problem.", data=response)
 
     def parseFilter(self, source):
         try:

@@ -61,6 +61,7 @@ from Products.Zuul.catalog.global_catalog import createGlobalCatalog
 from Products.ZenModel.ZenossSecurity import \
      MANAGER_ROLE, ZEN_MANAGER_ROLE, ZEN_USER_ROLE, OWNER_ROLE
 from Products.ZenModel.NotificationSubscription import manage_addNotificationSubscriptionManager
+from Products.ZenModel.Trigger import manage_addTriggerManager
 
 
 class DmdBuilder(object):
@@ -181,6 +182,7 @@ class DmdBuilder(object):
                                     history=True)
         manage_addUserSettingsManager(self.dmd)
         manage_addNotificationSubscriptionManager(self.dmd)
+        manage_addTriggerManager(self.dmd)
         manage_addLinkManager(self.dmd)
         manage_addJobManager(self.dmd)
         manage_addIpNetwork(self.dmd, "Networks")

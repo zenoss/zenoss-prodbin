@@ -150,6 +150,13 @@ Ext.onReady(function () {
         tab.setDisabled(false);
     };
 
+    var enableTabContents = function(tab) {
+        tab.cascade(function() {
+            this.enable();
+        });
+        tab.setDisabled(false);
+    }
+
     reloadNotificationGrid = function() {
         Ext.getCmp(notificationPanelConfig.id).getStore().reload();
     };
@@ -197,6 +204,160 @@ Ext.onReady(function () {
             });
         }
     };
+
+
+    var writeColumn = new Ext.grid.CheckColumn({
+        header: _t('Write'),
+        dataIndex: 'write'
+    });
+
+    var manageColumn = new Ext.grid.CheckColumn({
+        header: _t('Manage'),
+        dataIndex: 'manage'
+    });
+
+    var UsersPermissionGrid = Ext.extend(Ext.grid.EditorGridPanel, {
+        constructor: function(config) {
+            var me = this;
+
+            config = config || {};
+            this.allowManualEntry = config.allowManualEntry || false;
+            Ext.applyIf(config, {
+                ref: 'users_grid',
+                border: false,
+                viewConfig: {forceFit: true},
+                title: config.title,
+                autoExpandColumn: 'value',
+                loadMask: {msg:_t('Loading...')},
+                autoHeight: true,
+                plugins: [writeColumn, manageColumn],
+                keys: [
+                    {
+                        key: [Ext.EventObject.ENTER],
+                        handler: function() {
+                            me.addValueFromCombo();
+                        }
+                    }
+                ],
+                tbar: {
+                    items: [
+                        {
+                            xtype: 'combo',
+                            ref: 'users_combo',
+                            typeAhead: true,
+                            triggerAction: 'all',
+                            lazyRender:true,
+                            mode: 'local',
+                            store: {
+                                xtype: 'directstore',
+                                directFn: router.getRecipientOptions,
+                                root: 'data',
+                                autoLoad: true,
+                                idProperty: 'value',
+                                fields: [
+                                    'type',
+                                    'label',
+                                    'value'
+                                ]
+                            },
+                            valueField: 'value',
+                            displayField: 'label'
+                        },{
+                            xtype: 'button',
+                            text: 'Add',
+                            ref: 'add_button',
+                            handler: function(btn, event) {
+                                me.addValueFromCombo()
+                            }
+                        },{
+                            xtype: 'button',
+                            ref: 'delete_button',
+                            iconCls: 'delete',
+                            handler: function(btn, event) {
+                                var row = btn.refOwner.ownerCt.getSelectionModel().getSelected();
+                                btn.refOwner.ownerCt.getStore().remove(row);
+                                btn.refOwner.ownerCt.getView().refresh();
+                            }
+                        }
+                    ]
+                },
+                store: new Ext.data.JsonStore({
+                    autoDestroy: true,
+                    storeId: 'users_combo_store',
+                    autoLoad: false,
+                    idProperty: 'value',
+                    fields: [
+                        'type',
+                        'label',
+                        'value',
+                        {name: 'write', type: 'bool'},
+                        {name: 'manage', type: 'bool'}
+                    ],
+                    data: []
+                }),
+                colModel: new Ext.grid.ColumnModel({
+                    defaults: {
+                        width: 120,
+                        sortable: true
+                    },
+                    columns: [
+                        {
+                            header: _t('Type'),
+                            dataIndex: 'type'
+                        },{
+                            header: config.title,
+                            dataIndex: 'label'
+                        },
+                        writeColumn,
+                        manageColumn
+                    ]
+                }),
+                sm: new Ext.grid.RowSelectionModel({singleSelect:true})
+            });
+            UsersPermissionGrid.superclass.constructor.apply(this, arguments);
+        },
+        addValueFromCombo: function() {
+            var val = this.getTopToolbar().users_combo.getValue(),
+                row = this.getTopToolbar().users_combo.getStore().getById(val),
+                type = 'manual',
+                label;
+
+            if (row) {
+                type = row.data.type;
+                label = row.data.label;
+            }
+            else {
+                val = this.getTopToolbar().users_combo.getRawValue();
+                label = val;
+            }
+
+
+            if (!this.allowManualEntry && type == 'manual') {
+                Zenoss.message.error(_t('Manual entry not permitted here.'));
+            }
+            else {
+                var existingIndex = this.getStore().findExact('value', val);
+
+                if (!Ext.isEmpty(val) && existingIndex == -1) {
+                    var record = new Ext.data.Record({
+                        type:type,
+                        value:val,
+                        label:label,
+                        write:false,
+                        manage: false
+                    });
+                    this.getStore().add(record);
+                    this.getView().refresh();
+                    this.getTopToolbar().users_combo.clearValue();
+                }
+            }
+
+        },
+        loadData: function(data) {
+            this.getStore().loadData(data.users);
+        }
+    });
+
 
 
     var NotificationTabContent = Ext.extend(Ext.Panel, {
@@ -376,82 +537,6 @@ Ext.onReady(function () {
             disableTabContents(tab_content);
         }
 
-
-        var addRecipient = function() {
-            var rgrid = Ext.getCmp('recipients_grid_panel');
-            var val = rgrid.getTopToolbar().recipient_combo.getValue(),
-                row = rgrid.getTopToolbar().recipient_combo.getStore().getById(val),
-                type = 'manual',
-                label;
-
-            if (row) {
-                type = row.data.type;
-                label = row.data.label;
-            }
-            else {
-                val = rgrid.getTopToolbar().recipient_combo.getRawValue();
-                label = val;
-            }
-
-            var existingIndex = rgrid.getStore().findExact('value', val);
-
-            if (!Ext.isEmpty(val) && existingIndex == -1) {
-                var record = new Ext.data.Record({
-                    type:type,
-                    value:val,
-                    label:label,
-                    write:false,
-                    manage_subscriptions: false
-                });
-
-                rgrid.getStore().add(record);
-                rgrid.getView().refresh();
-                rgrid.getTopToolbar().recipient_combo.clearValue();
-            }
-        };
-
-        // TOOLBAR
-        // *******
-        var recipients_toolbar = [{
-            xtype: 'combo',
-            ref: 'recipient_combo',
-            typeAhead: true,
-            triggerAction: 'all',
-            lazyRender:true,
-            mode: 'local',
-            store: {
-                xtype: 'directstore',
-                directFn: router.getRecipientOptions,
-                root: 'data',
-                autoLoad: true,
-                idProperty: 'value',
-                fields: [
-                    'type',
-                    'label',
-                    'value'
-                ]
-            },
-            valueField: 'value',
-            displayField: 'label'
-        },{
-            xtype: 'button',
-            text: 'Add',
-            ref: 'add_button',
-            handler: function(btn, event) {
-                addRecipient();
-            }
-        },{
-            xtype: 'button',
-            ref: 'delete_button',
-            iconCls: 'delete',
-            handler: function(btn, event) {
-                var row = btn.refOwner.ownerCt.getSelectionModel().getSelected();
-                btn.refOwner.ownerCt.getStore().remove(row);
-                btn.refOwner.ownerCt.getView().refresh();
-            }
-        }];
-
-
         /**
          * This awesome function from Ian fixes dumb ext combo boxes.
          */
@@ -488,16 +573,6 @@ Ext.onReady(function () {
             triggerAction: 'all',
             fieldLabel: _t('Trigger'),
             typeAhead: true
-        });
-
-        var writeColumn = new Ext.grid.CheckColumn({
-            header: _t('Write'),
-            dataIndex: 'write'
-        });
-
-        var manageSubscriptionsColumn = new Ext.grid.CheckColumn({
-            header: _t('Subscriptions'),
-            dataIndex: 'manage_subscriptions'
         });
 
 
@@ -555,7 +630,13 @@ Ext.onReady(function () {
             disableTabContents(tab_notification);
         }
 
-        tab_recipients = new NotificationTabContent({
+        var recipients_grid = new UsersPermissionGrid({
+            title: _t('Subscribers'),
+            allowManualEntry: true,
+            ref: 'recipients_grid'
+        });
+
+        var tab_recipients = new NotificationTabContent({
             title: 'Subscribers',
             ref: 'recipients_tab',
             layout: {
@@ -586,75 +667,24 @@ Ext.onReady(function () {
                     },
                     {
                         xtype:'checkbox',
-                        name: 'notification_globalManageSubscriptions',
-                        ref: '../globalManageSubscriptions',
+                        name: 'notification_globalManage',
+                        ref: '../globalManage',
                         boxLabel: _t('Everyone can manage subscriptions'),
                         hideLabel: true
                     }
                 ]
-
-            },{
-                id: 'recipients_grid_panel',
-                xtype: 'editorgrid',
-                ref: 'recipients_grid',
-                viewConfig: {forceFit: true},
-                frame: false,
-                header: true,
-                title: _t('Recipients'),
-                layout: 'anchor',
-                autoHeight: true,
-                autoExpandColumn: 'manage_subscriptions',
-                loadMask: {msg:'Loading...'},
-                plugins: [writeColumn, manageSubscriptionsColumn],
-                keys: [
-                    {
-                        key: [Ext.EventObject.ENTER],
-                        handler: addRecipient
-                    }
-                ],
-                tbar: { items: recipients_toolbar },
-                store: new Ext.data.JsonStore({
-                    autoDestroy: true,
-                    storeId: 'recipients_combo_store',
-                    autoLoad: false,
-                    idProperty: 'value',
-                    fields: [
-                        'type',
-                        'label',
-                        'value',
-                        {name: 'write', type: 'bool'},
-                        {name: 'manage_subscriptions', type: 'bool'}
-                    ],
-                    data: []
-                }),
-                colModel: new Ext.grid.ColumnModel({
-                    defaults: {
-                        width: 120,
-                        sortable: true
-                    },
-                    columns: [
-                        {
-                            header: _t('Type'),
-                            dataIndex: 'type'
-                        },{
-                            header: _t('Subscriber'),
-                            dataIndex: 'label'
-                        },
-                        writeColumn,
-                        manageSubscriptionsColumn
-                    ]
-                }),
-                sm: new Ext.grid.RowSelectionModel({singleSelect:true})
-            }],
+            },
+            recipients_grid
+            ],
             loadData: function(data) {
                 this.recipients_grid.getStore().loadData(data.recipients);
                 this.globalRead.setValue(data.globalRead);
                 this.globalWrite.setValue(data.globalWrite);
-                this.globalManageSubscriptions.setValue(data.globalManageSubscriptions);
+                this.globalManage.setValue(data.globalManage);
             }
         });
 
-        if (!data['userManageSubscriptions']) {
+        if (!data['userManage']) {
             disableTabContents(tab_recipients);
         }
 
@@ -979,10 +1009,10 @@ Ext.onReady(function () {
                         'subscriptions',
                         'globalRead',
                         'globalWrite',
-                        'globalManageSubscriptions',
+                        'globalManage',
                         'userRead',
                         'userWrite',
-                        'userManageSubscriptions'
+                        'userManage'
 
                     ]
                 },
@@ -1361,227 +1391,346 @@ Ext.onReady(function () {
         ]
     };
 
+    var trigger_tab_content = {
+        xtype:'panel',
+        ref: '../../tab_content',
+        height: 370,
+        autoScroll: true,
+        layout: 'form',
+        title: 'Trigger',
+        items:[
+            {
+                xtype: 'hidden',
+                name: 'uuid',
+                ref: 'uuid'
+            },{
+                xtype: 'textfield',
+                name: 'name',
+                ref: 'name',
+                allowBlank: false,
+                fieldLabel: _t('Name')
+            },{
+                xtype: 'checkbox',
+                name: 'enabled',
+                ref: 'enabled',
+                fieldLabel: _t('Enabled')
+            },{
+                xtype: 'rulebuilder',
+                fieldLabel: _t('Rule'),
+                name: 'criteria',
+                id: 'rulebuilder',
+                ref: 'rule',
+                subjects: [{
+                    text: _t('Device Priority'),
+                    value: 'dev.priority',
+                    comparisons: NUMCMPS
+                },{
+                    text: _t('Device Production State'),
+                    value: 'dev.production_state',
+                    comparisons: NUMCMPS
+                },{
+                    text: _t('Device (Element)'),
+                    value: 'elem.name',
+                    comparisons: STRINGCMPS
+                },{
+                    text: _t('Component (Sub-Element)'),
+                    value: 'sub_elem.name',
+                    comparisons: STRINGCMPS
+                },{
+                    text: _t('Element Type'),
+                    value: 'elem.type',
+                    comparisons: ZFR.IDENTITYCOMPARISONS,
+                    field: {
+                        xtype: 'combo',
+                        mode: 'local',
+                        valueField: 'name',
+                        displayField: 'name',
+                        typeAhead: false,
+                        forceSelection: true,
+                        triggerAction: 'all',
+                        store: new Ext.data.ArrayStore({
+                            fields: ['name'],
+                            data: [[
+                                'COMPONENT'
+                            ],[
+                                'DEVICE'
+                            ],[
+                                'SERVICE'
+                            ],[
+                                'ORGANIZER'
+                            ]]
+                        })
+                    }
+                },{
+                    text: _t('Sub Element Type'),
+                    value: 'sub_elem.type',
+                    comparisons: ZFR.IDENTITYCOMPARISONS,
+                    field: {
+                        xtype: 'combo',
+                        mode: 'local',
+                        valueField: 'name',
+                        displayField: 'name',
+                        typeAhead: false,
+                        forceSelection: true,
+                        triggerAction: 'all',
+                        store: new Ext.data.ArrayStore({
+                            fields: ['name'],
+                            data: [[
+                                'COMPONENT'
+                            ],[
+                                'DEVICE'
+                            ],[
+                                'SERVICE'
+                            ],[
+                                'ORGANIZER'
+                            ]]
+                        })
+                    }
+                }, {
+                    text: _t('Event Class'),
+                    value: 'evt.event_class',
+                    comparisons: STRINGCMPS,
+                    field: {
+                        xtype: 'eventclass'
+                    }
+                },{
+                    text: _t('Event Key'),
+                    value: 'evt.event_key',
+                    comparisons: STRINGCMPS
+                },{
+                    text: _t('Summary'),
+                    value: 'evt.summary',
+                    comparisons: STRINGCMPS
+                },{
+                    text: _t('Message'),
+                    value: 'evt.message',
+                    comparisons: STRINGCMPS
+                },
+                    ZFR.EVENTSEVERITY,
+                {
+                    text: _t('Fingerprint'),
+                    value: 'evt.fingerprint',
+                    comparisons: STRINGCMPS
+                },{
+                    text: _t('Agent'),
+                    value: 'evt.agent',
+                    comparisons: STRINGCMPS
+                },{
+                    text: _t('Monitor'),
+                    value: 'evt.monitor',
+                    comparisons: STRINGCMPS
+                },{
+                    text: _t('Count'),
+                    value: 'evt.count',
+                    comparisons: NUMCMPS,
+                    field: {
+                        xtype: 'numberfield'
+                    }
+                },{
+                    text: _t('Status'),
+                    value: 'evt.status',
+                    comparisons: NUMCMPS,
+                    field: {
+                        xtype: 'combo',
+                        mode: 'local',
+                        valueField: 'value',
+                        displayField: 'name',
+                        typeAhead: false,
+                        forceSelection: true,
+                        triggerAction: 'all',
+                        store: new Ext.data.ArrayStore({
+                            fields: ['name', 'value'],
+                            data: [[
+                                _t('New'), 1
+                            ],[
+                                _t('Acknowledged'), 2
+                            ],[
+                                _t('Suppressed'), 3
+                            ],[
+                                _t('Closed'), 4
+                            ],[
+                                _t('Cleared'), 5
+                            ],[
+                                _t('Dropped'), 6
+                            ],[
+                                _t('Aged'), 7
+                            ]]
+                        })
+                    }
+                }]
+            }
+        ]
+    };
+    
+    var users_grid = new UsersPermissionGrid({
+        title: _t('Users'),
+        allowManualEntry: false
+    });
+
+    var trigger_tab_users = {
+        xtype: 'panel',
+        ref: '../../tab_users',
+        title: 'Users',
+        autoScroll: true,
+        height: 350,
+        items: [
+            {
+                xtype: 'panel',
+                unstyled: true,
+                border: false,
+                layout: 'form',
+                title: _t('Global Options'),
+                items: [
+                    {
+                        xtype:'checkbox',
+                        name: 'trigger_globalRead',
+                        ref: '../globalRead',
+                        boxLabel: _t('Everyone can view'),
+                        hideLabel: true
+                    },
+                    {
+                        xtype:'checkbox',
+                        name: 'trigger_globalWrite',
+                        ref: '../globalWrite',
+                        boxLabel: _t('Everyone can edit content'),
+                        hideLabel: true
+                    },
+                    {
+                        xtype:'checkbox',
+                        name: 'trigger_globalManage',
+                        ref: '../globalManage',
+                        boxLabel: _t('Everyone can manage users'),
+                        hideLabel: true
+                    }
+
+                ]
+            },
+            users_grid
+        ]
+    };
+
+
     EditTriggerDialogue = Ext.extend(Ext.Window, {
         constructor: function(config) {
             config = config || {};
             Ext.applyIf(config, {
                 modal: true,
                 plain: true,
-                width: 820,
-                boxMaxWidth: 820, // for chrome, safari
+                height: 500,
+                width: 840,
+                boxMaxWidth: 840, // for chrome, safari
                 border: false,
-                autoScroll: true,
                 closeAction: 'hide',
-                items:{
-                    xtype:'form',
-                    ref: 'editForm',
-                    autoScroll: true,
-                    border: false,
-                    width: 800,
-                    height: 400,
-                    buttonAlign: 'center',
-                    monitorValid: true,
-                    items:[
-                        {
-                            xtype: 'hidden',
-                            name: 'uuid',
-                            ref: 'uuid'
-                        },{
-                            xtype: 'textfield',
-                            name: 'name',
-                            ref: 'name',
-                            allowBlank: false,
-                            fieldLabel: _t('Name')
-                        },{
-                            xtype: 'checkbox',
-                            name: 'enabled',
-                            ref: 'enabled',
-                            fieldLabel: _t('Enabled')
-                        },{
-                            xtype: 'rulebuilder',
-                            fieldLabel: _t('Rule'),
-                            name: 'criteria',
-                            id: 'rulebuilder',
-                            ref: 'rule',
-                            subjects: [{
-                                text: _t('Device Priority'),
-                                value: 'dev.priority',
-                                comparisons: NUMCMPS
-                            },{
-                                text: _t('Device Production State'),
-                                value: 'dev.production_state',
-                                comparisons: NUMCMPS
-                            },{
-                                text: _t('Device (Element)'),
-                                value: 'elem.name',
-                                comparisons: STRINGCMPS
-                            },{
-                                text: _t('Component (Sub-Element)'),
-                                value: 'sub_elem.name',
-                                comparisons: STRINGCMPS
-                            },{
-                                text: _t('Element Type'),
-                                value: 'elem.type',
-                                comparisons: ZFR.IDENTITYCOMPARISONS,
-                                field: {
-                                    xtype: 'combo',
-                                    mode: 'local',
-                                    valueField: 'name',
-                                    displayField: 'name',
-                                    typeAhead: false,
-                                    forceSelection: true,
-                                    triggerAction: 'all',
-                                    store: new Ext.data.ArrayStore({
-                                        fields: ['name'],
-                                        data: [[
-                                            'COMPONENT'
-                                        ],[
-                                            'DEVICE'
-                                        ],[
-                                            'SERVICE'
-                                        ],[
-                                            'ORGANIZER'
-                                        ]]
-                                    })
-                                }
-                            },{
-                                text: _t('Sub Element Type'),
-                                value: 'sub_elem.type',
-                                comparisons: ZFR.IDENTITYCOMPARISONS,
-                                field: {
-                                    xtype: 'combo',
-                                    mode: 'local',
-                                    valueField: 'name',
-                                    displayField: 'name',
-                                    typeAhead: false,
-                                    forceSelection: true,
-                                    triggerAction: 'all',
-                                    store: new Ext.data.ArrayStore({
-                                        fields: ['name'],
-                                        data: [[
-                                            'COMPONENT'
-                                        ],[
-                                            'DEVICE'
-                                        ],[
-                                            'SERVICE'
-                                        ],[
-                                            'ORGANIZER'
-                                        ]]
-                                    })
-                                }
-                            }, {
-                                text: _t('Event Class'),
-                                value: 'evt.event_class',
-                                comparisons: STRINGCMPS,
-                                field: {
-                                    xtype: 'eventclass'
-                                }
-                            },{
-                                text: _t('Event Key'),
-                                value: 'evt.event_key',
-                                comparisons: STRINGCMPS
-                            },{
-                                text: _t('Summary'),
-                                value: 'evt.summary',
-                                comparisons: STRINGCMPS
-                            },{
-                                text: _t('Message'),
-                                value: 'evt.message',
-                                comparisons: STRINGCMPS
-                            },
-                                ZFR.EVENTSEVERITY,
+                layout: 'fit',
+                items: [
+                    {
+                        xtype:'form',
+                        ref: 'wrapping_form',
+                        border: false,
+                        buttonAlign: 'center',
+                        monitorValid: true,
+                        items: [
                             {
-                                text: _t('Fingerprint'),
-                                value: 'evt.fingerprint',
-                                comparisons: STRINGCMPS
-                            },{
-                                text: _t('Agent'),
-                                value: 'evt.agent',
-                                comparisons: STRINGCMPS
-                            },{
-                                text: _t('Monitor'),
-                                value: 'evt.monitor',
-                                comparisons: STRINGCMPS
-                            },{
-                                text: _t('Count'),
-                                value: 'evt.count',
-                                comparisons: NUMCMPS,
-                                field: {
-                                    xtype: 'numberfield'
-                                }
-                            },{
-                                text: _t('Status'),
-                                value: 'evt.status',
-                                comparisons: NUMCMPS,
-                                field: {
-                                    xtype: 'combo',
-                                    mode: 'local',
-                                    valueField: 'value',
-                                    displayField: 'name',
-                                    typeAhead: false,
-                                    forceSelection: true,
-                                    triggerAction: 'all',
-                                    store: new Ext.data.ArrayStore({
-                                        fields: ['name', 'value'],
-                                        data: [[
-                                            _t('New'), 1
-                                        ],[
-                                            _t('Acknowledged'), 2
-                                        ],[
-                                            _t('Suppressed'), 3
-                                        ],[
-                                            _t('Closed'), 4
-                                        ],[
-                                            _t('Cleared'), 5
-                                        ],[
-                                            _t('Dropped'), 6
-                                        ],[
-                                            _t('Aged'), 7
-                                        ]]
-                                    })
-                                }
-                            }]
-                        }
-                    ],
-                    buttons:[
-                        {
-                            xtype: 'button',
-                            text: _t('Submit'),
-                            ref: '../../submitButton',
-                            formBind: true,
-                            handler: function(button) {
-                                var editForm = button.refOwner.editForm;
-                                var params = {
-                                    uuid: editForm.uuid.getValue(),
-                                    enabled: editForm.enabled.getValue(),
-                                    name: editForm.name.getValue(),
-                                    rule: {
-                                        source: button.refOwner.editForm.rule.getValue()
-                                    }
-                                };
+                                xtype: 'tabpanel',
+                                ref: '../tabs',
+                                activeTab: 0,
+                                activeIndex: 0,
+                                unstyled: true,
+                                defaults: {
+                                    unstyled: true,
+                                    padding: 10,
+                                    frame: false,
+                                    border: false
+                                },
+                                items: [
+                                    trigger_tab_content,
+                                    trigger_tab_users
+                                ]
+                            }
+                        ],
+                        buttons:[
+                            {
+                                xtype: 'button',
+                                text: _t('Submit'),
+                                ref: '../../submitButton',
+                                formBind: true,
+                                handler: function(button) {
+                                    var tab_content = button.refOwner.tab_content,
+                                        tab_users = button.refOwner.tab_users;
 
-                                config.directFn(params, function(){
+                                    var params = {
+                                        uuid: tab_content.uuid.getValue(),
+                                        enabled: tab_content.enabled.getValue(),
+                                        name: tab_content.name.getValue(),
+                                        rule: {
+                                            source: tab_content.rule.getValue()
+                                        },
+
+                                        // tab_users
+                                        globalRead: tab_users.globalRead.getValue(),
+                                        globalWrite: tab_users.globalWrite.getValue(),
+                                        globalManage: tab_users.globalManage.getValue(),
+
+                                        /*
+
+                                        var params = button.refOwner.editForm.getForm().getFieldValues();
+                            params.recipients = [];
+                            Ext.each(
+                                button.refOwner.tabPanel.recipients_tab.recipients_grid.getStore().getRange(),
+                                function(item, index, allItems){
+                                    params.recipients.push(item.data);
+                                }
+                            );
+                            config.directFn(params, function(){
+                                button.refOwner.close();
+                                config.reloadFn();
+                            });
+
+
+                                         */
+                                        users: []
+                                    };
+
+                                    Ext.each(
+                                        tab_users.users_grid.getStore().getRange(),
+                                        function(item, index, allItems){
+                                            params.users.push(item.data);
+                                        }
+                                    );
+
+                                    config.directFn(params, function(){
+                                        reloadTriggersGrid();
+                                        button.refOwner.hide();
+                                    });
+                                }
+                            },{
+                                xtype: 'button',
+                                ref: '../../cancelButton',
+                                text: _t('Cancel'),
+                                handler: function(button) {
                                     button.refOwner.hide();
-                                    config.reloadFn();
-                                });
+                                }
                             }
-                        },{
-                            xtype: 'button',
-                            ref: '../../cancelButton',
-                            text: _t('Cancel'),
-                            handler: function(button) {
-                                button.refOwner.hide();
-                            }
-                        }]
-                }
+                        ]
+                    }
+                ]
             });
             EditTriggerDialogue.superclass.constructor.apply(this, arguments);
         },
         loadData: function(data) {
-            this.editForm.uuid.setValue(data.uuid);
-            this.editForm.enabled.setValue(data.enabled);
-            this.editForm.name.setValue(data.name);
-            this.editForm.rule.setValue(data.rule.source);
+            // set content stuff.
+            this.tab_content.uuid.setValue(data.uuid);
+            this.tab_content.enabled.setValue(data.enabled);
+            this.tab_content.name.setValue(data.name);
+            this.tab_content.rule.setValue(data.rule.source);
+
+            // set users information (permissions and such)
+            this.tab_users.globalRead.setValue(data.globalRead);
+            this.tab_users.globalWrite.setValue(data.globalWrite);
+            this.tab_users.globalManage.setValue(data.globalManage);
+            
+            this.tab_users.users_grid.getStore().loadData(data.users);
+            
         }
     });
     Ext.reg('edittriggerdialogue', EditTriggerDialogue);
@@ -1593,6 +1742,19 @@ Ext.onReady(function () {
 
     displayEditTriggerDialogue = function(data) {
         editTriggerDialogue.loadData(data);
+        
+        if (!data['userWrite']) {
+            disableTabContents(editTriggerDialogue.tab_content);
+        } else {
+            enableTabContents(editTriggerDialogue.tab_content);
+        }
+
+        if (!data['userManage']) {
+            disableTabContents(editTriggerDialogue.tab_users);
+        } else {
+            enableTabContents(editTriggerDialogue.tab_users);
+        }
+        
         editTriggerDialogue.show();
     };
 
@@ -1623,7 +1785,9 @@ Ext.onReady(function () {
                     directFn: router.getTriggers,
                     root: 'data',
                     autoLoad: true,
-                    fields: ['uuid', 'enabled', 'name', 'rule']
+                    fields: ['uuid', 'enabled', 'name', 'rule', 'users',
+                        'globalRead', 'globalWrite', 'globalManage',
+                        'userRead', 'userWrite', 'userManage']
                 },
                 sm: new Ext.grid.RowSelectionModel({
                     singleSelect: true,

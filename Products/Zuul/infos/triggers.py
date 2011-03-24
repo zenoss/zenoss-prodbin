@@ -49,11 +49,11 @@ class NotificationSubscriptionInfo(InfoBase):
 
     globalRead = ProxyProperty('globalRead')
     globalWrite = ProxyProperty('globalWrite')
-    globalManageSubscriptions = ProxyProperty('globalManageSubscriptions')
+    globalManage = ProxyProperty('globalManage')
 
     userRead = ProxyProperty('userRead')
     userWrite = ProxyProperty('userWrite')
-    userManageSubscriptions = ProxyProperty('userManageSubscriptions')
+    userManage = ProxyProperty('userManage')
 
     def _getSubscriptions(self):
         if self._object.subscriptions:
