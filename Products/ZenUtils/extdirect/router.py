@@ -13,6 +13,7 @@
 import inspect
 import logging
 from Products.ZenUtils.jsonutils import json, unjson
+import transaction
 from uuid import uuid4
 
 log = logging.getLogger('extdirect')
@@ -155,7 +156,6 @@ class DirectRouter(object):
         # Cast all keys as strings, in case of encoding or other wrinkles
         data = dict((str(k), v) for k,v in data.iteritems())
         self._data = data
-
         response = DirectMethodResponse(tid=directRequest['tid'], method=method, action=action, uuid=uuid)
 
         # Finally, call the target method, passing in the data
@@ -164,6 +164,8 @@ class DirectRouter(object):
         except Exception as e:
             log.error('DirectRouter suppressed the following exception (Response %s):' % response.uuid)
             log.exception(e)
+            # rollback ZODB transaction on uncaught exceptions
+            transaction.abort()
             response.result = DirectResponse.exception(e)
 
         return response
