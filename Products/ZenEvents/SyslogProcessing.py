@@ -44,7 +44,7 @@ r"^(?P<component>.+)\[(?P<ntseverity>\D+)\] (?P<ntevid>\d+) (?P<summary>.*)",
 r"%CARD-\S+:(SLOT\d+) %(?P<eventClassKey>\S+): (?P<summary>.*)",
 
 # cisco standard msg
-r"%(?P<eventClassKey>(?P<component>\S+)-\d-\S+): (?P<summary>.*)",
+r"%(?P<eventClassKey>(?P<component>\S+)-\d-\S+): *(?P<summary>.*)",
 
 # Cisco ACS
 r"^(?P<ipAddress>\S+)\s+(?P<summary>(?P<eventClassKey>CisACS_\d\d_\S+)\s+(?P<eventKey>\S+)\s.*)",
