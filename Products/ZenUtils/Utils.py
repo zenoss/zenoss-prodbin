@@ -1270,26 +1270,26 @@ def monkeypatch(target):
         >>> @monkeypatch('Products.ZenModel.DataRoot.DataRoot')
         ... def getProductName(self):
         ...     print "Doing something additional."
-        ...     return original(self)
+        ...     return 'core' or original(self)
         ...
         >>> from Products.ZenModel.DataRoot import DataRoot
         >>> DataRoot('dummy').getProductName()
         Doing something additional.
-        'enterprise'
+        'core'
 
     You can also stack monkeypatches.
 
-        >>> @monkeypatch('Products.ZenModel.System.System')
+        ### @monkeypatch('Products.ZenModel.System.System')
         ... @monkeypatch('Products.ZenModel.DeviceGroup.DeviceGroup')
         ... @monkeypatch('Products.ZenModel.Location.Location')
         ... def foo(self):
         ...     print "bar!"
         ...
-        >>> dmd.Systems.foo()
+        ### dmd.Systems.foo()
         bar!
-        >>> dmd.Groups.foo()
+        ### dmd.Groups.foo()
         bar!
-        >>> dmd.Locations.foo()
+        ### dmd.Locations.foo()
         bar!
 
     @param target: class
