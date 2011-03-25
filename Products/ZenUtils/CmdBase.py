@@ -53,6 +53,30 @@ def checkLogLevel(option, opt, value):
 
     return value
 
+def remove_args(argv, remove_args_novals, remove_args_vals):
+    """
+    Removes arguments from the argument list. Arguments in
+    remove_args_novals have no arguments. Arguments in
+    remove_args_vals have arguments, either in the format
+    --arg=<val> or --arg <val>.
+    """
+    new_args = []
+    it = iter(argv)
+    for arg in it:
+        if arg in remove_args_novals:
+            continue
+        add_arg = True
+        for remove_arg in remove_args_vals:
+            if remove_arg == arg:
+                add_arg = False
+                it.next() # Skip the argument value
+                break
+            elif arg.startswith(remove_arg + '='):
+                add_arg = False
+                break
+        if add_arg:
+            new_args.append(arg)
+    return new_args
 
 class LogSeverityOption(Option):
     TYPES = Option.TYPES + ("loglevel",)
