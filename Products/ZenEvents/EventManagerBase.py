@@ -1556,7 +1556,6 @@ class EventManagerBase(ZenModelRM, ObjectCache, DbAccessBase):
         raise NotImplementedError
 
 
-    @deprecated
     def loadSchema(self):
         """Load schema from database. If field is a date set value to true."""
         schema = {}

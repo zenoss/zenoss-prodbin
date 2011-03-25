@@ -24,7 +24,6 @@ from MySqlSendEvent import MySqlSendEventMixin
 from Exceptions import *
 from Products.Zuul.decorators import deprecated
 
-@deprecated
 def manage_addMySqlEventManager(context, id=None, evthost="localhost",
                                 evtuser="root", evtpass="", evtdb="events",
                                 evtport=3306,
