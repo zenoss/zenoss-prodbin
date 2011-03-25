@@ -718,11 +718,15 @@ Zenoss.FilterGridView = Ext.extend(Ext.ux.grid.livegrid.GridView, {
     rowColors: false,
     _valid: true,
     constructor: function(config) {
+        // Force a copy of lastOptions
+        this.lastOptions = Ext.apply({}, this.lastOptions);
+
         // live search is set on the admin page
         this.liveSearch = Zenoss.settings.enableLiveSearch;
 
-        if (typeof(config.displayFilters)=='undefined')
+        if (typeof(config.displayFilters)=='undefined') {
             config.displayFilters = true;
+        }
         Zenoss.FilterGridView.superclass.constructor.apply(this,
             arguments);
         Ext.applyIf(this.lastOptions, this.defaultFilters || {});
