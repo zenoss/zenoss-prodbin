@@ -55,6 +55,7 @@ mkdir -p ${ZENHOME}/log
 # restart external server daemons
 restart_snmpd
 restart_mysql
+restart_rabbitmq
 
 # copy the etc/*.conf.example files to etc/*.conf if etc/*.conf don't
 # already exist (we don't want to clobber people's configs)
