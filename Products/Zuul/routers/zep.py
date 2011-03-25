@@ -33,6 +33,8 @@ from Products.ZenMessaging.queuemessaging.interfaces import IEventPublisher
 from Products.ZenUtils.guid.interfaces import IGlobalIdentifier, IGUIDManager
 from Products.ZenEvents.EventClass import EventClass
 from zenoss.protocols.services.zep import EventStatus, EventSeverity
+from zenoss.protocols.protobufs.zep_pb2 import EventSummary
+from zenoss.protocols.protobufutil import ProtobufEnum
 from json import loads
 from Products.Zuul.utils import resolve_context
 from Products.Zuul.utils import ZuulMessageFactory as _t
@@ -40,6 +42,24 @@ from Products.ZenUI3.browser.eventconsole.grid import column_config
 from Products.Zuul.interfaces import ICatalogTool
 
 log = logging.getLogger('zen.%s' % __name__)
+
+_enumobj=ProtobufEnum(EventSummary,'status')
+_status_name = lambda s,enumobj=_enumobj : enumobj.getName(s).split('_')[1]
+def _mergeAuditLogToNotes(evtsumm):
+    if 'audit_log' in evtsumm:
+        mergedNotes = evtsumm.get('notes',[])
+        for auditNote in evtsumm['audit_log']:
+            mergedNotes.append(
+                {
+                'created_time' : auditNote['timestamp'],
+                'user_uuid' : auditNote.get('user_uuid', ''),
+                'user_name' : auditNote.get('user_name', ''),
+                'message' : 'state changed to %s' % _status_name(auditNote['new_status']),
+                }
+            )
+        mergedNotes.sort(key=lambda a:a['created_time'], reverse=True)
+        evtsumm['notes'] = mergedNotes
+    return evtsumm
 
 class EventsRouter(DirectRouter):
     """
@@ -509,7 +529,8 @@ class EventsRouter(DirectRouter):
         DevicePriority = self._singleDetail(eventDetails.get('zenoss.device.priority'))
         if DevicePriority is not None:
             eventData['DevicePriority'] = self.context.convertPriority(DevicePriority)
-            
+
+        event_summary = _mergeAuditLogToNotes(event_summary)
         if 'notes' in event_summary:
             for note in event_summary['notes']:
                 eventData['log'].append((note['user_name'], isoDateTimeFromMilli(note['created_time']), note['message']))

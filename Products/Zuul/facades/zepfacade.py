@@ -676,9 +676,9 @@ class ZepDetailsInfo:
             self._initDetails()
         return self._sortMap
 
-_ZEP_DETAILS_INFO = ZepDetailsInfo()
-
 # Lazy-loaded cache of event details from ZEP
+_ZEP_DETAILS_INFO = []
 def getDetailsInfo():
-    global _ZEP_DETAILS_INFO
-    return _ZEP_DETAILS_INFO
+    if not _ZEP_DETAILS_INFO:
+        _ZEP_DETAILS_INFO.append(ZepDetailsInfo())
+    return _ZEP_DETAILS_INFO[0]

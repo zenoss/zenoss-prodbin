@@ -35,7 +35,7 @@
         '</table>'];
     ns.log_table_template = ['<table>',
     '<tpl for="log">',
-    '<tr><td class="time">{1} {0} said: </td>',
+    '<tr><td class="time">{0} {1}: </td>',
         '<td class="message">{2}</td></tr>',
     '</tpl>',
     '</table>'];
