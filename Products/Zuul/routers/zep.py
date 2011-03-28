@@ -43,8 +43,7 @@ from Products.Zuul.interfaces import ICatalogTool
 
 log = logging.getLogger('zen.%s' % __name__)
 
-_enumobj=ProtobufEnum(EventSummary,'status')
-_status_name = lambda s,enumobj=_enumobj : enumobj.getName(s).split('_')[1]
+_status_name = ProtobufEnum(EventSummary,'status').getPrettyName
 def _mergeAuditLogToNotes(evtsumm):
     if 'audit_log' in evtsumm:
         mergedNotes = evtsumm.get('notes',[])

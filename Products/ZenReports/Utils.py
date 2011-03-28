@@ -13,6 +13,7 @@
 import Globals
 import zope.interface
 
+from collections import defaultdict
 from Products.ZenUtils.Utils import convToUnits
 
 UNAVAILABLE = 'N/A'
@@ -74,3 +75,11 @@ class Record( object ):
         return fmt % value
 
 
+def nested_defaultdict(n,typ):
+    """create a nested defaultdict n-levels deep, with type typ leaf values"""
+    fact = typ
+    i = 1
+    while i < n:
+        fact = lambda f=fact: defaultdict(f)
+        i += 1
+    return defaultdict(fact)
