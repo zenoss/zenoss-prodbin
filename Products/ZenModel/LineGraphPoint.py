@@ -63,9 +63,9 @@ class LineGraphPoint(GraphPoint):
         from Products.ZenUtils.Utils import unused
         unused(multiid, rrdDir)
         value = self.addPrefix(prefix, self.value)
-        gopts = 'LINE%s:%s' % ((self.lineWidth or ''), value)
-        if self.color:
-            gopts += self.getColor(idx)
+        gopts = 'LINE%s:%s%s' % (
+            (self.lineWidth or ''), value, self.getColor(idx))
+
         if self.legend or self.stacked:
             legend = self.talesEval(self.legend, context)
             legend = self.escapeForRRD(legend)

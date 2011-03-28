@@ -16,8 +16,9 @@ __doc__="""CdefGraphPoint
 Handles GraphPoints that define an rrd CDEF
 """
 
-from GraphPoint import GraphPoint
 from Globals import InitializeClass
+
+from Products.ZenModel.RpnGraphPoint import RpnGraphPoint
 
 
 def manage_addCdefGraphPoint(context, id, REQUEST = None):
@@ -30,18 +31,8 @@ def manage_addCdefGraphPoint(context, id, REQUEST = None):
         return context.callZenScreen(REQUEST)
 
 
-class CdefGraphPoint(GraphPoint):
-
+class CdefGraphPoint(RpnGraphPoint):
     meta_type = 'CdefGraphPoint'
-
-    rpn = ''
-
-    _properties = GraphPoint._properties + (
-        {'id':'rpn', 'type':'string', 'mode':'w'},
-        )
-    
-    def getDescription(self):
-        return self.rpn
 
 
     def getType(self):
@@ -58,7 +49,8 @@ class CdefGraphPoint(GraphPoint):
             return cmds
         rpn = self.talesEval(self.rpn, context)
         return cmds + ['CDEF:%s=%s' % (
-                        self.getDsName(self.id, multiid, prefix), rpn)]
+                        self.getDsName(self.id, multiid, prefix),
+                        self.getRpn(multiid, prefix))]
 
 
 InitializeClass(CdefGraphPoint)

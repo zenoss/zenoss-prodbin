@@ -16,8 +16,9 @@ __doc__="""VdefGraphPoint
 Handles GraphPoints that define an rrd VDEF
 """
 
-from GraphPoint import GraphPoint
 from Globals import InitializeClass
+
+from Products.ZenModel.RpnGraphPoint import RpnGraphPoint
 
 
 def manage_addVdefGraphPoint(context, id, REQUEST = None):
@@ -30,19 +31,8 @@ def manage_addVdefGraphPoint(context, id, REQUEST = None):
         return context.callZenScreen(REQUEST)
 
 
-class VdefGraphPoint(GraphPoint):
-
+class VdefGraphPoint(RpnGraphPoint):
     meta_type = 'VdefGraphPoint'
-
-    rpn = ''
-
-    _properties = GraphPoint._properties + (
-        {'id':'rpn', 'type':'string', 'mode':'w'},
-        )
-    
-
-    def getDescription(self):
-        return self.rpn
 
 
     def getType(self):
@@ -59,7 +49,8 @@ class VdefGraphPoint(GraphPoint):
             return cmds
         rpn = self.talesEval(self.rpn, context)
         return cmds + ['VDEF:%s=%s' % (
-                        self.getDsName(self.id, multiid, prefix), rpn)]
+                        self.getDsName(self.id, multiid, prefix),
+                        self.getRpn(multiid, prefix))]
 
 
 InitializeClass(VdefGraphPoint)

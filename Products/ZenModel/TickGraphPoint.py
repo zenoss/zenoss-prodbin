@@ -62,12 +62,12 @@ class TickGraphPoint(GraphPoint):
         unused(multiid, rrdDir)
         if not self.vname:
             return cmds
-            
+
         legend = self.talesEval(self.legend, context)
         legend = self.escapeForRRD(legend)
         return cmds + ['TICK:%s%s%s%s' % (
                     self.addPrefix(prefix, self.vname),
-                    self.getThresholdColor(idx),
+                    self.getColor(idx),
                     self.fraction and ':%s' % self.fraction or '',
                     legend and ':%s' % legend or '')]
 

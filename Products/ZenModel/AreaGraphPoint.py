@@ -61,9 +61,9 @@ class AreaGraphPoint(GraphPoint):
         ''' Build the graphing commands for this graphpoint
         '''
         unused(multiid, rrdDir)
-        gopts = 'AREA:%s' % self.addPrefix(prefix, self.value)
-        if self.color:
-            gopts += '%s' % self.getColor(idx)
+        gopts = 'AREA:%s%s' % (
+            self.addPrefix(prefix, self.value), self.getColor(idx))
+
         if self.legend or self.stacked:
             legend = self.talesEval(self.legend, context)
             legend = self.escapeForRRD(legend)
