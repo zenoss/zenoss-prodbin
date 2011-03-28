@@ -45,13 +45,13 @@ class TestPublishModelChanges(BaseTestCase):
     def testObjectRemovedEvent(self):
         self.publisher._eventList = ModelEventList()
         self.publisher.publishRemove(self.device)
-        self.assertEqual(len(self.publisher.msg.events), 1)
+        self.assertEqual(len(self.publisher.msg.events), 2)
 
     def testAddToOrganizer(self):
         self.publisher._eventList = ModelEventList()
         self.publisher.addToOrganizer(self.device, self.dmd.Devices)
         self.publisher.removeFromOrganizer(self.device, self.dmd.Devices)
-        self.assertEqual(len(self.publisher.msg.events), 2)
+        self.assertEqual(len(self.publisher.msg.events), 3)
 
     def testDeviceClassMove(self):
         """
