@@ -145,7 +145,7 @@ class TriggersFacade(ZuulFacade):
                 triggerObj.globalManage = data.get('globalManage', False)
                 log.debug('setting globalManage %s' % triggerObj.globalManage)
 
-            triggerObj.users = data.get('users')
+            triggerObj.users = data.get('users', [])
             self.triggerPermissions.clearPermissions(triggerObj)
             self.triggerPermissions.updatePermissions(self._guidManager, triggerObj)
             
