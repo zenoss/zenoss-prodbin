@@ -1227,6 +1227,20 @@ class DeviceRouter(TreeRouter):
                                                serialNumber)
         return DirectResponse.succeed(jobId=jobStatus.id)
 
+    @require('Manage Device')
+    def remodel(self, deviceUid):
+        """
+        Submit a job to have a device remodeled.
+
+        @type  deviceUid: string
+        @param deviceUid: Device uid to have local template
+        @rtype:   DirectResponse
+        @return:  B{Properties}:
+             - jobId: (string) ID of the add device job
+        """
+        jobStatus = self._getFacade().remodel(deviceUid)
+        return DirectResponse.succeed(jobId=jobStatus.id)
+
     @require('Edit Local Templates')
     def addLocalTemplate(self, deviceUid, templateId):
         """

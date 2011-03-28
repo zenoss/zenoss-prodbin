@@ -278,6 +278,12 @@ class DeviceFacade(TreeFacade):
                                                title=title)
         return jobStatus
 
+    def remodel(self, deviceUid):
+        fake_request = {'CONTENT_TYPE': 'xml'}
+        device = self._getObject(deviceUid)
+        return device.getPerformanceServer().collectDevice(
+            device, background=True, REQUEST=fake_request)
+
     def addLocalTemplate(self, deviceUid, templateId):
         """
         Adds a local template on the device specified by deviceUid
