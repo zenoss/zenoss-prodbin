@@ -59,6 +59,10 @@ update_conf_files
                  "default-zpublisher-encoding utf-8" -- \
     $ZENHOME/etc/zope.conf
 
+# zenstatus was updated in Avalon to remove the command-line
+# option 'configpath'
+sed -i -e 's/[ \t]*configpath .*//' $ZENHOME/etc/zenstatus.conf
+
 # set the python shebang to be the proper python
 shebang
 
@@ -72,3 +76,4 @@ ${ZENHOME}/bin/python ${ZENHOME}/bin/changeObjectStore.py \
 
 # migrate the zeo database
 run_zenmigrate
+
