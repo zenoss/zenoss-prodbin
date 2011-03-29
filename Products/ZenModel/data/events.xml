@@ -92,6 +92,8 @@ Check the Username and Password on the specified service to make sure it is corr
 <object id='Web' module='Products.ZenEvents.EventClass' class='EventClass'>
 </object>
 </object>
+<object id='Capacity' module='Products.ZenEvents.EventClass' class='EventClass'>
+</object>
 <object id='Unknown' module='Products.ZenEvents.EventClass' class='EventClass'>
 </object>
 <object id='Security' module='Products.ZenEvents.EventClass' class='EventClass'>

@@ -77,12 +77,11 @@ class ProcessEventMessageTask(BasePubSubMessageTask):
             CheckInputPipe(self._manager),
             IdentifierPipe(self._manager),
             AddDeviceContextPipe(self._manager),
-            FingerprintPipe(self._manager, 'FingerprintPipe_1'),
             TransformPipe(self._manager),
             # See if we need to update after a transform
             IdentifierPipe(self._manager),
             AddDeviceContextPipe(self._manager),
-            FingerprintPipe(self._manager, 'FingerprintPipe_2'),
+            FingerprintPipe(self._manager),
             SerializeContextPipe(self._manager),
             EventPluginPipe(self._manager, IPostEventPlugin),
             ClearClassRefreshPipe(self._manager),
