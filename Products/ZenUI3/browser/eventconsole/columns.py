@@ -155,7 +155,7 @@ COLUMN_CONFIG = {
     ),
 
     'device'    : dict(
-        header='Device',
+        header='Resource',
         filter='textfield',
         renderer='Zenoss.render.linkFromGrid',
         sortable=True),
