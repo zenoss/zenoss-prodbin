@@ -182,9 +182,11 @@ class CollectorDaemon(RRDDaemon):
                                 help='Max number of tasks to run at once, default %default')
 
         frameworkFactory = zope.component.queryUtility(IFrameworkFactory)
-        self._frameworkBuildOptions = frameworkFactory.getFrameworkBuildOptions()
-        if self._frameworkBuildOptions:
-            self._frameworkBuildOptions(self.parser)
+        if hasattr(frameworkFactory, 'getFrameworkBuildOptions'):
+            # During upgrades we'll be missing this option
+            self._frameworkBuildOptions = frameworkFactory.getFrameworkBuildOptions()
+            if self._frameworkBuildOptions:
+                self._frameworkBuildOptions(self.parser)
 
         # give the collector configuration a chance to add options, too
         self._prefs.buildOptions(self.parser)
