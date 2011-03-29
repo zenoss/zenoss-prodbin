@@ -383,6 +383,7 @@ class ZPTriggerAction(ZenPackLoader):
                 trigger = triggerActions.get('trigger', None)
                 triggerGuid = None
                 if trigger:
+                    trigger['name'] = trigger['name'].encode('utf-8')
                     triggerGuid = self._getTriggerGuid(tf, trigger['name'])
                     trigger['uuid'] = triggerGuid
                     tf.updateTrigger(**trigger)
