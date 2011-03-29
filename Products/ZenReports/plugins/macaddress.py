@@ -19,6 +19,8 @@ class macaddress:
         report = []
         catalog = dmd.ZenLinkManager.layer2_catalog
         for brain in catalog():
+            if brain.macaddress is None: # Bad catalog
+                continue
             macaddress = brain.macaddress.upper()
             if not macaddress or macaddress == '00:00:00:00':
                 continue
