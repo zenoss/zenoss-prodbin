@@ -387,6 +387,7 @@ function actioncompleteHandler(basicForm, action) {
         Ext.getCmp('nameTextField').setDisabled(isRoot);
         Ext.getCmp('regexTextField').setDisabled(!processInfo.hasRegex);
         Ext.getCmp('ignoreParametersSelect').setDisabled(!processInfo.hasRegex);
+        //Ext.getCmp('exampleTextField').setDisabled(!processInfo.hasRegex);
         var regexFieldSet = Ext.getCmp('regexFieldSet');
         regexFieldSet.setVisible(processInfo.hasRegex);
         regexFieldSet.doLayout();
@@ -440,6 +441,14 @@ var ignoreParametersSelect = {
     store: [[true, 'Yes'], [false, 'No']]
 };
 
+var exampleTextField = {
+    xtype: 'textfield',
+    id: 'exampleTextField',
+    fieldLabel: _t('Example'),
+    name: 'example',
+    width: "100%"
+};
+
 var zMonitor = {
     xtype: 'zprop',
     ref: '../../zMonitor',
@@ -484,6 +493,7 @@ var regexFieldSet = {
     items: [
         regexTextField,
         ignoreParametersSelect
+        // , exampleTextField
     ]
 }; // regexFieldSet
 

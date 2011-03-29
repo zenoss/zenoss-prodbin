@@ -11,6 +11,12 @@
 #
 ###########################################################################
 
+import re
+import logging
+log = logging.getLogger('zen.HubService.ProcessConfig')
+
+import Globals
+
 from Products.ZenCollector.services.config import CollectorConfigService
 from Products.ZenUtils.Utils import unused
 from Products.ZenCollector.services.config import DeviceProxy
@@ -64,6 +70,8 @@ class ProcessConfig(CollectorConfigService):
     def _createDeviceProxy(self, device):
         procs = device.getMonitoredComponents(collector='zenprocess')
         if not procs:
+            log.debug("Device %s has no monitored processes -- ignoring",
+                      device.titleOrId())
             return None
 
         proxy = CollectorConfigService._createDeviceProxy(self, device)
@@ -75,20 +83,40 @@ class ProcessConfig(CollectorConfigService):
         proxy.processes = {}
         proxy.snmpConnInfo = device.getSnmpConnInfo()
         for p in procs:
-            proxy.thresholds.extend(p.getThresholdInstances('SNMP'))
+            regex = getattr(p.osProcessClass(), 'regex', False)
+            if regex:
+                try:
+                    re.compile(regex)
+                except sre_constants.error, ex:
+                    log.warn("OS process class %s has an invalid regex (%s): %s",
+                             p.getOSProcessClass(), regex, ex)
+                    continue
             proc = ProcessProxy()
+            proc.regex = regex
             proc.name = p.id
             proc.originalName = p.name()
             proc.ignoreParameters = (
                 getattr(p.osProcessClass(), 'ignoreParameters', False))
-            proc.regex = (
-                getattr(p.osProcessClass(), 'regex', False))
             proc.restart = p.alertOnRestart()
             proc.severity = p.getFailSeverity()
             proc.processClass = p.getOSProcessClass()
             proxy.processes[p.id] = proc
-        return proxy
+            proxy.thresholds.extend(p.getThresholdInstances('SNMP'))
+
+        if proxy.processes:
+            return proxy
 
     @onUpdate(OSProcessClass, OSProcessOrganizer)
     def processTreeUpdated(self, object, event):
         self._reconfigureIfNotify(object)
+
+
+if __name__ == '__main__':
+    from Products.ZenHub.ServiceTester import ServiceTester
+    tester = ServiceTester(ProcessConfig)
+    def printer(config):
+        for proc in config.processes.values():
+            print '\t'.join([proc.name, proc.ignoreParameters, proc.regex])
+    tester.printDeviceProxy = printer
+    tester.showDeviceInfo()
+

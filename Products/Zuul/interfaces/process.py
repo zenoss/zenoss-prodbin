@@ -44,6 +44,8 @@ class IProcessInfo(IInfo):
                       'command on the managed host')
     ignoreParameters = Attribute('Only match the regex to the command not its'
                                  ' parameters')
+    example = Attribute('An example of the process from a process listing')
+
 
 class IProcessFacade(IFacade):
 

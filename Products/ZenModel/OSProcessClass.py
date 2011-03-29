@@ -44,6 +44,7 @@ class OSProcessClass(ZenModelRM, Commandable, ZenPackable):
     regex = ""
     ignoreParameters = False
     description = ""
+    example = ""
     sequence = 0
     
     _properties = (
@@ -52,6 +53,7 @@ class OSProcessClass(ZenModelRM, Commandable, ZenPackable):
         {'id':'ignoreParameters', 'type':'boolean', 'mode':'w'},
         {'id':'description', 'type':'text', 'mode':'w'},
         {'id':'sequence', 'type':'int', 'mode':'w'},
+        {'id':'example', 'type':'string', 'mode':'w'},
         ) 
 
     _relations = ZenPackable._relations + (
@@ -172,9 +174,6 @@ class OSProcessClass(ZenModelRM, Commandable, ZenPackable):
         ''' Return the organizer name for the primary parent
         '''
         return self.getPrimaryParent().getOrganizerName()
-        
-        
-        
 
 
 InitializeClass(OSProcessClass)

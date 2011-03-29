@@ -139,6 +139,15 @@ class ProcessInfo(InfoBase):
 
     ignoreParameters = property(getIgnoreParameters, setIgnoreParameters)
 
+    def getExample(self):
+        return getattr(self._object, 'example', '')
+
+    def setExample(self, example):
+        if self.hasRegex:
+            self._object.example = example
+
+    example = property(getExample, setExample)
+
     @property
     def count(self):
         numInstances = ICatalogTool(self._object).count(
