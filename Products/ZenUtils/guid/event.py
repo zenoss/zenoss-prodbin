@@ -10,6 +10,7 @@
 # For complete information please visit: http://www.zenoss.com/oss/
 #
 ###########################################################################
+import logging
 from zope.event import notify
 from zope.component import adapter
 from zope.interface import implements
@@ -18,6 +19,8 @@ from zope.app.container.interfaces import IObjectMovedEvent, IObjectRemovedEvent
 from OFS.interfaces import IObjectWillBeMovedEvent, IObjectWillBeAddedEvent
 from .interfaces import IGUIDEvent, IGUIDManager, IGloballyIdentifiable
 from .interfaces import IGlobalIdentifier
+
+log = logging.getLogger('zen.UUID')
 
 
 class GUIDEvent(ObjectEvent):
@@ -37,7 +40,7 @@ def registerGUIDToPathMapping(object, event):
             catalog = object.global_catalog
             catalog.catalog_object(object, idxs=(), update_metadata=True)
         except Exception:
-            pass
+            log.exception('Encountered a guid exception')
     if event.old and event.old != event.new:
         # When we move a component around,
         # we don't want to remove the guid
@@ -49,7 +52,13 @@ def registerGUIDToPathMapping(object, event):
 @adapter(IGloballyIdentifiable, IObjectMovedEvent)
 def refireEventOnObjectAddOrMove(object, event):
     if not IObjectRemovedEvent.providedBy(event):
-        IGlobalIdentifier(object).create()
+        oldguid = IGlobalIdentifier(object).getGUID()
+        if oldguid is None:
+            IGlobalIdentifier(object).create()
+        else:
+            # Refire in the case where an object already has a guid
+            # but that guid has been removed from the guid table
+            notify(GUIDEvent(object, oldguid, oldguid))
 
 
 @adapter(IGloballyIdentifiable, IObjectWillBeMovedEvent)
