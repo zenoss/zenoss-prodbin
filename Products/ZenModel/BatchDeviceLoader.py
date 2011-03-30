@@ -173,7 +173,7 @@ settingsDevice setManageIp='10.10.10.77', setLocation="123 Elm Street", \
                        device.titleOrId(), zprop) )
             else:
                 self.log.warn( "The zproperty %s doesn't exist in %s" % (
-                       zprop, device_specs['deviceName']))
+                       zprop, device_specs.get('deviceName', device.id)))
 
     def addAllLGSOrganizers(self, device_specs):
         location = device_specs.get('setLocation')
