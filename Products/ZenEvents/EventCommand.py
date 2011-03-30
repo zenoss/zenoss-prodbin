@@ -74,24 +74,6 @@ class EventCommand(ZenModelRM, Commandable, EventFilter, ZenPackable):
         crumbs.insert(-1,(url,'Event Commands'))
         return crumbs
 
-
-    def sqlwhere(self):
-        """Return sql where to select alert_state data for this event.
-        """
-        return "userid = '' and rule = '%s'" % (self.id)
-
-    def _clearAlertState(self):
-        """Clear state in alert_state before we are deleted.
-        """
-        zem = self.dmd.ZenEventManager
-        conn = zem.connect()
-        try:
-            delcmd = "delete from alert_state where %s" % self.sqlwhere()
-            curs = conn.cursor()
-            curs.execute(delcmd)
-        finally: zem.close(conn)
-
-
     security.declareProtected('Manage EventManager', 'manage_editEventCommand')
     def manage_editEventCommand(self, REQUEST=None):
         "edit the commands run when events match"

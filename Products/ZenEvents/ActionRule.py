@@ -196,8 +196,6 @@ class ActionRule(ZenModelRM, EventFilter):
     def manage_editActionRule(self, REQUEST=None):
         """Update user settings.
         """
-        if not self.enabled:
-            self._clearAlertState()
         import WhereClause
         if REQUEST.form.has_key('onRulePage') \
                 and not REQUEST.form.has_key('where'):
@@ -212,24 +210,6 @@ class ActionRule(ZenModelRM, EventFilter):
                 )
                 return self.callZenScreen(REQUEST)
         return self.zmanage_editProperties(REQUEST)
-
-
-    def _clearAlertState(self):
-        """Clear state in alert_state before we are deleted.
-        """
-        zem = self.dmd.ZenEventManager
-        conn = zem.connect()
-        try:
-            delcmd = "delete from alert_state where %s" % self.sqlwhere()
-            log.debug("clear alert state '%s'", delcmd)
-            curs = conn.cursor()
-            curs.execute(delcmd)
-        finally: zem.close(conn)
-
-    def sqlwhere(self):
-        """Return sql where to select alert_state data for this event.
-        """
-        return "userid = '%s' and rule = '%s'" % (self.getUserid(), self.id)
 
     def nextActiveWindow(self):
         next = None
