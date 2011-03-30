@@ -215,6 +215,14 @@
                 Zenoss.EventActionManager.execute(Zenoss.remote.EventsRouter.reopen);
             }
         }),
+        unclose: new Zenoss.Action({
+            iconCls: 'reopen',
+            tooltip: _t('Reopen events'),
+            permission: 'Manage Events',
+            handler: function() {
+                Zenoss.EventActionManager.execute(Zenoss.remote.EventsRouter.reopen);
+            }
+        }),
         newwindow: new Zenoss.Action({
             iconCls: 'newwindow',
             permission: 'View',
@@ -360,6 +368,7 @@
                         }
                     }),
                     Zenoss.events.EventPanelToolbarActions.reopen,
+                    Zenoss.events.EventPanelToolbarActions.unclose,
                     new Zenoss.Action({
                         iconCls: 'add',
                         tooltip: _t('Add an event'),
