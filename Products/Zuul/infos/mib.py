@@ -22,6 +22,7 @@ from Products.Zuul.interfaces import IMibInfo, IMibOrganizerNode, IMibNode
 from Products.Zuul.interfaces import ICatalogTool, IMibOrganizerInfo
 from Products.ZenModel.MibOrganizer import MibOrganizer
 from Products.ZenModel.MibModule import MibModule
+from Products.ZenModel.MibBase import MibBase
 
 
 class MibOrganizerNode(TreeNode):
@@ -39,9 +40,6 @@ class MibOrganizerNode(TreeNode):
         org = self._object.getObject()
         return chain(imap(MibOrganizerNode, org.children()),
                      imap(MibNode, org.mibs()))
-        #cat = ICatalogTool(self._object)
-        #orgs = cat.search(MibOrganizer, paths=(self.uid,), depth=1)
-        #return catalogAwareImap(MibOrganizerNode, orgs)
 
     @property
     def leaf(self):
@@ -56,24 +54,46 @@ class MibOrganizerNode(TreeNode):
         return self._object.description
     
 class MibNode(TreeNode):
+    """
+    Nodes or traps are just subclasses of MibBase
+    """
     implements(IMibNode)
-    adapts(MibModule)
+    adapts(MibBase)
 
-    @property
-    def text(self):
-        return self._object.id
+    def __init__(self, obj):
+        TreeNode.__init__(self, obj)
+        self._nodes = []
+
+    def _addSubNode(self, node):
+        self._nodes.append(node)
 
     @property
     def children(self):
-        return []
+        return self._nodes
+
+    @property
+    def text(self):
+        obj = self._object.getObject()
+        if hasattr(obj, 'oid'):
+            return obj.oid + ' ' + self._object.id
+        return self._object.id
+
+    @property
+    def oid(self):
+        obj = self._object.getObject()
+        if hasattr(obj, 'oid'):
+            return obj.oid
+        return ''
 
     @property
     def leaf(self):
-        return True
+        return len(self._nodes) == 0
 
     @property
     def iconCls(self):
-        return 'leaf'
+        if self.leaf:
+            return 'leaf'
+        return 'folder'
 
     @property
     def qtip(self):
@@ -101,5 +121,4 @@ class MibInfo(MibInfoBase):
 class MibOrganizerInfo(MibInfoBase):
     implements(IMibOrganizerInfo)
     adapts(MibOrganizer)
-
 

@@ -48,8 +48,9 @@ class IMibOrganizerNode(ITreeNode):
 
 class IMibNode(ITreeNode):
     """
-    Marker interface for providing a MIB node in a MIB tree.
+    MIB node (trap or actual OID) in a MIB tree.
     """
+    oid = Attribute('SNMP Object ID')
 
 
 class IMibEntity(Interface):

@@ -95,10 +95,10 @@ class MibRouter(TreeRouter):
                 uid = contextUid + '/' + id
                 maoUid = uid.replace('/zport/dmd', '')
                 self.context.dmd.Mibs.manage_addOrganizer(maoUid)
-                represented = self.context.dmd.restrictedTraverse(uid)
+                self.context.dmd.restrictedTraverse(uid)
             else:
                 container = self.context.dmd.restrictedTraverse(contextUid)
-                represented = container.manage_addMibModule(id)
+                container.manage_addMibModule(id)
 
             return DirectResponse.succeed(tree=self.getTree())
         except Exception, e:
@@ -196,3 +196,24 @@ class MibRouter(TreeRouter):
         facade = self._getFacade()
         info = facade.setInfo(uid, data)
         return DirectResponse.succeed(data=Zuul.marshal(info))
+
+    def getMibNodeTree(self, id=None):
+        """
+        A MIB node is a regular OID (ie you can hit it with snmpwalk)
+        """
+        if id is None:
+            return []
+        tree = self.api.getMibNodeTree(id)
+        data = Zuul.marshal(tree)
+        return [data]
+
+    def getMibTrapTree(self, id=None):
+        """
+        A MIB trap node is an OID received from a trap
+        """
+        if id is None:
+            return []
+        tree = self.api.getMibTrapTree(id)
+        data = Zuul.marshal(tree)
+        return [data]
+
