@@ -291,8 +291,7 @@ class CollectorDaemon(RRDDaemon):
         self.log.debug('zenhub is telling us to update the entire config')
         if self.reconfigureTimeout and not self.reconfigureTimeout.called:
             self.reconfigureTimeout.cancel()
-        d = defer.maybeDeferred(self._rebuildConfig)
-        self.reconfigureTimeout = reactor.callLater(30, d, False)
+        self.reconfigureTimeout = reactor.callLater(30, self._rebuildConfig)
 
     def _rebuildConfig(self):
         """
