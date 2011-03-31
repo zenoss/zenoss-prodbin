@@ -288,12 +288,11 @@ class CatalogTool(object):
 
         queryResults = self._queryCatalog(types, queryOrderby, reverse, paths, depth, query)
         totalCount = len(queryResults)
+        hash_ = totalCount
         if areBrains or not queryResults:
             allResults = queryResults
-            hash_ = hash( tuple(r.getRID() for r in queryResults) )
         else:
             allResults = self._sortQueryResults(queryResults, orderby, reverse)
-            hash_ = hash( tuple(r.getPrimaryPath() for r in allResults) )
 
         if hashcheck is not None:
             if hash_ != int(hashcheck):
