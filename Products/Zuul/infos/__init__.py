@@ -13,6 +13,7 @@
 
 from zope.interface import implements
 from zope.component import adapts
+from OFS.CopySupport import CopyError
 from Products.ZenModel.ZenModelRM import ZenModelRM
 from Products.Zuul.interfaces import IInfo
 from Products.ZenEvents.EventManagerBase import EventManagerBase
@@ -100,7 +101,10 @@ class InfoBase(object):
         """
         Call this when you wish to change the ID of the object, not just its title. This will recatalog it.
         """
-        self._object.rename(newId)
+        try:
+            self._object.rename(newId)
+        except CopyError, e:
+            raise Exception("Name '%s' is invalid or already in use." % newId)
 
     def __repr__(self):
         return '<%s Info "%s">' % (self._object.__class__.__name__, self.id)
