@@ -174,7 +174,10 @@ class SyslogProcessor(object):
         fac = None
         if msg[:1] == '<':
             pos = msg.find('>')
-            fac, pri = LOG_UNPACK(int(msg[1:pos]))
+            try:
+                fac, pri = LOG_UNPACK(int(msg[1:pos]))
+            except Exception:
+                pass
             msg = msg[pos+1:]
         elif msg and msg[0] < ' ':
             fac, pri = LOG_KERN, ord(msg[0])
