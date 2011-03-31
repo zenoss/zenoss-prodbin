@@ -22,6 +22,7 @@ import sys
 import os
 import os.path
 import subprocess
+import tarfile
 import ConfigParser
 
 import Globals
@@ -162,6 +163,26 @@ class ZenRestore(ZenBackupBase):
         self.restoreMySqlDb(self.options.dbhost, self.options.dbport,
                             self.options.dbname, self.options.dbuser,
                             self.getPassArg('dbpass'), eventsSql)
+    
+    def restoreZEP(self):
+        '''
+        Restore ZEP DB and indexes
+        '''
+        zepSql = os.path.join(self.tempDir, 'zep.sql')
+        if not os.path.isfile(zepSql):
+            self.msg('This backup does not contain a ZEP database backup.')
+            return
+        
+        self.msg('Restoring ZEP database.')
+        self.restoreMySqlDb(self.options.zepdbhost, self.options.zepdbport,
+                            self.options.zepdbname, self.options.zepdbuser,
+                            self.getPassArg('zepdbpass'), zepSql)
+        self.msg('ZEP database restored.')
+        self.msg('Restoring ZEP indexes.')
+        zepTar = tarfile.open(os.path.join(self.tempDir, 'zep.tar'))
+        zepTar.extractall(zenPath('var'))
+        self.msg('ZEP indexes restored.')
+        
 
     def hasZeoBackup(self):
         repozoDir = os.path.join(self.tempDir, 'repozo')
@@ -244,7 +265,7 @@ class ZenRestore(ZenBackupBase):
         )
         if os.system(cmd): return -1
         if not os.path.exists(os.path.join(zenPath('etc'), 'global.conf')):
-            print 'Restoring default global.conf'
+            self.msg('Restoring default global.conf')
             cmd = 'mv %s %s' % (os.path.join(self.tempDir, 'global.conf'), zenPath('etc'))
             if os.system(cmd): return -1
 
@@ -349,6 +370,7 @@ class ZenRestore(ZenBackupBase):
             self.msg('Skipping the events database.')
         else:
             self.restoreEventsDatabase()
+            self.restoreZEP()
 
         # clean up
         if self.options.file:

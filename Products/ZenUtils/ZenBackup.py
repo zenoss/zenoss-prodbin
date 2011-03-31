@@ -79,7 +79,24 @@ class ZenBackup(ZenBackupBase):
             if not getattr(self.options, key, None):
                 setattr(self.options, key,
                             str(getattr(zem, zemAttr, None)) or default)
-
+    
+    def readZEPSettings(self):
+        '''
+        Read in and store the ZEP DB configuration options from
+        'zenoss-zep.properties' to the 'options' object.
+        '''
+        zepconf = os.path.join(zenPath('etc'), 'zenoss-zep', 'zenoss-zep.properties')
+        zepsettings = {'username': 'zepdbuser', 'hostname': 'zepdbhost',
+                       'dbname': 'zepdbname', 'password': 'zepdbpass',
+                       'port': 'zepdbport'}
+        
+        with open(zepconf) as f_zepconf:
+            for line in f_zepconf:
+                line = line.strip()
+                if line.startswith('zep.jdbc.'):
+                    (key, _ignored, value) = line[9:].partition('=')
+                    if key in zepsettings:
+                        setattr(self.options, zepsettings[key], value)
 
     def saveSettings(self):
         '''
@@ -99,7 +116,12 @@ class ZenBackup(ZenBackupBase):
         config.set(CONFIG_SECTION, 'mysqldb', self.options.mysqldb)
         config.set(CONFIG_SECTION, 'mysqluser', self.options.mysqluser)
         config.set(CONFIG_SECTION, 'mysqlpasswd', self.options.mysqlpasswd)
-
+        
+        config.set(CONFIG_SECTION, 'zepdbhost', self.options.zepdbhost)
+        config.set(CONFIG_SECTION, 'zepdbport', self.options.zepdbport)
+        config.set(CONFIG_SECTION, 'zepdbname', self.options.zepdbname)
+        config.set(CONFIG_SECTION, 'zepdbuser', self.options.zepdbuser)
+        config.set(CONFIG_SECTION, 'zepdbpass', self.options.zepdbpass)
 
         creds_file = os.path.join(self.tempDir, CONFIG_FILE)
         self.log.debug("Writing MySQL credentials to %s", creds_file)
@@ -276,6 +298,47 @@ class ZenBackup(ZenBackupBase):
         subtotalTime = readable_time(partEndTime - partBeginTime)
         self.log.info("Backup of events database completed in %s.",
                           subtotalTime)
+    
+    def backupZEP(self):
+        '''
+        Backup ZEP
+        '''
+        partBeginTime = time.time()
+        
+        # Setup defaults for db info
+        if self.options.fetchArgs and not self.options.noEventsDb:
+            self.log.info('Getting ZEP dbname, user, password, port from configuration files.')
+            self.readZEPSettings()
+
+        self.log.info('Backing up the ZEP database.')
+        if self.options.saveSettings:
+            self.saveSettings()
+
+        cmd_p1 = ['mysqldump', '-u%s' % self.options.zepdbuser]
+        cmd_p2 = ['--single-transaction', self.options.zepdbname,
+                 '--result-file=' + os.path.join(self.tempDir, 'zep.sql')]
+        if self.options.zepdbhost and self.options.zepdbhost != 'localhost':
+            cmd_p2.append('-h %s' % self.options.zepdbhost)
+        if self.options.zepdbport and self.options.zepdbport != '3306':
+            cmd_p2.append('--port=%s' % self.options.zepdbport)
+
+        cmd = cmd_p1 + self.getPassArg('zepdbpass') + cmd_p2
+        obfuscated_cmd = cmd_p1 + ['*' * 8] + cmd_p2
+
+        output, warnings, returncode = self.runCommand(cmd, obfuscated_cmd)
+        if returncode:
+            self.log.critical("Backup terminated abnormally.")
+            return -1
+
+        partEndTime = time.time()
+        subtotalTime = readable_time(partEndTime - partBeginTime)
+        self.log.info("Backup of ZEP database completed in %s.", subtotalTime)
+        
+        self.log.info('Backing up ZEP indexes.')
+        zepTar = tarfile.open(os.path.join(self.tempDir, 'zep.tar'), 'w')
+        zepTar.add(os.path.join(zenPath('var'), 'zenoss-zep'), 'zenoss-zep')
+        zepTar.close()
+        self.log.info('Backing up ZEP indexes completed.')
 
     def backupZenPacks(self):
         """
@@ -406,6 +469,7 @@ class ZenBackup(ZenBackupBase):
             self.log.info('Skipping backup of events database.')
         else:
             self.backupEventsDatabase()
+            self.backupZEP()
 
         if self.options.noZopeDb:
             self.log.info('Skipping backup of ZODB.')

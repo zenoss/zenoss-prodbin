@@ -78,6 +78,36 @@ class ZenBackupBase(CmdBase):
                     help='Name of database for MySQL object store')
         self.parser.add_option('--cacheservers', dest='cacheservers',
                     help='memcached servers to use for object cache (eg. 127.0.0.1:11211)')
+        self.parser.add_option('--zepdbname',
+                               dest='zepdbname',
+                               default='zenoss_zep',
+                               help='ZEP database name.'
+                                ' By default this will be fetched from Zenoss'
+                                ' unless --dont-fetch-args is set.'),
+        self.parser.add_option('--zepdbuser',
+                               dest='zepdbuser',
+                               default='zenoss',
+                               help='ZEP database username.'
+                                ' By default this will be fetched from Zenoss'
+                                ' unless --dont-fetch-args is set.'),
+        self.parser.add_option('--zepdbpass',
+                               dest='zepdbpass',
+                               default='zenoss',
+                               help='ZEP database password.'
+                                ' By default this will be fetched from Zenoss'
+                                ' unless --dont-fetch-args is set.'),
+        self.parser.add_option('--zepdbhost',
+                               dest='zepdbhost',
+                               default='localhost',
+                               help='ZEP database server host.'
+                                ' By default this will be fetched from Zenoss'
+                                ' unless --dont-fetch-args is set.'),
+        self.parser.add_option('--zepdbport',
+                               dest='zepdbport',
+                               default='3306',
+                               help='ZEP database server port number.'
+                                ' By default this will be fetched from Zenoss'
+                                ' unless --dont-fetch-args is set.'),
 
 
     def getPassArg(self, optname='dbpass'):
