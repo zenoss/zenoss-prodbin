@@ -293,6 +293,30 @@ class ZenPack(ZenModelRM):
         if not leaveObjects:
             self.removeZProperties(app)
             self.removeCatalogedObjects(app)
+    
+    def backup(self, backupDir, logger):
+        """
+        Method called when zenbackup is run. Override in ZenPack to add any
+        ZenPack-specific backup operations.
+        
+        @param backupDir: Temporary directory that gets zipped to form backup
+        @type backupDir: string
+        @param logger: Backup log handler
+        @type logger: Log object
+        """
+        pass
+    
+    def restore(self, backupDir, logger):
+        """
+        Method called when zenrestore is run. Override in ZenPack to add any
+        ZenPack-specific restore operations.
+        
+        @param backupDir: Temporary directory that contains the unzipped backup
+        @type backupDir: string
+        @param logger: Restore log handler
+        @type logger: Log object
+        """
+        pass
 
 
     def migrate(self, previousVersion=None):

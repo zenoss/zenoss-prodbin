@@ -361,6 +361,13 @@ class ZenBackup(ZenBackupBase):
             etcTar.add(zenPath('bin'), 'bin')
             etcTar.close()
             self.log.info("Backup of bin completed.")
+    
+    def backupZenPackContents(self):
+        dmd = ZCmdBase(noopts=True).dmd
+        self.log.info("Backing up ZenPack contents.")
+        for pack in dmd.ZenPackManager.packs():
+            pack.backup(self.tempDir, self.log)
+        self.log.info("Backup of ZenPack contents complete.")
 
     def backupZODB(self):
         """
@@ -485,6 +492,7 @@ class ZenBackup(ZenBackupBase):
         self.log.info("Backup of config files completed.")
 
         self.backupZenPacks()
+        self.backupZenPackContents()
 
         if self.options.noPerfData:
             self.log.info('Skipping backup of performance data.')

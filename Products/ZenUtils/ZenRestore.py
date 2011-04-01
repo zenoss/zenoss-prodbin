@@ -26,6 +26,7 @@ import tarfile
 import ConfigParser
 
 import Globals
+from ZCmdBase import ZCmdBase
 from Products.ZenUtils.Utils import zenPath, binPath
 
 from ZenBackupBase import *
@@ -286,6 +287,13 @@ class ZenRestore(ZenBackupBase):
             cmd = ['tar', 'Cxfk', zenPath(),
                    os.path.join(self.tempDir, 'bin.tar')]
             self.runCommand(cmd)
+    
+    def restoreZenPackContents(self):
+        dmd = ZCmdBase(noopts=True).dmd
+        self.log.info("Restoring ZenPack contents.")
+        for pack in dmd.ZenPackManager.packs():
+            pack.restore(self.tempDir, self.log)
+        self.log.info("ZenPack contents restored.")
 
     def restorePerfData(self):
         cmd = 'rm -rf %s' % os.path.join(zenPath(), 'perf')
@@ -355,6 +363,7 @@ class ZenRestore(ZenBackupBase):
             tempPacks = os.path.join(self.tempDir, 'ZenPacks.tar')
             if os.path.isfile(tempPacks):
                 self.restoreZenPacks()
+                self.restoreZenPackContents()
             else:
                 self.msg('Backup contains no ZenPacks.')
 
