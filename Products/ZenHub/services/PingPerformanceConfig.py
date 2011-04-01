@@ -119,7 +119,7 @@ class PingPerformanceConfig(CollectorConfigService):
         Add the management IP and any associated datapoints to the IPs to monitor.
         """
         basepath = device.rrdPath()
-        title = "Manage_IP"
+        title = ''
         ip = device.manageIp
         if not ip or ip in ('127.0.0.1', '0.0.0.0', '::', '::1'):
             return
