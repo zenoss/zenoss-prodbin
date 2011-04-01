@@ -481,8 +481,11 @@ class CollectorDaemon(RRDDaemon):
             if self.options.cycle:
                 d = defer.maybeDeferred(self.heartbeat)
                 d.addCallback(_postStatistics)
-                d.addCallback(_getDeviceIssues)
-                d.addCallback(_processDeviceIssues)
+
+                if getattr(self._prefs, 'pauseUnreachableDevices', True):
+                    d.addCallback(_getDeviceIssues)
+                    d.addCallback(_processDeviceIssues)
+
             else:
                 d = defer.succeed("No maintenance required")
             return d

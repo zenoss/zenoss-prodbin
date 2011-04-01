@@ -75,6 +75,7 @@ class PingCollectionPreferences(object):
         self.defaultRRDCreateCommand = None
         self.configCycleInterval = 20 # minutes
         self.cycleInterval = 5 * 60 # seconds
+        self.pauseUnreachableDevices = False
 
         # The configurationService attribute is the fully qualified class-name
         # of our configuration service that runs within ZenHub
