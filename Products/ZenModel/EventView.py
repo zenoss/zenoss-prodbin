@@ -263,8 +263,8 @@ class EventView(object):
             evids = [evids]
 
         try:
-            for evid in evids:
-                zep.acknowledgeEventSummary(evid, userName=self._getCurrentUserName())
+            evids_filter = zep.createEventFilter(uuid=evids)
+            zep.acknowledgeEventSummaries(eventFilter=evids_filter)
             self._redirectToEventConsole("Acknowledged events: %s" % ", ".join(evids), REQUEST)
         except ServiceResponseError, e:
             self._redirectToEventConsole("Error acknowledging events: %s" % str(e), REQUEST)
@@ -277,8 +277,8 @@ class EventView(object):
         if isinstance(evids, basestring):
             evids = [evids]
         try:
-            for evid in evids:
-                zep.closeEventSummary(evid)
+            evids_filter = zep.createEventFilter(uuid=evids)
+            zep.closeEventSummaries(eventFilter=evids_filter)
             self._redirectToEventConsole("Closed events: %s" % ", ".join(evids), REQUEST)
         except ServiceResponseError, e:
             self._redirectToEventConsole("Error Closing events: %s" % str(e), REQUEST)
@@ -291,8 +291,8 @@ class EventView(object):
         if isinstance(evids, basestring):
             evids = [evids]
         try:
-            for evid in evids:
-                zep.reopenEventSummary(evid)
+            evids_filter = zep.createEventFilter(uuid=evids)
+            zep.reopenEventSummaries(eventFilter=evids_filter)
             self._redirectToEventConsole("Reopened events: %s" % ", ".join(evids), REQUEST)
         except ServiceResponseError, e:
             self._redirectToEventConsole("Error Reopening events: %s" % str(e), REQUEST)
