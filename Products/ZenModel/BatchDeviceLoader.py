@@ -19,7 +19,7 @@ import sys
 import re
 
 import Globals
-from transaction import commit
+from transaction import commit, abort
 from ZODB.POSException import ConflictError
 from zope.component import getUtility
 
@@ -251,8 +251,9 @@ settingsDevice setManageIp='10.10.10.77', setLocation="123 Elm Street", \
                     func(*value)
                 else:
                     func(value)
-            except (SystemExit, KeyboardInterrupt, ConflictError): raise
-            except:
+            except ConflictError:
+                raise
+            except Exception:
                 self.log.exception("Device %s device.%s(%s) failed" % (
                                    device.id, functor, value))
 
@@ -291,6 +292,9 @@ settingsDevice setManageIp='10.10.10.77', setLocation="123 Elm Street", \
         """
         processed = 0
         for device_specs in device_list:
+            # Get the latest bits
+            self.dmd.zport._p_jar.sync()
+
             loaderName = device_specs.get('loader')
             if loaderName is not None:
                 try:
@@ -298,8 +302,10 @@ settingsDevice setManageIp='10.10.10.77', setLocation="123 Elm Street", \
                     organizer = self.dmd.getObjByPath('dmd' + orgName)
                     deviceLoader = getUtility(IDeviceLoader, loaderName, organizer)
                     devobj = self.runLoader(deviceLoader, device_specs)
-                except (SystemExit, KeyboardInterrupt, ConflictError): raise
-                except:
+                except ConflictError:
+                    abort()
+                    continue
+                except Exception:
                     self.log.exception("Ignoring device loader issue for %s",
                                        device_specs)
                     continue
@@ -329,15 +335,18 @@ settingsDevice setManageIp='10.10.10.77', setLocation="123 Elm Street", \
                 except (SystemExit, KeyboardInterrupt):
                     self.log.info("User interrupted modeling")
                     break
-                except ConflictError, ex: raise
-                except Exception, ex:
+                except ConflictError:
+                    abort()
+                    continue
+                except Exception:
                     self.log.exception("Modeling error for %s", devobj.id)
 
             if not self.options.nocommit:
                 commit()
             processed += 1
 
-        self.log.info( "Processed %d of %d devices" % (processed, len(device_list)))
+        self.log.info("Processed %d of %d devices",
+                      processed, len(device_list))
 
     def getDevice(self, device_specs):
         """
