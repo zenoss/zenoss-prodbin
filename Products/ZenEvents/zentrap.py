@@ -1,7 +1,7 @@
 ###########################################################################
 #
 # This program is part of Zenoss Core, an open source monitoring platform.
-# Copyright (C) 2007, Zenoss Inc.
+# Copyright (C) 2007, 2011 Zenoss Inc.
 #
 # This program is free software; you can redistribute it and/or modify it
 # under the terms of the GNU General Public License version 2 as published by
@@ -20,26 +20,40 @@ Currently a wrapper around the Net-SNMP C library.
 import time
 import sys
 import socket
-import cPickle
 import base64
+import logging
 from struct import unpack
 from ipaddr import IPAddress
-from exceptions import EOFError, IOError
+
+log = logging.getLogger("zen.zentrap")
 
 # Magical interfacing with C code
 import ctypes as c
 
 import Globals
+import zope.interface
+import zope.component
 
-from EventServer import EventServer
+from twisted.internet import defer
+
+from Products.ZenCollector.daemon import CollectorDaemon
+from Products.ZenCollector.interfaces import ICollector, ICollectorPreferences,\
+                                             IEventService, \
+                                             IScheduledTask
+from Products.ZenCollector.tasks import SimpleTaskFactory,\
+                                        SimpleTaskSplitter,\
+                                        BaseTask, TaskStates
+from Products.ZenUtils.observable import ObservableMixin
+
 
 from pynetsnmp import netsnmp, twistedsnmp
 
-from twisted.internet import defer, reactor
 from Products.ZenHub.PBDaemon import FakeRemote
-from Products.ZenUtils.Driver import drive
 from Products.ZenUtils.captureReplay import CaptureReplay
-
+from Products.ZenEvents.EventServer import Stats
+from Products.ZenUtils.Utils import unused
+from Products.ZenCollector.services.config import DeviceProxy
+unused(DeviceProxy)
 
 
 # This is what struct sockaddr_in {} looks like
@@ -65,16 +79,9 @@ class sockaddr_in6(c.Structure):
 # teach python that the return type of snmp_clone_pdu is a pdu pointer
 netsnmp.lib.snmp_clone_pdu.restype = netsnmp.netsnmp_pdu_p
 
-TRAP_PORT = 162
-try:
-    TRAP_PORT = socket.getservbyname('snmptrap', 'udp')
-except socket.error:
-    pass
-
-def lp2oid(ptr, length):
-    "Convert a pointer to an array of longs to an OID"
-    return '.'.join([str(ptr[i]) for i in range(length)])
-
+# Version codes from the PDU
+SNMPv1 = 0
+SNMPv2 = 1
 
 class FakePacket(object):
     """
@@ -84,19 +91,95 @@ class FakePacket(object):
         self.fake = True
 
 
-class ZenTrap(EventServer, CaptureReplay):
+class SnmpTrapPreferences(CaptureReplay):
+    zope.interface.implements(ICollectorPreferences)
+
+    def __init__(self):
+        """
+        Constructs a new PingCollectionPreferences instance and
+        provides default values for needed attributes.
+        """
+        self.collectorName = 'zentrap'
+        self.defaultRRDCreateCommand = None
+        self.configCycleInterval = 20 # minutes
+        self.cycleInterval = 5 * 60 # seconds
+
+        # The configurationService attribute is the fully qualified class-name
+        # of our configuration service that runs within ZenHub
+        self.configurationService = 'Products.ZenHub.services.SnmpTrapConfig'
+
+        # Will be filled in based on buildOptions
+        self.options = None
+
+        self.configCycleInterval = 20*60
+
+        # Set up our listening task
+        #task = TrapTask('zentrap', configId='zentrap')
+        #self.postStartupTasks = [task]
+
+    def postStartupTasks(self):
+        task = TrapTask('zentrap', configId='zentrap')
+        yield task
+
+    def buildOptions(self, parser):
+        """
+        Command-line options to be supported
+        """
+        TRAP_PORT = 162
+        try:
+            TRAP_PORT = socket.getservbyname('snmptrap', 'udp')
+        except socket.error:
+            pass
+        parser.add_option('--trapport', '-t',
+            dest='trapport', type='int', default=TRAP_PORT,
+            help="Listen for SNMP traps on this port rather than the default")
+        parser.add_option('--listenip',
+            # FIXME: need :: to listen on all IPv6 + IPv4
+            #dest='listenip', default='::',
+            dest='listenip', default='0.0.0.0',
+            help="IP address to listen on. Default is ::")
+        parser.add_option('--useFileDescriptor',
+                               dest='useFileDescriptor',
+                               type='int',
+                               help=("Read from an existing connection "
+                                     " rather than opening a new port."),
+                               default=None)
+
+        self.buildCaptureReplayOptions(parser)
+
+    def postStartup(self):
+        # Ensure that we always have an oidMap
+        daemon = zope.component.getUtility(ICollector)
+        daemon.oidMap = {}
+
+
+class TrapTask(BaseTask, CaptureReplay):
     """
     Listen for SNMP traps and turn them into events
     Connects to the TrapService service in zenhub.
     """
+    zope.interface.implements(IScheduledTask)
 
-    name = 'zentrap'
-    initialServices = EventServer.initialServices + ['TrapService']
-    oidMap = {}
-    haveOids = False
+    def __init__(self, taskName, configId,
+                 scheduleIntervalSeconds=3600, taskConfig=None):
+        BaseTask.__init__(self)
+        self.log = log
 
-    def __init__(self):
-        EventServer.__init__(self)
+        # Needed for interface
+        self.name = taskName
+        self.configId = configId
+        self.state = TaskStates.STATE_IDLE
+        self.interval = scheduleIntervalSeconds
+        self._preferences = taskConfig
+        self._daemon = zope.component.getUtility(ICollector)
+        self._eventService = zope.component.queryUtility(IEventService)
+        self._preferences = self._daemon
+
+        # For compatibility with captureReplay
+        self.options = self._daemon.options
+
+        self.oidMap = self._daemon.oidMap
+        self.stats = Stats()
 
         # Command-line argument sanity checking
         self.processCaptureReplayOptions()
@@ -106,61 +189,37 @@ class ZenTrap(EventServer, CaptureReplay):
         #if IPAddress(listenip).version == 6:
         #    listenip = 'udp6:' + listenip
 
-        if not self.options.useFileDescriptor and self.options.trapport < 1024:
+        trapPort = self._preferences.options.trapport
+        if not self._preferences.options.useFileDescriptor and trapPort < 1024:
             # Makes call to zensocket here
-            self.openPrivilegedPort('--listen', '--proto=udp',
-                '--port=%s:%d' % (listenip, self.options.trapport))
+            self._daemon.openPrivilegedPort('--listen', '--proto=udp',
+                '--port=%s:%d' % (listenip, trapPort))
 
+        # Start listening for SNMP traps
+        self.log.info("Starting to listen on SNMP trap port %s", trapPort)
         self.session = netsnmp.Session()
-        if self.options.useFileDescriptor is not None:
-            fileno = int(self.options.useFileDescriptor)
+        if self._preferences.options.useFileDescriptor is not None:
+            fileno = int(self._preferences.options.useFileDescriptor)
             # open port 1162, but then dup fileno onto it
             self.session.awaitTraps('%s:1162' % listenip, fileno)
         else:
             # NOTE: on bad input listenip, pukes with SnmpError exception
-            self.session.awaitTraps('%s:%d' % (listenip, self.options.trapport))
+            self.session.awaitTraps('%s:%d' % (listenip, trapPort))
         self.session.callback = self.receiveTrap
-
         twistedsnmp.updateReactor()
+
+    def doTask(self):
+        """
+        This is a wait-around task since we really are called
+        asynchronously.
+        """
+        return defer.succeed("Waiting for SNMP traps...")
 
     def isReplaying(self):
         """
         @returns True if we are replaying a packet instead of capturing one
         """
-        return len(self.options.replayFilePrefix) > 0
-
-    def configure(self):
-        def inner(driver):
-            self.log.info("fetching default RRDCreateCommand")
-            yield self.model().callRemote('getDefaultRRDCreateCommand')
-            createCommand = driver.next()
-
-            self.log.info("getting threshold classes")
-            yield self.model().callRemote('getThresholdClasses')
-            self.remote_updateThresholdClasses(driver.next())
-
-            self.log.info("getting collector thresholds")
-            yield self.model().callRemote('getCollectorThresholds')
-            self.rrdStats.config(self.options.monitor, self.name,
-                                 driver.next(), createCommand)
-
-            self.log.info("getting OID -> name mappings")
-            yield self.getServiceNow('TrapService').callRemote('getOidMap')
-            self.oidMap = driver.next()
-            self.haveOids = True
-            # Trac #6563 the heartbeat shuts down the service
-            # before the eventserver is ready to send the events
-            # so we ignore the heartbeat
-            # (replay is always in non-cycle mode)
-            if not self.isReplaying():
-                self.heartbeat()
-            self.reportCycle()
-
-        d = drive(inner)
-        def error(result):
-            self.log.error("Unexpected error in configure: %s" % result)
-        d.addErrback(error)
-        return d
+        return len(self._preferences.options.replayFilePrefix) > 0
 
     def getEnterpriseString(self, pdu):
         """
@@ -171,6 +230,10 @@ class ZenTrap(EventServer, CaptureReplay):
         @return: enterprise string
         @rtype: string
         """
+        def lp2oid(ptr, length):
+            "Convert a pointer to an array of longs to an OID"
+            return '.'.join([str(ptr[i]) for i in range(length)])
+
         if hasattr(pdu, "fake"): # Replaying a packet
             enterprise = pdu.enterprise
         else:
@@ -194,7 +257,7 @@ class ZenTrap(EventServer, CaptureReplay):
 
     def getCommunity(self, pdu):
         """
-        Get the communitry string from the PDU or replayed packet
+        Get the community string from the PDU or replayed packet
 
         @param pdu: raw packet
         @type pdu: binary
@@ -227,8 +290,9 @@ class ZenTrap(EventServer, CaptureReplay):
         packet.variables = netsnmp.getResult(pdu)
         packet.community = ''
         packet.enterprise_length = pdu.enterprise_length
+
         # Here's where we start to encounter differences between packet types
-        if pdu.version == 0:
+        if pdu.version == SNMPv1:
             # SNMPv1 can't be received via IPv6
             packet.agent_addr =  [pdu.agent_addr[i] for i in range(4)]
             packet.trap_type = pdu.trap_type
@@ -246,7 +310,7 @@ class ZenTrap(EventServer, CaptureReplay):
         @type pdu: binary
         """
         ts = time.time()
-        d = self.asyncHandleTrap([pdu.host, pdu.port], pdu, ts)
+        self.asyncHandleTrap([pdu.host, pdu.port], pdu, ts)
 
     def oid2name(self, oid, exactMatch=True, strip=False):
         """
@@ -293,15 +357,12 @@ class ZenTrap(EventServer, CaptureReplay):
         @param pdu: Net-SNMP object
         @type pdu: netsnmp_pdu object
         """
-        if not self.haveOids:
-            return
-
         ts = time.time()
 
         # Is it a trap?
         if pdu.sessid != 0: return
 
-        if pdu.version not in [ 0, 1 ]:
+        if pdu.version not in [ SNMPv1, SNMPv2 ]:
             self.log.error("Unable to handle trap version %d", pdu.version)
             return
 
@@ -387,26 +448,28 @@ class ZenTrap(EventServer, CaptureReplay):
             netsnmp.lib.snmp_free_pdu(dup)
             return result
 
-        d = self.asyncHandleTrap(addr, dup.contents, ts)
+        d = defer.maybeDeferred(self.asyncHandleTrap,
+                                addr, dup.contents, ts)
         d.addBoth(cleanup)
 
     def _value_from_dateandtime(self, value):
         """
-        Tries convering a DateAndTime value to printable string.
+        Tries converting a DateAndTime value to a printable string.
+
         A date-time specification.
         field  octets  contents                  range
-                -----  ------  --------                  -----
-                  1      1-2   year*                     0..65536
-                  2       3    month                     1..12
-                  3       4    day                       1..31
-                  4       5    hour                      0..23
-                  5       6    minutes                   0..59
-                  6       7    seconds                   0..60
-                               (use 60 for leap-second)
-                  7       8    deci-seconds              0..9
-                  8       9    direction from UTC        '+' / '-'
-                  9      10    hours from UTC*           0..13
-                 10      11    minutes from UTC          0..59
+        -----  ------  --------                  -----
+        1      1-2     year*                     0..65536
+        2        3     month                     1..12
+        3        4     day                       1..31
+        4        5     hour                      0..23
+        5        6     minutes                   0..59
+        6        7     seconds                   0..60
+                      (use 60 for leap-second)
+        7        8     deci-seconds              0..9
+        8        9     direction from UTC        '+' / '-'
+        9       10     hours from UTC*           0..13
+        10      11     minutes from UTC          0..59
         """
         strval = None
         vallen = len(value)
@@ -455,7 +518,112 @@ class ZenTrap(EventServer, CaptureReplay):
                 decoded = 'BASE64:' + base64.b64encode(value)
             return decoded
 
-    def asyncHandleTrap(self, addr, pdu, ts):
+    def snmpInform(self, addr, pdu):
+        """
+        A SNMP trap can request that the trap recipient return back a response.
+        This is where we do that.
+        """
+        reply = netsnmp.lib.snmp_clone_pdu(c.byref(pdu))
+        if not reply:
+            self.log.error("Could not clone PDU for INFORM response")
+            raise RuntimeError("Cannot respond to INFORM PDU")
+        reply.contents.command = netsnmp.SNMP_MSG_RESPONSE
+        reply.contents.errstat = 0
+        reply.contents.errindex = 0
+
+        # FIXME: might need to add udp6 for IPv6 addresses
+        sess = netsnmp.Session(peername='%s:%d' % tuple(addr),
+                               version=pdu.version)
+        sess.open()
+        if not netsnmp.lib.snmp_send(sess.sess, reply):
+            netsnmp.lib.snmp_sess_perror("Unable to send inform PDU",
+                                         self.session.sess)
+            netsnmp.lib.snmp_free_pdu(reply)
+        sess.close()
+
+    def decodeSnmpv1(self, addr, pdu):
+        oid = ''
+        eventType = 'unknown'
+        result = {}
+
+        variables = self.getResult(pdu)
+
+        # Sometimes the agent_addr is useless.
+        # Use addr[0] unchanged in this case.
+        # Note that SNMPv1 packets *cannot* come in via IPv6
+        new_addr = '.'.join(map(str, [pdu.agent_addr[i] for i in range(4)]))
+        if new_addr != '0.0.0.0':
+            addr[0] = new_addr
+
+        enterprise = self.getEnterpriseString(pdu)
+        eventType = self.oid2name(
+                enterprise, exactMatch=False, strip=False)
+        generic = pdu.trap_type
+        specific = pdu.specific_type
+
+        # Try an exact match with a .0. inserted between enterprise and
+        # specific OID. It seems that MIBs frequently expect this .0.
+        # to exist, but the device's don't send it in the trap.
+        oid = "%s.0.%d" % (enterprise, specific)
+        name = self.oid2name(oid, exactMatch=True, strip=False)
+
+        # If we didn't get a match with the .0. inserted we will try
+        # resolving with the .0. inserted and allow partial matches.
+        if name == oid:
+            oid = "%s.%d" % (enterprise, specific)
+            name = self.oid2name(oid, exactMatch=False, strip=False)
+
+        # Look for the standard trap types and decode them without
+        # relying on any MIBs being loaded.
+        eventType = {
+            0: 'snmp_coldStart',
+            1: 'snmp_warmStart',
+            2: 'snmp_linkDown',
+            3: 'snmp_linkUp',
+            4: 'snmp_authenticationFailure',
+            5: 'snmp_egpNeighorLoss',
+            6: name,
+        }.get(generic, name)
+
+        # Decode all variable bindings. Allow partial matches and strip
+        # off any index values.
+        for vb_oid, vb_value in variables:
+            vb_value = self._convert_value(vb_value)
+            vb_oid = '.'.join(map(str, vb_oid))
+
+            # Add a detail for the variable binding.
+            r = self.oid2name(vb_oid, exactMatch=False, strip=False)
+            result[r] = vb_value
+
+            # Add a detail for the index-stripped variable binding.
+            r = self.oid2name(vb_oid, exactMatch=False, strip=True)
+            result[r] = vb_value
+        return eventType, oid, result
+
+    def decodeSnmpv2(self, addr, pdu):
+        oid = ''
+        eventType = 'unknown'
+        result = {}
+
+        variables = self.getResult(pdu)
+        for vb_oid, vb_value in variables:
+            vb_value = self._convert_value(vb_value)
+            vb_oid = '.'.join(map(str, vb_oid))
+            # SNMPv2-MIB/snmpTrapOID
+            if vb_oid == '1.3.6.1.6.3.1.1.4.1.0':
+                oid = '.'.join(map(str, vb_value))
+                eventType = self.oid2name(
+                        vb_value, exactMatch=False, strip=False)
+            else:
+                # Add a detail for the variable binding.
+                r = self.oid2name(vb_oid, exactMatch=False, strip=False)
+                result[r] = vb_value
+                # Add a detail for the index-stripped variable binding.
+                r = self.oid2name(vb_oid, exactMatch=False, strip=True)
+                result[r] = vb_value
+        return eventType, oid, result
+
+    def asyncHandleTrap(self, addr, pdu, startProcessTime):
         """
         Twisted callback to process a trap
 
@@ -463,179 +631,102 @@ class ZenTrap(EventServer, CaptureReplay):
         @type addr: ( host-ip, port)
         @param pdu: Net-SNMP object
         @type pdu: netsnmp_pdu object
-        @param ts: time stamp
-        @type ts: datetime
+        @param startProcessTime: time stamp
+        @type startProcessTime: datetime
         @return: Twisted deferred object
         @rtype: Twisted deferred object
         """
-        def inner(driver):
-            """
-            Generator function that actually processes the packet
+        self.capturePacket(addr[0], addr, pdu)
 
-            @param driver: Twisted deferred object
-            @type driver: Twisted deferred object
-            @return: Twisted deferred object
-            @rtype: Twisted deferred object
-            """
-            self.capturePacket(addr[0], addr, pdu)
+        # Some misbehaving agents will send SNMPv1 traps contained within
+        # an SNMPv2c PDU. So we can't trust tpdu.version to determine what
+        # version trap exists within the PDU. We need to assume that a
+        # PDU contains an SNMPv1 trap if the enterprise_length is greater
+        # than zero in addition to the PDU version being 0.
+        if pdu.version == SNMPv1 or pdu.enterprise_length > 0:
+            eventType, oid, result = self.decodeSnmpv1(addr, pdu)
 
-            oid = ''
-            eventType = 'unknown'
-            result = {}
+        elif pdu.version == SNMPv2:
+            eventType, oid, result = self.decodeSnmpv2(addr, pdu)
 
-            # Some misbehaving agents will send SNMPv1 traps contained within
-            # an SNMPv2c PDU. So we can't trust tpdu.version to determine what
-            # version trap exists within the PDU. We need to assume that a
-            # PDU contains an SNMPv1 trap if the enterprise_length is greater
-            # than zero in addition to the PDU version being 0.
+        else:
+            self.log.error("Unable to handle trap version %d", pdu.version)
+            return
 
-            if pdu.version == 0 or pdu.enterprise_length > 0:
-                # SNMP v1
-                variables = self.getResult(pdu)
+        summary = 'snmp trap %s' % eventType
+        self.log.debug(summary)
+        community = self.getCommunity(pdu)
+        result['oid'] = oid
+        result['device'] = addr[0]
+        result.setdefault('component', '')
+        result.setdefault('eventClassKey', eventType)
+        result.setdefault('eventGroup', 'trap')
+        result.setdefault('severity', 2)
+        result.setdefault('summary', summary)
+        result.setdefault('community', community)
+        result.setdefault('firstTime', startProcessTime)
+        result.setdefault('lastTime', startProcessTime)
+        result.setdefault('monitor', self.options.monitor)
+        self._eventService.sendEvent(result)
+        self.stats.add(time.time() - startProcessTime)
 
-                # Sometimes the agent_addr is useless. Use addr[0] unchanged in
-                # this case.
-                # Note that SNMPv1 packets *cannot* come in via IPv6
-                new_addr = '.'.join(map(str, [
-                    pdu.agent_addr[i] for i in range(4)]))
-
-                if new_addr != '0.0.0.0':
-                    addr[0] = new_addr
-
-                enterprise = self.getEnterpriseString(pdu)
-                eventType = self.oid2name(
-                    enterprise, exactMatch=False, strip=False)
-                generic = pdu.trap_type
-                specific = pdu.specific_type
-
-                # Try an exact match with a .0. inserted between enterprise and
-                # specific OID. It seems that MIBs frequently expect this .0.
-                # to exist, but the device's don't send it in the trap.
-                oid = "%s.0.%d" % (enterprise, specific)
-                name = self.oid2name(oid, exactMatch=True, strip=False)
-
-                # If we didn't get a match with the .0. inserted we will try
-                # resolving with the .0. inserted and allow partial matches.
-                if name == oid:
-                    oid = "%s.%d" % (enterprise, specific)
-                    name = self.oid2name(oid, exactMatch=False, strip=False)
-
-                # Look for the standard trap types and decode them without
-                # relying on any MIBs being loaded.
-                eventType = {
-                    0: 'snmp_coldStart',
-                    1: 'snmp_warmStart',
-                    2: 'snmp_linkDown',
-                    3: 'snmp_linkUp',
-                    4: 'snmp_authenticationFailure',
-                    5: 'snmp_egpNeighorLoss',
-                    6: name,
-                    }.get(generic, name)
-
-                # Decode all variable bindings. Allow partial matches and strip
-                # off any index values.
-                for vb_oid, vb_value in variables:
-                    vb_value = self._convert_value(vb_value)
-                    vb_oid = '.'.join(map(str, vb_oid))
-                    # Add a detail for the variable binding.
-                    r = self.oid2name(vb_oid, exactMatch=False, strip=False)
-                    result[r] = vb_value
-                    # Add a detail for the index-stripped variable binding.
-                    r = self.oid2name(vb_oid, exactMatch=False, strip=True)
-                    result[r] = vb_value
-
-            elif pdu.version == 1:
-                # SNMP v2
-                variables = self.getResult(pdu)
-                for vb_oid, vb_value in variables:
-                    vb_value = self._convert_value(vb_value)
-                    vb_oid = '.'.join(map(str, vb_oid))
-                    # SNMPv2-MIB/snmpTrapOID
-                    if vb_oid == '1.3.6.1.6.3.1.1.4.1.0':
-                        oid = '.'.join(map(str, vb_value))
-                        eventType = self.oid2name(
-                            vb_value, exactMatch=False, strip=False)
-                    else:
-                        # Add a detail for the variable binding.
-                        r = self.oid2name(vb_oid, exactMatch=False, strip=False)
-                        result[r] = vb_value
-                        # Add a detail for the index-stripped variable binding.
-                        r = self.oid2name(vb_oid, exactMatch=False, strip=True)
-                        result[r] = vb_value
-
-            else:
-                self.log.error("Unable to handle trap version %d", pdu.version)
-                return
-
-            summary = 'snmp trap %s' % eventType
-            self.log.debug(summary)
-            community = self.getCommunity(pdu)
-            result['oid'] = oid
-            result['device'] = addr[0]
-            result.setdefault('component', '')
-            result.setdefault('eventClassKey', eventType)
-            result.setdefault('eventGroup', 'trap')
-            result.setdefault('severity', 2)
-            result.setdefault('summary', summary)
-            result.setdefault('community', community)
-            result.setdefault('firstTime', ts)
-            result.setdefault('lastTime', ts)
-            result.setdefault('monitor', self.options.monitor)
-            self.sendEvent(result)
-
+        if self.isReplaying():
+            self.replayed += 1
             # Don't attempt to respond back if we're replaying packets
-            if len(self.options.replayFilePrefix) > 0:
-                self.replayed += 1
-                return
+            return
 
-            # respond to INFORM requests
-            if pdu.command == netsnmp.SNMP_MSG_INFORM:
-                reply = netsnmp.lib.snmp_clone_pdu(c.byref(pdu))
-                if not reply:
-                    self.log.error("Could not clone PDU for INFORM response")
-                    raise RuntimeError("Cannot respond to INFORM PDU")
-                reply.contents.command = netsnmp.SNMP_MSG_RESPONSE
-                reply.contents.errstat = 0
-                reply.contents.errindex = 0
-                # FIXME: might need to add udp6 for IPv6 addresses
-                sess = netsnmp.Session(peername='%s:%d' % tuple(addr),
-                                       version=pdu.version)
-                sess.open()
-                if not netsnmp.lib.snmp_send(sess.sess, reply):
-                    netsnmp.lib.snmp_sess_perror("Unable to send inform PDU",
-                                                 self.session.sess)
-                    netsnmp.lib.snmp_free_pdu(reply)
-                sess.close()
+        if pdu.command == netsnmp.SNMP_MSG_INFORM:
+            self.snmpInform(addr, pdu)
 
-            yield defer.succeed(True)
-            driver.next()
-        return drive(inner)
+    def displayStatistics(self):
+        totalTime, totalEvents, maxTime = self.stats.report()
+        display = "%d events processed in %.2f seconds" % (
+                      totalEvents,
+                      totalTime)
+        if totalEvents > 0:
+            display += """
+%.5f average seconds per event
+Maximum processing time for one event was %.5f""" % (
+                       (totalTime / totalEvents), maxTime)
+        return display
+
+    def cleanup(self):
+        self.session.close()
+        status = self.displayStatistics()
+        self.log.info(status)
 
 
-    def buildOptions(self):
-        """
-        Command-line options to be supported
-        """
-        EventServer.buildOptions(self)
-        self.parser.add_option('--trapport', '-t',
-            dest='trapport', type='int', default=TRAP_PORT,
-            help="Listen for SNMP traps on this port rather than the default")
-        self.parser.add_option('--listenip',
-            # FIXME: need :: to listen on all IPv6 + IPv4
-            #dest='listenip', default='::',
-            dest='listenip', default='0.0.0.0',
-            help="IP address to listen on. Default is ::")
-        self.parser.add_option('--useFileDescriptor',
-                               dest='useFileDescriptor',
-                               type='int',
-                               help=("Read from an existing connection "
-                                     " rather than opening a new port."),
-                               default=None)
+class MibConfigTask(ObservableMixin):
+    """
+    Receive a configuration object containing MIBs and update the
+    mapping of OIDs to names.
+    """
+    zope.interface.implements(IScheduledTask)
 
-        self.buildCaptureReplayOptions()
+    def __init__(self, taskName, configId,
+                 scheduleIntervalSeconds=3600, taskConfig=None):
+        super(MibConfigTask, self).__init__()
+
+        # Needed for ZCA interface contract
+        self.name = taskName
+        self.configId = configId
+        self.state = TaskStates.STATE_IDLE
+        self.interval = scheduleIntervalSeconds
+        self._preferences = taskConfig
+        self._daemon = zope.component.getUtility(ICollector)
+
+        self._daemon.oidMap = self._preferences.oidMap
+
+    def doTask(self):
+        return defer.succeed("Already updated OID -> name mappings...")
+
+    def cleanup(self):
+        pass
 
 
-if __name__ == '__main__':
-    z = ZenTrap()
-    z.run()
-    z.report()
+if __name__=='__main__':
+    myPreferences = SnmpTrapPreferences()
+    myTaskFactory = SimpleTaskFactory(MibConfigTask)
+    myTaskSplitter = SimpleTaskSplitter(myTaskFactory)
+    daemon = CollectorDaemon(myPreferences, myTaskSplitter)
+    daemon.run()

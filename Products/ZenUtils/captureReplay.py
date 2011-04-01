@@ -185,25 +185,25 @@ class CaptureReplay(object):
         else:
             reactor.callLater(1, self.replayStop)
 
-    def buildCaptureReplayOptions(self):
+    def buildCaptureReplayOptions(self, parser):
         """
         This should be called explicitly in the base class' buildOptions
         """
-        self.parser.add_option('--captureFilePrefix',
+        parser.add_option('--captureFilePrefix',
                                dest='captureFilePrefix',
                                default=None,
                                help="Directory and filename to use as a template" + \
                                "  to store captured raw trap packets.")
-        self.parser.add_option('--captureAll',
+        parser.add_option('--captureAll',
                                dest='captureAll',
                                action='store_true',
                                default=False,
                                help="Capture all packets.")
-        self.parser.add_option('--captureIps',
+        parser.add_option('--captureIps',
                                dest='captureIps',
                                default='',
                                help="Comma-separated list of IP addresses to capture.")
-        self.parser.add_option('--replayFilePrefix',
+        parser.add_option('--replayFilePrefix',
                                dest='replayFilePrefix',
                                action='append',
                                default=[],
