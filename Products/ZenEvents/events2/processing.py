@@ -412,9 +412,10 @@ class AddDeviceContextPipe(EventProcessorPipe):
         actor = eventContext.event.actor
         for type_id_field, uuid_field in self.FIELDS:
             if ( actor.HasField(type_id_field)
-                 and actor.element_type_id == type_id
+                 and getattr(actor, type_id_field, None) == type_id
                  and actor.HasField(uuid_field) ):
-                return self._manager.getElementByUuid(actor.element_uuid)
+                uuid = getattr(actor,uuid_field)
+                return self._manager.getElementByUuid(uuid)
 
     def __call__(self, eventContext):
         eventContext.log.debug('Adding device context')
@@ -517,7 +518,8 @@ class TransformPipe(EventProcessorPipe):
             evtclass.applyExtraction(eventContext.eventProxy)
             evtclass.applyValues(eventContext.eventProxy)
             evtclass.applyTransform(eventContext.eventProxy,
-                                    eventContext.deviceObject)
+                                    eventContext.deviceObject,
+                                    eventContext.componentObject)
 
         return eventContext
 

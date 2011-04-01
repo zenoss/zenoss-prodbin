@@ -34,6 +34,8 @@ from Products.ZenModel.ZenPackable import ZenPackable
 from Products.ZenWidgets import messaging
 from Products.ZenUtils.guid.interfaces import IGloballyIdentifiable
 from Products.ZenUtils.Utils import convToUnits, zdecode
+from Products import Zuul
+from Products.Zuul.interfaces import IInfo
 
 
 def manage_addEventClassInst(context, id, REQUEST = None):
@@ -150,7 +152,7 @@ Transform:
         )
         zem.sendEvent(badEvt)
 
-    def applyTransform(self, evt, device):
+    def applyTransform(self, evt, device, component=None):
         """
         Apply transforms on an event from the top level of the Event Class Tree
         down to the actual Event Rules (EventClassInst)
@@ -160,7 +162,8 @@ Transform:
             'evt':evt, 'device':device, 'dev':device,
             'convToUnits':convToUnits, 'zdecode':zdecode,
             'txnCommit':transaction.commit, 'dmd':self.dmd,
-            'log':log,
+            'log':log, 'component':component,
+            'getFacade':Zuul.getFacade, 'IInfo':IInfo,
         }
         for eventclass in transpath:
             if not eventclass.transform: continue
