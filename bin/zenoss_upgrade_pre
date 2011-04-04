@@ -66,13 +66,28 @@ sed -i -e 's/[ \t]*configpath .*//' $ZENHOME/etc/zenstatus.conf
 # set the python shebang to be the proper python
 shebang
 
+# restart external server daemons
+restart_snmpd
+restart_mysql
+restart_rabbitmq
+
 # patch any ZenPack code that isn't compatible with this version of core
 . ${ZENHOME}/bin/zenoss_upgrade_patch_zenpacks.sh
+
+# create the ZEP database
+create_zep_db
+
+# Update ZEP configuration files
+update_zep_cfg
 
 # Move from ZODB to MySQL
 ${ZENHOME}/bin/python ${ZENHOME}/bin/changeObjectStore.py \
     --host=$MYSQLHOST --port=$MYSQLPORT --passwd="$MYSQLPASS" \
     --user=$MYSQLUSER --db=$MYSQLZODB --rootpw="$MYSQLROOTPASSWD"
+
+# Update AMQP configuration files
+update_amqp_cfg
+configure_amqp
 
 # migrate the zeo database
 run_zenmigrate
