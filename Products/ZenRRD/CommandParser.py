@@ -30,6 +30,20 @@ class CommandParser:
 
     def dataForParser(self, context, datapoint):
         return {}
+    
+    def preprocessResults(self, cmd, log):
+        """
+        Preprocess the results of running a command.
+        
+        @type cmd: Products.ZenRRD.zencommand.Cmd
+        @param cmd: the results of running a command, with the
+        configuration from ZenHub
+        @return: None.
+        """
+        
+        # If the command was echoed back, strip it off
+        if cmd.result.output.lstrip().startswith(cmd.command):
+            cmd.result.output = cmd.result.output.lstrip()[len(cmd.command):]
 
     def processResults(self, cmd, results):
         """

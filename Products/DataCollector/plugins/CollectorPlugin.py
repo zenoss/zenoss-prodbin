@@ -191,6 +191,14 @@ class CommandPlugin(CollectorPlugin):
         'zTelnetEnableRegex',
         'zEnablePassword',
         )
+    
+    def preprocess(self, results, log):
+        """Strip off the command if it is echoed back in the stream.
+        """
+
+        if results.lstrip().startswith(self.command):
+            results = results.output.lstrip()[len(self.command):]
+        return results
         
         
 class LinuxCommandPlugin(CommandPlugin):

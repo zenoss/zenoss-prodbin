@@ -770,6 +770,7 @@ class SshPerformanceCollectionTask(ObservableMixin):
             return
 
         try:
+            parser.preprocessResults(datasource, log)
             parser.processResults(datasource, results)
             if datasource.result.stderr:
                 self._addStderrMsg(datasource.result.stderr,
