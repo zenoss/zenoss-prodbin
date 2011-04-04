@@ -256,7 +256,7 @@ class TestDevice(ZenModelBaseTest):
         log.setLevel(logging.ERROR)
         d.setManageIp(testIp)
         log.setLevel(curLogLevel)
-        self.assertEqual(d.getManageIp(), '127.0.0.1')
+        self.assertTrue(d.getManageIp() in ('127.0.0.1', '::1'))
 
     def testManage_editDevice(self):
         self.dev.manage_editDevice()
