@@ -79,9 +79,7 @@ class ApplyDataMap(object):
         compname = ""
         try:
             compname = getattr(component, 'id', component)
-            if hasattr(component, 'name') and callable(component.name):
-                    compname = component.name()
-            elif device.id == compname:
+            if device.id == compname:
                 compname = ""
         except: pass
         log.debug(msg)
