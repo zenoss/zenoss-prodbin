@@ -248,7 +248,7 @@ class TestDevice(ZenModelBaseTest):
         # What about duplicates?
         d = self.dmd.Devices.createInstance('localhost')
         d.setManageIp()
-        self.assertEqual(d.getManageIp(), '127.0.0.1')
+        self.assertTrue(d.getManageIp() in ('127.0.0.1', '::1'))
 
         # Mask out the warning
         log = logging.getLogger()
