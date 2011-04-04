@@ -21,7 +21,7 @@ from Products.ZenModel.IpNetwork import manage_addIpNetwork
 from Products.Zuul.utils import safe_hasattr as hasattr
 
 class addIpv6Network(Migrate.Step):
-    version = Migrate.Version(3,1,0)
+    version = Migrate.Version(3,1,70)
 
     def cutover(self, dmd):
         if not hasattr(dmd, 'IPv6 Networks'):

@@ -21,7 +21,7 @@ from Products.ZenUtils.guid.interfaces import IGloballyIdentifiable, IGlobalIden
 log = logging.getLogger("zen.migrate")
 
 class CreateMissingGuids(Migrate.Step):
-    version = Migrate.Version(3, 1, 0)
+    version = Migrate.Version(3, 1, 70)
     def __init__(self):
         Migrate.Step.__init__(self)
 

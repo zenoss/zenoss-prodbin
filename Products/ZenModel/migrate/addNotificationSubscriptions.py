@@ -17,7 +17,7 @@ from Products.ZenModel.NotificationSubscription import NotificationSubscriptionM
 from Products.Zuul.utils import safe_hasattr as hasattr
 
 class NotificationSubscriptions(Migrate.Step):
-    version = Migrate.Version(3,1,0)
+    version = Migrate.Version(3,1,70)
     
     def cutover(self, dmd):
         if not hasattr(dmd, NotificationSubscriptionManager.root):

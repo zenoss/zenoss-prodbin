@@ -20,7 +20,7 @@ import Migrate
 
 
 class FixHighLoadThreshold(Migrate.Step):
-    version = Migrate.Version(3, 1, 0)
+    version = Migrate.Version(3, 1, 70)
 
     def cutover(self, dmd):
         # look for all high load thresholds
