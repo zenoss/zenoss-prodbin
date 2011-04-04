@@ -1012,6 +1012,11 @@ var loctree = {
     listeners: { render: initializeTreeDrop }
 };
 
+var treepanel = {
+    xtype: 'HierarchyTreePanelSearch',
+    items: [devtree, grouptree, systree, loctree]
+};
+
 Zenoss.nav.register({
     DeviceGroup: [
         {
@@ -1274,8 +1279,8 @@ Ext.getCmp('center_panel').add({
         items: [{
             text: _t('Infrastructure'),
             buttonText: _t('Details'),
-            items: [devtree, grouptree, systree, loctree],
-            autoScroll: true
+            layout: 'fit',
+            items: [treepanel]
         },{
             xtype: 'detailcontainer',
             buttonText: _t('See All'),

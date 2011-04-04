@@ -274,6 +274,11 @@ report_tree = new Zenoss.ReportTreePanel({
 
 report_tree.expandAll();
 
+var treepanel = {
+    xtype: 'HierarchyTreePanelSearch',
+    items: [report_tree]
+};
+
 Ext.getCmp('center_panel').add({
     id: 'center_panel_container',
     layout: 'border',
@@ -286,7 +291,7 @@ Ext.getCmp('center_panel').add({
         region: 'west',
         width: 300,
         split: true,
-        items: [report_tree]
+        items: [treepanel]
     }, {
         layout: 'fit',
         region: 'center',

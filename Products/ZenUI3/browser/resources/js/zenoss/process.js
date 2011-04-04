@@ -111,7 +111,6 @@ var ProcessTreePanel = Ext.extend(Zenoss.HierarchyTreePanel, {
             directFn: router.getTree,
             router: router,
             selModel: selModel,
-            flex: 1,
             enableDD: true,
             ddGroup: 'processDragDrop',
             ddAppendOnly: true,
@@ -354,16 +353,27 @@ var ProcessGridPanel = Ext.extend(Zenoss.FilterGridPanel, {
 });
 
 var tree = new ProcessTreePanel({});
-var grid = new  ProcessGridPanel({});
+var treepanel = {
+    xtype: 'panel',
+    layout: 'fit',
+    flex: 1,
+    items: [
+        {
+            xtype: 'HierarchyTreePanelSearch',
+            items: [tree]
+        }
+    ]
+};
+
+var grid = new ProcessGridPanel({});
 var panel = new Ext.Panel({
     layout: {
-        type:'vbox',
+        type: 'vbox',
         align: 'stretch'
     },
 
-    items:[tree, grid]
-}
-);
+    items:[treepanel, grid]
+});
 
 Ext.getCmp('master_panel').add(panel);
 

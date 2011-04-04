@@ -97,6 +97,36 @@ Zenoss.HierarchyTreeNodeUI = Ext.extend(Ext.tree.TreeNodeUI, {
 
 });
 
+Zenoss.HierarchyTreePanelSearch = Ext.extend(Ext.Panel, {
+    constructor: function(config) {
+        var oldConfig = config;
+        config = {
+            items: [{
+                xtype: 'searchfield',
+                bodyStyle: {padding: 10},
+                enableKeyEvents: true,
+                ref: 'searchfield'
+            }, {
+                xtype: 'panel',
+                items: oldConfig.items,
+                flex: 1,
+                autoScroll: true,
+                regSearchListeners: function(listeners) {
+                    this.ownerCt.searchfield.on(listeners);
+                }
+            }],
+            layout: {
+                type: 'vbox',
+                align: 'stretch'
+            }
+        };
+        
+        Zenoss.HierarchyTreePanelSearch.superclass.constructor.call(this, config);
+    }
+});
+
+Ext.reg('HierarchyTreePanelSearch', Zenoss.HierarchyTreePanelSearch);
+
 Zenoss.HierarchyTreePanel = Ext.extend(Ext.tree.TreePanel, {
     constructor: function(config) {
         Ext.applyIf(config, {
@@ -257,13 +287,8 @@ Zenoss.HierarchyTreePanel = Ext.extend(Ext.tree.TreePanel, {
         if (liveSearch) {
             listeners.valid = this.filterTree;
         }
-        if (this.searchField) {
-            this.searchField = this.add({
-                xtype: 'searchfield',
-                bodyStyle: {padding: 10},
-                enableKeyEvents: true,
-                listeners: listeners
-            });
+        if (this.searchField && this.ownerCt.regSearchListeners) {
+            this.ownerCt.regSearchListeners(listeners);
         }
         this.getRootNode().expand(false, true, function(node) {
             node.expandChildNodes();
