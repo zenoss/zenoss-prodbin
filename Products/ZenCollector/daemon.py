@@ -173,12 +173,12 @@ class CollectorDaemon(RRDDaemon):
         super(CollectorDaemon, self).buildOptions()
 
         maxTasks = getattr(self._prefs, 'maxTasks', None)
-        defaultMax = maxTasks if maxTasks else 'Unlimited' 
+        defaultMax = maxTasks if maxTasks else 500
         
         self.parser.add_option('--maxparallel',
                                 dest='maxTasks',
                                 type='int',
-                                default= maxTasks,
+                                default=defaultMax,
                                 help='Max number of tasks to run at once, default %default')
 
         frameworkFactory = zope.component.queryUtility(IFrameworkFactory)

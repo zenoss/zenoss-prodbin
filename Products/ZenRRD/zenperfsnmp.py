@@ -72,9 +72,6 @@ class SnmpPerformanceCollectionPreferences(object):
         # of our configuration service that runs within ZenHub
         self.configurationService = 'Products.ZenHub.services.SnmpPerformanceConfig'
 
-        # Provide a reasonable default for the max number of tasks
-        self.maxTasks = 50
-
         # Will be filled in based on buildOptions
         self.options = None
 
