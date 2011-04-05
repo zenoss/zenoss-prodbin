@@ -14,10 +14,10 @@
 */
 
 (function(){
-     
+
 /**********************************************************************
  *
- * Command Panel 
+ * Command Panel
  *
  */
 var formTpl = new Ext.Template(
@@ -44,7 +44,7 @@ Zenoss.CommandPanel = Ext.extend(Zenoss.IFramePanel, {
     injectForm: function(win){
         var doc = win.document,
             form = formTpl.apply({
-                data: Ext.encode(this.data), 
+                data: Ext.encode(this.data),
                 target: this.target
             });
         doc.body.innerHTML = form;
@@ -59,7 +59,7 @@ Ext.reg('commandpanel', Zenoss.CommandPanel);
  *
  *  Command Window
  *
- */  
+ */
 Zenoss.CommandWindow = Ext.extend(Ext.Window, {
     constructor: function(config) {
         this.cpanel = Ext.id();
@@ -142,17 +142,17 @@ Zenoss.CommandWindow = Ext.extend(Ext.Window, {
         this.task.delay(250);
     },
     show: function() {
-        if (Ext.isChrome || Ext.isSafari) {
+        if (Ext.isWebKit) {
             var url = 'no_streaming=1&data=';
             url += Ext.encode(this.commandData);
             if (this.commandData.command) {
                 url += "&command=";
-                url += this.commandDatacommandData.command;
+                url += this.commandData.command;
             }
             window.open(this.target + '?'+ url,'',
             'width=800,height=500,toolbar=0,location=0,directories=0,menubar=0,resizable=1,scrollbars=1');
         } else {
-            Zenoss.CommandWindow.superclass.show.apply(this)
+            Zenoss.CommandWindow.superclass.show.apply(this);
         }
     }
 });
