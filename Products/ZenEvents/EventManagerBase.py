@@ -1296,6 +1296,7 @@ class EventManagerBase(ZenModelRM, ObjectCache, DbAccessBase):
             dir = dir.upper()
             if dir not in ['DESC','ASC'] or col not in fieldList:
                 raise ("order by  value %s %s not valid" % (col, dir))
+
             #remove adjacent sorts of same column;
             if not prevSortCol or prevSortCol != col:
                 sortValues.append((col, dir))

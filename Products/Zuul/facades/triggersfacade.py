@@ -32,6 +32,7 @@ from AccessControl import getSecurityManager
 from zenoss.protocols.services.triggers import TriggerServiceClient
 
 from Products.ZenModel.ZenossSecurity import *
+from Products.ZenModel.UserSettings import GroupSettings
 
 log = logging.getLogger('zen.TriggersFacade')
 
@@ -272,20 +273,20 @@ class TriggersFacade(ZuulFacade):
         data = []
 
         for u in users:
-            data.append(dict(
-                type = 'user',
-                label = '%s (User)' % u.getId(),
-                value = IGlobalIdentifier(u).getGUID()
-            ))
+            data.append(self.fetchRecipientOption(u))
 
         for g in groups:
-            data.append(dict(
-                type = 'group',
-                label = '%s (Group)' % g.getId(),
-                value = IGlobalIdentifier(g).getGUID()
-            ))
+            data.append(self.fetchRecipientOption(g))
         return data
 
+    def fetchRecipientOption(self, recipient):
+        my_type = 'group' if isinstance(recipient, GroupSettings) else 'user'
+        return dict(
+            type = my_type,
+            label = '%s (%s)' % (recipient.getId(), my_type.capitalize()),
+            value = IGlobalIdentifier(recipient).getGUID(),
+        )
+    
     def getWindows(self, uid):
         notification = self._getObject(uid)
         for window in notification.windows():
@@ -294,7 +295,7 @@ class TriggersFacade(ZuulFacade):
     def addWindow(self, contextUid, newId):
         notification = self._getObject(contextUid)
         window = NotificationSubscriptionWindow(newId)
-        notification.windows._setObject(newId, window)
+        notification.windows.addRelation(newId, window)
         new_window = notification.windows._getOb(newId)
         return IInfo(new_window)
 
@@ -355,7 +356,7 @@ class TriggerPermissionManager(object):
             trigger.id,
             self.securityManager.checkPermission(MANAGE_TRIGGER, trigger)
         ))
-        log.debug('user can manage trigger: %s, %s, %s' % (trigger.id, trigger.globalManage, self.securityManager.checkPermission(MANAGE_TRIGGER, trigger)))
+        log.debug('user can manage trigger: %s, Global? %s, Check: %s' % (trigger.id, trigger.globalManage, self.securityManager.checkPermission(MANAGE_TRIGGER, trigger)))
         return trigger.globalManage or self.securityManager.checkPermission(MANAGE_TRIGGER, trigger)
 
     def findTriggers(self, user, guidManager, triggers):
@@ -378,7 +379,7 @@ class TriggerPermissionManager(object):
                 
                 results.append(trigger)
             else:
-                log.warning('Could not find trigger for permissions check: %r' % trigger)
+                log.debug('Could not find trigger for permissions check: %r' % trigger)
         return results
 
     def clearPermissions(self, trigger):
@@ -408,7 +409,7 @@ class TriggerPermissionManager(object):
                 if user_info.get('manage'):
                     trigger.manage_addLocalRoles(userOrGroup.id, [TRIGGER_MANAGER_ROLE])
                     log.debug('Added role: %s for user or group: %s' % (TRIGGER_MANAGER_ROLE, userOrGroup.id))
-
+    
 
     def setupTrigger(self, trigger):
         # Permissions are managed here because managing these default permissions
@@ -527,7 +528,6 @@ class NotificationPermissionManager(object):
                 if recipient.get('manage_subscriptions'):
                     notification.manage_addLocalRoles(userOrGroup.id, [NOTIFICATION_SUBSCRIPTION_MANAGER_ROLE])
                     log.debug('Added role: %s for user or group: %s' % (NOTIFICATION_SUBSCRIPTION_MANAGER_ROLE, userOrGroup.id))
-
 
     def setupNotification(self, notification):
         # Permissions are managed here because managing these default permissions

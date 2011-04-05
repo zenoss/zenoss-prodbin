@@ -23,4 +23,4 @@ class Triggers(Migrate.Step):
         if not hasattr(dmd, TriggerManager.root):
             manage_addTriggerManager(dmd)
 
-Triggers()
+triggers = Triggers()

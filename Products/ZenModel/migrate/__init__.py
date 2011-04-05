@@ -217,3 +217,4 @@ import addTriggers
 import SessionAuthentication
 import reindexIpAddresses
 import addIpv6Network
+import addTriggersAndNotifications

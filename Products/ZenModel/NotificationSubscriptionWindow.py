@@ -28,4 +28,4 @@ class NotificationSubscriptionWindow(MaintenanceWindow):
     )
     _properties = tuple(list(MaintenanceWindow._properties) + [
         {'id':'enabled', 'type':'boolean', 'mode':'w'}
-    ])
+    ])  

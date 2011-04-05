@@ -183,8 +183,6 @@ class NotificationSubscription(ZenModelRM, AdministrativeRoleable):
         self.globalRead = False
         self.globalWrite = False
         self.globalManage = False
-
-        self.subscriptionManagers = []
         
         super(ZenModelRM, self).__init__(id, title=title, buildRelations=buildRelations)
 

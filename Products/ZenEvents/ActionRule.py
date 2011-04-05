@@ -160,16 +160,6 @@ class ActionRule(ZenModelRM, EventFilter):
         return list(result - notDb) + notMsg
 
 
-    def checkFormat(self):
-        """Check that the format string has valid fields.
-        """
-        evtfields = self.dmd.ZenEventManager.getFieldList()
-        for field in self.getEventFields():
-            if field not in evtfields:
-                return False
-        return True
-
-
     def getAddresses(self):
         """Return the correct addresses for the action this rule uses.
         """
@@ -196,6 +186,7 @@ class ActionRule(ZenModelRM, EventFilter):
     def manage_editActionRule(self, REQUEST=None):
         """Update user settings.
         """
+        
         import WhereClause
         if REQUEST.form.has_key('onRulePage') \
                 and not REQUEST.form.has_key('where'):
@@ -210,6 +201,24 @@ class ActionRule(ZenModelRM, EventFilter):
                 )
                 return self.callZenScreen(REQUEST)
         return self.zmanage_editProperties(REQUEST)
+
+
+    def _clearAlertState(self):
+        """Clear state in alert_state before we are deleted.
+        """
+        zem = self.dmd.ZenEventManager
+        conn = zem.connect()
+        try:
+            delcmd = "delete from alert_state where %s" % self.sqlwhere()
+            log.debug("clear alert state '%s'", delcmd)
+            curs = conn.cursor()
+            curs.execute(delcmd)
+        finally: zem.close(conn)
+
+    def sqlwhere(self):
+        """Return sql where to select alert_state data for this event.
+        """
+        return "userid = '%s' and rule = '%s'" % (self.getUserid(), self.id)
 
     def nextActiveWindow(self):
         next = None
