@@ -19,7 +19,7 @@ from Products.Zuul.tree import TreeNode
 from Products.Zuul.interfaces import IDeviceOrganizerNode
 from Products.Zuul.interfaces import IDeviceOrganizerInfo
 from Products.Zuul.interfaces import IDeviceInfo, IDevice
-from Products.Zuul.infos import InfoBase, HasEventsInfoMixin
+from Products.Zuul.infos import InfoBase, HasEventsInfoMixin, ProxyProperty
 from Products.Zuul import getFacade, info
 from Products.Zuul.marshalling import TreeNodeMarshaller
 from Products.Zuul.utils import catalogAwareImap
@@ -157,7 +157,7 @@ class DeviceInfo(InfoBase, HasEventsInfoMixin):
             raise Exception(msg)
 
     ipAddress = property(getIpAddress, setIpAddress)
-    
+
     @property
     def ipAddressString(self):
         if self._object.manageIp:
@@ -329,6 +329,8 @@ class DeviceInfo(InfoBase, HasEventsInfoMixin):
 
     snmpAgent = property(getSnmpAgent, setSnmpAgent)
 
+    snmpDescr = ProxyProperty('snmpDescr')
+
     @property
     def icon(self):
         return self._object.zIcon
@@ -338,6 +340,14 @@ class DeviceInfo(InfoBase, HasEventsInfoMixin):
 class DeviceOrganizerInfo(InfoBase, HasEventsInfoMixin):
     implements(IDeviceOrganizerInfo)
     adapts(DeviceOrganizer)
+
+    def getName(self):
+        return self._object.getOrganizerName()
+
+    def setName(self, name):
+        self._object.setTitle(name)
+
+    name = property(getName, setName)
 
     @property
     def path(self):

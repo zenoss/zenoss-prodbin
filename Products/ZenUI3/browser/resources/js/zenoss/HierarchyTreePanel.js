@@ -316,7 +316,10 @@ Zenoss.HierarchyTreePanel = Ext.extend(Ext.tree.TreePanel, {
         this.expandAll();
         var re = new RegExp(Ext.escapeRe(text), 'i');
         this.root.cascade(function(n){
-            var attr = n.id.slice('.zport.dmd'.length);
+            var attr = n.attributes.text;
+            if (Ext.isObject(attr)) {
+                attr = attr.text;
+            }
             if (!n.isRoot) {
                 if (re.test(attr)) {
                     var parentNode = n.parentNode;

@@ -27,8 +27,8 @@
                 obj.superclass.constructor.call(this, config);
                 this.addEvents('labelclick');
             }
-        }
-    }
+        };
+    };
 
     var ClickToEditField = Ext.extend(Zenoss.form.LinkField, {});
     ClickToEditField = Ext.extend(Zenoss.form.LinkField,
@@ -142,7 +142,7 @@
     var editDeviceClass = function(values, uid) {
         var win = new Zenoss.FormDialog({
             autoHeight: true,
-            width: 300,
+            width: 400,
             title: _t('Set Device Class'),
             items: [{
                 xtype: 'combo',
@@ -154,6 +154,8 @@
                     fields: ['name']
                 }),
                 valueField: 'name',
+                width: 250,
+                resizable: true,
                 displayField: 'name',
                 value: values.deviceClass.uid.slice(18),
                 forceSelection: true,
@@ -217,10 +219,12 @@
         var win = new Zenoss.FormDialog({
             autoHeight: true,
             width: 300,
+
             title: _t('Set Collector'),
             items: [{
                 xtype: 'combo',
                 name: 'collector',
+                resizable: true,
                 fieldLabel: _t('Select a collector'),
                 mode: 'local',
                 store: new Ext.data.ArrayStore({
@@ -264,7 +268,7 @@
 
     var editGroups = function(currentGroups, uid, config) {
         var win = new Zenoss.FormDialog({
-            width: 350,
+            width: 500,
             height: 150,
             title: config.title,
             items: [{
@@ -281,6 +285,7 @@
                     xtype: 'combo',
                     ref: '../../selectgroup',
                     name: 'group',
+                    width: 250,
                     store: new Ext.data.DirectStore({
                         directFn: config.getGroupFn,
                         root: config.getGroupRoot,
@@ -289,6 +294,7 @@
                     valueField: 'name',
                     displayField: 'name',
                     forceSelection: true,
+                    resizable: true,
                     editable: false,
                     autoSelect: true,
                     triggerAction: 'all',
@@ -411,7 +417,7 @@
     var editLocation = function(values, uid) {
         var win = new Zenoss.FormDialog({
             autoHeight: true,
-            width: 300,
+            width: 500,
             title: _t('Set Location'),
             items: [{
                 xtype: 'combo',
@@ -427,6 +433,8 @@
                 value: values.location ? values.location.uid.slice(20) : '',
                 forceSelection: true,
                 editable: false,
+                resizable: true,
+                width: 250,
                 autoSelect: true,
                 triggerAction: 'all'
             }],
@@ -545,25 +553,25 @@
             this.items.splice(this._indexOfFieldName(afterFieldName)+1, 0, field);
         },
         _indexOfFieldName: function(name) {
-            var idx = -1
+            var idx = -1;
             for ( i = 0; i < this.items.length; i++ ){
                 if (this.items[i].name == name){
-                    idx = i
-                    break
+                    idx = i;
+                    break;
                 }
             }
-        return idx
+        return idx;
         },
         replaceField: function(name,field) {
-            idx = this._indexOfFieldName(name)
-            this.items[idx] = field
+            idx = this._indexOfFieldName(name);
+            this.items[idx] = field;
         },
         removeField: function(name) {
-            idx = this._indexOfFieldName(name)
-            this.items.splice(idx,1)
+            idx = this._indexOfFieldName(name);
+            this.items.splice(idx,1);
         },
         getField: function(name) {
-            return this.items[this._indexOfFieldName(name)]
+            return this.items[this._indexOfFieldName(name)];
         }
 
     });
@@ -605,6 +613,7 @@
                     items: [{
                         id:'deviceoverviewpanel_summary',
                         defaultType: 'displayfield',
+                        height: 360,
                         items: [{
                             fieldLabel: _t('Uptime'),
                             name: 'uptime'
@@ -628,7 +637,7 @@
                     },{
                         id:'deviceoverviewpanel_idsummary',
                         defaultType: 'displayfield',
-                        autoHeight: true,
+                        height: 360,
                         listeners: {
                             actioncomplete: function(form, action) {
                                 if (action.type=='directsubmit') {
@@ -652,6 +661,76 @@
                             fieldLabel: _t('Priority'),
                             name: 'priority'
                         },{
+                            fieldLabel: _t('Tag'),
+                            name: 'tagNumber',
+                            xtype: 'textfield'
+                        },{
+                            fieldLabel: _t('Serial Number'),
+                            name: 'serialNumber',
+                            xtype: 'textfield'
+                        }]
+                    },{
+                        id:'deviceoverviewpanel_descriptionsummary',
+                        defaultType: 'textfield',
+                        height: 360,
+                        items: [{
+                            fieldLabel: _t('Rack Slot'),
+                            name: 'rackSlot'
+                        },{
+                            xtype: 'clicktoedit',
+                            listeners: {
+                                labelclick: function(p){
+                                    editManuInfo(this.getValues(), this.contextUid);
+                                },
+                                scope: this
+                            },
+                            name: 'hwManufacturer',
+                            fieldLabel: _t('Hardware Manufacturer')
+                        },{
+                            xtype: 'clicktoedit',
+                            listeners: {
+                                labelclick: function(p){
+                                    editManuInfo(this.getValues(), this.contextUid);
+                                },
+                                scope: this
+                            },
+                            name: 'hwModel',
+                            fieldLabel: _t('Hardware Model')
+                        },{
+                            xtype: 'clicktoedit',
+                            listeners: {
+                                labelclick: function(p){
+                                    editManuInfo(this.getValues(), this.contextUid);
+                                },
+                                scope: this
+                            },
+                            name: 'osManufacturer',
+                            fieldLabel: _t('OS Manufacturer')
+                        },{
+                            xtype: 'clicktoedit',
+                            listeners: {
+                                labelclick: function(p){
+                                    editManuInfo(this.getValues(), this.contextUid);
+                                },
+                                scope: this
+                            },
+                            name: 'osModel',
+                            fieldLabel: _t('OS Model')
+                        }]
+                    }]
+                },{
+                    id:'deviceoverviewpanel_customsummary',
+                    defaultType: 'devformpanel',
+                    autoHeight: true,
+                    layout: 'hbox',
+                    layoutConfig: {
+                        align: 'stretchmax',
+                        defaultMargins: '10'
+                    },
+                    items: [{
+                        defaultType: 'displayfield',
+                        flex: 2,
+                        items: [{
                             xtype: 'clicktoedit',
                             listeners: {
                                 labelclick: function(p){
@@ -713,74 +792,7 @@
                             },
                             fieldLabel: _t('Location'),
                             name: 'location'
-                        }]
-                    },{
-                        id:'deviceoverviewpanel_descriptionsummary',
-                        defaultType: 'textfield',
-                        items: [{
-                            fieldLabel: _t('Tag'),
-                            name: 'tagNumber'
                         },{
-                            fieldLabel: _t('Serial Number'),
-                            name: 'serialNumber'
-                        },{
-                            fieldLabel: _t('Rack Slot'),
-                            name: 'rackSlot'
-                        },{
-                            xtype: 'clicktoedit',
-                            listeners: {
-                                labelclick: function(p){
-                                    editManuInfo(this.getValues(), this.contextUid);
-                                },
-                                scope: this
-                            },
-                            name: 'hwManufacturer',
-                            fieldLabel: _t('Hardware Manufacturer')
-                        },{
-                            xtype: 'clicktoedit',
-                            listeners: {
-                                labelclick: function(p){
-                                    editManuInfo(this.getValues(), this.contextUid);
-                                },
-                                scope: this
-                            },
-                            name: 'hwModel',
-                            fieldLabel: _t('Hardware Model')
-                        },{
-                            xtype: 'clicktoedit',
-                            listeners: {
-                                labelclick: function(p){
-                                    editManuInfo(this.getValues(), this.contextUid);
-                                },
-                                scope: this
-                            },
-                            name: 'osManufacturer',
-                            fieldLabel: _t('OS Manufacturer')
-                        },{
-                            xtype: 'clicktoedit',
-                            listeners: {
-                                labelclick: function(p){
-                                    editManuInfo(this.getValues(), this.contextUid);
-                                },
-                                scope: this
-                            },
-                            name: 'osModel',
-                            fieldLabel: _t('OS Model')
-                        }]
-                    }]
-                },{
-                    id:'deviceoverviewpanel_customsummary',
-                    defaultType: 'devformpanel',
-                    autoHeight: true,
-                    layout: 'hbox',
-                    layoutConfig: {
-                        align: 'stretchmax',
-                        defaultMargins: '10'
-                    },
-                    items: [{
-                        defaultType: 'displayfield',
-                        flex: 2,
-                        items: [{
                             fieldLabel: _t('Links'),
                             name: 'links'
                         },{
@@ -790,10 +802,10 @@
                             name: 'comments'
                         }]
                     },{
-                    id:'deviceoverviewpanel_snmpsummary',
+                        id:'deviceoverviewpanel_snmpsummary',
                         defaultType: 'displayfield',
                         flex: 1,
-                        minHeight: 230,
+                        minHeight: 400,
                         items: [{
                             fieldLabel: _t('SNMP SysName'),
                             name: 'snmpSysName'
@@ -805,7 +817,12 @@
                             name: 'snmpContact'
                         },{
                             fieldLabel: _t('SNMP Agent'),
+                            autoWidth: true,
                             name: 'snmpAgent'
+                        },{
+                            fieldLabel: _t('SNMP Description'),
+                            autoWidth: true,
+                            name: 'snmpDescr'
                         }]
                     }]
                 }]
@@ -816,7 +833,7 @@
             load: REMOTE.getInfo,
             submit: function(form, success, scope) {
                 var o = {},
-                    vals = scope.form.getFieldValues(true);
+                vals = scope.form.getFieldValues(true);
                 Ext.apply(o, vals, success.params);
                 REMOTE.setInfo(o, function(result){
                     this.form.clearInvalid();
@@ -846,7 +863,7 @@
         load: function() {
             var o = Ext.apply({keys:this.getFieldNames()}, this.baseParams);
             this.api.load(o, function(result) {
-                var systems = [], groups = [], D = result.data;
+                var D = result.data;
                 if (D.locking) {
                     D.locking = Zenoss.render.locking(D.locking);
                 }

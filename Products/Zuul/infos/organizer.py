@@ -34,6 +34,14 @@ class OrganizerInfo(InfoBase):
 class LocationOrganizerInfo(OrganizerInfo, HasEventsInfoMixin):
     implements(ILocationOrganizerInfo)
 
+    def getName(self):
+        return self._object.getOrganizerName()
+
+    def setName(self, name):
+        self._object.setTitle(name)
+
+    name = property(getName, setName)
+
     def _getAddress(self):
         return self._object.address
 
