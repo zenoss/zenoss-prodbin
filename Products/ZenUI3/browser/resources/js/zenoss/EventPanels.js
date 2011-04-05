@@ -517,7 +517,8 @@
                         iconCls: 'refresh',
                         text: _t('Refresh'),
                         handler: function() {
-                            Ext.getCmp(gridId).updateRows();
+                            var view = Ext.getCmp(gridId).getView();
+                            view.updateLiveRows(view.rowIndex, true, true);
                         }
                     },
                     tbarItems

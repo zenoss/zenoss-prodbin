@@ -1357,7 +1357,7 @@ Zenoss.FilterGridPanel = Ext.extend(Ext.ux.grid.livegrid.GridPanel, {
      */
     updateRows: function() {
         var view = this.getView();
-        view.updateLiveRows(view.rowIndex, true, true);
+        view.nonDisruptiveReset();
     }
 });
 
