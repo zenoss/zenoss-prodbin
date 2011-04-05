@@ -151,12 +151,8 @@ class CollectorDaemon(RRDDaemon):
         self._configProxy = frameworkFactory.getConfigurationProxy()
         self._scheduler = frameworkFactory.getScheduler()
         self._scheduler.maxTasks = self.options.maxTasks
-        if hasattr(frameworkFactory, 'getFrameworkBuildOptions'):
-            # During upgrades we'll be missing this option
-            self._frameworkBuildOptions = frameworkFactory.getFrameworkBuildOptions()
-            if self._frameworkBuildOptions:
-                self._frameworkBuildOptions(self.parser)
-        
+        self._ConfigurationLoaderTask = frameworkFactory.getConfigurationLoaderTask()
+
         # OLD - set the initialServices attribute so that the PBDaemon class
         # will load all of the remote services we need.
         self.initialServices = PBDaemon.initialServices +\
