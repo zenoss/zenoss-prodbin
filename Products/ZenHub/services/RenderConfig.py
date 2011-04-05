@@ -1,7 +1,7 @@
 ###########################################################################
 #
 # This program is part of Zenoss Core, an open source monitoring platform.
-# Copyright (C) 2007, Zenoss Inc.
+# Copyright (C) 2009, 2011 Zenoss Inc.
 #
 # This program is free software; you can redistribute it and/or modify it
 # under the terms of the GNU General Public License version 2 as published by
@@ -11,20 +11,23 @@
 #
 ###########################################################################
 
-from Products.ZenHub.HubService import HubService
-from twisted.web import resource, server
-from twisted.internet import reactor
-
-import xmlrpclib
-
-import mimetypes
-
-htmlResource = None
+__doc__ = """RenderConfig
+zenhub service to start looking for requests to render performance graphs
+"""
 
 import logging
-log = logging.getLogger("zenrender")
+log = logging.getLogger('zen.HubService.RenderConfig')
 
-__doc__ = "Provide a simple web server to forward render requests"
+import Globals
+from Products.ZenCollector.services.config import NullConfigService
+
+from twisted.web import resource, server
+from twisted.internet import reactor
+import xmlrpclib, mimetypes
+
+# Global variable
+htmlResource = None
+
 
 class Render(resource.Resource):
 
@@ -33,7 +36,6 @@ class Render(resource.Resource):
     def __init__(self):
         resource.Resource.__init__(self)
         self.renderers = {}
-
 
     def render_GET(self, request):
         "Deal with http requests"
@@ -98,17 +100,18 @@ class Render(resource.Resource):
         "Handle all paths"
         return self, ()
 
-
     def addRenderer(self, renderer):
         self.renderers[renderer.instance] = renderer
 
-class ZenRender(HubService):
 
-    def __init__(self, *args, **kw):
-        HubService.__init__(self, *args, **kw)
-        global htmlResource
-        if not htmlResource:
+class RenderConfig(NullConfigService):
+    def __init__(self, dmd, instance):
+        NullConfigService.__init__(self, dmd, instance)
+
+	global htmlResource
+	if not htmlResource:
             htmlResource = Render()
+            log.info("Starting graph retrieval listener on port 8090")
             reactor.listenTCP(8090, server.Site(htmlResource))
         htmlResource.addRenderer(self)
-    
+

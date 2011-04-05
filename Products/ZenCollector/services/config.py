@@ -319,3 +319,16 @@ class CollectorConfigService(HubService, ThresholdMixin):
         @rtype: boolean
         """
         return True
+
+
+class NullConfigService(CollectorConfigService):
+    """
+    The collector framework requires a configuration service, but some
+    daemons do not need any configuration.
+    """
+    def __init__(self, dmd, instance):
+        CollectorConfigService.__init__(self, dmd, instance)
+
+    def _filterDevices(self, deviceList):
+        return []
+

@@ -55,6 +55,17 @@ class BaseTask(ObservableMixin):
         return [lst[i:i+n] for i in range(0, len(lst), n)]
 
 
+class NullTaskSplitter(object):
+    """
+    A task splitter that is used with a NullConfigService for
+    situations where no configuration will be returned.
+    """
+    zope.interface.implements(ITaskSplitter)
+
+    def splitConfiguration(self, configs):
+        return {}
+
+
 class SimpleTaskSplitter(object):
     """
     A task splitter that creates a single scheduled task for an entire 
