@@ -11,7 +11,6 @@
 #
 ###########################################################################
 
-from sets import Set as set
 from itertools import groupby
 
 from Acquisition import aq_base
@@ -24,8 +23,15 @@ from OFS.Folder import Folder
 from json import dumps
 from Products.CMFCore.utils import getToolByName
 from Products.ZCatalog.ZCatalog import manage_addZCatalog
+from Products.ZenModel.Device import Device
 from Products.ZenUtils.Search import makeCaseInsensitiveFieldIndex
 from Products.ZenUtils.NetworkTree import NetworkLink
+from Products.Zuul import getFacade
+from Products.ZenEvents.events2.processing import Manager
+from zenoss.protocols.protobufs.zep_pb2 import (SEVERITY_CRITICAL, SEVERITY_ERROR,
+                                                SEVERITY_WARNING, SEVERITY_INFO,
+                                                SEVERITY_DEBUG, SEVERITY_CLEAR)
+from zenoss.protocols.protobufs.zep_pb2 import STATUS_NEW, STATUS_ACKNOWLEDGED
 
 security = ClassSecurityInfo()
 
@@ -91,21 +97,48 @@ class Layer3Link(object):
         bid, self.bbrains = b
         self.a = dmd.unrestrictedTraverse(aid)
         self.b = dmd.unrestrictedTraverse(bid)
-        self.zem = dmd.ZenEventManager
+        self.zep = getFacade('zep', dmd)
+        self.idmgr = Manager(dmd)
 
+    def _getComponentUuid(self, devuuid, compid):
+        try:
+            dev = self.idmgr.getElementByUuid(devuuid)
+            compuuid = self.idmgr.getElementUuidById(dev, Device, compid)
+            return compuuid
+        except Exception:
+            return None
 
     def getStatus(self):
         brains = self.abrains + self.bbrains
-        comps =(
-            dict(device=a.deviceId, component=a.interfaceId) for a in brains)
-        sev, count = self.zem.getBatchComponentInfo(comps)
-        if count: 
-            return 5
-        else:
-            try:
-                return int(sev)
-            except:
-                return 0
+
+        # lookup all device uuids, make sure at least one exists
+        devUuids = [self.idmgr.findDeviceUuid(a.deviceId, None) for a in brains]
+        validDevUuids = filter(None, devUuids)
+        if not validDevUuids:
+            return SEVERITY_CLEAR
+
+        # if there is any open /Status/Ping event on any device, return CRITICAL severity
+        statusPingFilter = self.zep.createEventFilter(
+            tags = validDevUuids,
+            event_class = '/Status/Ping/',
+            status = (STATUS_NEW, STATUS_ACKNOWLEDGED),
+            severity = (SEVERITY_WARNING, SEVERITY_ERROR, SEVERITY_CRITICAL)
+        )
+        maxpingrec = self.zep.getEventSummaries(0, filter=statusPingFilter, sort=(('count','desc'),), limit=1)
+        if maxpingrec and maxpingrec['total'] > 0:
+            return SEVERITY_CRITICAL
+
+        # no /Status/Ping events found, just return worst severity of all events on all interface components
+        devCompPairs = zip(devUuids, (a.interfaceId for a in brains))
+        compUuids = (self._getComponentUuid(devuuid, compid)
+                        for devuuid, compid in devCompPairs
+                        if devuuid is not None)
+        components = filter(None, compUuids)
+        if components:
+            sev = self.zep.getWorstSeverity(components)
+            return sev
+
+        return SEVERITY_CLEAR
 
     def getAddresses(self):
         return (self.a.address, self.b.address)
@@ -220,7 +253,7 @@ class LinkManager(Folder):
 
     def getChildLinks_recursive(self, context):
         """ Returns all links under a given Organizer, aggregated """
-        result = set([])
+        result = set()
         severities = {}
         links = self.getNetworkLinks(context)
         for x in links:
@@ -238,7 +271,7 @@ class LinkManager(Folder):
         """
         An alternate way to get links under an Organizer.
         """
-        result = set([])
+        result = set()
         networks = filter(lambda x:x.zDrawMapLinks, 
                           self.dmd.Networks.getSubNetworks())
         siblings = [x.getPrimaryId() for x in context.children()]
