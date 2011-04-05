@@ -116,7 +116,7 @@ class EventsRouter(DirectRouter):
                 uuid = tag
         if uuid is None:
             return ""
-        return [{'uuid': uuid, 'name': currentPath.replace("/zport/dmd/Devices", "")}]
+        return {'uuid': uuid, 'name': currentPath.replace("/zport/dmd/Devices", "")}
 
     def _findDetails(self, event):
         """
@@ -169,8 +169,8 @@ class EventsRouter(DirectRouter):
         # TODO: Finish mapping out these properties.
         notYetMapped = ''
 
-        
-        tags = self._getTagsFromOccurrence(eventOccurrence)        
+
+        tags = self._getTagsFromOccurrence(eventOccurrence)
 
         event = {
             'id' : event_summary['uuid'],
@@ -479,12 +479,12 @@ class EventsRouter(DirectRouter):
         eventActor = eventOccurrence['actor']
         tags = self._getTagsFromOccurrence(eventOccurrence)
         eventDetails = self._findDetails(eventOccurrence)
-        
+
         # TODO: Update this mapping to more reflect _mapToOldEvent.
         eventData = {
             'evid':event_summary['uuid'],
             'device':eventActor.get('element_identifier'),
-            'device_title':eventActor.get('element_identifier'),            
+            'device_title':eventActor.get('element_identifier'),
             'device_url':self._uuidUrl(eventActor.get('element_uuid')),
             'ipAddress': eventDetails.get('ipAddress'),
             'device_uuid':eventActor.get('element_uuid'),
@@ -520,7 +520,7 @@ class EventsRouter(DirectRouter):
             'clearedevent': event_summary.get('cleared_by_event_uuid'),
             'log':[]}
 
-        
+
         prodState = self._singleDetail(eventDetails.get('zenoss.device.production_state'))
         if prodState is not None:
             eventData['prodState'] = self.context.convertProdState(prodState)
@@ -535,14 +535,14 @@ class EventsRouter(DirectRouter):
                 eventData['log'].append((note['user_name'], isoDateTimeFromMilli(note['created_time']), note['message']))
 
         eventData['details'] = []
-        if 'details' in eventOccurrence:            
-            for detail in sorted(eventOccurrence['details'], key=lambda detail: detail['name'].lower()):  
+        if 'details' in eventOccurrence:
+            for detail in sorted(eventOccurrence['details'], key=lambda detail: detail['name'].lower()):
                 values = detail['value']
                 if not isinstance(values, list):
-                    values = list(values)                
+                    values = list(values)
                 for value in (v for v in values if v):
                     if not detail['name'].startswith('__meta__'):
-                        eventData['details'].append(dict(key=detail['name'], value=value))        
+                        eventData['details'].append(dict(key=detail['name'], value=value))
         return eventData
 
     def detail(self, evid):
