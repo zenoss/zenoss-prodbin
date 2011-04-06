@@ -15,6 +15,7 @@ Operations for Messaging.
 
 Available at:  /zport/dmd/messaging_router
 """
+from Persistence import PersistentMapping
 from Products.ZenUtils.Ext import DirectRouter
 from Products.ZenUtils.extdirect.router import DirectResponse
 from Products.ZenModel.ZenossSecurity import *
@@ -34,7 +35,11 @@ class MessagingRouter(DirectRouter):
         @type state: str
         """
         userSettings = self.context.ZenUsers.getUserSettings()
-        userSettings._browser_state = state
+        state_container = getattr(userSettings, '_browser_state', None)
+        if isinstance(state_container, basestring) or state_container is None:
+            state_container = PersistentMapping()
+            userSettings._browser_state = state_container
+        state_container['state'] = state
 
     def getUserMessages(self):
         """

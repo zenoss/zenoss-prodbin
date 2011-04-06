@@ -137,5 +137,9 @@ class BrowserState(JavaScriptSnippet):
     Restores the browser state.
     """
     def snippet(self):
-        state = getattr(self.context.ZenUsers.getUserSettings(), '_browser_state', '{}')
+        userSettings = self.context.ZenUsers.getUserSettings()
+        state_container = getattr(userSettings, '_browser_state', {})
+        if isinstance(state_container, basestring):
+            state_container = {}
+        state = state_container.get('state', '{}')
         return 'Ext.state.Manager.getProvider().setState(%r);' % state
