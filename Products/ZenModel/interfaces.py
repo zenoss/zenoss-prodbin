@@ -80,3 +80,14 @@ class IProvidesEmailAddresses(Interface):
 class IProvidesPagerAddresses(Interface):
     def getPagerAddresses():
         pass
+
+class IProcessSignal(Interface):
+
+    def process(dmd, signal, data):
+        """
+        @param signal: The signal that may require additional processing
+        @type signal: zenoss.protocols.protobufs.zep_pb2.Signal
+        @param data: The dictionary to store additional items in
+        @type data: dict
+        """
+        pass

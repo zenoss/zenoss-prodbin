@@ -26,7 +26,7 @@ from Products.ZenUtils.ProcessQueue import ProcessQueue
 from Products.ZenUtils.ZenTales import talesCompile, getEngine
 from zenoss.protocols.protobufs.zep_pb2 import Signal
 from zenoss.protocols.jsonformat import to_dict
-from Products.ZenModel.interfaces import IAction, IProvidesEmailAddresses, IProvidesPagerAddresses
+from Products.ZenModel.interfaces import IAction, IProvidesEmailAddresses, IProvidesPagerAddresses, IProcessSignal
 from Products.ZenUtils.guid.interfaces import IGlobalIdentifier
 from Products.ZenModel.NotificationSubscription import NotificationSubscriptionManager
 from Products.ZenMessaging.queuemessaging.QueueConsumer import QueueConsumerProcess
@@ -37,6 +37,7 @@ from twisted.internet.error import ReactorNotRunning
 
 from zenoss.protocols.amqpconfig import getAMQPConfiguration
 from zope.interface import implements
+from zope.component import getAllUtilitiesRegisteredFor
 
 from pynetsnmp import netsnmp
 
@@ -333,8 +334,10 @@ class EmailAction(TargetableAction):
     def executeOnTarget(self, notification, signal, target):
         log.debug('Executing action: Email')
 
-
         data = _signalToContextDict(signal)
+        for processor in getAllUtilitiesRegisteredFor(IProcessSignal):
+            processor.process(self.dmd, signal, data)
+
         if signal.clear:
             log.debug('This is a clearing signal.')
             subject = notification.getClearSubject(**data)
