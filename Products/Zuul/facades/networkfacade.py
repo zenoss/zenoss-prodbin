@@ -128,6 +128,30 @@ class NetworkFacade(TreeFacade):
     def _getSecondaryParent(self, obj):
         return obj
 
+    def removeIpAddresses(self, uids):
+        """
+        Removes every ip address specified by uids that are
+        not attached to any device
+        @type  uids: Array of Strings
+        @param uids: unique identfiers of the ip addresses to delete
+        @rtype:   tuple
+        @return:  tuple of the number of deleted ip addresses and the error
+        """
+        removeCount = 0
+        errorCount = 0
+        for uid in uids:
+            ip = self._getObject(uid)
+            # there is an interface do not delete it
+            if ip.interface():
+                errorCount += 1
+                continue
+            # remove it from the relationship
+            parent = aq_parent(ip)
+            parent._delObject(ip.id)
+            removeCount += 1
+        return removeCount, errorCount
+
+
 class Network6Facade(NetworkFacade):
 
     @property

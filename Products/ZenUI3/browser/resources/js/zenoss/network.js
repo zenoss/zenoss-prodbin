@@ -377,21 +377,6 @@ var ipAddressGridConfig = {
         cm: new Ext.grid.ColumnModel(ipAddressColumnConfig),
         store: new Ext.ux.grid.livegrid.Store(ipAddressStoreConfig),
         sm: new Ext.ux.grid.livegrid.RowSelectionModel({
-            singleSelect: true,
-            listeners: {
-                rowselect: function(selModel, rowIndex, record) {
-                    var token = Ext.History.getToken();
-                    if ( ! token ) {
-                        token = getRootId(function(config) {
-                            return config.id + ':' + config.root.id;
-                        });
-                    }
-                    var tokenParts = token.split('.ipaddresses.');
-                    if ( tokenParts[1] !== record.data.name ) {
-                        Ext.History.add( tokenParts[0] + '.ipaddresses.' + record.data.name);
-                    }
-                }
-            }
         })
     };
 
@@ -404,9 +389,13 @@ Ext.getCmp('detail_panel').add(ipAddressGridConfig);
         detailCardPanel.getTopToolbar().remove(item);
     });
     // Set the toolbar's height since we removed the large icon
-    detailCardPanel.getTopToolbar().setHeight(29);
+    detailCardPanel.getTopToolbar().setHeight(31);
 
     detailCardPanel.getTopToolbar().add( {
+            xtype: 'button',
+            iconCls: 'delete',
+            handler: deleteIpAddresses
+        },{
             xtype: 'tbspacer',
             width: 5
         }, {
@@ -436,8 +425,53 @@ Ext.getCmp('detail_panel').add(ipAddressGridConfig);
         );
 
         return oldSetContext.call(this, contextUid);
-    }
+    };
 })();
+
+//********************************************
+// Delete Ip Addresses
+//********************************************
+function reloadGridAndTree() {
+    var trees = [Ext.getCmp('networks'), Ext.getCmp('ipv6networks')];
+    Ext.each(trees, function(tree){
+        tree.getRootNode().reload();
+    });
+    Ext.getCmp('detail_panel').detailCardPanel.instancesGrid.getStore().reload();
+}
+
+
+function deleteIpAddresses(btn) {
+    var grid = Ext.getCmp('detail_panel').detailCardPanel.instancesGrid,
+        selections = grid.getSelectionModel().getSelections(),
+        router = Zenoss.remote.NetworkRouter,
+        uids;
+    if (!selections.length) {
+        // don't do anything
+        return;
+    }
+
+    uids = Ext.pluck(Ext.pluck(selections, 'data'), 'uid');
+    Ext.Msg.show({
+        title: _t('Delete IP Addresses'),
+        msg: _t("Are you sure you want to delete these IP addresses? Please note that only IP addresses without interfaces can be deleted."),
+        buttons: Ext.Msg.YESNO,
+        fn: function(btn) {
+            if (btn == "yes") {
+                router.removeIpAddresses({uids: uids}, function(response){
+                    if (response.removedCount) {
+                        Zenoss.message.info(_t("Deleted {0} IP addresses."), response.removedCount);
+                        reloadGridAndTree();
+                    }
+                    if (response.errorCount) {
+                        Zenoss.message.warning(_t("Unable to delete {0} IP addresses."), response.errorCount);
+                    }
+                });
+            } else {
+                Ext.Msg.hide();
+            }
+        }
+    });
+}
 
 
 //********************************************

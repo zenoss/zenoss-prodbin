@@ -185,6 +185,19 @@ class NetworkRouter(TreeRouter):
         return DirectResponse.succeed(data=data, totalCount=instances.total,
                                       hash=instances.hash_)
 
+    def removeIpAddresses(self, uids=None):
+        """
+        Removes every ip address specified by uids that are
+        not attached to any device
+        @type  uids: Array of Strings
+        @param uids: unique identfiers of the ip addresses to delete
+        """
+        if uids:
+            removedCount, errorCount = self.api.removeIpAddresses(uids)
+            return DirectResponse.succeed(removedCount=removedCount,
+                                          errorCount=errorCount)
+
+
 class Network6Router(NetworkRouter):
     """
     A JSON/ExtDirect interface to operations on IPv6 networks
