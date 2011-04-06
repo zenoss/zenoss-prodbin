@@ -32,8 +32,8 @@ class AddTriggersAndNotifications(Migrate.Step):
 
     def __init__(self):
         Migrate.Step.__init__(self)
-        import addTriggers
-        self.dependencies = [ addTriggers.triggers ]
+        import addTriggers, addNotificationSubscriptions
+        self.dependencies = [ addTriggers.triggers, addNotificationSubscriptions.notificationSubscriptions ]
 
     def _parseRule(self, rule):
         python_statement = toPython(rule.genMeta(), rule.where)

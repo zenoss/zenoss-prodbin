@@ -23,4 +23,4 @@ class NotificationSubscriptions(Migrate.Step):
         if not hasattr(dmd, NotificationSubscriptionManager.root):
             manage_addNotificationSubscriptionManager(dmd)
 
-NotificationSubscriptions()
+notificationSubscriptions = NotificationSubscriptions()
