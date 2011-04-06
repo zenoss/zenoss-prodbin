@@ -54,7 +54,7 @@ def LOG_MASK(pri): return 1 << pri
 def LOG_UPTO(pri): return (1 << pri + 1) - 1
 # end syslog.h
 
-def LOG_UNPACK(p): return (p & LOG_FACMASK, LOG_PRI(p))
+def LOG_UNPACK(p): return (LOG_FAC(p), LOG_PRI(p))
 
 fac_values = {}     # mapping of facility constants to their values
 fac_names = {}      # mapping of values to names

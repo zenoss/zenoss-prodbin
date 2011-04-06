@@ -517,6 +517,8 @@ class TransformPipe(EventProcessorPipe):
             self._tagEventClasses(eventContext, evtclass)
             evtclass.applyExtraction(eventContext.eventProxy)
             evtclass.applyValues(eventContext.eventProxy)
+            if eventContext.eventProxy.eventClassMapping:
+                eventContext.zepRawEvent.event_class_mapping_uuid = IGlobalIdentifier(evtclass).getGUID()
             evtclass.applyTransform(eventContext.eventProxy,
                                     eventContext.deviceObject,
                                     eventContext.componentObject)

@@ -283,7 +283,8 @@ COLUMN_CONFIG = {
     'eventClassMapping': dict(
         header='Event Class Mapping',
         sortable=False,
-        filter=None),
+        filter=None,
+        renderer='Zenoss.render.LinkFromGridGuidGroup'),
 
     'clearid': dict(
         header='Cleared by Event ID',

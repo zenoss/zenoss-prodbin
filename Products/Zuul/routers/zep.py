@@ -118,6 +118,12 @@ class EventsRouter(DirectRouter):
             return ""
         return {'uuid': uuid, 'name': currentPath.replace("/zport/dmd/Devices", "")}
 
+    def _lookupEventClassMapping(self, mappingUuid):
+        if not mappingUuid:
+            return ""
+
+        return {'uuid': mappingUuid, 'name': self._getNameFromUuid(mappingUuid)}
+
     def _findDetails(self, event):
         """
         Event details are created as a dictionary like the following:
@@ -205,11 +211,11 @@ class EventsRouter(DirectRouter):
             'monitor': eventOccurrence.get('monitor'),
             'ownerid': event_summary.get('current_user_name'),
             'facility' : eventOccurrence.get('syslog_facility'),
-            'priority' : notYetMapped, # need to map from protobuf enum to Pretty Name.
-            'eventClassMapping' : eventOccurrence.get('event_class_mapping_uuid'),
+            'priority' : eventOccurrence.get('syslog_priority'),
+            'eventClassMapping' : self._lookupEventClassMapping(eventOccurrence.get('event_class_mapping_uuid')),
             'clearid' : event_summary.get('cleared_by_event_uuid'),
             'ntevid' : eventOccurrence.get('nt_event_code'),
-            'ipAddress' : notYetMapped, # will be a detail
+            'ipAddress' : eventDetails.get('ipAddress'),
             'message' : eventOccurrence.get('message'),
             'Location' : self._lookupTags(tags.get('zenoss.device.location')),
             'DeviceGroups' : self._lookupTags(tags.get('zenoss.device.group')),
@@ -479,6 +485,11 @@ class EventsRouter(DirectRouter):
         eventActor = eventOccurrence['actor']
         tags = self._getTagsFromOccurrence(eventOccurrence)
         eventDetails = self._findDetails(eventOccurrence)
+        eventClassMapping = self._lookupEventClassMapping(eventOccurrence.get('event_class_mapping_uuid'))
+        eventClassMappingName = eventClassMappingUrl = None
+        if eventClassMapping:
+            eventClassMappingName = eventClassMapping['name']
+            eventClassMappingUrl = self._uuidUrl(eventClassMapping['uuid'])
 
         # TODO: Update this mapping to more reflect _mapToOldEvent.
         eventData = {
@@ -513,7 +524,8 @@ class EventsRouter(DirectRouter):
             'Location' : self._lookupTags(tags.get('zenoss.device.location')),
             'DeviceGroups' : self._lookupTags(tags.get('zenoss.device.group')),
             'Systems' : self._lookupTags(tags.get('zenoss.device.system')),
-            'eventClassMapping':self._uuidUrl(eventOccurrence.get('event_class_mapping_uuid')),
+            'eventClassMapping': eventClassMappingName,
+            'eventClassMapping_url': eventClassMappingUrl,
             'DeviceClass' : self._lookupDeviceClass(tags.get('zenoss.device.device_class')),
             'owner': event_summary.get('current_user_name'),
             'priority': eventOccurrence.get('syslog_priority'),

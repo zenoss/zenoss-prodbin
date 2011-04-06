@@ -293,6 +293,13 @@
             event.eventClass_link = Zenoss.render.EventClass(event.eventClass_url,
                                                              event.eventClass);
 
+            // eventClassMapping link
+            if (event.eventClassMapping_url) {
+                event.eventClassMapping = Zenoss.render.link(null,
+                    event.eventClassMapping_url,
+                    event.eventClassMapping);
+            }
+
             // render the organizers as links
             var organizerFields = ['Systems', 'DeviceGroups', 'DeviceClass', 'Location'];
             Ext.each(organizerFields, function(field){

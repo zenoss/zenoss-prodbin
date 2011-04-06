@@ -531,8 +531,10 @@ class ZepRawEventProxy(EventProxy):
 
     @property
     def eventClassMapping(self):
-        return self.__dict__.get('_eventClassMapping', '')
+        return self.details.get('eventClassMapping', '')
 
     @eventClassMapping.setter
     def eventClassMapping(self, val):
-        self.__dict__['_eventClassMapping'] = val
+        # TODO: event_class_mapping_uuid needs to be set separately to avoid
+        # duplicate lookups
+        self.details['eventClassMapping'] = val
