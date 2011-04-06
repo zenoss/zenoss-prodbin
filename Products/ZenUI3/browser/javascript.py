@@ -123,11 +123,19 @@ class ZenossSettings(JavaScriptSnippet):
     """
     Renders client side settings.
     """
-
     def snippet(self):
         js = """
             Ext.namespace('Zenoss.settings');
             Zenoss.settings.enableLiveSearch = %s;
-        
+
         """ % str(self.context.dmd.enableLiveSearch).lower()  # a javascript Boolean is lowercase
         return js
+
+
+class BrowserState(JavaScriptSnippet):
+    """
+    Restores the browser state.
+    """
+    def snippet(self):
+        state = getattr(self.context.ZenUsers.getUserSettings(), '_browser_state', '{}')
+        return 'Ext.state.Manager.getProvider().setState(%r);' % state

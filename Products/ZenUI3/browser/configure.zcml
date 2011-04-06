@@ -275,6 +275,13 @@
     permission="zope2.Public"
     />
 
+<browser:viewlet
+    name="browser_state"
+    manager=".interfaces.IMainSnippetManager"
+    class=".javascript.BrowserState"
+    permission="zope2.Public"
+    />
+
 <include package=".eventconsole"/>
 <include package=".search"/>
 

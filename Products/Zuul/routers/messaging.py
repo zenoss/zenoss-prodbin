@@ -15,20 +15,26 @@ Operations for Messaging.
 
 Available at:  /zport/dmd/messaging_router
 """
-
 from Products.ZenUtils.Ext import DirectRouter
 from Products.ZenUtils.extdirect.router import DirectResponse
 from Products.ZenModel.ZenossSecurity import *
 from Products.ZenWidgets.interfaces import IUserMessages, IBrowserMessages
 from Products.ZenWidgets import messaging
 
+
 class MessagingRouter(DirectRouter):
     """
     A JSON/ExtDirect interface to operations on messages
     """
+    def setBrowserState(self, state):
+        """
+        Save the browser state for the current user.
 
-    def __init__(self, context, request):
-        super(MessagingRouter, self).__init__(context, request)
+        @param state: The browser state as a JSON-encoded string
+        @type state: str
+        """
+        userSettings = self.context.ZenUsers.getUserSettings()
+        userSettings._browser_state = state
 
     def getUserMessages(self):
         """

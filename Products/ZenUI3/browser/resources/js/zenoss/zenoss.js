@@ -36,9 +36,23 @@ Ext.namespace('Zenoss.env');
 
 Ext.QuickTips.init();
 
-Ext.state.Manager.setProvider(new Ext.state.CookieProvider({
-    expires: new Date(new Date().getTime()+(1000*60*60*24*30)) //30 days from now
-}));
+
+var PersistentProvider = Ext.extend(Ext.state.Provider, {
+    constructor: function() {
+        PersistentProvider.superclass.constructor.call(this);
+        this.on('statechange', this.save, this);
+    },
+    setState: function(stateString) {
+        this.state = Ext.decode(stateString);
+    },
+    // Private
+    save: function() {
+        Zenoss.remote.MessagingRouter.setBrowserState(
+            {state: Ext.encode(this.state)}
+        );
+    }
+});
+Ext.state.Manager.setProvider(new PersistentProvider());
 
 /*
  * Hook up all Ext.Direct requests to the connection error message box.
