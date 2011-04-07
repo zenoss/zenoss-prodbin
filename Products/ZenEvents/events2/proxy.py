@@ -538,3 +538,9 @@ class ZepRawEventProxy(EventProxy):
         # TODO: event_class_mapping_uuid needs to be set separately to avoid
         # duplicate lookups
         self.details['eventClassMapping'] = val
+
+
+# add lists to introspect valid fields for types
+for typ in (EventProxy, EventSummaryProxy):
+    typ.FIELDS = [name for name in dir(typ) if isinstance(getattr(typ,name), property)]
+        
