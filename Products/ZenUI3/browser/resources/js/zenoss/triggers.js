@@ -1546,18 +1546,83 @@ Ext.onReady(function () {
                                 _t('Acknowledged'), 2
                             ],[
                                 _t('Suppressed'), 3
-                            ],[
-                                _t('Closed'), 4
-                            ],[
-                                _t('Cleared'), 5
-                            ],[
-                                _t('Dropped'), 6
-                            ],[
-                                _t('Aged'), 7
                             ]]
                         })
                     }
-                }]
+                },
+                    {
+                        text: _t('Event Class Key'),
+                        value: 'evt.event_class_key',
+                        comparisons: STRINGCMPS
+                    },
+                    {
+                        text: _t('Syslog Priority'),
+                        value: 'evt.syslog_priority',
+                        comparisons: NUMCMPS,
+                        field: {
+                            xtype: 'combo',
+                            mode: 'local',
+                            valueField: 'value',
+                            displayField: 'name',
+                            typeAhead: false,
+                            forceSelection: true,
+                            triggerAction: 'all',
+                            store: new Ext.data.ArrayStore({
+                                fields: ['name', 'value'],
+                                data: [[
+                                    _t('Emergency'), 0
+                                ],[
+                                    _t('Alert'), 1
+                                ],[
+                                    _t('Critical'), 2
+                                ],[
+                                    _t('Error'), 3
+                                ],[
+                                    _t('Warning'), 4
+                                ],[
+                                    _t('Notice'), 5
+                                ],[
+                                    _t('Info'), 6
+                                ],[
+                                    _t('Debug'), 7
+                                ]]
+                            })
+                        }
+                    },
+                    {
+                        text: _t('Location'),
+                        value: 'dev.location',
+                        comparisons: STRINGCMPS
+                    },
+                    ZFR.DEVICECLASS,
+                    {
+                        text: _t('Syslog Facility'),
+                        value: 'evt.facility',
+                        comparisons: NUMCMPS,
+                        field: {
+                            xtype: 'numberfield'
+                        }
+                    },
+                    {
+                        text: _t('NT Event Code'),
+                        value: 'evt.nt_event_code',
+                        comparisons: NUMCMPS,
+                        field: {
+                            xtype: 'numberfield'
+                        }
+                    },
+                    {
+                        text: _t('IP Address'),
+                        value: 'dev.ipAddress',
+                        comparisons: STRINGCMPS
+                    },
+                    {
+                        text: _t('Owner Id'),
+                        value: 'evt.ownerId',
+                        comparisons: STRINGCMPS
+                    },
+                    ZFR.SYSTEMS
+                ]
             }
         ]
     };

@@ -83,7 +83,6 @@ new_name_mapping = {
     # This mapping has been confirmed.
     # Currently exists in current trigger plugin.
     # Confirmed exists in RuleBuilder subjects.
-    # @TODO: Cofirm mapping in rulebuilder subjects is correct (Currently elem.name)
     'device':'dev.name',
 
     # 'uuid' was not previously available, but is included here for completeness.
@@ -104,59 +103,50 @@ new_name_mapping = {
 
     # The mapping has been confirmed
     # @TODO: Make this available in the context items within trigger plugin.
-    # @TODO: Make a RuleBuilder subject for this property.
     'eventClassKey':'evt.event_class_key',
 
     # The mapping has been confirmed
     # @TODO: Make this available in the context items within trigger plugin.
-    # @TODO: Make a RuleBuilder subject for this property.
     'priority':'evt.syslog_priority',
 
     # @TODO: Confirm mapping (none in proxy.py).
     # @TODO: Make the mapping of this detail(?) available within trigger plugin.
-    # @TODO: Make a RuleBuilder subject for this property.
     # @TODO: This will come from a DETAIL
-    'location':'location',
+    'location':'dev.location',
 
     # @TODO: Confirm mapping (none in proxy.py).
     # @TODO: Do we have to update protos and add this property to actors?
     # @TODO: Make this property available.
-    # @TODO: Make a RuleBuilder subject for this property.
     # @TODO: This will come from a DETAIL
-    'deviceClass':'deviceClass',
+    'deviceClass':'dev.device_class',
 
     # This mapping has been confirmed.
     # @TODO: Make this available in the context items within trigger plugin.
-    # @TODO: Make a RuleBuilder subject for this property.
-    'facility':'evt.syslog_facility',
+    # @TODO: Confirm this mapping.
+    'facility':'evt.facility',
 
     # This mapping has been confirmed.
     # @TODO: Make this available in the context items within trigger plugin.
-    # @TODO: Make a RuleBuilder subject for this property.
     'ntevid':'evt.nt_event_code',
 
-    # @TODO: Confirm mapping (none in proxy.py).
     # @TODO: Make the mapping of this detail(?) available within trigger plugin.
-    # @TODO: Make a RuleBuilder subject for this property.
     # @TODO: This comes from a DETAIL
-    'ipAddress':'ipAddress',
+    'ipAddress':'dev.ipAddress',
 
     # @TODO: Confirm mapping (proxy.py maps to a summary field)
     # @TODO: Make this available in the context items within trigger plugin.
-    # @TODO: Make a RuleBuilder subject for this property.
-    'ownerId':'evt.current_user_name',
+    # @TODO: Make a RuleBuilder data source for this property.
+    'ownerId':'evt.ownerId',
 
     # @TODO: Confirm mapping (none in proxy.py).
     # @TODO: Make the mapping of this detail(?) available within trigger plugin.
-    # @TODO: Make a RuleBuilder subject for this property.
     # @TODO: This will come from a DETAIL
-    'systems':'systems',
+    'systems':'dev.systems',
 
     # @TODO: Confirm mapping
     # @TODO: Make the mapping of this available within trigger plugin.
-    # @TODO: Make a RuleBuilder subject for this property.
     # @TODO: This will come from a DETAIL
-    'deviceGroups':'deviceGroups',
+    'deviceGroups':'dev.groups',
 }
 
 def getName(str):

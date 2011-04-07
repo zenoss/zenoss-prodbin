@@ -673,6 +673,66 @@
                 forceSelection: true,
                 triggerAction: 'all'
             }
+        },
+        DEVICECLASS: {
+            text: _t('Device Class'),
+            value: 'dev.device_class',
+            comparisons: ZF.STRINGCOMPARISONS,
+            field: {
+                xtype: 'combo',
+                setValue: smarterSetValue,
+                mode: 'remote',
+                store: new Ext.data.DirectStore({
+                    directFn: Zenoss.remote.DeviceRouter.getDeviceClasses,
+                    root: 'deviceClasses',
+                    fields: ['name']
+                }),
+                typeAhead: true,
+                valueField: 'name',
+                displayField: 'name',
+                forceSelection: true,
+                triggerAction: 'all'
+            }
+        },
+        SYSTEMS: {
+            text: _t('Systems'),
+            value: 'dev.systems',
+            comparisons: ZF.STRINGCOMPARISONS,
+            field: {
+                xtype: 'combo',
+                setValue: smarterSetValue,
+                mode: 'remote',
+                store: new Ext.data.DirectStore({
+                    directFn: Zenoss.remote.DeviceRouter.getSystems,
+                    root: 'systems',
+                    fields: ['name']
+                }),
+                typeAhead: true,
+                valueField: 'name',
+                displayField: 'name',
+                forceSelection: true,
+                triggerAction: 'all'
+            }
+        },
+        DEVICEGROUPS: {
+            text: _t('Systems'),
+            value: 'dev.groups',
+            comparisons: ZF.IDENTITYCOMPARISONS,
+            field: {
+                xtype: 'combo',
+                setValue: smarterSetValue,
+                mode: 'remote',
+                store: new Ext.data.DirectStore({
+                    directFn: Zenoss.remote.DeviceRouter.getGroups,
+                    root: 'groups',
+                    fields: ['name']
+                }),
+                typeAhead: true,
+                valueField: 'name',
+                displayField: 'name',
+                forceSelection: true,
+                triggerAction: 'all'
+            }
         }
     });
 
