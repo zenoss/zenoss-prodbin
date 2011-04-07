@@ -156,6 +156,39 @@ class TestParsers(BaseTestCase):
             else:
                 raise AssertionError("unexpected value")
 
+    def testPsCase15745(self):
+        """
+        Case 15745
+        """
+        deviceConfig = Object()
+        deviceConfig.device = 'localhost'
+        cmd = Object()
+        cmd.deviceConfig = deviceConfig
+        p1 = Object()
+        p1.id = 'cpu_cpu'
+        p1.data = dict(processName='oracleYAMDB1 (LOCAL=NO)',
+                       ignoreParams=False,
+                       alertOnRestart=True,
+                       failSeverity=3)
+        cmd.points = [p1]
+        cmd.result = Object()
+        cmd.result.output = """ PID   RSS        TIME COMMAND
+483362 146300    22:58:11 /usr/local/test/oracleYAMDB1 (LOCAL=NO)
+495844 137916    22:45:57 /usr/bin/sendmail: MTA: accepting connections
+520290  1808    00:00:00 /usr/sbin/aixmibd
+"""
+        results = ParsedResults()
+        parser = ps()
+        parser.processResults(cmd, results)
+        # Oracle process with parenthesis in args should be detected
+        for ev in results.events:
+            summary = ev['summary']
+            if summary.find('oracleYAMDB1') >= 0:
+                assert summary.find('Process running') >= 0
+            else:
+                raise AssertionError("unexpected event")
+
+
 
 def test_suite():
     from unittest import TestSuite, makeSuite

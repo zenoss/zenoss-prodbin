@@ -141,7 +141,7 @@ class ps(CommandParser):
         # map data points by procesName
         matchers = {}
         for dp in cmd.points:
-            matchers[dp] = re.compile(dp.data['processName'])
+            matchers[dp] = re.compile(re.escape(dp.data['processName']))
 
         dpsToProcs = self.groupProcs(matchers, cmd.result.output)
 
