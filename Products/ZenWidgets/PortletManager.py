@@ -48,16 +48,24 @@ class PortletManager(ZenModelRM):
         ("portlets", ToManyCont(ToOne, "Products.ZenWidgets.Portlet", 
             "portletManager")),
     )
+    
+    def register_extjsPortlet(self, id, title, height=200, permission=ZEN_COMMON):
+        """
+        Registers an ExtJS portlet
+        """
+        ppath = os.path.join('Products','ZenWidgets','ZenossPortlets','ExtPortlet.js')
+        self.register_portlet(ppath, id=id, title=title, height=height,
+                              permission=permission)
 
     def register_portlet(self, sourcepath, id='', title='', description='', 
-                         preview='', permission=ZEN_COMMON):
+                         preview='', height=200, permission=ZEN_COMMON):
         """
         Registers a new source file and creates an associated Portlet to store
         the metadata and provide access methods.
         """
         p = self.find(id, sourcepath) 
         if p: self.unregister_portlet(p.id)
-        p = Portlet(sourcepath, id, title, description, preview, permission)
+        p = Portlet(sourcepath, id, title, description, preview, height, permission)
         self.portlets._setObject(id, p)
 
     def unregister_portlet(self, id):

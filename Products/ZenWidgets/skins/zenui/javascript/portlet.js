@@ -30,6 +30,7 @@ var PortletColumn = Class.create();
 var XHRDatasource = Class.create();
 var StaticDatasource = Class.create();
 var IFrameDatasource = Class.create();
+var ExtDatasource = Class.create();
 var TableDatasource = Class.create();
 
 var pc_layouts = {
@@ -665,6 +666,36 @@ IFrameDatasource.prototype = {
     }
 }
 
+ExtDatasource.prototype = {
+    __class__: "YAHOO.zenoss.portlet.ExtDatasource",
+    __init__: function(settings) {
+        this.extSettings = settings.extSettings || null;
+        this.portletId = settings.portletId;
+    },
+    get: function(callback) {
+        var randomId = 'extportlet' + Math.floor(Math.random()*1000000),
+            thisPortlet = Zenoss.portlets[this.portletId],
+            ds = this;
+        
+        html = '<div id="' + randomId + '"' +
+               'style="border:medium none;margin:0;padding:0;' +
+               'width:100%;height:100%;"></>';
+        callback({responseText:html});
+        
+        var task = {
+            run: function() {
+                if (Ext.get(randomId)) {
+                    Ext.TaskMgr.stop(task);
+                    ds.extPortlet = new Ext.Panel(thisPortlet);
+                    ds.extPortlet.render(randomId);
+                }
+            },
+            interval: 100
+        };
+        Ext.TaskMgr.start(task);
+    }
+}
+
 TableDatasource.prototype = {
     __class__: "YAHOO.zenoss.portlet.TableDatasource",
     __init__: function(settings) {
@@ -916,6 +947,7 @@ YZP.PortletContainer = PortletContainer;
 YZP.XHRDatasource = XHRDatasource;
 YZP.StaticDatasource = StaticDatasource;
 YZP.IFrameDatasource = IFrameDatasource;
+YZP.ExtDatasource = ExtDatasource;
 YZP.TableDatasource = TableDatasource;
 YZP.Portlet = Portlet;
 

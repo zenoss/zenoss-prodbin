@@ -11,6 +11,8 @@
 #
 ###########################################################################
 
+from string import Template
+
 from Products.ZenModel.ZenossSecurity import *
 from os.path import basename, exists
 from Products.ZenRelations.RelSchema import *
@@ -47,11 +49,12 @@ class Portlet(ZenModelRM):
         {'id':'permission', 'type':'string', 'mode':'w'},
         {'id':'sourcepath', 'type':'string', 'mode':'w'},
         {'id':'preview', 'type':'string', 'mode':'w'},
+        {'id':'height', 'type':'int', 'mode':'w'},
     )
 
 
     def __init__(self, sourcepath, id='', title='', description='', 
-                 preview='', permission=ZEN_COMMON):
+                 preview='', height=200, permission=ZEN_COMMON):
         if not id: id = basename(sourcepath).split('.')[0]
         self.id = id
         ZenModelRM.__init__(self, id)
@@ -60,6 +63,7 @@ class Portlet(ZenModelRM):
         self.permission = permission
         self.sourcepath = sourcepath
         self.preview = preview
+        self.height = height
         self._read_source()
 
     def _getSourcePath(self):
@@ -74,7 +78,10 @@ class Portlet(ZenModelRM):
         except IOError, e:
             return
         else:
-            self.source = f.read()
+            tvars = {'portletId': self.id,
+                     'portletTitle': self.title,
+                     'portletHeight': self.height}
+            self.source = Template(f.read()).safe_substitute(tvars)
             f.close()
 
     def getPrimaryPath(self,fromNode=None):

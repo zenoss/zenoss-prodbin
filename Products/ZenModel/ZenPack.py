@@ -380,6 +380,17 @@ class ZenPack(ZenModelRM):
             result.append((loader.name,
                            [item for item in loader.list(self, app)]))
         return result
+    
+    def register_portlets(self):
+        """
+        Registers ExtJS portlets from a ZenPack. Override in ZenPack. ID and
+        title are required, height and permissions are optional. See
+        ZenWidgets.PortletManager.register_extjsPortlet.
+        
+        @return: List of dictionary objects describing a portlet
+        @rtype: List of dicts
+        """
+        return []
         
     def createZProperties(self, app):
         """
