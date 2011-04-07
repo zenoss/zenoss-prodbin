@@ -373,9 +373,6 @@ class TemplateFacade(ZuulFacade):
             # copying to and from a DeviceClass
             source = template.deviceClass()
             source.manage_copyAndPasteRRDTemplates((template.id,), targetUid)
-            # Do not bind component templates to a DeviceClass
-            if issubclass(template.getTargetPythonClass(), (Device, DeviceClass)):
-                target.bindTemplates(target.zDeviceTemplates + [template.id])
         else:
             if isinstance(target, DeviceClass):
                 # copying from a Device to a DeviceClass
@@ -389,9 +386,6 @@ class TemplateFacade(ZuulFacade):
                 raise Exception(msg % args)
             copy = template._getCopy(container)
             container._setObject(copy.id, copy)
-            # Do not bind component templates to a Device
-            if issubclass(template.getTargetPythonClass(), (Device, DeviceClass)):
-                target.bindTemplates(target.zDeviceTemplates + [copy.id])
 
     def addGraphDefinition(self, templateUid, graphDefinitionId):
         template = self._getTemplate(templateUid)

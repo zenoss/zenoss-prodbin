@@ -113,6 +113,11 @@ Zenoss.TemplateTreePanel = Ext.extend(Ext.tree.TreePanel, {
                     }.createDelegate(this),
                     load: function(){
                         this.showLoadMask(false);
+                        var root = this.getRootNode();
+                        root.expand();
+                        if (root.childNodes.length) {
+                            root.childNodes[0].expand();
+                        }
                     }.createDelegate(this)
                 }
             },
