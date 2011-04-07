@@ -37,7 +37,7 @@ from twisted.internet.error import ReactorNotRunning
 
 from zenoss.protocols.amqpconfig import getAMQPConfiguration
 from zope.interface import implements
-from zope.component import getAllUtilitiesRegisteredFor
+from zope.component import getUtilitiesFor
 
 from pynetsnmp import netsnmp
 
@@ -335,8 +335,8 @@ class EmailAction(TargetableAction):
         log.debug('Executing action: Email')
 
         data = _signalToContextDict(signal)
-        for processor in getAllUtilitiesRegisteredFor(IProcessSignal):
-            processor.process(self.dmd, signal, data)
+        for key, processor in getUtilitiesFor(IProcessSignal):
+            data[key] = processor.process(self.dmd, signal)
 
         if signal.clear:
             log.debug('This is a clearing signal.')
