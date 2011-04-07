@@ -11,15 +11,20 @@
 #
 ###########################################################################
 
+__doc__ = """PingService
+Class that provides a way to asynchronously ping (ICMP packets) IP addresses.
+"""
+
 import sys
 import os
 import time
 import socket
-import ip
-import icmp
 import errno
 import logging
 log = logging.getLogger("zen.PingService")
+
+# Zenoss custom ICMP library
+from icmpecho.Ping import Ping4, Ping6
 
 from twisted.internet import reactor, defer
 
@@ -30,147 +35,135 @@ class PermissionError(Exception):
     """Not permitted to access resource."""
 
 class IpConflict(Exception):
-    """Pinging two jobs simultaneously with different hostnames but the same IP"""
+    """Pinging two IP pingjobs simultaneously with different hostnames"""
 
 
-class PingService(object):    
-    """
-    Class that provides asynchronous ping (ICMP packets) capability.
-    """
+class PingService(object):
     
-    def __init__(self, timeout=2, sock=None, defaultTries=2):
+    def __init__(self, protocol, timeout=2, defaultTries=2):
         self.reconfigure(timeout)
         self.procId = os.getpid()
         self.defaultTries = defaultTries
         self.jobqueue = {}
         self.pktdata = 'zenping %s %s' % (socket.getfqdn(), self.procId)
-        self.createPingSocket(sock)
+
+        self._protocol = protocol
+        reactor.addReader(self)
 
     def reconfigure(self, timeout=2):
         self.timeout = timeout
 
-    def createPingSocket(self, sock):
-        """make an ICMP socket to use for sending and receiving pings"""
-        socketargs = socket.AF_INET, socket.SOCK_RAW, socket.IPPROTO_ICMP
-        if sock is None:
-            try:
-                s = socket
-                self.pingsocket = s.socket(*socketargs)
-            except socket.error, e:
-                err, msg = e.args
-                if err == errno.EACCES:
-                    raise PermissionError("Must be root to send ICMP packets.")
-                raise e
-        else:
-            self.pingsocket = socket.fromfd(sock, *socketargs)
-            os.close(sock)
-        self.pingsocket.setblocking(0)
-        reactor.addReader(self)
-
     def fileno(self):
-        return self.pingsocket.fileno()
+        """
+        The reactor will do reads only if we support a file-like interface
+        """
+        return self._protocol.fileno()
 
-    def doRead(self):
-        self.recvPackets()
+    def logPrefix(self):
+        """
+        The reactor will do reads only if we support a file-like interface
+        """
+        return None
 
     def connectionLost(self, unused):
         reactor.removeReader(self)
-        self.pingsocket.close()
+        self._protocol.close()
 
-    def logPrefix(self):
-        return None
+    def ping(self, ip):
+        """
+        Ping the IP address and return the result in a deferred
+        """
+        if isinstance(ip, PingJob):
+            pj = ip
+        else:
+            pj = PingJob(ip, maxtries=self.defaultTries)
+        self._ping(pj)
+        return pj.deferred
 
-    def sendPacket(self, pingJob):
+    def _ping(self, pingJob):
         """
         Take a pingjob and send an ICMP packet for it
         """
-        #### sockets with bad addresses fail
         try:
-            pkt = icmp.Echo(self.procId, pingJob.sent, self.pktdata)
-            buf = icmp.assemble(pkt)
-            pingJob.start = time.time()
-            self.pingsocket.sendto(buf, (pingJob.ipaddr, 0))
-            reactor.callLater(self.timeout, self.checkTimeout, pingJob)
+            family, sockaddr, echo_kwargs, socket_kwargs = \
+                      pingJob.pingArgs()
+            pingJob.start = self._protocol.send(sockaddr,
+                                                socket_kwargs,
+                                                echo_kwargs)
             pingJob.sent += 1
+
+            reactor.callLater(self.timeout, self.checkTimeout, pingJob)
             current = self.jobqueue.get(pingJob.ipaddr, None)
-            if current:
-                if pingJob.hostname != current.hostname:
-                    raise IpConflict("Host %s and %s are both using IP %s" %
+            if current and pingJob.hostname != current.hostname:
+                raise IpConflict("Host %s and %s are both using IP %s" %
                                      (pingJob.hostname,
                                       current.hostname,
                                       pingJob.ipaddr))
             self.jobqueue[pingJob.ipaddr] = pingJob
-        except Exception, e:
+        except Exception, e:  # Note: sockets with bad addresses fail
             pingJob.rtt = -1
             pingJob.message = "%s sendto error %s" % (pingJob.ipaddr, e)
             self.dequePingJob(pingJob)
 
-    def recvPackets(self):
-        """receive a packet and decode its header"""
-        while reactor.running:
-            try:
-                data, (host, port) = self.pingsocket.recvfrom(1024)
-                if not data: return
-                ipreply = ip.disassemble(data)
-                try:
-                    icmppkt = icmp.disassemble(ipreply.data)
-                except ValueError:
-                    log.debug("Checksum failure on packet %r", ipreply.data)
-                    try:
-                        icmppkt = icmp.disassemble(ipreply.data, 0)
-                    except ValueError:
-                        continue            # probably Unknown type
-                except Exception, ex:
-                    log.debug("Unable to decode reply packet payload %s", ex)
-                    continue
-                sip =  ipreply.src
-                if (icmppkt.get_type() == icmp.ICMP_ECHOREPLY and 
-                    icmppkt.get_id() == self.procId and
-                    sip in self.jobqueue):
-                    pj = self.jobqueue[sip]
-                    pj.rcvCount += 1
-                    pj.rtt = time.time() - pj.start
-                    pj.results.append(pj.rtt)
-                    log.debug("%d bytes from %s: icmp_seq=%d time=%0.3f ms",
-                               len(icmppkt.get_data()), sip, icmppkt.get_seq(),
-                               pj.rtt * 1000)
-                    if pj.rcvCount >= pj.sampleSize:
-                        self.pingJobSucceed(pj)
-                    else:
-                        self.sendPacket(pj)
+    def _processPacket(self, reply):
+        """
+        Examine the parsed reply and determine what to do with it.
+        """
+        sourceIp = reply['address']
+        pj = self.jobqueue.get(sourceIp)
+        if reply['alive'] and pj:
+            pj.rcvCount += 1
+            pj.rtt = time.time() - pj.start
+            pj.results.append(pj.rtt)
+            log.debug("%d bytes from %s: icmp_seq=%d time=%0.3f ms",
+                      reply['data_size'], sourceIp, reply['sequence'],
+                      pj.rtt * 1000)
 
-                elif icmppkt.get_type() == icmp.ICMP_UNREACH:
-                    try:
-                        origpkt = icmppkt.get_embedded_ip()
-                        dip = origpkt.dst
-                        if (origpkt.data.find(self.pktdata) > -1
-                            and self.jobqueue.has_key(dip)):
-                            log.debug("ICMP unreachable message for %s", dip)
-                            self.pingJobFail(self.jobqueue[dip])
-                    except ValueError, ex:
-                        log.warn("Failed to parse host unreachable packet")
-                #else:
-                    #log.debug("Unexpected pkt %s %s", sip, icmppkt)
-            except socket.error, err:
-                errnum, errmsg = err.args
-                if errnum == errno.EAGAIN:
+            if pj.rcvCount >= pj.sampleSize:
+                self.pingJobSucceed(pj)
+            else:
+                self._ping(pj)
+
+        elif not reply['alive'] and pj:
+            log.debug("ICMP unreachable message for %s", pj.ipaddr)
+            self.pingJobFail(pj)
+            
+        #else:
+            #log.debug("Unexpected ICMP packet %s %s", sourceIp, reply)
+
+    def doRead(self):
+        """
+        Receive packets from the socket and process them.
+
+        The name is required by the reactor select() functionality
+        """
+        try:
+            for reply, sockaddr in self._protocol.receive():
+                if not reactor.running:
                     return
-                raise err
-            except Exception, ex:
-                log.exception("Error while receiving packet: %s" % ex)
+                self._processPacket(reply)
+        except socket.error, err:
+            errnum, errmsg = err.args
+            if errnum == errno.EAGAIN:
+                return
+            raise err
+        except Exception, ex:
+            log.exception("Error while receiving packet: %s" % ex)
 
     def pingJobSucceed(self, pj):
-        """PingJob completed successfully.
         """
-        pj.message = "IP %s is up" % (pj.ipaddr)
+        PingJob completed successfully.
+        """
+        pj.message = "IP %s is up" % pj.ipaddr
         pj.severity = 0
         self.dequePingJob(pj)
 
     def pingJobFail(self, pj):
-        """PingJob has failed --  remove from jobqueue.
+        """
+        PingJob has failed --  remove from jobqueue.
         """
         pj.rtt = -1
-        pj.message = "IP %s is down" % (pj.ipaddr)
+        pj.message = "IP %s is down" % pj.ipaddr
         self.dequePingJob(pj)
 
     def dequePingJob(self, pj):
@@ -191,18 +184,12 @@ class PingService(object):
                 if pj.loss >= pj.maxtries:
                     self.pingJobFail(pj)
                 else:
-                    self.sendPacket(pj)
+                    self._ping(pj)
             else:
                 log.debug("Calling checkTimeout needlessly for %s", pj.ipaddr)
 
     def jobCount(self):
         return len(self.jobqueue)
-
-    def ping(self, ip):
-        "Ping the IP address and return the result in a deferred"
-        pj = PingJob(ip, maxtries=self.defaultTries)
-        self.sendPacket(pj)
-        return pj.deferred
 
 
 def _printResults(results, start):
@@ -210,16 +197,24 @@ def _printResults(results, start):
     bad = [pj for s, pj in results if s and pj.rtt < 0]
     if good: print "Good IPs: %s" % " ".join([g.ipaddr for g in good])
     if bad: print "Bad IPs: %s" % " ".join([b.ipaddr for b in bad])
-    print "Tested %d IPs in %.1f seconds" % (len(results), time.time() - start)
+    print "Tested %d IPs in %.2f seconds" % (len(results), time.time() - start)
     reactor.stop()
 
 if __name__ == "__main__":
-    ping = PingService()
+    # Sockets are injected into the main module by pyraw
+    # pyraw PingService.py [ip_addresses]
+    # Zenoss custom ICMP library
+    from icmpecho.Ping import Ping4, Ping6
+
+    protocol = Ping4(IPV4_SOCKET)
+    ping = PingService(protocol)
     logging.basicConfig()
     log = logging.getLogger()
     log.setLevel(10)
-    if len(sys.argv) > 1: targets = sys.argv[1:]
-    else: targets = ("127.0.0.1",)
+    if len(sys.argv) > 1:
+        targets = sys.argv[1:]
+    else:
+        targets = ("127.0.0.1",)
     lst = defer.DeferredList(map(ping.ping, targets), consumeErrors=True)
     lst.addCallback(_printResults, time.time())
     reactor.run()

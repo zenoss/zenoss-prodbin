@@ -103,7 +103,6 @@ class PingCollectionTask(BaseTask):
                                                         COLLECTOR_NAME)
         self._maxbackoffseconds = self._preferences.options.maxbackoffminutes * 60
 
-        self._pinger = self._preferences.pinger
         self.startTime = None
 
         # Split up so that every interface's IP gets its own ping job
@@ -117,8 +116,10 @@ class PingCollectionTask(BaseTask):
 
         if self.config.ipVersion == 6:
             self._network = self._daemon.ipv6network
+            self._pinger = self._preferences.pinger6
         else:
             self._network = self._daemon.network
+            self._pinger = self._preferences.pinger4
 
         self._addToTopology()
 
@@ -177,65 +178,14 @@ class PingCollectionTask(BaseTask):
         self.pingjob.reset()
 
         # Start the ping job
-        self.state = PingCollectionTask.STATE_PING_START
-        if self.config.ipVersion == 6:
-            d = self._ping6()
-        else:
-            self._pinger.sendPacket(self.pingjob)
-            d = self.pingjob.deferred
-
+        self._pinger.ping(self.pingjob)
+        d = self.pingjob.deferred
         d.addCallback(self._storeResults)
         d.addCallback(self._updateStatus)
         d.addErrback(self._failure)
 
         # Wait until the Deferred actually completes
         return d
-
-    def _ping6(self):
-       """
-       Temporary hack to be able to veriy IPv6 ping functionality end-to-end
-       """
-       # FIXME: use a Python-level library rather than spawning a process
-       cmd = Cmd()
-       cmd.ds = "PING6"
-       cmd.ip = ipunwrap(self.config.ip)
-       cmd.command = "ping6 -n -c %d %s" % (self.config.tries, cmd.ip)
-       cmd.name = cmd.command
-       class DevProxy(object):
-           zCommandCommandTimeout = self._preferences.options.tracetimeoutseconds
-       cmd.deviceConfig = DevProxy()
-
-       runner = ProcessRunner()
-       d = runner.start(cmd)
-       cmd.lastStart = time.time()
-       d.addBoth(cmd.processCompleted)
-       d.addCallback(self._updatePingJob6)
-       return d
-
-    def _updatePingJob6(self, result):
-        self.pingjob.sent = self.config.tries
-        if result.result.exitCode != 0:
-            self.pingjob.rtt = -1
-            return result.result.output
-        else:
-            output = result.result.output.strip().split('\n')
-
-            # rtt min/avg/max/mdev = 1.211/2.322/3.434/1.112 ms, pipe 2'
-            statsLine = output[-1]
-            stats = statsLine.rsplit('=',1)[1].split()[0]
-            rttMin, rttAvg, rttMax, rttStdDev = map(float, stats.split('/'))
-            self.pingjob.rtt = rttAvg
-            self.pingjob.rtt_avg = rttAvg
-            self.pingjob.rtt_min = rttMin
-            self.pingjob.rtt_max = rttMax
-            self.pingjob.rtt_stddev = rttStdDev
-
-            # 2 packets transmitted, 2 received, 0% packet loss, time 1000ms
-            lossLine = output[-2]
-            lossPct = lossLine.split()[5][:-1]
-            self.pingjob.rtt_losspct = int(lossPct)
-
-        return result.result.output
 
     def _storeResults(self, result):
         """

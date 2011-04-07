@@ -30,6 +30,9 @@ log = logging.getLogger("zen.zenping")
 
 from ipaddr import IPAddress
 
+# Zenoss custom ICMP library
+from icmpecho.Ping import Ping4, Ping6
+
 import Globals
 import zope.interface
 import zope.component
@@ -90,7 +93,8 @@ class PingCollectionPreferences(object):
         self.pingCycleInterval = 60
         self.configCycleInterval = 20*60
         self.maxPingFailures = 2
-        self.pinger = None
+        self.pinger4 = None
+        self.pinger6 = None
 
         self.topologySaveTime = time.time()
 
@@ -114,10 +118,6 @@ class PingCollectionPreferences(object):
                           help="Run in test mode: doesn't really ping,"
                                " but reads the list of IP Addresses that "
                                " are up from /tmp/testping")
-        parser.add_option('--useFileDescriptor',
-                          dest='useFileDescriptor',
-                          default=None,
-                          help="Use the given (privileged) file descriptor")
         parser.add_option('--maxbackoffminutes',
                           dest='maxbackoffminutes',
                           default=MAX_BACK_OFF_MINUTES,
@@ -155,9 +155,6 @@ class PingCollectionPreferences(object):
 
     def postStartup(self):
         daemon = zope.component.getUtility(ICollector)
-
-        if not self.options.useFileDescriptor:
-            daemon.openPrivilegedPort('--ping')
 
         daemon.network = NetworkModel()
         daemon.ipv6network = NetworkModel(version=6)
@@ -206,16 +203,19 @@ class PingCollectionPreferences(object):
         daemon.ipv6network._saveTopology()
 
     def _getPinger(self):
-        if self.pinger:
-            self.pinger.reconfigure(self.pingTimeOut)
+        if self.pinger4:
+            self.pinger4.reconfigure(self.pingTimeOut)
+            self.pinger6.reconfigure(self.pingTimeOut)
         else:
             if self.options.test:
-                self.pinger = TestPing(self.pingTimeOut)
+                self.pinger4 = TestPing(self.pingTimeOut)
+                self.pinger6 = TestPing(self.pingTimeOut)
             else:
-                fd = None
-                if self.options.useFileDescriptor is not None:
-                    fd = int(self.options.useFileDescriptor)
-                self.pinger = PingService(self.pingTimeOut, fd)
+                # pyraw inserts these magic values
+                protocol = Ping4(IPV4_SOCKET)
+                self.pinger4 = PingService(protocol)
+                protocol = Ping6(IPV6_SOCKET)
+                self.pinger6 = PingService(protocol)
 
 
 class PerIpAddressTaskSplitter(SubConfigurationTaskSplitter):

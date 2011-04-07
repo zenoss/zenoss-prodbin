@@ -29,6 +29,10 @@ if [ -z "$ZENOSS_BITROCK_STACK" ];then
    export PYTHONPATH
 fi
 PYTHON=$ZENHOME/bin/python
+
+# zensocket alternative program
+PYRAW=$ZENHOME/bin/pyraw
+
 SYBASE=$ZENHOME/sybase
 export SYBASE
 
@@ -72,20 +76,29 @@ start() {
         echo is already running
     else
         echo starting...
+        WRAPPER=$PYTHON
+        if [ "$PRGNAME" = "zenping.py" ] ; then
+           WRAPPER=$PYRAW
+        fi
         if [ "$CFGFILE" = "" ]; then
-            exec $PYTHON $PRGHOME/$PRGNAME --cycle --daemon "$@"
+            exec $WRAPPER $PRGHOME/$PRGNAME --cycle --daemon "$@"
         else
-            exec $PYTHON $PRGHOME/$PRGNAME --configfile $CFGFILE \
+            exec $WRAPPER $PRGHOME/$PRGNAME --configfile $CFGFILE \
                 --cycle --daemon "$@"
         fi
     fi
 }
 
 run() {
+    WRAPPER=$PYTHON
+    if [ "$PRGNAME" = "zenping.py" ] ; then
+        WRAPPER=$PYRAW
+    fi
+
     if [ "$CFGFILE" = "" ]; then
-        exec $PYTHON $PRGHOME/$PRGNAME "$@"
+        exec $WRAPPER $PRGHOME/$PRGNAME "$@"
     else        
-        exec $PYTHON $PRGHOME/$PRGNAME --configfile $CFGFILE "$@"
+        exec $WRAPPER $PRGHOME/$PRGNAME --configfile $CFGFILE "$@"
     fi
 }
 

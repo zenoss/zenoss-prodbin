@@ -11,27 +11,51 @@
 #
 ###########################################################################
 
+__doc__ = """PingJob
+Class that contains the information about pinging an individual IP address.
+"""
+
 from math import fsum, sqrt, pow
 import logging
 log = logging.getLogger("zen.PingJob")
+import socket
 
 from twisted.internet import defer
+
 
 class PingJob(object):
     """
     Class representing a single target to be pinged.
     """
     def __init__(self, ipaddr, hostname="", status=0,
-                 unused_cycle=60, maxtries=2, sampleSize=1,
+                 ttl=60, maxtries=2, sampleSize=1,
                  iface=''):
-        self.ipaddr = ipaddr 
-        self.iface = iface 
+        self.ipaddr = ipaddr
+        self.iface = iface
         self.hostname = hostname
+        self._ttl = ttl
         self.status = status
         self.maxtries = maxtries
         self.sampleSize = sampleSize
         self.points = []  # For storing datapoints
+
+        self.family, self._sockaddr = self._getaddrinfo()
+        self.address = self._sockaddr[0]
+        self.ipVersion = 4 if self.family == socket.AF_INET else 6
+        self.data_size = 56
+
         self.reset()
+
+    def _getaddrinfo(self):
+        family = socket.AF_UNSPEC
+        for info in socket.getaddrinfo(self.ipaddr, None, socket.AF_UNSPEC):
+            family = info[0]
+            sockaddr = info[-1]
+            if family in (socket.AF_INET, socket.AF_INET6):
+                return family, sockaddr
+
+        raise StandardError("Could not resolve IP address '%s' on %s for family %s" % (
+                            self.ipaddr, self.hostname, family))
 
     def reset(self):
         self.deferred = defer.Deferred()
@@ -50,6 +74,8 @@ class PingJob(object):
         self.rtt_avg = 0.0
         self.rtt_stddev = 0.0
         self.rtt_losspct = 0.0
+
+        self._lastSequenceNumber = 0
 
     def calculateStatistics(self):
         n = len(self.results)
@@ -84,6 +110,14 @@ class PingJob(object):
         # Bessel's correction uses n - 1 rather than n
         return sqrt( total / (n - 1) )
 
+    def pingArgs(self):
+        self._lastSequenceNumber += 1
+        echo_kwargs = dict(
+                           sequence=self._lastSequenceNumber,
+                           data_size=self.data_size,
+                           )
+        socket_kwargs = dict(ttl=self._ttl,)
+        return self.family, self._sockaddr, echo_kwargs, socket_kwargs
+
     def __str__(self):
         return "%s %s" % (self.hostname, self.ipaddr)
-
