@@ -83,10 +83,8 @@ class IProvidesPagerAddresses(Interface):
 
 class IProcessSignal(Interface):
 
-    def process(dmd, signal):
+    def process(signal):
         """
-        @param dmd: The dmd
-        @type dmd: dmd
         @param signal: The signal that may require additional processing
         @type signal: zenoss.protocols.protobufs.zep_pb2.Signal
         """
