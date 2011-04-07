@@ -25,6 +25,9 @@ import pysamba.twisted.reactor
 
 from ipaddr import IPAddress
 
+# Zenoss custom ICMP library
+from icmpecho.Ping import Ping4, Ping6
+
 import Globals
 from optparse import SUPPRESS_HELP
 
@@ -40,7 +43,7 @@ from Products.ZenUtils.snmp import SnmpAgentDiscoverer
 from Products.ZenModel.Exceptions import NoIPAddress
 from Products.ZenEvents.ZenEventClasses import Status_Snmp
 from Products.ZenEvents.Event import Info
-from Products.ZenStatus.PingService import PingService as Ping
+from Products.ZenStatus.PingService import PingService
 from Products.ZenHub.PBDaemon import FakeRemote, PBDaemon
 from Products.ZenHub.services  import DiscoverService, ModelerService
 unused(DiscoverService, ModelerService) # for pb
@@ -70,15 +73,28 @@ class ZenDisc(ZenModeler):
         @type single: boolean
         """
         ZenModeler.__init__(self, single )
-        if not self.options.useFileDescriptor:
-            self.openPrivilegedPort('--ping')
         self.discovered = []
-        sock = None
-        if self.options.useFileDescriptor:
-            sock = int(self.options.useFileDescriptor)
-        self.ping = Ping(timeout=self.options.timeout,
-                         sock=sock,
+
+        # pyraw inserts these magic values
+        protocol = Ping4(IPV4_SOCKET)
+        self._pinger4 = PingService(protocol,
+                         timeout=self.options.timeout,
                          defaultTries=self.options.tries)
+
+        protocol = Ping6(IPV6_SOCKET)
+        self._pinger6 = PingService(protocol,
+                         timeout=self.options.timeout,
+                         defaultTries=self.options.tries)
+
+    def ping(self, ip):
+        """
+        Given an IP address, return a deferred that pings the address.
+        """
+        ipObj = IPAddress(ip)
+        if ipObj.version == 6:
+            return self._pinger6.ping(ip)
+
+        return self._pinger4.ping(ip)
 
     def config(self):
         """
@@ -121,7 +137,7 @@ class ZenDisc(ZenModeler):
                     continue
                 self.log.info("Discover network '%s'", net.getNetworkName())
                 yield NJobs(self.options.chunkSize,
-                            self.ping.ping,
+                            self.ping,
                             net.fullIpList()).start()
                 results = driver.next()
                 goodips = [
@@ -168,7 +184,7 @@ class ZenDisc(ZenModeler):
             # Parse to find ips included
             ips.extend(parse_iprange(iprange))
         yield NJobs(self.options.chunkSize,
-                    self.ping.ping,
+                    self.ping,
                     ips).start()
         results = driver.next()
         goodips = [v.ipaddr for v in results if not isinstance(v, Failure)]
@@ -771,7 +787,7 @@ class ZenDisc(ZenModeler):
                     help="ping timeout in seconds")
         self.parser.add_option('--chunk', dest='chunkSize', 
                     default=10, type="int",
-                    help="number of in flight ping packets")
+                    help="Number of in-flight ping packets")
         self.parser.add_option('--snmp-missing', dest='snmpMissing',
                     action="store_true", default=False,
                     help="Send an event if SNMP is not found on the device")
@@ -780,16 +796,13 @@ class ZenDisc(ZenModeler):
                     help="Add all IPs found, even if they are unresponsive")
         self.parser.add_option('--reset-ptr', dest='resetPtr',
                     action="store_true", default=False,
-                    help="Reset all ip PTR records")
+                    help="Reset all IP PTR records")
         self.parser.add_option('--no-snmp', dest='nosnmp',
                     action="store_true", default=False,
                     help="Skip SNMP discovery on found IP addresses")
         self.parser.add_option('--subnets', dest='subnets',
                     action="store_true", default=False,
                     help="Recurse into subnets for discovery")
-        self.parser.add_option('--useFileDescriptor',
-                    dest='useFileDescriptor', default=None,
-                    help="Use the given (privileged) file descriptor for ping")
         self.parser.add_option('--assign-devclass-script', dest='autoAllocate',
                     action="store_true", default=False,
                     help="have zendisc auto allocate devices after discovery")
@@ -803,11 +816,11 @@ class ZenDisc(ZenModeler):
         self.parser.add_option('--snmp-strict-discovery', 
                     dest='zSnmpStrictDiscovery',
                     action="store_true", default=False,
-                    help="Only add devices that can be modeled via snmp." )
+                    help="Only add devices that can be modeled via SNMP." )
         self.parser.add_option('--prefer-snmp-naming', 
                     dest='zPreferSnmpNaming',
                     action="store_true", default=False,
-                    help="Prefer snmp name to dns name when modeling via snmp." )
+                    help="Prefer SNMP name to DNS name when modeling via SNMP." )
         # --job: a development-only option that jobs will use to communicate
         # their existence to zendisc. Not for users, so help is suppressed.
         self.parser.add_option('--job', dest='job', help=SUPPRESS_HELP )
