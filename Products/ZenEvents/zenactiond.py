@@ -28,7 +28,7 @@ from zenoss.protocols.protobufs.zep_pb2 import Signal
 from zenoss.protocols.jsonformat import to_dict
 from Products.ZenModel.interfaces import IAction, IProvidesEmailAddresses, IProvidesPagerAddresses, IProcessSignal
 from Products.ZenUtils.guid.interfaces import IGlobalIdentifier
-from Products.ZenModel.NotificationSubscription import NotificationSubscriptionManager
+from Products.ZenModel.NotificationSubscription import NotificationSubscriptionManager, NotificationEventContextWrapper
 from Products.ZenMessaging.queuemessaging.QueueConsumer import QueueConsumerProcess
 from Products.ZenMessaging.queuemessaging.interfaces import IQueueConsumerTask
 from twisted.internet import reactor, protocol, defer
@@ -91,160 +91,24 @@ class NotificationDao(object):
         """
         return signal.subscriber_uuid == IGlobalIdentifier(notification).getGUID()
 
-def _convertDetails( detailList ):
-    """
-    Converts signal like:
-          [{'name': 'UserName',
-            'value': ['jlouis']},
-           {'name': 'ChainId',
-            'value': ['6528645']},
-           {'name': 'ComputeResourceName',
-            'value': ['Lab Cluster']},
-           {'name': 'ComputeResourceRef',
-            'value': ['domain-c1046']},
-           {'name': 'HostName',
-            'value': ['esx6.zenoss.loc']},
-           {'name': 'SourceHostRef',
-            'value': ['host-1049']},
-           {'name': 'DatacenterName',
-            'value': ['Hosting.com CoLo']},
-           {'name': 'endpoint',
-            'value': ['esxwin2']},
-           {'name': 'HostRef',
-            'value': ['host-1460']},
-           {'name': 'Key',
-            'value': ['6528649']},
-           {'name': 'SourceHostName',
-            'value': ['esx5.zenoss.loc']},
-           {'name': 'VmName',
-            'value': ['cholden-dev']},
-           {'name': 'VmRef',
-            'value': ['vm-23712']},
-           {'name': 'DataCenterRef',
-            'value': ['datacenter-2']},
-           {'name': 'zenoss.device.production_state',
-            'value': ['1000']},
-           {'name': 'zenoss.device.priority',
-            'value': ['3']},
-           {'name': 'testArray',
-            'value': ['a','b','c']}]
-    to dict like:
-          {'UserName':'jlouis',
-           'ChainId':'6528645',
-           'ComputeResourceName':'Lab Cluster',
-           'ComputeResourceRef':'domain-c1046',
-           'HostName':'esx6.zenoss.loc',
-           'SourceHostRef':'host-1049',
-           'DatacenterName':'Hosting.com CoLo',
-           'endpoint':'esxwin2',
-           'HostRef':'host-1460',
-           'Key':'6528649',
-           'SourceHostName':'esx5.zenoss.loc',
-           'VmName':'cholden-dev',
-           'VmRef':'vm-23712',
-           'DataCenterRef':'datacenter-2',
-           'zenoss.device.production_state':'1000',
-           'zenoss.device.priority':'3',
-           'testArray':['a','b','c']}
-    """
-    details = None
-    if detailList is not None:
-        details = {}
-        for nameValue in detailList:
-            name = str(nameValue['name'])
-            value = nameValue['value']
-            if len( value ) == 0: value = ''
-            if len( value ) == 1: value = value[0]
-            details[name] = value
-    return details
-
-
 def _signalToContextDict(signal):
-    """
-    Returns a dict that looks something like:
+    summary = signal.event
+    # build basic event context wrapper for notifications
+    data = NotificationEventContextWrapper(summary)
 
-    {
-        'signal': {
-            'uuid': u '0e25a363-47c9-4535-a981-ae2149c279af',
-            'clear': False,
-            'trigger_uuid': u 'ccd90790-53c7-4970-a1c4-585c77c3bdca',
-            'created_time': 1290666301343L,
-            'message': u 'Example test message.',
-            'subscriber_uuid': u 'ef089864-7008-412f-9db4-d717ac53c16e'
-        },
-        'eventSummary': {
-            'status': 1,
-            'count': 47,
-            'status_change_time': 1290638268357L,
-            'first_seen_time': 1290638268357L,
-            'last_seen_time': 1290666301246L,
-            'uuid': u '1c3f8493-6eb9-4ba8-9260-9e33abd8e390'
-        },
-        'event': {
-            'severity': 2,
-            'actor': {
-                'element_identifier': u 'local vm',
-                'element_sub_identifier': u '',
-                'element_uuid': u '0f7c9fce-8417-46b2-90f9-f9a132a2490a',
-                'element_type_id': 1
-            },
-            'eventSummary': {
-                'status': 1,
-                'count': 47,
-                'status_change_time': 1290638268357L,
-                'first_seen_time': 1290638268357L,
-                'last_seen_time': 1290666301246L,
-                'uuid': u '1c3f8493-6eb9-4ba8-9260-9e33abd8e390'
-            },
-            'event': {
-                'severity': 2,
-                'actor': {
-                    'element_identifier': u 'local vm',
-                    'element_sub_identifier': u '',
-                    'element_uuid': u '0f7c9fce-8417-46b2-90f9-f9a132a2490a',
-                    'element_type_id': 1
-                },
-                'summary': u 'Example test message.',
-                'fingerprint': u 'localhost||/Unknown||6|Example test message.',
-                'created_time': 1290666301246L,
-                'message': u 'Example test message.',
-                'event_key': u '',
-                'event_class': u '/Unknown',
-                'monitor': u 'localhost',
-                'details': {'detail1':u'value1','detail2':['a','b','c']}
-            }
-        }
-    }
-    """
+    # add urls to event context
+    data['urls']['eventUrl'] = getEventUrl(summary.uuid)
+    data['urls']['ackUrl'] = getAckUrl(summary.uuid)
+    data['urls']['closeUrl'] = getCloseUrl(summary.uuid)
+    # TODO: pass in device obj
+    data['urls']['eventsUrl'] = getEventsUrl()
+    data['urls']['reopenUrl'] = getReopenUrl(summary.uuid)
 
-    data = {}
-    signal = to_dict(signal)
-    summary = signal['event']
-    del signal['event']
+    # now process all custom processors that might be registered to enhance
+    # the event context
+    for key, processor in getUtilitiesFor(IProcessSignal):
+        data[key] = processor.process(signal)
 
-    data['signal'] = signal
-
-    if 'occurrence' in summary and summary['occurrence']:
-        event = summary['occurrence'][0]
-        details = _convertDetails( event.get('details', None) )
-
-        if 'details' in event:
-            del event['details']
-
-        del summary['occurrence']
-        if details is not None:
-            event.update( details )
-
-        # TODO: pass in device obj
-        event['eventUrl'] = getEventUrl(summary['uuid'])
-        event['ackUrl'] = getAckUrl(summary['uuid'])
-        event['deleteUrl'] = getDeleteUrl(summary['uuid'])
-        event['eventsUrl'] = getEventsUrl()
-        event['undeleteUrl'] = getUndeleteUrl(summary['uuid'])
-
-        data['event'] = event
-
-    data['eventSummary'] = summary
     return data
 
 def getBaseUrl(device=None):
@@ -264,12 +128,12 @@ def getAckUrl(evid, device=None):
     return "%s/manage_ackEvents?evids=%s&zenScreenName=viewEvents" % (
         getBaseUrl(device), evid)
 
-def getDeleteUrl(evid, device=None):
+def getCloseUrl(evid, device=None):
     return "%s/manage_deleteEvents?evids=%s" % (
         getBaseUrl(device), evid) + \
         "&zenScreenName=viewHistoryEvents"
 
-def getUndeleteUrl(evid, device=None):
+def getReopenUrl(evid, device=None):
     return "%s/manage_undeleteEvents?evids=%s" % (
         getBaseUrl(device), evid) + \
         "&zenScreenName=viewEvents"
@@ -319,7 +183,6 @@ class TargetableAction(object):
     def executeOnTarget(self):
         raise NotImplementedError()
 
-
 class EmailAction(TargetableAction):
 
     def __init__(self, dmd, email_from, host, port, useTls, user, password):
@@ -335,9 +198,6 @@ class EmailAction(TargetableAction):
         log.debug('Executing action: Email')
 
         data = _signalToContextDict(signal)
-        for key, processor in getUtilitiesFor(IProcessSignal):
-            data[key] = processor.process(self.dmd, signal)
-
         if signal.clear:
             log.debug('This is a clearing signal.')
             subject = notification.getClearSubject(**data)
@@ -421,7 +281,6 @@ class PageAction(TargetableAction):
         @TODO: handle the deferred parameter on the sendPage call.
         """
         log.debug('Executing action: Page')
-
 
         data = _signalToContextDict(signal)
         if signal.clear:
@@ -550,9 +409,9 @@ class SNMPTrapAction(object):
         log.debug('Processing SNMP Trap action.')
 
         data = _signalToContextDict(signal)
-        event = data.get('event', {})
-        eventSummary = data.get('eventSummary', {})
-        actor = event.get('actor', {})
+        eventSummary = data['eventSummary']
+        event = eventSummary
+        actor = event.get['actor']
 
         baseOID = '1.3.6.1.4.1.14296.1.100'
 

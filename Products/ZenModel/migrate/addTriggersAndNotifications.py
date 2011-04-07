@@ -22,8 +22,29 @@ from Products.ZenModel.NotificationSubscriptionWindow import NotificationSubscri
 log = logging.getLogger( 'zen.migrate' )
 
 
+def _reformatEventAttributeReference(m):
+    """method to pass to re.sub to convert the matched text to updated format"""
+
+    # some url names have evolved in description
+    newUrlNames = {
+            'deleteUrl' : 'closeUrl',
+            'undeleteUrl' : 'reopenUrl',
+            }
+
+    # most attributes are rooted at 'evt'
+    root = 'evt'
+    attrname = m.group('attr')
+    if attrname.endswith('Url'):
+        # urls have a different root
+        root = 'urls'
+        # if there is a new name, map to it; else just use the same
+        # attrname
+        attrname = newUrlNames.get(attrname, attrname)
+    return '${%s/%s}' % (root, attrname)
+
 def talesifyLegacyFormatString(s, refRe = re.compile(r"%\((?P<attr>[^)]+)\)s")):
-   return refRe.sub(lambda m : '${' + m.group('attr') + '}',s)
+    """method to convert old-style Python string interpolation to TALES syntax"""
+    return refRe.sub(_reformatEventAttributeReference, s)
 
 class TriggerRuleSourceError(Exception): pass
 

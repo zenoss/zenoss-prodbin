@@ -11,6 +11,7 @@
 #
 ###########################################################################
 
+from Products.ZenUtils.Time import LocalDateTimeFromMilli
 from Products.ZenEvents.events2.fields import EventField, EventSummaryField, ZepRawEventField
 from zenoss.protocols.protobufs.model_pb2 import DEVICE, COMPONENT
 from zenoss.protocols.protobufs.zep_pb2 import (
@@ -380,7 +381,7 @@ class EventSummaryProxy(EventProxy):
     def stateChange(self):
         t = self._eventSummary.get(EventSummaryField.STATUS_CHANGE_TIME)
         if t:
-            return t / 1000
+            return LocalDateTimeFromMilli(t)
 
     @property
     def clearid(self):
@@ -394,13 +395,13 @@ class EventSummaryProxy(EventProxy):
     def firstSeen(self):
         t = self._eventSummary.get(EventSummaryField.FIRST_SEEN_TIME)
         if t:
-            return t / 1000
+            return LocalDateTimeFromMilli(t)
 
     @property
     def lastSeen(self):
         t = self._eventSummary.get(EventSummaryField.LAST_SEEN_TIME)
         if t:
-            return t / 1000
+            return LocalDateTimeFromMilli(t)
 
     @property
     def count(self):

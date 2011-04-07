@@ -12,7 +12,10 @@
 ###########################################################################
 
 import logging
+
 log = logging.getLogger("zen.notifications")
+import re
+import textwrap
 from Globals import InitializeClass
 from Globals import DTMLFile
 from AccessControl import ClassSecurityInfo
@@ -22,7 +25,13 @@ from Products.ZenRelations.RelSchema import *
 from Products.ZenModel.ZenModelRM import ZenModelRM
 from zope.interface import implements
 from Products.ZenUtils.guid.interfaces import IGloballyIdentifiable
-from Products.ZenUtils.template import Template
+from Products.ZenUtils.Time import LocalDateTime
+from collections import defaultdict
+from Products.ZenUtils.ZenTales import talesEvalStr
+from Products.ZenEvents.events2.proxy import EventProxy, EventSummaryProxy
+from zenoss.protocols.protobufs.zep_pb2 import Event, EventSummary
+from zenoss.protocols.jsonformat import from_dict
+from zenoss.protocols.wrappers import EventSummaryAdapter
 
 def manage_addNotificationSubscriptionManager(context, REQUEST=None):
     """Create the notification subscription manager."""
@@ -72,6 +81,24 @@ def manage_addNotificationSubscription(context, id, title = None, REQUEST = None
     if REQUEST:
         REQUEST['RESPONSE'].redirect(context.absolute_url() + '/manage_main')
 
+class NoneDefaultingDict(dict):
+    def __missing__(self, key):
+        ret = NoneDefaultingDict()
+        self[key] = ret
+        return ret
+
+class NotificationEventContextWrapper(NoneDefaultingDict):
+    def __init__(self, evtsummary, clearevtsummary=None):
+        super(NotificationEventContextWrapper,self).__init__()
+        self['evt'] = EventSummaryProxy(evtsummary)
+        self['eventSummary'] = EventSummaryAdapter(evtsummary)
+        if clearevtsummary is not None:
+            self['clearEvt'] = EventSummaryProxy(clearevtsummary)
+            self['clearEventSummary'] = EventSummaryAdapter(clearevtsummary)
+        else:
+            self['clearEvt'] = NoneDefaultingDict()
+            self['clearEventSummary'] = NoneDefaultingDict()
+
 class NotificationSubscription(ZenModelRM, AdministrativeRoleable):
     """
     A subscription to a signal that produces notifications in the form of
@@ -94,26 +121,32 @@ class NotificationSubscription(ZenModelRM, AdministrativeRoleable):
     action_destination = ''
     send_initial_occurrence = True
 
-    subject_format = "[zenoss] {event.actor.element_identifier} {event.summary}"
-    body_format =  "Device: {event.actor.element_identifier}\n" \
-        "Component: {event.actor.element_sub_identifier}\n" \
-        "Severity: {event.severity}\n" \
-        "Time: {eventSummary.last_seen_time}\n" \
-        "Message:\n{event.message}\n" \
-        "<a href=\"{event.eventUrl}\">Event Detail</a>\n" \
-        "<a href=\"{event.ackUrl}\">Acknowledge</a>\n" \
-        "<a href=\"{event.deleteUrl}\">Delete</a>\n" \
-        "<a href=\"{event.eventsUrl}\">Device Events</a>\n"
+    subject_format = "[zenoss] ${evt/device} ${evt/summary}"
+    body_format =  textwrap.dedent(text = '''
+        Device: ${evt/device}
+        Component: ${evt/component}
+        Severity: ${evt/severity}
+        Time: ${evt/lastSeen}
+        Message:
+        ${evt/message}
+        <a href="${urls/eventUrl}">Event Detail</a>
+        <a href="${urls/ackUrl}">Acknowledge</a>
+        <a href="${urls/closeUrl}">Close</a>
+        <a href="${urls/eventsUrl}">Device Events</a>
+        ''')
 
-    clear_subject_format = "[zenoss] CLEAR: {event.actor.element_identifier} {event.summary}"
-    clear_body_format =  "Event: '{event.summary}'\n" \
-        "Cleared by: '{event.cleared_by_event_uuid}'\n" \
-        "At: {event.status_change_time}\n" \
-        "Device: {event.actor.element_identifier}\n" \
-        "Component: {event.actor.element_sub_identifier}\n" \
-        "Severity: {event.severity}\n" \
-        "Message:\n{event.message}\n" \
-        "<a href=\"{event.undeleteUrl}\">Undelete</a>\n"
+    clear_subject_format = "[zenoss] CLEAR: ${evt/device} ${evt/summary}/${clearEvt/summary}"
+    clear_body_format = textwrap.dedent(text = '''
+        Event: '${evt/summary}'
+        Cleared by: '${evt/id}'
+        At: ${evt/stateChange}
+        Device: ${evt/device}
+        Component: ${evt/component}
+        Severity: ${evt/severity}
+        Message:
+        ${evt/message}
+        <a href="${urls/reopenUrl}">Reopen</a>
+        ''')
 
 
     # recipients is a list of uuids that will recieve the push from this
@@ -215,16 +248,28 @@ class NotificationSubscription(ZenModelRM, AdministrativeRoleable):
             return False
 
     def getBody(self, **kwargs):
-        return Template(self.body_format).fill(**kwargs)
+        sourcestr = self.body_format
+        context = kwargs.get('here',{})
+        ret = talesEvalStr(sourcestr, context, kwargs)
+        return ret
 
     def getSubject(self, **kwargs):
-        return Template(self.subject_format).fill(**kwargs)
+        sourcestr = self.subject_format
+        context = kwargs.get('here',{})
+        ret = talesEvalStr(sourcestr, context, kwargs)
+        return ret
 
     def getClearBody(self, **kwargs):
-        return Template(self.clear_body_format).fill(**kwargs)
+        sourcestr = self.clear_body_format
+        context = kwargs.get('here',{})
+        ret = talesEvalStr(sourcestr, context, kwargs)
+        return ret
 
     def getClearSubject(self, **kwargs):
-        return Template(self.clear_subject_format).fill(**kwargs)
+        sourcestr = self.clear_subject_format
+        context = kwargs.get('here',{})
+        ret = talesEvalStr(sourcestr, context, kwargs)
+        return ret
 
 InitializeClass(NotificationSubscriptionManager)
 InitializeClass(NotificationSubscription)
