@@ -87,7 +87,11 @@ Zenoss.TemplateTreePanel = Ext.extend(Ext.tree.TreePanel, {
         if (view == Zenoss.templates.deviceClassView) {
             directFn = router.asyncGetTree;
         }
-
+        this.view = view;
+        config.listeners = config.listeners || {};
+        Ext.applyIf(config.listeners, {
+            contextmenu: Zenoss.treeContextMenu
+        });
         Ext.applyIf(config, {
             id: treeId,
             rootVisible: false,
@@ -212,7 +216,16 @@ Zenoss.TemplateTreePanel = Ext.extend(Ext.tree.TreePanel, {
         this.searchField.setRawValue('');
         this.hiddenPkgs = [];
     },
+    createDeepLinkPath: function(node) {
+        var path;
+        if (this.view != Zenoss.templates.deviceClassView) {
+            path = this.id + Ext.History.DELIMITER + node.attributes.uid;
+        }else {
+            path = this.id + Ext.History.DELIMITER + node.getPath();
+        }
 
+        return path;
+    },
     filterTree: function(e) {
         var re,
             root = this.getRootNode(),

@@ -120,15 +120,80 @@ Zenoss.HierarchyTreePanelSearch = Ext.extend(Ext.Panel, {
                 align: 'stretch'
             }
         };
-        
+
         Zenoss.HierarchyTreePanelSearch.superclass.constructor.call(this, config);
     }
 });
 
 Ext.reg('HierarchyTreePanelSearch', Zenoss.HierarchyTreePanelSearch);
 
+Zenoss.treeContextMenu = function(node, e) {
+    // Register the context node with the menu so that a Menu Item's handler function can access
+    // it via its parentMenu property.
+    var tree = node.getOwnerTree();
+    if (!tree.contextMenu) {
+        tree.contextMenu = new Ext.menu.Menu({
+            items: [{
+                ref: 'refreshtree',
+                text: _t('Refresh Tree'),
+                handler: function(item, e) {
+                    var node = item.parentMenu.contextNode,
+                    tree = node.getOwnerTree();
+                    tree.getRootNode().reload(function(){
+                        tree.getRootNode().expand();
+                        if (tree.getRootNode().childNodes.length){
+                            tree.getRootNode().childNodes[0].expand();
+                        }
+                    });
+                }
+            },{
+                ref: 'expandall',
+                text: _t('Expand All'),
+                handler: function(item, e) {
+                    var node = item.parentMenu.contextNode,
+                    tree = node.getOwnerTree();
+                    tree.expandAll();
+                }
+            },{
+                ref: 'collapsall',
+                text: _t('Collapse All'),
+                handler: function(item, e) {
+                    var node = item.parentMenu.contextNode,
+                    tree = node.getOwnerTree();
+                    tree.collapseAll();
+                    // by default we usually expand the first child
+                    tree.getRootNode().expand();
+                    if (tree.getRootNode().childNodes.length){
+                        tree.getRootNode().childNodes[0].expand();
+                    }
+                }
+            },{
+                ref: 'newwindow',
+                text: _t('Open in New Window'),
+                handler: function(item, e) {
+                    var node = item.parentMenu.contextNode,
+                    tree, path,
+                    href = window.location.protocol + "//" + window.location.host + window.location.pathname;
+                    if (node && node.attributes.uid) {
+                        tree = node.getOwnerTree();
+                        path = tree.createDeepLinkPath(node);
+                        window.open(href + "#" + path);
+                    }
+                }
+            }]
+        });
+    }
+    var c = tree.contextMenu;
+    c.contextNode = node;
+    c.showAt(e.getXY());
+};
+
 Zenoss.HierarchyTreePanel = Ext.extend(Ext.tree.TreePanel, {
     constructor: function(config) {
+        config.listeners = config.listeners || {};
+        Ext.applyIf(config.listeners, {
+            contextmenu: Zenoss.treeContextMenu
+        });
         Ext.applyIf(config, {
             cls: 'hierarchy-panel',
             useArrows: true,
@@ -248,6 +313,10 @@ Zenoss.HierarchyTreePanel = Ext.extend(Ext.tree.TreePanel, {
         } else {
             selNode();
         }
+    },
+    createDeepLinkPath: function(node) {
+        var path = this.id + Ext.History.DELIMITER + node.attributes.uid.replace(/\//g,'.');
+        return path;
     },
     getNodePathById: function(nodeId) {
         var part,
