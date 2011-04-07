@@ -33,6 +33,8 @@ $portletId.prototype = {
                         extP.portlet_settings_render(settingsSlot,
                                                      thisPortlet.datasource.extSettings);
                     }
+                    
+                    extP.portlet_render();
                 }
             },
             interval: 100
