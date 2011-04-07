@@ -76,10 +76,10 @@
             "text": "AutoFormPanel.js",
             "path": "resources/js/zenoss/form/"
         }, {
-            "text": "EventPanels.js",
+            "text": "DevicePanels.js",
             "path": "resources/js/zenoss/"
         }, {
-            "text": "DevicePanels.js",
+            "text": "EventPanels.js",
             "path": "resources/js/zenoss/"
         }, {
             "text": "InstancePanels.js",

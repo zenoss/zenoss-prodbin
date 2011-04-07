@@ -71,14 +71,20 @@ class EventsRouter(DirectRouter):
         self.catalog = ICatalogTool(context)
         self.manager = IGUIDManager(context.dmd)
 
+    def _getPathFromUuid(self, uuid):
+        if uuid:
+            path = self.manager.getPath(uuid)
+            return urllib.unquote(path)
+
     def _getNameFromUuid(self, uuid):
         """
         Given a uuid this returns the objects name
         from the catalog, it does not wake the object up
         """
-        path = self.manager.getPath(uuid)
-        brain = self.catalog.getBrain(urllib.unquote(path))
-        return brain.name
+        path = self._getPathFromUuid(uuid)
+        if path:
+            brain = self.catalog.getBrain(path)
+            return brain.name
 
     def _lookupTags(self, tags):
         """
@@ -187,13 +193,13 @@ class EventsRouter(DirectRouter):
             'severity' : eventOccurrence['severity'],
             'device' : {
                 'text': eventActor.get('element_identifier'),
-                'uid': None,
+                'uid': self._getPathFromUuid(eventActor.get('element_uuid')),
                 'url' : self._uuidUrl(eventActor.get('element_uuid')),
                 'uuid' : eventActor.get('element_uuid')
             },
             'component' : {
                 'text': eventActor.get('element_sub_identifier'),
-                'uid': None,
+                'uid': self._getPathFromUuid(eventActor.get('element_uuid')),
                 'url' : self._uuidUrl(eventActor.get('element_sub_uuid')),
                 'uuid' : eventActor.get('element_sub_uuid')
             },

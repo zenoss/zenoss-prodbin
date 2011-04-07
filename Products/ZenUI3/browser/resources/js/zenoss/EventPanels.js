@@ -264,10 +264,96 @@
     Zenoss.EventConsoleTBar = Ext.extend(Zenoss.LargeToolbar, {
         constructor: function(config){
             var gridId = config.gridId,
+                showActions = true,
+                showCommands = true,
                 tbarItems = config.tbarItems || [];
 
             if (!gridId) {
                 throw ("Event console tool bar did not receive a grid id");
+            }
+
+            // actions
+            if (Ext.isDefined(config.actionsMenu)) {
+                showActions = config.actionsMenu;
+            }
+
+            if (showActions) {
+                tbarItems.push({
+                    id: 'event-actions-menu',
+                    text: _t('Device Actions'),
+                    xtype: 'deviceactionmenu',
+                    deviceFetcher: function() {
+                        var grid = Ext.getCmp(gridId),
+                        sm = grid.getSelectionModel(),
+                        rows = sm.getSelections(),
+                        ranges = sm.getPendingSelections(true),
+                        pluck = Ext.pluck,
+                        uids = pluck(pluck(pluck(rows, 'data'), 'device'), 'uid'),
+                        opts = Ext.apply(grid.view.getFilterParams(true), {
+                            uids: uids,
+                            ranges: ranges,
+                            hashcheck: 'none'
+                        });
+                        // filter out the nulls
+                        opts.uids = Zenoss.util.filter(opts.uids, function(uid){
+                            return uid;
+                        });
+                        return opts;
+                    },
+                    saveHandler: Ext.emptyFn
+                });
+            }
+
+            // commands
+            if (Ext.isDefined(config.commandsMenu)) {
+                showCommands = config.commandsMenu;
+            }
+            if (showCommands) {
+                tbarItems.push({
+                    id: 'event-commands-menu',
+                    text: _t('Device Commands'),
+                    hidden: !showCommands,
+                    disabled: Zenoss.Security.doesNotHavePermission('Run Commands'),
+                    setContext: function(uid) {
+                        if (!uid) {
+                            uid = '/zport/dmd/Devices';
+                        }
+                        var me = Ext.getCmp('event-commands-menu'),
+                            menu = me.menu;
+                        // load the available commands from the server
+                        // commands are based on context
+                        Zenoss.remote.DeviceRouter.getUserCommands({uid:uid}, function(data) {
+                            menu.removeAll();
+                            Ext.each(data, function(d) {
+                                menu.add({
+                                    text:d.id,
+                                    tooltip:d.description,
+                                    handler: function(item) {
+                                        var command = item.text,
+                                            grid = Ext.getCmp(gridId),
+                                            sm = grid.getSelectionModel(),
+                                            selections = sm.getSelections(),
+                                            devids = Ext.pluck(Ext.pluck(Ext.pluck(selections, 'data'), 'device'), 'uid');
+
+                                        // filter out the none device events
+                                        devids = Zenoss.util.filter(devids, function(uid){ return uid; });
+                                        if (devids.length) {
+
+                                            // only run commands for the visible devices
+                                            var win = new Zenoss.CommandWindow({
+                                                uids: devids,
+                                                target: uid + '/run_command',
+                                                command: command
+                                            });
+                                            win.show();
+                                        }
+                                    }
+                                });
+                            });
+                        });
+                    },
+                    menu: {}
+                });
             }
             this.gridId = gridId;
 
@@ -353,6 +439,13 @@
                                 box.setText(_t(''));
                             }
                         });
+                        // set up the commands menu
+                        var context = Zenoss.env.device_uid || Zenoss.env.PARENT_CONTEXT;
+                        if (context == "/zport/dmd/Events") {
+                            context = location.pathname.replace('/viewEvents', '');
+                        }
+
+                        this.setContext(context);
                     },
                     scope: this
                 },
@@ -531,6 +624,12 @@
                 dt = new Date(),
                 dtext = dt.format('g:i:sA');
             box.setText(_t('Last updated at ') + dtext);
+        },
+        setContext: function(uid) {
+            var commands = Ext.getCmp('event-commands-menu');
+            if (commands) {
+                commands.setContext(uid);
+            }
         }
     });
 
@@ -935,7 +1034,9 @@
             var evtGrid = this;
             Ext.applyIf(config, {
                 tbar: new Zenoss.EventConsoleTBar({
-                    gridId: config.id
+                    gridId: config.id,
+                    actionsMenu: config.actionsMenu,
+                    commandsMenu: config.commandsMenu
                 })
             });
             Zenoss.EventGridPanel.superclass.constructor.call(this, config);
@@ -948,6 +1049,10 @@
             url = '/zport/dmd/Events/view'+history+'Detail?evid='+evid;
             window.open(url, evid.replace(/-/g,'_'),
                         "status=1,width=600,height=500");
+        },
+        setContext: function(uid){
+            Zenoss.EventGridPanel.superclass.setContext.call(this, uid);
+            this.getTopToolbar().setContext(uid);
         }
     });
     Ext.reg('EventGridPanel', Zenoss.EventGridPanel);

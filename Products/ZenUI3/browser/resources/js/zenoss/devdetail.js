@@ -523,6 +523,8 @@ var event_console = Ext.create({
     id: 'device_events',
     stateId: 'device_events',
     newwindowBtn: true,
+    actionsMenu: false,
+    commandsMenu: false,
     columns: deviceColumnDefinitions()
 });
 

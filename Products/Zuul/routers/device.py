@@ -339,7 +339,7 @@ class DeviceRouter(TreeRouter):
                     params=None, sort='name', dir='ASC'):
         """
         Moves the devices specified by uids to the organizer specified by 'target'.
-        
+
         @type  uids: [string]
         @param uids: List of device uids to move
         @type  target: string
@@ -597,7 +597,8 @@ class DeviceRouter(TreeRouter):
         facade = self._getFacade()
         try:
             facade.setProductionState(uids, prodState)
-            return DirectResponse()
+            return DirectResponse('Set %s devices to %s.' % (
+                len(uids), self.context.convertProdState(prodState)))
         except Exception, e:
             log.exception(e)
             return DirectResponse.fail('Failed to change production state.')
@@ -1066,7 +1067,7 @@ class DeviceRouter(TreeRouter):
         deviceClasses = devices.getOrganizerNames(addblank=True)
         result = [{'name': name} for name in deviceClasses]
         return DirectResponse(deviceClasses=result, totalCount=len(result))
-    
+
     def getSystems(self, **data):
         """
         Get a list of all systems.
@@ -1079,7 +1080,7 @@ class DeviceRouter(TreeRouter):
         systems = self.context.dmd.Systems.getOrganizerNames()
         result = [{'name': name} for name in systems if name != '/']
         return DirectResponse(systems=result, totalCount=len(result))
-    
+
     def getGroups(self, **data):
         """
         Get a list of all groups.
@@ -1092,7 +1093,7 @@ class DeviceRouter(TreeRouter):
         groups = self.context.dmd.Groups.getOrganizerNames()
         result = [{'name': name} for name in groups if name != '/']
         return DirectResponse(groups=result, totalCount=len(result))
-    
+
     def getLocations(self, **data):
         """
         Get a list of all locations.

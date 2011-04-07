@@ -200,5 +200,271 @@ Zenoss.DeviceGridPanel = Ext.extend(Zenoss.FilterGridPanel,{
 });
 Ext.reg('DeviceGridPanel', Zenoss.DeviceGridPanel);
 
+/**********************************************************************
+ *
+ * Device Actions
+ *
+ */
+function disableSendEvent() {
+    var cbs = Ext.getCmp('lockingchecks').getValue(),
+        sendEvent = Ext.getCmp('send-event-checkbox');
+    cbs.remove(sendEvent);
+    sendEvent.setDisabled(Ext.isEmpty(cbs));
+}
+    /**
+     * Drop down of action items that you can use against
+     * a device. The two required parameters are
+     *@param 1. saveHandler = function to be called after the action (refresh the grid etc)
+     *@param 2. deviceFetcher = function that returns the list of device records
+     *@class DeviceActionMenu
+     *@extends Ext.Button
+     **/
+    var DeviceActionMenu = Ext.extend(Ext.Button, {
+        constructor: function(config) {
+            config = config || {};
+            if (!config.saveHandler) {
+                throw "Device Action Menu did not receive a save handler";
+            }
+            if (!config.deviceFetcher) {
+                throw "Device Action Menu did not receive a device fetcher";
+            }
+            var fetcher = config.deviceFetcher,
+                saveHandler = config.saveHandler,
+                REMOTE = Zenoss.remote.DeviceRouter;
+
+            Ext.applyIf(config, {
+                text: _t('Actions'),
+                disabled: Zenoss.Security.doesNotHavePermission('Delete Device'),
+                menu: {
+                    items: [
+                        new Zenoss.Action({
+                            text: _t('Lock Devices') + '...',
+                            iconCls: 'lock',
+                            permission: 'Change Device',
+                            handler: function() {
+                                var win = new Zenoss.FormDialog({
+                                    title: _t('Lock Devices'),
+                                    modal: true,
+                                    width: 310,
+                                    height: 220,
+                                    items: [{
+                                        xtype: 'checkboxgroup',
+                                        id: 'lockingchecks',
+                                        columns: 1,
+                                        style: 'margin: 0 auto',
+                                        items: [{
+                                            name: 'updates',
+                                            id: 'lock-updates-checkbox',
+                                            boxLabel: _t('Lock from updates'),
+                                            handler: disableSendEvent
+                                        },{
+                                            name: 'deletion',
+                                            id: 'lock-deletion-checkbox',
+                                            boxLabel: _t('Lock from deletion'),
+                                            handler: disableSendEvent
+                                        },{
+                                            name: 'sendEvent',
+                                            id: 'send-event-checkbox',
+                                            boxLabel: _t('Send an event when an action is blocked'),
+                                            disabled: true
+                                        }]
+                                    }],
+                                    buttons: [{
+                                        xtype: 'DialogButton',
+                                        text: _t('Lock'),
+                                        handler: function() {
+                                            var cbs = Ext.getCmp('lockingchecks').getValue(),
+                                            opts = fetcher();
+                                            Ext.each(cbs, function(cb) {
+                                                opts[cb.name] = true;
+                                            });
+                                            REMOTE.lockDevices(opts, saveHandler);
+                                        }
+                                    }, Zenoss.dialog.CANCEL
+                                             ]
+                                });
+                                win.show();
+                            }
+                        }),
+                        new Zenoss.Action({
+                            text: _t('Reset IP'),
+                            iconCls: 'set',
+                            permission: 'Change Device',
+                            handler: function(){
+                                Ext.Msg.show({
+                                    title: _t('Reset IP'),
+                                    msg: _t('Are you sure you want to reset the IP addresses of ' +
+                                            'these devices to the results of a DNS lookup?'),
+                                    buttons: Ext.Msg.YESNO,
+                                    fn: function(r){
+                                        switch(r) {
+                                          case 'no':
+                                            break;
+                                          case 'yes':
+                                            REMOTE.resetIp(fetcher(), saveHandler);
+                                            break;
+                                        default:
+                                            break;
+                                        }
+                                    }
+                                });
+                            }
+                        }),
+                        /*
+                         * Currently causes a bus error on multiple devices: http://dev.zenoss.org/trac/ticket/6142
+                         * Commenting out until that is fixed
+                         *
+                        resetCommunity: new Zenoss.Action({
+                            text: _t('Reset Community'),
+                            iconCls: 'set',
+                            permission: 'Change Device',
+                            handler: function(){
+                                Ext.Msg.show({
+                                    title: _t('Reset Community'),
+                                    msg: _t('Are you sure you want to reset the SNMP '+
+                                            'community strings of these devices?'),
+                                    buttons: Ext.Msg.YESNO,
+                                    fn: function(r) {
+                                        switch(r) {
+                                          case 'no':
+                                            break;
+                                          case 'yes':
+                                            REMOTE.resetCommunity(gridOptions(), resetGrid);
+                                            break;
+                                        default:
+                                            break;
+                                        }
+                                    }
+                                });
+                            }
+                        }),
+                        */
+                        new Zenoss.Action({
+                            text: _t('Set Production State')+'...',
+                            iconCls: 'set',
+                            permission: 'Change Device Production State',
+                            handler: function(){
+                                var win = new Zenoss.FormDialog({
+                                    title: _t('Set Production State'),
+                                    modal: true,
+                                    width: 310,
+                                    height: 150,
+                                    items: [{
+                                        xtype: 'ProductionStateCombo',
+                                        fieldLabel: _t('Select a production state'),
+                                        id: 'prodstate',
+                                        listeners: {
+                                            'select': function(){
+                                                Ext.getCmp('prodstateok').enable();
+                                            }
+                                        }
+                                    }],
+                                    buttons: [{
+                                        xtype: 'DialogButton',
+                                        id: 'prodstateok',
+                                        disabled: true,
+                                        text: _t('OK'),
+                                        handler: function(){
+                                            var opts = Ext.apply(fetcher(), {
+                                                prodState:Ext.getCmp('prodstate').getValue()
+                                            });
+                                            REMOTE.setProductionState(opts, saveHandler);
+                                        }
+                                    }, Zenoss.dialog.CANCEL
+                                             ]
+                                });
+                                win.show();
+                            }
+                        }),
+                        new Zenoss.Action({
+                            text: _t('Set Priority')+'...',
+                            iconCls: 'set',
+                            permission: 'Change Device',
+                            handler: function(){
+                                var win = new Zenoss.FormDialog({
+                                    title: _t('Set Priority'),
+                                    modal: true,
+                                    width: 310,
+                                    height: 150,
+                                    items: [{
+                                        xtype: 'PriorityCombo',
+                                        id: 'priority',
+                                        fieldLabel: _t('Select a priority'),
+                                        listeners: {
+                                            'select': function(){
+                                                Ext.getCmp('priorityok').enable();
+                                            }
+                                        }
+                                    }],
+                                    buttons: [{
+                                        xtype: 'DialogButton',
+                                        id: 'priorityok',
+                                        disabled: true,
+                                        text: _t('OK'),
+                                        handler: function(){
+                                            var opts = Ext.apply(fetcher(), {
+                                                priority: Ext.getCmp('priority').getValue()
+                                            });
+                                            REMOTE.setPriority(opts, saveHandler);
+                                        }
+                                    }, Zenoss.dialog.CANCEL
+                                             ]
+                                });
+                                win.show();
+                            }
+                        }),
+                        new Zenoss.Action({
+                            text: _t('Set Collector') + '...',
+                            iconCls: 'set',
+                            permission: 'Change Device',
+                            handler: function(){
+                                var win = new Zenoss.FormDialog({
+                                    title: _t('Set Collector'),
+                                    modal: true,
+                                    width: 310,
+                                    height: 150,
+                                    items: [{
+                                        xtype: 'combo',
+                                        fieldLabel: _t('Select a collector'),
+                                        id: 'collector',
+                                        mode: 'local',
+                                        store: new Ext.data.ArrayStore({
+                                            data: Zenoss.env.COLLECTORS,
+                                            fields: ['name']
+                                        }),
+                                        valueField: 'name',
+                                        displayField: 'name',
+                                        forceSelection: true,
+                                        editable: false,
+                                        listeners: {
+                                            'select': function(){
+                                                Ext.getCmp('collectorok').enable();
+                                            }
+                                        }
+                                    }],
+                                    buttons: [{
+                                        xtype: 'DialogButton',
+                                        id: 'collectorok',
+                                        disabled: true,
+                                        text: _t('OK'),
+                                        handler: function(){
+                                            var opts = Ext.apply(fetcher(), {
+                                                collector: Ext.getCmp('collector').getValue()
+                                            });
+                                            REMOTE.setCollector(opts, saveHandler);
+                                        }
+                                    }, Zenoss.dialog.CANCEL
+                                             ]
+                                });
+                                win.show();
+                            }
+                        })]
+                }
+            });
+            DeviceActionMenu.superclass.constructor.apply(this, arguments);
+        }
+    });
+    Ext.reg('deviceactionmenu', DeviceActionMenu);
+
 
 })(); // end of function namespace scoping
