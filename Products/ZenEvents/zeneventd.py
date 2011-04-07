@@ -13,11 +13,14 @@
 import os
 import signal
 import multiprocessing
+import time
+import socket
 
 import Globals
 from zope.component import getUtilitiesFor
 from zope.interface import implements
 
+from amqplib.client_0_8.exceptions import AMQPConnectionException
 from Products.ZenMessaging.queuemessaging.interfaces import IQueueConsumerTask
 from Products.ZenUtils.ZCmdBase import ZCmdBase
 from Products.ZenUtils.ZenDaemon import ZenDaemon
@@ -126,15 +129,34 @@ class EventDWorker(ZCmdBase):
 
     def run(self):
         task = ProcessEventMessageTask(self.dmd)
-        self._pubsub = getProtobufPubSub('$RawZenEvents')
-        self._pubsub.registerHandler('$RawEvent', task)
-        self._pubsub.registerExchange('$ZepZenEvents')
-        try:
-            self._pubsub.run()
-        except KeyboardInterrupt:
-            pass
-        finally:
-            self._pubsub.shutdown()
+        self._listen(task)
+
+    def _listen(self, task, retry_wait=30):
+        self._pubsub = None
+        keepTrying = True
+        sleep = 0
+        while keepTrying:
+            try:
+                if sleep:
+                    log.info("Waiting %s seconds to reconnect..." % sleep)
+                    time.sleep(sleep)
+                    sleep = min(retry_wait, sleep * 2)
+                else:
+                    sleep = .1
+                log.info("Connecting to RabbitMQ...")
+                self._pubsub = getProtobufPubSub('$RawZenEvents')
+                self._pubsub.registerHandler('$RawEvent', task)
+                self._pubsub.registerExchange('$ZepZenEvents')
+                #reset sleep time
+                sleep=0
+                self._pubsub.run()
+            except (socket.error, AMQPConnectionException) as e:
+                log.warn("RabbitMQ Connection error %s" % e)
+            except KeyboardInterrupt:
+                keepTrying = False
+            finally:
+                if self._pubsub:
+                    self._pubsub.shutdown()
 
     def buildOptions(self):
         super(EventDWorker, self).buildOptions()
