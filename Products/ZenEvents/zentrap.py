@@ -61,15 +61,9 @@ family = [('family', c.c_ushort)]
 if sys.platform == 'darwin':
     family = [('len', c.c_ubyte), ('family', c.c_ubyte)]
 
-class sockaddr_in(c.Structure):
-    _fields_ = family + [
-        ('port', c.c_ubyte * 2),        # need to decode from net-byte-order
-        ('addr', c.c_ubyte * 4)
-        ];
-
 class sockaddr_in6(c.Structure):
     _fields_ = family + [
-        ('port', c.c_ubyte * 2),        # need to decode from net-byte-order
+        ('port', c.c_ushort),        # need to decode from net-byte-order
         ('flow', c.c_ubyte * 4),
         ('addr', c.c_ubyte * 16),
         ('scope_id', c.c_ubyte * 4)
@@ -133,11 +127,6 @@ class SnmpTrapPreferences(CaptureReplay):
         parser.add_option('--trapport', '-t',
             dest='trapport', type='int', default=TRAP_PORT,
             help="Listen for SNMP traps on this port rather than the default")
-        parser.add_option('--listenip',
-            # FIXME: need :: to listen on all IPv6 + IPv4
-            #dest='listenip', default='::',
-            dest='listenip', default='0.0.0.0',
-            help="IP address to listen on. Default is ::")
         parser.add_option('--useFileDescriptor',
                                dest='useFileDescriptor',
                                type='int',
@@ -151,7 +140,6 @@ class SnmpTrapPreferences(CaptureReplay):
         # Ensure that we always have an oidMap
         daemon = zope.component.getUtility(ICollector)
         daemon.oidMap = {}
-
 
 class TrapTask(BaseTask, CaptureReplay):
     """
@@ -184,27 +172,24 @@ class TrapTask(BaseTask, CaptureReplay):
         # Command-line argument sanity checking
         self.processCaptureReplayOptions()
 
-        # Check for IPv6-ness
-        listenip = self.options.listenip
-        #if IPAddress(listenip).version == 6:
-        #    listenip = 'udp6:' + listenip
-
         trapPort = self._preferences.options.trapport
         if not self._preferences.options.useFileDescriptor and trapPort < 1024:
-            # Makes call to zensocket here
-            self._daemon.openPrivilegedPort('--listen', '--proto=udp',
-                '--port=%s:%d' % (listenip, trapPort))
+            # Makes call to zensocket here (does an exec* so it never returns)
+            self._daemon.openPrivilegedPort('--listen', '--proto=udp', '--port=ipv6:%d' % trapPort)
+            self.log("Unexpected return from openPrivilegedPort. Exiting.")
+            sys.exit(1)
 
         # Start listening for SNMP traps
         self.log.info("Starting to listen on SNMP trap port %s", trapPort)
         self.session = netsnmp.Session()
         if self._preferences.options.useFileDescriptor is not None:
-            fileno = int(self._preferences.options.useFileDescriptor)
             # open port 1162, but then dup fileno onto it
-            self.session.awaitTraps('%s:1162' % listenip, fileno)
+            listening_address = 'udp6:1162'
+            fileno = int(self._preferences.options.useFileDescriptor)
         else:
-            # NOTE: on bad input listenip, pukes with SnmpError exception
-            self.session.awaitTraps('%s:%d' % (listenip, trapPort))
+            listening_address = 'udp6:%d' % trapPort
+            fileno = -1
+        self.session.awaitTraps(listening_address, fileno)
         self.session.callback = self.receiveTrap
         twistedsnmp.updateReactor()
 
@@ -357,73 +342,57 @@ class TrapTask(BaseTask, CaptureReplay):
         @param pdu: Net-SNMP object
         @type pdu: netsnmp_pdu object
         """
-        ts = time.time()
-
-        # Is it a trap?
-        if pdu.sessid != 0: return
-
-        if pdu.version not in [ SNMPv1, SNMPv2 ]:
+        if pdu.version not in (SNMPv1, SNMPv2):
             self.log.error("Unable to handle trap version %d", pdu.version)
             return
-
-        # What address did it come from?
-        #   for now, we'll make the scary assumption this data is a
-        #   sockaddr_in
-        transport = c.cast(pdu.transport_data, c.POINTER(sockaddr_in))
-        if not transport:
-            self.log.warn("Not able to convert a trap into a readable object -- ignoring")
+        if pdu.transport_data is None:
+            self.log.error("PDU does not contain transport data")
             return
-
-        if transport.contents.family == socket.AF_INET6:
-            transport = c.cast(pdu.transport_data, c.POINTER(sockaddr_in6))
-            if not transport:
-                self.log.warn("Not able to convert a trap into a readable object -- ignoring")
-                return
-
-        transport = transport.contents
-
-        #  Just to make sure, check to see that it is type AF_INET or AF_INET6
-        if transport.family not in (socket.AF_INET, socket.AF_INET6):
-            self.log.warn("Got a packet with unrecognized network family: %s",
-                          transport.family)
+        if pdu.transport_data_length < c.sizeof(sockaddr_in6):
+            self.log.error("PDU transport data is too small for sockaddr_in6 struct.")
             return
+        
+        ipv6_socket_address = c.cast(pdu.transport_data, c.POINTER(sockaddr_in6)).contents
+        
+        if ipv6_socket_address.family != socket.AF_INET6:
+            self.log.error("Got a packet with unrecognized network family: %s", ipv6_socket_address.family)
+            return
+        
+        ip_address = self.getPacketIp(ipv6_socket_address.addr)
+        port = socket.ntohs(ipv6_socket_address.port)
+        self.log.debug( "Received packet from %s at port %s" % (ip_address, port) )
+        self.processPacket(ip_address, port, pdu, time.time())
 
-        # get the address out as ( host-ip, port)
-        addr = [self.getPacketIp(transport), transport.port[0] << 8 | transport.port[1]]
-
-        self.log.debug( "Received packet from %s at port %s" % (addr[0], addr[1]) )
-        self.processPacket(addr, pdu, ts)
-
-    def getPacketIp(self, transport):
+    def getPacketIp(self, addr):
         """
         For IPv4, convert a pointer to 4 bytes to a dotted-ip-address
         For IPv6, convert a pointer to 16 bytes to a canonical IPv6 address.
         """
-        if transport.family == socket.AF_INET:
-            return '.'.join([str(transport.addr[i]) for i in range(4)])
-        elif transport.family == socket.AF_INET6:
-            # To form an IPv6 address, need to combine pairs of octets (in hex)
-            # and join them with a colon
-            self.log.error("transport.addr = %s", [i for i in transport.addr])
-            ipv6 = ':'.join([ "%x%x" % tuple(map(int, x)) \
-                                  for x in zip(transport.addr[::2], transport.addr[1::2]) ])
-            # Now canonicalize the IP
+        
+        def _gen_byte_pairs():
+            for left, right in zip(addr[::2], addr[1::2]):
+                yield "%.2x%.2x" % (left, right)
+        
+        if self.log.isEnabledFor(logging.DEBUG):
+            all_hex = ["%x" % i for i in addr]
+            self.log.debug("getPacketIp: %s (%s)" % (all_hex, addr[-4:]))
+        
+        v4_mapped_prefix = [0x00] * 10 + [0xff] * 2
+        if addr[:len(v4_mapped_prefix)] == v4_mapped_prefix:
+            ip_address = '.'.join(str(i) for i in addr[-4:])
+        else:
             try:
-                ip = str(IPAddress(ipv6))
-                return ip
+                basic_v6_address = ':'.join(_gen_byte_pairs())
+                ip_address = str(IPAddress(basic_v6_address, 6))
             except ValueError:
                 self.log.warn("The IPv6 address is incorrect: %s", ipv6)
-                return "::"
+                ip_address = "::"
+        return ip_address
 
-        self.log.error("Unknown address family %s", transport.family)
-        return "0.0.0.0"
-
-    def processPacket(self, addr, pdu, ts):
+    def processPacket(self, ip_address, port, pdu, ts):
         """
         Wrapper around asyncHandleTrap to process the provided packet.
 
-        @param addr: packet-sending host's IP address, port info
-        @type addr: ( host-ip, port)
         @param pdu: Net-SNMP object
         @type pdu: netsnmp_pdu object
         @param ts: time stamp
@@ -448,8 +417,7 @@ class TrapTask(BaseTask, CaptureReplay):
             netsnmp.lib.snmp_free_pdu(dup)
             return result
 
-        d = defer.maybeDeferred(self.asyncHandleTrap,
-                                addr, dup.contents, ts)
+        d = defer.maybeDeferred(self.asyncHandleTrap, (ip_address, port), dup.contents, ts)
         d.addBoth(cleanup)
 
     def _value_from_dateandtime(self, value):
