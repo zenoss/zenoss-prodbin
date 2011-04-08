@@ -72,8 +72,8 @@ class EventsRouter(DirectRouter):
         self.manager = IGUIDManager(context.dmd)
 
     def _getPathFromUuid(self, uuid):
-        if uuid:
-            path = self.manager.getPath(uuid)
+        path = self.manager.getPath(uuid)
+        if path:
             return urllib.unquote(path)
 
     def _getNameFromUuid(self, uuid):
@@ -172,18 +172,14 @@ class EventsRouter(DirectRouter):
         return tags
 
     def _mapToOldEvent(self, event_summary):
+
         eventOccurrence = event_summary['occurrence'][0]
         eventActor = eventOccurrence['actor']
-
         eventClass = eventOccurrence['event_class']
-
         eventDetails = self._findDetails(eventOccurrence)
+
         # TODO: Finish mapping out these properties.
-        notYetMapped = ''
-
-
         tags = self._getTagsFromOccurrence(eventOccurrence)
-
         event = {
             'id' : event_summary['uuid'],
             'evid' : event_summary['uuid'],
@@ -192,13 +188,13 @@ class EventsRouter(DirectRouter):
             'eventState' : EventStatus.getPrettyName(event_summary['status']),
             'severity' : eventOccurrence['severity'],
             'device' : {
-                'text': eventActor.get('element_identifier'),
+                'text': self._getNameFromUuid(eventActor.get('element_uuid')) or eventActor.get('element_identifier'),
                 'uid': self._getPathFromUuid(eventActor.get('element_uuid')),
                 'url' : self._uuidUrl(eventActor.get('element_uuid')),
                 'uuid' : eventActor.get('element_uuid')
             },
             'component' : {
-                'text': eventActor.get('element_sub_identifier'),
+                'text': self._getNameFromUuid(eventActor.get('element_sub_identifier')) or eventActor.get('element_identifier'),
                 'uid': self._getPathFromUuid(eventActor.get('element_uuid')),
                 'url' : self._uuidUrl(eventActor.get('element_sub_uuid')),
                 'uuid' : eventActor.get('element_sub_uuid')
@@ -500,13 +496,13 @@ class EventsRouter(DirectRouter):
         # TODO: Update this mapping to more reflect _mapToOldEvent.
         eventData = {
             'evid':event_summary['uuid'],
-            'device':eventActor.get('element_identifier'),
-            'device_title':eventActor.get('element_identifier'),
+            'device': self._getNameFromUuid(eventActor.get('element_uuid')) or eventActor.get('element_identifier'),
+            'device_title': self._getNameFromUuid(eventActor.get('element_uuid')) or eventActor.get('element_identifier'),
             'device_url':self._uuidUrl(eventActor.get('element_uuid')),
             'ipAddress': eventDetails.get('ipAddress'),
             'device_uuid':eventActor.get('element_uuid'),
-            'component':eventActor.get('element_sub_identifier'),
-            'component_title':eventActor.get('element_sub_identifier'),
+            'component':self._getNameFromUuid(eventActor.get('element_sub_identifier')) or eventActor.get('element_identifier'),
+            'component_title':self._getNameFromUuid(eventActor.get('element_sub_identifier')) or eventActor.get('element_identifier'),
             'component_url':self._uuidUrl(eventActor.get('element_sub_uuid')),
             'component_uuid':eventActor.get('element_sub_uuid'),
             'firstTime':isoDateTimeFromMilli(event_summary['first_seen_time']),
