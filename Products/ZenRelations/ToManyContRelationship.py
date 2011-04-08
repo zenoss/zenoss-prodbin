@@ -48,7 +48,7 @@ def manage_addToManyContRelationship(context, id, REQUEST=None):
     context._setObject(rel.id, rel)
     if REQUEST:
         REQUEST['RESPONSE'].redirect(context.absolute_url()+'/manage_main')
-    return rel.id 
+    return rel.id
 
 
 addToManyContRelationship = DTMLFile('dtml/addToManyContRelationship',globals())
@@ -56,7 +56,7 @@ addToManyContRelationship = DTMLFile('dtml/addToManyContRelationship',globals())
 
 class ToManyContRelationship(ToManyRelationshipBase):
     """
-    ToManyContRelationship is the ToMany side of a realtionship that 
+    ToManyContRelationship is the ToMany side of a realtionship that
     contains its related objects (like the normal Zope ObjectManager)
     """
 
@@ -69,6 +69,7 @@ class ToManyContRelationship(ToManyRelationshipBase):
         """set our instance values"""
         self.id = id
         self._objects = OOBTree()
+        self._count = 0
 
 
     def _safeOfObjects(self):
@@ -151,6 +152,7 @@ class ToManyContRelationship(ToManyRelationshipBase):
         if v is not None: id=v
         self._objects[id] = aq_base(obj)
         obj = aq_base(obj).__of__(self)
+        self._count += 1
 
 
     def _remove(self, obj=None, suppress_events=False):
@@ -173,6 +175,7 @@ class ToManyContRelationship(ToManyRelationshipBase):
         if not suppress_events:
             for robj in objs:
                 notify(ObjectRemovedEvent(robj, self, robj.getId()))
+        self._count = len(self._objects)
 
 
     def _remoteRemove(self, obj=None):
@@ -188,7 +191,7 @@ class ToManyContRelationship(ToManyRelationshipBase):
         for obj in objs:
             rel = getattr(obj, remoteName)
             rel._remove(self.__primary_parent__)
-   
+
 
     def _getOb(self, id, default=zenmarker):
         """look up in our local store and wrap in our aq_chain"""
@@ -253,7 +256,7 @@ class ToManyContRelationship(ToManyRelationshipBase):
 
     def _getCopy(self, container):
         """
-        make new relation add copies of contained objs 
+        make new relation add copies of contained objs
         and refs if the relation is a many to many
         """
         rel = self.__class__(self.id)
@@ -280,7 +283,7 @@ class ToManyContRelationship(ToManyRelationshipBase):
     def exportXml(self, ofile, ignorerels=[]):
         """Return an xml representation of a ToManyContRelationship
         <tomanycont id='interfaces'>
-            <object id='hme0' 
+            <object id='hme0'
                 module='Products.Confmon.IpInterface' class='IpInterface'>
                 <property></property> etc....
             </object>
@@ -291,6 +294,30 @@ class ToManyContRelationship(ToManyRelationshipBase):
         for obj in self.objectValues():
             obj.exportXml(ofile, ignorerels)
         ofile.write("</tomanycont>\n")
+
+
+    def checkRelation(self, repair=False):
+        """Check to make sure that relationship bidirectionality is ok.
+        """
+        if len(self._objects):
+            log.debug("checking relation: %s", self.id)
+        else:
+            return
+
+        # look for objects that don't point back to us
+        # or who should no longer exist in the database
+        remoteName = self.remoteName()
+        parentObject = self.getPrimaryParent()
+        for obj in self._objects.values():
+            rrel = getattr(obj, remoteName)
+            if not rrel.hasobject(parentObject):
+                log.error("remote relation %s doesn't point back to %s",
+                                rrel.getPrimaryId(), self.getPrimaryId())
+                if repair:
+                    log.warn("reconnecting relation %s to relation %s",
+                            rrel.getPrimaryId(),self.getPrimaryId())
+                    rrel._add(parentObject)
+
 
 
 InitializeClass(ToManyContRelationship)
