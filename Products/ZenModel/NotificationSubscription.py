@@ -27,7 +27,7 @@ from zope.interface import implements
 from Products.ZenUtils.guid.interfaces import IGloballyIdentifiable
 from Products.ZenUtils.Time import LocalDateTime
 from collections import defaultdict
-from Products.ZenUtils.ZenTales import talesEvalStr
+from Products.ZenUtils.ZenTales import talesEvalStr, talEval
 from Products.ZenEvents.events2.proxy import EventProxy, EventSummaryProxy
 from zenoss.protocols.protobufs.zep_pb2 import Event, EventSummary
 from zenoss.protocols.jsonformat import from_dict
@@ -250,25 +250,29 @@ class NotificationSubscription(ZenModelRM, AdministrativeRoleable):
     def getBody(self, **kwargs):
         sourcestr = self.body_format
         context = kwargs.get('here',{})
-        ret = talesEvalStr(sourcestr, context, kwargs)
+        context.update(kwargs)
+        ret = talEval(sourcestr, context, kwargs)
         return ret
 
     def getSubject(self, **kwargs):
         sourcestr = self.subject_format
         context = kwargs.get('here',{})
-        ret = talesEvalStr(sourcestr, context, kwargs)
+        context.update(kwargs)
+        ret = talEval(sourcestr, context, kwargs)
         return ret
 
     def getClearBody(self, **kwargs):
         sourcestr = self.clear_body_format
         context = kwargs.get('here',{})
-        ret = talesEvalStr(sourcestr, context, kwargs)
+        context.update(kwargs)
+        ret = talEval(sourcestr, context, kwargs)
         return ret
 
     def getClearSubject(self, **kwargs):
         sourcestr = self.clear_subject_format
         context = kwargs.get('here',{})
-        ret = talesEvalStr(sourcestr, context, kwargs)
+        context.update(kwargs)
+        ret = talEval(sourcestr, context, kwargs)
         return ret
 
 InitializeClass(NotificationSubscriptionManager)
