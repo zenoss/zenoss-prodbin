@@ -162,6 +162,11 @@ class EventProxy(object):
     
     DEVICE_PRIORITY_DETAIL_KEY = "zenoss.device.priority"
     PRODUCTION_STATE_DETAIL_KEY = "zenoss.device.production_state"
+    DEVICE_IP_ADDRESS_DETAIL_KEY = 'zenoss.device.ip_address'
+    DEVICE_SYSTEMS_DETAIL_KEY = 'zenoss.device.systems'
+    DEVICE_GROUPS_DETAIL_KEY = 'zenoss.device.groups'
+    DEVICE_LOCATION_DETAIL_KEY = 'zenoss.device.location'
+    DEVICE_CLASS_DETAIL_KEY = 'zenoss.device.device_class'
 
     def __init__(self, eventProtobuf):
         self.__dict__['_event'] = ProtobufWrapper(eventProtobuf)
@@ -322,20 +327,28 @@ class EventProxy(object):
         self._event.set(EventField.EVENT_KEY, val)
 
     @property
-    def ipAddress(self):
-        return self.details.get('ipAddress')
-
-    @ipAddress.setter
-    def ipAddress(self, val):
-        self.details.set('ipAddress', val)
-
-    @property
     def eventGroup(self):
         return self._event.get(EventField.EVENT_GROUP)
 
     @eventGroup.setter
     def eventGroup(self, val):
         self._event.set(EventField.EVENT_GROUP, val)
+
+    @property
+    def ipAddress(self):
+        return self.details.get(EventProxy.DEVICE_IP_ADDRESS_DETAIL_KEY)
+
+    @ipAddress.setter
+    def ipAddress(self, val):
+        self.details.set(EventProxy.DEVICE_IP_ADDRESS_DETAIL_KEY, val)
+
+    @property
+    def DeviceClass(self):
+        return self.details.get(EventProxy.DEVICE_CLASS_DETAIL_KEY)
+
+    @DeviceClass.setter
+    def DeviceClass(self, val):
+        self.details.set(EventProxy.DEVICE_CLASS_DETAIL_KEY, val)
 
     def setReadOnly(self, name, value):
         """

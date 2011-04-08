@@ -15,139 +15,31 @@ from Products.ZenUtils.jsonutils import json
 
 
 new_name_mapping = {
-    ### evt context items:
-
-    # This mapping has been confirmed.
-    # Currently exists in current trigger plugin.
-    # Confirmed exists in RuleBuilder subjects.
     'eventClass':'evt.event_class',
-
-    # This mapping has been confirmed.
-    # Currently exists in current trigger plugin.
-    # Confirmed exists in RuleBuilder subjects.
     'summary':'evt.summary',
-
-    # This mapping has been confirmed.
-    # Currently exists in current trigger plugin.
-    # Confirmed exists in RuleBuilder subjects.
     'message':'evt.message',
-
-    # This is here for completeness - I just wanted to make sure I accounted for
-    # all of the provided context in the current trigger plugin. There are some
-    # new things made available, like 'fingerprint', that were not available to
-    # previous rules.
-    # There is no reason to include it in the actual mapping.
-    # Confirmed exists in RuleBuilder subjects.
-    # 'fingerprint' : 'evt.fingerprint'
-
-    # This mapping has been confirmed.
-    # Currently exists in current trigger plugin.
-    # Confirmed exists in RuleBuilder subjects.
     'eventKey':'evt.event_key',
-
-    # This mapping has been confirmed.
-    # Currently exists in current trigger plugin.
-    # Confirmed exists in RuleBuilder subjects.
     'agent':'evt.agent',
-
-    # This mapping has been confirmed (manager -> monitor).
-    # Currently exists in current trigger plugin.
-    # Confirmed exists in RuleBuilder subjects.
     'manager':'evt.monitor',
-
-    # This mapping has been confirmed.
-    # Currently exists in current trigger plugin.
-    # Confirmed exists in RuleBuilder subjects.
     'severity':'evt.severity',
-
-    # This mapping has been confirmed.
-    # Currently exists in current trigger plugin.
-    # Confirmed exists in RuleBuilder subjects.
     'eventState':'evt.status',
-
-    # This mapping has been confirmed.
-    # Currently exists in current trigger plugin.
-    # Confirmed exists in RuleBuilder subjects.
     'count':'evt.count',
-
-
-    ### dev, elem and sub_elem context items
-
-    # This mapping has been confirmed.
-    # Currently exists in current trigger plugin.
-    # Confirmed exists in RuleBuilder subjects.
     'prodState':'dev.production_state',
-
-    # The element_identifier property of the event actor is set as the id, which
-    # is then set as the name of the device.
-    # This mapping has been confirmed.
-    # Currently exists in current trigger plugin.
-    # Confirmed exists in RuleBuilder subjects.
     'device':'dev.name',
-
-    # 'uuid' was not previously available, but is included here for completeness.
-    # There is no reason to include it in the actual mapping.
-    # 'uuid' : 'dev.uuid'
-
-    # This mapping has been confirmed. This is not to be confused with the
-    # 'priority' -> 'evt.syslog_priority' mapping that is possible.
-    # Currently exists in current trigger plugin.
-    # Confirmed exists in RuleBuilder subjects.
     'devicePriority':'dev.priority',
-
-    # This mapping has been confirmed.
-    # Currently exists in current trigger plugin.
-    # Confirmed exists in RuleBuilder subjects.
     'component':'sub_elem.name',
-        
-
-    # The mapping has been confirmed
-    # @TODO: Make this available in the context items within trigger plugin.
     'eventClassKey':'evt.event_class_key',
-
-    # The mapping has been confirmed
-    # @TODO: Make this available in the context items within trigger plugin.
     'priority':'evt.syslog_priority',
-
-    # @TODO: Confirm mapping (none in proxy.py).
-    # @TODO: Make the mapping of this detail(?) available within trigger plugin.
-    # @TODO: This will come from a DETAIL
-    'location':'dev.location',
-
-    # @TODO: Confirm mapping (none in proxy.py).
-    # @TODO: Do we have to update protos and add this property to actors?
-    # @TODO: Make this property available.
-    # @TODO: This will come from a DETAIL
-    'deviceClass':'dev.device_class',
-
-    # This mapping has been confirmed.
-    # @TODO: Make this available in the context items within trigger plugin.
-    # @TODO: Confirm this mapping.
-    'facility':'evt.facility',
-
-    # This mapping has been confirmed.
-    # @TODO: Make this available in the context items within trigger plugin.
+    'facility':'evt.syslog_facility',
     'ntevid':'evt.nt_event_code',
-
-    # @TODO: Make the mapping of this detail(?) available within trigger plugin.
-    # @TODO: This comes from a DETAIL
-    'ipAddress':'dev.ipAddress',
-
-    # @TODO: Confirm mapping (proxy.py maps to a summary field)
-    # @TODO: Make this available in the context items within trigger plugin.
-    # @TODO: Make a RuleBuilder data source for this property.
-    'ownerId':'evt.ownerId',
-
-    # @TODO: Confirm mapping (none in proxy.py).
-    # @TODO: Make the mapping of this detail(?) available within trigger plugin.
-    # @TODO: This will come from a DETAIL
+    'ownerId':'evt.current_user_name',
+    'deviceClass':'dev.device_class',
     'systems':'dev.systems',
-
-    # @TODO: Confirm mapping
-    # @TODO: Make the mapping of this available within trigger plugin.
-    # @TODO: This will come from a DETAIL
     'deviceGroups':'dev.groups',
+    'ipAddress':'dev.ip_address',
+    'location':'dev.location',
 }
+
 
 def getName(str):
     # lookup the old to new map

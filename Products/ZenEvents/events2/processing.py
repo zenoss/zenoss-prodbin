@@ -15,7 +15,7 @@ from Products.ZenEvents.events2.fields import EventField
 from Products.ZenModel.Device import Device
 from Products.ZenModel.DeviceComponent import DeviceComponent
 from Products.ZenModel.DataRoot import DataRoot
-from Products.ZenEvents.events2.proxy import ZepRawEventProxy
+from Products.ZenEvents.events2.proxy import ZepRawEventProxy, EventProxy
 from Products.ZenUtils.guid.interfaces import IGUIDManager, IGlobalIdentifier
 from Products.ZenUtils.IpUtil import ipToDecimal, IpAddressError
 from Products.Zuul.interfaces import ICatalogTool
@@ -394,14 +394,25 @@ class AddDeviceContextPipe(EventProcessorPipe):
         eventContext.eventProxy.prodState = device.productionState
         eventContext.eventProxy.DevicePriority = device.getPriority()
 
-        eventContext.eventProxy.setReadOnly('Location',
-                                            device.getLocationName())
-        eventContext.eventProxy.setReadOnly('DeviceClass',
-                                            device.getDeviceClassName())
-        eventContext.eventProxy.setReadOnly('DeviceGroups', '|' + '|'.join(
-                device.getDeviceGroupNames()))
-        eventContext.eventProxy.setReadOnly('Systems', '|' + '|'.join(
-                device.getSystemNames()))
+        location = device.getLocationName()
+        eventContext.eventProxy.setReadOnly('Location', location)
+        eventContext.eventProxy.details[EventProxy.DEVICE_LOCATION_DETAIL_KEY] = location
+
+        deviceClassName = device.getDeviceClassName()
+        eventContext.eventProxy.setReadOnly('DeviceClass', deviceClassName)
+        eventContext.eventProxy.details[EventProxy.DEVICE_CLASS_DETAIL_KEY] = deviceClassName
+
+        deviceGroupNames = device.getDeviceGroupNames()
+        deviceGroups = '|' + '|'.join(deviceGroupNames)
+        # transforms expect old-style DeviceGroups
+        eventContext.eventProxy.setReadOnly('DeviceGroups', deviceGroups)
+        # trigger rules expect new-style values with multi-valued details.
+        eventContext.eventProxy.details[EventProxy.DEVICE_GROUPS_DETAIL_KEY] = deviceGroupNames
+
+        systemsNames = device.getSystemNames()
+        systems = '|' + '|'.join(systemsNames)
+        eventContext.eventProxy.setReadOnly('Systems', systems)
+        eventContext.eventProxy.details[EventProxy.DEVICE_SYSTEMS_DETAIL_KEY] = systemsNames
 
         eventContext.setDeviceObject(device)
 

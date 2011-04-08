@@ -1505,9 +1505,36 @@ Ext.onReady(function () {
                     text: _t('Message'),
                     value: 'evt.message',
                     comparisons: STRINGCMPS
-                },
-                    ZFR.EVENTSEVERITY,
-                {
+                },{
+                    text: _t('Severity'),
+                    value: 'evt.severity',
+                    comparisons: NUMCMPS,
+                    field: {
+                        xtype: 'combo',
+                        mode: 'local',
+                        valueField: 'value',
+                        displayField: 'name',
+                        typeAhead: false,
+                        forceSelection: true,
+                        triggerAction: 'all',
+                        store: new Ext.data.ArrayStore({
+                            fields: ['name', 'value'],
+                            data: [[
+                                _t('Critical'), 5
+                            ],[
+                                _t('Error'), 4
+                            ],[
+                                _t('Warning'), 3
+                            ],[
+                                _t('Info'), 2
+                            ],[
+                                _t('Debug'), 1
+                            ],[
+                                _t('Clear'), 0
+                            ]]
+                        })
+                    }
+                },{
                     text: _t('Fingerprint'),
                     value: 'evt.fingerprint',
                     comparisons: STRINGCMPS
@@ -1549,79 +1576,74 @@ Ext.onReady(function () {
                             ]]
                         })
                     }
+                },{
+                    text: _t('Event Class Key'),
+                    value: 'evt.event_class_key',
+                    comparisons: STRINGCMPS
+                },{
+                    text: _t('Syslog Priority'),
+                    value: 'evt.syslog_priority',
+                    comparisons: NUMCMPS,
+                    field: {
+                        xtype: 'combo',
+                        mode: 'local',
+                        valueField: 'value',
+                        displayField: 'name',
+                        typeAhead: false,
+                        forceSelection: true,
+                        triggerAction: 'all',
+                        store: new Ext.data.ArrayStore({
+                            fields: ['name', 'value'],
+                            data: [[
+                                _t('Emergency'), 0
+                            ],[
+                                _t('Alert'), 1
+                            ],[
+                                _t('Critical'), 2
+                            ],[
+                                _t('Error'), 3
+                            ],[
+                                _t('Warning'), 4
+                            ],[
+                                _t('Notice'), 5
+                            ],[
+                                _t('Info'), 6
+                            ],[
+                                _t('Debug'), 7
+                            ]]
+                        })
+                    }
+                },{
+                    text: _t('Location'),
+                    value: 'dev.location',
+                    comparisons: STRINGCMPS
                 },
-                    {
-                        text: _t('Event Class Key'),
-                        value: 'evt.event_class_key',
-                        comparisons: STRINGCMPS
-                    },
-                    {
-                        text: _t('Syslog Priority'),
-                        value: 'evt.syslog_priority',
-                        comparisons: NUMCMPS,
-                        field: {
-                            xtype: 'combo',
-                            mode: 'local',
-                            valueField: 'value',
-                            displayField: 'name',
-                            typeAhead: false,
-                            forceSelection: true,
-                            triggerAction: 'all',
-                            store: new Ext.data.ArrayStore({
-                                fields: ['name', 'value'],
-                                data: [[
-                                    _t('Emergency'), 0
-                                ],[
-                                    _t('Alert'), 1
-                                ],[
-                                    _t('Critical'), 2
-                                ],[
-                                    _t('Error'), 3
-                                ],[
-                                    _t('Warning'), 4
-                                ],[
-                                    _t('Notice'), 5
-                                ],[
-                                    _t('Info'), 6
-                                ],[
-                                    _t('Debug'), 7
-                                ]]
-                            })
-                        }
-                    },
-                    {
-                        text: _t('Location'),
-                        value: 'dev.location',
-                        comparisons: STRINGCMPS
-                    },
-                    ZFR.DEVICECLASS,
-                    {
-                        text: _t('Syslog Facility'),
-                        value: 'evt.facility',
-                        comparisons: NUMCMPS,
-                        field: {
-                            xtype: 'numberfield'
-                        }
-                    },
-                    {
-                        text: _t('NT Event Code'),
-                        value: 'evt.nt_event_code',
-                        comparisons: NUMCMPS,
-                        field: {
-                            xtype: 'numberfield'
-                        }
-                    },
-                    {
-                        text: _t('IP Address'),
-                        value: 'dev.ipAddress',
-                        comparisons: STRINGCMPS
-                    },
-                    {
-                        text: _t('Owner Id'),
-                        value: 'evt.ownerId',
-                        comparisons: STRINGCMPS
-                    },
-                    ZFR.SYSTEMS
+                ZFR.DEVICECLASS,
+                {
+                    text: _t('Syslog Facility'),
+                    value: 'evt.syslog_facility',
+                    comparisons: NUMCMPS,
+                    field: {
+                        xtype: 'numberfield'
+                    }
+                },{
+                    text: _t('NT Event Code'),
+                    value: 'evt.nt_event_code',
+                    comparisons: NUMCMPS,
+                    field: {
+                        xtype: 'numberfield'
+                    }
+                },{
+                    text: _t('IP Address'),
+                    value: 'dev.ip_address',
+                    comparisons: STRINGCMPS
+                },{
+                    text: _t('Owner Id'),
+                    value: 'evt.current_user_name',
+                    comparisons: STRINGCMPS
+                },
+                ZFR.SYSTEMS,
+                ZFR.DEVICEGROUPS
                 ]
             }
         ]

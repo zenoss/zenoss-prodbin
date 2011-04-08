@@ -715,7 +715,7 @@
             }
         },
         DEVICEGROUPS: {
-            text: _t('Systems'),
+            text: _t('Device Groups'),
             value: 'dev.groups',
             comparisons: ZF.IDENTITYCOMPARISONS,
             field: {
