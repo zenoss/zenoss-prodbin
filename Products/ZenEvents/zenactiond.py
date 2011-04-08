@@ -94,7 +94,10 @@ class NotificationDao(object):
 def _signalToContextDict(signal):
     summary = signal.event
     # build basic event context wrapper for notifications
-    data = NotificationEventContextWrapper(summary)
+    if signal.clear:
+        data = NotificationEventContextWrapper(summary, signal.clear_event)
+    else:
+        data = NotificationEventContextWrapper(summary)
 
     # add urls to event context
     data['urls']['eventUrl'] = getEventUrl(summary.uuid)
