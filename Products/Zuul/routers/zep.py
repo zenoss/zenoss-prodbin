@@ -81,10 +81,12 @@ class EventsRouter(DirectRouter):
         Given a uuid this returns the objects name
         from the catalog, it does not wake the object up
         """
-        path = self._getPathFromUuid(uuid)
-        if path:
-            brain = self.catalog.getBrain(path)
-            return brain.name
+        if uuid:
+            path = self._getPathFromUuid(uuid)
+            if path:
+                brain = self.catalog.getBrain(path)
+                if brain:
+                    return brain.name
 
     def _lookupTags(self, tags):
         """
