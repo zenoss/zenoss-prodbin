@@ -137,7 +137,12 @@ class BrowserState(JavaScriptSnippet):
     Restores the browser state.
     """
     def snippet(self):
-        userSettings = self.context.ZenUsers.getUserSettings()
+        try:
+            userSettings = self.context.ZenUsers.getUserSettings()
+        except AttributeError:
+            # We're on a backcompat page where we don't have browser state
+            # anyway. Move on.
+            return ''
         state_container = getattr(userSettings, '_browser_state', {})
         if isinstance(state_container, basestring):
             state_container = {}
