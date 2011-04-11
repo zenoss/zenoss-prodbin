@@ -165,6 +165,8 @@ class BaseZenActions(object):
         reapAllProcesses()
         zem = self.dmd.ZenEventManager
         self.checkVersion(zem)
+
+        self.log.info('zenactions daemon checking heartbeats')
         self.heartbeatEvents()
 
     def run(self):

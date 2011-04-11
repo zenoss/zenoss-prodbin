@@ -552,7 +552,7 @@ class ZenActionD(ZCmdBase):
 
         self._consumer = QueueConsumerProcess(task)
 
-        log.debug('starting zenactiond consumer.')
+        log.info('starting zenactiond consumer.')
         self._consumer.run()
 
     def shutdown(self, *ignored):
