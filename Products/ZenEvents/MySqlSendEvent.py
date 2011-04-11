@@ -20,40 +20,14 @@ from Queue import Queue, Empty
 import logging
 log = logging.getLogger("zen.Events")
 
-# Filter specific warnings coming from new version of mysql-python
-import warnings
-warnings.filterwarnings('ignore', r"Field '.+' doesn't have a default value")
-
 from zope.component import getUtility
 
 import Products.ZenUtils.guid as guid
 from Event import buildEventFromDict
 from ZenEventClasses import Heartbeat, Unknown
-from Products.ZenEvents.Exceptions import *
-from Products.ZenMessaging.queuemessaging.interfaces import IEventPublisher
+from Products.ZenMessaging.queuemessaging.interfaces import IEventPublisher, IQueuePublisher
+from zenoss.protocols.protobufs.zep_pb2 import DaemonHeartbeat
 
-def _execute(cursor, statement):
-    """
-    Run a MySQL statement and return the results.
-    If there's an error, logs it then re-raises the exception.
-
-    @param cursor: an open connection to MySQL
-    @type cursor: database connection
-    @param statement: MySQL statement
-    @type statement: string
-    @return: result of the statement
-    @rtype: string
-    """
-    try:
-        result = cursor.execute(statement)
-        log.debug("%s: --> %d" % (statement, result) )
-    except Exception, ex:
-        log.info("Invalid statement: %s", statement)
-        log.error(str(ex))
-        raise ex
-    return result
-
-    
 class MySqlSendEventMixin:
     """
     Mix-in class that takes a MySQL db connection and builds inserts that
@@ -94,83 +68,20 @@ class MySqlSendEventMixin:
 
     def _sendHeartbeat(self, event):
         """
-        Add a heartbeat record to the heartbeat table.
+        Publishes a heartbeat message to the queue.
 
         @param event: event
         @type event: Event class
         """
-        evdict = {}
-        if hasattr(event, "device"):
-            evdict['device'] = event.device
-        else:
-            log.warn("heartbeat without device skipping")
-            return
-        if hasattr(event, "timeout"):
-            evdict['timeout'] = event.timeout
-        else:
-            log.warn("heartbeat from %s without timeout skipping", event.device)
-            return
-        if hasattr(event, "component"):
-            evdict['component'] = event.component
-        else:
-            evdict['component'] = ""
-        insert = self.buildInsert(evdict, "heartbeat")
-        insert += " on duplicate key update lastTime=Null"
-        insert += ", timeout=%s" % evdict['timeout']
         try:
-            conn = self.connect()
-            try:
-                curs = conn.cursor()
-                _execute(curs, insert)
-            finally: self.close(conn)
-        except ProgrammingError, e:
-            log.error(insert)
+            heartbeat = DaemonHeartbeat(monitor = event.device,
+                                        daemon = getattr(event, "component", ""),
+                                        timeout_seconds = int(event.timeout))
+            publisher = getUtility(IQueuePublisher)
+            publisher.publish('$Heartbeats', 'zenoss.heartbeat.%s' % heartbeat.monitor, heartbeat)
+        except (ValueError, AttributeError) as e:
+            log.error("Unable to send heartbeat: %s", event)
             log.exception(e)
-        except OperationalError, e:
-            raise ZenBackendFailure(str(e))
-
-    def buildInsert(self, datadict, table):
-        """
-        Build a insert statement for that looks like this:
-        insert into status set field='value', field=1, ...
-
-        @param datadict: event
-        @type datadict: dictionary
-        @param table: name of the table to insert into
-        @type table: string
-        @return: MySQL insert command string
-        @rtype: string
-        """
-        insert = "insert into %s set " % table
-        fields = []
-        for name, value in datadict.items():
-            if isinstance(value, basestring):
-                fields.append("%s='%s'" % (name, self.escape(value)))
-            elif isinstance(value, float):
-                fields.append("%s=%.3f" % (name, value))
-            else:
-                fields.append("%s=%s" % (name, value))
-        insert = str(insert) + str(','.join(fields))
-        return insert
-    
-    def escape(self, value):
-        """
-        Prepare string values for db by escaping special characters.
-
-        @param value: string containing possibly nasty characters
-        @type value: string
-        @return: escaped string
-        @rtype: string
-        """
-        if not isinstance(value, basestring):
-            return value
-
-        import _mysql
-        if isinstance(value, unicode):
-            return _mysql.escape_string(value.encode('iso-8859-1'))
-        return _mysql.escape_string(value)
-
-
 
 class MySqlSendEvent(MySqlSendEventMixin):
     """
@@ -255,8 +166,6 @@ class MySqlSendEventThread(threading.Thread, MySqlSendEvent):
                 evt = self._evqueue.get(True,1)
                 MySqlSendEvent.sendEvent(self, evt)
             except Empty: pass
-            except OperationalError, e:
-                log.warn(e)
             except Exception, e:
                 log.exception(e)
         log.info("Stopped")

@@ -1,3 +1,4 @@
+#! /usr/bin/env python
 ###########################################################################
 #
 # This program is part of Zenoss Core, an open source monitoring platform.
@@ -10,7 +11,6 @@
 # For complete information please visit: http://www.zenoss.com/oss/
 #
 ###########################################################################
-#! /usr/bin/env python
 
 __doc__='''zenactions
 
@@ -26,19 +26,15 @@ from email.Utils import formatdate
 
 import Globals
 from ZODB.POSException import ConflictError
-from _mysql_exceptions import OperationalError
 
 from twisted.internet import reactor
 
 from Products.ZenUtils.ZCmdBase import ZCmdBase
-from Products.ZenEvents.Exceptions import MySQLConnectionError
-from ZenEventClasses import App_Start, App_Stop, Status_Heartbeat
+from ZenEventClasses import App_Start, App_Stop
 from Products.ZenEvents import Event
 from Schedule import Schedule
 from UpdateCheck import UpdateCheck
 from Products.ZenUtils import Utils
-from Products.Zuul import getFacade
-from zenoss.protocols.protobufs.zep_pb2 import STATUS_NEW, STATUS_ACKNOWLEDGED
 
 
 DEFAULT_MONITOR = "localhost"
@@ -65,98 +61,10 @@ class BaseZenActions(object):
     """
     lastCommand = None
 
-    def _getCursor(self, stmt, callback):
-        """
-        Get a cursor for the ZenEventManager connection.  Execute statement
-        and call the callback with the cursor and number of row affected.
-        """
-        result = None
-        self.lastCommand = stmt
-        self.log.debug(stmt)
-        zem = self.dmd.ZenEventManager
-        conn = zem.connect()
-        try:
-            curs = conn.cursor()
-            rowsAffected = curs.execute(stmt)
-            result = callback(cursor=curs, rowsAffected=rowsAffected)
-        finally:
-            zem.close(conn)
-        return result
-
-    def query(self, stmt):
-        """
-        Execute stmt against ZenEventManager connection and fetch all results.
-        """
-        def callback(cursor, **unused):
-            return cursor.fetchall()
-        return self._getCursor(stmt, callback)
-
-
     def checkVersion(self, zem):
         self.updateCheck.check(self.dmd, zem)
         import transaction
         transaction.commit()
-
-
-    def fetchMonitorHostname(self, monitor='localhost'):
-        if monitor in self.monitorToHost:
-            return self.monitorToHost[monitor]
-
-        all_monitors = self.dmd.Monitors.getPerformanceMonitorNames()
-        if monitor in all_monitors:
-            perfMonitor = self.dmd.Monitors.getPerformanceMonitor(monitor)
-            hostname = getattr(perfMonitor, 'hostname', monitor)
-        else:
-            # Someone's put in something that we don't expect
-            hostname = monitor
-
-        if hostname == 'localhost':
-            hostname = self.daemonHostname
-
-        self.monitorToHost[monitor] = hostname
-        return hostname
-
-    def heartbeatEvents(self):
-        """Create events for failed heartbeats.
-        """
-        zep = getFacade('zep')
-        eventFilter = {
-            'event_class': [Status_Heartbeat],
-            'status': [STATUS_NEW, STATUS_ACKNOWLEDGED],
-        }
-        events = zep.getEventSummaries(0, filter = eventFilter)['events']
-        heartbeatState = set()
-        for event in events:
-            actor = event['occurrence'][0]['actor']
-            identifier, sub_identifier = actor.get('element_identifier'), actor.get('element_sub_identifier')
-            if identifier and sub_identifier:
-                heartbeatState.add((identifier, sub_identifier))
-        self.log.debug("Heartbeat state: %s", heartbeatState)
-
-        # Find current heartbeat failures
-        # Note: 'device' in the heartbeat table is actually filled with the
-        #        collector name
-        sel = "SELECT device, component FROM heartbeat "
-        sel += "WHERE DATE_ADD(lastTime, INTERVAL timeout SECOND) <= NOW();"
-        for monitor, comp in self.query(sel):
-            hostname = self.fetchMonitorHostname(monitor)
-            self.sendEvent(
-                Event.Event(device=hostname, component=comp,
-                            eventClass=Status_Heartbeat,
-                            summary="%s %s heartbeat failure" % (monitor, comp),
-                            prodState=self.prodState,
-                            severity=Event.Error))
-            heartbeatState.discard((hostname, comp))
-
-        # clear heartbeats
-        for monitor, comp in heartbeatState:
-            hostname = self.fetchMonitorHostname(monitor)
-            self.sendEvent(
-                Event.Event(device=hostname, component=comp,
-                            eventClass=Status_Heartbeat,
-                            summary="%s %s heartbeat clear" % (monitor, comp),
-                            prodState=self.prodState,
-                            severity=Event.Clear))
 
     def mainbody(self):
         """main loop to run actions.
@@ -167,20 +75,8 @@ class BaseZenActions(object):
         self.checkVersion(zem)
 
         self.log.info('zenactions daemon checking heartbeats')
-        self.heartbeatEvents()
 
     def run(self):
-        self.prodState = filter(lambda x: x.split(':')[0] == 'Production',
-                                self.dmd.prodStateConversions)
-        import socket
-        self.daemonHostname = socket.getfqdn()
-        self.monitorToHost = {}
-        try:
-            # eg ['Production:1000']
-            self.prodState = int(self.prodState[0].split(':')[1])
-        except Exception:
-            self.prodState = 1000
-
         def startup():
             self.schedule.start()
             self.runCycle()
@@ -249,7 +145,6 @@ class ZenActions(BaseZenActions, ZCmdBase):
         self.startTime = time.time()
         self.startAttempts = 0
         self.runAttempts = 0
-        self.mysqlproblem = False
         self.panicNotified = 0
 
         # Periodically check on ZEO connection status
@@ -268,7 +163,7 @@ class ZenActions(BaseZenActions, ZCmdBase):
 
                 self.updateCheck = UpdateCheck()
 
-                # Connect to MySQL and send startup event
+                # Send startup event
                 summaryDetails = ''
                 if self.startAttempts > 1:
                     summaryDetails = ' (Startup attempts: %d, Time: %.2f)' % \
@@ -282,19 +177,6 @@ class ZenActions(BaseZenActions, ZCmdBase):
 
             # Note that we may (due to SIGALRM) get an exception
             # while we are processing an exception.
-            except MySQLConnectionError, ex:
-                try:
-                    self.startupPanic(MYSQL_PANIC_MESSAGE, ex)
-                    self.mysqlproblem = True
-                except Exception, ex:
-                    pass
-            except OperationalError, ex:
-                try:
-                    self.startupPanic(MYSQL_PANIC_MESSAGE, ex)
-                    # startupPanic initializes self.log for us
-                    self.log.exception("Encountered MySQL error during startup")
-                except Exception, ex:
-                    pass
             except ZeoWatcher, ex:
                 try:
                     self.startupPanic(ZEO_PANIC_MESSAGE, ex)
@@ -366,10 +248,6 @@ class ZenActions(BaseZenActions, ZCmdBase):
                 reactor.doIteration(t)
             except (ConflictError), ex:
                 self.log.error("Encountered ZODB conflict error at %s", ex)
-            except (MySQLConnectionError, OperationalError), ex:
-                self.mysqlproblem = True
-                self.log.exception("MySQL error")
-                self.panic(MYSQL_PANIC_MESSAGE)
             except ZeoWatcher, ex:
                 self.log.exception("ZEO error")
                 self.panic(ZEO_PANIC_MESSAGE)
@@ -385,7 +263,6 @@ class ZenActions(BaseZenActions, ZCmdBase):
             cycleDelay = self.options.cycletime
 
         try:
-            start = time.time()
             self.syncdb()
             self.mainbody()
             self.sendHeartbeat()
@@ -393,10 +270,6 @@ class ZenActions(BaseZenActions, ZCmdBase):
 
         except (ConflictError), ex:
             self.log.error("Encountered ZODB conflict error at %s", ex)
-        except (MySQLConnectionError, OperationalError), ex:
-            cycleDelay = RUN_PANIC_SLEEP
-            self.log.exception("MySQL error")
-            self.panic(MYSQL_PANIC_MESSAGE)
 
         except Exception, e:
             cycleDelay = RUN_PANIC_SLEEP
@@ -545,8 +418,7 @@ restart Zenoss.
             raise ZeoWatcher("ZEO is not connected!")
 
         # If we're okay, then reset the notification count
-        if not self.mysqlproblem:
-            self.panicNotified = 0
+        self.panicNotified = 0
 
 
 if __name__ == "__main__":

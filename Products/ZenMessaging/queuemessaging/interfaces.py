@@ -25,8 +25,8 @@ class IQueuePublisher(Interface):
         @type  exchange: string
         @param exchange: destination exchange for the amqp server
         @type  routing_key: string
-        @param routing_key: Key by which consumers will setup the queus to route
-        @type  message: string or Protobuff
+        @param routing_key: Key by which consumers will setup the queues to route
+        @type  message: string or Protobuf
         @param message: message we are sending in the queue
         """
 
@@ -75,7 +75,7 @@ class IEventPublisher(Interface):
     """
     Publishes events.
     """
-    def publish():
+    def publish(event, mandatory=False):
         """
-        Publish
+        Publish event to the raw event queue.
         """

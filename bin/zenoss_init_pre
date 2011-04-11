@@ -67,9 +67,6 @@ create_zodb_db
 # create the events mysql database
 create_database
 
-# populate the events database
-run_zeneventbuild
-
 # create the ZEP database
 create_zep_db
 
