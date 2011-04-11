@@ -138,7 +138,7 @@ class NotificationSubscription(ZenModelRM, AdministrativeRoleable):
     clear_subject_format = "[zenoss] CLEAR: ${evt/device} ${evt/summary}/${clearEvt/summary}"
     clear_body_format = textwrap.dedent(text = '''
         Event: '${evt/summary}'
-        Cleared by: '${evt/id}'
+        Cleared by: '${evt/clearid}'
         At: ${evt/stateChange}
         Device: ${evt/device}
         Component: ${evt/component}

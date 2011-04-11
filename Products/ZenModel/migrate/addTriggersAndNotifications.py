@@ -34,17 +34,28 @@ def _reformatEventAttributeReference(m):
     # most attributes are rooted at 'evt'
     root = 'evt'
     attrname = m.group('attr')
+
     if attrname.endswith('Url'):
         # urls have a different root
         root = 'urls'
-        # if there is a new name, map to it; else just use the same
-        # attrname
+        # if there is a new name, map to it; else just use the same attrname
         attrname = newUrlNames.get(attrname, attrname)
+
+    elif attrname.startswith('clear') and attrname != 'clearid':
+        # clearXxxAttribute refs change to clearEvt/xxxAttribute
+        root = 'clearEvt'
+        # slice off leading 'clear'
+        attrname = attrname[len('clear'):]
+        # downcase leading character
+        attrname = attrname[0].lower()+attrname[1:]
+
+    # return attribute reference in TALES format
     return '${%s/%s}' % (root, attrname)
 
 def talesifyLegacyFormatString(s, refRe = re.compile(r"%\((?P<attr>[^)]+)\)s")):
     """method to convert old-style Python string interpolation to TALES syntax"""
     return refRe.sub(_reformatEventAttributeReference, s)
+
 
 class TriggerRuleSourceError(Exception): pass
 
