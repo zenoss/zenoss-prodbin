@@ -211,31 +211,6 @@
         layer="..navigation.interfaces.IZenossNav"
         />
 
-        <browser:viewlet
-            name="Basic"
-            url="/zport/dmd/Reports"
-            subviews="/zport/dmd/reports"
-            weight="0"
-            parentItem="Reports"
-            manager="..navigation.interfaces.ISecondaryNavigationMenu"
-            class="..navigation.menuitem.SecondaryNavigationMenuItem"
-            permission="zope2.Public"
-            layer="..navigation.interfaces.IZenossNav"
-        />
-
-        <browser:viewlet
-            name="Advanced"
-            url="http://www.zenoss.com/"
-            subviews="/zport/dmd/advancedReport"
-            weight="1"
-            parentItem="Reports"
-            manager="..navigation.interfaces.ISecondaryNavigationMenu"
-            class="..navigation.menuitem.SecondaryNavigationMenuItem"
-            permission="zope2.Public"
-            layer="..navigation.interfaces.IZenossNav"
-            target="_blank"
-            />
-
     <browser:viewlet
         name="Advanced"
         url="/zport/dmd/editSettings"
