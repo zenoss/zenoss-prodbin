@@ -88,7 +88,10 @@ Zenoss.DeviceDetailBar = Ext.extend(Zenoss.LargeToolbar, {
             },'-',{
                 ref: 'prodstateitem',
                 label: _t('Production State')
-            }]  
+            },'-',{
+                ref: 'priorityitem',
+                label: _t('Priority')
+            }]
         });
         Zenoss.DeviceDetailBar.superclass.constructor.call(this, config);
     },
@@ -119,6 +122,7 @@ Zenoss.DeviceDetailBar = Ext.extend(Zenoss.LargeToolbar, {
             this.statusitem.setText(
                 ZR.pingStatusLarge(data.status));
             this.prodstateitem.setText(data.productionState);
+            this.priorityitem.setText(data.priority);
             this.fireEvent('contextchange', this, data);
         }, this);
     }

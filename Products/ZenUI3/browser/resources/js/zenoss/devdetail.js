@@ -698,6 +698,77 @@ Ext.create({
     context: UID
 });
 
+var editDeviceClass = function(deviceClass, uid) {
+
+    var win = new Zenoss.FormDialog({
+        autoHeight: true,
+        width: 400,
+        title: _t('Set Device Class'),
+        items: [{
+            xtype: 'combo',
+            name: 'deviceClass',
+            fieldLabel: _t('Select a device class'),
+            store: new Ext.data.DirectStore({
+                directFn: Zenoss.remote.DeviceRouter.getDeviceClasses,
+                root: 'deviceClasses',
+                fields: ['name']
+            }),
+            valueField: 'name',
+            width: 250,
+            resizable: true,
+            displayField: 'name',
+            value: deviceClass,
+            forceSelection: true,
+            editable: false,
+            autoSelect: true,
+            triggerAction: 'all'
+        }],
+        buttons: [{
+            text: _t('Save'),
+            ref: '../savebtn',
+            disabled: Zenoss.Security.doesNotHavePermission('Manage Device'),
+            handler: function(btn) {
+                var vals = btn.refOwner.editForm.getForm().getFieldValues();
+                var submitVals = {
+                    uids: [uid],
+                    target: '/zport/dmd/Devices' + vals.deviceClass,
+                    hashcheck: ''
+                };
+                Zenoss.remote.DeviceRouter.moveDevices(submitVals, function(data) {
+                    var moveToNewDevicePage = function() {
+                        var hostString = window.location.protocol + '//' +
+                            window.location.host;
+                        window.location = hostString + '/zport/dmd/Devices' +
+                            vals.deviceClass + '/devices' +
+                            uid.slice(uid.lastIndexOf('/'));
+                    };
+                    if (data.success) {
+                        if (data.exports) {
+                            Ext.Msg.show({
+                                title: _t('Remodel Required'),
+                                msg: _t("Not all of the configuration could be preserved, so a remodel of the device is required. Performance templates have been reset to the defaults for the device class."),
+                                buttons: Ext.Msg.OK,
+                                fn: moveToNewDevicePage
+                            });
+                        }
+                        else {
+                            moveToNewDevicePage();
+                        }
+                    }
+                });
+                win.destroy();
+            }
+        }, {
+            text: _t('Cancel'),
+            handler: function(btn) {
+                win.destroy();
+            }
+        }]
+    });
+
+    win.show();
+    win.doLayout();
+};
 
 Ext.getCmp('footer_bar').add([{
     xtype: 'ContextConfigureMenu',
@@ -820,6 +891,20 @@ Ext.getCmp('footer_bar').add([{
                 title: _t('Model Device')
             });
             win.show();
+        }
+    },{
+        xtype: 'menuitem',
+        text: _t('Change Device Class') + '...',
+        hidden: Zenoss.Security.doesNotHavePermission('Manage Device'),
+        handler: function() {
+            // get the device class from the path of the device
+            var uid = Zenoss.env.device_uid,
+                deviceClass = uid.replace('/zport/dmd/Devices', ''),
+                pieces = deviceClass.split('/');
+            // remove the /devices/deviceName part
+            pieces.pop();
+            pieces.pop();
+            editDeviceClass(pieces.join("/"), uid);
         }
     }]
 },{

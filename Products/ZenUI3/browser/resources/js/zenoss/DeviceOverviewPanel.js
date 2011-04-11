@@ -1,5 +1,4 @@
 (function(){
-
     var REMOTE = Zenoss.remote.DeviceRouter;
 
     var resetCombo = function(combo, manufacturer) {
@@ -139,75 +138,7 @@
         win.doLayout();
     }
 
-    var editDeviceClass = function(values, uid) {
-        var win = new Zenoss.FormDialog({
-            autoHeight: true,
-            width: 400,
-            title: _t('Set Device Class'),
-            items: [{
-                xtype: 'combo',
-                name: 'deviceClass',
-                fieldLabel: _t('Select a device class'),
-                store: new Ext.data.DirectStore({
-                    directFn: Zenoss.remote.DeviceRouter.getDeviceClasses,
-                    root: 'deviceClasses',
-                    fields: ['name']
-                }),
-                valueField: 'name',
-                width: 250,
-                resizable: true,
-                displayField: 'name',
-                value: values.deviceClass.uid.slice(18),
-                forceSelection: true,
-                editable: false,
-                autoSelect: true,
-                triggerAction: 'all'
-            }],
-            buttons: [{
-                text: _t('Save'),
-                ref: '../savebtn',
-                disabled: Zenoss.Security.doesNotHavePermission('Manage Device'),
-                handler: function(btn) {
-                    var vals = btn.refOwner.editForm.getForm().getFieldValues();
-                    var submitVals = {
-                        uids: [uid],
-                        target: '/zport/dmd/Devices' + vals.deviceClass,
-                        hashcheck: ''
-                    };
-                    Zenoss.remote.DeviceRouter.moveDevices(submitVals, function(data) {
-                        var moveToNewDevicePage = function() {
-                            hostString = window.location.protocol + '//' +
-                                         window.location.host;
-                            window.location = hostString + '/zport/dmd/Devices' +
-                                              vals.deviceClass + '/devices' +
-                                              uid.slice(uid.lastIndexOf('/'));
-                        };
-                        if (data.success) {
-                            if (data.exports) {
-                                Ext.Msg.show({
-                                    title: _t('Remodel Required'),
-                                    msg: _t("Not all of the configuration could be preserved, so a remodel of the device is required. Performance templates have been reset to the defaults for the device class."),
-                                    buttons: Ext.Msg.OK,
-                                    fn: moveToNewDevicePage
-                                });
-                            }
-                            else {
-                                moveToNewDevicePage();
-                            }
-                        }
-                    });
-                    win.destroy();
-                }
-            }, {
-                text: _t('Cancel'),
-                handler: function(btn) {
-                    win.destroy();
-                }
-            }]
-        });
-        win.show();
-        win.doLayout();
-    };
+
 
     Zenoss.remote.DeviceRouter.getCollectors({}, function(d){
         var collectors = [];
@@ -668,14 +599,25 @@
                             fieldLabel: _t('Serial Number'),
                             name: 'serialNumber',
                             xtype: 'textfield'
+                        },{
+                            fieldLabel: _t('Rack Slot'),
+                            name: 'rackSlot',
+                            xtype: 'textfield'
                         }]
                     },{
                         id:'deviceoverviewpanel_descriptionsummary',
                         defaultType: 'textfield',
                         height: 360,
                         items: [{
-                            fieldLabel: _t('Rack Slot'),
-                            name: 'rackSlot'
+                            xtype: 'clicktoeditnolink',
+                            listeners: {
+                                labelclick: function(p){
+                                    editCollector(this.getValues(), this.contextUid);
+                                },
+                                scope: this
+                            },
+                            fieldLabel: _t('Collector'),
+                            name: 'collector'
                         },{
                             xtype: 'clicktoedit',
                             listeners: {
@@ -731,26 +673,6 @@
                         defaultType: 'displayfield',
                         flex: 2,
                         items: [{
-                            xtype: 'clicktoedit',
-                            listeners: {
-                                labelclick: function(p){
-                                    editDeviceClass(this.getValues(), this.contextUid);
-                                },
-                                scope: this
-                            },
-                            fieldLabel: _t('Device Class'),
-                            name: 'deviceClass'
-                        },{
-                            xtype: 'clicktoeditnolink',
-                            listeners: {
-                                labelclick: function(p){
-                                    editCollector(this.getValues(), this.contextUid);
-                                },
-                                scope: this
-                            },
-                            fieldLabel: _t('Collector'),
-                            name: 'collector'
-                        },{
                             xtype: 'clicktoedit',
                             listeners: {
                                 labelclick: function(p){
@@ -816,13 +738,15 @@
                             fieldLabel: _t('SNMP Contact'),
                             name: 'snmpContact'
                         },{
-                            fieldLabel: _t('SNMP Agent'),
-                            autoWidth: true,
-                            name: 'snmpAgent'
-                        },{
                             fieldLabel: _t('SNMP Description'),
                             autoWidth: true,
                             name: 'snmpDescr'
+                        },{
+                            fieldLabel: _t('SNMP Community'),
+                            name: 'snmpCommunity'
+                        },{
+                            fieldLabel: _t('SNMP Version'),
+                            name: 'snmpVersion'
                         }]
                     }]
                 }]

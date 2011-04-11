@@ -332,6 +332,14 @@ class DeviceInfo(InfoBase, HasEventsInfoMixin):
     snmpDescr = ProxyProperty('snmpDescr')
 
     @property
+    def snmpCommunity(self):
+        return self._object.getProperty('zSnmpCommunity')
+
+    @property
+    def snmpVersion(self):
+        return self._object.getProperty('zSnmpVer')
+
+    @property
     def icon(self):
         return self._object.zIcon
 
