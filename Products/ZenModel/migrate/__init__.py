@@ -220,3 +220,4 @@ import addIpv6Network
 import addTriggersAndNotifications
 import addTriggerNotificationsForCommands
 import ToManyPersistentList
+import CollectorIpv6Commands

@@ -2148,6 +2148,22 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable,
 
         return matchers
 
+    def snmpwalkPrefix(self):
+        """
+        This method gets the ip address prefix used for this device when running
+        snmpwalk.
+        @rtype:   string
+        @return:  Prefix used for snmwalk for this device
+        """
+        from ipaddr import IPAddress
+        try:
+            ip = self.getManageIp()
+            if IPAddress(ip).version == 6:
+                return "udp6:"
+        except ValueError:
+            # could not parse the ip address
+            pass
+        return ""
 
     def updateProcesses(self, relmaps):
         "Uses ProcessClasses to create processes to monitor"

@@ -65,7 +65,7 @@ from Products.ZenModel.Trigger import manage_addTriggerManager
 
 
 class DmdBuilder(object):
-        
+
     def __init__(self, portal, evthost, evtuser, evtpass, evtdb, evtport,
                     smtphost, smtpport, pagecommand):
         self.portal = portal
@@ -89,7 +89,7 @@ class DmdBuilder(object):
                                     ZEN_USER_ROLE,
                                     OWNER_ROLE],
                                    0)
-                                   
+
     def buildRoots(self):
         roots = [('Devices', DeviceClass),
                  ('Groups', DeviceGroup),
@@ -110,7 +110,7 @@ class DmdBuilder(object):
         devices = self.dmd._getOb('Devices')
         devices.createCatalog()
         devices.buildDeviceTreeProperties()
-        
+
     def buildMonitors(self):
         perfId = 'Performance'
         monitors = self.dmd._getOb('Monitors')
@@ -126,16 +126,15 @@ class DmdBuilder(object):
 
     def buildUserCommands(self):
         for id, cmd, desc in (
-                ('ping', 'ping -c2 ${device/manageIp}',
+                ('ping', 'dcsh --collector=${device/getPerformanceServerName} "ucping -c2 ${device/manageIp}"',
                  "Is the device responding to ping?"),
-                ('traceroute', 'traceroute -q 1 -w 2 ${device/manageIp}',
+                ('traceroute', 'dcsh --collector=${device/getPerformanceServerName} "uctraceroute -q 1 -w 2 ${device/manageIp}"',
                  "Show the route to the device"),
-                ('DNS forward', 'host ${device/id}',
+                ('DNS forward', 'dcsh --collector=${device/getPerformanceServerName} "host ${device/id}"',
                  "Name to IP address lookup"),
-                ('DNS reverse', 'host ${device/manageIp}',
+                ('DNS reverse', 'dcsh --collector=${device/getPerformanceServerName} "host ${device/manageIp}"',
                  "IP address to name lookup"),
-                ('snmpwalk', 'snmpwalk -${device/zSnmpVer} '
-                 '-c${device/zSnmpCommunity} ${here/manageIp} system',
+                ('snmpwalk', 'dcsh --collector=${device/getPerformanceServerName} "snmpwalk -${device/zSnmpVer} -c${device/zSnmpCommunity} ${device/snmpwalkPrefix}${here/manageIp} system"',
                  "Display the OIDs available on a device"),
                 ):
             self.dmd.manage_addUserCommand(id, cmd=cmd, desc=desc)
