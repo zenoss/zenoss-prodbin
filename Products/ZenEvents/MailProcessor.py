@@ -126,7 +126,7 @@ class MessageProcessor(object):
         # Construct dt using the date and time as well as the timezone 
         dt = datetime(t[0], t[1], t[2], t[3], t[4], t[5], 0, tz)
         secs = calendar.timegm(dt.utctimetuple())
-        log.info('Timestamp of the event (should be in UTC): %f' % secs)
+        log.debug('Timestamp of the event (should be in UTC): %f' % secs)
 
         event = MailEvent(device=fromAddr, rcvtime=secs,
                           fromEmailAddress=origFromAddr)
@@ -146,10 +146,7 @@ class MessageProcessor(object):
         self.enrich(event, subject)
 
         event = self.buildEventClassKey(event)
-        log.info('Sending event...')
         self.zem.sendEvent(event.__dict__)
-        log.info('The event has been sent.')
-
 
     def enrich(self, event, subject):
         """

@@ -230,9 +230,14 @@ class CommandPerformanceConfig(CollectorConfigService):
         self._sentNoUsernameSetClear = True
 
 if __name__ == '__main__':
-    from Products.ZenUtils.ZCmdBase import ZCmdBase
-    dmd = ZCmdBase().dmd
-    configService = CommandPerformanceConfig(dmd, 'localhost')
-    devices = sorted([x.id for x in configService.remote_getDeviceConfigs()])
-    print "COMMAND Devices = %s" % devices
+    from Products.ZenHub.ServiceTester import ServiceTester
+    tester = ServiceTester(CommandPerformanceConfig)
+    def printer(proxy):
+        print '\t'.join([ '', 'Name', 'Use SSH?', 'CycleTime',
+                         'Component', 'Points'])
+        for cmd in sorted(proxy.datasources):
+            print '\t'.join( map(str, [ '', cmd.name, cmd.useSsh,
+                cmd.cycleTime, cmd.component, cmd.points ]) )
+    tester.printDeviceProxy = printer
+    tester.showDeviceInfo()
 

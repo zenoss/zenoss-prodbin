@@ -11,11 +11,15 @@
 #
 ###########################################################################
 import logging
+
+import Globals
+
+from twisted.spread import pb
+
 from Products.ZenCollector.services.config import CollectorConfigService
 from Products.ZenEvents.ZenEventClasses import Status_IpService
 from Products.ZenModel.ServiceOrganizer import ServiceOrganizer
 from Products.ZenModel.Service import Service
-from twisted.spread import pb
 
 log = logging.getLogger('zen.ZenStatusConfig')
 
@@ -37,6 +41,9 @@ class ServiceProxy(pb.Copyable, pb.RemoteCopy):
         self.failSeverity = svc.getFailSeverity()
         self.status = status
         self.key = svc.key()
+
+    def __str__(self):
+        return ' '.join( map(str, [self.device, self.component, self.port]) )
 
 pb.setUnjellyableForClass(ServiceProxy, ServiceProxy)
 
@@ -87,3 +94,14 @@ class ZenStatusConfig(CollectorConfigService):
         need to refresh which devices we are monitoring
         """
         return (Service, ServiceOrganizer)
+
+if __name__ == '__main__':
+    from Products.ZenHub.ServiceTester import ServiceTester
+    tester = ServiceTester(ZenStatusConfig)
+    def printer(proxy):
+        print '\t'.join( ['', 'Hostname', 'Service name', 'Port'] )
+        for component in proxy.components:
+            print '\t', component
+    tester.printDeviceProxy = printer
+    tester.showDeviceInfo()
+
