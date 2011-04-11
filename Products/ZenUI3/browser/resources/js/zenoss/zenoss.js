@@ -567,7 +567,7 @@ Ext.reg('largetoolbar', Zenoss.LargeToolbar);
 
 /**
  * @class Zenoss.ExtraHooksSelectionModel
- * @extends Ext.grid.RowSelectionModel
+ * @extends Ext.ux.grid.livegrid.RowSelectionModel
  * A selection model that fires extra events.
  */
 Zenoss.ExtraHooksSelectionModel = Ext.extend(
@@ -978,7 +978,7 @@ Zenoss.FilterGridView = Ext.extend(Ext.ux.grid.livegrid.GridView, {
                 id:fieldid,
                 enableKeyEvents: true,
                 selectOnFocus: true,
-                enableKeyEvents: true,
+                //enableKeyEvents: true,
                 listeners: {
                     keypress: function(field, e) {
                         if (e.getKey() === e.ENTER) {
@@ -1344,20 +1344,30 @@ Zenoss.FilterGridPanel = Ext.extend(Ext.ux.grid.livegrid.GridPanel, {
     getSelectionParameters: function() {
         var grid = this,
             sm = grid.getSelectionModel(),
-            ranges = sm.getPendingSelections(true),
-            evids = [],
-            sels = sm.getSelections();
+            //ranges = sm.getPendingSelections(true),
+            evids = [],  // Event IDs selected
+            sels = sm.getSelections();  // UI records selected
 
-        if (sm.selectState == 'All') {
+        var selectedAll = (sm.selectState == 'All');
+        if (selectedAll) {
             // If we are selecting all, we don't want to send back any evids.
             // this will make the operation happen on the filter's result
             // instead of whatever the view seems to have selected.
             sels = [];
+        } else {
+            Ext.each(sels, function(record){
+                evids[evids.length] = record.data.evid;
+            });
         }
-        Ext.each(sels, function(record){
-            evids[evids.length] = record.data.evid;
-        });
-        if (!ranges && !evids) return false;
+
+        // This code did nothing because evids is never null...
+        //if (!ranges && !evids) return false;
+
+        // Don't run if nothing is selected.
+        if (!selectedAll && Ext.isEmpty(sels)) {
+            return false;
+        }
+
         var params = {
             evids: evids,
             excludeIds: sm.badIds

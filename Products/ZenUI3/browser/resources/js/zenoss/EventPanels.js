@@ -207,6 +207,15 @@
                 Zenoss.EventActionManager.execute(Zenoss.remote.EventsRouter.close);
             }
         }),
+        reclassify: new Zenoss.Action({
+             iconCls: 'classify',
+             tooltip: _t('Reclassify an event'),
+             permission: 'Manage Events',
+             handler: function(button) {
+                 var gridId = button.ownerCt.ownerCt.id;
+                 showClassifyDialog(gridId);
+             }
+        }),
         reopen: new Zenoss.Action({
             iconCls: 'unacknowledge',
             tooltip: _t('Unacknowledge events'),
@@ -452,14 +461,7 @@
                 items: [
                     Zenoss.events.EventPanelToolbarActions.acknowledge,
                     Zenoss.events.EventPanelToolbarActions.close,
-                    new Zenoss.Action({
-                        iconCls: 'classify',
-                        tooltip: _t('Reclassify an event'),
-                        permission: 'Manage Events',
-                        handler: function(button) {
-                            showClassifyDialog(gridId);
-                        }
-                    }),
+                    Zenoss.events.EventPanelToolbarActions.reclassify,
                     Zenoss.events.EventPanelToolbarActions.reopen,
                     Zenoss.events.EventPanelToolbarActions.unclose,
                     new Zenoss.Action({
@@ -646,6 +648,16 @@
             this.on('beforerowselect', this.handleBeforeRowSelect, this);
             this.on('rowselect', this.handleRowSelect, this);
             this.on('rowdeselect', this.handleRowDeSelect, this);
+            this.on('selectionchange', function(selectionmodel) {
+                // Disable buttons if nothing selected (and vice-versa)
+                var actions = Zenoss.events.EventPanelToolbarActions;
+                var actionsToChange = [actions.acknowledge, actions.close, actions.unclose,
+                                       actions.reopen, actions.reclassify];
+                var newDisabledValue = !selectionmodel.hasSelection();
+                Ext.each(actionsToChange, function(actionButton) {
+                    actionButton.setDisabled(newDisabledValue);
+                })
+            })
 
         },
         handleBeforeRowSelect: function(sm, index, keepExisting, record){
