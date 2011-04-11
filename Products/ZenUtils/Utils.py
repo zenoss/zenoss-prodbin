@@ -636,7 +636,7 @@ def sendEmail(emsg, host, port=25, usetls=0, usr='', pwd=''):
     (sucess, message) where sucess is True or False.
 
     @param emsg: message to send
-    @type emsg: string
+    @type emsg: email.MIMEText
     @param host: name of e-mail server
     @type host: string
     @param port: port number to communicate to the e-mail server
