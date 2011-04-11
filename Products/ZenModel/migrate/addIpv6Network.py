@@ -24,8 +24,8 @@ class addIpv6Network(Migrate.Step):
     version = Migrate.Version(3,1,70)
 
     def cutover(self, dmd):
-        if not hasattr(dmd, 'IPv6 Networks'):
-            manage_addIpNetwork(dmd, "IPv6 Networks", netmask=64, version=6)
+        if not hasattr(dmd, 'IPv6Networks'):
+            manage_addIpNetwork(dmd, "IPv6Networks", netmask=64, version=6)
 
 addIpv6Network()
 

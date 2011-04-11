@@ -37,9 +37,9 @@ treeConfigs.addAll([{
 }, {
     id: 'ipv6networks',
     root: {
-        id: '.zport.dmd.IPv6 Networks',
-        uid: '/zport/dmd/IPv6 Networks',
-        text: null, // Use the name loaded from the remote
+        id: '.zport.dmd.IPv6Networks',
+        uid: '/zport/dmd/IPv6Networks',
+        text: 'IPv6 Networks', // Use the name loaded from the remote
         allowDrop: false
     },
     directFn: Zenoss.remote.Network6Router.asyncGetTree,

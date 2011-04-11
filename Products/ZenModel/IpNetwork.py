@@ -54,8 +54,9 @@ def manage_addIpNetwork(context, id, netmask=24, REQUEST = None, version=4):
     """make a IpNetwork"""
     net = IpNetwork(id, netmask=netmask, version=version)
     context._setObject(net.id, net)
-    if id == "Networks":
+    if id.endswith("Networks"):
         net = context._getOb(net.id)
+        net.dmdRootName = id
         net.buildZProperties()
         net.createCatalog()
         #manage_addZDeviceDiscoverer(context)
@@ -165,7 +166,7 @@ class IpNetwork(DeviceOrganizer):
         if not isinstance(version, int):
             version = self.version
         if version is 6:
-            return self.dmd.getDmdRoot("IPv6 Networks")
+            return self.dmd.getDmdRoot("IPv6Networks")
         return self.dmd.getDmdRoot("Networks")
 
 
@@ -499,10 +500,13 @@ class IpNetwork(DeviceOrganizer):
 
 
     def buildZProperties(self):
-        nets = self.getDmdRoot("Networks")
+        if self.version == 6:
+            nets = self.getDmdRoot("IPv6Networks")
+        else:
+            nets = self.getDmdRoot("Networks")
         if getattr(aq_base(nets), "zDefaultNetworkTree", False):
             return
-        nets._setProperty("zDefaultNetworkTree", (24,32), type="lines")
+        nets._setProperty("zDefaultNetworkTree", (64,128) if nets.id == "IPv6Networks" else (24,32), type="lines")
         nets._setProperty("zDrawMapLinks", True, type="boolean")
         nets._setProperty("zAutoDiscover", True, type="boolean")
         nets._setProperty("zPingFailThresh", 168, type="int")

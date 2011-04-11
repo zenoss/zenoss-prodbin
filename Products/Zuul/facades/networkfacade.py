@@ -156,5 +156,5 @@ class Network6Facade(NetworkFacade):
 
     @property
     def _root(self):
-        return self._dmd.getDmdRoot("IPv6 Networks")
+        return self._dmd.getDmdRoot("IPv6Networks")
 
