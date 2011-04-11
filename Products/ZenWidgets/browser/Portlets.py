@@ -24,6 +24,7 @@ from Products.ZenUtils.guid.interfaces import IGUIDManager
 from Products.ZenUtils.jsonutils import json
 from Products.ZenUtils.Utils import nocache, formreq, extractPostContent
 from Products.ZenWidgets import messaging
+from Products.ZenModel.Device import Device
 from Products.ZenModel.ZenossSecurity import *
 from Products.ZenEvents.browser.EventPillsAndSummaries import \
                                    getDashboardObjectsEventSummary, \
@@ -170,7 +171,7 @@ class DeviceIssuesPortletView(BrowserView):
         devdata = []
         for uuid in deviceSeverities.keys():
             dev = manager.getObject(uuid)
-            if dev:
+            if dev and isinstance(dev, Device):
                 if (not zem.checkRemotePerm(ZEN_VIEW, dev)
                     or dev.productionState < zem.prodStateDashboardThresh
                     or dev.priority < zem.priorityDashboardThresh):
@@ -183,10 +184,9 @@ class DeviceIssuesPortletView(BrowserView):
                 except ServiceException:
                     continue
                 evts = [alink,pill]
-                devdata.append(evts)
-            if len(devdata)>=100:
-                break
-        return devdata
+                devdata.append((evts, severities))
+        devdata.sort(key=lambda x:(x[1]['critical'], x[1]['error'], x[1]['warning']), reverse=True)
+        return [x[0] for x in devdata[:100]]
 
 
 class HeartbeatPortletView(BrowserView):
