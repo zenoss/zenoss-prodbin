@@ -72,9 +72,10 @@ class EventsRouter(DirectRouter):
         self.manager = IGUIDManager(context.dmd)
 
     def _getPathFromUuid(self, uuid):
-        path = self.manager.getPath(uuid)
-        if path:
-            return urllib.unquote(path)
+        if uuid:
+            path = self.manager.getPath(uuid)
+            if path:
+                return urllib.unquote(path)
 
     def _getNameFromUuid(self, uuid):
         """
@@ -182,6 +183,7 @@ class EventsRouter(DirectRouter):
 
         # TODO: Finish mapping out these properties.
         tags = self._getTagsFromOccurrence(eventOccurrence)
+
         event = {
             'id' : event_summary['uuid'],
             'evid' : event_summary['uuid'],
