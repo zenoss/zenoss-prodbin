@@ -169,20 +169,6 @@
     for="*"
     permission="zenoss.Common"
     />
-
-<browser:page
-    template="templates/noservices.pt"
-    name="noservices"
-    for="*"
-    permission="zenoss.Common"
-    />
-    
-<browser:page
-    template="templates/noservices-fail-load.pt"
-    name="noservices_fail_load"
-    for="*"
-    permission="zenoss.View"
-    />    
     
 <browser:page
     template="templates/mibs.pt"
