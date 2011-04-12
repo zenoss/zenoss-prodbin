@@ -923,18 +923,20 @@ Zenoss.FilterGridView = Ext.extend(Ext.ux.grid.livegrid.GridView, {
      * fixes the problem.
      */
     nonDisruptiveReset: function() {
-        this.ds.modified = [];
-        //this.grid.selModel.clearSelections(true);
-        this.rowIndex      = 0;
-        this.lastScrollPos = 0;
-        this.lastRowIndex = 0;
-        this.lastIndex    = 0;
-        this.adjustVisibleRows();
-        this.adjustScrollerPos(-this.liveScroller.dom.scrollTop,
-            true);
-        this.showLoadMask(false);
-        // this.reset(false);
-        this.updateLiveRows(this.rowIndex, true, true);
+        if(this.ds){
+            this.ds.modified = [];
+            //this.grid.selModel.clearSelections(true);
+            this.rowIndex      = 0;
+            this.lastScrollPos = 0;
+            this.lastRowIndex = 0;
+            this.lastIndex    = 0;
+            this.adjustVisibleRows();
+            this.adjustScrollerPos(-this.liveScroller.dom.scrollTop,
+                true);
+            this.showLoadMask(false);
+            // this.reset(false);
+            this.updateLiveRows(this.rowIndex, true, true); 
+        }
     },
     renderEditors: function() {
         if (!this.displayFilters){

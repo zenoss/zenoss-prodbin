@@ -138,6 +138,11 @@ var viewport = new Ext.Viewport({
         }
     ]
 });
+        if(Ext.isIE7){ 
+            setTimeout(function(){
+                Ext.getCmp('viewport').doLayout();
+                }, 1000);
+        }
 });
 </script>
 
@@ -155,7 +160,7 @@ Ext.onReady(function(){
 
 <!-- Make sure everything on the page gets laid out -->
 <script type="text/javascript">
-    Ext.onReady(function(){Ext.getCmp('viewport').doLayout()});
+    Ext.onReady(function(){Ext.getCmp('viewport').doLayout()});    
 </script>
 
 <tal:block metal:define-slot="script_afterLayout">

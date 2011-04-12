@@ -225,20 +225,21 @@ Ext.apply(Zenoss.render, {
             name = parts[parts.length-1];
         }
         return Zenoss.render.link(null, uid, name);
-    },
+    }, 
 
     linkFromGrid: function(name, col, record) {
         var item;
         if (typeof(record.data[col.id]) == 'object') {
             item = record.data[col.id];
-            if (item.url) {
+            if(item == null){
+                return name;
+            }else if(item.url != null) {
                 return Zenoss.render.link(null, item.url, item.text);
-            } else if (item.uid) {
+            }else if(item.uid) {
                 return Zenoss.render.link(item.uid, null, item.text);
             }
             return item.text;
         }
-
         return name;
     },
 
