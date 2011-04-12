@@ -72,9 +72,15 @@ class DeviceAddView(BrowserView):
             if not hasattr(aq_base(org), 'devtypes') or not org.devtypes: 
                 continue
             for t in org.devtypes:
-                desc, ptcl = t
+                try:
+                    desc, ptcl = t
+                except ValueError:
+                    continue
+
                 # Both must be defined
-                if not ptcl or not desc: continue
+                if not ptcl or not desc:
+                    continue
+
                 # We only care about orgs with acceptable protocols
                 if ptcl not in ALLOWED_PROTOCOLS: continue
                 types.append((org.getOrganizerName(), desc, ptcl))
