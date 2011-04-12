@@ -196,8 +196,8 @@ class EventsRouter(DirectRouter):
                 'uuid' : eventActor.get('element_uuid')
             },
             'component' : {
-                'text': self._getNameFromUuid(eventActor.get('element_sub_identifier')) or eventActor.get('element_identifier'),
-                'uid': self._getPathFromUuid(eventActor.get('element_uuid')),
+                'text': self._getNameFromUuid(eventActor.get('element_sub_uuid')) or eventActor.get('element_sub_identifier'),
+                'uid': self._getPathFromUuid(eventActor.get('element_sub_uuid')),
                 'url' : self._uuidUrl(eventActor.get('element_sub_uuid')),
                 'uuid' : eventActor.get('element_sub_uuid')
             },
@@ -503,8 +503,8 @@ class EventsRouter(DirectRouter):
             'device_url':self._uuidUrl(eventActor.get('element_uuid')),
             'ipAddress': eventDetails.get('ipAddress'),
             'device_uuid':eventActor.get('element_uuid'),
-            'component':self._getNameFromUuid(eventActor.get('element_sub_identifier')) or eventActor.get('element_identifier'),
-            'component_title':self._getNameFromUuid(eventActor.get('element_sub_identifier')) or eventActor.get('element_identifier'),
+            'component':self._getNameFromUuid(eventActor.get('element_sub_uuid')) or eventActor.get('element_sub_identifier'),
+            'component_title':self._getNameFromUuid(eventActor.get('element_sub_uuid')) or eventActor.get('element_sub_identifier'),
             'component_url':self._uuidUrl(eventActor.get('element_sub_uuid')),
             'component_uuid':eventActor.get('element_sub_uuid'),
             'firstTime':isoDateTimeFromMilli(event_summary['first_seen_time']),
