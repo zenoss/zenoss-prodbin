@@ -52,7 +52,7 @@ class ToManyRelationshipBase(
 
     _operation = -1 # if a Relationship's are only deleted
 
-    _count = 0
+    _count = None
 
     def countObjects(self):
         """Return the number of objects in this relationship"""
