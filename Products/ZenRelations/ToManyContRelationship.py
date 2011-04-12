@@ -152,7 +152,7 @@ class ToManyContRelationship(ToManyRelationshipBase):
         if v is not None: id=v
         self._objects[id] = aq_base(obj)
         obj = aq_base(obj).__of__(self)
-        self._count += 1
+        self._count = len(self._objects)
 
 
     def _remove(self, obj=None, suppress_events=False):

@@ -93,7 +93,7 @@ class ToManyRelationship(ToManyRelationshipBase):
         if obj in self._objects: raise RelationshipExistsError
         self._objects.append(aq_base(obj))
         self.__primary_parent__._p_changed = True
-        self._count += 1
+        self._count = len(self._objects)
 
 
     def _remove(self, obj=None, suppress_events=False):
