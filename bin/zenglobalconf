@@ -32,11 +32,12 @@ def parse_settings(conf_file):
         return
     with open(conf_file) as global_conf:
         for line in global_conf:
-            fields = re.split(SETTINGS_DELIM, line, 1)
+            fields = re.split(SETTINGS_DELIM, line.rstrip(), 1)
             name = None
+            value = None
             if len(fields) > 1:
-                name = fields[0]
-            yield (line, name)
+                name, value = fields
+            yield (line, name, value)
 
 def create_tmpfile(path):
     statinfo = os.stat(path)
@@ -46,13 +47,21 @@ def create_tmpfile(path):
     os.chown(tmpname, statinfo.st_uid, statinfo.st_gid)
     return (tmpfd,tmpname)
 
+def print_setting(setting_name):
+    filename = zenPath('etc', 'global.conf')
+    values = {}
+    for line, name, value in parse_settings(filename):
+        if name == setting_name:
+            print value
+            break
+
 def remove_settings(settings_to_remove):
     filename = zenPath('etc', 'global.conf')
     (tmpfd,tmpname) = create_tmpfile(filename)
     output_file = os.fdopen(tmpfd, 'wb')
     found_settings = set()
     try:
-        for line, name in parse_settings(filename):
+        for line, name, value in parse_settings(filename):
             if name is None or name not in settings_to_remove:
                 output_file.write(line)
             else:
@@ -72,7 +81,7 @@ def update_settings(settings_dict):
     output_file = os.fdopen(tmpfd, 'wb')
     found_settings = set()
     try:
-        for line, name in parse_settings(filename):
+        for line, name, value in parse_settings(filename):
             if name is None or not name in settings_dict:
                 output_file.write(line)
             elif name not in found_settings:
@@ -98,7 +107,9 @@ def main():
             "ZENHOME not set. You must run this script as the zenoss user.")
         sys.exit(1)
 
-    parser = optparse.OptionParser(usage='%prog <-r|-u> prop_name[=prop_val] [...]')
+    parser = optparse.OptionParser(usage='%prog <-p|-r|-u> prop_name[=prop_val] [...]')
+    parser.add_option('-p', '--print', dest='get', action="store_true",
+            help='Prints setting from the configuration file.')
     parser.add_option('-r', '--remove', dest='remove', action="store_true",
             help='Removes settings from the configuration file.')
     parser.add_option('-u', '--update', dest='update', action="store_true",
@@ -108,10 +119,23 @@ def main():
     if len(args) == 0:
         parser.error("required property names not provided")
 
-    if options.remove and options.update:
-        parser.error("options -r and -u are mutually exclusive")
-
+    numcmds = 0
+    if options.get:
+        numcmds += 1
     if options.remove:
+        numcmds += 1
+    if options.update:
+        numcmds += 1
+    if numcmds == 0:
+        parser.error("Must specify command (-p|-r|-u)")
+    if numcmds > 1:
+        parser.error("Only one command can be specified (-p|-r|-u)")
+
+    if options.get:
+        if len(args) > 1:
+            parser.error("Print option only takes one setting name")
+        print_setting(args[0])
+    elif options.remove:
         remove_settings(args)
     else:
         argsdict = {}
