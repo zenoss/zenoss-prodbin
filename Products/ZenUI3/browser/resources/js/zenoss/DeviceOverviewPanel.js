@@ -599,16 +599,16 @@
                             fieldLabel: _t('Serial Number'),
                             name: 'serialNumber',
                             xtype: 'textfield'
-                        },{
-                            fieldLabel: _t('Rack Slot'),
-                            name: 'rackSlot',
-                            xtype: 'textfield'
                         }]
                     },{
                         id:'deviceoverviewpanel_descriptionsummary',
                         defaultType: 'textfield',
                         height: 360,
                         items: [{
+                            fieldLabel: _t('Rack Slot'),
+                            name: 'rackSlot',
+                            xtype: 'textfield'
+                        },{
                             xtype: 'clicktoeditnolink',
                             listeners: {
                                 labelclick: function(p){
