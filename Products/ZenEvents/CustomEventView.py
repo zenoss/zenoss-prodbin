@@ -210,17 +210,6 @@ class CustomEventView(ZenModelRM, EventFilter):
             return self.callZenScreen(REQUEST)
 
 
-    security.declareProtected('Manage Events','manage_deleteHeartbeat')
-    def manage_deleteHeartbeat(self, REQUEST=None):
-        """Delete events form this managed entity.
-        """
-        dev = self.device()
-        if dev: 
-            return self.getEventManager().manage_deleteHeartbeat(dev.id, REQUEST)
-        if REQUEST:
-            return self.callZenScreen(REQUEST)
-
-
     security.declareProtected('Manage Events','manage_ackEvents')
     def manage_ackEvents(self, evids=(), REQUEST=None):
         """Set event state form this managed entity.

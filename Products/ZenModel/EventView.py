@@ -179,18 +179,6 @@ class EventView(object):
         return request.get('message', '')
 
 
-    security.declareProtected('Manage Events','manage_deleteHeartbeat')
-    def manage_deleteHeartbeat(self, REQUEST=None):
-        """Delete events form this managed entity.
-        """
-        dev = self.device()
-        if dev:
-            return self.getEventManager().manage_deleteHeartbeat(dev.id, REQUEST)
-        if REQUEST:
-            return self.callZenScreen(REQUEST)
-
-
-
     security.declareProtected('Manage Events','manage_ackBatchEvents')
     @deprecated
     def manage_ackBatchEvents(self, selectstatus='none', goodevids=[],

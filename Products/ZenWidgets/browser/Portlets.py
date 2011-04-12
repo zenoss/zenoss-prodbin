@@ -30,6 +30,7 @@ from Products.ZenEvents.browser.EventPillsAndSummaries import \
                                    getDashboardObjectsEventSummary, \
                                    ObjectsEventSummary,    \
                                    getEventPillME
+from time import time
 
 
 class TopLevelOrganizerPortletView(ObjectsEventSummary):
@@ -197,6 +198,13 @@ class HeartbeatPortletView(BrowserView):
     def __call__(self):
         return self.getHeartbeatIssuesJSON()
 
+    def _getDeviceLink(self, deviceName):
+        dev = self.context.dmd.Devices.findDevice(deviceName)
+        alink = deviceName
+        if dev:
+            alink = "<a href='%s'>%s</a>" % (dev.getPrimaryUrlPath(), dev.titleOrId())
+        return alink
+
     @json
     def getHeartbeatIssuesJSON(self):
         """
@@ -211,10 +219,15 @@ class HeartbeatPortletView(BrowserView):
         """
         mydict = {'columns':[], 'data':[]}
         mydict['columns'] = ['Device', 'Daemon', 'Seconds']
-        heartbeats = self.context.dmd.ZenEventManager.getHeartbeat()
-        for Device, Daemon, Seconds, dummy in heartbeats:
-            mydict['data'].append({'Device':Device,
-                'Daemon':Daemon, 'Seconds':Seconds})
+        now = int(time() * 1000)
+        zep = getFacade('zep')
+        heartbeats = zep.getHeartbeats()
+        for heartbeat_dict in heartbeats:
+            # Seconds is difference between current time and last reported time
+            # ZEP returns milliseconds, so perform appropriate conversion
+            seconds = (now - heartbeat_dict['last_time']) / 1000
+            mydict['data'].append({'Device':self._getDeviceLink(heartbeat_dict['monitor']),
+                'Daemon':heartbeat_dict['daemon'], 'Seconds':seconds})
         return mydict
 
 

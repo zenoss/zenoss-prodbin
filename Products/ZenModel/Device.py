@@ -1769,8 +1769,6 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable,
         """
         parent = self.getPrimaryParent()
         if deleteStatus:
-            self.getEventManager().manage_deleteHeartbeat(self.getId())
-
             # Close events for this device
             zep = getFacade('zep')
             tagFilter = { 'tag_uuids': [IGlobalIdentifier(self).getGUID()] }
@@ -1788,22 +1786,6 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable,
             REQUEST['RESPONSE'].redirect(parent.absolute_url() +
                                             "/deviceOrganizerStatus"
                                             '?message=Device deleted')
-
-
-    security.declareProtected(ZEN_MANAGE_DEVICE, 'manage_deleteHeartbeat')
-    def manage_deleteHeartbeat(self, REQUEST=None):
-        """
-        Delete this device's heartbeats.
-
-        @permission: ZEN_MANAGE_DEVICE
-        """
-        self.getEventManager().manage_deleteHeartbeat(self.getId())
-        if REQUEST:
-            messaging.IMessageSender(self).sendToBrowser(
-                'Heartbeats cleared',
-                "Cleared heartbeat events for %s." % self.id
-            )
-        return self.callZenScreen(REQUEST)
 
 
     security.declareProtected(ZEN_ADMIN_DEVICE, 'renameDevice')

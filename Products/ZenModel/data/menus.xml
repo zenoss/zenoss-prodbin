@@ -4413,32 +4413,6 @@ False
 80.0
 </property>
 </object>
-<object id='manage_clearHeartbeats' module='Products.ZenModel.ZenMenuItem' class='ZenMenuItem'>
-<property id='zendoc' type='string'>
-Clear All Heartbeats...
-</property>
-<property type="text" id="description" mode="w" >
-Clear All Heartbeats...
-</property>
-<property type="text" id="action" mode="w" >
-dialog_clearAllHeartbeats
-</property>
-<property type="boolean" id="isglobal" mode="w" >
-True
-</property>
-<property type="lines" id="permissions" mode="w" >
-('Change Device',)
-</property>
-<property type="lines" id="allowed_classes" mode="w" >
-['MySqlEventManager']
-</property>
-<property type="boolean" id="isdialog" mode="w" >
-True
-</property>
-<property type="float" id="ordering" mode="w" >
-2.0
-</property>
-</object>
 </tomanycont>
 </object>
 <object id='Traps' module='Products.ZenModel.ZenMenu' class='ZenMenu'>

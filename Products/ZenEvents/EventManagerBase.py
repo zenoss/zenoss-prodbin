@@ -1035,44 +1035,6 @@ class EventManagerBase(ZenModelRM, ObjectCache, DbAccessBase):
                       time.time() - 60*60*24*self.defaultAvailabilityDays)
         return Availability.query(self.dmd, **kw)
 
-
-    def getHeartbeat(self, failures=True, simple=False, limit=0, db=None):
-        """Return all heartbeat issues list of tuples (device, component, secs)
-        """
-        sel = "select device, component, lastTime from heartbeat"
-        if failures:
-            sel += " where DATE_ADD(lastTime, INTERVAL timeout SECOND) <= NOW()"
-
-        statuses = []
-        conn = self.connect()
-        try:
-            curs = conn.cursor()
-            curs.execute(sel)
-            res = list(curs.fetchall())
-            res.sort(lambda x,y: cmp(x[2],y[2]))
-            devclass = self.getDmdRoot("Devices")
-            for devname, comp, lastTime in res:
-                dtime = int(time.time() - lastTime.timeTime())
-
-                alink = devname
-                if not simple:
-                    dev = devclass.findDevice(devname)
-                    if dev:
-                        alink = "<a href='%s'>%s</a>" % (
-                                dev.getPrimaryUrlPath(), dev.titleOrId())
-
-                statuses.append([alink, comp, str(dtime), devname])
-            if limit:
-                statuses = statuses[:limit]
-        finally:
-            self.close(conn)
-        return statuses
-
-    def getHeartbeatObjects(self, failures=True, simple=False, limit=0, db=None):
-        beats = self.getHeartbeat(failures, simple, limit, db)
-        return [{'alink':b[0], 'comp':b[1], 'dtime':b[2], 'devId':b[3]}
-                for b in beats]
-
     @deprecated
     def getAllComponentStatus(self,
                               statclass,
@@ -1659,26 +1621,6 @@ class EventManagerBase(ZenModelRM, ObjectCache, DbAccessBase):
             return self.callZenScreen(REQUEST)
 
 
-    security.declareProtected(ZEN_MANAGE_EVENTS,'manage_deleteHeartbeat')
-    def manage_deleteHeartbeat(self, devname, REQUEST=None):
-        """
-        Delete all heartbeats for a given device name.
-        """
-        if devname:
-            delete = "delete from heartbeat where device = '%s'" % devname
-            conn = self.connect()
-            try:
-                curs = conn.cursor()
-                curs.execute(delete)
-            finally: self.close(conn)
-        if REQUEST:
-            messaging.IMessageSender(self).sendToBrowser(
-                'Heartbeats Cleared',
-                'Heartbeat events have been moved to the history.'
-            )
-            return self.callZenScreen(REQUEST)
-
-
     security.declareProtected(ZEN_MANAGE_EVENTS,'manage_ackEvents')
     def manage_ackEvents(self, evids=(), REQUEST=None):
         "Ack the given event ids"
@@ -1871,21 +1813,6 @@ class EventManagerBase(ZenModelRM, ObjectCache, DbAccessBase):
         self.dmd.ZenEventHistory.host = self.dmd.ZenEventManager.host
         self.dmd.ZenEventHistory.port = self.dmd.ZenEventManager.port
         if REQUEST: return self.callZenScreen(REQUEST)
-
-
-    security.declareProtected(ZEN_MANAGE_EVENTMANAGER,'manage_clearHeartbeats')
-    def manage_clearHeartbeats(self, REQUEST=None):
-        """truncate heartbeat table"""
-        conn = self.connect()
-        try:
-            curs = conn.cursor()
-            sql = 'truncate table heartbeat'
-            curs.execute(sql)
-        finally: self.close(conn)
-        if REQUEST:
-            messaging.IMessageSender(self).sendToBrowser(
-                'Heartbeats Cleared', 'Heartbeats have been cleared.')
-            return self.callZenScreen(REQUEST)
 
     security.declareProtected(ZEN_MANAGE_EVENTMANAGER,'zmanage_editProperties')
     def zmanage_editProperties(self, REQUEST=None):

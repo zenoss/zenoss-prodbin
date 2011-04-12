@@ -21,7 +21,7 @@ from Products.Zuul.interfaces import IZepFacade
 from Products.ZenEvents.ZenEventClasses import Unknown
 
 import pkg_resources
-from zenoss.protocols.services.zep import ZepServiceClient, EventSeverity, ZepConfigClient
+from zenoss.protocols.services.zep import ZepServiceClient, EventSeverity, ZepConfigClient, ZepHeartbeatClient
 from zenoss.protocols.jsonformat import to_dict, from_dict
 from zenoss.protocols.protobufs.zep_pb2 import EventSort, EventFilter, EventSummaryUpdateRequest, ZepConfig
 from zenoss.protocols.protobufutil import listify
@@ -78,6 +78,7 @@ class ZepFacade(ZuulFacade):
         zep_url = config.get('zep_uri', 'http://localhost:8084')
         self.client = ZepServiceClient(zep_url)
         self.configClient = ZepConfigClient(zep_url)
+        self.heartbeatClient = ZepHeartbeatClient(zep_url)
         self._guidManager = IGUIDManager(context.dmd)
 
     def createEventFilter(self,
@@ -602,6 +603,14 @@ class ZepFacade(ZuulFacade):
         total = self.getEventSummaries(0, filter=eventFilter, limit=0)['total']
         total += self.getEventSummariesFromArchive(0, filter=eventFilter, limit=0)['total']
         return total
+
+    def getHeartbeats(self, monitor=None):
+        response, heartbeats = self.heartbeatClient.getHeartbeats(monitor=monitor)
+        heartbeats_dict = to_dict(heartbeats)
+        return heartbeats_dict.get('heartbeats', [])
+
+    def deleteHeartbeats(self, monitor=None):
+        self.heartbeatClient.deleteHeartbeats(monitor=monitor)
 
 class ZepDetailsInfo:
     """
