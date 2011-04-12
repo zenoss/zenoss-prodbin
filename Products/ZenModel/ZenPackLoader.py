@@ -180,19 +180,32 @@ class ZPLDaemons(ZenPackLoader):
 
     def _genConfFile(self, pack):
         """
-        Attempt to generate a conf file for any daemons.
+        Attempt to generate a conf file for any daemons. Wait for completion.
         """
-        # We just go on with business, not waiting for this to finish
-        # nor caring if it throws an exception.  The conf file is nice
-        # to provide, but not important.
         try:
-            subprocess.Popen(binPath('create_sample_config.sh'),
+            p = subprocess.Popen(binPath('create_sample_config.sh'),
                             stdout=subprocess.PIPE,
                             stderr=subprocess.PIPE,
                             cwd=pack.path())
+            p.wait()
         except OSError:
             pass
 
+    def _updateConfFile(self, pack):
+        """
+        Update conf files for any daemons to account for logfile path
+        differences on the localhost collector.
+        """
+        for fs in findFiles(pack, 'daemons', filter=self.filter):
+            name = fs.rsplit('/', 1)[-1]
+            logpath = pack.About._getLogPath(name).rsplit('/', 1)[0]
+            if logpath != zenPath('log'):
+                try:
+                    with open(zenPath('etc', '%s.conf' % name), 'a') as conf:
+                        conf.write('logpath %s' % logpath)
+                except IOError:
+                    # No conf file. Move on.
+                    pass
 
     def load(self, pack, unused):
         for fs in findFiles(pack, 'daemons', filter=self.filter):
@@ -202,6 +215,7 @@ class ZPLDaemons(ZenPackLoader):
                 os.remove(path)
             os.symlink(fs, path)
         self._genConfFile(pack)
+        self._updateConfFile(pack)
 
 
     def upgrade(self, pack, app):
