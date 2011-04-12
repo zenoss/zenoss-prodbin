@@ -160,9 +160,9 @@ class FileSystem(OSComponent):
         """
         Return the number of availible bytes for this filesystem
         """
-        blocks = self.usedBlocks()
+        blocks = self.availBlocks()
         if blocks is not None:
-            return self.blockSize * (self.getTotalBlocks() - self.usedBlocks())
+            return self.blockSize * blocks
         return None
 
 
@@ -184,12 +184,15 @@ class FileSystem(OSComponent):
 
     def capacity(self):
         """
-        Return the percentage capacity of a filesystems using its rrd file
+        Return the percentage capacity of a filesystems using its rrd file.
+        Calculate using available blocks instead used blocks to account for
+        reserved blocks.
         """
         __pychecker__='no-returnvalues'
-        usedBytes = self.usedBytes()
-        if self.totalBytes() and usedBytes is not None:
-            return int(100.0 * self.usedBytes() / self.totalBytes())
+        totalBlocks = self.getTotalBlocks()
+        availBlocks = self.availBlocks()
+        if totalBlocks and availBlocks is not None:
+            return int(100.0 * (totalBlocks - availBlocks) / totalBlocks)
         return 'unknown'
 
 
@@ -216,6 +219,19 @@ class FileSystem(OSComponent):
                 usedBytes = self.totalBytes() - long(freeMB) * 1024 * 1024
                 return usedBytes / self.blockSize
         return None
+
+
+    def availBlocks(self, default = None):
+        """
+        Return the number of available blocks stored in the filesystem's rrd file
+        """
+        blocks = self.cacheRRDValue('availBlocks', default)
+        if blocks is not None and not isnan(blocks):
+            return long(blocks)
+        usedBlocks = self.usedBlocks()
+        if usedBlocks is None:
+            return None
+        return self.getTotalBlocks() - usedBlocks
 
 
     def usedBlocksString(self):
