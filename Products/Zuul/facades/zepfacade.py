@@ -15,6 +15,7 @@ import logging
 import re
 from AccessControl import getSecurityManager
 from zope.interface import implements
+from Products.ZenModel.Device import Device
 from Products.Zuul.facades import ZuulFacade
 from Products.Zuul.interfaces import IZepFacade
 from Products.ZenEvents.ZenEventClasses import Unknown
@@ -511,11 +512,12 @@ class ZepFacade(ZuulFacade):
         issues = []
         for eventTagSeverity in tagSeverities:
             device = self._guidManager.getObject(eventTagSeverity.tag_uuid)
-            count = 0
-            for severity in eventTagSeverity.severities:
-                count += severity.count
-            total = eventTagSeverity.total
-            issues.append((device.id, count, total))
+            if device and isinstance(device, Device):
+                count = 0
+                for severity in eventTagSeverity.severities:
+                    count += severity.count
+                total = eventTagSeverity.total
+                issues.append((device.id, count, total))
         return issues
 
     def getDeviceIssuesDict(self, eventClass=(), severity=(), status=()):
