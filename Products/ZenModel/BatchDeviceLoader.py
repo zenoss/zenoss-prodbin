@@ -19,8 +19,8 @@ import sys
 import re
 
 import Globals
-from transaction import commit, abort
 from ZODB.POSException import ConflictError
+from ZODB.transact import transact
 from zope.component import getUtility
 
 from Products.ZenModel.interfaces import IDeviceLoader
@@ -218,8 +218,10 @@ settingsDevice setManageIp='10.10.10.77', setLocation="123 Elm Street", \
             org = base.getDmdObj(path)
         except KeyError:
             self.log.info("Creating organizer %s", path)
-            base.manage_addOrganizer(path)
-            commit()
+            @transact
+            def inner():
+                base.manage_addOrganizer(path)
+            inner()
             org = base.getDmdObj(path)
         self.applyZProps(org, device_specs)
 
@@ -290,8 +292,14 @@ settingsDevice setManageIp='10.10.10.77', setLocation="123 Elm Street", \
         @parameter device_list: list of device entries
         @type device_list: list of dictionaries
         """
-        processed = 0
-        for device_specs in device_list:
+
+        def transactional(f):
+            return f if self.options.nocommit else transact(f)
+
+        processed = {'total':0}
+
+        @transactional
+        def _process(device_specs):
             # Get the latest bits
             self.dmd.zport._p_jar.sync()
 
@@ -303,50 +311,52 @@ settingsDevice setManageIp='10.10.10.77', setLocation="123 Elm Street", \
                     deviceLoader = getUtility(IDeviceLoader, loaderName, organizer)
                     devobj = self.runLoader(deviceLoader, device_specs)
                 except ConflictError:
-                    abort()
-                    continue
+                    raise
                 except Exception:
                     self.log.exception("Ignoring device loader issue for %s",
                                        device_specs)
-                    continue
+                    return
             else:
                 devobj = self.getDevice(device_specs)
+
             if devobj is None:
                 if deviceLoader is not None:
-                    processed += 1
-                continue
+                    processed['total'] += 1
+            else:
+                self.addAllLGSOrganizers(device_specs)
+                self.applyZProps(devobj, device_specs)
+                self.applyOtherProps(devobj, device_specs)
 
-            self.addAllLGSOrganizers(device_specs)
-            self.applyZProps(devobj, device_specs)
-            self.applyOtherProps(devobj, device_specs)
+            return devobj
+
+        @transactional
+        def _snmp_community(device_specs, devobj):
+            # Discover the SNMP community if it isn't explicitly set.
+            if 'zSnmpCommunity' not in device_specs:
+                self.log.debug('Discovering SNMP version and community')
+                devobj.manage_snmpCommunity()
+
+        @transactional
+        def _model(devobj):
+            try:
+                devobj.collectDevice(setlog=self.options.showModelOutput)
+            except ConflictError:
+                raise
+            except Exception:
+                self.log.exception("Modeling error for %s", devobj.id)
+            processed['total'] += 1
+
+        for device_specs in device_list:
+            devobj = _process(device_specs)
 
             # We need to commit in order to model, so don't bother
             # trying to model unless we can do both
-            if not self.options.nocommit and not self.options.nomodel:
-                # Discover the SNMP community if it isn't explicitly set.
-                if 'zSnmpCommunity' not in device_specs:
-                    self.log.debug('Discovering SNMP version and community')
-                    devobj.manage_snmpCommunity()
-
-                # Make sure that ZODB has changes before modeling
-                commit()
-                try:
-                    devobj.collectDevice(setlog=self.options.showModelOutput)
-                except (SystemExit, KeyboardInterrupt):
-                    self.log.info("User interrupted modeling")
-                    break
-                except ConflictError:
-                    abort()
-                    continue
-                except Exception:
-                    self.log.exception("Modeling error for %s", devobj.id)
-
-            if not self.options.nocommit:
-                commit()
-            processed += 1
+            if devobj and not self.options.nocommit and not self.options.nomodel:
+                _snmp_community(device_specs, devobj)
+                _model(devobj)
 
         self.log.info("Processed %d of %d devices",
-                      processed, len(device_list))
+                      processed['total'], len(device_list))
 
     def getDevice(self, device_specs):
         """
