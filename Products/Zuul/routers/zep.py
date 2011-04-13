@@ -931,3 +931,15 @@ class EventsRouter(DirectRouter):
         if url:
             msg += "<br/><a href='%s'>Go to the new mapping.</a>" % url
         return DirectResponse(msg, success=bool(url))
+    
+    @require('Manage Events')
+    def clear_heartbeats(self):
+        """
+        Clear all heartbeat events
+
+        @rtype:   DirectResponse
+        @return:  B{Properties}:
+           - success: (boolean) True if heartbeats deleted successfully
+        """
+        self.zep.deleteHeartbeats()
+        return DirectResponse.succeed()

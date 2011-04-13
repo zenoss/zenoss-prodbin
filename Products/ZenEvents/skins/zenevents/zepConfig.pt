@@ -20,6 +20,7 @@
         <script src="/++resource++zenui/js/zenoss/zepconfig.js"></script>
         <div id="propList"></div>
         <div id="saveButton"></div>
+        <div id="clearHeartbeat"></div>
       </tal:block>
     </tal:block>
   </tal:block>

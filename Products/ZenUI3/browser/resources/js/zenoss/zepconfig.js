@@ -34,5 +34,46 @@ Ext.onReady(function(){
     }
 
     loadProperties();
+    
+    var clearHeartbeatPanel = new Ext.Panel({
+        renderTo: 'clearHeartbeat',
+        layout: 'hbox',
+        layoutConfig: {
+            pack: 'center',
+            align: 'middle'
+        },
+        bodyStyle: 'background-color: #FAFAFA; border-style: none solid none solid;',
+        width: 500,
+        padding: 10,
+        items: [
+            {
+                xtype: 'button',
+                text: _t('Clear'),
+                handler: function() {
+                    var confirmDialog = new Zenoss.MessageDialog({
+                        title: _t('Clear Heartbeats'),
+                        message: _t('Clear all heartbeat events? This cannot be undone.'),
+                        okHandler: function() {
+                            router.clear_heartbeats({}, function(response) {
+                                if (response.success) {
+                                    Zenoss.message.success(_t('Heartbeat events succesfully deleted.'));
+                                }
+                                else {
+                                    Zenoss.message.error(_t('Error deleting heartbeat events.'));
+                                }
+                            });
+                        }
+                    });
+                    confirmDialog.show();
+                }
+            }, {
+                xtype: 'spacer',
+                width: 10
+            }, {
+                html: _t('Clear all heartbeat events'),
+                bodyStyle: 'font-size:110%; font-color: #5A5A5A;'
+            }
+        ]
+    });
 
 });
