@@ -17,6 +17,7 @@ from twisted.spread import pb
 from Products.ZenEvents.Event import Event
 pb.setUnjellyableForClass(Event, Event)
 
+from zenoss.protocols.services import ServiceConnectionError
 from Products.ZenHub.HubService import HubService
 from Products.ZenHub.services.ThresholdMixin import ThresholdMixin
 from Products.ZenHub.PBDaemon import translateError
@@ -49,7 +50,10 @@ class EventService(HubService, ThresholdMixin):
     @translateError
     def remote_getDevicePingIssues(self, *args, **kwargs):
         zep = getFacade('zep')
-        return zep.getDevicePingIssues()
+        try:
+            return zep.getDevicePingIssues()
+        except ServiceConnectionError, e:
+            raise pb.Error("Unable to contact ZEP.")
 
     @translateError
     def remote_getDeviceIssues(self, *args, **kwargs):

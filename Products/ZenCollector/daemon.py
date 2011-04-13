@@ -478,7 +478,7 @@ class CollectorDaemon(RRDDaemon):
                 stat.value = self._rrd.dataPoints
 
                 events = self._statService.postStatistics(self.rrdStats,
-                                                          interval)
+                                                          self._prefs.cycleInterval)
                 self.sendEvents(events)
 
         def _maintenance():

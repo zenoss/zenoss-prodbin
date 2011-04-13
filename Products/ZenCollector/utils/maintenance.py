@@ -68,7 +68,7 @@ class MaintenanceCycle(object):
     def stop(self):
         log.debug("Maintenance stopped")
         self._stop
-        
+
     def _doMaintenance(self):
         """
         Perform daemon maintenance processing on a periodic schedule. Initially
@@ -78,7 +78,7 @@ class MaintenanceCycle(object):
         if self._stop:
             log.debug("Skipping, maintenance stopped")
             return
-        
+
         log.info("Performing periodic maintenance")
         interval = self._cycleInterval
 
@@ -90,8 +90,10 @@ class MaintenanceCycle(object):
 
         def _reschedule(result):
             if isinstance(result, Failure):
-                log.error("Maintenance failed: %s",
-                               result.getErrorMessage())
+                # The full error message is actually the entire traceback, so
+                # just get the last line with the actual message.
+                log.error("Maintenance failed. Message from hub: %s",
+                          result.getErrorMessage().splitlines()[-1])
 
             if interval > 0:
                 log.debug("Rescheduling maintenance in %ds", interval)
