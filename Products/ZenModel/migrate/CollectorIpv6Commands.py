@@ -26,14 +26,14 @@ class CollectorIpv6Commands(Migrate.Step):
         # ping ipv6
         try:
             ping = dmd.userCommands._getOb('ping')
-            ping.command = "ucping -c2 ${device/manageIp}"
+            ping.command = "${device/pingCommand} -c2 ${device/manageIp}"
         except AttributeError:
             pass
 
         # traceroute
         try:
             traceroute = dmd.userCommands._getOb('traceroute')
-            traceroute.command = "uctraceroute -q 1 -w 2 ${device/manageIp}"
+            traceroute.command = "${device/tracerouteCommand} -q 1 -w 2 ${device/manageIp}"
         except AttributeError:
             pass
 
@@ -53,7 +53,7 @@ class CollectorIpv6Commands(Migrate.Step):
             try:
                 cmd = dmd.userCommands._getOb(commandName)
                 if not cmd.command.startswith('dcsh'):
-                    cmd.command = 'dcsh --collector=${device/getPerformanceServerName} "%s"' % (cmd.command)
+                    cmd.command = 'dcsh --collector=${device/getPerformanceServerName} -n "%s"' % (cmd.command)
             except AttributeError:
                 pass
 

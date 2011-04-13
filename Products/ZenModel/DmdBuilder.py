@@ -126,15 +126,15 @@ class DmdBuilder(object):
 
     def buildUserCommands(self):
         for id, cmd, desc in (
-                ('ping', 'dcsh --collector=${device/getPerformanceServerName} "ucping -c2 ${device/manageIp}"',
+                ('ping', 'dcsh --collector=${device/getPerformanceServerName} -n "${device/pingCommand} -c2 ${device/manageIp}"',
                  "Is the device responding to ping?"),
-                ('traceroute', 'dcsh --collector=${device/getPerformanceServerName} "uctraceroute -q 1 -w 2 ${device/manageIp}"',
+                ('traceroute', 'dcsh --collector=${device/getPerformanceServerName} -n "${device/tracerouteCommand} -q 1 -w 2 ${device/manageIp}"',
                  "Show the route to the device"),
-                ('DNS forward', 'dcsh --collector=${device/getPerformanceServerName} "host ${device/id}"',
+                ('DNS forward', 'dcsh --collector=${device/getPerformanceServerName} -n "host ${device/id}"',
                  "Name to IP address lookup"),
-                ('DNS reverse', 'dcsh --collector=${device/getPerformanceServerName} "host ${device/manageIp}"',
+                ('DNS reverse', 'dcsh --collector=${device/getPerformanceServerName} -n "host ${device/manageIp}"',
                  "IP address to name lookup"),
-                ('snmpwalk', 'dcsh --collector=${device/getPerformanceServerName} "snmpwalk -${device/zSnmpVer} -c${device/zSnmpCommunity} ${device/snmpwalkPrefix}${here/manageIp} system"',
+                ('snmpwalk', 'dcsh --collector=${device/getPerformanceServerName} -n "snmpwalk -${device/zSnmpVer} -c${device/zSnmpCommunity} ${device/snmpwalkPrefix}${here/manageIp} system"',
                  "Display the OIDs available on a device"),
                 ):
             self.dmd.manage_addUserCommand(id, cmd=cmd, desc=desc)

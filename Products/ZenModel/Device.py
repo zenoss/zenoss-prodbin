@@ -80,6 +80,7 @@ from OFS.CopySupport import CopyError # Yuck, a string exception
 from Products.Zuul import getFacade
 
 
+
 def getNetworkRoot(context, performanceMonitor):
     """
     Return the default network root.
@@ -2130,6 +2131,21 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable,
 
         return matchers
 
+    def manageIpVersion(self):
+        """
+        Returns either 4 or 6 depending on the version
+        of the manageIp ip adddress
+        """
+        from ipaddr import IPAddress
+        try:
+            ip = self.getManageIp()
+            return IPAddress(ip).version
+        except ValueError:
+            # could not parse the ip address
+            pass
+        # if we can't parse it assume it is ipv4
+        return 4
+
     def snmpwalkPrefix(self):
         """
         This method gets the ip address prefix used for this device when running
@@ -2137,15 +2153,31 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable,
         @rtype:   string
         @return:  Prefix used for snmwalk for this device
         """
-        from ipaddr import IPAddress
-        try:
-            ip = self.getManageIp()
-            if IPAddress(ip).version == 6:
-                return "udp6:"
-        except ValueError:
-            # could not parse the ip address
-            pass
+        if self.manageIpVersion() == 6:
+            return "udp6:"
         return ""
+
+    def pingCommand(self):
+        """
+        Used by the user commands this returns which ping command
+        this device should use.
+        @rtype: string
+        @return "ping" or "ping6" depending on if the manageIp is ipv6 or not
+        """
+        if self.manageIpVersion() == 6:
+            return "ping6"
+        return "ping"
+
+    def tracerouteCommand(self):
+        """
+        Used by the user commands this returns which traceroute command
+        this device should use.
+        @rtype: string
+        @return "traceroute" or "traceroute6" depending on if the manageIp is ipv6 or not
+        """
+        if self.manageIpVersion() == 6:
+            return "traceroute6"
+        return "traceroute"
 
     def updateProcesses(self, relmaps):
         "Uses ProcessClasses to create processes to monitor"
