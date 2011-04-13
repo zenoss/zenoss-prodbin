@@ -69,7 +69,6 @@ class ToManyContRelationship(ToManyRelationshipBase):
         """set our instance values"""
         self.id = id
         self._objects = OOBTree()
-        self._count = 0
 
 
     def _safeOfObjects(self):
