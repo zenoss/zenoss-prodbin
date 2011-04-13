@@ -41,6 +41,7 @@ class ServiceProxy(pb.Copyable, pb.RemoteCopy):
         self.failSeverity = svc.getFailSeverity()
         self.status = status
         self.key = svc.key()
+        self.deviceManageIp = svc.device().manageIp
 
     def __str__(self):
         return ' '.join( map(str, [self.device, self.component, self.port]) )

@@ -120,27 +120,43 @@ class ZenStatusTask(ObservableMixin):
         self.log = log
         self.cfg = taskConfig.components[0]
         self._devId = self.cfg.device
-        self._manageIp = self.cfg.ip
         self._eventService = zope.component.queryUtility(IEventService)
         self._preferences = zope.component.queryUtility(ICollectorPreferences,
                                                         "zenstatus")
 
-    def doTask(self):
+    def _scan_device(self, ip_address):
         log.debug("Scanning device %s (%s) port %s",
-                  self._devId, self._manageIp, self.cfg.port)
+                  self._devId, ip_address, self.cfg.port)
         job = ZenTcpClient(self.cfg, self.cfg.status)
-        d = job.start()
-        d.addCallback(self.processTest)
-        d.addErrback(self.handleExceptions)
+        return job.start(ip_address)
+
+    def doTask(self):
+        d = self._scan_device(self.cfg.ip)
+        if self.cfg.ip != self.cfg.deviceManageIp:
+            d.addCallbacks(self.processTestWithRetry, self.handleExceptions)
+        else:
+            d.addCallback(self.processTest)
+            d.addErrback(self.handleExceptions)
         return d
 
-    def processTest(self, result):
+    def processTestWithRetry(self, result):
         """
         Test a connection to a device.
 
         @parameter result: device and TCP service to test
         @type result: ZenTcpClient object
         """
+        evt = result.getEvent()
+        if evt:
+            if evt['severity'] != 0:
+                d = self._scan_device(self.cfg.deviceManageIp)
+                d.addCallback(self.processTest)
+                d.addErrback(self.handleExceptions)
+                return d
+            self._eventService.sendEvent(evt)
+        return defer.succeed("Connected")
+
+    def processTest(self, result):
         evt = result.getEvent()
         if evt:
             self._eventService.sendEvent(evt)

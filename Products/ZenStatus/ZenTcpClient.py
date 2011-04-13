@@ -151,9 +151,8 @@ class ZenTcpClient(protocol.ClientFactory):
         @parameter reason: explanation for the connection loss
         @type reason: Twisted error object
         """
-        unused(connector)
         log.debug("Connection to %s (%s) port %s failed: %s",
-                  self.cfg.device, self.cfg.ip, self.cfg.port,
+                  self.cfg.device, connector.host, self.cfg.port,
                   reason.getErrorMessage() )
         self.msg = "IP Service %s is down" % self.cfg.component
         if self.deferred:
@@ -194,7 +193,7 @@ class ZenTcpClient(protocol.ClientFactory):
                     agent="ZenStatus",
                     manager=hostname)
 
-    def start(self):
+    def start(self, ip_address):
         """
         Called by zenstatus to make a connection attempt to the service.
 
@@ -202,5 +201,5 @@ class ZenTcpClient(protocol.ClientFactory):
         @rtype: Twisted deferred
         """
         d = self.deferred = defer.Deferred()
-        reactor.connectTCP(self.cfg.ip, self.cfg.port, self, self.cfg.timeout)
+        reactor.connectTCP(ip_address, self.cfg.port, self, self.cfg.timeout)
         return d
