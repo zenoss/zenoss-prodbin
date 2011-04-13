@@ -29,11 +29,12 @@ from Products.ZenCollector.interfaces import ICollector,\
                                              IConfigurationListener,\
                                              IStatistic,\
                                              IStatisticsService
+from Products.ZenCollector.utils.maintenance import MaintenanceCycle
 from Products.ZenHub.PBDaemon import PBDaemon, FakeRemote
 from Products.ZenRRD.RRDDaemon import RRDDaemon
 from Products.ZenRRD import RRDUtil
 from Products.ZenRRD.Thresholds import Thresholds
-from Products.ZenUtils.Utils import importClass, readable_time
+from Products.ZenUtils.Utils import importClass, unused
 
 log = logging.getLogger("zen.daemon")
 
@@ -217,7 +218,7 @@ class CollectorDaemon(RRDDaemon):
     def _startup(self):
         d = defer.maybeDeferred( self._getInitializationCallback() )
         d.addCallback( self._startConfigCycle )
-        d.addCallback( self._maintenanceCycle )
+        d.addCallback( self._startMaintenance )
         d.addErrback( self._errorStop )
         return d
 
@@ -424,6 +425,13 @@ class CollectorDaemon(RRDDaemon):
     def _isRRDConfigured(self):
         return (self.rrdStats and self._rrd)
 
+    def _startMaintenance(self, ignored=None):
+        unused(ignored)
+        interval = self._prefs.cycleInterval
+        self.log.debug("Initializing maintenance Cycle")
+        maintenanceCycle = MaintenanceCycle(interval, self, self._maintenanceCycle)
+        maintenanceCycle.start()
+
     def _maintenanceCycle(self, ignored=None):
         """
         Perform daemon maintenance processing on a periodic schedule. Initially
@@ -431,8 +439,6 @@ class CollectorDaemon(RRDDaemon):
         will self-schedule each run.
         """
         self.log.debug("Performing periodic maintenance")
-        interval = self._prefs.cycleInterval
-
         def _processDeviceIssues(result):
             self.log.debug("deviceIssues=%r", result)
 
@@ -457,7 +463,7 @@ class CollectorDaemon(RRDDaemon):
             d = self.getDevicePingIssues()
             return d
 
-        def _postStatistics(result):
+        def _postStatistics():
             self._displayStatistics()
 
             # update and post statistics if we've been configured to do so
@@ -475,13 +481,9 @@ class CollectorDaemon(RRDDaemon):
                                                           interval)
                 self.sendEvents(events)
 
-            return result
-
         def _maintenance():
             if self.options.cycle:
-                d = defer.maybeDeferred(self.heartbeat)
-                d.addCallback(_postStatistics)
-
+                d = defer.maybeDeferred(_postStatistics)
                 if getattr(self._prefs, 'pauseUnreachableDevices', True):
                     d.addCallback(_getDeviceIssues)
                     d.addCallback(_processDeviceIssues)
@@ -490,18 +492,7 @@ class CollectorDaemon(RRDDaemon):
                 d = defer.succeed("No maintenance required")
             return d
 
-        def _reschedule(result):
-            if isinstance(result, Failure):
-                self.log.error("Maintenance failed: %s",
-                               result.getErrorMessage())
-
-            if interval > 0:
-                self.log.debug("Rescheduling maintenance in %ds", interval)
-                reactor.callLater(interval, self._maintenanceCycle)
-
         d = _maintenance()
-        d.addBoth(_reschedule)
-
         return d
 
     def runPostConfigTasks(self, result=None):

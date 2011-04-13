@@ -12,12 +12,13 @@
 ###########################################################################
 
 import Globals
-import os
 import re
 import socket
 from email.MIMEText import MIMEText
 from email.MIMEMultipart import MIMEMultipart
 from email.Utils import formatdate
+from Products.ZenCollector.utils.maintenance import MaintenanceCycle, maintenanceBuildOptions, QueueHeartbeatSender
+from Products.ZenCollector.utils.workers import ProcessWorkers, workersBuildOptions, exec_worker
 
 from Products.ZenUtils import Utils
 from Products.ZenUtils.ZCmdBase import ZCmdBase
@@ -29,7 +30,7 @@ from zenoss.protocols.jsonformat import to_dict
 from Products.ZenModel.interfaces import IAction, IProvidesEmailAddresses, IProvidesPagerAddresses, IProcessSignal
 from Products.ZenUtils.guid.interfaces import IGlobalIdentifier
 from Products.ZenModel.NotificationSubscription import NotificationSubscriptionManager, NotificationEventContextWrapper
-from Products.ZenMessaging.queuemessaging.QueueConsumer import QueueConsumerProcess
+from Products.ZenMessaging.queuemessaging.QueueConsumer import QueueConsumer
 from Products.ZenMessaging.queuemessaging.interfaces import IQueueConsumerTask
 from twisted.internet import reactor, protocol, defer
 from twisted.internet.protocol import ProcessProtocol
@@ -528,12 +529,31 @@ class ProcessSignalTask(object):
         log.debug('Done processing signal. (%s)' % signal.message)
 
 class ZenActionD(ZCmdBase):
+    def __init__(self):
+            super(ZenActionD, self).__init__()
+            self._consumer = None
+            self._workers = ProcessWorkers(self.options.workers - 1,
+                                           exec_worker,
+                                           "zenactiond worker")
+            self._heartbeatSender = QueueHeartbeatSender('localhost',
+                                                     'zenactiond',
+                                                     self.options.maintenancecycle *3)
+
+            self._maintenanceCycle = MaintenanceCycle(self.options.maintenancecycle,
+                                                      self._heartbeatSender)
+    def buildOptions(self):
+        super(ZenActionD, self).buildOptions()
+        maintenanceBuildOptions(self.parser)
+        workersBuildOptions(self.parser, 1)
+        self.parser.add_option('--maxcommands',
+                               dest="maxCommands", type="int", default=10,
+                               help='Max number of action commands to perform concurrently')
+
+
     def run(self):
         task = ProcessSignalTask(NotificationDao(self.dmd))
 
-        # FIXME: Make this parameter an option on the daemon.
-        # 10 is the number of parallel processes to use.
-        self._processQueue = ProcessQueue(10)
+        self._processQueue = ProcessQueue(self.options.maxCommands)
         self._processQueue.start()
 
         email_action = EmailAction(
@@ -550,29 +570,30 @@ class ZenActionD(ZCmdBase):
         task.registerAction('command', CommandAction(self._processQueue))
         task.registerAction('trap', SNMPTrapAction())
 
-        self._consumer = QueueConsumerProcess(task)
 
-        log.info('starting zenactiond consumer.')
-        self._consumer.run()
+        if self.options.daemon:
+            self._maintenanceCycle.start()
+        if self.options.daemon and self.options.workers > 1:
+            self._workers.startWorkers()
 
-    def shutdown(self, *ignored):
-        log.debug('Shutting down zenactiond consumer.')
-        self._processQueue.stop()
+        self._consumer = QueueConsumer(task, self.dmd)
+        reactor.callWhenRunning(self._start)
+        reactor.run()
 
     def _start(self):
-        log.info('starting queue consumer task')
+        log.info('starting zenactiond consumer.')
         reactor.addSystemEventTrigger('before', 'shutdown', self._shutdown)
         self._consumer.run()
 
 
     @defer.inlineCallbacks
     def _shutdown(self, *ignored):
+        log.info("Shutting down...")
+        self._maintenanceCycle.stop()
+        self._workers.shutdown()
         if self._consumer:
             yield self._consumer.shutdown()
-        try:
-            reactor.stop()
-        except ReactorNotRunning:
-            pass
+
 
 if __name__ == '__main__':
     zad = ZenActionD()

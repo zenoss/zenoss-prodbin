@@ -18,21 +18,8 @@ from twisted.internet import reactor, defer
 from twisted.internet.error import ReactorNotRunning
 from zenoss.protocols.twisted.amqp import AMQPFactory
 from interfaces import IQueueConsumerTask
-from Products.ZenUtils.ZCmdBase import ZCmdBase
 
-log = logging.getLogger('zenoss.queueconsumer')
-
-
-
-class ManagedProcess(object):
-    """
-    Temporary class until we get the real one.
-    """
-    def run(self):
-        raise NotImplementedError
-
-    def shutdown(self):
-        raise NotImplementedError
+log = logging.getLogger('zen.queueconsumer')
 
 
 class QueueConsumer(object):
@@ -43,7 +30,6 @@ class QueueConsumer(object):
     MARKER = str(hash(object()))
 
     def __init__(self, task, dmd, persistent=False):
-        ManagedProcess.__init__(self)
         self.dmd = dmd
         self.consumer = AMQPFactory()
         self.onReady = self._ready()
@@ -117,28 +103,6 @@ class QueueConsumer(object):
     def syncdb(self):
         self.dmd.getPhysicalRoot()._p_jar.sync()
 
-class QueueConsumerProcess(ManagedProcess):
-    """
-    ManagedProcess wrapper for the graph server; merely starts and stops the
-    reactor.
-    """
-    def __init__(self, task, persistent=False):
-        ManagedProcess.__init__(self)
-        self.server = QueueConsumer(task, persistent)
-        reactor.addSystemEventTrigger('before', 'shutdown', self.shutdown)
-
-    def run(self):
-        self.server.run()
-        reactor.run()
-
-    @defer.inlineCallbacks
-    def shutdown(self, *ignored):
-        yield self.server.shutdown()
-        try:
-            reactor.stop()
-        except ReactorNotRunning:
-            pass
-        defer.returnValue(None)
 
 
 

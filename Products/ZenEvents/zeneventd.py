@@ -10,17 +10,22 @@
 # For complete information please visit: http://www.zenoss.com/oss/
 #
 ###########################################################################
+from twisted.internet import reactor
+from twisted.internet.error import ReactorNotRunning
+
 import os
 import signal
 import multiprocessing
 import time
 import socket
+import sys
 
 import Globals
 from zope.component import getUtilitiesFor
 from zope.interface import implements
 
 from amqplib.client_0_8.exceptions import AMQPConnectionException
+from Products.ZenCollector.utils.maintenance import MaintenanceCycle, maintenanceBuildOptions, QueueHeartbeatSender
 from Products.ZenMessaging.queuemessaging.interfaces import IQueueConsumerTask
 from Products.ZenUtils.ZCmdBase import ZCmdBase
 from Products.ZenUtils.ZenDaemon import ZenDaemon
@@ -39,7 +44,7 @@ from zenoss.protocols.eventlet.amqp import Publishable
 from zenoss.protocols.jsonformat import to_dict
 from Products.ZenMessaging.queuemessaging.eventlet import BasePubSubMessageTask
 from Products.ZenEvents.events2.processing import *
-
+from Products.ZenCollector.utils.workers import ProcessWorkers, workersBuildOptions
 from Products.ZenEvents.interfaces import IPreEventPlugin, IPostEventPlugin
 
 import logging
@@ -128,9 +133,19 @@ class ProcessEventMessageTask(BasePubSubMessageTask):
 class EventDWorker(ZCmdBase):
 
     def run(self):
+        signal.signal(signal.SIGTERM, self._sigterm)
         task = ProcessEventMessageTask(self.dmd)
         self._listen(task)
 
+    def shutdown(self):
+        if self._pubsub:
+            self._pubsub.shutdown()
+            self._pubsub = None
+
+    def _sigterm(self, signum=None, frame=None):
+        log.debug("worker sigterm...")
+        self.shutdown()
+        
     def _listen(self, task, retry_wait=30):
         self._pubsub = None
         keepTrying = True
@@ -157,6 +172,7 @@ class EventDWorker(ZCmdBase):
             finally:
                 if self._pubsub:
                     self._pubsub.shutdown()
+                    self._pubsub = None
 
     def buildOptions(self):
         super(EventDWorker, self).buildOptions()
@@ -182,51 +198,41 @@ def run_worker():
         worker = EventDWorker()
         worker.run()
     finally:
-        log.info("Shutting down: %s" % (name,))
+        log.debug("Shutting down: %s" % (name,))
 
 
 class ZenEventD(ZenDaemon):
 
     def __init__(self, *args, **kwargs):
         super(ZenEventD, self).__init__(*args, **kwargs)
-        self._workers = []
+        self._heartbeatSender = QueueHeartbeatSender('localhost',
+                                                     'zeneventd',
+                                                     self.options.maintenancecycle *3)
+        self._workers = ProcessWorkers(self.options.workers, run_worker,
+                                       "Event worker")
+        self._maintenanceCycle = MaintenanceCycle(self.options.maintenancecycle,
+                                  self._heartbeatSender)
 
-    def sigterm(self, signum=None, frame=None):
+    def _shutdown(self, *ignored):
         log.info("Shutting down...")
-        for worker in self._workers:
-            os.kill(worker.pid, signal.SIGTERM)
-            worker.join(0.5)
-            worker.terminate()
-
-    def sighandler_USR1(self, signum, frame):
-        super(ZenEventD, self).sighandler_USR1(signum, frame)
-        for worker in self._workers:
-            os.kill(worker.pid, signal.SIGUSR1)
+        self._maintenanceCycle.stop()
+        self._workers.shutdown()
 
     def run(self):
-        if self.options.daemon and self.options.workers > 1:
-            numworkers = self.options.workers
-            pid = multiprocessing.current_process().pid
-            log.info("Starting event daemon (pid %s)" % pid)
-            for i in range(numworkers):
-                p = multiprocessing.Process(
-                    target=run_worker,
-                    name='Event worker %s' % (i+1))
-                p.start()
-                self._workers.append(p)
-            signal.signal(signal.SIGTERM, self.sigterm)
-            for worker in self._workers:
-                worker.join()
+        if self.options.daemon:
+            reactor.addSystemEventTrigger('before', 'shutdown', self._shutdown)
+            self._workers.startWorkers()
+            self._maintenanceCycle.start()
+            reactor.run()
+
         else:
             EventDWorker().run()
 
     def buildOptions(self):
         super(ZenEventD, self).buildOptions()
-        self.parser.add_option('--workers',
-                    type="int",
-                    default=2,
-                    help="The number of event processing workers to run "
-                         "(ignored when running in the foreground)")
+
+        workersBuildOptions(self.parser, default=2)
+        maintenanceBuildOptions(self.parser)
         # Have to add in all the ZCmdBase options because they get passed
         # through to the workers but will be invalid if not allowed here
         self.parser.add_option('-R', '--dataroot',
