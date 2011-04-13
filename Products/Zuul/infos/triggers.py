@@ -11,6 +11,9 @@
 #
 ###########################################################################
 
+import logging
+log = logging.getLogger('zen.triggerinfos')
+
 from datetime import datetime
 from time import time
 from zope.interface import implements
@@ -18,6 +21,7 @@ from Products.Zuul.infos import InfoBase, ProxyProperty
 from Products.ZenModel.MaintenanceWindow import MaintenanceWindow
 from zope.schema.vocabulary import SimpleVocabulary
 from Products.ZenModel.NotificationSubscription import NotificationSubscription
+from Products.Zuul import getFacade
 from Products.Zuul.interfaces import INotificationWindowInfo, INotificationSubscriptionInfo
 
 class NotificationSubscriptionInfo(InfoBase):
@@ -56,10 +60,17 @@ class NotificationSubscriptionInfo(InfoBase):
     userManage = ProxyProperty('userManage')
 
     def _getSubscriptions(self):
-        if self._object.subscriptions:
-            return self._object.subscriptions[0]
-        else:
-            return ''
+
+        info_data = []
+        for trigger in getFacade('triggers').getTriggerList():
+            if trigger['uuid'] in self._object.subscriptions:
+                info_data.append(dict(
+                    uuid = trigger['uuid'],
+                    name = trigger['name']
+                ))
+
+        return info_data
+
     def _setSubscriptions(self, value):
         self._object.subscriptions = [value]
 

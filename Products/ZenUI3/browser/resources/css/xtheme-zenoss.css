@@ -1712,3 +1712,41 @@ Wizard
 .ext-ux-wiz-Header-stepIndicator-active {
     background-position:0px 0px !important;
 }
+
+.white-background-panel {
+    font-size: 12px;
+    background : none repeat scroll 0 0 #FAFAFA;
+    color: #454545;
+}
+
+.white-background-panel .x-window-header {
+    font-size: 12px;
+}
+
+.white-background-panel .x-window-mc {
+    padding-top: 2px;
+}
+
+.white-background-panel .x-item-disabled * {
+    color: gray !important;
+}
+
+.white-background-panel div.xtb-text {
+    line-height: 21px;
+    font-size: 10pt;
+}
+
+.white-background-panel .x-box-inner {
+    padding-bottom: 15px;
+    padding-top: 20px;
+    left: -5px;
+}
+
+.white-background-panel .x-window-body .x-panel-body {
+    background : none repeat scroll 0 0 #FAFAFA;
+    color: #454545;
+}
+
+.white-background-panel .x-form-check-wrap .x-form-field {
+    margin-top: 5px;
+}

@@ -31,6 +31,9 @@ class TriggersRouter(DirectRouter):
     def getTriggers(self, **kwargs):
         return DirectResponse.succeed(data=self._getFacade().getTriggers())
 
+    def getTriggerList(self, **unused):
+        return DirectResponse.succeed(data=self._getFacade().getTriggerList())
+
     def addTrigger(self, newId):
         return DirectResponse.succeed(data=self._getFacade().addTrigger(newId))
 
@@ -59,6 +62,8 @@ class TriggersRouter(DirectRouter):
     # notification subscriptions
     def getNotifications(self):
         response = self._getFacade().getNotifications()
+
+
         return DirectResponse.succeed(data=Zuul.marshal(response))
 
     def addNotification(self, newId, action):

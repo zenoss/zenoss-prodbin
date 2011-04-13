@@ -190,6 +190,9 @@
             "text": "eventDetail.js",
             "path": "resources/js/zenoss/"
         },{
+            "text": "triggersComponents.js",
+            "path": "resources/js/zenoss/"
+        },{
             "text": "SettingsGrid.js",
             "path": "resources/js/zenoss/form/"
         },{

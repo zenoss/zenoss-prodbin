@@ -28,6 +28,9 @@ class ITriggersFacade(IFacade):
     def getTriggers():
         """Get all existing triggers"""
 
+    def getTriggerList():
+        """Retrieve a list of all triggers regardless of permission."""
+
     def addTrigger(newId):
         """ 
         Add a trigger given a name

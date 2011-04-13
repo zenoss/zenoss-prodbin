@@ -63,7 +63,7 @@ Ext.ux.grid.CheckColumn.prototype ={
         if(Ext.fly(t).hasClass(this.createId())){
             e.stopEvent();
             var index = this.grid.getView().findRowIndex(t);
-            var record = this.grid.store.getAt(index);
+            var record = this.grid.getStore().getAt(index);
             record.set(this.dataIndex, !record.data[this.dataIndex]);
         }
     },

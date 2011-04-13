@@ -125,6 +125,22 @@ class TriggersFacade(ZuulFacade):
             log.warning('User not authorized to view this trigger: %s' % trigger.id)
             raise Exception('User not authorized to view this trigger: %s' % trigger.id)
 
+    def getTriggerList(self):
+        """
+        Retrieve a list of all triggers by uuid and name. This is used by the UI
+        to render triggers that a user may not have permission to otherwise view,
+        edit or manage.
+        """
+        response, trigger_set = self.triggers_service.getTriggers()
+        trigger_set = to_dict(trigger_set)
+        triggerList = []
+        if 'triggers' in trigger_set:
+            for t in trigger_set['triggers']:
+                triggerList.append(dict(
+                    uuid = t['uuid'],
+                    name = t['name']
+                ))
+        return sorted(triggerList, key=lambda k: k['name'])
 
     def updateTrigger(self, **data):
         user = getSecurityManager().getUser()
@@ -255,7 +271,7 @@ class TriggersFacade(ZuulFacade):
                 notification._updateProperty(field['id'], data.get(field['id']))
 
             # editing as a text field, but storing as a list for now.
-            notification.subscriptions = [data.get('subscriptions')]
+            notification.subscriptions = data.get('subscriptions')
             self.updateNotificationSubscriptions(notification)
 
         
