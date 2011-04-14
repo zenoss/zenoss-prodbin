@@ -62,5 +62,6 @@ class df(CommandPlugin):
             
             om.blockSize = 1024
             om.id = self.prepId(om.mount)
+            om.title = om.mount
             rm.append(om)
         return rm
