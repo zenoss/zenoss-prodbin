@@ -379,3 +379,52 @@ class DeviceFacade(TreeFacade):
         organizer = aq_base(context).__class__(id, description, address)
         context._setObject(id, organizer)
         return ILocationOrganizerInfo(organizer)
+
+    def deleteZenProperties(self, uid, properties):
+        """
+        Removes the local instance of the each property in properties. Note
+        that the property will only be deleted if a hasProperty is true
+        @type  uid: String
+        @param uid: unique identifier of an object
+        @type  properties: Array
+        @param properties: list of zenproperty identifiers that we wish to delete
+        """
+        obj = self._getObject(uid)
+        for prop in properties:
+            if obj.hasProperty(prop):
+                obj.deleteZenProperty(prop)
+
+    def getModelerPlugins(self, uid):
+        """
+        Returns a dictionary of the modeler plugin information for this uid.
+        This looks at the zCollectorPlugins zproperty
+        @rtype:   Dictionary
+        @return:  B{Properties}:
+             - path: (string) where the property is defined
+             - options: (Array) all the available plugins
+             - selected (Array) all of the selected plugins
+        """
+        zprop = 'zCollectorPlugins'
+        obj = self._getObject(uid)
+        path = obj.zenPropertyPath(zprop)
+        options = obj.zenPropertyOptions(zprop)
+        selected = obj.getZ(zprop)
+        return dict(path=path,
+                    options=options,
+                    selected=selected)
+
+    def setModelerPlugins(self, uid, plugins):
+        """
+        This sets the the zCollectorPlugins zproperty
+        @type  uid: string
+        @param uid: unique identifier of an object
+        @type  plugins: Array
+        @param plugins: list of strings each specifying a plugin
+        @rtype: Dictionary
+        @return: B{Properties}:
+            - path: new definition path for the zCollectorPlugins property
+        """
+        zprop = 'zCollectorPlugins'
+        obj = self._getObject(uid)
+        obj.setZenProperty(zprop, plugins)
+        return dict(path=obj.zenPropertyPath(zprop))

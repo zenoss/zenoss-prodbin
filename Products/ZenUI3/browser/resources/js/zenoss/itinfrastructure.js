@@ -807,6 +807,11 @@ Zenoss.nav.register({
         {
             id: 'events_grid',
             text: _t('Events')
+        },
+        {
+            id: 'modeler_plugins',
+            text: _t('Modeler Plugins'),
+            contextRegex: '^/zport/dmd/Devices'
         }
     ]
 });
@@ -821,8 +826,10 @@ Zenoss.InfraDetailNav = Ext.extend(Zenoss.DetailNavPanel, {
                 nodeloaded: function( detailNavPanel, navConfig){
                     var excluded = {
                         'device_grid': true,
-                        'events_grid': true
+                        'events_grid': true,
+                        'collectorplugins': true
                     };
+
                     if (!excluded[navConfig.id]){
                         var config = detailNavPanel.panelConfigMap[navConfig.id];
                         if(config && !Ext.getCmp(config.id)){
@@ -865,8 +872,14 @@ Zenoss.InfraDetailNav = Ext.extend(Zenoss.DetailNavPanel, {
             'events': true,
             'templates': true,
             'performancetemplates': true,
-            'historyevents':true
+            'historyevents':true,
+            'collectorplugins': true
         };
+        var uid = Zenoss.env.PARENT_CONTEXT;
+        if (config.contextRegex) {
+            var re = RegExp(config.contextRegex);
+            return re.test(uid);
+        }
         return !excluded[config.id];
     },
     onGetNavConfig: function(contextId) {
@@ -1120,6 +1133,10 @@ Ext.getCmp('center_panel').add({
                         }
                     });
                })
+            },
+            {
+                id: 'modeler_plugins',
+                xtype: 'modelerpluginpanel'
             }
         ]
     }]

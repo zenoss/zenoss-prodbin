@@ -210,6 +210,9 @@
         },{
             "text": "Card.js",
             "path": "resources/js/wizard/"
+        },{
+            "text": "modelerPluginPanel.js",
+            "path": "resources/js/zenoss/form/"
         }]
     }],
     "resources": []
