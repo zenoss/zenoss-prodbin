@@ -18,6 +18,7 @@ their acquisition.
 
 import types
 import time
+from cStringIO import StringIO
 import transaction
 import logging
 log = logging.getLogger('zen.DeviceClass')
@@ -30,6 +31,7 @@ from Globals import InitializeClass
 from Acquisition import aq_base, aq_chain
 from AccessControl import ClassSecurityInfo
 from AccessControl import Permissions as permissions
+from ZODB.transact import transact
 
 from Products.AdvancedQuery import MatchGlob, Or, Eq, RankByQueries_Max
 from Products.CMFCore.utils import getToolByName
@@ -187,6 +189,131 @@ class DeviceClass(DeviceOrganizer, ZenPackable, TemplateContainer):
                 log.exception("Unable to import class " + cname)
         return Device
 
+    @transact
+    def _moveDevice(self, devname, target, targetClass):
+        dev = self.findDeviceByIdExact(devname)
+        if not dev:
+            return
+        guid = IGlobalIdentifier(dev).create()
+        source = dev.deviceClass().primaryAq()
+
+        notify(DeviceClassMovedEvent(dev, dev.deviceClass().primaryAq(), target))
+
+        exported = False
+        oldPath = source.absolute_url_path() + '/'
+        if dev.__class__ != targetClass:
+            from Products.ZenRelations.ImportRM import NoLoginImportRM
+
+            def switchClass(o, module, klass):
+                """
+                Create an XML string representing the module in a
+                new class.
+
+                @param o: file-type object
+                @type o: file-type object
+                @param module: location in DMD
+                @type module: string
+                @param klass: class name
+                @type klass: string
+                @return: XML representation of the class
+                @rtype: string
+                """
+                from xml.dom.minidom import parse
+
+                # Note: strips almost everything out of the move
+                #       as the new class may not have the same relations etc.
+                #       For example, moving SNMP host to a VMware class.
+                o.seek(0)
+                dom = parse(o)
+                root = dom.childNodes[0]
+                root.setAttribute('module', module)
+                root.setAttribute('class', klass)
+                for obj in root.childNodes:
+                    if obj.nodeType != obj.ELEMENT_NODE:
+                        continue # Keep XML-tree baggage
+
+                    name = obj.getAttribute('id')
+                    if obj.tagName == 'property':
+                        # Only remove modeler plugins, templates
+                        # and z*Ignore zprops
+                        if name in ('zCollectorPlugins', 'zDeviceTemplates') or \
+                           name.endswith('Ignore'):
+                            root.removeChild(obj)
+
+                    elif obj.tagName == 'toone' and \
+                         name in ('perfServer', 'location'):
+                        pass # Preserve collector name and location
+
+                    elif obj.tagName == 'tomany' and \
+                         name in ('systems', 'groups'):
+                        pass # Preserve the Groups and Systems groupings
+
+                    elif obj.tagName == 'tomanycont' and \
+                         name in ('maintenanceWindows',
+                                  'adminRoles',
+                                  'userCommands'):
+                        pass # Preserve maintenance windows, admins, commands
+
+                    else:
+                        log.debug("Removing %s element id='%s'",
+                                     obj.tagName, name)
+                        root.removeChild(obj)
+
+                importFile = StringIO()
+                dom.writexml(importFile)
+                importFile.seek(0)
+                return importFile
+
+            def devExport(d, module, klass):
+                """
+                Create an XML string representing the device d
+                at the DMD location module of type klass.
+
+                @param module: location in DMD
+                @type module: string
+                @param klass: class name
+                @type klass: string
+                @return: XML representation of the class
+                @rtype: string
+                """
+                o = StringIO()
+                d.exportXml(o)
+                return switchClass(o, module, klass)
+
+            def devImport(xmlfile):
+                """
+                Load a new device from a file.
+
+                @param xmlfile: file type object
+                @type xmlfile: file type object
+                """
+                im = NoLoginImportRM(target.devices)
+                im.loadObjectFromXML(xmlfile)
+                im.processLinks()
+
+            module = target.zPythonClass
+            if module:
+                klass = target.zPythonClass.split('.')[-1]
+            else:
+                module = 'Products.ZenModel.Device'
+                klass = 'Device'
+            log.debug('Exporting device %s from %s', devname, source)
+            xmlfile = devExport(dev, module, klass)
+            log.debug('Removing device %s from %s', devname, source)
+            source.devices._delObject(devname)
+            log.debug('Importing device %s to %s', devname, target)
+            devImport(xmlfile)
+            exported = True
+        else:
+            dev._operation = 1
+            source.devices._delObject(devname)
+            target.devices._setObject(devname, dev)
+        dev = target.devices._getOb(devname)
+        IGlobalIdentifier(dev).guid = guid
+        dev.setLastChange()
+        dev.setAdminLocalRoles()
+        dev.index_object()
+        return exported
 
     def moveDevices(self, moveTarget, deviceNames=None, REQUEST=None):
         """
@@ -204,132 +331,12 @@ class DeviceClass(DeviceOrganizer, ZenPackable, TemplateContainer):
         if not moveTarget or not deviceNames: return self()
         target = self.getDmdRoot(self.dmdRootName).getOrganizer(moveTarget)
         if type(deviceNames) == types.StringType: deviceNames = (deviceNames,)
-        newPath = target.absolute_url_path() + '/'
         targetClass = target.getPythonDeviceClass()
         numExports = 0
         for devname in deviceNames:
-            dev = self.findDeviceByIdExact(devname)
-            if not dev: continue
-            guid = IGlobalIdentifier(dev).create()
-            source = dev.deviceClass().primaryAq()
-
-            notify(DeviceClassMovedEvent(dev, dev.deviceClass().primaryAq(), target))
-
-            oldPath = source.absolute_url_path() + '/'
-            if dev.__class__ != targetClass:
-                import StringIO
-                from Products.ZenRelations.ImportRM import NoLoginImportRM
-
-                def switchClass(o, module, klass):
-                    """
-                    Create an XML string representing the module in a
-                    new class.
-
-                    @param o: file-type object
-                    @type o: file-type object
-                    @param module: location in DMD
-                    @type module: string
-                    @param klass: class name
-                    @type klass: string
-                    @return: XML representation of the class
-                    @rtype: string
-                    """
-                    from xml.dom.minidom import parse
-
-                    # Note: strips almost everything out of the move
-                    #       as the new class may not have the same relations etc.
-                    #       For example, moving SNMP host to a VMware class.
-                    o.seek(0)
-                    dom = parse(o)
-                    root = dom.childNodes[0]
-                    root.setAttribute('module', module)
-                    root.setAttribute('class', klass)
-                    for obj in root.childNodes:
-                        if obj.nodeType != obj.ELEMENT_NODE:
-                            continue # Keep XML-tree baggage
-
-                        name = obj.getAttribute('id')
-                        if obj.tagName == 'property':
-                            # Only remove modeler plugins, templates
-                            # and z*Ignore zprops
-                            if name in ('zCollectorPlugins', 'zDeviceTemplates') or \
-                               name.endswith('Ignore'):
-                                root.removeChild(obj)
-
-                        elif obj.tagName == 'toone' and \
-                             name in ('perfServer', 'location'):
-                            pass # Preserve collector name and location
-
-                        elif obj.tagName == 'tomany' and \
-                             name in ('systems', 'groups'):
-                            pass # Preserve the Groups and Systems groupings
-
-                        elif obj.tagName == 'tomanycont' and \
-                             name in ('maintenanceWindows',
-                                      'adminRoles',
-                                      'userCommands'):
-                            pass # Preserve maintenance windows, admins, commands
-
-                        else:
-                            log.debug("Removing %s element id='%s'",
-                                         obj.tagName, name)
-                            root.removeChild(obj)
-
-                    importFile = StringIO.StringIO()
-                    dom.writexml(importFile)
-                    importFile.seek(0)
-                    return importFile
-
-                def devExport(d, module, klass):
-                    """
-                    Create an XML string representing the device d
-                    at the DMD location module of type klass.
-
-                    @param module: location in DMD
-                    @type module: string
-                    @param klass: class name
-                    @type klass: string
-                    @return: XML representation of the class
-                    @rtype: string
-                    """
-                    o = StringIO.StringIO()
-                    d.exportXml(o)
-                    return switchClass(o, module, klass)
-
-                def devImport(xmlfile):
-                    """
-                    Load a new device from a file.
-
-                    @param xmlfile: file type object
-                    @type xmlfile: file type object
-                    """
-                    im = NoLoginImportRM(target.devices)
-                    im.loadObjectFromXML(xmlfile)
-                    im.processLinks()
-
-                module = target.zPythonClass
-                if module:
-                    klass = target.zPythonClass.split('.')[-1]
-                else:
-                    module = 'Products.ZenModel.Device'
-                    klass = 'Device'
-                log.debug('Exporting device %s from %s', devname, source)
-                xmlfile = devExport(dev, module, klass)
-                log.debug('Removing device %s from %s', devname, source)
-                source.devices._delObject(devname)
-                log.debug('Importing device %s to %s', devname, target)
-                devImport(xmlfile)
+            devicewasExported = self._moveDevice(devname, target, targetClass)
+            if devicewasExported:
                 numExports += 1
-            else:
-                dev._operation = 1
-                source.devices._delObject(devname)
-                target.devices._setObject(devname, dev)
-            dev = target.devices._getOb(devname)
-            IGlobalIdentifier(dev).guid = guid
-            dev.setLastChange()
-            dev.setAdminLocalRoles()
-            dev.index_object()
-            transaction.commit()
         return numExports
 
 
@@ -609,7 +616,7 @@ class DeviceClass(DeviceOrganizer, ZenPackable, TemplateContainer):
 
         The searchRRDTemplates catalog was added in 2.2
         """
-        if rrdts == None:
+        if rrdts is None:
             rrdts = []
         rrdts.extend(RRDTemplate.YieldAllRRDTemplates(self))
         return rrdts
@@ -657,7 +664,7 @@ class DeviceClass(DeviceOrganizer, ZenPackable, TemplateContainer):
         Put a reference to the objects named in ids in the clip board
         """
         if not ids: return self.callZenScreen(REQUEST)
-        ids = [ id for id in ids if self.rrdTemplates._getOb(id, None) != None]
+        ids = [ id for id in ids if self.rrdTemplates._getOb(id, None) is not None]
         if not ids: return self.callZenScreen(REQUEST)
         cp = self.rrdTemplates.manage_copyObjects(ids)
         if REQUEST:
