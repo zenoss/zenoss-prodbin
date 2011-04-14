@@ -27,7 +27,7 @@
         constructor: function(config) {
             Ext.applyIf(config,{
                 // in chrome the larger row size was causing a gap on the left hand side grid
-                rowHeight: 12
+                rowHeight: 19
             });
             this.addEvents({
                 /**
