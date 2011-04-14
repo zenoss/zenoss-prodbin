@@ -2,7 +2,7 @@
 	objects python:list(here.getDmdRoot('Devices').getMonitoredComponents());
 	tableName string: allmonitoredcomps;
 	batch python:here.ZenTableManager.getBatch(tableName,objects);
-	exportFields python:[('getParentDeviceName','Device'), 
+	exportFields python:[('getParentDeviceTitle','Device'),
 						 ('name','Component'), 
 						 ('meta_type', 'Type'),
 						 ('getInstDescription','Description'), 

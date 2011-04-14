@@ -58,6 +58,14 @@ class DeviceComponent(Lockable):
         return name
     hostname = getParentDeviceName
 
+    def getParentDeviceTitle(self):
+        """
+        Return the title of this component's device
+        """
+        title = ""
+        dev = self.device()
+        if dev: title = dev.titleOrId()
+        return title
 
     def getParentDeviceUrl(self):
         """
@@ -111,8 +119,7 @@ class DeviceComponent(Lockable):
         """
         Return a text representation of this component's status
         """
-        return self.convertStatus(self.getStatus(statClass))
-
+        return self.convertStatus(self.getStatus(statClass=statClass))
 
     def getManageIp(self):
         """
