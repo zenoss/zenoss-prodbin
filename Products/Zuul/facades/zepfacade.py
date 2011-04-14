@@ -483,7 +483,7 @@ class ZepFacade(ZuulFacade):
 
     def _getEventTagSeverities(self, eventClass=(), severity=(), status=(), tags=()):
         if not severity:
-            severity = [SEVERITY_CRITICAL, SEVERITY_ERROR]
+            severity = [SEVERITY_CRITICAL, SEVERITY_ERROR, SEVERITY_WARNING]
         if not status:
             status = [STATUS_NEW, STATUS_ACKNOWLEDGED]
         eventFilter = self.createEventFilter(
