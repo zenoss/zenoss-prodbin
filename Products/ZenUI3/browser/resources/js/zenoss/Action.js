@@ -26,7 +26,14 @@
              
              // call the parent's constructor
              Zenoss.Action.superclass.constructor.apply(this, arguments);   
-         }
+         },
+         setDisabled : function(disable){
+             var enable = !disable;
+             if (disable || (Ext.isDefined(this.initialConfig.permission) &&
+                     enable && Zenoss.Security.hasPermission(permission)===true)) {
+                 Zenoss.Action.superclass.setDisabled.apply(this, arguments);
+             }
+        }
      });
 
      Ext.reg('Action', Zenoss.Action);
