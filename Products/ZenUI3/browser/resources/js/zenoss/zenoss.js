@@ -728,7 +728,7 @@ Ext.reg('livegridinfo', Zenoss.LiveGridInfoPanel);
  * @constructor
  */
 Zenoss.FilterGridView = Ext.extend(Ext.ux.grid.livegrid.GridView, {
-    rowHeight: 20,
+    rowHeight: 22,
     rowColors: false,
     _valid: true,
     constructor: function(config) {

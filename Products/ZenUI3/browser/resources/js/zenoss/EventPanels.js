@@ -963,7 +963,7 @@
                 view: new Zenoss.FilterGridView(Ext.applyIf(config.viewConfig ||  {}, {
                     nearLimit: 100,
                     displayFilters: Ext.isDefined(config.displayFilters) ? config.displayFilters : true,
-                    rowHeight: 20,
+                    rowHeight: 22,
                     emptyText: _t('No events'),
                     loadMask: {msg: 'Loading. Please wait...'},
                     defaultFilters: {
