@@ -29,8 +29,8 @@
          },
          setDisabled : function(disable){
              var enable = !disable;
-             if (disable || (Ext.isDefined(this.initialConfig.permission) &&
-                     enable && Zenoss.Security.hasPermission(permission)===true)) {
+             if (disable || (Ext.isDefined(this.initialConfig.permission) && enable &&
+                     Zenoss.Security.hasPermission(this.initialConfig.permission)===true)) {
                  Zenoss.Action.superclass.setDisabled.apply(this, arguments);
              }
         }
