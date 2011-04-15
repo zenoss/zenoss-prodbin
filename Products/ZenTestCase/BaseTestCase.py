@@ -11,10 +11,9 @@
 #
 ###########################################################################
 
-import transaction
-
 import zope.component
 from zope.traversing.adapters import DefaultTraversable
+from transaction._transaction import Transaction
 
 from Testing import ZopeTestCase
 from Testing.ZopeTestCase.ZopeTestCase import standard_permissions
@@ -110,6 +109,7 @@ class ZenossTestCaseLayer(ZopeLite):
 class BaseTestCase(ZopeTestCase.ZopeTestCase):
 
     layer = ZenossTestCaseLayer
+    _setup_fixture = 0
 
     def afterSetUp(self):
         gen = PortalGenerator()
@@ -132,15 +132,15 @@ class BaseTestCase(ZopeTestCase.ZopeTestCase):
 
         # Let's hide transaction.commit() so that tests don't fubar
         # each other
-        self._transaction_commit=transaction.commit
-        transaction.commit=lambda *x: None
+        self._transaction_commit = Transaction.commit
+        Transaction.commit=lambda *x: None
 
         setDescriptors(self.dmd.propertyTransformers)
 
 
     def tearDown(self):
         if hasattr( self, '_transaction_commit' ):
-            transaction.commit=self._transaction_commit
+            Transaction.commit=self._transaction_commit
         self.app = None
         self.dmd = None
         super(BaseTestCase, self).tearDown()

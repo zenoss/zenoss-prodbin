@@ -25,7 +25,9 @@ from ZenRelationsBaseTest import ZenRelationsBaseTest
 
 class FullZopeTestCases(ZenRelationsBaseTest):
 
-    
+    _setup_fixture = 1
+
+
     def afterSetUp(self):
         """setup schema manager and add needed permissions"""
         self.setRoles(['Manager'])
