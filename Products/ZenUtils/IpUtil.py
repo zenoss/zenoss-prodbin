@@ -384,14 +384,14 @@ def parse_iprange(iprange):
 
         >>> parse_iprange('10.0.0.1-5')
         ['10.0.0.1', '10.0.0.2', '10.0.0.3', '10.0.0.4', '10.0.0.5']
+        >>> parse_iprange('10.0.0.2-5')
+        ['10.0.0.2', '10.0.0.3', '10.0.0.4', '10.0.0.5']
         >>> parse_iprange('10.0.0.1')
         ['10.0.0.1']
         >>> try: parse_iprange('10.0.0.1-2-3')
         ... except InvalidIPRangeError: print "Invalid"
         Invalid
-        >>> parse_iprange('fd00::aaf:d201-3')
-        ['fd00::aaf:d201', 'fd00::aaf:d202', 'fd00::aaf:d203']
-        >>> parse_iprange('fd00::aaf:d201-fd00::aaf:d203')
+        >>> parse_iprange('fd00::aaf:d201-d203')
         ['fd00::aaf:d201', 'fd00::aaf:d202', 'fd00::aaf:d203']
     """
     rangeList = iprange.split('-')
@@ -401,25 +401,19 @@ def parse_iprange(iprange):
         return [iprange]
 
     beginIp, endIp = rangeList
-    beginDecimalIp = ipToDecimal(beginIp)
+    # Is it just an int?
+    separator = '.'
+    strFn = lambda x:x
+    base = 10
+    if beginIp.find(':')> -1:
+        separator=':'
+        base=16
+        strFn = lambda x: '{0:x}'.format(x)
+    net, start = beginIp.rsplit(separator, 1)
+    start = int(start, base)
+    end = int(endIp, base)
 
-    try:
-        # Is it just an int?
-        endDecimalIp = int(endIp)
-        endDecimalIp += beginDecimalIp
-    except ValueError:
-        try:
-            # The range function stops *before* the last IP
-            endDecimalIp = ipToDecimal(endIp) + 1
-        except Exception:
-            raise InvalidIPRangeError('%s is an invalid end of IP range.' % endIp)
-
-    if beginDecimalIp > endDecimalIp:
-        # Reverse them
-        endDecimalIp, beginDecimalIp = beginDecimalIp, endDecimalIp
-
-    # Note: xrange explodes on using longs so we need to use range
-    return [decimalIpToStr(decimalIp) for decimalIp in range(beginDecimalIp, endDecimalIp) ]
+    return ['%s%s%s' % (net, separator, strFn(x)) for x in xrange(start, end+1)]
 
 
 def getSubnetBounds(ip):
