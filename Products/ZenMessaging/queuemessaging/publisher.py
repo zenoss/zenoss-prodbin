@@ -143,10 +143,10 @@ def getModelChangePublisher():
     tx = transaction.get()
     # check to see if there is a publisher on the transaction
     log.debug("getting publisher on tx %s" % tx)
-    if not getattr(tx, '_synchronziedPublisher', None):
-        tx._synchronziedPublisher = ModelChangePublisher()
+    if not getattr(tx, '_synchronizedPublisher', None):
+        tx._synchronizedPublisher = ModelChangePublisher()
         tx.addBeforeCommitHook(PUBLISH_SYNC.beforeCompletionHook, [tx])
-    return tx._synchronziedPublisher
+    return tx._synchronizedPublisher
 
 
 class PublishSynchronizer(object):
@@ -195,18 +195,18 @@ class PublishSynchronizer(object):
     def beforeCompletionHook(self, tx):
         try:
             log.debug("beforeCompletionHook on tx %s" % tx)
-            publisher = getattr(tx, '_synchronziedPublisher', None)
+            publisher = getattr(tx, '_synchronizedPublisher', None)
             if publisher:
                 msg = self.correlateEvents(publisher.msg)
-                queuePublisher = getUtility(IQueuePublisher)
+                queuePublisher = getUtility(IQueuePublisher, '_txpublisher')
                 dataManager = AmqpDataManager(queuePublisher.channel, tx._manager)
                 tx.join(dataManager)
                 queuePublisher.publish("$ModelChangeEvents", "zenoss.event.modelchange", msg)
             else:
                 log.debug("no publisher found on tx %s" % tx)
         finally:
-            if hasattr(tx, '_synchronziedPublisher'):
-                tx._synchronziedPublisher = None
+            if hasattr(tx, '_synchronizedPublisher'):
+                tx._synchronizedPublisher = None
 
 
 PUBLISH_SYNC = PublishSynchronizer()
