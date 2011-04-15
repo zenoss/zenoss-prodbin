@@ -180,7 +180,7 @@ class IndexableWrapper(object):
         Object's uuid. This is a metadata column.
         """
         try:
-            return IGlobalIdentifier(self._context).getGUID()
+            return IGlobalIdentifier(self._context).create()
         except ConflictError:
             raise
         except Exception:
