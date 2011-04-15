@@ -15,14 +15,16 @@
 
 (function(){
     var router = Zenoss.remote.DeviceRouter,
+        ModelerPluginForm,
         ModelerPluginPanel;
-    ModelerPluginPanel = Ext.extend(Ext.form.FormPanel, {
+    ModelerPluginForm = Ext.extend(Ext.form.FormPanel, {
         constructor: function(config) {
             config = config || {};
             Ext.apply(config, {
                 labelAlign: 'top',
                 paramsAsHash: true,
                 frame: true,
+                autoScroll: 'y',
                 defaults: {
                     labelStyle: 'font-size: 13px; color: #5a5a5a',
                     anchor: '100%'
@@ -104,7 +106,7 @@
                 cls: 'device-overview-form-wrapper',
                 bodyCssClass: 'device-overview-form'
             });
-            ModelerPluginPanel.superclass.constructor.apply(this, arguments);
+            ModelerPluginForm.superclass.constructor.apply(this, arguments);
         },
         setContext: function(uid) {
             if (this.modelerPlugins) {
@@ -152,12 +154,12 @@
                     multiselects: [{
                         cls: 'multiselect-dialog',
                         width: 350,
-                        height: 500,
+                        height: 475,
                         store: data.options
                     },{
                         cls: 'multiselect-dialog',
                         width: 350,
-                        height: 500,
+                        height: 475,
                         store: data.selected
                     }]
                 });
@@ -165,6 +167,30 @@
             }
         }
     });
+
+
+    /**
+     * Place the form inside a panel for sizing
+     **/
+    ModelerPluginPanel = Ext.extend(Ext.Panel, {
+        constructor: function(config) {
+            config = config || {};
+            Ext.applyIf(config, {
+                layout: 'fit',
+                width: 800,
+                autoScroll: 'auto',
+                items: [new ModelerPluginForm({
+                    ref: 'modelerForm'
+                })]
+            });
+            ModelerPluginPanel.superclass.constructor.apply(this, arguments);
+        },
+        setContext: function(uid) {
+            this.modelerForm.setContext(uid);
+        }
+    });
+
+
     Ext.reg('modelerpluginpanel', ModelerPluginPanel);
 
 })();
