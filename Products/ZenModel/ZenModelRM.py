@@ -346,11 +346,12 @@ class ZenModelRM(ZenModelBase, RelationshipManager, Historical, ZenPacker):
         return ', '.join(users)
 
 
-    def index_object(self):
+    def index_object(self, idxs=None):
         """A common method to allow Findables to index themselves."""
         cat = getattr(self, self.default_catalog, None)
         if cat != None:
-            cat.catalog_object(self, self.getPrimaryId())
+            cat.catalog_object(self, self.getPrimaryId(), idxs=idxs)
+
 
 
     def unindex_object(self):

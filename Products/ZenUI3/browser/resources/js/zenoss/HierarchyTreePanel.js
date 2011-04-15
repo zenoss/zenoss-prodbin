@@ -219,7 +219,6 @@ Zenoss.HierarchyTreePanel = Ext.extend(Ext.tree.TreePanel, {
                 deleteNodeFn: Ext.emptyFn
             });
         }
-
         if (config.directFn && !config.loader) {
             config.loader = new Ext.tree.TreeLoader({
                 directFn: config.directFn,

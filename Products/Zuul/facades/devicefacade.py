@@ -15,7 +15,7 @@ from itertools import imap
 from zope.interface import implements
 from Acquisition import aq_base
 from zope.event import notify
-from Products.AdvancedQuery import Eq, Or, And, MatchRegexp
+from Products.AdvancedQuery import Eq, Or, And, MatchRegexp, Between
 from Products.Zuul.decorators import info
 from Products.Zuul.utils import unbrain
 from Products.Zuul.facades import TreeFacade
@@ -30,11 +30,16 @@ from Products.ZenModel.Device import Device
 from Products.ZenMessaging.ChangeEvents.events import ObjectAddedToOrganizerEvent, \
     ObjectRemovedFromOrganizerEvent
 from Products.Zuul import getFacade
+from Products.Zuul.tree import DeviceSearchCatalogTool
 from Products.Zuul.utils import ZuulMessageFactory as _t, UncataloguedObjectException
 from Products.Zuul.catalog.events import IndexingEvent
+from Products.ZenUtils.IpUtil import numbip, checkip, IpAddressError, ensureIp
+from Products.ZenUtils.IpUtil import getSubnetBounds
 from Products.ZenEvents.Event import Event
 from Products.ZenUtils.guid.interfaces import IGlobalIdentifier
 from Products.ZenEvents.EventManagerBase import EventManagerBase
+from Products.ZenUtils.jsonutils import unjson
+
 
 
 class DeviceFacade(TreeFacade):
@@ -53,6 +58,89 @@ class DeviceFacade(TreeFacade):
     @property
     def _instanceClass(self):
         return 'Products.ZenModel.Device.Device'
+
+    def setInfo(self, uid, data):
+        """
+        """
+        super(DeviceFacade, self).setInfo(uid, data)
+        obj = self._getObject(uid)
+        if isinstance(obj, Device):
+            obj.index_object()
+
+    def _convertOrderby(self, sort):
+        """
+        The sort fields will come in as the properties of the info
+        object, we need to translate them into the index name
+        for the deviceSearch catalog.
+        """
+        mapping = {
+            'name': 'titleOrId',
+            'uid': 'getPhysicalPath',
+            'ipAddress': 'ipAddressAsInt',
+            'productionState': 'getProdState',
+            'serialNumber': 'getHWSerialNumber',
+            'tagNumber': 'getHWTag',
+            'hwManufacturer': 'getHWManufacturerName',
+            'hwModel': 'getHWProductClass',
+            'osManufacturer': 'getOSManufacturerName',
+            'osModel': 'getOSProductName',
+            'collector': 'getPerformanceServerName',
+            'priority': 'getPriorityString'
+            }
+        if mapping.get(sort):
+            return mapping.get(sort)
+        return sort
+
+    def getDeviceList(self, uid=None, start=0, limit=50, sort='name', dir='ASC',
+                   params=None, hashcheck=None):
+        cat = DeviceSearchCatalogTool(self._getObject(uid))
+        reverse = dir=='DESC'
+        qs = []
+        query = None
+
+        for key, value in params.iteritems():
+            if key == 'name':
+                qs.append(MatchRegexp('titleOrId', '(?i).*%s.*' % value))
+            elif key == 'ipAddress':
+                ip = ensureIp(params['ipAddress'])
+                try:
+                    checkip(ip)
+                except IpAddressError:
+                    pass
+                else:
+                    if numbip(ip):
+                        minip, maxip = getSubnetBounds(ip)
+                        qs.append(Between('ipAddressAsInt', str(minip), str(maxip)))
+            elif key == 'deviceClass':
+                qs.append(MatchRegexp('path', '.*%s.*' %
+                                      params['deviceClass']))
+            elif key == 'productionState':
+                qs.append(Or(*[Eq('getProdState', self.context.convertProdState(state))
+                             for state in params['productionState']]))
+            else:
+                qs.append(MatchRegexp(key, '.*%s.*' % value))
+
+        if qs:
+            query = And(*qs)
+        sort = self._convertOrderby(sort)
+        brains = cat.search(start=start,
+                           limit=limit, orderby=sort, reverse=reverse,
+                            query=query, hashcheck=hashcheck)
+
+        details = {}
+        devices = []
+        for brain in brains:
+            details[brain.getPrimaryId] = unjson(brain.details)
+            devices.append(IInfo(brain.getObject()))
+
+        uuids = set(dev.uuid for dev in devices)
+        if uuids:
+            zep = getFacade('zep')
+            severities = zep.getEventSeverities(uuids)
+            for device in devices:
+                device.setEventSeverities(severities[device.uuid])
+
+        return SearchResults(devices, brains.total, brains.hash_), details
 
     def findComponentIndex(self, componentUid, uid=None, meta_type=None,
                            sort='name', dir='ASC', name=None):

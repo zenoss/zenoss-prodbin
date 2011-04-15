@@ -17,10 +17,38 @@
 
 Ext.ns('Zenoss');
 
+function objectRenderer(obj) {
+    if (obj) {
+        return obj.name;
+    }
+    return "";
+}
 
 Zenoss.DeviceColumnModel = Ext.extend(Ext.grid.ColumnModel, {
     constructor: function(config) {
+        var grid = config.grid;
+        var listeners = config.listeners || {};
+        listeners = Ext.applyIf(listeners,{
+            hiddenchange: function(cm, index, hidden){
+                // only refresh if we are showing a new column
+                if (hidden || !grid) {
+                    return;
+                }
+
+                if (!grid.reloadTask) {
+                    grid.reloadTask = new Ext.util.DelayedTask(function(){
+                        var view = grid.getView();
+                        view.updateLiveRows(view.rowIndex, true, true);
+                    });
+                }
+
+                // give them time to select another column
+                // calling delay again restarts the delay
+                grid.reloadTask.delay(2000);
+            }
+        });
         config = Ext.applyIf(config || {}, {
+            listeners: listeners,
             columns: [{
                 dataIndex: 'name',
                 header: _t('Device'),
@@ -40,6 +68,7 @@ Zenoss.DeviceColumnModel = Ext.extend(Ext.grid.ColumnModel, {
                 dataIndex: 'uid',
                 header: _t('Device Class'),
                 id: 'deviceClass',
+                sortable: false,
                 width: 120,
                 renderer: Zenoss.render.DeviceClass
             },{
@@ -51,22 +80,121 @@ Zenoss.DeviceColumnModel = Ext.extend(Ext.grid.ColumnModel, {
                 },
                 header: _t('Production State')
             },{
-                id: 'events',
+                id: 'getHWSerialNumber',
+                dataIndex: 'serialNumber',
+                width: 100,
+                hidden: true,
+                header: _t('Serial Number')
+            },{
+                id: 'getHWTag',
+                dataIndex: 'tagNumber',
+                width: 100,
+                hidden: true,
+                header: _t('Tag Number')
+            },{
+                id: 'getHWManufacturerName',
+                dataIndex: 'hwManufacturer',
+                width: 100,
+                header: _t('Hardware Manufacturer'),
+                hidden: true,
+                renderer: objectRenderer
+            },{
+                id: 'getHWProductClass',
+                dataIndex: 'hwModel',
+                width: 100,
+                header: _t('Hardware Model'),
+                renderer: objectRenderer
+            },{
+                id: 'getOSManufacturerName',
+                dataIndex: 'osManufacturer',
+                width: 100,
+                header: _t('OS Manufacturer'),
+                hidden: true,
+                renderer: objectRenderer
+            },{
+                id: 'getOSProductName',
+                dataIndex: 'osModel',
+                width: 150,
+                header: _t('OS Model'),
+                renderer: objectRenderer
+            },{
+                id: 'getPerformanceServerName',
+                dataIndex: 'collector',
+                width: 100,
+                hidden: true,
+                header: _t('Collector')
+            },{
+                id: 'getPriorityString',
+                dataIndex: 'priority',
+                width: 100,
+                hidden: true,
+                header: _t('Priority')
+            },{
+                id: 'getSystemNames',
+                dataIndex: 'systems',
+                width: 100,
+                hidden: true,
+                sortable: false,
+                header: _t('Systems'),
+                renderer: function(systems) {
+                    var links = [];
+                    if (systems) {
+                        Ext.each(systems, function(system){
+                            links.push(Zenoss.render.DeviceSystem(system.uid, system.name));
+                        });
+                    }
+                    return links.join(" | ");
+                }
+            },{
+                id: 'getDeviceGroupNames',
+                dataIndex: 'groups',
+                width: 100,
+                hidden: true,
+                sortable: false,
+                header: _t('Groups'),
+                renderer: function(groups) {
+                    var links = [];
+                    if (groups) {
+                        Ext.each(groups, function(group){
+                            links.push(Zenoss.render.DeviceGroup(group.uid, group.name));
+                        });
+                    }
+                    return links.join(" | ");
+
+                }
+            },{
+                id: 'getLocationName',
+                dataIndex: 'location',
+                width: 100,
+                hidden: true,
+                sortable: false,
+                header: _t('Location'),
+                renderer: function(loc){
+                    if (loc){
+                        return Zenoss.render.DeviceLocation(loc.uid, loc.name);
+                    }
+                    return '';
+                }
+            },{
+                id: 'worstevents',
                 sortable: false,
                 filter: false,
+                width: 75,
                 dataIndex: 'events',
                 header: _t('Events'),
                 renderer: function(ev, ignored, record) {
-                    var table = Zenoss.render.events(ev),
+                    var table = Zenoss.render.worstevents(ev),
                         url = record.data.uid + '/devicedetail?filter=default#deviceDetailNav:device_events';
-                    table = table.replace('table', 'table onclick="location.href=\''+url+'\';"');
+                    if (table){
+                        table = table.replace('table', 'table onclick="location.href=\''+url+'\';"');
+                    }
                     return table;
                 }
             }] // columns
         }); // Ext.applyIf
         config.defaults = Ext.applyIf(config.defaults || {}, {
             sortable: false,
-            menuDisabled: true,
+            menuDisabled: false,
             width: 200
         });
         Zenoss.DeviceColumnModel.superclass.constructor.call(this, config);
@@ -96,14 +224,25 @@ Zenoss.DeviceStore = Ext.extend(Ext.ux.grid.livegrid.Store, {
                 totalProperty: 'totalCount',
                 idProperty: 'uid'
             },[
-                  {name: 'uid', type: 'string'},
-                  {name: 'name', type: 'string'},
-                  {name: 'ipAddress', type: 'int'},
-                  {name: 'ipAddressString', type: 'string'},
-                  {name: 'productionState', type: 'string'},
-                  {name: 'events', type: 'auto'},
-                  {name: 'availability', type: 'float'}
-              ])
+                {name: 'uid', type: 'string'},
+                {name: 'name', type: 'string'},
+                {name: 'ipAddress', type: 'int'},
+                {name: 'ipAddressString', type: 'string'},
+                {name: 'productionState', type: 'string'},
+                {name: 'serialNumber', type: 'string'},
+                {name: 'tagNumber', type: 'string'},
+                {name: 'hwManufacturer', type: 'object'},
+                {name: 'hwModel', type: 'object'},
+                {name: 'osManufacturer', type: 'object'},
+                {name: 'osModel', type: 'object'},
+                {name: 'collector', type: 'string'},
+                {name: 'priority', type: 'string'},
+                {name: 'systems', type: 'object'},
+                {name: 'groups', type: 'object'},
+                {name: 'location', type: 'object'},
+                {name: 'events', type: 'auto'},
+                {name: 'availability', type: 'float'}
+            ])
         });
         Zenoss.DeviceStore.superclass.constructor.call(this, config);
     },
@@ -129,7 +268,8 @@ Zenoss.SimpleDeviceGridPanel = Ext.extend(Ext.ux.grid.livegrid.GridPanel, {
         }
         config = Ext.applyIf(config || {}, {
             cm: new Zenoss.DeviceColumnModel({
-                menuDisabled: true
+                menuDisabled: true,
+                grid: this
             }),
             sm: new Zenoss.ExtraHooksSelectionModel(),
             store: store,
@@ -167,10 +307,18 @@ Zenoss.DeviceGridPanel = Ext.extend(Zenoss.FilterGridPanel,{
             view: new Zenoss.FilterGridView({
                 rowHeight: 24,
                 nearLimit: 100,
-                loadMask: {msg: 'Loading. Please wait...'}
+                loadMask: {msg: 'Loading. Please wait...'},
+                listeners: {
+                    beforeload: this.onBeforeLoad,
+                    beforebuffer: this.onBeforeBuffer,
+                    scope: this
+                }
             }),
             autoExpandColumn: 'name',
-            cm: new Zenoss.DeviceColumnModel({defaults:{sortable:true}}),
+            cm: new Zenoss.DeviceColumnModel({
+                defaults:{sortable:true},
+                grid: this
+            }),
             sm: new Zenoss.ExtraHooksSelectionModel(),
             stripeRows: true
         });
@@ -196,6 +344,23 @@ Zenoss.DeviceGridPanel = Ext.extend(Zenoss.FilterGridPanel,{
     }, // constructor
     onRowDblClick: function(grid, rowIndex, e) {
         window.location = grid.getStore().getAt(rowIndex).data.uid;
+    },
+    onBeforeLoad: function(store, options) {
+        this.applyOptions(options);
+    },
+    onBeforeBuffer: function(view, store, rowIndex, visibleRows,
+                             totalCount, options) {
+        this.applyOptions(options);
+    },
+    applyOptions: function(options){
+        // only request the visible columns
+        var visibleColumns = this.getColumnModel().getColumnsBy(function(c){
+                return !c.hidden;
+            }),
+            keys = Ext.pluck(visibleColumns, 'dataIndex');
+        Ext.apply(options.params, {
+            keys: keys
+        });
     }
 });
 Ext.reg('DeviceGridPanel', Zenoss.DeviceGridPanel);

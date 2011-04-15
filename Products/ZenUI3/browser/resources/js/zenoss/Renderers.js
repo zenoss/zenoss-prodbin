@@ -138,6 +138,22 @@ Ext.apply(Zenoss.render, {
         });
         return rainbowTemplate.apply({cells: result, count: count});
     },
+    worstevents: function(value) {
+        var result = '',
+            sevs = ['critical', 'error', 'warning', 'info', 'debug', 'clear'];
+        Ext.each(sevs, function(severity) {
+
+            if (value[severity] && !result) {
+                result = iconTemplate.apply({
+                    severity: severity,
+                    count:value[severity],
+                    noevents: ''
+                });
+
+            }
+        });
+        return rainbowTemplate.apply({cells: result});
+    },
 
     locking: function(obj) {
         /*
@@ -282,6 +298,13 @@ Ext.apply(Zenoss.render, {
         var value = uid.replace(/^\/zport\/dmd\/Groups/, '');
         value = value.replace(/\/devices\/.*$/, '');
         var url = '/zport/dmd/itinfrastructure#groups:.zport.dmd.Groups' + value.replace(/\//g,'.');
+        if (!Ext.isString(name)) name = value;
+        return Zenoss.render.link(null, url, name);
+    },
+    DeviceSystem: function(uid, name) {
+        var value = uid.replace(/^\/zport\/dmd\/Systems/, '');
+        value = value.replace(/\/devices\/.*$/, '');
+        var url = '/zport/dmd/itinfrastructure#systems:.zport.dmd.Systems' + value.replace(/\//g,'.');
         if (!Ext.isString(name)) name = value;
         return Zenoss.render.link(null, url, name);
     },

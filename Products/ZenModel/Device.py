@@ -30,11 +30,15 @@ from urllib import quote as urlquote
 from ipaddr import IPAddress
 from Acquisition import aq_base
 from zope.event import notify
+from AccessControl.PermissionRole import rolesForPermissionOn
 from Products.Zuul.catalog.events import IndexingEvent
 from Products.ZenUtils.Utils import isXmlRpc, unused, getObjectsFromCatalog
 from Products.ZenUtils import Time
 
 import RRDView
+from Products import Zuul
+from Products.Zuul.interfaces import IInfo
+from Products.ZenUtils.jsonutils import json
 from Products.ZenUtils.IpUtil import checkip, IpAddressError, maskToBits, \
                                      ipunwrap, getHostByName
 from Products.ZenModel.interfaces import IIndexed
@@ -78,6 +82,8 @@ from Products.ZenWidgets import messaging
 from Products.ZenEvents.browser.EventPillsAndSummaries import getEventPillME
 from OFS.CopySupport import CopyError # Yuck, a string exception
 from Products.Zuul import getFacade
+from Products.Zuul.utils import allowedRolesAndUsers
+from Products.ZenUtils.IpUtil import numbip
 
 
 
@@ -236,7 +242,10 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable,
     comments = ""
     sysedgeLicenseMode = ""
     priority = 3
-
+    detailKeys =  ('tagNumber', 'serialNumber',
+                  'hwModel', 'hwManufacturer',
+                  'osModel', 'osManufacturer',
+                  'groups', 'systems', 'location')
     # Flag indicating whether device is in process of creation
     _temp_device = False
 
@@ -660,6 +669,15 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable,
         """
         return self.hw.getProductName()
 
+    def getHWProductClass(self):
+        """
+        Return the hardware product class of this device.
+
+        @rtype: string
+        """
+        cls = self.hw.productClass()
+        if cls:
+            return cls.titleOrId()
 
     def getHWProductKey(self):
         """
@@ -1857,11 +1875,11 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable,
             shutil.move(oldpath, newpath)
 
 
-    def index_object(self):
+    def index_object(self, idxs=None):
         """
         Override so ips get indexed on move.
         """
-        super(Device, self).index_object()
+        super(Device, self).index_object(idxs)
         for iface in self.os.interfaces():
             for ip in iface.ipaddresses():
                 ip.index_object()
@@ -2241,5 +2259,24 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable,
 
         adm = ApplyDataMap()
         return adm._applyDataMap(self, relmap)
+
+    def details(self):
+        dinfo = IInfo(self)
+        fields = self.detailKeys
+        details = dict()
+        for field in fields:
+            details[field] = Zuul.marshal(getattr(dinfo, field), ('name','uid'))
+        return json(details)
+
+    def allowedRolesAndUsers(self):
+        """
+        """
+        return allowedRolesAndUsers(self)
+
+    def ipAddressAsInt(self):
+        ip = self.getManageIp()
+        if ip:
+            ip = ip.partition('/')[0]
+        return str(numbip(ip))
 
 InitializeClass(Device)

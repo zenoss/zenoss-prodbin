@@ -283,7 +283,7 @@ class CatalogTool(object):
 
         # if orderby is not an index then _queryCatalog, then query results
         # will be unbrained and sorted
-        areBrains = orderby in self.catalog.getIndexes() or orderby is None
+        areBrains = orderby in self.catalog._catalog.indexes or orderby is None
         queryOrderby = orderby if areBrains else None
 
         queryResults = self._queryCatalog(types, queryOrderby, reverse, paths, depth, query)
@@ -333,3 +333,50 @@ class CatalogTool(object):
         allObjects = [unbrain(brain) for brain in queryResults]
         allObjects.sort(cmp=compareValues, reverse=reverse)
         return allObjects
+
+
+class DeviceSearchCatalogTool(CatalogTool):
+    """
+    A specialized catalog tool used for searching the deviceSearch catalog.
+    """
+    def __init__(self, context):
+        super(DeviceSearchCatalogTool, self).__init__(context)
+        self.catalog = context.dmd.Devices.deviceSearch
+
+    def _queryCatalog(self, types=(), orderby=None, reverse=False, paths=(),
+                     depth=None, query=None):
+        qs = []
+        if query is not None:
+            qs.append(query)
+
+        # Build the path query
+        if not paths:
+            paths = ('/'.join(self.context.getPhysicalPath()),)
+        paths = [p.lstrip('/zport/dmd/') for p in paths]
+        q = {'query':paths, 'level':2}
+        if depth is not None:
+            q['depth'] = depth
+        pathq = Generic('path', q)
+        qs.append(pathq)
+
+        # filter based on permissions
+        qs.append(In('allowedRolesAndUsers', allowedRolesAndGroups(self.context)))
+
+        # Consolidate into one query
+        query = And(*qs)
+
+        # Sort information
+        if orderby:
+            if reverse:
+                sortinfo = (orderby, 'desc')
+            else:
+                sortinfo = (orderby, 'asc')
+            args = (query, (sortinfo,))
+        else:
+            args = (query,)
+
+        # Get the brains
+        result = self.catalog.evalAdvancedQuery(*args)
+        return result
+
+

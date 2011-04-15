@@ -22,6 +22,7 @@ from AccessControl import Unauthorized
 from Products.ZenUtils.Ext import DirectResponse
 from Products.ZenUtils.jsonutils import unjson
 from Products import Zuul
+from Products.ZenModel.Device import Device
 from Products.Zuul.routers import TreeRouter
 from Products.Zuul.form.interfaces import IFormBuilder
 from Products.Zuul.decorators import require, contextRequire
@@ -259,6 +260,9 @@ class DeviceRouter(TreeRouter):
             raise Exception('You do not have permission to save changes.')
         process = facade.getInfo(data['uid'])
         Zuul.unmarshal(data, process)
+        # reindex the object if necessary
+        if hasattr(process._object, 'index_object'):
+            process._object.index_object();
         return DirectResponse()
 
     @require('Manage Device')
@@ -296,8 +300,8 @@ class DeviceRouter(TreeRouter):
         return DirectResponse.succeed(data=result)
 
 
-    def getDevices(self, uid=None, start=0, params=None, limit=50, sort='name',
-                   dir='ASC'):
+    def getDevices(self, uid=None, start=0, params=None, limit=50, sort='titleOrId',
+                   dir='ASC', keys=None):
         """
         Retrieves a list of devices. This method supports pagination.
 
@@ -329,9 +333,24 @@ class DeviceRouter(TreeRouter):
         facade = self._getFacade()
         if isinstance(params, basestring):
             params = unjson(params)
-        devices = facade.getDevices(uid, start, limit, sort, dir, params)
-        keys = ['name', 'ipAddress', 'productionState', 'events', 'ipAddressString']
-        data = Zuul.marshal(devices, keys)
+
+        devices, details = facade.getDeviceList(uid, start, limit, sort, dir, params)
+        allKeys = ['name', 'ipAddress', 'productionState', 'events',
+                'ipAddressString', 'serialNumber', 'tagNumber',
+                'hwManufacturer', 'hwModel', 'osModel', 'osManufacturer',
+                'collector', 'priority', 'systems', 'groups', 'location']
+        detailKeys = Device.detailKeys
+        usedKeys = keys or allKeys
+        usedKeys = [key for key in usedKeys if not key in detailKeys]
+        if not 'uid' in usedKeys:
+            usedKeys.append('uid')
+
+        data = Zuul.marshal(devices.results, usedKeys)
+        # update rows from the details
+        for row in data:
+            for key in detailKeys:
+                row[key] = details[row['uid']][key]
+
         return DirectResponse(devices=data, totalCount=devices.total,
                               hash=devices.hash_)
 
@@ -641,6 +660,7 @@ class DeviceRouter(TreeRouter):
             for uid in uids:
                 info = facade.getInfo(uid)
                 info.priority = priority
+                info._object.index_object(idxs=('getPriorityString',))
             return DirectResponse('Set %s devices to %s priority.' % (
                 len(uids), info.priority))
         except Exception, e:
@@ -685,6 +705,7 @@ class DeviceRouter(TreeRouter):
             for uid in uids:
                 info = facade.getInfo(uid)
                 info.collector = collector
+                info._object.index_object(idxs=('getPerformanceServerName',))
             return DirectResponse('Changed collector to %s for %s devices.' %
                                   (collector, len(uids)))
         except Exception, e:

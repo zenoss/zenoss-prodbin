@@ -12,6 +12,7 @@
 ###########################################################################
 
 import transaction
+from copy import deepcopy
 from types import ClassType
 from operator import attrgetter
 from itertools import islice
@@ -22,6 +23,7 @@ from BTrees.IOBTree import IOBTree
 from AccessControl import getSecurityManager
 from zope.i18nmessageid import MessageFactory
 from Products.ZCatalog.CatalogBrains import AbstractCatalogBrain
+from AccessControl.PermissionRole import rolesForPermissionOn
 from Products.ZenRelations.ZenPropertyManager import ZenPropertyManager
 
 import logging
@@ -52,6 +54,48 @@ def resolve_context(context, default=None, dmd=None):
     if context is None:
         context = default
     return context
+
+def _mergedLocalRoles(object):
+    """
+    Replacement for Products.CMFCore.utils._mergedLocalRoles, which raises a
+    TypeError in certain situations.
+    """
+    merged = {}
+    object = getattr(object, 'aq_inner', object)
+    while 1:
+        if hasattr(object, '__ac_local_roles__'):
+            dict = object.__ac_local_roles__ or {}
+            if callable(dict): dict = dict()
+            for k, v in dict.items():
+                if merged.has_key(k):
+                    merged[k] = merged[k] + list(v)
+                else:
+                    merged[k] = list(v)
+        if hasattr(object, 'aq_parent'):
+            object=object.aq_parent
+            object=getattr(object, 'aq_inner', object)
+            continue
+        if hasattr(object, 'im_self'):
+            object=object.im_self
+            object=getattr(object, 'aq_inner', object)
+            continue
+        break
+
+    return deepcopy(merged)
+
+
+def allowedRolesAndUsers(context):
+    allowed = set()
+    for r in rolesForPermissionOn("View", context):
+        allowed.add(r)
+    for user, roles in _mergedLocalRoles(context).iteritems():
+        for role in roles:
+            if role in allowed:
+                allowed.add('user:' + user)
+    if 'Owner' in allowed:
+        allowed.remove('Owner')
+    return list(allowed)
+
 
 _sevs = ['clear', 'debug', 'info', 'warning', 'error', 'critical']
 
@@ -96,14 +140,14 @@ def unbrain(item):
 
 class LazySortableList(object):
 
-    def __init__(self, iterable, cmp=None, key=None, orderby=None, 
+    def __init__(self, iterable, cmp=None, key=None, orderby=None,
                  reverse=False):
         self.iterator = iter(iterable)
         if cmp is not None or key is not None or orderby is not None:
             # Might as well exhaust it now
             if orderby is not None:
                 key = attrgetter(orderby)
-            self.seen = sorted(self.iterator, cmp=cmp, key=key, 
+            self.seen = sorted(self.iterator, cmp=cmp, key=key,
                                reverse=reverse)
         else:
             self.seen = []
@@ -239,7 +283,7 @@ def allowedRolesAndGroups(context):
     groups = user.getGroups()
     for group in groups:
         roles.append('user:%s' % group)
-        
+
     return roles
 
 
@@ -297,7 +341,7 @@ class PathIndexCache(object):
             else:
                 paths = [path]
 
-            for path in paths:                
+            for path in paths:
                 path = path.split('/', 3)[-1]
                 if relnames:
                     if isinstance(relnames, basestring):
