@@ -368,7 +368,7 @@ class EventProxy(object):
             except KeyError:
                 raise AttributeError(name)
         except:
-            log.error('Could not get key %s', name)
+            log.debug('Could not get key %s', name)
             raise
 
     def __setattr__(self, name, value):
