@@ -358,6 +358,10 @@ Zenoss.DeviceGridPanel = Ext.extend(Zenoss.FilterGridPanel,{
                 return !c.hidden;
             }),
             keys = Ext.pluck(visibleColumns, 'dataIndex');
+
+        // ipAddressString is necessary, but isn't a dataIndex.
+        keys.push('ipAddressString');
+
         Ext.apply(options.params, {
             keys: keys
         });
