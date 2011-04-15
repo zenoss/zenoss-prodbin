@@ -43,6 +43,10 @@ resetCombo = function(combo, uid) {
  **/
 function getCurrentView(){
     var currentView = Ext.util.Cookies.get('template_view');
+    
+    if (Ext.History.getToken() && Ext.History.getToken().search('/devices/') != -1) {
+        return 'template';
+    }
     if (currentView) {
         return currentView;
     }

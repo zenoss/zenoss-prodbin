@@ -312,7 +312,7 @@ Zenoss.TemplateTreePanel = Ext.extend(Ext.tree.TreePanel, {
         // example path: '/root/Device/Device..Power.UPS.APC'
         var templateSplit, pathParts, nameParts,
             templateName, dmdPath, path, deviceName;
-
+        
         if (uid.search('/rrdTemplates/') != -1) {
             templateSplit = unescape(uid).split('/rrdTemplates/');
             pathParts = templateSplit[0].split('/');
@@ -332,7 +332,26 @@ Zenoss.TemplateTreePanel = Ext.extend(Ext.tree.TreePanel, {
             dmdPath = pathParts.slice(4).join('.');
         }
         path = String.format('/root/{0}/{0}..{1}', templateName, dmdPath);
-        this.selectPath(path);
+        this.selectPath(path, 'id', this.manualSelect(uid, templateName));
+    },
+    manualSelect: function(uid, templateName) {
+        var theTree = this;
+        var callback = function(success, foundNode) {
+            if (!success) {
+                theTree.getRootNode().eachChild(function(node) {
+                    if (templateName == node.attributes.id){
+                        node.eachChild(function(node){
+                            if (uid == node.attributes.uid) {
+                                node.select();
+                                return false;
+                            }
+                        });
+                        return false;
+                    }
+                });
+            }
+        };
+        return callback;
     }
 
 });
