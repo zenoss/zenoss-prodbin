@@ -34,7 +34,7 @@ keywordIndexes = ['getSystemNames', 'getDeviceGroupNames']
 
 class DeviceSearchCatalogUpdate(Migrate.Step):
 
-    version = Migrate.Version(3, 1, 1)
+    version = Migrate.Version(3, 1, 70)
 
     def cutover(self, dmd):
         devices = dmd.getDmdRoot('Devices')
