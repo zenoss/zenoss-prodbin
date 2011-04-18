@@ -1,7 +1,7 @@
 ###########################################################################
 #
 # This program is part of Zenoss Core, an open source monitoring platform.
-# Copyright (C) 2007, Zenoss Inc.
+# Copyright (C) 2007, 2011 Zenoss Inc.
 #
 # This program is free software; you can redistribute it and/or modify it
 # under the terms of the GNU General Public License version 2 as published by
@@ -19,6 +19,7 @@ A front end to all the report plugins.
 
 import os
 import sys
+from glob import glob
 import logging
 log = logging.getLogger('zen.reportserver')
 
@@ -34,6 +35,30 @@ class ReportServer(ZenModelRM):
     security = ClassSecurityInfo()
     security.setDefaultAccess('allow')
 
+    def _getPluginDirectories(self):
+        directories = []
+        for p in self.ZenPackManager.packs():
+            if p.id == 'broken':
+                continue
+            try:
+                pluginpath = p.path('reports', 'plugins')
+                directories.append(pluginpath)
+            except AttributeError:
+                log.warn("Unable to load report plugins for ZenPack %s",
+                          p.id)
+        directories.append(zenPath('Products/ZenReports/plugins'))
+        return directories
+
+    def listPlugins(self):
+        allPlugins = []
+        for dir in self._getPluginDirectories():
+            plugins = glob('%s/*.py' % dir)
+            if '__init__.py' in plugins:
+                plugins.remove('__init__.py')
+            if plugins:
+                allPlugins.extend(plugins)
+        return allPlugins
+
     security.declareProtected(ZEN_COMMON, 'plugin')
     def plugin(self, name, REQUEST, templateArgs = None):
         "Run a plugin to generate the report object"
@@ -46,18 +71,8 @@ class ReportServer(ZenModelRM):
         if 'RESPONSE' in args:
             del args['RESPONSE']
 
-        directories = []
-        for p in self.ZenPackManager.packs():
-            try:
-                pluginpath = p.path('reports', 'plugins')
-                directories.append(pluginpath)
-            except AttributeError:
-                log.error("Unable to load report plugin %s for ZenPack %s",
-                          name, p.id)
-        directories.append(zenPath('Products/ZenReports/plugins'))
-        
         klass = None
-        for d in directories:
+        for d in self._getPluginDirectories():
             if os.path.exists('%s/%s.py' % (d, name)):
                 try:
                     sys.path.insert(0, d)
@@ -68,6 +83,7 @@ class ReportServer(ZenModelRM):
         if not klass:
             raise IOError('Unable to find plugin named "%s"' % name)
         instance = klass()
+        log.debug("Running plugin %s", name)
         if templateArgs == None:
             return instance.run(dmd, args)
         else:
