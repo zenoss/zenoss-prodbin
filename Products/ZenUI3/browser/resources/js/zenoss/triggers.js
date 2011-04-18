@@ -1465,11 +1465,17 @@ Ext.onReady(function () {
                 subjects: [{
                     text: _t('Device Priority'),
                     value: 'dev.priority',
-                    comparisons: NUMCMPS
+                    comparisons: NUMCMPS,
+                    field: {
+                        xtype:'PriorityCombo'
+                    }
                 },{
                     text: _t('Device Production State'),
                     value: 'dev.production_state',
-                    comparisons: NUMCMPS
+                    comparisons: NUMCMPS,
+                    field:{
+                        xtype:'ProductionStateCombo'
+                    }
                 },{
                     text: _t('Device (Element)'),
                     value: 'elem.name',
