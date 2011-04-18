@@ -18,6 +18,7 @@ from Products.ZenUtils.guid.interfaces import IGlobalIdentifier, \
 from zenoss.protocols.protobufs import zep_pb2 as eventConstants
 from zenoss.protocols.protobufs import model_pb2 as modelConstants
 from Products.ZenMessaging.queuemessaging.interfaces import IModelProtobufSerializer
+from Products.ZenEvents.events2.proxy import EventProxy 
 
 class ObjectProtobuf(object):
     """
@@ -257,6 +258,17 @@ class EventProtobufDateMapper(EventProtobufMapper):
     def mapEvent(self, proto, value):
         setattr(proto, self._fieldName, int(value * 1000))
 
+class EventProtobufDetailMapper(EventProtobufMapper):
+    """
+    Map's an event property to a new name in details.
+    """
+
+    def __init__(self, detailName):
+        self._detailName = detailName
+
+    def mapEvent(self, proto, value):
+        proto.details.add(name=self._detailName, value=[value])
+
 class EventProtobuf(ObjectProtobuf):
     """
     Fills up the properties of an event
@@ -290,7 +302,7 @@ class EventProtobuf(ObjectProtobuf):
         # Location -> Added by zeneventd
         # Systems -> Added by zeneventd
         # DeviceGroups -> Added by zeneventd
-        # ipAddress -> Added by zeneventd but can be specified as detail
+        'ipAddress': EventProtobufDetailMapper(EventProxy.DEVICE_IP_ADDRESS_DETAIL_KEY),
         'facility': EventProtobufIntMapper('syslog_facility'),
         'priority': EventProtobufSyslogPriorityMapper(),
         'ntevid': EventProtobufIntMapper('nt_event_code'),

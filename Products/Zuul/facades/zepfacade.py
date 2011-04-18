@@ -65,8 +65,9 @@ class ZepFacade(ZuulFacade):
     }
 
     ZENOSS_DETAIL_OLD_TO_NEW_MAPPING = {
-        'prodState' : 'zenoss.device.production_state',
-        'DevicePriority' : 'zenoss.device.priority',
+        'prodState': 'zenoss.device.production_state',
+        'DevicePriority': 'zenoss.device.priority',
+        'ipAddress': 'zenoss.device.ip_address',
     }
     ZENOSS_DETAIL_NEW_TO_OLD_MAPPING = dict([(new, old) for old, new in ZENOSS_DETAIL_OLD_TO_NEW_MAPPING.iteritems()])
 

@@ -297,8 +297,8 @@ COLUMN_CONFIG = {
 
     'ipAddress' : dict(
         header='IP Address',
-        sortable=False,
-        filter=None),
+        sortable=True,
+        filter='textfield'),
 
     'message'   : dict(
         header='Message',

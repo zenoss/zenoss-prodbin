@@ -2259,6 +2259,29 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable,
 
         adm = ApplyDataMap()
         return adm._applyDataMap(self, relmap)
+    
+    def getStatus(self, statusclass=None, **kwargs):
+        """
+        Return the status number for this device of class statClass.
+        """
+        from Products.ZenEvents.ZenEventClasses import Status_Ping
+        if statusclass == Status_Ping:
+            from Products.Zuul import getFacade
+            from Products.ZenEvents.events2.proxy import EventProxy
+            from zenoss.protocols.protobufs.zep_pb2 import STATUS_NEW, STATUS_ACKNOWLEDGED, \
+                SEVERITY_CRITICAL, SEVERITY_ERROR, SEVERITY_WARNING
+            # Override normal behavior - we only care if the manage IP is down
+            zep = getFacade('zep', self)
+            event_filter = zep.createEventFilter(tags=[self.getUUID()],
+                                                 severity=[SEVERITY_WARNING,SEVERITY_ERROR,SEVERITY_CRITICAL],
+                                                 status=[STATUS_NEW,STATUS_ACKNOWLEDGED],
+                                                 event_class=filter(None, [statusclass]),
+                                                 details={EventProxy.DEVICE_IP_ADDRESS_DETAIL_KEY: self.getManageIp()})
+            result = zep.getEventSummaries(0, filter=event_filter, limit=0)
+            return int(result['total'])
+        
+        return super(Device, self).getStatus(statusclass, **kwargs)
+        
 
     def details(self):
         dinfo = IInfo(self)
