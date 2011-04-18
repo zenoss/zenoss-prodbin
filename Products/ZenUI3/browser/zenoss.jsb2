@@ -213,6 +213,9 @@
         },{
             "text": "modelerPluginPanel.js",
             "path": "resources/js/zenoss/form/"
+        },{
+            "text": "configPropertyPanel.js",
+            "path": "resources/js/zenoss/form/"
         }]
     }],
     "resources": []

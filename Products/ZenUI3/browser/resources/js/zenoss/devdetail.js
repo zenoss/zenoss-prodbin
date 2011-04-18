@@ -170,6 +170,10 @@ Zenoss.nav.register({
         id: 'device_modeler_plugins',
         nodeType: 'subselect',
         text: _t('Modeler Plugins')
+    },{
+        id: 'device_config_properties',
+        nodeType: 'subselect',
+        text: _t('Configuration Properties')
     }]
 });
 
@@ -537,6 +541,11 @@ var modeler_plugins = Ext.create({
     id: 'device_modeler_plugins'
 });
 
+var configuration_properties = Ext.create({
+    xtype: 'configpropertypanel',
+    id: 'device_config_properties'
+});
+
 Zenoss.DeviceDetailNav = Ext.extend(Zenoss.DetailNavPanel, {
     constructor: function(config) {
         Ext.applyIf(config, {
@@ -563,6 +572,7 @@ Zenoss.DeviceDetailNav = Ext.extend(Zenoss.DetailNavPanel, {
             'os',
             'edit',
             'collectorplugins',
+            'zpropertyedit',
             'events',
             'resetcommunity',
             'pushconfig',
@@ -674,7 +684,7 @@ Ext.getCmp('center_panel').add({
         split: true,
         activeItem: 0,
         region: 'center',
-        items: [overview, event_console, modeler_plugins, componentCard]
+        items: [overview, event_console, modeler_plugins, configuration_properties, componentCard]
     }]
 });
 

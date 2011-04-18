@@ -938,17 +938,58 @@ class DeviceRouter(TreeRouter):
             return DirectResponse.fail('Failed to remove devices.')
 
     @contextRequire('Manage DMD', 'uid')
-    def deleteZenProperties(self, uid, properties):
+    def setZenProperty(self, uid, zProperty, value):
+        """
+        Sets the zProperty value
+        """
+        facade = self._getFacade()
+        facade.setZenProperty(uid, zProperty, value)
+        data = facade.getZenProperty(uid, zProperty)
+        return DirectResponse(data=Zuul.marshal(data))
+
+    def getZenProperties(self, uid, start=0, params="{}", limit=None, sort=None,
+                   dir='ASC'):
+        """
+        Returns the definition and values of all
+        the zen properties for this context
+        @type  uid: string
+        @param uid: unique identifier of an object
+        """
+        facade = self._getFacade()
+        data = facade.getZenProperties(uid)
+        # filter
+        if params:
+            filters = unjson(params)
+            def hasFilter(row, key, value):
+                if row.get(key):
+                    return value.lower() in str(row.get(key)).lower()
+
+            for key, value in filters.iteritems():
+                # assume AND for sorting
+                data = [row for row in data if hasFilter(row, key, value)]
+        # sort
+        if sort:
+            reverse = False
+            if dir != 'ASC':
+                reverse = True
+            data = sorted(data,  key=lambda row: row[sort], reverse=reverse)
+
+        # do not show collector plugins property, there is a separate menu item for it
+        data = [row for row in data if row['id'] != 'zCollectorPlugins']
+        return DirectResponse(data=Zuul.marshal(data), totalCount=len(data))
+
+    @contextRequire('Manage DMD', 'uid')
+    def deleteZenProperty(self, uid, zProperty):
         """
         Removes the local instance of the each property in properties. Note
         that the property will only be deleted if a hasProperty is true
         @type  uid: String
         @param uid: unique identifier of an object
-        @type  properties: Array
-        @param properties: list of zenproperty identifiers that we wish to delete
+        @type  properties: String
+        @param properties: zenproperty identifier
         """
         facade = self._getFacade()
-        data = facade.deleteZenProperties(uid, properties)
+        data = facade.deleteZenProperty(uid, zProperty)
         return DirectResponse(data=Zuul.marshal(data))
 
     def getEvents(self, uid):
@@ -1464,34 +1505,21 @@ class DeviceRouter(TreeRouter):
         self.context.clearGeocodeCache()
         return DirectResponse.succeed()
 
-    def getModelerPlugins(self, uid):
+    def getZenProperty(self, uid, zProperty):
         """
-        Gets the modeler plugin information for the object
-        specified by the uid
-        @rtype:   DirectResponse
+        Returns information about a zproperty for a
+        given context, including its value
+        @rtype:   Dictionary
         @return:  B{Properties}:
              - path: (string) where the property is defined
-             - options: (Array) all the available plugins
-             - selected (Array) all of the selected plugins
+             - type: (string) type of zproperty it is
+             - options: (Array) available options for the zproperty
+             - value (Array) value of the zproperty
+             - valueAsString (string)
         """
         facade = self._getFacade()
-        data = facade.getModelerPlugins(uid)
+        data = facade.getZenProperty(uid, zProperty)
         return DirectResponse.succeed(data=Zuul.marshal(data))
 
-    @contextRequire('Manage DMD', 'uid')
-    def setModelerPlugins(self, uid, plugins):
-        """
-        Sets the modeler plugin information for the object
-        specified by the uid
-        @type  uid: string
-        @param uid: unique identifier of an object
-        @type  plugins: Array
-        @param plugins: list of strings each specifying a plugin
-        @rtype:   DirectResponse
-        @return:
-        """
-        facade = self._getFacade()
-        data = facade.setModelerPlugins(uid, plugins)
-        return DirectResponse.succeed(data=Zuul.marshal(data))
 
 

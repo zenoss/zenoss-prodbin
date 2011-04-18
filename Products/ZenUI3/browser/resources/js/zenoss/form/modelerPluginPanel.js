@@ -16,6 +16,7 @@
 (function(){
     var router = Zenoss.remote.DeviceRouter,
         ModelerPluginForm,
+        ZPROP_NAME = 'zCollectorPlugins',
         ModelerPluginPanel;
     ModelerPluginForm = Ext.extend(Ext.form.FormPanel, {
         constructor: function(config) {
@@ -54,7 +55,9 @@
                         }else {
                             values = [];
                         }
-                        router.setModelerPlugins({uid:uid, plugins:values},
+                        router.setZenProperty({uid:uid,
+                                               zProperty: ZPROP_NAME,
+                                               value:values},
                                                  function(response){
                                                      if (response.success){
                                                          Zenoss.message.info('Updated Modeler Plugins');
@@ -87,9 +90,9 @@
                             fn: function(btn) {
                                 if (btn=="ok") {
                                     if (panel.uid) {
-                                        router.deleteZenProperties({
+                                        router.deleteZenProperty({
                                             uid: panel.uid,
-                                            properties: ['zCollectorPlugins']
+                                            zProperty: ZPROP_NAME
                                         }, function(response){
                                             panel.setContext(panel.uid);
                                         });
@@ -114,8 +117,9 @@
             }
             this.uid = uid;
             // get the modeler plugins
-            router.getModelerPlugins({
-                uid: uid
+            router.getZenProperty({
+                uid: uid,
+                zProperty: ZPROP_NAME
             }, this.loadData.createDelegate(this));
         },
         toggleDeleteButton: function(path){
@@ -153,14 +157,16 @@
                     drawBotIcon: true,
                     multiselects: [{
                         cls: 'multiselect-dialog',
+                        legend: 'Available',
                         width: 350,
                         height: 475,
                         store: data.options
                     },{
                         cls: 'multiselect-dialog',
+                        legend: 'Selected',
                         width: 350,
                         height: 475,
-                        store: data.selected
+                        store: data.value
                     }]
                 });
                 this.doLayout();

@@ -25,7 +25,7 @@ from Products.ZenModel.ZenossSecurity import *
 from AccessControl import ClassSecurityInfo
 from Exceptions import zenmarker
 from Products.ZenWidgets.interfaces import IMessageSender
-
+from Products.ZenRelations.zPropertyCategory import getzPropertyCategory
 iszprop = re.compile("^z[A-Z]").search
 
 from Products.ZenUtils.Utils import unused
@@ -578,6 +578,36 @@ class ZenPropertyManager(object, PropertyManager):
         else:
             returnValue = None
         return returnValue
+
+    def exportZProperties(self):
+        """
+        For this manager will return the following about each zProperty
+        Will return the following about each Zen Property
+        - id - identifier
+        - islocal - if this object has a local definition
+        - value - value for this object
+        - valueAsString - string representation of the property
+        - type - int string lines etc
+        - path - where it is defined
+        - options - acceptable values of this zProperty
+        """
+        props = []
+        for zId in self.zenPropertyIds():
+            prop = dict(
+                    id=zId,
+                    islocal=self.hasProperty(zId),
+                    type=self.getPropertyType(zId),
+                    path=self.zenPropertyPath(zId),
+                    options=self.zenPropertyOptions(zId),
+                    category=getzPropertyCategory(zId),
+                    value=None,
+                    valueAsString=None
+                    )
+            if not self.zenPropIsPassword(zId):
+                prop['value'] = self.getZ(zId)
+                prop['valueAsString'] = self.zenPropertyString(zId)
+            props.append(prop)
+        return props
 
 InitializeClass(ZenPropertyManager)
 

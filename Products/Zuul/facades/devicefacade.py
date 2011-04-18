@@ -468,7 +468,41 @@ class DeviceFacade(TreeFacade):
         context._setObject(id, organizer)
         return ILocationOrganizerInfo(organizer)
 
-    def deleteZenProperties(self, uid, properties):
+    def setZenProperty(self, uid, zProperty, value):
+        """
+        Sets the value of the zProperty for this user.
+        The value will be forced into the type, throwing
+        an exception if it fails
+        @type  uid: String
+        @param uid: unique identifier of an object
+        @type  zProperty: String
+        @param zProperty: identifier of the property
+        @type  value: Anything
+        @param value: What you want the new value of the property to be
+        """
+        obj = self._getObject(uid)
+        # make sure it is the correct type
+        ztype = obj.getPropertyType(zProperty)
+        if ztype == 'int':
+            value = int(value)
+        if ztype == 'float':
+            value = float(value)
+        if ztype == 'string':
+            value = str(value)
+
+        return obj.setZenProperty(zProperty, value)
+
+    def getZenProperties(self, uid):
+        """
+        Returns information about and the value of every zen property.
+
+        @type  uid: string
+        @param uid: unique identifier of an object
+        """
+        obj = self._getObject(uid)
+        return obj.exportZProperties()
+
+    def deleteZenProperty(self, uid, zProperty):
         """
         Removes the local instance of the each property in properties. Note
         that the property will only be deleted if a hasProperty is true
@@ -478,41 +512,34 @@ class DeviceFacade(TreeFacade):
         @param properties: list of zenproperty identifiers that we wish to delete
         """
         obj = self._getObject(uid)
-        for prop in properties:
-            if obj.hasProperty(prop):
-                obj.deleteZenProperty(prop)
+        if obj.hasProperty(zProperty):
+            prop = self.getZenProperties(zProperty)
+            if prop['path'] == '/':
+                raise Exception('Unable to delete root definition of a zProperty')
+            obj.deleteZenProperty(zProperty)
 
-    def getModelerPlugins(self, uid):
+    def getZenProperty(self, uid, zProperty):
         """
-        Returns a dictionary of the modeler plugin information for this uid.
-        This looks at the zCollectorPlugins zproperty
+        Returns information about a zproperty for a
+        given context, including its value
         @rtype:   Dictionary
         @return:  B{Properties}:
              - path: (string) where the property is defined
-             - options: (Array) all the available plugins
-             - selected (Array) all of the selected plugins
+             - type: (string) type of zproperty it is
+             - options: (Array) available options for the zproperty
+             - value (Array) value of the zproperty
+             - valueAsString (string)
         """
-        zprop = 'zCollectorPlugins'
         obj = self._getObject(uid)
-        path = obj.zenPropertyPath(zprop)
-        options = obj.zenPropertyOptions(zprop)
-        selected = obj.getZ(zprop)
-        return dict(path=path,
-                    options=options,
-                    selected=selected)
+        prop = dict(
+            path = obj.zenPropertyPath(zProperty),
+            options = obj.zenPropertyOptions(zProperty),
+            type=obj.getPropertyType(zProperty),
+            )
 
-    def setModelerPlugins(self, uid, plugins):
-        """
-        This sets the the zCollectorPlugins zproperty
-        @type  uid: string
-        @param uid: unique identifier of an object
-        @type  plugins: Array
-        @param plugins: list of strings each specifying a plugin
-        @rtype: Dictionary
-        @return: B{Properties}:
-            - path: new definition path for the zCollectorPlugins property
-        """
-        zprop = 'zCollectorPlugins'
-        obj = self._getObject(uid)
-        obj.setZenProperty(zprop, plugins)
-        return dict(path=obj.zenPropertyPath(zprop))
+        if not obj.zenPropIsPassword(zProperty):
+            prop['value'] = obj.getZ(zProperty)
+            prop['valueAsString'] = obj.zenPropertyString(zProperty)
+        return prop
+
+

@@ -58,13 +58,15 @@ Ext.state.Manager.setProvider(new PersistentProvider());
  * Hook up all Ext.Direct requests to the connection error message box.
  */
 Ext.Direct.on('event', function(e){
-    if ( Ext.isDefined(e.result) && Ext.isDefined(e.result.asof) ) {
+
+    if ( Ext.isDefined(e.result) && e.result && Ext.isDefined(e.result.asof) ) {
         Zenoss.env.asof = e.result.asof || null;
     }
 });
 
 Ext.Direct.on('event', function(e){
-    if (Ext.isDefined(e.result) && Ext.isDefined(e.result.msg)) {
+
+    if (Ext.isDefined(e.result) && e.result && Ext.isDefined(e.result.msg)) {
         var success = e.result.success || false;
         if (success) {
             Zenoss.message.success(e.result.msg);
@@ -737,7 +739,6 @@ Zenoss.FilterGridView = Ext.extend(Ext.ux.grid.livegrid.GridView, {
 
         // live search is set on the admin page
         this.liveSearch = Zenoss.settings.enableLiveSearch;
-
         if (typeof(config.displayFilters)=='undefined') {
             config.displayFilters = true;
         }
@@ -935,7 +936,7 @@ Zenoss.FilterGridView = Ext.extend(Ext.ux.grid.livegrid.GridView, {
                 true);
             this.showLoadMask(false);
             // this.reset(false);
-            this.updateLiveRows(this.rowIndex, true, true); 
+            this.updateLiveRows(this.rowIndex, true, true);
         }
     },
     renderEditors: function() {
