@@ -513,7 +513,7 @@ class DeviceFacade(TreeFacade):
         """
         obj = self._getObject(uid)
         if obj.hasProperty(zProperty):
-            prop = self.getZenProperties(zProperty)
+            prop = self.getZenProperty(uid, zProperty)
             if prop['path'] == '/':
                 raise Exception('Unable to delete root definition of a zProperty')
             obj.deleteZenProperty(zProperty)
