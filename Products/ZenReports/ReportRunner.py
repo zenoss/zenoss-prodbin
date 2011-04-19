@@ -17,6 +17,8 @@ Run a report plugin and display the output
 """
 
 from pprint import pprint
+import csv
+from sys import stdout
 
 import Globals
 from Products.ZenUtils.ZCmdBase import ZCmdBase
@@ -38,7 +40,37 @@ class ReportRunner(ZCmdBase):
 
         self.log.debug("Running '%s' with %r", plugin, args)
         result = self.dmd.ReportServer.plugin(plugin, args)
-        pprint(result)
+        if self.options.export == 'csv':
+            self.writeCsv(result)
+        else:
+            if self.options.export_file:
+                fh = open(self.options.export_file, 'w')
+            else:
+                fh = stdout
+            pprint(result, stream=fh)
+            if fh is not stdout:
+                fh.close()
+
+    def writeCsv(self, results):
+        """
+        Write the CSV output to standard output.
+        """
+        if self.options.export_file:
+            fh = open(self.options.export_file, 'w')
+        else:
+            fh = stdout
+
+        sampleRow = results[0]
+        fieldnames = sorted(sampleRow.values.keys())
+
+        # Write a header line that DictReader can import
+        fh.write(','.join(fieldnames) + '\n')
+        writer = csv.DictWriter(fh, fieldnames, lineterminator='\n')
+        for line in results:
+            writer.writerow(line.values)
+
+        if fh is not stdout:
+            fh.close()
 
     def buildOptions(self):
         ZCmdBase.buildOptions(self)
@@ -53,6 +85,12 @@ class ReportRunner(ZCmdBase):
                                default=False,
                                help="Show full names of all plugins to run. If the plugin" \
                                     " name is unique, just the name may be used." )
+        self.parser.add_option("--export",
+                               default='python',
+                               help="Export the values as 'python' (default) or 'csv'")
+        self.parser.add_option("--export_file",
+                               default='',
+                               help="Optional filename to store the output")
 
 
 if __name__ == '__main__':
