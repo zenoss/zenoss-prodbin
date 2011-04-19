@@ -193,14 +193,15 @@ Zenoss.HierarchyTreePanel = Ext.extend(Ext.tree.TreePanel, {
         config.listeners = config.listeners || {};
         Ext.applyIf(config.listeners, {
             contextmenu: Zenoss.treeContextMenu
-        });
+        });         
+        
         Ext.applyIf(config, {
             cls: 'hierarchy-panel',
             useArrows: true,
             border: false,
             autoScroll: true,
             relationshipIdentifier: null,
-            containerScroll: true,
+            containerScroll: true, 
             selectRootOnLoad: true,
             rootVisible: false,
             loadMask: true,
@@ -255,8 +256,33 @@ Zenoss.HierarchyTreePanel = Ext.extend(Ext.tree.TreePanel, {
             uiProvider: 'hierarchy'
         };
 
-        Zenoss.HierarchyTreePanel.superclass.constructor.apply(this,
-            arguments);
+        if(config.stateful){
+            this.stateEvents = this.stateEvents || [];
+            this.stateEvents.push('expandnode', 'collapsenode');
+            this.stateHash = {};
+        }       
+
+        Zenoss.HierarchyTreePanel.superclass.constructor.apply(this, arguments);
+    },
+    getState:function() {
+            return {stateHash:this.stateHash};
+    },
+    applyState: function(state) {
+        if(state) {
+            Ext.apply(this, state);
+            this.setStateListener();
+        }
+    },
+    setStateListener: function(){
+            this.root.on({
+                load:{single:true, scope:this, fn:function() {
+                    for(var p in this.stateHash) {
+                        if(this.stateHash.hasOwnProperty(p)) {
+                            this.expandPath(this.stateHash[p]);
+                        }
+                    }
+                }}
+            });
     },
     showLoadMask: function(bool) {
         if (!this.loadMask) { return; }
@@ -277,7 +303,29 @@ Zenoss.HierarchyTreePanel = Ext.extend(Ext.tree.TreePanel, {
         }
         this.addEvents('filter');
         this.on('click', this.addHistoryToken, this);
+        
+        
+        
+        
+        this.on({
+             beforeexpandnode:function(node) {
+                this.stateHash[node.id] = node.getPath();
+            },
+             beforecollapsenode:function(node) {
+                delete this.stateHash[node.id];
+                var tPath = node.getPath();
+                for(var t in this.stateHash) {
+                    if(this.stateHash.hasOwnProperty(t)) {
+                        if(-1 !== this.stateHash[t].indexOf(tPath)) {
+                            delete this.stateHash[t];
+                        }
+                    }
+                }
+            }
+        })    // add some listeners for state
     },
+
+
     addHistoryToken: function(node) {
         Ext.History.add(this.id + Ext.History.DELIMITER + node.id);
     },
