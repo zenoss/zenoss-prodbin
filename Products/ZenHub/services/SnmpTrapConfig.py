@@ -21,17 +21,41 @@ log = logging.getLogger('zen.HubService.SnmpTrapConfig')
 
 import Globals
 
+from twisted.spread import pb
+
 from Products.ZenCollector.services.config import CollectorConfigService
 from Products.ZenHub.zodb import onUpdate, onDelete
 
+from Products.ZenModel.Device import Device
+from Products.ZenModel.DeviceClass import DeviceClass
 from Products.ZenModel.MibBase import MibBase
-
+from Products.Zuul.interfaces import ICatalogTool
 
 class FakeDevice(object):
     id = 'MIB payload'
 
+class User(pb.Copyable, pb.RemoteCopy):
+    version = None
+    engine_id = None
+    username = None
+    authentication_type = None # MD5 or SHA
+    authentication_passphrase = None
+    privacy_protocol = None # DES or AES
+    privacy_passphrase = None
+    def __str__(self):
+        fmt = "<User{version=%s,engine_id=%s,username=%s,authentication_type=%s,authentication_passphrase=%s,privacy_protocol=%s,privacy_passphrase=%s}>"
+        args = (self.version,
+                self.engine_id,
+                self.username,
+                self.authentication_type,
+                self.authentication_passphrase,
+                self.privacy_protocol,
+                self.privacy_passphrase)
+        return fmt % args
+pb.setUnjellyableForClass(User, User)
 
 class SnmpTrapConfig(CollectorConfigService):
+    
     def _filterDevices(self, deviceList):
         return [ FakeDevice() ]
 
@@ -45,7 +69,38 @@ class SnmpTrapConfig(CollectorConfigService):
         proxy.oidMap = dict(
                        [ (b.oid, b.id) for b in self.dmd.Mibs.mibSearch() if b.oid ]
                        )
+
+        def gen_users():
+            cat = ICatalogTool(self.dmd)
+            for brains in cat.search("Products.ZenModel.Device.Device"):
+                device = brains.getObject()
+                log.debug("gen_users: creating user from device: %s" % device.id)
+                user = User()
+                user.version = int(device.zSnmpVer[1])
+                if user.version == 3:
+                    user.engine_id = device.zSnmpEngineId
+                    user.username = device.zSnmpSecurityName
+                    user.authentication_type = device.zSnmpAuthType
+                    user.authentication_passphrase = device.zSnmpAuthPassword
+                    user.privacy_protocol = device.zSnmpPrivType
+                    user.privacy_passphrase = device.zSnmpPrivPassword
+                yield user
+
+        proxy.users = list(gen_users())
+
         return proxy
+
+    @onUpdate(DeviceClass)
+    def mibsChanged(self, object, event):
+        for listener in self.listeners:
+            listener.callRemote('notifyConfigChanged')
+        self.procrastinator.doLater()
+
+    @onUpdate(Device)
+    def mibsChanged(self, object, event):
+        for listener in self.listeners:
+            listener.callRemote('notifyConfigChanged')
+        self.procrastinator.doLater()
 
     @onUpdate(MibBase)
     def mibsChanged(self, object, event):

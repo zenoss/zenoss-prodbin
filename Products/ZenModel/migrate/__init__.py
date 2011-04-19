@@ -222,3 +222,4 @@ import addTriggerNotificationsForCommands
 import ToManyPersistentList
 import CollectorIpv6Commands
 import deviceSearchCatalogUpdate
+import snmpv3trap

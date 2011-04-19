@@ -56,6 +56,7 @@ Z_PROPERTIES = [
     ('zSnmpVer', 'v1', 'string'),
     ('zSnmpTries', 2, 'int'),
     ('zSnmpTimeout', 2.5, 'float'),
+    ('zSnmpEngineId', '', 'string'),
     ('zSnmpSecurityName', '', 'string'),
     ('zSnmpAuthPassword', '', 'password'),
     ('zSnmpPrivPassword', '', 'password'),

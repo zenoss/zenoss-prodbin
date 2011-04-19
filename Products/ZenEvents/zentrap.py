@@ -54,6 +54,8 @@ from Products.ZenEvents.EventServer import Stats
 from Products.ZenUtils.Utils import unused
 from Products.ZenCollector.services.config import DeviceProxy
 unused(DeviceProxy)
+from Products.ZenHub.services.SnmpTrapConfig import User
+unused(User)
 
 
 # This is what struct sockaddr_in {} looks like
@@ -69,6 +71,11 @@ class sockaddr_in6(c.Structure):
         ('scope_id', c.c_ubyte * 4)
         ];
 
+_pre_parse_factory = c.CFUNCTYPE(c.c_int,
+                                 c.POINTER(netsnmp.netsnmp_session),
+                                 c.POINTER(netsnmp.netsnmp_transport),
+                                 c.c_void_p,
+                                 c.c_int)
 
 # teach python that the return type of snmp_clone_pdu is a pdu pointer
 netsnmp.lib.snmp_clone_pdu.restype = netsnmp.netsnmp_pdu_p
@@ -76,6 +83,7 @@ netsnmp.lib.snmp_clone_pdu.restype = netsnmp.netsnmp_pdu_p
 # Version codes from the PDU
 SNMPv1 = 0
 SNMPv2 = 1
+SNMPv3 = 3
 
 class FakePacket(object):
     """
@@ -106,14 +114,11 @@ class SnmpTrapPreferences(CaptureReplay):
         self.options = None
 
         self.configCycleInterval = 20*60
-
-        # Set up our listening task
-        #task = TrapTask('zentrap', configId='zentrap')
-        #self.postStartupTasks = [task]
+        self.task = None
 
     def postStartupTasks(self):
-        task = TrapTask('zentrap', configId='zentrap')
-        yield task
+        self.task = TrapTask('zentrap', configId='zentrap')
+        yield self.task
 
     def buildOptions(self, parser):
         """
@@ -140,6 +145,7 @@ class SnmpTrapPreferences(CaptureReplay):
         # Ensure that we always have an oidMap
         daemon = zope.component.getUtility(ICollector)
         daemon.oidMap = {}
+        daemon.users = []
 
 class TrapTask(BaseTask, CaptureReplay):
     """
@@ -158,7 +164,6 @@ class TrapTask(BaseTask, CaptureReplay):
         self.configId = configId
         self.state = TaskStates.STATE_IDLE
         self.interval = scheduleIntervalSeconds
-        self._preferences = taskConfig
         self._daemon = zope.component.getUtility(ICollector)
         self._eventService = zope.component.queryUtility(IEventService)
         self._preferences = self._daemon
@@ -189,7 +194,10 @@ class TrapTask(BaseTask, CaptureReplay):
         else:
             listening_address = 'udp6:%d' % trapPort
             fileno = -1
-        self.session.awaitTraps(listening_address, fileno)
+        self._pre_parse_callback = _pre_parse_factory(self._pre_parse)
+        debug = self.log.isEnabledFor(logging.DEBUG)
+        self.session.create_users(self._daemon.users)
+        self.session.awaitTraps(listening_address, fileno, self._pre_parse_callback, debug)
         self.session.callback = self.receiveTrap
         twistedsnmp.updateReactor()
 
@@ -334,6 +342,20 @@ class TrapTask(BaseTask, CaptureReplay):
 
         return oid
 
+    def _pre_parse(self, session, transport, transport_data, transport_data_length):
+        """Called before the net-snmp library parses the PDU. In the case
+        where a v3 trap comes in with unkwnown credentials, net-snmp silently
+        discards the packet. This method gives zentrap a way to log that these
+        packets were received to help with troubleshooting."""
+        if self.log.isEnabledFor(logging.DEBUG):
+            ipv6_socket_address = c.cast(transport_data, c.POINTER(sockaddr_in6)).contents
+            if ipv6_socket_address.family != socket.AF_INET6:
+                self.log.debug("pre_parse: unexpected address family: %s" % ipv6_socket_address.family)
+            else:
+                all_hex = ["%x" % i for i in ipv6_socket_address.addr]
+                self.log.debug("pre_parse: %s (%s)" % (all_hex, ipv6_socket_address.addr[-4:]))
+        return 1
+
     def receiveTrap(self, pdu):
         """
         Accept a packet from the network and spin off a Twisted
@@ -342,7 +364,7 @@ class TrapTask(BaseTask, CaptureReplay):
         @param pdu: Net-SNMP object
         @type pdu: netsnmp_pdu object
         """
-        if pdu.version not in (SNMPv1, SNMPv2):
+        if pdu.version not in (SNMPv1, SNMPv2, SNMPv3):
             self.log.error("Unable to handle trap version %d", pdu.version)
             return
         if pdu.transport_data is None:
@@ -372,10 +394,6 @@ class TrapTask(BaseTask, CaptureReplay):
         def _gen_byte_pairs():
             for left, right in zip(addr[::2], addr[1::2]):
                 yield "%.2x%.2x" % (left, right)
-        
-        if self.log.isEnabledFor(logging.DEBUG):
-            all_hex = ["%x" % i for i in addr]
-            self.log.debug("getPacketIp: %s (%s)" % (all_hex, addr[-4:]))
         
         v4_mapped_prefix = [0x00] * 10 + [0xff] * 2
         if addr[:len(v4_mapped_prefix)] == v4_mapped_prefix:
@@ -613,10 +631,8 @@ class TrapTask(BaseTask, CaptureReplay):
         # than zero in addition to the PDU version being 0.
         if pdu.version == SNMPv1 or pdu.enterprise_length > 0:
             eventType, oid, result = self.decodeSnmpv1(addr, pdu)
-
-        elif pdu.version == SNMPv2:
+        elif pdu.version in (SNMPv2, SNMPv3):
             eventType, oid, result = self.decodeSnmpv2(addr, pdu)
-
         else:
             self.log.error("Unable to handle trap version %d", pdu.version)
             return
@@ -684,6 +700,10 @@ class MibConfigTask(ObservableMixin):
         self._daemon = zope.component.getUtility(ICollector)
 
         self._daemon.oidMap = self._preferences.oidMap
+        self._daemon.users = self._preferences.users
+        task = self._daemon._prefs.task
+        if task is not None:
+            task.session.create_users(self._preferences.users)
 
     def doTask(self):
         return defer.succeed("Already updated OID -> name mappings...")
