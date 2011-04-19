@@ -22,7 +22,9 @@
 <script tal:content='string:
     Zenoss.env.device_uid = decodeURI("${context/absolute_url_path}");
 '></script>
+
 <script src="/++resource++zenui/js/zenoss/devdetail.js"></script>
+
 <script>
 function changeDetail() {
     var where = window.location.href.split('#'),

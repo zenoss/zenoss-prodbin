@@ -937,6 +937,17 @@ class DeviceRouter(TreeRouter):
             log.exception(e)
             return DirectResponse.fail('Failed to remove devices.')
 
+    def getGraphDefs(self, uid, drange=None):
+        """
+        Returns the url and title for each graph
+        for the object passed in.
+        @type  uid: string
+        @param uid: unique identifier of an object
+        """
+        facade = self._getFacade()
+        data = facade.getGraphDefs(uid, drange)
+        return DirectResponse(data=Zuul.marshal(data))
+
     @contextRequire('Manage DMD', 'uid')
     def setZenProperty(self, uid, zProperty, value):
         """

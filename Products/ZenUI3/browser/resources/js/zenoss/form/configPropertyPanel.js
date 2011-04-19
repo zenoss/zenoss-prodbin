@@ -176,6 +176,9 @@
                     getState: function() {
                         return {};
                     },
+                    applyState: function(state) {
+
+                    },
                     loadMask: {msg: _t('Loading...'),
                           msgCls: 'x-mask-loading'}
 

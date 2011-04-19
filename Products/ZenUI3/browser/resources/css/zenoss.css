@@ -430,8 +430,8 @@ table.proptable {
     padding-bottom: .5em;
 }
 
-.event_details {    
-    font-size: 13px;    
+.event_details {
+    font-size: 13px;
     text-decoration: none;
     padding-left: 3em;
     padding-bottom: 1em;
@@ -487,7 +487,7 @@ table.proptable {
 
 .xtb-text.livegridinfopanel {
     font-size: 10px;
-    color: #373737;    
+    color: #373737;
     font-weight: bold;
     padding-right: 1em;
     padding-bottom: 3px;
@@ -1002,7 +1002,7 @@ a.z-entity:hover,
 a.z-entity:visited {
     text-decoration: none;
     padding-right: 15px;
-    padding-bottom: 3px;    
+    padding-bottom: 3px;
 }
 
 .x-grid3 a.z-entity:link,
@@ -1161,4 +1161,9 @@ it will appear as an empty folder.
 
 .x-tree-node-expanded img.folder {
     background: url("/++resource++extjs/resources/images/default/tree/folder-open.gif")
+}
+
+/** Graphs **/
+.graph-panel {
+    padding: 5px;
 }

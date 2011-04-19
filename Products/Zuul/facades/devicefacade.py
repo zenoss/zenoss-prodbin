@@ -542,4 +542,6 @@ class DeviceFacade(TreeFacade):
             prop['valueAsString'] = obj.zenPropertyString(zProperty)
         return prop
 
-
+    def getGraphDefs(self, uid, drange):
+        obj = self._getObject(uid)
+        return obj.getDefaultGraphDefs(drange)

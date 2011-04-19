@@ -53,8 +53,9 @@ Zenoss.nav.register({
                 cardid = uid+'_graphs',
                 graphs = {
                     id: cardid,
-                    xtype: 'backcompat',
+                    xtype: 'graphpanel',
                     viewName: 'graphs',
+                    showToolbar: false,
                     text: _t('Graphs')
                 };
             if (!(cardid in target.items.keys)) {
@@ -62,6 +63,64 @@ Zenoss.nav.register({
             }
             target.layout.setActiveItem(cardid);
             target.layout.activeItem.setContext(uid);
+            var tbar = target.getTopToolbar();
+            if (tbar._btns) {
+                Ext.each(tbar._btns, tbar.remove, tbar);
+            }
+            var btns = tbar.add([
+                '->',
+                {
+                    xtype: 'tbtext',
+                    text: _t('Range:')
+                }, {
+                    xtype: 'combo',
+                    fieldLabel: _t('Range'),
+                    triggerAction: 'all',
+                    value: 129600,
+                    mode: 'local',
+                    store: new Ext.data.ArrayStore({
+                        id: 0,
+                        fields: [
+                            'label',
+                            'id'
+                        ],
+                        data: Zenoss.env.DATE_RANGES
+                    }),
+                    valueField: 'id',
+                    displayField: 'label',
+                    listeners: {
+                        select: function(combo, record, index){
+                            var value = record.data.id,
+                                panel = Ext.getCmp(cardid);
+                            panel.drange = value;
+                            panel.resetSwoopies();
+
+                        }
+                    }
+                },'-', {
+                    xtype: 'button',
+                    ref: '../resetBtn',
+                    text: _t('Reset'),
+                    handler: function(btn) {
+                        Ext.getCmp(cardid).resetSwoopies();
+                    }
+                },'-',{
+                    xtype: 'tbtext',
+                    text: _t('Link Graphs?:')
+                },{
+                    xtype: 'checkbox',
+                    ref: '../linkGraphs',
+                    checked: true,
+                    listeners: {
+                        check: function(chkBx, checked) {
+                            var panel = Ext.getCmp(cardid);
+                            panel.setLinked(checked);
+                        }
+                    }
+                }
+            ]);
+            tbar.doLayout();
+            tbar._btns = btns;
         }
     },{
         nodeType: 'subselect',

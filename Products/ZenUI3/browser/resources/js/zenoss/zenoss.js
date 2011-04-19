@@ -1517,7 +1517,7 @@ Zenoss.RefreshMenuButton = Ext.extend(Ext.SplitButton, {
     constructor: function(config) {
         var menu = {
             xtype: 'statefulrefreshmenu',
-            id: 'evc_refresh',
+            id: config.stateId || 'evc_refresh',
             trigger: this,
             items: [{
                 xtype: 'menutextitem',
