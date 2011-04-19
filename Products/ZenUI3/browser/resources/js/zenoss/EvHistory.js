@@ -217,8 +217,12 @@ Ext.onReady(function(){
                 xtype: 'refreshmenu',
                 id: 'refresh-button',
                 text: _t('Refresh'),
-                handler: function(){
-                    view = Ext.getCmp('events_grid').getView();
+                handler: function() {
+                    var view = Ext.getCmp('events_grid').getView();
+                    view.nonDisruptiveReset();
+                },
+                pollHandler: function() {
+                    var view = Ext.getCmp(gridId).getView();
                     view.updateLiveRows(view.rowIndex, true, true);
                 }
             }
