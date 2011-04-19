@@ -170,8 +170,9 @@ Zenoss.SimpleCardPanel = Ext.extend(Ext.Panel, {
             items: [
                 config.instances,
             {
-                xtype: 'backcompat',
+                xtype: 'configpropertypanel',
                 ref: 'zPropertyEdit',
+                displayFilters: false,
                 viewName: 'zPropertyEdit',
                 refreshOnContextChange: true,
                 listeners: config.zPropertyEditListeners

@@ -160,12 +160,30 @@
     ConfigPropertyGrid = Ext.extend(Zenoss.FilterGridPanel, {
         constructor: function(config) {
             config = config || {};
+            var view;
+            if (!Ext.isDefined(config.displayFilters)
+                || config.displayFilters
+               ){
+                view = new Zenoss.FilterGridView({
+                    rowHeight: 22,
+                    nearLimit: 100,
+                    loadMask: {msg: _t('Loading. Please wait...')}
+                });
+            }else {
+                view = new Ext.ux.grid.livegrid.GridView({
+                    nearLimit: 100,
+                    rowHeight: 22,
+                    loadMask: {msg: _t('Loading...'),
+                          msgCls: 'x-mask-loading'}
+
+                });
+            }
             // register this control for when permissions change
             Zenoss.Security.onPermissionsChange(function() {
                 this.disableButtons(Zenoss.Security.doesNotHavePermission('Manage DMD'));
             }, this);
             Ext.applyIf(config, {
-                autoExpandColumn: 'id',
+                autoExpandColumn: 'value',
                 stripeRows: true,
                 stateId: config.id || 'config_property_grid',
                 autoScroll: true,
@@ -289,16 +307,15 @@
                             return '';
                         }
                     },{
+                        id: 'category',
+                        dataIndex: 'category',
+                        header: _t('Category'),
+                        sortable: true
+                    },{
                         id: 'id',
                         dataIndex: 'id',
                         header: _t('Name'),
                         width: 120,
-                        sortable: true
-                    },{
-                        id: 'category',
-                        dataIndex: 'category',
-                        header: _t('Category'),
-
                         sortable: true
                     },{
                         id: 'value',
@@ -306,12 +323,6 @@
                         header: _t('Value'),
                         width: 180,
                         sortable: false
-                    }, {
-                        id: 'type',
-                        dataIndex: 'type',
-                        header: _t('Type'),
-                        width: 60,
-                        sortable: true
                     },{
                         id: 'path',
                         dataIndex: 'path',
@@ -320,11 +331,7 @@
                         sortable: true
                     }]
                 }),
-                view: new Zenoss.FilterGridView({
-                    rowHeight: 22,
-                    nearLimit: 100,
-                    loadMask: {msg: _t('Loading. Please wait...')}
-                })
+                view: view
             });
             ConfigPropertyGrid.superclass.constructor.apply(this, arguments);
             this.on('rowdblclick', this.onRowDblClick, this);
@@ -334,7 +341,8 @@
             // set the uid and load the grid
             var view = this.getView();
             view.contextUid  = uid;
-            this.getStore().load({params:{uid:uid}});
+            this.getStore().setBaseParam('uid', uid);
+            this.getStore().load();
             if (uid == '/zport/dmd/Devices'){
                 this.deleteButton.setDisabled(true);
             }
@@ -362,7 +370,8 @@
                 autoScroll: 'y',
                 height: 800,
                 items: [new ConfigPropertyGrid({
-                    ref: 'configGrid'
+                    ref: 'configGrid',
+                    displayFilters: config.displayFilters
                 })]
 
             });
