@@ -173,6 +173,9 @@
                 view = new Ext.ux.grid.livegrid.GridView({
                     nearLimit: 100,
                     rowHeight: 22,
+                    getState: function() {
+                        return {};
+                    },
                     loadMask: {msg: _t('Loading...'),
                           msgCls: 'x-mask-loading'}
 
