@@ -35,7 +35,7 @@ from Products.ZenCollector.interfaces import ICollectorPreferences,\
                                              ICollector
 from Products.ZenCollector.tasks import NullTaskSplitter
 
-from RenderServer import RenderServer as OrigRenderServer
+from Products.ZenRRD.RenderServer import RenderServer as OrigRenderServer
 from Products.ZenUtils.ObjectCache import ObjectCache
 
 
@@ -82,25 +82,30 @@ class ZenRenderPreferences(object):
         Listen for HTTP requests for RRD data or graphs.
         """
         self._daemon = zope.component.getUtility(ICollector)
-        self.log = log
-        self.rs = RenderServer(self.collectorName)
        
-        # Hookup render methods to self._daemon
-        self._daemon.remote_render = self.remote_render
-        self._daemon.remote_packageRRDFiles = self.remote_packageRRDFiles
-        self._daemon.remote_unpackageRRDFiles = self.remote_unpackageRRDFiles
-        self._daemon.remote_receiveRRDFiles = self.remote_receiveRRDFiles
-        self._daemon.remote_sendRRDFiles = self.remote_sendRRDFiles
-        self._daemon.remote_moveRRDFiles = self.remote_moveRRDFiles
-        self._daemon.remote_plugin = self.remote_plugin
-        self._daemon.remote_summary = self.remote_summary
-        self._daemon.remote_fetchValues = self.remote_fetchValues
-        self._daemon.remote_currentValues = self.remote_currentValues
-        
         # Start listening for HTTP requests
         httpPort = self. _daemon.options.httpport
-        self.log.info("Starting Render Webserver on port %s", httpPort)
-        reactor.listenTCP(httpPort, server.Site(HttpRender()))
+        collector = self._daemon.options.monitor
+        log.info("Starting %s zenrender webserver on port %s",
+                      collector, httpPort)
+        renderer = HttpRender(collector)
+        reactor.listenTCP(httpPort, server.Site(renderer))
+
+        # Add remote_ methods from renderer directly to the daemon
+        for name in dir(renderer):
+            if name.startswith('remote_'):
+                func = getattr(renderer, name)
+                setattr(self._daemon, name, func)
+
+
+class HttpRender(resource.Resource):
+    isLeaf = True
+
+    def __init__(self, collectorName):
+        self.log = log
+        self._daemon = zope.component.getUtility(ICollector)
+        self.collectorName = collectorName
+        self.rs = RenderServer(collectorName)
 
     def remote_render(self, *args, **kw):
         return self.rs.render(*args, **kw)
@@ -132,21 +137,62 @@ class ZenRenderPreferences(object):
     def remote_currentValues(self, *args, **kw):
         return self.rs.currentValues(*args, **kw)
 
+    def _showHelp(self):
+        """
+        When someone hits the HTTP port directly, give them
+        something other than a traceback.
+        """
+        helpText = [ """<!DOCTYPE HTML PUBLIC "-//IETF//DTD HTML 2.0//EN">
+<html><title>zenrender Help</title>
+<body>
+<h3>This zenrender is for collector: %s</h3>
+<h3>About zenrender</h3>
+<p>The zenrender daemon receives calls from zenhub (or in some
+special cases, by a browser directly) and given a request,
+creates a graph of RRD data or returns back RRD information.
+This daemon is not meant to be browsed directly by users.</p>
+<p>A zenrender daemon should only respond to requests for
+the remote collector with which it is associated.  This
+zenrender daemon is registered with the '%s' collector.</p>
+""" % (self.collectorName, self.collectorName)]
 
-class HttpRender(resource.Resource):
-    isLeaf = True
+        methods = []
+        for name in dir(self):
+            if not name.startswith('remote_'):
+                continue
 
-    def __init__(self):
-        self.log = log
-        self._daemon = zope.component.getUtility(ICollector)
+            name = name.replace('remote_', '')
+            docs = getattr(self.rs, name).__doc__
+            docs = docs if docs is not None else ''
+            methods.append( (name, docs) )
 
-    def render_GET(self,request):
+        # Insert table of methods
+        helpText.append("""<table border='1'>
+<caption>zenrender Methods</caption>
+<tr><th>Method Name</th><th>Description</th></tr>""")
+        for name, docs in sorted(methods):
+            helpText.append("<tr><td>%s</td> <td><pre>%s</pre></td></tr>" % (
+                            name, docs))
+        helpText.append("</table>")
+
+        # Drop in the trailer
+        helpText.append("""</body></html>""")
+        return '\n'.join(helpText)
+
+    def render_GET(self, request):
+        """
+        Respond to HTTP GET requests
+        """
         args = request.args.copy()
         for k, v in args.items():
             if len(v) == 1:
                 args[k] = v[0]
         command = request.postpath[-1]
-        self.log.debug("Processing %s request from %s" , command,request.getClientIP())
+        self.log.debug("Processing %s request from %s", command,
+                       request.getClientIP())
+        if command == '':
+            return self._showHelp()
+
         args.setdefault('ftype', 'PNG')
         ftype = args['ftype']
         del args['ftype']
@@ -154,20 +200,32 @@ class HttpRender(resource.Resource):
         if mimetype is None:
             mimetype = 'image/%s' % ftype.lower()
         request.setHeader('Content-type', mimetype)
-        return getattr(self._daemon, 'remote_' + command)(**args)
+        functor = getattr(self._daemon, 'remote_' + command, None)
+        if functor:
+            return functor(**args)
+
+        # Ignore trash and log error messages
+        if command not in ('favicon.ico',):
+            self.log.error("Received a bad request: %s", command)
+        return ''
 
     def render_POST(self, request):
         """
-        Deal with XML-RPC requests
+        Respond to HTTP POST requests (eg XML-RPC requests)
         """
         content = request.content.read()
         args, command = xmlrpclib.loads(content)
         self.log.debug("Processing %s request from %s" % (command,request.getClientIP()))
         request.setHeader('Content-type', 'text/xml')
-        result = getattr(self._daemon, 'remote_' + command)(*args)
-        response = xmlrpclib.dumps((result,),
-            methodresponse=True, allow_none=True)
-        return response
+        functor = getattr(self._daemon, 'remote_' + command, None)
+        if functor:
+            result = functor(**args)
+            response = xmlrpclib.dumps((result,),
+                methodresponse=True, allow_none=True)
+            return response
+
+        self.log.error("Received a bad request: %s", command)
+        return ''
 
 
 if __name__ == '__main__':

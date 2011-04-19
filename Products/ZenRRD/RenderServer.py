@@ -24,12 +24,13 @@ import json
 import urllib
 import zlib
 import mimetypes
-from json import dumps
+import glob
+import tarfile
+import md5
 
 from AccessControl import ClassSecurityInfo
 from Globals import InitializeClass
 from Globals import DTMLFile
-from sets import Set
 
 try:
     import rrdtool
@@ -52,9 +53,6 @@ from Products.ZenUtils.Utils import zenPath, rrd_daemon_running
 from RRDToolItem import RRDToolItem
 
 from Products.ZenModel.PerformanceConf import performancePath
-import glob
-import tarfile
-import urllib
 
 log = logging.getLogger("RenderServer")
 
@@ -330,7 +328,7 @@ class RenderServer(RRDToolItem):
             graph = None
             exec open(m)
             return graph
-        except Exception, ex:
+        except Exception:
             log.exception("Failed generating graph from plugin %s" % name)
             raise
 
@@ -361,6 +359,16 @@ class RenderServer(RRDToolItem):
 
     security.declareProtected('GenSummary', 'fetchValues')
     def fetchValues(self, paths, cf, resolution, start, end=""):
+        """
+        Return the values recorded in the RRD file between the start and end period
+
+        @param paths: path names to files
+        @param cf: RRD consolidation function to use
+        @param resolution: requested resolution of RRD data
+        @param start: requested start of data to graph
+        @param end: requested start of data to graph
+        @return: values from the RRD files in the paths
+        """
         if not end:
             end = "now"
         values = []
@@ -384,6 +392,9 @@ class RenderServer(RRDToolItem):
     def currentValues(self, paths):
         """
         Return the latest values recorded in the RRD file
+
+        @param paths: path names to files
+        @return: values from the RRD files in the path
         """
         try:
             def value(p):
@@ -416,7 +427,6 @@ class RenderServer(RRDToolItem):
             log.exception("Failed while generating current values")
             raise
         
-
     def rrdcmd(self, gopts, ftype='PNG'):
         """
         Generate the RRD command using the graphing options specified.
@@ -440,7 +450,6 @@ class RenderServer(RRDToolItem):
         @return: An id for this graph usable in URLs
         @rtype: string
         """
-        import md5
         id = md5.new(''.join(gopts)).hexdigest() 
         id += str(drange) + '.' + ftype.lower()
         return id
