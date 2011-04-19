@@ -37,8 +37,9 @@ def filteredDevices(dmd, args):
     deviceMatch = re.compile('.*%s.*' % deviceFilter)
 
     # Fall back for backwards compatibility
-    if args.has_key('deviceClass'):
-        args['organizer'] = '/Devices/' + args.get('deviceClass')
+    if 'deviceClass' in args:
+        # deviceClass should always start with a '/'
+        args['organizer'] = '/Devices' + args['deviceClass']
 
     # Get organizer
     organizer = args.get('organizer', '/Devices') or '/Devices'
