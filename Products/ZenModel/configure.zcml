@@ -17,4 +17,28 @@
         permission="zope2.View"
         />
 
+    <utility
+        factory=".actions.EmailAction"
+        provides=".interfaces.IAction"
+        name="email"
+        />
+
+    <utility
+        factory=".actions.PageAction"
+        provides=".interfaces.IAction"
+        name="page"
+        />
+
+    <utility
+        factory=".actions.commandFactory"
+        provides=".interfaces.IAction"
+        name="command"
+        />
+    
+    <utility
+        factory=".actions.SNMPTrapAction"
+        provides=".interfaces.IAction"
+        name="trap"
+        />
+
 </configure>

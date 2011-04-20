@@ -160,7 +160,27 @@
              for="Products.ZenModel.Location.Location"
              factory=".organizer.LocationOrganizerInfo"
              />
-    
+
+    <adapter provides="..interfaces.actions.IEmailActionContentInfo"
+             for="Products.ZenModel.NotificationSubscription.NotificationSubscription"
+             factory=".actions.EmailActionContentInfo"
+             />
+
+    <adapter provides="..interfaces.actions.IPageActionContentInfo"
+             for="Products.ZenModel.NotificationSubscription.NotificationSubscription"
+             factory=".actions.PageActionContentInfo"
+             />
+
+    <adapter provides="..interfaces.actions.ICommandActionContentInfo"
+             for="Products.ZenModel.NotificationSubscription.NotificationSubscription"
+             factory=".actions.CommandActionContentInfo"
+             />
+
+    <adapter provides="..interfaces.actions.ISnmpTrapActionContentInfo"
+             for="Products.ZenModel.NotificationSubscription.NotificationSubscription"
+             factory=".actions.SnmpTrapActionContentInfo"
+             />
+
     <adapter provides="..interfaces.INotificationSubscriptionInfo"
              for="Products.ZenModel.NotificationSubscription.NotificationSubscription"
              factory=".triggers.NotificationSubscriptionInfo"

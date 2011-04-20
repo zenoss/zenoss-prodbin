@@ -11,7 +11,7 @@
 #
 ###########################################################################
 
-from zope.interface import Interface
+from zope.interface import Interface, Attribute
 
 class IDeviceLoader(Interface):
     """
@@ -62,6 +62,11 @@ class IZenDocProvider(Interface):
         pass
 
 class IAction(Interface):
+
+    id = Attribute("The unique identifier for this action.")
+    name = Attribute("The human-friendly name of this action.")
+    actionContentInfo = Attribute("The class that adapts a notification to an "
+                                  "IInfo object for this class.")
     
     def execute(notification, signal):
         """
@@ -71,7 +76,35 @@ class IAction(Interface):
         @type signal: zenoss.protocols.protobufs.zep_pb2.Signal
         """
         pass
+
+    def getInfo(notification):
+        """
+        Given a notification, adapt it to it's appropriate ActionContentInfo object.
+        
+        @param notificaiton: The notification to adapt
+        @type notification: NotificationSubscription
+        """
+        
+    def generateJavascriptContent(notification):
+        """
+        Generate a block of JS that will be used to render this action's
+        content tab in the UI.
+
+        @param notification: The notification providing the data.
+        @type notification: NotificationSubscription
+        """
     
+    def updateContent(content, **kwargs):
+        """
+        Update the notification's content.
+
+        @param content: This is the NotificationSubscription.content container
+                        for this action's data.
+        @type content: dict
+        @param kwargs: key word arguments passed to the update method. Contains
+                       all update params.
+        @type kwargs: dict
+        """
 
 class IProvidesEmailAddresses(Interface):
     def getEmailAddresses():

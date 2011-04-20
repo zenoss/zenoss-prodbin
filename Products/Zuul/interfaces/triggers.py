@@ -14,6 +14,9 @@
 from Products.Zuul.interfaces import IFacade, IInfo
 from Products.Zuul.form import schema
 from Products.Zuul.utils import ZuulMessageFactory as _t
+from zope.component import getUtilitiesFor
+from zope.schema.vocabulary import SimpleVocabulary
+from Products.ZenModel.interfaces import IAction
 
 
 class ITriggersFacade(IFacade):
@@ -56,6 +59,9 @@ class ITriggersFacade(IFacade):
         """
     
     # notification subscriptions
+    def getNotificationTypes():
+        pass
+    
     def getNotifications():
         pass
     
@@ -90,6 +96,18 @@ class ITriggersFacade(IFacade):
     def updateWindow(**data):
         pass
 
+
+def getNotificationBodyTypes():
+    return ['html', 'text']
+
+def getNotificationActionVocabulary():
+    """
+    This needs to inspect the interface stuff and figure out the providers for
+    IAction.
+    """
+    utils = getUtilitiesFor(IAction)
+    return [util.id for util in utils]
+
 class INotificationSubscriptionInfo(IInfo):
     """
     Notification information regarding signals that occur as a result of an
@@ -108,31 +126,9 @@ class INotificationSubscriptionInfo(IInfo):
     
     action = schema.Choice(
         title=_t(u'Action'),
-        vocabulary='notificationActionTypeVocabulary'
+        vocabulary=SimpleVocabulary.fromValues(getNotificationActionVocabulary())
     )
-    body_content_type = schema.Choice(
-        title=_t(u'Body Content Type'),
-        vocabulary='notificationActionTypeVocabulary'
-    )
-    
-    subject_format = schema.Text(
-        title=_t(u'Message (or Subject)'),
-        group=_t(u'Message')
-    )
-    body_format = schema.Text(
-        title=_t(u'Body'), 
-        group=_t(u'Message'),
-        xtype='twocolumntextarea'
-    )
-    clear_subject_format = schema.Text(
-        title=_t(u'Clear Message (or Subject)'), 
-        group=_t(u'Clear Message')
-    )
-    clear_body_format = schema.Text(
-        title=_t(u'Clear Body'), 
-        group=_t(u'Clear Message'),
-        xtype='twocolumntextarea'
-    )
+
     
     # this is a list of the user/group/roles that have subscribed to this
     # notification.

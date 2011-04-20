@@ -72,6 +72,7 @@ class FormBuilder(object):
                     c = self._dict(v)
                     c['name'] = k
                     c['value'] = getattr(self.context, k, None)
+
                     if c['xtype'] in ('autoformcombo', 'itemselector'):
                         c['values'] = self.vocabulary(v)
                     d[k] = c

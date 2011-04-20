@@ -34,8 +34,8 @@ def _mixedIn(klass, **kwargs):
     """
     return type(klass.__name__, (FieldMixin, klass), kwargs)
 
-Text = _mixedIn(ZSText, xtype='textfield')
-TextLine = _mixedIn(TextLine, xtype='textarea')
+Text = _mixedIn(ZSText, xtype='textarea')
+TextLine = _mixedIn(TextLine, xtype='textfield')
 Bool = _mixedIn(Bool, xtype='checkbox')
 Int = _mixedIn(Int, xtype='numberfield')
 Float = _mixedIn(Float, xtype='numberfield')

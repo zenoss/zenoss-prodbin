@@ -11,7 +11,10 @@
 #
 ###########################################################################
 
+from operator import itemgetter
 from Products import Zuul
+from zope.component import getUtilitiesFor
+from Products.ZenModel.interfaces import IAction
 from Products.ZenUtils.Ext import DirectRouter
 from Products.ZenUtils.extdirect.router import DirectResponse
 from zenoss.protocols.protobufs.zep_pb2 import RULE_TYPE_JYTHON
@@ -62,8 +65,6 @@ class TriggersRouter(DirectRouter):
     # notification subscriptions
     def getNotifications(self):
         response = self._getFacade().getNotifications()
-
-
         return DirectResponse.succeed(data=Zuul.marshal(response))
 
     def addNotification(self, newId, action):
@@ -73,6 +74,12 @@ class TriggersRouter(DirectRouter):
     def removeNotification(self, uid):
         response = self._getFacade().removeNotification(uid)
         return DirectResponse.succeed(msg="Notification removed without a problem.", data=response)
+
+    def getNotificationTypes(self):
+        utils = getUtilitiesFor(IAction)
+        actionTypes = sorted((dict(id=id, name=util.name) for id, util in utils), key=itemgetter('id'))
+        log.debug('notification action types are: %s' % actionTypes)
+        return DirectResponse.succeed(data=actionTypes)
 
     def getNotification(self, uid):
         response = self._getFacade().getNotification(uid)

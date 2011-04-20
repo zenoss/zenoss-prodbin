@@ -16,13 +16,24 @@ log = logging.getLogger('zen.triggerinfos')
 
 from datetime import datetime
 from time import time
+from zope.component.interfaces import ComponentLookupError
 from zope.interface import implements
-from Products.Zuul.infos import InfoBase, ProxyProperty
+from zope.component import getUtility
 from Products.ZenModel.MaintenanceWindow import MaintenanceWindow
-from zope.schema.vocabulary import SimpleVocabulary
 from Products.ZenModel.NotificationSubscription import NotificationSubscription
+from Products.ZenModel.interfaces import IAction
+from Products.Zuul.infos import InfoBase, ProxyProperty
 from Products.Zuul import getFacade
 from Products.Zuul.interfaces import INotificationWindowInfo, INotificationSubscriptionInfo
+
+def generateMissingJavascript():
+    return {
+        'items': [{
+            'xtype': 'panel',
+            'html': 'This action type is missing. Please re-install this type '
+                    'or migrate this notification to another type.'
+        }]
+    }
 
 class NotificationSubscriptionInfo(InfoBase):
     implements(INotificationSubscriptionInfo)
@@ -37,19 +48,21 @@ class NotificationSubscriptionInfo(InfoBase):
 
     delay_seconds = ProxyProperty('delay_seconds')
     repeat_seconds = ProxyProperty('repeat_seconds')
-    action_timeout = ProxyProperty('action_timeout')
-    action_destination = ProxyProperty('action_destination')
 
-    action = ProxyProperty('action')
-    body_content_type = ProxyProperty('body_content_type')
+    def _getAction(self):
+        try:
+            if getUtility(IAction, self._object.action):
+                return self._object.action
+        except ComponentLookupError, e:
+            # Zenpack may have been removed
+            return '%s (MISSING)' % self._object.action
 
-    subject_format =ProxyProperty('subject_format')
-    body_format = ProxyProperty('body_format')
-    clear_subject_format =ProxyProperty('clear_subject_format')
-    clear_body_format = ProxyProperty('clear_body_format')
+    def _setAction(self, value):
+        pass
+
+    action = property(_getAction, _setAction)
 
     recipients = ProxyProperty('recipients')
-    #explicit_recipients = ProxyProperty('explicit_recipients')
 
     globalRead = ProxyProperty('globalRead')
     globalWrite = ProxyProperty('globalWrite')
@@ -58,6 +71,19 @@ class NotificationSubscriptionInfo(InfoBase):
     userRead = ProxyProperty('userRead')
     userWrite = ProxyProperty('userWrite')
     userManage = ProxyProperty('userManage')
+
+    def _getContent(self):
+        try:
+            util = getUtility(IAction, self._object.action)
+            return util.generateJavascriptContent(self._object)
+        except ComponentLookupError, e:
+            # Zenpack may have been removed, best I can do is default to email.
+            return generateMissingJavascript()
+
+    def _setContent(self, value):
+        self._object.content = value
+
+    content = property(_getContent, _setContent)
 
     def _getSubscriptions(self):
 

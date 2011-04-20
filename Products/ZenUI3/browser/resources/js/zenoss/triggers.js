@@ -406,153 +406,20 @@ Ext.onReady(function () {
         var tab_notification, tab_content, tab_subscriptions;
         var _width, _height;
 
-        // This action map is used to make the 'type' display in the
-        // recipients grid more user friendly.
-        var ACTION_TYPE_MAP = {
-            'email': _t('Email'),
-            'page': _t('Page'),
-            'command': _t('Command'),
-            'trap': _t('SNMP Trap')
-        };
-        if (data.action == 'email') {
-            tab_content = new NotificationTabContent({
-                layout: 'form',
-                padding: panelPadding,
-                title: 'Content',
-                defaults: {
-                    width: 440,
-                    minWidth: 440
-                },
-                items: [
-                    new Ext.form.ComboBox({
-                        id: 'htmltextcombo',
-                        store: new Ext.data.ArrayStore({
-                            autoDestroy: true,
-                            id: 0,
-                            fields:['value','label'],
-                            data: [
-                                ['html','HTML'],
-                                ['text','Text']
-                            ]
-                        }),
-                        name: 'body_content_type',
-                        ref: 'body_content_type',
-                        allowBlank:false,
-                        required:true,
-                        editable:false,
-                        displayField:'label',
-                        valueField:'value',
-                        fieldLabel: _t('Body Content Type'),
-                        mode:'local',
-                        triggerAction: 'all'
-                    }),
-                    {
-                        xtype: 'textfield',
-                        name: 'subject_format',
-                        ref: 'subject_format',
-                        fieldLabel: _t('Message (Subject) Format')
-                    },{
-                        xtype: 'textarea',
-                        name: 'body_format',
-                        ref: 'body_format',
-                        fieldLabel: _t('Body Format')
-                    },
-                    {
-                        xtype: 'textfield',
-                        name: 'clear_subject_format',
-                        ref: 'clear_subject_format',
-                        fieldLabel: _t('Clear Message (Subject) Format')
-                    },{
-                        xtype: 'textarea',
-                        name: 'clear_body_format',
-                        ref: 'clear_body_format',
-                        fieldLabel: _t('Clear Body Format')
-                    }
-
-                ],
-                loadData: function(data) {
-                    this.body_content_type.setValue(data.body_content_type);
-                    this.subject_format.setValue(data.subject_format);
-                    this.body_format.setValue(data.body_format);
-                    this.clear_subject_format.setValue(data.clear_subject_format);
-                    this.clear_body_format.setValue(data.clear_body_format);
-                }
-            });
-        }
-        else if (data.action == 'command') {
-            tab_content = new NotificationTabContent({
-                layout: 'form',
-                padding: panelPadding,
-                title: 'Content',
-                defaults: {
-                    width: 440,
-                    minWidth: 440
-                },
-                items: [{
-                    xtype: 'numberfield',
-                    allowNegative: false,
-                    allowBlank: false,
-                    name: 'action_timeout',
-                    ref: 'action_timeout',
-                    fieldLabel: _t('Command Timeout')
-                },{
-                    xtype: 'textarea',
-                    name: 'body_format',
-                    ref: 'body_format',
-                    fieldLabel: _t('Shell Command')
-                },{
-                    xtype: 'textarea',
-                    name: 'clear_body_format',
-                    ref: 'clear_body_format',
-                    fieldLabel: _t('Clear Shell Command')
-                }],
-                loadData: function(data) {
-                    this.body_format.setValue(data.body_format);
-                    this.clear_body_format.setValue(data.clear_body_format);
-                    this.action_timeout.setValue(data.action_timeout);
-                }
-            });
-        }
-        else if (data.action == 'trap') {
-            tab_content = new NotificationTabContent({
-                layout: 'form',
-                padding: panelPadding,
-                title: 'Content',
-                defaults: {
-                    width: 440,
-                    minWidth: 440
-                },
-                items: [{
-                    xtype: 'textfield',
-                    name: 'action_destination',
-                    ref: 'action_destination',
-                    fieldLabel: _t('SNMP Trap Destination')
-                }],
-                loadData: function(data) {
-                    this.action_destination.setValue(data.action_destination);
-                }
-            });
-        }
-        else {
-            tab_content = new NotificationTabContent({
-                layout: 'form',
-                padding: panelPadding,
-                title: 'Content',
-                defaults: {
-                    width: 440,
-                    minWidth: 440
-                },
-                items: [{
-                    xtype: 'textfield',
-                    name: 'subject_format',
-                    ref: 'subject_format',
-                    fieldLabel: _t('Message (Subject) Format')
-                }],
-                loadData: function(data) {
-                    this.subject_format.setValue(data.subject_format);
-                }
-            });
-        }
+        tab_content = new NotificationTabContent({
+            layout: 'form',
+            padding: panelPadding,
+            title: 'Content',
+            defaults: {
+                padding: 0
+            },
+            loadData: function(data) {
+                var panel = {xtype:'panel'};
+                panel = Ext.applyIf(panel, data.content);
+                var comp = Ext.create(panel);
+                this.add(comp)
+            }
+        });
 
 
         if (!data['userWrite']) {
@@ -728,6 +595,31 @@ Ext.onReady(function () {
     };
 
     var displayNotificationAddDialogue = function() {
+        var typesCombo = new Ext.form.ComboBox({
+            store: {
+                xtype: 'directstore',
+                directFn: router.getNotificationTypes,
+                root: 'data',
+                autoLoad: true,
+                idProperty: 'id',
+                fields: [
+                    'id', 'name',
+                ]
+            },
+            name:'action',
+            ref: 'action_combo',
+            allowBlank:false,
+            required:true,
+            editable:false,
+            displayField:'name',
+            valueField:'id',
+            fieldLabel: _t('Action'),
+            mode:'local',
+            triggerAction: 'all'
+        });
+        typesCombo.store.on('load', function(){
+            typesCombo.setValue('email');
+        });
         var dialogue = new Ext.Window({
             title: 'Add Notification',
             height: 140,
@@ -748,29 +640,8 @@ Ext.onReady(function () {
                         allowBlank: false,
                         vtype: 'alphanum',
                         fieldLabel: _t('Id')
-                    }, new Ext.form.ComboBox({
-                        store: new Ext.data.ArrayStore({
-                            autoDestroy: true,
-                            fields:['value','label'],
-                            id: 0,
-                            data: [
-                                ['email','Email'],
-                                ['page','Page'],
-                                ['command','Command'],
-                                ['trap', 'SNMP Trap']
-                            ]
-                        }),
-                        name:'action',
-                        ref: 'action_combo',
-                        allowBlank:false,
-                        required:true,
-                        editable:false,
-                        displayField:'label',
-                        valueField:'value',
-                        fieldLabel: _t('Action'),
-                        mode:'local',
-                        triggerAction: 'all'
-                    })
+                    },
+                    typesCombo
                 ],
                 buttons:[
                     {
@@ -1029,13 +900,7 @@ Ext.onReady(function () {
                         'send_clear',
                         'send_initial_occurrence',
                         'repeat_seconds',
-                        'action_timeout',
-                        'action_destination',
-                        'body_content_type',
-                        'subject_format',
-                        'body_format',
-                        'clear_subject_format',
-                        'clear_body_format',
+                        'content',
                         'recipients',
                         'subscriptions',
                         'globalRead',

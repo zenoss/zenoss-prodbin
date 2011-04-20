@@ -12,21 +12,19 @@
 ###########################################################################
 
 import logging
-
 log = logging.getLogger("zen.notifications")
-import re
-import textwrap
+
+
+from zope.interface import implements
 from Globals import InitializeClass
 from Globals import DTMLFile
 from AccessControl import ClassSecurityInfo
 from AdministrativeRoleable import AdministrativeRoleable
-from Products.ZenModel.ZenossSecurity import *
 from Products.ZenRelations.RelSchema import *
+from Products.ZenModel.ZenossSecurity import *
 from Products.ZenModel.ZenModelRM import ZenModelRM
-from zope.interface import implements
 from Products.ZenUtils.guid.interfaces import IGloballyIdentifiable
 from Products.ZenUtils.Time import LocalDateTime
-from collections import defaultdict
 from Products.ZenUtils.ZenTales import talesEvalStr, talEval
 from Products.ZenEvents.events2.proxy import EventProxy, EventSummaryProxy
 from zenoss.protocols.protobufs.zep_pb2 import Event, EventSummary
@@ -112,42 +110,10 @@ class NotificationSubscription(ZenModelRM, AdministrativeRoleable):
     enabled = False
     action = 'email'
     send_clear = False
-    content_types = ('text', 'html')
-    body_content_type = 'html'
 
     delay_seconds = 0
     repeat_seconds = 0
-    action_timeout = 60
-    action_destination = ''
     send_initial_occurrence = True
-
-    subject_format = "[zenoss] ${evt/device} ${evt/summary}"
-    body_format =  textwrap.dedent(text = '''
-        Device: ${evt/device}
-        Component: ${evt/component}
-        Severity: ${evt/severity}
-        Time: ${evt/lastSeen}
-        Message:
-        ${evt/message}
-        <a href="${urls/eventUrl}">Event Detail</a>
-        <a href="${urls/ackUrl}">Acknowledge</a>
-        <a href="${urls/closeUrl}">Close</a>
-        <a href="${urls/eventsUrl}">Device Events</a>
-        ''')
-
-    clear_subject_format = "[zenoss] CLEAR: ${evt/device} ${evt/summary}/${clearEvt/summary}"
-    clear_body_format = textwrap.dedent(text = '''
-        Event: '${evt/summary}'
-        Cleared by: '${evt/clearid}'
-        At: ${evt/stateChange}
-        Device: ${evt/device}
-        Component: ${evt/component}
-        Severity: ${evt/severity}
-        Message:
-        ${evt/message}
-        <a href="${urls/reopenUrl}">Reopen</a>
-        ''')
-
 
     # recipients is a list of uuids that will recieve the push from this
     # notification. (the User, Group or Role to email/page/etc.)
@@ -162,15 +128,8 @@ class NotificationSubscription(ZenModelRM, AdministrativeRoleable):
         {'id':'enabled', 'type':'boolean', 'mode':'w'},
         {'id':'send_clear', 'type':'boolean', 'mode':'w'},
         {'id':'send_initial_occurrence', 'type':'boolean', 'mode':'w'},
-        {'id':'body_content_type', 'type':'text', 'mode':'w'},
         {'id':'delay_seconds', 'type':'int', 'mode':'w'},
         {'id':'repeat_seconds', 'type':'int', 'mode':'w'},
-        {'id':'action_timeout', 'type':'int', 'mode':'w'},
-        {'id':'action_destination', 'type':'string', 'model':'w'},
-        {'id':'subject_format', 'type':'text', 'mode':'w'},
-        {'id':'body_format', 'type':'text', 'mode':'w'},
-        {'id':'clear_subject_format', 'type':'text', 'mode':'w'},
-        {'id':'clear_body_format', 'type':'text', 'mode':'w'},
     )
 
     _relations = (
@@ -179,7 +138,7 @@ class NotificationSubscription(ZenModelRM, AdministrativeRoleable):
             ToOne,
             "Products.ZenModel.AdministrativeRole",
             "managedObject"
-        )),
+        )), 
         ("windows",
         ToManyCont(
             ToOne,
@@ -216,6 +175,8 @@ class NotificationSubscription(ZenModelRM, AdministrativeRoleable):
         self.globalRead = False
         self.globalWrite = False
         self.globalManage = False
+
+        self.content = {}
         
         super(ZenModelRM, self).__init__(id, title=title, buildRelations=buildRelations)
 
@@ -246,34 +207,6 @@ class NotificationSubscription(ZenModelRM, AdministrativeRoleable):
         else:
             log.debug('Notification NOT enabled: %s' %  self.id)
             return False
-
-    def getBody(self, **kwargs):
-        sourcestr = self.body_format
-        context = kwargs.get('here',{})
-        context.update(kwargs)
-        ret = talEval(sourcestr, context, kwargs)
-        return ret
-
-    def getSubject(self, **kwargs):
-        sourcestr = self.subject_format
-        context = kwargs.get('here',{})
-        context.update(kwargs)
-        ret = talEval(sourcestr, context, kwargs)
-        return ret
-
-    def getClearBody(self, **kwargs):
-        sourcestr = self.clear_body_format
-        context = kwargs.get('here',{})
-        context.update(kwargs)
-        ret = talEval(sourcestr, context, kwargs)
-        return ret
-
-    def getClearSubject(self, **kwargs):
-        sourcestr = self.clear_subject_format
-        context = kwargs.get('here',{})
-        context.update(kwargs)
-        ret = talEval(sourcestr, context, kwargs)
-        return ret
 
 InitializeClass(NotificationSubscriptionManager)
 InitializeClass(NotificationSubscription)

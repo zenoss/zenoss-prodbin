@@ -17,7 +17,10 @@ import logging
 import uuid
 import parser
 from Acquisition import aq_parent
-from zope.interface import implements
+from zope.component import getUtility, queryUtility
+from zope.component.interfaces import ComponentLookupError
+from zope.interface import implements, providedBy
+
 from Products.Zuul.facades import ZuulFacade
 from Products.Zuul.interfaces import IInfo
 from Products.ZenModel.NotificationSubscription import NotificationSubscription
@@ -33,6 +36,8 @@ from zenoss.protocols.services.triggers import TriggerServiceClient
 
 from Products.ZenModel.ZenossSecurity import *
 from Products.ZenModel.UserSettings import GroupSettings
+from Products.ZenModel.interfaces import IAction
+from zope.schema import getFields
 
 log = logging.getLogger('zen.TriggersFacade')
 
@@ -185,12 +190,35 @@ class TriggersFacade(ZuulFacade):
         for n in self.notificationPermissions.findNotifications(user, self._getNotificationManager().getChildNodes()):
             yield IInfo(n)
 
+
+    def _updateContent(self, notification):
+
+        try:
+            util = getUtility(IAction, notification.action)
+        except ComponentLookupError, e:
+            log.error("Could not find action: %s" % notification.action)
+            raise Exception("Invalid action type specified: %s" % notification.action)
+        
+        fields = {}
+        for iface in providedBy(util.getInfo(notification)):
+            f = getFields(iface)
+            if f:
+                fields.update(f)
+
+        data = dict()
+        for k, v in fields.iteritems():
+            data[k] = v.default
+
+        util.updateContent(notification.content, data)
+
     def addNotification(self, newId, action):
         notification = NotificationSubscription(newId)
         notification.action = action
 
-        self._getNotificationManager()._setObject(newId, notification)
+        self._updateContent(notification)
 
+        self._getNotificationManager()._setObject(newId, notification)
+        
         acquired_notification = self._getNotificationManager().findChild(newId)
         self.notificationPermissions.setupNotification(acquired_notification)
 
@@ -235,7 +263,6 @@ class TriggersFacade(ZuulFacade):
         subscriptionSet = from_dict(zep.EventTriggerSubscriptionSet, dict(
             subscriptions = triggerSubscriptions
         ))
-
         self.triggers_service.updateSubscriptions(notification_guid, subscriptionSet)
 
 
@@ -243,6 +270,10 @@ class TriggersFacade(ZuulFacade):
         log.debug(data)
 
         uid = data['uid']
+
+        # can't change action type after creation
+        if 'action' in data:
+            del data['action']
 
         notification = self._getObject(uid)
 
@@ -270,9 +301,13 @@ class TriggersFacade(ZuulFacade):
             for field in notification._properties:
                 notification._updateProperty(field['id'], data.get(field['id']))
 
-            # editing as a text field, but storing as a list for now.
             notification.subscriptions = data.get('subscriptions')
             self.updateNotificationSubscriptions(notification)
+
+            # update the action content data
+            action = getUtility(IAction, notification.action)
+            action.updateContent(notification.content, data)
+
 
         
         if self.notificationPermissions.userCanManageNotification(user, notification):
@@ -351,28 +386,12 @@ class TriggerPermissionManager(object):
         self.securityManager = getSecurityManager()
 
     def userCanViewTrigger(self, user, trigger):
-        log.debug('Checking user "%s" can view trigger "%s": %s' % (
-            user.getId(),
-            trigger.id,
-            self.securityManager.checkPermission(VIEW_TRIGGER, trigger)
-        ))
         return trigger.globalRead or self.securityManager.checkPermission(VIEW_TRIGGER, trigger)
 
     def userCanUpdateTrigger(self, user, trigger):
-        log.debug('Checking user "%s" can update trigger "%s": %s' % (
-            user.getId(),
-            trigger.id,
-            self.securityManager.checkPermission(UPDATE_TRIGGER, trigger)
-        ))
         return trigger.globalWrite or self.securityManager.checkPermission(UPDATE_TRIGGER, trigger)
 
     def userCanManageTrigger(self, user, trigger):
-        log.debug('Checking user "%s" for managing trigger "%s": %s' % (
-            user.getId(),
-            trigger.id,
-            self.securityManager.checkPermission(MANAGE_TRIGGER, trigger)
-        ))
-        log.debug('user can manage trigger: %s, Global? %s, Check: %s' % (trigger.id, trigger.globalManage, self.securityManager.checkPermission(MANAGE_TRIGGER, trigger)))
         return trigger.globalManage or self.securityManager.checkPermission(MANAGE_TRIGGER, trigger)
 
     def findTriggers(self, user, guidManager, triggers):
@@ -394,8 +413,7 @@ class TriggerPermissionManager(object):
                 trigger['users'] = triggerObject.users
                 
                 results.append(trigger)
-            else:
-                log.debug('Could not find trigger for permissions check: %r' % trigger)
+
         return results
 
     def clearPermissions(self, trigger):
@@ -476,11 +494,6 @@ class NotificationPermissionManager(object):
         account global settings of the notification, and then just defer a
         permission check to zope.
         """
-        log.debug('Checking user "%s" can view notification "%s": %s' % (
-            user.getId(),
-            notification.id,
-            self.securityManager.checkPermission(VIEW_NOTIFICATION, notification)
-        ))
         return notification.globalRead or self.securityManager.checkPermission(VIEW_NOTIFICATION, notification)
 
     def userCanUpdateNotification(self, user, notification):
@@ -489,19 +502,9 @@ class NotificationPermissionManager(object):
         account global settings of the notification, and then just defer a
         permission check to zope.
         """
-        log.debug('Checking user "%s" can update notification "%s": %s' % (
-            user.getId(),
-            notification.id,
-            self.securityManager.checkPermission(UPDATE_NOTIFICATION, notification)
-        ))
         return notification.globalWrite or self.securityManager.checkPermission(UPDATE_NOTIFICATION, notification)
 
     def userCanManageNotification(self, user, notification):
-        log.debug('Checking user "%s" for managing notification "%s": %s' % (
-            user.getId(),
-            notification.id,
-            self.securityManager.checkPermission(MANAGE_NOTIFICATION_SUBSCRIPTIONS, notification)
-        ))
         return notification.globalManage or self.securityManager.checkPermission(MANAGE_NOTIFICATION_SUBSCRIPTIONS, notification)
 
 

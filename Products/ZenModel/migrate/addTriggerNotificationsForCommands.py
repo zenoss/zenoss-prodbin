@@ -86,10 +86,9 @@ class AddTriggerNotificationsForCommands(Migrate.Step):
 
         notification_obj.subscriptions = [trigger['uuid']]
 
-        notification_obj.body_content_type = 'text'
-
-        notification_obj.body_format = self._parseContent(command.command)
-        notification_obj.clear_body_format = self._parseContent(command.clearCommand)
+        notification_obj.content['body_content_type'] = 'text'
+        notification_obj.content['body_format'] = self._parseContent(command.command)
+        notification_obj.content['clear_body_format'] = self._parseContent(command.clearCommand)
 
         # commands do not have recipients.
         log.debug('Not adding recipients since commands dont have recipients.')

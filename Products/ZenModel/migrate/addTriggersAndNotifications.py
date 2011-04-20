@@ -135,15 +135,13 @@ class AddTriggersAndNotifications(Migrate.Step):
         notification_obj.send_initial_occurrence = True
         notification_obj.delay_seconds = rule.delay
         notification_obj.repeat_seconds = rule.repeatTime
-
         notification_obj.subscriptions = [trigger['uuid']]
 
-        notification_obj.body_content_type = 'text' if rule.plainText else 'html'
-
-        notification_obj.body_format = self._parseContent(rule.body)
-        notification_obj.subject_format = self._parseContent(rule.format)
-        notification_obj.clear_body_format = self._parseContent(rule.clearBody)
-        notification_obj.clear_subject_format = self._parseContent(rule.clearFormat)
+        notification_obj.content['body_content_type'] = 'text' if rule.plainText else 'html'
+        notification_obj.content['body_format'] = self._parseContent(rule.body)
+        notification_obj.content['subject_format'] = self._parseContent(rule.format)
+        notification_obj.content['clear_body_format'] = self._parseContent(rule.clearBody)
+        notification_obj.content['clear_subject_format'] = self._parseContent(rule.clearFormat)
 
         # add the rule owner as a recipient of this notification, with full
         # permissions.

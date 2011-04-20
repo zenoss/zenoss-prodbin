@@ -1750,3 +1750,7 @@ Wizard
 .white-background-panel .x-form-check-wrap .x-form-field {
     margin-top: 5px;
 }
+
+.white-background-panel .x-fieldset {
+    padding: 0;
+}
