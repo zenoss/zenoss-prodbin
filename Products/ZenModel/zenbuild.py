@@ -77,6 +77,7 @@ class zenbuild(CmdBase):
         self.parser.add_option('--mysqldb', dest='mysqldb', default='zodb',
                     help='Name of database for MySQL object store')
         self.parser.add_option('--cacheservers', dest='cacheservers',
+                    default="127.0.0.1:11211",
                     help='memcached servers to use for object cache (eg. 127.0.0.1:11211)')
         self.parser.add_option('--pagecommand', dest="pagecommand", default="$ZENHOME/bin/zensnpp localhost 444 $RECIPIENT",
                 help="page command")
@@ -215,28 +216,20 @@ class zenbuild(CmdBase):
                 evmgr.port = self.options.evtport
             transaction.commit()
 
-        # Create the global conf
-        with open(zenPath('etc', 'global.conf'), 'w') as f:
-            f.write('host %s\n' % self.options.host)
-            f.write('port %s\n' % self.options.port)
-            f.write('mysqldb %s\n' % self.options.mysqldb)
-            f.write('mysqluser %s\n' % self.options.mysqluser)
-            f.write('mysqlpasswd %s\n' % self.options.mysqlpasswd)
-            f.write('amqphost %s\n' % self.options.amqphost)
-            f.write('amqpport %s\n' % self.options.amqpport)
-            f.write('amqpvhost %s\n' % self.options.amqpvhost)
-            f.write('amqpuser %s\n' % self.options.amqpuser)
-            f.write('amqppassword %s\n' % self.options.amqppassword)
-
-            if self.options.cacheservers:
-                f.write('cacheservers %s\n' % self.options.cacheservers)
+        # Update the global conf
+        print "Updating global.conf"
+        zenglobalconf = zenPath('bin', 'zenglobalconf')
+        cmd = [zenglobalconf, '-u']
+        for opt in ('host', 'port', 'mysqldb', 'mysqluser', 'mysqlpasswd',
+                    'amqphost', 'amqpport', 'amqpvhost', 'amqpuser',
+                    'amqppassword', 'cacheservers'):
+            cmd.append('%s=%s' % (opt, getattr(self.options, opt)))
+        subprocess.call(cmd)
 
         # Load reports
         from Products.ZenReports.ReportLoader import ReportLoader
         rl = ReportLoader(noopts=True, app=self.app)
         rl.loadDatabase()
-
-
 
 
 if __name__ == "__main__":
