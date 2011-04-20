@@ -165,13 +165,6 @@
     permission="zenoss.View"
     />
 
-<browser:page
-    template="../../ZenEvents/skins/zenevents/editActionRules.pt"
-    name="editActionRules"
-    for="*"
-    permission="zenoss.View"
-    />
-
 <browser:defaultView
     for="Products.ZenEvents.EventManagerBase.EventManagerBase"
     name="editEventManagerFields"

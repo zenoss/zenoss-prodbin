@@ -623,10 +623,6 @@ class UserSettings(ZenModelRM):
                 'action'        : 'administeredDevices',
                 'permissions'   : (ZEN_CHANGE_ADMIN_OBJECTS,)
                 },
-                {'name'         : 'Alerting Rules',
-                'action'        : 'editActionRules',
-                'permissions'   : (ZEN_CHANGE_ALERTING_RULES,),
-                },
             )
          },
         )
@@ -1198,10 +1194,6 @@ class GroupSettings(UserSettings):
                 'action'        : 'editEventViews',
                 # ideally make this its own permission
                 'permissions'   : (ZEN_CHANGE_SETTINGS,),
-                },
-                {'name'         : 'Alerting Rules',
-                'action'        : 'editActionRules',
-                'permissions'   : (ZEN_CHANGE_ALERTING_RULES,),
                 },
             )
          },
