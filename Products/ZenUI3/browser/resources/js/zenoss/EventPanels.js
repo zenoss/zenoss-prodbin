@@ -1080,12 +1080,12 @@
     Zenoss.EventRainbow = Ext.extend(Ext.Toolbar.TextItem, {
         constructor: function(config) {
             var severityCounts = {
-                critical: 0,
-                error: 0,
-                warning: 0,
-                info: 0,
-                debug: 0,
-                clear: 0
+                critical: {count: 0, acknowledged_count: 0},
+                error:    {count: 0, acknowledged_count: 0},
+                warning:  {count: 0, acknowledged_count: 0},
+                info:     {count: 0, acknowledged_count: 0},
+                debug:    {count: 0, acknowledged_count: 0},
+                clear:    {count: 0, acknowledged_count: 0}
             };
             config = Ext.applyIf(config || {}, {
                 height: 45,

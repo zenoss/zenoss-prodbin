@@ -13,8 +13,6 @@
 import logging
 log = logging.getLogger("zen.EventView")
 
-from _mysql_exceptions import MySQLError
-
 from AccessControl import ClassSecurityInfo, getSecurityManager
 from Globals import InitializeClass
 from zope.interface import Interface, implements
@@ -27,8 +25,9 @@ from Products.ZenUtils.guid.interfaces import IGlobalIdentifier
 from Products.ZenWidgets import messaging
 from zenoss.protocols.services import ServiceResponseError
 from zenoss.protocols.services.zep import ZepConnectionError
-from zenoss.protocols.protobufs.zep_pb2 import STATUS_NEW, STATUS_ACKNOWLEDGED, \
-    SEVERITY_CRITICAL, SEVERITY_ERROR, SEVERITY_WARNING
+from zenoss.protocols.protobufs.zep_pb2 import (STATUS_NEW, STATUS_ACKNOWLEDGED, SEVERITY_CRITICAL,
+                                                SEVERITY_ERROR, SEVERITY_WARNING, SEVERITY_INFO,
+                                                SEVERITY_DEBUG) 
 
 class IEventView(Interface):
     """
@@ -333,11 +332,13 @@ class EventView(object):
         """
         zep = getFacade('zep')
         try:
-            severities = zep.getEventSeveritiesByUuid(self.getUUID())
+            # Event class rainbows show all events through DEBUG severity
+            sevs = (SEVERITY_CRITICAL,SEVERITY_ERROR,SEVERITY_WARNING,SEVERITY_INFO,SEVERITY_DEBUG)
+            severities = zep.getEventSeveritiesByUuid(self.getUUID(), severities=sevs)
         except TypeError, e:
             log.warn("Attempted to query events for %r which does not have a uuid" % self)
             return {}
-        results = dict((zep.getSeverityName(sev).lower(), count) for (sev, count) in severities.iteritems())
+        results = dict((zep.getSeverityName(sev).lower(), counts) for (sev, counts) in severities.iteritems())
         return results
 
     @zepConnectionError(0)

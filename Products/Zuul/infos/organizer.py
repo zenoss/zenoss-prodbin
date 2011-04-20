@@ -49,8 +49,3 @@ class LocationOrganizerInfo(OrganizerInfo, HasEventsInfoMixin):
         self._object.address = value
 
     address = property(_getAddress, _setAddress)
-
-    def getEventSeverities(self):
-        if self._eventSeverities is None and self._object.getDmdKey() == '/':
-            self.getTopLevelOrganizerSeverities()
-        return super(LocationOrganizerInfo, self).getEventSeverities()

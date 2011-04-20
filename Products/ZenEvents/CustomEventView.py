@@ -116,15 +116,6 @@ class CustomEventView(ZenModelRM, EventFilter):
         self.REQUEST.response.redirect(self.getEventViewURL())
 
 
-    def getEventPill(self, number=5):
-        """
-        Get the event pill for this event view.
-        """
-        from Products.ZenEvents.browser.EventPillsAndSummaries import getEventPill
-        return getEventPill(self.getEventManager(), self.getWhere(), number,
-                            url=self.getEventViewURL())
-
-
     def getEventManager(self):
         """Return the current event manager for this object.
         """

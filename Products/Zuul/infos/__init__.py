@@ -16,8 +16,8 @@ from zope.component import adapts
 from OFS.CopySupport import CopyError
 from Products.ZenModel.ZenModelRM import ZenModelRM
 from Products.Zuul.interfaces import IInfo
-from Products.ZenEvents.EventManagerBase import EventManagerBase
-from zenoss.protocols.protobufs.zep_pb2 import SEVERITY_CLEAR, SEVERITY_INFO, SEVERITY_DEBUG
+from zenoss.protocols.protobufs.zep_pb2 import SEVERITY_CLEAR, SEVERITY_INFO, SEVERITY_DEBUG, SEVERITY_WARNING, \
+    SEVERITY_ERROR, SEVERITY_CRITICAL
 from Products.Zuul import getFacade
 from Products.ZenUtils.guid.interfaces import IGlobalIdentifier
 
@@ -129,14 +129,17 @@ class HasEventsInfoMixin(HasUuidInfoMixin):
     def getEventSeverities(self):
         if self._eventSeverities is None:
             zep = getFacade('zep')
-            self.setEventSeverities(zep.getEventSeveritiesByUuid(self.uuid))
+            # ZEP facade returns CRITICAL/ERROR/WARNING by default - need to include INFO for rainbow on
+            # device detail page.
+            severities = (SEVERITY_CRITICAL, SEVERITY_ERROR, SEVERITY_WARNING, SEVERITY_INFO)
+            self.setEventSeverities(zep.getEventSeveritiesByUuid(self.uuid, severities=severities))
         return self._eventSeverities
 
     @property
     def events(self):
         severities = self.getEventSeverities()
         zep = getFacade('zep')
-        return dict((zep.getSeverityName(sev).lower(), count) for (sev, count) in severities.iteritems())
+        return dict((zep.getSeverityName(sev).lower(), counts) for (sev, counts) in severities.iteritems())
 
     def setWorstEventSeverity(self, severity):
         """
@@ -153,20 +156,5 @@ class HasEventsInfoMixin(HasUuidInfoMixin):
         Allow event severities to be set so they can be loaded in batches.
         """
         self._eventSeverities = severities
-
-    def getTopLevelOrganizerSeverities(self):
-        # This is a top level organizer, it doesn't have events so we have to get the events
-        # of its immediate children
-        from Products.Zuul.infos.device import DeviceOrganizerNode
-        node = DeviceOrganizerNode(self._object)
-        uuids = [IGlobalIdentifier(n._object).getGUID() for n in node.children]
-        if uuids:
-            zep = getFacade('zep')
-            severities = {}
-            for uuid, sevs in zep.getEventSeverities(uuids).iteritems():
-                for sev, count in sevs.iteritems():
-                    severities[sev] = severities.get(sev, 0) + count
-
-            self.setEventSeverities(severities)
 
 

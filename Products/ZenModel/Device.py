@@ -1980,8 +1980,7 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable,
         else:
             path = classurl
         prod = self.getProdState()
-        zem = self.dmd.ZenEventManager
-        evsum = getEventPillME(zem, self, 1, minSeverity)[0]
+        evsum = getEventPillME(self, 1, minSeverity)[0]
         return [id, ip, path, prod, evsum, self.id]
 
     def exportXmlHook(self, ofile, ignorerels):

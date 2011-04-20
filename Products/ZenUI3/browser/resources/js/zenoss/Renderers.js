@@ -4,7 +4,7 @@ Ext.ns('Zenoss.render');
 
 // templates for the events renderer
 var iconTemplate = new Ext.Template(
-    '<td class="severity-icon-small {severity} {noevents}">{count}</td>');
+    '<td class="severity-icon-small {severity} {cssclass}" title="{acked} out of {total} acknowledged">{total}</td>');
 iconTemplate.compile();
 
 var rainbowTemplate = new Ext.Template(
@@ -126,30 +126,41 @@ Ext.apply(Zenoss.render, {
 
     events: function(value, count) {
         var result = '',
-            sevs = ['critical', 'error', 'warning', 'info', 'debug', 'clear'];
+            sevs = ['critical', 'error', 'warning', 'info', 'debug', 'clear'],
+            cssclass = '',
+            total,
+            acked;
         count = count || 3;
         Ext.each(sevs.slice(0, count), function(severity) {
-            var noevents = (0 === value[severity]) ? 'no-events' : '';
+            total = value[severity].count;
+            acked = value[severity].acknowledged_count;
+            cssclass = (total===0) ? 'no-events' : (total===acked) ? 'acked-events' : '';
             result += iconTemplate.apply({
                 severity: severity,
-                count:value[severity],
-                noevents: noevents
+                total: total,
+                acked: acked,
+                cssclass: cssclass
             });
         });
         return rainbowTemplate.apply({cells: result, count: count});
     },
     worstevents: function(value) {
         var result = '',
-            sevs = ['critical', 'error', 'warning', 'info', 'debug', 'clear'];
+            sevs = ['critical', 'error', 'warning', 'info', 'debug', 'clear'],
+            cssclass = '',
+            total,
+            acked;
         Ext.each(sevs, function(severity) {
-
-            if (value[severity] && !result) {
+            if (value[severity] && value[severity].count && !result) {
+                total = value[severity].count;
+                acked = value[severity].acknowledged_count;
+                cssclass = (total===acked) ? 'acked-events' : '';
                 result = iconTemplate.apply({
                     severity: severity,
-                    count:value[severity],
-                    noevents: ''
+                    total: total,
+                    acked: acked,
+                    cssclass: cssclass
                 });
-
             }
         });
         return rainbowTemplate.apply({cells: result});

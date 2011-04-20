@@ -201,8 +201,8 @@ class DeviceIssuesPortletView(BrowserView):
                 alink = dev.getPrettyLink()
                 try:
                     severities = deviceSeverities[uuid]
-                    severities = dict((zep.getSeverityName(sev).lower(), count) for (sev, count) in severities.iteritems())
-                    pill = getEventPillME(zem, dev, severities=severities)
+                    severities = dict((zep.getSeverityName(sev).lower(), counts) for (sev, counts) in severities.iteritems())
+                    pill = getEventPillME(dev, severities=severities)
                 except ServiceException:
                     continue
                 evts = [alink,pill]

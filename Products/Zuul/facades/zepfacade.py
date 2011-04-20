@@ -305,14 +305,13 @@ class ZepFacade(ZuulFacade):
                     offset = result['next_offset']
                 else:
                     break
-        except Exception as e:
-            pass
 
-        log.debug("closing saved search %s", searchid)
-        try:
-            self.client.deleteSavedSearch(searchid, archive=archive)
-        except Exception as e:
-            log.debug("error closing saved search %s (%s) - %s", searchid, type(e), e)
+        finally:
+            try:
+                log.debug("closing saved search %s", searchid)
+                self.client.deleteSavedSearch(searchid, archive=archive)
+            except Exception as e:
+                log.debug("error closing saved search %s (%s) - %s", searchid, type(e), e)
 
     def getEventSummary(self, uuid):
         response, content = self.client.getEventSummary(uuid)
@@ -375,31 +374,68 @@ class ZepFacade(ZuulFacade):
 
     def removeConfigValue(self, name):
         self.configClient.removeConfigValue(name)
+        
+    def _getTopLevelOrganizerUuids(self, tagUuid):
+        """
+        Returns a list of child UUIDs if the specified tagUuid is a top-level
+        organizer. Otherwise returns None. This is needed because several 
+        operations in ZEP are performed on UUIDs tagged in the events, however
+        the top-level organizers are not tagged on events as an optimization.
+        
+        @type  tagUuid: string
+        @param tagUuid: UUID of potential top-level organizer
+        """
+        obj = self._guidManager.getObject(tagUuid)
+        uuids = None
+        if obj and obj.getDmdKey() == '/':
+            uuids = [IGlobalIdentifier(n).getGUID() for n in obj.children()]
+        return uuids
 
-    def getEventSeveritiesByUuid(self, tagUuid):
-        return self.getEventSeverities([tagUuid])[tagUuid]
+    def getEventSeveritiesByUuid(self, tagUuid, severities=(), status=()):
+        topLevelUuids = self._getTopLevelOrganizerUuids(tagUuid)
+        if topLevelUuids:
+            sevmap = {}
+            # Condense counts of child organizers into a flattened out count
+            for uuid, sevs in self.getEventSeverities(topLevelUuids, severities=severities, status=status).iteritems():
+                for sev, counts in sevs.iteritems():
+                    counts_dict = sevmap.get(sev)
+                    if counts_dict:
+                        counts_dict['count'] += counts['count']
+                        counts_dict['acknowledged_count'] += counts['acknowledged_count']
+                    else:
+                        sevmap[sev] = counts
+            return sevmap
+        
+        return self.getEventSeverities(tagUuid, severities=severities, status=status)[tagUuid]
 
-    def _createSeveritiesDict(self, eventTagSeverities, tagUuids):
-        # Pre-populate the list with count = 0 to make sure all tags request exist in the result
-        severities = dict.fromkeys(tagUuids, dict.fromkeys(EventSeverity.numbers, 0))
+    def _createSeveritiesDict(self, eventTagSeverities):
+        severities = {}
+        
         for tag in eventTagSeverities:
-            # Since every element is using a shared default dict we can't just updated it, we
-            # have to create a new copy, otherwise we are just updating the same dict.
-            severities[tag.tag_uuid] = dict.fromkeys(EventSeverity.numbers, 0)
-            severities[tag.tag_uuid].update((sev.severity, sev.count) for sev in tag.severities)
+            severities[tag.tag_uuid] = {}
+            for sev in tag.severities:
+                severities[tag.tag_uuid][sev.severity] = dict(count=sev.count, 
+                                                              acknowledged_count=sev.acknowledged_count)
+            for sev in EventSeverity.numbers:
+                if not sev in severities[tag.tag_uuid]:
+                    severities[tag.tag_uuid][sev] = dict(count=0, acknowledged_count=0)
 
         return severities
 
-    def getEventSeverities(self, tagUuids):
+    def getEventSeverities(self, tagUuids, severities=(), status=()):
         """
         Get a dictionary of the event severity counts for each UUID.
 
         @param tagUuids: A sequence of element UUIDs
+        @param severities: A sequence of severities to include. Default is CRITICAL/ERROR/WARNING.
+        @type  severities: Sequence of severities.
+        @param status: A sequence of event statuses to include. Default is NEW/ACKNOWLEDGED.
+        @type  status: Sequence of event severities.
         @rtype: dict
-        @return: A dictionary of UUID -> { C{EventSeverity} -> count }
+        @return: A dictionary of UUID -> { C{EventSeverity} -> { count, acknowledged_count } }
         """
-        eventTagSeverities = self._getEventTagSeverities(status=[STATUS_NEW, STATUS_ACKNOWLEDGED], tags=tagUuids)
-        return self._createSeveritiesDict(eventTagSeverities, tagUuids)
+        eventTagSeverities = self._getEventTagSeverities(severity=severities, status=status, tags=tagUuids)
+        return self._createSeveritiesDict(eventTagSeverities)
 
     def getWorstSeverityByUuid(self, tagUuid, default=SEVERITY_CLEAR, ignore=()):
         return self.getWorstSeverity([tagUuid], default=default, ignore=ignore)[tagUuid]
@@ -419,7 +455,7 @@ class ZepFacade(ZuulFacade):
 
         # Prepopulate the list with defaults
         severities = dict.fromkeys(tagUuids, default)
-        eventTagSeverities = self._getEventTagSeverities(status=[STATUS_NEW, STATUS_ACKNOWLEDGED], tags=tagUuids)
+        eventTagSeverities = self._getEventTagSeverities(tags=tagUuids)
         for tag in eventTagSeverities:
             for sev in tag.severities:
                 if sev.severity not in ignore:
@@ -484,9 +520,9 @@ class ZepFacade(ZuulFacade):
 
     def _getEventTagSeverities(self, eventClass=(), severity=(), status=(), tags=()):
         if not severity:
-            severity = [SEVERITY_CRITICAL, SEVERITY_ERROR, SEVERITY_WARNING]
+            severity = (SEVERITY_CRITICAL, SEVERITY_ERROR, SEVERITY_WARNING)
         if not status:
-            status = [STATUS_NEW, STATUS_ACKNOWLEDGED]
+            status = (STATUS_NEW, STATUS_ACKNOWLEDGED)
         eventFilter = self.createEventFilter(
             severity=severity,
             status=status,
@@ -524,8 +560,7 @@ class ZepFacade(ZuulFacade):
 
     def getDeviceIssuesDict(self, eventClass=(), severity=(), status=()):
         severities = self._getEventTagSeverities(eventClass, severity, status)
-        uuids = [tagSeverity.tag_uuid for tagSeverity in severities]
-        return self._createSeveritiesDict(severities, uuids)
+        return self._createSeveritiesDict(severities)
 
     def getDetails(self):
         """

@@ -16,22 +16,6 @@ import re
 from Products.Five.browser import BrowserView
 from Products.ZenUtils.jsonutils import json
 from Products.ZenModel.DeviceOrganizer import DeviceOrganizer
-from Products.Zuul import getFacade
-from Products.ZenUtils.guid.interfaces import IGlobalIdentifier
-
-class SinglePill(BrowserView):
-    def __call__(self):
-        """
-        Gets event pill for worst severity.
-
-        @return: HTML that will render the event pill.
-        @rtype: str
-        """
-        zem = self.context.dmd.ZenEventManager
-        pill = getEventPillME(zem, self.context)
-        if type(pill)==type([]) and len(pill)==1: return pill[0]
-        return pill
-
 
 class ObjectsEventSummary(BrowserView):
     """
@@ -83,7 +67,7 @@ def getObjectsEventSummary(zem, objects, prodState=None, REQUEST=None):
     mydict = {'columns':[], 'data':[]}
     mydict['columns'] = ['Object', 'Events']
     getcolor = re.compile(r'class=\"evpill-(.*?)\"', re.S|re.I|re.M).search
-    colors = "red orange yellow blue grey green".split()
+    colors = ('red','orange','yellow','blue','grey','green')
     def pillcompare(a,b):
         a, b = map(lambda x:getcolor(x[1]), (a, b))
         def getindex(x):
@@ -100,7 +84,7 @@ def getObjectsEventSummary(zem, objects, prodState=None, REQUEST=None):
     devdata = []
     for obj in objects:
         alink = obj.getPrettyLink()
-        pill = getEventPillME(zem, obj, showGreen=True, prodState=prodState)
+        pill = getEventPillME(obj, showGreen=True, prodState=prodState)
         if type(pill)==type([]): pill = pill[0]
         devdata.append([alink, pill])
     devdata.sort(pillcompare)
@@ -119,8 +103,9 @@ def getDashboardObjectsEventSummary(zem, objects, REQUEST=None):
 def _getPill(summary, url=None, number=3):
     iconTemplate = """
         <td class="severity-icon-small
-            %(severity)s %(noevents)s">
-            %(count)s
+            %(severity)s %(cssclass)s"
+            title="%(acked)s out of %(total)s acknowledged">
+            %(total)s
         </td>
     """
     rainbowTemplate = """
@@ -129,15 +114,19 @@ def _getPill(summary, url=None, number=3):
         <tr>%(cells)s</tr>
     </table>
     """
-    stati = "critical error warning info debug".split()
+    stati = ('critical','error','warning','info','debug')
     summary = [summary[x] for x in stati]
 
     cells = []
-    for i, count in enumerate(summary[:number]):
+    for i, counts in enumerate(summary[:number]):
+        total = counts['count']
+        acked = counts['acknowledged_count']
+        cssclass = 'no-events' if not total else 'acked-events' if total==acked else ''
         cells.append(iconTemplate % {
-            'noevents': '' if count else 'no-events',
+            'cssclass': cssclass,
             'severity': stati[i],
-            'count':count
+            'total': total,
+            'acked': acked
         })
     return rainbowTemplate % {
         'url': url,
@@ -145,13 +134,8 @@ def _getPill(summary, url=None, number=3):
         'number': number
     }
 
-def getEventPill(zem, where, number=3, minSeverity=0, showGreen=True,
-                 prodState=None, url=None):
-    summary = zem.getEventSummary(where, minSeverity, prodState)
-    return _getPill(summary, url, number)
-
-def getEventPillME(zem, me, number=3, minSeverity=0, showGreen=True,
-                   prodState=None, severities={}):
+def getEventPillME(me, number=3, minSeverity=0, showGreen=True,
+                   prodState=None, severities=None):
     """
     Get HTML code displaying the maximum event severity and the number of
     events of that severity on a particular L{ManagedEntity} in a pleasing
@@ -159,8 +143,6 @@ def getEventPillME(zem, me, number=3, minSeverity=0, showGreen=True,
     well. Optionally return a green pill if there are no events (normally no
     events in a severity will not yield a result).
 
-    @param zem: A reference to ZenEventManager
-    @type zem: L{Products.ZenEvents.EventManagerBase.EventManagerBase}
     @param me: The object regarding which event data should be queried.
     @type me: L{ManagedEntity}
     @param number: The number of pills to return
@@ -170,7 +152,7 @@ def getEventPillME(zem, me, number=3, minSeverity=0, showGreen=True,
     @return: HTML strings ready for template inclusion
     @rtype: list
     @param severities: The severity counts that you can pass in if
-    you do not want the getEventSeveritiesCount to be called. This isuseful
+    you do not want the getEventSeveritiesCount to be called. This is useful
     for batch pills queries
     @param type: dictionary
     """

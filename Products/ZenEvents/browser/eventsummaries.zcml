@@ -25,18 +25,4 @@
         permission="zenoss.Common"
         />
 
-    <browser:page
-        for="Products.ZenModel.Device.Device"
-        name="getEventPill"
-        class=".EventPillsAndSummaries.SinglePill"
-        permission="zenoss.Common"
-        />
-
-    <browser:page
-        for="Products.ZenModel.DeviceOrganizer.DeviceOrganizer"
-        name="getEventPill"
-        class=".EventPillsAndSummaries.SinglePill"
-        permission="zenoss.Common"
-        />
-
 </configure>

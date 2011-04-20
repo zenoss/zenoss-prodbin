@@ -295,6 +295,12 @@ a:visited {
     filter: alpha(opacity=20);
 }
 
+.acked-events {
+    opacity: 0.6;
+    -moz-opacity: 0.6;
+    filter: alpha(opacity=60);
+}
+
 a.eventrainbow {
     text-decoration: none;
 }

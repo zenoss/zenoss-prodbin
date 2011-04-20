@@ -361,11 +361,6 @@ class DeviceOrganizerInfo(InfoBase, HasEventsInfoMixin):
     def path(self):
         return self._object.getPrimaryDmdId()
 
-    def getEventSeverities(self):
-        if self._eventSeverities is None and self._object.getDmdKey() == '/':
-            self.getTopLevelOrganizerSeverities()
-        return super(DeviceOrganizerInfo, self).getEventSeverities()
-
 def _removeZportDmd(path):
     if path.startswith('/zport/dmd'):
         path = path[10:]

@@ -45,21 +45,23 @@
 <tal:block metal:define-macro="horizontal">
 <tal:block tal:define="
     zem python:here.ZenEventManager;
-    colors python:'critical error warning info debug clear'.split();
+    colors python:('critical','error','warning','info','debug');
     summaries python:here.getEventSeveritiesCount();
-    totals python:[summaries.get(x, 0) for x in colors]">
+    totals python:[summaries.get(x, {}) for x in colors]">
     <table class="eventrainbow eventrainbow_cols_5"
         tal:attributes="
             onclick string:location.href='${here/absolute_url_path}/viewEvents';;
         ">
         <tr>
-            <tal:block tal:repeat="total python:totals[:-1]">
+            <tal:block tal:repeat="counts python:totals">
             <td tal:define="
-                noevents python:'no-events' if total==0 else '';
-                idx repeat/total/index;
+                total python:counts.get('count', 0);
+                acked python:counts.get('acknowledged_count', 0);
+                cssclass python:'no-events' if not total else 'acked-events' if total==acked else '';
+                idx repeat/counts/index;
                 severity python:colors[idx];
                 "
-                tal:attributes="class string:severity-icon-small ${severity} ${noevents}"
+                tal:attributes="class string:severity-icon-small ${severity} ${cssclass}; title string:${acked} out of ${total} acknowledged"
                 tal:content="total">
             </td>
             </tal:block>
