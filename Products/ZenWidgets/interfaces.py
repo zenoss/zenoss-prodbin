@@ -25,6 +25,7 @@ class IMessage(IContained):
     image = Attribute("Optional path to image to be displayed")
     priority = Attribute("Priority of the message")
     timestamp = Attribute("Time the message was sent")
+    sticky = Attribute("Explicitly designate stickiness")
 
     def delete():
         """

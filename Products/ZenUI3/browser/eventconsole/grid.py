@@ -25,6 +25,7 @@ from Products.ZenUtils.jsonutils import JavaScript, javascript
 from Products.ZenUI3.utils.javascript import JavaScriptSnippet
 from Products.ZenUI3.browser.eventconsole.columns import COLUMN_CONFIG, ARCHIVE_COLUMN_CONFIG, DEFAULT_COLUMN_ORDER, DEFAULT_COLUMNS
 from zenoss.protocols.protobufs.zep_pb2 import EventDetailItem
+from zenoss.protocols.services.zep import ZepConnectionError
 
 import logging
 log = logging.getLogger('zep.grid')
@@ -45,10 +46,13 @@ def _find_column_fields():
 
     TODO: We need to map these details to the old property names.
     """
-    details = getFacade('zep').getUnmappedDetails()
-    for item in details:
-        if item['key'] not in DEFAULT_COLUMN_ORDER:
-            DEFAULT_COLUMN_ORDER.append(item['key'])
+    try:
+        details = getFacade('zep').getUnmappedDetails()
+        for item in details:
+            if item['key'] not in DEFAULT_COLUMN_ORDER:
+                DEFAULT_COLUMN_ORDER.append(item['key'])
+    except ZepConnectionError, e:
+        log.error(e.message)
 
     return DEFAULT_COLUMN_ORDER
 
@@ -65,7 +69,12 @@ def _find_column_definitions(archive=False):
     if archive:
         columns = ARCHIVE_COLUMN_CONFIG
 
-    details = getFacade('zep').getUnmappedDetails()
+    try:
+        details = getFacade('zep').getUnmappedDetails()
+    except ZepConnectionError, e:
+        log.error(e.message)
+        return columns
+
     for item in details:
         # add or update anything that already exists in our column definition
         # with the result from ZEP. This will override known columns and create

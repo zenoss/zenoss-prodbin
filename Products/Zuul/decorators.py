@@ -17,6 +17,9 @@ import traceback
 import functools
 from AccessControl import Unauthorized
 from Products import Zuul
+from Products.ZenUtils.Ext import DirectResponse
+from zenoss.protocols.services import ServiceConnectionError
+from zenoss.protocols.services.zep import ZepConnectionError
 
 def deprecated(func):
     """
@@ -133,3 +136,15 @@ def contextRequire(permission, contextKeywordArgument):
             raise Unauthorized('Calling %s requires "%s" permission.' % args)
         return f(self, *args, **kwargs)
     return wrapped_fn
+
+
+@decorator
+def serviceConnectionError(func, *args, **kwargs):
+    try:
+        return func(*args, **kwargs)
+    except ZepConnectionError, e:
+        msg = 'Connection refused. Check zenoss-zep status on <a href="/zport/About/zenossInfo">Daemons</a>'
+    except ServiceConnectionError, e:
+        msg = 'Connection refused to a required daemon. Check status on <a href="/zport/About/zenossInfo">Daemons</a>'
+    return DirectResponse.fail(msg, sticky=True)
+

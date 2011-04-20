@@ -258,21 +258,7 @@ Ext.onReady(function(){
     // Store to hold the events data
     var console_store = new Zenoss.EventStore({
         proxy: new Zenoss.ThrottlingProxy({
-            directFn:Zenoss.remote.EventsRouter.queryArchive,
-            listeners: {
-
-                'exception': function(proxy, type, action, options,
-                response, arg){
-                    if (response.result && response.result.msg){
-                        Ext.Msg.show({
-                            title: 'Error',
-                            msg: response.result.msg,
-                            buttons: Ext.Msg.OK,
-                            minWidth: 300
-                            });
-                        }
-                    }
-                }
+            directFn:Zenoss.remote.EventsRouter.queryArchive
         }),
         sortInfo: {field:'lastTime', direction:'DESC'},
         defaultSort: {field:'lastTime', direction:'DESC'},

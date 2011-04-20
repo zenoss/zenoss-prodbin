@@ -25,7 +25,7 @@ from Products import Zuul
 from Products.ZenModel.Device import Device
 from Products.Zuul.routers import TreeRouter
 from Products.Zuul.form.interfaces import IFormBuilder
-from Products.Zuul.decorators import require, contextRequire
+from Products.Zuul.decorators import require, contextRequire, serviceConnectionError
 from Products.ZenUtils.guid.interfaces import IGlobalIdentifier
 
 log = logging.getLogger('zen.Zuul')
@@ -36,6 +36,7 @@ class DeviceRouter(TreeRouter):
     A JSON/ExtDirect interface to operations on devices
     """
 
+    @serviceConnectionError
     @require('Manage DMD')
     def addLocationNode(self, type, contextUid, id,
                         description=None, address=None):
@@ -82,6 +83,7 @@ class DeviceRouter(TreeRouter):
     def _getFacade(self):
         return Zuul.getFacade('device', self.context)
 
+    @serviceConnectionError
     def getTree(self, id):
         """
         Returns the tree structure of an organizer hierarchy where
@@ -97,6 +99,7 @@ class DeviceRouter(TreeRouter):
         data = Zuul.marshal(tree)
         return [data]
 
+    @serviceConnectionError
     def getComponents(self, uid=None, meta_type=None,
                       keys=None, start=0, limit=50,
                       sort='name', dir='ASC', name=None):
@@ -207,6 +210,7 @@ class DeviceRouter(TreeRouter):
                                       meta_type, sort, dir, name)
         return DirectResponse(index=i)
 
+    @serviceConnectionError
     def getForm(self, uid):
         """
         Given an object identifier, this returns all of the editable fields
@@ -224,6 +228,7 @@ class DeviceRouter(TreeRouter):
         form = Zuul.marshal(form)
         return DirectResponse(form=form)
 
+    @serviceConnectionError
     def getInfo(self, uid, keys=None):
         """
         Get the properties of a device or device organizer
@@ -245,6 +250,7 @@ class DeviceRouter(TreeRouter):
         disabled = not Zuul.checkPermission('Manage DMD', self.context)
         return DirectResponse(data=data, disabled=disabled)
 
+    @serviceConnectionError
     def setInfo(self, **data):
         """
         Set attributes on a device or device organizer.
@@ -300,6 +306,7 @@ class DeviceRouter(TreeRouter):
         return DirectResponse.succeed(data=result)
 
 
+    @serviceConnectionError
     def getDevices(self, uid=None, start=0, params=None, limit=50, sort='titleOrId',
                    dir='ASC', keys=None):
         """
@@ -937,6 +944,7 @@ class DeviceRouter(TreeRouter):
             log.exception(e)
             return DirectResponse.fail('Failed to remove devices.')
 
+    @serviceConnectionError
     def getGraphDefs(self, uid, drange=None):
         """
         Returns the url and title for each graph
@@ -948,6 +956,7 @@ class DeviceRouter(TreeRouter):
         data = facade.getGraphDefs(uid, drange)
         return DirectResponse(data=Zuul.marshal(data))
 
+    @serviceConnectionError
     @contextRequire('Manage DMD', 'uid')
     def setZenProperty(self, uid, zProperty, value):
         """
@@ -958,6 +967,7 @@ class DeviceRouter(TreeRouter):
         data = facade.getZenProperty(uid, zProperty)
         return DirectResponse(data=Zuul.marshal(data))
 
+    @serviceConnectionError
     def getZenProperties(self, uid, start=0, params="{}", limit=None, sort=None,
                    dir='ASC'):
         """
@@ -989,6 +999,7 @@ class DeviceRouter(TreeRouter):
         data = [row for row in data if row['id'] != 'zCollectorPlugins']
         return DirectResponse(data=Zuul.marshal(data), totalCount=len(data))
 
+    @serviceConnectionError
     @contextRequire('Manage DMD', 'uid')
     def deleteZenProperty(self, uid, zProperty):
         """
@@ -1003,6 +1014,7 @@ class DeviceRouter(TreeRouter):
         data = facade.deleteZenProperty(uid, zProperty)
         return DirectResponse(data=Zuul.marshal(data))
 
+    @serviceConnectionError
     def getEvents(self, uid):
         """
         Get events for a device.
@@ -1097,6 +1109,7 @@ class DeviceRouter(TreeRouter):
             uids.extend(b.uid for b in islice(comps, start, stop))
         return uids
 
+    @serviceConnectionError
     def getUserCommands(self, uid):
         """
         Get a list of user commands for a device uid.
@@ -1380,6 +1393,7 @@ class DeviceRouter(TreeRouter):
             data.append(dict(label=template['text'], uid=template['uid']))
         return DirectResponse.succeed(data=data)
 
+    @serviceConnectionError
     def getTemplates(self, id):
         """
         Get a list of available templates for a device.
@@ -1394,6 +1408,7 @@ class DeviceRouter(TreeRouter):
         templates = facade.getTemplates(id)
         return Zuul.marshal(templates)
 
+    @serviceConnectionError
     def getUnboundTemplates(self, uid):
         """
         Get a list of unbound templates for a device.
@@ -1412,6 +1427,7 @@ class DeviceRouter(TreeRouter):
             data.append([template.id, label])
         return DirectResponse.succeed(data=Zuul.marshal(data))
 
+    @serviceConnectionError
     def getBoundTemplates(self, uid):
         """
         Get a list of bound templates for a device.
@@ -1516,6 +1532,7 @@ class DeviceRouter(TreeRouter):
         self.context.clearGeocodeCache()
         return DirectResponse.succeed()
 
+    @serviceConnectionError
     def getZenProperty(self, uid, zProperty):
         """
         Returns information about a zproperty for a

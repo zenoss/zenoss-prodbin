@@ -26,6 +26,7 @@ from Products.Zuul.decorators import deprecated
 from Products.ZenUtils.guid.interfaces import IGlobalIdentifier
 from Products.ZenWidgets import messaging
 from zenoss.protocols.services import ServiceResponseError
+from zenoss.protocols.services.zep import ZepConnectionError
 from zenoss.protocols.protobufs.zep_pb2 import STATUS_NEW, STATUS_ACKNOWLEDGED, \
     SEVERITY_CRITICAL, SEVERITY_ERROR, SEVERITY_WARNING
 
@@ -33,6 +34,22 @@ class IEventView(Interface):
     """
     Marker interface for objects which have event views.
     """
+
+def zepConnectionError(retval=None):
+    def outer(func):
+        def inner(self, *args, **kwargs):
+            try:
+                return func(self, *args, **kwargs)
+            except ZepConnectionError, e:
+                msg = 'Connection refused. Check zenoss-zep status on <a href="/zport/About/zenossInfo">Daemons</a>'
+                messaging.IMessageSender(self).sendToBrowser("ZEP connection error",
+                                                        msg,
+                                                        priority=messaging.CRITICAL,
+                                                        sticky=True)
+                log.warn("Could not connect to ZEP")
+            return retval
+        return inner
+    return outer
 
 class EventView(object):
     """
@@ -243,6 +260,7 @@ class EventView(object):
             REQUEST['RESPONSE'].redirect(dest)
 
     security.declareProtected('Manage Events','manage_ackEvents')
+    @zepConnectionError
     def manage_ackEvents(self, evids=(), REQUEST=None):
         """Set event state from this managed entity.
         """
@@ -258,6 +276,7 @@ class EventView(object):
             self._redirectToEventConsole("Error acknowledging events: %s" % str(e), REQUEST)
 
     security.declareProtected('Manage Events','manage_deleteEvents')
+    @zepConnectionError
     def manage_deleteEvents(self, evids=(), REQUEST=None):
         """Delete events from this managed entity.
         """
@@ -272,6 +291,7 @@ class EventView(object):
             self._redirectToEventConsole("Error Closing events: %s" % str(e), REQUEST)
 
     security.declareProtected('Manage Events','manage_undeleteEvents')
+    @zepConnectionError
     def manage_undeleteEvents(self, evids=(), REQUEST=None):
         """Delete events from this managed entity.
         """
@@ -285,6 +305,7 @@ class EventView(object):
         except ServiceResponseError, e:
             self._redirectToEventConsole("Error Reopening events: %s" % str(e), REQUEST)
 
+    @zepConnectionError(0)
     def getStatus(self, statusclass=None, **kwargs):
         """
         Return the status number for this device of class statClass.
@@ -304,6 +325,7 @@ class EventView(object):
     def getUUID(self):
         return IGlobalIdentifier(self).getGUID()
 
+    @zepConnectionError({})
     def getEventSeveritiesCount(self):
         """
         Uses the zep facade to return a list of
@@ -318,6 +340,7 @@ class EventView(object):
         results = dict((zep.getSeverityName(sev).lower(), count) for (sev, count) in severities.iteritems())
         return results
 
+    @zepConnectionError(0)
     def getWorstEventSeverity(self):
         """
         Uses Zep to return the worst severity for this object

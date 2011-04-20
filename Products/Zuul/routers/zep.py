@@ -27,7 +27,7 @@ from AccessControl import getSecurityManager
 from Products.ZenUtils.extdirect.router import DirectResponse
 from Products.ZenUtils.Time import isoDateTimeFromMilli
 from Products.Zuul import getFacade
-from Products.Zuul.decorators import require
+from Products.Zuul.decorators import require, serviceConnectionError
 from Products.ZenEvents.Event import Event as ZenEvent
 from Products.ZenMessaging.queuemessaging.interfaces import IEventPublisher
 from Products.ZenUtils.guid.interfaces import IGlobalIdentifier, IGUIDManager
@@ -273,6 +273,7 @@ class EventsRouter(DirectRouter):
                 del actor['element_sub_uuid']
             yield event_summary
 
+    @serviceConnectionError
     @require('ZenCommon')
     def queryArchive(self, limit=0, start=0, sort='lastTime', dir='desc', params=None, uid=None, detailFormat=False):
         filter = self._buildFilter(uid, params)
@@ -291,6 +292,7 @@ class EventsRouter(DirectRouter):
             asof = time.time()
         )
 
+    @serviceConnectionError
     @require('ZenCommon')
     def query(self, limit=0, start=0, sort='lastTime', dir='desc', params=None,
               archive=False, uid=None, detailFormat=False):

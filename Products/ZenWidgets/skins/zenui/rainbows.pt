@@ -47,7 +47,7 @@
     zem python:here.ZenEventManager;
     colors python:'critical error warning info debug clear'.split();
     summaries python:here.getEventSeveritiesCount();
-    totals python:[summaries[x] for x in colors]">
+    totals python:[summaries.get(x, 0) for x in colors]">
     <table class="eventrainbow eventrainbow_cols_5"
         tal:attributes="
             onclick string:location.href='${here/absolute_url_path}/viewEvents';;

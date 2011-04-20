@@ -20,6 +20,7 @@ from Products.AdvancedQuery import Eq, Or
 from Products.ZenUtils.Utils import relative_time
 from Products.Zuul import getFacade
 from zenoss.protocols.services import ServiceException
+from zenoss.protocols.services.zep import ZepConnectionError
 from Products.ZenUtils.guid.interfaces import IGUIDManager
 from Products.ZenUtils.jsonutils import json
 from Products.ZenUtils.Utils import nocache, formreq, extractPostContent
@@ -32,6 +33,25 @@ from Products.ZenEvents.browser.EventPillsAndSummaries import \
                                    getEventPillME
 from time import time
 
+import logging
+log = logging.getLogger('zen.portlets')
+
+
+def zepConnectionError(retval=None):
+    def outer(func):
+        def inner(self, *args, **kwargs):
+            try:
+                return func(self, *args, **kwargs)
+            except ZepConnectionError, e:
+                msg = 'Connection refused. Check zenoss-zep status on <a href="/zport/About/zenossInfo">Daemons</a>'
+                messaging.IMessageSender(self.context).sendToBrowser("ZEP connection error",
+                                                        msg,
+                                                        priority=messaging.CRITICAL,
+                                                        sticky=True)
+                log.warn("Could not connect to ZEP")
+            return retval
+        return inner
+    return outer
 
 class TopLevelOrganizerPortletView(ObjectsEventSummary):
     """
@@ -162,6 +182,7 @@ class DeviceIssuesPortletView(BrowserView):
                                    'Events':pill})
         return mydict
 
+    @zepConnectionError([])
     def getDeviceDashboard(self):
         """return device info for bad device to dashboard"""
         zep = getFacade('zep')
@@ -205,6 +226,7 @@ class HeartbeatPortletView(BrowserView):
             alink = "<a href='%s'>%s</a>" % (dev.getPrimaryUrlPath(), dev.titleOrId())
         return alink
 
+    @zepConnectionError({'columns': ['Device', 'Daemon', 'Seconds'], 'data':[]})
     @json
     def getHeartbeatIssuesJSON(self):
         """
