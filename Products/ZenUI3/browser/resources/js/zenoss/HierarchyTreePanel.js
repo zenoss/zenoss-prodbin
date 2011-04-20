@@ -193,15 +193,15 @@ Zenoss.HierarchyTreePanel = Ext.extend(Ext.tree.TreePanel, {
         config.listeners = config.listeners || {};
         Ext.applyIf(config.listeners, {
             contextmenu: Zenoss.treeContextMenu
-        });         
-        
+        });
+
         Ext.applyIf(config, {
             cls: 'hierarchy-panel',
             useArrows: true,
             border: false,
             autoScroll: true,
             relationshipIdentifier: null,
-            containerScroll: true, 
+            containerScroll: true,
             selectRootOnLoad: true,
             rootVisible: false,
             loadMask: true,
@@ -256,11 +256,11 @@ Zenoss.HierarchyTreePanel = Ext.extend(Ext.tree.TreePanel, {
             uiProvider: 'hierarchy'
         };
 
+        this.stateHash = {};
         if(config.stateful){
             this.stateEvents = this.stateEvents || [];
             this.stateEvents.push('expandnode', 'collapsenode');
-            this.stateHash = {};
-        }       
+        }
 
         Zenoss.HierarchyTreePanel.superclass.constructor.apply(this, arguments);
     },
@@ -303,10 +303,7 @@ Zenoss.HierarchyTreePanel = Ext.extend(Ext.tree.TreePanel, {
         }
         this.addEvents('filter');
         this.on('click', this.addHistoryToken, this);
-        
-        
-        
-        
+
         this.on({
              beforeexpandnode:function(node) {
                 this.stateHash[node.id] = node.getPath();
@@ -322,7 +319,7 @@ Zenoss.HierarchyTreePanel = Ext.extend(Ext.tree.TreePanel, {
                     }
                 }
             }
-        })    // add some listeners for state
+        });    // add some listeners for state
     },
 
 

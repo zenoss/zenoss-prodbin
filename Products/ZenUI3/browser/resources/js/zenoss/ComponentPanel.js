@@ -121,6 +121,11 @@ Zenoss.nav.register({
             ]);
             tbar.doLayout();
             tbar._btns = btns;
+            combo.on('select', function(c, selected){
+                if (selected.id!="Graphs") {
+                    Ext.each(btns, tbar.remove, tbar);
+                }
+            }, this, {single:true});
         }
     },{
         nodeType: 'subselect',
