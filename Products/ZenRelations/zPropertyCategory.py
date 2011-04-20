@@ -66,6 +66,7 @@ MAPPINGS = {
 # SNMP
 # ----------
 'zMaxOIDPerRequest': 'SNMP',
+'zSnmpEngineId': 'SNMP',
 'zSnmpAuthPassword': 'SNMP',
 'zSnmpAuthType': 'SNMP',
 'zSnmpCollectionInterval': 'SNMP',
