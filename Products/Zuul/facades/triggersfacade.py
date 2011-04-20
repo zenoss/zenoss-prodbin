@@ -311,7 +311,7 @@ class TriggersFacade(ZuulFacade):
     def addWindow(self, contextUid, newId):
         notification = self._getObject(contextUid)
         window = NotificationSubscriptionWindow(newId)
-        notification.windows.addRelation(newId, window)
+        notification.windows._setObject(newId, window)
         new_window = notification.windows._getOb(newId)
         return IInfo(new_window)
 
