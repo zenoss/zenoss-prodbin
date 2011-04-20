@@ -27,6 +27,7 @@ log = logging.getLogger("zen.PingService")
 from icmpecho.Ping import Ping4, Ping6
 
 from twisted.internet import reactor, defer
+from twisted.python.failure import Failure
 
 import Globals
 from Products.ZenStatus.PingJob import PingJob
@@ -37,6 +38,10 @@ class PermissionError(Exception):
 class IpConflict(Exception):
     """Pinging two IP pingjobs simultaneously with different hostnames"""
 
+class PingJobError(Exception):
+    def __init__(self, error_message, ipaddr):
+        Exception.__init__(self, error_message)
+        self.ipaddr = ipaddr
 
 class PingService(object):
     
@@ -101,9 +106,8 @@ class PingService(object):
                                       pingJob.ipaddr))
             self.jobqueue[pingJob.ipaddr] = pingJob
         except Exception, e:  # Note: sockets with bad addresses fail
-            pingJob.rtt = -1
-            pingJob.message = "%s sendto error %s" % (pingJob.ipaddr, e)
-            self.dequePingJob(pingJob)
+            log.debug("%s sendto error %s" % (pingJob.ipaddr, e))
+            self.pingJobFail(pingJob)
 
     def _processPacket(self, reply):
         """
@@ -157,6 +161,8 @@ class PingService(object):
         pj.message = "IP %s is up" % pj.ipaddr
         pj.severity = 0
         self.dequePingJob(pj)
+        if not pj.deferred.called:
+            pj.deferred.callback(pj)
 
     def pingJobFail(self, pj):
         """
@@ -165,22 +171,22 @@ class PingService(object):
         pj.rtt = -1
         pj.message = "IP %s is down" % pj.ipaddr
         self.dequePingJob(pj)
+        if not pj.deferred.called:
+            pj.deferred.errback(Failure(PingJobError(pj.message, pj.ipaddr)))
 
     def dequePingJob(self, pj):
         try:
             del self.jobqueue[pj.ipaddr]
         except KeyError:
             pass
-        if not pj.deferred.called:
-            pj.deferred.callback(pj)
 
     def checkTimeout(self, pj):
         if pj.ipaddr in self.jobqueue:
             runtime = time.time() - pj.start
             if runtime > self.timeout:
                 pj.loss += 1
-                log.debug("%s pingjob timeout on attempt %d (%s sec)",
-                           pj.ipaddr, pj.loss, self.timeout)
+                log.debug("%s pingjob timeout on attempt %d (timeout=%ss, max tries=%s)",
+                           pj.ipaddr, pj.loss, self.timeout, pj.maxtries)
                 if pj.loss >= pj.maxtries:
                     self.pingJobFail(pj)
                 else:
