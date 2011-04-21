@@ -11,10 +11,12 @@
 #
 ###########################################################################
 
+import logging
 from twisted.internet import reactor
 from twisted.internet.defer import Deferred
 from pynetsnmp.twistedsnmp import AgentProxy
 
+_LOG = logging.getLogger("zen.ZenUtils.snmp")
 
 class SnmpConfig(object):
     succeeded = None
@@ -60,6 +62,7 @@ class SnmpConfig(object):
 
 
     def test(self, oid='.1.3.6.1.2.1.1.5.0'):
+        _LOG.debug("SnmpConfig.test: oid=%s" % oid)
         self._proxy = self.getAgentProxy()
         self._proxy.open()
         return self._proxy.get([oid]).addBoth(self.enrichResult)
@@ -204,6 +207,7 @@ class SnmpAgentDiscoverer(object):
         """
         Returns the best SnmpConfig in the provided configs list.
         """
+        _LOG.debug("findBestConfig: configs=%s" % configs)
         self._pending = configs
         self._d = Deferred()
 

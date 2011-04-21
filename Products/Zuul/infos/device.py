@@ -160,8 +160,21 @@ class DeviceInfo(InfoBase, HasEventsInfoMixin):
 
     @property
     def ipAddressString(self):
-        if self._object.manageIp:
-            return str(IpUtil.IPAddress(self._object.manageIp))
+        manageIp = self._object.manageIp
+        if manageIp:
+            if "%" in manageIp:
+                address, interface = manageIp.split("%")
+            else:
+                address = manageIp
+                interface = None
+            addr_part = IpUtil.IPAddress(address)
+            if interface is None:
+                addr_string = "%s" % addr_part
+            else:
+                addr_string = "%s%%%s" % (addr_part, interface)
+        else:
+            addr_string = None
+        return addr_string
 
     def getProductionState(self):
         return self._object.convertProdState(self._object.productionState)

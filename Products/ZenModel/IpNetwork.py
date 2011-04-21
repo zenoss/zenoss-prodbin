@@ -188,7 +188,7 @@ class IpNetwork(DeviceOrganizer):
             netip, netmask = netip.split("/",1)
 
         checkip(netip)
-        ipobj = IPAddress(ipunwrap(netip))
+        ipobj = IPAddress(ipunwrap_strip(netip))
         try:
             netmask = int(netmask)
         except (TypeError, ValueError):

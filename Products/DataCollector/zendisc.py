@@ -14,7 +14,6 @@
 __doc__ = """zendisc
 Scan networks and routes looking for devices to add to the ZODB
 """
-
 import socket
 
 # IMPORTANT! The import of the pysamba.twisted.reactor module should come before
@@ -90,6 +89,7 @@ class ZenDisc(ZenModeler):
         """
         Given an IP address, return a deferred that pings the address.
         """
+        self.log.debug("Using ipaddr module to convert %s" % ip)
         ipObj = IPAddress(ip)
         if ipObj.version == 6:
             return self._pinger6.ping(ip)
@@ -315,10 +315,10 @@ class ZenDisc(ZenModeler):
             @return: successful result is a list of IPs that were added
             @rtype: Twisted deferred
             """
-            self.log.debug("Doing SNMP lookup on device %s", ip)
+            self.log.debug("findRemoteDeviceInfo.inner: Doing SNMP lookup on device %s", ip)
             yield self.config().callRemote('getSnmpConfig', devicePath)
             communities, port, version, timeout, retries = driver.next()
-
+            self.log.debug("findRemoteDeviceInfo.inner: override acquired community strings")
             # Override the device class communities with the ones set on
             # this device, if they exist
             if deviceSnmpCommunities is not None:
@@ -461,6 +461,7 @@ class ZenDisc(ZenModeler):
                                    force=forceDiscovery, **kw)
 
                 result = driver.next()
+                self.log.debug("ZenDisc.discoverDevice.inner: got result from remote_createDevice")
                 if isinstance(result, Failure):
                     raise ZentinelException(result.value)
                 dev, created = result
@@ -628,6 +629,7 @@ class ZenDisc(ZenModeler):
             try:
                 # FIXME ZenUtils.IpUtil.asyncIpLookup is probably a better tool
                 # for this, but it hasn't been tested, so it's for another day
+                self.log.debug("getHostByName")
                 ip = getHostByName(deviceName)
             except socket.error: 
                 ip = ""

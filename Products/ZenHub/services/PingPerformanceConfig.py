@@ -27,7 +27,7 @@ from twisted.spread import pb
 import Globals
 from Products.ZenCollector.services.config import CollectorConfigService
 from Products.ZenEvents.ZenEventClasses import Error, Clear
-from Products.ZenUtils.IpUtil import ipunwrap
+from Products.ZenUtils.IpUtil import ipunwrap, ipstrip
 
 
 class IpAddressProxy(pb.Copyable, pb.RemoteCopy):
@@ -123,7 +123,7 @@ class PingPerformanceConfig(CollectorConfigService):
         ip = device.manageIp
         if not ip or ip in ('127.0.0.1', '0.0.0.0', '::', '::1'):
             return
-        ipObj = IPAddress(ip)
+        ipObj = IPAddress(ipstrip(ip))
 
         # Look for device-level templates with PING datasources
         addedIp = False

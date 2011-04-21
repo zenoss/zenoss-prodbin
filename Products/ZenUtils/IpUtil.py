@@ -31,13 +31,15 @@ from twisted.names.client import lookupPointer
 from twisted.internet import threads
 
 IP_DELIM = '..'
+INTERFACE_DELIM = '...'
 
 def ipwrap(ip):
     """
     Convert IP addresses to a Zope-friendly format.
     """
     if isinstance(ip, str):
-        return ip.replace(':', IP_DELIM)
+        wrapped = ip.replace(':', IP_DELIM)
+        return wrapped.replace('%', INTERFACE_DELIM)
     return ip
 
 def ipunwrap(ip):
@@ -45,9 +47,24 @@ def ipunwrap(ip):
     Convert IP addresses from a Zope-friendly format to a real address.
     """
     if isinstance(ip, str):
-        return ip.replace(IP_DELIM, ':')
+        unwrapped = ip.replace(IP_DELIM, ':')
+        return unwrapped.replace(INTERFACE_DELIM, '%')
     return ip
 
+def ipstrip(ip):
+    "strip interface off link local IPv6 addresses"
+    if '%' in ip:
+        address = ip[:ip.index('%')]
+    else:
+        address = ip
+    return address
+
+def ipunwrap_strip(ip):
+    """
+    ipunwrap + strip interface off link local IPv6 addresses
+    """
+    unwrapped = ipunwrap(ip)
+    return ipstrip(unwrapped)
 
 def bytesToCanonIpv6(byteString):
     """
@@ -151,7 +168,12 @@ def ipToDecimal(ip):
     checkip(ip)
     # The unit tests expect to always get a long, while the
     # ipaddr.IPaddress class doesn't provide a direct "to long" capability
-    return long(int(IPAddress(ipunwrap(ip))))
+    unwrapped = ipunwrap(ip)
+    if '%' in unwrapped:
+        address = unwrapped[:unwrapped.index('%')]
+    else:
+        address = unwrapped
+    return long(int(IPAddress(address)))
 
 def ipFromIpMask(ipmask):
     """

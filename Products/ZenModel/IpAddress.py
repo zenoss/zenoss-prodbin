@@ -34,7 +34,7 @@ from Products.ZenModel.interfaces import IIndexed
 from Products.ZenModel.Linkable import Layer3Linkable
 from Products.ZenRelations.RelSchema import ToOne, ToMany, ToManyCont
 from Products.ZenUtils.IpUtil import maskToBits, checkip, ipToDecimal, netFromIpAndNet, \
-                                     ipwrap, ipunwrap
+                                     ipwrap, ipunwrap, ipunwrap_strip
 from Products.ZenModel.Exceptions import WrongSubnetError
 
 def manage_addIpAddress(context, id, netmask=24, REQUEST = None):
@@ -95,7 +95,7 @@ class IpAddress(ManagedEntity, Layer3Linkable):
     def __init__(self, id, netmask=24):
         checkip(id)
         ManagedEntity.__init__(self, ipwrap(id))
-        ipobj = IPAddress(ipunwrap(id))
+        ipobj = IPAddress(ipunwrap_strip(id))
         if ipobj.version == 6:
             # No user-definable subnet masks for IPv6
             netmask = 64
