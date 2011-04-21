@@ -4,8 +4,8 @@
 # Copyright (C) 2008, Zenoss Inc.
 #
 # This program is free software; you can redistribute it and/or modify it
-# under the terms of the GNU General Public License version 2 or (at your
-# option) any later version as published by the Free Software Foundation.
+# under the terms of the GNU General Public License version 2 as published by
+# the Free Software Foundation.
 #
 # For complete information please visit: http://www.zenoss.com/oss/
 #
@@ -20,6 +20,7 @@ from Globals import DTMLFile
 from ExtendedPathIndex import ExtendedPathIndex
 from Products.PluginIndexes.common import safe_callable
 from BTrees.OOBTree import OOSet
+from BTrees.IIBTree import IISet, intersection, union, multiunion
 
 def _isSequenceOfSequences(seq):
     if not seq:
@@ -39,36 +40,160 @@ def _recursivePathSplit(seq):
     else:
         return seq
 
+
 class MultiPathIndex(ExtendedPathIndex):
     """
     A path index that is capable of indexing multiple paths per object.
     """
     meta_type = "MultiPathIndex"
 
-    def search(self, path, default_level=0, depth=-1, navtree=0, navtree_start=0):
-        results = super(MultiPathIndex, self).search(path, default_level,
-                                                     depth, navtree,
-                                                     navtree_start)
-        # navtree is a special mode which won't be affected by false positives
-        # and which this verification step would break
-        if navtree or default_level:
-            return results
-        parents = self._index_parents
-        if not isinstance(path, basestring):
+
+    def search(self, path, default_level=0, depth=-1, navtree=0,
+                                                             navtree_start=0):
+        """
+        path is either a string representing a
+        relative URL or a part of a relative URL or
+        a tuple (path,level).
+
+        level >= 0  starts searching at the given level
+        level <  0  not implemented yet
+        """
+
+        if isinstance(path, basestring):
+            startlevel = default_level
+        else:
+            startlevel = int(path[1])
             path = path[0]
-        for comp in path.split('/')[4:]:
-            m = '/%s' % comp
-            roots = set(x[:x.find(comp)] for x in parents if m in x)
-            if len(roots)>1:
-                # Same segment, same depth, different prefixes, thus we need to verify our results
-                for r in tuple(results):
-                    for p in self._unindex[r]:
-                        if p.startswith(path):
-                            break
+
+        absolute_path = isinstance(path, basestring) and path.startswith('/')
+        comps = filter(None, path.split('/'))
+
+        orig_comps = [''] + comps[:]
+
+        if depth > 0:
+            raise ValueError, "Can't do depth searches anymore"
+
+        if not comps:
+            comps = ['dmd']
+            startlevel = 1
+        elif comps[0] == 'zport':
+            comps = comps[1:]
+        elif comps[0] != 'dmd':
+            raise ValueError, "Depth searches must start with 'dmd'"
+        startlevel = len(comps)
+        #startlevel = len(comps)-1 if len(comps) > 1 else 1
+
+        if len(comps) == 0:
+            if depth == -1 and not navtree:
+                return IISet(self._unindex.keys())
+
+        # Make sure that we get depth = 1 if in navtree mode
+        # unless specified otherwise
+
+        orig_depth = depth
+        if depth == -1:
+            depth = 0 or navtree
+
+        # Optimized navtree starting with absolute path
+        if absolute_path and navtree and depth == 1 and default_level==0:
+            set_list = []
+            # Insert root element
+            if navtree_start >= len(orig_comps):
+                navtree_start = 0
+            # create a set of parent paths to search
+            for i in range(len(orig_comps), navtree_start, -1):
+                parent_path = '/'.join(orig_comps[:i])
+                parent_path = parent_path and parent_path or '/'
+                try:
+                    set_list.append(self._index_parents[parent_path])
+                except KeyError:
+                    pass
+            return multiunion(set_list)
+        # Optimized breadcrumbs
+        elif absolute_path and navtree and depth == 0 and default_level==0:
+            item_list = IISet()
+            # Insert root element
+            if navtree_start >= len(orig_comps):
+                navtree_start = 0
+            # create a set of parent paths to search
+            for i in range(len(orig_comps), navtree_start, -1):
+                parent_path = '/'.join(orig_comps[:i])
+                parent_path = parent_path and parent_path or '/'
+                try:
+                    item_list.insert(self._index_items[parent_path])
+                except KeyError:
+                    pass
+            return item_list
+        # Specific object search
+        elif absolute_path and orig_depth == 0 and default_level == 0:
+            try:
+                return IISet([self._index_items[path]])
+            except KeyError:
+                return IISet()
+        # Single depth search
+        elif absolute_path and orig_depth == 1 and default_level == 0:
+            # only get objects contained in requested folder
+            try:
+                return self._index_parents[path]
+            except KeyError:
+                return IISet()
+        # Sitemaps, relative paths, and depth queries
+        elif startlevel >= 0:
+
+            pathset = None # Same as pathindex
+            navset  = None # For collecting siblings along the way
+            depthset = None # For limiting depth
+
+            if navtree and depth and \
+                   self._index.has_key(None) and \
+                   self._index[None].has_key(startlevel):
+                navset = self._index[None][startlevel]
+            for level in range(startlevel, startlevel+len(comps)):
+                if level <= len(comps):
+                    comp = "/".join(comps[:level])
+                    if (not self._index.has_key(comp)
+                        or not self._index[comp].has_key(level)):
+                        # Navtree is inverse, keep going even for
+                        # nonexisting paths
+                        if navtree:
+                            pathset = IISet()
+                        else:
+                            return IISet()
                     else:
-                        results.remove(r)
-                break
-        return results
+                        return self._index[comp][level]
+                    if navtree and depth and \
+                           self._index.has_key(None) and \
+                           self._index[None].has_key(level+depth):
+                        navset  = union(navset, intersection(pathset,
+                                              self._index[None][level+depth]))
+                if level-startlevel >= len(comps) or navtree:
+                    if (self._index.has_key(None)
+                        and self._index[None].has_key(level)):
+                        depthset = union(depthset, intersection(pathset,
+                                                    self._index[None][level]))
+
+            if navtree:
+                return union(depthset, navset) or IISet()
+            elif depth:
+                return depthset or IISet()
+            else:
+                return pathset or IISet()
+
+        else:
+            results = IISet()
+            for level in range(0,self._depth + 1):
+                ids = None
+                error = 0
+                for cn in range(0,len(comps)):
+                    comp = comps[cn]
+                    try:
+                        ids = intersection(ids,self._index[comp][level+cn])
+                    except KeyError:
+                        error = 1
+                if error==0:
+                    results = union(results,ids)
+            return results
+
 
     def getIndexSourceNames(self):
         """ return names of indexed attributes """
@@ -122,7 +247,9 @@ class MultiPathIndex(ExtendedPathIndex):
             parent_path = '/' + '/'.join(comps[:-1])
 
             for i in range(len(comps)):
-                self.insertEntry(comps[i], docid, i)
+                comp = "/".join(comps[1:i+1])
+                if comp:
+                    self.insertEntry(comp, docid, i)
 
             # Add terminator
             self.insertEntry(None, docid, len(comps)-1, parent_path, path)
@@ -167,8 +294,8 @@ class MultiPathIndex(ExtendedPathIndex):
             comps =  path.split('/')
             parent_path = '/'.join(comps[:-1])
 
-            for level in range(len(comps[1:])):
-                comp = comps[level+1]
+            for level in range(1, len(comps[2:])+1):
+                comp = "/".join(comps[2:level+2])
                 unindex(comp, level, docid, parent_path, path)
             # Remove the terminator
             level = len(comps[1:])
@@ -197,7 +324,7 @@ class MultiPathIndex(ExtendedPathIndex):
 
 manage_addMultiPathIndexForm = DTMLFile('dtml/addMultiPathIndex', globals())
 
-def manage_addMultiPathIndex(self, id, REQUEST=None, RESPONSE=None, 
+def manage_addMultiPathIndex(self, id, REQUEST=None, RESPONSE=None,
                              URL3=None):
     """
     Add a MultiPathIndex.

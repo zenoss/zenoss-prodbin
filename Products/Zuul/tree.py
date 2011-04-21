@@ -243,8 +243,8 @@ class CatalogTool(object):
         # Build the path query
         if not paths:
             paths = ('/'.join(self.context.getPhysicalPath()),)
-        paths = [p.lstrip('/zport/dmd/') for p in paths]
-        q = {'query':paths, 'level':2}
+
+        q = {'query':paths}
         if depth is not None:
             q['depth'] = depth
         pathq = Generic('path', q)
@@ -352,8 +352,8 @@ class DeviceSearchCatalogTool(CatalogTool):
         # Build the path query
         if not paths:
             paths = ('/'.join(self.context.getPhysicalPath()),)
-        paths = [p.lstrip('/zport/dmd/') for p in paths]
-        q = {'query':paths, 'level':2}
+
+        q = {'query':paths}
         if depth is not None:
             q['depth'] = depth
         pathq = Generic('path', q)

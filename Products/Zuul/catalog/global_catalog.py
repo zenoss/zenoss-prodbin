@@ -265,10 +265,10 @@ class GlobalCatalog(ZCatalog):
     def unrestrictedSearchResults(self, **kw):
         return ZCatalog.searchResults(self, **kw)
 
-    def catalog_object(self, obj, **kwargs):
+    def catalog_object(self, obj, uid=None, **kwargs):
         if not isinstance(obj, self._get_forbidden_classes()):
             ob = IIndexableWrapper(obj)
-            ZCatalog.catalog_object(self, ob, **kwargs)
+            ZCatalog.catalog_object(self, ob, uid, **kwargs)
 
     def uncatalog_object(self, path):
         try:
