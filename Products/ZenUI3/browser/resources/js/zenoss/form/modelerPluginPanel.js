@@ -193,7 +193,7 @@
                         store: data.value,
                         listeners: {
                             click: clickHandler
-                        },
+                        }
                     }]
                 });
                 this.doLayout();
