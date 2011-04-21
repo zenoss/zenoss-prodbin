@@ -463,7 +463,7 @@ Ext.onReady(function () {
                                     xtype: 'checkbox',
                                     name: 'send_initial_occurrence',
                                     ref: '../../send_initial_occurrence',
-                                    fieldLabel: _t('Send only on Initial Occurence?')
+                                    fieldLabel: _t('Send only on Initial Occurrence?')
                                 }
                             ]
                         },
@@ -525,7 +525,7 @@ Ext.onReady(function () {
                 border: false,
                 layout: 'form',
                 padding: panelPadding,
-                title: _t('Global Options'),
+                title: _t('Local Notification Permissions'),
                 items: [
                     {
                         xtype:'checkbox',
@@ -1327,21 +1327,20 @@ Ext.onReady(function () {
                 name: 'criteria',
                 id: 'rulebuilder',
                 ref: 'rule',
-                subjects: [{
+                subjects: [
+                Ext.applyIf(
+                    {
                     text: _t('Device Priority'),
-                    value: 'dev.priority',
-                    comparisons: NUMCMPS,
-                    field: {
-                        xtype:'PriorityCombo'
-                    }
-                },{
+                    value: 'dev.priority'
+                    },
+                    ZFR.DEVICEPRIORITY
+                ),
+                Ext.applyIf({
                     text: _t('Device Production State'),
-                    value: 'dev.production_state',
-                    comparisons: NUMCMPS,
-                    field:{
-                        xtype:'ProductionStateCombo'
-                    }
-                },{
+                    value: 'dev.production_state'
+                    },
+                    ZFR.PRODUCTIONSTATE
+                ),{
                     text: _t('Device (Element)'),
                     value: 'elem.name',
                     comparisons: STRINGCMPS
@@ -1578,7 +1577,7 @@ Ext.onReady(function () {
                 xtype: 'panel',
                 border: false,
                 layout: 'form',
-                title: _t('Global Options'),
+                title: _t('Local Trigger Permissions'),
                 padding: 10,
                 items: [
                     {

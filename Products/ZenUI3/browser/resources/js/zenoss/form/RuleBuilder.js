@@ -575,7 +575,9 @@
                 callback: function(){
                     this.loaded = true;
                     Ext.form.ComboBox.prototype.setValue.call(this, val);
-                    this.taTask.cancel();
+                    if (this.taTask) {
+                        this.taTask.cancel();
+                    }
                     this.collapse();
                 },
                 scope: this
