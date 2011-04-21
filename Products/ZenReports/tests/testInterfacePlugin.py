@@ -36,7 +36,7 @@ def assertInterfaceRowIsCorrect(test, records, device, interface,
                                  testOutputOctets ):
     record = dict( zip( map( getComponentIdFromRecord, records ), records ) )[interface.id]
     testTotal=testInputOctets+testOutputOctets
-    testPercentUsed=long(testTotal)*8/testSpeed
+    testPercentUsed=long(testTotal)*8*100./testSpeed
     assertRecordIsCorrect( test, record, dict( speed=interface.speed,
                                         input=testInputOctets,
                                         output=testOutputOctets,
