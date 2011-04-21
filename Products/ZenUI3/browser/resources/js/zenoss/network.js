@@ -162,7 +162,7 @@ var treesm = new Ext.tree.DefaultSelectionModel({
 
             fb.buttonContextMenu.setContext(uid);
             Zenoss.env.PARENT_CONTEXT = uid;
-
+            
             fb.buttonDelete.setDisabled(treeConfigs.containsKey(uid));
         }
     }
@@ -537,7 +537,8 @@ Zenoss.footerHelper('Subnetwork', fb, {
                 iconCls: 'adddevice',
                 ref: 'buttonDiscoverDevices',
                 disabled: Zenoss.Security.doesNotHavePermission('Manage DMD') ||
-                    treeConfigs.containsKey(Zenoss.env.PARENT_CONTEXT),
+                    treeConfigs.containsKey(Zenoss.env.PARENT_CONTEXT) ||
+                    Zenoss.env.PARENT_CONTEXT.indexOf('IPv6Networks') >= 0,
                 handler: discoverDevicesDialog.show.createDelegate(discoverDevicesDialog)
             },{
                 tooltip: _t('Edit network description'),
