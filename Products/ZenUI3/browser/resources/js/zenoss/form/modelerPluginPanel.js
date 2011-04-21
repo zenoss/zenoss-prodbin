@@ -45,7 +45,7 @@
                     name: 'doc',
                     ref: 'doc',
                     toolTip: 'Select a single plugin to see the docs',
-                    fieldLabel: _t('Plugin Doc')
+                    fieldLabel: _t('Plugin Documentation')
                 }],
                 buttonAlign: 'left',
                 buttons: [{
