@@ -197,8 +197,10 @@
                     listeners: {
                         valid: function() {
                             var cmp = ZF.COMPARISONS[this.comparison.hiddenField.value],
-                                field = this.subject.getSubject().field || cmp.field || {xtype:'textfield'};
-                            var idx = this.items.items.indexOf(this.predicate);
+                                field = this.subject.getSubject().field || cmp.field || {xtype:'textfield'},
+                                idx = this.items.items.indexOf(this.predicate),
+                                oldvalue = this.predicate.getValue(),
+                                oldxtype = this.predicate.xtype;
                             this.remove(this.predicate);
                             this.insert(idx, Ext.apply({
                                 ref: 'predicate',
@@ -212,6 +214,9 @@
                                     scope: this
                                 }
                             }, field));
+                            if (oldvalue && this.predicate.xtype == oldxtype) {
+                                this.predicate.setValue(oldvalue);
+                            }
                             this.doLayout();
                             this.getBuilder().fireEvent(
                                 'rulechange',
