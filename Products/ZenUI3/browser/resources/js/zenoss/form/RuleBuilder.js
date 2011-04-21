@@ -399,7 +399,7 @@
                 }
             }, this);
             result = values.join(joiner);
-            if (this.clauses.items.items.length > 1) {
+            if (values.length > 1) {
                 result = String.format('({0})', result);
             }
             return result;
