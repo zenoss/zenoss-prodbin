@@ -248,8 +248,9 @@ class HeartbeatPortletView(BrowserView):
             # Seconds is difference between current time and last reported time
             # ZEP returns milliseconds, so perform appropriate conversion
             seconds = (now - heartbeat_dict['last_time']) / 1000
-            mydict['data'].append({'Device':self._getDeviceLink(heartbeat_dict['monitor']),
-                'Daemon':heartbeat_dict['daemon'], 'Seconds':seconds})
+            if seconds >= heartbeat_dict['timeout_seconds']:
+                mydict['data'].append({'Device':self._getDeviceLink(heartbeat_dict['monitor']),
+                    'Daemon':heartbeat_dict['daemon'], 'Seconds':seconds})
         return mydict
 
 
