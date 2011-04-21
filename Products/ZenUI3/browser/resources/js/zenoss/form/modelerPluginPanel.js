@@ -40,6 +40,12 @@
                     name: 'path',
                     ref: 'path',
                     fieldLabel: _t('Path')
+                },{
+                    xtype: 'displayfield',
+                    name: 'doc',
+                    ref: 'doc',
+                    toolTip: 'Select a single plugin to see the docs',
+                    fieldLabel: _t('Plugin Doc')
                 }],
                 buttonAlign: 'left',
                 buttons: [{
@@ -115,12 +121,18 @@
             if (this.modelerPlugins) {
                 this.modelerPlugins.destroy();
             }
+            this.doc.setValue('');
             this.uid = uid;
             // get the modeler plugins
             router.getZenProperty({
                 uid: uid,
                 zProperty: ZPROP_NAME
             }, this.loadData.createDelegate(this));
+
+            router.getModelerPluginDocStrings({
+                uid: uid
+            }, this.loadDocs.createDelegate(this));
+
         },
         toggleDeleteButton: function(path){
             // show the delete button if locally defined
@@ -139,11 +151,20 @@
         },
         loadData: function(response) {
             if (response.success) {
-                var data = response.data;
+                var data = response.data,
+                    clickHandler,
+                    panel = this;
 
                 this.path.setValue(data.path);
                 this.toggleDeleteButton(data.path);
-
+                clickHandler = function(select) {
+                    // display the docs for the first one
+                    var value = select.getValue();
+                    if (value.indexOf(',') != -1) {
+                        value = value.split(',')[0];
+                    }
+                    panel.showDocFor(value);
+                };
                 // add the multi select
                 this.add({
                     name: 'modelerPlugins',
@@ -160,16 +181,35 @@
                         legend: 'Available',
                         width: 350,
                         height: 475,
+                        listeners: {
+                            click: clickHandler
+                        },
                         store: data.options
                     },{
                         cls: 'multiselect-dialog',
                         legend: 'Selected',
                         width: 350,
                         height: 475,
-                        store: data.value
+                        store: data.value,
+                        listeners: {
+                            click: clickHandler
+                        },
                     }]
                 });
                 this.doLayout();
+            }
+        },
+        showDocFor: function(plugin) {
+
+            if (plugin && this.docs && this.docs[plugin]) {
+                this.doc.setValue(this.docs[plugin]);
+            }else{
+                this.doc.setValue(String.format(_t('No documentation found for {0}'), plugin));
+            }
+        },
+        loadDocs: function(response) {
+            if (response.success) {
+                this.docs = response.data;
             }
         }
     });

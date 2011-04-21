@@ -167,6 +167,10 @@ Zenoss.nav.register({
             }
         })
     },{
+        id: 'device_graphs',
+        nodeType: 'subselect',
+        text: _t('Graphs')
+    },{
         id: 'device_modeler_plugins',
         nodeType: 'subselect',
         text: _t('Modeler Plugins')
@@ -174,10 +178,6 @@ Zenoss.nav.register({
         id: 'device_config_properties',
         nodeType: 'subselect',
         text: _t('Configuration Properties')
-    },{
-        id: 'device_graphs',
-        nodeType: 'subselect',
-        text: _t('Graphs')
     }]
 });
 

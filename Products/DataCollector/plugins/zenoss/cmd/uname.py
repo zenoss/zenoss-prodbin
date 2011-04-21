@@ -11,7 +11,7 @@
 #
 ###########################################################################
 
-_doc__ = """uname
+__doc__ = """uname
 Determine the Operating System's name from the result of the
 uname command.
 """
@@ -19,8 +19,8 @@ uname command.
 from Products.DataCollector.plugins.CollectorPlugin import CommandPlugin
 
 class uname(CommandPlugin):
-    
-    maptype = "DeviceMap" 
+
+    maptype = "DeviceMap"
     compname = "os"
     command = 'uname'
 

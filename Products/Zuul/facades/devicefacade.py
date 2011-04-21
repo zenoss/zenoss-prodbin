@@ -21,6 +21,7 @@ from Products.Zuul.utils import unbrain
 from Products.Zuul.facades import TreeFacade
 from Products.Zuul.interfaces import IDeviceFacade, ICatalogTool, IInfo, ITemplateNode, ILocationOrganizerInfo
 from Products.Zuul.tree import SearchResults
+from Products.DataCollector.Plugins import CoreImporter, PackImporter, loadPlugins
 from Products.ZenModel.DeviceOrganizer import DeviceOrganizer
 from Products.ZenModel.DeviceGroup import DeviceGroup
 from Products.ZenModel.System import System
@@ -491,6 +492,28 @@ class DeviceFacade(TreeFacade):
             value = str(value)
 
         return obj.setZenProperty(zProperty, value)
+
+    def getModelerPluginDocStrings(self, uid):
+        """
+        Returns a dictionary of documentation for modeler plugins, indexed
+        by the plugin name.
+        """
+        obj = self._getObject(uid)
+        plugins = loadPlugins(obj)
+        docs = {}
+        packImporter = PackImporter()
+        coreImporter = CoreImporter()
+        for plugin in plugins:
+            try:
+                module = coreImporter.importModule(plugin.package, plugin.modPath)
+            except ImportError:
+                try:
+                    module = packImporter.importModule(plugin.package, plugin.modPath)
+                except ImportError:
+                    # unable to import skip over this one
+                    continue
+            docs[plugin.pluginName] = module.__doc__
+        return docs
 
     def getZenProperties(self, uid):
         """

@@ -11,7 +11,7 @@
 #
 ###########################################################################
 
-_doc__ = """uname -a
+__doc__ = """uname -a
 Determine snmpSysName and setOSProductKey from the result of the uname -a
 command.
 """
@@ -19,8 +19,8 @@ command.
 from Products.DataCollector.plugins.CollectorPlugin import CommandPlugin
 
 class uname_a(CommandPlugin):
-    
-    maptype = "DeviceMap" 
+
+    maptype = "DeviceMap"
     compname = ""
     command = 'uname -a'
 

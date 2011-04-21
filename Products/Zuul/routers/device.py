@@ -1549,5 +1549,11 @@ class DeviceRouter(TreeRouter):
         data = facade.getZenProperty(uid, zProperty)
         return DirectResponse.succeed(data=Zuul.marshal(data))
 
-
-
+    @serviceConnectionError
+    def getModelerPluginDocStrings(self, uid):
+        """
+        Given a uid returns the documentation for all the modeler plugins.
+        """
+        facade = self._getFacade()
+        data = facade.getModelerPluginDocStrings(uid)
+        return DirectResponse.succeed(data=Zuul.marshal(data))

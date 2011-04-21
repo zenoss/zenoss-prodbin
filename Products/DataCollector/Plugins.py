@@ -30,12 +30,12 @@ Classes -
     PackLoaderFactory - generates the PluginLoaders for zenpack plugins
     PluginManager - there is one singleton instance of this class for modeling
                     plugins and another for monitoring plugins
-                    
+
 Note that modPath uses a different convention for core versus zenpack plugins.
 
     core: zenoss.cmd.uname
     zenpack: ZenPacks.zenoss.AixMonitor.modeler.plugins.zenoss.cmd.uname
-    
+
 """
 
 from Products.ZenUtils.Utils import importClass, zenPath
@@ -81,7 +81,7 @@ class PluginLoader(pb.Copyable, pb.RemoteCopy):
         lastModName - name of the last module in modPath that is not part of
                   of the plugin name
         importer - object with an importPlugin method used to import the
-                   plugin. the implementation of the import method differs 
+                   plugin. the implementation of the import method differs
                    between core and zenpack plugins
         """
         self.package = package
@@ -98,7 +98,7 @@ class PluginLoader(pb.Copyable, pb.RemoteCopy):
                 # Modify sys.path (some plugins depend on this to import other
                 # modules from the plugins root)
                 sys.path.insert(0, self.package)
-                pluginClass = self.importer.importPlugin(self.package, 
+                pluginClass = self.importer.importPlugin(self.package,
                                                          self.modPath)
                 return pluginClass()
             except (SystemExit, KeyboardInterrupt):
@@ -115,7 +115,7 @@ class PluginLoader(pb.Copyable, pb.RemoteCopy):
             except ValueError:
                 # It's already been removed
                 pass
-                
+
 pb.setUnjellyableForClass(PluginLoader, PluginLoader)
 
 def _coreModPaths(walker, package):
@@ -135,22 +135,20 @@ def _coreModPaths(walker, package):
                     and '#' not in filename \
                     and filename not in ('CollectorPlugin.py', 'DataMaps.py'):
                 yield '.'.join(modPathBase + [filename[:-3]])
-                
+
 class OsWalker(object):
-    
+
     def walk(self, package):
         return os.walk(package)
-    
+
 class CoreImporter(pb.Copyable, pb.RemoteCopy):
-    
-    def importPlugin(self, package, modPath):
+
+    def importModule(self, package, modPath):
         fp = None
-        # Load the plugins package using its path as the name to 
+        # Load the plugins package using its path as the name to
         # avoid conflicts. slashes in the name are OK when using
         # the imp module.
         parts = modPath.split('.')
-        # class name is same as module name
-        clsname = parts[-1]
         path = package
         try:
             for partNo in range(1,len(parts)+1):
@@ -161,61 +159,83 @@ class CoreImporter(pb.Copyable, pb.RemoteCopy):
         finally:
             if fp:
                 fp.close()
+        return mod
+
+    def importPlugin(self, package, modPath):
+        parts = modPath.split('.')
+        # class name is same as module name
+        clsname = parts[-1]
+        mod = self.importModule(package, modPath)
         return getattr(mod, clsname)
-        
+
 pb.setUnjellyableForClass(CoreImporter, CoreImporter)
 
 class PackImporter(pb.Copyable, pb.RemoteCopy):
-    
+
+    def importModule(self, package, modPath):
+        modulePath = modPath
+        try:
+            classname = modulePath.split(".")[-1]
+            try:
+                __import__(modulePath, globals(), locals(), classname)
+                mod = sys.modules[modulePath]
+            except (ValueError, ImportError, KeyError), ex:
+                raise ex
+
+            return mod
+        except AttributeError:
+            raise ImportError("Failed while importing module %s" % (
+                    modulePath))
+
     def importPlugin(self, package, modPath):
         # ZenPack plugins are specified absolutely; we can import
         # them using the old method
         return importClass(modPath)
-        
+
 pb.setUnjellyableForClass(PackImporter, PackImporter)
 
 class BaseLoaderFactory(object):
-    
+
     def __init__(self, walker):
         self.walker = walker
-    
+
     def genLoaders(self, package, lastModName):
         for coreModPath in _coreModPaths(self.walker, package):
             yield self._createLoader(package, coreModPath, lastModName)
-            
+
 class CoreLoaderFactory(BaseLoaderFactory):
-    
+
     def _createLoader(self, package, coreModPath, lastModName):
         return PluginLoader(package, coreModPath, lastModName, CoreImporter())
-        
+
 class PackLoaderFactory(BaseLoaderFactory):
-    
+
     def __init__(self, walker, modPathPrefix):
         BaseLoaderFactory.__init__(self, walker)
         self.modPathPrefix = modPathPrefix
-        
+
     def _createLoader(self, package, coreModPath, lastModName):
         packModPath = '%s.%s' % (self.modPathPrefix, coreModPath)
         return PluginLoader(package, packModPath, lastModName, PackImporter())
-        
+
 class PluginManager(object):
     """
     Manages plugin modules.  Finds plugins and returns PluginLoader instances.
     Keeps a cache of previously loaded plugins.
     """
-    
+
     def __init__(self, lastModName, packPath, productsPaths):
         """
         Adds PluginLoaders for plugins in productsPaths to the pluginLoaders
         dictionary.
-        
+
         lastModName - the directory name where the plugins are found.  this name
                   is appended to the following paths
         packPath - path to the directory that holds the plugin modules inside
                    a zenpack. this path is relative to the zenpack root
         productsPaths - list of paths to directories that hold plugin
                    modules. these paths are relative to $ZENHOME/Products
-        
+
         a 'path', as used here, is a tuple of directory names
         """
         self.pluginLoaders = {} # PluginLoaders by module path
@@ -225,11 +245,11 @@ class PluginManager(object):
         for path in productsPaths:
             package = zenPath(*('Products',) + path + (lastModName,))
             self._addPluginLoaders(CoreLoaderFactory(OsWalker()), package)
-                          
+
     def getPluginLoader(self, packs, modPath):
         """
         Get the PluginLoader for a specific plugin.
-        
+
         packs - list of installed zenpacks (ZenPack instances)
         modPath - the module path of the plugin
         """
@@ -237,19 +257,19 @@ class PluginManager(object):
             self.getPluginLoaders(packs)
         if modPath in self.pluginLoaders:
             return self.pluginLoaders[modPath]
-                                   
+
     def getPluginLoaders(self, packs):
         """
         Add the PluginLoaders for the packs to the pluginLoaders dictionary.
         Return the values of that dictionary.
-        
+
         packs - list of installed zenpacks (ZenPack instances)
         """
         try:
             for pack in packs:
                 if pack.moduleName() not in self.loadedZenpacks:
                     self.loadedZenpacks.append(pack.moduleName())
-                    modPathPrefix = '.'.join((pack.moduleName(),) + 
+                    modPathPrefix = '.'.join((pack.moduleName(),) +
                             self.packPath + (self.lastModName,))
                     factory = PackLoaderFactory(OsWalker(), modPathPrefix)
                     package = pack.path(*self.packPath + (self.lastModName,))
@@ -260,7 +280,7 @@ class PluginManager(object):
             import traceback
             log.debug(traceback.format_exc())
         return self.pluginLoaders.values()
-        
+
     def _addPluginLoaders(self, loaderFactory, package):
         log.debug("Loading collector plugins from: %s", package)
         try:
@@ -271,35 +291,35 @@ class PluginManager(object):
             log.error('Could not load plugins from %s', package)
             import traceback
             log.debug(traceback.format_exc())
-            
+
 class ModelingManager(object):
     """
-    this class is not intended to be instantiated. instead it is a place to 
+    this class is not intended to be instantiated. instead it is a place to
     hold a singleton instance of PluginManager without having them call the
     constructor when this module is imported.
     """
-    
+
     instance = None
-    
+
     @classmethod
     def getInstance(cls):
         if cls.instance is None:
             cls.instance = PluginManager(
                     lastModName='plugins',
                     packPath=('modeler',),
-                    productsPaths=[('DataCollector',), 
+                    productsPaths=[('DataCollector',),
                                    ('ZenWin', 'modeler',)])
         return cls.instance
 
 class MonitoringManager(object):
     """
-    this class is not intended to be instantiated. instead it is a place to 
+    this class is not intended to be instantiated. instead it is a place to
     hold a singleton instance of PluginManager without having them call the
     constructor when this module is imported.
     """
-    
+
     instance = None
-    
+
     @classmethod
     def getInstance(cls):
         if cls.instance is None:
@@ -308,18 +328,18 @@ class MonitoringManager(object):
                     packPath=(),
                     productsPaths=[('ZenRRD',)])
         return cls.instance
-        
+
 def _loadPlugins(pluginManager, dmd):
     return pluginManager.getPluginLoaders(dmd.ZenPackManager.packs())
 
 def loadPlugins(dmd):
     "Get PluginLoaders for all the modeling plugins"
     return _loadPlugins(ModelingManager.getInstance(), dmd)
-    
+
 def loadParserPlugins(dmd):
     "Get PluginLoaders for all the modeling plugins"
     return _loadPlugins(MonitoringManager.getInstance(), dmd)
-    
+
 def getParserLoader(dmd, modPath):
     "Get a PluginLoader for the given monitoring plugin's module path"
     return MonitoringManager.getInstance().getPluginLoader(
