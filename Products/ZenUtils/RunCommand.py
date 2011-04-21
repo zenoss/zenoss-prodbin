@@ -52,7 +52,7 @@ class RunCommand(ZenScriptBase):
         self.parser.add_option('--collector', dest='collector',
             help="Name of specific collector on which to run the command")
         self.parser.add_option('--timeout', dest='timeout',
-                           default=60,
+                           default=60, type="int",
                            help="Kill the process after this many seconds.")
         self.parser.add_option('-n', '--useprefix', action='store_false',
                                dest='useprefix', default=True,

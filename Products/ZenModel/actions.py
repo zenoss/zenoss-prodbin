@@ -401,8 +401,8 @@ class CommandAction(IActionBase):
         if actor.element_sub_uuid:
             component = self.guidManager.getObject(actor.element_sub_uuid)
 
-        
-        environ = {'dev':device, 'component':component }
+
+        environ = {'dev':device, 'component':component, 'dmd':notification.dmd}
         data = _signalToContextDict(signal)
         environ.update(data)
 
