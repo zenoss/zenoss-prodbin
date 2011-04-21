@@ -50,5 +50,5 @@ class interface( AliasPlugin ):
                 Column('outputBits', PythonColumnHandler('output * 8')),
                 Column('total', PythonColumnHandler('input+output')),
                 Column('totalBits', PythonColumnHandler('(input+output) * 8')),
-                Column('percentUsed',PythonColumnHandler('(long(total)*8)/speed'))
+                Column('percentUsed',PythonColumnHandler('(long(total)*8)*100./speed'))
                 ]
