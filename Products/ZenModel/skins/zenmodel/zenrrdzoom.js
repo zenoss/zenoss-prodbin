@@ -84,7 +84,7 @@ Zenoss.SwoopyGraph = Ext.extend(Ext.Panel, {
         });
         Zenoss.SwoopyGraph.superclass.constructor.call(this, config);
         this.linkcheck = Ext.get('linkcheck');
-        this.mustUseImageUri = Ext.isIE6 || Ext.isIE7;
+        this.mustUseImageUri = Ext.isIE;
         Zenoss.SWOOPIES.push(this);
     },
     initEvents: function() {
