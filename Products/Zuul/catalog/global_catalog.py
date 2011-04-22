@@ -12,6 +12,7 @@
 ###########################################################################
 
 import time
+import zExceptions
 from zope.interface import providedBy, ro, implements
 from zope.component import adapts
 from Acquisition import aq_base
@@ -278,7 +279,7 @@ class GlobalCatalog(ZCatalog):
             obj = self.unrestrictedTraverse(path)
             if not isinstance(obj, self._get_forbidden_classes()):
                 super(GlobalCatalog, self).uncatalog_object(path)
-        except KeyError:
+        except (KeyError, zExceptions.NotFound):
             # Can't find the object, so maybe a bad path or something; just get
             # rid of it
             super(GlobalCatalog, self).uncatalog_object(path)

@@ -13,6 +13,7 @@
 
 import Globals
 import Migrate
+import zExceptions
 
 import logging
 log = logging.getLogger("zen.migrate")
@@ -36,9 +37,12 @@ class RebuildPathIndex(Migrate.Step):
         # global catalog
         for x in zport.global_catalog():
             i+=1
-            zport.global_catalog.catalog_object(x.getObject(),x.getPath(),
-                                                idxs=['path'],
-                                                update_metadata=False)
+            try:
+                zport.global_catalog.catalog_object(x.getObject(),x.getPath(),
+                                                    idxs=['path'],
+                                                    update_metadata=False)
+            except (KeyError, zExceptions.NotFound):
+                zport.global_catalog.uncatalog_object(x.getPath())
             if i % 200 == 0:
                 log.info("rate=%.2f/sec count=%d", 200/(time.time()-tstart), i)
                 tstart=time.time()
