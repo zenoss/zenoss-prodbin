@@ -40,6 +40,10 @@ class ReportRunner(ZCmdBase):
 
         self.log.debug("Running '%s' with %r", plugin, args)
         result = self.dmd.ReportServer.plugin(plugin, args)
+        if not result:
+            self.log.warn("No results returned from plugin.")
+            return
+
         if self.options.export == 'csv':
             self.writeCsv(result)
         else:
