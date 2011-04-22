@@ -385,8 +385,8 @@ class AddDeviceContextPipe(EventProcessorPipe):
     dependencies = [IdentifierPipe]
 
     FIELDS = (
-    (EventField.Actor.ELEMENT_TYPE_ID, EventField.Actor.ELEMENT_UUID),
-    (EventField.Actor.ELEMENT_SUB_TYPE_ID, EventField.Actor.ELEMENT_SUB_UUID),
+        (EventField.Actor.ELEMENT_TYPE_ID, EventField.Actor.ELEMENT_UUID),
+        (EventField.Actor.ELEMENT_SUB_TYPE_ID, EventField.Actor.ELEMENT_SUB_UUID),
     )
 
     def _addDeviceContext(self, eventContext, device):

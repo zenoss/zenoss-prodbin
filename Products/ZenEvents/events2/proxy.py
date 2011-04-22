@@ -10,7 +10,7 @@
 # For complete information please visit: http://www.zenoss.com/oss/
 #
 ###########################################################################
-
+from itertools import imap
 from Products.ZenUtils.Time import LocalDateTimeFromMilli
 from Products.ZenEvents.events2.fields import EventField, EventSummaryField, ZepRawEventField
 from zenoss.protocols.protobufs.model_pb2 import DEVICE, COMPONENT
@@ -101,14 +101,20 @@ class EventDetailProxy(object):
             raise Exception('Detail %s has more than one value but the old event system expects only one: %s' % (item.name, item.value))
 
     def __setitem__(self, key, value):
+        # Prep the field
         if not key in self._map:
             item = self._eventProtobuf.details.add()
             item.name = key
             self._map[key] = item
-
         item = self._map[key]
         item.ClearField(EventField.Detail.VALUE)
-        item.value.append(str(value))
+        # Assume multivalue details
+        if not isinstance(value, (set, list, tuple)):
+            value = (value,)
+        # Set each detail if it exists
+        for val in imap(str, value):
+            if val:
+                item.value.append(val)
 
     def __contains__(self, key):
         return key in self._map
@@ -380,6 +386,7 @@ class EventProxy(object):
 class EventSummaryProxy(EventProxy):
     """
     Wraps an org.zenoss.protobufs.zep.EventSummary
+
     and makes it look like an old style Event.
     """
     def __init__(self, eventSummaryProtobuf):
