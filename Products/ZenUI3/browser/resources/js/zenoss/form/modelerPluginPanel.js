@@ -178,7 +178,7 @@
                     drawBotIcon: true,
                     multiselects: [{
                         cls: 'multiselect-dialog',
-                        legend: 'Available',
+                        legend: _t('Available'),
                         width: 350,
                         height: 475,
                         listeners: {
@@ -187,7 +187,7 @@
                         store: data.options
                     },{
                         cls: 'multiselect-dialog',
-                        legend: 'Selected',
+                        legend: _t('Selected'),
                         width: 350,
                         height: 475,
                         store: data.value,

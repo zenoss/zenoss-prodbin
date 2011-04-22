@@ -146,6 +146,12 @@
                     ref: 'path',
                     fieldLabel: _t('Path'),
                     value: data.path
+                },{
+                    xtype: 'displayfield',
+                    name: 'type',
+                    ref: 'type',
+                    fieldLabel: _t('Type'),
+                    value: data.type
                 }, editConfig
             ],
             // explicitly do not allow enter to submit the dialog
