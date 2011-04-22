@@ -1549,10 +1549,6 @@ Ext.onReady(function () {
                     text: _t('IP Address'),
                     value: 'dev.ip_address',
                     comparisons: STRINGCMPS
-                },{
-                    text: _t('Owner Id'),
-                    value: 'evt.current_user_name',
-                    comparisons: STRINGCMPS
                 },
                 ZFR.SYSTEMS,
                 ZFR.DEVICEGROUPS

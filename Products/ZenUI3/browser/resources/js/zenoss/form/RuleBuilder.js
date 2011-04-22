@@ -569,6 +569,11 @@
         'doesnotequal'
     ];
 
+    ZF.LISTCOMPARISONS = [
+        'doesnotcontain',
+        'contains'
+    ];
+
     var smarterSetValue = function(val) {
         if (!this.loaded) {
             this.store.load({
@@ -704,7 +709,7 @@
         SYSTEMS: {
             text: _t('Systems'),
             value: 'dev.systems',
-            comparisons: ZF.STRINGCOMPARISONS,
+            comparisons: ZF.LISTCOMPARISONS,
             field: {
                 xtype: 'combo',
                 setValue: smarterSetValue,
@@ -724,7 +729,7 @@
         DEVICEGROUPS: {
             text: _t('Device Groups'),
             value: 'dev.groups',
-            comparisons: ZF.IDENTITYCOMPARISONS,
+            comparisons: ZF.LISTCOMPARISONS,
             field: {
                 xtype: 'combo',
                 setValue: smarterSetValue,
