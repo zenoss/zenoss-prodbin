@@ -1,14 +1,14 @@
 <?xml version="1.0" encoding="ISO-8859-1" ?>
 
 <!--
-    Zenoss RelationshipManager export completed on 2011-03-24 16:06:58.976857
+    Zenoss RelationshipManager export completed on 2011-04-22 11:40:01.475483
 
     Use ImportRM to import this file.
 
     For more information about Zenoss, go to http://www.zenoss.com
  -->
 
-<objects version="[Zenoss, version 3.1.70]" export_date="2011-03-24 16:06:58.976857" zenoss_server="localhost.localdomain" >
+<objects version="[Zenoss, version 3.1.70]" export_date="2011-04-22 11:40:01.475483" zenoss_server="Joseph-Hansons-MacBook-Pro.local" >
 <object id='/zport/dmd/Devices' module='Products.ZenModel.DeviceClass' class='DeviceClass'>
 <property visible="True" type="int" id="zProdStateThreshold" >
 300
@@ -152,7 +152,7 @@ True
 60
 </property>
 <property visible="True" type="boolean" id="zCollectorLogChanges" >
-True
+False
 </property>
 <property visible="True" type="string" id="zNmapPortscanOptions" >
 -p 1-1024;-sT;--open;-oG -
