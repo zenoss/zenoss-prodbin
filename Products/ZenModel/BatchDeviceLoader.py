@@ -194,7 +194,8 @@ settingsDevice setManageIp='10.10.10.77', setLocation="123 Elm Street", \
         """
         prefix = '/zport/dmd/' + lgsType
         base = getattr(self.dmd, lgsType)
-        base.sync()
+        if hasattr(base, 'sync'):
+            base.sync()
         existing = [x.getPrimaryUrlPath().replace(prefix, '') \
                                       for x in base.getSubOrganizers()]
         for path in paths:
