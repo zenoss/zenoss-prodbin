@@ -1575,7 +1575,9 @@ Zenoss.RefreshMenuButton = Ext.extend(Ext.SplitButton, {
                 group: 'refreshgroup'
             }]
         };
-        config.menu = menu;
+        Ext.applyIf(config, {
+            menu: menu
+        });
         Zenoss.RefreshMenuButton.superclass.constructor.apply(this,
             arguments);
         this.refreshTask = new Ext.util.DelayedTask(this.poll, this);

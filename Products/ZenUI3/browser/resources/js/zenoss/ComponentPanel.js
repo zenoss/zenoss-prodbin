@@ -73,21 +73,7 @@ Zenoss.nav.register({
                     xtype: 'tbtext',
                     text: _t('Range:')
                 }, {
-                    xtype: 'combo',
-                    fieldLabel: _t('Range'),
-                    triggerAction: 'all',
-                    value: 129600,
-                    mode: 'local',
-                    store: new Ext.data.ArrayStore({
-                        id: 0,
-                        fields: [
-                            'label',
-                            'id'
-                        ],
-                        data: Zenoss.env.DATE_RANGES
-                    }),
-                    valueField: 'id',
-                    displayField: 'label',
+                    xtype: 'drangeselector',
                     listeners: {
                         select: function(combo, record, index){
                             var value = record.data.id,
@@ -115,6 +101,16 @@ Zenoss.nav.register({
                         check: function(chkBx, checked) {
                             var panel = Ext.getCmp(cardid);
                             panel.setLinked(checked);
+                        }
+                    }
+                }, '-', {
+                    xtype: 'graphrefreshbutton',
+                    stateId: 'graphRefresh',
+                    iconCls: 'refresh',
+                    text: _t('Refresh'),
+                    handler: function(btn) {
+                        if (cardid) {
+                            Ext.getCmp(cardid).resetSwoopies();
                         }
                     }
                 }

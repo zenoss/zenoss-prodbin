@@ -14,7 +14,7 @@
 */
 
 (function(){
-    Zenoss.env.DATE_RANGES =[
+    var DATE_RANGES =[
             [_t('Hourly'), 129600],
             [_t('Daily'), 864000],
             [_t('Weekly'), 3628800],
@@ -300,19 +300,63 @@
      */
     var router = Zenoss.remote.DeviceRouter,
         GraphPanel,
+        DRangeSelector,
+        GraphRefreshButton,
         tbarConfig;
 
-    tbarConfig = [{
-                    xtype: 'tbtext',
-                    text: _t('Performance Graphs')
+    GraphRefreshButton = Ext.extend(Zenoss.RefreshMenuButton, {
+        constructor: function(config) {
+            config = config || {};
+            var menu = {
+                xtype: 'statefulrefreshmenu',
+                id: config.stateId || 'graph_refresh',
+                trigger: this,
+                items: [{
+                    xtype: 'menutextitem',
+                    cls: 'refreshevery',
+                    text: 'Refresh every'
+                },{
+                    xtype: 'menucheckitem',
+                    text: '5 minutes',
+                    value: 300,
+                    group: 'refreshgroup'
+                },{
+                    xtype: 'menucheckitem',
+                    text: '10 Minutes',
+                    value: 600,
+                    group: 'refreshgroup'
+                },{
+                    xtype: 'menucheckitem',
+                    text: '30 Minutes',
+                    checked: true,
+                    value: 1800,
+                    group: 'refreshgroup'
+                },{
+                    xtype: 'menucheckitem',
+                    text: '1 Hour',
+                    value: 3600,
+                    group: 'refreshgroup'
+                },{
+                    xtype: 'menucheckitem',
+                    text: 'Manually',
+                    value: -1,
+                    group: 'refreshgroup'
+                }]
+            };
+            Ext.apply(config, {
+                menu: menu
+            });
+            GraphRefreshButton.superclass.constructor.apply(this, arguments);
+        }
+    });
+    Ext.reg('graphrefreshbutton', GraphRefreshButton);
 
-                }, '-', '->', {
-                    xtype: 'tbtext',
-                    text: _t('Range:')
-                }, {
-                    xtype: 'combo',
-                    ref: '../drange_select',
-                    fieldLabel: _t('Range'),
+
+    DRangeSelector = Ext.extend(Ext.form.ComboBox, {
+        constructor: function(config) {
+            config = config || {};
+            Ext.apply(config, {
+                fieldLabel: _t('Range'),
                     name: 'ranges',
                     editable: false,
                     forceSelection: true,
@@ -326,10 +370,26 @@
                             'label',
                             'id'
                         ],
-                        data: Zenoss.env.DATE_RANGES
+                        data: DATE_RANGES
                     }),
                     valueField: 'id',
-                    displayField: 'label',
+                    displayField: 'label'
+            });
+            DRangeSelector.superclass.constructor.apply(this, arguments);
+        }
+    });
+    Ext.reg('drangeselector', DRangeSelector);
+
+    tbarConfig = [{
+                    xtype: 'tbtext',
+                    text: _t('Performance Graphs')
+
+                }, '-', '->', {
+                    xtype: 'tbtext',
+                    text: _t('Range:')
+                }, {
+                    xtype: 'drangeselector',
+                    ref: '../drange_select',
                     listeners: {
                         select: function(combo, record, index){
                             var value = record.data.id,
@@ -360,7 +420,7 @@
                         }
                     }
                 }, '-',{
-                    xtype: 'refreshmenu',
+                    xtype: 'graphrefreshbutton',
                     ref: '../refreshmenu',
                     stateId: 'graphRefresh',
                     iconCls: 'refresh',
@@ -402,7 +462,7 @@
                 uid: uid,
                 drange: this.drange
             };
-            self.uid = uid;
+            this.uid = uid;
             router.getGraphDefs(params, this.loadGraphs.createDelegate(this));
         },
         loadGraphs: function(result){
