@@ -1173,3 +1173,5 @@ it will appear as an empty folder.
 .graph-panel {
     padding: 5px;
 }
+
+.ext-ie .info {background:transparent}
