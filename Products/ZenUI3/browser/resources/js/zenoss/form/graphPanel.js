@@ -450,7 +450,8 @@
                 // size of the div
                 bodyStyle: {
                     overflow: 'auto'
-                }
+                },
+                directFn: router.getGraphDefs
             });
             GraphPanel.superclass.constructor.apply(this, arguments);
         },
@@ -463,7 +464,7 @@
                 drange: this.drange
             };
             this.uid = uid;
-            router.getGraphDefs(params, this.loadGraphs.createDelegate(this));
+            this.directFn(params, this.loadGraphs.createDelegate(this));
         },
         loadGraphs: function(result){
             if (!result.success){
