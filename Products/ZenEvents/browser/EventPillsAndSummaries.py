@@ -17,6 +17,19 @@ from Products.Five.browser import BrowserView
 from Products.ZenUtils.jsonutils import json
 from Products.ZenModel.DeviceOrganizer import DeviceOrganizer
 
+class SinglePill(BrowserView):
+    def __call__(self):
+        """
+        Gets event pill for worst severity.
+
+        @return: HTML that will render the event pill.
+        @rtype: str
+        """
+        pill = getEventPillME(self.context)
+        if type(pill)==type([]) and len(pill)==1: return pill[0]
+        return pill
+
+
 class ObjectsEventSummary(BrowserView):
     """
     Return an HTML link and event pill for each object passed as a JSON
