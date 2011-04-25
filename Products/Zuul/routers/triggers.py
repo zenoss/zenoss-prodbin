@@ -46,7 +46,25 @@ class TriggersRouter(DirectRouter):
 
     @serviceConnectionError
     def removeTrigger(self, uuid):
-        return DirectResponse.succeed(msg="Trigger removed without a problem.", data=self._getFacade().removeTrigger(uuid))
+
+        updated_count = self._getFacade().removeTrigger(uuid)
+
+        msg = "Trigger removed successfully."
+
+        if updated_count > 0 and updated_count < 3:
+            msg = "{message} Updated the following notifications: {notifications}.".format(
+                message = msg,
+                notifications = ', '.join(n.id for n in updated_notifications)
+            )
+
+        if updated_count >= 3:
+            msg = "{message} Updated the following notifications: {notifications} and {count} more.".format(
+                message = msg,
+                notifications = ', '.join(n.id for n in updated_notifications[0:2]),
+                count = updated_count-2
+            )
+            
+        return DirectResponse.succeed(msg=msg, data=None)
 
     @serviceConnectionError
     def getTrigger(self, uuid):

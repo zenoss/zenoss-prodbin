@@ -32,7 +32,13 @@ class ITriggersFacade(IFacade):
         """Get all existing triggers"""
 
     def getTriggerList():
-        """Retrieve a list of all triggers regardless of permission."""
+        """
+        Retrieve a list of all triggers regardless of permission.
+
+        @return: Each element in this list will contain the id and uuid of the
+                 trigger.
+        @rtype: list
+        """
 
     def addTrigger(newId):
         """ 
@@ -42,7 +48,12 @@ class ITriggersFacade(IFacade):
         """
 
     def removeTrigger(uuid):
-        """ Remove a trigger by uuid"""
+        """
+        Remove a trigger by uuid.
+        @return: the number of notifications that were updated to reflect the
+        removal of this trigger.
+        @rtype: int
+        """
 
     def getTrigger(uuid):
         """Retrieve a trigger by uuid"""

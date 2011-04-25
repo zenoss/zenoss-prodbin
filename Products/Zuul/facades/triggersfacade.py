@@ -100,7 +100,7 @@ class TriggersFacade(ZuulFacade):
         trigger.rule.api_version = 1
         trigger.rule.type = zep.RULE_TYPE_JYTHON
         trigger.rule.source = ''
-        response, content = self.triggers_service.addTrigger(trigger)
+        self.triggers_service.addTrigger(trigger)
 
         log.debug('Created trigger with uuid: %s ' % trigger.uuid)
         return trigger.uuid
@@ -110,15 +110,39 @@ class TriggersFacade(ZuulFacade):
         trigger = self._guidManager.getObject(uuid)
         
         if self.triggerPermissions.userCanUpdateTrigger(user, trigger):
-            response, content = self.triggers_service.removeTrigger(uuid)
+            # If a user has the ability to update (remove) a trigger, it is
+            # presumed that they will be consciously deleting triggers that
+            # may have subscribers.
+            #
+            # Consider that that trigger may be subscribed to by notifications
+            # that the current user cannot read/edit.
+
+            # if there was an error, the triggers service will throw an exception
+            self.triggers_service.removeTrigger(uuid)
+            
             context = aq_parent(trigger)
             context._delObject(trigger.id)
-            return content
+
+            relevant_notifications = self.getNotificationsBySubscription(uuid)
+
+            updated_count = 0
+            for n in relevant_notifications:
+                n.subscriptions.remove(uuid)
+                log.debug('Removing trigger uuid %s from notification: %s' % (uuid, n.id))
+                self.updateNotificationSubscriptions(n)
+                updated_count += 1
+
+            return updated_count
         else:
             log.warning('User not authorized to remove trigger: User: %s, Trigger: %s' % (user.getId(), trigger.id))
             raise Exception('User not authorized to remove trigger: User: %s, Trigger: %s' % (user.getId(), trigger.id))
 
-
+    def getNotificationsBySubscription(self, trigger_uuid):
+        for n in self._getNotificationManager().getChildNodes():
+            if trigger_uuid in n.subscriptions:
+                notifications.append(n)
+                yield n
+    
     def getTrigger(self, uuid):
         user = getSecurityManager().getUser()
         trigger = self._guidManager.getObject(uuid)

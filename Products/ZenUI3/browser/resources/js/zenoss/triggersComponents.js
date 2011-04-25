@@ -84,7 +84,6 @@ var TriggerSubscriptions = Ext.extend(Ext.grid.EditorGridPanel, {
                     header: _t('Trigger'),
                     dataIndex: 'uuid',
                     renderer: function(value, metaData, record, rowIndex, colIndex, store) {
-                        console.log('Trigger value I cant read?', record);
                         var comboStore = me.getTopToolbar().data_combo.getStore();
                         var idx = comboStore.find('uuid', value);
                         if (idx > -1) {
