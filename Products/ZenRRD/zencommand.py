@@ -723,6 +723,7 @@ class SshPerformanceCollectionTask(ObservableMixin):
                         results = ParsedResults()
                         self._processDatasourceResults(ds, results)
                         parseableResults.append( (ds, results) )
+                    results = ParsedResults()
 
                 self._processDatasourceResults(datasource, results)
 
