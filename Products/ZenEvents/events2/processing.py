@@ -390,29 +390,41 @@ class AddDeviceContextPipe(EventProcessorPipe):
     )
 
     def _addDeviceContext(self, eventContext, device):
-        eventContext.eventProxy.ipAddress = eventContext.eventProxy.ipAddress or device.manageIp
-        eventContext.eventProxy.prodState = device.productionState
-        eventContext.eventProxy.DevicePriority = device.getPriority()
+        ipAddress = eventContext.eventProxy.ipAddress or device.manageIp
+        if ipAddress:
+            eventContext.eventProxy.ipAddress = ipAddress
+
+        prodState = device.productionState
+        if prodState:
+            eventContext.eventProxy.prodState = prodState
+
+        devicePriority = device.getPriority()
+        if devicePriority:
+            eventContext.eventProxy.DevicePriority = devicePriority
 
         location = device.getLocationName()
-        eventContext.eventProxy.setReadOnly('Location', location)
-        eventContext.eventProxy.details[EventProxy.DEVICE_LOCATION_DETAIL_KEY] = location
+        if location:
+            eventContext.eventProxy.setReadOnly('Location', location)
+            eventContext.eventProxy.details[EventProxy.DEVICE_LOCATION_DETAIL_KEY] = location
 
         deviceClassName = device.getDeviceClassName()
-        eventContext.eventProxy.setReadOnly('DeviceClass', deviceClassName)
-        eventContext.eventProxy.details[EventProxy.DEVICE_CLASS_DETAIL_KEY] = deviceClassName
+        if deviceClassName:
+            eventContext.eventProxy.setReadOnly('DeviceClass', deviceClassName)
+            eventContext.eventProxy.details[EventProxy.DEVICE_CLASS_DETAIL_KEY] = deviceClassName
 
         deviceGroupNames = device.getDeviceGroupNames()
-        deviceGroups = '|' + '|'.join(deviceGroupNames)
-        # transforms expect old-style DeviceGroups
-        eventContext.eventProxy.setReadOnly('DeviceGroups', deviceGroups)
-        # trigger rules expect new-style values with multi-valued details.
-        eventContext.eventProxy.details[EventProxy.DEVICE_GROUPS_DETAIL_KEY] = deviceGroupNames
+        if deviceGroupNames:
+            deviceGroups = '|' + '|'.join(deviceGroupNames)
+            # transforms expect old-style DeviceGroups
+            eventContext.eventProxy.setReadOnly('DeviceGroups', deviceGroups)
+            # trigger rules expect new-style values with multi-valued details.
+            eventContext.eventProxy.details[EventProxy.DEVICE_GROUPS_DETAIL_KEY] = deviceGroupNames
 
         systemsNames = device.getSystemNames()
-        systems = '|' + '|'.join(systemsNames)
-        eventContext.eventProxy.setReadOnly('Systems', systems)
-        eventContext.eventProxy.details[EventProxy.DEVICE_SYSTEMS_DETAIL_KEY] = systemsNames
+        if systemsNames:
+            systems = '|' + '|'.join(systemsNames)
+            eventContext.eventProxy.setReadOnly('Systems', systems)
+            eventContext.eventProxy.details[EventProxy.DEVICE_SYSTEMS_DETAIL_KEY] = systemsNames
 
         eventContext.setDeviceObject(device)
 

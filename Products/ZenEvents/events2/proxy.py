@@ -102,19 +102,20 @@ class EventDetailProxy(object):
 
     def __setitem__(self, key, value):
         # Prep the field
-        if not key in self._map:
-            item = self._eventProtobuf.details.add()
-            item.name = key
-            self._map[key] = item
-        item = self._map[key]
-        item.ClearField(EventField.Detail.VALUE)
-        # Assume multivalue details
-        if not isinstance(value, (set, list, tuple)):
-            value = (value,)
-        # Set each detail if it exists
-        for val in imap(str, value):
-            if val:
-                item.value.append(val)
+        if value:
+            if not key in self._map:
+                item = self._eventProtobuf.details.add()
+                item.name = key
+                self._map[key] = item
+            item = self._map[key]
+            item.ClearField(EventField.Detail.VALUE)
+            # Assume multivalue details
+            if not isinstance(value, (set, list, tuple)):
+                value = (value,)
+            # Set each detail if it exists
+            for val in imap(str, value):
+                if val:
+                    item.value.append(val)
 
     def __contains__(self, key):
         return key in self._map

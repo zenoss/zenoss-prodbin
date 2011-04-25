@@ -148,7 +148,7 @@ class EventsRouter(DirectRouter):
         details = {}
         if 'details' in event:
             for d in event['details']:
-                details[d['name']] = d['value']
+                details[d['name']] = d.get('value', ())
         return details
 
 
