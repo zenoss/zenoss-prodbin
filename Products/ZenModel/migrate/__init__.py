@@ -224,3 +224,4 @@ import CollectorIpv6Commands
 import deviceSearchCatalogUpdate
 import snmpv3trap
 import rebuildPathIndex
+import deleteNotificationSchedulesReport
