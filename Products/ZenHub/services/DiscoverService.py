@@ -56,7 +56,7 @@ class IpNetProxy(pb.Copyable, pb.RemoteCopy):
 
     def fullIpList(self):
         "copied from IpNetwork"
-        self.log.debug("fullIpList: using ipaddr IPNetwork on %s (%s)" % (self.id, ipunwrap(self.id)))
+        log.debug("fullIpList: using ipaddr IPNetwork on %s (%s)" % (self.id, ipunwrap(self.id)))
         net = IPNetwork(ipunwrap(self.id))
         if self.netmask == net.max_prefixlen: return [ipunwrap(self.id)]
         ipnumb = long(int(net))
