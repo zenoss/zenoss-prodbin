@@ -490,7 +490,9 @@ class DeviceFacade(TreeFacade):
             value = float(value)
         if ztype == 'string':
             value = str(value)
-
+        # do not save * as passwords
+        if obj.zenPropIsPassword(zProperty) and value == obj.zenPropertyString(zProperty):
+            return
         return obj.setZenProperty(zProperty, value)
 
     def getModelerPluginDocStrings(self, uid):

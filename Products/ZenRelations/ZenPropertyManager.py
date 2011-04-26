@@ -602,11 +602,12 @@ class ZenPropertyManager(object, PropertyManager):
                     options=self.zenPropertyOptions(zId),
                     category=getzPropertyCategory(zId),
                     value=None,
-                    valueAsString=None
+                    valueAsString=self.zenPropertyString(zId)
                     )
             if not self.zenPropIsPassword(zId):
                 prop['value'] = self.getZ(zId)
-                prop['valueAsString'] = self.zenPropertyString(zId)
+            else:
+                prop['value'] = self.zenPropertyString(zId)
             props.append(prop)
         return props
 
