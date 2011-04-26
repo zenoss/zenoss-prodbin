@@ -153,7 +153,7 @@ treesm = new Ext.tree.DefaultSelectionModel({
             if (newnode) {
                 var uid = newnode.attributes.uid;
                 Zenoss.util.setContext(uid, 'detail_panel', 'organizer_events',
-                                       'commands-menu', 'footer_bar', 'adddevice-button');
+                                       'commands-menu', 'footer_bar');
                 setDeviceButtonsDisabled(true);
 
                 // explicitly set the new security context (to update permissions)
@@ -978,13 +978,6 @@ var device_grid = new Zenoss.DeviceGridPanel({
                         Zenoss.devices.addDevice,
                         Zenoss.devices.addMultiDevicePopUP
                     ].concat(EXTENSIONS_adddevice)
-                },
-                setContext: function(uid) {
-                    // if the user's permissions change when depending on the context update the
-                    // add device button
-                    Zenoss.Security.onPermissionsChange(function() {
-                        this.setDisabled(Zenoss.Security.doesNotHavePermission('Manage Device'));
-                    }, this);
                 }
             },
             Zenoss.devices.deleteDevices,
@@ -1040,15 +1033,20 @@ var device_grid = new Zenoss.DeviceGridPanel({
                             });
                         });
                     });
-                    // disable if they do not have permission to view
-                    Zenoss.Security.onPermissionsChange(function() {
-                        this.setDisabled(Zenoss.Security.doesNotHavePermission('Run Commands'));
-                    }, this);
                 },
                 menu: {}
             }
         ]
     }
+});
+
+/**
+ * Toggle buttons based on permissions everytime they click a different tree node
+ **/
+Zenoss.Security.onPermissionsChange(function(){
+    Ext.getCmp('master_panel').details.setDisabled(Zenoss.Security.doesNotHavePermission('Manage DMD'));
+    Ext.getCmp('commands-menu').setDisabled(Zenoss.Security.doesNotHavePermission('Run Commands'));
+    Ext.getCmp('adddevice-button').setDisabled(Zenoss.Security.doesNotHavePermission('Manage DMD'));
 });
 
 Ext.getCmp('center_panel').add({
@@ -1067,11 +1065,13 @@ Ext.getCmp('center_panel').add({
         items: [{
             text: _t('Infrastructure'),
             buttonText: _t('Details'),
+            buttonRef: 'details',
             layout: 'fit',
             items: [treepanel]
         },{
             xtype: 'detailcontainer',
             buttonText: _t('See All'),
+            buttonRef: 'seeAll',
             items: [{
                 xtype: 'infradetailnav',
                 id: 'detail_nav'

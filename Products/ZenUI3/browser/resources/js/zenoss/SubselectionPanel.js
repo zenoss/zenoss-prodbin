@@ -93,6 +93,8 @@ Zenoss.HorizontalSlidePanel = Ext.extend(Ext.Panel, {
             });
             var navButton = new Ext.Button({
                 text: (item && item.buttonText) ? item.buttonText : '',
+                // make the button belong to the owner panel
+                ref: '../../' + (item.buttonRef || 'navButton') ,
                 cls: index ? 'toleft' : 'toright',
                 handler: function() {
                     this.layout.setActiveItem(index ? 0 : 1);
@@ -643,7 +645,6 @@ Zenoss.DetailNavCombo = Ext.extend(Ext.form.ComboBox, {
                 items = [],
                 nodes = [],
                 panelMap = {};
-
             var filterFn = function(val) {
                 var show = true;
                 if (  Ext.isFunction(val.filterNav) ) {
@@ -657,6 +658,7 @@ Zenoss.DetailNavCombo = Ext.extend(Ext.form.ComboBox, {
             nodes = Zenoss.util.filter(nodes, filterFn, this);
 
             detailConfigs = Zenoss.util.filter(detailConfigs, filterFn, this);
+
             nodes = nodes.concat(detailConfigs);
 
             Ext.each(nodes, function(cfg){

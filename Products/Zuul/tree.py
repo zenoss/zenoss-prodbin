@@ -113,6 +113,11 @@ class TreeNode(object):
         if len(pieces) != 4:
             return False
 
+        # always show the root Device organizer so restricted users can see
+        # all of the devices they have access to
+        if self.uid == '/zport/dmd/Devices':
+            return False
+
         # check for our permission
         manager = getSecurityManager()
         obj = self._object.unrestrictedTraverse(self.uid)
@@ -122,11 +127,9 @@ class TreeNode(object):
         # search the catalog to see if we have permission with any of the children
         cat = ICatalogTool(obj)
         numInstances = cat.count('Products.ZenModel.DeviceOrganizer.DeviceOrganizer', self.uid)
+
+
         # if anything is returned we have view permissions on a child
-
-        if self.uid == '/zport/dmd/Devices':
-            return False
-
         return not numInstances > 0
 
 
