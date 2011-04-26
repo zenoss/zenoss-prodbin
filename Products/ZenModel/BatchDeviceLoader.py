@@ -87,8 +87,8 @@ windows_device2 zWinUser="administrator", zWinPassword='thomas'
 
 # Apply other settings to the device
 settingsDevice setManageIp='10.10.10.77', setLocation="123 Elm Street", \
-  setSystems='/mySystems', setPerformanceMonitor='remoteCollector1', \
-  setHWSerialNumber="abc123456789", setGroups='/myGroup', \
+  setSystems=['/mySystems'], setPerformanceMonitor='remoteCollector1', \
+  setHWSerialNumber="abc123456789", setGroups=['/myGroup'], \
   setHWProduct=('myproductName','manufacturer'), setOSProduct=('OS Name','manufacturer')
 
 # If the device or device class contains a space, then it must be quoted (either ' or ")
@@ -178,14 +178,18 @@ settingsDevice setManageIp='10.10.10.77', setLocation="123 Elm Street", \
     def addAllLGSOrganizers(self, device_specs):
         location = device_specs.get('setLocation')
         if location:
-            self.addLGSOrganizer('Locations', [location])
+            self.addLGSOrganizer('Locations', (location,) )
 
         systems = device_specs.get('setSystems')
         if systems:
+            if not isinstance(systems, list) and not isinstance(systems, tuple):
+                systems = (systems,)
             self.addLGSOrganizer('Systems', systems)
 
         groups = device_specs.get('setGroups')
         if groups:
+            if not isinstance(groups, list) and not isinstance(groups, tuple):
+                groups = (groups,)
             self.addLGSOrganizer('Groups', groups)
 
     def addLGSOrganizer(self, lgsType, paths=[]):
@@ -225,6 +229,7 @@ settingsDevice setManageIp='10.10.10.77', setLocation="123 Elm Street", \
             inner()
             org = base.getDmdObj(path)
         self.applyZProps(org, device_specs)
+        self.applyOtherProps(org, device_specs)
 
     def applyOtherProps(self, device, device_specs):
         """
@@ -239,9 +244,19 @@ settingsDevice setManageIp='10.10.10.77', setLocation="123 Elm Street", \
         internalVars = [
            'deviceName', 'devicePath', 'comments',
         ]
+        @transact
+        def setDescription(org, description):
+            setattr(org, 'description', description)
+
         for functor, value in device_specs.items():
             if iszprop(functor) or functor in internalVars:
                continue
+
+            # Special case for organizers which can take a description
+            if functor == 'description':
+                if hasattr(device, functor):
+                    setDescription(device, value)
+                continue
 
             try:
                 self.log.debug("For %s, calling device.%s(%s)",
@@ -251,7 +266,11 @@ settingsDevice setManageIp='10.10.10.77', setLocation="123 Elm Street", \
                     self.log.warn("The function '%s' for device %s is not found.",
                                   functor, device.id)
                 elif isinstance(value, type([])) or isinstance(value, type(())):
-                    func(*value)
+                    # The function either expects a list or arguments
+                    try: # arguments
+                        func(*value)
+                    except TypeError: # Try as a list
+                        func(value)
                 else:
                     func(value)
             except ConflictError:
