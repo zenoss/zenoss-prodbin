@@ -69,7 +69,9 @@ class ReportRunner(ZCmdBase):
 
         # Write a header line that DictReader can import
         fh.write(','.join(fieldnames) + '\n')
-        writer = csv.DictWriter(fh, fieldnames, lineterminator='\n')
+        writer = csv.DictWriter(fh, fieldnames,
+                                quoting=csv.QUOTE_NONNUMERIC,
+                                lineterminator='\n')
         for line in results:
             writer.writerow(line.values)
 
