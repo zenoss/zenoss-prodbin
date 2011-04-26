@@ -146,13 +146,6 @@
     permission="zenoss.View"
     />
 
-<browser:page
-    template="../../ZenEvents/skins/zenevents/editEventViews.pt"
-    name="editEventViews"
-    for="*"
-    permission="zenoss.View"
-    />
-
 <browser:defaultView
     for="Products.ZenEvents.CustomEventView.CustomEventView"
     name="editEventView"
