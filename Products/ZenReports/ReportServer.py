@@ -52,12 +52,37 @@ class ReportServer(ZenModelRM):
     def listPlugins(self):
         allPlugins = []
         for dir in self._getPluginDirectories():
-            plugins = glob('%s/*.py' % dir)
-            if '__init__.py' in plugins:
-                plugins.remove('__init__.py')
-            if plugins:
-                allPlugins.extend(plugins)
+            plugins = [fn.replace('.py','') for fn in glob('%s/*.py' % dir) \
+                         if not fn.endswith('__init__.py')]
+            allPlugins.extend(plugins)
         return allPlugins
+
+    def _importPluginClass(self, name):
+        """
+        Find the named plugin and import it.
+        """
+        klass = None
+        if name.startswith('/'):
+            if name.endswith('.py'):
+                name = name.replace('.py', '')
+            if os.path.exists(name + '.py'):
+                try:
+                    d, name = name.rsplit('/', 1)
+                    sys.path.insert(0, d)
+                    klass = importClass(name)
+                finally:
+                    sys.path.remove(d)
+
+        else:
+            for d in self._getPluginDirectories():
+                if os.path.exists('%s/%s.py' % (d, name)):
+                    try:
+                        sys.path.insert(0, d)
+                        klass = importClass(name)
+                        break
+                    finally:
+                        sys.path.remove(d)
+        return klass
 
     security.declareProtected(ZEN_COMMON, 'plugin')
     def plugin(self, name, REQUEST, templateArgs = None):
@@ -71,15 +96,7 @@ class ReportServer(ZenModelRM):
         if 'RESPONSE' in args:
             del args['RESPONSE']
 
-        klass = None
-        for d in self._getPluginDirectories():
-            if os.path.exists('%s/%s.py' % (d, name)):
-                try:
-                    sys.path.insert(0, d)
-                    klass = importClass(name)
-                    break
-                finally:
-                    sys.path.remove(d)
+        klass = self._importPluginClass(name)
         if not klass:
             raise IOError('Unable to find plugin named "%s"' % name)
         instance = klass()
