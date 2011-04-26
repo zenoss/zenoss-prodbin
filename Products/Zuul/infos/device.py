@@ -85,7 +85,7 @@ class DeviceOrganizerTreeNodeMarshaller(TreeNodeMarshaller):
 
     def _getNodeUuid(self, node):
         if node not in self._uuids:
-            self._uuids[node] = IGlobalIdentifier(node._object.getObject()).getGUID()
+            self._uuids[node] = IGlobalIdentifier(node._object._unrestrictedGetObject()).getGUID()
 
         return self._uuids[node]
 

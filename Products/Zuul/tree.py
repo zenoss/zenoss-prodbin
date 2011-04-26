@@ -123,6 +123,10 @@ class TreeNode(object):
         cat = ICatalogTool(obj)
         numInstances = cat.count('Products.ZenModel.DeviceOrganizer.DeviceOrganizer', self.uid)
         # if anything is returned we have view permissions on a child
+
+        if self.uid == '/zport/dmd/Devices':
+            return False
+
         return not numInstances > 0
 
 
