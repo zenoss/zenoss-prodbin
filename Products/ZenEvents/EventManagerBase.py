@@ -56,6 +56,7 @@ from DbAccessBase import DbAccessBase
 
 from Products.ZenUtils.Utils import unused
 from Products.Zuul.decorators import deprecated
+from .HeartbeatUtils import getHeartbeatObjects
 
 __pychecker__="maxargs=16"
 
@@ -1034,6 +1035,11 @@ class EventManagerBase(ZenModelRM, ObjectCache, DbAccessBase):
         kw.setdefault('startDate',
                       time.time() - 60*60*24*self.defaultAvailabilityDays)
         return Availability.query(self.dmd, **kw)
+
+    def getHeartbeatObjects(self, failures=True, simple=False, limit=0,
+            db=None):
+        return getHeartbeatObjects(failures, limit,
+                self.getDmdRoot("Devices") if not simple else None)
 
     @deprecated
     def getAllComponentStatus(self,

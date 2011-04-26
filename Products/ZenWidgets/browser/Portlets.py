@@ -19,6 +19,7 @@ from Products.AdvancedQuery import Eq, Or
 
 from Products.ZenUtils.Utils import relative_time
 from Products.Zuul import getFacade
+from Products.ZenEvents.HeartbeatUtils import getHeartbeatObjects
 from zenoss.protocols.services import ServiceException
 from zenoss.protocols.services.zep import ZepConnectionError
 from Products.ZenUtils.guid.interfaces import IGUIDManager
@@ -31,7 +32,6 @@ from Products.ZenEvents.browser.EventPillsAndSummaries import \
                                    getDashboardObjectsEventSummary, \
                                    ObjectsEventSummary,    \
                                    getEventPillME
-from time import time
 
 import logging
 log = logging.getLogger('zen.portlets')
@@ -211,6 +211,8 @@ class DeviceIssuesPortletView(BrowserView):
         return [x[0] for x in devdata[:100]]
 
 
+heartbeat_columns = ['Device', 'Daemon', 'Seconds']
+
 class HeartbeatPortletView(BrowserView):
     """
     Heartbeat issues in YUI table form, for the dashboard portlet
@@ -219,14 +221,7 @@ class HeartbeatPortletView(BrowserView):
     def __call__(self):
         return self.getHeartbeatIssuesJSON()
 
-    def _getDeviceLink(self, deviceName):
-        dev = self.context.dmd.Devices.findDevice(deviceName)
-        alink = deviceName
-        if dev:
-            alink = "<a href='%s'>%s</a>" % (dev.getPrimaryUrlPath(), dev.titleOrId())
-        return alink
-
-    @zepConnectionError({'columns': ['Device', 'Daemon', 'Seconds'], 'data':[]})
+    @zepConnectionError({'columns': heartbeat_columns, 'data':[]})
     @json
     def getHeartbeatIssuesJSON(self):
         """
@@ -239,19 +234,9 @@ class HeartbeatPortletView(BrowserView):
                 {'Device':'<a href=/>', 'Daemon':'zenhub', 'Seconds':10}
             ]}"
         """
-        mydict = {'columns':[], 'data':[]}
-        mydict['columns'] = ['Device', 'Daemon', 'Seconds']
-        now = int(time() * 1000)
-        zep = getFacade('zep')
-        heartbeats = zep.getHeartbeats()
-        for heartbeat_dict in heartbeats:
-            # Seconds is difference between current time and last reported time
-            # ZEP returns milliseconds, so perform appropriate conversion
-            seconds = (now - heartbeat_dict['last_time']) / 1000
-            if seconds >= heartbeat_dict['timeout_seconds']:
-                mydict['data'].append({'Device':self._getDeviceLink(heartbeat_dict['monitor']),
-                    'Daemon':heartbeat_dict['daemon'], 'Seconds':seconds})
-        return mydict
+        data = getHeartbeatObjects(deviceRoot=self.context.dmd.Devices,
+                keys=heartbeat_columns)
+        return {'columns': heartbeat_columns, 'data': data}
 
 
 class UserMessagesPortletView(BrowserView):
