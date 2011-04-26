@@ -742,54 +742,6 @@ class EventManagerBase(ZenModelRM, ObjectCache, DbAccessBase):
 
 
     @deprecated
-    def getEventSummaryME(self, me, severity=1, state=1, prodState=None):
-        """
-        Return the CSS class, number of acknowledged events, and number of
-        unacknowledged events, per severity, for a C{ManagedEntity}.
-
-        @param me: The object of the inquiry.
-        @type me: L{ManagedEntity}
-        @param severity: The minimum severity for which to retrieve events
-        @type severity: int
-        @param state: The minimum state for which to retrieve events
-        @type state: int
-        @param prodState: The minimum production state for which to retrieve
-            events
-        @type prodState: int
-        @return: List of lists of the form [class, acked count, unacked count].
-        @rtype: list
-        """
-        try:
-            where = self.lookupManagedEntityWhere(me)
-            return self.getEventSummary(where, severity, state, prodState)
-        except:
-            log.exception("event summary for %s failed" % me.getDmdKey())
-            raise
-
-    @deprecated
-    def getEventSummary(self, where="", severity=1, state=1, prodState=None):
-        """
-        Return a list of tuples with number of events and the color of the
-        severity that the number represents.
-
-        This method should not be called directly, but overridden by subclasses.
-
-        @param where: The base where clause to modify.
-        @type where: string
-        @param severity: The minimum severity for which to retrieve events
-        @type severity: int
-        @param state: The minimum state for which to retrieve events
-        @type state: int
-        @param prodState: The minimum production state for which to retrieve
-            events
-        @type prodState: int
-        @return: List of lists of the form [class, acked count, unacked count].
-        @rtype: list
-        """
-        raise NotImplementedError
-
-
-    @deprecated
     def getEventDetailFromStatusOrHistory(self, evid=None, dedupid=None,
                                                             better=False):
         try:

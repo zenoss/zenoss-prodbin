@@ -1,28 +1,24 @@
 <tal:block metal:define-macro="vertical"
     tal:on-error="structure python:here.dmd.error_handler(error)">
 <tal:block tal:define="
-    zem python:here.ZenEventManager;
-    colors python:'red orange yellow blue grey green'.split();
-    summaries python:zem.getEventSummaryME(here, 0);
+    colors python:('red','orange','yellow','blue','grey');
+    summaries python:here.getEventSummary();
     totals python:[x[2] for x in summaries];
-    ackstatus python:[x[2]-x[1] for x in summaries];
+    ackstatus python:[x[1] for x in summaries];
     ">
 
     <div class="vertical-rainbow"
     onclick="location.href=YAHOO.zenoss.templateFreeURL+'/viewEvents'">
-        <tal:block tal:repeat="evnum python:totals[:-1]">
-        <div tal:define="color python:colors[repeat['evnum'].index]"
-            tal:attributes="class string:evpill-${color}">
+        <tal:block tal:repeat="evnum python:totals">
+        <div tal:define="idx python:repeat['evnum'].index;
+                         color python:colors[idx];
+                         acked python:ackstatus[idx];
+                         total python:totals[idx];
+                         cssclass python:'no-events' if not total else 'acked-events' if acked==total else '';"
+            tal:attributes="class string:evpill-${color} ${cssclass}; title string:${acked} out of ${total} acknowledged">
             <span tal:content="evnum">0</span>
-            <div tal:condition="python:ackstatus[repeat['evnum'].index]<=0">
-            </div>
         </div>
         </tal:block>
-        <div class="evpill-green">
-            <div tal:condition="python:filter(lambda x:x,
-                                              map(int, totals[:-1]))">
-            </div>
-        </div>
     </div>
 </tal:block>
 </tal:block>

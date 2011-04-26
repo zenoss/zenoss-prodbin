@@ -143,13 +143,6 @@ class CustomEventView(ZenModelRM, EventFilter):
         return self.getEventManager().defaultOrderby
 
 
-    def getEventSummary(self, severity=1, state=1):
-        """Return the current event summary for this custom view.
-        """
-        zem = self.getEventManager()
-        return zem.getEventSummary(self.getWhere(),severity,state)
-
-
     def getEventList(self, **kwargs):
         """Return the current event list for this custom view.
         """

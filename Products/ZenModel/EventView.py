@@ -61,7 +61,6 @@ class EventView(object):
 
     security = ClassSecurityInfo()
 
-    @deprecated
     def getEventManager(self, table='status'):
         """Return the current event manager for this object.
         """
@@ -82,11 +81,27 @@ class EventView(object):
         f = self.getStatus
         return self.convertStatus(f(statclass, **kwargs))
 
-    @deprecated
+    @zepConnectionError(())
     def getEventSummary(self, severity=1, state=1, prodState=None):
         """Return an event summary list for this managed entity.
         """
-        return self.getEventManager().getEventSummaryME(self, severity, state, prodState)
+        zep = getFacade('zep')
+        sevsum = []
+        try:
+            # Event class rainbows show all events through DEBUG severity
+            sevs = (SEVERITY_CRITICAL,SEVERITY_ERROR,SEVERITY_WARNING,SEVERITY_INFO,SEVERITY_DEBUG)
+            severities = zep.getEventSeveritiesByUuid(self.getUUID(), severities=sevs)
+            getCssClass = self.getEventManager().getEventCssClass
+            for sev in sorted(severities.keys(), reverse=True):
+                if sev < severity:
+                    continue
+                counts = severities[sev]
+                count = counts.get('count', 0)
+                acked = counts.get('acknowledged_count', 0)
+                sevsum.append([getCssClass(sev), acked, count])
+        except TypeError, e:
+            log.warn("Attempted to query events for %r which does not have a uuid" % self)
+        return sevsum
 
     def getEventOwnerList(self, severity=0, state=1):
         """Return list of event owners for this mangaed entity.
