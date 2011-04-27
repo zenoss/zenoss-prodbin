@@ -6,7 +6,7 @@ var _tm = {
     'Device':           ["^/zport/dmd/.*/devices/[^/]*/?$"],
     'DeviceLocation':   ["^/zport/dmd/Locations(/[A-Za-z][^/]*)*/?$"],
     'DeviceGroup':      ["^/zport/dmd/Groups(/[A-Za-z][^/]*)*/?$"],
-    'DeviceClass':      ["^/zport/dmd/Devices(/[A-Za-z][^/]*)*/?$"],
+    'DeviceClass':      ["^/zport/dmd/Devices(/(?!devices)[^/*])*/?$"],
     'EventClass':       ["^/zport/dmd/Events(/[A-Za-z][^/]*)*/?$"],
     'Network':          ["^/zport/dmd/Networks(/(?!ipaddresses)[^/]+)*/?$"],
     'Process':          ["^/zport/dmd/Processes(.*)$"]
