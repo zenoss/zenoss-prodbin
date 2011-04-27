@@ -90,7 +90,7 @@
         </style>
     </head>
 
-    <body onload="document.getElementById('username').focus();">
+    <body onload="if (window.location != window.top.location) {window.top.location.href = window.location.href;} document.getElementById('username').focus();">
         <div id="topbar"></div>
         <form name="loginform" 
             method="POST"
