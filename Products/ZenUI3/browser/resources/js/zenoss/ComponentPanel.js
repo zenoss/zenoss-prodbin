@@ -608,8 +608,8 @@ ZC.IpInterfacePanel = Ext.extend(ZC.ComponentGridPanel, {
                     Ext.each(ipaddresses, function(ipaddress, index) {
                         if (index > 0) returnString += ', ';
                         if (ipaddress && Ext.isObject(ipaddress) && ipaddress.netmask) {
-                            ipaddress.name += '/' + ipaddress.netmask;
-                            returnString += Zenoss.render.link(ipaddress);
+                            var name = ipaddress.name + '/' + ipaddress.netmask;
+                            returnString += Zenoss.render.link(ipaddress.uid, undefined, name);
                         }
                         else if (Ext.isString(ipaddress)) {
                             returnString += ipaddress;
