@@ -557,7 +557,7 @@ class EventsRouter(DirectRouter):
         eventData['details'] = []
         if 'details' in eventOccurrence:
             for detail in sorted(eventOccurrence['details'], key=lambda detail: detail['name'].lower()):
-                values = detail['value']
+                values = detail.get('value', ())
                 if not isinstance(values, list):
                     values = list(values)
                 for value in (v for v in values if v):
