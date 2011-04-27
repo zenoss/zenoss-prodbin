@@ -51,10 +51,11 @@ class FormBuilderTest(unittest.TestCase):
 
     def test_props(self):
         fields = self.fb.fields()
+
         self.assert_(fields['foo']['title'] == 'Foo')
         self.assert_(fields['foo']['readonly'] == True)
-        self.assert_(fields['foo']['xtype'] == 'textfield')
-        self.assert_(fields['baz']['xtype'] == 'textarea')
+        self.assert_(fields['foo']['xtype'] == 'textarea')
+        self.assert_(fields['baz']['xtype'] == 'textfield')
         self.assert_(fields['bar']['xtype'] == 'notint')
 
     def test_groups(self):
