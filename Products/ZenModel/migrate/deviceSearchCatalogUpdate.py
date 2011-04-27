@@ -69,7 +69,12 @@ class DeviceSearchCatalogUpdate(Migrate.Step):
             pass
         # populate the indexes
         for brain in zcat():
-            brain.getObject().index_object(idxs=idxs)
+            try:
+                brain.getObject().index_object(idxs=idxs)
+            except TypeError:
+                # for upgrade the zenpacks may not have loaded the new code yet
+                brain.getObject().index_object()
+
 
 
 DeviceSearchCatalogUpdate()
