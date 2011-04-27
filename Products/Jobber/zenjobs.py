@@ -15,7 +15,12 @@ import sys
 import time
 import logging
 from Globals import *
+from ZODB.transact import transact
+from Products.ZenEvents.UpdateCheck import UpdateCheck
+from Products.ZenEvents.Schedule import Schedule
 from twisted.internet import reactor, defer
+from Products.ZenEvents.Event import Event
+from Products.ZenEvents.ZenEventClasses import App_Start, App_Stop
 from Products.ZenUtils.CyclingDaemon import CyclingDaemon
 import transaction
 from status import FAILURE
@@ -33,6 +38,20 @@ class ZenJobs(CyclingDaemon):
         CyclingDaemon.__init__(self, *args, **kwargs)
         self.jm = self.dmd.JobManager
         self.runningjobs = []
+        
+        self.schedule = Schedule(self.options, self.dmd)
+        self.schedule.sendEvent = self.dmd.ZenEventManager.sendEvent
+        self.schedule.monitor = self.options.monitor
+        
+        self.updateCheck = UpdateCheck()
+        
+        # Send startup event
+        if self.options.cycle:
+            event = Event(device=self.options.monitor,
+                      eventClass=App_Start,
+                      summary="zenjobs started",
+                      severity=0, component="zenjobs")
+            self.sendEvent(event)
 
     def run_job(self, job):
         self.syncdb()
@@ -55,28 +74,23 @@ class ZenJobs(CyclingDaemon):
     def waitUntilRunningJobsFinish(self):
         return defer.DeferredList(self.runningjobs)
 
+    @transact
+    def checkVersion(self, zem):
+        self.syncdb()
+        self.updateCheck.check(self.dmd, zem)
+
     def main_loop(self):
+        zem = self.dmd.ZenEventManager
+        self.checkVersion(zem)
         for job in self.get_new_jobs():
             self.run_job(job)
         self.finish_loop()
 
     def finish_loop(self):
-        if self.options.cycle:
-            self.sendHeartbeat()
-            reactor.callLater(self.options.cycletime, self.runCycle)
-        else:
+        if not self.options.cycle:
             # Can't stop the reactor until jobs are done
             whenDone = self.waitUntilRunningJobsFinish()
             whenDone.addBoth(self.finish)
-
-    def runCycle(self):
-        try:
-            start = time.time()
-            self.syncdb()
-            self.main_loop()
-        except:
-            self.log.exception("unexpected exception")
-            reactor.callLater(self.options.cycletime, self.runCycle)
 
     def get_new_jobs(self):
         return [s.getJob() for s in self.jm.getPendingJobs()]
@@ -88,6 +102,23 @@ class ZenJobs(CyclingDaemon):
             except defer.AlreadyCalledError:
                 pass
         CyclingDaemon.finish(self, r)
+        
+    def run(self):
+        def startup():
+            self.schedule.start()
+            self.runCycle()
+        reactor.callWhenRunning(startup)
+        reactor.addSystemEventTrigger('before', 'shutdown', self.stop)
+        reactor.run()
+    
+    def stop(self):
+        self.running = False
+        self.log.info("stopping")
+        if self.options.cycle:
+            self.sendEvent(Event(device=self.options.monitor,
+                             eventClass=App_Stop,
+                             summary="zenjobs stopped",
+                             severity=3, component="zenjobs"))
 
 if __name__ == "__main__":
     zj = ZenJobs()

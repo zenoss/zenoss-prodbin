@@ -136,9 +136,9 @@ class Schedule:
                 devices = mw.target().getId()
                 msg = "Maintenance window %s %s for %s" % (how, mwId, devices)
                 self.log.debug(msg)
-                dedupid = '|'.join(["zenactions",self.monitor,mwId,devices])
+                dedupid = '|'.join(["zenjobs",self.monitor,mwId,devices])
                 self.sendEvent(Event.Event(
-                    component="zenactions",
+                    component="zenjobs",
                     severity=severity,
                     dedupid=dedupid,
                     eventClass=Status_Update,

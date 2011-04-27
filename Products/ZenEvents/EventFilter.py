@@ -76,7 +76,7 @@ class EventFilter(object):
             count=Compare("Count"),
             manager=Text("Manager"),
             agent=Select("Agent",[(x, x) for x in
-            "zenhub", "zenping", "zensyslog", "zenactions", "zentrap",
+            "zenhub", "zenping", "zensyslog", "zentrap",
             "zenmodeler", "zenperfsnmp", "zencommand", "zenprocess", "zenwin",
             "zeneventlog"]),
             facility=Select("Facility",[

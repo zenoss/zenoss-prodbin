@@ -305,7 +305,7 @@ class TestMaintenanceWindows(ZenModelBaseTest):
 
     def testSameWindowEndTime(self):
         """
-        Maintenance windows are processed by zenactions in batch so the ordering
+        Maintenance windows are processed by zenjobs in batch so the ordering
         of when two maintenance windows that end at the same time get processed
         are different. Since maintenance windows always return to the device's
         original state this should always succeed.

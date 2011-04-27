@@ -384,7 +384,7 @@ class MaintenanceWindow(ZenModelRM):
         Return a dictionary of devices and their minimum production state from
         all maintenance windows.
 
-        Note: This method should be moved to the zenactions command in order to
+        Note: This method should be moved to the zenjobs command in order to
               improve performance.
 
         @return: dictionary of device_id:production_state
@@ -448,7 +448,7 @@ class MaintenanceWindow(ZenModelRM):
         window affecting a device has ended, the original production state of the
         device is used to determine the end state of the device.
 
-        Maintenance windows are processed by zenactions in batch so the ordering
+        Maintenance windows are processed by zenjobs in batch so the ordering
         of when two maintenance windows that end at the same time get processed
         is non-deterministic.  Since there is only one stop production state now,
         this is not an issue.

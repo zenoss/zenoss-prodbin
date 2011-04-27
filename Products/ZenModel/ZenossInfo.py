@@ -354,7 +354,6 @@ class ZenossInfo(ZenModelItem, SimpleItem):
       "zenping": "ICMP ping status monitoring",
       "zensyslog": "Collection of and classification of syslog events",
       "zenstatus": "Active TCP connection testing of remote daemons",
-      "zenactions": "Alerts (SMTP, SNPP and Maintenance Windows)",
       "zenactiond": "Receives signals from processed events to execute notifications.",
       "zentrap": "Receives SNMP traps and turns them into events",
       "zenmodeler": "Configuration collection and configuration",
