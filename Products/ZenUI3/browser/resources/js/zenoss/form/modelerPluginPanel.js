@@ -43,6 +43,8 @@
                 },{
                     xtype: 'displayfield',
                     name: 'doc',
+                    height: 65,
+                    autoScroll: true,
                     ref: 'doc',
                     toolTip: 'Select a single plugin to see the docs',
                     fieldLabel: _t('Plugin Documentation')
