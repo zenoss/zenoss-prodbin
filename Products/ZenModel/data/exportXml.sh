@@ -38,6 +38,8 @@ zendump -R /zport/dmd/Manufacturers --ignore instances -o manufacturers.xml
 replace "id='/zport/dmd'" "id='/zport/dmd/Manufacturers'" -- manufacturers.xml
 echo "Dumping Collector Templates...\c"
 zendump -R /zport/dmd/Monitors --ignore devices --ignore instances -o monitorTemplate.xml
+echo "Dumping Zenoss OS Process definitions...\c"
+zendump -R /zport/dmd/Processes/Zenoss --ignore instances -o osprocesses.xml
 echo "Dumping SQL...\c"
 mysqldump -u root $PWOPT zodb | gzip -c > zodb.sql.gz
 echo done
