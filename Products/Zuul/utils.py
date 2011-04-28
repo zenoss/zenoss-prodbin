@@ -63,7 +63,7 @@ def _mergedLocalRoles(object):
     merged = {}
     object = getattr(object, 'aq_inner', object)
     while 1:
-        if hasattr(object, '__ac_local_roles__'):
+        if safe_hasattr(object, '__ac_local_roles__'):
             dict = object.__ac_local_roles__ or {}
             if callable(dict): dict = dict()
             for k, v in dict.items():
@@ -71,11 +71,11 @@ def _mergedLocalRoles(object):
                     merged[k] = merged[k] + list(v)
                 else:
                     merged[k] = list(v)
-        if hasattr(object, 'aq_parent'):
+        if safe_hasattr(object, 'aq_parent'):
             object=object.aq_parent
             object=getattr(object, 'aq_inner', object)
             continue
-        if hasattr(object, 'im_self'):
+        if safe_hasattr(object, 'im_self'):
             object=object.im_self
             object=getattr(object, 'aq_inner', object)
             continue
