@@ -77,6 +77,14 @@ Ext.apply(Zenoss.render, {
         }
     },
 
+    checkbox: function(bool) {
+        if (bool) {
+            return '<input type="checkbox" checked="true" disabled="true">';
+        } else {
+            return '<input type="checkbox" disabled="true">';
+        }
+    },
+
     pingStatus: function(bool) {
         var str = pingStatusBase(bool);
         return upDownTemplate.apply([str.toLowerCase(), str]);

@@ -887,6 +887,7 @@ ZC.OSProcessPanel = Ext.extend(ZC.ComponentGridPanel, {
             },{
                 id: 'alertOnRestart',
                 dataIndex: 'alertOnRestart',
+                renderer: Zenoss.render.checkbox,
                 header: _t('Alert On Restart')
             },{
                 id: 'failSeverity',
@@ -896,6 +897,7 @@ ZC.OSProcessPanel = Ext.extend(ZC.ComponentGridPanel, {
                 id: 'monitored',
                 dataIndex: 'monitored',
                 header: _t('Monitored'),
+                renderer: Zenoss.render.checkbox,
                 width: 60
             },{
                 id: 'locking',
