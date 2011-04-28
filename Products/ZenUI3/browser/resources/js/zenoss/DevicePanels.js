@@ -101,6 +101,7 @@ Zenoss.DeviceColumnModel = Ext.extend(Ext.grid.ColumnModel, {
             },{
                 id: 'getHWProductClass',
                 dataIndex: 'hwModel',
+                hidden: true,
                 width: 100,
                 header: _t('Hardware Model'),
                 renderer: objectRenderer
@@ -115,6 +116,7 @@ Zenoss.DeviceColumnModel = Ext.extend(Ext.grid.ColumnModel, {
                 id: 'getOSProductName',
                 dataIndex: 'osModel',
                 width: 150,
+                hidden: true,
                 header: _t('OS Model'),
                 renderer: objectRenderer
             },{
