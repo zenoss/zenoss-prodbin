@@ -37,7 +37,7 @@ from SshClient      import SshClient
 from TelnetClient   import TelnetClient, buildOptions as TCbuildOptions
 from SnmpClient     import SnmpClient
 from PortscanClient import PortscanClient
-                         
+
 from Products.DataCollector import Classifier
 
 from twisted.internet import reactor
@@ -53,7 +53,7 @@ import os.path
 import sys
 import traceback
 from random import randint
-       
+
 defaultPortScanTimeout = 5
 defaultParallel = 1
 defaultProtocol = "ssh"
@@ -72,10 +72,10 @@ class ZenModeler(PBDaemon):
 
     name = 'zenmodeler'
     initialServices = PBDaemon.initialServices + ['ModelerService']
-    
+
     generateEvents = True
     configCycleInterval = 360
-    
+
     classCollectorPlugins = ()
 
     def __init__(self, single=False ):
@@ -99,7 +99,7 @@ class ZenModeler(PBDaemon):
         self.clients = []
         self.finished = []
         self.devicegen = None
-        
+
         # Delay start for between 10 and 60 minutes when run as a daemon.
         self.started = False
         self.startDelay = 0
@@ -132,7 +132,7 @@ class ZenModeler(PBDaemon):
         d = self.configure()
         d.addCallback(self.heartbeat)
         d.addErrback(self.reportError)
-    
+
 
     def configure(self):
         """
@@ -284,7 +284,7 @@ class ZenModeler(PBDaemon):
         timeout = clientTimeout + time.time()
         self.wmiCollect(device, ip, timeout)
         self.pythonCollect(device, ip, timeout)
-        self.cmdCollect(device, ip, timeout) 
+        self.cmdCollect(device, ip, timeout)
         self.snmpCollect(device, ip, timeout)
         self.portscanCollect(device, ip, timeout)
 
@@ -473,19 +473,19 @@ class ZenModeler(PBDaemon):
     # def checkSnmpConnection(self, device):
     #     """
     #     Check to see if our current community string is still valid
-    #     
+    #
     #     @param device: the device against which we will check
     #     @type device: a Device instance
-    #     @return: result is None or a tuple containing 
+    #     @return: result is None or a tuple containing
     #             (community, port, version, snmp name)
     #     @rtype: deferred: Twisted deferred
     #     """
     #     from pynetsnmp.twistedsnmp import AgentProxy
-    # 
+    #
     #     def inner(driver):
     #         self.log.debug("Checking SNMP community %s on %s",
     #                         device.zSnmpCommunity, device.id)
-    # 
+    #
     #         oid = ".1.3.6.1.2.1.1.5.0"
     #         proxy = AgentProxy(device.id,
     #                            device.zSnmpPort,
@@ -496,10 +496,10 @@ class ZenModeler(PBDaemon):
     #         proxy.open()
     #         yield proxy.get([oid])
     #         devname = driver.next().values()[0]
-    #         if devname: 
+    #         if devname:
     #             yield succeed(True)
-    #         yield succeed(False)  
-    # 
+    #         yield succeed(False)
+    #
     #     return drive(inner)
 
 
@@ -577,13 +577,11 @@ class ZenModeler(PBDaemon):
             return False
         return True
 
-
     def clientFinished(self, collectorClient):
         """
         Callback that processes the return values from a device.
         Python iterable.
-
-        @param collectorClient: collector instance
+         @param collectorClient: collector instance
         @type collectorClient: collector class
         @return: Twisted deferred object
         @type: Twisted deferred object
@@ -592,6 +590,19 @@ class ZenModeler(PBDaemon):
         self.log.debug("Client for %s finished collecting", device.id)
         def processClient(driver):
             try:
+                if (isinstance(collectorClient, SnmpClient)
+                    and collectorClient.connInfo.changed == True):
+                    self.log.info(
+                        "SNMP connection info for %s changed. Updating...",
+                        device.id)
+                    yield self.config().callRemote('setSnmpConnectionInfo',
+                                        device.id,
+                                        collectorClient.connInfo.zSnmpVer,
+                                        collectorClient.connInfo.zSnmpPort,
+                                        collectorClient.connInfo.zSnmpCommunity
+                                        )
+                    driver.next()
+
                 pluginStats = {}
                 self.log.debug("Processing data for device %s", device.id)
                 devchanged = False
@@ -604,7 +615,6 @@ class ZenModeler(PBDaemon):
                         self.log.warn("The plugin %s returned no results.",
                                       plugin.name())
                         continue
-
                     self.log.debug("Plugin %s results = %s", plugin.name(), results)
                     datamaps = []
                     try:
@@ -671,7 +681,7 @@ class ZenModeler(PBDaemon):
             except Exception, ex:
                 self.log.exception(ex)
                 raise
- 
+
         def processClientFinished(result):
             """
             Called after the client collection finishes
@@ -737,7 +747,7 @@ class ZenModeler(PBDaemon):
                        timeout=3*ARBITRARY_BEAT)
             self.sendEvent(evt)
             self.niceDoggie(self.cycleTime())
-        
+
         # We start modeling from here to accomodate the startup delay.
         if not self.started:
             self.started = True
@@ -770,40 +780,37 @@ class ZenModeler(PBDaemon):
                 self.stop()
             self.finished = []
 
-
     def fillCollectionSlots(self, driver):
         """
         An iterator which either returns a device to collect or
         calls checkStop()
-
-        @param driver: driver object
+         @param driver: driver object
         @type driver: driver object
         """
         count = len(self.clients)
         while count < self.options.parallel and self.devicegen \
             and not self.pendingNewClients:
-            
             self.pendingNewClients = True
             try:
                 device = self.devicegen.next()
-                yield self.config().callRemote('getDeviceConfig', [device])
+                yield self.config().callRemote('getDeviceConfig', [device],
+                                            self.options.checkStatus)
                 # just collect one device, and let the timer add more
                 devices = driver.next()
                 if devices:
                     self.collectDevice(devices[0])
+                else:
+                    self.log.info("Device %s not returned is it down?", device)
             except StopIteration:
                 self.devicegen = None
-            
-            self.pendingNewClients = False
+                self.pendingNewClients = False
             break
-
         update = len(self.clients)
         if update != count and update != 1:
             self.log.info('Running %d clients', update)
         else:
             self.log.debug('Running %d clients', update)
         self.checkStop()
-
 
     def buildOptions(self):
         """
@@ -830,7 +837,7 @@ class ZenModeler(PBDaemon):
                 help="Modeler plugins to use. Takes a regular expression")
         self.parser.add_option('-p', '--path', dest='path',
                 help="Start class path for collection ie /NetworkDevices")
-        self.parser.add_option('-d', '--device', dest='device', 
+        self.parser.add_option('-d', '--device', dest='device',
                 help="Fully qualified device name ie www.confmon.com")
         self.parser.add_option('-a', '--collage',
                 dest='collage', default=0, type='float',
@@ -850,10 +857,14 @@ class ZenModeler(PBDaemon):
         self.parser.add_option('--now',
                 dest='now', action="store_true", default=False,
                 help="Start daemon now, do not sleep before starting")
+        self.parser.add_option('--communities',
+                dest='discoverCommunity', action="store_true", default=False,
+                help="If an snmp connection fails try and rediscover it's connection info")
+        self.parser.add_option('--checkstatus',
+                dest='checkStatus', action="store_true", default=False,
+                help="Don't model if the device is ping or snmp down")
         TCbuildOptions(self.parser, self.usage)
         addNTLMv2Option(self.parser)
-
-
 
     def processOptions(self):
         """
@@ -886,7 +897,7 @@ class ZenModeler(PBDaemon):
             else:
                 active.append(client)
         self.clients = active
-        
+
 
 
     def timeoutClients(self, unused=None):

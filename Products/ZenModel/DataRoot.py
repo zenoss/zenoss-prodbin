@@ -99,7 +99,7 @@ class DataRoot(ZenModelRM, OrderedFolder, Commandable, ZenMenuable):
     AUTH_TYPE_SESSION = "session"
     AUTH_TYPE_COOKIE = "cookie"
     userAuthType = AUTH_TYPE_SESSION
-
+    pauseHubNotifications = False
 
     _properties=(
         {'id':'title', 'type': 'string', 'mode':'w'},
@@ -128,6 +128,7 @@ class DataRoot(ZenModelRM, OrderedFolder, Commandable, ZenMenuable):
         {'id':'userAuthType', 'type': 'string', 'mode':'w'},
         {'id':'geocache', 'type': 'string', 'mode':'w'},
         {'id':'enableLiveSearch', 'type': 'boolean', 'mode':'w'},
+        {'id':'pauseHubNotifications', 'type': 'boolean', 'mode':'w'},
         )
 
     _relations =  (

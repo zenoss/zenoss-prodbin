@@ -27,7 +27,6 @@ from Products.Zuul.infos import InfoBase
 from Products.Zuul.utils import getZPropertyInfo, setZPropertyInfo
 from Products.Zuul.utils import catalogAwareImap
 
-
 class ProcessNode(TreeNode):
     implements(IProcessNode)
     adapts(IProcessEntity)
@@ -39,10 +38,11 @@ class ProcessNode(TreeNode):
     @property
     def text(self):
         text = super(ProcessNode, self).text
-        numInstances = self._get_cache.count(self.uid.replace('/osProcessClasses', ''))
+        obj = self._object.getObject()
+        count = obj.countClasses()
         return {
             'text': text,
-            'count': numInstances,
+            'count': count,
             'description': 'instances'
         }
 
@@ -59,13 +59,13 @@ class ProcessNode(TreeNode):
 
     @property
     def children(self):
-        orgs = self._get_cache.search(self.uid)
+        orgs = self._object.getObject().children()
+        orgs.sort(key=lambda x: x.titleOrId())
         return catalogAwareImap(lambda x:ProcessNode(x, self._root, self), orgs)
 
     @property
     def leaf(self):
         return 'osProcessClasses' in self.uid
-
 
 class ProcessInfo(InfoBase):
     implements(IProcessInfo)
@@ -73,10 +73,8 @@ class ProcessInfo(InfoBase):
 
     def getDescription(self):
         return self._object.description
-
     def setDescription(self, description):
         self._object.description = description
-
     description = property(getDescription, setDescription)
 
     def getZMonitor(self):
@@ -150,6 +148,4 @@ class ProcessInfo(InfoBase):
 
     @property
     def count(self):
-        numInstances = ICatalogTool(self._object).count(
-            (OSProcess,), self.uid)
-        return numInstances
+        return self._object.countClasses()

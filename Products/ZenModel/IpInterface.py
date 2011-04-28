@@ -32,7 +32,7 @@ from zope.app.container.contained import ObjectMovedEvent
 
 from Products.ZenRelations.RelSchema import *
 
-from Products.ZenUtils.Utils import localIpCheck, localInterfaceCheck 
+from Products.ZenUtils.Utils import localIpCheck, localInterfaceCheck
 from Products.ZenUtils.IpUtil import *
 
 from ConfmonPropManager import ConfmonPropManager
@@ -67,12 +67,12 @@ class IpInterface(OSComponent, Layer2Linkable):
 
     manage_editIpInterfaceForm = DTMLFile('dtml/manageEditIpInterface',
                                                         globals())
-   
+
     # catalog to find interfaces that should be pinged
     # indexes are id and description
     #default_catalog = 'interfaceSearch'
-    
-    ifindex = '0' 
+
+    ifindex = '0'
     interfaceName = ''
     macaddress = ""
     type = ""
@@ -109,9 +109,9 @@ class IpInterface(OSComponent, Layer2Linkable):
 
     localipcheck = re.compile(r'^127.|^0.|^::1$|^fe80:').search
     localintcheck = re.compile(r'^lo0').search
-    
+
     defaultIgnoreTypes = ('Other', 'softwareLoopback', 'CATV MAC Layer')
-    
+
     factory_type_information = (
         {
             'id'             : 'IpInterface',
@@ -165,7 +165,6 @@ class IpInterface(OSComponent, Layer2Linkable):
         return self.interfaceName.rstrip('\x00') #Bogus fix for MS names
     name = primarySortKey = viewName
 
-
     def _setPropValue(self, id, value):
         """
         Override from PerpertyManager to handle checks and ip creation
@@ -175,17 +174,15 @@ class IpInterface(OSComponent, Layer2Linkable):
             self.setIpAddresses(value)
         else:
             setattr(self,id,value)
-            if id == 'macaddress': 
+            if id == 'macaddress':
                 self.index_object()
 
-
-    def index_object(self):
+    def index_object(self, idxs=None):
         """
         Override the default so that links are indexed.
         """
-        super(IpInterface, self).index_object()
+        super(IpInterface, self).index_object(idxs)
         self.index_links()
-
 
     def unindex_object(self):
         """
@@ -193,7 +190,6 @@ class IpInterface(OSComponent, Layer2Linkable):
         """
         self.unindex_links()
         super(IpInterface, self).unindex_object()
-
 
     def manage_editProperties(self, REQUEST):
         """
@@ -217,7 +213,7 @@ class IpInterface(OSComponent, Layer2Linkable):
         else:
             raise AttributeError( name )
 
-  
+
     def _prepIp(self, ip, netmask=24):
         """
         Split ips in the format 1.1.1.1/24 into ip and netmask.
@@ -229,7 +225,7 @@ class IpInterface(OSComponent, Layer2Linkable):
             checkip(ip)
             netmask = maskToBits(iparray[1])
         return ip, netmask
-  
+
 
     def addIpAddress(self, ip, netmask=24):
         """
@@ -277,7 +273,7 @@ class IpInterface(OSComponent, Layer2Linkable):
 
     def setIpAddresses(self, ips):
         """
-        Set a list of ipaddresses in the form 1.1.1.1/24 on to this 
+        Set a list of ipaddresses in the form 1.1.1.1/24 on to this
         interface. If networks for the ips don't exist they will be created.
         """
         if type(ips) == type(''): ips = [ips,]
@@ -311,7 +307,7 @@ class IpInterface(OSComponent, Layer2Linkable):
             ipobj.index_links()
         for ip in localips:
             self._ipAddresses.remove(ip)
-   
+
 
     def removeIpAddress(self, ip):
         """
@@ -323,7 +319,7 @@ class IpInterface(OSComponent, Layer2Linkable):
                 ipobj.index_links()
                 return
 
-    
+
     def getIp(self):
         """
         Return the first ip for this interface in the form: 1.1.1.1.
@@ -412,7 +408,7 @@ class IpInterface(OSComponent, Layer2Linkable):
                         return addr.network.getRelatedId()
         else:
             return ""
-   
+
 
     def getNetworkLinks(self):
         """
@@ -425,7 +421,7 @@ class IpInterface(OSComponent, Layer2Linkable):
                 if hasattr(aq_base(addr), 'network'):
                     if self.checkRemotePerm('View', addr.network()):
                         links.append(addr.network.getPrimaryLink())
-                    else:    
+                    else:
                         links.append(addr.network.getRelatedId())
                 else:
                     links.append("")
@@ -550,7 +546,7 @@ class IpInterface(OSComponent, Layer2Linkable):
         # Unknown status if we're not monitoring the interface.
         if self.snmpIgnore():
             return -1
-        
+
         return super(IpInterface, self).getStatus()
 
 

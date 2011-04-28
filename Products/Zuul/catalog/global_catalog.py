@@ -19,6 +19,7 @@ from Acquisition import aq_base
 from AccessControl import getSecurityManager
 from ZODB.POSException import ConflictError
 from Products.ZCatalog.ZCatalog import ZCatalog
+from Products.ZenModel.IpNetwork import IpNetwork
 from Products.ZenUtils.IpUtil import numbip
 from Products.ZenUtils.guid.interfaces import IGlobalIdentifier
 from Products.ZenUtils.Search import makeMultiPathIndex
@@ -52,6 +53,12 @@ class IndexableWrapper(object):
     def __getattr__(self, name):
         return getattr(self._context, name)
 
+    def getObject(self):
+        return self._context
+
+    def getPath(self):
+        return self._context.getPrimaryId()
+
     def allowedRolesAndUsers(self):
         """
         Roles and users with View permission.
@@ -77,6 +84,7 @@ class IndexableWrapper(object):
             dottednames.add('%s.%s' % (kls.__module__, kls.__name__))
         return list(dottednames)
 
+    @property
     def ipAddress(self):
         """
         IP address associated with this object as 32-bit integer. For devices,
@@ -84,14 +92,17 @@ class IndexableWrapper(object):
 
         This is a FieldIndex on the catalog.
         """
+        if isinstance(self._context, IpNetwork): return
         getter = getattr(self._context, 'getIpAddress', None)
         if getter is None:
             getter = getattr(self._context, 'getManageIp', None)
+        if getter is None: return
         ip = getter()
         if ip:
             ip = ip.partition('/')[0]
-        return str(numbip(ip))
+            return str(numbip(ip))
 
+    @property
     def zProperties(self):
         """
         A dictionary of all the zProperties associated with this device.

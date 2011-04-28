@@ -36,6 +36,7 @@ ATTRIBUTES = (
     'zSnmpAuthPassword',
     'zSnmpAuthType',
     'zSnmpCommunity',
+    'zSnmpCommunities',
     'zSnmpPort',
     'zSnmpPrivPassword',
     'zSnmpPrivType',
@@ -48,7 +49,9 @@ ATTRIBUTES = (
 from twisted.spread import pb
 class SnmpConnInfo(pb.Copyable, pb.RemoteCopy):
     "A class to transfer the many SNMP values to clients"
-    
+
+    changed = False
+
     def __init__(self, device):
         "Store the properties from the device"
         for propertyName in ATTRIBUTES:
@@ -93,9 +96,12 @@ class SnmpConnInfo(pb.Copyable, pb.RemoteCopy):
                 cmdLineArgs += ['-a', self.zSnmpAuthType]
                 cmdLineArgs += ['-A', self.zSnmpAuthPassword]
             cmdLineArgs += ['-u', self.zSnmpSecurityName]
+        #the parameter tries seems to really be retries so take one off
+        retries = max(self.zSnmpTries - 1, 0)
         p = AgentProxy(ip=self.manageIp,
                        port=self.zSnmpPort,
                        timeout=self.zSnmpTimeout,
+                       tries=retries,
                        snmpVersion=self.zSnmpVer,
                        community=self.zSnmpCommunity,
                        cmdLineArgs=cmdLineArgs,
@@ -106,9 +112,9 @@ class SnmpConnInfo(pb.Copyable, pb.RemoteCopy):
 
     def __repr__(self):
         return '<%s for %s>' % (self.__class__, self.id)
-        
+
 pb.setUnjellyableForClass(SnmpConnInfo, SnmpConnInfo)
-        
+
 
 class PerformanceConfig(HubService, ThresholdMixin):
 

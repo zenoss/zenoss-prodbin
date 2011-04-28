@@ -392,7 +392,7 @@ class DeviceOrganizer(Organizer, DeviceManagerBase, Commandable, ZenMenuable,
             return self._buildReturnMessage('Devices Locked', msg)
 
 
-    def index_object(self):
+    def index_object(self, idxs=None):
         """No action.
         Index of subdevices will happen in manage_addAdministrativeRole
         """

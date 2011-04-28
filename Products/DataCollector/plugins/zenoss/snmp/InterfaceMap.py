@@ -13,7 +13,7 @@
 
 __doc__ = """InterfaceMap
 
-Gather IPv4 and IPv6 network interface information from SNMP, and 
+Gather IPv4 and IPv6 network interface information from SNMP, and
 create DMD interface objects
 
 """
@@ -35,10 +35,10 @@ class InterfaceMap(SnmpPlugin):
     deviceProperties = \
                 SnmpPlugin.deviceProperties + ('zInterfaceMapIgnoreNames',
                                                'zInterfaceMapIgnoreTypes')
-    
+
     # Interface related tables likely to be used in all subclasses.
     baseSnmpGetTableMaps = (
-        GetTableMap('iftable', '.1.3.6.1.2.1.2.2.1', 
+        GetTableMap('iftable', '.1.3.6.1.2.1.2.2.1',
                 {'.1': 'ifindex',
                  '.2': 'id',
                  '.3': 'type',
@@ -102,6 +102,7 @@ class InterfaceMap(SnmpPlugin):
             else:
                 log.warn("Unable to get data for %s from either ipAddrTable or"
                           " ipNetToMediaTable" % device.id)
+                iptable = dict()
 
         # Add in IPv6 info
         ipv6table = tabledata.get("ipAddressIfIndex")
@@ -219,7 +220,7 @@ class InterfaceMap(SnmpPlugin):
                     iftable[ifidx]['speed'] = data['highSpeed']*1e6
                 except KeyError:
                     pass
-            
+
             # Detect availability of the high-capacity counters
             if data.get('ifHCInOctets', None) is not None and \
                 data.get('ifHCInUcastPkts', None) is not None:
@@ -246,7 +247,7 @@ class InterfaceMap(SnmpPlugin):
         om.id = cleanstring(om.id) #take off \x00 at end of string
         # Left in interfaceName, but added title for
         # the sake of consistency
-        if not om.id: 
+        if not om.id:
             om.id = 'Index_%s' % iface.get('ifindex', "")
         om.interfaceName = om.id
         om.title = om.id
@@ -255,7 +256,7 @@ class InterfaceMap(SnmpPlugin):
             log.debug( "prepId(%s) doesn't return an id -- skipping" % (
                         om.interfaceName))
             return None
-            
+
         dontCollectIntNames = getattr(device, 'zInterfaceMapIgnoreNames', None)
         if dontCollectIntNames and re.search(dontCollectIntNames, om.interfaceName):
             log.debug( "Interface %s matched the zInterfaceMapIgnoreNames zprop '%s'" % (
@@ -266,10 +267,10 @@ class InterfaceMap(SnmpPlugin):
         dontCollectIntTypes = getattr(device, 'zInterfaceMapIgnoreTypes', None)
         if dontCollectIntTypes and re.search(dontCollectIntTypes, om.type):
             log.debug( "Interface %s type %s matched the zInterfaceMapIgnoreTypes zprop '%s'" % (
-                      om.interfaceName, om.type, 
+                      om.interfaceName, om.type,
                       getattr(device, 'zInterfaceMapIgnoreTypes')))
             return None
-        
+
         # Append _64 to interface type if high-capacity counters are supported
         if hasattr(om, 'hcCounters'):
             om.type += "_64"
@@ -284,7 +285,7 @@ class InterfaceMap(SnmpPlugin):
 
         # Handle misreported operStatus from Linux tun devices
         if om.id.startswith('tun') and om.adminStatus == 1: om.operStatus = 1
-        
+
         # Net-SNMP on Linux will always report the speed of bond interfaces as
         # 10Mbps. This is probably due to the complexity of figuring out the
         # real speed which would take into account all bonded interfaces and
@@ -300,13 +301,13 @@ class InterfaceMap(SnmpPlugin):
             log.debug( "Resetting bond interface %s speed from %s to %s" % (
                       om.interfaceName, om.speed, newspeed))
             om.speed = newspeed
-        
+
         # Clear out all IP addresses for interfaces that no longer have any.
         if not hasattr(om, 'setIpAddresses'):
             om.setIpAddresses = []
-        
+
         return om
-   
+
 
     ifTypes = {'1': 'Other',
      '2': 'regular1822',
@@ -539,5 +540,5 @@ class InterfaceMap(SnmpPlugin):
      '229': 'CATV Modular CMTS Downstream Interface',
      '230': 'Asymmetric Digital Subscriber Loop Version 2',
      '231': 'MACSecControlled',
-     '232': 'MACSecUncontrolled', 
+     '232': 'MACSecUncontrolled',
      }

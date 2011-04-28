@@ -46,28 +46,26 @@ class ServiceOrganizerNode(TreeNode):
     @property
     def text(self):
         text = super(ServiceOrganizerNode, self).text
-        count = self._get_cache.count(self.uid)
+        obj = self._object.getObject()
+        count = obj.countClasses()
         return {'text': text, 'count': count}
 
     @property
     def children(self):
-        orgs = self._get_cache.search(self.uid)
-        return catalogAwareImap(lambda x:ServiceOrganizerNode(x, self._root,
-                                                              self), orgs)
+        orgs = self._object.getObject().children()
+        orgs.sort(key=lambda x: x.titleOrId())
+        return catalogAwareImap(lambda x:ServiceOrganizerNode(x, self._root, self), orgs)
 
     @property
     def leaf(self):
         return False
 
-
 class ServiceInfoBase(InfoBase):
-
-    def getZMonitor(self):
+     def getZMonitor(self):
         def translate(rawValue):
             return {False: 'No', True: 'Yes'}[rawValue]
         return getZPropertyInfo(self._object, 'zMonitor', True, translate)
-
-    def getZFailSeverity(self):
+     def getZFailSeverity(self):
         def translate(rawValue):
             return {5: 'Critical',
                     4: 'Error',
@@ -76,10 +74,10 @@ class ServiceInfoBase(InfoBase):
                     1: 'Debug'}[rawValue]
         return getZPropertyInfo(self._object, 'zFailSeverity', 4, translate)
 
-    def setZFailSeverity(self, data):
+     def setZFailSeverity(self, data):
         setZPropertyInfo(self._object, 'zFailSeverity', **data)
 
-    zFailSeverity = property(getZFailSeverity, setZFailSeverity)
+     zFailSeverity = property(getZFailSeverity, setZFailSeverity)
 
 
 class ServiceInfo(ServiceInfoBase):
@@ -103,9 +101,7 @@ class ServiceInfo(ServiceInfoBase):
 
     @property
     def count(self):
-        numInstances = ICatalogTool(self._object).count(
-            (Service,), self.uid)
-        return numInstances
+        return self._object.count()
 
 class IpServiceClassInfo(ServiceInfo):
     adapts(IpServiceClass)

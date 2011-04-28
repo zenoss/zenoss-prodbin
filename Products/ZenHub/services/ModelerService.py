@@ -13,7 +13,7 @@
 
 from Acquisition import aq_base
 from twisted.internet import defer, reactor
-
+from ZODB.transact import transact
 from PerformanceConfig import PerformanceConfig
 from Products.ZenHub.PBDaemon import translateError
 from Products.DataCollector.DeviceProxy import DeviceProxy
@@ -44,7 +44,7 @@ class ModelerService(PerformanceConfig):
                     self.plugins[plugin.name()] = plugin
                 except Exception, ex:
                     log.exception(ex)
-    
+
         result = DeviceProxy()
         result.id = dev.getId()
         if not dev.manageIp:
@@ -71,15 +71,21 @@ class ModelerService(PerformanceConfig):
         return result
 
     @translateError
-    def remote_getDeviceConfig(self, names):
+    def remote_getDeviceConfig(self, names, checkStatus=False):
         result = []
         for name in names:
             device = self.getPerformanceMonitor().findDevice(name)
             if not device:
                 continue
             device = device.primaryAq()
+            if checkStatus and (device.getPingStatus() > 0
+                                or device.getSnmpStatus() > 0):
+                log.info("device %s is down skipping modeling", device.id)
+                continue
+
             if (device.productionState <
                 device.getProperty('zProdStateThreshold', 0)):
+                log.info("device %s is below zProdStateThreshold", device.id)
                 continue
             result.append(self.createDeviceProxy(device))
         return result
@@ -90,7 +96,7 @@ class ModelerService(PerformanceConfig):
             monitor = self.instance
         monitor = self.dmd.Monitors.Performance._getOb(monitor)
         return [d.id for d in monitor.devices.objectValuesGen()]
-    
+
     @translateError
     def remote_getDeviceListByOrganizer(self, organizer, monitor=None):
         if monitor is None:
@@ -128,9 +134,15 @@ class ModelerService(PerformanceConfig):
         device.setSnmpLastCollection()
         from transaction import commit
         commit()
-        
-        
-        
+
+    @transact
+    @translateError
+    def remote_setSnmpConnectionInfo(self, device, version, port, community):
+        device = self.getPerformanceMonitor().findDevice(device)
+        device.updateDevice(zSnmpVer=version,
+                            zSnmpPort=port,
+                            zSnmpCommunity=community)
+
     def pushConfig(self, device):
         from twisted.internet.defer import succeed
         return succeed(device)

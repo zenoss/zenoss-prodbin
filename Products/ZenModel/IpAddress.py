@@ -212,8 +212,8 @@ class IpAddress(ManagedEntity, Layer3Linkable):
         if iface: return iface.device()
         return None
 
-    def index_object(self):
-        super(IpAddress, self).index_object()
+    def index_object(self, idxs=None):
+        super(IpAddress, self).index_object(idxs)
         self.index_links()
 
     def unindex_object(self):

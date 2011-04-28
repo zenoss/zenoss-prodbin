@@ -313,6 +313,9 @@ class DeviceClass(DeviceOrganizer, ZenPackable, TemplateContainer):
         dev.setLastChange()
         dev.setAdminLocalRoles()
         dev.index_object()
+        notify(IndexingEvent(dev, idxs=('path', 'searchKeywords'),
+                             update_metadata=True))
+
         return exported
 
     def moveDevices(self, moveTarget, deviceNames=None, REQUEST=None):

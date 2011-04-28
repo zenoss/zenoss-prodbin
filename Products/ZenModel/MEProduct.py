@@ -40,8 +40,8 @@ class MEProduct(ManagedEntity):
         Gets the Products's Name (id)
         """
         productClass = self.productClass()
-        if productClass: 
-            return productClass.name and productClass.name or productClass.id
+        if productClass:
+            return productClass.titleOrId()
         return ''
     getModelName = getProductName
 
@@ -52,7 +52,7 @@ class MEProduct(ManagedEntity):
         Gets the Products's PrimaryHref
         """
         productClass = self.productClass()
-        if productClass: 
+        if productClass:
             return productClass.getPrimaryHref()
         return ''
 
@@ -69,7 +69,7 @@ class MEProduct(ManagedEntity):
         Gets the Manufacturer Name(Id)
         """
         manuf = self.getManufacturer()
-        if manuf: return manuf.getId()
+        if manuf: return manuf.titleOrId()
         return ""
 
 
@@ -98,17 +98,15 @@ class MEProduct(ManagedEntity):
         Return the arguments to the setProductKey method so we can avoid
         changing the object model when nothing has changed.
         """
-        if self._manufacturer is not None:
+        if self.productClass() is None:
+            return ""
+        elif self._manufacturer is not None:
             return (self._prodKey, self._manufacturer)
         elif self._prodKey is not None:
             return self._prodKey
         else:
             pclass = self.productClass()
-            if pclass:
-                return pclass.getProductKey()
-            else:
-                return ""
-
+            return pclass.getProductKey()
 
     def getProductLink(self, target=None):
         """
@@ -121,37 +119,37 @@ class MEProduct(ManagedEntity):
         """Return list of tuples with product context for this product.
         """
         prod = self.productClass()
-        if prod: 
+        if prod:
             prodcontext = self.primaryAq()
             return prodcontext.zenPropertyItems()
         return []
-        
-        
+
+
     def setDescription(self, description):
         """
         Sets the description of the underlying ProductClass
         """
-        
+
         prod = self.productClass()
-        
+
         if prod:
             prod.description = description
-            
-            
+
+
     def getDescription(self):
         """
         Gets the description of the underlying ProductClass
         """
-        
+
         prod = self.productClass()
-        
+
         if prod: result = prod.description
         else   : result = None
-        
+
         return result
-        
+
 
     def getDeviceLink(self, screen='devicedetail'):
         return super(MEProduct, self).getDeviceLink(screen)
-        
+
 InitializeClass(MEProduct)

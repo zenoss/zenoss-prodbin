@@ -24,6 +24,7 @@ from AccessControl import getSecurityManager
 from Products.ZenUtils.guid.interfaces import IGlobalIdentifier
 from Products.Zuul import getFacade
 
+
 class TreeNode(object):
     """
     Adapts a brain.

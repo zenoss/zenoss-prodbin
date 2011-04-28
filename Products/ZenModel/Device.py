@@ -724,6 +724,9 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable,
         Set the productKey of the device OS.
         """
         self.os.setProductKey(prodKey, manufacturer)
+        self.index_object(idxs=('getOSProductName','getOSManufacturerName'),
+                          noips=True)
+
 
 
     def getHWTag(self):
@@ -741,6 +744,8 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable,
         Set the asset tag of the device hardware.
         """
         self.hw.tag = assettag
+        self.index_object(idxs=('getHWTag',), noips=True)
+
 
 
     def setHWProductKey(self, prodKey, manufacturer=None):
@@ -748,6 +753,9 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable,
         Set the productKey of the device hardware.
         """
         self.hw.setProductKey(prodKey, manufacturer)
+        self.index_object(idxs=('getHWProductClass','getHWManufacturerName'),
+                          noips=True)
+
 
 
     def setHWSerialNumber(self, number):
@@ -755,7 +763,7 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable,
         Set the hardware serial number.
         """
         self.hw.serialNumber = number
-
+        self.index_object(idxs=('getHWSerialNumber',), noips=True)
 
     def getHWSerialNumber(self):
         """
@@ -996,7 +1004,7 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable,
 
             else:
                 self.manageIp = ip
-                self.index_object()
+                self.index_object(idxs=('ipAddressAsInt','getDeviceIp'), noips=True)
                 notify(IndexingEvent(self, ('ipAddress',), True))
                 log.info("%s's IP address has been set to %s.",
                          self.id, ip)
@@ -1875,11 +1883,12 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable,
             shutil.move(oldpath, newpath)
 
 
-    def index_object(self, idxs=None):
+    def index_object(self, idxs=None, noips=False):
         """
         Override so ips get indexed on move.
         """
         super(Device, self).index_object(idxs)
+        if noips: return
         for iface in self.os.interfaces():
             for ip in iface.ipaddresses():
                 ip.index_object()
@@ -2258,7 +2267,7 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable,
 
         adm = ApplyDataMap()
         return adm._applyDataMap(self, relmap)
-    
+
     def getStatus(self, statusclass=None, **kwargs):
         """
         Return the status number for this device of class statClass.
@@ -2278,9 +2287,9 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable,
                                                  details={EventProxy.DEVICE_IP_ADDRESS_DETAIL_KEY: self.getManageIp()})
             result = zep.getEventSummaries(0, filter=event_filter, limit=0)
             return int(result['total'])
-        
+
         return super(Device, self).getStatus(statusclass, **kwargs)
-        
+
 
     def details(self):
         dinfo = IInfo(self)

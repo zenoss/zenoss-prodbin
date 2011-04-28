@@ -21,8 +21,15 @@ from zope.component.interfaces import ObjectEvent
 from ZODB.utils import u64
 from twisted.internet import defer, reactor
 
+from Products.ZenModel.Device import Device
+from Products.ZenModel.DeviceComponent import DeviceComponent
+from time import time
 from Products.ZenRelations.PrimaryPathObjectManager import PrimaryPathObjectManager
 from Products.ZenHub.interfaces import IUpdateEvent, IDeletionEvent
+
+# time window in seconds in which we will accept changes to a device that
+# will be passed on to the services
+CHANGE_TIME = 300
 
 
 class InvalidationEvent(ObjectEvent):
@@ -54,11 +61,22 @@ def _dispatch(dmd, oid, ioid, queue):
     # Closure to use as a callback
     def inner(_ignored):
         try:
+            if dmd.pauseHubNotifications:
+                log.debug('notifications are currently paused')
+                return
+
             # Go pull the object out of the database
             obj = dmd._p_jar[oid]
             # Don't bother with all the catalog stuff; we're depending on primaryAq
             # existing anyway, so only deal with it if it actually has primaryAq.
-            if isinstance(obj, PrimaryPathObjectManager):
+            curTime = time()
+            if (isinstance(obj, PrimaryPathObjectManager)
+                  or isinstance(obj, DeviceComponent)):
+                if (isinstance(obj, Device)
+                    and obj.getLastChange().timeTime() + CHANGE_TIME < curTime):
+                    log.debug('Device change for %s not within '
+                                    'change window', obj.name())
+                    return
                 try:
                     # Try to get the object
                     obj = obj.__of__(dmd).primaryAq()
@@ -175,7 +193,7 @@ def _listener_decorator_factory(eventtype):
             # Return the class, which will replace the original class.
             return cls
 
-        # Add the advisor to the class. 
+        # Add the advisor to the class.
         addClassAdvisor(advisor)
 
         # Return the decorator so we get the log message when called

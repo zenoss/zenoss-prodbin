@@ -5,6 +5,7 @@ var _tm = {
     'IpInterface':      ["^/zport/dmd/Devices/.*/devices/.*/os/interfaces/.*"],
     'Device':           ["^/zport/dmd/.*/devices/[^/]*/?$"],
     'DeviceLocation':   ["^/zport/dmd/Locations(/[A-Za-z][^/]*)*/?$"],
+    'DeviceSystem':     ["^/zport/dmd/Systems(/[A-Za-z][^/]*)*/?$"],
     'DeviceGroup':      ["^/zport/dmd/Groups(/[A-Za-z][^/]*)*/?$"],
     'DeviceClass':      ["^/zport/dmd/Devices(/(?!devices)[^/*])*/?$"],
     'EventClass':       ["^/zport/dmd/Events(/[A-Za-z][^/]*)*/?$"],

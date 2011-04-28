@@ -37,7 +37,9 @@ Ext.onReady( function() {
                         return;
                     }
                     o.setVisible(isClass);
-                    o.label.setVisible(isClass);
+                    if (o.label) {
+                        o.label.setVisible(isClass);
+                    }
                     o.setDisabled(!isClass);
                 });
             Ext.getCmp('nameTextField').setDisabled(isRoot);

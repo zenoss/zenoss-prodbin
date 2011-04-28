@@ -33,6 +33,14 @@ def getComponentConfig(comp):
             if not ds.enabled: continue
             oid = ds.oid
             if not oid: continue
+            if not oid.startswith('1.3.6.1'):
+                oid = comp.dmd.Mibs.name2oid(oid)
+                if oid:
+                    log.debug('resolved name %s to oid %s', ds.oid, oid)
+                else:
+                    log.warn("mib lookup for %s failed", ds.oid)
+                    continue
+
             snmpindex = getattr(comp, "ifindex", comp.snmpindex)
             if snmpindex: oid = "%s.%s" % (oid, snmpindex)
             for dp in ds.getRRDDataPoints():
@@ -49,7 +57,7 @@ def getComponentConfig(comp):
 
 def getDeviceConfig(dev):
     dev = dev.primaryAq()
-    if not dev.snmpMonitorDevice(): 
+    if not dev.snmpMonitorDevice():
         log.debug("skipping %s SNMP monitoring disabled", dev.id)
         return None
     result = SnmpConfig()
@@ -71,7 +79,7 @@ class SnmpPerfConfig(PerformanceConfig):
     @translateError
     def remote_getDevices(self, devices=None):
         """Return the subset of devices that should be monitored.
-        
+
         If devices is empty, then all the monitored devices are given.
         """
         if devices:

@@ -42,6 +42,7 @@ class AdministrativeRoleable:
         us = self.ZenUsers.getUserSettings(newId)
         AdministrativeRole(us, self)
         self.setAdminLocalRoles()
+        self.index_object()
         notify(IndexingEvent(self))
         if REQUEST:
             if us:
@@ -65,6 +66,7 @@ class AdministrativeRoleable:
             ar = self.adminRoles._getOb(id)
             ar.update(role[i], level[i])
         self.setAdminLocalRoles()
+        self.index_object()
         notify(IndexingEvent(self))
         if REQUEST:
             messaging.IMessageSender(self).sendToBrowser(
@@ -86,6 +88,7 @@ class AdministrativeRoleable:
             if ar is not None: ar.delete()
             self.manage_delLocalRoles((userid,))
         self.setAdminLocalRoles()
+        self.index_object()
         notify(IndexingEvent(self))
         if REQUEST:
             if delids:

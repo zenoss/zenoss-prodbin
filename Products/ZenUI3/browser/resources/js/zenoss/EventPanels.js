@@ -289,7 +289,7 @@
             if (showActions) {
                 tbarItems.push({
                     id: 'event-actions-menu',
-                    text: _t('Device Actions'),
+                    text: _t('Actions'),
                     xtype: 'deviceactionmenu',
                     deviceFetcher: function() {
                         var grid = Ext.getCmp(gridId),
@@ -320,7 +320,7 @@
             if (showCommands) {
                 tbarItems.push({
                     id: 'event-commands-menu',
-                    text: _t('Device Commands'),
+                    text: _t('Commands'),
                     hidden: !showCommands,
                     disabled: Zenoss.Security.doesNotHavePermission('Run Commands'),
                     setContext: function(uid) {
