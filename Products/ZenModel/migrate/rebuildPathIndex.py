@@ -33,7 +33,11 @@ class RebuildPathIndex(Migrate.Step):
         i = 0
         # device Search
         for x in dmd.Devices.deviceSearch():
-            x.getObject().index_object(idxs=('path',))
+            try:
+                x.getObject().index_object(idxs=('path',))
+            except TypeError:
+                # for upgrade the zenpacks may not have loaded the new code yet
+                x.getObject().index_object()
         # global catalog
         for x in zport.global_catalog():
             i+=1
