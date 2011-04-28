@@ -242,7 +242,7 @@ settingsDevice setManageIp='10.10.10.77', setLocation="123 Elm Street", \
         """
         self.log.debug( "Applying other properties..." )
         internalVars = [
-           'deviceName', 'devicePath', 'comments',
+           'deviceName', 'devicePath', 'comments', 'loader', 'loader_arg_keys',
         ]
         @transact
         def setDescription(org, description):
