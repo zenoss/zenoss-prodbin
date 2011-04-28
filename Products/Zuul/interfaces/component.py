@@ -132,6 +132,8 @@ class IOSProcessInfo(IComponentInfo):
                                  order=1)
     processName = schema.TextLine(title=u"Process Name", group="Overview",
                                   readonly=True, order=-1)
+    description = schema.TextLine(title=u"Description", group="Overview",
+                                  readonly=True, order=2)
     alertOnRestart = schema.Bool(title=u"Alert on Restart", group="Details")
     failSeverity = schema.Int(title=u"Fail Severity", xtype="severity",
                               group="Details")

@@ -28,6 +28,10 @@ class OSProcessInfo(ComponentInfo):
     def processName(self):
         return self._object.name()
 
+    @property
+    def description(self):
+        return self._object.osProcessClass().description
+
     def getAlertOnRestart(self):
         return self._object.alertOnRestart()
     def setAlertOnRestart(self, value):
