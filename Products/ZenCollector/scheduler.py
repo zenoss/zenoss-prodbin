@@ -123,6 +123,9 @@ class CallableTask(object):
         self.paused = False
         self.taskStats = None
 
+    def __repr__(self):
+        return "CallableTask: %s" % getattr(self.task, 'name', self.task)
+
     def running(self):
         """
         Called whenever this task is being run.
@@ -164,7 +167,23 @@ class CallableTask(object):
                 self.task.state = TaskStates.STATE_PAUSED
             else:
                 self.task.state = TaskStates.STATE_QUEUED
-                self._executor.submit(self._doCall)
+                # don't return deferred to looping call.
+                # If a deferred is returned to looping call
+                # it won't reschedule on error and will only
+                # reschedule after the deferred is done. This method
+                # should be called regardless of whether or
+                # not the task is still running to keep track
+                # of "late" tasks
+                d = self._executor.submit(self._doCall)
+                def _callError(failure):
+                    msg = "%s - %s failed %s" % (self.task, self.task.name,
+                                                   failure)
+                    log.debug(msg)
+                    # don't return failure to prevent
+                    # "Unhandled error in Deferred" message
+                    return msg
+                #l last error handler in the chain
+                d.addErrback(_callError)
         else:
             self._late()
         # don't return a Deferred because we want LoopingCall to keep
@@ -335,7 +354,19 @@ class Scheduler(object):
         def _startTask(result):
             log.debug("Task %s starting on %d second intervals",
                       newTask.name, newTask.interval)
-            loopingCall.start(newTask.interval)
+            d = loopingCall.start(newTask.interval)
+            # last call back in the chain, if it gets called as an errBack
+            # the looping will stop - shouldn't be called since CallableTask
+            # doesn't return a deferred, here for sanity and debug
+            def ltCallback(result):
+                log.debug("call finsihed %s : %s" %(loopingCall, result))
+                if isinstance(result, Failure):
+                    log.warn("Failure in looping call, will not reschedule %s" % newTask)
+                    log.error("%s" % result)
+
+            d.addBoth(ltCallback)
+
+
         d = defer.Deferred()
         d.addCallback(_startTask)
 
