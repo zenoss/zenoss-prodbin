@@ -327,7 +327,7 @@
                         id: 'id',
                         dataIndex: 'id',
                         header: _t('Name'),
-                        width: 120,
+                        width: 200,
                         sortable: true
                     },{
                         id: 'value',

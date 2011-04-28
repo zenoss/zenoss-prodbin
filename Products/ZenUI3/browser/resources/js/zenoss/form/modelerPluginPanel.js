@@ -32,11 +32,6 @@
                 },
                 items: [{
                     xtype: 'displayfield',
-                    name: 'name',
-                    fieldLabel: _t('Name'),
-                    value: 'zCollectorPlugins'
-                },{
-                    xtype: 'displayfield',
                     name: 'path',
                     ref: 'path',
                     fieldLabel: _t('Path')

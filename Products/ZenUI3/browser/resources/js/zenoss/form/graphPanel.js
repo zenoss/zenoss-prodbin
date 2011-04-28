@@ -470,8 +470,13 @@
             if (!result.success){
                 return;
             }
-            var data = result.data, panel = this;
+            var data = result.data, panel = this, el = this.getEl();
+
+            if (el.isMasked()) {
+                el.unmask();
+            }
             if (data.length > 0){
+
                 Ext.each(data, function(graph){
                     var graphId = "graph_" + ++Ext.Component.AUTO_ID;
                     panel.add(new Zenoss.SwoopyGraph({
@@ -484,10 +489,7 @@
 
                 });
             }else{
-                this.add({
-                    xtype: 'panel',
-                    html: _t('No Graph Data')
-                });
+                el.mask(_t('No Graph Data') );
             }
 
             panel.doLayout();
