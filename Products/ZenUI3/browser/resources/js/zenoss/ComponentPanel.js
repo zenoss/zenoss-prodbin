@@ -547,6 +547,7 @@ ZC.BaseComponentColModel = Ext.extend(Ext.grid.ColumnModel, {
                 id: 'monitored',
                 dataIndex: 'monitored',
                 header: _t('Monitored'),
+                renderer: Zenoss.render.checkbox,
                 width: 70,
                 sortable: true
             }, {
@@ -636,6 +637,7 @@ ZC.IpInterfacePanel = Ext.extend(ZC.ComponentGridPanel, {
                 id: 'monitored',
                 dataIndex: 'monitored',
                 header: _t('Monitored'),
+                renderer: Zenoss.render.checkbox,
                 width: 60
             },{
                 id: 'locking',
@@ -703,6 +705,7 @@ ZC.WinServicePanel = Ext.extend(ZC.ComponentGridPanel, {
                 id: 'monitored',
                 dataIndex: 'monitored',
                 header: _t('Monitored'),
+                renderer: Zenoss.render.checkbox,
                 width: 60
             },{
                 id: 'locking',
@@ -829,6 +832,7 @@ ZC.IpServicePanel = Ext.extend(ZC.ComponentGridPanel, {
                 id: 'monitored',
                 dataIndex: 'monitored',
                 header: _t('Monitored'),
+                renderer: Zenoss.render.checkbox,
                 width: 60
             },{
                 id: 'locking',
@@ -870,10 +874,6 @@ ZC.OSProcessPanel = Ext.extend(ZC.ComponentGridPanel, {
                 renderer: Zenoss.render.severity,
                 width: 60
             },{
-                id: 'processName',
-                dataIndex: 'processName',
-                header: _t('Name')
-            },{
                 id: 'processClass',
                 dataIndex: 'processClass',
                 header: _t('Process Class'),
@@ -885,13 +885,20 @@ ZC.OSProcessPanel = Ext.extend(ZC.ComponentGridPanel, {
                     }
                 }
             },{
+                id: 'processName',
+                dataIndex: 'processName',
+                header: _t('Name')
+            },{
                 id: 'alertOnRestart',
                 dataIndex: 'alertOnRestart',
                 renderer: Zenoss.render.checkbox,
-                header: _t('Alert On Restart')
+                width: 85,
+                header: _t('Restart Alert?')
             },{
                 id: 'failSeverity',
                 dataIndex: 'failSeverity',
+                renderer: Zenoss.render.severity,
+                width: 70,
                 header: _t('Fail Severity')
             },{
                 id: 'monitored',
@@ -903,6 +910,7 @@ ZC.OSProcessPanel = Ext.extend(ZC.ComponentGridPanel, {
                 id: 'locking',
                 dataIndex: 'locking',
                 header: _t('Locking'),
+                width: 55,
                 renderer: Zenoss.render.locking_icons
             }]
         });
@@ -982,6 +990,7 @@ ZC.FileSystemPanel = Ext.extend(ZC.ComponentGridPanel, {
                 id: 'monitored',
                 dataIndex: 'monitored',
                 header: _t('Monitored'),
+                renderer: Zenoss.render.checkbox,
                 width: 60
             },{
                 id: 'locking',
