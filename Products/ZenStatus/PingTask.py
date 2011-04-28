@@ -22,6 +22,8 @@ import time
 import logging
 log = logging.getLogger("zen.zenping")
 
+from twisted.python.failure import Failure
+
 import Globals
 import zope.interface
 import zope.component
@@ -35,6 +37,7 @@ from Products.ZenCollector.interfaces import ICollector, ICollectorPreferences,\
 from Products.ZenCollector.tasks import TaskStates, BaseTask
 
 from Products.ZenStatus.PingJob import PingJob
+from Products.ZenStatus.PingService import PingJobError
 from Products.ZenUtils.Utils import unused
 from Products.ZenCollector.services.config import DeviceProxy
 unused(DeviceProxy)
@@ -43,9 +46,6 @@ from Products.ZenEvents.ZenEventClasses import Status_Ping
 from Products.ZenEvents import Event
 
 from Products.ZenUtils.IpUtil import ipunwrap
-
-# Temporarily run ping6 from a command-line
-from Products.ZenRRD.zencommand import Cmd, ProcessRunner, TimeoutError
 
 
 # Try a circular import?
@@ -181,7 +181,7 @@ class PingCollectionTask(BaseTask):
         self._pinger.ping(self.pingjob)
         d = self.pingjob.deferred
         d.addCallback(self._storeResults)
-        d.addCallback(self._updateStatus)
+        d.addBoth(self._updateStatus)
         d.addErrback(self._failure)
 
         # Wait until the Deferred actually completes
@@ -193,8 +193,7 @@ class PingCollectionTask(BaseTask):
         """
         self.state = PingCollectionTask.STATE_STORE_PERF
         if self.pingjob.rtt >= 0 and self.pingjob.points:
-            if self.config.ipVersion == 4:
-                self.pingjob.calculateStatistics()
+            self.pingjob.calculateStatistics()
             for rrdMeta in self.pingjob.points:
                 name, path, rrdType, rrdCommand, rrdMin, rrdMax = rrdMeta
                 value = getattr(self.pingjob, name, None)
@@ -216,6 +215,12 @@ class PingCollectionTask(BaseTask):
         @type result: array of (boolean, dictionaries)
         """
         self.state = PingCollectionTask.STATE_UPDATE_TOPOLOGY
+
+        # Catch ping job errors
+        if isinstance(result, Failure) and \
+           not isinstance(result.value, PingJobError):
+            return Failure
+
         ip = self.pingjob.ipaddr
         if self.pingjob.rtt >= 0:
             success = 'Success'
