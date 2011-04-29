@@ -25,7 +25,7 @@ class DeleteNotificationSchedulesReport(Migrate.Step):
         USER_REPORTS_CATEGORY = 'User Reports'
         NOTIFICATION_SCHEDULES_REPORT = 'Notification Schedules'
 
-        userReports = getattr(dmd.Reports, USER_REPORTS_CATEGORY)
+        userReports = getattr(dmd.Reports, USER_REPORTS_CATEGORY, {})
         if NOTIFICATION_SCHEDULES_REPORT in userReports:
             del userReports[NOTIFICATION_SCHEDULES_REPORT]
 
