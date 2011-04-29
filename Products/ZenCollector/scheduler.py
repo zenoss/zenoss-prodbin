@@ -257,7 +257,7 @@ class Scheduler(object):
 
         # create a cleanup task that will periodically sweep the 
         # cleanup dictionary for tasks that need to be cleaned
-        self._tasksToCleanup = {}
+        self._tasksToCleanup = set()
         self._cleanupTask = task.LoopingCall(self._cleanupTasks)
         self._cleanupTask.start(Scheduler.CLEANUP_TASKS_INTERVAL)
         
@@ -310,10 +310,11 @@ class Scheduler(object):
                 self.taskRemoved(taskWrapper)
 
         for taskName in doomedTasks:
-            self._tasksToCleanup[taskName] = self._tasks[taskName].task
+            self._tasksToCleanup.add(self._tasks[taskName].task)
 
             del self._loopingCalls[taskName]
             del self._tasks[taskName]
+            del self._taskStats[taskName]
 
         cleanupList = self._cleanupTasks()
         return defer.DeferredList(cleanupList)
@@ -340,7 +341,7 @@ class Scheduler(object):
         """
         if self._tasks.has_key(newTask.name):
             raise ValueError("Task %s already exists" % newTask.name)
-
+        log.debug("add task %s, %s", newTask.name, newTask)
         callableTask = self._callableTaskFactory.getCallableTask(newTask, self)
         loopingCall = task.LoopingCall(callableTask)
         self._loopingCalls[newTask.name] = loopingCall
@@ -441,7 +442,7 @@ class Scheduler(object):
         for (taskName, taskWrapper) in self._tasks.iteritems():
             task = taskWrapper.task
             if task.configId == configId:
-                log.debug("Stopping task %s", taskName)
+                log.debug("Stopping task %s, %s", taskName, task)
 
                 if self._loopingCalls[taskName].running:
                     self._loopingCalls[taskName].stop()
@@ -450,11 +451,12 @@ class Scheduler(object):
                 self.taskRemoved(taskWrapper)
 
         for taskName in doomedTasks:
-            self._tasksToCleanup[taskName] = self._tasks[taskName].task
-
+            task = self._tasks[taskName].task
+            self._tasksToCleanup.add(task)
             del self._loopingCalls[taskName]
             del self._tasks[taskName]
-
+            self._displayTaskStatistics(task)
+            del self._taskStats[taskName]
             # TODO: ponder task statistics and keeping them around?
 
         # TODO: don't let any tasks for the same config start until
@@ -570,6 +572,29 @@ class Scheduler(object):
         # TODO: should we reset the statistics here, or do it on a periodic
         # interval, like once an hour or day or something?
 
+    def _displayTaskStatistics(self, task):
+        verbose = log.isEnabledFor(logging.DEBUG)
+        if not verbose:
+            return
+        taskStats = self._taskStats[task.name]
+
+        buffer = "%s Current State: %s Successful_Runs: %d Failed_Runs: %d Missed_Runs: %d\n" \
+            % (task.name, task.state, taskStats.totalRuns,
+               taskStats.failedRuns, taskStats.missedRuns)
+
+        buffer += "\nDetailed Task States:\n"
+        if taskStats.states: # Hasn't run yet
+            buffer = self._displayStateStatistics(buffer,
+                                         taskStats.states,
+                                         "%s " % task.name)
+
+            if hasattr(task, 'displayStatistics'):
+                buffer += task.displayStatistics()
+
+        buffer += "\n"
+
+        log.info("Detailed Task Statistics:\n%s", buffer)
+
     def _displayStateStatistics(self, buffer, stateStats, prefix=''):
         for state, stats in stateStats.iteritems():
             buffer += "%sState: %s Total: %d Total Elapsed: %.4f Min: %.4f Max: %.4f Mean: %.4f StdDev: %.4f\n" \
@@ -586,7 +611,10 @@ class Scheduler(object):
         # Build a list of the tasks that need to be cleaned up so that there
         # is no issue with concurrent modifications to the _tasksToCleanup
         # dictionary when tasks are quickly cleaned up.
-        todoList = [task for task in self._tasksToCleanup.values()
+        if self._tasksToCleanup:
+            log.debug("tasks to clean %s" % self._tasksToCleanup)
+
+        todoList = [task for task in self._tasksToCleanup
                              if self._isTaskCleanable(task)]
 
         cleanupWaitList = []
@@ -594,7 +622,7 @@ class Scheduler(object):
             # changing the state of the task will keep the next cleanup run
             # from processing it again
             task.state = TaskStates.STATE_CLEANING
-
+            log.debug("Cleanup on task %s %s", task.name, task)
             d = defer.maybeDeferred(task.cleanup)
             d.addBoth(self._cleanupTaskComplete, task)
             cleanupWaitList.append(d)
@@ -605,7 +633,7 @@ class Scheduler(object):
         Twisted callback to remove a task from the cleanup queue once it has
         completed its cleanup work.
         """
-        del self._tasksToCleanup[task.name]
+        self._tasksToCleanup.discard(task)
         return result
 
     def _isTaskCleanable(self, task):
