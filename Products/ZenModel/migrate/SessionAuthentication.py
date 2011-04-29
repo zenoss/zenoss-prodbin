@@ -23,9 +23,14 @@ class SessionAuthentication(Migrate.Step):
 
     def cutover(self, dmd):
         zport = dmd.zport
+        app = zport.unrestrictedTraverse('/')
+        # set up dmd users
         setupCookieHelper(zport)
         setupSessionHelper(zport)
 
+        # make sure admin is set up correctly
+        setupCookieHelper(app)
+        setupSessionHelper(app)
 
 SessionAuthentication()
 
