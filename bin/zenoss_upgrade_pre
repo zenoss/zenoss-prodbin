@@ -82,7 +82,8 @@ update_zep_cfg
 # Move from ZODB to MySQL
 ${ZENHOME}/bin/python ${ZENHOME}/bin/changeObjectStore.py \
     --host=$MYSQLHOST --port=$MYSQLPORT --passwd="$MYSQLPASS" \
-    --user=$MYSQLUSER --db=$MYSQLZODB --rootpw="$MYSQLROOTPASSWD"
+    --user=$MYSQLUSER --db=$MYSQLZODB --rootpw="$MYSQLROOTPASSWD" \
+    2>&1 | egrep -v "For help, use ${ZENHOME}/bin/zeoctl -h|Error: no program specified; use -p or -C"
 
 # Update AMQP configuration files
 update_amqp_cfg
