@@ -83,9 +83,9 @@ class ZenBackup(ZenBackupBase):
     def readZEPSettings(self):
         '''
         Read in and store the ZEP DB configuration options from
-        'zenoss-zep.properties' to the 'options' object.
+        'zeneventserver.conf' to the 'options' object.
         '''
-        zepconf = os.path.join(zenPath('etc'), 'zenoss-zep', 'zenoss-zep.properties')
+        zepconf = os.path.join(zenPath('etc'), 'zeneventserver.conf')
         zepsettings = {'username': 'zepdbuser', 'hostname': 'zepdbhost',
                        'dbname': 'zepdbname', 'password': 'zepdbpass',
                        'port': 'zepdbport'}
@@ -336,7 +336,7 @@ class ZenBackup(ZenBackupBase):
         
         self.log.info('Backing up ZEP indexes.')
         zepTar = tarfile.open(os.path.join(self.tempDir, 'zep.tar'), 'w')
-        zepTar.add(os.path.join(zenPath('var'), 'zenoss-zep'), 'zenoss-zep')
+        zepTar.add(os.path.join(zenPath('var'), 'zeneventserver'), 'zeneventserver')
         zepTar.close()
         self.log.info('Backing up ZEP indexes completed.')
 

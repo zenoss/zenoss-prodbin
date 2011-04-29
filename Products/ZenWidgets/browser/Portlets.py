@@ -43,7 +43,7 @@ def zepConnectionError(retval=None):
             try:
                 return func(self, *args, **kwargs)
             except ZepConnectionError, e:
-                msg = 'Connection refused. Check zenoss-zep status on <a href="/zport/About/zenossInfo">Daemons</a>'
+                msg = 'Connection refused. Check zeneventserver status on <a href="/zport/About/zenossInfo">Daemons</a>'
                 messaging.IMessageSender(self.context).sendToBrowser("ZEP connection error",
                                                         msg,
                                                         priority=messaging.CRITICAL,
