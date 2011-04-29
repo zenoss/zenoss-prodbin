@@ -528,7 +528,6 @@ class TrapTask(BaseTask, CaptureReplay):
         sess.close()
 
     def decodeSnmpv1(self, addr, pdu):
-        oid = ''
         eventType = 'unknown'
         result = {}
 
@@ -538,8 +537,7 @@ class TrapTask(BaseTask, CaptureReplay):
         # Use addr[0] unchanged in this case.
         # Note that SNMPv1 packets *cannot* come in via IPv6
         new_addr = '.'.join(map(str, [pdu.agent_addr[i] for i in range(4)]))
-        if new_addr != '0.0.0.0':
-            addr[0] = new_addr
+        result["device"] = addr[0] if new_addr == "0.0.0.0" else new_addr
 
         enterprise = self.getEnterpriseString(pdu)
         eventType = self.oid2name(
@@ -550,14 +548,14 @@ class TrapTask(BaseTask, CaptureReplay):
         # Try an exact match with a .0. inserted between enterprise and
         # specific OID. It seems that MIBs frequently expect this .0.
         # to exist, but the device's don't send it in the trap.
-        oid = "%s.0.%d" % (enterprise, specific)
-        name = self.oid2name(oid, exactMatch=True, strip=False)
+        result["oid"] = "%s.0.%d" % (enterprise, specific)
+        name = self.oid2name(result["oid"], exactMatch=True, strip=False)
 
         # If we didn't get a match with the .0. inserted we will try
         # resolving with the .0. inserted and allow partial matches.
-        if name == oid:
-            oid = "%s.%d" % (enterprise, specific)
-            name = self.oid2name(oid, exactMatch=False, strip=False)
+        if name == result["oid"]:
+            result["oid"] = "%s.%d" % (enterprise, specific)
+            name = self.oid2name(result["oid"], exactMatch=False, strip=False)
 
         # Look for the standard trap types and decode them without
         # relying on any MIBs being loaded.
@@ -584,12 +582,11 @@ class TrapTask(BaseTask, CaptureReplay):
             # Add a detail for the index-stripped variable binding.
             r = self.oid2name(vb_oid, exactMatch=False, strip=True)
             result[r] = vb_value
-        return eventType, oid, result
+        return eventType, result
 
     def decodeSnmpv2(self, addr, pdu):
-        oid = ''
         eventType = 'unknown'
-        result = {}
+        result = {"oid": "", "device": addr[0]}
 
         variables = self.getResult(pdu)
         for vb_oid, vb_value in variables:
@@ -597,7 +594,7 @@ class TrapTask(BaseTask, CaptureReplay):
             vb_oid = '.'.join(map(str, vb_oid))
             # SNMPv2-MIB/snmpTrapOID
             if vb_oid == '1.3.6.1.6.3.1.1.4.1.0':
-                oid = '.'.join(map(str, vb_value))
+                result["oid"] = '.'.join(map(str, vb_value))
                 eventType = self.oid2name(
                         vb_value, exactMatch=False, strip=False)
             else:
@@ -607,7 +604,7 @@ class TrapTask(BaseTask, CaptureReplay):
                 # Add a detail for the index-stripped variable binding.
                 r = self.oid2name(vb_oid, exactMatch=False, strip=True)
                 result[r] = vb_value
-        return eventType, oid, result
+        return eventType, result
 
     def asyncHandleTrap(self, addr, pdu, startProcessTime):
         """
@@ -630,9 +627,9 @@ class TrapTask(BaseTask, CaptureReplay):
         # PDU contains an SNMPv1 trap if the enterprise_length is greater
         # than zero in addition to the PDU version being 0.
         if pdu.version == SNMPv1 or pdu.enterprise_length > 0:
-            eventType, oid, result = self.decodeSnmpv1(addr, pdu)
+            eventType, result = self.decodeSnmpv1(addr, pdu)
         elif pdu.version in (SNMPv2, SNMPv3):
-            eventType, oid, result = self.decodeSnmpv2(addr, pdu)
+            eventType, result = self.decodeSnmpv2(addr, pdu)
         else:
             self.log.error("Unable to handle trap version %d", pdu.version)
             return
@@ -640,8 +637,6 @@ class TrapTask(BaseTask, CaptureReplay):
         summary = 'snmp trap %s' % eventType
         self.log.debug(summary)
         community = self.getCommunity(pdu)
-        result['oid'] = oid
-        result['device'] = addr[0]
         result.setdefault('component', '')
         result.setdefault('eventClassKey', eventType)
         result.setdefault('eventGroup', 'trap')
