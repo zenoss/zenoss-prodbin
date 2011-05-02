@@ -12,6 +12,7 @@
 ###########################################################################
 
 import re
+import sre_constants
 import logging
 log = logging.getLogger('zen.HubService.ProcessConfig')
 
