@@ -835,11 +835,11 @@ class EventsRouter(DirectRouter):
                 'minValue': 0,
                 'allowNegative': False,
                 },{
-                'id': 'event_archive_interval_days',
-                'name': _t('Event Archive Interval (days)'),
+                'id': 'event_archive_interval_minutes',
+                'name': _t('Event Archive Interval (minutes)'),
                 'xtype': 'numberfield',
                 'minValue': 1,
-                'maxValue': 30,
+                'maxValue': 43200,
                 'allowNegative': False,
                 },{
                 'id': 'event_archive_purge_interval_days',
