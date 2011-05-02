@@ -23,15 +23,22 @@ import logging
 
 log = logging.getLogger('signalProcessorTest')
 
+from zope.interface import implements
+
 from zenoss.protocols.protobufs.zep_pb2 import Signal
-from Products.ZenEvents.zenactiond import ProcessSignalTask, NotificationDao, TargetableAction
+from Products.ZenEvents.zenactiond import ProcessSignalTask, NotificationDao
+from Products.ZenModel.actions import TargetableAction
 from Products.ZenModel.NotificationSubscription import NotificationSubscription
 from Products.ZenTestCase.BaseTestCase import BaseTestCase
+from Products.ZenModel.interfaces import IAction
 
 
 class MockNotificationSubscription(NotificationSubscription):
     def __init__(self, id):
         self.id = id
+        # add mock dmd to setup mock actions
+        self.dmd = None
+
     def windows(self):
         """
         There are no maintenance windows for this mock object.
@@ -68,27 +75,27 @@ active_email_notification.guid = subscriber_uuid
 active_email_notification.enabled = True
 active_email_notification.recipients = [manual_recipient]
 active_email_notification.subscriptions = [trigger_uuid]
-active_email_notification.action = 'email'
+active_email_notification.action = 'email_mock'
 
 active_page_notification = MockNotificationSubscription('active_page_notification')
 active_page_notification.guid = subscriber_uuid
 active_page_notification.enabled = True
 active_page_notification.recipients = [manual_page_recipient]
 active_page_notification.subscriptions = [trigger_uuid]
-active_page_notification.action = 'page'
+active_page_notification.action = 'page_mock'
 
 active_notification_zero = MockNotificationSubscription('active_notification_zero')
 active_notification_zero.guid = subscriber_uuid
 active_notification_zero.recipients = []
 active_notification_zero.subscriptions = [trigger_uuid]
-active_notification_zero.action = 'email'
+active_notification_zero.action = 'email_mock'
 
 disabled_notification = MockNotificationSubscription('disabled_notification')
 disabled_notification.guid = subscriber_uuid
 disabled_notification.enabled = False
 disabled_notification.recipients = [manual_recipient]
 disabled_notification.subscriptions = [trigger_uuid]
-disabled_notification.action = 'email'
+disabled_notification.action = 'email_mock'
 
 
 class MockNotificationDao(NotificationDao):
@@ -123,17 +130,31 @@ class MockAction(TargetableAction):
         # can test who would have recieved this notification/action.
         self.result.append(target['value'])
 
+class EmailMockAction(MockAction):
+    implements(IAction)
+    id = 'email_mock'
+    name = 'EmailMock'
+
+class PageMockAction(MockAction):
+    implements(IAction)
+    id = 'page_mock'
+    name = 'PageMock'
+
 class ProcessSignalTaskTest(BaseTestCase):
 
     def setUp(self):
+        super(ProcessSignalTaskTest, self).setUp()
+        from zope.component import getGlobalSiteManager
+        # register the component
+        gsm = getGlobalSiteManager()
+
+        self.emailAction = EmailMockAction()
+        self.pageAction = PageMockAction()
+        gsm.registerUtility(self.emailAction, IAction, self.emailAction.id)
+        gsm.registerUtility(self.pageAction, IAction, self.pageAction.id)
+
         self.mockDao = MockNotificationDao()
         self.taskProcessor = ProcessSignalTask(self.mockDao)
-
-        self.emailAction = MockAction()
-        self.pageAction = MockAction()
-
-        self.taskProcessor.registerAction('email', self.emailAction)
-        self.taskProcessor.registerAction('page', self.pageAction)
 
     def testEnabledNotification(self):
         """
