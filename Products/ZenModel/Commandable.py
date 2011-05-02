@@ -71,7 +71,7 @@ class Commandable:
         return uc
 
 
-    security.declareProtected(ZEN_DEFINE_COMMANDS_EDIT, 
+    security.declareProtected(ZEN_DEFINE_COMMANDS_EDIT,
         'manage_deleteUserCommand')
     def manage_deleteUserCommand(self, ids=(), REQUEST=None):
         "Delete User Command(s) to this device"
@@ -89,7 +89,7 @@ class Commandable:
             )
             return self.redirectToUserCommands(REQUEST)
 
-    security.declareProtected(ZEN_DEFINE_COMMANDS_EDIT, 
+    security.declareProtected(ZEN_DEFINE_COMMANDS_EDIT,
         'manage_editUserCommand')
     def manage_editUserCommand(self, commandId, REQUEST=None):
         ''' Want to redirect back to management tab after a save
@@ -97,7 +97,6 @@ class Commandable:
         command = self.getUserCommand(commandId)
         if command:
             password = REQUEST.form.get('password', '')
-            userManager = self.acl_users.userManager
             if not self.dmd.ZenUsers.authenticateCredentials(
                 self.dmd.ZenUsers.getUser().getId(), password):
                 messaging.IMessageSender(self).sendToBrowser(
@@ -130,7 +129,7 @@ class Commandable:
             out = REQUEST.RESPONSE
         else:
             out = None
-        
+
         startTime = time.time()
         numTargets = 0
         for target in self.getUserCommandTargets():
@@ -146,7 +145,7 @@ class Commandable:
                     out, 'type: %s  value: %s' % tuple(sys.exc_info()[:2]))
             self.write(out, '')
         self.write(out, '')
-        self.write(out, 'DONE in %s seconds on %s targets' % 
+        self.write(out, 'DONE in %s seconds on %s targets' %
                     (long(time.time() - startTime), numTargets))
         REQUEST.RESPONSE.write(footer)
 
@@ -175,7 +174,7 @@ class Commandable:
                 # but the conditional below seems to be necessary.
                 if t:
                     self.write(out, t)
-                    
+
         if child.poll() == -1:
             self.write(out, 'Command timed out for %s' % target.id +
                             ' (timeout is %s seconds)' % timeout)
@@ -195,7 +194,7 @@ class Commandable:
 
 
     security.declareProtected(ZEN_VIEW, 'getUserCommandIds')
-    def getUserCommandIds(self): 
+    def getUserCommandIds(self):
         ''' Get the user command ids available in this context
         '''
         commandIds = []
@@ -239,7 +238,7 @@ class Commandable:
         if url:
             return REQUEST.RESPONSE.redirect(url)
         return self.callZenScreen(REQUEST)
-            
+
 
     def getUrlForUserCommands(self):
         ''' Return url for page which manages user commands
@@ -253,7 +252,7 @@ class Commandable:
         '''
         return self.getUserCommands(asDict=True).get(commandId, None)
 
-    
+
     def getUserCommandEnvironment(self):
         ''' Get the environment that provides context for the tales
         evaluation of a UserCommand.
@@ -261,11 +260,11 @@ class Commandable:
         # Overridden by Service and Device
         return {
                 'target': self,
-                'here': self, 
+                'here': self,
                 'nothing': None,
                 'now': DateTime()
                 }
-    
+
 
     def getUserCommandTargets(self):
         ''' Called by Commandable.doCommand() to ascertain objects on which
@@ -278,7 +277,7 @@ class Commandable:
         ''' Output (maybe partial) result text from a UserCommand.
         '''
         # Looks like firefox renders progressive output more smoothly
-        # if each line is stuck into a table row.  
+        # if each line is stuck into a table row.
 
         # I doubt the above statement, as tested on Firefox 3
         # this only generates a larger DOM object and does nothing
@@ -297,7 +296,7 @@ class Commandable:
                 l = cgi.escape(l)
                 l = l.replace('\n', endLine + startLine)
                 out.write(startLine + l + endLine)
-                
+
 
 
 InitializeClass(Commandable)
