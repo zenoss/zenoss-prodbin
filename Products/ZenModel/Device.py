@@ -1773,6 +1773,14 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable,
         unused(generateEvents)
         xmlrpc = isXmlRpc(REQUEST)
         perfConf = self.getPerformanceServer()
+        if perfConf is None:
+            msg = "Device %s in unknown state -- remove and remodel" % self.titleOrId()
+            if write is not None:
+                write(msg)
+            log.error("Unable to get collector info: %s", msg)
+            if xmlrpc: return 1
+            return
+
         perfConf.collectDevice(self, setlog, REQUEST, generateEvents,
                                background, write)
 
