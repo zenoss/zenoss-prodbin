@@ -17,7 +17,7 @@ class IQueuePublisher(Interface):
     """
     Interface for publishing to a queue
     """
-    def publish(exchange, routing_key, message, exchange_type):
+    def publish(exchange, routing_key, message, createQueue=None, mandatory=False, immediate=False):
         """
         Publishes a message to an exchange. If twisted is running
         this will use the twisted amqp library, otherwise it will
@@ -28,6 +28,22 @@ class IQueuePublisher(Interface):
         @param routing_key: Key by which consumers will setup the queues to route
         @type  message: string or Protobuf
         @param message: message we are sending in the queue
+        @type  createQueue: string
+        @param createQueue: The name of the queue defined in the queue schema to create prior to
+                            publishing the message.
+        @type  mandatory: Boolean.
+        @param mandatory: If true, will raise NoRouteException if there is no
+                          destination queue for the published event.
+        @type  immediate: Boolean
+        @param immediate: If true, will raise NoConsumersException if there are
+                          no active consumers for the published event (the event
+                          is still sent to the queue).
+        @raise zenoss.protocols.exceptions.NoRouteException: If mandatory is
+               True and the message cannot be sent to a queue (the message is
+               lost).
+        @raise zenoss.protocols.exceptions.NoConsumersException: If immediate
+               is True and the message is successfully sent to the queue but
+               there are no active consumers to process the message.
         """
 
     channel = Attribute("Retrieves the connection to the queue")
@@ -75,7 +91,23 @@ class IEventPublisher(Interface):
     """
     Publishes events.
     """
-    def publish(event, mandatory=False):
+    def publish(event, mandatory=False, immediate=False):
         """
         Publish event to the raw event queue.
+
+        @type  event: Products.ZenEvents.Event
+        @param event: The event to be published to the queue.
+        @type  mandatory: Boolean.
+        @param mandatory: If true, will raise NoRouteException if there is no
+                          destination queue for the published event.
+        @type  immediate: Boolean
+        @param immediate: If true, will raise NoConsumersException if there are
+                          no active consumers for the published event (the event
+                          is still sent to the queue).
+        @raise zenoss.protocols.exceptions.NoRouteException: If mandatory is
+               True and the message cannot be sent to a queue (the message is
+               lost).
+        @raise zenoss.protocols.exceptions.NoConsumersException: If immediate
+               is True and the message is successfully sent to the queue but
+               there are no active consumers to process the message.
         """

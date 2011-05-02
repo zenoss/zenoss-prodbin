@@ -215,10 +215,10 @@ PUBLISH_SYNC = PublishSynchronizer()
 class EventPublisherBase(object):
     implements(IEventPublisher)
 
-    def _publish(self, exchange, routing_key, proto, mandatory=False):
+    def _publish(self, exchange, routing_key, proto, mandatory=False, immediate=False):
         raise NotImplementedError
 
-    def publish(self, event, mandatory=False):
+    def publish(self, event, mandatory=False, immediate=False):
         config = getAMQPConfiguration()
         if not hasattr(event, "evid"):
             event.evid = generate()
@@ -233,23 +233,23 @@ class EventPublisherBase(object):
             eventClass = event.eventClass
         routing_key = "zenoss.zenevent%s" % eventClass.replace('/', '.').lower()
         log.debug("About to publish this event to the raw event queue:%s, with this routing key: %s" % (proto, routing_key))
-        self._publish("$RawZenEvents", routing_key, proto, mandatory=mandatory)
+        self._publish("$RawZenEvents", routing_key, proto, mandatory=mandatory, immediate=immediate)
 
 
 class ClosingEventPublisher(EventPublisherBase):
-    def _publish(self, exchange, routing_key, proto, mandatory=False):
+    def _publish(self, exchange, routing_key, proto, mandatory=False, immediate=False):
         with closing(BlockingQueuePublisher()) as publisher:
-            publisher.publish(exchange, routing_key, proto, mandatory=mandatory)
+            publisher.publish(exchange, routing_key, proto, mandatory=mandatory, immediate=immediate)
 
 
 class EventPublisher(EventPublisherBase):
     _publisher = None
 
-    def _publish(self, exchange, routing_key, proto, mandatory=False):
+    def _publish(self, exchange, routing_key, proto, mandatory=False, immediate=False):
         if EventPublisher._publisher is None:
             EventPublisher._publisher = BlockingQueuePublisher()
         EventPublisher._publisher.publish(exchange, routing_key, proto,
-                                                mandatory)
+                                          mandatory, immediate)
 
     def close(self):
         if EventPublisher._publisher:
@@ -258,7 +258,7 @@ class EventPublisher(EventPublisherBase):
 
 
 class AsyncEventPublisher(EventPublisher):
-    def _publish(self, exchange, routing_key, proto, mandatory=False):
+    def _publish(self, exchange, routing_key, proto, mandatory=False, immediate=False):
         publisher = AsyncQueuePublisher()
         d = publisher.publish(exchange, routing_key, proto, mandatory=mandatory)
         d.addCallback(lambda r:publisher.close())
@@ -274,23 +274,10 @@ class AsyncQueuePublisher(object):
         self._amqpClient = AMQPFactory()
 
     @defer.inlineCallbacks
-    def publish(self, exchange, routing_key, message, createQueue=None, mandatory=False):
-        """
-        Publishes a message to an exchange. If twisted is running
-        this will use the twisted amqp library, otherwise it will
-        be blocking.
-        @type  exchange: string
-        @param exchange: destination exchange for the amqp server
-        @type  routing_key: string
-        @param routing_key: Key by which consumers will setup the queus to route
-        @type  message: string or Protobuff
-        @param message: message we are sending in the queue
-        @param createQueue: Identifier of queue to create
-        @type createQueue: string
-        """
+    def publish(self, exchange, routing_key, message, createQueue=None, mandatory=False, immediate=False):
         if createQueue:
             yield self._amqpClient.createQueue(exchange, createQueue)
-        result = yield self._amqpClient.send(exchange, routing_key, message, mandatory=mandatory)
+        result = yield self._amqpClient.send(exchange, routing_key, message, mandatory=mandatory, immediate=immediate)
         defer.returnValue(result)
 
 
@@ -311,17 +298,9 @@ class BlockingQueuePublisher(object):
     def __init__(self):
         self._client = BlockingPublisher()
 
-    def publish(self, exchange, routing_key, message, mandatory=False):
-        """
-        Publishes a message to an exchange.
-        @type  exchange: string
-        @param exchange: destination exchange for the amqp server
-        @type  routing_key: string
-        @param routing_key: Key by which consumers will setup the queus to route
-        @type  message: string or Protobuff
-        @param message: message we are sending in the queue
-        """
-        self._client.publish(exchange, routing_key, message, mandatory=mandatory)
+    def publish(self, exchange, routing_key, message, createQueue=None, mandatory=False, immediate=False):
+        # TODO: Implement createQueue for blocking publisher
+        self._client.publish(exchange, routing_key, message, mandatory=mandatory, immediate=immediate)
 
     @property
     def channel(self):
@@ -340,18 +319,7 @@ class DummyQueuePublisher(object):
     """
     implements(IQueuePublisher)
 
-    def publish(self, exchange, routing_key, message, mandatory=False):
-        """
-        Publishes a message to an exchange. If twisted is running
-        this will use the twisted amqp library, otherwise it will
-        be blocking.
-        @type  exchange: string
-        @param exchange: destination exchange for the amqp server
-        @type  routing_key: string
-        @param routing_key: Key by which consumers will setup the queus to route
-        @type  message: string or Protobuff
-        @param message: message we are sending in the queue
-        """
+    def publish(self, exchange, routing_key, message, createQueue=None, mandatory=False, immediate=False):
         pass
 
     @property

@@ -20,21 +20,18 @@ import time
 import logging
 import urllib
 import DateTime # Zope DateTime, not python datetime
-from uuid import uuid4
-from zope.component import getUtility
 from Products.ZenUtils.Ext import DirectRouter
 from AccessControl import getSecurityManager
 from Products.ZenUtils.extdirect.router import DirectResponse
 from Products.ZenUtils.Time import isoDateTimeFromMilli
 from Products.Zuul import getFacade
 from Products.Zuul.decorators import require, serviceConnectionError
-from Products.ZenEvents.Event import Event as ZenEvent
-from Products.ZenMessaging.queuemessaging.interfaces import IEventPublisher
 from Products.ZenUtils.guid.interfaces import IGlobalIdentifier, IGUIDManager
 from Products.ZenEvents.EventClass import EventClass
-from zenoss.protocols.services.zep import EventStatus, EventSeverity
+from zenoss.protocols.services.zep import EventStatus, EventSeverity, ZepConnectionError
 from zenoss.protocols.protobufs.zep_pb2 import EventSummary
 from zenoss.protocols.protobufutil import ProtobufEnum
+from zenoss.protocols.exceptions import NoConsumersException, PublishException
 from json import loads
 from Products.Zuul.utils import resolve_context
 from Products.Zuul.utils import ZuulMessageFactory as _t
@@ -485,8 +482,6 @@ class EventsRouter(DirectRouter):
         if uuid:
             return '/zport/dmd/goto?guid=%s' % uuid
 
-    @require('ZenCommon')
-
     def _mapToDetailEvent(self, event_summary):
         eventOccurrence = event_summary['occurrence'][0]
         eventClass = eventOccurrence['event_class']
@@ -801,20 +796,24 @@ class EventsRouter(DirectRouter):
         @param evclass: Event class for the new event
         @rtype:   DirectResponse
         """
+        try:
+            evid = self.zep.create(summary, severity, device, component, eventClassKey=evclasskey,
+                                   eventClass=evclass, immediate=True)
+            if evid:
+                return DirectResponse.succeed("Created event", evid=evid)
 
-        event = ZenEvent(
-            evid=str(uuid4()),
-            summary=summary,
-            device=device,
-            component=component,
-            severity=severity,
-            eventClassKey=evclasskey,
-            eventClass=evclass,
-        )
-        publisher = getUtility(IEventPublisher)
-        publisher.publish(event, mandatory=True)
-
-        return DirectResponse.succeed(evid=event.evid)
+            return DirectResponse.succeed("Queued event")
+        except NoConsumersException:
+            # This occurs if the event is queued but there are no consumers - i.e. zeneventd is not
+            # currently running.
+            return DirectResponse.succeed("Queued event")
+        except PublishException:
+            # This occurs if there is a failure publishing the event to the queue.
+            log.exception("Failed creating event")
+            return DirectResponse.fail("Failed to create event")
+        except ZepConnectionError:
+            log.exception("Failed retrieving event information from ZEP")
+            return DirectResponse.fail("Queued event")
 
     def _convertSeverityToNumber(self, sev):
         return EventSeverity.getNumber(sev)

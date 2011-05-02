@@ -21,6 +21,7 @@ from Products.Zuul.interfaces import IZepFacade
 from Products.ZenEvents.ZenEventClasses import Unknown
 
 import pkg_resources
+from zenoss.protocols.services import ServiceResponseError
 from zenoss.protocols.services.zep import ZepServiceClient, EventSeverity, ZepConfigClient, ZepHeartbeatClient
 from zenoss.protocols.jsonformat import to_dict, from_dict
 from zenoss.protocols.protobufs.zep_pb2 import EventSort, EventFilter, EventSummaryUpdateRequest, ZepConfig
@@ -32,7 +33,12 @@ from zenoss.protocols.protobufs.zep_pb2 import SEVERITY_CRITICAL, SEVERITY_ERROR
      SEVERITY_DEBUG, SEVERITY_CLEAR, STATUS_NEW, STATUS_ACKNOWLEDGED, STATUS_SUPPRESSED, OR, AND
 from Products.ZenUtils.guid.interfaces import IGUIDManager
 from Products.ZenEvents.ZenEventClasses import Status_Ping
+from zope.component import getUtility
+from uuid import uuid4
+from Products.ZenEvents.Event import Event as ZenEvent
+from Products.ZenMessaging.queuemessaging.interfaces import IEventPublisher
 from functools import partial
+from time import sleep, time
 
 log = logging.getLogger(__name__)
 
@@ -647,6 +653,52 @@ class ZepFacade(ZuulFacade):
 
     def deleteHeartbeats(self, monitor=None):
         self.heartbeatClient.deleteHeartbeats(monitor=monitor)
+
+    def _waitForEventSummary(self, occurrence_uuid, rcvtime, timeout):
+        elapsed = 0
+        occurrence = None
+
+        # First wait for event occurrence to show up in ZEP REST API
+        while not occurrence and elapsed < timeout:
+            sleep(.1)
+            elapsed += .1
+            try:
+                response, occurrence = self.client.getEventOccurrence(occurrence_uuid)
+            except ServiceResponseError, e:
+                log.debug("Failed to find event occurrence %s: %d", occurrence_uuid, e.status)
+                if e.status != 404:
+                    raise e
+        if elapsed >= timeout:
+            log.warning("Timed out waiting for event occurrence to be found: %s", occurrence_uuid)
+            return None
+
+        # Now wait for event summary to show up in index results
+        summary_uuid = occurrence.summary_uuid
+        uuid_filter = self.createEventFilter(uuid=summary_uuid, last_seen=(int(rcvtime * 1000),))
+        summaries = self.getEventSummaries(0, filter=uuid_filter, limit=1)
+        while not summaries['total'] and elapsed < timeout:
+            sleep(.1)
+            elapsed += .1
+            summaries = self.getEventSummaries(0, filter=uuid_filter, limit=1)
+        if elapsed >= timeout:
+            log.warning("Timed out waiting for event summary to be found: %s", summary_uuid)
+            return None
+        
+        return summary_uuid
+
+    def create(self, summary, severity, device, component=None, mandatory=True, immediate=False,
+               wait=True, wait_timeout=3, **kwargs):
+        occurrence_uuid = str(uuid4())
+        rcvtime = time()
+        args = dict(evid=occurrence_uuid, summary=summary, severity=severity, device=device)
+        if component:
+            args['component'] = component
+        args.update(kwargs)
+        event = ZenEvent(rcvtime=rcvtime, **args)
+        publisher = getUtility(IEventPublisher)
+        publisher.publish(event, mandatory=mandatory, immediate=immediate)
+        if wait:
+            return self._waitForEventSummary(occurrence_uuid, rcvtime, wait_timeout)
 
 class ZepDetailsInfo:
     """
