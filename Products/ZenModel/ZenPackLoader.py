@@ -16,7 +16,9 @@ __doc__='Base Classes for loading gunk in a ZenPack'
 import Globals
 from Products.ZenReports.ReportLoader import ReportLoader
 from Products.ZenUtils.Utils import zenPath, binPath
+from Products.ZenUtils.guid.interfaces import IGUIDManager
 from Products.Zuul import getFacade
+
 from zenoss.protocols.jsonformat import from_dict
 from zenoss.protocols.protobufs.zep_pb2 import EventDetailItemSet, EventDetailItem
 
@@ -382,43 +384,104 @@ class ZPTriggerAction(ZenPackLoader):
     name = "Triggers and Actions"
 
     def load(self, pack, app):
-        """Load things from the ZenPack and put it
-        into the app"""
+        """
+        Load Notifications and Triggers from an actions.json file
+
+        Given a JSON-formatted configuration located at {zenpack}/actions/actions.json,
+        create or update triggers and notifications specific to this zenpack.
+        When creating or updating, the object is first checked to see whether or
+        not an object exists with the configured guid for notifications or uuid
+        for triggers. If an object is not found, one will be created. During
+        creation, care is taken with regard to the id - integer suffixes will be
+        appended to try to create a unique id. If we do not find a unique id after
+        100 tries, an error will occur. When updating an object, care is taken
+        to not change the name as it may have since been altered by the user (or
+        by this loader adding a suffix).
+
+        """
         log.debug("ZPTriggerAction: load")
         import Products.Zuul as Zuul
+        from Products.Zuul.facades import ObjectNotFoundException
+        
         tf = Zuul.getFacade('triggers')
-        for conf in findFiles(pack, 'actions',lambda f: f.endswith('.conf')):
+        guidManager = IGUIDManager(app)
+        
+        for conf in findFiles(pack, 'zep',lambda f: f == 'actions.json'):
+
             import json
             data = json.load(open(conf, "r"))
             log.debug("DATA IS: %s" % data)
-            actionConf = data.get('conf', [])
-            for triggerActions in actionConf:
-                actions = triggerActions.get('actions', [])
-                trigger = triggerActions.get('trigger', None)
-                triggerGuid = None
-                if trigger:
-                    trigger['name'] = trigger['name'].encode('utf-8')
-                    triggerGuid = self._getTriggerGuid(tf, trigger['name'])
-                    trigger['uuid'] = triggerGuid
-                    tf.updateTrigger(**trigger)
-                for action in actions:
-                    #test if notification is already  there
-                    uid = '/zport/dmd/NotificationSubscriptions/%s' % action['id']
-                    notification = None
-                    from Products.Zuul.facades import ObjectNotFoundException
-                    try:
-                        notification = tf.getNotification(uid)
-                    except ObjectNotFoundException:
-                        pass
-                    if not notification:
-                        log.debug("ZPTriggerAction: adding notification %s %s" %  (action['id'], action['action']))
-                        notification = tf.addNotification(str(action['id']), str(action['action']))
-                    elif notification.action != action['action']:
-                        raise("action types are not compatible")
-                    action['uid']= notification.uid
-                    if triggerGuid:
-                        action['subscriptions'] = [triggerGuid]
-                    tf.updateNotification(**action)
+
+            triggers = data.get('triggers', [])
+            notifications = data.get('notifications', [])
+
+
+            tf.synchronize()
+            all_names = set(t['name'] for t in tf.getTriggerList())
+
+            for trigger_conf in triggers:
+
+                existing_trigger = guidManager.getObject(trigger_conf['uuid'])
+
+                if existing_trigger:
+                    trigger_data = tf.getTrigger(trigger_conf['uuid'])
+                    trigger_conf['name'] = trigger_data['name']
+
+                    log.info('Existing trigger found, updating: %s' % trigger_conf['name'])
+                    tf.updateTrigger(**trigger_conf)
+                    
+                else:
+
+                    test_name = trigger_conf['name']
+                    for x in xrange(1,101):
+                        if test_name in all_names:
+                            test_name = '%s_%d' % (trigger_conf['name'], x)
+                        else:
+                            log.debug('Found unused trigger name: %s' % test_name)
+                            break
+                    else:
+                        # if we didn't find a unique name
+                        raise Exception('Could not find unique name for trigger: "%s".' % trigger_conf['name'])
+
+                    log.info('Creating trigger: %s' % test_name)
+                    tf.createTrigger(test_name, uuid=trigger_conf['uuid'], rule=trigger_conf['rule'])
+
+
+            for notification_conf in notifications:
+                
+                existing_notification = guidManager.getObject(str(notification_conf['guid']))
+
+                if existing_notification:
+                    log.info("Existing notification found, updating: %s" % existing_notification.id)
+                    
+                    subscriptions = set(existing_notification.subscriptions + notification_conf['subscriptions'])
+                    notification_conf['uid'] = '/zport/dmd/NotificationSubscriptions/%s' % existing_notification.id
+                    notification_conf['subscriptions'] = list(subscriptions)
+                    notification_conf['name'] = existing_notification.id
+                    tf.updateNotification(**notification_conf)
+                else:
+
+
+                    test_id = notification_conf['id']
+                    for x in xrange(1,101):
+                        test_uid = '/zport/dmd/NotificationSubscriptions/%s' % test_id
+
+                        try:
+                            tf.getNotification(test_uid)
+                        except ObjectNotFoundException:
+                            break
+
+                        test_id = '%s_%d' % (notification_conf['id'], x)
+                    else:
+                        # if we didn't find a unique name
+                        raise Exception('Could not find unique name for notification: "%s".' % notification_conf['id'])
+
+                    log.info('Creating notification: %s' % test_id)
+                    tf.createNotification(str(test_id), notification_conf['action'], notification_conf['guid'])
+
+                    notification_conf['uid'] = '/zport/dmd/NotificationSubscriptions/%s' % test_id
+                    tf.updateNotification(**notification_conf)
+
     
     def _getTriggerGuid(self, facade, name):
         triggers = facade.getTriggers()

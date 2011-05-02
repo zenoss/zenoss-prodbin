@@ -49,21 +49,12 @@ class TriggersRouter(DirectRouter):
 
         updated_count = self._getFacade().removeTrigger(uuid)
 
-        msg = "Trigger removed successfully."
+        msg = "Trigger removed successfully. {count} {noun} {verb} updated.".format(
+            count = updated_count,
+            noun = 'notification' if updated_count == 1 else 'notifications',
+            verb = 'was' if updated_count == 1 else 'were'
+        )
 
-        if updated_count > 0 and updated_count < 3:
-            msg = "{message} Updated the following notifications: {notifications}.".format(
-                message = msg,
-                notifications = ', '.join(n.id for n in updated_notifications)
-            )
-
-        if updated_count >= 3:
-            msg = "{message} Updated the following notifications: {notifications} and {count} more.".format(
-                message = msg,
-                notifications = ', '.join(n.id for n in updated_notifications[0:2]),
-                count = updated_count-2
-            )
-            
         return DirectResponse.succeed(msg=msg, data=None)
 
     @serviceConnectionError
@@ -75,7 +66,7 @@ class TriggersRouter(DirectRouter):
         data['rule']['api_version'] = 1
         data['rule']['type'] = RULE_TYPE_JYTHON
         response = self._getFacade().updateTrigger(**data)
-        return DirectResponse.succeed(msg="Trigger updated without a problem.", data=response)
+        return DirectResponse.succeed(msg="Trigger updated successfully.", data=response)
 
     @serviceConnectionError
     def parseFilter(self, source):
@@ -102,7 +93,7 @@ class TriggersRouter(DirectRouter):
     @serviceConnectionError
     def removeNotification(self, uid):
         response = self._getFacade().removeNotification(uid)
-        return DirectResponse.succeed(msg="Notification removed without a problem.", data=response)
+        return DirectResponse.succeed(msg="Notification removed successfully.", data=response)
 
     @serviceConnectionError
     def getNotificationTypes(self):
@@ -119,7 +110,7 @@ class TriggersRouter(DirectRouter):
     @serviceConnectionError
     def updateNotification(self, **data):
         response = self._getFacade().updateNotification(**data)
-        return DirectResponse.succeed(msg="Notification updated without a problem.", data=Zuul.marshal(response))
+        return DirectResponse.succeed(msg="Notification updated successfully.", data=Zuul.marshal(response))
 
     @serviceConnectionError
     def getRecipientOptions(self):

@@ -55,12 +55,107 @@ class TriggersFacade(ZuulFacade):
         self.notificationPermissions = NotificationPermissionManager()
         self.triggerPermissions = TriggerPermissionManager()
 
-    def removeNode(self, uid):
-        obj = self._getObject(uid)
+    def _removeNode(self, obj):
+        """
+        Remove an object in ZODB.
+
+        This method was created to provide a hook for unit tests.
+        """
         context = aq_parent(obj)
         return context._delObject(obj.id)
 
+    def removeNode(self, uid):
+        obj = self._getObject(uid)
+        return self._removeNode(obj)
+
+    def _setTriggerGuid(self, trigger, guid):
+        """
+        @param trigger: The trigger object to set the guid on.
+        @type trigger: Products.ZenModel.Trigger.Trigger
+        @param guid: The guid
+        @type guid: str
+        
+        This method was created to provide a hook for unit tests.
+        """
+        IGlobalIdentifier(trigger).guid = guid
+
+    def _getTriggerGuid(self, trigger):
+        """
+        @param trigger: The trigger object in zodb.
+        @type trigger: Products.ZenModel.Trigger.Trigger
+
+        This method was created to provide a hook for unit tests.
+        """
+        return IGlobalIdentifier(trigger).guid
+
+    def _setupTriggerPermissions(self, trigger):
+        """
+        This method was created to provide a hook for unit tests.
+        """
+        self.triggerPermissions.setupTrigger(trigger)
+
+    def synchronize(self):
+        """
+        This method will first synchronize all triggers that exist in ZEP to their
+        corresponding objects in ZODB. Then, it will clean up notifications and
+        remove any subscriptions to triggers that no longer exist.
+        """
+
+        log.debug('SYNC: Starting trigger and notification synchronization.')
+
+        _, trigger_set = self.triggers_service.getTriggers()
+
+        zep_uuids = set(t.uuid for t in trigger_set.triggers)
+        zodb_triggers = self._getTriggerManager().objectValues()
+
+        # delete all triggers in zodb that do not exist in zep.
+        for t in zodb_triggers:
+            if not self._getTriggerGuid(t) in zep_uuids:
+                log.info('SYNC: Found trigger in zodb that does not exist in zep, removing: %s' % t.id)
+                self._removeNode(t)
+
+        zodb_triggers = self._getTriggerManager().objectValues()
+        zodb_uuids = set(self._getTriggerGuid(t) for t in zodb_triggers)
+
+        # create all triggers in zodb that do not exist in zep.
+        for t in trigger_set.triggers:
+            if not t.uuid in zodb_uuids:
+                log.info('SYNC: Found trigger in zep that does not exist in zodb, creating: %s' % t.name)
+                triggerObject = Trigger(str(t.name))
+
+                self._getTriggerManager()._setObject(triggerObject.id, triggerObject)
+
+                # setting a guid fires off events, we have to acquire the object
+                # before we adapt it, otherwise adapters responding to the event
+                # will get the 'regular' Trigger object and not be able to handle
+                # it.
+                self._setTriggerGuid(self._getTriggerManager().findChild(triggerObject.id), str(t.uuid))
+
+                self._setupTriggerPermissions(self._getTriggerManager().findChild(t.name))
+        
+        # sync notifications
+        for n in self._getNotificationManager().getChildNodes():
+            is_changed = False
+
+            subs = list(n.subscriptions)
+            for s in subs:
+                if s not in zep_uuids:
+                    # this trigger no longer exists in zep, remove it from
+                    # this notification's subscriptions.
+                    log.info('SYNC: Notification subscription no longer valid: %s' % s)
+                    is_changed = True
+                    n.subscriptions.remove(s)
+
+            if is_changed:
+                log.debug('SYNC: Updating notification subscriptions: %s' % n.id)
+                self.updateNotificationSubscriptions(n)
+
+        log.debug('SYNC: Trigger and notification synchronization complete.')
+
+        
     def getTriggers(self):
+        self.synchronize()
+
         user = getSecurityManager().getUser()
         response, trigger_set = self.triggers_service.getTriggers()
         trigger_set = to_dict(trigger_set)
@@ -89,21 +184,43 @@ class TriggersFacade(ZuulFacade):
 
 
     def addTrigger(self, newId):
-        triggerObject = Trigger(newId)
-        self._getTriggerManager()._setObject(newId, triggerObject)
-        acquired_trigger = self._getTriggerManager().findChild(newId)
+        return self.createTrigger(
+            name = newId,
+            uuid = None,
+            rule = dict(
+                source = ''
+            )
+        )
+
+    def createTrigger(self, name, uuid=None, rule=None):
+        name = str(name)
+        triggerObject = Trigger(name)
+        self._getTriggerManager()._setObject(name, triggerObject)
+        acquired_trigger = self._getTriggerManager().findChild(name)
+
+        if uuid:
+            IGlobalIdentifier(acquired_trigger).guid = str(uuid)
+        else:
+            IGlobalIdentifier(acquired_trigger).create()
+
         self.triggerPermissions.setupTrigger(acquired_trigger)
 
         trigger = zep.EventTrigger()
-        trigger.uuid = str(IGlobalIdentifier(acquired_trigger).create())
-        trigger.name = newId
+        trigger.uuid = IGlobalIdentifier(acquired_trigger).guid
+        trigger.name = name
         trigger.rule.api_version = 1
         trigger.rule.type = zep.RULE_TYPE_JYTHON
-        trigger.rule.source = ''
+
+        if rule and 'source' in rule:
+            trigger.rule.source = rule['source']
+        else:
+            trigger.rule.source = ''
+
         self.triggers_service.addTrigger(trigger)
 
         log.debug('Created trigger with uuid: %s ' % trigger.uuid)
         return trigger.uuid
+
 
     def removeTrigger(self, uuid):
         user = getSecurityManager().getUser()
@@ -140,7 +257,6 @@ class TriggersFacade(ZuulFacade):
     def getNotificationsBySubscription(self, trigger_uuid):
         for n in self._getNotificationManager().getChildNodes():
             if trigger_uuid in n.subscriptions:
-                notifications.append(n)
                 yield n
     
     def getTrigger(self, uuid):
@@ -210,6 +326,8 @@ class TriggersFacade(ZuulFacade):
 
 
     def getNotifications(self):
+        self.synchronize()
+
         user = getSecurityManager().getUser()
         for n in self.notificationPermissions.findNotifications(user, self._getNotificationManager().getChildNodes()):
             yield IInfo(n)
@@ -236,23 +354,31 @@ class TriggersFacade(ZuulFacade):
         util.updateContent(notification.content, data)
 
     def addNotification(self, newId, action):
-        notification = NotificationSubscription(newId)
+        notification = self.createNotification(newId, action)
+        return IInfo(notification)
+
+    def createNotification(self, id, action, guid=None):
+        notification = NotificationSubscription(id)
         notification.action = action
 
         self._updateContent(notification)
 
-        self._getNotificationManager()._setObject(newId, notification)
-        
-        acquired_notification = self._getNotificationManager().findChild(newId)
-        self.notificationPermissions.setupNotification(acquired_notification)
+        self._getNotificationManager()._setObject(id, notification)
 
+        acquired_notification = self._getNotificationManager().findChild(id)
+        self.notificationPermissions.setupNotification(acquired_notification)
         self.updateNotificationSubscriptions(notification)
 
-        notification = self._getNotificationManager().findChild(newId)
+        notification = self._getNotificationManager().findChild(id)
         notification.userRead = True
         notification.userWrite = True
         notification.userManage = True
-        return IInfo(notification)
+
+        if guid:
+            IGlobalIdentifier(notification).guid = guid
+
+        return notification
+
 
     def removeNotification(self, uid):
         user = getSecurityManager().getUser()
