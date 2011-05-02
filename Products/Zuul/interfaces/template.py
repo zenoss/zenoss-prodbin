@@ -150,8 +150,8 @@ class IMinMaxThresholdInfo(IThresholdInfo):
     """
     Adapts the MinMaxThresholdClass
     """
-    minval = schema.Text(title=_t(u'Minimum Value'), order=6)
-    maxval = schema.Text(title=u'Maximum Value', order=7)
+    minval = schema.TextLine(title=_t(u'Minimum Value'), order=6)
+    maxval = schema.TextLine(title=u'Maximum Value', order=7)
     escalateCount = schema.Int(title=_t(u'Escalate Count'), order=9)
 
 

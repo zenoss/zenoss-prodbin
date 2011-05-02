@@ -48,6 +48,10 @@
                 for(i=0; i<items.length; i+=1) {
                     items[i].record = record;
                     this.itemCount += 1;
+                    // datapointitemselectors are tall
+                    if (items[i]['xtype'] == 'datapointitemselector') {
+                        this.itemCount += 4;
+                    }
                 }
             }
 
