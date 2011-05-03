@@ -106,7 +106,7 @@ class ZenTableState:
             return
         for attname in self.requestAtts:
             if request.has_key(attname):
-                self.setTableState(attname, request[attname])
+                self.setTableState(attname, int(request[attname]) if attname == 'start' else request[attname])
         if not request.has_key('onlyMonitored'):
             self.setTableState('onlyMonitored', 0)
         if request.get("first",False):
