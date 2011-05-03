@@ -19,6 +19,7 @@ import multiprocessing
 import time
 import socket
 import sys
+from datetime import datetime, timedelta
 
 import Globals
 from zope.component import getUtilitiesFor
@@ -68,33 +69,40 @@ statusConvertToEnum['status'] = STATUS_NEW
 statusConvertToEnum['history'] = STATUS_CLOSED
 statusConvertToEnum['drop'] = STATUS_DROPPED
 
-
 class ProcessEventMessageTask(BasePubSubMessageTask):
 
     implements(IQueueConsumerTask)
+
+    SYNC_EVERY_EVENT = False
 
     def __init__(self, dmd):
         self.dmd = dmd
         self.dest_routing_key_prefix = 'zenoss.zenevent'
 
         self._dest_exchange = queueschema.getExchange("$ZepZenEvents")
-        #self._eventPlugins = getUtilitiesFor(IEventPlugin)
         self._manager = Manager(self.dmd)
         self._pipes = (
             EventPluginPipe(self._manager, IPreEventPlugin),
             CheckInputPipe(self._manager),
             IdentifierPipe(self._manager),
-            AddDeviceContextPipe(self._manager),
-            TransformPipe(self._manager),
-            # See if we need to update after a transform
-            IdentifierPipe(self._manager),
-            AddDeviceContextPipe(self._manager),
+            AddDeviceContextAndTagsPipe(self._manager),
+            TransformAndReidentPipe(self._manager,
+                TransformPipe(self._manager),
+                [
+                IdentifierPipe(self._manager),
+                UpdateDeviceContextAndTagsPipe(self._manager),
+                ]),
             FingerprintPipe(self._manager),
             SerializeContextPipe(self._manager),
             EventPluginPipe(self._manager, IPostEventPlugin),
             ClearClassRefreshPipe(self._manager),
-            EventTagPipe(self._manager),
         )
+
+        if not self.SYNC_EVERY_EVENT:
+            # don't call sync() more often than 1 every 0.5 sec - helps throughput
+            # when receiving events in bursts
+            self.nextSync = datetime.now()
+            self.syncInterval = timedelta(0,0,500000)
 
     def _routing_key(self, event):
         return (self.dest_routing_key_prefix +
@@ -105,7 +113,18 @@ class ProcessEventMessageTask(BasePubSubMessageTask):
         Handles a queue message, can call "acknowledge" on the Queue Consumer
         class when it is done with the message
         """
-        self.dmd._p_jar.sync()
+
+        if self.SYNC_EVERY_EVENT:
+            doSync = True
+        else:
+            # sync() db if it has been longer than self.syncInterval since the last time
+            currentTime = datetime.now()
+            doSync = currentTime > self.nextSync
+            self.nextSync = currentTime + self.syncInterval
+
+        if doSync:
+            self.dmd._p_jar.sync()
+
         # extract event from message body
         zepevent = ZepRawEvent()
         zepevent.raw_event.CopyFrom(message)
@@ -219,6 +238,8 @@ class ZenEventD(ZenDaemon):
         self._workers.shutdown()
 
     def run(self):
+        ProcessEventMessageTask.SYNC_EVERY_EVENT = self.options.syncEveryEvent
+
         if self.options.daemon:
             reactor.addSystemEventTrigger('before', 'shutdown', self._shutdown)
             self._workers.startWorkers()
@@ -259,6 +280,10 @@ class ZenEventD(ZenDaemon):
         self.parser.add_option('--poll-interval', dest='pollinterval', default=None, type='int',
                     help='Defer polling the database for the specified maximum time interval, in seconds.'
                     ' This will default to 60 only if --cacheservers is set.')
+        self.parser.add_option('--synceveryevent', dest='syncEveryEvent',
+                    action="store_true", default=False,
+                    help='Force sync() before processing every event; default is to sync() no more often '
+                    'than once every 1/2 second.')
 
 
 

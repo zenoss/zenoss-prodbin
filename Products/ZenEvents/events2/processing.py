@@ -378,7 +378,7 @@ class IdentifierPipe(EventProcessorPipe):
 
         return eventContext
 
-class AddDeviceContextPipe(EventProcessorPipe):
+class AddDeviceContextAndTagsPipe(EventProcessorPipe):
     """
     Adds device and component info to the context and event proxy.
     """
@@ -389,47 +389,51 @@ class AddDeviceContextPipe(EventProcessorPipe):
         (EventField.Actor.ELEMENT_SUB_TYPE_ID, EventField.Actor.ELEMENT_SUB_UUID),
     )
 
+    DEVICE_TAGGERS = {
+        'zenoss.device.device_class': (lambda device: device.deviceClass(), 'DeviceClass'),
+        'zenoss.device.location': (lambda device: device.location(), 'Location'),
+        'zenoss.device.system': (lambda device: device.systems(), 'Systems'),
+        'zenoss.device.group': (lambda device: device.groups(), 'DeviceGroups'),
+    }
+
+    SET_DEVICE_ORGANIZER_NAMES = True
+
+    def _addDeviceOrganizerNames(self, orgs, orgtypename, evtproxy, proxydetailkey, asDelimitedList=False):
+        if orgtypename not in orgs:
+            return
+
+        orgnames = orgs[orgtypename]
+        if orgnames:
+            if asDelimitedList:
+                detailOrgnames = orgnames
+                proxyOrgname = '|' + '|'.join(orgnames)
+            else:
+                # just use 0'th  element
+                detailOrgnames = orgnames[0]
+                proxyOrgname = orgnames
+            evtproxy.setReadOnly(orgtypename, proxyOrgname)
+            evtproxy.details[proxydetailkey] = detailOrgnames
+
     def _addDeviceContext(self, eventContext, device):
-        ipAddress = eventContext.eventProxy.ipAddress or device.manageIp
+        evtproxy = eventContext.eventProxy
+        ipAddress = evtproxy.ipAddress or device.manageIp
         if ipAddress:
-            eventContext.eventProxy.ipAddress = ipAddress
+            evtproxy.ipAddress = ipAddress
 
         prodState = device.productionState
         if prodState:
-            eventContext.eventProxy.prodState = prodState
+            evtproxy.prodState = prodState
 
         devicePriority = device.getPriority()
         if devicePriority:
-            eventContext.eventProxy.DevicePriority = devicePriority
+            evtproxy.DevicePriority = devicePriority
 
-        location = device.getLocationName()
-        if location:
-            eventContext.eventProxy.setReadOnly('Location', location)
-            eventContext.eventProxy.details[EventProxy.DEVICE_LOCATION_DETAIL_KEY] = location
-
-        deviceClassName = device.getDeviceClassName()
-        if deviceClassName:
-            eventContext.eventProxy.setReadOnly('DeviceClass', deviceClassName)
-            eventContext.eventProxy.details[EventProxy.DEVICE_CLASS_DETAIL_KEY] = deviceClassName
-
-        deviceGroupNames = device.getDeviceGroupNames()
-        if deviceGroupNames:
-            deviceGroups = '|' + '|'.join(deviceGroupNames)
-            # transforms expect old-style DeviceGroups
-            eventContext.eventProxy.setReadOnly('DeviceGroups', deviceGroups)
-            # trigger rules expect new-style values with multi-valued details.
-            eventContext.eventProxy.details[EventProxy.DEVICE_GROUPS_DETAIL_KEY] = deviceGroupNames
-
-        systemsNames = device.getSystemNames()
-        if systemsNames:
-            systems = '|' + '|'.join(systemsNames)
-            eventContext.eventProxy.setReadOnly('Systems', systems)
-            eventContext.eventProxy.details[EventProxy.DEVICE_SYSTEMS_DETAIL_KEY] = systemsNames
-
-        eventContext.setDeviceObject(device)
-
-    def _addComponentContext(self, eventContext, component):
-        eventContext.setComponentObject(component)
+    def _addDeviceOrganizers(self, eventContext, orgs):
+        evtproxy = eventContext.eventProxy
+        self._addDeviceOrganizerNames(orgs, 'Location', evtproxy, EventProxy.DEVICE_LOCATION_DETAIL_KEY)
+        self._addDeviceOrganizerNames(orgs, 'DeviceClass', evtproxy, EventProxy.DEVICE_CLASS_DETAIL_KEY)
+        self._addDeviceOrganizerNames(orgs, 'DeviceGroups', evtproxy, EventProxy.DEVICE_GROUPS_DETAIL_KEY, asDelimitedList=True)
+        self._addDeviceOrganizerNames(orgs, 'Systems', evtproxy, EventProxy.DEVICE_SYSTEMS_DETAIL_KEY, asDelimitedList=True)
 
     def _findElement(self, eventContext, type_id):
         actor = eventContext.event.actor
@@ -441,24 +445,86 @@ class AddDeviceContextPipe(EventProcessorPipe):
                 return self._manager.getElementByUuid(uuid)
 
     def __call__(self, eventContext):
-        eventContext.log.debug('Adding device context')
+        device = eventContext.deviceObject
+        if device is None:
+            device = self._findElement(eventContext, DEVICE)
+            if device:
+                eventContext.setDeviceObject(device)
 
-        device = self._findElement(eventContext, DEVICE)
-        if device:
-            self._addDeviceContext(eventContext, device)
+                # find all organizers for this device, and add their uuids to
+                # the appropriate event tags
+                deviceOrgs = {}
+                for tagType, orgProcessValues in self.DEVICE_TAGGERS.iteritems():
+                    getOrgFunc,orgTypeName = orgProcessValues
+                    objList = getOrgFunc(device)
+                    if objList:
+                        if not isinstance(objList, list):
+                            objList = [objList]
+                        uuids = set(sum((self._manager.getUuidsOfPath(obj) for obj in objList), []))
+                        if uuids:
+                            eventContext.eventProxy.tags.addAll(tagType, uuids)
 
-        component = self._findElement(eventContext, COMPONENT)
-        if component:
-            self._addComponentContext(eventContext, component)
+                        # save this list of organizers names of this type, to add their names
+                        # to the device event context
+                        if self.SET_DEVICE_ORGANIZER_NAMES:
+                            deviceOrgs[orgTypeName] = [obj.getOrganizerName() for obj in objList]
+
+                self._addDeviceContext(eventContext, device)
+                if self.SET_DEVICE_ORGANIZER_NAMES:
+                    self._addDeviceOrganizers(eventContext, deviceOrgs)
+
+        component = eventContext.componentObject
+        if component is None:
+            component = self._findElement(eventContext, COMPONENT)
+            if component:
+                eventContext.setComponentObject(component)
+
+        eventClassName = eventContext.eventProxy.eventClass
+        # Set event class to Unknown if not specified
+        if not eventClassName:
+            eventContext.eventProxy.eventClass = eventClassName = ZenEventClasses.Unknown
+
+        # If we failed to tag an event class - can happen if there is not a device
+        # or event class is not defined.
+        if not eventContext.eventProxy.tags.getByType(TransformPipe.EVENT_CLASS_TAG):
+            eventClass = self._manager.getEventClassOrganizer(eventClassName)
+            if eventClass:
+                eventClassUuids = self._manager.getUuidsOfPath(eventClass)
+                eventContext.eventProxy.tags.addAll(TransformPipe.EVENT_CLASS_TAG, eventClassUuids)
 
         return eventContext
+
+class UpdateDeviceContextAndTagsPipe(AddDeviceContextAndTagsPipe):
+    # when updating device context and tags after transforms, it is no longer necessary to
+    # retrieve and assign the '|'-delimited organizer names
+    SET_DEVICE_ORGANIZER_NAMES = False
+
+    def __call__(self, eventContext):
+        evtproxy = eventContext.eventProxy
+
+        if eventContext.deviceObject is None:
+            # clear out device-specific tags and details
+            deviceOrganizerTypeNames = [type for function,type in AddDeviceContextAndTagsPipe.DEVICE_TAGGERS.values()]
+            deviceDetailNames = deviceOrganizerTypeNames + [EventProxy.DEVICE_IP_ADDRESS_DETAIL_KEY,
+                                                            EventProxy.DEVICE_PRIORITY_DETAIL_KEY,
+                                                            EventProxy.PRODUCTION_STATE_DETAIL_KEY,]
+
+            # clear device context details
+            for detail in deviceDetailNames:
+                evtproxy.resetReadOnly(detail)
+                del evtproxy.details[detail]
+
+            # clear device-dependent tags
+            evtproxy.tags.clearType(deviceOrganizerTypeNames)
+
+        return super(UpdateDeviceContextAndTagsPipe, self)(eventContext)
 
 class SerializeContextPipe(EventProcessorPipe):
     """
     Takes fields added to the eventProxy that couldn't directly be mapped out of the
     proxy and applies them to the event protobuf.
     """
-    dependencies = [AddDeviceContextPipe]
+    dependencies = [AddDeviceContextAndTagsPipe]
 
     def __call__(self, eventContext):
         eventContext.log.debug('Saving context back to event')
@@ -474,7 +540,7 @@ class FingerprintPipe(EventProcessorPipe):
     NO_EVENT_KEY_FINGERPRINT_FIELDS = (
     'device', 'component', 'eventClass', 'severity', 'summary')
 
-    dependencies = [AddDeviceContextPipe]
+    dependencies = [AddDeviceContextAndTagsPipe]
 
     def __call__(self, eventContext):
         event = eventContext.event
@@ -499,8 +565,41 @@ class FingerprintPipe(EventProcessorPipe):
 
         return eventContext
 
+class TransformAndReidentPipe(EventProcessorPipe):
+    dependencies = [AddDeviceContextAndTagsPipe]
+
+    def __init__(self, manager, transformpipe, reidentpipes):
+        super(TransformAndReidentPipe, self).__init__(manager)
+        self.transformPipe = transformpipe
+        self.reidentpipes = reidentpipes
+
+    def __call__(self, eventContext):
+        # save original values of device and component, to see if they get modified in the transform
+        original_device = eventContext.eventProxy.device
+        original_component = eventContext.eventProxy.component
+
+        # perform transform
+        eventContext = self.transformPipe(eventContext)
+
+        # see if we need to rerun indent/context pipes
+        if (eventContext.eventProxy.device != original_device or
+            eventContext.eventProxy.component != original_component):
+
+            # clear object references if device/components change
+            if eventContext.eventProxy.device != original_device:
+                eventContext.setDeviceObject(None)
+                eventContext.setComponentObject(None)
+
+            if eventContext.eventProxy.component != original_component:
+                eventContext.setComponentObject(None)
+
+            # rerun any pipes necessary to reidentify event
+            for pipe in self.reidentpipes:
+                eventContext = pipe(eventContext)
+
+        return eventContext
+
 class TransformPipe(EventProcessorPipe):
-    dependencies = [AddDeviceContextPipe]
 
     EVENT_CLASS_TAG = 'zenoss.event.event_class'
 
@@ -563,44 +662,6 @@ class EventPluginPipe(EventProcessorPipe):
                         'Event plugin %s encountered an error -- skipping.' % name)
                 eventContext.log.exception(e)
                 continue
-
-        return eventContext
-
-class EventTagPipe(EventProcessorPipe):
-    DEVICE_TAGGERS = {
-        'zenoss.device.device_class': lambda device: device.deviceClass(),
-        'zenoss.device.location': lambda device: device.location(),
-        'zenoss.device.system': lambda device: device.systems(),
-        'zenoss.device.group': lambda device: device.groups(),
-    }
-
-    def __call__(self, eventContext):
-        device = eventContext.deviceObject
-        if device:
-            for tagType, func in self.DEVICE_TAGGERS.iteritems():
-                objList = func(device)
-                if objList:
-                    if not isinstance(objList, list):
-                        objList = [objList]
-                    for obj in objList:
-                        uuids = self._manager.getUuidsOfPath(obj)
-                        if uuids:
-                            eventContext.eventProxy.tags.addAll(tagType, uuids)
-
-        eventClassName = eventContext.eventProxy.eventClass
-        # Set event class to Unknown if not specified
-        if not eventClassName:
-            eventContext.eventProxy.eventClass = eventClassName = ZenEventClasses.Unknown
-
-        # If we failed to tag an event class - can happen if there is not a device
-        # or event class is not defined.
-        if not eventContext.eventProxy.tags.getByType(
-                TransformPipe.EVENT_CLASS_TAG):
-            eventClass = self._manager.getEventClassOrganizer(eventClassName)
-            if eventClass:
-                eventClassUuids = self._manager.getUuidsOfPath(eventClass)
-                eventContext.eventProxy.tags.addAll(
-                        TransformPipe.EVENT_CLASS_TAG, eventClassUuids)
 
         return eventContext
 

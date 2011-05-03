@@ -22,7 +22,8 @@ from zenoss.protocols.protobufs.zep_pb2 import (
     STATUS_CLEARED,
     STATUS_DROPPED,
     STATUS_AGED,
-    SEVERITY_CLEAR
+    SEVERITY_CLEAR,
+    EventTag
 )
 
 import logging
@@ -62,6 +63,27 @@ class EventTagProxy(object):
     def getByType(self, type):
         return self._tags.get(type, ())
 
+    def clearType(self, removetype):
+        # accept a single type or a list of types - if a single value given, make it a 1-element list
+
+        # if a generator was given, consume it into a temporary list
+        if hasattr(removetype, 'next'):
+            removetype = list(removetype)
+
+        # make single value into a temporary list
+        if not hasattr(removetype, '__iter__'):
+            removetype = [removetype]
+
+        # remove all entries from mapping
+        for typ in removetype:
+            del self._tags[typ]
+
+        # clear values from protobuf tags by assigning new list comprehension into
+        # protobuf tags list in place (using [:] slice would be a lot easier, but not implemented)
+        saveTags = [tag for tag in self._eventProtobuf.tags if tag.type not in removetype]
+        del self._eventProtobuf.tags[:]
+        self._eventProtobuf.tags.extend(saveTags)
+
 
 class EventDetailProxy(object):
     """
@@ -86,8 +108,10 @@ class EventDetailProxy(object):
 
     def __delitem__(self, key):
         if key in self._map:
-            del self._map[key]
-            del self._eventProtobuf.details[key]
+            item = self._map.pop(key)
+            savedetails = [det for det in self._eventProtobuf.details if det is not item]
+            del self._eventProtobuf.details[:]
+            self._eventProtobuf.details.extend(savedetails)
 
     def __getitem__(self, key):
         item = self._map[key]
@@ -363,6 +387,12 @@ class EventProxy(object):
         These properties are not sent with the event to the queue.
         """
         self._readOnly[name] = value
+
+    def resetReadOnly(self, name):
+        """
+        Clears a read only attribute so it can be updated.
+        """
+        self._readOnly.pop(name, None)
 
     # Just put everything else in the details
     def __getattr__(self, name):
