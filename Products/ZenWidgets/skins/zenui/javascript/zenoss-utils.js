@@ -1000,7 +1000,7 @@ Dialog.Box.prototype = {
         var urlsplit = url.split('/');
         var id = urlsplit[urlsplit.length-1];
         this.curid = id;
-        var d = doSimpleXMLHttpRequest(url);
+        var d = doSimpleXMLHttpRequest(url, {dontCache: new Date().getTime()});
         d.addCallback(method(this, function(req){this.fill(id, req)}));
     },
     fill: function(dialogid, request) {
