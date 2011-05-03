@@ -331,6 +331,28 @@ class Scheduler(object):
 
     maxTasks = property(_getMaxTasks, _setMaxTasks)
 
+    def _ltCallback(self, result, task_name):
+        """last call back in the chain, if it gets called as an errBack
+        the looping will stop - shouldn't be called since CallableTask
+        doesn't return a deferred, here for sanity and debug"""
+        if task_name in self._loopingCalls:
+            loopingCall = self._loopingCalls[task_name]
+            log.debug("call finsihed %s : %s" %(loopingCall, result))
+        if isinstance(result, Failure):
+            log.warn("Failure in looping call, will not reschedule %s" % task_name)
+            log.error("%s" % result)
+
+    def _startTask(self, result, task_name, interval):
+        """start the task using a callback so that its put at the bottom of
+        the Twisted event queue, to allow other processing to continue and
+        to support a task start-time jitter"""
+        if task_name in self._loopingCalls:
+            loopingCall = self._loopingCalls[task_name]
+            if not loopingCall.running:
+                log.debug("Task %s starting on %d second intervals", task_name, interval)
+                d = loopingCall.start(interval)
+                d.addBoth(self._ltCallback, task_name)
+
     def addTask(self, newTask, callback=None, now=False):
         """
         Add a new IScheduledTask to the scheduler for execution.
@@ -348,28 +370,8 @@ class Scheduler(object):
         self._tasks[newTask.name] = callableTask
         self._taskCallback[newTask.name] = callback
         self.taskAdded(callableTask)
-
-        # start the task using a callback so that its put at the bottom of
-        # the Twisted event queue, to allow other processing to continue and
-        # to support a task start-time jitter
-        def _startTask(result):
-            log.debug("Task %s starting on %d second intervals",
-                      newTask.name, newTask.interval)
-            d = loopingCall.start(newTask.interval)
-            # last call back in the chain, if it gets called as an errBack
-            # the looping will stop - shouldn't be called since CallableTask
-            # doesn't return a deferred, here for sanity and debug
-            def ltCallback(result):
-                log.debug("call finsihed %s : %s" %(loopingCall, result))
-                if isinstance(result, Failure):
-                    log.warn("Failure in looping call, will not reschedule %s" % newTask)
-                    log.error("%s" % result)
-
-            d.addBoth(ltCallback)
-
-
         d = defer.Deferred()
-        d.addCallback(_startTask)
+        d.addCallback(self._startTask, newTask.name, newTask.interval)
 
         startDelay = getattr(newTask, 'startDelay', None)
         if startDelay is None:
@@ -633,6 +635,7 @@ class Scheduler(object):
         Twisted callback to remove a task from the cleanup queue once it has
         completed its cleanup work.
         """
+        log.debug("Scheduler._cleanupTaskComplete: result=%s task.name=%s" % (result, task.name))
         self._tasksToCleanup.discard(task)
         return result
 
