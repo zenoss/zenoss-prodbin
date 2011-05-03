@@ -118,6 +118,7 @@ class Commandable:
         # This could be changed so that output is sent through a
         # logger so that non web-based code can produce output.
         # Not necessary for now.
+
         command = self.getUserCommands(asDict=True).get(commandId,None)
         if not command:
             if REQUEST:
@@ -147,7 +148,7 @@ class Commandable:
         self.write(out, '')
         self.write(out, 'DONE in %s seconds on %s targets' %
                     (long(time.time() - startTime), numTargets))
-        REQUEST.RESPONSE.write(footer)
+        REQUEST.RESPONSE.write(str(footer))
 
 
     def doCommandForTarget(self, cmd, target, out):

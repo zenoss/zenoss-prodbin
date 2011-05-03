@@ -1,28 +1,25 @@
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML Basic 1.0//EN"
 "http://www.w3.org/TR/xhtml-basic/xhtml-basic10.dtd">
-<html> 
-    <head metal:use-macro="here/page_macros/old-new"/>
-	<body>
-    <tal:block metal:use-macro="here/dialogmacros/macros/dialog_with_buttons"/>
-	   <div id="frame">
+<html>
+
+    <body>
+
+       <div id="frame">
             <form name="proxy_form" id="proxy_form"
                 style="position:absolute;visibility:hidden"
                 tal:attributes="action here/absolute_url_path"></form>
-            <div metal:use-macro="here/templates/macros/topPane"/>
+
             <div id="infoBar">
                 <div id="leftPaneToggle"></div>
-                <div id="breadCrumbPane">
-                   <span metal:use-macro="here/miscmacros/macros/breadCrumbs" />
-                </div>
-                <tal:block metal:use-macro="here/templates/macros/infoBarExtra"/>
+
             </div>
             <div id="paneToggle">
             </div>
-            <style tal:condition="python:'Zenoss_Collapsed_Menu' in 
+            <style tal:condition="python:'Zenoss_Collapsed_Menu' in
                                     here.REQUEST.HTTP_COOKIE">
                 #leftPane { display:none;}
                 #rightPane { margin-left:12px;}
-                #paneToggle { 
+                #paneToggle {
                     background-image: url('paneToggle_bg_collapsed.gif');
                     border-right: medium none;
                 }
@@ -35,11 +32,9 @@
                 #breadCrumbPane{ padding-left: 35px;}
 
             </style>
-            <div metal:use-macro="here/templates/macros/leftPane"/>
-            <div id="rightPane"/>
-            <div metal:use-macro="here/templates/macros/tabsPane"/>
+
             <div id="contentPane">
-                
+
 
         <tal:block tal:define="tabletitle string:Command Output">
         <tal:block metal:use-macro="here/zenuimacros/macros/zentable">
@@ -66,13 +61,13 @@
                         <td class="commandoutput" valign="top">Output:</td>
                     </tr>
                     OUTPUT_TOKEN
-                
+
         <!-- END TABLE CONTENTS -->
 
         </tal:block>
         </tal:block>
         </tal:block>
-        
+
 
             </div>
         </div>

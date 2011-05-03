@@ -1,9 +1,9 @@
-<tal:block metal:use-macro="here/page_macros/old-new">
+<tal:block metal:use-macro="here/templates/macros/page2">
 <tal:block metal:fill-slot="contentPane">
 
-<form method=post 
+<form method=post
     tal:attributes="action string:${here/absolute_url_path}">
-    <input type="hidden" name="zenScreenName" 
+    <input type="hidden" name="zenScreenName"
         tal:attributes="value template/id" />
     <input type="hidden" name="commandId"
         tal:attributes="value here/id" />
@@ -24,8 +24,8 @@
 
         <tal:block metal:fill-slot="zentablecontents">
         <!-- BEGIN TABLE CONTENTS -->
-            
-    
+
+
     <tr tal:condition="exists: request/message">
         <th class=tabletitle colspan="2"
             tal:content="string: ${request/message} ${here/getNowString}"/>
@@ -41,7 +41,7 @@
                         tal:content="here/description">
             </textarea>
         </td>
-        <td class="tablevalues" tal:condition="not:editable" 
+        <td class="tablevalues" tal:condition="not:editable"
             tal:content="here/description"/>
     </tr>
     <tr class="even">
@@ -51,7 +51,7 @@
                         tal:content="here/command|nothing">
             </textarea>
         </td>
-        <td class="tablevalues" tal:condition="not:editable" 
+        <td class="tablevalues" tal:condition="not:editable"
             tal:content="here/description"/>
     </tr>
     <tr class="odd">
@@ -73,7 +73,7 @@
         </tal:block>
         </tal:block>
         </tal:block>
-        
+
 
 </form>
 </tal:block>
