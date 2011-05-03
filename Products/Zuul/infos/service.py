@@ -99,6 +99,15 @@ class ServiceInfo(ServiceInfoBase):
 
     serviceKeys = property(getServiceKeys, setServiceKeys)
 
+    def getName(self):
+        return self._object.titleOrId()
+
+    def setName(self, name):
+        self._object.setTitle(name)
+        self._object.name = name
+
+    name = property(getName, setName)
+
     @property
     def count(self):
         return self._object.count()
