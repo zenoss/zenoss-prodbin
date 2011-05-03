@@ -67,8 +67,8 @@ shebang
 
 # restart external server daemons
 restart_snmpd
-restart_mysql
-restart_rabbitmq
+start_mysql
+start_rabbitmq
 
 # patch any ZenPack code that isn't compatible with this version of core
 . ${ZENHOME}/bin/zenoss_upgrade_patch_zenpacks.sh
