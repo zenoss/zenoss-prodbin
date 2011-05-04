@@ -167,6 +167,16 @@ Zenoss.treeContextMenu = function(node, e) {
                         tree.getRootNode().childNodes[0].expand();
                     }
                 }
+            },'-',{
+                ref: 'expandnode',
+                text: _t('Expand Node'),
+                handler: function(item, e) {
+                    var node = item.parentMenu.contextNode,
+                        tree;
+                    if (node) {
+                        node.expand(true, true);
+                    }
+                }
             },{
                 ref: 'newwindow',
                 text: _t('Open in New Window'),
