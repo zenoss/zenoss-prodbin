@@ -82,7 +82,10 @@ class PingCollectionTask(BaseTask):
         @type scheduleIntervalSeconds: int
         @param taskConfig: the configuration for this task
         """
-        super(PingCollectionTask, self).__init__()
+        super(PingCollectionTask, self).__init__(
+              taskName, deviceId,
+              scheduleIntervalSeconds, taskConfig
+              )
 
         # Needed for interface
         self.name = taskName
@@ -182,6 +185,7 @@ class PingCollectionTask(BaseTask):
         d = self.pingjob.deferred
         d.addCallback(self._storeResults)
         d.addBoth(self._updateStatus)
+        d.addCallback(self._returnToNormalSchedule)
         d.addErrback(self._failure)
 
         # Wait until the Deferred actually completes

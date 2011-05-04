@@ -76,7 +76,10 @@ class TopologyCorrelatorTask(BaseTask):
         @type scheduleIntervalSeconds: int
         @param taskConfig: the configuration for this task
         """
-        super(TopologyCorrelatorTask, self).__init__()
+        super(TopologyCorrelatorTask, self).__init__(
+                 taskName, configId,
+                 scheduleIntervalSeconds, taskConfig=None
+              )
 
         # Needed for interface
         self.name = taskName

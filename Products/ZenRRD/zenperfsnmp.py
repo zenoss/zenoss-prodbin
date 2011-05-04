@@ -35,9 +35,9 @@ from Products.ZenCollector.interfaces import ICollectorPreferences,\
                                              IScheduledTask
 from Products.ZenCollector.tasks import SimpleTaskFactory,\
                                         SimpleTaskSplitter,\
-                                        TaskStates
+                                        TaskStates, \
+                                        BaseTask
 from Products.ZenUtils.Utils import importClass, readable_time
-from Products.ZenUtils.observable import ObservableMixin
 from Products.ZenUtils.Chain import Chain
 from Products.ZenEvents.ZenEventClasses import Perf_Snmp, Status_Snmp, Status_Perf
 from Products.ZenEvents import Event
@@ -99,7 +99,7 @@ STATUS_EVENT = { 'eventClass' : Status_Snmp,
                     'component' : 'snmp',
                     'eventGroup' : 'SnmpTest' }
 
-class SnmpPerformanceCollectionTask(ObservableMixin):
+class SnmpPerformanceCollectionTask(BaseTask):
     """
     A task that performs periodic performance collection for devices providing
     data via SNMP agents.
@@ -125,7 +125,10 @@ class SnmpPerformanceCollectionTask(ObservableMixin):
         @type scheduleIntervalSeconds: int
         @param taskConfig: the configuration for this task
         """
-        super(SnmpPerformanceCollectionTask, self).__init__()
+        super(SnmpPerformanceCollectionTask, self).__init__(
+                 deviceId, taskName,
+                 scheduleIntervalSeconds, taskConfig
+                )
 
         # Needed for interface
         self.name = taskName
@@ -221,7 +224,7 @@ class SnmpPerformanceCollectionTask(ObservableMixin):
         # Either get as many OIDs as we can or one-by-one
         oidsPerRequest = self._maxOidsPerRequest if not self._singleOidMode else 1
 
-        d = Chain(self._get, iter(chunk(self._oids.keys(), oidsPerRequest))).run()
+        d = Chain(self._get, iter(self.chunk(self._oids.keys(), oidsPerRequest))).run()
         d.addCallback(self._checkOidResults)
         d.addCallback(self._storeOidResults)
         d.addCallback(self._updateStatus)
@@ -327,6 +330,7 @@ class SnmpPerformanceCollectionTask(ObservableMixin):
             log.debug("Device %s [%s] %d of %d OIDs scanned successfully",
                       self._devId, self._manageIp, self._collectedOids,
                       len(self._oids.keys()))
+            self._returnToNormalSchedule()
         else:
             log.debug("Device %s [%s] scanned failed, %s",
                       self._devId, self._manageIp, result.getErrorMessage())
@@ -434,23 +438,6 @@ class SnmpPerformanceCollectionTask(ObservableMixin):
 
         return defer.succeed(self._snmpStatusFailures)
 
-    def _delayNextCheck(self):
-        """
-        Rather than keep re-polling at the same periodicity to
-        determine if the device's agent is responding or not, 
-        let this task back up in the queue.
-        Add a random element to it so that we don't get the
-        thundering herd effect.
-        A maximum delay is used so that there is a bound on the
-        length of times between checks.
-        """
-        # If it's not responding, don't poll it so often
-        if self.interval != self._maxbackoffseconds:
-            delay = random.randint(int(self.interval / 2), self.interval) * 2
-            self.interval = min(self._maxbackoffseconds, self.interval + delay)
-            log.debug("Delaying next check for another %s",
-                      readable_time(self.interval))
-
     def _badOid(self, oid):
         """
         Report any bad OIDs and then remove the OID so we 
@@ -476,13 +463,6 @@ class SnmpPerformanceCollectionTask(ObservableMixin):
         if self._lastErrorMsg:
             display += "%s\n" % self._lastErrorMsg
         return display
-
-
-def chunk(lst, n):
-    """
-    Break lst into n-sized chunks
-    """
-    return [lst[i:i+n] for i in range(0, len(lst), n)]
 
 
 if __name__ == '__main__':

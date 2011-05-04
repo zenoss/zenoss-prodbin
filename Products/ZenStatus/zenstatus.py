@@ -32,9 +32,9 @@ from Products.ZenCollector.interfaces import ICollectorPreferences,\
                                              IScheduledTask
 from Products.ZenCollector.tasks import SimpleTaskFactory,\
                                         SubConfigurationTaskSplitter,\
-                                        TaskStates
+                                        TaskStates, \
+                                        BaseTask
 
-from Products.ZenUtils.observable import ObservableMixin
 
 # We retrieve our configuration data remotely via a Twisted PerspectiveBroker
 # connection. To do so, we need to import the class that will be used by the
@@ -81,7 +81,6 @@ class ZenStatusPreferences(object):
     def buildOptions(self, parser):
         """
         add any zenstatus specific command line options here
-        TODO: add parallel option (in the collector framework)
         """
         pass
 
@@ -92,7 +91,7 @@ class ZenStatusPreferences(object):
         pass
 
 
-class ZenStatusTask(ObservableMixin):
+class ZenStatusTask(BaseTask):
     zope.interface.implements(IScheduledTask)
 
     def __init__(self,
@@ -112,7 +111,11 @@ class ZenStatusTask(ObservableMixin):
         @type scheduleIntervalSeconds: int
         @param taskConfig: the configuration for this task
         """
-        super(ZenStatusTask, self).__init__()
+        super(ZenStatusTask, self).__init__(
+                 name, configId,
+                 scheduleIntervalSeconds, taskConfig
+               )
+
         self.name = name
         self.configId = configId
         self.interval = scheduleIntervalSeconds

@@ -144,7 +144,8 @@ class SyslogTask(BaseTask, DatagramProtocol):
 
     def __init__(self, taskName, configId,
                  scheduleIntervalSeconds=3600, taskConfig=None):
-        BaseTask.__init__(self)
+        BaseTask.__init__(self, taskName, configId,
+                 scheduleIntervalSeconds, taskConfig)
         self.log = log
 
         # Needed for interface

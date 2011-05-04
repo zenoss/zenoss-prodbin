@@ -46,9 +46,9 @@ from Products.ZenCollector.interfaces import ICollectorPreferences,\
                                              IScheduledTask
 from Products.ZenCollector.tasks import SimpleTaskFactory,\
                                         SubConfigurationTaskSplitter,\
-                                        TaskStates
+                                        TaskStates, \
+                                        BaseTask
 from Products.ZenCollector.pools import getPool
-from Products.ZenUtils.observable import ObservableMixin
 from Products.ZenEvents import Event
 from Products.ZenUtils.Executor import TwistedExecutor
 
@@ -420,7 +420,7 @@ STATUS_EVENT = { 'eventClass' : Cmd_Fail,
                     'component' : 'command',
 }
 
-class SshPerformanceCollectionTask(ObservableMixin):
+class SshPerformanceCollectionTask(BaseTask):
     """
     A task that performs periodic performance collection for devices providing
     data via SSH connections.
@@ -447,7 +447,10 @@ class SshPerformanceCollectionTask(ObservableMixin):
         @type scheduleIntervalSeconds: int
         @param taskConfig: the configuration for this task
         """
-        super(SshPerformanceCollectionTask, self).__init__()
+        super(SshPerformanceCollectionTask, self).__init__(
+                 taskName, configId,
+                 scheduleIntervalSeconds, taskConfig
+               )
 
         # Needed for interface
         self.name = taskName
@@ -875,6 +878,9 @@ class SshPerformanceCollectionTask(ObservableMixin):
         @parameter result: results of the task
         @type result: deferred object
         """
+        if not isinstance(result, Failure):
+            self._returnToNormalSchedule()
+
         try:
             self._close()
         except Exception, ex:
@@ -883,23 +889,6 @@ class SshPerformanceCollectionTask(ObservableMixin):
 
         # Return the result so the framework can track success/failure
         return result
-
-    def _delayNextCheck(self):
-        """
-        Rather than keep re-polling at the same periodicity to
-        determine if the device's agent is responding or not, 
-        let this task back up in the queue.
-        Add a random element to it so that we don't get the
-        thundering herd effect.
-        A maximum delay is used so that there is a bound on the
-        length of times between checks.
-        """
-        # If it's not responding, don't poll it so often
-        if self.interval != self._maxbackoffseconds:
-            delay = random.randint(int(self.interval / 2), self.interval) * 2
-            self.interval = min(self._maxbackoffseconds, self.interval + delay)
-            log.debug("Delaying next check for another %s",
-                      readable_time(self.interval))
 
     def displayStatistics(self):
         """
@@ -911,13 +900,6 @@ class SshPerformanceCollectionTask(ObservableMixin):
         if self._lastErrorMsg:
             display += "%s\n" % self._lastErrorMsg
         return display
-
-def chunk(lst, n):
-    """
-    Break lst into n-sized chunks
-    """
-    return [lst[i:i+n] for i in range(0, len(lst), n)]
-
 
 
 if __name__ == '__main__':

@@ -28,6 +28,18 @@ class BaseTask(ObservableMixin):
     """
     Convenience class that consolidates some shared code.
     """
+
+    def __init__(self, *args, **kwargs):
+        super(BaseTask, self).__init__()
+
+        # Store the original cycle interval so that we
+        # can go back when an error condition is resolved.
+        interval = kwargs.get('scheduleIntervalSeconds')
+        if interval is not None:
+            self._originalScheduleInterval = interval
+        else:
+            self._originalScheduleInterval = args[2]
+
     def cleanup(self): # Required by interface
         pass
 
@@ -47,6 +59,17 @@ class BaseTask(ObservableMixin):
             self.interval = min(self._maxbackoffseconds, self.interval + delay)
             log.debug("Delaying next check for another %s",
                       readable_time(self.interval))
+
+    def _returnToNormalSchedule(self, ignored=None):
+        """
+        Once a task is successful, reset the original cycle interval.
+        The ignored kwarg is used so that the method can be called
+        directly as a deferred callback.
+        """
+        if self.interval != self._originalScheduleInterval:
+            self.interval = self._originalScheduleInterval
+            log.debug("Resetting next check back to %s seconds",
+                      self._originalScheduleInterval)
 
     def chunk(self, lst, n):
         """
