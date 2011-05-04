@@ -75,7 +75,7 @@ def _dispatch(dmd, oid, ioid, queue):
                 if (isinstance(obj, Device)
                     and obj.getLastChange().timeTime() + CHANGE_TIME < curTime):
                     log.debug('Device change for %s not within '
-                                    'change window', obj.name())
+                                    'change window', obj.titleOrId())
                     return
                 try:
                     # Try to get the object
