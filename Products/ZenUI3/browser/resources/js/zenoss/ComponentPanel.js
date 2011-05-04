@@ -299,9 +299,7 @@ ZC.ComponentPanel = Ext.extend(Ext.Panel, {
                                 }
                             });
                             Zenoss.util.each(Zenoss.nav.get('Component'), function(item){
-                                if (!(item.id=='Graphs' && !monitor)) {
-                                    items.push(item);
-                                }
+                                items.push(item);
                             });
                             return items;
                         }.createDelegate(this),
