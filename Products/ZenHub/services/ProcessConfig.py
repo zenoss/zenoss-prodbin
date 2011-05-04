@@ -117,7 +117,7 @@ if __name__ == '__main__':
     tester = ServiceTester(ProcessConfig)
     def printer(config):
         for proc in config.processes.values():
-            print '\t'.join([proc.name, proc.ignoreParameters, proc.regex])
+            print '\t'.join([proc.name, str(proc.ignoreParameters), proc.regex])
     tester.printDeviceProxy = printer
     tester.showDeviceInfo()
 
