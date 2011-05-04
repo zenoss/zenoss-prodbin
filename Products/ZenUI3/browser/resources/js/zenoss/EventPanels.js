@@ -415,7 +415,8 @@
                 onFinishAction: function() {
                     var grid = Ext.getCmp(gridId);
                     if (grid) {
-                        Ext.getCmp(gridId).updateRows();
+                        grid.updateRows();
+                        grid.getSelectionModel().clearSelections();
                     }
                 },
                 findParams: function() {
