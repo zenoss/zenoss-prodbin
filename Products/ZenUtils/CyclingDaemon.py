@@ -11,11 +11,10 @@
 #
 ###########################################################################
 from Globals import *
-import time
 import socket
 from Products.ZenUtils.ZCmdBase import ZCmdBase
 from Products.ZenEvents import Event
-from twisted.internet import defer, reactor
+from twisted.internet import reactor
 
 DEFAULT_MONITOR = "localhost"
 
@@ -46,7 +45,6 @@ class CyclingDaemon(ZCmdBase):
 
     def runCycle(self):
         try:
-            start = time.time()
             self.syncdb()
             self.main_loop()
             self.sendHeartbeat()

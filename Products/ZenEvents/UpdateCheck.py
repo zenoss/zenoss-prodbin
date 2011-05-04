@@ -21,9 +21,13 @@ from Products.ZenUtils.Version import Version
 from Products.ZenEvents import Event
 from Products.ZenEvents.ZenEventClasses import Status_Update
 from Products.Zuul import getFacade
+from zenoss.protocols.services.zep import ZepConnectionError
 import urllib
 import string
 import time
+import logging
+
+logger = logging.getLogger('zen.UpdateCheck')
 
 URL = 'http://update.zenoss.org/cgi-bin/version'
 
@@ -68,8 +72,16 @@ class UpdateCheck:
             args['nd'] = dmd.Devices.countDevices()
             args['nu'] = len(dmd.ZenUsers.objectIds())
             args['nm'] = dmd.Events.countInstances()
-            zep = getFacade('zep')
-            args['ne'] = zep.countEventsSince(time.time() - 24 * 60 * 60)
+            
+            numEvents = 0
+            try:
+                zep = getFacade('zep')
+                numEvents = zep.countEventsSince(time.time() - 24 * 60 * 60)
+            except ZepConnectionError:
+                logger.warning("ZEP not running - failed to retrieve event count")
+                
+            args['ne'] = numEvents
+
             numProducts = 0
             manufacturers = dmd.Manufacturers.objectValues(spec='Manufacturer')
             for m in manufacturers:
@@ -82,7 +94,7 @@ class UpdateCheck:
             args['nl'] = dmd.Locations.countChildren()
             
         query = urllib.urlencode(args.items())
-        for line in urllib.urlopen(URL + '?' + query):            
+        for line in urllib.urlopen(URL + '?' + query):
             # skip blank lines and http gunk
             if line.strip() and line[0] not in '<' + string.whitespace:
                 try:

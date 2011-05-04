@@ -11,8 +11,6 @@
 #
 ###########################################################################
 
-import sys
-import time
 import logging
 from Globals import *
 from ZODB.transact import transact
@@ -26,7 +24,6 @@ import transaction
 from status import FAILURE
 
 logger = logging.getLogger('zen.Jobs')
-logger.setLevel(20)
 
 class ZenJobs(CyclingDaemon):
     """
