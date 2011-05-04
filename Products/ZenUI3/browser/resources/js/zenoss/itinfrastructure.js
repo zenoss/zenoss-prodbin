@@ -114,9 +114,8 @@ var deviceClassCombo = {
     listeners: {
         'afterrender': function(component) {
             var selnode = treesm.getSelectedNode();
-            var type = Zenoss.types.type(selnode.attributes.uid);
-                    var isclass = type === 'DeviceClass';
-            if(selnode.attributes.uid === "/zport/dmd/Devices" ){
+            var isclass = selnode.attributes.uid.startswith('/zport/dmd/Devices');
+            if(selnode.attributes.uid === "/zport/dmd/Devices" || !isclass ){
                 //root node doesn't have a path attr
                 component.setValue('/');
             }
