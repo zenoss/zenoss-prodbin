@@ -23,7 +23,8 @@ from zenoss.protocols.protobufs.zep_pb2 import (
     STATUS_DROPPED,
     STATUS_AGED,
     SEVERITY_CLEAR,
-    EventTag
+    EventTag,
+    EventDetail
 )
 
 import logging
@@ -80,7 +81,16 @@ class EventTagProxy(object):
 
         # clear values from protobuf tags by assigning new list comprehension into
         # protobuf tags list in place (using [:] slice would be a lot easier, but not implemented)
-        saveTags = [tag for tag in self._eventProtobuf.tags if tag.type not in removetype]
+
+        # This doesn't work - see http://code.google.com/p/protobuf/issues/detail?id=286
+        #saveTags = [tag for tag in self._eventProtobuf.tags if tag.type not in removetype]
+        saveTags = []
+        for tag in self._eventProtobuf.tags:
+            if tag.type not in removetype:
+                cloned = EventTag()
+                cloned.MergeFrom(tag)
+                saveTags.append(cloned)
+
         del self._eventProtobuf.tags[:]
         self._eventProtobuf.tags.extend(saveTags)
 
@@ -109,7 +119,14 @@ class EventDetailProxy(object):
     def __delitem__(self, key):
         if key in self._map:
             item = self._map.pop(key)
-            savedetails = [det for det in self._eventProtobuf.details if det is not item]
+            # This doesn't work - see http://code.google.com/p/protobuf/issues/detail?id=286
+            #savedetails = [det for det in self._eventProtobuf.details if det is not item]
+            savedetails = []
+            for det in self._eventProtobuf.details:
+                if det.name != item.name:
+                    cloned = EventDetail()
+                    cloned.MergeFrom(det)
+                    savedetails.append(cloned)
             del self._eventProtobuf.details[:]
             self._eventProtobuf.details.extend(savedetails)
 

@@ -37,6 +37,10 @@ class EventProxyTagsAndDetailsTest(unittest.TestCase):
 
         self.assertEqual(len(proxy.tags.getByType('TAG_TYPE_3')), 2)
 
+        proxy.tags.clearType('TAG_TYPE_3')
+        self.assertEquals(len(eventproto.tags), 1)
+        self.assertEqual(len(proxy.tags.getByType('TAG_TYPE_2')), 1)
+
     def test_1_DetailUpdates(self):
         eventproto = from_dict(Event, self.initialEvent)
         proxy = EventProxy(eventproto)
@@ -52,6 +56,8 @@ class EventProxyTagsAndDetailsTest(unittest.TestCase):
         self.assertRaises(KeyError, proxy.details.__getitem__, 'B')
         # but this does not raise a KeyError
         del proxy.details['B']
+        del proxy.details['A']
+        self.assertEqual(len(proxy.details), 0)
 
 if __name__ == '__main__':
     unittest.main()
