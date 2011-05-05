@@ -241,6 +241,11 @@ class ZenDaemon(CmdBase):
     def becomeDaemon(self):
         """Code below comes from the excellent recipe by Chad J. Schroeder.
         """
+        # Workaround for http://bugs.python.org/issue9405 on Mac OS X
+        from platform import system
+        if system() == 'Darwin':
+            from urllib import getproxies
+            getproxies()
         try:
             pid = os.fork()
         except OSError, e:
