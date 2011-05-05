@@ -212,10 +212,16 @@ class PingCollectionPreferences(object):
                 self.pinger6 = TestPing(self.pingTimeOut)
             else:
                 # pyraw inserts these magic values
-                protocol = Ping4(IPV4_SOCKET)
-                self.pinger4 = PingService(protocol)
-                protocol = Ping6(IPV6_SOCKET)
-                self.pinger6 = PingService(protocol)
+                if IPV4_SOCKET is not None:
+                  protocol = Ping4(IPV4_SOCKET)
+                  self.pinger4 = PingService(protocol)
+                else:
+                  self.pinger4 = None
+                if IPV6_SOCKET is not None:
+                  protocol = Ping6(IPV6_SOCKET)
+                  self.pinger6 = PingService(protocol)
+                else:
+                  self.pinger6 = None
 
 
 class PerIpAddressTaskSplitter(SubConfigurationTaskSplitter):
