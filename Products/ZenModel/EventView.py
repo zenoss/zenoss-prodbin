@@ -13,6 +13,8 @@
 import logging
 log = logging.getLogger("zen.EventView")
 
+from decorator import decorator
+from copy import deepcopy
 from AccessControl import ClassSecurityInfo, getSecurityManager
 from Globals import InitializeClass
 from zope.interface import Interface, implements
@@ -36,7 +38,7 @@ class IEventView(Interface):
 
 def zepConnectionError(retval=None):
     def outer(func):
-        def inner(self, *args, **kwargs):
+        def inner(func, self, *args, **kwargs):
             try:
                 return func(self, *args, **kwargs)
             except ZepConnectionError, e:
@@ -46,8 +48,8 @@ def zepConnectionError(retval=None):
                                                         priority=messaging.CRITICAL,
                                                         sticky=True)
                 log.warn("Could not connect to ZEP")
-            return retval
-        return inner
+            return deepcopy(retval)    # don't return the mutable retval
+        return decorator(inner, func)  # for URL's through Zope we must use the same arguments as the original function
     return outer
 
 class EventView(object):
@@ -274,10 +276,14 @@ class EventView(object):
             REQUEST['RESPONSE'].redirect(dest)
 
     security.declareProtected('Manage Events','manage_ackEvents')
-    @zepConnectionError
+    @zepConnectionError()
     def manage_ackEvents(self, evids=(), REQUEST=None):
         """Set event state from this managed entity.
         """
+        if not evids:
+            self._redirectToEventConsole("No events to acknowledge", REQUEST)
+            return
+
         zep = getFacade('zep')
         if isinstance(evids, basestring):
             evids = [evids]
@@ -290,10 +296,14 @@ class EventView(object):
             self._redirectToEventConsole("Error acknowledging events: %s" % str(e), REQUEST)
 
     security.declareProtected('Manage Events','manage_deleteEvents')
-    @zepConnectionError
+    @zepConnectionError()
     def manage_deleteEvents(self, evids=(), REQUEST=None):
         """Delete events from this managed entity.
         """
+        if not evids:
+            self._redirectToEventConsole("No events to close", REQUEST)
+            return
+
         zep = getFacade('zep')
         if isinstance(evids, basestring):
             evids = [evids]
@@ -305,10 +315,14 @@ class EventView(object):
             self._redirectToEventConsole("Error Closing events: %s" % str(e), REQUEST)
 
     security.declareProtected('Manage Events','manage_undeleteEvents')
-    @zepConnectionError
+    @zepConnectionError()
     def manage_undeleteEvents(self, evids=(), REQUEST=None):
         """Delete events from this managed entity.
         """
+        if not evids:
+            self._redirectToEventConsole("No events to reopen", REQUEST)
+            return
+        
         zep = getFacade('zep')
         if isinstance(evids, basestring):
             evids = [evids]

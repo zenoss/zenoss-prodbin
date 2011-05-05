@@ -22,6 +22,7 @@ from twisted.internet.protocol import ProcessProtocol
 from email.MIMEText import MIMEText
 from email.MIMEMultipart import MIMEMultipart
 from email.Utils import formatdate
+from Products.ZenEvents.events2.proxy import EventSummaryProxy
 
 from Products.ZenModel.interfaces import IAction
 from Products.Zuul.interfaces.actions import IEmailActionContentInfo, IPageActionContentInfo, ICommandActionContentInfo, ISnmpTrapActionContentInfo
@@ -67,8 +68,8 @@ def _signalToContextDict(signal):
     data['urls']['eventUrl'] = getEventUrl(summary.uuid)
     data['urls']['ackUrl'] = getAckUrl(summary.uuid)
     data['urls']['closeUrl'] = getCloseUrl(summary.uuid)
-    # TODO: pass in device obj
-    data['urls']['eventsUrl'] = getEventsUrl()
+    proxy = EventSummaryProxy(summary)
+    data['urls']['eventsUrl'] = getEventsUrl(proxy.DeviceClass, proxy.device)
     data['urls']['reopenUrl'] = getReopenUrl(summary.uuid)
 
     # now process all custom processors that might be registered to enhance
@@ -78,33 +79,43 @@ def _signalToContextDict(signal):
 
     return data
 
-def getBaseUrl(device=None):
-    url = 'http://%s:%d' % (socket.getfqdn(), 8080)
-    if device:
-        return "%s%s" % (url, device)#.getPrimaryUrlPath())
+def _getBaseUrl():
+    # todo: move to ZenUtils/Utils.py and don't hardcode port
+    return 'http://%s:%d/zport/dmd' % (socket.getfqdn(), 8080)
+
+def _getBaseEventUrl():
+    return '%s/Events' % _getBaseUrl()
+
+def _getBaseDeviceUrl(device_class, device_name):
+    """
+    Builds the URL for a device.
+    Example: "http://.../Devices/Server/Linux/devices/localhost/devicedetail"
+    """
+    return '%s/Devices%s/devices/%s/devicedetail' % (_getBaseUrl(), device_class, device_name)
+
+
+def getEventUrl(evid):
+    return "%s/viewDetail?evid=%s" % (_getBaseEventUrl(), evid)
+
+def getEventsUrl(device_class=None, device_name=None):
+    if device_class and device_name:
+        # events for a specific device
+        return "%s#deviceDetailNav:device_events" % _getBaseDeviceUrl(device_class, device_name)
     else:
-        return "%s/zport/dmd/Events" % (url)
+        #events on all devices
+        return "%s/viewEvents" % _getBaseUrl()
 
-def getEventUrl(evid, device=None):
-    return "%s/viewDetail?evid=%s" % (getBaseUrl(device), evid)
+def getAckUrl(evid):
+    return "%s/manage_ackEvents?evids=%s&zenScreenName=viewEvents" % \
+           (_getBaseEventUrl(), evid)
 
-def getEventsUrl(device=None):
-    return "%s/viewEvents" % getBaseUrl(device)
+def getCloseUrl(evid):
+    return "%s/manage_deleteEvents?evids=%s&zenScreenName=viewHistoryEvents" % \
+           (_getBaseEventUrl(), evid)
 
-def getAckUrl(evid, device=None):
-    return "%s/manage_ackEvents?evids=%s&zenScreenName=viewEvents" % (
-        getBaseUrl(device), evid)
-
-def getCloseUrl(evid, device=None):
-    return "%s/manage_deleteEvents?evids=%s" % (
-        getBaseUrl(device), evid) + \
-        "&zenScreenName=viewHistoryEvents"
-
-def getReopenUrl(evid, device=None):
-    return "%s/manage_undeleteEvents?evids=%s" % (
-        getBaseUrl(device), evid) + \
-        "&zenScreenName=viewEvents"
-
+def getReopenUrl(evid):
+    return "%s/manage_undeleteEvents?evids=%s&zenScreenName=viewEvents" % \
+           (_getBaseEventUrl(), evid)
 
 
 class IActionBase(object):

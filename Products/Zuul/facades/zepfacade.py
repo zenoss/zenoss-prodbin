@@ -109,6 +109,11 @@ class ZepFacade(ZuulFacade):
         subfilter=(),
         operator=None,
         details=None):
+        """
+        Creates a filter based on passed arguments.
+        Caller is responsible for handling the include-zero-items case.
+        For example, passing an empty uuid tuple won't filter by uuid so includes everything.
+        """
 
         filter = {}
 
