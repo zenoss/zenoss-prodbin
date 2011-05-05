@@ -42,6 +42,7 @@ treeConfigs.addAll([{
         text: 'IPv6 Networks', // Use the name loaded from the remote
         allowDrop: false
     },
+    selectRootOnLoad: false,
     directFn: Zenoss.remote.Network6Router.asyncGetTree,
     router: Zenoss.remote.Network6Router
 }]);
@@ -162,7 +163,7 @@ var treesm = new Ext.tree.DefaultSelectionModel({
 
             fb.buttonContextMenu.setContext(uid);
             Zenoss.env.PARENT_CONTEXT = uid;
-            
+
             fb.buttonDelete.setDisabled(treeConfigs.containsKey(uid));
         }
     }
@@ -190,7 +191,6 @@ var NetworkNavTree = Ext.extend(Zenoss.HierarchyTreePanel, {
         // example token:
         //'networks:.zport.dmd.Networks.204.12.105.0.ipaddresses.204.12.105.192'
         var token = Ext.History.getToken();
-
         if (token) {
             // Ext.History.DELIMITER is ':'
             var fromIndex = token.indexOf(Ext.History.DELIMITER)
@@ -208,9 +208,6 @@ var NetworkNavTree = Ext.extend(Zenoss.HierarchyTreePanel, {
             expandToHistory(node);
 
             this.selectByToken(tokenTreePath);
-        } else {
-            var networktree = Ext.getCmp("networks");
-            networktree.selectByToken(networktree.root.id);
         }
     },
 
