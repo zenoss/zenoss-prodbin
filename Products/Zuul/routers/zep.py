@@ -843,7 +843,7 @@ class EventsRouter(DirectRouter):
                 },{
                 'id': 'event_archive_purge_interval_days',
                 'minValue': 1,
-                'name': _t('Delete Historical Events Older Than (days)'),
+                'name': _t('Delete Archived Events Older Than (days)'),
                 'xtype': 'numberfield',
                 'allowNegative': False,
                 },{
