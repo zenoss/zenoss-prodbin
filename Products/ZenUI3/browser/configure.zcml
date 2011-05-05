@@ -169,7 +169,7 @@
     for="*"
     permission="zenoss.Common"
     />
-    
+
 <browser:page
     template="templates/mibs.pt"
     name="mibs"
@@ -195,7 +195,7 @@
     template="templates/template.pt"
     name="template"
     for="*"
-    permission="zenoss.View"
+    permission="zenoss.ManageDMD"
     />
 
 <browser:page
