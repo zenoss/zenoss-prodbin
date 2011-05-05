@@ -181,7 +181,7 @@ class NetworkRouter(TreeRouter):
 
         keys = ['name', 'device', 'interface', 'netmask', 'pingstatus',
                 'snmpstatus', 'uid']
-        data = Zuul.marshal(instances, keys)
+        data = Zuul.marshal(instances.results, keys)
         return DirectResponse.succeed(data=data, totalCount=instances.total,
                                       hash=instances.hash_)
 

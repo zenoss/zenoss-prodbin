@@ -16,14 +16,19 @@ from itertools import imap
 
 from Acquisition import aq_parent
 from zope.interface import implements
-
 from Products.Jobber.jobs import ShellCommandJob
 from Products.ZenUtils.Utils import binPath
+from Products.Zuul import getFacade
 from Products.Zuul.utils import unbrain
 from Products.Zuul.facades import TreeFacade
 from Products.Zuul.interfaces import ITreeFacade, INetworkFacade
 from Products.Zuul.interfaces import IInfo, ICatalogTool
 from Products.Zuul.tree import SearchResults
+from zenoss.protocols.protobufs.zep_pb2 import (STATUS_NEW, STATUS_ACKNOWLEDGED, SEVERITY_CRITICAL,
+                                                SEVERITY_ERROR, SEVERITY_WARNING, SEVERITY_INFO,
+                                                SEVERITY_DEBUG)
+from Products.ZenEvents.ZenEventClasses import Status_Ping
+from Products.ZenEvents.ZenEventClasses import Status_Snmp
 
 log = logging.getLogger('zen.NetworkFacade')
 
@@ -76,6 +81,45 @@ class NetworkFacade(TreeFacade):
         aq_parent(toDel)._delObject(toDel.id)
         return True
 
+    def _assignPingStatuses(self, infos, pingStatuses):
+        """
+        Takes the results from zep and determines what the
+        status should be on that ip address row
+        """
+        prop = 'pingstatus'
+        for info in infos:
+            dev = info.device
+            if not dev:
+                info.setBulkLoadProperty(prop, 5)
+                continue
+            # get from ping statuses
+            status = pingStatuses[info.device.uuid]
+            count = status[SEVERITY_ERROR]['count'] + status[SEVERITY_CRITICAL]['count'] + status[SEVERITY_WARNING]['count']
+            info.setBulkLoadProperty(prop, count)
+
+    def _assignSnmpStatuses(self, infos, snmpStatuses):
+        """
+        Takes the results from zep and assigns the correct snmp
+        status. This must also look at a couple of zproperties
+        """
+        prop = 'snmpstatus'
+        for info in infos:
+            dev = info.device
+            if not dev:
+                info.setBulkLoadProperty(prop, 5)
+                continue
+            info.setBulkLoadProperty(prop, -1)
+            obj = dev._object
+            if (not getattr(obj, 'zSnmpMonitorIgnore', False)
+                and getattr(obj, 'zSnmpCommunity', "")
+                and obj.monitorDevice()):
+                # get from snmp statuses
+                status = snmpStatuses[info.device.uuid]
+                count = status[SEVERITY_ERROR]['count'] + status[SEVERITY_CRITICAL]['count'] + status[SEVERITY_WARNING]['count']
+                info.setBulkLoadProperty(prop, count)
+
+
+
     def getIpAddresses(self, limit=0, start=0, sort='ipAddress', dir='DESC',
               params=None, uid=None, criteria=()):
 
@@ -86,8 +130,24 @@ class NetworkFacade(TreeFacade):
                             start=start, limit=limit,
                             orderby=sort, reverse=reverse)
         objs = imap(unbrain, brains)
-        infos = imap(IInfo, objs)
-        # convert to info objects
+        infos = map(IInfo, objs)
+        devuuids = set(info.device.uuid for info in infos if info.device)
+
+        # get ping severities
+        zep = getFacade('zep')
+        pingSeverities = zep.getEventSeverities(devuuids,
+                                                      severities=(),
+                                                      status=(),
+                                                      eventClass=Status_Ping)
+        self._assignPingStatuses(infos, pingSeverities)
+
+        # get snmp severities
+        snmpSeverities = zep.getEventSeverities(devuuids,
+                                                      severities=(),
+                                                      status=(),
+                                                      eventClass=Status_Snmp)
+        self._assignSnmpStatuses(infos, snmpSeverities)
+
         return SearchResults(infos, brains.total, brains.hash_)
 
     def discoverDevices(self, uid):

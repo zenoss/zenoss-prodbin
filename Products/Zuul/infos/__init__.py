@@ -20,7 +20,7 @@ from zenoss.protocols.protobufs.zep_pb2 import SEVERITY_CLEAR, SEVERITY_INFO, SE
     SEVERITY_ERROR, SEVERITY_CRITICAL
 from Products.Zuul import getFacade
 from Products.ZenUtils.guid.interfaces import IGlobalIdentifier
-
+from Products.Zuul.utils import safe_hasattr as hasattr
 
 
 def ProxyProperty(propertyName):
@@ -158,3 +158,25 @@ class HasEventsInfoMixin(HasUuidInfoMixin):
         self._eventSeverities = severities
 
 
+class BulkLoadMixin(object):
+
+    def setBulkLoadProperty(self, name, value):
+        """
+        Sets a property that can later be retrieved
+        by the marshaller. You will have to check
+        the property manually. If set twice it will
+        overwrite the previous entry.
+        """
+        if not hasattr(self, '_props'):
+            self._props = {}
+        self._props[name] = value
+
+    def getBulkLoadProperty(self, name):
+        """
+        Will return None if not present
+        otherwise the cached value set from
+        the setBulkLoadProperty method
+        """
+        if not hasattr(self, '_props'):
+            return None
+        return self._props.get(name)

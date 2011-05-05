@@ -20,7 +20,7 @@ from Products.ZenModel.IpAddress import IpAddress
 from Products.Zuul import getFacade
 from Products.Zuul.interfaces import IIpNetworkInfo, IIpAddressInfo, IIpNetworkNode
 from Products.Zuul.interfaces import ICatalogTool
-from Products.Zuul.infos import InfoBase
+from Products.Zuul.infos import InfoBase, BulkLoadMixin
 from Products.Zuul.decorators import info
 from Products.Zuul.utils import getZPropertyInfo, setZPropertyInfo
 from Products.Zuul.tree import TreeNode
@@ -149,7 +149,7 @@ class IpNetworkInfo(InfoBase):
 
     zPreferSnmpNaming = property(getZPreferSnmpNaming, setZPreferSnmpNaming)
 
-class IpAddressInfo(InfoBase):
+class IpAddressInfo(InfoBase, BulkLoadMixin):
     implements(IIpAddressInfo)
 
     @property
@@ -168,12 +168,18 @@ class IpAddressInfo(InfoBase):
 
     @property
     def pingstatus(self):
+        cachedValue = self.getBulkLoadProperty('pingstatus')
+        if cachedValue is not None:
+            return cachedValue
         if not self._object.interface():
             return 5
         return self._object.getPingStatus()
 
     @property
     def snmpstatus(self):
+        cachedValue = self.getBulkLoadProperty('snmpstatus')
+        if cachedValue is not None:
+            return cachedValue
         if not self._object.interface():
             return 5
         return self._object.getSnmpStatus()

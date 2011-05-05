@@ -201,7 +201,7 @@ class ZepFacade(ZuulFacade):
 
         return result
 
-    
+
     def _createEventDetailFilter(self, details):
         """
         @param details: All details present in this filter request.
@@ -213,7 +213,7 @@ class ZepFacade(ZuulFacade):
 
         @type details: dict
         """
-        
+
         detailFilterItems = []
 
         for key, val in details.iteritems():
@@ -221,7 +221,7 @@ class ZepFacade(ZuulFacade):
                'key': key,
                 'value': val,
             })
-                
+
         log.debug('Final detail filter: %r' % detailFilterItems)
         return detailFilterItems
 
@@ -380,14 +380,14 @@ class ZepFacade(ZuulFacade):
 
     def removeConfigValue(self, name):
         self.configClient.removeConfigValue(name)
-        
+
     def _getTopLevelOrganizerUuids(self, tagUuid):
         """
         Returns a list of child UUIDs if the specified tagUuid is a top-level
-        organizer. Otherwise returns None. This is needed because several 
+        organizer. Otherwise returns None. This is needed because several
         operations in ZEP are performed on UUIDs tagged in the events, however
         the top-level organizers are not tagged on events as an optimization.
-        
+
         @type  tagUuid: string
         @param tagUuid: UUID of potential top-level organizer
         """
@@ -411,16 +411,16 @@ class ZepFacade(ZuulFacade):
                     else:
                         sevmap[sev] = counts
             return sevmap
-        
+
         return self.getEventSeverities(tagUuid, severities=severities, status=status)[tagUuid]
 
     def _createSeveritiesDict(self, eventTagSeverities):
         severities = {}
-        
+
         for tag in eventTagSeverities:
             severities[tag.tag_uuid] = {}
             for sev in tag.severities:
-                severities[tag.tag_uuid][sev.severity] = dict(count=sev.count, 
+                severities[tag.tag_uuid][sev.severity] = dict(count=sev.count,
                                                               acknowledged_count=sev.acknowledged_count)
             for sev in EventSeverity.numbers:
                 if not sev in severities[tag.tag_uuid]:
@@ -428,7 +428,7 @@ class ZepFacade(ZuulFacade):
 
         return severities
 
-    def getEventSeverities(self, tagUuids, severities=(), status=()):
+    def getEventSeverities(self, tagUuids, severities=(), status=(), eventClass=()):
         """
         Get a dictionary of the event severity counts for each UUID.
 
@@ -440,7 +440,7 @@ class ZepFacade(ZuulFacade):
         @rtype: dict
         @return: A dictionary of UUID -> { C{EventSeverity} -> { count, acknowledged_count } }
         """
-        eventTagSeverities = self._getEventTagSeverities(severity=severities, status=status, tags=tagUuids)
+        eventTagSeverities = self._getEventTagSeverities(severity=severities, status=status, tags=tagUuids, eventClass=eventClass)
         return self._createSeveritiesDict(eventTagSeverities)
 
     def getWorstSeverityByUuid(self, tagUuid, default=SEVERITY_CLEAR, ignore=()):
@@ -602,7 +602,7 @@ class ZepFacade(ZuulFacade):
 
             if k in self.ZENOSS_DETAIL_OLD_TO_NEW_MAPPING:
                 k = self.ZENOSS_DETAIL_OLD_TO_NEW_MAPPING[k]
-                
+
             if k in detail_keys:
                 details[k] = v
             else:
@@ -622,7 +622,7 @@ class ZepFacade(ZuulFacade):
         @type item: zenoss.protocols.protobufs.zep_pb2.EventDetailItem
         """
         return self.configClient.updateIndexedDetail(item)
-    
+
     def removeIndexedDetail(self, key):
         """
         @type key: string
@@ -683,7 +683,7 @@ class ZepFacade(ZuulFacade):
         if elapsed >= timeout:
             log.warning("Timed out waiting for event summary to be found: %s", summary_uuid)
             return None
-        
+
         return summary_uuid
 
     def create(self, summary, severity, device, component=None, mandatory=True, immediate=False,
