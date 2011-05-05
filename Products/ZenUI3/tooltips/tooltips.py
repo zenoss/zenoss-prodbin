@@ -135,6 +135,7 @@ class Tooltips(BrowserView):
         for tip in tips:
             results.append(tpl % json(tip))
         self.request.response.setHeader('Content-Type', 'text/javascript')
+        self.request.response.enableHTTPCompression(REQUEST=self.request)
         return "Ext.onReady(function(){%s})" % '\n'.join(results)
 
 

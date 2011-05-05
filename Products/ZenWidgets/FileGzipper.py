@@ -73,6 +73,16 @@ FSImage.index_html = index_html
 
 from zope.browserresource.file import FileResource
 from Products.ZenUtils.Utils import monkeypatch
+from Products.Five.browser.pagetemplatefile import ViewPageTemplateFile
+
+@monkeypatch(ViewPageTemplateFile)
+def __call__(self, __instance, *args, **keywords):
+    try:
+        response = __instance.request.response
+        response.enableHTTPCompression(REQUEST=__instance.request)
+    except AttributeError:
+        pass
+    return original(self, __instance, *args, **keywords)
 
 oldget = FileResource.GET
 @monkeypatch(FileResource)

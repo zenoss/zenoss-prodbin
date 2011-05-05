@@ -18,5 +18,6 @@ class ExtDirectJsView(BrowserView):
     template = ViewPageTemplateFile('extdirect.js.pt')
 
     def __call__(self, *args, **kwargs):
+        self.request.response.enableHTTPCompression(REQUEST=self.request)
         self.request.response.setHeader('Content-Type', 'text/javascript')
         return self.template()
