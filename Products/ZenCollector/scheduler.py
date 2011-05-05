@@ -337,7 +337,7 @@ class Scheduler(object):
         doesn't return a deferred, here for sanity and debug"""
         if task_name in self._loopingCalls:
             loopingCall = self._loopingCalls[task_name]
-            log.debug("call finsihed %s : %s" %(loopingCall, result))
+            log.debug("call finished %s : %s" %(loopingCall, result))
         if isinstance(result, Failure):
             log.warn("Failure in looping call, will not reschedule %s" % task_name)
             log.error("%s" % result)
