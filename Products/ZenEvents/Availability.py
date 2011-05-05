@@ -82,11 +82,9 @@ class Availability(object):
     security = ClassSecurityInfo()
     security.setDefaultAccess('allow')
 
-    defaultAvailabilityDays = 7
-
     @staticmethod
-    def getDefaultAvailabilityStart():
-        return time.time() - Availability.defaultAvailabilityDays*24*60*60
+    def getDefaultAvailabilityStart(dmd):
+        return time.time() - dmd.ZenEventManager.defaultAvailabilityDays*24*60*60
 
     @staticmethod
     def getDefaultAvailabilityEnd():
@@ -201,7 +199,7 @@ class Report(object):
         endDate = min(endDate, now)
         startDate = self.startDate
         if not startDate:
-            startDate = Availability.getDefaultAvailabilityStart()
+            startDate = Availability.getDefaultAvailabilityStart(dmd)
 
         # convert start and end date to integer milliseconds for defining filters
         startDate = int(startDate*1000)

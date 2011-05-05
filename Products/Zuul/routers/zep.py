@@ -858,6 +858,13 @@ class EventsRouter(DirectRouter):
                 'xtype': 'numberfield',
                 'allowNegative': False,
                 'value': self.context.dmd.ZenEventManager.defaultPriority
+                },{
+                'id': 'default_availability_days',
+                'name': _t('Default Availability Report (days)'),
+                'xtype': 'numberfield',
+                'allowNegative': False,
+                'minValue': 1,
+                'value': self.context.dmd.ZenEventManager.defaultAvailabilityDays
                 }]
         return configSchema
 
@@ -892,11 +899,15 @@ class EventsRouter(DirectRouter):
         for empty_key in empty_keys:
             del values[empty_key]
 
-        # we store default syslog priority on the event manager
-        if values.get('default_syslog_priority'):
-            pri = values.get('default_syslog_priority')
-            self.context.dmd.ZenEventManager.defaultPriority = pri
-            del values['default_syslog_priority']
+        # we store default syslog priority and default availibility days on the event manager
+        defaultSyslogPriority = values.pop('default_syslog_priority', None)
+        if defaultSyslogPriority is not None:
+            self.context.dmd.ZenEventManager.defaultPriority = int(defaultSyslogPriority)
+
+        defaultAvailabilityDays = values.pop('default_availability_days', None)
+        if defaultAvailabilityDays is not None:
+            self.context.dmd.ZenEventManager.defaultAvailabilityDays = int(defaultAvailabilityDays)
+
         self.zep.setConfigValues(values)
         return DirectResponse.succeed()
 

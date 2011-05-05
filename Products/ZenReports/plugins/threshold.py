@@ -40,7 +40,7 @@ class threshold(object):
         zep = getFacade("zep", dmd)
 
         # read in args
-        dateAsFloat(args, 'startDate', Availability.getDefaultAvailabilityStart())
+        dateAsFloat(args, 'startDate', Availability.getDefaultAvailabilityStart(dmd))
         dateAsFloat(args, 'endDate', Availability.getDefaultAvailabilityEnd())
         args['eventClass'] = args.get('eventClass', '') or '/Perf'
 
