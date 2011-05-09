@@ -427,6 +427,9 @@ class CollectorDaemon(RRDDaemon):
 
     def _startMaintenance(self, ignored=None):
         unused(ignored)
+        if not self.options.cycle:
+            self._maintenanceCycle()
+            return
         interval = self._prefs.cycleInterval
         self.log.debug("Initializing maintenance Cycle")
         maintenanceCycle = MaintenanceCycle(interval, self, self._maintenanceCycle)
