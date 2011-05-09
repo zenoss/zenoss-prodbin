@@ -70,6 +70,7 @@ class BaseTask(ObservableMixin):
             self.interval = self._originalScheduleInterval
             log.debug("Resetting next check back to %s seconds",
                       self._originalScheduleInterval)
+        return ignored
 
     def chunk(self, lst, n):
         """
