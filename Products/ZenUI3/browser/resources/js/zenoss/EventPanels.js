@@ -394,10 +394,20 @@
                         select: function(selection) {
                             var archive = selection.value == 1,
                                 grid = Ext.getCmp(gridId),
+                                yesterday = new Date(),
                                 params = {
                                     uid: grid.view._context,
                                     archive: archive
                                 };
+                            // if history set default lastseen to yesterday
+                            if (archive) {
+                                yesterday.setDate(yesterday.getDate() - 1);
+                                grid.getView().setFilter('lastTime', yesterday);
+                            }else{
+                                grid.getView().setFilter('lastTime', null);
+                            }
+
+                            // reload the grid
                             grid.getStore().load({ params: params });
                             Zenoss.events.EventPanelToolbarActions.acknowledge.setHidden(archive);
                             Zenoss.events.EventPanelToolbarActions.close.setHidden(archive);
@@ -661,8 +671,8 @@
                 var newDisabledValue = !selectionmodel.hasSelection();
                 Ext.each(actionsToChange, function(actionButton) {
                     actionButton.setDisabled(newDisabledValue);
-                })
-            })
+                });
+            });
 
         },
         handleBeforeRowSelect: function(sm, index, keepExisting, record){

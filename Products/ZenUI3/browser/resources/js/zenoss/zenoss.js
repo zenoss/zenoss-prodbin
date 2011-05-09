@@ -879,6 +879,18 @@ Zenoss.FilterGridView = Ext.extend(Ext.ux.grid.livegrid.GridView, {
         this._valid = valid;
         return valid;
     },
+    setFilter: function(name, value) {
+        Ext.each(this.filters, function(filter){
+            if (filter.id == name) {
+                filter.setValue(value);
+            }
+        });
+        if (Ext.isDefined(value)) {
+            this.lastOptions[name] = value;
+        }else{
+            delete this.lastOptions[name];
+        }
+    },
     getErrors: function() {
         var errors = [];
         Ext.each(this.filters, function(ob){

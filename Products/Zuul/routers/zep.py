@@ -943,7 +943,7 @@ class EventsRouter(DirectRouter):
         if url:
             msg += "<br/><a href='%s'>Go to the new mapping.</a>" % url
         return DirectResponse(msg, success=bool(url))
-    
+
     @require('Manage Events')
     def clear_heartbeats(self):
         """

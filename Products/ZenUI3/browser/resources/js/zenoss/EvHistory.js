@@ -62,7 +62,7 @@ Ext.onReady(function(){
     var container = Ext.getCmp('center_panel_container');
 
     // Add a CSS class to scope some styles that affect other parts of the UI
-    container.on('render', function(){container.el.addClass('zenui3')});
+    container.on('render', function(){container.el.addClass('zenui3');});
 
     // Add the toolbar to the container
     var tbar = new Zenoss.LargeToolbar({
@@ -186,7 +186,7 @@ Ext.onReady(function(){
                              link + '">'+
                              'Event Console<'+'/a><'+'/div>',
                             buttons: Ext.Msg.OK
-                            })
+                            });
                         }
                     },{
                         text: "Restore defaults",
@@ -236,6 +236,10 @@ Ext.onReady(function(){
             box.setText(_t('Last updated at ') + dtext);
     };
 
+    // default to show history from last 24 hours
+    var yesterday = new Date();
+    yesterday.setDate(yesterday.getDate() - 1);
+
     // View to render the grid
     var myView = new Zenoss.FilterGridView({
         nearLimit : 20,
@@ -243,7 +247,8 @@ Ext.onReady(function(){
         filterbutton: 'showfilters',
         defaultFilters: {
             severity: [Zenoss.SEVERITY_CRITICAL, Zenoss.SEVERITY_ERROR, Zenoss.SEVERITY_WARNING, Zenoss.SEVERITY_INFO],
-            eventState: [Zenoss.STATUS_CLOSED, Zenoss.STATUS_CLEARED, Zenoss.STATUS_AGED]
+            eventState: [Zenoss.STATUS_CLOSED, Zenoss.STATUS_CLEARED, Zenoss.STATUS_AGED],
+            lastTime: yesterday
         },
         rowcoloritem: 'rowcolors_checkitem',
         livesearchitem: 'livesearch_checkitem',
@@ -252,7 +257,7 @@ Ext.onReady(function(){
 
     // Show filters by default on history console
     // State restoration occurs after render, so this won't persist if unwanted
-    myView.on('render', function(){myView.showFilters()});
+    myView.on('render', function(){myView.showFilters();});
 
 
     // Store to hold the events data
@@ -352,7 +357,7 @@ Ext.onReady(function(){
     });
 
     detail_panel.on('collapse', function(ob, state) {
-        eventDetailCollapsed()
+        eventDetailCollapsed();
     });
 
     // Hook up the "Last Updated" text
