@@ -176,6 +176,7 @@ Ext.onReady(function () {
 
     displayScheduleEditDialogue = function(data) {
         var dialogue = Ext.getCmp(editScheduleDialogueConfig.id);
+        dialogue.setTitle(String.format('{0} - {1}', editScheduleDialogueConfig.title, data['newId']));
         dialogue.loadData(data);
         dialogue.show();
     };
@@ -183,7 +184,7 @@ Ext.onReady(function () {
     editScheduleDialogueConfig = {
         id: 'edit_schedule_dialogue',
         xtype: 'editscheduledialogue',
-        title: _t('Edit Notification Subscription'),
+        title: _t('Edit Notification Schedule'),
         directFn: router.updateWindow,
         reloadFn: reloadScheduleGrid
     };
@@ -413,18 +414,21 @@ Ext.onReady(function () {
             defaults: {
                 padding: 0
             },
+            listeners: {
+                render: function() {
+                    if (!this.userWrite) {
+                        disableTabContents(this);
+                    }
+                }
+            },
             loadData: function(data) {
+                this.userWrite = data['userWrite'] || false;
                 var panel = {xtype:'panel'};
                 panel = Ext.applyIf(panel, data.content);
                 var comp = Ext.create(panel);
                 this.add(comp)
             }
         });
-
-
-        if (!data['userWrite']) {
-            disableTabContents(tab_content);
-        }
         
         tab_notification = new NotificationTabContent({
             title: 'Notification',
@@ -559,7 +563,7 @@ Ext.onReady(function () {
                 this.globalManage.setValue(data.globalManage);
             }
         });
-
+        
         if (!data['userManage']) {
             disableTabContents(tab_recipients);
         }
@@ -584,12 +588,13 @@ Ext.onReady(function () {
 
         var dialogue = new EditNotificationDialogue({
             id: 'edit_notification_dialogue',
-            title: _t('Edit Notification Subscription'),
+            title: _t('Edit Notification'),
             directFn: router.updateNotification,
             reloadFn: reloadNotificationGrid,
             tabPanel: tab_panel
         });
-
+        
+        dialogue.title = String.format("{0} - {1} ({2})", dialogue.title, data['newId'], data['action']);
         dialogue.loadData(data);
         dialogue.show();
     };
@@ -746,10 +751,10 @@ Ext.onReady(function () {
             Ext.applyIf(config, {
                 modal: true,
                 plain: true,
-                width: bigWindowWidth,
-                height: bigWindowHeight,
-                minWidth: bigWindowWidth,
-                minHeight: bigWindowHeight,
+                width: 350,
+                height: 250,
+                maxWidth: 350,
+                maxHeight: 250,
                 border: false,
                 closeAction: 'hide',
                 items:{
@@ -807,10 +812,12 @@ Ext.onReady(function () {
                             triggerAction: 'all',
                             fieldLabel: _t('Repeat')
                         }),{
-                            xtype: 'textfield',
+                            xtype: 'numberfield',
+                            allowNegative: false,
+                            allowDecimals: false,
                             name: 'duration',
                             ref: 'duration',
-                            fieldLabel: _t('Duration')
+                            fieldLabel: _t('Duration (minutes)')
                         }
                     ],
                     buttons:[
@@ -1034,6 +1041,7 @@ Ext.onReady(function () {
             Ext.applyIf(config, {
                 autoScroll: true,
                 border: false,
+                autoHeight: true,
                 viewConfig: {
                     forceFit: true
                 },
@@ -1074,6 +1082,9 @@ Ext.onReady(function () {
                 },
                 colModel: new Ext.grid.ColumnModel({
                     columns: [{
+                        xtype: 'booleancolumn',
+                        trueText: _t('Yes'),
+                        falseText: _t('No'),
                         dataIndex: 'enabled',
                         header: _t('Enabled'),
                         sortable: true
@@ -1110,7 +1121,7 @@ Ext.onReady(function () {
                             uid = row.data.uid;
                             // show a confirmation
                             Ext.Msg.show({
-                                title: _t('Delete Subscription Schedule'),
+                                title: _t('Delete Schedule'),
                                 msg: String.format(_t("Are you sure you wish to delete the schedule, {0}?"), row.data.newId),
                                 buttons: Ext.Msg.OKCANCEL,
                                 fn: function(btn) {
@@ -1174,14 +1185,14 @@ Ext.onReady(function () {
                     border: false
                 },
                 items: [{
-                    title: _t('Notification Subscription Schedules'),
+                    title: _t('Notification Schedules'),
                     region:'east',
                     width: 375,
                     minSize: 100,
                     maxSize: 375,
                     items: [config.schedulePanel]
                 },{
-                    title: _t('Notification Subscriptions'),
+                    title: _t('Notifications'),
                     region:'center',
                     items:[config.notificationPanel]
                 }]
@@ -1217,6 +1228,8 @@ Ext.onReady(function () {
                 dataIndex: 'enabled',
                 header: _t('Enabled'),
                 xtype: 'booleancolumn',
+                trueText: _t('Yes'),
+                falseText: _t('No'),
                 width: 70,
                 sortable: true
             }, {
@@ -1325,7 +1338,6 @@ Ext.onReady(function () {
                 xtype: 'rulebuilder',
                 fieldLabel: _t('Rule'),
                 name: 'criteria',
-                id: 'rulebuilder',
                 ref: 'rule',
                 subjects: [
                 Ext.applyIf(
@@ -1723,6 +1735,14 @@ Ext.onReady(function () {
     };
 
     displayEditTriggerDialogue = function(data) {
+
+        editTriggerDialogue = new EditTriggerDialogue({
+            title: String.format("{0} - {1}", _t('Edit Trigger'), data['name']),
+            directFn: router.updateTrigger,
+            reloadFn: reloadTriggersGrid,
+            validateFn: router.parseFilter
+        });
+
         editTriggerDialogue.loadData(data);
         
         if (!data['userWrite']) {
@@ -1746,12 +1766,6 @@ Ext.onReady(function () {
         reloadFn: reloadTriggersGrid
     });
 
-    editTriggerDialogue = new EditTriggerDialogue({
-        title: _t('Edit Trigger'),
-        directFn: router.updateTrigger,
-        reloadFn: reloadTriggersGrid,
-        validateFn: router.parseFilter
-    });
 
     colModel = new Ext.grid.ColumnModel(colModelConfig);
 

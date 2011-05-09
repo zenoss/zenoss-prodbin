@@ -255,7 +255,7 @@
             var field = this.comparison.hiddenField,
                 sub = this.subject.getValue(),
                 pred = this.predicate.getValue();
-            if (!field || !sub || !pred) { return; }
+            if (!field || !sub || Ext.isEmpty(pred)) { return; }
             var cmp = ZF.COMPARISONS[field.value];
             var clause = String.format(cmp.tpl, this.getBuilder().prefix + sub, Ext.encode(pred));
             return String.format("({0})", clause);

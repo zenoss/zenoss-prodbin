@@ -195,12 +195,26 @@ class NotificationSubscription(ZenModelRM, AdministrativeRoleable):
             windows = self.windows()
             if windows:
                 log.debug('Notification has (%s) windows.' % len(windows))
+
+                enabled_windows = []
                 for window in windows:
-                    if window.isActive():
-                        log.debug('Notification has active window: %s' % window.id)
-                        return True
-                log.debug('Notification has no active windows, it is NOT enabled.')
-                return False
+                    if window.enabled:
+                        log.debug('Notification has enabled window: %s' % window.id)
+                        enabled_windows.append(window)
+
+                if enabled_windows:
+                    for window in enabled_windows:
+                        if window.isActive():
+                            log.debug('Window is active: %s' % window.id)
+                            return True
+
+                    # there are windows that are enabled, but none of them are
+                    # active. This notification isn't active.
+                    return False
+
+                # If there are no enabled windows, defer to the notification's
+                # enabled setting
+                return True
             else:
                 log.debug('Notification is enabled, but has no windows, it is active.')
                 return True

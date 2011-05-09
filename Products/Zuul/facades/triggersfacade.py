@@ -434,6 +434,13 @@ class TriggersFacade(ZuulFacade):
         # permission.
         user = getSecurityManager().getUser()
         if self.notificationPermissions.userCanUpdateNotification(user, notification):
+            # update the action content data
+            action = getUtility(IAction, notification.action)
+            action.updateContent(notification.content, data)
+
+
+        
+        if self.notificationPermissions.userCanManageNotification(user, notification):
             # if these values are not sent (in the case that the fields have been
             # disabled, do not set the value.
             if 'notification_globalRead' in data:
@@ -453,14 +460,7 @@ class TriggersFacade(ZuulFacade):
 
             notification.subscriptions = data.get('subscriptions')
             self.updateNotificationSubscriptions(notification)
-
-            # update the action content data
-            action = getUtility(IAction, notification.action)
-            action.updateContent(notification.content, data)
-
-
-        
-        if self.notificationPermissions.userCanManageNotification(user, notification):
+            
             notification.recipients = data.get('recipients', [])
             self.notificationPermissions.clearPermissions(notification)
             self.notificationPermissions.updatePermissions(self._guidManager, notification)
@@ -518,7 +518,9 @@ class TriggersFacade(ZuulFacade):
                 start = data['start']
                 start = start.replace('T00:00:00', 'T' + data['starttime'])
                 startDT = datetime.strptime(start, "%Y-%m-%dT%H:%M")
-                setattr(window, 'start', startDT.strftime('%s'))
+                setattr(window, 'start', int(startDT.strftime('%s')))
+            elif field['id'] == 'duration':
+                setattr(window, 'duration', int(data['duration']))
             else:
                 setattr(window, field['id'], data.get(field['id']))
 
@@ -668,6 +670,7 @@ class NotificationPermissionManager(object):
                 notification.userRead = True
                 notification.userWrite = self.userCanUpdateNotification(user, notification)
                 notification.userManage = self.userCanManageNotification(user, notification)
+
                 yield notification
 
     def clearPermissions(self, notification):    
@@ -694,7 +697,7 @@ class NotificationPermissionManager(object):
                     notification.manage_addLocalRoles(userOrGroup.id, [NOTIFICATION_UPDATE_ROLE])
                     log.debug('Added role: %s for user or group: %s' % (NOTIFICATION_UPDATE_ROLE, userOrGroup.id))
 
-                if recipient.get('manage_subscriptions'):
+                if recipient.get('manage'):
                     notification.manage_addLocalRoles(userOrGroup.id, [NOTIFICATION_SUBSCRIPTION_MANAGER_ROLE])
                     log.debug('Added role: %s for user or group: %s' % (NOTIFICATION_SUBSCRIPTION_MANAGER_ROLE, userOrGroup.id))
 

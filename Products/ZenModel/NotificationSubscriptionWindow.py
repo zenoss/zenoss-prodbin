@@ -12,12 +12,17 @@
 ###########################################################################
 
 import logging
+
 log = logging.getLogger("zen.notificationwindows")
 
+import time
 from Products.ZenRelations.RelSchema import *
 from Products.ZenModel.MaintenanceWindow import MaintenanceWindow
 
 class NotificationSubscriptionWindow(MaintenanceWindow):
+
+    notificationSubscription = None
+
     _relations = (
         ("notificationSubscription", 
         ToOne(
@@ -26,6 +31,24 @@ class NotificationSubscriptionWindow(MaintenanceWindow):
             "windows"
         )),
     )
+    
     _properties = tuple(list(MaintenanceWindow._properties) + [
         {'id':'enabled', 'type':'boolean', 'mode':'w'}
-    ])  
+    ])
+
+    def target(self):
+        return self.notificationSubscription()
+
+    def begin(self, now=None):
+        if self.started is not None:
+            log.debug('Notification Subscription Window is trying to begin after'
+                ' it is already started: Start: %s, Duration: %s' % (self.started, self.duration))
+        
+        self.target().enabled = True
+        if not now:
+            now = time.time()
+        self.started = now
+
+    def end(self):
+        self.started = None
+        self.target().enabled = False
