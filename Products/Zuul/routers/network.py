@@ -22,7 +22,9 @@ from Products.Zuul.decorators import require
 from Products.Zuul.interfaces import ITreeNode
 from Products.ZenUtils.jsonutils import unjson
 from Products import Zuul
+from Products.Zuul.decorators import serviceConnectionError
 from Products.Zuul.routers import TreeRouter
+from Products.ZenModel.IpAddress import IpAddress
 
 log = logging.getLogger('zen.NetworkRouter')
 
@@ -154,8 +156,9 @@ class NetworkRouter(TreeRouter):
         Zuul.unmarshal(data, network)
         return DirectResponse.succeed()
 
-    def getIpAddresses(self, uid, start=0, params=None, limit=50, sort='ipAddress',
-                   order='ASC'):
+    @serviceConnectionError
+    def getIpAddresses(self, uid, start=0, params=None, limit=50, sort='ipAddressAsInt',
+                   dir='ASC'):
         """
         Given a subnet, get a list of IP addresses and their relations.
 
@@ -176,12 +179,15 @@ class NetworkRouter(TreeRouter):
         """
         if isinstance(params, basestring):
             params = unjson(params)
-        instances = self.api.getIpAddresses(uid=uid, start=start, params=params,
-                                          limit=limit, sort=sort, dir=order)
-
-        keys = ['name', 'device', 'interface', 'netmask', 'pingstatus',
+        instances, details = self.api.getIpAddresses(uid=uid, start=start, params=params,
+                                          limit=limit, sort=sort, dir=dir)
+        detailKeys = IpAddress.detailKeys
+        keys = ['name', 'netmask', 'pingstatus',
                 'snmpstatus', 'uid']
         data = Zuul.marshal(instances.results, keys)
+        for row in data:
+            for key in detailKeys:
+                row[key] = details[row['uid']][key]
         return DirectResponse.succeed(data=data, totalCount=instances.total,
                                       hash=instances.hash_)
 

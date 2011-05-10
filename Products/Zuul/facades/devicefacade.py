@@ -31,7 +31,7 @@ from Products.ZenModel.Device import Device
 from Products.ZenMessaging.ChangeEvents.events import ObjectAddedToOrganizerEvent, \
     ObjectRemovedFromOrganizerEvent
 from Products.Zuul import getFacade
-from Products.Zuul.tree import DeviceSearchCatalogTool
+from Products.Zuul.tree import PermissionedCatalogTool
 from Products.Zuul.utils import ZuulMessageFactory as _t, UncataloguedObjectException
 from Products.Zuul.catalog.events import IndexingEvent
 from Products.ZenUtils.IpUtil import numbip, checkip, IpAddressError, ensureIp
@@ -94,7 +94,7 @@ class DeviceFacade(TreeFacade):
 
     def getDeviceList(self, uid=None, start=0, limit=50, sort='name', dir='ASC',
                    params=None, hashcheck=None):
-        cat = DeviceSearchCatalogTool(self._getObject(uid))
+        cat = PermissionedCatalogTool(self._getObject(uid), self.context.dmd.Devices.deviceSearch)
         reverse = dir=='DESC'
         qs = []
         query = None

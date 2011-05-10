@@ -295,6 +295,7 @@ var ipAddressColumnConfig = {
             id: 'name',
             dataIndex: 'name',
             header: _t('Address / Netmask'),
+            sortable: true,
             width: 50,
             renderer: function(name, row, record) {
                 return record.data.netmask ? name + '/' + record.data.netmask :
@@ -304,6 +305,7 @@ var ipAddressColumnConfig = {
             id: 'device',
             dataIndex: 'device',
             header: _t('Device'),
+            sortable: true,
             width: 200,
             renderer: function(device, row, record) {
                 if (!device) return _t('No Device');
@@ -313,11 +315,24 @@ var ipAddressColumnConfig = {
             id: 'interface',
             dataIndex: 'interface',
             header: _t('Interface'),
+            sortable: true,
             width: 200,
             renderer: function(iface, row, record){
                 if (!iface) return _t('No Interface');
                 return Zenoss.render.link(iface.uid, null, iface.name);
            }
+        },{
+            id: 'macAddress',
+            dataIndex: 'macAddress',
+            sortable: true,
+            header: _t('MAC Address'),
+            width: 120
+        },{
+            id: 'interfaceDescription',
+            dataIndex: 'interfaceDescription',
+            sortable: true,
+            header: _t('Interface Desc.'),
+            width: 150
         }, {
             id: 'pingstatus',
             dataIndex: 'pingstatus',
@@ -350,6 +365,8 @@ var ipAddressStoreConfig = {
             fields: [
                 {name: 'name'},
                 {name: 'netmask'},
+                {name: 'macAddress'},
+                {name: 'interfaceDescription'},
                 {name: 'device'},
                 {name: 'interface'},
                 {name: 'pingstatus'},

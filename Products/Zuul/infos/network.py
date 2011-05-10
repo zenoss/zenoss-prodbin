@@ -31,7 +31,7 @@ class IpNetworkNode(TreeNode):
 
     @property
     def text(self):
-        numInstances = self._get_cache.count(self.uid)
+        numInstances = self._object.getObject().countIpAddresses()
         text = super(IpNetworkNode, self).text + '/' + str(self._object.getObject().netmask)
         return {
             'text': text,
@@ -165,6 +165,14 @@ class IpAddressInfo(InfoBase, BulkLoadMixin):
     @info
     def interface(self):
         return self._object.interface()
+
+    @property
+    def macAddress(self):
+        return self._object.getInterfaceMacAddress()
+
+    @property
+    def interfaceDescription(self):
+        return self._object.getInterfaceDescription()
 
     @property
     def pingstatus(self):

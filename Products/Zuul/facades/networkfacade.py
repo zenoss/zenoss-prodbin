@@ -12,23 +12,22 @@
 ###########################################################################
 
 import logging
-from itertools import imap
-
 from Acquisition import aq_parent
 from zope.interface import implements
 from Products.Jobber.jobs import ShellCommandJob
 from Products.ZenUtils.Utils import binPath
 from Products.Zuul import getFacade
-from Products.Zuul.utils import unbrain
 from Products.Zuul.facades import TreeFacade
 from Products.Zuul.interfaces import ITreeFacade, INetworkFacade
-from Products.Zuul.interfaces import IInfo, ICatalogTool
+from Products.Zuul.interfaces import IInfo
 from Products.Zuul.tree import SearchResults
+from Products.Zuul.tree import PermissionedCatalogTool
 from zenoss.protocols.protobufs.zep_pb2 import (STATUS_NEW, STATUS_ACKNOWLEDGED, SEVERITY_CRITICAL,
                                                 SEVERITY_ERROR, SEVERITY_WARNING, SEVERITY_INFO,
                                                 SEVERITY_DEBUG)
 from Products.ZenEvents.ZenEventClasses import Status_Ping
 from Products.ZenEvents.ZenEventClasses import Status_Snmp
+from Products.ZenUtils.jsonutils import unjson
 
 log = logging.getLogger('zen.NetworkFacade')
 
@@ -120,17 +119,31 @@ class NetworkFacade(TreeFacade):
 
 
 
-    def getIpAddresses(self, limit=0, start=0, sort='ipAddress', dir='DESC',
+    def getIpAddresses(self, limit=0, start=0, sort='ipAddressAsInt', dir='DESC',
               params=None, uid=None, criteria=()):
 
-        cat = ICatalogTool(self._getObject(uid))
-        reverse = dir=='DESC'
+        catalogSortMap = {
+            'name': 'ipAddressAsInt',
+            'device': 'getDeviceName',
+            'interface': 'getInterfaceName',
+            'macAddress': 'getInterfaceMacAddress',
+            'interfaceDescription': 'getInterfaceDescription'
+            }
+        obj = self._getObject(uid)
+        zcat = getattr(obj, obj.default_catalog)
 
-        brains = cat.search("Products.ZenModel.IpAddress.IpAddress",
-                            start=start, limit=limit,
+        cat = PermissionedCatalogTool(obj, zcat)
+        reverse = dir=='DESC'
+        # try to map the sort to our catalog
+        sort = catalogSortMap.get(sort, sort)
+        brains = cat.search(start=start, limit=limit,
                             orderby=sort, reverse=reverse)
-        objs = imap(unbrain, brains)
-        infos = map(IInfo, objs)
+        infos = []
+        details = {}
+        for brain in brains:
+            details[brain.getPath()] = unjson(brain.details)
+            infos.append(IInfo(brain.getObject()))
+
         devuuids = set(info.device.uuid for info in infos if info.device)
 
         # get ping severities
@@ -148,7 +161,7 @@ class NetworkFacade(TreeFacade):
                                                       eventClass=Status_Snmp)
         self._assignSnmpStatuses(infos, snmpSeverities)
 
-        return SearchResults(infos, brains.total, brains.hash_)
+        return SearchResults(infos, brains.total, brains.hash_), details
 
     def discoverDevices(self, uid):
         """

@@ -34,8 +34,8 @@ from Products.ZenModel.ZenossSecurity import *
 
 from Products.ZenUtils.IpUtil import *
 from Products.ZenRelations.RelSchema import *
-from Products.ZenUtils.Search import makeCaseInsensitiveFieldIndex
-
+from Products.ZenUtils.Search import makeCaseInsensitiveFieldIndex, makeMultiPathIndex, makeCaseSensitiveKeywordIndex\
+    , makeCaseSensitiveFieldIndex
 from IpAddress import IpAddress
 from DeviceOrganizer import DeviceOrganizer
 
@@ -537,6 +537,15 @@ class IpNetwork(DeviceOrganizer):
         cat = zcat._catalog
         cat.addIndex('id', makeCaseInsensitiveFieldIndex('id'))
         zcat.addColumn('getPrimaryId')
+
+        # add new columns
+        fieldIndexes = ['getInterfaceName', 'getDeviceName', 'getInterfaceDescription', 'getInterfaceMacAddress']
+        for indexName in fieldIndexes:
+            zcat._catalog.addIndex(indexName, makeCaseInsensitiveFieldIndex(indexName))
+        zcat._catalog.addIndex('allowedRolesAndUsers', makeCaseSensitiveKeywordIndex('allowedRolesAndUsers'))
+        zcat._catalog.addIndex('ipAddressAsInt',  makeCaseSensitiveFieldIndex('ipAddressAsInt'))
+        zcat._catalog.addIndex('path', makeMultiPathIndex('path'))
+        zcat.addColumn('details')
 
 
     def discoverNetwork(self, REQUEST=None):

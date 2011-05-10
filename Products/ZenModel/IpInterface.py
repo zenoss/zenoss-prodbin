@@ -183,6 +183,9 @@ class IpInterface(OSComponent, Layer2Linkable):
         """
         super(IpInterface, self).index_object(idxs)
         self.index_links()
+        # index our ip addresses if necessary
+        for ip in self.ipaddresses():
+            ip.index_object()
 
     def unindex_object(self):
         """
@@ -190,6 +193,16 @@ class IpInterface(OSComponent, Layer2Linkable):
         """
         self.unindex_links()
         super(IpInterface, self).unindex_object()
+
+    def manage_deleteComponent(self, REQUEST=None):
+        """
+        Reindexes all the ip addresses on this interface
+        after it has been deleted
+        """
+        ips = self.ipaddresses()
+        super(IpInterface, self).manage_deleteComponent(REQUEST)
+        for ip in ips:
+            ip.primaryAq().index_object()
 
     def manage_editProperties(self, REQUEST):
         """

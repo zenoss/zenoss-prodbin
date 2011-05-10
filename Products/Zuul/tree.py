@@ -343,13 +343,15 @@ class CatalogTool(object):
         return allObjects
 
 
-class DeviceSearchCatalogTool(CatalogTool):
+class PermissionedCatalogTool(CatalogTool):
     """
-    A specialized catalog tool used for searching the deviceSearch catalog.
+    A specialized catalog tool used for searching the other
+    catalogs that still have permissions but are not the global
+    catalog
     """
-    def __init__(self, context):
-        super(DeviceSearchCatalogTool, self).__init__(context)
-        self.catalog = context.dmd.Devices.deviceSearch
+    def __init__(self, context, catalog):
+        super(PermissionedCatalogTool, self).__init__(context)
+        self.catalog = catalog
 
     def _queryCatalog(self, types=(), orderby=None, reverse=False, paths=(),
                      depth=None, query=None):

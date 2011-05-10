@@ -29,13 +29,18 @@ from AccessControl import ClassSecurityInfo
 from Globals import DTMLFile
 from Globals import InitializeClass
 import zope.interface
-
+from Products import Zuul
+from Products.Zuul.interfaces import IInfo
+from Products.ZenUtils.jsonutils import json
+from Products.Zuul.utils import allowedRolesAndUsers
 from Products.ZenModel.interfaces import IIndexed
 from Products.ZenModel.Linkable import Layer3Linkable
 from Products.ZenRelations.RelSchema import ToOne, ToMany, ToManyCont
 from Products.ZenUtils.IpUtil import maskToBits, checkip, ipToDecimal, netFromIpAndNet, \
                                      ipwrap, ipunwrap, ipunwrap_strip
 from Products.ZenModel.Exceptions import WrongSubnetError
+from Products.ZenUtils.IpUtil import numbip
+
 
 def manage_addIpAddress(context, id, netmask=24, REQUEST = None):
     """make an IpAddress"""
@@ -58,6 +63,7 @@ class IpAddress(ManagedEntity, Layer3Linkable):
     default_catalog = 'ipSearch'
 
     version = 4
+    detailKeys =   ('device', 'interface', 'macAddress', 'interfaceDescription')
 
     _properties = (
         {'id':'netmask', 'type':'string', 'mode':'w', 'setter':'setNetmask'},
@@ -180,11 +186,31 @@ class IpAddress(ManagedEntity, Layer3Linkable):
             return self.interface().name()
         return "No Interface"
 
+    security.declareProtected('View', 'getDeviceName')
+    def getDeviceName(self):
+        if self.interface():
+            return self.device().titleOrId()
+        return "No Device"
+
     security.declareProtected('View', 'getNetworkName')
     def getNetworkName(self):
         if self.network():
             return self.network().getNetworkName()
         return "No Network"
+
+    def getInterfaceDescription(self):
+        """
+        Used for indexing
+        """
+        if self.interface():
+            return self.interface().description
+
+    def getInterfaceMacAddress(self):
+        """
+        Used for indexing
+        """
+        if self.interface():
+            return self.interface().macaddress
 
     security.declareProtected('View', 'getNetworkUrl')
     def getNetworkUrl(self):
@@ -250,5 +276,26 @@ class IpAddress(ManagedEntity, Layer3Linkable):
         if n: return n.getPrimaryId()
         else: return None
 
+    def allowedRolesAndUsers(self):
+        """
+        Returns all the users and groups that
+        have permission for this ip address.
+        Used for indexing.
+        """
+        return allowedRolesAndUsers(self)
+
+    def details(self):
+        dinfo = IInfo(self)
+        fields = self.detailKeys
+        details = dict()
+        for field in fields:
+            details[field] = Zuul.marshal(getattr(dinfo, field), ('name','uid'))
+        return json(details)
+
+    def ipAddressAsInt(self):
+        ip = self.getIpAddress()
+        if ip:
+            ip = ip.partition('/')[0]
+        return str(numbip(ip))
 
 InitializeClass(IpAddress)
