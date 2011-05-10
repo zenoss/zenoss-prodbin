@@ -240,10 +240,28 @@ class TopologyUpdater(object):
     def deleted(self, configurationId):
         """
         Called when a configuration is deleted from the collector
+        If the device was down and we don't remove from topology,
+        we will send out a bogus 'device down' event.
         """
-        # Note: having the node in the topology doesn't bother us,
-        #       so don't worry about it
-        pass
+        daemon = zope.component.getUtility(ICollector)
+        if daemon.network.topology is None:
+            return
+
+        tasks = daemon._scheduler.getTasksForConfig(configurationId)
+        for task in tasks:
+            ipAddress = task._manageIp
+            if ipAddress in daemon.network.topology:
+                daemon.network.topology.removeDevice(ipAddress)
+
+            elif ipAddress in daemon.ipv6network.topology:
+                daemon.ipv6network.topology.removeDevice(ipAddress)
+ 
+            else:
+                log.debug("%s IP address %s not in topology",
+                          configurationId, ipAddress)
+        else:
+            log.debug("No tasks found to delete for device '%s'",
+                          configurationId)
 
     def added(self, configuration):
         """
@@ -251,17 +269,8 @@ class TopologyUpdater(object):
         This links the schedulable tasks to the topology so that we can
         check on the status of the network devices.
         """
-        daemon = zope.component.getUtility(ICollector)
-        if daemon.network.topology is None:
-            return
-
-        ipAddress = configuration.manageIp
-        if ipAddress not in daemon.network.topology:
-            daemon.network.notModeled.add(ipAddress)
-            log.debug("zenhub asked us to add new device: %s (%s)",
-                      configuration.id, ipAddress)
-            daemon.network.topology.add_node(ipAddress)
-        #daemon.network.topology.node[ipAddress]['task'] = configuration
+        log.debug("zenhub asked us to add device: %s (%s)",
+                      configuration.id, configuration.manageIp)
 
     def updated(self, newConfiguration):
         """
