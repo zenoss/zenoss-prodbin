@@ -107,6 +107,7 @@ class PingCollectionTask(BaseTask):
         self._maxbackoffseconds = self._preferences.options.maxbackoffminutes * 60
 
         self.startTime = None
+        self._lastStatus = ''
 
         # Split up so that every interface's IP gets its own ping job
         self.config = self._device.monitoredIps[0]
@@ -238,6 +239,7 @@ class PingCollectionTask(BaseTask):
         resultMsg = "%s RTT = %s sec (%s)" % (
                         ip, self.pingjob.rtt, success)
 
+        self._lastStatus = resultMsg
         return resultMsg
 
     def sendPingClearEvent(self, pj):
@@ -262,8 +264,8 @@ class PingCollectionTask(BaseTask):
         Called by the collector framework scheduler, and allows us to
         see how each task is doing.
         """
-        display = self.name
+        display = '\t'.join([self.name, self._lastStatus])
         if self._lastErrorMsg:
-            display += "%s\n" % self._lastErrorMsg
+            display += "\n%s\n" % self._lastErrorMsg
         return display
 
