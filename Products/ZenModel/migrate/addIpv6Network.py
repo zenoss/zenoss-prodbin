@@ -27,5 +27,7 @@ class addIpv6Network(Migrate.Step):
         if not hasattr(dmd, 'IPv6Networks'):
             manage_addIpNetwork(dmd, "IPv6Networks", netmask=64, version=6)
 
-addIpv6Network()
+# Add a variable so that other scripts can depend on
+# this script
+addIpv6NetworkInstance = addIpv6Network()
 

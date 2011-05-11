@@ -15,23 +15,28 @@ This migration script adds indexes for fields displayed in the
 device list.
 '''
 
-__version__ = "$Revision$"[11:-2]
+import time
+import logging
 
 from Products.ZCatalog.Catalog import CatalogError
 from Products.ZenUtils.Search import makeCaseInsensitiveFieldIndex, makeCaseSensitiveKeywordIndex\
     ,makeCaseSensitiveFieldIndex, makeMultiPathIndex
 
 import Migrate
-import time
-import logging
 fieldIndexes = ['getInterfaceName', 'getDeviceName',
                 'getInterfaceDescription', 'getInterfaceMacAddress', ]
 
 log = logging.getLogger("zen.migrate")
 
+
 class IpSearchCatalogUpdate(Migrate.Step):
 
     version = Migrate.Version(3, 1, 70)
+
+    def __init__(self):
+        Migrate.Step.__init__(self)
+        import addIpv6Network
+        self.dependencies = [addIpv6Network.addIpv6NetworkInstance]
 
     def updateNetworkCatalog(self, zcat):
         idxs = []
@@ -89,8 +94,9 @@ class IpSearchCatalogUpdate(Migrate.Step):
         zcat = networks.ipSearch
         self.updateNetworkCatalog(zcat)
 
-        log.info('Updating Ipv6 Catalog')
-        zcat = dmd.IPv6Networks.ipSearch
-        self.updateNetworkCatalog(zcat)
+        if hasattr(dmd, 'IPv6Networks'):
+            log.info('Updating Ipv6 Catalog')
+            zcat = dmd.IPv6Networks.ipSearch
+            self.updateNetworkCatalog(zcat)
 
 IpSearchCatalogUpdate()
