@@ -71,7 +71,8 @@ class FormBuilder(object):
                 for k,v in filter(_filter, f.iteritems()):
                     c = self._dict(v)
                     c['name'] = k
-                    c['value'] = getattr(self.context, k, None)
+                    value =  getattr(self.context, k, None)
+                    c['value'] = value() if callable(value) else value
 
                     if c['xtype'] in ('autoformcombo', 'itemselector'):
                         c['values'] = self.vocabulary(v)
@@ -92,7 +93,7 @@ class FormBuilder(object):
             fields = sorted(self.fields(fieldFilter).values(), key=ordergetter)
             form = map(self._item, fields)
             return {'items':[{'xtype':'fieldset', 'items':form}]}
-        # group the fields 
+        # group the fields
         groups = self.groups(fieldFilter)
         form = {
             'items': [self._fieldset(k, v) for k,v in groups.iteritems()]
