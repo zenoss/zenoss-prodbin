@@ -406,6 +406,7 @@ ZC.ComponentGridPanel = Ext.extend(Ext.ux.grid.livegrid.GridPanel, {
             autoExpandColumn: 'name',
             stripeRows: true,
             store: new ZC.BaseComponentStore({
+                sortInfo: config.sortInfo,
                 fields:config.fields,
                 directFn:config.directFn || Zenoss.remote.DeviceRouter.getComponents
             }),
