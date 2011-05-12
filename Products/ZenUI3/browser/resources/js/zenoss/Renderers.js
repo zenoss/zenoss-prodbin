@@ -399,6 +399,18 @@ Ext.apply(Zenoss.render, {
             name = parts[parts.length-1];
         }
         return Zenoss.render.link(null, url, name);
+    },
+    eventSummaryRow:function (data, metadata, record, rowIndex, columnIndex, store){
+        var msg = record.data.message;
+        if (!msg || msg == "None" ) {
+            msg = record.data.summary;
+        }else {
+            // wrap long messages around new lines
+            msg = "<pre>" + msg + "</pre>";
+        }
+
+        metadata.attr = 'ext:qtitle="'+ _t('Message')  + '"' + ' ext:qtip="' + msg + '" ext:qwidth="auto"';
+        return data;
     }
 
 
