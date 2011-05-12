@@ -120,8 +120,8 @@ class ModelChangePublisher(object):
         self._msgs.append((createEvent, (ob, org)))
 
     def moveObject(self, ob, fromOb, toOb):
+        event = self._createModelEventProtobuf(ob, 'MOVED')
         def createEvent(ob, fromObj, toObj):
-            event = self._createModelEventProtobuf(ob, 'MOVED')
             event.moved.origin = self._getGUID(fromObj)
             event.moved.destination = self._getGUID(toObj)
         self._msgs.append((createEvent, (ob, fromOb, toOb)))
