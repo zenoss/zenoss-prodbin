@@ -17,9 +17,12 @@ Gets SNMP process data from a device's HOST-RESOURCES-MIB
 and store process performance in RRD files.
 """
 
-import Globals
 import logging
 import sys
+import re
+from pprint import pformat
+
+import Globals
 
 import zope.component
 import zope.interface
@@ -111,6 +114,10 @@ class ZenProcessPreferences(object):
                             default=False,
                             help="Show the raw SNMP processes data returned " \
                                 "from the device. For debugging purposes only.")
+        parser.add_option('--captureFilePrefix', dest='captureFilePrefix',
+                            default='',
+                            help="Directory and filename to use as a template"
+                                 " to store SNMP results from device.")
 
     def postStartup(self):
         pass
@@ -188,10 +195,15 @@ class ProcessStats:
         """
         if self._config.name is None:
             return False
+
+        # SNMP agents return a 'flexible' number of characters,
+        # so exact matching isn't always reliable.
         if self._config.ignoreParameters or not args:
-            return self._config.originalName == name
-        return self._config.originalName == '%s %s' % (name, args)
-    
+            processName = name
+        else:
+            processName = '%s %s' % (name, args)
+        return re.search(self._config.regex, processName) is not None
+
     def updateCpu(self, pid, value):
         """
         """
@@ -305,6 +317,7 @@ class ZenProcessTask(ObservableMixin):
     STATE_SCANNING_PROCS = 'SCANNING_PROCESSES'
     STATE_FETCH_PERF = 'FETCH_PERF_DATA'
     STATE_STORE_PERF = 'STORE_PERF_DATA'
+    STATE_PARSING_TABLE_DATA = 'PARSING_TABLE_DATA'
     
     statusEvent = { 'eventClass' : Status_OSProcess,
                     'eventGroup' : 'Process' }
@@ -341,7 +354,28 @@ class ZenProcessTask(ObservableMixin):
         else:
             self._deviceStats = DeviceStats(self._device)
             ZenProcessTask.DEVICE_STATS[self._devId] = self._deviceStats
-        
+
+    def doTask(self):
+        """
+        Contact to one device and return a deferred which gathers data from
+        the device.
+
+        @return: job to scan a device
+        @rtype: Twisted deferred object
+        """
+        # see if we need to connect first before doing any collection
+        d = defer.maybeDeferred(self._connect)
+        d.addCallbacks(self._connectCallback, self._failure)
+        d.addCallback(self._collectCallback)
+
+        # Add the _finished callback to be called in both success and error
+        # scenarios.
+        d.addBoth(self._finished)
+
+        # returning a Deferred will keep the framework from assuming the task
+        # is done until the Deferred actually completes
+        return d
+
     def _failure(self, reason):
         """
         Twisted errBack to log the exception for a single device.
@@ -366,7 +400,6 @@ class ZenProcessTask(ObservableMixin):
                                      severity=Event.Error)
         return reason
         
-        
     def _connectCallback(self, result):
         """
         Callback called after a successful connect to the remote device.
@@ -379,13 +412,16 @@ class ZenProcessTask(ObservableMixin):
         Callback called after a connect or previous collection so that another
         collection can take place.
         """
-        log.debug("scanning for processes from %s [%s]", 
+        log.debug("Scanning for processes from %s [%s]",
                   self._devId, self._manageIp)
         
         self.state = ZenProcessTask.STATE_SCANNING_PROCS
         tables = [NAMETABLE, PATHTABLE, ARGSTABLE]
         d = self._getTables(tables)
-        d.addCallbacks(self._storeProcessNames, self._failure)
+        d.addCallback(self._parseProcessNames)
+        d.addCallback(self._determineProcessStatus)
+        d.addCallback(self._sendProcessEvents)
+        d.addErrback(self._failure)
         d.addCallback(self._fetchPerf)
         return d
     
@@ -412,43 +448,73 @@ class ZenProcessTask(ObservableMixin):
     def cleanup(self):
         return self._close()
 
-    def doTask(self):
+    def capturePacket(self, hostname, data):
         """
-        Contact to one device and return a deferred which gathers data from
-        the device.
-
-        @return: job to scan a device
-        @rtype: Twisted deferred object
+        Store SNMP results into files for unit-testing.
         """
+        # Prep for using capture replay module later
+        if not hasattr(self, 'captureSerialNum'):
+            self.captureSerialNum = 0
 
-        # see if we need to connect first before doing any collection
-        d = defer.maybeDeferred(self._connect)
-        d.addCallbacks(self._connectCallback, self._failure)
-        d.addCallback(self._collectCallback)
+        log.debug("Capturing packet from %s", hostname)
+        name = "%s-%s-%d" % (self._preferences.options.captureFilePrefix,
+                             hostname, self.captureSerialNum)
+        try:
+            capFile = open(name, "w")
+            capFile.write(pformat(data))
+            capFile.close()
+            self.captureSerialNum += 1
+        except Exception, ex:
+            log.warn("Couldn't write capture data to '%s' because %s",
+                          name, str(ex) )
 
-        # Add the _finished callback to be called in both success and error
-        # scenarios.
-        d.addBoth(self._finished)
+    def sendRestartEvents(self, afterByConfig, beforeByConfig, restarted):
+        for procStats, pConfig in restarted.iteritems():
+            droppedPids = []
+            for pid in beforeByConfig[procStats]:
+                if pid not in afterByConfig[procStats]:
+                    droppedPids.append(pid)
+            summary = 'Process restarted: %s' % pConfig.originalName
+            message = '%s\n Using regex \'%s\' Discarded dead pid(s) %s Using new pid(s) %s'\
+            % (summary, pConfig.regex, droppedPids, afterByConfig[procStats])
+            self._eventService.sendEvent(self.statusEvent,
+                                         device=self._devId,
+                                         summary=summary,
+                                         message=message,
+                                         component=pConfig.originalName,
+                                         eventKey=pConfig.processClass,
+                                         severity=pConfig.severity)
+            log.info("(%s) %s" % (self._devId, message))
 
-        # returning a Deferred will keep the framework from assuming the task
-        # is done until the Deferred actually completes
-        return d
+    def sendFoundProcsEvents(self, afterByConfig, restarted):
+        # report alive processes
+        for processStat in afterByConfig.keys():
+            if processStat in restarted: continue
+            summary = "Process up: %s" % processStat._config.originalName
+            message = '%s\n Using regex \'%s\' with pid\'s %s '\
+            % (summary, processStat._config.regex, afterByConfig[processStat])
+            self._eventService.sendEvent(self.statusEvent,
+                                         device=self._devId,
+                                         summary=summary,
+                                         message=message,
+                                         component=processStat._config.originalName,
+                                         eventKey=processStat._config.processClass,
+                                         severity=Event.Clear)
+            log.debug("(%s) %s" % (self._devId, message))
 
-    def _storeProcessNames(self, results):
+    def _parseProcessNames(self, results):
         """
         Parse the process tables and reconstruct the list of processes
         that are on the device.
 
         @parameter results: results of SNMP table gets
         @type results: dictionary of dictionaries
-        @parameter device: proxy connection object
-        @type device: Device object
         """
-        
+        self.state = ZenProcessTask.STATE_PARSING_TABLE_DATA
         if not results or not results[NAMETABLE]:
             summary = 'Device %s does not publish HOST-RESOURCES-MIB' % \
                         self._devId
-            resolution="Verify with snmpwalk -v1 -c community %s %s" % \
+            resolution="Verify with snmpwalk %s %s" % \
                         (self._devId, NAMETABLE )
             
             self._eventService.sendEvent(self.statusEvent,
@@ -458,6 +524,9 @@ class ZenProcessTask(ObservableMixin):
                                          severity=Event.Error)
             log.info(summary)
             return defer.fail(summary)
+
+        if self._preferences.options.captureFilePrefix:
+            self.capturePacket(self._devId, results)
         
         summary = 'Process table up for device %s' % self._devId
         self._clearSnmpError(summary)
@@ -465,71 +534,9 @@ class ZenProcessTask(ObservableMixin):
         args, procs = mapResultsToDicts(showrawtables, results)
         if self._preferences.options.showprocs:
             self._showProcessList( procs )
+        return procs
 
-        # look for changes in processes
-        beforePids = set(self._deviceStats.pids)
-        beforeByConfig = reverseDict(self._deviceStats._pidToProcess)
-        afterPidToProcessStats = {}
-        for pStats in self._deviceStats.processStats:
-            for pid, (name, args) in procs:
-                if pStats.match(name, args):
-                    log.debug("Found process %d on %s" % (pid, 
-                                                          pStats._config.name))
-                    afterPidToProcessStats[pid] = pStats
-        afterPids = set(afterPidToProcessStats.keys())
-        afterByConfig = reverseDict(afterPidToProcessStats)
-        newPids =  afterPids - beforePids
-        deadPids = beforePids - afterPids
-        # report pid restarts
-        restarted = {}
-        for pid in deadPids:
-            procStats = self._deviceStats._pidToProcess[pid]
-            procStats.discardPid(pid)
-            if procStats in afterByConfig:
-                ZenProcessTask.RESTARTED += 1
-                pConfig = procStats._config
-                if pConfig.restart:
-                    restarted[procStats] = pConfig
-       
-        for procStats, pConfig in restarted.iteritems():
-            droppedPids=[]
-            for pid in beforeByConfig[procStats]:
-                if pid not in afterByConfig[procStats]:
-                    droppedPids.append(pid)
-            summary = 'Process restarted: %s' % pConfig.originalName
-            message = '%s\n Using regex \'%s\' Discarded dead pid(s) %s Using new pid(s) %s' \
-                    % (summary,pConfig.regex,droppedPids,afterByConfig[procStats])
-            self._eventService.sendEvent(self.statusEvent,
-                                         device=self._devId,
-                                         summary=summary,
-                                         message=message,
-                                         component=pConfig.originalName,
-                                         eventKey=pConfig.processClass,
-                                         severity=pConfig.severity)
-            log.info("(%s) %s" % (self._devId,message))
-
-        # report alive processes
-        for processStat in afterByConfig.keys():
-            if processStat in restarted: continue
-            summary = "Process up: %s" % processStat._config.originalName
-            message = '%s\n Using regex \'%s\' with pid\'s %s ' \
-                    % (summary,processStat._config.regex, afterByConfig[processStat])
-            self._eventService.sendEvent(self.statusEvent,
-                                         device=self._devId,
-                                         summary=summary,
-                                         message=message,
-                                         component=processStat._config.originalName,
-                                         eventKey=processStat._config.processClass,
-                                         severity=Event.Clear)
-            log.debug("(%s) %s" % (self._devId,message))
-            
-        for pid in newPids:
-            log.debug("Found new %s pid %d on %s" % (
-                afterPidToProcessStats[pid]._config.originalName, pid, 
-                self._devId))
-        
-        self._deviceStats._pidToProcess = afterPidToProcessStats
-
+    def sendMissingProcsEvents(self, afterByConfig):
         # Look for missing processes
         for procStat in self._deviceStats.processStats:
             if procStat not in afterByConfig:
@@ -547,20 +554,74 @@ class ZenProcessTask(ObservableMixin):
                                              severity=procConfig.severity)
                 log.warning("(%s) %s" % (self._devId,message))
 
-        # Store per-device, per-process statistics
+    def _sendProcessEvents(self, results):
+        (afterByConfig, afterPidToProcessStats,
+                           beforeByConfig, newPids, restarted) = results
+        self.sendRestartEvents(afterByConfig, beforeByConfig, restarted)
+        self.sendFoundProcsEvents(afterByConfig, restarted)
+        for pid in newPids:
+            log.debug("Found new %s pid %d on %s" % (
+            afterPidToProcessStats[pid]._config.originalName, pid,
+            self._devId))
+        self._deviceStats._pidToProcess = afterPidToProcessStats
+        self.sendMissingProcsEvents(afterByConfig)
+        # Store the total number of each process into an RRD
         pidCounts = dict([(p, 0) for p in self._deviceStats.processStats])
         for procStat in self._deviceStats.monitoredProcs:
             pidCounts[procStat] += 1
         for procName, count in pidCounts.items():
             self._save(procName, 'count_count', count, 'GAUGE')
-        return results
+        return "Sent events"
+
+    def _determineProcessStatus(self, procs):
+        """
+        Determine the up/down/restarted status of processes.
+
+        @parameter procs: array of pid, (name, args) info
+        @type procs: list
+        """
+        # look for changes in processes
+        beforePids = set(self._deviceStats.pids)
+        beforeByConfig = reverseDict(self._deviceStats._pidToProcess)
+        afterPidToProcessStats = {}
+        for pid, (name, args) in procs:
+            pStats = self._deviceStats._pidToProcess.get(pid)
+            if pStats and pStats.match(name, args):
+                afterPidToProcessStats[pid] = pStats
+                continue
+
+            # Search for the first match in our list of regexes
+            for pStats in self._deviceStats.processStats:
+                if pStats.match(name, args):
+                    log.debug("Found process %d on %s",
+                              pid, pStats._config.name)
+                    afterPidToProcessStats[pid] = pStats
+                    break
+
+        afterPids = set(afterPidToProcessStats.keys())
+        afterByConfig = reverseDict(afterPidToProcessStats)
+        newPids =  afterPids - beforePids
+        deadPids = beforePids - afterPids
+
+        restarted = {}
+        for pid in deadPids:
+            procStats = self._deviceStats._pidToProcess[pid]
+            procStats.discardPid(pid)
+            if procStats in afterByConfig:
+                ZenProcessTask.RESTARTED += 1
+                pConfig = procStats._config
+                if pConfig.restart:
+                    restarted[procStats] = pConfig
+
+        return (afterByConfig, afterPidToProcessStats,
+                beforeByConfig, newPids, restarted)
 
     def _fetchPerf(self, results):
         """
         Get performance data for all the monitored processes on a device
 
-        @parameter device: proxy object to the remote computer
-        @type device: Device object
+        @parameter results: results of SNMP table gets
+        @type results: list of (success, result) tuples
         """
         self.state = ZenProcessTask.STATE_FETCH_PERF
 
@@ -614,6 +675,7 @@ class ZenProcessTask(ObservableMixin):
     def _getTables(self, oids):
         """
         Perform SNMP getTable for specified OIDs
+
         @parameter oids: OIDs to gather
         @type oids: list of strings
         @return: Twisted deferred
@@ -676,8 +738,6 @@ class ZenProcessTask(ObservableMixin):
         """
         Send an event to clear other events.
 
-        @parameter name: device for which the event applies
-        @type name: string
         @parameter message: clear text
         @type message: string
         """
@@ -733,11 +793,14 @@ class ZenProcessTask(ObservableMixin):
                 traceback=trace_info,
                 summary=summary))
 
+
 def mapResultsToDicts(showrawtables, results):
     """
     Parse the process tables and reconstruct the list of processes
     that are on the device.
 
+    @parameter showrawtables: log the raw table info?
+    @type showrawtables: boolean
     @parameter results: results of SNMP table gets ie (OID + pid, value)
     @type results: dictionary of dictionaries
     @return: maps relating names and pids to each other
