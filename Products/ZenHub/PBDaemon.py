@@ -322,11 +322,11 @@ class PBDaemon(ZenDaemon, pb.Referenceable):
         event.update(kw)
         if not self.options.allowduplicateclears:
             statusKey = ( event['device'],
-                          event.get('component', None),
-                          event.get('eventKey', None),
-                          event.get('eventClass', None) )
-            severity = event.get('severity', None)
-            status = self._eventStatus.get(statusKey, None)
+                          event.get('component', ''),
+                          event.get('eventKey', ''),
+                          event.get('eventClass', '') )
+            severity = event.get('severity', -1)
+            status = self._eventStatus.get(statusKey, -1)
             self._eventStatus[statusKey] = severity
             if severity == Clear and status == Clear:
                 self.log.debug("Dropping useless clear event %r", event)
