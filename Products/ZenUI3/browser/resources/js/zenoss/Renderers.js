@@ -258,7 +258,7 @@ Ext.apply(Zenoss.render, {
             name = parts[parts.length-1];
         }
         return Zenoss.render.link(null, uid, name);
-    }, 
+    },
 
     linkFromGrid: function(name, col, record) {
         var item;
@@ -404,12 +404,10 @@ Ext.apply(Zenoss.render, {
         var msg = record.data.message;
         if (!msg || msg == "None" ) {
             msg = record.data.summary;
-        }else {
-            // wrap long messages around new lines
-            msg = "<pre>" + msg + "</pre>";
         }
 
-        metadata.attr = 'ext:qtitle="'+ _t('Message')  + '"' + ' ext:qtip="' + msg + '" ext:qwidth="auto"';
+        msg = "<pre style='white-space:normal;'>" + msg + "</pre>";
+        metadata.attr = 'ext:qtitle="'+ _t('Message')  + '"' + ' ext:qtip="' + msg + '" ext:qwidth="500"';
         return data;
     }
 
