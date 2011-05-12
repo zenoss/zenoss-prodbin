@@ -285,7 +285,7 @@ Zenoss.HierarchyTreePanel = Ext.extend(Ext.tree.TreePanel, {
     },
     setStateListener: function(){
             this.root.on({
-                load:{single:true, scope:this, fn:function() {
+                load:{ scope:this, fn:function() {
                     for(var p in this.stateHash) {
                         if(this.stateHash.hasOwnProperty(p)) {
                             this.expandPath(this.stateHash[p]);

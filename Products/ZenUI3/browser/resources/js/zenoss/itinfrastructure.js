@@ -711,6 +711,8 @@ var devtree = {
     searchField: true,
     directFn: REMOTE.getTree,
     allowOrganizerMove: false,
+    stateful: true,
+    stateId: 'device_tree',
     ddAppendOnly: true,
     root: {
         id: 'Devices',
@@ -737,6 +739,8 @@ var grouptree = {
     id: 'groups',
     searchField: false,
     directFn: REMOTE.getTree,
+    stateful: true,
+    stateId: 'group_tree',
     ddAppendOnly: true,
     selectByToken: detailSelectByToken,
     root: {
@@ -754,6 +758,8 @@ var systree = {
     xtype: 'HierarchyTreePanel',
     loadMask: false,
     id: 'systems',
+    stateful: true,
+    stateId: 'systems_tree',
     searchField: false,
     directFn: REMOTE.getTree,
     ddAppendOnly: true,
@@ -772,6 +778,8 @@ var systree = {
 var loctree = {
     xtype: 'HierarchyTreePanel',
     loadMask: false,
+    stateful: true,
+    stateId: 'loc_tree',
     id: 'locs',
     searchField: false,
     directFn: REMOTE.getTree,
@@ -980,16 +988,7 @@ var device_grid = new Zenoss.DeviceGridPanel({
                 }
             },
             Zenoss.devices.deleteDevices,
-            {
-                id: 'refreshdevice-button',
-                iconCls: 'refresh',
-                tooltip: _t('Refresh Device List'),
-                handler: function(btn) {
-                    var grid = Ext.getCmp('device_grid'),
-                        view = grid.getView();
-                    view.updateLiveRows(view.rowIndex, true, true);
-                }
-            }, {
+             {
                 text: _t('Select'),
                 menu:[
                     {
@@ -1007,8 +1006,34 @@ var device_grid = new Zenoss.DeviceGridPanel({
                         }
                     }
                 ]
+            },'->',{
+                id: 'refreshdevice-button',
+                xtype: 'refreshmenu',
+                ref: 'refreshmenu',
+                stateId: 'devicerefresh',
+                iconCls: 'refresh',
+                text: _t('Refresh'),
+                tooltip: _t('Refresh Device List'),
+                handler: function(btn) {
+                    var treeIds = ['devices', 'locs', 'systems', 'groups'];
+
+                    Ext.each(treeIds, function(treeId) {
+                        // update the trees
+                        var tree = Ext.getCmp(treeId),
+                            node = tree.getSelectionModel().getSelectedNode(),
+                            path;
+                        if (node && node.getOwnerTree() && node.getOwnerTree().id == treeId) {
+                            path = node.getPath();
+                            tree.getRootNode().reload(function() {
+                                tree.selectPath(path);
+                            });
+                        }else{
+                            tree.getRootNode().reload();
+                        }
+                    });
+
+                }
             },
-            '->',
             {
                 id: 'actions-menu',
                 xtype: 'deviceactionmenu',
