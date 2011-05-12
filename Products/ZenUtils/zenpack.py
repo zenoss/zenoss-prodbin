@@ -445,7 +445,7 @@ class ZenPackCmd(ZenScriptBase):
                                default=None,
                                help="Previous version of the zenpack;"
                                     ' used during upgrades')
-
+        self.parser.prog = "zenpack"
         ZenScriptBase.buildOptions(self)
 
 if __name__ == '__main__':
