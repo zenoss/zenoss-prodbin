@@ -36,7 +36,7 @@ import logging
 log = logging.getLogger("zen.eventd")
 
 class ProcessingException(Exception):
-    def __init__(self, message, event):
+    def __init__(self, message, event=None):
         super(ProcessingException, self).__init__(message)
         self.event = event
 
@@ -68,6 +68,9 @@ class Manager(object):
 
     def __init__(self, dmd):
         self.dmd = dmd
+        self._initCatalogs()
+
+    def _initCatalogs(self):
         self._guidManager = IGUIDManager(self.dmd)
 
         self._devices = self.dmd._getOb('Devices')
@@ -77,6 +80,9 @@ class Manager(object):
         self._catalogs = {
             DEVICE: self._devices,
         }
+
+    def reset(self):
+        self._initCatalogs()
 
     def getEventClassOrganizer(self, eventClassName):
         try:
@@ -648,8 +654,8 @@ class TransformPipe(EventProcessorPipe):
         return eventContext
 
 class EventPluginPipe(EventProcessorPipe):
-    def __init__(self, manager, pluginInterface):
-        super(EventPluginPipe, self).__init__(manager)
+    def __init__(self, manager, pluginInterface, name=''):
+        super(EventPluginPipe, self).__init__(manager, name)
 
         self._eventPlugins = tuple(getUtilitiesFor(pluginInterface))
 
@@ -669,3 +675,11 @@ class ClearClassRefreshPipe(EventProcessorPipe):
     def __call__(self, eventContext):
         eventContext.refreshClearClasses()
         return eventContext
+
+class TestPipeExceptionPipe(EventProcessorPipe):
+    # pipe used for testing exception handling in event processor
+    def __init__(self, exceptionClass=ProcessingException):
+        self.exceptionClass = exceptionClass
+
+    def __call__(self, eventContext):
+        raise self.exceptionClass('Testing pipe processing failure')

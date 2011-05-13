@@ -30,9 +30,10 @@ from Products.ZenCollector.utils.maintenance import MaintenanceCycle, maintenanc
 from Products.ZenMessaging.queuemessaging.interfaces import IQueueConsumerTask
 from Products.ZenUtils.ZCmdBase import ZCmdBase
 from Products.ZenUtils.ZenDaemon import ZenDaemon
+from Products.ZenUtils.guid import guid
 from zenoss.protocols import queueschema
 from zenoss.protocols.eventlet.amqp import getProtobufPubSub
-from zenoss.protocols.protobufs.zep_pb2 import ZepRawEvent
+from zenoss.protocols.protobufs.zep_pb2 import ZepRawEvent, RawEvent
 from zenoss.protocols.protobufs.zep_pb2 import (
     STATUS_NEW,
     STATUS_ACKNOWLEDGED,
@@ -42,7 +43,7 @@ from zenoss.protocols.protobufs.zep_pb2 import (
     STATUS_DROPPED,
     STATUS_AGED)
 from zenoss.protocols.eventlet.amqp import Publishable
-from zenoss.protocols.jsonformat import to_dict
+from zenoss.protocols.jsonformat import to_dict, from_dict
 from Products.ZenMessaging.queuemessaging.eventlet import BasePubSubMessageTask
 from Products.ZenEvents.events2.processing import *
 from Products.ZenCollector.utils.workers import ProcessWorkers, workersBuildOptions
@@ -82,7 +83,7 @@ class ProcessEventMessageTask(BasePubSubMessageTask):
         self._dest_exchange = queueschema.getExchange("$ZepZenEvents")
         self._manager = Manager(self.dmd)
         self._pipes = (
-            EventPluginPipe(self._manager, IPreEventPlugin),
+            EventPluginPipe(self._manager, IPreEventPlugin, 'PreEventPluginPipe'),
             CheckInputPipe(self._manager),
             IdentifierPipe(self._manager),
             AddDeviceContextAndTagsPipe(self._manager),
@@ -94,7 +95,7 @@ class ProcessEventMessageTask(BasePubSubMessageTask):
                 ]),
             FingerprintPipe(self._manager),
             SerializeContextPipe(self._manager),
-            EventPluginPipe(self._manager, IPostEventPlugin),
+            EventPluginPipe(self._manager, IPostEventPlugin, 'PostEventPluginPipe'),
             ClearClassRefreshPipe(self._manager),
         )
 
@@ -125,20 +126,47 @@ class ProcessEventMessageTask(BasePubSubMessageTask):
         if doSync:
             self.dmd._p_jar.sync()
 
-        # extract event from message body
-        zepevent = ZepRawEvent()
-        zepevent.raw_event.CopyFrom(message)
-        if log.isEnabledFor(logging.DEBUG):
-            log.debug("Received event: %s", to_dict(zepevent.raw_event))
-
-        eventContext = EventContext(log, zepevent)
-
-        for pipe in self._pipes:
-            eventContext = pipe(eventContext)
+        try:
+            # extract event from message body
+            zepevent = ZepRawEvent()
+            zepevent.raw_event.CopyFrom(message)
             if log.isEnabledFor(logging.DEBUG):
-                log.debug('After pipe %s, event context is %s' % ( pipe, eventContext ))
-            if eventContext.zepRawEvent.status == STATUS_DROPPED:
-                raise DropEvent('Dropped by %s' % pipe, eventContext.event)
+                log.debug("Received event: %s", to_dict(zepevent.raw_event))
+    
+            eventContext = EventContext(log, zepevent)
+
+            for pipe in self._pipes:
+                eventContext = pipe(eventContext)
+                if log.isEnabledFor(logging.DEBUG):
+                    log.debug('After pipe %s, event context is %s' % ( pipe, eventContext ))
+                if eventContext.zepRawEvent.status == STATUS_DROPPED:
+                    raise DropEvent('Dropped by %s' % pipe, eventContext.event)
+        except DropEvent:
+            # we want these to propagate out
+            raise
+        except Exception as e:
+            log.info("Failed to process event, forward original raw event: %s", to_dict(zepevent.raw_event))
+            log.exception(e)
+
+            # construct wrapper event to report this event processing failure (including content of the
+            # original event)
+            origzepevent = ZepRawEvent()
+            origzepevent.raw_event.CopyFrom(message)
+            failReportEvent = dict(
+                uuid = guid.generate(),
+                created_time = int(time.time()*1000),
+                fingerprint='|'.join(['zeneventd', 'processMessage', repr(e)]),
+                # Don't send the *same* event class or we trash and and crash endlessly
+                eventClass='/',
+                summary='Internal exception processing event: %r' % e,
+                message='Internal exception processing event: %r/%s' % (e, to_dict(origzepevent.raw_event)),
+                severity=4,
+            )
+            zepevent = ZepRawEvent()
+            zepevent.raw_event.CopyFrom(from_dict(RawEvent, failReportEvent))
+            eventContext = EventContext(log, zepevent)
+            eventContext.eventProxy.device = 'zeneventd'
+            eventContext.eventProxy.component = 'processMessage'
 
         if log.isEnabledFor(logging.DEBUG):
             log.debug("Publishing event: %s", to_dict(eventContext.zepRawEvent))
