@@ -407,6 +407,7 @@ Ext.apply(Zenoss.render, {
         }
 
         msg = "<pre style='white-space:normal;'>" + msg + "</pre>";
+        msg = msg.replace(/\"/g, '&quot;');
         metadata.attr = 'ext:qtip="' + msg + '" ext:qwidth="500"';
         return data;
     }
