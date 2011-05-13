@@ -20,6 +20,7 @@ and store process performance in RRD files.
 import logging
 import sys
 import re
+from md5 import md5
 from pprint import pformat
 
 import Globals
@@ -171,6 +172,13 @@ class ProcessStats:
         self._pids={}
         self._config = processProxy
         self.cpu = 0
+        self.digest = ''
+        if not self._config.ignoreParameters:
+            # The modeler plugin computes the MD5 hash of the args,
+            # and then tosses that into the name of the process
+            result = self._config.name.rsplit(' ', -1)
+            if len(result) == 2 and result[1] != '':
+                self.digest = result[1]
 
     def update(self, processProxy):
         self._config = processProxy
@@ -182,7 +190,7 @@ class ProcessStats:
         return str(self._config.name)
     __repr__ = __str__
 
-    def match(self, name, args):
+    def match(self, name, args, useMd5Digest=True):
         """
         Perform exact comparisons on the process names.
 
@@ -190,6 +198,8 @@ class ProcessStats:
         @type name: string
         @parameter args: argument list of the process
         @type args: string
+        @parameter useMd5Digest: ignore true result if MD5 doesn't match the process name?
+        @type useMd5Digest: boolean
         @return: does the name match this process's info?
         @rtype: Boolean
         """
@@ -202,7 +212,18 @@ class ProcessStats:
             processName = name
         else:
             processName = '%s %s' % (name, args)
-        return re.search(self._config.regex, processName) is not None
+
+        # Make the comparison
+        result = re.search(self._config.regex, processName) is not None
+
+        # We can a match, but it might not be for us
+        if result and useMd5Digest:
+            # Compare this arg list against the digest of this proc
+            digest = md5(args).hexdigest()
+            if self.digest and digest != self.digest:
+                result = False
+
+        return result
 
     def updateCpu(self, pid, value):
         """
@@ -556,7 +577,7 @@ class ZenProcessTask(ObservableMixin):
 
     def _sendProcessEvents(self, results):
         (afterByConfig, afterPidToProcessStats,
-                           beforeByConfig, newPids, restarted) = results
+                           beforeByConfig, newPids, restarted, deadPids) = results
         self.sendRestartEvents(afterByConfig, beforeByConfig, restarted)
         self.sendFoundProcsEvents(afterByConfig, restarted)
         for pid in newPids:
@@ -586,9 +607,15 @@ class ZenProcessTask(ObservableMixin):
         afterPidToProcessStats = {}
         for pid, (name, args) in procs:
             pStats = self._deviceStats._pidToProcess.get(pid)
-            if pStats and pStats.match(name, args):
-                afterPidToProcessStats[pid] = pStats
-                continue
+            if pStats:
+                if pStats.match(name, args):
+                    afterPidToProcessStats[pid] = pStats
+                    continue
+                elif pStats.match(name, args, useMd5Digest=False):
+                    # In this case, our raw SNMP data from the
+                    # remote agent got futzed
+                    afterPidToProcessStats[pid] = pStats
+                    continue
 
             # Search for the first match in our list of regexes
             for pStats in self._deviceStats.processStats:
@@ -614,7 +641,7 @@ class ZenProcessTask(ObservableMixin):
                     restarted[procStats] = pConfig
 
         return (afterByConfig, afterPidToProcessStats,
-                beforeByConfig, newPids, restarted)
+                beforeByConfig, newPids, restarted, deadPids)
 
     def _fetchPerf(self, results):
         """

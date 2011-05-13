@@ -83,7 +83,7 @@ class TestZenprocess(BaseTestCase):
 
         # Split out the expected stats
         (eprocs, eafterByConfig, eafterPidToProcessStats,
-                ebeforeByConfig, enewPids, erestarted) = expectedStats
+                ebeforeByConfig, enewPids, erestarted, edeadPids) = expectedStats
 
         procs = task._parseProcessNames(data)
         self.assert_(len(procs) == eprocs,
@@ -92,14 +92,14 @@ class TestZenprocess(BaseTestCase):
 
         results = task._determineProcessStatus(procs)
         (afterByConfig, afterPidToProcessStats,
-                beforeByConfig, newPids, restarted) = results
+                beforeByConfig, newPids, restarted, deadPids) = results
 
         self.assert_(len(newPids) == enewPids,
                      "%s: Expected %d new processes, got %d" % (
-                       filename, len(newPids), enewPids))
+                       filename, enewPids, len(newPids)))
         self.assert_(len(restarted) == erestarted,
                      "%s: Expected %d restarted processes, got %d" % (
-                       filename, len(restarted), erestarted))
+                       filename, erestarted, len(restarted)))
 
         # Save the results of the run
         task._deviceStats._pidToProcess = afterPidToProcessStats
@@ -123,28 +123,28 @@ class TestZenprocess(BaseTestCase):
         mingetty = procDefs['mingetty']
         task = self.makeTask(procDefs)
 
-        expectedStats = (6, 0, 0, 0, 6, 0)
+        expectedStats = (6, 0, 0, 0, 6, 0, 0)
         self.compareTestFile('mingetty-0', task, expectedStats)
 
         # No changes if there are no changes
-        expectedStats = (6, 0, 0, 0, 0, 0)
+        expectedStats = (6, 0, 0, 0, 0, 0, 0)
         self.compareTestFile('mingetty-0', task, expectedStats)
 
         # Note: the restart count is only used if we want to
         #       receive notifications
-        expectedStats = (6, 0, 0, 0, 1, 0)
+        expectedStats = (6, 0, 0, 0, 1, 0, 0)
         self.compareTestFile('mingetty-1', task, expectedStats)
 
         mingetty.restart = True
-        expectedStats = (6, 0, 0, 0, 1, 1)
+        expectedStats = (6, 0, 0, 0, 1, 1, 0)
         self.compareTestFile('mingetty-0', task, expectedStats)
 
         # Now treat the processes independently
         mingetty.ignoreParameters = False
-        expectedStats = (6, 0, 0, 0, 1, 1)
+        expectedStats = (6, 0, 0, 0, 1, 1, 0)
         self.compareTestFile('mingetty-1', task, expectedStats)
 
-    def testCase15875(self):
+    def testCase15875part1(self):
         procDefs = {}
         self.updateProcDefs(procDefs, 'syslogd', False, '^syslogd')
         self.updateProcDefs(procDefs, 'usr_bin_perl', False, '^.*?/usr/bin/perl\s+-w\s+/opt/sysadmin/packages/scooper/bin/scooperd\s+/opt.*')
@@ -155,8 +155,31 @@ class TestZenprocess(BaseTestCase):
         self.updateProcDefs(procDefs, 'crond', True, '^crond')
 
         task = self.makeTask(procDefs)
-        expectedStats = (117, 0, 0, 0, 7, 0)
+        expectedStats = (117, 0, 0, 0, 7, 0, 0)
         procs, results = self.compareTestFile('case15875-0', task, expectedStats)
+
+    def testCase15875part2(self):
+        """
+        Test the case where we want to know about the arg lists.  This adds the
+        MD5 hash into the name of the process definition.
+        """
+        procDefs = {}
+        self.updateProcDefs(procDefs, 'usr_java_jdk1.6_bin_java a9286b43deac884c793529289e7b1a61', False, '.*?/opt/tomcat-emailservice-')
+        self.updateProcDefs(procDefs, 'usr_java_jdk1.6_bin_java 46213332b61b77a47dafd204cb7ea2db', False, '.*?/opt/tomcat-emailservice-')
+        self.updateProcDefs(procDefs, 'usr_java_jdk1.6_bin_java 6180cffd001309eeec52efdb5f4ae007', False, '.*?/opt/tomcat-emailservice-')
+
+        task = self.makeTask(procDefs)
+        expectedStats = (97, 0, 0, 0, 3, 0, 0)
+        procs, results = self.compareTestFile('case15875-1', task, expectedStats)
+
+        # Now what happens when the remote agent screws up a bit
+        # and *ALMOST* sends us all the stuff?
+        expectedStats = (97, 0, 0, 0, 0, 0, 0)
+        procs, results = self.compareTestFile('case15875-2', task, expectedStats)
+        deadPids = results[-1]
+        
+        self.assert_(len(deadPids) == 0,
+                     "Failed to recover from terrible SNMP agent output")
 
 def test_suite():
     from unittest import TestSuite, makeSuite
