@@ -127,20 +127,37 @@ class ProcessEventMessageTask(BasePubSubMessageTask):
             self.dmd._p_jar.sync()
 
         try:
-            # extract event from message body
-            zepevent = ZepRawEvent()
-            zepevent.raw_event.CopyFrom(message)
-            if log.isEnabledFor(logging.DEBUG):
-                log.debug("Received event: %s", to_dict(zepevent.raw_event))
-    
-            eventContext = EventContext(log, zepevent)
+            retry = True
+            processed = False
+            while not processed:
+                try:
+                    # extract event from message body
+                    zepevent = ZepRawEvent()
+                    zepevent.raw_event.CopyFrom(message)
+                    if log.isEnabledFor(logging.DEBUG):
+                        log.debug("Received event: %s", to_dict(zepevent.raw_event))
 
-            for pipe in self._pipes:
-                eventContext = pipe(eventContext)
-                if log.isEnabledFor(logging.DEBUG):
-                    log.debug('After pipe %s, event context is %s' % ( pipe, eventContext ))
-                if eventContext.zepRawEvent.status == STATUS_DROPPED:
-                    raise DropEvent('Dropped by %s' % pipe, eventContext.event)
+                    eventContext = EventContext(log, zepevent)
+
+                    for pipe in self._pipes:
+                        eventContext = pipe(eventContext)
+                        if log.isEnabledFor(logging.DEBUG):
+                            log.debug('After pipe %s, event context is %s' % ( pipe, eventContext ))
+                        if eventContext.zepRawEvent.status == STATUS_DROPPED:
+                            raise DropEvent('Dropped by %s' % pipe, eventContext.event)
+
+                    processed = True
+
+                except AttributeError:
+                    # _manager throws Attribute errors if connection to zope is lost - reset
+                    # and retry ONE time
+                    if retry:
+                        retry=False
+                        log.debug("Resetting connection to catalogs")
+                        self._manager.reset()
+                    else:
+                        raise
+
         except DropEvent:
             # we want these to propagate out
             raise
