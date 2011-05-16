@@ -114,7 +114,7 @@ The Devices page is divided into two main areas. The <em>device list</em> shows 
 <p><strong>More Information</strong>
 <ul>
  <li>"Using Resource Manager" in <em>Resource Manager Administration</em></li>
- <li>"Adding, Discovering, and Modeling Devices" in <em>Resource Manager Administration</a></em></li>
+ <li>"Adding, Discovering, and Modeling Devices" in <em>Resource Manager Administration</em></li>
 </ul>
 </p>
 </pagehelp>
@@ -131,7 +131,7 @@ You can organize reports and report organizers by dragging and dropping them in 
 You can export data from any report as a comma-separated value <tt>(.csv)</tt> file. Click <strong>Export All</strong> (located at the bottom of a report).</p>
 
 <p><strong>More Information</strong><br />
-"Reports" in <em>Resource Manager Administration</a></em></p> 
+"Reports" in <em>Resource Manager Administration</em></p>
 
 </pagehelp>
 <!--xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx -->
@@ -163,9 +163,9 @@ You can export data from any report as a comma-separated value <tt>(.csv)</tt> f
 
 <p><strong>More Information</strong>
 <ul>
-  <li>"User Commands" in <em>Resource Manager Administration</a></em></li>
-  <li>"Managing Users" in <em>Resource Manager Administration</a></em></li>
-  <li>"ZenPacks" in <em>Resource Manager Administration</a></em></li>
+  <li>"User Commands" in <em>Resource Manager Administration</em></li>
+  <li>"Managing Users" in <em>Resource Manager Administration</em></li>
+  <li>"ZenPacks" in <em>Resource Manager Administration</em></li>
 </ul>
 </p>
 
