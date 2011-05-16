@@ -625,6 +625,21 @@ class ZenProcessTask(ObservableMixin):
                     afterPidToProcessStats[pid] = pStats
                     break
 
+        # If the hashes get trashed by the SNMP agent, try to
+        # make sensible guesses.
+        missingModeledStats = set(self._deviceStats.processStats) - \
+                              set(self._deviceStats.monitoredProcs)
+        if missingModeledStats:
+            log.info("Searching for possible matches for %s", missingModeledStats)
+        for pStats in missingModeledStats:
+            for pid, (name, args) in procs:
+                if pid in afterPidToProcessStats:
+                    continue
+
+                if pStats.match(name, args, useMd5Digest=False):
+                    afterPidToProcessStats[pid] = pStats
+                    break
+
         afterPids = set(afterPidToProcessStats.keys())
         afterByConfig = reverseDict(afterPidToProcessStats)
         newPids =  afterPids - beforePids

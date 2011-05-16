@@ -63,6 +63,11 @@ class TestZenprocess(BaseTestCase):
     def makeTask(self, procDefs):
         config = TaskConfig(procDefs=procDefs)
         task = ZenProcessTask('bogodevice', 'taskname', 0, config)
+
+        # Blow away any cached config data
+        if 'devicename' in task.DEVICE_STATS:
+            del ZenProcessTask.DEVICE_STATS['devicename']
+
         task._preferences = Preferences()
         task._preferences.options.showrawtables = False
         task._preferences.options.showprocs = False
@@ -180,6 +185,60 @@ class TestZenprocess(BaseTestCase):
         
         self.assert_(len(deadPids) == 0,
                      "Failed to recover from terrible SNMP agent output")
+
+    def testCase15875part3(self):
+        procDefs = {}
+
+        self.updateProcDefs(procDefs, 'opt_zenoss_bin_python 989031ccce92ac84e183a6f127b3e279', False, '^(?!^.*zenmodeler.*?--now|^.*ZenWebTx.*?|^.*?\/tmp/tmp).*?/opt/zenoss/bin/python /opt/zenoss/|java .*?/opt/zenoss/',)
+        self.updateProcDefs(procDefs, 'java b2bdc8a61846f09f58aec8c748a204e4', False, '^(?!^.*zenmodeler.*?--now|^.*ZenWebTx.*?|^.*?\/tmp/tmp).*?/opt/zenoss/bin/python /opt/zenoss/|java .*?/opt/zenoss/',)
+        self.updateProcDefs(procDefs, 'opt_zenoss_bin_python adb8994c7ba8b1f6395cc8dc12ba5c1b', False, '^(?!^.*zenmodeler.*?--now|^.*ZenWebTx.*?|^.*?\/tmp/tmp).*?/opt/zenoss/bin/python /opt/zenoss/|java .*?/opt/zenoss/',)
+        self.updateProcDefs(procDefs, 'opt_zenoss_bin_python 286221f4ce20c06cb4777df35ec5ed89', False, '^(?!^.*zenmodeler.*?--now|^.*ZenWebTx.*?|^.*?\/tmp/tmp).*?/opt/zenoss/bin/python /opt/zenoss/|java .*?/opt/zenoss/',)
+        self.updateProcDefs(procDefs, 'opt_zenoss_bin_python 4775a3fa1682df2f095aab454031d702', False, '^(?!^.*zenmodeler.*?--now|^.*ZenWebTx.*?|^.*?\/tmp/tmp).*?/opt/zenoss/bin/python /opt/zenoss/|java .*?/opt/zenoss/',)
+        self.updateProcDefs(procDefs, 'opt_zenoss_bin_python fba04951fda76b915671af901bb874b5', False, '^(?!^.*zenmodeler.*?--now|^.*ZenWebTx.*?|^.*?\/tmp/tmp).*?/opt/zenoss/bin/python /opt/zenoss/|java .*?/opt/zenoss/',)
+        self.updateProcDefs(procDefs, 'opt_zenoss_bin_python dcac4d78470d919d41a24f0fa32dda90', False, '^(?!^.*zenmodeler.*?--now|^.*ZenWebTx.*?|^.*?\/tmp/tmp).*?/opt/zenoss/bin/python /opt/zenoss/|java .*?/opt/zenoss/',)
+        self.updateProcDefs(procDefs, 'ntpd 869db238ffc5f88024ff5fb8ffabb084', False, '^ntpd',)
+        self.updateProcDefs(procDefs, 'java bbffd7e3fa9d6853d7682156d5dd7e97', False, '^(?!^.*zenmodeler.*?--now|^.*ZenWebTx.*?|^.*?\/tmp/tmp).*?/opt/zenoss/bin/python /opt/zenoss/|java .*?/opt/zenoss/',)
+        self.updateProcDefs(procDefs, 'usr_sbin_httpd', True, '^[^ ]*httpd[^ /]*( |$)',)
+        self.updateProcDefs(procDefs, 'opt_zenoss_bin_python 1b480820ba996e468d89297c15b842e9', False, '^(?!^.*zenmodeler.*?--now|^.*ZenWebTx.*?|^.*?\/tmp/tmp).*?/opt/zenoss/bin/python /opt/zenoss/|java .*?/opt/zenoss/',)
+        self.updateProcDefs(procDefs, 'opt_zenoss_bin_python f686cbe618bf158a01ce23f10573518d', False, '^(?!^.*zenmodeler.*?--now|^.*ZenWebTx.*?|^.*?\/tmp/tmp).*?/opt/zenoss/bin/python /opt/zenoss/|java .*?/opt/zenoss/',)
+        self.updateProcDefs(procDefs, 'opt_zenoss_bin_python 799802c1cb9d56c0b7a036f59512176e', False, '^(?!^.*zenmodeler.*?--now|^.*ZenWebTx.*?|^.*?\/tmp/tmp).*?/opt/zenoss/bin/python /opt/zenoss/|java .*?/opt/zenoss/',)
+        self.updateProcDefs(procDefs, 'opt_zenoss_bin_python 4d2eeb2773decebf5bf03c657d6a66c9', False, '^(?!^.*zenmodeler.*?--now|^.*ZenWebTx.*?|^.*?\/tmp/tmp).*?/opt/zenoss/bin/python /opt/zenoss/|java .*?/opt/zenoss/',)
+        self.updateProcDefs(procDefs, 'opt_zenoss_bin_python 4fb2e41e1057bc98418ea3923ff924d0', False, '^(?!^.*zenmodeler.*?--now|^.*ZenWebTx.*?|^.*?\/tmp/tmp).*?/opt/zenoss/bin/python /opt/zenoss/|java .*?/opt/zenoss/',)
+        self.updateProcDefs(procDefs, 'opt_zenoss_bin_python b1decc46fd0d2006952e773ab2fb3ae2', False, '^(?!^.*zenmodeler.*?--now|^.*ZenWebTx.*?|^.*?\/tmp/tmp).*?/opt/zenoss/bin/python /opt/zenoss/|java .*?/opt/zenoss/',)
+        self.updateProcDefs(procDefs, 'opt_zenoss_bin_python f2eaff8e78abf5423d41b9698137e28d', False, '^(?!^.*zenmodeler.*?--now|^.*ZenWebTx.*?|^.*?\/tmp/tmp).*?/opt/zenoss/bin/python /opt/zenoss/|java .*?/opt/zenoss/',)
+        self.updateProcDefs(procDefs, 'opt_zenoss_bin_python e83ae4187a18d82891c7f877c4036edb', False, '^(?!^.*zenmodeler.*?--now|^.*ZenWebTx.*?|^.*?\/tmp/tmp).*?/opt/zenoss/bin/python /opt/zenoss/|java .*?/opt/zenoss/',)
+        self.updateProcDefs(procDefs, 'opt_zenoss_bin_python 18aeb381536e1f263037fb2c830cf293', False, '^(?!^.*zenmodeler.*?--now|^.*ZenWebTx.*?|^.*?\/tmp/tmp).*?/opt/zenoss/bin/python /opt/zenoss/|java .*?/opt/zenoss/',)
+        self.updateProcDefs(procDefs, 'opt_zenoss_bin_python 560d3c6b462208bbf41807626c87ca8a', False, '^(?!^.*zenmodeler.*?--now|^.*ZenWebTx.*?|^.*?\/tmp/tmp).*?/opt/zenoss/bin/python /opt/zenoss/|java .*?/opt/zenoss/',)
+        self.updateProcDefs(procDefs, 'opt_zenoss_bin_python c73166185748470cff8468fbad6f8d15', False, '^(?!^.*zenmodeler.*?--now|^.*ZenWebTx.*?|^.*?\/tmp/tmp).*?/opt/zenoss/bin/python /opt/zenoss/|java .*?/opt/zenoss/',)
+        self.updateProcDefs(procDefs, 'crond', True, '^crond',)
+        self.updateProcDefs(procDefs, 'opt_zenoss_bin_python ce658ba39869d9238ef281fdd7829058', False, '^(?!^.*zenmodeler.*?--now|^.*ZenWebTx.*?|^.*?\/tmp/tmp).*?/opt/zenoss/bin/python /opt/zenoss/|java .*?/opt/zenoss/',)
+        self.updateProcDefs(procDefs, 'opt_zenoss_bin_python 895c56a50ec67fb7253d3c5bf16e54fc', False, '^(?!^.*zenmodeler.*?--now|^.*ZenWebTx.*?|^.*?\/tmp/tmp).*?/opt/zenoss/bin/python /opt/zenoss/|java .*?/opt/zenoss/',)
+        self.updateProcDefs(procDefs, 'opt_zenoss_bin_python fbabb34cc04d9a7b1b49927c55608dce', False, '^(?!^.*zenmodeler.*?--now|^.*ZenWebTx.*?|^.*?\/tmp/tmp).*?/opt/zenoss/bin/python /opt/zenoss/|java .*?/opt/zenoss/',)
+        self.updateProcDefs(procDefs, 'opt_zenoss_bin_python 0297fd22e7fd76c7996b0cec7b65edfd', False, '^(?!^.*zenmodeler.*?--now|^.*ZenWebTx.*?|^.*?\/tmp/tmp).*?/opt/zenoss/bin/python /opt/zenoss/|java .*?/opt/zenoss/',)
+        self.updateProcDefs(procDefs, 'opt_zenoss_bin_python 65e57f32917b59ccb63a264a2e7fdb9c', False, '^(?!^.*zenmodeler.*?--now|^.*ZenWebTx.*?|^.*?\/tmp/tmp).*?/opt/zenoss/bin/python /opt/zenoss/|java .*?/opt/zenoss/',)
+        self.updateProcDefs(procDefs, 'usr_sbin_mysqld', True, 'sbin\/mysqld',)
+        self.updateProcDefs(procDefs, 'opt_zenoss_bin_python e9c6b5fc30781634e8a4c8e179ba6bee', False, '^(?!^.*zenmodeler.*?--now|^.*ZenWebTx.*?|^.*?\/tmp/tmp).*?/opt/zenoss/bin/python /opt/zenoss/|java .*?/opt/zenoss/',)
+        self.updateProcDefs(procDefs, 'opt_zenoss_bin_python 43a302e41b239c0dd962bb6f5108f033', False, '^(?!^.*zenmodeler.*?--now|^.*ZenWebTx.*?|^.*?\/tmp/tmp).*?/opt/zenoss/bin/python /opt/zenoss/|java .*?/opt/zenoss/',)
+        self.updateProcDefs(procDefs, 'opt_zenoss_bin_python cbeab9686cc961499879ca1abf83598e', False, '^(?!^.*zenmodeler.*?--now|^.*ZenWebTx.*?|^.*?\/tmp/tmp).*?/opt/zenoss/bin/python /opt/zenoss/|java .*?/opt/zenoss/',)
+
+        task = self.makeTask(procDefs)
+        expectedStats = (174, 0, 0, 0, 53, 0, 0)
+        procs, results = self.compareTestFile('case15875-3', task, expectedStats)
+
+    def testCase15875part4(self):
+        procDefs = {}
+
+        self.updateProcDefs(procDefs, 'usr_bin_perl', True, '^.*\/*httpd')
+        self.updateProcDefs(procDefs, 'usr_sbin_slurpd', True, '/usr/sbin/(?:slapd|slurpd)')
+        self.updateProcDefs(procDefs, 'ntpd b5552db5824a818094a496e52982919e', False, '^ntpd')
+        self.updateProcDefs(procDefs, 'syslogd 14cc14f9b12338978b9d35cbb947581b', False, '^syslogd')
+        self.updateProcDefs(procDefs, 'usr_sbin_slapd', True, '/usr/sbin/(?:slapd|slurpd)')
+        self.updateProcDefs(procDefs, 'usr_sbin_httpd', True, '^[^ ]*httpd[^ /]*( |$)')
+        self.updateProcDefs(procDefs, 'crond', True, '^crond')
+
+        task = self.makeTask(procDefs)
+        expectedStats = (253, 0, 0, 0, 14, 0, 0)
+        procs, results = self.compareTestFile('case15875-4', task, expectedStats)
 
 def test_suite():
     from unittest import TestSuite, makeSuite
