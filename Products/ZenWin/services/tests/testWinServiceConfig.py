@@ -21,6 +21,7 @@ from Products.ZenWin.services.WinServiceConfig import WinServiceConfig
 class TestWinServiceConfig(ZenModelBaseTest):
     def setUp(self):
         super(TestWinServiceConfig, self).setUp()
+
         dev = manage_createDevice(self.dmd, "test-dev1",
                                   "/Server/Windows",
                                   manageIp="10.0.10.1")
@@ -29,7 +30,8 @@ class TestWinServiceConfig(ZenModelBaseTest):
         winService.zMonitor = True
         winService.monitor = True
         winService.startMode = 'Auto'
-        dev.os.winservices._setObject('wsvc', winService)
+        winService.index_object()
+        
         self._testDev = dev
         self._deviceNames = [ "test-dev1" ]
         self._configService = WinServiceConfig(self.dmd, "localhost")

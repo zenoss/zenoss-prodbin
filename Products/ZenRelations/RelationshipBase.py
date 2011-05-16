@@ -100,7 +100,7 @@ class RelationshipBase(PrimaryPathManager):
             remoteRel = getattr(obj, self.remoteName())
             remoteRel._add(self.__primary_parent__)
         except RelationshipExistsError:
-            log.debug("obj %s already exists on %s", obj.getPrimaryId(),
+            log.warn("obj %s already exists on %s", obj.getPrimaryId(),
                         self.getPrimaryId())
 
 
