@@ -15,7 +15,9 @@
 
 /* package level */
 (function() {
-    var Severity = Ext.extend(Ext.form.ComboBox, {
+    var ReverseSeverity,
+        Severity;
+    Severity = Ext.extend(Ext.form.ComboBox, {
         constructor: function(config) {
             config = config || {};
 
@@ -34,5 +36,18 @@
         }
     });
     Ext.reg('severity', Severity);
+
+    ReverseSeverity = Ext.extend(Severity, {
+        constructor: function(config) {
+            var severities = [[0, "Critical"], [1, "Error"], [2, "Warning"], [3, "Info"], [4, "Debug"], [5, "Clear"]];
+            config = config || {};
+            Ext.applyIf(config, {
+                store: severities
+            });
+            ReverseSeverity.superclass.constructor.apply(this, arguments);
+        }
+    });
+    Ext.reg('reverseseverity', ReverseSeverity);
+
 }());
 

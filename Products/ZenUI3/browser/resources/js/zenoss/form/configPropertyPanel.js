@@ -58,7 +58,7 @@
             xtype: 'severity'
         },
         'zWinEventlogMinSeverity': {
-            xtype: 'severity'
+            xtype: 'reverseseverity'
         }
     });
 
