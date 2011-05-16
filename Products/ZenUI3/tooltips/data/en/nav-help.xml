@@ -9,7 +9,7 @@
 Go here to:
 <ul>
   <li>Sign out of the system.</li>
-  <li>Access community product documentation, FAQs, and HowTos.</li>
+  <li>Access product documentation, FAQs, and HowTos.</li>
   <li>Edit user settings, by clicking the displayed login ID.</li>
 </ul>
 </p>
@@ -24,7 +24,7 @@ The main content of the Dashboard comprises portlets, which provide information 
 <p>You also can change the Dashboard column layout to one, two, or three-column displays. For two-column display, you can additionally choose a layout that offers columns of equal or varying widths. Select <strong>Configure Layout</strong> to change the layout.</p>
 
 <p><strong>More Information</strong><br />
-"Using Zenoss" in <em><a href="http://community.zenoss.org/community/documentation/official_documentation/zenoss-guide">Zenoss Administration</a></em></p>
+"Using Resource Manager" in <em>Resource Manager Administration</em></p>
 </pagehelp>
 <!--xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx -->
 <pagehelp target="Events" title="Events">
@@ -44,12 +44,13 @@ You can view details for any event in the system. To view details, double-click 
 <p><strong>Tip:</strong> Do not double-click on or near the device name, component, or device class in the row. Doing this displays details about that entity, rather than information about the event.</p>
 
 <p><strong>Managing Events</strong><br />
-After selecting an event, you can:
+After making an event selection, you can:
 <ul>
  <li>Acknowledge the event</li>
- <li>Close the event (move it to history)</li>
+ <li>Close the event</li>
  <li>Map the event to associate it with a specific event class</li>
  <li>Return the event to New status (revoke its Acknowledged status)</li>
+ <li>Reopen the event</li>
 </ul>
 </p>
 
@@ -61,7 +62,7 @@ After selecting an event, you can:
 You can export data from the event console to a comma-separated <tt>(.csv)</tt> or XML file. To do this, select <strong>Export > CSV</strong> or <strong>Export > XML</strong> By default, the exported file is named <tt>events.</tt><em>Extension</em>.</p>
 
 <p><strong>More Information</strong><br />
-"Event Management" in <em><a href="http://community.zenoss.org/community/documentation/official_documentation/zenoss-guide">Zenoss Administration</a></em></p> 
+"Event Management" in <em>Resource Manager Administration</em></p> 
 </pagehelp>
 <!--xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx -->
 <pagehelp target="Infrastructure" title="Infrastructure">
@@ -87,7 +88,9 @@ The Devices page is divided into two main areas. The <em>device list</em> shows 
 <ul>
  <li>Add a single device</li>
  <li>Add and discover multiple devices</li>
- <li>Add VMware infrastructure (Enterprise only)</li>
+ <li>Add Cisco UCS</li>
+ <li>Add vCloud Cell</li>
+ <li>Add VMware infrastructure</li>
 </ul>
 </p>
 
@@ -110,27 +113,25 @@ The Devices page is divided into two main areas. The <em>device list</em> shows 
 
 <p><strong>More Information</strong>
 <ul>
- <li>"Using Zenoss" in <em><a href="http://community.zenoss.org/community/documentation/official_documentation/zenoss-guide">Zenoss Administration</a></em></li>
- <li>"Adding, Discovering, and Modeling Devices" in <em><a href="http://community.zenoss.org/community/documentation/official_documentation/zenoss-guide">Zenoss Administration</a></em></li>
+ <li>"Using Resource Manager" in <em>Resource Manager Administration</em></li>
+ <li>"Adding, Discovering, and Modeling Devices" in <em>Resource Manager Administration</a></em></li>
 </ul>
 </p>
 </pagehelp>
 <!--xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx -->
 <pagehelp target="Reports" title="Reports">
-<p>Zenoss aggregates and reports, over time, on the data you set it up to monitor. The system provides a range of defined and custom report options.</p>
+<p>Resource Manager aggregates and reports, over time, on the data you set it up to monitor. The system provides a range of defined and custom report options.</p>
 
-<p>Select <b>Base</b> to work with defined system reports, or <b>Advanced</b> to define ad hoc reports.</p>
+<p>The Reports list appears in the tree view. Expand a list item to see available reports in that category.</p>
 
-<p>The list of base reports appears in the tree view. Expand a list item to see available reports in that category.</p>
-
-<p><strong>Organizing Base Reports</strong><br />
+<p><strong>Organizing Reports</strong><br />
 You can organize reports and report organizers by dragging and dropping them in the tree view. To create a report organizer, select Add Report Organizer from <img src="/++resource++pagehelp/Add_Menu.png"/> (Add Menu).</p>
 
-<p><strong>Exporting Bbase Reports</strong><br />
+<p><strong>Exporting Reports</strong><br />
 You can export data from any report as a comma-separated value <tt>(.csv)</tt> file. Click <strong>Export All</strong> (located at the bottom of a report).</p>
 
 <p><strong>More Information</strong><br />
-"Reports" in <em><a href="http://community.zenoss.org/community/documentation/official_documentation/zenoss-guide">Zenoss Administration</a></em></p> 
+"Reports" in <em>Resource Manager Administration</a></em></p> 
 
 </pagehelp>
 <!--xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx -->
@@ -147,11 +148,12 @@ You can export data from any report as a comma-separated value <tt>(.csv)</tt> f
      <li>View the jobs log</li>
      <li>Determine access to portlets</li>
      <li>Stop and start system daemons</li>
-     <li>Check for Zenoss updates and view software component versions</li>
-     <li>Back up your Zenoss instance</li>
+     <li>Check for updates and view software component versions</li>
+     <li>Back up your Resource Manager instance</li>
+     <li>Configure events settings</li>
    </ul>
 
- <li><strong>Collectors</strong> - Add and delete Zenoss collectors.</li>
+ <li><strong>Collectors</strong> - Add and delete Resource Manager collectors.</li>
 
  <li><strong>Monitoring Templates</strong> - Define monitoring templates and their components (data sources, thresholds, and graphs).</li>
 
@@ -161,9 +163,9 @@ You can export data from any report as a comma-separated value <tt>(.csv)</tt> f
 
 <p><strong>More Information</strong>
 <ul>
-  <li>"User Commands" in <em><a href="http://community.zenoss.org/community/documentation/official_documentation/zenoss-guide">Zenoss Administration</a></em></li>
-  <li>"Managing Users" in <em><a href="http://community.zenoss.org/community/documentation/official_documentation/zenoss-guide">Zenoss Administration</a></em></li>
-  <li>"ZenPacks" in <em><a href="http://community.zenoss.org/community/documentation/official_documentation/zenoss-guide">Zenoss Administration</a></em></li>
+  <li>"User Commands" in <em>Resource Manager Administration</a></em></li>
+  <li>"Managing Users" in <em>Resource Manager Administration</a></em></li>
+  <li>"ZenPacks" in <em>Resource Manager Administration</a></em></li>
 </ul>
 </p>
 
