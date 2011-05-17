@@ -1840,6 +1840,7 @@ Ext.onReady(function () {
                                                 button.refOwner.deleteButton.setDisabled(true);
                                                 button.refOwner.customizeButton.setDisabled(true);
                                                 reloadTriggersGrid();
+                                                reloadNotificationGrid();
                                             };
                                             router.removeTrigger(params, callback);
 
