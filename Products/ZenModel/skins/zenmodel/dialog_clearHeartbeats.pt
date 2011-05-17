@@ -18,13 +18,13 @@ var newSubmitHandler = function(button, event) {
             Ext.getCmp('device_events').updateRows();
             Ext.getCmp('devdetailbar').refresh();
             Zenoss.message.info(String.format(
-                '{0} events were updated.',
-                this.eventsUpdated
+                '{0} {1}',
+                this.eventsUpdated,
+                _t('events were updated.')
             ));
             button.setHandler(oldSubmitHandler);
         },
         findParams: function() {
-            console.log(Zenoss.env.device_uid.split('/'));
             return {
                 params: Ext.encode({
                     eventState : [Zenoss.STATUS_NEW, Zenoss.STATUS_ACKNOWLEDGED],
