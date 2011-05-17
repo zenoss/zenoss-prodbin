@@ -3,14 +3,41 @@
 <p>
 Are you sure you want to clear heartbeats for this device?<br/>
 </p>
-<br/>
-<form method="post" id="clear_heartbeat_form" tal:attributes="action here/absolute_url">
-<input type="hidden" name="zenScreenName" value="here/absolute_url">
-</form>
 <script>
-var clear_heartbeat_form = new Zenoss.dialog.DialogFormPanel({
-    existingFormId: 'clear_heartbeat_form',
-    submitName: 'manage_deleteHeartbeat:method',
-    jsonResult: false
-});
+var dynamicDialog = Ext.getCmp('dynamic-dialog');
+var oldSubmitHandler = dynamicDialog.submitHandler;
+var newSubmitHandler = function(button, event) {
+
+    var eam = Ext.create({xtype:'EventActionManager'});
+
+    eam.configure({
+        isLargeRequest: function() {
+            return true;
+        },
+        onFinishAction: function() {
+            Ext.getCmp('device_events').updateRows();
+            Ext.getCmp('devdetailbar').refresh();
+            Zenoss.message.info(String.format(
+                '{0} events were updated.',
+                this.eventsUpdated
+            ));
+            button.setHandler(oldSubmitHandler);
+        },
+        findParams: function() {
+            console.log(Zenoss.env.device_uid.split('/'));
+            return {
+                params: Ext.encode({
+                    eventState : [Zenoss.STATUS_NEW, Zenoss.STATUS_ACKNOWLEDGED],
+                    eventClass : '/Status/Heartbeat',
+                    device : Zenoss.env.device_uid.split('/').pop()
+                })
+            };
+        }
+    });
+
+    eam.execute(Zenoss.remote.EventsRouter.close);
+};
+// This is pretty dependent on the submit button being the first button,
+// but then again this entire .pt depends on the DynamicForm anyway.
+dynamicDialog.buttons[0].setHandler(newSubmitHandler);
 </script>

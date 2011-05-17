@@ -1783,6 +1783,7 @@ var EventActionManager = Ext.extend(Ext.util.Observable, {
         EventActionManager.superclass.constructor.call(this, config);
     }
 });
+Ext.reg('EventActionManager', EventActionManager);
 
 Ext.onReady(function() {
     Zenoss.EventActionManager = new EventActionManager();
