@@ -13,7 +13,7 @@
 ## Based on Python recipe http://code.activestate.com/recipes/543263/ (r1)
 # by Brian O. Bush, Thu 24-Jan-2008 06:53 bushbo
 
-import os, sys, pickle, md5, threading, glob
+import os, sys, pickle, base64, threading, glob
 
 _DEFAULT_NOT_SPECIFIED = object()
 
@@ -23,13 +23,13 @@ class FileCache(object):
         self.path = path # path assumed existing; check externally
         if not os.path.exists(self.path): 
             os.makedirs(self.path)        
-        self.gen_key = lambda x: md5.new(x).hexdigest()
+        self.gen_key = lambda x: '%s.pickle' % base64.b64encode(x)
         self.lock = threading.Lock()
         self._pickleProtocol = protocol
     def _makeFileNameFromKey(self, key):
         return os.path.join(self.path, self.gen_key(key))
     def _allFileNames(self):
-        return glob.glob(os.path.join(self.path,'*'))
+        return glob.glob(os.path.join(self.path,'*.pickle'))
     def get(self, key, default=_DEFAULT_NOT_SPECIFIED):
         retval = default
         fn = self._makeFileNameFromKey(key)
@@ -74,8 +74,8 @@ class FileCache(object):
         with self.lock:
             return list(self.itervalues())
     def iterkeys(self):
-        for k,v in self.iteritems():
-            yield k
+        for fn in self._allFileNames():
+            yield base64.b64decode(os.path.split(fn)[1][:-7])
     def itervalues(self):
         for k,v in self.iteritems():
             yield v
