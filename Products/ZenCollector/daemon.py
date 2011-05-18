@@ -126,6 +126,8 @@ class CollectorDaemon(RRDDaemon):
         self._statService.addStatistic("devices", "GAUGE")
         self._statService.addStatistic("cyclePoints", "GAUGE")
         self._statService.addStatistic("dataPoints", "DERIVE")
+        self._statService.addStatistic("runningTasks", "GAUGE")
+        self._statService.addStatistic("queuedTasks", "GAUGE")
         zope.component.provideUtility(self._statService, IStatisticsService)
 
         # register the collector's own preferences object so it may be easily
@@ -479,6 +481,13 @@ class CollectorDaemon(RRDDaemon):
 
                 stat = self._statService.getStatistic("dataPoints")
                 stat.value = self._rrd.dataPoints
+
+                # Scheduler statistics
+                stat = self._statService.getStatistic("runningTasks")
+                stat.value = self._scheduler._executor.running
+
+                stat = self._statService.getStatistic("queuedTasks")
+                stat.value = self._scheduler._executor.queued
 
                 events = self._statService.postStatistics(self.rrdStats,
                                                           self._prefs.cycleInterval)
