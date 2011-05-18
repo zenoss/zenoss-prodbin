@@ -485,19 +485,6 @@ class AddDeviceContextAndTagsPipe(EventProcessorPipe):
             if component:
                 eventContext.setComponentObject(component)
 
-        eventClassName = eventContext.eventProxy.eventClass
-        # Set event class to Unknown if not specified
-        if not eventClassName:
-            eventContext.eventProxy.eventClass = eventClassName = ZenEventClasses.Unknown
-
-        # If we failed to tag an event class - can happen if there is not a device
-        # or event class is not defined.
-        if not eventContext.eventProxy.tags.getByType(TransformPipe.EVENT_CLASS_TAG):
-            eventClass = self._manager.getEventClassOrganizer(eventClassName)
-            if eventClass:
-                eventClassUuids = self._manager.getUuidsOfPath(eventClass)
-                eventContext.eventProxy.tags.addAll(TransformPipe.EVENT_CLASS_TAG, eventClassUuids)
-
         return eventContext
 
 class UpdateDeviceContextAndTagsPipe(AddDeviceContextAndTagsPipe):
@@ -534,6 +521,29 @@ class SerializeContextPipe(EventProcessorPipe):
 
     def __call__(self, eventContext):
         eventContext.log.debug('Saving context back to event')
+        return eventContext
+
+class AssignDefaultEventClassAndTagPipe(EventProcessorPipe):
+    """
+    If the event class has not yet been set by the time this pipe is reached, set
+    it to a default value.
+    """
+    def __call__(self, eventContext):
+        eventClassName = eventContext.eventProxy.eventClass
+        # Set event class to Unknown if not specified
+        if not eventClassName:
+            eventContext.eventProxy.eventClass = eventClassName = ZenEventClasses.Unknown
+
+        # Define tags for this event class
+        eventClass = self._manager.getEventClassOrganizer(eventClassName)
+        if eventClass and not eventContext.eventProxy.tags.getByType(TransformPipe.EVENT_CLASS_TAG):
+            try:
+                eventClassUuids = self._manager.getUuidsOfPath(eventClass)
+                if eventClassUuids:
+                    eventContext.eventProxy.tags.addAll(TransformPipe.EVENT_CLASS_TAG, eventClassUuids)
+            except (KeyError, AttributeError):
+                log.info("Event has nonexistent event class %s." % eventClass)
+
         return eventContext
 
 class FingerprintPipe(EventProcessorPipe):
@@ -633,8 +643,7 @@ class TransformPipe(EventProcessorPipe):
         try:
             eventClassUuids = self._manager.getUuidsOfPath(eventClass)
             if eventClassUuids:
-                eventContext.eventProxy.tags.addAll(self.EVENT_CLASS_TAG,
-                                                    eventClassUuids)
+                eventContext.eventProxy.tags.addAll(self.EVENT_CLASS_TAG, eventClassUuids)
         except (KeyError, AttributeError):
             log.info("Event has nonexistent event class %s." % eventClass)
 

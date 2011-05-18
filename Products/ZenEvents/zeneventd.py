@@ -93,6 +93,7 @@ class ProcessEventMessageTask(BasePubSubMessageTask):
                 IdentifierPipe(self._manager),
                 UpdateDeviceContextAndTagsPipe(self._manager),
                 ]),
+            AssignDefaultEventClassAndTagPipe(self._manager),
             FingerprintPipe(self._manager),
             SerializeContextPipe(self._manager),
             EventPluginPipe(self._manager, IPostEventPlugin, 'PostEventPluginPipe'),
