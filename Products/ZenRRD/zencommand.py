@@ -552,12 +552,12 @@ class SshPerformanceCollectionTask(BaseTask):
         If an SSH datasource executor, relinquish a connection to the remote device.
         """
         if self._connection:
-            self._connection._taskList.remove(self)
+            self._connection._taskList.discard(self)
             if len(self._connection._taskList) == 0:
-                log.debug("Closing connection to %s", self._devId)
-                if self._connection.transport:
-                    self._connection.transport.loseConnection()
-                del self.pool[self._devId]
+                self._connection.channelClosed():
+                if self._devId in self.pool[self._devId]:
+                    del self.pool[self._devId]
+            self._connection = None
             # Note: deleting the connection from the pool means more work,
             #   but it also means that we won't have weird synchronization bugs
             #   with changes from the device not taking effect.
