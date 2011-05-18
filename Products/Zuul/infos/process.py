@@ -148,4 +148,7 @@ class ProcessInfo(InfoBase):
 
     @property
     def count(self):
-        return self._object.countClasses()
+        if isinstance(self._object, OSProcessOrganizer):
+            return self._object.countClasses()
+        # it is an instance
+        return self._object.count()
