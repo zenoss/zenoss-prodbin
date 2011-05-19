@@ -222,7 +222,7 @@ Ext.onReady(function(){
                     view.nonDisruptiveReset();
                 },
                 pollHandler: function() {
-                    var view = Ext.getCmp(gridId).getView();
+                    var view = Ext.getCmp('events_grid').getView();
                     view.updateLiveRows(view.rowIndex, true, true);
                 }
             }
@@ -234,7 +234,7 @@ Ext.onReady(function(){
             dt = new Date(),
             dtext = dt.format('g:i:sA');
             box.setText(_t('Last updated at ') + dtext);
-    };
+    }
 
     // default to show history from last 24 hours
     var yesterday = new Date();
