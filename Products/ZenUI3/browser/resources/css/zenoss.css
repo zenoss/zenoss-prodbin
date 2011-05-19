@@ -1174,4 +1174,4 @@ it will appear as an empty folder.
     padding: 5px;
 }
 
-.ext-ie .info {background:transparent}
+.ext-ie .inspector .inspector-header .header-title .info {background:transparent}
