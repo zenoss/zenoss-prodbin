@@ -11,7 +11,7 @@
 #
 ###########################################################################
 
-from zope.component.interfaces import IObjectEvent
+from zope.component.interfaces import Interface, IObjectEvent
 from zope.interface import Attribute
 
 
@@ -32,3 +32,15 @@ class IDeletionEvent(IInvalidationEvent):
     """
     An object has been deleted.
     """
+
+class IBatchNotifier(Interface):
+    """
+    Processes subdevices in batches.
+    """
+    
+    def notify_subdevices(device_class, service_uid, callback):
+        """
+        Process subdevices of device class in batches calling callback with
+        each device. The service UID uniquely identifies the service, so the
+        processing of the same device_class-service pair is not duplicated.
+        """

@@ -10,11 +10,16 @@
 # For complete information please visit: http://www.zenoss.com/oss/
 #
 ###########################################################################
-from sets import Set
 
-class Procrastinate:
+from sets import Set
+from twisted.internet import reactor
+
+class Procrastinate(object):
     "A class to delay executing a change to a device"
-    
+
+    _DO_LATER_DELAY = 5
+    _DO_NOW_DELAY = 0.05
+
     def __init__(self, cback):
         self.cback = cback
         self.devices = Set()
@@ -27,13 +32,12 @@ class Procrastinate:
         if self.timer and not self.timer.called:
             self.timer.cancel()
         self.devices.add(device)
-        from twisted.internet import reactor
-        self.timer = reactor.callLater(5, self._doNow)
+        self.timer = reactor.callLater(Procrastinate._DO_LATER_DELAY, self._doNow)
 
 
     def _doNow(self, *unused):
         if self.devices:
             device = self.devices.pop()
-            d = self.cback(device)
-            if d:
-                d.addBoth(self._doNow)
+            self.cback(device)
+            if self.devices:
+                reactor.callLater(Procrastinate._DO_NOW_DELAY, self._doNow)

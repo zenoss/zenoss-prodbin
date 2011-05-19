@@ -15,11 +15,13 @@ from twisted.internet import defer
 from twisted.spread import pb
 
 from Acquisition import aq_parent
+from zope import component
 from Products.ZenHub.HubService import HubService
 from Products.ZenHub.PBDaemon import translateError
 from Products.ZenHub.services.Procrastinator import Procrastinate
 from Products.ZenHub.services.ThresholdMixin import ThresholdMixin
 from Products.ZenHub.zodb import onUpdate, onDelete
+from Products.ZenHub.interfaces import IBatchNotifier
 
 from Products.ZenModel.Device import Device
 from Products.ZenModel.DeviceClass import DeviceClass
@@ -70,6 +72,8 @@ class CollectorConfigService(HubService, ThresholdMixin):
         # TODO: what's this for?
         self._procrastinator = Procrastinate(self._pushConfig)
         self._reconfigProcrastinator = Procrastinate(self._pushReconfigure)
+
+        self._notifier = component.getUtility(IBatchNotifier)
 
     def _wrapFunction(self, functor, *args, **kwargs):
         """
@@ -139,8 +143,8 @@ class CollectorConfigService(HubService, ThresholdMixin):
             while object:
                 # walk up until you hit an organizer or a device
                 if isinstance(object, DeviceClass):
-                    for device in object.getSubDevices():
-                        self._notifyAll(device)
+                    uid = (self.__class__.__name__, self.instance)
+                    self._notifier.notify_subdevices(object, uid, self._notifyAll)
                     break
 
                 if isinstance(object, Device):

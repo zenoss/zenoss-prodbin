@@ -13,6 +13,7 @@
 
 import Globals
 from Products.ZenEvents.ZenEventClasses import Status_Snmp
+from zope import component
 
 from Products.ZenHub.HubService import HubService
 from Products.ZenHub.PBDaemon import translateError
@@ -21,6 +22,7 @@ from Products.ZenModel.Device import Device
 from Products.ZenModel.ZenPack import ZenPack
 from Products.ZenModel.PerformanceConf import PerformanceConf
 from Products.ZenHub.zodb import onUpdate, onDelete
+from Products.ZenHub.interfaces import IBatchNotifier
 from Acquisition import aq_parent
 
 from twisted.internet import defer
@@ -123,7 +125,7 @@ class PerformanceConfig(HubService, ThresholdMixin):
         self.config = self.dmd.Monitors.Performance._getOb(self.instance)
         self.procrastinator = Procrastinate(self.pushConfig)
         self._collectorMap = {}
-
+        self._notifier = component.getUtility(IBatchNotifier)
 
     @translateError
     def remote_propertyItems(self):
@@ -208,8 +210,8 @@ class PerformanceConfig(HubService, ThresholdMixin):
         while object:
             # walk up until you hit an organizer or a device
             if isinstance(object, DeviceClass):
-                for device in object.getSubDevices():
-                    self.notifyAll(device)
+                uid = (self.__class__.__name__, self.instance)
+                self._notifier.notify_subdevices(object, uid, self.notifyAll)
                 break
 
             if isinstance(object, Device):
