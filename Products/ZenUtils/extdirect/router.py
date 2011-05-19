@@ -162,6 +162,7 @@ class DirectRouter(object):
         try:
             response.result = _targetfn(**data)
         except Exception as e:
+            log.error('DirectRouter directRequest = %s', directRequest)
             log.error('DirectRouter suppressed the following exception (Response %s):' % response.uuid)
             log.exception(e)
             # rollback ZODB transaction on uncaught exceptions
