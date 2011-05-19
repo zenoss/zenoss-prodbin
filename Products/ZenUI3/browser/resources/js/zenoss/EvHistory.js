@@ -177,14 +177,13 @@ Ext.onReady(function(){
                             var grid = Ext.getCmp('events_grid'),
                                 link = grid.getPermalink();
                            Ext.Msg.show({
-                            title: 'Permalink',
-                            msg: '<'+'div class="dialog-link">'+
-                            'Drag this link to your bookmark' +
-                            ' bar <'+'br/>to return to this grid '+
-                             'configuration later.'+
-                             '<'+'br/><'+'br/><'+'a href="'+
-                             link + '">'+
-                             'Event Console<'+'/a><'+'/div>',
+                            title: 'Save Configuration',
+                            msg: '<div class="dialog-link">'
+                                + 'Drag this link to your bookmark bar '
+                                + '<br/>to return to this configuration later.'
+                                + '<br/><br/><a href="'
+                                + link
+                                + '">Resource Manager: Event Archive</a></div>',
                             buttons: Ext.Msg.OK
                             });
                         }
@@ -194,7 +193,7 @@ Ext.onReady(function(){
                             Ext.Msg.show({
                                 title: 'Confirm Restore',
                                 msg: 'Are you sure you want to restore '+
-                                  'the default grid configuration? All' +
+                                  'the default configuration? All' +
                                   ' filters, column sizing, and column order '+
                                   'will be lost.',
                                 buttons: Ext.Msg.OKCANCEL,
