@@ -47,31 +47,6 @@ class ZenRestore(ZenBackupBase):
         """basic options setup sub classes can add more options here"""
         ZenBackupBase.buildOptions(self)
 
-        self.parser.add_option('--dbname',
-                               dest='dbname',
-                               default=None,
-                               help='MySQL events database name.  Defaults'
-                                    ' to value saved with backup or "events".')
-        self.parser.add_option('--dbuser',
-                               dest='dbuser',
-                               default=None,
-                               help='MySQL username.  Defaults'
-                                    ' to value saved with backup or "zenoss".')
-        self.parser.add_option('--dbpass',
-                               dest='dbpass',
-                               default=None,
-                               help='MySQL password. Defaults'
-                                    ' to value saved with backup.')
-        self.parser.add_option('--dbhost',
-                               dest='dbhost',
-                               default='localhost',
-                               help='MySQL server host.'
-                                ' Defaults to value saved with backup.'),
-        self.parser.add_option('--dbport',
-                               dest='dbport',
-                               default='3306',
-                               help='MySQL server port number.'
-                                ' Defaults to value saved with backup.'),
         self.parser.add_option('--file',
                                dest="file",
                                default=None,
@@ -121,13 +96,6 @@ class ZenRestore(ZenBackupBase):
             config.readfp(f)
         finally:
             f.close()
-        for key, default, zemAttr in CONFIG_FIELDS:
-            if getattr(self.options, key, None) == None:
-                if config.has_option(CONFIG_SECTION, key):
-                    setattr(self.options, key, config.get(CONFIG_SECTION, key))
-                else:
-                    setattr(self.options, key, default)
-
 
     def restoreMySqlDb(self, host, port, db, user, passwd, sqlFile):
         """
@@ -151,20 +119,6 @@ class ZenRestore(ZenBackupBase):
         os.system(cmd)
 
 
-    def restoreEventsDatabase(self):
-        """
-        Restore the MySQL events database
-        """
-        eventsSql = os.path.join(self.tempDir, 'events.sql')
-        if not os.path.isfile(eventsSql):
-            self.msg('This backup does not contain an events database backup.')
-            return
-
-        self.msg('Restoring events database.')
-        self.restoreMySqlDb(self.options.dbhost, self.options.dbport,
-                            self.options.dbname, self.options.dbuser,
-                            self.getPassArg('dbpass'), eventsSql)
-    
     def restoreZEP(self):
         '''
         Restore ZEP DB and indexes
@@ -339,10 +293,6 @@ class ZenRestore(ZenBackupBase):
 
         # Maybe use values from backup file as defaults for self.options.
         self.getSettings()
-        if not self.options.dbname:
-            self.options.dbname = 'events'
-        if not self.options.dbuser:
-            self.options.dbuser = 'zenoss'
 
         if self.options.zenpacks and not self.hasZODBBackup():
             sys.stderr.write('Archive does not contain ZODB backup; cannot'
@@ -378,7 +328,6 @@ class ZenRestore(ZenBackupBase):
         if self.options.noEventsDb:
             self.msg('Skipping the events database.')
         else:
-            self.restoreEventsDatabase()
             self.restoreZEP()
 
         # clean up

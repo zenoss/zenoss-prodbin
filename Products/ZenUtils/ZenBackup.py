@@ -66,20 +66,6 @@ class ZenBackup(ZenBackupBase):
             return False
         return output.startswith('Elapsed time:')
 
-
-    def readSettingsFromZODB(self):
-        '''
-        Store the dbname, dbuser, dbpass from saved settings in the Event
-        Manager (ie ZODB) to the 'options' parsed object.
-        '''
-        sys.argv = self.argv
-        zcmd = ZCmdBase(noopts=True)
-        zem = zcmd.dmd.ZenEventManager
-        for key, default, zemAttr in CONFIG_FIELDS:
-            if not getattr(self.options, key, None):
-                setattr(self.options, key,
-                            str(getattr(zem, zemAttr, None)) or default)
-    
     def readZEPSettings(self):
         '''
         Read in and store the ZEP DB configuration options from
@@ -104,12 +90,6 @@ class ZenBackup(ZenBackupBase):
         '''
         config = ConfigParser.SafeConfigParser()
         config.add_section(CONFIG_SECTION)
-        config.set(CONFIG_SECTION, 'dbname', self.options.dbname)
-        config.set(CONFIG_SECTION, 'dbuser', self.options.dbuser)
-        if self.options.dbpass != None:
-            config.set(CONFIG_SECTION, 'dbpass', self.options.dbpass)
-        config.set(CONFIG_SECTION, 'dbhost', self.options.dbhost)
-        config.set(CONFIG_SECTION, 'dbport', self.options.dbport)
 
         config.set(CONFIG_SECTION, 'host', self.options.host)
         config.set(CONFIG_SECTION, 'port', self.options.port)
@@ -171,36 +151,6 @@ class ZenBackup(ZenBackupBase):
         # pychecker can't handle strings made of multiple tokens
         __pychecker__ = 'no-noeffect no-constCond'
         ZenBackupBase.buildOptions(self)
-        self.parser.add_option('--dbname',
-                               dest='dbname',
-                               default=None,
-                               help='MySQL events database name.'
-                                ' By default this will be fetched from Zenoss'
-                                ' unless --dont-fetch-args is set.'),
-        self.parser.add_option('--dbuser',
-                               dest='dbuser',
-                               default=None,
-                               help='MySQL username.'
-                                ' By default this will be fetched from Zenoss'
-                                ' unless --dont-fetch-args is set.'),
-        self.parser.add_option('--dbpass',
-                               dest='dbpass',
-                               default=None,
-                               help='MySQL password.'
-                                ' By default this will be fetched from Zenoss'
-                                ' unless --dont-fetch-args is set.'),
-        self.parser.add_option('--dbhost',
-                               dest='dbhost',
-                               default='localhost',
-                               help='MySQL server host.'
-                                ' By default this will be fetched from Zenoss'
-                                ' unless --dont-fetch-args is set.'),
-        self.parser.add_option('--dbport',
-                               dest='dbport',
-                               default='3306',
-                               help='MySQL server port number.'
-                                ' By default this will be fetched from Zenoss'
-                                ' unless --dont-fetch-args is set.'),
         self.parser.add_option('--dont-fetch-args',
                                 dest='fetchArgs',
                                 default=True,
@@ -255,50 +205,6 @@ class ZenBackup(ZenBackupBase):
                         help='Logging severity threshold')
 
 
-    def backupEventsDatabase(self):
-        """
-        Backup the MySQL events database
-        """
-        partBeginTime = time.time()
-
-        # Setup defaults for db info
-        if self.options.fetchArgs and not self.options.noEventsDb:
-            self.log.info('Getting MySQL dbname, user, password from ZODB.')
-            self.readSettingsFromZODB()
-
-        if not self.options.dbname:
-            self.options.dbname = 'events'
-        if not self.options.dbuser:
-            self.options.dbuser = 'zenoss'
-        # A passwd of '' might be valid.  A passwd of None is interpreted
-        # as no password.
-
-        # Save options to a file for use during restore
-        if self.options.saveSettings:
-            self.saveSettings()
-
-        self.log.info('Backing up events database.')
-        cmd_p1 = ['mysqldump', '-u%s' % self.options.dbuser]
-        cmd_p2 = ["--single-transaction", '--routines', self.options.dbname,
-                  '--result-file=' + os.path.join(self.tempDir, 'events.sql') ]
-        if self.options.dbhost and self.options.dbhost != 'localhost':
-            cmd_p2.append( '-h %s' % self.options.dbhost)
-        if self.options.dbport and self.options.dbport != '3306':
-            cmd_p2.append( '--port=%s' % self.options.dbport)
-
-        cmd = cmd_p1 + self.getPassArg('dbpass') + cmd_p2
-        obfuscated_cmd = cmd_p1 + ['*' * 8] + cmd_p2
-
-        (output, warnings, returncode) = self.runCommand(cmd, obfuscated_cmd)
-        if returncode:
-            self.log.info("Backup terminated abnormally.")
-            return -1
-
-        partEndTime = time.time()
-        subtotalTime = readable_time(partEndTime - partBeginTime)
-        self.log.info("Backup of events database completed in %s.",
-                          subtotalTime)
-    
     def backupZEP(self):
         '''
         Backup ZEP
@@ -475,7 +381,6 @@ class ZenBackup(ZenBackupBase):
         if self.options.noEventsDb:
             self.log.info('Skipping backup of events database.')
         else:
-            self.backupEventsDatabase()
             self.backupZEP()
 
         if self.options.noZopeDb:

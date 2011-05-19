@@ -26,14 +26,6 @@ from CmdBase import CmdBase
 BACKUP_DIR = 'zenbackup'
 CONFIG_FILE = 'backup.settings'
 CONFIG_SECTION = 'zenbackup'
-                      # cmd-line flag, default, zem attribute
-CONFIG_FIELDS = (   ('dbname', 'events', 'database'),
-                    ('dbuser', 'root', 'username'),
-                    ('dbpass', '', 'password'),
-                    ('dbhost', 'localhost', 'host'),
-                    ('dbport', '3306', 'port'),
-                    )
-
 
 class ZenBackupBase(CmdBase):
     doesLogging = False
