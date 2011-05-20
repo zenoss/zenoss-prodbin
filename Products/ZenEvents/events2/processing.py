@@ -421,6 +421,8 @@ class AddDeviceContextAndTagsPipe(EventProcessorPipe):
             evtproxy.details[proxydetailkey] = detailOrgnames
 
     def _addDeviceContext(self, eventContext, device):
+        eventContext.event.actor.element_identifier = device.id
+
         evtproxy = eventContext.eventProxy
         ipAddress = evtproxy.ipAddress or device.manageIp
         if ipAddress:

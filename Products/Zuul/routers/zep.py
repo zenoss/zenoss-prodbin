@@ -189,13 +189,13 @@ class EventsRouter(DirectRouter):
             'eventState' : EventStatus.getPrettyName(event_summary['status']),
             'severity' : eventOccurrence['severity'],
             'device' : {
-                'text': self._getNameFromUuid(eventActor.get('element_uuid')) or eventActor.get('element_identifier'),
+                'text': eventActor.get('element_identifier'),
                 'uid': self._getPathFromUuid(eventActor.get('element_uuid')),
                 'url' : self._uuidUrl(eventActor.get('element_uuid')),
                 'uuid' : eventActor.get('element_uuid')
             },
             'component' : {
-                'text': self._getNameFromUuid(eventActor.get('element_sub_uuid')) or eventActor.get('element_sub_identifier'),
+                'text': eventActor.get('element_sub_identifier'),
                 'uid': self._getPathFromUuid(eventActor.get('element_sub_uuid')),
                 'url' : self._uuidUrl(eventActor.get('element_sub_uuid')),
                 'uuid' : eventActor.get('element_sub_uuid')
@@ -497,12 +497,12 @@ class EventsRouter(DirectRouter):
         # TODO: Update this mapping to more reflect _mapToOldEvent.
         eventData = {
             'evid':event_summary['uuid'],
-            'device': self._getNameFromUuid(eventActor.get('element_uuid')) or eventActor.get('element_identifier'),
+            'device': eventActor.get('element_identifier'),
             'device_title': self._getNameFromUuid(eventActor.get('element_uuid')) or eventActor.get('element_identifier'),
             'device_url':self._uuidUrl(eventActor.get('element_uuid')),
             'ipAddress': eventDetails.get('zenoss.device.ip_address'),
             'device_uuid':eventActor.get('element_uuid'),
-            'component':self._getNameFromUuid(eventActor.get('element_sub_uuid')) or eventActor.get('element_sub_identifier'),
+            'component': eventActor.get('element_sub_identifier'),
             'component_title':self._getNameFromUuid(eventActor.get('element_sub_uuid')) or eventActor.get('element_sub_identifier'),
             'component_url':self._uuidUrl(eventActor.get('element_sub_uuid')),
             'component_uuid':eventActor.get('element_sub_uuid'),
