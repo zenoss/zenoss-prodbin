@@ -50,6 +50,8 @@ class IpAddressProxy(pb.Copyable, pb.RemoteCopy):
             # Don't need the datapoints to get the IP monitored
             return
 
+        log.debug("Using the %s template settings for IP %s",
+                  ds.rrdTemplate().getPrimaryUrlPath(), self.ip)
         for dp in ds.getRRDDataPoints():
             ipdData = (dp.id,
                        "/".join((basepath, dp.name())),
