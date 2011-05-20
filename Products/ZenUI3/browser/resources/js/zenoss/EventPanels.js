@@ -275,10 +275,66 @@
             var gridId = config.gridId,
                 showActions = true,
                 showCommands = true,
+                configureMenuItems,
                 tbarItems = config.tbarItems || [];
 
             if (!gridId) {
                 throw ("Event console tool bar did not receive a grid id");
+            }
+
+            configureMenuItems = [{
+                id: 'rowcolors_checkitem',
+                xtype: 'menucheckitem',
+                text: 'Show severity row colors',
+                handler: function(checkitem) {
+                    var checked = !checkitem.checked;
+                    var view = Ext.getCmp(gridId).getView();
+                    view.toggleRowColors(checked);
+                }
+            },{
+                id: 'clearfilters',
+                text: 'Clear filters',
+                listeners: {
+                    click: function(){
+                        Ext.getCmp(gridId).clearFilters();
+                    }
+                }
+            },{
+                text: "Restore defaults",
+                handler: function(){
+                    Ext.Msg.show({
+                        title: 'Confirm Restore',
+                        msg: 'Are you sure you want to restore '
+                            + 'the default configuration? All'
+                            + ' filters, column sizing, and column order '
+                            + 'will be lost.',
+                        buttons: Ext.Msg.OKCANCEL,
+                        fn: function(val){
+                            if (val=='ok')
+                                Ext.getCmp(gridId).resetGrid();
+                        }
+                    });
+                }
+            }];
+
+            if (/^\/zport\/dmd\/Events/.test(window.location.pathname)) {
+                configureMenuItems.splice(2, 0, {
+                    text: 'Save this configuration...',
+                    handler: function(){
+                        var grid = Ext.getCmp(gridId),
+                        link = grid.getPermalink();
+                        Ext.Msg.show({
+                            title: 'Save Configuration',
+                            msg: '<div class="dialog-link">'
+                                + 'Drag this link to your bookmark bar '
+                                + '<br/>to return to this configuration later.'
+                                + '<br/><br/><a href="'
+                                + link
+                                + '">Resource Manager: Events</a></div>',
+                            buttons: Ext.Msg.OK
+                        });
+                    }
+                });
             }
 
             // actions
@@ -555,58 +611,7 @@
                         id: 'configure-button',
                         //iconCls: 'customize',
                         menu: {
-                            items: [
-                                {
-                                    id: 'rowcolors_checkitem',
-                                    xtype: 'menucheckitem',
-                                    text: 'Show severity row colors',
-                                    handler: function(checkitem) {
-                                        var checked = !checkitem.checked;
-                                        var view = Ext.getCmp(gridId).getView();
-                                        view.toggleRowColors(checked);
-                                    }
-                                },{
-                                    id: 'clearfilters',
-                                    text: 'Clear filters',
-                                    listeners: {
-                                        click: function(){
-                                            Ext.getCmp(gridId).clearFilters();
-                                        }
-                                    }
-                                },{
-                                    text: 'Save this configuration...',
-                                    handler: function(){
-                                        var grid = Ext.getCmp(gridId),
-                                        link = grid.getPermalink();
-                                        Ext.Msg.show({
-                                            title: 'Save Configuration',
-                                            msg: '<div class="dialog-link">'
-                                                + 'Drag this link to your bookmark bar '
-                                                + '<br/>to return to this configuration later.'
-                                                + '<br/><br/><a href="'
-                                                + link
-                                                + '">Resource Manager: Events</a></div>',
-                                            buttons: Ext.Msg.OK
-                                        });
-                                    }
-                                },{
-                                    text: "Restore defaults",
-                                    handler: function(){
-                                        Ext.Msg.show({
-                                            title: 'Confirm Restore',
-                                            msg: 'Are you sure you want to restore '+
-                                                'the default configuration? All' +
-                                                ' filters, column sizing, and column order '+
-                                                'will be lost.',
-                                            buttons: Ext.Msg.OKCANCEL,
-                                            fn: function(val){
-                                                if (val=='ok')
-                                                    Ext.getCmp(gridId).resetGrid();
-                                            }
-                                        });
-                                    }
-                                }
-                            ]
+                            items: configureMenuItems
                         }
                     },{
                         xtype: 'tbfill'
