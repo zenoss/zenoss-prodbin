@@ -28,10 +28,10 @@ class PingDataSource(RRDDataSource.RRDDataSource):
     sourcetypes = (PING,)
     sourcetype = PING
 
-    timeout = 60
+    timeout = 2
     eventClass = '/Status/Ping'
         
-    cycleTime = 300
+    cycleTime = 60
     sampleSize = 1
     attempts = 2
 
