@@ -12,6 +12,8 @@
 ###########################################################################
 
 import logging
+from zExceptions import BadRequest
+
 log = logging.getLogger('zen.test_triggersFacade')
 
 import unittest
@@ -61,6 +63,17 @@ mock_zep_trigger_c = _triggerFactory(
     mock_zodb_trigger_c.id
 )
 
+# duplicate id as mock_zodb_trigger_c
+mock_zep_trigger_d = _triggerFactory(
+    str(uuid4()),
+    mock_zodb_trigger_c.id
+)
+
+# duplicate id as mock_zodb_trigger_c
+mock_zep_trigger_e = _triggerFactory(
+    str(uuid4()),
+    mock_zodb_trigger_c.id
+)
 
 # This notification starts subscribed to all three triggers and will
 # be used in testing the syncronization of removing a trigger and
@@ -109,6 +122,8 @@ class MockTriggerManager(object):
         return self.triggers.values()
 
     def _setObject(self, id, trigger):
+        if id in self.triggers:
+            raise BadRequest('Duplicate id.')
         self.triggers[id] = trigger
 
     def findChild(self, id):
@@ -117,14 +132,14 @@ class MockTriggerManager(object):
 
 class MockTriggersService(object):
     def __init__(self):
-        self.triggers = [
-            mock_zep_trigger_a,
-            mock_zep_trigger_b,
-            mock_zep_trigger_c
-        ]
+        self.triggers = {
+            mock_zep_trigger_a['uuid'] : mock_zep_trigger_a,
+            mock_zep_trigger_b['uuid'] : mock_zep_trigger_b,
+            mock_zep_trigger_c['uuid'] : mock_zep_trigger_c
+        }
 
     def getTriggers(self):
-        trigger_set_data = {'triggers':self.triggers}
+        trigger_set_data = {'triggers':self.triggers.values()}
         trigger_set = from_dict(zep.EventTriggerSet, trigger_set_data)
         return None, trigger_set
 
@@ -134,7 +149,11 @@ class MockTriggersFacade(TriggersFacade):
         self.triggers_service = trigger_service
         self._trigger_manager = trigger_manager
         self._notification_manager = notification_manager
-        
+
+    def _removeTriggerFromZep(self, uuid):
+        if uuid in self.triggers_service.triggers:
+            del self.triggers_service.triggers[uuid]
+
     def _removeNode(self, obj):
         if isinstance(obj, Trigger):
             del self._trigger_manager.triggers[obj.id]
@@ -243,8 +262,22 @@ class TriggersFacadeTest(BaseTestCase):
     def testSynchronizeFromZep(self):
 
         # Simulate a bad state by manually removing a zep trigger.
-        del self.trigger_service.triggers[2]
+        self.facade._removeTriggerFromZep(mock_zep_trigger_c['uuid'])
 
+        # Verify that zodb is out of sync after deleting zep trigger.
+        self.assertFalse(self._are_in_sync(),
+            'ZEP/ZODB triggers are in sync when they should not be.')
+
+        # Synchronize and verify that things corrected themselves.
+        self._check()
+
+
+    def testSynchronizeExtrasFromZep(self):
+        
+        # simulate a bad state by manually adding some duplicates to zep
+        self.trigger_service.triggers[mock_zep_trigger_d['uuid']] = mock_zep_trigger_d
+        self.trigger_service.triggers[mock_zep_trigger_e['uuid']] = mock_zep_trigger_e
+        
         # Verify that zodb is out of sync after deleting zep trigger.
         self.assertFalse(self._are_in_sync(),
             'ZEP/ZODB triggers are in sync when they should not be.')

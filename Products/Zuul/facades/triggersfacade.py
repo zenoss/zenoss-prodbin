@@ -17,6 +17,7 @@ import logging
 import uuid
 import parser
 from Acquisition import aq_parent
+from zExceptions import BadRequest
 from zope.component import getUtility, queryUtility
 from zope.component.interfaces import ComponentLookupError
 from zope.interface import implements, providedBy
@@ -63,6 +64,14 @@ class TriggersFacade(ZuulFacade):
         """
         context = aq_parent(obj)
         return context._delObject(obj.id)
+
+    def _removeTriggerFromZep(self, uuid):
+        """
+        Remove a trigger from ZEP.
+
+        This method was created to provide a hook for unit tests.
+        """
+        return self.triggers_service.removeTrigger(uuid)
 
     def removeNode(self, uid):
         obj = self._getObject(uid)
@@ -120,19 +129,31 @@ class TriggersFacade(ZuulFacade):
         # create all triggers in zodb that do not exist in zep.
         for t in trigger_set.triggers:
             if not t.uuid in zodb_uuids:
-                log.info('SYNC: Found trigger in zep that does not exist in zodb, creating: %s' % t.name)
+                log.info('SYNC: Found trigger uuid in zep that does not seem to exist in zodb, creating: %s' % t.name)
                 triggerObject = Trigger(str(t.name))
 
-                self._getTriggerManager()._setObject(triggerObject.id, triggerObject)
+                try:
+                    self._getTriggerManager()._setObject(triggerObject.id, triggerObject)
+                    
+                except BadRequest:
+                    # looks like the id already exists, remove this specific
+                    # trigger from zep. This can happen if multiple createTrigger
+                    # requests are sent from the browser at once - the transaction
+                    # will not abort until after the requests to create a trigger
+                    # have already been sent to zep.
+                    # See https://dev.zenoss.com/tracint/ticket/28272
+                    log.info('SYNC: Found trigger with duplicate id in zodb, deleting from zep: %s (%s)' % (triggerObject.id, t.uuid))
+                    self._removeTriggerFromZep(t.uuid)
 
-                # setting a guid fires off events, we have to acquire the object
-                # before we adapt it, otherwise adapters responding to the event
-                # will get the 'regular' Trigger object and not be able to handle
-                # it.
-                self._setTriggerGuid(self._getTriggerManager().findChild(triggerObject.id), str(t.uuid))
+                else:
+                    # setting a guid fires off events, we have to acquire the object
+                    # before we adapt it, otherwise adapters responding to the event
+                    # will get the 'regular' Trigger object and not be able to handle
+                    # it.
+                    self._setTriggerGuid(self._getTriggerManager().findChild(triggerObject.id), str(t.uuid))
 
-                self._setupTriggerPermissions(self._getTriggerManager().findChild(t.name))
-        
+                    self._setupTriggerPermissions(self._getTriggerManager().findChild(t.name))
+
         # sync notifications
         for n in self._getNotificationManager().getChildNodes():
             is_changed = False
@@ -235,7 +256,7 @@ class TriggersFacade(ZuulFacade):
             # that the current user cannot read/edit.
 
             # if there was an error, the triggers service will throw an exception
-            self.triggers_service.removeTrigger(uuid)
+            self._removeTriggerFromZep(uuid)
             
             context = aq_parent(trigger)
             context._delObject(trigger.id)
