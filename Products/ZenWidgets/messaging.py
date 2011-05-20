@@ -240,7 +240,7 @@ class ScriptMessageSender(MessageSender):
     sendToUser, since they don't really apply. sendToAll should still work fine
     though.
     """
-    def sendToBrowser(self, title, body, priority=INFO, image=None):
+    def sendToBrowser(self, title, body, priority=INFO, image=None, sticky=None):
         pass
     def sendToUser(self, title, body, priority=INFO, image=None, user=None):
         pass

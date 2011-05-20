@@ -17,6 +17,7 @@ if __name__ == '__main__':
 import re
 import zlib
 from base64 import urlsafe_b64decode
+from urllib import unquote
 
 from ZenModelBaseTest import ZenModelBaseTest
 from Products.ZenModel.RRDTemplate import manage_addRRDTemplate
@@ -60,10 +61,10 @@ class TestGraphDefinition(ZenModelBaseTest):
         graph.graphPoints.defaultLegend.legend = '${graphPoint/id}'
         graph.graphPoints.blankLegend.legend = ''
         graph.graphPoints.talesLegend.legend = '${here/id}'
-        
+
         graphUrl = device.getDefaultGraphDefs()[0]['url']
         gopts = re.search('gopts=([^&]+)', graphUrl).groups()[0]
-        gopts = zlib.decompress(urlsafe_b64decode(gopts))
+        gopts = zlib.decompress(urlsafe_b64decode(unquote(gopts)))
         self.assertTrue('defaultLegend' in gopts)
         self.assertTrue('dpname greater than 10' in gopts)
         self.assertTrue('testdevice' in gopts)

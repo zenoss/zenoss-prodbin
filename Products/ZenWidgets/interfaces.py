@@ -41,16 +41,16 @@ class IMessageSender(Interface):
     """
     Something able to send messages.
     """
-    def sendToBrowser(title, body, priority, image):
+    def sendToBrowser(title, body, priority, image=None, sticky=None):
         """
         Create a message and store it on the request object.
         """
-    def sendToUser(title, body, priority, image, user):
+    def sendToUser(title, body, priority, image=None, user=None):
         """
         Create a message and store it in the L{IMessageQueue} of the user
         specified. If no user is specified, use the queue of the current user.
         """
-    def sendToAll(title, body, priority, image):
+    def sendToAll(title, body, priority, image=None):
         """
         For eash user in the system, create an identical message and store it
         in the user's L{IMessageQueue}.
