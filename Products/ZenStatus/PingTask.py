@@ -264,7 +264,7 @@ class PingCollectionTask(BaseTask):
         Called by the collector framework scheduler, and allows us to
         see how each task is doing.
         """
-        display = '\t'.join([self.name, self._lastStatus])
+        display = '\t'.join([self.name, str(self.interval), self._lastStatus])
         if self._lastErrorMsg:
             display += "\n%s\n" % self._lastErrorMsg
         return display
