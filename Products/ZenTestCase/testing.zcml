@@ -15,6 +15,7 @@
   <include package="Products.Zuul"/>
   <include package="Products.ZenUtils.guid"/>
   <include package="Products.ZenMessaging.queuemessaging"/>
+  <include package="Products.ZenHub"/>
   
   
 
