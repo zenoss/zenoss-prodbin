@@ -77,7 +77,7 @@ class NetworkRouter(TreeRouter):
             try:
                 netip, netmask = newSubnet.split('/')
                 netmask = int(netmask)
-                foundSubnet = self.api.findSubnet(netip, netmask, '/zport/dmd/Networks')
+                foundSubnet = self.api.findSubnet(netip, netmask, contextUid)
 
                 if foundSubnet is not None:
                     response = DirectResponse.fail('Did not add duplicate subnet: %s (%s/%s)' %
