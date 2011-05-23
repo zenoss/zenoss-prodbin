@@ -608,7 +608,7 @@ Ext.onReady(function () {
                 autoLoad: true,
                 idProperty: 'id',
                 fields: [
-                    'id', 'name',
+                    'id', 'name'
                 ]
             },
             name:'action',
@@ -1314,6 +1314,11 @@ Ext.onReady(function () {
         ref: '../../tab_content',
         height: bigWindowHeight-110,
         autoScroll: true,
+        width: bigWindowWidth+225,
+
+        // make firefox draw correctly.
+        minWidth: bigWindowWidth+225,
+        boxMinWidth: bigWindowWidth+225,
         layout: 'form',
         title: 'Trigger',
         padding: 10,

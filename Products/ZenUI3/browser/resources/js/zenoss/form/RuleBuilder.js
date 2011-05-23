@@ -65,6 +65,14 @@
         }
     }
 
+    
+    /*
+     *  The order of the comparisons in the following object matters. The
+     *  templates are used to create regular expressions where the {#} substitutions
+     *  get replaced with '(.*)'. When loading a clause, the following object
+     *  is iterated over and the first matching regular expression gets used to
+     *  parse the clause.
+     */
     ZF.COMPARISONS = {
         doesnotcontain: {
             text: _t('does not contain'),
@@ -99,29 +107,24 @@
             tpl: '{0} != {1}'
         },
         lessthan: {
-            text: _t('less than'),
+            text: _t('is less than'),
             tpl: '{0} < {1}',
             field: {xtype: 'numberfield'}
         },
         greaterthan: {
-            text: _t('greater than'),
+            text: _t('is greater than'),
             tpl: '{0} > {1}',
             field: {xtype: 'numberfield'}
         },
         lessthanorequalto: {
-            text: _t('less than or equal to'),
+            text: _t('is less than or equal to'),
             tpl: '{0} <= {1}',
             field: {xtype: 'numberfield'}
         },
         greaterthanorequalto: {
-            text: _t('greater than or equal to'),
+            text: _t('is greater than or equal to'),
             tpl: '{0} >= {1}',
             field: {xtype: 'numberfield'}
-        /*},
-        between: {
-            text: _t('between'),
-            tpl: '{1} <= {0} <= {2}'
-        */
         }
     };
     ZF.COMPARISON_STORE = [];
@@ -204,6 +207,7 @@
                             this.remove(this.predicate);
                             this.insert(idx, Ext.apply({
                                 ref: 'predicate',
+                                allowBlank: false,
                                 listeners: {
                                     valid: function() {
                                         this.getBuilder().fireEvent(
@@ -545,12 +549,12 @@
     Ext.reg('rulebuilder', ZF.RuleBuilder);
 
     ZF.STRINGCOMPARISONS = [
-        'doesnotcontain',
-        'doesnotstartwith',
-        'doesnotendwith',
         'contains',
+        'doesnotcontain',
         'startswith',
+        'doesnotstartwith',
         'endswith',
+        'doesnotendwith',
         'equals',
         'doesnotequal'
     ];
@@ -570,8 +574,8 @@
     ];
 
     ZF.LISTCOMPARISONS = [
-        'doesnotcontain',
-        'contains'
+        'contains',
+        'doesnotcontain'
     ];
 
     var smarterSetValue = function(val) {
