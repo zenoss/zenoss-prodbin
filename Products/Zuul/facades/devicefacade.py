@@ -113,7 +113,7 @@ class DeviceFacade(TreeFacade):
                         minip, maxip = getSubnetBounds(ip)
                         qs.append(Between('ipAddressAsInt', str(minip), str(maxip)))
             elif key == 'deviceClass':
-                qs.append(MatchRegexp('path', '.*%s.*' %
+                qs.append(MatchRegexp('getDeviceClassPath', '.*%s.*' %
                                       params['deviceClass']))
             elif key == 'productionState':
                 qs.append(Or(*[Eq('getProdState', self.context.convertProdState(state))
