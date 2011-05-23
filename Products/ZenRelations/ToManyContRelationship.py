@@ -113,7 +113,7 @@ class ToManyContRelationship(ToManyRelationshipBase):
     def addRelation(self, obj):
         """Override base to run manage_afterAdd like ObjectManager"""
         if self._objects.has_key(obj.getId()):
-            log.warn("obj %s already exists on %s", obj.getPrimaryId(),
+            log.debug("obj %s already exists on %s", obj.getPrimaryId(),
                         self.getPrimaryId())
 
         notify(ObjectWillBeAddedEvent(obj, self, obj.getId()))
