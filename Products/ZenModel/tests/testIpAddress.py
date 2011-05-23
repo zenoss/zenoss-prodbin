@@ -17,7 +17,8 @@ if __name__ == '__main__':
 import logging
 
 from Products.ZenModel.IpInterface import IpInterface
-
+from Products.Zuul.tree import PermissionedCatalogTool
+from Products.AdvancedQuery import Eq
 from ZenModelBaseTest import ZenModelBaseTest
 
 
@@ -43,11 +44,22 @@ class TestIpAddress(ZenModelBaseTest):
         self.assert_(self.addr.getInterfaceName() == self.addr.interface().name())
         self.assert_(self.addr.getDeviceUrl() == '/zport/dmd/Devices/devices/testdev')
         self.assert_(self.addr.device() == self.dev)
-    
-    
+
+
     def testSetNetmask(self):
         self.addr.setNetmask(8)
         self.assert_(self.addr.getIpAddress() == '1.2.3.4/8')
+
+    def testIpAddressCatalog(self):
+        """
+        Makes sure that when we add an ip address to the interface we
+        can find the ip address from the catalog by searching for the device name
+        """
+        deviceid = "testdev"
+        cat = PermissionedCatalogTool(self.dmd.Networks, self.dmd.Networks.ipSearch)
+
+        results = cat.search(query=Eq('getDeviceName', deviceid))
+        self.assertEqual(results.total, 1)
 
 
 #    def testSetIpAddress(self):

@@ -193,6 +193,9 @@ class IpInterface(OSComponent, Layer2Linkable):
         """
         self.unindex_links()
         super(IpInterface, self).unindex_object()
+        # index our ip addresses if necessary
+        for ip in self.ipaddresses():
+            ip.index_object()
 
     def manage_deleteComponent(self, REQUEST=None):
         """
@@ -258,7 +261,7 @@ class IpInterface(OSComponent, Layer2Linkable):
         else:
             ipobj = networks.createIp(ip, netmask)
             self.ipaddresses.addRelation(ipobj)
-        ipobj.index_links()
+        ipobj.index_object()
         os = self.os()
         notify(ObjectMovedEvent(self, os, self.id, os, self.id))
 
@@ -317,7 +320,7 @@ class IpInterface(OSComponent, Layer2Linkable):
         for ip in ipids:
             ipobj = self.ipaddresses._getOb(ip)
             self.removeRelation('ipaddresses', ipobj)
-            ipobj.index_links()
+            ipobj.index_object()
         for ip in localips:
             self._ipAddresses.remove(ip)
 
@@ -329,7 +332,7 @@ class IpInterface(OSComponent, Layer2Linkable):
         for ipobj in self.ipaddresses():
             if ipobj.id == ip:
                 self.ipaddresses.removeRelation(ipobj)
-                ipobj.index_links()
+                ipobj.index_object()
                 return
 
 
