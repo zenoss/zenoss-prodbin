@@ -15,29 +15,26 @@ import Globals
 from email.MIMEText import MIMEText
 from email.MIMEMultipart import MIMEMultipart
 from email.Utils import formatdate
-from pynetsnmp import netsnmp
 from twisted.internet import reactor, defer
 
 from zenoss.protocols.protobufs.zep_pb2 import Signal
-from zenoss.protocols.jsonformat import to_dict
 from zenoss.protocols.amqpconfig import getAMQPConfiguration
 
 from Products.ZenCollector.utils.maintenance import MaintenanceCycle, maintenanceBuildOptions, QueueHeartbeatSender
 from Products.ZenCollector.utils.workers import ProcessWorkers, workersBuildOptions, exec_worker
 
-from Products.ZenUtils import Utils
 from Products.ZenUtils.ZCmdBase import ZCmdBase
-from Products.ZenUtils.ProcessQueue import ProcessQueue
+from Products.ZenUtils.Utils import getDefaultZopeUrl
 from Products.ZenUtils.guid.interfaces import IGlobalIdentifier
 
-from Products.ZenModel.NotificationSubscription import NotificationSubscriptionManager, NotificationEventContextWrapper
+from Products.ZenModel.NotificationSubscription import NotificationSubscriptionManager
 from Products.ZenModel.actions import ActionMissingException, ActionExecutionException
 from Products.ZenModel.interfaces import IAction
 
 from Products.ZenMessaging.queuemessaging.QueueConsumer import QueueConsumer
 from Products.ZenMessaging.queuemessaging.interfaces import IQueueConsumerTask
 
-from zope.component import getUtility
+from zope.component import getUtility, getUtilitiesFor
 from zope.component.interfaces import ComponentLookupError
 from zope.interface import implements
 
@@ -167,29 +164,38 @@ class ProcessSignalTask(object):
 
 class ZenActionD(ZCmdBase):
     def __init__(self):
-            super(ZenActionD, self).__init__()
-            self._consumer = None
-            self._workers = ProcessWorkers(self.options.workers - 1,
-                                           exec_worker,
-                                           "zenactiond worker")
-            self._heartbeatSender = QueueHeartbeatSender('localhost',
-                                                     'zenactiond',
-                                                     self.options.maintenancecycle *3)
+        super(ZenActionD, self).__init__()
+        self._consumer = None
+        self._workers = ProcessWorkers(self.options.workers - 1,
+                                       exec_worker,
+                                       "zenactiond worker")
+        self._heartbeatSender = QueueHeartbeatSender('localhost',
+                                                 'zenactiond',
+                                                 self.options.maintenancecycle *3)
 
-            self._maintenanceCycle = MaintenanceCycle(self.options.maintenancecycle,
-                                                      self._heartbeatSender)
+        self._maintenanceCycle = MaintenanceCycle(self.options.maintenancecycle,
+                                                  self._heartbeatSender)
+
     def buildOptions(self):
         super(ZenActionD, self).buildOptions()
         maintenanceBuildOptions(self.parser)
         workersBuildOptions(self.parser, 1)
 
-        # TODO: Make this actually work
-        self.parser.add_option('--maxcommands',
-                               dest="maxCommands", type="int", default=10,
-                               help='Max number of action commands to perform concurrently')
+        default_max_commands = 10
+        self.parser.add_option('--maxcommands', dest="maxCommands", type="int", default=default_max_commands,
+                               help='Max number of action commands to perform concurrently (default: %d)' % \
+                                    default_max_commands)
+        default_url = getDefaultZopeUrl()
+        self.parser.add_option('--zopeurl', dest='zopeurl', default=default_url,
+                               help="http path to the root of the zope server (default: %s)" % default_url)
 
 
     def run(self):
+        # Configure all actions with the command-line options
+        options_dict = dict(vars(self.options))
+        for name, action in getUtilitiesFor(IAction):
+            action.configure(options_dict)
+
         task = ProcessSignalTask(NotificationDao(self.dmd))
 
         if self.options.daemon:

@@ -13,6 +13,7 @@
 from Globals import *
 import socket
 from Products.ZenUtils.ZCmdBase import ZCmdBase
+from Products.ZenUtils.Utils import getDefaultZopeUrl
 from Products.ZenEvents import Event
 from twisted.internet import reactor
 
@@ -70,7 +71,7 @@ class CyclingDaemon(ZCmdBase):
             help="check events every cycletime seconds")
         self.parser.add_option(
             '--zopeurl', dest='zopeurl',
-            default='http://%s:%d' % (socket.getfqdn(), 8080),
+            default=getDefaultZopeUrl(),
             help="http path to the root of the zope server")
         self.parser.add_option("--monitor", dest="monitor",
             default=DEFAULT_MONITOR,

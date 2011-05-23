@@ -67,6 +67,13 @@ class IAction(Interface):
     name = Attribute("The human-friendly name of this action.")
     actionContentInfo = Attribute("The class that adapts a notification to an "
                                   "IInfo object for this class.")
+
+    def configure(options):
+        """
+        @param options: Options to configure the specified action.
+        @type  options: Dictionary.
+        """
+        pass
     
     def execute(notification, signal):
         """

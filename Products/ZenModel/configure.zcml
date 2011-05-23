@@ -30,7 +30,7 @@
         />
 
     <utility
-        factory=".actions.commandFactory"
+        factory=".actions.CommandAction"
         provides=".interfaces.IAction"
         name="command"
         />

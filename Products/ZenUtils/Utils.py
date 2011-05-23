@@ -1613,3 +1613,8 @@ def get_temp_dir():
     finally:
         shutil.rmtree(dirname)
 
+def getDefaultZopeUrl():
+    """
+    Returns the default Zope URL.
+    """
+    return 'http://%s:%d' % (socket.getfqdn(), 8080)

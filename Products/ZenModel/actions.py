@@ -12,10 +12,11 @@
 ###########################################################################
 
 import re
-import socket
 
 from zope.interface import implements
 from zope.component import getUtilitiesFor
+
+from pynetsnmp import netsnmp
 
 from twisted.internet.protocol import ProcessProtocol
 
@@ -24,14 +25,12 @@ from email.MIMEMultipart import MIMEMultipart
 from email.Utils import formatdate
 from Products.ZenEvents.events2.proxy import EventSummaryProxy
 
-from Products.ZenModel.interfaces import IAction
 from Products.Zuul.interfaces.actions import IEmailActionContentInfo, IPageActionContentInfo, ICommandActionContentInfo, ISnmpTrapActionContentInfo
 from Products.Zuul.form.interfaces import IFormBuilder
 
 from Products.ZenModel.interfaces import IAction, IProvidesEmailAddresses, IProvidesPagerAddresses, IProcessSignal
 from Products.ZenModel.NotificationSubscription import NotificationEventContextWrapper
 
-from Products.ZenUtils.ZenTales import talesCompile, getEngine
 from Products.ZenUtils import Utils
 from Products.ZenUtils.guid.guid import GUIDManager
 from Products.ZenUtils.ProcessQueue import ProcessQueue
@@ -56,7 +55,7 @@ def processTalSource(source, **kwargs):
     context.update(kwargs)
     return talEval(sourceStr, context, kwargs)
 
-def _signalToContextDict(signal):
+def _signalToContextDict(signal, zopeurl):
     summary = signal.event
     # build basic event context wrapper for notifications
     if signal.clear:
@@ -65,12 +64,12 @@ def _signalToContextDict(signal):
         data = NotificationEventContextWrapper(summary)
 
     # add urls to event context
-    data['urls']['eventUrl'] = getEventUrl(summary.uuid)
-    data['urls']['ackUrl'] = getAckUrl(summary.uuid)
-    data['urls']['closeUrl'] = getCloseUrl(summary.uuid)
+    data['urls']['eventUrl'] = getEventUrl(zopeurl, summary.uuid)
+    data['urls']['ackUrl'] = getAckUrl(zopeurl, summary.uuid)
+    data['urls']['closeUrl'] = getCloseUrl(zopeurl, summary.uuid)
     proxy = EventSummaryProxy(summary)
-    data['urls']['eventsUrl'] = getEventsUrl(proxy.DeviceClass, proxy.device)
-    data['urls']['reopenUrl'] = getReopenUrl(summary.uuid)
+    data['urls']['eventsUrl'] = getEventsUrl(zopeurl, proxy.DeviceClass, proxy.device)
+    data['urls']['reopenUrl'] = getReopenUrl(zopeurl, summary.uuid)
 
     # now process all custom processors that might be registered to enhance
     # the event context
@@ -79,49 +78,52 @@ def _signalToContextDict(signal):
 
     return data
 
-def _getBaseUrl():
-    # todo: move to ZenUtils/Utils.py and don't hardcode port
-    return 'http://%s:%d/zport/dmd' % (socket.getfqdn(), 8080)
+def _getBaseUrl(zopeurl):
+    if not zopeurl:
+        zopeurl = Utils.getDefaultZopeUrl()
+    return '%s/zport/dmd' % zopeurl
 
-def _getBaseEventUrl():
-    return '%s/Events' % _getBaseUrl()
+def _getBaseEventUrl(zopeurl):
+    return '%s/Events' % _getBaseUrl(zopeurl)
 
-def _getBaseDeviceUrl(device_class, device_name):
+def _getBaseDeviceUrl(zopeurl, device_class, device_name):
     """
     Builds the URL for a device.
     Example: "http://.../Devices/Server/Linux/devices/localhost/devicedetail"
     """
-    return '%s/Devices%s/devices/%s/devicedetail' % (_getBaseUrl(), device_class, device_name)
+    return '%s/Devices%s/devices/%s/devicedetail' % (_getBaseUrl(zopeurl), device_class, device_name)
 
 
-def getEventUrl(evid):
-    return "%s/viewDetail?evid=%s" % (_getBaseEventUrl(), evid)
+def getEventUrl(zopeurl, evid):
+    return "%s/viewDetail?evid=%s" % (_getBaseEventUrl(zopeurl), evid)
 
-def getEventsUrl(device_class=None, device_name=None):
+def getEventsUrl(zopeurl, device_class=None, device_name=None):
     if device_class and device_name:
         # events for a specific device
-        return "%s#deviceDetailNav:device_events" % _getBaseDeviceUrl(device_class, device_name)
+        return "%s#deviceDetailNav:device_events" % _getBaseDeviceUrl(zopeurl, device_class, device_name)
     else:
         #events on all devices
-        return "%s/viewEvents" % _getBaseUrl()
+        return "%s/viewEvents" % _getBaseUrl(zopeurl)
 
-def getAckUrl(evid):
+def getAckUrl(zopeurl, evid):
     return "%s/manage_ackEvents?evids=%s&zenScreenName=viewEvents" % \
-           (_getBaseEventUrl(), evid)
+           (_getBaseEventUrl(zopeurl), evid)
 
-def getCloseUrl(evid):
+def getCloseUrl(zopeurl, evid):
     return "%s/manage_deleteEvents?evids=%s&zenScreenName=viewHistoryEvents" % \
-           (_getBaseEventUrl(), evid)
+           (_getBaseEventUrl(zopeurl), evid)
 
-def getReopenUrl(evid):
+def getReopenUrl(zopeurl, evid):
     return "%s/manage_undeleteEvents?evids=%s&zenScreenName=viewEvents" % \
-           (_getBaseEventUrl(), evid)
+           (_getBaseEventUrl(zopeurl), evid)
 
 
 class IActionBase(object):
     """
     Mixin class for provided some common, necessary, methods.
     """
+    def configure(self, options):
+        self.options = options
 
     def getInfo(self, notification):
         return self.actionContentInfo(notification)
@@ -196,7 +198,7 @@ class EmailAction(IActionBase, TargetableAction):
     def executeOnTarget(self, notification, signal, target):
         log.debug('Executing action: Email')
 
-        data = _signalToContextDict(signal)
+        data = _signalToContextDict(signal, self.options.get('zopeurl'))
         if signal.clear:
             log.debug('This is a clearing signal.')
             subject = processTalSource(notification.content['clear_subject_format'], **data)
@@ -334,16 +336,6 @@ class PageAction(IActionBase, TargetableAction):
 
         content.update(updates)
 
-
-
-
-def commandFactory():
-    # not sure how we're going to make this configurable.
-    defaultMaxCommands = 10
-    processQueue = ProcessQueue(defaultMaxCommands)
-    processQueue.start()
-    return CommandAction(processQueue)
-
 class EventCommandProtocol(ProcessProtocol):
 
     def __init__(self, cmd):
@@ -384,8 +376,10 @@ class CommandAction(IActionBase):
     name = 'Command'
     actionContentInfo = ICommandActionContentInfo
 
-    def __init__(self, processQueue):
-        self.processQueue = processQueue
+    def configure(self, options):
+        super(CommandAction, self).configure(options)
+        self.processQueue = ProcessQueue(options.get('maxCommands', 10))
+        self.processQueue.start()
 
     def setupAction(self, dmd):
         self.guidManager = GUIDManager(dmd)
@@ -414,7 +408,7 @@ class CommandAction(IActionBase):
 
 
         environ = {'dev':device, 'component':component, 'dmd':notification.dmd}
-        data = _signalToContextDict(signal)
+        data = _signalToContextDict(signal, self.options.get('zopeurl'))
         environ.update(data)
 
         command = processTalSource(command, **environ)
@@ -472,7 +466,7 @@ class SNMPTrapAction(IActionBase):
         """
         log.debug('Processing SNMP Trap action.')
 
-        data = _signalToContextDict(signal)
+        data = _signalToContextDict(signal, self.options.get('zopeurl'))
         eventSummary = data['eventSummary']
         event = eventSummary
         actor = event.get['actor']
