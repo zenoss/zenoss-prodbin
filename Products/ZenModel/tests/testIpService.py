@@ -17,7 +17,8 @@ if __name__ == '__main__':
 from Products.ZenModel.Exceptions import *
 from Products.ZenModel.IpService import IpService
 from Products.ZenModel.IpInterface import IpInterface
-
+from Products.ZenModel.IpServiceClass import manage_addIpServiceClass
+from Products.Zuul.interfaces import IInfo
 from ZenModelBaseTest import ZenModelBaseTest
 
 
@@ -148,6 +149,19 @@ class TestIpService(ZenModelBaseTest):
         self.assertEquals(self.ipsvc.getManageIp(), '1.2.3.4')
         self.iface.setIpAddresses(['10.20.30.40/8'])
         self.assertEquals(self.ipsvc.getManageIp(), '2.3.4.5')
+
+
+    def testInfoObjectServiceKeysCatalog(self):
+        """
+        Makes sure that when we update a service keys the changes are
+        reflected in the catalog
+        """
+        id = manage_addIpServiceClass(self.dmd.Services.serviceclasses, 'test')
+        svc  = self.dmd.Services.serviceclasses._getOb(id)
+        info = IInfo(svc)
+        info.serviceKeys = "pepe"
+        results = self.dmd.Services.find('pepe')
+        self.assertTrue(results)
 
 def test_suite():
     from unittest import TestSuite, makeSuite

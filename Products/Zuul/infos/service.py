@@ -96,6 +96,7 @@ class ServiceInfo(ServiceInfoBase):
 
     def setServiceKeys(self, value):
         self._object.serviceKeys = value
+        self._object.index_object()
 
     serviceKeys = property(getServiceKeys, setServiceKeys)
 
