@@ -173,13 +173,51 @@ class ReportRouter(DirectRouter):
            - tree: (dictionary) Object representing the new Reports tree
            - newNode: (dictionary) Object representing the moved node
         """
+        # make sure at least one uid has been passed in to be moved
+        if not uids:
+            failmsg = "Must specify at least one report to move"
+            return DirectResponse.fail(failmsg)
+
         targetNode = self.context.dmd.restrictedTraverse(target)
-        for uid in uids:
-            represented = self.context.dmd.restrictedTraverse(uid)
-            representedTitle = represented.titleOrId()
-            represented.getParentNode()._delObject(representedTitle)
-            targetNode._setObject(representedTitle, represented)
-            representedNode = self._createTreeNode(represented)
+        movingObjects = [self.context.dmd.restrictedTraverse(uid) for uid in uids]
+        movingIds = set(ob.id for ob in movingObjects)
+
+        # make sure no objects being moved have duplicate id with an existing
+        # object in the targetNode
+        dupes = set(id for id in movingIds if id in targetNode)
+        if dupes:
+            dupetitles = [ob.titleOrId() for ob in movingObjects if ob.id in dupes]
+            msgfields = {'plural': '' if len(dupetitles)==1 else 's',
+                         'titles': ','.join(dupetitles),
+                         'target': targetNode.titleOrId(),
+                        }
+            failmsg = "Cannot move report%(plural)s %(titles)s, duplicate id with existing report%(plural)s in %(target)s" % msgfields
+            return DirectResponse.fail(failmsg)
+
+        # make sure no objects being moved have duplicate keys with each other
+        # (the set of id's should be the same length as the list of objects)
+        if len(movingIds) != len(movingObjects):
+            # find all ids that have at least one duplicate
+            seen = set()
+            dupeids = set(ob.id for ob in movingObjects if ob.id in seen or seen.add(ob.id))
+
+            # get titles of objects with any duplicated id
+            dupetitles = [ob.titleOrId() for ob in movingObjects if ob.id in dupeids]
+            msgfields = {'titles': ','.join(dupetitles),
+                         'target': targetNode.titleOrId(),
+                        }
+            failmsg = "Cannot move reports %(titles)s to %(target)s, have duplicate ids with each other" % msgfields
+            return DirectResponse.fail(failmsg)
+
+        # all clear, move the objects from their respective parents to the target node
+        for represented in movingObjects:
+            representedKey = represented.id
+            represented.getParentNode()._delObject(representedKey)
+            targetNode._setObject(representedKey, represented)
+
+        # only need to do this once, for the last moved object
+        representedNode = self._createTreeNode(represented)
+
         return DirectResponse.succeed(tree=self.getTree(), 
                 newNode=representedNode)
 
