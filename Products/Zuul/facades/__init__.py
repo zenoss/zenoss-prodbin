@@ -182,20 +182,8 @@ class TreeFacade(ZuulFacade):
                             orderby=sort, reverse=reverse)
         objs = imap(unbrain, brains)
 
-        # the objects returned by the catalog search are wrapped in the
-        # acquisition context of their primary path. Switch these objects
-        # to the context of the parent indentified by the uid parameter.
-        def switchContext(objs):
-            for obj in objs:
-                parentInWrongContext = self._getSecondaryParent(obj)
-                if parentInWrongContext is None:
-                    continue
-                parent = aq_base(parentInWrongContext).__of__(parentInWrongContext.getPrimaryParent())
-                yield aq_base(obj).__of__(parent.instances)
-
-        instances = switchContext(objs)
         # convert to info objects
-        return SearchResults(imap(IInfo, instances), brains.total, brains.hash_)
+        return SearchResults(imap(IInfo, objs), brains.total, brains.hash_)
 
     def addOrganizer(self, contextUid, id, description = ''):
         context = self._getObject(contextUid)

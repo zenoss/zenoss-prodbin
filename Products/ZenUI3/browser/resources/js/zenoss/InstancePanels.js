@@ -46,7 +46,7 @@ var InstanceColumnModel = Ext.extend(Ext.grid.ColumnModel, {
                     sortable: true
                 }, {
                     id: 'status',
-                    dataIndex: 'status',
+                    dataIndex: 'pingStatus',
                     header: _t('Status'),
                     renderer: Zenoss.render.pingStatus,
                     width: 60
@@ -78,7 +78,7 @@ Zenoss.InstanceStore = Ext.extend(Ext.ux.grid.livegrid.Store, {
                     {name: 'device'},
                     {name: config.nameDataIndex || 'name'},
                     {name: 'monitored'},
-                    {name: 'status'}
+                    {name: 'pingStatus'}
                 ]
             })
         });
@@ -102,11 +102,12 @@ Zenoss.SimpleInstanceGridPanel = Ext.extend(Ext.ux.grid.livegrid.GridPanel, {
             store: config.store || {
                 xtype: 'InstanceStore',
                 directFn: config.directFn,
+                bufferSize: config.bufferSize,
                 nameDataIndex: config.nameDataIndex
             },
             sm: config.sm || new Ext.ux.grid.livegrid.RowSelectionModel(),
             view: new Ext.ux.grid.livegrid.GridView({
-                nearLimit: 100,
+                nearLimit: config.nearLimit || 100,
                 loadMask: {msg: _t('Loading...'),
                           msgCls: 'x-mask-loading'}
 
@@ -213,6 +214,8 @@ Zenoss.InstanceCardPanel = Ext.extend(Zenoss.SimpleCardPanel, {
             instances: [{
                 xtype: 'SimpleInstanceGridPanel',
                 ref: 'instancesGrid',
+                bufferSize: config.bufferSize,
+                nearLimit: config.nearLimit,
                 directFn: config.router.getInstances,
                 nameDataIndex: config.nameDataIndex || "name",
                 cm: config.cm,

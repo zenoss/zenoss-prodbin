@@ -112,13 +112,12 @@ class ServiceRouter(TreeRouter):
 
         if isinstance(params, basestring):
             params = unjson(params)
-
         services = self.api.getList(limit, start, sort, dir, params, uid,
                                   criteria)
 
         disabled = not Zuul.checkPermission('Manage DMD')
 
-        data = Zuul.marshal(services['serviceInfos'])
+        data = Zuul.marshal(services['serviceInfos'], keys=('name','description', 'count', 'uid','port'))
         return DirectResponse(services=data, totalCount=services['total'],
                               hash=services['hash'], disabled=disabled)
 
@@ -221,7 +220,7 @@ class ServiceRouter(TreeRouter):
                                           limit=limit, sort=sort, dir=dir)
 
         keys = ['description', 'device', 'locking', 'monitored', 'name',
-                'status', 'uid']
+                 'pingStatus', 'uid']
         data = Zuul.marshal(instances, keys)
         return DirectResponse.succeed(data=data, totalCount=instances.total)
 

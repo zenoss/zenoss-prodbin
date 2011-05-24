@@ -547,6 +547,8 @@ Ext.getCmp('detail_panel').add({
     region: 'south',
     split: true,
     router: router,
+    bufferSize: 100,
+    nearLimit: 20,
     instancesTitle: 'Process Instances',
     nameDataIndex: 'processName',
     zPropertyEditListeners: {

@@ -128,7 +128,7 @@ class ProcessRouter(TreeRouter):
         """
         facade = self._getFacade()
         instances = facade.getInstances(uid, start, limit, sort, dir, params)
-        keys = ['device', 'monitored', 'status', 'processName', 'name', 'uid']
+        keys = ['device', 'monitored', 'pingStatus', 'processName', 'name', 'uid']
         data = Zuul.marshal(instances, keys)
         return DirectResponse.succeed(data=data, totalCount=instances.total)
 

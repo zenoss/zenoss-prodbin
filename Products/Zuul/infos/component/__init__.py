@@ -61,6 +61,8 @@ class ComponentInfo(InfoBase, HasEventsInfoMixin):
         else:
             return "Up"
 
+    pingStatus = status
+
 
 class ComponentFormBuilder(FormBuilder):
     def render(self, fieldsets=True):

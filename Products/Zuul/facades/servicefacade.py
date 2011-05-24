@@ -26,7 +26,6 @@ from Products.Zuul.interfaces import ITreeFacade, IServiceFacade
 from Products.Zuul.interfaces import IInfo, ICatalogTool
 from Products.Zuul.infos.service import ServiceOrganizerNode
 from Acquisition import aq_base, aq_parent
-from Products.ZenUtils.debugtools import profile
 
 
 log = logging.getLogger('zen.ServiceFacade')
@@ -82,10 +81,6 @@ class ServiceFacade(TreeFacade):
         cat = ICatalogTool(self._getObject(uid))
         reverse = dir=='DESC'
 
-        # Prime the cache
-        if start==0:
-            cat.count("Products.ZenModel.Service.Service", uid)
-
         qs = []
         query = None
         if params:
@@ -119,6 +114,7 @@ class ServiceFacade(TreeFacade):
             serviceClasses = [unbrain(brain) for brain in searchResults]
         else:
             serviceClasses = searchResults
+
         # the info decorator changes the returned serviceClasses to serviceInfos
         return {'serviceInfos': serviceClasses,
                 'total': searchResults.total,

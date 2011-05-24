@@ -30,6 +30,8 @@ Ext.onReady( function() {
             split: true,
             router: Zenoss.remote.ServiceRouter,
             instancesTitle: 'Service Instances',
+            bufferSize: 100,
+            nearLimit: 20,
             zPropertyEditListeners: {
                 frameload: function() {
                     var formPanel = Ext.getCmp('serviceForm');
