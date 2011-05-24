@@ -138,7 +138,7 @@ class PingCollectionPreferences(object):
         parser.add_option('--ipv4topofile',
                           dest='ipv4topofile',
                           default='',
-                          help="Use this file rather than the default for IPv6.")
+                          help="Use this file rather than the default for IPv4.")
         parser.add_option('--ipv6topofile',
                           dest='ipv6topofile',
                           default='',

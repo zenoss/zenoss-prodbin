@@ -23,6 +23,7 @@ import re
 import logging
 log = logging.getLogger("zen.networkModel")
 
+from collections import defaultdict
 from networkx import DiGraph, shortest_path, minimum_spanning_tree
 from networkx.readwrite import read_graphml, write_graphml
 from networkx.exception import NetworkXError
@@ -221,8 +222,16 @@ class NetworkModel(object):
                          str(ex))
         try:
             start = time.time()
-            self._stripUncacheableMetaData()
+
+            # Strip metadata from topology for persisting cache
+            saved_metadata = self._stripUncacheableMetaData()
+
             write_graphml(self.topology, topologyCache)
+
+            # Restore metadata
+            for ipAddress, metadata in saved_metadata.iteritems():
+                self.topology.node[ipAddress].update(metadata)
+
             log.info("Saved %s nodes and %s edges in IPv%d topology cache in %0.1fs.",
                      self.topology.number_of_nodes(),
                      self.topology.number_of_edges(),
@@ -238,9 +247,11 @@ class NetworkModel(object):
         The topology map carries a direct reference to tasks (ie pointers),
         which can't be persisted.
         """
+        saved = defaultdict(dict)
         for ipAddress in self.topology.nodes_iter():
             if 'task' in self.topology.node[ipAddress]:
-                del self.topology.node[ipAddress]['task']
+                saved[ipAddress]['task'] = self.topology.node[ipAddress].pop('task')
+        return saved
 
     def disconnectedNodes(self):
         """
