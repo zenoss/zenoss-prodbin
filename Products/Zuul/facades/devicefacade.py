@@ -12,6 +12,7 @@
 ###########################################################################
 
 from itertools import imap
+from ZODB.transact import transact
 from zope.interface import implements
 from Acquisition import aq_base
 from zope.event import notify
@@ -215,14 +216,31 @@ class DeviceFacade(TreeFacade):
             comp.manage_deleteComponent()
 
     def deleteDevices(self, uids):
-        devs = imap(self._getObject, uids)
-        for dev in devs:
-            dev.getPrimaryParent()._delObject(dev.getId())
+        @transact
+        def dbDeleteDevices(uids):
+            devs = imap(self._getObject, uids)
+            deletedIds = []
+            for dev in devs:
+                devid = dev.getId()
+                deletedIds.append(devid)
+                dev.getPrimaryParent()._delObject(devid)
+            return deletedIds
+
+        def uidChunks(uids, chunksize=10):
+            i = 0
+            maxi = len(uids)
+            while i < maxi:
+                nexti = i+chunksize
+                yield uids[i:nexti]
+                i = nexti
+
+        deletedIds = sum(map(dbDeleteDevices, uidChunks(uids)), [])
+        for devid in deletedIds:
             self._dmd.ZenEventManager.sendEvent(Event(
-                    summary='Deleted device: '+dev.getId(),
+                    summary='Deleted device: '+devid,
                     severity=2, #info
                     eventClass='/Change/Remove', #zEventAction=history
-                    device=dev.getId()))
+                    device=devid))
 
     def removeDevices(self, uids, organizer):
         # Resolve target if a path
