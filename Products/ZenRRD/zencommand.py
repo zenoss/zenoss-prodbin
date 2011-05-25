@@ -674,14 +674,15 @@ class SshPerformanceCollectionTask(BaseTask):
         # Bundle up the list of tasks
         deferredCmds = []
         for datasource in self._datasources:
-             if datasource.name in cacheableDS:
-                 cacheableDS[datasource.name].append(datasource)
-                 continue
-             cacheableDS[datasource.name] = []
+            datasource.deviceConfig = self._device
 
-             datasource.deviceConfig = self._device
-             task = self._executor.submit(self._addDatasource, datasource)
-             deferredCmds.append(task)
+            if datasource.name in cacheableDS:
+                cacheableDS[datasource.name].append(datasource)
+                continue
+            cacheableDS[datasource.name] = []
+
+            task = self._executor.submit(self._addDatasource, datasource)
+            deferredCmds.append(task)
 
         # Run the tasks
         dl = defer.DeferredList(deferredCmds, consumeErrors=True)
