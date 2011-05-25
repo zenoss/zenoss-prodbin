@@ -555,7 +555,7 @@ class SshPerformanceCollectionTask(BaseTask):
             self._connection._taskList.discard(self)
             if len(self._connection._taskList) == 0:
                 self._connection.channelClosed()
-                if self._devId in self.pool[self._devId]:
+                if self._devId in self.pool:
                     del self.pool[self._devId]
             self._connection = None
             # Note: deleting the connection from the pool means more work,
