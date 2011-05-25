@@ -928,8 +928,14 @@ span.status-up {
     color: green;
     background-position: right -9px;
 }
+.ext-ie span.status-up {
+    background-position: right -8px;
+}
 span.status-down {
     background-position: right -40px;
+}
+.ext-ie span.status-down {
+    background-position: right -39px;
 }
 span.status-down-large,
 span.status-down {
