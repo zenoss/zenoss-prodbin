@@ -136,7 +136,7 @@
             comparison_patterns[comparison] = new RegExp(
                 cmp.tpl.replace('(', '\\(')
                        .replace(')', '\\)')
-                       .split(/\{\d+\}/)
+                       .xsplit(/\{\d+\}/)
                        .join('(.*)'));
         }
     }
