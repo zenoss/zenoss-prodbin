@@ -29,6 +29,8 @@ from Products.ZenEvents.ZenEventClasses import Error, Clear, Cmd_Fail
 
 
 class CommandPerformanceConfig(CollectorConfigService):
+    dsType = 'COMMAND'
+
     def __init__(self, dmd, instance):
         deviceProxyAttributes = ('zCommandPort',
                                  'zCommandUsername',
@@ -99,8 +101,8 @@ class CommandPerformanceConfig(CollectorConfigService):
                 thresholds.extend(threshs)
         except ConflictError: raise
         except Exception, ex:
-            msg = "Unable to process COMMAND datasource(s) for device %s -- skipping" % (
-                              device.id)
+            msg = "Unable to process %s datasource(s) for device %s -- skipping" % (
+                              self.dsType, device.id)
             log.exception(msg)
             details = dict(traceback=traceback.format_exc(),
                            msg=msg)
@@ -108,7 +110,7 @@ class CommandPerformanceConfig(CollectorConfigService):
 
     def _getComponentConfig(self, comp, device, perfServer, cmds):
         for templ in comp.getRRDTemplates():
-            for ds in templ.getRRDDataSources("COMMAND"):
+            for ds in templ.getRRDDataSources(self.dsType):
                 if not ds.enabled:
                     continue
 
@@ -142,7 +144,7 @@ class CommandPerformanceConfig(CollectorConfigService):
                 try:
                     cmd.command = ds.getCommand(comp)
                 except ConflictError: raise
-                except Exception, ex: # TALES error
+                except Exception: # TALES error
                     msg = "TALES error for device %s datasource %s" % (
                                device.id, ds.id)
                     details = dict(
@@ -159,9 +161,16 @@ class CommandPerformanceConfig(CollectorConfigService):
                     self._sendCmdEvent('localhost', details)
                     continue
 
+                self.enrich(cmd, templ, ds)
                 cmds.add(cmd)
 
-        return comp.getThresholdInstances('COMMAND')
+        return comp.getThresholdInstances(self.dsType)
+
+    def enrich(self, cmd, template, ds):
+        """
+        Hook routine available for subclassed services
+        """
+        pass
 
     def _createDeviceProxy(self, device):
         proxy = CollectorConfigService._createDeviceProxy(self, device)
