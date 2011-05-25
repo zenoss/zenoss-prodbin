@@ -2271,5 +2271,51 @@ String.prototype.xsplit = function (separator, limit) {
     return cbSplit(this, separator, limit);
 };
 
+/*
+* IE has an annoying habit of returning NaN for some calculations that work
+* fine in all other browsers, which breaks many things when coupled with IE's
+* tendency to throw errors when attempting to set the style of a DOM element to
+* "NaNpx". This func overrides setStyle in IE, one of the more egregious
+* locations where this occurs, to detect "NaNpx" and skip it.
+*/
+if (Ext.isIE) {
+
+    /* This stuff is verbatim from Element.style.js in Ext; setStyle depends on it */
+    var propCache = {},
+        camelRe = /(-[a-z])/gi,
+        propFloat = 'styleFloat';
+    function camelFn(m, a) {
+        return a.charAt(1).toUpperCase();
+    }
+    function chkCache(prop) {
+        return propCache[prop] || (propCache[prop] = prop == 'float' ?
+                                   propFloat : prop.replace(camelRe, camelFn));
+    }
+
+    /* Here's our overriding func */
+    Ext.Element.prototype.setStyle = function(prop, value) {
+        var tmp,
+            style,
+            camel;
+        if (!Ext.isObject(prop)) {
+            tmp = {};
+            tmp[prop] = value;
+            prop = tmp;
+        }
+        for (style in prop) {
+            value = prop[style];
+            /* 
+            * This if{} is our change; detect this one case which accounts for
+            *  most of the problems.
+            */
+            if (value != "NaNpx") {
+                style == 'opacity' ?
+                    this.setOpacity(value) :
+                    this.dom.style[chkCache(style)] = value;
+            }
+        }
+        return this;
+    }
+}
 
 })(); // End local scope
