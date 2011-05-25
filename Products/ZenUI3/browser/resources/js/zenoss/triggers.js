@@ -74,6 +74,12 @@ Ext.onReady(function () {
                 modal: true,
                 plain: true,
                 closeAction: 'hide',
+                listeners: {
+                    show: function(win) {
+                        var form = win.addForm;
+                        form.startMonitoring();
+                    }
+                },
                 items:{
                     xtype:'form',
                     ref: 'addForm',
@@ -102,6 +108,10 @@ Ext.onReady(function () {
                          * context.
                          */
                         handler: function(button) {
+                            var form = button.refOwner.addForm;
+                            form.stopMonitoring();
+                            // prevent further clicking
+                            button.setDisabled(true);
                             if (config.submitHandler) {
                                 config.submitHandler(button);
                             } else {
@@ -410,7 +420,7 @@ Ext.onReady(function () {
         tab_content = new NotificationTabContent({
             layout: 'form',
             padding: panelPadding,
-            title: 'Content',
+            title: _t('Content'),
             defaults: {
                 padding: 0
             },
@@ -429,9 +439,9 @@ Ext.onReady(function () {
                 this.add(comp)
             }
         });
-        
+
         tab_notification = new NotificationTabContent({
-            title: 'Notification',
+            title: _t('Notification'),
             ref: 'notification_tab',
             items: [
                 {
@@ -522,7 +532,7 @@ Ext.onReady(function () {
         });
 
         var tab_recipients = new NotificationTabContent({
-            title: 'Subscribers',
+            title: _t('Subscribers'),
             ref: 'recipients_tab',
             items: [{
                 xtype: 'panel',
@@ -563,7 +573,7 @@ Ext.onReady(function () {
                 this.globalManage.setValue(data.globalManage);
             }
         });
-        
+
         if (!data['userManage']) {
             disableTabContents(tab_recipients);
         }
@@ -593,7 +603,7 @@ Ext.onReady(function () {
             reloadFn: reloadNotificationGrid,
             tabPanel: tab_panel
         });
-        
+
         dialogue.title = String.format("{0} - {1} ({2})", dialogue.title, data['newId'], data['action']);
         dialogue.loadData(data);
         dialogue.show();
@@ -626,17 +636,24 @@ Ext.onReady(function () {
             typesCombo.setValue('email');
         });
         var dialogue = new Ext.Window({
-            title: 'Add Notification',
+            title: _t('Add Notification'),
             height: 140,
             width: 300,
             modal: true,
             plain: true,
+            listeners: {
+                    show: function(win) {
+                        var form = win.items.items[0];
+                        form.startMonitoring();
+                    }
+                },
             items: [{
                 xtype:'form',
                 ref: '../addForm',
                 border: false,
                 monitorValid: true,
                 buttonAlign: 'center',
+
                 items:[
                     {
                         xtype: 'textfield',
@@ -655,7 +672,11 @@ Ext.onReady(function () {
                         formBind: true,
                         text: _t('Submit'),
                         handler: function(button) {
-                            var params = button.refOwner.ownerCt.getForm().getFieldValues();
+                            var form = button.refOwner.ownerCt,
+                                params = form.getForm().getFieldValues();
+
+                            form.stopMonitoring();
+                            button.setDisabled(true);
                             router.addNotification(params, function(){
                                 reloadNotificationGrid();
                                 button.refOwner.ownerCt.ownerCt.close();
@@ -1320,7 +1341,7 @@ Ext.onReady(function () {
         minWidth: bigWindowWidth+225,
         boxMinWidth: bigWindowWidth+225,
         layout: 'form',
-        title: 'Trigger',
+        title: _t('Trigger'),
         padding: 10,
         labelWidth: 75,
         items:[
@@ -1573,7 +1594,7 @@ Ext.onReady(function () {
             }
         ]
     };
-    
+
     var users_grid = new UsersPermissionGrid({
         title: _t('Users'),
         allowManualEntry: false
@@ -1582,7 +1603,7 @@ Ext.onReady(function () {
     var trigger_tab_users = {
         xtype: 'panel',
         ref: '../../tab_users',
-        title: 'Users',
+        title: _t('Users'),
         autoScroll: true,
         height: bigWindowHeight-110,
         items: [
@@ -1727,9 +1748,9 @@ Ext.onReady(function () {
             this.tab_users.globalRead.setValue(data.globalRead);
             this.tab_users.globalWrite.setValue(data.globalWrite);
             this.tab_users.globalManage.setValue(data.globalManage);
-            
+
             this.tab_users.users_grid.getStore().loadData(data.users);
-            
+
         }
     });
     Ext.reg('edittriggerdialogue', EditTriggerDialogue);
@@ -1749,7 +1770,7 @@ Ext.onReady(function () {
         });
 
         editTriggerDialogue.loadData(data);
-        
+
         if (!data['userWrite']) {
             disableTabContents(editTriggerDialogue.tab_content);
         } else {
@@ -1761,7 +1782,7 @@ Ext.onReady(function () {
         } else {
             enableTabContents(editTriggerDialogue.tab_users);
         }
-        
+
         editTriggerDialogue.show();
     };
 
