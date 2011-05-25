@@ -16,7 +16,7 @@ log = logging.getLogger('zen.ZenRRD.CommandParser')
 
 from pprint import pformat
 
-class ParsedResults:
+class ParsedResults(object):
 
     def __init__(self):
         self.events = []                # list of event dictionaries
@@ -26,7 +26,7 @@ class ParsedResults:
         args = (pformat(self.events), pformat(self.values))
         return "ParsedResults\n  events: %s\n  values: %s}" % args
 
-class CommandParser:
+class CommandParser(object):
 
     def dataForParser(self, context, datapoint):
         return {}
@@ -57,3 +57,12 @@ class CommandParser:
         @return: None.
         """
         raise NotImplementedError
+
+    @property
+    def createDefaultEventUsingExitCode(self):
+        """
+        Property which can control whether events will be created
+        based on the exit code of the command if no events are
+        generated in the processResults function.
+        """
+        return True

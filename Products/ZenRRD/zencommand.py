@@ -777,6 +777,9 @@ class SshPerformanceCollectionTask(BaseTask):
         try:
             parser.preprocessResults(datasource, log)
             parser.processResults(datasource, results)
+            if not results.events and parser.createDefaultEventUsingExitCode:
+                # Add a failsafe event guessing at the error codes
+                self._addDefaultEvent(datasource, results)
             if datasource.result.stderr:
                 self._addStderrMsg(datasource.result.stderr,
                                                results.events)
@@ -787,6 +790,22 @@ class SshPerformanceCollectionTask(BaseTask):
             ev['message'] = traceback.format_exc()
             ev['output'] = datasource.result.output
             results.events.append(ev)
+
+    def _addDefaultEvent(self, datasource, results):
+        """
+        If there is no event, send one based on the exit code.
+        """
+        exitCode = datasource.result.exitCode
+        if exitCode == 0:
+            msg = ''
+            severity = 0
+        else:
+            msg = 'Datasource: %s - Code: %s - Msg: %s' % (
+                datasource.name, exitCode, getExitMessage(exitCode))
+            severity = datasource.severity
+
+        ev = self._makeCmdEvent(datasource, msg, severity)
+        results.events.append(ev)
 
     def _addStderrMsg(self, stderrMsg, eventList):
         """
