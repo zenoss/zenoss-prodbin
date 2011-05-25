@@ -31,6 +31,7 @@ from Products.ZenUtils.Utils import cleanupSkins, zenPath, binPath, get_temp_dir
 import Products.ZenModel.ZenPackLoader as ZPL
 from Products.ZenModel.ZenPackLoader import CONFIG_FILE, CONFIG_SECTION_ABOUT
 import ZenPackCmd as EggPackCmd
+from Products.Zuul import getFacade
 
 HIGHER_THAN_CRITICAL = 100
 
@@ -77,7 +78,14 @@ def RemoveZenPack(dmd, packName, log=None,
 
 class ZenPackCmd(ZenScriptBase):
     "Manage ZenPacks"
-    
+
+    def _verifyZepRunning(self):
+        zep = getFacade('zep')
+        try:
+            zep.getConfig()
+            return True
+        except:
+            pass
 
     def run(self):
         "Execute the user's request"
@@ -125,6 +133,11 @@ class ZenPackCmd(ZenScriptBase):
         if not getattr(self.dmd, 'ZenPackManager', None):
             raise ZenPackNeedMigrateException('Your Zenoss database appears'
                 ' to be out of date. Try running zenmigrate to update.')
+
+        if not self._verifyZepRunning():
+            print "Error: Required daemon zeneventserver not running."
+            print "Execute 'zeneventserver start' and retry the ZenPack installation."
+            return
 
         if self.options.installPackName:
             if not self.preInstallCheck(eggInstall):
