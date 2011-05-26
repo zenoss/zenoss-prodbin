@@ -27,10 +27,6 @@ from time import time
 from Products.ZenRelations.PrimaryPathObjectManager import PrimaryPathObjectManager
 from Products.ZenHub.interfaces import IUpdateEvent, IDeletionEvent
 
-# time window in seconds in which we will accept changes to a device that
-# will be passed on to the services
-CHANGE_TIME = 300
-
 
 class InvalidationEvent(ObjectEvent):
     def __init__(self, object, oid):
@@ -69,14 +65,8 @@ def _dispatch(dmd, oid, ioid, queue):
             obj = dmd._p_jar[oid]
             # Don't bother with all the catalog stuff; we're depending on primaryAq
             # existing anyway, so only deal with it if it actually has primaryAq.
-            curTime = time()
             if (isinstance(obj, PrimaryPathObjectManager)
                   or isinstance(obj, DeviceComponent)):
-                if (isinstance(obj, Device)
-                    and obj.getLastChange().timeTime() + CHANGE_TIME < curTime):
-                    log.debug('Device change for %s not within '
-                                    'change window', obj.titleOrId())
-                    return
                 try:
                     # Try to get the object
                     obj = obj.__of__(dmd).primaryAq()
