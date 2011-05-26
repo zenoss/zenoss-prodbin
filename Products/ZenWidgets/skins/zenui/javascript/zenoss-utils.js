@@ -562,7 +562,7 @@ var calcSubmenuPos = function(rel, sub) {
 
 
 var calcMenuPos = function(rel, menu) {
-    var isIE//@cc_on=1
+    var isIE//@cc_on=1;
     var pPos = getElementPosition(rel);
     var pDims = getElementDimensions(rel);
     var vDims = getViewportDimensions();
