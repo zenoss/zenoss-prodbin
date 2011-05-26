@@ -93,6 +93,27 @@ class zenbuild(CmdBase):
         self.parser.add_option('--amqppassword', dest="amqppassword", default="zenoss",
                                help="AMQP Password")
 
+    def zodbConnect(self):
+        """
+        Used to connect to ZODB (without going through the entire ZOPE
+        initialization process. This allows us to get a lightweight
+        connection to the database to test to see if the database is already
+        initialized.
+        """
+        self.options.port = self.options.port or 3306
+        from relstorage.storage import RelStorage
+        from relstorage.adapters.mysql import MySQLAdapter
+        adapter = MySQLAdapter(
+            host=self.options.host,
+            port=self.options.port,
+            user=self.options.mysqluser,
+            passwd=self.options.mysqlpasswd,
+            db=self.options.mysqldb
+        )
+        self.storage = RelStorage(adapter)
+        from ZODB import DB
+        self.db = DB(self.storage, cache_size=self.options.cachesize)
+
     def build(self):
         mysqlcmd = ['mysql', '-u', self.options.mysqluser]
         if self.options.mysqlpasswd:
@@ -104,8 +125,15 @@ class zenbuild(CmdBase):
 
         mysqlcmd = subprocess.list2cmdline(mysqlcmd)
 
+        conn = None
         try:
-            self.connect()
+            self.zodbConnect()
+            conn = self.db.open()
+            root = conn.root()
+            app = root.get('Application')
+            if app and getattr(app, self.sitename, None) is not None:
+                print "zport portal object exists; exiting."
+                return
         except OperationalError, e:
             if 'Unknown database' in e[1]:
                 queries = (
@@ -122,17 +150,20 @@ class zenbuild(CmdBase):
                 for query in queries:
                     cmd = mysqlcmd + ' -e "%s"' % query
                     os.system(cmd)
-
-                self.connect()
             else:
                 raise
-
-        site = getattr(self.app, self.sitename, None)
-        if site is not None:
-            print "zport portal object exits; exiting."
-            return
+        finally:
+            if conn:
+                conn.close()
+            if self.db:
+                self.db.close()
+                self.db = None
+            if self.storage:
+                self.storage.close()
+                self.storage = None
 
         if self.options.fromXml:
+            self.connect()
             from Products.ZenModel.ZentinelPortal import manage_addZentinelPortal
             manage_addZentinelPortal(self.app, self.sitename)
             site = self.app._getOb(self.sitename)
@@ -199,6 +230,13 @@ class zenbuild(CmdBase):
             cmd = 'cat $ZENHOME/Products/ZenModel/data/zodb.sql.gz | gzip -c -d | %s' % mysqlcmd
             os.system(cmd)
 
+            # Relstorage may have already loaded items into the cache in the
+            # initial connection to the database. We have to expire everything
+            # in the cache in order to prevent errors with overlapping
+            # transactions from the model which was just imported above.
+            if self.options.cacheservers:
+                self.flush_memcached(self.options.cacheservers.split())
+
             self.connect()
 
             # Set all the attributes
@@ -231,6 +269,11 @@ class zenbuild(CmdBase):
         rl = ReportLoader(noopts=True, app=self.app)
         rl.loadDatabase()
 
+    def flush_memcached(self, cacheservers):
+        import memcache
+        mc = memcache.Client(cacheservers, debug=0)
+        mc.flush_all()
+        mc.disconnect_all()
 
 if __name__ == "__main__":
     zb = zenbuild()
