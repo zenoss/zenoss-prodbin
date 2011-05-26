@@ -307,7 +307,17 @@ class RelationshipManager(PrimaryPathObjectManager, ZenPropertyManager):
             id = prop['id']
             ptype = prop['type']
             value = getattr(aq_base(self), id, None) # use aq_base?
-            if not value and ptype not in ("int","float","boolean"): continue
+            if not value:
+                if ptype in ("string","text","password"):
+                    if not id.startswith('z'):
+                        continue
+                elif ptype == "lines":
+                    if value is None:
+                        continue
+                elif ptype not in ("int","float","boolean","long"):
+                    continue
+            if ptype == "password":
+                value = ''
             stag = []
             stag.append('<property')
             for k, v in prop.items():
@@ -320,7 +330,9 @@ class RelationshipManager(PrimaryPathObjectManager, ZenPropertyManager):
                 value = unicode(value)
             elif type(value) == types.StringType:
                 value = value.decode('latin-1')
-            ofile.write(saxutils.escape(value).encode('utf-8')+"\n")
+            valuestr = saxutils.escape(value).encode('utf-8').strip()
+            if valuestr:
+                ofile.write(valuestr+"\n")
             ofile.write("</property>\n")
 
 
