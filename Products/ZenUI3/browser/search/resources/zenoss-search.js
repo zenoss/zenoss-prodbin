@@ -122,10 +122,11 @@ if ( Ext.get('searchbox-container') === null ) {
         listeners: {
             select: function(box,record){
                 if (record.get('url') !== '') {
+                    // IE only supports these window names: _blank _media _parent _search _self _top
+                    var windowname = Ext.isIE ? '_blank' : record.data.url;
                     if (record.get('popout')) {
-                        window.open( String.format('{0}',record.data.url ),
-                                     record.data.url,
-                                     'status=1,width=600,height=500' );
+                        window.open(String.format('{0}',record.data.url),
+                                    windowname, 'status=1,width=600,height=500');
                     }
                     else {
                         window.location =
