@@ -15,10 +15,6 @@ from Products.Zuul.infos import InfoBase, ProxyProperty
 from Products.Zuul.utils import severityId
 from Products.Zuul.interfaces import template as templateInterfaces
 from Products.Zuul.tree import TreeNode
-from Products.ZenModel.DeviceOrganizer import DeviceOrganizer
-from Products.ZenModel.RRDTemplate import RRDTemplate
-from Products.ZCatalog.CatalogBrains import AbstractCatalogBrain
-from Products.Zuul.interfaces import ICatalogTool
 from Products.Zuul.utils import ZuulMessageFactory as _t
 
 
@@ -26,6 +22,9 @@ class TemplateInfo(InfoBase):
     description = ProxyProperty('description')
     targetPythonClass = ProxyProperty('targetPythonClass')
 
+    @property
+    def definition(self):
+        return self._object.getRRDPath()
 
 class TemplateNode(TemplateInfo):
 

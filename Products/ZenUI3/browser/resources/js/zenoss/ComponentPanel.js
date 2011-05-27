@@ -180,6 +180,20 @@ Zenoss.nav.register({
                 target.layout.setActiveItem(uid);
             }
         }
+    },{
+        nodeType: 'subselect',
+        id: 'ComponentTemplate',
+        text: _t('Templates'),
+        action: function(node, target, combo) {
+            var uid = combo.contextUid;
+            target.add(Ext.create({
+                xtype: 'componenttemplatepanel',
+                ref: 'componentTemplatePanel',
+                id: 'componentTemplatePanel' + uid
+            }));
+            target.componentTemplatePanel.setContext(uid);
+            target.layout.setActiveItem('componentTemplatePanel' + uid);
+        }
     }]
 });
 
@@ -310,6 +324,7 @@ ZC.ComponentPanel = Ext.extend(Ext.Panel, {
                                 'resetcommunity',
                                 'pushconfig',
                                 'objtemplates',
+                                'template',
                                 'modeldevice',
                                 'historyevents'
                             ];

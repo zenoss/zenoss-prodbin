@@ -112,6 +112,43 @@ class TemplateRouter(TreeRouter):
         msg = "Deleted node '%s'" % uid
         return DirectResponse.succeed(msg=msg)
 
+    @require('View')
+    def getObjTemplates(self, uid):
+        """
+        @type  uid: string
+        @param uid: Identifier for the object we want templates on, must descend from RRDView
+        @rtype: DirectResponse
+        @return: List of templates
+        """
+        facade = self._getFacade()
+        templates = facade.getObjTemplates(uid)
+        data = Zuul.marshal(templates)
+        return DirectResponse.succeed(data=data)
+
+    @require('Manage DMD')
+    def makeLocalRRDTemplate(self, uid, templateName):
+        """
+        @type  uid: string
+        @param uid: Identifer of the obj we wish to make the template local for
+        @type  templateName: string
+        @param templateName: identifier of the template
+        """
+        facade = self._getFacade()
+        facade.makeLocalRRDTemplate(uid, templateName)
+        return DirectResponse.succeed()
+
+    @require('Manage DMD')
+    def removeLocalRRDTemplate(self, uid, templateName):
+        """
+        @type  uid: string
+        @param uid: Identifer of the obj we wish to remove the local template
+        @type  templateName: string
+        @param templateName: identifier of the local template
+        """
+        facade = self._getFacade()
+        facade.removeLocalRRDTemplate(uid, templateName)
+        return DirectResponse.succeed()
+
     def getThresholds(self, uid, query=''):
         """
         Get the thresholds for a template.

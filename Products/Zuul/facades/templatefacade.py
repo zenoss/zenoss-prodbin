@@ -116,6 +116,22 @@ class TemplateFacade(ZuulFacade):
         node._addChild(leaf)
         return node
 
+    def getObjTemplates(self, uid):
+        obj = self._getObject(uid)
+        return imap(IInfo, obj.getRRDTemplates())
+
+    def makeLocalRRDTemplate(self, uid, templateName):
+        obj = self._getObject(uid)
+        if (templateName.startswith('/zport/dmd/')):
+            templateName = self._getObject(templateName).id
+        obj.makeLocalRRDTemplate(templateName)
+
+    def removeLocalRRDTemplate(self, uid, templateName):
+        obj = self._getObject(uid)
+        if (templateName.startswith('/zport/dmd/')):
+            templateName = self._getObject(templateName).id
+        obj.removeLocalRRDTemplate(templateName)
+
     def _deleteObject(self, uid):
         """
         Deletes the object by getting the parent
