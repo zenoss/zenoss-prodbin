@@ -66,9 +66,28 @@ Ext.Direct.on('event', function(e){
 
 Ext.Direct.on('event', function(e){
 
+    if ( Ext.isDefined(e.result) && e.result && Ext.isDefined(e.result.msg) && e.result.msg.startswith("ObjectNotFoundException") ) {
+        Ext.Msg.show({
+            title: _t('Stale Data Warning'),
+            msg: '<p>' + _t('Another user has edited the information on this page since you loaded it.') + ' ' +
+                _t('Please reload the page.') + '</p>' ,
+            buttons: {yes: _t('Reload Page'), cancel: _t('Dismiss')},
+            minWidth: 300,
+            fn: function(buttonId, text, opt) {
+                if ('yes' == buttonId) {
+                    window.location.reload();
+                }
+            }
+        });
+        return false;
+    }
+});
+
+Ext.Direct.on('event', function(e){
     if (Ext.isDefined(e.result) && e.result && Ext.isDefined(e.result.msg)) {
-        var success = e.result.success || false;
-        var sticky = e.result.sticky || false;
+        var success = e.result.success || false,
+            sticky = e.result.sticky || false,
+            flare;
         if (success) {
             flare = Zenoss.message.success(e.result.msg);
         } else {
@@ -77,7 +96,6 @@ Ext.Direct.on('event', function(e){
         if (sticky) {
             flare.sticky();
         }
-
     }
 });
 
