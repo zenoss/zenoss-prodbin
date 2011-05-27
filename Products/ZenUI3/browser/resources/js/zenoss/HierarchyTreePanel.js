@@ -523,6 +523,11 @@ Zenoss.HierarchyTreePanel = Ext.extend(Ext.tree.TreePanel, {
             parentNode.removeChild(node);
             node.destroy();
         }
+        // all hierarchytreepanel's have an invisible root node with depth of 0
+        if (node.getDepth() <= 1) {
+            Zenoss.message.error(_t("You can not delete the root node"));
+            return;
+        }
         this.deleteNodeFn(params, callback);
     },
 
