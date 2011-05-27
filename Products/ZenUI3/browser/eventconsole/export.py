@@ -17,97 +17,80 @@ Given a list of events to export, format them
 appropriately and then return back a string
 """
 
-import StringIO
 import json
+import logging
 
 from Products.Five.browser import BrowserView
 
-from Products.ZenModel.ZenModelBase import ZenModelBase
 from Products.ZenUtils.jsonutils import unjson
 from Products.Zuul.routers.zep import EventsRouter
 
 from interfaces import IEventManagerProxy
 
+log = logging.getLogger('zen.eventexport')
+
 class EventsExporter(BrowserView):
     def __call__(self):
         body = self.request.form['body']
         state = unjson(body)
+        params = state['params']
         type = state['type']
-        history = state.get('isHistory', False)
-        # Get the events according to grid state
-        fields, events = self._query(history, **state['params'])
+        archive = state.get('isHistory', False)
 
         # Send the events to the appropriate formatting method
-        ctype, filename, result = getattr(self, type)(fields, events)
+        filter_params = state['params']['params']
+        del state['params']['params']
+        params.update(filter_params)
+        getattr(self, type)(self.request.response, archive, **params)
 
-        # Set the headers appropriately
-        self.request.response.setHeader('Content-Type', ctype)
-        self.request.response.setHeader('Content-Disposition',
-                                        'attachment; filename=' + filename)
-        return result
-
-
-    def _query(self, history, fields, sort, dir, uid=None, params=None):
+    def _query(self, archive, uid=None, fields=None, sort=None, dir=None, evids=None, excludeIds=None, params=None):
         jsonParams = params
-        if isinstance(params, dict):
-            jsonParams = json.dumps(params)
-        limit = 1000
+        if isinstance(jsonParams, dict):
+            jsonParams = json.dumps(jsonParams)
         zepRouter = EventsRouter(self.context, self.request)
-        archive = history
-        summaryEvents = zepRouter.query(archive=archive, limit=limit, sort=sort,
-                                    dir=dir, params=jsonParams, uid=uid, detailFormat=True)
-        data = summaryEvents.data.get('events', [])
-        eventData = []
-        field_names = set()
-        for event in data:
-            eventDict = {}
+        summaryEvents = zepRouter.queryGenerator(archive=archive, sort=sort, dir=dir,
+                                                 evids=evids, excludeIds=excludeIds,
+                                                 params=jsonParams, uid=uid, detailFormat=True)
+        field_names = []
+        for event in summaryEvents:
             # default values for fields some optional fields in ZEP events
-            eventDict.update(event)
-            if eventDict['DeviceClass']:
-                eventDict['DeviceClass'] =  eventDict['DeviceClass']['name']
-            del eventDict['device_uuid']
-            del eventDict['details']
-            for prop in event['details']:
-                eventDict[prop['key']]=prop['value']
-            eventData.append(eventDict)
-            map(field_names.add, eventDict.keys())
-        return list(field_names), eventData
+            if isinstance(event.get('DeviceClass'), dict):
+                event['DeviceClass'] =  event['DeviceClass']['name']
+            if 'device_uuid' in event:
+                del event['device_uuid']
+            event.update(event['details'])
+            del event['details']
+            del event['log']
+            if not field_names:
+                field_names.extend(event.keys())
+            yield field_names, event
 
 
-    def csv(self, fields, events):
-        import csv
-        buffer = StringIO.StringIO()
-        writer = csv.writer(buffer)
+    def csv(self, response, archive, **params):
+        response.setHeader('Content-Type', 'application/vns.ms-excel')
+        response.setHeader('Content-Disposition', 'attachment; filename=events.csv')
+        
+        from csv import writer
+        writer = writer(response)
 
-        writer.writerow(fields)
+        wroteHeader = False
 
-        for evt in events:
-            data = [str(evt.get(field, '')).replace('\n', ' ').strip() for field in fields]
+        for fields, evt in self._query(archive, **params):
+            if not wroteHeader:
+                writer.writerow(fields)
+                wroteHeader = True
+            data = []
+            for field in fields:
+                val = evt.get(field, '')
+                data.append(str(val).replace('\n', ' ').strip() if val else '')
             writer.writerow(data)
 
-        return 'application/vns.ms-excel', 'events.csv', buffer.getvalue()
+    def xml(self, response, archive, **params):
+        response.setHeader('Content-Type', 'text/xml; charset=utf-8')
+        response.setHeader('Content-Disposition', 'attachment; filename=events.xml')
 
-
-    def xml(self, fields, events):
-        def getTZOffset():
-            from time import timezone, altzone, daylight
-            zone = timezone
-            if daylight != 0:
-                zone = altzone
-
-            eastOrWest = '-' # West of GMT
-            if zone < 0:
-                eastOrWest = '+'
-                zone = abs(zone)
-
-            hours, remainder = divmod(zone, 3600)
-            minutes, _ = divmod(hours, 60)
-            return '%s%02d%02d' % (eastOrWest, hours, minutes)
-
-
-        xml_output = StringIO.StringIO()
-
-        xml_output.write("""<?xml version="1.0" encoding="UTF-8"?>
+        from xml.sax.saxutils import escape, quoteattr
+        response.write("""<?xml version="1.0" encoding="UTF-8"?>
 <!-- Common Event Format compliant event structure -->
 <ZenossEvents>
 """)
@@ -117,29 +100,28 @@ class EventsExporter(BrowserView):
         reporterComponent = """\t<ReporterComponent>
 \t\t<url>%s</url>
 \t</ReporterComponent>
-""" % zem.absolute_url()
+""" % escape(zem.absolute_url())
 
 
-        for evt in events:
-            xml_output.write('<ZenossEvent ReportTime="%s" >\n' % evt['firstTime'])
-            xml_output.write("""\t<SourceComponent>
+        for fields, evt in self._query(archive, **params):
+            response.write('<ZenossEvent ReportTime=%s>\n' % quoteattr(evt['firstTime']))
+            response.write("""\t<SourceComponent>
 \t\t<DeviceClass>%s</DeviceClass>
 \t\t<device>%s</device>
 \t\t<ipAddress>%s</ipAddress>
 \t</SourceComponent>
-""" % (evt['DeviceClass'], evt['device'], evt['ipAddress']))
-            xml_output.write(reporterComponent)
-            xml_output.write('\t<dedupid><![CDATA[%s]]></dedupid>\n' % evt['dedupid'])
-            xml_output.write('\t<summary><![CDATA[%s]]></summary>\n' % evt['summary'])
-            xml_output.write('\t<message><![CDATA[%s]]></message>\n' % evt['message'])
+""" % (escape(str(evt.get('DeviceClass',''))), escape(str(evt.get('device',''))), escape(str(evt.get('ipAddress', '')))))
+            response.write(reporterComponent)
+            response.write('\t<dedupid>%s</dedupid>\n' % escape(str(evt.pop('dedupid', ''))))
+            response.write('\t<summary>%s</summary>\n' % escape(str(evt.pop('summary', ''))))
+            response.write('\t<message>%s</message>\n' % escape(str(evt.pop('message', ''))))
 
-            for field in evt.keys():
-                if evt.get(field,'') != '' and field not in ('dedupid', 'summary', 'message'):
-                    xml_output.write('\t<%s>%s</%s>\n' % (field.replace(".", "_"), evt.get(field), field.replace(".", "_")))
+            for key, value in evt.iteritems():
+                if value is not None:
+                    key = str(key).replace('.', '_')
+                    response.write('\t<%s>%s</%s>\n' % (key, escape(str(value)), key))
 
-            xml_output.write('</ZenossEvent>\n')
+            response.write('</ZenossEvent>\n')
 
-        xml_output.write( "</ZenossEvents>\n" )
-
-        return 'text/xml', 'events.xml', xml_output.getvalue()
+        response.write( "</ZenossEvents>\n" )
 

@@ -306,7 +306,7 @@ class ZepFacade(ZuulFacade):
         log.debug("created saved search %s", searchid)
         eventSearchFn = partial(self.client.savedSearch, searchid, archive=archive)
         offset = 0
-        limit = 500
+        limit = 1000
         try:
             while True:
                 result = self._getEventSummaries(eventSearchFn, offset, limit)

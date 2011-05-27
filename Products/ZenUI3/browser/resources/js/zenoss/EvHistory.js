@@ -101,7 +101,8 @@ Ext.onReady(function(){
                 items: [{
                     text: 'XML',
                     handler: function(){
-                        var state = Ext.getCmp('events_grid').getState(),
+                        var grid = Ext.getCmp('events_grid'),
+                            state = grid.getState(),
                             params = {
                                 type: 'xml',
                                 isHistory: true,
@@ -109,7 +110,7 @@ Ext.onReady(function(){
                                     fields: Ext.pluck(state.columns, 'id'),
                                     sort: state.sort.field,
                                     dir: state.sort.direction,
-                                    params: state.filters.options
+                                    params: grid.getSelectionParameters()
                                 }
                             };
                         Ext.get('export_body').dom.value =
@@ -119,7 +120,8 @@ Ext.onReady(function(){
                 }, {
                     text: 'CSV',
                     handler: function(){
-                        var state = Ext.getCmp('events_grid').getState(),
+                        var grid = Ext.getCmp('events_grid'),
+                            state = grid.getState(),
                             params = {
                                 type: 'csv',
                                 isHistory: true,
@@ -127,7 +129,7 @@ Ext.onReady(function(){
                                     fields: Ext.pluck(state.columns, 'id'),
                                     sort: state.sort.field,
                                     dir: state.sort.direction,
-                                    params: state.filters.options
+                                    params: grid.getSelectionParameters()
                                 }
                             };
                         Ext.get('export_body').dom.value =

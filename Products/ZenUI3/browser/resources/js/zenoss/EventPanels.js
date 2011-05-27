@@ -557,7 +557,8 @@
                                         context = location.pathname.replace('/viewEvents', '');
                                     }
 
-                                    var state = Ext.getCmp(gridId).getState(),
+                                    var grid = Ext.getCmp(gridId),
+                                        state = grid.getState(),
                                         historyCombo = Ext.getCmp('history_combo'),
                                         params = {
                                             type: 'xml',
@@ -567,7 +568,7 @@
                                                 fields: Ext.pluck(state.columns, 'id'),
                                                 sort: state.sort.field,
                                                 dir: state.sort.direction,
-                                                params: state.filters.options
+                                                params: grid.getSelectionParameters()
                                             }
                                         };
                                     if (historyCombo && historyCombo.getValue() == 1) {
@@ -584,7 +585,8 @@
                                     if (context == "/zport/dmd/Events") {
                                         context = location.pathname.replace('/viewEvents', '');
                                     }
-                                    var state = Ext.getCmp(gridId).getState(),
+                                    var grid = Ext.getCmp(gridId),
+                                        state = Ext.getCmp(gridId).getState(),
                                         historyCombo = Ext.getCmp('history_combo'),
                                         params = {
                                             type: 'csv',
@@ -593,7 +595,7 @@
                                                 fields: Ext.pluck(state.columns, 'id'),
                                                 sort: state.sort.field,
                                                 dir: state.sort.direction,
-                                                params: state.filters.options
+                                                params: grid.getSelectionParameters()
                                             }
                                         };
                                     if (historyCombo && historyCombo.getValue() == 1) {

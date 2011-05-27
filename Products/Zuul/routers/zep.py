@@ -218,8 +218,8 @@ class EventsRouter(DirectRouter):
             'eventClassMapping' : self._lookupEventClassMapping(eventOccurrence.get('event_class_mapping_uuid')),
             'clearid' : event_summary.get('cleared_by_event_uuid'),
             'ntevid' : eventOccurrence.get('nt_event_code'),
-            'ipAddress' : eventDetails.get('zenoss.device.ip_address'),
-            'message' : eventOccurrence.get('message'),
+            'ipAddress' : eventDetails.get('zenoss.device.ip_address', ''),
+            'message' : eventOccurrence.get('message', ''),
             'Location' : self._lookupTags(tags.get('zenoss.device.location')),
             'DeviceGroups' : self._lookupTags(tags.get('zenoss.device.group')),
             'Systems' : self._lookupTags(tags.get('zenoss.device.system')),
@@ -337,6 +337,40 @@ class EventsRouter(DirectRouter):
             totalCount = events['total'],
             asof = time.time()
         )
+
+    @serviceConnectionError
+    @require('ZenCommon')
+    def queryGenerator(self, sort='lastTime', dir='desc', evids=None, excludeIds=None, params=None,
+                       archive=False, uid=None, detailFormat=False):
+        """
+        Query for events.
+
+        @type  sort: string
+        @param sort: (optional) Key on which to sort the return results (default:
+                     'lastTime')
+        @type  dir: string
+        @param dir: (optional) Sort order; can be either 'ASC' or 'DESC'
+                    (default: 'DESC')
+        @type  params: dictionary
+        @param params: (optional) Key-value pair of filters for this search.
+                       (default: None)
+        @type  archive: boolean
+        @param archive: (optional) True to search the event archive instead
+                        of active events (default: False)
+        @type  uid: string
+        @param uid: (optional) Context for the query (default: None)
+        @rtype:   generator
+        @return:  Generator returning events.
+        """
+        includeFilter, excludeFilter = self._buildRequestFilters(uid, params, evids, excludeIds)
+
+        events = self.zep.getEventSummariesGenerator(filter=includeFilter, exclude=excludeFilter,
+                                                      sort=self._buildSort(sort,dir), archive=archive)
+        eventFormat = self._mapToOldEvent
+        if detailFormat:
+            eventFormat = self._mapToDetailEvent
+        for event in events:
+            yield eventFormat(event)
 
     def _buildSort(self, sort='lastTime', dir='desc'):
         sort_list = [(sort,dir)]
@@ -500,7 +534,7 @@ class EventsRouter(DirectRouter):
             'device': eventActor.get('element_identifier'),
             'device_title': self._getNameFromUuid(eventActor.get('element_uuid')) or eventActor.get('element_identifier'),
             'device_url':self._uuidUrl(eventActor.get('element_uuid')),
-            'ipAddress': eventDetails.get('zenoss.device.ip_address'),
+            'ipAddress': eventDetails.get('zenoss.device.ip_address', ''),
             'device_uuid':eventActor.get('element_uuid'),
             'component': eventActor.get('element_sub_identifier'),
             'component_title':self._getNameFromUuid(eventActor.get('element_sub_uuid')) or eventActor.get('element_sub_identifier'),
@@ -516,7 +550,7 @@ class EventsRouter(DirectRouter):
             'eventState':EventStatus.getPrettyName(event_summary['status']),
             'count':event_summary['count'],
             'summary':eventOccurrence.get('summary'),
-            'message':eventOccurrence.get('message'),
+            'message':eventOccurrence.get('message', ''),
             'dedupid':eventOccurrence['fingerprint'],
             'monitor':eventOccurrence.get('monitor'),
             'facility': eventOccurrence.get('syslog_facility'),
