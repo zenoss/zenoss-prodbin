@@ -1873,9 +1873,6 @@ The message file 'E:\Program Files\Exchsrvr\Mailroot\vsi 1\Queue\NTFS_584fe40801
 </object>
 </tomanycont>
 <object id='Loop' module='Products.ZenEvents.EventClass' class='EventClass'>
-<property visible="True" type="string" id="zEventAction" >
-drop
-</property>
 <tomanycont id='instances'>
 <object id='msexchangetransport_3005' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
 <property type="string" id="eventClassKey" mode="w" >
