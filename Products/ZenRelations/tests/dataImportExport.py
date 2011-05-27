@@ -21,6 +21,9 @@ objwithprops = \
 <property setter="setPingStatus" type="int" id="pingStatus" mode="w" >
 0
 </property>
+<property type="lines" id="communities" mode="w" >
+()
+</property>
 </object>
 """
 
@@ -28,6 +31,9 @@ objwithtoone = \
 """<object id='dev' module='Products.ZenRelations.tests.TestSchema' class='Device'>
 <property setter="setPingStatus" type="int" id="pingStatus" mode="w" >
 0
+</property>
+<property type="lines" id="communities" mode="w" >
+()
 </property>
 <toone id='location' objid='loc'/>
 </object>
@@ -45,6 +51,9 @@ objwithtomanycont = \
 """<object id='dev' module='Products.ZenRelations.tests.TestSchema' class='Device'>
 <property setter="setPingStatus" type="int" id="pingStatus" mode="w" >
 0
+</property>
+<property type="lines" id="communities" mode="w" >
+()
 </property>
 <tomanycont id='interfaces'>
 <object id='eth0' module='Products.ZenRelations.tests.TestSchema' class='IpInterface'>
