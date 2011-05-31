@@ -38,8 +38,6 @@ class AmqpDataManager(object):
         self.channel.tx_select()
         self.transaction_manager = txnmgr
 
-
-
         #"""The transaction manager (TM) used by this data manager.
 
         #This is a public attribute, intended for read-only use.  The value
@@ -87,18 +85,6 @@ class AmqpDataManager(object):
         # nothing special to do here
         log.debug("commit'ed")
 
-    def tpc_vote(self, transaction):
-        """Verify that a data manager can commit the transaction.
-
-        This is the last chance for a data manager to vote 'no'.  A
-        data manager votes 'no' by raising an exception.
-
-        transaction is the ITransaction instance associated with the
-        transaction being committed.
-        """
-        # nothing to do here
-        log.debug("tpc_vote'ed")
-
 
     def tpc_finish(self, transaction):
         """Indicate confirmation that the transaction is done.
@@ -112,14 +98,31 @@ class AmqpDataManager(object):
         database is not expected to maintain consistency; it's a
         serious error.
         """
-        log.debug("tpc_finish'ed")
+        # nothing to do here
+        try:
+            log.debug("tpc_finished")
+        except Exception:
+            # This method should never raise an exception
+            pass
+
+
+    def tpc_vote(self, transaction):
+        """Verify that a data manager can commit the transaction.
+
+        This is the last chance for a data manager to vote 'no'.  A
+        data manager votes 'no' by raising an exception.
+
+        transaction is the ITransaction instance associated with the
+        transaction being committed.
+        """
+        log.debug("tpc_vote'ed")
         try:
             self.channel.tx_commit()
         except Exception as e:
-            log.debug("tpc_finish completed FAIL")
-            log.exception(e)
+            log.exception("tpc_vote completed FAIL")
+            raise
         else:
-            log.debug("tpc_finish completed OK")
+            log.debug("tpc_vote completed OK")
 
 
     def tpc_abort(self, transaction):
