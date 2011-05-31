@@ -109,7 +109,7 @@ Zenoss.nav.register({
                     iconCls: 'refresh',
                     text: _t('Refresh'),
                     handler: function(btn) {
-                        if (cardid) {
+                        if (cardid && Ext.getCmp(cardid)) {
                             Ext.getCmp(cardid).resetSwoopies();
                         }
                     }
@@ -573,7 +573,8 @@ ZC.BaseComponentColModel = Ext.extend(Ext.grid.ColumnModel, {
             }];
         config = Ext.applyIf(config||{}, {
             defaults: {
-                menuDisabled: true
+                menuDisabled: true,
+                sortable: true
             },
             columns: cols
         });
