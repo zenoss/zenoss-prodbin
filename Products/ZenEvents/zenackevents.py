@@ -12,11 +12,11 @@
 #
 ###########################################################################
 import Globals
-
 from Products.ZenUtils.ZenScriptBase import ZenScriptBase
+from Products.Zuul.facades import getFacade
 
 class zenackevents(ZenScriptBase):
-    
+
     def buildOptions(self):
         """basic options setup sub classes can add more options here"""
         ZenScriptBase.buildOptions(self)
@@ -33,9 +33,20 @@ class zenackevents(ZenScriptBase):
                     help="event id that is acked [default: ack]")
 
     def ack(self):
-        self.dmd.ZenEventManager.manage_setEventStates(self.options.state,
-                                    self.options.evids,self.options.userid)
+        if not self.options.evids:
+            self.parser.error("Require one or more event ids to be acknowledged.")
+        if not self.options.userid:
+            self.parser.error("Require username who is acknowledging the event.")
+        if not self.options.state in (0,1):
+            self.parser.error("Invalid state: %d" % self.options.state)
 
+        zep = getFacade('zep', self.dmd)
+        event_filter = zep.createEventFilter(uuid=self.options.evids)
+        # Old event states = 0=New, 1=Acknowledge
+        if self.options.state == 0:
+            zep.reopenEventSummaries(eventFilter=event_filter, userName=self.options.userid)
+        elif self.options.state == 1:
+            zep.acknowledgeEventSummaries(eventFilter=event_filter, userName=self.options.userid)
 
 if __name__ == '__main__':
     zae = zenackevents(connect=True)

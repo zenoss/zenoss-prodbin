@@ -251,10 +251,14 @@ class ZepFacade(ZuulFacade):
         return from_dict(EventSort, eventSort)
 
     def _getUserUuid(self, userName):
-        # Lookup the user uuid
-        user = self._dmd.ZenUsers.getUserSettings(userName)
-        if user:
+        # We have to call _getOb instead of getUserSettings here because the
+        # latter will create a new user settings object even if the user is
+        # not known.
+        try:
+            user = self._dmd.ZenUsers._getOb(userName)
             return IGlobalIdentifier(user).getGUID()
+        except AttributeError:
+            raise Exception('Could not find user "%s"' % userName)
 
     def _findUserInfo(self):
         userName = getSecurityManager().getUser().getId()
@@ -263,8 +267,6 @@ class ZepFacade(ZuulFacade):
     def addNote(self, uuid, message, userName, userUuid=None):
         if userName and not userUuid:
             userUuid = self._getUserUuid(userName)
-            if not userUuid:
-                raise Exception('Could not find user "%s"' % userName)
 
         self.client.addNote(uuid, message, userUuid, userName)
 
@@ -332,36 +334,45 @@ class ZepFacade(ZuulFacade):
         status, response = self.client.nextEventSummaryUpdate(from_dict(EventSummaryUpdateRequest, next_request))
         return status, to_dict(response)
 
-    def closeEventSummaries(self, eventFilter=None, exclusionFilter=None, limit=None):
+    def closeEventSummaries(self, eventFilter=None, exclusionFilter=None, limit=None, userName=None):
         if eventFilter:
             eventFilter = from_dict(EventFilter, eventFilter)
         if exclusionFilter:
             exclusionFilter = from_dict(EventFilter, exclusionFilter)
 
-        userUuid, userName = self._findUserInfo()
+        if not userName:
+            userUuid, userName = self._findUserInfo()
+        else:
+            userUuid = self._getUserUuid(userName)
         status, response = self.client.closeEventSummaries(
             userUuid, userName, eventFilter, exclusionFilter, limit)
         return status, to_dict(response)
 
-    def acknowledgeEventSummaries(self, eventFilter=None, exclusionFilter=None, limit=None):
+    def acknowledgeEventSummaries(self, eventFilter=None, exclusionFilter=None, limit=None, userName=None):
         if eventFilter:
             eventFilter = from_dict(EventFilter, eventFilter)
 
         if exclusionFilter:
             exclusionFilter = from_dict(EventFilter, exclusionFilter)
 
-        userUuid, userName = self._findUserInfo()
+        if not userName:
+            userUuid, userName = self._findUserInfo()
+        else:
+            userUuid = self._getUserUuid(userName)
         status, response = self.client.acknowledgeEventSummaries(userUuid, userName, eventFilter, exclusionFilter,
                                                                  limit)
         return status, to_dict(response)
 
-    def reopenEventSummaries(self, eventFilter=None, exclusionFilter=None, limit=None):
+    def reopenEventSummaries(self, eventFilter=None, exclusionFilter=None, limit=None, userName=None):
         if eventFilter:
             eventFilter = from_dict(EventFilter, eventFilter)
         if exclusionFilter:
             exclusionFilter = from_dict(EventFilter, exclusionFilter)
 
-        userUuid, userName = self._findUserInfo()
+        if not userName:
+            userUuid, userName = self._findUserInfo()
+        else:
+            userUuid = self._getUserUuid(userName)
         status, response = self.client.reopenEventSummaries(
             userUuid, userName, eventFilter, exclusionFilter, limit)
         return status, to_dict(response)
