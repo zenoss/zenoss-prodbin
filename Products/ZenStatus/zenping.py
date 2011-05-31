@@ -248,21 +248,21 @@ class TopologyUpdater(object):
             return
 
         tasks = daemon._scheduler.getTasksForConfig(configurationId)
+        if not tasks:
+            log.debug("No tasks found to delete for device '%s'",
+                          configurationId)
         for task in tasks:
             ipAddress = task._manageIp
             if ipAddress in daemon.network.topology:
-                daemon.network.topology.removeDevice(ipAddress)
+                daemon.network.removeDevice(ipAddress)
 
             elif ipAddress in daemon.ipv6network.topology:
-                daemon.ipv6network.topology.removeDevice(ipAddress)
- 
+                daemon.ipv6network.removeDevice(ipAddress)
+
             else:
                 log.debug("%s IP address %s not in topology",
                           configurationId, ipAddress)
-        else:
-            log.debug("No tasks found to delete for device '%s'",
-                          configurationId)
-
+    
     def added(self, configuration):
         """
         Called when a configuration is added to the collector.

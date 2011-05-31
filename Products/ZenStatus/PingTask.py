@@ -242,11 +242,11 @@ class PingCollectionTask(BaseTask):
         self._lastStatus = resultMsg
         return resultMsg
 
-    def sendPingClearEvent(self, pj):
+    def sendPingClearEvent(self, pj, msgTpl='%s is UP!'):
         """
         Send an event based on a ping job to the event backend.
         """
-        msg = "%s is UP!" % self._devId
+        msg = msgTpl % self._devId
         evt = dict(device=self._devId,
                    ipAddress=pj.ipaddr,
                    summary=msg,
@@ -269,3 +269,5 @@ class PingCollectionTask(BaseTask):
             display += "\n%s\n" % self._lastErrorMsg
         return display
 
+    def cleanup(self):
+        self.sendPingClearEvent(self.pingjob, "No longer testing device %s")

@@ -21,6 +21,7 @@ import time
 import os
 import re
 import logging
+import collections
 log = logging.getLogger("zen.networkModel")
 
 from collections import defaultdict
@@ -375,15 +376,14 @@ class NetworkModel(object):
             log.debug("Device %s not deleted as it is not in topology",
                       device)
             return
-
-        route = self.getRoute(device)[:-1]
-        lastHop = route[-1]
-
+        route = self.getRoute(device)
         neighbors = self.topology.neighbors(device)
-        if lastHop in neighbors:
-            neighbors.remove(lastHop)
+        if route and isinstance(route, collections.Sequence) and len(route)>1:
+            route = route[:-1]
+            lastHop = route[-1]
+            if lastHop in neighbors:
+                neighbors.remove(lastHop)
         self.notModeled.update(neighbors)
-
         self.topology.remove_node(device)
         log.debug("Deleted device %s from topology", device)
 
