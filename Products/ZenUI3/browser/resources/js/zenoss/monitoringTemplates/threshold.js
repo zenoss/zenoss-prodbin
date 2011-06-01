@@ -69,8 +69,7 @@
         if (!grid.getTemplateUid()) {
             return;
         }
-        var addThresholdDialog = new Ext.create({
-            xtype: 'window',
+        var addThresholdDialog = new Zenoss.dialog.BaseWindow({
             id: 'addThresholdDialog',
             title: _t('Add Threshold'),
             message: _t('Allow the user to add a threshold.'),

@@ -32,7 +32,7 @@ var mib_browser = new Zenoss.BackCompatPanel({}),
  */
 
 function getSelectedMibTreeNode(){
-    return Ext.getCmp('mibtree').getSelectionModel().getSelectedNode();    
+    return Ext.getCmp('mibtree').getSelectionModel().getSelectedNode();
 }
 
 function reloadTree(selectedUid) {
@@ -40,9 +40,9 @@ function reloadTree(selectedUid) {
     tree.getRootNode().reload(function(){
         tree.getRootNode().childNodes[0].expand();
         tree.selectByToken(selectedUid);
-    });    
+    });
 }
-                
+
 function initializeTreeDrop(g) {
     var dz = new Ext.tree.TreeDropZone(g, {
         ddGroup: 'mibtreedd',
@@ -140,7 +140,7 @@ Zenoss.MibTreePanel = Ext.extend(Zenoss.HierarchyTreePanel, {
             token = token.replace(/\//g, '.');
             var path = this.getNodePathById(token);
             this.selectPath(path);
-        },        
+        },
         initEvents: function() {
             Zenoss.MibTreePanel.superclass.initEvents.call(this);
             // don't add history token on click like HierarchyTreePanel does
@@ -172,19 +172,19 @@ treesm = new Ext.tree.DefaultSelectionModel({
     listeners: {
         'selectionchange': function (sm, newnode) {
             var isRoot = false;
-            
+
             if (newnode && newnode.attributes.leaf && !initialContextSet) {
                 initialContextSet = true;
                 var uid = newnode.attributes.uid,
                     meta_type = newnode.attributes.meta_type;
                     mib_browser.setContext(uid + '?adapt=false');
             }
-            
+
             if (newnode) {
                 // set the context for the new nodes
                 Zenoss.env.PARENT_CONTEXT = newnode.attributes.uid;
                 if (newnode.attributes.uid == '/zport/dmd/Mibs') {
-                    isRoot = true;    
+                    isRoot = true;
                 }
                 Ext.getCmp('add-organizer-button').setDisabled(newnode.attributes.leaf);
                 Ext.getCmp('edit-mib-action').setDisabled(!newnode.attributes.leaf);
@@ -194,7 +194,7 @@ treesm = new Ext.tree.DefaultSelectionModel({
                 // add to history
                 Ext.History.add('mibtree' + Ext.History.DELIMITER + newnode.attributes.uid);
             }
-            
+
         }
     }
 });
@@ -259,12 +259,12 @@ Ext.getCmp('center_panel').add({
 function showEditMibDialog(response){
     var data = response.data, win,
         items = response.form.items[0].items;
-    
+
     // show the edit form
     win = Ext.create({
         id: 'editMIBDialog',
         title: _t('Edit MIB'),
-        xtype: 'window',
+        xtype: 'basewindow',
         height: 360,
         width: 510,
         modal: true,
@@ -292,7 +292,7 @@ function showEditMibDialog(response){
                 dirtyOnly=true,
                 opts = form.getFieldValues(dirtyOnly);
                 opts.uid = data.uid;
-                
+
                 router.setInfo(opts, function(response) {
                     reloadTree(response.data.uid);
                     win.close();
@@ -306,12 +306,12 @@ function showEditMibDialog(response){
             }
         }]
     });
-    
+
     win.show();
 }
 /**********************************************************************
  *
- * Footer Bar 
+ * Footer Bar
  *
  */
 
@@ -359,7 +359,7 @@ function createAction(typeName, text) {
 }
 
 function createLocalMIBAddAction() {
-    
+
     return new Zenoss.Action({
     text: _t('Add MIB from Desktop') + '...',
     id: 'addmib-item',
@@ -377,7 +377,7 @@ function createLocalMIBAddAction() {
                     // show the message about the uploaded file
                     Zenoss.messenger.checkMessages();
                 }
-            },                                             
+            },
             items: [{
                 xtype: 'panel',
                 buttonAlign: 'left',
@@ -391,7 +391,7 @@ function createLocalMIBAddAction() {
                     layout: 'form',
                     border: false,
                     html: '<iframe frameborder="0" src="' +  src  + '"></iframe>'
-                }]                
+                }]
             }]
         });
         win.show();
@@ -408,7 +408,7 @@ function createDownloadMIBAddAction() {
         var win = new Zenoss.dialog.CloseDialog({
             width: 300,
             title: _t('Download MIB'),
-            
+
             items: [{
                 xtype: 'form',
                 buttonAlign: 'left',
@@ -470,7 +470,7 @@ function createDownloadMIBAddAction() {
 }
 
 footerBar = Ext.getCmp('footer_bar');
-                
+
 footerBar.add({
     id: 'add-organizer-button',
     tooltip: _t('Add MIB organizer or MIB'),
@@ -514,10 +514,10 @@ function deleteNode() {
             }
         }, {
             xtype: 'DialogButton',
-            text: _t('Cancel')            
+            text: _t('Cancel')
         }]
     }).show();
-    
+
 }
 
 footerBar.add({
@@ -537,7 +537,7 @@ function addToZenPack(e) {
     addtozenpack.setTarget(treesm.getSelectedNode().attributes.uid);
     addtozenpack.show();
 }
-    
+
 footerBar.add([{
     xtype: 'button',
     iconCls: 'customize',
@@ -558,7 +558,7 @@ footerBar.add([{
                         useFieldSets: false
                     };
                     router.getInfo(params, showEditMibDialog);
-                }                
+                }
             }
         },{
             xtype: 'menuitem',

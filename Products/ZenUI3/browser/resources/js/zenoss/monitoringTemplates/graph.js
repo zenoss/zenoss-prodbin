@@ -372,7 +372,7 @@ new Zenoss.HideFormDialog({
  *
  */
 Ext.create({
-    xtype: 'window',
+    xtype: 'basewindow',
     title: _t('Graph Custom Definition'),
     id: 'graphCustomDefinitionDialog',
     closeAction: 'hide',
@@ -671,7 +671,7 @@ new Zenoss.HideFitDialog({
 });
 
 Ext.create({
-    xtype: 'window',
+    xtype: 'basewindow',
     layout: (Ext.isIE) ? 'form': 'fit',
     id: 'viewGraphDefinitionDialog',
     title: _t('View and Edit Graph Definition'),

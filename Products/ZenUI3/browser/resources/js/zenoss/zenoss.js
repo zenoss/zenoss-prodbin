@@ -137,6 +137,7 @@ Ext.Direct.on('event', function(e){
     }
 });
 
+
 Ext.namespace('Zenoss.flares');
 
 /**
@@ -2191,7 +2192,7 @@ String.prototype.endswith = function(str){
 
 /* Cross-Browser Split 1.0.1
 (c) Steven Levithan <stevenlevithan.com>; MIT License
-An ECMA-compliant, uniform cross-browser split method 
+An ECMA-compliant, uniform cross-browser split method
 http://blog.stevenlevithan.com/archives/cross-browser-split
 */
 
@@ -2322,7 +2323,7 @@ if (Ext.isIE) {
         }
         for (style in prop) {
             value = prop[style];
-            /* 
+            /*
             * This if{} is our change; detect this one case which accounts for
             *  most of the problems.
             */

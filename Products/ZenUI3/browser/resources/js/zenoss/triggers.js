@@ -64,7 +64,7 @@ Ext.onReady(function () {
     var bigWindowWidth = 600;
     var panelPadding = 10;
 
-    AddDialogue = Ext.extend(Ext.Window, {
+    AddDialogue = Ext.extend(Zenoss.dialog.BaseWindow, {
         constructor: function(config) {
             config = config || {};
             Ext.applyIf(config, {
@@ -635,7 +635,7 @@ Ext.onReady(function () {
         typesCombo.store.on('load', function(){
             typesCombo.setValue('email');
         });
-        var dialogue = new Ext.Window({
+        var dialogue = new Zenoss.dialog.BaseWindow({
             title: _t('Add Notification'),
             height: 140,
             width: 300,
@@ -696,7 +696,7 @@ Ext.onReady(function () {
         dialogue.show();
     };
 
-    EditNotificationDialogue = Ext.extend(Ext.Window, {
+    EditNotificationDialogue = Ext.extend(Zenoss.dialog.BaseWindow, {
         constructor: function(config) {
             config = config || {};
             Ext.applyIf(config, {
@@ -766,7 +766,7 @@ Ext.onReady(function () {
     Ext.reg('editnotificationdialogue', EditNotificationDialogue);
 
 
-    EditScheduleDialogue = Ext.extend(Ext.Window, {
+    EditScheduleDialogue = Ext.extend(Zenoss.dialog.BaseWindow, {
         constructor: function(config) {
             config = config || {};
             Ext.applyIf(config, {
@@ -1643,7 +1643,7 @@ Ext.onReady(function () {
     };
 
 
-    EditTriggerDialogue = Ext.extend(Ext.Window, {
+    EditTriggerDialogue = Ext.extend(Zenoss.dialog.BaseWindow, {
         constructor: function(config) {
             config = config || {};
             Ext.applyIf(config, {

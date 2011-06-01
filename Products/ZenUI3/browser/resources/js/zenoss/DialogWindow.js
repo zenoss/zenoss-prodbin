@@ -18,21 +18,87 @@
 Ext.ns('Zenoss', 'Zenoss.dialog');
 
 /**
- * @class BaseDialog
+ * @class BaseWindow
  * @extends Ext.Window
+ * A modal window with some defaults. Will auto focus on the first
+ * textfield and make the enter key hit submit
+ *
+ **/
+Zenoss.dialog.BaseWindow = Ext.extend(Ext.Window, {
+    constructor: function(config) {
+        config = config || {};
+        Ext.applyIf(config, {
+            layout: (Ext.isIE) ? 'form': 'fit',
+            plain: true,
+            border: false,
+            buttonAlign: 'left',
+            modal: true,
+            constrain: true
+        });
+        Zenoss.dialog.BaseWindow.superclass.constructor.apply(this, arguments);
+    },
+    initEvents: function() {
+        Zenoss.dialog.BaseWindow.superclass.initEvents.apply(this, arguments);
+        this.on('show', this.focusFirstTextField, this);
+        this.on('show', this.registerEnterKey, this);
+    },
+    focusFirstTextField: function() {
+        // go through our items and find a text field
+        var fields = this.findByType("textfield", false);
+        if (fields.length) {
+            fields[0].focus(false, 300);
+        }
+    },
+    registerEnterKey: function() {
+        var km = this.getKeyMap();
+        km.on(13, function(){
+            var button, el;
+
+            // make sure we are not focused on text areas
+            if (document.activeElement) {
+                el = document.activeElement;
+                if (el.type == "textarea") {
+                    return;
+                }
+            }
+
+            // the button is on the window
+            if (this.buttons && this.buttons.length) {
+                button = this.buttons[0];
+            }else{
+                // the button is on a form
+                var forms = this.findByType('form', true);
+                if (forms) {
+                    if (forms.length && forms[0].buttons && forms[0].buttons.length){
+                        button = forms[0].buttons[0];
+                    }
+                }
+            }
+
+            if (button && !button.disabled){
+                button.handler(button);
+            }
+        }, this);
+
+    }
+});
+Ext.reg('basewindow', Zenoss.dialog.BaseWindow);
+
+
+/**
+ * @class BaseDialog
+ * @extends Zenoss.dialog.BaseWindow
  * A modal dialog with Zenoss styling. Subclasses should specify a layout.
  * @constructor
  */
-var BaseDialog = Ext.extend(Ext.Window, {
+var BaseDialog = Ext.extend(Zenoss.dialog.BaseWindow, {
     constructor: function(config) {
         Ext.applyIf(config, {
-            autoHeight: true,
             width: 310,
             closeAction: 'hide',
-            plain: true,
             buttonAlign: 'left',
             padding: 10,
-            modal: true
+            autoHeight: true
         });
         BaseDialog.superclass.constructor.call(this, config);
     }
@@ -160,13 +226,13 @@ Zenoss.dialog.SimpleMessageDialog = Ext.extend(BaseDialog, {
 
 /**
  * @class Zenoss.FormDialog
- * @extends Ext.Window
+ * @extends Zenoss.dialog.BaseWindow
  * A modal dialog window with Zenoss styling and a form layout.  This window
  * meant to be instantiated multiple times per page, and destroyed each time
  * the user closes it.
  * @constructor
  */
-Zenoss.FormDialog = Ext.extend(Ext.Window, {
+Zenoss.FormDialog = Ext.extend(Zenoss.dialog.BaseWindow, {
     constructor: function(config) {
         var form = new Ext.form.FormPanel({
             border: false,
@@ -215,7 +281,7 @@ Zenoss.FormDialog = Ext.extend(Ext.Window, {
 });
 
 
-Zenoss.dialog.CloseDialog = new Ext.extend(Ext.Window, {
+Zenoss.dialog.CloseDialog = new Ext.extend(Zenoss.dialog.BaseWindow, {
     constructor: function(config) {
         Ext.applyIf(config, {
             width: 310,
@@ -326,11 +392,11 @@ Zenoss.SmartFormDialog = Ext.extend(Zenoss.FormDialog, {
 
 /**
  * @class Zenoss.HideFitDialog
- * @extends Ext.Window
+ * @extends Zenoss.dialog.BaseWindow
  * A modal dialog window with Zenoss styling and a fit layout.
  * @constructor
  */
-Zenoss.HideFitDialog = Ext.extend(Ext.Window, {
+Zenoss.HideFitDialog = Ext.extend(Zenoss.dialog.BaseWindow, {
     constructor: function(config) {
         Ext.applyIf(config, {
             layout: 'fit',
@@ -385,7 +451,7 @@ Zenoss.dialog.DynamicDialog = Ext.extend(BaseDialog, {
             success: function(form, action){
                 Zenoss.message.success(_t('{0} finished successfully'), this.title);
             }.createDelegate(this),
-            failure: function(form, action){                
+            failure: function(form, action){
                 Zenoss.message.error(_t('{0} had errors'), this.title);
             }
         });

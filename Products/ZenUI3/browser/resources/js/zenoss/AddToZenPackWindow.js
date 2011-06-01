@@ -19,9 +19,9 @@ Ext.ns('Zenoss');
 
 /**
  * @class Zenoss.AddToZenPackWindow
- * @extends Ext.Window
+ * @extends Zenoss.dialog.BaseWindow
  */
-Zenoss.AddToZenPackWindow = Ext.extend(Ext.Window, {
+Zenoss.AddToZenPackWindow = Ext.extend(Zenoss.dialog.BaseWindow, {
     constructor: function(config) {
         config = Ext.applyIf(config || {}, {
             id: 'addToZenPackWindow',

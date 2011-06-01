@@ -20,7 +20,7 @@
      * Show the dialog that allows one to add an event.
      */
     function showAddEventDialog(gridId) {
-        var addevent = new Ext.Window({
+        var addevent = new Zenoss.dialog.BaseWindow({
             title: _t('Create Event'),
             layout: 'fit',
             autoHeight: true,
@@ -110,7 +110,7 @@
      */
     function showClassifyDialog(gridId) {
 
-        var win = new Ext.Window({
+        var win = new Zenoss.dialog.BaseWindow({
             title: _t('Classify Events'),
             width: 300,
             autoHeight: true,

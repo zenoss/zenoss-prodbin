@@ -154,7 +154,7 @@
                             renderer: function(name, idx, record) {
                                 var uid = record.data.uid;
                                 if (uid){
-                                    return Zenoss.render.link(uid, null, name);
+                                    return Zenoss.render.link(null, uid, name);
                                 }
                                 return name;
                             }

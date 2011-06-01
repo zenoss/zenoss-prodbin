@@ -23,10 +23,10 @@
      * - directFn - The server call when we press Save
      * - saveHandler - the router callback from after we save
      **/
-    Zenoss.form.DataSourceEditDialog = Ext.extend(Ext.Window, {
+    Zenoss.form.DataSourceEditDialog = Ext.extend(Zenoss.dialog.BaseWindow, {
         constructor: function(config) {
             config = config || {};
-            
+
             // verify we received the record we are editing
             var record = config.record,
             items = config.items,
@@ -38,9 +38,9 @@
             if (!record) {
                 throw "EditDialog did not recieve a record to edit (config.record is undefined)";
             }
-            
+
             if (!config.singleColumn) {
-                items = this.sortItems(items, record);      
+                items = this.sortItems(items, record);
             }else{
                 // the items come in the form of a single fieldset
                 // and we can not have a fieldset because it looks ugly in a dialog
@@ -60,7 +60,7 @@
             if (this.itemCount > 10) {
                 autoHeight = false;
             }
-            
+
             Ext.apply(config, {
                 layout: (Ext.isIE) ? 'form': 'fit',
                 plain: true,
@@ -94,12 +94,12 @@
                             dialogWindow = formPanel.refOwner;
                             // check security first
                             if (Zenoss.Security.hasPermission('Manage DMD')) {
-                                dialogWindow.submitButton.setDisabled(!valid);    
+                                dialogWindow.submitButton.setDisabled(!valid);
                             }
                         }
                     },
                     items: items
-                    
+
                 }],
                 buttons: [{
                     xtype: 'DialogButton',
@@ -117,7 +117,7 @@
                 },
                     Zenoss.dialog.CANCEL
                 ]
-                
+
             });
             Zenoss.form.DataSourceEditDialog.superclass.constructor.apply(this, arguments);
         },
@@ -130,13 +130,13 @@
         sortItems: function(fieldsets, record) {
             var panel = [], i, j, currentPanel,
             item, fieldset, tmp, header, textareas;
-            
+
             // items comes back from the server in the form
             // fieldsets.items[0] = fieldset
             fieldsets = fieldsets.items;
-            
+
             // The datasources have a convention to where the first items are
-            // ungrouped. 
+            // ungrouped.
             // This section makes sure the non-titled one is first.
             // (It swaps the titled first fieldset with the untitled fieldset)
             if (fieldsets[0].title) {
@@ -149,11 +149,11 @@
                     }
                 }
             }
-            
+
             // this creates a new panel for each group of items that come back from the server
             for (i =0; i < fieldsets.length; i += 1) {
                 fieldset = fieldsets[i];
-                
+
                 // format the title a little funny
                 if (fieldset.title) {
                     header = {
@@ -162,11 +162,11 @@
                         html: '<br /><br /><h1>' + fieldset.title + '</h1>'
                     };
                 }else {
-                    header = null;    
+                    header = null;
                 }
 
                 textareas = [];
-                
+
                 currentPanel = {
                     xtype:'panel',
                     layout: 'column',
@@ -194,17 +194,17 @@
                     }
                     // we want to keep text areas to put them in a single column panel
                     if (item.xtype.search(/textarea/) >= 0) {
-                        textareas.push(item);   
+                        textareas.push(item);
                     }else{
-                        currentPanel.items[j%2].items.push(item);   
+                        currentPanel.items[j%2].items.push(item);
                     }
                 }
-                
+
                 // if we have a header set display it
                 if (header) {
                     panel.push(header);
                 }
-                
+
                 // add the non-textarea fields
                 panel.push(currentPanel);
 
@@ -214,15 +214,15 @@
                         panel.push({
                             xtype: 'panel',
                             layout: 'form',
-                                       
+
                             border: false,
                             items: textareas[j]
                         });
                     }
                 }
-                
+
             }// fieldsets
-            
+
             return panel;
         }
     });
