@@ -482,10 +482,10 @@ class DeviceFacade(TreeFacade):
                     pass
 
     def addLocationOrganizer(self, contextUid, id, description = '', address=''):
-        context = self._getObject(contextUid)
-        organizer = aq_base(context).__class__(id, description, address)
-        context._setObject(id, organizer)
-        return ILocationOrganizerInfo(organizer)
+        org = super(DeviceFacade, self).addOrganizer(contextUid, id, description)
+        org.address = address
+        return org
+
 
     def setZenProperty(self, uid, zProperty, value):
         """

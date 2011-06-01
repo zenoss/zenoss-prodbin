@@ -187,9 +187,12 @@ class TreeFacade(ZuulFacade):
 
     def addOrganizer(self, contextUid, id, description = ''):
         context = self._getObject(contextUid)
-        organizer = aq_base(context).__class__(id, description)
-        context._setObject(id, organizer)
-
+        context.manage_addOrganizer(id)
+        if id.startswith("/"):
+            organizer = context.getOrganizer(id)
+        else:
+            organizer = context._getOb(id)
+        organizer.description = description
         return IOrganizerInfo(organizer)
 
     def addClass(self, contextUid, id):
