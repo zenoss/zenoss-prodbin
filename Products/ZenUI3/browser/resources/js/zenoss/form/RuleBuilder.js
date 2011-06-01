@@ -445,7 +445,7 @@
                     }
                     token.push(c);
                     if (c=='(') {
-                        var prev = expression[i-1];
+                        var prev = expression.charAt(i-1);
                         if (i>0 && prev!=' ' && prev!='(') {
                             funcflag = true;
                         } else {
