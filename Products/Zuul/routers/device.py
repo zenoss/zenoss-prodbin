@@ -28,6 +28,7 @@ from Products.Zuul.form.interfaces import IFormBuilder
 from Products.Zuul.decorators import require, contextRequire, serviceConnectionError
 from Products.ZenUtils.guid.interfaces import IGlobalIdentifier
 
+
 log = logging.getLogger('zen.Zuul')
 
 
@@ -99,6 +100,39 @@ class DeviceRouter(TreeRouter):
         data = Zuul.marshal(tree)
         return [data]
 
+    def _filterComponents(self, comps, keys, query):
+        """
+        Returns a list of components where one of the attributes in keys contains
+        the query (case-insensitive).
+
+        @type  comps: SearchResults
+        @param comps: All the Components for this query
+        @type  keys: List
+        @param keys: List of strings of fields that we are filtering on
+        @type  query: String
+        @param query: Search Term
+        @rtype:   List
+        @return:  List of Component Info objects that match the query
+        """
+        results = []
+        for comp in comps:
+            keep = False
+            for key in keys:
+                # non searchable fields
+                if key in ('uid', 'uuid', 'events', 'status', 'severity'):
+                    continue
+                val = getattr(comp, key, None)
+                if not val:
+                    continue
+                if callable(val):
+                    val = val()
+                if query.lower() in str(val).lower():
+                    keep = True
+                    break
+            if keep:
+                results.append(comp)
+        return results
+
     @serviceConnectionError
     def getComponents(self, uid=None, meta_type=None,
                       keys=None, start=0, limit=50,
@@ -139,12 +173,20 @@ class DeviceRouter(TreeRouter):
            whether components have changed since last query)
         """
         facade = self._getFacade()
+        if name:
+            # Load every component if we have a filter
+            limit = None
         comps = facade.getComponents(uid, meta_type=meta_type, start=start,
-                                     limit=limit, sort=sort, dir=dir,
-                                     name=name)
+                                     limit=limit, sort=sort, dir=dir)
+        total = comps.total
+        hash = comps.hash_
+        if name:
+            comps = self._filterComponents(comps, keys, name)
+            total = len(comps)
+
         data = Zuul.marshal(comps, keys=keys)
-        return DirectResponse(data=data, totalCount=comps.total,
-                              hash=comps.hash_)
+        return DirectResponse(data=data, totalCount=total,
+                              hash=hash)
 
     def getComponentTree(self, uid=None, id=None):
         """

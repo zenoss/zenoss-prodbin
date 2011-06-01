@@ -440,7 +440,8 @@ ZC.ComponentGridPanel = Ext.extend(Ext.ux.grid.livegrid.GridPanel, {
                     beforeload: this.onBeforeLoad,
                     beforebuffer: this.onBeforeBuffer,
                     scope: this
-                }
+                },
+                nonDisruptiveReset: Zenoss.FilterGridView.prototype.nonDisruptiveReset
             })
         });
 
@@ -475,7 +476,7 @@ ZC.ComponentGridPanel = Ext.extend(Ext.ux.grid.livegrid.GridPanel, {
     filter: function(name) {
         if (this.componentName!=name) {
             this.componentName = name;
-            this.view.updateLiveRows(0, true, true, false);
+            this.view.nonDisruptiveReset();
         }
     },
     setContext: function(uid) {

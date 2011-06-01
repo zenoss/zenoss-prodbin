@@ -375,11 +375,14 @@ var componentCard = {
         xtype: 'searchfield',
         id: 'component_searchfield',
         validateOnBlur: false,
-        emptyText: _t('Type to filter by name...'),
+        emptyText: _t('Type to filter...'),
         enableKeyEvents: true,
         filterGrid: function() {
-            var grid = Ext.getCmp('component_card').componentgrid;
-            grid.filter(this.getValue());
+            var value = this.getValue();
+            if (value.length >= 3 || value.length == 0) {
+                var grid = Ext.getCmp('component_card').componentgrid;
+                grid.filter(this.getValue());
+            }
         },
         listeners: {
             valid: function(field) {
