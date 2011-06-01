@@ -45,6 +45,9 @@ class RebuildPathIndex(Migrate.Step):
                 zport.global_catalog.catalog_object(x.getObject(),x.getPath(),
                                                     idxs=['path'],
                                                     update_metadata=False)
+            except TypeError:
+                # work around for bad data
+                log.warning("Unable to index %s " % x.getPath())
             except (KeyError, zExceptions.NotFound):
                 zport.global_catalog.uncatalog_object(x.getPath())
             if i % 200 == 0:

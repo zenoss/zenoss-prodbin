@@ -27,10 +27,10 @@ class ReindexIpAddresses(Migrate.Step):
         for x in dmd.global_catalog():
             try:
                 notify(IndexingEvent(x.getObject(), ('ipAddress',)))
-            except KeyError:
+            except (TypeError, KeyError):
                 log.warn("unable to find object %s, could not reindex" % x.getPath())
             except NotFound:
                 pass
-            
+
 
 ReindexIpAddresses()
