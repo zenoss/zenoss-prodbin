@@ -14,6 +14,10 @@
 import Globals
 from Products.ZenUtils.ZenScriptBase import ZenScriptBase
 from Products.Zuul.facades import getFacade
+import logging
+import sys
+
+log = logging.getLogger(name='zen.ackevents')
 
 class zenackevents(ZenScriptBase):
 
@@ -42,11 +46,17 @@ class zenackevents(ZenScriptBase):
 
         zep = getFacade('zep', self.dmd)
         event_filter = zep.createEventFilter(uuid=self.options.evids)
-        # Old event states = 0=New, 1=Acknowledge
-        if self.options.state == 0:
-            zep.reopenEventSummaries(eventFilter=event_filter, userName=self.options.userid)
-        elif self.options.state == 1:
-            zep.acknowledgeEventSummaries(eventFilter=event_filter, userName=self.options.userid)
+        try:
+            # Old event states = 0=New, 1=Acknowledge
+            if self.options.state == 0:
+                zep.reopenEventSummaries(eventFilter=event_filter, userName=self.options.userid)
+            elif self.options.state == 1:
+                zep.acknowledgeEventSummaries(eventFilter=event_filter, userName=self.options.userid)
+        except Exception as e:
+            if log.isEnabledFor(logging.DEBUG):
+                log.exception("Failed to acknowledge events")
+            print >>sys.stderr, e.message
+            sys.exit(1)
 
 if __name__ == '__main__':
     zae = zenackevents(connect=True)
