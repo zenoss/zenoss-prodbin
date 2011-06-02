@@ -14,7 +14,7 @@
 # completing an upgrade process. These ZenPacks will then be upgraded
 # following the upgrade of core and will be functional again.
 #
-PATCHCMD="patch -s -N" 
+PATCHCMD="patch -s -N"
 find_zenpack()
 {
     local zenpack_name="$1"
@@ -28,7 +28,7 @@ find_zenpack()
             elif [ -d "$zenpack" ]; then
                 zenpack_dir="$zenpack"
             fi
-        fi 
+        fi
     done
 }
 
@@ -40,6 +40,37 @@ different user.
 else
     # Setup zenoss-friendly executable search path...especially for stacks.
     . $ZENHOME/bin/zenfunctions
+
+    #
+    # The Advanced Search that shipped with 3.1 deleted the saved searches
+    # when you upgraded. Patch it to not do that.
+    #
+    zenpack_name="AdvancedSearch"
+    find_zenpack "${zenpack_name}"
+    init_file="${zenpack_dir}/ZenPacks/zenoss/${zenpack_name}/__init__.py"
+
+    if [ -f "${init_file}" ]; then
+        $PATCHCMD  "${init_file}" > /dev/null 2>&1 <<__EOF__
+--- __init__.py.orig    2011-06-02 13:23:29.000000000 -0500
++++ __init__.py 2011-06-02 13:24:29.000000000 -0500
+@@ -38,9 +38,9 @@
+
+     def remove(self, dmd, leaveObjects=False):
+         super(ZenPack, self).remove(dmd, leaveObjects)
+-
+-        # if we have a search manager remove it
+-        for userProperties in dmd.ZenUsers.getUsers():
+-            userSetting = dmd.ZenUsers._getOb(userProperties.getId())
+-            if userSetting.hasObject(SEARCH_MANAGER_ID):
+-                userSetting._delObject(SEARCH_MANAGER_ID)
++        if not leaveObjects:
++            # if we have a search manager remove it
++            for userProperties in dmd.ZenUsers.getUsers():
++                userSetting = dmd.ZenUsers._getOb(userProperties.getId())
++                if userSetting.hasObject(SEARCH_MANAGER_ID):
++                    userSetting._delObject(SEARCH_MANAGER_ID)
+__EOF__
+    fi
 
     #
     # Patch the Diagram ZenPack to disable loading any registered components
@@ -55,7 +86,7 @@ else
 @@ -3,36 +3,4 @@
      xmlns:browser="http://namespaces.zope.org/browser"
      xmlns:five="http://namespaces.zope.org/five">
- 
+
 -<include package="Products.Five.viewlet" />
 -<include package="Products.Five" file="permissions.zcml" />
 -<include package="Products.ZenUI3.browser" />
@@ -106,22 +137,22 @@ __EOF__
 +++ /home/zenoss/Mail.py    2010-05-28 10:21:48.000000000 -0500
 @@ -14,11 +14,6 @@
  sys.path.insert(0, os.path.join(os.path.dirname(__file__), 'lib'))
- 
+
  ssl = None
 -try:
 -    from twisted.internet import ssl
 -except ImportError:
 -    import warnings
 -    warnings.warn('OpenSSL Python bindings are missing')
- 
- 
+
+
  import traceback
 __EOF__
     fi
 
     #
     # Patch EnterpriseSecurity since it has a bug in its overriden ZenPack.remove
-    # method that does not allow ZenPack cleanup to occur properly when the 
+    # method that does not allow ZenPack cleanup to occur properly when the
     # ZenPack is being upgraded.
     #
     zenpack_name="EnterpriseSecurity"
@@ -135,7 +166,7 @@ __EOF__
          "remove the encryption transformer"
          if not leaveObjects and 'password' in app.dmd.propertyTransformers:
              removeCrypter(app.dmd)
--            
+-
 +        ZenPackBase.remove(self, app, leaveObjects)
 +
 __EOF__
@@ -171,7 +202,7 @@ __EOF__
 @@ -12,7 +12,7 @@
  from OFS.SimpleItem import SimpleItem
  from AccessControl import ClassSecurityInfo
- 
+
 -from Products.ZenUtils.json import json
 +from Products.ZenUtils.jsonutils import json
  from Products.ZenModel.ZenModelItem import ZenModelItem
@@ -192,7 +223,7 @@ __EOF__
 @@ -5,97 +5,4 @@
      xmlns:browser="http://namespaces.zope.org/browser"
      i18n_domain="ZenPacks.zenoss.CiscoUCS">
- 
+
 -    <include package="Products.ZenModel" file="permissions.zcml"/>
 -
 -    <browser:resourceDirectory
@@ -285,7 +316,7 @@ __EOF__
 -        permission="zenoss.View"
 -        />
 -
--    
+-
  </configure>
 __EOF__
     fi
