@@ -12,7 +12,7 @@
 ###########################################################################
 import time
 from itertools import islice
-from zope.interface import implements
+from zope.interface import implements, providedBy
 from BTrees.OOBTree import OOBTree
 from BTrees.IIBTree import IIBTree
 from Products.AdvancedQuery import Eq, Or, Generic, And, In
@@ -332,6 +332,9 @@ class CatalogTool(object):
                 value = getattr(IInfo(obj), orderby)
                 if callable(value):
                     value = value()
+                # if an info object is returned then sort by the name
+                if IInfo.providedBy(value):
+                    value = value.name.lower()
                 savedValues[key] = value
             return value
 

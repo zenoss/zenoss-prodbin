@@ -24,6 +24,7 @@ from Products.ZenUtils.jsonutils import unjson
 from Products import Zuul
 from Products.ZenModel.Device import Device
 from Products.Zuul.routers import TreeRouter
+from Products.Zuul.interfaces import IInfo
 from Products.Zuul.form.interfaces import IFormBuilder
 from Products.Zuul.decorators import require, contextRequire, serviceConnectionError
 from Products.ZenUtils.guid.interfaces import IGlobalIdentifier
@@ -126,6 +127,8 @@ class DeviceRouter(TreeRouter):
                     continue
                 if callable(val):
                     val = val()
+                if IInfo.providedBy(val):
+                    val = val.name
                 if query.lower() in str(val).lower():
                     keep = True
                     break
