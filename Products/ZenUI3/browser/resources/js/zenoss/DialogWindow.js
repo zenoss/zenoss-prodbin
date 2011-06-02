@@ -286,6 +286,7 @@ Zenoss.dialog.CloseDialog = new Ext.extend(Zenoss.dialog.BaseWindow, {
         Ext.applyIf(config, {
             width: 310,
             plain: true,
+            layout: 'auto',
             buttonAlign: 'left',
             padding: 10,
             modal: true
