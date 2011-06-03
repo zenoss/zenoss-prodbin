@@ -98,12 +98,13 @@ class AmqpDataManager(object):
         database is not expected to maintain consistency; it's a
         serious error.
         """
-        # nothing to do here
+        log.debug("tpc_finish'ed")
         try:
-            log.debug("tpc_finished")
-        except Exception:
-            # This method should never raise an exception
-            pass
+            self.channel.tx_commit()
+        except Exception as e:
+            log.exception("tpc_finish completed FAIL")
+        else:
+            log.debug("tpc_finish completed OK")
 
 
     def tpc_vote(self, transaction):
@@ -115,14 +116,8 @@ class AmqpDataManager(object):
         transaction is the ITransaction instance associated with the
         transaction being committed.
         """
-        log.debug("tpc_vote'ed")
-        try:
-            self.channel.tx_commit()
-        except Exception as e:
-            log.exception("tpc_vote completed FAIL")
-            raise
-        else:
-            log.debug("tpc_vote completed OK")
+        # Nothing to do here
+        log.debug("tpc_voted")
 
 
     def tpc_abort(self, transaction):
