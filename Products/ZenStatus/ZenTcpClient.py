@@ -31,11 +31,6 @@ from twisted.internet import reactor, protocol, defer
 from Products.ZenEvents.ZenEventClasses import Status_IpService
 from Products.ZenUtils.Utils import unused
 
-
-# needed for pb/jelly
-from Products.ZenHub.services.StatusConfig import ServiceConfig
-unused(ServiceConfig)
-
 class ZenTcpTest(protocol.Protocol):
     """
     Twisted class to make a TCP/IP connection to a remote IP service

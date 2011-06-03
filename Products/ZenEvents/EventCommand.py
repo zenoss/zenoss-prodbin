@@ -43,46 +43,7 @@ class EventCommand(ZenModelRM, Commandable, EventFilter, ZenPackable):
         ("eventManager", ToOne(ToManyCont, "Products.ZenEvents.EventManagerBase", "commands")),
     )
 
-    factory_type_information = ( 
-        { 
-            'immediate_view' : 'editEventCommand',
-            'actions'        :
-            ( 
-                { 'id'            : 'edit'
-                , 'name'          : 'Edit'
-                , 'action'        : 'editEventCommand'
-                , 'permissions'   : ( "Manage DMD", )
-                },
-            )
-          },
-        )
-
     security = ClassSecurityInfo()
-
-    def getEventFields(self):
-        return self.eventManager.getFieldList()
-
-    def getUserid(self):
-        return ''
-
-    def breadCrumbs(self, terminator='dmd'):
-        """Return the breadcrumb links for this object add ActionRules list.
-        [('url','id'), ...]
-        """
-        crumbs = super(EventCommand, self).breadCrumbs(terminator)
-        url = aq_parent(self).absolute_url_path() + "/listEventCommands"
-        crumbs.insert(-1,(url,'Event Commands'))
-        return crumbs
-
-    security.declareProtected('Manage EventManager', 'manage_editEventCommand')
-    def manage_editEventCommand(self, REQUEST=None):
-        "edit the commands run when events match"
-        import WhereClause
-        if REQUEST and not REQUEST.form.has_key('where'):
-            clause = WhereClause.fromFormVariables(self.genMeta(), REQUEST.form)
-            if clause:
-                REQUEST.form['where'] = clause
-        return self.zmanage_editProperties(REQUEST)
         
     
 InitializeClass(EventCommand)

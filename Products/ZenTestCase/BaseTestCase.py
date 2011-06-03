@@ -79,13 +79,8 @@ class DummyManager(MySqlSendEventMixin, EventManagerBase):
     def doSendEvent(self, *args, **kwds): unused(args, kwds)
     def getEventSummary(self, *args, **kwds): unused(args, kwds)
     def getEventDetail(self, *args, **kwds): unused(args, kwds)
-    def getGenericStatus(self, *args, **kwds): unused(args, kwds)
-    def getOrganizerStatus(self, *args, **kwds): unused(args, kwds)
-    def getOrganizerStatusIssues(self, *args, **kwds): unused(args, kwds)
     def getDeviceIssues(self, *args, **kwds): unused(args, kwds)
-    def getDeviceStatus(self, *args, **kwds): unused(args, kwds)
     def getHeartbeat(self, *args, **kwds): unused(args, kwds)
-    def getComponentStatus(self, *args, **kwds): unused(args, kwds)
     def getEventList(self, *args, **kwds): unused(args, kwds); return []
     def applyEventContext(self, evt): return evt
     def applyDeviceContext(self, dev, evt): unused(dev); return evt

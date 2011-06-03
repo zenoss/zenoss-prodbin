@@ -40,18 +40,6 @@ class EventDetail(ZEvent, ZenModelItem, Implicit):
                 , 'permissions'   : (
                   permissions.view, )
                 },
-                { 'id'            : 'details'
-                , 'name'          : 'Details'
-                , 'action'        : 'viewEventDetail'
-                , 'permissions'   : (
-                  permissions.view, )
-                },
-                { 'id'            : 'log'
-                , 'name'          : 'Log'
-                , 'action'        : 'viewEventLog'
-                , 'permissions'   : (
-                  permissions.view, )
-                },
             )
           },
         )

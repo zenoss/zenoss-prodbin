@@ -18,7 +18,6 @@ import logging
 import transaction
 log = logging.getLogger("zen.Events")
 
-from Globals import DTMLFile
 from Globals import InitializeClass
 from AccessControl import ClassSecurityInfo
 from AccessControl import Permissions
@@ -44,9 +43,6 @@ def manage_addEventClassInst(context, id, REQUEST = None):
     context._setObject(id, dc)
     if REQUEST is not None:
         REQUEST['RESPONSE'].redirect(context.absolute_url() + '/manage_main')
-
-
-addEventClassInst = DTMLFile('dtml/addEventClassInst',globals())
 
 
 class EventClassPropertyMixin(object):

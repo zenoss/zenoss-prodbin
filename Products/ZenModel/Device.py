@@ -296,71 +296,21 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable,
             'immediate_view' : 'devicedetail',
             'actions'        :
             (
-                { 'id'            : 'status'
-                , 'name'          : 'Status'
-                , 'action'        : 'deviceStatus'
-                , 'permissions'   : (ZEN_VIEW, )
-                },
-                { 'id'            : 'osdetail'
-                , 'name'          : 'OS'
-                , 'action'        : 'deviceOsDetail'
-                , 'permissions'   : (ZEN_VIEW, )
-                },
-                { 'id'            : 'swdetail'
-                , 'name'          : 'Software'
-                , 'action'        : 'deviceSoftwareDetail'
-                , 'permissions'   : (ZEN_VIEW, )
-                },
                 { 'id'            : 'events'
                 , 'name'          : 'Events'
                 , 'action'        : 'viewEvents'
                 , 'permissions'   : (ZEN_VIEW, )
                 },
-#                { 'id'            : 'historyEvents'
-#                , 'name'          : 'History'
-#                , 'action'        : 'viewHistoryEvents'
-#                , 'permissions'   : (ZEN_VIEW, )
-#                },
                 { 'id'            : 'perfServer'
                 , 'name'          : 'Graphs'
                 , 'action'        : 'viewDevicePerformance'
                 , 'permissions'   : (ZEN_VIEW, )
                 },
-#                { 'id'            : 'perfConf'
-#                , 'name'          : 'PerfConf'
-#                , 'action'        : 'objTemplates'
-#                , 'permissions'   : ("Change Device", )
-#                },
                 { 'id'            : 'edit'
                 , 'name'          : 'Edit'
                 , 'action'        : 'editDevice'
                 , 'permissions'   : ("Change Device",)
                 },
-#                { 'id'            : 'management'
-#                , 'name'          : 'Administration'
-#                , 'action'        : 'deviceManagement'
-#                , 'permissions'   : ("Change Device",)
-#                },
-#                { 'id'            : 'custom'
-#                , 'name'          : 'Custom'
-#                , 'action'        : 'deviceCustomEdit'
-#                , 'permissions'   : (ZEN_VIEW, )
-#                },
-#                { 'id'            : 'config'
-#                , 'name'          : 'zProperties'
-#                , 'action'        : 'zPropertyEdit'
-#                , 'permissions'   : (ZEN_VIEW,)
-#                },
-#                { 'id'            : 'viewHistory'
-#                , 'name'          : 'Modifications'
-#                , 'action'        : 'viewHistory'
-#                , 'permissions'   : (ZEN_VIEW, )
-#                },
-#                { 'id'            : 'zProperties'
-#                , 'name'          : 'zProperties'
-#                , 'action'        : 'zPropertyEdit'
-#                , 'permissions'   : (  ZEN_VIEW, )
-#                },
             )
          },
         )

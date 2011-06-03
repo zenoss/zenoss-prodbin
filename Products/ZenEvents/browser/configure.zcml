@@ -4,7 +4,6 @@
     xmlns:browser="http://namespaces.zope.org/browser"
     i18n_domain="Products.ZenEvents">
 
-    <include package='.' file='eventconsole.zcml'/>
     <include package='.' file='eventsummaries.zcml'/>
 
 </configure>

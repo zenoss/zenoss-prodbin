@@ -1,17 +1,20 @@
 <?xml version="1.0" encoding="ISO-8859-1" ?>
 
 <!--
-    Zenoss RelationshipManager export completed on 2011-05-18 12:57:53.134991
+    Zenoss RelationshipManager export completed on 2011-06-02 17:53:31.457828
 
     Use ImportRM to import this file.
 
     For more information about Zenoss, go to http://www.zenoss.com
  -->
 
-<objects version="[Zenoss, version 3.1.70 r42018]" export_date="2011-05-18 12:57:53.134991" zenoss_server="ipv6-dev-kells.ip6.zenoss.loc" >
+<objects version="[Zenoss, version 3.1.70]" export_date="2011-06-02 17:53:31.457828" zenoss_server="tweek.local" >
 <object id='/zport/dmd/Monitors' module='Products.ZenModel.MonitorClass' class='MonitorClass'>
 <property type="string" id="sub_class" mode="w" >
 MonitorClass
+</property>
+<property type="lines" id="sub_meta_types" mode="w" >
+()
 </property>
 <tomanycont id='rrdTemplates'>
 <object id='PerformanceConf' module='Products.ZenModel.RRDTemplate' class='RRDTemplate'>
@@ -836,6 +839,9 @@ True
 </property>
 <tomanycont id='graphPoints'>
 <object id='zeneventlog' module='Products.ZenModel.DataPointGraphPoint' class='DataPointGraphPoint'>
+<property type="long" id="sequence" mode="w" >
+0
+</property>
 <property select_variable="lineTypes" type="selection" id="lineType" mode="w" >
 AREA
 </property>
@@ -1006,6 +1012,9 @@ AVERAGE
 </property>
 </object>
 <object id='zencommand' module='Products.ZenModel.DataPointGraphPoint' class='DataPointGraphPoint'>
+<property type="long" id="sequence" mode="w" >
+0
+</property>
 <property select_variable="lineTypes" type="selection" id="lineType" mode="w" >
 LINE
 </property>
@@ -1142,6 +1151,9 @@ False
 <property type="boolean" id="hasSummary" mode="w" >
 True
 </property>
+<property type="long" id="sequence" mode="w" >
+0
+</property>
 <tomanycont id='graphPoints'>
 <object id='zenmodeler' module='Products.ZenModel.DataPointGraphPoint' class='DataPointGraphPoint'>
 <property type="long" id="sequence" mode="w" >
@@ -1176,6 +1188,9 @@ AVERAGE
 </property>
 </object>
 <object id='zenperfsnmp' module='Products.ZenModel.DataPointGraphPoint' class='DataPointGraphPoint'>
+<property type="long" id="sequence" mode="w" >
+0
+</property>
 <property select_variable="lineTypes" type="selection" id="lineType" mode="w" >
 LINE
 </property>
@@ -1297,6 +1312,9 @@ True
 </property>
 <tomanycont id='graphPoints'>
 <object id='zencommand' module='Products.ZenModel.DataPointGraphPoint' class='DataPointGraphPoint'>
+<property type="long" id="sequence" mode="w" >
+0
+</property>
 <property select_variable="lineTypes" type="selection" id="lineType" mode="w" >
 AREA
 </property>
@@ -1409,6 +1427,9 @@ True
 </property>
 <tomanycont id='graphPoints'>
 <object id='zencommand' module='Products.ZenModel.DataPointGraphPoint' class='DataPointGraphPoint'>
+<property type="long" id="sequence" mode="w" >
+0
+</property>
 <property select_variable="lineTypes" type="selection" id="lineType" mode="w" >
 LINE
 </property>
@@ -1814,6 +1835,9 @@ AVERAGE
 </property>
 </object>
 <object id='high event queue' module='Products.ZenModel.ThresholdGraphPoint' class='ThresholdGraphPoint'>
+<property type="long" id="sequence" mode="w" >
+0
+</property>
 <property type="string" id="threshId" mode="w" >
 high event queue
 </property>
@@ -1850,6 +1874,9 @@ True
 </property>
 <tomanycont id='graphPoints'>
 <object id='zencommand' module='Products.ZenModel.DataPointGraphPoint' class='DataPointGraphPoint'>
+<property type="long" id="sequence" mode="w" >
+0
+</property>
 <property select_variable="lineTypes" type="selection" id="lineType" mode="w" >
 LINE
 </property>
@@ -2049,6 +2076,9 @@ True
 </property>
 <tomanycont id='graphPoints'>
 <object id='zencommand' module='Products.ZenModel.DataPointGraphPoint' class='DataPointGraphPoint'>
+<property type="long" id="sequence" mode="w" >
+0
+</property>
 <property select_variable="lineTypes" type="selection" id="lineType" mode="w" >
 LINE
 </property>
@@ -3047,6 +3077,9 @@ True
 </property>
 <tomanycont id='graphPoints'>
 <object id='zeneventlog' module='Products.ZenModel.DataPointGraphPoint' class='DataPointGraphPoint'>
+<property type="long" id="sequence" mode="w" >
+0
+</property>
 <property select_variable="lineTypes" type="selection" id="lineType" mode="w" >
 AREA
 </property>
@@ -3217,6 +3250,9 @@ AVERAGE
 </property>
 </object>
 <object id='zencommand' module='Products.ZenModel.DataPointGraphPoint' class='DataPointGraphPoint'>
+<property type="long" id="sequence" mode="w" >
+0
+</property>
 <property select_variable="lineTypes" type="selection" id="lineType" mode="w" >
 LINE
 </property>
@@ -3353,6 +3389,9 @@ False
 <property type="boolean" id="hasSummary" mode="w" >
 True
 </property>
+<property type="long" id="sequence" mode="w" >
+0
+</property>
 <tomanycont id='graphPoints'>
 <object id='zenmodeler' module='Products.ZenModel.DataPointGraphPoint' class='DataPointGraphPoint'>
 <property type="long" id="sequence" mode="w" >
@@ -3387,6 +3426,9 @@ AVERAGE
 </property>
 </object>
 <object id='zenperfsnmp' module='Products.ZenModel.DataPointGraphPoint' class='DataPointGraphPoint'>
+<property type="long" id="sequence" mode="w" >
+0
+</property>
 <property select_variable="lineTypes" type="selection" id="lineType" mode="w" >
 LINE
 </property>
@@ -3508,6 +3550,9 @@ True
 </property>
 <tomanycont id='graphPoints'>
 <object id='zencommand' module='Products.ZenModel.DataPointGraphPoint' class='DataPointGraphPoint'>
+<property type="long" id="sequence" mode="w" >
+0
+</property>
 <property select_variable="lineTypes" type="selection" id="lineType" mode="w" >
 AREA
 </property>
@@ -3620,6 +3665,9 @@ True
 </property>
 <tomanycont id='graphPoints'>
 <object id='zencommand' module='Products.ZenModel.DataPointGraphPoint' class='DataPointGraphPoint'>
+<property type="long" id="sequence" mode="w" >
+0
+</property>
 <property select_variable="lineTypes" type="selection" id="lineType" mode="w" >
 LINE
 </property>
@@ -4025,6 +4073,9 @@ AVERAGE
 </property>
 </object>
 <object id='high event queue' module='Products.ZenModel.ThresholdGraphPoint' class='ThresholdGraphPoint'>
+<property type="long" id="sequence" mode="w" >
+0
+</property>
 <property type="string" id="threshId" mode="w" >
 high event queue
 </property>
@@ -4061,6 +4112,9 @@ True
 </property>
 <tomanycont id='graphPoints'>
 <object id='zencommand' module='Products.ZenModel.DataPointGraphPoint' class='DataPointGraphPoint'>
+<property type="long" id="sequence" mode="w" >
+0
+</property>
 <property select_variable="lineTypes" type="selection" id="lineType" mode="w" >
 LINE
 </property>
@@ -4260,6 +4314,9 @@ True
 </property>
 <tomanycont id='graphPoints'>
 <object id='zencommand' module='Products.ZenModel.DataPointGraphPoint' class='DataPointGraphPoint'>
+<property type="long" id="sequence" mode="w" >
+0
+</property>
 <property select_variable="lineTypes" type="selection" id="lineType" mode="w" >
 LINE
 </property>
@@ -4439,6 +4496,9 @@ AVERAGE
 <property type="string" id="sub_class" mode="w" >
 PerformanceConf
 </property>
+<property type="lines" id="sub_meta_types" mode="w" >
+()
+</property>
 <object id='localhost' module='Products.ZenModel.PerformanceConf' class='PerformanceConf'>
 <property type="int" id="eventlogCycleInterval" mode="w" >
 60
@@ -4490,6 +4550,9 @@ PerformanceConf
 </property>
 <property type="int" id="modelerCycleInterval" mode="w" >
 720
+</property>
+<property type="lines" id="discoveryNetworks" mode="w" >
+()
 </property>
 </object>
 </object>

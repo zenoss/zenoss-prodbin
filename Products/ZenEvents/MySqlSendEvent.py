@@ -15,8 +15,6 @@ __doc__ = """MySqlSendEvent
 Populate the events database with incoming events
 """
 
-import threading
-from Queue import Queue, Empty
 import logging
 log = logging.getLogger("zen.Events")
 
@@ -82,99 +80,3 @@ class MySqlSendEventMixin:
         except (ValueError, AttributeError) as e:
             log.error("Unable to send heartbeat: %s", event)
             log.exception(e)
-
-class MySqlSendEvent(MySqlSendEventMixin):
-    """
-    Class that can connect to backend must be passed:
-        username - backend username to use
-        password - backend password
-        database - backend database name
-        host - hostname of database server
-        port - port
-    """
-    backend = "mysql"
-
-    copyattrs = (
-        "username",
-        "password",
-        "database",
-        "host",
-        "port",
-        "requiredEventFields",
-        "defaultEventId",
-        "statusTable",
-        "deviceField",
-        "componentField",
-        "eventClassField",
-        "firstTimeField",
-        "lastTimeField",
-        "countField",
-        "detailTable",
-    )
-
-    def __init__(self, zem):
-        for att in self.copyattrs:
-            value = getattr(zem, att)
-            setattr(self, att, value)
-        self._fieldlist = zem.getFieldList()
-
-    def stop(self):
-        """
-        To be implemented by the subclass
-        """
-        pass
-
-
-    def getFieldList(self):
-        """
-        Return the list of fields
-
-        @return: list of fields
-        @rtype: list
-        """
-        return self._fieldlist
-
-
-class MySqlSendEventThread(threading.Thread, MySqlSendEvent):
-    """
-    Wrapper around MySQL database connection
-    """
-
-    running = True
-
-    def __init__(self, zem):
-        threading.Thread.__init__(self)
-        MySqlSendEvent.__init__(self, zem)
-        self.setDaemon(1)
-        self.setName("SendEventThread")
-        self._evqueue = Queue()
-
-    def sendEvent(self, evt):
-        """
-        Called from main thread to put an event on to the send queue.
-        """
-        return self._evqueue.put(evt)
-
-
-    def run(self):
-        """
-        Main event loop
-        """
-        log.info("Starting")
-        while not self._evqueue.empty() or self.running:
-            try:
-                evt = self._evqueue.get(True,1)
-                MySqlSendEvent.sendEvent(self, evt)
-            except Empty: pass
-            except Exception, e:
-                log.exception(e)
-        log.info("Stopped")
-
-
-    def stop(self):
-        """
-        Called from main thread to stop this thread.
-        """
-        log.info("Stopping...")
-        self.running = False
-        self.join(3)

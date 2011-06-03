@@ -1,20 +1,23 @@
 <?xml version="1.0" encoding="ISO-8859-1" ?>
 
 <!--
-    Zenoss RelationshipManager export completed on 2011-03-24 16:07:02.175456
+    Zenoss RelationshipManager export completed on 2011-06-02 17:53:13.886532
 
     Use ImportRM to import this file.
 
     For more information about Zenoss, go to http://www.zenoss.com
  -->
 
-<objects version="[Zenoss, version 3.1.70]" export_date="2011-03-24 16:07:02.175456" zenoss_server="localhost.localdomain" >
+<objects version="[Zenoss, version 3.1.70]" export_date="2011-06-02 17:53:13.886532" zenoss_server="tweek.local" >
 <object id='/zport/dmd/Services' module='Products.ZenModel.ServiceOrganizer' class='ServiceOrganizer'>
 <property visible="True" type="boolean" id="zMonitor" >
 False
 </property>
 <property visible="True" type="int" id="zFailSeverity" >
 5
+</property>
+<property visible="True" type="lines" id="zHideFieldsFromList" >
+[]
 </property>
 <object id='IpService' module='Products.ZenModel.ServiceOrganizer' class='ServiceOrganizer'>
 <tomanycont id='serviceclasses'>

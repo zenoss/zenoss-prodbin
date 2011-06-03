@@ -39,7 +39,6 @@ from Products.ZenUtils.IpUtil import numbip, checkip, IpAddressError, ensureIp
 from Products.ZenUtils.IpUtil import getSubnetBounds
 from Products.ZenEvents.Event import Event
 from Products.ZenUtils.guid.interfaces import IGlobalIdentifier
-from Products.ZenEvents.EventManagerBase import EventManagerBase
 from Products.ZenUtils.jsonutils import unjson
 
 
@@ -180,6 +179,7 @@ class DeviceFacade(TreeFacade):
         return SearchResults(wrapped, brains.total, brains.hash_)
 
     def getComponentTree(self, uid=None, types=(), meta_type=()):
+        from Products.ZenEvents.EventManagerBase import EventManagerBase
         componentTypes = {}
         uuidMap = {}
 

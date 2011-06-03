@@ -301,26 +301,6 @@ var submitFormToMethod = function(formname, method) {
    f.submit();
 }
 
-var goExport = function() {
-    var params = {};
-    if (eventZenGrid.lastparams['severity'])
-        params['sev'] = eventZenGrid.lastparams['severity'];
-    if (eventZenGrid.lastparams['state'])
-        params['state'] = eventZenGrid.lastparams['state'];
-    if (eventZenGrid.lastparams['filter'])
-        params['filter'] = eventZenGrid.lastparams['filter'];
-    if (eventZenGrid.lastparams['startdate'])
-        params['startdate'] = eventZenGrid.lastparams['startdate'];
-    if (eventZenGrid.lastparams['enddate'])
-        params['enddate'] = eventZenGrid.lastparams['enddate'];
-    if (eventZenGrid.lastparams['orderby'])
-        params['orderby'] = eventZenGrid.lastparams['orderby'];
-    log(keys(params));
-    log(queryString(params));
-    url = '${here/absolute_url_path}/exportEvents?' + queryString(params);
-    parent.location = url;
-}
-
 addLoadEvent(function() {
 
     YAHOO.zenoss.templateFreeURL = '${templateFreeUrl}';

@@ -19,18 +19,6 @@
     xmlns:five="http://namespaces.zope.org/five">
 
 <browser:defaultView
-    for="Products.ZenEvents.ActionRule.ActionRule"
-    name="editActionRule"
-    />
-
-<browser:page
-    template="../../ZenEvents/skins/zenevents/editActionRule.pt"
-    name="editActionRule"
-    for="*"
-    permission="zenoss.View"
-    />
-
-<browser:defaultView
     for="Products.ZenEvents.EventClassInst.EventClassInst"
     name="eventClassInstStatus"
     />
@@ -89,32 +77,6 @@
     permission="zenoss.View"
     />
 
-<browser:page
-    template="../../ZenEvents/skins/zenevents/editActionRuleMessage.pt"
-    name="editActionRuleMessage"
-    for="*"
-    permission="zenoss.View"
-    />
-
-<browser:page
-    template="../../ZenEvents/skins/zenevents/editActionRuleSchedule.pt"
-    name="editActionRuleSchedule"
-    for="*"
-    permission="zenoss.View"
-    />
-
-<browser:defaultView
-    for="Products.ZenEvents.ActionRuleWindow.ActionRuleWindow"
-    name="actionRuleWindowDetail"
-    />
-
-<browser:page
-    template="../../ZenEvents/skins/zenevents/actionRuleWindowDetail.pt"
-    name="actionRuleWindowDetail"
-    for="*"
-    permission="zenoss.View"
-    />
-
 <browser:defaultView
     for="Products.ZenModel.UserSettings.UserSettings"
     name="editUserSettings"
@@ -142,63 +104,6 @@
 <browser:page
     template="../../ZenModel/skins/zenmodel/administeredDevices.pt"
     name="administeredDevices"
-    for="*"
-    permission="zenoss.View"
-    />
-
-<browser:defaultView
-    for="Products.ZenEvents.CustomEventView.CustomEventView"
-    name="editEventView"
-    />
-
-<browser:page
-    template="../../ZenEvents/skins/zenevents/editEventView.pt"
-    name="editEventView"
-    for="*"
-    permission="zenoss.View"
-    />
-
-<browser:defaultView
-    for="Products.ZenEvents.EventManagerBase.EventManagerBase"
-    name="editEventManagerFields"
-    />
-
-<browser:page
-    template="../../ZenEvents/skins/zenevents/editEventManager.pt"
-    name="editEventManager"
-    for="*"
-    permission="zenoss.View"
-    />
-
-<browser:page
-    template="../../ZenEvents/skins/zenevents/editEventManagerFields.pt"
-    name="editEventManagerFields"
-    for="*"
-    permission="zenoss.View"
-    />
-
-<browser:page
-    template="../../ZenEvents/skins/zenevents/editEventManagerHistoryFields.pt"
-    name="editEventManagerHistoryFields"
-    for="*"
-    permission="zenoss.View"
-    />
-
-<browser:page
-    template="../../ZenEvents/skins/zenevents/listEventCommands.pt"
-    name="listEventCommands"
-    for="*"
-    permission="zenoss.View"
-    />
-
-<browser:defaultView
-    for="Products.ZenEvents.EventCommand.EventCommand"
-    name="editEventCommand"
-    />
-
-<browser:page
-    template="../../ZenEvents/skins/zenevents/editEventCommand.pt"
-    name="editEventCommand"
     for="*"
     permission="zenoss.View"
     />

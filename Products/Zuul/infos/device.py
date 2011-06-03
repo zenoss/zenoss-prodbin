@@ -25,7 +25,6 @@ from Products.Zuul.marshalling import TreeNodeMarshaller
 from Products.Zuul.utils import catalogAwareImap
 from Products.ZenUtils.guid.interfaces import IGlobalIdentifier
 from zenoss.protocols.protobufs.zep_pb2 import SEVERITY_CLEAR, SEVERITY_INFO, SEVERITY_DEBUG
-from Products.ZenEvents.EventManagerBase import EventManagerBase
 
 ORGTYPES = {
     'Devices':'DeviceClass',

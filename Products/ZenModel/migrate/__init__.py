@@ -226,3 +226,4 @@ import snmpv3trap
 import rebuildPathIndex
 import deleteNotificationSchedulesReport
 import ipSearchCatalogUpdate
+import removeEventMenus

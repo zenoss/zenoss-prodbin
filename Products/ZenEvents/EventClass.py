@@ -22,7 +22,6 @@ log = logging.getLogger("zen.Events")
 import transaction
 from zope.interface import implements
 from Globals import InitializeClass
-from Globals import DTMLFile
 from AccessControl import ClassSecurityInfo
 from AccessControl import Permissions
 from Products.ZenModel.ManagedEntity import ManagedEntity
@@ -50,9 +49,6 @@ def manage_addEventClass(context, id="Events", REQUEST=None):
         ed.buildZProperties()
     if REQUEST is not None:
         REQUEST['RESPONSE'].redirect(context.absolute_url() + '/manage_main')
-
-
-addEventClass = DTMLFile('dtml/addEventClass',globals())
 
 class EventClass(EventClassPropertyMixin, Organizer, ManagedEntity, ZenPackable):
     """
