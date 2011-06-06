@@ -143,7 +143,7 @@ class ProcessEventMessageTask(BasePubSubMessageTask):
                     for pipe in self._pipes:
                         eventContext = pipe(eventContext)
                         if log.isEnabledFor(logging.DEBUG):
-                            log.debug('After pipe %s, event context is %s' % ( pipe, eventContext ))
+                            log.debug('After pipe %s, event context is %s' % ( pipe.name, to_dict(eventContext._event) ))
                         if eventContext.zepRawEvent.status == STATUS_DROPPED:
                             raise DropEvent('Dropped by %s' % pipe, eventContext.event)
 

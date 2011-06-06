@@ -270,9 +270,9 @@ class EventProcessorPipe(object):
     def __init__(self, manager, name=None):
         self._manager = manager
         if name:
-            self._name = name
+            self.name = name
         else:
-            self._name = self.__class__.__name__
+            self.name = self.__class__.__name__
 
     def __call__(self, eventContext):
         """
