@@ -198,11 +198,13 @@ class ProcessEventMessageTask(BasePubSubMessageTask):
 class EventDWorker(ZCmdBase):
 
     def run(self):
+        self._shutdown = False
         signal.signal(signal.SIGTERM, self._sigterm)
         task = ProcessEventMessageTask(self.dmd)
         self._listen(task)
 
     def shutdown(self):
+        self._shutdown = True
         if self._pubsub:
             self._pubsub.shutdown()
             self._pubsub = None
@@ -215,7 +217,7 @@ class EventDWorker(ZCmdBase):
         self._pubsub = None
         keepTrying = True
         sleep = 0
-        while keepTrying:
+        while keepTrying and not self._shutdown:
             try:
                 if sleep:
                     log.info("Waiting %s seconds to reconnect..." % sleep)
