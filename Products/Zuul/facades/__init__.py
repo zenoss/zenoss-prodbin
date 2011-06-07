@@ -235,3 +235,4 @@ from zenpackfacade import ZenPackFacade
 from mibfacade import MibFacade
 from triggersfacade import TriggersFacade
 from zepfacade import ZepFacade
+from reportfacade import ReportFacade

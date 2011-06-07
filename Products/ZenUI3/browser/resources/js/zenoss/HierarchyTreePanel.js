@@ -59,7 +59,7 @@ Zenoss.HierarchyTreeNodeUI = Ext.extend(Ext.tree.TreeNodeUI, {
         this.textNodeBody = this.textNode.child('.node-text');
         this.textNodeExtra = this.textNode.child('.node-extra');
 
-        if ( n.getDepth() === 1 ) {
+        if ( n.getDepth() === this.node.getOwnerTree().rootDepth ) {
             this.addClass('hierarchy-root');
         }
 
@@ -71,7 +71,8 @@ Zenoss.HierarchyTreeNodeUI = Ext.extend(Ext.tree.TreeNodeUI, {
                 data = { text: data, count: null };
             }
 
-            var textOverride = this.node.getDepth() === 1 ? this.node.getOwnerTree().getRootNode().attributes.text : null;
+            var ownerTree = this.node.getOwnerTree(),
+                textOverride = this.node.getDepth() === ownerTree.rootDepth ? ownerTree.getRootNode().attributes.text : null;
             if ( textOverride ) {
                 data.text = textOverride;
             }
@@ -214,6 +215,7 @@ Zenoss.HierarchyTreePanel = Ext.extend(Ext.tree.TreePanel, {
             containerScroll: true,
             selectRootOnLoad: true,
             rootVisible: false,
+            rootDepth: config.rootVisible ? 0 : 1,
             loadMask: true,
             allowOrganizerMove: true
         });
@@ -259,7 +261,7 @@ Zenoss.HierarchyTreePanel = Ext.extend(Ext.tree.TreePanel, {
             uid: root.uid,
             text: _t(root.text || root.id),
             // Use null so the root won't render
-            uiProvider: null
+            uiProvider: config.rootVisible ? 'hierarchy' : null
         });
         config.loader.baseAttrs = {
             iconCls: 'severity-icon-small clear',
@@ -374,7 +376,7 @@ Zenoss.HierarchyTreePanel = Ext.extend(Ext.tree.TreePanel, {
     },
     getNodePathById: function(nodeId) {
         var part,
-            depth = this.root.attributes.uid.split('/').length - 1,
+            depth = this.root.attributes.uid.split('/').length - this.rootDepth,
             parts = nodeId.split('.'),
             curpath = parts.slice(0, depth).join('.');
 

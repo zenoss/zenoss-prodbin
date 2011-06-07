@@ -45,34 +45,20 @@ function initializeTreeDrop(g) {
         ddGroup: 'reporttreedd',
         appendOnly: true,
         onNodeDrop: function (target, dd, e, data) {
-            if (target.node.attributes.leaf) {
-                try {
-                    this.tree.selModel.suspendEvents(true);
-                    data.node.unselect();
-                    return false;
-                } finally {
-                    this.tree.selModel.resumeEvents();
-                }
+            var tree = this.tree,
+                uid = data.node.attributes.uid,
+                targetUid = target.node.attributes.uid;
+            if (target.node.attributes.leaf || uid == targetUid) {
+                return false;
             }
-            var tree = this.tree;
             Zenoss.remote.ReportRouter.moveNode({
-                uids: [data.node.attributes.uid],
-                target: target.node.attributes.uid
+                uid: uid,
+                target: targetUid
             }, function (cb_data) {
-                var parentNode, newNode;
                 if (cb_data.success) {
-                    try {
-                        tree.selModel.suspendEvents(true);
-                        parentNode = data.node.parentNode;
-                        parentNode.removeChild(data.node);
-                        data.node.destroy();
-                        newNode = tree.getLoader().createNode(cb_data.newNode);
-                        target.node.expand();
-                        addNodeToOrganizer(newNode, target.node);
-                        tree.update(cb_data.tree);
-                    } finally {
-                        tree.selModel.resumeEvents();
-                    }
+                    data.node.parentNode.removeChild(data.node);
+                    data.node.destroy();
+                    insertNewNode(tree, cb_data, target.node);
                 }
             });
             return true;
@@ -80,104 +66,58 @@ function initializeTreeDrop(g) {
     });
 }
 
-function addNodeToOrganizer(node, organizerNode) {
-    var lastIndex = organizerNode.childNodes.length - 1;
-    if ((node.leaf) ||
-            (lastIndex < 0) ||
-            (!organizerNode.childNodes[lastIndex].attributes.leaf)) {
-        organizerNode.appendChild(node);
+function insertNewNode(tree, data, organizerNode) {
+    var newNode = tree.getLoader().createNode(data.newNode),
+        firstLeafNode = organizerNode.findChild('leaf', true);
+    organizerNode.expand();
+    if (firstLeafNode) {
+        organizerNode.insertBefore(newNode, firstLeafNode);
     } else {
-        var notAdded = true;
-        for (var i = 0; i < organizerNode.childNodes.length; i++) {
-            if (organizerNode.childNodes[i].leaf) {
-                organizerNode.insertBefore(node,
-                        organizerNode.childNodes[i]);
-                notAdded = false;
-                break;
-            }
-        }
-        if (notAdded) {
-            organizerNode.appendChild(node);
-        }
+        organizerNode.appendChild(newNode);
     }
-    node.select();
+    newNode.select();
+    newNode.expand(true);
+    tree.update(data.tree);
+    return newNode;
 }
 
-Zenoss.ReportTreeNodeUI = Ext.extend(Zenoss.HierarchyTreeNodeUI, {
-    render: function (bulkRender) {
-        var n = this.node,
-            a = n.attributes;
-        if (n.isLeaf()) {
-            a.iconCls = 'leaf';
-            a.draggable = true;
-            a.allowDrop = false;
-            n.text = a.text;
-        }
-        else {
-            a.iconCls = 'severity-icon-small clear';
-            a.draggable = false;
-            a.allowDrop = true;
-            n.text = a.text;
-        }
-        Zenoss.ReportTreeNodeUI.superclass.render.call(this,
-                bulkRender);
-    }
-});
-
 Zenoss.ReportTreePanel = Ext.extend(Zenoss.HierarchyTreePanel, {
-    constructor: function (config) {
-        config.loader = {
-            xtype: 'treeloader',
-            directFn: Zenoss.remote.ReportRouter.getTree,
-            uiProviders: {
-                'report': Zenoss.ReportTreeNodeUI
-            },
-            getParams: function (node) {
-                return [node.attributes.uid];
-            }
-        };
-        Zenoss.ReportTreePanel.superclass.constructor.call(this,
-                config);
-    },
     addNode: function (nodeType, id) {
-        var selectedNode = this.getSelectionModel().getSelectedNode(),
-                parentNode;
-        if (selectedNode.leaf) {
-            parentNode = selectedNode.parentNode;
-        } else {
-            parentNode = selectedNode;
-        }
-        parentNode.expand();
-        var contextUid = parentNode.attributes.uid,
-                params = {nodeType: nodeType, contextUid: contextUid, id: id},
-                tree = this;
-        function callback(data) {
+        var selNode = this.getSelectionModel().getSelectedNode(),
+            parentNode = selNode.leaf ? selNode.parentNode : selNode,
+            tree = this,
+            newNode;
+        this.router.addNode({
+            nodeType: nodeType,
+            contextUid: parentNode.attributes.uid,
+            id: id
+        }, function (data) {
             if (data.success) {
-                var nodeConfig, node, lastIndex;
-                nodeConfig = data.newNode;
-                node = tree.getLoader().createNode(nodeConfig);
-                addNodeToOrganizer(node, parentNode);
-                node.expand();
-                tree.update(data.tree);
-                if (node.attributes.leaf) {
-                    window.location = node.attributes.uid + 
-                            '/edit' +
-                            node.attributes.meta_type;
+                newNode = insertNewNode(tree, data, parentNode);
+                if (newNode.attributes.edit_url) {
+                    window.location = newNode.attributes.edit_url;
                 }
             }
-        }
-        this.router.addNode(params, callback);
+        });
     },
     deleteSelectedNode: function () {
         var node = this.getSelectionModel().getSelectedNode();
-        if (node.childNodes.length < 1) {
-            this._deleteSelectedNode();
-            return;
+        if (node.attributes.leaf) {
+            this._confirmDeleteSelectedNode(_t('Delete Report'),
+                _t('Confirm report deletion.'));
+        } else {
+            if (node.childNodes.length < 1) {
+                this._deleteSelectedNode();
+            } else {
+                this._confirmDeleteSelectedNode(_t('Delete Organizer'),
+                    _t('Warning! This will delete all of the reports in this group!'));
+            }
         }
+    },
+    _confirmDeleteSelectedNode: function (title, message) {
         Ext.MessageBox.show({
-            title: _t('Delete Organizer'),
-            msg: _t('Warning! ' +
-                    'This will delete all of the reports in this group!'),
+            title: title,
+            msg: message,
             fn: function(buttonid) {
                 if (buttonid=='ok') {
                     report_tree._deleteSelectedNode();
@@ -206,10 +146,7 @@ Zenoss.ReportTreePanel = Ext.extend(Zenoss.HierarchyTreePanel, {
         this.router.deleteNode(params, callback);
     },
     editReport: function () {
-        var node = this.getSelectionModel().getSelectedNode(),
-                uid = node.attributes.uid,
-                meta_type = node.attributes.meta_type;
-        window.location = uid + '/edit' + meta_type;
+        window.location = this.getSelectionModel().getSelectedNode().attributes.edit_url;
     }
 });
 
@@ -240,8 +177,7 @@ treesm = new Ext.tree.DefaultSelectionModel({
             }
             Ext.getCmp('add-organizer-button').setDisabled(attrs.leaf);
             Ext.getCmp('add-to-zenpack-button').setDisabled(attrs.leaf);
-            Ext.getCmp('edit-button').setDisabled
-                    (!/^(Device|(Multi)?Graph)Report$/.test(attrs.meta_type));
+            Ext.getCmp('edit-button').setDisabled(!attrs.edit_url);
             Ext.getCmp('delete-button').setDisabled(!attrs.deletable);
         }
     }
@@ -252,10 +188,13 @@ report_tree = new Zenoss.ReportTreePanel({
     cls: 'report-tree',
     ddGroup: 'reporttreedd',
     searchField: true,
+    rootVisible: true,
     enableDD: true,
+    directFn: Zenoss.remote.ReportRouter.asyncGetTree,
     router: Zenoss.remote.ReportRouter,
     root: {
-        id: 'Reports',
+        nodeType: 'async',
+        id: '.zport.dmd.Reports',
         uid: '/zport/dmd/Reports',
         text: _t('Report Classes'),
         allowDrop: false

@@ -42,12 +42,12 @@ Zenoss.CommandPanel = Ext.extend(Zenoss.IFramePanel, {
         this.on('frameload', this.injectForm, this, {single:true});
     },
     injectForm: function(win){
-        var doc = this.getDocument(),
+        var doc = win.document,
             form = formTpl.apply({
                 data: Ext.encode(this.data),
                 target: this.target
             });
-        this.getBody().innerHTML = form;
+        doc.body.innerHTML = form;
         doc.commandform.submit();
         this.parentWindow.setSize(this.parentWindow.getSize());
     }
@@ -140,6 +140,20 @@ Zenoss.CommandWindow = Ext.extend(Ext.Window, {
             win.scrollBy(0, body.scrollHeight);
         } catch(e) { Ext.emptyFn(); }
         this.task.delay(250);
+    },
+    show: function() {
+        if (Ext.isWebKit) {
+            var url = 'no_streaming=1&data=';
+            url += Ext.encode(this.commandData);
+            if (this.commandData.command) {
+                url += "&command=";
+                url += this.commandData.command;
+            }
+            window.open(this.target + '?'+ url,'',
+            'width=800,height=500,toolbar=0,location=0,directories=0,menubar=0,resizable=1,scrollbars=1');
+        } else {
+            Zenoss.CommandWindow.superclass.show.apply(this);
+        }
     }
 });
 

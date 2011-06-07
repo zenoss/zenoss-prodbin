@@ -79,4 +79,5 @@ from organizer import *
 from mib import *
 from zep import *
 from reportable import *
+from report import *
 

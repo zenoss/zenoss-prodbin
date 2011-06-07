@@ -191,6 +191,31 @@
              factory="Products.Zuul.infos.triggers.NotificationWindowInfo"
              />
 
+    <adapter provides="Products.Zuul.interfaces.IReportClassNode"
+             for="Products.ZenModel.ReportClass.ReportClass"
+             factory="Products.Zuul.infos.report.ReportClassNode"
+             />
+
+    <adapter provides="Products.Zuul.interfaces.IReportNode"
+             for="Products.ZenModel.Report.Report"
+             factory="Products.Zuul.infos.report.ReportNode"
+             />
+
+    <adapter provides="Products.Zuul.interfaces.IReportNode"
+             for="Products.ZenModel.DeviceReport.DeviceReport"
+             factory="Products.Zuul.infos.report.ReportNode"
+             />
+
+    <adapter provides="Products.Zuul.interfaces.IReportNode"
+             for="Products.ZenModel.GraphReport.GraphReport"
+             factory="Products.Zuul.infos.report.ReportNode"
+             />
+
+    <adapter provides="Products.Zuul.interfaces.IReportNode"
+             for="Products.ZenModel.MultiGraphReport.MultiGraphReport"
+             factory="Products.Zuul.infos.report.ReportNode"
+             />
+
     <include package=".component"/>
     <include file="graphpoint.zcml"/>
 </configure>

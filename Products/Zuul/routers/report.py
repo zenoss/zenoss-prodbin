@@ -17,47 +17,50 @@ Available at:  /zport/dmd/report_router
 """
 
 import logging
+from itertools import izip_longest
 from Products.ZenUtils.Ext import DirectRouter, DirectResponse
 from Products.Zuul.decorators import require
+from Products.Zuul.marshalling import Marshaller
 from Products.Zuul.utils import ZuulMessageFactory as _t
+from Products import Zuul
 
 log = logging.getLogger('zen.ReportRouter')
+
+reportTypes = [
+    'customDeviceReport',
+    'graphReport',
+    'multiGraphReport',
+]
+
+menuText = [
+    _t('Custom Device Report'),
+    _t('Graph Report'),
+    _t('Multi-Graph Report'),
+]
+
+essentialReportOrganizers = [
+    '/zport/dmd/Reports/Custom Device Reports',
+    '/zport/dmd/Reports/Graph Reports',
+    '/zport/dmd/Reports/Multi-Graph Reports',
+    '/zport/dmd/Reports',
+]
+
 class ReportRouter(DirectRouter):
     """
     A JSON/ExtDirect interface to operations on reports
     """
 
-    _newReportTypes = [
-        'customDeviceReport',
-        'graphReport',
-        'multiGraphReport',
-    ]
 
-    _reportMenuItems = [
-        _t('Custom Device Report'),
-        _t('Graph Report'),
-        _t('Multi-Graph Report'),
-    ]
+    def __init__(self, context, request):
+        self.api = Zuul.getFacade('reports')
+        self.context = context
+        self.request = request
+        self.keys = ('id', 'path', 'uid', 'iconCls', 'text', 'hidden', 'leaf',
+                'deletable', 'edit_url')
+        super(ReportRouter, self).__init__(context, request)
 
-    _createOrganizers = {
-        _newReportTypes[0]: 'Custom Device Reports',
-        _newReportTypes[1]: 'Graph Reports',
-        _newReportTypes[2]: 'Multi-Graph Reports',
-    }
-
-    _createMethods = {
-        _newReportTypes[0]: 'manage_addDeviceReport',
-        _newReportTypes[1]: 'manage_addGraphReport',
-        _newReportTypes[2]: 'manage_addMultiGraphReport',
-    }
-
-    _essentialNodes = [
-        '/zport/dmd/Reports',
-        '/zport/dmd/Reports/Custom%20Device%20Reports',
-        '/zport/dmd/Reports/Graph%20Reports',
-        '/zport/dmd/Reports/Multi-Graph%20Reports',
-    ]
-
+    def _getFacade(self):
+        return self.api
 
     def getReportTypes(self):
         """
@@ -68,34 +71,12 @@ class ReportRouter(DirectRouter):
            - menuText: ([string]) Human readable list of report types
            - reportTypes: ([string]) A list of the available report types
         """
-        return DirectResponse.succeed(reportTypes=ReportRouter._newReportTypes,
-                menuText=ReportRouter._reportMenuItems)
+        return DirectResponse.succeed(reportTypes=reportTypes,
+                menuText=menuText)
 
-
-    def getTree(self, id='/zport/dmd/Reports'):
-        """
-        Returns the tree structure of an organizer hierarchy where
-        the root node is the organizer identified by the id parameter.
-
-        @type  id: string
-        @param id: (optional) Id of the root node of the tree to be returned
-                   (default: Reports)
-        @rtype:   [dictionary]
-        @return:  Object representing the tree
-        """
-        root_organizer = self.context.dmd.restrictedTraverse(id)
-        root_node = self._getReportOrganizersTree(root_organizer)
-        return [root_node]
-
-
-    def _getReportOrganizersTree(self, reportOrg):
-        rorg_node = self._createTreeNode(reportOrg)
-        for rorg in reportOrg.children():
-            rorg_node['children'].append(self._getReportOrganizersTree(rorg))
-        for report in reportOrg.reports():
-            rorg_node['children'].append(self._createTreeNode(report))
-        return rorg_node
-
+    def asyncGetTree(self, id=None):
+        children = self._getFacade().getTree(id).children
+        return [Marshaller(child).marshal(self.keys) for child in children]
 
     @require('Manage DMD')
     def addNode(self, nodeType, contextUid, id):
@@ -114,31 +95,13 @@ class ReportRouter(DirectRouter):
            - tree: (dictionary) Object representing the new Reports tree
            - newNode: (dictionary) Object representing the added node
         """
-        if nodeType not in ['organizer'] + ReportRouter._newReportTypes :
-            return DirectResponse.fail('Not creating "%s"' % nodeType)
+        facade = self._getFacade()
+        if nodeType in reportTypes:
+            facade.addReport(nodeType, contextUid, id)
+        else:
+            facade.addOrganizer(contextUid, id, None)
 
-        try:
-            if nodeType == 'organizer':
-                uid = contextUid + '/' + id
-                maoUid = uid.replace('/zport/dmd', '')
-                self.context.dmd.Reports.manage_addOrganizer(maoUid)
-                represented = self.context.dmd.restrictedTraverse(uid)
-            else:
-                creatingOrganizer = self.context.dmd.restrictedTraverse(
-                        "/zport/dmd/Reports/" + 
-                        ReportRouter._createOrganizers[nodeType])
-                createMethod = eval('creatingOrganizer.' + 
-                        ReportRouter._createMethods[nodeType])
-                represented = createMethod(id)
-                represented.getParentNode()._delObject(id)
-                targetNode = self.context.dmd.restrictedTraverse(contextUid)
-                targetNode._setObject(id, represented)
-
-            node = self._createTreeNode(represented)
-            return DirectResponse.succeed(tree=self.getTree(), newNode=node)
-        except Exception, e:
-            return DirectResponse.fail(str(e))
-
+        return self._getTreeUpdates(contextUid, id)
 
     @require('Manage DMD')
     def deleteNode(self, uid):
@@ -151,21 +114,29 @@ class ReportRouter(DirectRouter):
         @return:  B{Properties}:
            - tree: (dictionary) Object representing the new Reports tree
         """
-        represented = self.context.dmd.restrictedTraverse(uid)
-        if represented.absolute_url_path() in ReportRouter._essentialNodes:
-            return DirectResponse.fail('Not deleting "%s"' % \
-                    represented.absolute_url_path())
-        represented.getParentNode().zmanage_delObjects([represented.id])
-        return DirectResponse.succeed(tree=self.getTree())
+        # make sure we are not deleting a required node
+        if uid in essentialReportOrganizers:
+            raise Exception('You cannot delete this organizer')
+        self._getFacade().deleteNode(uid)
+        contextUid = '/'.join(uid.split('/')[:-1])
+        return self._getTreeUpdates(contextUid)
 
+    def _getTreeUpdates(self, contextUid, newId=None):
+        marshalled = self._marshalPath(contextUid, newId)
+        for parent, child in zip(marshalled[:-1], marshalled[1:]):
+            parent['children'] = [child]
+        result = {'tree': [marshalled[0]]}
+        if newId:
+            result['newNode'] = marshalled[-1]
+        return DirectResponse.succeed(**result)
 
     @require('Manage DMD')
-    def moveNode(self, uids, target):
+    def moveNode(self, uid, target):
         """
         Move a report or report organizer from one organizer to another.
 
-        @type  uids: [string]
-        @param uids: The UID's of nodes to move
+        @type  uid: string
+        @param uid: The UID of node to move
         @type  target: string
         @param target: The UID of the target Report organizer
         @rtype:   [dictionary]
@@ -173,75 +144,40 @@ class ReportRouter(DirectRouter):
            - tree: (dictionary) Object representing the new Reports tree
            - newNode: (dictionary) Object representing the moved node
         """
-        # make sure at least one uid has been passed in to be moved
-        if not uids:
-            failmsg = "Must specify at least one report to move"
-            return DirectResponse.fail(failmsg)
+        self._getFacade().moveNode(uid, target)
+        return self._treeMoveUpdates(uid, target)
 
-        targetNode = self.context.dmd.restrictedTraverse(target)
-        movingObjects = [self.context.dmd.restrictedTraverse(uid) for uid in uids]
-        movingIds = set(ob.id for ob in movingObjects)
+    def _treeMoveUpdates(self, uid, target):
+        oldPathTokens = uid.split('/')
+        oldPath = '/'.join(oldPathTokens[:-1])
+        oldBranch = self._marshalPath(oldPath)
+        newId = oldPathTokens[-1]
+        newBranch = self._marshalPath(target, newId)
+        for newParent, newChild, oldParent, oldChild in izip_longest(newBranch[:-1], newBranch[1:], oldBranch[:-1], oldBranch[1:], fillvalue=None):
+            if newParent and oldParent and newParent['id'] != oldParent['id']:
+                newParent['children'] = [newChild]
+                oldParent['children'] = [oldChild]
+            else:
+                parent = newParent if newParent else oldParent
+                if newChild and oldChild and newChild['id'] != oldChild['id']:
+                    parent['children'] = [oldChild, newChild]
+                else:
+                    child = newChild if newChild else oldChild
+                    parent['children'] = [child]
+        tree = [newBranch[0]]
+        if oldBranch[0]['id'] != newBranch[0]['id']:
+            tree.append(oldBranch[0])
+        newNode = newBranch[-1]
+        return DirectResponse.succeed(tree=tree, newNode=newNode)
 
-        # make sure no objects being moved have duplicate id with an existing
-        # object in the targetNode
-        dupes = set(id for id in movingIds if id in targetNode)
-        if dupes:
-            dupetitles = [ob.titleOrId() for ob in movingObjects if ob.id in dupes]
-            msgfields = {'plural': '' if len(dupetitles)==1 else 's',
-                         'titles': ','.join(dupetitles),
-                         'target': targetNode.titleOrId(),
-                        }
-            failmsg = "Cannot move report%(plural)s %(titles)s, duplicate id with existing report%(plural)s in %(target)s" % msgfields
-            return DirectResponse.fail(failmsg)
+    def _marshalPath(self, contextUid, newId=None):
+        tokens = contextUid.split('/')
+        if newId:
+            tokens.append(newId)
+        paths = []
+        # ["", "zport", "dmd", "Reports", <new node or an ancestor, at 5>, ...]
+        for x in range(5, len(tokens) + 1):
+            paths.append('/'.join(tokens[:x]))
+        nodes = [self._getFacade().getTree(id) for id in paths]
+        return [Marshaller(node).marshal(self.keys) for node in nodes]
 
-        # make sure no objects being moved have duplicate keys with each other
-        # (the set of id's should be the same length as the list of objects)
-        if len(movingIds) != len(movingObjects):
-            # find all ids that have at least one duplicate
-            seen = set()
-            dupeids = set(ob.id for ob in movingObjects if ob.id in seen or seen.add(ob.id))
-
-            # get titles of objects with any duplicated id
-            dupetitles = [ob.titleOrId() for ob in movingObjects if ob.id in dupeids]
-            msgfields = {'titles': ','.join(dupetitles),
-                         'target': targetNode.titleOrId(),
-                        }
-            failmsg = "Cannot move reports %(titles)s to %(target)s, have duplicate ids with each other" % msgfields
-            return DirectResponse.fail(failmsg)
-
-        # all clear, move the objects from their respective parents to the target node
-        for represented in movingObjects:
-            representedKey = represented.id
-            represented.getParentNode()._delObject(representedKey)
-            targetNode._setObject(representedKey, represented)
-
-        # only need to do this once, for the last moved object
-        representedNode = self._createTreeNode(represented)
-
-        return DirectResponse.succeed(tree=self.getTree(), 
-                newNode=representedNode)
-
-
-    def _createTreeNode(self, represented):
-        path = represented.getDmdKey()
-        if path.startswith('/') :
-            path = path[1:]
-
-        text = represented.titleOrId()
-        leaf = not isinstance(represented, represented.getReportClass())
-        if not leaf:
-            description = ('reports', 'report')[represented.countReports() == 1]
-            text = {'count': represented.countReports(),
-                    'text': represented.titleOrId(),
-                    'description': description}
-
-        return {'uid': represented.getPrimaryId(),
-                'children': [],
-                'path': path,
-                'id': represented.getPrimaryId().replace('/', '.'),
-                'uiProvider': 'report', 
-                'leaf': leaf,
-                'expandable': not leaf,
-                'deletable' : represented.absolute_url_path() not in ReportRouter._essentialNodes,
-                'meta_type': represented.meta_type,
-                'text': text }

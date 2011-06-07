@@ -108,6 +108,12 @@
              for="*"
              />
 
+    <adapter factory=".facades.ReportFacade"
+             provides=".interfaces.IFacade"
+             name="reports"
+             for="*"
+             />
+
     <adapter factory=".facades.ZenPackFacade"
              provides=".interfaces.IFacade"
              name="zenpack"
