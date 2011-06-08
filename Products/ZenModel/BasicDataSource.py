@@ -166,11 +166,15 @@ class BasicDataSource(RRDDataSource.SimpleRRDDataSource):
         command = None
         if self.sourcetype=='COMMAND':
             command = self.getCommand(device, REQUEST.get('commandTemplate'))
+            displayCommand = command
+            if displayCommand and len(displayCommand.split()) > 1:
+                displayCommand = "%s [args omitted]" % displayCommand.split()[0]
         elif self.sourcetype=='SNMP':
             snmpinfo = copy(device.getSnmpConnInfo().__dict__)
             # use the oid from the request or our existing one
             snmpinfo['oid'] = REQUEST.get('oid', self.getDescription())
             command = snmptemplate % snmpinfo
+            displayCommand = command
         else:
             errorLog(
                 'Test Failed',
@@ -193,7 +197,7 @@ class BasicDataSource(RRDDataSource.SimpleRRDDataSource):
             
         out.write(str(header))
             
-        write("Executing command\n%s\n   against %s" % (command, device.id))
+        write("Executing command\n%s\n   against %s" % (displayCommand, device.id))
         write('')
         start = time.time()
         try:
