@@ -11,7 +11,7 @@
 #
 ###########################################################################
 from zope.component.zcml import utility
-from .interfaces import IPreEventPlugin, IPostEventPlugin
+from .interfaces import IPreEventPlugin, IPostEventPlugin, IEventIdentifierPlugin
 
 def _eventPlugin( _context, plugin, pluginInterface, name=None):
     if name is None:
@@ -23,3 +23,8 @@ def preEventPlugin(_context, plugin, name=None):
 
 def postEventPlugin(_context, plugin, name=None):
     _eventPlugin( _context, plugin, IPostEventPlugin, name )
+
+def eventIdentifierPlugin( _context, plugin, name=None):
+    if name is None:
+        name = '.'.join((plugin.__module__, plugin.__name__))
+    utility(_context, name=name, factory=plugin, provides=IEventIdentifierPlugin)

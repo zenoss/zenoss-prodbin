@@ -47,3 +47,12 @@ class IPostEventPlugin(IEventPlugin):
     """
     Event plugins applied after transforms and before passing to ZEP.
     """
+
+class IEventIdentifierPlugin(Interface):
+    """
+    Plugins used by an IdentifierPipe to do custom event identification
+    """
+    def resolveIdentifiers(event, eventProcessorMgr):
+        """
+        Update the identifiers in the event based on custom identifier resolution logic.
+        """

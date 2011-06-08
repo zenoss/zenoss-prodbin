@@ -32,3 +32,8 @@ class IPostEventPluginDirective(IEventPluginDirective):
     """
     Registers an event plugin as a named utility.
     """
+
+class IEventIdentifierPluginDirective(IEventPluginDirective):
+    """
+    Registers an event identifier plugin as a named utility
+    """

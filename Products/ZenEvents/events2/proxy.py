@@ -26,6 +26,7 @@ from zenoss.protocols.protobufs.zep_pb2 import (
     EventTag,
     EventDetail
 )
+from zenoss.protocols.jsonformat import to_dict
 
 import logging
 log = logging.getLogger('zen.%s' % __name__)
@@ -77,7 +78,8 @@ class EventTagProxy(object):
 
         # remove all entries from mapping
         for typ in removetype:
-            del self._tags[typ]
+            if typ in self._tags:
+                del self._tags[typ]
 
         # clear values from protobuf tags by assigning new list comprehension into
         # protobuf tags list in place (using [:] slice would be a lot easier, but not implemented)
@@ -127,6 +129,7 @@ class EventDetailProxy(object):
                     cloned = EventDetail()
                     cloned.MergeFrom(det)
                     savedetails.append(cloned)
+                    self._map[cloned.name] = cloned
             del self._eventProtobuf.details[:]
             self._eventProtobuf.details.extend(savedetails)
 
@@ -334,6 +337,14 @@ class EventProxy(object):
 
     @manager.setter
     def manager(self, val):
+        self._event.set(EventField.MONITOR, val)
+
+    @property
+    def monitor(self):
+        return self._event.get(EventField.MONITOR)
+
+    @manager.setter
+    def monitor(self, val):
         self._event.set(EventField.MONITOR, val)
 
     @property
@@ -546,6 +557,9 @@ class ZepRawEventProxy(EventProxy):
 
         self.__dict__['_clearClassesSet'] = set(classes)
         self._refreshClearClasses()
+
+    def __str__(self):
+        return "{_zepRawEvent:%s}" % str(to_dict(self._zepRawEvent))
 
     def _refreshClearClasses(self):
         # Add this dynamically in case severity or event_class changes

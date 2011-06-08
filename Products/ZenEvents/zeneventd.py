@@ -143,7 +143,7 @@ class ProcessEventMessageTask(BasePubSubMessageTask):
                     for pipe in self._pipes:
                         eventContext = pipe(eventContext)
                         if log.isEnabledFor(logging.DEBUG):
-                            log.debug('After pipe %s, event context is %s' % ( pipe.name, to_dict(eventContext._event) ))
+                            log.debug('After pipe %s, event context is %s' % ( pipe.name, to_dict(eventContext.zepRawEvent) ))
                         if eventContext.zepRawEvent.status == STATUS_DROPPED:
                             raise DropEvent('Dropped by %s' % pipe, eventContext.event)
 
@@ -164,7 +164,10 @@ class ProcessEventMessageTask(BasePubSubMessageTask):
             raise
         except Exception as e:
             log.info("Failed to process event, forward original raw event: %s", to_dict(zepevent.raw_event))
-            log.exception(e)
+            # Pipes and plugins may raise ProcessingException's for their own reasons - only log unexpected
+            # exceptions of other type (will insert stack trace in log)
+            if not isinstance(e, ProcessingException):
+                log.exception(e)
 
             # construct wrapper event to report this event processing failure (including content of the
             # original event)

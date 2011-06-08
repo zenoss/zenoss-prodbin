@@ -12,6 +12,7 @@
 ###########################################################################
 
 from Products.ZenEvents.events2.fields import EventField
+from Products.ZenEvents.interfaces import IEventIdentifierPlugin
 from Products.ZenModel.Device import Device
 from Products.ZenModel.DeviceComponent import DeviceComponent
 from Products.ZenModel.DataRoot import DataRoot
@@ -24,6 +25,7 @@ from zope.component import getUtilitiesFor
 from Acquisition import aq_chain
 from Products.ZenEvents import ZenEventClasses
 
+from zenoss.protocols.jsonformat import to_dict
 from zenoss.protocols.protobufs.model_pb2 import DEVICE, COMPONENT
 from zenoss.protocols.protobufs.zep_pb2 import (
     STATUS_NEW,
@@ -307,6 +309,89 @@ class CheckInputPipe(EventProcessorPipe):
 
         return eventContext
 
+class EventIdentifierPluginException(ProcessingException):
+    pass
+class EventIdentifierPluginFailure(EventIdentifierPluginException):
+    pass
+class EventIdentifierPluginAbort(EventIdentifierPluginException):
+    pass
+
+class BaseEventIdentifierPlugin(object):
+    def _resolveElement(self, evtProcessorManager, catalog, eventContext, type_id_field,
+                        identifier_field, uuid_field):
+        """
+        Lookup an element by identifier or uuid and make sure both
+        identifier and uuid are set.
+        """
+        actor = eventContext.event.actor
+        if actor.HasField(type_id_field):
+            if not (actor.HasField(identifier_field) and actor.HasField(uuid_field)):
+                if actor.HasField(uuid_field):
+                    uuid = getattr(actor, uuid_field, None)
+                    element = evtProcessorManager.getElementByUuid(uuid)
+                    if element:
+                        eventContext.log.debug('Identified element %s by uuid %s',
+                                               element, uuid)
+                        setattr(actor, identifier_field, element.id)
+                    else:
+                        eventContext.log.warning('Could not find element by uuid %s'
+                                                 , uuid)
+
+                elif actor.HasField(identifier_field):
+                    type_id = getattr(actor, type_id_field, None)
+                    identifier = getattr(actor, identifier_field, None)
+                    if type_id == DEVICE:
+                        element_uuid = evtProcessorManager.findDeviceUuid(identifier,
+                                                                    eventContext.eventProxy.ipAddress)
+                    else:
+                        element_uuid = evtProcessorManager.getElementUuidById(catalog,
+                                                                        type_id,
+                                                                        identifier)
+
+                    if element_uuid:
+                        eventContext.log.debug('Identified element %s by id %s',
+                                               element_uuid, identifier)
+                        setattr(actor, uuid_field, element_uuid)
+                    else:
+                        eventContext.log.debug(
+                                'Could not find element type %s with id %s', type_id
+                                , identifier)
+            else:
+                type_id = getattr(actor, type_id_field, None)
+                identifier = getattr(actor, identifier_field, None)
+                uuid = getattr(actor, uuid_field, None)
+                eventContext.log.debug('Element %s already fully identified by %s/%s', type_id, identifier, uuid)
+
+    def resolveIdentifiers(self, eventContext, evtProcessorManager):
+        """
+        Update eventContext in place, updating/resolving identifiers and respective uuid's
+        """
+        eventContext.log.debug('Identifying event (%s)' % self.__class__.__name__)
+
+        # Get element, most likely a Device
+        self._resolveElement(
+                evtProcessorManager,
+                None,
+                eventContext,
+                EventField.Actor.ELEMENT_TYPE_ID,
+                EventField.Actor.ELEMENT_IDENTIFIER,
+                EventField.Actor.ELEMENT_UUID
+                )
+
+        # Get element, most likely a Component
+        actor = eventContext.event.actor
+        if actor.HasField(EventField.Actor.ELEMENT_UUID):
+            parent = evtProcessorManager.getElementByUuid(actor.element_uuid)
+        else:
+            parent = None
+        self._resolveElement(
+                evtProcessorManager,
+                parent,
+                eventContext,
+                EventField.Actor.ELEMENT_SUB_TYPE_ID,
+                EventField.Actor.ELEMENT_SUB_IDENTIFIER,
+                EventField.Actor.ELEMENT_SUB_UUID
+                )
 
 class IdentifierPipe(EventProcessorPipe):
     """
@@ -315,72 +400,23 @@ class IdentifierPipe(EventProcessorPipe):
 
     dependencies = [CheckInputPipe]
 
-    def _resolveElement(self, catalog, eventContext, type_id_field,
-                        identifier_field, uuid_field):
-        """
-        Lookup an element by identifier or uuid and make sure both
-        identifier and uuid are set.
-        """
-        actor = eventContext.event.actor
-        if ( actor.HasField(type_id_field) and
-             not (
-             actor.HasField(identifier_field) and actor.HasField(uuid_field)) ):
-            if actor.HasField(uuid_field):
-                uuid = getattr(actor, uuid_field, None)
-                element = self._manager.getElementByUuid(uuid)
-                if element:
-                    eventContext.log.debug('Identified element %s by uuid %s',
-                                           element, uuid)
-                    setattr(actor, identifier_field, element.id)
-                else:
-                    eventContext.log.warning('Could not find element by uuid %s'
-                                             , uuid)
-
-            elif actor.HasField(identifier_field):
-                type_id = getattr(actor, type_id_field, None)
-                identifier = getattr(actor, identifier_field, None)
-                if type_id == DEVICE:
-                    element_uuid = self._manager.findDeviceUuid(identifier,
-                                                                eventContext.eventProxy.ipAddress)
-                else:
-                    element_uuid = self._manager.getElementUuidById(catalog,
-                                                                    type_id,
-                                                                    identifier)
-
-                if element_uuid:
-                    eventContext.log.debug('Identified element %s by id %s',
-                                           element_uuid, identifier)
-                    setattr(actor, uuid_field, element_uuid)
-                else:
-                    eventContext.log.debug(
-                            'Could not find element type %s with id %s', type_id
-                            , identifier)
-
     def __call__(self, eventContext):
         eventContext.log.debug('Identifying event')
 
-        actor = eventContext.event.actor
+        # get list of defined IEventIdentifierPlugins (add default identifier to the end)
+        evtIdentifierPlugins = list(getUtilitiesFor(IEventIdentifierPlugin))
+        evtIdentifierPlugins.append(('default',BaseEventIdentifierPlugin()))
 
-        # Get element, most likely a Device
-        self._resolveElement(
-                None,
-                eventContext,
-                EventField.Actor.ELEMENT_TYPE_ID,
-                EventField.Actor.ELEMENT_IDENTIFIER,
-                EventField.Actor.ELEMENT_UUID
-                )
-
-
-        # Get element, most likely a Component
-        self._resolveElement(
-                self._manager.getElementByUuid(
-                        actor.element_uuid) if actor.HasField(
-                        EventField.Actor.ELEMENT_UUID) else None,
-                eventContext,
-                EventField.Actor.ELEMENT_SUB_TYPE_ID,
-                EventField.Actor.ELEMENT_SUB_IDENTIFIER,
-                EventField.Actor.ELEMENT_SUB_UUID
-                )
+        # iterate over all event identifier plugins
+        for name, plugin in evtIdentifierPlugins:
+            try:
+                eventContext.log.debug("running identifier plugin %s" % name)
+                plugin.resolveIdentifiers(eventContext, self._manager)
+            except EventIdentifierPluginAbort as e:
+                eventContext.log.debug(e)
+                raise
+            except EventIdentifierPluginException as e:
+                eventContext.log.debug(e)
 
         return eventContext
 
@@ -395,14 +431,18 @@ class AddDeviceContextAndTagsPipe(EventProcessorPipe):
         (EventField.Actor.ELEMENT_SUB_TYPE_ID, EventField.Actor.ELEMENT_SUB_UUID),
     )
 
-    DEVICE_TAGGERS = {
-        'zenoss.device.device_class': (lambda device: device.deviceClass(), 'DeviceClass'),
-        'zenoss.device.location': (lambda device: device.location(), 'Location'),
-        'zenoss.device.system': (lambda device: device.systems(), 'Systems'),
-        'zenoss.device.group': (lambda device: device.groups(), 'DeviceGroups'),
-    }
+    # use defined detail keys for consistent tag names
+    DEVICE_DEVICECLASS_TAG_KEY = EventProxy.DEVICE_CLASS_DETAIL_KEY
+    DEVICE_LOCATION_TAG_KEY = EventProxy.DEVICE_LOCATION_DETAIL_KEY
+    DEVICE_SYSTEMS_TAG_KEY = EventProxy.DEVICE_SYSTEMS_DETAIL_KEY
+    DEVICE_GROUPS_TAG_KEY = EventProxy.DEVICE_GROUPS_DETAIL_KEY
 
-    SET_DEVICE_ORGANIZER_NAMES = True
+    DEVICE_TAGGERS = {
+        DEVICE_DEVICECLASS_TAG_KEY : (lambda device: device.deviceClass(), 'DeviceClass'),
+        DEVICE_LOCATION_TAG_KEY    : (lambda device: device.location(), 'Location'),
+        DEVICE_SYSTEMS_TAG_KEY     : (lambda device: device.systems(), 'Systems'),
+        DEVICE_GROUPS_TAG_KEY      : (lambda device: device.groups(), 'DeviceGroups'),
+    }
 
     def _addDeviceOrganizerNames(self, orgs, orgtypename, evtproxy, proxydetailkey, asDelimitedList=False):
         if orgtypename not in orgs:
@@ -474,12 +514,10 @@ class AddDeviceContextAndTagsPipe(EventProcessorPipe):
 
                         # save this list of organizers names of this type, to add their names
                         # to the device event context
-                        if self.SET_DEVICE_ORGANIZER_NAMES:
-                            deviceOrgs[orgTypeName] = [obj.getOrganizerName() for obj in objList]
+                        deviceOrgs[orgTypeName] = [obj.getOrganizerName() for obj in objList]
 
                 self._addDeviceContext(eventContext, device)
-                if self.SET_DEVICE_ORGANIZER_NAMES:
-                    self._addDeviceOrganizers(eventContext, deviceOrgs)
+                self._addDeviceOrganizers(eventContext, deviceOrgs)
 
         component = eventContext.componentObject
         if component is None:
@@ -490,29 +528,36 @@ class AddDeviceContextAndTagsPipe(EventProcessorPipe):
         return eventContext
 
 class UpdateDeviceContextAndTagsPipe(AddDeviceContextAndTagsPipe):
-    # when updating device context and tags after transforms, it is no longer necessary to
-    # retrieve and assign the '|'-delimited organizer names
-    SET_DEVICE_ORGANIZER_NAMES = False
 
     def __call__(self, eventContext):
         evtproxy = eventContext.eventProxy
 
         if eventContext.deviceObject is None:
+            eventContext.log.debug("device was cleared, must purge references in current event: %s" % to_dict(eventContext._zepRawEvent))
             # clear out device-specific tags and details
-            deviceOrganizerTypeNames = [type for function,type in AddDeviceContextAndTagsPipe.DEVICE_TAGGERS.values()]
-            deviceDetailNames = deviceOrganizerTypeNames + [EventProxy.DEVICE_IP_ADDRESS_DETAIL_KEY,
-                                                            EventProxy.DEVICE_PRIORITY_DETAIL_KEY,
-                                                            EventProxy.PRODUCTION_STATE_DETAIL_KEY,]
+            deviceOrganizerTypeNames = list(type for function,type in self.DEVICE_TAGGERS.values())
+            deviceDetailNames = set(deviceOrganizerTypeNames +
+                                    self.DEVICE_TAGGERS.keys() +
+                                    [
+                                        EventProxy.DEVICE_IP_ADDRESS_DETAIL_KEY,
+                                        EventProxy.DEVICE_PRIORITY_DETAIL_KEY,
+                                        EventProxy.PRODUCTION_STATE_DETAIL_KEY,
+                                    ])
 
             # clear device context details
             for detail in deviceDetailNames:
                 evtproxy.resetReadOnly(detail)
-                del evtproxy.details[detail]
+                if detail in evtproxy.details:
+                    del evtproxy.details[detail]
 
             # clear device-dependent tags
-            evtproxy.tags.clearType(deviceOrganizerTypeNames)
+            evtproxy.tags.clearType(self.DEVICE_TAGGERS.keys())
+            eventContext.log.debug("reset device values in event before reidentifying: %s" % to_dict(eventContext._zepRawEvent))
 
-        return super(UpdateDeviceContextAndTagsPipe, self)(eventContext)
+            return super(UpdateDeviceContextAndTagsPipe, self).__call__(eventContext)
+
+        else:
+            return eventContext
 
 class SerializeContextPipe(EventProcessorPipe):
     """

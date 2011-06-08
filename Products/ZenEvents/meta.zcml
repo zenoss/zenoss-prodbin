@@ -15,6 +15,11 @@
         handler=".metaconfigure.postEventPlugin"
         />
 
+    <directive
+        name="eventIdentifierPlugin"
+        schema=".metadirectives.IEventIdentifierPluginDirective"
+        handler=".metaconfigure.eventIdentifierPlugin"
+        />
 
 </directives>
 </configure>
