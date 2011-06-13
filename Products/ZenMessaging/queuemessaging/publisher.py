@@ -299,7 +299,8 @@ class BlockingQueuePublisher(object):
         self._client = BlockingPublisher()
 
     def publish(self, exchange, routing_key, message, createQueue=None, mandatory=False, immediate=False):
-        # TODO: Implement createQueue for blocking publisher
+        if createQueue:
+            self._client.createQueue(exchange, createQueue)
         self._client.publish(exchange, routing_key, message, mandatory=mandatory, immediate=immediate)
 
     @property

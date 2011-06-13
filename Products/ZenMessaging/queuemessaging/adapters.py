@@ -191,7 +191,7 @@ class EventProtobufSeverityMapper(EventProtobufMapper):
     Maps an event severity to the EventSeverity enum value.
     """
 
-    _SEVERITIES = {
+    SEVERITIES = {
         '': eventConstants.SEVERITY_CLEAR,
         '0': eventConstants.SEVERITY_CLEAR,
         '1': eventConstants.SEVERITY_DEBUG,
@@ -208,7 +208,7 @@ class EventProtobufSeverityMapper(EventProtobufMapper):
     }
 
     def mapEvent(self, proto, value):
-        proto.severity = self._SEVERITIES[str(value).upper()]
+        proto.severity = self.SEVERITIES[str(value).upper()]
 
 class EventProtobufIntMapper(EventProtobufMapper):
     """
@@ -229,7 +229,7 @@ class EventProtobufSyslogPriorityMapper(EventProtobufMapper):
     Maps a syslog priority value to the corresponding SyslogPriority.*.
     """
 
-    _SYSLOG_PRIORITIES = {
+    SYSLOG_PRIORITIES = {
         0: eventConstants.SYSLOG_PRIORITY_EMERG,
         1: eventConstants.SYSLOG_PRIORITY_ALERT,
         2: eventConstants.SYSLOG_PRIORITY_CRIT,
@@ -242,7 +242,7 @@ class EventProtobufSyslogPriorityMapper(EventProtobufMapper):
 
     def mapEvent(self, proto, value):
         try:
-            proto.syslog_priority = self._SYSLOG_PRIORITIES[int(value)]
+            proto.syslog_priority = self.SYSLOG_PRIORITIES[int(value)]
         except (KeyError, ValueError):
             pass
 
