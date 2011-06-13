@@ -55,7 +55,12 @@ class TestMailProcessor(TestCase):
 
         # Actually check for expected values
         for field, value in expected_evt.items():
-            self.assertEquals( self.sent.get( field, '' ), value )
+            # ip address relies on the python socket library so we
+            # just want to make sure it is not blank
+            if field == "ipAddress":
+                self.assertTrue( self.sent.get( field ) )
+            else:
+                self.assertEquals( self.sent.get( field, '' ), value )
 
 
     def testValidEmail(self):
@@ -156,7 +161,7 @@ Received: from localhost (localhost.localdomain [127.0.0.1])
 X-Virus-Scanned: amavisd-new at zimbra1.example.com
 X-Spam-Flag: NO
 X-Spam-Score: -1.431
-X-Spam-Level: 
+X-Spam-Level:
 X-Spam-Status: No, score=-1.431 tagged_above=-10 required=4 tests=[AWL=0.191,
 \tBAYES_00=-2.599, RCVD_IN_SORBS_DUL=0.877, RDNS_NONE=0.1]
 Received: from zimbra1.example.com ([127.0.0.1])
@@ -181,7 +186,7 @@ Lots of
   lovely
     text
 
-# special case: '.' on at the beginning of a line all on its own 
+# special case: '.' on at the beginning of a line all on its own
 #    may terminate message processing, depending on the agent
 
 .
@@ -194,7 +199,7 @@ sig
            'severity': 2, 'facility': 'unknown', 'eventClassKey': 'email',
            '_action': 'status', 'component': '', 'summary': 'Test event message subject',
            '_clearClasses': [], 'eventKey': '', 'device': 'example.com',
-           'message': "Body part of the message\nLots of\n  lovely\n    text\n\n# special case: '.' on at the beginning of a line all on its own \n#    may terminate message processing, depending on the agent\n\n.\n\n  Spread out all over the e-mail.\n\nsig\n",
+           'message': "Body part of the message\nLots of\n  lovely\n    text\n\n# special case: '.' on at the beginning of a line all on its own\n#    may terminate message processing, depending on the agent\n\n.\n\n  Spread out all over the e-mail.\n\nsig\n",
            '_fields': [], 'ipAddress': '192.0.32.10'
   }
 },
