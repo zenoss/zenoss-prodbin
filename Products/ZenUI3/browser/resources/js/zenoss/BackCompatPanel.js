@@ -16,8 +16,12 @@
 (function(){
 
 Zenoss.IFramePanel = Ext.extend(Ext.BoxComponent, {
+    frameLoaded: false,
     constructor: function(config) {
         config = Ext.applyIf(config || {}, {
+            timeout: 5000, // Wait 5s for iframe to initialize before failing
+            pollInterval: 50,
+            ignoreClassName: false,
             autoEl: {
                 tag: 'iframe',
                 id: Ext.id(),
@@ -26,18 +30,17 @@ Zenoss.IFramePanel = Ext.extend(Ext.BoxComponent, {
             }
         });
         Zenoss.IFramePanel.superclass.constructor.call(this, config);
-    },
-    initEvents: function() {
-        Zenoss.IFramePanel.superclass.initEvents.call(this);
-        this.addEvents('frameload');
+        this.addEvents('frameload', 'framefailed');
+        this.on('frameload', function(win) {
+            // Load any messages that may have been created by the frame
+            Zenoss.messenger.checkMessages();
+        }, this);
     },
     onRender: function(ct, position) {
         Zenoss.IFramePanel.superclass.onRender.apply(this, arguments);
         // Hook up load events
         this.frame = this.getEl();
-        this.frameParent = this.frame.findParent('div.x-panel-body', null, true);
-        var evname = Ext.isIE?'onreadystatechange':'onload';
-        this.frame.dom[evname] = this.onFrameLoad.createDelegate(this);
+        this.waitForLoad();
     },
     afterRender: function(container) {
         Zenoss.IFramePanel.superclass.afterRender.apply(this, arguments);
@@ -47,38 +50,58 @@ Zenoss.IFramePanel = Ext.extend(Ext.BoxComponent, {
             this.setSize(size.width - pos[0], size.height-pos[1]);
         }
     },
+    waitForLoad: function() {
+        var doc = this.getDocument(),
+            currentUrl = doc ? doc.location.href : null,
+            ready = false,
+            body, dom, href,
+            i = 0,
+            timestocheck = this.timeout / this.pollInterval;
+        (function do_check() {
+            if (this.frameLoaded) {
+                return;
+            }
+            body = this.getBody();
+            if (currentUrl == 'about:blank' || currentUrl == '') {
+                ready = !!body && (this.ignoreClassName || !!body.className);
+            } else {
+                dom = body ? body.dom : null,
+                    href = this.getDocument().location.href;
+                ready = href != currentUrl || (dom && dom.innerHTML);
+            }
+            if (ready || i++ > timestocheck) {
+                this.frameLoaded = ready;
+                this.fireEvent(ready ? 'frameload' : 'framefailed',
+                        this.getWindow());
+            } else {
+                do_check.defer(this.pollInterval, this);
+            }
+        }).createDelegate(this)();
+    },
+    getBody: function() {
+        var doc = this.getDocument();
+        return doc.body || doc.documentElement;
+    },
+    getDocument: function() {
+        var window = this.getWindow();
+        return (Ext.isIE && window ? window.document : null) ||
+                this.frame.dom.contentDocument ||
+                window.frames[this.frame.dom.name].document ||
+                null;
+    },
     getWindow: function() {
-        return this.frame.dom.contentWindow || window.frames[this.frame.dom.name];
+        return this.frame.dom.contentWindow
+                || window.frames[this.frame.dom.name];
     },
     setSrc: function(url) {
+        this.frameLoaded = false;
         this.frame.dom.src = url;
-    },
-    onFrameLoad: function() {
-        this.fireEvent('frameload', this.getWindow());
-        // Load any messages that may have been created by the frame
-        Zenoss.messenger.checkMessages();
+        this.waitForLoad();
     }
 });
 
 Ext.reg('iframe', Zenoss.IFramePanel);
 
-
-Zenoss.ContextualIFrame = Ext.extend(Zenoss.IFramePanel, {
-    contextUid: null,
-    refreshOnContextChange: false,
-    setContext: function(uid) {
-        if (this.refreshOnContextChange || this.contextUid!=uid) {
-            this.contextUid = uid;
-            var url = uid;
-            if (Ext.isDefined(this.viewName) && this.viewName !== null) {
-                url = uid + '/' + this.viewName;
-            }
-            this.setSrc(url);
-        }
-    }
-});
-
-Ext.reg('contextiframe', Zenoss.ContextualIFrame);
 
 /**
  * Panel used for displaying old zenoss ui pages in an iframe. Set Context
@@ -90,19 +113,35 @@ Ext.reg('contextiframe', Zenoss.ContextualIFrame);
  * @class Zenoss.BackCompatPanel
  * @extends Zenoss.ContextualIFrame
  */
-Zenoss.BackCompatPanel = Ext.extend(Zenoss.ContextualIFrame, {
-    setContext: function(uid) {
+Zenoss.BackCompatPanel = Ext.extend(Zenoss.IFramePanel, {
+    contextUid: null,
+    refreshOnContextChange: false,
+    constructor: function(config) {
+        Zenoss.BackCompatPanel.superclass.constructor.call(this, config);
         Ext.util.Cookies.set('newui', 'yes');
-        Zenoss.BackCompatPanel.superclass.setContext.apply(this, arguments);
-        this.on('frameload', function(win){
+        this.addEvents('frameloadfinished');
+        this.on('frameload', function(win) {
             if (win.document && win.document.body) {
-                win.document.body.className = win.document.body.className + ' z-bc';
+                this.fireEvent('frameloadfinished', win);
             } else {
                 win.onload = function() {
-                    win.document.body.className = win.document.body.className + ' z-bc';
-                };
+                    this.fireEvent('frameloadfinished', win);
+                }.createDelegate(this);
             }
-        });
+        }, this);
+        this.on('frameloadfinished', function(win) {
+            win.document.body.className = win.document.body.className + ' z-bc';
+        }, this);
+    },
+    setContext: function(uid) {
+        if (this.refreshOnContextChange || this.contextUid!=uid) {
+            this.contextUid = uid;
+            var url = uid;
+            if (Ext.isDefined(this.viewName) && this.viewName !== null) {
+                url = uid + '/' + this.viewName;
+            }
+            this.setSrc(url);
+        }
     }
 });
 

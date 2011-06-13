@@ -18,7 +18,6 @@ Ext.onReady(function () {
 
 var addtozenpack,
     report_panel = new Zenoss.BackCompatPanel({}),
-    initialContextSet = false,
     treesm,
     report_tree;
 
@@ -150,7 +149,7 @@ Zenoss.ReportTreePanel = Ext.extend(Zenoss.HierarchyTreePanel, {
     }
 });
 
-report_panel.addListener('frameload', function(win) {
+report_panel.addListener('frameloadfinished', function(win) {
     var anchors = win.document.getElementsByTagName('a');
     for (var idx = 0; idx < anchors.length; idx++) {
         if (!/\/zport\/dmd\/[rR]eports\//.test(anchors[idx].href)) {
@@ -168,13 +167,7 @@ treesm = new Ext.tree.DefaultSelectionModel({
                 return;
             }
             var attrs = newnode.attributes;
-            if (attrs.leaf && !initialContextSet) {
-                initialContextSet = true;
-                report_panel.setContext(attrs.uid + '?adapt=false');
-            }
-            if (!attrs.leaf) {
-                report_panel.setContext('');
-            }
+            report_panel.setContext(attrs.leaf ? attrs.uid + '?adapt=false' : '');
             Ext.getCmp('add-organizer-button').setDisabled(attrs.leaf);
             Ext.getCmp('add-to-zenpack-button').setDisabled(attrs.leaf);
             Ext.getCmp('edit-button').setDisabled(!attrs.edit_url);

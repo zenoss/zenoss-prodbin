@@ -49,6 +49,8 @@ class StreamingView(BrowserView):
                 self.write('<pre>%s</pre>' % (traceback.format_exc()))
         finally:
             self._stream.write(footer)
+            self._stream.flush()
+            self.request.close()
 
     def write(self, data=''):
         if not is_browser_connection_open(self.request):

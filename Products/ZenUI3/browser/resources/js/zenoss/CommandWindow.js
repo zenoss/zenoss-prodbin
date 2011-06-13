@@ -31,6 +31,7 @@ formTpl.compile();
 Zenoss.CommandPanel = Ext.extend(Zenoss.IFramePanel, {
     constructor: function(config) {
         config = Ext.applyIf(config || {}, {
+            ignoreClassName: true,
             autoEl: {
                 tag: 'iframe allowtransparency="true"',
                 id: Ext.id(),
@@ -42,12 +43,12 @@ Zenoss.CommandPanel = Ext.extend(Zenoss.IFramePanel, {
         this.on('frameload', this.injectForm, this, {single:true});
     },
     injectForm: function(win){
-        var doc = win.document,
+        var doc = this.getDocument(),
             form = formTpl.apply({
                 data: Ext.encode(this.data),
                 target: this.target
             });
-        doc.body.innerHTML = form;
+        this.getBody().innerHTML = form;
         doc.commandform.submit();
         this.parentWindow.setSize(this.parentWindow.getSize());
     }
@@ -75,39 +76,26 @@ Zenoss.CommandWindow = Ext.extend(Ext.Window, {
             items: {
                 border: false,
                 id: this.cpanel,
-                // default to command panel
-                xtype: config.panel || 'commandpanel',
+                xtype: config.panel || 'commandpanel', //default to commandpanel
                 data: this.commandData,
                 target: config.target,
                 autoLoad: config.autoLoad,
                 parentWindow: this
-            }
-        });
-        var fbarItems = [];
-        if (config.redirectTarget) {
-            fbarItems.push({
-                xtype: 'button',
-                text: _t('Done'),
-                handler: function(c){
-                    window.location = config.redirectTarget;
-                }.createDelegate(this)
-            });
-        }
-        fbarItems.push({
-            xtype: 'checkbox',
-            checked: true,
-            boxLabel: '<span style="color:white">Autoscroll</span>',
-            handler: function(c){
-                if (c.checked) {
-                    this.startScrolling();
-                } else {
-                    this.stopScrolling();
-                }
-            }.createDelegate(this)
-        });
-        config = Ext.applyIf(config, {
+            },
             fbar: {
-                items: fbarItems
+                buttonAlign: 'left',
+                items: {
+                    xtype: 'checkbox',
+                    checked: true,
+                    boxLabel: '<span style="color:white">Autoscroll</span>',
+                    handler: function(c){
+                        if (c.checked) {
+                            this.startScrolling();
+                        } else {
+                            this.stopScrolling();
+                        }
+                    }.createDelegate(this)
+                }
             }
         });
         Zenoss.CommandWindow.superclass.constructor.call(this, config);
@@ -121,7 +109,7 @@ Zenoss.CommandWindow = Ext.extend(Ext.Window, {
         this.setSize({width:vsize.width*0.95, height:vsize.height*0.95});
     },
     getCommandPanel: function() {
-        if(Ext.isString(this.cpanel)) {
+        if (Ext.isString(this.cpanel)) {
             this.cpanel = Ext.getCmp(this.cpanel);
         }
         return this.cpanel;
@@ -138,22 +126,16 @@ Zenoss.CommandWindow = Ext.extend(Ext.Window, {
                 body = win.document.body;
             Zenoss.env.BODY = body;
             win.scrollBy(0, body.scrollHeight);
-        } catch(e) { Ext.emptyFn(); }
+        } catch(e) {
+            Ext.emptyFn();
+        }
         this.task.delay(250);
     },
-    show: function() {
-        if (Ext.isWebKit) {
-            var url = 'no_streaming=1&data=';
-            url += Ext.encode(this.commandData);
-            if (this.commandData.command) {
-                url += "&command=";
-                url += this.commandData.command;
-            }
-            window.open(this.target + '?'+ url,'',
-            'width=800,height=500,toolbar=0,location=0,directories=0,menubar=0,resizable=1,scrollbars=1');
-        } else {
-            Zenoss.CommandWindow.superclass.show.apply(this);
-        }
+    closeAndReload: function() {
+        this.on('close', function() {
+            (function() {window.top.location.reload();}).defer(1);
+        });
+        this.close();
     }
 });
 

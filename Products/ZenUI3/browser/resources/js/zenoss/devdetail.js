@@ -921,6 +921,7 @@ Ext.getCmp('footer_bar').add([{
             var win = new Zenoss.CommandWindow({
                 uids: [UID],
                 target: 'run_model',
+                closeAction: 'closeAndReload',
                 title: _t('Model Device')
             });
             win.show();
