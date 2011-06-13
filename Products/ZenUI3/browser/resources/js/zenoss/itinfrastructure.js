@@ -1015,23 +1015,8 @@ var device_grid = new Zenoss.DeviceGridPanel({
                 text: _t('Refresh'),
                 tooltip: _t('Refresh Device List'),
                 handler: function(btn) {
-                    var treeIds = ['devices', 'locs', 'systems', 'groups'];
-
-                    Ext.each(treeIds, function(treeId) {
-                        // update the trees
-                        var tree = Ext.getCmp(treeId),
-                            node = tree.getSelectionModel().getSelectedNode(),
-                            path;
-                        if (node && node.getOwnerTree() && node.getOwnerTree().id == treeId) {
-                            path = node.getPath();
-                            tree.getRootNode().reload(function() {
-                                tree.selectPath(path);
-                            });
-                        }else{
-                            tree.getRootNode().reload();
-                        }
-                    });
-
+                    var view = Ext.getCmp('device_grid').view;
+                    view.updateLiveRows(view.rowIndex, true, true);
                 }
             },
             {
