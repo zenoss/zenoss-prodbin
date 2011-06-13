@@ -114,7 +114,7 @@
                 }
             });
             Zenoss.SwoopyGraph.superclass.constructor.call(this, config);
-            this.mustUseImageUri = Ext.isIE6 || Ext.isIE7;
+            this.mustUseImageUri = Ext.isIE;
         },
         initEvents: function() {
             this.addEvents("zoommodechange", "updateimage");
