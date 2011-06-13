@@ -61,6 +61,8 @@ class StreamingView(BrowserView):
         }
         self._stream.write(html)
         self._lineno += 1
+        # fill up the buffer so it is more stream-y
+        self._stream.write(" " * 1024)
 
 
 class TestStream(StreamingView):
