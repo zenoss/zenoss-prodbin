@@ -209,7 +209,7 @@ class SearchableMixin(object):
         return self._context.titleOrId()
 
     def searchIcon(self):
-        return self._context.zIcon
+        return self._context.getIconPath()
 
 
 class ComponentWrapper(SearchableMixin,IndexableWrapper):

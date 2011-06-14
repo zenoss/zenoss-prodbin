@@ -353,7 +353,7 @@ class DeviceInfo(InfoBase, HasEventsInfoMixin):
 
     @property
     def icon(self):
-        return self._object.zIcon
+        return self._object.getIconPath()
 
 
 
