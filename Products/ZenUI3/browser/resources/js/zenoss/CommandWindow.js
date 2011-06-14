@@ -67,6 +67,10 @@ Zenoss.CommandWindow = Ext.extend(Ext.Window, {
         this.commandData = config.data ||
             { uids: config.uids, command: config.command };
         this.target = config.target;
+        if (Ext.isDefined(config.redirectTarget)) {
+            config.closeAction = 'closeAndRedirect';
+            this.redirectTarget = config.redirectTarget;
+        }
         config = Ext.applyIf(config || {}, {
             layout: 'fit',
             title: config.command || config.title,
@@ -134,6 +138,14 @@ Zenoss.CommandWindow = Ext.extend(Ext.Window, {
     closeAndReload: function() {
         this.on('close', function() {
             (function() {window.top.location.reload();}).defer(1);
+        });
+        this.close();
+    },
+    closeAndRedirect: function() {
+        this.on('close', function() {
+            (function() {
+                window.top.location = this.redirectTarget;
+            }).defer(1, this);
         });
         this.close();
     }
