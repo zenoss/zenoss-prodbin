@@ -60,9 +60,6 @@ class MappingEventContext(object):
         self._event_dict = event_dict
         self._summary = EventSummary()
         self._occurrence = self._summary.occurrence.add()
-        # Zenoss <= 3.1.x doesn't store event occurrences - need to generate
-        # a UUID for each occurrence.
-        self._occurrence.uuid = str(uuid4())
         self._actor = self._occurrence.actor
 
     @property
@@ -220,9 +217,9 @@ def _convert_state(status):
     """
     def _convert_state_internal(value, event_ctx):
         if status:
-            return _STATE_CONVERSIONS.get(value, STATUS_NEW)
-
-        return STATUS_CLEARED if event_ctx.event_dict.get('clearid','') else STATUS_CLOSED
+            event_ctx.summary.status = _STATE_CONVERSIONS.get(value, STATUS_NEW)
+        else:
+            event_ctx.summary.status = STATUS_CLEARED if event_ctx.event_dict.get('clearid','') else STATUS_CLOSED
     
     return _convert_state_internal
 
@@ -349,9 +346,6 @@ class EventConverter(object):
                 self.field_mappers[name](value, event_ctx)
             else:
                 _add_detail(name)(value, event_ctx)
-
-        # Set created_time to be equal to the value of lastTime
-        event_ctx.occurrence.created_time = event_ctx.summary.last_seen_time
         return event_ctx
 
 _IN_CLAUSE = lambda evids: ','.join("'%s'" % evid for evid in evids)
@@ -586,7 +580,7 @@ class ZenEventMigrate(ZenScriptBase):
                             log.debug("Migrated event: %s", mapping_event_context.summary)
 
                         publisher.publish("$MigratedEvents", routing_key, mapping_event_context.summary,
-                                          createQueue="$ZepMigratedEvents")
+                                          createQueues=("$ZepMigratedEventSummary","$ZepMigratedEventArchive"))
         except ShutdownException:
             pass
 

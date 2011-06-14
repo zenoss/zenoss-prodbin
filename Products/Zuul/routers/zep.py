@@ -53,7 +53,6 @@ def _mergeAuditLogToNotes(evtsumm):
                 'message' : 'state changed to %s' % _status_name(auditNote['new_status']),
                 }
             )
-        mergedNotes.sort(key=lambda a:a['created_time'], reverse=True)
         evtsumm['notes'] = mergedNotes
     return evtsumm
 
@@ -580,6 +579,7 @@ class EventsRouter(DirectRouter):
 
         event_summary = _mergeAuditLogToNotes(event_summary)
         if 'notes' in event_summary:
+            event_summary['notes'].sort(key=lambda a:a['created_time'], reverse=True)
             for note in event_summary['notes']:
                 eventData['log'].append((note['user_name'], isoDateTimeFromMilli(note['created_time']), note['message']))
 

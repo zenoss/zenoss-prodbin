@@ -17,7 +17,7 @@ class IQueuePublisher(Interface):
     """
     Interface for publishing to a queue
     """
-    def publish(exchange, routing_key, message, createQueue=None, mandatory=False, immediate=False):
+    def publish(exchange, routing_key, message, createQueues=None, mandatory=False, immediate=False):
         """
         Publishes a message to an exchange. If twisted is running
         this will use the twisted amqp library, otherwise it will
@@ -28,9 +28,9 @@ class IQueuePublisher(Interface):
         @param routing_key: Key by which consumers will setup the queues to route
         @type  message: string or Protobuf
         @param message: message we are sending in the queue
-        @type  createQueue: string
-        @param createQueue: The name of the queue defined in the queue schema to create prior to
-                            publishing the message.
+        @type  createQueues: list
+        @param createQueues: The name of the queues defined in the queue schema to create prior to
+                             publishing the message.
         @type  mandatory: Boolean.
         @param mandatory: If true, will raise NoRouteException if there is no
                           destination queue for the published event.
