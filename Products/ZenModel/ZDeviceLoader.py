@@ -78,7 +78,7 @@ class BaseDeviceLoader(object):
         Delete the device object, presumably because discovery failed.
         """
         if self.deviceobj is not None:
-            try: 
+            try:
                 self.deviceobj._p_jar.sync()
             except AttributeError:
                 pass
@@ -129,7 +129,7 @@ class BaseDeviceLoader(object):
             for key in 'zSnmpCommunity', 'zSnmpPort', 'zSnmpVer':
                 if zProperties.has_key(key):
                     deviceProperties[key] = zProperties.pop(key)
-            
+
             # Make a device object in the database
             self.deviceobj = manage_createDevice(self.context, deviceName,
                                  devicePath,
@@ -226,19 +226,22 @@ class DeviceCreationJob(ShellCommandJob):
                 #started time attribute and everything will break
                 transaction.commit()
         except Exception, e:
-            transaction.commit()
-            log = self.getStatus().getLog()
-            log.write(e.args[0])
-            log.finish()
+            log.exception("Encountered error. Rolling back initial device add.")
+            transaction.abort()
+            job_log = self.getStatus().getLog()
+            job_log.write(str(e.args[0]))
+            job_log.finish()
             self.finished(FAILURE)
+            transaction.commit()
         else:
             if self.discoverProto != 'none':
                 super(DeviceCreationJob, self).run(r)
             else:
-                log = self.getStatus().getLog()
-                log.write("device added without modeling")
-                log.finish()
+                job_log = self.getStatus().getLog()
+                job_log.write("device added without modeling")
+                job_log.finish()
                 self.finished(SUCCESS)
+
     def finished(self, r):
         if self._v_loader.deviceobj is not None and r!=FAILURE:
             result = SUCCESS

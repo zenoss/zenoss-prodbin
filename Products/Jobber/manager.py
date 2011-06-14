@@ -128,7 +128,7 @@ class JobManager(ZenModelRM):
         @rtype: list
         """
         def isPending(job):
-            return not job.isStarted()
+            return not job.isStarted() and not job.isFinished()
         return filter(isPending, self.jobs())
 
     def getFinishedJobs(self):

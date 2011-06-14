@@ -53,7 +53,6 @@ class JobStatus(ZenModelRM):
 
         self.filename = tempfile.mktemp()
         transaction.commit()
-        self.finishDeferreds = []
 
         id = job.id.replace('_', 'Status_')
         super(JobStatus, self).__init__(id)
@@ -82,11 +81,17 @@ class JobStatus(ZenModelRM):
         return None
 
     def getTimes(self):
-        return (self.started, self.finished)
+        if self.finished and not self.started:
+            # This can happen in some error scenarios; fake it
+            return self.finished - 1, self.finished
+        return self.started, self.finished
 
     def getDuration(self):
         if self.isFinished():
-            return self.finished - self.started
+            try:
+                return self.finished - self.started
+            except TypeError:
+                return 0.
 
     def setProperties(self, **props):
         self.properties.update(props)
@@ -109,11 +114,12 @@ class JobStatus(ZenModelRM):
         return (self.finished is not None)
 
     def waitUntilFinished(self):
+        self._v_finishDeferreds = getattr(self, '_v_finishDeferreds', [])
         if self.finished:
             d = defer.succeed(self)
         else:
             d = defer.Deferred()
-            self.finishDeferreds.append(d)
+            self._v_finishDeferreds.append(d)
         return d
 
     def jobStarted(self):
@@ -127,9 +133,9 @@ class JobStatus(ZenModelRM):
         self.finished = time.time()
         self.result = result
         # Call back to everything watching this Job
-        for d in self.finishDeferreds:
+        for d in getattr(self, '_v_finishDeferreds', ()):
             d.callback(self)
-        del self.finishDeferreds
+        self._v_finishDeferreds = []
 
     def delete(self):
         """

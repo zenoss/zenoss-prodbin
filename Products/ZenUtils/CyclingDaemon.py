@@ -15,7 +15,7 @@ import socket
 from Products.ZenUtils.ZCmdBase import ZCmdBase
 from Products.ZenUtils.Utils import getDefaultZopeUrl
 from Products.ZenEvents import Event
-from twisted.internet import reactor
+from twisted.internet import reactor, defer
 
 DEFAULT_MONITOR = "localhost"
 
@@ -44,13 +44,14 @@ class CyclingDaemon(ZCmdBase):
         self.sendEvent(evt)
         self.niceDoggie(self.options.cycletime)
 
+    @defer.inlineCallbacks
     def runCycle(self):
         try:
             self.syncdb()
-            self.main_loop()
+            yield self.main_loop()
             self.sendHeartbeat()
-        except:
-            self.log.exception("unexpected exception")
+        except Exception, e:
+            self.log.exception("Unexpected exception while running jobs")
         if not self.options.cycle:
             self.finish()
         reactor.callLater(self.options.cycletime, self.runCycle)

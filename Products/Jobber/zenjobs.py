@@ -35,13 +35,13 @@ class ZenJobs(CyclingDaemon):
         CyclingDaemon.__init__(self, *args, **kwargs)
         self.jm = self.dmd.JobManager
         self.runningjobs = []
-        
+
         self.schedule = Schedule(self.options, self.dmd)
         self.schedule.sendEvent = self.dmd.ZenEventManager.sendEvent
         self.schedule.monitor = self.options.monitor
-        
+
         self.updateCheck = UpdateCheck()
-        
+
         # Send startup event
         if self.options.cycle:
             event = Event(device=self.options.monitor,
@@ -50,15 +50,19 @@ class ZenJobs(CyclingDaemon):
                       severity=0, component="zenjobs")
             self.sendEvent(event)
 
+    @defer.inlineCallbacks
     def run_job(self, job):
         self.syncdb()
         logger.info("Starting %s %s" % (
             job.getJobType(),
             job.getDescription()))
-        self.runningjobs.append(job.start())
+        d = job.getStatus().waitUntilFinished()
+        d.addCallback(self.job_done)
+        jobd = job.start()
         # Zope will want to know the job has started
         transaction.commit()
-        job.getStatus().waitUntilFinished().addCallback(self.job_done)
+        self.runningjobs.append(jobd)
+        yield jobd
 
     def job_done(self, jobstatus):
         logger.info('%s %s completed in %s seconds.' % (
@@ -76,12 +80,13 @@ class ZenJobs(CyclingDaemon):
         self.syncdb()
         self.updateCheck.check(self.dmd, zem)
 
+    @defer.inlineCallbacks
     def main_loop(self):
         zem = self.dmd.ZenEventManager
         self.checkVersion(zem)
         for job in self.get_new_jobs():
-            self.run_job(job)
-        self.finish_loop()
+            yield self.run_job(job)
+        yield self.finish_loop()
 
     def finish_loop(self):
         if not self.options.cycle:
@@ -99,7 +104,7 @@ class ZenJobs(CyclingDaemon):
             except defer.AlreadyCalledError:
                 pass
         CyclingDaemon.finish(self, r)
-        
+
     def run(self):
         def startup():
             self.schedule.start()
@@ -107,7 +112,7 @@ class ZenJobs(CyclingDaemon):
         reactor.callWhenRunning(startup)
         reactor.addSystemEventTrigger('before', 'shutdown', self.stop)
         reactor.run()
-    
+
     def stop(self):
         self.running = False
         self.log.info("stopping")

@@ -63,6 +63,7 @@ class Job(ZenModelRM):
         """
         pass
 
+    @defer.inlineCallbacks
     def start(self):
         """
         This starts off the job. Returns a Deferred that will fire when the
@@ -73,9 +74,8 @@ class Job(ZenModelRM):
         status = self.getStatus()
         if status is not None:
             status.jobStarted()
-        d = defer.succeed(None)
-        d.addCallback(self.run)
-        return whendone
+        self.run(None)
+        yield whendone
 
     def run(self, r):
         """
@@ -181,6 +181,7 @@ class ShellCommandJob(Job):
         self.pid = self._v_process.pid
         transaction.commit()
         d.addBoth(self.finished)
+        return d
 
     def interrupt(self):
         # If we're still in the reactor, use the PTYProcess. This will probably
