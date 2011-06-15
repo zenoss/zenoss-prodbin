@@ -20,6 +20,7 @@ Currently a wrapper around the Net-SNMP C library.
 import time
 import sys
 import socket
+import errno
 import base64
 import logging
 from struct import unpack
@@ -63,13 +64,19 @@ family = [('family', c.c_ushort)]
 if sys.platform == 'darwin':
     family = [('len', c.c_ubyte), ('family', c.c_ubyte)]
 
+class sockaddr_in(c.Structure):
+    _fields_ = family + [ 
+        ('port', c.c_ubyte * 2),     # need to decode from net-byte-order 
+        ('addr', c.c_ubyte * 4),
+        ]
+
 class sockaddr_in6(c.Structure):
     _fields_ = family + [
         ('port', c.c_ushort),        # need to decode from net-byte-order
         ('flow', c.c_ubyte * 4),
         ('addr', c.c_ubyte * 16),
-        ('scope_id', c.c_ubyte * 4)
-        ];
+        ('scope_id', c.c_ubyte * 4),
+        ]
 
 _pre_parse_factory = c.CFUNCTYPE(c.c_int,
                                  c.POINTER(netsnmp.netsnmp_session),
@@ -147,6 +154,16 @@ class SnmpTrapPreferences(CaptureReplay):
         daemon.oidMap = {}
         daemon.users = []
 
+def ipv6_is_enabled():
+    "test if ipv6 is enabled"
+    try:
+        socket.socket(socket.AF_INET6, socket.SOCK_DGRAM, 0)
+    except socket.error, e:
+        if e.errno == errno.EAFNOSUPPORT:
+            return False
+        raise
+    return True
+
 class TrapTask(BaseTask, CaptureReplay):
     """
     Listen for SNMP traps and turn them into events
@@ -180,20 +197,22 @@ class TrapTask(BaseTask, CaptureReplay):
 
         trapPort = self._preferences.options.trapport
         if not self._preferences.options.useFileDescriptor and trapPort < 1024:
+            listen_ip = "ipv6" if ipv6_is_enabled() else "0.0.0.0"
             # Makes call to zensocket here (does an exec* so it never returns)
-            self._daemon.openPrivilegedPort('--listen', '--proto=udp', '--port=ipv6:%d' % trapPort)
+            self._daemon.openPrivilegedPort('--listen', '--proto=udp', '--port=%s:%d' % (listen_ip, trapPort))
             self.log("Unexpected return from openPrivilegedPort. Exiting.")
             sys.exit(1)
 
         # Start listening for SNMP traps
         self.log.info("Starting to listen on SNMP trap port %s", trapPort)
         self.session = netsnmp.Session()
+        listening_protocol = "udp6" if ipv6_is_enabled() else "udp"
         if self._preferences.options.useFileDescriptor is not None:
             # open port 1162, but then dup fileno onto it
-            listening_address = 'udp6:1162'
+            listening_address = listening_protocol + ':1162'
             fileno = int(self._preferences.options.useFileDescriptor)
         else:
-            listening_address = 'udp6:%d' % trapPort
+            listening_address = '%s:%d' % (listening_protocol, trapPort)
             fileno = -1
         self._pre_parse_callback = _pre_parse_factory(self._pre_parse)
         debug = self.log.isEnabledFor(logging.DEBUG)
@@ -350,11 +369,14 @@ class TrapTask(BaseTask, CaptureReplay):
         packets were received to help with troubleshooting."""
         if self.log.isEnabledFor(logging.DEBUG):
             ipv6_socket_address = c.cast(transport_data, c.POINTER(sockaddr_in6)).contents
-            if ipv6_socket_address.family != socket.AF_INET6:
-                self.log.debug("pre_parse: unexpected address family: %s" % ipv6_socket_address.family)
-            else:
+            if ipv6_socket_address.family == socket.AF_INET6:
                 all_hex = ["%x" % i for i in ipv6_socket_address.addr]
-                self.log.debug("pre_parse: %s (%s)" % (all_hex, ipv6_socket_address.addr[-4:]))
+                self.log.debug("pre_parse: IPv6 %s (%s)" % (all_hex, ipv6_socket_address.addr[-4:]))
+            elif ipv6_socket_address.family == socket.AF_INET:
+                ipv4_socket_address = c.cast(transport_data, c.POINTER(sockaddr_in)).contents
+                self.log.debug("pre_parse: IPv4 %s" % ipv4_socket_address.addr[:])
+            else:
+                self.log.debug("pre_parse: unexpected address family: %s" % ipv6_socket_address.family)
         return 1
 
     def receiveTrap(self, pdu):
@@ -371,17 +393,23 @@ class TrapTask(BaseTask, CaptureReplay):
         if pdu.transport_data is None:
             self.log.error("PDU does not contain transport data")
             return
-        if pdu.transport_data_length < c.sizeof(sockaddr_in6):
-            self.log.error("PDU transport data is too small for sockaddr_in6 struct.")
-            return
         
         ipv6_socket_address = c.cast(pdu.transport_data, c.POINTER(sockaddr_in6)).contents
-        
-        if ipv6_socket_address.family != socket.AF_INET6:
+        if ipv6_socket_address.family == socket.AF_INET6:
+            if pdu.transport_data_length < c.sizeof(sockaddr_in6):
+                self.log.error("PDU transport data is too small for sockaddr_in6 struct.")
+                return
+            ip_address = self.getPacketIp(ipv6_socket_address.addr)
+        elif ipv6_socket_address.family == socket.AF_INET:
+            if pdu.transport_data_length < c.sizeof(sockaddr_in):
+                self.log.error("PDU transport data is too small for sockaddr_in struct.")
+                return
+            ipv4_socket_address = c.cast(pdu.transport_data, c.POINTER(sockaddr_in)).contents
+            ip_address = '.'.join(str(i) for i in ipv4_socket_address.addr)
+        else:
             self.log.error("Got a packet with unrecognized network family: %s", ipv6_socket_address.family)
             return
-        
-        ip_address = self.getPacketIp(ipv6_socket_address.addr)
+
         port = socket.ntohs(ipv6_socket_address.port)
         self.log.debug( "Received packet from %s at port %s" % (ip_address, port) )
         self.processPacket(ip_address, port, pdu, time.time())
