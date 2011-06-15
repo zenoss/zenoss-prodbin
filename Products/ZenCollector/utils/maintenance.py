@@ -67,7 +67,7 @@ class MaintenanceCycle(object):
 
     def stop(self):
         log.debug("Maintenance stopped")
-        self._stop
+        self._stop = True
 
     def _doMaintenance(self):
         """
