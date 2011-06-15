@@ -15,7 +15,7 @@ function register_portlet(klass, name) {
 YZP.register_portlet = register_portlet;
 
 YZP.DEFAULT_SITEWINDOW_URL = YZP.DEFAULT_SITEWINDOW_URL || 
-                             "http://www2.zenoss.com/in-app-welcome-sd?v=4.0.0";
+                             "http://www2.zenoss.com/in-app-welcome-sd";
 
 var isIE//@cc_on=1;
 
