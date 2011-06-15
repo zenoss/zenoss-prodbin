@@ -14,15 +14,14 @@ function popupMapHelp() {
     baseurl = currentWindow().location.href.replace(
         '/zport/dmd/editSettings','');
     mySimpleDialog.setBody(
-       "Accessing the free Google Maps API requires the " +
-       "specification of an API key linked to a base URL.  "+
-       "You can obtain a free API key from Google at <"+"a href='"+
+       "To access the free Google Maps API, you must specify an API key linked to a base URL." +
+       "You can obtain a free API key from Google at <"+"a href='" +
        "http://www.google.com/apis/maps/signup.html' target='blank'>"+
        "http://www.google.com/apis/maps/signup.html<"+"/a>. " +
-       "For your web site URL, use the base URL, <"+"em>including port<"+
+       "For your Web site URL, use the base URL, <"+"em>including port<"+
        "/em>, "+
-       "that you use to access your Zenoss instance "+
-       "(you used "+baseurl+" to access this instance).");
+       "that you use to access this Web interface. " + 
+       "You used "+baseurl+" to access this interface.");
     addElementClass(currentDocument().body, 'yui-skin-sam');
     mySimpleDialog.render(currentDocument().body);
     mySimpleDialog.show();
