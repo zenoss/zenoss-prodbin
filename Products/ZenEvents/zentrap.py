@@ -370,11 +370,10 @@ class TrapTask(BaseTask, CaptureReplay):
         if self.log.isEnabledFor(logging.DEBUG):
             ipv6_socket_address = c.cast(transport_data, c.POINTER(sockaddr_in6)).contents
             if ipv6_socket_address.family == socket.AF_INET6:
-                all_hex = ["%x" % i for i in ipv6_socket_address.addr]
-                self.log.debug("pre_parse: IPv6 %s (%s)" % (all_hex, ipv6_socket_address.addr[-4:]))
+                self.log.debug("pre_parse: IPv6 %s" % (socket.inet_ntop(socket.AF_INET6, ipv6_socket_address.addr)))
             elif ipv6_socket_address.family == socket.AF_INET:
                 ipv4_socket_address = c.cast(transport_data, c.POINTER(sockaddr_in)).contents
-                self.log.debug("pre_parse: IPv4 %s" % ipv4_socket_address.addr[:])
+                self.log.debug("pre_parse: IPv4 %s" % socket.inet_ntop(socket.AF_INET, ipv4_socket_address.addr))
             else:
                 self.log.debug("pre_parse: unexpected address family: %s" % ipv6_socket_address.family)
         return 1
