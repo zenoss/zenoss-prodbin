@@ -16,7 +16,7 @@ import time
 import subprocess
 from StringIO import StringIO
 
-from twisted.internet import reactor
+from twisted.internet import reactor, defer
 
 from Products.Jobber.interfaces import *
 from Products.Jobber.jobs import Job, ShellCommandJob
@@ -26,11 +26,15 @@ from Products.Jobber.logfile import LogFile
 
 class SucceedingJob(Job):
     def run(self, r):
-        self.finished(SUCCESS)
+        d = defer.Deferred()
+        d.addBoth(self.finished, SUCCESS)
+        return d
 
 class FailingJob(Job):
     def run(self, r):
-        self.finished(FAILURE)
+        d = defer.Deferred()
+        d.addBoth(self.finished, FAILURE)
+        return d
 
 class NotAJob(object):
     def run(self):
