@@ -10,6 +10,7 @@
 # For complete information please visit: http://www.zenoss.com/oss/
 #
 ###########################################################################
+import sys
 from optparse import OptionValueError, BadOptionError
 
 from Products.ZenUtils.Utils import zenPath

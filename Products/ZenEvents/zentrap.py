@@ -431,7 +431,7 @@ class TrapTask(BaseTask, CaptureReplay):
                 basic_v6_address = ':'.join(_gen_byte_pairs())
                 ip_address = str(IPAddress(basic_v6_address, 6))
             except ValueError:
-                self.log.warn("The IPv6 address is incorrect: %s", ipv6)
+                self.log.warn("The IPv6 address is incorrect: %s", addr[:])
                 ip_address = "::"
         return ip_address
 

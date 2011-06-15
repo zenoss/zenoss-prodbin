@@ -11,6 +11,9 @@
 #
 ###########################################################################
 
+import logging
+log = logging.getLogger('zen.testzenprocess')
+
 import re
 
 from Products.ZenTestCase.BaseTestCase import BaseTestCase

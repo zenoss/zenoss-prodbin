@@ -338,6 +338,7 @@ settingsDevice setManageIp='10.10.10.77', setLocation="123 Elm Street", \
                     return
             else:
                 devobj = self.getDevice(device_specs)
+                deviceLoader = None
 
             if devobj is None:
                 if deviceLoader is not None:
@@ -513,8 +514,7 @@ settingsDevice setManageIp='10.10.10.77', setLocation="123 Elm Street", \
             eom = line.find(delim, 1)
             if eom == -1:
                 self.log.error("While reading name, unable to parse" \
-                               " the entry for %s -- skipping", name )
-                self.log.error( "Raw string: %s" % options )
+                               " the entry for %s -- skipping", line )
                 return None
             name = line[1:eom]
             options = line[eom+1:]
