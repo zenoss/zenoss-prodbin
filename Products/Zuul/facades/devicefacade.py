@@ -215,7 +215,7 @@ class DeviceFacade(TreeFacade):
         for comp in comps:
             comp.manage_deleteComponent()
 
-    def deleteDevices(self, uids):
+    def deleteDevices(self, uids, deleteEvents=False, deletePerf=True):
         @transact
         def dbDeleteDevices(uids):
             devs = imap(self._getObject, uids)
@@ -223,7 +223,8 @@ class DeviceFacade(TreeFacade):
             for dev in devs:
                 devid = dev.getId()
                 deletedIds.append(devid)
-                dev.getPrimaryParent()._delObject(devid)
+                dev.deleteDevice(deleteStatus=deleteEvents,
+                                 deletePerf=deletePerf)
             return deletedIds
 
         def uidChunks(uids, chunksize=10):

@@ -938,7 +938,9 @@ class DeviceRouter(TreeRouter):
 
     @require('Delete Device')
     def removeDevices(self, uids, hashcheck, action="remove", uid=None,
-                      ranges=(), params=None, sort='name', dir='ASC'):
+                      ranges=(), params=None, sort='name', dir='ASC',
+                      deleteEvents=False, deletePerf=False
+                      ):
         """
         Remove/delete device(s).
 
@@ -965,6 +967,10 @@ class DeviceRouter(TreeRouter):
         @type  dir: string
         @param dir: (optional) Sort order; can be either 'ASC' or 'DESC'
                     (default: 'ASC')
+        @type  deleteEvents: bool
+        @param deleteEvents: will remove all the events for the devices as well
+        @type  deletePerf: bool
+        @param deletePerf: will remove all the perf data for the devices
         @rtype:   DirectResponse
         @return:  B{Properties}:
              - devtree: ([dictionary]) Object representing the new device tree
@@ -979,7 +985,9 @@ class DeviceRouter(TreeRouter):
             if action == "remove":
                 facade.removeDevices(uids, organizer=uid)
             elif action == "delete":
-                facade.deleteDevices(uids)
+                facade.deleteDevices(uids,
+                                     deleteEvents=deleteEvents,
+                                     deletePerf=deletePerf)
             return DirectResponse.succeed(
                 devtree=self.getTree('/zport/dmd/Devices'),
                 grptree=self.getTree('/zport/dmd/Groups'),

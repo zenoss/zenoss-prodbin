@@ -204,7 +204,7 @@ Ext.apply(Zenoss.devices, {
                 title: _t('Remove Devices'),
                 modal: true,
                 width: 300,
-                height: 220,
+                height: 320,
                 items: [{
                     xtype: 'panel',
                     bodyStyle: 'font-weight: bold; text-align:center',
@@ -227,8 +227,26 @@ Ext.apply(Zenoss.devices, {
                         id: 'delete-radio',
                         name: 'removetype',
                         boxLabel: _t('Delete completely'),
-                        checked: isclass
+                        checked: isclass,
+                        listeners: {
+                            check: function(chbox, isChecked) {
+                                Ext.getCmp('delete-device-events').setDisabled(!isChecked);
+                                Ext.getCmp('delete-device-perf-data').setDisabled(!isChecked);
+                            }
+                        }
                     }]
+                },{
+                    id: 'delete-device-events',
+                    fieldLabel: _t('Delete Events?'),
+                    xtype: 'checkbox',
+                    checked: true,
+                    disabled: !isclass
+                },{
+                    id: 'delete-device-perf-data',
+                    fieldLabel: _t('Delete performance data?'),
+                    xtype: 'checkbox',
+                    checked: true,
+                    disabled: !isclass
                 }],
                 buttons: [{
                     xtype: 'DialogButton',
@@ -236,7 +254,9 @@ Ext.apply(Zenoss.devices, {
                     handler: function(b) {
                         grid.view.showLoadMask(true);
                         var opts = Ext.apply(gridOptions(), {
-                            action: Ext.getCmp('removetype').getValue().value
+                            action: Ext.getCmp('removetype').getValue().value,
+                            deleteEvents: Ext.getCmp('delete-device-events').getValue(),
+                            deletePerf: Ext.getCmp('delete-device-perf-data').getValue()
                         });
                         if (opts.uids.length > 0) {
                             Zenoss.remote.DeviceRouter.removeDevices(opts,
