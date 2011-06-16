@@ -124,7 +124,7 @@ class INotificationSubscriptionInfo(IInfo):
     Notification information regarding signals that occur as a result of an
     alert tripping a trigger.
     """
-    newId = schema.Text(
+    newId = schema.TextLine(
         title=_t(u'newId'),
         xtype='idfield',
         description=_t(u'The name of this notification')
@@ -158,11 +158,11 @@ class INotificationWindowInfo(IInfo):
     """
     Interface for a notification subscription window.
     """
-    newId = schema.Text(title=_t(u'Name'))
+    newId = schema.TextLine(title=_t(u'Name'))
     
     enabled = schema.Bool(title=_t(u'Enabled'))
     
-    start = schema.Text(
+    start = schema.TextLine(
         title=_t(u'Start'),
         xtype="datefield"
     )
@@ -172,7 +172,7 @@ class INotificationWindowInfo(IInfo):
         vocabulary='schedulerepeatvocabulary'
     )
     
-    duration = schema.Text(
+    duration = schema.TextLine(
         title=_t(u'Duration'),
         xtype="duration"
     )

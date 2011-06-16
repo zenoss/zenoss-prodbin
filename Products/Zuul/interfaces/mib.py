@@ -63,15 +63,15 @@ class IMibInfo(IInfo):
     """
     Represents a single MIB instance.
     """
-    newId = schema.Text(title=_t(u'Name'),
+    newId = schema.TextLine(title=_t(u'Name'),
                         xtype="idfield",
                         required=True,
                         description=_t(u'The name of this MIB'))
-    language = schema.Text(title=_t(u'Language'),
+    language = schema.TextLine(title=_t(u'Language'),
                            description=_t(u'Language of this MIB'))
-    contact = schema.TextLine(title=_t(u'Contact'),
+    contact = schema.Text(title=_t(u'Contact'),
                            description=_t(u'Contact Info for this MIB'))
-    description = schema.TextLine(title=_t(u'Description'),
+    description = schema.Text(title=_t(u'Description'),
                            description=_t(u'Description of this MIB'))
 
 

@@ -39,18 +39,18 @@ class IRRDDataSourceInfo(IInfo):
 
     See the _properties on the RRDDatasouce ZenModel
     """
-    newId = schema.Text(title=_t(u'Name'),
-                       xtype="idfield",
-                       description=_t(u'The name of this datasource'))
-    type = schema.Text(title=_t(u'Type'),
-                       readonly=True)
+    newId = schema.TextLine(title=_t(u'Name'),
+                            xtype="idfield",
+                            description=_t(u'The name of this datasource'))
+    type = schema.TextLine(title=_t(u'Type'),
+                           readonly=True)
     enabled = schema.Bool(title=_t(u'Enabled'))
-    severity = schema.Text(title=_t(u'Severity'),
-                           xtype='severity')
-    eventKey = schema.Text(title=_t(u'Event Key'))
-    eventClass = schema.Text(title=_t(u'Event Class'),
-                             xtype='eventclass')
-    component = schema.Text(title=_t(u'Component'))
+    severity = schema.TextLine(title=_t(u'Severity'),
+                               xtype='severity')
+    eventKey = schema.TextLine(title=_t(u'Event Key'))
+    eventClass = schema.TextLine(title=_t(u'Event Class'),
+                                 xtype='eventclass')
+    component = schema.TextLine(title=_t(u'Component'))
 
 
 class IBasicDataSourceInfo(IInfo):
@@ -58,19 +58,19 @@ class IBasicDataSourceInfo(IInfo):
     Adapts BasicDataSource (the common properties between SNMP and
     COMMAND infos)
     """
-    newId = schema.Text(title=_t(u'Name'),
-                       xtype="idfield",
-                       description=_t(u'The name of this datasource'))
-    type = schema.Text(title=_t(u'Type'),
-                       readonly=True)
+    newId = schema.TextLine(title=_t(u'Name'),
+                            xtype="idfield",
+                            description=_t(u'The name of this datasource'))
+    type = schema.TextLine(title=_t(u'Type'),
+                           readonly=True)
     enabled = schema.Bool(title=_t(u'Enabled'))
-    severity = schema.Text(title=_t(u'Severity'),
-                           xtype='severity')
-    eventClass = schema.Text(title=_t(u'Event Class'),
-                             xtype='eventclass')
+    severity = schema.TextLine(title=_t(u'Severity'),
+                               xtype='severity')
+    eventClass = schema.TextLine(title=_t(u'Event Class'),
+                                 xtype='eventclass')
     cycletime = schema.Int(title=_t(u'Cycle Time (seconds)'))
-    parser = schema.Text(title=_t(u'Parser'),
-                         xtype='parser')
+    parser = schema.TextLine(title=_t(u'Parser'),
+                             xtype='parser')
 
 
 class ICommandDataSourceInfo(IBasicDataSourceInfo):
@@ -78,30 +78,30 @@ class ICommandDataSourceInfo(IBasicDataSourceInfo):
     Adapts basic datasource infos of type CMD
     """
     usessh = schema.Bool(title=_t(u'Use SSH'))
-    component = schema.Text(title=_t(u'Component'))
-    eventKey = schema.Text(title=_t(u'Event Key'))
-    commandTemplate = schema.TextLine(title=_t(u'Command Template'),
-                                      xtype='twocolumntextarea')
+    component = schema.TextLine(title=_t(u'Component'))
+    eventKey = schema.TextLine(title=_t(u'Event Key'))
+    commandTemplate = schema.Text(title=_t(u'Command Template'),
+                                  xtype='twocolumntextarea')
 
 
 class ISNMPDataSourceInfo(IInfo):
     """
     Adaps a basic Datasource of type SNMP
     """
-    newId = schema.Text(title=_t(u'Name'),
-                       xtype="idfield",
-                       description=_t(u'The name of this datasource'))
-    type = schema.Text(title=_t(u'Type'),
-                       readonly=True)
-    oid = schema.Text(title=_t(u'OID'))
+    newId = schema.TextLine(title=_t(u'Name'),
+                            xtype="idfield",
+                            description=_t(u'The name of this datasource'))
+    type = schema.TextLine(title=_t(u'Type'),
+                           readonly=True)
+    oid = schema.TextLine(title=_t(u'OID'))
     enabled = schema.Bool(title=_t(u'Enabled'))
 
 
 class IPingDataSourceInfo(IRRDDataSourceInfo):
     cycleTime = schema.Int(title=_t(u'Cycle Time (seconds)'),
                            vtype='positive')
-    eventClass = schema.Text(title=_t(u'Event Class'),
-                             xtype='eventclass', readonly=True)
+    eventClass = schema.TextLine(title=_t(u'Event Class'),
+                                 xtype='eventclass', readonly=True)
     sampleSize = schema.Int(title=_t(u'Number of pings to send per cycle'),
                           vtype='positive')
     attempts = schema.Int(title=_t(u'Maximum ping retries'),
@@ -112,38 +112,38 @@ class IDataPointInfo(IInfo):
     """
     Adapts RRDDataPoint.
     """
-    newId = schema.Text(title=_t(u'Name'),
-                       xtype="idfield",
-                       description=_t(u'The name of this data point'))
-    description = schema.TextLine(title=_t(u'Description'),
+    newId = schema.TextLine(title=_t(u'Name'),
+                            xtype="idfield",
+                            description=_t(u'The name of this data point'))
+    description = schema.Text(title=_t(u'Description'),
                               description=_t(u'The description of this data point'))
-    rrdtype = schema.Text(title=_t(u'Type'),
-                          description=_t(u'The type of data point we have'),
-                          xtype='rrdtype')
-    createCmd = schema.TextLine(title=_t(u'Create Command'))
-    rrdmin = schema.Text(title=_t(u'RRD Minimum'))
-    rrdmax = schema.Text(title=_t(u'RRD Maximum'))
+    rrdtype = schema.TextLine(title=_t(u'Type'),
+                              description=_t(u'The type of data point we have'),
+                              xtype='rrdtype')
+    createCmd = schema.Text(title=_t(u'Create Command'))
+    rrdmin = schema.TextLine(title=_t(u'RRD Minimum'))
+    rrdmax = schema.TextLine(title=_t(u'RRD Maximum'))
     isrow = schema.Bool(title=_t(u'Read Only'))
-    aliases = schema.Text(title=_t(u'Alias'),
-                        xtype='alias')
+    aliases = schema.TextLine(title=_t(u'Alias'),
+                              xtype='alias')
 
 
 class IThresholdInfo(IInfo):
     """
     Adapts ThresholdClass.
     """
-    newId = schema.Text(title=_t(u'Name'),
-                       xtype="idfield",
-                        order=1)
-    type = schema.Text(title=_t(u'Type'),
-                       readonly=True, order=2)
+    newId = schema.TextLine(title=_t(u'Name'),
+                            xtype="idfield",
+                            order=1)
+    type = schema.TextLine(title=_t(u'Type'),
+                           readonly=True, order=2)
     dsnames = schema.List(title=_t(u'DataPoints'),
                           xtype='datapointitemselector', order=3)
-    severity = schema.Text(title=_t(u'Severity'),
-                           xtype='severity', order=4)
+    severity = schema.TextLine(title=_t(u'Severity'),
+                               xtype='severity', order=4)
     enabled = schema.Bool(title=_t(u'Enabled'), order=5)
-    eventClass = schema.Text(title=_t(u'Event Class'),
-                             xtype='eventclass', order=8)
+    eventClass = schema.TextLine(title=_t(u'Event Class'),
+                                 xtype='eventclass', order=8)
 
 
 class IMinMaxThresholdInfo(IThresholdInfo):

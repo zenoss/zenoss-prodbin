@@ -32,11 +32,11 @@ class IComponentInfo(IInfo):
     components are OSProcesses, IPServices and WinServices.
     """
     device = Attribute("Parent Device")
-    status = schema.Text(title=u"Status",
-                         description=u"Are there any active status events"
-                         u" for this component?", group="Overview",
-                         order=1,
-                         readonly=True)
+    status = schema.TextLine(title=u"Status",
+                             description=u"Are there any active status events"
+                                         u" for this component?", group="Overview",
+                             order=1,
+                             readonly=True)
     usesMonitorAttribute = Attribute("Should the user be able to set the monitor attribute")
     monitor = Attribute("Has monitoring been enabled on the component")
     monitored = Attribute(u"Is the component being monitored"
@@ -48,23 +48,23 @@ class IIpInterfaceInfo(IComponentInfo):
     """
     Info adapter for IPInterface components.
     """
-    interfaceName = schema.Text(
+    interfaceName = schema.TextLine(
         title=u"Interface Name", group="Overview",
         readonly=True, order=1)
 
-    description = schema.TextLine(
+    description = schema.Text(
         title=u"Description", group="Overview",
         readonly=True, order=2)
 
-    adminStatus = schema.Text(
+    adminStatus = schema.TextLine(
         title=u"Administrative Status", group="Overview",
         readonly=True, order=3)
 
-    operStatus = schema.Text(
+    operStatus = schema.TextLine(
         title=u"Operational Status", group="Overview",
         readonly=True, order=4)
 
-    status = schema.Text(
+    status = schema.TextLine(
         title=u"Status", group="Overview",
         description=u"Are there any active status events for this component?"
                     u" for this component?",
@@ -79,23 +79,23 @@ class IIpInterfaceInfo(IComponentInfo):
         title=u'IP Addresses (All)', group="Details",
         readonly=True, order=7)
 
-    macaddress = schema.Text(
+    macaddress = schema.TextLine(
         title=u"MAC Address", group="Details",
         readonly=True, order=8)
 
-    type = schema.Text(
+    type = schema.TextLine(
         title=u"Type", group="Details",
         readonly=True, order=9)
 
-    speed = schema.Text(
+    speed = schema.TextLine(
         title=u"Speed", group="Details",
         readonly=True, order=10)
 
-    duplex = schema.Text(
+    duplex = schema.TextLine(
         title=u"Duplex Mode", group="Details",
         readonly=True, order=11)
 
-    mtu = schema.Text(
+    mtu = schema.TextLine(
         title=u"MTU", group="Details",
         readonly=True, order=12)
 
@@ -104,9 +104,9 @@ class IFileSystemInfo(IComponentInfo):
     """
     Info adapter for FileSystem components.
     """
-    mount = schema.Text(title=u"Mount Point", group="Overview", order=-1)
-    storageDevice = schema.Text(title=u"Storage Device", group="Details")
-    type = schema.Text(title=u"Type", group="Details")
+    mount = schema.TextLine(title=u"Mount Point", group="Overview", order=-1)
+    storageDevice = schema.TextLine(title=u"Storage Device", group="Details")
+    type = schema.TextLine(title=u"Type", group="Details")
     blockSize = schema.Int(title=u"Block Size", group="Details")
     totalBlocks = Attribute("Total Blocks")
     totalBytes = schema.Int(title=u"Total Bytes", readonly=True,
@@ -132,8 +132,8 @@ class IOSProcessInfo(IComponentInfo):
                                  order=1)
     processName = schema.TextLine(title=u"Process Name", group="Overview",
                                   readonly=True, order=-1)
-    description = schema.TextLine(title=u"Description", group="Overview",
-                                  readonly=True, order=2)
+    description = schema.Text(title=u"Description", group="Overview",
+                              readonly=True, order=2)
     alertOnRestart = schema.Bool(title=u"Alert on Restart", group="Details")
     failSeverity = schema.Int(title=u"Fail Severity", xtype="severity",
                               group="Details")
@@ -143,34 +143,34 @@ class IWinServiceInfo(IComponentInfo):
     """
     Info adapter for WinService components.
     """
-    serviceName = schema.TextLine(title=u"Name", group="Overview")
+    serviceName = schema.Text(title=u"Name", group="Overview")
     serviceClass = schema.Entity(title=u"Service Class", group="Overview")
-    caption = schema.Text(title=u"Caption", group="Overview")
-    command = schema.Text(title=u"Command", group="Overview")
+    caption = schema.TextLine(title=u"Caption", group="Overview")
+    command = schema.TextLine(title=u"Command", group="Overview")
     failSeverity = schema.Int(title=u"Fail Severity", xtype="severity",
                               group="Details")
-    serviceType = schema.Text(title=u"Service Type", group="Details")
-    startMode = schema.Text(title=u"Start Mode", group="Details")
-    startName = schema.Text(title=u"Start Name", group="Details")
-    pathName = schema.Text(title=u"Path Name", group="Details")
+    serviceType = schema.TextLine(title=u"Service Type", group="Details")
+    startMode = schema.TextLine(title=u"Start Mode", group="Details")
+    startName = schema.TextLine(title=u"Start Name", group="Details")
+    pathName = schema.TextLine(title=u"Path Name", group="Details")
 
 
 class IIpServiceInfo(IComponentInfo):
     """
     Info adapter for IpService components
     """
-    description = schema.TextLine(title=u"Description",
-                         group="Overview")
+    description = schema.Text(title=u"Description",
+                              group="Overview")
     serviceClass = schema.Entity(title=u"Service Class", group="Overview")
     port = schema.Int(title=u"Port", group="Overview")
-    protocol = schema.Text(title=u"Protocol", group="Details")
+    protocol = schema.TextLine(title=u"Protocol", group="Details")
     ipaddresses = schema.List(title=u"IP Addresses", group="Details")
     manageIp = schema.Choice(title=u"Management IP Address",
                              vocabulary="serviceIpAddresses",
                              group="Overview")
-    discoveryAgent = schema.Text(title=u"Discovery Agent", group="Details")
-    sendString = schema.TextLine(title=u"Send String", group="Details")
-    expectRegex = schema.Text(title=u"Expect Regex", group="Details")
+    discoveryAgent = schema.TextLine(title=u"Discovery Agent", group="Details")
+    sendString = schema.Text(title=u"Send String", group="Details")
+    expectRegex = schema.TextLine(title=u"Expect Regex", group="Details")
 
 
 
@@ -183,8 +183,8 @@ class IIpRouteEntryInfo(IComponentInfo):
     nextHop = schema.Entity(title=u"Next Hop", readonly=True, group="Overview")
     interface = schema.Entity(title=u"Interface", readonly=True,
                               group="Overview")
-    protocol = schema.Text(title=u"Protocol", readonly=True, group="Overview")
-    type = schema.Text(title=u"Type", readonly=True, group="Overview")
+    protocol = schema.TextLine(title=u"Protocol", readonly=True, group="Overview")
+    type = schema.TextLine(title=u"Type", readonly=True, group="Overview")
 
 
 class ICPUInfo(IComponentInfo):
@@ -205,8 +205,8 @@ class IExpansionCardInfo(IComponentInfo):
     """
     Info adapter for ExpansionCard components.
     """
-    slot = schema.Text(title=u'Slot', group='Overview', readonly=True)
-    serialNumber = schema.Text(title=u'Serial Number', readonly=True)
+    slot = schema.TextLine(title=u'Slot', group='Overview', readonly=True)
+    serialNumber = schema.TextLine(title=u'Serial Number', readonly=True)
     product = schema.Entity(title=u'Model', readonly=True)
     manufacturer = schema.Entity(title=u'Manufacturer', readonly=True)
 
@@ -216,8 +216,8 @@ class IPowerSupplyInfo(IComponentInfo):
     Info adapter for PowerSupply components.
     """
     watts = schema.Int(title=u'Watts', group='Overview', readonly=True)
-    type = schema.Text(title=u'Type', group='Overview', readonly=True)
-    state = schema.Text(title=u'State', group='Overview', readonly=True)
+    type = schema.TextLine(title=u'Type', group='Overview', readonly=True)
+    state = schema.TextLine(title=u'State', group='Overview', readonly=True)
     millivolts = schema.Int(
         title=u'Millivolts', group='Overview', readonly=True)
 
@@ -226,7 +226,7 @@ class ITemperatureSensorInfo(IComponentInfo):
     """
     Info adapter for TemperatureSensor components.
     """
-    state = schema.Text(title=u'State', group='Overview', readonly=True)
+    state = schema.TextLine(title=u'State', group='Overview', readonly=True)
     temperature = schema.Int(
         title=u'Temperature (Fahrenheit)', group='Overview', readonly=True)
 
@@ -235,6 +235,6 @@ class IFanInfo(IComponentInfo):
     """
     Info adapter for Fan components.
     """
-    state = schema.Text(title=u'State', group='Overview', readonly=True)
-    type = schema.Text(title=u'Type', group='Overview', readonly=True)
+    state = schema.TextLine(title=u'State', group='Overview', readonly=True)
+    type = schema.TextLine(title=u'Type', group='Overview', readonly=True)
     rpm = schema.Int(title=u'RPM', group='Overview', readonly=True)
