@@ -10,7 +10,7 @@
 # For complete information please visit: http://www.zenoss.com/oss/
 #
 ###########################################################################
-
+import socket
 from itertools import imap
 from ZODB.transact import transact
 from zope.interface import implements
@@ -35,7 +35,7 @@ from Products.Zuul import getFacade
 from Products.Zuul.tree import PermissionedCatalogTool
 from Products.Zuul.utils import ZuulMessageFactory as _t, UncataloguedObjectException
 from Products.Zuul.catalog.events import IndexingEvent
-from Products.ZenUtils.IpUtil import numbip, checkip, IpAddressError, ensureIp
+from Products.ZenUtils.IpUtil import numbip, checkip, IpAddressError, ensureIp, isip, getHostByName
 from Products.ZenUtils.IpUtil import getSubnetBounds
 from Products.ZenEvents.Event import Event
 from Products.ZenUtils.guid.interfaces import IGlobalIdentifier
@@ -358,6 +358,25 @@ class DeviceFacade(TreeFacade):
             exports = self._dmd.Devices.moveDevices(targetname,[dev.id for dev in devs])
         return exports
 
+    def getDeviceByIpAddress(self, deviceName, collector="localhost"):
+        # convert device name to an ip address
+        ipAddress = None
+        if isip(deviceName):
+            ipAddress = deviceName
+        else:
+            try:
+                ipAddress = getHostByName(deviceName)
+            except socket.error:
+                # look for duplicate name
+                return self.context.Devices.findDeviceByIdExact(deviceName)
+
+        # find a device with the same ip on the same collector
+        query = And( Eq('getDeviceIp', ipAddress),
+                     Eq('getPerformanceServerName', collector))
+        cat = self.context.Devices.deviceSearch
+        brains = cat.evalAdvancedQuery(query)
+        if len(brains):
+            return brains[0].getObject()
 
     def addDevice(self, deviceName, deviceClass, title=None, snmpCommunity="",
                   snmpPort=161, model=False, collector='localhost',

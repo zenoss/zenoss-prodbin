@@ -1362,6 +1362,11 @@ class DeviceRouter(TreeRouter):
         if not Zuul.checkPermission("Manage Device", organizer):
             raise Unauthorized('Calling AddDevice requires ' +
                                'Manage Device permission on %s' % deviceClass)
+        device = facade.getDeviceByIpAddress(deviceName, collector)
+        if device:
+            return DirectResponse.fail(deviceUid=device.getPrimaryId(),
+                                       msg="Device %s already exists. <a href='%s'>Go to the device</a>" % (deviceName, device.getPrimaryId()))
+
         jobStatus = self._getFacade().addDevice(deviceName,
                                                deviceClass,
                                                title,
