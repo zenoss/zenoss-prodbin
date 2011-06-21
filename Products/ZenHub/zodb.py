@@ -157,7 +157,7 @@ def _listener_decorator_factory(eventtype):
             cls.__registered = getattr(cls, '__registered', {})
 
             # Check our flag
-            if fname not in cls.__registered:
+            if fname not in cls.__registered or not issubclass(cls, tuple(cls.__registered[fname])):
                 # Decorator for __init__
                 def registerHandlers(f):
                     def __init__(self, *args, **kwargs):
@@ -178,7 +178,8 @@ def _listener_decorator_factory(eventtype):
                 # instantiation
                 cls.__init__ = registerHandlers(cls.__init__)
                 # Set the flag for this fname
-                cls.__registered[fname] = 1
+                cls.__registered.setdefault(fname, []).append(cls)
+
 
             # Return the class, which will replace the original class.
             return cls
