@@ -216,7 +216,7 @@ class DeviceCreationJob(ShellCommandJob):
         self._v_loader = JobDeviceLoader(self)
 
         @transact
-        def createDevice(loader, started, zProperties):
+        def createDevice(loader, zProperties):
             # set the status properties that were modified up until this
             # point in case of a Conflict Error
             loader.getStatus().setZProperties(**zProperties)
@@ -228,7 +228,7 @@ class DeviceCreationJob(ShellCommandJob):
 
         # Create the device object and generate the zendisc command
         try:
-            createDevice(self, self.getStatus().started, self.zProperties)
+            createDevice(self, self.zProperties)
         except Exception, e:
             log.exception("Encountered error. Rolling back initial device add.")
             transaction.abort()
