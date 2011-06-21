@@ -14,9 +14,7 @@ import logging
 log = logging.getLogger("zen.ActionRule")
 
 from Globals import InitializeClass
-from Globals import DTMLFile
 from AccessControl import ClassSecurityInfo
-from Acquisition import aq_parent
 
 from Products.ZenModel.ZenModelRM import ZenModelRM
 from Products.ZenRelations.RelSchema import *
@@ -80,5 +78,15 @@ class ActionRule(ZenModelRM, EventFilter):
         )
 
     security = ClassSecurityInfo()
+
+    def getUser(self):
+        """Return the user this action is for.
+        """
+        return self.getPrimaryParent()
+
+    def getUserid(self):
+        """Return the userid this action is for.
+        """
+        return self.getUser().getId()
 
 InitializeClass(ActionRule)
