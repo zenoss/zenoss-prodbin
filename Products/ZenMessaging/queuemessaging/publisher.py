@@ -156,12 +156,16 @@ class PublishSynchronizer(object):
         addEvents = [event for event in msg.events if event.type == event.ADDED]
         removeEvents = [event for event in msg.events if event.type == event.REMOVED]
         for removeEvent in removeEvents:
+            if not addEvents:
+                break
+            removeComp = getattr(removeEvent, attribute)
             for addEvent in addEvents:
                 addComp = getattr(addEvent, attribute)
-                removeComp = getattr(removeEvent, attribute)
                 if addComp.uuid == removeComp.uuid:
                     removeEventIds.append(addEvent.event_uuid)
                     removeEventIds.append(removeEvent.event_uuid)
+                    addEvents.remove(addEvent)
+                    break
 
         return removeEventIds
 
@@ -175,7 +179,7 @@ class PublishSynchronizer(object):
         """
         eventsToRemove = []
         for attribute in ("device", "component"):
-            eventsToRemove = eventsToRemove + self.findNonImpactingEvents(msg, attribute)
+            eventsToRemove.extend(self.findNonImpactingEvents(msg, attribute))
         if not eventsToRemove:
             return msg
 
