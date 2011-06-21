@@ -19,11 +19,10 @@ Available at:  /zport/dmd/evconsole_router
 import time
 import logging
 import urllib
-import DateTime # Zope DateTime, not python datetime
 from Products.ZenUtils.Ext import DirectRouter
 from AccessControl import getSecurityManager
 from Products.ZenUtils.extdirect.router import DirectResponse
-from Products.ZenUtils.Time import isoDateTimeFromMilli
+from Products.ZenUtils.Time import isoDateTimeFromMilli, isoToTimestamp
 from Products.Zuul import getFacade
 from Products.Zuul.decorators import require, serviceConnectionError
 from Products.ZenUtils.guid.interfaces import IGlobalIdentifier, IGUIDManager
@@ -244,10 +243,14 @@ class EventsRouter(DirectRouter):
 
 
     def _timeRange(self, value):
-        values = []
-        for t in value.split('/'):
-            values.append(DateTime.DateTime(t, datefmt='us').millis())
-        return values
+        try:
+            values = []
+            for t in value.split('/'):
+                values.append(int(isoToTimestamp(t)) * 1000)
+            return values
+        except ValueError:
+            log.warning("Invalid timestamp: %s", value)
+            return ()
 
     def _filterInvalidUuids(self, events):
         """
@@ -463,6 +466,7 @@ class EventsRouter(DirectRouter):
                 event_class = filter(None, [params.get('eventClass')]),
                 first_seen = params.get('firstTime') and self._timeRange(params.get('firstTime')),
                 last_seen = params.get('lastTime') and self._timeRange(params.get('lastTime')),
+                status_change = params.get('stateChange') and self._timeRange(params.get('stateChange')),
                 uuid = filterEventUuids,
                 count_range = params.get('count'),
                 element_identifier = params.get('device'),
