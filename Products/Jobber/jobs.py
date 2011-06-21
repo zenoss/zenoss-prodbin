@@ -15,6 +15,7 @@ import os
 import time
 from datetime import datetime
 import transaction
+from ZODB.transact import transact
 from twisted.internet import defer, reactor
 from twisted.internet.protocol import ProcessProtocol
 from zope.interface import implements
@@ -72,8 +73,12 @@ class Job(ZenModelRM):
         whendone = defer.Deferred()
         self._v_deferred = whendone
         status = self.getStatus()
-        if status is not None:
-            status.jobStarted()
+        # make sure that the started flag is set and persisted
+        @transact
+        def startJob(status):
+            if status is not None:
+                status.jobStarted()
+        startJob(status)
         self.run(None)
         yield whendone
 
@@ -144,7 +149,7 @@ class ProcessRunner(ProcessProtocol):
 
         if self.log is not None:
             now = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
-            self.log.msg('Job completed at %s. Result: %s.' % (now, 
+            self.log.msg('Job completed at %s. Result: %s.' % (now,
                 result==SUCCESS and 'success' or 'failure'))
             self.log.finish()
 
@@ -176,7 +181,7 @@ class ShellCommandJob(Job):
         cmd = self.cmd
         d = defer.Deferred()
         protocol = ProcessRunner(self, d)
-        self._v_process = reactor.spawnProcess(protocol, cmd[0], cmd, 
+        self._v_process = reactor.spawnProcess(protocol, cmd[0], cmd,
                             env=self.environ, usePTY=True)
         self.pid = self._v_process.pid
         transaction.commit()

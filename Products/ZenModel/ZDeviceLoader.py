@@ -24,13 +24,14 @@ log = getLogger("zen.DeviceLoader")
 from ipaddr import IPAddress
 
 import transaction
+from ZODB.transact import transact
 from zope.interface import implements
 from AccessControl import ClassSecurityInfo
 from AccessControl import Permissions as permissions
 
 from OFS.SimpleItem import SimpleItem
 
-from Products.ZenUtils.Utils import isXmlRpc, setupLoggingHeader 
+from Products.ZenUtils.Utils import isXmlRpc, setupLoggingHeader
 from Products.ZenUtils.Utils import binPath, clearWebLoggingStream
 from Products.ZenUtils.IpUtil import getHostByName, ipwrap
 
@@ -83,13 +84,13 @@ class BaseDeviceLoader(object):
             except AttributeError:
                 pass
             else:
-                if self.deviceobj.isTempDevice(): 
+                if self.deviceobj.isTempDevice():
                     # Flag's still True, so discovery failed somehow.  Clean up
                     # the device object.
                     self.deviceobj.deleteDevice(True, True, True)
                     self.deviceobj = None
 
-    def load_device(self, deviceName, devicePath='/Discovered', 
+    def load_device(self, deviceName, devicePath='/Discovered',
                     discoverProto='snmp', performanceMonitor='localhost',
                     manageIp="", zProperties=None, deviceProperties=None):
         """
@@ -164,7 +165,7 @@ class JobDeviceLoader(BaseDeviceLoader):
         In this subclass, just commit to database,
         so everybody can find the new device
         """
-        transaction.commit()
+        pass
 
     def cleanup(self):
         """
@@ -211,20 +212,23 @@ class DeviceCreationJob(ShellCommandJob):
 
 
     def run(self, r):
-        # Store zProperties on the job
-        self.getStatus().setZProperties(**self.zProperties)
 
         self._v_loader = JobDeviceLoader(self)
+
+        @transact
+        def createDevice(loader, started, zProperties):
+            # set the status properties that were modified up until this
+            # point in case of a Conflict Error
+            loader.getStatus().setZProperties(**zProperties)
+            # create the device
+            loader._v_loader.load_device(loader.deviceName, loader.devicePath,
+                                       loader.discoverProto,
+                                       loader.performanceMonitor, loader.manageIp,
+                                       loader.zProperties, loader.deviceProps)
+
         # Create the device object and generate the zendisc command
         try:
-            self._v_loader.load_device(self.deviceName, self.devicePath,
-                                    self.discoverProto,
-                                    self.performanceMonitor, self.manageIp,
-                                    self.zProperties, self.deviceProps)
-            if self.discoverProto == 'none':
-                #need to commit otherwise the status object will lose 
-                #started time attribute and everything will break
-                transaction.commit()
+            createDevice(self, self.getStatus().started, self.zProperties)
         except Exception, e:
             log.exception("Encountered error. Rolling back initial device add.")
             transaction.abort()
@@ -343,7 +347,7 @@ class ZDeviceLoader(ZenModelItem,SimpleItem):
                                             systemPaths=systemPaths,
                                             priority=priority
                                         ))
-        except (SystemExit, KeyboardInterrupt): 
+        except (SystemExit, KeyboardInterrupt):
             raise
         except ZentinelException, e:
             log.info(e)
@@ -402,7 +406,7 @@ class ZDeviceLoader(ZenModelItem,SimpleItem):
                 'Please select a HW Manufacturer',
                 priority=messaging.WARNING
             )
-            return self.callZenScreen(REQUEST) 
+            return self.callZenScreen(REQUEST)
 
         self.getDmdRoot("Manufacturers").createHardwareProduct(
                                         newHWProductName, hwManufacturer)
@@ -441,9 +445,9 @@ class ZDeviceLoader(ZenModelItem,SimpleItem):
                     str(e),
                     priority=messaging.WARNING
                 )
-            else: 
+            else:
                 raise e
-            
+
         if REQUEST:
             REQUEST['locationPath'] = newLocationPath
             return self.callZenScreen(REQUEST)
@@ -461,7 +465,7 @@ class ZDeviceLoader(ZenModelItem,SimpleItem):
                     str(e),
                     priority=messaging.WARNING
                 )
-            else: 
+            else:
                 raise e
 
         syss = REQUEST.get('systemPaths', [])
@@ -483,7 +487,7 @@ class ZDeviceLoader(ZenModelItem,SimpleItem):
                     str(e),
                     priority=messaging.WARNING
                 )
-            else: 
+            else:
                 raise e
 
         groups = REQUEST.get('groupPaths', [])
@@ -505,8 +509,8 @@ class ZDeviceLoader(ZenModelItem,SimpleItem):
                     str(e),
                     priority=messaging.WARNING
                 )
-            else: 
-                raise e 
+            else:
+                raise e
         if REQUEST:
             REQUEST['performanceMonitor'] = newPerformanceMonitor
             return self.callZenScreen(REQUEST)
@@ -536,6 +540,6 @@ class ZDeviceLoader(ZenModelItem,SimpleItem):
         if not devObj: return
         devurl = devObj.absolute_url()
         response.write("""<tr class="tableheader"><td colspan="4">
-            Navigate to device <a href=%s>%s</a></td></tr>""" 
+            Navigate to device <a href=%s>%s</a></td></tr>"""
             % (devurl, devObj.getId()))
         response.write("</table></body></html>")

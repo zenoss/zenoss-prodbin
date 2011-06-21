@@ -59,7 +59,9 @@ class ZenJobs(CyclingDaemon):
         d = job.getStatus().waitUntilFinished()
         d.addCallback(self.job_done)
         jobd = job.start()
-        # Zope will want to know the job has started
+        # the Job.start method will persist the "started"
+        # flag on the status object, but leaving this commit
+        # here in case other jobs were depending on it
         transaction.commit()
         self.runningjobs.append(jobd)
         yield jobd
