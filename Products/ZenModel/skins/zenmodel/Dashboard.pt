@@ -34,6 +34,12 @@ var updateTime = {
     interval: 1000
 }
 Ext.TaskMgr.start(updateTime);
+if (Ext.isIE) {
+    var reloadLaterTask = new Ext.util.DelayedTask(function () {
+        window.top.location.reload();
+    });
+    reloadLaterTask.delay(1000*60*60); // one hour
+}
 
 function getServerTimestamp() {
     var server_now = new Date(server_time);
