@@ -1518,11 +1518,11 @@ Ext.onReady(function () {
                         store: new Ext.data.ArrayStore({
                             fields: ['name', 'value'],
                             data: [[
-                                _t('New'), 1
+                                _t('New'), Zenoss.STATUS_NEW
                             ],[
-                                _t('Acknowledged'), 2
+                                _t('Acknowledged'), Zenoss.STATUS_ACKNOWLEDGED
                             ],[
-                                _t('Suppressed'), 3
+                                _t('Suppressed'), Zenoss.STATUS_SUPPRESSED
                             ]]
                         })
                     }

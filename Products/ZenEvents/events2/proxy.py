@@ -498,12 +498,11 @@ class EventSummaryProxy(EventProxy):
 
     @property
     def eventState(self):
-        # Transforms expect zero based
-        return self._eventSummary.get(EventSummaryField.STATUS, STATUS_NEW) - 1
+        return self._eventSummary.get(EventSummaryField.STATUS, STATUS_NEW)
 
     @eventState.setter
     def eventState(self, val):
-        self._eventSummary.set(EventSummaryField.STATUS, val + 1)
+        self._eventSummary.set(EventSummaryField.STATUS, val)
 
     @property
     def status(self):
@@ -596,12 +595,11 @@ class ZepRawEventProxy(EventProxy):
 
     @property
     def eventState(self):
-        # Transforms expect zero based
-        return self._eventSummary.get(EventSummaryField.STATUS, STATUS_NEW) - 1
+        return self._eventSummary.get(EventSummaryField.STATUS, STATUS_NEW)
 
     @eventState.setter
     def eventState(self, val):
-        self._eventSummary.set(EventSummaryField.STATUS, val + 1)
+        self._eventSummary.set(EventSummaryField.STATUS, val)
 
     @property
     def status(self):

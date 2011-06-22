@@ -421,8 +421,8 @@ class EventsRouter(DirectRouter):
 
         if params:
             log.debug('logging params for building filter: %s', params)
-            params = loads(params)
-
+            if isinstance(params, basestring):
+                params = loads(params)
 
             # params comes from the grid's filtering column -
             # some of these properties are normal properties on an event

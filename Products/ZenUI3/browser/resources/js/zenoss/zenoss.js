@@ -20,13 +20,13 @@ Zenoss.SEVERITY_INFO = 2;
 Zenoss.SEVERITY_WARNING = 3;
 Zenoss.SEVERITY_ERROR = 4;
 Zenoss.SEVERITY_CRITICAL = 5;
-Zenoss.STATUS_NEW = 1;
-Zenoss.STATUS_ACKNOWLEDGED = 2;
-Zenoss.STATUS_SUPPRESSED = 3;
-Zenoss.STATUS_CLOSED = 4; // Closed by the user.
-Zenoss.STATUS_CLEARED = 5; // Closed by a matching clear event.
-Zenoss.STATUS_DROPPED = 6; // Dropped via a transform.
-Zenoss.STATUS_AGED = 7; // Closed via automatic aging.
+Zenoss.STATUS_NEW = 0;
+Zenoss.STATUS_ACKNOWLEDGED = 1;
+Zenoss.STATUS_SUPPRESSED = 2;
+Zenoss.STATUS_CLOSED = 3; // Closed by the user.
+Zenoss.STATUS_CLEARED = 4; // Closed by a matching clear event.
+Zenoss.STATUS_DROPPED = 5; // Dropped via a transform.
+Zenoss.STATUS_AGED = 6; // Closed via automatic aging.
 
 /**
  * Namespace for anonymous scripts to attach data to avoid dumping it into
