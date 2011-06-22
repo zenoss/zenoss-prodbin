@@ -43,7 +43,7 @@ resetCombo = function(combo, uid) {
  **/
 function getCurrentView(){
     var currentView = Ext.util.Cookies.get('template_view');
-    
+
     if (Ext.History.getToken() && Ext.History.getToken().search('/devices/') != -1) {
         return 'template';
     }
@@ -387,6 +387,28 @@ function bindSelectedTemplateHere() {
     remote.bindOrUnbindTemplate(params, callback);
 }
 
+/**********************************************************************
+ *
+ * Modifications
+ *
+ */
+function showModificationsDialog() {
+    var uid,
+        types,
+        tree = Ext.getCmp(treeId);
+    // classes for which we want to show modifications for
+    types = ['Products.ZenModel.RRDTemplate.RRDTemplate',
+             'Products.ZenModel.ThresholdClass.ThresholdClass',
+             'Products.ZenModel.RRDDataSource.RRDDataSource'
+            ];
+    if (tree.getSelectionModel().getSelectedNode()) {
+
+        uid = tree.getSelectionModel().getSelectedNode().attributes.uid;
+        Zenoss.form.showModificationsDialog(uid, types);
+    }
+}
+
+
 
 /**********************************************************************
  *
@@ -476,6 +498,10 @@ footerBar.buttonContextMenu.menu.add({
     text: _t('Toggle Template Binding'),
     hidden: Zenoss.Security.doesNotHavePermission('Manage DMD'),
     handler: bindSelectedTemplateHere
+}, {
+    text: _t('Modifications'),
+    hidden: Zenoss.Security.doesNotHavePermission('Manage DMD'),
+    handler: showModificationsDialog
 });
 
 footerBar.on('buttonClick', function(actionName, id, values) {

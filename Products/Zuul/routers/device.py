@@ -1615,3 +1615,18 @@ class DeviceRouter(TreeRouter):
         facade = self._getFacade()
         data = facade.getModelerPluginDocStrings(uid)
         return DirectResponse.succeed(data=Zuul.marshal(data))
+
+    @serviceConnectionError
+    def getModifications(self, id, types):
+        """
+        Given a uid this method returns meta data about when
+        it was modified.
+        @type  uid: string
+        @param uid: Unique Identifier of an object
+        """
+        facade = self._getFacade()
+        data = list(facade.getModifications(id, types))
+        # sort the data by type
+        data = sorted(data, key=lambda row: row['meta_type'])
+        return Zuul.marshal(data)
+

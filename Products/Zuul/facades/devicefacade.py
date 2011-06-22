@@ -16,6 +16,7 @@ from ZODB.transact import transact
 from zope.interface import implements
 from Acquisition import aq_base
 from zope.event import notify
+from ZODB.POSException import POSKeyError
 from Products.AdvancedQuery import Eq, Or, And, MatchRegexp, Between
 from Products.Zuul.decorators import info
 from Products.Zuul.utils import unbrain
@@ -608,3 +609,30 @@ class DeviceFacade(TreeFacade):
     def getGraphDefs(self, uid, drange):
         obj = self._getObject(uid)
         return obj.getDefaultGraphDefs(drange)
+
+    def getModifications(self, uid, types):
+        """
+        For a given uid and an array of types (fully qualified classes)
+        this method returns the change history of each object
+        """
+        obj = self._getObject(uid)
+        cat = ICatalogTool(obj)
+        brains = cat.search(types)
+        for brain in brains:
+            obj = brain.getObject()
+            row = dict(
+                uid=obj.getPrimaryId(),
+                obj= obj.titleOrId(),
+                meta_type=obj.meta_type
+                )
+            children = []
+            for hist in obj.manage_change_history():
+                children.append(dict(
+                        timeOfChange=str(hist['time']),
+                        user=hist['user_name'],
+                        leaf=True,
+                        isrow=True,
+                        obj="",
+                        description=hist['description']))
+            row['children'] = children
+            yield row
