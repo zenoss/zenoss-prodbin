@@ -67,11 +67,9 @@ class ToManyRelationship(ToManyRelationshipBase):
         self._objects = PersistentList()
         self._count = 0
 
-
     def __call__(self):
         """when we are called return our related object in our aq context"""
         return self.objectValuesAll()
-
 
     def hasobject(self, obj):
         "check to see if we have this object"
@@ -93,7 +91,7 @@ class ToManyRelationship(ToManyRelationshipBase):
         if obj in self._objects: raise RelationshipExistsError
         self._objects.append(aq_base(obj))
         self.__primary_parent__._p_changed = True
-        self._count = len(self._objects)
+        self.setCount()
 
 
     def _remove(self, obj=None, suppress_events=False):
@@ -108,7 +106,7 @@ class ToManyRelationship(ToManyRelationshipBase):
         else:
             self._objects = PersistentList()
         self.__primary_parent__._p_changed = True
-        self._count = len(self._objects)
+        self.setCount()
 
 
     def _remoteRemove(self, obj=None):
@@ -248,7 +246,7 @@ class ToManyRelationship(ToManyRelationshipBase):
 
     def convertToPersistentList(self):
         self._objects = PersistentList(self._objects)
-        self._count = len(self._objects)
+        self.setCount()
 
 
     def checkObjectRelation(self, obj, remoteName, parentObject, repair):

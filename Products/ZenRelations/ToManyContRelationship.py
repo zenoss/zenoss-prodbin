@@ -156,7 +156,7 @@ class ToManyContRelationship(ToManyRelationshipBase):
         if v is not None: id=v
         self._objects[id] = aq_base(obj)
         obj = aq_base(obj).__of__(self)
-        self._count = len(self._objects)
+        self.setCount()
 
 
     def _remove(self, obj=None, suppress_events=False):
@@ -179,7 +179,7 @@ class ToManyContRelationship(ToManyRelationshipBase):
         if not suppress_events:
             for robj in objs:
                 notify(ObjectRemovedEvent(robj, self, robj.getId()))
-        self._count = len(self._objects)
+        self.setCount()
 
 
     def _remoteRemove(self, obj=None):
