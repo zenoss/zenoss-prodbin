@@ -23,6 +23,12 @@ class EventProxyTagsAndDetailsTest(unittest.TestCase):
     initialEvent = {
     }
 
+    def _countTags(self, event):
+        count = 0
+        for event_tag in event.tags:
+            count += len(event_tag.uuid)
+        return count
+
     def test_0_TagUpdates(self):
         eventproto = from_dict(ZepRawEvent, self.initialEvent)
         proxy = ZepRawEventProxy(eventproto)
@@ -30,15 +36,15 @@ class EventProxyTagsAndDetailsTest(unittest.TestCase):
         proxy.tags.addAll('TAG_TYPE_1', ['value%d' % i for i in range(10)])
         proxy.tags.addAll('TAG_TYPE_2', ['value0',])
         proxy.tags.addAll('TAG_TYPE_3', ['value0', 'value1'])
-        self.assertEqual(len(eventproto.tags), 13)
+        self.assertEqual(self._countTags(eventproto.event), 13)
 
         proxy.tags.clearType('TAG_TYPE_1')
-        self.assertEqual(len(eventproto.tags), 3)
+        self.assertEqual(self._countTags(eventproto.event), 3)
 
         self.assertEqual(len(proxy.tags.getByType('TAG_TYPE_3')), 2)
 
         proxy.tags.clearType('TAG_TYPE_3')
-        self.assertEquals(len(eventproto.tags), 1)
+        self.assertEquals(self._countTags(eventproto.event), 1)
         self.assertEqual(len(proxy.tags.getByType('TAG_TYPE_2')), 1)
 
     def test_1_DetailUpdates(self):

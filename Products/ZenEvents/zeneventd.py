@@ -11,14 +11,11 @@
 #
 ###########################################################################
 from twisted.internet import reactor
-from twisted.internet.error import ReactorNotRunning
 
-import os
 import signal
 import multiprocessing
 import time
 import socket
-import sys
 from datetime import datetime, timedelta
 
 import Globals
@@ -33,17 +30,9 @@ from Products.ZenUtils.ZenDaemon import ZenDaemon
 from Products.ZenUtils.guid import guid
 from zenoss.protocols import queueschema
 from zenoss.protocols.eventlet.amqp import getProtobufPubSub
-from zenoss.protocols.protobufs.zep_pb2 import ZepRawEvent, RawEvent
-from zenoss.protocols.protobufs.zep_pb2 import (
-    STATUS_NEW,
-    STATUS_ACKNOWLEDGED,
-    STATUS_SUPPRESSED,
-    STATUS_CLOSED,
-    STATUS_CLEARED,
-    STATUS_DROPPED,
-    STATUS_AGED)
+from zenoss.protocols.protobufs.zep_pb2 import ZepRawEvent, Event
 from zenoss.protocols.eventlet.amqp import Publishable
-from zenoss.protocols.jsonformat import to_dict, from_dict
+from zenoss.protocols.jsonformat import from_dict
 from Products.ZenMessaging.queuemessaging.eventlet import BasePubSubMessageTask
 from Products.ZenEvents.events2.processing import *
 from Products.ZenCollector.utils.workers import ProcessWorkers, workersBuildOptions
@@ -51,24 +40,6 @@ from Products.ZenEvents.interfaces import IPreEventPlugin, IPostEventPlugin
 
 import logging
 log = logging.getLogger("zen.eventd")
-
-CLEAR_CLASSES = "_CLEAR_CLASSES"
-
-statusConvertToEnum = {
-    "new": STATUS_NEW,
-    "ack": STATUS_ACKNOWLEDGED,
-    "suppressed": STATUS_SUPPRESSED,
-    "closed": STATUS_CLOSED,
-    "cleared": STATUS_CLEARED,
-    "dropped": STATUS_DROPPED,
-    "aged": STATUS_AGED,
-}
-statusConvertToString = dict((v, k) for k, v in statusConvertToEnum.items())
-
-# add for legacy compatibility
-statusConvertToEnum['status'] = STATUS_NEW
-statusConvertToEnum['history'] = STATUS_CLOSED
-statusConvertToEnum['drop'] = STATUS_DROPPED
 
 class ProcessEventMessageTask(BasePubSubMessageTask):
 
@@ -108,7 +79,7 @@ class ProcessEventMessageTask(BasePubSubMessageTask):
 
     def _routing_key(self, event):
         return (self.dest_routing_key_prefix +
-                event.raw_event.event_class.replace('/', '.').lower())
+                event.event.event_class.replace('/', '.').lower())
 
     def processMessage(self, message):
         """
@@ -134,9 +105,9 @@ class ProcessEventMessageTask(BasePubSubMessageTask):
                 try:
                     # extract event from message body
                     zepevent = ZepRawEvent()
-                    zepevent.raw_event.CopyFrom(message)
+                    zepevent.event.CopyFrom(message)
                     if log.isEnabledFor(logging.DEBUG):
-                        log.debug("Received event: %s", to_dict(zepevent.raw_event))
+                        log.debug("Received event: %s", to_dict(zepevent.event))
 
                     eventContext = EventContext(log, zepevent)
 
@@ -144,7 +115,7 @@ class ProcessEventMessageTask(BasePubSubMessageTask):
                         eventContext = pipe(eventContext)
                         if log.isEnabledFor(logging.DEBUG):
                             log.debug('After pipe %s, event context is %s' % ( pipe.name, to_dict(eventContext.zepRawEvent) ))
-                        if eventContext.zepRawEvent.status == STATUS_DROPPED:
+                        if eventContext.event.status == STATUS_DROPPED:
                             raise DropEvent('Dropped by %s' % pipe, eventContext.event)
 
                     processed = True
@@ -163,7 +134,7 @@ class ProcessEventMessageTask(BasePubSubMessageTask):
             # we want these to propagate out
             raise
         except Exception as e:
-            log.info("Failed to process event, forward original raw event: %s", to_dict(zepevent.raw_event))
+            log.info("Failed to process event, forward original raw event: %s", to_dict(zepevent.event))
             # Pipes and plugins may raise ProcessingException's for their own reasons - only log unexpected
             # exceptions of other type (will insert stack trace in log)
             if not isinstance(e, ProcessingException):
@@ -172,7 +143,7 @@ class ProcessEventMessageTask(BasePubSubMessageTask):
             # construct wrapper event to report this event processing failure (including content of the
             # original event)
             origzepevent = ZepRawEvent()
-            origzepevent.raw_event.CopyFrom(message)
+            origzepevent.event.CopyFrom(message)
             failReportEvent = dict(
                 uuid = guid.generate(),
                 created_time = int(time.time()*1000),
@@ -180,11 +151,11 @@ class ProcessEventMessageTask(BasePubSubMessageTask):
                 # Don't send the *same* event class or we trash and and crash endlessly
                 eventClass='/',
                 summary='Internal exception processing event: %r' % e,
-                message='Internal exception processing event: %r/%s' % (e, to_dict(origzepevent.raw_event)),
+                message='Internal exception processing event: %r/%s' % (e, to_dict(origzepevent.event)),
                 severity=4,
             )
             zepevent = ZepRawEvent()
-            zepevent.raw_event.CopyFrom(from_dict(RawEvent, failReportEvent))
+            zepevent.event.CopyFrom(from_dict(Event, failReportEvent))
             eventContext = EventContext(log, zepevent)
             eventContext.eventProxy.device = 'zeneventd'
             eventContext.eventProxy.component = 'processMessage'
@@ -230,7 +201,7 @@ class EventDWorker(ZCmdBase):
                     sleep = .1
                 log.info("Connecting to RabbitMQ...")
                 self._pubsub = getProtobufPubSub('$RawZenEvents')
-                self._pubsub.registerHandler('$RawEvent', task)
+                self._pubsub.registerHandler('$Event', task)
                 self._pubsub.registerExchange('$ZepZenEvents')
                 #reset sleep time
                 sleep=0

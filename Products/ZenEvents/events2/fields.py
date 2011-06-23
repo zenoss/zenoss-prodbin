@@ -30,6 +30,7 @@ class EventField:
     NT_EVENT_CODE = 'nt_event_code'
     MONITOR = 'monitor'
     DETAILS = 'details'
+    STATUS = 'status'
     TAGS = 'tags'
 
     class Actor:
@@ -63,8 +64,5 @@ class EventSummaryField:
     AUDIT_LOG = 'audit_log'
 
 class ZepRawEventField:
-    RAW_EVENT = 'raw_event'
-    INDEX = 'index'
+    EVENT = 'event'
     CLEAR_EVENT_CLASS = 'clear_event_class'
-    STATUS = 'status'
-    TAGS = 'tags'

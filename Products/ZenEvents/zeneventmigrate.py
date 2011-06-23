@@ -33,7 +33,7 @@ from uuid import uuid4
 from signal import signal, siginterrupt, SIGTERM, SIGINT
 from time import sleep
 import Globals
-from zenoss.protocols.protobufs.zep_pb2 import (EventSummary, ZepRawEvent, RawEvent, STATUS_NEW, STATUS_ACKNOWLEDGED,
+from zenoss.protocols.protobufs.zep_pb2 import (EventSummary, ZepRawEvent, STATUS_NEW, STATUS_ACKNOWLEDGED,
                                                 STATUS_SUPPRESSED, STATUS_CLOSED, STATUS_CLEARED,
                                                 SYSLOG_PRIORITY_EMERG, SYSLOG_PRIORITY_DEBUG)
 from zenoss.protocols.protobufs.model_pb2 import DEVICE, COMPONENT
@@ -526,21 +526,7 @@ class ZenEventMigrate(ZenScriptBase):
         zeneventd pipes).
         """
         zepRawEvent = ZepRawEvent()
-        rawEvent = zepRawEvent.raw_event
-        for fieldName, fieldDescriptor in RawEvent.DESCRIPTOR.fields_by_name.iteritems():
-            value = getattr(event, fieldName)
-            if fieldDescriptor.label == FieldDescriptor.LABEL_REPEATED:
-                repeated_clone = getattr(rawEvent, fieldName)
-                if fieldDescriptor.type == FieldDescriptor.TYPE_MESSAGE:
-                    repeated_clone.extend(imap(deepcopy, value))
-                else:
-                    repeated_clone.extend(value)
-            elif event.HasField(fieldName):
-                if fieldDescriptor.type == FieldDescriptor.TYPE_MESSAGE:
-                    clone = getattr(rawEvent, fieldName)
-                    clone.MergeFrom(value)
-                else:
-                    setattr(rawEvent, fieldName, value)
+        zepRawEvent.event.CopyFrom(event)
         return zepRawEvent
 
     def _merge_tags(self, zep_raw_event, event):
@@ -550,12 +536,12 @@ class ZenEventMigrate(ZenScriptBase):
         and tags from the ZEP raw event and copy them to the appropriate place on
         the event occurrence.
         """
-        raw_actor = zep_raw_event.raw_event.actor
+        raw_actor = zep_raw_event.event.actor
         event_actor = event.actor
         for field in ('element_uuid', 'element_sub_uuid'):
             if raw_actor.HasField(field):
                 setattr(event_actor, field, getattr(raw_actor, field))
-        event.tags.extend(imap(deepcopy, zep_raw_event.tags))
+        event.tags.extend(imap(deepcopy, zep_raw_event.event.tags))
 
     def _migrate_events(self, conn, publisher, status):
         converter = EventConverter(self.dmd, status)
@@ -571,11 +557,11 @@ class ZenEventMigrate(ZenScriptBase):
                         if self._shutdown:
                             raise ShutdownException()
                         occurrence = mapping_event_context.occurrence
-                        raw_event = self._event_to_zep_raw_event(occurrence)
-                        event_ctx = EventContext(log, raw_event)
+                        zep_raw_event = self._event_to_zep_raw_event(occurrence)
+                        event_ctx = EventContext(log, zep_raw_event)
                         for pipe in pipes:
                             pipe(event_ctx)
-                        self._merge_tags(raw_event, occurrence)
+                        self._merge_tags(zep_raw_event, occurrence)
                         if log.isEnabledFor(logging.DEBUG):
                             log.debug("Migrated event: %s", mapping_event_context.summary)
 

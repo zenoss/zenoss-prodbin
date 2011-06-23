@@ -18,12 +18,12 @@ from xml.sax.handler import ContentHandler
 XML_RPC_PORT = 8081
 
 sevconvert = {
-    "Critical" : 5,
-    "Error" : 4,
-    "Warn" : 3,
-    "Info" : 2,
-    "Debug" : 1,
-    "Clear" : 0
+    "critical" : 5,
+    "error" : 4,
+    "warn" : 3,
+    "info" : 2,
+    "debug" : 1,
+    "clear" : 0
 }
 
 
@@ -127,7 +127,7 @@ parser.add_option("--auth", dest="auth", default="admin:zenoss",
     help="xmlrpc server auth, default: %default")
 parser.add_option("-o", "--other", dest="other", default=[],
     action='append',
-    help="Specify other event_filed=value arguments. Can be specified"
+    help="Specify other event_field=value arguments. Can be specified"
          " more than once.")
 parser.add_option('-f', "--file", dest="input_file", default="",
     help="Import events from XML file.")
@@ -147,10 +147,10 @@ if opts.input_file:
     sys.exit(0)
 
 evt = {}
-if opts.severity in sevconvert:
+if opts.severity.lower() in sevconvert:
     evt['severity'] = sevconvert[opts.severity]
 else:
-    parser.error('Unkown severity')
+    parser.error('Unknown severity')
 evt['summary'] = " ".join(args)
 if not evt['summary']:
     parser.error('no summary supplied') 

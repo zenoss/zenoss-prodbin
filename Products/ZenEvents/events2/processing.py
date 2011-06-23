@@ -223,7 +223,7 @@ class EventContext(object):
 
     def __init__(self, log, zepRawEvent):
         self._zepRawEvent = zepRawEvent
-        self._event = self._zepRawEvent.raw_event
+        self._event = self._zepRawEvent.event
         self._eventProxy = ZepRawEventProxy(self._zepRawEvent)
 
         # If this event is for a device, it will be attached here
@@ -702,7 +702,7 @@ class TransformPipe(EventProcessorPipe):
             evtclass.applyExtraction(eventContext.eventProxy)
             evtclass.applyValues(eventContext.eventProxy)
             if eventContext.eventProxy.eventClassMapping:
-                eventContext.zepRawEvent.event_class_mapping_uuid = IGlobalIdentifier(evtclass).getGUID()
+                eventContext.event.event_class_mapping_uuid = IGlobalIdentifier(evtclass).getGUID()
             evtclass.applyTransform(eventContext.eventProxy,
                                     eventContext.deviceObject,
                                     eventContext.componentObject)

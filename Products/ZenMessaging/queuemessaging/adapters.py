@@ -147,7 +147,7 @@ def _safestr(s):
 
 class EventProtobufMapper(object):
     """
-    Base class for mapping a Event value (old-style) to a protobuf RawEvent.
+    Base class for mapping a Event value (old-style) to a protobuf Event.
     """
     def mapEvent(self, proto, value):
         """
@@ -158,7 +158,7 @@ class EventProtobufMapper(object):
 class EventProtobufStringMapper(EventProtobufMapper):
     """
     Performs a 1-1 mapping of an old event attribute to a corresponding
-    field in the RawEvent protobuf.
+    field in the Event protobuf.
     """
 
     def __init__(self, fieldName):
@@ -169,7 +169,7 @@ class EventProtobufStringMapper(EventProtobufMapper):
 
 class EventProtobufDeviceMapper(EventProtobufMapper):
     """
-    Maps a 'device' to the corresponding location in the RawEvent.EventActor.
+    Maps a 'device' to the corresponding location in the Event.EventActor.
     """
 
     def mapEvent(self, proto, value):
@@ -178,7 +178,7 @@ class EventProtobufDeviceMapper(EventProtobufMapper):
 
 class EventProtobufComponentMapper(EventProtobufMapper):
     """
-    Maps a 'component' to the corresponding location in the RawEvent.EventActor.
+    Maps a 'component' to the corresponding location in the Event.EventActor.
     """
 
     def mapEvent(self, proto, value):
@@ -249,7 +249,7 @@ class EventProtobufSyslogPriorityMapper(EventProtobufMapper):
 class EventProtobufDateMapper(EventProtobufMapper):
     """
     Maps a time.time() floating point value to the time in
-    milliseconds as used by RawEvent.
+    milliseconds as used by Event.
     """
 
     def __init__(self, fieldName):
@@ -287,7 +287,7 @@ class EventProtobuf(ObjectProtobuf):
         'summary': EventProtobufStringMapper('summary'),
         'message': EventProtobufStringMapper('message'),
         'severity': EventProtobufSeverityMapper(),
-        # eventState -> Managed by zeneventd/ZEP
+        'eventState': EventProtobufIntMapper('status'),
         'eventClassKey': EventProtobufStringMapper('event_class_key'),
         'eventGroup': EventProtobufStringMapper('event_group'),
         # stateChange -> Managed by ZEP
@@ -295,8 +295,8 @@ class EventProtobuf(ObjectProtobuf):
         'lastTime': EventProtobufDateMapper('created_time'),
         # count -> Managed by ZEP
         # prodState -> Added by zeneventd
-        # suppid -> No longer available
-        # manager -> No longer available
+        # suppid -> Added as a detail (deprecated)
+        # manager -> Added as a detail (deprecated)
         'agent': EventProtobufStringMapper('agent'),
         # DeviceClass -> Added by zeneventd
         # Location -> Added by zeneventd
@@ -315,8 +315,8 @@ class EventProtobuf(ObjectProtobuf):
 
     # If these attributes are found on the Event they are not mapped and are not
     # placed into event details.
-    _IGNORED_ATTRS = set(['_action','_clearClasses','_fields','eventState','stateChange','firstTime',\
-                          'count','prodState','suppid','manager','DeviceClass','Location','Systems',\
+    _IGNORED_ATTRS = set(['_action','_clearClasses','_fields','stateChange','firstTime',
+                          'count','prodState','DeviceClass','Location','Systems',
                           'DeviceGroups','ownerid','clearid','DevicePriority','eventClassMapping'])
 
     def __init__(self, obj):

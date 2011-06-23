@@ -9,7 +9,7 @@ from zope.interface import implements
 from Products.ZenMessaging.queuemessaging.interfaces import IQueuePublisher
 from Products.ZenMessaging.queuemessaging.adapters import EventProtobuf as Serializer
 from Products.ZenMessaging.queuemessaging.publisher import EventPublisher, getModelChangePublisher
-from zenoss.protocols.protobufs.zep_pb2 import RawEvent
+from zenoss.protocols.protobufs.zep_pb2 import Event
 from Products.ZenEvents.Event import buildEventFromDict
 
 
@@ -90,7 +90,7 @@ class TestPublishEvents(BaseTestCase):
         device = self.device
         event = self._createDummyEvent()
         event.foo = "bar"
-        proto = RawEvent()
+        proto = Event()
         serializer = Serializer(event)
 
         # fill the protobuf
@@ -109,7 +109,7 @@ class TestPublishEvents(BaseTestCase):
 
     def testFacilityConversion(self):
         event = self._createDummyEvent()
-        proto = RawEvent()
+        proto = Event()
         serializer = Serializer(event)
         event.facility = "1"
         # fill the protobuf

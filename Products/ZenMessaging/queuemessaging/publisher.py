@@ -228,7 +228,7 @@ class EventPublisherBase(object):
             event.evid = generate()
         # create the protobuf
         serializer = IProtobufSerializer(event)
-        proto = config.getNewProtobuf("$RawEvent")
+        proto = config.getNewProtobuf("$Event")
         serializer.fill(proto)
 
         # fill out the routing key

@@ -46,17 +46,27 @@ class EventTagProxy(object):
             tag_uuids = self._tags.get(tag.type)
             if not tag_uuids:
                 self._tags[tag.type] = tag_uuids = set()
-            tag_uuids.add(tag.uuid)
+            for tagUuid in tag.uuid:
+                tag_uuids.add(tagUuid)
 
     def add(self, type, uuid):
         tag_uuids = self._tags.get(type)
         if not tag_uuids:
             self._tags[type] = tag_uuids = set()
+
         if not uuid in tag_uuids:
             tag_uuids.add(uuid)
-            tag = self._eventProtobuf.tags.add()
-            tag.type = type
-            tag.uuid = uuid
+            
+            event_tag = None
+            for tag in self._eventProtobuf.tags:
+                if tag.type == type:
+                    event_tag = tag
+                    break
+            else:
+                event_tag = self._eventProtobuf.tags.add()
+                event_tag.type = type
+
+            event_tag.uuid.append(uuid)
 
     def addAll(self, type, uuids):
         for uuid in uuids:
@@ -207,7 +217,7 @@ class ProtobufWrapper(object):
 
 class EventProxy(object):
     """
-    Wraps an org.zenoss.protobufs.zep.Event or org.zenoss.protobufs.zep.RawEvent
+    Wraps an org.zenoss.protobufs.zep.Event 
     and makes it look like an old style Event.
     """
     
@@ -224,6 +234,7 @@ class EventProxy(object):
         self.__dict__['_clearClasses'] = set([])
         self.__dict__['_readOnly'] = {}
         self.__dict__['details'] = EventDetailProxy(self._event)
+        self.__dict__['_tags'] = EventTagProxy(self._event)
 
     def updateFromDict(self, data):
         for key, value in data.iteritems():
@@ -248,7 +259,7 @@ class EventProxy(object):
 
     @severity.setter
     def severity(self, val):
-        self._event.set(EventField.SEVERITY, val)
+        self._event.set(EventField.SEVERITY, int(val))
 
     @property
     def device(self):
@@ -343,7 +354,7 @@ class EventProxy(object):
     def monitor(self):
         return self._event.get(EventField.MONITOR)
 
-    @manager.setter
+    @monitor.setter
     def monitor(self, val):
         self._event.set(EventField.MONITOR, val)
 
@@ -408,6 +419,18 @@ class EventProxy(object):
     @DeviceClass.setter
     def DeviceClass(self, val):
         self.details.set(EventProxy.DEVICE_CLASS_DETAIL_KEY, val)
+
+    @property
+    def eventState(self):
+        return self._event.get(EventSummaryField.STATUS, STATUS_NEW)
+
+    @eventState.setter
+    def eventState(self, val):
+        self._event.set(EventSummaryField.STATUS, val)
+
+    @property
+    def tags(self):
+        return self._tags
 
     def setReadOnly(self, name, value):
         """
@@ -504,15 +527,6 @@ class EventSummaryProxy(EventProxy):
     def eventState(self, val):
         self._eventSummary.set(EventSummaryField.STATUS, val)
 
-    @property
-    def status(self):
-        # Transforms expect zero based
-        return self._eventSummary.get(EventSummaryField.STATUS, STATUS_NEW)
-
-    @status.setter
-    def status(self, val):
-        self._eventSummary.set(EventSummaryField.STATUS, val)
-
 class ZepRawEventProxy(EventProxy):
     """
     Wraps an org.zenoss.protobufs.zep.ZepRawEvent and makes it look like
@@ -547,8 +561,7 @@ class ZepRawEventProxy(EventProxy):
 
     def __init__(self, zepRawEvent):
         self.__dict__['_zepRawEvent'] = ProtobufWrapper(zepRawEvent)
-        EventProxy.__init__(self, self._zepRawEvent.raw_event)
-        self.__dict__['_tags'] = EventTagProxy(self._zepRawEvent)
+        EventProxy.__init__(self, self._zepRawEvent.event)
 
         classes = []
         if self._zepRawEvent.clear_event_class:
@@ -570,10 +583,6 @@ class ZepRawEventProxy(EventProxy):
             self._zepRawEvent.clear_event_class.append(eventClass)
 
     @property
-    def tags(self):
-        return self._tags
-
-    @property
     def _clearClasses(self):
         return list(self._clearClassesSet)
 
@@ -585,30 +594,13 @@ class ZepRawEventProxy(EventProxy):
 
     @property
     def _action(self):
-        status = self._zepRawEvent.get(ZepRawEventField.STATUS)
-        return self.STATUS_ACTION_MAP.get(status, self.STATUS_ACTION_MAP[None])
+        return self.STATUS_ACTION_MAP.get(self.eventState, self.STATUS_ACTION_MAP[None])
 
     @_action.setter
     def _action(self, val):
-        status = self.ACTION_STATUS_MAP.get(val, self.ACTION_STATUS_MAP[None])
-        self._zepRawEvent.set(ZepRawEventField.STATUS, status)
-
-    @property
-    def eventState(self):
-        return self._eventSummary.get(EventSummaryField.STATUS, STATUS_NEW)
-
-    @eventState.setter
-    def eventState(self, val):
-        self._eventSummary.set(EventSummaryField.STATUS, val)
-
-    @property
-    def status(self):
-        # Transforms expect zero based
-        return self._eventSummary.get(EventSummaryField.STATUS, STATUS_NEW)
-
-    @status.setter
-    def status(self, val):
-        self._eventSummary.set(EventSummaryField.STATUS, val)
+        current_status = self.STATUS_ACTION_MAP.get(self.eventState)
+        if current_status != val:
+            self.eventState = self.ACTION_STATUS_MAP.get(val, self.ACTION_STATUS_MAP[None])
 
     @property
     def eventClassMapping(self):
