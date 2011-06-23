@@ -137,7 +137,6 @@ Ext.Direct.on('event', function(e){
     }
 });
 
-
 Ext.namespace('Zenoss.flares');
 
 /**
@@ -1844,6 +1843,11 @@ Ext.reg('ColumnFieldSet', Zenoss.ColumnFieldSet);
  * General utilities
  */
 Ext.namespace('Zenoss.util');
+
+Zenoss.util.isSuccessful = function(response) {
+    // Check the results of an Ext.Direct response for success.
+    return response.result && response.result.success;
+};
 
 Zenoss.util.addLoadingMaskToGrid = function(grid){
     // load mask stuff

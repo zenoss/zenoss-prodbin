@@ -521,9 +521,12 @@ Zenoss.HierarchyTreePanel = Ext.extend(Ext.tree.TreePanel, {
         var uid = node.attributes.uid;
         var params = {uid: uid};
         function callback(provider, response) {
-            parentNode.select();
-            parentNode.removeChild(node);
-            node.destroy();
+            // Only update the UI if the response indicates success
+            if (Zenoss.util.isSuccessful(response)) {
+                parentNode.select();
+                parentNode.removeChild(node);
+                node.destroy();
+            }
         }
         // all hierarchytreepanel's have an invisible root node with depth of 0
         if (node.getDepth() <= 1) {
