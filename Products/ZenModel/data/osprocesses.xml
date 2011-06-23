@@ -1,14 +1,14 @@
 <?xml version="1.0" encoding="ISO-8859-1" ?>
 
 <!--
-    Zenoss RelationshipManager export completed on 2011-06-02 17:53:34.102836
+    Zenoss RelationshipManager export completed on 2011-06-23 13:52:06.532672
 
     Use ImportRM to import this file.
 
     For more information about Zenoss, go to http://www.zenoss.com
  -->
 
-<objects version="[Zenoss, version 3.1.70]" export_date="2011-06-02 17:53:34.102836" zenoss_server="tweek.local" >
+<objects version="[Zenoss, version 3.1.70]" export_date="2011-06-23 13:52:06.532672" zenoss_server="tintin.local" >
 <object id='/zport/dmd/Processes/Zenoss' module='Products.ZenModel.OSProcessOrganizer' class='OSProcessOrganizer'>
 <property id='zendoc' type='string'>
 Base Zenoss daemons
@@ -112,6 +112,26 @@ False
 </property>
 <property type="text" id="description" mode="w" >
 Gather Windows Event Log messages and convert them to Zenoss events.
+</property>
+<property type="int" id="sequence" mode="w" >
+0
+</property>
+</object>
+<object id='zeneventserver' module='Products.ZenModel.OSProcessClass' class='OSProcessClass'>
+<property id='zendoc' type='string'>
+The Zenoss event processor.
+</property>
+<property type="string" id="name" mode="w" >
+zeneventserver
+</property>
+<property type="string" id="regex" mode="w" >
+.*zeneventserver.*
+</property>
+<property type="boolean" id="ignoreParameters" mode="w" >
+False
+</property>
+<property type="text" id="description" mode="w" >
+The Zenoss event processor.
 </property>
 <property type="int" id="sequence" mode="w" >
 0
