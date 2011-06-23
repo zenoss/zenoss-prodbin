@@ -61,6 +61,15 @@ class IpServiceInfo(ComponentInfo):
     protocol = ProxyProperty('protocol')
     discoveryAgent = ProxyProperty('discoveryAgent')
 
+    def getFailSeverity(self):
+        return self._object.getFailSeverity()
+    def setFailSeverity(self, value):
+        if value is not None:
+            self._object.zFailSeverity = value
+        else:
+            self._object.deleteZenProperty('zFailSeverity')
+    failSeverity = property(getFailSeverity, setFailSeverity)
+
     def getSendString(self):
         return self._object.getSendString()
     def setSendString(self, value):

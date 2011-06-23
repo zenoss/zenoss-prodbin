@@ -31,6 +31,7 @@ FIELDKEYS = (
     'order',
     'group',
     'decimalPrecision',
+    'alwaysEditable',
     'vtype',
     'required'
 )
@@ -120,7 +121,7 @@ class FormBuilder(object):
         """
         Turns a dict representing a field into a config.
         """
-        if item['readonly'] or self.readOnly:
+        if item['readonly'] or self.readOnly and not item['alwaysEditable']:
             if item['xtype']=='checkbox':
                 xtype = 'checkbox'
                 item['disabled'] = True

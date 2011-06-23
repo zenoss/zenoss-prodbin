@@ -134,9 +134,10 @@ class IOSProcessInfo(IComponentInfo):
                                   readonly=True, order=-1)
     description = schema.Text(title=u"Description", group="Overview",
                               readonly=True, order=2)
-    alertOnRestart = schema.Bool(title=u"Alert on Restart", group="Details")
+    alertOnRestart = schema.Bool(title=u"Alert on Restart", group="Details",
+                                 alwaysEditable=True)
     failSeverity = schema.Int(title=u"Fail Severity", xtype="severity",
-                              group="Details")
+                              group="Details", alwaysEditable=True)
 
 
 class IWinServiceInfo(IComponentInfo):
@@ -148,7 +149,7 @@ class IWinServiceInfo(IComponentInfo):
     caption = schema.TextLine(title=u"Caption", group="Overview")
     command = schema.TextLine(title=u"Command", group="Overview")
     failSeverity = schema.Int(title=u"Fail Severity", xtype="severity",
-                              group="Details")
+                              group="Details", alwaysEditable=True)
     serviceType = schema.TextLine(title=u"Service Type", group="Details")
     startMode = schema.TextLine(title=u"Start Mode", group="Details")
     startName = schema.TextLine(title=u"Start Name", group="Details")
@@ -169,6 +170,8 @@ class IIpServiceInfo(IComponentInfo):
                              vocabulary="serviceIpAddresses",
                              group="Overview")
     discoveryAgent = schema.TextLine(title=u"Discovery Agent", group="Details")
+    failSeverity = schema.Int(title=u"Fail Severity", xtype="severity",
+                              group="Details", alwaysEditable=True)
     sendString = schema.Text(title=u"Send String", group="Details")
     expectRegex = schema.TextLine(title=u"Expect Regex", group="Details")
 
