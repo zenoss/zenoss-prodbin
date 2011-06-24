@@ -227,3 +227,4 @@ import rebuildPathIndex
 import deleteNotificationSchedulesReport
 import ipSearchCatalogUpdate
 import removeEventMenus
+import fixPerfFilesystemTransform

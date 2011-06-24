@@ -1,14 +1,14 @@
 <?xml version="1.0" encoding="ISO-8859-1" ?>
 
 <!--
-    Zenoss RelationshipManager export completed on 2011-06-23 13:51:56.662684
+    Zenoss RelationshipManager export completed on 2011-06-24 14:46:40.586972
 
     Use ImportRM to import this file.
 
     For more information about Zenoss, go to http://www.zenoss.com
  -->
 
-<objects version="[Zenoss, version 3.1.70]" export_date="2011-06-23 13:51:56.662684" zenoss_server="tintin.local" >
+<objects version="[Zenoss, version 3.1.70]" export_date="2011-06-24 14:46:40.586972" zenoss_server="iansmbp.mcbrocken.loc" >
 <object id='/zport/dmd/Events' module='Products.ZenEvents.EventClass' class='EventClass'>
 <property visible="True" type="lines" id="zEventClearClasses" >
 []
@@ -5213,15 +5213,19 @@ if device and evt.eventKey:
         else:
             continue
 
-        # Calculate the used percent and amount free.
-        usedBlocks = float(m.groups()[0])
-        p = (usedBytes / totalBytes) * 100
-        from Products.ZenUtils.Utils import convToUnits
-        free = convToUnits(totalBytes - usedBytes)
+        try:
+            # Calculate the used percent and amount free.
+            usedBlocks = float(m.groups()[0])
+            p = (usedBytes / totalBytes) * 100
+            from Products.ZenUtils.Utils import convToUnits
+            free = convToUnits(totalBytes - usedBytes)
+            # Make a nicer summary
+            evt.summary = "disk space threshold: %3.1f%% used (%s free)" % (p, free)
+            evt.message = evt.summary
+        except ZeroDivisionError, e:
+            # Total size hasn't been calculated
+            pass
 
-        # Make a nicer summary
-        evt.summary = "disk space threshold: %3.1f%% used (%s free)" % (p, free)
-        evt.message = evt.summary
         break
 </property>
 <property type="text" id="transform" mode="w" >
@@ -5247,15 +5251,19 @@ if device and evt.eventKey:
         else:
             continue
 
-        # Calculate the used percent and amount free.
-        usedBlocks = float(m.groups()[0])
-        p = (usedBytes / totalBytes) * 100
-        from Products.ZenUtils.Utils import convToUnits
-        free = convToUnits(totalBytes - usedBytes)
+        try:
+            # Calculate the used percent and amount free.
+            usedBlocks = float(m.groups()[0])
+            p = (usedBytes / totalBytes) * 100
+            from Products.ZenUtils.Utils import convToUnits
+            free = convToUnits(totalBytes - usedBytes)
+            # Make a nicer summary
+            evt.summary = "disk space threshold: %3.1f%% used (%s free)" % (p, free)
+            evt.message = evt.summary
+        except ZeroDivisionError, e:
+            # Total size hasn't been calculated
+            pass
 
-        # Make a nicer summary
-        evt.summary = "disk space threshold: %3.1f%% used (%s free)" % (p, free)
-        evt.message = evt.summary
         break
 </property>
 </object>
