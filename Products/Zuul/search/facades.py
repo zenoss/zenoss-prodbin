@@ -214,7 +214,7 @@ class SearchFacade(ZuulFacade):
 
     def _getSearchResults(self, query,
                           category=None,
-                          resultSorter=DEFAULT_SORTER,
+                          resultSorter=None,
                           filterFn=None,
                           start=0, limit=50, sort="excerpt", dir="ASC"
                           ):
@@ -244,10 +244,14 @@ class SearchFacade(ZuulFacade):
                 results.extend( providerResults )
         total = len(results)
         # paginate the results
-        if limit:
-            results = sorted(results, key=lambda row: getattr(row, sort, None), reverse=reverse)[start:limit+start]
+        if resultSorter:
+            results =  resultSorter.limitSort( results )
         else:
-            results = sorted(results, key=lambda row: getattr(row, sort, None), reverse=reverse)
+            if limit:
+                results = sorted(results, key=lambda row: getattr(row, sort, None), reverse=reverse)[start:limit+start]
+            else:
+                results = sorted(results, key=lambda row: getattr(row, sort, None), reverse=reverse)
+
         return dict(total=total, results=results)
 
     def getCategoryCounts(self, query, filterFn=None):

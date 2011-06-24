@@ -28,13 +28,13 @@ search_results = None
 class DummyFacade(object):
     implements( ISearchFacade )
     adapts( DataRoot )
-    
+
     def __init__(self,dmd):
         pass
 
     def getQuickSearchResults( self, query, maxResults=None,
                           maxResultsPerCategory=None ):
-        return search_results
+        return dict(results=search_results)
 
     def getSearchResults(self, query):
         return search_results
@@ -69,7 +69,7 @@ def _createDummyResult( index, popout ):
         'icon%s' % index,
         popout
         )
-        
+
 def _createJSONInfo( index, popout ):
     return {'category': 'cat%s' % index,
             'content': 'icon%s' % index + 'exc%s' % index,
@@ -77,7 +77,7 @@ def _createJSONInfo( index, popout ):
             'popout': popout }
 
 class TestSearchRouter(BaseTestCase):
-    
+
     def setUp(self):
         global search_results
         BaseTestCase.setUp(self)
@@ -102,6 +102,7 @@ class TestSearchRouter(BaseTestCase):
             ]
         router = SearchRouter(self.dmd)
         varResults = router.getLiveResults( 'query' )
+
         self.assertEquals( {'results':
                             [_createJSONInfo(1, True)] },
                            varResults )
@@ -114,7 +115,7 @@ class TestSearchRouter(BaseTestCase):
         self.assertEquals( {'results':
                             [ _createJSONInfo(y, False) for y in range(1,8)]},
                            varResults )
-        
+
 
 def test_suite():
     from unittest import TestSuite, makeSuite
