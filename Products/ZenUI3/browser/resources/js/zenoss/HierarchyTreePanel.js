@@ -304,12 +304,15 @@ Zenoss.HierarchyTreePanel = Ext.extend(Ext.tree.TreePanel, {
             _ = bool ? mask.show() : [mask.hide(), mask.disable()];
     },
     initEvents: function() {
+        var me = this;
+        
         Zenoss.HierarchyTreePanel.superclass.initEvents.call(this);
+        
         if (this.selectRootOnLoad && !Ext.History.getToken()) {
             this.getRootNode().on('expand', function() {
                 // The first child is our real root
                 if ( this.getRootNode().firstChild ) {
-                    this.getRootNode().firstChild.select();
+                    me.addHistoryToken(this.getRootNode().firstChild);
                 }
             }, this);
         }
