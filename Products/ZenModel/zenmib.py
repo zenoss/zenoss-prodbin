@@ -56,17 +56,13 @@ then executed "inside" the Zope database.
 import os
 import os.path
 import sys
-import glob
 import re
-import logging
 from subprocess import Popen, PIPE
 import tempfile
 import urllib
 import tarfile
 import zipfile
-import signal
-from urllib2 import urlopen
-from urlparse import urljoin, urlsplit
+from urlparse import urlsplit
 
 import Globals
 import transaction
@@ -312,7 +308,6 @@ class MibFile:
         DEPENDENCIES = re.compile(
             r'\sFROM\s+(?P<dependency>[A-Za-z-0-9]+)')
 
-        mibDependencies = []
         for definition in mibDefinitions:
             mibName = re.split(r'([A-Za-z0-9-]+)', definition)[1]
             dependencies = set()
@@ -354,8 +349,7 @@ class PackageManager:
         """
         try:
             localFile = self.download(url)
-        except (SystemExit, KeyboardInterrupt): raise
-        except:
+        except Exception:
              self.log.error("Problems downloading the file from %s: %s" % (
                 url, sys.exc_info()[1] ) )
              return []
@@ -666,20 +660,6 @@ class ZenMib(ZCmdBase):
             of a MIB definition. [ {'mibName': MIB data} ]
         @rtype: list
         """
-        def infiniteLoopHandler(signum, frame):
-            """
-            Kills any smidump commands that have probably locked themselves
-            into an infinite loop.
-            """
-            log.error("The command %s has probably gone into an infinite loop",
-                      ' '.join(dumpCommand))
-            log.error("Killing process id %s ...", proc.pid)
-            try:
-                os.kill(proc.pid, signal.SIGKILL)
-            except OSError:
-                pass
-            
-
         dumpCommand =  ['smidump', '--keep-going', '--format', 'python']
         for dependencyFileName in dependencyFileNames:
             #  Add command-line flag for our dependent files
@@ -693,15 +673,20 @@ class ZenMib(ZCmdBase):
             dumpCommand += mibNamesInFile[:-1]
 
         self.log.debug('Running %s', ' '.join(dumpCommand))
-        proc = Popen(dumpCommand, stdout=PIPE, stderr=PIPE)
+        sys.stdout.flush()
+        proc = Popen(dumpCommand, stdout=PIPE, stderr=PIPE, close_fds=True)
 
-        log = self.log
-        signal.signal(signal.SIGALRM, infiniteLoopHandler)
-        signal.alarm(self.options.smidumptimeout)
-        pythonCode, warnings = proc.communicate()
-        proc.wait()
-        signal.alarm(0) # Disable the alarm
-        if proc.returncode:
+        # If the child process generates enough output to the PIPE,
+        # then proc.wait() blocks waiting for the OS pipe buffer to accept more data
+        # (ie forever).  Poll from time to time to avoid the problem with large MIBs.
+        pythonCode = ''
+        warnings = ''
+        while proc.poll() is None:
+            output, err = proc.communicate()
+            pythonCode += output
+            warnings += err
+
+        if proc.poll() != 0 or proc.returncode:
             if warnings.strip():
                 self.log.error(warnings)
             return None
@@ -1016,8 +1001,7 @@ class ZenMib(ZCmdBase):
             try:
                 if self.loadMibFile(mibFileObj, dmdMibDict):
                     loadedMibFiles += 1
-            except (SystemExit, KeyboardInterrupt): raise
-            except Exception, ex:
+            except Exception:
                 self.log.exception("Failed to load MIB: %s", mibFileObj.fileName)
 
         action = "Loaded"
@@ -1061,10 +1045,6 @@ class ZenMib(ZCmdBase):
             default=tempfile.gettempdir() + "/mib_extract/",
             help="This is the directory where unzipped MIB files will be stored. " \
                 "[ default: %default ]")
-        self.parser.add_option('--smidumptimeout', dest='smidumptimeout',
-                           default=60,
-                           help="Kill smidump after this many seconds to " \
-                                "stop infinite loops.")
         self.parser.add_option('--evalSavedPython', dest='evalSavedPython',
                            default=[], action='append',
                            help="Execute the Python code previously generated" \
