@@ -277,6 +277,14 @@ class EventsRouter(DirectRouter):
     def queryArchive(self, limit=0, start=0, sort='lastTime', dir='desc', params=None, uid=None, detailFormat=False):
         filter = self._buildFilter(uid, params)
 
+        if filter is None:
+            # Don't even bother going to ZEP
+            return DirectResponse.succeed(
+                events = [],
+                totalCount = 0,
+                asof = time.time()
+            )
+
         events = self.zep.getEventSummariesFromArchive(limit=limit, offset=start, sort=self._buildSort(sort,dir),
                                                        filter=filter)
 
@@ -417,8 +425,6 @@ class EventsRouter(DirectRouter):
         @type  uid: string
         @param uid: (optional) Context for the query (default: None)
         """
-
-
         if params:
             log.debug('logging params for building filter: %s', params)
             if isinstance(params, basestring):
@@ -429,6 +435,9 @@ class EventsRouter(DirectRouter):
             # while others are considered event details. Separate the
             # two here.
             params, details = self.zep.parseParameterDetails(params)
+
+            # Verify that all params are valid; if not, return no events.
+            if set(s.lower() for s in params) - set(self.zep.DEFAULT_SORT_MAP):
 
             filterEventUuids = []
             # look up organizer tags
@@ -480,7 +489,7 @@ class EventsRouter(DirectRouter):
                 # see Zuul/security/security.py
                 tags = params.get('tags'),
 
-                details = details
+                details = details if details else None
 
             )
             log.debug('Found params for building filter, ended up building  the following:')
