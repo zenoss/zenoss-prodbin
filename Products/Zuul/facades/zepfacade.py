@@ -10,7 +10,6 @@
 # For complete information please visit: http://www.zenoss.com/oss/
 #
 ###########################################################################
-
 import logging
 import re
 from AccessControl import getSecurityManager
@@ -41,6 +40,13 @@ from functools import partial
 from time import sleep, time
 
 log = logging.getLogger(__name__)
+
+
+class InvalidQueryParameterException(Exception):
+    """
+    Raised when a query is attempted with invalid search criteria.
+    """
+
 
 class ZepFacade(ZuulFacade):
     implements(IZepFacade)
@@ -623,6 +629,14 @@ class ZepFacade(ZuulFacade):
                 details[k] = v
             else:
                 params[k] = v
+
+        # verify parameters against known valid ones
+        # If there's an extra, it either needs to be added or
+        # is an invalid detail that can't be searched.
+        leftovers = set(s.lower() for s in params) - set(self.DEFAULT_SORT_MAP) - set(('tags',))
+        if leftovers:
+            raise InvalidQueryParameterException("Invalid query parameters specified: %s" % ', '.join(leftovers))
+
 
         return params, details
 

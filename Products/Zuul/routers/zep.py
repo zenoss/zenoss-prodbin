@@ -276,7 +276,6 @@ class EventsRouter(DirectRouter):
     @require('ZenCommon')
     def queryArchive(self, limit=0, start=0, sort='lastTime', dir='desc', params=None, uid=None, detailFormat=False):
         filter = self._buildFilter(uid, params)
-
         events = self.zep.getEventSummariesFromArchive(limit=limit, offset=start, sort=self._buildSort(sort,dir),
                                                        filter=filter)
 
@@ -328,7 +327,6 @@ class EventsRouter(DirectRouter):
                                      detailFormat=detailFormat)
 
         filter = self._buildFilter(uid, params)
-
         events = self.zep.getEventSummaries(limit=limit, offset=start, sort=self._buildSort(sort,dir), filter=filter)
         eventFormat = self._mapToOldEvent
         if detailFormat:
