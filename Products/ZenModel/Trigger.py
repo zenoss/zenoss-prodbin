@@ -23,7 +23,10 @@ from Products.ZenRelations.RelSchema import *
 from Products.ZenModel.ZenModelRM import ZenModelRM
 from zope.interface import implements
 from Products.ZenUtils.guid.interfaces import IGloballyIdentifiable
-from Products.ZenUtils.template import Template
+
+
+class InvalidTriggerActionType(Exception): pass
+
 
 def manage_addTriggerManager(context, REQUEST=None):
     """Create the trigger manager."""

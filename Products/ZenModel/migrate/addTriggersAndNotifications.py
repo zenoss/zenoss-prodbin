@@ -13,6 +13,7 @@
 import re
 import Migrate
 import logging
+from Products.ZenModel.Trigger import InvalidTriggerActionType
 from Products.ZenModel.ZenossSecurity import *
 from Products.ZenEvents.WhereClause import toPython
 
@@ -197,7 +198,12 @@ class AddTriggersAndNotifications(Migrate.Step):
                 trigger = self._createTrigger(rule)
                 self._createNotification(rule, trigger)
                 log.info('Done processing rule: %s.' % rule.id)
-            except TriggerRuleSourceError, e:
+            except InvalidTriggerActionType, e:
+                failed = True
+                log.warn(" %s: Successfully migrated rule to Trigger, but was "
+                    "unable to create a Notification - rule has invalid or "
+                    "unknown action type: %s" % (rule.id, rule.action))
+            except TriggerRuleSourceError:
                 failed = True
                 log.warn('Unable to parse existing rule: %s' % rule.id)
 

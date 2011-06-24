@@ -26,7 +26,7 @@ from Products.Zuul.facades import ZuulFacade
 from Products.Zuul.interfaces import IInfo
 from Products.ZenModel.NotificationSubscription import NotificationSubscription
 from Products.ZenModel.NotificationSubscriptionWindow import NotificationSubscriptionWindow
-from Products.ZenModel.Trigger import Trigger
+from Products.ZenModel.Trigger import Trigger, InvalidTriggerActionType
 import zenoss.protocols.protobufs.zep_pb2 as zep
 from zenoss.protocols.jsonformat import to_dict, from_dict
 from Products.ZenUtils.GlobalConfig import getGlobalConfiguration
@@ -359,8 +359,7 @@ class TriggersFacade(ZuulFacade):
         try:
             util = getUtility(IAction, notification.action)
         except ComponentLookupError, e:
-            log.error("Could not find action: %s" % notification.action)
-            raise Exception("Invalid action type specified: %s" % notification.action)
+            raise InvalidTriggerActionType("Invalid action type specified: %s" % notification.action)
         
         fields = {}
         for iface in providedBy(util.getInfo(notification)):
