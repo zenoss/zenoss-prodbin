@@ -58,6 +58,12 @@ class testTransforms(BaseTestCase):
 
     def afterSetUp(self):
         super(testTransforms, self).afterSetUp()
+
+        class MockConnection(object):
+            def sync(self):
+                pass
+        self.dmd._p_jar = MockConnection()
+
         self.zeneventd = ProcessEventMessageTask(self.dmd)
 
     def _processEvent(self, event):
