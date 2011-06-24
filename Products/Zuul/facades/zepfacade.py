@@ -69,6 +69,7 @@ class ZepFacade(ZuulFacade):
         'monitor':     { 'field': EventSort.MONITOR },
         'evid':        { 'field': EventSort.UUID },
         'statechange': { 'field': EventSort.STATUS_CHANGE },
+        'dedupid':     { 'field': EventSort.FINGERPRINT },
     }
 
     SORT_DIRECTIONAL_MAP = {

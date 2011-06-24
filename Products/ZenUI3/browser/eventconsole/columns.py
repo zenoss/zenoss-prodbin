@@ -245,15 +245,15 @@ COLUMN_CONFIG = {
 
     'eventClassKey': dict(
         header='Event Class Key',
-        filter='textfield'),
+        filter=None),
 
     'eventGroup': dict(
         header='Event Group',
-        filter='textfield'),
+        filter=None),
 
     'eventKey'  : dict(
         header='Event Key',
-        filter='textfield'),
+        filter=None),
 
     'agent'     : dict(
         header='Agent',
@@ -303,7 +303,7 @@ COLUMN_CONFIG = {
 
     'message'   : dict(
         header='Message',
-        filter='textfield'),
+        filter=None),
 
     'Location'  : dict(
         header='Location',

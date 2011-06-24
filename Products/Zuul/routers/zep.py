@@ -473,6 +473,7 @@ class EventsRouter(DirectRouter):
                 current_user_name = params.get('ownerid'),
                 agent = params.get('agent'),
                 monitor = params.get('monitor'),
+                fingerprint = params.get('dedupid'),
 
                 # 'tags' comes from managed object guids.
                 # see Zuul/security/security.py
