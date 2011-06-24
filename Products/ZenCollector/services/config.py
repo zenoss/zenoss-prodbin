@@ -69,7 +69,8 @@ class CollectorConfigService(HubService, ThresholdMixin):
         self._prefs = self.dmd.Monitors.Performance._getOb(self.instance)
         self.config = self._prefs # TODO fix me, needed for ThresholdMixin
 
-        # TODO: what's this for?
+        # When about to notify daemons about device changes, wait for a little
+        # bit to batch up operations.
         self._procrastinator = Procrastinate(self._pushConfig)
         self._reconfigProcrastinator = Procrastinate(self._pushReconfigure)
 
