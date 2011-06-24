@@ -55,7 +55,7 @@ class DefaultQuickSearchResultSnippet(object):
     @property
     def popout(self):
         return self._result.popout
-    
+
 
 _MAX_RESULTS_PER_QUERY=100
 _MAX_RESULTS_PER_CATEGORY=10
@@ -82,7 +82,7 @@ class SearchRouter(DirectRouter):
         """
         securityManager = getSecurityManager()
         return securityManager.getUser()._login
-        
+
     def getLiveResults(self, query):
         """
         Returns IQuickSearchResultSnippets for the results of the query.
@@ -91,26 +91,39 @@ class SearchRouter(DirectRouter):
         results = facade.getQuickSearchResults(query,
                                                _RESULT_SORTER)
         snippets = []
-        for result in results:
+
+        for result in results['results']:
             snippet = IQuickSearchResultSnippet( result )
             snippets.append( snippet )
         if snippets:
             self._addAllResultsLink( snippets, query )
 
         return {'results': Zuul.marshal(snippets)}
-    
-    def getAllResults(self, query, **kwargs):
+
+    def getCategoryCounts(self, query):
+        """
+        Given a search term this queries each of the adapters for a
+        list of categories and the counts of the returned results
+        """
+        facade = self._getFacade()
+        results = facade.getCategoryCounts(query)
+        total = sum([result['count'] for result in results])
+        return {'results': results,
+                'total': total}
+
+    def getAllResults(self, query, category="", start=0, limit=50, sort='excerpt',
+                      dir='ASC'):
         """
         Returns ISearchResultSnippets for the results of the query.
         """
         facade = self._getFacade()
-        limits = DefaultSearchResultSorter(maxResultsPerCategory=250)
-        results = facade.getSearchResults(query, limits)
-        #group by category so we get [ 'category', [SearchResults, ...]]
-        results = list(results)
-        groupedResult = itertools.groupby(results, lambda x: x.category)
-        return {'results': Zuul.marshal(groupedResult),
-                'total': len(results)}
+        results = facade.getSearchResults(query, category, resultSorter=None,
+                                          start=start,
+                                          limit=limit,
+                                          sort=sort,
+                                          dir=dir)
+        return {'results': Zuul.marshal(results['results']),
+                'total': results['total']}
 
     def noProvidersPresent(self):
         return self._getFacade().noProvidersPresent()
@@ -123,8 +136,8 @@ class SearchRouter(DirectRouter):
         facade = self._getFacade()
         if facade.noSaveSearchProvidersPresent():
             return DirectResponse.fail(message=_t('Unable to find the specified search'))
-        
-        # look for our search 
+
+        # look for our search
         savedSearch = facade.getSavedSearch(searchName)
         if savedSearch:
             return DirectResponse.succeed(data=Zuul.marshal(savedSearch))
@@ -141,7 +154,7 @@ class SearchRouter(DirectRouter):
         facade = self._getFacade()
         if facade.noSaveSearchProvidersPresent():
             return DirectResponse.succeed()
-        
+
         # save the search
         facade.updateSavedSearch(searchName, queryString)
         return DirectResponse.succeed()
@@ -154,11 +167,11 @@ class SearchRouter(DirectRouter):
         facade = self._getFacade()
         if facade.noSaveSearchProvidersPresent():
             return DirectResponse.succeed()
-        
+
         # save the search
         facade.removeSavedSearch(searchName)
         return DirectResponse.succeed()
-    
+
     def saveSearch(self, queryString, searchName):
         """
         Adds this search to our collection of saved searches
@@ -170,7 +183,7 @@ class SearchRouter(DirectRouter):
             return DirectResponse.succeed()
 
         creator = self._getLoggedinUserId()
-        
+
         # save the search
         facade.saveSearch(queryString, searchName, creator)
         return DirectResponse.succeed()
@@ -183,7 +196,7 @@ class SearchRouter(DirectRouter):
         facade = self._getFacade()
         if facade.noSaveSearchProvidersPresent():
             return DirectResponse.succeed()
-        
+
         data = Zuul.marshal(facade.getSavedSearchesByUser())
         if addManageSavedSearch:
             manageName = '<span id="manage-search-link">%s</span>' % (_t('Manage Saved Searches...'))

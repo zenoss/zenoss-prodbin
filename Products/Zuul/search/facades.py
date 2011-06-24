@@ -89,7 +89,7 @@ class DefaultQueryParser(object):
         ['f', 'g:']
         >>> parser.parse( 'a:b c:d a:e f g:' ).operators
         {'a':['b', 'e'], 'c':['d']}
-        
+
         """
         keywords = []
         operators = {}
@@ -182,7 +182,7 @@ class DefaultSearchResultSorter(object):
 
         return limitedResults
 
-    
+
 DEFAULT_SORTER = DefaultSearchResultSorter()
 
 
@@ -211,9 +211,13 @@ class SearchFacade(ZuulFacade):
         if not utility:
             raise ValueError("No Search Provider Found")
         return utility()()
-                
+
     def _getSearchResults(self, query,
-                          resultSorter=DEFAULT_SORTER):
+                          category=None,
+                          resultSorter=DEFAULT_SORTER,
+                          filterFn=None,
+                          start=0, limit=50, sort="excerpt", dir="ASC"
+                          ):
         """
         The actual implementation of querying each provider.  This consists
         of parsing the query, sending it to the providers, and limiting
@@ -227,22 +231,44 @@ class SearchFacade(ZuulFacade):
         """
         parser = self._getParser()
         parsedQuery = parser.parse( query )
-
+        reverse = dir=='DESC'
         results = []
         for adapter in self._getProviders():
-            # Go ahead and look for maxResults from each provider.  This may
-            # artificially limit the number of results for an individual
-            # category, but most algorithms will do some sort of artificial
-            # limiting unless the queries are performed in concert.
             providerResults = adapter.getSearchResults( parsedQuery,
-                                                        resultSorter )
+                                                        category=category,
+                                                        filterFn=filterFn,
+                                                        sorter=resultSorter
+                                                        )
+
             if providerResults:
                 results.extend( providerResults )
+        total = len(results)
+        # paginate the results
+        if limit:
+            results = sorted(results, key=lambda row: getattr(row, sort, None), reverse=reverse)[start:limit+start]
+        else:
+            results = sorted(results, key=lambda row: getattr(row, sort, None), reverse=reverse)
+        return dict(total=total, results=results)
 
-        # Sort results with limits
-        results = resultSorter.limitSort( results )
-        
-        return results
+    def getCategoryCounts(self, query, filterFn=None):
+        """
+        Query each of the adapters and find out the count of objects
+        returned
+        """
+        parser = self._getParser()
+        parsedQuery = parser.parse(query)
+        results = {}
+        for adapter in self._getProviders():
+            providerResults = adapter.getCategoryCounts(parsedQuery, filterFn)
+            if providerResults:
+                for key, value in providerResults.iteritems():
+                    if value > 0:
+                        results[key] = value
+        # sort the results
+        sortedResults = []
+        for key in sorted(results):
+            sortedResults.append(dict(category=key, count=results[key]))
+        return sortedResults
 
     def updateSavedSearch(self, searchName, queryString):
         """
@@ -260,7 +286,7 @@ class SearchFacade(ZuulFacade):
         """
         provider = self._getSavedSearchProvider()
         provider.removeSearch(searchName)
-        
+
     def saveSearch(self, queryString, searchName, creator):
         """
         Saves the queryString as a saved search identified by
@@ -270,7 +296,7 @@ class SearchFacade(ZuulFacade):
         @param string creator: user id of the person who created this search
         """
         provider = self._getSavedSearchProvider()
-        provider.addSearch(queryString, searchName, creator)        
+        provider.addSearch(queryString, searchName, creator)
 
     def getSavedSearch(self, searchName):
         """
@@ -279,8 +305,11 @@ class SearchFacade(ZuulFacade):
         """
         provider = self._getSavedSearchProvider()
         return provider.getSearch(searchName)
-        
-    def getSearchResults(self, query, resultSorter=DEFAULT_SORTER):
+
+    def getSearchResults(self, query, category,
+                         resultSorter=DEFAULT_SORTER,
+                         start=0, limit=50, filterFn=None, sort="excerpt",
+                         dir="ASC"):
         """
         Execute the query against registered search providers, returning
         full results.
@@ -288,7 +317,13 @@ class SearchFacade(ZuulFacade):
         @param query query string
         @return list of ISearchResult-implementing objects
         """
-        return self._getSearchResults( query, resultSorter=resultSorter )
+        return self._getSearchResults( query, category, resultSorter=resultSorter,
+                                       filterFn=filterFn,
+                                       start=start,
+                                       limit=limit,
+                                       sort=sort,
+                                       dir=dir
+                                       )
 
     def getQuickSearchResults(self, query, resultSorter=DEFAULT_SORTER):
         """
@@ -307,8 +342,8 @@ class SearchFacade(ZuulFacade):
         """
         provider = self._getSavedSearchProvider()
         return provider.getAllSavedSearches()
-            
-                
+
+
     def noProvidersPresent(self):
         """
         Check for existence of search providers
@@ -317,7 +352,7 @@ class SearchFacade(ZuulFacade):
         """
         subscribers = self._getProviders()
         return subscribers is None or len(subscribers) == 0
-    
+
     def noSaveSearchProvidersPresent(self):
         """
         Checks for the existence of a save provider
