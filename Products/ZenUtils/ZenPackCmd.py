@@ -14,6 +14,7 @@
 __doc__ = "Manage ZenPacks"
 
 import Globals
+from ZODB.transact import transact
 from Products.ZenUtils.ZenScriptBase import ZenScriptBase
 from Products.ZenUtils.Utils import cleanupSkins, zenPath, binPath, getObjByPath
 
@@ -328,150 +329,153 @@ def InstallEgg(dmd, eggPath, link=False):
 #     return zpNames
 
 
-def InstallDistAsZenPack(dmd, dist, eggPath, link=False, filesOnly=False, 
+def InstallDistAsZenPack(dmd, dist, eggPath, link=False, filesOnly=False,
                          previousVersion=None, forceRunExternal=False):
     """
     Given an installed dist, install it into Zenoss as a ZenPack.
     Return the ZenPack instance.
     """
-    # Instantiate ZenPack
-    entryMap = pkg_resources.get_entry_map(dist, ZENPACK_ENTRY_POINT)
-    if not entryMap or len(entryMap) > 1:
-        raise ZenPackException('A ZenPack egg must contain exactly one'
-                ' zenoss.zenpacks entry point.  This egg appears to contain'
-                ' %s such entry points.' % len(entryMap))
-    packName, packEntry = entryMap.items()[0]
-    zenPack = None;
-    runExternalZenpack = True
-    #if zenpack with same name exists we can't load both modules
-    #installing new egg zenpack will be done in a sub process
-    existing = dmd.ZenPackManager.packs._getOb(packName, None)
-    if existing:
-        log.info("Previous ZenPack exists with same name %s" % packName)
-    if filesOnly or not existing:
-        #running files only or zenpack by same name doesn't already exists
-        # so no need to install the zenpack in an external process
-        runExternalZenpack = False
-        module = packEntry.load()
-        if hasattr(module, 'ZenPack'):
-            zenPack = module.ZenPack(packName)
-        else:
-            zenPack = ZenPack(packName)
-        zenPack.eggPack = True
-        CopyMetaDataToZenPackObject(dist, zenPack)
-        if filesOnly:
-            for loader in (ZPL.ZPLDaemons(), ZPL.ZPLBin(), ZPL.ZPLLibExec()):
-                loader.load(zenPack, None)
-    
-        
-    if not filesOnly:
-        # Look for an installed ZenPack to be upgraded.  In this case
-        # upgraded means that it is removed before the new one is installed
-        # but that its objects are not removed and the packables are
-        # copied to the new instance.
+    @transact
+    def transactional_actions():
+        # Instantiate ZenPack
+        entryMap = pkg_resources.get_entry_map(dist, ZENPACK_ENTRY_POINT)
+        if not entryMap or len(entryMap) > 1:
+            raise ZenPackException('A ZenPack egg must contain exactly one'
+                    ' zenoss.zenpacks entry point.  This egg appears to contain'
+                    ' %s such entry points.' % len(entryMap))
+        packName, packEntry = entryMap.items()[0]
+        runExternalZenpack = True
+        #if zenpack with same name exists we can't load both modules
+        #installing new egg zenpack will be done in a sub process
         existing = dmd.ZenPackManager.packs._getOb(packName, None)
-        if not existing and zenPack.prevZenPackName:
-            existing = dmd.ZenPackManager.packs._getOb(
-                                zenPack.prevZenPackName, None)
-        
-        deferFileDeletion = False
-        packables = []
-        upgradingFrom = None
         if existing:
-            upgradingFrom = existing.version
-            for p in existing.packables():
-                packables.append(p)
-                existing.packables.removeRelation(p)
-            if existing.isEggPack():
-                forceNoFileDeletion = existing.eggPath() == dist.location
-                RemoveZenPack(dmd, existing.id, 
-                                skipDepsCheck=True, leaveObjects=True,
-                                forceNoFileDeletion=forceNoFileDeletion,
-                                uninstallEgg=False)
+            log.info("Previous ZenPack exists with same name %s" % packName)
+        if filesOnly or not existing:
+            #running files only or zenpack by same name doesn't already exists
+            # so no need to install the zenpack in an external process
+            runExternalZenpack = False
+            module = packEntry.load()
+            if hasattr(module, 'ZenPack'):
+                zenPack = module.ZenPack(packName)
             else:
-                # Don't delete files, might still be needed for 
-                # migrate scripts to be run below.
-                deferFileDeletion = True
-                oldzenpack.RemoveZenPack(dmd, existing.id,
-                                skipDepsCheck=True, leaveObjects=True,
-                                deleteFiles=False)
-        if runExternalZenpack or forceRunExternal:
-            log.info("installing zenpack %s; launching process" % packName)
-            cmd = [binPath('zenpack')]
-            if link:
-                cmd += ["--link"]
-            cmd += ["--install", eggPath]
-            if upgradingFrom:
-                cmd += ['--previousversion', upgradingFrom]
-            
-            cmdStr = " ".join(cmd)
-            log.debug("launching sub process command: %s" % cmdStr)
-            p = subprocess.Popen(cmdStr,
-                            shell=True)
-            out, err = p.communicate()
-            p.wait()
-            if p.returncode:
-                raise ZenPackException('Error installing the egg (%s): %s' %
-                                       (p.returncode, err))
-            dmd._p_jar.sync()
-        else:
-            dmd.ZenPackManager.packs._setObject(packName, zenPack)
-            zenPack = dmd.ZenPackManager.packs._getOb(packName)
-            #hack because ZenPack.install is overridden by a lot of zenpacks
-            #so we can't change the signature of install to take the 
-            #previousVerison
-            zenPack.prevZenPackVersion = previousVersion
-            zenPack.install(dmd)
-            zenPack.prevZenPackVersion = None
-                
-        
-        try:
-            zenPack = dmd.ZenPackManager.packs._getOb(packName)
-            for p in packables:
-                pId = p.getPrimaryId()
-                try:
-                    # make sure packable still exists; could be deleted by a
-                    # migrate
-                    getObjByPath(dmd, pId)
-                    log.debug("adding packable relation for id %s", pId)
-                    zenPack.packables.addRelation(p)
-                except (KeyError, zExceptions.NotFound):
-                    log.debug('did not find packable %s',pId)
-        except AttributeError, e:
-            # If this happens in the child process or during the non-upgrade
-            # flow, reraise the exception
-            if not runExternalZenpack:
-                raise
-
-            # This specific error will occur when the version of the ZenPack
-            # being installed subclasses Products.ZenModel.ZenPack, but the
-            # previous version of the ZenPack did not.
-            if str(e) == "'ZenPack' object has no attribute '__of__'":
                 zenPack = ZenPack(packName)
-            else:
-                # This is the signature error of class-loading issues
-                # during zenpack upgrade.  The final state should be okay,
-                # except that modified packables may be lost.
-                message = "There has been an error during the post-" + \
-                          "installation steps for the zenpack %s.  In " + \
-                          "most cases, no further action is required.  If " + \
-                          "issues persist, please reinstall this zenpack."
-                message = message % packName
-                log.warning( message )
-                raise NonCriticalInstallError( message )
+            zenPack.eggPack = True
+            CopyMetaDataToZenPackObject(dist, zenPack)
+            if filesOnly:
+                for loader in (ZPL.ZPLDaemons(), ZPL.ZPLBin(), ZPL.ZPLLibExec()):
+                    loader.load(zenPack, None)
 
-        if deferFileDeletion:
-            # We skipped deleting the existing files from filesystem
-            # because maybe they'd be needed in migrate scripts.
-            # Delete them now
-            oldZpDir = zenPath('Products', existing.id)
-            if os.path.islink(oldZpDir):
-                os.remove(oldZpDir)
-            else:
-                shutil.rmtree(oldZpDir)
 
-    cleanupSkins(dmd)
-    transaction.commit()
+        if not filesOnly:
+            # Look for an installed ZenPack to be upgraded.  In this case
+            # upgraded means that it is removed before the new one is installed
+            # but that its objects are not removed and the packables are
+            # copied to the new instance.
+            existing = dmd.ZenPackManager.packs._getOb(packName, None)
+            if not existing and zenPack.prevZenPackName:
+                existing = dmd.ZenPackManager.packs._getOb(
+                                    zenPack.prevZenPackName, None)
+
+            deferFileDeletion = False
+            packables = []
+            upgradingFrom = None
+            if existing:
+                upgradingFrom = existing.version
+                for p in existing.packables():
+                    packables.append(p)
+                    existing.packables.removeRelation(p)
+                if existing.isEggPack():
+                    forceNoFileDeletion = existing.eggPath() == dist.location
+                    RemoveZenPack(dmd, existing.id,
+                                    skipDepsCheck=True, leaveObjects=True,
+                                    forceNoFileDeletion=forceNoFileDeletion,
+                                    uninstallEgg=False)
+                else:
+                    # Don't delete files, might still be needed for
+                    # migrate scripts to be run below.
+                    deferFileDeletion = True
+                    oldzenpack.RemoveZenPack(dmd, existing.id,
+                                    skipDepsCheck=True, leaveObjects=True,
+                                    deleteFiles=False)
+            if runExternalZenpack or forceRunExternal:
+                log.info("installing zenpack %s; launching process" % packName)
+                cmd = [binPath('zenpack')]
+                if link:
+                    cmd += ["--link"]
+                cmd += ["--install", eggPath]
+                if upgradingFrom:
+                    cmd += ['--previousversion', upgradingFrom]
+
+                cmdStr = " ".join(cmd)
+                log.debug("launching sub process command: %s" % cmdStr)
+                p = subprocess.Popen(cmdStr,
+                                shell=True)
+                out, err = p.communicate()
+                p.wait()
+                if p.returncode:
+                    raise ZenPackException('Error installing the egg (%s): %s' %
+                                           (p.returncode, err))
+                dmd._p_jar.sync()
+            else:
+                dmd.ZenPackManager.packs._setObject(packName, zenPack)
+                zenPack = dmd.ZenPackManager.packs._getOb(packName)
+                #hack because ZenPack.install is overridden by a lot of zenpacks
+                #so we can't change the signature of install to take the
+                #previousVerison
+                zenPack.prevZenPackVersion = previousVersion
+                zenPack.install(dmd)
+                zenPack.prevZenPackVersion = None
+
+            try:
+                zenPack = dmd.ZenPackManager.packs._getOb(packName)
+                for p in packables:
+                    pId = p.getPrimaryId()
+                    try:
+                        # make sure packable still exists; could be deleted by a
+                        # migrate
+                        getObjByPath(dmd, pId)
+                        log.debug("adding packable relation for id %s", pId)
+                        zenPack.packables.addRelation(p)
+                    except (KeyError, zExceptions.NotFound):
+                        log.debug('did not find packable %s',pId)
+            except AttributeError, e:
+                # If this happens in the child process or during the non-upgrade
+                # flow, reraise the exception
+                if not runExternalZenpack:
+                    raise
+
+                # This specific error will occur when the version of the ZenPack
+                # being installed subclasses Products.ZenModel.ZenPack, but the
+                # previous version of the ZenPack did not.
+                if str(e) == "'ZenPack' object has no attribute '__of__'":
+                    zenPack = ZenPack(packName)
+                else:
+                    # This is the signature error of class-loading issues
+                    # during zenpack upgrade.  The final state should be okay,
+                    # except that modified packables may be lost.
+                    message = "There has been an error during the post-" + \
+                              "installation steps for the zenpack %s.  In " + \
+                              "most cases, no further action is required.  If " + \
+                              "issues persist, please reinstall this zenpack."
+                    message = message % packName
+                    log.warning( message )
+                    raise NonCriticalInstallError( message )
+
+            cleanupSkins(dmd)
+            return zenPack, deferFileDeletion, existing
+
+    zenPack, deferFileDeletion, existing = transactional_actions()
+
+    if not filesOnly and deferFileDeletion:
+        # We skipped deleting the existing files from filesystem
+        # because maybe they'd be needed in migrate scripts.
+        # Delete them now
+        oldZpDir = zenPath('Products', existing.id)
+        if os.path.islink(oldZpDir):
+            os.remove(oldZpDir)
+        else:
+            shutil.rmtree(oldZpDir)
+
     return zenPack
 
 
