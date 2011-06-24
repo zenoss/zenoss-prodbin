@@ -148,7 +148,7 @@ if opts.input_file:
 
 evt = {}
 if opts.severity.lower() in sevconvert:
-    evt['severity'] = sevconvert[opts.severity]
+    evt['severity'] = sevconvert[opts.severity.lower()]
 else:
     parser.error('Unknown severity')
 evt['summary'] = " ".join(args)
