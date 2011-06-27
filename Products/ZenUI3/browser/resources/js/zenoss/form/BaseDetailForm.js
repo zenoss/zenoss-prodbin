@@ -93,8 +93,8 @@ ZF.BaseDetailForm = Ext.extend(Ext.form.FormPanel, {
         });
         var hasPermission = function() {
             var perm = !Zenoss.Security.doesNotHavePermission(config.permission);
-            if (Ext.isDefined(config.userCreated)) {
-                return config.userCreated && perm;
+            if (Ext.isDefined(config.userCanModify)) {
+                return config.userCanModify && perm;
             } else {
                 return perm;
             }
@@ -126,8 +126,8 @@ ZF.BaseDetailForm = Ext.extend(Ext.form.FormPanel, {
     },
     hasPermission: function() {
         var perm = !Zenoss.Security.doesNotHavePermission(this.permission);
-        if (Ext.isDefined(this.userCreated)) {
-            return this.userCreated && perm;
+        if (Ext.isDefined(this.userCanModify)) {
+            return this.userCanModify && perm;
         } else {
             return perm;
         }

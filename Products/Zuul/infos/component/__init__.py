@@ -69,14 +69,14 @@ class ComponentFormBuilder(FormBuilder):
         ob = self.context._object
 
         # find out if we can edit this form
-        userCreated = False
+        readOnly = True
         if hasattr(ob, 'isUserCreated'):
-            userCreated = ob.isUserCreated()
+            readOnly = not ob.isUserCreated()
 
         # construct the form
         form = super(ComponentFormBuilder, self).render(fieldsets,
-                                                        readOnly=not userCreated)
-        form['userCreated'] = userCreated
+                                                        readOnly=readOnly)
+        form['userCanModify'] = not readOnly or self.hasAlwaysEditableField
         return form
 
 

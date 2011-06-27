@@ -44,6 +44,7 @@ class FormBuilder(object):
     def __init__(self, context):
         self.context = context
         self.readOnly = False
+        self.hasAlwaysEditableField = False
 
     def vocabulary(self, field):
         vocabulary = field.vocabulary
@@ -121,6 +122,9 @@ class FormBuilder(object):
         """
         Turns a dict representing a field into a config.
         """
+        if item['alwaysEditable']:
+            self.hasAlwaysEditableField = True
+
         if item['readonly'] or self.readOnly and not item['alwaysEditable']:
             if item['xtype']=='checkbox':
                 xtype = 'checkbox'
