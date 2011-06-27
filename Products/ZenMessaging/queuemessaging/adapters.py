@@ -208,7 +208,9 @@ class EventProtobufSeverityMapper(EventProtobufMapper):
     }
 
     def mapEvent(self, proto, value):
-        proto.severity = self.SEVERITIES[str(value).upper()]
+        severity = str(value).upper()
+        proto.severity = self.SEVERITIES.get(severity, 
+             eventConstants.SEVERITY_INFO)
 
 class EventProtobufIntMapper(EventProtobufMapper):
     """
