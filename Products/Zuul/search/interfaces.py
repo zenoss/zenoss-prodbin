@@ -47,8 +47,8 @@ class ISearchProvider(Interface):
         IParsedQuery.
         """
 
-    def getQuickSearchResults(parsedQuery, category=None, countOnly=False,
-                         sorter=None, unrestricted=False, filterFn=None):
+    def getQuickSearchResults(parsedQuery, sorter=None, countOnly=False,
+                         category=None, unrestricted=False, filterFn=None):
         """
         Returns a list of ISearchResult objects based on the given
         IParsedQuery.  These ISearchResults may be only partially filled
