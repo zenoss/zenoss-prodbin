@@ -1308,6 +1308,7 @@ class DeviceRouter(TreeRouter):
     def addDevice(self, deviceName, deviceClass, title=None,
                   snmpCommunity="", snmpPort=161,
                   model=False, collector='localhost',  rackSlot=0,
+                  locationPath="", systemPaths=[], groupPaths=[],
                   productionState=1000, comments="", hwManufacturer="",
                   hwProductName="", osManufacturer="", osProductName="",
                   priority=3, tag="", serialNumber=""):
@@ -1325,6 +1326,12 @@ class DeviceRouter(TreeRouter):
                               this device. (default: '')
         @type  snmpPort: integer
         @param snmpPort: (optional) SNMP port on new device (default: 161)
+        @type  locationPath: string
+        @param locationPath: (optional) Organizer path of the location for this device
+        @type  systemPaths: List (strings)
+        @param systemPaths: (optional) List of organizer paths for the device
+        @type  groupPaths: List (strings)
+        @param groupPaths: (optional) List of organizer paths for the device
         @type  model: boolean
         @param model: (optional) True to model device at add time (default: False)
         @type  collector: string
@@ -1366,6 +1373,10 @@ class DeviceRouter(TreeRouter):
         if device:
             return DirectResponse.fail(deviceUid=device.getPrimaryId(),
                                        msg="Device %s already exists. <a href='%s'>Go to the device</a>" % (deviceName, device.getPrimaryId()))
+        if isinstance(systemPaths, basestring):
+            systemPaths = [systemPaths]
+        if isinstance(groupPaths, basestring):
+            groupPaths = [groupPaths]
 
         jobStatus = self._getFacade().addDevice(deviceName,
                                                deviceClass,
@@ -1383,7 +1394,11 @@ class DeviceRouter(TreeRouter):
                                                osProductName,
                                                priority,
                                                tag,
-                                               serialNumber)
+                                               serialNumber,
+                                                locationPath,
+                                                systemPaths,
+                                                groupPaths
+                                                )
         return DirectResponse.succeed(jobId=jobStatus.id)
 
     @require('Manage Device')

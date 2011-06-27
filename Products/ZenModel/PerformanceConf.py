@@ -36,7 +36,7 @@ except ImportError:
     def urlsafe_b64encode(s):
         """
         Encode a string so that it's okay to be used in an URL
-        
+
         @param s: possibly unsafe string passed in by the user
         @type s: string
         @return: sanitized, url-safe version of the string
@@ -59,7 +59,7 @@ from Globals import DTMLFile
 from Globals import InitializeClass
 from Monitor import Monitor
 from Products.PythonScripts.standard import url_quote
-from Products.Jobber.jobs import ShellCommandJob 
+from Products.Jobber.jobs import ShellCommandJob
 from Products.ZenModel.ZenossSecurity import *
 from Products.ZenRelations.RelSchema import *
 from Products.ZenUtils.Utils import basicAuthUrl, zenPath, binPath
@@ -79,7 +79,7 @@ PERF_ROOT = None
 def performancePath(target):
     """
     Return the base directory where RRD performance files are kept.
-    
+
     @param target: path to performance file
     @type target: string
     @return: sanitized path to performance file
@@ -96,7 +96,7 @@ def performancePath(target):
 def manage_addPerformanceConf(context, id, title=None, REQUEST=None,):
     """
     Make a device class
-    
+
     @param context: Where you are in the Zope acquisition path
     @type context: Zope context object
     @param id: unique identifier
@@ -200,10 +200,10 @@ class PerformanceConf(Monitor, StatusColor):
 
     # Screen action bindings (and tab definitions)
     factory_type_information = (
-        {   
+        {
             'immediate_view' : 'viewPerformanceConfOverview',
             'actions'        :
-            (   
+            (
                 { 'id'            : 'overview'
                 , 'name'          : 'Overview'
                 , 'action'        : 'viewPerformanceConfOverview'
@@ -240,7 +240,7 @@ class PerformanceConf(Monitor, StatusColor):
         RRA:AVERAGE:0.5:24:600
         RRA:AVERAGE:0.5:288:600
         RRA:MAX:0.5:288:600'''
-        
+
         @return: RRD create command
         @rtype: string
         """
@@ -250,7 +250,7 @@ class PerformanceConf(Monitor, StatusColor):
     def findDevice(self, deviceName):
         """
         Return the object given the name
-        
+
         @param deviceName: Name of a device
         @type deviceName: string
         @return: device corresponding to the name, or None
@@ -264,7 +264,7 @@ class PerformanceConf(Monitor, StatusColor):
     def getNetworkRoot(self, version=None):
         """
         Get the root of the Network object in the DMD
-        
+
         @return: base DMD Network object
         @rtype: Network object
         """
@@ -274,7 +274,7 @@ class PerformanceConf(Monitor, StatusColor):
     def buildGraphUrlFromCommands(self, gopts, drange):
         """
         Return an URL for the given graph options and date range
-        
+
         @param gopts: graph options
         @type gopts: string
         @param drange: time range to use
@@ -289,7 +289,7 @@ class PerformanceConf(Monitor, StatusColor):
                 width = o.split('=')[1].strip()
                 continue
             newOpts.append(o)
-        
+
         encodedOpts = urlsafe_b64encode(
             zlib.compress('|'.join(newOpts), 9))
         params = {
@@ -308,7 +308,7 @@ class PerformanceConf(Monitor, StatusColor):
     def performanceGraphUrl(self, context, targetpath, targettype, view, drange):
         """
         Set the full path of the target and send to view
-        
+
         @param context: Where you are in the Zope acquisition path
         @type context: Zope context object
         @param targetpath: device path of performance metric
@@ -331,7 +331,7 @@ class PerformanceConf(Monitor, StatusColor):
     def performanceMGraphUrl(self, context, targetsmap, view, drange):
         """
         Set the full paths for all targts in map and send to view
-        
+
         @param context: Where you are in the Zope acquisition path
         @type context: Zope context object
         @param targetsmap: list of (target, targettype) tuples
@@ -362,7 +362,7 @@ class PerformanceConf(Monitor, StatusColor):
     def renderCustomUrl(self, gopts, drange):
         """
         Return the URL for a list of custom gopts for a graph
-        
+
         @param gopts: graph options
         @type gopts: string
         @param drange: date range
@@ -384,7 +384,7 @@ class PerformanceConf(Monitor, StatusColor):
     def performanceCustomSummary(self, gopts):
         """
         Fill out full path for custom gopts and call to server
-        
+
         @param gopts: graph options
         @type gopts: string
         @return: URL
@@ -406,7 +406,7 @@ class PerformanceConf(Monitor, StatusColor):
     def fetchValues(self, paths, cf, resolution, start, end=""):
         """
         Return values
-        
+
         @param paths: paths to performance metrics
         @type paths: list
         @param cf: RRD CF
@@ -435,7 +435,7 @@ class PerformanceConf(Monitor, StatusColor):
     def currentValues(self, paths):
         """
         Fill out full path and call to server
-        
+
         @param paths: paths to performance metrics
         @type paths: list
         @return: values
@@ -458,7 +458,7 @@ class PerformanceConf(Monitor, StatusColor):
     def _fullPerformancePath(self, gopts):
         """
         Add full path to a list of custom graph options
-        
+
         @param gopts: graph options
         @type gopts: string
         @return: full path + graph options
@@ -480,7 +480,7 @@ class PerformanceConf(Monitor, StatusColor):
     def performanceDeviceList(self, force=True):
         """
         Return a list of URLs that point to our managed devices
-        
+
         @param force: unused
         @type force: boolean
         @return: list of device objects
@@ -499,7 +499,7 @@ class PerformanceConf(Monitor, StatusColor):
     def performanceDataSources(self):
         """
         Return a string that has all the definitions for the performance DS's.
-        
+
         @return: list of Data Sources
         @rtype: string
         """
@@ -523,7 +523,7 @@ class PerformanceConf(Monitor, StatusColor):
     def deleteRRDFiles(self, device, datasource=None, datapoint=None):
         """
         Remove RRD performance data files
-        
+
         @param device: Name of a device or entry in DMD
         @type device: string
         @param datasource: datasource name
@@ -549,7 +549,7 @@ class PerformanceConf(Monitor, StatusColor):
     def setPerformanceMonitor(self, performanceMonitor=None, deviceNames=None, REQUEST=None):
         """
         Provide a method to set performance monitor from any organizer
-        
+
         @param performanceMonitor: DMD object that collects from a device
         @type performanceMonitor: DMD object
         @param deviceNames: list of device names
@@ -587,7 +587,7 @@ class PerformanceConf(Monitor, StatusColor):
     def getPingDevices(self):
         """
         Return devices associated with this monitor configuration.
-        
+
         @return: list of devices for this monitor
         @rtype: list
         """
@@ -599,11 +599,12 @@ class PerformanceConf(Monitor, StatusColor):
         return devices
 
     def addDeviceCreationJob(self, deviceName, devicePath, title=None,
-                             discoverProto="none", 
+                             discoverProto="none",
                              performanceMonitor='localhost',
                              rackSlot=0, productionState=1000, comments="",
                              hwManufacturer="", hwProductName="",
                              osManufacturer="", osProductName="", priority = 3,
+                             locationPath="", systemPaths=[], groupPaths=[],
                              tag="", serialNumber="", zProperties={}):
 
         # Check to see if we got passed in an IPv6 address
@@ -615,7 +616,7 @@ class PerformanceConf(Monitor, StatusColor):
         except ValueError:
             pass
 
-        zendiscCmd = self._getZenDiscCommand(deviceName, devicePath, 
+        zendiscCmd = self._getZenDiscCommand(deviceName, devicePath,
                                              performanceMonitor)
 
         jobStatus = self.dmd.JobManager.addJob(DeviceCreationJob,
@@ -634,16 +635,19 @@ class PerformanceConf(Monitor, StatusColor):
                                         priority=priority,
                                         tag=tag,
                                         serialNumber=serialNumber,
+                                        locationPath=locationPath,
+                                        systemPaths=systemPaths,
+                                        groupPaths=groupPaths,
                                         zProperties=zProperties,
                                         zendiscCmd=zendiscCmd)
         return jobStatus
 
-    def _executeZenDiscCommand(self, deviceName, devicePath= "/Discovered", 
-                               performanceMonitor="localhost", 
+    def _executeZenDiscCommand(self, deviceName, devicePath= "/Discovered",
+                               performanceMonitor="localhost",
                                background=False, REQUEST=None):
         """
         Execute zendisc on the new device and return result
-        
+
         @param deviceName: Name of a device
         @type deviceName: string
         @param devicePath: DMD path to create the new device in
@@ -662,32 +666,32 @@ class PerformanceConf(Monitor, StatusColor):
         if background:
             log.info('queued job: %s', " ".join(zendiscCmd))
             result = self.dmd.JobManager.addJob(ShellCommandJob,
-                                                    zendiscCmd) 
+                                                    zendiscCmd)
         else:
             result = executeCommand(zendiscCmd, REQUEST)
         return result
 
-    def _getZenDiscCommand(self, deviceName, devicePath, 
+    def _getZenDiscCommand(self, deviceName, devicePath,
                            performanceMonitor, REQUEST=None):
 
         zm = binPath('zendisc')
         zendiscCmd = [zm]
         zendiscOptions = ['run', '--now','-d', deviceName,
-                     '--monitor', performanceMonitor, 
+                     '--monitor', performanceMonitor,
                      '--deviceclass', devicePath]
-        if REQUEST: 
+        if REQUEST:
             zendiscOptions.append("--weblog")
         zendiscCmd.extend(zendiscOptions)
         log.info('local zendiscCmd is "%s"' % ' '.join(zendiscCmd))
         return zendiscCmd
-    
+
     def getCollectorCommand(self, command):
         return [binPath(command)]
 
     def executeCollectorCommand(self, command, args, REQUEST=None):
         """
         Executes the collector based daemon command.
-        
+
         @param command: the collector daemon to run, should not include path
         @type command: string
         @param args: list of arguments for the command

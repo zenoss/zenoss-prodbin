@@ -305,7 +305,47 @@ Ext.apply(Zenoss.devices, {
             var grpText = selnode.attributes.text.text;
             var win = new Zenoss.dialog.CloseDialog({
                 width: 800,
+                autoScroll: true,
                 title: _t('Add a Single Device'),
+                addOrganizers: function(response){
+                    if (Ext.isDefined(response.systems)) {
+                        this.systems = Ext.pluck(response.systems, 'name');
+                    }
+
+                    if (Ext.isDefined(response.groups)) {
+                        this.groups = Ext.pluck(response.groups, 'name');
+                    }
+
+                    var panel = Ext.getCmp('add-device-organizer-column');
+                    if (Ext.isDefined(this.systems) && Ext.isDefined(this.groups)) {
+
+                        panel.add([{
+                            xtype: 'multiselect',
+                            fieldLabel: _t('Groups'),
+                            name: 'groupPaths',
+                            width: 200,
+                            store: this.groups,
+                            cls: 'multiselect-form-field'
+                        },{
+                            xtype: 'multiselect',
+                            fieldLabel: _t('Systems'),
+                            name: 'systemPaths',
+                            width: 200,
+                            store: this.systems,
+                            cls: 'multiselect-form-field'
+                        }]);
+                        panel.doLayout();
+                    }
+
+                },
+                listeners: {
+                    show: function(panel) {
+                        if (!Ext.isDefined(this.systems) && !(Ext.isDefined(this.groups))) {
+                            REMOTE.getSystems({}, panel.addOrganizers.createDelegate(panel));
+                            REMOTE.getGroups({}, panel.addOrganizers.createDelegate(panel));
+                        }
+                    }
+                },
                 items: [{
                     xtype: 'form',
                     buttonAlign: 'left',
@@ -488,12 +528,21 @@ Ext.apply(Zenoss.devices, {
                         }, {
                             columnWidth: 0.34,
                             layout: 'form',
+                            id: 'add-device-organizer-column',
                             border: false,
                             items: [{
                                 xtype: 'textarea',
                                 name: 'comments',
                                 width: '200',
-                                fieldLabel: _t('Comments')
+                                fieldLabel: _t('Comments'),
+                                emptyText: _t('None...'),
+                                width: 200
+                            },{
+                                xtype: 'locationdropdown',
+                                name: 'locationPath',
+                                fieldLabel: _t('Location'),
+                                emptyText: _t('None...'),
+                                width: 200
                             }]
                         }]
                     }],
@@ -505,6 +554,13 @@ Ext.apply(Zenoss.devices, {
                         handler: function(b) {
                             var form = b.ownerCt.ownerCt.getForm();
                             var opts = form.getFieldValues();
+                            // adjust the system paths and grouppaths
+                            if (opts.systemPaths) {
+                                opts.systemPaths = opts.systemPaths.split(",");
+                            }
+                            if (opts.groupPaths) {
+                                opts.groupPaths = opts.groupPaths.split(",");
+                            }
                             Zenoss.remote.DeviceRouter.addDevice(opts, function(response) {
                                 if (response.success) {
                                     Zenoss.message.success(_t('Add Device Job submitted. <a href="/zport/dmd/JobManager/jobs/{0}/viewlog">View Job Log</a>'), response.jobId);

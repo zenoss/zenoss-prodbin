@@ -1181,3 +1181,13 @@ it will appear as an empty folder.
 }
 
 .ext-ie .inspector .inspector-header .header-title .info {background:transparent}
+
+
+/** Multi selects **/
+.x-list-body dt {
+    color: #383838;
+}
+
+.multiselect-form-field {
+    margin-bottom: 10px;
+}

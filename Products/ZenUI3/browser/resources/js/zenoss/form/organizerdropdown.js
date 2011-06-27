@@ -26,7 +26,7 @@
     OrganizerDropDown = Ext.extend(Ext.form.ComboBox, {
         constructor: function(config) {
             config = config || {};
-            Ext.apply(config, {
+            Ext.applyIf(config, {
                 xtype: 'combo',
                 name: 'group',
                 store: new Ext.data.DirectStore({
@@ -50,7 +50,7 @@
     SystemDropDown = Ext.extend(OrganizerDropDown, {
         constructor: function(config) {
             config = config || {};
-            Ext.apply(config, {
+            Ext.applyIf(config, {
                 getGroupFn: router.getSystems,
                 getGroupRoot: 'systems'
             });
@@ -62,7 +62,7 @@
     GroupDropDown = Ext.extend(OrganizerDropDown, {
         constructor: function(config) {
             config = config || {};
-            Ext.apply(config, {
+            Ext.applyIf(config, {
                 getGroupFn: router.getGroups,
                 getGroupRoot: 'groups'
             });
@@ -74,7 +74,7 @@
     LocationDropDown = Ext.extend(OrganizerDropDown, {
         constructor: function(config) {
             config = config || {};
-            Ext.apply(config, {
+            Ext.applyIf(config, {
                 getGroupFn: router.getLocations,
                 getGroupRoot: 'locations'
             });
@@ -86,7 +86,7 @@
     DeviceClassDropDown = Ext.extend(OrganizerDropDown, {
         constructor: function(config) {
             config = config || {};
-            Ext.apply(config, {
+            Ext.applyIf(config, {
                 getGroupFn: router.getDeviceClasses,
                 getGroupRoot: 'deviceClasses'
             });

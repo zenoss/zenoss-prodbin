@@ -383,7 +383,9 @@ class DeviceFacade(TreeFacade):
                   snmpPort=161, model=False, collector='localhost',
                   rackSlot=0, productionState=1000, comments="",
                   hwManufacturer="", hwProductName="", osManufacturer="",
-                  osProductName="", priority = 3, tag="", serialNumber=""):
+                  osProductName="", priority = 3, tag="", serialNumber="",
+                  locationPath="", systemPaths=[], groupPaths=[]
+                  ):
         zProps = dict(zSnmpCommunity=snmpCommunity,
                            zSnmpPort=snmpPort)
         model = model and "Auto" or "none"
@@ -403,6 +405,9 @@ class DeviceFacade(TreeFacade):
                                                priority=priority,
                                                tag=tag,
                                                serialNumber=serialNumber,
+                                               locationPath=locationPath,
+                                               systemPaths=systemPaths,
+                                               groupPaths=groupPaths,
                                                title=title)
         return jobStatus
 
