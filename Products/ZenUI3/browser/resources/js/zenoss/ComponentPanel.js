@@ -27,6 +27,10 @@ ZC.displayName = function(meta_type) {
     return NM[meta_type] || [meta_type, meta_type];
 }
 
+ZC.displayNames = function() {
+    return NM;
+}
+
 function componentColumnDefinitions() {
     var defs = Zenoss.env.COLUMN_DEFINITIONS,
         bad = ['component', 'device'];
