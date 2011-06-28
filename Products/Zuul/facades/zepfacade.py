@@ -60,8 +60,8 @@ class ZepFacade(ZuulFacade):
         'firsttime':   { 'field': EventSort.FIRST_SEEN },
         'lasttime':    { 'field': EventSort.LAST_SEEN },
         'eventclass':  { 'field': EventSort.EVENT_CLASS },
-        'device':      { 'field': EventSort.ELEMENT_IDENTIFIER },
-        'component':   { 'field': EventSort.ELEMENT_SUB_IDENTIFIER },
+        'device':      { 'field': EventSort.ELEMENT_TITLE },
+        'component':   { 'field': EventSort.ELEMENT_SUB_TITLE },
         'count':       { 'field': EventSort.COUNT },
         'summary':     { 'field': EventSort.EVENT_SUMMARY },
         'ownerid':     { 'field': EventSort.CURRENT_USER_NAME },
@@ -95,6 +95,11 @@ class ZepFacade(ZuulFacade):
         self.heartbeatClient = ZepHeartbeatClient(zep_url)
         self._guidManager = IGUIDManager(context.dmd)
 
+    def _create_identifier_filter(self, value):
+        if not isinstance(value, (tuple, list, set)):
+            value = (value,)
+        return map(lambda s:str(s).strip(), value)
+
     def createEventFilter(self,
         severity=(),
         status=(),
@@ -105,7 +110,9 @@ class ZepFacade(ZuulFacade):
         update_time=None,
         count_range=None,
         element_identifier=(),
+        element_title=(),
         element_sub_identifier=(),
+        element_sub_title=(),
         uuid=(),
         event_summary=None,
         tags=(),
@@ -176,15 +183,16 @@ class ZepFacade(ZuulFacade):
                 filter['count_range']['to'] = int(count_to)
 
         if element_identifier:
-            if not isinstance(element_identifier, (tuple, list, set)):
-                element_identifier = (element_identifier,)
-            filter['element_identifier'] = map(lambda s:str(s).strip(), element_identifier)
+            filter['element_identifier'] = self._create_identifier_filter(element_identifier)
+
+        if element_title:
+            filter['element_title'] = self._create_identifier_filter(element_title)
 
         if element_sub_identifier:
-            if not isinstance(element_sub_identifier, (tuple, list, set)):
-                element_sub_identifier = (element_sub_identifier,)
-            filter['element_sub_identifier'] = map(lambda s:str(s).strip(),
-                                                   element_sub_identifier)
+            filter['element_sub_identifier'] = self._create_identifier_filter(element_sub_identifier)
+
+        if element_sub_title:
+            filter['element_sub_title'] = self._create_identifier_filter(element_sub_title)
 
         if fingerprint:
             filter['fingerprint'] = fingerprint

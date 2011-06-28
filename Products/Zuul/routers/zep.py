@@ -187,13 +187,13 @@ class EventsRouter(DirectRouter):
             'eventState' : EventStatus.getPrettyName(event_summary['status']),
             'severity' : eventOccurrence['severity'],
             'device' : {
-                'text': eventActor.get('element_identifier'),
+                'text': eventActor.get('element_title'),
                 'uid': self._getPathFromUuid(eventActor.get('element_uuid')),
                 'url' : self._uuidUrl(eventActor.get('element_uuid')),
                 'uuid' : eventActor.get('element_uuid')
             },
             'component' : {
-                'text': eventActor.get('element_sub_identifier'),
+                'text': eventActor.get('element_sub_title'),
                 'uid': self._getPathFromUuid(eventActor.get('element_sub_uuid')),
                 'url' : self._uuidUrl(eventActor.get('element_sub_uuid')),
                 'uuid' : eventActor.get('element_sub_uuid')
@@ -467,8 +467,8 @@ class EventsRouter(DirectRouter):
                 status_change = params.get('stateChange') and self._timeRange(params.get('stateChange')),
                 uuid = filterEventUuids,
                 count_range = params.get('count'),
-                element_identifier = params.get('device'),
-                element_sub_identifier = params.get('component'),
+                element_title = params.get('device'),
+                element_sub_title = params.get('component'),
                 event_summary = params.get('summary'),
                 current_user_name = params.get('ownerid'),
                 agent = params.get('agent'),
@@ -534,12 +534,12 @@ class EventsRouter(DirectRouter):
         eventData = {
             'evid':event_summary['uuid'],
             'device': eventActor.get('element_identifier'),
-            'device_title': self._getNameFromUuid(eventActor.get('element_uuid')) or eventActor.get('element_identifier'),
+            'device_title': self._getNameFromUuid(eventActor.get('element_uuid')) or eventActor.get('element_title'),
             'device_url':self._uuidUrl(eventActor.get('element_uuid')),
             'ipAddress': eventDetails.get('zenoss.device.ip_address', ''),
             'device_uuid':eventActor.get('element_uuid'),
             'component': eventActor.get('element_sub_identifier'),
-            'component_title':self._getNameFromUuid(eventActor.get('element_sub_uuid')) or eventActor.get('element_sub_identifier'),
+            'component_title':self._getNameFromUuid(eventActor.get('element_sub_uuid')) or eventActor.get('element_sub_title'),
             'component_url':self._uuidUrl(eventActor.get('element_sub_uuid')),
             'component_uuid':eventActor.get('element_sub_uuid'),
             'firstTime':isoDateTimeFromMilli(event_summary['first_seen_time']),

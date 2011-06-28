@@ -36,9 +36,11 @@ class EventField:
     class Actor:
         ELEMENT_TYPE_ID = 'element_type_id'
         ELEMENT_IDENTIFIER = 'element_identifier'
+        ELEMENT_TITLE = 'element_title'
         ELEMENT_UUID = 'element_uuid'
         ELEMENT_SUB_TYPE_ID = 'element_sub_type_id'
         ELEMENT_SUB_IDENTIFIER = 'element_sub_identifier'
+        ELEMENT_SUB_TITLE = 'element_sub_title'
         ELEMENT_SUB_UUID = 'element_sub_uuid'
 
     class Detail:
