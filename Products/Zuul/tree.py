@@ -220,7 +220,7 @@ class CatalogTool(object):
         # Sort to ensure order
         return sorted(brains, key=lambda b:b.getPath())
 
-    def count(self, types=(), path=None):
+    def count(self, types=(), path=None, filterPermissions=True):
         if path is None:
             path = '/'.join(self.context.getPhysicalPath())
 
@@ -235,7 +235,7 @@ class CatalogTool(object):
                     return cache.count(path)
         else:
             # No cache; make one
-            results = self._queryCatalog(types, orderby=None, paths=(path,))
+            results = self._queryCatalog(types, orderby=None, paths=(path,), filterPermissions=filterPermissions)
             # cache the results for 5 seconds
             cache = CountCache(results, path, time.time() + 5)
             caches[path] = caches.get(path, OOBTree())
@@ -243,7 +243,7 @@ class CatalogTool(object):
             return len(results)
 
     def _queryCatalog(self, types=(), orderby=None, reverse=False, paths=(),
-                     depth=None, query=None):
+                     depth=None, query=None, filterPermissions=True):
         qs = []
         if query is not None:
             qs.append(query)
@@ -266,7 +266,8 @@ class CatalogTool(object):
         qs.append(typeq)
 
         # filter based on permissions
-        qs.append(In('allowedRolesAndUsers', allowedRolesAndGroups(self.context)))
+        if filterPermissions:
+            qs.append(In('allowedRolesAndUsers', allowedRolesAndGroups(self.context)))
 
         # Consolidate into one query
         query = And(*qs)
@@ -287,14 +288,14 @@ class CatalogTool(object):
 
     def search(self, types=(), start=0, limit=None, orderby=None,
                reverse=False, paths=(), depth=None, query=None,
-               hashcheck=None):
+               hashcheck=None, filterPermissions=True):
 
         # if orderby is not an index then _queryCatalog, then query results
         # will be unbrained and sorted
         areBrains = orderby in self.catalog._catalog.indexes or orderby is None
         queryOrderby = orderby if areBrains else None
 
-        queryResults = self._queryCatalog(types, queryOrderby, reverse, paths, depth, query)
+        queryResults = self._queryCatalog(types, queryOrderby, reverse, paths, depth, query, filterPermissions)
         totalCount = len(queryResults)
         hash_ = totalCount
         if areBrains or not queryResults:
@@ -357,7 +358,7 @@ class PermissionedCatalogTool(CatalogTool):
         self.catalog = catalog
 
     def _queryCatalog(self, types=(), orderby=None, reverse=False, paths=(),
-                     depth=None, query=None):
+                     depth=None, query=None, filterPermissions=True):
         qs = []
         if query is not None:
             qs.append(query)
@@ -373,7 +374,8 @@ class PermissionedCatalogTool(CatalogTool):
         qs.append(pathq)
 
         # filter based on permissions
-        qs.append(In('allowedRolesAndUsers', allowedRolesAndGroups(self.context)))
+        if filterPermissions:
+            qs.append(In('allowedRolesAndUsers', allowedRolesAndGroups(self.context)))
 
         # Consolidate into one query
         query = And(*qs)

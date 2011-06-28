@@ -45,7 +45,7 @@ class ICatalogTool(Interface):
     """
     def search(types=(), start=0, limit=None, orderby='name',
                reverse=False, paths=(), depth=None, query=None,
-               hashcheck=None):
+               hashcheck=None, filterPermissions=True):
         """
         Build and execute a query against the global catalog.
         """
@@ -58,7 +58,7 @@ class ICatalogTool(Interface):
         Get brains representing parents of C{path} + C{path}. Good for making
         breadcrumbs without waking up all the actual parent objects.
         """
-    def count(types, path):
+    def count(types, path, filterPermissions=True):
         """
         Get the count of children matching C{types} under C{path}.
 

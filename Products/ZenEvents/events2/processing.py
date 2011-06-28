@@ -119,7 +119,8 @@ class Manager(object):
             if catalog:
                 results = ICatalogTool(catalog).search(cls,
                                                        query=Or(Eq('id', id),
-                                                                Eq('name', id)))
+                                                                Eq('name', id)),
+                                                       filterPermissions=False)
 
                 if results.total:
                     return results.results.next().uuid
@@ -173,7 +174,7 @@ class Manager(object):
                       Eq('ipAddress', identifier),
                       Eq('ipAddress', ipAddress))
 
-        results = cat.search(types=Device, query=querySet, limit=1)
+        results = cat.search(types=Device, query=querySet, limit=1, filterPermissions=False)
 
         if results.total:
             return results.results.next().uuid
@@ -182,7 +183,7 @@ class Manager(object):
                           Eq('ipAddress', ipAddress))
 
             # search the components
-            results = cat.search(types=DeviceComponent, query=querySet, limit=1)
+            results = cat.search(types=DeviceComponent, query=querySet, limit=1, filterPermissions=False)
             if results.total:
                 return self.getElementUuid(
                         results.results.next().getObject().device())
