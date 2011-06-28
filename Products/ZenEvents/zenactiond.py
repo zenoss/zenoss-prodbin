@@ -17,9 +17,9 @@ from email.MIMEMultipart import MIMEMultipart
 from email.Utils import formatdate
 from twisted.internet import reactor, defer
 
-from zenoss.protocols.protobufs.zep_pb2 import Signal
+from zenoss.protocols.queueschema import SchemaException
 from zenoss.protocols.amqpconfig import getAMQPConfiguration
-
+from zenoss.protocols import hydrateQueueMessage
 from Products.ZenCollector.utils.maintenance import MaintenanceCycle, maintenanceBuildOptions, QueueHeartbeatSender
 from Products.ZenCollector.utils.workers import ProcessWorkers, workersBuildOptions, exec_worker
 
@@ -110,7 +110,7 @@ class ProcessSignalTask(object):
             return getUtility(IAction, action)
         except ComponentLookupError, e:
             raise ActionMissingException(action)
-    
+
     def processMessage(self, message):
         """
         Handles a queue message, can call "acknowledge" on the Queue Consumer
@@ -122,18 +122,18 @@ class ProcessSignalTask(object):
             log.info("Received MARKER sentinel, exiting message loop")
             self.queueConsumer.acknowledge(message)
             return
-
         try:
-            signal = Signal()
-            signal.ParseFromString(message.content.body)
+            signal = hydrateQueueMessage(message)
             self.processSignal(signal)
             log.info('Done processing signal.')
+        except SchemaException:
+            log.error("Unable to hydrate protobuf %s. " % message.content.body)
+            self.queueConsumer.acknowledge(message)
         except Exception, e:
             log.exception(e)
             # FIXME: Send to an error queue instead of acknowledge.
             log.error('Acknowledging broken message.')
-            #self.queueConsumer.acknowledge(message)
-
+            self.queueConsumer.acknowledge(message)
         else:
             log.info('Acknowledging message. (%s)' % signal.message)
             self.queueConsumer.acknowledge(message)
