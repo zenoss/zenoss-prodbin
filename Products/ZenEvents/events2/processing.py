@@ -356,7 +356,7 @@ class BaseEventIdentifierPlugin(object):
                                 'Could not find element type %s with id %s', type_id
                                 , identifier)
             else:
-                if eventContext.log.isEnabledFor(logging.DEBUG):
+                if log.isEnabledFor(logging.DEBUG):
                     type_id = getattr(actor, type_id_field, None)
                     identifier = getattr(actor, identifier_field, None)
                     uuid = getattr(actor, uuid_field, None)
