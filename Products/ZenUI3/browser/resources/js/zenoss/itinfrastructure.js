@@ -325,14 +325,25 @@ Ext.apply(Zenoss.devices, {
                             name: 'groupPaths',
                             width: 200,
                             store: this.groups,
-                            cls: 'multiselect-form-field'
+                            cls: 'multiselect-form-field',
+                            // there is a bug in the multi select libarary to where
+                            // clientvalidation calls getValue before the control is properly setup.
+                            // The control is set up in OnRender which is not called yet because it is hidden
+                            // until the user presses the "more" link"
+                            // We get around that by creating a dummy view on the multi-selects
+                            view: new Ext.ListView({
+                                columns: [{ header: 'Value', width: 1, dataIndex: "test" }]
+                            })
                         },{
                             xtype: 'multiselect',
                             fieldLabel: _t('Systems'),
                             name: 'systemPaths',
                             width: 200,
                             store: this.systems,
-                            cls: 'multiselect-form-field'
+                            cls: 'multiselect-form-field',
+                            view: new Ext.ListView({
+                                columns: [{ header: 'Value', width: 1, dataIndex: "test" }]
+                            })
                         }]);
                         panel.doLayout();
                     }
