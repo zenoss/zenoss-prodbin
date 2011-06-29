@@ -834,23 +834,18 @@ class EventsRouter(DirectRouter):
         @rtype:   DirectResponse
         """
         try:
-            evid = self.zep.create(summary, severity, device, component, eventClassKey=evclasskey,
-                                   eventClass=evclass, immediate=True)
-            if evid:
-                return DirectResponse.succeed("Created event", evid=evid)
-
-            return DirectResponse.succeed("Queued event")
+            self.zep.create(summary, severity, device, component, eventClassKey=evclasskey,
+                            eventClass=evclass, immediate=True)
+            return DirectResponse.succeed("Created event")
         except NoConsumersException:
             # This occurs if the event is queued but there are no consumers - i.e. zeneventd is not
             # currently running.
-            return DirectResponse.succeed("Queued event")
+            msg = 'Queued event. Check zeneventd status on <a href="/zport/About/zenossInfo">Daemons</a>'
+            return DirectResponse.succeed(msg, sticky=True)
         except PublishException:
             # This occurs if there is a failure publishing the event to the queue.
             log.exception("Failed creating event")
             return DirectResponse.fail("Failed to create event")
-        except ZepConnectionError:
-            log.exception("Failed retrieving event information from ZEP")
-            return DirectResponse.fail("Queued event")
 
     def _convertSeverityToNumber(self, sev):
         return EventSeverity.getNumber(sev)
@@ -881,12 +876,6 @@ class EventsRouter(DirectRouter):
                 'id': 'event_archive_purge_interval_days',
                 'minValue': 1,
                 'name': _t('Delete Archived Events Older Than (days)'),
-                'xtype': 'numberfield',
-                'allowNegative': False,
-                },{
-                'id': 'event_occurrence_purge_interval_days',
-                'minValue': 1,
-                'name': _t('Event Occurrence Purge Interval (days)'),
                 'xtype': 'numberfield',
                 'allowNegative': False,
                 },{
