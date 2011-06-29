@@ -108,6 +108,13 @@ class Step:
     def name(self):
         return self.__class__.__name__
 
+    def log_progress(self, message):
+        if sys.stdout.isatty():
+            sys.stdout.write("\r" + message)
+            sys.stdout.flush()
+        else:
+            log.info(message)
+
 
 class Migration(ZenScriptBase):
     "main driver for migration: walks the steps and performs commit/abort"

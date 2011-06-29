@@ -51,8 +51,10 @@ class RebuildPathIndex(Migrate.Step):
             except (KeyError, zExceptions.NotFound):
                 zport.global_catalog.uncatalog_object(x.getPath())
             if i % 200 == 0:
-                log.info("rate=%.2f/sec count=%d", 200/(time.time()-tstart), i)
+                self.log_progress("rate=%.2f/sec count=%d" %
+                                  (200/(time.time()-tstart), i))
                 tstart=time.time()
+        print
         log.info("Finished total time=%.2f rate=%.2f count=%d",
                 time.time()-starttotal, i/(time.time()-starttotal),i)
         dmd._pathReindexed = True
