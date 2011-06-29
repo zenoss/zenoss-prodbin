@@ -297,6 +297,8 @@ class ZenEventD(ZenDaemon):
                     help='passwd for MySQL object store')
         self.parser.add_option('--mysqldb', dest='mysqldb', default='zodb',
                     help='Name of database for MySQL object store')
+        self.parser.add_option('--mysqlsocket', dest='mysqlsocket', default=None,
+                    help='Name of socket file for MySQL server connection')
         self.parser.add_option('--cacheservers', dest='cacheservers', default="",
                     help='memcached servers to use for object cache (eg. 127.0.0.1:11211)')
         self.parser.add_option('--poll-interval', dest='pollinterval', default=None, type='int',

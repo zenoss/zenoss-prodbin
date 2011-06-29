@@ -66,13 +66,17 @@ class ZCmdBase(ZenDaemon):
         self.options.port = self.options.port or 3306
         from relstorage.storage import RelStorage
         from relstorage.adapters.mysql import MySQLAdapter
-        adapter = MySQLAdapter(
-            host=self.options.host,
-            port=self.options.port,
-            user=self.options.mysqluser,
-            passwd=self.options.mysqlpasswd,
-            db=self.options.mysqldb
-        )
+        connectionParams = {
+            'host' : self.options.host,
+            'port' : self.options.port,
+            'user' : self.options.mysqluser,
+            'passwd' : self.options.mysqlpasswd,
+            'db' : self.options.mysqldb,
+        }
+        if getattr(self.options, 'mysqlsocket', None) and self.options.mysqlsocket != 'None':
+            connectionParams['unix_socket'] = self.options.mysqlsocket
+
+        adapter = MySQLAdapter(**connectionParams)
         kwargs = {}
         if self.options.cacheservers:
             kwargs['cache_servers'] = self.options.cacheservers
@@ -202,6 +206,8 @@ class ZCmdBase(ZenDaemon):
                     help='passwd for MySQL object store')
         self.parser.add_option('--mysqldb', dest='mysqldb', default='zodb',
                     help='Name of database for MySQL object store')
+        self.parser.add_option('--mysqlsocket', dest='mysqlsocket', default=None,
+                    help='Name of socket file for MySQL server connection')
         self.parser.add_option('--cacheservers', dest='cacheservers', default="",
                     help='memcached servers to use for object cache (eg. 127.0.0.1:11211)')
         self.parser.add_option('--poll-interval', dest='pollinterval', default=None, type='int',

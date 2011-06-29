@@ -293,7 +293,9 @@ class CmdBase(object):
                         lines.append(dict(type='comment', line=line))
                     else:
                         try:
-                            key, value = line.strip().split(None, 1)
+                            # add default blank string for keys with no default value
+                            # valid delimiters are space, ':' and/or '=' (see ZenUtils/config.py)
+                            key, value = (re.split(r'[\s:=]+', line.strip(), 1) + ['',])[:2]
                         except ValueError:
                             lines.append(dict(type='option', line=line, key=line.strip(), value=None, option=None))
                         else:
