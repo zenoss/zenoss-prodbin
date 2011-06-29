@@ -188,7 +188,6 @@ def convertFromZeoToMySql():
     print "-"*79
     p = Popen([zenPath("bin", "python"), zenPath("bin", "zodbconvert"), "--dry-run", fn], stdout=PIPE, stderr=PIPE)
     stdout, stderr = p.communicate()
-    print stdout, stderr
     totaltxs = int(stdout.splitlines()[-1].split()[2])
     print "%d transactions to be copied." % totaltxs
     print
@@ -210,7 +209,7 @@ def convertFromZeoToMySql():
     print "Loading current ZODB into MySQL. This may take some time..."
     print "-"*79
     from relstorage import zodbconvert
-    zodbconvert.main([None, '--clear', fn])
+    zodbconvert.main([None, '--clear', fn], _print_sane_output)
     os.unlink(fn)
     print
 
@@ -293,6 +292,11 @@ def removeZeoctlFromStartup():
                 f.write(line)
     except IOError:
         pass
+
+
+def _print_sane_output(msg):
+    if 'description' not in msg:
+        sys.stdout.write(msg)
 
 
 if __name__ == '__main__':
