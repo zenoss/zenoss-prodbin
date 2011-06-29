@@ -592,8 +592,6 @@ Ext.apply(Zenoss.devices, {
         id: 'addmultipledevices-item',
         permission: 'Manage Device',
         handler: function(btn, e){
-            Ext.util.Cookies.set('newui', 'yes');
-
             window.open('/zport/dmd/easyAddDevice', "multi_add",
             "menubar=0,toolbar=0,resizable=0,height=580, width=800,location=0");
         }
@@ -932,7 +930,6 @@ Zenoss.InfraDetailNav = Ext.extend(Zenoss.DetailNavPanel, {
                     if (!excluded[navConfig.id]){
                         var config = detailNavPanel.panelConfigMap[navConfig.id];
                         if(config && !Ext.getCmp(config.id)){
-                            Ext.applyIf(config, {refreshOnContextChange: true});
 
                             //create the panel in the center panel if needed
                             var detail_panel = Ext.getCmp('detail_panel');

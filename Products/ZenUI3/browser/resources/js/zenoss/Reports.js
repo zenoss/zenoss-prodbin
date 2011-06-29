@@ -167,7 +167,9 @@ treesm = new Ext.tree.DefaultSelectionModel({
                 return;
             }
             var attrs = newnode.attributes;
-            report_panel.setContext(attrs.leaf ? attrs.uid + '?adapt=false' : '');
+            report_panel.setContext(attrs.leaf
+                    ? Ext.urlAppend(attrs.uid, 'adapt=false')
+                    : '');
             Ext.getCmp('add-organizer-button').setDisabled(attrs.leaf);
             Ext.getCmp('add-to-zenpack-button').setDisabled(attrs.leaf);
             Ext.getCmp('edit-button').setDisabled(!attrs.edit_url);
@@ -194,12 +196,7 @@ report_tree = new Zenoss.ReportTreePanel({
     },
     selModel: treesm,
     listeners: {
-        render: initializeTreeDrop,
-        click: function (node, e) {
-            if (node.attributes.leaf) {
-                report_panel.setContext(node.attributes.uid + '?adapt=false');
-            }
-        }
+        render: initializeTreeDrop
     },
     dropConfig: { appendOnly: true }
 });

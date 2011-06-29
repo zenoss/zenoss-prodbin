@@ -102,27 +102,13 @@
     <tal:block metal:use-macro="here/dialogmacros/macros/dialog_with_buttons"/>
     <tal:block metal:define-slot="frameSlot">
         <div id="frame">
-            <tal:block tal:condition="not:exists:request/cookies/newui">
-            <div  metal:use-macro="here/templates/macros/topPane"/>
-            <div id="infoBar">
-                <div id="leftPaneToggle"></div>
-                <div metal:define-slot="breadcrumbs" id="breadCrumbPane">
-                   <span metal:use-macro="here/miscmacros/macros/breadCrumbs" />
+            <tal:block metal:define-slot="rightPane">
+                <div id="contentPane">
+                    <tal:block metal:define-slot="contentPane">
+                        CONTENT GOES HERE
+                    </tal:block>
                 </div>
-            </div>
-            <tal:block metal:use-macro="
-                here/maintemplate-extras/macros/panetoggle"/>
-            <div metal:use-macro="here/leftPane/macros/leftPane"/>
             </tal:block>
-            <div tal:omit-tag="exists:request/cookies/newui" id="rightPane">
-                <tal:block metal:define-slot="rightPane">
-                    <div id="contentPane">
-                        <tal:block metal:define-slot="contentPane">
-                            CONTENT GOES HERE
-                        </tal:block>
-                    </div>
-                </tal:block>
-            </div>
        </div>
     </tal:block>
     </body>
@@ -233,15 +219,13 @@
             <div metal:define-slot="breadcrumbs" id="breadCrumbPane">
                <span metal:use-macro="here/miscmacros/macros/breadCrumbs" />
             </div>
-            <div tal:omit-tag="exists:request/cookies/newui" id="rightPane">
-                <tal:block metal:define-slot="rightPane">
-                    <div id="contentPane">
-                        <tal:block metal:define-slot="contentPane">
-                            CONTENT GOES HERE
-                        </tal:block>
-                    </div>
-                </tal:block>
-            </div>
+            <tal:block metal:define-slot="rightPane">
+                <div id="contentPane">
+                    <tal:block metal:define-slot="contentPane">
+                        CONTENT GOES HERE
+                    </tal:block>
+                </div>
+            </tal:block>
         </div>
         </tal:block>
     </html>
@@ -267,15 +251,13 @@
             <div metal:define-slot="breadcrumbs" id="breadCrumbPane" style="margin-left: 0px;">
                <span metal:use-macro="here/miscmacros/macros/upToOrganizerBreadCrumbs" />
             </div>
-            <div tal:omit-tag="exists:request/cookies/newui" id="rightPane">
-                <tal:block metal:define-slot="rightPane">
-                    <div id="contentPane">
-                        <tal:block metal:define-slot="contentPane">
-                            CONTENT GOES HERE
-                        </tal:block>
-                    </div>
-                </tal:block>
-            </div>
+            <tal:block metal:define-slot="rightPane">
+                <div id="contentPane">
+                    <tal:block metal:define-slot="contentPane">
+                        CONTENT GOES HERE
+                    </tal:block>
+                </div>
+            </tal:block>
         </div>
         </tal:block>
     </html>
@@ -356,72 +338,7 @@
 <!-- ======================================================
     tabsPane
  ====================================================== -->
-<div id="tabsPane" metal:define-macro="tabsPane"
-        tal:define="ztabs python:here.zentinelTabs(template.id);
-                    tabnames python:[x['name'] for x in ztabs];
-                    isnewui exists:request/cookies/newui">
-   <table class="tabtable" cellpadding="0" cellspacing="0"
-           tal:condition="python:(not isnewui and ztabs and not getattr(request, 'notabs', False))">
-       <tr tal:define="menu_ids menu_ids |
-           python:['More','Manage','Edit', 'Actions','Add','TopLevel']">
-        <tal:block tal:condition="python:hasattr(here, 'getMenus')">
-           <tal:block tal:define="hasMenus python:here.getMenus(menu_ids, here)">
-        <td class="contextmenutab" 
-            tal:condition="hasMenus">
-        <span metal:use-macro="here/zenuimacros/macros/basemenu"/>
-        </td>
-        <td class="tabtableleftcap"
-            tal:condition="not:hasMenus" >
-        <div style="margin:0;padding:0;width:21px;">&nbsp;</div>
-        </td>
-        </tal:block>
-        </tal:block>
-        <tal:block tal:condition="python:not hasattr(here, 'getMenus')">
-        <td class="tabtableleftcap">
-        <div style="margin:0;padding:0;width:21px;">&nbsp;</div>
-        </td>
-        </tal:block>
-           <td tal:repeat="tab ztabs"
-               tal:attributes="class python:tab.get('selected', None) 
-                                and 'tabletitleselected'">
-
-
-    <tal:block tal:condition="python:tab.get('selected', None)">
-    <div class="tablinehider"></div>
-    <div class="tableft">
-         <div class="tabright">
-             <div class="tabcenter">
-           <a class="tabletitle" tal:content="tab/name"
-               tal:attributes="href python:
-                   '%s/%s'% (here.absolute_url_path(),tab['action']);"
-                >TabName</a>
-             </div>
-         </div>
-     </div>
-     </tal:block>
-     <tal:block condition="python:not tab.get('selected', None)">
-           <a class="tabletitle" tal:content="tab/name"
-               tal:attributes="href python:
-                   '%s/%s'% (here.absolute_url_path(),tab['action']);"
-                >TabName</a>
-
-     </tal:block>
-
-
-           <div id="selectedtablinehider"
-       tal:condition="python:tab.get('selected',None)">
-           </div>
-
-           </td>
-        <td class='tabletitleselected'
-            tal:condition="python:False">
-           <div id="selectedtablinehider">
-            Other Page
-           </div>
-        </td>
-        <td class="tabtablecap">&nbsp;</td>
-       </tr>
-   </table>
+<div id="tabsPane" metal:define-macro="tabsPane">
 </div>
 
 <!-- ======================================================

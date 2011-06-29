@@ -16,7 +16,7 @@
 
 <!-- BEGIN TABLE CONTENTS -->
 
-    <table style="margin-top:4px">
+    <table>
     <colgroup>
         <col width="10%">
         <col width="20%">
@@ -38,7 +38,7 @@
                                defaultValue python:option[2];
                                optDesc python:option[3];
                                optType python:option[4]" >
-            <th class="tableheader noselect" tal:content="optName" />
+            <td class="tableheader noselect" tal:content="optName" />
 
 <!--  Value -->
             <td class="tablevalues" >

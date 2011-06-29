@@ -467,7 +467,6 @@ table.zentable {
     font-weight: normal; 
 	margin: 0px;
     padding: 0px;
-    margin-bottom: 10px;
 }
 
 tbody.zentablecontents tr {
@@ -490,7 +489,6 @@ tbody.zentablecontents tr {
 }
 
 .errormsg {
-    /*font-size: 10pt;*/
     font-weight: bold; 
     color: #c00;
 }
@@ -517,13 +515,11 @@ a.tabletitle:hover {
 }
 
 th.tabletitle {
-    height: 25px;
-    line-height: 25px;
-    background: transparent url('img/titlebar_bg.gif') repeat-x top;
-    color: white;
+    height: 35px;
+    line-height: 35px;
     padding: 0pt;
     font-size: 1.2em;
-    font-weight: normal;
+    font-weight: bold;
     margin: 0px;
     padding-right: 0pt;
     text-align: left;
@@ -538,8 +534,13 @@ th.subtabletitle {
 
 div.tabletitlecontainer {
     position: relative;
-    height:25px; 
     z-index: 1999;
+    background-color: #a6a6a6;
+    background-image: url();
+    border-top: 1px solid #b8b8b8;
+    border-bottom: 1px solid #949494;
+    padding-left: 6px;
+    height: 35px;
 }
 
 .tabletitlecontainer .rightcorner,
@@ -547,28 +548,26 @@ div.tabletitlecontainer {
     position: absolute;
     bottom: 0px;
     z-index: 2005;
-    height:25px;
+    height:35px;
 }
 
 .tabletitletext {
-    margin-left: 66px;
-    font-weight: bold;
-    font-size: 10pt;
+    vertical-align: middle;
+    font-family: helvetica,arial,tahoma,sans-serif;
+    font-weight: bold !important;
+    font-size: 13px !important;
+    margin: 0;
+    padding-top: 20px;
+    padding: 0;
+    line-height: 35px;
+    color: #454545;
 }
 
 .tabletitlecontainer .leftcorner {
     left: 0px;
-    background: #E0E0E0 url('img/titlebar_left_corner.gif') 
-        bottom left no-repeat;
-    width: 52px;
-    height:25px;
 }
 .tabletitlecontainer .rightcorner {
     right: 0px;
-    background: #E0E0E0 url('img/titlebar_right_corner.gif') 
-        bottom left no-repeat;
-    width: 52px;
-    height:25px;
 }
 
 .tabletitleselected { 
@@ -618,6 +617,34 @@ a.tabletitleselected:hover {
     background-color: #999999;
     font-weight: normal; 
     text-align: left;
+}
+
+th.tableheaderselected,
+th.tableheader {
+    height: 19px;
+    border-left: 1px solid #c1c1c1;
+    border-right: 1px solid #979797;
+    font-size: 11px;
+    font-family: helvetica,arial,tahoma,sans-serif;
+    margin: 0px;
+    padding: 0 0 0 3px;
+    line-height: 19px;
+    background-image: url(/++resource++zenui/img/xtheme-zenoss/grid/grid3-hrow.png);
+}
+
+a.tableheaderselected,
+a.tableheader {
+    color: #383838 !important;
+    font-size: 11px;
+    text-overflow: ellipsis;
+    white-space; nowrap;
+    text-decoration: none;
+    background-color: transparent
+}
+
+.ext-ie th.tableheaderselected,
+.ext-ie th.tableheader {
+    border-width: 0 1px;
 }
 .statusbar { 
     font-family: Verdana, Arial, Helvetica, sans-serif; 
@@ -1062,6 +1089,7 @@ dl.faux-table a.prettylink div.device-icon-container {
 }
 
 .noselect {
+    font-size: inherit;
     -moz-user-select: none;    
     -moz-user-focus: ignore;    
     cursor: default;
@@ -1515,10 +1543,15 @@ div.zenportlet .yui-skin-sam .yui-dt-table td {
     border-collapse: separate;
 }
 
+.ext-ie table.innerzentable {
+    top: 0;
+    border-collapse: collapse;
+    margin: 0;
+}
+
 table.innerzentable {
     margin: 0px;
     padding: 0pt;
-    border: 1px solid black;
     border-collapse: separate;
     width: 100%;
     font-weight: normal;
@@ -1527,7 +1560,70 @@ table.innerzentable {
     position: relative;
     z-index: 1;
     margin-top: -1px;
-    background-color: #E0E0E0;
+    background-color: white;
+    border: medium none;
+}
+
+.filterslot {
+    position: absolute;
+    right: 7px;
+    top: 5px;
+    color: #454545;
+    font-family: helvetica,arial,tahoma,sans-serif;
+    font-size: 11px;
+}
+
+.filterbox {
+    width: 160px;
+}
+
+.filterbox-left,
+.filterbox-right,
+.filterbox-middle {
+    height: 21px;
+    border: medium none;
+    background: transparent
+                url(/++resource++zenui/img/xtheme-zenoss/form/searchfield-sprite.png)
+                no-repeat;
+}
+
+.filterbox-left { 
+    padding-left: 18px; 
+    background-position: 0 0;
+}
+
+.filterbox-right { 
+    padding-right: 10px; 
+    background-position: right -42px;
+}
+
+.filterbox-middle {
+    background-position: 0 -21px;
+    padding-left: 2px;
+    background-repeat: repeat-x;
+}
+
+.filterbox-middle input {
+    background: transparent url();
+    border: medium none;
+    height: 21px;
+}
+
+select.wide-select {
+    width: 98%;
+}
+
+.ext-ie .filterbox-left,
+.ext-ie .filterbox-right,
+.ext-ie .filterbox-middle {
+    overflow: hidden;
+}
+.ext-ie .filterbox-middle input {
+    margin-top: 1px;
+}
+
+table.tabletitle_layout td {
+    padding: 5px 0px 0px 0px;
 }
 
 th {
@@ -1549,6 +1645,19 @@ table.innerzentable * {
 table.innerzentable tr td {
     padding: 1px;
     font-size: 8pt;
+}
+
+table.innerzentable td.tablevalues {
+    border-bottom: 1px solid #ededed;
+    border-top: 1px solid #fff;
+    background-color: transparent;
+    font-size: 11px;
+    font-family: helvetica,arial,tahoma,sans-serif;
+    padding: 3px 3px 3px 5px;
+}
+
+table.innerzentable .odd td.tablevalues { 
+    background-color: #eaf0f7; 
 }
 
 .zentable_selectionbar {

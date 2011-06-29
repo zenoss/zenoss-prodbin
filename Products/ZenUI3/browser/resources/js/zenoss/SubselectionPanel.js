@@ -607,7 +607,6 @@ Zenoss.DetailNavCombo = Ext.extend(Ext.form.ComboBox, {
             config = this.panelConfigMap[id],
             action = config.action || function(node, target) {
                 if (!(id in target.items.map)) {
-                    Ext.applyIf(config, {refreshOnContextChange: true});
                     if(config) {
                         target.add(config);
                         target.doLayout();

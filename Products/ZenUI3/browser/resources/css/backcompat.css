@@ -62,20 +62,6 @@
 /*******************************
            TABLES
 *******************************/
-.z-bc table.zentable {
-    margin: 0;
-    padding: 0;
-}
-.z-bc table.innerzentable {
-    background-color: white;
-    border: medium none;
-}
-
-.z-bc table.tabletitle_layout td {
-    padding: 0;
-    margin: 0;
-    border: medium none;
-}
 
 .z-bc .zentable-modified .tabletitle-right,
 .z-bc .zentable-modified .tabletitle-left,
@@ -90,53 +76,6 @@
 #ygddfdiv .zenportlet .tabletitle-center,
 .z-bc .zenportlet .tabletitle-center {
     padding: 0 5px;
-}
-
-.ext-ie .z-bc table.innerzentable {
-    top: 0;
-    border-collapse: collapse;
-    margin: 0;
-}
-
-.z-bc table.innerzentable td.tablevalues {
-    border-bottom: 1px solid #ededed;
-    border-top: 1px solid #fff;
-    background-color: transparent;
-    font-size: 11px;
-    font-family: helvetica,arial,tahoma,sans-serif;
-    padding: 3px 3px 3px 5px;
-}
-
-.z-bc table.innerzentable .odd td.tablevalues { 
-    background-color: #eaf0f7; 
-}
-
-.z-bc th.tableheaderselected,
-.z-bc th.tableheader {
-    height: 19px;
-    border-left: 1px solid #c1c1c1;
-    border-right: 1px solid #979797;
-    font-size: 11px;
-    font-family: helvetica,arial,tahoma,sans-serif;
-    margin: 0px;
-    padding: 0 0 0 3px;
-    line-height: 19px;
-    background-image: url(/++resource++zenui/img/xtheme-zenoss/grid/grid3-hrow.png);
-}
-
-.z-bc a.tableheaderselected,
-.z-bc a.tableheader {
-    color: #383838;
-    font-size: 11px;
-    text-overflow: ellipsis;
-    white-space; nowrap;
-    text-decoration: none;
-    background-color: transparent
-}
-
-.ext-ie .z-bc th.tableheaderselected,
-.ext-ie .z-bc th.tableheader {
-    border-width: 0 1px;
 }
 
 .z-bc .zentable-modified .tabletitle-center,
@@ -161,74 +100,6 @@
 
 .z-bc .zentable-modified .tabletitle-container {
     height: 37px;
-}
-
-.z-bc div.tabletitlecontainer span.tabletitletext {
-    font-family: helvetica,arial,tahoma,sans-serif;
-    font-weight: bold;
-    font-size: 13px;
-    margin: 0;
-    padding: 0;
-    line-height: 35px;
-    color: #454545;
-}
-
-.z-bc .filterslot {
-    position: absolute;
-    right: 7px;
-    top: 5px;
-    color: #454545;
-    font-family: helvetica,arial,tahoma,sans-serif;
-    font-size: 11px;
-}
-
-.z-bc .filterbox {
-    width: 160px;
-}
-
-.z-bc .filterbox-left,
-.z-bc .filterbox-right,
-.z-bc .filterbox-middle {
-    height: 21px;
-    border: medium none;
-    background: transparent
-                url(/++resource++zenui/img/xtheme-zenoss/form/searchfield-sprite.png)
-                no-repeat;
-}
-
-.z-bc .filterbox-left { 
-    padding-left: 18px; 
-    background-position: 0 0;
-}
-
-.z-bc .filterbox-right { 
-    padding-right: 10px; 
-    background-position: right -42px;
-}
-
-.z-bc .filterbox-middle {
-    background-position: 0 -21px;
-    padding-left: 2px;
-    background-repeat: repeat-x;
-}
-
-.z-bc .filterbox-middle input {
-    background: transparent url();
-    border: medium none;
-    height: 21px;
-}
-
-select.wide-select {
-    width: 98%;
-}
-
-.ext-ie .z-bc .filterbox-left,
-.ext-ie .z-bc .filterbox-right,
-.ext-ie .z-bc .filterbox-middle {
-    overflow: hidden;
-}
-.ext-ie .z-bc .filterbox-middle input {
-    margin-top: 1px;
 }
 
 

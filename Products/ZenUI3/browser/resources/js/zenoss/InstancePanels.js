@@ -175,7 +175,6 @@ Zenoss.SimpleCardPanel = Ext.extend(Ext.Panel, {
                 ref: 'zPropertyEdit',
                 displayFilters: false,
                 viewName: 'zPropertyEdit',
-                refreshOnContextChange: true,
                 listeners: config.zPropertyEditListeners
             }]
         });

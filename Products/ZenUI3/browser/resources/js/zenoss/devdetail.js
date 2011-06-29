@@ -627,7 +627,6 @@ Zenoss.DeviceDetailNav = Ext.extend(Zenoss.DetailNavPanel, {
                 var id = node.attributes.id;
                 if (!(id in target.items.map)) {
                     var config = this.panelConfigMap[id];
-                    Ext.applyIf(config, {refreshOnContextChange: true});
                     if(config) {
                         target.add(config);
                         target.doLayout();

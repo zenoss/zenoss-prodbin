@@ -17,6 +17,7 @@
 
 Zenoss.IFramePanel = Ext.extend(Ext.BoxComponent, {
     frameLoaded: false,
+    testEarlyReadiness: false,
     constructor: function(config) {
         config = Ext.applyIf(config || {}, {
             timeout: 5000, // Wait 5s for iframe to initialize before failing
@@ -54,6 +55,7 @@ Zenoss.IFramePanel = Ext.extend(Ext.BoxComponent, {
         var doc = this.getDocument(),
             currentUrl = doc ? doc.location.href : null,
             ready = false,
+            readyTooEarly = this.testEarlyReadiness,
             body, dom, href,
             i = 0,
             timestocheck = this.timeout / this.pollInterval;
@@ -63,7 +65,17 @@ Zenoss.IFramePanel = Ext.extend(Ext.BoxComponent, {
             }
             body = this.getBody();
             if (currentUrl == 'about:blank' || currentUrl == '') {
-                ready = !!body && (this.ignoreClassName || !!body.className);
+                // if an iframe is reused, it could have a body and
+                // className immediately, but not the desired ones.
+                // in that case, poll until the ready test fails,
+                // then again until it succeeds.
+                if (readyTooEarly) {
+                    readyTooEarly = !!body
+                            && (this.ignoreClassName || !!body.className);
+                } else {
+                    ready = !!body
+                            && (this.ignoreClassName || !!body.className);
+                }
             } else {
                 dom = body ? body.dom : null,
                     href = this.getDocument().location.href;
@@ -95,7 +107,12 @@ Zenoss.IFramePanel = Ext.extend(Ext.BoxComponent, {
     },
     setSrc: function(url) {
         this.frameLoaded = false;
-        this.frame.dom.src = url;
+        if (url == 'about:blank' || url == '') {
+            this.frame.dom.src = url;
+        } else {
+            this.frame.dom.src = Ext.urlAppend(url,
+                    '_dc=' + new Date().getTime());
+        }
         this.waitForLoad();
     }
 });
@@ -107,18 +124,16 @@ Ext.reg('iframe', Zenoss.IFramePanel);
  * Panel used for displaying old zenoss ui pages in an iframe. Set Context
  * should be called by page to initialze panel for viewing.
  *
- * NOTE: sets a cookie named "newui"; the presence of this cookie will cause the
- * old ui to render with out the old navigation panels and without the tabs.
- *
  * @class Zenoss.BackCompatPanel
  * @extends Zenoss.ContextualIFrame
  */
 Zenoss.BackCompatPanel = Ext.extend(Zenoss.IFramePanel, {
     contextUid: null,
-    refreshOnContextChange: false,
     constructor: function(config) {
+        Ext.apply(config || {}, {
+            testEarlyReadiness: true
+        });
         Zenoss.BackCompatPanel.superclass.constructor.call(this, config);
-        Ext.util.Cookies.set('newui', 'yes');
         this.addEvents('frameloadfinished');
         this.on('frameload', function(win) {
             if (win.document && win.document.body) {
@@ -129,19 +144,14 @@ Zenoss.BackCompatPanel = Ext.extend(Zenoss.IFramePanel, {
                 }.createDelegate(this);
             }
         }, this);
-        this.on('frameloadfinished', function(win) {
-            win.document.body.className = win.document.body.className + ' z-bc';
-        }, this);
     },
     setContext: function(uid) {
-        if (this.refreshOnContextChange || this.contextUid!=uid) {
-            this.contextUid = uid;
-            var url = uid;
-            if (Ext.isDefined(this.viewName) && this.viewName !== null) {
-                url = uid + '/' + this.viewName;
-            }
-            this.setSrc(url);
+        this.contextUid = uid;
+        var url = uid;
+        if (Ext.isDefined(this.viewName) && this.viewName !== null) {
+            url = uid + '/' + this.viewName;
         }
+        this.setSrc(url);
     }
 });
 
