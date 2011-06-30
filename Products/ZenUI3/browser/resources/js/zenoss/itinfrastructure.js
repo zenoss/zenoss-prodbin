@@ -1010,7 +1010,8 @@ var device_grid = new Zenoss.DeviceGridPanel({
     setContext: function(uid) {
         var view = this.getView();
         view.contextUid = uid;
-        view.nonDisruptiveReset();
+        // reset the scroll position
+        view.updateLiveRows(0, true, true);
 
         this.getSelectionModel().clearSelections();
 

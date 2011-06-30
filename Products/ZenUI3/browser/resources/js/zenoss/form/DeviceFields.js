@@ -82,6 +82,10 @@
 
     ZD.ProductionStateMultiselectMenu = Ext.extend(Zenoss.MultiselectMenu, {
         constructor: function(config) {
+            var defaults = [];
+            if (Ext.isDefined(Zenoss.env.PRODUCTION_STATES)) {
+                defaults = Ext.pluck(Zenoss.env.PRODUCTION_STATES.data, 'value');
+            }
             config = Ext.apply(config || {}, {
                 text:'...',
                 store: new Ext.data.DirectStore({
@@ -89,7 +93,7 @@
                     root: 'data',
                     fields: ['name', 'value']
                 }),
-                defaultValues: ['1000']
+                defaultValues: defaults
             });
             ZD.ProductionStateMultiselectMenu.superclass.constructor.call(this, config);
         }
@@ -160,7 +164,7 @@
     ZD.ProductCombo = Ext.extend(Ext.form.ComboBox, {
         constructor: function(config) {
             var prodType = config.prodType || 'OS',
-                store = (config||{}).store || 
+                store = (config||{}).store ||
                     prodType=='OS' ? new ZD.OSProductDataStore() : new ZD.HWProductDataStore();
             config = Ext.applyIf(config||{}, {
                 store: store,
