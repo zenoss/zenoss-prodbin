@@ -704,6 +704,8 @@
 
             this.clearSelections(true);
 
+            // Suspend events to avoid firing the whole chain for every row
+            this.suspendEvents();
             for (var i = start; i <= end; i++) {
                 record = this.grid.store.getAt(i);
                 if (record) {
@@ -712,17 +714,22 @@
                     }
                 }
             }
-
             this.selectState = state;
+
+            // Bring events back and fire one selectionchange for the batch
+            this.resumeEvents();
+            this.fireEvent('selectionchange', this);
         },
         selectAll: function(){
-
             this.clearSelections();
             this.selectEventState('All');
         },
-            selectNone: function(){
-                this.clearSelections();
-            },
+        selectNone: function(){
+            this.clearSelections(true);
+            // Fire one selectionchange to make buttons figure out their
+            // disabledness
+            this.fireEvent('selectionchange', this);
+        },
         selectAck: function(){
             this.clearSelections();
             this.selectEventState('Acknowledged');
@@ -801,6 +808,9 @@
                 return;
             }
             this.selectState = null;
+
+            // Suspend events to avoid firing the whole chain for every row
+            this.suspendEvents();
             if(!fast){
                 //make sure all rows are deselected so that UI renders properly
                 //base class only deselects rows it knows are selected; so we need
@@ -812,6 +822,10 @@
                     this.deselectRow(i);
                 }
             }
+            // Bring events back and fire one selectionchange for the batch
+            this.resumeEvents();
+            this.fireEvent('selectionchange', this);
+
             this.badIds = {};
             Zenoss.EventPanelSelectionModel.superclass.clearSelections.apply(this, arguments);
         },
