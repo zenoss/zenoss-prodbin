@@ -67,7 +67,11 @@
                                 <div>
                                     <div id="help-icon-container">
                                         <span></span><!-- ie needs empty span tags in some versions -->
-                                        <a tal:attributes="href string:http://www.zenoss.com/help?version=${here/dmd/About/getZenossVersionShort}"
+                                        <a tal:condition="python:here.dmd.productName=='enterprise'"
+                                           tal:attributes="href string:http://community.zenoss.org/community/documentation/servicedynamics/resource_manager_administration?view=overview"
+                                           target="_blank" alt="Help">&nbsp;</a>
+                                        <a tal:condition="python:here.dmd.productName!='enterprise'"
+                                           tal:attributes="href string:http://www.zenoss.com/help?version=${here/dmd/About/getZenossVersionShort}"
                                            target="_blank" alt="Help">&nbsp;</a>
                                     </div>
                                 </div>
