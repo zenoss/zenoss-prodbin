@@ -38,11 +38,7 @@ class ModelChangePublisher(object):
     """
 
     def __init__(self):
-        config = getAMQPConfiguration()
-        self._eventList = config.getNewProtobuf("$ModelEventList")
-        self._eventList.event_uuid = generate()
-
-
+        self._events = []
         self._msgs = []
         self._addedGuids = set()
         self._modifiedGuids = set()
@@ -56,10 +52,11 @@ class ModelChangePublisher(object):
         Creates and returns a ModelEvent. This is tightly
         coupled to the modelevent.proto protobuf.
         """
-        # eventList will "remember" all the events it creates
         try:
             serializer = IModelProtobufSerializer(ob)
-            event = self._eventList.events.add()
+
+            event = modelevents_pb2.ModelEvent()
+            self._events.append(event)
             event.event_uuid = generate()
             event.type = getattr(event, eventType)
 
@@ -101,8 +98,17 @@ class ModelChangePublisher(object):
     def publishModified(self, ob):
         self._total+=1
         guid = self._getGUID(ob)
+
+        def _createModified(object):
+            #do the check again in case an add was added afterwards. this happens
+            #when an object is modified before it is attached.
+            if not guid in self._addedGuids:
+                self._createModelEventProtobuf(object, 'MODIFIED')
+            else:
+                self._discarded+=1
+
         if not guid in self._addedGuids and not guid in self._modifiedGuids:
-            self._msgs.append((self._createModelEventProtobuf, (ob, 'MODIFIED')))
+            self._msgs.append((_createModified, (ob,)))
             self._modifiedGuids.add(guid)
         else:
             self._discarded+=1
@@ -127,11 +133,11 @@ class ModelChangePublisher(object):
         self._msgs.append((createEvent, (ob, fromOb, toOb)))
 
     @property
-    def msg(self):
+    def events(self):
         log.debug("discarded %s messages of %s total" % (self._discarded, self._total))
         for fn, args in self._msgs:
             fn(*args)
-        return self._eventList
+        return self._events
 
 
 def getModelChangePublisher():
@@ -151,10 +157,10 @@ def getModelChangePublisher():
 
 class PublishSynchronizer(object):
 
-    def findNonImpactingEvents(self, msg, attribute):
+    def findNonImpactingEvents(self, events, attribute):
         removeEventIds = []
-        addEvents = [event for event in msg.events if event.type == event.ADDED]
-        removeEvents = [event for event in msg.events if event.type == event.REMOVED]
+        addEvents = [event for event in events if event.type == event.ADDED]
+        removeEvents = [event for event in events if event.type == event.REMOVED]
         for removeEvent in removeEvents:
             if not addEvents:
                 break
@@ -169,7 +175,7 @@ class PublishSynchronizer(object):
 
         return removeEventIds
 
-    def correlateEvents(self, msg):
+    def correlateEvents(self, events):
         """
         In the case of moving objects we get a ton of add
         and a ton of remove events. This method removes all the
@@ -179,33 +185,54 @@ class PublishSynchronizer(object):
         """
         eventsToRemove = []
         for attribute in ("device", "component"):
-            eventsToRemove.extend(self.findNonImpactingEvents(msg, attribute))
-        if not eventsToRemove:
-            return msg
+            eventsToRemove.extend(self.findNonImpactingEvents(events, attribute))
 
-        eventsToRemove = set(eventsToRemove)
-        eventsToKeep = [event for event in msg.events if event.event_uuid not in eventsToRemove]
+
+        eventsToKeep = events
+        if eventsToRemove:
+            eventsToRemove = set(eventsToRemove)
+            eventsToKeep = [event for event in events if event.event_uuid not in eventsToRemove]
 
         # protobuf is odd about setting properties, so we have to make a new
         # event list and then copy the events we want into it
         config = getAMQPConfiguration()
+
+        #batch events into manageable ModelEventList messages
+        batchSize = 25000
+        msgs = []
+        count = 0
         returnMsg = config.getNewProtobuf("$ModelEventList")
         returnMsg.event_uuid = generate()
+        msgs.append(returnMsg)
         for event in eventsToKeep:
+            if count >= batchSize:
+                log.info("ModelEventList starting new batch after %s events" % count)
+                returnMsg = config.getNewProtobuf("$ModelEventList")
+                returnMsg.event_uuid = generate()
+                msgs.append(returnMsg)
+                # reset counter
+                count = 0
             newEvent = returnMsg.events.add()
-            newEvent.ParseFromString(event.SerializeToString())
-        return returnMsg
+            newEvent.CopyFrom(event)
+            #not needed in the actual published event, just takes up space
+            newEvent.ClearField('event_uuid')
+            count += 1
+        else:
+            log.info("ModelEventList batch size %s" % count)
+        return msgs
 
     def beforeCompletionHook(self, tx):
         try:
             log.debug("beforeCompletionHook on tx %s" % tx)
             publisher = getattr(tx, '_synchronizedPublisher', None)
             if publisher:
-                msg = self.correlateEvents(publisher.msg)
-                queuePublisher = getUtility(IQueuePublisher, '_txpublisher')
-                dataManager = AmqpDataManager(queuePublisher.channel, tx._manager)
-                tx.join(dataManager)
-                queuePublisher.publish("$ModelChangeEvents", "zenoss.event.modelchange", msg)
+                msgs = self.correlateEvents(publisher.events)
+                if msgs:
+                    queuePublisher = getUtility(IQueuePublisher, '_txpublisher')
+                    dataManager = AmqpDataManager(queuePublisher.channel, tx._manager)
+                    tx.join(dataManager)
+                    for msg in msgs:
+                        queuePublisher.publish("$ModelChangeEvents", "zenoss.event.modelchange", msg)
             else:
                 log.debug("no publisher found on tx %s" % tx)
         finally:

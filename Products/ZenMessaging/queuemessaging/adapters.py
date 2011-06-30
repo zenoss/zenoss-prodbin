@@ -68,26 +68,7 @@ class DeviceProtobuf(ObjectProtobuf):
 
     def fill(self, proto):
         self.autoMapFields(proto)
-        proto.ip_address = self.obj.manageIp
-        proto.production_state = self.obj.productionState
         proto.title = self.obj.titleOrId()
-        # className
-        deviceClass = self.obj.deviceClass()
-        if deviceClass:
-            proto.class_name_uuid = self._getGUID(deviceClass)
-        proto.priority = self.obj.getPriority()
-        # groups
-        for group in self.obj.groups():
-            proto.group_uuids.append(self._getGUID(group))
-
-        # systems
-        for system in self.obj.systems():
-            proto.system_uuids.append(self._getGUID(system))
-
-        # location
-        if self.obj.location():
-            proto.location_uuid = self._getGUID(self.obj.location())
-
         return proto
 
 
@@ -122,7 +103,6 @@ class DeviceComponentProtobuf(ObjectProtobuf):
     def fill(self, proto):
         self.autoMapFields(proto)
         proto.title = self.obj.name()
-        proto.production_state = self.obj.productionState
         # use device protobuf to fill out our device property
         device = self.obj.device()
         if device:
