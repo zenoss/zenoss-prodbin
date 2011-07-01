@@ -198,7 +198,7 @@ class PublishSynchronizer(object):
         config = getAMQPConfiguration()
 
         #batch events into manageable ModelEventList messages
-        batchSize = 25000
+        batchSize = 5000
         msgs = []
         count = 0
         returnMsg = config.getNewProtobuf("$ModelEventList")
