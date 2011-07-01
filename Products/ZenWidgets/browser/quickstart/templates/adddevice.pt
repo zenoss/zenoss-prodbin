@@ -6,9 +6,6 @@
     <tal:block metal:fill-slot="headline"> 
     Step 2: Specify or Discover Devices to Monitor
     </tal:block>
-    <tal:block metal:fill-slot="subheadline">
-    I want Zenoss to:<br/>
-    </tal:block>
     <tal:block metal:fill-slot="content">
     <tal:block metal:use-macro="here/quickstart_macros/deviceAdd"/>
     <br/>
