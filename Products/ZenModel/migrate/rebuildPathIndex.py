@@ -12,6 +12,7 @@
 ###########################################################################
 
 import Globals
+import sys
 import Migrate
 import zExceptions
 
@@ -39,6 +40,7 @@ class RebuildPathIndex(Migrate.Step):
                 # for upgrade the zenpacks may not have loaded the new code yet
                 x.getObject().index_object()
         # global catalog
+        CHUNK_SIZE = 200 if sys.stdout.isatty() else 25000 # Don't be chatty when logging to a file
         for x in zport.global_catalog():
             i+=1
             try:
@@ -50,9 +52,9 @@ class RebuildPathIndex(Migrate.Step):
                 log.warning("Unable to index %s " % x.getPath())
             except (KeyError, zExceptions.NotFound):
                 zport.global_catalog.uncatalog_object(x.getPath())
-            if i % 200 == 0:
+            if i % CHUNK_SIZE == 0:
                 self.log_progress("rate=%.2f/sec count=%d" %
-                                  (200/(time.time()-tstart), i))
+                                  (CHUNK_SIZE/(time.time()-tstart), i))
                 tstart=time.time()
         print
         log.info("Finished total time=%.2f rate=%.2f count=%d",
