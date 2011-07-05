@@ -290,7 +290,12 @@ def reindex_catalog(globalCat, permissionsOnly=False, printProgress=True, commit
     catObj = globalCat.catalog_object
     for brain in globalCat():
         log.debug('indexing %s' % brain.getPath())
-        obj = brain.getObject()
+        try:
+            obj = brain.getObject()
+        except Exception:
+            log.debug("Could not load object: %s" % brain.getPath())
+            globalCat.uncatalog_object(brain.getPath())
+            continue
         if obj is not None:
             #None defaults to all inedexs
             kwargs = {}
@@ -304,7 +309,7 @@ def reindex_catalog(globalCat, permissionsOnly=False, printProgress=True, commit
             log.debug('Catalogued object %s' % obj.absolute_url_path())
         else:
             log.debug('%s does not exists' % brain.getPath())
-            #TODO uncatalog object
+            globalCat.uncatalog_object(brain.getPath())
         i += 1
         if not i % CHUNK_SIZE:
             if printProgress:
