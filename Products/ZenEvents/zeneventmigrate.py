@@ -26,7 +26,6 @@ from ConfigParser import ConfigParser, NoOptionError
 from MySQLdb import connect
 from MySQLdb.cursors import DictCursor
 from _mysql import escape_string
-from google.protobuf.descriptor import FieldDescriptor
 from copy import deepcopy
 from itertools import imap
 from uuid import uuid4
@@ -48,6 +47,10 @@ from Products.ZenMessaging.queuemessaging.adapters import EventProtobufSeverityM
 from Products.ZenEvents.events2.processing import EventProxy
 from Products.ZenEvents.events2.processing import (Manager, EventContext, IdentifierPipe, AddDeviceContextAndTagsPipe,
                                                    AssignDefaultEventClassAndTagPipe)
+from Products.ZenModel.DeviceClass import DeviceClass
+from Products.ZenModel.DeviceGroup import DeviceGroup
+from Products.ZenModel.Location import Location
+from Products.ZenModel.System import System
 
 log = logging.getLogger('zen.EventMigrate')
 
@@ -90,7 +93,7 @@ def _user_uuid(dmd, userName):
         return IGlobalIdentifier(user).getGUID()
     except Exception:
         if log.isEnabledFor(logging.DEBUG):
-            log.exception("Failed to look up user UUID for %s", user)
+            log.exception("Failed to look up user UUID for %s", userName)
 
 def _convert_summary(new_name, conversion_fcn = None):
     """
@@ -162,7 +165,7 @@ def _add_logs(dmd):
             text = log_row['text']
             ctime = _convert_ts_to_millis(log_row['ctime'])
 
-            audit_state = _AUDIT_LOG_CONVERSIONS.get(text.lower(), None)
+            audit_state = _AUDIT_LOG_CONVERSIONS.get(text.lower())
             if audit_state:
                 log = event_ctx.summary.audit_log.add(timestamp=ctime,
                                                       new_status=audit_state,
@@ -354,10 +357,11 @@ class ShutdownException(Exception):
     pass
 
 class ZenEventMigrate(ZenScriptBase):
-    def __init__(self):
-        super(ZenEventMigrate, self).__init__(connect=True)
+    def __init__(self, noopts=0, app=None, connect=True):
+        super(ZenEventMigrate, self).__init__(noopts=noopts, app=app, connect=connect)
         self.config_filename = zenPath('etc/zeneventmigrate.conf')
         self.config_section = 'zeneventmigrate'
+        self._shutdown = False
 
     def buildOptions(self):
         super(ZenEventMigrate, self).buildOptions()
@@ -368,21 +372,22 @@ class ZenEventMigrate(ZenScriptBase):
                                     ' This disables fetching of these values'
                                     ' from Zenoss.')
         self.parser.add_option('--evthost', dest='evthost', default='127.0.0.1',
-                               help='Events database hostname')
+                               help='Events database hostname (Default: %default)')
         self.parser.add_option('--evtport', dest='evtport', action='store', type='int', default=3306,
-                               help='Port used to connect to the events database')
+                               help='Port used to connect to the events database (Default: %default)')
         self.parser.add_option('--evtuser', dest='evtuser', default=None,
                                help='Username used to connect to the events database')
         self.parser.add_option('--evtpass', dest='evtpass', default=None,
                                help='Password used to connect to the events database')
         self.parser.add_option('--evtdb', dest='evtdb', default='events',
-                               help='Name of events database')
-        self.parser.add_option('--batchsize', dest='batchsize', action='store', type='int', default=1000,
-                               help='Number of events to process in one batch (Default: 1000)')
+                               help='Name of events database (Default: %default)')
+        self.parser.add_option('--batchsize', dest='batchsize', action='store', type='int', default=100,
+                               help='Number of events to process in one batch (Default: %default)')
         self.parser.add_option('--sleep', dest='sleep', action='store', type='int', default=0,
-                               help='Number of seconds to wait after migrating a batch of events (Default: 0)')
+                               help='Number of seconds to wait after migrating a batch of events (Default: %default)')
         self.parser.add_option('--restart', dest='restart', action='store_true', default=False,
-                               help='Use this flag to not resume a previous migration process (default: False)')
+                               help='Use this flag to start a new migration process (disables resuming a previous '
+                                    'migration).')
 
     def _output(self, message):
         if sys.stdout.isatty():
@@ -483,7 +488,6 @@ class ZenEventMigrate(ZenScriptBase):
         last_evid = self._getConfig('%s_last_evid' % table)
         where = "WHERE evid > '%s'" % escape_string(last_evid) if last_evid else ''
 
-        num_rows = 0
         if last_evid:
             num_rows_query = "SELECT SQL_CALC_FOUND_ROWS evid FROM %s %s LIMIT 0" % (table, where)
             num_rows = self._countQuery(conn, num_rows_query)[1]
@@ -532,13 +536,13 @@ class ZenEventMigrate(ZenScriptBase):
     def _merge_tags(self, zep_raw_event, event):
         """
         Merges results from the identification and tagging pipes into the event
-        occurrence to be published. This will take the element_uuid, element_sub_uuid,
+        occurrence to be published. This will take the element_uuid, element_sub_uuid, titles
         and tags from the ZEP raw event and copy them to the appropriate place on
         the event occurrence.
         """
         raw_actor = zep_raw_event.event.actor
         event_actor = event.actor
-        for field in ('element_uuid', 'element_sub_uuid'):
+        for field in ('element_uuid', 'element_sub_uuid', 'element_title', 'element_sub_title'):
             if raw_actor.HasField(field):
                 setattr(event_actor, field, getattr(raw_actor, field))
         event.tags.extend(imap(deepcopy, zep_raw_event.event.tags))
@@ -549,6 +553,13 @@ class ZenEventMigrate(ZenScriptBase):
         pipes = (IdentifierPipe(manager), AddDeviceContextAndTagsPipe(manager),
                  AssignDefaultEventClassAndTagPipe(manager))
         routing_key = 'zenoss.events.summary' if status else 'zenoss.events.archive'
+
+        taggers = {
+            EventProxy.DEVICE_CLASS_DETAIL_KEY: (self.dmd.Devices, DeviceClass),
+            EventProxy.DEVICE_GROUPS_DETAIL_KEY: (self.dmd.Groups, DeviceGroup),
+            EventProxy.DEVICE_LOCATION_DETAIL_KEY: (self.dmd.Locations, Location),
+            EventProxy.DEVICE_SYSTEMS_DETAIL_KEY: (self.dmd.Systems, System),
+        }
 
         try:
             for event_rows in self._page_rows(conn, status):
@@ -561,6 +572,28 @@ class ZenEventMigrate(ZenScriptBase):
                         event_ctx = EventContext(log, zep_raw_event)
                         for pipe in pipes:
                             pipe(event_ctx)
+
+                        # Clear tags for device class, location, systems, groups from current device
+                        event_ctx.eventProxy.tags.clearType(AddDeviceContextAndTagsPipe.DEVICE_TAGGERS.keys())
+
+                        # Resolve tags from original fields in the event
+                        for detail in occurrence.details:
+                            if detail.name in taggers:
+                                organizer_root, organizer_cls = taggers[detail.name]
+                                tags = set()
+                                for val in detail.value:
+                                    try:
+                                        obj = organizer_root.unrestrictedTraverse(str(val[1:]))
+                                        if isinstance(obj, organizer_cls):
+                                            tags.update(manager.getUuidsOfPath(obj))
+                                    except Exception:
+                                        if log.isEnabledFor(logging.DEBUG):
+                                            log.debug("Unable to resolve UUID for %s", val)
+                                if tags:
+                                    event_tag = occurrence.tags.add()
+                                    event_tag.type = detail.name
+                                    event_tag.uuid.extend(tags)
+
                         self._merge_tags(zep_raw_event, occurrence)
                         if log.isEnabledFor(logging.DEBUG):
                             log.debug("Migrated event: %s", mapping_event_context.summary)
@@ -576,7 +609,6 @@ class ZenEventMigrate(ZenScriptBase):
         self._output('\nShutting down...')
 
     def run(self):
-        self._shutdown = False
         signal(SIGTERM, self._sigterm)
         signal(SIGINT, self._sigterm)
         # Try to avoid stacktraces from interrupted signal calls
