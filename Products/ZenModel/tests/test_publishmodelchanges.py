@@ -40,18 +40,18 @@ class TestPublishModelChanges(BaseTestCase):
     def testObjectNotifyEvent(self):
         self.publisher._eventList = ModelEventList()
         self.publisher.publishModified(self.device)
-        self.assertEqual(len(self.publisher.msg.events), 1)
+        self.assertEqual(len(self.publisher.events), 1)
 
     def testObjectRemovedEvent(self):
         self.publisher._eventList = ModelEventList()
         self.publisher.publishRemove(self.device)
-        self.assertEqual(len(self.publisher.msg.events), 2)
+        self.assertEqual(len(self.publisher.events), 2)
 
     def testAddToOrganizer(self):
         self.publisher._eventList = ModelEventList()
         self.publisher.addToOrganizer(self.device, self.dmd.Devices)
         self.publisher.removeFromOrganizer(self.device, self.dmd.Devices)
-        self.assertEqual(len(self.publisher.msg.events), 3)
+        self.assertEqual(len(self.publisher.events), 3)
 
     def testDeviceClassMove(self):
         """
@@ -75,8 +75,8 @@ class TestPublishModelChanges(BaseTestCase):
         # make sure only 1 event is fired
         self.publisher.moveObject(device, deviceClass, target)
         sync = PUBLISH_SYNC
-        msg = sync.correlateEvents(self.publisher.msg)
-        self.assertEqual(len(msg.events), 1, "should only be one move event")
+        events = sync.correlateEvents(self.publisher.events)
+        self.assertEqual(len(events), 1, "should only be one move event")
 
 def test_suite():
     from unittest import TestSuite, makeSuite
