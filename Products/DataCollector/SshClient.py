@@ -768,7 +768,8 @@ class SshClient(CollectorClient.CollectorClient):
         if self.workList:
             cmd = self.workList.pop(0)
             self.openSessions += 1
-            self.connection.addCommand(cmd)
+            if self.connection:
+                self.connection.addCommand(cmd)
 
 
     def serviceStarted(self, sshconn):

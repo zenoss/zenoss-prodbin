@@ -249,6 +249,17 @@ class MySshClient(SshClient):
         elif not d.called:
             d.callback((data, code))
 
+    def clientConnectionLost(self, connector, reason):
+        connection_description = '%s:*****@%s:%s' % (self.username, self.ip, self.port)
+        # Connection was lost, but could be because we just closed it. Not necessarily cause for concern.
+        log.debug("Connection %s lost." % connection_description)
+        pool = getPool('SSH Connections')
+        poolkey = hash((self.username, self.password, self.ip, self.port))
+        if poolkey in pool:
+            # Clean it up so the next time around the task will get a new connection
+            log.debug("Deleting connection %s from pool." % connection_description)
+            del pool[poolkey]
+
     def check(self, ip, timeout=2):
         """
         Turn off blocking SshClient.test method
@@ -487,7 +498,33 @@ class SshPerformanceCollectionTask(BaseTask):
                self.name, self.configId, len(self._datasources))
 
     def cleanup(self):
-        return self._close()
+        self._cleanUpPool()
+        self._close()
+
+    def _getPoolKey(self):
+        """
+        Get the key under which the client should be stored in the pool.
+        """
+        username = self._device.zCommandUsername
+        password = self._device.zCommandPassword
+        ip = self._manageIp
+        port = self._device.zCommandPort
+        return hash((username, password, ip, port))
+
+    def _cleanUpPool(self):
+        """
+        Close the connection currently associated with this task.
+        """
+        poolkey = self._getPoolKey()
+        if poolkey in self.pool:
+            client = self.pool[poolkey]
+            tasklist = client._taskList
+            if not tasklist:
+                # No other tasks, so safe to clean up
+                transport = client.transport
+                if transport:
+                    transport.loseConnection()
+                del self.pool[poolkey]
 
     def doTask(self):
         """
@@ -519,7 +556,7 @@ class SshPerformanceCollectionTask(BaseTask):
         if not self._useSsh:
             return defer.succeed(None)
 
-        connection = self.pool.get(self._devId, None)
+        connection = self.pool.get(self._getPoolKey(), None)
         if connection is None:
             self.state = SshPerformanceCollectionTask.STATE_CONNECTING
             log.debug("Creating connection object to %s", self._devId)
@@ -536,7 +573,7 @@ class SshPerformanceCollectionTask(BaseTask):
                                  self._device.zCommandPort, options=options)
             connection.sendEvent = self._eventService.sendEvent
 
-            self.pool[self._devId] = connection
+            self.pool[self._getPoolKey()] = connection
 
             # Opens SSH connection to device
             connection.run()
@@ -553,14 +590,12 @@ class SshPerformanceCollectionTask(BaseTask):
         """
         if self._connection:
             self._connection._taskList.discard(self)
-            if len(self._connection._taskList) == 0:
-                self._connection.channelClosed()
-                if self._devId in self.pool:
-                    del self.pool[self._devId]
+            if not self._connection._taskList:
+                if self._getPoolKey() in self.pool:
+                    client = self.pool[self._getPoolKey()]
+                    client.clientFinished()
+                    client.channelClosed()
             self._connection = None
-            # Note: deleting the connection from the pool means more work,
-            #   but it also means that we won't have weird synchronization bugs
-            #   with changes from the device not taking effect.
 
     def connectionFailed(self, msg):
         """
@@ -689,7 +724,6 @@ class SshPerformanceCollectionTask(BaseTask):
         dl.addCallback(self._parseResults, cacheableDS)
         dl.addCallback(self._storeResults)
         dl.addCallback(self._updateStatus)
-        dl.addErrback(self._failure)
 
         # Save the list in case we need to cancel the commands
         self._commandsToExecute = dl
