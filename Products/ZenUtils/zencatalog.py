@@ -117,12 +117,17 @@ class ZenCatalog(ZCmdBase):
         self.parser.add_option("--forceindex",
                                action="store_true",
                                default=False,
-                               help="works with --createcatalog to create index"\
-                               " even if catalog exists")
+                               help="works with --createcatalog to re-create index, if catalog exists it will be "\
+                               "dropped first")
         self.parser.add_option("--reindex",
                                action="store_true",
                                default=False,
                                help="reindex existing catalog")
+        self.parser.add_option("--permissionsOnly",
+                               action="store_true",
+                               default=False,
+                               help="Only works with --reindex, only update the permissions catalog")
+
 
     def run(self):
 
@@ -144,29 +149,7 @@ class ZenCatalog(ZCmdBase):
         globalCat = self._getCatalog(zport)
 
         if globalCat:
-            log.info('reindexing objects in catalog')
-            i = 0
-            catObj = globalCat.catalog_object
-            for brain in globalCat():
-                log.debug('indexing %s' % brain.getPath())
-                obj = brain.getObject()
-                if obj is not None:
-                    if hasattr(obj, 'index_object'):
-                        obj.index_object()
-                    catObj(obj)
-                    log.debug('Catalogued object %s' % obj.absolute_url_path())
-                else:
-                    log.debug('%s does not exists' % brain.getPath())
-                    #TODO uncatalog object
-                i += 1
-                if not i % CHUNK_SIZE:
-                    if not self.options.daemon:
-                        sys.stdout.write(".")
-                        sys.stdout.flush()
-                    else:
-                        log.info('Catalogued %s objects' % i)
-                    transaction.commit()
-            transaction.commit()
+            reindex_catalog(globalCat, self.options.permissionsOnly, not self.options.daemon)
         else:
             log.warning('Global Catalog does not exist, try --createcatalog option')
         return defer.succeed(None)
@@ -177,14 +160,21 @@ class ZenCatalog(ZCmdBase):
         # func has no access to this scope, make it a mutable.
         _reconnect = [False]
 
+
         catalog = self._getCatalog(zport)
+        if self.options.forceindex and catalog:
+            zport._delObject(catalog.getId())
+            catalog = self._getCatalog(zport)
+
         if catalog is None:
             # Create the catalog
+            log.debug("Creating global catalog")
             createGlobalCatalog(zport)
             catalog = self._getCatalog(zport)
             transaction.commit()
         else:
-            log.info('Global catalog already exists.')
+            log.info('Global catalog already exists. Run with --forceindex to drop and recreate catalog')
+            return defer.succeed(None)
 
         def recurse(obj):
             if _reconnect[0]:
@@ -291,6 +281,44 @@ class ZenCatalog(ZCmdBase):
     def _getCatalog(self, zport):
         return getattr(zport, 'global_catalog', None)
 
+def reindex_catalog(globalCat, permissionsOnly=False, printProgress=True, commit=True):
+    msg = 'objects'
+    if permissionsOnly:
+        msg = 'permissions'
+    log.info('reindexing %s in catalog' % msg)
+    i = 0
+    catObj = globalCat.catalog_object
+    for brain in globalCat():
+        log.debug('indexing %s' % brain.getPath())
+        obj = brain.getObject()
+        if obj is not None:
+            #None defaults to all inedexs
+            kwargs = {}
+            if permissionsOnly:
+                kwargs = {'update_metadata': False,
+                          'idxs': ("allowedRolesAndUsers",)}
+            elif hasattr(obj, 'index_object'):
+                obj.index_object()
+
+            catObj(obj, **kwargs)
+            log.debug('Catalogued object %s' % obj.absolute_url_path())
+        else:
+            log.debug('%s does not exists' % brain.getPath())
+            #TODO uncatalog object
+        i += 1
+        if not i % CHUNK_SIZE:
+            if printProgress:
+                sys.stdout.write(".")
+                sys.stdout.flush()
+            else:
+                log.info('Catalogued %s objects' % i)
+            if commit:
+                transaction.commit()
+    if printProgress:
+        sys.stdout.write('\n')
+        sys.stdout.flush()
+    if commit:
+        transaction.commit()
 
 if __name__ == "__main__":
     zc = ZenCatalog()
