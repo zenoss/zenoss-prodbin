@@ -289,7 +289,7 @@ class ZenBackup(ZenBackupBase):
         cmd_p2 = ['--single-transaction', self.options.mysqldb,
                  '--result-file=' + os.path.join(self.tempDir, 'zodb.sql')]
         if self.options.host and self.options.host != 'localhost':
-            cmd_p2.append('-h %s' % self.options.host)
+            cmd_p2.append('-h%s' % self.options.host)
         if self.options.port and self.options.port != '3306':
             cmd_p2.append('--port=%s' % self.options.port)
 
