@@ -7,9 +7,9 @@ var Class={
         return function(){
             bindMethods(this);
             this.__init__.apply(this,arguments);
-        }
+        };
     }
-}
+};
 
 YAHOO.zenoss.Class = Class;
 
@@ -35,9 +35,9 @@ var Subclass={
             bindMethods(this);
             bindMethodsTo(this.superclass, this);
             this.__init__.apply(this, arguments);
-        }
+        };
     }
-}
+};
 YAHOO.zenoss.Subclass = Subclass;
 
 
@@ -243,8 +243,8 @@ function showLeftPane() {
 
 function toggleLeftPane() {
     var leftPane = $('leftPane');
-    if (!isVisible(leftPane)) { showLeftPane() }
-    else { hideLeftPane() }
+    if (!isVisible(leftPane)) { showLeftPane(); }
+    else { hideLeftPane(); }
 }
 
 function doHiding() {
@@ -298,13 +298,13 @@ function doHover() {
         setStyle('leftPaneToggle', {
             'background':'transparent ' +
             'url("img/leftpanetoggle_bg_depressed.gif") top left repeat-x'
-            })
+            });
     });
     connect('leftPaneToggle','onmouseout', function() {
         setStyle('leftPaneToggle', {
             'background':'transparent ' +
             'url("img/leftpanetoggle_bg.gif") top left repeat-x'
-            })
+            });
     });
     connect('leftPaneToggle', 'onclick', function(){
         clearTimeout(t);
@@ -328,13 +328,13 @@ function cancelHover() {
             'background':'transparent ' +
             'url("img/leftpanetoggle_bg_expanded_depressed.gif") '+
             'top left repeat-x'
-            })
+            });
     });
     connect('leftPaneToggle','onmouseout', function() {
         setStyle('leftPaneToggle', {
             'background':'transparent ' +
             'url("img/leftpanetoggle_bg_expanded.gif") top left repeat-x'
-            })
+            });
     });
     deleteCookie('Zenoss_Collapsed_Menu','/','');
     updateNodeAttributes(leftPane, {
@@ -352,13 +352,13 @@ function checkForCollapsed() {
         setStyle('leftPaneToggle', {
             'background':'transparent ' +
             'url("img/leftpanetoggle_bg_expanded_depressed.gif") top left repeat-x'
-            })
+            });
     });
     connect('leftPaneToggle','onmouseout', function() {
         setStyle('leftPaneToggle', {
             'background':'transparent ' +
             'url("img/leftpanetoggle_bg_expanded.gif") top left repeat-x'
-            })
+            });
     });
     } else {
         hideLeftPane();
@@ -368,19 +368,19 @@ function checkForCollapsed() {
 
 function getChildCheckboxes(element) {
     return filter(
-        function(x){return x.type=='checkbox'},
+        function(x){return x.type=='checkbox';},
         element.getElementsByTagName('input')
-    )
+    );
 }
 
 var tablesOnPage=0;
 function insertSelBar(table, index) {
     var getselall = function() {
-        return function() {selectAllCheckboxes(table)}
-    }
+        return function() {selectAllCheckboxes(table);};
+    };
     var getselnone = function() {
-        return function() {selectNoneCheckboxes(table)}
-    }
+        return function() {selectNoneCheckboxes(table);};
+    };
     var all = LI({id:'selectall_' + index}, 'All');
     var nun = LI({id:'selectnone_' + index}, 'None');
     var selbar = DIV({'class':'zentable_selectionbar'},
@@ -392,12 +392,12 @@ function insertSelBar(table, index) {
 
 function selectAllCheckboxes(table) {
     var cbs = getChildCheckboxes(table);
-    map(function(x){x.checked=true},cbs);
+    map(function(x){x.checked=true;},cbs);
 }
 
 function selectNoneCheckboxes(table) {
     var cbs = getChildCheckboxes(table);
-    map(function(x){x.checked=null},cbs);
+    map(function(x){x.checked=null;},cbs);
 }
 
 function addSelectionBar() {
@@ -405,7 +405,7 @@ function addSelectionBar() {
     for (i=0;i<tables.length;i++) {
         if (!getNodeAttribute(tables[i], 'noselectionbar')) {
             var inputs = tables[i].getElementsByTagName('input');
-            var cbs = filter(function(x){return x.type=='checkbox'}, inputs);
+            var cbs = filter(function(x){return x.type=='checkbox';}, inputs);
             if (cbs.length>1) insertSelBar(tables[i], i);
         }
     }
@@ -423,12 +423,12 @@ function applyBrowserSpecificStyles() {
 
 var removeAutoComplete = function(el) {
     setNodeAttribute(el, 'autocomplete', 'off');
-}
+};
 
 var removeElementAutoCompletes = function() {
     var inputs = $$('input');
     map(removeAutoComplete, inputs);
-}
+};
 
 
 
@@ -441,7 +441,7 @@ postJSONDoc = function (url, postVars) {
         var d = sendXMLHttpRequest(req, data);
         return d.addCallback(evalJSONRequest);
 
-}
+};
 
 var cancelWithTimeout = function (deferred, timeout) {
     var canceller = callLater(timeout, function () {
@@ -496,7 +496,7 @@ function checkValidId(e){
     var label = $('new_id_label');
     var new_id = escape(input.value);
     var submit = $('dialog_submit');
-    var path = $('checkValidIdPath').value
+    var path = $('checkValidIdPath').value;
 
     errmsg.innerHTML = "";
     Morph(input, {"style": {"color": "black"}});
@@ -548,7 +548,7 @@ var calcSubmenuPos = function(rel, sub) {
     var sDims = getElementDimensions(sub);
     var vDims = getViewportDimensions();
     var vPos = getViewportPosition();
-    finalDims = {x:0, y:0}
+    var finalDims = {x:0, y:0};
     // Check to see if the menu will appear outside the viewport
     // If so, make it fly out on the left
     totalX = pPos.x + pDims.w + sDims.w;
@@ -557,12 +557,12 @@ var calcSubmenuPos = function(rel, sub) {
     // If so, move it up so that it fits
     totalY = pPos.y + sDims.h;
     finalDims.y = totalY>=vDims.h+vPos.y?0-(totalY-vDims.h)+vPos.y:0;
-    return finalDims
-}
+    return finalDims;
+};
 
 
 var calcMenuPos = function(rel, menu) {
-    var isIE//@cc_on=1;
+    var isIE;
     var pPos = getElementPosition(rel);
     var pDims = getElementDimensions(rel);
     var vDims = getViewportDimensions();
@@ -582,31 +582,31 @@ var calcMenuPos = function(rel, menu) {
         setStyle(topmenu, {'background-image':'url(img/menu_top.gif)'});
     }
     if (isIE && $(menu).className!='devmovemenuitems') finalDims.y += 10;
-    return finalDims
-}
+    return finalDims;
+};
 
 var showSubMenu = function(rel, sub) {
     var relPos = calcSubmenuPos(rel, sub);
     setElementPosition(sub, relPos);
     setStyle(sub, {'visibility':'visible','z-index':'10001'});
     hideOtherSubmenus(rel, sub);
-}
+};
 
 var hideSubMenu = function(sub) {
     setStyle(sub, {'visibility':'hidden','z-index':'1'});
-}
+};
 
 var hideMenu = function(menu) {
     setStyle(menu, {'visibility':'hidden','z-index':'1'});
     try {
     setStyle(getFirstParentByTagAndClassName(menu, 'div',
         'tabletitlecontainer'), {'z-index':'1'});
-    } catch(e){noop()}
+    } catch(e){noop();}
     if (navigator.userAgent.match('Mac')) {
-        try {setStyle(eventZenGrid.scrollbar, {'overflow':'auto'})}
-        catch(e) {noop()};
+        try {setStyle(eventZenGrid.scrollbar, {'overflow':'auto'});}
+        catch(e) {noop();};
     }
-}
+};
 
 var showMenu = function(rel, menu) {
     dropOtherMenuButtons(rel);
@@ -615,18 +615,18 @@ var showMenu = function(rel, menu) {
     setStyle(menu, {'visibility':'visible','z-index':'10000',
                     'zoom':1});
     if (navigator.userAgent.match('Mac')) {
-        try {setStyle(eventZenGrid.scrollbar, {'overflow':'hidden'})}
-        catch(e) {noop()};
+        try {setStyle(eventZenGrid.scrollbar, {'overflow':'hidden'});}
+        catch(e) {noop();};
     }
-}
+};
 
 var showContextMenu = function() {
     var menu = $('contextmenuitems');
 
-}
+};
 
 var dropOtherMenuButtons = function(button) {
-    var lowerButton = function(btn) { setStyle(btn, {'z-index':'1'})};
+    var lowerButton = function(btn) { setStyle(btn, {'z-index':'1'});};
     try {
         mymenu = getFirstParentByTagAndClassName($(button).parentNode, 'div',
         'tabletitlecontainer');
@@ -636,12 +636,12 @@ var dropOtherMenuButtons = function(button) {
     others = $$("div.tabletitlecontainer");
     map(lowerButton, others);
     if (mymenu) setStyle(mymenu, {'z-index':'10000'});
-}
+};
 
 var hideOtherSubmenus = function(menu, submenu) {
-    var smartHideSub = function(sub){if ($(submenu)!=sub) hideSubMenu(sub)}
+    var smartHideSub = function(sub){if ($(submenu)!=sub) hideSubMenu(sub);};
     map(smartHideSub, $$('div.submenu'));
-}
+};
 
 var smto = Array();
 
@@ -662,8 +662,8 @@ var registerSubmenu = function(menu, submenu) {
     connect(submenu, 'onclick', function() {
         hideSubMenu(submenu);
     });
-    } catch(e) {noop()};
-}
+    } catch(e) {noop();};
+};
 
 var registerMenu = function(button, menu) {
     connect(button, 'onclick', function() {
@@ -696,7 +696,7 @@ var registerMenu = function(button, menu) {
     connect(menu, 'onmouseout', function() {
         smto[menu] = setTimeout('hideMenu("'+menu+'");disconnectAll("'+
             button+'", "onmouseover");', 500); });
-}
+};
 
 
 /* ZGDAgent */
@@ -718,7 +718,7 @@ function notifyParentOfNewUrl() {
 var checkboxes;
 var currentCheckbox;
 var isCheckbox = function(elem) {
-    return (elem.type=='checkbox') }
+    return (elem.type=='checkbox'); };
 
 function getCheckboxes(elem) {
     var inputs = getElementsByTagAndClassName('input', null);
@@ -789,8 +789,8 @@ function zenPageInit(){
 }
 
 function submitAction(myform, url) {
-    myform.action=url
-    myform.submit()
+    myform.action=url;
+    myform.submit();
 }
 
 function submitViaEnter(evt, submitName) {
@@ -800,7 +800,7 @@ function submitViaEnter(evt, submitName) {
     var charCode = (evt.charCode) ? evt.charCode :
         ((evt.which) ? evt.which : evt.keyCode);
     if (charCode == 13 || charCode == 3) {
-        if (submitName) { form.action += "/" + submitName }
+        if (submitName) { form.action += "/" + submitName; }
         form.submit();
         return false;
     }
@@ -822,7 +822,7 @@ isSelected = false;
 function toggleSelect(form) {
     if (isSelected == false) {
         for (i = 0; i < form.length; i++) {
-            if (form.elements[i].name == "negateFilter") { continue }
+            if (form.elements[i].name == "negateFilter") { continue; }
             form.elements[i].checked = true ;
         }
         isSelected = true;
@@ -831,7 +831,7 @@ function toggleSelect(form) {
     }
     else {
         for (i = 0; i < form.length; i++) {
-            if (form.elements[i].name == "negateFilter") { continue }
+            if (form.elements[i].name == "negateFilter") { continue; }
             form.elements[i].checked = false ;
         }
         isSelected = false;
@@ -864,9 +864,9 @@ function getFormElements(parentbox) {
                 traverse(node.childNodes.item(i));
             }
         }
-    }
+    };
     traverse(parentbox);
-    return [firstElement, textBoxes, submitButtons, formElements]
+    return [firstElement, textBoxes, submitButtons, formElements];
 }
 
 var Dialog = {};
@@ -907,7 +907,7 @@ Dialog.Box.prototype = {
         this.box.submit_form = bind(this.submit_form, this);
         this.box.submit_form_and_check = bind(this.submit_form_and_check, this);
         this.parentElem = this.box.parentNode;
-        this.defaultContent = this.box.innerHTML
+        this.defaultContent = this.box.innerHTML;
         setStyle(this.box, {
             'position':'absolute',
             'z-index':'5001',
@@ -962,7 +962,7 @@ Dialog.Box.prototype = {
         setStyle(this.framework, {'z-index':'1','display':'block'});
         var bdims = getElementDimensions(this.framework);
         setStyle(this.framework, {'z-index':'10002','display':'none'});
-        map(function(menu) {setStyle(menu, {'z-index':'3000'})},
+        map(function(menu) {setStyle(menu, {'z-index':'3000'});},
             concat($$('.menu'), $$('.littlemenu'), $$('#messageSlot')));
         setElementDimensions(this.dimbg, getViewportDimensions());
         setElementPosition(this.dimbg, getViewportPosition());
@@ -972,7 +972,7 @@ Dialog.Box.prototype = {
             y:((dims.h/2)+vPos.y)-(bdims.h/2)
         });
         this.moveBox('front');
-        connect('dialog_close','onclick',function(){$('dialog').hide()});
+        connect('dialog_close','onclick',function(){$('dialog').hide();});
         var d2 = this.lock.acquire();
         d2.addCallback(bind(function() {
             try {
@@ -989,7 +989,7 @@ Dialog.Box.prototype = {
         var header = Ext.fly(this.framework).select('.dbox_tc h2');
         if (header) header.remove();
         if (this.curid in this.unloadEvents)
-            forEach(this.unloadEvents[this.curid], function(f){f()});
+            forEach(this.unloadEvents[this.curid], function(f){f();});
         YAHOO.zenoss.setInnerHTML(this.defaultContent);
         this.curid = null;
         hideElement(this.framework);
@@ -1001,12 +1001,12 @@ Dialog.Box.prototype = {
         var id = urlsplit[urlsplit.length-1];
         this.curid = id;
         var d = doSimpleXMLHttpRequest(url, {dontCache: new Date().getTime()});
-        d.addCallback(method(this, function(req){this.fill(id, req)}));
+        d.addCallback(method(this, function(req){this.fill(id, req);}));
     },
     fill: function(dialogid, request) {
         YAHOO.zenoss.setInnerHTML($('dialog_innercontent'), request.responseText);
         if (dialogid in this.loadEvents)
-            forEach(this.loadEvents[dialogid], function(f){f()});
+            forEach(this.loadEvents[dialogid], function(f){f();});
         var elements = getFormElements($('dialog_innercontent'));
         var first = elements[0];
         var textboxes = elements[1];
@@ -1017,7 +1017,7 @@ Dialog.Box.prototype = {
             connect(box, 'onkeyup', function(e){
                 if (e.key().string=='KEY_ENTER') submt.click();
             });
-        }
+        };
         if (submits.length==1) map(connectTextboxes, textboxes);
         var head = Ext.get('dialog_content').select('h2'),
             header = Ext.fly(this.framework).select('.dbox_tc');
@@ -1039,7 +1039,7 @@ Dialog.Box.prototype = {
         var label = $('new_id_label');
         var new_id = escape(input.value);
         var submit = $('dialog_submit');
-        var path = $('checkValidIdPath').value
+        var path = $('checkValidIdPath').value;
         var myform = formname?document.forms[formname]:this.form;
         errmsg.innerHTML = "";
         Morph(input, {"style": {"color": "black"}});
@@ -1055,7 +1055,7 @@ Dialog.Box.prototype = {
                 this.box = removeElement(this.box);
                 if (action != '') f.action = action;
                 f.appendChild(this.box);
-                submit.onclick = ""
+                submit.onclick = "";
                 submit.click();
             } else {
                 Morph(input, {"style": {"color": "red"}});
@@ -1067,7 +1067,7 @@ Dialog.Box.prototype = {
             }
         }, this));
     }
-}
+};
 
 var RefreshManager = Class.create();
 RefreshManager.prototype = {
@@ -1090,7 +1090,7 @@ RefreshManager.prototype = {
         if(this.current) this.current.cancel();
         this.current = null;
     }
-}
+};
 
 
 /**
@@ -1107,7 +1107,7 @@ YAHOO.zenoss.utils.messagesToList = function(messages) {
     }
     html += "</ul>\n";
     return html;
-}
+};
 
 
 

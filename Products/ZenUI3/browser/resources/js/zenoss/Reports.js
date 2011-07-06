@@ -137,8 +137,8 @@ Zenoss.ReportTreePanel = Ext.extend(Zenoss.HierarchyTreePanel, {
                 parentNode.removeChild(node);
                 node.destroy();
                 tree.update(data.tree);
-                // the select() above is insufficient; 
-                // the url refers to the deleted node still. 
+                // the select() above is insufficient;
+                // the url refers to the deleted node still.
                 parentNode.fireEvent('click', parentNode);
             }
         }
@@ -153,6 +153,7 @@ report_panel.addListener('frameloadfinished', function(win) {
     var anchors = win.document.getElementsByTagName('a');
     for (var idx = 0; idx < anchors.length; idx++) {
         if (!/\/zport\/dmd\/[rR]eports\//.test(anchors[idx].href)) {
+            anchors[idx].target = "_top";
             anchors[idx].onclick = function() {
                 window.top.location.href = this.href;
             };

@@ -77,14 +77,18 @@ Zenoss.IFramePanel = Ext.extend(Ext.BoxComponent, {
                             && (this.ignoreClassName || !!body.className);
                 }
             } else {
-                dom = body ? body.dom : null,
-                    href = this.getDocument().location.href;
+                dom = body ? body.dom : null;
+                href = this.getDocument().location.href;
                 ready = href != currentUrl || (dom && dom.innerHTML);
             }
-            if (ready || i++ > timestocheck) {
+            if (ready  || i++ > timestocheck) {
                 this.frameLoaded = ready;
-                this.fireEvent(ready ? 'frameload' : 'framefailed',
+                // on IE9 this would fire when the dom is setup but
+                // not entirely available. Wait half a second and then fire the event
+                (function() {
+                    this.fireEvent(ready ? 'frameload' : 'framefailed',
                         this.getWindow());
+                 }.createDelegate(this).defer(500));
             } else {
                 do_check.defer(this.pollInterval, this);
             }
@@ -136,6 +140,7 @@ Zenoss.BackCompatPanel = Ext.extend(Zenoss.IFramePanel, {
         Zenoss.BackCompatPanel.superclass.constructor.call(this, config);
         this.addEvents('frameloadfinished');
         this.on('frameload', function(win) {
+
             if (win.document && win.document.body) {
                 this.fireEvent('frameloadfinished', win);
             } else {
