@@ -222,6 +222,10 @@ class ZenDaemon(CmdBase):
             log.setLevel(logging.DEBUG)
             log.info("Setting logging level to DEBUG")
             getTwistedLogger().start()
+        self._sigUSR1_called(signum, frame)
+
+    def _sigUSR1_called(self, signum, frame):
+        pass
 
     def changeUser(self):
         """

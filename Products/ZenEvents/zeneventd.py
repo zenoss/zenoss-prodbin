@@ -271,6 +271,10 @@ class ZenEventD(ZenDaemon):
         else:
             EventDWorker().run()
 
+    def _sigUSR1_called(self, signum, frame):
+        log.debug   ('_sigUSR1_called %s' % signum)
+        self._workers.sendSignal(signum)
+
     def buildOptions(self):
         super(ZenEventD, self).buildOptions()
 

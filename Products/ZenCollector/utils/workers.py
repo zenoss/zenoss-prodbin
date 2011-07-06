@@ -74,7 +74,11 @@ class ProcessWorkers(object):
         else:
             log.debug("_sigchldhandler: shutting down, skipping")
 
-        
+    def sendSignal(self, signum):
+        for worker in self._workers:
+            log.debug("Sending signal %s to %s" % (signum, worker.pid))
+            os.kill(worker.pid, signum)
+            
     def startWorkers(self):
         def _doStart():
             for i in xrange(self._maxWorkers):
