@@ -886,28 +886,28 @@ td.x-date-mp-sel a{
     background:transparent url(../img/xtheme-zenoss/qtip/tip-sprite.png) no-repeat right -124px;
 }
 .x-form-invalid-tip .x-tip-tc{
-    background:url(../images/default/form/error-tip-corners.gif) repeat-x 0 -12px;padding-top:6px;
+    background:url(++resource++extjs/resources/images/default/form/error-tip-corners.gif) repeat-x 0 -12px;padding-top:0px;
 }
 .x-form-invalid-tip .x-tip-tl{
-    background-image:url(../images/default/form/error-tip-corners.gif);
+    background-image:url(++resource++extjs/resources/images/default/form/error-tip-corners.gif);
 }
 .x-form-invalid-tip .x-tip-tr{
-    background-image:url(../images/default/form/error-tip-corners.gif);
+    background-image:url(++resource++extjs/resources/images/default/form/error-tip-corners.gif);
 }
 .x-form-invalid-tip .x-tip-bc{
-    background:url(../images/default/form/error-tip-corners.gif) repeat-x 0 -18px;height:6px;
+    background:url(++resource++extjs/resources/images/default/form/error-tip-corners.gif) repeat-x 0 -18px;height:6px;
 }
 .x-form-invalid-tip .x-tip-bl{
-    background:url(../images/default/form/error-tip-corners.gif) no-repeat 0 -6px;
+    background:url(++resource++extjs/resources/images/default/form/error-tip-corners.gif) no-repeat 0 -6px;
 }
 .x-form-invalid-tip .x-tip-br{
-    background:url(../images/default/form/error-tip-corners.gif) no-repeat right -6px;
+    background:url(++resource++extjs/resources/images/default/form/error-tip-corners.gif) no-repeat right -6px;
 }
 .x-form-invalid-tip .x-tip-ml{
-    background-image:url(../images/default/form/error-tip-corners.gif);
+    background-image:url(++resource++extjs/resources/images/default/form/error-tip-corners.gif);
 }
 .x-form-invalid-tip .x-tip-mr{
-    background-image:url(../images/default/form/error-tip-corners.gif);
+    background-image:url(++resource++extjs/resources/images/default/form/error-tip-corners.gif);
 }
 
 
