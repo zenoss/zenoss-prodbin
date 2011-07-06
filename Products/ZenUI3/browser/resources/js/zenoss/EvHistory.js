@@ -110,7 +110,7 @@ Ext.onReady(function(){
                                     fields: Ext.pluck(state.columns, 'id'),
                                     sort: state.sort.field,
                                     dir: state.sort.direction,
-                                    params: grid.getSelectionParameters()
+                                    params: grid.getExportParameters()
                                 }
                             };
                         Ext.get('export_body').dom.value =
@@ -129,7 +129,7 @@ Ext.onReady(function(){
                                     fields: Ext.pluck(state.columns, 'id'),
                                     sort: state.sort.field,
                                     dir: state.sort.direction,
-                                    params: grid.getSelectionParameters()
+                                    params: grid.getExportParameters()
                                 }
                             };
                         Ext.get('export_body').dom.value =

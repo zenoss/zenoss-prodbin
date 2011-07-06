@@ -568,7 +568,7 @@
                                                 fields: Ext.pluck(state.columns, 'id'),
                                                 sort: state.sort.field,
                                                 dir: state.sort.direction,
-                                                params: grid.getSelectionParameters()
+                                                params: grid.getExportParameters()
                                             }
                                         };
                                     if (historyCombo && historyCombo.getValue() == 1) {
@@ -595,7 +595,7 @@
                                                 fields: Ext.pluck(state.columns, 'id'),
                                                 sort: state.sort.field,
                                                 dir: state.sort.direction,
-                                                params: grid.getSelectionParameters()
+                                                params: grid.getExportParameters()
                                             }
                                         };
                                     if (historyCombo && historyCombo.getValue() == 1) {

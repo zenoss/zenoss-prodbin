@@ -1429,6 +1429,23 @@ Zenoss.FilterGridPanel = Ext.extend(Ext.ux.grid.livegrid.GridPanel, {
     },
 
     /*
+     * Create parameters used for exporting events. This differs from
+     * getSelectionParameters in that if no events are selected, all of
+     * the events matching the current filters are exported.
+     */
+    getExportParameters: function() {
+        var params = this.getSelectionParameters();
+        if (params === false) {
+            params = {
+                evids: [],
+                excludeIds: []
+            };
+            Ext.apply(params, this.getUpdateParameters());
+        }
+        return params;
+    },
+
+    /*
      * A shortcut for updated grid rows.
      */
     updateRows: function() {
