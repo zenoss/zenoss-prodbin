@@ -23,14 +23,14 @@ def _portletpath(*args):
 
 portlets = [
     {
-     'sourcepath':  _portletpath('HeartbeatsPortlet.js'), 
-     'id':          'HeartbeatsPortlet', 
-     'title': 'Zenoss Issues',
+     'sourcepath':  _portletpath('HeartbeatsPortlet.js'),
+     'id':          'HeartbeatsPortlet',
+     'title': 'Resource Manager Issues',
      'permission':  ZEN_MANAGE_DMD
     },
     {
-     'sourcepath':  _portletpath('GoogleMapsPortlet.js'), 
-     'id':          'GoogleMapsPortlet', 
+     'sourcepath':  _portletpath('GoogleMapsPortlet.js'),
+     'id':          'GoogleMapsPortlet',
      'title': 'Google Maps',
      'permission':  ZEN_VIEW
     },
@@ -41,32 +41,32 @@ portlets = [
      'permission':  ZEN_VIEW
     },
     {
-     'sourcepath':  _portletpath('DeviceIssuesPortlet.js'), 
-     'id':          'DeviceIssuesPortlet', 
+     'sourcepath':  _portletpath('DeviceIssuesPortlet.js'),
+     'id':          'DeviceIssuesPortlet',
      'title': 'Device Issues',
      'permission':  ZEN_COMMON
     },
     {
-     'sourcepath':  _portletpath('TopLevelOrgsPortlet.js'), 
-     'id':          'TopLevelOrgsPortlet', 
+     'sourcepath':  _portletpath('TopLevelOrgsPortlet.js'),
+     'id':          'TopLevelOrgsPortlet',
      'title': 'Top Level Organizers',
      'permission':  ZEN_VIEW
     },
     {
-     'sourcepath':  _portletpath('WatchListPortlet.js'), 
-     'id':          'WatchListPortlet', 
+     'sourcepath':  _portletpath('WatchListPortlet.js'),
+     'id':          'WatchListPortlet',
      'title': 'Watch List',
      'permission':  ZEN_COMMON
     },
     {
-     'sourcepath':  _portletpath('productionStatePortlet.js'), 
-     'id':          'ProdStatePortlet', 
+     'sourcepath':  _portletpath('productionStatePortlet.js'),
+     'id':          'ProdStatePortlet',
      'title': 'Production States',
      'permission':  ZEN_COMMON
     },
     {
-     'sourcepath':  _portletpath('userMessagesPortlet.js'), 
-     'id':          'UserMsgsPortlet', 
+     'sourcepath':  _portletpath('userMessagesPortlet.js'),
+     'id':          'UserMsgsPortlet',
      'title': 'Messages',
      'permission':  ZEN_COMMON
     },
