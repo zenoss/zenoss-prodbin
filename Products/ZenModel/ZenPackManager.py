@@ -243,7 +243,7 @@ class ZenPackManager(ZenModelRM):
             from ZenPack import ZenPackNeedMigrateException
             raise ZenPackNeedMigrateException(msg)
 
-        msg = None
+        msg = ''
         with get_temp_dir() as tempDir:
             # zenpack.filename gives us filename of the zenpack with the
             # path as it exists on the client. We need just the filename.
