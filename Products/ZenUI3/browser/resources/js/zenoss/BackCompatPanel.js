@@ -31,7 +31,7 @@ Zenoss.IFramePanel = Ext.extend(Ext.BoxComponent, {
             }
         });
         Zenoss.IFramePanel.superclass.constructor.call(this, config);
-        this.addEvents('frameload', 'framefailed');
+        this.addEvents('frameload', 'framefailed', 'isReady');
         this.on('frameload', function(win) {
             // Load any messages that may have been created by the frame
             Zenoss.messenger.checkMessages();
@@ -75,20 +75,22 @@ Zenoss.IFramePanel = Ext.extend(Ext.BoxComponent, {
                 } else {
                     ready = !!body
                             && (this.ignoreClassName || !!body.className);
+
+                    // Allow subclasses and clients defined when the panel is ready
+                    ready = ready && this.fireEvent('isReady', this.getWindow());
                 }
             } else {
                 dom = body ? body.dom : null;
                 href = this.getDocument().location.href;
                 ready = href != currentUrl || (dom && dom.innerHTML);
+
+                // Allow subclasses and clients defined when the panel is ready
+                ready = ready && this.fireEvent('isReady', this.getWindow());
             }
             if (ready  || i++ > timestocheck) {
                 this.frameLoaded = ready;
-                // on IE9 this would fire when the dom is setup but
-                // not entirely available. Wait half a second and then fire the event
-                (function() {
                     this.fireEvent(ready ? 'frameload' : 'framefailed',
-                        this.getWindow());
-                 }.createDelegate(this).defer(500));
+                               this.getWindow());
             } else {
                 do_check.defer(this.pollInterval, this);
             }
@@ -140,8 +142,12 @@ Zenoss.BackCompatPanel = Ext.extend(Zenoss.IFramePanel, {
         Zenoss.BackCompatPanel.superclass.constructor.call(this, config);
         this.addEvents('frameloadfinished');
         this.on('frameload', function(win) {
-
-            if (win.document && win.document.body) {
+            if (Ext.isDefined(win.Ext) && Ext.isDefined(win.Ext.onReady)) {
+                var me = this;
+                win.Ext.onReady(function(){
+                    me.fireEvent('frameloadfinished', win);
+                });
+            }else if (win.document && win.document.body) {
                 this.fireEvent('frameloadfinished', win);
             } else {
                 win.onload = function() {
@@ -149,6 +155,11 @@ Zenoss.BackCompatPanel = Ext.extend(Zenoss.IFramePanel, {
                 }.createDelegate(this);
             }
         }, this);
+
+        // the frame is not finished loading until Ext is ready
+        this.on('isReady', function(win){
+            return Ext.isDefined(win.Ext) && Ext.isDefined(win.Ext.onReady);
+        });
     },
     setContext: function(uid) {
         this.contextUid = uid;
