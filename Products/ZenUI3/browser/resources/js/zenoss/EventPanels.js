@@ -999,6 +999,7 @@
                     nearLimit: 100,
                     displayFilters: Ext.isDefined(config.displayFilters) ? config.displayFilters : true,
                     rowHeight: 22,
+                    appendGlob: true,
                     emptyText: _t('No events'),
                     loadMask: {msg: 'Loading. Please wait...'},
                     defaultFilters: {
