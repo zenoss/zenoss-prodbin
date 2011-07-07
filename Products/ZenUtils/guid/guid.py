@@ -73,16 +73,19 @@ class GlobalIdentifier(object):
     def getGUID(self):
         return getattr(self.context, GUID_ATTR_NAME, None)
 
-    def setGUID(self, value):
+    def _setGUID(self, value, update_global_catalog=True):
         old = self.guid
         setattr(self.context, GUID_ATTR_NAME, value)
-        notify(GUIDEvent(self.context, old, value))
+        notify(GUIDEvent(self.context, old, value, update_global_catalog))
+
+    def setGUID(self, value):
+        self._setGUID(value)
 
     guid = property(getGUID, setGUID)
 
-    def create(self, force=False):
+    def create(self, force=False, update_global_catalog=True):
         if self.guid is None or force:
-            self.guid = generate()
+            self._setGUID(generate(), update_global_catalog=update_global_catalog)
         return self.guid
 
 

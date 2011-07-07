@@ -25,10 +25,11 @@ log = logging.getLogger('zen.UUID')
 
 class GUIDEvent(ObjectEvent):
     implements(IGUIDEvent)
-    def __init__(self, object, old, new):
+    def __init__(self, object, old, new, update_global_catalog=True):
         super(GUIDEvent, self).__init__(object)
         self.old = old
         self.new = new
+        self.update_global_catalog = update_global_catalog
 
 
 @adapter(IGloballyIdentifiable, IGUIDEvent)
@@ -36,11 +37,12 @@ def registerGUIDToPathMapping(object, event):
     mgr = IGUIDManager(object)
     if event.new:
         mgr.setObject(event.new, object)
-        try:
-            catalog = object.global_catalog
-            catalog.catalog_object(object, idxs=(), update_metadata=True)
-        except Exception:
-            log.exception('Encountered a guid exception')
+        if event.update_global_catalog:
+            try:
+                catalog = object.global_catalog
+                catalog.catalog_object(object, idxs=(), update_metadata=True)
+            except Exception:
+                log.exception('Encountered a guid exception')
     if event.old and event.old != event.new:
         # When we move a component around,
         # we don't want to remove the guid

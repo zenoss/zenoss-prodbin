@@ -154,7 +154,9 @@ class IndexableWrapper(object):
         Object's uuid. This is a metadata column.
         """
         try:
-            return IGlobalIdentifier(self._context).create()
+            # We don't need create() to update the global catalog, because by definition
+            # this is only called when the object is going to be indexed.
+            return IGlobalIdentifier(self._context).create(update_global_catalog=False)
         except ConflictError:
             raise
         except Exception:
