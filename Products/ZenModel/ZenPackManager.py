@@ -231,7 +231,7 @@ class ZenPackManager(ZenModelRM):
 
         from Products.ZenUtils.Utils import get_temp_dir
 
-        ZENPACK_INSTALL_TIMEOUT = 120
+        ZENPACK_INSTALL_TIMEOUT = 10 * 60 # 10 minutes
 
         if not getattr(self.dmd, 'ZenPackManager'):
             msg = 'Your Zenoss database appears to be out of date. Try ' \
