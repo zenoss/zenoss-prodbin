@@ -59,6 +59,40 @@ class IMibEntity(Interface):
     """
 
 
+class IMibNodeInfo(IInfo):
+    """
+    Represents a single OID Mapping instance.
+    """
+    name = schema.TextLine(title=_t(u'Name'),
+                           description=_t(u'Name of this OID Mapping'))
+    oid = schema.TextLine(title=_t(u'OID'),
+                           description=_t(u'OID of this OID Mapping'))
+    nodetype = schema.TextLine(title=_t(u'Nodetype'),
+                           description=_t(u'Nodetype of this OID Mapping'))
+    access = schema.TextLine(title=_t(u'Access'),
+                           description=_t(u'Access of this OID Mapping'))
+    status = schema.TextLine(title=_t(u'Status'),
+                           description=_t(u'Status of this OID Mapping'))
+    description = schema.Text(title=_t(u'Description'),
+                           description=_t(u'Description of this OID Mapping'))
+
+class IMibNotificationInfo(IInfo):
+    """
+    Represents a single Trap instance.
+    """
+    name = schema.TextLine(title=_t(u'Name'),
+                           description=_t(u'Name of this Trap'))
+    oid = schema.TextLine(title=_t(u'OID'),
+                           description=_t(u'OID of this Trap'))
+    nodetype = schema.TextLine(title=_t(u'Nodetype'),
+                           description=_t(u'Nodetype of this Trap'))
+    objects = schema.TextLine(title=_t(u'Objects'),
+                           description=_t(u'Access of this Trap'))
+    status = schema.TextLine(title=_t(u'Status'),
+                           description=_t(u'Status of this Trap'))
+    description = schema.Text(title=_t(u'Description'),
+                           description=_t(u'Description of this Trap'))
+
 class IMibInfo(IInfo):
     """
     Represents a single MIB instance.

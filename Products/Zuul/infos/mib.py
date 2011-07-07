@@ -13,13 +13,14 @@
 
 from itertools import imap, chain
 
+from pprint import pformat
 from zope.component import adapts
 from zope.interface import implements
 from Products.Zuul import getFacade
 from Products.Zuul.tree import TreeNode
 from Products.Zuul.infos import InfoBase, ProxyProperty
 from Products.Zuul.interfaces import IMibInfo, IMibOrganizerNode, IMibNode
-from Products.Zuul.interfaces import ICatalogTool, IMibOrganizerInfo
+from Products.Zuul.interfaces import ICatalogTool, IMibOrganizerInfo, IMibNodeInfo, IMibNotificationInfo
 from Products.ZenModel.MibOrganizer import MibOrganizer
 from Products.ZenModel.MibModule import MibModule
 from Products.ZenModel.MibBase import MibBase
@@ -102,6 +103,35 @@ class MibNode(TreeNode):
 class MibInfoBase(InfoBase):
     pass
 
+class MibNodeInfo(MibInfoBase):
+    implements(IMibNodeInfo)
+
+    @property
+    def name(self):
+        return self._object.getId()
+
+    oid = ProxyProperty('oid')
+    nodetype = ProxyProperty('nodetype')
+    access = ProxyProperty('access')
+    status = ProxyProperty('status')
+    description = ProxyProperty('description')
+
+class MibNotificationInfo(MibInfoBase):
+    implements(IMibNotificationInfo)
+
+    @property
+    def name(self):
+        return self._object.getId()
+
+    oid = ProxyProperty('oid')
+    nodetype = ProxyProperty('nodetype')
+
+    @property
+    def objects(self):
+        return pformat(self._object.objects)
+
+    status = ProxyProperty('status')
+    description = ProxyProperty('description')
 
 class MibInfo(MibInfoBase):
     implements(IMibInfo)

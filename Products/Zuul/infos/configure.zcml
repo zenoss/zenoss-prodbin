@@ -141,6 +141,16 @@
              for="Products.ZenModel.MibModule.MibModule"
              />
 
+    <adapter factory=".mib.MibNodeInfo"
+             provides="..interfaces.IMibNodeInfo"
+             for="Products.ZenModel.MibNode.MibNode"
+             />
+
+    <adapter factory=".mib.MibNotificationInfo"
+             provides="..interfaces.IMibNotificationInfo"
+             for="Products.ZenModel.MibNotification.MibNotification"
+             />
+
     <adapter factory=".mib.MibOrganizerInfo"
              provides="..interfaces.IMibOrganizerInfo"
              for="Products.ZenModel.MibOrganizer.MibOrganizer"

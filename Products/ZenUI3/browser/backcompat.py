@@ -106,6 +106,14 @@ def CustomReport(ob):
     id = '.'.join(ob.getPhysicalPath())
     return '/zport/dmd/reports#reporttree:' + id
 
+def MibNode(ob):
+    id = '/'.join(ob.getPhysicalPath()).split('/nodes/')[0]
+    return '/zport/dmd/mibs#mibtree:' + id
+
+def MibNotification(ob):
+    id = '/'.join(ob.getPhysicalPath()).split('/notifications/')[0]
+    return '/zport/dmd/mibs#mibtree:' + id
+
 def MibClass(ob):
     id = '/'.join(ob.getPhysicalPath())
     return '/zport/dmd/mibs#mibtree:' + id

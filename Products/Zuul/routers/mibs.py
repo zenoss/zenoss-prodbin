@@ -197,6 +197,40 @@ class MibRouter(TreeRouter):
         info = facade.setInfo(uid, data)
         return DirectResponse.succeed(data=Zuul.marshal(info))
 
+    def addOidMapping(self, uid, id, oid, nodetype='node'):
+        self.api.addOidMapping(uid, id, oid, nodetype)
+        return DirectResponse.succeed()
+
+    def addTrap(self, uid, id, oid, nodetype='notification'):
+        self.api.addTrap(uid, id, oid, nodetype)
+        return DirectResponse.succeed()
+
+    def deleteOidMapping(self, uid):
+        if uid.find('/nodes/') == -1:
+            return DirectResponse.fail('"%s" does not appear to refer to an OID Mapping' % uid)
+        mibUid, mappingId = uid.split('/nodes/')
+        self.api.deleteOidMapping(mibUid, mappingId)
+        return DirectResponse.succeed()
+
+    def deleteTrap(self, uid):
+        if uid.find('/notifications/') == -1:
+            return DirectResponse.fail('"%s" does not appear to refer to a trap' % uid)
+        mibUid, trapId = uid.split('/notifications/')
+        self.api.deleteTrap(mibUid, trapId)
+        return DirectResponse.succeed()
+
+    def getOidMappings(self, **kwargs):
+        count, nodes = self.api.getMibNodes(uid=kwargs['uid'], dir=kwargs['dir'],
+            sort=kwargs['sort'], start=kwargs['start'],
+            limit=kwargs['limit'], relation='nodes')
+        return {'count': count, 'data': Zuul.marshal(nodes)}
+
+    def getTraps(self, **kwargs):
+        count, nodes = self.api.getMibNodes(uid=kwargs['uid'], dir=kwargs['dir'],
+            sort=kwargs['sort'], start=kwargs['start'],
+            limit=kwargs['limit'], relation='notifications')
+        return {'count': count, 'data': Zuul.marshal(nodes)}
+
     def getMibNodeTree(self, id=None):
         """
         A MIB node is a regular OID (ie you can hit it with snmpwalk)

@@ -255,6 +255,24 @@
     />
 
 <adapter
+    for="Products.ZenModel.MibNode.MibNode"
+    provides=".interfaces.INewPath"
+    factory=".backcompat.MibNode"
+    />
+
+<adapter
+    for="Products.ZenModel.MibNotification.MibNotification"
+    provides=".interfaces.INewPath"
+    factory=".backcompat.MibNotification"
+    />
+
+<adapter
+    for="Products.ZenModel.MibModule.MibModule"
+    provides=".interfaces.INewPath"
+    factory=".backcompat.MibClass"
+    />
+
+<adapter
     for="Products.ZenModel.MibOrganizer.MibOrganizer"
     provides=".interfaces.INewPath"
     factory=".backcompat.MibClass"

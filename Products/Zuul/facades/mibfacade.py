@@ -19,7 +19,7 @@ from Acquisition import aq_parent
 
 from Products.Zuul.facades import TreeFacade
 from Products.Zuul.utils import UncataloguedObjectException
-from Products.Zuul.interfaces import ITreeFacade, IMibFacade
+from Products.Zuul.interfaces import ITreeFacade, IMibFacade, IInfo
 from Products.Zuul.infos.mib import MibOrganizerNode, MibNode
 
 from Products.Jobber.jobs import ShellCommandJob
@@ -75,6 +75,35 @@ class MibFacade(TreeFacade):
 
         # This case occurs when one OID is the parent of another
         return cmp( len(a), len(b) )
+
+    def addOidMapping(self, uid, id, oid, nodetype):
+        self._getObject(uid).addMibNode(id, oid, nodetype)
+
+    def addTrap(self, uid, id, oid, nodetype):
+        self._getObject(uid).addMibNotification(id, oid, nodetype)
+
+    def deleteOidMapping(self, mibUid, mappingId):
+        self._getObject(mibUid).deleteMibNodes([mappingId])
+
+    def deleteTrap(self, mibUid, trapId):
+        self._getObject(mibUid).deleteMibNotifications([trapId])
+
+    def getMibNodes(self, uid, limit=0, start=0, sort='name', dir='DESC', relation='nodes'):
+        obj = self._getObject(uid)
+        log.error(obj)
+        log.error(obj.default_catalog)
+        zcat = getattr(obj, 'mibSearch')
+        log.error(zcat);
+        if isinstance(obj, MibOrganizer):
+            return []
+        functor = getattr(obj, relation, None)
+        if functor is None:
+            log.warn("Unable to retrieve the relation '%s' from %s",
+                     relation, obj.id)
+            return []
+        all = [IInfo(node) for node in functor()]
+        reverse = dir == 'DESC'
+        return len(all), sorted(all, key=lambda info: getattr(info, sort), reverse=reverse)[start:limit + start]
 
     def getMibNodeTree(self, id):
         return self.getMibBaseNodeTree(id, relation='nodes')
