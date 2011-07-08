@@ -92,6 +92,7 @@
     padding-top: 1px;
 }
 
+#secondarynav li.nav-item-disabled a { color: #ccc; }
 #secondarynav li.nav-item-inactive a { color: #fff; }
 #secondarynav li.nav-item-active a { 
     color: #454545;
@@ -99,6 +100,7 @@
     background: transparent url('/++resource++zenui/img/secondarynav_sprite.png') 
         0 -30px repeat-x;
 }
+
 
 #secondarynav .sd-left {
     padding-left: 8px;
