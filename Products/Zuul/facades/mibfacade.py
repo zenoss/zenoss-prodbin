@@ -90,10 +90,6 @@ class MibFacade(TreeFacade):
 
     def getMibNodes(self, uid, limit=0, start=0, sort='name', dir='DESC', relation='nodes'):
         obj = self._getObject(uid)
-        log.error(obj)
-        log.error(obj.default_catalog)
-        zcat = getattr(obj, 'mibSearch')
-        log.error(zcat);
         if isinstance(obj, MibOrganizer):
             return []
         functor = getattr(obj, relation, None)
