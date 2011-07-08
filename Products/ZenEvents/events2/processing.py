@@ -726,17 +726,22 @@ class TransformPipe(EventProcessorPipe):
 
     def __call__(self, eventContext):
         eventContext.log.debug('Mapping and Transforming event')
+        apply_transforms = getattr(eventContext.event, 'apply_transforms', True)
+        if not apply_transforms:
+            eventContext.log.debug('Not applying transforms, regexes or zProperties because apply_transforms was false')
         evtclass = self._manager.lookupEventClass(eventContext)
         if evtclass:
             self._tagEventClasses(eventContext, evtclass)
-            evtclass.applyExtraction(eventContext.eventProxy)
-            evtclass.applyValues(eventContext.eventProxy)
+
+            if apply_transforms:
+                evtclass.applyExtraction(eventContext.eventProxy)
+                evtclass.applyValues(eventContext.eventProxy)
             if eventContext.eventProxy.eventClassMapping:
                 eventContext.event.event_class_mapping_uuid = IGlobalIdentifier(evtclass).getGUID()
-            evtclass.applyTransform(eventContext.eventProxy,
-                                    eventContext.deviceObject,
-                                    eventContext.componentObject)
-
+            if apply_transforms:
+                evtclass.applyTransform(eventContext.eventProxy,
+                                        eventContext.deviceObject,
+                                        eventContext.componentObject)
         return eventContext
 
 class EventPluginPipe(EventProcessorPipe):
