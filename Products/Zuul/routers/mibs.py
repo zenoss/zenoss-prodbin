@@ -219,16 +219,14 @@ class MibRouter(TreeRouter):
         self.api.deleteTrap(mibUid, trapId)
         return DirectResponse.succeed()
 
-    def getOidMappings(self, **kwargs):
-        count, nodes = self.api.getMibNodes(uid=kwargs['uid'], dir=kwargs['dir'],
-            sort=kwargs['sort'], start=kwargs['start'],
-            limit=kwargs['limit'], relation='nodes')
+    def getOidMappings(self, uid, dir='ASC', sort='name', start=0, limit=256):
+        count, nodes = self.api.getMibNodes(uid=uid, dir=dir, sort=sort,
+                start=start, limit=limit, relation='nodes')
         return {'count': count, 'data': Zuul.marshal(nodes)}
 
-    def getTraps(self, **kwargs):
-        count, nodes = self.api.getMibNodes(uid=kwargs['uid'], dir=kwargs['dir'],
-            sort=kwargs['sort'], start=kwargs['start'],
-            limit=kwargs['limit'], relation='notifications')
+    def getTraps(self, uid, dir='ASC', sort='name', start=0, limit=256):
+        count, nodes = self.api.getMibNodes(uid=uid, dir=dir, sort=sort,
+                start=start, limit=limit, relation='notifications')
         return {'count': count, 'data': Zuul.marshal(nodes)}
 
     def getMibNodeTree(self, id=None):
