@@ -4,8 +4,8 @@
  ====================================================== -->
 
 <!-- ======================================================
-    Page1 - page template that has slots for 
-            breadCrumb and content 
+    Page1 - page template that has slots for
+            breadCrumb and content
  ====================================================== -->
 <tal:block metal:define-macro="page1">
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML Basic 1.0//EN"
@@ -95,9 +95,23 @@
             menu.on('mousedown', menuClicked);
 
         }
+        if (window.location.href.indexOf("/zport/dmd/Reports") != -1) {
+            Ext.onReady(function(){
+                var anchors = window.document.getElementsByTagName('a');
+                for (var idx = 0; idx < anchors.length; idx++) {
+                    if (!/\/zport\/dmd\/[rR]eports\//.test(anchors[idx].href)) {
+                        anchors[idx].target = "_top";
+                        anchors[idx].onclick = function() {
+                            window.top.location.href = this.href;
+                        };
+                    }
+                }
+            });
+
+        }
         </script>
     </head>
-	<body class="yui-skin-sam">
+    <body class="yui-skin-sam">
     <tal:block metal:use-macro="here/dialogmacros/macros/proxyForm"/>
     <tal:block metal:use-macro="here/dialogmacros/macros/dialog_with_buttons"/>
     <tal:block metal:define-slot="frameSlot">
@@ -128,7 +142,7 @@
     of the regular templates
  ====================================================== -->
 <tal:block metal:define-macro="pageClean">
-<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" 
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
     "http://www.w3.org/TR/html4/loose.dtd">
 <html>
     <head>
@@ -141,7 +155,7 @@
         <tal:block metal:use-macro="here/templates/macros/head1"/>
         <tal:block metal:define-slot="head-local"/>
     </head>
-	<body>
+    <body>
         <div id="contentPane">
             <tal:block metal:define-slot="contentPane">
                 CONTENT GOES HERE
@@ -233,7 +247,7 @@
 
 
 <!-- ======================================================
-    Page5 - page template that adds 
+    Page5 - page template that adds
         upToOrganizerBreadCrumbs even on a backcompat panel
  ====================================================== -->
 <tal:block metal:define-macro="page5">
@@ -301,7 +315,7 @@
     </ul>
     <tal:block metal:use-macro="here/searchMacro/macros/searchbox"/>
     </div>
-    <div id="system_clock_container">Zenoss server time: 
+    <div id="system_clock_container">Zenoss server time:
     <span id="system_clock">Now o'clock</span>
     <script tal:content="string: var start_time = '${here/server_time}';">
     var x;
