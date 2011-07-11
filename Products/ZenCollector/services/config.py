@@ -35,6 +35,11 @@ class DeviceProxy(pb.Copyable, pb.RemoteCopy):
         Do not use base classes initializers
         """
 
+    @property
+    def configId(self):
+        retval = getattr(self, "_config_id", None)
+        return retval if (retval is not None) else self.id
+
     def __str__(self):
         return self.id
 
@@ -189,9 +194,9 @@ class CollectorConfigService(HubService, ThresholdMixin):
 
         deviceConfigs = []
         for device in devices:
-            deviceConfig = self._wrapFunction(self._createDeviceProxy, device)
-            if deviceConfig:
-                deviceConfigs.append(deviceConfig)
+            proxies = self._wrapFunction(self._createDeviceProxies, device)
+            if proxies is not None:
+                deviceConfigs.extend(proxies)
 
         self._wrapFunction(self._postCreateDeviceProxy, deviceConfigs)
         return deviceConfigs
@@ -199,7 +204,11 @@ class CollectorConfigService(HubService, ThresholdMixin):
     def _postCreateDeviceProxy(self, deviceConfigs):
         pass
 
-    def _createDeviceProxy(self, device):
+    def _createDeviceProxies(self, device):
+        proxy = self._createDeviceProxy(device)
+        return (proxy,) if (proxy is not None) else ()
+
+    def _createDeviceProxy(self, device, proxy=None):
         """
         Creates a device proxy object that may be copied across the network.
 
@@ -211,7 +220,7 @@ class CollectorConfigService(HubService, ThresholdMixin):
         @return: a new device proxy object, or None if no proxy can be created
         @rtype: DeviceProxy
         """
-        proxy = DeviceProxy()
+        proxy = proxy if (proxy is not None) else DeviceProxy()
 
         # copy over all the attributes requested
         for attrName in self._deviceProxyAttributes:
@@ -271,17 +280,18 @@ class CollectorConfigService(HubService, ThresholdMixin):
         deferreds = []
 
         if self._filterDevice(device):
-            proxy = self._wrapFunction(self._createDeviceProxy, device)
-            if proxy:
-                self._wrapFunction(self._postCreateDeviceProxy, [proxy])
+            proxies = self._wrapFunction(self._createDeviceProxies, device)
+            if proxies:
+                self._wrapFunction(self._postCreateDeviceProxy, proxies)
         else:
-            proxy = None
+            proxies = None
 
         for listener in self.listeners:
-            if proxy is None:
+            if proxies is None:
                 deferreds.append(listener.callRemote('deleteDevice', device.id))
             else:
-                deferreds.append(self._sendDeviceProxy(listener, proxy))
+                for proxy in proxies:
+                    deferreds.append(self._sendDeviceProxy(listener, proxy))
 
         return defer.DeferredList(deferreds)
 
@@ -312,7 +322,9 @@ class CollectorConfigService(HubService, ThresholdMixin):
         self._reconfigProcrastinator.clear()
 
     def _reconfigureIfNotify(self, object):
-        if self._notifyConfigChange(object):
+        ncc = self._notifyConfigChange(object)
+        log.debug("services/config.py _reconfigureIfNotify object=%r _notifyConfigChange=%s" % (object, ncc))
+        if ncc:
             self.log.debug('scheduling collector reconfigure')
             self._reconfigProcrastinator.doLater(True)
 

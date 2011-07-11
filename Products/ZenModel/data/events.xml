@@ -2631,16 +2631,13 @@ HP Gb Server Adapter:  Network Link Down
 </object>
 <object id='snmp_linkDown' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
 <property type="text" id="transform" mode="w" >
-index = None
-for key, value in evt.__dict__.items():
-   if key.find('1.3.6.1.2.1.2.2.1.1') &gt;= 0:
-      index = value
-      break
-if index is not None:
-   for obj in device.os.interfaces.objectItems():
-      if obj[1].ifindex == index:
-         evt.component = obj[1].id
-         break
+if_index_str = getattr(evt.details, "ifIndex", None)
+if if_index_str is not None:
+    if_index = int(if_index_str)
+    for interface in device.os.interfaces():
+        if interface.ifindex == if_index:
+            evt.component = interface.id
+            break
 </property>
 <property type="string" id="eventClassKey" mode="w" >
 snmp_linkDown
@@ -2657,16 +2654,13 @@ has key for ifIndex for all traps.
 </object>
 <object id='snmp_linkUp' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
 <property type="text" id="transform" mode="w" >
-index = None
-for key, value in evt.__dict__.items():
-   if key.find('1.3.6.1.2.1.2.2.1.1') &gt;= 0:
-      index = value
-      break
-if index is not None:
-   for obj in device.os.interfaces.objectItems():
-      if obj[1].ifindex == index:
-         evt.component = obj[1].id
-         break
+if_index_str = getattr(evt.details, "ifIndex", None)
+if if_index_str is not None:
+    if_index = int(if_index_str)
+    for interface in device.os.interfaces():
+        if interface.ifindex == if_index:
+            evt.component = interface.id
+            break
 </property>
 <property type="string" id="eventClassKey" mode="w" >
 snmp_linkUp

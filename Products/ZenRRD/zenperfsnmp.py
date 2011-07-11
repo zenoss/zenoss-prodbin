@@ -44,10 +44,10 @@ from Products.ZenEvents import Event
 
 # We retrieve our configuration data remotely via a Twisted PerspectiveBroker
 # connection. To do so, we need to import the class that will be used by the
-# configuration service to send the data over, i.e. DeviceProxy.
+# configuration service to send the data over, i.e. SnmpDeviceProxy.
 from Products.ZenUtils.Utils import unused
-from Products.ZenCollector.services.config import DeviceProxy
-unused(DeviceProxy)
+from Products.ZenHub.services.SnmpPerformanceConfig import SnmpDeviceProxy
+unused(SnmpDeviceProxy)
 from Products.ZenHub.services.PerformanceConfig import SnmpConnInfo
 unused(SnmpConnInfo)
 
@@ -127,7 +127,7 @@ class SnmpPerformanceCollectionTask(BaseTask):
         """
         super(SnmpPerformanceCollectionTask, self).__init__(
                  deviceId, taskName,
-                 scheduleIntervalSeconds, taskConfig
+                 taskConfig.cycleInterval, taskConfig
                 )
 
         # Needed for interface
@@ -137,9 +137,10 @@ class SnmpPerformanceCollectionTask(BaseTask):
 
         # The taskConfig corresponds to a DeviceProxy
         self._device = taskConfig
-        self._devId = deviceId
-        self._manageIp = self._device.manageIp
+        self._devId = self._device.id
+        self._manageIp = self._device.snmpConnInfo.manageIp
         self._maxOidsPerRequest = self._device.zMaxOIDPerRequest
+        log.debug("SnmpPerformanceCollectionTask.__init__: self._maxOidsPerRequest=%s" % self._maxOidsPerRequest)
         self.interval = self._device.cycleInterval
         self._singleOidMode = False
         self._collectedOids = 0
@@ -216,13 +217,13 @@ class SnmpPerformanceCollectionTask(BaseTask):
         @parameter ignored: required to keep Twisted's callback chain happy
         @type ignored: result of previous callback
         """
-        log.debug("Retrieving OIDs from %s [%s]", self._devId, self._manageIp)
         self.state = SnmpPerformanceCollectionTask.STATE_FETCH_PERF
         if not self._oids:
             return defer.succeed(([]))
 
         # Either get as many OIDs as we can or one-by-one
         oidsPerRequest = self._maxOidsPerRequest if not self._singleOidMode else 1
+        log.debug("Retrieving OIDs from %s [%s] oidsPerRequest=%s", self._devId, self._manageIp, oidsPerRequest)
 
         d = Chain(self._get, iter(self.chunk(self._oids.keys(), oidsPerRequest))).run()
         d.addCallback(self._checkOidResults)
@@ -296,6 +297,7 @@ class SnmpPerformanceCollectionTask(BaseTask):
 
                 # We should always get something useful back
                 if value == '' or value is None:
+                    log.debug("Got bad value: oid=%s value=%s" % (oid, value))
                     self._badOid(oid)
                     continue
            
@@ -311,6 +313,7 @@ class SnmpPerformanceCollectionTask(BaseTask):
         if successCount == len(results) and self._singleOidMode:
             # Remove any oids that didn't report
             for doomed in set(self._oids.keys()) - oidsReceived:
+                log.debug("Removing OID %s (no response)" % doomed)
                 self._badOid(doomed)
 
         success = True
@@ -390,6 +393,7 @@ class SnmpPerformanceCollectionTask(BaseTask):
                                    protocol=self._snmpPort.protocol,
                                    allowCache=True)
             self._snmpProxy.open()
+        log.debug("SnmpPerformanceCollectionTask._connect: Connected to %s" % self._snmpConnInfo.manageIp)
         return self._snmpProxy
 
     def _close(self):

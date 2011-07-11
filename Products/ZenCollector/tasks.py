@@ -126,7 +126,7 @@ class SimpleTaskSplitter(object):
         for config in configs:
             log.debug("splitting config %r", config)
 
-            configId = config.id
+            configId = config.configId
             interval = config.configCycleInterval
             tasks[configId] = self._newTask(configId, configId,
                                             interval, config)
@@ -161,7 +161,7 @@ class SubConfigurationTaskSplitter(SimpleTaskSplitter):
             # Group all of the subtasks under the same configId
             # so that updates clean up any previous tasks
             # (including renames)
-            configId = config.id
+            configId = config.configId
 
             subconfigs = self._splitSubConfiguration(config)
             for key, subconfigGroup in subconfigs.items():

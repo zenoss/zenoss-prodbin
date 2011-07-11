@@ -281,7 +281,7 @@ class CollectorDaemon(RRDDaemon):
         """
         Called remotely by ZenHub when asynchronous configuration updates occur.
         """
-        self.log.debug("Device %s updated", config.id)
+        self.log.debug("Device %s updated", config.configId)
 
         if not self.options.device or self.options.device == config.id:
             self._updateConfig(config)
@@ -291,7 +291,6 @@ class CollectorDaemon(RRDDaemon):
         """
         Called from zenhub to notify that the entire config should be updated  
         """
-        self.log.debug('zenhub is telling us to update the entire config')
         if self.reconfigureTimeout and not self.reconfigureTimeout.called:
             self.reconfigureTimeout.cancel()
         self.reconfigureTimeout = reactor.callLater(30, self._rebuildConfig)
@@ -320,7 +319,7 @@ class CollectorDaemon(RRDDaemon):
                 self.stop()
 
     def _updateConfig(self, cfg):
-        configId = cfg.id
+        configId = cfg.configId
         self.log.debug("Processing configuration for %s", configId)
 
         if configId in self._devices:
@@ -361,7 +360,7 @@ class CollectorDaemon(RRDDaemon):
         deleted = self._devices.copy()
 
         for cfg in updatedConfigs:
-            deleted.discard(cfg.id)
+            deleted.discard(cfg.configId)
             self._updateConfig(cfg)
 
         # remove tasks for the deleted devices

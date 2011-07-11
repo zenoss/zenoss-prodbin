@@ -632,6 +632,8 @@ class TrapTask(BaseTask, CaptureReplay):
                 # Add a detail for the index-stripped variable binding.
                 r = self.oid2name(vb_oid, exactMatch=False, strip=True)
                 result[r] = vb_value
+        if eventType in ["linkUp", "linkDown"]:
+            eventType = "snmp_" + eventType
         return eventType, result
 
     def asyncHandleTrap(self, addr, pdu, startProcessTime):

@@ -15,11 +15,33 @@ __doc__ = '''SnmpPerformanceConfig
 
 Provides configuration to zenperfsnmp clients.
 '''
+
+from pprint import pformat
 import logging
 log = logging.getLogger('zen.HubService.SnmpPerformanceConfig')
 
 import Globals
-from Products.ZenCollector.services.config import CollectorConfigService
+from twisted.spread import pb
+from Products.ZenCollector.services.config import DeviceProxy, CollectorConfigService
+
+def get_component_manage_ip(component, default=None):
+    get_manage_ip = getattr(component, "getManageIp", None)
+    if get_manage_ip is None:
+        return default
+    return get_manage_ip()
+
+class SnmpDeviceProxy(DeviceProxy, pb.Copyable, pb.RemoteCopy):
+
+    def __repr__(self):
+        sci = getattr(self, "snmpConnInfo", None)
+        scimi = None if (sci is None) else sci.manageIp
+        return pformat({"id": self.id,
+                        "_config_id": getattr(self, "_config_id", None),
+                        "manageIp": self.manageIp,
+                        "snmpConnInfo.manageIp": scimi,
+                        "oids": getattr(self, "oids", None)})
+
+pb.setUnjellyableForClass(SnmpDeviceProxy, SnmpDeviceProxy)
 
 
 class SnmpPerformanceConfig(CollectorConfigService):
@@ -95,9 +117,29 @@ class SnmpPerformanceConfig(CollectorConfigService):
 
         return comp.getThresholdInstances('SNMP')
 
-    def _createDeviceProxy(self, device):
-        proxy = CollectorConfigService._createDeviceProxy(self, device)
+    def _createDeviceProxies(self, device):
+        manage_ips = {device.manageIp: ([], False)}
+        components = device.os.getMonitoredComponents(collector="zenperfsnmp")
+        for component in components:
+            manage_ip = get_component_manage_ip(component, device.manageIp)
+            if manage_ip not in manage_ips:
+                log.debug("Adding manage IP %s from %r" % (manage_ip, component))
+                manage_ips[manage_ip] = ([], True)
+            manage_ips[manage_ip][0].append(component)
+        proxies = []
+        for manage_ip, (components, components_only) in manage_ips.items():
+            proxy = self._createDeviceProxy(device, manage_ip, components, components_only)
+            if proxy is not None:
+                proxies.append(proxy)
+        return proxies
 
+    def _createDeviceProxy(self, device, manage_ip=None, components=(), components_only=False):
+        proxy = SnmpDeviceProxy()
+        proxy = CollectorConfigService._createDeviceProxy(self, device, proxy)
+        proxy.snmpConnInfo = device.getSnmpConnInfo()
+        if manage_ip is not None and manage_ip != device.manageIp:
+            proxy._config_id = device.id + "_" + manage_ip
+            proxy.snmpConnInfo.manageIp = manage_ip
         proxy.configCycleInterval = self._prefs.perfsnmpCycleInterval
         proxy.cycleInterval = getattr(device, 'zSnmpCollectionInterval', 300)
         proxy.name = device.id
@@ -105,15 +147,17 @@ class SnmpPerformanceConfig(CollectorConfigService):
         proxy.lastmodeltime = device.getLastChangeString()
         proxy.lastChangeTime = float(device.getLastChange())
 
-        proxy.snmpConnInfo = device.getSnmpConnInfo()
-
         # Gather the datapoints to retrieve
         perfServer = device.getPerformanceServer()
         proxy.oids = {}
-        # First for the device....
-        proxy.thresholds = self._getComponentConfig(device, perfServer, proxy.oids)
+        proxy.thresholds = []
+        if not components_only:
+            # First for the device....
+            threshs = self._getComponentConfig(device, perfServer, proxy.oids)
+            if threshs:
+                proxy.thresholds.extend(threshs)
         # And now for its components
-        for comp in device.os.getMonitoredComponents(collector="zenperfsnmp"):
+        for comp in components:
             threshs = self._getComponentConfig(comp, perfServer, proxy.oids)
             if threshs:
                 proxy.thresholds.extend(threshs)
