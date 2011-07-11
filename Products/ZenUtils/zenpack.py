@@ -134,10 +134,10 @@ class ZenPackCmd(ZenScriptBase):
             raise ZenPackNeedMigrateException('Your Zenoss database appears'
                 ' to be out of date. Try running zenmigrate to update.')
 
-        if not self._verifyZepRunning():
-            print "Error: Required daemon zeneventserver not running."
-            print "Execute 'zeneventserver start' and retry the ZenPack installation."
-            return
+        if not self._verifyZepRunning() and (self.options.installPackName or self.options.removePackName):
+            print >> sys.stderr, "Error: Required daemon zeneventserver not running."
+            print >> sys.stderr, "Execute 'zeneventserver start' and retry the ZenPack installation."
+            sys.exit(1)
 
         if self.options.installPackName:
             if not self.preInstallCheck(eggInstall):
@@ -469,8 +469,9 @@ if __name__ == '__main__':
         zp.run()
     except ConflictError:
         raise
-    except SystemExit:
-        pass
+    except SystemExit as e:
+        if e.code:
+            sys.exit(e.code)
     except:
         log.exception('zenpack command failed')
         sys.exit(-1)
