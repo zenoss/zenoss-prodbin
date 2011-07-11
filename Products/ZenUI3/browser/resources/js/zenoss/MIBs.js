@@ -52,7 +52,7 @@ node_type_maps = [{
             {name: 'access'},
             {name: 'status'},
             {name: 'description'}
-        ],
+        ]
     }
 },{
     detailsTitle: _t('Trap Overview'),
@@ -73,7 +73,7 @@ node_type_maps = [{
             {name: 'objects'},
             {name: 'status'},
             {name: 'description'}
-        ],
+        ]
     }
 }];
 
@@ -377,7 +377,7 @@ MibBrowser = Ext.extend(Ext.Container, {
     },
     populateForm: function(response) {
         Zenoss.env.currentUid = response.data.uid;
-        var mib_form_left = Ext.getCmp('mib_form_left');
+        var mib_form_left = Ext.getCmp('mib_form_left'),
             mib_form_right = Ext.getCmp('mib_form_right');
         mib_form_left.name.setValue(response.data.name);
         mib_form_left.contact.setValue(response.data.contact);
