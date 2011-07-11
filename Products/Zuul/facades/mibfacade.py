@@ -20,7 +20,7 @@ from Acquisition import aq_parent
 from Products.Zuul.facades import TreeFacade
 from Products.Zuul.utils import UncataloguedObjectException
 from Products.Zuul.interfaces import ITreeFacade, IMibFacade, IInfo
-from Products.Zuul.infos.mib import MibOrganizerNode, MibNode
+from Products.Zuul.infos.mib import MibOrganizerNode, MibNode, FakeTopLevelNodeInfo
 
 from Products.Jobber.jobs import ShellCommandJob
 from Products.ZenUtils.Utils import binPath
@@ -108,6 +108,9 @@ class MibFacade(TreeFacade):
         return self.getMibBaseNodeTree(id, relation='notifications')
 
     def getMibBaseNodeTree(self, id, relation='nodes'):
+        """
+        Build a hierarchical tree, adding in fake nodes where necessary.
+        """
         obj = self._getObject(id)
         if isinstance(obj, MibOrganizer):
             return []
@@ -117,7 +120,7 @@ class MibFacade(TreeFacade):
                      relation, obj.id)
             return []
         seenNodes = {}
-        rootNode = None
+        rootNodeList = [] # There can be only one! ... unless there are many.
         try:
             for node in sorted(functor(), self.oidcmp):
                 prev_oid, _ = node.oid.rsplit('.', 1)
@@ -128,7 +131,7 @@ class MibFacade(TreeFacade):
                     seenNodes[node.oid] = subNode
                 else:
                     while '.' in prev_oid:  # Look for sub-matches
-                        prev_oid, _ = prev_oid.rsplit('.', 1)
+                        prev_oid = prev_oid.rsplit('.', 1)[0]
                         branchNode = seenNodes.get(prev_oid)
                         if branchNode:
                             subNode = MibNode(node)
@@ -137,8 +140,18 @@ class MibFacade(TreeFacade):
                             break
                     else: #  The first entry
                         rootNode = MibNode(node)
+                        rootNodeList.append(rootNode)
                         seenNodes[node.oid] = rootNode
 
+            if len(rootNodeList) == 1:
+                return rootNodeList[0]
+
+            # Create a fake top-level node -- common with traps
+            rootNode = FakeTopLevelNodeInfo(obj)
+            baseNode = rootNodeList[0] # Use the first sibling
+            rootNode.oid = baseNode.oid.rsplit('.', 1)[0]
+            for sibling in rootNodeList:
+                rootNode._addSubNode(sibling)
             return rootNode
         except UncataloguedObjectException:
             pass

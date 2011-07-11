@@ -16,7 +16,6 @@ from itertools import imap, chain
 from pprint import pformat
 from zope.component import adapts
 from zope.interface import implements
-from Products.Zuul import getFacade
 from Products.Zuul.tree import TreeNode
 from Products.Zuul.infos import InfoBase, ProxyProperty
 from Products.Zuul.interfaces import IMibInfo, IMibOrganizerNode, IMibNode
@@ -99,7 +98,33 @@ class MibNode(TreeNode):
     @property
     def qtip(self):
         return self._object.description
-    
+
+
+class FakeTopLevelNodeInfo(TreeNode):
+    implements(IMibNode)
+
+    def __init__(self, obj):
+        TreeNode.__init__(self, obj)
+        self._nodes = []
+        self.qtip = "Top Level OID container"
+        self.oid = ''
+
+    def _addSubNode(self, node):
+        self._nodes.append(node)
+
+    @property
+    def children(self):
+        return self._nodes
+
+    @property
+    def text(self):
+        return "Top Level OID container"
+
+    @property
+    def iconCls(self):
+        return 'folder'
+
+
 class MibInfoBase(InfoBase):
     pass
 

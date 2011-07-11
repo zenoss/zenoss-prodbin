@@ -235,9 +235,14 @@ class MibRouter(TreeRouter):
         """
         if id is None:
             return []
-        tree = self.api.getMibNodeTree(id)
-        data = Zuul.marshal(tree)
-        return [data]
+        try:
+            tree = self.api.getMibNodeTree(id)
+            if tree is None:
+                return []
+            data = Zuul.marshal(tree)
+            return [data]
+        except Exception, e:
+            return DirectResponse.fail(str(e))
 
     def getMibTrapTree(self, id=None):
         """
@@ -245,7 +250,12 @@ class MibRouter(TreeRouter):
         """
         if id is None:
             return []
-        tree = self.api.getMibTrapTree(id)
-        data = Zuul.marshal(tree)
-        return [data]
+        try:
+            tree = self.api.getMibTrapTree(id)
+            if tree is None:
+                return []
+            data = Zuul.marshal(tree)
+            return [data]
+        except Exception, e:
+            return DirectResponse.fail(str(e))
 
