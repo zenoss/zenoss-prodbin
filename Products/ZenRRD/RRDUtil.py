@@ -47,12 +47,12 @@ def convertToRRDTime(val):
     Convert any value that is passed in to a string that is acceptable to use
     for RRDtool's start and end parameters. Raises ValueError if this is not
     possible.
-    
+
     See the AT-STYLE TIME SPECIFICATION and TIME REFERENCE SPECIFICATION
     sections of the following document.
-    
+
         http://oss.oetiker.ch/rrdtool/doc/rrdfetch.en.html
-    
+
     Note: Currently this method is only fixing floats by turning them into
           strings with no decimal places.
     """
@@ -105,6 +105,15 @@ def fixRRDFilename(filename):
 
     return EMPTY_RRD
 
+def read(path, consolidationFunction, start, end):
+    import rrdtool
+    try:
+        return rrdtool.fetch(path, consolidationFunction, start, end)
+    except rrdtool.error, err:
+        import sys
+        err_str = '%s: %s' % (err.__class__.__name__, err)
+        msg = 'Failed to read RRD file %s. %s' % (path, err_str)
+        raise StandardError(msg), None, sys.exc_info()[2]
 
 class RRDUtil:
     """
