@@ -13,6 +13,8 @@
 from Products.Five.browser import BrowserView
 from Products.Five.browser.pagetemplatefile import ViewPageTemplateFile
 from Products.ZenUtils.guid.interfaces import IGUIDManager
+from urllib import unquote
+
 
 class FileUpload(BrowserView):
     """
@@ -62,12 +64,20 @@ class GotoRedirect(BrowserView):
         manager = IGUIDManager(self.context)
         request = self.request
         response = self.request.response
+        obj = None
         guid = request.get('guid', None)
-
         if not guid:
             return response.write("The guid paramater is required")
-        
-        obj = manager.getObject(guid)
+
+        # they passed in a uid instead of a guid
+        try:
+            if guid.startswith("/zport/dmd/"):
+                obj = self.context.unrestrictedTraverse(unquote(guid))
+            else:
+                obj = manager.getObject(guid)
+        except KeyError:
+            pass
+
         if not obj:
             return response.write("Could not look up guid %s" % guid)
 
