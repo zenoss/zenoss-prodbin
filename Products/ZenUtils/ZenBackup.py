@@ -224,7 +224,7 @@ class ZenBackup(ZenBackupBase):
         cmd_p2 = ['--single-transaction', self.options.zepdbname,
                  '--result-file=' + os.path.join(self.tempDir, 'zep.sql')]
         if self.options.zepdbhost and self.options.zepdbhost != 'localhost':
-            cmd_p2.append('-h %s' % self.options.zepdbhost)
+            cmd_p2.append('-h%s' % self.options.zepdbhost)
         if self.options.zepdbport and self.options.zepdbport != '3306':
             cmd_p2.append('--port=%s' % self.options.zepdbport)
 
