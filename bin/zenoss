@@ -105,10 +105,10 @@ issue() {
     # the service. We'll take the naive approach of responding with the highest
     # and most likely worse condition of any of the configured daemons.
     HIGHESTCODE=0
+    echo "Status	| PID     | Daemon "
+    echo "-------------------------------------------------------------------"
     for cmd in $CMDS
     do
-        echo -n "Daemon: $cmd "
-        
         # Special status handling for zeoctl and zopectl because the stock
         # scripts exit with a code of 0 no matter what state they're in.
         if [ $FUNC == "status" -a \( $cmd == "zeoctl" -o $cmd == "zopectl" \) ]
@@ -117,10 +117,10 @@ issue() {
             [ $cmd == 'zeoctl' ] && PIDFILE="${ZENHOME}/var/ZEO.pid"
 
             if running; then
-                echo program running\; pid=$PID
+                echo "Running	  $PID	  $cmd"
                 CODE=0
             else
-                echo not running
+                echo "Stopped		  $cmd"
                 if [ -f $PIDFILE ]; then
                     rm -f $PIDFILE
                     CODE=1
@@ -129,8 +129,15 @@ issue() {
                 fi
             fi
         else
-            $ZENHOME/bin/$cmd "$FUNC"
+            CMD_OUTPUT=`$ZENHOME/bin/$cmd $FUNC`
             CODE=$?
+            CMD_PID=`echo "${CMD_OUTPUT}" | grep pid | awk -F\= '{ print $2 }'`
+            if [ $CMD_PID ]
+            then
+                echo "Running	  $CMD_PID	  $cmd"
+            else
+		echo "Stopped	  $CMD_PID	  $cmd"
+            fi
         fi
         if [ $CODE -gt $HIGHESTCODE ]; then
             HIGHESTCODE=$CODE
