@@ -201,7 +201,10 @@ class ZenossInfo(ZenModelItem, SimpleItem):
                 name, version, release, info = regex.groups()
         comment = 'Ver %s' % version
         # the name returned in the output is all lower case, so we'll make our own
-        name = 'MySQL'
+        if os.environ.get("USE_ZENDS", None):
+           name = 'ZenDS'
+        else:
+           name = 'MySQL'
         major, minor, micro = getVersionTupleFromString(version)
         return Version(name, major, minor, micro, 0, comment)
 

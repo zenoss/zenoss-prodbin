@@ -63,6 +63,15 @@ export FRESH_INSTALL=${ZENHOME}/.fresh_install
 # signature of zenoss having been upgraded from a previous install
 export UPGRADED=${ZENHOME}/.upgraded
 
+ZENDSPROFILE=/etc/profile.d/zends_env.sh
+if [ -f "${ZENDSPROFILE}" ];then
+        source ${ZENDSPROFILE}
+        if [ "${USE_ZENDS}" = "1" ];then
+                export PATH=${ZENDSHOME}/bin:${PATH}
+                export LD_LIBRARY_PATH=${ZENDSHOME}/lib:${LD_LIBRARY_PATH}
+                source ${ZENDSHOME}/scripts/aliases
+        fi
+fi
 
 # changes the owners and permissions for the zenoss files
 set_perms() {
