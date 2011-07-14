@@ -13,6 +13,7 @@
 
 import json as _json
 import re
+from array import array
 
 def _recursiveCaster(ob):
     if isinstance(ob, dict):
@@ -51,10 +52,15 @@ class JavaScriptRegex(JavaScript):
         return '/' + self.value + '/'
 
 class ObjectEncoder(_json.JSONEncoder):
+    _array_converters = { 'c':array.tostring,
+                          'u':array.tounicode,
+                        }
     def default(self, obj):
         if hasattr(obj, '__json__') and callable(obj.__json__):
             return obj.__json__()
-        return _json.JSONEncoder.default(self, obj)
+        if isinstance(obj, array):
+            return self._array_converters.get(obj.typecode, array.tolist)(obj)
+        return super(ObjectEncoder,self).default(obj)
 
 class JavaScriptEncoder(ObjectEncoder):
     """A JavaScript encoder based on JSON. It encodes like normal JSON except it passes JavaScript objects un-encoded."""
@@ -67,7 +73,7 @@ class JavaScriptEncoder(ObjectEncoder):
         if isinstance(obj, JavaScript):
             return [self._js_start, str(obj), self._js_end]
 
-        return ObjectEncoder.default(self, obj)
+        return super(JavaScriptEncoder,self).default(obj)
 
     def _js_clean(self, jsonstr):
         # This re replace is not ideal but at least the dirtyness of it is encapsulated in these classes
@@ -78,7 +84,7 @@ class JavaScriptEncoder(ObjectEncoder):
         return self._js_re.sub(fix, jsonstr)
 
     def encode(self, obj):
-        return self._js_clean(ObjectEncoder.encode(self, obj))
+        return self._js_clean(super(JavaScriptEncoder,self).encode(obj))
 
 def _sanitize_value(value, errors='replace'):
     """
@@ -131,6 +137,16 @@ def json(value, **kw):
         ...
         >>> print f()
         [{"a": 1}, "123", 123]
+        >>> from array import array
+        >>> a1 = array('i', list(range(10)))
+        >>> a2 = array('c', 'XYZZY')
+        >>> a3 = (array('u',[unichr(i) for i in range(250,260)]))
+        >>> [json(s) for s in (a1, a2, a3)]
+        ['[0, 1, 2, 3, 4, 5, 6, 7, 8, 9]', '"XYZZY"', '"\\\\u00fa\\\\u00fb\\\\u00fc\\\\u00fd\\\\u00fe\\\\u00ff\\\\u0100\\\\u0101\\\\u0102\\\\u0103"']
+        >>> json([a1, a2, a3])
+        '[[0, 1, 2, 3, 4, 5, 6, 7, 8, 9], "XYZZY", "\\\\u00fa\\\\u00fb\\\\u00fc\\\\u00fd\\\\u00fe\\\\u00ff\\\\u0100\\\\u0101\\\\u0102\\\\u0103"]'
+        >>> json({'properties' : [{ 'key' : 'a1', 'value' : a1 },{ 'key' : 'a2', 'value' : a2 },{ 'key' : 'a3', 'value' : a3 },] })
+        '{"properties": [{"value": [0, 1, 2, 3, 4, 5, 6, 7, 8, 9], "key": "a1"}, {"value": "XYZZY", "key": "a2"}, {"value": "\\\\u00fa\\\\u00fb\\\\u00fc\\\\u00fd\\\\u00fe\\\\u00ff\\\\u0100\\\\u0101\\\\u0102\\\\u0103", "key": "a3"}]}'
 
     @param value: An object to be serialized
     @type value: dict, list, tuple, str, etc. or callable
