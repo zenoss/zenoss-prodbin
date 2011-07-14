@@ -10,14 +10,36 @@
 # For complete information please visit: http://www.zenoss.com/oss/
 #
 # ##########################################################################
-
+import json
+import os.path
 import logging
+
 log = logging.getLogger("zen.ZenossStartup")
 
 from zope.dottedname.resolve import resolve
 from Products.CMFCore.utils import ProductsPath
 
+from zenoss.protocols.queueschema import schema as _global_schema
+
 from Products.ZenUtils.PkgResources import pkg_resources
+
+def load_qjs(pack_path):
+    """
+    Load one or more queue schema files from a ZenPack.
+    They should live in PACK/protocols/*.qjs.
+    """
+    protocols_path = os.path.join(pack_path, 'protocols')
+    if not os.path.isdir(protocols_path):
+        return
+    for fname in os.listdir(protocols_path):
+        if fname.endswith('.qjs'):
+            fullpath = os.path.abspath(os.path.join(protocols_path, fname))
+            if not os.path.isfile(fullpath):
+                continue
+            with open(fullpath) as f:
+                schema = json.load(f)
+                _global_schema._load(schema)
+
 
 # Iterate over all ZenPack eggs and load them
 for zpkg  in pkg_resources.iter_entry_points('zenoss.zenpacks'):
@@ -28,8 +50,12 @@ for zpkg  in pkg_resources.iter_entry_points('zenoss.zenpacks'):
 
         # Import the pack and tack it onto Products
         import Products
+
         module = resolve(zpkg.module_name)
         setattr(Products, zpkg.module_name, module)
+
+        # Load any queue schema files
+        load_qjs(pkg_path)
 
     except Exception, e:
         # This messes up logging a bit, but if we need to report
@@ -37,4 +63,3 @@ for zpkg  in pkg_resources.iter_entry_points('zenoss.zenpacks'):
         logging.basicConfig()
         log.exception("Error encountered while processing %s",
                       zpkg.module_name)
-
