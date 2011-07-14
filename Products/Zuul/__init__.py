@@ -61,6 +61,15 @@ def getFacade(name, context=None):
         context = get_dmd()
     return component.getAdapter(context, IFacade, name)
 
+def listFacades(context=None):
+    """
+    Provide a list of all known facades.
+    """
+    if context is None:
+        context = get_dmd()
+    return sorted([str(name) for name, obj in component.getAdapters([context], IFacade)])
+
+
 class AlreadySeenException(Exception):
     pass
 

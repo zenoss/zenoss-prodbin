@@ -87,7 +87,7 @@ def _customStuff():
     import socket
     from transaction import commit
     from pprint import pprint
-    from Products.Zuul import getFacade
+    from Products.Zuul import getFacade, listFacades
 
     # Connect to the database, set everything up
     app = Zope2.app()
