@@ -94,6 +94,8 @@ class ZenRestore(ZenBackupBase):
         try:
             config = ConfigParser.SafeConfigParser()
             config.readfp(f)
+            for name, value in config.items(CONFIG_SECTION):
+                setattr(self.options, name, value)
         finally:
             f.close()
 
