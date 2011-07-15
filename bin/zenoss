@@ -139,6 +139,59 @@ issue() {
     return $HIGHESTCODE
 }
 
+xissue() {
+    # To properly conform to LSB standards and be used under Linux-HA or RHCS
+    # we need to exit with a proper non-zero code when there is a problem with
+    # the service. We'll take the naive approach of responding with the highest
+    # and most likely worse condition of any of the configured daemons.
+    HIGHESTCODE=0
+
+    XFUNC=$FUNC
+    if [ $FUNC == "xstatus" ]; then
+        XFUNC="status"
+    fi
+    echo "Status        | PID     | Daemon "
+    echo "-------------------------------------------------------------------"
+    for cmd in $CMDS
+    do
+        # Special status handling for zeoctl and zopectl because the stock
+        # scripts exit with a code of 0 no matter what state they're in.
+        if [ $XFUNC == "xstatus" -a \( $cmd == "zeoctl" -o $cmd == "zopectl" \) ]
+        then
+            PIDFILE="${ZENHOME}/var/Z2.pid"
+            [ $cmd == 'zeoctl' ] && PIDFILE="${ZENHOME}/var/ZEO.pid"
+
+            if running; then
+                printf "Running     %8d    $cmd\n"  $PID
+                CODE=0
+            else
+                echo "Stopped             $cmd"
+                if [ -f $PIDFILE ]; then
+                    rm -f $PIDFILE
+                    CODE=1
+                else
+                    CODE=3
+                fi
+            fi
+        else
+            CMD_OUTPUT=`$ZENHOME/bin/$cmd $XFUNC`
+            CODE=$?
+            CMD_PID=`echo "${CMD_OUTPUT}" | grep pid | awk -F\= '{ print $2 }'`
+            if [ $CMD_PID ]
+            then
+                printf "Running     %8d      $cmd\n"  $CMD_PID
+            else
+                echo "Stopped                   $cmd"
+            fi
+        fi
+        if [ $CODE -gt $HIGHESTCODE ]; then
+            HIGHESTCODE=$CODE
+        fi
+    done
+    return $HIGHESTCODE
+}
+
+
 EXITCODE=4
 
 case "$FUNC" in
@@ -165,6 +218,10 @@ case "$FUNC" in
         issue
         EXITCODE=$?
         ;;
+  xstatus)
+	xissue
+	EXITCODE=$?
+	;;
   list)
 	for i in $CMDS
 	do
@@ -173,7 +230,7 @@ case "$FUNC" in
 	done
 	;;
   *)
-        echo $"Usage: $0 {start|stop|restart|status|list}"
+        echo $"Usage: $0 {start|stop|restart|status|xstatus|list}"
         exit 1
 esac
 exit $EXITCODE
