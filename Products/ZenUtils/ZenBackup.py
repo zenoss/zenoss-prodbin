@@ -189,11 +189,11 @@ class ZenBackup(ZenBackupBase):
                                default=False,
                                action='store_true',
                                help='Send backup to stdout instead of to a file.')
-        self.parser.add_option('--save-mysql-access',
+        self.parser.add_option('--no-save-mysql-access',
                                 dest='saveSettings',
                                 default=True,
-                                action='store_true',
-                                help='Include dbname, dbuser and dbpass'
+                                action='store_false',
+                                help='Do not include mysqldb, mysqluser, mysqlpasswd, zepdbname, zepdbuser, and zendbpass'
                                     ' in the backup'
                                     ' file for use during restore.')
 
