@@ -18,7 +18,7 @@ configuration property and allows for per-device collection intervals.
 
 '''
 import Migrate
-import transaction
+
 
 class addzSnmpCollectionInterval(Migrate.Step):
     version = Migrate.Version(3, 1, 70)
@@ -30,6 +30,6 @@ class addzSnmpCollectionInterval(Migrate.Step):
             dmd.Devices._setProperty('zSnmpCollectionInterval',
                                      collectorDefault,
                                      'int')
-            transaction.commit()
+
 
 addzSnmpCollectionInterval()
