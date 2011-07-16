@@ -698,8 +698,8 @@ class DataRoot(ZenModelRM, OrderedFolder, Commandable, ZenMenuable):
             cmd = binPath('zenbackup') + ' -v10'
             if not includeEvents:
                 cmd += ' --no-eventsdb'
-            if includeMysqlLogin:
-                cmd += ' --save-mysql-access'
+            if not includeMysqlLogin:
+                cmd += ' --no-save-mysql-access'
             try:
                 timeout = int(timeout)
             except ValueError:
