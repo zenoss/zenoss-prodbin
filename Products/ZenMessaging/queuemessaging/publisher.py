@@ -206,7 +206,7 @@ class PublishSynchronizer(object):
         msgs.append(returnMsg)
         for event in eventsToKeep:
             if count >= batchSize:
-                log.info("ModelEventList starting new batch after %s events" % count)
+                log.debug("ModelEventList starting new batch after %s events" % count)
                 returnMsg = config.getNewProtobuf("$ModelEventList")
                 returnMsg.event_uuid = generate()
                 msgs.append(returnMsg)
@@ -218,7 +218,7 @@ class PublishSynchronizer(object):
             newEvent.ClearField('event_uuid')
             count += 1
         else:
-            log.info("ModelEventList batch size %s" % count)
+            log.debug("ModelEventList batch size %s" % count)
         return msgs
 
     def beforeCompletionHook(self, tx):
