@@ -152,6 +152,12 @@ class ZenRestore(ZenBackupBase):
         return self.hasZeoBackup() or self.hasSqlBackup()
 
     def restoreZODB(self):
+        # Relstorage may have already loaded items into the cache in the
+        # initial connection to the database. We have to expire everything
+        # in the cache in order to prevent errors with overlapping
+        # transactions from the backup.
+        if self.options.cacheservers:
+            self.flush_memcached(self.options.cacheservers.split())
         if self.hasSqlBackup():
             self.restoreZODBSQL()
         elif self.hasZeoBackup():
@@ -341,6 +347,13 @@ class ZenRestore(ZenBackupBase):
         self.msg('Restore complete.')
         return 0
 
+    def flush_memcached(self, cacheservers):
+        self.msg('Flushing memcached cache.')
+        import memcache
+        mc = memcache.Client(cacheservers, debug=0)
+        mc.flush_all()
+        mc.disconnect_all()
+        self.msg('Completed flushing memcached cache.')
 
 if __name__ == '__main__':
     zb = ZenRestore()
