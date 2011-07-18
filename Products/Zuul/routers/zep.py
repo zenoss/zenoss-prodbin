@@ -218,8 +218,8 @@ class EventsRouter(DirectRouter):
             'ipAddress' : eventDetails.get('zenoss.device.ip_address', ''),
             'message' : eventOccurrence.get('message', ''),
             'Location' : self._lookupTags(tags.get('zenoss.device.location')),
-            'DeviceGroups' : self._lookupTags(tags.get('zenoss.device.group')),
-            'Systems' : self._lookupTags(tags.get('zenoss.device.system')),
+            'DeviceGroups' : self._lookupTags(tags.get('zenoss.device.groups')),
+            'Systems' : self._lookupTags(tags.get('zenoss.device.systems')),
             'DeviceClass' : self._lookupDeviceClass(tags.get('zenoss.device.device_class')),
         }
 
