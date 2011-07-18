@@ -642,7 +642,12 @@ class ZepFacade(ZuulFacade):
         # verify parameters against known valid ones
         # If there's an extra, it either needs to be added or
         # is an invalid detail that can't be searched.
-        leftovers = set(s.lower() for s in params) - set(self.DEFAULT_SORT_MAP) - set(('tags',))
+        leftovers = set(s.lower() for s in params) - set(self.DEFAULT_SORT_MAP) - set(('tags',
+                                                                                       'deviceclass',
+                                                                                       'systems',
+                                                                                       'location',
+                                                                                       'devicegroups'
+                                                                                       ))
         if leftovers:
             raise InvalidQueryParameterException("Invalid query parameters specified: %s" % ', '.join(leftovers))
 

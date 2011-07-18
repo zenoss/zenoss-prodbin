@@ -164,9 +164,8 @@ class EventsRouter(DirectRouter):
         if eventOccurrence.get('tags'):
             for tag in eventOccurrence.get('tags'):
                 if tags.get(tag['type']) is None:
-                    tags[tag['type']] = [tag['uuid']]
-                else:
-                    tags[tag['type']].append(tag['uuid'])
+                    tags[tag['type']] = []
+                tags[tag['type']].extend(tag['uuid'])
         return tags
 
     def _mapToOldEvent(self, event_summary):
@@ -393,6 +392,7 @@ class EventsRouter(DirectRouter):
             'Systems': '/zport/dmd/Systems',
             'DeviceGroups': '/zport/dmd/Groups'
             }
+
         for key, prefix in organizersPrefixes.iteritems():
             if params.get(key):
                 path = prefix + str(params[key])
@@ -402,6 +402,7 @@ class EventsRouter(DirectRouter):
                     # couldn't find the object
                     continue
                 tags.append(IGlobalIdentifier(obj).getGUID())
+
         return tags
 
 
