@@ -201,5 +201,5 @@ class ProcessWorkers(object):
             )
         p.daemon = True
         p.start()
-        log.info("Started worker %s: pid=%s", (p,p.pid))
+        log.info("Started worker {0}: pid={0.pid}".format(p))
         self._workers.append(p)
