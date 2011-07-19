@@ -18,9 +18,10 @@ from Products.ZenCollector.interfaces import ICollector, IScheduledTask
 from Products.ZenCollector.tasks import SimpleTaskSplitter, SimpleTaskFactory
 from Products.ZenTestCase.BaseTestCase import BaseTestCase
 from Products.ZenUtils.observable import ObservableMixin
+from Products.ZenCollector.services.config import DeviceProxy
 
 
-class DummyObject(object):
+class DummyObject(DeviceProxy):
     pass
 
 class BasicTestTask(ObservableMixin):
