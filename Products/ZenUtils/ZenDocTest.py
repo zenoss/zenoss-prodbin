@@ -56,9 +56,18 @@ class ZenDocTestRunner(object):
     modules = []
     conn = None
 
+    def _find_relstorage_adapter_config(self):
+        from App.config import getConfiguration
+        zope_config = getConfiguration()
+        for db in zope_config.databases:
+            if db.name == 'main':
+                return db.config.storage.config.adapter.config
+
     def setUp(self):
+        adapter_config = self._find_relstorage_adapter_config()
+        unix_socket = adapter_config.unix_socket if adapter_config else None
         zope.component.provideAdapter(DefaultTraversable, (None,))
-        if not self.conn: self.conn = ZeoConn()
+        if not self.conn: self.conn = ZeoConn(unix_socket=unix_socket)
         self.app = self.conn.app
         self.login()
         self.dmd = self.app.zport.dmd

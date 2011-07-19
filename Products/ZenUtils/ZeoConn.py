@@ -16,15 +16,19 @@ from Products.ZenUtils.Utils import set_context
 class ZeoConn(object):
 
     def __init__(self, host="localhost", port=3306, user="zenoss",
-                 passwd="zenoss", db="zodb"):
+                 passwd="zenoss", db="zodb", unix_socket=None):
         from relstorage.storage import RelStorage
         from relstorage.adapters.mysql import MySQLAdapter
+        connectionParams = {}
+        if unix_socket:
+            connectionParams['unix_socket'] = unix_socket
         adapter = MySQLAdapter(
             host=host,
             port=port,
             user=user,
             passwd=passwd,
-            db=db
+            db=db,
+            **connectionParams
         )
         kwargs = {}
         storage = RelStorage(adapter, **kwargs)
