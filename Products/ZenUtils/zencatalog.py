@@ -142,6 +142,8 @@ class ZenCatalog(ZCmdBase):
                 d = self._reindex(zport)
             d.addBoth(stop)
 
+        if not self.options.createcatalog and not self.options.reindex:
+            self.parser.error("Must use --createcatalog or --reindex") 
         reactor.callWhenRunning(main)
         reactor.run()
 
