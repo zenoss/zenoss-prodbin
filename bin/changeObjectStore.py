@@ -188,7 +188,17 @@ def convertFromZeoToMySql():
     print "-"*79
     p = Popen([zenPath("bin", "python"), zenPath("bin", "zodbconvert"), "--dry-run", fn], stdout=PIPE, stderr=PIPE)
     stdout, stderr = p.communicate()
-    totaltxs = int(stdout.splitlines()[-1].split()[2])
+    # Last line stdout should be of the form:
+    #     Would copy %d transactions.
+    try:
+        totaltxs = int(stdout.splitlines()[-1].split()[2])
+    except Exception:
+        print "zodbconvert could not be run:"
+        print stdout
+        print '-'*40
+        print stderr
+        sys.exit(1)
+
     print "%d transactions to be copied." % totaltxs
     print
 
