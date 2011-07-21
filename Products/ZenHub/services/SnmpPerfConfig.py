@@ -14,8 +14,6 @@
 from PerformanceConfig import PerformanceConfig
 from Products.ZenHub.PBDaemon import translateError
 
-from sets import Set
-
 from Products.ZenRRD.zenperfsnmp import SnmpConfig
 from Products.ZenModel.RRDDataSource import RRDDataSource
 from Products.ZenHub.zodb import onUpdate
@@ -84,9 +82,9 @@ class SnmpPerfConfig(PerformanceConfig):
         """
         if devices:
             if not isinstance(devices, list):
-                devices = Set([devices])
+                devices = set([devices])
             else:
-                devices = Set(devices)
+                devices = set(devices)
         snmp = []
         for dev in self.config.devices():
             if devices and dev.id not in devices: continue

@@ -55,7 +55,7 @@ def parseUptime(output):
     match = UPTIME_PATTERN.search(output)
     
     if match:
-        uptime = dict([(k, int(v)) for k, v in match.groupdict(0).items()])
+        uptime = dict((k, int(v)) for k, v in match.groupdict(0).items())
         log.debug(UPTIME_FORMAT % uptime)
     else:
         uptime = None
@@ -91,7 +91,7 @@ class uptime(CommandParser):
         """
         output = cmd.result.output
         
-        dps = dict([(dp.id, dp) for dp in cmd.points])
+        dps = dict((dp.id, dp) for dp in cmd.points)
 
         if 'sysUpTime' in dps:
             sysUpTime = parseSysUpTime(output)

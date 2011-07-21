@@ -87,13 +87,13 @@ class Report(ZenModelRM, ZenPackable):
     def __call__(self, *args, **kwargs):
         """Return our rendered template not our default page
         """
-        if not kwargs.has_key('args'):
+        if not 'args' in kwargs:
             kwargs['args'] = args
         template = self._template.__of__(self)
         path_info = template.REQUEST['PATH_INFO'].replace(' ', '%20')
-        if path_info.startswith('/zport/dmd/Reports') and \
-                template.REQUEST['HTTP_REFERER'].find(path_info) == -1 and \
-                template.REQUEST['QUERY_STRING'].find('adapt=false') == -1 :
+        if (path_info.startswith('/zport/dmd/Reports') and
+                path_info not in template.REQUEST['HTTP_REFERER'] and
+                'adapt=false' not in template.REQUEST['QUERY_STRING']):
             url = '/zport/dmd/reports#reporttree:'
             url += path_info.replace('/', '.')
             template.REQUEST['RESPONSE'].redirect(url)

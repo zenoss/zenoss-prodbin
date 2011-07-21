@@ -91,8 +91,8 @@ class ToManyContRelationship(ToManyRelationshipBase):
 
     def __getattr__(self, name):
         """look in the two object stores for related objects"""
-        if self.__dict__.has_key("_objects"):
-            objects = self.__dict__['_objects']
+        if '_objects' in self.__dict__:
+            objects = self._objects
             if objects.has_key(name): return objects[name]
         raise AttributeError( "Unable to find the attribute '%s'" % name )
 

@@ -37,7 +37,7 @@ class ZenStatus(Persistent):
     conversions = { 
         -2 : "No DNS",
         -1 : "Not Tested",
-        0  : "Up",
+         0 : "Up",
     }
 
     def __init__(self, status=-1):
@@ -51,8 +51,8 @@ class ZenStatus(Persistent):
 
     def getStatusString(self):
         """get status as a string will convert as per converstions"""
-        return (self.conversions.has_key(self.status) 
-                and self.conversions[self.status] or self.status)
+        return (self.conversions[self.status]
+                    if self.status in self.conversions else self.status)
 
 
     def setStatus(self, status):
@@ -120,7 +120,7 @@ class ZenAvailability(ZenStatus):
     def getStatusString(self):
         """current down time in days hours or seconds"""
         status = self.getStatus()
-        if self.conversions.has_key(status):
+        if status in self.conversions:
             return self.conversions[status]
         dt = DateTime() - self.failstart
         days = int(dt)
@@ -185,14 +185,14 @@ class ZenAvailability(ZenStatus):
     def _getDownTime(self, year, start=None, end=None):
         """check to see if we have year data for year and return it"""
         dt = -1
-        if self.yearlydata.has_key(year):
+        if year in self.yearlydata:
             dt = self.yearlydata[year].getDownTime(start, end)
         return dt
 
 
     def _getYearlyData(self, year):
         """get or create a YearlyDownTime object"""
-        if not self.yearlydata.has_key(year):
+        if not year in self.yearlydata:
             self.yearlydata[year] = YearlyDownTime()
         return self.yearlydata[year]
 

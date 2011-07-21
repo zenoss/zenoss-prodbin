@@ -136,7 +136,7 @@ class NetworkLink(ILink):
 
     def getStatus(self):
         eps = self.endpoints
-        if max([ep.getPingStatus() for ep in eps]) > 0:
+        if max(ep.getPingStatus() for ep in eps) > 0:
             return 5
         zem = eps[0].dmd.ZenEventManager
         return max(map(zem.getMaxSeverity,eps))

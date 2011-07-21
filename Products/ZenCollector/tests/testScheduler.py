@@ -58,13 +58,15 @@ class TestScheduler(BaseTestCase):
         scheduler.addTask(myTask2)
         scheduler.addTask(myTask3)
         self.assertEquals(len(scheduler._tasks), 3)
-        self.assertTrue(scheduler._tasks.has_key(myTask1.name))
-        self.assertTrue(scheduler._tasks.has_key(myTask2.name))
-        self.assertTrue(scheduler._tasks.has_key(myTask3.name))
+        self.assertTrue(myTask1.name in scheduler._tasks)
+        self.assertTrue(myTask2.name in scheduler._tasks)
+        self.assertTrue(myTask3.name in scheduler._tasks)
 
         scheduler.removeTasksForConfig("myDevice")
         self.assertEquals(len(scheduler._tasks), 1)
-        self.assertTrue(scheduler._tasks.has_key(myTask3.name))
+        self.assertFalse(myTask1.name in scheduler._tasks)
+        self.assertFalse(myTask2.name in scheduler._tasks)
+        self.assertTrue(myTask3.name in scheduler._tasks)
 
     def testTaskDoneCallback(self):
         myTask1 = BasicTestTask()

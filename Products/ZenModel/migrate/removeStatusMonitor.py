@@ -34,7 +34,7 @@ class RemoveStatusMonitor(Migrate.Step):
         for d in dmd.Devices.getSubDevices():
             if hasattr(d, 'monitors'):
                 d._delObject('monitors')
-        Device._relations = tuple([x for x in Device._relations if x[0] != 'monitors'])
+        Device._relations = tuple(x for x in Device._relations if x[0] != 'monitors')
         try:
             t = dmd.Monitors.rrdTemplates.PerformanceConf.thresholds
             t = t._getOb('zenping cycle time')

@@ -201,8 +201,8 @@ class PingService(object):
 def _printResults(results, start):
     good = [pj for s, pj in results if s and pj.rtt >= 0]
     bad = [pj for s, pj in results if s and pj.rtt < 0]
-    if good: print "Good IPs: %s" % " ".join([g.ipaddr for g in good])
-    if bad: print "Bad IPs: %s" % " ".join([b.ipaddr for b in bad])
+    if good: print "Good IPs: %s" % " ".join(g.ipaddr for g in good)
+    if bad: print "Bad IPs: %s" % " ".join(b.ipaddr for b in bad)
     print "Tested %d IPs in %.2f seconds" % (len(results), time.time() - start)
     reactor.stop()
 

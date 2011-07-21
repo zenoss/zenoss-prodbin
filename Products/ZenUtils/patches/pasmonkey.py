@@ -74,8 +74,7 @@ def login(self):
     if came_from:
         parts = urlparse.urlsplit(came_from)
         querydict = parse_qs(parts[3])
-        if querydict.has_key('terms'):
-            del querydict['terms']
+        querydict.pop('terms', None)
         if 'submitted' not in querydict.keys():
             querydict['submitted'] = submitted
         newqs = urllib.urlencode(querydict, doseq=True)

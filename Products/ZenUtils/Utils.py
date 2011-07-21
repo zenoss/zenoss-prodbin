@@ -331,10 +331,10 @@ def lookupClass(productName, classname=None):
     @return: object at the classname in Products
     @rtype: object or None
     """
-    if sys.modules.has_key(productName):
+    if productName in sys.modules:
        mod = sys.modules[productName]
 
-    elif sys.modules.has_key("Products."+productName):
+    elif "Products."+productName in sys.modules:
        mod = sys.modules["Products."+productName]
 
     else:
@@ -827,12 +827,12 @@ def resequence(context, objects, seqmap, origseq, REQUEST):
     """
     if seqmap and origseq:
         try:
-            origseq = tuple([long(s) for s in origseq])
-            seqmap = tuple([float(s) for s in seqmap])
+            origseq = tuple(long(s) for s in origseq)
+            seqmap = tuple(float(s) for s in seqmap)
         except ValueError:
             origseq = ()
             seqmap = ()
-        orig = dict([(o.sequence, o) for o in objects])
+        orig = dict((o.sequence, o) for o in objects)
         if origseq:
             for oldSeq, newSeq in zip(origseq, seqmap):
                 orig[oldSeq].sequence = newSeq
@@ -1343,7 +1343,7 @@ def nocache(f):
         self.request.response.setHeader('Pragma', 'no-cache')
         self.request.response.setHeader('Expires', 'Sat, 13 May 2006 18:02:00 GMT')
         # Get rid of kw used to prevent browser caching
-        if kwargs.has_key('_dc'): del kwargs['_dc']
+        kwargs.pop('_dc', None)
         return f(self, *args, **kwargs)
 
     return inner
@@ -1379,9 +1379,9 @@ def formreq(f):
         else:
             kwargs.update(self.request.form)
         # Get rid of useless Zope thing that appears when no querystring
-        if kwargs.has_key('-C'): del kwargs['-C']
+        kwargs.pop('-C', None)
         # Get rid of kw used to prevent browser caching
-        if kwargs.has_key('_dc'): del kwargs['_dc']
+        kwargs.pop('_dc', None)
         return f(self, *args, **kwargs)
 
     return inner

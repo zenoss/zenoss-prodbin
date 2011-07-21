@@ -128,7 +128,7 @@ class BaseDeviceLoader(object):
             # move the zProperties required by manage_createDevice to
             # deviceProperties
             for key in 'zSnmpCommunity', 'zSnmpPort', 'zSnmpVer':
-                if zProperties.has_key(key):
+                if key in zProperties:
                     deviceProperties[key] = zProperties.pop(key)
 
             # Make a device object in the database

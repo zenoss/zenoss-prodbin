@@ -53,7 +53,7 @@ class PObjectCache(SimpleItem):
 
     def checkCache(self, key):
         """check to see if key is in cache return None if not"""
-        if self.cache.has_key(key):
+        if key in self.cache:
             cobj = self.cache[key]
             if cobj.checkTime(): 
                 return cobj.getObj()

@@ -143,7 +143,7 @@ class TargetableAction(object):
         pass
     
     def getTargets(self, notification):
-        targets = set([])
+        targets = set()
         for recipient in notification.recipients:
             if recipient['type'] in ['group', 'user']:
                 guid = recipient['value']

@@ -96,7 +96,7 @@ class EventServer(PBDaemon):
 
     def sendEvent(self, event, **kw):
         # FIXME: get real event processing stats
-        if event.has_key('firstTime'):
+        if 'firstTime' in event:
             self.stats.add(min(time.time() - event['firstTime'], 0))
         PBDaemon.sendEvent(self, event, **kw)
 

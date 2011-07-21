@@ -64,7 +64,7 @@ class Thresholds:
 
     def updateForDevice(self, device, thresholds):
         "Store a threshold instance for future computation"
-        doomed = dict([(d.key(), d) for d in self.thresholdsForDevice(device)])
+        doomed = dict((d.key(), d) for d in self.thresholdsForDevice(device))
         self.updateList(thresholds)
         for threshold in thresholds:
             if threshold.key() in doomed:

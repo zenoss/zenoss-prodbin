@@ -224,11 +224,8 @@ class GraphPoint(ZenModelRM, ZenPackable):
         '''
         import string
         import itertools
-        def Scrub(c):
-            if c not in string.ascii_letters + string.digits + '_-':
-                c = '_'
-            return c            
-        value = ''.join([Scrub(c) for c in value])
+        validRRDchars=set(string.ascii_letters + string.digits + '_-')
+        value = ''.join(c if c in validRRDchars else '_' for c in value)
         if namespace:
             postfixIter = itertools.count(2)
             candidate = value

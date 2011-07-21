@@ -64,11 +64,11 @@ def _mergedLocalRoles(object):
     object = getattr(object, 'aq_inner', object)
     while 1:
         if safe_hasattr(object, '__ac_local_roles__'):
-            dict = object.__ac_local_roles__ or {}
-            if callable(dict): dict = dict()
-            for k, v in dict.items():
-                if merged.has_key(k):
-                    merged[k] = merged[k] + list(v)
+            roles_dict = object.__ac_local_roles__ or {}
+            if callable(roles_dict): roles_dict = roles_dict()
+            for k, v in roles_dict.items():
+                if k in merged:
+                    merged[k] += list(v)
                 else:
                     merged[k] = list(v)
         if safe_hasattr(object, 'aq_parent'):

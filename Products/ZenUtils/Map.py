@@ -13,8 +13,10 @@
 
 import threading
 import time
+from functools import wraps
 
-class Timed:
+
+class Timed(object):
     "Store elements in a map for the given time"
 
     def __init__(self, map, timeout):
@@ -67,39 +69,44 @@ class Timed:
             self.map[k] = (v, now)
 
 
-class Locked:
+
+def Locked_synchronize(fn):
+    @wraps(fn)
+    def _closure(self, *args, **kwargs):
+        with self.lock:
+            return fn(self, *args, **kwargs)
+    return _closure
+
+class Locked(object):
     "Use a simple lock for all read/write access to a map"
 
     def __init__(self, map):
         self.map = map
         self.lock = threading.Lock()
 
+    @Locked_synchronize
+    def __contains__(self, key):
+        return key in self.map
 
-    def impl(self, m, *args, **kw):
-        "call a method on the map, with the lock held"
-        self.lock.acquire()
-        try:
-            return m(*args, **kw)
-        finally:
-            self.lock.release()
+    def has_key(self, key):
+        "Deprecated, convert to using 'key in map' form"
+        return key in self
 
-        
-    def has_key(self, *args, **kw):
-        return self.impl(self.map.has_key, *args, **kw)
+    @Locked_synchronize
+    def get(self, *args):
+        if not args:
+            raise TypeError("get takes at least 1 argument : {0} given".format(len(args)))
+        return self.map.get(*args[:2])
 
-
-    def get(self, *args, **kw):
-        return self.impl(self.map.get, *args, **kw)
-
-        
+    @Locked_synchronize
     def __setitem__(self, key, item):
-        return self.impl(self.map.__setitem__, key, item)
+        self.map[key] = item
 
-
+    @Locked_synchronize
     def __getitem__(self, key):
-        return self.impl(self.map.__getitem__, key)
+        return self.map[key]
 
-
-    def update(self, *args, **kw):
-        return self.impl(self.map.update, *args, **kw)
+    @Locked_synchronize
+    def update(self, other):
+        self.map.update(other)
 

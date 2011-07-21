@@ -208,10 +208,7 @@ def buildOptions(parser=None, usage=None):
 
    
     #Default option values
-    if os.environ.has_key('USER'):
-        defaultUsername = os.environ['USER']
-    else:
-        defaultUsername = ""
+    defaultUsername = os.environ.get('USER', '')
     defaultPassword = ""
     defaultLoginTries = 1
     defaultLoginTimeout = 10

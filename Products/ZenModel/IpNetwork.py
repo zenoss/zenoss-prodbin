@@ -661,7 +661,7 @@ class IpNetwork(DeviceOrganizer):
             url = self.getPrimaryUrlPath()
         if len(attrs):
             return '<a href="%s" %s>%s</a>' % (url,
-                ' '.join(['%s="%s"' % (x,y) for x,y in attrs.items()]),
+                ' '.join('%s="%s"' % (x,y) for x,y in attrs.items()),
                 text)
         else:
             return '<a href="%s">%s</a>' % (url, text)

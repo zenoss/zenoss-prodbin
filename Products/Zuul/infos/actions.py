@@ -51,7 +51,7 @@ class ActionFieldProperty(FieldProperty):
     def __set__(self, inst, value):
         field = self.__field.bind(inst)
         field.validate(value)
-        if field.readonly and inst.__dict__.get('_object').content.has_key(self.__name):
+        if field.readonly and self.__name in inst.__dict__.get('_object').content:
             raise ValueError(self.__name, 'field is readonly')
         inst.__dict__.get('_object').content[self.__name] = value
 

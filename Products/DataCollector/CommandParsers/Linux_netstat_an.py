@@ -42,7 +42,7 @@ class Linux_netstat_an(CommandParser):
                 proto = aline[0]
                 addr, port = aline[3].split(":")
                 if int(port) > 1024: continue #FIXME 
-                if addr == "0.0.0.0" or not services.has_key(port):
+                if addr == "0.0.0.0" or not port in services:
                     services[port] = (addr, proto)
             except ValueError:
                 log.exception("failed to parse ipservice information")

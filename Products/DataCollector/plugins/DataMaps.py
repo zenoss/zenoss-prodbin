@@ -40,7 +40,7 @@ class RelationshipMap(PBSafe):
         Return the results of the relationship map as something that can
         be used directly for unit tests.
         """
-        return pformat(dict([(map.id, map.asUnitTest()) for map in self.maps]))
+        return pformat(dict((map.id, map.asUnitTest()) for map in self.maps))
 
 pb.setUnjellyableForClass(RelationshipMap, RelationshipMap)
 

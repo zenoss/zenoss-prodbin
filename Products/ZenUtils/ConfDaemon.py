@@ -79,7 +79,7 @@ class ConfDaemon(CmdBase):
             self.forwarddnscache[hostname] = ip
             return ip
         except socket.error:
-            if self.forwarddnscache.has_key(hostname):
+            if hostname in self.forwarddnscache:
                 return self.forwarddnscache[hostname]
             else:
                 raise
@@ -92,7 +92,7 @@ class ConfDaemon(CmdBase):
             self.reversednscache[addr] = ip
             return ip
         except socket.error:
-            if self.reversednscache.has_key(addr):
+            if addr in self.reversednscache:
                 return self.reversednscache[addr]
             else:
                 raise

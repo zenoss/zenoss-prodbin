@@ -96,7 +96,7 @@ class IpNetworkInfo(InfoBase):
 
     def getZDefaultNetworkTree(self):
         def translate(rawValue):
-            return ', '.join( [str(x) for x in rawValue] )
+            return ', '.join(str(x) for x in rawValue)
         return getZPropertyInfo(self._object, 'zDefaultNetworkTree',
                                 translate=translate, translateLocal=True)
 

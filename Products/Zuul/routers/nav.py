@@ -87,7 +87,7 @@ class DetailNavRouter(DirectRouter):
             if menuIds:
                 menus = self._getLinkMenuItems(menuIds, ob)
                 if menus:
-                    detailItems.extend([menuToNav(menu) for menu in menus])
+                    detailItems.extend(menuToNav(menu) for menu in menus)
         return DirectResponse(detailConfigs=detailItems)
 
     def getContextMenus(self, uid=None, menuIds=None):
@@ -103,7 +103,7 @@ class DetailNavRouter(DirectRouter):
                             'text': menu.description
                             }
                 if menus:
-                    menuItems.extend([menuToConfig(menu) for menu in menus])
+                    menuItems.extend(menuToConfig(menu) for menu in menus)
         return DirectResponse(menuItems=menuItems)
 
     def getSecurityPermissions(self, uid):

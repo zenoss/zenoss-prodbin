@@ -44,7 +44,7 @@ class ObjectCache(Persistent):
     def checkCache(self, key):
         """check to see if key is in cache return None if not"""
         self.initCache()
-        if self._v_cache.has_key(key):
+        if key in self._v_cache:
             cobj = self._v_cache[key]
             if cobj.checkTime(): 
                 return cobj.getObj()

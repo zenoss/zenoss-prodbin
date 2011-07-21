@@ -52,15 +52,13 @@ class EventClassifier(object):
             raise EventClassNotFound, "event summary longer than position index"
         classids = None 
         classid = -1
-        for i in range(len(words)):
-            word = words[i]
-            index = self.positionIndex[i]
-            if index.has_key('*'):
+        for index, word in zip(self.positionIndex, words):
+            if '*' in index:
                 if not classids:
                     classids = copy.copy(index['*'])
                 else:
                     classids = classids.union(index['*'])
-            if index.has_key(word):
+            if word in index:
                 if not classids: 
                     classids = copy.copy(index[word])
                 else:
@@ -85,25 +83,21 @@ class EventClassifier(object):
 
 
     def buildIndex(self):
-        """get a list of summary templates 
+        """get a list of summary templates
         and build our positionIndex from it"""
-        self.indexlock.acquire()
-        templates = self.readTemplates()
-        for process, summary, classid in templates:
-            words = summary.split()
-            if process: words.insert(0, process)
-            lendiff = len(words) - len(self.positionIndex)
-            if lendiff > 0: 
-                for i in range(lendiff): 
-                    self.positionIndex.append({})
-            for i in range(len(words)):
-                word = words[i]
-                if not self.positionIndex[i].has_key(word):
-                    self.positionIndex[i][word] = Set()
-                self.positionIndex[i][word].add(classid)
-        # need to do a second pass to clear out unneeded positions 
-        # and to determin if a class can't be identified uniquely
-        self.indexlock.release()
+        with self.indexlock:
+            templates = self.readTemplates()
+            for process, summary, classid in templates:
+                words = summary.split()
+                if process: words.insert(0, process)
+                # add more position index entries if words list is longer than any seen before
+                self.positionIndex.extend(dict() for i in range(len(self.positionIndex), len(words)))
+                for posnIndex, word in zip(self.positionIndex, words):
+                    if not word in posnIndex:
+                        posnIndex[word] = set()
+                    posnIndex[word].add(classid)
+            # need to do a second pass to clear out unneeded positions
+            # and to determin if a class can't be identified uniquely
 
 
     def readTemplates(self):

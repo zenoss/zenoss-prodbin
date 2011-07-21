@@ -54,17 +54,13 @@ def getDataPointsByAliases( context, aliases ):
                           datasource, template.getPrimaryUrlPath())
                 continue
             for datapoint in datasource.datapoints():
-                thisDatapointsAliases = dict(
-                        [ ( dpAlias.id, dpAlias ) for dpAlias in
-                           datapoint.aliases() ] )
-                found = False
-                foundAlias = None
+                thisDatapointsAliases = dict((dpAlias.id, dpAlias)
+                                                for dpAlias in datapoint.aliases())
                 for alias in aliases:
-                    if thisDatapointsAliases.has_key( alias ):
-                        found = True
+                    if alias in thisDatapointsAliases:
                         yield thisDatapointsAliases[alias], datapoint
-                if alias == datapoint.id:
-                    yield None, datapoint
+                    if alias == datapoint.id:
+                        yield None, datapoint
 
 def getDataPointsByAlias( context, alias ):
     """

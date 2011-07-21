@@ -84,7 +84,7 @@ class Schedule:
                         self.dmd.ZenUsers.getAllGroupSettings()]:
                 for us in lst:
                     for ar in us.objectValues(spec="ActionRule"):
-                        result.extend([w for w in ar.windows() if w.enabled])
+                        result.extend(w for w in ar.windows() if w.enabled)
         return result
         
     def run(self):

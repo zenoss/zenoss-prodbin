@@ -247,8 +247,7 @@ class ProcessStats:
     def getMemory(self):
         """
         """
-        return sum([x.memory for x in self._pids.values()
-                    if x.memory is not None])
+        return sum(x.memory for x in self._pids.values() if x.memory is not None)
 
     def discardPid(self, pid):
         """
@@ -587,7 +586,7 @@ class ZenProcessTask(ObservableMixin):
         self._deviceStats._pidToProcess = afterPidToProcessStats
         self.sendMissingProcsEvents(afterByConfig)
         # Store the total number of each process into an RRD
-        pidCounts = dict([(p, 0) for p in self._deviceStats.processStats])
+        pidCounts = dict((p, 0) for p in self._deviceStats.processStats)
         for procStat in self._deviceStats.monitoredProcs:
             pidCounts[procStat] += 1
         for procName, count in pidCounts.items():

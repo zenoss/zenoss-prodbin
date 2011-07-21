@@ -245,7 +245,7 @@ class BasicDataSource(RRDDataSource.SimpleRRDDataSource):
 
     def parsers(self):
         from Products.DataCollector.Plugins import loadParserPlugins
-        return sorted([p.modPath for p in loadParserPlugins(self.getDmd())])
+        return sorted(p.modPath for p in loadParserPlugins(self.getDmd()))
 
 
 

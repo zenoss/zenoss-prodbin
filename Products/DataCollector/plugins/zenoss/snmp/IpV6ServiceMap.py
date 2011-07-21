@@ -39,26 +39,39 @@ class IpV6ServiceMap(SnmpPlugin):
                     {'.1':'v4', '.2':'v6'}),
     )
 
+    def _extractAddressAndPort(self, oid, invalue):
+        print "running _extractAddressAndPort"
+        nullReturnValue = ('',0)
+        addr, port = nullReturnValue
+        try:
+            oidparts = oid.split('.')
+
+            if 'v4' in invalue: #ipv4 binding
+                port = int(oidparts.pop())
+                addr = '.'.join(oidparts[-4:])
+            elif 'v6' in invalue: #ipv6 binding
+                port = int(oidparts.pop())
+                addr = '.'.join(oidparts[-16:])
+                if addr == '0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0':
+                    addr = '0.0.0.0'
+                else:
+                    # can't handle v6 properly yet
+                    return nullReturnValue
+            else:
+                 # wha?
+                return nullReturnValue
+
+        except Exception:
+            addr,port = nullReturnValue
+
+        return addr, port
 
     def _processTcp(self, tcplisten):
         result = []
         for oid, value in tcplisten.items():
             log.debug("tcp new %s %s" % (oid,value))
-            oidar = oid.split('.')
-            port = int(oidar[-1])
-
-            addr = ''
-            if value.has_key('v4'): #ipv4 binding
-                addr = '.'.join(oidar[-5:-1])
-            elif value.has_key('v6'): #ipv6 binding
-                addr = '.'.join(oidar[-17:-1])
-                if addr == '0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0': 
-                    addr = '0.0.0.0'
-                else:
-                    # can't handle v6 properly yet
-                    continue 
-            else:
-                 # wha?
+            addr, port = self._extractAddressAndPort(oid, value)
+            if not addr:
                 continue
 
             om = self.objectMap()
@@ -74,23 +87,8 @@ class IpV6ServiceMap(SnmpPlugin):
     def _processUdp(self, udpendpoint):
         result = []
         for oid, value in udpendpoint.items():
-            oidar = oid.split('.')
-            port = 0
-
-            addr = ''
-            if value.has_key('v4'): #ipv4 binding
-                port = int(oidar[5])
-                addr = '.'.join(oidar[1:5])
-            elif value.has_key('v6'): #ipv4 binding
-                port = int(oidar[17])
-                addr = '.'.join(oidar[1:17])
-                if addr == '0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0': 
-                    addr = '0.0.0.0'
-                else:
-                     # can't handle v6 properly yet
-                    continue
-            else:
-                # wha?
+            addr, port = self._extractAddressAndPort(oid, value)
+            if not addr:
                 continue
 
             om = self.objectMap()

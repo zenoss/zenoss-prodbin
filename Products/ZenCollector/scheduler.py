@@ -96,10 +96,11 @@ class TaskStatistics(object):
             elapsedTime = now - self.stateStartTime
             previousState = newState
 
-            if not self.states.has_key(oldState):
+            if oldState in self.states:
+                stats = self.states[oldState]
+            else:
                 stats = StateStatistics(oldState)
                 self.states[oldState] = stats
-            stats = self.states[oldState]
             stats.addCall(elapsedTime)
 
         self.stateStartTime = now
@@ -361,7 +362,7 @@ class Scheduler(object):
         @param callback a callback to be notified each time the task completes
         @type callback a Python callable
         """
-        if self._tasks.has_key(newTask.name):
+        if newTask.name in self._tasks:
             raise ValueError("Task %s already exists" % newTask.name)
         log.debug("add task %s, %s", newTask.name, newTask)
         callableTask = self._callableTaskFactory.getCallableTask(newTask, self)
@@ -521,9 +522,11 @@ class Scheduler(object):
             totalMissedRuns += taskStats.missedRuns
 
             for state, stats in taskStats.states.iteritems():
-                if not stateStats.has_key(state):
-                    stateStats[state] = StateStatistics(state)
-                totalStateStats = stateStats[state]
+                if state in stateStats:
+                    totalStateStats = stateStats[state]
+                else:
+                    totalStateStats = StateStatistics(state)
+                    stateStats[state] = totalStateStats
                 totalStateStats.totalElapsedTime += stats.totalElapsedTime
                 totalStateStats.totalElapsedTimeSquared += stats.totalElapsedTimeSquared
                 totalStateStats.totalCalls += stats.totalCalls

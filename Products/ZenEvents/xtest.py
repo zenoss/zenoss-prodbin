@@ -105,7 +105,7 @@ class XTest(CmdBase):
             filepath = self.options.filepath
         args = {}
         execfile(filepath, {}, args)
-        if args.has_key('events'):
+        if 'events' in args:
             events = args['events']
         else:
             events = []

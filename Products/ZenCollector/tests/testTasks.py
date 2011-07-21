@@ -20,7 +20,6 @@ from Products.ZenTestCase.BaseTestCase import BaseTestCase
 from Products.ZenUtils.observable import ObservableMixin
 from Products.ZenCollector.services.config import DeviceProxy
 
-
 class DummyObject(DeviceProxy):
     pass
 

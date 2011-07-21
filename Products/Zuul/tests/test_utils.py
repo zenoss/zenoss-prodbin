@@ -75,7 +75,7 @@ class UtilsTest(BaseTestCase):
         
         # test the results
         self.assertTrue(isinstance(properties, dict))
-        self.assertTrue(properties.has_key(testPropertyId),
+        self.assertTrue(testPropertyId in properties,
                         'testPropertyId should be a key in the returned dictionary')
 
     def test_canGetGroupSpecificZProperties(self):

@@ -563,7 +563,7 @@ class DeviceClass(DeviceOrganizer, ZenPackable, TemplateContainer):
         mychain.reverse()
         for obj in mychain:
             try:
-                templates.update(dict([(t.id, t) for t in obj.rrdTemplates()]))
+                templates.update(dict((t.id, t) for t in obj.rrdTemplates()))
             except AttributeError:
                 pass
         return templates.values()

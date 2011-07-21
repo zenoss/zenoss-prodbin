@@ -1108,46 +1108,45 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable,
           performanceMonitor -- collector name [string]
 
         """
-        if kwargs.has_key("title") and kwargs['title'] is not None:
-            log.info("setting title to %r" % kwargs["title"])
-            self.title = kwargs["title"]
-        if kwargs.has_key("tag") and kwargs["tag"] is not None:
-            log.info("setting tag to %r" % kwargs["tag"])
-            self.hw.tag = kwargs["tag"]
-        if kwargs.has_key("serialNumber") and kwargs["serialNumber"] is not None:
-            log.info("setting serialNumber to %r" % kwargs["serialNumber"])
-            self.hw.serialNumber = kwargs["serialNumber"]
+        if 'title' in kwargs and kwargs['title'] is not None:
+            log.info("setting title to %r" % kwargs['title'])
+            self.title = kwargs['title']
+        if 'tag' in kwargs and kwargs['tag'] is not None:
+            log.info("setting tag to %r" % kwargs['tag'])
+            self.hw.tag = kwargs['tag']
+        if 'serialNumber' in kwargs and kwargs['serialNumber'] is not None:
+            log.info("setting serialNumber to %r" % kwargs['serialNumber'])
+            self.hw.serialNumber = kwargs['serialNumber']
 
         # Set zProperties passed in intelligently
-        if kwargs.has_key("zProperties") and kwargs["zProperties"] is not None:
-            zProperties = kwargs["zProperties"]
+        if 'zProperties' in kwargs and kwargs['zProperties'] is not None:
+            zProperties = kwargs['zProperties']
         else:
             zProperties = {}
-        # override any snmp properties that may be in zProperties
-        if kwargs.has_key("zSnmpCommunity"):
-            zProperties.update({"zSnmpCommunity":kwargs["zSnmpCommunity"]});
-        if kwargs.has_key("zSnmpPort"):
-            zProperties.update({"zSnmpPort":kwargs["zSnmpPort"]});
-        if kwargs.has_key("zSnmpVer"):
-            zProperties.update({"zSnmpVer":kwargs["zSnmpVer"]});
 
+        # override any snmp properties that may be in zProperties
+        zpropUpdate = dict((name, kwargs[name]) for name in ('zSnmpCommunity', 'zSnmpPort', 'zSnmpVer')
+                                                    if name in kwargs)
+        zProperties.update(zpropUpdate)
+
+        # apply any zProperties to self
         for prop, value in zProperties.items():
             if value and getattr(self, prop) != value:
                 self.setZenProperty(prop, value)
 
-        if kwargs.has_key("rackSlot"):
+        if 'rackSlot' in kwargs:
             log.info("setting rackSlot to %r" % kwargs["rackSlot"])
             self.rackSlot = kwargs["rackSlot"]
 
-        if kwargs.has_key("productionState"):
+        if 'productionState' in kwargs:
             log.info("setting productionState to %r" % kwargs["productionState"])
             self.setProdState(kwargs["productionState"])
 
-        if kwargs.has_key("priority"):
+        if 'priority' in kwargs:
             log.info("setting priority to %r" % kwargs["priority"])
             self.setPriority(kwargs["priority"])
 
-        if kwargs.has_key("comments"):
+        if 'comments' in kwargs:
             log.info("setting comments to %r" % kwargs["comments"])
             self.comments = kwargs["comments"]
 
@@ -1168,7 +1167,7 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable,
             log.info("setting system %r" % kwargs["systemPaths"])
             self.setSystems(kwargs["systemPaths"])
 
-        if kwargs.has_key("performanceMonitor") and \
+        if 'performanceMonitor' in kwargs and \
             kwargs["performanceMonitor"] != self.getPerformanceServerName():
             log.info("setting performance monitor to %r" \
                      % kwargs["performanceMonitor"])
@@ -1587,7 +1586,7 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable,
         for value in rel.objectValuesAll():
             curRelIds[value.getOrganizerName()] = value
         for path in relPaths:
-            if not curRelIds.has_key(path):
+            if not path in curRelIds:
                 robj = objGetter(path)
                 self.addRelation(relName, robj)
             else:

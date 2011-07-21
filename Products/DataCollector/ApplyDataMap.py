@@ -13,6 +13,7 @@
 
 import sys
 import types
+from collections import defaultdict
 import threading
 import Queue
 import logging
@@ -50,8 +51,8 @@ def isSameData(x, y):
         if len(x) > 0 and len(y) > 0 \
             and isinstance(x[0], dict) and isinstance(y[0], dict):
 
-            x = set([ tuple(sorted(d.items())) for d in x ])
-            y = set([ tuple(sorted(d.items())) for d in y ])
+            x = set( tuple(sorted(d.items())) for d in x )
+            y = set( tuple(sorted(d.items())) for d in y )
         else:
             return sorted(x) == sorted(y)
 
@@ -221,17 +222,16 @@ class ApplyDataMap(object):
                           relmap.relname, device.id, device.__class__, device.zPythonClass)
             return changed
         relids = rel.objectIdsAll()
-        seenids = {}
+        seenids = defaultdict(int)
         for objmap in relmap:
             from Products.ZenModel.ZenModelRM import ZenModelRM
             if hasattr(objmap, 'modname') and hasattr(objmap, 'id'):
-                if seenids.has_key(objmap.id):
-                    seenids[objmap.id] += 1
-                    objmap.id = "%s_%s" % (objmap.id, seenids[objmap.id])
-                else:
-                    seenids[objmap.id] = 1
-                if objmap.id in relids:
-                    obj = rel._getOb(objmap.id)
+                objmap_id = objmap.id
+                seenids[objmap_id] += 1
+                if seenids[objmap_id] > 1:
+                    objmap_id = objmap.id = "%s_%s" % (objmap_id, seenids[objmap_id])
+                if objmap_id in relids:
+                    obj = rel._getOb(objmap_id)
 
                     # Handle the possibility of objects changing class by
                     # recreating them. Ticket #5598.
@@ -250,11 +250,11 @@ class ApplyDataMap(object):
                         objchange = self._updateObject(obj, objmap)
                         if not changed: changed = objchange
                     else:
-                        rel._delObject(objmap.id)
+                        rel._delObject(objmap_id)
                         objchange, obj = self._createRelObject(device, objmap, rname)
                         if not changed: changed = objchange
 
-                    if objmap.id in relids: relids.remove(objmap.id)
+                    if objmap_id in relids: relids.remove(objmap_id)
                 else:
                     objchange, obj = self._createRelObject(device, objmap, rname)
                     if objchange: changed = True

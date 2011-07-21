@@ -209,9 +209,9 @@ class Version(object):
         if other is None:
             return 1
         if isinstance(other, tuple):
-            version = '.'.join([ str(x) for x in other ])
+            version = '.'.join(str(x) for x in other)
             other = Version.parse("%s %s" % (self.name, version))
-        elif True in [ isinstance(other, x) for x in [str, int, float, long] ]:
+        elif any(isinstance(other, x) for x in (str, int, float, long)):
             other = Version.parse("%s %s" % (self.name, str(other)))
         if self.name != other.name:
             raise IncomparableVersions()

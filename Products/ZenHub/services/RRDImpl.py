@@ -80,7 +80,7 @@ class RRDImpl:
             return None
         rrdKey = (dev.getPrimaryPath(), dp.getPrimaryPath())
         rrdCreateCmd = dp.createCmd or self.getDefaultRRDCreateCommand(dev)
-        if self.rrd.has_key(rrdKey):
+        if rrdKey in self.rrd:
             rrd = self.rrd[rrdKey]
         else:
             rrd = RRDUtil(rrdCreateCmd, dp.datasource.cycletime)

@@ -107,7 +107,7 @@ class SearchRouter(DirectRouter):
         """
         facade = self._getFacade()
         results = facade.getCategoryCounts(query)
-        total = sum([result['count'] for result in results])
+        total = sum(result['count'] for result in results)
         return {'results': results,
                 'total': total}
 

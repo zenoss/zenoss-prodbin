@@ -276,7 +276,7 @@ class ZenPackManager(ZenModelRM):
 
         if REQUEST:
             # format command result for HTML
-            msg = '<br>'.join([line.strip() for line in msg.split('\n') if line])
+            msg = '<br>'.join(line.strip() for line in msg.split('\n') if line.strip())
             messaging.IMessageSender(self).sendToBrowser('Zenpack', msg,
                 priority = messaging.CRITICAL if 'ERROR' in msg
                                               else messaging.INFO)

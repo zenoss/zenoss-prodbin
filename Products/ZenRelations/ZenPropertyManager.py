@@ -258,7 +258,7 @@ class ZenPropertyManager(object, PropertyManager):
             value = int(value)
         if not getattr(self,'_v_propdict',False):
             self._v_propdict = self.propdict()
-        if self._v_propdict.has_key('setter'):
+        if 'setter' in self._v_propdict:
             settername = self._v_propdict['setter']
             setter = getattr(aq_base(self), settername, None)
             if not setter:
@@ -384,7 +384,7 @@ class ZenPropertyManager(object, PropertyManager):
     def zenPropertyString(self, id):
         """Return the value of a device tree property as a string"""
         def displayLines(lines):
-            return '\n'.join([str(line) for line in lines])
+            return '\n'.join(str(line) for line in lines)
         def displayPassword(password):
             return '*' * len(password)
         def displayOthers(other):
@@ -428,7 +428,7 @@ class ZenPropertyManager(object, PropertyManager):
             self._updateProperty(propname, propvalue)
         else:
             if ptype in ("selection", 'multiple selection'): ptype="string"
-            if type_converters.has_key(ptype):
+            if ptype in type_converters:
                 propvalue=type_converters[ptype](propvalue)
             if getattr(self, propname, None) != propvalue:
                 self._setProperty(propname, propvalue, type=ptype)

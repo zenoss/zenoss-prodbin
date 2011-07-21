@@ -192,7 +192,7 @@ class PBDaemon(ZenDaemon, pb.Referenceable):
         
         
     def getServiceNow(self, svcName):
-        if not self.services.has_key(svcName):
+        if not svcName in self.services:
             self.log.warning('No service %s named: ZenHub may be disconnected' % svcName)
         return self.services.get(svcName, None) or FakeRemote()
 
@@ -205,7 +205,7 @@ class PBDaemon(ZenDaemon, pb.Referenceable):
         check self.services and if serviceName is already there it will return
         the entry from self.services wrapped in a defer.succeed
         """
-        if self.services.has_key(serviceName):
+        if serviceName in self.services:
             return defer.succeed(self.services[serviceName])
 
         def removeService(ignored):

@@ -27,7 +27,7 @@ class JavaScriptSnippetManager(ViewletManagerBase):
     zope.interface.implements(IJavaScriptSnippetManager)
 
     def render(self):
-        raw_js = '\n'.join([v.render() for v in self.viewlets])
+        raw_js = '\n'.join(v.render() for v in self.viewlets)
         return SCRIPT_TAG_TEMPLATE % raw_js
 
 

@@ -128,7 +128,7 @@ class EventClass(EventClassPropertyMixin, Organizer, ManagedEntity, ZenPackable)
         ('Clear', 0),
         ('Original', -1),
     )
-    severities = dict([(b, a) for a, b in severityConversions])
+    severities = dict((b, a) for a, b in severityConversions)
 
     def getSubEventClasses(self):
         """

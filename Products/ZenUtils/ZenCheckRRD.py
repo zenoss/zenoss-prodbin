@@ -124,11 +124,11 @@ class ZenCheckRRD(ZenScriptBase):
 
 
     def report(self, collectors):
-        totalExpectedRRDs = sum([len(x.expectedFiles) for x in collectors])
-        totalAllRRDs = sum([len(x.allFiles) for x in collectors])
-        totalMissingRRDs = sum([x.missing for x in collectors])
-        totalStaleRRDs = sum([x.stale for x in collectors])
-        #totalComponentRRDs = sum([x.expectedComponents for x in collectors])
+        totalExpectedRRDs = sum(len(x.expectedFiles) for x in collectors)
+        totalAllRRDs = sum(len(x.allFiles) for x in collectors)
+        totalMissingRRDs = sum(x.missing for x in collectors)
+        totalStaleRRDs = sum(x.stale for x in collectors)
+        #totalComponentRRDs = sum(x.expectedComponents for x in collectors)
         #totalDeviceRRDs = totalExpectedRRDs - totalComponentRRDs
         header = """
                               On-disk Expected   Missing    Stale
@@ -156,7 +156,7 @@ Collector                        RRDs     RRDs      RRDs     RRDs"""
                    'Total', totalAllRRDs, totalExpectedRRDs,
                    totalMissingRRDs, totalStaleRRDs)
         if self.options.all:
-            trailer += " %6s" % sum([x.orphan for x in collectors])
+            trailer += " %6s" % sum(x.orphan for x in collectors)
         print trailer
 
 

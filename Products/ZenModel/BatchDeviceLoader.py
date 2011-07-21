@@ -265,7 +265,7 @@ settingsDevice setManageIp='10.10.10.77', setLocation="123 Elm Street", \
                 if func is None:
                     self.log.warn("The function '%s' for device %s is not found.",
                                   functor, device.id)
-                elif isinstance(value, type([])) or isinstance(value, type(())):
+                elif isinstance(value, (list, tuple)):
                     # The function either expects a list or arguments
                     try: # arguments
                         func(*value)

@@ -241,7 +241,7 @@ class EventProxy(object):
 
     def __init__(self, eventProtobuf):
         self.__dict__['_event'] = ProtobufWrapper(eventProtobuf)
-        self.__dict__['_clearClasses'] = set([])
+        self.__dict__['_clearClasses'] = set()
         self.__dict__['_readOnly'] = {}
         self.__dict__['details'] = EventDetailProxy(self._event)
         self.__dict__['_tags'] = EventTagProxy(self._event)

@@ -112,16 +112,13 @@ class ZCmdBase(ZenDaemon):
         if not self.db:
             raise ZentinelException(
                 "running inside zope can't open connections.")
-        try:
-            self.poollock.acquire()
+        with self.poollock:
             connection=self.db.open()
             root=connection.root()
             app=root['Application']
             app = self.getContext(app)
             app._p_jar.sync()
             return app
-        finally:
-            self.poollock.release()
 
 
     def closeAll(self):

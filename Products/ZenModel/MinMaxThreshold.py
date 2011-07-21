@@ -178,17 +178,17 @@ class MinMaxThresholdInstance(ThresholdInstance):
         return value
 
     def countKey(self, dp):
-        return(':'.join(self.context().key()) + ':' + dp)
+        return ':'.join(self.context().key()) + ':' + dp
         
     def getCount(self, dp):
         countKey = self.countKey(dp)
-        if not self.count.has_key(countKey):
+        if not countKey in self.count:
             return None
         return self.count[countKey]
 
     def incrementCount(self, dp):
         countKey = self.countKey(dp)
-        if not self.count.has_key(countKey):
+        if not countKey in self.count:
             self.resetCount(dp)
         self.count[countKey] += 1
         return self.count[countKey]
@@ -374,7 +374,7 @@ class MinMaxThresholdInstance(ThresholdInstance):
 
 
     def getNames(self, relatedGps):
-        names = list(set([x.split('_', 1)[1] for x in self.dataPointNames]))
+        names = list(set(x.split('_', 1)[1] for x in self.dataPointNames))
         names.sort()
         return ', '.join(names)
 

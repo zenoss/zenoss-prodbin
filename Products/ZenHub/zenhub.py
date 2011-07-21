@@ -524,7 +524,7 @@ class ZenHub(ZCmdBase):
         self.niceDoggie(seconds)
         reactor.callLater(seconds, self.heartbeat)
         r = self.rrdStats
-        totalTime = sum([s.callTime for s in self.services.values()])
+        totalTime = sum(s.callTime for s in self.services.values())
         self.zem.sendEvents(
             r.counter('totalTime', seconds, int(self.totalTime * 1000)) +
             r.counter('totalEvents', seconds, self.totalEvents) +

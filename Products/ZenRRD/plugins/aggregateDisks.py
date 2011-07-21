@@ -23,11 +23,11 @@ except ImportError:
 
 locals().setdefault('REQUEST', None)
 locals().setdefault('name', 'test')
-if locals().has_key('self'):
+if 'self' in locals():
     dmd = self.dmd
-if not locals().has_key('dmd'):
+if not 'dmd' in locals():
     from Products.ZenUtils.ZCmdBase import ZCmdBase
-    locals()['dmd'] = ZCmdBase().dmd
+    dmd = ZCmdBase().dmd
 
 title = 'Aggregate Disk Use'
 label = 'Gigabytes'

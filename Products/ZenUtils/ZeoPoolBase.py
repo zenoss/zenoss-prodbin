@@ -47,8 +47,7 @@ class ZeoPoolBase(ZenDaemon):
         """Return a connection from the connection pool. If path is passed
         return the object that the path points to.
         """
-        try:
-            self.poollock.acquire()
+        with self.poollock:
             if not self.is_connected():
                 self.opendb()
             connection=self.db.open()
@@ -61,8 +60,6 @@ class ZeoPoolBase(ZenDaemon):
             else:
                 return app
             self.openconn -= 1
-        finally:
-            self.poollock.release()
 
 
     def opendb(self):

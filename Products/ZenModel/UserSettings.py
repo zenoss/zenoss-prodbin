@@ -306,7 +306,7 @@ class UserSettingsManager(ZenModelRM):
         """
         # we don't use these to avoid typos: OQ0Il1
         chars = 'ABCDEFGHJKLMNPRSTUVWXYZabcdefghijkmnopqrstuvwxyz23456789'
-        return ''.join( [ choice(chars) for i in range(6) ] )
+        return ''.join(choice(chars) for i in range(6))
 
 
     def authenticateCredentials(self, login, password):

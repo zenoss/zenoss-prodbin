@@ -215,7 +215,7 @@ class TelnetClientProtocol(telnet.Telnet):
         """
         self.buffer = self.buffer + chunk
         regex = None
-        if self.factory.modeRegex.has_key(self.mode):
+        if self.mode in self.factory.modeRegex:
             regex = self.factory.modeRegex[self.mode] 
         log.debug("Mode '%s' regex = %s" % (self.mode, regex))
         log.debug("Chunk received = '%s'" % chunk)

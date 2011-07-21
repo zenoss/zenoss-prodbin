@@ -126,7 +126,7 @@ def WriteSetup(setupPath, values):
             newLines += lines[i:]
             break
         key = line.split('=')[0].strip()
-        if values.has_key(key):
+        if key in values:
             value = values[key]
             if isinstance(value, basestring):
                 fmt = '%s = "%s"\n'
@@ -510,7 +510,7 @@ def DiscoverEggs(dmd, zenPackId):
     # they need to be installed.  This is simply for convenience of using
     # .append() in code below.
     orderedEntries = []
-    entriesByName = dict([(e.name, e) for e in entries])
+    entriesByName = dict((e.name, e) for e in entries)
 
     def AddEntryAndProcessDeps(e):
         orderedEntries.append(e)
@@ -906,8 +906,8 @@ def CanRemoveZenPacks(dmd, packNames):
     unhappy = set()
     for name in packNames:
         deps = GetDependents(dmd, name)
-        unhappy.update(set([dep for dep in deps if dep not in packNames]))
-    return (not unhappy and True or False, list(unhappy))
+        unhappy.update(set(dep for dep in deps if dep not in packNames))
+    return (not unhappy, list(unhappy))
 
 
 # def CleanupEasyInstallPth(eggLink):
@@ -941,7 +941,7 @@ def GetDependents(dmd, packName):
     Return a list of installed ZenPack ids that list packName as a dependency
     """
     return [zp.id for zp in dmd.ZenPackManager.packs()
-                if zp.id != packName and zp.dependencies.has_key(packName)]
+                if zp.id != packName and packName in zp.dependencies]
 
 
 ########################################

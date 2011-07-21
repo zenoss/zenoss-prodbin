@@ -32,7 +32,7 @@ def handleCpuIdleOnLinuxes( dmd ):
     for template in [ t.getObject() for t in dmd.searchRRDTemplates()]:
         templateDpMap={}
         for ds in template.datasources():
-            dpMap=dict( [(dp.id,dp) for dp in ds.datapoints()] )
+            dpMap=dict((dp.id,dp) for dp in ds.datapoints())
             templateDpMap.update( dpMap )
         if 'ssCpuIdle' in templateDpMap.keys() and \
             'ssCpuRawIdle' not in templateDpMap.keys():

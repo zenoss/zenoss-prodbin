@@ -67,5 +67,5 @@ class SecondaryNavigationManager(WeightOrderedViewletManager):
         return viewlets
 
     def render(self):
-        return '\n'.join([v.render() for v in self.getActiveViewlets()])
+        return '\n'.join(v.render() for v in self.getActiveViewlets())
 

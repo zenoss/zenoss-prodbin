@@ -85,7 +85,7 @@ class ServiceTester(ZCmdBase):
             else:
                 log.warn("No configs found for %s", name)
         else:
-            devices = sorted([x.id for x in self.service.remote_getDeviceConfigs()])
+            devices = sorted(x.id for x in self.service.remote_getDeviceConfigs())
             print "Device list = %s" % devices
 
     def printDeviceProxy(self, proxy):

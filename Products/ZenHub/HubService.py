@@ -65,7 +65,7 @@ class HubService(pb.Referenceable):
             self.warning("Unable to remove listener... ignoring")
 
     def getMethodPriority(self, methodName):
-        if self.methodPriorityMap.has_key(methodName):
+        if methodName in self.methodPriorityMap:
             return self.methodPriorityMap[methodName]
         return 0.4
 

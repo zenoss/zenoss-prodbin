@@ -99,7 +99,7 @@ class Page(HTMLParser):
             elif self.contentPane:
                 self.contentPane += 1
         if self.contentPane:
-            attrs = ' '.join([("%s=%s" % (a, repr(v))) for a, v in attrs])
+            attrs = ' '.join(("%s=%s" % (a, repr(v))) for a, v in attrs)
             if attrs: attrs = ' ' + attrs
             self.html.append('<%s%s>' % (tag, attrs))
 

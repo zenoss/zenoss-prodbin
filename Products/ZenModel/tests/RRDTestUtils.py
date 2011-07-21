@@ -44,6 +44,6 @@ def addAlias( template, dsName, dpName, aliasName, aliasFormula=None):
 
 def assertAliasDatapointInMap( test, alias, datapoint, aliasDpMap):        
     aliasPair = ( alias.id, alias.formula )
-    test.assert_( aliasDpMap.has_key( aliasPair ) )
+    test.assert_( aliasPair in aliasDpMap )
     dsDpPair = ( datapoint.datasource().id, datapoint.id )
     test.assert_( aliasDpMap[ aliasPair ] == dsDpPair )

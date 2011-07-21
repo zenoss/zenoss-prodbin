@@ -67,7 +67,7 @@ class SnmpTrapConfig(CollectorConfigService):
 
         # Gather all OID -> Name mappings from /Mibs catalog
         proxy.oidMap = dict(
-                       [ (b.oid, b.id) for b in self.dmd.Mibs.mibSearch() if b.oid ]
+                       (b.oid, b.id) for b in self.dmd.Mibs.mibSearch() if b.oid
                        )
 
         def gen_users():

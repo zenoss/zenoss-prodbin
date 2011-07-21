@@ -285,13 +285,13 @@ class SyslogProcessor(object):
         @return: dictionary of event properties
         @type: dictionary
         """
-        if evt.has_key('eventClassKey') or evt.has_key( 'eventClass'):
+        if 'eventClassKey' in evt or 'eventClass' in evt:
             return evt
-        elif evt.has_key( 'ntevid'):
+        elif 'ntevid' in evt:
             evt['eventClassKey'] = "%s_%s" % (evt['component'],evt['ntevid'])
-        elif evt.has_key( 'component'):
+        elif 'component' in evt:
             evt['eventClassKey'] = evt['component']
-        if evt.has_key( 'eventClassKey'): 
+        if 'eventClassKey' in evt:
             slog.debug("eventClassKey=%s", evt['eventClassKey'])
             try:
                 evt['eventClassKey'] = evt['eventClassKey'].decode('latin-1')

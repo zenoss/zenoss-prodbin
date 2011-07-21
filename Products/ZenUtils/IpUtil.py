@@ -88,7 +88,7 @@ def bytesToCanonIpv6(byteString):
         right = map(int, byteString[1::2])
     except ValueError:
         return ''
-    ipv6 = ':'.join([ "%x%02x" % tuple(x) for x in zip(left, right) ])
+    ipv6 = ':'.join("%x%02x" % tuple(x) for x in zip(left, right))
 
     # Now canonicalize the IP
     ip = ''
@@ -497,7 +497,7 @@ def ensureIp(ip):
     >>> 
     """
     # filter out the alpha characters
-    stripped = ''.join([c for c in ip if c in '1234567890.'])
+    stripped = ''.join(c for c in ip if c in '1234567890.')
     octets = stripped.split('.')
 
     # make sure we always have 4 

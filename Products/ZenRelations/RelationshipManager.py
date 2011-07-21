@@ -303,7 +303,7 @@ class RelationshipManager(PrimaryPathObjectManager, ZenPropertyManager):
         value will be converted to is correct python type on import
         """
         for prop in self._properties:
-            if not prop.has_key('id'): continue
+            if not 'id' in prop: continue
             id = prop['id']
             ptype = prop['type']
             value = getattr(aq_base(self), id, None) # use aq_base?

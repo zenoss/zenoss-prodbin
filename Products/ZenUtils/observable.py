@@ -109,7 +109,7 @@ class ObservableMixin(object):
         if not callable(observer):
             raise ValueError("observer must be callable")
 
-        if not self._observers.has_key(name):
+        if not name in self._observers:
             self._observers[name] = []
 
         if observer not in self._observers[name]:
@@ -118,13 +118,13 @@ class ObservableMixin(object):
     def detachAttributeObserver(self, name, observer):
         try:
             self._observers[name].remove(observer)
-        except KeyError, ValueError:
+        except (KeyError, ValueError):
             pass
 
     def notifyAttributeChange(self, name, oldValue, newValue):
         # don't bother notifying if we don't have an _observers attribute
         # yet (during construction) 
-        if hasattr(self, '_observers') and self._observers.has_key(name):
+        if hasattr(self, '_observers') and name in self._observers:
             for observer in self._observers[name]:
                 observer(observable=self, 
                          attrName=name,

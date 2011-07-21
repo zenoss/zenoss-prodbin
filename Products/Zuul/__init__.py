@@ -67,7 +67,7 @@ def listFacades(context=None):
     """
     if context is None:
         context = get_dmd()
-    return sorted([str(name) for name, obj in component.getAdapters([context], IFacade)])
+    return sorted(str(name) for name, obj in component.getAdapters([context], IFacade))
 
 
 class AlreadySeenException(Exception):

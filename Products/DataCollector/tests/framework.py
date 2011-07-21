@@ -63,7 +63,7 @@ if __INSTANCE_HOME.endswith(os.sep):
 
 # Find and import the Testing package
 #
-if not sys.modules.has_key('Testing'):
+if not 'Testing' in sys.modules:
     p0 = sys.path[0]
     if p0 and __name__ == '__main__':
         os.chdir(p0)

@@ -57,10 +57,8 @@ defs = []
 for i, f in enumerate(files):
     defs.append('DEF:d%d=%s:ds0:AVERAGE' % (i, f))
 cdefs = []
-asum = ','.join([('d%d,UN,0,d%d,IF' % (i, i))
-                 for i in range(acount)]) + ',+'*(acount-1)
-lsum = ','.join([('d%d,UN,0,d%d,IF' % (i, i))
-                 for i in range(acount, count)]) + ',+'*(count - acount-1)
+asum = ','.join(('d%d,UN,0,d%d,IF' % (i, i)) for i in range(acount)) + ',+'*(acount-1)
+lsum = ','.join(('d%d,UN,0,d%d,IF' % (i, i)) for i in range(acount, count)) + ',+'*(count - acount-1)
 for i, s in enumerate([asum, lsum]):
     cdefs.append('CDEF:c%d=%s%s' % (i, s, rpn))
 lcdef1 = ['CDEF:lcdef1=']

@@ -448,7 +448,7 @@ class CollectorDaemon(RRDDaemon):
 
             # Device ping issues returns as a tuple of (deviceId, count, total)
             # and we just want the device id
-            newUnresponsiveDevices = set([i[0] for i in result])
+            newUnresponsiveDevices = set(i[0] for i in result)
 
             clearedDevices = self._unresponsiveDevices.difference(newUnresponsiveDevices)
             for devId in clearedDevices:
@@ -552,7 +552,7 @@ class StatisticsService(object):
         self._stats = {}
 
     def addStatistic(self, name, type):
-        if self._stats.has_key(name):
+        if name in self._stats:
             raise NameError("Statistic %s already exists" % name)
 
         if type not in ('DERIVE', 'COUNTER', 'GAUGE'):
