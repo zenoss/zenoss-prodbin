@@ -85,6 +85,9 @@ ${ZENHOME}/bin/python ${ZENHOME}/bin/changeObjectStore.py \
     --user=$MYSQLUSER --db=$MYSQLZODB --rootpw="$MYSQLROOTPASSWD" \
     2>&1 | egrep -v "For help, use ${ZENHOME}/bin/zeoctl -h|Error: no program specified; use -p or -C"
 
+
+upgrade_relstorage-1_5
+
 # Update AMQP configuration files
 update_amqp_cfg
 configure_amqp

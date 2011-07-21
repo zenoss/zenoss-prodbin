@@ -59,7 +59,7 @@ class ZenScriptBase(CmdBase):
 
             adapter = MySQLAdapter(**connectionParams)
 
-            kwargs = {}
+            kwargs = {'cache_module_name':'memcache'}
             if self.options.cacheservers:
                 kwargs['cache_servers'] = self.options.cacheservers
             self.storage = RelStorage(adapter, **kwargs)

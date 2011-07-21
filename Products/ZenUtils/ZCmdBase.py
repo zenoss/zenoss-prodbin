@@ -77,7 +77,7 @@ class ZCmdBase(ZenDaemon):
             connectionParams['unix_socket'] = self.options.mysqlsocket
 
         adapter = MySQLAdapter(**connectionParams)
-        kwargs = {}
+        kwargs = {'cache_module_name':'memcache'}
         if self.options.cacheservers:
             kwargs['cache_servers'] = self.options.cacheservers
         if self.options.pollinterval:
