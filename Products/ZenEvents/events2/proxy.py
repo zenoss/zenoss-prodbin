@@ -186,6 +186,16 @@ class EventDetailProxy(object):
     def set(self, key, value):
         self[key] = value
 
+    def getAll(self, key, default=None):
+        """
+        The normal __getitem__ and get() methods throw an exception for multi-valued details. This one specifically
+        allows multi-valued details.
+        """
+        try:
+            return self._map[key].value
+        except KeyError:
+            return default
+
 class ProtobufWrapper(object):
     """
     Conveinence wrapper for protobufs to make sure fields
@@ -343,14 +353,6 @@ class EventProxy(object):
         self._event.set(EventField.FINGERPRINT, val)
 
     @property
-    def manager(self):
-        return self._event.get(EventField.MONITOR)
-
-    @manager.setter
-    def manager(self, val):
-        self._event.set(EventField.MONITOR, val)
-
-    @property
     def monitor(self):
         return self._event.get(EventField.MONITOR)
 
@@ -432,6 +434,22 @@ class EventProxy(object):
     def tags(self):
         return self._tags
 
+    @property
+    def Location(self):
+        return self.details.get(EventProxy.DEVICE_LOCATION_DETAIL_KEY)
+
+    @property
+    def Systems(self):
+        values = self.details.getAll(EventProxy.DEVICE_SYSTEMS_DETAIL_KEY)
+        if values:
+            return '|' + '|'.join(values)
+
+    @property
+    def DeviceGroups(self):
+        values = self.details.getAll(EventProxy.DEVICE_GROUPS_DETAIL_KEY)
+        if values:
+            return '|' + '|'.join(values)
+
     def setReadOnly(self, name, value):
         """
         Adds a read only attribute for transforms to read.
@@ -494,13 +512,13 @@ class EventSummaryProxy(EventProxy):
         self._eventSummary.set(EventSummaryField.CLEARED_BY_EVENT_UUID, val)
 
     @property
-    def firstSeen(self):
+    def firstTime(self):
         t = self._eventSummary.get(EventSummaryField.FIRST_SEEN_TIME)
         if t:
             return LocalDateTimeFromMilli(t)
 
     @property
-    def lastSeen(self):
+    def lastTime(self):
         t = self._eventSummary.get(EventSummaryField.LAST_SEEN_TIME)
         if t:
             return LocalDateTimeFromMilli(t)
@@ -511,13 +529,11 @@ class EventSummaryProxy(EventProxy):
 
     @property
     def ownerid(self):
-        # FIXME Expects username, not uuid
-        return self._eventSummary.get(EventSummaryField.CURRENT_USER_UUID)
+        return self._eventSummary.get(EventSummaryField.CURRENT_USER_NAME)
 
     @ownerid.setter
     def ownerid(self, val):
-        # FIXME Expects uuid, not username
-        self._eventSummary.set(EventSummaryField.CURRENT_USER_UUID, val)
+        self._eventSummary.set(EventSummaryField.CURRENT_USER_NAME, val)
 
     @property
     def eventState(self):

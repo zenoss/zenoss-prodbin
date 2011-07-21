@@ -43,7 +43,7 @@ class IEmailActionContentInfo(IInfo):
         Device: ${evt/device}
         Component: ${evt/component}
         Severity: ${evt/severity}
-        Time: ${evt/lastSeen}
+        Time: ${evt/lastTime}
         Message:
         ${evt/message}
         <a href="${urls/eventUrl}">Event Detail</a>
@@ -106,7 +106,7 @@ class ICommandActionContentInfo(IInfo):
         Device: ${evt/device}
         Component: ${evt/component}
         Severity: ${evt/severity}
-        Time: ${evt/lastSeen}
+        Time: ${evt/lastTime}
         Message:
         ${evt/message}
         <a href="${urls/eventUrl}">Event Detail</a>

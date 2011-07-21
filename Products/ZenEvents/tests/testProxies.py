@@ -65,5 +65,26 @@ class EventProxyTagsAndDetailsTest(unittest.TestCase):
         del proxy.details['A']
         self.assertEqual(len(proxy.details), 0)
 
+    def testProxyLocation(self):
+        event = Event()
+        event.details.add(name=EventProxy.DEVICE_LOCATION_DETAIL_KEY, value=['MyLocation'])
+
+        proxy = EventProxy(event)
+        self.assertEqual('MyLocation', proxy.Location)
+
+    def testProxySystems(self):
+        event = Event()
+        event.details.add(name=EventProxy.DEVICE_SYSTEMS_DETAIL_KEY, value=['System1','System2','System3'])
+
+        proxy = EventProxy(event)
+        self.assertEqual('|System1|System2|System3', proxy.Systems)
+
+    def testProxyDeviceGroups(self):
+        event = Event()
+        event.details.add(name=EventProxy.DEVICE_GROUPS_DETAIL_KEY, value=['Group1','Group2','Group3'])
+
+        proxy = EventProxy(event)
+        self.assertEqual('|Group1|Group2|Group3', proxy.DeviceGroups)
+
 if __name__ == '__main__':
     unittest.main()
