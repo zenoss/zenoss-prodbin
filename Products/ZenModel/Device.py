@@ -19,7 +19,6 @@ Base device (remote computer) class
 import os
 import shutil
 import time
-import types
 import socket
 import logging
 log = logging.getLogger("zen.Device")
@@ -514,7 +513,7 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable,
         @rtype: list
         """
         if ippath is None: ippath=[]
-        if type(target) in types.StringTypes:
+        if isinstance(target, basestring):
             target = self.findDevice(target)
             if not target: raise ValueError("Target %s not found in DMD" % target)
         return self.os.traceRoute(target, ippath)
@@ -1576,7 +1575,7 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable,
         @param objGetter: method to get the relation
         @param relPaths: list of relationship paths
         """
-        if type(relPaths) != type([]) and type(relPaths) != type(()):
+        if not isinstance(relPaths, (list, tuple)):
             relPaths = [relPaths,]
         relPaths = filter(lambda x: x.strip(), relPaths)
         rel = getattr(self, relName, None)

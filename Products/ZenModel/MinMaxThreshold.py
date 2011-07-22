@@ -34,7 +34,6 @@ import logging
 log = logging.getLogger('zen.MinMaxCheck')
 
 from Products.ZenUtils.Utils import unused, nanToNone
-import types
 
 # Note:  this import is for backwards compatibility.
 # Import Products.ZenRRD.utils.rpneval directy.
@@ -238,7 +237,7 @@ class MinMaxThresholdInstance(ThresholdInstance):
                   dp, value, self.minimum, self.maximum)
         if value is None:
             return []
-        if type(value) in types.StringTypes:
+        if isinstance(value, basestring):
             value = float(value)
         thresh = None
 

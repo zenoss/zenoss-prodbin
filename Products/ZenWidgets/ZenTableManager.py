@@ -26,7 +26,6 @@ $Id: ZenTableManager.py,v 1.4 2004/04/03 04:18:22 edahl Exp $"""
 __revision__ = "$Revision: 1.4 $"[11:-2]
 
 import re
-import types
 import ZTUtils
 from Globals import InitializeClass
 from Acquisition import aq_base
@@ -215,7 +214,7 @@ class ZenTableManager(SimpleItem, PropertyManager):
                     value = getattr(obj, field, None)
                 if callable(value):
                     value = value()
-                if type(value) not in types.StringTypes:
+                if not isinstance(value, basestring):
                     value = str(value)
                 target.append(value)
             targetstring = " ".join(target)

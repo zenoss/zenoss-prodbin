@@ -26,7 +26,7 @@ class ZenDate(Persistent):
         
     def setDate(self, date=None):
         if date == None: date = DateTime()
-        if type(date) == type(''):
+        if isinstance(date, basestring):
             date = DateTime(date)
         self.date = date
 

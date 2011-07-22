@@ -75,8 +75,7 @@ class Commandable:
         'manage_deleteUserCommand')
     def manage_deleteUserCommand(self, ids=(), REQUEST=None):
         "Delete User Command(s) to this device"
-        import types
-        if type(ids) in types.StringTypes:
+        if isinstance(ids, basestring):
             ids = [ids]
         for id in ids:
             self.userCommands._delObject(id)

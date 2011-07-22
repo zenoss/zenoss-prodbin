@@ -60,7 +60,7 @@ class NetworkFacade(TreeFacade):
         @todo: investigate IPv6 issues
         """
 
-        if type(netmask) is not int:
+        if not isinstance(netmask, int):
             raise TypeError('Netmask must be an integer')
 
         netRoot = self._root.restrictedTraverse(contextUid).getNetworkRoot()

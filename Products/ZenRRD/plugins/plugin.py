@@ -92,7 +92,7 @@ def getArgs(REQUEST, env):
         args.append('--upper-limit=%s' % maxy)
     if miny or maxy:
         args.append('-r')
-    if type(env['arg']) == type(''):
+    if isinstance(env['arg'], basestring):
         args = [env['arg']] + args
     else:
         args += env['arg']

@@ -22,7 +22,6 @@ __version__ = "$Revision: 1.3 $"[11:-2]
 
 import sys
 import os
-import types
 import urllib2
 import transaction
 from urlparse import urlparse
@@ -162,7 +161,7 @@ class ImportRM(CmdBase, ContentHandler):
         if proptype == 'selection':
             alist = getattr(obj, selvar, [])
             if (len(alist) == 0 or 
-                (len(alist) > 0 and type(alist[0]) in types.StringTypes)):
+                (len(alist) > 0 and isinstance(alist[0], basestring)):
                 proptype = 'string'
         if proptype == "date":
             try: value = float(value)

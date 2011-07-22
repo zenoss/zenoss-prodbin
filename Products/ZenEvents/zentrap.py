@@ -338,7 +338,7 @@ class TrapTask(BaseTask, CaptureReplay):
         @return: Twisted deferred object
         @rtype: Twisted deferred object
         """
-        if type(oid) == type(()):
+        if isinstance(oid, tuple):
             oid = '.'.join(map(str, oid))
 
         oid = oid.strip('.')

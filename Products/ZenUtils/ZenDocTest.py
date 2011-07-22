@@ -118,7 +118,7 @@ class ZenDocTestRunner(object):
         @param mods: One or more module objects or dotted names.
         @type mods: module or list
         """
-        if type(mods)!=type([]): mods = [mods]
+        if not isinstance(mods, list): mods = [mods]
         self.modules.extend(mods)
 
     def get_suites(self):

@@ -380,8 +380,8 @@ def cleanstring(value):
     @return: cleaned string
     @rtype: string
     """
-    if type(value) in types.StringTypes:
-        value = value.split('\0')[0]
+    if isinstance(value, basestring) and value.endswith('\0'):
+        value = value[:-1]
     return value
 
 
@@ -619,7 +619,7 @@ def prepId(id, subchar='_'):
     _cleanend = re.compile(r"%s+$" % subchar).sub
     if id is None:
         raise ValueError('Ids can not be None')
-    if type(id) not in types.StringTypes:
+    if not isinstance(id, basestring):
         id = str(id)
     id = _prepId(subchar, id)
     while id.startswith(subchar):
@@ -751,7 +751,7 @@ def zdecode(context, value):
     @return: converted string
     @rtype: string
     """
-    if type(value) == type(''):
+    if isinstance(value, str):
         decoding = getattr(context, 'zCollectorDecoding', 'latin-1')
         value = value.decode(decoding)
     return value

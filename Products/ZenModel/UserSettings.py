@@ -11,7 +11,6 @@
 #
 ###########################################################################
 
-import types
 from DateTime import DateTime
 from random import choice
 from email.MIMEText import MIMEText
@@ -460,7 +459,7 @@ class UserSettingsManager(ZenModelRM):
         """ Delete a zenoss group from the system
         """
         gm = self.acl_users.groupManager
-        if type(groupids) in types.StringTypes:
+        if isinstance(groupids, basestring):
             groupids = [groupids]
         for groupid in groupids:
             if self._getOb(groupid): self._delObject(groupid)
@@ -480,14 +479,14 @@ class UserSettingsManager(ZenModelRM):
     def manage_addUsersToGroups(self, userids=(), groupids=(), REQUEST=None):
         """ Add users to a group
         """
-        if type(userids) in types.StringTypes:
+        if isinstance(userids, basestring):
             userids = [userids]
-        if type(groupids) in types.StringTypes:
+        if isinstance(groupids, basestring):
             groupids = [groupids]
         for groupid in groupids:
             self._getOb(groupid).manage_addUsersToGroup(userids)
         if REQUEST:
-            if len(groupids) == 0:
+            if not groupids:
                 messaging.IMessageSender(self).sendToBrowser(
                     'Error',
                     'No groups were selected.',
@@ -1013,7 +1012,7 @@ class UserSettings(ZenModelRM):
                                         level=(), REQUEST=None):
         """Edit list of admin roles.
         """
-        if type(ids) in types.StringTypes:
+        if isinstance(ids, basesetring):
             ids = [ids]
             level = [level]
             role = [role]
@@ -1038,7 +1037,7 @@ class UserSettings(ZenModelRM):
         'manage_deleteAdministrativeRole')
     def manage_deleteAdministrativeRole(self, delids=(), REQUEST=None):
         "Delete a admin role to this device"
-        if type(delids) in types.StringTypes:
+        if isinstance(delids, basestring):
             delids = [delids]
         for ar in self.adminRoles():
             mobj = ar.managedObject()
@@ -1201,7 +1200,7 @@ class GroupSettings(UserSettings):
     def manage_addUsersToGroup( self, userids, REQUEST=None ):
         """ Add user to this group
         """
-        if type(userids) in types.StringTypes:
+        if isinstance(userids, basestring):
             userids = [userids]
         for userid in userids:
             self._getG().addPrincipalToGroup( userid, self.id )

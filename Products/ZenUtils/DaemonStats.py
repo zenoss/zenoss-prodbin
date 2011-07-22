@@ -50,7 +50,7 @@ class DaemonStats:
         if not rrdCreateCommand:
             from Products.ZenModel.PerformanceConf import PerformanceConf
             rrdCreateCommand = PerformanceConf.defaultRRDCreateCommand
-        if type(rrdCreateCommand) != type(''):
+        if not isinstance(rrdCreateCommand, basestring):
             self.createCommand = rrdCreateCommand
         else:
             self.createCommand = rrdCreateCommand.split('\n')

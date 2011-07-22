@@ -20,7 +20,6 @@ is representable in URLs.  Zope object names *MUST* be okay in URLs.
 
 """
 
-import types
 import re
 import socket
 
@@ -256,7 +255,7 @@ def maskToBits(netmask):
     >>> maskToBits('0.0.0.0')
     0
     """
-    if type(netmask) == types.StringType and netmask.find('.') > -1: 
+    if isinstance(netmask, basestring) and '.' in netmask:
         test = 0xffffffffL
         if netmask[0]=='0': return 0
         masknumb = ipToDecimal(netmask)

@@ -292,7 +292,7 @@ class IpInterface(OSComponent, Layer2Linkable):
         Set a list of ipaddresses in the form 1.1.1.1/24 on to this
         interface. If networks for the ips don't exist they will be created.
         """
-        if type(ips) == type(''): ips = [ips,]
+        if isinstance(ips, basestring): ips = [ips,]
         if self.clearIps(ips): return
 
         ipids = self.ipaddresses.objectIdsAll()

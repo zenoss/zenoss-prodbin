@@ -23,8 +23,6 @@ from xml.sax import saxutils
 import logging
 log = logging.getLogger("zen.Relations")
 
-import types
-
 # Base classes for RelationshipManager
 from PrimaryPathObjectManager import PrimaryPathObjectManager
 from ZenPropertyManager import ZenPropertyManager
@@ -326,9 +324,9 @@ class RelationshipManager(PrimaryPathObjectManager, ZenPropertyManager):
                 stag.append('%s=%s' % (k, v))
             stag.append('>')
             ofile.write(' '.join(stag)+"\n")
-            if type(value) not in types.StringTypes:
+            if not isinstance(value, basestring):
                 value = unicode(value)
-            elif type(value) == types.StringType:
+            elif isinstance(value, str):
                 value = value.decode('latin-1')
             valuestr = saxutils.escape(value).encode('utf-8').strip()
             if valuestr:

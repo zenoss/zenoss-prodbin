@@ -61,7 +61,7 @@ fac_names = {}      # mapping of values to names
 pri_values = {}
 pri_names = {}
 for i, j in globals().items():
-    if i[:4] == 'LOG_' and type(j) == type(0):
+    if i[:4] == 'LOG_' and isinstance(j, int):
         if j > LOG_PRIMASK or i == 'LOG_KERN':
             n, v = fac_names, fac_values
         else:

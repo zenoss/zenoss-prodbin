@@ -82,8 +82,8 @@ class XmlRpcService(xmlrpc.XMLRPC):
             vals['dps'] = []
             vals['dptypes'] = []
             for key, val in ds.__dict__.items():
-                if type(val) in XmlRpcService.PRIMITIVES:
-                    if (type(val) == types.StringType) and (val.find('$') >= 0):
+                if isinstance(val, XmlRpcService.PRIMITIVES):
+                    if isinstance(val, basestring) and '$' in val:
                         val = talesEval('string:%s' % (val, ), device)
                     vals[key] = val
 

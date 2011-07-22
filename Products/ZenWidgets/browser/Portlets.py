@@ -92,7 +92,7 @@ class ProductionStatePortletView(BrowserView):
             ]}"
         """
         devroot = self.context.dmd.Devices
-        if type(prodStates)==type(''):
+        if isinstance(prodStates, basestring):
             prodStates = [prodStates]
         orderby, orderdir = 'id', 'asc'
         catalog = getattr(devroot, devroot.default_catalog)

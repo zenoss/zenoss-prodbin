@@ -135,9 +135,9 @@ class MessageProcessor(object):
 
         payloads = message.get_payload()
         payload = 'This is the default message'
-        while type(payloads) == types.ListType:
+        while isinstance(payloads, list):
             payloads = payloads[0].get_payload()
-        if type(payloads) == types.StringType:
+        if isinstance(payloads, basestring):
             payload = payloads
 
         body = payload

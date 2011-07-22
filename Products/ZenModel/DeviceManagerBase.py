@@ -11,7 +11,6 @@
 #
 ###########################################################################
 
-import types
 from ZenossSecurity import ZEN_VIEW
 
 class DeviceManagerBase:
@@ -35,7 +34,7 @@ class DeviceManagerBase:
         from Products.ZenUtils.Utils import unused
         unused(deleteHistory, deletePerf, deleteStatus)
         if not deviceNames: return self()
-        if type(deviceNames) in types.StringTypes: deviceNames = (deviceNames,)
+        if isinstance(deviceNames, basestring): deviceNames = (deviceNames,)
         for devname in deviceNames:
             self.devices._delObject(devname)
         if REQUEST:

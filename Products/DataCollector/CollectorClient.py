@@ -127,7 +127,7 @@ class CollectorClient(BaseClient, protocol.ClientFactory):
         @param command: command
         @type command: string
         """
-        if type(command) == type(''):
+        if isinstance(command, basestring):
             self._commands.append(command)
         else:
             self._commands.extend(command)

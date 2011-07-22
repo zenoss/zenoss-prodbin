@@ -16,7 +16,6 @@ AdministrativeRoleable.py
 Created by Marc Irlandez on 2007-04-05.
 """
 
-import types
 from AccessControl import ClassSecurityInfo
 from Products.ZenModel.AdministrativeRole import AdministrativeRole
 from Globals import InitializeClass
@@ -58,7 +57,7 @@ class AdministrativeRoleable:
                                         level=(), REQUEST=None):
         """Edit list of admin roles.
         """
-        if type(ids) in types.StringTypes:
+        if isinstance(ids, basestring):
             ids = [ids]
             role = [role]
             level = [level]
@@ -81,7 +80,7 @@ class AdministrativeRoleable:
         'manage_deleteAdministrativeRole')
     def manage_deleteAdministrativeRole(self, delids=(), REQUEST=None):
         "Delete a admin role to this device"
-        if type(delids) in types.StringTypes:
+        if isinstance(delids, basestring):
             delids = [delids]
         for userid in delids:
             ar = self.adminRoles._getOb(userid, None)

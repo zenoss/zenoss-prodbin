@@ -44,7 +44,6 @@ from twisted.internet import reactor
 from twisted.internet.defer import succeed
 
 import time
-import types
 import re
 import DateTime
 
@@ -655,7 +654,7 @@ class ZenModeler(PBDaemon):
                         continue
 
                     # allow multiple maps to be returned from one plugin
-                    if type(datamaps) not in (types.ListType, types.TupleType):
+                    if not isinstance(datamaps, (list, tuple)):
                         datamaps = [datamaps,]
                     if datamaps:
                         maps += [m for m in datamaps if m]

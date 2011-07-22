@@ -19,7 +19,6 @@ $Id: Manufacturer.py,v 1.11 2004/03/26 23:58:44 edahl Exp $"""
 
 __version__ = "$Revision: 1.11 $"[11:-2]
 
-import types
 import re
 
 from Globals import DTMLFile, InitializeClass
@@ -144,7 +143,7 @@ class Manufacturer(ZenModelRM, ZenPackable):
         """
         if not moveTarget or not ids: return self()
         target = self.getManufacturer(moveTarget)
-        if type(ids) == types.StringType: ids = (ids,)
+        if isinstance(ids, basestring): ids = (ids,)
         for id in ids:
             obj = self.products._getOb(id)
             obj._operation = 1 # moving object state

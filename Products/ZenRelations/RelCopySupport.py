@@ -23,7 +23,6 @@ $Id: RelCopySupport.py,v 1.15 2004/04/13 22:02:18 edahl Exp $"""
 __version__ = '$Revision: 1.15 $'
 
 import sys
-import types
 from cgi import escape
 
 # base class for RelCopyContainer
@@ -110,7 +109,7 @@ class RelCopyContainer(CopyContainer):
                 return self.getId()
             else:
                 raise ZenRelationsError("No relation name defined")
-        if type(ids) == types.StringType: return ids
+        if isinstance(ids, basestring): return ids
         if len(ids) > 1: 
             raise ZenRelationsError("You can only link to one relationship!")
         return ids[0] 

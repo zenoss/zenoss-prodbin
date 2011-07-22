@@ -19,7 +19,6 @@ __version__ = "$Revision: 1.17 $"[11:-2]
 
 import re
 import time
-import types
 import sys
 
 from xml.sax import saxutils
@@ -723,9 +722,9 @@ class ZenModelZenDocProvider(object):
         value = self.getZendoc()
         if not value: return
         ofile.write("<property id='zendoc' type='string'>\n")
-        if type(value) not in types.StringTypes:
+        if not isinstance(value, basestring):
             value = unicode(value)
-        elif type(value) == types.StringType:
+        elif isinstance(value, str):
             value = value.decode('latin-1')
         ofile.write(saxutils.escape(value).encode('utf-8')+"\n")
         ofile.write("</property>\n")

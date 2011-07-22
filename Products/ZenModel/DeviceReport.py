@@ -12,7 +12,6 @@
 ###########################################################################
 
 import cgi
-import types
 
 from Globals import InitializeClass
 from AccessControl import ClassSecurityInfo
@@ -144,7 +143,7 @@ class DeviceReport(ZenModelRM):
         body = []
         for dev in batch:
             # If the query is invalid, dev will be an exception string
-            if type(dev) in types.StringTypes:
+            if isinstance(dev, basestring):
                 body.extend([
                     '<tr class="tablevalues">',
                     '  <td colspan="%d" align="center">' % len(self.columns),
@@ -178,15 +177,15 @@ class DeviceReport(ZenModelRM):
                              value = str(ex)
                     else: value = attr
 
-                    if type(value) in (types.ListType, types.TupleType):
+                    if isinstance(value, (list, tuple, set)):
                         # Some calls don't return strings
                         try: value = ", ".join(value)
                         except Exception, ex:
                              value = str(ex)
-                    if (not field.endswith("Link") 
-                        and type(value) in types.StringTypes): 
+                    if (not field.endswith("Link")
+                            and isinstance(value, basestring)):
                         value = cgi.escape(value)
-                    elif type(value) not in types.StringTypes:
+                    elif isinstance(value, basestring):
                         value = str(value)
                     body.append(value)
                     body.append("</td>")

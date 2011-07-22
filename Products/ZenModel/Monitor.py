@@ -99,12 +99,11 @@ class Monitor(ZenModelRM, DeviceManagerBase, RRDView):
     def getGraphDefUrl(self, graph, drange=None, template=None):
         """resolve template and graph names to objects 
         and pass to graph performance"""
-        import types
         if not drange: drange = self.defaultDateRange
         templates = self.getRRDTemplates()
         if template:
             templates = [template]
-        if type(graph) in types.StringTypes:
+        if isinstance(graph, basestring):
             for t in templates:
                 if hasattr(t.graphDefs, graph):
                     template = t

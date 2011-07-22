@@ -14,8 +14,6 @@
 import logging
 log = logging.getLogger("zen.OS")
 
-import types
-
 from Software import Software
 
 from AccessControl import ClassSecurityInfo
@@ -163,7 +161,7 @@ class OperatingSystem(Software):
     def deleteDeviceComponents(self, context, componentNames=[], REQUEST=None):
         """Delete device components"""
         if not componentNames: return self()
-        if type(componentNames) in types.StringTypes: 
+        if isinstance(componentNames, basestring):
             componentNames = (componentNames,)
         for componentName in componentNames:
             dc = context._getOb(componentName, False)
@@ -174,7 +172,7 @@ class OperatingSystem(Software):
     def unlockDeviceComponents(self, context, componentNames=[], REQUEST=None):
         """Unlock device components"""
         if not componentNames: return self()
-        if type(componentNames) in types.StringTypes: 
+        if isinstance(componentNames, basestring):
             componentNames = (componentNames,)
         for componentName in componentNames:
             dc = context._getOb(componentName)
@@ -186,7 +184,7 @@ class OperatingSystem(Software):
             sendEventWhenBlocked=None, REQUEST=None):
         """Lock device components from deletion"""
         if not componentNames: return self()
-        if type(componentNames) in types.StringTypes: 
+        if isinstance(componentNames, basestring):
             componentNames = (componentNames,)
         for componentName in componentNames:
             dc = context._getOb(componentName)
@@ -198,7 +196,7 @@ class OperatingSystem(Software):
             sendEventWhenBlocked=None, REQUEST=None):
         """Lock device components from updates"""
         if not componentNames: return self()
-        if type(componentNames) in types.StringTypes: 
+        if isinstance(componentNames, basestring):
             componentNames = (componentNames,)
         for componentName in componentNames:
             dc = context._getOb(componentName, False)

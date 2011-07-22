@@ -26,7 +26,7 @@ class SinglePill(BrowserView):
         @rtype: str
         """
         pill = getEventPillME(self.context)
-        if type(pill)==type([]) and len(pill)==1: return pill[0]
+        if isinstance(pill, (list, tuple)) and len(pill)==1: return pill[0]
         return pill
 
 
@@ -98,7 +98,7 @@ def getObjectsEventSummary(zem, objects, prodState=None, REQUEST=None):
     for obj in objects:
         alink = obj.getPrettyLink()
         pill = getEventPillME(obj, showGreen=True, prodState=prodState)
-        if type(pill)==type([]): pill = pill[0]
+        if isinstance(pill, (list, tuple)): pill = pill[0]
         devdata.append([alink, pill])
     devdata.sort(pillcompare)
     mydict['data'] = [{'Object':x[0],'Events':x[1]} for x in devdata]

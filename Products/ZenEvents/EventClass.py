@@ -15,7 +15,6 @@ __doc__="""EventClass.py
 Event class objects
 """
 
-import types
 import logging
 log = logging.getLogger("zen.Events")
 
@@ -272,7 +271,7 @@ class EventClass(EventClassPropertyMixin, Organizer, ManagedEntity, ZenPackable)
         """Remove Instances from an EventClass.
         """
         if not ids: return self()
-        if type(ids) == types.StringType: ids = (ids,)
+        if isinstance(ids, basestring): ids = (ids,)
         for id in ids:
             self.instances._delObject(id)
         if REQUEST: return self()
@@ -282,7 +281,7 @@ class EventClass(EventClassPropertyMixin, Organizer, ManagedEntity, ZenPackable)
         """Move instances from this EventClass to moveTarget.
         """
         if not moveTarget or not ids: return self()
-        if type(ids) == types.StringType: ids = (ids,)
+        if isinstance(ids, basestring): ids = (ids,)
         target = self.getChildMoveTarget(moveTarget)
         for id in ids:
             rec = self.instances._getOb(id, None)

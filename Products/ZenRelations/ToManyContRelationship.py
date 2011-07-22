@@ -210,7 +210,7 @@ class ToManyContRelationship(ToManyRelationshipBase):
     def objectIds(self, spec=None):
         """only return contained objects"""
         if spec:
-            if type(spec)==type('s'): spec=[spec]
+            if isinstance(spec,basestring): spec=[spec]
             return [obj.id for obj in self._objects.values() \
                         if obj.meta_type in spec]
         return [ k for k in self._objects.keys() ]
@@ -221,7 +221,7 @@ class ToManyContRelationship(ToManyRelationshipBase):
     def objectValues(self, spec=None):
         """override to only return owned objects for many to many rel"""
         if spec:
-            if type(spec)==type('s'): spec=[spec]
+            if isinstance(spec,basestring): spec=[spec]
             return [ob.__of__(self) for ob in self._objects.values() \
                         if ob.meta_type in spec]
         return self._safeOfObjects()
@@ -238,7 +238,7 @@ class ToManyContRelationship(ToManyRelationshipBase):
     def objectItems(self, spec=None):
         """over ride to only return owned objects for many to many rel"""
         if spec:
-            if type(spec)==type('s'): spec=[spec]
+            if isinstance(spec,basestring): spec=[spec]
             return [(key,value.__of__(self)) \
                 for (key,value) in self._objects.items() \
                     if value.meta_type in spec]

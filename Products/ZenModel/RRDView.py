@@ -11,7 +11,6 @@
 #
 ###########################################################################
 
-import types
 import time
 
 import logging
@@ -52,7 +51,7 @@ class RRDView(object):
         templates = self.getRRDTemplates()
         if template:
             templates = [template]
-        if type(graph) in types.StringTypes:
+        if isinstance(graph, basestring):
             for t in templates:
                 if hasattr(t.graphDefs, graph):
                     template = t

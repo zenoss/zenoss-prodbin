@@ -19,8 +19,6 @@ $Id: ReportClass.py,v 1.3 2004/04/22 15:33:44 edahl Exp $"""
 
 __version__ = "$Revision: 1.3 $"[11:-2]
 
-import types
-
 from AccessControl import ClassSecurityInfo
 from Globals import InitializeClass
 from Globals import DTMLFile
@@ -161,7 +159,7 @@ class ReportClass(Organizer, ZenPackable):
         """Move a report from here organizer to moveTarget.
         """
         if not moveTarget or not ids: return self()
-        if type(ids) in types.StringTypes: ids = (ids,)
+        if isinstance(ids, basestring): ids = (ids,)
         target = self.getOrganizer(moveTarget)
         for rptname in ids:
             rpt = self._getOb(rptname)

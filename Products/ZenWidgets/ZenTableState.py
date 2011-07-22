@@ -19,8 +19,6 @@ $Id: ZenTableState.py,v 1.3 2004/01/17 04:56:13 edahl Exp $"""
 
 __revision__ = "$Revision: 1.3 $"[11:-2]
 
-import types
-
 from Globals import InitializeClass
 from AccessControl import ClassSecurityInfo
 
@@ -174,7 +172,7 @@ class ZenTableState:
         endAbbr = ""
         attr = getattr(item, self.sortedHeader, "")
         if callable(attr): attr = attr()
-        if type(attr) in types.StringTypes:
+        if isinstance(attr, basestring):
             label = attr
         else:
             label = str(attr)

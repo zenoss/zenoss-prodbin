@@ -11,7 +11,6 @@
 #
 ###########################################################################
 
-import types
 import logging
 log = logging.getLogger("zen.ServiceOrganizer")
 
@@ -253,7 +252,7 @@ class ServiceOrganizer(Organizer, Commandable, ZenPackable):
         """Remove ServiceClasses from an EventClass.
         """
         if not ids: return self()
-        if type(ids) == types.StringType: ids = (ids,)
+        if isinstance(ids, basestring): ids = (ids,)
         for id in ids:
             svc = self.serviceclasses._getOb(id)
             svc.setZenProperty("zMonitor", monitor)
@@ -264,7 +263,7 @@ class ServiceOrganizer(Organizer, Commandable, ZenPackable):
         """Remove ServiceClasses from an EventClass.
         """
         if not ids: return self()
-        if type(ids) == types.StringType: ids = (ids,)
+        if isinstance(ids, basestring): ids = (ids,)
         for id in ids:
             self.serviceclasses._delObject(id)
         if REQUEST: return self()
@@ -274,7 +273,7 @@ class ServiceOrganizer(Organizer, Commandable, ZenPackable):
         """Move ServiceClasses from this EventClass to moveTarget.
         """
         if not moveTarget or not ids: return self()
-        if type(ids) == types.StringType: ids = (ids,)
+        if isinstance(ids, basestring): ids = (ids,)
         target = self.getChildMoveTarget(moveTarget)
         for id in ids:
             rec = self.serviceclasses._getOb(id)
@@ -327,12 +326,10 @@ class ServiceOrganizer(Organizer, Commandable, ZenPackable):
         return self.getPrimaryUrlPath() + '/serviceOrganizerManage'
 
 
-    def parseServiceLiveSearchString(self, str):
+    def parseServiceLiveSearchString(self, iddescstr):
         """ Parse a string of id and description from a live search
         """
-        id = str.split(' ')
-        if type(id) == types.TupleType:
-            id = id[0]
+        id = iddescstr.split(None, 1)[0]
         return id
 
 

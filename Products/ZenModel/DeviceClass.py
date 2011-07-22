@@ -16,7 +16,6 @@ The primary organizer of device objects, managing zProperties and
 their acquisition.
 """
 
-import types
 import time
 from cStringIO import StringIO
 import transaction
@@ -333,7 +332,7 @@ class DeviceClass(DeviceOrganizer, ZenPackable, TemplateContainer):
         """
         if not moveTarget or not deviceNames: return self()
         target = self.getDmdRoot(self.dmdRootName).getOrganizer(moveTarget)
-        if type(deviceNames) == types.StringType: deviceNames = (deviceNames,)
+        if isinstance(deviceNames, basestring): deviceNames = (deviceNames,)
         targetClass = target.getPythonDeviceClass()
         numExports = 0
         for devname in deviceNames:
@@ -350,7 +349,7 @@ class DeviceClass(DeviceOrganizer, ZenPackable, TemplateContainer):
         See IManageDevice overrides DeviceManagerBase.removeDevices
         """
         if not deviceNames: return self()
-        if type(deviceNames) in types.StringTypes: deviceNames = (deviceNames,)
+        if isinstance(deviceNames, basestring): deviceNames = (deviceNames,)
         for devname in deviceNames:
             dev = self.findDevice(devname)
             dev.deleteDevice(deleteStatus=deleteStatus,
@@ -418,7 +417,7 @@ class DeviceClass(DeviceOrganizer, ZenPackable, TemplateContainer):
         for s in self.getSubComponents("WinService"):
             svcs=allsvcs.setdefault(s.hostname(),{})
             name = s.name()
-            if type(name) == type(u''):
+            if isinstance(name, unicode):
                 name = name.encode(s.zCollectorDecoding)
             svcs[name] = (s.getStatus(), s.getAqProperty('zFailSeverity'))
         for dev in self.getSubDevices():

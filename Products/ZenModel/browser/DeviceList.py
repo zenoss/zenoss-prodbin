@@ -135,11 +135,12 @@ class DeviceBatch(BrowserView):
         request = FakeRequest()
         argdict = dict(REQUEST=request)
         if d[method]:
-            if type(d[method]) in [tuple, list]:
-                for argName in d[method]:
+            d_method = d[method]
+            if isinstance(d_method, (tuple, list)):
+                for argName in d_method:
                     argdict[argName] = self.request.get(argName, None)
             else:
-                argdict[d[method]] = extraarg
+                argdict[d_method] = extraarg
         action = getattr(self.context, method)
         argdict['deviceNames'] = self._getDeviceBatch(selectstatus,
                                   goodevids, badevids, offset, count,

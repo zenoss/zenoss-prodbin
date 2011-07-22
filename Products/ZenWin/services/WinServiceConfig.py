@@ -37,7 +37,7 @@ class SmartService(object):
     def name(self):
         "converts unicode service names"
         name = self._service.name()
-        if type(name) == type(u''):
+        if isinstance(name, unicode):
             name = name.encode(self._service.zCollectorDecoding)
         return name
         

@@ -17,7 +17,6 @@ Base class for device organizers
 """
 
 from itertools import ifilter
-from types import StringTypes
 from zope.event import notify
 from zope.interface import implements
 from AccessControl import ClassSecurityInfo
@@ -278,7 +277,7 @@ class DeviceOrganizer(Organizer, DeviceManagerBase, Commandable, ZenMenuable,
         methods"""
         if checkPaths:
             if paths:
-                if type(paths) not in StringTypes:
+                if not isinstance(paths, basestring):
                     paths = ", ".join(paths)
                 message += paths
             else:

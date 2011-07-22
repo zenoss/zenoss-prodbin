@@ -104,18 +104,16 @@ class ZenMenuable:
             items = [{}]
         menu = getattr(self.zenMenus, menuid, None)
         if not menu: menu = self.manage_addZenMenu(menuid)
-        if type(items)==type({}): items = [items]
-        while items:
-            menu.manage_addZenMenuItem(**items.pop())
+        if isinstance(items, dict): items = [items]
+        for item in items:
+            menu.manage_addZenMenuItem(**item)
         return menu
 
     security.declareProtected('Change Device', 'buildMenus')
     def buildMenus(self, menudict={}):
         """ Build menus from a dictionary. """
-        menus = menudict.keys()
-        while menus:
-            menu = menus.pop()
-            self.manage_addItemsToZenMenu(menu, menudict[menu])
+        for k,v in menudict.iteritems():
+            self.manage_addItemsToZenMenu(k, v)
 
     security.declareProtected('Change Device', 'manage_deleteZenMenu')
     def manage_deleteZenMenu(self, delids=(), REQUEST=None):

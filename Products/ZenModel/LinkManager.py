@@ -43,7 +43,7 @@ NODE_IDS = dict(
 def _getComplement(context, layer=3):
     key = 'layer_%d' % layer
     nodestuff = NODE_IDS[key]
-    if not type(context)==type(""):
+    if not isinstance(context, basestring):
         try:
             context = nodestuff[context.meta_type]
         except KeyError:

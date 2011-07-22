@@ -17,8 +17,6 @@ $Id: CricketView.py,v 1.13 2004/04/06 21:05:03 edahl Exp $"""
 
 __version__ = "$Revision: 1.13 $"[11:-2]
 
-import types
-
 class PerformanceView:
     """
     Mixin to provide hooks to performance management functions
@@ -68,7 +66,7 @@ class PerformanceView:
         """build the performance target map for an object
         used when we want to draw graphs for the object"""
         tm = {}
-        if type(targets) != types.ListType and type(targets) != types.TupleType:
+        if not isinstance(targets, (list, tuple)):
             targets = (targets,)
         for targetdata in targets:
             name = targetdata['target']

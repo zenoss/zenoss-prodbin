@@ -12,7 +12,6 @@
 ###########################################################################
 
 import sys
-import types
 from collections import defaultdict
 import threading
 import Queue
@@ -67,7 +66,7 @@ class ApplyDataMap(object):
 
     def logChange(self, device, compname, eventClass, msg):
         if not getattr(device, 'zCollectorLogChanges', True): return
-        if type(msg) == type(u''):
+        if isinstance(msg, unicode):
             msg = msg.translate(_notAscii)
         self.logEvent(device, compname, eventClass, msg, Event.Info)
 
@@ -130,8 +129,7 @@ class ApplyDataMap(object):
                 results = plugin.preprocess(results, log)
                 datamaps = plugin.process(device, results, log)
                 #allow multiple maps to be returned from one plugin
-                if (type(datamaps) != types.ListType
-                    and type(datamaps) != types.TupleType):
+                if not isinstance(datamaps, (list, tuple, set)):
                     datamaps = [datamaps,]
                 for datamap in datamaps:
                     changed = self._applyDataMap(device, datamap)

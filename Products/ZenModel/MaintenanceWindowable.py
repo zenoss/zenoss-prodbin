@@ -63,8 +63,7 @@ class MaintenanceWindowable:
         'manage_deleteMaintenanceWindow')
     def manage_deleteMaintenanceWindow(self, maintenanceIds=(), REQUEST=None):
         "Delete a Maintenance Window to this device"
-        import types
-        if type(maintenanceIds) in types.StringTypes:
+        if isinstance(maintenanceIds, basestring):
             maintenanceIds = [maintenanceIds]
         for id in maintenanceIds:
             mw = getattr(self.maintenanceWindows, id)

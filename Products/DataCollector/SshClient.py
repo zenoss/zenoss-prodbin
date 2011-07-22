@@ -793,7 +793,7 @@ class SshClient(CollectorClient.CollectorClient):
         @type commands: list
         """
         CollectorClient.CollectorClient.addCommand(self, commands)
-        if type(commands) == type(''):
+        if isinstance(commands, basestring):
             commands = (commands,)
         self.workList.extend(commands)
 

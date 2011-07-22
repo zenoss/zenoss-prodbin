@@ -24,7 +24,6 @@ Developers Guide.
 import Globals
 import sys
 import os
-import types
 import transaction
 import zope.component
 from zope.event import notify
@@ -369,7 +368,7 @@ for a ZenPack.
         if proptype == 'selection':
             try:
                 firstElement = getattr(obj, name)[0]
-                if type(firstElement) in types.StringTypes:
+                if isinstance(firstElement, basestring):
                     proptype = 'string'
             except (TypeError, IndexError):
                 self.log.warn("Error at line %s when trying to " % linenum + \
@@ -475,7 +474,7 @@ for a ZenPack.
         self.links = []
         self.objectnumber = 0
         self.charvalue = ''
-        if xmlfile and type(xmlfile) in types.StringTypes:
+        if xmlfile and isinstance(xmlfile, basestring):
             self.infile = open(xmlfile)
         elif hasattr(xmlfile, 'read'):
             self.infile = xmlfile

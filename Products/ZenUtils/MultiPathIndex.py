@@ -11,7 +11,6 @@
 #
 ###########################################################################
 import time
-from types import ListType, TupleType
 import logging
 LOG = logging.getLogger('ZenUtils.MultiPathIndex')
 
@@ -25,15 +24,11 @@ from BTrees.IIBTree import IISet, intersection, union, multiunion
 def _isSequenceOfSequences(seq):
     if not seq:
         return False
-    if not isinstance(seq, (TupleType, ListType)):
-        return False
-    for item in seq:
-        if not isinstance(item, (TupleType, ListType)):
-            return False
-    return True
+    return (isinstance(seq, (tuple, list)) and
+            all(isinstance(item, (tuple, list)) for item in seq))
 
 def _recursivePathSplit(seq):
-    if isinstance(seq, (TupleType, ListType)):
+    if isinstance(seq, (tuple, list)):
         return map(_recursivePathSplit, seq)
     if '/' in seq:
         return seq.split('/')

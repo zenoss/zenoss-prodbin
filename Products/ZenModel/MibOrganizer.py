@@ -11,7 +11,6 @@
 #
 ###########################################################################
 
-import types
 import os
 import logging
 log = logging.getLogger('zen.Mibs')
@@ -176,7 +175,7 @@ class MibOrganizer(Organizer, ZenPackable):
         """Remove MibModules from an EventClass.
         """
         if not ids: return self()
-        if type(ids) == types.StringType: ids = (ids,)
+        if isinstance(ids, basestring): ids = (ids,)
         for id in ids:
             self.mibs._delObject(id)
         if REQUEST:
@@ -191,7 +190,7 @@ class MibOrganizer(Organizer, ZenPackable):
         """Move MibModules from this organizer to moveTarget.
         """
         if not moveTarget or not ids: return self()
-        if type(ids) == types.StringType: ids = (ids,)
+        if isinstance(ids, basestring): ids = (ids,)
         target = self.getChildMoveTarget(moveTarget)
         for id in ids:
             rec = self.mibs._getOb(id)

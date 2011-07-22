@@ -11,7 +11,6 @@
 #
 ###########################################################################
 
-import types
 import logging
 log = logging.getLogger("zen.OSProcessOrganizer")
 
@@ -168,7 +167,7 @@ class OSProcessOrganizer(Organizer, Commandable, ZenPackable):
         """Remove OSProcessClasses from an EventClass.
         """
         if not ids: return self()
-        if type(ids) == types.StringType: ids = (ids,)
+        if isinstance(ids, basestring): ids = (ids,)
         for id in ids:
             svc = self.osProcessClasses._getOb(id)
             svc.setZenProperty("zMonitor", monitor)
@@ -179,7 +178,7 @@ class OSProcessOrganizer(Organizer, Commandable, ZenPackable):
         """Remove OSProcessClasses from an EventClass.
         """
         if not ids: return self()
-        if type(ids) == types.StringType: ids = (ids,)
+        if isinstance(ids, basestring): ids = (ids,)
         for id in ids:
             # delete related os process instances
             klass = self.osProcessClasses._getOb(id)
@@ -194,7 +193,7 @@ class OSProcessOrganizer(Organizer, Commandable, ZenPackable):
         """Move OSProcessClasses from this EventClass to moveTarget.
         """
         if not moveTarget or not ids: return self()
-        if type(ids) == types.StringType: ids = (ids,)
+        if isinstance(ids, basestring): ids = (ids,)
         target = self.getChildMoveTarget(moveTarget)
         for id in ids:
             rec = self.osProcessClasses._getOb(id)
