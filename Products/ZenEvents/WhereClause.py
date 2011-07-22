@@ -51,7 +51,7 @@ def getName(str):
 def getValue(val):
     # escape things
     if isinstance(val, basestring):
-        return "'%s'" % val.replace("'", "\'")
+        return '"%s"' % val.replace('"', '\"')
     else:
         return val
 
@@ -61,8 +61,8 @@ def getEndsWith(name, value):
             value=getValue(value)
             )
 
-def getBeginsWith(name, value):
-    return "{name}.beginswith({value})".format(
+def getStartsWith(name, value):
+    return "{name}.startswith({value})".format(
             name=getName(name),
             value=getValue(value)
             )
@@ -147,7 +147,7 @@ class Text(WhereJavaScript):
             if value.startswith('%') and not value.endswith('%'):
                 return getEndsWith(name, value[1:])
             elif not value.startswith('%') and value.endswith('%'):
-                return getBeginsWith(name, value[:-1])
+                return getStartsWith(name, value[:-1])
             elif value.startswith('%') and value.endswith('%'):
                 return getIn(name, value[1:-1])
         if mode == 'not like':
@@ -304,7 +304,7 @@ class EventClass(Select):
             if value.startswith('%') and not value.endswith('%'):
                 return getEndsWith(name, value[1:])
             elif not value.startswith('%') and value.endswith('%'):
-                return getBeginsWith(name, value[:-1])
+                return getStartsWith(name, value[:-1])
             elif value.startswith('%') and value.endswith('%'):
                 return getIn(name, value[1:-1])
             else:
@@ -428,6 +428,28 @@ def toJavaScript(meta, clause):
     result.sort()
     return result
 
+def collapse(tree):
+    """
+    Collapses adjacent and/ors into one statement.
+    and(and(a, b), c) becomes and(a, b, c).
+    """
+    def _collapse(term, curopr=None, oprstack=None):
+        op = term[0]
+        if op == curopr:
+            _collapse(term[1], op, oprstack)
+            _collapse(term[2], op, oprstack)
+        elif op in ('and', 'or'):
+            s1, s2 = [], []
+            _collapse(term[1], op, s1)
+            _collapse(term[2], op, s2)
+            combined = [op] + s1 + s2
+            oprstack.append(combined)
+        else:
+            oprstack.append(term)
+
+    exprs = []
+    _collapse(tree, None, exprs)
+    return exprs
 
 def toPython(meta, clause):
     # sql is case insensitive, map column names to lower-case versions
@@ -435,24 +457,30 @@ def toPython(meta, clause):
     tree = where.parse('goal', clause)
     
     def recurse(root, result):
-        if type(root) == types.TupleType:
-            n = len(root)
-            if n == 1:
-                recurse(root[0], result)
-            op, name, value = root
+        if isinstance(root, (list, tuple)):
+            op = root[0]
             if op in ('and', 'or'):
-                recurse(root[1], result)
-                result.append(op)
-                recurse(root[2], result)
+                all_sub_results = []
+                for clause in root[1:]:
+                    sub_result = []
+                    recurse(clause, sub_result)
+                    all_sub_results.extend(sub_result)
+                result.append('(' + (' %s ' % op).join(all_sub_results) + ')')
             else:
+                name, value = root[1], root[2]
                 name = lmeta.get(name.lower(), None)
                 if name is not None:
                     python_statement = meta[name].buildPython(name, op, value)
                     result.append('(%s)' % python_statement)
 
     result = []
-    recurse(tree, result)
-    return ' '.join(result)
+    tree = collapse(tree)
+    recurse(tree[0], result)
+    rule = result[0]
+    # And's and Or's already add parentheses - we need to strip the outermost parens
+    if tree[0][0] in ('and', 'or'):
+        rule = rule[1:-1]
+    return rule
 
 
 def fromFormVariables(meta, form):
