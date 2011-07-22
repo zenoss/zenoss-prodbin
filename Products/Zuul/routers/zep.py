@@ -20,6 +20,7 @@ import time
 import logging
 import urllib
 from Products.ZenUtils.Ext import DirectRouter
+from Products.AdvancedQuery import MatchRegexp, Or, And, Eq
 from AccessControl import getSecurityManager
 from Products.ZenUtils.extdirect.router import DirectResponse
 from Products.ZenUtils.Time import isoDateTimeFromMilli, isoToTimestamp
@@ -393,17 +394,23 @@ class EventsRouter(DirectRouter):
             'DeviceGroups': '/zport/dmd/Groups'
             }
 
-        for key, prefix in organizersPrefixes.iteritems():
-            if params.get(key):
-                path = prefix + str(params[key])
-                try:
-                    obj = self.context.dmd.unrestrictedTraverse(path)
-                except KeyError:
-                    # couldn't find the object
-                    continue
-                tags.append(IGlobalIdentifier(obj).getGUID())
+        query = []
 
-        return tags
+        for key, prefix in organizersPrefixes.iteritems():
+            flter = params.get(key)
+            if flter:
+                q = MatchRegexp('uid', '(?i).*%s.*' % flter.strip('*'))
+                q = And(q, Eq('path', prefix))
+                query.append(q)
+
+        if not query:
+            return []
+
+        brains = ICatalogTool(self.context.dmd.primaryAq()).search(
+            "Products.ZenModel.DeviceOrganizer.DeviceOrganizer",
+            query=Or(*query))
+
+        return [b.uuid for b in brains] or ['definitelynotatag']
 
 
     def _buildFilter(self, uid, params, specificEventUuids=None):

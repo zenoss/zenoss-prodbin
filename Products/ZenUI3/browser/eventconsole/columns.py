@@ -308,29 +308,32 @@ COLUMN_CONFIG = {
     'Location'  : dict(
         header='Location',
         sortable=False,
-        filter='locationdropdown',
+        filter='textfield',
+        #filter='locationdropdown',
         renderer='Zenoss.render.LinkFromGridGuidGroup'
         ),
 
     'DeviceGroups': dict(
         header='Groups',
         sortable=False,
-        filter='groupdropdown',
+        filter='textfield',
+        #filter='groupdropdown',
         renderer='Zenoss.render.LinkFromGridGuidGroup'
         ),
 
     'Systems'   : dict(
         header='Systems',
         sortable=False,
-        renderer='Zenoss.render.LinkFromGridGuidGroup',
-        filter='systemdropdown'),
+        filter='textfield',
+        #filter='systemdropdown',
+        renderer='Zenoss.render.LinkFromGridGuidGroup'),
 
     'DeviceClass': dict(
         header='Device Class',
         sortable=False,
-        filter='deviceclassdropdown',
+        filter='textfield',
+        #filter='deviceclassdropdown',
         renderer='Zenoss.render.LinkFromGridGuidGroup',
-
         ),
 }
 
