@@ -9,7 +9,7 @@
     <subscriber
         for=".ToManyContRelationship.ToManyContRelationship
              zope.component.interfaces.IObjectEvent"
-        handler="zope.app.container.contained.dispatchToSublocations"
+        handler="zope.container.contained.dispatchToSublocations"
         />
 
     <subscriber
@@ -26,7 +26,7 @@
 
     <subscriber
         for=".RelationshipManager.RelationshipManager
-             zope.app.container.interfaces.IObjectMovedEvent"
+             zope.container.interfaces.IObjectMovedEvent"
         handler=".subscribers.resetUnderscoreOperation"
         />
 

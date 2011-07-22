@@ -35,10 +35,10 @@ from PrimaryPathObjectManager import PrimaryPathManager
 from zope.event import notify
 from OFS.event import ObjectWillBeAddedEvent
 from OFS.event import ObjectWillBeRemovedEvent
-from zope.app.container.contained import dispatchToSublocations
-from zope.app.container.contained import ObjectAddedEvent
-from zope.app.container.contained import ObjectRemovedEvent
-from zope.app.container.contained import ContainerModifiedEvent
+from zope.container.contained import dispatchToSublocations
+from zope.container.contained import ObjectAddedEvent
+from zope.container.contained import ObjectRemovedEvent
+from zope.container.contained import ContainerModifiedEvent
 
 class IRelationship(interface.Interface):
     """

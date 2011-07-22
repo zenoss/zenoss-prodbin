@@ -25,7 +25,7 @@ from Products.Zuul.interfaces import IProcessFacade, ITreeFacade
 from Products.Zuul.utils import unbrain
 from Products.Zuul.interfaces import IInfo, ICatalogTool
 from Products.Zuul.tree import SearchResults
-from zope.app.container.contained import ObjectMovedEvent
+from zope.container.contained import ObjectMovedEvent
 
 log = logging.getLogger('zen.ProcessFacade')
 

@@ -12,7 +12,7 @@
 ###########################################################################
 
 from zope.interface import Interface, Attribute
-from zope.app.container.interfaces import IContained, IContainer
+from zope.container.interfaces import IContained, IContainer
 
 
 class IMessage(IContained):

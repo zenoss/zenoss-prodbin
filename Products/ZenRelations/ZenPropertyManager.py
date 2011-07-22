@@ -203,6 +203,7 @@ class ZenPropertyDoesNotExist(exceptions.ValueError):
 
 class ZenPropertyManager(object, PropertyManager):
     """
+
     ZenPropertyManager adds keyedselection type to PropertyManager.
     A keyedselection displayes a different name in the popup then
     the actual value the popup will have.

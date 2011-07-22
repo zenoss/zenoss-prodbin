@@ -30,9 +30,9 @@ import OFS.subscribers
 from OFS.event import ObjectWillBeAddedEvent
 from OFS.event import ObjectWillBeRemovedEvent
 from zope.event import notify
-from zope.app.container.contained import ObjectAddedEvent
-from zope.app.container.contained import ObjectRemovedEvent
-from zope.app.container.contained import dispatchToSublocations
+from zope.container.contained import ObjectAddedEvent
+from zope.container.contained import ObjectRemovedEvent
+from zope.container.contained import dispatchToSublocations
 
 from BTrees.OOBTree import OOBTree
 

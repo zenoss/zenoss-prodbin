@@ -13,7 +13,7 @@
 from itertools import chain
 import re
 import zope.interface
-from zope.app.pagetemplate.viewpagetemplatefile import ViewPageTemplateFile
+from zope.browserpage.viewpagetemplatefile import ViewPageTemplateFile
 from Products.Five.viewlet import viewlet
 
 from interfaces import INavigationItem

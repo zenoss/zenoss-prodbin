@@ -25,7 +25,7 @@ log = logging.getLogger('zen.DeviceClass')
 
 import DateTime
 from zope.event import notify
-from zope.app.container.contained import ObjectMovedEvent
+from zope.container.contained import ObjectMovedEvent
 from Globals import DTMLFile
 from Globals import InitializeClass
 from Acquisition import aq_base, aq_chain

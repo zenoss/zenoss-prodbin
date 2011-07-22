@@ -5,6 +5,7 @@
   <include package="Products.Five" file="meta.zcml" />
   <include package="Products.Five" file="event.zcml" />
   <include package="Products.Five" file="permissions.zcml" />
+  <include package="AccessControl" file="permissions.zcml" />
 
   <include package="Products.ZenModel"/>
   <include package="Products.ZenEvents"/>

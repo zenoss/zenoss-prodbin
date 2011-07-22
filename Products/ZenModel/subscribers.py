@@ -12,7 +12,7 @@
 ###########################################################################
 from Products.ZenModel.IpInterface import IpInterface, beforeDeleteIpInterface
 from OFS.interfaces import IObjectWillBeAddedEvent
-from zope.app.container.interfaces import IObjectRemovedEvent
+from zope.container.interfaces import IObjectRemovedEvent
 
 def unindexBeforeDelete(ob, event):
     """

@@ -22,8 +22,8 @@ log = logging.getLogger("zen.ApplyDataMap")
 import transaction
 
 from zope.event import notify
-from zope.app.container.contained import ObjectRemovedEvent, ObjectMovedEvent
-from zope.app.container.contained import ObjectAddedEvent
+from zope.container.contained import ObjectRemovedEvent, ObjectMovedEvent
+from zope.container.contained import ObjectAddedEvent
 from Acquisition import aq_base
 
 from Products.ZenUtils.Utils import importClass, getObjByPath

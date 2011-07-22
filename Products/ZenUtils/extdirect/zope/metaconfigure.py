@@ -19,7 +19,7 @@ from zope.viewlet.viewlet import ViewletBase
 try:
     from Products.Five.browser.metaconfigure import page
 except ImportError:
-    from zope.app.publisher.browser.viewmeta import page
+    from zope.publisher.browser.viewmeta import page
 
 from Products.ZenUtils.extdirect.router import DirectProviderDefinition
 

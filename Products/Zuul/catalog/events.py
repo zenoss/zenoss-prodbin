@@ -14,8 +14,8 @@
 from zope.event import notify
 from zope.interface import implements
 from zope.component import adapter
-from zope.app.container.interfaces import IObjectAddedEvent, IObjectMovedEvent
-from zope.app.container.interfaces import IObjectRemovedEvent
+from zope.container.interfaces import IObjectAddedEvent, IObjectMovedEvent
+from zope.container.interfaces import IObjectRemovedEvent
 from OFS.interfaces import IObjectWillBeMovedEvent, IObjectWillBeAddedEvent
 from interfaces import IIndexingEvent, IGloballyIndexed, ITreeSpanningComponent, IDeviceOrganizer
 from paths import devicePathsFromComponent

@@ -4,25 +4,25 @@
     <!-- publishing model changes -->
   <subscriber
         for="Products.ZenUtils.guid.interfaces.IGloballyIdentifiable
-             zope.app.container.interfaces.IObjectAddedEvent"
+             zope.container.interfaces.IObjectAddedEvent"
         handler=".subscribers.publishAdd"
         />
 
     <subscriber
         for="Products.ZenUtils.guid.interfaces.IGloballyIdentifiable
-             zope.app.container.interfaces.IObjectRemovedEvent"
+             zope.container.interfaces.IObjectRemovedEvent"
         handler=".subscribers.publishRemove"
         />
 
     <subscriber
         for="Products.ZenModel.DeviceOrganizer.DeviceOrganizer
-             zope.app.container.interfaces.IObjectAddedEvent"
+             zope.container.interfaces.IObjectAddedEvent"
         handler=".subscribers.publishAdd"
         />
 
     <subscriber
         for="Products.ZenModel.DeviceOrganizer.DeviceOrganizer
-             zope.app.container.interfaces.IObjectRemovedEvent"
+             zope.container.interfaces.IObjectRemovedEvent"
         handler=".subscribers.publishRemove"
         />
 

@@ -15,7 +15,7 @@ from zope.event import notify
 from zope.component import adapter
 from zope.interface import implements
 from zope.component.interfaces import ObjectEvent
-from zope.app.container.interfaces import IObjectMovedEvent, IObjectRemovedEvent
+from zope.container.interfaces import IObjectMovedEvent, IObjectRemovedEvent
 from OFS.interfaces import IObjectWillBeMovedEvent, IObjectWillBeAddedEvent
 from .interfaces import IGUIDEvent, IGUIDManager, IGloballyIdentifiable
 from .interfaces import IGlobalIdentifier

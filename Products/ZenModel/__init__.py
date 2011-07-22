@@ -199,7 +199,7 @@ def initialize(registrar):
 
     registrar.registerHelp()
     registrar.registerHelpTitle('Zentinel Portal Help')
-    
+
     if not confmonModules: loadConfmonModules()
     # register products with zope
     for module in confmonModules:

@@ -393,7 +393,7 @@ class ToManyContRelationshipTest(ZenRelationsBaseTest):
     def testAfterAddOneToManyCont(self):
         # Hook up a simple handler
         from zope.component import provideHandler
-        from zope.app.container.interfaces import IObjectAddedEvent
+        from zope.container.interfaces import IObjectAddedEvent
         seen = []
         def add_handler(obj, event):
             seen.append(obj)

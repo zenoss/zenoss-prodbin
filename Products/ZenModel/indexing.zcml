@@ -8,7 +8,7 @@
 
     <subscriber
         for=".interfaces.IIndexed
-             zope.app.container.interfaces.IObjectMovedEvent"
+             zope.container.interfaces.IObjectMovedEvent"
         handler=".subscribers.indexAfterAddOrMove"
         />
 

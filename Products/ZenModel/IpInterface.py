@@ -28,7 +28,7 @@ from Acquisition import aq_base
 from App.Dialogs import MessageDialog
 from AccessControl import ClassSecurityInfo
 from zope.event import notify
-from zope.app.container.contained import ObjectMovedEvent
+from zope.container.contained import ObjectMovedEvent
 
 from Products.ZenRelations.RelSchema import *
 
