@@ -22,6 +22,7 @@ log = logging.getLogger('zen.HubService.SnmpTrapConfig')
 import Globals
 
 from twisted.spread import pb
+from twisted.internet import reactor, defer
 
 from Products.ZenCollector.services.config import CollectorConfigService
 from Products.ZenHub.zodb import onUpdate, onDelete
@@ -30,6 +31,14 @@ from Products.ZenModel.Device import Device
 from Products.ZenModel.DeviceClass import DeviceClass
 from Products.ZenModel.MibBase import MibBase
 from Products.Zuul.interfaces import ICatalogTool
+
+SNMPV3_USER_ZPROPS = ["zSnmpEngineId",
+                      "zSnmpSecurityName",            
+                      "zSnmpAuthType",
+                      "zSnmpAuthPassword",
+                      "zSnmpPrivType",
+                      "zSnmpPrivPassword",
+                     ]
 
 class FakeDevice(object):
     id = 'MIB payload'
@@ -43,15 +52,8 @@ class User(pb.Copyable, pb.RemoteCopy):
     privacy_protocol = None # DES or AES
     privacy_passphrase = None
     def __str__(self):
-        fmt = "<User{version=%s,engine_id=%s,username=%s,authentication_type=%s,authentication_passphrase=%s,privacy_protocol=%s,privacy_passphrase=%s}>"
-        args = (self.version,
-                self.engine_id,
-                self.username,
-                self.authentication_type,
-                self.authentication_passphrase,
-                self.privacy_protocol,
-                self.privacy_passphrase)
-        return fmt % args
+        fmt = "<User(version={0.version},engine_id={0.engine_id},username={0.username},authentication_type={0.authentication_type},privacy_protocol={0.privacy_protocol})>"
+        return fmt.format(self)
 pb.setUnjellyableForClass(User, User)
 
 class SnmpTrapConfig(CollectorConfigService):
@@ -70,37 +72,49 @@ class SnmpTrapConfig(CollectorConfigService):
                        (b.oid, b.id) for b in self.dmd.Mibs.mibSearch() if b.oid
                        )
 
-        def gen_users():
-            cat = ICatalogTool(self.dmd)
-            for brains in cat.search("Products.ZenModel.Device.Device"):
-                device = brains.getObject()
-                log.debug("gen_users: creating user from device: %s" % device.id)
-                user = User()
-                user.version = int(device.zSnmpVer[1])
-                if user.version == 3:
-                    user.engine_id = device.zSnmpEngineId
-                    user.username = device.zSnmpSecurityName
-                    user.authentication_type = device.zSnmpAuthType
-                    user.authentication_passphrase = device.zSnmpAuthPassword
-                    user.privacy_protocol = device.zSnmpPrivType
-                    user.privacy_passphrase = device.zSnmpPrivPassword
-                yield user
-
-        proxy.users = list(gen_users())
-
         return proxy
 
+    @defer.inlineCallbacks
+    def _create_user(self, obj):
+        
+        # if v3 and has at least one v3 user property, then we want to create a user
+        if obj.zSnmpVer == "v3":
+            has_user = any(obj.hasProperty(zprop) for zprop in SNMPV3_USER_ZPROPS)
+        else:
+            has_user = False
+
+        if has_user:
+            # only send v3 users that have at least one local zProp defined
+            user = User()
+            user.version = int(obj.zSnmpVer[1])
+            user.engine_id = obj.zSnmpEngineId
+            user.username = obj.zSnmpSecurityName
+            user.authentication_type = obj.zSnmpAuthType
+            user.authentication_passphrase = obj.zSnmpAuthPassword
+            user.privacy_protocol = obj.zSnmpPrivType
+            user.privacy_passphrase = obj.zSnmpPrivPassword
+            for listener in self.listeners:
+                yield listener.callRemote('createUser', user)
+        else:
+            # give way in the reactor loop while walking all users
+            d = defer.Deferred()
+            reactor.callLater(0, d.callback, None)
+            yield d
+
+    def remote_createAllUsers(self):
+        cat = ICatalogTool(self.dmd)
+        brains = cat.search(("Products.ZenModel.Device.Device", "Products.ZenModel.DeviceClass.DeviceClass"))
+        for brain in brains:
+            device = brain.getObject()
+            self._create_user(device)
+
     @onUpdate(DeviceClass)
-    def mibsChanged(self, object, event):
-        for listener in self.listeners:
-            listener.callRemote('notifyConfigChanged')
-        self._procrastinator.doLater()
+    def deviceClassChanged(self, object, event):
+        self._create_user(object)
 
     @onUpdate(Device)
-    def mibsChanged(self, object, event):
-        for listener in self.listeners:
-            listener.callRemote('notifyConfigChanged')
-        self._procrastinator.doLater()
+    def deviceChanged(self, object, event):
+        self._create_user(object)
 
     @onUpdate(MibBase)
     def mibsChanged(self, object, event):

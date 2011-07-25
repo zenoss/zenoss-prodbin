@@ -35,6 +35,7 @@ import Globals
 import zope.interface
 import zope.component
 
+from twisted.python.failure import Failure
 from twisted.internet import defer
 
 from Products.ZenCollector.daemon import CollectorDaemon
@@ -152,7 +153,6 @@ class SnmpTrapPreferences(CaptureReplay):
         # Ensure that we always have an oidMap
         daemon = zope.component.getUtility(ICollector)
         daemon.oidMap = {}
-        daemon.users = []
 
 def ipv6_is_enabled():
     "test if ipv6 is enabled"
@@ -216,7 +216,6 @@ class TrapTask(BaseTask, CaptureReplay):
             fileno = -1
         self._pre_parse_callback = _pre_parse_factory(self._pre_parse)
         debug = self.log.isEnabledFor(logging.DEBUG)
-        self.session.create_users(self._daemon.users)
         self.session.awaitTraps(listening_address, fileno, self._pre_parse_callback, debug)
         self.session.callback = self.receiveTrap
         twistedsnmp.updateReactor()
@@ -725,10 +724,6 @@ class MibConfigTask(ObservableMixin):
         self._daemon = zope.component.getUtility(ICollector)
 
         self._daemon.oidMap = self._preferences.oidMap
-        self._daemon.users = self._preferences.users
-        task = self._daemon._prefs.task
-        if task is not None:
-            task.session.create_users(self._preferences.users)
 
     def doTask(self):
         return defer.succeed("Already updated OID -> name mappings...")
@@ -737,9 +732,27 @@ class MibConfigTask(ObservableMixin):
         pass
 
 
+class TrapDaemon(CollectorDaemon):
+
+    def runPostConfigTasks(self, result=None):
+        # 1) super sets self._prefs.task with the call to postStartupTasks
+        # 2) call remote createAllUsers
+        # 3) service in turn walks DeviceClass tree and calls remote_createUser
+        #      which needs self._prefs.task to be set
+        CollectorDaemon.runPostConfigTasks(self, result)
+        if not isinstance(result, Failure):
+            service = self.getRemoteConfigServiceProxy()
+            service.callRemote("createAllUsers")
+
+    def remote_createUser(self, user):
+        log.debug("TrapDaemon.remote_createUser {0}".format(user))
+        task = self._prefs.task
+        if task is not None:
+            task.session.create_users([user])
+
 if __name__=='__main__':
     myPreferences = SnmpTrapPreferences()
     myTaskFactory = SimpleTaskFactory(MibConfigTask)
     myTaskSplitter = SimpleTaskSplitter(myTaskFactory)
-    daemon = CollectorDaemon(myPreferences, myTaskSplitter)
+    daemon = TrapDaemon(myPreferences, myTaskSplitter)
     daemon.run()
