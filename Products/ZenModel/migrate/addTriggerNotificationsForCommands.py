@@ -111,6 +111,8 @@ class AddTriggerNotificationsForCommands(Migrate.Step):
 
         failed = False
         for command in commands:
+            if not command.where:
+                continue
             try:
                 trigger = self._createTrigger(command)
                 self._createNotification(command, trigger)
