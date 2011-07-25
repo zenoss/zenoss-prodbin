@@ -51,16 +51,37 @@
         <!-- BEGIN TABLE CONTENTS -->
             
       <tr>
-        <td class="tableheader">Device Class:</td>
+        <td class="tableheader">Root Organizer:</td>
         <td class="tablevalues">
-	  <select class="tablevalues" name="deviceClass"
+            <select class="tablevalues" name="deviceClass"
                 tal:define="
-		orgs python:here.getDmdRoot('Devices').getOrganizerNames();
+                orgs python:here.getDmdRoot('Devices').getOrganizerNames();
+                deviceOrgs python:['/Devices'+org for org in orgs if org != '/'];
+                deviceOrgs python:['/Devices'] + deviceOrgs;
+                orgs python:here.getDmdRoot('Groups').getOrganizerNames();
+                groupOrgs python:['/Groups'+org for org in orgs if org != '/'];
+                groupOrgs python:['/Groups']+groupOrgs;
+                orgs python:here.getDmdRoot('Locations').getOrganizerNames();
+                locationOrgs python:['/Locations'+org for org in orgs if org != '/'];
+                locationOrgs python:['/Locations']+locationOrgs;
+                orgs python:here.getDmdRoot('Systems').getOrganizerNames();
+                systemOrgs python:['/Systems'+org for org in orgs if org != '/'];
+                systemOrgs python:['/Systems']+systemOrgs;
                 ">
-             <option tal:repeat="org orgs" 
-                     tal:attributes="value org;selected python:org==deviceClass"
+             <option tal:repeat="org deviceOrgs"
+                     tal:attributes="value org; selected python:org==deviceClass"
+                     tal:content="org"/>
+             <option tal:repeat="org groupOrgs"
+                     tal:attributes="value org; selected python:org==deviceClass"
+                     tal:content="org"/>
+             <option tal:repeat="org locationOrgs"
+                     tal:attributes="value org; selected python:org==deviceClass"
+                     tal:content="org"/>
+             <option tal:repeat="org systemOrgs"
+                     tal:attributes="value org; selected python:org==deviceClass"
                      tal:content="org"/>
           </select>
+
         </td>
         <td class="tableheader">Device Filter:</td>
         <td class="tablevalues">

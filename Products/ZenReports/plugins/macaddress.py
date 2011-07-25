@@ -12,7 +12,7 @@
 ###########################################################################
 from Products.ZenReports.Utils import Record
 
-class macaddress:
+class macaddress(object):
     ignoreInterfaces = ['lo', 'sit0']
 
     def run(self, dmd, args):

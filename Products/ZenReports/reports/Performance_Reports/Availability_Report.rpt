@@ -7,6 +7,11 @@
     zem python:here.dmd.ZenEventManager;
     sts python:tm.setReqTableState;
     device python:sts(tableName, 'device', '');
+    DeviceClass python:sts(tableName, 'DeviceClass', '');
+    Systems python:sts(tableName, 'Systems', '');
+    DeviceGroups python:sts(tableName, 'DeviceGroups', '');
+    Locations python:sts(tableName, 'Locations', '');
+
     component python:sts(tableName, 'component', '');
     severity python:sts(tableName, 'severity', '4');
     eventClass python:sts(tableName, 'eventClass', '/Status/Ping');
@@ -36,15 +41,70 @@
 <form id="availabilityForm" method="submit">
 <table class="zentable" cellpadding="3" cellspacing="1">
     <tr>
-       <td class="tableheader">Device:</td>
-       <td class="tablevalues">
-           <input class="tablevalues" name="device" 
-                  tal:attributes="value device">
-      </td>
+        <td class="tableheader">Device Class:</td>
+        <td class="tablevalues">
+            <select class="tablevalues" name="DeviceClass"
+                tal:define="
+                orgs python:here.getDmdRoot('Devices').getOrganizerNames();
+                deviceOrgs python:orgs;
+                ">
+             <option tal:repeat="org deviceOrgs"
+                     tal:attributes="value org; selected python:org==DeviceClass"
+                     tal:content="org"/>
+          </select>
+
+        </td>
+        <td class="tableheader">Systems:</td>
+        <td class="tablevalues">
+            <select class="tablevalues" name="Systems"
+                tal:define="
+                orgs python:here.getDmdRoot('Systems').getOrganizerNames();
+                systemOrgs python:orgs;
+                ">
+             <option tal:repeat="org systemOrgs"
+                     tal:attributes="value org; selected python:org==Systems"
+                     tal:content="org"/>
+          </select>
+        </td>
+
+    </tr><tr>
+        <td class="tableheader">Groups:</td>
+        <td class="tablevalues">
+            <select class="tablevalues" name="DeviceGroups"
+                tal:define="
+                orgs python:here.getDmdRoot('Groups').getOrganizerNames();
+                groupOrgs python:orgs;
+                ">
+             <option tal:repeat="org groupOrgs"
+                     tal:attributes="value org; selected python:org==DeviceGroups"
+                     tal:content="org"/>
+          </select>
+
+        </td>
+        <td class="tableheader">Locations:</td>
+        <td class="tablevalues">
+            <select class="tablevalues" name="Locations"
+                tal:define="
+                orgs python:here.getDmdRoot('Locations').getOrganizerNames();
+                locationOrgs python:orgs;
+                ">
+             <option tal:repeat="org locationOrgs"
+                     tal:attributes="value org; selected python:org==Locations"
+                     tal:content="org"/>
+          </select>
+        </td>
+
+    </tr><tr>
+        <td class="tableheader">Device Filter:</td>
+        <td class="tablevalues">
+           <input class="tablevalues" name="device"
+                  tal:attributes="value device"/>
+        </td>
+
        <td class="tableheader">Component:</td>
        <td class="tablevalues">
           <input class="tablevalues" name="component" 
-                 tal:attributes="value component">
+                 tal:attributes="value component" />
        </td>
     </tr><tr>
         <td class="tableheader">Start Date:</td>

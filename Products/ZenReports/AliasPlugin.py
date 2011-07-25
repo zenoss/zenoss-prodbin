@@ -307,11 +307,15 @@ class AliasPlugin( object ):
         # that return a value for the column
         columnDatapointsMap = self._mapColumnsToDatapoints( dmd )
 
-        report = []
+        # Don't run against all devices, which kills large systems
+        if args.get('deviceClass', '/') == '/':
+            return []
+
         componentPath = self.getComponentPath()
 
         # Filter the device list down according to the
         # values from the filter widget
+        report = []
         for device in Utilization.filteredDevices(dmd, args):
             if componentPath is None:
 
