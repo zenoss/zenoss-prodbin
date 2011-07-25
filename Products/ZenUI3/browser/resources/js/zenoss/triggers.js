@@ -883,9 +883,10 @@ Ext.onReady(function () {
             config = config || {};
             Ext.applyIf(config, {
                 autoScroll: true,
-                autoHeight: true,
                 minHeight: 400, // force IE to show something
                 border: false,
+                region: 'center',
+                title: _t('Notifications'),
                 viewConfig: {
                     forceFit: true
                 },
@@ -1212,11 +1213,7 @@ Ext.onReady(function () {
                     minSize: 100,
                     maxSize: 375,
                     items: [config.schedulePanel]
-                },{
-                    title: _t('Notifications'),
-                    region:'center',
-                    items:[config.notificationPanel]
-                }]
+                }, config.notificationPanel]
 
             });
             NotificationPageLayout.superclass.constructor.apply(this, arguments);
