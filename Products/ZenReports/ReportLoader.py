@@ -10,14 +10,23 @@
 # For complete information please visit: http://www.zenoss.com/oss/
 #
 ###########################################################################
+
+__doc__ = """ReportLoader
+Load Zope reports into the ZODB.
+"""
+
 import os
+import sys
+import re
 import transaction
 import logging
 import Globals
 
 from Products.ZenUtils.ZCmdBase import ZCmdBase
+from Products.ZenUtils.Utils import zenPath
 from Products.ZenModel.Report import Report
 from Products.Zuul.utils import CatalogLoggingFilter
+
 
 class ReportLoader(ZCmdBase):
 
@@ -28,12 +37,36 @@ class ReportLoader(ZCmdBase):
                                help="Force load all the reports")
         self.parser.add_option('-d', '--dir', dest='dir',
                                default="reports",
-                               help="Directory from which to load reports from")
+                               help="Directory from which to load reports: default '%default'")
+        self.parser.add_option('-p', '--zenpack', dest='zenpack',
+                               default='',
+                               help="ZenPack from which to load reports")
 
-    def loadDatabase(self):
-        repdir = os.path.join(os.path.dirname(__file__), self.options.dir)
-        self.loadDirectory(repdir)
-        transaction.commit()
+    def loadAllReports(self):
+        """
+        Load reports from the directories into the ZODB
+        """
+        repdirs = [zenPath('Products/ZenReports', self.options.dir)]
+        if self.options.zenpack:
+            repdirs = self.getZenPackDirs(self.options.zenpack)
+        
+        for repdir in repdirs:
+            if os.path.isdir(repdir):
+                self.loadDirectory(repdir)
+                transaction.commit()
+
+    def getZenPackDirs(self, name):
+        matches = []
+        for zp in self.dmd.ZenPackManager.packs():
+            if re.search(name, zp.id):
+                path = os.path.join(zp.path(), self.options.dir)
+                matches.append(path)
+
+        if not matches:
+            self.log.error("No ZenPack named '%s' was found -- exiting",
+                           self.options.zenpack)
+            sys.exit(1)
+        return matches
 
     def reports(self, directory):
         def normalize(f):
@@ -48,7 +81,7 @@ class ReportLoader(ZCmdBase):
                 if f.endswith(".rpt")]
 
     def unloadDirectory(self, repdir):
-        self.log.info("removing reports from:%s", repdir)
+        self.log.info("Removing reports from %s", repdir)
         reproot = self.dmd.Reports
         for orgpath, fid, fullname in self.reports(repdir):
             rorg = reproot.createOrganizer(orgpath)
@@ -59,10 +92,9 @@ class ReportLoader(ZCmdBase):
                     id = rorg.id
                     rorg = rorg.getPrimaryParent()
                     rorg._delObject(id)
-        
 
     def loadDirectory(self, repdir):
-        self.log.info("loading reports from:%s", repdir)
+        self.log.info("Loading reports from %s", repdir)
         # If zencatalog hasn't finished yet, we get ugly messages that don't
         # mean anything. Hide them.
         logFilter = None
@@ -85,7 +117,6 @@ class ReportLoader(ZCmdBase):
             if logFilter is not None:
                 logging.getLogger('Zope.ZCatalog').removeFilter(logFilter)
 
-
     def loadFile(self, root, id, fullname):
         fdata = file(fullname).read()
         rpt = Report(id, text=fdata)
@@ -95,4 +126,4 @@ class ReportLoader(ZCmdBase):
 
 if __name__ == "__main__":
     rl = ReportLoader()
-    rl.loadDatabase()
+    rl.loadAllReports()
