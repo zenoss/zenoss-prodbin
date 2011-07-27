@@ -30,6 +30,7 @@ from Products.ZenEvents.events2.proxy import EventProxy, EventSummaryProxy
 from zenoss.protocols.protobufs.zep_pb2 import Event, EventSummary
 from zenoss.protocols.jsonformat import from_dict
 from zenoss.protocols.wrappers import EventSummaryAdapter
+from Products.ZenEvents.EventManagerBase import EventManagerBase
 
 def manage_addNotificationSubscriptionManager(context, REQUEST=None):
     """Create the notification subscription manager."""
@@ -85,13 +86,24 @@ class NoneDefaultingDict(dict):
         self[key] = ret
         return ret
 
+class NotificationEventSummaryProxy(EventSummaryProxy):
+    @property
+    def severityString(self):
+        """
+        The old event system used to export 'severityString' as a field to use in notifications.
+        """
+        try:
+            return EventManagerBase.severities[self.severity]
+        except KeyError:
+            return "Unknown"
+
 class NotificationEventContextWrapper(NoneDefaultingDict):
     def __init__(self, evtsummary, clearevtsummary=None):
         super(NotificationEventContextWrapper,self).__init__()
-        self['evt'] = EventSummaryProxy(evtsummary)
+        self['evt'] = NotificationEventSummaryProxy(evtsummary)
         self['eventSummary'] = EventSummaryAdapter(evtsummary)
         if clearevtsummary is not None:
-            self['clearEvt'] = EventSummaryProxy(clearevtsummary)
+            self['clearEvt'] = NotificationEventSummaryProxy(clearevtsummary)
             self['clearEventSummary'] = EventSummaryAdapter(clearevtsummary)
         else:
             self['clearEvt'] = NoneDefaultingDict()
