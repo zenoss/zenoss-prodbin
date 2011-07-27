@@ -53,7 +53,9 @@ mkdir -p ${ZENHOME}/log
 
 # restart external server daemons
 restart_snmpd
-start_mysql
+if [ "${MYSQLHOST}" = "localhost" ];then
+   start_mysql
+fi
 start_rabbitmq
 
 # copy the etc/*.conf.example files to etc/*.conf if etc/*.conf don't
