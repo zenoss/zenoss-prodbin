@@ -563,6 +563,7 @@ from Products.ZCatalog.ZCatalog import manage_addZCatalog
 from Products.ZenUtils.Search import makeCaseInsensitiveFieldIndex
 from Products.CMFCore.utils import getToolByName
 
+
 def createMaintenanceWindowCatalog(dmd):
 
     catalog_name = 'maintenanceWindowSearch'

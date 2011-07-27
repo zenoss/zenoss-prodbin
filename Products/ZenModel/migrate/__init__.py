@@ -229,3 +229,4 @@ import ipSearchCatalogUpdate
 import removeEventMenus
 import fixPerfFilesystemTransform
 import fixLinkUpDownTransforms
+import migrateWindowCatalog
