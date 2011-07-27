@@ -173,7 +173,7 @@ class AddTriggersAndNotifications(Migrate.Step):
                 setattr(nsw, prop, getattr(window, prop))
 
             # set window properties
-            notification_obj.windows.addRelation(nsw)
+            notification_obj.windows._setObject(nsw.id, nsw)
 
         log.debug('Have these windows: %r' % notification_obj.windows.objectValues())
 
