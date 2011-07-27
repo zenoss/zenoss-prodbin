@@ -237,7 +237,7 @@ def convertFromZeoToMySql():
 
     print "Converting Zenoss configuration files.."
     print "-"*79
-    print "Zope (%s)" % convertZopeConfToMySql(host, db, user, passwd, socket)
+    print "Zope (%s)" % convertZopeConfToMySql(host, port, db, user, passwd, socket)
     print
 
     for proc in zopeClients:
@@ -253,7 +253,7 @@ def convertFromZeoToMySql():
     print "Global (%s)" % updateConf('global', toAdd=toAdd)
 
 
-def convertZopeConfToMySql(host, db, user, passwd, socket):
+def convertZopeConfToMySql(host, port, db, user, passwd, socket):
     zc = zenPath('etc', 'zope.conf')
     zcf = open(zc, 'r')
     zeoclient = False
@@ -273,6 +273,7 @@ def convertZopeConfToMySql(host, db, user, passwd, socket):
             nc.append('    # cache-module-name memcache\n')
             nc.append('    <mysql>\n')
             nc.append('      host %s\n' % host)
+            nc.append('      port %s\n' % port)
             nc.append('      db %s\n' % db)
             nc.append('      user %s\n' % user)
             nc.append('      passwd %s\n' % passwd)
