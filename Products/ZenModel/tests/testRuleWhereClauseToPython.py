@@ -38,10 +38,10 @@ class TestRuleWhereClauseToPython(ZenModelBaseTest):
              "(dev.production_state == 1000) and ((dev.device_class.startswith('/Network')) or (dev.device_class.startswith('/Server'))) and (evt.status == 0) and (evt.severity >= 5) and ('System Fault: FAN FAULT is detected.' not in evt.summary) and (('/test' in dev.groups) or ('/another/test' in dev.groups))"),
 
             ("(prodState = 1000) and (deviceClass like '/Network%') and (device != 'telcotesting1.sat6') and (eventState = 0) and (severity >= 5)",
-             "(dev.production_state == 1000) and (dev.device_class.startswith('/Network')) and (dev.name != 'telcotesting1.sat6') and (evt.status == 0) and (evt.severity >= 5)"),
+             "(dev.production_state == 1000) and (dev.device_class.startswith('/Network')) and (elem.name != 'telcotesting1.sat6') and (evt.status == 0) and (evt.severity >= 5)"),
 
             ("(prodState = 1000) and (deviceClass like '/Network%') and (device not like '%stl3%') and (eventState = 0) and (severity >= 5) and (summary not like '%System Fault: FAN FAULT is detected.%') and (deviceGroups not like '%|/test%')",
-             "(dev.production_state == 1000) and (dev.device_class.startswith('/Network')) and ('stl3' not in dev.name) and (evt.status == 0) and (evt.severity >= 5) and ('System Fault: FAN FAULT is detected.' not in evt.summary) and ('/test' not in dev.groups)"),
+             "(dev.production_state == 1000) and (dev.device_class.startswith('/Network')) and ('stl3' not in elem.name) and (evt.status == 0) and (evt.severity >= 5) and ('System Fault: FAN FAULT is detected.' not in evt.summary) and ('/test' not in dev.groups)"),
 
             ("(prodState = 1000) and (deviceClass like '/Network%') and (eventState = 0) and (severity >= 4) and (deviceGroups not like '%|/test%')",
              "(dev.production_state == 1000) and (dev.device_class.startswith('/Network')) and (evt.status == 0) and (evt.severity >= 4) and ('/test' not in dev.groups)"),
@@ -68,7 +68,7 @@ class TestRuleWhereClauseToPython(ZenModelBaseTest):
              "(dev.production_state == 1000) and (dev.device_class.startswith('/Network/Router')) and (evt.status == 0) and (evt.severity >= 5)"),
 
             ("(prodState = 1000) and (deviceClass like '/Server%') and (device != 'localhost') and (eventState = 0) and (count > 1) and (severity >= 4)",
-             "(dev.production_state == 1000) and (dev.device_class.startswith('/Server')) and (dev.name != 'localhost') and (evt.status == 0) and (evt.count > 1) and (evt.severity >= 4)"),
+             "(dev.production_state == 1000) and (dev.device_class.startswith('/Server')) and (elem.name != 'localhost') and (evt.status == 0) and (evt.count > 1) and (evt.severity >= 4)"),
 
             ("(prodState = 1000) and (deviceClass like '/Server%') and (eventState = 0) and (count > 1) and (severity >= 4)",
              "(dev.production_state == 1000) and (dev.device_class.startswith('/Server')) and (evt.status == 0) and (evt.count > 1) and (evt.severity >= 4)"),

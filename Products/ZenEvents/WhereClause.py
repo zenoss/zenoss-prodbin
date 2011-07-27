@@ -25,7 +25,7 @@ new_name_mapping = {
     'eventState':'evt.status',
     'count':'evt.count',
     'prodState':'dev.production_state',
-    'device':'dev.name',
+    'device':'elem.name',
     'devicePriority':'dev.priority',
     'component':'sub_elem.name',
     'eventClassKey':'evt.event_class_key',
