@@ -33,6 +33,9 @@ from Products.ZenRelations.ZenPropertyManager import setDescriptors
 
 log = logging.getLogger("zen.ZenRelations")
 
+class ZODBConnectionError(Exception):
+    pass
+
 def initialize(registrar):
     registrar.registerClass(
         RelationshipManager,
@@ -52,10 +55,16 @@ def initialize(registrar):
                         manage_addToManyContRelationship),
         icon = 'www/ToManyContRelationship_icon.gif')
     app = registrar._ProductContext__app
+    if app is None or getattr(app, "zport", None) is None:
+        log.error("Could not connect to the zodb.")
+        raise ZODBConnectionError("registered app is None")
+
+    zport = app.zport
+    dmd = zport.dmd
+
     try:
-        zport = app.zport
-        dmd = zport.dmd
         setDescriptors(dmd.propertyTransformers)
     except Exception, e:
         args = (e.__class__.__name__, e)
         log.info("Unable to set property descriptors: %s: %s", *args)
+
