@@ -42,6 +42,10 @@ class ReportLoader(ZCmdBase):
                                default='',
                                help="ZenPack from which to load reports")
 
+    # FIXME: This call is deprecated, look for all instances of this
+    def loadDatabase(self):
+        self.loadAllReports()
+
     def loadAllReports(self):
         """
         Load reports from the directories into the ZODB
