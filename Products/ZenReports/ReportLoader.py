@@ -34,7 +34,7 @@ class ReportLoader(ZCmdBase):
         ZCmdBase.buildOptions(self)
         self.parser.add_option('-f', '--force', dest='force', 
                                action='store_true', default=0,
-                               help="Force load all the reports")
+                               help="Load all reports, overwriting any existing reports.")
         self.parser.add_option('-d', '--dir', dest='dir',
                                default="reports",
                                help="Directory from which to load reports: default '%default'")
