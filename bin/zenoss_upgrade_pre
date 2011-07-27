@@ -52,9 +52,17 @@ update_conf_files
 # version 2.1.1 and below used the system python, but in 2.1.70 we
 # started shipping our own.  replace the old scripts with references
 # to the new python
-/usr/bin/replace /usr/bin/python $ZENHOME/bin/python -- $ZENHOME/bin/* 2>/dev/null
 
-/usr/bin/replace "default-zpublisher-encoding latin-1" \
+if [ "$USE_ZENDS" = "1" ]; then
+        REPLACE=${ZENDSHOME}/bin/replace
+else
+        # replace primitive comes from mysql server package
+        REPLACE=/usr/bin/replace
+fi
+
+${REPLACE} /usr/bin/python $ZENHOME/bin/python -- $ZENHOME/bin/* 2>/dev/null
+
+${REPLACE} "default-zpublisher-encoding latin-1" \
                  "default-zpublisher-encoding utf-8" -- \
     $ZENHOME/etc/zope.conf
 
@@ -79,10 +87,13 @@ create_zep_db
 # Update ZEP configuration files
 update_zep_cfg
 
+MYSQLSOCKET=`mysql --port="${MYSQLPORT}" -h "${MYSQLHOST}" -u "${MYSQLROOTUSER}" --password="${MYSQLROOTPASSWD}" -e "show variables like 'socket'" | grep socket | awk '{print $2}' | head -1`
+
 # Move from ZODB to MySQL
 ${ZENHOME}/bin/python ${ZENHOME}/bin/changeObjectStore.py \
-    --host=$MYSQLHOST --port=$MYSQLPORT --passwd="$MYSQLPASS" \
-    --user=$MYSQLUSER --db=$MYSQLZODB --rootpw="$MYSQLROOTPASSWD" \
+    --host="$MYSQLHOST" --port="$MYSQLPORT" --passwd="$MYSQLPASS" \
+    --user="$MYSQLUSER" --db="$MYSQLZODB" --rootpw="$MYSQLROOTPASSWD" \
+    --socket="$MYSQLSOCKET" \
     2>&1 | egrep -v "For help, use ${ZENHOME}/bin/zeoctl -h|Error: no program specified; use -p or -C"
 
 

@@ -87,10 +87,10 @@ def findDataFs():
 
 def getMySqlSettings():
     o, args = parser.parse_args(args=sys.argv[1:])
-    return o.host, o.port, o.db, o.user, o.passwd, o.rootpw
+    return o.host, o.port, o.db, o.user, o.passwd, o.rootpw, o.socket
 
 
-def createMySqlDatabase(host, port, db, user, passwd, root):
+def createMySqlDatabase(host, port, db, user, passwd, root, socket):
     conn = None
     queries = (
         'DROP DATABASE IF EXISTS %s;' % db,
@@ -104,6 +104,7 @@ def createMySqlDatabase(host, port, db, user, passwd, root):
     try:
         args = dict(host=host, port=port, user='root')
         if root: args['passwd'] = root
+        if socket: args['unix_socket'] = socket
         conn = MySQLdb.connect(**args)
         curs = conn.cursor()
         curs._defer_warnings = True
@@ -151,11 +152,11 @@ def updateConf(conf, toAdd=[], toRemove=[]):
 
 
 def convertFromZeoToMySql():
-    host, port, db, user, passwd, root = getMySqlSettings()
+    host, port, db, user, passwd, root, socket = getMySqlSettings()
 
     print "Creating database..."
     print "-"*79
-    createMySqlDatabase(host, port, db, user, passwd, root)
+    createMySqlDatabase(host, port, db, user, passwd, root, socket)
     print "%s database created successfully." % db
     print
 
@@ -172,6 +173,8 @@ def convertFromZeoToMySql():
     zodbconvert_conf.write('    db %s\n' % db)
     zodbconvert_conf.write('    user %s\n' % user)
     zodbconvert_conf.write('    passwd %s\n' % passwd)
+    if host=='localhost' and socket:
+        zodbconvert_conf.write('    unix_socket %s\n' % socket)
     zodbconvert_conf.write('  </mysql>\n')
     zodbconvert_conf.write('</relstorage>\n')
     zodbconvert_conf.close()
@@ -234,19 +237,23 @@ def convertFromZeoToMySql():
 
     print "Converting Zenoss configuration files.."
     print "-"*79
-    print "Zope (%s)" % convertZopeConfToMySql(host, db, user, passwd)
+    print "Zope (%s)" % convertZopeConfToMySql(host, db, user, passwd, socket)
     print
 
     for proc in zopeClients:
         print "%s (%s)" % (proc, updateConf(proc.lower(), toRemove=[
             'host', 'port', 'mysqldb', 'mysqluser', 'mysqlpasswd']))
 
-    print "Global (%s)" % updateConf('global', toAdd=[
+    toAdd = [
         ('host', host), ('port', port), ('mysqldb', db), ('mysqluser', user),
-        ('mysqlpasswd', passwd)])
+        ('mysqlpasswd', passwd)
+    ]
+    if host=='localhost' and socket:
+       toAdd.append(('mysqlsocket', socket,))
+    print "Global (%s)" % updateConf('global', toAdd=toAdd)
 
 
-def convertZopeConfToMySql(host, db, user, passwd):
+def convertZopeConfToMySql(host, db, user, passwd, socket):
     zc = zenPath('etc', 'zope.conf')
     zcf = open(zc, 'r')
     zeoclient = False
@@ -269,6 +276,8 @@ def convertZopeConfToMySql(host, db, user, passwd):
             nc.append('      db %s\n' % db)
             nc.append('      user %s\n' % user)
             nc.append('      passwd %s\n' % passwd)
+            if host=='localhost' and socket:
+                nc.append('      unix_socket %s\n' % socket)
             nc.append('    </mysql>\n')
             nc.append('  </relstorage>\n')
     zcf.close()
@@ -323,5 +332,7 @@ if __name__ == '__main__':
     parser.add_option('--db', dest='db', default='zodb',
            help='Name of database for MySQL object store')
     parser.add_option('--rootpw', dest='rootpw',
-                help='MySQL root password')
+           help='MySQL root password')
+    parser.add_option('--socket', dest='socket', default=None,
+           help='unix socket path of the database connection (if localhost)')
     main()
