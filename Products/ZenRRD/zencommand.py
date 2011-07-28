@@ -702,8 +702,8 @@ class SshPerformanceCollectionTask(BaseTask):
         """
         self.state = SshPerformanceCollectionTask.STATE_FETCH_DATA
 
-        # The keys are the datasource names, which are composed of the
-        # template name and the datasource name.  This combination is unique.
+        # The keys are the datasource commands, which are by definition unique
+        # to the command run.
         cacheableDS = {}
 
         # Bundle up the list of tasks
@@ -711,10 +711,10 @@ class SshPerformanceCollectionTask(BaseTask):
         for datasource in self._datasources:
             datasource.deviceConfig = self._device
 
-            if datasource.name in cacheableDS:
-                cacheableDS[datasource.name].append(datasource)
+            if datasource.command in cacheableDS:
+                cacheableDS[datasource.command].append(datasource)
                 continue
-            cacheableDS[datasource.name] = []
+            cacheableDS[datasource.command] = []
 
             task = self._executor.submit(self._addDatasource, datasource)
             deferredCmds.append(task)
@@ -754,7 +754,7 @@ class SshPerformanceCollectionTask(BaseTask):
 
             else:
                 # Re-use our results for any similar datasources
-                cachedDsList = cacheableDS.get(datasource.name)
+                cachedDsList = cacheableDS.get(datasource.command)
                 if cachedDsList:
                     for ds in cachedDsList:
                         ds.result = copy(datasource.result)
