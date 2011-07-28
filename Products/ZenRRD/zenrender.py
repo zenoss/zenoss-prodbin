@@ -218,8 +218,11 @@ zenrender daemon is registered with the '%s' collector.</p>
         self.log.debug("Processing %s request from %s" % (command,request.getClientIP()))
         request.setHeader('Content-type', 'text/xml')
         functor = getattr(self._daemon, 'remote_' + command, None)
-        if functor:
-            result = functor(**args)
+        if functor and isinstance(args, (tuple, list, dict)):
+            if isinstance(args, (tuple, list)):
+                result = functor(*args)
+            elif isinstance(args, dict):
+                result = functor(**args)
             response = xmlrpclib.dumps((result,),
                 methodresponse=True, allow_none=True)
             return response

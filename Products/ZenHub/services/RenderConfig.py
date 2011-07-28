@@ -23,6 +23,7 @@ from Products.ZenCollector.services.config import NullConfigService
 
 from twisted.web import resource, server
 from twisted.internet import reactor
+from twisted.internet.error import CannotListenError
 import xmlrpclib, mimetypes
 
 # Global variable
@@ -107,11 +108,15 @@ class Render(resource.Resource):
 class RenderConfig(NullConfigService):
     def __init__(self, dmd, instance):
         NullConfigService.__init__(self, dmd, instance)
-
-	global htmlResource
-	if not htmlResource:
-            htmlResource = Render()
-            log.info("Starting graph retrieval listener on port 8090")
-            reactor.listenTCP(8090, server.Site(htmlResource))
-        htmlResource.addRenderer(self)
+        global htmlResource
+        try:
+            if not htmlResource:
+                    htmlResource = Render()
+                    log.info("Starting graph retrieval listener on port 8090")
+                    reactor.listenTCP(8090, server.Site(htmlResource))
+                htmlResource.addRenderer(self)
+        except CannotListenError, e:
+            # Probably in a hub worker; no big deal
+            log.debug("Not starting render listener because the port is "
+                      "already in use.")
 
