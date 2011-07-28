@@ -237,6 +237,7 @@ new Zenoss.HideFormDialog({
     items: {
         xtype: 'combo',
         id: 'addThresholdToGraphCombo',
+        tpl: '<tpl for="."><div ext:qtip="{name}" class="x-combo-list-item">{name}</div></tpl>',
         fieldLabel: _t('Threshold'),
         valueField: 'uid',
         displayField: 'name',
