@@ -272,14 +272,7 @@ class EventManagerBase(ZenModelRM):
     def sendEvents(self, events):
         """Send a group of events to the backend.
         """
-        count = 0
-        for event in events:
-            try:
-                self.sendEvent(event)
-                count += 1
-            except Exception, ex:
-                log.exception(ex)
-        return count
+        raise NotImplementedError
 
 
     security.declareProtected(ZEN_SEND_EVENTS, 'sendEvent')

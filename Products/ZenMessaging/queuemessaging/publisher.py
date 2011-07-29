@@ -252,7 +252,7 @@ class EventPublisherBase(object):
     def publish(self, event, mandatory=False, immediate=False):
         config = getAMQPConfiguration()
         if not hasattr(event, "evid"):
-            event.evid = generate()
+            event.evid = generate(1)
         # create the protobuf
         serializer = IProtobufSerializer(event)
         proto = config.getNewProtobuf("$Event")

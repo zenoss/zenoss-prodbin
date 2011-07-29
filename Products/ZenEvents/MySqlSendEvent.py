@@ -31,6 +31,25 @@ class MySqlSendEventMixin:
     Mix-in class that takes a MySQL db connection and builds inserts that
     sends the event to the backend.
     """
+    def sendEvents(self, events):
+        """
+        Sends multiple events using a single publisher. This prevents
+        using a new connection for each event.
+        """
+        publisher = None
+        try:
+            publisher = getUtility(IEventPublisher, 'batch')
+            count = 0
+            for event in events:
+                try:
+                    self._publishEvent(event, publisher)
+                    count += 1
+                except Exception, ex:
+                    log.exception(ex)
+            return count
+        finally:
+            if publisher:
+                publisher.close()
 
     def sendEvent(self, event):
         """
@@ -41,6 +60,15 @@ class MySqlSendEventMixin:
         @return: event id or None
         @rtype: string
         """
+        event = self._publishEvent(event)
+        return event.evid if event else None
+
+    def _publishEvent(self, event, publisher=None):
+        """
+        Sends this event to the event fan out queue
+        """
+        if publisher is None:
+            publisher = getUtility(IEventPublisher)
         if log.isEnabledFor(logging.DEBUG):
             log.debug('%s%s%s' % ('=' * 15, '  incoming event  ', '=' * 15))
         if isinstance(event, dict):
@@ -53,16 +81,9 @@ class MySqlSendEventMixin:
                       getattr(event, 'timeout', 'Unknown'))
             return self._sendHeartbeat(event)
 
-        event.evid = guid.generate()
-        self._publishEvent(event)
-        return event.evid
-
-    def _publishEvent(self, event):
-        """
-        Sends this event to the event fan out queue
-        """
-        publisher = getUtility(IEventPublisher)
+        event.evid = guid.generate(1)
         publisher.publish(event)
+        return event
 
     def _sendHeartbeat(self, event):
         """

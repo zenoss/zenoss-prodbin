@@ -16,6 +16,11 @@
              provides=".interfaces.IEventPublisher"
              />
 
+    <utility factory=".publisher.EventPublisher"
+             provides=".interfaces.IEventPublisher"
+             name="batch"
+             />
+
     <utility component=".publisher.BlockingQueuePublisher"
              provides=".interfaces.IQueuePublisher"
              name="class"
