@@ -27,6 +27,7 @@ from Products.ZenModel.interfaces import IDeviceLoader
 from Products.ZenUtils.ZCmdBase import ZCmdBase
 from Products.ZenModel.Device import Device
 from Products.ZenRelations.ZenPropertyManager import iszprop
+from ZenModelBase import iscustprop
 from zExceptions import BadRequest
 
 
@@ -105,8 +106,8 @@ settingsDevice setManageIp='10.10.10.77', setLocation="123 Elm Street", \
 #esxwin2 id='esxwin2', host='esxwin2.zenoss.loc', username='testuser', password='password', useSsl=True
 """
 
-    def __init__(self):
-        ZCmdBase.__init__(self)
+    def __init__(self, *args, **kwargs):
+        ZCmdBase.__init__(self, *args, **kwargs)
         self.defaults = {}
 
         self.loader = self.dmd.DeviceLoader.loadDevice
@@ -174,6 +175,23 @@ settingsDevice setManageIp='10.10.10.77', setLocation="123 Elm Street", \
             else:
                 self.log.warn( "The zproperty %s doesn't exist in %s" % (
                        zprop, device_specs.get('deviceName', device.id)))
+
+    def applyCustProps(self, device, device_specs):
+        """
+        Custom schema properties
+        """
+        self.log.debug( "Applying custom schema properties..." )
+        dev_cprops = device.custPropertyIds()
+
+        for cprop, value in device_specs.items():
+            if not iscustprop(cprop):
+               continue
+
+            if cprop in dev_cprops:
+                setattr(device, cprop, value)
+            else:
+                self.log.warn( "The cproperty %s doesn't exist in %s" % (
+                       cprop, device_specs.get('deviceName', device.id)))
 
     def addAllLGSOrganizers(self, device_specs):
         location = device_specs.get('setLocation')
@@ -249,7 +267,7 @@ settingsDevice setManageIp='10.10.10.77', setLocation="123 Elm Street", \
             setattr(org, 'description', description)
 
         for functor, value in device_specs.items():
-            if iszprop(functor) or functor in internalVars:
+            if iszprop(functor) or iscustprop(functor) or functor in internalVars:
                continue
 
             # Special case for organizers which can take a description
@@ -307,6 +325,7 @@ settingsDevice setManageIp='10.10.10.77', setLocation="123 Elm Street", \
         Read the input and process the devices
           * create the device entry
           * set zproperties
+          * set custom schema properties
           * model the device
 
         @parameter device_list: list of device entries
@@ -346,6 +365,7 @@ settingsDevice setManageIp='10.10.10.77', setLocation="123 Elm Street", \
             else:
                 self.addAllLGSOrganizers(device_specs)
                 self.applyZProps(devobj, device_specs)
+                self.applyCustProps(devobj, device_specs)
                 self.applyOtherProps(devobj, device_specs)
 
             return devobj
