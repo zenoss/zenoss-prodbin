@@ -436,7 +436,7 @@ class SnmpPerformanceCollectionTask(BaseTask):
             summary = 'Failed to collect all OIDs'
             self._eventService.sendEvent(STATUS_EVENT,
                     device=self._devId, summary=summary,
-                    severity=Event.Warn)
+                    severity=Event.Warning)
             log.debug("%s %s", self._devId, summary)
             self._snmpStatusFailures += 1
 
