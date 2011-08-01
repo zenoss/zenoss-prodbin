@@ -20,6 +20,7 @@ log = logging.getLogger("zen.ApplyDataMap")
 
 import transaction
 
+from ZODB.transact import transact
 from zope.event import notify
 from zope.container.contained import ObjectRemovedEvent, ObjectMovedEvent
 from zope.container.contained import ObjectAddedEvent
@@ -172,6 +173,7 @@ class ApplyDataMap(object):
             device.changeDeviceClass(deviceClass)
 
 
+    @transact
     def _applyDataMap(self, device, datamap):
         """Apply a datamap to a device.
         """
@@ -200,12 +202,13 @@ class ApplyDataMap(object):
                 log.warn("plugin returned unknown map skipping")
         else:
             changed = False
-        if changed and persist:
+        if not (changed and persist):
+            transaction.abort()
+        else:
             device.setLastChange()
             trans = transaction.get()
             trans.setUser("datacoll")
             trans.note("data applied from automated collection")
-            trans.commit()
         return changed
 
 
