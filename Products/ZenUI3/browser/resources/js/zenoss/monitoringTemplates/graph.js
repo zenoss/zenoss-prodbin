@@ -162,6 +162,7 @@ new Zenoss.HideFormDialog({
     items:[{
         xtype: 'combo',
         ref: 'comboBox',
+        tpl: '<tpl for="."><div ext:qtip="{name}" class="x-combo-list-item">{name}</div></tpl>',
         fieldLabel: _t('Data Point'),
         valueField: 'uid',
         displayField: 'name',
