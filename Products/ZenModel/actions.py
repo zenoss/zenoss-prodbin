@@ -12,7 +12,7 @@
 ###########################################################################
 
 import re
-
+from traceback import format_exc
 from zope.interface import implements
 from zope.component import getUtilitiesFor
 
@@ -30,11 +30,11 @@ from Products.Zuul.form.interfaces import IFormBuilder
 
 from Products.ZenModel.interfaces import IAction, IProvidesEmailAddresses, IProvidesPagerAddresses, IProcessSignal
 from Products.ZenModel.NotificationSubscription import NotificationEventContextWrapper
-
+from Products.ZenEvents.Event import Event
 from Products.ZenUtils import Utils
 from Products.ZenUtils.guid.guid import GUIDManager
 from Products.ZenUtils.ProcessQueue import ProcessQueue
-
+from Products.ZenEvents.ZenEventClasses import Warning as SEV_WARNING
 from Products.ZenUtils.ZenTales import talEval
 
 import logging
@@ -127,7 +127,7 @@ class IActionBase(object):
 
     def getInfo(self, notification):
         return self.actionContentInfo(notification)
-    
+
     def generateJavascriptContent(self, notification):
         content = self.getInfo(notification)
         return IFormBuilder(content).render(fieldsets=False)
@@ -141,7 +141,7 @@ class TargetableAction(object):
         This is their opportunity to do so.
         """
         pass
-    
+
     def getTargets(self, notification):
         targets = set()
         for recipient in notification.recipients:
@@ -161,19 +161,23 @@ class TargetableAction(object):
             try:
                 self.executeOnTarget(notification, signal, target)
                 log.debug('Done executing action for target: %s' % target)
-            except ActionExecutionException, e:
+            except Exception, e:
                 # If there is an error executing this action on a target,
                 # we need to handle it, but we don't want to prevent other
                 # actions from executing on any other targets that may be
                 # about to be acted on.
-                # @FIXME: Make this do something better for failed execution
-                # per target.
+                msg = 'Error executing action {notification}'.format(
+                    notification = notification.id,
+                )
                 log.error(e)
-                log.error('Error executing action for target: {target}, {notification} with signal: {signal}'.format(
-                    target = target,
-                    notification = notification,
-                    signal = signal,
-                ))
+                log.error(msg)
+                traceback = format_exc()
+                event = Event(device="localhost",
+                              eventClass="/App/Failed",
+                              summary=msg,
+                              message=traceback,
+                              severity=SEV_WARNING, component="zenactiond")
+                notification.dmd.ZenEventManager.sendEvent(event)
 
 
 
@@ -386,14 +390,14 @@ class CommandAction(IActionBase):
 
     def execute(self, notification, signal):
         self.setupAction(notification.dmd)
-        
+
         log.debug('Executing action: Command')
 
         if signal.clear:
             command = notification.content['clear_body_format']
         else:
             command = notification.content['body_format']
-        
+
         log.debug('Executing this command: %s' % command)
 
 

@@ -12,6 +12,7 @@
 ###########################################################################
 
 import Globals
+from traceback import format_exc
 from email.MIMEText import MIMEText
 from email.MIMEMultipart import MIMEMultipart
 from email.Utils import formatdate
@@ -30,10 +31,10 @@ from Products.ZenUtils.guid.interfaces import IGlobalIdentifier
 from Products.ZenModel.NotificationSubscription import NotificationSubscriptionManager
 from Products.ZenModel.actions import ActionMissingException, ActionExecutionException
 from Products.ZenModel.interfaces import IAction
-
+from Products.ZenEvents.Event import Event
 from Products.ZenMessaging.queuemessaging.QueueConsumer import QueueConsumer
 from Products.ZenMessaging.queuemessaging.interfaces import IQueueConsumerTask
-
+from Products.ZenEvents.ZenEventClasses import Warning as SEV_WARNING
 from zope.component import getUtility, getUtilitiesFor
 from zope.component.interfaces import ComponentLookupError
 from zope.interface import implements
@@ -146,20 +147,24 @@ class ProcessSignalTask(object):
             if signal.clear and not notification.send_clear:
                 log.debug('Ignoring clearing signal since send_clear is set to False on this subscription %s' % notification.id)
                 continue
-
-
             try:
                 action = self.getAction(notification.action)
                 action.execute(notification, signal)
-            except ActionExecutionException, e:
-                log.error(e)
-                log.error('Error executing action: {notification} with signal: {signal}'.format(
-                    notification = notification,
-                    signal = signal,
-                ))
             except ActionMissingException, e:
                 log.error('Error finding action: {action}'.format(action = notification.action))
-
+            except Exception, e:
+                msg = 'Error executing action {notification}'.format(
+                    notification = notification.id,
+                )
+                log.error(e)
+                log.error(msg)
+                traceback = format_exc()
+                event = Event(device="localhost",
+                              eventClass="/App/Failed",
+                              summary=msg,
+                              message=traceback,
+                              severity=SEV_WARNING, component="zenactiond")
+                self.dmd.ZenEventManager.sendEvent(event)
         log.debug('Done processing signal. (%s)' % signal.message)
 
 class ZenActionD(ZCmdBase):
