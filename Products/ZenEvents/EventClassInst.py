@@ -10,6 +10,7 @@
 # For complete information please visit: http://www.zenoss.com/oss/
 #
 ###########################################################################
+from ZODB.transact import transact
 
 import copy
 import re
@@ -157,7 +158,8 @@ Transform:
         variables_and_funcs = {
             'evt':evt, 'device':device, 'dev':device,
             'convToUnits':convToUnits, 'zdecode':zdecode,
-            'txnCommit':transaction.commit, 'dmd':self.dmd,
+            'txnCommit':transaction.commit,  # this function is deprecated in favor of transforms using @transact
+            'transact':transact, 'dmd':self.dmd,
             'log':log, 'component':component,
             'getFacade':Zuul.getFacade, 'IInfo':IInfo,
         }
