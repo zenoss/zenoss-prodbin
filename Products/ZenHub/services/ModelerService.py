@@ -31,7 +31,7 @@ class ModelerService(PerformanceConfig):
         PerformanceConfig.__init__(self, dmd, instance)
         self.config = self.dmd.Monitors.Performance._getOb(self.instance)
         self.methodPriorityMap = {
-            'applyDataMaps': 0.75,
+            'applyDataMaps': 0.5,
             }
 
     def createDeviceProxy(self, dev):

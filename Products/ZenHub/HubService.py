@@ -67,7 +67,7 @@ class HubService(pb.Referenceable):
     def getMethodPriority(self, methodName):
         if methodName in self.methodPriorityMap:
             return self.methodPriorityMap[methodName]
-        return 0.4
+        return 0.2
 
     def sendEvents(self, events):
         map(self.sendEvent, events)
