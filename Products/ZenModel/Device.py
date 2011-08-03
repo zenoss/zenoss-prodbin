@@ -295,6 +295,11 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable,
             'immediate_view' : 'devicedetail',
             'actions'        :
             (
+                {'id'           : 'swdetail'
+                 , 'name'       : 'Software'
+                 , 'action'     : 'deviceSoftwareDetail'
+                 , 'permissions': (ZEN_VIEW, )
+                },
                 { 'id'            : 'events'
                 , 'name'          : 'Events'
                 , 'action'        : 'viewEvents'
