@@ -78,7 +78,7 @@ class SnmpTrapConfig(CollectorConfigService):
     def _create_user(self, obj):
         
         # if v3 and has at least one v3 user property, then we want to create a user
-        if obj.zSnmpVer == "v3":
+        if obj.getProperty("zSnmpVer", None) == "v3":
             has_user = any(obj.hasProperty(zprop) for zprop in SNMPV3_USER_ZPROPS)
         else:
             has_user = False
