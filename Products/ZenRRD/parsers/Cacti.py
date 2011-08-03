@@ -13,7 +13,7 @@
 
 import re
 # how to parse each value from a Cacti plugin
-CacParser = re.compile(r"""([^ :']+|'(.*)'+):([-0-9.]+)""")
+CacParser = re.compile(r"""([^ :']+|'(.*)'+)\s*:\s*([-+]?[-0-9.]+(?:[Ee][-+]?\d+)?)""")
 
 from Products.ZenUtils.Utils import getExitMessage
 from Products.ZenRRD.CommandParser import CommandParser
@@ -58,16 +58,13 @@ class Cacti(CommandParser):
                                       eventClass=cmd.eventClass,
                                       component=cmd.component))
 
-        for value in values.split():
-            parts = CacParser.match(value)
-
-            if not parts: continue
-            label = parts.group(1).replace("''", "'")
+        for parts in CacParser.findall(values):
+            label = parts[0].replace("''", "'")
             try:
-                value = float(parts.group(3))
-            except:
+                value = float(parts[2])
+            except Exception:
                 value = 'U'
-            for dp in cmd.points:       # FIXME: linear search
+            for dp in cmd.points:
                 if dp.id == label:
                     result.values.append( (dp, value) )
                     break

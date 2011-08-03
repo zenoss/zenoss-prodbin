@@ -55,13 +55,13 @@ class TestCacti(BaseTestCase):
                        alertOnRestart=True,
                        failSeverity=3)
         cmd.points.append( p2 )
-        cmd.result.output = "cacti_single_result:77 cacti_multi_result:21"
+        cmd.result.output = "cacti_single_result:77 cacti_multi_result: 4.03E02"
         results = ParsedResults()
         parser.processResults(cmd, results)
         self.assertEquals( len(results.values), 2)
         values = map(lambda x: x[1], results.values)
         self.assertTrue(77.0 in values)
-        self.assertTrue(21.0 in values)
+        self.assertTrue(403.0 in values)
 
 def test_suite():
     from unittest import TestSuite, makeSuite
