@@ -1127,7 +1127,7 @@
             Zenoss.EventRainbow.superclass.constructor.call(this, config);
         },
         setContext: function(uid){
-            this.directFn({uid:uid}, function(result){
+            this.directFn({uid:uid, keys:['events']}, function(result){
                 this.updateRainbow(result.data.events);
             }, this);
         },

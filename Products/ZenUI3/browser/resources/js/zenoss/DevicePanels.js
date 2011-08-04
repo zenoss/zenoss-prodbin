@@ -214,7 +214,7 @@ Zenoss.DeviceStore = Ext.extend(Ext.ux.grid.livegrid.Store, {
     constructor: function(config) {
         config = config || {};
         Ext.applyIf(config, {
-            autoLoad: true,
+            autoLoad: false,
             bufferSize: 400,
             defaultSort: {field: 'name', direction:'ASC'},
             sortInfo: {field: 'name', direction:'ASC'},
@@ -293,7 +293,7 @@ Ext.reg('SimpleDeviceGridPanel', Zenoss.SimpleDeviceGridPanel);
 Zenoss.DeviceGridPanel = Ext.extend(Zenoss.FilterGridPanel,{
     lastHash: null,
     constructor: function(config) {
-        var store = { xtype:'DeviceStore' };
+        var store = {xtype:'DeviceStore'};
         if (!Ext.isEmpty(config.directFn)) {
             Ext.apply(store, {
                 proxy: new Ext.data.DirectProxy({
@@ -334,6 +334,7 @@ Zenoss.DeviceGridPanel = Ext.extend(Zenoss.FilterGridPanel,{
             this.view.showLoadMask(true);
         }, this, {single:true});
         this.store.proxy.on('load', function(){
+            this.view.renderEditors();
             this.view.showLoadMask(false);
             this.view._loadMaskAnchor = Ext.get(this.view.mainBody.dom.parentNode.parentNode);
         }, this, {single:true});

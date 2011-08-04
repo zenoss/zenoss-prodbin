@@ -38,27 +38,15 @@ class DeviceOrganizerNode(TreeNode):
     adapts(DeviceOrganizer)
 
     @property
-    def _get_cache(self):
-        cache = getattr(self._root, '_cache', None)
-        prefix = '/'.join(self._root.uid.split('/')[:4])
-        if cache is None:
-            cache = TreeNode._buildCache(self,
-                                         'Products.ZenModel.DeviceOrganizer.DeviceOrganizer',
-                                         'Products.ZenModel.Device.Device',
-                                         'devices', prefix, orderby='name')
-        return cache
-
-
-    @property
     def children(self):
-        orgs = self._get_cache.search(self.uid)
+        orgs = self._object.getObject().children()
         return catalogAwareImap(lambda x:DeviceOrganizerNode(x, self._root, self), orgs)
 
     @property
     def text(self):
         # need to query the catalog from the permissions perspective of
         # the uid
-        numInstances = self._get_cache.count(self.uid)
+        numInstances = self._object.getObject().countDevices()
         text = super(DeviceOrganizerNode, self).text
         return {
             'text': text,

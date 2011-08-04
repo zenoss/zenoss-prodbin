@@ -106,7 +106,16 @@ Zenoss.DeviceDetailBar = Ext.extend(Zenoss.LargeToolbar, {
     },
     setContext: function(uid) {
         this.contextUid = uid;
-        this.directFn({uid:uid}, function(result){
+        this.directFn({uid:uid, keys:[
+                'ipAddressString',
+                'deviceClass',
+                'name',
+                'icon',
+                'events',
+                'status',
+                'productionState',
+                'priority'
+            ]}, function(result){
             var ZR = Zenoss.render,
                 data = result.data;
             Zenoss.env.icon = this.iconitem;

@@ -186,8 +186,7 @@ class DeviceFacade(TreeFacade):
 
         # Build a dictionary with device/component
         for brain in self._componentSearch(uid, types, meta_type):
-            uuid = IGlobalIdentifier(brain.getObject()).getGUID()
-            uuidMap[uuid] = brain.meta_type
+            uuidMap[brain.uuid] = brain.meta_type
 
             compType = componentTypes.setdefault(brain.meta_type, { 'count' : 0, 'severity' : 0 })
             compType['count'] += 1

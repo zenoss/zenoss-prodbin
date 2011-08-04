@@ -41,15 +41,23 @@ var PersistentProvider = Ext.extend(Ext.state.Provider, {
     constructor: function() {
         PersistentProvider.superclass.constructor.call(this);
         this.on('statechange', this.save, this);
+        this.task = null;
     },
     setState: function(stateString) {
-        this.state = Ext.decode(stateString);
+        state = Ext.decode(stateString);
+        this.state = Ext.isObject(state) ? state : {};
     },
     // Private
     save: function() {
-        Zenoss.remote.MessagingRouter.setBrowserState(
-            {state: Ext.encode(this.state)}
-        );
+        function _save() {
+            Zenoss.remote.MessagingRouter.setBrowserState(
+                {state: Ext.encode(this.state)}
+            );
+        }
+        if (this.task) {
+            clearTimeout(this.task);
+        }
+        this.task = _save.defer(1000, this);
     }
 });
 Ext.state.Manager.setProvider(new PersistentProvider());
