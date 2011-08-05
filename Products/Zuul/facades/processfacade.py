@@ -100,11 +100,8 @@ class ProcessFacade(TreeFacade):
 
     def _processSearch(self, limit=None, start=None, sort='name', dir='ASC',
               params=None, uid=None, criteria=()):
-        cat = ICatalogTool(self._getObject(uid))
-
-        # Prime the cache
-        if start==0:
-            cat.count('Products.ZenModel.OSProcess.OSProcess', uid)
+        ob = self._getObject(uid) if isinstance(uid, basestring) else uid
+        cat = ICatalogTool(ob)
 
         reverse = dir=='DESC'
         qs = []
