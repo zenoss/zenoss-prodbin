@@ -794,7 +794,7 @@ var devtree = {
     loadMask: false,
     id: 'devices',
     searchField: true,
-    directFn: REMOTE.getTree,
+    directFn: Zenoss.util.isolatedRequest(REMOTE.getTree),
     allowOrganizerMove: false,
     stateful: true,
     stateId: 'device_tree',

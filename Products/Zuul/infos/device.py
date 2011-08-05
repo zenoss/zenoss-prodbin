@@ -39,14 +39,25 @@ class DeviceOrganizerNode(TreeNode):
 
     @property
     def children(self):
-        orgs = self._object.getObject().children()
-        return catalogAwareImap(lambda x:DeviceOrganizerNode(x, self._root, self), orgs)
+        if getattr(self, '_cached_children', None) is None:
+            orgs = self._get_object().children()
+            self._cached_children = map(lambda x:DeviceOrganizerNode(x, self._root, self), orgs)
+        return self._cached_children
+
+    def _count_devices(self):
+        if getattr(self, '_cached_count', None) is None:
+            count = 0
+            for child in self.children:
+                count += child._count_devices()
+            count += self._get_object().devices.countObjects()
+            self._cached_count = count
+        return self._cached_count
 
     @property
     def text(self):
         # need to query the catalog from the permissions perspective of
         # the uid
-        numInstances = self._object.getObject().countDevices()
+        numInstances = self._count_devices()
         text = super(DeviceOrganizerNode, self).text
         return {
             'text': text,

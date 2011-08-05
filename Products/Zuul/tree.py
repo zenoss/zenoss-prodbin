@@ -41,6 +41,10 @@ class TreeNode(object):
         self._object = ob
         self._root = root or self
         self._parent = parent or None
+        self._root_ob_cache = {}
+
+    def _get_object(self):
+        return self._root_ob_cache.setdefault(self.uuid, self._object.getObject())
 
     def _buildCache(self, orgtype=None, instancetype=None, relname=None,
                     treePrefix=None, orderby=None):
@@ -57,7 +61,7 @@ class TreeNode(object):
 
     @property
     def uuid(self):
-        return IGlobalIdentifier(self._object).getGUID()
+        return self._object.uuid
 
     @property
     def uid(self):
@@ -71,11 +75,7 @@ class TreeNode(object):
         This is cheaper than modifying getPrimaryPath(), which has to wake up
         each parent object just to get its id.
         """
-        brains = ICatalogTool(self._object).parents(self.uid)
-        # Lop off dmd, which is always first (zport isn't indexed)
-        if brains[0].id=='dmd':
-            brains = brains[1:]
-        return '/'.join(b.id for b in brains)
+        return self.uid.replace('/zport/dmd/', '')
 
     @property
     def id(self):

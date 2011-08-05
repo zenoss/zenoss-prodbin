@@ -1869,6 +1869,22 @@ Ext.reg('ColumnFieldSet', Zenoss.ColumnFieldSet);
  */
 Ext.namespace('Zenoss.util');
 
+
+/*
+* Wrap the Ext.Direct remote call passed in as func so that calls to the
+* wrapped function won't be sent in a batch. If you have an expensive call that
+* you really want to run in parallel with the rest of the page, wrap it in
+* this.
+*
+* e.g. {directFn: isolatedRequest(Zenoss.remote.DeviceRouter.getTree)}
+*/
+Zenoss.util.isolatedRequest = function(func) {
+    var provider = Ext.Direct.getProvider(func.directCfg.action),
+        combineAndSend = provider.combineAndSend.createDelegate(provider);
+    return func.createInterceptor(combineAndSend).createSequence(combineAndSend);
+};
+
+
 Zenoss.util.isSuccessful = function(response) {
     // Check the results of an Ext.Direct response for success.
     return response.result && response.result.success;
