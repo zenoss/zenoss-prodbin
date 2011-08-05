@@ -410,10 +410,16 @@ class CommandAction(IActionBase):
         if actor.element_sub_uuid:
             component = self.guidManager.getObject(actor.element_sub_uuid)
 
-
         environ = {'dev':device, 'component':component, 'dmd':notification.dmd}
         data = _signalToContextDict(signal, self.options.get('zopeurl'))
         environ.update(data)
+
+        if environ.get('evt', None):
+            environ['evt'] = self._escapeEvent(environ['evt'])
+
+        if environ.get('clearEvt', None):
+            environ['clearEvt'] = self._escapeEvent(environ['clearEvt'])
+
 
         command = processTalSource(command, **environ)
         log.debug('Executing this compiled command: "%s"' % command)
@@ -429,6 +435,27 @@ class CommandAction(IActionBase):
             timeout=int(notification.content['action_timeout']),
             timeout_callback=_protocol.timedOut
         )
+
+    def _escapeEvent(self, evt):
+        """
+        Escapes the relavent fields of an event context for event commands.
+        """
+        if evt.message:
+            evt.message = self._wrapInQuotes(evt.message)
+        if evt.summary:
+            evt.summary = self._wrapInQuotes(evt.summary)
+        return evt
+
+    def _wrapInQuotes(self, msg):
+        """
+        Wraps the message in quotes, escaping any existing quote.
+
+        Before:  How do you pronounce "Zenoss"?
+        After:  "How do you pronounce \"Zenoss\"?"
+        """
+        QUOTE = '"'
+        BACKSLASH = '\\'
+        return ''.join( (QUOTE, msg.replace(QUOTE, BACKSLASH + QUOTE), QUOTE) )
 
     def getActionableTargets(self, target):
         """
