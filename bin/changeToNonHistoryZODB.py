@@ -129,7 +129,7 @@ class UpgradeManager(ZenScriptBase):
         os.system(cmd)
 
     def restore(self):
-        cmd = 'mysqldump %s | mysql %s "' % (
+        cmd = 'mysqldump %s | mysql %s ' % (
             self.createClientConnectionString(tempDB=True),
             self.createClientConnectionString(tempDB=False),
         )
