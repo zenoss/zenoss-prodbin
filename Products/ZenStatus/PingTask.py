@@ -67,6 +67,10 @@ class PingCollectionTask(BaseTask):
     STATE_STORE_PERF = 'STORE_PERF_DATA'
     STATE_UPDATE_TOPOLOGY = 'UPDATE_TOPOLOGY'
 
+    @classmethod
+    def stopping(cls):
+        cls.shutdown = True
+
     def __init__(self,
                  taskName,
                  deviceId,
@@ -270,4 +274,5 @@ class PingCollectionTask(BaseTask):
         return display
 
     def cleanup(self):
-        self.sendPingClearEvent(self.pingjob, "No longer testing device %s")
+        if not PingCollectionTask.stopping:
+            self.sendPingClearEvent(self.pingjob, "No longer testing device %s")
