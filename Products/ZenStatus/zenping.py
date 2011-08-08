@@ -201,7 +201,6 @@ class PingCollectionPreferences(object):
         # If we're running as a daemon, save the topology
         daemon.network._saveTopology()
         daemon.ipv6network._saveTopology()
-        PingCollectionTask.stopping()
 
     def _getPinger(self):
         if self.pinger4:
