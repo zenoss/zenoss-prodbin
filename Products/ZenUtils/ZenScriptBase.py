@@ -57,9 +57,13 @@ class ZenScriptBase(CmdBase):
             if getattr(self.options, 'mysqlsocket', None) and self.options.mysqlsocket != 'None':
                 connectionParams['unix_socket'] = self.options.mysqlsocket
 
-            adapter = MySQLAdapter(**connectionParams)
+            kwargs = {
+                'cache_module_name':'memcache',
+                'keep_history': False,
+            }
+            from relstorage.options import Options
+            adapter = MySQLAdapter(options=Options(**kwargs), **connectionParams)
 
-            kwargs = {'cache_module_name':'memcache'}
             if self.options.cacheservers:
                 kwargs['cache_servers'] = self.options.cacheservers
             self.storage = RelStorage(adapter, **kwargs)

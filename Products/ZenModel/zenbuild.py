@@ -115,8 +115,12 @@ class zenbuild(CmdBase):
         if getattr(self.options, 'mysqlsocket', None) and self.options.mysqlsocket != 'None':
             connectionParams['unix_socket'] = self.options.mysqlsocket
 
-        adapter = MySQLAdapter(**connectionParams)
-        self.storage = RelStorage(adapter)
+        kwargs = {
+            'keep_history': False,
+        }
+        from relstorage.options import Options
+        adapter = MySQLAdapter(options=Options(**kwargs),**connectionParams)
+        self.storage = RelStorage(adapter, **kwargs)
         from ZODB import DB
         self.db = DB(self.storage, cache_size=self.options.cachesize)
 

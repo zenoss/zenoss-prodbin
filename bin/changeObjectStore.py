@@ -167,6 +167,7 @@ def convertFromZeoToMySql():
     zodbconvert_conf.write('</filestorage>\n\n')
 
     zodbconvert_conf.write('<relstorage destination>\n')
+    zodbconvert_conf.write('  keep-history false\n')
     zodbconvert_conf.write('  <mysql>\n')
     zodbconvert_conf.write('    host %s\n' % host)
     zodbconvert_conf.write('    port %s\n' % port)
@@ -271,6 +272,7 @@ def convertZopeConfToMySql(host, port, db, user, passwd, socket):
             nc.append('    # Uncomment these to use memcached\n')
             nc.append('    # cache-servers 127.0.0.1:11211\n')
             nc.append('    # cache-module-name memcache\n')
+            nc.append('    keep-history false\n')
             nc.append('    <mysql>\n')
             nc.append('      host %s\n' % host)
             nc.append('      port %s\n' % port)

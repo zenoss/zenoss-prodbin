@@ -22,15 +22,20 @@ class ZeoConn(object):
         connectionParams = {}
         if unix_socket:
             connectionParams['unix_socket'] = unix_socket
+        kwargs = {
+            'keep_history': False,
+        }
+        from relstorage.options import Options
         adapter = MySQLAdapter(
             host=host,
             port=port,
             user=user,
             passwd=passwd,
             db=db,
+            options=Options(**kwargs),
             **connectionParams
         )
-        kwargs = {}
+
         storage = RelStorage(adapter, **kwargs)
         from ZODB import DB
         self.db=DB(storage)

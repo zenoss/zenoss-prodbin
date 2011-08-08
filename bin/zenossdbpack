@@ -12,6 +12,7 @@ CONFIG = """
 <relstorage>
     pack-gc true
     pack-duty-cycle 0.9
+    keep-history false
     <mysql>
         host %(host)s
         port %(port)s
