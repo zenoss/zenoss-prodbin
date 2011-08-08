@@ -21,7 +21,7 @@ import Migrate
 
 
 class addzSnmpCollectionInterval(Migrate.Step):
-    version = Migrate.Version(3, 1, 70)
+    version = Migrate.Version(4, 0, 0)
 
     def cutover(self, dmd):
         if not hasattr( dmd.Devices, 'zSnmpCollectionInterval' ):

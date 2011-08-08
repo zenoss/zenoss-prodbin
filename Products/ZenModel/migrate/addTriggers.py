@@ -17,7 +17,7 @@ from Products.ZenModel.Trigger import TriggerManager, manage_addTriggerManager
 from Products.Zuul.utils import safe_hasattr as hasattr
 
 class Triggers(Migrate.Step):
-    version = Migrate.Version(3,1,70)
+    version = Migrate.Version(4,0,0)
 
     def cutover(self, dmd):
         if not hasattr(dmd, TriggerManager.root):

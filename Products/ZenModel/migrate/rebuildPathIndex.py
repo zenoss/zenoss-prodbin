@@ -22,7 +22,7 @@ log = logging.getLogger("zen.migrate")
 import time
 
 class RebuildPathIndex(Migrate.Step):
-    version = Migrate.Version(3, 1, 70)
+    version = Migrate.Version(4, 0, 0)
 
     def cutover(self, dmd):
         if getattr(dmd, "_pathReindexed", None) is not None:

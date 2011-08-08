@@ -24,7 +24,7 @@ from Products.ZenModel.ZenossSecurity import *
 
 class RemoveCommandsEditPermission(Migrate.Step):
 
-    version = Migrate.Version(3, 1, 70)
+    version = Migrate.Version(4, 0, 0)
 
     def cutover(self, dmd):
         dmd.zport.manage_permission(ZEN_DEFINE_COMMANDS_EDIT,

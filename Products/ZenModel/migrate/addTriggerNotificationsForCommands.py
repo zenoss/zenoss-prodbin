@@ -20,7 +20,7 @@ from Products import Zuul
 log = logging.getLogger( 'zen.migrate' )
 
 class AddTriggerNotificationsForCommands(Migrate.Step):
-    version = Migrate.Version(3, 1, 70)
+    version = Migrate.Version(4, 0, 0)
 
     def __init__(self):
         Migrate.Step.__init__(self)

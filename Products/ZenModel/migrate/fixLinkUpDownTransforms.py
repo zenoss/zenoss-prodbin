@@ -37,7 +37,7 @@ if if_index_str is not None:
 """.strip()
 
 class FixLinkUpDownTransforms(Migrate.Step):
-    version = Migrate.Version(3, 1, 70)
+    version = Migrate.Version(4, 0, 0)
 
     def cutover(self, dmd):
         parent = dmd.Events.Net.Link.instances

@@ -19,7 +19,7 @@ This results in performance improvements when accessing the objects
 import Migrate
 
 class ToManyPersistentList(Migrate.Step):
-    version = Migrate.Version(3, 1, 70)
+    version = Migrate.Version(4, 0, 0)
 
     def cutover(self, dmd):
         root = dmd.Services

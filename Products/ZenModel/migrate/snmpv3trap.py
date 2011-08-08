@@ -16,7 +16,7 @@ import Migrate
 from Acquisition import aq_base
 
 class snmpv3trap(Migrate.Step):
-    version = Migrate.Version(3, 1, 70)
+    version = Migrate.Version(4, 0, 0)
     
     def cutover(self, dmd):
         if not hasattr(aq_base(dmd.Devices), "zSnmpEngineId"):

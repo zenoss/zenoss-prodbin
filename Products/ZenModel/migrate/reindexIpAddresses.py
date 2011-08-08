@@ -21,7 +21,7 @@ from zExceptions import NotFound
 log = logging.getLogger("zen.migrate")
 
 class ReindexIpAddresses(Migrate.Step):
-    version = Migrate.Version(3, 1, 70)
+    version = Migrate.Version(4, 0, 0)
 
     def cutover(self, dmd):
         for x in dmd.global_catalog():
