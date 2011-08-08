@@ -1,4 +1,4 @@
-#! /bin/sh
+#!/bin/bash
 stty -echo
 echo 'MySQL root password: \c'
 read MYSQLPW
