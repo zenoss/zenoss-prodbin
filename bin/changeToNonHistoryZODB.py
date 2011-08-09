@@ -20,6 +20,7 @@ import os
 import re
 import sys
 from tempfile import NamedTemporaryFile
+import memcache
 
 class UpgradeManager(ZenScriptBase):
     """main driver for upgrading data store"""
@@ -80,6 +81,9 @@ class UpgradeManager(ZenScriptBase):
         
         print "Restoring Production ZODB instance from temp db."
         self.restore()
+
+        updateZopeConfig()
+        flushMemcache()
         
     
     def writeZodbConvertConfig(self):
@@ -126,7 +130,7 @@ class UpgradeManager(ZenScriptBase):
     def convertZodb(self, configFile):
         cmd = 'zodbconvert "%s"' % configFile
         print "Executing: %s" % cmd
-        os.system(cmd)
+        execOrDie(cmd)
 
     def restore(self):
         cmd = 'mysqldump %s | mysql %s ' % (
@@ -134,7 +138,7 @@ class UpgradeManager(ZenScriptBase):
             self.createClientConnectionString(tempDB=False),
         )
         print "Restoring production ZODB from tempdb: %s " % cmd
-        os.system(cmd)
+        execOrDie(cmd)
 
     def dropZodb(self):
         cmd = 'mysql %s -e "drop database if exists %s; create database %s "' % (
@@ -143,7 +147,7 @@ class UpgradeManager(ZenScriptBase):
             self.options.mysqldb,
         )
         print "Dropping production ZODB: %s " % cmd
-        os.system(cmd)
+        execOrDie(cmd)
     
     def backupDB(self):
         destFilename = '%s/zodb.sql.gz' % self.options.zodb_backup_path
@@ -155,7 +159,7 @@ class UpgradeManager(ZenScriptBase):
             destFilename,
         )
         print "Backing up current ZODB: %s " % cmd
-        os.system(cmd)
+        execOrDie(cmd)
         
     def createTempDB(self):
         cmd = 'mysql %s -e "drop database if exists %s; create database %s "' % (
@@ -164,7 +168,7 @@ class UpgradeManager(ZenScriptBase):
             self.options.tempdb_name,
         )
         print "Creating TempDB: %s " % cmd
-        os.system(cmd)
+        execOrDie(cmd)
 
     def createClientConnectionString(self, db=None,tempDB=False):
         params = self.getConnectionParameters(tempDB=tempDB)
@@ -230,10 +234,38 @@ class UpgradeManager(ZenScriptBase):
                         params[keyPrefix+'socket'] = self.options.tempdb_socket
         return params
         
-def backup_zodb(path, user, passwd, db, port, socket=None):
-    # back up existing datatabase with db command line client
-    return "/tmp/zodb.sql.gz"
 
+def updateZopeConfig():
+    zopeConfFilename = os.environ['ZENHOME'] + "/etc/zope.conf"
+    zopeConf = open(zopeConfFilename, 'r').read()
+    if 'keep-history' not in zopeConf:
+        backup = zopeConfFilename + ".history-preserving"
+        print "backing up existing zope config to %s" % backup
+        execOrDie('cp -f "%s" "%s"' % (zopeConfFilename, backup,))
+        zopeConf = zopeConf.replace("<relstorage>","<relstorage>\n    keep-history false ")
+        newZopeConf = open(zopeConfFilename, 'w')
+        newZopeConf.write(zopeConf)
+        newZopeConf.close()
+
+def flushMemcache():
+    zopeConfFilename = os.environ['ZENHOME'] + "/etc/zope.conf"
+    for line in open(zopeConfFilename, 'r'):
+        sline = line.strip()
+        if sline.startswith('cache-servers'):
+            servers = sline.split()[1:]
+            try:
+                print "Flushing memecache servers: %r" % servers
+                c = memcache.Client(servers)
+                c.flush_all()
+            except Exception as ex:
+                print "problem flushing cache server %r: %r" % (server, ex)
+    
+
+def execOrDie(cmd):
+    r = os.system(cmd)
+    if r != 0:
+        print "cmd returned %r : %r ", (r, cmd,)
+        sys.exit(r)
 
 def getRelstorageConnection(
         host='localhost',
@@ -267,6 +299,10 @@ def getRelstorageConnection(
 
 
 if __name__ == '__main__':
+
+    if os.environ.get('ZENHOME', None) is None:
+        print "ZENHOME is not set. Run this script as the zenoss user."
+        sys.exit(2)
     upgradeManager = UpgradeManager()
     
     upgradeManager.run()
