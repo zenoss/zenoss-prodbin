@@ -59,16 +59,17 @@ def initialize(registrar):
         log.error("Could not connect to the zodb.")
         raise ZODBConnectionError("registered app is None")
 
-    if getattr(app, 'zport', None) is None:
-        log.error("zport is not set on app.")
-        raise ZODBConnectionError("zport is not set on app")
-
-    zport = app.zport
-    dmd = zport.dmd
-
+    # during the execution of runtests, zport may not be set
+    # swallow that exception until root cause of this is discovered
     try:
-        setDescriptors(dmd.propertyTransformers)
-    except Exception, e:
-        args = (e.__class__.__name__, e)
-        log.info("Unable to set property descriptors: %s: %s", *args)
+        zport = app.zport
+        dmd = zport.dmd
+    except AttributeError as ex:
+        log.debug("Problem with zport or dmd attribute on app: %r" % ex)
+    else:
+        try:
+            setDescriptors(dmd.propertyTransformers)
+        except Exception, e:
+            args = (e.__class__.__name__, e)
+            log.info("Unable to set property descriptors: %s: %s", *args)
 
