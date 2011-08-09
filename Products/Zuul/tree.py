@@ -44,7 +44,7 @@ class TreeNode(object):
         self._root_ob_cache = {}
 
     def _get_object(self):
-        return self._root_ob_cache.setdefault(self.uuid, self._object.getObject())
+        return self._root_ob_cache.setdefault(self.uuid, self._object._unrestrictedGetObject())
 
     def _buildCache(self, orgtype=None, instancetype=None, relname=None,
                     treePrefix=None, orderby=None):
