@@ -55,9 +55,13 @@ def initialize(registrar):
                         manage_addToManyContRelationship),
         icon = 'www/ToManyContRelationship_icon.gif')
     app = registrar._ProductContext__app
-    if app is None or getattr(app, "zport", None) is None:
+    if app is None:
         log.error("Could not connect to the zodb.")
         raise ZODBConnectionError("registered app is None")
+
+    if getattr(app, 'zport', None) is None:
+        log.error("zport is not set on app.")
+        raise ZODBConnectionError("zport is not set on app")
 
     zport = app.zport
     dmd = zport.dmd
