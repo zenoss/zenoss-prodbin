@@ -255,7 +255,7 @@ class Scheduler(object):
         self._taskCallback = {}
         self._taskStats = {}
         self._callableTaskFactory = callableTaskFactory
-
+        self._shuttingDown = False
         # create a cleanup task that will periodically sweep the 
         # cleanup dictionary for tasks that need to be cleaned
         self._tasksToCleanup = set()
@@ -287,6 +287,7 @@ class Scheduler(object):
 
         Returns a list of deferreds to wait on.
         """
+        self._shuttingDown = True
         doomedTasks = []
         stopQ = {}
         log.debug("In shutdown stage %s", phase)
@@ -627,6 +628,9 @@ class Scheduler(object):
             # changing the state of the task will keep the next cleanup run
             # from processing it again
             task.state = TaskStates.STATE_CLEANING
+            if self._shuttingDown:
+                #let the task know the scheduler is shutting down
+                task.state = TaskStates.STATE_SHUTDOWN
             log.debug("Cleanup on task %s %s", task.name, task)
             d = defer.maybeDeferred(task.cleanup)
             d.addBoth(self._cleanupTaskComplete, task)
