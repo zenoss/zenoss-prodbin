@@ -12,7 +12,7 @@
 ###########################################################################
 
 from Products.ZenEvents.WhereClause import Text, Select, Compare, Enumerated, DeviceGroup, EventClass
-from Products.ZenEvents.WhereClause import toPython
+from Products.ZenEvents.WhereClause import toPython, PythonConversionException
 from ZenModelBaseTest import ZenModelBaseTest
 from zenoss.protocols.protobufs.zep_pb2 import STATUS_NEW, SEVERITY_ERROR, SYSLOG_PRIORITY_DEBUG
 
@@ -27,8 +27,8 @@ class TestRuleWhereClauseToPython(ZenModelBaseTest):
         # not changed.
         self.test_rules = [
             # this where clause was built with every available filter in the old UI.
-            ("(prodState < 1000) and (devicePriority < 5) and (facility = 11) and (eventClassKey != '/Status/Perf') and (eventKey like '%/Status%') and (agent = 'zenhub') and (manager like '%manager_ends_with') and (deviceClass like '/%') and (message not like '%msg doesnt contain%') and (eventState < 1) and (ntevid like '%ntevid_test%') and (severity < 5) and (eventClass like '/Status/Heartbeat%') and (summary like '%foobaz%') and (priority = 0) and (deviceGroups like '%|/%') and (location like '%loc_contains%') and (ownerId = 'admin' or ownerId = 'tester') and (ipAddress like '%192.168%') and (systems like '%|/%')",
-             '(dev.production_state < 1000) and (dev.priority < 5) and (evt.syslog_facility == 11) and (evt.event_class_key != "/Status/Perf") and ("/Status" in evt.event_key) and (evt.agent == "zenhub") and (evt.monitor.endswith("manager_ends_with")) and (dev.device_class.startswith("/")) and ("msg doesnt contain" not in evt.message) and (evt.status < 1) and ("ntevid_test" in evt.nt_event_code) and (evt.severity < 5) and (evt.event_class.startswith("/Status/Heartbeat")) and ("foobaz" in evt.summary) and (evt.syslog_priority == 0) and ("/" in dev.groups) and ("loc_contains" in dev.location) and ((evt.current_user_name == "admin") or (evt.current_user_name == "tester")) and ("192.168" in dev.ip_address) and ("/" in dev.systems)'),
+            ("(prodState < 1000) and (devicePriority < 5) and (facility = 11) and (eventClassKey != '/Status/Perf') and (eventKey like '%/Status%') and (agent = 'zenhub') and (manager like '%manager_ends_with') and (deviceClass like '/%') and (message not like '%msg doesnt contain%') and (eventState < 1) and (ntevid = '12345') and (severity < 5) and (eventClass like '/Status/Heartbeat%') and (summary like '%foobaz%') and (priority = 0) and (deviceGroups like '%|/%') and (location like '%loc_contains%') and (ownerId = 'admin' or ownerId = 'tester') and (ipAddress like '%192.168%') and (systems like '%|/%')",
+             '(dev.production_state < 1000) and (dev.priority < 5) and (evt.syslog_facility == 11) and (evt.event_class_key != "/Status/Perf") and ("/Status" in evt.event_key) and (evt.agent == "zenhub") and (evt.monitor.endswith("manager_ends_with")) and (dev.device_class.startswith("/")) and ("msg doesnt contain" not in evt.message) and (evt.status < 1) and (evt.nt_event_code == 12345) and (evt.severity < 5) and (evt.event_class.startswith("/Status/Heartbeat")) and ("foobaz" in evt.summary) and (evt.syslog_priority == 0) and ("/" in dev.groups) and ("loc_contains" in dev.location) and ((evt.current_user_name == "admin") or (evt.current_user_name == "tester")) and ("192.168" in dev.ip_address) and ("/" in dev.systems)'),
 
             # Same as above but with all OR clauses to ensure we evaluate all possibilities
             ("(prodState < 1000) or (devicePriority < 5) or (facility = 11) or (eventClassKey != '/Status/Perf') or (eventKey like '%/Status%') or (agent = 'zenhub') or (manager like '%manager_ends_with') or (deviceClass like '/%') or (message not like '%msg doesnt contain%') or (eventState < 1) or (severity < 5) or (eventClass like '/Status/Heartbeat%') or (summary like '%foobaz%') or (priority = 0) or (deviceGroups like '%|/%') or (location like '%loc_contains%') or (ownerId = 'admin' or ownerId = 'tester') or (ipAddress like '%192.168%') or (systems like '%|/%')",
@@ -90,6 +90,14 @@ class TestRuleWhereClauseToPython(ZenModelBaseTest):
 
             ("severity >= 5",
              "(evt.severity >= 5)"),
+
+            ("(ntevid = '5')",
+             "(evt.nt_event_code == 5)"),
+        ]
+
+        self.exception_rules = [
+            "(ntevid like 'abc%')",
+            "(ntevid != 'a')",
         ]
 
 
@@ -196,6 +204,9 @@ class TestRuleWhereClauseToPython(ZenModelBaseTest):
             # TODO: Validate the boolean logic of before/after migration! We can't just validate the string - we need
             # to verify that it evaluates the same before/after.
             fn(evt, dev, elem, sub_elem)
+
+        for where_clause in self.exception_rules:
+            self.assertRaises(PythonConversionException, toPython, self.generated_meta, where_clause)
 
 
 def test_suite():

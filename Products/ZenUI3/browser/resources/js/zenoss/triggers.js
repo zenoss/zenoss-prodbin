@@ -1586,7 +1586,12 @@ Ext.onReady(function () {
                     comparisons: STRINGCMPS
                 },
                 ZFR.SYSTEMS,
-                ZFR.DEVICEGROUPS
+                ZFR.DEVICEGROUPS,
+                {
+                    text: _t('Owner'),
+                    value: 'evt.current_user_name',
+                    comparisons: STRINGCMPS
+                }
                 ]
             }
         ]

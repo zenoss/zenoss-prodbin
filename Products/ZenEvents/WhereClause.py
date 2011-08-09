@@ -11,8 +11,10 @@
 #
 ###########################################################################
 import types
+import logging
 from Products.ZenUtils.jsonutils import json
 
+log = logging.getLogger('zen.WhereClause')
 
 new_name_mapping = {
     'eventClass':'evt.event_class',
@@ -451,6 +453,12 @@ def collapse(tree):
     _collapse(tree, None, exprs)
     return exprs
 
+class PythonConversionException(Exception):
+    """
+    Exception thrown when a where clause fails conversion to a Python expression.
+    """
+    pass
+
 def toPython(meta, clause):
     # sql is case insensitive, map column names to lower-case versions
     lmeta = dict([(n.lower(), n) for n in meta.keys()])
@@ -468,8 +476,18 @@ def toPython(meta, clause):
                 result.append('(' + (' %s ' % op).join(all_sub_results) + ')')
             else:
                 name, value = root[1], root[2]
-                name = lmeta.get(name.lower(), None)
+                orig_name = name.lower()
+                name = lmeta.get(orig_name, None)
                 if name is not None:
+                    # Special case - ntevid must be convertable to integer and operator must be == or !=
+                    if orig_name == 'ntevid':
+                        if op not in ('=','!='):
+                            raise PythonConversionException('Unable to migrate ntevid starts/ends-with clause')
+                        try:
+                            value = int(value)
+                        except ValueError:
+                            raise PythonConversionException('Failed to convert ntevid to integer')
+
                     python_statement = meta[name].buildPython(name, op, value)
                     result.append('(%s)' % python_statement)
 
@@ -494,7 +512,7 @@ def fromFormVariables(meta, form):
             clause = attrType.buildClause(n, value, mode)
             if clause:
                 result.append('(%s)' % clause)
-    return ' and '.join(result);
+    return ' and '.join(result)
 
 
 if __name__ == '__main__':

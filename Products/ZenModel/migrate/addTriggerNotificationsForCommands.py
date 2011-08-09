@@ -13,7 +13,7 @@
 
 import Migrate
 import logging
-from Products.ZenEvents.WhereClause import toPython
+from Products.ZenEvents.WhereClause import toPython, PythonConversionException
 from Products.ZenModel.migrate.addTriggersAndNotifications import TriggerRuleSourceError, talesifyLegacyFormatString
 from Products import Zuul
 
@@ -120,6 +120,10 @@ class AddTriggerNotificationsForCommands(Migrate.Step):
             except TriggerRuleSourceError, e:
                 failed = True
                 log.warn('Unable to parse existing event command: %s' % command.id)
+            except PythonConversionException, e:
+                log.debug("Failed conversion: %s", e)
+                log.warn("Unable to convert existing event command: %s" % command.id)
+                failed = True
 
         if failed:
             log.info('If any event commands were unable to be migrated, they '

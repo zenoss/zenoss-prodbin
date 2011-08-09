@@ -15,7 +15,7 @@ import Migrate
 import logging
 from Products.ZenModel.Trigger import InvalidTriggerActionType
 from Products.ZenModel.ZenossSecurity import *
-from Products.ZenEvents.WhereClause import toPython
+from Products.ZenEvents.WhereClause import toPython, PythonConversionException
 
 from Products import Zuul
 from Products.ZenModel.NotificationSubscriptionWindow import NotificationSubscriptionWindow
@@ -206,6 +206,10 @@ class AddTriggersAndNotifications(Migrate.Step):
             except TriggerRuleSourceError:
                 failed = True
                 log.warn('Unable to parse existing rule: %s' % rule.id)
+            except PythonConversionException, e:
+                failed = True
+                log.debug("Exception: %s", e)
+                log.warn("Failed to convert existing rule: %s" % rule.id)
 
         if failed:
             log.info('If any rules were unable to be migrated, they will need to'
