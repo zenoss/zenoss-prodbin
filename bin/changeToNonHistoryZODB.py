@@ -66,12 +66,12 @@ class UpgradeManager(ZenScriptBase):
     def run(self):
         
         if self.relstorageIsHistoryFree():
-            print "The currently configured relstorage instance is history free."
+            print "The currently configured relstorage instance is history-free."
             print "No conversion required."
             sys.exit(0)
             
-        print "History preserving relstorage detected."
-        print self.backupDB()
+        print "History-preserving relstorage is detected."
+        self.backupDB()
         
         print "Copying current zodb to non-history preserving temp database"
         configFile = self.writeZodbConvertConfig()
@@ -84,7 +84,12 @@ class UpgradeManager(ZenScriptBase):
 
         updateZopeConfig()
         flushMemcache()
-        
+
+        print "\n\n"
+        print "*"*60
+        print "The conversion to history-free zodb schema is complete!"
+        print "Upgrade this Zenoss instance to 4.0.2."
+        print "*"*60        
     
     def writeZodbConvertConfig(self):
         params = self.getConnectionParameters(keyPrefix='source_', tempDB=False)
@@ -254,7 +259,7 @@ def flushMemcache():
         if sline.startswith('cache-servers'):
             servers = sline.split()[1:]
             try:
-                print "Flushing memecache servers: %r" % servers
+                print "Flushing memcache servers: %r" % servers
                 c = memcache.Client(servers)
                 c.flush_all()
             except Exception as ex:
