@@ -19,48 +19,23 @@ from Products.Zuul.tree import TreeNode
 from Products.Zuul.interfaces import IReportClassNode, IReportNode, ICatalogTool
 from Products.ZenModel.ReportClass import ReportClass
 from Products.ZenModel.ZenModelRM import ZenModelRM
-from Products.Zuul.utils import catalogAwareImap
-from Products.Zuul.utils import PathIndexCache
 from Products.Zuul.routers.report import essentialReportOrganizers
+
 
 class ReportClassNode(TreeNode):
     implements(IReportClassNode)
     adapts(ReportClass)
 
-    def _buildCache(self):
-        cat = ICatalogTool(self._object.unrestrictedTraverse(self.uid))
-        results = []
-        results.extend(cat.search('Products.ZenModel.ReportClass.ReportClass',
-                orderby=None))
-        instanceresults = []
-        instancetypes = [
-            'Products.ZenModel.Report.Report',
-            'Products.ZenModel.DeviceReport.DeviceReport',
-            'Products.ZenModel.GraphReport.GraphReport',
-            'Products.ZenModel.MultiGraphReport.MultiGraphReport',
-        ]
-        for instancetype in instancetypes:
-            instanceresults.extend(cat.search(instancetype, orderby=None))
-        results.extend(instanceresults)
-        self._root._cache = PathIndexCache(results, instanceresults)
-        return self._root._cache
-
-    @property
-    def _get_cache(self):
-        cache = getattr(self._root, '_cache', None)
-        if cache is None:
-            cache = self._buildCache()
-        return cache
-
     @property
     def children(self):
-        kids = self._get_cache.search(self.uid)
-        def handler(kid, self):
-            if kid.meta_type.endswith("ReportClass"):
-                return ReportClassNode(kid, self._root, self)
-            else:
-                return ReportNode(kid, self._root, self)
-        return catalogAwareImap(lambda x:handler(x, self), kids)
+        # make sure the report classes show up for non global roles
+        obj = self._object._unrestrictedGetObject()
+        children = []
+        for kid in obj.children():
+            children.append(ReportClassNode(kid, self._root, self))
+        for report in obj.reports():
+            children.append(ReportNode(report, self._root, self))
+        return children
 
     @property
     def leaf(self):
@@ -84,7 +59,7 @@ class ReportClassNode(TreeNode):
 
     @property
     def text(self):
-        numReports = self._get_cache.count(self.uid)
+        numReports = self._object._unrestrictedGetObject().countReports()
         return {
             'text': self._object.name,
             'count': numReports,
