@@ -496,6 +496,10 @@ class EventSummaryProxy(EventProxy):
 
         event = self._eventSummary.occurrence[0]
         EventProxy.__init__(self, event)
+        
+    @property
+    def evid(self):
+        return self._eventSummary.get(EventSummaryField.UUID)
 
     @property
     def stateChange(self):
