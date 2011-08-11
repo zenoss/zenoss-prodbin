@@ -17,6 +17,7 @@ import Globals
 from Products.ZenUtils.ZenScriptBase import ZenScriptBase
 from ZODB.POSException import StorageError
 import os
+import os.path
 import re
 import sys
 from tempfile import NamedTemporaryFile
@@ -63,6 +64,10 @@ class UpgradeManager(ZenScriptBase):
                     dest="zodb_backup_path",default='/tmp',
                     help="backup path for current zodb")
 
+        self.parser.add_option('--dry-run',
+                    dest="dryRun",default=False, action='store_true',
+                    help="don't actually perform any actions")
+
     def run(self):
         
         if self.relstorageIsHistoryFree():
@@ -82,14 +87,31 @@ class UpgradeManager(ZenScriptBase):
         print "Restoring Production ZODB instance from temp db."
         self.restore()
 
-        updateZopeConfig()
-        flushMemcache()
+        updateZopeConfig(self.options.dryRun)
+        flushMemcache(self.options.dryRun)
 
-        print "\n\n"
         print "*"*60
-        print "The conversion to history-free zodb schema is complete!"
-        print "Upgrade this Zenoss instance to 4.0.2."
-        print "*"*60        
+        if self.options.dryRun:
+             print "This was a dry run. No changes have been commited."
+        else:
+             print "The conversion to history-free zodb schema is complete!"
+             print "Upgrade this Zenoss instance to 4.0.2."
+
+        print 
+        f = "%s/zodb.sql.gz" % self.options.zodb_backup_path
+        files = 0
+        if os.path.exists(f):
+            print "The original history-preserving backup exists:"
+            print "\t",f
+            files = files + 1
+        f = "%s/zodb_temp.sql.gz" % self.options.zodb_backup_path
+        if os.path.exists(f):
+            print "The converted history-fee backup exists:"
+            print "\t",f
+            files = files + 1
+        if files and not self.options.dryRun:
+            print "Please remove %s after verifying the upgrade was successful." % "them" if files > 1 else "it"
+        print "*"*60
     
     def writeZodbConvertConfig(self):
         params = self.getConnectionParameters(keyPrefix='source_', tempDB=False)
@@ -135,15 +157,26 @@ class UpgradeManager(ZenScriptBase):
     def convertZodb(self, configFile):
         cmd = 'zodbconvert "%s"' % configFile
         print "Executing: %s" % cmd
-        execOrDie(cmd)
+        if not self.options.dryRun:
+            execOrDie(cmd)
 
     def restore(self):
-        cmd = 'mysqldump %s | mysql %s ' % (
+        zodbTempFilename = "%s/zodb_temp.sql.gz" % self.options.zodb_backup_path 
+        cmd = 'mysqldump %s --quick --max-allowed-packet=64M | gzip > %s ' % (
             self.createClientConnectionString(tempDB=True),
-            self.createClientConnectionString(tempDB=False),
+            zodbTempFilename,
         )
-        print "Restoring production ZODB from tempdb: %s " % cmd
-        execOrDie(cmd)
+        print "Dumping zodb_temp to disk: %s " % cmd
+        if not self.options.dryRun:
+            execOrDie(cmd)
+        cmd = 'gunzip %s -c | mysql %s --max-allowed-packet=64M ' % (
+            zodbTempFilename,
+            self.createClientConnectionString(tempDB=True),
+        )
+        print "Restoring zodb from zodb_temp: %s " % cmd
+        if not self.options.dryRun:
+            execOrDie(cmd)
+            os.unlink(zodbTempFilename)
 
     def dropZodb(self):
         cmd = 'mysql %s -e "drop database if exists %s; create database %s "' % (
@@ -152,19 +185,21 @@ class UpgradeManager(ZenScriptBase):
             self.options.mysqldb,
         )
         print "Dropping production ZODB: %s " % cmd
-        execOrDie(cmd)
+        if not self.options.dryRun:
+            execOrDie(cmd)
     
     def backupDB(self):
         destFilename = '%s/zodb.sql.gz' % self.options.zodb_backup_path
         if os.path.exists(destFilename):
             print "Backup file exists. Remove or move %r." % destFilename
             sys.exit(1)
-        cmd = 'mysqldump --add-drop-table %s | gzip > "%s"' % (
+        cmd = 'mysqldump --quick --max-allowed-packet=64M --add-drop-table %s | gzip > "%s"' % (
             self.createClientConnectionString(),
             destFilename,
         )
         print "Backing up current ZODB: %s " % cmd
-        execOrDie(cmd)
+        if not self.options.dryRun:
+            execOrDie(cmd)
         
     def createTempDB(self):
         cmd = 'mysql %s -e "drop database if exists %s; create database %s "' % (
@@ -173,7 +208,8 @@ class UpgradeManager(ZenScriptBase):
             self.options.tempdb_name,
         )
         print "Creating TempDB: %s " % cmd
-        execOrDie(cmd)
+        if not self.options.dryRun:
+            execOrDie(cmd)
 
     def createClientConnectionString(self, db=None,tempDB=False):
         params = self.getConnectionParameters(tempDB=tempDB)
@@ -240,30 +276,38 @@ class UpgradeManager(ZenScriptBase):
         return params
         
 
-def updateZopeConfig():
+def updateZopeConfig(dryRun):
     zopeConfFilename = os.environ['ZENHOME'] + "/etc/zope.conf"
     zopeConf = open(zopeConfFilename, 'r').read()
     if 'keep-history' not in zopeConf:
         backup = zopeConfFilename + ".history-preserving"
         print "backing up existing zope config to %s" % backup
-        execOrDie('cp -f "%s" "%s"' % (zopeConfFilename, backup,))
+        cmd = 'cp -f "%s" "%s"' % (zopeConfFilename, backup,)
+        print cmd
+        if not dryRun:
+            execOrDie(cmd)
+        else:
+            return
         zopeConf = zopeConf.replace("<relstorage>","<relstorage>\n    keep-history false ")
         newZopeConf = open(zopeConfFilename, 'w')
         newZopeConf.write(zopeConf)
         newZopeConf.close()
 
-def flushMemcache():
+def flushMemcache(dryRun):
     zopeConfFilename = os.environ['ZENHOME'] + "/etc/zope.conf"
     for line in open(zopeConfFilename, 'r'):
         sline = line.strip()
         if sline.startswith('cache-servers'):
             servers = sline.split()[1:]
             try:
-                print "Flushing memcache servers: %r" % servers
+                from pprint import pprint
+                print "Flushing memcache servers: " 
+                pprint(servers)
                 c = memcache.Client(servers)
-                c.flush_all()
+                if not dryRun:
+                    c.flush_all()
             except Exception as ex:
-                print "problem flushing cache server %r: %r" % (server, ex)
+                print "problem flushing cache server %r: %r" % (servers, ex)
     
 
 def execOrDie(cmd):
@@ -309,6 +353,20 @@ if __name__ == '__main__':
         print "ZENHOME is not set. Run this script as the zenoss user."
         sys.exit(2)
     upgradeManager = UpgradeManager()
-    
-    upgradeManager.run()
-
+    if (len(upgradeManager.args) > 0 and upgradeManager.args[0] == 'run') or (upgradeManager.options.dryRun):
+        upgradeManager.run()
+    else:
+        upgradeManager.parser.print_usage()
+        print "  This script converts a transaction history-preserving ZODB into "
+        print "  a history-free ZODB to minimize the risk of excessive file system "
+        print "  utilization during normal Zenoss operation."
+        print 
+        print "  Please run the following prior to executing this script:"
+        print "     zenossdbpack            [optional but recommended]"
+        print "     service zenoss stop"
+        print 
+        print "  Please ensure you have adequate diskspace before running this."
+        print 
+        print "     run\t\t\tPerform the conversion. You can override default settings with options. See --help or contact services for documenation."
+        print "     --help\t\t\tPrint help."
+        print "     --dry-run\t\t\tDisplay actions without commiting changes."
