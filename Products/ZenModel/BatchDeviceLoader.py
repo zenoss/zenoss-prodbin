@@ -223,7 +223,10 @@ settingsDevice setManageIp='10.10.10.77', setLocation="123 Elm Street", \
         for path in paths:
             if path in existing:
                 continue
-            base.manage_addOrganizer(path)
+            try:
+                base.manage_addOrganizer(path)
+            except BadRequest:
+                pass
 
     def addOrganizer(self, device_specs):
         """

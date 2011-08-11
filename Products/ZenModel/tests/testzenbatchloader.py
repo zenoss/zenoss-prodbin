@@ -43,7 +43,7 @@ class Testzenbatchloader(BaseTestCase):
         self.log = logging.getLogger("zen.BatchDeviceLoader")
         self.zloader.log = self.log
 
-    def XtestSampleConfig(self):
+    def testSampleConfig(self):
         """
         Is the internal sample config still working?
         """
