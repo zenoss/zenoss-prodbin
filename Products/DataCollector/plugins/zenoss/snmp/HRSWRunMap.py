@@ -68,7 +68,12 @@ class HRSWRunMap(SnmpPlugin):
             return None
 
         for matcher in device.getOSProcessMatchers:
-            matcher['regex'] = re.compile(matcher['regex']).search
+            try:
+                regex = re.compile(matcher['regex'])
+                matcher['regex'] = regex.search
+            except Exception:
+                log.warning("Invalid process regex '%s' -- ignoring",
+                            matcher['regex'])
 
         found = {}
         rm = self.relMap()
