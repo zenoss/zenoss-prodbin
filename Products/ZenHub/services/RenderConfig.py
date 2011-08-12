@@ -111,10 +111,10 @@ class RenderConfig(NullConfigService):
         global htmlResource
         try:
             if not htmlResource:
-                    htmlResource = Render()
-                    log.info("Starting graph retrieval listener on port 8090")
-                    reactor.listenTCP(8090, server.Site(htmlResource))
-                htmlResource.addRenderer(self)
+                htmlResource = Render()
+                log.info("Starting graph retrieval listener on port 8090")
+                reactor.listenTCP(8090, server.Site(htmlResource))
+            htmlResource.addRenderer(self)
         except CannotListenError, e:
             # Probably in a hub worker; no big deal
             log.debug("Not starting render listener because the port is "
