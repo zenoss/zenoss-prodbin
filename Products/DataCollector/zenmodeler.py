@@ -580,7 +580,7 @@ class ZenModeler(PBDaemon):
         """
         Callback that processes the return values from a device.
         Python iterable.
-         @param collectorClient: collector instance
+        @param collectorClient: collector instance
         @type collectorClient: collector class
         @return: Twisted deferred object
         @type: Twisted deferred object
