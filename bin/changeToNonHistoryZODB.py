@@ -160,6 +160,9 @@ class UpgradeManager(ZenScriptBase):
         if not self.options.dryRun:
             execOrDie(cmd)
 
+        # Remove temporary configuration file
+        os.unlink(configFile)
+
     def restore(self):
         zodbTempFilename = "%s/zodb_temp.sql.gz" % self.options.zodb_backup_path 
         cmd = 'mysqldump %s --quick --max-allowed-packet=64M | gzip > %s ' % (
@@ -169,9 +172,12 @@ class UpgradeManager(ZenScriptBase):
         print "Dumping zodb_temp to disk: %s " % cmd
         if not self.options.dryRun:
             execOrDie(cmd)
+
+        self.dropTempDB()
+
         cmd = 'gunzip %s -c | mysql %s --max-allowed-packet=64M ' % (
             zodbTempFilename,
-            self.createClientConnectionString(tempDB=True),
+            self.createClientConnectionString(tempDB=False),
         )
         print "Restoring zodb from zodb_temp: %s " % cmd
         if not self.options.dryRun:
@@ -208,6 +214,15 @@ class UpgradeManager(ZenScriptBase):
             self.options.tempdb_name,
         )
         print "Creating TempDB: %s " % cmd
+        if not self.options.dryRun:
+            execOrDie(cmd)
+
+    def dropTempDB(self):
+        cmd = 'mysql %s -e "drop database if exists %s"' % (
+            self.createClientConnectionString(db='', tempDB=True),
+            self.options.tempdb_name,
+        )
+        print "Dropping TempDB: %s " % cmd
         if not self.options.dryRun:
             execOrDie(cmd)
 
