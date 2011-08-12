@@ -783,7 +783,7 @@ class ZenModeler(PBDaemon):
         """
         An iterator which either returns a device to collect or
         calls checkStop()
-         @param driver: driver object
+        @param driver: driver object
         @type driver: driver object
         """
         count = len(self.clients)
