@@ -431,7 +431,7 @@ class ZenPackCmd(ZenScriptBase):
 #                               default=None,
 #                               help='Use with --fetch to specify a version'
 #                                    ' for the ZenPack to download and install.')
-        self.parser.add_option('--remove',
+        self.parser.add_option('--remove', '--delete', '--uninstall', '--erase',
                                dest='removePackName',
                                default=None,
                                help="Name of the ZenPack to remove.")
