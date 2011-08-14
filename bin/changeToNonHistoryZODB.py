@@ -12,22 +12,26 @@
 #
 ###########################################################################
 
-import Globals
+import os
+import sys
 
+if os.environ.get('ZENHOME', None) is None:
+    print "\nThis script must be run as the zenoss user.\n"
+    print "Please switch to the zenoss user before re-running:"
+    print "e.g.,  su - zenoss\n"
+    sys.exit(2)
+
+import Globals
 from Products.ZenUtils.ZenScriptBase import ZenScriptBase
 from ZODB.POSException import StorageError
-import os
 import os.path
 import re
-import sys
 from tempfile import NamedTemporaryFile
 import memcache
 
 class UpgradeManager(ZenScriptBase):
     """main driver for upgrading data store"""
     
-    
-
     def __init__(self, noopts=0):
         ZenScriptBase.__init__(self, noopts=noopts, connect=False)
         
@@ -97,8 +101,7 @@ class UpgradeManager(ZenScriptBase):
         else:
              print "The conversion to history-free zodb schema is complete!"
              print "Upgrade this Zenoss instance to 4.0.2."
-
-        print 
+             print 
         f = "%s/zodb_with_history.sql.gz" % self.options.zodb_backup_path
         files = 0
         if os.path.exists(f):
@@ -111,19 +114,21 @@ class UpgradeManager(ZenScriptBase):
             print "\t",f
             files = files + 1
         if files and not self.options.dryRun:
-            print "Please remove %s after verifying the upgrade was successful." % "them" if files > 1 else "it"
+            print "Please delete after verifying the upgrade was successful."
         print "*"*60
 
     def bailIfZenossRunning(self):
-        cmd = "zenoss status"
-        print "Checking zenoss status: %s" % cmd
+        cmd = "zenoss status | grep pid="
+        if self.options.dryRun:
+            print "[bypassing] Check for zenoss status: %s" % cmd
+            return
+        print "Checking zenoss status: %s\n" % cmd
         r = os.system(cmd)
         if r == 0:
-            print "Zenoss is running. Please stop zenoss."
-        elif r == 3 or 768: # return core for os.system is architecture dependent
-            return
-        print "Please verify that all zenoss daemons are stopped before running this script: error# %r" %r
-        sys.exit(r)
+            print "\nOne or more Zenoss daemons appear to be running.\n"
+            print "Please stop Zenoss before running this script to avoid updates to the ZODB:"
+            print "e.g.,  zenoss stop\n"
+            sys.exit(1)
     
     def writeZodbConvertConfig(self):
         params = self.getConnectionParameters(keyPrefix='source_', tempDB=False)
@@ -388,16 +393,24 @@ if __name__ == '__main__':
         upgradeManager.run()
     else:
         upgradeManager.parser.print_usage()
-        print "  This script converts a transaction history-preserving ZODB into "
-        print "  a history-free ZODB to minimize the risk of excessive file system "
-        print "  utilization during normal Zenoss operation."
-        print 
-        print "  Please run the following prior to executing this script:"
-        print "     zenossdbpack            [optional but recommended]"
-        print "     service zenoss stop"
-        print 
-        print "  Please ensure you have adequate diskspace before running this."
-        print 
-        print "     run\t\t\tPerform the conversion. You can override default settings with options. See --help or contact services for documenation."
-        print "     --help\t\t\tPrint help."
-        print "     --dry-run\t\t\tDisplay actions without commiting changes."
+        print """        This script converts a RelStorage-based ZODB from a transaction history-preserving schema
+        to a transaction history-free schema to mitigate the possibility of excessive file system
+        space requirements during normal Zenoss operation.  Typically this applies to 4.0.0 and
+        4.0.1 installs.
+
+             run\t\tPerform the conversion. You can override default settings with options.
+                \t\tSee --help
+             --help\t\tPrint help.
+             --dry-run\t\tDisplay actions without commiting changes.
+
+        Please run the following (as the zenoss user) prior to executing this script:
+             zenossdbpack\t[optional but recommended]
+             zenoss stop
+
+        IMPORTANT:    This script should be run with guidance from Zenoss Support.
+
+        * Please ensure you have adequate diskspace under /tmp.
+        * We recommend you backup your ZODB prior to running this script in the event
+          something goes wrong and you want to restore it.
+        * This script should be run from the Zenoss master as the zenoss user.
+        """
