@@ -69,7 +69,8 @@ class UpgradeManager(ZenScriptBase):
                     help="don't actually perform any actions")
 
     def run(self):
-        
+        self.bailIfZenossRunning()
+
         if self.relstorageIsHistoryFree():
             print "The currently configured relstorage instance is history-free."
             print "No conversion required."
@@ -98,13 +99,13 @@ class UpgradeManager(ZenScriptBase):
              print "Upgrade this Zenoss instance to 4.0.2."
 
         print 
-        f = "%s/zodb.sql.gz" % self.options.zodb_backup_path
+        f = "%s/zodb_with_history.sql.gz" % self.options.zodb_backup_path
         files = 0
         if os.path.exists(f):
             print "The original history-preserving backup exists:"
             print "\t",f
             files = files + 1
-        f = "%s/zodb_temp.sql.gz" % self.options.zodb_backup_path
+        f = "%s/zodb_without_history.sql.gz" % self.options.zodb_backup_path
         if os.path.exists(f):
             print "The converted history-fee backup exists:"
             print "\t",f
@@ -112,6 +113,17 @@ class UpgradeManager(ZenScriptBase):
         if files and not self.options.dryRun:
             print "Please remove %s after verifying the upgrade was successful." % "them" if files > 1 else "it"
         print "*"*60
+
+    def bailIfZenossRunning(self):
+        cmd = "zenoss status"
+        print "Checking zenoss status: %s" % cmd
+        r = os.system(cmd)
+        if r == 0:
+            print "Zenoss is running. Please stop zenoss."
+        elif r == 3 or 768: # return core for os.system is architecture dependent
+            return
+        print "Please verify that all zenoss daemons are stopped before running this script: error# %r" %r
+        sys.exit(r)
     
     def writeZodbConvertConfig(self):
         params = self.getConnectionParameters(keyPrefix='source_', tempDB=False)
@@ -164,7 +176,7 @@ class UpgradeManager(ZenScriptBase):
         os.unlink(configFile)
 
     def restore(self):
-        zodbTempFilename = "%s/zodb_temp.sql.gz" % self.options.zodb_backup_path 
+        zodbTempFilename = "%s/zodb_without_history.sql.gz" % self.options.zodb_backup_path 
         cmd = 'mysqldump %s --quick --max-allowed-packet=64M | gzip > %s ' % (
             self.createClientConnectionString(tempDB=True),
             zodbTempFilename,
@@ -195,7 +207,7 @@ class UpgradeManager(ZenScriptBase):
             execOrDie(cmd)
     
     def backupDB(self):
-        destFilename = '%s/zodb.sql.gz' % self.options.zodb_backup_path
+        destFilename = '%s/zodb_with_history.sql.gz' % self.options.zodb_backup_path
         if os.path.exists(destFilename):
             print "Backup file exists. Remove or move %r." % destFilename
             sys.exit(1)
@@ -232,9 +244,13 @@ class UpgradeManager(ZenScriptBase):
             params['passwd'] = '-p%s' % params['passwd']
         if params['socket']:
             params['socket'] = '--socket="%s"' % params['socket']
+        if params['host'] != 'localhhost' :
+            params['port'] = '--port=%s' % params['port']
+        else:
+            params['port'] = ''
         if db is not None:
             params['db'] = db
-        cmdArgs = '--user="%(user)s" --host="%(host)s" %(db)s %(passwd)s %(socket)s' % params
+        cmdArgs = '--user="%(user)s" --host="%(host)s" %(db)s %(passwd)s %(socket)s %(port)s ' % params
         return cmdArgs
         
         
