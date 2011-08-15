@@ -286,7 +286,10 @@ class IpNetwork(DeviceOrganizer):
         for brain in brains:
             bp = brain.getPath()
             if bp.startswith(path):
-                return self.unrestrictedTraverse('/'.join(bp.split('/')[:-2]))
+                try:
+                    return self.unrestrictedTraverse('/'.join(bp.split('/')[:-2]))
+                except KeyError:
+                    pass
 
         # Otherwise we have to traverse the entire network hierarchy.
         for net in self.children():
