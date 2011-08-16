@@ -61,10 +61,10 @@
                   tal:content="python: r.deviceName"/></td>
            <td><a tal:attributes="href python: r.component.getPrimaryUrlPath()"
                   tal:content="python: r.interface"/></td>
-           <td tal:content="python: r.humanBits(r.speed)"/>
-           <td tal:content="python: r.humanBits(r.inputBits)"/>
-           <td tal:content="python: r.humanBits(r.outputBits)"/>
-           <td tal:content="python: r.humanBits(r.totalBits)"/>
+           <td tal:content="python: r.humanBits(r.speed, unitstr='b/s')"/>
+           <td tal:content="python: r.humanBits(r.inputBits, unitstr='b/s')"/>
+           <td tal:content="python: r.humanBits(r.outputBits, unitstr='b/s')"/>
+           <td tal:content="python: r.humanBits(r.totalBits, unitstr='b/s')"/>
            <td tal:content="python: r.percentString(r.percentUsed, 1)"/>
         </tr>
     </tal:block>

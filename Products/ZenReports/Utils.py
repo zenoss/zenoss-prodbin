@@ -59,15 +59,15 @@ class Record( object ):
     def percentString(self, n, decimals=0):
         return percentString(n, decimals)
 
-    def humanBytes(self, value, scale=1):
+    def humanBytes(self, value, scale=1, unitstr="B"):
         if value is None:
             return UNAVAILABLE
-        return convToUnits(value * scale)
+        return convToUnits(value * scale, unitstr=unitstr)
 
-    def humanBits(self, value, scale=1):
+    def humanBits(self, value, scale=1, unitstr="b"):
         if value is None:
             return UNAVAILABLE
-        return convToUnits(value * scale, 1000)
+        return convToUnits(value * scale, 1000, unitstr=unitstr)
 
     def fmt(self, fmt, value):
         if value is None:
