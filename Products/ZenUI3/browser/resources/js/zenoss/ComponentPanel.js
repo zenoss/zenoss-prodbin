@@ -477,10 +477,8 @@ ZC.ComponentGridPanel = Ext.extend(Ext.ux.grid.livegrid.GridPanel, {
         this.setContext(this.contextUid);
     },
     filter: function(name) {
-        if (this.componentName!=name) {
-            this.componentName = name;
-            this.view.nonDisruptiveReset();
-        }
+        this.componentName = name;
+        this.view.nonDisruptiveReset();
     },
     setContext: function(uid) {
         this.contextUid = uid;
