@@ -7,8 +7,10 @@ Ext.ns('Zenoss');
  */
 Zenoss.SearchField = Ext.extend(Ext.form.TextField, {
     constructor: function(config){
-        if (!('selectOnFocus' in config))
-            config.selectOnFocus = true;
+        config = Ext.applyIf(config||{}, {
+            validationDelay: 500,
+            selectOnFocus: true
+        });
         Zenoss.SearchField.superclass.constructor.apply(this, arguments);
     },
     getClass: function(){
