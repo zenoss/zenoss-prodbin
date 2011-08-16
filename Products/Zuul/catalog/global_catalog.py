@@ -245,6 +245,17 @@ class DeviceWrapper(SearchableMixin,IndexableWrapper):
 
     def searchKeywordsForChildren(self):
         o = self._context
+        ipAddresses = []
+        try:
+            # If we find an interface IP address, link it to a device
+            if hasattr(o, 'os') and hasattr(o.os, 'interfaces'):
+                interfaceIps = [iface.getIpAddresses() for iface in o.os.interfaces()
+                                 if not x.startswith('127.0.0.1/') and \
+                                    not x.startswith('::1/')]
+                ipAddresses = sum(interfaceIps, [])
+        except Exception:
+            ipAddresses = []
+
         return (o.titleOrId(),
             o.manageIp, o.hw.serialNumber, o.hw.tag,
             o.getHWManufacturerName(), o.getHWProductName(),
@@ -254,7 +265,8 @@ class DeviceWrapper(SearchableMixin,IndexableWrapper):
             o.getLocationName(),
             o.monitorDevice() and "monitored" or "unmonitored",
             ) \
-            + tuple(o.getSystemNames()) + tuple(o.getDeviceGroupNames())
+            + tuple(o.getSystemNames()) + tuple(o.getDeviceGroupNames()) \
+            + tuple(ipAddresses)
 
     def searchExcerpt(self):
         o = self._context
@@ -263,6 +275,41 @@ class DeviceWrapper(SearchableMixin,IndexableWrapper):
                 o.titleOrId(), o.manageIp)
         else:
             return o.titleOrId()
+
+
+class IpInterfaceWrapper(ComponentWrapper):
+    """
+    Allow searching by (from remote device) user-configured description
+    """
+
+    def searchKeywordsForChildren(self):
+        """
+        When searching, what things to search on
+        """
+        if self._context.titleOrId() in ('lo', 'sit0'):
+            # Ignore noisy interfaces
+            return ()
+
+        try:
+            # If we find an interface IP address, link it to an interface
+            ipAddresses = [x for x in self._context.getIpAddresses() \
+                                 if not x.startswith('127.0.0.1/') and \
+                                    not x.startswith('::1/')]
+        except Exception:
+            ipAddresses = []
+
+        return super(IpInterfaceWrapper, self).searchKeywordsForChildren() + (
+               self._context.description,
+               ) + tuple(interfaces)
+
+    def searchExcerpt(self):
+        """
+        How the results are displayed in the search drop-down
+        """
+        return super(IpInterfaceWrapper, self).searchExcerpt() + ' ' + ' '.join([
+               self._context.description,
+               ])
+
 
 class GlobalCatalog(ZCatalog):
 

@@ -8,6 +8,12 @@
     <adapter factory = ".global_catalog.DeviceWrapper"/>
 
     <adapter
+        provides=".interfaces.IIndexableWrapper"
+        factory=".global_catalog.IpInterfaceWrapper"
+        for="Products.ZenModel.IpInterface.IpInterface"
+        />
+
+    <adapter
         factory = ".paths.DefaultPathReporter"
         for = ".interfaces.IGloballyIndexed"
         provides = ".interfaces.IPathReporter"
