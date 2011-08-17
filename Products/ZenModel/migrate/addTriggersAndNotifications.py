@@ -120,7 +120,7 @@ class AddTriggersAndNotifications(Migrate.Step):
         notification_name = '%s - %s' % (rule.id, rule.getUser().getId())
 
         for n in self.existing_notifications:
-            if notification_name == n.name:
+            if notification_name == n.id:
                 log.debug('Notification already exists, not creating.')
                 return
 
