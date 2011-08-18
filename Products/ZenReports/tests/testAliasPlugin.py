@@ -57,7 +57,7 @@ class TestAliasPlugin(BaseTestCase):
                             ]
                             )
         
-        records=test1.run( self.dmd, {} )
+        records=test1.run( self.dmd, {'deviceClass':'/Devices/Server'} )
         self.assertEquals( 1, len( records ) )
         record=records[0]
         self.assertEquals( record.values['device'], dev )
@@ -94,7 +94,7 @@ class TestAliasPlugin(BaseTestCase):
         dev2.dp1=testValue1
         dev2.dp2=testValue2
         
-        records=test1.run( self.dmd, {} )
+        records=test1.run( self.dmd, {'deviceClass':'/Devices/Server'} )
         self.assertEquals( 2, len( records ) )
         recordMap=dict( zip( map( getDeviceIdFromRecord, records ), records ) )
         for dev in [dev2,dev3]:
@@ -150,7 +150,7 @@ class TestAliasPlugin(BaseTestCase):
         testComponent1.dp1=testValue1
         testComponent1.dp2=testValue2
         
-        records=test3.run( self.dmd, {} )
+        records=test3.run( self.dmd, {'deviceClass':'/Devices/Server'} )
         self.assertEquals( 2, len( records ) )
         recordMap=dict( zip( map( getComponentIdFromRecord, records ), records ) )
         for component in [testComponent1,testComponent2]:
@@ -199,7 +199,7 @@ class TestAliasPlugin(BaseTestCase):
         dev5.dp1=testValue1
         dev5.dp2=testValue2
         
-        records=test3.run( self.dmd, {} )
+        records=test3.run( self.dmd, {'deviceClass':'/Devices/Server'} )
         self.assertEquals( 2, len( records ) )
         recordMap=dict( zip( map( getDeviceIdFromRecord, records ), records ) )
         for dev in [dev5,dev6]:

@@ -74,7 +74,7 @@ class TestFilesystemsPlugin(BaseTestCase):
         dev=createTestDevice( self.dmd, 'TestDevice1', dict(
                                 zDeviceTemplates=[template.id] ) )
 
-        records=filesystems().run( self.dmd, {} )
+        records=filesystems().run( self.dmd, {'deviceClass':'/Devices/Server'} )
         self.assertEquals( 0, len( records ) )
         
     @replaceGetRRDValue( attributeAsRRDValue )
@@ -89,7 +89,7 @@ class TestFilesystemsPlugin(BaseTestCase):
                                       testTotalBlocks, testUsedBlocks )
     
         plugin = filesystems()
-        records = plugin.run( self.dmd, {} )
+        records = plugin.run( self.dmd, {'deviceClass':'/Devices/Server'} )
         
         self.assertEquals( 1, len( records ) )
         assertFileSystemRowIsCorrect( self, records, dev2, filesystem1, 
@@ -128,7 +128,7 @@ class TestFilesystemsPlugin(BaseTestCase):
             testObjects[device]=testFilesystems
         
         plugin = filesystems()
-        records = plugin.run( self.dmd, {} )
+        records = plugin.run( self.dmd, {'deviceClass':'/Devices/Server'} )
         
         self.assertEquals( filesystemCount, len( records ) )
         for device, filesystemObjects in testObjects.iteritems():
