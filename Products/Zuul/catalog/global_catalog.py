@@ -12,6 +12,8 @@
 ###########################################################################
 
 import time
+from itertools import ifilterfalse, chain
+
 import zExceptions
 from zope.interface import providedBy, ro, implements
 from zope.component import adapts
