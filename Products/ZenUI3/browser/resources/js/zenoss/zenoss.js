@@ -1042,6 +1042,7 @@ Zenoss.FilterGridView = Ext.extend(Ext.ux.grid.livegrid.GridView, {
                 listeners: {
                     keypress: function(field, e) {
                         if (e.getKey() === e.ENTER) {
+                            Ext.getCmp(gridId).getSelectionModel().clearSelections();
                             Ext.getCmp(gridId).updateRows();
                         }
                     },
@@ -1104,6 +1105,7 @@ Zenoss.FilterGridView = Ext.extend(Ext.ux.grid.livegrid.GridView, {
         this.fireEvent('filterchange', this);
 
         if (this.liveSearch) {
+            this.grid.getSelectionModel().clearSelections();
             this.nonDisruptiveReset();
         }
     },
