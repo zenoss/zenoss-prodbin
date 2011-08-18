@@ -20,6 +20,7 @@ from AccessControl import getSecurityManager
 from ZODB.POSException import ConflictError
 from Products.ZCatalog.ZCatalog import ZCatalog
 from Products.ZenModel.IpNetwork import IpNetwork
+from Products.ZenModel.IpInterface import IpInterface
 from Products.ZenUtils.IpUtil import numbip
 from Products.ZenUtils.guid.interfaces import IGlobalIdentifier
 from Products.ZenUtils.Search import makeMultiPathIndex
@@ -249,10 +250,13 @@ class DeviceWrapper(SearchableMixin,IndexableWrapper):
         try:
             # If we find an interface IP address, link it to a device
             if hasattr(o, 'os') and hasattr(o.os, 'interfaces'):
-                interfaceIps = [iface.getIpAddresses() for iface in o.os.interfaces()
-                                 if not x.startswith('127.0.0.1/') and \
-                                    not x.startswith('::1/')]
-                ipAddresses = sum(interfaceIps, [])
+                ipAddresses = chain(*(iface.getIpAddresses()
+                                       for iface in o.os.interfaces()))
+                # fliter out localhost-ish addresses
+                ipAddresses = ifilterfalse(lambda x: x.startswith('127.0.0.1/') or
+                                                     x.startswith('::1/'),
+                                           ipAddresses)
+
         except Exception:
             ipAddresses = []
 
@@ -281,6 +285,7 @@ class IpInterfaceWrapper(ComponentWrapper):
     """
     Allow searching by (from remote device) user-configured description
     """
+    adapts(IpInterface)
 
     def searchKeywordsForChildren(self):
         """
