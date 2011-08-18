@@ -21,25 +21,12 @@ import logging
 from subprocess import Popen, PIPE
 from optparse import OptionParser
 
-try:
-    import readline
-
-    try:
-        from IPython.Shell import IPShellEmbed
-    except ImportError:
-        IPShellEmbed = None
-    except AttributeError:
-        # Looks like we have IPython but the wrong version of readline, likely on OSX 10.6
-        IPShellEmbed = None
-    from rlcompleter import Completer
-except ImportError:
-    readline = rlcompleter = None
-    Completer = object
-    IPShellEmbed = None
 
 # Parse the command line for host and port; have to do it before Zope
 # configuration, because it hijacks option parsing.
-parser = OptionParser()
+
+
+parser = OptionParser(usage='usage: %prog [options] -- [ipthon_options] [ipython_args]')
 parser.add_option('--host',
             dest="host", default=None,
             help="Hostname of ZEO server")
@@ -52,7 +39,30 @@ parser.add_option('--script',
 parser.add_option('--commit',
             dest="commit", default=False, action="store_true",
             help="Run commit() at end of script?")
+parser.add_option('-n', '--no-ipython', 
+            dest="use_ipython", default=True, action="store_false", 
+            help="Do not embed IPython shell if IPython is found")
+
 opts, args = parser.parse_args()
+
+readline = rlcompleter = None
+Completer = object
+IPShellEmbed = None
+
+if opts.use_ipython:    
+    try:
+        import readline
+    
+        try:
+            from IPython.Shell import IPShellEmbed
+        except ImportError:
+            IPShellEmbed = None
+        except AttributeError:
+            # Looks like we have IPython but the wrong version of readline, likely on OSX 10.6
+            IPShellEmbed = None
+        from rlcompleter import Completer
+    except ImportError:
+        pass
 
 # Zope magic ensues!
 import Zope2
@@ -87,7 +97,7 @@ def _customStuff():
     import socket
     from transaction import commit
     from pprint import pprint
-    from Products.Zuul import getFacade, listFacades
+    from Products.Zuul import getFacade
 
     # Connect to the database, set everything up
     app = Zope2.app()
@@ -442,6 +452,7 @@ if __name__=="__main__":
              "commands.")
 
     if IPShellEmbed:
+        sys.argv[1:] = args
         ipshell = IPShellEmbed(banner=_banner)
         ipshell(local_ns=vars)
     else:
