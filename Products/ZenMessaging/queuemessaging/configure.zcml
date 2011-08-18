@@ -1,4 +1,12 @@
 <configure xmlns="http://namespaces.zope.org/zope">
+    
+    <utility component=".schema.ZENOSS_QUEUE_SCHEMA"
+             provides="zenoss.protocols.interfaces.IQueueSchema"
+            />
+
+    <utility component=".schema.CONNECTION_INFO"
+             provides="zenoss.protocols.interfaces.IAMQPConnectionInfo"
+            />
 
     <utility factory=".publisher.BlockingQueuePublisher"
              provides=".interfaces.IQueuePublisher"

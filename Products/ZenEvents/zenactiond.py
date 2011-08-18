@@ -19,8 +19,8 @@ from email.Utils import formatdate
 from twisted.internet import reactor, defer
 
 from zenoss.protocols.queueschema import SchemaException
-from zenoss.protocols.amqpconfig import getAMQPConfiguration
 from zenoss.protocols import hydrateQueueMessage
+from zenoss.protocols.interfaces import IQueueSchema
 from Products.ZenCollector.utils.maintenance import MaintenanceCycle, maintenanceBuildOptions, QueueHeartbeatSender
 from Products.ZenCollector.utils.workers import ProcessWorkers, workersBuildOptions, exec_worker
 
@@ -29,7 +29,7 @@ from Products.ZenUtils.Utils import getDefaultZopeUrl
 from Products.ZenUtils.guid.interfaces import IGlobalIdentifier
 
 from Products.ZenModel.NotificationSubscription import NotificationSubscriptionManager
-from Products.ZenModel.actions import ActionMissingException, ActionExecutionException
+from Products.ZenModel.actions import ActionMissingException
 from Products.ZenModel.interfaces import IAction
 from Products.ZenEvents.Event import Event
 from Products.ZenMessaging.queuemessaging.QueueConsumer import QueueConsumer
@@ -98,13 +98,8 @@ class ProcessSignalTask(object):
         # set by the constructor of queueConsumer
         self.queueConsumer = None
 
-        config = getAMQPConfiguration()
-        queue = config.getQueue("$Signals")
-        binding = queue.getBinding("$Signals")
-        self.exchange = binding.exchange.name
-        self.routing_key = binding.routing_key
-        self.exchange_type = binding.exchange.type
-        self.queue_name = queue.name
+        self.schema = getUtility(IQueueSchema)
+        self.queue = self.schema.getQueue("$Signals")
 
     def getAction(self, action):
         try:
@@ -124,7 +119,7 @@ class ProcessSignalTask(object):
             self.queueConsumer.acknowledge(message)
             return
         try:
-            signal = hydrateQueueMessage(message)
+            signal = hydrateQueueMessage(message, self.schema)
             self.processSignal(signal)
             log.info('Done processing signal.')
         except SchemaException:

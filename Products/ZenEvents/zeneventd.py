@@ -19,7 +19,7 @@ import socket
 from datetime import datetime, timedelta
 
 import Globals
-from zope.component import getUtilitiesFor
+from zope.component import getUtility, getUtilitiesFor
 from zope.interface import implements
 
 from amqplib.client_0_8.exceptions import AMQPConnectionException
@@ -28,7 +28,7 @@ from Products.ZenMessaging.queuemessaging.interfaces import IQueueConsumerTask
 from Products.ZenUtils.ZCmdBase import ZCmdBase
 from Products.ZenUtils.ZenDaemon import ZenDaemon
 from Products.ZenUtils.guid import guid
-from zenoss.protocols import queueschema
+from zenoss.protocols.interfaces import IAMQPConnectionInfo, IQueueSchema
 from zenoss.protocols.eventlet.amqp import getProtobufPubSub
 from zenoss.protocols.protobufs.zep_pb2 import ZepRawEvent, Event
 from zenoss.protocols.eventlet.amqp import Publishable
@@ -49,9 +49,10 @@ class ProcessEventMessageTask(BasePubSubMessageTask):
 
     def __init__(self, dmd):
         self.dmd = dmd
+        self._queueSchema = getUtility(IQueueSchema)
         self.dest_routing_key_prefix = 'zenoss.zenevent'
 
-        self._dest_exchange = queueschema.getExchange("$ZepZenEvents")
+        self._dest_exchange = self._queueSchema.getExchange("$ZepZenEvents")
         self._manager = Manager(self.dmd)
         self._pipes = (
             EventPluginPipe(self._manager, IPreEventPlugin, 'PreEventPluginPipe'),
@@ -171,6 +172,11 @@ class ProcessEventMessageTask(BasePubSubMessageTask):
 
 class EventDWorker(ZCmdBase):
 
+    def __init__(self):
+        super(EventDWorker, self).__init__()
+        self._amqpConnectionInfo = getUtility(IAMQPConnectionInfo)
+        self._queueSchema = getUtility(IQueueSchema)
+
     def run(self):
         self._shutdown = False
         signal.signal(signal.SIGTERM, self._sigterm)
@@ -200,7 +206,7 @@ class EventDWorker(ZCmdBase):
                 else:
                     sleep = .1
                 log.info("Connecting to RabbitMQ...")
-                self._pubsub = getProtobufPubSub('$RawZenEvents')
+                self._pubsub = getProtobufPubSub(self._amqpConnectionInfo, self._queueSchema, '$RawZenEvents')
                 self._pubsub.registerHandler('$Event', task)
                 self._pubsub.registerExchange('$ZepZenEvents')
                 #reset sleep time

@@ -17,18 +17,18 @@ from zenoss.protocols.amqp import Publisher as BlockingPublisher
 from Products.ZenUtils.guid.interfaces import IGlobalIdentifier
 from Products.ZenUtils.guid import generate
 from zope.component import getUtility
-from zenoss.protocols.amqpconfig import getAMQPConfiguration
 from Products.ZenUtils.AmqpDataManager import AmqpDataManager
 from Products.ZenMessaging.queuemessaging.interfaces import IModelProtobufSerializer, IQueuePublisher, IProtobufSerializer, IEventPublisher
 from contextlib import closing
 from zenoss.protocols.protobufutil import ProtobufEnum
 from zenoss.protocols.protobufs import modelevents_pb2
+from zenoss.protocols.interfaces import IQueueSchema, IAMQPConnectionInfo
 
 import logging
 
 log = logging.getLogger('zen.queuepublisher')
 
-MODEL_TYPE = ProtobufEnum(modelevents_pb2.ModelEvent, 'model_type');
+MODEL_TYPE = ProtobufEnum(modelevents_pb2.ModelEvent, 'model_type')
 
 class ModelChangePublisher(object):
     """
@@ -195,19 +195,19 @@ class PublishSynchronizer(object):
 
         # protobuf is odd about setting properties, so we have to make a new
         # event list and then copy the events we want into it
-        config = getAMQPConfiguration()
+        queueSchema = getUtility(IQueueSchema)
 
         #batch events into manageable ModelEventList messages
         batchSize = 5000
         msgs = []
         count = 0
-        returnMsg = config.getNewProtobuf("$ModelEventList")
+        returnMsg = queueSchema.getNewProtobuf("$ModelEventList")
         returnMsg.event_uuid = generate()
         msgs.append(returnMsg)
         for event in eventsToKeep:
             if count >= batchSize:
                 log.debug("ModelEventList starting new batch after %s events" % count)
-                returnMsg = config.getNewProtobuf("$ModelEventList")
+                returnMsg = queueSchema.getNewProtobuf("$ModelEventList")
                 returnMsg.event_uuid = generate()
                 msgs.append(returnMsg)
                 # reset counter
@@ -250,12 +250,12 @@ class EventPublisherBase(object):
         raise NotImplementedError
 
     def publish(self, event, mandatory=False, immediate=False):
-        config = getAMQPConfiguration()
+        queueSchema = getUtility(IQueueSchema)
         if not hasattr(event, "evid"):
             event.evid = generate(1)
         # create the protobuf
         serializer = IProtobufSerializer(event)
-        proto = config.getNewProtobuf("$Event")
+        proto = queueSchema.getNewProtobuf("$Event")
         serializer.fill(proto)
 
         # fill out the routing key
@@ -265,6 +265,9 @@ class EventPublisherBase(object):
         routing_key = "zenoss.zenevent%s" % eventClass.replace('/', '.').lower()
         log.debug("About to publish this event to the raw event queue:%s, with this routing key: %s" % (proto, routing_key))
         self._publish("$RawZenEvents", routing_key, proto, mandatory=mandatory, immediate=immediate)
+
+    def close(self):
+        pass
 
 
 class ClosingEventPublisher(EventPublisherBase):
@@ -302,13 +305,15 @@ class AsyncQueuePublisher(object):
     implements(IQueuePublisher)
 
     def __init__(self):
-        self._amqpClient = AMQPFactory()
+        connectionInfo = getUtility(IAMQPConnectionInfo)
+        queueSchema = getUtility(IQueueSchema)
+        self._amqpClient = AMQPFactory(connectionInfo, queueSchema)
 
     @defer.inlineCallbacks
     def publish(self, exchange, routing_key, message, createQueues=None, mandatory=False, immediate=False):
         if createQueues:
             for queue in createQueues:
-                yield self._amqpClient.createQueue(exchange, queue)
+                yield self._amqpClient.createQueue(queue)
         result = yield self._amqpClient.send(exchange, routing_key, message, mandatory=mandatory, immediate=immediate)
         defer.returnValue(result)
 
@@ -328,12 +333,14 @@ class BlockingQueuePublisher(object):
     implements(IQueuePublisher)
 
     def __init__(self):
-        self._client = BlockingPublisher()
+        connectionInfo = getUtility(IAMQPConnectionInfo)
+        queueSchema = getUtility(IQueueSchema)
+        self._client = BlockingPublisher(connectionInfo, queueSchema)
 
     def publish(self, exchange, routing_key, message, createQueues=None, mandatory=False, immediate=False):
         if createQueues:
             for queue in createQueues:
-                self._client.createQueue(exchange, queue)
+                self._client.createQueue(queue)
         self._client.publish(exchange, routing_key, message, mandatory=mandatory, immediate=immediate)
 
     @property
@@ -359,6 +366,18 @@ class DummyQueuePublisher(object):
     @property
     def channel(self):
         return None
+
+    def close(self):
+        pass
+
+class DummyEventPublisher(object):
+    """
+    Class for the unit tests that ignores all messages
+    """
+    implements(IEventPublisher)
+
+    def publish(self, event, mandatory=False, immediate=False):
+        pass
 
     def close(self):
         pass

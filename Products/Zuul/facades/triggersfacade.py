@@ -14,7 +14,6 @@
 from Products.ZenUtils.PkgResources import pkg_resources
 from datetime import datetime
 import logging
-import uuid
 import parser
 from Acquisition import aq_parent
 from zExceptions import BadRequest
@@ -33,6 +32,7 @@ from Products.ZenUtils.GlobalConfig import getGlobalConfiguration
 from Products.ZenUtils.guid.interfaces import IGlobalIdentifier, IGUIDManager
 from AccessControl import getSecurityManager
 
+from zenoss.protocols.interfaces import IQueueSchema
 from zenoss.protocols.services.triggers import TriggerServiceClient
 
 from Products.ZenModel.ZenossSecurity import *
@@ -51,7 +51,8 @@ class TriggersFacade(ZuulFacade):
         self._guidManager = IGUIDManager(self._dmd)
         
         config = getGlobalConfiguration()
-        self.triggers_service = TriggerServiceClient(config.get('zep_uri', 'http://localhost:8084'))
+        schema = getUtility(IQueueSchema)
+        self.triggers_service = TriggerServiceClient(config.get('zep_uri', 'http://localhost:8084'), schema)
 
         self.notificationPermissions = NotificationPermissionManager()
         self.triggerPermissions = TriggerPermissionManager()
@@ -711,7 +712,7 @@ class NotificationPermissionManager(object):
                 notification.manage_addLocalRoles(userOrGroup.id, [NOTIFICATION_VIEW_ROLE])
                 log.debug('Added role: %s for user or group: %s' % (NOTIFICATION_VIEW_ROLE, userOrGroup.id))
 
-                log.debug(recipient);
+                log.debug(recipient)
 
                 if recipient.get('write'):
                     notification.manage_addLocalRoles(userOrGroup.id, [NOTIFICATION_UPDATE_ROLE])

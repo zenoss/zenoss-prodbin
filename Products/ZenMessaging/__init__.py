@@ -10,13 +10,3 @@
 # For complete information please visit: http://www.zenoss.com/oss/
 #
 ###########################################################################
-
-# get the global conf file
-from Products.ZenUtils.GlobalConfig import getGlobalConfiguration
-from zenoss.protocols import initializeAMQP
-
-config = getGlobalConfiguration()
-
-initializeAMQP(
-    config=config
-    )

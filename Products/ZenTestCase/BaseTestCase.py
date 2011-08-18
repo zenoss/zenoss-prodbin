@@ -96,6 +96,10 @@ class ZenossTestCaseLayer(ZopeLite):
         zcml.load_config('testing.zcml', Products.ZenTestCase)
         import Products.ZenMessaging.queuemessaging
         load_config_override('nopublisher.zcml', Products.ZenMessaging.queuemessaging)
+
+        # Have to force registering these as they are torn down between tests
+        from zenoss.protocols.adapters import registerAdapters
+        registerAdapters()
     @classmethod
     def testTearDown(cls):
         cleanUp()

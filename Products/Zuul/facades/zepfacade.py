@@ -20,7 +20,7 @@ from Products.Zuul.interfaces import IZepFacade
 from Products.ZenEvents.ZenEventClasses import Unknown
 
 import pkg_resources
-from zenoss.protocols.services import ServiceResponseError
+from zenoss.protocols.interfaces import IQueueSchema
 from zenoss.protocols.services.zep import ZepServiceClient, EventSeverity, ZepConfigClient, ZepHeartbeatClient
 from zenoss.protocols.jsonformat import to_dict, from_dict
 from zenoss.protocols.protobufs.zep_pb2 import EventSort, EventFilter, EventSummaryUpdateRequest, ZepConfig
@@ -37,7 +37,7 @@ from uuid import uuid4
 from Products.ZenEvents.Event import Event as ZenEvent
 from Products.ZenMessaging.queuemessaging.interfaces import IEventPublisher
 from functools import partial
-from time import sleep, time
+from time import time
 
 log = logging.getLogger(__name__)
 
@@ -90,9 +90,10 @@ class ZepFacade(ZuulFacade):
         super(ZepFacade, self).__init__(context)
         config = getGlobalConfiguration()
         zep_url = config.get('zep_uri', 'http://localhost:8084')
-        self.client = ZepServiceClient(zep_url)
-        self.configClient = ZepConfigClient(zep_url)
-        self.heartbeatClient = ZepHeartbeatClient(zep_url)
+        schema = getUtility(IQueueSchema)
+        self.client = ZepServiceClient(zep_url, schema)
+        self.configClient = ZepConfigClient(zep_url, schema)
+        self.heartbeatClient = ZepHeartbeatClient(zep_url, schema)
         self._guidManager = IGUIDManager(context.dmd)
 
     def _create_identifier_filter(self, value):
@@ -717,8 +718,9 @@ class ZepDetailsInfo:
 
     def __init__(self):
         config = getGlobalConfiguration()
+        schema = getUtility(IQueueSchema)
         zep_url = config.get('zep_uri', 'http://localhost:8084')
-        self._configClient = ZepConfigClient(zep_url)
+        self._configClient = ZepConfigClient(zep_url, schema)
         self._initialized = False
 
     def _initDetails(self):

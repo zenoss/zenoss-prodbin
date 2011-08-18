@@ -14,8 +14,9 @@
 
 import Globals
 import logging
-from twisted.internet import reactor, defer
-from twisted.internet.error import ReactorNotRunning
+from zope.component import getUtility
+from twisted.internet import defer
+from zenoss.protocols.interfaces import IAMQPConnectionInfo, IQueueSchema
 from zenoss.protocols.twisted.amqp import AMQPFactory
 from interfaces import IQueueConsumerTask
 
@@ -29,9 +30,13 @@ class QueueConsumer(object):
     """
     MARKER = str(hash(object()))
 
-    def __init__(self, task, dmd, persistent=False):
+    def __init__(self, task, dmd, amqpConnectionInfo=None, queueSchema=None):
         self.dmd = dmd
-        self.consumer = AMQPFactory()
+        if not amqpConnectionInfo:
+            amqpConnectionInfo = getUtility(IAMQPConnectionInfo)
+        if not queueSchema:
+            queueSchema = getUtility(IQueueSchema)
+        self.consumer = AMQPFactory(amqpConnectionInfo, queueSchema)
         self.onReady = self._ready()
         self.onShutdown = self._shutdown()
         self.onTestMessage = defer.Deferred()
@@ -67,14 +72,7 @@ class QueueConsumer(object):
         """
         log.debug("listening to zenoss.queues.impact.modelchange queue")
         task = self.task
-        self.consumer.listen(exchange=task.exchange,
-                             exchange_type=task.exchange_type,
-                             routing_key=task.routing_key,
-                             queue_name=task.queue_name,
-                             callback=task.processMessage)
-        # sending a test message
-#        self.consumer.send(task.exchange,
-#                           task.routing_key, self.MARKER)
+        self.consumer.listen(task.queue, callback=task.processMessage)
         return self.onReady
 
     def shutdown(self, *args):

@@ -6,25 +6,10 @@
 
 from Products.ZenTestCase.BaseTestCase import BaseTestCase
 from zope.interface import implements
-from Products.ZenMessaging.queuemessaging.interfaces import IQueuePublisher
 from Products.ZenMessaging.queuemessaging.adapters import EventProtobuf as Serializer
 from Products.ZenMessaging.queuemessaging.publisher import EventPublisher, getModelChangePublisher
 from zenoss.protocols.protobufs.zep_pb2 import Event
 from Products.ZenEvents.Event import buildEventFromDict
-
-
-class MockQueuePublisher(object):
-    """
-    This is the fake queue we are putting in place for the unit tests to test
-    transactions.
-    """
-    implements(IQueuePublisher)
-
-    def __init__(self):
-        self.msgs = []
-
-    def publish(self, *args, **kwargs):
-        self.msgs.append( (args, kwargs))
 
 
 class TestPublishEvents(BaseTestCase):
@@ -32,12 +17,6 @@ class TestPublishEvents(BaseTestCase):
     def setUp(self):
         super(TestPublishEvents, self).setUp()
         self.publisher = getModelChangePublisher()
-        from zope.component import getGlobalSiteManager
-        # register the component
-        gsm = getGlobalSiteManager()
-        queue = MockQueuePublisher()
-        gsm.registerUtility(queue, IQueuePublisher)
-        self.queue = queue
         # create a dummy device
         self.device = self.dmd.Devices.createInstance('testDevice')
         self.publisher.publishAdd(self.device)
@@ -47,7 +26,6 @@ class TestPublishEvents(BaseTestCase):
         super(TestPublishEvents, self).tearDown()
         self.publisher = None
         self.device = None
-        self.queue = None
 
     def _createDummyEvent(self):
         """
@@ -105,7 +83,7 @@ class TestPublishEvents(BaseTestCase):
         # make sure we have at least one detail
         self.assertTrue(len(proto.details) >= 1)
         # the new severity value
-        self.assertEqual(proto.severity, 5)
+        self.assertEqual(proto.severity, 4)
 
     def testFacilityConversion(self):
         event = self._createDummyEvent()
@@ -126,6 +104,5 @@ class TestPublishEvents(BaseTestCase):
 def test_suite():
     from unittest import TestSuite, makeSuite
     suite = TestSuite()
-    #suite.addTest(makeSuite(TestPublishEvents))
-    suite.addTest(makeSuite(BaseTestCase))
+    suite.addTest(makeSuite(TestPublishEvents))
     return suite

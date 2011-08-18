@@ -76,10 +76,7 @@ class IQueueConsumerTask(Interface):
     """
 
     queueConsumer = Attribute("The consumer this task is proceessing a message for")
-    exchange = Attribute("The name of the exchange the task wants to listen to")
-    routing_key = Attribute("The Routing Key used to bind the queue to the exchange")
-    queue_name = Attribute("The name of the queue that this task will listen to.")
-    exchange_type = Attribute("The type of exchange (topic, direct, fanout)")
+    queue = Attribute("The queue this queue will consume from.")
 
     def processMessage(message):
         """
@@ -110,4 +107,9 @@ class IEventPublisher(Interface):
         @raise zenoss.protocols.exceptions.NoConsumersException: If immediate
                is True and the message is successfully sent to the queue but
                there are no active consumers to process the message.
+        """
+
+    def close():
+        """
+        Closes the event publisher.
         """

@@ -9,4 +9,13 @@
              name="class"
             />
 
+    <utility factory=".publisher.DummyEventPublisher"
+             provides=".interfaces.IEventPublisher"
+             />
+
+    <utility factory=".publisher.DummyEventPublisher"
+             provides=".interfaces.IEventPublisher"
+             name="batch"
+             />
+
 </configure>
