@@ -22,6 +22,7 @@ from Products.ZenMessaging.queuemessaging.interfaces import IModelProtobufSerial
 from contextlib import closing
 from zenoss.protocols.protobufutil import ProtobufEnum
 from zenoss.protocols.protobufs import modelevents_pb2
+from zenoss.protocols.protobufs.zep_pb2 import Event
 from zenoss.protocols.interfaces import IQueueSchema, IAMQPConnectionInfo
 
 import logging
@@ -250,21 +251,26 @@ class EventPublisherBase(object):
         raise NotImplementedError
 
     def publish(self, event, mandatory=False, immediate=False):
-        queueSchema = getUtility(IQueueSchema)
-        if not hasattr(event, "evid"):
-            event.evid = generate(1)
-        # create the protobuf
-        serializer = IProtobufSerializer(event)
-        proto = queueSchema.getNewProtobuf("$Event")
-        serializer.fill(proto)
+        if not isinstance(event, Event):
+            queueSchema = getUtility(IQueueSchema)
+            if not hasattr(event, "evid"):
+                event.evid = generate(1)
+            # create the protobuf
+            serializer = IProtobufSerializer(event)
+            proto = queueSchema.getNewProtobuf("$Event")
+            serializer.fill(proto)
+            event = proto
+        else:
+            if not event.uuid:
+                event.uuid = generate(1)
 
         # fill out the routing key
         eventClass = "/Unknown"
-        if hasattr(event, 'eventClass'):
-            eventClass = event.eventClass
+        if event.event_class:
+            eventClass = event.event_class
         routing_key = "zenoss.zenevent%s" % eventClass.replace('/', '.').lower()
-        log.debug("About to publish this event to the raw event queue:%s, with this routing key: %s" % (proto, routing_key))
-        self._publish("$RawZenEvents", routing_key, proto, mandatory=mandatory, immediate=immediate)
+        log.debug("About to publish this event to the raw event queue:%s, with this routing key: %s" % (event, routing_key))
+        self._publish("$RawZenEvents", routing_key, event, mandatory=mandatory, immediate=immediate)
 
     def close(self):
         pass

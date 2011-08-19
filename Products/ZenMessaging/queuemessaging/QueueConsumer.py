@@ -70,8 +70,8 @@ class QueueConsumer(object):
         """
         Tell all the services to start up. Begin listening for queue messages.
         """
-        log.debug("listening to zenoss.queues.impact.modelchange queue")
         task = self.task
+        log.debug("listening to %s queue", task.queue.name)
         self.consumer.listen(task.queue, callback=task.processMessage)
         return self.onReady
 
@@ -89,14 +89,12 @@ class QueueConsumer(object):
         """
         self.consumer.acknowledge(message)
 
-    def publishMessage(self, exchange, routing_key, message):
+    def publishMessage(self, exchange, routing_key, message, mandatory=False, immediate=False, headers=None):
         """
         Publishes a message to another queue. This is for tasks that are both
         consumers and producers.
         """
-        return self.consumer.send(exchange,
-                           routing_key,
-                           message )
+        return self.consumer.send(exchange, routing_key, message, mandatory, immediate, headers)
 
     def syncdb(self):
         self.dmd.getPhysicalRoot()._p_jar.sync()
