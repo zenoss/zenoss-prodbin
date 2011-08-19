@@ -316,8 +316,6 @@ for a ZenPack.
             self.context()._setObject(obj.id, obj)
             obj = self.context()._getOb(obj.id)
             self.objectnumber += 1
-            if self.objectnumber % 5000 == 0:
-                transaction.savepoint()
             self.log.debug('Added object %s to database'
                             % obj.getPrimaryId())
         else:

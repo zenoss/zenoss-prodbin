@@ -522,11 +522,9 @@ class IpNetwork(DeviceOrganizer):
         """Go through all ips in this tree and reindex them."""
         zcat = self._getCatalog()
         zcat.manage_catalogClear()
-        transaction.savepoint()
         for net in self.getSubNetworks():
             for ip in net.ipaddresses():
                 ip.index_object()
-            transaction.savepoint()
 
 
     def createCatalog(self):

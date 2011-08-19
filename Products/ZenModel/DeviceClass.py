@@ -837,14 +837,12 @@ class DeviceClass(DeviceOrganizer, ZenPackable, TemplateContainer):
         zcat = getToolByName(self, self.default_catalog)
         zcat.manage_catalogClear()
         self.componentSearch.manage_catalogClear()
-        transaction.savepoint()
         for dev in self.getSubDevicesGen_recursive():
             dev.index_object()
             notify(IndexingEvent(dev))
             for comp in dev.getDeviceComponentsNoIndexGen():
                 comp.index_object()
                 notify(IndexingEvent(comp))
-            transaction.savepoint()
 
 
     def buildDeviceTreeProperties(self):

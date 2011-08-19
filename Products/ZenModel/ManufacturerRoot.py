@@ -217,10 +217,8 @@ class ManufacturerRoot(ZenModelItem, PrimaryPathBTreeFolder2, ZenPacker):
         """Go through all devices in this tree and reindex them."""
         zcat = self._getOb(self.default_catalog)
         zcat.manage_catalogClear()
-        transaction.savepoint()
-        for i, prod in enumerate(self.getProductsGen()):
+        for prod in self.getProductsGen():
             prod.index_object()
-            if not i % 1000: transaction.savepoint()
 
 
     def createCatalog(self):

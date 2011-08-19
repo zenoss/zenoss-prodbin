@@ -341,11 +341,9 @@ class EventClass(EventClassPropertyMixin, Organizer, ManagedEntity, ZenPackable)
         log.debug("reindexing EventClass:%s", self.getOrganizerName())
         zcat = self._getCatalog()
         zcat.manage_catalogClear()
-        transaction.savepoint()
         for evtclass in self.getSubEventClasses():
             for ip in evtclass.instances():
                 ip.index_object()
-        transaction.savepoint()
 
 
     def createCatalog(self):
