@@ -131,9 +131,9 @@ class TreeRouter(DirectRouter):
         for child in currentNode.children:
             childData = Marshaller(child).marshal(keys)
             children.append(childData)
-
+        obj = currentNode._object.getObject()
         # check to see if we are asking for the root
-        primaryId = facade._root.getPrimaryId()
+        primaryId = obj.getDmdRoot(obj.dmdRootName).getPrimaryId()
         if id == primaryId:
             root = Marshaller(currentNode).marshal(keys)
             root['children'] = children

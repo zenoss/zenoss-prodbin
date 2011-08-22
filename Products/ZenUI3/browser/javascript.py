@@ -127,8 +127,10 @@ class ZenossSettings(JavaScriptSnippet):
         js = """
             Ext.namespace('Zenoss.settings');
             Zenoss.settings.enableLiveSearch = %s;
+            Zenoss.settings.incrementalTreeLoad = %s;
 
-        """ % str(self.context.dmd.enableLiveSearch).lower()  # a javascript Boolean is lowercase
+        """ % (str(self.context.dmd.enableLiveSearch).lower(),
+               str(self.context.dmd.incrementalTreeLoad).lower()) # a javascript Boolean is lowercase
         return js
 
 

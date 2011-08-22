@@ -789,14 +789,20 @@ function detailSelectByToken(nodeId) {
     }
 }
 
+var treeLoaderFn = REMOTE.getTree, treeStateful = true;
+if (Zenoss.settings.incrementalTreeLoad) {
+    treeLoaderFn = REMOTE.asyncGetTree;
+    treeStateful = false;
+}
+
 var devtree = {
     xtype: 'HierarchyTreePanel',
     loadMask: false,
     id: 'devices',
     searchField: true,
-    directFn: Zenoss.util.isolatedRequest(REMOTE.getTree),
+    directFn: Zenoss.util.isolatedRequest(treeLoaderFn),
     allowOrganizerMove: false,
-    stateful: true,
+    stateful: treeStateful,
     stateId: 'device_tree',
     ddAppendOnly: true,
     root: {
@@ -823,8 +829,8 @@ var grouptree = {
     loadMask: false,
     id: 'groups',
     searchField: false,
-    directFn: REMOTE.getTree,
-    stateful: true,
+    directFn: treeLoaderFn,
+    stateful: treeStateful,
     stateId: 'group_tree',
     ddAppendOnly: true,
     selectByToken: detailSelectByToken,
@@ -843,10 +849,10 @@ var systree = {
     xtype: 'HierarchyTreePanel',
     loadMask: false,
     id: 'systems',
-    stateful: true,
+    stateful: treeStateful,
     stateId: 'systems_tree',
     searchField: false,
-    directFn: REMOTE.getTree,
+    directFn: treeLoaderFn,
     ddAppendOnly: true,
     selectByToken: detailSelectByToken,
     root: {
@@ -863,11 +869,11 @@ var systree = {
 var loctree = {
     xtype: 'HierarchyTreePanel',
     loadMask: false,
-    stateful: true,
+    stateful: treeStateful,
     stateId: 'loc_tree',
     id: 'locs',
     searchField: false,
-    directFn: REMOTE.getTree,
+    directFn: treeLoaderFn,
     ddAppendOnly: true,
     selectByToken: detailSelectByToken,
     root: {

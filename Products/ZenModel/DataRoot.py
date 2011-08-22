@@ -100,6 +100,9 @@ class DataRoot(ZenModelRM, OrderedFolder, Commandable, ZenMenuable):
     AUTH_TYPE_COOKIE = "cookie"
     userAuthType = AUTH_TYPE_SESSION
     pauseHubNotifications = False
+    # Setting applied to the User Interface to determine if we should load the
+    # infrastructure trees all at once or incrementally as expanded
+    incrementalTreeLoad = False
 
     _properties=(
         {'id':'title', 'type': 'string', 'mode':'w'},
@@ -128,6 +131,7 @@ class DataRoot(ZenModelRM, OrderedFolder, Commandable, ZenMenuable):
         {'id':'userAuthType', 'type': 'string', 'mode':'w'},
         {'id':'geocache', 'type': 'string', 'mode':'w'},
         {'id':'enableLiveSearch', 'type': 'boolean', 'mode':'w'},
+        {'id':'incrementalTreeLoad', 'type': 'boolean', 'mode':'w'},
         {'id':'pauseHubNotifications', 'type': 'boolean', 'mode':'w'},
         )
 
