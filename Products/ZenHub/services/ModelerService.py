@@ -111,22 +111,17 @@ class ModelerService(PerformanceConfig):
         device = self.getPerformanceMonitor().findDevice(device)
         adm = ApplyDataMap(self)
         adm.setDeviceClass(device, devclass)
-        def inner(d, map):
+        def inner(map):
             if adm._applyDataMap(device, map):
                 changed = True
             else:
                 changed = False
-            d.callback(changed)
-        @defer.inlineCallbacks
-        def applydatamap():
-            changed = False
-            for map in maps:
-                d = defer.Deferred()
-                reactor.callLater(0, inner, d, map)
-                result = yield d
-                changed = changed or result
-            defer.returnValue(changed)
-        return applydatamap()
+            return changed
+        changed = False
+        for map in maps:
+            result = inner(map)
+            changed = changed or result
+        return changed
 
     @translateError
     def remote_setSnmpLastCollection(self, device):
