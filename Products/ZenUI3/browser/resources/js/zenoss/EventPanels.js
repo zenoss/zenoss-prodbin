@@ -13,7 +13,6 @@
   ###########################################################################
 */
 (function(){
-
     Ext.ns('Zenoss.events');
 
     /*
@@ -937,9 +936,20 @@
     }); // Ext.extend
     Ext.reg('SimpleEventColumnModel', Zenoss.SimpleEventColumnModel);
 
+    
+    Zenoss.events.customColumns = {};
+    Zenoss.events.registerCustomColumn = function(dataIndex, obj) {
+        Zenoss.events.customColumns[dataIndex] = obj;
+    };
 
     Zenoss.FullEventColumnModel = Ext.extend(Ext.grid.ColumnModel, {
         constructor: function(config){
+            Ext.each(Zenoss.env.COLUMN_DEFINITIONS, function(col){
+                if (Zenoss.events.customColumns[col.dataIndex]) {
+                    Ext.apply(col, Zenoss.events.customColumns[col.dataIndex]);
+                }
+            });
+
             config = Ext.applyIf(config || {}, {
                 columns:Zenoss.env.COLUMN_DEFINITIONS
             });
