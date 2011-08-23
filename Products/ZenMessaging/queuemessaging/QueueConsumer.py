@@ -38,8 +38,6 @@ class QueueConsumer(object):
             queueSchema = getUtility(IQueueSchema)
         self.consumer = AMQPFactory(amqpConnectionInfo, queueSchema)
         self.onReady = self._ready()
-        self.onShutdown = self._shutdown()
-        self.onTestMessage = defer.Deferred()
         if not IQueueConsumerTask.providedBy(task):
             raise AssertionError("%s does not implement IQueueConsumerTask" % task)
         self.task = task
@@ -53,17 +51,8 @@ class QueueConsumer(object):
         """
         Calls back once everything's ready and test message went through.
         """
-        yield self.consumer.onConnectionMade
-        yield self.onTestMessage
+        yield self.consumer._onConnectionMade
         log.info('Queue consumer ready.')
-        defer.returnValue(None)
-
-    @defer.inlineCallbacks
-    def _shutdown(self):
-        """
-        Calls back once everything has shut down.
-        """
-        yield self.consumer.onConnectionLost
         defer.returnValue(None)
 
     def run(self):
@@ -79,8 +68,7 @@ class QueueConsumer(object):
         """
         Tell all the services to shut down.
         """
-        self.consumer.shutdown()
-        return self.onShutdown
+        return self.consumer.shutdown()
 
     def acknowledge(self, message):
         """
