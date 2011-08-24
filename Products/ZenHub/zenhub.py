@@ -206,21 +206,9 @@ class WorkerInterceptor(pb.Referenceable):
         result = self.zenhub.deferToWorker( (svc, instance, message, args) )
         return broker.serialize(result, self.perspective)
 
-    def addListener(self, listener):
+    def __getattr__(self, attr):
         "Implement the HubService interface by forwarding to the local service"
-        return self.service.addListener(listener)
-
-    def removeListener(self, listener):
-        "Implement the HubService interface by forwarding to the local service"
-        return self.service.removeListener(listener)
-
-    def update(self, object):
-        "Implement the HubService interface by forwarding to the local service"
-        return self.service.update(object)
-
-    def deleted(self, object):
-        "Implement the HubService interface by forwarding to the local service"
-        return self.service.deleted(object)
+        return getattr(self.service, attr)
 
 
 class ZenHub(ZCmdBase):
