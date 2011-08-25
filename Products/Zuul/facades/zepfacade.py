@@ -35,6 +35,7 @@ from Products.ZenEvents.ZenEventClasses import Status_Ping
 from zope.component import getUtility
 from uuid import uuid4
 from Products.ZenEvents.Event import Event as ZenEvent
+from Products.ZenEvents.events2.proxy import EventProxy
 from Products.ZenMessaging.queuemessaging.interfaces import IEventPublisher
 from functools import partial
 from time import time
@@ -78,9 +79,13 @@ class ZepFacade(ZuulFacade):
     }
 
     ZENOSS_DETAIL_OLD_TO_NEW_MAPPING = {
-        'prodState': 'zenoss.device.production_state',
-        'DevicePriority': 'zenoss.device.priority',
-        'ipAddress': 'zenoss.device.ip_address',
+        'prodState': EventProxy.PRODUCTION_STATE_DETAIL_KEY,
+        'DevicePriority': EventProxy.DEVICE_PRIORITY_DETAIL_KEY,
+        'ipAddress': EventProxy.DEVICE_IP_ADDRESS_DETAIL_KEY,
+        'Location': EventProxy.DEVICE_LOCATION_DETAIL_KEY,
+        'DeviceGroups': EventProxy.DEVICE_GROUPS_DETAIL_KEY,
+        'Systems': EventProxy.DEVICE_SYSTEMS_DETAIL_KEY,
+        'DeviceClass': EventProxy.DEVICE_CLASS_DETAIL_KEY,
     }
     ZENOSS_DETAIL_NEW_TO_OLD_MAPPING = dict((new, old) for old, new in ZENOSS_DETAIL_OLD_TO_NEW_MAPPING.iteritems())
 

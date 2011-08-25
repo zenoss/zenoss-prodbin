@@ -307,10 +307,10 @@ COLUMN_CONFIG = {
 
     'Location'  : dict(
         header='Location',
-        sortable=False,
+        sortable=True,
         filter='textfield',
         #filter='locationdropdown',
-        renderer='Zenoss.render.LinkFromGridGuidGroup'
+        renderer='Zenoss.render.LinkFromGridUidGroup'
         ),
 
     'DeviceGroups': dict(
@@ -318,7 +318,7 @@ COLUMN_CONFIG = {
         sortable=False,
         filter='textfield',
         #filter='groupdropdown',
-        renderer='Zenoss.render.LinkFromGridGuidGroup'
+        renderer='Zenoss.render.LinkFromGridUidGroup'
         ),
 
     'Systems'   : dict(
@@ -326,14 +326,14 @@ COLUMN_CONFIG = {
         sortable=False,
         filter='textfield',
         #filter='systemdropdown',
-        renderer='Zenoss.render.LinkFromGridGuidGroup'),
+        renderer='Zenoss.render.LinkFromGridUidGroup'),
 
     'DeviceClass': dict(
         header='Device Class',
-        sortable=False,
+        sortable=True,
         filter='textfield',
         #filter='deviceclassdropdown',
-        renderer='Zenoss.render.LinkFromGridGuidGroup',
+        renderer='Zenoss.render.LinkFromGridUidGroup',
         ),
 }
 

@@ -290,6 +290,19 @@ Ext.apply(Zenoss.render, {
         return results.join(" | ");
     },
 
+    LinkFromGridUidGroup: function(name, col, record) {
+        if (!name) {
+            return name;
+        }
+
+        var url, results = [];
+        Ext.each(name, function(item) {
+            results.push(Zenoss.render.default_uid_renderer(item.uid, item.name));
+        });
+
+        return results.join(" | ");
+    },
+
     Device: function(uid, name) {
         // For now, link to the old device page
         return Zenoss.render.link(null, uid+'/devicedetail', name);

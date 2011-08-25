@@ -304,7 +304,7 @@
             var organizerFields = ['Systems', 'DeviceGroups', 'DeviceClass', 'Location'];
             Ext.each(organizerFields, function(field){
                 if (event[field]) {
-                    event[field] = Zenoss.render.LinkFromGridGuidGroup(event[field]);
+                    event[field] = Zenoss.render.LinkFromGridUidGroup(event[field]);
                 }
             });
             var details = {

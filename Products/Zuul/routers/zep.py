@@ -28,6 +28,7 @@ from Products.Zuul import getFacade
 from Products.Zuul.decorators import require, serviceConnectionError
 from Products.ZenUtils.guid.interfaces import IGlobalIdentifier, IGUIDManager
 from Products.ZenEvents.EventClass import EventClass
+from Products.ZenEvents.events2.proxy import EventProxy
 from zenoss.protocols.services.zep import EventStatus, EventSeverity, ZepConnectionError
 from zenoss.protocols.protobufs.zep_pb2 import EventSummary
 from zenoss.protocols.protobufutil import ProtobufEnum
@@ -85,44 +86,6 @@ class EventsRouter(DirectRouter):
                 if brain:
                     return brain.name
 
-    def _lookupTags(self, tags):
-        """
-        Returns an array of dictionary with uuid and
-        name fields or an empty string if there are no tags.
-        """
-        if not tags:
-            return ""
-        names = []
-        for tag in tags:
-            names.append({'uuid': tag,
-                          'name': self._getNameFromUuid(tag)})
-        return names
-
-    def _lookupDeviceClass(self, tags):
-        """
-        Returns an array with a  dictionary of the
-        uuid and name of the device. This is for the link in
-        the event console
-        """
-        if not tags:
-            return ""
-
-        # the longest tag will be the deepest device class this device belongs in
-        currentPath = ""
-        uuid = None
-        for tag in tags:
-            path = self.manager.getPath(tag)
-            if not path:
-                #if a portion of the device class is not found that should mean the device class is no longer valid
-                return ""
-            path = urllib.unquote(path)
-            if len(path) > len(currentPath):
-                currentPath = path
-                uuid = tag
-        if uuid is None:
-            return ""
-        return {'uuid': uuid, 'name': currentPath.replace("/zport/dmd/Devices", "")}
-
     def _lookupEventClassMapping(self, mappingUuid):
         if not mappingUuid:
             return ""
@@ -156,18 +119,13 @@ class EventsRouter(DirectRouter):
         if isinstance(value, (tuple, list, set)) and value:
             return value[0]
 
-    def _getTagsFromOccurrence(self, eventOccurrence):
-        """
-        Build a tag dictionary where the keys are the type of tags and
-        the value is an array of guids.
-        """
-        tags = {}
-        if eventOccurrence.get('tags'):
-            for tag in eventOccurrence.get('tags'):
-                if tags.get(tag['type']) is None:
-                    tags[tag['type']] = []
-                tags[tag['type']].extend(tag['uuid'])
-        return tags
+    def _lookupDetailPath(self, prefix, values):
+        if not values:
+            return ()
+        paths = []
+        for value in values:
+            paths.append({'uid': prefix + value, 'name': value})
+        return paths
 
     def _mapToOldEvent(self, event_summary):
 
@@ -175,9 +133,6 @@ class EventsRouter(DirectRouter):
         eventActor = eventOccurrence['actor']
         eventClass = eventOccurrence['event_class']
         eventDetails = self._findDetails(eventOccurrence)
-
-        # TODO: Finish mapping out these properties.
-        tags = self._getTagsFromOccurrence(eventOccurrence)
 
         event = {
             'id' : event_summary['uuid'],
@@ -203,7 +158,6 @@ class EventsRouter(DirectRouter):
             'firstTime' : isoDateTimeFromMilli(event_summary['first_seen_time']),
             'lastTime' : isoDateTimeFromMilli(event_summary['last_seen_time'] ),
             'count' : event_summary['count'],
-
             'stateChange' : isoDateTimeFromMilli(event_summary['status_change_time']),
             'eventClassKey': eventOccurrence.get('event_class_key'),
             'eventGroup': eventOccurrence.get('event_group'),
@@ -218,12 +172,11 @@ class EventsRouter(DirectRouter):
             'ntevid' : eventOccurrence.get('nt_event_code'),
             'ipAddress' : eventDetails.get('zenoss.device.ip_address', ''),
             'message' : eventOccurrence.get('message', ''),
-            'Location' : self._lookupTags(tags.get('zenoss.device.location')),
-            'DeviceGroups' : self._lookupTags(tags.get('zenoss.device.groups')),
-            'Systems' : self._lookupTags(tags.get('zenoss.device.systems')),
-            'DeviceClass' : self._lookupDeviceClass(tags.get('zenoss.device.device_class')),
+            'Location' : self._lookupDetailPath('/zport/dmd/Locations', eventDetails.get(EventProxy.DEVICE_LOCATION_DETAIL_KEY)),
+            'DeviceGroups' : self._lookupDetailPath('/zport/dmd/Groups', eventDetails.get(EventProxy.DEVICE_GROUPS_DETAIL_KEY)),
+            'Systems' : self._lookupDetailPath('/zport/dmd/Systems', eventDetails.get(EventProxy.DEVICE_SYSTEMS_DETAIL_KEY)),
+            'DeviceClass' : self._lookupDetailPath('/zport/dmd/Devices', eventDetails.get(EventProxy.DEVICE_CLASS_DETAIL_KEY)),
         }
-
 
         prodState = self._singleDetail(eventDetails.get('zenoss.device.production_state'))
         if prodState is not None:
@@ -379,39 +332,6 @@ class EventsRouter(DirectRouter):
             sort_list.append(('lastTime','desc'))
         return sort_list
 
-    def _getTagsFromOrganizers(self, params):
-        """
-        This builds a tag list from any organizers that were
-        selected as filterable.
-        The organizers come in from the server without their base
-        group so we need to append it.
-        """
-        tags = []
-        organizersPrefixes = {
-            'Location': '/zport/dmd/Locations',
-            'DeviceClass': '/zport/dmd/Devices',
-            'Systems': '/zport/dmd/Systems',
-            'DeviceGroups': '/zport/dmd/Groups'
-            }
-
-        query = []
-
-        for key, prefix in organizersPrefixes.iteritems():
-            flter = params.get(key)
-            if flter:
-                q = MatchRegexp('uid', '(?i).*%s.*' % flter.strip('*'))
-                q = And(q, Eq('path', prefix))
-                query.append(q)
-
-        if not query:
-            return []
-
-        brains = ICatalogTool(self.context.dmd.primaryAq()).search(
-            "Products.ZenModel.DeviceOrganizer.DeviceOrganizer",
-            query=Or(*query))
-
-        return [b.uuid for b in brains] or ['definitelynotatag']
-
 
     def _buildFilter(self, uid, params, specificEventUuids=None):
         """
@@ -437,11 +357,6 @@ class EventsRouter(DirectRouter):
             params, details = self.zep.parseParameterDetails(params)
 
             filterEventUuids = []
-            # look up organizer tags
-            tags = self._getTagsFromOrganizers(params)
-            if tags:
-                for tag in tags:
-                    params['tags'].append(tag)
             # No specific event uuids passed in-
             # check for event ids from the grid parameters
             if specificEventUuids is None:
@@ -487,7 +402,7 @@ class EventsRouter(DirectRouter):
                 # see Zuul/security/security.py
                 tags = params.get('tags'),
 
-                details = details
+                details = details,
 
             )
             log.debug('Found params for building filter, ended up building  the following:')
@@ -530,7 +445,6 @@ class EventsRouter(DirectRouter):
         eventOccurrence = event_summary['occurrence'][0]
         eventClass = eventOccurrence['event_class']
         eventActor = eventOccurrence['actor']
-        tags = self._getTagsFromOccurrence(eventOccurrence)
         eventDetails = self._findDetails(eventOccurrence)
         eventClassMapping = self._lookupEventClassMapping(eventOccurrence.get('event_class_mapping_uuid'))
         eventClassMappingName = eventClassMappingUrl = None
@@ -568,12 +482,12 @@ class EventsRouter(DirectRouter):
             'agent':eventOccurrence.get('agent'),
             'eventGroup': eventOccurrence.get('event_group'),
             'eventClassKey':eventOccurrence.get('event_class_key'),
-            'Location' : self._lookupTags(tags.get('zenoss.device.location')),
-            'DeviceGroups' : self._lookupTags(tags.get('zenoss.device.group')),
-            'Systems' : self._lookupTags(tags.get('zenoss.device.system')),
+            'Location' : self._lookupDetailPath('/zport/dmd/Locations', eventDetails.get(EventProxy.DEVICE_LOCATION_DETAIL_KEY)),
+            'DeviceGroups' : self._lookupDetailPath('/zport/dmd/Groups', eventDetails.get(EventProxy.DEVICE_GROUPS_DETAIL_KEY)),
+            'Systems' : self._lookupDetailPath('/zport/dmd/Systems', eventDetails.get(EventProxy.DEVICE_SYSTEMS_DETAIL_KEY)),
+            'DeviceClass' : self._lookupDetailPath('/zport/dmd/Devices', eventDetails.get(EventProxy.DEVICE_CLASS_DETAIL_KEY)),
             'eventClassMapping': eventClassMappingName,
             'eventClassMapping_url': eventClassMappingUrl,
-            'DeviceClass' : self._lookupDeviceClass(tags.get('zenoss.device.device_class')),
             'owner': event_summary.get('current_user_name'),
             'priority': eventOccurrence.get('syslog_priority'),
             'clearedevent': event_summary.get('cleared_by_event_uuid'),
