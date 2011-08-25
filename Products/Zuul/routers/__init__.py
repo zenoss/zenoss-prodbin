@@ -131,7 +131,7 @@ class TreeRouter(DirectRouter):
         for child in currentNode.children:
             childData = Marshaller(child).marshal(keys)
             children.append(childData)
-        obj = currentNode._object.getObject()
+        obj = currentNode._object._unrestrictedGetObject()
         # check to see if we are asking for the root
         primaryId = obj.getDmdRoot(obj.dmdRootName).getPrimaryId()
         if id == primaryId:
