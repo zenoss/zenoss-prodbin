@@ -28,20 +28,23 @@ import time
 import logging
 log = logging.getLogger("zen.zenping")
 
-from ipaddr import IPAddress
-
 # Zenoss custom ICMP library
 from icmpecho.Ping import Ping4, Ping6
 
 import Globals
 import zope.interface
 import zope.component
+from Products.Five import zcml
+import Products
+import Products.Five
+import Products.ZenStatus
 
 from Products.ZenCollector.daemon import CollectorDaemon
 from Products.ZenCollector.interfaces import ICollector, ICollectorPreferences,\
                                              IConfigurationListener
 from Products.ZenCollector.tasks import SimpleTaskFactory,\
                                         SubConfigurationTaskSplitter
+from Products.ZenStatus.interfaces import IPingCorrelatorTaskFactory
 
 from Products.ZenUtils.IpUtil import ipunwrap
 
@@ -49,7 +52,6 @@ from Products.ZenStatus.PingService import PingService
 from Products.ZenStatus.TestPing import Ping as TestPing
 from Products.ZenStatus.TracerouteTask import TracerouteTask
 from Products.ZenStatus.PingTask import PingCollectionTask
-from Products.ZenStatus.CorrelatorTask import TopologyCorrelatorTask
 from Products.ZenStatus.NetworkModel import NetworkModel
 
 from Products.ZenUtils.Utils import unused
@@ -184,15 +186,25 @@ class PingCollectionPreferences(object):
                                    taskConfig=daemon._prefs)
         daemon._scheduler.addTask(task, now=True)
 
-        # Start the event correlators
-        task = TopologyCorrelatorTask(TOPOLOGY_CORRELATOR_NAME + ' IPv4',
-                                   configId=TOPOLOGY_CORRELATOR_NAME,
-                                   taskConfig=daemon._prefs)
+        self.addCorrelatorTasks(daemon)
+
+    def addCorrelatorTasks(self, daemon):
+        # Load up interface stuff
+        zcml.load_config('meta.zcml', Products.Five)
+        zcml.load_config('configure.zcml', Products.ZenStatus)
+        
+        factory = zope.component.queryUtility(IPingCorrelatorTaskFactory)
+
+        factory.name = TOPOLOGY_CORRELATOR_NAME + ' IPv4'
+        factory.configId = TOPOLOGY_CORRELATOR_NAME
+        factory.config = daemon._prefs
+        factory.interval = 60
+
+        task = factory.build()
         daemon._scheduler.addTask(task, now=True)
 
-        task = TopologyCorrelatorTask(TOPOLOGY_CORRELATOR_NAME + ' IPv6',
-                                   configId=TOPOLOGY_CORRELATOR_NAME,
-                                   taskConfig=daemon._prefs)
+        factory.name = TOPOLOGY_CORRELATOR_NAME + ' IPv6'
+        task = factory.build()
         daemon._scheduler.addTask(task, now=True)
 
     def preShutdown(self):

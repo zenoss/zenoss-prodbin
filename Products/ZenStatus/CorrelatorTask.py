@@ -50,6 +50,8 @@ from Products.ZenCollector.tasks import BaseTask,\
                                         TaskStates
 
 from Products.ZenEvents.ZenEventClasses import Status_Ping
+from Products.ZenCollector.tasks import SimpleTaskFactory
+from interfaces import IPingCorrelatorTaskFactory
 
 STATUS_EVENT = { 
                 'eventClass' : Status_Ping,
@@ -203,6 +205,12 @@ class TopologyCorrelatorTask(BaseTask):
         # Do one last round of correlation before exiting zenping
         return self.doTask()
 
+
+class PingCorrelatorTaskFactory(SimpleTaskFactory):
+    zope.interface.implements(IPingCorrelatorTaskFactory)
+
+    def __init__(self):
+        super(PingCorrelatorTaskFactory, self).__init__(TopologyCorrelatorTask)
 
 #if __name__=='__main__':
 # TODO: Debugging tool

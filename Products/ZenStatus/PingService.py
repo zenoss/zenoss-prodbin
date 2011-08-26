@@ -209,8 +209,6 @@ def _printResults(results, start):
 if __name__ == "__main__":
     # Sockets are injected into the main module by pyraw
     # pyraw PingService.py [ip_addresses]
-    # Zenoss custom ICMP library
-    from icmpecho.Ping import Ping4, Ping6
 
     protocol = Ping4(IPV4_SOCKET)
     ping = PingService(protocol)

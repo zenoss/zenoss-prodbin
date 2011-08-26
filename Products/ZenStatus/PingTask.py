@@ -270,5 +270,4 @@ class PingCollectionTask(BaseTask):
         return display
 
     def cleanup(self):
-        if self.state != TaskStates.STATE_SHUTDOWN:
-            self.sendPingClearEvent(self.pingjob, "No longer testing device %s")
+        self.sendPingClearEvent(self.pingjob, "No longer testing device %s")
