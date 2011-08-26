@@ -1262,6 +1262,26 @@ Zenoss.FilterGridPanel = Ext.extend(Ext.ux.grid.livegrid.GridPanel, {
         }
         Zenoss.FilterGridPanel.superclass.constructor.apply(this,
                                                             arguments);
+        this.addListener('columnresize', function(columnIndex, newSize) {
+            var grid = Ext.getCmp(config.id);
+            if (!Ext.isDefined(grid)) {
+                return;
+            }
+            var view = grid.getView(),
+                cm = grid.getColumnModel();
+            var columnId = cm.getColumnId(columnIndex);
+            var column = cm.getColumnById(columnId);
+            var columnFilter;
+            for (var i = 0; i < view.filters.length; i++) {
+                if (view.filters[i].id === column.id) {
+                    columnFilter = view.filters[i];
+                    break;
+                }
+            }
+            if (columnFilter) {
+                columnFilter.ownerCt.doLayout();
+            }
+        });
     },
     initStateEvents: function(){
         Zenoss.FilterGridPanel.superclass.initStateEvents.call(this);
@@ -1372,6 +1392,9 @@ Zenoss.FilterGridPanel = Ext.extend(Ext.ux.grid.livegrid.GridPanel, {
             view.nonDisruptiveReset();
             this.saveState();
             this.clearURLState();
+            Ext.each(view.filters, function (filter) {
+                filter.ownerCt.doLayout();
+            });
         }, this);
     },
     setContext: function(uid) {
