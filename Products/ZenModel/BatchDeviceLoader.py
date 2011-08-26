@@ -1,7 +1,7 @@
 ###########################################################################
 #
 # This program is part of Zenoss Core, an open source monitoring platform.
-# Copyright (C) 2009, Zenoss Inc.
+# Copyright (C) 2009, 2011 Zenoss Inc.
 #
 # This program is free software; you can redistribute it and/or modify it
 # under the terms of the GNU General Public License version 2 or (at your
@@ -17,18 +17,24 @@ zenbatchload loads a list of devices read from a file.
 
 import sys
 import re
+from traceback import format_exc
+import socket
 
 import Globals
 from ZODB.POSException import ConflictError
 from ZODB.transact import transact
 from zope.component import getUtility
 
+from zExceptions import BadRequest
+
 from Products.ZenModel.interfaces import IDeviceLoader
 from Products.ZenUtils.ZCmdBase import ZCmdBase
 from Products.ZenModel.Device import Device
 from Products.ZenRelations.ZenPropertyManager import iszprop
-from ZenModelBase import iscustprop
-from zExceptions import BadRequest
+from Products.ZenModel.ZenModelBase import iscustprop
+from Products.ZenEvents.ZenEventClasses import Change_Add
+
+from zenoss.protocols.protobufs.zep_pb2 import SEVERITY_INFO, SEVERITY_ERROR
 
 
 class BatchDeviceLoader(ZCmdBase):
@@ -112,6 +118,20 @@ settingsDevice setManageIp='10.10.10.77', setLocation="123 Elm Street", \
 
         self.loader = self.dmd.DeviceLoader.loadDevice
 
+        self.fqdn = socket.getfqdn()
+        self.baseEvent = dict(
+            device=self.fqdn,
+            component='',
+            agent='zenbatchload',
+            monitor='localhost',
+            manager=self.fqdn,
+            severity=SEVERITY_ERROR,
+            # Note: Change_Add is probably a better event class, but these
+            #       events get sent to history by the default Zen property stuff
+            #       on the event class. zendisc uses Status_Snmp, so so will we.
+            eventClass=Change_Add,
+        )
+
         # Create the list of options we want people to know about
         self.loader_args = dict.fromkeys( self.loader.func_code.co_varnames )
         unsupportable_args = [
@@ -139,7 +159,8 @@ settingsDevice setManageIp='10.10.10.77', setLocation="123 Elm Street", \
             try:
                 data = open(filename,'r').readlines()
             except IOError:
-                self.log.critical("Unable to open the file '%s'" % filename)
+                msg = "Unable to open the file '%s'" % filename
+                self.reportException(msg)
                 continue
 
             temp_dev_list = self.parseDevices(data)
@@ -297,8 +318,8 @@ settingsDevice setManageIp='10.10.10.77', setLocation="123 Elm Street", \
             except ConflictError:
                 raise
             except Exception:
-                self.log.exception("Device %s device.%s(%s) failed" % (
-                                   device.id, functor, value))
+                msg = "Device %s device.%s(%s) failed" % (device.id, functor, value)
+                self.reportException(msg, device.id)
 
     def runLoader(self, loader, device_specs):
         """
@@ -338,7 +359,7 @@ settingsDevice setManageIp='10.10.10.77', setLocation="123 Elm Street", \
         def transactional(f):
             return f if self.options.nocommit else transact(f)
 
-        processed = {'total':0}
+        processed = {'total':0, 'errors':0}
 
         @transactional
         def _process(device_specs):
@@ -355,8 +376,10 @@ settingsDevice setManageIp='10.10.10.77', setLocation="123 Elm Street", \
                 except ConflictError:
                     raise
                 except Exception:
-                    self.log.exception("Ignoring device loader issue for %s",
-                                       device_specs)
+                    devName = device_specs.get('device_specs', 'Unkown Device')
+                    msg = "Ignoring device loader issue for %s" % devName
+                    self.reportException(msg, devName, {'specs':str(device_specs)})
+                    processed['errors'] += 1
                     return
             else:
                 devobj = self.getDevice(device_specs)
@@ -386,8 +409,10 @@ settingsDevice setManageIp='10.10.10.77', setLocation="123 Elm Street", \
                 devobj.collectDevice(setlog=self.options.showModelOutput)
             except ConflictError:
                 raise
-            except Exception:
-                self.log.exception("Modeling error for %s", devobj.id)
+            except Exception, ex:
+                msg = "Modeling error for %s" % devobj.id
+                self.reportException(msg, devobj.id, ex)
+                processed['errors'] += 1
             processed['total'] += 1
 
         for device_specs in device_list:
@@ -399,8 +424,54 @@ settingsDevice setManageIp='10.10.10.77', setLocation="123 Elm Street", \
                 _snmp_community(device_specs, devobj)
                 _model(devobj)
 
-        self.log.info("Processed %d of %d devices",
-                      processed['total'], len(device_list))
+        self.reportResults(processed, len(device_list))
+
+    def reportException(self, msg, devName='', **kwargs):
+        """
+        Report exceptions back to the the event console
+        """
+        self.log.exception(msg)
+        if not self.options.nocommit:
+            evt = self.baseEvent.copy()
+            evt.update(dict(
+                summary=msg,
+                traceback=format_exc()
+            ))
+            evt.update(kwargs)
+            if devName:
+                evt['device'] = devName
+            self.dmd.ZenEventManager.sendEvent(evt)
+
+    def reportResults(self, processed, totalDevices):
+        """
+        Report the success + total counts from loading devices.
+        """
+        msg = "Modeled %d of %d devices, with %d errors" % (
+                  processed['total'], totalDevices, processed['errors'] )
+        self.log.info(msg)
+
+        if not self.options.nocommit:
+            evt = self.baseEvent.copy()
+            evt.update(dict(
+                severity=SEVERITY_INFO,
+                summary=msg,
+                modeled=processed['total'],
+                errors=processed['errors'],
+                total=totalDevices,
+            ))
+            self.dmd.ZenEventManager.sendEvent(evt)
+
+    def notifyNewDeviceCreated(self, deviceName):
+        """
+        Report that we added a new device.
+        """
+        if not self.options.nocommit:
+            evt = self.baseEvent.copy()
+            evt.update(dict(
+                severity=SEVERITY_INFO,
+                summary= "Added new device %s" % deviceName
+            ))
+            self.dmd.ZenEventManager.sendEvent(evt)
 
     def getDevice(self, device_specs):
         """
@@ -435,8 +506,12 @@ settingsDevice setManageIp='10.10.10.77', setLocation="123 Elm Street", \
             if devobj is None:
                 self.log.error("Unable to find newly created device %s -- skipping" \
                               % name)
-        except Exception, ex:
-            self.log.exception("Unable to load %s -- skipping" % name )
+            else:
+                self.notifyNewDeviceCreated(name)
+
+        except Exception:
+            msg = "Unable to load %s -- skipping" % name
+            self.reportException(msg, name)
 
         return devobj
 
@@ -577,4 +652,9 @@ if __name__=='__main__':
         sys.exit(0)
 
     device_list = batchLoader.loadDeviceList()
+    if not device_list:
+        batchLoader.log.warn("No device entries found to load.")
+        sys.exit(1)
+
     batchLoader.processDevices(device_list)
+    sys.exit(0)
