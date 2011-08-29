@@ -41,6 +41,8 @@ class DeviceOrganizerNode(TreeNode):
     def children(self):
         if getattr(self, '_cached_children', None) is None:
             orgs = self._get_object().children()
+            # sort the organizers
+            orgs = sorted(orgs, key=lambda org: org.titleOrId())
             self._cached_children = map(lambda x:DeviceOrganizerNode(x, self._root, self), orgs)
         return self._cached_children
 
