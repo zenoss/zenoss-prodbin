@@ -305,7 +305,7 @@ class PageAction(IActionBase, TargetableAction):
         """
         log.debug('Executing action: Page')
 
-        data = _signalToContextDict(signal)
+        data = _signalToContextDict(signal, self.options.get('zopeurl'))
         if signal.clear:
             log.debug('This is a clearing signal.')
             subject = processTalSource(notification.content['clear_subject_format'], **data)
