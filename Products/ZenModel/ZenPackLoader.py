@@ -403,7 +403,7 @@ class ZPTriggerAction(ZenPackLoader):
         import Products.Zuul as Zuul
         from Products.Zuul.facades import ObjectNotFoundException
         
-        tf = Zuul.getFacade('triggers')
+        tf = Zuul.getFacade('triggers', app.dmd)
         guidManager = IGUIDManager(app)
         
         for conf in findFiles(pack, 'zep',lambda f: f == 'actions.json'):
