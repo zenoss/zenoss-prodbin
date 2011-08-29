@@ -56,8 +56,8 @@ class CollectorConfigService(HubService, ThresholdMixin):
     def __init__(self, dmd, instance, deviceProxyAttributes=()):
         """
         Constructs a new CollectorConfig instance.
-        
-        Subclasses must call this __init__ method but cannot do so with 
+
+        Subclasses must call this __init__ method but cannot do so with
         the super() since parents of this class are not new-style classes.
 
         @param dmd: the Zenoss DMD reference
@@ -247,7 +247,7 @@ class CollectorConfigService(HubService, ThresholdMixin):
         Filters out devices from the provided list that should not be
         converted into DeviceProxy instances and sent back to the collector
         client.
-        
+
         @param device: the device object to filter
         @return: a list of devices that are to be included
         @rtype: list
@@ -304,8 +304,8 @@ class CollectorConfigService(HubService, ThresholdMixin):
     # FIXME: Don't use _getNotifiableClasses, use @onUpdate(myclasses)
     def _getNotifiableClasses(self):
         """
-        a tuple of classes. When any object of a type in the sequence is 
-        modified the collector connected to the service will be notified to 
+        a tuple of classes. When any object of a type in the sequence is
+        modified the collector connected to the service will be notified to
         update its configuration
 
         @rtype: tuple
@@ -323,14 +323,14 @@ class CollectorConfigService(HubService, ThresholdMixin):
 
     def _reconfigureIfNotify(self, object):
         ncc = self._notifyConfigChange(object)
-        log.debug("services/config.py _reconfigureIfNotify object=%r _notifyConfigChange=%s" % (object, ncc))
+        self.log.debug("services/config.py _reconfigureIfNotify object=%r _notifyConfigChange=%s" % (object, ncc))
         if ncc:
             self.log.debug('scheduling collector reconfigure')
             self._reconfigProcrastinator.doLater(True)
 
     def _notifyConfigChange(self, object):
         """
-        Called when an object of a type from _getNotifiableClasses is 
+        Called when an object of a type from _getNotifiableClasses is
         encountered
         @return: should a notify config changed be sent
         @rtype: boolean
