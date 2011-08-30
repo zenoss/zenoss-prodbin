@@ -425,7 +425,7 @@ class EventClassInst(EventClassPropertyMixin, ZenModelRM, EventView,
         """
         # first pass set new sequence
         for i, map in enumerate(self.sameKey()):
-            map.sequence = seqmap[i]
+            map.sequence = int(seqmap[i])
         # second pass take out any holes
         for i, map in enumerate(self.sameKey()):
             map.sequence = i
