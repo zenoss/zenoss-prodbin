@@ -1,5 +1,5 @@
 ###########################################################################
-    #
+#
 # This program is part of Zenoss Core, an open source monitoring platform.
 # Copyright (C) 2007, Zenoss Inc.
 #
@@ -421,6 +421,7 @@ class UserSettingsManager(ZenModelRM):
                 pass
             if getattr(aq_base(self), userid, False):
                 us = self._getOb(userid)
+                us.removeAdminRoles()
                 for ar in us.adminRoles():
                     ar.userSetting.removeRelation()
                     mobj = ar.managedObject().primaryAq()
@@ -462,7 +463,10 @@ class UserSettingsManager(ZenModelRM):
         if isinstance(groupids, basestring):
             groupids = [groupids]
         for groupid in groupids:
-            if self._getOb(groupid): self._delObject(groupid)
+            if self._getOb(groupid):
+                group = self._getOb(groupid)
+                group.removeAdminRoles()
+                self._delObject(groupid)
             try:
                 gm.removeGroup(groupid)
                 self.acl_users.ZCacheable_invalidate()
@@ -1160,6 +1164,17 @@ class UserSettings(ZenModelRM):
                                         self.zenossNetUser,
                                         self.zenossNetPassword)
         return session
+
+    def removeAdminRoles(self):
+        """
+        Call before deleting a user or group this will
+        remove this user/group from the list of admin objects for
+        everything that the object adminstered before. This
+        prevents broken relationships
+        """
+        for role in self.getAllAdminRoles():
+            obj = role.managedObject().primaryAq()
+            obj.manage_deleteAdministrativeRole(self.id)
 
 class GroupSettings(UserSettings):
     implements(IProvidesEmailAddresses, IProvidesPagerAddresses)
