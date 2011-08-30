@@ -43,27 +43,7 @@ function resetPassword(){
         <tal:block metal:fill-slot="zentablecontents">
         <!-- BEGIN TABLE CONTENTS -->
 
-    <tr>
-      <td class="tableheader" align="left">New Password</td>
-      <td class="tablevalues">
-        <input class="tablevalues" type="password" name="password"
-            autocomplete="off"/>
-            <button
-                   tabindex="-1"
-                   onclick="resetPassword()"
-                   class="tableheader"
-                   name="manage_resetPassword:method">
-              Reset Password
-            </button>
-       </td>
-    </tr>
-    <tr>
-      <td class="tableheader" align="left">Confirm New Password</td>
-      <td class="tablevalues">
-        <input class="tablevalues" type="password" name="sndpassword"
-            autocomplete="off"/>
-       </td>
-    </tr>
+
     <tr tal:condition="here/isManager">
       <td class="tableheader" align="left">Roles</td>
       <td class="tablevalues">
@@ -140,21 +120,68 @@ function resetPassword(){
             tal:attributes="value here/netMapStartObject" />
       </td>
     </tr>
+    
+    <tr>
+        <td style="height:1px;border-bottom:dashed 1px #bbb;" class="tableheader">
+        </td>
+        <td style="height:1px;border-bottom:dashed 1px #ccc;" colspan=3>
+        </td>
+    </tr>    
+    
+    <tr>
+      <td class="tableheader" align="left">Set New Password</td>
+      <td class="tablevalues">
+        <input class="tablevalues" type="password" name="password"
+            autocomplete="off"/>
+       </td>
+    </tr>
+    <tr>
+      <td class="tableheader" align="left">Confirm New Password</td>
+      <td class="tablevalues">
+        <input class="tablevalues" type="password" name="sndpassword"
+            autocomplete="off"/>
+       </td>
+    </tr> 
+    
+    
     <tr>
         <td style="color:darkred;width:275px;height:50px" class=tableheader align="left">
-            Enter your password to confirm changes
+            <strong>Enter current password to confirm changes</strong>
         </td>
-        <td align="left"  class="tableheader" colspan=3>
-        <input id="pwconfirm" class="tablevalues" type="password" name="oldpassword"
-            autocomplete="off"/>
-            <input class="tableheader" type="submit" value=" Save "
-                disabled=true
-                id="formsave"
-                style="width:60px;text-align:center;color:#888"
-                name="manage_editUserSettings:method" />
+        <td align="left" style="padding-left:4px;" class="tableheader" colspan=3>
+        <div style="position:relaitve;">
+            <input id="pwconfirm" class="tablevalues" type="password" name="oldpassword"
+                autocomplete="off"/>
+            <div style="position:absolute;top:-4px;left:180px;">
+                <input class="tableheader" type="submit" value=" Save Settings "
+                    disabled=true
+                    id="formsave"
+                    style="height:30px;width:144px;text-align:center;color:#888"
+                    name="manage_editUserSettings:method" />
+            </div>
+        </div>    
         </td>
     </tr>
-
+  
+    
+    <tr>
+    <td style="padding:15px 0 0 8px;border-top:dashed 1px #bbb;" colspan="4">
+        <div style="background:#ddd;width:372px;height:30px;">
+            <div style="float:left;width:230px;font-size:11px;line-height:12px;color:#555;padding:2px 0 0 4px;">
+                Automatically generate a new password and send it to the email listed above.
+            </div>
+            <div style="float:left;padding-left:8px;">
+            <button style="height:30px;width:128px;text-align:center;"
+                   tabindex="-1"
+                   onclick="resetPassword()"
+                   class="tableheader"
+                   name="manage_resetPassword:method">
+               Reset Password
+            </button>    
+            </div>
+        </div>   
+    </td>
+    </tr>
         <!-- END TABLE CONTENTS -->
 
         </tal:block>
