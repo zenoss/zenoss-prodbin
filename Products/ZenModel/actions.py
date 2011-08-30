@@ -12,7 +12,6 @@
 ###########################################################################
 
 import re
-from traceback import format_exc
 from zope.interface import implements
 from zope.component import getUtilitiesFor
 
@@ -30,11 +29,9 @@ from Products.Zuul.form.interfaces import IFormBuilder
 
 from Products.ZenModel.interfaces import IAction, IProvidesEmailAddresses, IProvidesPagerAddresses, IProcessSignal
 from Products.ZenModel.NotificationSubscription import NotificationEventContextWrapper
-from Products.ZenEvents.Event import Event
 from Products.ZenUtils import Utils
 from Products.ZenUtils.guid.guid import GUIDManager
 from Products.ZenUtils.ProcessQueue import ProcessQueue
-from Products.ZenEvents.ZenEventClasses import Warning as SEV_WARNING
 from Products.ZenUtils.ZenTales import talEval
 
 import logging
@@ -55,7 +52,7 @@ def processTalSource(source, **kwargs):
     context.update(kwargs)
     return talEval(sourceStr, context, kwargs)
 
-def _signalToContextDict(signal, zopeurl):
+def _signalToContextDict(signal, zopeurl, notification=None, guidManager=None):
     summary = signal.event
     # build basic event context wrapper for notifications
     if signal.clear:
@@ -68,13 +65,22 @@ def _signalToContextDict(signal, zopeurl):
     data['urls']['ackUrl'] = getAckUrl(zopeurl, summary.uuid)
     data['urls']['closeUrl'] = getCloseUrl(zopeurl, summary.uuid)
     proxy = EventSummaryProxy(summary)
+    data['urls']['deviceUrl'] = _getBaseDeviceUrl(zopeurl, proxy.DeviceClass, proxy.device)
     data['urls']['eventsUrl'] = getEventsUrl(zopeurl, proxy.DeviceClass, proxy.device)
     data['urls']['reopenUrl'] = getReopenUrl(zopeurl, summary.uuid)
-
+    data['urls']['baseUrl'] = zopeurl
     # now process all custom processors that might be registered to enhance
     # the event context
     for key, processor in getUtilitiesFor(IProcessSignal):
         data[key] = processor.process(signal)
+
+    # Add trigger and notification info
+    if notification:
+        data['notification']['name'] = notification.titleOrId()
+    if guidManager:
+        trigger = guidManager.getObject(signal.trigger_uuid)
+        if trigger:
+            data['trigger']['name'] = trigger.titleOrId()
 
     return data
 
@@ -202,7 +208,7 @@ class EmailAction(IActionBase, TargetableAction):
     def executeOnTarget(self, notification, signal, target):
         log.debug('Executing action: Email')
 
-        data = _signalToContextDict(signal, self.options.get('zopeurl'))
+        data = _signalToContextDict(signal, self.options.get('zopeurl'), notification, self.guidManager)
         if signal.clear:
             log.debug('This is a clearing signal.')
             subject = processTalSource(notification.content['clear_subject_format'], **data)
@@ -305,7 +311,7 @@ class PageAction(IActionBase, TargetableAction):
         """
         log.debug('Executing action: Page')
 
-        data = _signalToContextDict(signal, self.options.get('zopeurl'))
+        data = _signalToContextDict(signal, self.options.get('zopeurl'), notification, self.guidManager)
         if signal.clear:
             log.debug('This is a clearing signal.')
             subject = processTalSource(notification.content['clear_subject_format'], **data)
@@ -411,7 +417,7 @@ class CommandAction(IActionBase):
             component = self.guidManager.getObject(actor.element_sub_uuid)
 
         environ = {'dev':device, 'component':component, 'dmd':notification.dmd}
-        data = _signalToContextDict(signal, self.options.get('zopeurl'))
+        data = _signalToContextDict(signal, self.options.get('zopeurl'), notification, self.guidManager)
         environ.update(data)
 
         if environ.get('evt', None):
@@ -497,7 +503,7 @@ class SNMPTrapAction(IActionBase):
         """
         log.debug('Processing SNMP Trap action.')
 
-        data = _signalToContextDict(signal, self.options.get('zopeurl'))
+        data = _signalToContextDict(signal, self.options.get('zopeurl'), notification, self.guidManager)
         eventSummary = data['eventSummary']
         event = eventSummary
         actor = event.get['actor']
