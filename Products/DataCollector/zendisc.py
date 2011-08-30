@@ -74,16 +74,22 @@ class ZenDisc(ZenModeler):
         ZenModeler.__init__(self, single )
         self.discovered = []
 
-        # pyraw inserts these magic values
-        protocol = Ping4(IPV4_SOCKET)
-        self._pinger4 = PingService(protocol,
-                         timeout=self.options.timeout,
-                         defaultTries=self.options.tries)
+        # pyraw inserts IPV4_SOCKET and IPV6_SOCKET globals
+        if IPV4_SOCKET is None:
+            self._pinger4 = None
+        else:
+            protocol = Ping4(IPV4_SOCKET)
+            self._pinger4 = PingService(protocol,
+                                        timeout=self.options.timeout,
+                                        defaultTries=self.options.tries)
 
-        protocol = Ping6(IPV6_SOCKET)
-        self._pinger6 = PingService(protocol,
-                         timeout=self.options.timeout,
-                         defaultTries=self.options.tries)
+        if IPV6_SOCKET is None:
+            self._pinger6 = None
+        else:
+            protocol = Ping6(IPV6_SOCKET)
+            self._pinger6 = PingService(protocol,
+                                        timeout=self.options.timeout,
+                                        defaultTries=self.options.tries)
 
     def ping(self, ip):
         """
@@ -91,10 +97,19 @@ class ZenDisc(ZenModeler):
         """
         self.log.debug("Using ipaddr module to convert %s" % ip)
         ipObj = IPAddress(ip)
-        if ipObj.version == 6:
-            return self._pinger6.ping(ip)
 
-        return self._pinger4.ping(ip)
+        if ipObj.version == 6:
+            if self._pinger6 is None:
+                retval = Failure()
+            else:
+                retval = self._pinger6.ping(ip)
+        else:
+            if self._pinger4 is None:
+                retval = Failure()
+            else:
+                retval = self._pinger4.ping(ip)
+
+        return retval
 
     def config(self):
         """
