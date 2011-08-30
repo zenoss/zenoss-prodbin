@@ -22,9 +22,9 @@ from Products.Zuul.interfaces import IDeviceInfo, IDevice
 from Products.Zuul.infos import InfoBase, HasEventsInfoMixin, ProxyProperty
 from Products.Zuul import getFacade, info
 from Products.Zuul.marshalling import TreeNodeMarshaller
-from Products.Zuul.utils import catalogAwareImap
 from Products.ZenUtils.guid.interfaces import IGlobalIdentifier
-from zenoss.protocols.protobufs.zep_pb2 import SEVERITY_CLEAR, SEVERITY_INFO, SEVERITY_DEBUG
+from zenoss.protocols.protobufs.zep_pb2 import SEVERITY_INFO, SEVERITY_DEBUG
+from Products.ZenModel.ZenossSecurity import ZEN_VIEW
 
 ORGTYPES = {
     'Devices':'DeviceClass',
@@ -37,10 +37,20 @@ class DeviceOrganizerNode(TreeNode):
     implements(IDeviceOrganizerNode)
     adapts(DeviceOrganizer)
 
+
+    def __init__(self, ob, root=None, parent=None):
+        super(DeviceOrganizerNode, self).__init__(ob, root, parent)
+        obj = self._get_object()
+        self.hasNoGlobalRoles = obj.dmd.ZenUsers.getUserSettings().hasNoGlobalRoles()
+
     @property
     def children(self):
         if getattr(self, '_cached_children', None) is None:
-            orgs = self._get_object().children()
+            obj = self._get_object()
+            if self.hasNoGlobalRoles:
+                orgs = self._nonGlobalRoleGetChildren()
+            else:
+                orgs = obj.children()
             # sort the organizers
             orgs = sorted(orgs, key=lambda org: org.titleOrId())
             self._cached_children = map(lambda x:DeviceOrganizerNode(x, self._root, self), orgs)
@@ -48,6 +58,11 @@ class DeviceOrganizerNode(TreeNode):
 
     def _count_devices(self):
         if getattr(self, '_cached_count', None) is None:
+            # if the user is does not have global permissions do not show a count
+            if self.hasNoGlobalRoles:
+                self._cached_count = None
+                return self._cached_count
+
             count = 0
             for child in self.children:
                 count += child._count_devices()
@@ -66,6 +81,28 @@ class DeviceOrganizerNode(TreeNode):
             'count': numInstances,
             'description': 'devices'
         }
+
+    def _nonGlobalRoleGetChildren(self):
+        """
+        See Trac #2725, unrestricted users need to see the nodes they
+        don't have permission to view if they do have permissions on any of the child
+        nodes.
+        """
+        obj = self._get_object()
+        user = obj.dmd.ZenUsers.getUserSettings()
+        for child in obj.objectValues(spec=obj.meta_type):
+            childUid = "/".join(child.getPhysicalPath())
+            # see if the user has permission on this object anyways
+            if obj.checkRemotePerm(ZEN_VIEW, child):
+                yield child
+                continue
+            # if the user has permission on an object that is contained
+            # by this object, we need to show it as well
+            for adminObj in user.getAllAdminRoles():
+                adminUid = "/".join(adminObj.managedObject().getPrimaryPath())
+                if adminUid.startswith(childUid):
+                    yield child
+                    break
 
     # All nodes are potentially branches, just some have no children
     leaf = False
