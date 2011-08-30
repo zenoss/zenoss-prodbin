@@ -90,7 +90,9 @@ shebang
 
 # restart external server daemons
 restart_snmpd
-start_mysql
+if [ "${MYSQLHOST}" = "localhost" ];then
+    start_mysql
+fi
 start_rabbitmq
 
 # patch any ZenPack code that isn't compatible with this version of core
