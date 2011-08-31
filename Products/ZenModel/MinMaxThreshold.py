@@ -269,26 +269,56 @@ class MinMaxThresholdInstance(ThresholdInstance):
                 severity = min(severity + 1, 5)
             summary = 'threshold of %s %s: current value %.2f' % (
                 self.name(), how, float(value))
-            return [dict(device=self.context().deviceName,
+            return self.processEvent(dict(
+                         device=self.context().deviceName,
                          summary=summary,
                          eventKey=self.id,
                          eventClass=self.eventClass,
                          component=self.context().componentName,
-                         severity=severity)]
+                         how=how,
+                         min=self.minimum,
+                         max=self.maximum,
+                         current=value,
+                         severity=severity))
         else:
             count = self.getCount(dp)
             if count is None or count > 0:
                 summary = 'threshold of %s restored: current value %.2f' % (
                     self.name(), value)
                 self.resetCount(dp)
-                return [dict(device=self.context().deviceName,
+                return self.processClearEvent(dict(
+                             device=self.context().deviceName,
                              summary=summary,
                              eventKey=self.id,
                              eventClass=self.eventClass,
                              component=self.context().componentName,
-                             severity=Event.Clear)]
+                             min=self.minimum,
+                             max=self.maximum,
+                             current=value,
+                             severity=Event.Clear))
         return []
 
+    def processEvent(self, evt):
+        """
+        When a threshold condition is violated, pre-process it for (possibly) nicer
+        formatting or more complicated logic.
+
+        @paramater evt: event
+        @type evt: dictionary
+        @rtype: list of dictionaries
+        """
+        return [evt]
+
+    def processClearEvent(self, evt):
+        """
+        When a threshold condition is restored, pre-process it for (possibly) nicer
+        formatting or more complicated logic.
+
+        @paramater evt: event
+        @type evt: dictionary
+        @rtype: list of dictionaries
+        """
+        return [evt]
 
     def raiseRPNExc( self ):
         """
