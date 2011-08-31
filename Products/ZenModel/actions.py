@@ -35,12 +35,17 @@ from Products.ZenUtils.ProcessQueue import ProcessQueue
 from Products.ZenUtils.ZenTales import talEval
 
 import logging
+
 log = logging.getLogger("zen.actions")
 
 
 
+
 class ActionExecutionException(Exception): pass
+
+
 class ActionMissingException(Exception): pass
+
 
 def processTalSource(source, **kwargs):
     """
@@ -51,6 +56,7 @@ def processTalSource(source, **kwargs):
     context = kwargs.get('here', {})
     context.update(kwargs)
     return talEval(sourceStr, context, kwargs)
+
 
 def _signalToContextDict(signal, zopeurl, notification=None, guidManager=None):
     summary = signal.event
@@ -84,13 +90,16 @@ def _signalToContextDict(signal, zopeurl, notification=None, guidManager=None):
 
     return data
 
+
 def _getBaseUrl(zopeurl):
     if not zopeurl:
         zopeurl = Utils.getDefaultZopeUrl()
     return '%s/zport/dmd' % zopeurl
 
+
 def _getBaseEventUrl(zopeurl):
     return '%s/Events' % _getBaseUrl(zopeurl)
+
 
 def _getBaseDeviceUrl(zopeurl, device_class, device_name):
     """
@@ -103,6 +112,7 @@ def _getBaseDeviceUrl(zopeurl, device_class, device_name):
 def getEventUrl(zopeurl, evid):
     return "%s/viewDetail?evid=%s" % (_getBaseEventUrl(zopeurl), evid)
 
+
 def getEventsUrl(zopeurl, device_class=None, device_name=None):
     if device_class and device_name:
         # events for a specific device
@@ -111,16 +121,19 @@ def getEventsUrl(zopeurl, device_class=None, device_name=None):
         #events on all devices
         return "%s/viewEvents" % _getBaseUrl(zopeurl)
 
+
 def getAckUrl(zopeurl, evid):
-    return "%s/manage_ackEvents?evids=%s&zenScreenName=viewEvents" % \
+    return "%s/manage_ackEvents?evids=%s&zenScreenName=viewEvents" %\
            (_getBaseEventUrl(zopeurl), evid)
+
 
 def getCloseUrl(zopeurl, evid):
-    return "%s/manage_deleteEvents?evids=%s&zenScreenName=viewHistoryEvents" % \
+    return "%s/manage_deleteEvents?evids=%s&zenScreenName=viewHistoryEvents" %\
            (_getBaseEventUrl(zopeurl), evid)
 
+
 def getReopenUrl(zopeurl, evid):
-    return "%s/manage_undeleteEvents?evids=%s&zenScreenName=viewEvents" % \
+    return "%s/manage_undeleteEvents?evids=%s&zenScreenName=viewEvents" %\
            (_getBaseEventUrl(zopeurl), evid)
 
 
@@ -128,6 +141,7 @@ class IActionBase(object):
     """
     Mixin class for provided some common, necessary, methods.
     """
+
     def configure(self, options):
         self.options = options
 
@@ -140,7 +154,6 @@ class IActionBase(object):
 
 
 class TargetableAction(object):
-
     def setupAction(self, dmd):
         """
         Some actions need to configure themselves with properties from the dmd.
@@ -173,7 +186,7 @@ class TargetableAction(object):
                 # actions from executing on any other targets that may be
                 # about to be acted on.
                 msg = 'Error executing action {notification}'.format(
-                    notification = notification.id,
+                    notification=notification.id,
                 )
                 log.error(e)
                 log.error(msg)
@@ -184,7 +197,6 @@ class TargetableAction(object):
                               message=traceback,
                               severity=SEV_WARNING, component="zenactiond")
                 notification.dmd.ZenEventManager.sendEvent(event)
-
 
 
 class EmailAction(IActionBase, TargetableAction):
@@ -250,7 +262,7 @@ class EmailAction(IActionBase, TargetableAction):
 
         if result:
             log.info("Notification '%s' sent email to: %s",
-                notification.id, target)
+                     notification.id, target)
         else:
             raise ActionExecutionException(
                 "Notification '%s' failed to send email to %s: %s" %
@@ -273,8 +285,8 @@ class EmailAction(IActionBase, TargetableAction):
            stolen from the old zenactions.
            @todo: needs to be updated for the new data structure?
         """
-        tags = re.compile(r'<(.|\n)+?>', re.I|re.M)
-        aattrs = re.compile(r'<a(.|\n)+?href=["\']([^"\']*)[^>]*?>([^<>]*?)</a>', re.I|re.M)
+        tags = re.compile(r'<(.|\n)+?>', re.I | re.M)
+        aattrs = re.compile(r'<a(.|\n)+?href=["\']([^"\']*)[^>]*?>([^<>]*?)</a>', re.I | re.M)
         anchors = re.finditer(aattrs, data)
         for x in anchors: data = data.replace(x.group(), "%s: %s" % (x.groups()[2], x.groups()[1]))
         data = re.sub(tags, '', data)
@@ -284,7 +296,7 @@ class EmailAction(IActionBase, TargetableAction):
         updates = dict()
         updates['body_content_type'] = data.get('body_content_type', 'html')
 
-        properties = ['subject_format', 'body_format', 'clear_subject_format', 'clear_body_format',]
+        properties = ['subject_format', 'body_format', 'clear_subject_format', 'clear_body_format', ]
         for k in properties:
             updates[k] = data.get(k)
 
@@ -326,7 +338,8 @@ class PageAction(IActionBase, TargetableAction):
         if success:
             log.info("Notification '%s' sent page to %s." % (notification, target))
         else:
-            raise ActionExecutionException("Notification '%s' failed to send page to %s. (%s)" % (notification, target, errorMsg))
+            raise ActionExecutionException(
+                "Notification '%s' failed to send page to %s. (%s)" % (notification, target, errorMsg))
 
     def getActionableTargets(self, target):
         """
@@ -340,14 +353,14 @@ class PageAction(IActionBase, TargetableAction):
     def updateContent(self, content=None, data=None):
         updates = dict()
 
-        properties = ['subject_format', 'clear_subject_format',]
+        properties = ['subject_format', 'clear_subject_format', ]
         for k in properties:
             updates[k] = data.get(k)
 
         content.update(updates)
 
-class EventCommandProtocol(ProcessProtocol):
 
+class EventCommandProtocol(ProcessProtocol):
     def __init__(self, cmd):
         self.cmd = cmd
         self.data = ''
@@ -379,6 +392,7 @@ class EventCommandProtocol(ProcessProtocol):
     def errReceived(self, text):
         self.error += text
 
+
 class CommandAction(IActionBase):
     implements(IAction)
 
@@ -406,7 +420,6 @@ class CommandAction(IActionBase):
 
         log.debug('Executing this command: %s' % command)
 
-
         actor = signal.event.occurrence[0].actor
         device = None
         if actor.element_uuid:
@@ -416,7 +429,7 @@ class CommandAction(IActionBase):
         if actor.element_sub_uuid:
             component = self.guidManager.getObject(actor.element_sub_uuid)
 
-        environ = {'dev':device, 'component':component, 'dmd':notification.dmd}
+        environ = {'dev': device, 'component': component, 'dmd': notification.dmd}
         data = _signalToContextDict(signal, self.options.get('zopeurl'), notification, self.guidManager)
         environ.update(data)
 
@@ -426,7 +439,6 @@ class CommandAction(IActionBase):
         if environ.get('clearEvt', None):
             environ['clearEvt'] = self._escapeEvent(environ['clearEvt'])
 
-
         command = processTalSource(command, **environ)
         log.debug('Executing this compiled command: "%s"' % command)
 
@@ -435,7 +447,7 @@ class CommandAction(IActionBase):
         log.info('Queueing up command action process.')
         self.processQueue.queueProcess(
             '/bin/sh',
-            ('/bin/sh', '-c', command),
+                ('/bin/sh', '-c', command),
             env=None,
             processProtocol=_protocol,
             timeout=int(notification.content['action_timeout']),
@@ -461,7 +473,7 @@ class CommandAction(IActionBase):
         """
         QUOTE = '"'
         BACKSLASH = '\\'
-        return ''.join( (QUOTE, msg.replace(QUOTE, BACKSLASH + QUOTE), QUOTE) )
+        return ''.join((QUOTE, msg.replace(QUOTE, BACKSLASH + QUOTE), QUOTE))
 
     def getActionableTargets(self, target):
         """
@@ -497,43 +509,66 @@ class SNMPTrapAction(IActionBase):
 
         return self._sessions.get(destination)
 
+    def setupAction(self, dmd):
+        self.guidManager = GUIDManager(dmd)
+
     def execute(self, notification, signal):
         """
         Send out an SNMP trap according to the definition in ZENOSS-MIB.
         """
         log.debug('Processing SNMP Trap action.')
+        self.setupAction(notification.dmd)
 
         data = _signalToContextDict(signal, self.options.get('zopeurl'), notification, self.guidManager)
-        eventSummary = data['eventSummary']
-        event = eventSummary
-        actor = event.get['actor']
+        event = data['eventSummary']
+        actor = event.actor
+        details = event.details
 
         baseOID = '1.3.6.1.4.1.14296.1.100'
 
         fields = {
-           'uuid' :                   ( 1, eventSummary),
-           'fingerprint' :            ( 2, event),
-           'element_identifier' :     ( 3, actor),
-           'element_sub_identifier' : ( 4, actor),
-           'event_class' :            ( 5, event),
-           'event_key' :              ( 6, event),
-           'summary' :                ( 7, event),
-           'severity' :               ( 9, event),
-           'status' :                 (10, eventSummary),
-           'event_class_key' :        (11, event),
-           'event_group' :            (12, event),
-           'state_change_time' :      (13, eventSummary),
-           'first_seen_time' :        (14, eventSummary),
-           'last_seen_time' :         (14, eventSummary),
+           'uuid' :                         ( 1, event),
+           'fingerprint' :                  ( 2, event),
+           'element_identifier' :           ( 3, actor),
+           'element_sub_identifier' :       ( 4, actor),
+           'event_class' :                  ( 5, event),
+           'event_key' :                    ( 6, event),
+           'summary' :                      ( 7, event),
+           'severity' :                     ( 9, event),
+           'status' :                       (10, event),
+           'event_class_key' :              (11, event),
+           'event_group' :                  (12, event),
+           'state_change_time' :            (13, event),
+           'first_seen_time' :              (14, event),
+           'last_seen_time' :               (15, event),
+           'count' :                        (16, event),
+           'zenoss.device.production_state':(17, details),
+           'agent':                         (20, event),
+           'zenoss.device.device_class':    (21, details),
+           'zenoss.device.location' :       (22, details),
+           'zenoss.device.systems' :        (23, details),
+           'zenoss.device.groups' :         (24, details),
+           'zenoss.device.ip_address':      (25, details),
+           'syslog_facility' :              (26, event),
+           'syslog_priority' :              (27, event),
+           'nt_event_code' :                (28, event),
+           'current_user_name' :            (29, event),
+           'cleared_by_event_uuid' :        (31, event),
+           'zenoss.device.priority' :       (32, details),
+           'event_class_mapping_uuid':      (33, event)
            }
 
         varbinds = []
 
-        for field, oidspec in sorted(fields.items(), key=lambda x : x[1][0]):
+        for field, oidspec in sorted(fields.items(), key=lambda x: x[1][0]):
             i, source = oidspec
-            val = source.get(field, None)
-            if val is not None:
-                varbinds.append(("%s.%d.0" % (baseOID,i), 's', str(val)))
+            if source == event.details:
+                val = source.get(field, '')
+            else:
+                val = getattr(source, field, '')
+            if isinstance(val, (list, tuple, set)):
+                val = '|'.join(val)
+            varbinds.append(("%s.%d.0" % (baseOID,i), 's', str(val)))
 
         self._getSession(notification.content['action_destination']).sendTrap(
             baseOID + '.0.0.1', varbinds=varbinds)
