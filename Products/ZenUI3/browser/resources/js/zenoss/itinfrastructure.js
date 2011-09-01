@@ -692,7 +692,7 @@ function initializeTreeDrop(tree) {
                                 if(data.exports) {
                                     Ext.Msg.show({
                                         title: _t('Remodel Required'),
-                                        msg: String.format(_t("Not all of the configuration could be preserved, so a remodel of the device(s) is required. Performance templats have been reset to the defaults for the device class.")),
+                                        msg: String.format(_t("Not all of the configuration could be preserved, so a remodel of the device(s) is required. Performance templates have been reset to the defaults for the device class.")),
                                         buttons: Ext.Msg.OK});
                                 }
                             } else {
