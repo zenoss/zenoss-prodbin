@@ -12,6 +12,7 @@
 ###########################################################################
 
 import re
+from traceback import format_exc
 from zope.interface import implements
 from zope.component import getUtilitiesFor
 
@@ -29,9 +30,11 @@ from Products.Zuul.form.interfaces import IFormBuilder
 
 from Products.ZenModel.interfaces import IAction, IProvidesEmailAddresses, IProvidesPagerAddresses, IProcessSignal
 from Products.ZenModel.NotificationSubscription import NotificationEventContextWrapper
+from Products.ZenEvents.Event import Event
 from Products.ZenUtils import Utils
 from Products.ZenUtils.guid.guid import GUIDManager
 from Products.ZenUtils.ProcessQueue import ProcessQueue
+from Products.ZenEvents.ZenEventClasses import Warning as SEV_WARNING
 from Products.ZenUtils.ZenTales import talEval
 
 import logging
