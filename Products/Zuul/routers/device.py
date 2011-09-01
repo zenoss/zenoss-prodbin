@@ -64,23 +64,15 @@ class DeviceRouter(TreeRouter):
            - success: (bool) Success of node creation
            - nodeConfig: (dictionary) The new location's properties
         """
-        result = {}
-        try:
-            facade = self._getFacade()
-            organizer = facade.addLocationOrganizer(contextUid,
-                                                    id,
-                                                    description,
-                                                    address)
-            uid = organizer.uid
+        facade = self._getFacade()
+        organizer = facade.addLocationOrganizer(contextUid,
+                                                id,
+                                                description,
+                                                address)
+        uid = organizer.uid
 
-            treeNode = facade.getTree(uid)
-            result['nodeConfig'] = Zuul.marshal(treeNode)
-            result['success'] = True
-        except Exception, e:
-            log.exception(e)
-            result['msg'] = str(e)
-            result['success'] = False
-        return result
+        treeNode = facade.getTree(uid)
+        return DirectResponse.succeed("Location added", nodeConfig=Zuul.marshal(treeNode))
 
     def _getFacade(self):
         return Zuul.getFacade('device', self.context)
@@ -313,8 +305,8 @@ class DeviceRouter(TreeRouter):
         Zuul.unmarshal(data, process)
         # reindex the object if necessary
         if hasattr(process._object, 'index_object'):
-            process._object.index_object();
-        return DirectResponse()
+            process._object.index_object()
+        return DirectResponse.succeed()
 
     @require('Manage Device')
     def setProductInfo(self, uid, **data):
@@ -446,7 +438,7 @@ class DeviceRouter(TreeRouter):
             exports = facade.moveDevices(uids, target)
         except Exception, e:
             log.exception(e)
-            return DirectResponse.fail('Failed to move devices.')
+            return DirectResponse.exception(e, 'Failed to move devices.')
         else:
             target = '/'.join(target.split('/')[:4])
             tree = self.getTree(target)
@@ -545,7 +537,7 @@ class DeviceRouter(TreeRouter):
             return DirectResponse.succeed(message)
         except Exception, e:
             log.exception(e)
-            return DirectResponse.fail('Failed to lock devices.')
+            return DirectResponse.exception(e, 'Failed to lock devices.')
 
     @require('Admin Device')
     def resetIp(self, uids, hashcheck, uid=None, ranges=(), params=None,
@@ -590,7 +582,7 @@ class DeviceRouter(TreeRouter):
             return DirectResponse('Reset %s IP addresses.' % len(uids))
         except Exception, e:
             log.exception(e)
-            return DirectResponse.fail('Failed to reset IP addresses.')
+            return DirectResponse.exception(e, 'Failed to reset IP addresses.')
 
     @require('Manage Device')
     def resetCommunity(self, uids, hashcheck, uid=None, ranges=(), params=None,
@@ -630,7 +622,7 @@ class DeviceRouter(TreeRouter):
             return DirectResponse('Reset %s community strings.' % len(uids))
         except Exception, e:
             log.exception(e)
-            return DirectResponse.fail('Failed to reset community strings.')
+            return DirectResponse.exception(e, 'Failed to reset community strings.')
 
     @require('Change Device Production State')
     def setProductionState(self, uids, prodState, hashcheck, uid=None,
@@ -672,7 +664,7 @@ class DeviceRouter(TreeRouter):
                 len(uids), self.context.convertProdState(prodState)))
         except Exception, e:
             log.exception(e)
-            return DirectResponse.fail('Failed to change production state.')
+            return DirectResponse.exception(e, 'Failed to change production state.')
 
     @require('Manage Device')
     def setPriority(self, uids, priority, hashcheck, uid=None, ranges=(),
@@ -717,7 +709,7 @@ class DeviceRouter(TreeRouter):
                 len(uids), info.priority))
         except Exception, e:
             log.exception(e)
-            return DirectResponse.fail('Failed to change priority.')
+            return DirectResponse.exception(e, 'Failed to change priority.')
 
     @require('Admin Device')
     def setCollector(self, uids, collector, hashcheck, uid=None, ranges=(),
@@ -762,7 +754,7 @@ class DeviceRouter(TreeRouter):
                                   (collector, len(uids)))
         except Exception, e:
             log.exception(e)
-            return DirectResponse.fail('Failed to change the collector.')
+            return DirectResponse.exception(e, 'Failed to change the collector.')
 
     def setComponentsMonitored(self, uids, hashcheck, monitor=False, uid=None,
                                ranges=(), meta_type=None, keys=None,
@@ -884,7 +876,7 @@ class DeviceRouter(TreeRouter):
             return DirectResponse.succeed(message)
         except Exception, e:
             log.exception(e)
-            return DirectResponse.fail('Failed to lock components.')
+            return DirectResponse.exception(e, 'Failed to lock components.')
 
     def deleteComponents(self, uids, hashcheck, uid=None, ranges=(),
                          meta_type=None, keys=None, start=0, limit=50,
@@ -933,8 +925,8 @@ class DeviceRouter(TreeRouter):
         try:
             facade.deleteComponents(uids)
             return DirectResponse.succeed('Components deleted.')
-        except:
-            return DirectResponse.fail('Failed to delete components.')
+        except Exception, e:
+            return DirectResponse.exception(e, 'Failed to delete components.')
 
     @require('Delete Device')
     def removeDevices(self, uids, hashcheck, action="remove", uid=None,
@@ -995,7 +987,7 @@ class DeviceRouter(TreeRouter):
                 loctree=self.getTree('/zport/dmd/Locations'))
         except Exception, e:
             log.exception(e)
-            return DirectResponse.fail('Failed to remove devices.')
+            return DirectResponse.exception(e, 'Failed to remove devices.')
 
     @serviceConnectionError
     def getGraphDefs(self, uid, drange=None):

@@ -102,7 +102,7 @@ class MibRouter(TreeRouter):
 
             return DirectResponse.succeed(tree=self.getTree())
         except Exception, e:
-            return DirectResponse.fail(str(e))
+            return DirectResponse.exception(e)
 
     def addMIB(self, package, organizer='/'):
         """
@@ -235,14 +235,11 @@ class MibRouter(TreeRouter):
         """
         if id is None:
             return []
-        try:
-            tree = self.api.getMibNodeTree(id)
-            if tree is None:
-                return []
-            data = Zuul.marshal(tree)
-            return [data]
-        except Exception, e:
-            return DirectResponse.fail(str(e))
+        tree = self.api.getMibNodeTree(id)
+        if tree is None:
+            return []
+        data = Zuul.marshal(tree)
+        return [data]
 
     def getMibTrapTree(self, id=None):
         """
@@ -250,12 +247,9 @@ class MibRouter(TreeRouter):
         """
         if id is None:
             return []
-        try:
-            tree = self.api.getMibTrapTree(id)
-            if tree is None:
-                return []
-            data = Zuul.marshal(tree)
-            return [data]
-        except Exception, e:
-            return DirectResponse.fail(str(e))
+        tree = self.api.getMibTrapTree(id)
+        if tree is None:
+            return []
+        data = Zuul.marshal(tree)
+        return [data]
 

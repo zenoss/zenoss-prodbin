@@ -87,15 +87,9 @@ class TemplateRouter(TreeRouter):
         @return:  B{Properties}:
              - nodeConfig: (dictionary) Object representing the added template
         """
-        result = None
-        try:
-            facade = self._getFacade()
-            templateNode = facade.addTemplate(id, targetUid)
-            result = DirectResponse.succeed(
-                nodeConfig=Zuul.marshal(templateNode))
-        except Exception, e:
-            result = DirectResponse.fail(msg=str(e))
-        return result
+        facade = self._getFacade()
+        templateNode = facade.addTemplate(id, targetUid)
+        return DirectResponse.succeed(nodeConfig=Zuul.marshal(templateNode))
 
     @require('Manage DMD')
     def deleteTemplate(self, uid):

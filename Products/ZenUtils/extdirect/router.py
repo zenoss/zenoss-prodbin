@@ -37,6 +37,10 @@ class DirectResponse(object):
             self._data['msg'] = msg
 
     @property
+    def type(self):
+        return self._data.get('type', None)
+
+    @property
     def data(self):
         return self._data
 
@@ -44,12 +48,22 @@ class DirectResponse(object):
         self._data[key] = value
 
     @staticmethod
-    def exception(exception, **kwargs):
+    def exception(exception, message=None, **kwargs):
+        """
+        If an exception is raised, use this! It will cause the transaction to be rolled
+        back.
+        """
         msg = exception.__class__.__name__ + ': ' + str(exception)
+        if message:
+            msg = '%s: %s' % (message, msg)
         return DirectResponse(msg, success=False, type='exception', **kwargs)
 
     @staticmethod
     def fail(msg=None, **kwargs):
+        """
+        If the request has failed for a non-database-impacting reason
+        (e.g., "device already exists"), use this.
+        """
         return DirectResponse(msg, success=False, type='error', **kwargs)
 
     @staticmethod
@@ -120,6 +134,8 @@ class DirectRouter(object):
         return directResponses
 
     def _processDirectRequest(self, directRequest):
+        savepoint = transaction.savepoint()
+
         # Add a UUID so we can track it in the logs
         uuid = str(uuid4())
 
@@ -163,11 +179,11 @@ class DirectRouter(object):
             response.result = _targetfn(**data)
         except Exception as e:
             log.error('DirectRouter directRequest = %s', directRequest)
-            log.error('DirectRouter suppressed the following exception (Response %s):' % response.uuid)
-            log.exception(e)
-            # rollback ZODB transaction on uncaught exceptions
-            transaction.abort()
+            log.exception('DirectRouter suppressed the following exception (Response %s):' % response.uuid)
             response.result = DirectResponse.exception(e)
+
+        if isinstance(response.result, DirectResponse) and response.result.type == 'exception':
+            savepoint.rollback()
 
         return response
 

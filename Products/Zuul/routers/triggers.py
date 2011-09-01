@@ -75,7 +75,7 @@ class TriggersRouter(DirectRouter):
             return DirectResponse.succeed(data=response)
         except Exception, e:
             log.exception(e)
-            return DirectResponse.fail(
+            return DirectResponse.exception(e,
                 'Error parsing filter source. Please check your syntax.')
 
 

@@ -89,7 +89,7 @@ class NetworkRouter(TreeRouter):
 
             except Exception as error:
                 log.exception(error)
-                response = DirectResponse.fail('Error adding subnet: %s (%s)' % (newSubnet, error))
+                response = DirectResponse.exception(error, 'Error adding subnet.')
 
         return response
 

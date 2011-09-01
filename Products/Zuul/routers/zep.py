@@ -764,10 +764,10 @@ class EventsRouter(DirectRouter):
             # currently running.
             msg = 'Queued event. Check zeneventd status on <a href="/zport/About/zenossInfo">Daemons</a>'
             return DirectResponse.succeed(msg, sticky=True)
-        except PublishException:
+        except PublishException, e:
             # This occurs if there is a failure publishing the event to the queue.
             log.exception("Failed creating event")
-            return DirectResponse.fail("Failed to create event")
+            return DirectResponse.exception(e, "Failed to create event")
 
     def _convertSeverityToNumber(self, sev):
         return EventSeverity.getNumber(sev)
