@@ -22,7 +22,7 @@ from twisted.internet.error import TimeoutError
 from Products.ZenUtils.snmp import SnmpV1Config, SnmpV2cConfig
 from Products.ZenUtils.snmp import SnmpAgentDiscoverer
 
-from pynetsnmp.twistedsnmp import snmpprotocol
+from pynetsnmp.twistedsnmp import snmpprotocol, Snmpv3Error
 
 import Globals
 
@@ -119,6 +119,9 @@ class SnmpClient(BaseClient):
                 self.initSnmpProxy()
             else:
                 return
+        except Snmpv3Error, ex:
+            log.info("Cannot connect to SNMP agent: {0}".format(self.connInfo.summary()))
+            return
         except Exception, ex:
             log.exception("Unable to talk: " + self.connInfo.summary())
             return
@@ -219,6 +222,8 @@ class SnmpClient(BaseClient):
             if isinstance(result.value, error.TimeoutError):
                 log.warning("Device %s timed out: are "
                             "your SNMP settings correct?", self.hostname)
+            elif isinstance(result.value, Snmpv3Error):
+                log.warning("Connection to device {0.hostname} failed: {1.value.message}".format(self, result))
             else:
                 log.exception("Device %s had an error: %s",self.hostname,result)
         self.proxy.close()

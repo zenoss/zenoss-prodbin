@@ -52,6 +52,7 @@ unused(SnmpConnInfo)
 
 from twisted.internet import defer, error
 from twisted.python.failure import Failure
+from pynetsnmp.twistedsnmp import Snmpv3Error
 
 log = logging.getLogger("zen.zenprocess")
 
@@ -407,6 +408,9 @@ class ZenProcessTask(ObservableMixin):
         if isinstance(reason.value, error.TimeoutError):
             log.debug('Timeout on device %s' % self._devId)
             msg = '%s; Timeout on device' % msg
+        elif isinstance(reason.value, Snmpv3Error):
+            msg = ("Cannot connect to SNMP agent on {0._devId}: {1.value}").format(self, reason)
+            log.debug(msg)
         else:
             msg = '%s; error: %s' % (msg, reason.getErrorMessage())
             log.error('Error on device %s; %s' % (self._devId, 

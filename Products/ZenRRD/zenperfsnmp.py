@@ -26,7 +26,7 @@ import zope.interface
 
 from twisted.internet import defer, error
 from twisted.python.failure import Failure
-from pynetsnmp.twistedsnmp import AgentProxy, snmpprotocol
+from pynetsnmp.twistedsnmp import AgentProxy, snmpprotocol, Snmpv3Error
 
 from Products.ZenCollector.daemon import CollectorDaemon
 from Products.ZenCollector.interfaces import ICollectorPreferences,\
@@ -176,6 +176,10 @@ class SnmpPerformanceCollectionTask(BaseTask):
             # not returning a result
             reason = None
 
+        elif isinstance(reason.value, Snmpv3Error):
+            msg = ("Cannot connect to SNMP agent on {0._devId}: {1.value}").format(self, reason)
+            reason = None
+
         elif isinstance(reason.value, SingleOidSwitchException):
             return # Just wait for the next cycle
 
@@ -261,7 +265,7 @@ class SnmpPerformanceCollectionTask(BaseTask):
 
             if not success:
                 if isinstance(update, Failure) and \
-                    isinstance(update.value, error.TimeoutError):
+                    isinstance(update.value, (error.TimeoutError, Snmpv3Error)):
                     return defer.fail(update)
                 else:
                     log.warning('Failed to collect on %s (%s: %s)',
