@@ -14,6 +14,7 @@
 # by Brian O. Bush, Thu 24-Jan-2008 06:53 bushbo
 
 import os, sys, pickle, base64, threading, glob
+import tempfile
 
 _DEFAULT_NOT_SPECIFIED = object()
 
@@ -48,8 +49,29 @@ class FileCache(object):
     def __setitem__(self, key, value):
         fn = self._makeFileNameFromKey(key)
         with self.lock:
-            with open(fn, 'wb') as f:
-                pickle.dump((key, value), f, protocol=self._pickleProtocol)
+            # use temp file to avoid partially written out pickles
+            tempFd = None # file descriptor
+            tempFn = None # file name
+            try:
+                # dump to a temp file in pickle dir
+                tempFd, tempFn = tempfile.mkstemp(dir=os.path.dirname(fn))
+                # open a file object
+                with os.fdopen(tempFd, "wb") as tempF:
+                    tempFd = None
+                    pickle.dump((key, value), tempF, protocol=self._pickleProtocol)
+                # rename the temp file
+                # this is an atomic operation on most filesystems
+                os.rename(tempFn, fn)
+            except Exception as ex:
+                if tempFd is not None:
+                    os.close(tempFd)
+                raise ex
+            finally:
+                if os.path.exists(tempFn):
+                    try:
+                        os.remove(tempFn)
+                    except (OSError, IOError):
+                        pass
     def __delitem__(self, key):
         fn = self._makeFileNameFromKey(key)
         with self.lock:
