@@ -42,8 +42,33 @@ function resetPassword(){
 
         <tal:block metal:fill-slot="zentablecontents">
         <!-- BEGIN TABLE CONTENTS -->
+    <tr>
+    <td style="padding:8px 0 8px 8px;border-bottom:solid 1px #ccc;" colspan="4">
+        <div style="background:#ddd;width:372px;height:30px;">
+            <div style="float:left;width:230px;height:30px;font-size:11px;line-height:12px;color:#555;padding:2px 0 0 4px;">
+                Automatically generate a new password and send it to the email listed above.
+            </div>
+            <div style="float:left;padding:2px 0 0 8px;">
+            <button style="height:30px;width:128px;text-align:center;"
+                   onclick="resetPassword()"
+                   class="tableheader"
+                   name="manage_resetPassword:method">
+               Reset Password
+            </button>    
+            </div>
+        </div>   
+    </td>
+    </tr>
 
 
+    <tr>
+    <td class="tableheader" style="padding:0 0 0 8px;border-bottom:solid 1px #888;background:#bbb;" colspan="4">
+        <div style="font-size:14px;">
+            USER SETTINGS        </div>   
+    </td>
+    </tr>
+    
+    
     <tr tal:condition="here/isManager">
       <td class="tableheader" align="left">Roles</td>
       <td class="tablevalues">
@@ -148,40 +173,23 @@ function resetPassword(){
         <td style="color:darkred;width:275px;height:50px" class=tableheader align="left">
             <strong>Enter current password to confirm changes</strong>
         </td>
-        <td align="left" style="padding-left:4px;" class="tableheader" colspan=3>
-        <div style="position:relaitve;">
-            <input id="pwconfirm" class="tablevalues" type="password" name="oldpassword"
+        <td align="left" style="padding:4px 0 0 4px;" class="tableheader" colspan=3>
+            <div style="float:left;">
+            <input style="margin-top:2px;" id="pwconfirm" class="tablevalues" type="password" name="oldpassword"
                 autocomplete="off"/>
-            <div style="position:absolute;top:-4px;left:180px;">
+            </div>    
+                <div style="padding:0 0 0 8px;float:left;">
                 <input class="tableheader" type="submit" value=" Save Settings "
                     disabled=true
                     id="formsave"
                     style="height:30px;width:144px;text-align:center;color:#888"
                     name="manage_editUserSettings:method" />
-            </div>
-        </div>    
+                </div>    
         </td>
     </tr>
   
     
-    <tr>
-    <td style="padding:15px 0 0 8px;border-top:dashed 1px #bbb;" colspan="4">
-        <div style="background:#ddd;width:372px;height:30px;">
-            <div style="float:left;width:230px;font-size:11px;line-height:12px;color:#555;padding:2px 0 0 4px;">
-                Automatically generate a new password and send it to the email listed above.
-            </div>
-            <div style="float:left;padding-left:8px;">
-            <button style="height:30px;width:128px;text-align:center;"
-                   tabindex="-1"
-                   onclick="resetPassword()"
-                   class="tableheader"
-                   name="manage_resetPassword:method">
-               Reset Password
-            </button>    
-            </div>
-        </div>   
-    </td>
-    </tr>
+
         <!-- END TABLE CONTENTS -->
 
         </tal:block>
