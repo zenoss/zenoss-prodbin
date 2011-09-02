@@ -21,13 +21,14 @@ fi
 RRDCACHED_ADDRESS=$ZENHOME/var/rrdcached.sock
 JOURNALDIR=$ZENHOME/var/rrd_journals
 PIDFILE=$ZENHOME/var/rrdcached.pid
-PS="ps -eo pid"
 
 running() {
     if [ -f $PIDFILE ]; then
         PID=`cat $PIDFILE 2>/dev/null`
-        kill -0 $PID 2>/dev/null || $PS | grep -q "^ *$PID$"
-        return $?
+        if [ -n "$PID" ]; then
+            kill -0 $PID 2>/dev/null || ps -p "$PID" > /dev/null 2>&1
+            return $?
+        fi
     fi
     return 1
 }
@@ -37,7 +38,7 @@ start() {
         echo is already running
     else
         echo starting...
-	$ZENHOME/bin/rrdcached -p $PIDFILE -l $RRDCACHED_ADDRESS -j $JOURNALDIR $OPTS
+        $ZENHOME/bin/rrdcached -p $PIDFILE -l $RRDCACHED_ADDRESS -j $JOURNALDIR $OPTS
     fi
 }
 
@@ -48,10 +49,10 @@ run() {
 
 stop() {
     echo "stopping..."
-    if [ ! -f $PIDFILE ]; then
-        echo "already stopped"
-    else
+    if running; then
         kill `cat $PIDFILE`
+    else
+        echo "already stopped"
     fi
 }
 
@@ -61,15 +62,15 @@ restart() {
 }
 
 status() {
-    if [ ! -f $PIDFILE ]; then
-        echo "not running"
-    else
+    if running; then
         echo "program running; pid=`cat $PIDFILE`"
+    else
+        echo "not running"
     fi
 }
 
 usage() {
-    echo "Usage: zenrrdcache [run|start|restart|stop|status] [options]"
+    echo "Usage: zenrrdcached [run|start|restart|stop|status] [options]"
 }
 
 
