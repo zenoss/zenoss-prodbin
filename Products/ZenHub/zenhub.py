@@ -274,12 +274,16 @@ class ZenHub(ZCmdBase):
         for i in range(int(self.options.workers)):
             self.createWorker()
 
+
+    def _getConf(self):
+        return self.dmd.Monitors.Performance._getOb(self.options.monitor, None)
+
     def getRRDStats(self):
         """
         Return the most recent RRD statistic information.
         """
         rrdStats = DaemonStats()
-        perfConf = self.dmd.Monitors.Performance._getOb(self.options.monitor, None)
+        perfConf = self._getConf()
 
         from Products.ZenModel.BuiltInDS import BuiltInDS
         threshs = perfConf.getThresholdInstances(BuiltInDS.sourcetype)
