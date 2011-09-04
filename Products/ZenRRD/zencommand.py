@@ -531,7 +531,7 @@ class SshPerformanceCollectionTask(BaseTask):
         Contact to one device and return a deferred which gathers data from
         the device.
 
-        @return: A task to scan the OIDs on a device.
+        @return: Deferred actions to run against a device configuration
         @rtype: Twisted deferred object
         """
         # See if we need to connect first before doing any collection
@@ -539,7 +539,7 @@ class SshPerformanceCollectionTask(BaseTask):
         d.addCallbacks(self._connectCallback, self._failure)
         d.addCallback(self._fetchPerf)
 
-        # Call _finished for both success and error scenarois
+        # Call _finished for both success and error scenarios
         d.addBoth(self._finished)
 
         # Wait until the Deferred actually completes
