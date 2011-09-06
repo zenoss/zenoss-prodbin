@@ -1,0 +1,37 @@
+// This file is used to load triggers and notifications when your ZenPack is
+// installed. If existing triggers and notifications are found with the same
+// name, they will be updated with the new properties specified im this file.
+//
+// The file should be renamed to actions.json to be picked up during the
+// ZenPack's installation.
+{
+    "triggers": [
+        {
+            "name": "CriticalProductionEvents",
+            "uuid": "A556B89C-F991-4A29-B7ED-F95643ADFD89",
+            "enabled": true,
+            "rule": {
+                "api_version": 1,
+                "source": "(prodState &gt;= 1000) and (eventState &gt;= 0) and (severity &gt;= 5)",
+                "type": 1
+            }
+        }
+    ],
+    "notifications": [
+        {
+            "id": "ExampleCommand",
+            "description": "Example command notification.",
+            "guid": "B4F091A8-F4C0-4C9D-A7A9-AF3AED2BD6C9",
+            "action": "command",
+            "enabled": false,
+            "action_timeout": 60,
+            "delay_seconds": 330,
+            "repeat_seconds": 0,
+            "send_initial_occurrence": true,
+            "send_clear": false,
+            "body_format": "echo ${evt/evid} &gt; $$ZENHOME/var/critical_evid.log",
+            "clear_body_format": "echo ${evt/evid} &gt; $$ZENHOME/var/cleared_evid.log",
+            "subscriptions": ["A556B89C-F991-4A29-B7ED-F95643ADFD89"]
+        }
+    ]
+}

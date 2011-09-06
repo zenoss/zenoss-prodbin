@@ -1,0 +1,192 @@
+<?xml version="1.0" encoding="utf-8"?>
+<configure
+    xmlns="http://namespaces.zope.org/zope"
+    xmlns:zcml="http://namespaces.zope.org/zcml">
+
+
+    <!-- Includes: Browser Configuration -->
+    <include package=".browser"/>
+
+
+    <!-- Info Adapters: DataSources -------------------------------------------
+
+    For ZenPacks that add new datasource types you must register their Info
+    adapter(s). The info adapters provide the API that the web interface needs
+    to show information about each instance of your datasource type that is
+    created. The info adapters are also used to set the properties of the
+    datasource instances.
+
+    <adapter
+        provides=".interfaces.IExampleDataSourceInfo"
+        for=".datasources.ExampleDataSource.ExampleDataSource"
+        factory=".info.ExampleDataSourceInfo"
+        />
+    -------------------------------------------------------------------------->
+
+
+    <!-- Event Plugins --------------------------------------------------------
+
+    These are useful when you want to manipulate events in a more bullet-proof
+    way than standard transforms allow. Users won't be able to change your
+    plugin code through the user interface like they could with transforms. You
+    can also more easily unit test these plugins than you can test transforms.
+
+    You can either register a preEventPlugin or a postEventPlugin.
+    preEventPlugins will be executed before any event processing is done. This
+    means that no tagging or enrichment of the event will be done. This is a
+    useful approach for early-dropping events you don't want to waste time
+    processing.
+
+    postEventPlugins will be executed after all normal event processing is
+    done. This is useful in circumstances where you need access to the tags and
+    other enrichment done during normal event processing in your plugin.
+
+    Using zcml:condition="have eventPlugins" will cause your plugins only to be
+    registered if the installed Zenoss versions supports them. Support
+    for eventPlugins was added in Zenoss 4.
+
+    See events.py for the plugin implementations.
+
+    <configure zcml:condition="have eventPlugins">
+        <preEventPlugin plugin=".events.ExamplePreEventPlugin">
+        <postEventPlugin plugin=".events.ExamplePostEventPlugin">
+    </configure>
+    -------------------------------------------------------------------------->
+
+
+    <!-- Dynamic View Adapters ------------------------------------------------
+
+    Dynamic View adapters are how Zenoss shows relationships between objects in
+    the "Dynamic View" screens in the user interface. This capability was
+    introduced in Zenoss 3.0, but only in the commercial version. It is
+    recommended to enclose all Dynamic View configuration in a conditional as
+    shown below so the ZenPack will work in all Zenoss systems.
+
+    See dynamicview.py for the adapter implementations.
+
+    <configure zcml:condition="installed ZenPacks.zenoss.DynamicView">
+        <include package="ZenPacks.zenoss.DynamicView" file="meta.zcml"/>
+
+        <adapter
+            provides="ZenPacks.zenoss.DynamicView.interfaces.IRelatable"
+            for=".ExampleComponent.ExampleComponent"
+            factory=".dynamicView.ExampleComponentRelatable"
+            />
+
+        <subscriber
+            provides="ZenPacks.zenoss.DynamicView.interfaces.IRelationsProvider"
+            for="..ExampleDevice.ExampleDevice"
+            factory=".dynamicView.ExampleDeviceRelationsProvider"
+            />
+
+        <subscriber
+            provides="ZenPacks.zenoss.DynamicView.interfaces.IRelationsProvider"
+            for="..ExampleComponent.ExampleComponent"
+            factory=".dynamicView.ExampleComponentRelationsProvider"
+            />
+
+        <relatableGroup
+            name="Example Components"
+            groupType="example"
+            icon="/++resource++example/img/exampleComponent.png"
+            weight="35"
+            />
+
+        <dynamicViewToGroup
+            view="service_view"
+            group="Example Components"
+            weight="550"
+            />
+
+        <dynamicViewToGroup
+            view="component_view"
+            group="Example Components"
+            weight="215"
+            />
+
+    </configure>
+    -------------------------------------------------------------------------->
+
+
+    <!-- Impact Adapters ------------------------------------------------------
+
+    Impact adapters are much like the Dynamic View adapters above in that they
+    define relationships between objects. However, they are specifically for
+    controlling the "Zenoss Datacenter Impact" product and can be simpler to
+    configure because visualization is built-in and you only need to concern
+    yourself with defining edges (or relationships) between objects.
+
+    This section should be wrapped in a conditional so your ZenPack will work
+    whether or not Zenoss Datacenter Impact is installed.
+
+    IRelationshipDataProvider works much like the Dynamic View
+    IRelationsProvider above. It defines dependency relationships between
+    objects.
+
+    IStateProvider providers allow you to change how state is calculated for
+    certain types of objects. Normally only the events impacting an object are
+    used to calculate its state. IStateProvider allows you to bring in
+    information from other sources such as the model.
+
+    INodeTrigger providers allow you to define what triggers should be
+    configured for certain types of objects automatically. A good example of
+    where you'd use this is for port-channel interfaces. You'd likely want to
+    create impact edges to all of the member interfaces and setup a redundancy
+    policy on the port-channel.
+
+    See impact.py for the subscriber implementations.
+
+    <configure zcml:condition="installed ZenPacks.zenoss.Impact">
+        <include package="ZenPacks.zenoss.Impact" file="meta.zcml"/>
+
+        <subscriber
+            provides="ZenPacks.zenoss.Impact.impactd.interfaces.IRelationshipDataProvider"
+            for=".ExampleDevice.ExampleDevice"
+            factory=".impact.ExampleDeviceRelationsProvider"
+            />
+
+        <subscriber
+            provides="ZenPacks.zenoss.Impact.impactd.interfaces.IRelationshipDataProvider"
+            for=".ExampleComponent.ExampleComponent"
+            factory=".impact.ExampleComponentRelationsProvider"
+            />
+
+        <subscriber
+            provides="ZenPacks.zenoss.Impact.stated.interfaces.IStateProvider"
+            for=".ExampleComponent.ExampleComponent"
+            factory=".impact.ExampleComponentStateProvider"
+            />
+
+        <subscriber
+            provides="ZenPacks.zenoss.Impact.impactd.interfaces.INodeTriggers"
+            for=".ExampleComponent.ExampleComponent"
+            factory=".impact.ExampleComponentTriggers"
+            />
+
+    </configure>
+    -------------------------------------------------------------------------->
+
+
+    <!-- Analytics Adapters ---------------------------------------------------
+
+    The analytics subscribers and adapters are used to control the ETL
+    (extract, transform and load) process from Zenoss into the data warehouse
+    of the Zenoss Analytics product. It is recommended to enclose all analytics
+    adapters in a conditional block because Analytics may or may not be
+    installed.
+
+    See analytics.py for the subscriber implementations.
+
+    <configure zcml:condition="installed ZenPacks.zenoss.ZenETL">
+        <adapter
+            provides="Products.Zuul.interfaces.IReportable"
+            for=".ExampleComponent.ExampleComponent"
+            factory=".analytics.ExampleComponentReportable"
+            />
+
+    </configure>
+
+    -------------------------------------------------------------------------->
+
+</configure>
+

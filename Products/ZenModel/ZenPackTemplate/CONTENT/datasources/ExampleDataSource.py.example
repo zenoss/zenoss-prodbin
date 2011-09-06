@@ -1,0 +1,37 @@
+# Creating a custom datasource type requires defining a subclass of
+# Products.ZenModel.RRDDataSource.RRDDataSource as illustrated below. This
+# class gets instantiated, configured and stored in the ZODB everytime someone
+# adds this type of datasource to a template.
+
+# You will also need to add an IRRDDataSourceInfo subinterface to control how
+# the user interface for configuring this datasource is drawn. This interface
+# is typically defined in ../interfaces.py. You will then need to define a
+# RRDDataSourceInfo subclass to control how your datasource gets serialized
+# for passing through the API. This info adapter class is typically defined in
+# ../info.py.
+
+from Products.ZenModel.RRDDataSource import RRDDataSource
+from Products.ZenModel.ZenPackPersistence import ZenPackPersistence
+
+
+class ExampleDataSource(ZenPackPersistence, RRDDataSource):
+
+    # All subclasses of ZenPackPersistence need to set their ZENPACKID.
+    ZENPACKID = 'ZenPacks.NAMESPACE.PACKNAME'
+
+    # These define how this datasource type is displayed in the datasource type
+    # picker when adding a new datasource to a monitoring template. Keep it
+    # short and unambiguous.
+    sourcetypes = ('Example Protocol',)
+    sourcetype = sourcetypes[0]
+
+    # Set default values for properties inherited from RRDDataSource.
+    eventClass = '/Status/Example'
+    component = "${here/id}"
+
+    # Add default values for custom properties of this datasource.
+    exampleProperty = ''
+
+    _properties = RRDDataSource._properties + (
+        {'id': 'exampleProperty', 'type': 'string'},
+        )

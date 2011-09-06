@@ -1,0 +1,16 @@
+#! /usr/bin/env bash
+
+# You must change the name of your daemon to something other than zenexample.
+# The "zenexample" name is special and will be ignored by the ZenPack
+# installation routine.
+DAEMON_NAME="zenexample"
+
+. $ZENHOME/bin/zenfunctions
+
+MYPATH=`python -c "import os.path; print os.path.realpath('$0')"`
+THISDIR=`dirname $MYPATH`
+PRGHOME=`dirname $THISDIR`
+PRGNAME=$DAEMON_NAME.py
+CFGFILE=$CFGDIR/$DAEMON_NAME.conf
+
+generic "$@"

@@ -170,9 +170,13 @@ class ZPLDaemons(ZenPackLoader):
 
     extensionsToIgnore = ('.svn-base', '.pyc' '~')
     def filter(self, f):
+        if 'zenexample' in f:
+            return False
+
         for ext in self.extensionsToIgnore:
             if f.endswith(ext):
                 return False
+
         return True
 
 

@@ -1,0 +1,66 @@
+<tal:block tal:define="
+    tabletitle string:Example Report;
+    tableName string:example_report;
+    tm here/ZenTableManager;
+    sts python:tm.setReqTableState;
+    tableState python:tm.getTableState(tableName, sortedSence='desc', sortedHeader='outputP');
+    objects python:here.ReportServer.plugin('example_plugin', tableState);
+    batch python:here.ZenTableManager.getBatch(tableName,objects,sortedHeader='device', sortedSence='asc');
+    exportFields python:['device', 'ip', 'hardware', 'software'];
+    ">
+
+<!-- Make the report exportable to CSV -->
+<tal:block metal:use-macro="here/reportMacros/macros/exportableReport">
+<tal:block metal:fill-slot="report">
+
+<tal:block metal:use-macro="here/templates/macros/page1">
+<tal:block metal:fill-slot="breadCrumbPane">
+    <span metal:use-macro="here/miscmacros/macros/reportBreadCrumbsList"/>    
+</tal:block>
+
+<tal:block metal:fill-slot="contentPane">
+<tal:block metal:use-macro="here/zenuimacros/macros/zentable">
+<tal:block metal:fill-slot="zentablecontents">
+    <tr>
+        <!-- Define Column Headers - Clickable for Sorting -->
+        <th tal:replace="
+            structure python:here.ZenTableManager.getTableHeader(
+                tableName,'device','Device')"/>
+
+        <th tal:replace="
+            structure python:here.ZenTableManager.getTableHeader(
+                tableName,'ip','IP Address')"/>
+
+        <th tal:replace="
+            structure python:here.ZenTableManager.getTableHeader(
+                tableName,'hardware','Hardware')"/>
+
+        <th tal:replace="
+            structure python:here.ZenTableManager.getTableHeader(
+                tableName,'software','Software')"/>
+    </tr>
+    <tal:block tal:repeat="r batch">
+        <!-- Define Per-Row Display -->
+        <tr tal:define="odd repeat/r/odd"
+            tal:attributes="class python:test(odd,'odd','even')">
+
+           <td tal:content="r/device"/>
+           <td tal:content="r/ip"/>
+           <td tal:content="r/hardware"/>
+           <td tal:content="r/software"/>
+        </tr>
+    </tal:block>
+    <tr>
+        <!-- Update colspan to match your columns -->
+        <td colspan="4" class="tableheader" align='center'>
+        <form metal:use-macro="here/zenTableNavigation/macros/navtool"/>
+        </td>
+    </tr>
+</tal:block>
+</tal:block>
+</tal:block>
+
+</tal:block>
+</tal:block>
+</tal:block>
+</tal:block>

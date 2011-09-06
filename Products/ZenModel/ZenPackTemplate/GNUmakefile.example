@@ -1,0 +1,52 @@
+# GNUmakefile Example
+
+# A GNUmakefile is only required for ZenPacks that need to bundle external
+# dependencies that need to be built when the ZenPack is built instead of when
+# the ZenPack is installed. This normally means binary packages that must be
+# built, but could also be used to save time at install time.
+
+# The following template can be used to get started. Note that we want files
+# resulting from the build activity to land under the ZENPACK_DIR so that they
+# will be included in the resulting ZenPack. You should copy or rename this
+# file to "GNUmakefile" if you want it to be automatically executed by the
+# ZenPack build and --link installation process.
+
+PYTHON=python
+SRC_DIR=$(PWD)/src
+YOURPACKAGE_DIR=$(SRC_DIR)/yourpackage-1.2.3
+ZENPACK_DIR=$(PWD)/ZenPacks/NAMESPACE/PACKNAME
+BIN_DIR=$(ZENPACK_DIR)/bin
+LIB_DIR=$(ZENPACK_DIR)/lib
+
+# Default target. This won't be used by any automated process, but would be
+# used if you simply ran "make" in this directory.
+default: build
+
+# The build target it specifically executed each time setup.py executes.
+# Typically this is when the ZenPack is being built into an egg, or when it is
+# installed using the zenpack --link option to install in development mode.
+build:
+	# Example for building a configure+make style dependency.
+	cd $(YOURPACKAGE_DIR) ; \
+	./configure --prefix=$(ZENPACK_DIR) ; \
+	make ; \
+	make install
+
+	# Example for building a Python package depedency.
+	cd $(YOURPACKAGE_DIR) ; \
+	PYTHONPATH="$(PYTHONPATH):$(LIB_DIR)" \
+		$(PYTHON) setup.py install \
+		--install-lib="$(LIB_DIR)" \
+		--install-scripts="$(BIN_DIR)"
+
+# The clean target won't be used by any automated process.
+clean:
+	rm -rf build dist *.egg-info
+	find . -name '*.pyc' | xargs rm
+
+	# Example for cleaning a configure+make style depedency.
+	cd $(YOURPACKAGE_DIR) ; make clean
+
+	# Example for cleaning a Python package depdency.
+	cd $(YOURPACKAGE_DIR) ; rm -rf build dist *.egg-info
+

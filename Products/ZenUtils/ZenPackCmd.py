@@ -79,7 +79,7 @@ def CreateZenPack(zpId, prevZenPackName=''):
         packages.append('.'.join(parts[:i+1]))
     mapping = dict(
         NAME = zpId,
-        VERSION = '1.0',
+        VERSION = '1.0.0',
         AUTHOR = '',
         LICENSE = '',
         NAMESPACE_PACKAGES = packages[:-1],
@@ -100,15 +100,6 @@ def CreateZenPack(zpId, prevZenPackName=''):
         f.close()
     base = os.path.join(base, parts[-1])
     shutil.move(os.path.join(destDir, 'CONTENT'), base)
-    
-    # Create the skins subdirs
-    skinsDir = os.path.join(base, 'skins', zpId)
-    os.makedirs(skinsDir)
-    
-    # Stick a placeholder in the skins dir so that the egg will include
-    # the dir even if empty.
-    f = file(os.path.join(skinsDir, 'placeholder.txt'), 'w')
-    f.close()
 
     return destDir
 

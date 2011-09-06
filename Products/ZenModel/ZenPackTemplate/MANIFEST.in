@@ -1,1 +1,8 @@
+# This graft causes all files located under the ZenPacks/ subdirectory to be
+# included in the built ZenPack .egg. Files located in the top-level directory
+# of the ZenPack will not be explicitly included.
+#
+# You can read more about the format and available options available in this
+# MANIFEST.in file at the following URL.
+# http://docs.python.org/distutils/sourcedist.html
 graft ZenPacks

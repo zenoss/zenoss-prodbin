@@ -1,0 +1,14 @@
+// This file is used to add custom event fields. It will be loaded when the
+// ZenPack is installed.
+//
+// The file should be renamed to zep.json to be picked up during the ZenPack's
+// installation.
+{
+    "EventDetailItem" : [
+        {
+            "name" : "Example",
+            "key" : "example_field",
+            "type" : 1
+        }
+    ]
+}
