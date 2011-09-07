@@ -17,7 +17,7 @@ YZP.register_portlet = register_portlet;
 YZP.DEFAULT_SITEWINDOW_URL = YZP.DEFAULT_SITEWINDOW_URL || 
                              "http://www2.zenoss.com/in-app-welcome";
 
-var isIE//@cc_on=1;
+var isIE/*@cc_on=1@*/;
 
 var purge = YAHOO.zenoss.purge;
 var setInnerHTML = YAHOO.zenoss.setInnerHTML;
