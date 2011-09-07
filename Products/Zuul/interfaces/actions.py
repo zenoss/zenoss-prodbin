@@ -94,42 +94,19 @@ class IPageActionContentInfo(IInfo):
 class ICommandActionContentInfo(IInfo):
 
     action_timeout = schema.Int(
-        title       = _t(u'Command Timeout'),
+        title       = _t(u'Command Timeout (seconds)'),
         description = _t(u'How long before the command times out.'),
         default     = 60
     )
 
     body_format = schema.Text(
-        title       = _t(u'Body Format'),
-        description = _t(u'The template for the body for commands.'),
-        default     = textwrap.dedent(text = u'''
-        Device: ${evt/device}
-        Component: ${evt/component}
-        Severity: ${evt/severity}
-        Time: ${evt/lastTime}
-        Message:
-        ${evt/message}
-        <a href="${urls/eventUrl}">Event Detail</a>
-        <a href="${urls/ackUrl}">Acknowledge</a>
-        <a href="${urls/closeUrl}">Close</a>
-        <a href="${urls/eventsUrl}">Device Events</a>
-        ''')
+        title       = _t(u'Command'),
+        description = _t(u'The template for the body for commands.')
     )
 
     clear_body_format = schema.Text(
-        title       = _t(u'Clear Body Format'),
-        description = _t(u'The template for the body for CLEAR commands.'),
-        default     = textwrap.dedent(text = u'''
-        Event: '${evt/summary}'
-        Cleared by: '${evt/clearid}'
-        At: ${evt/stateChange}
-        Device: ${evt/device}
-        Component: ${evt/component}
-        Severity: ${evt/severity}
-        Message:
-        ${evt/message}
-        <a href="${urls/reopenUrl}">Reopen</a>
-        ''')
+        title       = _t(u'Clear Command'),
+        description = _t(u'The template for the body for CLEAR commands.')
     )
 
 
