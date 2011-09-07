@@ -13,7 +13,10 @@
 
 import re
 # how to parse each value from a nagios command
-NagParser = re.compile(r"""([^ =']+|'(.*)'+)=([-0-9.eE]+)([^;]*;?){0,5}""")
+
+from Nagios import perfParser as NagParser
+
+#NagParser = re.compile(r"""(([^ =']+|'(.*)'+)=([-0-9.eE]+)([^;\s]*;?){0,5})""")
 # how to parse each value from a cacti command
 from Cacti import CacParser
 
@@ -21,6 +24,7 @@ from Products.ZenUtils.Utils import getExitMessage
 from Products.ZenRRD.CommandParser import CommandParser
 
 class Auto(CommandParser):
+
 
     def processResults(self, cmd, result):
         output = cmd.result.output
@@ -47,10 +51,18 @@ class Auto(CommandParser):
                                       eventClass=cmd.eventClass,
                                       component=cmd.component))
 
-        for parts in NagParser.findall(values) or CacParser.findall(values):
-            label = parts[0].replace("''", "'")
+        matches = NagParser.findall(values)
+        labelIdx = 1
+        valueIdx = 3
+        if not matches:
+            matches = CacParser.findall(values)
+            labelIdx = 0
+            valueIdx = 2
+
+        for parts in matches or []:
+            label = parts[labelIdx].replace("''", "'")
             try:
-                value = float(parts[2])
+                value = float(parts[valueIdx])
             except Exception:
                 value = 'U'
             for dp in cmd.points:
