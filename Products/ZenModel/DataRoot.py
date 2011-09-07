@@ -428,9 +428,13 @@ class DataRoot(ZenModelRM, OrderedFolder, Commandable, ZenMenuable):
         elif isinstance(error_value, MySQLConnectionError) \
                 or isinstance(error_value, MySQLError):
             return self.zenoss_mysql_error_message(error_value=error_value)
+
+        from traceback import format_exception
+        error_formatted = ''.join(format_exception(error_type, error_value, error_traceback))
         return self.zenoss_feedback_error_message(error_type=error_type,
                                         error_value=error_value,
-                                        error_traceback=error_traceback)
+                                        error_traceback=error_traceback,
+                                        error_formatted=error_formatted)
 
 
     def reportError(self):

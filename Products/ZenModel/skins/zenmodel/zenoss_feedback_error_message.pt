@@ -22,11 +22,11 @@
     <div id="request_toggle" onclick="toggleReqBox()">View Error Details</div>
     <div id="request_box">
   <p>
-      <strong>Type: <tal:block tal:replace="options/error_type" />
+      <strong>Type: <tal:block tal:replace="nocall:options/error_type" />
       </strong><br/>
       <strong>Value: <tal:block tal:replace="options/error_value" />
       </strong><br/>
-      <tal:block tal:replace="structure options/error_traceback" />
+      <pre><tal:block tal:replace="options/error_formatted | nothing" /></pre>
   </p>
 </div>
 <script>toggleReqBox()</script>
@@ -62,7 +62,7 @@
 
   <p>Click this button to send the above information to Zenoss, Inc.</p>
     <input type="hidden" name="errorType" 
-        tal:attributes="value options/error_type" />
+        tal:attributes="value nocall:options/error_type" />
     <input type="hidden" name="errorValue" 
         tal:attributes="value options/error_value" />
     <input type="hidden" name="errorTrace" 
