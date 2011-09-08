@@ -98,6 +98,17 @@ class ZenRestore(ZenBackupBase):
                 setattr(self.options, name, value)
         finally:
             f.close()
+    
+    def getSqlFile(self, filename):
+        """
+        Find path to sql file in backup, trying gzipped versions
+        Returns path to real file, or none if nothing found
+        """
+        pathFile = os.path.join(self.tempDir, filename)
+        for path in (pathFile, pathFile + '.gz'):
+            if os.path.isfile(path):
+                return path
+        return None
 
     def restoreMySqlDb(self, host, port, db, user, passwd, sqlFile):
         """
@@ -107,6 +118,8 @@ class ZenRestore(ZenBackupBase):
         mysql_cmd.extend(passwd)
         if host and host != 'localhost':
             mysql_cmd.extend(['--host', host])
+            if self.options.compressTransport:
+                mysql_cmd.append('--compress')
         if port and str(port) != '3306':
             mysql_cmd.extend(['--port', str(port)])
 
@@ -114,10 +127,16 @@ class ZenRestore(ZenBackupBase):
 
         cmd = 'echo "create database if not exists %s" | %s' % (db, mysql_cmd)
         os.system(cmd)
-
-        cmd = '%s %s < %s' % (
-            mysql_cmd, db, os.path.join(self.tempDir, sqlFile)
-        )
+        
+        if sqlFile.endswith('.gz'):
+            cmd = 'gzip -dc %s | %s %s' % (
+                os.path.join(self.tempDir, sqlFile), mysql_cmd, db
+            )
+        else:
+            cmd = '%s %s < %s' % (
+                mysql_cmd, db, os.path.join(self.tempDir, sqlFile)
+            )
+        
         os.system(cmd)
 
 
@@ -125,8 +144,8 @@ class ZenRestore(ZenBackupBase):
         '''
         Restore ZEP DB and indexes
         '''
-        zepSql = os.path.join(self.tempDir, 'zep.sql')
-        if not os.path.isfile(zepSql):
+        zepSql = self.getSqlFile('zep.sql')
+        if not zepSql:
             self.msg('This backup does not contain a ZEP database backup.')
             return
         
@@ -146,7 +165,7 @@ class ZenRestore(ZenBackupBase):
         return os.path.isdir(repozoDir)
 
     def hasSqlBackup(self):
-        return os.path.isfile(os.path.join(self.tempDir, 'zodb.sql'))
+        return bool(self.getSqlFile('zodb.sql'))
 
     def hasZODBBackup(self):
         return self.hasZeoBackup() or self.hasSqlBackup()
@@ -164,8 +183,8 @@ class ZenRestore(ZenBackupBase):
             self.restoreZODBZEO()
 
     def restoreZODBSQL(self):
-        zodbSql = os.path.join(self.tempDir, 'zodb.sql')
-        if not os.path.isfile(zodbSql):
+        zodbSql = self.getSqlFile('zodb.sql')
+        if not zodbSql:
             self.msg('This archive does not contain a ZODB backup.')
             return
         self.msg('Restoring ZODB database.')

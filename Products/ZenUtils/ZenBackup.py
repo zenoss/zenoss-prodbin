@@ -25,6 +25,7 @@ from datetime import date
 import time
 import logging
 import ConfigParser
+import subprocess
 import tarfile
 
 import Globals
@@ -205,6 +206,31 @@ class ZenBackup(ZenBackupBase):
                         help='Logging severity threshold')
 
 
+    def backupMySqlDb(self, host, port, db, user, passwdType, sqlFile):
+        cmd_p1 = ['mysqldump', '-u%s' % user]
+        cmd_p2 = ['--single-transaction', db]
+        if host and host != 'localhost':
+            cmd_p2.append('-h%s' % host)
+            if self.options.compressTransport:
+                cmd_p2.append('--compress')
+        if port and port != '3306':
+            cmd_p2.append('--port=%s' % port)
+
+        cmd = cmd_p1 + self.getPassArg(passwdType) + cmd_p2
+        obfuscated_cmd = cmd_p1 + ['*' * 8] + cmd_p2
+        
+        self.log.debug(' '.join(obfuscated_cmd))
+        
+        with open(os.path.join(self.tempDir, sqlFile), 'wb') as zipfile:
+            mysqldump = subprocess.Popen(cmd, stdout=subprocess.PIPE)
+            gzip = subprocess.Popen(['gzip', '-c'], stdin=mysqldump.stdout, stdout=zipfile)
+            mysqldump.wait()
+            gzip.wait()
+            if gzip.returncode or mysqldump.returncode:
+                self.log.critical("Backup of (%s) terminated abnormally." % sqlFile)
+                return -1
+        
+
     def backupZEP(self):
         '''
         Backup ZEP
@@ -219,22 +245,10 @@ class ZenBackup(ZenBackupBase):
         self.log.info('Backing up the ZEP database.')
         if self.options.saveSettings:
             self.saveSettings()
-
-        cmd_p1 = ['mysqldump', '-u%s' % self.options.zepdbuser]
-        cmd_p2 = ['--single-transaction', self.options.zepdbname,
-                 '--result-file=' + os.path.join(self.tempDir, 'zep.sql')]
-        if self.options.zepdbhost and self.options.zepdbhost != 'localhost':
-            cmd_p2.append('-h%s' % self.options.zepdbhost)
-        if self.options.zepdbport and self.options.zepdbport != '3306':
-            cmd_p2.append('--port=%s' % self.options.zepdbport)
-
-        cmd = cmd_p1 + self.getPassArg('zepdbpass') + cmd_p2
-        obfuscated_cmd = cmd_p1 + ['*' * 8] + cmd_p2
-
-        output, warnings, returncode = self.runCommand(cmd, obfuscated_cmd)
-        if returncode:
-            self.log.critical("Backup terminated abnormally.")
-            return -1
+        
+        self.backupMySqlDb(self.options.zepdbhost, self.options.zepdbport,
+                           self.options.zepdbname, self.options.zepdbuser,
+                           'zepdbpass', 'zep.sql.gz')
 
         partEndTime = time.time()
         subtotalTime = readable_time(partEndTime - partBeginTime)
@@ -284,22 +298,10 @@ class ZenBackup(ZenBackupBase):
         self.log.info('Backing up the ZODB.')
         if self.options.saveSettings:
             self.saveSettings()
-
-        cmd_p1 = ['mysqldump', '-u%s' % self.options.mysqluser]
-        cmd_p2 = ['--single-transaction', self.options.mysqldb,
-                 '--result-file=' + os.path.join(self.tempDir, 'zodb.sql')]
-        if self.options.host and self.options.host != 'localhost':
-            cmd_p2.append('-h%s' % self.options.host)
-        if self.options.port and self.options.port != '3306':
-            cmd_p2.append('--port=%s' % self.options.port)
-
-        cmd = cmd_p1 + self.getPassArg('mysqlpasswd') + cmd_p2
-        obfuscated_cmd = cmd_p1 + ['*' * 8] + cmd_p2
-
-        output, warnings, returncode = self.runCommand(cmd, obfuscated_cmd)
-        if returncode:
-            self.log.critical("Backup terminated abnormally.")
-            return -1
+        
+        self.backupMySqlDb(self.options.host, self.options.port,
+                           self.options.mysqldb, self.options.mysqluser,
+                           'mysqlpasswd', 'zodb.sql.gz')
 
         partEndTime = time.time()
         subtotalTime = readable_time(partEndTime - partBeginTime)

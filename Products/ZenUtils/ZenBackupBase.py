@@ -100,6 +100,12 @@ class ZenBackupBase(CmdBase):
                                help='ZEP database server port number.'
                                 ' By default this will be fetched from Zenoss'
                                 ' unless --dont-fetch-args is set.'),
+        self.parser.add_option('--compress-transport',
+                               dest="compressTransport",
+                               default=True,
+                               help='Compress transport for MySQL backup/restore.'
+                               ' True by default, set to False to disable over'
+                               ' fast links that do not benefit from compression.')
 
 
     def getPassArg(self, optname='dbpass'):
