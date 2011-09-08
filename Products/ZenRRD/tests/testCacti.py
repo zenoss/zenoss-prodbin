@@ -20,6 +20,10 @@ from Products.ZenRRD.parsers.Cacti import Cacti
 
 class TestCacti(BaseTestCase):
 
+    def setUp(self):
+        self.parser = Cacti()
+
+
     def testCacti(self):
         deviceConfig = Object()
         deviceConfig.device = 'localhost'
@@ -42,8 +46,7 @@ class TestCacti(BaseTestCase):
         cmd.eventClass = "/Cmd"
         cmd.component = "zencommand"
         results = ParsedResults()
-        parser = Cacti()
-        parser.processResults(cmd, results)
+        self.parser.processResults(cmd, results)
         self.assertEquals( len(results.values), 1)
         self.assertEquals(77,  int(results.values[0][1]))
 
@@ -57,7 +60,7 @@ class TestCacti(BaseTestCase):
         cmd.points.append( p2 )
         cmd.result.output = "cacti_single_result:77 cacti_multi_result: 4.03E02"
         results = ParsedResults()
-        parser.processResults(cmd, results)
+        self.parser.processResults(cmd, results)
         self.assertEquals( len(results.values), 2)
         values = map(lambda x: x[1], results.values)
         self.assertTrue(77.0 in values)

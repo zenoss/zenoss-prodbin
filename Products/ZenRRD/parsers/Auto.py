@@ -11,62 +11,38 @@
 #
 ###########################################################################
 
-import re
-# how to parse each value from a nagios command
-
-from Nagios import perfParser as NagParser
-
-#NagParser = re.compile(r"""(([^ =']+|'(.*)'+)=([-0-9.eE]+)([^;\s]*;?){0,5})""")
-# how to parse each value from a cacti command
-from Cacti import CacParser
-
-from Products.ZenUtils.Utils import getExitMessage
-from Products.ZenRRD.CommandParser import CommandParser
+from Products.ZenRRD.parsers.Cacti import Cacti
+from Products.ZenRRD.parsers.Nagios import Nagios
+from Products.ZenRRD.CommandParser import CommandParser, ParsedResults
 
 class Auto(CommandParser):
 
 
     def processResults(self, cmd, result):
-        output = cmd.result.output
-        output = output.split('\n')[0].strip()
-        exitCode = cmd.result.exitCode
-        severity = cmd.severity
-        if output.find('|') >= 0:
-            msg, values = output.split('|', 1)
-        elif CacParser.search(output):
-            msg, values = '', output
+
+        # best effort.  Try Nagios first, if that doesn't return data values
+        # try Cacti. If cacti doesn't return value use results from nagios
+        # since it is more likely to have been an error parsing nagios data
+        # and the nagios parser puts more data in the event.  Both parsers
+        # have the same logic for event severity based on exit code
+
+        cactiResult= None
+        nagiosResult = ParsedResults()
+
+        nagiosParser = Nagios()
+        nagiosParser.processResults(cmd, nagiosResult)
+
+        if not nagiosResult.values:
+            cactiParser = Cacti()
+            cactiResult= ParsedResults()
+            cactiParser.processResults(cmd, cactiResult)
+
+        if cactiResult and cactiResult.values:
+           #use cacti results
+            parserResult = cactiResult
         else:
-            msg, values = output, ''
-        msg = msg.strip() or 'Datasource: %s - Code: %s - Msg: %s' % (
-            cmd.name, exitCode, getExitMessage(exitCode))
-        if exitCode != 0:
-            if exitCode == 2:
-                severity = min(severity + 1, 5)
-            result.events.append(dict(device=cmd.deviceConfig.device,
-                                      summary=msg,
-                                      severity=severity,
-                                      message=msg,
-                                      performanceData=values,
-                                      eventKey=cmd.eventKey,
-                                      eventClass=cmd.eventClass,
-                                      component=cmd.component))
+            parserResult = nagiosResult
 
-        matches = NagParser.findall(values)
-        labelIdx = 1
-        valueIdx = 3
-        if not matches:
-            matches = CacParser.findall(values)
-            labelIdx = 0
-            valueIdx = 2
-
-        for parts in matches or []:
-            label = parts[labelIdx].replace("''", "'")
-            try:
-                value = float(parts[valueIdx])
-            except Exception:
-                value = 'U'
-            for dp in cmd.points:
-                if dp.id == label:
-                    result.values.append( (dp, value) )
-                    break
+        result.events.extend(parserResult.events)
+        result.values.extend(parserResult.values)
 

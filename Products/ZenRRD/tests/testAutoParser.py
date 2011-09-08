@@ -10,15 +10,15 @@
 # For complete information please visit: http://www.zenoss.com/oss/
 #
 ###########################################################################
-from Products.ZenRRD.parsers.Nagios import Nagios
+from Products.ZenRRD.tests.testCacti import TestCacti
+from Products.ZenRRD.tests.testNagiosParser import TestNagiosParser
 
-from Products.ZenTestCase.BaseTestCase import BaseTestCase
 from Products.ZenRRD.tests.BaseParsersTestCase import Object
 from Products.ZenRRD.CommandParser import ParsedResults
 from Products.ZenRRD.parsers.Auto import Auto
 
 
-class TestAutoParser(BaseTestCase):
+class TestAutoParser(TestNagiosParser, TestCacti):
     def setUp(self):
         self.cmd = Object()
         deviceConfig = Object()
@@ -33,7 +33,7 @@ class TestAutoParser(BaseTestCase):
         self.cmd.eventKey = "AutoKey"
         self.cmd.eventClass = "/Cmd"
         self.cmd.component = "zencommand"
-        self.parser = Nagios()
+        self.parser = Auto()
         self.results = ParsedResults()
         self.dpdata = dict(processName='someJob a b c',
                        ignoreParams=False,
