@@ -20,13 +20,19 @@ Ext.ns('Zenoss', 'Zenoss.templates');
 var REMOTE = Zenoss.remote.DeviceRouter;
 
 /**
- * Updates the data store for the template tree
+ * Updates the data store for the template tree. This will select the
+ * first template when refreshed.
  **/
-
 function refreshTemplateTree() {
     var cmp = Ext.getCmp('templateTree');
     if (cmp && cmp.isVisible()) {
-        cmp.getRootNode().reload();
+        cmp.getRootNode().reload(function() {
+            // select the first node
+            var root = cmp.getRootNode();
+            if (root.firstChild) {
+                root.firstChild.select();
+            }
+        });
     }
 }
 
@@ -242,14 +248,13 @@ Zenoss.AddLocalTemplatesDialog = Ext.extend(Zenoss.HideFitDialog, {
                 xtype: 'HideDialogButton',
                 ref: '../submitButton',
                 text: _t('Submit'),
-                handler: function(){
+                handler: function() {
                     var templateId = me.formPanel.templateName.getValue();
 
                     REMOTE.addLocalTemplate({
                        deviceUid: me.context,
                        templateId: templateId
                     }, refreshTemplateTree);
-
                 }
             }, {
                 xtype: 'HideDialogButton',
