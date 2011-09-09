@@ -8,7 +8,7 @@
     <include package=".browser"/>
 
 
-    <!-- Info Adapters: DataSources -------------------------------------------
+    <!-- Info Adapters: DataSources
 
     For ZenPacks that add new datasource types you must register their Info
     adapter(s). The info adapters provide the API that the web interface needs
@@ -21,10 +21,10 @@
         for=".datasources.ExampleDataSource.ExampleDataSource"
         factory=".info.ExampleDataSourceInfo"
         />
-    -------------------------------------------------------------------------->
+    -->
 
 
-    <!-- Event Plugins --------------------------------------------------------
+    <!-- Event Plugins
 
     These are useful when you want to manipulate events in a more bullet-proof
     way than standard transforms allow. Users won't be able to change your
@@ -51,10 +51,10 @@
         <preEventPlugin plugin=".events.ExamplePreEventPlugin">
         <postEventPlugin plugin=".events.ExamplePostEventPlugin">
     </configure>
-    -------------------------------------------------------------------------->
+    -->
 
 
-    <!-- Dynamic View Adapters ------------------------------------------------
+    <!-- Dynamic View Adapters
 
     Dynamic View adapters are how Zenoss shows relationships between objects in
     the "Dynamic View" screens in the user interface. This capability was
@@ -105,10 +105,10 @@
             />
 
     </configure>
-    -------------------------------------------------------------------------->
+    -->
 
 
-    <!-- Impact Adapters ------------------------------------------------------
+    <!-- Impact Adapters
 
     Impact adapters are much like the Dynamic View adapters above in that they
     define relationships between objects. However, they are specifically for
@@ -164,10 +164,10 @@
             />
 
     </configure>
-    -------------------------------------------------------------------------->
+    -->
 
 
-    <!-- Analytics Adapters ---------------------------------------------------
+    <!-- Analytics Adapters
 
     The analytics subscribers and adapters are used to control the ETL
     (extract, transform and load) process from Zenoss into the data warehouse
@@ -185,8 +185,7 @@
             />
 
     </configure>
-
-    -------------------------------------------------------------------------->
+    -->
 
 </configure>
 

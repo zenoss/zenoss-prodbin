@@ -1,11 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
 <configure xmlns="http://namespaces.zope.org/browser">
 
-    <!-- A resource directory contains static web content. -->
+    <!-- A resource directory contains static web content.
     <resourceDirectory
         name="example"
         directory="resources"
         />
+    -->
 
     <!-- Register custom JavaScript for ExampleDevices.
     <viewlet
@@ -16,6 +17,7 @@
         manager="Products.ZenUI3.browser.interfaces.IJavaScriptSrcManager"
         class="Products.ZenUI3.browser.javascript.JavaScriptSrcBundleViewlet"
         permission="zope2.Public"
-        /> -->
+        />
+    -->
 
 </configure>
