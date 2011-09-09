@@ -23,7 +23,7 @@ import pkg_resources
 from zenoss.protocols.interfaces import IQueueSchema
 from zenoss.protocols.services.zep import ZepServiceClient, EventSeverity, ZepConfigClient, ZepHeartbeatClient
 from zenoss.protocols.jsonformat import to_dict, from_dict
-from zenoss.protocols.protobufs.zep_pb2 import EventSort, EventFilter, EventSummaryUpdateRequest, ZepConfig
+from zenoss.protocols.protobufs.zep_pb2 import EventSort, EventFilter, EventSummaryUpdateRequest, ZepConfig, EventNote, EventSummaryUpdate
 from zenoss.protocols.protobufutil import listify
 from Products.ZenUtils import safeTuple
 from Products.ZenUtils.GlobalConfig import getGlobalConfiguration
@@ -291,6 +291,11 @@ class ZepFacade(ZuulFacade):
 
         self.client.addNote(uuid, message, userUuid, userName)
 
+
+    def postNote(self, uuid, note):
+        self.client.postNote(uuid, from_dict(EventNote, note))
+
+
     def _getEventSummaries(self, source, offset, limit=1000):
         response, content = source(offset=offset, limit=limit)
         return {
@@ -396,6 +401,13 @@ class ZepFacade(ZuulFacade):
             userUuid = self._getUserUuid(userName)
         status, response = self.client.reopenEventSummaries(
             userUuid, userName, eventFilter, exclusionFilter, limit)
+        return status, to_dict(response)
+
+    def updateEventSummaries(self, update, eventFilter=None, exclusionFilter=None, limit=None):
+        update_pb = from_dict(EventSummaryUpdate, update)
+        event_filter_pb = None if (eventFilter is None) else from_dict(EventFilter, eventFilter)
+        exclusion_filter_pb = None if (exclusionFilter is None) else from_dict(EventFilter, exclusionFilter)
+        status, response = self.client.updateEventSummaries(update_pb, event_filter_pb, exclusion_filter_pb, limit)
         return status, to_dict(response)
 
     def getConfig(self):

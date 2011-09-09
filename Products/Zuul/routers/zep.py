@@ -559,6 +559,11 @@ class EventsRouter(DirectRouter):
 
         return DirectResponse.succeed()
 
+    @require('Manage Events')
+    def postNote(self, uuid, note):
+        self.zep.postNote(uuid, note)
+        return DirectResponse.succeed()
+
     def _buildRequestFilters(self, uid, params, evids, excludeIds):
         """
         Given common request parameters, build the inclusive and exclusive
@@ -734,6 +739,13 @@ class EventsRouter(DirectRouter):
         log.debug(summaryUpdateResponse)
 
         return DirectResponse.succeed(data=summaryUpdateResponse)
+
+
+    @require("Manage Events")
+    def updateEventSummaries(self, update, event_filter=None, exclusion_filter=None, limit=None):
+        status, response = self.zep.updateEventSummaries(update, event_filter, exclusion_filter, limit)
+        return DirectResponse.succeed(data=response)
+
 
     @require('Manage Events')
     def add_event(self, summary, device, component, severity, evclasskey, evclass):
