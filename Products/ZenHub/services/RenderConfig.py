@@ -20,6 +20,7 @@ log = logging.getLogger('zen.HubService.RenderConfig')
 
 import Globals
 from Products.ZenCollector.services.config import NullConfigService
+from Products.ZenRRD.zenrender import RenderServer
 
 from twisted.web import resource, server
 from twisted.internet import reactor
@@ -45,8 +46,11 @@ class Render(resource.Resource):
             if len(v) == 1:
                 args[k] = v[0]
 
-        listener = request.postpath[-2]
         command = request.postpath[-1]
+        if command in ('favicon.ico',):
+            log.debug("Received a bad request: %s", command)
+            return ''
+        listener = request.postpath[-2]
         args.setdefault('ftype', 'PNG')
         ftype = args['ftype']
         del args['ftype']
@@ -61,11 +65,22 @@ class Render(resource.Resource):
         def error(reason):
             log.error("Unable to fetch graph: %s", reason)
             request.finish()
+        from Products.ZenHub.zenhub  import ZENHUB_ZENRENDER
         renderer = self.renderers.get(listener, False)
-        if not renderer or not renderer.listeners:
-            raise Exception("Renderer %s unavailable" % listener)
-        d = renderer.listeners[0].callRemote(command, **args)
-        d.addCallbacks(write, error)
+        if renderer and listener == ZENHUB_ZENRENDER:
+            try:
+                rs = RenderServer(listener)
+                renderFn = getattr(rs,command)
+                result = renderFn(**args)
+                reactor.callLater(0,write, result)
+            except Exception as e:
+                log.exception("Exception getting graph")
+                reactor.callLater(0,error, e.msg)
+        else:
+            if not renderer or not renderer.listeners:
+                raise Exception("Renderer %s unavailable" % listener)
+            d = renderer.listeners[0].callRemote(command, **args)
+            d.addCallbacks(write, error)
         return server.NOT_DONE_YET
 
     def render_POST(self, request):
@@ -107,7 +122,13 @@ class Render(resource.Resource):
 
 class RenderConfig(NullConfigService):
     def __init__(self, dmd, instance):
-        NullConfigService.__init__(self, dmd, instance)
+        from Products.ZenHub.zenhub import ZENHUB_ZENRENDER
+        if instance == ZENHUB_ZENRENDER:
+            self.dmd = dmd
+            self.instance = instance
+        else:
+            NullConfigService.__init__(self, dmd, instance)
+
         global htmlResource
         try:
             if not htmlResource:

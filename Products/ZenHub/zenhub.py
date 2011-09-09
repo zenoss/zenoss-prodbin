@@ -11,7 +11,6 @@
 # For complete information please visit: http://www.zenoss.com/oss/
 #
 ###########################################################################
-
 __doc__ = """zenhub
 
 Provide remote, authenticated, and possibly encrypted two-way
@@ -41,6 +40,8 @@ from Products.ZenUtils.DaemonStats import DaemonStats
 from Products.ZenEvents.Event import Event, EventHeartbeat
 from Products.ZenEvents.ZenEventClasses import App_Start
 from Products.ZenMessaging.queuemessaging.interfaces import IEventPublisher
+from Products.ZenHub.services.RenderConfig import RenderConfig
+
 
 from Products.ZenHub.PBDaemon import RemoteBadMonitor
 pb.setUnjellyableForClass(RemoteBadMonitor, RemoteBadMonitor)
@@ -64,6 +65,7 @@ unused(DataMaps, ObjectMap)
 
 XML_RPC_PORT = 8081
 PB_PORT = 8789
+ZENHUB_ZENRENDER = 'zenhubrender'
 
 class AuthXmlRpcService(XmlRpcService):
     "Provide some level of authentication for XML/RPC calls"
@@ -259,6 +261,9 @@ class ZenHub(ZCmdBase):
 
         xmlsvc = AuthXmlRpcService(self.dmd, checker)
         reactor.listenTCP(self.options.xmlrpcport, server.Site(xmlsvc))
+
+        #start listening for zenrender requests
+        self.renderConfig = RenderConfig(self.dmd, ZENHUB_ZENRENDER )
 
         # responsible for sending messages to the queues
         import Products.ZenMessaging.queuemessaging
