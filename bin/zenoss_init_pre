@@ -45,6 +45,9 @@ export PYTHON="**PYTHON**"
 . ${ZENHOME}/bin/shared-functions.sh
 . ${ZENHOME}/bin/install-functions.sh
 
+# Test for Sun/Oracle flavored jre
+confirm_jre
+
 # set the python shebang line
 shebang
 

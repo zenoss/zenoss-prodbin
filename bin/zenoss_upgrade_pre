@@ -45,6 +45,8 @@ export PYTHON="**PYTHON**"
 . ${ZENHOME}/bin/shared-functions.sh
 . ${ZENHOME}/bin/install-functions.sh
 
+# Confirm Sun/Oracle flavored jre
+confirm_jre
 
 # Test for the pre upgrade zenpack, this should have been removed
 # as a part of the 3.x upgrade but if it is present it will cause an error
