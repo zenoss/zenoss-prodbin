@@ -13,19 +13,67 @@
   ###########################################################################
 */
 
-Ext.onReady(function(){
+Ext.onReady(function() {
+
+    var EventAgeSeverity;
+    var AGE_ALL_EVENTS = 6;
+
+    EventAgeSeverity = Ext.extend(Ext.form.ComboBox, {
+        constructor: function(config) {
+            config = config || {};
+            var store = [[AGE_ALL_EVENTS, _t('Age All Events')]].concat(Zenoss.env.SEVERITIES);
+            Ext.applyIf(config, {
+                fieldLabel: _t('Severity'),
+                name: 'severity',
+                editable: false,
+                forceSelection: true,
+                autoSelect: true,
+                triggerAction: 'all',
+                mode: 'local',
+                store: store
+            });
+            EventAgeSeverity.superclass.constructor.apply(this, arguments);
+        }
+    });
+    Ext.reg('eventageseverity', EventAgeSeverity);
 
     Ext.ns('Zenoss.settings');
     var router = Zenoss.remote.EventsRouter;
 
+
+    function saveConfigValues(results, callback) {
+        // if they wish to age all events update the inclusive flag
+        var values = results.values;
+        values.event_age_severity_inclusive = false;
+        if (values.event_age_disable_severity == AGE_ALL_EVENTS) {
+            values.event_age_disable_severity = 5; // critical
+            values.event_age_severity_inclusive = true;
+        }
+        router.setConfigValues(results, callback);
+    }
+
     function buildPropertyGrid(response) {
         var propsGrid,
+            severityField, inclusiveField,
             data;
         data = response.data;
+        severityField = Zenoss.util.filter(data, function(field) {
+            return field.id == 'event_age_disable_severity';
+        })[0];
+
+        inclusiveField = Zenoss.util.filter(data, function(field) {
+            return field.id == 'event_age_severity_inclusive';
+        })[0];
+
+        if (inclusiveField.value) {
+            // set the dropdown box to include the selected severity (if it is critical,
+            // then the drop down will show "Age All Events")
+            severityField.value = severityField.value + 1;
+        }
         propsGrid = new Zenoss.form.SettingsGrid({
             renderTo: 'propList',
             width: 500,
-            saveFn: router.setConfigValues
+            saveFn: saveConfigValues
         }, data);
     }
 
@@ -34,7 +82,7 @@ Ext.onReady(function(){
     }
 
     loadProperties();
-    
+
     var clearHeartbeatPanel = new Ext.Panel({
         renderTo: 'clearHeartbeat',
         layout: 'hbox',

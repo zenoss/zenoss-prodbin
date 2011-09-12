@@ -792,7 +792,10 @@ class EventsRouter(DirectRouter):
         configSchema =[{
                 'id': 'event_age_disable_severity',
                 'name': _t("Don't Age This Severity and Above"),
-                'xtype': 'severity',
+                'xtype': 'eventageseverity',
+                },{
+                'id': 'event_age_severity_inclusive',
+                'xtype': 'hidden',
                 },{
                 'id': 'event_age_interval_minutes',
                 'name': _t('Event Aging Threshold (minutes)'),
