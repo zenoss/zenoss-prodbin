@@ -47,6 +47,19 @@ class ServiceFacadeTest(ZuulFacadeTestCase):
         self.assertEqual('tcp_00121', instanceInfo.name)
         self.assertEqual('None', instanceInfo.status)
 
+    def test_deleteServiceClassRemovesInstances(self):
+        device = self.dmd.Devices.createInstance('foo')
+        uid = '/zport/dmd/Services/IpService/serviceclasses/tcp_00121'
+        self.assertEqual(0, len(device.os.ipservices()))
+        device.os.ipservices._setObject('tcp_00121', IpService('tcp_00121'))
+        bar = device.os.ipservices()[0]
+        bar.port = 121
+        bar.protocol = 'tcp'
+        bar.setServiceClass({'protocol':'tcp', 'port':121})
+        self.assertEqual(1, len(device.os.ipservices()))
+        self.facade.deleteNode(uid)
+        self.assertEqual(0, len(device.os.ipservices()))
+
 
 def test_suite():
     return unittest.TestSuite((unittest.makeSuite(ServiceFacadeTest),))

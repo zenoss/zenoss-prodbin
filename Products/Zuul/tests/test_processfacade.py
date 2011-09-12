@@ -107,6 +107,15 @@ class ProcessFacadeTest(EventTestCase, ZuulFacadeTestCase):
         self.assertEqual(True, instanceInfo.monitor)
         self.assertEqual('Up', instanceInfo.status)
 
+    def test_deleteProcessClassRemovesInstances(self):
+        device = self.dmd.Devices.createInstance('quux')
+        uid = '/zport/dmd/Processes/foo/osProcessClasses/bar'
+        self.assertEqual(0, len(device.os.processes()))
+        device.os.addOSProcess(uid, True)
+        self.assertEqual(1, len(device.os.processes()))
+        self.facade.deleteNode(uid)
+        self.assertEqual(0, len(device.os.processes()))
+
 def test_suite():
     return unittest.TestSuite((unittest.makeSuite(ProcessFacadeTest),))
 

@@ -122,3 +122,10 @@ class ProcessFacade(TreeFacade):
         wrapped = imap(IInfo, imap(unbrain, brains))
         return SearchResults(wrapped, brains.total, brains.hash_)
 
+    def deleteNode(self, uid):
+        obj = self._getObject(uid)
+        if hasattr(obj, 'instances'):
+            for i in obj.instances():
+                i.manage_deleteComponent()
+        context = aq_parent(obj)
+        context._delObject(obj.id)
