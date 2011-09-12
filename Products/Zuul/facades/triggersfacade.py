@@ -334,6 +334,8 @@ class TriggersFacade(ZuulFacade):
             self.triggerPermissions.updatePermissions(self._guidManager, triggerObj)
             
         if self.triggerPermissions.userCanUpdateTrigger(user, triggerObj):
+            if "name" in data:
+                triggerObj.setTitle(data["name"])
             trigger = from_dict(zep.EventTrigger, data)
             response, content = self.triggers_service.updateTrigger(trigger)
             return content
