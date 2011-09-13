@@ -144,11 +144,7 @@ var viewport = new Ext.Viewport({
         }
     ]
 });
-        if(Ext.isIE7){ 
-            setTimeout(function(){
-                Ext.getCmp('viewport').doLayout();
-                }, 1000);
-        }
+   
 });
 </script>
 
