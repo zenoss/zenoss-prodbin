@@ -771,8 +771,15 @@ function detailSelectByToken(nodeId) {
         item = Ext.getCmp('detail_nav');
     function changeDetail() {
         item.un('navloaded', item.selectFirst, item);
+
+        // switch to the "details" panel
         container.setActiveItem(1);
-        item.selectByToken(parts[1]);
+
+        // wait until the nav has loaded from the server to
+        // select the nav item
+        item.on('navloaded', function(){
+            item.selectByToken(parts[1]);
+        }, item, {single: true});
     }
     if (parts[1]) {
         if (master.items.items.indexOf(container.activeItem)==1 ||
