@@ -6,12 +6,12 @@ var absoluteUrlPath = &quot;${here/absolute_url_path}&quot;;
 var reportId = &quot;${here/getPrimaryId}&quot;;
 </script>" />
 
-<form method="post" target="_blank" id="printableForm" tal:attributes=" 
+<form method="post" target="_blank" id="printableForm" tal:attributes="
         action python:here.absolute_url_path() + '/viewMultiGraphReportClean';">
 </form>
- 
+
 <script language="javascript" type="text/javascript">
-var ZenGraphs = new Array();
+var ZenGraphs = [];
 
 function CreateFormField(theForm, name, value) {
     var newField = document.createElement('INPUT');
@@ -25,12 +25,26 @@ function ShowPrintable() {
     printableForm = document.getElementById('printableForm');
     while (printableForm.hasChildNodes())
         printableForm.removeChild(printableForm.firstChild);
-    for (i=0; i < ZenGraphs.length; i++) {
-        var graph = document.getElementById('graph_' + i);
-        CreateFormField(printableForm, 'graph_' + i, graph.src);
-        CreateFormField(printableForm, 'title_' + i, graph.title);
+    var numGraphs = 0;
+    for (var name in ZenGraphs) {
+        if (ZenGraphs.hasOwnProperty(name)) {
+            var graph = ZenGraphs[name],
+                title = graph[1];
+            var graph = document.getElementById('graph_' + numGraphs);
+            CreateFormField(printableForm, 'graph_' + numGraphs, graph.src);
+            CreateFormField(printableForm, 'title_' + numGraphs, title);
+            numGraphs++;
+        }
     }
-    CreateFormField(printableForm, 'numGraphs', ZenGraphs.length);
+    CreateFormField(printableForm, 'numGraphs', numGraphs);
+
+    var drange = document.getElementById('drange_select');
+    if (drange) {
+       var selected = drange.options[drange.selectedIndex].value;
+       if (selected) {
+           CreateFormField(printableForm, 'drange', selected);
+       }
+    }
     printableForm.submit();
 }
 </script>

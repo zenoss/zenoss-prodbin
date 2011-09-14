@@ -9,16 +9,16 @@ var reportId = &quot;${here/getPrimaryId}&quot;;
 <script language="javascript" type="text/javascript">
     var ZenGraphs = {};
 </script>
-<style> 
-    /* Override some uglifying styles */ 
-    table.innerzentable tr td { padding: 0; } 
+<style>
+    /* Override some uglifying styles */
+    table.innerzentable tr td { padding: 0; }
 </style>
 <script type="text/javascript" src="/zport/dmd/zenrrdzoom.js"></script>
 
-<form method="post" target="_blank" id="printableForm" tal:attributes=" 
+<form method="post" target="_blank" id="printableForm" tal:attributes="
         action python:here.absolute_url_path() + '/viewGraphReportClean';">
 </form>
- 
+
 <form method="post"
     tal:attributes="action string:${here/absolute_url_path}/${template/id}">
 
@@ -36,13 +36,27 @@ function ShowPrintable() {
     printableForm = document.getElementById('printableForm');
     while (printableForm.hasChildNodes())
         printableForm.removeChild(printableForm.firstChild);
-    for (i=0; i < ZenGraphs.length; i++) {
-        var graph = document.getElementById('graph_' + i);
-        try {
-            CreateFormField(printableForm, 'graph_' + i, graph.src);
-        } catch(e) {
-            CreateFormField(printableForm, 'graph_' + i, '');
+    var numGraphs = 0;
+    for (var name in ZenGraphs) {
+        if (ZenGraphs.hasOwnProperty(name)) {
+            var graph = ZenGraphs[name],
+                src = graph[0],
+                title = graph[1],
+                i = numGraphs;
+            var graph = document.getElementById('graph_' + numGraphs);
+            CreateFormField(printableForm, 'graph_' + numGraphs, graph.src);
+            CreateFormField(printableForm, 'title_' + numGraphs, title);
+            numGraphs++;
         }
+    }
+
+    // append the drange to the viewGraphReportClean url
+    var drange = document.getElementById('drange_select');
+    if (drange) {
+       var selected = drange.options[drange.selectedIndex].value;
+       if (selected) {
+           CreateFormField(printableForm, 'drange', selected);
+       }
     }
     printableForm.submit();
 }
@@ -59,9 +73,9 @@ function ShowPrintable() {
 <tal:block metal:fill-slot="filterslot">
         &nbsp;&nbsp;&nbsp;&nbsp;Range
         <select class="tableheader" name="drange:int" id="drange_select">
-            <option tal:repeat="r here/performanceDateRanges" 
-                tal:content='python:r[0]' 
-                tal:attributes="value python:r[1]; 
+            <option tal:repeat="r here/performanceDateRanges"
+                tal:content='python:r[0]'
+                tal:attributes="value python:r[1];
                                 selected python:r[1]==drange"/>
         </select>
     <input id="graphreset" class="tableheader" type="button" value="Reset" style="margin-left:2em;"/>
@@ -76,11 +90,11 @@ function ShowPrintable() {
 <tal:block metal:fill-slot="zentablecontents">
 
 <!-- BEGIN TABLE CONTENTS -->
-    
+
     <tal:block tal:repeat="element here/getElements">
     <tal:block tal:define="graphid string:graph_${repeat/element/index};
                            graphUrl python:element.getGraphUrl(request.get('drange', drange));">
-        
+
         <tal:block tal:condition="python:path('repeat/element/index') % here.numColumns == 0"
             tal:replace="structure string:<tr>"/>
         <td valign="top">
@@ -88,18 +102,18 @@ function ShowPrintable() {
 
         <tr>
             <td class="tableheader" tal:content="structure element/getSummary">
-                summary 
-		    </td>
-		</tr>
+                summary
+            </td>
+        </tr>
         <tr>
             <td class="tablevalues" tal:attributes="id string:td_${graphid}">
                 <script language="javascript" type="text/javascript"
-                    tal:content="string:ZenGraphs['${graphid}']=['${graphUrl}', 
+                    tal:content="string:ZenGraphs['${graphid}']=['${graphUrl}',
                                                   ''];">
                 </script>
             </td>
         </tr>
-        
+
         </table>
         </td>
         <tal:block tal:condition="python:(path('repeat/element/index')+1) % here.numColumns == 0 or path('repeat/element/end')"
@@ -107,8 +121,8 @@ function ShowPrintable() {
 
     </tal:block>
     </tal:block>
-    
-    
+
+
 <!-- END TABLE CONTENTS -->
 
 </tal:block>
