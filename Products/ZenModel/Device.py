@@ -877,7 +877,9 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable,
         @rtype: string
         @permission: ZEN_VIEW
         """
-        return Time.LocalDateTimeSecsResolution(float(self._snmpLastCollection))
+        if self._snmpLastCollection:
+            return Time.LocalDateTimeSecsResolution(float(self._snmpLastCollection))
+        return "Not Modeled"
 
 
     def _sanitizeIPaddress(self, ip):

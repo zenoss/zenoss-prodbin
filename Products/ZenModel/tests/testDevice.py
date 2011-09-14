@@ -61,12 +61,12 @@ class TestDevice(ZenModelBaseTest):
 
     def testManage_createDeviceDup(self):
         dev = manage_createDevice(self.dmd, 'mydevice', '/')
-        self.assertRaises(DeviceExistsError, 
+        self.assertRaises(DeviceExistsError,
                           manage_createDevice, self.dmd, 'mydevice', '/')
 
     def testManage_createDeviceDupIp(self):
         dev = manage_createDevice(self.dmd, 'mydevice', '/', manageIp='1.1.1.1')
-        self.assertRaises(DeviceExistsError, 
+        self.assertRaises(DeviceExistsError,
           manage_createDevice, self.dmd, 'mydevice2', '/', manageIp='1.1.1.1')
 
     def testIpRouteCreation(self):
@@ -77,13 +77,13 @@ class TestDevice(ZenModelBaseTest):
         self.assertEqual(ipr.getTarget(), "1.2.3.0/24")
         net = ipr.target()
         self.assert_(ipr in net.clientroutes())
-        
+
 
     def testSetLocation(self):
         self.dev.setLocation('/Test/Loc')
         self.assertEqual(self.dev.getLocationName(), '/Test/Loc')
 
-    
+
     def testAddLocation(self):
         self.dev.addLocation('/Test/Loc')
         self.assert_('/Test/Loc' in self.dmd.Locations.getOrganizerNames())
@@ -97,7 +97,7 @@ class TestDevice(ZenModelBaseTest):
     def testSetHWSerialNumber(self):
         self.dev.setHWSerialNumber('testSWKey')
         self.assertEqual(self.dev.getHWSerialNumber(), 'testSWKey')
-    
+
 
     def testSetOSProductKey(self):
         unicodeificated = 'ab\xefcd'.decode('latin1')
@@ -157,7 +157,7 @@ class TestDevice(ZenModelBaseTest):
     def testAddSystem(self):
         self.dev.addSystem('/test/sys/loc')
         self.assert_('/test/sys/loc' in self.dev.getSystemNames())
-        
+
 
     def testAddDeviceGroup(self):
         self.dev.addDeviceGroup('/test/dev/grp/loc')
@@ -175,7 +175,7 @@ class TestDevice(ZenModelBaseTest):
         self.dev.manage_editDevice(osManufacturer='Apple',
                                    osProductName='Macos 10.4.1')
         self.assertEqual(self.dev.getOSProductName(), "Macos 10.4.1")
-        
+
 
     def testSnmpAgeCheck(self):
         self.dev.setSnmpLastCollection()
@@ -290,7 +290,7 @@ class TestDevice(ZenModelBaseTest):
                         systemPaths=['/sys/path1','/sys/path2'],
                         performanceMonitor='perfMon',
                         title='testTitle')
-                        
+
         self.assertEqual(self.dev.hw.tag, 'tag')
         self.assertEqual(self.dev.hw.serialNumber, 'SN123')
         self.assertEqual(self.dev.zSnmpCommunity, 'theHood')
@@ -311,7 +311,7 @@ class TestDevice(ZenModelBaseTest):
         self.assert_('/sys/path2' in self.dev.getSystemNames())
         self.assertEqual(self.dev.getPerformanceServerName(), "perfMon")
         self.assertEqual(self.dev.title, "testTitle")
-        
+
 
     def testManage_updateDevice(self):
         self.dev.manage_editDevice()
@@ -355,7 +355,7 @@ class TestDevice(ZenModelBaseTest):
         self.assertEqual(self.dev.getPerformanceServerName(), "localhost")
         self.assertEqual(self.dev.title, '')
 
-        self.dev.updateDevice(serialNumber='SN123') # set value 
+        self.dev.updateDevice(serialNumber='SN123') # set value
         self.assertEqual(self.dev.hw.tag, 'tag')
         self.assertEqual(self.dev.hw.serialNumber, 'SN123')  # verify change
         self.assertEqual(self.dev.zSnmpCommunity, self.dmd.Devices.zSnmpCommunity)
@@ -395,7 +395,7 @@ class TestDevice(ZenModelBaseTest):
         self.assertEqual(self.dev.getPerformanceServerName(), "localhost")
         self.assertEqual(self.dev.title, '')
 
-        self.dev.updateDevice(zSnmpPort=121) # set value 
+        self.dev.updateDevice(zSnmpPort=121) # set value
         self.assertEqual(self.dev.hw.tag, 'tag')
         self.assertEqual(self.dev.hw.serialNumber, 'SN123')
         self.assertEqual(self.dev.zSnmpCommunity, 'theHood')
@@ -414,7 +414,7 @@ class TestDevice(ZenModelBaseTest):
         self.assertEqual(self.dev.getSystemNames(), [])
         self.assertEqual(self.dev.getPerformanceServerName(), "localhost")
         self.assertEqual(self.dev.title, '')
-        
+
         self.dev.updateDevice(zSnmpVer='v2') # set value
         self.assertEqual(self.dev.hw.tag, 'tag')
         self.assertEqual(self.dev.hw.serialNumber, 'SN123')
@@ -434,8 +434,8 @@ class TestDevice(ZenModelBaseTest):
         self.assertEqual(self.dev.getSystemNames(), [])
         self.assertEqual(self.dev.getPerformanceServerName(), "localhost")
         self.assertEqual(self.dev.title, '')
-        
-        self.dev.updateDevice(rackSlot='1') # set value 
+
+        self.dev.updateDevice(rackSlot='1') # set value
         self.assertEqual(self.dev.hw.tag, 'tag')
         self.assertEqual(self.dev.hw.serialNumber, 'SN123')
         self.assertEqual(self.dev.zSnmpCommunity, 'theHood')
@@ -474,7 +474,7 @@ class TestDevice(ZenModelBaseTest):
         self.assertEqual(self.dev.getSystemNames(), [])
         self.assertEqual(self.dev.getPerformanceServerName(), "localhost")
         self.assertEqual(self.dev.title, '')
-        
+
         self.dev.updateDevice(comments="cross your fingers") # set value
         self.assertEqual(self.dev.hw.tag, 'tag')
         self.assertEqual(self.dev.hw.serialNumber, 'SN123')
@@ -527,8 +527,8 @@ class TestDevice(ZenModelBaseTest):
         self.assertEqual(self.dev.rackSlot, "1")
         self.assertEqual(self.dev.productionState, 400)
         self.assertEqual(self.dev.comments, "cross your fingers")
-        self.assertEqual(self.dev.getHWManufacturerName(), "hwMan") 
-        self.assertEqual(self.dev.getHWProductName(), "hwProd") 
+        self.assertEqual(self.dev.getHWManufacturerName(), "hwMan")
+        self.assertEqual(self.dev.getHWProductName(), "hwProd")
         self.assertEqual(self.dev.getOSManufacturerName(), "Apple") # verify change
         self.assertEqual(self.dev.getOSProductName(), "osProd")  # verify change
         self.assertEqual(self.dev.getLocationLink(), "None")
@@ -547,10 +547,10 @@ class TestDevice(ZenModelBaseTest):
         self.assertEqual(self.dev.rackSlot, "1")
         self.assertEqual(self.dev.productionState, 400)
         self.assertEqual(self.dev.comments, "cross your fingers")
-        self.assertEqual(self.dev.getHWManufacturerName(), "hwMan") 
-        self.assertEqual(self.dev.getHWProductName(), "hwProd") 
-        self.assertEqual(self.dev.getOSManufacturerName(), "Apple") 
-        self.assertEqual(self.dev.getOSProductName(), "osProd") 
+        self.assertEqual(self.dev.getHWManufacturerName(), "hwMan")
+        self.assertEqual(self.dev.getHWProductName(), "hwProd")
+        self.assertEqual(self.dev.getOSManufacturerName(), "Apple")
+        self.assertEqual(self.dev.getOSProductName(), "osProd")
         self.assertEqual(self.dev.getLocationName(), '/test/loc') # test value
         self.assertEqual(self.dev.getDeviceGroupNames(), [])
         self.assertEqual(self.dev.getSystemNames(), [])
@@ -566,11 +566,11 @@ class TestDevice(ZenModelBaseTest):
         self.assertEqual(self.dev.rackSlot, "1")
         self.assertEqual(self.dev.productionState, 400)
         self.assertEqual(self.dev.comments, "cross your fingers")
-        self.assertEqual(self.dev.getHWManufacturerName(), "hwMan") 
-        self.assertEqual(self.dev.getHWProductName(), "hwProd") 
-        self.assertEqual(self.dev.getOSManufacturerName(), "Apple") 
-        self.assertEqual(self.dev.getOSProductName(), "osProd") 
-        self.assertEqual(self.dev.getLocationName(), '/test/loc') 
+        self.assertEqual(self.dev.getHWManufacturerName(), "hwMan")
+        self.assertEqual(self.dev.getHWProductName(), "hwProd")
+        self.assertEqual(self.dev.getOSManufacturerName(), "Apple")
+        self.assertEqual(self.dev.getOSProductName(), "osProd")
+        self.assertEqual(self.dev.getLocationName(), '/test/loc')
         self.assert_('/group/path1' in self.dev.getDeviceGroupNames()) # test value
         self.assert_('/group/path2' in self.dev.getDeviceGroupNames()) # test value
         self.assertEqual(self.dev.getSystemNames(), [])
@@ -586,16 +586,16 @@ class TestDevice(ZenModelBaseTest):
         self.assertEqual(self.dev.rackSlot, "1")
         self.assertEqual(self.dev.productionState, 400)
         self.assertEqual(self.dev.comments, "cross your fingers")
-        self.assertEqual(self.dev.getHWManufacturerName(), "hwMan") 
-        self.assertEqual(self.dev.getHWProductName(), "hwProd") 
-        self.assertEqual(self.dev.getOSManufacturerName(), "Apple") 
-        self.assertEqual(self.dev.getOSProductName(), "osProd") 
-        self.assertEqual(self.dev.getLocationName(), '/test/loc') 
-        self.assert_('/group/path1' in self.dev.getDeviceGroupNames()) 
-        self.assert_('/group/path2' in self.dev.getDeviceGroupNames()) 
+        self.assertEqual(self.dev.getHWManufacturerName(), "hwMan")
+        self.assertEqual(self.dev.getHWProductName(), "hwProd")
+        self.assertEqual(self.dev.getOSManufacturerName(), "Apple")
+        self.assertEqual(self.dev.getOSProductName(), "osProd")
+        self.assertEqual(self.dev.getLocationName(), '/test/loc')
+        self.assert_('/group/path1' in self.dev.getDeviceGroupNames())
+        self.assert_('/group/path2' in self.dev.getDeviceGroupNames())
         self.assert_('/sys/path1' in self.dev.getSystemNames()) # test value
         self.assert_('/sys/path2' in self.dev.getSystemNames()) # test value
-        self.assertEqual(self.dev.getPerformanceServerName(), "localhost") 
+        self.assertEqual(self.dev.getPerformanceServerName(), "localhost")
         self.assertEqual(self.dev.title, '')
 
         self.dev.updateDevice(performanceMonitor='perfMon') # set value
@@ -607,13 +607,13 @@ class TestDevice(ZenModelBaseTest):
         self.assertEqual(self.dev.rackSlot, "1")
         self.assertEqual(self.dev.productionState, 400)
         self.assertEqual(self.dev.comments, "cross your fingers")
-        self.assertEqual(self.dev.getHWManufacturerName(), "hwMan") 
-        self.assertEqual(self.dev.getHWProductName(), "hwProd") 
-        self.assertEqual(self.dev.getOSManufacturerName(), "Apple") 
-        self.assertEqual(self.dev.getOSProductName(), "osProd") 
-        self.assertEqual(self.dev.getLocationName(), '/test/loc') 
-        self.assert_('/group/path1' in self.dev.getDeviceGroupNames()) 
-        self.assert_('/group/path2' in self.dev.getDeviceGroupNames()) 
+        self.assertEqual(self.dev.getHWManufacturerName(), "hwMan")
+        self.assertEqual(self.dev.getHWProductName(), "hwProd")
+        self.assertEqual(self.dev.getOSManufacturerName(), "Apple")
+        self.assertEqual(self.dev.getOSProductName(), "osProd")
+        self.assertEqual(self.dev.getLocationName(), '/test/loc')
+        self.assert_('/group/path1' in self.dev.getDeviceGroupNames())
+        self.assert_('/group/path2' in self.dev.getDeviceGroupNames())
         self.assert_('/sys/path1' in self.dev.getSystemNames())
         self.assert_('/sys/path2' in self.dev.getSystemNames())
         self.assertEqual(self.dev.getPerformanceServerName(), "perfMon") # test value
@@ -628,35 +628,44 @@ class TestDevice(ZenModelBaseTest):
         self.assertEqual(self.dev.rackSlot, "1")
         self.assertEqual(self.dev.productionState, 400)
         self.assertEqual(self.dev.comments, "cross your fingers")
-        self.assertEqual(self.dev.getHWManufacturerName(), "hwMan") 
-        self.assertEqual(self.dev.getHWProductName(), "hwProd") 
-        self.assertEqual(self.dev.getOSManufacturerName(), "Apple") 
-        self.assertEqual(self.dev.getOSProductName(), "osProd") 
-        self.assertEqual(self.dev.getLocationName(), '/test/loc') 
-        self.assert_('/group/path1' in self.dev.getDeviceGroupNames()) 
-        self.assert_('/group/path2' in self.dev.getDeviceGroupNames()) 
-        self.assert_('/sys/path1' in self.dev.getSystemNames()) 
+        self.assertEqual(self.dev.getHWManufacturerName(), "hwMan")
+        self.assertEqual(self.dev.getHWProductName(), "hwProd")
+        self.assertEqual(self.dev.getOSManufacturerName(), "Apple")
+        self.assertEqual(self.dev.getOSProductName(), "osProd")
+        self.assertEqual(self.dev.getLocationName(), '/test/loc')
+        self.assert_('/group/path1' in self.dev.getDeviceGroupNames())
+        self.assert_('/group/path2' in self.dev.getDeviceGroupNames())
+        self.assert_('/sys/path1' in self.dev.getSystemNames())
         self.assert_('/sys/path2' in self.dev.getSystemNames())
-        self.assertEqual(self.dev.getPerformanceServerName(), "perfMon") 
+        self.assertEqual(self.dev.getPerformanceServerName(), "perfMon")
         self.assertEqual(self.dev.title, "testTitle") # test value
-        
+
         # we should not set title to None
         self.dev.updateDevice(title=None) # set value
         self.assertEqual(self.dev.title, "testTitle") # test value
-                        
+
 
     def test_setZProperties(self):
         decoding = self.dmd.Devices.zCollectorDecoding
         zProperties = {'zCommandUsername':'testuser',
                        'zCollectorDecoding':decoding}
         device = BaseDeviceLoader(self.dmd).load_device(
-                    'testdevice', '/', 'none', 'localhost', 
+                    'testdevice', '/', 'none', 'localhost',
                     '1.1.1.1', zProperties=zProperties)
         self.assert_(device is not None)
         self.assertEqual(device.zCommandUsername, 'testuser')
         self.assertEqual(device.zCollectorDecoding, decoding)
         self.assertEqual(device.isLocal('zCommandUsername'), True)
         self.assertEqual(device.isLocal('zCollectorDecoding'), False)
+
+    def testSnmpLastCollectionString(self):
+        """
+        When a device has not been modeled make sure we are not
+        showing an invalid date
+        """
+        dev = self.dmd.Devices.createInstance('testsnmpcollection')
+        lastcollection = dev.getSnmpLastCollectionString()
+        self.assertEqual(lastcollection, "Not Modeled")
 
     def testPrettyLinkWithTitleOrId(self):
         dev = manage_createDevice(self.dmd, 'testId', '/')
@@ -699,7 +708,7 @@ class TestDevice(ZenModelBaseTest):
                            testId2 )
 
 class GetSnmpConnInfoTest(ZenModelBaseTest):
-    
+
     def runTest(self):
         from Products.ZenModel.Device import manage_addDevice
         from Products.ZenHub.services.PerformanceConfig import ATTRIBUTES
@@ -708,7 +717,7 @@ class GetSnmpConnInfoTest(ZenModelBaseTest):
         device = devices.findChild('test')
         info = device.getSnmpConnInfo()
         for attribute in ATTRIBUTES:
-            self.assertEqual(getattr(device, attribute), 
+            self.assertEqual(getattr(device, attribute),
                              getattr(info, attribute))
 
 def test_suite():
