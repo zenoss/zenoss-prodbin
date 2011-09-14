@@ -51,7 +51,7 @@ confirm_jre
 # Test for the pre upgrade zenpack, this should have been removed
 # as a part of the 3.x upgrade but if it is present it will cause an error
 # on migration, so we need to make sure it is removed.
-if ${ZENHOME}/bin/zenpack --list | grep Advanced 2>/dev/null 1>&2 ;then
+if ${ZENHOME}/bin/zenpack --list | grep PreUpgrade30 2>/dev/null 1>&2 ;then
     cat <<EOF
     Please remove the PreUpgrade zenpack before continuing.
     You can remove the zenpack with the following command:
