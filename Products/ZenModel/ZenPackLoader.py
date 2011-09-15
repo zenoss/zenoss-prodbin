@@ -21,6 +21,7 @@ from Products.Zuul import getFacade
 
 from zenoss.protocols.jsonformat import from_dict
 from zenoss.protocols.protobufs.zep_pb2 import EventDetailItemSet, EventDetailItem
+from zenoss.protocols.services import ServiceResponseError
 
 import os
 import json
@@ -591,8 +592,14 @@ class EventDetailItemHandler(object):
             self.zep = getFacade('zep')
             items = configData.get(EventDetailItemHandler.key, [])
             for item in items:
-                log.info("Removing the following currently indexed detail by ZEP: %s" % item)
-                self.zep.removeIndexedDetail(item['key'])
+                log.info("Removing the following currently indexed detail by ZEP: %s" % item['key'])
+                try:
+                    self.zep.removeIndexedDetail(item['key'])
+                except ServiceResponseError as e:
+                    if e.status == 404:
+                        log.debug('Indexed detail was previously removed from ZEP')
+                    else:
+                        log.warning("Failed to remove indexed detail: %s", e.message)
 
 
     def upgrade(self, configData):
