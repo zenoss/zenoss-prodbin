@@ -318,7 +318,7 @@ class EventProtobuf(ObjectProtobuf):
         event = self.obj
 
         for key, value in event.__dict__.iteritems():
-            if key in self._IGNORED_ATTRS:
+            if key in self._IGNORED_ATTRS or value is None:
                 continue
             mapper = self._FIELD_MAPPERS.get(key)
             if mapper:
