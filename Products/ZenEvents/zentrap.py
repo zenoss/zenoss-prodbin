@@ -59,6 +59,10 @@ unused(DeviceProxy)
 from Products.ZenHub.services.SnmpTrapConfig import User
 unused(User)
 
+from zenoss.protocols.protobufs.zep_pb2 import (SEVERITY_CRITICAL, SEVERITY_ERROR,
+                                                SEVERITY_WARNING, SEVERITY_INFO,
+                                                SEVERITY_DEBUG, SEVERITY_CLEAR)
+
 
 # This is what struct sockaddr_in {} looks like
 family = [('family', c.c_ushort)]
@@ -669,7 +673,7 @@ class TrapTask(BaseTask, CaptureReplay):
         result.setdefault('component', '')
         result.setdefault('eventClassKey', eventType)
         result.setdefault('eventGroup', 'trap')
-        result.setdefault('severity', 2)
+        result.setdefault('severity', SEVERITY_WARNING)
         result.setdefault('summary', summary)
         result.setdefault('community', community)
         result.setdefault('firstTime', startProcessTime)
