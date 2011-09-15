@@ -108,12 +108,15 @@ class InvalidIPRangeError(Exception):
 
 def isip(ip):
     uIp = str(ipunwrap(ip))
+    # Twisted monkey patches socket.inet_pton on systems that have IPv6
+    # disabled and raise a ValueError instead of the expected socket.error
+    # if the passed in address is invalid.
     try:
         socket.inet_pton(socket.AF_INET, uIp)
-    except socket.error:
+    except (socket.error, ValueError):
         try:
             socket.inet_pton(socket.AF_INET6, uIp)
-        except socket.error:
+        except (socket.error, ValueError):
             return False
     return True
 
