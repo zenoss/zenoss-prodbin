@@ -37,14 +37,7 @@ try:
 except ImportError:
     pass
 
-from base64 import b64encode
-try:
-    from base64 import urlsafe_b64decode
-    raise ImportError
-except ImportError:
-    def urlsafe_b64decode(s):
-        import base64
-        return base64.decodestring(s.replace('-','+').replace('_','/'))
+from base64 import b64encode, urlsafe_b64decode
 
 from Products.ZenRRD.RRDUtil import fixMissingRRDs
 from Products.ZenUtils.PObjectCache import PObjectCache
@@ -110,7 +103,18 @@ class RenderServer(RRDToolItem):
         @return: graph or script location
         """
 
-        gopts = zlib.decompress(urlsafe_b64decode(gopts))
+        # gopts may have repeated url quoting, possibly from multiple hops thru remote zenhubs
+        # extra quoting will create invalid zlib padding characters ('%3D' instead of '=')
+        for tries in range(3):
+            try:
+                gopts = zlib.decompress(urlsafe_b64decode(gopts))
+            except Exception:
+                gopts = urllib.unquote(gopts)
+            else:
+                break
+
+        comment = urllib.unquote(comment) if comment is not None else ''
+
         gopts = gopts.split('|')
         gopts = fixMissingRRDs(gopts)
         gopts.append('HRULE:INF#00000000')
