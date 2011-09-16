@@ -1678,7 +1678,7 @@ Zenoss.RefreshMenuButton = Ext.extend(Ext.SplitButton, {
                     this.pollHandler()
                 }
                 else{
-                    this.handler();
+                    this.handler(this);
                 }
             }
             this.refreshTask.delay(this.interval*1000);

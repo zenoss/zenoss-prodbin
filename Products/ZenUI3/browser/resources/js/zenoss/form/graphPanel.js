@@ -317,6 +317,11 @@
                     text: 'Refresh every'
                 },{
                     xtype: 'menucheckitem',
+                    text: '1 minute',
+                    value: 60,
+                    group: 'refreshgroup'
+                },{
+                    xtype: 'menucheckitem',
                     text: '5 minutes',
                     value: 300,
                     group: 'refreshgroup'
