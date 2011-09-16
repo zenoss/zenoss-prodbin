@@ -91,7 +91,7 @@ class RRDView(object):
         dsnames = (dsname,)
         results = self.getRRDValues(
             dsnames, start, end, function, format, extraRpn)
-        if dsname in results:
+        if results and dsname in results:
             return results[dsname]
 
 

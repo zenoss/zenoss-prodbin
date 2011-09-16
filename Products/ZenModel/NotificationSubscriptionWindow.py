@@ -23,7 +23,7 @@ class NotificationSubscriptionWindow(MaintenanceWindow):
 
     notificationSubscription = None
 
-    _relations = (
+    _relations = MaintenanceWindow._relations + (
         ("notificationSubscription", 
         ToOne(
             ToManyCont,
