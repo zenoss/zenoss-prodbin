@@ -271,7 +271,7 @@ override = function() {
 
 overrideHtml1 = function() {
     var html;
-    html = _t('Do you wish to override the selected monitoring template? This will affect all devices using the monitoring template.');
+    html = _t('Do you wish to copy (override) the selected monitoring template? This will affect all devices using the monitoring template.');
     html += '<br/><br/>';
     return html;
 };
@@ -280,13 +280,13 @@ overrideHtml2 = function() {
     var html;
     html = _t('If new thresholds, graphs, are added or removed, or datasources added or disabled, these will be saved to this local copy of template.');
     html += '<br/><br/>';
-    html += _t('Override lets you save this template overriding the original template at the root level.');
+    html += _t('Copied templates will override identically named templates at higher levels.');
     return html;
 };
 
 new Zenoss.HideFormDialog({
     id: 'overrideDialog',
-    title: _t('Override'),
+    title: _t('Copy / Override'),
     width: 500,
     items: [
     {
@@ -487,7 +487,7 @@ footerBar.buttonContextMenu.menu.add({
     handler: editSelectedTemplate
 },{
     xtype: 'menuitem',
-    text: _t('Override Template'),
+    text: _t('Copy / Override Template'),
     handler: showOverrideDialog
 },{
     xtype: 'menuitem',
