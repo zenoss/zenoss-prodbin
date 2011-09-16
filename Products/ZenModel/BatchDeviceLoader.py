@@ -110,6 +110,10 @@ settingsDevice setManageIp='10.10.10.77', setLocation="123 Elm Street", \
 #
 #/Devices/VMware loader='vmware', loader_arg_keys=['host', 'username', 'password', 'useSsl', 'id']
 #esxwin2 id='esxwin2', host='esxwin2.zenoss.loc', username='testuser', password='password', useSsl=True
+
+# Apply custom schema properties (c-properties) to a device
+windows_device7 cDateTest='2010/02/28'
+
 """
 
     def __init__(self, *args, **kwargs):
