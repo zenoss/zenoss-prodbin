@@ -18,7 +18,7 @@
      // NOTE: All permissions are handled on the server, this is just to
      // enhance the user experience
      Ext.ns('Zenoss.Security');
-     
+
      // Defined in ZenUI3/security/security.py this is a dictionary of all the
      // permissions the current user has on the current context.
      var all_permissions = _global_permissions(),
@@ -28,13 +28,22 @@
       * The main method for ACL on the front end. It asks
       * if the current user has this permission.
       * The permissions are defined in Zope
-      * 
+      *
       * NOTE: The permissions are not case-sensitive here
       * @returns True/False if the user has permission or not
       **/
      Zenoss.Security.hasPermission = function(permission) {
          // uses all_permissions as a closure
          return all_permissions[permission.toLowerCase()];
+     };
+
+     /**
+      * Asks if the current user has this permission in the
+      * global context.
+      * @returns True/False if the user has the permission or not
+      **/
+     Zenoss.Security.hasGlobalPermission = function(permission) {
+         return _global_permissions()[permission.toLowerCase()];
      };
 
      /**
@@ -47,8 +56,8 @@
       * @returns True if the user does NOT have permission
       **/
      Zenoss.Security.doesNotHavePermission = function(permission) {
-         return (!this.hasPermission(permission));           
-     };     
+         return (!this.hasPermission(permission));
+     };
 
      /**
       * Add an callback to be executed every time the permissions
@@ -64,10 +73,10 @@
          if (scope) {
              callbacks.push(callback.createDelegate(scope));
          }else {
-             callbacks.push(callback);   
-         }       
+             callbacks.push(callback);
+         }
      };
-     
+
      /**
       * If the context you are working on changes call this
       * method to update the security permissions for that new context
@@ -87,8 +96,8 @@
                  }
              }
          }
-         Zenoss.remote.DetailNavRouter.getSecurityPermissions(params, callback);    
-         
+         Zenoss.remote.DetailNavRouter.getSecurityPermissions(params, callback);
+
      };
-     
+
 }());

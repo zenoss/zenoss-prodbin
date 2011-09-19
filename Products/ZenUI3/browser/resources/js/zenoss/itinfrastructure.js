@@ -1078,7 +1078,6 @@ var device_grid = new Zenoss.DeviceGridPanel({
             {
                 id: 'adddevice-button',
                 iconCls: 'adddevice',
-                disabled: Zenoss.Security.doesNotHavePermission("Manage Device"),
                 menu:{
                     items: [
                         Zenoss.devices.addDevice,
@@ -1154,7 +1153,7 @@ var device_grid = new Zenoss.DeviceGridPanel({
 Zenoss.Security.onPermissionsChange(function(){
     Ext.getCmp('master_panel').details.setDisabled(Zenoss.Security.doesNotHavePermission('Manage DMD'));
     Ext.getCmp('commands-menu').setDisabled(Zenoss.Security.doesNotHavePermission('Run Commands'));
-    Ext.getCmp('adddevice-button').setDisabled(Zenoss.Security.doesNotHavePermission('Manage DMD'));
+    Ext.getCmp('addsingledevice-item').setDisabled(Zenoss.Security.doesNotHavePermission('Manage DMD'));
 });
 
 Ext.getCmp('center_panel').add({
