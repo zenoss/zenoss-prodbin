@@ -229,7 +229,9 @@ def zenpack2XML(dmd, zp):
 
             root = root[loc]
         add_object(root, obj)
-    modelerSearch(tree, zp.path())
+
+    modelerPath = zp.path('modeler', 'plugins')
+    modelerSearch(tree, modelerPath)
 
     # Print out the tree
     print_xml_tree(tree)
