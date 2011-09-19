@@ -1016,7 +1016,7 @@ class UserSettings(ZenModelRM):
                                         level=(), REQUEST=None):
         """Edit list of admin roles.
         """
-        if isinstance(ids, basesetring):
+        if isinstance(ids, basestring):
             ids = [ids]
             level = [level]
             role = [role]
