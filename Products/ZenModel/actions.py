@@ -50,6 +50,18 @@ class ActionExecutionException(Exception): pass
 class ActionMissingException(Exception): pass
 
 
+class TargetableActionException(ActionExecutionException):
+    def __init__(self, action, notification, exceptionTargets):
+        self.action = action
+        self.notificationId = notification.id
+        self.exceptionTargets = exceptionTargets
+    def __str__(self):
+        return "Failed {action} for notification {notification} on targets {targets}".format(
+            action=self.action.name,
+            notification=self.notificationId,
+            targets = ','.join(self.exceptionTargets)
+        )
+
 def processTalSource(source, **kwargs):
     """
     This function is used to parse fields made available to actions that allow
@@ -179,6 +191,7 @@ class TargetableAction(object):
     def execute(self, notification, signal):
         self.setupAction(notification.dmd)
 
+        exceptionTargets = []
         for target in self.getTargets(notification):
             try:
                 self.executeOnTarget(notification, signal, target)
@@ -188,8 +201,9 @@ class TargetableAction(object):
                 # we need to handle it, but we don't want to prevent other
                 # actions from executing on any other targets that may be
                 # about to be acted on.
-                msg = 'Error executing action {notification}'.format(
+                msg = 'Error executing action {notification} on {target}'.format(
                     notification=notification.id,
+                    target=target,
                 )
                 log.error(e)
                 log.error(msg)
@@ -200,7 +214,10 @@ class TargetableAction(object):
                               message=traceback,
                               severity=SEV_WARNING, component="zenactiond")
                 notification.dmd.ZenEventManager.sendEvent(event)
+                exceptionTargets.append(target)
 
+        if exceptionTargets:
+            raise TargetableActionException(self, notification, exceptionTargets)
 
 class EmailAction(IActionBase, TargetableAction):
     implements(IAction)
@@ -264,7 +281,7 @@ class EmailAction(IActionBase, TargetableAction):
         )
 
         if result:
-            log.info("Notification '%s' sent email to: %s",
+            log.debug("Notification '%s' sent email to: %s",
                      notification.id, target)
         else:
             raise ActionExecutionException(
@@ -339,7 +356,7 @@ class PageAction(IActionBase, TargetableAction):
             deferred=False)
 
         if success:
-            log.info("Notification '%s' sent page to %s." % (notification, target))
+            log.debug("Notification '%s' sent page to %s." % (notification, target))
         else:
             raise ActionExecutionException(
                 "Notification '%s' failed to send page to %s. (%s)" % (notification, target, errorMsg))
@@ -447,7 +464,7 @@ class CommandAction(IActionBase):
 
         _protocol = EventCommandProtocol(command)
 
-        log.info('Queueing up command action process.')
+        log.debug('Queueing up command action process.')
         self.processQueue.queueProcess(
             '/bin/sh',
                 ('/bin/sh', '-c', command),

@@ -27,9 +27,10 @@ from Products.ZenCollector.utils.workers import ProcessWorkers, workersBuildOpti
 from Products.ZenUtils.ZCmdBase import ZCmdBase
 from Products.ZenUtils.Utils import getDefaultZopeUrl
 from Products.ZenUtils.guid.interfaces import IGlobalIdentifier
+from Products.ZenUtils.guid.guid import GUIDManager
 
 from Products.ZenModel.NotificationSubscription import NotificationSubscriptionManager
-from Products.ZenModel.actions import ActionMissingException
+from Products.ZenModel.actions import ActionMissingException, TargetableAction, ActionExecutionException
 from Products.ZenModel.interfaces import IAction
 from Products.ZenEvents.Event import Event
 from Products.ZenMessaging.queuemessaging.QueueConsumer import QueueConsumer
@@ -48,6 +49,7 @@ class NotificationDao(object):
     def __init__(self, dmd):
         self.dmd = dmd
         self.notification_manager = self.dmd.getDmdRoot(NotificationSubscriptionManager.root)
+        self.guidManager = GUIDManager(dmd)
 
     def getNotifications(self):
         self.dmd._p_jar.sync()
@@ -68,7 +70,7 @@ class NotificationDao(object):
             if notification.isActive():
                 if self.notificationSubscribesToSignal(notification, signal):
                     active_matching_notifications.append(notification)
-                    log.info('Found matching notification: %s' % notification)
+                    log.debug('Found matching notification: %s' % notification)
                 else:
                     log.debug('Notification "%s" does not subscribe to this signal.' % notification)
             else:
@@ -121,7 +123,7 @@ class ProcessSignalTask(object):
         try:
             signal = hydrateQueueMessage(message, self.schema)
             self.processSignal(signal)
-            log.info('Done processing signal.')
+            log.debug('Done processing signal.')
         except SchemaException:
             log.error("Unable to hydrate protobuf %s. " % message.content.body)
             self.queueConsumer.acknowledge(message)
@@ -131,22 +133,38 @@ class ProcessSignalTask(object):
             log.error('Acknowledging broken message.')
             self.queueConsumer.acknowledge(message)
         else:
-            log.info('Acknowledging message. (%s)' % signal.message)
+            log.debug('Acknowledging message. (%s)' % signal.message)
             self.queueConsumer.acknowledge(message)
 
     def processSignal(self, signal):
         matches = self.notificationDao.getSignalNotifications(signal)
         log.debug('Found these matching notifications: %s' % matches)
 
+        trigger = self.notificationDao.guidManager.getObject(signal.trigger_uuid)
+        audit_event_trigger_info = "Event:'%s' Trigger:%s" % (
+                                        signal.event.occurrence[0].fingerprint,
+                                        trigger.id)
         for notification in matches:
             if signal.clear and not notification.send_clear:
                 log.debug('Ignoring clearing signal since send_clear is set to False on this subscription %s' % notification.id)
                 continue
             try:
+                target = signal.subscriber_uuid or '<none>'
                 action = self.getAction(notification.action)
+                if isinstance(action, TargetableAction):
+                    target = ','.join(action.getTargets(notification))
                 action.execute(notification, signal)
             except ActionMissingException, e:
                 log.error('Error finding action: {action}'.format(action = notification.action))
+                audit_msg =  "%s Action:%s Status:%s Target:%s Info:%s" % (
+                                    audit_event_trigger_info, notification.action, "FAIL", target, "<action not found>")
+            except ActionExecutionException, aee:
+                log.error('Error executing action: {action} on notification {notification}'.format(
+                    action = notification.action,
+                    notification = notification.id,
+                ))
+                audit_msg =  "%s Action:%s Status:%s Target:%s Info:%s" % (
+                                    audit_event_trigger_info, notification.action, "FAIL", target, aee)
             except Exception, e:
                 msg = 'Error executing action {notification}'.format(
                     notification = notification.id,
@@ -160,6 +178,13 @@ class ProcessSignalTask(object):
                               message=traceback,
                               severity=SEV_WARNING, component="zenactiond")
                 self.dmd.ZenEventManager.sendEvent(event)
+                audit_msg =  "%s Action:%s Status:%s Target:%s Info:%s" % (
+                                    audit_event_trigger_info, notification.action, "FAIL", target, action.getInfo(notification))
+            else:
+                # audit trail of performed actions
+                audit_msg =  "%s Action:%s Status:%s Target:%s Info:%s" % (
+                                    audit_event_trigger_info, notification.action, "SUCCESS", target, action.getInfo(notification))
+            log.info(audit_msg)
         log.debug('Done processing signal. (%s)' % signal.message)
 
 class ZenActionD(ZCmdBase):
