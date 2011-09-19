@@ -10,6 +10,7 @@
             href="/++resource++zenui/js/livegrid/resources/css/ext-ux-livegrid.css"/>
         <tal:block tal:content="structure provider:js-security"/>
         <tal:block tal:content="structure provider:all-js"/>
+        <tal:block tal:content="structure provider:head-extra"/>
     </head>
     <body class="zenui3">
 
