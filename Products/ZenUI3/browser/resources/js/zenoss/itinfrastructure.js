@@ -1121,7 +1121,11 @@ var device_grid = new Zenoss.DeviceGridPanel({
                 id: 'actions-menu',
                 xtype: 'deviceactionmenu',
                 deviceFetcher: gridOptions,
-                saveHandler: resetGrid
+                saveHandler: function(){
+                    resetGrid();
+                    // show any errors
+                    Zenoss.messenger.checkMessages();
+                }
             },
             {
                 id: 'commands-menu',
@@ -1154,6 +1158,7 @@ Zenoss.Security.onPermissionsChange(function(){
     Ext.getCmp('master_panel').details.setDisabled(Zenoss.Security.doesNotHavePermission('Manage DMD'));
     Ext.getCmp('commands-menu').setDisabled(Zenoss.Security.doesNotHavePermission('Run Commands'));
     Ext.getCmp('addsingledevice-item').setDisabled(Zenoss.Security.doesNotHavePermission('Manage DMD'));
+    Ext.getCmp('actions-menu').setDisabled(Zenoss.Security.doesNotHavePermission('Change Device'));
 });
 
 Ext.getCmp('center_panel').add({

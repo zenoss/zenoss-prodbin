@@ -46,7 +46,7 @@ class BasicDataSource(RRDDataSource.SimpleRRDDataSource):
     __pychecker__='no-override'
 
     sourcetypes = ('SNMP', 'COMMAND')
-    
+
     sourcetype = 'SNMP'
     eventClass = Cmd_Fail
     oid = ''
@@ -62,13 +62,13 @@ class BasicDataSource(RRDDataSource.SimpleRRDDataSource):
 
     _relations = RRDDataSource.RRDDataSource._relations + (
         )
-    
+
     # Screen action bindings (and tab definitions)
-    factory_type_information = ( 
-    { 
+    factory_type_information = (
+    {
         'immediate_view' : 'editBasicDataSource',
         'actions'        :
-        ( 
+        (
             { 'id'            : 'edit'
             , 'name'          : 'Data Source'
             , 'action'        : 'editBasicDataSource'
@@ -113,7 +113,7 @@ class BasicDataSource(RRDDataSource.SimpleRRDDataSource):
                 try:
                     REQUEST.form['oid'] = checkOid(oid)
                 except ValueError:
-                    messaging.IMessagSeender(self).sendToBrowser(
+                    messaging.IMessageSender(self).sendToBrowser(
                         'Invalid OID',
                         "%s is an invalid OID." % oid,
                         priority=messaging.WARNING
@@ -130,7 +130,7 @@ class BasicDataSource(RRDDataSource.SimpleRRDDataSource):
         @param Dict REQUEST the browers request
         @param Function write The output method we are using to stream the result of the command
         @parma Function errorLog The output method we are using to report errors
-        """ 
+        """
         out = REQUEST.RESPONSE
         # Determine which device to execute against
         device = None
@@ -194,9 +194,9 @@ class BasicDataSource(RRDDataSource.SimpleRRDDataSource):
         # Render
         if REQUEST.get('renderTemplate', True):
             header, footer = self.commandTestOutput().split('OUTPUT_TOKEN')
-            
+
         out.write(str(header))
-            
+
         write("Executing command\n%s\n   against %s" % (displayCommand, device.id))
         write('')
         start = time.time()
@@ -210,7 +210,7 @@ class BasicDataSource(RRDDataSource.SimpleRRDDataSource):
         write('')
         write('DONE in %s seconds' % long(time.time() - start))
         out.write(str(footer))
-                
+
     security.declareProtected('Change Device', 'manage_testDataSource')
     def manage_testDataSource(self, testDevice, REQUEST):
         ''' Test the datasource by executing the command and outputting the
@@ -222,7 +222,7 @@ class BasicDataSource(RRDDataSource.SimpleRRDDataSource):
             ''' Output (maybe partial) result text.
             '''
             # Looks like firefox renders progressive output more smoothly
-            # if each line is stuck into a table row.  
+            # if each line is stuck into a table row.
             startLine = '<tr><td class="tablevalues">'
             endLine = '</td></tr>\n'
             if out:
@@ -235,7 +235,7 @@ class BasicDataSource(RRDDataSource.SimpleRRDDataSource):
                     l = cgi.escape(l)
                     l = l.replace('\n', endLine + startLine)
                     out.write(startLine + l + endLine)
-                    
+
         # use our input and output to call the testDataSource Method
         errorLog = messaging.IMessageSender(self).sendToBrowser
         return self.testDataSourceAgainstDevice(testDevice,

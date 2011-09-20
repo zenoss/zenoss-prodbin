@@ -23,6 +23,9 @@ from Products.ZenUtils.Ext import DirectResponse
 from Products.ZenUtils.jsonutils import unjson
 from Products import Zuul
 from Products.ZenModel.Device import Device
+from Products.ZenModel.ZenossSecurity import ZEN_CHANGE_DEVICE_PRODSTATE, ZEN_MANAGE_DMD, \
+    ZEN_ADMIN_DEVICE, ZEN_MANAGE_DEVICE
+from Products.Zuul import filterUidsByPermission
 from Products.Zuul.routers import TreeRouter
 from Products.Zuul.interfaces import IInfo
 from Products.Zuul.form.interfaces import IFormBuilder
@@ -480,7 +483,6 @@ class DeviceRouter(TreeRouter):
         facade.pushChanges(uids)
         return DirectResponse.succeed('Changes pushed to collectors.')
 
-    @require('Manage Device')
     def lockDevices(self, uids, hashcheck, ranges=(), updates=False,
                     deletion=False, sendEvent=False, uid=None, params=None,
                     sort='name', dir='ASC'):
@@ -521,6 +523,7 @@ class DeviceRouter(TreeRouter):
         if ranges:
             uids += self.loadRanges(ranges, hashcheck, uid, params, sort, dir)
         facade = self._getFacade()
+        uids = filterUidsByPermission(self.context.dmd, ZEN_MANAGE_DMD, uids)
         try:
             facade.setLockState(uids, deletion=deletion, updates=updates,
                                 sendEvent=sendEvent)
@@ -539,7 +542,7 @@ class DeviceRouter(TreeRouter):
             log.exception(e)
             return DirectResponse.exception(e, 'Failed to lock devices.')
 
-    @require('Admin Device')
+
     def resetIp(self, uids, hashcheck, uid=None, ranges=(), params=None,
                 sort='name', dir='ASC', ip=''):
         """
@@ -575,6 +578,7 @@ class DeviceRouter(TreeRouter):
         if ranges:
             uids += self.loadRanges(ranges, hashcheck, uid, params, sort, dir)
         facade = self._getFacade()
+        uids = filterUidsByPermission(self.context.dmd, ZEN_ADMIN_DEVICE, uids)
         try:
             for uid in uids:
                 info = facade.getInfo(uid)
@@ -624,11 +628,10 @@ class DeviceRouter(TreeRouter):
             log.exception(e)
             return DirectResponse.exception(e, 'Failed to reset community strings.')
 
-    @require('Change Device Production State')
     def setProductionState(self, uids, prodState, hashcheck, uid=None,
                            ranges=(), params=None, sort='name', dir='ASC'):
         """
-        Set the production state of device(s)
+        Set the production state of device(s).
 
         @type  uids: [string]
         @param uids: List of device uids to set
@@ -658,6 +661,8 @@ class DeviceRouter(TreeRouter):
         if ranges:
             uids += self.loadRanges(ranges, hashcheck, uid, params, sort, dir)
         facade = self._getFacade()
+        uids = filterUidsByPermission(self.context.dmd, ZEN_CHANGE_DEVICE_PRODSTATE,
+                                      uids)
         try:
             facade.setProductionState(uids, prodState)
             return DirectResponse('Set %s devices to %s.' % (
@@ -666,7 +671,6 @@ class DeviceRouter(TreeRouter):
             log.exception(e)
             return DirectResponse.exception(e, 'Failed to change production state.')
 
-    @require('Manage Device')
     def setPriority(self, uids, priority, hashcheck, uid=None, ranges=(),
                     params=None, sort='name', dir='ASC'):
         """
@@ -700,6 +704,7 @@ class DeviceRouter(TreeRouter):
         if ranges:
             uids += self.loadRanges(ranges, hashcheck, uid, params, sort, dir)
         facade = self._getFacade()
+        uids = filterUidsByPermission(self.context.dmd, ZEN_MANAGE_DEVICE, uids)
         try:
             for uid in uids:
                 info = facade.getInfo(uid)
@@ -711,7 +716,6 @@ class DeviceRouter(TreeRouter):
             log.exception(e)
             return DirectResponse.exception(e, 'Failed to change priority.')
 
-    @require('Admin Device')
     def setCollector(self, uids, collector, hashcheck, uid=None, ranges=(),
                      params=None, sort='name', dir='ASC'):
         """
@@ -745,6 +749,7 @@ class DeviceRouter(TreeRouter):
         if ranges:
             uids += self.loadRanges(ranges, hashcheck, uid, params, sort, dir)
         facade = self._getFacade()
+        uids = filterUidsByPermission(self.context.dmd, ZEN_ADMIN_DEVICE, uids)
         try:
             for uid in uids:
                 info = facade.getInfo(uid)

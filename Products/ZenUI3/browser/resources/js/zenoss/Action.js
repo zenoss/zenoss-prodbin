@@ -22,19 +22,24 @@
              // if they set the permissions config property
              // and the logged in user does not have permission, hide this element
              if (config.permission){
-                 config.disabled = Zenoss.Security.doesNotHavePermission(config.permission);
+                 var permission = config.permission;
+                 config.disabled = Zenoss.Security.doesNotHavePermission(permission);
 
                  // register the control to be disabled or enabled based on the current context
                  if (config.permissionContext) {
                      Zenoss.Security.onPermissionsChange(function(){
                          var cmp = me, uid = Zenoss.env.PARENT_CONTEXT;
                          if (uid == config.permissionContext) {
-                             cmp.setDisabled(Zenoss.Security.doesNotHavePermission(config.permission));
+                             cmp.setDisabled(Zenoss.Security.doesNotHavePermission(permission));
                          } else {
-                             cmp.setDisabled(!Zenoss.Security.hasGlobalPermission(config.permission));
+                             cmp.setDisabled(!Zenoss.Security.hasGlobalPermission(permission));
                          }
                      });
-
+                 } else {
+                     // update when the context changes
+                     Zenoss.Security.onPermissionsChange(function(){
+                         this.setDisabled(Zenoss.Security.doesNotHavePermission(permission));
+                     }, this);
                  }
              }
 

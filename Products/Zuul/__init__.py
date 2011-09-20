@@ -47,6 +47,7 @@ from interfaces import IMarshaller
 from interfaces import IUnmarshaller
 from utils import safe_hasattr as hasattr, get_dmd
 from BTrees.OOBTree import OOSet
+from Products.ZenWidgets import messaging
 
 
 def getFacade(name, context=None):
@@ -61,6 +62,7 @@ def getFacade(name, context=None):
         context = get_dmd()
     return component.getAdapter(context, IFacade, name)
 
+
 def listFacades(context=None):
     """
     Provide a list of all known facades.
@@ -72,6 +74,7 @@ def listFacades(context=None):
 
 class AlreadySeenException(Exception):
     pass
+
 
 def marshal(obj, keys=None, marshallerName='', objs=None):
     """
@@ -129,7 +132,7 @@ def marshal(obj, keys=None, marshallerName='', objs=None):
                 pass
         return marshalled_list
 
-    # Nothing matched, so it's a string or number or other unmarshallable. 
+    # Nothing matched, so it's a string or number or other unmarshallable.
     else:
         return obj
 
@@ -170,6 +173,35 @@ def info(obj, adapterName=''):
         return component.queryAdapter(obj, IInfo, adapterName, obj)
 
 
+def filterUidsByPermission(dmd, permission, uids):
+    """
+    Returns a list of all the objects the currently logged in user has the passed
+    in permission on. It also sends a browser message notifying the user
+    of a failure if they dont have permission.
+
+    @type  DMD: DataRoot
+    @param DMD: you must pass in the dmd to this function to look up the objects
+    @type  permission: string
+    @param permission: Permission we are looking up
+    @type  uids: List
+    @param uids: List of object uids to check permission of
+    @rtype:   List
+    @return:  All the Uids the logged in user has the passed in permission on
+    """
+    validUids = []
+    for uid in uids:
+        obj = dmd.unrestrictedTraverse(uid)
+        if checkPermission(permission, obj):
+            validUids.append(uid)
+        else:
+            # send a message to the browser
+            messaging.IMessageSender(obj).sendToBrowser(
+                'Permission Error',
+                "You do not have the %s permission on the object %s " % (permission, obj.titleOrId()),
+                priority=messaging.WARNING)
+    return validUids
+
+
 def checkPermission(permission, context=None):
     """
     Return true if the current user has the specified permission on the given
@@ -178,4 +210,3 @@ def checkPermission(permission, context=None):
     manager = AccessControl.getSecurityManager()
     context = context or get_dmd()
     return manager.checkPermission(permission, context)
-
