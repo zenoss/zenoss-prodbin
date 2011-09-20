@@ -21,6 +21,8 @@ from Products.Zuul.decorators import require
 from Products.Zuul.routers import TreeRouter
 from Products.ZenUtils.Ext import DirectResponse
 from Products.ZenUtils.jsonutils import unjson
+from Products.ZenMessaging.actions import sendUserAction
+from Products.ZenMessaging.actions.constants import ActionTargetType, ActionName
 
 
 class ProcessRouter(TreeRouter):
@@ -59,9 +61,15 @@ class ProcessRouter(TreeRouter):
            - uid: (dictionary) The new uid for moved process or organizer
         """
         facade = self._getFacade()
+        old_uid = uid
         primaryPath = facade.moveProcess(uid, targetUid)
         id = '.'.join(primaryPath)
         uid = '/'.join(primaryPath)
+        if sendUserAction:
+            # TODO: Common method for all the "move" user actions.
+            #       Be consistent via:  process=old_uid, target=org_uid
+            sendUserAction(ActionTargetType.Process, ActionName.Move,
+                           process=uid, old=old_uid)
         return DirectResponse.succeed(uid=uid, id=id)
 
     def getInfo(self, uid, keys=None):
@@ -98,6 +106,9 @@ class ProcessRouter(TreeRouter):
         """
         facade = self._getFacade()
         process = facade.getInfo(data['uid'])
+        if sendUserAction:
+            sendUserAction(ActionTargetType.Process, ActionName.Edit,
+                           process=data['uid'], **data)
         return DirectResponse.succeed(data=Zuul.unmarshal(data, process))
 
     def getInstances(self, uid, start=0, params=None, limit=50, sort='name',
@@ -157,6 +168,9 @@ class ProcessRouter(TreeRouter):
         """
         facade = self._getFacade()
         facade.setSequence(uids)
+        if sendUserAction:
+            sendUserAction(ActionTargetType.Process, 'SetSequence',
+                           sequence=uids)
         return DirectResponse.succeed()
 
 

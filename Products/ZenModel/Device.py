@@ -83,7 +83,8 @@ from OFS.CopySupport import CopyError # Yuck, a string exception
 from Products.Zuul import getFacade
 from Products.Zuul.utils import allowedRolesAndUsers
 from Products.ZenUtils.IpUtil import numbip
-
+from Products.ZenMessaging.actions import sendUserAction
+from Products.ZenMessaging.actions.constants import ActionTargetType, ActionName
 
 
 def getNetworkRoot(context, performanceMonitor):
@@ -1818,6 +1819,9 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable,
             parent.manage_renameObject(oldId, newId)
             self.renameDeviceInPerformance(oldId, newId)
             self.setLastChange()
+            if sendUserAction and REQUEST:
+                sendUserAction(ActionTargetType.Device, ActionName.Rename,
+                               device=self.getPrimaryId(), old=oldId)
 
             return self.absolute_url_path()
 

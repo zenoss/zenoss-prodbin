@@ -20,6 +20,8 @@ import logging
 from Products.ZenUtils.Ext import DirectRouter, DirectResponse
 from Products import Zuul
 from Products.Zuul.decorators import require
+from Products.ZenMessaging.actions import sendUserAction
+from Products.ZenMessaging.actions.constants import ActionTargetType
 
 log = logging.getLogger('zen.ZenPackRouter')
 class ZenPackRouter(DirectRouter):
@@ -56,4 +58,7 @@ class ZenPackRouter(DirectRouter):
         @return:  Success message
         """
         self._getFacade().addToZenPack(topack, zenpack)
+        if sendUserAction:
+            sendUserAction(ActionTargetType.ZenPack, 'AddObject',
+                           zenpack=zenpack, object=topack)
         return DirectResponse.succeed()

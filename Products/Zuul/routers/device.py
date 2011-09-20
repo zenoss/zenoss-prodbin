@@ -31,6 +31,8 @@ from Products.Zuul.interfaces import IInfo
 from Products.Zuul.form.interfaces import IFormBuilder
 from Products.Zuul.decorators import require, contextRequire, serviceConnectionError
 from Products.ZenUtils.guid.interfaces import IGlobalIdentifier
+from Products.ZenMessaging.actions import sendUserAction
+from Products.ZenMessaging.actions.constants import ActionTargetType, ActionName
 
 
 log = logging.getLogger('zen.Zuul')
@@ -75,6 +77,10 @@ class DeviceRouter(TreeRouter):
         uid = organizer.uid
 
         treeNode = facade.getTree(uid)
+        if sendUserAction:
+            sendUserAction(ActionTargetType.Location, ActionName.Add, 
+                           organizer=uid, description=description, 
+                           address=address)
         return DirectResponse.succeed("Location added", nodeConfig=Zuul.marshal(treeNode))
 
     def _getFacade(self):
@@ -304,11 +310,18 @@ class DeviceRouter(TreeRouter):
         facade = self._getFacade()
         if not Zuul.checkPermission('Manage DMD', self.context):
             raise Exception('You do not have permission to save changes.')
-        process = facade.getInfo(data['uid'])
+        the_uid = data['uid']  # gets deleted
+        process = facade.getInfo(the_uid)
         Zuul.unmarshal(data, process)
         # reindex the object if necessary
         if hasattr(process._object, 'index_object'):
             process._object.index_object()
+
+        if sendUserAction:
+            # Example: UA('Device', 'Edit', device='/Devices/...', title='Sql srv'))
+            sendUserAction(process.meta_type, ActionName.Edit,
+                           extra={process.meta_type:the_uid}, **data)
+
         return DirectResponse.succeed()
 
     @require('Manage Device')
@@ -331,6 +344,8 @@ class DeviceRouter(TreeRouter):
         """
         facade = self._getFacade()
         facade.setProductInfo(uid, **data)
+        if sendUserAction: 
+            sendUserAction(ActionTargetType.Device, 'EditProductInfo', device=uid, **data)
         return DirectResponse()
 
     def getDeviceUuidsByName(self, query=""):
@@ -443,8 +458,28 @@ class DeviceRouter(TreeRouter):
             log.exception(e)
             return DirectResponse.exception(e, 'Failed to move devices.')
         else:
+            targetUid = target
             target = '/'.join(target.split('/')[:4])
             tree = self.getTree(target)
+            if sendUserAction:
+                # Example: UA('Device', 'SetLocation', device=..., location=...)
+                targetObj = facade._getObject(targetUid)
+                targetType = IInfo(targetObj).meta_type
+                actionNameMap = {
+                    'DeviceClass': 'SetDeviceClass',
+                    'Location': 'SetLocation',
+                    'DeviceGroup': 'AddToGroup',
+                    'System': 'AddToSystem',
+                }
+                if targetType in actionNameMap:
+                    actionName = actionNameMap[targetType]
+                else:
+                    actionName = 'AddToOrganizer'
+
+                for uid in uids:
+                    sendUserAction(ActionTargetType.Device, actionName,
+                                   device=uid, extra={targetType:targetUid})
+
             return DirectResponse.succeed(tree=tree, exports=exports)
 
     @require('Manage Device')
@@ -481,6 +516,9 @@ class DeviceRouter(TreeRouter):
 
         facade = self._getFacade()
         facade.pushChanges(uids)
+        if sendUserAction: 
+            for uid in uids:
+                sendUserAction(ActionTargetType.Device, 'PushChanges', device=uid)
         return DirectResponse.succeed('Changes pushed to collectors.')
 
     def lockDevices(self, uids, hashcheck, ranges=(), updates=False,
@@ -537,6 +575,11 @@ class DeviceRouter(TreeRouter):
                     actions.append('updates')
                 message = "Locked %s devices from %s." % (len(uids),
                                                          ' and '.join(actions))
+            if sendUserAction:
+                for uid in uids:
+                    sendUserAction(ActionTargetType.Device, 'EditLocks', device=uid,
+                                   deletion=deletion, updates=updates,
+                                   sendevents=sendEvent)
             return DirectResponse.succeed(message)
         except Exception, e:
             log.exception(e)
@@ -583,6 +626,8 @@ class DeviceRouter(TreeRouter):
             for uid in uids:
                 info = facade.getInfo(uid)
                 info.ipAddress = ip  # Set to empty causes DNS lookup
+                if sendUserAction: 
+                    sendUserAction(ActionTargetType.Device, 'ResetIP', device=uid)
             return DirectResponse('Reset %s IP addresses.' % len(uids))
         except Exception, e:
             log.exception(e)
@@ -623,6 +668,8 @@ class DeviceRouter(TreeRouter):
         try:
             for uid in uids:
                 facade.resetCommunityString(uid)
+                if sendUserAction:
+                    sendUserAction(ActionTargetType.Device, 'ResetCommunity', device=uid)
             return DirectResponse('Reset %s community strings.' % len(uids))
         except Exception, e:
             log.exception(e)
@@ -664,9 +711,23 @@ class DeviceRouter(TreeRouter):
         uids = filterUidsByPermission(self.context.dmd, ZEN_CHANGE_DEVICE_PRODSTATE,
                                       uids)
         try:
+            if sendUserAction:
+                oldStates = {}
+                if isinstance(uids, basestring):
+                    uids = (uids,)
+                for uid in uids:
+                    dev = facade._getObject(uid)
+                    if isinstance(dev, Device):
+                        oldStates[uid] = self.context.convertProdState(dev.productionState)
             facade.setProductionState(uids, prodState)
+            prodStateName = self.context.convertProdState(prodState)
+            if sendUserAction:
+                for uid in uids:
+                    sendUserAction(ActionTargetType.Device, 'EditProductionState',
+                                   device=uid, value=prodStateName, 
+                                   old=oldStates[uid])
             return DirectResponse('Set %s devices to %s.' % (
-                len(uids), self.context.convertProdState(prodState)))
+                len(uids), prodStateName))
         except Exception, e:
             log.exception(e)
             return DirectResponse.exception(e, 'Failed to change production state.')
@@ -710,6 +771,9 @@ class DeviceRouter(TreeRouter):
                 info = facade.getInfo(uid)
                 info.priority = priority
                 info._object.index_object(idxs=('getPriorityString',))
+                if sendUserAction:
+                    sendUserAction(ActionTargetType.Device, 'EditPriority',
+                                   device=uid, priority=priority)
             return DirectResponse('Set %s devices to %s priority.' % (
                 len(uids), info.priority))
         except Exception, e:
@@ -755,6 +819,9 @@ class DeviceRouter(TreeRouter):
                 info = facade.getInfo(uid)
                 info.collector = collector
                 info._object.index_object(idxs=('getPerformanceServerName',))
+                if sendUserAction:
+                    sendUserAction(ActionTargetType.Device, 'ChangeCollector',
+                                   device=uid, collector=collector)
             return DirectResponse('Changed collector to %s for %s devices.' %
                                   (collector, len(uids)))
         except Exception, e:
@@ -809,6 +876,11 @@ class DeviceRouter(TreeRouter):
                                              dir, name)
         facade = self._getFacade()
         facade.setMonitor(uids, monitor)
+        if sendUserAction:
+            actionName = 'SetMonitored' if monitor else 'SetUnmonitored'
+            for uid in uids:
+                sendUserAction(ActionTargetType.Component, actionName,
+                               component=uid)
         return DirectResponse.succeed(('Set monitoring to %s for %s'
                                        ' components.') % (monitor, len(uids)))
 
@@ -878,6 +950,11 @@ class DeviceRouter(TreeRouter):
                     actions.append('updates')
                 actions = ' and '.join(actions)
                 message = "Locked %d components from %s." % (len(uids), actions)
+            if sendUserAction:
+                for uid in uids:
+                    sendUserAction(ActionTargetType.Component, 'EditLocks', component=uid,
+                                   deletion=deletion, updates=updates,
+                                   sendevents=sendEvent)
             return DirectResponse.succeed(message)
         except Exception, e:
             log.exception(e)
@@ -929,6 +1006,9 @@ class DeviceRouter(TreeRouter):
         facade = self._getFacade()
         try:
             facade.deleteComponents(uids)
+            if sendUserAction:
+                for uid in uids:
+                    sendUserAction(ActionTargetType.Component, ActionName.Delete, component=uid)
             return DirectResponse.succeed('Components deleted.')
         except Exception, e:
             return DirectResponse.exception(e, 'Failed to delete components.')
@@ -981,10 +1061,37 @@ class DeviceRouter(TreeRouter):
         try:
             if action == "remove":
                 facade.removeDevices(uids, organizer=uid)
+                if sendUserAction:
+                    if isinstance(uid, basestring):
+                        organizer = facade._getObject(uid)
+                    else:
+                        organizer = uid
+                    organizerType = IInfo(organizer).meta_type
+                    actionNameMap = {
+                        'DeviceClass': 'RemoveFromDeviceClass',
+                        'Location': 'RemoveFromLocation',
+                        'DeviceGroup': 'RemoveFromGroup',
+                        'System': 'RemoveFromSystem',
+                    }
+                    if organizerType in actionNameMap:
+                        actionName = actionNameMap[organizerType]
+                    else:
+                        actionName = 'RemoveFromOrganizer'
+
+                    for devuid in uids:
+                        # Ex: ('Device', 'RemoveFromSystem', device=..., system=...)
+                        sendUserAction(ActionTargetType.Device, actionName,
+                                       device=devuid, extra={organizerType:uid})
             elif action == "delete":
                 facade.deleteDevices(uids,
                                      deleteEvents=deleteEvents,
                                      deletePerf=deletePerf)
+                if sendUserAction:
+                    for devuid in uids:
+                        sendUserAction(ActionTargetType.Device, ActionName.Delete,
+                                       device=devuid,
+                                       deleteevents=deleteEvents,
+                                       deleteperf=deletePerf)
             return DirectResponse.succeed(
                 devtree=self.getTree('/zport/dmd/Devices'),
                 grptree=self.getTree('/zport/dmd/Groups'),
@@ -1015,6 +1122,9 @@ class DeviceRouter(TreeRouter):
         facade = self._getFacade()
         facade.setZenProperty(uid, zProperty, value)
         data = facade.getZenProperty(uid, zProperty)
+        if sendUserAction:
+            sendUserAction(ActionTargetType.zProperty, ActionName.Edit, owner=uid,
+                           zproperty=zProperty, value=value)
         return DirectResponse(data=Zuul.marshal(data))
 
     @serviceConnectionError
@@ -1062,6 +1172,9 @@ class DeviceRouter(TreeRouter):
         """
         facade = self._getFacade()
         data = facade.deleteZenProperty(uid, zProperty)
+        if sendUserAction: 
+            sendUserAction(ActionTargetType.zProperty, ActionName.Delete, owner=uid, 
+                           zproperty=zProperty)
         return DirectResponse(data=Zuul.marshal(data))
 
     @serviceConnectionError
@@ -1362,7 +1475,8 @@ class DeviceRouter(TreeRouter):
         # check for permission in the device organizer to which we are
         # adding the device
         facade = self._getFacade()
-        organizer = facade._getObject('/zport/dmd/Devices' + deviceClass)
+        organizerUid = '/zport/dmd/Devices' + deviceClass
+        organizer = facade._getObject(organizerUid)
         if not Zuul.checkPermission("Manage Device", organizer):
             raise Unauthorized('Calling AddDevice requires ' +
                                'Manage Device permission on %s' % deviceClass)
@@ -1396,6 +1510,19 @@ class DeviceRouter(TreeRouter):
                                                 systemPaths,
                                                 groupPaths
                                                 )
+
+        if sendUserAction:
+            deviceUid = '/'.join([organizerUid, 'devices', deviceName])
+            if isinstance(groupPaths, list) and len(groupPaths) == 1 and not groupPaths[0]:
+                groupPaths = []   # avoid ['']
+            if isinstance(systemPaths, list) and len(systemPaths) == 1 and not systemPaths[0]:
+                systemPaths = []
+            sendUserAction(ActionTargetType.Device, ActionName.Add,
+                           device=deviceUid, title=title,
+                           deviceclass=deviceClass, collector=collector,
+                           location=locationPath, groups=groupPaths, 
+                           model=model)
+
         return DirectResponse.succeed(jobId=jobStatus.id)
 
     @require('Manage Device')
@@ -1410,6 +1537,8 @@ class DeviceRouter(TreeRouter):
              - jobId: (string) ID of the add device job
         """
         jobStatus = self._getFacade().remodel(deviceUid)
+        if sendUserAction:
+            sendUserAction(ActionTargetType.Device, 'Remodel', device=deviceUid)
         return DirectResponse.succeed(jobId=jobStatus.id)
 
     @require('Edit Local Templates')
@@ -1426,6 +1555,9 @@ class DeviceRouter(TreeRouter):
         """
         facade = self._getFacade()
         facade.addLocalTemplate(deviceUid, templateId)
+        if sendUserAction: 
+            sendUserAction(ActionTargetType.Device, 'AddTemplate', device=deviceUid, 
+                           template=templateId)
         return DirectResponse.succeed()
 
     @require('Edit Local Templates')
@@ -1442,6 +1574,9 @@ class DeviceRouter(TreeRouter):
         """
         facade = self._getFacade()
         facade.removeLocalTemplate(deviceUid, templateUid)
+        if sendUserAction: 
+            sendUserAction(ActionTargetType.Device, 'RemoveTemplate', device=deviceUid, 
+                           template=templateUid)
         return DirectResponse.succeed()
 
     def getLocalTemplates(self, query, uid):
@@ -1530,6 +1665,9 @@ class DeviceRouter(TreeRouter):
         """
         facade = self._getFacade()
         facade.setBoundTemplates(uid, templateIds)
+        if sendUserAction:
+            sendUserAction(ActionTargetType.Device, 'BindTemplatess', device=uid,
+                           templates=templateIds)
         return DirectResponse.succeed()
 
     @require('Edit Local Templates')
@@ -1544,6 +1682,8 @@ class DeviceRouter(TreeRouter):
         """
         facade = self._getFacade()
         facade.resetBoundTemplates(uid)
+        if sendUserAction:
+            sendUserAction(ActionTargetType.Device, 'ResetBoundTemplates', device=uid)
         return DirectResponse.succeed()
 
     @require('Edit Local Templates')
@@ -1564,10 +1704,16 @@ class DeviceRouter(TreeRouter):
         # not bound
         if not template.id in templateIds:
             self.setBoundTemplates(uid, templateIds + [template.id])
+            if sendUserAction:
+                sendUserAction(ActionTargetType.Device, 'BindTemplate', device=uid,
+                               template=templateUid)
         else:
             # already bound so unbind it
             templateIds = [t for t in templateIds if t != template.id]
             self.setBoundTemplates(uid, templateIds)
+            if sendUserAction:
+                sendUserAction(ActionTargetType.Device, 'UnbindTemplate', device=uid,
+                               template=templateUid)
         return DirectResponse.succeed()
 
     def getOverridableTemplates(self, query, uid):
