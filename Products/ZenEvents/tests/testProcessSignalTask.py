@@ -28,6 +28,7 @@ from zope.interface import implements
 from zenoss.protocols.protobufs.zep_pb2 import Signal
 from Products.ZenEvents.zenactiond import ProcessSignalTask, NotificationDao
 from Products.ZenModel.actions import TargetableAction
+from Products.ZenModel.Trigger import Trigger
 from Products.ZenModel.NotificationSubscription import NotificationSubscription
 from Products.ZenTestCase.BaseTestCase import BaseTestCase
 from Products.ZenModel.interfaces import IAction
@@ -55,6 +56,8 @@ test_signal1.created_time = 1;
 test_signal1.message = 'Testing Signal Processing'
 test_signal1.trigger_uuid = trigger_uuid
 test_signal1.subscriber_uuid = subscriber_uuid
+test_event = test_signal1.event.occurrence.add()
+test_event.fingerprint = "Test Event Occurence FingerPrint"
 
 manual_recipient = {
     'type':'manual',
@@ -97,6 +100,17 @@ disabled_notification.recipients = [manual_recipient]
 disabled_notification.subscriptions = [trigger_uuid]
 disabled_notification.action = 'email_mock'
 
+class MockGuidManager(object):
+
+    def __init__(self):
+        self._objects = dict()
+
+    def setObject(self, uid, obj):
+        self._objects[uid] = obj
+
+    def getObject(self, uid):
+        trigger = Trigger("test")
+        return trigger;
 
 class MockNotificationDao(NotificationDao):
     """
@@ -106,6 +120,7 @@ class MockNotificationDao(NotificationDao):
     """
     notifications = []
     def __init__(self):
+        self.guidManager = MockGuidManager()
         pass
 
     def getNotifications(self):
@@ -122,13 +137,16 @@ class MockAction(TargetableAction):
     def __init__(self):
         self.result = []
 
+    def getInfo(self, notification):
+        return repr(notification)
+
     def getTargets(self, notification):
-        return notification.recipients
+        return [notification.recipients[0]['value']]
 
     def executeOnTarget(self, notification, signal, target):
         # don't actually do anything, just save the target to a list so we
         # can test who would have recieved this notification/action.
-        self.result.append(target['value'])
+        self.result.append(target)
 
 class EmailMockAction(MockAction):
     implements(IAction)
