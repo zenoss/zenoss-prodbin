@@ -50,11 +50,11 @@ class IIpInterfaceInfo(IComponentInfo):
     """
     interfaceName = schema.TextLine(
         title=u"Interface Name", group="Overview",
-        readonly=True, order=1)
+        order=1)
 
     description = schema.Text(
         title=u"Description", group="Overview",
-        readonly=True, order=2)
+        order=2)
 
     adminStatus = schema.TextLine(
         title=u"Administrative Status", group="Overview",
@@ -73,23 +73,23 @@ class IIpInterfaceInfo(IComponentInfo):
     ipAddress = schema.Entity(
         title=u"IP Address (Primary)", group="Overview",
         description=u"Primary IP address",
-        readonly=True, order=6)
+        order=6)
 
     ipAddresses = schema.List(
         title=u'IP Addresses (All)', group="Details",
-        readonly=True, order=7)
+        order=7)
 
     macaddress = schema.TextLine(
         title=u"MAC Address", group="Details",
-        readonly=True, order=8)
+        order=8)
 
     type = schema.TextLine(
         title=u"Type", group="Details",
-        readonly=True, order=9)
+        order=9)
 
     speed = schema.TextLine(
         title=u"Speed", group="Details",
-        readonly=True, order=10)
+        order=10)
 
     duplex = schema.TextLine(
         title=u"Duplex Mode", group="Details",
@@ -97,7 +97,7 @@ class IIpInterfaceInfo(IComponentInfo):
 
     mtu = schema.TextLine(
         title=u"MTU", group="Details",
-        readonly=True, order=12)
+        order=12)
 
 
 class IFileSystemInfo(IComponentInfo):
