@@ -44,16 +44,31 @@ class QueueConsumer(object):
         self.task.dmd = self.dmd
         # give a reference to the consumer to the task
         self.task.queueConsumer = self
+        self.shuttingDown = False
 
 
-    @defer.inlineCallbacks
+    def authenticated(self):
+        return self.consumer._onAuthenticated
+
+    def connectionLost(self):
+        return self.consumer._onConnectionLost
+
+    def connectionMade(self):
+        return self.consumer._onConnectionMade
+
+    def connectionFailed(self):
+        return self.consumer._onConnectionFailed
+
     def _ready(self):
         """
         Calls back once everything's ready and test message went through.
         """
-        yield self.consumer._onConnectionMade
-        log.info('Queue consumer ready.')
-        defer.returnValue(None)
+        df = self.consumer._onConnectionMade
+        def logCb(result):
+            log.info('Queue consumer ready.')
+            return result
+        df.addCallback(logCb)
+        return df
 
     def run(self):
         """
@@ -68,6 +83,7 @@ class QueueConsumer(object):
         """
         Tell all the services to shut down.
         """
+        self.shuttingDown = True
         return self.consumer.shutdown()
 
     def acknowledge(self, message):
