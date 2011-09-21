@@ -39,7 +39,9 @@ class DeviceSearchCatalogUpdate(Migrate.Step):
     def cutover(self, dmd):
         devices = dmd.getDmdRoot('Devices')
         zcat = devices.deviceSearch
-        idxs = []
+        # in version 3 to 4 (and 3.1 to 3.2) we changed how the path index was stored so
+        # we will always need to reindex it
+        idxs = ['path']
         # field indexes
         for indexName in fieldIndexes:
             try:
@@ -70,10 +72,10 @@ class DeviceSearchCatalogUpdate(Migrate.Step):
         # populate the indexes
         for brain in zcat():
             try:
-                brain.getObject().index_object(idxs=idxs)
+                brain.getObject().index_object(idxs=idxs, noips=True)
             except TypeError:
                 # for upgrade the zenpacks may not have loaded the new code yet
-                brain.getObject().index_object()
+                brain.getObject().index_object(noips=True)
 
 
 

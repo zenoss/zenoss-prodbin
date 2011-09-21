@@ -32,20 +32,14 @@ class RebuildPathIndex(Migrate.Step):
         tstart=time.time()
         starttotal = time.time()
         i = 0
-        # device Search
-        for x in dmd.Devices.deviceSearch():
-            try:
-                x.getObject().index_object(idxs=('path',))
-            except TypeError:
-                # for upgrade the zenpacks may not have loaded the new code yet
-                x.getObject().index_object()
         # global catalog
         CHUNK_SIZE = 200 if sys.stdout.isatty() else 25000 # Don't be chatty when logging to a file
         for x in zport.global_catalog():
             i+=1
             try:
+                # we updated how ipaddresses and path were stored so re-catalog them
                 zport.global_catalog.catalog_object(x.getObject(),x.getPath(),
-                                                    idxs=['path'],
+                                                    idxs=['path', 'ipAddress'],
                                                     update_metadata=False)
             except TypeError:
                 # work around for bad data
