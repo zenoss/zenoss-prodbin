@@ -151,6 +151,7 @@ class ProcessSignalTask(object):
             try:
                 target = signal.subscriber_uuid or '<none>'
                 action = self.getAction(notification.action)
+                action.setupAction(notification.dmd)
                 if isinstance(action, TargetableAction):
                     target = ','.join(action.getTargets(notification))
                 action.execute(notification, signal)
@@ -169,7 +170,7 @@ class ProcessSignalTask(object):
                 msg = 'Error executing action {notification}'.format(
                     notification = notification.id,
                 )
-                log.error(e)
+                log.exception(e)
                 log.error(msg)
                 traceback = format_exc()
                 event = Event(device="localhost",
