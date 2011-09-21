@@ -229,7 +229,15 @@ class ZenBackup(ZenBackupBase):
             if gzip.returncode or mysqldump.returncode:
                 self.log.critical("Backup of (%s) terminated abnormally." % sqlFile)
                 return -1
-        
+
+    def _zepRunning(self):
+        """
+        Returns True if ZEP is running on the system (by invoking
+        zeneventserver status).
+        """
+        zeneventserver_cmd = zenPath('bin', 'zeneventserver')
+        with open(os.devnull, 'w') as devnull:
+            return not subprocess.call([zeneventserver_cmd, 'status'], stdout=devnull, stderr=devnull)
 
     def backupZEP(self):
         '''
@@ -253,12 +261,16 @@ class ZenBackup(ZenBackupBase):
         partEndTime = time.time()
         subtotalTime = readable_time(partEndTime - partBeginTime)
         self.log.info("Backup of ZEP database completed in %s.", subtotalTime)
-        
-        self.log.info('Backing up ZEP indexes.')
-        zepTar = tarfile.open(os.path.join(self.tempDir, 'zep.tar'), 'w')
-        zepTar.add(os.path.join(zenPath('var'), 'zeneventserver'), 'zeneventserver')
-        zepTar.close()
-        self.log.info('Backing up ZEP indexes completed.')
+
+        zeneventserver_dir = zenPath('var', 'zeneventserver')
+        if self._zepRunning():
+            self.log.info('Not backing up ZEP indexes - it is currently running.')
+        elif os.path.isdir(zeneventserver_dir):
+            self.log.info('Backing up ZEP indexes.')
+            zepTar = tarfile.open(os.path.join(self.tempDir, 'zep.tar'), 'w')
+            zepTar.add(zeneventserver_dir, 'zeneventserver')
+            zepTar.close()
+            self.log.info('Backing up ZEP indexes completed.')
 
     def backupZenPacks(self):
         """

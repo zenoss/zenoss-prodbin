@@ -154,10 +154,23 @@ class ZenRestore(ZenBackupBase):
                             self.options.zepdbname, self.options.zepdbuser,
                             self.getPassArg('zepdbpass'), zepSql)
         self.msg('ZEP database restored.')
-        self.msg('Restoring ZEP indexes.')
-        zepTar = tarfile.open(os.path.join(self.tempDir, 'zep.tar'))
-        zepTar.extractall(zenPath('var'))
-        self.msg('ZEP indexes restored.')
+
+        # Remove any current indexes on the system
+        index_dir = zenPath('var', 'zeneventserver', 'index')
+        if os.path.isdir(index_dir):
+            import shutil
+            self.msg('Removing existing ZEP indexes.')
+            shutil.rmtree(index_dir)
+
+        index_tar = os.path.join(self.tempDir, 'zep.tar')
+        if os.path.isfile(index_tar):
+            self.msg('Restoring ZEP indexes.')
+            zepTar = tarfile.open(os.path.join(self.tempDir, 'zep.tar'))
+            zepTar.extractall(zenPath('var'))
+            self.msg('ZEP indexes restored.')
+        else:
+            self.msg('ZEP indexes not found in backup file - will be recreated from database.')
+
         
 
     def hasZeoBackup(self):
