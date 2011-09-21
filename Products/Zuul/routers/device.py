@@ -1123,6 +1123,10 @@ class DeviceRouter(TreeRouter):
         facade.setZenProperty(uid, zProperty, value)
         data = facade.getZenProperty(uid, zProperty)
         if sendUserAction:
+            # don't show passwords
+            obj = facade._getObject(uid)
+            if obj.zenPropIsPassword(zProperty):
+                value = '****'
             sendUserAction(ActionTargetType.zProperty, ActionName.Edit, owner=uid,
                            zproperty=zProperty, value=value)
         return DirectResponse(data=Zuul.marshal(data))
