@@ -183,7 +183,7 @@ def convertFromZeoToMySql():
     print "Shutting down ZEO for the last time..."
     print "-"*79
     try:
-        call([zenPath("bin", "zeoctl"), "stop"])
+        call([zenPath("bin", "zeoctl"), "-C", zenPath("etc", "zeo.conf"), "stop"])
     except OSError:
         pass
     print
@@ -195,14 +195,19 @@ def convertFromZeoToMySql():
     # Last line stdout should be of the form:
     #     Would copy %d transactions.
     try:
-        totaltxs = int(stdout.splitlines()[-1].split()[2])
-    except Exception:
+        import re
+        match = re.search(r"Would copy (\d+) transactions", (stdout+stderr))
+        if not match:
+            raise Exception("could not find transaction count")
+    except Exception as ex:
         print "zodbconvert could not be run:"
         print stdout
         print '-'*40
         print stderr
+        print "exception: ", ex
         sys.exit(1)
 
+    totaltxs = int(match.group(1))
     print "%d transactions to be copied." % totaltxs
     print
 
@@ -223,7 +228,7 @@ def convertFromZeoToMySql():
     print "Loading current ZODB into MySQL. This may take some time..."
     print "-"*79
     from relstorage import zodbconvert
-    zodbconvert.main([None, '--clear', fn], _print_sane_output)
+    zodbconvert.main([None, '--clear', fn])
     os.unlink(fn)
     print
 
