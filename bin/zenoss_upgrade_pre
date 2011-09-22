@@ -48,6 +48,10 @@ export PYTHON="**PYTHON**"
 # Confirm Sun/Oracle flavored jre
 confirm_jre
 
+# copy the etc/*.conf.example files to etc/*.conf if etc/*.conf don't
+# already exist (we don't want to clobber people's configs)
+update_conf_files
+
 # Test for the pre upgrade zenpack, this should have been removed
 # as a part of the 3.x upgrade but if it is present it will cause an error
 # on migration, so we need to make sure it is removed.
@@ -61,10 +65,6 @@ EOF
     echo "   " ${ZENHOME} "/bin/zenpack --remove ZenPacks.zenoss.PreUpgrade30 "
     exit 1
 fi
-
-# copy the etc/*.conf.example files to etc/*.conf if etc/*.conf don't
-# already exist (we don't want to clobber people's configs)
-update_conf_files
 
 # version 2.1.1 and below used the system python, but in 2.1.70 we
 # started shipping our own.  replace the old scripts with references
