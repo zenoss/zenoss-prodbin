@@ -167,7 +167,7 @@ evt['monitor'] = opts.monitor
 
 for line in opts.other:
     try:
-        field, value = line.split('=')
+        field, value = line.split('=',1)
         evt[field] = value
     except:
         pass
