@@ -17,6 +17,11 @@ class ActionTargetType(object):
     Unknown     = 'Unknown'     # use sparingly, for unexpected values.
     ManualEntry = 'ManualEntry'
 
+    # users
+    User        = 'User'
+    Group       = 'Group'
+    Role        = 'Role'
+
     # devices
     Class       = 'Class'
     Organizer   = 'Organizer'
@@ -35,6 +40,7 @@ class ActionTargetType(object):
     Threshold   = 'ThresholdClass'
 
     # other
+    Dashboard   = 'Dashboard'
     ZenPack     = 'ZenPack'
     Mib         = 'MIB'
     Process     = 'Process'

@@ -626,8 +626,9 @@ class DeviceRouter(TreeRouter):
             for uid in uids:
                 info = facade.getInfo(uid)
                 info.ipAddress = ip  # Set to empty causes DNS lookup
-                if sendUserAction: 
-                    sendUserAction(ActionTargetType.Device, 'ResetIP', device=uid)
+                if sendUserAction:
+                    sendUserAction(ActionTargetType.Device, 'ResetIP',
+                                   device=uid, ip=ip)
             return DirectResponse('Reset %s IP addresses.' % len(uids))
         except Exception, e:
             log.exception(e)
@@ -724,7 +725,7 @@ class DeviceRouter(TreeRouter):
             if sendUserAction:
                 for uid in uids:
                     sendUserAction(ActionTargetType.Device, 'EditProductionState',
-                                   device=uid, value=prodStateName, 
+                                   device=uid, productionState=prodStateName,
                                    old=oldStates[uid])
             return DirectResponse('Set %s devices to %s.' % (
                 len(uids), prodStateName))
@@ -773,7 +774,7 @@ class DeviceRouter(TreeRouter):
                 info._object.index_object(idxs=('getPriorityString',))
                 if sendUserAction:
                     sendUserAction(ActionTargetType.Device, 'EditPriority',
-                                   device=uid, priority=priority)
+                                   device=uid, priority=info.priority)
             return DirectResponse('Set %s devices to %s priority.' % (
                 len(uids), info.priority))
         except Exception, e:
@@ -1127,6 +1128,8 @@ class DeviceRouter(TreeRouter):
             obj = facade._getObject(uid)
             if obj.zenPropIsPassword(zProperty):
                 value = '****'
+            else:
+                value = str(value)  # show 'False', '0', etc.
             sendUserAction(ActionTargetType.zProperty, ActionName.Edit, owner=uid,
                            zproperty=zProperty, value=value)
         return DirectResponse(data=Zuul.marshal(data))
@@ -1560,7 +1563,8 @@ class DeviceRouter(TreeRouter):
         facade = self._getFacade()
         facade.addLocalTemplate(deviceUid, templateId)
         if sendUserAction: 
-            sendUserAction(ActionTargetType.Device, 'AddTemplate', device=deviceUid, 
+            sendUserAction(ActionTargetType.Device, 'AddLocalTemplate',
+                           device=deviceUid,
                            template=templateId)
         return DirectResponse.succeed()
 
@@ -1579,7 +1583,8 @@ class DeviceRouter(TreeRouter):
         facade = self._getFacade()
         facade.removeLocalTemplate(deviceUid, templateUid)
         if sendUserAction: 
-            sendUserAction(ActionTargetType.Device, 'RemoveTemplate', device=deviceUid, 
+            sendUserAction(ActionTargetType.Device, 'RemoveLocalTemplate',
+                           device=deviceUid,
                            template=templateUid)
         return DirectResponse.succeed()
 

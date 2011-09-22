@@ -19,6 +19,8 @@ from Products.ZenModel.IpNetwork import AutoDiscoveryJob
 from Products.ZenWidgets.messaging import IMessageSender
 from Products.ZenUtils import Ext
 from Products.ZenUtils.jsonutils import json
+from Products.ZenMessaging.actions import sendUserAction
+from Products.ZenMessaging.actions.constants import ActionTargetType, ActionName
 
 _is_network = lambda x: bool(re.compile(r'^(\d+\.){3}\d+\/\d+$').search(x))
 _is_range = lambda x: bool(re.compile(r'^(\d+\.){3}\d+\-\d+$').search(x))
@@ -183,7 +185,7 @@ class DeviceAddView(BrowserView):
                 IMessageSender(self.context).sendToUser(
                     'Autodiscovery Task Created',
                     'Discovery of the following networks is in progress: %s' % (
-                        ', '.join(ranges))
+                        ', '.join(nets))
                 )
         if ranges:
             # Ranges can just be sent to zendisc, as they are merely sets of
@@ -204,6 +206,11 @@ class DeviceAddView(BrowserView):
                         ', '.join(ranges))
                 )
 
+        if sendUserAction:
+            networks = ','.join(nets)
+            ipRanges = ','.join(ranges)
+            sendUserAction(ActionTargetType.Device, 'Autodiscovery',
+                           networks=networks, ipRanges=ipRanges)
 
         response.redirect('/zport/dmd')
         return response
@@ -246,9 +253,16 @@ class DeviceAddView(BrowserView):
                         'snmpcomm_%s' % idx
                     ).splitlines()
                 }
+            deviceName = self.request.form.get(k)
             perfConf = self.context.Monitors.getPerformanceMonitor('localhost')
-            perfConf.addDeviceCreationJob(deviceName=self.request.form.get(k),
+            perfConf.addDeviceCreationJob(deviceName=deviceName,
                 devicePath=devclass, zProperties=zProps, discoverProto='auto')
+            if sendUserAction:
+                deviceClassUid = '/Devices' + devclass
+                deviceUid = '/'.join([deviceClassUid, 'devices', deviceName])
+                sendUserAction(ActionTargetType.Device, ActionName.Add,
+                               device=deviceUid, deviceClass=deviceClassUid,
+                               model=True)
         devnames = [self.request.form.get(dev) for dev in devs]
         IMessageSender(self.context).sendToUser(
             'Devices Added',
