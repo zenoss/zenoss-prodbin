@@ -93,6 +93,13 @@ class QueueConsumer(object):
         """
         self.consumer.acknowledge(message)
 
+    def reject(self, message, requeue=False):
+        """
+        Called from a task when it wants to reject and optionally requeue
+        a message.
+        """
+        self.consumer.reject(message, requeue)
+
     def publishMessage(self, exchange, routing_key, message, mandatory=False, immediate=False, headers=None):
         """
         Publishes a message to another queue. This is for tasks that are both
