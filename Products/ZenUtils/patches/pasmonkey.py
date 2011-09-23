@@ -25,6 +25,7 @@ Related tickets:
   http://dev.zenoss.org/trac/ticket/4225
 '''
 
+from AccessControl import getSecurityManager
 from Products.ZenMessaging import actions
 from Products.ZenMessaging.actions.constants import ActionTargetType
 
@@ -74,11 +75,13 @@ def login(self):
         pas_instance.updateCredentials(request, response, login, password)
 
         # Track the user logging in, or the login failure.
-        validatedLoginID = pas_instance.validate(request)
         if actions.sendUserAction:
+            # NOTE: updateCredentials did enough work to allow the
+            # following line to work.
+            username = getSecurityManager().getUser().getUserName()
             actions.sendUserAction(
                 ActionTargetType.User,
-                'Login' if validatedLoginID else 'LoginFailure',
+                'Login' if username == login else 'LoginFailure',
                 username=login)
 
     came_from = request.form.get('came_from') or ''
