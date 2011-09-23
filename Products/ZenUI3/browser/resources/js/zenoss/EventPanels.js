@@ -1037,7 +1037,7 @@
             evid = row.id,
             url = '/zport/dmd/Events/viewDetail?evid='+evid;
             window.open(url, evid.replace(/-/g,'_'),
-                        "status=1,width=600,height=500");
+                        "status=1,width=600,height=500,resizable=1");
         },
         /**
          *Since on a regular event console you can not choose which columns
@@ -1106,7 +1106,7 @@
             history = (combo.getValue() == '1') ? 'History' : '',
             url = '/zport/dmd/Events/view'+history+'Detail?evid='+evid;
             window.open(url, evid.replace(/-/g,'_'),
-                        "status=1,width=600,height=500");
+                        "status=1,width=600,height=500,resizable=1");
         },
         setContext: function(uid){
             Zenoss.EventGridPanel.superclass.setContext.call(this, uid);

@@ -672,7 +672,7 @@ Ext.onReady(function() {
                 url = this.isHistory ? 'viewHistoryDetail' : 'viewDetail';
             url = url +'?evid='+evid;
             window.open(url, evid.replace(/-/g,'_'),
-                        "status=1,width=600,height=500");
+                        "status=1,width=600,height=500,resizable=1");
         },
 
         wipe: function() {
