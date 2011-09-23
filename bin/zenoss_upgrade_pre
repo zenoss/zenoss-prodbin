@@ -52,20 +52,6 @@ confirm_jre
 # already exist (we don't want to clobber people's configs)
 update_conf_files
 
-# Test for the pre upgrade zenpack, this should have been removed
-# as a part of the 3.x upgrade but if it is present it will cause an error
-# on migration, so we need to make sure it is removed.
-if ${ZENHOME}/bin/zenpack --list | grep PreUpgrade30 2>/dev/null 1>&2 ;then
-    cat <<EOF
-    Please remove the PreUpgrade zenpack before continuing.
-    You can remove the zenpack with the following command:
-
-EOF
-
-    echo "   " ${ZENHOME} "/bin/zenpack --remove ZenPacks.zenoss.PreUpgrade30 "
-    exit 1
-fi
-
 # version 2.1.1 and below used the system python, but in 2.1.70 we
 # started shipping our own.  replace the old scripts with references
 # to the new python
