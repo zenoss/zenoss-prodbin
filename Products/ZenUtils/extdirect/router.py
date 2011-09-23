@@ -178,8 +178,9 @@ class DirectRouter(object):
         try:
             response.result = _targetfn(**data)
         except Exception as e:
-            log.error('DirectRouter directRequest = %s', directRequest)
-            log.exception('DirectRouter suppressed the following exception (Response %s):' % response.uuid)
+            import traceback
+            log.info("Direct request failed: {0}: {1[action]}.{1[method]} {1[data]}".format(e, directRequest))
+            log.debug("DirectRouter suppressed the following exception (Response {0}):\n{1}".format(response.uuid, traceback.format_exc()))
             response.result = DirectResponse.exception(e)
 
         if isinstance(response.result, DirectResponse) and response.result.type == 'exception':
