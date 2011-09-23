@@ -591,6 +591,8 @@ Ext.apply(Zenoss.devices, {
         text: _t('Add Multiple Devices') + '...',
         id: 'addmultipledevices-item',
         permission: 'Manage Device',
+        // only global roles can do this action
+        permissionContext: '/zport/dmd/Devices',
         handler: function(btn, e){
             window.open('/zport/dmd/easyAddDevice', "multi_add",
             "menubar=0,toolbar=0,resizable=0,height=580, width=800,location=0");
