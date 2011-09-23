@@ -25,6 +25,9 @@ Related tickets:
   http://dev.zenoss.org/trac/ticket/4225
 '''
 
+from Products.ZenMessaging import actions
+from Products.ZenMessaging.actions.constants import ActionTargetType
+
 # monkey patch PAS to allow inituser files, but check to see if we need to
 # actually apply the patch, first -- support may have been added at some point
 from Products.PluggableAuthService import PluggableAuthService
@@ -69,6 +72,14 @@ def login(self):
 
     if pas_instance is not None:
         pas_instance.updateCredentials(request, response, login, password)
+
+        # Track the user logging in, or the login failure.
+        validatedLoginID = pas_instance.validate(request)
+        if actions.sendUserAction:
+            actions.sendUserAction(
+                ActionTargetType.User,
+                'Login' if validatedLoginID else 'LoginFailure',
+                username=login)
 
     came_from = request.form.get('came_from') or ''
     if came_from:
