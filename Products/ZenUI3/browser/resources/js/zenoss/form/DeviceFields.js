@@ -18,35 +18,71 @@
 
     var ZD = Ext.ns('Zenoss.devices');
 
-    ZD.PriorityCombo = Ext.extend(Ext.form.ComboBox, {
+    Ext.define("Zenoss.form.SmartCombo", {
+        extend: "Ext.form.ComboBox",
         constructor: function(config) {
-            config = Ext.apply(config || {}, {
-                fieldLabel: _t('Priority'),
-                store: new Ext.data.DirectStore({
-                    directFn: Zenoss.remote.DeviceRouter.getPriorities,
-                    root: 'data',
-                    fields: ['name', 'value']
+            config = Ext.applyIf(config || {}, {
+                store: new Zenoss.DirectStore({
+                    directFn: config.directFn,
+                    root: config.root || 'data',
+                    fields: config.fields || ['name', 'value']
                 }),
                 valueField: 'value',
                 displayField: 'name',
                 forceSelection: true,
                 editable: false,
                 autoSelect: true,
+                selectOnFocus: true,
                 triggerAction: 'all'
             });
-            ZD.PriorityCombo.superclass.constructor.call(this, config);
+            this.callParent([config]);
+            if (this.autoLoad!==false) {
+                this.getStore().load();
+            }
+        },
+        getValue: function() {
+            return this.callParent(arguments) || this.getRawValue();
+        },
+        setValue: function(value, doSelect) {
+            var orig = this.forceSelection;
+            this.forceSelection = false;
+            var foundValue = Ext.Array.from(value);
+            foundValue = Ext.Array.map(foundValue, function(v) {
+                return v.isModel ? v : (this.findRecordByValue(v) || this.findRecordByDisplay(v) || v);
+            }, this);
+            this.callParent([foundValue, doSelect]);
+            this.forceSelection = orig;
+        },
+        getStore: function() {
+            return this.store;
         }
     });
 
-    Ext.reg('PriorityCombo', ZD.PriorityCombo);
 
-    ZD.DevicePriorityMultiselectMenu = Ext.extend(Zenoss.MultiselectMenu, {
+    Ext.define("Zenoss.devices.PriorityCombo", {
+        extend:"Zenoss.form.SmartCombo",
+        alias: ['widget.PriorityCombo'],
+        constructor: function(config) {
+            config = Ext.apply(config || {}, {
+                fieldLabel: _t('Priority'),
+                directFn: Zenoss.remote.DeviceRouter.getPriorities
+            });
+            this.callParent([config]);
+        }
+    });
+
+
+
+    Ext.define("Zenoss.devices.DevicePriorityMultiselectMenu", {
+        extend:"Zenoss.MultiselectMenu",
+        alias: ['widget.multiselect-devicepriority'],
         constructor: function(config) {
             config = Ext.apply(config || {}, {
                 text:'...',
-                store: new Ext.data.DirectStore({
+                store: new Zenoss.DirectStore({
                     directFn: Zenoss.remote.DeviceRouter.getPriorities,
                     root: 'data',
+                    autoLoad: false,
                     fields: ['name', 'value']
                 }),
                 defaultValues: []
@@ -55,32 +91,23 @@
         }
     });
 
-    Ext.reg('multiselect-devicepriority', ZD.DevicePriorityMultiselectMenu);
-
-    ZD.ProductionStateCombo = Ext.extend(Ext.form.ComboBox, {
+    Ext.define("Zenoss.devices.ProductionStateCombo", {
+        extend:"Zenoss.form.SmartCombo",
+        alias: ['widget.ProductionStateCombo'],
         constructor: function(config) {
             config = Ext.apply(config || {}, {
                 fieldLabel: _t('Production State'),
-                store: new Ext.data.DirectStore({
-                    directFn: Zenoss.remote.DeviceRouter.getProductionStates,
-                    root: 'data',
-                    fields: ['name', 'value']
-                }),
-                valueField: 'value',
-                displayField: 'name',
-                forceSelection: true,
-                editable: false,
-                autoSelect: true,
-                triggerAction: 'all'
+                directFn: Zenoss.remote.DeviceRouter.getProductionStates
             });
-            ZD.ProductionStateCombo.superclass.constructor.call(this, config);
-
+            this.callParent([config]);
         }
     });
 
-    Ext.reg('ProductionStateCombo', ZD.ProductionStateCombo);
 
-    ZD.ProductionStateMultiselectMenu = Ext.extend(Zenoss.MultiselectMenu, {
+
+    Ext.define("Zenoss.devices.ProductionStateMultiselectMenu", {
+        extend:"Zenoss.MultiselectMenu",
+        alias: ['widget.multiselect-prodstate'],
         constructor: function(config) {
             var defaults = [];
             if (Ext.isDefined(Zenoss.env.PRODUCTION_STATES)) {
@@ -88,9 +115,10 @@
             }
             config = Ext.apply(config || {}, {
                 text:'...',
-                store: new Ext.data.DirectStore({
+                store: new Zenoss.DirectStore({
                     directFn: Zenoss.remote.DeviceRouter.getProductionStates,
                     root: 'data',
+                    autoLoad: false,
                     fields: ['name', 'value']
                 }),
                 defaultValues: defaults
@@ -99,9 +127,9 @@
         }
     });
 
-    Ext.reg('multiselect-prodstate', ZD.ProductionStateMultiselectMenu);
 
-    ZD.ManufacturerDataStore = Ext.extend(Ext.data.DirectStore, {
+    Ext.define("Zenoss.devices.ManufacturerDataStore", {
+        extend:"Zenoss.DirectStore",
         constructor: function(config) {
             config = config || {};
             var router = config.router || Zenoss.remote.DeviceRouter;
@@ -111,11 +139,12 @@
                 fields: ['name'],
                 directFn: router.getManufacturerNames
             });
-            ZD.ManufacturerDataStore.superclass.constructor.call(this, config);
+            this.callParent([config]);
         }
     });
 
-    ZD.OSProductDataStore = Ext.extend(Ext.data.DirectStore, {
+    Ext.define("Zenoss.devices.OSProductDataStore", {
+        extend:"Zenoss.DirectStore",
         constructor: function(config) {
             config = config || {};
             var router = config.router || Zenoss.remote.DeviceRouter;
@@ -125,11 +154,12 @@
                 fields: ['name'],
                 directFn: router.getOSProductNames
             });
-            ZD.ManufacturerDataStore.superclass.constructor.call(this, config);
+            this.callParent([config]);
         }
     });
 
-    ZD.HWProductDataStore = Ext.extend(Ext.data.DirectStore, {
+    Ext.define("Zenoss.devices.HWProductDataStore", {
+        extend:"Zenoss.DirectStore",
         constructor: function(config) {
             config = config || {};
             var router = config.router || Zenoss.remote.DeviceRouter;
@@ -139,47 +169,37 @@
                 fields: ['name'],
                 directFn: router.getHardwareProductNames
             });
-            ZD.ManufacturerDataStore.superclass.constructor.call(this, config);
+            this.callParent([config]);
         }
     });
 
-    ZD.ManufacturerCombo = Ext.extend(Ext.form.ComboBox, {
+    Ext.define("Zenoss.devices.ManufacturerCombo", {
+        extend:"Zenoss.form.SmartCombo",
+        alias: ['widget.manufacturercombo'],
         constructor: function(config) {
             var store = (config||{}).store || new ZD.ManufacturerDataStore();
             config = Ext.applyIf(config||{}, {
                 store: store,
-                triggerAction: 'all',
-                selectOnFocus: true,
-                valueField: 'name',
-                displayField: 'name',
-                forceSelection: true,
-                editable: false,
                 width: 160
             });
-            ZD.ManufacturerCombo.superclass.constructor.call(this, config);
+            this.callParent([config]);
         }
     });
-    Ext.reg('manufacturercombo', ZD.ManufacturerCombo);
 
-    ZD.ProductCombo = Ext.extend(Ext.form.ComboBox, {
+
+    Ext.define("Zenoss.devices.ProductCombo", {
+        extend:"Zenoss.form.SmartCombo",
+        alias: ['widget.productcombo'],
         constructor: function(config) {
             var prodType = config.prodType || 'OS',
                 store = (config||{}).store ||
                     prodType=='OS' ? new ZD.OSProductDataStore() : new ZD.HWProductDataStore();
             config = Ext.applyIf(config||{}, {
                 store: store,
-                triggerAction: 'all',
-                selectOnFocus: true,
-                valueField: 'name',
-                displayField: 'name',
-                forceSelection: true,
-                editable: false,
                 width: 160
             });
-            ZD.ProductCombo.superclass.constructor.call(this, config);
+            this.callParent([config]);
         }
     });
-    Ext.reg('productcombo', ZD.ProductCombo);
-
 
 }());

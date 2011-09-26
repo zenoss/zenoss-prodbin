@@ -2,20 +2,20 @@
      Ext.namespace('Zenoss.form.Alias');
 
      /**
-      * When you press the "Add" button this will add a new 
-      * alias row to the panel. 
+      * When you press the "Add" button this will add a new
+      * alias row to the panel.
       **/
      function addAliasRow() {
          var cmp = that,
              button = Ext.getCmp('add_alias_button'),
              row = {};
-         
+
          cmp.remove(button);
          cmp.add(getRowTemplate());
          cmp.add(addAliasButton);
          cmp.doLayout();
      }
-     
+
      /**
       * Variable Definitions
       **/
@@ -56,12 +56,14 @@
              }]
         };
      }
-     
+
      /**
       * Alias Panel. NOTE: This control is designed to have
-      * only one instance per page. 
+      * only one instance per page.
       **/
-     Zenoss.form.Alias = Ext.extend(Ext.Panel, {
+     Ext.define("Zenoss.form.Alias", {
+         alias:['widget.alias'],
+         extend:"Ext.Panel",
          constructor: function(config) {
              var aliases = config.record.aliases,
              items = [],
@@ -71,7 +73,7 @@
              that = this;
              items.push({
                 xtype: 'panel',
-                layout: 'form',
+                layout: 'anchor',
                 border: false,
                 html: _t('ID / FORMULA')
              });
@@ -80,19 +82,19 @@
              for (i=0; i < aliases.length; i++) {
                  alias = aliases[i];
                  items.push(getRowTemplate(alias.name, alias.formula));
-             }   
+             }
              // always show an extra blank row
              items.push(getRowTemplate());
-             
+
              // add the button
              items.push(addAliasButton);
              Ext.applyIf(config, {
                  items:items
              });
-             
+
              Zenoss.form.Alias.superclass.constructor.apply(this, arguments);
          },
-                                        
+
          /**
           * This returns a list of all of the  aliases in object form.
           * Since this is a Panel it must explicitly be called.
@@ -101,10 +103,10 @@
           **/
          getValue: function(){
              var cmp = that,
-                 textfields = cmp.findByType('textfield'),
+                 textfields = cmp.query('textfield'),
                  results = [],
                  i, field;
-             
+
              // initialize the return structure. We want an array of object literals
              // (will be dicts in python)
              for (i = 0; i < textfields.length / 2; i++ ) {
@@ -115,13 +117,13 @@
              // id and formula
              for (i = 0; i < textfields.length; i++ ) {
                  field = textfields[i];
-                 
+
                  // aliasType was defined on the dynamically created rows above
-                 results[Math.floor(i/2)][field.aliasType] = field.getValue();       
+                 results[Math.floor(i/2)][field.aliasType] = field.getValue();
              }
-             
+
              return results;
          }
      });
-     Ext.reg('alias', Zenoss.form.Alias);
+
 }());

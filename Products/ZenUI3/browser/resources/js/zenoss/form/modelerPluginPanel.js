@@ -18,8 +18,11 @@
         ModelerPluginForm,
         ZPROP_NAME = 'zCollectorPlugins',
         ModelerPluginPanel;
-    ModelerPluginForm = Ext.extend(Ext.form.FormPanel, {
+    Ext.define("Zenoss.form.ModelerPluginForm", {
+        extend:"Ext.form.FormPanel",
+        alias: "widget:modelerpluginform",
         constructor: function(config) {
+            var me = this;
             config = config || {};
             Ext.apply(config, {
                 labelAlign: 'top',
@@ -33,10 +36,11 @@
                 items: [{
                     xtype: 'displayfield',
                     name: 'path',
-                    ref: 'path',
+                    id: 'modeler-plugin-path',
                     fieldLabel: _t('Path')
                 },{
                     xtype: 'displayfield',
+                    id: 'modeler-plugin-doc',
                     name: 'doc',
                     height: 65,
                     autoScroll: true,
@@ -47,44 +51,39 @@
                 buttonAlign: 'left',
                 buttons: [{
                     text: _t('Save'),
-                    ref: '../savebtn',
+                    ref: 'savebtn',
                     disabled: Zenoss.Security.doesNotHavePermission('Manage DMD'),
                     handler: function(btn){
-                        var values = this.refOwner.modelerPlugins.getValue(),
-                            panel = this.refOwner,
-                            uid = this.refOwner.uid;
-                        if (values) {
-                            values = values.split(',');
-                        }else {
-                            values = [];
-                        }
+                        var values = me.modelerPlugins.getValue(),
+                            panel = me,
+                            uid = me.uid;
                         router.setZenProperty({uid:uid,
                                                zProperty: ZPROP_NAME,
                                                value:values},
-                                                 function(response){
-                                                     if (response.success){
-                                                         Zenoss.message.info('Updated Modeler Plugins');
-                                                         panel.path.setValue(response.data.path);
-                                                         panel.toggleDeleteButton(response.data.path);
-                                                     }
+                                              function(response){
+                                                  if (response.success){
+                                                      Zenoss.message.info('Updated Modeler Plugins');
+                                                      Ext.getCmp('modeler-plugin-path').setValue(response.data.path);
+                                                      panel.toggleDeleteButton(response.data.path);
+                                                  }
 
-                                                 });
+                                              });
                     }
                 },{
                     text: _t('Cancel'),
-                    ref: '../cancelbtn',
+                    ref: 'cancelbtn',
                     handler: function() {
-                        if (this.refOwner.uid) {
-                            this.refOwner.setContext(this.refOwner.uid);
+                        if (me.uid) {
+                            me.setContext(me.uid);
                         }
                     }
                 },{
                     text: _t('Delete Local Copy'),
-                    ref: '../deleteBtn',
+                    ref: 'deleteBtn',
                     hidden: true,
                     disabled: Zenoss.Security.doesNotHavePermission('Manage DMD'),
                     handler: function(btn) {
-                        var panel = btn.refOwner;
+                        var panel = me;
                         // show a confirmation
                         Ext.Msg.show({
                             title: _t('Delete zProperty'),
@@ -112,39 +111,43 @@
                 cls: 'device-overview-form-wrapper',
                 bodyCssClass: 'device-overview-form'
             });
-            ModelerPluginForm.superclass.constructor.apply(this, arguments);
+            this.callParent(arguments);
         },
         setContext: function(uid) {
             if (this.modelerPlugins) {
                 this.modelerPlugins.destroy();
             }
-            this.doc.setValue('');
+            Ext.getCmp('modeler-plugin-doc').setValue('');
             this.uid = uid;
             // get the modeler plugins
             router.getZenProperty({
                 uid: uid,
                 zProperty: ZPROP_NAME
-            }, this.loadData.createDelegate(this));
+            }, Ext.bind(this.loadData, this));
 
             router.getModelerPluginDocStrings({
                 uid: uid
-            }, this.loadDocs.createDelegate(this));
+            }, Ext.bind(this.loadDocs, this));
 
         },
         toggleDeleteButton: function(path){
             // show the delete button if locally defined
-            var localPath = this.uid.replace('/zport/dmd/Devices', '');
+            var localPath = this.uid.replace('/zport/dmd/Devices', ''),
+                deleteBtn = this.getButton("deleteBtn");
 
             // can't delete the root
             if (path == '/') {
-                this.deleteBtn.hide();
+                deleteBtn.hide();
                 return;
             }
             if (localPath == path) {
-                this.deleteBtn.show();
+                deleteBtn.show();
             }else{
-                this.deleteBtn.hide();
+                deleteBtn.hide();
             }
+        },
+        getButton: function(ref) {
+            return this.query(Ext.String.format("button[ref='{0}']", ref))[0];
         },
         loadData: function(response) {
             if (response.success) {
@@ -152,14 +155,11 @@
                     clickHandler,
                     panel = this;
 
-                this.path.setValue(data.path);
+                Ext.getCmp('modeler-plugin-path').setValue(data.path);
                 this.toggleDeleteButton(data.path);
-                clickHandler = function(select) {
-                    // display the docs for the first one
-                    var value = select.getValue();
-                    if (value.indexOf(',') != -1) {
-                        value = value.split(',')[0];
-                    }
+                clickHandler = function(select, record) {
+                    // display the docs for the record clicked
+                    var value = record.data.field1;
                     panel.showDocFor(value);
                 };
                 // add the multi select
@@ -173,31 +173,23 @@
                     drawDownIcon: true,
                     drawTopIcon: true,
                     drawBotIcon: true,
-                    multiselects: [{
-                        cls: 'multiselect-dialog',
-                        legend: _t('Available'),
-                        width: 350,
-                        height: 475,
-                        listeners: {
-                            click: clickHandler
+                    store: data.options,
+                    value: data.value,
+                    listeners: {
+                        afterrender: function() {
+                            // HACK: have to go into the internals of MultiSelect to properly register a click
+                            // handler
+                            this.modelerPlugins.fromField.boundList.on('itemclick', clickHandler);
+                            this.modelerPlugins.toField.boundList.on('itemclick', clickHandler);
                         },
-                        store: data.options
-                    },{
-                        cls: 'multiselect-dialog',
-                        legend: _t('Selected'),
-                        width: 350,
-                        height: 475,
-                        store: data.value,
-                        listeners: {
-                            click: clickHandler
-                        }
-                    }]
+                        scope: this
+                    }
                 });
                 this.doLayout();
+
             }
         },
         showDocFor: function(plugin) {
-
             if (plugin && this.docs && this.docs[plugin]) {
                 this.doc.setValue(this.docs[plugin]);
             }else{
@@ -215,25 +207,27 @@
     /**
      * Place the form inside a panel for sizing
      **/
-    ModelerPluginPanel = Ext.extend(Ext.Panel, {
+    Ext.define("Zenoss.form.ModelerPluginPanel", {
+        alias:['widget.modelerpluginpanel'],
+        extend:"Ext.Panel",
         constructor: function(config) {
             config = config || {};
+            var form = Ext.create("Zenoss.form.ModelerPluginForm", {});
             Ext.applyIf(config, {
                 layout: 'fit',
                 width: 800,
                 autoScroll: 'auto',
-                items: [new ModelerPluginForm({
-                    ref: 'modelerForm'
-                })]
+                items: [form]
             });
-            ModelerPluginPanel.superclass.constructor.apply(this, arguments);
+            this.callParent(arguments);
+            this.form = form;
         },
         setContext: function(uid) {
-            this.modelerForm.setContext(uid);
+            this.form.setContext(uid);
         }
     });
 
 
-    Ext.reg('modelerpluginpanel', ModelerPluginPanel);
+
 
 })();

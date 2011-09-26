@@ -268,12 +268,16 @@ windows_device7 cDateTest='2010/02/28'
         try:
             org = base.getDmdObj(path)
         except KeyError:
-            self.log.info("Creating organizer %s", path)
-            @transact
-            def inner():
-                base.manage_addOrganizer(path)
-            inner()
-            org = base.getDmdObj(path)
+            try:
+                self.log.info("Creating organizer %s", path)
+                @transact
+                def inner():
+                    base.manage_addOrganizer(path)
+                inner()
+                org = base.getDmdObj(path)
+            except IOError, ex:
+                self.log.error("Unable to create organizer! Is Rabbit up and configured correctly?")
+                sys.exit(1)
         self.applyZProps(org, device_specs)
         self.applyOtherProps(org, device_specs)
 

@@ -93,7 +93,7 @@ class TriggersRouter(DirectRouter):
 
     # notification subscriptions
     @serviceConnectionError
-    def getNotifications(self):
+    def getNotifications(self, sort=None, dir=None, page=None, start=None, limit=None):
         response = self._getFacade().getNotifications()
         return DirectResponse.succeed(data=Zuul.marshal(response))
 
@@ -114,7 +114,7 @@ class TriggersRouter(DirectRouter):
         return DirectResponse.succeed(msg="Notification removed successfully.", data=response)
 
     @serviceConnectionError
-    def getNotificationTypes(self):
+    def getNotificationTypes(self, query=''):
         utils = getUtilitiesFor(IAction)
         actionTypes = sorted((dict(id=id, name=util.name) for id, util in utils), key=itemgetter('id'))
         log.debug('notification action types are: %s' % actionTypes)
@@ -134,13 +134,13 @@ class TriggersRouter(DirectRouter):
         return DirectResponse.succeed(msg="Notification updated successfully.", data=Zuul.marshal(response))
 
     @serviceConnectionError
-    def getRecipientOptions(self):
+    def getRecipientOptions(self, **kwargs):
         data = self._getFacade().getRecipientOptions()
         return DirectResponse.succeed(data=data);
 
     # subscription windows
     @serviceConnectionError
-    def getWindows(self, uid):
+    def getWindows(self, uid, **kwargs):
         response = self._getFacade().getWindows(uid)
         return DirectResponse.succeed(data=Zuul.marshal(response))
 

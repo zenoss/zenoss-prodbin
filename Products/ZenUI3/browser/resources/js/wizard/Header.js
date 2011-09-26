@@ -21,7 +21,7 @@ Ext.namespace('Ext.ux.Wiz');
  * @constructor
  * @param {Object} config The config object
  */
-Ext.ux.Wiz.Header = Ext.extend(Ext.BoxComponent, {
+Ext.ux.Wiz.Header = Ext.extend(Ext.Component, {
 
     /**
      * @cfg {Number} height The height of this component. Defaults to "55".

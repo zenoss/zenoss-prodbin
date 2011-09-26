@@ -15,9 +15,14 @@
 
 /* package level */
 (function() {
-var DataPointItemSelector = Ext.extend(Ext.ux.form.ItemSelector, {
+Ext.define("Zenoss.form.DataPointItemSelector", {
+    alias:['widget.datapointitemselector'],
+    extend:"Ext.ux.form.ItemSelector",
     constructor: function(config) {
         var record = config.record;
+
+        this.value = config.value;
+
         Ext.applyIf(config, {
             name: 'dataPoints',
             fieldLabel: _t('Data Points'),
@@ -27,21 +32,10 @@ var DataPointItemSelector = Ext.extend(Ext.ux.form.ItemSelector, {
             drawDownIcon: false,
             drawTopIcon: false,
             drawBotIcon: false,
-            multiselects: [{
-                cls: 'multiselect-dialog',
-                width: 250,
-                height: 200,
-                store: record.allDataPoints                            
-            },{
-                cls: 'multiselect-dialog',
-                width: 250,
-                height: 200,
-                // datapoints comes back as a string from the server
-                store: record.dataPoints.split(",") || []                            
-            }]
+            store: record.allDataPoints
         });
-        DataPointItemSelector.superclass.constructor.apply(this, arguments);
+        this.callParent(arguments);
     }
 });
-Ext.reg('datapointitemselector', DataPointItemSelector);
+
 }());

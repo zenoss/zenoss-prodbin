@@ -31,8 +31,9 @@ Ext.onReady(function(){
 
     // Make the detail panel collapsible
     detail_panel.animCollapse = false;
-    detail_panel.collapsible = false;
-    detail_panel.collapsed = true;
+    detail_panel.collapsible = true;
+    detail_panel.show();
+    detail_panel.collapse();
 
     /*
      * Select all events with a given state.
@@ -219,12 +220,12 @@ Ext.onReady(function(){
                 id: 'refresh-button',
                 text: _t('Refresh'),
                 handler: function() {
-                    var view = Ext.getCmp('events_grid').getView();
-                    view.nonDisruptiveReset();
+                    var grid = Ext.getCmp('events_grid');
+                    grid.refresh();
                 },
                 pollHandler: function() {
-                    var view = Ext.getCmp('events_grid').getView();
-                    view.updateLiveRows(view.rowIndex, true, true);
+                    var grid = Ext.getCmp('events_grid');
+                    grid.refresh();
                 }
             }
             ]
@@ -241,35 +242,13 @@ Ext.onReady(function(){
     var yesterday = new Date();
     yesterday.setDate(yesterday.getDate() - 1);
 
-    // View to render the grid
-    var myView = new Zenoss.FilterGridView({
-        nearLimit : 20,
-        appendGlob: true,
-        filterbutton: 'showfilters',
-        defaultFilters: {
-            severity: [Zenoss.SEVERITY_CRITICAL, Zenoss.SEVERITY_ERROR, Zenoss.SEVERITY_WARNING, Zenoss.SEVERITY_INFO],
-            eventState: [Zenoss.STATUS_CLOSED, Zenoss.STATUS_CLEARED, Zenoss.STATUS_AGED],
-            lastTime: yesterday
-        },
-        rowcoloritem: 'rowcolors_checkitem',
-        livesearchitem: 'livesearch_checkitem',
-        loadMask  : { msg :  'Loading. Please wait...' }
-    });
+
 
     // Show filters by default on history console
     // State restoration occurs after render, so this won't persist if unwanted
-    myView.on('render', function(){myView.showFilters();});
+    // myView.on('render', function(){myView.showFilters();});
 
 
-    // Store to hold the events data
-    var console_store = new Zenoss.EventStore({
-        proxy: new Zenoss.ThrottlingProxy({
-            directFn:Zenoss.remote.EventsRouter.queryArchive
-        }),
-        sortInfo: {field:'lastTime', direction:'DESC'},
-        defaultSort: {field:'lastTime', direction:'DESC'},
-        autoLoad: true
-    });
 
 
     // Selection model
@@ -278,21 +257,28 @@ Ext.onReady(function(){
     /*
      * THE GRID ITSELF!
      */
-    var grid = new Zenoss.FilterGridPanel({
+    var grid = Ext.create('Zenoss.events.Grid', {
         region: 'center',
         tbar: tbar,
         id: 'events_grid',
         stateId: Zenoss.env.EVENTSGRID_STATEID,
         enableDragDrop: false,
+        appendGlob: true,
+        defaultFilters: {
+            severity: [Zenoss.SEVERITY_CRITICAL, Zenoss.SEVERITY_ERROR, Zenoss.SEVERITY_WARNING, Zenoss.SEVERITY_INFO],
+            eventState: [Zenoss.STATUS_NEW, Zenoss.STATUS_ACKNOWLEDGED],
+            // _managed_objects is a global function sent from the server, see ZenUI3/security/security.py
+            lastTime: yesterday,
+            tags: _managed_objects()
+        },
         stateful: true,
         border: false,
         rowSelectorDepth: 5,
-        autoExpandColumn: Zenoss.env.EVENT_AUTO_EXPAND_COLUMN || '',
-        store: console_store, // defined above
-        view: myView, // defined above
+        store: Ext.create('Zenoss.events.Store', { }),
+
         // Zenoss.env.COLUMN_DEFINITIONS comes from the server, and depends on
         // the resultFields associated with the context.
-        cm: new Zenoss.FullEventColumnModel(),
+        columns: Zenoss.env.COLUMN_DEFINITIONS,
         stripeRows: true,
         // Map some other keys
         keys: [{
@@ -301,20 +287,24 @@ Ext.onReady(function(){
             fn: toggleEventDetailContent
         }],
         displayTotal: false,
-        sm: console_selection_model // defined above
+        selModel: console_selection_model, // defined above
+        bbar: []
     });
     // Add it to the layout
     master_panel.add(grid);
 
+    Zenoss.util.callWhenReady('events_grid', function(){
+        Ext.getCmp('events_grid').setContext(Zenoss.env.PARENT_CONTEXT);
+    });
 
     /*
      * DETAIL PANEL STUFF
      */
     // Pop open the event detail, depending on the number of rows selected
     function toggleEventDetailContent(){
-        var count = console_selection_model.getCount();
-        if (count==1) {
-            showEventDetail(console_selection_model.getSelected());
+        var selections = console_selection_model.getSelections();
+        if (selections.length) {
+            showEventDetail(selections[0]);
         } else {
             wipeEventDetail();
         }
@@ -324,8 +314,9 @@ Ext.onReady(function(){
     // and switch triggers (single select repopulates detail, esc to close)
     function showEventDetail(r) {
         Ext.getCmp('dpanelcontainer').load(r.data.evid);
-        grid.un('rowdblclick', toggleEventDetailContent);
+        grid.un('itemdblclick', toggleEventDetailContent);
         detail_panel.expand();
+        detail_panel.show();
         esckeymap.enable();
     }
 
@@ -341,7 +332,7 @@ Ext.onReady(function(){
     }
     function eventDetailCollapsed(){
         wipeEventDetail();
-        grid.on('rowdblclick', toggleEventDetailContent);
+        grid.on('itemdblclick', toggleEventDetailContent);
         esckeymap.disable();
     }
     // Finally, add the detail panel (have to do it after function defs to hook
@@ -368,7 +359,7 @@ Ext.onReady(function(){
     view.on('buffer', doLastUpdated);
 
     // Detail pane should pop open when double-click on event
-    grid.on("rowdblclick", toggleEventDetailContent);
+    grid.on("itemdblclick", toggleEventDetailContent);
     console_selection_model.on("rowselect", function(){
         if(detail_panel.isVisible()){
             toggleEventDetailContent();

@@ -18,12 +18,14 @@
 
 Ext.ns('Zenoss.form');
 
-Zenoss.form.Password = Ext.extend(Ext.form.TextField, {
-     constructor: function(config) {
+Ext.define("Zenoss.form.Password", {
+    alias:['widget.password'],
+    extend:"Ext.form.TextField",
+    constructor: function(config) {
          config.inputType = 'password';
          Zenoss.form.Password.superclass.constructor.apply(this, arguments);
      }
  });
- Ext.reg('password', Zenoss.form.Password);
+
 
 })();

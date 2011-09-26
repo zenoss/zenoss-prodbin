@@ -67,10 +67,11 @@ class ExtBaseJs(JavaScriptSrcViewlet):
     zope.interface.implements(IJavaScriptSrcViewlet)
 
     def update(self):
-        if Globals.DevelopmentMode:
-            self.path = "/++resource++extjs/adapters/ext/ext-base-debug.js"
-        else:
-            self.path = "/++resource++extjs/adapters/ext/ext-base.js"
+        pass
+        # if Globals.DevelopmentMode:
+        #     self.path = "/++resource++extjs/adapters/ext/ext.js"
+        # else:
+        #     self.path = "/++resource++extjs/adapters/ext/ext.js"
 
 
 class ZenossAllJs(JavaScriptSrcViewlet):

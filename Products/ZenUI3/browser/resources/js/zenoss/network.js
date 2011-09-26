@@ -32,7 +32,9 @@ treeConfigs.addAll([{
         text: null, // Use the name loaded from the remote
         allowDrop: false
     },
-    directFn: Zenoss.remote.NetworkRouter.asyncGetTree,
+    // TODO: Make selectByPath work with trees and then change this to asyncGetTree
+    directFn: Zenoss.remote.NetworkRouter.getTree,
+    searchField: true,
     router: Zenoss.remote.NetworkRouter
 }, {
     id: 'ipv6networks',
@@ -43,7 +45,8 @@ treeConfigs.addAll([{
         allowDrop: false
     },
     selectRootOnLoad: false,
-    directFn: Zenoss.remote.Network6Router.asyncGetTree,
+    directFn: Zenoss.remote.Network6Router.getTree,
+    searchField: true,
     router: Zenoss.remote.Network6Router
 }]);
 
@@ -68,11 +71,7 @@ var addNetwork = function(id) {
     tree.router.addNode({newSubnet: id, contextUid: Zenoss.env.PARENT_CONTEXT},
         function(data) {
             if (data.success) {
-                tree.getRootNode().reload(
-                    function() {
-                        tree.getRootNode().expandChildNodes();
-                    }
-                );
+                tree.refresh();
             }
         }
     );
@@ -82,16 +81,17 @@ var deleteNetwork = function() {
     var tree = Ext.getCmp(getRootId()),
         node = tree.getSelectionModel().getSelectedNode(),
         parentNode = node.parentNode,
-        uid = node.attributes.uid;
+        uid = node.data.uid;
 
     tree.router.deleteNode({uid:uid},
         function(data) {
             if (data.success) {
-                tree.getRootNode().reload(
-                    function() {
-                        tree.getNodeById(parentNode.id).select();
+                tree.getStore().load({
+                    scope: this,
+                    callback: function() {
+                        tree.selectByToken(parentNode.get("id"));
                     }
-                );
+                });
             }
         }
     );
@@ -101,7 +101,7 @@ var discoverDevicesDialogSubmit = function() {
     var tree = Ext.getCmp(getRootId()),
         node = tree.getSelectionModel().getSelectedNode();
 
-    tree.router.discoverDevices( {uid: node.attributes.uid},
+    tree.router.discoverDevices( {uid: node.get("uid")},
         function(data) {
             if (data.success) {
                 var dialog = new Zenoss.dialog.SimpleMessageDialog( {
@@ -146,83 +146,56 @@ var discoverDevicesDialog = new Zenoss.MessageDialog({
 // Navigation tree (select subnetwork)
 //********************************************
 
-var treesm = new Ext.tree.DefaultSelectionModel({
+var treesm = new Zenoss.TreeSelectionModel({
     listeners: {
-        'selectionchange': function (sm, newnode) {
-            if (!newnode) {
+        'selectionchange': function (sm, newnodes) {
+            if (!newnodes.length) {
                 return;
             }
-            var uid = newnode.attributes.uid,
+            var newnode = newnodes[0];
+            var uid = newnode.data.uid,
                 fb = Ext.getCmp('footer_bar');
-
-            Ext.getCmp('detail_panel').detailCardPanel.setContext(uid);
+            Ext.getCmp('NetworkDetailCardPanel').setContext(uid);
 
             if (Zenoss.Security.doesNotHavePermission('Manage DMD')) {
                 return;
             }
-
-            fb.buttonContextMenu.setContext(uid);
+             Ext.getCmp('network_context_menu').setContext(uid);
             Zenoss.env.PARENT_CONTEXT = uid;
 
-            fb.buttonDelete.setDisabled(treeConfigs.containsKey(uid));
+            Ext.getCmp('footer_delete_button').setDisabled(treeConfigs.containsKey(uid));
         }
     }
 });
 
-var NetworkNavTree = Ext.extend(Zenoss.HierarchyTreePanel, {
+Ext.define("Zenoss.Network.NetworkNavTree", {
+    alias:['widget.networknavtree'],
+    extend:"Zenoss.HierarchyTreePanel",
 
     constructor: function(config) {
         config = Ext.applyIf(config||{}, {
-            listeners: {
-                scope: this,
-                load: this.onLoad
-            },
             selModel: treesm
         });
-        NetworkNavTree.superclass.constructor.call(this, config);
+        Zenoss.Network.NetworkNavTree.superclass.constructor.call(this, config);
     },
-
-    onLoad: function(node){
-        // when a TreePanel load event fires for a parent node, all of its
-        // child nodes have been registered, and getNodeById which is used in
-        // selectByToken returns the node instead of null. This is a good time
-        // to select the correct node based on the history token in the URL.
-
-        // example token:
-        //'networks:.zport.dmd.Networks.204.12.105.0.ipaddresses.204.12.105.192'
-        var token = Ext.History.getToken();
-        if (token) {
-            // Ext.History.DELIMITER is ':'
-            var fromIndex = token.indexOf(Ext.History.DELIMITER)
-                    + Ext.History.DELIMITER.length,
-                tokenTreePath = token.substring(fromIndex);
-
-            function expandToHistory(anode) {
-                anode.expand();
-                Ext.each(anode.childNodes, function(item) {
-                    if (tokenTreePath.indexOf(item.id) === 0) {
-                        expandToHistory(item);
-                    }
-                });
-            };
-            expandToHistory(node);
-
-            this.selectByToken(tokenTreePath);
-        }
-    },
-
     selectByToken: function(tokenTreePath) {
-        // called from onLoad and Ext.History.selectByToken defined in
-        // HistoryManager.js. If node is null when called from the History
-        // change event, then the TreePanel load event will call this function
-        // when getNodeById is ready.
-        var subParts = unescape(tokenTreePath).split('.ipaddresses.');
-        var tokenNodeId = subParts[0];
-        var node = this.getNodeById(tokenNodeId);
-        if (node) {
-            this.selectPath(node.getPath(), null, function(){
+        function selectTokenPath() {
+            // called from onLoad and Ext.History.selectByToken defined in
+            // HistoryManager.js. If node is null when called from the History
+            // change event, then the TreePanel load event will call this function
+            // when getNodeById is ready.
+            var subParts = unescape(tokenTreePath).split('.ipaddresses.');
+            var tokenNodeId = subParts[0];
+            var node = this.getRootNode().findChild("id", tokenNodeId, true);
+
+            if (node) {
+                this.getSelectionModel().select(node);
+                if (node.isExpandable()){
+                    node.expand();
+                }
+                this.expandToChild(node);
                 var ipAddress = subParts[1];
-                var instanceGrid = Ext.getCmp('detail_panel').detailCardPanel.instancesGrid;
+                var instanceGrid = Ext.getCmp('NetworkDetailCardPanel').getInstancesGrid();
                 var store = instanceGrid.getStore();
                 var selModel = instanceGrid.getSelectionModel();
 
@@ -241,33 +214,24 @@ var NetworkNavTree = Ext.extend(Zenoss.HierarchyTreePanel, {
                     // no row selectected, wait for the store to load and try again
                     store.on('load', selectIpAddress, store, {single:true});
                 }
-            });
+            }
         }
-    },
-
-    afterRender: function() {
-        NetworkNavTree.superclass.afterRender.call(this);
-
-        Ext.getCmp("networkSearchField").addListener('valid',
-                this.filterTree,
-                this);
+        this.getRootNode().on('expand', selectTokenPath, this, {single:true});
     }
-
 });
 
-Ext.reg('networknavtree', NetworkNavTree);
 
-var treePanelItems = [{
-    id: 'networkSearchField',
-    xtype: 'searchfield',
-    bodyStyle: {padding: 10}
-}];
-treeConfigs.each(function() {
-    treePanelItems.push(new NetworkNavTree(this));
-    return true;
+
+var treePanelItems = {
+    xtype: 'HierarchyTreePanelSearch',
+    items: []
+};
+treeConfigs.each(function(config) {
+    treePanelItems.items.push(new Zenoss.Network.NetworkNavTree(config));
 });
 
-Ext.getCmp('master_panel').add({items: treePanelItems});
+
+Ext.getCmp('master_panel').add(treePanelItems);
 
 //********************************************
 // IP Addresses grid
@@ -287,110 +251,128 @@ var statusRenderer = function (statusNum) {
     return '<span style="color:' + color + '">' + desc + '</span>';
 };
 
-var ipAddressColumnConfig = {
-    defaults: {
-        menuDisabled: true
-    },
-    columns: [{
-            id: 'name',
-            dataIndex: 'name',
-            header: _t('Address / Netmask'),
-            sortable: true,
-            width: 50,
-            renderer: function(name, row, record) {
-                return record.data.netmask ? name + '/' + record.data.netmask :
-                                             name;
-            }
-        }, {
-            id: 'device',
-            dataIndex: 'device',
-            header: _t('Device'),
-            sortable: true,
-            width: 200,
-            renderer: function(device, row, record) {
-                if (!device) return _t('No Device');
-                return Zenoss.render.link(device.uid, null, device.name);
-            }
-        }, {
-            id: 'interface',
-            dataIndex: 'interface',
-            header: _t('Interface'),
-            sortable: true,
-            width: 200,
-            renderer: function(iface, row, record){
-                if (!iface) return _t('No Interface');
-                return Zenoss.render.link(iface.uid, null, iface.name);
-           }
-        },{
-            id: 'macAddress',
-            dataIndex: 'macAddress',
-            sortable: true,
-            header: _t('MAC Address'),
-            width: 120
-        },{
-            id: 'interfaceDescription',
-            dataIndex: 'interfaceDescription',
-            sortable: true,
-            header: _t('Interface Desc.'),
-            width: 150
-        }, {
-            id: 'pingstatus',
-            dataIndex: 'pingstatus',
-            header: _t('Ping'),
-            width: 50,
-            renderer: function(pingNum, row, record){
-                return statusRenderer(pingNum);
-           }
-        }, {
-            id: 'snmpstatus',
-            dataIndex: 'snmpstatus',
-            header: _t('SNMP'),
-            width: 50,
-            renderer: function(snmpNum, row, record){
-                return statusRenderer(snmpNum);
-           }
-        }
-    ]
-};
+var ipAddressColumnConfig = [{
+    id: 'name',
+    dataIndex: 'name',
+    header: _t('Address / Netmask'),
+    sortable: true,
+    flex: 1,
+    width: 50,
+    renderer: function(name, row, record) {
+        return record.data.netmask ? name + '/' + record.data.netmask :
+            name;
+    }
+}, {
+    id: 'device',
+    dataIndex: 'device',
+    header: _t('Device'),
+    sortable: true,
+    width: 200,
+    renderer: function(device, row, record) {
+        if (!device) return _t('No Device');
+        return Zenoss.render.link(device.uid, null, device.name);
+    }
+}, {
+    id: 'interface',
+    dataIndex: 'interface',
+    header: _t('Interface'),
+    sortable: true,
+    width: 200,
+    renderer: function(iface, row, record){
+        if (!iface) return _t('No Interface');
+        return Zenoss.render.link(iface.uid, null, iface.name);
+    }
+},{
+    id: 'macAddress',
+    dataIndex: 'macAddress',
+    sortable: true,
+    header: _t('MAC Address'),
+    width: 120
+},{
+    id: 'interfaceDescription',
+    dataIndex: 'interfaceDescription',
+    sortable: true,
+    header: _t('Interface Desc.'),
+    width: 150
+}, {
+    id: 'pingstatus',
+    dataIndex: 'pingstatus',
+    header: _t('Ping'),
+    filter: false,
+    sortable: false,
+    width: 50,
+    renderer: function(pingNum, row, record){
+        return statusRenderer(pingNum);
+    }
+}, {
+    id: 'snmpstatus',
+    dataIndex: 'snmpstatus',
+    header: _t('SNMP'),
+    filter: false,
+    sortable: false,
+    width: 50,
+    renderer: function(snmpNum, row, record){
+        return statusRenderer(snmpNum);
+    }
+}
+];
 
-var ipAddressStoreConfig = {
-        bufferSize: 256,
-        proxy: new Ext.data.DirectProxy({
-            directFn: Zenoss.remote.NetworkRouter.getIpAddresses
-        }),
-        reader: new Ext.ux.grid.livegrid.JsonReader({
-            root: 'data',
-            idProperty: 'uid',
-            totalProperty: 'totalCount',
-            fields: [
-                {name: 'name'},
-                {name: 'netmask'},
-                {name: 'macAddress'},
-                {name: 'interfaceDescription'},
-                {name: 'device'},
-                {name: 'interface'},
-                {name: 'pingstatus'},
-                {name: 'snmpstatus'},
-                {name: 'uid'}
-            ]
-        })
-    };
+
+/**
+ * @class Zenoss.network.IpAddressModel
+ * @extends Ext.data.Model
+ * Field definitions for the ip address grid
+ **/
+Ext.define('Zenoss.network.IpAddressModel',  {
+    extend: 'Ext.data.Model',
+    idProperty: 'uid',
+    fields: [
+        {name: 'name'},
+        {name: 'netmask'},
+        {name: 'macAddress'},
+        {name: 'interfaceDescription'},
+        {name: 'device'},
+        {name: 'interface'},
+        {name: 'pingstatus'},
+        {name: 'snmpstatus'},
+        {name: 'uid'}
+    ]
+});
+
+/**
+ * @class Zenoss.network.IpAddressStore
+ * @extend Zenoss.DirectStore
+ * Direct store for loading ip addresses
+ */
+Ext.define("Zenoss.network.IpAddressStore", {
+    extend: "Zenoss.DirectStore",
+    constructor: function(config) {
+        config = config || {};
+        Ext.applyIf(config, {
+            model: 'Zenoss.network.IpAddressModel',
+            initialSortColumn: "name",
+            directFn: Zenoss.remote.NetworkRouter.getIpAddresses,
+            root: 'data'
+        });
+        this.callParent(arguments);
+    }
+});
 
 
 var ipAddressGridConfig = {
         xtype: 'instancecardpanel',
-        ref: 'detailCardPanel',
+        id: 'NetworkDetailCardPanel',
         region: 'center',
         border: false,
         collapsed: false,
         split: true,
-        autoExpandColumn: 'name',
         stripeRows: true,
         router: Zenoss.remote.NetworkRouter,
         instancesTitle: _t('IP Addresses'),
-        cm: new Ext.grid.ColumnModel(ipAddressColumnConfig),
-        store: new Ext.ux.grid.livegrid.Store(ipAddressStoreConfig),
-        sm: new Ext.ux.grid.livegrid.RowSelectionModel({
+        columns: ipAddressColumnConfig,
+        store: Ext.create('Zenoss.network.IpAddressStore', {}),
+        sm: Ext.create('Zenoss.ExtraHooksSelectionModel', {
+            mode: 'MULTI'
         })
     };
 
@@ -398,7 +380,7 @@ Ext.getCmp('detail_panel').add(ipAddressGridConfig);
 
 (function(){
     // Remove extraneous toolbar items since we don't hide this panel
-    var detailCardPanel = Ext.getCmp('detail_panel').detailCardPanel;
+    var detailCardPanel = Ext.getCmp('NetworkDetailCardPanel');
     Ext.each(detailCardPanel.getTopToolbar().items.items.slice(2), function(item) {
         detailCardPanel.getTopToolbar().remove(item);
     });
@@ -413,12 +395,12 @@ Ext.getCmp('detail_panel').add(ipAddressGridConfig);
             xtype: 'tbspacer',
             width: 5
         }, {
-            ref: '../descriptionField',
+            id: 'network-descriptionField',
             xtype: 'tbtext'
         },
         '->',
         {
-            ref: '../ipcountField',
+            id: 'network-ipcountField',
             xtype: 'tbtext'
     });
 
@@ -430,9 +412,9 @@ Ext.getCmp('detail_panel').add(ipAddressGridConfig);
             keys: ['id', 'description', 'ipcount']
             },
             function(infoData) {
-                detailCardPanel.descriptionField.setText(
+                Ext.getCmp('network-descriptionField').setText(
                     infoData.success ? infoData.data.description : '');
-                detailCardPanel.ipcountField.setText(
+                Ext.getCmp('network-ipcountField').setText(
                     infoData.success ? 'IPs Used/Free: ' + infoData.data.ipcount : '');
                 detailCardPanel.doLayout();
             }
@@ -448,15 +430,15 @@ Ext.getCmp('detail_panel').add(ipAddressGridConfig);
 function reloadGridAndTree() {
     var trees = [Ext.getCmp('networks'), Ext.getCmp('ipv6networks')];
     Ext.each(trees, function(tree){
-        tree.getRootNode().reload();
+        tree.refresh();
     });
-    Ext.getCmp('detail_panel').detailCardPanel.instancesGrid.getStore().reload();
+    Ext.getCmp('NetworkDetailCardPanel').getInstancesGrid().refresh();
 }
 
 
 function deleteIpAddresses(btn) {
-    var grid = Ext.getCmp('detail_panel').detailCardPanel.instancesGrid,
-        selections = grid.getSelectionModel().getSelections(),
+    var grid = Ext.getCmp('NetworkDetailCardPanel').getInstancesGrid(),
+        selections = grid.getSelectionModel().getSelection(),
         router = Zenoss.remote.NetworkRouter,
         uids;
     if (!selections.length) {
@@ -465,6 +447,7 @@ function deleteIpAddresses(btn) {
     }
 
     uids = Ext.pluck(Ext.pluck(selections, 'data'), 'uid');
+
     Ext.Msg.show({
         title: _t('Delete IP Addresses'),
         msg: _t("Are you sure you want to delete these IP addresses? Please note that only IP addresses without interfaces can be deleted."),
@@ -508,6 +491,7 @@ var showEditDescriptionDialog = function() {
         items: [{
             xtype: 'textfield',
             id: 'description',
+            name: 'description',
             fieldLabel: _t('Description'),
             allowBlank: true
             }],
@@ -519,7 +503,7 @@ var showEditDescriptionDialog = function() {
     dialog.setSubmitHandler(function(values) {
         values.uid = Zenoss.env.PARENT_CONTEXT;
         Zenoss.remote.NetworkRouter.setInfo(values);
-        Ext.getCmp('detail_panel').detailCardPanel.setContext(values.uid);
+        Ext.getCmp('NetworkDetailCardPanel').setContext(values.uid);
     });
 
     dialog.getForm().load({
@@ -553,7 +537,7 @@ Zenoss.footerHelper('Subnetwork', fb, {
                 disabled: Zenoss.Security.doesNotHavePermission('Manage DMD') ||
                     treeConfigs.containsKey(Zenoss.env.PARENT_CONTEXT) ||
                     Zenoss.env.PARENT_CONTEXT.indexOf('IPv6Networks') >= 0,
-                handler: discoverDevicesDialog.show.createDelegate(discoverDevicesDialog)
+                handler: Ext.bind(discoverDevicesDialog.show, discoverDevicesDialog)
             },{
                 tooltip: _t('Edit network description'),
                 text: _t('Edit description'),

@@ -23,7 +23,8 @@
         DeviceClassDropDown,
         GroupDropDown;
 
-    OrganizerDropDown = Ext.extend(Ext.form.ComboBox, {
+    Ext.define("Zenoss.form.OrganizerDropDown", {
+        extend:"Ext.form.ComboBox",
         constructor: function(config) {
             config = config || {};
             Ext.applyIf(config, {
@@ -43,57 +44,65 @@
                 autoSelect: true,
                 triggerAction: 'all'
             });
-            OrganizerDropDown.superclass.constructor.apply(this, arguments);
+            Zenoss.form.OrganizerDropDown.superclass.constructor.apply(this, arguments);
         }
     });
 
-    SystemDropDown = Ext.extend(OrganizerDropDown, {
+    Ext.define("Zenoss.form.SystemDropDown", {
+        alias:['widget.systemdropdown'],
+        extend:"Zenoss.form.OrganizerDropDown",
         constructor: function(config) {
             config = config || {};
             Ext.applyIf(config, {
                 getGroupFn: router.getSystems,
                 getGroupRoot: 'systems'
             });
-            SystemDropDown.superclass.constructor.apply(this, arguments);
+            Zenoss.form.SystemDropDown.superclass.constructor.apply(this, arguments);
         }
     });
-    Ext.reg('systemdropdown', SystemDropDown);
 
-    GroupDropDown = Ext.extend(OrganizerDropDown, {
+
+    Ext.define("Zenoss.form.GroupDropDown", {
+        alias:['widget.groupdropdown'],
+        extend:"Zenoss.form.OrganizerDropDown",
         constructor: function(config) {
             config = config || {};
             Ext.applyIf(config, {
                 getGroupFn: router.getGroups,
                 getGroupRoot: 'groups'
             });
-            GroupDropDown.superclass.constructor.apply(this, arguments);
+            Zenoss.form.GroupDropDown.superclass.constructor.apply(this, arguments);
         }
     });
-    Ext.reg('groupdropdown', GroupDropDown);
 
-    LocationDropDown = Ext.extend(OrganizerDropDown, {
+
+    Ext.define("Zenoss.form.LocationDropDown", {
+        alias:['widget.locationdropdown'],
+        extend:"Zenoss.form.OrganizerDropDown",
         constructor: function(config) {
             config = config || {};
             Ext.applyIf(config, {
                 getGroupFn: router.getLocations,
                 getGroupRoot: 'locations'
             });
-            LocationDropDown.superclass.constructor.apply(this, arguments);
+            Zenoss.form.LocationDropDown.superclass.constructor.apply(this, arguments);
         }
     });
-    Ext.reg('locationdropdown', LocationDropDown);
 
-    DeviceClassDropDown = Ext.extend(OrganizerDropDown, {
+
+    Ext.define("Zenoss.form.DeviceClassDropDown", {
+        alias:['widget.deviceclassdropdown'],
+        extend:"Zenoss.form.OrganizerDropDown",
         constructor: function(config) {
             config = config || {};
             Ext.applyIf(config, {
                 getGroupFn: router.getDeviceClasses,
                 getGroupRoot: 'deviceClasses'
             });
-            DeviceClassDropDown.superclass.constructor.apply(this, arguments);
+            Zenoss.form.DeviceClassDropDown.superclass.constructor.apply(this, arguments);
         }
     });
-    Ext.reg('deviceclassdropdown', DeviceClassDropDown);
+
 
 
 }());

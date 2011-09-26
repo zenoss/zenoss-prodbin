@@ -18,12 +18,14 @@
 
 Ext.ns('Zenoss.form');
 
-Zenoss.form.LinkField = Ext.extend(Ext.form.DisplayField, {
+Ext.define("Zenoss.form.LinkField", {
+    extend: "Ext.form.DisplayField",
+    alias: ['widget.linkfield'],
      getValue: function() {
         return this.rawValue;
      },
      setValue: function(value) {
-        this.rawValue = value;
+        var origValue = value;
         if (Ext.isEmpty(value)) {
             value = _t('None');
         } else {
@@ -38,8 +40,9 @@ Zenoss.form.LinkField = Ext.extend(Ext.form.DisplayField, {
             }
         }
         Zenoss.form.LinkField.superclass.setValue.call(this, value);
+        this.rawValue = origValue;
      }
  });
- Ext.reg('linkfield', Zenoss.form.LinkField);
+
 
 })();

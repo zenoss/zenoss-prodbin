@@ -3,13 +3,6 @@
     xmlns:browser="http://namespaces.zope.org/browser"
     xmlns:five="http://namespaces.zope.org/five">
 
-<browser:viewlet
-        name="extjs-base"
-        weight="0"
-        manager=".interfaces.IJavaScriptSrcManager"
-        class=".javascript.ExtBaseJs"
-        permission="zope2.Public"
-        />
 
 <browser:viewlet
         name="firefox-compat"
@@ -28,25 +21,50 @@
         />
 
 <browser:viewlet
-        name="livegrid-all"
+        name="extjs-compat"
         weight="3"
         manager=".interfaces.IJavaScriptSrcManager"
-        class=".javascript.LiveGridJs"
         permission="zope2.Public"
+        class=".javascript.JavaScriptSrcBundleViewlet"
+        paths="/++resource++zenui/js/zenoss/migrate/ext3-core-compat.js
+               /++resource++zenui/js/zenoss/migrate/ext3-compat.js"
         />
-        
+
+<browser:viewlet
+        name="swfobject"
+        weight="4"
+        manager=".interfaces.IJavaScriptSrcManager"
+        permission="zope2.Public"
+        class=".javascript.JavaScriptSrcBundleViewlet"
+        paths="/++resource++zenui/js/swfobject/2.2/swfobject.js"
+        />
+
+<!-- <browser:viewlet -->
+<!--         name="livegrid-all" -->
+<!--         weight="4" -->
+<!--         manager=".interfaces.IJavaScriptSrcManager" -->
+<!--         class=".javascript.LiveGridJs" -->
+<!--         permission="zope2.Public" -->
+<!--         /> -->
+
+<browser:viewlet
+        name="Ext-extensions"
+        weight="3"
+        manager=".interfaces.IJavaScriptSrcManager"
+        permission="zope2.Public"
+        class=".javascript.JavaScriptSrcBundleViewlet"
+        paths=" /++resource++extjs/examples/ux/layout/component/form/MultiSelect.js
+               /++resource++extjs/examples/ux/layout/component/form/ItemSelector.js
+               /++resource++extjs/examples/ux/form/MultiSelect.js
+               /++resource++extjs/examples/ux/form/ItemSelector.js"
+
+
+        />
+
+
 <browser:viewlet
         name="js-all"
-        paths="/++resource++extjs/treegrid/TreeGridSorter.js
-               /++resource++extjs/treegrid/TreeGridColumnResizer.js
-               /++resource++extjs/treegrid/TreeGridNodeUI.js
-               /++resource++extjs/treegrid/TreeGridLoader.js
-               /++resource++extjs/treegrid/TreeGridColumns.js
-               /++resource++extjs/fileuploadfield/FileUploadField.js               
-               /++resource++extjs/treegrid/TreeGridLoader.js
-               /++resource++extjs/treegrid/TreeGridColumns.js
-               /++resource++extjs/treegrid/TreeGrid.js
-               extdirect.js"
+        paths="extdirect.js"
         weight="4"
         manager=".interfaces.IJavaScriptSrcManager"
         class=".javascript.JavaScriptSrcBundleViewlet"

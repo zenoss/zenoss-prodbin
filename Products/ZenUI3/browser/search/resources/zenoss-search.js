@@ -11,11 +11,15 @@ if ( Ext.get('searchbox-container') === null ) {
     var combo,
         router = Zenoss.remote.SearchRouter,
         ManageSavedSearchDialog,
-        ds = new Ext.data.DirectStore({
+        ds = Ext.create('Zenoss.NonPaginatedStore', {
             directFn: Zenoss.remote.SearchRouter.getLiveResults,
-            root: 'results',
-            idProperty: 'url',
-            fields: [ 'url', 'content', 'popout', 'category' ]
+            fields: [
+                {name: 'url'},
+                {name: 'content'},
+                {name: 'popout'},
+                {name: 'category'}
+            ],
+            root: 'results'
         }),
         // Custom rendering Template
         resultTpl = new Ext.XTemplate(
@@ -23,7 +27,7 @@ if ( Ext.get('searchbox-container') === null ) {
             '<table class="search-result"><tr class="x-combo-list-item">',
             '<th><tpl if="values.category && (xindex == 1 || parent[xindex - 2].category != values.category)"',
             '>{category}</tpl></th>',
-            '<td colspan="2">{content}</td>',
+            '<td colspan="2" class="x-boundlist-item">{content}</td>',
             '</tpl>'),
         searchfield = new Zenoss.SearchField({
             black: true,
@@ -36,22 +40,86 @@ if ( Ext.get('searchbox-container') === null ) {
 
 
 
+    /**
+     * @class Zenoss.search.SavedSearchModel
+     * @extends Ext.data.Model
+     * Field definitions for saved search
+     **/
+    Ext.define('Zenoss.search.SavedSearchModel',  {
+        extend: 'Ext.data.Model',
+        idProperty: 'uid',
+        fields: [
+            {name: 'id'},
+            {name: 'name'},
+            {name: 'uid'},
+            {name: 'createor'},
+            {name: 'query'}
+        ]
+    });
+
+    /**
+     * @class Zenoss.search.SavedSearchStore
+     * @extend Zenoss.NonPaginatedStore
+     * Direct store for loading saved searches
+     */
+    Ext.define("Zenoss.search.SavedSearchStore", {
+        extend: "Zenoss.NonPaginatedStore",
+        constructor: function(config) {
+            config = config || {};
+            Ext.applyIf(config, {
+                model: 'Zenoss.search.SavedSearchModel',
+                directFn: Zenoss.remote.SearchRouter.getAllSavedSearches,
+                root: 'data'
+
+            });
+            this.callParent(arguments);
+        }
+    });
+
     Zenoss.env.search = new Ext.form.ComboBox({
         store: ds,
         typeAhead: false,
         loadingText: _t('Searching..'),
-        //triggerAction: 'all',
+        triggerAction: 'all',
         width: 120,
+        maxWidth: 375,
         pageSize: 0,
         // delay all requests by one second
         delayQuery: 1000,
         minChars: 3,
         hideTrigger: false,
-        tpl: resultTpl,
         applyTo: searchfield.getEl(),
+        queryMode: 'remote',
         listClass: 'search-result',
-        listWidth: 375,
+        resizable: true,
+        matchFieldWidth: false,
+        listConfig: {
+            emptyText: _t('No Results'),
+            minWidth: 375,
+            tpl: resultTpl
+        },
+        /**
+         * Override the align picker method to make sure that
+         * the width of the picker is 375, which is different than the width of the input
+         **/
+        alignPicker: function() {
+            var me = this,
+            picker;
+
+            if (me.isExpanded) {
+                picker = me.getPicker();
+
+                // Auto the height (it will be constrained by min and max width) unless there are no records to display.
+                picker.setSize(375, picker.store && picker.store.getCount() ? null : 0);
+
+                if (picker.isFloating()) {
+                    me.doAlign();
+                }
+            }
+        },
         initSavedSearch: function() {
+
+
             // Create a dummy target for the saved search combo
             var container = Ext.get(Ext.select('.searchfield-black-mc').elements[0]),
                 hiddeninput = container.createChild({tag:'input', style:{
@@ -63,35 +131,33 @@ if ( Ext.get('searchbox-container') === null ) {
                 editable: false,
                 triggerAction: 'all',
                 hideTrigger: true,
+                id: 'saved-search',
                 height: 21,
                 listClass: 'saved-search-item',
-                valueField: 'id',
-                listWidth: 250,
                 displayField: 'name',
                 applyTo: hiddeninput,
-                store: {
-                    xtype: 'directstore',
-                    ref:'store',
-                    directFn: Zenoss.remote.SearchRouter.getAllSavedSearches,
-                    fields: ['id', 'name'],
-                    root: 'data',
-                    baseParams: {
-                        'addManageSavedSearch': true
-                    },
+                store: Ext.create('Zenoss.search.SavedSearchStore', {
                     listeners: {
-                        load: function() {
+                        beforeload: function() {
+                            this.setBaseParam('addManageSavedSearch', true);
+                        },
+                        load: function(){
                             Ext.fly("manage-search-link").parent().insertSibling({tag:"br"});
-                        }
+                        },
+                        scope: this.savedSearchCombo
                     }
-                },
+                }),
+                // position the combobox drop down below the search input
+                pickerOffset: [0, -30],
                 listeners: {
-                    select: function(box, record){
+                    select: function(box, records){
+                        var record = records[0];
                         // magic string that means the user wishes to manage
                         // their saved searches
-                        if (record.id == 'manage_saved_search') {
+                        if (record.get("id") == 'manage_saved_search') {
                             var decodedUrl = Ext.urlDecode(location.search.substring(1, location.search.length)),
                                 searchId = decodedUrl.search,
-                                win = Ext.create({
+                                win = Ext.create('Zenoss.search.ManageSavedSearchDialog', {
                                     xtype:'managesavedsearchdialog',
                                     id:'manageSavedSearchesDialog',
                                     searchId: searchId
@@ -99,7 +165,8 @@ if ( Ext.get('searchbox-container') === null ) {
                             win.show();
                         }else {
                             // otherwise go to the selected search results page
-                            window.location = String.format('/zport/dmd/search?search={0}', record.id);
+                            window.location = String.format('/zport/dmd/search?search={0}', record.get("id"));
+
                         }
                     }
                 }
@@ -113,14 +180,16 @@ if ( Ext.get('searchbox-container') === null ) {
                     triggerclick = combo.onTriggerClick.createInterceptor(function(){
                         delete combo.lastQuery;
                     }, this);
-                this.mon(this.trigger, 'click', triggerclick, combo, {preventDefault:true});
-                this.trigger.addClassOnOver('x-form-trigger-over ' + this.triggerClass);
-                this.trigger.addClassOnClick('x-form-trigger-click ' + this.triggerClass);
+                this.mon(this.triggerEl, 'click', triggerclick, combo, {preventDefault:true});
+
+                this.triggerEl.addClsOnOver('x-form-trigger-over ' + this.triggerClass);
+                this.triggerEl.addClsOnClick('x-form-trigger-click ' + this.triggerClass);
             }, this);
             this.initSavedSearch();
         },
         listeners: {
-            select: function(box,record){
+            select: function(box,records){
+                var record = records[0];
                 if (record.get('url') !== '') {
                     // IE only supports these window names: _blank _media _parent _search _self _top
                     var windowname = Ext.isIE ? '_blank' : record.data.url;
@@ -137,9 +206,11 @@ if ( Ext.get('searchbox-container') === null ) {
         }
     });
 
-    // drop down box of existing saved searches
 
-    ManageSavedSearchDialog = Ext.extend(Ext.Window, {
+
+    Ext.define("Zenoss.search.ManageSavedSearchDialog", {
+        extend:"Ext.Window",
+        alias: ['managesavedsearchdialog'],
         constructor: function(config) {
             config = config || {};
             var searchId = config.searchId,
@@ -152,7 +223,6 @@ if ( Ext.get('searchbox-container') === null ) {
                 modal: true,
                 listeners: {
                     show: function() {
-                        this.reloadGrid();
                         this.savedSearchGrid.deleteButton.disable();
                     },
                     scope: this
@@ -181,12 +251,13 @@ if ( Ext.get('searchbox-container') === null ) {
                             router.removeSavedSearch(params, me.reloadGrid.createDelegate(me));
                         }
                     }],
-                    selModel: new Ext.grid.RowSelectionModel({
+                    selModel: new Zenoss.SingleRowSelectionModel({
                         singleSelect: true,
                         listeners: {
                             rowselect: function(grid, rowIndex, row) {
+
                                 // do not allow them to delete the one they are editing
-                                if (row.data.name != searchId) {
+                                if (row.get("name") != searchId) {
                                     me.savedSearchGrid.deleteButton.enable();
                                 }
                             },
@@ -200,13 +271,9 @@ if ( Ext.get('searchbox-container') === null ) {
                         {dataIndex: 'query', header: _t('Query'), width: 150},
                         {dataIndex: 'creator', header: _t('Created By'), width: 150}
                     ],
-                    store: {
-                        xtype: 'directstore',
-                        directFn: router.getAllSavedSearches,
-                        idProperty: 'uid',
-                        root: 'data',
-                        fields: ['uid', 'name', 'creator', 'query']
-                    }
+                    store: Ext.create('Zenoss.search.SavedSearchStore', {
+                        autoLoad:true
+                    })
                 }],
 
                 buttons: [{
@@ -218,13 +285,12 @@ if ( Ext.get('searchbox-container') === null ) {
                     }
                 }]
             });
-            ManageSavedSearchDialog.superclass.constructor.apply(this, arguments);
+            this.callParent(arguments);
         },
         reloadGrid: function() {
             this.savedSearchGrid.getStore().load();
         }
     });
-    Ext.reg('managesavedsearchdialog', ManageSavedSearchDialog);
 
     ds.on("load", function(){
         Zenoss.env.search.select(0);

@@ -21,7 +21,6 @@ Ext.onReady(function () {
         ZFR = Zenoss.form.rule,
         STRINGCMPS = ZFR.STRINGCOMPARISONS,
         NUMCMPS = ZFR.NUMBERCOMPARISONS,
-        AddDialogue,
         addNotificationDialogue,
         addNotificationDialogueConfig,
         addScheduleDialogue,
@@ -40,8 +39,8 @@ Ext.onReady(function () {
         editScheduleDialogueConfig,
         editTriggerDialogue,
         EditTriggerDialogue,
-        EditScheduleDialogue,
         masterPanelConfig,
+        masterPanelTreeStore,
         navSelectionModel,
         NotificationPageLayout,
         notificationPanelConfig,
@@ -64,8 +63,11 @@ Ext.onReady(function () {
     var bigWindowWidth = 600;
     var panelPadding = 10;
 
-    AddDialogue = Ext.extend(Zenoss.dialog.BaseWindow, {
+    Ext.define("Zenoss.trigger.AddDialogue", {
+        alias:['widget.triggersadddialogue'],
+        extend:"Zenoss.dialog.BaseWindow",
         constructor: function(config) {
+            var me = this;
             config = config || {};
             Ext.applyIf(config, {
                 height: 120,
@@ -78,6 +80,7 @@ Ext.onReady(function () {
                     show: function(win) {
                         var form = win.addForm;
                         form.startMonitoring();
+                        form.newId.setValue('');
                     }
                 },
                 items:{
@@ -119,25 +122,24 @@ Ext.onReady(function () {
                                     newId: button.refOwner.addForm.newId.getValue()
                                 };
                                 config.directFn(params, function(){
-                                    button.refOwner.addForm.newId.setValue('');
                                     config.reloadFn();
-                                    button.refOwner.hide();
                                 });
                             }
+                            me.hide();
                         }
                     },{
                         xtype: 'button',
                         ref: '../../cancelButton',
                         text: _t('Cancel'),
                         handler: function(button) {
-                            button.refOwner.hide();
+                            me.hide();
                         }
                     }]}
             });
-            AddDialogue.superclass.constructor.apply(this, arguments);
+            Zenoss.trigger.AddDialogue.superclass.constructor.apply(this, arguments);
         }
     });
-    Ext.reg('triggersadddialogue', AddDialogue);
+
 
 
     /**
@@ -145,13 +147,11 @@ Ext.onReady(function () {
      **/
 
     notificationPanelConfig = {
-        id: 'notification_panel',
-        xtype: 'notificationsubscriptions'
+        id: 'notification_panel'
     };
 
     schedulesPanelConfig = {
-        id: 'schedules_panel',
-        xtype: 'schedulespanel'
+        id: 'schedules_panel'
     };
 
 
@@ -166,13 +166,15 @@ Ext.onReady(function () {
 
     var enableTabContents = function(tab) {
         tab.cascade(function() {
-            this.enable();
+            if (Ext.isFunction(this.enable)) {
+                this.enable();
+            }
         });
         tab.setDisabled(false);
-    }
+    };
 
     reloadNotificationGrid = function() {
-        Ext.getCmp(notificationPanelConfig.id).getStore().reload();
+        Ext.getCmp(notificationPanelConfig.id).getStore().load();
     };
 
 
@@ -180,7 +182,11 @@ Ext.onReady(function () {
         var panel = Ext.getCmp(notificationPanelConfig.id),
             row = panel.getSelectionModel().getSelected();
         if (row) {
-            Ext.getCmp(schedulesPanelConfig.id).getStore().reload({uid:row.data.uid});
+            Ext.getCmp(schedulesPanelConfig.id).getStore().load({
+                params: {
+                    uid:row.data.uid
+                }
+            });
         }
     };
 
@@ -213,129 +219,134 @@ Ext.onReady(function () {
                 };
 
             router.addWindow(params, function(){
-                button.refOwner.addForm.newId.setValue('');
-                button.refOwner.hide();
                 reloadScheduleGrid();
             });
         }
     };
 
-
-    var writeColumn = new Ext.grid.CheckColumn({
-        header: _t('Write'),
-        dataIndex: 'write'
+    /**
+     * @class Zenoss.triggers.PermissionGridModel
+     * @extends Ext.data.Model
+     **/
+    Ext.define('Zenoss.triggers.PermissionGridModel',  {
+        extend: 'Ext.data.Model',
+        idProperty: 'value',
+        fields: [
+            { name:'type'},
+            { name:'label'},
+            { name:'value'},
+            { name: 'write', type: 'bool'},
+            { name: 'manage', type: 'bool'}
+        ]
     });
 
-    var manageColumn = new Ext.grid.CheckColumn({
-        header: _t('Manage'),
-        dataIndex: 'manage'
-    });
-
-    var UsersPermissionGrid = Ext.extend(Ext.grid.EditorGridPanel, {
+    Ext.define("Zenoss.triggers.UsersPermissionGrid", {
+        extend:"Ext.grid.Panel",
         constructor: function(config) {
             var me = this;
-
             config = config || {};
             this.allowManualEntry = config.allowManualEntry || false;
             Ext.applyIf(config, {
                 ref: 'users_grid',
                 border: false,
-                viewConfig: {forceFit: true},
                 title: config.title,
-                autoExpandColumn: 'value',
-                loadMask: {msg:_t('Loading...')},
                 autoHeight: true,
-                plugins: [writeColumn, manageColumn],
-                keys: [
-                    {
-                        key: [Ext.EventObject.ENTER],
-                        handler: function() {
+                plugins: [
+                    Ext.create('Ext.grid.plugin.CellEditing', {
+                        clicksToEdit: 1
+                    })
+                ],
+                keys: [{
+                    key: [Ext.EventObject.ENTER],
+                    handler: function() {
+                        me.addValueFromCombo();
+                    }
+                }],
+                tbar: [{
+                        xtype: 'combo',
+                        ref: 'users_combo',
+                        typeAhead: true,
+                        triggerAction: 'all',
+                        lazyRender:true,
+                        mode: 'local',
+                        id: 'users_combo',
+                        store: Ext.create('Zenoss.NonPaginatedStore', {
+                            root: 'data',
+                            autoLoad: true,
+                            fields: ['type', 'label', 'value'],
+                            directFn: router.getRecipientOptions
+                        }),
+                        valueField: 'value',
+                        displayField: 'label'
+                    },{
+                        xtype: 'button',
+                        text: 'Add',
+                        ref: 'add_button',
+                        handler: function(btn, event) {
                             me.addValueFromCombo();
+                        }
+                    },{
+                        xtype: 'button',
+                        ref: 'delete_button',
+                        iconCls: 'delete',
+                        handler: function(btn, event) {
+                            var rows = me.getSelectionModel().getSelection();
+                            if (rows.length){
+                                var row = rows[0];
+                                me.getStore().remove(row);
+                                me.getView().refresh();
+                            }
                         }
                     }
                 ],
-                tbar: {
-                    items: [
-                        {
-                            xtype: 'combo',
-                            ref: 'users_combo',
-                            typeAhead: true,
-                            triggerAction: 'all',
-                            lazyRender:true,
-                            mode: 'local',
-                            store: {
-                                xtype: 'directstore',
-                                directFn: router.getRecipientOptions,
-                                root: 'data',
-                                autoLoad: true,
-                                idProperty: 'value',
-                                fields: [
-                                    'type',
-                                    'label',
-                                    'value'
-                                ]
-                            },
-                            valueField: 'value',
-                            displayField: 'label'
-                        },{
-                            xtype: 'button',
-                            text: 'Add',
-                            ref: 'add_button',
-                            handler: function(btn, event) {
-                                me.addValueFromCombo()
-                            }
-                        },{
-                            xtype: 'button',
-                            ref: 'delete_button',
-                            iconCls: 'delete',
-                            handler: function(btn, event) {
-                                var row = btn.refOwner.ownerCt.getSelectionModel().getSelected();
-                                btn.refOwner.ownerCt.getStore().remove(row);
-                                btn.refOwner.ownerCt.getView().refresh();
-                            }
-                        }
-                    ]
-                },
                 store: new Ext.data.JsonStore({
-                    autoDestroy: true,
+                    model: 'Zenoss.triggers.PermissionGridModel',
                     storeId: 'users_combo_store',
+                    autoDestroy: true,
                     autoLoad: false,
-                    idProperty: 'value',
-                    fields: [
-                        'type',
-                        'label',
-                        'value',
-                        {name: 'write', type: 'bool'},
-                        {name: 'manage', type: 'bool'}
-                    ],
                     data: []
                 }),
-                colModel: new Ext.grid.ColumnModel({
-                    defaults: {
+                columns: [
+                    {
+                        header: _t('Type'),
+                        dataIndex: 'type',
                         width: 120,
                         sortable: true
-                    },
-                    columns: [
-                        {
-                            header: _t('Type'),
-                            dataIndex: 'type'
-                        },{
-                            header: config.title,
-                            dataIndex: 'label'
-                        },
-                        writeColumn,
-                        manageColumn
-                    ]
-                }),
-                sm: new Ext.grid.RowSelectionModel({singleSelect:true})
+                    },{
+                        header: config.title,
+                        dataIndex: 'label',
+                        width: 120,
+                        sortable: true
+                    },{
+                        header: _t('Write'),
+                        dataIndex: 'write',
+                        editor: {
+                            xtype: 'checkbox',
+                            cls: 'x-grid-checkheader-editor'
+                        }
+                    }, {
+                        header: _t('Manage'),
+                        dataIndex: 'manage',
+                        editor: {
+                            xtype: 'checkbox',
+                            cls: 'x-grid-checkheader-editor'
+                        }
+                    }
+                ],
+                selModel: new Zenoss.SingleRowSelectionModel({})
             });
-            UsersPermissionGrid.superclass.constructor.apply(this, arguments);
+            this.callParent(arguments);
         },
         addValueFromCombo: function() {
+
             var val = this.getTopToolbar().users_combo.getValue(),
-                row = this.getTopToolbar().users_combo.getStore().getById(val),
+                idx = this.getTopToolbar().users_combo.store.find('value', val),
+                row,
                 type = 'manual',
                 label;
+            if (idx != -1) {
+                row = this.getTopToolbar().users_combo.store.getAt(idx);
+            }
 
             if (row) {
                 type = row.data.type;
@@ -354,13 +365,13 @@ Ext.onReady(function () {
                 var existingIndex = this.getStore().findExact('value', val);
 
                 if (!Ext.isEmpty(val) && existingIndex == -1) {
-                    var record = new Ext.data.Record({
+                    var record = new Zenoss.triggers.PermissionGridModel({
                         type:type,
                         value:val,
                         label:label,
                         write:false,
                         manage: false
-                    });
+                    })
                     this.getStore().add(record);
                     this.getView().refresh();
                     this.getTopToolbar().users_combo.clearValue();
@@ -418,9 +429,10 @@ Ext.onReady(function () {
         var _width, _height;
 
         tab_content = new NotificationTabContent({
-            layout: 'form',
+            layout: 'anchor',
             padding: panelPadding,
             title: _t('Content'),
+            id: 'notification_content',
             defaults: {
                 padding: 0
             },
@@ -433,10 +445,10 @@ Ext.onReady(function () {
             },
             loadData: function(data) {
                 this.userWrite = data['userWrite'] || false;
-                var panel = {xtype:'panel'};
+                var panel = {};
                 panel = Ext.applyIf(panel, data.content);
-                var comp = Ext.create(panel);
-                this.add(comp)
+                var comp = Ext.create('Ext.panel.Panel', panel);
+                this.add(comp);
             }
         });
 
@@ -450,7 +462,7 @@ Ext.onReady(function () {
                     border: false,
                     padding: panelPadding,
                     defaults: {
-                        layout: 'form',
+                        layout: 'anchor',
                         padding: 0,
                         columnWidth: 0.5
                     },
@@ -458,6 +470,7 @@ Ext.onReady(function () {
                         {
                             xtype: 'fieldset',
                             header: false,
+                            defaults: {anchor: '100%', labelWidth: 190},
                             items: [
                                 {
                                     xtype: 'hidden',
@@ -524,7 +537,7 @@ Ext.onReady(function () {
             disableTabContents(tab_notification);
         }
 
-        var recipients_grid = new UsersPermissionGrid({
+        var recipients_grid = Ext.create('Zenoss.triggers.UsersPermissionGrid', {
             title: _t('Subscribers'),
             allowManualEntry: true,
             width: Ext.IsIE ? bigWindowWidth-50 : 'auto',
@@ -537,7 +550,7 @@ Ext.onReady(function () {
             items: [{
                 xtype: 'panel',
                 border: false,
-                layout: 'form',
+                layout: 'anchor',
                 padding: panelPadding,
                 title: _t('Local Notification Permissions'),
                 items: [
@@ -596,8 +609,7 @@ Ext.onReady(function () {
             ]
         });
 
-        var dialogue = new EditNotificationDialogue({
-            id: 'edit_notification_dialogue',
+        var dialogue =  Ext.create('Zenoss.triggers.EditNotificationDialogue', {
             title: _t('Edit Notification'),
             directFn: router.updateNotification,
             reloadFn: reloadNotificationGrid,
@@ -611,16 +623,14 @@ Ext.onReady(function () {
 
     var displayNotificationAddDialogue = function() {
         var typesCombo = new Ext.form.ComboBox({
-            store: {
-                xtype: 'directstore',
-                directFn: router.getNotificationTypes,
-                root: 'data',
+            store: Ext.create('Zenoss.NonPaginatedStore', {
                 autoLoad: true,
+                directFn: router.getNotificationTypes,
                 idProperty: 'id',
                 fields: [
                     'id', 'name'
                 ]
-            },
+            }),
             name:'action',
             ref: 'action_combo',
             allowBlank:false,
@@ -629,7 +639,6 @@ Ext.onReady(function () {
             displayField:'name',
             valueField:'id',
             fieldLabel: _t('Action'),
-            mode:'local',
             triggerAction: 'all'
         });
         typesCombo.store.on('load', function(){
@@ -667,7 +676,7 @@ Ext.onReady(function () {
                 ],
                 buttons:[
                     {
-                        xtype: 'button',
+                        xtype: 'DialogButton',
                         ref: 'submitButton',
                         formBind: true,
                         text: _t('Submit'),
@@ -675,20 +684,17 @@ Ext.onReady(function () {
                             var form = button.refOwner.ownerCt,
                                 params = form.getForm().getFieldValues();
 
-                            form.stopMonitoring();
+
                             button.setDisabled(true);
+
                             router.addNotification(params, function(){
                                 reloadNotificationGrid();
-                                button.refOwner.ownerCt.ownerCt.close();
                             });
                         }
                     },{
-                        xtype: 'button',
+                        xtype: 'DialogButton',
                         ref: 'cancelButton',
-                        text: _t('Cancel'),
-                        handler: function(button) {
-                            button.refOwner.ownerCt.ownerCt.close();
-                        }
+                        text: _t('Cancel')
                     }
                 ]
             }]
@@ -696,8 +702,11 @@ Ext.onReady(function () {
         dialogue.show();
     };
 
-    EditNotificationDialogue = Ext.extend(Zenoss.dialog.BaseWindow, {
+    Ext.define("Zenoss.triggers.EditNotificationDialogue", {
+        alias:['widget.editnotificationdialogue'],
+        extend:"Zenoss.dialog.BaseWindow",
         constructor: function(config) {
+            var me = this;
             config = config || {};
             Ext.applyIf(config, {
                 plain: true,
@@ -743,30 +752,32 @@ Ext.onReady(function () {
                                 }
                             );
                             config.directFn(params, function(){
-                                button.refOwner.close();
                                 config.reloadFn();
                             });
+                            me.hide();
                         }
                     },{
                         xtype: 'button',
                         ref: '../../cancelButton',
                         text: _t('Cancel'),
-                        handler: function(button) {
-                            button.refOwner.close();
+                        handler: function(){
+                            me.hide();
                         }
                     }]
                 }]
             });
-            EditNotificationDialogue.superclass.constructor.apply(this, arguments);
+            this.callParent(arguments);
         },
         loadData: function(data) {
             this.tabPanel.loadData(data);
         }
     });
-    Ext.reg('editnotificationdialogue', EditNotificationDialogue);
 
 
-    EditScheduleDialogue = Ext.extend(Zenoss.dialog.BaseWindow, {
+
+    Ext.define("Zenoss.trigger.EditScheduleDialogue", {
+        alias:['widget.editscheduledialogue'],
+        extend:"Zenoss.dialog.BaseWindow",
         constructor: function(config) {
             config = config || {};
             Ext.applyIf(config, {
@@ -799,6 +810,7 @@ Ext.onReady(function () {
                             xtype: 'datefield',
                             name: 'start',
                             ref: 'start',
+                            format: 'm-d-Y',
                             allowBlank: false,
                             fieldLabel: _t('Start Date')
                         }, {
@@ -811,7 +823,6 @@ Ext.onReady(function () {
                         },
                         new Ext.form.ComboBox({
                             store: new Ext.data.ArrayStore({
-                                autoDestroy: true,
                                 fields:['value'],
                                 id: 0,
                                 data: [
@@ -864,7 +875,7 @@ Ext.onReady(function () {
                         }]
                     }
             });
-            EditScheduleDialogue.superclass.constructor.apply(this, arguments);
+            Zenoss.trigger.EditScheduleDialogue.superclass.constructor.apply(this, arguments);
         },
         loadData: function(data) {
             Ext.each(this.editForm.items.items, function(item, index, allitems) {
@@ -872,14 +883,63 @@ Ext.onReady(function () {
             });
         }
     });
-    Ext.reg('editscheduledialogue', EditScheduleDialogue);
-
-    editScheduleDialogue = new EditScheduleDialogue(editScheduleDialogueConfig);
-    addScheduleDialogue = new AddDialogue(addScheduleDialogueConfig);
 
 
-    NotificationSubscriptions = Ext.extend(Ext.grid.GridPanel, {
+    editScheduleDialogue = new Zenoss.trigger.EditScheduleDialogue(editScheduleDialogueConfig);
+    addScheduleDialogue = new Zenoss.trigger.AddDialogue(addScheduleDialogueConfig);
+
+    /**
+     * @class Zenoss.triggers.NotificationModel
+     * @extends Ext.data.Model
+     * Field definitions for the notifications
+     **/
+    Ext.define('Zenoss.triggers.NotificationModel',  {
+        extend: 'Ext.data.Model',
+        idProperty: 'uuid',
+        fields: [
+            { name:'uid'},
+            { name:'newId'},
+            { name:'enabled'},
+            { name:'action'},
+            { name:'delay_seconds'},
+            { name:'send_clear'},
+            { name:'send_initial_occurrence'},
+            { name:'repeat_seconds'},
+            { name:'content'},
+            { name:'recipients'},
+            { name:'subscriptions'},
+            { name:'globalRead'},
+            { name:'globalWrite'},
+            { name:'globalManage'},
+            { name:'userRead'},
+            { name:'userWrite'},
+            { name:'userManage'}
+        ]
+    });
+
+    /**
+     * @class Zenoss.triggers.NotificationStore
+     * @extend Zenoss.DirectStore
+     * Direct store for loading notifications
+     */
+    Ext.define("Zenoss.triggers.NotificationStore", {
+        extend: "Zenoss.DirectStore",
         constructor: function(config) {
+            config = config || {};
+            Ext.applyIf(config, {
+                model: 'Zenoss.triggers.NotificationModel',
+                directFn: router.getNotifications,
+                root: 'data'
+            });
+            this.callParent(arguments);
+        }
+    });
+
+    Ext.define("Zenoss.triggers.NotificationSubscriptions", {
+        alias:['widget.notificationsubscriptions'],
+        extend:"Ext.grid.GridPanel",
+        constructor: function(config) {
+            var me = this;
             config = config || {};
             Ext.applyIf(config, {
                 autoScroll: true,
@@ -891,99 +951,77 @@ Ext.onReady(function () {
                     forceFit: true
                 },
                 listeners: {
-                    rowdblclick: function(grid, rowIndex, event){
+                    itemdblclick: function(grid, rowIndex, event){
                         var row = grid.getSelectionModel().getSelected();
                         if (row) {
                             displayNotificationEditDialogue(row.data);
                         }
                     }
                 },
-                selModel: new Ext.grid.RowSelectionModel({
-                    singleSelect: true,
+                selModel: new Zenoss.SingleRowSelectionModel({
                     listeners: {
                         rowselect: function(sm, rowIndex, record) {
-                            var row = sm.getSelected(),
+                            var rows = sm.getSelection(),
+                                row,
                                 panel = Ext.getCmp(schedulesPanelConfig.id);
+                            if (!rows.length) {
+                                return;
+                            }
+                            row = rows[0];
                             panel.setContext(row.data.uid);
                             panel.disableButtons(false);
-                            sm.grid.customizeButton.setDisabled(false);
+                            me.customizeButton.setDisabled(false);
                         },
                         rowdeselect: function(sm, rowIndex, record) {
                             Ext.getCmp(schedulesPanelConfig.id).disableButtons(true);
-                            sm.grid.customizeButton.setDisabled(true);
+                            me.customizeButton.setDisabled(true);
                         }
                     },
                     scope: this
                 }),
-                store: {
-                    xtype: 'directstore',
-                    directFn: router.getNotifications,
-                    root: 'data',
-                    autoLoad: true,
-                    fields: [
-                        'uid',
-                        'newId',
-                        'enabled',
-                        'action',
-                        'delay_seconds',
-                        'send_clear',
-                        'send_initial_occurrence',
-                        'repeat_seconds',
-                        'content',
-                        'recipients',
-                        'subscriptions',
-                        'globalRead',
-                        'globalWrite',
-                        'globalManage',
-                        'userRead',
-                        'userWrite',
-                        'userManage'
-
-                    ]
-                },
-                colModel: new Ext.grid.ColumnModel({
-                    columns: [{
-                        xtype: 'booleancolumn',
-                        trueText: _t('Yes'),
-                        falseText: _t('No'),
-                        dataIndex: 'enabled',
-                        header: _t('Enabled'),
-                        sortable: true
-                    },{
-                        dataIndex: 'newId',
-                        header: _t('Id'),
-                        sortable: true
-                    },{
-                        dataIndex: 'subscriptions',
-                        header: _t('Trigger'),
-                        sortable: true,
-                        // use a fancy renderer that get's it's display value
-                        // from the store that already has the triggers.
-                        renderer: function(value, metaData, record, rowIndex, colIndex, store) {
-                            var triggerList = [];
-                            Ext.each(
-                                value,
-                                function(item, index, allItems) {
-                                    if (item) {
-                                        triggerList.push(item.name);
-                                    }
+                store: Ext.create('Zenoss.triggers.NotificationStore', {}),
+                columns: [{
+                    xtype: 'booleancolumn',
+                    trueText: _t('Yes'),
+                    falseText: _t('No'),
+                    dataIndex: 'enabled',
+                    header: _t('Enabled'),
+                    sortable: true
+                },{
+                    dataIndex: 'newId',
+                    header: _t('Id'),
+                    flex: 1,
+                    sortable: true
+                },{
+                    dataIndex: 'subscriptions',
+                    header: _t('Trigger'),
+                    sortable: true,
+                    // use a fancy renderer that get's it's display value
+                    // from the store that already has the triggers.
+                    renderer: function(value, metaData, record, rowIndex, colIndex, store) {
+                        var triggerList = [];
+                        Ext.each(
+                            value,
+                            function(item, index, allItems) {
+                                if (item) {
+                                    triggerList.push(item.name);
                                 }
-                            );
-                            return triggerList.join(', ');
-                       }
-                    },{
-                        dataIndex: 'action',
-                        header: _t('Action'),
-                        sortable: true
-                    },{
-                        dataIndex: 'recipients',
-                        header: _t('Subscribers'),
-                        sortable: true,
-                        renderer: function(value, metaData, record, rowIndex, colIndex, store) {
-                            return record.data.recipients.length || 0;
-                        }
-                    }]
-                }),
+                            }
+                        );
+                        return triggerList.join(', ');
+                    }
+                },{
+                    dataIndex: 'action',
+                    header: _t('Action'),
+                    sortable: true
+                },{
+                    dataIndex: 'recipients',
+                    header: _t('Subscribers'),
+                    sortable: true,
+                    renderer: function(value, metaData, record, rowIndex, colIndex, store) {
+                        return record.data.recipients.length || 0;
+                    }
+                }],
                 tbar:[{
                     xtype: 'button',
                     iconCls: 'add',
@@ -996,10 +1034,14 @@ Ext.onReady(function () {
                     iconCls: 'delete',
                     ref: '../deleteButton',
                     handler: function(button) {
-                        var row = button.refOwner.getSelectionModel().getSelected(),
+                        var rows = button.refOwner.getSelectionModel().getSelection(),
+                            row,
                             uid,
                             params,
                             callback;
+                        if (rows.length) {
+                            row = rows[0];
+                        }
                         if (row){
                             uid = row.data.uid;
                             // show a confirmation
@@ -1041,24 +1083,200 @@ Ext.onReady(function () {
                     }
                 }]
             });
-            NotificationSubscriptions.superclass.constructor.apply(this, arguments);
+            this.callParent(arguments);
         },
         setContext: function(uid) {
+            // notification subscriptions are not context specific
             this.uid = uid;
-            this.getStore().load({
-                params: {
-                    uid: uid
-                }
-            });
+            this.getStore().load();
         }
     });
-    Ext.reg('notificationsubscriptions', NotificationSubscriptions);
-
-    notification_panel = Ext.create(notificationPanelConfig);
 
 
-    SchedulesPanel = Ext.extend(Ext.grid.GridPanel, {
+    /**
+     * @class Zenoss.triggers.TriggersStore
+     * @extend Zenoss.NonPaginatedStore
+     * Direct store for loading ip addresses
+     */
+    Ext.define("Zenoss.triggers.TriggersStore", {
+        extend: "Zenoss.NonPaginatedStore",
         constructor: function(config) {
+            config = config || {};
+            Ext.applyIf(config, {
+                autoLoad: true,
+                model: 'Zenoss.triggers.TriggersModel',
+                initialSortColumn: "name",
+                directFn: router.getTriggers,
+                root: 'data'
+            });
+            this.callParent(arguments);
+        }
+    });
+
+    Ext.define("Zenoss.triggers.TriggersGridPanel", {
+        alias:['widget.TriggersGridPanel'],
+        extend:"Ext.grid.GridPanel",
+        constructor: function(config) {
+            var me = this;
+            Ext.applyIf(config, {
+                stripeRows: true,
+                columns: [
+                    {
+                        id: 'enabled',
+                        dataIndex: 'enabled',
+                        header: _t('Enabled'),
+                        xtype: 'booleancolumn',
+                        trueText: _t('Yes'),
+                        falseText: _t('No'),
+                        width: 70,
+                        sortable: true,
+                        menuDisabled: true
+                    }, {
+                        id: 'name',
+                        flex: 1,
+                        dataIndex: 'name',
+                        header: _t('Name'),
+                        width: 200,
+                        sortable: true,
+                        menuDisabled: true
+                    }
+                ],
+                title: _t('Triggers'),
+                store: Ext.create('Zenoss.triggers.TriggersStore', {}),
+                selModel: new Zenoss.SingleRowSelectionModel({
+                    listeners: {
+                        rowselect: function(sm, rowIndex, record) {
+                            // enable/disabled the edit button
+                            me.deleteButton.setDisabled(false);
+                            me.customizeButton.setDisabled(false);
+                        },
+                        rowdeselect: function(sm, rowIndex, record) {
+                            me.deleteButton.setDisabled(true);
+                            me.customizeButton.setDisabled(true);
+                        }
+                    }
+                }),
+                listeners: {
+                    itemdblclick: function(grid, rowIndex, event) {
+                        var rows = grid.getSelectionModel().getSelection();
+                        if (rows.length) {
+                            displayEditTriggerDialogue(rows[0].data);
+                        }
+                    }
+                },
+                tbar:[
+                    {
+                        xtype: 'button',
+                        iconCls: 'add',
+                        ref: '../addButton',
+                        handler: function(button) {
+                            addTriggerDialogue.show();
+                        }
+                    },{
+                        xtype: 'button',
+                        iconCls: 'delete',
+                        ref: '../deleteButton',
+                        handler: function(button) {
+                            var rows = me.getSelectionModel().getSelection(),
+                                row,
+                                uuid, params, callback;
+                            if (rows){
+                                row = rows[0];
+                                uuid = row.data.uuid;
+                                // show a confirmation
+                                Ext.Msg.show({
+                                    title: _t('Delete Trigger'),
+                                    msg: String.format(_t("Are you sure you wish to delete the trigger, {0}?"), row.data.name),
+                                    buttons: Ext.Msg.OKCANCEL,
+                                    fn: function(btn) {
+                                        if (btn == "ok") {
+                                            params= {
+                                                uuid:uuid
+                                            };
+                                            callback = function(response){
+                                                // item removed, reload grid.
+                                                me.deleteButton.setDisabled(true);
+                                                me.customizeButton.setDisabled(true);
+                                                reloadTriggersGrid();
+                                                reloadNotificationGrid();
+                                            };
+                                            router.removeTrigger(params, callback);
+
+                                        } else {
+                                            Ext.Msg.hide();
+                                        }
+                                    }
+                                });
+                            }
+                        }
+                    },{
+                        xtype: 'button',
+                        iconCls: 'customize',
+                        disabled:true,
+                        ref: '../customizeButton',
+                        handler: function(button){
+                            var rows = me.getSelectionModel().getSelection();
+                            if (rows.length) {
+                                displayEditTriggerDialogue(rows[0].data);
+                            }
+                        }
+                    }
+                ]
+            });
+            this.callParent(arguments);
+        },
+        setContext: function(uid) {
+            // triggers are not context aware.
+            this.getStore().load();
+        }
+    });
+
+    notification_panel = Ext.create('Zenoss.triggers.NotificationSubscriptions', notificationPanelConfig);
+
+
+    /**
+     * @class Zenoss.triggers.ScheduleModel
+     * @extends Ext.data.Model
+     * Field definitions for the schedules
+     **/
+    Ext.define('Zenoss.triggers.ScheduleModel',  {
+        extend: 'Ext.data.Model',
+        idProperty: 'uid',
+        fields: [
+            { name:'uid'},
+            { name:'newId'},
+            { name:'enabled'},
+            { name:'start', type: 'date'},
+            { name:'starttime' },
+            { name:'repeat'},
+            { name:'duration'}
+        ]
+    });
+
+    /**
+     * @class Zenoss.triggers.ScheduleStore
+     * @extend Zenoss.DirectStore
+     * Direct store loading schedules
+     */
+    Ext.define("Zenoss.triggers.ScheduleStore", {
+        extend: "Zenoss.DirectStore",
+        constructor: function(config) {
+            config = config || {};
+            Ext.applyIf(config, {
+                model: 'Zenoss.triggers.ScheduleModel',
+                initialSortColumn: "uid",
+                directFn: router.getWindows,
+                root: 'data'
+            });
+            this.callParent(arguments);
+        }
+    });
+
+    Ext.define("Zenoss.triggers.SchedulesPanel", {
+        alias:['widget.schedulespanel'],
+        extend:"Ext.grid.GridPanel",
+        constructor: function(config) {
+            var me = this;
             config = config || {};
             Ext.applyIf(config, {
                 autoScroll: true,
@@ -1068,60 +1286,44 @@ Ext.onReady(function () {
                     forceFit: true
                 },
                 listeners: {
-                    rowdblclick: function(grid, rowIndex, event){
+                    itemdblclick: function(grid, rowIndex, event){
                         var row = grid.getSelectionModel().getSelected();
                         if (row) {
                             displayScheduleEditDialogue(row.data);
                         }
                     }
                 },
-                selModel: new Ext.grid.RowSelectionModel({
-                    singleSelect: true,
+                selModel: new Zenoss.SingleRowSelectionModel({
                     listeners: {
                         rowselect: function(sm, rowIndex, record) {
                             var row = sm.getSelected();
-                            sm.grid.customizeButton.setDisabled(false);
+                            me.customizeButton.setDisabled(false);
                         },
                         rowdeselect: function(sm, rowIndex, record) {
-                            sm.grid.customizeButton.setDisabled(true);
+                            me.customizeButton.setDisabled(true);
                         }
-                    },
-                    scope: this
+                    }
                 }),
-                store: {
-                    xtype: 'directstore',
-                    directFn: router.getWindows,
-                    root: 'data',
-                    fields: [
-                        'uid',
-                        'newId',
-                        'enabled',
-                        'start',
-                        'starttime',
-                        'repeat',
-                        'duration'
-                    ]
-                },
-                colModel: new Ext.grid.ColumnModel({
-                    columns: [{
-                        xtype: 'booleancolumn',
-                        trueText: _t('Yes'),
-                        falseText: _t('No'),
-                        dataIndex: 'enabled',
-                        header: _t('Enabled'),
-                        sortable: true
-                    },{
-                        dataIndex: 'newId',
-                        header: _t('Id'),
-                        width:200,
-                        sortable: true
-                    },{
-                        dataIndex: 'start',
-                        header: _t('Start'),
-                        width:200,
-                        sortable: true
-                    }]
-                }),
+                store: Ext.create('Zenoss.triggers.ScheduleStore', {}),
+                columns: [{
+                    xtype: 'booleancolumn',
+                    trueText: _t('Yes'),
+                    falseText: _t('No'),
+                    dataIndex: 'enabled',
+                    header: _t('Enabled'),
+                    sortable: true
+                },{
+                    dataIndex: 'newId',
+                    header: _t('Id'),
+                    width:200,
+                    sortable: true
+                },{
+                    dataIndex: 'start',
+                    header: _t('Start'),
+                    width:200,
+                    sortable: true
+                }],
+
                 tbar:[{
                     xtype: 'button',
                     iconCls: 'add',
@@ -1173,7 +1375,7 @@ Ext.onReady(function () {
                 }]
 
             });
-            SchedulesPanel.superclass.constructor.apply(this, arguments);
+            this.callParent(arguments);
         },
         setContext: function(uid){
             this.uid = uid;
@@ -1190,14 +1392,17 @@ Ext.onReady(function () {
             this.deleteButton.setDisabled(bool);
         }
     });
-    Ext.reg('schedulespanel', SchedulesPanel);
-
-    schedules_panel = Ext.create(schedulesPanelConfig);
 
 
-    NotificationPageLayout = Ext.extend(Ext.Panel, {
+    schedules_panel = Ext.create('Zenoss.triggers.SchedulesPanel', schedulesPanelConfig);
+
+
+    Ext.define("Zenoss.triggers.NotificationPageLayout", {
+        alias: ['widget.notificationpagelayout'],
+        extend:"Ext.Panel",
         constructor: function(config) {
             config = config || {};
+
             Ext.applyIf(config, {
                 id: 'notification_subscription_panel',
                 layout:'border',
@@ -1206,59 +1411,32 @@ Ext.onReady(function () {
                     split: true,
                     border: false
                 },
-                items: [{
+                items: [config.notificationPanel,{
                     title: _t('Notification Schedules'),
-                    region:'east',
+                    region: 'east',
                     width: 375,
                     minSize: 100,
                     maxSize: 375,
                     items: [config.schedulePanel]
-                }, config.notificationPanel]
 
+                }]
             });
-            NotificationPageLayout.superclass.constructor.apply(this, arguments);
+            this.callParent(arguments);
+        },
+        setContext: function(uid) {
+            notification_panel.setContext(uid);
         }
     });
-    Ext.reg('notificationsubscriptions', NotificationPageLayout);
-
 
     notificationsPanelConfig = {
         id: 'notifications_panel',
-        xtype: 'notificationsubscriptions',
         schedulePanel: schedules_panel,
         notificationPanel: notification_panel
     };
 
-
-
-
     /***
      * TRIGGERS
      **/
-
-    colModelConfig = {
-        defaults: {
-            menuDisabled: true
-        },
-        columns: [
-            {
-                id: 'enabled',
-                dataIndex: 'enabled',
-                header: _t('Enabled'),
-                xtype: 'booleancolumn',
-                trueText: _t('Yes'),
-                falseText: _t('No'),
-                width: 70,
-                sortable: true
-            }, {
-                id: 'name',
-                dataIndex: 'name',
-                header: _t('Name'),
-                width: 200,
-                sortable: true
-            }
-        ]
-    };
 
     triggersPanelConfig = {
         id: 'triggers_grid_panel',
@@ -1272,17 +1450,46 @@ Ext.onReady(function () {
         region: 'center',
         layout: 'card',
         activeItem: 0,
-        items: [triggersPanelConfig, notificationsPanelConfig]
+        items: [Ext.create('Zenoss.triggers.TriggersGridPanel', triggersPanelConfig),
+                Ext.create('Zenoss.triggers.NotificationPageLayout', notificationsPanelConfig)]
     };
 
-    navSelectionModel = new Ext.tree.DefaultSelectionModel({
+    navSelectionModel = new Zenoss.TreeSelectionModel({
         listeners: {
-            selectionchange: function (sm, newnode) {
+            selectionchange: function (sm, newnodes) {
+                if (!newnodes.length) {
+                    return;
+                }
+                var newnode = newnodes[0];
                 var p = Ext.getCmp(detailPanelConfig.id);
-                p.layout.setActiveItem(newnode.attributes.target);
-                p.setContext(newnode.attributes.target);
+                p.layout.setActiveItem(newnode.data.index);
+                p.setContext(newnode.data.target);
             }
         }
+    });
+
+    masterPanelTreeStore = Ext.create('Ext.data.TreeStore', {
+        root: {
+            text: 'Trigger Navigation',
+            draggable: false,
+            id: 'trigger_root',
+            expanded: true,
+            children: [
+                {
+                    target: triggersPanelConfig.id,
+                    text: 'Triggers',
+                    leaf: true,
+                    iconCls: 'no-icon'
+
+                }, {
+                    target: notificationsPanelConfig.id,
+                    text: 'Notifications',
+                    leaf: true,
+                    iconCls: 'no-icon'
+                }
+            ]
+        }
+
     });
 
     masterPanelConfig = {
@@ -1290,6 +1497,7 @@ Ext.onReady(function () {
         region: 'west',
         split: 'true',
         width: 275,
+        maxWidth: 275,
         autoScroll: false,
         items: [
             {
@@ -1298,31 +1506,14 @@ Ext.onReady(function () {
                 region: 'west',
                 split: 'true',
                 width: 275,
+                height: 500,
                 autoScroll: true,
                 border: false,
                 rootVisible: false,
                 selModel: navSelectionModel,
                 layout: 'fit',
                 bodyStyle: { 'margin-top' : 10 },
-                root: {
-                    text: 'Trigger Navigation',
-                    draggable: false,
-                    id: 'trigger_root',
-                    expanded: true,
-                    children: [
-                        {
-                            target: triggersPanelConfig.id,
-                            text: 'Triggers',
-                            leaf: true,
-                            iconCls: 'no-icon'
-                        }, {
-                            target: notificationsPanelConfig.id,
-                            text: 'Notifications',
-                            leaf: true,
-                            iconCls: 'no-icon'
-                        }
-                    ]
-                }
+                store: masterPanelTreeStore
             }
         ]
     };
@@ -1337,7 +1528,7 @@ Ext.onReady(function () {
         // make firefox draw correctly.
         minWidth: bigWindowWidth+225,
         boxMinWidth: bigWindowWidth+225,
-        layout: 'form',
+        layout: 'anchor',
         title: _t('Trigger'),
         padding: 10,
         labelWidth: 75,
@@ -1362,6 +1553,7 @@ Ext.onReady(function () {
                 fieldLabel: _t('Rule'),
                 name: 'criteria',
                 ref: 'rule',
+                id: 'trigger_rule',
                 subjects: [
                 Ext.applyIf(
                     {
@@ -1597,7 +1789,7 @@ Ext.onReady(function () {
         ]
     };
 
-    var users_grid = new UsersPermissionGrid({
+    var users_grid = Ext.create('Zenoss.triggers.UsersPermissionGrid', {
         title: _t('Users'),
         allowManualEntry: false
     });
@@ -1605,6 +1797,8 @@ Ext.onReady(function () {
     var trigger_tab_users = {
         xtype: 'panel',
         ref: '../../tab_users',
+        id: 'users_rule',
+        users_grid: users_grid,
         title: _t('Users'),
         autoScroll: true,
         height: bigWindowHeight-110,
@@ -1612,9 +1806,9 @@ Ext.onReady(function () {
             {
                 xtype: 'panel',
                 border: false,
-                layout: 'form',
+                //layout: 'anchor',
                 title: _t('Local Trigger Permissions'),
-                padding: 10,
+                //padding: 10,
                 items: [
                     {
                         xtype:'checkbox',
@@ -1645,9 +1839,12 @@ Ext.onReady(function () {
     };
 
 
-    EditTriggerDialogue = Ext.extend(Zenoss.dialog.BaseWindow, {
+    Ext.define("Zenoss.trigger.EditTriggerDialogue", {
+        alias:['widget.edittriggerdialogue'],
+        extend:"Zenoss.dialog.BaseWindow",
         constructor: function(config) {
             config = config || {};
+
             Ext.applyIf(config, {
                 plain: true,
                 cls: 'white-background-panel',
@@ -1666,7 +1863,7 @@ Ext.onReady(function () {
                         xtype:'form',
                         ref: 'wrapping_form',
                         border: false,
-                        buttonAlign: 'center',
+                        buttonAlign: 'left',
                         monitorValid: true,
                         items: [
                             {
@@ -1737,7 +1934,7 @@ Ext.onReady(function () {
                     }
                 ]
             });
-            EditTriggerDialogue.superclass.constructor.apply(this, arguments);
+            Zenoss.trigger.EditTriggerDialogue.superclass.constructor.apply(this, arguments);
         },
         loadData: function(data) {
             // set content stuff.
@@ -1751,20 +1948,21 @@ Ext.onReady(function () {
             this.tab_users.globalWrite.setValue(data.globalWrite);
             this.tab_users.globalManage.setValue(data.globalManage);
 
+
             this.tab_users.users_grid.getStore().loadData(data.users);
 
         }
     });
-    Ext.reg('edittriggerdialogue', EditTriggerDialogue);
+
 
 
     reloadTriggersGrid = function() {
-        Ext.getCmp(triggersPanelConfig.id).getStore().reload();
+        Ext.getCmp(triggersPanelConfig.id).getStore().load();
     };
 
     displayEditTriggerDialogue = function(data) {
 
-        editTriggerDialogue = new EditTriggerDialogue({
+        editTriggerDialogue = Ext.create('Zenoss.trigger.EditTriggerDialogue', {
             title: String.format("{0} - {1}", _t('Edit Trigger'), data['name']),
             directFn: router.updateTrigger,
             reloadFn: reloadTriggersGrid,
@@ -1772,6 +1970,7 @@ Ext.onReady(function () {
         });
 
         editTriggerDialogue.loadData(data);
+        editTriggerDialogue.show();
 
         if (!data['userWrite']) {
             disableTabContents(editTriggerDialogue.tab_content);
@@ -1785,122 +1984,14 @@ Ext.onReady(function () {
             enableTabContents(editTriggerDialogue.tab_users);
         }
 
-        editTriggerDialogue.show();
     };
 
-    addTriggerDialogue = new AddDialogue({
+    addTriggerDialogue = Ext.create('Zenoss.trigger.AddDialogue', {
         title: _t('Add Trigger'),
+        id:'triggeradd',
         directFn: router.addTrigger,
         reloadFn: reloadTriggersGrid
     });
-
-
-    colModel = new Ext.grid.ColumnModel(colModelConfig);
-
-    TriggersGridPanel = Ext.extend(Ext.grid.GridPanel, {
-        constructor: function(config) {
-            Ext.applyIf(config, {
-                autoExpandColumn: 'name',
-                stripeRows: true,
-                cm: colModel,
-                title: _t('Triggers'),
-                store: {
-                    xtype: 'directstore',
-                    directFn: router.getTriggers,
-                    root: 'data',
-                    autoLoad: true,
-                    fields: ['uuid', 'enabled', 'name', 'rule', 'users',
-                        'globalRead', 'globalWrite', 'globalManage',
-                        'userRead', 'userWrite', 'userManage']
-                },
-                sm: new Ext.grid.RowSelectionModel({
-                    singleSelect: true,
-                    listeners: {
-                        rowselect: function(sm, rowIndex, record) {
-                            // enable/disabled the edit button
-                            sm.grid.deleteButton.setDisabled(false);
-                            sm.grid.customizeButton.setDisabled(false);
-                        },
-                        rowdeselect: function(sm, rowIndex, record) {
-                            sm.grid.deleteButton.setDisabled(true);
-                            sm.grid.customizeButton.setDisabled(true);
-                        }
-                    },
-                    scope: this
-                }),
-                listeners: {
-                    rowdblclick: function(grid, rowIndex, event) {
-                        var row = grid.getSelectionModel().getSelected();
-                        if (row) {
-                            displayEditTriggerDialogue(row.data);
-                        }
-                    }
-                },
-                tbar:[
-                    {
-                        xtype: 'button',
-                        iconCls: 'add',
-                        ref: '../addButton',
-                        handler: function(button) {
-                            addTriggerDialogue.show();
-                        }
-                    },{
-                        xtype: 'button',
-                        iconCls: 'delete',
-                        ref: '../deleteButton',
-                        handler: function(button) {
-                            var row = button.refOwner.getSelectionModel().getSelected(),
-                                uuid, params, callback;
-                            if (row){
-                                uuid = row.data.uuid;
-                                // show a confirmation
-                                Ext.Msg.show({
-                                    title: _t('Delete Trigger'),
-                                    msg: String.format(_t("Are you sure you wish to delete the trigger, {0}?"), row.data.name),
-                                    buttons: Ext.Msg.OKCANCEL,
-                                    fn: function(btn) {
-                                        if (btn == "ok") {
-                                            params= {
-                                                uuid:uuid
-                                            };
-                                            callback = function(response){
-                                                // item removed, reload grid.
-                                                button.refOwner.deleteButton.setDisabled(true);
-                                                button.refOwner.customizeButton.setDisabled(true);
-                                                reloadTriggersGrid();
-                                                reloadNotificationGrid();
-                                            };
-                                            router.removeTrigger(params, callback);
-
-                                        } else {
-                                            Ext.Msg.hide();
-                                        }
-                                    }
-                                });
-                            }
-                        }
-                    },{
-                        xtype: 'button',
-                        iconCls: 'customize',
-                        disabled:true,
-                        ref: '../customizeButton',
-                        handler: function(button){
-                            var row = button.refOwner.getSelectionModel().getSelected();
-                            if (row) {
-                                displayEditTriggerDialogue(row.data);
-                            }
-                        }
-                    }
-                ]
-            });
-            TriggersGridPanel.superclass.constructor.call(this, config);
-        },
-        setContext: function(uid) {
-            // triggers are not context aware.
-            this.getStore().load();
-        }
-    });
-    Ext.reg('TriggersGridPanel', TriggersGridPanel);
 
     Ext.getCmp('center_panel').add({
         id: 'center_panel_container',

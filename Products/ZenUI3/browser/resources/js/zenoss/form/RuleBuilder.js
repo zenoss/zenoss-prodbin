@@ -25,7 +25,8 @@
                 var realowner = scope.ownerCt,
                 idx = realowner.items.indexOf(scope);
                 var clause = realowner.insert(idx + 1, {
-                    xtype: 'ruleclause'
+                    xtype: 'ruleclause',
+                    builder: scope.builder
                 });
                 realowner.doLayout();
                 clause.subject.focus();
@@ -65,7 +66,7 @@
         }
     }
 
-    
+
     /*
      *  The order of the comparisons in the following object matters. The
      *  templates are used to create regular expressions where the {#} substitutions
@@ -141,7 +142,9 @@
         }
     }
 
-    ZF.RuleClause = Ext.extend(Ext.Toolbar, {
+    Ext.define("Zenoss.form.rule.RuleClause", {
+        alias:['widget.ruleclause'],
+        extend:"Ext.Toolbar",
         constructor: function(config) {
             config = Ext.applyIf(config||{}, {
                 cls: 'rule-clause',
@@ -265,6 +268,7 @@
             return String.format("({0})", clause);
         },
         setValue: function(expression) {
+
             for (var cmp in comparison_patterns) {
                 if (comparison_patterns.hasOwnProperty(cmp)) {
                     var pat = comparison_patterns[cmp];
@@ -291,13 +295,13 @@
         },
         getBuilder: function() {
             if (!this.builder) {
-                this.builder = this.findParentByType('rulebuilder', true);
+                this.builder = this.nestedRule.ruleBuilder;
             }
             return this.builder;
         }
     });
 
-    Ext.reg('ruleclause', ZF.RuleClause);
+
 
     ZF.changeListener = function(me, cmp) {
         var items = this.items.items;
@@ -332,7 +336,9 @@
         }
     };
 
-    ZF.NestedRule = Ext.extend(Ext.Container, {
+    Ext.define("Zenoss.form.rule.NestedRule", {
+        alias:['widget.nestedrule'],
+        extend:"Ext.Container",
         constructor: function(config) {
             config = Ext.applyIf(config||{}, {
                 showButtons: true,
@@ -369,7 +375,8 @@
                     xtype: 'container',
                     cls: 'rule-clause-container',
                     items: {
-                        xtype: 'ruleclause'
+                        xtype: 'ruleclause',
+                        nestedRule: this
                     },
                     listeners: {
                         add: ZF.changeListener,
@@ -471,6 +478,7 @@
             if (tokens) {
                 this.clauses.removeAll();
                 var conjunction, rule;
+
                 Ext.each(tokens, function(t) {
                     if (t) {
                         if (conjunction = conjunctions_inverse[t]){
@@ -478,10 +486,10 @@
                              return;
                         } else if (nested.test(t)) {
                             // Nested rule
-                            rule = this.clauses.add({xtype:'nestedrule'});
+                            rule = this.clauses.add({xtype:'nestedrule', ruleBuilder: this.ruleBuilder});
                         } else {
                             // Clause
-                            rule = this.clauses.add({xtype: 'ruleclause'});
+                            rule = this.clauses.add({xtype: 'ruleclause', nestedRule: this});
                         }
                         var clause = t;
                         try {
@@ -494,9 +502,11 @@
         }
     });
 
-    Ext.reg('nestedrule', ZF.NestedRule);
 
-    ZF.RuleBuilder = Ext.extend(Ext.Container, {
+
+    Ext.define("Zenoss.form.rule.RuleBuilder", {
+        alias:['widget.rulebuilder'],
+        extend:"Ext.Container",
         constructor: function(config) {
             config = Ext.applyIf(config||{}, {
                 cls: 'rule-builder',
@@ -505,7 +515,8 @@
                 items: [{
                     ref: 'rootrule',
                     xtype: 'nestedrule',
-                    showButtons: false
+                    showButtons: false,
+                    ruleBuilder: this
                 }]
             });
             this.subject_store = [];
@@ -541,12 +552,13 @@
         reset: function() {
             this.rootrule.clauses.removeAll();
             this.rootrule.clauses.add({
-                xtype: 'ruleclause'
+                xtype: 'ruleclause',
+                builder: this
             });
         }
     });
 
-    Ext.reg('rulebuilder', ZF.RuleBuilder);
+
 
     ZF.STRINGCOMPARISONS = [
         'contains',

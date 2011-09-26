@@ -24,7 +24,9 @@ Ext.ns('Zenoss', 'Zenoss.dialog');
  * textfield and make the enter key hit submit
  *
  **/
-Zenoss.dialog.BaseWindow = Ext.extend(Ext.Window, {
+Ext.define("Zenoss.dialog.BaseWindow", {
+    extend: "Ext.Window",
+    alias: ['widget.basewindow'],
     constructor: function(config) {
         config = config || {};
         Ext.applyIf(config, {
@@ -44,7 +46,8 @@ Zenoss.dialog.BaseWindow = Ext.extend(Ext.Window, {
     },
     focusFirstTextField: function() {
         // go through our items and find a text field
-        var fields = this.findByType("textfield", false);
+
+        var fields = this.query("textfield");
         if (fields.length) {
             fields[0].focus(false, 300);
         }
@@ -63,14 +66,18 @@ Zenoss.dialog.BaseWindow = Ext.extend(Ext.Window, {
             }
 
             // the button is on the window
-            if (this.buttons && this.buttons.length) {
-                button = this.buttons[0];
+            var buttons = this.query("button");
+            if (buttons && buttons.length) {
+                button = buttons[0];
             }else{
                 // the button is on a form
-                var forms = this.findByType('form', true);
+                var forms = this.query('form');
                 if (forms) {
-                    if (forms.length && forms[0].buttons && forms[0].buttons.length){
-                        button = forms[0].buttons[0];
+                    if (forms.length && forms[0]){
+                        var form = forms[0];
+                        if (form.query("button").length) {
+                            button = form.query("button")[0];
+                        }
                     }
                 }
             }
@@ -82,7 +89,7 @@ Zenoss.dialog.BaseWindow = Ext.extend(Ext.Window, {
 
     }
 });
-Ext.reg('basewindow', Zenoss.dialog.BaseWindow);
+
 
 
 /**
@@ -91,7 +98,8 @@ Ext.reg('basewindow', Zenoss.dialog.BaseWindow);
  * A modal dialog with Zenoss styling. Subclasses should specify a layout.
  * @constructor
  */
-var BaseDialog = Ext.extend(Zenoss.dialog.BaseWindow, {
+Ext.define("BaseDialog", {
+    extend: "Zenoss.dialog.BaseWindow",
     constructor: function(config) {
         Ext.applyIf(config, {
             width: 310,
@@ -105,6 +113,10 @@ var BaseDialog = Ext.extend(Zenoss.dialog.BaseWindow, {
 });
 
 function destroyWindow(button) {
+    var win = button.up('window');
+    if (win){
+        return win.destroy();
+    }
     var container = button.ownerCt.ownerCt;
     if (container.ownerCt !== undefined) container.ownerCt.destroy();
     else container.destroy();
@@ -113,22 +125,25 @@ function destroyWindow(button) {
 /**
  * @class Zenoss.dialog.HideDialogButton
  * @extends Ext.Button
- * A button that destroys it's window.
+ * A button that destroys its window.
  * @constructor
  */
-Zenoss.dialog.DialogButton = Ext.extend(Ext.Button, {
+Ext.define("Zenoss.dialog.DialogButton", {
+    ui: 'dialog',
+    extend: "Ext.Button",
+    alias: ['widget.DialogButton'],
     constructor: function(config) {
         var h = config.handler;
-        config.handler = h ? h.createSequence(destroyWindow) : destroyWindow;
+        config.handler = h ? Ext.Function.createSequence(h, destroyWindow) : destroyWindow;
         Zenoss.dialog.DialogButton.superclass.constructor.call(this, config);
     },
     setHandler: function(handler, scope) {
-        var h = handler ? handler.createSequence(destroyWindow) : destroyWindow;
+        var h = handler ? Ext.Function.createSequence(handler, destroyWindow) : destroyWindow;
         Zenoss.dialog.DialogButton.superclass.setHandler.call(this, h, scope);
     }
 });
 
-Ext.reg('DialogButton', Zenoss.dialog.DialogButton);
+
 
 function hideWindow(button){
     button.ownerCt.ownerCt.hide();
@@ -140,20 +155,23 @@ function hideWindow(button){
  * A button that hides it's window.
  * @constructor
  */
-Zenoss.dialog.HideDialogButton = Ext.extend(Ext.Button, {
+Ext.define("Zenoss.dialog.HideDialogButton", {
+    ui: 'dialog',
+    extend: "Ext.button.Button",
+    alias: ['widget.HideDialogButton'],
     constructor: function(config) {
         var h = config.handler;
-        config.handler = h ? h.createSequence(hideWindow) : hideWindow;
+        config.handler = h ? Ext.Function.createSequence(h, hideWindow) : hideWindow;
         Zenoss.dialog.HideDialogButton.superclass.constructor.call(this, config);
     },
     setHandler: function(handler, scope) {
-        var h = handler ? handler.createSequence(hideWindow) : hideWindow;
+        var h = handler ? Ext.Function.createSequence(handler, hideWindow) : hideWindow;
         Zenoss.dialog.HideDialogButton.superclass.setHandler.call(this, h, scope);
     }
 
 });
 
-Ext.reg('HideDialogButton', Zenoss.dialog.HideDialogButton);
+
 
 Zenoss.dialog.CANCEL = {
     xtype: 'DialogButton',
@@ -168,7 +186,8 @@ Zenoss.dialog.CANCEL = {
  * closes it.  Includes an OK and Cancel button.
  * @constructor
  */
-Zenoss.MessageDialog = Ext.extend(BaseDialog, {
+Ext.define("Zenoss.MessageDialog", {
+    extend: "BaseDialog",
     constructor: function(config) {
         Ext.applyIf(config, {
             layout: 'fit',
@@ -205,7 +224,8 @@ Zenoss.MessageDialog = Ext.extend(BaseDialog, {
  * included
  * @constructor
  */
-Zenoss.dialog.SimpleMessageDialog = Ext.extend(BaseDialog, {
+Ext.define("Zenoss.dialog.SimpleMessageDialog", {
+    extend: "BaseDialog",
     /**
      * message to be displayed on dialog
      * @param {Object} config
@@ -232,7 +252,8 @@ Zenoss.dialog.SimpleMessageDialog = Ext.extend(BaseDialog, {
  * the user closes it.
  * @constructor
  */
-Zenoss.FormDialog = Ext.extend(Zenoss.dialog.BaseWindow, {
+Ext.define("Zenoss.FormDialog", {
+    extend: "Zenoss.dialog.BaseWindow",
     constructor: function(config) {
         var form = new Ext.form.FormPanel({
             border: false,
@@ -273,15 +294,17 @@ Zenoss.FormDialog = Ext.extend(Zenoss.dialog.BaseWindow, {
         Zenoss.FormDialog.superclass.constructor.call(this, config);
 
         this.add(form);
+        this.form = form;
     },
 
     getForm: function() {
-        return this.editForm;
+        return this.form;
     }
 });
 
 
-Zenoss.dialog.CloseDialog = new Ext.extend(Zenoss.dialog.BaseWindow, {
+Ext.define("Zenoss.dialog.CloseDialog",{
+    extend: "Zenoss.dialog.BaseWindow",
     constructor: function(config) {
         Ext.applyIf(config, {
             width: 310,
@@ -304,10 +327,11 @@ Zenoss.dialog.CloseDialog = new Ext.extend(Zenoss.dialog.BaseWindow, {
  * closes it.
  * @constructor
  */
-Zenoss.HideFormDialog = Ext.extend(BaseDialog, {
+Ext.define("Zenoss.HideFormDialog", {
+    extend: "BaseDialog",
     constructor: function(config) {
         Ext.applyIf(config, {
-            layout: 'form',
+            layout: 'anchor',
             labelAlign: 'top'
         });
         Zenoss.HideFormDialog.superclass.constructor.call(this, config);
@@ -325,18 +349,12 @@ Zenoss.HideFormDialog = Ext.extend(BaseDialog, {
  * all form values.
  * @constructor
  */
-Zenoss.SmartFormDialog = Ext.extend(Zenoss.FormDialog, {
+Ext.define("Zenoss.SmartFormDialog", {
+    extend: "Zenoss.FormDialog",
+    alias: 'widget.smartformdialog',
     message: '',
     submitHandler: null,
     constructor: function(config) {
-        var handleEnterKey;
-
-        handleEnterKey = function() {
-            var first = this.buttons[0];
-            if (first) {
-                first.handler(first);
-            }
-        }.createDelegate(this);
 
         this.listeners = config.listeners;
 
@@ -345,17 +363,12 @@ Zenoss.SmartFormDialog = Ext.extend(Zenoss.FormDialog, {
                 xtype: 'DialogButton',
                 text: _t('Submit'),
                 type: 'submit',
-                ref: '../buttonSubmit'
+                ref: 'buttonSubmit'
              }, {
                 xtype: 'DialogButton',
-                ref: '../buttonCancel',
+                ref: 'buttonCancel',
                 text: _t('Cancel')
             }],
-            keys: {
-                key: Ext.EventObject.ENTER,
-                handler: handleEnterKey,
-                scope: this
-            },
             modal: true,
             closeAction: 'close'
         });
@@ -371,18 +384,21 @@ Zenoss.SmartFormDialog = Ext.extend(Zenoss.FormDialog, {
         }
     },
     setSubmitHandler: function(callbackFunction) {
+        var btn = this.query("button[ref='buttonSubmit']")[0];
+
         if (callbackFunction === null) {
-            this.buttonSubmit.setHandler(null);
+            btn.setHandler(null);
         }
         else {
-            this.buttonSubmit.setHandler(function() {
-                var values = this.getForm().getForm().getFieldValues();
+            btn.setHandler(Ext.bind(function() {
+                var form = this.getForm();
+                var values = form.getValues();
                 return callbackFunction(values);
-            }.createDelegate(this));
+            }, this));
         }
     },
     initComponent: function() {
-        Zenoss.FormDialog.superclass.initComponent.call(this);
+        this.callParent();
         if (this.submitHandler) {
             this.setSubmitHandler(this.submitHandler);
             delete this.submitHandler;
@@ -397,7 +413,8 @@ Zenoss.SmartFormDialog = Ext.extend(Zenoss.FormDialog, {
  * A modal dialog window with Zenoss styling and a fit layout.
  * @constructor
  */
-Zenoss.HideFitDialog = Ext.extend(Zenoss.dialog.BaseWindow, {
+Ext.define("Zenoss.HideFitDialog", {
+    extend: "Zenoss.dialog.BaseWindow",
     constructor: function(config) {
         Ext.applyIf(config, {
             layout: 'fit',
@@ -418,7 +435,8 @@ Zenoss.HideFitDialog = Ext.extend(Zenoss.dialog.BaseWindow, {
  * with ID diynamic-dialog-panel and submits the form on the panel when the
  * submit button on this dialog is pressed.
  */
-Zenoss.dialog.DynamicDialog = Ext.extend(BaseDialog, {
+Ext.define("Zenoss.dialog.DynamicDialog", {
+    extend: "BaseDialog",
     initEvents: function(){
         Zenoss.dialog.DynamicDialog.superclass.initEvents.call(this);
         this.body.getUpdater().on('failure', function(el, response) {
@@ -462,7 +480,9 @@ Zenoss.dialog.DynamicDialog = Ext.extend(BaseDialog, {
 /**
  * Used to create dialogs that will be added dynamically
  */
-Zenoss.dialog.DialogFormPanel = Ext.extend(Ext.form.FormPanel, {
+Ext.define("Zenoss.dialog.DialogFormPanel", {
+    extend: "Ext.form.FormPanel",
+    alias: ['widget.DialogFormPanel'],
     /**
      * whether or not the result of submitting the form associated with this
      * panel will return a json result. Default true
@@ -516,6 +536,6 @@ Zenoss.dialog.DialogFormPanel = Ext.extend(Ext.form.FormPanel, {
     }
 });
 
-Ext.reg('DialogFormPanel', Zenoss.dialog.DialogFormPanel);
+
 
 })();

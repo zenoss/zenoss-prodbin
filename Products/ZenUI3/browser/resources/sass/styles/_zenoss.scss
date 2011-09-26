@@ -1,0 +1,14 @@
+$images_path: "/++resource++zenui/img/ext4";
+@mixin zenoss-background-image($path, $important:false) {
+    @if $important {
+        $important: "!important";
+    } @else {
+        $important: "";
+    }
+    background-image: url("#{$images_path}/#{$path}") #{$important};
+}
+
+@import 'variables';
+@import 'ie';
+@import 'layout';
+@import 'widgets';

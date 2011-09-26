@@ -61,7 +61,7 @@ def _find_column_definitions(archive=False):
     """
     Given a list of event details that are being indexed by ZEP,
     add any custom fields to the list of column definitions.
-    
+
     TODO: We need to map these details to the old property names.
     """
 
@@ -85,7 +85,7 @@ def _find_column_definitions(archive=False):
             'filter': { 'xtype': 'textfield' },
             'sortable': True,
         }
-        
+
         if item['type'] in (EventDetailItem.INTEGER, EventDetailItem.LONG):
             detailConfig['filter']['vtype'] = 'numrange'
         elif item['type'] in (EventDetailItem.DOUBLE, EventDetailItem.FLOAT):
@@ -107,7 +107,7 @@ def reader_config(archive=False):
         if 'field_definition' in columns[field]:
             col = JavaScript(columns[field]['field_definition'])
         else:
-            col = field
+            col = dict(name=field)
         readerFields.append(javascript(col))
     return readerFields
 
@@ -123,7 +123,7 @@ def column_config(request=None, archive=False):
         if request:
             msg = _(col['header'])
             col['header'] = zope.i18n.translate(msg, context=request)
-        col['id'] = field
+        col['id'] = field.replace('.', '_')
         col['dataIndex'] = field
         if isinstance(col['filter'], basestring):
             col['filter'] = {'xtype':col['filter']}
@@ -173,6 +173,15 @@ class GridColumnDefinitions(JavaScriptSnippet):
 
         result.append("Zenoss.env.EVENT_AUTO_EXPAND_COLUMN='summary';")
 
-        result.append('});')
 
+        result.append("""
+
+        Ext.define('Zenoss.events.Model',  {
+            extend: 'Ext.data.Model',
+            idProperty: 'evid',
+            fields: Zenoss.env.READER_DEFINITIONS
+        });
+
+""")
+        result.append('});')
         return '\n'.join(result)

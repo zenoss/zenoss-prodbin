@@ -16,9 +16,12 @@
 
 Ext.ns('Zenoss');
 
-Zenoss.ConsoleBar = Ext.extend(Zenoss.LargeToolbar, {
+Ext.define("Zenoss.ConsoleBar", {
+    alias:['widget.consolebar'],
+    extend:"Zenoss.LargeToolbar",
     constructor: function(config) {
         var title = config.title || 'Title';
+        var panel = config.parentPanel;
         delete config.title;
         config = Ext.apply(config||{}, {
             cls: 'largetoolbar consolebar',
@@ -32,57 +35,60 @@ Zenoss.ConsoleBar = Ext.extend(Zenoss.LargeToolbar, {
                 iconCls: 'collapse',
                 ref: 'togglebutton',
                 handler: function() {
-                    this.ownerCt.ownerCt.toggleCollapse();
+                    panel.toggleCollapse();
                 }
             }])
         });
+
         if (config.collapsed) {
             config.iconCls = 'expand';
         }
-        Zenoss.ConsoleBar.superclass.constructor.call(this, config);
-        var panel = this.ownerCt;
+        this.callParent(arguments);
+
+
         // Set the icons properly
-        panel.on('collapse', function(p) {
-            this.togglebutton.setIconClass('expand');
-        }, this);
-        panel.on('expand', function(p) {
-            this.togglebutton.setIconClass('collapse');
-        }, this);
-        /*
-        * Have the toolbar remain visible when collapsed. This is accomplished
-        * by physically moving the element into the collapsedEl of the region
-        * on collapse, and moving it back before expanding.
-        */
-        panel.on('collapse', function(p) {
-            var region = p.layout.container.ownerCt.layout[p.region],
-                collapsedEl = region.getCollapsedEl(),
-                tbEl = p.topToolbar.getEl(),
-                tbHeight = tbEl.getComputedHeight();
-            p.tbParent = tbEl.parent();
-            collapsedEl.insertFirst(tbEl);
-            collapsedEl.setHeight(tbHeight);
-            p.layout.container.ownerCt.doLayout();
-        });
-        panel.on('beforeexpand', function(p) {
-            var tbEl = p.topToolbar.getEl();
-            p.tbParent.insertFirst(tbEl);
-        });
-        /*
-        * Force the region to be unfloatable by detaching the listener. This
-        * avoids a few problems by disabling a feature we probably won't ever
-        * use.
-        */
-        panel.on('afterlayout', function(p) {
-            var region = p.layout.container.ownerCt.layout[p.region];
-            if (region && region.floatable) {
-                region.getCollapsedEl().un('click', region.collapseClick,
-                                           region);
-            }
-        });
+        // panel.on('collapse', function(p) {
+        //     this.togglebutton.setIconCls('expand');
+        // }, this);
+        // panel.on('expand', function(p) {
+        //     this.togglebutton.setIconCls('collapse');
+        // }, this);
+        // /*
+        // * Have the toolbar remain visible when collapsed. This is accomplished
+        // * by physically moving the element into the collapsedEl of the region
+        // * on collapse, and moving it back before expanding.
+        // */
+        // panel.on('collapse', function(p) {
+        //     var region = p.layout.container.ownerCt.layout[p.region],
+        //         collapsedEl = region.getCollapsedEl(),
+        //         tbEl = p.dockedItems.items[0].getEl(),
+        //         tbHeight = tbEl.getComputedHeight();
+        //     p.tbParent = tbEl.parent();
+        //     collapsedEl.insertFirst(tbEl);
+        //     collapsedEl.setHeight(tbHeight);
+        //     p.layout.container.ownerCt.doLayout();
+        // });
+        // panel.on('beforeexpand', function(p) {
+        //     var tb = p.dockedItems.items[0];
+        //     p.addDocked(tb, 0);
+        // });
+        // /*
+        // * Force the region to be unfloatable by detaching the listener. This
+        // * avoids a few problems by disabling a feature we probably won't ever
+        // * use.
+        // */
+        // panel.on('afterlayout', function(p) {
+        //     var region = p.layout.owner.layout[p.region];
+
+        //     if (region && region.floatable) {
+        //         region.getCollapsedEl().un('click', region.collapseClick,
+        //                                    region);
+        //     }
+        // });
     }
 });
 
-Ext.reg('consolebar', Zenoss.ConsoleBar);
+
 
 
 })(); // End local namespace

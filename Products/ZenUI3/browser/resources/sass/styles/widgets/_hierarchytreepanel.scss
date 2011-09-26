@@ -1,0 +1,55 @@
+/**
+* @class Zenoss.HierarchyTreePanel
+*/
+
+@include extjs-tree;
+
+@mixin zenoss-hierarchytreepanel ($label: 'hierarchy') {
+
+    $extra-search-padding: 6px;
+
+    @include extjs-panel-ui(
+        $label,
+        $ui-body-background-color: $master-panel-background-color,
+        $ui-border-width: 0,
+        $ui-body-border-width: 0
+    );
+
+    .#{$prefix}panel-#{$label} {
+
+        .#{$prefix}grid-body {
+            padding-top: $extra-search-padding;
+            border-width: 0;
+        }
+
+        .#{$prefix}grid-tree-row-expanded .#{prefix}grid-cell {
+            padding-left: 5px;
+        }
+
+        .#{$prefix}grid-row {
+
+            .#{$prefix}grid-cell {
+                background-color: $master-panel-background-color;
+            }
+
+            .#{$prefix}grid-cell-inner {
+                height: 20px;
+                font-size: 12px;
+                color: #454545;
+            }
+        }
+    }
+
+    .#{$prefix}hierarchy-search-panel {
+
+        .#{$prefix}field-search {
+            padding: $extra-search-padding;
+        }
+
+        .searchfield {
+            padding: $extra-search-padding;
+        }
+
+    }
+
+}

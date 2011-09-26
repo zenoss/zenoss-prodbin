@@ -262,7 +262,7 @@ class TemplateFacade(ZuulFacade):
         template = threshold.rrdTemplate()
         info = IThresholdInfo(threshold)
         # don't show the "selected one" in the list of avaialble
-        info.allDataPoints = [point for point in template.getRRDDataPointNames() if not point in info.dataPoints]
+        info.allDataPoints = [point for point in template.getRRDDataPointNames()]
         return info
 
     def addDataPoint(self, dataSourceUid, name):

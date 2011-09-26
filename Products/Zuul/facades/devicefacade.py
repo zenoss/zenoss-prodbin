@@ -99,28 +99,28 @@ class DeviceFacade(TreeFacade):
         reverse = dir=='DESC'
         qs = []
         query = None
-
-        for key, value in params.iteritems():
-            if key == 'name':
-                qs.append(MatchRegexp('titleOrId', '(?i).*%s.*' % value))
-            elif key == 'ipAddress':
-                ip = ensureIp(params['ipAddress'])
-                try:
-                    checkip(ip)
-                except IpAddressError:
-                    pass
+        if params:
+            for key, value in params.iteritems():
+                if key == 'name':
+                    qs.append(MatchRegexp('titleOrId', '(?i).*%s.*' % value))
+                elif key == 'ipAddress':
+                    ip = ensureIp(params['ipAddress'])
+                    try:
+                        checkip(ip)
+                    except IpAddressError:
+                        pass
+                    else:
+                        if numbip(ip):
+                            minip, maxip = getSubnetBounds(ip)
+                            qs.append(Between('ipAddressAsInt', str(minip), str(maxip)))
+                elif key == 'deviceClass':
+                    qs.append(MatchRegexp('getDeviceClassPath', '.*%s.*' %
+                                          params['deviceClass']))
+                elif key == 'productionState':
+                    qs.append(Or(*[Eq('getProdState', self.context.convertProdState(state))
+                                 for state in params['productionState']]))
                 else:
-                    if numbip(ip):
-                        minip, maxip = getSubnetBounds(ip)
-                        qs.append(Between('ipAddressAsInt', str(minip), str(maxip)))
-            elif key == 'deviceClass':
-                qs.append(MatchRegexp('getDeviceClassPath', '.*%s.*' %
-                                      params['deviceClass']))
-            elif key == 'productionState':
-                qs.append(Or(*[Eq('getProdState', self.context.convertProdState(state))
-                             for state in params['productionState']]))
-            else:
-                qs.append(MatchRegexp(key, '.*%s.*' % value))
+                    qs.append(MatchRegexp(key, '.*%s.*' % value))
 
         if qs:
             query = And(*qs)
@@ -634,6 +634,7 @@ class DeviceFacade(TreeFacade):
                 children.append(dict(
                         timeOfChange=str(hist['time']),
                         user=hist['user_name'],
+                        children= [],
                         leaf=True,
                         isrow=True,
                         obj="",

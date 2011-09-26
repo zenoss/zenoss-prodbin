@@ -65,6 +65,21 @@ class ReportRouter(DirectRouter):
     def _getFacade(self):
         return self.api
 
+    def getTree(self, id):
+        """
+        Returns the tree structure of an organizer hierarchy where
+        the root node is the organizer identified by the id parameter.
+
+        @type  id: string
+        @param id: Id of the root node of the tree to be returned
+        @rtype:   [dictionary]
+        @return:  Object representing the tree
+        """
+        facade = self._getFacade()
+        tree = facade.getTree(id)
+        data = Zuul.marshal(tree)
+        return [data]
+
     def getReportTypes(self):
         """
         Get the available report types.

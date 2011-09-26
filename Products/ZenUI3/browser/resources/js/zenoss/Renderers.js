@@ -129,6 +129,9 @@ Ext.apply(Zenoss.render, {
     },
 
     evstatus: function(evstatus) {
+        if (!evstatus){
+            return '';
+        }
         return '<div class="status-icon-small-'+evstatus.toLowerCase()+'"><'+'/div>';
     },
 
@@ -260,12 +263,13 @@ Ext.apply(Zenoss.render, {
         return Zenoss.render.link(null, uid, name);
     },
 
-    linkFromGrid: function(name, col, record) {
+    linkFromGrid: function(value, metaData, record) {
+
         var item;
-        if (typeof(record.data[col.id]) == 'object') {
-            item = record.data[col.id];
+        if (typeof(value == 'object')) {
+            item = value;
             if(item == null){
-                return name;
+                return value;
             }else if(item.url != null) {
                 return Zenoss.render.link(null, item.url, item.text);
             }else if(item.uid) {
@@ -273,7 +277,7 @@ Ext.apply(Zenoss.render, {
             }
             return item.text;
         }
-        return name;
+        return value;
     },
 
     LinkFromGridGuidGroup: function(name, col, record) {

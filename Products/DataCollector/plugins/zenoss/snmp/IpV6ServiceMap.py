@@ -14,7 +14,7 @@
 __doc__ = """IpV6ServiceMap
 
 IpV6ServiceMap creates IpV4 Services from IPV6 descriptions that allow
-all incomming requests (address ::).
+all incoming requests (address ::).
 
 """
 
@@ -31,7 +31,7 @@ class IpV6ServiceMap(SnmpPlugin):
     modname = "Products.ZenModel.IpService"
     deviceProperties = \
                 SnmpPlugin.deviceProperties + ('zIpServiceMapMaxPort',)
-                
+
     snmpGetTableMaps = (
         GetTableMap('tcplisten', '.1.3.6.1.2.1.6.20.1.4',
                     {'.1':'v4', '.2':'v6'}),
@@ -115,8 +115,8 @@ class IpV6ServiceMap(SnmpPlugin):
             else:
                 ports[port] = map
                 rm.append(map)
-        
-    
+
+
     def process(self, device, results, log):
         """collect snmp information from this device"""
         log.info('processing %s for device %s', self.name(), device.id)

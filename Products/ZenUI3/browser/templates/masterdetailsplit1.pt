@@ -30,7 +30,7 @@
 </tal:block> <!-- metal:define-slot="script_beforeLayout" -->
 </tal:block> <!-- metal:fill-slot="script_beforeLayout" -->
 
-<tal:block metal:fill-slot="script_layout">  
+<tal:block metal:fill-slot="script_layout">
 <script>
 Ext.onReady(function(){
     Ext.getCmp('center_panel').add(
@@ -39,14 +39,16 @@ Ext.onReady(function(){
             defaults: {'border':false},
             items: [{
                 id: 'master_panel',
+                cls: 'x-zenoss-master-panel',
                 region: 'west',
                 layout: 'fit',
                 width: 250,
+				maxWidth: 250,
                 split: true
             },{
                 id: 'detail_panel',
                 region: 'center',
-                layout: 'border',
+                layout: 'fit',
                 defaults: {'border':false}
             }]
         }

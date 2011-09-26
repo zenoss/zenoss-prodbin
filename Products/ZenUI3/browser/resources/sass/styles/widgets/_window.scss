@@ -1,0 +1,41 @@
+@mixin zenoss-window {
+
+    @include extjs-window-ui(
+        'default',
+
+        $ui-border-radius: $window-border-radius,
+        $ui-border-color: $window-border-color,
+        $ui-inner-border-color: $window-inner-border-color,
+
+        $ui-header-color: $window-header-color,
+
+        $ui-body-border-color: $window-body-border-color,
+        $ui-body-background-color: $window-body-background-color,
+        $ui-body-color: $window-body-color,
+
+        $ui-background-color: $window-background-color
+
+    );
+
+
+    .#{$prefix}window-header {
+
+        .#{$prefix}tool-close {
+            @include zenoss-background-image("window/close-button.png");
+        }
+
+        .#{$prefix}tool-over .#{$prefix}tool-close {
+            background-position: 0 0;
+        }
+
+
+    }
+
+    .#{$prefix}window-body {
+        .#{$prefix}panel-body {
+            background-color: $window-body-background-color;
+            color: $window-body-color;
+        }
+    }
+
+}

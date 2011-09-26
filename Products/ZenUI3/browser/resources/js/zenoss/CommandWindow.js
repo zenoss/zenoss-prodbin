@@ -28,7 +28,9 @@ var formTpl = new Ext.Template(
     '</form>');
 formTpl.compile();
 
-Zenoss.CommandPanel = Ext.extend(Zenoss.IFramePanel, {
+Ext.define("Zenoss.CommandPanel", {
+    alias:['widget.commandpanel'],
+    extend:"Zenoss.IFramePanel",
     constructor: function(config) {
         config = Ext.applyIf(config || {}, {
             ignoreClassName: true,
@@ -54,14 +56,16 @@ Zenoss.CommandPanel = Ext.extend(Zenoss.IFramePanel, {
     }
 });
 
-Ext.reg('commandpanel', Zenoss.CommandPanel);
+
 
 /**********************************************************************
  *
  *  Command Window
  *
  */
-Zenoss.CommandWindow = Ext.extend(Ext.Window, {
+Ext.define("Zenoss.CommandWindow", {
+    alias:['widget.commandwindow'],
+    extend:"Ext.Window",
     constructor: function(config) {
         this.cpanel = Ext.id();
         this.commandData = config.data ||
@@ -92,13 +96,13 @@ Zenoss.CommandWindow = Ext.extend(Ext.Window, {
                     xtype: 'checkbox',
                     checked: true,
                     boxLabel: '<span style="color:white">Autoscroll</span>',
-                    handler: function(c){
+                    handler: Ext.bind(function(c){
                         if (c.checked) {
                             this.startScrolling();
                         } else {
                             this.stopScrolling();
                         }
-                    }.createDelegate(this)
+                    }, this)
                 }
             }
         });
@@ -151,6 +155,6 @@ Zenoss.CommandWindow = Ext.extend(Ext.Window, {
     }
 });
 
-Ext.reg('commandwindow', Zenoss.CommandWindow);
+
 
 })();

@@ -49,7 +49,7 @@ class TriggersFacade(ZuulFacade):
         super(TriggersFacade, self).__init__(context)
 
         self._guidManager = IGUIDManager(self._dmd)
-        
+
         config = getGlobalConfiguration()
         schema = getUtility(IQueueSchema)
         self.triggers_service = TriggerServiceClient(config.get('zep_uri', 'http://localhost:8084'), schema)
@@ -84,7 +84,7 @@ class TriggersFacade(ZuulFacade):
         @type trigger: Products.ZenModel.Trigger.Trigger
         @param guid: The guid
         @type guid: str
-        
+
         This method was created to provide a hook for unit tests.
         """
         IGlobalIdentifier(trigger).guid = guid
@@ -135,7 +135,7 @@ class TriggersFacade(ZuulFacade):
 
                 try:
                     self._getTriggerManager()._setObject(triggerObject.id, triggerObject)
-                    
+
                 except BadRequest:
                     # looks like the id already exists, remove this specific
                     # trigger from zep. This can happen if multiple createTrigger
@@ -174,7 +174,7 @@ class TriggersFacade(ZuulFacade):
 
         log.debug('SYNC: Trigger and notification synchronization complete.')
 
-        
+
     def getTriggers(self):
         self.synchronize()
 
@@ -247,7 +247,7 @@ class TriggersFacade(ZuulFacade):
     def removeTrigger(self, uuid):
         user = getSecurityManager().getUser()
         trigger = self._guidManager.getObject(uuid)
-        
+
         if self.triggerPermissions.userCanUpdateTrigger(user, trigger):
             # If a user has the ability to update (remove) a trigger, it is
             # presumed that they will be consciously deleting triggers that
@@ -258,7 +258,7 @@ class TriggersFacade(ZuulFacade):
 
             # if there was an error, the triggers service will throw an exception
             self._removeTriggerFromZep(uuid)
-            
+
             context = aq_parent(trigger)
             context._delObject(trigger.id)
 
@@ -280,7 +280,7 @@ class TriggersFacade(ZuulFacade):
         for n in self._getNotificationManager().getChildNodes():
             if trigger_uuid in n.subscriptions:
                 yield n
-    
+
     def getTrigger(self, uuid):
         user = getSecurityManager().getUser()
         trigger = self._guidManager.getObject(uuid)
@@ -311,9 +311,9 @@ class TriggersFacade(ZuulFacade):
 
     def updateTrigger(self, **data):
         user = getSecurityManager().getUser()
-        
+
         triggerObj = self._guidManager.getObject(data['uuid'])
-        
+
         log.debug('Trying to update trigger: %s' % triggerObj.id)
 
         if self.triggerPermissions.userCanManageTrigger(user, triggerObj):
@@ -332,7 +332,7 @@ class TriggersFacade(ZuulFacade):
             triggerObj.users = data.get('users', [])
             self.triggerPermissions.clearPermissions(triggerObj)
             self.triggerPermissions.updatePermissions(self._guidManager, triggerObj)
-            
+
         if self.triggerPermissions.userCanUpdateTrigger(user, triggerObj):
             if "name" in data:
                 triggerObj.setTitle(data["name"])
@@ -363,7 +363,7 @@ class TriggersFacade(ZuulFacade):
             util = getUtility(IAction, notification.action)
         except ComponentLookupError, e:
             raise InvalidTriggerActionType("Invalid action type specified: %s" % notification.action)
-        
+
         fields = {}
         for iface in providedBy(util.getInfo(notification)):
             f = getFields(iface)
@@ -462,7 +462,7 @@ class TriggersFacade(ZuulFacade):
             action.updateContent(notification.content, data)
 
 
-        
+
         if self.notificationPermissions.userCanManageNotification(user, notification):
             # if these values are not sent (in the case that the fields have been
             # disabled, do not set the value.
@@ -483,7 +483,7 @@ class TriggersFacade(ZuulFacade):
 
             notification.subscriptions = data.get('subscriptions')
             self.updateNotificationSubscriptions(notification)
-            
+
             notification.recipients = data.get('recipients', [])
             self.notificationPermissions.clearPermissions(notification)
             self.notificationPermissions.updatePermissions(self._guidManager, notification)
@@ -510,7 +510,7 @@ class TriggersFacade(ZuulFacade):
             label = '%s (%s)' % (recipient.getId(), my_type.capitalize()),
             value = IGlobalIdentifier(recipient).getGUID(),
         )
-    
+
     def getWindows(self, uid):
         notification = self._getObject(uid)
         for window in notification.windows():
@@ -539,8 +539,8 @@ class TriggersFacade(ZuulFacade):
         for field in window._properties:
             if field['id'] == 'start':
                 start = data['start']
-                start = start.replace('T00:00:00', 'T' + data['starttime'])
-                startDT = datetime.strptime(start, "%Y-%m-%dT%H:%M")
+                start = start + " T" + data['starttime']
+                startDT = datetime.strptime(start, "%m-%d-%Y T%H:%M")
                 setattr(window, 'start', int(startDT.strftime('%s')))
             elif field['id'] == 'duration':
                 setattr(window, 'duration', int(data['duration']))
@@ -586,7 +586,7 @@ class TriggerPermissionManager(object):
                 trigger['userManage'] = self.userCanManageTrigger(user, triggerObject)
 
                 trigger['users'] = triggerObject.users
-                
+
                 results.append(trigger)
 
         return results
@@ -618,7 +618,7 @@ class TriggerPermissionManager(object):
                 if user_info.get('manage'):
                     trigger.manage_addLocalRoles(userOrGroup.id, [TRIGGER_MANAGER_ROLE])
                     log.debug('Added role: %s for user or group: %s' % (TRIGGER_MANAGER_ROLE, userOrGroup.id))
-    
+
 
     def setupTrigger(self, trigger):
         # Permissions are managed here because managing these default permissions
@@ -652,7 +652,7 @@ class TriggerPermissionManager(object):
              TRIGGER_MANAGER_ROLE),
             acquire=False
         )
-        
+
 
 class NotificationPermissionManager(object):
     """
@@ -696,7 +696,7 @@ class NotificationPermissionManager(object):
 
                 yield notification
 
-    def clearPermissions(self, notification):    
+    def clearPermissions(self, notification):
         # remove all previous local roles, besides 'Owner'
         removeUserIds = []
         for userId, roles in notification.get_local_roles():

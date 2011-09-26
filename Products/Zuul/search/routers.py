@@ -111,7 +111,7 @@ class SearchRouter(DirectRouter):
         return {'results': results,
                 'total': total}
 
-    def getAllResults(self, query, category="", start=0, limit=50, sort='excerpt',
+    def getAllResults(self, query, category="", start=0, limit=50, sort='excerpt', page=None,
                       dir='ASC'):
         """
         Returns ISearchResultSnippets for the results of the query.

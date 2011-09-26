@@ -26,7 +26,8 @@ Ext.onReady( function() {
         form = Ext.getCmp('serviceForm');
 
         var isClass = (form.contextUid.indexOf('serviceclasses') > 0),
-            isRoot = form.contextUid == Ext.getCmp('navTree').root.attributes.uid;
+            isRoot = form.contextUid == Ext.getCmp('navTree').getRootNode().data.uid;
+
 
         if (action.type == 'directload') {
             form.isLoadInProgress = false;
@@ -45,6 +46,11 @@ Ext.onReady( function() {
             Ext.getCmp('nameTextField').setDisabled(isRoot);
         }
         else if (action.type == 'directsubmit') {
+
+            if (Ext.getCmp('monitoredStartModes')) {
+                Ext.getCmp('monitoredStartModes').refresh();
+            }
+
             if (isClass) {
                 // Update the record in the navigation grid.
                 var navGrid = Ext.getCmp('navGrid'),
@@ -56,58 +62,59 @@ Ext.onReady( function() {
                     navGrid.view.refreshRow(navGridRecord);
                     Ext.getCmp('detail_panel').detailCardPanel.setContext(navGridRecord.data.uid);
                 }
-            }
-            else {
+            } else {
                 // Update the record in the navigation tree.
                 var treeSM = Ext.getCmp('navTree').getSelectionModel(),
                     treeSNode = treeSM.getSelectedNode();
 
-                treeSNode.attributes.text.text = form.form.getValues().name;
-                treeSNode.setText(treeSNode.attributes.text);
-                Ext.getCmp('detail_panel').detailCardPanel.setContext(treeSNode.attributes.uid);
+                treeSNode.data.text.text = form.form.getValues().name;
+                treeSNode.setText(treeSNode.data.text);
+                Ext.getCmp('detail_panel').detailCardPanel.setContext(treeSNode.data.uid);
             }
+
+
         }
     };
 
     zsf.nameTextField = {
         xtype: 'textfield',
-        id: 'nameTextField',
+        id: 'nameTextField2',
         fieldLabel: _t('Name'),
         name: 'name',
+        anchor: '95%',
         allowBlank: false,
-        width: "100%"
     };
 
     zsf.descriptionTextField = {
         xtype: 'textfield',
         id: 'descriptionTextField',
         fieldLabel: _t('Description'),
+        anchor: '95%',
         name: 'description',
-        width: "100%"
     };
 
     zsf.sendStringTextField = {
         xtype: 'textfield',
         id: 'sendStringTextField',
         fieldLabel: _t('Send String'),
+        anchor: '95%',
         name: 'sendString',
-        width: "100%"
     };
 
     zsf.expectRegexTextField = {
         xtype: 'textfield',
         id: 'expectRegexTextField',
         fieldLabel: _t('Expect Regex'),
+        anchor: '95%',
         name: 'expectRegex',
-        width: "100%"
     };
 
     zsf.serviceKeysTextField = {
         xtype: 'textarea',
         id: 'serviceKeysTextField',
         fieldLabel: _t('Service Keys'),
+        anchor: '95%',
         name: 'serviceKeys',
-        width: "100%"
     };
 
     zsf.zMonitor = {
@@ -138,7 +145,7 @@ Ext.onReady( function() {
         layout: 'column',
         border: false,
         defaults: {
-            layout: 'form',
+            layout: 'anchor',
             border: false,
             bodyStyle: 'padding: 15px',
             columnWidth: 0.5
@@ -161,7 +168,6 @@ Ext.onReady( function() {
     };
 
     zsf.initForm = function() {
-        var serviceForm = Ext.getCmp('detail_panel').add(zsf.formConfig);
-        serviceForm.on('actioncomplete', zsf.actioncompleteHandler);
+        Ext.getCmp('serviceForm').on('actioncomplete', zsf.actioncompleteHandler);
     };
 });

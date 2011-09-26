@@ -54,14 +54,24 @@
 </div>
 <script>
 Ext.onReady(function(){
+
     var footer = Ext.get('footer_extra'),
+        menus = [], hrefs,
         menu = Ext.get('contextmenu_items'),
+        btn;
+
+        hrefs = menu.select('a');
+        Ext.each(hrefs.elements, function(elem) {
+            menus.push({
+                text: elem.innerHTML,
+                href: elem.href
+            });
+        });
         btn = new Ext.Button({
             renderTo: footer,
             iconCls: 'customize',
-            menu: {cls: 'z-bc-menu'}
+            menu: {cls: 'z-bc-menu', items: menus}
         });
-    Zenoss.util.registerBackCompatMenu(menu, btn, 'bl-tl')
 });
 </script>
 </tal:block>
@@ -97,18 +107,21 @@ Ext.onReady(function(){
     var container = Ext.get('menuslot_'+menu_id),
         menu = Ext.get(menu_id+'_items');
 
-    var btn = new Ext.Button({
-        renderTo: container,
-        iconCls: 'customize',
-        menu: {cls: 'z-bc-menu'}
-    });
-    if (!menu) {
-        btn.hide();
-    }else {
-        var inputs = menu.select('input[type=\'hidden\']');
-        inputs.appendTo(btn.getEl());
+    if (menu) {
+        var menus = [];
+        var hrefs = menu.select('a');
+        Ext.each(hrefs.elements, function(elem) {
+            menus.push({
+                text: elem.innerHTML,
+                href: elem.href
+            });
+        });
 
-        Zenoss.util.registerBackCompatMenu(menu, btn, 'bl', [2, -1]);
+        var btn = new Ext.Button({
+            renderTo: container,
+            iconCls: 'customize',
+            menu: {cls: 'z-bc-menu', items: menus}
+        });
     }
 });
 

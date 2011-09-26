@@ -3,12 +3,12 @@
 
     var resetCombo = function(combo, manufacturer) {
         combo.clearValue();
-        combo.getStore().setBaseParam('manufacturer', manufacturer);
+        combo.store.setBaseParam('manufacturer', manufacturer);
         delete combo.lastQuery;
         //combo.doQuery(combo.allQuery, true);
     };
 
-    var clickToEditConfig = function(obj) {
+    var clickToEditConfig = function(obj, superclass) {
         return {
             constructor: function(config) {
                 var title = _t('Click to edit this field');
@@ -17,7 +17,7 @@
                 config.fieldLabel += editLink;
                 config.listeners = Ext.apply(config.listeners||{}, {
                     render: function(p) {
-                        p.editlink = p.label.select('a.manu-edit-link');
+                        p.editlink = p.labelEl.select('a.manu-edit-link');
                         p.editlink.on('click', function(){
                             p.fireEvent('labelclick', p);
                         }, p);
@@ -29,15 +29,17 @@
         };
     };
 
-    var ClickToEditField = Ext.extend(Zenoss.form.LinkField, {});
-    ClickToEditField = Ext.extend(Zenoss.form.LinkField,
-                                  clickToEditConfig(ClickToEditField));
-    Ext.reg('clicktoedit', ClickToEditField);
+    Zenoss.ClickToEditField = Ext.extend(Zenoss.form.LinkField, {});
 
-    var ClickToEditNoLink = Ext.extend(Ext.form.DisplayField, {});
-    ClickToEditNoLink = Ext.extend(Ext.form.DisplayField,
-                                   clickToEditConfig(ClickToEditNoLink));
-    Ext.reg('clicktoeditnolink', ClickToEditNoLink);
+
+    Zenoss.ClickToEditField = Ext.extend(Zenoss.form.LinkField,
+                                  clickToEditConfig(Zenoss.ClickToEditField));
+    Ext.reg('clicktoedit', "Zenoss.ClickToEditField");
+
+    Zenoss.ClickToEditNoLink = Ext.extend(Ext.form.DisplayField, {});
+    Zenoss.ClickToEditNoLink = Ext.extend(Ext.form.DisplayField,
+                                   clickToEditConfig(Zenoss.ClickToEditNoLink));
+    Ext.reg('clicktoeditnolink', "Zenoss.ClickToEditNoLink");
 
 
     function editManuInfo (vals, uid) {
@@ -60,6 +62,7 @@
             fieldLabel: _t('HW Manufacturer'),
             value: name(vals.hwManufacturer),
             listeners: {'select': function(combo, record, index){
+                record = record[0];
                 var productCombo = Ext.getCmp('hwproductcombo');
                 resetCombo(productCombo, record.data.name);
             }}
@@ -83,6 +86,7 @@
             value: name(vals.osManufacturer),
             fieldLabel: _t('OS Manufacturer'),
             listeners: {'select': function(combo, record, index){
+                record = record[0];
                 var productCombo = Ext.getCmp('osproductcombo');
                 resetCombo(productCombo, record.data.name);
             }}
@@ -105,13 +109,13 @@
             title: _t('Edit Manufacturer Info'),
             items: [{
                 xtype: 'container',
-                layout: 'form',
+                layout: 'anchor',
                 autoHeight: true,
                 style: 'padding-bottom:5px;margin-bottom:5px;border-bottom:1px solid #555;',
                 items: [hwManufacturers, hwProduct]
             },{
                 xtype: 'container',
-                layout: 'form',
+                layout: 'anchor',
                 autoHeight: true,
                 items: [osManufacturers, osProduct]
             }],
@@ -120,7 +124,8 @@
                 ref: '../savebtn',
                 disabled: Zenoss.Security.doesNotHavePermission('Manage Device'),
                 handler: function(btn){
-                    var vals = btn.refOwner.editForm.getForm().getFieldValues();
+                    var form = btn.refOwner.editForm.getForm(),
+                        vals = form.getFieldValues();
                     Ext.apply(vals, {uid:uid});
                     REMOTE.setProductInfo(vals, function(r) {
                         Ext.getCmp('device_overview').load();
@@ -206,7 +211,7 @@
                 xtype: 'panel',
                 html: config.instructions
             }, {
-                xtype: 'spacer',
+                xtype: 'tbspacer',
                 height: 5
             }, {
                 xtype: 'panel',
@@ -258,7 +263,7 @@
 
                     var grouplist = this;
                     var oldHeight = this.getHeight();
-                    this.add({xtype: 'spacer', height: 5});
+                    this.add({xtype: 'tbspacer', height: 5});
                     this.add({
                         xtype: 'panel',
                         layout: 'hbox',
@@ -270,7 +275,7 @@
                             xtype: 'panel',
                             html: group
                         }, {
-                            xtype: 'spacer',
+                            xtype: 'tbspacer',
                             flex: 1
                         }, {
                             xtype: 'button',
@@ -375,7 +380,6 @@
                 disabled: Zenoss.Security.doesNotHavePermission('Manage Device'),
                 handler: function(btn) {
                     var vals = btn.refOwner.editForm.getForm().getFieldValues();
-
                     if (vals.location) {
                         var submitVals = {
                             uids: [uid],
@@ -406,13 +410,15 @@
         return !!c.setValue && !!c.getValue && !!c.markInvalid && !!c.clearInvalid;
     }
 
-    Zenoss.DeviceOverviewForm = Ext.extend(Ext.form.FormPanel, {
+    Ext.define("Zenoss.DeviceOverviewForm", {
+        alias:['widget.devformpanel'],
+        extend:"Ext.form.FormPanel",
         labelAlign: 'top',
         paramsAsHash: true,
         frame: true,
         defaults: {
-            labelStyle: 'font-size: 13px; color: #5a5a5a',
-            anchor: '100%'
+            anchor: '95%',
+            labelStyle: 'font-size: 13px; color: #5a5a5a'
         },
         buttonAlign: 'left',
         buttons: [{
@@ -468,7 +474,7 @@
         onFieldAdd: function(field) {
             if (!field.isXType('displayfield')) {
                 this.showButtons();
-                this.mon(field, 'valid', this.doButtons, this);
+                this.mon(field, 'dirtychange', this.doButtons, this);
             }
         },
         hideFooter: function() {
@@ -478,38 +484,45 @@
             this.footer.show();
         },
         addField: function(field) {
-            this.items.push( field );
+            this.add(field);
         },
         addFieldAfter: function(field, afterFieldName) {
-            this.items.splice(this._indexOfFieldName(afterFieldName)+1, 0, field);
+            this.getItems().splice(this._indexOfFieldName(afterFieldName)+1, 0, field);
         },
         _indexOfFieldName: function(name) {
-            var idx = -1;
-            for ( i = 0; i < this.items.length; i++ ){
-                if (this.items[i].name == name){
+            var idx = -1, items = this.getItems();
+            for ( i = 0; i < items.length; i++ ){
+                if (items[i].name == name){
                     idx = i;
                     break;
                 }
             }
         return idx;
         },
-        replaceField: function(name,field) {
-            idx = this._indexOfFieldName(name);
-            this.items[idx] = field;
+        replaceField: function(name, field) {
+            this.removeField(name);
+            this.addField(field);
         },
         removeField: function(name) {
-            idx = this._indexOfFieldName(name);
-            this.items.splice(idx,1);
+            var field = this.getField(name);
+
+            if (field) {
+                this.remove(field);
+            }
         },
         getField: function(name) {
-            return this.items[this._indexOfFieldName(name)];
+            return this.getItems()[this._indexOfFieldName(name)];
+        },
+        getItems: function(){
+            return this.items.items;
         }
-
     });
 
-    Ext.reg('devformpanel', Zenoss.DeviceOverviewForm);
 
-    Zenoss.DeviceOverviewPanel = Ext.extend(Ext.Panel, {
+
+    Ext.define("Zenoss.DeviceOverviewPanel", {
+        alias:['widget.deviceoverview'],
+        extend:"Ext.Panel",
         constructor: function(config) {
             config = Ext.applyIf(config||{}, {
                 autoScroll: true,
@@ -522,29 +535,31 @@
                 },
                 forms: [],
                 listeners: {
-                    add: function(item) {
-                        if (item.isXType('form')) {
-                            var f = item.getForm();
-                            f.api = this.api;
-                            f.baseParams = this.baseParams;
-                            this.forms.push(item);
-                        }
+                    add: function(me, container) {
+                        Ext.each(container.items.items, function(item) {
+                            if (item.isXType('form')) {
+                                var f = item.getForm();
+                                f.api = this.api;
+                                f.baseParams = this.baseParams;
+                                this.forms.push(item);
+                            }
+                        }, this);
                     }
                 },
                 items: [{
-                    layout: 'hbox',
-                    defaults: {
-                        flex: 1
+                    layout: {
+                        type: 'hbox',
+                        align: 'stretchmax'
                     },
-                    layoutConfig: {
-                        align: 'stretchmax',
-                        defaultMargins: '10'
+                    defaults: {
+                        margin:'0 2 2 0',
+                        flex: 1
                     },
                     defaultType: 'devformpanel',
                     items: [{
                         id:'deviceoverviewpanel_summary',
                         defaultType: 'displayfield',
-                        height: 360,
+                        minheight: 350,
                         items: [{
                             fieldLabel: _t('Uptime'),
                             name: 'uptime'
@@ -568,7 +583,7 @@
                     },{
                         id:'deviceoverviewpanel_idsummary',
                         defaultType: 'displayfield',
-                        height: 360,
+                        height: 350,
                         listeners: {
                             actioncomplete: function(form, action) {
                                 if (action.type=='directsubmit') {
@@ -603,7 +618,7 @@
                     },{
                         id:'deviceoverviewpanel_descriptionsummary',
                         defaultType: 'textfield',
-                        height: 360,
+                        minHeight: 350,
                         items: [{
                             fieldLabel: _t('Rack Slot'),
                             name: 'rackSlot',
@@ -663,15 +678,17 @@
                 },{
                     id:'deviceoverviewpanel_customsummary',
                     defaultType: 'devformpanel',
-                    autoHeight: true,
                     layout: 'hbox',
+                    defaults: {
+                        margin:'0 2 2 0'
+                    },
                     layoutConfig: {
-                        align: 'stretchmax',
-                        defaultMargins: '10'
+                        align: 'stretchmax'
                     },
                     items: [{
                         defaultType: 'displayfield',
                         flex: 2,
+                        minHeight: 400,
                         items: [{
                             xtype: 'clicktoedit',
                             listeners: {
@@ -726,7 +743,7 @@
                     },{
                         id:'deviceoverviewpanel_snmpsummary',
                         defaultType: 'displayfield',
-                        flex: 1,
+                        //flex: 1,
                         minHeight: 400,
                         items: [{
                             fieldLabel: _t('SNMP SysName'),
@@ -758,7 +775,7 @@
             submit: function(form, success, scope) {
                 var o = {},
                 vals = scope.form.getFieldValues(true);
-                Ext.apply(o, vals, success.params);
+                Ext.apply(o, vals, scope.form.baseParams);
                 REMOTE.setInfo(o, function(result){
                     this.form.clearInvalid();
                     this.form.setValues(vals);
@@ -774,13 +791,14 @@
             this.load();
         },
         getFieldNames: function() {
-            var keys = [];
+            var keys = [], key;
             Ext.each(this.forms, function(f){
-                for (var key in f.getForm().getFieldValues(false)) {
+                Ext.each(f.getForm().getFields().items, function(field) {
+                    key = field.name;
                     if (keys.indexOf(key)==-1) {
                         keys.push(key);
                     }
-                }
+                });
             });
             return keys;
         },
@@ -803,7 +821,7 @@
         getValues: function() {
             var o = {};
             Ext.each(this.forms, function(form){
-                Ext.apply(o, form.getForm().getFieldValues());
+                Ext.apply(o, form.getForm().getValues(false, false, true, true));
             }, this);
             return o;
         },
@@ -813,7 +831,5 @@
             });
         }
     });
-
-    Ext.reg('deviceoverview', Zenoss.DeviceOverviewPanel);
 
 })();

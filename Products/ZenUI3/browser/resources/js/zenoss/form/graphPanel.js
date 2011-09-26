@@ -304,7 +304,9 @@
         GraphRefreshButton,
         tbarConfig;
 
-    GraphRefreshButton = Ext.extend(Zenoss.RefreshMenuButton, {
+    Ext.define("Zenoss.form.GraphRefreshButton", {
+        alias:['widget.graphrefreshbutton'],
+        extend:"Zenoss.RefreshMenuButton",
         constructor: function(config) {
             config = config || {};
             var menu = {
@@ -312,7 +314,6 @@
                 id: config.stateId || 'graph_refresh',
                 trigger: this,
                 items: [{
-                    xtype: 'menutextitem',
                     cls: 'refreshevery',
                     text: 'Refresh every'
                 },{
@@ -351,13 +352,15 @@
             Ext.apply(config, {
                 menu: menu
             });
-            GraphRefreshButton.superclass.constructor.apply(this, arguments);
+            this.callParent(arguments);
         }
     });
-    Ext.reg('graphrefreshbutton', GraphRefreshButton);
 
 
-    DRangeSelector = Ext.extend(Ext.form.ComboBox, {
+
+    Ext.define("Zenoss.form.DRangeSelector", {
+        alias:['widget.drangeselector'],
+        extend:"Ext.form.ComboBox",
         constructor: function(config) {
             config = config || {};
             Ext.apply(config, {
@@ -380,10 +383,10 @@
                     valueField: 'id',
                     displayField: 'label'
             });
-            DRangeSelector.superclass.constructor.apply(this, arguments);
+            this.callParent(arguments);
         }
     });
-    Ext.reg('drangeselector', DRangeSelector);
+
 
     tbarConfig = [{
                     xtype: 'tbtext',
@@ -438,7 +441,9 @@
                     }
                 }];
 
-    GraphPanel = Ext.extend(Ext.Panel, {
+    Ext.define("Zenoss.form.GraphPanel", {
+        alias:['widget.graphpanel'],
+        extend:"Ext.Panel",
         constructor: function(config) {
             config = config || {};
             // default to showing the toolbar
@@ -458,7 +463,7 @@
                 },
                 directFn: router.getGraphDefs
             });
-            GraphPanel.superclass.constructor.apply(this, arguments);
+            Zenoss.form.GraphPanel.superclass.constructor.apply(this, arguments);
         },
         setContext: function(uid) {
             // remove all the graphs
@@ -489,6 +494,7 @@
                         graphTitle: graph.title,
                         graphId: graphId,
                         isLinked: panel.isLinked,
+                        height: 250,
                         ref: graphId
                     }));
 
@@ -527,6 +533,6 @@
         }
     });
 
-    Ext.reg('graphpanel', GraphPanel);
+
 
 }());

@@ -41,6 +41,7 @@ Ext.onReady(function(){
                 region: 'west',
                 width: 250,
                 id: 'master_panel',
+                cls: 'x-zenoss-master-panel',
                 layout: 'fit',
                 split: true
             },{

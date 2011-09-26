@@ -17,7 +17,9 @@
 (function() {
     var ReverseSeverity,
         Severity;
-    Severity = Ext.extend(Ext.form.ComboBox, {
+    Ext.define("Severity", {
+        alias:['widget.severity'],
+        extend:"Ext.form.ComboBox",
         constructor: function(config) {
             config = config || {};
 
@@ -32,22 +34,24 @@
                 // this is defined in zenoss.js so should always be present
                 store: Zenoss.env.SEVERITIES
             });
-            Severity.superclass.constructor.apply(this, arguments);
+            this.callParent(arguments);
         }
     });
-    Ext.reg('severity', Severity);
 
-    ReverseSeverity = Ext.extend(Severity, {
+
+    Ext.define("ReverseSeverity", {
+        alias:['widget.reverseseverity'],
+        extend:"Severity",
         constructor: function(config) {
             var severities = [[0, "Critical"], [1, "Error"], [2, "Warning"], [3, "Info"], [4, "Debug"], [5, "Clear"]];
             config = config || {};
             Ext.applyIf(config, {
                 store: severities
             });
-            ReverseSeverity.superclass.constructor.apply(this, arguments);
+            this.callParent(arguments);
         }
     });
-    Ext.reg('reverseseverity', ReverseSeverity);
+
 
 }());
 

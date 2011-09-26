@@ -260,12 +260,12 @@ class MibRouter(TreeRouter):
                            mib=mibUid, trap=trapId)
         return DirectResponse.succeed()
 
-    def getOidMappings(self, uid, dir='ASC', sort='name', start=0, limit=256):
+    def getOidMappings(self, uid, dir='ASC', sort='name', start=0, page=None, limit=256):
         count, nodes = self.api.getMibNodes(uid=uid, dir=dir, sort=sort,
                 start=start, limit=limit, relation='nodes')
         return {'count': count, 'data': Zuul.marshal(nodes)}
 
-    def getTraps(self, uid, dir='ASC', sort='name', start=0, limit=256):
+    def getTraps(self, uid, dir='ASC', sort='name', start=0, page=None, limit=256):
         count, nodes = self.api.getMibNodes(uid=uid, dir=dir, sort=sort,
                 start=start, limit=limit, relation='notifications')
         return {'count': count, 'data': Zuul.marshal(nodes)}

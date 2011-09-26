@@ -15,9 +15,12 @@
 
 (function(){
 
-Zenoss.SlidingCardLayout = Ext.extend(Ext.layout.CardLayout, {
+Ext.define("Zenoss.SlidingCardLayout", {
+    extend:"Ext.layout.CardLayout",
+    alias: ['layout.slide'],
+    sizeAllCards: true,
     setActiveItem: function(index) {
-        var C = this.container,
+        var C = this.owner,
             B = C.body,
             card = C.getComponent(index),
             active = this.activeItem,
@@ -41,12 +44,13 @@ Zenoss.SlidingCardLayout = Ext.extend(Ext.layout.CardLayout, {
                             C.fireEvent('cardchange', C, card, index, active,
                                         activeIndex);
                     }
+
                     var x = B.getX(),
                         w = B.getWidth(),
                         s = [x - w, x + w],
                         cfg = {
-                            duration: 0.25,
-                            easing: 'easeInStrong',
+                            duration: 250,
+                            easing: 'ease',
                             opacity: 0,
                             callback: shiftsCallback
                         };
@@ -69,10 +73,12 @@ Zenoss.SlidingCardLayout = Ext.extend(Ext.layout.CardLayout, {
 
 });
 
-Ext.Container.LAYOUTS['slide'] = Zenoss.SlidingCardLayout;
+Ext.layout.container['slide'] = Zenoss.SlidingCardLayout;
 
 
-Zenoss.HorizontalSlidePanel = Ext.extend(Ext.Panel, {
+Ext.define("Zenoss.HorizontalSlidePanel", {
+    alias:['widget.horizontalslide'],
+    extend:"Ext.Panel",
     constructor: function(config) {
         this.headerText = new Ext.Toolbar.TextItem({
             html: (config && config.text) ? config.text : ''
@@ -94,7 +100,7 @@ Zenoss.HorizontalSlidePanel = Ext.extend(Ext.Panel, {
             var navButton = new Ext.Button({
                 text: (item && item.buttonText) ? item.buttonText : '',
                 // make the button belong to the owner panel
-                ref: '../../' + (item.buttonRef || 'navButton') ,
+                ref: (item.buttonRef || 'navButton'),
                 cls: index ? 'toleft' : 'toright',
                 handler: function() {
                     this.layout.setActiveItem(index ? 0 : 1);
@@ -102,6 +108,7 @@ Zenoss.HorizontalSlidePanel = Ext.extend(Ext.Panel, {
                 },
                 scope: this
             }, this);
+            this[item.buttonRef] = navButton;
             navButton.hide();
             items.push({
                 layout: 'fit',
@@ -152,7 +159,7 @@ Zenoss.HorizontalSlidePanel = Ext.extend(Ext.Panel, {
     }
 });
 
-Ext.reg('horizontalslide', Zenoss.HorizontalSlidePanel);
+
 
 /**
  * A MixedCollection for nav configs.
@@ -279,33 +286,35 @@ Zenoss.NavManager = Ext.extend(Object, {
 
 Zenoss.nav = new Zenoss.NavManager();
 
-Zenoss.SubselectionNodeUI = Ext.extend(Ext.tree.TreeNodeUI, {
-    render: function() {
-        Zenoss.SubselectionNodeUI.superclass.render.call(this);
-        Ext.removeNode(this.getIconEl());
-    }
-});
+// Zenoss.SubselectionNodeUI = Ext.extend(Ext.tree.TreeNodeUI, {
+//     render: function() {
+//         Zenoss.SubselectionNodeUI.superclass.render.call(this);
+//         Ext.removeNode(this.getIconEl());
+//     }
+// });
 
-Zenoss.SubselectionNode = Ext.extend(Ext.tree.TreeNode, {
-    constructor: function(config) {
-        Ext.applyIf(config, {
-            leaf: true,
-            uiProvider: Zenoss.SubselectionNodeUI
-        });
-        Zenoss.SubselectionNode.superclass.constructor.call(this, config);
-        this.addEvents('render');
-    },
-    render: function(bulkRender) {
-        Zenoss.SubselectionNode.superclass.render.call(this, bulkRender);
-        this.fireEvent('render', this);
-    }
+// Zenoss.SubselectionNode = Ext.extend(Ext.tree.TreeNode, {
+//     constructor: function(config) {
+//         Ext.applyIf(config, {
+//             leaf: true,
+//             uiProvider: Zenoss.SubselectionNodeUI
+//         });
+//         Zenoss.SubselectionNode.superclass.constructor.call(this, config);
+//         this.addEvents('render');
+//     },
+//     render: function(bulkRender) {
+//         Zenoss.SubselectionNode.superclass.render.call(this, bulkRender);
+//         this.fireEvent('render', this);
+//     }
 
-});
+// });
 
-Ext.tree.TreePanel.nodeTypes.subselect = Zenoss.SubselectionNode;
+// Ext.tree.TreePanel.nodeTypes.subselect = Zenoss.SubselectionNode;
 
 
-Zenoss.SubselectionPanel = Ext.extend(Ext.Panel, {
+Ext.define("Zenoss.SubselectionPanel", {
+    alias:['widget.subselection'],
+    extend:"Ext.Panel",
     constructor: function(config) {
         var id = config.id || Ext.id();
         Ext.applyIf(config, {
@@ -316,11 +325,11 @@ Zenoss.SubselectionPanel = Ext.extend(Ext.Panel, {
             items: [{
                 xtype:'treepanel',
                 ref: 'treepanel',
-                selModel: new Ext.tree.DefaultSelectionModel({
+                selModel: new Zenoss.TreeSelectionModel({
                     listeners: {
                         selectionchange: function(sm, node) {
                             if (node) {
-                                var action = node.attributes.action;
+                                var action = node.data.action;
                                 if (action) {
                                     if (Ext.isString(this.target)) {
                                         this.target = Ext.getCmp(this.target);
@@ -335,7 +344,8 @@ Zenoss.SubselectionPanel = Ext.extend(Ext.Panel, {
                 id: 'subselecttreepanel' + id,
                 border: false,
                 rootVisible: false,
-                root : {nodeType: 'node'}            }]
+                root : {nodeType: 'node'}
+            }]
         });
         Zenoss.SubselectionPanel.superclass.constructor.call(this, config);
     },
@@ -375,9 +385,53 @@ Zenoss.SubselectionPanel = Ext.extend(Ext.Panel, {
     }
 });
 
-Zenoss.DetailNavTreePanel = Ext.extend(Ext.tree.TreePanel, {
+Ext.define("Zenoss.DetailNavTreeModel" ,{
+    extend: 'Ext.data.Model',
+    fields: [{
+        name: 'hidden',
+        type: 'boolean'
+    }, {
+        name: 'leaf',
+        type: 'boolean'
+    }, {
+        name: 'uid',
+        type: 'string'
+    }, {
+        name: 'text',
+        type: 'object'
+    }, {
+        name: 'id',
+        type: 'string'
+    }, {
+        name: 'path',
+        type: 'string'
+    }, {
+        name: 'iconCls',
+        type: 'string'
+    }, {
+        name: 'uuid',
+        type: 'string'
+    }, {
+        name: 'action',
+        type: 'function'
+    }]
+});
+
+Ext.define("Zenoss.DetailNavTreePanel", {
+    alias:['widget.detailnavtreepanel'],
+    extend:"Ext.tree.Panel",
     constructor: function(config){
         Ext.applyIf(config, {
+            store: Ext.create('Ext.data.TreeStore', {
+                model: 'Zenoss.DetailNavTreeModel',
+                proxy: {
+                    type: 'memory',
+                    reader: {
+                        type: 'json'
+                    }
+                },
+                autoLoad: false
+            }),
             useArrows: true,
             autoHeight: true,
             selModel: new Zenoss.BubblingSelectionModel({
@@ -387,22 +441,40 @@ Zenoss.DetailNavTreePanel = Ext.extend(Ext.tree.TreePanel, {
             ref: 'subselecttreepanel',
             border: false,
             rootVisible: false,
-            cls: 'x-tree-noicon',
+            iconCls: 'x-tree-noicon',
             root : {nodeType: 'node'}
         });
-        Zenoss.DetailNavTreePanel.superclass.constructor.call(this, config);
+        this.callParent(arguments);
+        // FIXME: hack to expand the tree panel when it grows dynamically
+        this.on('itemexpand', function(){
+            return Ext.defer(Ext.bind(this.doLayout, this), 500);
+        }, this);
+        this.on('itemcollapse', function(){
+            return Ext.defer(Ext.bind(this.doLayout, this), 500);
+        }, this);
+    },
+    setNodeVisible: function(node, visible) {
+        if (Ext.isString(node)) {
+            node = this.getNodeById(node);
+        }
+        var view = this.getView(),
+            el = Ext.fly(view.getNodeByRecord(node));
+        el.setVisibilityMode(Ext.Element.DISPLAY);
+        el.setVisible(visible);
     }
 });
-Ext.reg('detailnavtreepanel', Zenoss.DetailNavTreePanel);
 
-Ext.reg('subselection', Zenoss.SubselectionPanel);
+
+
 /**
  * Used to manage and display detail navigation tree for a contextId
  *
  * @class Zenoss.DetailNavPanel
  * @extends Zenoss.SubselectionPanel
  */
-Zenoss.DetailNavPanel = Ext.extend(Zenoss.SubselectionPanel,{
+Ext.define("Zenoss.DetailNavPanel", {
+    alias:['widget.detailnav'],
+    extend:"Zenoss.SubselectionPanel",
     /**
      * @cfg {function} onGetNavConfig abstract function; hook to provide more nav items
      * @param {string} uid; item to get nav items for
@@ -537,17 +609,15 @@ Zenoss.DetailNavPanel = Ext.extend(Zenoss.SubselectionPanel,{
         Zenoss.remote.DetailNavRouter.getDetailNavConfigs(args, myCallback, this);
     },
     reset: function() {
-        var root = new Ext.tree.AsyncTreeNode();
-        this.treepanel.setRootNode(root);
-        return root;
+        return this.treepanel.setRootNode({});
     },
     selectFirst: function(me, root) {
-        var sel = root.getOwnerTree().getSelectionModel().getSelectedNode(),
+        var sel = me.getSelectionModel().getSelectedNode(),
             token = Ext.History.getToken(),
             firstToken = me.id + Ext.History.DELIMITER + root.firstChild.id;
         if (!sel) {
             if (!token || (token && token==firstToken)) {
-                root.firstChild.select();
+                me.getSelectionModel().selectRow(0);
             }
         }
     },
@@ -562,7 +632,8 @@ Zenoss.DetailNavPanel = Ext.extend(Zenoss.SubselectionPanel,{
             root = this.reset();
             Zenoss.util.each(nodes, function(node){
                 Ext.applyIf(node, {
-                    nodeType: 'subselect'
+                    nodeType: 'subselect',
+                    leaf: true
                 });
                 root.appendChild(node);
             });
@@ -574,12 +645,15 @@ Zenoss.DetailNavPanel = Ext.extend(Zenoss.SubselectionPanel,{
         }
         this.loaded = true;
         this.fireEvent('navloaded', this, root);
+        this.doLayout();
     }
 });
-Ext.reg('detailnav', Zenoss.DetailNavPanel);
 
 
-Zenoss.DetailNavCombo = Ext.extend(Ext.form.ComboBox, {
+
+Ext.define("Zenoss.DetailNavCombo", {
+    alias:['widget.detailnavcombo'],
+    extend:"Ext.form.ComboBox",
     target: null,
     contextUid: null,
     lastSelItem: null,
@@ -593,6 +667,16 @@ Zenoss.DetailNavCombo = Ext.extend(Ext.form.ComboBox, {
     menuIds: ['More','Manage','Edit', 'Actions','Add','TopLevel'],
     onSelectionChange: Ext.emptyFn,
     onGetNavConfig: function(uid){ return []; },
+    constructor: function(config) {
+        Ext.applyIf(config, {
+            store: new Ext.data.ArrayStore({
+                'id':0,
+                fields: ['value', 'text'],
+                autoDestroy: true
+            })
+        });
+        this.callParent(arguments);
+    },
     getTarget: function() {
         var target = this.target;
         return Ext.isString(target) ? Ext.getCmp(target) : target;
@@ -602,8 +686,9 @@ Zenoss.DetailNavCombo = Ext.extend(Ext.form.ComboBox, {
         this.on('select', this.onItemSelected, this);
     },
     onItemSelected: function(me, item){
-        var target = this.getTarget(),
-            id = item.id,
+        var item = item[0],
+            target = this.getTarget(),
+            id = item.get('value'),
             config = this.panelConfigMap[id],
             action = config.action || function(node, target) {
                 if (!(id in target.items.map)) {
@@ -619,19 +704,17 @@ Zenoss.DetailNavCombo = Ext.extend(Ext.form.ComboBox, {
         action.call(this, item, target, this);
     },
     selectAt: function(idx) {
-        var record = this.store.getAt(idx);
-        this.lastSelItem = record;
-        this.onSelect(record, idx);
+        var record = this.store.getAt(idx || 0);
+        this.selectByItem(record);
     },
     selectByItem: function(item) {
-        var idx = 0;
-        if (item) {
-            idx = this.store.indexOfId(item.id);
-            if (idx < 0) {
-                idx = 0;
-            }
+        var lastItem = this.lastSelItem;
+        this.lastSelItem = item || this.store.getAt(0);
+        this.select(this.lastSelItem);
+        if (this.lastSelItem == lastItem) {
+            // Ext doesn't fire if the items are the same, but we want it to
+            this.fireEvent('select', this, [this.lastSelItem]);
         }
-        this.selectAt(idx);
     },
     setContext: function(uid) {
         this.contextUid = uid;
@@ -675,16 +758,18 @@ Zenoss.DetailNavCombo = Ext.extend(Ext.form.ComboBox, {
             this.valueField = 'value';
             this.displayField = 'text';
             this.list = null;
-            this.initList();
+            this.doComponentLayout();
             // "sticky" menu selection, show same item as was shown for last context
             this.selectByItem(this.lastSelItem);
         }, this);
     }
 });
 
-Ext.reg('detailnavcombo', Zenoss.DetailNavCombo);
 
-Zenoss.DetailContainer = Ext.extend(Ext.Panel, {
+
+Ext.define("Zenoss.DetailContainer", {
+    alias:['widget.detailcontainer'],
+    extend: "Ext.Panel",
     constructor: function(config){
         Ext.applyIf(config, {
             border: false,
@@ -697,7 +782,7 @@ Zenoss.DetailContainer = Ext.extend(Ext.Panel, {
         Ext.each(config.items, function(item){
             item.bubbleTarget = this;
         }, this);
-        Zenoss.DetailContainer.superclass.constructor.call(this, config);
+        this.callParent(arguments);
     },
     setContext: function(uid) {
         this.items.each(function(item){
@@ -708,16 +793,14 @@ Zenoss.DetailContainer = Ext.extend(Ext.Panel, {
         var itemSelModel;
         this.items.each(function(item){
             itemSelModel = item.getSelectionModel();
-            if ( itemSelModel === eventSelModel ) {
+            if (itemSelModel === eventSelModel) {
                 item.onSelectionChange(node);
             } else {
-                if ( itemSelModel.getSelectedNode() ) {
-                    itemSelModel.getSelectedNode().unselect(true);
-                }
+                itemSelModel.deselectAll();
             }
         });
     }
 });
-Ext.reg('detailcontainer', Zenoss.DetailContainer);
+
 
 })();

@@ -22,7 +22,7 @@ function resetPassword(){
 }
 
 function clearBrowserState(event){
-    if(confirm("Are you sure you want to reset your preferences to their default values??")){
+    if(confirm("Are you sure you want to reset your preferences to their default values?")){
         Zenoss.remote.MessagingRouter.clearBrowserState();
     }
 }

@@ -1,0 +1,18 @@
+@mixin zenoss-toolbar {
+
+    @each $ui in ('default', 'large') {
+        @include extjs-toolbar-ui(
+            $ui,
+            $background-color: $toolbar-background-color,
+            $background-gradient: $toolbar-background-gradient,
+            $border-color: $toolbar-border-color
+        );
+
+        .#{$prefix}nlg {
+            .#{$prefix}toolbar-#{$ui} {
+                @include zenoss-background-image("toolbar/toolbar-#{$ui}-bg.png", true);
+            }
+        }
+    }
+
+}

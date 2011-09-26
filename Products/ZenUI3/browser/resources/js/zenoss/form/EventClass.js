@@ -15,7 +15,9 @@
 
 /* package level */
 (function() {
-     var EventClass = Ext.extend(Ext.form.ComboBox, {
+     Ext.define("Zenoss.form.EventClass", {
+         alias:['widget.eventclass'],
+         extend:"Ext.form.ComboBox",
          constructor: function(config) {
              config = config || {};
              if (!Zenoss.env.EVENT_CLASSES) {
@@ -33,8 +35,8 @@
                  mode: 'local',
                  store: Zenoss.env.EVENT_CLASSES
              });
-             EventClass.superclass.constructor.apply(this, arguments);
+             this.callParent(arguments);
          }
      });
-     Ext.reg('eventclass', EventClass);
+
 }());

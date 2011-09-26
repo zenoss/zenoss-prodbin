@@ -17,7 +17,9 @@
 
 Ext.ns('Zenoss.form');
 
-Zenoss.form.InheritField = Ext.extend(Zenoss.form.FieldRow, {
+Ext.define("Zenoss.form.InheritField", {
+    extend: "Zenoss.form.FieldRow",
+    alias: ['widget.inheritfield'],
     constructor: function(config) {
         var item;
 
@@ -31,10 +33,7 @@ Zenoss.form.InheritField = Ext.extend(Zenoss.form.FieldRow, {
         // Add the checkbox
         this.inheritbox = new Ext.form.Checkbox({
             fieldLabel: _t('Inherit?'),
-            width: 60,
-            handler: function(me) {
-                console.log(me.checked ? 'checked' : 'unchecked');
-            }
+            width: 60
         });
         config.items = [this.inheritbox, item];
         Zenoss.form.InheritField.superclass.constructor.call(this, config);
@@ -61,6 +60,6 @@ Zenoss.form.InheritField = Ext.extend(Zenoss.form.FieldRow, {
         this.field.setValue(value);
     }
  });
- Ext.reg('inheritfield', Zenoss.form.InheritField);
+
 
 })();

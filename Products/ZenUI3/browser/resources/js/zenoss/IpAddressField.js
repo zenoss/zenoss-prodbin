@@ -4,7 +4,7 @@ Ext.ns('Zenoss');
 
 function makeIpAddress(val) {
     var octets = val.split('.');
-    if(octets.length>4) 
+    if(octets.length>4)
         return false;
     while(octets.length < 4) {
         octets.push('0');
@@ -13,7 +13,7 @@ function makeIpAddress(val) {
         var octet=parseInt(octets[i], 10);
         if (!octet && octet!==0) return false;
         try {
-            if (octet>255) return false;        
+            if (octet>255) return false;
         } catch(e) {
             return false;
         }
@@ -31,7 +31,9 @@ function count(of, s) {
  * @extends Ext.form.TextField
  * @constructor
  */
-Zenoss.IpAddressField = Ext.extend(Ext.form.TextField, {
+Ext.define("Zenoss.IpAddressField", {
+    alias:['widget.ipaddressfield'],
+    extend:"Ext.form.TextField",
     constructor: function(config){
         config.maskRe = true;
         Zenoss.IpAddressField.superclass.constructor.call(this, config);
@@ -39,7 +41,7 @@ Zenoss.IpAddressField = Ext.extend(Ext.form.TextField, {
     filterKeys: function(e, dom) {
         if(e.ctrlKey || e.isSpecialKey()){
             return;
-        } 
+        }
         e.stopEvent();
         var full, result, newoctet,
             cursor = dom.selectionStart,
@@ -51,9 +53,9 @@ Zenoss.IpAddressField = Ext.extend(Ext.form.TextField, {
             result = beg + end;
             cursor += end.indexOf('.');
             newoctet = end.split('.')[1];
-            if (selend==cursor+1) 
-                cursor++; 
-            if(newoctet) 
+            if (selend==cursor+1)
+                cursor++;
+            if(newoctet)
                 dom.setSelectionRange(cursor+1, cursor+newoctet.length+1);
         } else {
             result = makeIpAddress(beg + s + end);
@@ -67,6 +69,6 @@ Zenoss.IpAddressField = Ext.extend(Ext.form.TextField, {
 
 }); // Ext.extend
 
-Ext.reg('ipaddressfield', Zenoss.IpAddressField);
+
 
 })();

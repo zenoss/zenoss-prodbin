@@ -23,7 +23,9 @@
      * - directFn - The server call when we press Save
      * - saveHandler - the router callback from after we save
      **/
-    Zenoss.form.DataSourceEditDialog = Ext.extend(Zenoss.dialog.BaseWindow, {
+    Ext.define("Zenoss.form.DataSourceEditDialog", {
+        extend: "Zenoss.dialog.BaseWindow",
+        alias: ['widget.datasourceeditdialog'],
         constructor: function(config) {
             config = config || {};
 
@@ -110,7 +112,8 @@
                     handler: function () {
                         var form = that.editForm.form,
                             dirtyOnly = true,
-                            values = form.getFieldValues(dirtyOnly);
+                            values = form.getValues();
+
                         values.uid = record.uid;
                         config.directFn(values, config.saveHandler);
                     }
@@ -158,7 +161,7 @@
                 if (fieldset.title) {
                     header = {
                         xtype: 'panel',
-                        layout: 'form',
+                        layout: 'anchor',
                         html: '<br /><br /><h1>' + fieldset.title + '</h1>'
                     };
                 }else {
@@ -189,9 +192,7 @@
                     item = fieldset.items[j];
                     this.itemCount += 1;
                     item.record = record;
-                    if (!Ext.ComponentMgr.isRegistered(item.xtype)) {
-                        throw item.xtype + " is not a valid xtype, please register it.";
-                    }
+
                     // we want to keep text areas to put them in a single column panel
                     if (item.xtype.search(/textarea/) >= 0) {
                         textareas.push(item);
@@ -213,7 +214,7 @@
                     for (j=0; j<textareas.length; j += 1) {
                         panel.push({
                             xtype: 'panel',
-                            layout: 'form',
+                            layout: 'anchor',
 
                             border: false,
                             items: textareas[j]
@@ -226,6 +227,6 @@
             return panel;
         }
     });
-    Ext.reg('datasourceeditdialog', Zenoss.form.DataSourceEditDialog);
+
 
 }());

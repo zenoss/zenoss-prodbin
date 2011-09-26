@@ -1,34 +1,34 @@
 <tal:block metal:use-macro="context/quickstart_macros/base">
 
-    <tal:block metal:fill-slot="headline"> 
-    Step 1: Set Up Initial Users
-    </tal:block>
+<tal:block metal:fill-slot="headline"> 
+Step 1: Set Up Initial Users
+</tal:block>
 
-    <tal:block metal:fill-slot="subheadline">
-    </tal:block>
+<tal:block metal:fill-slot="subheadline">
+</tal:block>
 
-    <tal:block metal:fill-slot="content">
-        <div id="newform">
-        </div>
+<tal:block metal:fill-slot="content">
+<div id="newform">
+</div>
 
-        <!--Hidden form for logging in as the new user. This is basically the
-            same form you'll find on the main login page, only we set the value
-            of the fields via javascript once we get notification of successful
-            user creation from the server.                                  -->
-        <form id="loginform" method="POST" 
-                action="/zport/acl_users/cookieAuthHelper/login">
-            <input type="hidden" name="came_from" id="came_from"
-                tal:attributes="value here/absolute_url_path"/>
-            <input id="login_username" type="hidden" name="__ac_name" />
-            <input type="hidden" id="login_password" name="__ac_password"/>
-        </form>
+<!--Hidden form for logging in as the new user. This is basically the
+same form you'll find on the main login page, only we set the value
+of the fields via javascript once we get notification of successful
+user creation from the server.                                  -->
+<form id="loginform" method="POST" 
+    action="/zport/acl_users/cookieAuthHelper/login">
+    <input type="hidden" name="came_from" id="came_from"
+    tal:attributes="value here/absolute_url_path"/>
+    <input id="login_username" type="hidden" name="__ac_name" />
+    <input type="hidden" id="login_password" name="__ac_password"/>
+</form>
 
-    </tal:block>
+</tal:block>
 
-    <tal:block metal:fill-slot="buttons">
-    </tal:block>
+<tal:block metal:fill-slot="buttons">
+</tal:block>
 
-    <script type="text/javascript" metal:fill-slot="extra-scripts">
+<script type="text/javascript" metal:fill-slot="extra-scripts">
     Ext.onReady(function() {
 
         Ext.QuickTips.init();
@@ -54,129 +54,131 @@
             frame: false,
             border: false,
             bodyStyle: 'padding:5px 5px 0',
-            width:'100%',
-            layout: 'column',
+            layout: {
+                type: 'hbox',
+                align: 'stretchmax'
+            },
             keys: [{
                 key: Ext.EventObject.ENTER,
                 fn: doSubmit,
                 scope: this
-                }],
-            defaults: {autoHeight:true, columnWidth:0.5, 
-                layout:'form', frame:false, border:false},
-            items: [{ // 50% column
-                items:[
-                        // Admin password fields
-                       new Ext.form.FieldSet({
-                        border: false,
-                        anchor:'100%',
-                        layout:'form',
-                        defaultType: 'textfield',
-                        title: "Set admin password",
-                        autoHeight: true,
-                        items: [new Ext.Panel({
-                            width: 300,
-                            border:false,
-                            cls: 'helptext',
-                            html: "The admin account has extended privileges,"+
-                            " similar to Linux's <"+"span class='noem'>root<"+
-                            "/span> or Windows' <" + "span class='noem'>"+
-                            "Administrator<"+"/span>. "+
-                            "Its use should be limited to administrative"+
-                            " tasks.<"+"br/><"+"br/>Enter and "+
-                              "confirm a password for the admin account."
-                        }),{
-                            width: 175,
-                            fieldLabel: 'Admin password',
-                            inputType: 'password',
-                            name: 'admin-password1',
-                            id: 'admin-password1',
-                            allowBlank: false
-                        },{
-                            width: 175,
-                            fieldLabel: 'Retype password',
-                            inputType: 'password',
-                            vtype: 'password',
-                            name: 'admin-password2',
-                            initialPassField: 'admin-password1',
-                            allowBlank: false
-                        }]
-                    })
-                ]
-            },{ // 50% column
-                items:[
-                    // New user fields
-                    new Ext.form.FieldSet({
-                        border: false,
-                        anchor:'100%',
-                        layout:'form',
-                        id: 'userfieldset',
-                        defaultType: 'textfield',
-                        title: "Create your account",
-                        autoHeight: true,
-                        items: [new Ext.Panel({
-                            width: 300,
-                            border:false,
-                            cls: 'helptext',
-                            html: "Enter information for your personal user "+
-                            "account. You'll use this to perform "+
-                            "most tasks."
-                        }),{
-                            width: 175,
-                            id: 'username',
-                            fieldLabel: 'User name',
-                            name: 'username',
-                            allowBlank: false
-                        },{
-                            width: 175,
-                            fieldLabel: 'Password',
-                            inputType: 'password',
-                            name: 'password1',
-                            id: 'password1',
-                            allowBlank: false
-                        },{
-                            width: 175,
-                            fieldLabel: 'Retype password',
-                            inputType: 'password',
-                            vtype: 'password',
-                            name: 'password2',
-                            initialPassField: 'password1',
-                            allowBlank: false
-                        },{
-                            width: 175,
-                            fieldLabel: 'Your email',
-                            vtype: 'email',
-                            name: 'emailAddress',
-                            allowBlank: true
-                        }]
-                    })
-                ]
+            }],
+            defaults: {
+                layout: 'anchor', 
+                frame: false, 
+                flex: 1,
+                border: false,
+                style: 'padding 25px'
+            },
+            bbar: [ '->', {
+                xtype: 'button',
+                text: 'Submit',
+                handler: doSubmit
+            }],
+            items: [{
+                xtype: 'fieldset',
+                border: false,
+                layout: 'anchor',
+                defaultType: 'textfield',
+                defaults: {
+                    anchor: '95%'
+                },
+                title: "Set admin password",
+                items: [{
+                    xtype: 'panel',
+                    frame: false,
+                    border: false,
+                    cls: 'helptext',
+                    html: "The admin account has extended privileges,"+
+                    " similar to Linux's <"+"span class='noem'>root<"+
+                    "/span> or Windows' <" + "span class='noem'>"+
+                    "Administrator<"+"/span>. "+
+                    "Its use should be limited to administrative"+
+                    " tasks.<"+"br/><"+"br/>Enter and "+
+                    "confirm a password for the admin account."
+                },{
+                    fieldLabel: 'Admin password',
+                    inputType: 'password',
+                    name: 'admin-password1',
+                    id: 'admin-password1',
+                    allowBlank: false
+                },{
+                    fieldLabel: 'Retype password',
+                    inputType: 'password',
+                    vtype: 'password',
+                    name: 'admin-password2',
+                    initialPassField: 'admin-password1',
+                    allowBlank: false
+                }]
+            },{ 
+                xtype: 'fieldset',
+                border: false,
+                anchor: '100%',
+                layout: 'anchor',
+                defaults: {
+                    anchor: '95%'
+                },
+                id: 'userfieldset',
+                defaultType: 'textfield',
+                title: "Create your account",
+                items: [{
+                    xtype: 'panel',
+                    frame: false,
+                    border: false,
+                    cls: 'helptext',
+                    html: "Enter information for your personal user "+
+                    "account. You'll use this to perform "+
+                    "most tasks."
+                },{
+                    id: 'username',
+                    fieldLabel: 'User name',
+                    name: 'username',
+                    allowBlank: false
+                },{
+                    fieldLabel: 'Password',
+                    inputType: 'password',
+                    name: 'password1',
+                    id: 'password1',
+                    allowBlank: false
+                },{
+                    fieldLabel: 'Retype password',
+                    inputType: 'password',
+                    vtype: 'password',
+                    name: 'password2',
+                    initialPassField: 'password1',
+                    allowBlank: false
+                },{
+                    fieldLabel: 'Your email',
+                    vtype: 'email',
+                    name: 'emailAddress',
+                    allowBlank: true
+                },{
+                    // Ugh, I feel dirty, but I don't want to spend time on this.
+                    xtype: 'tbspacer',
+                    height: 15
+                }]
             }]
         });
-        
-        var submit = userform.addButton({
-            text: 'Submit',
-            handler: doSubmit
-        })
 
-        function logInAsNewUserAndRedirectTo(url) {
-            Ext.get('login_username').dom.value = Ext.getCmp(
-                'username').getValue();
-            Ext.get('login_password').dom.value = Ext.getCmp(
-                'password1').getValue();
-            Ext.get('came_from').dom.value += '/'+url;
-            Ext.get('loginform').dom.submit();
+    function logInAsNewUserAndRedirectTo(url) {
+        Ext.get('login_username').dom.value = Ext.getCmp(
+        'username').getValue();
+        Ext.get('login_password').dom.value = Ext.getCmp(
+        'password1').getValue();
+        Ext.get('came_from').dom.value += '/'+url;
+        Ext.get('loginform').dom.submit();
+    }
+
+    userform.render('newform');
+    userform.on({'actioncomplete':
+        function(form, action) {
+            var url = action.result.redirect;
+            if (url && action.result.success)  
+            logInAsNewUserAndRedirectTo(url);
         }
-
-        userform.render('newform');
-        userform.on({'actioncomplete':
-            function(form, action) {
-                var url = action.result.redirect;
-                if (url && action.result.success)  
-                    logInAsNewUserAndRedirectTo(url);
-            }
-        });
-
     });
-    </script>
+
+});
+</script>
 
 </tal:block>

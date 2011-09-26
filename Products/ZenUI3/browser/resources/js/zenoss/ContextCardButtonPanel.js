@@ -23,7 +23,9 @@ Ext.ns('Zenoss');
  * Support context-driven loading
  * @constructor
  */
-Zenoss.ContextCardButtonPanel = Ext.extend(Zenoss.CardButtonPanel, {
+Ext.define("Zenoss.ContextCardButtonPanel", {
+    extend:"Zenoss.CardButtonPanel",
+    alias: ['widget.ContextCardButtonPanel'],
     contextUid: null,
     initEvents: function() {
         this.on('cardchange', this.cardChangeHandler, this);
@@ -46,7 +48,7 @@ Zenoss.ContextCardButtonPanel = Ext.extend(Zenoss.CardButtonPanel, {
     }
 });
 
-Ext.reg('ContextCardButtonPanel', Zenoss.ContextCardButtonPanel);
+
 
 var oldActiveItem = Ext.layout.CardLayout.prototype.setActiveItem;
 var oldInitEvents = Ext.layout.CardLayout.prototype.initEvents;
@@ -54,15 +56,17 @@ var oldInitEvents = Ext.layout.CardLayout.prototype.initEvents;
 Ext.override(Ext.layout.CardLayout, {
     initEvents: function() {
         oldInitEvents.apply(this, arguments);
-        this.container.addEvents('cardchange');
+        this.owner.addEvents('cardchange');
     },
     setActiveItem: function(item) {
         oldActiveItem.apply(this, arguments);
-        this.container.fireEvent('cardchange', this.container, item);
+        this.owner.fireEvent('cardchange', this.owner, item);
     }
 });
 
-Zenoss.ContextCardPanel = Ext.extend(Ext.Panel, {
+Ext.define("Zenoss.ContextCardPanel", {
+    extend:"Ext.Panel",
+    alias: ['widget.contextcardpanel'],
     contextUid: null,
     constructor: function(config) {
         Ext.applyIf(config, {
@@ -82,10 +86,12 @@ Zenoss.ContextCardPanel = Ext.extend(Ext.Panel, {
     }
 
 });
-Ext.reg('contextcardpanel', Zenoss.ContextCardPanel);
 
 
-Zenoss.ContextCardTabPanel = Ext.extend(Ext.TabPanel, {
+
+Ext.define("Zenoss.ContextCardTabPanel", {
+    extend:"Ext.TabPanel",
+    alias: ['widget.contextcardtabpanel'],
     contextUid: null,
     initEvents: function() {
         Zenoss.ContextCardTabPanel.superclass.initEvents.call(this);
@@ -102,7 +108,7 @@ Zenoss.ContextCardTabPanel = Ext.extend(Ext.TabPanel, {
     }
 
 });
-Ext.reg('contextcardtabpanel', Zenoss.ContextCardTabPanel);
+
 
 
 })();

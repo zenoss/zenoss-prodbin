@@ -44,16 +44,15 @@ Ext.onReady(function(){
         id: 'master_panel',
         contentEl: 'master_panel_content',
         layout: 'fit',
-        region: 'center',
-        split: true
+        region: 'center'
     },{
-        split: true,
         width: '50%',
         id: 'detail_panel',
         contentEl: 'detail_panel_content',
         region: 'east',
-        layout: 'fit',
-        collapseMode: 'mini'
+        collapsible: true,
+        collapseMode: 'mini',
+        layout: 'fit'
     }];
     if (Zenoss.env.pageHasBreadCrumbs) {
         items.push({

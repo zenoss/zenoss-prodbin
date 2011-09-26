@@ -17,14 +17,16 @@
 
 var ZF = Ext.ns('Zenoss.form');
 
-ZF.IDField = Ext.extend(Ext.form.TextField, {
-    /* 
+Ext.define("Zenoss.form.IDField", {
+    alias: ['widget.idfield'],
+    extend: "Ext.form.TextField",
+    /*
     * Context on which to check for id validity. Defaults to
     * Zenoss.env.PARENT_CONTEXT.
     */
     context: null,
-    /* 
-    * Limit characters to those accepted by ObjectManager 
+    /*
+    * Limit characters to those accepted by ObjectManager
     */
     maskRe: /[a-zA-Z0-9-_~,.$\(\)# @]/,
     /*
@@ -46,26 +48,24 @@ ZF.IDField = Ext.extend(Ext.form.TextField, {
             }
         }
         this._previousValue = value;
-        
+
         if (this.vtransaction) {
             Ext.lib.Ajax.abort(this.vtransaction);
         }
-        this.vtransaction = Ext.lib.Ajax.request(
-            'GET',
-            context + '/checkValidId?id='+value,
-            {
-                success: function(response) {
-                    this._previousResponseText = response.responseText;
-                    return this.reportResponse(response.responseText);
-                },
-                failure: function(response) {
-                    this.markInvalid(
-                        _t('That name is invalid or is already in use.')
-                    );
-                },
-                scope: this
-            }
-        );
+        this.vtransaction = Ext.Ajax.request({
+            url: context + '/checkValidId?id='+value,
+            method: 'GET',
+            success: function(response) {
+                this._previousResponseText = response.responseText;
+                return this.reportResponse(response.responseText);
+            },
+            failure: function(response) {
+                this.markInvalid(
+                    _t('That name is invalid or is already in use.')
+                );
+            },
+            scope: this
+        });
         return true;
     },
     /**
@@ -75,15 +75,13 @@ ZF.IDField = Ext.extend(Ext.form.TextField, {
         if (responseText === "True") {
             return true;
         }
-        
-        // the server responds with a string of why it is invalid 
+
+        // the server responds with a string of why it is invalid
         this.markInvalid(
             _t('That name is invalid: ') + ' ' + responseText
         );
         return false;
     }
 });
-
-Ext.reg('idfield', ZF.IDField);
 
 })();

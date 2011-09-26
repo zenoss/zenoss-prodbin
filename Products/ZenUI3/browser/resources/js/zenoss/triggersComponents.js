@@ -5,10 +5,36 @@
 
 var router = Zenoss.remote.TriggersRouter;
 
-var TriggerSubscriptions = Ext.extend(Ext.grid.EditorGridPanel, {
+    /**
+     * @class Zenoss.triggers.TriggersModel
+     * @extends Ext.data.Model
+     * Field definitions for the triggers
+     **/
+    Ext.define('Zenoss.triggers.TriggersModel',  {
+        extend: 'Ext.data.Model',
+        idProperty: 'uuid',
+        fields: [
+            { name:'uuid'},
+            { name:'enabled'},
+            { name:'name'},
+            { name:'rule'},
+            { name:'users'},
+            { name:'globalRead'},
+            { name:'globalWrite'},
+            { name:'globalManage'},
+            { name:'userRead'},
+            { name:'userWrite'},
+            { name:'userManage'}
+        ]
+    });
+
+
+
+Ext.define("Zenoss.trigger.TriggerSubscriptions", {
+    alias:['widget.triggersSubscriptions'],
+    extend:"Ext.grid.Panel",
     constructor: function(config) {
         var me = this;
-        this.allowManualEntry = false;
         Ext.applyIf(config, {
             ref: 'grid_panel',
             border: false,
@@ -32,14 +58,14 @@ var TriggerSubscriptions = Ext.extend(Ext.grid.EditorGridPanel, {
                     triggerAction: 'all',
                     lazyRender:true,
                     mode: 'local',
-                    store: {
-                        xtype: 'directstore',
+                    store: Ext.create('Zenoss.NonPaginatedStore', {
+                        root: 'data',
                         autoLoad: true,
                         idProperty: 'uuid',
                         fields:['uuid','name'],
                         directFn: router.getTriggerList,
-                        root: 'data',
-                        listeners: {
+                        autoDestroy: false,
+                        listeners:  {
                             load: function() {
                                 // The renderer for the trigger column depends
                                 // on this store being loaded in order for it to
@@ -47,7 +73,8 @@ var TriggerSubscriptions = Ext.extend(Ext.grid.EditorGridPanel, {
                                 me.getView().refresh();
                             }
                         }
-                    },
+                    }),
+
                     valueField: 'uuid',
                     displayField: 'name'
                 },{
@@ -55,63 +82,62 @@ var TriggerSubscriptions = Ext.extend(Ext.grid.EditorGridPanel, {
                         text: 'Add',
                         ref: 'add_button',
                         handler: function(btn, event) {
-                            me.addValueFromCombo()
+                            me.addValueFromCombo();
                         }
                     },{
                         xtype: 'button',
                         ref: 'delete_button',
                         iconCls: 'delete',
                         handler: function(btn, event) {
-                            var row = btn.refOwner.ownerCt.getSelectionModel().getSelected();
-                            btn.refOwner.ownerCt.getStore().remove(row);
-                            btn.refOwner.ownerCt.getView().refresh();
+                            var row = me.getSelectionModel().getSelected();
+                            me.getStore().remove(row);
+                            me.getView().refresh();
                         }
                     }
                 ]
             },
             store: new Ext.data.JsonStore({
-                autoDestroy: true,
+                model: 'Zenoss.triggers.TriggersModel',
                 storeId: 'triggers_combo_store',
                 autoLoad: false,
-                idProperty: 'value',
-                fields: [
-                    'uuid'
-                ],
+                autoDestroy: false,
                 data: []
             }),
-            colModel: new Ext.grid.ColumnModel({
-                columns: [{
-                    header: _t('Trigger'),
-                    dataIndex: 'uuid',
-                    renderer: function(value, metaData, record, rowIndex, colIndex, store) {
-                        var comboStore = me.getTopToolbar().data_combo.getStore();
-                        var idx = comboStore.find('uuid', value);
-                        if (idx > -1) {
-                            return comboStore.getAt(idx).data.name;
-                        }
-                        else {
-                            // instead of displaying a uuid to the user, just display
-                            // something that lets them know the value is hidden.
-                            return _t('(Hidden)');
-                        }
-                   }
-                }]
-            }),
-            sm: new Ext.grid.RowSelectionModel({singleSelect:true})
+
+            columns: [{
+                header: _t('Trigger'),
+                dataIndex: 'uuid',
+                flex: 1,
+                renderer: function(value, metaData, record, rowIndex, colIndex, store) {
+                    var comboStore = me.getTopToolbar().data_combo.store;
+                    var idx = comboStore.find('uuid', value);
+                    if (idx > -1) {
+                        return comboStore.getAt(idx).data.name;
+                    }
+                    else {
+                        // instead of displaying a uuid to the user, just display
+                        // something that lets them know the value is hidden.
+                        return _t('(Hidden)');
+                    }
+                }
+            }],
+
+            selModel: Ext.create('Zenoss.SingleRowSelectionModel', {})
         });
-        TriggerSubscriptions.superclass.constructor.apply(this, arguments);
+        this.callParent(arguments);
     },
     addValueFromCombo: function() {
-        var combo = this.getTopToolbar().data_combo;
+        var combo = this.getTopToolbar().data_combo,
             val = combo.getValue(),
-            row = combo.getStore().getById(val)
-
-        var existingIndex = this.getStore().findExact('uuid', val);
+            rowIdx = combo.store.find('uuid', val),
+            row = combo.store.getAt(rowIdx),
+            existingIndex = this.getStore().findExact('uuid', val);
 
         if (!Ext.isEmpty(val) && existingIndex == -1) {
-            var record = new Ext.data.Record({uuid:val});
+
+            var record =  Ext.create('Zenoss.triggers.TriggersModel', {uuid:val});
             this.getStore().add(record);
-            this.getTopToolbar().data_combo.clearValue();
+            combo.setValue('');
         }
         else if (existingIndex != -1) {
             Zenoss.message.error(_t('Duplicate items not permitted here.'));
@@ -121,6 +147,6 @@ var TriggerSubscriptions = Ext.extend(Ext.grid.EditorGridPanel, {
         this.getStore().loadData(data);
     }
 });
-Ext.reg('triggersSubscriptions', TriggerSubscriptions);
+
 
 })();

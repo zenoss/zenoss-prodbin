@@ -13,7 +13,7 @@
 ###########################################################################
 -->
 
-<tal:block metal:use-macro="context/page_macros/masterdetailsplit1">
+<tal:block metal:use-macro="context/page_macros/base-new">
 
 <tal:block metal:fill-slot="title">IP Services</tal:block>
 
@@ -22,7 +22,6 @@
     <script src="/++resource++zenui/js/zenoss/service/tree.js"></script>
     <script src="/++resource++zenui/js/zenoss/service/nav.js"></script>
     <script src="/++resource++zenui/js/zenoss/service/detailform.js"></script>
-    <script src="/++resource++zenui/js/zenoss/service/detailgrid.js"></script>
     <script src="/++resource++zenui/js/zenoss/service/ipservice.js"></script>
   </tal:block> <!-- metal:fill-slot="script_layout" -->
 

@@ -30,9 +30,7 @@ graphsId = 'graphGrid';
 
 resetCombo = function(combo, uid) {
     combo.clearValue();
-    combo.getStore().setBaseParam('uid', uid);
-    delete combo.lastQuery;
-    combo.doQuery(combo.allQuery, true);
+    combo.store.setContext(uid);
 };
 
 /**
@@ -69,15 +67,19 @@ function setDefaultView(view) {
 function reloadTree(selectedId) {
     var tree = Ext.getCmp(treeId);
     if (selectedId){
-        tree.getRootNode().reload(function() {
-            tree.getRootNode().childNodes[0].expand();
-            tree.selectByToken(selectedId);
+        tree.getStore().load({
+            callback: function() {
+                tree.getRootNode().childNodes[0].expand();
+                tree.selectByToken(selectedId);
+            }
         });
     }else{
         // select the first node
-        tree.getRootNode().reload(function(){
-            tree.getRootNode().childNodes[0].expand();
-            tree.getRootNode().childNodes[0].childNodes[0].select();
+        tree.getStore().load({
+            callback: function(){
+                tree.getRootNode().childNodes[0].expand();
+                tree.getRootNode().childNodes[0].childNodes[0].select();
+            }
         });
     }
 }
@@ -91,17 +93,18 @@ updateDataSources = function(uid) {
     if ( ! Ext.getCmp(dataSourcesId) ) {
         panel = Ext.getCmp('center_detail_panel');
         panel.add({
-            xtype: 'DataSourceTreeGrid'
+            xtype: 'DataSourceTreeGrid',
+            uid: uid,
+            root: {
+                id: uid,
+                uid: uid
+            }
         });
         treeGrid = Ext.getCmp(dataSourcesId);
-        root = treeGrid.getRootNode();
-        root.setId(uid);
-        panel.doLayout();
     } else {
         // create a new async node since we may have had a dummy one
-        root = Ext.getCmp(dataSourcesId).getRootNode();
-        root.setId(uid);
-        root.reload();
+        var tree = Ext.getCmp(dataSourcesId);
+        tree.setContext(uid);
     }
 };
 
@@ -113,9 +116,7 @@ updateThresholds = function(uid) {
         panel.add({id: thresholdsId, xtype:'thresholddatagrid'});
         panel.doLayout();
     }
-    Ext.getCmp(thresholdsId).getStore().load({
-        params: {uid: uid}
-    });
+    Ext.getCmp(thresholdsId).setContext(uid);
 };
 
 updateGraphs = function(uid) {
@@ -128,25 +129,25 @@ updateGraphs = function(uid) {
         });
         panel.doLayout();
     }
-    Ext.getCmp(graphsId).getStore().load({
-        params: {uid: uid}
-    });
+    Ext.getCmp(graphsId).setContext(uid);
 };
 
 
-selectionchangeHandler = function(sm, node) {
-    if (node){
-        updateDataSources(node.attributes.uid);
-        updateThresholds(node.attributes.uid);
-        updateGraphs(node.attributes.uid);
+selectionchangeHandler = function(sm, nodes) {
+    if (nodes){
+        // only single select
+        var node = nodes[0];
+        updateDataSources(node.data.uid);
+        updateThresholds(node.data.uid);
+        updateGraphs(node.data.uid);
         // set the context for the id fields (they validate their id against this context)
-        Zenoss.env.PARENT_CONTEXT = node.attributes.uid;
+        Zenoss.env.PARENT_CONTEXT = node.data.uid;
         // unfortunately because multiple templates exist on device class view we
         // have to track the history differently
         if (getCurrentView() == Zenoss.templates.templateView){
-            Ext.History.add(treeId + Ext.History.DELIMITER + node.attributes.uid);
+            // Ext.History.add(treeId + Ext.History.DELIMITER + node.get("uid"));
         }else {
-            Ext.History.add(treeId + Ext.History.DELIMITER + node.getPath());
+            Ext.History.add(treeId + Ext.History.DELIMITER + node.get("id"));
         }
     }
 
@@ -162,7 +163,7 @@ selectionchangeHandler = function(sm, node) {
     Ext.getCmp(dataSourcesId).disableToolBarButtons(!node);
 };
 
-selModel = new Ext.tree.DefaultSelectionModel({
+selModel = new Zenoss.TreeSelectionModel({
     listeners: {
         beforeselect: beforeselectHandler,
         selectionchange: selectionchangeHandler
@@ -170,9 +171,12 @@ selModel = new Ext.tree.DefaultSelectionModel({
 });
 
 Ext.getCmp('master_panel').add({
-    xtype: 'TemplateTreePanel',
-    selModel: selModel,
-    view: getCurrentView()
+    xtype: 'HierarchyTreePanelSearch',
+    items:[{
+        xtype: 'TemplateTreePanel',
+        selModel: selModel,
+        currentView: getCurrentView()
+    }]
 });
 
 /**********************************************************************
@@ -226,14 +230,6 @@ function showEditTemplateDialog(response) {
 
     dialog = new Zenoss.SmartFormDialog(config);
 
-    // set our form to monitor for errors
-    dialog.editForm.startMonitoring();
-    dialog.editForm.addListener('clientvalidation', function(formPanel, valid){
-        var dialogWindow;
-        dialogWindow = formPanel.refOwner;
-        dialogWindow.buttonSubmit.setDisabled( !valid );
-    });
-
     // populate the form
     dialog.editForm.templateName.setValue(data.name);
     dialog.editForm.targetPythonClass.setValue(data.targetPythonClass);
@@ -246,7 +242,7 @@ function showEditTemplateDialog(response) {
  **/
 function editSelectedTemplate() {
     var params = {
-        uid: Ext.getCmp(treeId).getSelectionModel().getSelectedNode().attributes.uid
+        uid: Ext.getCmp(treeId).getSelectionModel().getSelectedNode().data.uid
     };
 
     router.getInfo(params, showEditTemplateDialog);
@@ -260,7 +256,7 @@ override = function() {
     var node, params, callback;
     node = Ext.getCmp('templateTree').getSelectionModel().getSelectedNode();
     params = {
-        uid: node.attributes.uid,
+        uid: node.data.uid,
         targetUid: Ext.getCmp('targetCombo').getValue()
     };
     callback = function() {
@@ -326,15 +322,18 @@ new Zenoss.HideFormDialog({
         typeAhead: true,
         allowBlank: false,
         width: 450,
-        store: {
-            xtype: 'directstore',
+        store: Ext.create('Zenoss.NonPaginatedStore', {
+            root: 'data',
+            autoLoad: false,
             directFn: router.getCopyTargets,
-            fields: ['uid', 'label'],
-            root: 'data'
-        },
+            fields: ['uid', 'label']
+        }),
         listeners: {
-            valid: function(){
-                Ext.getCmp('overrideDialog').submit.enable();
+            validitychange: function(combo, isValid){
+                var window = Ext.getCmp('overrideDialog');
+                if (window.isVisible()) {
+                    Ext.getCmp('overrideDialog').submit.setDisabled(!isValid);
+                }
             }
         }
     }],
@@ -355,7 +354,7 @@ new Zenoss.HideFormDialog({
 showOverrideDialog = function() {
     var sm, uid, combo;
     sm = Ext.getCmp('templateTree').getSelectionModel();
-    uid = sm.getSelectedNode().attributes.uid;
+    uid = sm.getSelectedNode().get("uid");
     Ext.getCmp('overrideDialog').show();
     combo = Ext.getCmp('targetCombo');
     resetCombo(combo, uid);
@@ -369,20 +368,18 @@ function bindSelectedTemplateHere() {
     params, uid;
 
     if (getCurrentView() == Zenoss.templates.deviceClassView) {
-        uid = node.parentNode.attributes.uid;
-        path = node.getPath();
+        uid = node.parentNode.data.uid;
     }else {
         // template view
-        uid = node.attributes.uid.replace(/rrdTemplates\/(.)*$/, '');
-        path = node.attributes.uid;
+        uid = node.data.uid.replace(/rrdTemplates\/(.)*$/, '');
     }
-
+    path = node.data.id;
     callback = function(response){
         reloadTree(path);
     };
     params = {
         uid: uid,
-        templateUid: node.attributes.uid
+        templateUid: node.data.uid
     };
     remote.bindOrUnbindTemplate(params, callback);
 }
@@ -403,7 +400,7 @@ function showModificationsDialog() {
             ];
     if (tree.getSelectionModel().getSelectedNode()) {
 
-        uid = tree.getSelectionModel().getSelectedNode().attributes.uid;
+        uid = tree.getSelectionModel().getSelectedNode().data.uid;
         Zenoss.form.showModificationsDialog(uid, types);
     }
 }
@@ -426,8 +423,6 @@ addTemplateDialogConfig = {
             // completely reload the combobox every time
             // we show the dialog
             cmp.comboBox.setValue(null);
-            cmp.comboBox.store.setBaseParam('query', '');
-            cmp.comboBox.store.load();
         }
     },
     items: [{
@@ -448,13 +443,12 @@ addTemplateDialogConfig = {
         displayField: 'label',
         valueField: 'uid',
         name: 'targetUid',
-        store: {
-            xtype: 'directstore',
-            ref:'store',
+        store: Ext.create('Zenoss.NonPaginatedStore', {
+            root: 'data',
+            autoLoad: true,
             directFn: router.getAddTemplateTargets,
-            fields: ['uid', 'label'],
-            root: 'data'
-        }
+            fields: ['uid', 'label']
+        })
     }]
 };
 
@@ -463,13 +457,11 @@ addTemplateDialogConfig = {
  * Add to zenpack
  *
  */
-addToZenPack = Ext.create({
-    xtype:'AddToZenPackWindow'
-});
+addToZenPack = Ext.create('Zenoss.AddToZenPackWindow',  {});
 function showAddToZenPackDialog() {
     var tree = Ext.getCmp(treeId),
     win = addToZenPack;
-    win.target = tree.getSelectionModel().getSelectedNode().attributes.uid;
+    win.target = tree.getSelectionModel().getSelectedNode().data.uid;
     win.show();
 }
 
@@ -519,7 +511,7 @@ footerBar.on('buttonClick', function(actionName, id, values) {
         break;
         case 'delete':
             params = {
-                uid: Ext.getCmp(treeId).getSelectionModel().getSelectedNode().attributes.uid
+                uid: Ext.getCmp(treeId).getSelectionModel().getSelectedNode().data.uid
             };
             router.deleteTemplate(params,
             function(){
@@ -537,8 +529,9 @@ footerBar.on('buttonClick', function(actionName, id, values) {
 /**
  * Add the view buttons
  **/
+
 footerBar.add([{
-    xtype: 'label',
+    xtype: 'tbtext',
     text: _t('Group By: ')
     },' ',{
     xtype: 'button',
@@ -572,22 +565,18 @@ footerBar.add([{
 }]);
 
 
-footerBar.add(['-',{
-    xtype: 'label',
-    text: _t('Bound:')
-},{
-    xtype: 'label',
-    ctCls: 'x-tree-node-icon tree-template-icon-bound-span'
-},' ',' ',{
-    xtype: 'label',
-    text: _t('Component:')
-},{
-    xtype: 'label',
-    ctCls: 'x-tree-node-icon tree-template-icon-component-span'
-}
-]);
-
-
-
+    footerBar.add(['-',{
+        xtype: 'tbtext',
+        text: _t('Bound:')
+    },{
+        xtype: 'tbtext',
+        cls: 'x-tree-node-icon tree-template-icon-bound-span'
+    }, ' ', {
+        xtype: 'tbtext',
+        text: _t('Component:')
+    }, {
+        xtype: 'label',
+        cls: 'x-tree-node-icon tree-template-icon-component-span'
+    }]);
 
 }); // Ext.onReady

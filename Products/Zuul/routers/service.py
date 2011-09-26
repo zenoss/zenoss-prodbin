@@ -82,7 +82,7 @@ class ServiceRouter(TreeRouter):
         return DirectResponse(newIndex=newIndex)
 
     def query(self, limit=None, start=None, sort=None, dir=None, params=None,
-              history=False, uid=None, criteria=()):
+              page=None, history=False, uid=None, criteria=()):
         """
         Retrieve a list of services based on a set of parameters.
 
@@ -197,7 +197,7 @@ class ServiceRouter(TreeRouter):
         return DirectResponse.succeed()
 
     def getInstances(self, uid, start=0, params=None, limit=50, sort='name',
-                   dir='ASC'):
+                     page=None, dir='ASC'):
         """
         Get a list of instances for a service UID.
 

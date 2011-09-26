@@ -18,6 +18,7 @@ import zExceptions
 
 import logging
 log = logging.getLogger("zen.migrate")
+from Products.ZEnUtils.debugtools import profile
 
 import time
 

@@ -37,15 +37,25 @@ ZF.createDirectSubmitFunction = function(router) {
         //   * have an id or name set on them
         var info = {};
         var dirtyFieldValues = form.getFieldValues(true);
+
         Ext.iterate(dirtyFieldValues, function(key, value) {
             var field = form.findField(key);
-            if ( field.submitValue !== false && field.getName().indexOf("ext-comp-") !== 0 ) {
+            if ( field.submitValue !== false && field.getName().indexOf("ext-gen") !== 0 ) {
                 info[key] = value;
             }
         });
 
+
         // add the forms baseParams to the info object (often includes uid)
         Ext.applyIf(info, directSubmitAction.getParams());
+
+        Ext.iterate(info, function(key, value) {
+            if (key.indexOf("ext-gen") !== 0 ) {
+                info[key] = value;
+            }else {
+                delete info[key];
+            }
+        });
 
         // define a callback to run after server responds
         var callback = function() {
@@ -61,7 +71,9 @@ ZF.createDirectSubmitFunction = function(router) {
     };
 };
 
-ZF.BaseDetailForm = Ext.extend(Ext.form.FormPanel, {
+Ext.define("Zenoss.form.BaseDetailForm", {
+    extend: "Ext.form.FormPanel",
+    alias: ['widget.basedetailform'],
     contextUid: null,
     isLoadInProgress: false,
     constructor: function(config){
@@ -71,13 +83,7 @@ ZF.BaseDetailForm = Ext.extend(Ext.form.FormPanel, {
         config.baseParams = Ext.applyIf(config.baseParams||{
             uid: config.contextUid
         });
-        config.listeners = Ext.applyIf(config.listeners||{}, {
-            'add': function(me, field, index){
-                if (isField(field)) {
-                    this.onFieldAdd.call(this, field);
-                }
-            }
-        });
+
         config = Ext.applyIf(config||{}, {
             paramsAsHash: true,
             autoScroll: 'y',
@@ -121,8 +127,17 @@ ZF.BaseDetailForm = Ext.extend(Ext.form.FormPanel, {
                     }
                 }]
             });
-        } 
+        }
         ZF.BaseDetailForm.superclass.constructor.call(this, config);
+    },
+    initComponent: function() {
+        this.callParent(arguments);
+        var form = this.getForm();
+        form.on('dirtychange', function(form, dirty, options ) {
+            if (dirty && form.isValid()) {
+                this.setButtonsDisabled(false);
+            }
+        }, this);
     },
     hasPermission: function() {
         var perm = !Zenoss.Security.doesNotHavePermission(this.permission);
@@ -170,7 +185,5 @@ ZF.BaseDetailForm = Ext.extend(Ext.form.FormPanel, {
         this.load();
     }
 });
-
-Ext.reg('basedetailform', ZF.BaseDetailForm);
 
 })();

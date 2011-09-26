@@ -15,7 +15,9 @@
 (function () {
 Ext.ns('Zenoss');
 
-Zenoss.ContextMenu = Ext.extend( Ext.Button, {
+Ext.define("Zenoss.ContextMenu", {
+    alias:['widget.ContextMenu'],
+    extend:"Ext.Button",
     /**
      * onSetContext abstract function called when the context for the menu is
      * potentially changed
@@ -38,10 +40,12 @@ Zenoss.ContextMenu = Ext.extend( Ext.Button, {
     }
 });
 
-Ext.reg('ContextMenu', Zenoss.ContextMenu);
 
 
-Zenoss.ContextConfigureMenu = Ext.extend( Zenoss.ContextMenu,{
+
+Ext.define("Zenoss.ContextConfigureMenu", {
+    alias:['widget.ContextConfigureMenu'],
+    extend:"Zenoss.ContextMenu",
     /**
      * onGetMenuItems abstract function; hook to provide
      * more menu items based on context
@@ -127,19 +131,19 @@ Zenoss.ContextConfigureMenu = Ext.extend( Zenoss.ContextMenu,{
             Ext.each(menuItems, function(item){
                 //add to zenpack has a different/new handler
                 if (item.id === 'addtozenpack'){
-                    item.handler = this.addToZenPackHandler.createDelegate(this);
+                    item.handler = Ext.bind(this.addToZenPackHandler, this);
                 }
                 if (!Ext.isDefined(item.handler)) {
-                    item.handler = this.defaultHandler.createDelegate(this);
+                    item.handler = Ext.bind(this.defaultHandler, this);
                 }
-                         
+
                 // do now show as enabled if we only have hidden items (or spacers)
                 if (!item.hidden && item != '-') {
                     visibleMenuCount += 1;
                 }
                 this.menu.add(item);
             }, this);
-            
+
             // if we have stuff then enable this control
             if(this.menu.items.length !== 0 && visibleMenuCount){
                 this.enable();
@@ -152,9 +156,9 @@ Zenoss.ContextConfigureMenu = Ext.extend( Zenoss.ContextMenu,{
             args.menuIds = this.menuIds;
         }
 
-        Zenoss.remote.DetailNavRouter.getContextMenus(args, callback, this);    
+        Zenoss.remote.DetailNavRouter.getContextMenus(args, callback, this);
     },
-                                              
+
     /**
      * private
      * handler used if a menu item does not have a handler defined
@@ -171,6 +175,6 @@ Zenoss.ContextConfigureMenu = Ext.extend( Zenoss.ContextMenu,{
     }
 });
 
-Ext.reg('ContextConfigureMenu', Zenoss.ContextConfigureMenu);
+
 
 })();

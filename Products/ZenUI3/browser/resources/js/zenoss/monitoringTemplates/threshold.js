@@ -49,7 +49,7 @@
             node = Ext.getCmp(dataSourcesId).getSelectionModel().getSelectedNode();
         }
         if ( node && node.isLeaf() ) {
-            dataPoints = [node.attributes.uid];
+            dataPoints = [node.data.uid];
         } else {
             dataPoints = [];
         }
@@ -60,7 +60,7 @@
             dataPoints: dataPoints
         };
         callback = function(provider, response) {
-            grid.getStore().reload();
+            grid.refresh();
         };
         Zenoss.remote.TemplateRouter.addThreshold(params, callback);
     }
@@ -76,7 +76,7 @@
             buttonAlign: 'left',
             autoScroll: true,
             plain: true,
-            width: 375,
+            width: 275,
             autoHeight: true,
             modal: true,
             padding: 10,
@@ -95,13 +95,15 @@
                     dialogWindow = submitButton.refOwner;
                     basicForm = dialogWindow.formPanel.getForm();
                     addThreshold(basicForm.getValues(), grid);
-                } }, {
-                    ref: '../cancelButton',
-                    text: _t('Cancel'),
-                    xtype: 'DialogButton'
-                }],
+                }
+            }, {
+                ref: '../cancelButton',
+                text: _t('Cancel'),
+                xtype: 'DialogButton'
+            }],
             items: {
                 xtype: 'form',
+                layout: 'auto',
                 ref: 'formPanel',
                 leftAlign: 'top',
                 monitorValid: true,
@@ -124,11 +126,13 @@
                     emptyText: _t('Select a type...'),
                     selectOnFocus: true,
                     allowBlank: false,
-                    store: new Ext.data.DirectStore({
-                        fields: ['type'],
+                    store: {
+                        type: 'directcombo',
+                        autoLoad: true,
+                        directFn: Zenoss.remote.TemplateRouter.getThresholdTypes,
                         root: 'data',
-                        directFn: Zenoss.remote.TemplateRouter.getThresholdTypes
-                    })
+                        fields: ['type']
+                    }
                 }, {
                     name: 'thresholdIdField',
                     xtype: 'idfield',
@@ -156,7 +160,7 @@
             config = {};
 
         function displayEditDialog(response) {
-            var win = Ext.create( {
+            var win = Ext.create( 'Zenoss.form.DataSourceEditDialog', {
                 record: response.record,
                 items: response.form,
                 singleColumn: true,
@@ -166,7 +170,7 @@
                 directFn: router.setInfo,
                 id: 'editThresholdDialog',
                 saveHandler: function(response) {
-                    grid.getStore().reload();
+                    grid.refresh();
                     if (win) {
                         win.hide();
                     }
@@ -177,7 +181,7 @@
         }
 
         // send the request for all of the threshold's info to the server
-        router.getThresholdDetails({uid: record.id}, displayEditDialog);
+        router.getThresholdDetails({uid: record.data.uid}, displayEditDialog);
     }
 
 
@@ -189,16 +193,49 @@
 
 
     /**
+     * @class Zenoss.thresholds.Model
+     * @extends Ext.data.Model
+     * Field definitions for the thresholds
+     **/
+    Ext.define('Zenoss.thresholds.Model',  {
+        extend: 'Ext.data.Model',
+        idProperty: 'uid',
+        fields: ['name', 'type', 'dataPoints', 'severity', 'enabled','type', 'minval', 'maxval', 'uid']
+    });
+
+    /**
+     * @class Zenoss.thresholds.Store
+     * @extend Zenoss.DirectStore
+     * Direct store for loading thresholds
+     */
+    Ext.define("Zenoss.thresholds.Store", {
+        extend: "Zenoss.NonPaginatedStore",
+        constructor: function(config) {
+            config = config || {};
+            Ext.applyIf(config, {
+                model: 'Zenoss.thresholds.Model',
+                directFn: router.getThresholds,
+                root: 'data'
+            });
+            this.callParent(arguments);
+        }
+    });
+
+    /**
      * Definition for the Thresholds datagrid. This is used in
      * templates.js in the updateThresholds function.
      **/
-    Zenoss.templates.thresholdDataGrid = Ext.extend(Ext.grid.GridPanel, {
+    Ext.define("Zenoss.templates.thresholdDataGrid", {
+        alias:['widget.thresholddatagrid'],
+        extend:"Zenoss.ContextGridPanel",
+
         constructor: function(config) {
             var listeners = {},
+                me = this,
                 tbarItems = config.tbarItems || [];
 
             listeners = Ext.apply(listeners, {
-                rowdblclick: function(grid) {
+                itemdblclick: function(grid) {
                     thresholdEdit(grid);
                 }
             });
@@ -206,19 +243,17 @@
             config = config || {};
             Ext.applyIf(config, {
                 id: Zenoss.templates.thresholdsId,
-                selModel:   new Ext.grid.RowSelectionModel ({
-                    singleSelect: true,
+                selModel:   new Zenoss.SingleRowSelectionModel ({
                     listeners : {
                         /**
                          * If they have permission and they select a row, show the
                          * edit and delete buttons
                          **/
                         rowselect: function (selectionModel, rowIndex, record ) {
-                            var grid = selectionModel.grid;
                             // enable the "Delete Threshold" button
                             if (Zenoss.Security.hasPermission('Manage DMD')) {
-                                grid.deleteButton.enable();
-                                grid.editButton.enable();
+                                me.deleteButton.enable();
+                                me.editButton.enable();
                             }
                         },
 
@@ -226,20 +261,15 @@
                          * When they deselect don't allow them to press the buttons
                          **/
                         rowdeselect: function(selectionModel, rowIndex, record) {
-                            var grid = selectionModel.grid;
-                            grid.deleteButton.disable();
-                            grid.editButton.disable();
+                            me.deleteButton.disable();
+                            me.editButton.disable();
                         }
                     }
                 }),
                 title: _t('Thresholds'),
                 autoExpandColumn: 'name',
                 border: false,
-                store: {
-                    xtype: 'directstore',
-                    directFn: router.getThresholds,
-                    fields: ['name', 'type', 'dataPoints', 'severity', 'enabled','type', 'minval', 'maxval']
-                },
+                store: Ext.create('Zenoss.thresholds.Store', { }),
                 listeners: listeners,
                 tbar: tbarItems.concat([{
                     xtype: 'button',
@@ -262,12 +292,11 @@
                     iconCls: 'delete',
                     disabled: true,
                     handler: function(btn) {
-                        var grid = btn.refOwner,
-                            row = grid.getSelectionModel().getSelected(),
+                        var row = me.getSelectionModel().getSelected(),
                             uid,
                             params;
                         if (row){
-                            uid = row.id;
+                            uid = row.get("uid");
                             // show a confirmation
                             Ext.Msg.show({
                                 title: _t('Delete Threshold'),
@@ -279,9 +308,9 @@
                                             uid:uid
                                         };
                                         router.removeThreshold(params, function(){
-                                            grid.getStore().reload();
-                                            grid.deleteButton.disable();
-                                            grid.editButton.disable();
+                                            me.refresh();
+                                            me.deleteButton.disable();
+                                            me.editButton.disable();
                                         });
                                     } else {
                                         Ext.Msg.hide();
@@ -311,22 +340,20 @@
                         }
                     }
                 }]),
-                colModel: new Ext.grid.ColumnModel({
-                    columns: [{
-                        id: 'name',
-                        dataIndex: 'name',
-                        header: _t('Name')
-                    }, {
-                        dataIndex: 'type',
-                        header: _t('Type')
-                    }, {
-                        dataIndex: 'minval',
-                        header: _t('Min. Value')
-                    }, {
-                        dataIndex: 'maxval',
-                        header: _t('Max. Value')
-                    }]
-                })
+                columns: [{
+                    id: 'name',
+                    dataIndex: 'name',
+                    header: _t('Name')
+                }, {
+                    dataIndex: 'type',
+                    header: _t('Type')
+                }, {
+                    dataIndex: 'minval',
+                    header: _t('Min. Value')
+                }, {
+                    dataIndex: 'maxval',
+                    header: _t('Max. Value')
+                }]
             });
 
             Zenoss.templates.thresholdDataGrid.superclass.constructor.apply(
@@ -336,10 +363,10 @@
             var tree = Ext.getCmp(treeId),
                 node = tree.getSelectionModel().getSelectedNode();
             if (node) {
-                return node.attributes.uid;
+                return node.data.uid;
             }
         }
     });
-    Ext.reg('thresholddatagrid', Zenoss.templates.thresholdDataGrid);
+
 }());
 

@@ -27,7 +27,7 @@
         tree = Ext.getCmp('navTree');
         selected = tree.getSelectionModel().getSelectedNode();
         if ( ! selected ) {
-            // No node is really selected (a ServiceClass is selected in the 
+            // No node is really selected (a ServiceClass is selected in the
             // navGrid). Find the node that had the selected css class added
             // to it when the ServiceClass was selected
             tree.getRootNode().cascade(function(node){
@@ -60,22 +60,21 @@
             });
             return false;
         }
-        Ext.getCmp('navTree').getRootNode().cascade(function(node) {
-            node.getUI().removeClass('x-tree-selected');
-        });
+
         return true;
     };
 
     // function that gets run when the user clicks on a node in the tree
-    zs.treeSelectionChangeHandler = function(sm, node) {
-        var oldToken, newToken, token, remainder, remainderParts, isRoot;
-        if (node) {
-            Ext.getCmp('serviceForm').setContext(node.attributes.uid);
-            Ext.getCmp('detail_panel').detailCardPanel.setContext(node.attributes.uid);
-            Zenoss.env.PARENT_CONTEXT = node.attributes.uid;
-            
+    zs.treeSelectionChangeHandler = function(sm, nodes) {
+        var oldToken, newToken, token, remainder, remainderParts, isRoot, node;
+        if (nodes.length) {
+            node = nodes[0];
+            Ext.getCmp('serviceForm').setContext(node.data.uid);
+            Ext.getCmp('detail_panel').detailCardPanel.setContext(node.data.uid);
+            Zenoss.env.PARENT_CONTEXT = node.data.uid;
+
             oldToken = unescape(Ext.History.getToken());
-            newToken = 'navTree' + Ext.History.DELIMITER + node.id;
+            newToken = 'navTree' + Ext.History.DELIMITER + node.get("id");
             if ( oldToken.indexOf(newToken + '.serviceclasses.') !== 0 ) {
                 Ext.History.add(newToken);
                 token = newToken;
@@ -84,8 +83,7 @@
             }
 
             Ext.getCmp('navGrid').getSelectionModel().clearSelections();
-            Ext.getCmp('navGrid').getView().contextUid = node.attributes.uid;
-
+            Ext.getCmp('navGrid').setContext(node.get('uid'));
             if (token) {
                 remainder = token.split(Ext.History.DELIMITER)[1];
                 if ( remainder ) {
@@ -93,26 +91,29 @@
                     if ( remainderParts[1] ) {
                         Ext.getCmp('navGrid').filterAndSelectRow(remainderParts[1]);
                     } else {
-                        Ext.getCmp('name').setRawValue('');
+                        Ext.getCmp('navGrid').setFilter('name', '');
                     }
-                } 
-            }            
-            Ext.getCmp('navGrid').getView().updateLiveRows(Ext.getCmp('navGrid').getView().rowIndex, true, true, false);
-            
-            isRoot = node == Ext.getCmp('navTree').root;
+                }
+            }
+
+            isRoot = node == Ext.getCmp('navTree').getRootNode();
             Ext.getCmp('footer_bar').buttonDelete.setDisabled(isRoot);
         }
     };
 
-    var selModel = new Ext.tree.DefaultSelectionModel({
+    var selModel = new Zenoss.TreeSelectionModel({
         listeners: {
             beforeselect: zs.treeBeforeSelectHandler,
             selectionchange: zs.treeSelectionChangeHandler
         }
     });
 
-    zs.ServiceTreePanel = Ext.extend(Zenoss.HierarchyTreePanel, {
+    Ext.define("Zenoss.Service.Nav.ServiceTreePanel", {
+        extend:"Zenoss.HierarchyTreePanel",
+        alias: ['widget.servicetreepanel'],
+
         constructor: function(config) {
+            config = config || {};
             Ext.applyIf(config, {
                 id: 'navTree',
                 flex: 1,
@@ -122,33 +123,34 @@
                 router: Zenoss.remote.ServiceRouter,
                 selModel: selModel,
                 selectRootOnLoad: true,
-                enableDD: true,
-                ddGroup: 'serviceDragDrop',
-                ddAppendOnly: true,
+                viewConfig: {
+                    loadMask: true,
+                    plugins: {
+                        ptype: 'treeviewdragdrop',
+                        enableDrag: Zenoss.Security.hasPermission('Change Device'),
+                        enableDrop: Zenoss.Security.hasPermission('Change Device'),
+                        ddGroup: 'serviceDragDrop'
+                    },
+                    listeners: {
+                        beforedrop: Ext.bind(this.onNodeDrop, this)
+                    }
+                },
                 listeners: {
                     scope: this,
-                    beforenodedrop: this.onBeforeNodeDrop,
                     expandnode: this.onExpandnode
                 }
             });
-            zs.ServiceTreePanel.superclass.constructor.call(this, config);
+            this.callParent(arguments);
         },
-        onBeforeNodeDrop: function(dropEvent) {
-            var sourceUids, targetUid;
-            if (dropEvent.dropNode) {
-                // moving a ServiceOrganizer into another ServiceOrganizer
-                sourceUids = [dropEvent.dropNode.attributes.uid];
-            } else {
-                // moving a ServiceClass from grid into a ServiceOrganizer
-                var data = Ext.pluck(dropEvent.data.selections, 'data');
-                sourceUids = Ext.pluck(data, 'uid');
-            }
-            dropEvent.target.expand();
-            targetUid = dropEvent.target.attributes.uid;
-            targetId = dropEvent.target.attributes.id;
+        onNodeDrop: function(element, event, target) {
+            var sourceUids, targetUid, targetId;
+            sourceUids = Ext.pluck(Ext.pluck(event.records, "data"), "uid");
+            targetUid = target.get("uid");
+            targetId = target.data.id;
+
             Zenoss.remote.ServiceRouter.moveServices(
                 {
-                    sourceUids: sourceUids, 
+                    sourceUids: sourceUids,
                     targetUid: targetUid
                 }, function () {
                     this.moveServicesCallback(targetId);
@@ -164,7 +166,7 @@
             this.getRootNode().select();
             this.getRootNode().expand(true);
         },
-        
+
         onExpandnode: function(node) {
             var token, remainder;
             token = Ext.History.getToken();
@@ -173,21 +175,18 @@
                 this.selectByToken(remainder);
             }
         },
-        
+
         selectByToken: function(token) {
             var tokenParts, node, serviceClassName;
             token = unescape(token);
             tokenParts = token.split('.serviceclasses.');
-            node = this.getNodeById(tokenParts[0]);
-            if (node) {
-                if ( node !== zs.getSelectedOrganizer() ) {
-                    node.select();
-                } else {
-                    Ext.getCmp('navGrid').filterAndSelectRow(tokenParts[1]);
-                }
+            this.callParent([tokenParts[0]]);
+
+            if (tokenParts[1]) {
+                Ext.getCmp('navGrid').filterAndSelectRow(tokenParts[1]);
             }
         },
-        
+
         initEvents: function() {
             zs.ServiceTreePanel.superclass.initEvents.call(this);
             // don't add history token on click like HierarchyTreePanel does
@@ -196,6 +195,6 @@
         }
 
     });
-    Ext.reg('servicetreepanel', zs.ServiceTreePanel);
+
 
 })();

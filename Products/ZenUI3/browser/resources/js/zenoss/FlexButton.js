@@ -15,14 +15,16 @@
 (function () {
 Ext.ns('Zenoss');
 
-Zenoss.FlexButton = Ext.extend(Ext.Button, {
+Ext.define("Zenoss.FlexButton", {
+    extend: "Ext.button.Button",
+    alias: ['widget.FlexButton'],
     constructor: function(config) {
         if ( config.menu && config.menu.items && config.menu.items.length == 1 ) {
             // Only has one menu item, lets just not have it display a menu
             config.originalMenu = Ext.apply({}, config.menu);
 
             // probably don't want to inherit the text
-            var menuConfig = config.menu.items[0]
+            var menuConfig = config.menu.items[0];
             Ext.apply(config, {listeners: menuConfig.listeners});
             Ext.destroyMembers(config, 'menu');
         }
@@ -37,6 +39,7 @@ Zenoss.FlexButton = Ext.extend(Ext.Button, {
             if ( this.initialConfig.originalMenu ) {
                 // originally had a menu, just use it
                 Ext.apply(menuConfig, this.initialConfig.originalMenu);
+
             }
             else {
                 // Have to generate a menu config from the original button
@@ -44,7 +47,13 @@ Zenoss.FlexButton = Ext.extend(Ext.Button, {
                     text: this.getText() ? this.getText() : this.tooltip,
                     listeners: this.initialConfig.listeners
                 }];
+
             }
+
+            this.split = true;
+            // remove the old click handler
+            var oldClick = this.initialConfig.listeners.click;
+            this.un('click', oldClick);
 
             // Clear out properties that should be handled by the menu item
             this.on('render', function() {
@@ -53,11 +62,11 @@ Zenoss.FlexButton = Ext.extend(Ext.Button, {
             this.clearTip();
 
             this.menu = Ext.menu.MenuMgr.get(menuConfig);
+            this.up('panel').doLayout();
         }
 
         return this.menu.add(config);
     }
 });
 
-Ext.reg('FlexButton', Zenoss.FlexButton);
 })();

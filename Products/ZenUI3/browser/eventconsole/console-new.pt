@@ -30,10 +30,10 @@
 <script>
 Ext.onReady(function(){
     var toolbar_items = [
-        new Ext.Toolbar.Fill({}),
-        new Zenoss.LiveGridInfoPanel({
+        '->',
+        Ext.create('Zenoss.LiveGridInfoPanel', {
             grid: 'events_grid'
-        })
+         })
     ];
 
     Ext.each(toolbar_items,

@@ -1,0 +1,19 @@
+/**
+ * Toolbar buttons
+ */
+$button-toolbar-border-color: #5b5b5b;
+$button-toolbar-border-color-over: $button-toolbar-border-color;
+$button-toolbar-border-color-pressed: $button-toolbar-border-color;
+$button-toolbar-border-color-disabled: lighten($button-toolbar-border-color, 35);
+
+$button-toolbar-background-color: $button-toolbar-base-color;
+$button-toolbar-background-color-over: $button-toolbar-background-color;
+$button-toolbar-background-color-pressed: $button-toolbar-background-color;
+
+$button-toolbar-background-color-start: #ececec;
+$button-toolbar-background-color-stop: darken($button-toolbar-background-color-start, 15);
+$button-toolbar-background-color-pressed-start: darken($button-toolbar-background-color-stop, 15);
+$button-toolbar-background-color-pressed-stop: $button-toolbar-background-color-start;
+
+$button-icon-spacing: 6px;
+$button-small-icon-size: 18px;

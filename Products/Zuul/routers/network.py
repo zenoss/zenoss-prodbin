@@ -171,7 +171,7 @@ class NetworkRouter(TreeRouter):
 
     @serviceConnectionError
     def getIpAddresses(self, uid, start=0, params=None, limit=50, sort='ipAddressAsInt',
-                   dir='ASC'):
+                       page=None, dir='ASC'):
         """
         Given a subnet, get a list of IP addresses and their relations.
 

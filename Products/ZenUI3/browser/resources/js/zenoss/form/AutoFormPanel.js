@@ -18,12 +18,15 @@
 
 var ZF = Ext.ns('Zenoss.form');
 
-ZF.AutoFormPanel = Ext.extend(ZF.BaseDetailForm, {});
+Ext.define("Zenoss.form.AutoFormPanel", {
+    extend: "Zenoss.form.BaseDetailForm",
+    alias: ['widget.autoformpanel']
+});
 
-Ext.reg('autoformpanel', ZF.AutoFormPanel);
+
 
 /*
-* Zenoss.form.getGeneratedForm 
+* Zenoss.form.getGeneratedForm
 * Accepts a uid and a callback.
 * Asks the router for a form for the object represented by uid.
 * Returns a config object that can be added to a container to render the form.
@@ -39,7 +42,7 @@ ZF.getGeneratedForm = function(uid, callback, router) {
             border: false,
             layout: 'column',
             defaults: {
-                layout: 'form',
+                layout: 'anchor',
                 bodyStyle: 'padding:10px',
                 labelAlign: 'top',
                 columnWidth: 0.5
@@ -48,7 +51,9 @@ ZF.getGeneratedForm = function(uid, callback, router) {
     });
 }
 
-ZF.AutoFormCombo = Ext.extend(Ext.form.ComboBox, {
+Ext.define("Zenoss.form.AutoFormCombo", {
+    extend: "Ext.form.ComboBox",
+    alias: ['widget.autoformcombo'],
      constructor: function(config) {
          config = Ext.applyIf(config||{}, {
              editable: false,
@@ -62,6 +67,6 @@ ZF.AutoFormCombo = Ext.extend(Ext.form.ComboBox, {
      }
 
 });
-Ext.reg('autoformcombo', ZF.AutoFormCombo);
+
 
 })();

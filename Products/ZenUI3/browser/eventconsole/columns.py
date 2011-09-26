@@ -176,6 +176,7 @@ COLUMN_CONFIG = {
 
     'summary'   : dict(
         header='Summary',
+        flex= 1,
         filter='textfield',
         renderer='Zenoss.render.eventSummaryRow',
         sortable=True),

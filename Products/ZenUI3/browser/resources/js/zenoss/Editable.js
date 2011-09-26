@@ -15,7 +15,9 @@
 
 (function(){
 
-Zenoss.DisplayField = Ext.extend(Ext.form.DisplayField, {
+Ext.define("Zenoss.DisplayField", {
+    extend: "Ext.form.DisplayField",
+    alias: ['widget.displayfield'],
     constructor: function(config) {
         Ext.applyIf(config, {
             fieldClass: 'display-field'
@@ -30,10 +32,9 @@ Zenoss.DisplayField = Ext.extend(Ext.form.DisplayField, {
     }
 });
 
-Ext.reg('displayfield', Zenoss.DisplayField);
-
-
-Zenoss.EditorWithButtons = Ext.extend(Ext.Editor, {
+Ext.define("Zenoss.EditorWithButtons", {
+    extend: "Ext.Editor",
+    alias: ['widget.btneditor'],
     onRender: function(ct, position) {
         Zenoss.EditorWithButtons.superclass.onRender.apply(this, arguments);
         this.editorpanel = new Ext.Panel({
@@ -41,10 +42,10 @@ Zenoss.EditorWithButtons = Ext.extend(Ext.Editor, {
             bodyStyle: Ext.isIE ? 'padding-bottom:5px' : '',
             buttonAlign: 'left',
             buttons: [{
-                text:_t('Save'), 
+                text:_t('Save'),
                 handler: this.completeEdit.createDelegate(this)
             }, {
-                text:_t('Cancel'), 
+                text:_t('Cancel'),
                 handler: this.cancelEdit.createDelegate(this)
             }],
             items: this.field
@@ -60,10 +61,9 @@ Zenoss.EditorWithButtons = Ext.extend(Ext.Editor, {
     }
 });
 
-Ext.reg('btneditor', Zenoss.EditorWithButtons);
-
-
-Zenoss.EditableField = Ext.extend(Zenoss.DisplayField, {
+Ext.define("Zenoss.EditableField", {
+    extend: "Zenoss.DisplayField",
+    alias: ['widget.editable'],
     constructor: function(config) {
         config = Ext.applyIf(config||{}, {
             cls: 'editable-field',
@@ -125,10 +125,10 @@ Zenoss.EditableField = Ext.extend(Zenoss.DisplayField, {
     }
 });
 
-Ext.reg('editable', Zenoss.EditableField);
 
-
-Zenoss.EditableTextarea = Ext.extend(Zenoss.EditableField, {
+Ext.define("Zenoss.EditableTextarea", {
+    extend: "Zenoss.EditableField",
+    alias: ['widget.editabletextarea'],
     constructor: function(config) {
         config.editor = config.editor || {};
         config.editor.field = Ext.applyIf(config.editor.field||{}, {
@@ -138,8 +138,5 @@ Zenoss.EditableTextarea = Ext.extend(Zenoss.EditableField, {
         Zenoss.EditableTextarea.superclass.constructor.call(this, config);
     }
 });
-
-Ext.reg('editabletextarea', Zenoss.EditableTextarea);
-
 
 })();

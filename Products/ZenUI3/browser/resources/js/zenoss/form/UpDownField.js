@@ -18,7 +18,9 @@
 
 Ext.ns('Zenoss.form');
 
-Zenoss.form.UpDownField = Ext.extend(Ext.form.ComboBox, {
+Ext.define("Zenoss.form.UpDownField", {
+    alias:['widget.updownfield'],
+    extend:"Ext.form.ComboBox",
      constructor: function(config) {
          config = Ext.applyIf(config||{}, {
              editable: false,
@@ -34,6 +36,6 @@ Zenoss.form.UpDownField = Ext.extend(Ext.form.ComboBox, {
          Zenoss.form.UpDownField.superclass.constructor.call(this, config);
      }
  });
- Ext.reg('updownfield', Zenoss.form.UpDownField);
+
 
 })();

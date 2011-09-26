@@ -227,7 +227,7 @@ class EventsRouter(DirectRouter):
 
     @serviceConnectionError
     @require('ZenCommon')
-    def queryArchive(self, limit=0, start=0, sort='lastTime', dir='desc', params=None, uid=None, detailFormat=False):
+    def queryArchive(self, page=None, limit=0, start=0, sort='lastTime', dir='desc', params=None, uid=None, detailFormat=False):
         filter = self._buildFilter(uid, params)
         events = self.zep.getEventSummariesFromArchive(limit=limit, offset=start, sort=self._buildSort(sort,dir),
                                                        filter=filter)
@@ -243,10 +243,11 @@ class EventsRouter(DirectRouter):
             asof = time.time()
         )
 
+
     @serviceConnectionError
     @require('ZenCommon')
     def query(self, limit=0, start=0, sort='lastTime', dir='desc', params=None,
-              archive=False, uid=None, detailFormat=False):
+              page=None, archive=False, uid=None, detailFormat=False):
         """
         Query for events.
 
@@ -284,12 +285,12 @@ class EventsRouter(DirectRouter):
         eventFormat = self._mapToOldEvent
         if detailFormat:
             eventFormat = self._mapToDetailEvent
-
         return DirectResponse.succeed(
             events = [eventFormat(e) for e in events['events']],
             totalCount = events['total'],
             asof = time.time()
         )
+
 
     @serviceConnectionError
     @require('ZenCommon')

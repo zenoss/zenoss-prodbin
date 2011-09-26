@@ -1,4 +1,4 @@
- /*
+/*
 ###########################################################################
 #
 # This program is part of Zenoss Core, an open source monitoring platform.
@@ -27,7 +27,7 @@ new Zenoss.MessageDialog({
     message: _t('The changes made in the form will be lost.'),
     okHandler: function() {
         Ext.getCmp('processForm').getForm().reset();
-        Zenoss.env.node.select();
+        Zenoss.env.node.getOwnerTree().getSelectionModel().select(Zenoss.env.node);
     }
 });
 
@@ -52,26 +52,26 @@ function beforeselectHandler(sm, node, oldNode) {
 }
 
 // function that gets run when the user clicks on a node in the tree
-function selectionchangeHandler(sm, node) {
-    if (node) {
+function selectionchangeHandler(sm, nodes) {
+    if (nodes.length) {
         // load up appropriate data in the form
-        var uid = node.attributes.uid, grid =
-            Ext.getCmp('navGrid');
+        var node = nodes[0],
+            uid = node.get("uid"),
+            grid = Ext.getCmp('navGrid');
         Ext.getCmp('processForm').setContext(uid);
-        Ext.getCmp('detail_panel').detailCardPanel.setContext(uid);
+        Ext.getCmp('detailCardPanel').setContext(uid);
         Ext.getCmp('footer_bar').setContext(uid);
         // don't allow the user to delete the root node
         Ext.getCmp('footer_bar').buttonDelete.setDisabled(
                 node == Ext.getCmp(treeId).root);
         // refresh the process class grid
         grid.getSelectionModel().clearSelections();
-        grid.serviceClassName = null;
-        grid.getView().contextUid = node.attributes.uid;
-        grid.getView().updateLiveRows(Ext.getCmp('navGrid').getView().rowIndex, true, true, false);
+
+        grid.setContext(node.get("uid"));
     }
 }
 
-var selModel = new Ext.tree.DefaultSelectionModel({
+var selModel = new Zenoss.TreeSelectionModel({
     listeners: {
         beforeselect: beforeselectHandler,
         selectionchange: selectionchangeHandler
@@ -88,16 +88,17 @@ var MoveProcessCallback = Ext.extend(Object, {
         var node = this.node,
             tree = this.tree;
         node.setId(response.result.id);
-        node.attributes.uid = response.result.uid;
+        node.data.uid = response.result.uid;
         tree.selectPath(this.node.getPath());
-        tree.getRootNode().reload(function() {
-            tree.expandAll();
-            // select the node that just moved
-            tree.selectByToken(node.attributes.id);
+        tree.refresh({
+            callback: function() {
+                tree.expandAll();
+                // select the node that just moved
+                tree.selectByToken(node.get("uid"));
+            }
         });
 
-        Ext.History.add(tree.id + Ext.History.DELIMITER + node.id);
-
+        Ext.History.add(tree.id + Ext.History.DELIMITER + node.get("id"));
     }
 });
 
@@ -111,39 +112,33 @@ var ProcessTreePanel = Ext.extend(Zenoss.HierarchyTreePanel, {
             directFn: router.getTree,
             router: router,
             selModel: selModel,
-            enableDD: true,
-            ddGroup: 'processDragDrop',
-            ddAppendOnly: true,
             listeners: {
                 scope: this,
-                beforenodedrop: this.onNodeDrop,
                 expandnode: this.onExpandnode
             },
             root: {
                 id: 'Processes',
                 uid: '/zport/dmd/Processes'
+            },
+            ddGroup: 'processDragDrop',
+            viewConfig: {
+                listeners: {
+                    beforedrop: Ext.bind(this.onNodeDrop, this)
+                }
             }
         });
         ProcessTreePanel.superclass.constructor.call(this, config);
 
     },
-
-    onNodeDrop: function(dropEvent) {
-        var node, uid, target, targetUid, params, callback, data;
-        if (dropEvent.dropNode) {
-            // moving a ServiceOrganizer into another ServiceOrganizer
-            uid = dropEvent.dropNode.attributes.uid;
-        } else {
-            // moving a ServiceClass from grid into a ServiceOrganizer
-            var data = Ext.pluck(dropEvent.data.selections, 'data');
-            uid = data[0].uid;
-        }
-        target = dropEvent.target;
+    onNodeDrop: function(element, event, target) {
+        var uid, targetUid, params, callback;
+        uid = event.records[0].get("uid");
         target.expand();
-        targetUid = target.attributes.uid;
+        targetUid = target.get("uid");
         params = {uid: uid, targetUid: targetUid};
         callback = new MoveProcessCallback(this, target);
         router.moveProcess(params, callback.call, callback);
+        return false;
     },
 
     onExpandnode: function(node) {
@@ -171,10 +166,10 @@ var ProcessTreePanel = Ext.extend(Zenoss.HierarchyTreePanel, {
         // called from Ext.History.selectByToken defined in HistoryManager.js
         // overrides HierarchyTreePanel method
         tokenParts = nodeId.split('.osProcessClasses.');
-        node = this.getNodeById(unescape(tokenParts[0]));
-        if (node) {
-            this.selectPath(node.getPath());
+        if (tokenParts[0]) {
+            this.callParent([tokenParts[0]]);
         }
+
         if (tokenParts[1]) {
             Ext.getCmp('navGrid').filterAndSelectRow(tokenParts[1]);
         }
@@ -186,170 +181,154 @@ var ProcessTreePanel = Ext.extend(Zenoss.HierarchyTreePanel, {
     }
 
 });
-var ProcessGridView = Ext.extend(Zenoss.FilterGridView, {
 
+/**
+ * @class Zenoss.process.ProcessModel
+ * @extends Ext.data.Model
+ * Field definitions for processes
+ **/
+Ext.define('Zenoss.process.ProcessModel',  {
+    extend: 'Ext.data.Model',
+    idProperty: 'uid',
+    fields: [
+        {name:'name', type:'string'},
+        {name:'description', type:'string'},
+        {name:'count', type:'integer'},
+        {name:'uid', type:'string'}
+    ]
+});
+
+/**
+ * @class Zenoss.process.ProcessStore
+ * @extend Zenoss.DirectStore
+ * Direct store for loading processes
+ */
+Ext.define("Zenoss.process.ProcessStore", {
+    extend: "Zenoss.DirectStore",
     constructor: function(config) {
-        this.addEvents({
-            /**
-             * @event livebufferupdated
-             * Fires at the end of a call to liveBufferUpdate.
-             * @param {Ext.ux.BufferedGridView} this
-             */
-            'livebufferupdated' : true
+        config = config || {};
+        Ext.applyIf(config, {
+            model: 'Zenoss.process.ProcessModel',
+            initialSortColumn: "name",
+            directFn: Zenoss.remote.ProcessRouter.query,
+            root: 'processes',
+            pageSize: 400
         });
-        ProcessGridView.superclass.constructor.call(this, config);
+        this.callParent(arguments);
+    }
+});
+
+
+Ext.define("Zenoss.process.ProcessGrid", {
+    extend:"Zenoss.FilterGridPanel",
+    constructor: function(config) {
+        Ext.applyIf(config, {
+            id: 'navGrid',
+            flex: 3,
+            stateId: 'processNavGridState',
+            stateful: true,
+            border: false,
+            viewConfig: {
+                plugins: {
+                    ptype: 'gridviewdragdrop',
+                    ddGroup: 'processDragDrop'
+                }
+            },
+            rowSelectorDepth: 5,
+            height: 500,
+            store: Ext.create('Zenoss.process.ProcessStore', {}),
+            selModel: new Zenoss.ExtraHooksSelectionModel({
+                singleSelect: true,
+                listeners: {
+                    rowselect: function(sm, rowIndex, record) {
+                        var uid = record.data.uid, token, tokenParts, detail, cardpanel;
+                        cardpanel = Ext.getCmp('detailCardPanel');
+                        Ext.getCmp('processForm').setContext(uid);
+                        detail = Ext.getCmp('detail_panel');
+                        if (cardpanel.collapsed) {
+                            cardpanel.on('expand', function(p){
+                                p.setHeight(250).doLayout();
+                                Ext.getCmp('detail_panel').doLayout();
+                            }, this, {single: true});
+                            cardpanel.expand();
+                        }
+                        cardpanel.setContext(uid);
+                        Ext.getCmp('footer_bar').setContext(uid);
+                        // add to history
+                        token = Ext.History.getToken();
+                        if ( ! token ) {
+                            token = treeId + ':' + Ext.getCmp(treeId).getRootNode().data.uid.replace(/\//g, '.');
+                        }
+                        tokenParts = token.split('.osProcessClasses.');
+                        if ( tokenParts[1] !== record.data.name ) {
+                            Ext.History.add( tokenParts[0] + '.osProcessClasses.' + record.data.name);
+                        }
+                    }
+                }
+            }),
+            columns: [ {
+                dataIndex : 'name',
+                header : _t('Name'),
+                flex: 1,
+                id : 'name'
+            },{
+                dataIndex : 'count',
+                header : _t('Count'),
+                filter: false,
+                id : 'count'
+            }]
+
+        });
+        this.callParent(arguments);
     },
 
-    liveBufferUpdate: function() {
-        ProcessGridView.superclass.liveBufferUpdate.apply(this, arguments);
-        this.fireEvent('livebufferupdated', this);
-    }});
+    filterAndSelectRow: function(serviceClassName) {
+        var selectedRecord, selections;
 
-var ProcessGridPanel = Ext.extend(Zenoss.FilterGridPanel, {
-
-        constructor: function(config) {
-            Ext.applyIf(config, {
-                id: 'navGrid',
-                flex: 3,
-                stateId: 'processNavGridState',
-                stateful: true,
-                border: false,
-                enableDrag: true,
-                ddGroup: 'processDragDrop',
-                autoExpandColumn: 'name',
-                rowSelectorDepth: 5,
-                height: 500,
-                loadMask: true,
-                store: new Ext.ux.grid.livegrid.Store({
-                    proxy: new Ext.data.DirectProxy({
-                        directFn:Zenoss.remote.ProcessRouter.query
-                    }),
-                    autoLoad: false,
-                    bufferSize: 400,
-                    defaultSort: {field:'name', direction:'ASC'},
-                    sortInfo: {field:'name', direction:'ASC'},
-                    reader: new Ext.ux.grid.livegrid.JsonReader({
-                        root: 'processes',
-                        totalProperty: 'totalCount'
-                    }, [
-                        {name:'name', type:'string'},
-                        {name:'description', type:'string'},
-                        {name:'count', type:'integer'},
-                        {name:'uid', type:'string'}
-                    ]) // reader
-                }),
-                sm: new Zenoss.ExtraHooksSelectionModel({
-                    singleSelect: true,
-                    listeners: {
-                        rowselect: function(sm, rowIndex, record) {
-                            var uid = record.data.uid, token, tokenParts, detail;
-                            Ext.getCmp('processForm').setContext(uid);
-                            detail = Ext.getCmp('detail_panel');
-                            detail.detailCardPanel.setContext(uid);
-                            detail.detailCardPanel.expand();
-                            Ext.getCmp('footer_bar').setContext(uid);
-                            // add to history
-                            token = Ext.History.getToken();
-                            if ( ! token ) {
-                                token = treeId + ':' + Ext.getCmp(treeId).getRootNode().attributes.uid.replace(/\//g, '.');
-                            }
-                            tokenParts = token.split('.osProcessClasses.');
-                            if ( tokenParts[1] !== record.data.name ) {
-                                Ext.History.add( tokenParts[0] + '.osProcessClasses.' + record.data.name);
-                            }
-                        }
-                    }
-                }),
-                cm: new Ext.grid.ColumnModel({
-
-                    defaults: {
-                        sortable: true,
-                        menuDisabled: true
-                    },
-                    columns: [ {
-                        dataIndex : 'name',
-                        header : _t('Name'),
-                        id : 'name'
-                    },{
-                        dataIndex : 'count',
-                        header : _t('Count'),
-                        filter: false,
-                        id : 'count'
-                    }]
-                }),
-                view:  new ProcessGridView({
-                    nearLimit: 100,
-                    loadMask: {msg: 'Loading...',
-                              msgCls: 'x-mask-loading'},
-                    listeners: {
-                        beforeBuffer: function(view, ds, idx, len, total, opts) {
-                            opts.params.uid = view._context;
-                        }
-                    }
-                })
-            });
-            ProcessGridPanel.superclass.constructor.call(this, config);
-            this.on('afterrender',
-            function(me){
-                me.view.showFilters();
-            });
-            // load mask stuff
-            this.store.proxy.on('beforeload', function(){
-                this.view.showLoadMask(true);
-            }, this);
-            this.store.proxy.on('load', function(){
-                this.view.showLoadMask(false);
-            }, this);
-        },
-
-        filterAndSelectRow: function(serviceClassName) {
-            var selectedRecord;
-            if (serviceClassName) {
-                // the token includes a ServiceClass. Filter the grid
-                // using the name of the ServiceClass and select the
-                // correct row.
-                selectedRecord = this.getSelectionModel().getSelected();
-                if ( ! selectedRecord || selectedRecord.data.name !== serviceClassName ) {
-                    this.serviceClassName = serviceClassName;
-                    this.selectRow();
-                    this.getView().on('livebufferupdated', this.filterGrid, this);
-                }
+        if (serviceClassName) {
+            // the token includes a ServiceClass. Filter the grid
+            // using the name of the ServiceClass and select the
+            // correct row.
+            selections = this.getSelectionModel().getSelection();
+            if (selections.length) {
+                selectedRecord = selections[0];
             }
-        },
 
-        filterGrid: function() {
-            if (this.serviceClassName) {
-                this.getView().un('livebufferupdated', this.filterGrid, this);
-                Ext.getCmp('name').setValue(unescape(this.serviceClassName));
-                this.getView().on('livebufferupdated', this.selectRow, this);
+            if ( ! selectedRecord || selectedRecord.data.name !== serviceClassName ) {
+                this.serviceClassName = serviceClassName;
+                this.getStore().on('load', this.filterGrid, this, {single: true});
             }
-        },
-
-        selectRow: function() {
-            this.getView().un('livebufferupdated', this.selectRow, this);
-            this.getStore().each(this.selectRowByName, this);
-        },
-        selectRowByName: function(record) {
-            if ( record.data.name === this.serviceClassName ) {
-                this.getSelectionModel().selectRow( this.getStore().indexOf(record) );
-                return false;
-            }
-        },
-        deleteSelectedRow: function() {
-            var row = this.getSelectionModel().getSelected(),
-                me = this;
-            if (!row){
-                return;
-            }
-            var uid = row.data.uid;
-            router.deleteNode({uid:uid}, function(response){
-                me.reload();
-            });
-        },
-        reload: function() {
-            this.getView().contextUid = this.getView().contextUid;
-            this.getView().updateLiveRows(this.getView().rowIndex, true, true, false);
+        }else{
+            this.setFilter('name', '');
         }
+    },
+
+    filterGrid: function() {
+        var serviceClassName = this.serviceClassName;
+        if (serviceClassName) {
+                this.setFilter('name', serviceClassName);
+        }
+
+        this.getStore().on('load', function() {
+            this.getStore().each(function(record){
+                if (record.get("name") == serviceClassName) {
+                    this.getSelectionModel().select(record);
+                }
+            }, this);
+        }, this, {single: true});
+
+    },
+    deleteSelectedRow: function() {
+        var row = this.getSelectionModel().getSelected(),
+        me = this;
+        if (!row){
+            return;
+        }
+        var uid = row.data.uid;
+        router.deleteNode({uid:uid}, function(response){
+            me.refresh();
+        });
+    }
 });
 
 var tree = new ProcessTreePanel({});
@@ -365,7 +344,7 @@ var treepanel = {
     ]
 };
 
-var grid = new ProcessGridPanel({});
+var grid =  Ext.create('Zenoss.process.ProcessGrid', {});
 var panel = new Ext.Panel({
     layout: {
         type: 'vbox',
@@ -375,7 +354,7 @@ var panel = new Ext.Panel({
     items:[treepanel, grid]
 });
 
-Ext.getCmp('master_panel').add(panel);
+
 
 /* **************************************************************************
  *
@@ -394,7 +373,7 @@ function actioncompleteHandler(basicForm, action) {
             formPanel.disable();
         }
         var isRoot = processInfo.name == 'Processes';
-        Ext.getCmp('nameTextField').setDisabled(isRoot);
+        Ext.getCmp('nameTextField2').setDisabled(isRoot);
         Ext.getCmp('regexTextField').setDisabled(!processInfo.hasRegex);
         Ext.getCmp('ignoreParametersSelect').setDisabled(!processInfo.hasRegex);
         //Ext.getCmp('exampleTextField').setDisabled(!processInfo.hasRegex);
@@ -405,31 +384,29 @@ function actioncompleteHandler(basicForm, action) {
         var processTree = Ext.getCmp(treeId);
         var selectionModel = processTree.getSelectionModel();
         var selectedNode = selectionModel.getSelectedNode();
-        var nameTextField = Ext.getCmp('nameTextField');
+        var nameTextField = Ext.getCmp('nameTextField2');
 
-        selectedNode.attributes.text.text = nameTextField.getValue();
-        selectedNode.setText(selectedNode.attributes.text);
-        Ext.getCmp('detail_panel').detailCardPanel.setContext(selectedNode.attributes.uid);
+        selectedNode.data.text.text = nameTextField.getValue();
+        selectedNode.setText(selectedNode.data.text);
+        Ext.getCmp('detail_panel').detailCardPanel.setContext(selectedNode.data.uid);
         // reload the detail grid
         var grid = Ext.getCmp('navGrid');
-        grid.reload();
+        grid.refresh();
     }
 }
 
-var nameTextField = {
+var nameTextField2 = {
     xtype: 'textfield',
-    id: 'nameTextField',
+    id: 'nameTextField2',
     fieldLabel: _t('Name'),
     name: 'name',
-    allowBlank: false,
-    width: "100%"
+    allowBlank: false
 };
 
 var descriptionTextField = {
     xtype: 'textarea',
     fieldLabel: _t('Description'),
     name: 'description',
-    width: "100%",
     grow: true
 };
 
@@ -438,7 +415,6 @@ var regexTextField = {
     id: 'regexTextField',
     fieldLabel: _t('Pattern'),
     name: 'regex',
-    width: "94%",
     allowBlank: false
 };
 
@@ -455,8 +431,8 @@ var exampleTextField = {
     xtype: 'textfield',
     id: 'exampleTextField',
     fieldLabel: _t('Example'),
-    name: 'example',
-    width: "100%"
+    name: 'example'
+
 };
 
 var zMonitor = {
@@ -500,6 +476,7 @@ var regexFieldSet = {
     id: 'regexFieldSet',
     title: _t('Regular Expression'),
     hidden: true,
+    style: 'padding: 5px 0 0 0',
     items: [
         regexTextField,
         ignoreParametersSelect
@@ -512,52 +489,80 @@ var processFormItems = {
     layout: 'column',
     border: false,
     defaults: {
-        layout: 'form',
+        layout: 'anchor',
         border: false,
-        bodyStyle: 'padding: 15px',
+        bodyStyle: 'padding: 5px',
         columnWidth: 0.5
     },
     items: [
-        {items: [nameTextField, descriptionTextField, regexFieldSet]},
-        {items: [zMonitor, zAlertOnRestart, zFailSeverity]}
+        {defaults:{anchor:'95%'}, items: [nameTextField2, descriptionTextField, regexFieldSet]},
+        {defaults:{anchor:'95%'}, items: [zMonitor, zAlertOnRestart, zFailSeverity]}
     ]
 }; // processFormItems
 
-var processFormConfig = {
-    xtype: 'basedetailform',
-    trackResetOnLoad: true,
-    id: 'processForm',
-    permission: 'Manage DMD',
-    region: 'center',
-    items: processFormItems,
-    router: router
-};
-
-var processForm = Ext.getCmp('detail_panel').add(processFormConfig);
-processForm.on('actioncomplete', actioncompleteHandler);
 
 /************************************************************************
  *
  *   bottom_detail_panel - the device and event grid on the bottom right
  *
  **/
-Ext.getCmp('detail_panel').add({
-    xtype: 'instancecardpanel',
-    ref: 'detailCardPanel',
-    region: 'south',
-    split: true,
-    router: router,
-    bufferSize: 100,
-    nearLimit: 20,
-    instancesTitle: 'Process Instances',
-    nameDataIndex: 'processName',
-    zPropertyEditListeners: {
-        frameload: function() {
-            var formPanel = Ext.getCmp('processForm');
-            formPanel.setContext(formPanel.contextUid);
+
+
+Ext.getCmp('center_panel').add(
+        new Ext.Panel({
+            layout: 'border',
+            defaults: {'border':false},
+            items: [{
+                id: 'master_panel',
+                region: 'west',
+                layout: 'fit',
+                width: 250,
+                maxWidth: 250,
+                split: true,
+                items: panel
+            },{
+                id: 'detail_panel',
+                region: 'center',
+                layout: 'border',
+                defaults: {'border':false},
+                items: [{
+                    xtype: 'basedetailform',
+                    trackResetOnLoad: true,
+                    id: 'processForm',
+                    permission: 'Manage DMD',
+                    region: 'center',
+                    items: processFormItems,
+                    router: router,
+                    listeners: {
+                        actioncomplete: actioncompleteHandler
+                    }
+                }, {
+                    xtype: 'instancecardpanel',
+                    id: 'detailCardPanel',
+                    ref: 'detailCardPanel',
+                    region: 'south',
+                    split: true,
+                    collapsed: true,
+                    listeners: {
+                        afterrender: function(panel){
+                            panel.collapse();
+                        }
+                    },
+                    router: router,
+                    bufferSize: 100,
+                    nearLimit: 20,
+                    instancesTitle: _t('Process Instances'),
+                    zPropertyEditListeners: {
+                        frameload: function() {
+                            var formPanel = Ext.getCmp('processForm');
+                            formPanel.setContext(formPanel.contextUid);
+                        }
+                    }
+                }]
+            }]
         }
-    }
-});
+    ));
+
 
 var ContextGetter = Ext.extend(Object, {
     getUid: function() {
@@ -566,7 +571,7 @@ var ContextGetter = Ext.extend(Object, {
             Ext.Msg.alert(_t('Error'), _t('You must select a process.'));
             return null;
         }
-        return selected.attributes.uid;
+        return selected.data.uid;
     },
     hasTwoControls: function() {
         return false;
@@ -593,38 +598,70 @@ function dispatcher(actionName, value) {
 var footer = Ext.getCmp('footer_bar');
 Zenoss.footerHelper('Process', footer, {contextGetter: new ContextGetter()});
 footer.on('buttonClick', dispatcher);
-footer.buttonDelete.setDisabled(true);
+Ext.getCmp('footer_delete_button').setDisabled(true);
 
-Zenoss.SequenceGrid = Ext.extend(Zenoss.BaseSequenceGrid, {
+
+/**
+ * @class Zenoss.SequenceModel
+ * @extends Ext.data.Model
+ * Model for sequence data grid
+ **/
+Ext.define('Zenoss.SequenceModel',  {
+    extend: 'Ext.data.Model',
+    idProperty: 'uid',
+    fields:
+        [ {name: 'uid'},
+          {name: 'folder'},
+          {name: 'name'},
+          {name: 'regex'},
+          {name: 'monitor'},
+          {name: 'count'}
+        ]
+
+});
+/**
+ * @class Zenoss.SequenceStore
+ * @extend Zenoss.DirectStore
+ * Direct store for loading up the sequence grid
+ */
+Ext.define("Zenoss.SequenceStore", {
+    extend: "Zenoss.DirectStore",
+    constructor: function(config) {
+        config = config || {};
+        Ext.applyIf(config, {
+            model: 'Zenoss.SequenceModel',
+            directFn: router.getSequence,
+            root: 'data'
+        });
+        this.callParent(arguments);
+    }
+});
+
+
+Ext.define("Zenoss.SequenceGrid", {
+    alias: ['widget.sequencegrid'],
+    extend:"Zenoss.BaseSequenceGrid",
     constructor: function(config) {
         Ext.applyIf(config, {
             stripeRows: true,
             autoScroll: true,
+            sortableColumns: false,
             border: false,
             layout: 'fit',
-            viewConfig: {forceFit: true},
-            store: {
-                xtype: 'directstore',
-                root: 'data',
-                autoSave: false,
-                idProperty: 'uid',
-                directFn: router.getSequence,
-                fields: ['uid', 'folder', 'name', 'regex', 'monitor', 'count']
-            },
+            store: Ext.create('Zenoss.SequenceStore', {}),
             columns: [
-                {dataIndex: 'folder', header: 'Folder'},
-                {dataIndex: 'name', header: 'Name'},
-                {dataIndex: 'regex', header: 'Regex'},
-                {dataIndex: 'monitor', header: 'Monitor'},
-                {dataIndex: 'count', header: 'Count'}
+                {dataIndex: 'folder', header: 'Folder', menuDisabled: true},
+                {dataIndex: 'name', header: 'Name', menuDisabled: true},
+                {dataIndex: 'regex', header: 'Regex', menuDisabled: true },
+                {dataIndex: 'monitor', header: 'Monitor', menuDisabled: true},
+                {dataIndex: 'count', header: 'Count', menuDisabled: true}
             ]
         });
-        Zenoss.SequenceGrid.superclass.constructor.call(this, config);
+        this.callParent(arguments);
     }
 });
-Ext.reg('sequencegrid', Zenoss.SequenceGrid);
 
-Ext.getCmp('footer_bar').buttonContextMenu.menu.addItem({
+Ext.getCmp('footer_bar').query("button[ref='buttonContextMenu']")[0].menu.addItem({
     id: 'sequenceButton',
     iconCls: 'set',
     disabled: Zenoss.Security.doesNotHavePermission('Manage DMD'),
@@ -646,7 +683,7 @@ Ext.getCmp('footer_bar').buttonContextMenu.menu.addItem({
                     handler: function(button, event) {
                         var records, uids;
                         records = Ext.getCmp('sequenceGrid').getStore().getRange();
-                        uids = Ext.pluck(records, 'id');
+                        uids = Ext.pluck(Ext.pluck(records, 'data'), 'uid');
                         router.setSequence({'uids': uids});
                     }
                  }, {

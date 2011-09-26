@@ -7,10 +7,16 @@
         "file": "zenoss-compiled.js",
         "isDebug": false,
         "fileIncludes": [{
-            "text": "livegrid-overrides.js",
+            "text": "ExtOverrides.js",
             "path": "resources/js/zenoss/"
-        }, {
+        },{
+            "text": "flares.js",
+            "path": "resources/js/zenoss/"
+        },{
             "text": "zenoss.js",
+            "path": "resources/js/zenoss/"
+        },{
+            "text": "BaseGrid.js",
             "path": "resources/js/zenoss/"
         }, {
             "text": "Security.js",
@@ -90,12 +96,6 @@
         }, {
             "text": "ContextCardButtonPanel.js",
             "path": "resources/js/zenoss/"
-        }, {
-            "text": "multiselect.js",
-            "path": "resources/js/zenoss/lib/"
-        }, {
-            "text": "checkcolumn.js",
-            "path": "resources/js/zenoss/lib/"
         }, {
             "text": "TemplateTreePanel.js",
             "path": "resources/js/zenoss/"

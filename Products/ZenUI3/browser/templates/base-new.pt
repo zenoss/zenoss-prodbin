@@ -23,12 +23,12 @@
         </title>
         <link rel="icon" href="/zport/dmd/favicon.ico" type="image/x-icon"/>
         <link rel="shortcut icon" href="/zport/dmd/favicon.ico" type="image/x-icon"/>
-        <link rel="stylesheet" type="text/css"
-            href="/++resource++extjs/resources/css/ext-all.css" />
-        <link rel="stylesheet" type="text/css"
-            href="/++resource++extjs/treegrid/treegrid.css" />
-        <link rel="stylesheet" type="text/css"
-            href="/++resource++zenui/js/livegrid/resources/css/ext-ux-livegrid.css"/>
+        <!-- link rel="stylesheet" type="text/css"
+            href="/++resource++extjs/resources/css/ext-all.css" / -->
+        <!-- link rel="stylesheet" type="text/css"
+            href="/++resource++zenui/js/zenoss/migrate/ext3-compat.css" / -->
+        <!-- <link rel="stylesheet" type="text/css" -->
+        <!--     href="/++resource++extjs/treegrid/treegrid.css" /> -->
         <link rel="stylesheet" type="text/css"
             href="/++resource++zenui/css/xtheme-zenoss.css" />
         <link rel="stylesheet" type="text/css"
@@ -43,6 +43,9 @@
         <tal:block tal:content="structure provider:head-extra"/>
         <tal:block metal:define-slot="head-local"/>
         <tal:block tal:content="structure provider:jssnippets"/>
+        <script>
+            //Ext.defer(function(){window.location.reload()}, 10000);
+        </script>
     </head>
 
     <body>
@@ -101,6 +104,8 @@
 </form>
 <script type="text/javascript">
 Ext.onReady(function(){
+
+
 var viewport = new Ext.Viewport({
     id: 'viewport',
     layout: 'border',
@@ -144,7 +149,7 @@ var viewport = new Ext.Viewport({
         }
     ]
 });
-   
+
 });
 </script>
 
@@ -162,7 +167,7 @@ Ext.onReady(function(){
 
 <!-- Make sure everything on the page gets laid out -->
 <script type="text/javascript">
-    Ext.onReady(function(){Ext.getCmp('viewport').doLayout()});    
+    Ext.onReady(function(){Ext.getCmp('viewport').doLayout()});
 </script>
 
 <tal:block metal:define-slot="script_afterLayout">

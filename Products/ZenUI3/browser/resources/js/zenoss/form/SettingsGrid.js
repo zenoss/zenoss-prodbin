@@ -16,7 +16,9 @@
 /* package level */
 (function() {
     Ext.ns('Zenoss.form');
-    Zenoss.form.SettingsGrid = Ext.extend(Zenoss.DeviceOverviewForm, {
+    Ext.define("Zenoss.form.SettingsGrid", {
+        alias:['widget.settingsgrid'],
+        extend:"Zenoss.DeviceOverviewForm",
         constructor: function(config, itemsConfig) {
             config = config || {};
             var i,
@@ -84,10 +86,10 @@
                     forceFit: true
                 }
             });
-            Zenoss.form.SettingsGrid.superclass.constructor.apply(this, arguments);
+            this.callParent(arguments);
         }
     });
-    Ext.reg('settingsgrid', Zenoss.form.SettingsGrid);
+
 
 }());
 

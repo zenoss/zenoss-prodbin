@@ -54,51 +54,55 @@ Ext.ns('Zenoss.form');
 
 /* A radio button that allows for the boxLabel to be updated.
  */
-Zenoss.form.Radio = Ext.extend(Ext.form.Radio, {
-    
+Ext.define("Zenoss.form.Radio", {
+    extend: "Ext.form.Radio",
+    alias: ['widget.zradio'],
+
     setBoxLabel: function(boxLabel) {
         if (this.rendered) {
-            this.wrap.down('.x-form-cb-label').update(boxLabel);
+            this.boxLabel = boxLabel;
+            this.boxLabelEl.update(boxLabel);
         } else {
             this.boxLabel = boxLabel;
         }
     }
-    
+
 });
-
-Ext.reg('zradio', Zenoss.form.Radio);
-
 
 /* A hidden field used internally by the ZProperty fieldset. This hidden field
    overrides getValue to return an object with isAcquired and localValue.
    Introduces the zpropFieldSet config prop which is a reference to the
    ZProperty field set.
  */
-Zenoss.form.ZPropHidden = Ext.extend(Ext.form.Hidden, {
+Ext.define("Zenoss.form.ZPropHidden", {
+    extend: "Ext.form.Hidden",
+    alias: ['widget.zprophidden'],
 
     getValue: function() {
         return {
             isAcquired: this.zpropFieldSet.acquiredRadio.getValue(),
             localValue: this.zpropFieldSet.localField.getValue(),
-            
+
             // acquiredValue and ancestor aren't needed by the server, but it
             // is needed by reset which is called when the form is submitted
             acquiredValue: this.zpropFieldSet.acquiredValue,
             ancestor: this.zpropFieldSet.ancestor
         };
     },
-    
+    getRawValue: function() {
+        return this.getValue();
+    },
     setValue: function(values) {
         this.zpropFieldSet.setValues(values);
     },
-    
+
     isDirty: function() {
         return this.zpropFieldSet.acquiredRadio.isDirty() || this.zpropFieldSet.localField.isDirty();
     }
 
 });
 
-Ext.reg('zprophidden', Zenoss.form.ZPropHidden);
+
 
 
 /*
@@ -110,12 +114,14 @@ must be the FormPanel.
 Additional config keys:
     localField - config for the Ext.form.Field used to input a local setting
     name - string that that is submited to the server as the name
-    
+
 New public method:
     setValues - upon context change in the client code, set all the values
                 of this composite widget
  */
-Zenoss.form.ZProperty = Ext.extend(Ext.form.FieldSet, {
+Ext.define("Zenoss.form.ZProperty", {
+    extend: "Ext.form.FieldSet",
+    alias: ['widget.zprop'],
 
     constructor: function(config) {
         Ext.applyIf(config, {
@@ -129,14 +135,17 @@ Zenoss.form.ZProperty = Ext.extend(Ext.form.FieldSet, {
         });
         Zenoss.form.ZProperty.superclass.constructor.call(this, config);
     },
-
     setValues: function(values) {
         // values has isAcquired, localValue, acquiredValue, and ancestor
         // localValue is the appropriate type
         // acquiredValue is always a string
-        
+
         // setting the values this away marks the form clean and disables the
         // submit and cancel buttons
+
+        if (!values) {
+            return;
+        }
         var basicForm = this.refOwner.getForm();
         basicForm.setValues([
             {id: this.localRadio.getName(), value: !values.isAcquired},
@@ -174,6 +183,7 @@ Zenoss.form.ZProperty = Ext.extend(Ext.form.FieldSet, {
             ref: 'acquiredRadio',
             boxLabel: 'Inherit Value',
             scope: this,
+            anchor: '75%',
             handler: function(acquiredRadio, checked) {
                 this.localRadio.setValue(!checked);
             }
@@ -188,7 +198,7 @@ Zenoss.form.ZProperty = Ext.extend(Ext.form.FieldSet, {
             hideBorders: true,
             defaults: {
                 xtype: 'panel',
-                layout: 'form',
+                layout: 'anchor',
                 hideLabels: true
             },
             items: [{
@@ -206,10 +216,11 @@ Zenoss.form.ZProperty = Ext.extend(Ext.form.FieldSet, {
             }, {
                 columnWidth: 0.94,
                 items: [
-                    // Set submitValue to false in case localField has a name  
+                    // Set submitValue to false in case localField has a name
                     Ext.apply(localField, {
                         ref: '../../localField',
                         submitValue: false,
+                        anchor: '75%',
                         listeners: {
                             scope: this,
                             focus: function() {
@@ -224,12 +235,11 @@ Zenoss.form.ZProperty = Ext.extend(Ext.form.FieldSet, {
 
 });
 
-Ext.reg('zprop', Zenoss.form.ZProperty);
-
-
 // A simple ComboBox that behaves like an HTML select tag
-Zenoss.form.Select = Ext.extend(Ext.form.ComboBox, {
-    
+Ext.define("Zenoss.form.Select", {
+    extend: "Ext.form.ComboBox",
+    alias: ['widget.select'],
+
     constructor: function(config){
         Ext.applyIf(config, {
             allowBlank: false,
@@ -239,10 +249,7 @@ Zenoss.form.Select = Ext.extend(Ext.form.ComboBox, {
         });
         Zenoss.form.Select.superclass.constructor.call(this, config);
     }
-    
+
 });
-
-Ext.reg('select', Zenoss.form.Select);
-
 
 })();

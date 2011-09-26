@@ -112,7 +112,7 @@ class ProcessRouter(TreeRouter):
         return DirectResponse.succeed(data=Zuul.unmarshal(data, process))
 
     def getInstances(self, uid, start=0, params=None, limit=50, sort='name',
-                     dir='ASC'):
+                     page=None, dir='ASC'):
         """
         Get a list of instances for a process UID.
 
@@ -143,7 +143,7 @@ class ProcessRouter(TreeRouter):
         data = Zuul.marshal(instances, keys)
         return DirectResponse.succeed(data=data, totalCount=instances.total)
 
-    def getSequence(self):
+    def getSequence(self, *args, **kwargs):
         """
         Get the current processes sequence.
 
@@ -175,7 +175,7 @@ class ProcessRouter(TreeRouter):
 
 
     def query(self, limit=None, start=None, sort=None, dir=None, params=None,
-              history=False, uid=None, criteria=()):
+              page=None, history=False, uid=None, criteria=()):
         """
         Retrieve a list of processes based on a set of parameters.
 

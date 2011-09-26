@@ -18,8 +18,9 @@ Ext.onReady( function() {
 
     var zsf = Zenoss.Service.DetailForm;
 
-    zsf.MonitoredStartModesItemSelector = Ext.extend(Ext.ux.form.ItemSelector, {
-
+    Ext.define("Zenoss.Service.DetailForm.MonitoredStartModesItemSelector", {
+        alias: ['widget.monitoredstartmodesitemselector'],
+        extend:"Ext.ux.form.ItemSelector",
         constructor: function(config) {
             Ext.applyIf(config, {
                 imagePath: "/++resource++zenui/img/xtheme-zenoss/icon",
@@ -29,80 +30,56 @@ Ext.onReady( function() {
                 drawBotIcon: false,
                 displayField: 'startMode',
                 valueField: 'startMode',
-                hideLabel: true,
-                hidden: true,
-                listeners: {
-                    scope: this,
-                    change: function() {
-                        this.fireEvent('valid', this);
+                fieldLabel: _t('Monitored Start Modes'),
+                width: 300,
+                store:  Ext.create('Ext.data.ArrayStore', {
+                    data: [],
+                    fields: ['startMode'],
+                    sortInfo: {
+                        field: 'startMode',
+                        direction: 'ASC'
                     }
-                },
-                multiselects: [{
-                    legend: 'Available',
-                    cls: 'multiselect',
-                    height: 100,
-                    appendOnly: true,
-                    displayField: 'startMode',
-                    valueField: 'startMode',
-                    store: {
-                        xtype: 'arraystore',
-                        fields: ['startMode']
-                    }
-                },{
-                    legend: 'Monitored',
-                    cls: 'multiselect',
-                    height: 100,
-                    appendOnly: true,
-                    displayField: 'startMode',
-                    valueField: 'startMode',
-                    store: {
-                        xtype: 'arraystore',
-                        fields: ['startMode']
-                    }
-                }]
+                })
+
             });
-            zsf.MonitoredStartModesItemSelector.superclass.constructor.apply(this, arguments);
+            this.callParent(arguments);
         },
-
         setContext: function(uid) {
-
+            this.uid = uid;
             Zenoss.remote.ServiceRouter.getUnmonitoredStartModes({uid: uid}, function(provider, response){
-                this.fromMultiselect.store.loadData(response.result.data);
+                var data = response.result.data;
+                Zenoss.remote.ServiceRouter.getMonitoredStartModes({uid: uid}, function(provider, response){
+                    var results = [];
+                    Ext.each(response.result.data, function(row){
+                        results.push(row[0]);
+                        data.push(row);
+                    });
+                    this.store.loadData(data);
+                    this.bindStore(this.store);
+                    this.setValue(results);
+                }, this);
             }, this);
-
-            Zenoss.remote.ServiceRouter.getMonitoredStartModes({uid: uid}, function(provider, response){
-                this.toMultiselect.store.loadData(response.result.data);
-            }, this);
-
         },
-        
-        reset: function() {
-            // do nothing (override behavior of superclass)
+        refresh: function() {
+            if (this.uid) {
+                this.setContext(this.uid);
+            }
         }
 
     });
-    
-    Ext.reg('monitoredstartmodesitemselector', zsf.MonitoredStartModesItemSelector);
 
     zsf.formItems.items = [{
         items: [
-            zsf.nameTextField, 
+            zsf.nameTextField,
             zsf.descriptionTextField,
             zsf.serviceKeysTextField,
-        {
-            xtype: 'label',
-            ref: '../../startModeLabel',
-            text: 'Monitored Start Modes:',
-            cls: 'x-form-item',
-            forId: 'monitoredStartModes',
-            hidden: true
-        }, {
-            xtype: 'monitoredstartmodesitemselector',
-            id: 'monitoredStartModes',
-            ref: '../../monitoredStartModes',
-            name: 'monitoredStartModes',
-            hidden: true
-        }]
+            {
+                xtype: 'monitoredstartmodesitemselector',
+                id: 'monitoredStartModes',
+                ref: '../../monitoredStartModes',
+                name: 'monitoredStartModes'
+            }
+        ]
     }, {
         items: [
             zsf.zMonitor,
@@ -112,12 +89,12 @@ Ext.onReady( function() {
 
     Zenoss.Service.Nav.initNav('/zport/dmd/Services/WinService');
     Zenoss.Service.DetailForm.initForm();
-    Zenoss.Service.DetailGrid.initDetailPanel();
-
+    Ext.getCmp('serviceForm').on('render', function(){
+        Ext.getCmp('monitoredStartModes').setDisabled(true);
+    });
     Ext.getCmp('navGrid').getSelectionModel().on('rowselect', function(sm, rowIndex, record) {
-        Ext.getCmp('serviceForm').startModeLabel.show();
         var monitoredStartModes = Ext.getCmp('serviceForm').monitoredStartModes;
-        monitoredStartModes.show();
+        monitoredStartModes.setDisabled(false);
         monitoredStartModes.setContext(record.data.uid);
     });
 

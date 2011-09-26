@@ -35,33 +35,26 @@ function addToZenPack(e) {
     if (!addtozenpack) {
         addtozenpack = new Zenoss.AddToZenPackWindow();
     }
-    addtozenpack.setTarget(treesm.getSelectedNode().attributes.uid);
+    addtozenpack.setTarget(treesm.getSelectedNode().data.uid);
     addtozenpack.show();
 }
 
-function initializeTreeDrop(g) {
-    var dz = new Ext.tree.TreeDropZone(g, {
-        ddGroup: 'reporttreedd',
-        appendOnly: true,
-        onNodeDrop: function (target, dd, e, data) {
-            var tree = this.tree,
-                uid = data.node.attributes.uid,
-                targetUid = target.node.attributes.uid;
-            if (target.node.attributes.leaf || uid == targetUid) {
-                return false;
-            }
-            Zenoss.remote.ReportRouter.moveNode({
-                uid: uid,
-                target: targetUid
-            }, function (cb_data) {
-                if (cb_data.success) {
-                    data.node.parentNode.removeChild(data.node);
-                    data.node.destroy();
-                    insertNewNode(tree, cb_data, target.node);
-                }
-            });
-            return true;
+function initializeTreeDrop(tree) {
+
+    tree.getView().on('beforedrop', function(element, event, target) {
+        // should always only be one selection
+        var uid = event.records[0].get("uid"),
+            targetUid = target.get("uid");
+        if (target.("leaf") || uid == targetUid) {
+            return false;
         }
+
+        Zenoss.remote.ReportRouter.moveNode({
+            uid: uid,
+            target: targetUid
+        });
+        return true;
+
     });
 }
 
@@ -88,20 +81,20 @@ Zenoss.ReportTreePanel = Ext.extend(Zenoss.HierarchyTreePanel, {
             newNode;
         this.router.addNode({
             nodeType: nodeType,
-            contextUid: parentNode.attributes.uid,
+            contextUid: parentNode.data.uid,
             id: id
         }, function (data) {
             if (data.success) {
                 newNode = insertNewNode(tree, data, parentNode);
-                if (newNode.attributes.edit_url) {
-                    window.location = newNode.attributes.edit_url;
+                if (newNode.data.edit_url) {
+                    window.location = newNode.data.edit_url;
                 }
             }
         });
     },
     deleteSelectedNode: function () {
         var node = this.getSelectionModel().getSelectedNode();
-        if (node.attributes.leaf) {
+        if (node.data.leaf) {
             this._confirmDeleteSelectedNode(_t('Delete Report'),
                 _t('Confirm report deletion.'));
         } else {
@@ -128,7 +121,7 @@ Zenoss.ReportTreePanel = Ext.extend(Zenoss.HierarchyTreePanel, {
     _deleteSelectedNode: function () {
         var node = this.getSelectionModel().getSelectedNode(),
                 parentNode = node.parentNode,
-                uid = node.attributes.uid,
+                uid = node.data.uid,
                 params = {uid: uid},
                 tree = this;
         function callback(data) {
@@ -145,7 +138,7 @@ Zenoss.ReportTreePanel = Ext.extend(Zenoss.HierarchyTreePanel, {
         this.router.deleteNode(params, callback);
     },
     editReport: function () {
-        window.location = this.getSelectionModel().getSelectedNode().attributes.edit_url;
+        window.location = this.getSelectionModel().getSelectedNode().data.edit_url;
     }
 });
 
@@ -153,13 +146,13 @@ Zenoss.ReportTreePanel = Ext.extend(Zenoss.HierarchyTreePanel, {
 
 
 
-treesm = new Ext.tree.DefaultSelectionModel({
+treesm = new Zenoss.TreeSelectionModel({
     listeners: {
         'selectionchange': function (sm, newnode) {
             if (newnode == null) {
                 return;
             }
-            var attrs = newnode.attributes;
+            var attrs = newnode[0].data;
             report_panel.setContext(attrs.leaf
                     ? Ext.urlAppend(attrs.uid, 'adapt=false')
                     : '');
@@ -176,9 +169,10 @@ report_tree = new Zenoss.ReportTreePanel({
     cls: 'report-tree',
     ddGroup: 'reporttreedd',
     searchField: true,
-    rootVisible: true,
+    rootVisible: false,
     enableDD: true,
-    directFn: Zenoss.remote.ReportRouter.asyncGetTree,
+    ddGroup: 'reporttreedd',
+    directFn: Zenoss.remote.ReportRouter.getTree,
     router: Zenoss.remote.ReportRouter,
     root: {
         nodeType: 'async',
@@ -212,6 +206,7 @@ Ext.getCmp('center_panel').add({
         layout: 'fit',
         region: 'west',
         width: 300,
+        maxWidth: 300,
         split: true,
         items: [treepanel]
     }, {

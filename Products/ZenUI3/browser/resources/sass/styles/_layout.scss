@@ -1,0 +1,10 @@
+@mixin zenoss-layout {
+
+    .#{$prefix}zenoss-master-panel .#{$prefix}panel-body {
+        background-color: $master-panel-background-color;
+    }
+
+    .#{$prefix}zenoss-master-panel .#{$prefix}panel-footer {
+        background-color: #fff;
+    }
+}

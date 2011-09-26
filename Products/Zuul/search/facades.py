@@ -313,7 +313,7 @@ class SearchFacade(ZuulFacade):
     def getSearchResults(self, query, category,
                          resultSorter=DEFAULT_SORTER,
                          start=0, limit=50, filterFn=None, sort="excerpt",
-                         dir="ASC"):
+                         dir="ASC", page=None):
         """
         Execute the query against registered search providers, returning
         full results.

@@ -1,4 +1,4 @@
-/*
+ /*
 ###########################################################################
 #
 # This program is part of Zenoss Core, an open source monitoring platform.
@@ -16,56 +16,29 @@
 
     var zs = Ext.ns('Zenoss.Service.Nav');
 
-    /**********************************************************************
-    *
-    * Grid Navigation Functionality
-    *
-    */
 
-    zs.GridView = Ext.extend(Zenoss.FilterGridView, {
-
-        constructor: function(config) {
-            Ext.applyIf(config,{
-                // in chrome the larger row size was causing a gap on the left hand side grid
-                rowHeight: 19
-            });
-            this.addEvents({
-                /**
-                 * @event livebufferupdated
-                 * Fires at the end of a call to liveBufferUpdate.
-                 * @param {Ext.ux.BufferedGridView} this
-                 */
-                'livebufferupdated' : true
-            });
-            zs.GridView.superclass.constructor.call(this, config);
-        },
-
-        liveBufferUpdate: function() {
-            zs.GridView.superclass.liveBufferUpdate.apply(this, arguments);
-            this.fireEvent('livebufferupdated', this);
-        }
-
-    });
-
-    Ext.reg('servicenavgridview', zs.GridView);
 
     // handles the SelectionModel's rowselect event
     zs.rowselectHandler = function(sm, rowIndex, dataRecord) {
-        var selectedOrganizer, token, tokenParts, detail;
-        selectedOrganizer = Ext.getCmp('navTree').getSelectionModel().getSelectedNode();
-        if ( selectedOrganizer ) {
-            // unselect the organizer, but leave it highlighted
-            selectedOrganizer.unselect();
-            selectedOrganizer.getUI().addClass('x-tree-selected');
-        }
+        var token, tokenParts, detail, panel;
         Ext.getCmp('serviceForm').setContext(dataRecord.data.uid);
         detail = Ext.getCmp('detail_panel');
-        detail.detailCardPanel.setContext(dataRecord.data.uid);
-        detail.detailCardPanel.expand();
+        panel = detail.detailCardPanel;
+        panel.setContext(dataRecord.data.uid);
+        if (panel.collapsed) {
+            panel.on('expand', function(p){
+                p.setHeight(250).doLayout();
+                Ext.getCmp('detail_panel').doLayout();
+            }, this, {single: true});
+            panel.expand();
+        }
+
+        // detail.detailCardPanel.setHeight(300);
+        // Ext.getCmp('detail_panel').doLayout();
         Ext.getCmp('footer_bar').buttonDelete.setDisabled(false);
         token = Ext.History.getToken();
         if ( ! token ) {
-            token = 'navTree:' + Ext.getCmp('navTree').getRootNode().attributes.uid.replace(/\//g, '.');
+            token = 'navTree:' + Ext.getCmp('navTree').getRootNode().data.uid.replace(/\//g, '.');
         }
         tokenParts = token.split('.serviceclasses.');
         if ( tokenParts[1] !== dataRecord.data.name ) {
@@ -73,47 +46,69 @@
         }
     };
 
-    zs.storeConfig = {
-            proxy: new Ext.data.DirectProxy({
-                directFn:Zenoss.remote.ServiceRouter.query
-            }),
-            autoLoad: false,
-            bufferSize: 100,
-            defaultSort: {field:'name', direction:'ASC'},
-            sortInfo: {field:'name', direction:'ASC'},
-            reader: new Ext.ux.grid.livegrid.JsonReader({
-                root: 'services',
-                totalProperty: 'totalCount'
-            }, [
-                {name:'name', type:'string'},
-                {name:'description', type:'string'},
-                {name:'port', type:'int'},
-                {name:'count', type:'int', sortDir: 'DESC'},
-                {name:'uid', type:'string'}
-                ]) // reader
-    };
-
-    zs.columnModelConfig = {
-        defaults: {
-            sortable: true,
-            menuDisabled: true
-        },
-        columns: [
-            {
-                dataIndex : 'name',
-                header : _t('Name'),
-                id : 'name'
-            }, {
-                dataIndex : 'count',
-                header : _t('Count'),
-                id : 'count',
-                width : 50,
-                filter : false
-            }
+    /**
+     * @class Zenoss.Service.Nav.Model
+     * @extends Ext.data.Model
+     * Field definitions for the services
+     **/
+    Ext.define('Zenoss.Service.Nav.Model',  {
+        extend: 'Ext.data.Model',
+        idProperty: 'uid',
+        fields: [
+            {name:'name', type:'string'},
+            {name:'description', type:'string'},
+            {name:'port', type:'int'},
+            {name:'count', type:'int', sortDir: 'DESC'},
+            {name:'uid', type:'string'}
         ]
-    };
+    });
 
-    zs.GridPanel = Ext.extend(Zenoss.FilterGridPanel, {
+    /**
+     * @class Zenoss.Serivce.Nav.Store
+     * @extend Zenoss.DirectStore
+     * Direct store for the nav services
+     */
+    Ext.define("Zenoss.Service.Nav.Store", {
+        extend: "Zenoss.DirectStore",
+        constructor: function(config) {
+            config = config || {};
+            Ext.applyIf(config, {
+                model: 'Zenoss.Service.Nav.Model',
+                pageSize: 100,
+                initialSortColumn: "name",
+                directFn: Zenoss.remote.ServiceRouter.query,
+                root: 'services'
+            });
+            this.callParent(arguments);
+        }
+    });
+    zs.columns = [
+        {
+            dataIndex : 'name',
+            header : _t('Name'),
+            flex: 1,
+            menuDisabled: false,
+            id : 'name'
+        }, {
+            dataIndex : 'count',
+            header : _t('Count'),
+            id : 'count',
+            width : 50,
+            menuDisabled: false,
+            filter : false
+        }
+    ];
+
+    /**
+     * @class Zenoss.Service.Nav.GridPanel
+     * @extends Zenoss.FilterGridPanel
+     * Grid that is on the left hand side of the sevices page. Shows the
+     * service class as well as the instance count
+     **/
+
+    Ext.define("Zenoss.Service.Nav.GridPanel", {
+        extend:"Zenoss.FilterGridPanel",
+        alias: ['widget.servicegridpanel'],
 
         constructor: function(config) {
             Ext.applyIf(config, {
@@ -121,70 +116,59 @@
                 flex: 3,
                 layout: 'auto',
                 stateId: 'servicesNavGridState',
-                enableDrag: true,
-                ddGroup: 'serviceDragDrop',
+
+                viewConfig: {
+                    plugins: {
+                        ptype: 'gridviewdragdrop',
+                        ddGroup: 'serviceDragDrop',
+                        enableDrag: true,
+                        enableDrop: false
+                    }
+                },
                 stateful: true,
                 border: false,
-                autoExpandColumn: 'name',
+                columns: zs.columns,
                 rowSelectorDepth: 5,
-                loadMask: true,
-                view: Ext.create({
-                    xtype: 'servicenavgridview',
-                    nearLimit: 20,
-                    loadMask: {msg: _t('Loading...'),
-                               msgCls: 'x-mask-loading'},
-                    listeners: {
-                        beforeBuffer: function(view, ds, idx, len, total, opts) {
-                            opts.params.uid = view._context;
-                        }
-                    }
-                })
+                loadMask: true
             });
-            zs.GridPanel.superclass.constructor.call(this, config);
-            // load mask stuff
-            this.store.proxy.on('beforeload', function(){
-                this.view.showLoadMask(true);
-            }, this);
-            this.store.proxy.on('load', function(){
-                this.view.showLoadMask(false);
-            }, this);
+            this.callParent(arguments);
         },
 
         filterAndSelectRow: function(serviceClassName) {
-            var selectedRecord;
+            var selections, selectedRecord;
             if (serviceClassName) {
                 // the token includes a ServiceClass. Filter the grid
                 // using the name of the ServiceClass and select the
                 // correct row.
-                selectedRecord = this.getSelectionModel().getSelected();
+                selections = this.getSelectionModel().getSelection();
+                if (selections.length) {
+                    selectedRecord = selections[0];
+                }
+
                 if ( ! selectedRecord || selectedRecord.data.name !== serviceClassName ) {
                     this.serviceClassName = serviceClassName;
-                    this.selectRow();
-                    this.getView().on('livebufferupdated', this.filterGrid, this);
+                    this.getStore().on('load', this.filterGrid, this, {single: true});
                 }
+            }else{
+                this.setFilter('name', '');
             }
         },
 
         filterGrid: function() {
-            this.getView().un('livebufferupdated', this.filterGrid, this);
-            Ext.getCmp('name').setValue(this.serviceClassName);
-            this.getView().on('livebufferupdated', this.selectRow, this);
-        },
-
-        selectRow: function() {
-            this.getView().un('livebufferupdated', this.selectRow, this);
-            this.getStore().each(this.selectRowByName, this);
-        },
-
-        selectRowByName: function(record) {
-            if ( record.data.name === this.serviceClassName ) {
-                this.getSelectionModel().selectRow( this.getStore().indexOf(record) );
-                return false;
+            var serviceClassName = this.serviceClassName;
+            if (serviceClassName) {
+                this.setFilter('name', serviceClassName);
             }
+
+            this.getStore().on('load', function() {
+                this.getStore().each(function(record){
+                    if (record.get("name") == serviceClassName) {
+                        this.getSelectionModel().select(record);
+                    }
+                }, this);
+            }, this, {single: true});
         }
 
     });
-
-    Ext.reg('servicegridpanel', zs.GridPanel);
 
 })();

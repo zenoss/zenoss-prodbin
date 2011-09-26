@@ -15,7 +15,9 @@
 
 /* package level */
 (function() {
-     var parser = Ext.extend(Ext.form.ComboBox, {
+     Ext.define("Zenoss.form.parser", {
+         alias:['widget.parser'],
+         extend:"Ext.form.ComboBox",
          constructor: function(config) {
              var record = config.record;
              config = config || {};
@@ -31,8 +33,8 @@
                  mode: 'local',
                  store: record.availableParsers
              });
-             parser.superclass.constructor.apply(this, arguments);
+             this.callParent(arguments);
          }
      });
-     Ext.reg('parser', parser);
+
 }());

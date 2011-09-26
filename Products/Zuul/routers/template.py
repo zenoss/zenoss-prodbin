@@ -44,7 +44,8 @@ class TemplateRouter(TreeRouter):
         """
         facade = self._getFacade()
         templates = facade.getTemplates(id)
-        return Zuul.marshal(templates)
+        data =  Zuul.marshal(templates)
+        return data
 
     def getDeviceClassTemplates(self, id):
         """
@@ -57,10 +58,10 @@ class TemplateRouter(TreeRouter):
         @return:  List of objects representing the templates in tree hierarchy
         """
         facade = self._getFacade()
-        templates = facade.getDeviceClassTemplates()
+        templates = facade.getTree(id)
         return [Zuul.marshal(templates)]
 
-    def getAddTemplateTargets(self, query):
+    def getAddTemplateTargets(self, query=None):
         """
         Get a list of available device classes where new templates can be added.
 
@@ -170,7 +171,7 @@ class TemplateRouter(TreeRouter):
         """
         facade = self._getFacade()
         thresholds = facade.getThresholds(uid)
-        return Zuul.marshal(thresholds)
+        return DirectResponse.succeed(data=Zuul.marshal(thresholds))
 
     def getThresholdDetails(self, uid):
         """
@@ -190,7 +191,7 @@ class TemplateRouter(TreeRouter):
         data =  Zuul.marshal(dict(record=thresholdDetails, form=form))
         return data
 
-    def getDataPoints(self, query, uid):
+    def getDataPoints(self, uid, query=''):
         """
         Get a list of available data points for a template.
 
@@ -253,7 +254,7 @@ class TemplateRouter(TreeRouter):
                            dstype=type, template=templateUid)
         return DirectResponse.succeed()
 
-    def getDataSources(self, id):
+    def getDataSources(self, uid):
         """
         Get the data sources for a template.
 
@@ -263,8 +264,8 @@ class TemplateRouter(TreeRouter):
         @return:  List of objects representing representing data sources
         """
         facade = self._getFacade()
-        dataSources = facade.getDataSources(id)
-        return Zuul.marshal(dataSources)
+        dataSources = facade.getDataSources(uid)
+        return DirectResponse.succeed(data=Zuul.marshal(dataSources))
 
     def getDataSourceDetails(self, uid):
         """
@@ -412,7 +413,7 @@ class TemplateRouter(TreeRouter):
                            thresholdclass=uid)
         return DirectResponse.succeed()
 
-    def getThresholdTypes(self, query):
+    def getThresholdTypes(self, query=None):
         """
         Get a list of available threshold types.
 

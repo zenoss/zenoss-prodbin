@@ -85,16 +85,21 @@ Ext.onReady(function() {
 
     var clearHeartbeatPanel = new Ext.Panel({
         renderTo: 'clearHeartbeat',
-        layout: 'hbox',
+        layout: 'anchor',
         layoutConfig: {
-            pack: 'center',
-            align: 'middle'
+            align: 'left'
         },
-        bodyStyle: 'background-color: #FAFAFA; border-style: none solid none solid;',
         width: 500,
         padding: 10,
-        items: [
-            {
+        border: false,
+        items: [{
+                xtype: 'label',
+                html: '<label id="event_age_disable_severity-labelEl" class="x-form-item-label x-form-item-label-top"' +
+                ' style="margin-bottom:5px;font-size: 13px; color: #5a5a5a" for="ext-gen1129">Clear Event Heartbeats:</label>'
+            },{
+                xtype: 'tbspacer',
+                width: 100
+            }, {
                 xtype: 'button',
                 text: _t('Clear'),
                 handler: function() {
@@ -114,12 +119,6 @@ Ext.onReady(function() {
                     });
                     confirmDialog.show();
                 }
-            }, {
-                xtype: 'spacer',
-                width: 10
-            }, {
-                html: _t('Clear all heartbeat events'),
-                bodyStyle: 'font-size:110%; font-color: #5A5A5A;'
             }
         ]
     });

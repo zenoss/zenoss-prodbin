@@ -54,7 +54,53 @@
         }, callback);
     }
 
-    ModificationGrid = Ext.extend(Ext.ux.tree.TreeGrid, {
+
+    /**
+     * @class Zenoss.form.ModificationModel
+     * @extends Ext.data.Model
+     * Field definitions for modifications
+     **/
+    Ext.define('Zenoss.form.ModificationModel',  {
+        extend: 'Ext.data.Model',
+        idProperty: 'obj',
+        fields: [
+            {name: 'obj'},
+            {name: 'meta_type'},
+            {name: 'timeOfChange'},
+            {name: 'user'},
+            {name: 'description'}
+        ]
+    });
+
+
+    /**
+     * @class Zenoss.form.ModificationStore
+     * @extend Ext.data.TreeStore
+     * Direct store for loading modification records
+     */
+    Ext.define("Zenoss.form.ModificationStore", {
+        extend: "Ext.data.TreeStore",
+        constructor: function(config) {
+            config = config || {};
+            Ext.applyIf(config, {
+                model: 'Zenoss.form.ModificationStore',
+                remoteSort: false,
+                nodeParam: 'obj',
+                proxy: {
+                    type: 'direct',
+                    directFn: router.getModifications,
+                    reader: {
+                        root: 'data',
+                        totalProperty: 'count'
+                    }
+                }
+            });
+            this.callParent(arguments);
+        }
+    });
+
+    Ext.define("Zenoss.form.ModificationGrid", {
+        extend:"Ext.tree.Panel",
 
         constructor: function(config) {
             Ext.applyIf(config, {
@@ -65,17 +111,16 @@
                 border: false,
                 enableSort: false,
                 useArrows: true,
-                loader: new Ext.ux.tree.TreeGridLoader({
-                    directFn: getModifications,
-                    paramOrder: ['types'],
-                    baseParams: {
-                        types: config.types
-                    }
-                }),
+                store: Ext.create('Zenoss.form.ModificationStore', {}),
+                root: {
+
+                },
                 columns: [{
+                    xtype: 'treecolumn', //this is so we know which column will show the tree
                     header: _t("Object"),
                     id: 'obj',
                     dataIndex: 'obj',
+                    flex: 2,
                     width: 200,
                     sortable: false
                 },{
@@ -105,17 +150,22 @@
                     tpl: new Ext.XTemplate( '<span title="{description}">{description}</span>')
                 }]
             });
-            ModificationGrid.superclass.constructor.call(this, config);
-
+            this.callParent(arguments);
         },
         setContext: function(uid) {
             var root = this.getRootNode();
-            root.setId(uid);
-            root.reload();
+            this.getStore().load({
+                params: {
+                    id: uid,
+                    types: this.types
+                }
+            });
         }
     });
 
-    ModificationPanel = Ext.extend(Ext.Panel, {
+    Ext.define("ModificationPanel", {
+        alias:['widget.modificationpanel'],
+        extend:"Ext.Panel",
         constructor: function(config) {
             config = config || {};
             Ext.applyIf(config, {
@@ -125,19 +175,19 @@
                     overflow: 'auto'
                 },
                 height: 550,
-                items: [new ModificationGrid({
+                items: [Ext.create('Zenoss.form.ModificationGrid', {
                     ref: 'modificationGrid',
                     types: config.types
                 })]
 
             });
-            ModificationPanel.superclass.constructor.apply(this, arguments);
+            this.callParent(arguments);
         },
         setContext: function(uid) {
             this.modificationGrid.setContext(uid);
         }
     });
 
-    Ext.reg('modificationpanel', ModificationPanel);
+
 
 }());

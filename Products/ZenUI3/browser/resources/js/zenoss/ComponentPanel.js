@@ -190,8 +190,7 @@ Zenoss.nav.register({
         text: _t('Templates'),
         action: function(node, target, combo) {
             var uid = combo.contextUid;
-            target.add(Ext.create({
-                xtype: 'componenttemplatepanel',
+            target.add(Ext.create('Zenoss.ComponentTemplatePanel',{
                 ref: 'componentTemplatePanel',
                 id: 'componentTemplatePanel' + uid
             }));
@@ -201,7 +200,9 @@ Zenoss.nav.register({
     }]
 });
 
-ZC.ComponentDetailNav = Ext.extend(Zenoss.DetailNavPanel, {
+Ext.define("Zenoss.component.ComponentDetailNav", {
+    alias:['widget.componentnav'],
+    extend:"Zenoss.DetailNavPanel",
     constructor: function(config) {
         Ext.applyIf(config, {
             autoHeight: true,
@@ -244,8 +245,8 @@ ZC.ComponentDetailNav = Ext.extend(Zenoss.DetailNavPanel, {
     },
     onSelectionChange: function(sm, node) {
         var target = this.target || Ext.getCmp('component_detail_panel'),
-            action = node.attributes.action || function(node, target) {
-                var id = node.attributes.id;
+            action = node.data.action || Ext.bind(function(node, target) {
+                var id = node.get('id');
                 if (!(id in target.items.map)) {
                     var config = this.panelConfigMap[id];
                     if(config) {
@@ -253,16 +254,18 @@ ZC.ComponentDetailNav = Ext.extend(Zenoss.DetailNavPanel, {
                         target.doLayout();
                     }
                 }
-                target.items.map[node.attributes.id].setContext(this.contextId);
-                target.layout.setActiveItem(node.attributes.id);
-            }.createDelegate(this);
+                target.items.map[id].setContext(this.contextId);
+                target.layout.setActiveItem(id);
+            }, this);
         action(node, target);
     }
 });
-Ext.reg('componentnav', ZC.ComponentDetailNav);
 
 
-ZC.ComponentPanel = Ext.extend(Ext.Panel, {
+
+Ext.define("Zenoss.component.ComponentPanel", {
+    alias:['widget.componentpanel'],
+    extend:"Ext.Panel",
     constructor: function(config) {
         var tbar = config.gridtbar,
             tbarid = Ext.id();
@@ -306,7 +309,7 @@ ZC.ComponentPanel = Ext.extend(Ext.Panel, {
                     },{
                         xtype: 'detailnavcombo',
                         menuIds: [],
-                        onGetNavConfig: function(uid) {
+                        onGetNavConfig: Ext.bind(function(uid) {
                             var grid = this.componentgrid,
                                 items = [],
                                 monitor = false;
@@ -319,7 +322,7 @@ ZC.ComponentPanel = Ext.extend(Ext.Panel, {
                                 items.push(item);
                             });
                             return items;
-                        }.createDelegate(this),
+                        }, this),
                         filterNav: function(cfg) {
                             var excluded = [
                                 'status',
@@ -348,21 +351,16 @@ ZC.ComponentPanel = Ext.extend(Ext.Panel, {
         return Ext.getCmp(this.tbarid);
     },
     selectByToken: function(token) {
-        var grid = this.componentgrid,
-            store = grid.getStore(),
-            sm = grid.getSelectionModel(),
-            view = grid.getView();
         if (token) {
+            var grid = this.componentgrid,
+                store = grid.getStore(),
+                sm = grid.getSelectionModel(),
+                view = grid.getView();
             store.findByUid(token, function(record, index) {
                 if (!sm.isSelected(index)) {
-                    if (index<=this.store.bufferRange[1]) {
-                        sm.selectRow(index);
-                    } else {
-                        view.on('buffer', function(){
-                            sm.selectRow(index);
-                        }, this.store, {single:true});
-                    }
-                    view.ensureVisible(index);
+                    sm.selectRow(index);
+                    view.focusRow(index);
+                    sm.fireEvent('selectionchange', sm, sm.getSelection());
                 }
             }, grid);
         }
@@ -371,8 +369,9 @@ ZC.ComponentPanel = Ext.extend(Ext.Panel, {
         this.contextUid = uid;
         if (type!=this.componentType) {
             this.componentType = type;
+
             var compType = this.componentType + 'Panel',
-                xtype = Ext.ComponentMgr.isRegistered(compType) ? compType : 'ComponentGridPanel';
+                xtype = Ext.ClassManager.getByAlias('widget.' + compType) ? compType : 'ComponentGridPanel';
             this.gridcontainer.removeAll();
             this.gridcontainer.add({
                 xtype: xtype,
@@ -386,8 +385,8 @@ ZC.ComponentPanel = Ext.extend(Ext.Panel, {
                         this.detailcontainer.removeAll();
                         this.componentnav.reset();
                     },
-                    selectionchange: function(sm, node) {
-                        var row = sm.getSelected();
+                    selectionchange: function(sm, selected) {
+                        var row = selected[0];
                         if (row) {
                             Zenoss.env.compUUID = row.data.uuid;
                             this.componentnav.setContext(row.data.uid);
@@ -410,46 +409,61 @@ ZC.ComponentPanel = Ext.extend(Ext.Panel, {
         this.fireEvent('contextchange', this, uid, type);
     }
 });
-Ext.reg('componentpanel', ZC.ComponentPanel);
 
 
-ZC.ComponentGridPanel = Ext.extend(Ext.ux.grid.livegrid.GridPanel, {
+Ext.define("Zenoss.component.ComponentGridPanel", {
+    alias:['widget.ComponentGridPanel'],
+    extend:"Zenoss.BaseGridPanel",
     lastHash: null,
     constructor: function(config) {
         config = config || {};
         config.fields = config.fields || [];
         config.fields.push({'name': 'uuid'});
+        var modelId = Ext.id(),
+            model = Ext.define(modelId, {
+                extend: 'Ext.data.Model',
+                idProperty: 'uuid',
+                fields: config.fields
+            });
         config = Ext.applyIf(config||{}, {
             border: false,
             autoExpandColumn: 'name',
             stripeRows: true,
+            bbar: {},
             store: new ZC.BaseComponentStore({
                 sortInfo: config.sortInfo,
-                fields:config.fields,
+                model: modelId,
                 directFn:config.directFn || Zenoss.remote.DeviceRouter.getComponents
             }),
-            colModel: new ZC.BaseComponentColModel({
-                columns:config.columns
-            }),
+            columns: [{
+                id: 'severity',
+                dataIndex: 'severity',
+                header: _t('Events'),
+                renderer: Zenoss.render.severity,
+                width: 60
+            },{
+                id: 'name',
+                dataIndex: 'name',
+                header: _t('Name')
+            }, {
+                id: 'monitored',
+                dataIndex: 'monitored',
+                header: _t('Monitored'),
+                renderer: Zenoss.render.checkbox,
+                width: 70,
+                sortable: true
+            }, {
+                id: 'status',
+                dataIndex: 'status',
+                header: _t('Status'),
+                renderer: Zenoss.render.pingStatus,
+                width: 60
+            }],
             selModel: new Zenoss.ExtraHooksSelectionModel({
                 suppressDeselectOnSelect: true
-            }),
-            view: new Ext.ux.grid.livegrid.GridView({
-                rowHeight: 22,
-                nearLimit: 100,
-                loadMask: {msg: _t('Loading. Please wait...'),
-                           msgCls: 'x-mask-loading'},
-                listeners: {
-                    beforeload: this.onBeforeLoad,
-                    beforebuffer: this.onBeforeBuffer,
-                    scope: this
-                },
-                nonDisruptiveReset: Zenoss.FilterGridView.prototype.nonDisruptiveReset
             })
         });
-
         ZC.ComponentGridPanel.superclass.constructor.call(this, config);
-        this.relayEvents(this.getSelectionModel(), ['selectionchange']);
         this.relayEvents(this.getSelectionModel(), ['rangeselect']);
         this.store.proxy.on('load',
             function(proxy, o, options) {
@@ -458,17 +472,10 @@ ZC.ComponentGridPanel = Ext.extend(Ext.ux.grid.livegrid.GridPanel, {
             this);
         Zenoss.util.addLoadingMaskToGrid(this);
     },
-    onBeforeLoad: function(store, options) {
-        this.applyOptions(options);
-    },
-    onBeforeBuffer: function(view, store, rowIndex, visibleRows,
-                             totalCount, options) {
-        this.applyOptions(options);
-    },
     applyOptions: function(options){
         Ext.apply(options.params, {
             uid: this.contextUid,
-            keys: Ext.pluck(this.getStore().fields.getRange(), 'name'),
+            keys: Ext.pluck(this.fields, 'name'),
             meta_type: this.componentType,
             name: this.componentName
         });
@@ -486,35 +493,23 @@ ZC.ComponentGridPanel = Ext.extend(Ext.ux.grid.livegrid.GridPanel, {
             var token = Ext.History.getToken();
             if (token.split(Ext.History.DELIMITER).length!=3) {
                 this.getSelectionModel().selectRow(0);
+                // Ext, for some reason, doesn't fire selectionchange at this
+                // point, so we'll do it ourselves.
+                this.fireEvent('selectionchange', this, this.getSelectionModel().getSelection());
             }
         }, this, {single:true});
-        this.view.updateLiveRows(0, true, true, false);
+        this.getStore().load();
     }
 });
 
-Ext.reg('ComponentGridPanel', ZC.ComponentGridPanel);
 
-ZC.BaseComponentStore = Ext.extend(Ext.ux.grid.livegrid.Store, {
+
+Ext.define("Zenoss.component.BaseComponentStore", {
+    extend:"Zenoss.DirectStore",
     constructor: function(config) {
-        var fields = config.fields || [
-            {name: 'uid'},
-            {name: 'severity'},
-            {name: 'name'},
-            {name: 'usesMonitorAttribute'},
-            {name: 'monitor'},
-            {name: 'monitored'},
-            {name: 'status'}
-        ];
         Ext.applyIf(config, {
-            bufferSize: 300,
-            proxy: new Ext.data.DirectProxy({
-                directFn: config.directFn
-            }),
-            reader: new Ext.ux.grid.livegrid.JsonReader({
-                root: 'data',
-                totalProperty: 'totalCount',
-                fields: fields
-            })
+            pageSize: 300,
+            directFn: config.directFn
         });
         ZC.BaseComponentStore.superclass.constructor.call(this, config);
         this.on('load', function(){this.loaded = true;}, this);
@@ -547,32 +542,9 @@ ZC.BaseComponentStore = Ext.extend(Ext.ux.grid.livegrid.Store, {
     }
 });
 
-ZC.BaseComponentColModel = Ext.extend(Ext.grid.ColumnModel, {
+Ext.define("Zenoss.component.BaseComponentColModel", {
+    extend:"Ext.grid.ColumnModel",
     constructor: function(config) {
-        var cols = config.columns || [{
-                id: 'severity',
-                dataIndex: 'severity',
-                header: _t('Events'),
-                renderer: Zenoss.render.severity,
-                width: 60
-            },{
-                id: 'name',
-                dataIndex: 'name',
-                header: _t('Name')
-            }, {
-                id: 'monitored',
-                dataIndex: 'monitored',
-                header: _t('Monitored'),
-                renderer: Zenoss.render.checkbox,
-                width: 70,
-                sortable: true
-            }, {
-                id: 'status',
-                dataIndex: 'status',
-                header: _t('Status'),
-                renderer: Zenoss.render.pingStatus,
-                width: 60
-            }];
         config = Ext.applyIf(config||{}, {
             defaults: {
                 menuDisabled: true,
@@ -584,7 +556,9 @@ ZC.BaseComponentColModel = Ext.extend(Ext.grid.ColumnModel, {
     }
 });
 
-ZC.IpInterfacePanel = Ext.extend(ZC.ComponentGridPanel, {
+Ext.define("Zenoss.component.IpInterfacePanel", {
+    alias:['widget.IpInterfacePanel'],
+    extend:"Zenoss.component.ComponentGridPanel",
     constructor: function(config) {
         config = Ext.applyIf(config||{}, {
             componentType: 'IpInterface',
@@ -668,10 +642,12 @@ ZC.IpInterfacePanel = Ext.extend(ZC.ComponentGridPanel, {
     }
 });
 
-Ext.reg('IpInterfacePanel', ZC.IpInterfacePanel);
+
 ZC.registerName('IpInterface', _t('Interface'), _t('Interfaces'));
 
-ZC.WinServicePanel = Ext.extend(ZC.ComponentGridPanel, {
+Ext.define("Zenoss.component.WinServicePanel", {
+    alias:['widget.WinServicePanel'],
+    extend:"Zenoss.component.ComponentGridPanel",
     constructor: function(config) {
         config = Ext.applyIf(config||{}, {
             componentType: 'WinService',
@@ -735,11 +711,13 @@ ZC.WinServicePanel = Ext.extend(ZC.ComponentGridPanel, {
     }
 });
 
-Ext.reg('WinServicePanel', ZC.WinServicePanel);
+
 ZC.registerName('WinService', _t('Windows Service'), _t('Windows Services'));
 
 
-ZC.IpRouteEntryPanel = Ext.extend(ZC.ComponentGridPanel, {
+Ext.define("Zenoss.component.IpRouteEntryPanel", {
+    alias:['widget.IpRouteEntryPanel'],
+    extend:"Zenoss.component.ComponentGridPanel",
     constructor: function(config) {
         config = Ext.applyIf(config||{}, {
             componentType: 'IpRouteEntry',
@@ -793,10 +771,12 @@ ZC.IpRouteEntryPanel = Ext.extend(ZC.ComponentGridPanel, {
     }
 });
 
-Ext.reg('IpRouteEntryPanel', ZC.IpRouteEntryPanel);
+
 ZC.registerName('IpRouteEntry', _t('Network Route'), _t('Network Routes'));
 
-ZC.IpServicePanel = Ext.extend(ZC.ComponentGridPanel, {
+Ext.define("Zenoss.component.IpServicePanel", {
+    alias:['widget.IpServicePanel'],
+    extend:"Zenoss.component.ComponentGridPanel",
     constructor: function(config) {
         config = Ext.applyIf(config||{}, {
             componentType: 'IpService',
@@ -862,11 +842,13 @@ ZC.IpServicePanel = Ext.extend(ZC.ComponentGridPanel, {
     }
 });
 
-Ext.reg('IpServicePanel', ZC.IpServicePanel);
+
 ZC.registerName('IpService', _t('IP Service'), _t('IP Services'));
 
 
-ZC.OSProcessPanel = Ext.extend(ZC.ComponentGridPanel, {
+Ext.define("Zenoss.component.OSProcessPanel", {
+    alias:['widget.OSProcessPanel'],
+    extend:"Zenoss.component.ComponentGridPanel",
     constructor: function(config) {
         config = Ext.applyIf(config||{}, {
             componentType: 'OSProcess',
@@ -935,11 +917,13 @@ ZC.OSProcessPanel = Ext.extend(ZC.ComponentGridPanel, {
     }
 });
 
-Ext.reg('OSProcessPanel', ZC.OSProcessPanel);
+
 ZC.registerName('OSProcess', _t('OS Process'), _t('OS Processes'));
 
 
-ZC.FileSystemPanel = Ext.extend(ZC.ComponentGridPanel, {
+Ext.define("Zenoss.component.FileSystemPanel", {
+    alias:['widget.FileSystemPanel'],
+    extend:"Zenoss.component.ComponentGridPanel",
     constructor: function(config) {
         config = Ext.applyIf(config||{}, {
             autoExpandColumn: 'mount',
@@ -1020,11 +1004,13 @@ ZC.FileSystemPanel = Ext.extend(ZC.ComponentGridPanel, {
     }
 });
 
-Ext.reg('FileSystemPanel', ZC.FileSystemPanel);
+
 ZC.registerName('FileSystem', _t('File System'), _t('File Systems'));
 
 
-ZC.CPUPanel = Ext.extend(ZC.ComponentGridPanel, {
+Ext.define("Zenoss.component.CPUPanel", {
+    alias:['widget.CPUPanel'],
+    extend:"Zenoss.component.ComponentGridPanel",
     constructor: function(config) {
         config = Ext.applyIf(config||{}, {
             componentType: 'CPU',
@@ -1099,11 +1085,13 @@ ZC.CPUPanel = Ext.extend(ZC.ComponentGridPanel, {
     }
 });
 
-Ext.reg('CPUPanel', ZC.CPUPanel);
+
 ZC.registerName('CPU', _t('Processor'), _t('Processors'));
 
 
-ZC.ExpansionCardPanel = Ext.extend(ZC.ComponentGridPanel, {
+Ext.define("Zenoss.component.ExpansionCardPanel", {
+    alias:['widget.ExpansionCardPanel'],
+    extend:"Zenoss.component.ComponentGridPanel",
     constructor: function(config) {
         config = Ext.applyIf(config||{}, {
             componentType: 'ExpansionCard',
@@ -1156,11 +1144,13 @@ ZC.ExpansionCardPanel = Ext.extend(ZC.ComponentGridPanel, {
     }
 });
 
-Ext.reg('ExpansionCardPanel', ZC.ExpansionCardPanel);
+
 ZC.registerName('ExpansionCard', _t('Card'), _t('Cards'));
 
 
-ZC.PowerSupplyPanel = Ext.extend(ZC.ComponentGridPanel, {
+Ext.define("Zenoss.component.PowerSupplyPanel", {
+    alias:['widget.PowerSupplyPanel'],
+    extend:"Zenoss.component.ComponentGridPanel",
     constructor: function(config) {
         config = Ext.applyIf(config||{}, {
             componentType: 'PowerSupply',
@@ -1215,11 +1205,13 @@ ZC.PowerSupplyPanel = Ext.extend(ZC.ComponentGridPanel, {
     }
 });
 
-Ext.reg('PowerSupplyPanel', ZC.PowerSupplyPanel);
+
 ZC.registerName('PowerSupply', _t('Power Supply'), _t('Power Supplies'));
 
 
-ZC.TemperatureSensorPanel = Ext.extend(ZC.ComponentGridPanel, {
+Ext.define("Zenoss.component.TemperatureSensorPanel", {
+    alias:['widget.TemperatureSensorPanel'],
+    extend:"Zenoss.component.ComponentGridPanel",
     constructor: function(config) {
         config = Ext.applyIf(config||{}, {
             componentType: 'TemperatureSensor',
@@ -1271,11 +1263,13 @@ ZC.TemperatureSensorPanel = Ext.extend(ZC.ComponentGridPanel, {
     }
 });
 
-Ext.reg('TemperatureSensorPanel', ZC.TemperatureSensorPanel);
+
 ZC.registerName('TemperatureSensor', _t('Temperature Sensor'), _t('Temperature Sensors'));
 
 
-ZC.FanPanel = Ext.extend(ZC.ComponentGridPanel, {
+Ext.define("Zenoss.component.FanPanel", {
+    alias:['widget.FanPanel'],
+    extend:"Zenoss.component.ComponentGridPanel",
     constructor: function(config) {
         config = Ext.applyIf(config||{}, {
             componentType: 'Fan',
@@ -1325,7 +1319,7 @@ ZC.FanPanel = Ext.extend(ZC.ComponentGridPanel, {
     }
 });
 
-Ext.reg('FanPanel', ZC.FanPanel);
+
 ZC.registerName('Fan', _t('Fan'), _t('Fans'));
 
 })();

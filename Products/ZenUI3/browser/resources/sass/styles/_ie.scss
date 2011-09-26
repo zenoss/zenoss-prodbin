@@ -1,0 +1,13 @@
+@mixin pie-behavior {
+  behavior: url('/zport/dmd/PIE.htc');
+}
+
+@mixin fix-ie-grad($start-color, $end-color, $selector){
+     .#{$selector}{
+        background-image: none !important;
+        filter: progid:DXImageTransform.Microsoft.Gradient(GradientType=0, startColorstr='#{$start-color}', endColorstr='#{$end-color}');
+        -ms-filter: "progid:DXImageTransform.Microsoft.gradient(startColorstr='#{$start-color}', endColorstr='#{$end-color}')";
+    }
+}
+
+

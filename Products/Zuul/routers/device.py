@@ -138,9 +138,8 @@ class DeviceRouter(TreeRouter):
         return results
 
     @serviceConnectionError
-    def getComponents(self, uid=None, meta_type=None,
-                      keys=None, start=0, limit=50,
-                      sort='name', dir='ASC', name=None):
+    def getComponents(self, uid=None, meta_type=None, keys=None, start=0,
+                      limit=50, page=0, sort='name', dir='ASC', name=None):
         """
         Retrieves all of the components at a given UID. This method
         allows for pagination.
@@ -363,6 +362,7 @@ class DeviceRouter(TreeRouter):
 
     @serviceConnectionError
     def getDevices(self, uid=None, start=0, params=None, limit=50, sort='titleOrId',
+                   page=None,
                    dir='ASC', keys=None):
         """
         Retrieves a list of devices. This method supports pagination.
@@ -416,7 +416,7 @@ class DeviceRouter(TreeRouter):
         return DirectResponse(devices=data, totalCount=devices.total,
                               hash=devices.hash_)
 
-    def moveDevices(self, uids, target, hashcheck, ranges=(), uid=None,
+    def moveDevices(self, uids, target, hashcheck=None, ranges=(), uid=None,
                     params=None, sort='name', dir='ASC'):
         """
         Moves the devices specified by uids to the organizer specified by 'target'.
@@ -1136,7 +1136,7 @@ class DeviceRouter(TreeRouter):
 
     @serviceConnectionError
     def getZenProperties(self, uid, start=0, params="{}", limit=None, sort=None,
-                   dir='ASC'):
+                         page=None, dir='ASC'):
         """
         Returns the definition and values of all
         the zen properties for this context
@@ -1147,7 +1147,10 @@ class DeviceRouter(TreeRouter):
         data = facade.getZenProperties(uid)
         # filter
         if params:
-            filters = unjson(params)
+            if isinstance(params, basestring):
+                filters = unjson(params)
+            else:
+                filters = params
             def hasFilter(row, key, value):
                 if row.get(key):
                     return value.lower() in str(row.get(key)).lower()
@@ -1795,5 +1798,5 @@ class DeviceRouter(TreeRouter):
         data = list(facade.getModifications(id, types))
         # sort the data by type
         data = sorted(data, key=lambda row: row['meta_type'])
-        return Zuul.marshal(data)
+        return DirectResponse.succeed(data=Zuul.marshal(data))
 

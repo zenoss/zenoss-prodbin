@@ -99,10 +99,12 @@ Ext.onReady(function(){
         });
     } catch(e) {}
     try {
-        Ext.get('breadCrumbPane').setStyle({
-            marginLeft: 0,
-            position: 'static'
-        });
+	    if (Ext.get('breadCrumbPane')) {
+			Ext.get('breadCrumbPane').setStyle({
+				marginLeft: 0,
+				position: 'static'
+			});
+		}
     } catch(e) {}
 
 

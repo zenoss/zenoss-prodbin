@@ -82,13 +82,13 @@ Ext.onReady(function() {
         '</tpl>',
         '</table>'];
 
-    
+
     /**
      * This class will generate HTML based on a template that simply uses named
      * properties:
      *
      *      "<p>{my_key}</p>"
-     * 
+     *
      */
     ns.Section = Ext.extend(Object, {
         constructor: function(config){
@@ -96,7 +96,7 @@ Ext.onReady(function() {
                 template: ns.detail_data_template
             });
             Ext.apply(this, config);
-            
+
             ns.Section.superclass.constructor.apply(this, arguments);
         },
 
@@ -128,7 +128,7 @@ Ext.onReady(function() {
      *  "<tpl for="properties">
      *      <p>{key}: {value}</p>
      *   </tpl>"
-     *   
+     *
      */
     ns.RepeatedSection = Ext.extend(ns.Section, {
         constructor: function(config) {
@@ -568,7 +568,7 @@ Ext.onReady(function() {
          * Extract rendered data from raw event data. Handles the case where a
          * key does not have a specified renderer as well as the case where
          * the value is null or undefined.
-         * 
+         *
          * @param key The key to use for looking up a renderer.
          * @param value The value to be rendered.
          * @param sourceData All event data.
@@ -638,7 +638,7 @@ Ext.onReady(function() {
         bind: function() {
             var close_btn = Ext.getCmp('evdetail_tool_close').getEl(),
                 pop = Ext.getCmp('evdetail-popout').getEl();
-            
+
             Ext.each(this.sections, function(section) {
                 var cmp = Ext.getCmp(section.id+'_title');
 
@@ -660,7 +660,7 @@ Ext.onReady(function() {
                 close_btn.un('click', this.onDetailHide);
                 close_btn.on('click', this.onDetailHide);
             }
-            
+
             if (pop) {
                 pop.un('click', this.popout, this);
                 pop.on('click', this.popout, this);
@@ -695,5 +695,5 @@ Ext.onReady(function() {
             }, this);
         }
     });
-    Ext.reg('detailpanel', Zenoss.DetailPanel);
+    Ext.reg('detailpanel', "Zenoss.DetailPanel");
 });

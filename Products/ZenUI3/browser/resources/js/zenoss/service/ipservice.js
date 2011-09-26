@@ -49,25 +49,28 @@ Ext.onReady( function() {
         ]
     }];
 
-    zsn.columnModelConfig.columns = [
+    zsn.columns = [
         {
             dataIndex: 'name',
             header: _t('Name'),
-            id: 'name'
+            id: 'name',
+            menuDisabled: true
         },
         {
             dataIndex: 'port',
             header: _t('Port'),
             id: 'port',
             width: 50,
-            filter: false
+            filter: false,
+            menuDisabled: true
         },
         {
             dataIndex: 'count',
             header: _t('Count'),
             id: 'count',
             width: 50,
-            filter: false
+            filter: false,
+            menuDisabled: true
         }
     ];
 
@@ -78,5 +81,4 @@ Ext.onReady( function() {
 
     zsn.initNav('/zport/dmd/Services/IpService');
     zsf.initForm();
-    zsg.initDetailPanel();
 });

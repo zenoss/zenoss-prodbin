@@ -18,8 +18,11 @@
 
 Ext.ns('Zenoss.form');
 
-Zenoss.form.FieldRow = Ext.extend(Ext.Container, {
-     constructor: function(config) {
+Ext.define("Zenoss.form.FieldRow", {
+
+    alias: ['widget.fieldrow'],
+    extend: "Ext.Container",
+    constructor: function(config) {
          Ext.apply(config, {
              layout: 'hbox',
              align: 'top'
@@ -35,7 +38,7 @@ Zenoss.form.FieldRow = Ext.extend(Ext.Container, {
                 minWidth: 10,
                 width: item.width,
                 labelAlign: item.labelAlign || 'top',
-                layout: 'form',
+                layout: 'anchor',
                 items: [item]
              };
              if (!item.width) {
@@ -48,6 +51,5 @@ Zenoss.form.FieldRow = Ext.extend(Ext.Container, {
 
      }
  });
- Ext.reg('fieldrow', Zenoss.form.FieldRow);
 
 })();

@@ -33,10 +33,8 @@ Ext.onReady(function(){
 
     // Make the detail panel collapsible
     detail_panel.animCollapse = false;
-    detail_panel.collapsible =false;
-    detail_panel.collapsed = true;
-
-
+    detail_panel.show();
+    detail_panel.collapse();
 
 
     /*
@@ -69,47 +67,25 @@ Ext.onReady(function(){
     // Add a CSS class to scope some styles that affect other parts of the UI
     container.on('render', function(){container.el.addClass('zenui3');});
 
-
-
-
-    // View to render the grid
-    var myView = new Zenoss.FilterGridView({
-        nearLimit : 100,
-        filterbutton: 'showfilters',
-        appendGlob: true,
-        defaultFilters: {
-            severity: [Zenoss.SEVERITY_CRITICAL, Zenoss.SEVERITY_ERROR, Zenoss.SEVERITY_WARNING, Zenoss.SEVERITY_INFO],
-            eventState: [Zenoss.STATUS_NEW, Zenoss.STATUS_ACKNOWLEDGED],
-            // _managed_objects is a global function sent from the server, see ZenUI3/security/security.py
-            tags: _managed_objects()
-        },
-        rowcoloritem: 'rowcolors_checkitem',
-        livesearchitem: 'livesearch_checkitem',
-        loadMask  : { msg :  'Loading. Please wait...' }
-    });
-
-
-    var console_store = new Zenoss.EventStore({
-        autoLoad: true,
-        proxy: new Zenoss.ThrottlingProxy({
-            directFn: Zenoss.remote.EventsRouter.query
-        })
-    });
+    var console_store = Ext.create('Zenoss.events.Store', { });
 
     // if the user has no global roles and does not have any admin. objects
     // do not show any events.
     if (!_has_global_roles() && _managed_objects().length == 0){
-        console_store = new Ext.ux.grid.livegrid.Store({});
+        console_store =  Ext.create('Zenoss.events.Store', {
+        });
     }
 
     // Selection model
-    var console_selection_model = new Zenoss.EventPanelSelectionModel();
+    var console_selection_model = Ext.create('Zenoss.EventPanelSelectionModel', {
+        gridId: 'events_grid'
+    });
 
     /*
      * THE GRID ITSELF!
      */
 
-    var grid = new Zenoss.FilterGridPanel({
+    var grid = Ext.create('Zenoss.events.Grid', {
         region: 'center',
         tbar: new Zenoss.EventConsoleTBar({
             region: 'north',
@@ -117,18 +93,23 @@ Ext.onReady(function(){
             hideDisplayCombo: true,
             newwindowBtn: false
         }),
+        appendGlob: true,
+        defaultFilters: {
+            severity: [Zenoss.SEVERITY_CRITICAL, Zenoss.SEVERITY_ERROR, Zenoss.SEVERITY_WARNING, Zenoss.SEVERITY_INFO],
+            eventState: [Zenoss.STATUS_NEW, Zenoss.STATUS_ACKNOWLEDGED],
+            // _managed_objects is a global function sent from the server, see ZenUI3/security/security.py
+            tags: _managed_objects()
+        },
         id: 'events_grid',
         stateId: Zenoss.env.EVENTSGRID_STATEID,
         enableDragDrop: false,
         stateful: true,
         border: false,
         rowSelectorDepth: 5,
-        autoExpandColumn: Zenoss.env.EVENT_AUTO_EXPAND_COLUMN || '',
         store: console_store, // defined above
-        view: myView, // defined above
         // Zenoss.env.COLUMN_DEFINITIONS comes from the server, and depends on
         // the resultFields associated with the context.
-        cm: new Zenoss.FullEventColumnModel(),
+        columns: Zenoss.env.COLUMN_DEFINITIONS,
         stripeRows: true,
         displayTotal: false,
         // Map some other keys
@@ -137,11 +118,18 @@ Ext.onReady(function(){
             key: Ext.EventObject.ENTER,
             fn: toggleEventDetailContent
         }],
-        sm: console_selection_model // defined above
+        selModel: console_selection_model, // defined above
+
+        // no explicit toolbar at the bottom
+        bbar: [
+
+        ]
     });
     // Add it to the layout
     master_panel.add(grid);
-
+    Zenoss.util.callWhenReady('events_grid', function(){
+        Ext.getCmp('events_grid').setContext(Zenoss.env.PARENT_CONTEXT);
+    });
     var pageParameters = Ext.urlDecode(window.location.search.substring(1));
     if (pageParameters.filter === "default") {
         // reset eventconsole filters to the default
@@ -153,9 +141,9 @@ Ext.onReady(function(){
      */
     // Pop open the event detail, depending on the number of rows selected
     function toggleEventDetailContent(){
-        var count = console_selection_model.getCount();
-        if (count==1) {
-            showEventDetail(console_selection_model.getSelected());
+        var selections = console_selection_model.getSelections();
+        if (selections.length) {
+            showEventDetail(selections[0]);
         } else {
             wipeEventDetail();
         }
@@ -166,7 +154,9 @@ Ext.onReady(function(){
     function showEventDetail(r) {
         Ext.getCmp('dpanelcontainer').load(r.data.evid);
         grid.un('rowdblclick', toggleEventDetailContent);
+
         detail_panel.expand();
+        detail_panel.show();
         esckeymap.enable();
     }
 
@@ -179,6 +169,7 @@ Ext.onReady(function(){
     // repopulates detail, esc no longer closes)
     function hideEventDetail() {
         detail_panel.collapse();
+        detail_panel.hide();
     }
     function eventDetailCollapsed(){
         wipeEventDetail();
@@ -203,7 +194,7 @@ Ext.onReady(function(){
 
 
     // Detail pane should pop open when double-click on event
-    grid.on("rowdblclick", toggleEventDetailContent);
+    grid.on("itemdblclick", toggleEventDetailContent);
     console_selection_model.on("rowselect", function(){
         if(detail_panel.isVisible()){
             toggleEventDetailContent();

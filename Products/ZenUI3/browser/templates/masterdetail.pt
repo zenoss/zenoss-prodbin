@@ -53,6 +53,7 @@ Ext.onReady(function(){
         },
         items: [{
             id: 'master_panel',
+            cls: 'x-zenoss-master-panel',
             contentEl: 'master_panel_content',
             layout: 'fit',
             region: 'center',

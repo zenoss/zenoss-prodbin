@@ -38,14 +38,15 @@ Zenoss.SWOOP_CALLBACKS = {};
 
 Zenoss.SwoopyGraph = Ext.extend(Ext.Panel, {
     constructor: function(config) {
-        var cls = Ext.isGecko ? '-moz-zoom-in' : 
+        var cls = Ext.isGecko ? '-moz-zoom-in' :
                   Ext.isWebKit ? '-webkit-zoom-in' :
                   'crosshair';
         config = Ext.applyIf(config||{}, {
+
             html: {
                 tag: 'img',
                 src: config.graphUrl,
-                id: config.graphId, 
+                id: config.graphId,
                 style: 'cursor:' + cls
             },
             tbar: {
@@ -96,7 +97,7 @@ Zenoss.SwoopyGraph = Ext.extend(Ext.Panel, {
         this.graphEl.on('click', this.onGraphClick, this);
         this.graphEl.on('load', function(){
             var size = this.graphEl.getSize();
-            if (!size.width || !size.height){ 
+            if (!size.width || !size.height){
                 this.showFailure();
             } else {
                 this.parseGraphParams();
@@ -171,11 +172,11 @@ Zenoss.SwoopyGraph = Ext.extend(Ext.Panel, {
     },
     sendRequest: function(params) {
         var url = params.url;
-        delete params.url;        params.getImage = null; 
+        delete params.url;        params.getImage = null;
         if (this.mustUseImageUri === true) {
             params.getImage = true;
         }
-        
+
         var now = new Date().getTime();
         var graphid = now + '_' + this.graphId;
         params.graphid = graphid;
@@ -229,7 +230,7 @@ Zenoss.SwoopyGraph = Ext.extend(Ext.Panel, {
         this.zoomout.toggle(zoomOut);
         this.zoomin.toggle(!zoomOut);
         var dir = zoomOut ? 'out' : 'in',
-            cls = Ext.isGecko ? '-moz-zoom-'+dir : 
+            cls = Ext.isGecko ? '-moz-zoom-'+dir :
                  (Ext.isWebKit ? '-webkit-zoom-'+dir : 'crosshair');
         this.graphEl.setStyle({'cursor': cls});
     },
@@ -290,16 +291,24 @@ Ext.onReady(function(){
     }
     for (graphid in ZenGraphs) {
         if (true) {
+            var id = Ext.id();
+            console.log(id);
             var graphinfo = ZenGraphs[graphid];
             var x = new Zenoss.SwoopyGraph({
                 graphUrl: graphinfo[0],
                 graphTitle: graphinfo[1],
+                id: id,
+                width: 600,
+                height: 275,
                 graphId: graphid
             }).render(Ext.get('td_'+graphid));
+            var el = Ext.getCmp(id).el;
+            // cheating to remove the spacing of the image div
+            el.dom.childNodes[1].style.top = 0;
         }
     }
 
-    // Old code I don't want to rewrite right now 
+    // Old code I don't want to rewrite right now
     var button = Ext.get('refreshButton');
     var refreshMgr;
     function turnRefreshOff () {

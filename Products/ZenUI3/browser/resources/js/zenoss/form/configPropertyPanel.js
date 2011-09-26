@@ -101,23 +101,20 @@
 
         handler = function() {
             // save the junk and reload
-            var values = dialog.editForm.getForm().getFieldValues(),
+            var values = dialog.getForm().getForm().getFieldValues(),
                 value = values[data.id];
             if (type == 'lines') {
                 // send back as an array separated by a new line
                 value = value.split('\n');
             }
-
-            Zenoss.remote.DeviceRouter.setZenProperty({
+            var params = {
                 uid: grid.uid,
                 zProperty: data.id,
                 value: value
-            }, function(response){
+            };
+            Zenoss.remote.DeviceRouter.setZenProperty(params, function(response){
                 if (response.success) {
-                    var view = grid.getView();
-                    view.updateLiveRows(
-                        view.rowIndex, true, true);
-
+                    grid.refresh();
                 }
             });
 
@@ -132,7 +129,7 @@
             title: _t('Edit Config Property'),
             listeners: {
                 show: function() {
-                    dialog.editForm.editConfig.focus(true, 500);
+                    dialog.getForm().query("field[ref='editConfig']")[0].focus(true, 500);
                 }
             },
             items: [{
@@ -163,46 +160,56 @@
         dialog.show();
     }
 
-    ConfigPropertyGrid = Ext.extend(Zenoss.FilterGridPanel, {
+    /**
+     * @class Zenoss.ConfigProperty.Model'
+     * @extends Ext.data.Model
+     * Field definitions for the Config Properties
+     **/
+    Ext.define('Zenoss.ConfigProperty.Model',  {
+        extend: 'Ext.data.Model',
+        idProperty: 'id',
+        fields: [
+            {name: 'id'},
+            {name: 'islocal'},
+            {name: 'value'},
+            {name: 'category'},
+            {name: 'valueAsString'},
+            {name: 'type'},
+            {name: 'path'},
+            {name: 'options'}
+        ]
+    });
+    /**
+     * @class Zenoss.ConfigProperty.Store
+     * @extends Zenoss.DirectStore
+     * Store for our configuration properties grid
+     **/
+    Ext.define("Zenoss.ConfigProperty.Store", {
+        extend: "Zenoss.DirectStore",
         constructor: function(config) {
             config = config || {};
-            var view;
-            if (!Ext.isDefined(config.displayFilters)
-                || config.displayFilters
-               ){
-                view = new Zenoss.FilterGridView({
-                    rowHeight: 22,
-                    nearLimit: 100,
-                    loadMask: {msg: _t('Loading. Please wait...')}
-                });
-            }else {
-                view = new Ext.ux.grid.livegrid.GridView({
-                    nearLimit: 100,
-                    rowHeight: 22,
-                    getState: function() {
-                        return {};
-                    },
-                    applyState: function(state) {
+            Ext.applyIf(config, {
+                model: 'Zenoss.ConfigProperty.Model',
+                initialSortColumn: 'id',
+                directFn: Zenoss.remote.DeviceRouter.getZenProperties
+            });
+            this.callParent(arguments);
+        }
+    });
 
-                    },
-                    loadMask: {msg: _t('Loading...'),
-                          msgCls: 'x-mask-loading'}
+    Ext.define("Zenoss.ConfigProperty.Grid", {
+        alias: ['widget.configpropertygrid'],
+        extend:"Zenoss.FilterGridPanel",
+        constructor: function(config) {
+            config = config || {};
 
-                });
-            }
-            // register this control for when permissions change
             Zenoss.Security.onPermissionsChange(function() {
                 this.disableButtons(Zenoss.Security.doesNotHavePermission('Manage DMD'));
             }, this);
+
             Ext.applyIf(config, {
-                autoExpandColumn: 'value',
-                stripeRows: true,
                 stateId: config.id || 'config_property_grid',
-                autoScroll: true,
-                sm: new Zenoss.ExtraHooksSelectionModel({
-                    singleSelect: true
-                }),
-                border: false,
+                sm: Ext.create('Zenoss.SingleRowSelectionModel', {}),
                 tbar:[
                      {
                         xtype: 'tbtext',
@@ -212,43 +219,45 @@
                     {
                     xtype: 'button',
                     iconCls: 'customize',
+                    toolTip: _t('Customize'),
                     disabled: Zenoss.Security.doesNotHavePermission('Manage DMD'),
-                    ref: '../customizeButton',
+                    ref: 'customizeButton',
                     handler: function(button) {
-                        var grid = button.refOwner,
+                        var grid = button.up("configpropertygrid"),
                             data,
-                            selected = grid.getSelectionModel().getSelected();
-                        if (!selected) {
+                            selected = grid.getSelectionModel().getSelection();
+
+                        if (Ext.isEmpty(selected)) {
                             return;
                         }
-                        data = selected.data;
+                        // single selection
+                        data = selected[0].data;
                         showEditConfigPropertyDialog(data, grid);
                     }
                     }, {
                     xtype: 'button',
                     iconCls: 'refresh',
+                        toolTip: _t('Refresh'),
                     ref: '../refreshButton',
                     disabled: Zenoss.Security.doesNotHavePermission('Manage DMD'),
                     handler: function(button) {
-                        var grid = button.refOwner;
-                        var view = grid.getView();
-                        view.updateLiveRows(
-                            view.rowIndex, true, true);
+                        var grid = button.up("configpropertygrid");
+                        grid.refresh();
                     }
                     },{
                         xtype: 'button',
                         ref: '../deleteButton',
-
+                        toolTip: _t('Delete'),
                         text: _t('Delete Local Copy'),
                         handler: function(button) {
-                            var grid = button.refOwner,
+                            var grid = button.up("configpropertygrid"),
                                 data,
-                                selected = grid.getSelectionModel().getSelected();
-                            if (!selected) {
+                                selected = grid.getSelectionModel().getSelection();
+                            if (Ext.isEmpty(selected)) {
                                 return;
                             }
 
-                            data = selected.data;
+                            data = selected[0].data;
                             if (data.islocal && data.path == '/') {
                                 Zenoss.message.info(_t('{0} can not be deleted from the root definition.'), data.id);
                                 return;
@@ -268,9 +277,7 @@
                                             uid: grid.uid,
                                             zProperty: data.id
                                         }, function(response){
-                                            var view = grid.getView();
-                                            view.updateLiveRows(
-                                                view.rowIndex, true, true);
+                                            grid.refresh();
                                         });
                                     }
                                 } else {
@@ -281,31 +288,9 @@
                         }
                     }
                 ],
-                store: new Ext.ux.grid.livegrid.Store({
-                    bufferSize: 400,
-                    autoLoad: true,
-                    defaultSort: {field: 'id', direction:'ASC'},
-                    sortInfo: {field: 'id', direction:'ASC'},
-                    proxy: new Ext.data.DirectProxy({
-                        directFn: Zenoss.remote.DeviceRouter.getZenProperties
-                    }),
-                    reader: new Ext.ux.grid.livegrid.JsonReader({
-                        root: 'data',
-                        totalProperty: 'totalCount',
-                        idProperty: 'id'
-                    },[
-                        {name: 'id'},
-                        {name: 'islocal'},
-                        {name: 'value'},
-                        {name: 'category'},
-                        {name: 'valueAsString'},
-                        {name: 'type'},
-                        {name: 'path'},
-                        {name: 'options'}
-                    ])
+                store: Ext.create('Zenoss.ConfigProperty.Store', {
                 }),
-                cm: new Ext.grid.ColumnModel({
-                    columns: [{
+                columns: [{
                         header: _t("Is Local"),
                         id: 'islocal',
                         dataIndex: 'islocal',
@@ -333,6 +318,7 @@
                         id: 'value',
                         dataIndex: 'valueAsString',
                         header: _t('Value'),
+                        flex: 1,
                         width: 180,
                         sortable: false
                     },{
@@ -342,58 +328,57 @@
                         width: 200,
                         sortable: true
                     }]
-                }),
-                view: view
             });
-            ConfigPropertyGrid.superclass.constructor.apply(this, arguments);
-            this.on('rowdblclick', this.onRowDblClick, this);
+            this.callParent(arguments);
+            this.on('itemdblclick', this.onRowDblClick, this);
         },
         setContext: function(uid) {
-            this.uid = uid;
-            // set the uid and load the grid
-            var view = this.getView();
-            view.contextUid  = uid;
-            this.getStore().setBaseParam('uid', uid);
-            this.getStore().load();
             if (uid == '/zport/dmd/Devices'){
                 this.deleteButton.setDisabled(true);
             }
+            this.uid = uid;
+            // load the grid's store
+            this.callParent(arguments);
         },
         onRowDblClick: function(grid, rowIndex, e) {
             var data,
-                selected = grid.getSelectionModel().getSelected();
+                selected = this.getSelectionModel().getSelection();
             if (!selected) {
                 return;
             }
-            data = selected.data;
-            showEditConfigPropertyDialog(data, grid);
+            data = selected[0].data;
+            showEditConfigPropertyDialog(data, this);
         },
         disableButtons: function(bool) {
-            this.deleteButton.setDisabled(bool);
-            this.customizeButton.setDisabled(bool);
+            var btns = this.query("button");
+            Ext.each(btns, function(btn){
+                btn.setDisabled(bool);
+            });
         }
     });
 
-    ConfigPropertyPanel = Ext.extend(Ext.Panel, {
+    Ext.define("Zenoss.form.ConfigPropertyPanel", {
+        alias:['widget.configpropertypanel'],
+        extend:"Ext.Panel",
         constructor: function(config) {
             config = config || {};
+            this.gridId = Ext.id();
             Ext.applyIf(config, {
                 layout: 'fit',
                 autoScroll: 'y',
                 height: 800,
-                items: [new ConfigPropertyGrid({
+                items: [{
+                    id: this.gridId,
+                    xtype: "configpropertygrid",
                     ref: 'configGrid',
                     displayFilters: config.displayFilters
-                })]
-
+                }]
             });
-            ConfigPropertyPanel.superclass.constructor.apply(this, arguments);
+            this.callParent(arguments);
         },
         setContext: function(uid) {
-            this.configGrid.setContext(uid);
+            Ext.getCmp(this.gridId).setContext(uid);
         }
     });
-
-    Ext.reg('configpropertypanel', ConfigPropertyPanel);
 
 })();

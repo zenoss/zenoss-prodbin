@@ -29,11 +29,11 @@
             store = grid.getStore(),
             params;
 
-        view.clearFilters();
+        grid.clearFilters();
         params = {
-            contextUid: view.contextUid,
+            contextUid: grid.getContext(),
             id: newId,
-            posQuery: view.getFilterParams()
+            posQuery: grid.getFilters()
         };
 
         var callback = function(p, response) {
@@ -92,7 +92,7 @@
             Zenoss.message.error(_t('No service organizer is selected.'));
             return;
         }
-        params = {uid: selected.attributes.uid};
+        params = {uid: selected.data.uid};
         function callback(){
             var tree = Ext.getCmp('navTree');
             tree.getRootNode().reload(function() {
@@ -131,7 +131,7 @@
                 Zenoss.message.error(_t('You must select a service organizer.'));
                 return null;
             }
-            return selected.attributes.uid;
+            return selected.data.uid;
         }
     });
 
@@ -142,16 +142,13 @@
     */
 
     zs.initNav = function(initialContext) {
-        var columnModel, store, gridConfig, fb, navTree, navGrid, p;
+        var store, gridConfig, fb, navTree, navGrid, p;
 
-        store = new Ext.ux.grid.livegrid.Store(zs.storeConfig);
-        columnModel = new Ext.grid.ColumnModel(zs.columnModelConfig);
+        store = Ext.create('Zenoss.Service.Nav.Store',{});
 
-        navGrid = Ext.create({
-            xtype: 'servicegridpanel',
+        navGrid = Ext.create('Zenoss.Service.Nav.GridPanel', {
             store: store,
-            cm: columnModel,
-            sm: new Zenoss.ExtraHooksSelectionModel({
+            selModel: new Zenoss.ExtraHooksSelectionModel({
                 singleSelect: true,
                 listeners: {
                     rowselect: zs.rowselectHandler
@@ -159,13 +156,7 @@
             })
         });
 
-        navGrid.on('afterrender',
-            function(me){
-                me.showFilters();
-            });
-
-        navTree = Ext.create({
-            xtype: 'servicetreepanel',
+        navTree = Ext.create('Zenoss.Service.Nav.ServiceTreePanel', {
             root: {
                 id: initialContext.split('/').pop(),
                 uid: initialContext
@@ -176,8 +167,53 @@
         p.add(navTree);
         p.add(navGrid);
 
-        Ext.getCmp('master_panel').add(p);
-
+        Ext.getCmp('center_panel').add(
+            new Ext.Panel({
+                layout: 'border',
+                defaults: {'border':false},
+                items: [{
+                    id: 'master_panel',
+                    region: 'west',
+                    layout: 'fit',
+                    width: 250,
+                    maxWidth: 250,
+                    split: true,
+                    items: [p]
+                },{
+                    id: 'detail_panel',
+                    region: 'center',
+                    layout: 'border',
+                    defaults: {'border':false},
+                    items: [
+                        Zenoss.Service.DetailForm.formConfig, {
+                            xtype: 'instancecardpanel',
+                            ref: 'detailCardPanel',
+                            region: 'south',
+                            split: true,
+                            height: 300,
+                            collapsed: true,
+                            listeners: {
+                                afterrender: function(panel){
+                                    panel.collapse();
+                                }
+                            },
+                            router: Zenoss.remote.ServiceRouter,
+                            instancesTitle: 'Service Instances',
+                            bufferSize: 100,
+                            nearLimit: 20,
+                            zPropertyEditListeners: {
+                                frameload: function() {
+                                    var formPanel = Ext.getCmp('serviceForm');
+                                    if (formPanel.contextUid) {
+                                        formPanel.setContext(formPanel.contextUid);
+                                    }
+                                }
+                            }
+                    }]
+                }]
+            }
+        ));
+        Ext.getCmp('center_panel').doLayout();
         fb = Ext.getCmp('footer_bar');
         fb.on('buttonClick', zs.dispatcher);
         var footerHelperOptions = {

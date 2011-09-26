@@ -1,6 +1,8 @@
 (function(){
 
-Zenoss.DeviceDetailItem = Ext.extend(Ext.Container, {
+Ext.define("Zenoss.DeviceDetailItem", {
+    alias:['widget.devdetailitem'],
+    extend:"Ext.Container",
     constructor: function(config) {
         config = Ext.applyIf(config||{}, {
             hideParent: true,
@@ -27,9 +29,11 @@ Zenoss.DeviceDetailItem = Ext.extend(Ext.Container, {
     }
 });
 
-Ext.reg('devdetailitem', Zenoss.DeviceDetailItem);
 
-Zenoss.DeviceNameItem = Ext.extend(Ext.Container, {
+
+Ext.define("Zenoss.DeviceNameItem", {
+    alias:['widget.devnameitem'],
+    extend:"Ext.Container",
     constructor: function(config) {
         config = Ext.applyIf(config||{}, {
             //layout: 'vbox',
@@ -50,14 +54,16 @@ Zenoss.DeviceNameItem = Ext.extend(Ext.Container, {
         Zenoss.DeviceNameItem.superclass.constructor.call(this, config);
     }
 });
-Ext.reg('devnameitem', Zenoss.DeviceNameItem);
 
 
-Zenoss.DeviceDetailBar = Ext.extend(Zenoss.LargeToolbar, {
+
+Ext.define("Zenoss.DeviceDetailBar", {
+    alias:['widget.devdetailbar'],
+    extend:"Zenoss.LargeToolbar",
     constructor: function(config) {
         config = Ext.applyIf(config || {}, {
             cls: 'largetoolbar devdetailbar',
-            height: 55,
+            height: 65,
             directFn: Zenoss.remote.DeviceRouter.getInfo,
             defaultType: 'devdetailitem',
             items: [{
@@ -73,6 +79,7 @@ Zenoss.DeviceDetailBar = Ext.extend(Zenoss.LargeToolbar, {
             },'-',{
                 xtype: "eventrainbow",
                 ref: 'eventsitem',
+                id: 'detailrainbow',
                 label: _t('Events'),
                 listeners: {
                     'render': function(me) {
@@ -84,7 +91,8 @@ Zenoss.DeviceDetailBar = Ext.extend(Zenoss.LargeToolbar, {
                 count: 4
             },'-',{
                 ref: 'statusitem',
-                label: _t('Device Status')
+                label: _t('Device Status'),
+                id: 'statusitem'
             },'-',{
                 ref: 'prodstateitem',
                 label: _t('Production State')
@@ -97,16 +105,16 @@ Zenoss.DeviceDetailBar = Ext.extend(Zenoss.LargeToolbar, {
     },
     contextCallbacks: [],
     addDeviceDetailBarItem: function(item, fn) {
-      this.items.push('-');
-      this.items.push(item);
-      this.on('contextchange',fn,this);
+      this.add('-');
+      this.add(item);
+      this.on('contextchange', fn, this);
     },
     refresh: function() {
         this.setContext(this.contextUid);
     },
     setContext: function(uid) {
         this.contextUid = uid;
-        this.directFn({uid:uid, keys:[
+        this.directFn({uid:uid, keys: [
                 'ipAddressString',
                 'deviceClass',
                 'name',
@@ -137,6 +145,6 @@ Zenoss.DeviceDetailBar = Ext.extend(Zenoss.LargeToolbar, {
     }
 });
 
-Ext.reg('devdetailbar', Zenoss.DeviceDetailBar);
+
 
 })();

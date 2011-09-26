@@ -24,4 +24,11 @@
     permission="zope2.Public"
     />
 
+<browser:page
+        name="PIE.htc"
+        for="*"
+        class=".resources.PIEdotHTC"
+        permission="zope2.Public"
+        />
+
 </configure>

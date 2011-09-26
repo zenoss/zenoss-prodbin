@@ -1,0 +1,5 @@
+$panel-border-width: 0;
+$panel-header-color: white;
+$panel-header-background-color: #566d87;
+$panel-header-background-gradient: color_stops(darken($panel-header-background-color, 1), $panel-header-background-color);
+

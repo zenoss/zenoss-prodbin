@@ -22,14 +22,12 @@
         <tal:block metal:define-slot="head-local"/>
         <tal:block metal:use-macro="here/zenuimacros/macros/jsutils"/>
         <link rel="stylesheet" type="text/css" href="/++resource++extjs/resources/css/ext-all.css" />
-        <link rel="stylesheet" type="text/css" href="/++resource++extjs/treegrid/treegrid.css" />
         <link rel="stylesheet" href="/++resource++zenui/js/livegrid/resources/css/ext-ux-livegrid.css" />
         <link rel="stylesheet" type="text/css" href="/++resource++zenui/css/xtheme-zenoss.css" />
         <link rel="stylesheet" type="text/css" href="/++resource++zenui/css/zenoss.css" />
         <link rel="stylesheet" type="text/css" href="/++resource++zenui/css/zenui3.css" />
         <link type="text/css" rel="stylesheet" href="/++resource++zenui/css/backcompat.css"/>
-        <script type="text/javascript" src="/++resource++extjs/adapters/ext/ext-base.js">
-        </script>
+
         <script>
         (function() {
             var ua = navigator.userAgent.toLowerCase();
@@ -42,7 +40,11 @@
             }
         })();
         </script>
-        <script type="text/javascript" id="extall" src="/++resource++extjs/ext-all.js"></script>
+        <script type="text/javascript" id="extall" src="/++resource++extjs/ext-all-debug.js"></script>
+        <!-- ext3 to 4 compat -->
+        <script type="text/javascript" id="extall" src="/++resource++zenui/js/zenoss/migrate/ext3-core-compat.js"></script>
+        <script type="text/javascript" id="extall" src="/++resource++zenui/js/zenoss/migrate/ext3-compat.js"></script>
+
         <script>
         // Fix an IE bug
         Ext.override(Ext.Shadow, {

@@ -16,7 +16,10 @@
 (function() {
      Ext.ns('Zenoss.Action');
 
-     Zenoss.Action = Ext.extend(Ext.Action, {
+
+     Ext.define("Zenoss.Action", {
+         extend: "Ext.Action",
+         alias: ['widget.Action'],
          constructor: function(config) {
              var me = this;
              // if they set the permissions config property
@@ -43,10 +46,7 @@
                  }
              }
 
-             // call the parent's constructor
-             Zenoss.Action.superclass.constructor.apply(this, arguments);
-
-
+             this.callParent(arguments);
          },
          setDisabled : function(disable){
              var enable = !disable;
@@ -57,5 +57,4 @@
         }
      });
 
-     Ext.reg('Action', Zenoss.Action);
 }());

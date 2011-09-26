@@ -1,9 +1,11 @@
-(function(){ // Local scope
+(function() { // Local scope
 
 var ZI = Ext.namespace('Zenoss.inspector');
 
+
 /**
- * Manages inspector windows to ensure that only one window matching `uid` is active at a time.
+ * Manages inspector windows to ensure that only one window matching
+ * `uid` is active at a time.
  */
 ZI.SingleInstanceManager = Ext.extend(Object, {
     _instances: null,
@@ -13,7 +15,8 @@ ZI.SingleInstanceManager = Ext.extend(Object, {
     register: function(uid, instance) {
         this.remove(uid);
         this._instances[uid] = instance;
-        instance.on('destroy', function() { delete this._instances[uid]; }, this);
+        instance.on('destroy', function() { delete
+        this._instances[uid]; }, this);
     },
     get: function(uid) {
         return this._instances[uid];
@@ -23,18 +26,21 @@ ZI.SingleInstanceManager = Ext.extend(Object, {
     }
 });
 
+
 /**
  * Represents a single item in the inspector panel.
  *
  * config:
- *   - valueTpl An XTemplate that can be used to render the field. Will be passed the data that is passed to the
- *              inspector.
+ * - valueTpl An XTemplate that can be used to render the field. Will
+ *            be passed the data that is passed to the inspector.
  */
-ZI.InspectorProperty = Ext.extend(Ext.Container, {
+Ext.define('Zenoss.inspector.InspectorProperty', {
+    alias: ['widget.inspectorprop'],
+    extend: 'Ext.Container',
     constructor: function(config) {
-        config = Ext.applyIf(config||{}, {
+        config = Ext.applyIf(config || {}, {
             cls: 'inspector-property',
-            layout: 'form',
+            layout: 'anchor',
             items: [
                 {
                     cls: 'inspector-property-label',
@@ -46,12 +52,12 @@ ZI.InspectorProperty = Ext.extend(Ext.Container, {
                     cls: 'inspector-property-value',
                     ref: 'valueItem',
                     text: config.value || '',
-                    xtype: 'box',
+                    xtype: 'panel',
                     tpl: config.valueTpl || '{.}'
                 }
             ]
         });
-        ZI.InspectorProperty.superclass.constructor.call(this, config);
+        this.callParent(arguments);
     },
     setValue: function(t) {
         this.valueItem.update(t);
@@ -61,15 +67,14 @@ ZI.InspectorProperty = Ext.extend(Ext.Container, {
     }
 });
 
-Ext.reg('inspectorprop', ZI.InspectorProperty);
 
-
-ZI.BaseInspector = Ext.extend(Ext.Panel, {
+Ext.define('Zenoss.inspector.BaseInspector', {
+    extend: 'Ext.Panel',
     _data: null,
     constructor: function(config) {
         config = Ext.applyIf(config || {}, {
             defaultType: 'devdetailitem',
-            layout: 'form',
+            layout: 'anchor',
             border: false,
             bodyBorder: false,
             items: [],
@@ -86,7 +91,7 @@ ZI.BaseInspector = Ext.extend(Ext.Panel, {
                     {
                         cls: 'header-icon',
                         ref: 'iconItem',
-                        xtype: 'box'
+                        xtype: 'panel'
                     },
                     {
                         cls: 'header-title',
@@ -100,24 +105,27 @@ ZI.BaseInspector = Ext.extend(Ext.Panel, {
                 xtype: 'container',
                 cls: 'inspector-body',
                 autoEl: 'div',
-                layout: 'form',
+                layout: 'anchor',
                 ref: 'bodyItem',
                 defaultType: 'inspectorprop',
                 items: config.items
             }
         ];
 
-        ZI.BaseInspector.superclass.constructor.call(this, config);
+        this.callParent(arguments);
     },
     setIcon: function(url) {
-        this.headerItem.iconItem.getEl().setStyle({
-            'background-image' : 'url(' + url + ')'
-        });
+        if (this.headerItem.iconItem.getEl()) {
+            this.headerItem.iconItem.getEl().setStyle(
+                'background-image', 'url(' + url + ')'
+            );
+        } else {
+            this.headerItem.iconItem.update(Ext.String.format('<img src="{0}" />', url));
+        }
     },
-    onLayout: function(shallow, forceLayout) {
-        ZI.BaseInspector.superclass.onLayout.call(this, shallow, forceLayout);
-
-        if ( this._data ) {
+    onRender: function(ct, position) {
+        this.callParent(arguments);
+        if (this._data) {
             // Load any pending data
             var data = this._data;
             delete this._data;
@@ -125,56 +133,60 @@ ZI.BaseInspector = Ext.extend(Ext.Panel, {
         }
     },
     /**
-     * Overwrite to add any properties dynamically from the data. Must return true if added any.
+     * Overwrite to add any properties dynamically from the data. Must
+     * return true if added any.
      */
     addNewDataItems: function(data) {
         return false;
     },
     update: function(data) {
-        if ( this.rendered ) {
-            if ( this.addNewDataItems(data) ) {
+        if (this.rendered) {
+            if (this.addNewDataItems(data)) {
                 this.doLayout();
             }
 
             // update all the children that have templates
             var self = this;
             this.cascade(function(item) {
-                if ( item != self && item.tpl ) {
+                if (item != self && item.tpl) {
+                    item.data = data;
                     item.update(data);
                 }
 
                 return true;
             });
-
-            if ( data.icon ) {
+            if (data.icon) {
                 this.setIcon(data.icon);
             }
 
-            if ( this.ownerCt ) {
-                this.ownerCt.doLayout(false, true);
+            if (this.ownerCt) {
+                this.ownerCt.doLayout();
             }
             else {
-                this.doLayout(false, true);
+                this.doLayout();
             }
+
         }
         else {
             // Can't load the data yet, the components aren't ready
             // Set this up so we can set the data after layout
             this._data = data;
+
         }
     },
     /**
      * Add a property to the inspector panel for display.
-     * @param label string
-     * @param id string The key from the data to display
+     *@param {string} label
+     *@param {string} id The key from the data to display.
      */
     addProperty: function(label, id) {
-        this.addPropertyTpl(label, '{[values.' + id + ' || \'\']}');
+        this.addPropertyTpl(label, '{[values.' + id + ' || ""]}');
     },
     /**
      * Add a property to the inspector panel using a template to display.
-     * @param label
-     * @param tpl string A string in XTemplate format to display this property. Data values are in `values`.
+     * @param {string} label label of template.
+     * @param {string} tpl A string in XTemplate format to display
+     * this property. Data values are in `values`.
      */
     addPropertyTpl: function(label, tpl) {
         this.bodyItem.add({
@@ -186,7 +198,7 @@ ZI.BaseInspector = Ext.extend(Ext.Panel, {
 });
 
 /**
- * An inspector that gets it's data via a directFn remote call.
+ * An inspector that gets its data via a directFn remote call.
  */
 ZI.DirectInspector = Ext.extend(ZI.BaseInspector, {
     _contextUid: null,
@@ -206,11 +218,11 @@ ZI.DirectInspector = Ext.extend(ZI.BaseInspector, {
         this.load();
     },
     load: function() {
-        if ( this._contextUid ) {
+        if (this._contextUid) {
             this.directFn(
                 { uid: this._contextUid, keys: this.keys },
-                function(result){
-                    if ( result.success ) {
+                function(result) {
+                    if (result.success) {
                         this.fireEvent('contextchange', result.data, this);
                     }
                 },
@@ -222,7 +234,7 @@ ZI.DirectInspector = Ext.extend(ZI.BaseInspector, {
         this._contextUid = uid;
         load = Ext.isDefined(load) ? load : true;
 
-        if ( load ) {
+        if (load) {
             this.load();
         }
     },
@@ -234,7 +246,9 @@ ZI.DirectInspector = Ext.extend(ZI.BaseInspector, {
     }
 });
 
-ZI.DeviceInspector = Ext.extend(ZI.DirectInspector, {
+Ext.define('Zenoss.inspector.DeviceInspector', {
+    alias: ['widget.deviceinspector'],
+    extend: 'Zenoss.inspector.DirectInspector',
     constructor: function(config) {
         config = Ext.applyIf(config || {}, {
             directFn: Zenoss.remote.DeviceRouter.getInfo,
@@ -242,8 +256,7 @@ ZI.DeviceInspector = Ext.extend(ZI.DirectInspector, {
             cls: 'inspector',
             titleTpl: '<div class="name"><a href="{uid}" target="_top">{name}</a></div><div class="info">{[Zenoss.render.DeviceClass(values.deviceClass.uid)]}</div><div class="info">{[Zenoss.render.ipAddress(values.ipAddress)]}</div>'
         });
-
-        ZI.DeviceInspector.superclass.constructor.call(this, config);
+        this.callParent(arguments);
 
         this.addPropertyTpl(_t('Events'), '{[Zenoss.render.events(values.events, 4)]}');
         this.addPropertyTpl(_t('Device Status'), '{[Zenoss.render.pingStatus(values.status)]}');
@@ -252,9 +265,10 @@ ZI.DeviceInspector = Ext.extend(ZI.DirectInspector, {
     }
 });
 
-Ext.reg('deviceinspector', ZI.DeviceInspector);
 
-ZI.ComponentInspector = Ext.extend(ZI.DirectInspector, {
+Ext.define('Zenoss.inspector.ComponentInspector', {
+    alias: ['widget.componentinspector'],
+    extend: 'Zenoss.inspector.DirectInspector',
     constructor: function(config) {
         config = Ext.applyIf(config || {}, {
             directFn: Zenoss.remote.DeviceRouter.getInfo,
@@ -263,32 +277,38 @@ ZI.ComponentInspector = Ext.extend(ZI.DirectInspector, {
             titleTpl: '<div class="name"><a href="{uid}" target="_top">{name}</a></div><div class="info"><a href="{[values.device.uid]}" target="_top">{[values.device.name]}</a></div><div class="info">{[Zenoss.render.ipAddress(values.ipAddress)]}</div>'
         });
 
-        config.items = [
+        config.items = [(
             {
                 label: _t('Events'),
                 valueTpl: '{[Zenoss.render.events(values.events, 4)]}'
             }
-        ];
+        )];
 
-        ZI.ComponentInspector.superclass.constructor.call(this, config);
+        this.callParent(arguments);
+    },
+    update: function(data) {
+        // our template relies on a device being present
+        if (!data.device) {
+            data.device = { };
+        }
+        this.callParent(arguments);
     }
 });
 
-Ext.reg('componentinspector', ZI.ComponentInspector);
-
 var windowManager = new ZI.SingleInstanceManager();
 ZI.createWindow = function(uid, xtype, x, y) {
+
     var win = new Ext.Window({
         x: (x || 0),
         y: (y || 0),
         cls: 'inspector-window',
-        frame: true,
-        constrain: true,
-        resizable: false,
-        layout: 'form',
-        width: 300,
         plain: true,
+        frame: false,
+        constrain: true,
+        model: false,
         border: false,
+        layout: 'fit',
+        width: 300,
         items: [{
             xtype: xtype,
             ref: 'panelItem'
@@ -297,34 +317,35 @@ ZI.createWindow = function(uid, xtype, x, y) {
 
     windowManager.register(uid, win);
     return win;
-}
+};
 
 ZI.registeredInspectors = {
-    device : 'deviceinspector'
+    device: 'deviceinspector'
 };
 
 ZI.registerInspector = function(inspector_type, inspector_xtype) {
-    ZI.registeredInspectors[inspector_type.toLowerCase()] = inspector_xtype
-}
+    ZI.registeredInspectors[inspector_type.toLowerCase()] = inspector_xtype;
+};
 
 ZI.show = function(uid, x, y) {
     Zenoss.remote.DeviceRouter.getInfo({ uid: uid }, function(result) {
-        if ( result.success ) {
+        if (result.success) {
             // Grasping at straws but assume it's a component unless otherwise stated
             var xtype = 'componentinspector';
 
             var itype = result.data.inspector_type || result.data.meta_type;
-            if ( itype ) {
+            if (itype) {
                 itype = itype.toLowerCase();
-                if ( ZI.registeredInspectors[itype] ) {
+                if (ZI.registeredInspectors[itype]) {
                     xtype = ZI.registeredInspectors[itype];
                 }
             }
-
+            console.log(xtype);
             var win = ZI.createWindow(uid, xtype, x, y);
             win.panelItem.setContext(uid, false);
             win.panelItem.update(result.data);
             win.show();
+            win.toFront();
         }
     });
 };

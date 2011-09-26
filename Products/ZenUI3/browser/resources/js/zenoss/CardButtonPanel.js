@@ -23,7 +23,9 @@ Ext.ns('Zenoss');
  * A button that toggles between cards in a panel with a card layout.
  * @constructor
  */
-Zenoss.ViewButton = Ext.extend(Ext.Button, {
+Ext.define("Zenoss.ViewButton", {
+    extend:"Ext.Button",
+    alias: ['widget.ViewButton'],
 
     constructor: function(userConfig) {
 
@@ -39,7 +41,7 @@ Zenoss.ViewButton = Ext.extend(Ext.Button, {
 
 });
 
-Ext.reg('ViewButton', Zenoss.ViewButton);
+
 
 /**
  * @class Zenoss.CardButtonPanel
@@ -48,7 +50,9 @@ Ext.reg('ViewButton', Zenoss.ViewButton);
  * cards.
  * @constructor
  */
-Zenoss.CardButtonPanel = Ext.extend(Ext.Panel, {
+Ext.define("Zenoss.CardButtonPanel", {
+    extend:"Ext.Panel",
+    alias: ['widget.CardButtonPanel'],
 
     constructor: function(config) {
         // Inner secret closure function to create the handler
@@ -104,6 +108,6 @@ Zenoss.CardButtonPanel = Ext.extend(Ext.Panel, {
     }
 });
 
-Ext.reg('CardButtonPanel', Zenoss.CardButtonPanel);
+
 
 })();

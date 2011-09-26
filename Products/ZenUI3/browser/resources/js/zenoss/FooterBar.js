@@ -108,7 +108,7 @@ Zenoss.footerHelper = function(itemName, footerBar, options) {
                     {
                         text: String.format(_t('Add {0}'), itemName),
                         listeners: {
-                            click: showAddDialog.createCallback(_t('Add {0}'), 'addClass')
+                            click: Ext.pass(showAddDialog, ['Add {0}', 'addClass'])
                         }
                     }
                 ]
@@ -121,47 +121,52 @@ Zenoss.footerHelper = function(itemName, footerBar, options) {
             iconCls: 'delete',
             hidden: Zenoss.Security.doesNotHavePermission('Delete objects'),
             tooltip: String.format(_t('Delete {0}'), itemName),
-            listeners: {
-                click: function() {
-                    var itemName = options.onGetItemName();
-                    Ext.MessageBox.show({
-                        title: String.format(_t('Delete {0}'), itemName),
-                        msg: options.onGetDeleteMessage(itemName),
-                        fn: function(buttonid){
-                            if (buttonid=='ok') {
-                                footerBar.fireEvent('buttonClick', 'delete');
-                            }
-                        },
-                        buttons: Ext.MessageBox.OKCANCEL
-                    });
-                }
+            menu: {
+                items: [{
+
+                    text: String.format(_t('Delete {0}'), options.onGetItemName()),
+                    listeners: {
+                        click: function() {
+                            var itemName = options.onGetItemName();
+                            Ext.MessageBox.show({
+
+                                msg: options.onGetDeleteMessage(itemName),
+                                fn: function(buttonid){
+                                    if (buttonid=='ok') {
+                                        footerBar.fireEvent('buttonClick', 'delete');
+                                    }
+                                },
+                                buttons: Ext.MessageBox.OKCANCEL
+                            });
+                        }
+                    }
+                }]
+
             },
             ref: 'buttonDelete'
         }
     ];
 
-    if ( options.hasContextMenu || options.addToZenPack ) {
-        items.push(' ');
-        items.push(options.buttonContextMenu);
-    }
 
-    items.push('-');
 
-    footerBar.add(items);
+
 
     if (options.hasOrganizers)
     {
-        footerBar.buttonAdd.add({
+        // add button
+        items[0].menu.items.push({
             text: String.format(_t('Add {0} Organizer'), itemName),
+            param: 'addOrganizer',
             listeners: {
-                click: showAddDialog.createCallback(_t('Add {0} Organizer'), 'addOrganizer')
+                click: Ext.pass(showAddDialog, [_t('Add {0} Organizer'), 'addOrganizer'])
             },
             ref: 'buttonAddOrganizer'
         });
-        
+
         if (options.deleteMenu)
         {
-            footerBar.buttonDelete.add({
+
+            items[1].menu.items.push({
                 text: String.format(_t('Delete {0} Organizer'), itemName),
                 ref: 'buttonDeleteOrganizer',
                 listeners: {
@@ -186,8 +191,7 @@ Zenoss.footerHelper = function(itemName, footerBar, options) {
 
     if (options.addToZenPack) {
         addToZenPackDialog = new Zenoss.AddToZenPackWindow();
-
-        footerBar.buttonContextMenu.menu.add({
+        options.buttonContextMenu.menu.items.push({
             ref: 'buttonAddToZenPack',
             text: String.format(_t('Add {0} to ZenPack'), itemName),
             listeners: {
@@ -204,7 +208,7 @@ Zenoss.footerHelper = function(itemName, footerBar, options) {
 
         if ( options.contextGetter.hasTwoControls() ) {
 
-            footerBar.buttonContextMenu.menu.add({
+            options.buttonContextMenu.menu.items.push({
                 ref: 'buttonAddOrganizerToZenPack',
                 text: String.format(_t('Add {0} Organizer to ZenPack'), itemName),
                 listeners: {
@@ -222,6 +226,14 @@ Zenoss.footerHelper = function(itemName, footerBar, options) {
         }
 
     }
+
+    if ( options.hasContextMenu || options.addToZenPack ) {
+        items.push(' ');
+        items.push(options.buttonContextMenu);
+    }
+
+    items.push('-');
+    footerBar.add(items);
 
 };
 

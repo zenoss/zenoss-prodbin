@@ -79,19 +79,18 @@ Ext.ns('Zenoss');
  * @extends Ext.tree.TreePanel
  * @constructor
  */
-Zenoss.TemplateTreePanel = Ext.extend(Ext.tree.TreePanel, {
+Ext.define("Zenoss.TemplateTreePanel", {
+    alias: ['widget.TemplateTreePanel'],
+    extend:"Zenoss.HierarchyTreePanel",
 
     constructor: function(config) {
-        var view = config.view,
+        var currentView = config.currentView,
             directFn = router.getTemplates;
-        if (view == Zenoss.templates.deviceClassView) {
-            directFn = router.asyncGetTree;
+        if (currentView == Zenoss.templates.deviceClassView) {
+            directFn = router.getDeviceClassTemplates;
         }
-        this.view = view;
-        config.listeners = config.listeners || {};
-        Ext.applyIf(config.listeners, {
-            contextmenu: Zenoss.treeContextMenu
-        });
+        this.currentView = currentView;
+
         Ext.applyIf(config, {
             id: treeId,
             rootVisible: false,
@@ -99,48 +98,23 @@ Zenoss.TemplateTreePanel = Ext.extend(Ext.tree.TreePanel, {
             autoScroll: true,
             containerScroll: true,
             useArrows: true,
+            searchField: true,
             loadMask: true,
+            router: router,
             cls: 'x-tree-noicon',
-            loader: {
-                directFn: directFn,
-                baseAttrs: {singleClickExpand: true},
-                getParams: function(node) {
-                    return [node.attributes.uid];
-                },
-                listeners: {
-                    beforeload: function(){
-                        this.showLoadMask(true);
-                    }.createDelegate(this),
-                    load: function(){
-                        this.showLoadMask(false);
-                        var root = this.getRootNode();
-                        root.expand();
-                        if (root.childNodes.length) {
-                            root.childNodes[0].expand();
-                        }
-                    }.createDelegate(this)
-                }
-            },
+            idProperty: 'id',
+            directFn: directFn,
+            nodeName: 'Templates',
             root: {
-                nodeType: 'async',
-                id: 'root',
-                uid: '/zport/dmd/Devices'
-            },
-            listeners: {
-                scope: this,
-                expandnode: this.onExpandnode
+                id: '/zport/dmd/Devices',
+                uid: '/zport/dmd/Devices',
+                text: _t('Templates')
             }
         });
-        Zenoss.TemplateTreePanel.superclass.constructor.call(this, config);
+
+        this.callParent(arguments);
         initTreeDialogs(this);
         this.on('buttonClick', this.buttonClickHandler, this);
-    },
-    showLoadMask: function(bool) {
-        if (!this.loadMask) { return; }
-        var container = this.container;
-        container._treeLoadMask = container._treeLoadMask || new Ext.LoadMask(this.container);
-        var mask = container._treeLoadMask,
-            _ = bool ? mask.show() : [mask.hide(), mask.disable()];
     },
     buttonClickHandler: function(buttonId) {
         switch(buttonId) {
@@ -158,7 +132,7 @@ Zenoss.TemplateTreePanel = Ext.extend(Ext.tree.TreePanel, {
     addTemplate: function(id) {
         var rootNode, contextUid, params, tree, type;
         rootNode = this.getRootNode();
-        contextUid = rootNode.attributes.uid;
+        contextUid = rootNode.data.uid;
         params = {contextUid: contextUid, id: id};
         tree = this;
         function callback(provider, response) {
@@ -181,112 +155,24 @@ Zenoss.TemplateTreePanel = Ext.extend(Ext.tree.TreePanel, {
     deleteTemplate: function() {
         var node, params, me;
         node = this.getSelectionModel().getSelectedNode();
-        params = {uid: node.attributes.uid};
+        params = {uid: node.data.uid};
         me = this;
         function callback(provider, response) {
             me.getRootNode().reload();
         }
         router.deleteTemplate(params, callback);
     },
-    afterRender: function() {
-        Zenoss.TemplateTreePanel.superclass.afterRender.call(this);
 
-        var liveSearch = Zenoss.settings.enableLiveSearch,
-            listeners = {
-                scope: this,
-                keypress: function(field, e) {
-
-                    if (e.getKey() === e.ENTER) {
-
-                        this.filterTree(field);
-                    }
-                }
-            };
-
-        if (liveSearch) {
-            listeners.valid = this.filterTree;
-        }
-        // add the search text box
-        this.add({
-            xtype: 'searchfield',
-            ref: 'searchField',
-            enableKeyEvents: true,
-            bodyStyle: {padding: 10},
-            listeners: listeners
-        });
-    },
-
-    clearFilter: function() {
-        // use set raw value to not trigger listeners
-        this.searchField.setRawValue('');
-        this.hiddenPkgs = [];
-    },
     createDeepLinkPath: function(node) {
         var path;
-        if (this.view != Zenoss.templates.deviceClassView) {
-            path = this.id + Ext.History.DELIMITER + node.attributes.uid;
+        if (this.currentView != Zenoss.templates.deviceClassView) {
+            path = this.id + Ext.History.DELIMITER + node.data.uid;
         }else {
-            path = this.id + Ext.History.DELIMITER + node.getPath();
+            path = this.id + Ext.History.DELIMITER + node.get("id");
         }
 
         return path;
     },
-    filterTree: function(e) {
-        var re,
-            root = this.getRootNode(),
-            text = e.getValue();
-
-        // show all of our hidden nodes
-        if (this.hiddenPkgs) {
-            Ext.each(this.hiddenPkgs, function(node){node.ui.show();});
-        }
-
-        // de-select the selected node
-        if (this.getSelectionModel().getSelectedNode()){
-            this.getSelectionModel().getSelectedNode().unselect();
-        }
-
-        this.hiddenPkgs = [];
-        if (!text) {
-            // reset the tree to the initial state
-            this.collapseAll();
-            if (root) {
-                root.expand();
-                if (root.childNodes && root.childNodes.length > 0) {
-                    root.childNodes[0].expand();
-                }
-            }
-            return;
-        }
-        this.expandAll();
-
-        // test every node against the Regular expression
-        re = new RegExp(Ext.escapeRe(text), 'i');
-        this.root.cascade(function(node){
-            var attr = node.id, parentNode;
-            if (!node.isRoot) {
-                if (re.test(attr)) {
-                    // if regex passes show our node and our parent
-                    parentNode = node.parentNode;
-                    while (parentNode) {
-                        if (!parentNode.hidden) {
-                            break;
-                        }
-                        parentNode.ui.show();
-                        parentNode = parentNode.parentNode;
-                    }
-                    // the cascade is stopped on this branch
-                    return false;
-                } else {
-                    node.ui.hide();
-                    this.hiddenPkgs.push(node);
-                }
-            }
-            // continue cascading down the tree from this node
-            return true;
-        }, this);
-    },
-
     onExpandnode: function(node) {
         // select the first template when the base URL is accessed without a
         // history token and without a filter value
@@ -298,13 +184,13 @@ Zenoss.TemplateTreePanel = Ext.extend(Ext.tree.TreePanel, {
             }
         }
     },
-    selectByToken: function(uid) {
-        if (this.view == Zenoss.templates.deviceClassView){
-            this.selectPath(unescape(uid));
-        }else{
-            this.templateViewSelectByToken(uid);
-        }
-    },
+    // selectByToken: function(uid) {
+    //     if (this.currentView == Zenoss.templates.deviceClassView){
+    //         this.callParent([unescape(uid)]);
+    //     }else{
+    //         this.templateViewSelectByToken(uid);
+    //     }
+    // },
     templateViewSelectByToken: function(uid) {
         // called on Ext.History change event (see HistoryManager.js)
         // convert uid to path and select the path
@@ -312,7 +198,7 @@ Zenoss.TemplateTreePanel = Ext.extend(Ext.tree.TreePanel, {
         // example path: '/root/Device/Device..Power.UPS.APC'
         var templateSplit, pathParts, nameParts,
             templateName, dmdPath, path, deviceName;
-        
+
         if (uid.search('/rrdTemplates/') != -1) {
             templateSplit = unescape(uid).split('/rrdTemplates/');
             pathParts = templateSplit[0].split('/');
@@ -339,9 +225,9 @@ Zenoss.TemplateTreePanel = Ext.extend(Ext.tree.TreePanel, {
         var callback = function(success, foundNode) {
             if (!success) {
                 theTree.getRootNode().eachChild(function(node) {
-                    if (templateName == node.attributes.id){
+                    if (templateName == node.data.id){
                         node.eachChild(function(node){
-                            if (uid == node.attributes.uid) {
+                            if (uid == node.data.uid) {
                                 node.select();
                                 return false;
                             }
@@ -356,6 +242,6 @@ Zenoss.TemplateTreePanel = Ext.extend(Ext.tree.TreePanel, {
 
 });
 
-Ext.reg('TemplateTreePanel', Zenoss.TemplateTreePanel);
+
 
 })();

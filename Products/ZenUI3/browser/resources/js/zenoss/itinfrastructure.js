@@ -100,7 +100,7 @@ var deviceClassCombo = {
     store: new Ext.data.DirectStore({
         id: 'deviceClassStore',
         root: 'deviceClasses',
-                totalProperty: 'totalCount',
+        totalProperty: 'totalCount',
         fields: ['name'],
         directFn: REMOTE.getDeviceClasses
     }),
@@ -114,15 +114,16 @@ var deviceClassCombo = {
     listeners: {
         'afterrender': function(component) {
             var selnode = treesm.getSelectedNode();
-            var isclass = selnode.attributes.uid.startswith('/zport/dmd/Devices');
-            if(selnode.attributes.uid === "/zport/dmd/Devices" || !isclass ){
+            var isclass = selnode.data.uid.startswith('/zport/dmd/Devices');
+
+            if(selnode.data.uid === "/zport/dmd/Devices" || !isclass ){
                 //root node doesn't have a path attr
                 component.setValue('/');
             }
             else if (isclass) {
-                var path = selnode.attributes.path;
+                var path = selnode.data.path;
                 path = path.replace(/^Devices/,'');
-                component.setValue(path);
+                component.setRawValue(path);
             }
 
         }
@@ -142,15 +143,17 @@ function setDeviceButtonsDisabled(bool){
 }
 
 function resetGrid() {
-    Ext.getCmp('device_grid').view.nonDisruptiveReset();
+    Ext.getCmp('device_grid').refresh();
     setDeviceButtonsDisabled(true);
 }
 
-treesm = new Ext.tree.DefaultSelectionModel({
+treesm = Ext.create('Zenoss.TreeSelectionModel', {
+    mode: 'single',
     listeners: {
-        'selectionchange': function(sm, newnode, oldnode){
-            if (newnode) {
-                var uid = newnode.attributes.uid;
+        'selectionchange': function(sm, newnodes, oldnode){
+            if (newnodes.length) {
+                var newnode = newnodes[0];
+                var uid = newnode.data.uid;
                 Zenoss.util.setContext(uid, 'detail_panel', 'organizer_events',
                                        'commands-menu', 'footer_bar');
                 setDeviceButtonsDisabled(true);
@@ -161,7 +164,7 @@ treesm = new Ext.tree.DefaultSelectionModel({
                 //should "ask" the DetailNav if there are any details before showing
                 //the button
                 Ext.getCmp('master_panel').items.each(function(card){
-                    card.navButton.setVisible(!newnode.attributes.hidden);
+                    card.navButton.setVisible(!newnode.data.hidden);
                 });
             }
         }
@@ -172,12 +175,12 @@ function gridOptions() {
     var grid = Ext.getCmp('device_grid'),
     sm = grid.getSelectionModel(),
     rows = sm.getSelections(),
-    ranges = sm.getPendingSelections(true),
     pluck = Ext.pluck,
     uids = pluck(pluck(rows, 'data'), 'uid'),
-    opts = Ext.apply(grid.view.getFilterParams(true), {
+    opts = Ext.apply(grid.filterRow.getSearchValues(), {
         uids: uids,
-        ranges: ranges
+        // FIXME: Actually implement hashcheck
+        hashcheck: null
     });
     return opts;
 }
@@ -198,8 +201,8 @@ Ext.apply(Zenoss.devices, {
         handler: function(btn, e) {
             var grid = Ext.getCmp('device_grid'),
                 selnode = treesm.getSelectedNode(),
-                isclass = Zenoss.types.type(selnode.attributes.uid)=='DeviceClass',
-                grpText = selnode.attributes.text.text;
+                isclass = Zenoss.types.type(selnode.data.uid)=='DeviceClass',
+                grpText = selnode.data.text.text;
             var win = new Zenoss.FormDialog({
                 title: _t('Remove Devices'),
                 modal: true,
@@ -216,14 +219,14 @@ Ext.apply(Zenoss.devices, {
                     style: 'margin: 0 auto',
                     columns: 1,
                     items: [{
-                        value: 'remove',
+                        inputValue: 'remove',
                         id: 'remove-radio',
                         name: 'removetype',
                         boxLabel: _t('Just remove from ') + grpText,
                         disabled: isclass,
                         checked: !isclass
                     },{
-                        value: 'delete',
+                        inputValue: 'delete',
                         id: 'delete-radio',
                         name: 'removetype',
                         boxLabel: _t('Delete completely'),
@@ -252,9 +255,9 @@ Ext.apply(Zenoss.devices, {
                     xtype: 'DialogButton',
                     text: _t('Remove'),
                     handler: function(b) {
-                        grid.view.showLoadMask(true);
                         var opts = Ext.apply(gridOptions(), {
-                            action: Ext.getCmp('removetype').getValue().value,
+                            uid: Zenoss.env.PARENT_CONTEXT,
+                            action: Ext.getCmp('removetype').getValue().removetype,
                             deleteEvents: Ext.getCmp('delete-device-events').getValue(),
                             deletePerf: Ext.getCmp('delete-device-perf-data').getValue()
                         });
@@ -268,11 +271,10 @@ Ext.apply(Zenoss.devices, {
                                          deviceIds = [],
                                          flare;
                                      resetGrid();
-                                     devtree.update(response.devtree);
-                                     loctree.update(response.loctree);
-                                     grptree.update(response.grptree);
-                                     systree.update(response.systree);
-                                     grid.view.showLoadMask(false);
+                                     devtree.refresh();
+                                     loctree.refresh();
+                                     grptree.refresh();
+                                     systree.refresh();
                                      if (!Ext.isDefined(response.success) || response.success) {
                                          Ext.each(opts.uids, function(uid) {
                                              deviceIds.push( uid.split('/')[uid.split('/').length-1] );
@@ -301,8 +303,8 @@ Ext.apply(Zenoss.devices, {
         permissions: 'Manage DMD',
         handler: function() {
             var selnode = treesm.getSelectedNode();
-            var isclass = Zenoss.types.type(selnode.attributes.uid) == 'DeviceClass';
-            var grpText = selnode.attributes.text.text;
+            var isclass = Zenoss.types.type(selnode.data.uid) == 'DeviceClass';
+            var grpText = selnode.data.text.text;
             var win = new Zenoss.dialog.CloseDialog({
                 width: 800,
                 autoScroll: true,
@@ -365,13 +367,6 @@ Ext.apply(Zenoss.devices, {
                     footerStyle: 'padding-left: 0',
                     border: false,
                     ref: 'childPanel',
-                    listeners: {
-                        beforeDestroy: function(component) {
-                            if (Ext.isDefined(component.refOwner)) {
-                                component.refOwner.destroy();
-                            }
-                        }
-                    },
                     items: [{
                         xtype: 'panel',
                         layout: 'column',
@@ -379,7 +374,7 @@ Ext.apply(Zenoss.devices, {
                         items: [{
                             columnWidth: 0.5,
                             border: false,
-                            layout: 'form',
+                            layout: 'anchor',
                             items: [{
                                 xtype: 'textfield',
                                 name: 'deviceName',
@@ -421,7 +416,7 @@ Ext.apply(Zenoss.devices, {
                             }]
                         }, {
                             columnWidth: 0.5,
-                            layout: 'form',
+                            layout: 'anchor',
                             border: false,
                             items: [{
                                 xtype: 'textfield',
@@ -495,15 +490,17 @@ Ext.apply(Zenoss.devices, {
                         ref: "moreAttributes",
                         listeners: {
                             expand: function(){
-                                this.refOwner.refOwner.center();
+                                win.center();
+                                win.doLayout();
                             },
                             collapse: function(){
-                                this.refOwner.refOwner.center();
+                                win.center();
+                                win.doLayout();
                             }
                         },
                         items: [{
                             columnWidth: 0.33,
-                            layout: 'form',
+                            layout: 'anchor',
                             border: false,
                             items: [{
                                 xtype: 'textfield',
@@ -533,12 +530,12 @@ Ext.apply(Zenoss.devices, {
                             }]
                         }, {
                             columnWidth: 0.33,
-                            layout: 'form',
+                            layout: 'anchor',
                             border: false,
                             items: [hwManufacturers, hwProduct, osManufacturers, osProduct]
                         }, {
                             columnWidth: 0.34,
-                            layout: 'form',
+                            layout: 'anchor',
                             id: 'add-device-organizer-column',
                             border: false,
                             items: [{
@@ -564,7 +561,7 @@ Ext.apply(Zenoss.devices, {
                         formBind: true,
                         handler: function(b) {
                             var form = b.ownerCt.ownerCt.getForm();
-                            var opts = form.getFieldValues();
+                            var opts = form.getValues();
                             // adjust the system paths and grouppaths
                             if (opts.systemPaths) {
                                 opts.systemPaths = opts.systemPaths.split(",");
@@ -604,153 +601,124 @@ function commandMenuItemHandler(item) {
     var command = item.text,
         grid = Ext.getCmp('device_grid'),
         sm = grid.getSelectionModel(),
-        ranges = sm.getPendingSelections(true),
         selections = sm.getSelections(),
         devids = Ext.pluck(Ext.pluck(selections, 'data'), 'uid');
     function showWindow() {
         var win = new Zenoss.CommandWindow({
             uids: devids,
-            target: treesm.getSelectedNode().attributes.uid + '/run_command',
+            target: treesm.getSelectedNode().data.uid + '/run_command',
             command: command
         });
         win.show();
     }
-    if (!Ext.isEmpty(ranges)) {
-        var opts = Ext.apply(grid.view.getFilterParams(true),{ranges:ranges});
-        REMOTE.loadRanges(opts, function(data){
-            devids.concat(data);
-            showWindow();
-        });
-    } else {
-        showWindow();
-    }
+
+    showWindow();
+
 }
 
 
 function updateNavTextWithCount(node) {
     var sel = treesm.getSelectedNode();
-    if (sel && Ext.isDefined(sel.attributes.text.count)) {
-        var count = sel.attributes.text.count;
+    if (sel && Ext.isDefined(sel.data.text.count)) {
+        var count = sel.data.text.count;
         node.setText('Devices ('+count+')');
     }
 }
 
 
 function initializeTreeDrop(tree) {
-    Ext.apply(tree, {
-        ddGroup: 'devicegriddd',
-        enableDD: Zenoss.Security.hasPermission('Change Device')
-    });
-
-    // when the user is about to drop a node, let them know if it will be
-    // successful or not as far as we can tell
-    tree.on('nodedragover', function(e){
-        var targetnode = e.target,
-            targetuid = targetnode.attributes.uid,
-            organizerUid;
-
-        if ( e.data.node) {
-            organizerUid = e.data.node.attributes.uid;
-            if (organizerUid && targetuid) {
-                return tree.canMoveOrganizer(organizerUid, targetuid);
-            }
-        }
-        // let before node drop figure it out
-        return true;
-    });
 
     // fired when the user actually drops a node
-    tree.on('beforenodedrop', function(e) {
+    tree.getView().on('beforedrop', function(element, e, targetnode) {
         var grid = Ext.getCmp('device_grid'),
-            targetnode = e.target,
-            targetuid = targetnode.attributes.uid,
-            ranges = grid.getSelectionModel().getPendingSelections(true),
+            targetuid = targetnode.data.uid,
+            ranges = grid.getSelectionModel().getSelections(),
             devids,
             me = this,
+            isOrganizer = true,
             success = true;
-        if ( Ext.isArray(e.data.selections) ) {
-            devids = Ext.pluck(Ext.pluck(e.data.selections, 'data'), 'uid');
+        if (e.records) {
+            // the tree drag and drop wraps the model in a node interface so we
+            // need to look at the uid to figure out what they are dropping
+            isOrganizer = e.records[0].get("uid").indexOf('/devices/') == -1;
+        }
 
-            // show a confirmation for moving devices
+        if (!isOrganizer ) {
+            // move devices to the target node
+            devids = Ext.pluck(Ext.pluck(e.records, 'data'), 'uid');
+
+            // show the confirmation about devices
             Ext.Msg.show({
                 title: _t('Move Devices'),
-                msg: String.format(_t("Are you sure you want to move these {0} device(s) to {1}?"), devids.length, targetnode.attributes.text.text),
+                msg: String.format(_t("Are you sure you want to move these {0} device(s) to {1}?"), devids.length, targetnode.data.text.text),
                 buttons: Ext.Msg.OKCANCEL,
                 fn: function(btn) {
-                    if (btn=="ok") {
-                        grid.view.showLoadMask(true);
 
+                    if (btn =="ok") {
                         // move the devices
-                        var opts = Ext.apply(grid.view.getFilterParams(true), {
+                        var opts= {
                             uids: devids,
-                            ranges: ranges,
+                            ranges: [],
                             target: targetuid
-                        });
-
+                        };
                         REMOTE.moveDevices(opts, function(data){
                             if(data.success) {
                                 resetGrid();
-                                me.update(data.tree);
+                                Ext.History.add(me.id + Ext.History.DELIMITER + targetnode.data.uid.replace(/\//g, '.'));
+                                me.refresh();
                                 if(data.exports) {
                                     Ext.Msg.show({
                                         title: _t('Remodel Required'),
                                         msg: String.format(_t("Not all of the configuration could be preserved, so a remodel of the device(s) is required. Performance templates have been reset to the defaults for the device class.")),
                                         buttons: Ext.Msg.OK});
                                 }
-                            } else {
-                                grid.view.showLoadMask(false);
                             }
                         }, me);
-
-                    } else {
+                    }else {
                         Ext.Msg.hide();
-                        success = false;
                     }
                 }
             });
-
-            // we want Ext to complete the drop, thus return true
-            return success;
+            // if we return true a dummy node will be appended to the tree
+            return false;
         }else {
-            var organizerUid = e.data.node.attributes.uid;
 
+            // move the organizer under the target node
+            var record = e.records[0];
+            var organizerUid = record.get("uid");
             if (!tree.canMoveOrganizer(organizerUid, targetuid)) {
                 return false;
             }
 
+            // show the confirmation about organizers
             // show a confirmation for organizer move
             Ext.Msg.show({
                 title: _t('Move Organizer'),
-                msg: String.format(_t("Are you sure you want to move {0} to {1}?"), e.data.node.attributes.text.text, targetnode.attributes.text.text),
+                msg: String.format(_t("Are you sure you want to move {0} to {1}?"), record.get("text").text, targetnode.get("text").text),
                 buttons: Ext.Msg.OKCANCEL,
                 fn: function(btn) {
                     if (btn=="ok") {
-                        grid.view.showLoadMask(true);
-
-                        // move the devices
+                        // move the organizer
                         var params = {
                             organizerUid: organizerUid,
                             targetUid: targetuid
                         };
-
                         REMOTE.moveOrganizer(params, function(data){
                             if(data.success) {
                                 // add the new node to our history
                                 Ext.History.add(me.id + Ext.History.DELIMITER + data.data.uid.replace(/\//g, '.'));
-                                tree.getRootNode().reload({
+                                tree.refresh({
                                     callback: resetGrid
                                 });
-                                grid.view.showLoadMask(false);
-                            } else {
-                                grid.view.showLoadMask(false);
                             }
                         }, me);
-
-                    } else {
-                        Ext.Msg.hide();
+                    }else {
+                        Ext.msg.hide();
                     }
                 }
             });
+
+
             // Ext shows the node as already moved when we are awaiting the
             // dialog confirmation, so always tell Ext that the move didn't work
             // here. If the move was successful the tree will redraw itself with
@@ -800,8 +768,8 @@ function detailSelectByToken(nodeId) {
 
 var treeLoaderFn = REMOTE.getTree, treeStateful = true;
 if (Zenoss.settings.incrementalTreeLoad) {
-    treeLoaderFn = REMOTE.asyncGetTree;
-    treeStateful = false;
+    // treeLoaderFn = REMOTE.asyncGetTree;
+    // treeStateful = false;
 }
 
 var devtree = {
@@ -809,7 +777,8 @@ var devtree = {
     loadMask: false,
     id: 'devices',
     searchField: true,
-    directFn: Zenoss.util.isolatedRequest(treeLoaderFn),
+    // directFn: Zenoss.util.isolatedRequest(treeLoaderFn),
+    directFn: treeLoaderFn,
     allowOrganizerMove: false,
     stateful: treeStateful,
     stateId: 'device_tree',
@@ -819,6 +788,7 @@ var devtree = {
         uid: '/zport/dmd/Devices',
         text: 'Device Classes'
     },
+    ddGroup: 'devicegriddd',
     selectByToken: detailSelectByToken,
     selModel: treesm,
     router: REMOTE,
@@ -847,6 +817,7 @@ var grouptree = {
         id: 'Groups',
         uid: '/zport/dmd/Groups'
     },
+    ddGroup: 'devicegriddd',
     nodeName: 'Group',
     selModel: treesm,
     router: REMOTE,
@@ -868,6 +839,7 @@ var systree = {
         id: 'Systems',
         uid: '/zport/dmd/Systems'
     },
+    ddGroup: 'devicegriddd',
     nodeName: 'System',
     router: REMOTE,
     selectRootOnLoad: false,
@@ -889,6 +861,7 @@ var loctree = {
         id: 'Locations',
         uid: '/zport/dmd/Locations'
     },
+    ddGroup: 'devicegriddd',
     nodeName: 'Location',
     router: REMOTE,
     addNodeFn: REMOTE.addLocationNode,
@@ -927,7 +900,9 @@ Zenoss.nav.register({
     ]
 });
 
-Zenoss.InfraDetailNav = Ext.extend(Zenoss.DetailNavPanel, {
+Ext.define("Zenoss.InfraDetailNav", {
+    alias:['widget.infradetailnav'],
+    extend:"Zenoss.DetailNavPanel",
     constructor: function(config){
         Ext.applyIf(config, {
             text: _t('Details'),
@@ -961,9 +936,10 @@ Zenoss.InfraDetailNav = Ext.extend(Zenoss.DetailNavPanel, {
         var selNode = function () {
             var sel = this.getSelectionModel().getSelectedNode();
             if ( !(sel && nodeId === sel.id) ) {
-                var n = this.navtreepanel.root.findChild('id', nodeId);
+                var navtree = this.down('detailnavtreepanel');
+                var n = navtree.getRootNode().findChild('id', nodeId);
                 if (n) {
-                    n.select();
+                    navtree.getSelectionModel().select(n);
                 }
             }
             this.un('navloaded', this.selectFirst, this);
@@ -997,62 +973,63 @@ Zenoss.InfraDetailNav = Ext.extend(Zenoss.DetailNavPanel, {
     onGetNavConfig: function(contextId) {
         return Zenoss.nav.get('DeviceGroup');
     },
-    onSelectionChange: function(node) {
-        if ( node ) {
+    onSelectionChange: function(nodes) {
+        var node;
+        if ( nodes.length ) {
+            node = nodes[0];
             var detailPanel = Ext.getCmp('detail_panel');
-            var contentPanel = Ext.getCmp(node.attributes.id);
+            var contentPanel = Ext.getCmp(node.data.id);
             contentPanel.setContext(this.contextId);
-            detailPanel.layout.setActiveItem(node.attributes.id);
+            detailPanel.layout.setActiveItem(node.data.id);
             var orgnode = treesm.getSelectedNode();
-            Ext.History.add([orgnode.getOwnerTree().id, orgnode.id, node.id].join(Ext.History.DELIMITER));
+            Ext.History.add([orgnode.getOwnerTree().id, orgnode.get("uid"), node.get("id")].join(Ext.History.DELIMITER));
         }
     }
 });
-Ext.reg('infradetailnav', Zenoss.InfraDetailNav);
 
-var device_grid = new Zenoss.DeviceGridPanel({
+var device_grid = Ext.create('Zenoss.DeviceGridPanel', {
     ddGroup: 'devicegriddd',
     id: 'device_grid',
-    enableDrag: true,
-    header: true,
-    sm: new Ext.ux.grid.livegrid.RowSelectionModel({
+    multiSelect: true,
+    title: _t('/'),
+    viewConfig: {
+        plugins: {
+            ptype: 'gridviewdragdrop',
+            dragGroup: 'devicegriddd'
+        }
+    },
+    listeners: {
+        contextchange: function(grid, uid) {
+            REMOTE.getInfo({uid: uid, keys: ['name', 'description', 'address']}, function(result) {
+                var title = result.data.name,
+                qtip,
+                desc = [];
+                if ( result.data.address ) {
+                    desc.push(result.data.address);
+                }
+                if ( result.data.description ) {
+                    desc.push(result.data.description);
+                }
+
+                if ( desc ) {
+                    Ext.QuickTips.register({target: this.headerCt, text: Ext.util.Format.nl2br(desc.join('<hr>')), title: result.data.name});
+                    this.setTitle(Ext.String.format("{0} - {1}", title, desc.join(' - ')));
+                }else {
+                    this.setTitle(title);
+                }
+
+            }, this);
+        },
+        scope: device_grid
+    },
+    selModel: new Zenoss.ExtraHooksSelectionModel({
+        mode: 'MULTI',
         listeners: {
             selectionchange: function(sm) {
-                setDeviceButtonsDisabled(!sm.getSelected());
+                setDeviceButtonsDisabled(!sm.hasSelection());
             }
         }
     }),
-    setContext: function(uid) {
-        var view = this.getView();
-        view.contextUid = uid;
-        // reset the scroll position
-        view.rowIndex = 0;
-        view.updateLiveRows(0, true, true);
-
-        this.getSelectionModel().clearSelections();
-
-
-        REMOTE.getInfo({uid: uid, keys: ['name', 'description', 'address']}, function(result) {
-            var title = result.data.name;
-            var qtip;
-
-            this.header.child('span').child('span.title').update(title);
-
-            var desc = [];
-            if ( result.data.address ) {
-                desc.push(result.data.address);
-            }
-            if ( result.data.description ) {
-                desc.push(result.data.description);
-            }
-
-            if ( desc ) {
-                Ext.QuickTips.register({target: this.header, text: Ext.util.Format.nl2br(desc.join('<hr>')), title: result.data.name});
-            }
-
-            this.header.child('span').child('span.desc').update(desc.join(' - '));
-        }, this);
-    },
     headerCfg: {
         tag: 'div',
         cls: 'x-panel-header',
@@ -1068,6 +1045,7 @@ var device_grid = new Zenoss.DeviceGridPanel({
             {
                 xtype: 'eventrainbow',
                 id: 'organizer_events',
+                width:210,
                 listeners: {
                     'render': function(me) {
                         me.getEl().on('click', function(){
@@ -1115,8 +1093,7 @@ var device_grid = new Zenoss.DeviceGridPanel({
                 text: _t('Refresh'),
                 tooltip: _t('Refresh Device List'),
                 handler: function(btn) {
-                    var view = Ext.getCmp('device_grid').view;
-                    view.updateLiveRows(view.rowIndex, true, true);
+                    Ext.getCmp('device_grid').refresh();
                 }
             },
             {
@@ -1135,7 +1112,7 @@ var device_grid = new Zenoss.DeviceGridPanel({
 
                 setContext: function(uid) {
                     var me = Ext.getCmp('commands-menu'),
-                            menu = me.menu;
+                        menu = me.menu;
                     REMOTE.getUserCommands({uid:uid}, function(data) {
                         menu.removeAll();
                         Ext.each(data, function(d) {
@@ -1157,11 +1134,44 @@ var device_grid = new Zenoss.DeviceGridPanel({
  * Toggle buttons based on permissions everytime they click a different tree node
  **/
 Zenoss.Security.onPermissionsChange(function(){
-    Ext.getCmp('master_panel').details.setDisabled(Zenoss.Security.doesNotHavePermission('Manage DMD'));
+    var cmp = Ext.getCmp('master_panel_details');
+    var btn = cmp.query("button[ref='details']")[0];
+    if (btn) {
+        btn.setDisabled(Zenoss.Security.doesNotHavePermission('Manage DMD'));
+    }
     Ext.getCmp('commands-menu').setDisabled(Zenoss.Security.doesNotHavePermission('Run Commands'));
     Ext.getCmp('addsingledevice-item').setDisabled(Zenoss.Security.doesNotHavePermission('Manage DMD'));
     Ext.getCmp('actions-menu').setDisabled(Zenoss.Security.doesNotHavePermission('Change Device'));
 });
+
+function getInfrastructureDeviceColumns() {
+    var columns = [
+        'severity',
+        'device',
+        'component',
+        'eventClass',
+        'summary',
+        'firstTime',
+        'lastTime',
+        'status',
+        'count'
+    ];
+    var defs = Zenoss.env.COLUMN_DEFINITIONS;
+    return  Zenoss.util.filter(defs, function(d){
+        return Ext.Array.contains(columns, d.id);
+    });
+}
+
+var event_console = Ext.create('Zenoss.EventGridPanel', {
+    id: 'events_grid',
+    stateId: 'infrastructure_events',
+    columns: getInfrastructureDeviceColumns(),
+    newwindowBtn: true,
+    actionsMenu: false,
+    commandsMenu: false,
+    store: Ext.create('Zenoss.events.Store', {})
+});
+
 
 Ext.getCmp('center_panel').add({
     id: 'center_panel_container',
@@ -1172,11 +1182,14 @@ Ext.getCmp('center_panel').add({
     items: [{
         xtype: 'horizontalslide',
         id: 'master_panel',
+        cls: 'x-zenoss-master-panel',
         text: _t('Infrastructure'),
         region: 'west',
         split: true,
         width: 275,
+        maxWidth: 275,
         items: [{
+            id: 'master_panel_details',
             text: _t('Infrastructure'),
             buttonText: _t('Details'),
             buttonRef: 'details',
@@ -1197,15 +1210,16 @@ Ext.getCmp('center_panel').add({
         }],
         listeners: {
             beforecardchange: function(me, card, index, from, fromidx) {
-                var node, selectedNode;
+                var node, selectedNode, tree;
                 if (index==1) {
-                    node = treesm.getSelectedNode().attributes;
+                    node = treesm.getSelectedNode().data;
                     card.setHeaderText(node.text.text, node.path);
                 } else if (index===0) {
+                    tree = Ext.getCmp('detail_nav').treepanel;
                     Ext.getCmp('detail_nav').items.each(function(item){
                         selectedNode = item.getSelectionModel().getSelectedNode();
                         if ( selectedNode ) {
-                            selectedNode.unselect();
+                            tree.getSelectionModel().deselect(selectedNode);
                         }
                     });
                     Ext.getCmp('detail_panel').layout.setActiveItem(0);
@@ -1215,14 +1229,14 @@ Ext.getCmp('center_panel').add({
                 var node = treesm.getSelectedNode(),
                     footer = Ext.getCmp('footer_bar');
                 if (index===1) {
-                    card.card.setContext(node.attributes.uid);
-                    footer.buttonAdd.disable();
-                    footer.buttonDelete.disable();
+                    card.card.setContext(node.data.uid);
+                    Ext.getCmp('footer_add_button').disable();
+                    Ext.getCmp('footer_delete_button').disable();
                 } else if (index===0) {
-                    Ext.History.add([node.getOwnerTree().id, node.id].join(Ext.History.DELIMITER));
+                    Ext.History.add([node.getOwnerTree().id, node.get("id")].join(Ext.History.DELIMITER));
                     if (Zenoss.Security.hasPermission('Manage DMD')) {
-                        footer.buttonAdd.enable();
-                        footer.buttonDelete.enable();
+                        Ext.getCmp('footer_add_button').enable();
+                        Ext.getCmp('footer_delete_button').enable();
                     }
 
                 }
@@ -1236,24 +1250,7 @@ Ext.getCmp('center_panel').add({
         split: true,
         items: [
             device_grid,
-            {
-                xtype: 'EventGridPanel',
-                id: 'events_grid',
-                stateId: 'organizer_event_panel',
-                newwindowBtn: true,
-                columns: Zenoss.env.COLUMN_DEFINITIONS,
-                initComponent: Zenoss.EventGridPanel.prototype.initComponent.createSequence(function(){
-                    var events_grid = Ext.getCmp('events_grid');
-                    Zenoss.EventActionManager.configure({
-                        onFinishAction: function() {
-                            events_grid.updateRows();
-                        },
-                        findParams: function() {
-                            return events_grid.getSelectionParameters();
-                        }
-                    });
-               })
-            },
+            event_console,
             {
                 id: 'modeler_plugins',
                 xtype: 'modelerpluginpanel'
@@ -1266,13 +1263,11 @@ Ext.getCmp('center_panel').add({
 });
 
 
-var bindTemplatesDialog = Ext.create({
-    xtype: 'bindtemplatesdialog',
+var bindTemplatesDialog = Ext.create('Zenoss.BindTemplatesDialog',{
     id: 'bindTemplatesDialog'
 });
 
-var resetTemplatesDialog = Ext.create({
-    xtype: 'resettemplatesdialog',
+var resetTemplatesDialog = Ext.create('Zenoss.ResetTemplatesDialog', {
     id: 'resetTemplatesDialog'
 });
 
@@ -1283,6 +1278,7 @@ function getOrganizerFields(mode) {
         items.push({
             xtype: 'textfield',
             id: 'id',
+            name: 'id',
             fieldLabel: _t('Name'),
             allowBlank: false
         });
@@ -1291,15 +1287,17 @@ function getOrganizerFields(mode) {
     items.push({
         xtype: 'textfield',
         id: 'description',
+        name: 'description',
         fieldLabel: _t('Description'),
         allowBlank: true
     });
 
-    var rootId = treesm.getSelectedNode().getOwnerTree().getRootNode().attributes.id;
+    var rootId = treesm.getSelectedNode().getOwnerTree().root.id;
     if ( rootId === loctree.root.id ) {
         items.push({
             xtype: 'textarea',
             id: 'address',
+            name: 'address',
             fieldLabel: _t('Address'),
             allowBlank: true
         });
@@ -1322,7 +1320,7 @@ var footerBar = Ext.getCmp('footer_bar');
         onGetDeleteMessage: function (itemName) {
             var node = treesm.getSelectedNode(),
                 tree = node.getOwnerTree(),
-                rootId = tree.getRootNode().attributes.id,
+                rootId = tree.getRootNode().data.id,
                 msg = _t('Are you sure you want to delete the {0} {1}? <br/>There is <strong>no</strong> undo.');
             if (rootId==devtree.root.id) {
                 msg = [msg, '<br/><br/><strong>',
@@ -1330,7 +1328,7 @@ var footerBar = Ext.getCmp('footer_bar');
                        _t(' This will also delete all devices in this {0}.'),
                        '<br/>'].join('');
             }
-            return String.format(msg, itemName.toLowerCase(), '/'+node.attributes.path);
+            return String.format(msg, itemName.toLowerCase(), '/'+node.data.path);
         },
         onGetAddDialogItems: function () { return getOrganizerFields('add'); },
         onGetItemName: function() {
@@ -1413,12 +1411,11 @@ var footerBar = Ext.getCmp('footer_bar');
                         });
 
                         dialog.setSubmitHandler(function(values) {
-                            values.uid = node.attributes.uid;
+                            values.uid = node.get("uid");
                             REMOTE.setInfo(values);
                         });
-
                         dialog.getForm().load({
-                            params: { uid: node.attributes.uid, keys: ['id', 'description', 'address'] },
+                            params: { uid: node.data.uid, keys: ['id', 'description', 'address'] },
                             success: function(form, action) {
                                 dialog.show();
                             },

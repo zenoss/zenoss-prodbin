@@ -20,14 +20,13 @@ var MibBrowser,
     router = Zenoss.remote.MibRouter,
     node_type_store,
     node_type_maps,
-    NodeGrid,
-    node_grid,
+    oid_grid,
+    trap_grid,
     node_details,
     addtozenpack,
     treesm,
     mib_tree,
     footerBar,
-    selModel,
     currentAddNodeTitle = _t('Add OID Mapping'),
     currentAddFn = router.addOidMapping,
     currentDeleteFn = router.deleteOidMapping,
@@ -38,43 +37,13 @@ node_type_maps = [{
     addNodeTitle: _t('Add OID Mapping'),
     addFn: router.addOidMapping,
     deleteFn: router.deleteOidMapping,
-    accessOrObjectsLabel: _t('Access:'),
-    proxyFn: router.getOidMappings,
-    readerCfg: {
-        root: 'data',
-        idProperty: 'uid',
-        totalProperty: 'count',
-        fields: [
-            {name: 'uid'},
-            {name: 'name'},
-            {name: 'oid'},
-            {name: 'nodetype'},
-            {name: 'access'},
-            {name: 'status'},
-            {name: 'description'}
-        ]
-    }
+    accessOrObjectsLabel: _t('Access:')
 },{
     detailsTitle: _t('Trap Overview'),
     addNodeTitle: _t('Add Trap'),
     addFn: router.addTrap,
     deleteFn: router.deleteTrap,
-    accessOrObjectsLabel: _t('Objects:'),
-    proxyFn: router.getTraps,
-    readerCfg: {
-        root: 'data',
-        idProperty: 'uid',
-        totalProperty: 'count',
-        fields: [
-            {name: 'uid'},
-            {name: 'name'},
-            {name: 'oid'},
-            {name: 'nodetype'},
-            {name: 'objects'},
-            {name: 'status'},
-            {name: 'description'}
-        ]
-    }
+    accessOrObjectsLabel: _t('Objects:')
 }];
 
 node_type_store = [
@@ -82,85 +51,171 @@ node_type_store = [
     _t('Traps')
 ];
 
-NodeGrid = Ext.extend(Ext.ux.grid.livegrid.GridPanel, {
+
+/**
+ * @class Zenoss.mibs.TrapModel
+ * @extends Ext.data.Model
+ * Field definitions for the traps
+ **/
+Ext.define('Zenoss.mibs.TrapModel',  {
+    extend: 'Ext.data.Model',
+    idProperty: 'uid',
+    fields: [
+         {name: 'uid'},
+         {name: 'name'},
+         {name: 'oid'},
+         {name: 'nodetype'},
+         {name: 'objects'},
+         {name: 'status'},
+         {name: 'description'}
+    ]
+});
+
+/**
+ * @class Zenoss.mibs.TrapStore
+ * @extend Zenoss.DirectStore
+ * Direct store for loading trap
+ */
+Ext.define("Zenoss.mibs.TrapStore", {
+    extend: "Zenoss.DirectStore",
     constructor: function(config) {
-        Ext.applyIf(config || {}, {
-            view: new Ext.ux.grid.livegrid.GridView({
-                rowHeight: 22,
-                nearLimit: 100,
-                loadMask: {msg: _t('Loading. Please wait...'),
-                           msgCls: 'x-mask-loading'},
-                nonDisruptiveReset: Zenoss.FilterGridView.prototype.nonDisruptiveReset
-            }),
-            fbar: {
-                border: false,
-                frame: false,
-                height: 10,
-                items: {
-                    xtype: 'livegridinfo',
-                    text: '',
-                    grid: this
-                }
-            }
+        config = config || {};
+        Ext.applyIf(config, {
+            model: 'Zenoss.mibs.TrapModel',
+            pageSize: 50,
+            initialSortColumn: "name",
+            totalProperty: 'count',
+            directFn: router.getTraps,
+            root: 'data'
         });
-        NodeGrid.superclass.constructor.call(this, config);
+        this.callParent(arguments);
     }
 });
 
-node_grid = new NodeGrid({
-    id: 'node_grid',
-    stripeRows: true,
-    autoExpandColumn: 'name',
-    store: new Ext.ux.grid.livegrid.Store({
-        bufferSize: 256,
-        proxy: new Ext.data.DirectProxy({
-            directFn: router.getOidMappings
-        }),
-        reader: new Ext.ux.grid.livegrid.JsonReader(
-            node_type_maps[0].readerCfg
-        )
-    }),
-    cm: new Ext.grid.ColumnModel({
-        defaults: {
-            sortable: true
-        },
-        columns: [{
-            width: 300,
-            id: 'name',
-            dataIndex: 'name',
-            header: _t('Name')
-        },{
-            width: 180,
-            id: 'oid',
-            dataIndex: 'oid',
-            header: _t('OID')
-        },{
-            width: 100,
-            id: 'nodetype',
-            dataIndex: 'nodetype',
-            header: _t('Node Type')
-        }]
-    }),
-    sm: new Ext.ux.grid.livegrid.RowSelectionModel({
-        singleSelect: true,
+/**
+ * @class Zenoss.mibs.OidModel
+ * @extends Ext.data.Model
+ * Field definitions for the oids
+ **/
+Ext.define('Zenoss.mibs.OidModel',  {
+    extend: 'Ext.data.Model',
+    idProperty: 'uid',
+    fields: [
+        {name: 'uid'},
+        {name: 'name'},
+        {name: 'oid'},
+        {name: 'nodetype'},
+        {name: 'access'},
+        {name: 'status'},
+        {name: 'description'}
+    ]
+});
+
+/**
+ * @class Zenoss.mibs.OidStore
+ * @extend Zenoss.DirectStore
+ * Direct store for loading ip addresses
+ */
+Ext.define("Zenoss.mibs.OidStore", {
+    extend: "Zenoss.DirectStore",
+    constructor: function(config) {
+        config = config || {};
+        Ext.applyIf(config, {
+            model: 'Zenoss.mibs.OidModel',
+            pageSize: 50,
+            initialSortColumn: "name",
+            totalProperty: 'count',
+            directFn: router.getOidMappings,
+            root: 'data'
+        });
+        this.callParent(arguments);
+    }
+});
+
+Ext.define('Zenoss.mibs.Grid',{
+    extend: 'Zenoss.BaseGridPanel',
+    constructor: function(config){
+        Ext.applyIf(config, {
+
+        });
+        this.callParent(arguments);
+    }
+});
+    function rowSelect(sm, ri, rec) {
+        var node = Ext.getCmp('node_details');
+        node.name.setValue(rec.data.name);
+        node.oid.setValue(rec.data.oid);
+        node.accessOrObjects.setValue(rec.data.access);
+        if (rec.data.access == undefined) {
+            node.accessOrObjects.setValue(rec.data.objects);
+        } else {
+            node.accessOrObjects.setValue(rec.data.access);
+        }
+        node.nodetype.setValue(rec.data.nodetype);
+        node.status.setValue(rec.data.status);
+        node.description.setValue(rec.data.description);
+    }
+oid_grid = Ext.create('Zenoss.BaseGridPanel', {
+    id: 'oid_grid',
+    store: Ext.create('Zenoss.mibs.OidStore', {}),
+    columns: [{
+        width: 300,
+        id: 'name',
+        flex: 1,
+        dataIndex: 'name',
+        header: _t('Name'),
+        sortable: true
+    },{
+        width: 180,
+        id: 'oid',
+        dataIndex: 'oid',
+        header: _t('OID'),
+        sortable: true
+    },{
+        width: 100,
+        id: 'nodetype',
+        dataIndex: 'nodetype',
+        header: _t('Node Type'),
+        sortable: true
+    }],
+    selModel: Ext.create('Zenoss.SingleRowSelectionModel', {
         listeners: {
-            rowselect: function(sm, ri, rec) {
-                var node = Ext.getCmp('node_details');
-                node.name.setValue(rec.data.name);
-                node.oid.setValue(rec.data.oid);
-                node.accessOrObjects.setValue(rec.data.access);
-                if (rec.data.access == undefined) {
-                    node.accessOrObjects.setValue(rec.data.objects);
-                } else {
-                    node.accessOrObjects.setValue(rec.data.access);
-                }
-                node.nodetype.setValue(rec.data.nodetype);
-                node.status.setValue(rec.data.status);
-                node.description.setValue(rec.data.description);
-            }
+            rowselect: rowSelect
         }
     })
 });
+
+trap_grid = Ext.create('Zenoss.BaseGridPanel', {
+    id: 'trap_grid',
+    store: Ext.create('Zenoss.mibs.TrapStore', {}),
+    columns: [{
+        width: 300,
+        id: 'trapname',
+        flex: 1,
+        dataIndex: 'name',
+        header: _t('Name'),
+        sortable: true
+    },{
+        width: 180,
+        id: 'trapoid',
+        dataIndex: 'oid',
+        header: _t('OID'),
+        sortable: true
+    },{
+        width: 100,
+        id: 'trapnodetype',
+        dataIndex: 'nodetype',
+        header: _t('Node Type'),
+        sortable: true
+    }],
+    selModel: Ext.create('Zenoss.SingleRowSelectionModel', {
+        listeners: {
+            rowselect: rowSelect
+        }
+    })
+
+});
+
 
 node_details = new Ext.form.FormPanel({
     title: _t('OID Mapping Overview'),
@@ -198,6 +253,7 @@ MibBrowser = Ext.extend(Ext.Container, {
     constructor: function(config) {
         Ext.applyIf(config, {
             layout: 'border',
+            id: 'mibbottom',
             items: [{
                 xtype: 'panel',
                 title: _t('MIB Overview'),
@@ -244,12 +300,13 @@ MibBrowser = Ext.extend(Ext.Container, {
                 tbar: {
                     cls: 'largetoolbar componenttbar',
                     border: false,
-                    height: 32,
+                    height: 37,
                     items: [{
                         xtype: 'tbtext',
                         html: _t('Display:')
                     }, {
                         xtype: 'combo',
+                        cls: 'mibcombobottom',
                         store: node_type_store,
                         typeAhead: true,
                         allowBlank: false,
@@ -258,21 +315,19 @@ MibBrowser = Ext.extend(Ext.Container, {
                         value: _t('OID Mappings'),
                         selectOnFocus: false,
                         listeners: {
-                            select: function (combo, record, index) {
-                                var node_type_map = node_type_maps[index],
-                                    node_details = Ext.getCmp('node_details'),
-                                    node_grid = Ext.getCmp('node_grid');
+                            select: function (combo, records, options) {
+                                if (!records || !records.length) {
+                                    return;
+                                }
+                                var record = records[0],
+                                    node_type_map = node_type_maps[record.index],
+                                    node_details = Ext.getCmp('node_details');
+
                                 currentAddNodeTitle = node_type_map.addNodeTitle;
                                 currentAddFn = node_type_map.addFn;
                                 currentDeleteFn = node_type_map.deleteFn;
-                                node_grid.getStore().removeAll(true);
-                                node_grid.getStore().proxy = new Ext.data.DirectProxy({
-                                    directFn: node_type_map.proxyFn
-                                });
-                                node_grid.getStore().reader = new Ext.ux.grid.livegrid.JsonReader(node_type_map.readerCfg);
-                                node_grid.getStore().load({
-                                    params: {uid: Zenoss.env.currentUid}
-                                });
+                                Ext.getCmp('gridCardPanel').layout.setActiveItem(record.index);
+                                Ext.getCmp('gridCardPanel').layout.activeItem.setContext(Zenoss.env.PARENT_CONTEXT);
                                 node_details.setTitle(node_type_map.detailsTitle);
                                 node_details.name.setValue('');
                                 node_details.oid.setValue('');
@@ -281,7 +336,7 @@ MibBrowser = Ext.extend(Ext.Container, {
                                 node_details.nodetype.setValue('');
                                 node_details.status.setValue('');
                                 node_details.description.setValue('');
-                                Ext.getCmp('access_or_objects').label.update(node_type_map.accessOrObjectsLabel);
+                                Ext.getCmp('access_or_objects').labelEl.update(node_type_map.accessOrObjectsLabel);
                             }
                         }
                     }, '-', {
@@ -322,9 +377,7 @@ MibBrowser = Ext.extend(Ext.Container, {
                                                     oid: form.findField('oid').getValue()
                                                 };
                                             currentAddFn(addParams, function() {
-                                                node_grid.getStore().load({
-                                                    params: {uid: Zenoss.env.currentUid}
-                                                });
+                                                Ext.getCmp('gridCardPanel').layout.activeItem.refresh();
                                             });
                                         }
                                     }, Zenoss.dialog.CANCEL]
@@ -337,12 +390,13 @@ MibBrowser = Ext.extend(Ext.Container, {
                         id: 'delete_node_button',
                         iconCls: 'delete',
                         handler: function() {
-                            var sm = node_grid.getSelectionModel(),
+                            var grid = Ext.getCmp('gridCardPanel').layout.activeItem;
+                            var sm = grid.getSelectionModel(),
                                 sel = sm.getSelected();
                             if (sel == undefined) {
                                 return;
                             }
-                            currentDeleteFn({uid: sel.id}, function() {
+                            currentDeleteFn({uid: sel.get("uid")}, function() {
                                 var node = Ext.getCmp('node_details');
                                 node.name.setValue('');
                                 node.oid.setValue('');
@@ -351,26 +405,27 @@ MibBrowser = Ext.extend(Ext.Container, {
                                 node.nodetype.setValue('');
                                 node.status.setValue('');
                                 node.description.setValue('');
-                                node_grid.getStore().load({
-                                    params: {uid: Zenoss.env.currentUid}
-                                });
+                                grid.refresh();
                             });
                         }
                     }]
                 },
                 items: [{
                     region: 'west',
-                    layout: 'fit',
+                    layout: 'card',
+                    disabled: true,
+                    id: 'gridCardPanel',
                     split: true,
                     width: 600,
-                    items: [node_grid]} , node_details]
+                    items: [oid_grid, trap_grid]
+                } , node_details]
             }]
         });
         MibBrowser.superclass.constructor.call(this, config);
     },
     setContext: function(node) {
         var params = {
-            uid: node.attributes.uid,
+            uid: node.data.uid,
             useFieldSets: false
         };
         router.getInfo(params, this.populateForm);
@@ -383,10 +438,7 @@ MibBrowser = Ext.extend(Ext.Container, {
         mib_form_left.contact.setValue(response.data.contact);
         mib_form_right.language.setValue(response.data.language);
         mib_form_right.description.setValue(response.data.description);
-        var params = {uid: Zenoss.env.currentUid};
-        Ext.getCmp('node_grid').getStore().load({
-            params: params
-        });
+        Ext.getCmp('oid_grid').setContext(Zenoss.env.currentUid);
     }
 });
 
@@ -404,18 +456,19 @@ function getSelectedMibTreeNode(){
 
 function reloadTree(selectedUid) {
     var tree = Ext.getCmp('mibtree');
-    tree.getRootNode().reload(function(){
+    tree.refresh(function(){
         tree.getRootNode().childNodes[0].expand();
         tree.selectByToken(selectedUid);
     });
 }
 
 function initializeTreeDrop(g) {
+    return;
     var dz = new Ext.tree.TreeDropZone(g, {
         ddGroup: 'mibtreedd',
         appendOnly: true,
         onNodeDrop: function (target, dd, e, data) {
-            if ((target.node.attributes.leaf) ||
+            if ((target.node.data.leaf) ||
                     (target.node == data.node.parentNode)) {
                 try {
                     this.tree.selModel.suspendEvents(true);
@@ -427,8 +480,8 @@ function initializeTreeDrop(g) {
             }
             var tree = this.tree;
             router.moveNode({
-                uids: [data.node.attributes.uid],
-                target: target.node.attributes.uid
+                uids: [data.node.data.uid],
+                target: target.node.data.uid
             }, function (response) {
                 reloadTree(response.data.uid);
             });
@@ -441,7 +494,8 @@ function initializeTreeDrop(g) {
  * TODO: determine if selecting a new folder with no items in it
  *       should leave a blank panel or not
  */
-Zenoss.MibTreePanel = Ext.extend(Zenoss.HierarchyTreePanel, {
+Ext.define("Zenoss.MibTreePanel", {
+    extend:"Zenoss.HierarchyTreePanel",
         constructor: function(config) {
             Ext.applyIf(config, {
                 id: 'navTree',
@@ -461,21 +515,21 @@ Zenoss.MibTreePanel = Ext.extend(Zenoss.HierarchyTreePanel, {
                     expandnode: this.onExpandnode
                 }
             });
-            Zenoss.MibTreePanel.superclass.constructor.call(this, config);
+            this.callParent(arguments);
         },
         onBeforeNodeDrop: function(dropEvent) {
             var sourceUids, targetUid, data, targetId;
             if (dropEvent.dropNode) {
                 // moving a MibOrganizer into another MibOrganizer
-                sourceUids = [dropEvent.dropNode.attributes.uid];
+                sourceUids = [dropEvent.dropNode.data.uid];
             } else {
                 // moving a MIB from grid into a MibOrganizer
                 data = Ext.pluck(dropEvent.data.selections, 'data');
                 sourceUids = Ext.pluck(data, 'uid');
             }
             dropEvent.target.expand();
-            targetUid = dropEvent.target.attributes.uid;
-            targetId = dropEvent.target.attributes.id;
+            targetUid = dropEvent.target.data.uid;
+            targetId = dropEvent.target.data.id;
             router.MibRouter.moveMibs(
                 {
                     sourceUids: sourceUids,
@@ -523,30 +577,35 @@ Zenoss.MibTreePanel = Ext.extend(Zenoss.HierarchyTreePanel, {
  *
  */
 
-treesm = new Ext.tree.DefaultSelectionModel({
+treesm = new Zenoss.TreeSelectionModel({
     listeners: {
-        'selectionchange': function (sm, newnode) {
+        'selectionchange': function (sm, nodes) {
+            var newnode;
+            if (nodes.length) {
+                newnode = nodes[0];
+            }
             var isRoot = false;
 
-            if (newnode && newnode.attributes.leaf) {
-                var uid = newnode.attributes.uid,
-                    meta_type = newnode.attributes.meta_type;
+            if (newnode && newnode.data.leaf) {
+                var uid = newnode.data.uid,
+                    meta_type = newnode.data.meta_type;
                     mib_browser.setContext(newnode);
+                Ext.getCmp('gridCardPanel').setDisabled(false);
             }
 
             if (newnode) {
                 // set the context for the new nodes
-                Zenoss.env.PARENT_CONTEXT = newnode.attributes.uid;
-                if (newnode.attributes.uid == '/zport/dmd/Mibs') {
+                Zenoss.env.PARENT_CONTEXT = newnode.data.uid;
+                if (newnode.data.uid == '/zport/dmd/Mibs') {
                     isRoot = true;
                 }
-                Ext.getCmp('add-organizer-button').setDisabled(newnode.attributes.leaf);
-                Ext.getCmp('edit-mib-action').setDisabled(!newnode.attributes.leaf);
+                Ext.getCmp('add-organizer-button').setDisabled(newnode.data.leaf);
+                Ext.getCmp('edit-mib-action').setDisabled(!newnode.data.leaf);
                 // do not allow them to delete the root node
                 Ext.getCmp('delete-button').setDisabled(isRoot);
 
                 // add to history
-                Ext.History.add('mibtree' + Ext.History.DELIMITER + newnode.attributes.uid);
+                Ext.History.add('mibtree' + Ext.History.DELIMITER + newnode.data.uid);
             }
 
         }
@@ -566,11 +625,10 @@ mib_tree = new Zenoss.MibTreePanel({
         text: _t('Mib Classes'),
         allowDrop: false
     },
-    //selModel: treesm,
     listeners: {
         render: initializeTreeDrop,
         click: function (node, e) {
-            if (node.attributes.leaf) {
+            if (node.data.leaf) {
                 mib_browser.setContext(node);
             }
         }
@@ -589,7 +647,8 @@ Ext.getCmp('center_panel').add({
         id: 'master_panel',
         layout: 'fit',
         region: 'west',
-        width: 300,
+        width: 250,
+        maxWidth: 250,
         split: true,
         items: [mib_tree]
     }, {
@@ -607,12 +666,10 @@ Ext.getCmp('center_panel').add({
 function showEditMibDialog(response){
     var data = response.data, win,
         items = response.form.items[0].items;
-
     // show the edit form
-    win = Ext.create({
+    win = Ext.create('Zenoss.dialog.BaseWindow', {
         id: 'editMIBDialog',
         title: _t('Edit MIB'),
-        xtype: 'basewindow',
         height: 360,
         width: 510,
         modal: true,
@@ -627,12 +684,14 @@ function showEditMibDialog(response){
             items: items,
             listeners: {
                 clientvalidation: function(form, valid) {
-                    win.submitButton.setDisabled(!valid);
+                    if (win.isVisible()){
+                        win.submitButton.setDisabled(!valid);
+                    }
                 }
             }
         },
         buttons:[{
-            xtype: 'button',
+            xtype: 'DialogButton',
             ref: '../submitButton',
             text: _t('Submit'),
             handler: function(button) {
@@ -640,18 +699,13 @@ function showEditMibDialog(response){
                 dirtyOnly=true,
                 opts = form.getFieldValues(dirtyOnly);
                 opts.uid = data.uid;
-
                 router.setInfo(opts, function(response) {
                     reloadTree(response.data.uid);
-                    win.close();
                 });
             }
         },{
-            xtype: 'button',
-            text: _t('Cancel'),
-            handler: function () {
-                win.close();
-            }
+            xtype: 'DialogButton',
+            text: _t('Cancel')
         }]
     });
 
@@ -671,19 +725,22 @@ function createAction(typeName, text) {
             var addDialog = new Zenoss.FormDialog({
                 title: _t('Create ') + text,
                 modal: true,
+                formId: Ext.id(),
+                formListeners: {
+                    validitychange: function(field, isValid) {
+                        if (addDialog.isVisible()) {
+                             addDialog.submitButton.setDisabled(!isValid);
+                        }
+                    }
+                },
                 width: 310,
-                formId: 'addForm',
                 items: [{
                     xtype: 'idfield',
                     fieldLabel: _t('ID'),
+                    ref: '../nameField',
                     name: 'name',
                     tabIndex: 0,
-                    allowBlank: false,
-                    listeners: {
-                        valid: function() {
-                            addDialog.submitButton.setDisabled(false);
-                        }
-                    }
+                    allowBlank: false
                 }],
                 buttons: [{
                     xtype: 'DialogButton',
@@ -692,16 +749,15 @@ function createAction(typeName, text) {
                     disabled: true,
                     tabIndex: 1,
                     handler: function () {
-                        var form, newName;
-                        form = Ext.getCmp('addForm').getForm();
-                        newName = form.findField('name').getValue();
+                        var newName;
+                        newName = addDialog.nameField.getValue();
                         mib_tree.addNode(typeName, newName);
                     }
                 },
                     Zenoss.dialog.CANCEL
                 ]
             });
-            addDialog.show(this);
+            addDialog.show();
         }
     });
 }
@@ -714,7 +770,7 @@ function createLocalMIBAddAction() {
     permission: 'Manage DMD',
     handler: function(btn, e){
         var node = getSelectedMibTreeNode(),
-        src = node.attributes.uid + '/uploadfile',
+        src = node.data.uid + '/uploadfile',
         win;
         win= new Zenoss.dialog.CloseDialog({
             id: 'fileuploadwindow',
@@ -736,7 +792,7 @@ function createLocalMIBAddAction() {
                     xtype: 'panel',
                     width: 270,
                     height: 70,
-                    layout: 'form',
+                    layout: 'anchor',
                     border: false,
                     html: '<iframe frameborder="0" src="' +  src  + '"></iframe>'
                 }]
@@ -823,6 +879,7 @@ footerBar.add({
     id: 'add-organizer-button',
     tooltip: _t('Add MIB organizer or MIB'),
     iconCls: 'add',
+    disabled: true,
     menu: {
         width: 190, // mousing over longest menu item was changing width
         items: [
@@ -840,7 +897,7 @@ footerBar.add({
 function deleteNode() {
     var node = getSelectedMibTreeNode(),
         nodeType = "Mib";
-    if (!node.attributes.leaf) {
+    if (!node.data.leaf) {
         nodeType = "Organizer";
     }
     new Zenoss.dialog.SimpleMessageDialog({
@@ -851,9 +908,9 @@ function deleteNode() {
             text: _t('Delete'),
             handler: function() {
                 var params = {
-                    uid: node.attributes.uid
+                    uid: node.data.uid
                 },
-                parentUid = node.parentNode.attributes.uid,
+                parentUid = node.parentNode.data.uid,
                 callback = function(response) {
                     // after deleting the child, select the parent
                     reloadTree(parentUid);
@@ -882,7 +939,7 @@ function addToZenPack(e) {
     if (!addtozenpack) {
         addtozenpack = new Zenoss.AddToZenPackWindow();
     }
-    addtozenpack.setTarget(treesm.getSelectedNode().attributes.uid);
+    addtozenpack.setTarget(treesm.getSelectedNode().data.uid);
     addtozenpack.show();
 }
 
@@ -902,7 +959,7 @@ footerBar.add([{
                     params;
                 if (node){
                     params = {
-                        uid: node.attributes.uid,
+                        uid: node.data.uid,
                         useFieldSets: false
                     };
                     router.getInfo(params, showEditMibDialog);

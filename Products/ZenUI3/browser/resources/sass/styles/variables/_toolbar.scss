@@ -1,0 +1,6 @@
+$toolbar-background-color: #a6a6a6;
+$toolbar-background-gradient: color_stops(lighten($toolbar-background-color, 8), $toolbar-background-color);
+$toolbar-border-color: lighten($toolbar-background-color, 20);
+$toolbar-separator-color: darken($toolbar-background-color, 20);
+$toolbar-separator-highlight-color: $toolbar-border-color;
+

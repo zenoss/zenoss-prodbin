@@ -52,22 +52,33 @@ addMetricToGraph = function(dataPointUid, graphUid) {
     router.addDataPointToGraph(params, callback);
 };
 
-Zenoss.GraphStore = Ext.extend(Ext.data.DirectStore, {
+Ext.define('Zenoss.GraphModel', {
+    extend: 'Ext.data.Model',
+    idProperty: 'uid',
+    fields: [
+        'uid', 'name', 'graphPoints', 'units', 'height', 'width',
+             'sequence'
+    ]
+});
+
+Ext.define("Zenoss.GraphStore", {
+    extend:"Zenoss.NonPaginatedStore",
+    alias: ['widget.graphstore'],
     constructor: function(config) {
         Ext.applyIf(config, {
-            xtype: 'directstore',
+            root: 'data',
             directFn: router.getGraphs,
-            idProperty: 'uid',
-            fields: ['uid', 'name', 'graphPoints', 'units', 'height', 'width',
-                     'sequence']
+            model: 'Zenoss.GraphModel'
         });
-        Zenoss.GraphStore.superclass.constructor.call(this, config);
+        this.callParent(arguments);
     }
 });
-Ext.reg('graphstore', Zenoss.GraphStore);
+
 
 new Zenoss.HideFormDialog({
     id: 'addToGraphDialog',
+    width: 400,
+    height: 150,
     title: _t('Add Data Point to Graph'),
     items: [
     {
@@ -81,11 +92,13 @@ new Zenoss.HideFormDialog({
         displayField: 'name',
         valueField: 'uid',
         forceSelection: true,
+        width:300,
         minChars: 999, // only do an all query
         triggerAction: 'all',
+        resizeable: true,
         emptyText: 'Select a graph...',
         selectOnFocus: true,
-        store: {xtype: 'graphstore'},
+        store: new Zenoss.GraphStore({}),
         listeners: {select: function(){
             Ext.getCmp('addToGraphDialog').submit.enable();
         }}
@@ -99,7 +112,7 @@ new Zenoss.HideFormDialog({
         handler: function(button, event) {
             var node, datapointUid, graphUid;
             node = Ext.getCmp(dataSourcesId).getSelectionModel().getSelectedNode();
-            datapointUid = node.attributes.uid;
+            datapointUid = node.data.uid;
             graphUid = Ext.getCmp('graphCombo').getValue();
             addMetricToGraph(datapointUid, graphUid);
         }
@@ -113,11 +126,11 @@ showAddToGraphDialog = function() {
     var smTemplate, templateUid, smDataSource,
         nodeDataSource, metricName, html, combo;
     smTemplate = Ext.getCmp('templateTree').getSelectionModel();
-    templateUid = smTemplate.getSelectedNode().attributes.uid;
+    templateUid = smTemplate.getSelectedNode().data.uid;
     smDataSource = Ext.getCmp(dataSourcesId).getSelectionModel();
     nodeDataSource = smDataSource.getSelectedNode();
     if ( nodeDataSource && nodeDataSource.isLeaf() ) {
-        metricName = nodeDataSource.attributes.name;
+        metricName = nodeDataSource.data.name;
         html = '<div>Data Point</div>';
         html += '<div>' + metricName + '</div><br/>';
         Ext.getCmp('addToGraphDialog').show();
@@ -146,16 +159,16 @@ function refreshDataSourceGrid(selectedId) {
     Ext.getCmp('addDataPointDialog').hide();
     Ext.getCmp('addDataSourceDialog').hide();
     if (selectedId) {
-        grid.getRootNode().reload(function(){
+        grid.refresh(function(){
             grid.getRootNode().cascade(function(node){
-                if (node.attributes.id == selectedId) {
+                if (node.data.id == selectedId) {
                     node.expand();
                     node.select();
                 }
             });
         });
     }else{
-        grid.getRootNode().reload();
+        grid.refresh();
     }
 }
 
@@ -168,15 +181,15 @@ function saveDataPoint() {
         parameters, selectedId;
 
     // if we have a datapoint, find the datasource associated with it
-    if (selectedNode.attributes.leaf) {
+    if (selectedNode.data.leaf) {
         selectedNode = selectedNode.parentNode;
     }
 
     parameters = {
         name: Ext.getCmp('metricName').getValue(),
-        dataSourceUid: selectedNode.attributes.uid
+        dataSourceUid: selectedNode.data.uid
     };
-    selectedId = selectedNode.attributes.id;
+    selectedId = selectedNode.data.id;
     // get selected datasource, and reopen the grid to that point
     function callback() {
         refreshDataSourceGrid(selectedId);
@@ -266,7 +279,7 @@ function saveDataSource() {
         parameters = {
             name: Ext.getCmp('dataSourceName').getValue(),
             type: Ext.getCmp('dataSourceTypeCombo').getValue(),
-            templateUid: selectedNode.attributes.uid
+            templateUid: selectedNode.data.uid
         };
     return router.addDataSource(parameters, refreshDataSourceGrid);
 }
@@ -310,11 +323,12 @@ new Zenoss.dialog.BaseWindow({
             value: 'SNMP',
             selectOnFocus: true,
             triggerAction: 'all',
-            store:  new Ext.data.DirectStore({
+            store:  {
+                type: 'directcombo',
                 fields: ['type'],
                 root: 'data',
                 directFn: router.getDataSourceTypes
-            })
+            }
         }],
         buttons:[{
             xtype: 'button',
@@ -361,7 +375,7 @@ function showDeleteDataSourceDialog() {
     if (getSelectedDataSourceOrPoint()) {
         // set up the custom delete message
         msg = _t("Are you sure you want to remove {0}? There is no undo.");
-        name = getSelectedDataSourceOrPoint().attributes.name;
+        name = getSelectedDataSourceOrPoint().data.name;
         html = String.format(msg, name);
 
         // show the dialog
@@ -381,12 +395,12 @@ new Zenoss.MessageDialog({
         var params, node = getSelectedDataSourceOrPoint(),
         selectedId;
         params = {
-            uid: getSelectedDataSourceOrPoint().id
+            uid: getSelectedDataSourceOrPoint().get("uid")
         };
 
         // data points are always leafs
-        if (getSelectedDataSourceOrPoint().leaf) {
-            selectedId = node.parentNode.attributes.id;
+        if (getSelectedDataSourceOrPoint().data.leaf) {
+            selectedId = node.parentNode.data.id;
             function callback() {
                 refreshDataSourceGrid(selectedId);
             }
@@ -445,9 +459,8 @@ function testDataSource() {
  **/
 function submitDataPointForm (values, callback) {
     // will always have only one alias form
-    var aliases = Ext.getCmp(editDataSourcesId).findByType('alias'),
+    var aliases = Ext.getCmp(editDataSourcesId).query('alias'),
         alias;
-
     // assert that we have one exactly one alias form
     if (aliases.length < 1) {
         throw "The DataPoint form does not have an alias field, it should have only one";
@@ -465,7 +478,7 @@ function submitDataPointForm (values, callback) {
 function editDataSourceOrPoint() {
     var cmp = Ext.getCmp(dataSourcesId),
         selectedNode = cmp.getSelectionModel().getSelectedNode(),
-        attributes,
+        data,
         isDataPoint = false,
         params, reselectId;
 
@@ -474,19 +487,19 @@ function editDataSourceOrPoint() {
         Ext.Msg.alert(_t('Error'), _t('You must select a data source or data point.'));
         return;
     }
-    attributes = selectedNode.attributes;
+    data = selectedNode.data;
 
     // find out if we are editing a datasource or a datapoint
-    if (attributes.leaf) {
+    if (data.leaf) {
         isDataPoint = true;
-        editingReSelectId = selectedNode.parentNode.attributes.id;
+        editingReSelectId = selectedNode.parentNode.data.id;
     }else{
-        editingReSelectId = attributes.id;
+        editingReSelectId = data.id;
     }
 
     // parameters for the router call
     params = {
-        uid: attributes.uid
+        uid: data.uid
     };
 
     // callback for the router request
@@ -496,7 +509,6 @@ function editDataSourceOrPoint() {
 
         config.record = response.record;
         config.items = response.form;
-        config.xtype = "datasourceeditdialog";
         config.id = editDataSourcesId;
         config.isDataPoint = isDataPoint;
         config.title = _t('Edit Data Source');
@@ -533,10 +545,9 @@ function editDataSourceOrPoint() {
         }
 
         config.saveHandler = closeEditDialog;
-        win = Ext.create(config);
+        win = new Zenoss.form.DataSourceEditDialog(config);
         win.show();
     }
-
     // get the details
     if (isDataPoint) {
         router.getDataPointDetails(params, displayEditDialog);
@@ -565,28 +576,73 @@ dataSourceMenu = new Ext.menu.Menu({
     }]
 });
 
+
+/**
+ * @class Zenoss.templates.DataSourceModel
+ * @extends Ext.data.Model
+ * Field definitions for the datasource/datapoint grid
+ **/
+Ext.define('Zenoss.templates.DataSourceModel',  {
+    extend: 'Ext.data.Model',
+    idProperty: 'uid',
+    fields: [
+        {name: 'uid'},
+        {name: 'name'},
+        {name: 'source'},
+        {name: 'enabled'},
+        {name: 'type'}
+    ]
+});
+
+/**
+ * @class Zenoss.templates.DataSourceStore
+ * @extend Ext.data.TreeStore
+ * Direct store for loading datasources and datapoints
+ */
+Ext.define("Zenoss.templates.DataSourceStore", {
+    extend: "Ext.data.TreeStore",
+    constructor: function(config) {
+        config = config || {};
+        Ext.applyIf(config, {
+            model: 'Zenoss.templates.DataSourceModel',
+            nodeParam: 'uid',
+            remoteSort: false,
+            proxy: {
+                type: 'direct',
+                directFn: router.getDataSources,
+                reader: {
+                    root: 'data',
+                    totalProperty: 'count'
+                }
+            }
+        });
+        this.callParent(arguments);
+    }
+});
+
 /**
  * @class Zenoss.DataSourceTreeGrid
- * @extends Ext.ux.tree.TreeGrid
+ * @extends Ext.Tree.Panel
  * @constructor
  */
-Zenoss.DataSourceTreeGrid = Ext.extend(Ext.ux.tree.TreeGrid, {
+Ext.define("Zenoss.DataSourceTreeGrid", {
+    extend: "Ext.tree.Panel",
+    alias: ['widget.DataSourceTreeGrid'],
 
     constructor: function(config) {
         Ext.applyIf(config, {
             border: false,
             useArrows: true,
             cls: 'x-tree-noicon',
+            rootVisible: false,
             id: dataSourcesId,
             title: _t('Data Sources'),
             listeners: {
                 // when they doubleclick we will open up the tree and
                 // display the dialog
-                beforedblclick: editDataSourceOrPoint
+                beforeitemdblclick: editDataSourceOrPoint
             },
-            loader: new Ext.ux.tree.TreeGridLoader({
-                directFn: router.getDataSources
-            }),
+            store: Ext.create('Zenoss.templates.DataSourceStore', {}),
             tbar: [{
                     xtype: 'button',
                     iconCls: 'add',
@@ -624,38 +680,59 @@ Zenoss.DataSourceTreeGrid = Ext.extend(Ext.ux.tree.TreeGrid, {
                 },
                 menu: 'dataSourceMenu'
             }],
-            columns: [
-                {
-                    id: 'name',
-                    dataIndex: 'name',
-                    header: 'Data Points by Data Source',
-                    width: 250
-                }, {
-                    dataIndex: 'source',
-                    header: 'Source',
-                    width: 250
-                }, {
-                    dataIndex: 'enabled',
-                    header: 'Enabled',
-                    width: 40
-                }, {
-                    dataIndex: 'type',
-                    header: 'Type',
-                    width: 90
-                }
-            ]
+            columns: [{
+                xtype: 'treecolumn', //this is so we know which column will show the tree
+                text: 'Name',
+                flex: 2,
+                sortable: true,
+                dataIndex: 'name'
+            }, {
+                dataIndex: 'source',
+                flex: 1,
+                header: 'Source',
+                width: 250
+            }, {
+                dataIndex: 'enabled',
+                header: 'Enabled',
+                width: 40
+            }, {
+                dataIndex: 'type',
+                header: 'Type',
+                width: 90
+            }],
+            selModel: Ext.create('Zenoss.TreeSelectionModel', {
+                mode: 'SINGLE'
+            })
         });
-        Zenoss.DataSourceTreeGrid.superclass.constructor.call(this, config);
-
+        this.callParent(arguments);
     },
     disableToolBarButtons: function(bool) {
         this.addButton.setDisabled(bool && Zenoss.Security.hasPermission('Manage DMD'));
         this.deleteButton.setDisabled(bool && Zenoss.Security.hasPermission('Manage DMD'));
         this.customizeButton.setDisabled(bool && Zenoss.Security.hasPermission('Manage DMD'));
+    },
+    setContext: function(uid) {
+        this.uid = uid;
+        this.refresh();
+    },
+    refresh: function(callback, scope) {
+        var root = this.getRootNode();
+        root.setId(this.uid);
+        root.data.uid = this.uid;
+        root.uid = this.uid;
+        if (callback) {
+            this.getStore().load({
+                callback: callback,
+                scope: scope || this
+            });
+        }else {
+            this.getStore().load();
+        }
+
     }
 
 });
 
-Ext.reg('DataSourceTreeGrid', Zenoss.DataSourceTreeGrid);
+
 
 })();

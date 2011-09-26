@@ -25,7 +25,7 @@
             };
 
         router.makeLocalRRDTemplate(params, function(){
-            grid.getStore().reload();
+            grid.refresh();
         });
     }
 
@@ -36,7 +36,7 @@
                 templateName: templateName
             };
         router.removeLocalRRDTemplate(params, function(){
-            grid.getStore().reload();
+            grid.refresh();
         });
     }
 
@@ -44,8 +44,11 @@
         return templateUid.startswith(contextUid);
     }
 
-    ComponentTemplatePanel = Ext.extend(Ext.Panel, {
+    Ext.define("Zenoss.ComponentTemplatePanel", {
+        alias:['widget.componenttemplatepanel'],
+        extend:"Ext.Panel",
         constructor: function(config) {
+            var me = this;
             config = config || {};
             Ext.applyIf(config, {
                 layout: 'fit',
@@ -59,19 +62,16 @@
                     items:[{
                         region: 'west',
                         width: '65%',
-                        xtype: 'grid',
+                        xtype: 'contextgridpanel',
                         ref: '../templates',
-                        sm: new Ext.grid.RowSelectionModel ({
-                            singleSelect: true,
+                        selModel: Ext.create('Zenoss.SingleRowSelectionModel', {
                             listeners : {
                                 rowselect: function (selectionModel, rowIndex, record ) {
-                                    var thresholds = selectionModel.grid.refOwner.thresholds,
-                                        grid = selectionModel.grid;
-                                    thresholds.getStore().load({
-                                        params: {uid: record.data.uid}
-                                    });
+                                    var thresholds = me.thresholds,
+                                        grid = me.templates;
+                                    thresholds.setContext(record.get("uid"));
                                     // toggle the delete local and copy local buttons
-                                    if (isLocalTemplate(grid.refOwner.getCurrentUid(), record.data.uid)) {
+                                    if (isLocalTemplate(grid.refOwner.getCurrentUid(), record.get("uid"))) {
                                         grid.deleteLocalCopyButton.enable();
                                         grid.createLocalCopyButton.disable();
                                     }else{
@@ -82,8 +82,8 @@
                                     thresholds.addButton.enable();
                                 },
                                 rowdeselect: function(selectionModel) {
-                                    var thresholds = selectionModel.grid.refOwner.thresholds,
-                                        grid = selectionModel.grid;
+                                    var thresholds = me.thresholds,
+                                        grid = me.templates;
                                     thresholds.addButton.disable();
 
                                     // disable both local copy buttons
@@ -130,23 +130,23 @@
                                 }
                             }
                         }],
-                        store: {
-                            xtype: 'directstore',
-                            root: 'data',
-                            panel: this,
+                        store: Ext.create('Zenoss.NonPaginatedStore', {
                             directFn: router.getObjTemplates,
                             fields: ['uid', 'name', 'description', 'definition'],
+                            root: 'data',
                             listeners: {
                                 load: function(store) {
-                                    store.panel.templates.getSelectionModel().selectFirstRow();
+                                    if (store.getCount()) {
+                                        me.templates.getSelectionModel().selectRow(0);
+                                    }
+                                    return true;
                                 }
                             }
-                        },
+                        }),
                         viewConfig: {
-                            emptyText: _t('No Templates')
+                            emptyText: _t('No Templates'),
+                            stripeRows: true
                         },
-                        autoExpandColumn: 'description',
-                        stripeRows: true,
                         columns: [{
                             dataIndex: 'name',
                             id: 'name',
@@ -161,6 +161,7 @@
                         },{
                             dataIndex: 'description',
                             id: 'description',
+                            flex: 1,
                             header: _t('Description')
                         },{
                             minWidth: 200,
@@ -172,6 +173,7 @@
                         id: 'component_template_threshold',
                         region: 'center',
                         title: null,
+                        stateId: 'component_template_thresholds',
                         xtype: 'thresholddatagrid',
                         ref: '../thresholds',
                         getTemplateUid: function() {
@@ -189,13 +191,12 @@
                 }]
 
             });
-            ComponentTemplatePanel.superclass.constructor.apply(this, arguments);
+            this.callParent(arguments);
         },
         setContext: function(uid) {
             var templateGrid = this.templates,
                 store = templateGrid.getStore();
-            store.setBaseParam('uid', uid);
-            store.load();
+            templateGrid.setContext(uid);
             this._uid = uid;
             // disable unless until we select a template
             this.thresholds.addButton.disable();
@@ -204,7 +205,5 @@
             return this._uid;
         }
     });
-
-    Ext.reg('componenttemplatepanel', ComponentTemplatePanel);
 
 })();

@@ -26,17 +26,21 @@ var REMOTE = Zenoss.remote.DeviceRouter;
 function refreshTemplateTree() {
     var cmp = Ext.getCmp('templateTree');
     if (cmp && cmp.isVisible()) {
-        cmp.getRootNode().reload(function() {
+
+        cmp.refresh(function() {
             // select the first node
             var root = cmp.getRootNode();
             if (root.firstChild) {
                 root.firstChild.select();
             }
         });
+
     }
 }
 
-Zenoss.templates.Container = Ext.extend(Ext.Panel, {
+Ext.define("Zenoss.templates.Container", {
+    alias:['widget.templatecontainer'],
+    extend:"Ext.Panel",
     constructor: function(config) {
         Ext.applyIf(config, {
             layout: 'border',
@@ -49,7 +53,11 @@ Zenoss.templates.Container = Ext.extend(Ext.Panel, {
                 xtype: 'DataSourceTreeGrid',
                 id: 'dataSourceTreeGrid',
                 region: 'center',
-                ref: 'dataSourceTreeGrid'
+                ref: 'dataSourceTreeGrid',
+                root: {
+                    uid: config.uid,
+                    id: config.uid
+                }
             }, {
                 xtype: 'panel',
                 layout: 'border',
@@ -81,18 +89,15 @@ Zenoss.templates.Container = Ext.extend(Ext.Panel, {
         this.updateGrid(this.graphGrid, uid);
     },
     updateTreeGrid: function(treeGrid, uid){
-        treeGrid.getRootNode().setId(uid);
-        treeGrid.getRootNode().reload();
+        treeGrid.setContext(uid);
     },
     updateGrid: function(grid, uid) {
-        grid.getStore().load({
-            params: {uid: uid}
-        });
+        grid.setContext(uid);
     }
 });
-Ext.reg('templatecontainer', Zenoss.templates.Container);
 
-Zenoss.BubblingSelectionModel = Ext.extend(Ext.tree.DefaultSelectionModel, {
+
+Zenoss.BubblingSelectionModel = Ext.extend(Zenoss.TreeSelectionModel, {
     constructor: function(config) {
         Zenoss.BubblingSelectionModel.superclass.constructor.call(this, config);
         this.enableBubble('selectionchange');
@@ -116,8 +121,11 @@ Zenoss.MonTemplateSelectionModel = Ext.extend(Zenoss.BubblingSelectionModel, {
     }
 });
 
-Zenoss.templates.MonTemplateTreePanel = Ext.extend(Ext.tree.TreePanel, {
+Ext.define("Zenoss.templates.MonTemplateTreePanel", {
+    alias:['widget.montemplatetreepanel'],
+    extend:"Ext.tree.TreePanel",
     constructor: function(config){
+        // create the model
         Ext.applyIf(config, {
             useArrows: true,
             border: false,
@@ -125,10 +133,6 @@ Zenoss.templates.MonTemplateTreePanel = Ext.extend(Ext.tree.TreePanel, {
             selModel: new Zenoss.MonTemplateSelectionModel({
                 bubbleTarget: config.bubbleTarget
             }),
-            loader: {
-                directFn: REMOTE.getTemplates,
-                baseAttrs: {singleClickExpand: true}
-            },
             root: {
                 text: _t('Monitoring Templates')
             }
@@ -137,36 +141,45 @@ Zenoss.templates.MonTemplateTreePanel = Ext.extend(Ext.tree.TreePanel, {
     },
     setContext: function(uid){
         if ( uid.match('^/zport/dmd/Devices') ) {
-            this.show();
-            this.setRootNode({
-                nodeType: 'async',
-                id: uid,
-                text: _t('Monitoring Templates'),
-                expanded: true
-            });
+            REMOTE.getTemplates({id: uid}, function(response){
+                var root = {
+                    expanded: true,
+                    text: _t('Monitoring Templates'),
+                    children: response
+                };
+
+                this.setRootNode(root);
+                // resize ourself with the new data
+                this.doLayout();
+            } , this);
         } else {
             this.hide();
         }
     },
-    onSelectionChange: function(node) {
-        var detail;
-        if (node) {
+    onSelectionChange: function(nodes) {
+        var detail, node, uid;
+        if (nodes && nodes.length) {
+            node = nodes[0];
+            uid = node.get("id");
             detail = Ext.getCmp(this.initialConfig.detailPanelId);
             if ( ! detail.items.containsKey('montemplate') ) {
                 detail.add({
                     xtype: 'templatecontainer',
                     id: 'montemplate',
-                    ref: 'montemplate'
+                    ref: 'montemplate',
+                    uid: uid
                 });
             }
-            detail.montemplate.setContext(node.attributes.uid);
+            detail.montemplate.setContext(uid);
             detail.getLayout().setActiveItem('montemplate');
         }
     }
 });
-Ext.reg('montemplatetreepanel', Zenoss.templates.MonTemplateTreePanel);
 
-Zenoss.BindTemplatesItemSelector = Ext.extend(Ext.ux.form.ItemSelector, {
+
+Ext.define("Zenoss.BindTemplatesItemSelector", {
+    alias:['widget.bindtemplatesitemselector'],
+    extend:"Ext.ux.form.ItemSelector",
         constructor: function(config) {
         Ext.applyIf(config, {
             imagePath: "/++resource++zenui/img/xtheme-zenoss/icon",
@@ -176,49 +189,45 @@ Zenoss.BindTemplatesItemSelector = Ext.extend(Ext.ux.form.ItemSelector, {
             drawBotIcon: false,
             displayField: 'name',
             valueField: 'id',
-            multiselects: [{
-                cls: 'multiselect-dialog',
-                width: 250,
-                height: 200,
-                displayField: 'name',
-                valueField: 'id',
-                appendOnly: true,
-                store: {
-                    xtype: 'arraystore',
-                    fields: ['id', 'name']
+            store:  Ext.create('Ext.data.ArrayStore', {
+                data: [],
+                fields: ['id','name'],
+                sortInfo: {
+                    field: 'value',
+                    direction: 'ASC'
                 }
-            },{
-                cls: 'multiselect-dialog',
-                width: 250,
-                height: 200,
-                displayField: 'name',
-                valueField: 'id',
-                appendOnly: true,
-                store: {
-                    xtype: 'arraystore',
-                    fields: ['id', 'name']
-                }
-            }]
+            })
         });
         Zenoss.BindTemplatesItemSelector.superclass.constructor.apply(this, arguments);
     },
     setContext: function(uid) {
         REMOTE.getUnboundTemplates({uid: uid}, function(provider, response){
-            this.fromMultiselect.store.loadData(response.result.data);
+            var data = response.result.data;
+            // stack the calls so we can make sure the store is setup correctly first
+            REMOTE.getBoundTemplates({uid: uid}, function(provider, response){
+                var results = [];
+                Ext.each(response.result.data, function(row){
+                    results.push(row[0]);
+                    data.push(row);
+                });
+                this.store.loadData(data);
+                this.bindStore(this.store);
+                this.setValue(results);
+            }, this);
         }, this);
-        REMOTE.getBoundTemplates({uid: uid}, function(provider, response){
-            this.toMultiselect.store.loadData(response.result.data);
-        }, this);
+
     }
 });
-Ext.reg('bindtemplatesitemselector', Zenoss.BindTemplatesItemSelector);
 
-Zenoss.AddLocalTemplatesDialog = Ext.extend(Zenoss.HideFitDialog, {
+
+Ext.define("Zenoss.AddLocalTemplatesDialog", {
+    alias:['widget.addlocaltemplatesdialog'],
+    extend:"Zenoss.HideFitDialog",
     constructor: function(config){
         var me = this;
         Ext.applyIf(config, {
             title: _t('Add Local Template'),
-            layout: 'form',
+            layout: 'anchor',
             items: [{
                 xtype: 'form',
                 ref: 'formPanel',
@@ -267,21 +276,26 @@ Zenoss.AddLocalTemplatesDialog = Ext.extend(Zenoss.HideFitDialog, {
         this.context = uid;
     }
 });
-Ext.reg('addlocaltemplatesdialog', Zenoss.AddLocalTemplatesDialog);
 
-Zenoss.BindTemplatesDialog = Ext.extend(Zenoss.HideFitDialog, {
+
+Ext.define("Zenoss.BindTemplatesDialog", {
+    alias:['widget.bindtemplatesdialog'],
+    extend:"Zenoss.HideFitDialog",
     constructor: function(config){
         var me = this;
+        var itemId = Ext.id();
+
         Ext.applyIf(config, {
             title: _t('Bind Templates'),
             items: {
                 xtype: 'bindtemplatesitemselector',
                 ref: 'itemselector',
+                id: itemId,
                 context: config.context
             },
             listeners: {
                 show: function() {
-                    this.itemselector.setContext(this.context);
+                    Ext.getCmp(itemId).setContext(this.context);
                 }
             },
             buttons: [
@@ -291,9 +305,7 @@ Zenoss.BindTemplatesDialog = Ext.extend(Zenoss.HideFitDialog, {
                 handler: function(){
                     var records, data, templateIds;
                     if (Zenoss.Security.hasPermission('Manage DMD')) {
-                        records = me.itemselector.toMultiselect.store.getRange();
-                        data = Ext.pluck(records, 'data');
-                        templateIds = Ext.pluck(data, 'id');
+                        templateIds = Ext.getCmp(itemId).getValue();
                         REMOTE.setBoundTemplates({
                             uid: me.context,
                             templateIds: templateIds
@@ -311,9 +323,11 @@ Zenoss.BindTemplatesDialog = Ext.extend(Zenoss.HideFitDialog, {
         this.context = uid;
     }
 });
-Ext.reg('bindtemplatesdialog', Zenoss.BindTemplatesDialog);
 
-Zenoss.ResetTemplatesDialog = Ext.extend(Zenoss.MessageDialog, {
+
+Ext.define("Zenoss.ResetTemplatesDialog", {
+    alias:['widget.resettemplatesdialog'],
+    extend:"Zenoss.MessageDialog",
     constructor: function(config) {
         var me = this;
         Ext.applyIf(config, {
@@ -343,9 +357,11 @@ Zenoss.ResetTemplatesDialog = Ext.extend(Zenoss.MessageDialog, {
     }
 });
 
-Ext.reg('resettemplatesdialog', Zenoss.ResetTemplatesDialog);
 
-Zenoss.OverrideTemplatesDialog = Ext.extend(Zenoss.HideFitDialog, {
+
+Ext.define("Zenoss.OverrideTemplatesDialog", {
+    alias:['widget.overridetemplatesdialog'],
+    extend:"Zenoss.HideFitDialog",
     constructor: function(config){
         var me = this;
         Ext.applyIf(config, {
@@ -417,9 +433,11 @@ Zenoss.OverrideTemplatesDialog = Ext.extend(Zenoss.HideFitDialog, {
         this.context = uid;
     }
 });
-Ext.reg('overridetemplatesdialog', Zenoss.OverrideTemplatesDialog);
 
-Zenoss.removeLocalTemplateDialog = Ext.extend(Zenoss.HideFitDialog, {
+
+Ext.define("Zenoss.removeLocalTemplateDialog", {
+    alias:['widget.removelocaltemplatesdialog'],
+    extend:"Zenoss.HideFitDialog",
     constructor: function(config){
         var me = this;
         Ext.applyIf(config, {
@@ -490,6 +508,6 @@ Zenoss.removeLocalTemplateDialog = Ext.extend(Zenoss.HideFitDialog, {
         this.context = uid;
     }
 });
-Ext.reg('removelocaltemplatesdialog', Zenoss.removeLocalTemplateDialog);
+
 
 })();

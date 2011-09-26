@@ -13,7 +13,7 @@
 ###########################################################################
 */
 
-(function () {
+(function() {
 
 Ext.ns('Zenoss');
 
@@ -36,84 +36,42 @@ Ext.ns('Zenoss');
  * @constructor
  */
 
-Zenoss.HierarchyTreeNodeUI = Ext.extend(Ext.tree.TreeNodeUI, {
-    renderElements: function(n, a, targetNode, bulkRender) {
-        // if children was explicitly set use it, otherwise assume the tree to be
-        // asynchronous
-        if (Ext.isDefined(a.children)) {
-            // Hack this in here because baseAttrs doesn't work on loader
-            n.hasChildNodes = function() {
-                return (a.children && a.children.length>0);
-            }.createDelegate(n);
+/**
+ * Base Tree Selection model for zenoss. Defines
+ * the getSelectedNode method that existed in 3.X trees.
+ **/
+Ext.define('Zenoss.TreeSelectionModel', {
+    extend: 'Ext.selection.TreeModel',
+    getSelectedNode: function() {
+        var selections = this.getSelection();
+        if (selections.length) {
+            return selections[0];
         }
-
-        Zenoss.HierarchyTreeNodeUI.superclass.renderElements.apply(this, arguments);
-
-        this.textNode = Ext.DomHelper.overwrite(this.textNode, {
-            tag: 'span',
-            children: [
-                { tag: 'span', cls: 'node-text' },
-                { tag: 'span', cls: 'node-extra' }
-            ]
-        }, true);
-        this.textNodeBody = this.textNode.child('.node-text');
-        this.textNodeExtra = this.textNode.child('.node-extra');
-
-        if ( n.getDepth() === this.node.getOwnerTree().rootDepth ) {
-            this.addClass('hierarchy-root');
-        }
-
-        this.onTextChange(this.node, a.text, null);
-    },
-    onTextChange: function(node, data, oldText) {
-        if ( this.rendered ) {
-            if ( !Ext.isObject(data) ) {
-                data = { text: data, count: null };
-            }
-
-            var ownerTree = this.node.getOwnerTree(),
-                textOverride = this.node.getDepth() === ownerTree.rootDepth ? ownerTree.getRootNode().attributes.text : null;
-            if ( textOverride ) {
-                data.text = textOverride;
-            }
-
-            // Just update the existing elements instead of replacing them so that the dd drop targets
-            // stay the same
-            this.textNodeBody.update(data.text);
-            if ( Ext.isDefined(data.count) && data.count !== null ) {
-                this.textNodeExtra.update('(' + data.count + ')');
-                this.textNodeExtra.show();
-            }
-            else {
-                this.textNodeExtra.update('');
-                this.textNodeExtra.hide();
-            }
-        }
-    },
-    getDDHandles : function(){
-        // include the child span nodes of the text node as drop targets
-        var ddHandles = Zenoss.HierarchyTreeNodeUI.superclass.getDDHandles.call(this);
-        return ddHandles.concat([this.textNodeBody, this.textNodeExtra]);
+        return null;
     }
-
 });
 
-Zenoss.HierarchyTreePanelSearch = Ext.extend(Ext.Panel, {
+Ext.define('Zenoss.HierarchyTreePanelSearch', {
+    extend: 'Ext.Panel',
+    alias: ['widget.HierarchyTreePanelSearch'],
     constructor: function(config) {
         var oldConfig = config;
         config = {
+            cls: 'x-hierarchy-search-panel',
             items: [{
                 xtype: 'searchfield',
-                bodyStyle: {padding: 10},
+                id: config.id || Ext.id(),
+                cls: 'x-hierarchy-search',
                 enableKeyEvents: true,
                 ref: 'searchfield'
             }, {
                 xtype: 'panel',
+                ui: 'hierarchy',
                 items: oldConfig.items,
                 flex: 1,
                 autoScroll: true,
                 regSearchListeners: function(listeners) {
-                    this.ownerCt.searchfield.on(listeners);
+                    this.ownerCt.query('.searchfield')[0].on(listeners);
                 }
             }],
             layout: {
@@ -126,24 +84,27 @@ Zenoss.HierarchyTreePanelSearch = Ext.extend(Ext.Panel, {
     }
 });
 
-Ext.reg('HierarchyTreePanelSearch', Zenoss.HierarchyTreePanelSearch);
-
-Zenoss.treeContextMenu = function(node, e) {
+/**
+ *  Right click handlers for nodes.
+ **/
+Zenoss.treeContextMenu = function(view, node, item, index, e, opti) {
     // Register the context node with the menu so that a Menu Item's handler function can access
     // it via its parentMenu property.
-    var tree = node.getOwnerTree();
+    var tree = view.panel;
     if (!tree.contextMenu) {
         tree.contextMenu = new Ext.menu.Menu({
             items: [{
                 ref: 'refreshtree',
                 text: _t('Refresh Tree'),
                 handler: function(item, e) {
-                    var node = item.parentMenu.contextNode,
-                    tree = node.getOwnerTree();
-                    tree.getRootNode().reload(function(){
-                        tree.getRootNode().expand();
-                        if (tree.getRootNode().childNodes.length){
-                            tree.getRootNode().childNodes[0].expand();
+                    var node = item.parentMenu.contextNode;
+                    var tree = item.parentMenu.tree;
+                    tree.getStore().load({
+                        callback: function() {
+                            tree.getRootNode().expand();
+                            if (tree.getRootNode().childNodes.length) {
+                                tree.getRootNode().childNodes[0].expand();
+                            }
                         }
                     });
                 }
@@ -152,7 +113,7 @@ Zenoss.treeContextMenu = function(node, e) {
                 text: _t('Expand All'),
                 handler: function(item, e) {
                     var node = item.parentMenu.contextNode,
-                    tree = node.getOwnerTree();
+                    tree = item.parentMenu.tree;
                     tree.expandAll();
                 }
             },{
@@ -160,20 +121,19 @@ Zenoss.treeContextMenu = function(node, e) {
                 text: _t('Collapse All'),
                 handler: function(item, e) {
                     var node = item.parentMenu.contextNode,
-                    tree = node.getOwnerTree();
+                    tree = item.parentMenu.tree;
                     tree.collapseAll();
                     // by default we usually expand the first child
                     tree.getRootNode().expand();
-                    if (tree.getRootNode().childNodes.length){
+                    if (tree.getRootNode().childNodes.length) {
                         tree.getRootNode().childNodes[0].expand();
                     }
                 }
-            },'-',{
+            },'-', {
                 ref: 'expandnode',
                 text: _t('Expand Node'),
                 handler: function(item, e) {
-                    var node = item.parentMenu.contextNode,
-                        tree;
+                    var node = item.parentMenu.contextNode;
                     if (node) {
                         node.expand(true, true);
                     }
@@ -184,30 +144,53 @@ Zenoss.treeContextMenu = function(node, e) {
                 handler: function(item, e) {
                     var node = item.parentMenu.contextNode,
                     tree, path,
-                    href = window.location.protocol + "//" + window.location.host + window.location.pathname;
-                    if (node && node.attributes.uid) {
-                        tree = node.getOwnerTree();
+                    href = window.location.protocol + '//' + window.location.host + window.location.pathname;
+                    if (node && node.data.uid) {
+                        tree = item.parentMenu.tree;
                         path = tree.createDeepLinkPath(node);
-                        window.open(href + "#" + path);
+                        window.open(href + '#' + path);
                     }
                 }
             }]
         });
     }
     var c = tree.contextMenu;
+    c.tree = tree;
     c.contextNode = node;
+    e.preventDefault();
     c.showAt(e.getXY());
 };
 
-Zenoss.HierarchyTreePanel = Ext.extend(Ext.tree.TreePanel, {
+
+/**
+ * @class Zenoss.HierarchyTreePanel
+ * @extends Ext.tree.TreePanel
+ * Base classe for most of the trees that appear on the left hand side
+ * of various pages
+ **/
+Ext.define('Zenoss.HierarchyTreePanel', {
+    extend: 'Ext.tree.TreePanel',
+    alias: ['widget.HierarchyTreePanel'],
     constructor: function(config) {
         config.listeners = config.listeners || {};
         Ext.applyIf(config.listeners, {
-            contextmenu: Zenoss.treeContextMenu
+            itemcontextmenu: Zenoss.treeContextMenu,
+            scope: this
         });
 
+        config.viewConfig = config.viewConfig || {};
+        Ext.applyIf(config.viewConfig, {
+            loadMask: true,
+            plugins: {
+                ptype: 'treeviewdragdrop',
+                enableDrag: Zenoss.Security.hasPermission('Change Device'),
+                enableDrop: Zenoss.Security.hasPermission('Change Device'),
+                ddGroup: config.ddGroup
+            }
+        });
         Ext.applyIf(config, {
-            cls: 'hierarchy-panel',
+            ui: 'hierarchy',
+            frame: false,
             useArrows: true,
             border: false,
             autoScroll: true,
@@ -216,11 +199,24 @@ Zenoss.HierarchyTreePanel = Ext.extend(Ext.tree.TreePanel, {
             selectRootOnLoad: true,
             rootVisible: false,
             rootDepth: config.rootVisible ? 0 : 1,
-            loadMask: true,
-            allowOrganizerMove: true
+            allowOrganizerMove: true,
+            hideHeaders: true,
+            layout: 'fit',
+            columns: [{
+                xtype: 'treecolumn',
+                flex: 1,
+                dataIndex: 'text',
+                renderer: function(value) {
+                    if (Ext.isString(value)) {
+                        return value;
+                    }
+                    return Ext.String.format("{0} <span title='{1}'>(" + value.count + ')</span>', value.text, value.description);
+                }
+            }]
+
         });
 
-        if ( config.router ) {
+        if (config.router) {
             Ext.applyIf(config, {
                 addNodeFn: config.router.addNode,
                 deleteNodeFn: config.router.deleteNode
@@ -232,103 +228,138 @@ Zenoss.HierarchyTreePanel = Ext.extend(Ext.tree.TreePanel, {
                 deleteNodeFn: Ext.emptyFn
             });
         }
+
+        var root = config.root || {};
         if (config.directFn && !config.loader) {
-            config.loader = new Ext.tree.TreeLoader({
-                directFn: config.directFn,
+            var modelId = Ext.String.format('Zenoss.tree.{0}Model', config.id);
+
+            var model = Ext.define(modelId, {
+                extend: 'Ext.data.Model',
+                treeId: config.id,
+                idProperty: config.idProperty || 'uid',
+                getOwnerTree: function() {
+                    return Ext.getCmp(this.treeId);
+                },
+                proxy: {
+                    type: 'direct',
+                    directFn: config.directFn,
+                    paramOrder: ['uid']
+                },
+                fields: [{
+                    name: 'hidden',
+                    type: 'boolean'
+                }, {
+                    name: 'leaf',
+                    type: 'boolean'
+                }, {
+                    name: 'uid',
+                    type: 'string'
+                }, {
+                    name: 'text',
+                    type: 'object'
+                }, {
+                    name: 'id',
+                    type: 'string'
+                }, {
+                    name: 'path',
+                    type: 'string'
+                }, {
+                    name: 'iconCls',
+                    type: 'string'
+                }, {
+                    name: 'uuid',
+                    type: 'string'
+                }]
+            });
+            config.store = new Ext.create('Ext.data.TreeStore', {
+                model: modelId,
+                nodeParam: 'uid',
+                defaultRootId: root.id,
                 uiProviders: {
-                    'hierarchy': Zenoss.HierarchyTreeNodeUI
-                },
-                getParams: function(node) {
-                    return [node.attributes.uid];
-                },
-                listeners: {
-                    beforeload: function(){
-                        this.on('afterlayout', function(){
-                            this.showLoadMask(true);
-                        }, this, {single:true});
-                    }.createDelegate(this),
-                    load: function(){
-                        this.showLoadMask(false);
-                    }.createDelegate(this)
+                    // 'hierarchy': Zenoss.HierarchyTreeNodeUI
                 }
             });
-            Ext.destroyMembers(config, 'directFn');
+            Ext.destroyMembers(config, 'directFn', 'ddGroup');
         }
-        var root = config.root || {};
         Ext.applyIf(root, {
-            nodeType: 'async',
             id: root.id,
             uid: root.uid,
-            text: _t(root.text || root.id),
-            // Use null so the root won't render
-            uiProvider: config.rootVisible ? 'hierarchy' : null
+            text: _t(root.text || root.id)
         });
-        config.loader.baseAttrs = {
-            iconCls: 'severity-icon-small clear',
-            uiProvider: 'hierarchy'
-        };
-
+        this.root = root;
         this.stateHash = {};
-        if(config.stateful){
+        if (config.stateful) {
             this.stateEvents = this.stateEvents || [];
             this.stateEvents.push('expandnode', 'collapsenode');
         }
 
         Zenoss.HierarchyTreePanel.superclass.constructor.apply(this, arguments);
     },
-    getState:function() {
-            return {stateHash:this.stateHash};
+    setNodeVisible: function(nodeId, visible) {
+        var node = this.getNodeById(nodeId),
+            view = this.getView(),
+            el = Ext.fly(view.getNodeByRecord(node));
+        if (el) {
+            el.setVisibilityMode(Ext.Element.DISPLAY);
+            el.setVisible(visible);
+        }
+    },
+    getState: function() {
+            return {stateHash: this.stateHash};
     },
     applyState: function(state) {
-        if(state) {
+        if (state) {
             Ext.apply(this, state);
             this.setStateListener();
         }
     },
-    setStateListener: function(){
-            this.root.on({
-                load:{ scope:this, fn:function() {
-                    for(var p in this.stateHash) {
-                        if(this.stateHash.hasOwnProperty(p)) {
+    setStateListener: function() {
+            this.store.on({
+                load: { scope: this, fn: function() {
+                    for (var p in this.stateHash) {
+                        if (this.stateHash.hasOwnProperty(p)) {
                             this.expandPath(this.stateHash[p]);
                         }
                     }
                 }}
             });
     },
-    showLoadMask: function(bool) {
-        if (!this.loadMask) { return; }
-        var container = this.container;
-        container._treeLoadMask = container._treeLoadMask || new Ext.LoadMask(this.container);
-        var mask = container._treeLoadMask,
-            _ = bool ? mask.show() : [mask.hide(), mask.disable()];
-    },
     initEvents: function() {
         var me = this;
-        
+
         Zenoss.HierarchyTreePanel.superclass.initEvents.call(this);
-        
+
         if (this.selectRootOnLoad && !Ext.History.getToken()) {
             this.getRootNode().on('expand', function() {
                 // The first child is our real root
-                if ( this.getRootNode().firstChild ) {
+                if (this.getRootNode().firstChild) {
                     me.addHistoryToken(this.getRootNode().firstChild);
+                    me.getRootNode().firstChild.expand();
+                    me.getSelectionModel().select(this.getRootNode().firstChild);
                 }
-            }, this);
+            }, this, {single: true});
+        }else {
+
+            // always expand the first shown root if we can
+            this.getRootNode().on('expand', function() {
+                if (this.getRootNode().firstChild) {
+                    this.getRootNode().firstChild.expand();
+                }
+            }, this, {single: true});
         }
         this.addEvents('filter');
         this.on('click', this.addHistoryToken, this);
 
         this.on({
-             beforeexpandnode:function(node) {
+             beforeexpandnode: function(node) {
                 this.stateHash[node.id] = node.getPath();
             },
-             beforecollapsenode:function(node) {
+             beforecollapsenode: function(node) {
                 delete this.stateHash[node.id];
                 var tPath = node.getPath();
-                for(var t in this.stateHash) {
-                    if(this.stateHash.hasOwnProperty(t)) {
-                        if(-1 !== this.stateHash[t].indexOf(tPath)) {
+                for (var t in this.stateHash) {
+                    if (this.stateHash.hasOwnProperty(t)) {
+                        if (-1 !== this.stateHash[t].indexOf(tPath)) {
                             delete this.stateHash[t];
                         }
                     }
@@ -336,18 +367,16 @@ Zenoss.HierarchyTreePanel = Ext.extend(Ext.tree.TreePanel, {
             }
         });    // add some listeners for state
     },
-
-
     addHistoryToken: function(node) {
-        Ext.History.add(this.id + Ext.History.DELIMITER + node.id);
+        Ext.History.add(this.id + Ext.History.DELIMITER + node.get('id'));
     },
     update: function(data) {
         function doUpdate(root, data) {
-            Ext.each(data, function(datum){
+            Ext.each(data, function(datum) {
                 var node = root.findChild('id', datum.id);
-                if(node) {
-                    node.attributes = datum;
-                    node.setText(node.attributes.text);
+                if (node) {
+                    node.data = datum;
+                    node.setText(node.data.text);
                     doUpdate(node, datum.children);
                 }
             });
@@ -356,42 +385,82 @@ Zenoss.HierarchyTreePanel = Ext.extend(Ext.tree.TreePanel, {
 
     },
     selectByToken: function(nodeId) {
+
         nodeId = unescape(nodeId);
+        var root = this.getRootNode(),
+            selNode = Ext.bind(function() {
+            var sel = this.getSelectionModel().getSelectedNode(),
+                uid, child;
+            if (!(sel && nodeId === sel.id)) {
+                if (nodeId.indexOf('/') == -1) {
+                    uid = nodeId.replace(/\./g, '/');
+                }else {
+                    uid = nodeId;
+                }
+                child = root.findChild('uid', uid, true);
 
-        var selNode = function () {
-            var sel = this.getSelectionModel().getSelectedNode();
-            if ( !(sel && nodeId === sel.id) ) {
-                var path = this.getNodePathById(nodeId);
-
-                this.selectPath(path);
+                // try the id as well
+                if (Ext.isEmpty(child)) {
+                    child = root.findChild('id', nodeId, true);
+                }
+                if (child) {
+                    this.getSelectionModel().select(child);
+                    this.expandToChild(child);
+                }
             }
-        }.createDelegate(this);
+        }, this);
 
-        if (!this.root.loaded) {
-            this.getRootNode().on('load', selNode, this);
+        if (!root.isLoaded()) {
+            // Listen on expand because if we listen on the store's load expand
+            // gets double-called.
+            root.on('expand', selNode, this, {single: true});
         } else {
             selNode();
         }
     },
+    /**
+     * This takes a node anywhere in the hierarchy and
+     * will go back up to the parents and expand until it hits
+     * the root node. This is a workaround for selectPath being nonfunctional
+     * in Ext4
+     *@param Ext.data.NodeInterface child
+     **/
+    expandToChild: function(child) {
+        var parentNode = child.parentNode;
+
+        // go back up and expand to this point
+        while (parentNode) {
+            // at the pseudo root nothing is further up
+            if (Ext.isEmpty(parentNode.get('path'))) {
+                break;
+            }
+
+            if (!parentNode.isExpanded() && parentNode.hasChildNodes()) {
+                parentNode.expand();
+            }
+            parentNode = parentNode.parentNode;
+        }
+    },
     createDeepLinkPath: function(node) {
-        var path = this.id + Ext.History.DELIMITER + node.attributes.uid.replace(/\//g,'.');
+        var path = this.id + Ext.History.DELIMITER + node.data.uid.replace(/\//g, '.');
         return path;
     },
     getNodePathById: function(nodeId) {
         var part,
-            depth = this.root.attributes.uid.split('/').length - this.rootDepth,
+            depth = this.root.uid.split('/').length - this.rootDepth,
             parts = nodeId.split('.'),
             curpath = parts.slice(0, depth).join('.');
 
         parts = parts.slice(depth);
 
-        var path = [this.root.getPath()];
-        while ( part = parts.shift() ) {
+        var path = [this.getRootNode().data.uid];
+
+        while (part = parts.shift()) {
             // this adjusts the path for things like "Service.Linux.devices.Dev1"
             // where "devices" is the relationshipIdentifier"
-            if (this.relationshipIdentifier && part == this.relationshipIdentifier){
+            if (this.relationshipIdentifier && part == this.relationshipIdentifier) {
                 curpath = [curpath, part, parts.shift()].join('.');
-            }else{
+            }else {
                 curpath = [curpath, part].join('.');
             }
 
@@ -413,7 +482,7 @@ Zenoss.HierarchyTreePanel = Ext.extend(Ext.tree.TreePanel, {
             };
 
         if (liveSearch) {
-            listeners.valid = this.filterTree;
+            listeners.change = this.filterTree;
         }
         if (this.searchField && this.ownerCt.regSearchListeners) {
             this.ownerCt.regSearchListeners(listeners);
@@ -423,11 +492,32 @@ Zenoss.HierarchyTreePanel = Ext.extend(Ext.tree.TreePanel, {
         });
     },
     filterTree: function(e) {
+        if (!this.onFilterTask) {
+            this.onFilterTask = new Ext.util.DelayedTask(function() {
+                 this.doFilter(e);
+            }, this);
+        }
+
+        this.onFilterTask.delay(500);
+    },
+    expandAll: function() {
+        // we have a hidden pseudo-root so we need to
+        // expand all from the first visible root
+        if (this.getRootNode().firstChild) {
+            this.getRootNode().firstChild.expand(true);
+        }else {
+            this.callParent(arguments);
+        }
+    },
+    doFilter: function(e) {
         var text = e.getValue(),
+            me = this,
             root = this.getRootNode();
         this.fireEvent('filter', e);
         if (this.hiddenPkgs) {
-            Ext.each(this.hiddenPkgs, function(n){n.ui.show();});
+            Ext.each(this.hiddenPkgs, function(n) {
+                me.setNodeVisible(n.getId(), true);
+            });
         }
         this.hiddenPkgs = [];
         if (!text) {
@@ -443,31 +533,34 @@ Zenoss.HierarchyTreePanel = Ext.extend(Ext.tree.TreePanel, {
         }
         this.expandAll();
         var re = new RegExp(Ext.escapeRe(text), 'i');
-        this.root.cascade(function(n){
-            var attr = n.attributes.text;
+
+        root.cascadeBy(function(n) {
+            var attr = n.data.text;
             if (Ext.isObject(attr)) {
                 attr = attr.text;
             }
-            if (!n.isRoot) {
+
+            if (!n.isRoot()) {
                 if (re.test(attr)) {
+
                     var parentNode = n.parentNode;
                     while (parentNode) {
-                        if (!parentNode.hidden) {
-                            break;
-                        }
-                        parentNode.ui.show();
+                        me.setNodeVisible(parentNode.getId(), true);
+                        parentNode.expand();
                         parentNode = parentNode.parentNode;
                     }
                     // the cascade is stopped on this branch
                     return false;
                 } else {
-                    n.ui.hide();
+                    me.setNodeVisible(n.getId(), false);
                     this.hiddenPkgs.push(n);
                 }
             }
             // continue cascading down the tree from this node
             return true;
         }, this);
+
+        this.doLayout();
     },
 
     addNode: function(type, id) {
@@ -482,7 +575,7 @@ Zenoss.HierarchyTreePanel = Ext.extend(Ext.tree.TreePanel, {
         } else {
             parentNode = selectedNode;
         }
-        var contextUid = parentNode.attributes.uid;
+        var contextUid = parentNode.data.uid;
         Ext.applyIf(params, {
             contextUid: contextUid
         });
@@ -491,51 +584,53 @@ Zenoss.HierarchyTreePanel = Ext.extend(Ext.tree.TreePanel, {
     },
 
     addTreeNode: function(params) {
-        var callback = function (provider, response) {
+        var callback = function(provider, response) {
             var result = response.result;
+            var me = this;
             if (result.success) {
                 // look for another node on result and assume it's the new node, grab it's id
                 // TODO would be best to normalize the names of result node
-                var nodeId;
-                Ext.iterate(result, function(key, value) {
-                    if ( key != 'success' && Ext.isObject(value) && value.id ) {
-                        nodeId = value.id;
-                        return false;
+                var nodeId = Zenoss.env.PARENT_CONTEXT + '/' + params.id;
+                this.getStore().load({
+                    callback: function() {
+                        me.selectByToken(nodeId);
                     }
-                }, this);
+                });
 
-                this.getRootNode().reload(function() {
-                    if ( nodeId ) {
-                        this.selectByToken(nodeId);
-                    }
-                }, this);
             }
             else {
                 Ext.Msg.alert('Error', result.msg);
             }
         };
 
-        this.addNodeFn(params, callback.createDelegate(this));
+        this.addNodeFn(params, Ext.bind(callback, this));
     },
 
     deleteSelectedNode: function() {
         var node = this.getSelectionModel().getSelectedNode();
+        var me = this;
         var parentNode = node.parentNode;
-        var uid = node.attributes.uid;
+        var uid = node.get('uid');
         var params = {uid: uid};
         function callback(provider, response) {
             // Only update the UI if the response indicates success
             if (Zenoss.util.isSuccessful(response)) {
-                parentNode.select();
-                parentNode.removeChild(node);
-                node.destroy();
+                me.getStore().load({
+                    callback: function() {
+                        me.selectByToken(parentNode.get('uid'));
+                    }
+                });
+
+
             }
         }
+
         // all hierarchytreepanel's have an invisible root node with depth of 0
         if (node.getDepth() <= 1) {
-            Zenoss.message.error(_t("You can not delete the root node"));
+            Zenoss.message.error(_t('You can not delete the root node'));
             return;
         }
+
         this.deleteNodeFn(params, callback);
     },
 
@@ -551,9 +646,19 @@ Zenoss.HierarchyTreePanel = Ext.extend(Ext.tree.TreePanel, {
         // Relying on a coincidence that the third item
         // is the top level organizer (e.g. Locations, Groups)
         return orgPieces[3] === targetPieces[3];
+    },
+    refresh: function(callback, scope) {
+        this.getStore().load({
+            scope: this,
+            callback: function() {
+                this.getRootNode().expand();
+                Ext.callback(callback, scope || this);
+                if (this.getRootNode().childNodes.length) {
+                    this.getRootNode().childNodes[0].expand();
+                }
+            }
+        });
     }
 }); // HierarchyTreePanel
-
-Ext.reg('HierarchyTreePanel', Zenoss.HierarchyTreePanel);
 
 })();

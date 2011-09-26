@@ -70,6 +70,13 @@ def get_js_file_list(pkg='Zenoss Application'):
     return [ str(path) for path in paths ]
 
 
+class PIEdotHTC(BrowserView):
+    def __call__(self):
+        self.request.response.setHeader('Content-Type', 'text/x-component')
+        with open(os.path.join(os.path.dirname(__file__), 'PIE.htc')) as f:
+            return f.read()
+
+
 class ZenossJavaScript(BrowserView):
     """
     When Zope is in debug mode, we want to use the development JavaScript

@@ -15,7 +15,9 @@
 
 (function(){
 
-Zenoss.IFramePanel = Ext.extend(Ext.BoxComponent, {
+Ext.define("Zenoss.IFramePanel", {
+    alias:['widget.iframe'],
+    extend:"Ext.Component",
     frameLoaded: false,
     testEarlyReadiness: false,
     constructor: function(config) {
@@ -59,7 +61,7 @@ Zenoss.IFramePanel = Ext.extend(Ext.BoxComponent, {
             body, dom, href,
             i = 0,
             timestocheck = this.timeout / this.pollInterval;
-        (function do_check() {
+        Ext.bind(function do_check() {
             if (this.frameLoaded) {
                 return;
             }
@@ -92,9 +94,9 @@ Zenoss.IFramePanel = Ext.extend(Ext.BoxComponent, {
                     this.fireEvent(ready ? 'frameload' : 'framefailed',
                                this.getWindow());
             } else {
-                do_check.defer(this.pollInterval, this);
+                Ext.defer(do_check, this.pollInterval, this);
             }
-        }).createDelegate(this)();
+        }, this)();
     },
     getBody: function() {
         var doc = this.getDocument();
@@ -123,7 +125,7 @@ Zenoss.IFramePanel = Ext.extend(Ext.BoxComponent, {
     }
 });
 
-Ext.reg('iframe', Zenoss.IFramePanel);
+
 
 
 /**
@@ -133,7 +135,9 @@ Ext.reg('iframe', Zenoss.IFramePanel);
  * @class Zenoss.BackCompatPanel
  * @extends Zenoss.ContextualIFrame
  */
-Zenoss.BackCompatPanel = Ext.extend(Zenoss.IFramePanel, {
+Ext.define("Zenoss.BackCompatPanel", {
+    alias:['widget.backcompat'],
+    extend:"Zenoss.IFramePanel",
     contextUid: null,
     constructor: function(config) {
         Ext.apply(config || {}, {
@@ -150,9 +154,9 @@ Zenoss.BackCompatPanel = Ext.extend(Zenoss.IFramePanel, {
             }else if (win.document && win.document.body) {
                 this.fireEvent('frameloadfinished', win);
             } else {
-                win.onload = function() {
+                win.onload = Ext.bind(function() {
                     this.fireEvent('frameloadfinished', win);
-                }.createDelegate(this);
+                }, this);
             }
         }, this);
 
@@ -171,7 +175,7 @@ Zenoss.BackCompatPanel = Ext.extend(Zenoss.IFramePanel, {
     }
 });
 
-Ext.reg('backcompat', Zenoss.BackCompatPanel);
+
 
 
 
@@ -208,7 +212,9 @@ Zenoss.util.registerBackCompatMenu = function(menu, btn, align, offsets){
             location.href = link.href;
         }
     }
-
+    btn.on('click', function(){
+        btn.fireEvent('menushow', btn, btn.menu);
+    });
     btn.on('menushow', showMenu);
     btn.on('menuhide', hideMenu);
     menu.on('mousedown', menuClicked);

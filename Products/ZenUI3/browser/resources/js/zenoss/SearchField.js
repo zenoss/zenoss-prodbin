@@ -5,12 +5,15 @@ Ext.ns('Zenoss');
  * @extends Ext.form.TextField
  * @constructor
  */
-Zenoss.SearchField = Ext.extend(Ext.form.TextField, {
+Ext.define("Zenoss.SearchField", {
+    extend: "Ext.form.TextField",
+    alias: ['widget.searchfield'],
     constructor: function(config){
         config = Ext.applyIf(config||{}, {
             validationDelay: 500,
             selectOnFocus: true
         });
+        config.cls += ' x-field-search';
         Zenoss.SearchField.superclass.constructor.apply(this, arguments);
     },
     getClass: function(){
@@ -32,4 +35,4 @@ Zenoss.SearchField = Ext.extend(Ext.form.TextField, {
 
 }); // Ext.extend
 
-Ext.reg('searchfield', Zenoss.SearchField);
+

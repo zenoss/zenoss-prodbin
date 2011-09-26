@@ -21,12 +21,14 @@ Ext.ns('Zenoss.form');
  * This is a special case of a text area. It is designed to take up the entire column
  * on a two column layout.
  **/
-Zenoss.form.TwoColumnTextArea = Ext.extend(Ext.form.TextArea, {
+Ext.define("Zenoss.form.TwoColumnTextArea", {
+    alias:['widget.twocolumntextarea'],
+    extend:"Ext.form.TextArea",
      constructor: function(config) {
          config.width = 500;
          config.height = 220;
          Zenoss.form.TwoColumnTextArea.superclass.constructor.apply(this, arguments);
      }
  });
- Ext.reg('twocolumntextarea', Zenoss.form.TwoColumnTextArea);
+
 })();

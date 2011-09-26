@@ -10,10 +10,15 @@
 # For complete information please visit: http://www.zenoss.com/oss/
 #
 ###########################################################################
+from random import random
 from zope.interface import implements
+from itertools import imap
+from Products.Zuul.utils import unbrain, UncataloguedObjectException
+from Products.ZenModel.RRDTemplate import RRDTemplate
+from Products.AdvancedQuery import Eq
 from Products.Zuul.infos import InfoBase, ProxyProperty
 from Products.Zuul.utils import severityId
-from Products.Zuul.interfaces import template as templateInterfaces
+from Products.Zuul.interfaces import template as templateInterfaces, ICatalogTool
 from Products.Zuul.tree import TreeNode
 from Products.Zuul.utils import ZuulMessageFactory as _t
 
@@ -47,8 +52,25 @@ class TemplateNode(TemplateInfo):
     def _addChild(self, leaf):
         self._children.append(leaf)
 
+    @property
+    def hidden(self):
+        return False
+
     def getUIPath(self):
         return self._object.getUIPath()
+
+    @property
+    def children(self):
+        obj = self._object
+        query = Eq('id', obj.id)
+        catalog = ICatalogTool(obj.dmd)
+        brains = catalog.search(types=RRDTemplate, query=query)
+        templates = imap(unbrain, brains)
+        for template in templates:
+            try:
+                yield TemplateLeaf(template)
+            except UncataloguedObjectException:
+                pass
 
 
 class TemplateLeaf(TemplateInfo):
@@ -73,6 +95,14 @@ class TemplateLeaf(TemplateInfo):
     @property
     def leaf(self):
         return True
+
+    @property
+    def children(self):
+        return []
+
+    @property
+    def hidden(self):
+        return False
 
     @property
     def iconCls(self):
@@ -122,7 +152,6 @@ class DeviceClassTemplateNode(TreeNode):
         return cache
 
     @property
-    @memoize
     def id(self):
         """
         We have to make the template paths unique even though the same
@@ -327,7 +356,7 @@ class BasicDataSourceInfo(InfoBase):
         self._object.severity = value
 
     def _getSeverity(self):
-        return self._object.getSeverityString()
+        return self._object.severity
 
     @property
     def newId(self):
@@ -506,7 +535,7 @@ class ThresholdInfo(InfoBase):
         self._object.severity = value
 
     def _getSeverity(self):
-        return self._object.getSeverityString()
+        return self._object.severity
 
     severity = property(_getSeverity, _setSeverity)
 
