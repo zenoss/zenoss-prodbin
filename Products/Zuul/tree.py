@@ -11,6 +11,7 @@
 #
 ###########################################################################
 import time
+import sre_constants
 from itertools import islice
 from zope.interface import implements, providedBy
 from BTrees.OOBTree import OOBTree
@@ -23,6 +24,8 @@ from Products.Zuul.utils import UncataloguedObjectException, PathIndexCache
 from AccessControl import getSecurityManager
 from Products.ZenUtils.guid.interfaces import IGlobalIdentifier
 from Products.Zuul import getFacade
+import logging
+log = logging.getLogger("zen.tree")
 
 
 class TreeNode(object):
@@ -294,8 +297,12 @@ class CatalogTool(object):
         # will be unbrained and sorted
         areBrains = orderby in self.catalog._catalog.indexes or orderby is None
         queryOrderby = orderby if areBrains else None
-
-        queryResults = self._queryCatalog(types, queryOrderby, reverse, paths, depth, query, filterPermissions)
+        try:
+            queryResults = self._queryCatalog(types, queryOrderby, reverse, paths, depth, query, filterPermissions)
+        except sre_constants.error:
+            # if there is an invalid regex in the query return an empty list
+            log.error("Invalid regex in the following query: %s" % query)
+            queryResults = []
         totalCount = len(queryResults)
         hash_ = totalCount
         if areBrains or not queryResults:

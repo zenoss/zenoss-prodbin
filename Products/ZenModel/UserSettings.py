@@ -726,7 +726,6 @@ class UserSettings(ZenModelRM):
 
         return False
 
-
     security.declareProtected(ZEN_CHANGE_SETTINGS, 'manage_resetPassword')
     def manage_resetPassword(self):
         """
@@ -1218,6 +1217,10 @@ class UserSettings(ZenModelRM):
         if self.email.strip():
             return [self.email]
         return []
+
+    def isLoggedInUser(self):
+        loggedinUser = self.ZenUsers.getUserSettings()
+        return loggedinUser.id == self.id
 
     def getDotNetSession(self):
         """

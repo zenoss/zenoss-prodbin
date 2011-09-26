@@ -34,12 +34,29 @@ class MessagingRouter(DirectRouter):
         @param state: The browser state as a JSON-encoded string
         @type state: str
         """
-        userSettings = self.context.ZenUsers.getUserSettings()
+        userSettings = self.context.dmd.ZenUsers.getUserSettings()
         state_container = getattr(userSettings, '_browser_state', None)
         if isinstance(state_container, basestring) or state_container is None:
             state_container = PersistentMapping()
             userSettings._browser_state = state_container
         state_container['state'] = state
+
+    def clearBrowserState(self, user=None):
+        """
+        Removes all the stored state associated with the current user
+        """
+        if user:
+            userSettings = self.context.dmd.ZenUsers._getOb(user)
+        else:
+            userSettings = self.context.dmd.ZenUsers.getUserSettings()
+        if getattr(userSettings, '_browser_state', None):
+            del userSettings._browser_state
+        messaging.IMessageSender(self.context).sendToBrowser(
+            'Preferences Reset',
+            'Preferences reset to their default values.',
+            priority=messaging.WARNING
+            )
+
 
     def getUserMessages(self):
         """

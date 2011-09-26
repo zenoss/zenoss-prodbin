@@ -1,4 +1,4 @@
-<tal:block metal:use-macro="here/page_macros/old-new"> 
+<tal:block metal:use-macro="here/page_macros/old-new">
 <tal:block metal:fill-slot="contentPane">
 
 <script type="text/javascript">
@@ -20,13 +20,19 @@ function resetPassword(){
     if(confirm("Are you sure you want to reset this user's password?"))
         location.href = location.pathname + "?zenScreenName=editUserSettings&manage_resetPassword:method=1&redirect=True";
 }
+
+function clearBrowserState(event){
+    if(confirm("Are you sure you want to reset your preferences to their default values??")){
+        Zenoss.remote.MessagingRouter.clearBrowserState();
+    }
+}
 </script>
 
 
 <form method=post tal:attributes="action string:${here/absolute_url_path}" name="user">
-<input type="hidden" name="zenScreenName" tal:attributes="value template/id" /> 
+<input type="hidden" name="zenScreenName" tal:attributes="value template/id" />
 
-        <tal:block tal:define="message request/message | string:State at time:; 
+        <tal:block tal:define="message request/message | string:State at time:;
             tabletitle string:${message} ${here/getNowString}">
         <tal:block metal:use-macro="here/zenuimacros/macros/zentable">
 
@@ -44,8 +50,8 @@ function resetPassword(){
         <!-- BEGIN TABLE CONTENTS -->
     <tr>
     <td style="padding:8px 0 8px 8px;border-bottom:solid 1px #ccc;" colspan="4">
-        <div style="background:#ddd;width:372px;height:30px;">
-            <div style="float:left;width:230px;height:30px;font-size:11px;line-height:12px;color:#555;padding:2px 0 0 4px;">
+        <div style="background:#ddd;width:372px;height:35px;">
+            <div style="float:left;width:230px;height:35px;font-size:11px;line-height:12px;color:#555;padding:2px 0 0 4px;">
                 Automatically generate a new password and send it to the email listed above.
             </div>
             <div style="float:left;padding:2px 0 0 8px;">
@@ -54,21 +60,42 @@ function resetPassword(){
                    class="tableheader"
                    name="manage_resetPassword:method">
                Reset Password
-            </button>    
+            </button>
             </div>
-        </div>   
+        </div>
     </td>
     </tr>
-
+    <tr tal:condition="here/isLoggedInUser">
+    <td class="tableheader" style="padding:0 0 0 8px;border-bottom:solid 1px #888;background:#bbb;" colspan="4">
+        <div style="font-size:14px;">
+            USER PREFERENCES        </div>
+    </td>
+    </tr>
+    <tr tal:condition="here/isLoggedInUser">
+    <td style="padding:8px 0 8px 8px;border-bottom:solid 1px #ccc;" colspan="4">
+        <div style="background:#ddd;width:372px;height:45px;">
+            <div style="float:left;width:230px;height:45px;font-size:11px;line-height:12px;color:#555;padding:2px 0 0 4px;">
+                Reset all preferences such as grid columns and filters to their default values
+            </div>
+            <div style="float:left;padding:2px 0 0 8px;">
+            <button style="height:40px;width:128px;text-align:center;"
+                   onclick="clearBrowserState(event)"
+                   class="tableheader">
+               Reset to Default Settings
+            </button>
+            </div>
+        </div>
+    </td>
+    </tr>
 
     <tr>
     <td class="tableheader" style="padding:0 0 0 8px;border-bottom:solid 1px #888;background:#bbb;" colspan="4">
         <div style="font-size:14px;">
-            USER SETTINGS        </div>   
+            USER SETTINGS        </div>
     </td>
     </tr>
-    
-    
+
+
     <tr tal:condition="here/isManager">
       <td class="tableheader" align="left">Roles</td>
       <td class="tablevalues">
@@ -83,7 +110,7 @@ function resetPassword(){
       <td class="tableheader" align="left">Groups</td>
       <td class="tablevalues">
         <select class="tablevalues" name="groups:list" multiple
-            tal:define="allgroups here/getAllGroupSettingsNames; 
+            tal:define="allgroups here/getAllGroupSettingsNames;
                 currgroups here/getUserGroupSettingsNames">
             <option tal:repeat="r allgroups" tal:content="r"
                     tal:attributes="value r; selected python:r in currgroups"/>
@@ -117,7 +144,7 @@ function resetPassword(){
     <tr>
       <td class="tableheader" align="left">Default Page Size</td>
       <td class="tablevalues">
-        <input class="tablevalues" type="text" name="defaultPageSize" 
+        <input class="tablevalues" type="text" name="defaultPageSize"
             tal:attributes="value here/defaultPageSize" />
       </td>
     </tr>
@@ -134,25 +161,25 @@ function resetPassword(){
     <tr>
       <td class="tableheader" align="left">Default Admin Level</td>
       <td class="tablevalues">
-        <input class="tablevalues" type="text" name="defaultAdminLevel" 
+        <input class="tablevalues" type="text" name="defaultAdminLevel"
             tal:attributes="value here/defaultAdminLevel" />
       </td>
     </tr>
     <tr>
       <td class="tableheader" align="left">Network Map Start Object</td>
       <td class="tablevalues">
-        <input class="tablevalues" type="text" name="netMapStartObject" 
+        <input class="tablevalues" type="text" name="netMapStartObject"
             tal:attributes="value here/netMapStartObject" />
       </td>
     </tr>
-    
+
     <tr>
         <td style="height:1px;border-bottom:dashed 1px #bbb;" class="tableheader">
         </td>
         <td style="height:1px;border-bottom:dashed 1px #ccc;" colspan=3>
         </td>
-    </tr>    
-    
+    </tr>
+
     <tr>
       <td class="tableheader" align="left">Set New Password</td>
       <td class="tablevalues">
@@ -166,9 +193,9 @@ function resetPassword(){
         <input class="tablevalues" type="password" name="sndpassword"
             autocomplete="off"/>
        </td>
-    </tr> 
-    
-    
+    </tr>
+
+
     <tr>
         <td style="color:darkred;width:275px;height:50px" class=tableheader align="left">
             <strong>Enter current password to confirm changes</strong>
@@ -177,25 +204,25 @@ function resetPassword(){
             <div style="float:left;">
             <input style="margin-top:2px;" id="pwconfirm" class="tablevalues" type="password" name="oldpassword"
                 autocomplete="off"/>
-            </div>    
+            </div>
                 <div style="padding:0 0 0 8px;float:left;">
                 <input class="tableheader" type="submit" value=" Save Settings "
                     disabled=true
                     id="formsave"
                     style="height:30px;width:144px;text-align:center;color:#888"
                     name="manage_editUserSettings:method" />
-                </div>    
+                </div>
         </td>
     </tr>
-  
-    
+
+
 
         <!-- END TABLE CONTENTS -->
 
         </tal:block>
         </tal:block>
         </tal:block>
-        
+
 
 </form>
 <script>
