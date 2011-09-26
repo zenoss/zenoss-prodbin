@@ -509,9 +509,6 @@
             drange = drange || this.drange;
             Ext.each(this.getGraphs(), function(g) {
                 g.fireEventsToAll("updateimage", {
-                    drange: drange,
-                    start: drange,
-                    end: 0
                 });
             });
         },
