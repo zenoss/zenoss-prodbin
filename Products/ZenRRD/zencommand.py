@@ -798,7 +798,7 @@ class SshPerformanceCollectionTask(BaseTask):
         @type results: ParsedResults object
         """
         showcommand = self._preferences.options.showfullcommand
-        if not datasource.result.output:
+        if not datasource.result.output.strip():
             msg = "No data returned for command"
             if showcommand:
                 msg += ": %s" % datasource.command
