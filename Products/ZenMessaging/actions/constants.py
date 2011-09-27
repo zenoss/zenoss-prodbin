@@ -18,6 +18,7 @@ class ActionTargetType(object):
     ManualEntry = 'ManualEntry'
 
     # users
+    Login       = 'Login'
     User        = 'User'
     Group       = 'Group'
     Role        = 'Role'

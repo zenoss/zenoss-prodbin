@@ -80,8 +80,8 @@ def login(self):
             # following line to work.
             username = getSecurityManager().getUser().getUserName()
             actions.sendUserAction(
-                ActionTargetType.User,
-                'Login' if username == login else 'LoginFailure',
+                ActionTargetType.Login,
+                'Succeed' if username == login else 'Fail',
                 username=login)
 
     came_from = request.form.get('came_from') or ''

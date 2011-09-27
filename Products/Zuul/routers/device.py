@@ -79,7 +79,7 @@ class DeviceRouter(TreeRouter):
         treeNode = facade.getTree(uid)
         if sendUserAction:
             sendUserAction(ActionTargetType.Location, ActionName.Add, 
-                           organizer=uid, description=description, 
+                           location=uid, description=description,
                            address=address)
         return DirectResponse.succeed("Location added", nodeConfig=Zuul.marshal(treeNode))
 
@@ -462,12 +462,12 @@ class DeviceRouter(TreeRouter):
             target = '/'.join(target.split('/')[:4])
             tree = self.getTree(target)
             if sendUserAction:
-                # Example: UA('Device', 'SetLocation', device=..., location=...)
+                # Example: ('Device', 'ChangeLocation', device=..., location=...)
                 targetObj = facade._getObject(targetUid)
                 targetType = IInfo(targetObj).meta_type
                 actionNameMap = {
-                    'DeviceClass': 'SetDeviceClass',
-                    'Location': 'SetLocation',
+                    'DeviceClass': 'ChangeDeviceClass',
+                    'Location': 'ChangeLocation',
                     'DeviceGroup': 'AddToGroup',
                     'System': 'AddToSystem',
                 }
@@ -1130,7 +1130,8 @@ class DeviceRouter(TreeRouter):
                 value = '****'
             else:
                 value = str(value)  # show 'False', '0', etc.
-            sendUserAction(ActionTargetType.zProperty, ActionName.Edit, owner=uid,
+            sendUserAction(ActionTargetType.zProperty, ActionName.Edit,
+                           extra={obj.meta_type:uid},
                            zproperty=zProperty, value=value)
         return DirectResponse(data=Zuul.marshal(data))
 
@@ -1182,8 +1183,10 @@ class DeviceRouter(TreeRouter):
         """
         facade = self._getFacade()
         data = facade.deleteZenProperty(uid, zProperty)
-        if sendUserAction: 
-            sendUserAction(ActionTargetType.zProperty, ActionName.Delete, owner=uid, 
+        if sendUserAction:
+            obj = facade._getObject(uid)
+            sendUserAction(ActionTargetType.zProperty, ActionName.Delete,
+                           extra={obj.meta_type:uid},
                            zproperty=zProperty)
         return DirectResponse(data=Zuul.marshal(data))
 
@@ -1523,15 +1526,15 @@ class DeviceRouter(TreeRouter):
 
         if sendUserAction:
             deviceUid = '/'.join([organizerUid, 'devices', deviceName])
-            if isinstance(groupPaths, list) and len(groupPaths) == 1 and not groupPaths[0]:
-                groupPaths = []   # avoid ['']
-            if isinstance(systemPaths, list) and len(systemPaths) == 1 and not systemPaths[0]:
-                systemPaths = []
+            deviceClassUid = '/Devices' + deviceClass
+            locationUid = '/Locations' + locationPath if locationPath else None
+            groupUids = ['/Groups' + x for x in groupPaths] if groupPaths else None
+            systemUids = ['/Systems' + x for x in systemPaths] if systemPaths else None
             sendUserAction(ActionTargetType.Device, ActionName.Add,
                            device=deviceUid, title=title,
-                           deviceclass=deviceClass, collector=collector,
-                           location=locationPath, groups=groupPaths, 
-                           model=model)
+                           deviceclass=deviceClassUid, collector=collector,
+                           location=locationUid, devicegroups=groupUids,
+                           systems=systemUids, model=str(model))
 
         return DirectResponse.succeed(jobId=jobStatus.id)
 

@@ -648,7 +648,7 @@ class UserSettings(ZenModelRM):
             "messageQueue")),
     )
 
-   # Screen action bindings (and tab definitions)
+    # Screen action bindings (and tab definitions)
     factory_type_information = (
         {
             'immediate_view' : 'editUserSettings',
@@ -767,6 +767,10 @@ class UserSettings(ZenModelRM):
                 'Password reset',
                 'An email with a new password has been sent.'
             )
+            if sendUserAction:
+                sendUserAction(ActionTargetType.User,
+                               'ResetPassword',
+                               username=self.id)
             loggedInUser = self.REQUEST['AUTHENTICATED_USER']
             # we only want to log out the user if it's *their* password
             # they've changed, not, for example, if the admin user is
