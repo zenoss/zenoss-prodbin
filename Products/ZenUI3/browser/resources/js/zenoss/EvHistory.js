@@ -32,8 +32,7 @@ Ext.onReady(function(){
     // Make the detail panel collapsible
     detail_panel.animCollapse = false;
     detail_panel.collapsible = true;
-    detail_panel.show();
-    detail_panel.collapse();
+
 
     /*
      * Select all events with a given state.
@@ -343,6 +342,9 @@ Ext.onReady(function(){
         isHistory: true,
         onDetailHide: hideEventDetail
     });
+    //  render the detail panel
+    detail_panel.show();
+    detail_panel.collapse();
 
     detail_panel.on('expand', function(ob, state) {
         toggleEventDetailContent();

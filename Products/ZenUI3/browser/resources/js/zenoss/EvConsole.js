@@ -31,10 +31,6 @@ Ext.onReady(function(){
     // it doesn't interfere with the state of other instances of this panel.
     detail_panel.stateId = 'Zenoss.ui.EvConsole.detail_panel';
 
-    // Make the detail panel collapsible
-    detail_panel.animCollapse = false;
-    detail_panel.show();
-    detail_panel.collapse();
 
 
     /*
@@ -183,6 +179,11 @@ Ext.onReady(function(){
         id: 'dpanelcontainer',
         onDetailHide: hideEventDetail
     });
+    // Make the detail panel collapsible
+    detail_panel.animCollapse = false;
+    // render so that the detail panel has html elements
+    detail_panel.show();
+    detail_panel.collapse();
 
     detail_panel.on('expand', function(ob, state) {
         toggleEventDetailContent();

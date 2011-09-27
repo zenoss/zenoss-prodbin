@@ -189,7 +189,9 @@ Ext.onReady(function() {
      * This panel represents the event detail panel. An initial "zenoss" config
      * is automatically loaded during instantiation in the `init` method.
      */
-    Zenoss.DetailPanel = Ext.extend(Ext.Panel, {
+    Ext.define("Zenoss.DetailPanel", {
+        extend:"Ext.Panel",
+        alias: "widget.detailpanel",
         isHistory: false,
         layout: 'border',
         border: false,
@@ -256,8 +258,8 @@ Ext.onReady(function() {
                             frame: false,
                             border: false
                         },
-                        layout: 'table',
-                        layoutConfig: {
+                        layout: {
+                            type: 'fit',
                             columns: 1,
                             tableAttrs: {
                                 style: {
@@ -281,7 +283,10 @@ Ext.onReady(function() {
                         id: 'log-container',
                         defaults: {border: false},
                         frame: true,
-                        layout: 'table',
+                        layout: {
+                            type: 'table',
+                            columns: 1
+                        },
                         style: {'margin-left':'3em'},
                         hidden: false,
                         labelWidth: 1,
@@ -487,11 +492,13 @@ Ext.onReady(function() {
                 content_cls = section.cls;
             }
             var section_content_config = {
+                layout: 'fit',
                 id: section.id,
                 hidden: should_hide,
                 cls: content_cls,
                 html: ''
             };
+
             this.getBody().add(section_content_config);
         },
 
@@ -557,7 +564,7 @@ Ext.onReady(function() {
                     renderedData[key] = detailsData;
                 }
                 else {
-                    renderedData[key] = this.extractData(key, eventData[key], eventData)
+                    renderedData[key] = this.extractData(key, eventData[key], eventData);
                 }
             }, this);
 
@@ -625,7 +632,6 @@ Ext.onReady(function() {
                     html;
                 html = section.generateHtml(renderedData, eventData);
                 cmp.el.update(html);
-
             }, this);
 
             // Update Logs
@@ -684,6 +690,7 @@ Ext.onReady(function() {
         },
 
         load: function(event_id) {
+
             Zenoss.remote.EventsRouter.detail({
                 evid: event_id
             }, function(result) {
@@ -695,5 +702,4 @@ Ext.onReady(function() {
             }, this);
         }
     });
-    Ext.reg('detailpanel', "Zenoss.DetailPanel");
 });
