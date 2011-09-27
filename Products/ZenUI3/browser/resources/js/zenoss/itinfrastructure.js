@@ -1094,6 +1094,7 @@ var device_grid = Ext.create('Zenoss.DeviceGridPanel', {
                 tooltip: _t('Refresh Device List'),
                 handler: function(btn) {
                     Ext.getCmp('device_grid').refresh();
+                    Ext.getCmp('organizer_events').setContext(Zenoss.env.PARENT_CONTEXT);
                 }
             },
             {
