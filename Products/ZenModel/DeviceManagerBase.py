@@ -12,6 +12,8 @@
 ###########################################################################
 
 from ZenossSecurity import ZEN_VIEW
+from Products.ZenMessaging.actions import sendUserAction
+from Products.ZenMessaging.actions.constants import ActionTargetType, ActionName
 
 class DeviceManagerBase:
     """
@@ -37,5 +39,19 @@ class DeviceManagerBase:
         if isinstance(deviceNames, basestring): deviceNames = (deviceNames,)
         for devname in deviceNames:
             self.devices._delObject(devname)
+            if sendUserAction and REQUEST:
+                # TODO: replace check with a MetaClass-To-PrettyName method.
+                if self.meta_type == 'PerformanceConf':
+                    actionName = 'RemoveFromCollector'
+                    objType = 'Collector'
+                    objId = self.id
+                else:
+                    actionName = ActionName.Remove
+                    objType = self.meta_type
+                    objId = self.getPrimaryId()
+                sendUserAction(ActionTargetType.Device,
+                               actionName,
+                               device=devname,
+                               extra={objType:objId})
         if REQUEST:
             return self()

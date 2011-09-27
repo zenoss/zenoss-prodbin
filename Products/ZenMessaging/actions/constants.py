@@ -40,6 +40,8 @@ class ActionTargetType(object):
     Threshold   = 'ThresholdClass'
 
     # other
+    Hub         = 'Hub'
+    Collector   = 'Collector'
     Dashboard   = 'Dashboard'
     ZenPack     = 'ZenPack'
     Mib         = 'MIB'

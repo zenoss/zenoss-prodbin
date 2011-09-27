@@ -71,6 +71,8 @@ from Products.ZenUtils.Utils import clearWebLoggingStream
 from Products.ZenModel.Device import manage_createDevice
 from Products.ZenModel.ZDeviceLoader import DeviceCreationJob
 from Products.ZenWidgets import messaging
+from Products.ZenMessaging.actions import sendUserAction
+from Products.ZenMessaging.actions.constants import ActionTargetType, ActionName
 from StatusColor import StatusColor
 
 PERF_ROOT = None
@@ -573,6 +575,11 @@ class PerformanceConf(Monitor, StatusColor):
             dev = self.devices._getOb(devName)
             dev = dev.primaryAq()
             dev.setPerformanceMonitor(performanceMonitor)
+            if sendUserAction and REQUEST:
+                sendUserAction(ActionTargetType.Device,
+                               'ChangeCollector',
+                               device=dev.getPrimaryId(),
+                               collector=performanceMonitor)
         if REQUEST:
             messaging.IMessageSender(self).sendToBrowser('Monitor Set',
                     'Performance monitor was set to %s.'
