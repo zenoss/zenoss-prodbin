@@ -123,11 +123,6 @@ class IpNetwork(DeviceOrganizer):
                 , 'action'        : 'zPropertyEdit'
                 , 'permissions'   : ("Manage DMD",)
                 },
-                { 'id'            : 'viewHistory'
-                , 'name'          : 'Modifications'
-                , 'action'        : 'viewHistory'
-                , 'permissions'   : (ZEN_VIEW_MODIFICATIONS,)
-                },
             )
           },
         )

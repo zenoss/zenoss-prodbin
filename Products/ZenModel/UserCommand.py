@@ -55,11 +55,6 @@ class UserCommand(ZenModelRM, ZenPackable):
              'action'        : 'userCommandDetailNew',
              'permissions'   : ( Permissions.view, ),
             },
-            { 'id'            : 'viewHistory',
-              'name'          : 'Modifications',
-              'action'        : 'viewNewHistory',
-              'permissions'   : (ZEN_VIEW_MODIFICATIONS,),
-            }
         )
     },
     )

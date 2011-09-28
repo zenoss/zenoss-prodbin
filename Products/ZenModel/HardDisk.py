@@ -83,11 +83,6 @@ class HardDisk(HWComponent):
                 , 'action'        : 'objTemplates'
                 , 'permissions'   : ("Change Device", )
                 },                
-                { 'id'            : 'viewHistory'
-                , 'name'          : 'Modifications'
-                , 'action'        : 'viewHistory'
-                , 'permissions'   : (ZEN_VIEW_MODIFICATIONS,)
-                },
             )
           },
         )

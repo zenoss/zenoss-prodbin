@@ -386,29 +386,6 @@ function bindSelectedTemplateHere() {
 
 /**********************************************************************
  *
- * Modifications
- *
- */
-function showModificationsDialog() {
-    var uid,
-        types,
-        tree = Ext.getCmp(treeId);
-    // classes for which we want to show modifications for
-    types = ['Products.ZenModel.RRDTemplate.RRDTemplate',
-             'Products.ZenModel.ThresholdClass.ThresholdClass',
-             'Products.ZenModel.RRDDataSource.RRDDataSource'
-            ];
-    if (tree.getSelectionModel().getSelectedNode()) {
-
-        uid = tree.getSelectionModel().getSelectedNode().data.uid;
-        Zenoss.form.showModificationsDialog(uid, types);
-    }
-}
-
-
-
-/**********************************************************************
- *
  * Footer Bar
  *
  */
@@ -490,10 +467,6 @@ footerBar.buttonContextMenu.menu.add({
     text: _t('Toggle Template Binding'),
     hidden: Zenoss.Security.doesNotHavePermission('Manage DMD'),
     handler: bindSelectedTemplateHere
-}, {
-    text: _t('Modifications'),
-    hidden: Zenoss.Security.doesNotHavePermission('Manage DMD'),
-    handler: showModificationsDialog
 });
 
 footerBar.on('buttonClick', function(actionName, id, values) {

@@ -222,11 +222,6 @@ class PerformanceConf(Monitor, StatusColor):
                 , 'action'        : 'viewDaemonPerformance'
                 , 'permissions'   : (permissions.view,)
                 },
-                { 'id'            : 'viewHistory'
-                , 'name'          : 'Modifications'
-                , 'action'        : 'viewNewHistory'
-                , 'permissions'   : (ZEN_VIEW_MODIFICATIONS,)
-                },
             )
           },
         )

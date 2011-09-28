@@ -70,11 +70,6 @@ class CPU(HWComponent):
                 , 'action'        : 'viewCPU'
                 , 'permissions'   : ('View',)
                 },
-                { 'id'            : 'viewHistory'
-                , 'name'          : 'Modifications'
-                , 'action'        : 'viewHistory'
-                , 'permissions'   : (ZEN_VIEW_MODIFICATIONS,)
-                },
             )
           },
         )

@@ -63,11 +63,6 @@ class ExpansionCard(HWComponent):
                 , 'action'        : 'viewExpansionCard'
                 , 'permissions'   : ('View',)
                 },
-                { 'id'            : 'viewHistory'
-                , 'name'          : 'Modifications'
-                , 'action'        : 'viewHistory'
-                , 'permissions'   : (ZEN_VIEW_MODIFICATIONS,)
-                },
             )
           },
         )

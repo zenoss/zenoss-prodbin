@@ -63,11 +63,6 @@ class WinServiceClass(ServiceClass):
             , 'action'      : 'zPropertyEdit'
             , 'permissions' : (ZEN_CHANGE_DEVICE,)
             },
-            { 'id'          : 'viewHistory'
-            , 'name'        : 'Modifications'
-            , 'action'      : 'viewHistory'
-            , 'permissions' : (ZEN_VIEW_MODIFICATIONS,)
-            },
             ),
         },)
 

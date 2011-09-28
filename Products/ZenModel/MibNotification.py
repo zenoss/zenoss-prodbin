@@ -43,11 +43,6 @@ class MibNotification(MibBase):
                 , 'action'        : 'viewMibNotification'
                 , 'permissions'   : ( Permissions.view, )
                 },
-                { 'id'            : 'viewHistory'
-                , 'name'          : 'Modifications'
-                , 'action'        : 'viewNewHistory'
-                , 'permissions'   : (ZEN_VIEW_MODIFICATIONS,)
-                },
             )
          },
         )

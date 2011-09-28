@@ -229,3 +229,4 @@ import removeEventMenus
 import fixPerfFilesystemTransform
 import fixLinkUpDownTransforms
 import migrateWindowCatalog
+import removeModificationsMenuItems

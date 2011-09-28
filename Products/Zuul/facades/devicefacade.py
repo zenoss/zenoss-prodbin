@@ -614,30 +614,3 @@ class DeviceFacade(TreeFacade):
         obj = self._getObject(uid)
         return obj.getDefaultGraphDefs(drange)
 
-    def getModifications(self, uid, types):
-        """
-        For a given uid and an array of types (fully qualified classes)
-        this method returns the change history of each object
-        """
-        obj = self._getObject(uid)
-        cat = ICatalogTool(obj)
-        brains = cat.search(types)
-        for brain in brains:
-            obj = brain.getObject()
-            row = dict(
-                uid=obj.getPrimaryId(),
-                obj= obj.titleOrId(),
-                meta_type=obj.meta_type
-                )
-            children = []
-            for hist in obj.manage_change_history():
-                children.append(dict(
-                        timeOfChange=str(hist['time']),
-                        user=hist['user_name'],
-                        children= [],
-                        leaf=True,
-                        isrow=True,
-                        obj="",
-                        description=hist['description']))
-            row['children'] = children
-            yield row

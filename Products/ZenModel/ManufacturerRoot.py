@@ -80,11 +80,6 @@ class ManufacturerRoot(ZenModelItem, PrimaryPathBTreeFolder2, ZenPacker):
                 , 'permissions'   : (
                   permissions.view, )
                 },
-                { 'id'            : 'viewHistory'
-                , 'name'          : 'Modifications'
-                , 'action'        : 'viewNewHistory'
-                , 'permissions'   : (ZEN_VIEW_MODIFICATIONS,)
-                },
             )
           },
         )

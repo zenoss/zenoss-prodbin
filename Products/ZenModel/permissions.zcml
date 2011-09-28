@@ -39,11 +39,6 @@
       />
 
   <permission
-      id="zenoss.ViewModifications"
-      title="View Modifications"
-      />
-
-  <permission
       id="zenoss.ChangeSettings"
       title="Change Settings"
       />

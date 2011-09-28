@@ -60,11 +60,6 @@ class Classifier(ZenModelItem, OrderedFolder):
                 , 'permissions'   : (
                   permissions.view, )
                 },
-                { 'id'            : 'viewHistory'
-                , 'name'          : 'Modifications'
-                , 'action'        : 'viewHistory'
-                , 'permissions'   : (ZEN_VIEW_MODIFICATIONS,)
-                },
             )
           },
         )

@@ -222,9 +222,6 @@
         },{
             "text": "componentTemplate.js",
             "path": "resources/js/zenoss/"
-        },{
-            "text": "modificationPanel.js",
-            "path": "resources/js/zenoss/form/"
         }]
     }],
     "resources": []

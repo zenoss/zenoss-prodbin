@@ -56,7 +56,6 @@ MANAGE_TRIGGER = "Manage Trigger"
 
 ZEN_VIEW = 'View'
 ZEN_VIEW_HISTORY = 'View History'
-ZEN_VIEW_MODIFICATIONS='View Modifications'
 
 # Events
 ZEN_MANAGE_EVENTMANAGER = 'Manage EventManager'

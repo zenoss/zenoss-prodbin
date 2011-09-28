@@ -105,8 +105,6 @@ Optional titlebar stuff
                     tableName,'role','Description')"/>
         <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
                     tableName,'role','Command')"/>
-        <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
-                    tableName,'role','Modifications')"/>
   </tr>
     <tal:block tal:repeat="uc batch">
   <tr tal:define="odd repeat/uc/odd"
@@ -125,14 +123,10 @@ Optional titlebar stuff
     <td class="tablevalues" align="left"
         tal:content="uc/command">
     </td>
-    <td class="tablevalues" align="center">
-        <a href="_" tal:attributes="href string:${uc/absolute_url}/viewHistory">&#916;</a>
-    </td>
   </tr>
   </tal:block>
   <tr>
-    <!-- <td colspan="3" class="tableheader"> -->
-    <td colspan="4" class="tableheader">
+    <td colspan="3" class="tableheader">
         <span metal:use-macro="here/zenTableNavigation/macros/navbody" />
     </td>
   </tr>

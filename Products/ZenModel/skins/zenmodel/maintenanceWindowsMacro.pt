@@ -55,8 +55,6 @@ Optional titlebar stuff
                     tableName,'enabled','Enabled?')">
             Stop State
         </th>
-        <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
-                    tableName,'role','Modifications')"/>
   </tr>
   <tal:block tal:repeat="mw batch">
   <tr tal:define="odd repeat/mw/odd"
@@ -74,13 +72,10 @@ Optional titlebar stuff
     <td class="tablevalues" tal:content="mw/niceStartProductionState"/>
     <td class="tablevalues" tal:content="mw/niceStopProductionState"/>
     <td class="tablevalues" tal:content="mw/enabled"/>
-    <td class="tablevalues" align="center">
-        <a href="_" tal:attributes="href string:${mw/absolute_url}/viewHistory">&#916;</a>
-    </td>
   </tr>
   </tal:block>
   <tr>
-    <td colspan="8" class="tableheader">
+    <td colspan="7" class="tableheader">
         <span metal:use-macro="here/zenTableNavigation/macros/navbody" />
     </td>
   </tr>
