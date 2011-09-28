@@ -419,6 +419,18 @@ Ext.define("Zenoss.component.ComponentGridPanel", {
         config = config || {};
         config.fields = config.fields || [];
         config.fields.push({'name': 'uuid'});
+
+        // compat for autoExpandColumn
+        var expandColumn = config.autoExpandColumn;
+        if (expandColumn && config.columns) {
+            Ext.each(config.columns, function(col){
+                if (expandColumn == col.id) {
+                    col.flex = 1;
+                }
+            });
+        }
+
+
         var modelId = Ext.id(),
             model = Ext.define(modelId, {
                 extend: 'Ext.data.Model',
@@ -444,7 +456,8 @@ Ext.define("Zenoss.component.ComponentGridPanel", {
             },{
                 id: 'name',
                 dataIndex: 'name',
-                header: _t('Name')
+                header: _t('Name'),
+                flex: 1
             }, {
                 id: 'monitored',
                 dataIndex: 'monitored',

@@ -239,6 +239,18 @@ Ext.define("Zenoss.DeviceGridPanel", {
 
     onRowDblClick: function(grid, rowIndex, e) {
         window.location = grid.getStore().getAt(rowIndex).data.uid;
+    },
+    applyOptions: function(options){
+        // only request the visible columns
+        var visibleColumns = Zenoss.util.filter(this.getColumnModel(), function(c){
+                return !c.hidden;
+            }),
+            keys = Ext.pluck(visibleColumns, 'dataIndex');
+
+        keys.push('ipAddressString');
+        Ext.apply(options.params, {
+            keys: keys
+        });
     }
 });
 
