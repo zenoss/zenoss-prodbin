@@ -189,7 +189,8 @@ Ext.define('Zenoss.device.DeviceModel',{
         {name: 'groups', type: 'object'},
         {name: 'location', type: 'object'},
         {name: 'events', type: 'auto'},
-        {name: 'availability', type: 'float'}
+        {name: 'availability', type: 'float'},
+        {name: 'pythonClass', type: 'string'}
     ],
     idProperty: 'uid'
 });

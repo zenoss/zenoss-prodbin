@@ -400,7 +400,8 @@ class DeviceRouter(TreeRouter):
         allKeys = ['name', 'ipAddress', 'productionState', 'events',
                 'ipAddressString', 'serialNumber', 'tagNumber',
                 'hwManufacturer', 'hwModel', 'osModel', 'osManufacturer',
-                'collector', 'priority', 'systems', 'groups', 'location']
+                'collector', 'priority', 'systems', 'groups', 'location', 
+                'pythonClass']
         detailKeys = Device.detailKeys
         usedKeys = keys or allKeys
         usedKeys = [key for key in usedKeys if not key in detailKeys]

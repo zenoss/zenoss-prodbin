@@ -82,6 +82,10 @@ class DeviceOrganizerNode(TreeNode):
             'description': 'devices'
         }
 
+    @property
+    def zPythonClass(self):
+        return self._get_object().getZ('zPythonClass')
+
     def _nonGlobalRoleGetChildren(self):
         """
         See Trac #2725, unrestricted users need to see the nodes they
@@ -393,6 +397,9 @@ class DeviceInfo(InfoBase, HasEventsInfoMixin):
     def icon(self):
         return self._object.getIconPath()
 
+    @property
+    def pythonClass(self):
+        return self._object.__class__.__module__
 
 
 class DeviceOrganizerInfo(InfoBase, HasEventsInfoMixin):

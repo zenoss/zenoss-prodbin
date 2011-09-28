@@ -269,7 +269,7 @@ Ext.define('Zenoss.HierarchyTreePanel', {
                 }, {
                     name: 'uuid',
                     type: 'string'
-                }]
+                }].concat(config.extraFields || [])
             });
             config.store = new Ext.create('Ext.data.TreeStore', {
                 model: modelId,

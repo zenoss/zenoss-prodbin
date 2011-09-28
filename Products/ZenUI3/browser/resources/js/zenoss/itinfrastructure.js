@@ -626,6 +626,21 @@ function updateNavTextWithCount(node) {
 }
 
 
+function getTreeDropWarnings(dropTargetNode, droppedRecords) { 
+    // if we're moving a device to a device class whose underlying python class does not match, also warn
+    // about the potentially destructive operation.
+    var additionalWarnings = [""];
+    if (dropTargetNode && droppedRecords) {
+        var dropTargetClass = dropTargetNode.data.zPythonClass || "Products.ZenModel.Device";
+        var droppedClasses = Ext.Array.map(droppedRecords, function(r){return r.data.pythonClass});
+        if(Ext.Array.some(droppedClasses, function(droppedClass) { return dropTargetClass!=droppedClass;})) {
+            additionalWarnings = additionalWarnings.concat(_t("WARNING: This may result in the loss of all components and configuration under these devices."));
+        }
+    }
+    return additionalWarnings.join('<br><br>');
+}
+
+
 function initializeTreeDrop(tree) {
 
     // fired when the user actually drops a node
@@ -646,11 +661,11 @@ function initializeTreeDrop(tree) {
         if (!isOrganizer ) {
             // move devices to the target node
             devids = Ext.pluck(Ext.pluck(e.records, 'data'), 'uid');
-
             // show the confirmation about devices
             Ext.Msg.show({
                 title: _t('Move Devices'),
-                msg: String.format(_t("Are you sure you want to move these {0} device(s) to {1}?"), devids.length, targetnode.data.text.text),
+                msg: String.format(_t("Are you sure you want to move these {0} device(s) to {1}?") + getTreeDropWarnings(targetnode, e.records),
+                                   devids.length, targetnode.data.text.text),
                 buttons: Ext.Msg.OKCANCEL,
                 fn: function(btn) {
 
@@ -779,6 +794,7 @@ var devtree = {
     searchField: true,
     // directFn: Zenoss.util.isolatedRequest(treeLoaderFn),
     directFn: treeLoaderFn,
+    extraFields: [{name: 'zPythonClass', type: 'string'}],
     allowOrganizerMove: false,
     stateful: treeStateful,
     stateId: 'device_tree',
