@@ -81,7 +81,7 @@ def add_object(root, obj):
     root['__id'] = obj.id
     root['__description'] = zendocObj.getZendoc()
     root['__location'] = '/'.join(obj.getPrimaryPath())
-    root['__meta_type'] = obj.meta_type
+    root['__meta_type'] = obj.meta_type.replace(' ', '_')
     root['__class'] = obj.__class__.__name__
     if obj.__class__.__name__ == 'EventClass':
         if obj.transform:
