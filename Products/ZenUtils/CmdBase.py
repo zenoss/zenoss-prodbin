@@ -36,6 +36,7 @@ from urllib import quote
 from Products.ZenUtils.PkgResources import pkg_resources
 
 from Products.ZenUtils.Utils import unused, load_config_override, zenPath
+from Products.ZenUtils.GlobalConfig import _convertConfigLinesToArguments, applyGlobalConfToParser
 unused(pkg_resources)
 
 class DMDError: pass
@@ -133,7 +134,7 @@ class CmdBase(object):
 
         # Get defaults from global.conf. They will be overridden by
         # daemon-specific config file or command line arguments.
-        self.parser.defaults = self.getGlobalConfigFileDefaults()
+        applyGlobalConfToParser(self.parser)
         self.parseOptions()
         if self.options.configfile:
             self.parser.defaults = self.getConfigFileDefaults(self.options.configfile)
@@ -235,6 +236,7 @@ class CmdBase(object):
 
 
     def getConfigFileDefaults(self, filename):
+        # TODO: This should be refactored - duplicated code with CmdBase.
         """
         Parse a config file which has key-value pairs delimited by white space,
         and update the parser's option defaults with these values.
@@ -258,6 +260,7 @@ class CmdBase(object):
 
 
     def getGlobalConfigFileDefaults(self):
+        # Deprecated: This method is going away - it is duplicated in GlobalConfig.py
         """
         Parse a config file which has key-value pairs delimited by white space,
         and update the parser's option defaults with these values.
@@ -279,6 +282,7 @@ class CmdBase(object):
 
 
     def loadConfigFile(self, filename):
+        # TODO: This should be refactored - duplicated code with CmdBase.
         """
         Parse a config file which has key-value pairs delimited by white space.
 
@@ -372,14 +376,8 @@ class CmdBase(object):
 
 
     def getParamatersFromConfig(self, lines):
-        args = []
-        validkeys = self.parser.get_default_values().__dict__.keys()
-
-        for line in lines:
-            if line.get('type', None) == 'option' and line['key'] in validkeys:
-                args += ['--%s' % line['key'], line['value']]
-
-        return args
+        # Deprecated: This method is going away
+        return _convertConfigLinesToArguments(self.parser, lines)
 
 
     def setupLogging(self):

@@ -32,6 +32,50 @@ _GLOBAL_CONFIG = ConfigLoader(CONFIG_FILE, GlobalConfig)
 def getGlobalConfiguration():
     return _GLOBAL_CONFIG()
 
+def _convertConfigLinesToArguments(parser, lines):
+    """
+    Converts configuration file lines of the format:
+
+       myoption 1
+       mybooloption False
+
+    to the equivalent command-line arguments for the specified OptionParser.
+    For example, the configuration file above would return the argument
+    list ['--myoption', '1', '--mybooloption'] if mybooloption has action
+    store_false, and ['--myoption', '1'] if mybooloption has action store_true.
+
+    @parameter parser: OptionParser object containing configuration options.
+    @type parser: OptionParser
+    @parameter lines: List of dictionary object parsed from a configuration file.
+                      Each option is expected to have 'type', 'key', 'value' entries.
+    @type lines: list of dictionaries.
+    @return: List of command-line arguments corresponding to the configuration file.
+    @rtype: list of strings
+    """
+    # valid key
+    #     an option's string without the leading "--"
+    #     can differ from an option's destination
+    validkeys = []
+    for opt in parser.option_list:
+        optstring = opt.get_opt_string()
+        validkey = optstring.lstrip("-")
+        validkeys.append(validkey)
+
+    args = []
+    for line in lines:
+        if line.get('type', None) == 'option' and line['key'] in validkeys:
+            option = parser.get_option('--' + line['key'])
+            boolean_value = line.get('value', '').lower() in ('true','yes','1')
+            if option.action == 'store_true':
+                if boolean_value:
+                    args += ['--%s' % line['key']]
+            elif option.action == 'store_false':
+                if not boolean_value:
+                    args += ['--%s' % line['key']]
+            else:
+                args += ['--%s' % line['key'], line['value']]
+
+    return args
 
 class _GlobalConfParserAdapter(object):
     def __init__(self, parser):
@@ -41,17 +85,8 @@ class _GlobalConfParserAdapter(object):
         self.parser.defaults = self._getGlobalConfigFileDefaults()
         return self.parser
 
-    def _getParametersFromConfig(self, lines):
-        args = []
-        validkeys = self.parser.get_default_values().__dict__.keys()
-
-        for line in lines:
-            if line.get('type', None) == 'option' and line['key'] in validkeys:
-                args += ['--%s' % line['key'], line['value']]
-
-        return args
-
     def _getGlobalConfigFileDefaults(self):
+        # TODO: This should be refactored - duplicated code with CmdBase.
         """
         Parse a config file which has key-value pairs delimited by white space,
         and update the parser's option defaults with these values.
@@ -59,7 +94,7 @@ class _GlobalConfParserAdapter(object):
         options = self.parser.get_default_values()
         lines = self._loadConfigFile(CONFIG_FILE)
         if lines:
-            args = self._getParametersFromConfig(lines)
+            args = _convertConfigLinesToArguments(self.parser, lines)
             try:
                 self.parser._process_args([], args, options)
             except (BadOptionError, OptionValueError) as err:
@@ -68,6 +103,7 @@ class _GlobalConfParserAdapter(object):
         return options.__dict__
 
     def _loadConfigFile(self, filename):
+        # TODO: This should be refactored - duplicated code with CmdBase.
         """
         Parse a config file which has key-value pairs delimited by white space.
 
