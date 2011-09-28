@@ -340,7 +340,6 @@ ZI.show = function(uid, x, y) {
                     xtype = ZI.registeredInspectors[itype];
                 }
             }
-            console.log(xtype);
             var win = ZI.createWindow(uid, xtype, x, y);
             win.panelItem.setContext(uid, false);
             win.panelItem.update(result.data);
