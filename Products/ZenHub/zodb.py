@@ -13,18 +13,10 @@
 import logging
 log = logging.getLogger('zen.ZenHub')
 
-from zope.component.event import objectEventNotify
 from zope.interface import implements
 from zope.interface.advice import addClassAdvisor
 from zope.component import provideHandler
 from zope.component.interfaces import ObjectEvent
-from ZODB.utils import u64
-from twisted.internet import defer, reactor
-
-from Products.ZenModel.Device import Device
-from Products.ZenModel.DeviceComponent import DeviceComponent
-from time import time
-from Products.ZenRelations.PrimaryPathObjectManager import PrimaryPathObjectManager
 from Products.ZenHub.interfaces import IUpdateEvent, IDeletionEvent
 
 
@@ -40,69 +32,6 @@ class UpdateEvent(InvalidationEvent):
 
 class DeletionEvent(InvalidationEvent):
     implements(IDeletionEvent)
-
-
-def _remove(_ignored, oid, queue):
-    """
-    We don't want bad oids hanging around forever.
-    """
-    queue.remove(oid)
-
-
-def _dispatch(dmd, oid, ioid, queue):
-    """
-    Send to all the services that care by firing events.
-    """
-    d = defer.Deferred()
-    # Closure to use as a callback
-    def inner(_ignored):
-        try:
-            if dmd.pauseHubNotifications:
-                log.debug('notifications are currently paused')
-                return
-
-            # Go pull the object out of the database
-            obj = dmd._p_jar[oid]
-            # Don't bother with all the catalog stuff; we're depending on primaryAq
-            # existing anyway, so only deal with it if it actually has primaryAq.
-            if (isinstance(obj, PrimaryPathObjectManager)
-                  or isinstance(obj, DeviceComponent)):
-                try:
-                    # Try to get the object
-                    obj = obj.__of__(dmd).primaryAq()
-                except (AttributeError, KeyError), ex:
-                    # Object has been removed from its primary path (i.e. was
-                    # deleted), so make a DeletionEvent
-                    log.debug("Notifying services that %r has been deleted" % obj)
-                    event = DeletionEvent(obj, oid)
-                else:
-                    # Object was updated, so make an UpdateEvent
-                    log.debug("Notifying services that %r has been updated" % obj)
-                    event = UpdateEvent(obj, oid)
-                # Fire the event for all interested services to pick up
-                objectEventNotify(event)
-            # Return the oid, although we don't currently use it
-            return oid
-        finally:
-            queue.remove(ioid)
-    d.addCallback(inner)
-    # Call the deferred in the reactor so we give time to other things
-    reactor.callLater(0, d.callback, True)
-    return d
-
-
-@defer.inlineCallbacks
-def processInvalidations(dmd, queue, oids):
-    i = 0
-    for i, oid in enumerate(oids):
-        ioid = u64(oid)
-        # Try pushing it into the queue, which is an IITreeSet. If it inserted
-        # successfully it returns 1, else 0.
-        if queue.insert(ioid):
-            # Get the deferred that does the notification
-            d = _dispatch(dmd, oid, ioid, queue)
-            yield d
-    defer.returnValue(i)
 
 
 def _listener_decorator_factory(eventtype):

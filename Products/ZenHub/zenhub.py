@@ -30,10 +30,12 @@ banana.SIZE_LIMIT = 1024 * 1024 * 10
 
 from twisted.internet import reactor, protocol, defer
 from twisted.web import server, xmlrpc
+from zope.event import notify
 from zope.interface import implements
 from zope.component import getUtility
 
 from Products.DataCollector.Plugins import loadPlugins
+from Products.Five import zcml
 from Products.ZenUtils.ZCmdBase import ZCmdBase
 from Products.ZenUtils.Utils import zenPath, getExitMessage, unused, load_config_override
 from Products.ZenUtils.DaemonStats import DaemonStats
@@ -41,13 +43,13 @@ from Products.ZenEvents.Event import Event, EventHeartbeat
 from Products.ZenEvents.ZenEventClasses import App_Start
 from Products.ZenMessaging.queuemessaging.interfaces import IEventPublisher
 from Products.ZenHub.services.RenderConfig import RenderConfig
-
+from Products.ZenHub.interfaces import IInvalidationProcessor, IServiceAddedEvent, IHubCreatedEvent, IHubWillBeCreatedEvent
+from Products.ZenHub.interfaces import IParserReadyForOptionsEvent
 
 from Products.ZenHub.PBDaemon import RemoteBadMonitor
 pb.setUnjellyableForClass(RemoteBadMonitor, RemoteBadMonitor)
 
 from BTrees.IIBTree import IITreeSet
-from Products.ZenHub.zodb import processInvalidations
 
 # Due to the manipulation of sys.path during the loading of plugins,
 # we can get ObjectMap imported both as DataMaps.ObjectMap and the
@@ -168,6 +170,29 @@ class HubAvitar(pb.Avatar):
         worker.notifyOnDisconnect(removeWorker)
 
 
+class ServiceAddedEvent(object):
+    implements(IServiceAddedEvent)
+    def __init__(self, name, instance):
+        self.name = name
+        self.instance = instance
+
+
+class HubWillBeCreatedEvent(object):
+    implements(IHubWillBeCreatedEvent)
+    def __init__(self, hub):
+        self.hub = hub
+
+
+class HubCreatedEvent(object):
+    implements(IHubCreatedEvent)
+    def __init__(self, hub):
+        self.hub = hub
+
+class ParserReadyForOptionsEvent(object):
+    implements(IParserReadyForOptionsEvent)
+    def __init__(self, parser):
+        self.parser = parser
+
 class HubRealm(object):
     """
     Following the Twisted authentication framework.
@@ -250,6 +275,10 @@ class ZenHub(ZCmdBase):
         self.worker_processes=set()
 
         ZCmdBase.__init__(self)
+        import Products.ZenHub
+        zcml.load_config("hub.zcml", Products.ZenHub)
+        notify(HubWillBeCreatedEvent(self))
+
         self.zem = self.dmd.ZenEventManager
         loadPlugins(self.dmd)
         self.services = {}
@@ -268,11 +297,11 @@ class ZenHub(ZCmdBase):
         # responsible for sending messages to the queues
         import Products.ZenMessaging.queuemessaging
         load_config_override('twistedpublisher.zcml', Products.ZenMessaging.queuemessaging)
+        notify(HubCreatedEvent(self))
         self.sendEvent(eventClass=App_Start,
                        summary="%s started" % self.name,
                        severity=0)
 
-        self._invalidation_queue = IITreeSet()
         reactor.callLater(5, self.processQueue)
 
         self.rrdStats = self.getRRDStats()
@@ -321,9 +350,9 @@ class ZenHub(ZCmdBase):
         @return: None
         """
         changes_dict = self.storage.poll_invalidations()
-        queue = self._invalidation_queue
         if changes_dict is not None:
-            d = processInvalidations(self.dmd, self._invalidation_queue, changes_dict)
+            processor = getUtility(IInvalidationProcessor)
+            d = processor.processQueue(changes_dict)
             def done(n):
                 if n:
                     self.log.debug('Processed %s oids' % n)
@@ -400,6 +429,7 @@ class ZenHub(ZCmdBase):
             if self.options.workers:
                 svc = WorkerInterceptor(self, svc)
             self.services[name, instance] = svc
+            notify(ServiceAddedEvent(name, instance))
             return svc
 
     def deferToWorker(self, args):
@@ -508,6 +538,7 @@ class ZenHub(ZCmdBase):
         self.log.debug("Starting %s", ' '.join(args))
         proc = reactor.spawnProcess(WorkerRunningProtocol(), exe, args, os.environ)
         self.worker_processes.add(proc)
+
     def heartbeat(self):
         """
         Since we don't do anything on a regular basis, just
@@ -529,7 +560,6 @@ class ZenHub(ZCmdBase):
             r.counter('totalCallTime', seconds, totalTime) +
             r.gauge('workListLength', seconds, len(self.workList))
             )
-
 
     def main(self):
         """
@@ -568,6 +598,7 @@ class ZenHub(ZCmdBase):
         self.parser.add_option('--anyworker', dest='anyworker',
             action='store_true', default=False,
             help='Allow any priority job to run on any worker')
+        notify(ParserReadyForOptionsEvent(self.parser))
 
 if __name__ == '__main__':
     z = ZenHub()

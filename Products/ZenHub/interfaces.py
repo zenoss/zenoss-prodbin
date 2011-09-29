@@ -33,14 +33,60 @@ class IDeletionEvent(IInvalidationEvent):
     An object has been deleted.
     """
 
+
 class IBatchNotifier(Interface):
     """
     Processes subdevices in batches.
     """
-    
+
     def notify_subdevices(device_class, service_uid, callback):
         """
         Process subdevices of device class in batches calling callback with
         each device. The service UID uniquely identifies the service, so the
         processing of the same device_class-service pair is not duplicated.
         """
+
+
+class IInvalidationProcessor(Interface):
+    """
+    Accepts an invalidation queue.
+    """
+    def processQueue(queue):
+        """
+        Read invalidations off a queue and deal with them. Return a Deferred
+        that fires when all invalidations are done processing.
+        """
+    def setHub(hub):
+        """
+        Set the instance of ZenHub that this processor will deal with.
+        """
+
+
+class IServiceAddedEvent(Interface):
+    """
+    ZenHub has created a service.
+    """
+    name = Attribute("Dotted class name of the service")
+    instance = Attribute("Collector name")
+
+
+class IHubWillBeCreatedEvent(Interface):
+    """
+    A hub has been instantiated.
+    """
+    hub = Attribute("The hub")
+
+
+class IHubCreatedEvent(Interface):
+    """
+    A hub has been instantiated.
+    """
+    hub = Attribute("The hub")
+
+
+class IParserReadyForOptionsEvent(Interface):
+    """
+    A parser is ready for extra options to be added.
+    """
+    parser = Attribute("The option parser")
+

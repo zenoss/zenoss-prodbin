@@ -348,4 +348,3 @@ class NullConfigService(CollectorConfigService):
 
     def _filterDevices(self, deviceList):
         return []
-

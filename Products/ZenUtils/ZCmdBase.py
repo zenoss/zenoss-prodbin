@@ -22,6 +22,7 @@ from threading import Lock
 from AccessControl.SecurityManagement import newSecurityManager
 from AccessControl.SecurityManagement import noSecurityManager
 from Products.Five import zcml
+from zope.event import notify
 
 from Utils import getObjByPath, zenPath
 

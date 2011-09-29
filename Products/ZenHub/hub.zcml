@@ -15,9 +15,10 @@
 
 <configure xmlns="http://namespaces.zope.org/zope">
 
+  <!-- Only load this in a ZenHub process -->
   <utility
-    component=".notify.BATCH_NOTIFIER"
-    provides=".interfaces.IBatchNotifier"
+    factory=".invalidations.InvalidationProcessor"
+    provides=".interfaces.IInvalidationProcessor"
     />
 
 </configure>
