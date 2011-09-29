@@ -532,7 +532,10 @@ class DeviceClass(DeviceOrganizer, ZenPackable, TemplateContainer):
         Return generator of components, by meta_type if specified
         """
         zcat = self.componentSearch
-        res = zcat({'meta_type': meta_type, 'monitored': monitored})
+        query = {'monitored': monitored}
+        if meta_type:
+            query['meta_type'] = meta_type
+        res = zcat(query)
         for b in res:
             try:
                 c = self.getObjByPath(b.getPrimaryId)
