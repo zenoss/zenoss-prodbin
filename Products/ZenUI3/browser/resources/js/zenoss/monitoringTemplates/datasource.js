@@ -287,8 +287,8 @@ function saveDataSource() {
 new Zenoss.dialog.BaseWindow({
         id: 'addDataSourceDialog',
         title: _t('Add Data Source'),
-        height: 160,
-        width: 310,
+        height: 180,
+        width: 350,
         modal: true,
         plain: true,
         closeAction: 'hide',

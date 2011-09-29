@@ -437,6 +437,7 @@ class TemplateRouter(TreeRouter):
         """
         facade = self._getFacade()
         data = facade.getDataSourceTypes()
+        data = sorted(data, key=lambda row: row['type'].lower())
         return DirectResponse.succeed(data=data)
 
     def getGraphs(self, uid, query=None):
