@@ -45,7 +45,7 @@ function initializeTreeDrop(tree) {
         // should always only be one selection
         var uid = event.records[0].get("uid"),
             targetUid = target.get("uid");
-        if (target.("leaf") || uid == targetUid) {
+        if (target.get("leaf") || uid == targetUid) {
             return false;
         }
 
