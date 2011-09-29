@@ -491,7 +491,7 @@ class EventsRouter(DirectRouter):
             'eventClassMapping_url': eventClassMappingUrl,
             'owner': event_summary.get('current_user_name'),
             'priority': eventOccurrence.get('syslog_priority'),
-            'clearedevent': event_summary.get('cleared_by_event_uuid'),
+            'clearid': event_summary.get('cleared_by_event_uuid'),
             'log':[]}
 
 
