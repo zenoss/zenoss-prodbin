@@ -15,10 +15,11 @@
 
 Ext.onReady(function() {
 
-    var EventAgeSeverity;
     var AGE_ALL_EVENTS = 6;
 
-    EventAgeSeverity = Ext.extend(Ext.form.ComboBox, {
+    Ext.define("Zenoss.EventAgeSeverity", {
+        alias: ["widget.eventageseverity"],
+        extend: "Ext.form.ComboBox",
         constructor: function(config) {
             config = config || {};
             var store = [[AGE_ALL_EVENTS, _t('Age All Events')]].concat(Zenoss.env.SEVERITIES);
@@ -32,10 +33,9 @@ Ext.onReady(function() {
                 mode: 'local',
                 store: store
             });
-            EventAgeSeverity.superclass.constructor.apply(this, arguments);
+            Zenoss.EventAgeSeverity.superclass.constructor.call(this, config);
         }
     });
-    Ext.reg('eventageseverity', EventAgeSeverity);
 
     Ext.ns('Zenoss.settings');
     var router = Zenoss.remote.EventsRouter;
