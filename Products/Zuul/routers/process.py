@@ -105,10 +105,11 @@ class ProcessRouter(TreeRouter):
             - data: (dictionary) Object representing a process's new properties
         """
         facade = self._getFacade()
-        process = facade.getInfo(data['uid'])
+        processUid = data['uid']
+        process = facade.getInfo(processUid)
         if sendUserAction:
             sendUserAction(ActionTargetType.Process, ActionName.Edit,
-                           process=data['uid'], **data)
+                           process=processUid, **data)
         return DirectResponse.succeed(data=Zuul.unmarshal(data, process))
 
     def getInstances(self, uid, start=0, params=None, limit=50, sort='name',

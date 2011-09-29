@@ -187,13 +187,14 @@ class ServiceRouter(TreeRouter):
         @rtype:   DirectResponse
         @return:  Success message
         """
-        service = self.api.getInfo(data['uid'])
+        serviceUid = data['uid']
+        service = self.api.getInfo(serviceUid)
         if 'serviceKeys' in data and isinstance(data['serviceKeys'], str):
             data['serviceKeys'] = tuple(l.strip() for l in data['serviceKeys'].split(','))
-        Zuul.unmarshal(data, service)
+        Zuul.unmarshal(data, service)   # removes data['uid']
         if sendUserAction:
             sendUserAction(ActionTargetType.Service, ActionName.Edit,
-                           service=data['uid'], **data)
+                           service=serviceUid, **data)
         return DirectResponse.succeed()
 
     def getInstances(self, uid, start=0, params=None, limit=50, sort='name',

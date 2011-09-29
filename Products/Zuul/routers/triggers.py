@@ -74,10 +74,11 @@ class TriggersRouter(DirectRouter):
     def updateTrigger(self, **data):
         data['rule']['api_version'] = 1
         data['rule']['type'] = RULE_TYPE_JYTHON
+        triggerUid = data['uuid']
         response = self._getFacade().updateTrigger(**data)
         if sendUserAction:
             sendUserAction(ActionTargetType.Trigger, ActionName.Edit,
-                           trigger=data['uuid'], **data)
+                           trigger=triggerUid, **data)
         return DirectResponse.succeed(msg="Trigger updated successfully.", data=response)
 
     @serviceConnectionError
@@ -127,10 +128,11 @@ class TriggersRouter(DirectRouter):
 
     @serviceConnectionError
     def updateNotification(self, **data):
+        notificationUid = data['uid']
         response = self._getFacade().updateNotification(**data)
         if sendUserAction:
             sendUserAction(ActionTargetType.Notification, ActionName.Edit,
-                           notification=data['uid'], **data)
+                           notification=notificationUid, **data)
         return DirectResponse.succeed(msg="Notification updated successfully.", data=Zuul.marshal(response))
 
     @serviceConnectionError
@@ -167,8 +169,9 @@ class TriggersRouter(DirectRouter):
 
     @serviceConnectionError
     def updateWindow(self, **data):
+        windowUid = data['uid']
         response = self._getFacade().updateWindow(data)
         if sendUserAction:
             sendUserAction(ActionTargetType.NotificationWindow, ActionName.Edit,
-                           notificationwindow=data['uid'], **data)
+                           notificationwindow=windowUid, **data)
         return DirectResponse.succeed(data=Zuul.marshal(response))
