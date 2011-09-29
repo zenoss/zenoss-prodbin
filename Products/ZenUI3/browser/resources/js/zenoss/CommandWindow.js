@@ -141,9 +141,9 @@ Ext.define("Zenoss.CommandWindow", {
     },
     closeAndReload: function() {
         this.on('close', function() {
-            (function() {window.top.location.reload();}).defer(1);
+            (function() {window.top.location.reload();}).defer(1, this);
         });
-        this.close();
+        this.destroy();
     },
     closeAndRedirect: function() {
         this.on('close', function() {
@@ -151,7 +151,7 @@ Ext.define("Zenoss.CommandWindow", {
                 window.top.location = this.redirectTarget;
             }).defer(1, this);
         });
-        this.close();
+        this.destroy();
     }
 });
 
