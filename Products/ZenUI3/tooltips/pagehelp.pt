@@ -25,14 +25,16 @@ Ext.onReady(function(){
             }
         },
         show: Ext.ToolTip.prototype.show.createSequence(function(){
+           /* What does this do (causes an error)? The tip looks fine without it
             Ext.fly('page-level-help-tip').alignTo(toolTip.target, 'tr-tr');
             var content = Ext.fly('page-level-help-content');
-            content.setHeight(Math.min(content.getHeight(), Ext.getBody().getViewSize().height - 100));
+            content.setHeight(Math.min(content.getHeight(), Ext.getBody().getViewSize().height - 100));*/
             this.target.hide();
         }),
         initTarget: function(target) {
             // override method from ToolTip to monitor click instead of
             // mouseover, mouseout, and mousemove
+            // this isn't working
             var t;
             if((t = Ext.get(target))){
                 if(this.target){

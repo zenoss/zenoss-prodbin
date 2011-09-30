@@ -171,7 +171,8 @@ report_tree = new Zenoss.ReportTreePanel({
     searchField: true,
     rootVisible: false,
     enableDD: true,
-    ddGroup: 'reporttreedd',
+    ddGroup: 'reporttreedd',   
+    bodyStyle: 'background-color:transparent;',     
     directFn: Zenoss.remote.ReportRouter.getTree,
     router: Zenoss.remote.ReportRouter,
     root: {
@@ -192,6 +193,7 @@ report_tree.expandAll();
 
 var treepanel = {
     xtype: 'HierarchyTreePanelSearch',
+    bodyStyle: 'background-color:#d4e0ee;',     
     items: [report_tree]
 };
 

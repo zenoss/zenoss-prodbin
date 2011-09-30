@@ -48,6 +48,7 @@ Ext.define("Zenoss.DeviceNameItem", {
                 cls: 'devdetail-devclass'
             },{
                 ref: 'ipAddress',
+                style: 'margin-top:0;',
                 cls: 'devdetail-ipaddress'
             }]
         });
@@ -78,7 +79,9 @@ Ext.define("Zenoss.DeviceDetailBar", {
                 style: 'margin-right: 8px;'
             },'-',{
                 xtype: "eventrainbow",
+                width:275,
                 ref: 'eventsitem',
+                style: 'padding-top:10px;',
                 id: 'detailrainbow',
                 label: _t('Events'),
                 listeners: {
@@ -91,13 +94,16 @@ Ext.define("Zenoss.DeviceDetailBar", {
                 count: 4
             },'-',{
                 ref: 'statusitem',
+                width:140,
                 label: _t('Device Status'),
                 id: 'statusitem'
             },'-',{
                 ref: 'prodstateitem',
+                width:130,
                 label: _t('Production State')
             },'-',{
                 ref: 'priorityitem',
+                width:100,
                 label: _t('Priority')
             }]
         });

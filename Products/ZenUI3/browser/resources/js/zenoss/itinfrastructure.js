@@ -93,7 +93,7 @@ var deviceClassCombo = {
     xtype: 'combo',
     minListWidth: 250,
     resizable: true,
-    width: 160,
+    width: 250,
     name: 'deviceClass',
     fieldLabel: _t('Device Class'),
     id: 'add-device_class',
@@ -378,12 +378,13 @@ Ext.apply(Zenoss.devices, {
                             items: [{
                                 xtype: 'textfield',
                                 name: 'deviceName',
+                                width:250,
                                 fieldLabel: _t('Name or IP'),
                                 id: "add-device-name",
                                 allowBlank: false
                             }, deviceClassCombo, {
                                 xtype: 'combo',
-                                width: 160,
+                                width: 250,
                                 name: 'collector',
                                 fieldLabel: _t('Collector'),
                                 id: 'add-device-collector',
@@ -410,6 +411,7 @@ Ext.apply(Zenoss.devices, {
                             }, {
                                 xtype: 'checkbox',
                                 name: 'model',
+                                width:250,
                                 fieldLabel: _t('Model Device'),
                                 id: 'add-device-protocol',
                                 checked: true
@@ -421,13 +423,14 @@ Ext.apply(Zenoss.devices, {
                             items: [{
                                 xtype: 'textfield',
                                 name: 'title',
+                                width:250,
                                 fieldLabel: _t('Title')
                             }, {
                                 xtype: 'ProductionStateCombo',
                                 name: 'productionState',
-                                minListWidth: 160,
+                                minListWidth: 250,
                                 id: 'production-combo',
-                                width: 160,
+                                width: 250,
                                 allowBlank: false,
                                 listeners: {
                                     'afterrender': function(component) {
@@ -442,8 +445,8 @@ Ext.apply(Zenoss.devices, {
                             }, {
                                 xtype: 'PriorityCombo',
                                 name: 'priority',
-                                minListWidth: 160,
-                                width: 160,
+                                minListWidth: 250,
+                                width: 250,
                                 allowBlank: false,
                                 listeners: {
                                     'afterrender': function(component) {
@@ -487,7 +490,7 @@ Ext.apply(Zenoss.devices, {
                         xtype: 'panel',
                         border: false,
                         layout: 'column',
-                        ref: "moreAttributes",
+                        ref: "moreAttributes",                        
                         listeners: {
                             expand: function(){
                                 win.center();
@@ -1218,7 +1221,8 @@ Ext.getCmp('center_panel').add({
             buttonRef: 'seeAll',
             items: [{
                 xtype: 'infradetailnav',
-                id: 'detail_nav'
+                id: 'detail_nav',
+                padding: '0 0 10px 0'
             }, {
                 xtype: 'montemplatetreepanel',
                 id: 'templateTree',

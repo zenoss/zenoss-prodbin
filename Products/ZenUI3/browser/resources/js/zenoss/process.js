@@ -440,6 +440,7 @@ var zMonitor = {
     ref: '../../zMonitor',
     title: _t('Enable Monitoring? (zMonitor)'),
     name: 'zMonitor',
+    defaults: {border:false},    
     localField: {
         xtype: 'select',
         mode: 'local',
@@ -452,6 +453,7 @@ var zAlertOnRestart = {
     ref: '../../zAlertOnRestart',
     title: _t('Send Event on Restart? (zAlertOnRestart)'),
     name: 'zAlertOnRestart',
+    defaults:{border:false},
     localField: {
         xtype: 'select',
         mode: 'local',
@@ -464,9 +466,10 @@ var zFailSeverity = {
     ref: '../../zFailSeverity',
     title: _t('Failure Event Severity (zFailSeverity)'),
     name: 'zFailSeverity',
+    defaults:{border:false},        
     localField: {
         xtype: 'select',
-        mode: 'local',
+        mode: 'local',  
         store: Zenoss.env.SEVERITIES.slice(0, 5)
     }
 };
@@ -489,9 +492,9 @@ var processFormItems = {
     layout: 'column',
     border: false,
     defaults: {
-        layout: 'anchor',
-        border: false,
+        layout: 'anchor', 
         bodyStyle: 'padding: 5px',
+        border:false,
         columnWidth: 0.5
     },
     items: [
@@ -511,7 +514,7 @@ var processFormItems = {
 Ext.getCmp('center_panel').add(
         new Ext.Panel({
             layout: 'border',
-            defaults: {'border':false},
+            defaults: {border:false},
             items: [{
                 id: 'master_panel',
                 region: 'west',
@@ -524,13 +527,13 @@ Ext.getCmp('center_panel').add(
                 id: 'detail_panel',
                 region: 'center',
                 layout: 'border',
-                defaults: {'border':false},
                 items: [{
                     xtype: 'basedetailform',
                     trackResetOnLoad: true,
                     id: 'processForm',
                     permission: 'Manage DMD',
                     region: 'center',
+                    border:false,
                     items: processFormItems,
                     router: router,
                     listeners: {

@@ -40,7 +40,7 @@
                 id: 'addeventform',
                 xtype: 'form',
                 monitorValid: true,
-                defaults: {width: 180},
+                defaults: {width: 290},
                 autoHeight: true,
                 border: false,
                 frame: false,
@@ -128,6 +128,7 @@
                 autoHeight: true,
                 border: false,
                 frame: false,
+                defaults: {border:false},                
                 items: [{
                     padding: 10,
                     style: {'font-size':'10pt'},

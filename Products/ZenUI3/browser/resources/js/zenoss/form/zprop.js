@@ -199,6 +199,7 @@ Ext.define("Zenoss.form.ZProperty", {
             defaults: {
                 xtype: 'panel',
                 layout: 'anchor',
+                border:false,
                 hideLabels: true
             },
             items: [{

@@ -415,7 +415,7 @@
         extend:"Ext.form.FormPanel",
         labelAlign: 'top',
         paramsAsHash: true,
-        frame: true,
+        frame: false,        
         defaults: {
             anchor: '95%',
             labelStyle: 'font-size: 13px; color: #5a5a5a'
@@ -440,6 +440,7 @@
         }],
         cls: 'device-overview-form-wrapper',
         bodyCssClass: 'device-overview-form',
+        style:{'background-color':'#dfe8f5'},
         listeners: {
             'add': function(me, field, index){
                 if (isField(field)) {
@@ -548,18 +549,20 @@
                 },
                 items: [{
                     layout: {
-                        type: 'hbox',
-                        align: 'stretchmax'
+                        type: 'hbox'
                     },
                     defaults: {
-                        margin:'0 2 2 0',
+                        bodyStyle: 'background-color:#dfe8f5;',                    
+                        minHeight: 350,                        
+                        margin:'0 4 4 0',
                         flex: 1
                     },
                     defaultType: 'devformpanel',
                     items: [{
                         id:'deviceoverviewpanel_summary',
                         defaultType: 'displayfield',
-                        minheight: 350,
+                        frame:false,
+                        border:false,
                         items: [{
                             fieldLabel: _t('Uptime'),
                             name: 'uptime'
@@ -583,7 +586,8 @@
                     },{
                         id:'deviceoverviewpanel_idsummary',
                         defaultType: 'displayfield',
-                        height: 350,
+                        frame:false,
+                        border:false,
                         listeners: {
                             actioncomplete: function(form, action) {
                                 if (action.type=='directsubmit') {
@@ -618,7 +622,8 @@
                     },{
                         id:'deviceoverviewpanel_descriptionsummary',
                         defaultType: 'textfield',
-                        minHeight: 350,
+                        frame:false,
+                        border:false,                        
                         items: [{
                             fieldLabel: _t('Rack Slot'),
                             name: 'rackSlot',
@@ -678,9 +683,13 @@
                 },{
                     id:'deviceoverviewpanel_customsummary',
                     defaultType: 'devformpanel',
+                    frame:false,
+                    border:false,                    
                     layout: 'hbox',
                     defaults: {
-                        margin:'0 2 2 0'
+                        bodyStyle: 'background-color:#dfe8f5;',                    
+                        minHeight: 400,                     
+                        margin:'0 4 4 0'
                     },
                     layoutConfig: {
                         align: 'stretchmax'
@@ -689,6 +698,8 @@
                         defaultType: 'displayfield',
                         flex: 2,
                         minHeight: 400,
+                        frame:false,
+                        border:false,                        
                         items: [{
                             xtype: 'clicktoedit',
                             listeners: {
@@ -743,7 +754,10 @@
                     },{
                         id:'deviceoverviewpanel_snmpsummary',
                         defaultType: 'displayfield',
-                        //flex: 1,
+                        frame:false,
+                        border:false,                        
+                        flex: 1,
+                        bodyStyle: 'background-color:#dfe8f5;',                        
                         minHeight: 400,
                         items: [{
                             fieldLabel: _t('SNMP SysName'),

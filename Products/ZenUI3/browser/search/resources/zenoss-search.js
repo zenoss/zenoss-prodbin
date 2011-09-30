@@ -81,7 +81,7 @@ if ( Ext.get('searchbox-container') === null ) {
         typeAhead: false,
         loadingText: _t('Searching..'),
         triggerAction: 'all',
-        width: 120,
+        width: 148,
         maxWidth: 375,
         pageSize: 0,
         // delay all requests by one second

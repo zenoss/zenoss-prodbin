@@ -522,11 +522,9 @@
     Ext.define('Zenoss.LiveGridInfoPanel', {
         extend: 'Ext.Toolbar.TextItem',
         alias: ['widget.livegridinfopanel'],
-
         displayMsg: 'Displaying {0} - {1} of {2} Rows',
         emptyMsg: 'No Results',
         cls: 'livegridinfopanel',
-
         initComponent: function() {
             this.setText(this.emptyMsg);
             if (this.grid) {

@@ -43,7 +43,7 @@ Ext.onReady( function() {
                     }
                     o.setDisabled(!isClass);
                 });
-            Ext.getCmp('nameTextField').setDisabled(isRoot);
+            Ext.getCmp('nameTextField2').setDisabled(isRoot);
         }
         else if (action.type == 'directsubmit') {
 
@@ -122,6 +122,7 @@ Ext.onReady( function() {
         ref: '../../zMonitor',
         title: _t('Enable Monitoring? (zMonitor)'),
         name: 'zMonitor',
+        defaults:{border:false},
         localField: {
             xtype: 'select',
             mode: 'local',
@@ -134,6 +135,7 @@ Ext.onReady( function() {
         ref: '../../zFailSeverity',
         title: _t('Failure Event Severity (zFailSeverity)'),
         name: 'zFailSeverity',
+        defaults:{border:false},        
         localField: {
             xtype: 'select',
             mode: 'local',

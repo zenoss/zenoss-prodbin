@@ -89,12 +89,14 @@ Ext.onReady(function () {
                     border: false,
                     monitorValid: true,
                     buttonAlign: 'center',
+                    labelWidth: 40,
                     items:[{
                         xtype: 'textfield',
                         name: 'newId',
                         ref: 'newId',
                         allowBlank: false,
                         vtype: 'alphanum',
+                        width:280,
                         fieldLabel: _t('Id')
                     }],
                     buttons:[{
@@ -399,7 +401,9 @@ Ext.onReady(function () {
                 height: bigWindowHeight-110,
                 maxHeight: bigWindowHeight-110,
                 width: bigWindowWidth,
-                minWidth: bigWindowWidth
+                minWidth: bigWindowWidth,
+                border:false,
+                defaults: {border:false}
             });
             NotificationTabContent.superclass.constructor.apply(this, arguments);
         }
@@ -413,7 +417,7 @@ Ext.onReady(function () {
                 activeTab: 0,
                 activeIndex: 0,
                 forceLayout: true,
-                frame: true,
+                frame: false,
                 loadData: function(data) {
                     Ext.each(this.items.items, function(item, index, allitems) {
                         item.loadData(data);
@@ -433,8 +437,10 @@ Ext.onReady(function () {
             padding: panelPadding,
             title: _t('Content'),
             id: 'notification_content',
+            border:false,
             defaults: {
-                padding: 0
+                padding: 0,
+                border:false
             },
             listeners: {
                 render: function() {
@@ -445,7 +451,7 @@ Ext.onReady(function () {
             },
             loadData: function(data) {
                 this.userWrite = data['userWrite'] || false;
-                var panel = {};
+                var panel = {border:false};
                 panel = Ext.applyIf(panel, data.content);
                 var comp = Ext.create('Ext.panel.Panel', panel);
                 this.add(comp);
@@ -463,14 +469,15 @@ Ext.onReady(function () {
                     padding: panelPadding,
                     defaults: {
                         layout: 'anchor',
-                        padding: 0,
-                        columnWidth: 0.5
+                        padding: 10,
+                        height:85,
+                        columnWidth: 0.49
                     },
                     items: [
                         {
                             xtype: 'fieldset',
                             header: false,
-                            defaults: {anchor: '100%', labelWidth: 190},
+                            defaults: {anchor: '100%', labelWidth: 190 },
                             items: [
                                 {
                                     xtype: 'hidden',
@@ -551,7 +558,6 @@ Ext.onReady(function () {
                 xtype: 'panel',
                 border: false,
                 layout: 'anchor',
-                padding: panelPadding,
                 title: _t('Local Notification Permissions'),
                 items: [
                     {
@@ -662,7 +668,7 @@ Ext.onReady(function () {
                 border: false,
                 monitorValid: true,
                 buttonAlign: 'center',
-
+                labelWidth: 40,
                 items:[
                     {
                         xtype: 'textfield',
@@ -670,6 +676,7 @@ Ext.onReady(function () {
                         ref: '../newId',
                         allowBlank: false,
                         vtype: 'alphanum',
+                        width:280,                        
                         fieldLabel: _t('Id')
                     },
                     typesCombo
@@ -716,7 +723,7 @@ Ext.onReady(function () {
                 constrain: true,
                 modal: true,
                 resizable: false,
-                width: bigWindowWidth,
+                width: bigWindowWidth+8,
                 height: bigWindowHeight,
                 minWidth: bigWindowWidth,
                 minHeight: bigWindowHeight,

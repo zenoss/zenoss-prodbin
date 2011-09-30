@@ -30,7 +30,7 @@ Ext.define("Zenoss.dialog.BaseWindow", {
     constructor: function(config) {
         config = config || {};
         Ext.applyIf(config, {
-            layout: (Ext.isIE) ? 'form': 'fit',
+            //layout: (Ext.isIE) ? 'form': 'fit',
             plain: true,
             border: false,
             buttonAlign: 'left',
@@ -264,7 +264,7 @@ Ext.define("Zenoss.FormDialog", {
             autoScroll: true,
             defaults: {
                 xtype: 'textfield',
-                anchor: '85%',
+                //anchor: '85%',
                 border: false
             },
             items: config.items,
@@ -281,7 +281,7 @@ Ext.define("Zenoss.FormDialog", {
         Ext.applyIf(config, {
             // ie renders window correctly on when layout is set to form
             // this may change in future ext/ie version
-            layout: (Ext.isIE) ? 'form': 'fit',
+            //layout: (Ext.isIE) ? 'form': 'fit',
             plain: true,
             border: false,
             buttonAlign: 'left',
