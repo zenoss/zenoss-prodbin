@@ -99,5 +99,7 @@ ZEN_DEFINE_COMMANDS_VIEW='Define Commands View'
 ZEN_MAINTENANCE_WINDOW_EDIT='Maintenance Windows Edit'
 ZEN_MAINTENANCE_WINDOW_VIEW='Maintenance Windows View'
 ZEN_ADMINISTRATORS_EDIT='Administrators Edit'
-ZEN_ADMINISTRATORS_VIEW='Administrators View' 
+ZEN_ADMINISTRATORS_VIEW='Administrators View'
 
+# Included for ZenPack upgrades only. No longer used.
+ZEN_VIEW_MODIFICATIONS='Unused'
