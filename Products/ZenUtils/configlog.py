@@ -23,6 +23,42 @@
 
 import logging
 import logging.config
+from logging import FileHandler
+from logging.handlers import RotatingFileHandler
+from logging.handlers import TimedRotatingFileHandler
+
+from .Utils import zenPath
+
+log = logging.getLogger("zen.configlog")
+
+
+def _relativeToLogPath(filename):
+    """Returns the filename relative to ZENHOME/log/"""
+    if filename.startswith('/'):
+        return filename
+    return zenPath('log', filename)
+
+
+class ZenFileHandler(FileHandler):
+    """Like python's FileHandler but relative to ZENHOME/log/"""
+    def __init__(self, filename, mode='a', encoding=None, delay=0):
+        filename = _relativeToLogPath(filename)
+        FileHandler.__init__(self, filename, mode, encoding, delay)
+
+
+class ZenRotatingFileHandler(RotatingFileHandler):
+    """Like python's RotatingFileHandler but relative to ZENHOME/log/"""
+    def __init__(self, filename, mode='a', maxBytes=0, backupCount=0, encoding=None, delay=0):
+        filename = _relativeToLogPath(filename)
+        RotatingFileHandler.__init__(self, filename, mode, maxBytes, backupCount, encoding, delay)
+
+
+class ZenTimedRotatingFileHandler(TimedRotatingFileHandler):
+    """Like python's TimedFileHandler but relative to ZENHOME/log/"""
+    def __init__(self, filename, when='h', interval=1, backupCount=0, encoding=None, delay=False, utc=False):
+        filename = _relativeToLogPath(filename)
+        TimedRotatingFileHandler.__init__(self, filename, when, interval, backupCount, encoding, delay, utc)
+
 
 def addLogsFromConfigFile(fname, configDefaults=None):
     """Add new loggers, handlers, and fomatters from a file.
@@ -37,13 +73,17 @@ def addLogsFromConfigFile(fname, configDefaults=None):
     """
     import ConfigParser
 
-    cp = ConfigParser.ConfigParser(configDefaults)
-    if hasattr(fname, 'readline'):
-        cp.readfp(fname)
-    else:
-        cp.read(fname)
+    try:
+        cp = ConfigParser.ConfigParser(configDefaults)
+        if hasattr(fname, 'readline'):
+            cp.readfp(fname)
+        else:
+            cp.read(fname)
 
-    formatters = logging.config._create_formatters(cp)
+        formatters = logging.config._create_formatters(cp)
+    except Exception:
+        log.exception('Problem with log configuration file: %s', fname)
+        return
 
     # critical section
     logging._acquireLock()
@@ -53,6 +93,8 @@ def addLogsFromConfigFile(fname, configDefaults=None):
         # Handlers add themselves to logging._handlers
         handlers = logging.config._install_handlers(cp, formatters)
         _zen_install_loggers(cp, handlers)
+    except Exception:
+        log.exception('Problem with log configuration file: %s', fname)
     finally:
         logging._releaseLock()
 
