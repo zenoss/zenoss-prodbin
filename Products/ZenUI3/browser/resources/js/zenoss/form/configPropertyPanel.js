@@ -51,6 +51,9 @@
             triggerAction: 'all',
             mode: 'local'
         },
+        'zSnmpCommunity': {
+            xtype: Zenoss.Security.doesNotHavePermission('Manage Device') ? 'password' : 'textfield'
+        },
         'zEventSeverity': {
             xtype: 'severity'
         },
@@ -323,6 +326,13 @@
                         header: _t('Value'),
                         flex: 1,
                         width: 180,
+                        renderer: function(v, row, record) {
+                            if (Zenoss.Security.doesNotHavePermission("Manage Device") &&
+                                record.data.id == 'zSnmpCommunity') {
+                                return "*******";
+                            }
+                            return v;
+                        },
                         sortable: false
                     },{
                         id: 'path',

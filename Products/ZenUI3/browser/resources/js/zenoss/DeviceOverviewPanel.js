@@ -774,7 +774,8 @@
                             name: 'snmpDescr'
                         },{
                             fieldLabel: _t('SNMP Community'),
-                            name: 'snmpCommunity'
+                            name: 'snmpCommunity',
+                            hidden: Zenoss.Security.doesNotHavePermission('Manage Device')
                         },{
                             fieldLabel: _t('SNMP Version'),
                             name: 'snmpVersion'
