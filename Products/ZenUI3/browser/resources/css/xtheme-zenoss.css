@@ -6024,17 +6024,17 @@ textarea.x-form-field {
 
 /* line 113, ../../../../../../../../zenoss/lib/python/zenoss/extjs/src/resources/themes/stylesheets/ext4/default/widgets/_window.scss */
 .x-window-default {
-  border-color: transparent;
+  border-color: #555555;
   -moz-border-radius: 7px;
   -webkit-border-radius: 7px;
   -o-border-radius: 7px;
   -ms-border-radius: 7px;
   -khtml-border-radius: 7px;
   border-radius: 7px;
-  -moz-box-shadow: transparent 0 1px 0px 0 inset, transparent 0 -1px 0px 0 inset, transparent -1px 0 0px 0 inset, transparent 1px 0 0px 0 inset;
-  -webkit-box-shadow: transparent 0 1px 0px 0 inset, transparent 0 -1px 0px 0 inset, transparent -1px 0 0px 0 inset, transparent 1px 0 0px 0 inset;
-  -o-box-shadow: transparent 0 1px 0px 0 inset, transparent 0 -1px 0px 0 inset, transparent -1px 0 0px 0 inset, transparent 1px 0 0px 0 inset;
-  box-shadow: transparent 0 1px 0px 0 inset, transparent 0 -1px 0px 0 inset, transparent -1px 0 0px 0 inset, transparent 1px 0 0px 0 inset; }
+  -moz-box-shadow: #555555 0 1px 0px 0 inset, #555555 0 -1px 0px 0 inset, #555555 -1px 0 0px 0 inset, #555555 1px 0 0px 0 inset;
+  -webkit-box-shadow: #555555 0 1px 0px 0 inset, #555555 0 -1px 0px 0 inset, #555555 -1px 0 0px 0 inset, #555555 1px 0 0px 0 inset;
+  -o-box-shadow: #555555 0 1px 0px 0 inset, #555555 0 -1px 0px 0 inset, #555555 -1px 0 0px 0 inset, #555555 1px 0 0px 0 inset;
+  box-shadow: #555555 0 1px 0px 0 inset, #555555 0 -1px 0px 0 inset, #555555 -1px 0 0px 0 inset, #555555 1px 0 0px 0 inset; }
 
 /* line 58, ../../../../../../../../zenoss/lib/python/zenoss/extjs/src/resources/themes/stylesheets/ext4/default/mixins/_frame.scss */
 .x-window-default {
@@ -6047,11 +6047,11 @@ textarea.x-form-field {
   padding: 6px 6px 6px 6px;
   border-width: 1px;
   border-style: solid;
-  background-color: rgba(0, 0, 0, 0.85); }
+  background-color: #555555; }
 
 /* line 91, ../../../../../../../../zenoss/lib/python/zenoss/extjs/src/resources/themes/stylesheets/ext4/default/mixins/_frame.scss */
 .x-nlg .x-window-default-mc {
-  background-color: rgba(0, 0, 0, 0.85); }
+  background-color: #555555; }
 
 /* line 104, ../../../../../../../../zenoss/lib/python/zenoss/extjs/src/resources/themes/stylesheets/ext4/default/mixins/_frame.scss */
 .x-nbr .x-window-default {
@@ -6083,12 +6083,12 @@ textarea.x-form-field {
 .x-window-body-default {
   border-color: black;
   border-width: 1px;
-  background: transparent;
+  background: #555555;
   color: #fafafa; }
 
 /* line 142, ../../../../../../../../zenoss/lib/python/zenoss/extjs/src/resources/themes/stylesheets/ext4/default/widgets/_window.scss */
 .x-window-header-default {
-  border-color: transparent;
+  border-color: #555555;
   zoom: 1; }
 
 /* line 147, ../../../../../../../../zenoss/lib/python/zenoss/extjs/src/resources/themes/stylesheets/ext4/default/widgets/_window.scss */
@@ -6128,11 +6128,11 @@ textarea.x-form-field {
   padding: 6px 6px 0 6px;
   border-width: 1px;
   border-style: solid;
-  background-color: rgba(0, 0, 0, 0.85); }
+  background-color: #555555; }
 
 /* line 91, ../../../../../../../../zenoss/lib/python/zenoss/extjs/src/resources/themes/stylesheets/ext4/default/mixins/_frame.scss */
 .x-nlg .x-window-header-default-top-mc {
-  background-color: rgba(0, 0, 0, 0.85); }
+  background-color: #555555; }
 
 /* line 104, ../../../../../../../../zenoss/lib/python/zenoss/extjs/src/resources/themes/stylesheets/ext4/default/mixins/_frame.scss */
 .x-nbr .x-window-header-default-top {
@@ -6189,11 +6189,11 @@ textarea.x-form-field {
   padding: 6px 6px 6px 0;
   border-width: 1px;
   border-style: solid;
-  background-color: rgba(0, 0, 0, 0.85); }
+  background-color: #555555; }
 
 /* line 91, ../../../../../../../../zenoss/lib/python/zenoss/extjs/src/resources/themes/stylesheets/ext4/default/mixins/_frame.scss */
 .x-nlg .x-window-header-default-right-mc {
-  background-color: rgba(0, 0, 0, 0.85); }
+  background-color: #555555; }
 
 /* line 104, ../../../../../../../../zenoss/lib/python/zenoss/extjs/src/resources/themes/stylesheets/ext4/default/mixins/_frame.scss */
 .x-nbr .x-window-header-default-right {
@@ -6250,11 +6250,11 @@ textarea.x-form-field {
   padding: 0 6px 6px 6px;
   border-width: 1px;
   border-style: solid;
-  background-color: rgba(0, 0, 0, 0.85); }
+  background-color: #555555; }
 
 /* line 91, ../../../../../../../../zenoss/lib/python/zenoss/extjs/src/resources/themes/stylesheets/ext4/default/mixins/_frame.scss */
 .x-nlg .x-window-header-default-bottom-mc {
-  background-color: rgba(0, 0, 0, 0.85); }
+  background-color: #555555; }
 
 /* line 104, ../../../../../../../../zenoss/lib/python/zenoss/extjs/src/resources/themes/stylesheets/ext4/default/mixins/_frame.scss */
 .x-nbr .x-window-header-default-bottom {
@@ -6311,11 +6311,11 @@ textarea.x-form-field {
   padding: 6px 0px 6px 6px;
   border-width: 1px;
   border-style: solid;
-  background-color: rgba(0, 0, 0, 0.85); }
+  background-color: #555555; }
 
 /* line 91, ../../../../../../../../zenoss/lib/python/zenoss/extjs/src/resources/themes/stylesheets/ext4/default/mixins/_frame.scss */
 .x-nlg .x-window-header-default-left-mc {
-  background-color: rgba(0, 0, 0, 0.85); }
+  background-color: #555555; }
 
 /* line 104, ../../../../../../../../zenoss/lib/python/zenoss/extjs/src/resources/themes/stylesheets/ext4/default/mixins/_frame.scss */
 .x-nbr .x-window-header-default-left {
@@ -6345,31 +6345,31 @@ textarea.x-form-field {
 
 /* line 164, ../../../../../../../../zenoss/lib/python/zenoss/extjs/src/resources/themes/stylesheets/ext4/default/widgets/_window.scss */
 .x-window-header-default-top {
-  -moz-box-shadow: transparent 0 1px 0px 0 inset, transparent -1px 0 0px 0 inset, transparent 1px 0 0px 0 inset;
-  -webkit-box-shadow: transparent 0 1px 0px 0 inset, transparent -1px 0 0px 0 inset, transparent 1px 0 0px 0 inset;
-  -o-box-shadow: transparent 0 1px 0px 0 inset, transparent -1px 0 0px 0 inset, transparent 1px 0 0px 0 inset;
-  box-shadow: transparent 0 1px 0px 0 inset, transparent -1px 0 0px 0 inset, transparent 1px 0 0px 0 inset; }
+  -moz-box-shadow: #555555 0 1px 0px 0 inset, #555555 -1px 0 0px 0 inset, #555555 1px 0 0px 0 inset;
+  -webkit-box-shadow: #555555 0 1px 0px 0 inset, #555555 -1px 0 0px 0 inset, #555555 1px 0 0px 0 inset;
+  -o-box-shadow: #555555 0 1px 0px 0 inset, #555555 -1px 0 0px 0 inset, #555555 1px 0 0px 0 inset;
+  box-shadow: #555555 0 1px 0px 0 inset, #555555 -1px 0 0px 0 inset, #555555 1px 0 0px 0 inset; }
 
 /* line 168, ../../../../../../../../zenoss/lib/python/zenoss/extjs/src/resources/themes/stylesheets/ext4/default/widgets/_window.scss */
 .x-window-header-default-right {
-  -moz-box-shadow: transparent 0 1px 0px 0 inset, transparent 0 -1px 0px 0 inset, transparent -1px 0 0px 0 inset;
-  -webkit-box-shadow: transparent 0 1px 0px 0 inset, transparent 0 -1px 0px 0 inset, transparent -1px 0 0px 0 inset;
-  -o-box-shadow: transparent 0 1px 0px 0 inset, transparent 0 -1px 0px 0 inset, transparent -1px 0 0px 0 inset;
-  box-shadow: transparent 0 1px 0px 0 inset, transparent 0 -1px 0px 0 inset, transparent -1px 0 0px 0 inset; }
+  -moz-box-shadow: #555555 0 1px 0px 0 inset, #555555 0 -1px 0px 0 inset, #555555 -1px 0 0px 0 inset;
+  -webkit-box-shadow: #555555 0 1px 0px 0 inset, #555555 0 -1px 0px 0 inset, #555555 -1px 0 0px 0 inset;
+  -o-box-shadow: #555555 0 1px 0px 0 inset, #555555 0 -1px 0px 0 inset, #555555 -1px 0 0px 0 inset;
+  box-shadow: #555555 0 1px 0px 0 inset, #555555 0 -1px 0px 0 inset, #555555 -1px 0 0px 0 inset; }
 
 /* line 172, ../../../../../../../../zenoss/lib/python/zenoss/extjs/src/resources/themes/stylesheets/ext4/default/widgets/_window.scss */
 .x-window-header-default-bottom {
-  -moz-box-shadow: transparent 0 -1px 0px 0 inset, transparent -1px 0 0px 0 inset, transparent 1px 0 0px 0 inset;
-  -webkit-box-shadow: transparent 0 -1px 0px 0 inset, transparent -1px 0 0px 0 inset, transparent 1px 0 0px 0 inset;
-  -o-box-shadow: transparent 0 -1px 0px 0 inset, transparent -1px 0 0px 0 inset, transparent 1px 0 0px 0 inset;
-  box-shadow: transparent 0 -1px 0px 0 inset, transparent -1px 0 0px 0 inset, transparent 1px 0 0px 0 inset; }
+  -moz-box-shadow: #555555 0 -1px 0px 0 inset, #555555 -1px 0 0px 0 inset, #555555 1px 0 0px 0 inset;
+  -webkit-box-shadow: #555555 0 -1px 0px 0 inset, #555555 -1px 0 0px 0 inset, #555555 1px 0 0px 0 inset;
+  -o-box-shadow: #555555 0 -1px 0px 0 inset, #555555 -1px 0 0px 0 inset, #555555 1px 0 0px 0 inset;
+  box-shadow: #555555 0 -1px 0px 0 inset, #555555 -1px 0 0px 0 inset, #555555 1px 0 0px 0 inset; }
 
 /* line 176, ../../../../../../../../zenoss/lib/python/zenoss/extjs/src/resources/themes/stylesheets/ext4/default/widgets/_window.scss */
 .x-window-header-default-left {
-  -moz-box-shadow: transparent 0 1px 0px 0 inset, transparent 0 -1px 0px 0 inset, transparent 1px 0 0px 0 inset;
-  -webkit-box-shadow: transparent 0 1px 0px 0 inset, transparent 0 -1px 0px 0 inset, transparent 1px 0 0px 0 inset;
-  -o-box-shadow: transparent 0 1px 0px 0 inset, transparent 0 -1px 0px 0 inset, transparent 1px 0 0px 0 inset;
-  box-shadow: transparent 0 1px 0px 0 inset, transparent 0 -1px 0px 0 inset, transparent 1px 0 0px 0 inset; }
+  -moz-box-shadow: #555555 0 1px 0px 0 inset, #555555 0 -1px 0px 0 inset, #555555 1px 0 0px 0 inset;
+  -webkit-box-shadow: #555555 0 1px 0px 0 inset, #555555 0 -1px 0px 0 inset, #555555 1px 0 0px 0 inset;
+  -o-box-shadow: #555555 0 1px 0px 0 inset, #555555 0 -1px 0px 0 inset, #555555 1px 0 0px 0 inset;
+  box-shadow: #555555 0 1px 0px 0 inset, #555555 0 -1px 0px 0 inset, #555555 1px 0 0px 0 inset; }
 
 /* line 84, ../../../../../../../../zenoss/lib/python/zenoss/extjs/src/resources/themes/stylesheets/ext4/default/widgets/_window.scss */
 .x-window-body-plain {
@@ -6377,7 +6377,7 @@ textarea.x-form-field {
 
 /* line 2, ../../../../../../../../zenoss/lib/python/zenoss/extjs/src/resources/themes/stylesheets/ext4/default/util/_messagebox.scss */
 .x-message-box .x-window-body {
-  background-color: rgba(0, 0, 0, 0.85);
+  background-color: #555555;
   border: none; }
 
 /* line 7, ../../../../../../../../zenoss/lib/python/zenoss/extjs/src/resources/themes/stylesheets/ext4/default/util/_messagebox.scss */
@@ -9368,6 +9368,1164 @@ textarea.x-form-field {
   background-color: #dfdfdf;
   background-image: url("/++resource++zenui/img/ext4/btn/btn-default-toolbar-small-pressed-bg.png") ; }
 
+/* line 615, ../../../../../../../../zenoss/lib/python/zenoss/extjs/src/resources/themes/stylesheets/ext4/default/widgets/_button.scss */
+.x-btn-dialog-small {
+  border-color: #5b5b5b; }
+
+/* line 58, ../../../../../../../../zenoss/lib/python/zenoss/extjs/src/resources/themes/stylesheets/ext4/default/mixins/_frame.scss */
+.x-btn-dialog-small {
+  -moz-border-radius: 3px;
+  -webkit-border-radius: 3px;
+  -o-border-radius: 3px;
+  -ms-border-radius: 3px;
+  -khtml-border-radius: 3px;
+  border-radius: 3px;
+  padding: 2px 2px 2px 2px;
+  border-width: 1px;
+  border-style: solid;
+  background-color: #dfdfdf; }
+
+/* line 91, ../../../../../../../../zenoss/lib/python/zenoss/extjs/src/resources/themes/stylesheets/ext4/default/mixins/_frame.scss */
+.x-nlg .x-btn-dialog-small-mc {
+  background-color: #dfdfdf; }
+
+/* line 104, ../../../../../../../../zenoss/lib/python/zenoss/extjs/src/resources/themes/stylesheets/ext4/default/mixins/_frame.scss */
+.x-nbr .x-btn-dialog-small {
+  padding: 0 !important;
+  border-width: 0 !important;
+  -moz-border-radius: 0px;
+  -webkit-border-radius: 0px;
+  -o-border-radius: 0px;
+  -ms-border-radius: 0px;
+  -khtml-border-radius: 0px;
+  border-radius: 0px;
+  background-color: transparent;
+  background-position: 1100303px 1000303px; }
+/* line 147, ../../../../../../../../zenoss/lib/python/zenoss/extjs/src/resources/themes/stylesheets/ext4/default/mixins/_frame.scss */
+.x-nbr .x-btn-dialog-small-tl, .x-nbr .x-btn-dialog-small-bl, .x-nbr .x-btn-dialog-small-tr, .x-nbr .x-btn-dialog-small-br, .x-nbr .x-btn-dialog-small-tc, .x-nbr .x-btn-dialog-small-bc, .x-nbr .x-btn-dialog-small-ml, .x-nbr .x-btn-dialog-small-mr {
+  zoom: 1;
+  background-image: url('/++resource++extjs/resources/themes/images/default/btn/btn-dialog-small-corners.gif'); }
+/* line 168, ../../../../../../../../zenoss/lib/python/zenoss/extjs/src/resources/themes/stylesheets/ext4/default/mixins/_frame.scss */
+.x-nbr .x-btn-dialog-small-ml, .x-nbr .x-btn-dialog-small-mr {
+  zoom: 1;
+  background-image: url('/++resource++extjs/resources/themes/images/default/btn/btn-dialog-small-sides.gif');
+  background-position: 0 0;
+  background-repeat: repeat-y; }
+/* line 200, ../../../../../../../../zenoss/lib/python/zenoss/extjs/src/resources/themes/stylesheets/ext4/default/mixins/_frame.scss */
+.x-nbr .x-btn-dialog-small-mc {
+  padding: 0 0 0 0; }
+
+/* line 621, ../../../../../../../../zenoss/lib/python/zenoss/extjs/src/resources/themes/stylesheets/ext4/default/widgets/_button.scss */
+.x-btn-dialog-small .x-btn-inner {
+  font-size: 11px;
+  font-weight: normal;
+  font-family: helvetica, arial, sans-serif;
+  color: #333333;
+  background-repeat: no-repeat;
+  padding: 0 4px; }
+
+/* line 633, ../../../../../../../../zenoss/lib/python/zenoss/extjs/src/resources/themes/stylesheets/ext4/default/widgets/_button.scss */
+.x-btn-dialog-small-icon button, .x-btn-dialog-small-icon .x-btn-inner, .x-btn-dialog-small-noicon button, .x-btn-dialog-small-noicon .x-btn-inner {
+  height: 18px;
+  line-height: 18px; }
+
+/* line 641, ../../../../../../../../zenoss/lib/python/zenoss/extjs/src/resources/themes/stylesheets/ext4/default/widgets/_button.scss */
+.x-btn-dialog-small-icon button {
+  padding: 0;
+  width: 18px !important;
+  height: 18px; }
+/* line 647, ../../../../../../../../zenoss/lib/python/zenoss/extjs/src/resources/themes/stylesheets/ext4/default/widgets/_button.scss */
+.x-btn-dialog-small-icon .x-btn-icon {
+  width: 18px;
+  height: 18px;
+  top: 0;
+  left: 0;
+  bottom: 0;
+  right: 0; }
+
+/* line 658, ../../../../../../../../zenoss/lib/python/zenoss/extjs/src/resources/themes/stylesheets/ext4/default/widgets/_button.scss */
+.x-btn-dialog-small-icon-text-left button {
+  height: 18px; }
+/* line 661, ../../../../../../../../zenoss/lib/python/zenoss/extjs/src/resources/themes/stylesheets/ext4/default/widgets/_button.scss */
+.x-btn-dialog-small-icon-text-left .x-btn-inner {
+  height: 18px;
+  line-height: 18px;
+  padding-left: 22px; }
+/* line 667, ../../../../../../../../zenoss/lib/python/zenoss/extjs/src/resources/themes/stylesheets/ext4/default/widgets/_button.scss */
+.x-btn-dialog-small-icon-text-left .x-btn-icon {
+  width: 18px;
+  height: auto;
+  top: 0;
+  left: 0;
+  bottom: 0;
+  right: auto; }
+/* line 676, ../../../../../../../../zenoss/lib/python/zenoss/extjs/src/resources/themes/stylesheets/ext4/default/widgets/_button.scss */
+.x-ie6 .x-btn-dialog-small-icon-text-left .x-btn-icon, .x-quirks .x-btn-dialog-small-icon-text-left .x-btn-icon {
+  height: 18px; }
+
+/* line 683, ../../../../../../../../zenoss/lib/python/zenoss/extjs/src/resources/themes/stylesheets/ext4/default/widgets/_button.scss */
+.x-btn-dialog-small-icon-text-right button {
+  height: 18px; }
+/* line 686, ../../../../../../../../zenoss/lib/python/zenoss/extjs/src/resources/themes/stylesheets/ext4/default/widgets/_button.scss */
+.x-btn-dialog-small-icon-text-right .x-btn-inner {
+  height: 18px;
+  line-height: 18px;
+  padding-right: 22px !important; }
+/* line 692, ../../../../../../../../zenoss/lib/python/zenoss/extjs/src/resources/themes/stylesheets/ext4/default/widgets/_button.scss */
+.x-btn-dialog-small-icon-text-right .x-btn-icon {
+  width: 18px;
+  height: auto;
+  top: 0;
+  left: auto;
+  bottom: 0;
+  right: 0; }
+/* line 701, ../../../../../../../../zenoss/lib/python/zenoss/extjs/src/resources/themes/stylesheets/ext4/default/widgets/_button.scss */
+.x-ie6 .x-btn-dialog-small-icon-text-right .x-btn-icon, .x-quirks .x-btn-dialog-small-icon-text-right .x-btn-icon {
+  height: 18px; }
+
+/* line 708, ../../../../../../../../zenoss/lib/python/zenoss/extjs/src/resources/themes/stylesheets/ext4/default/widgets/_button.scss */
+.x-btn-dialog-small-icon-text-top .x-btn-inner {
+  padding-top: 22px; }
+/* line 712, ../../../../../../../../zenoss/lib/python/zenoss/extjs/src/resources/themes/stylesheets/ext4/default/widgets/_button.scss */
+.x-btn-dialog-small-icon-text-top .x-btn-icon {
+  width: auto;
+  height: 18px;
+  top: 0;
+  left: 0;
+  bottom: auto;
+  right: 0; }
+/* line 721, ../../../../../../../../zenoss/lib/python/zenoss/extjs/src/resources/themes/stylesheets/ext4/default/widgets/_button.scss */
+.x-ie6 .x-btn-dialog-small-icon-text-top .x-btn-icon, .x-quirks .x-btn-dialog-small-icon-text-top .x-btn-icon {
+  width: 18px; }
+
+/* line 728, ../../../../../../../../zenoss/lib/python/zenoss/extjs/src/resources/themes/stylesheets/ext4/default/widgets/_button.scss */
+.x-btn-dialog-small-icon-text-bottom .x-btn-inner {
+  padding-bottom: 22px; }
+/* line 732, ../../../../../../../../zenoss/lib/python/zenoss/extjs/src/resources/themes/stylesheets/ext4/default/widgets/_button.scss */
+.x-btn-dialog-small-icon-text-bottom .x-btn-icon {
+  width: auto;
+  height: 18px;
+  top: auto;
+  left: 0;
+  bottom: 0;
+  right: 0; }
+/* line 741, ../../../../../../../../zenoss/lib/python/zenoss/extjs/src/resources/themes/stylesheets/ext4/default/widgets/_button.scss */
+.x-ie6 .x-btn-dialog-small-icon-text-bottom .x-btn-icon, .x-quirks .x-btn-dialog-small-icon-text-bottom .x-btn-icon {
+  width: 18px; }
+
+/* line 747, ../../../../../../../../zenoss/lib/python/zenoss/extjs/src/resources/themes/stylesheets/ext4/default/widgets/_button.scss */
+.x-btn-dialog-small-over {
+  background-image: none;
+  background-color: #dfdfdf;
+  background-image: -webkit-gradient(linear, 50% 0%, 50% 100%, color-stop(0%, #dfdfdf), color-stop(48%, #d9d9d9), color-stop(52%, #c7c7c7), color-stop(100%, #cbcbcb));
+  background-image: -webkit-linear-gradient(top, #dfdfdf, #d9d9d9 48%, #c7c7c7 52%, #cbcbcb);
+  background-image: -moz-linear-gradient(top, #dfdfdf, #d9d9d9 48%, #c7c7c7 52%, #cbcbcb);
+  background-image: -o-linear-gradient(top, #dfdfdf, #d9d9d9 48%, #c7c7c7 52%, #cbcbcb);
+  background-image: -ms-linear-gradient(top, #dfdfdf, #d9d9d9 48%, #c7c7c7 52%, #cbcbcb);
+  background-image: linear-gradient(top, #dfdfdf, #d9d9d9 48%, #c7c7c7 52%, #cbcbcb); }
+
+/* line 771, ../../../../../../../../zenoss/lib/python/zenoss/extjs/src/resources/themes/stylesheets/ext4/default/widgets/_button.scss */
+.x-btn-dialog-small-focus {
+  background-image: none;
+  background-color: #dfdfdf;
+  background-image: -webkit-gradient(linear, 50% 0%, 50% 100%, color-stop(0%, #dfdfdf), color-stop(48%, #d9d9d9), color-stop(52%, #c7c7c7), color-stop(100%, #cbcbcb));
+  background-image: -webkit-linear-gradient(top, #dfdfdf, #d9d9d9 48%, #c7c7c7 52%, #cbcbcb);
+  background-image: -moz-linear-gradient(top, #dfdfdf, #d9d9d9 48%, #c7c7c7 52%, #cbcbcb);
+  background-image: -o-linear-gradient(top, #dfdfdf, #d9d9d9 48%, #c7c7c7 52%, #cbcbcb);
+  background-image: -ms-linear-gradient(top, #dfdfdf, #d9d9d9 48%, #c7c7c7 52%, #cbcbcb);
+  background-image: linear-gradient(top, #dfdfdf, #d9d9d9 48%, #c7c7c7 52%, #cbcbcb); }
+
+/* line 796, ../../../../../../../../zenoss/lib/python/zenoss/extjs/src/resources/themes/stylesheets/ext4/default/widgets/_button.scss */
+.x-btn-dialog-small-menu-active, .x-btn-dialog-small-pressed {
+  background-image: none;
+  background-color: #dfdfdf;
+  background-image: -webkit-gradient(linear, 50% 0%, 50% 100%, color-stop(0%, #dfdfdf), color-stop(48%, #e4e4e4), color-stop(52%, #e4c2c3), color-stop(100%, #e6cbcb));
+  background-image: -webkit-linear-gradient(top, #dfdfdf, #e4e4e4 48%, #e4c2c3 52%, #e6cbcb);
+  background-image: -moz-linear-gradient(top, #dfdfdf, #e4e4e4 48%, #e4c2c3 52%, #e6cbcb);
+  background-image: -o-linear-gradient(top, #dfdfdf, #e4e4e4 48%, #e4c2c3 52%, #e6cbcb);
+  background-image: -ms-linear-gradient(top, #dfdfdf, #e4e4e4 48%, #e4c2c3 52%, #e6cbcb);
+  background-image: linear-gradient(top, #dfdfdf, #e4e4e4 48%, #e4c2c3 52%, #e6cbcb); }
+
+/* line 820, ../../../../../../../../zenoss/lib/python/zenoss/extjs/src/resources/themes/stylesheets/ext4/default/widgets/_button.scss */
+.x-btn-dialog-small-disabled {
+  border-color: #b4b4b4;
+  background-image: none;
+  background-color: transparent; }
+/* line 828, ../../../../../../../../zenoss/lib/python/zenoss/extjs/src/resources/themes/stylesheets/ext4/default/widgets/_button.scss */
+.x-btn-dialog-small-disabled .x-btn-inner {
+  color: #333333 !important; }
+
+/* line 845, ../../../../../../../../zenoss/lib/python/zenoss/extjs/src/resources/themes/stylesheets/ext4/default/widgets/_button.scss */
+.x-ie .x-btn-dialog-small-disabled .x-btn-inner {
+  color: #595959 !important; }
+
+/* line 853, ../../../../../../../../zenoss/lib/python/zenoss/extjs/src/resources/themes/stylesheets/ext4/default/widgets/_button.scss */
+.x-ie6 .x-btn-dialog-small-disabled .x-btn-inner {
+  color: #8c8c8c !important; }
+
+/* line 868, ../../../../../../../../zenoss/lib/python/zenoss/extjs/src/resources/themes/stylesheets/ext4/default/widgets/_button.scss */
+.x-nbr .x-btn-dialog-small-over .x-frame-tl, .x-nbr .x-btn-dialog-small-over .x-frame-bl, .x-nbr .x-btn-dialog-small-over .x-frame-tr, .x-nbr .x-btn-dialog-small-over .x-frame-br, .x-nbr .x-btn-dialog-small-over .x-frame-tc, .x-nbr .x-btn-dialog-small-over .x-frame-bc {
+  background-image: url('/++resource++extjs/resources/themes/images/default/btn/btn-dialog-small-over-corners.gif'); }
+/* line 872, ../../../../../../../../zenoss/lib/python/zenoss/extjs/src/resources/themes/stylesheets/ext4/default/widgets/_button.scss */
+.x-nbr .x-btn-dialog-small-over .x-frame-ml, .x-nbr .x-btn-dialog-small-over .x-frame-mr {
+  background-image: url('/++resource++extjs/resources/themes/images/default/btn/btn-dialog-small-over-sides.gif'); }
+/* line 875, ../../../../../../../../zenoss/lib/python/zenoss/extjs/src/resources/themes/stylesheets/ext4/default/widgets/_button.scss */
+.x-nbr .x-btn-dialog-small-over .x-frame-mc {
+  background-color: #dfdfdf;
+  background-image: url('/++resource++extjs/resources/themes/images/default/btn/btn-dialog-small-over-bg.gif'); }
+/* line 889, ../../../../../../../../zenoss/lib/python/zenoss/extjs/src/resources/themes/stylesheets/ext4/default/widgets/_button.scss */
+.x-nbr .x-btn-dialog-small-focus .x-frame-tl, .x-nbr .x-btn-dialog-small-focus .x-frame-bl, .x-nbr .x-btn-dialog-small-focus .x-frame-tr, .x-nbr .x-btn-dialog-small-focus .x-frame-br, .x-nbr .x-btn-dialog-small-focus .x-frame-tc, .x-nbr .x-btn-dialog-small-focus .x-frame-bc {
+  background-image: url('/++resource++extjs/resources/themes/images/default/btn/btn-dialog-small-focus-corners.gif'); }
+/* line 893, ../../../../../../../../zenoss/lib/python/zenoss/extjs/src/resources/themes/stylesheets/ext4/default/widgets/_button.scss */
+.x-nbr .x-btn-dialog-small-focus .x-frame-ml, .x-nbr .x-btn-dialog-small-focus .x-frame-mr {
+  background-image: url('/++resource++extjs/resources/themes/images/default/btn/btn-dialog-small-focus-sides.gif'); }
+/* line 896, ../../../../../../../../zenoss/lib/python/zenoss/extjs/src/resources/themes/stylesheets/ext4/default/widgets/_button.scss */
+.x-nbr .x-btn-dialog-small-focus .x-frame-mc {
+  background-color: #dfdfdf;
+  background-image: url('/++resource++extjs/resources/themes/images/default/btn/btn-dialog-small-focus-bg.gif'); }
+/* line 911, ../../../../../../../../zenoss/lib/python/zenoss/extjs/src/resources/themes/stylesheets/ext4/default/widgets/_button.scss */
+.x-nbr .x-btn-dialog-small-menu-active .x-frame-tl, .x-nbr .x-btn-dialog-small-menu-active .x-frame-bl, .x-nbr .x-btn-dialog-small-menu-active .x-frame-tr, .x-nbr .x-btn-dialog-small-menu-active .x-frame-br, .x-nbr .x-btn-dialog-small-menu-active .x-frame-tc, .x-nbr .x-btn-dialog-small-menu-active .x-frame-bc, .x-nbr .x-btn-dialog-small-pressed .x-frame-tl, .x-nbr .x-btn-dialog-small-pressed .x-frame-bl, .x-nbr .x-btn-dialog-small-pressed .x-frame-tr, .x-nbr .x-btn-dialog-small-pressed .x-frame-br, .x-nbr .x-btn-dialog-small-pressed .x-frame-tc, .x-nbr .x-btn-dialog-small-pressed .x-frame-bc {
+  background-image: url('/++resource++extjs/resources/themes/images/default/btn/btn-dialog-small-pressed-corners.gif'); }
+/* line 915, ../../../../../../../../zenoss/lib/python/zenoss/extjs/src/resources/themes/stylesheets/ext4/default/widgets/_button.scss */
+.x-nbr .x-btn-dialog-small-menu-active .x-frame-ml, .x-nbr .x-btn-dialog-small-menu-active .x-frame-mr, .x-nbr .x-btn-dialog-small-pressed .x-frame-ml, .x-nbr .x-btn-dialog-small-pressed .x-frame-mr {
+  background-image: url('/++resource++extjs/resources/themes/images/default/btn/btn-dialog-small-pressed-sides.gif'); }
+/* line 918, ../../../../../../../../zenoss/lib/python/zenoss/extjs/src/resources/themes/stylesheets/ext4/default/widgets/_button.scss */
+.x-nbr .x-btn-dialog-small-menu-active .x-frame-mc, .x-nbr .x-btn-dialog-small-pressed .x-frame-mc {
+  background-color: #dfdfdf;
+  background-image: url('/++resource++extjs/resources/themes/images/default/btn/btn-dialog-small-pressed-bg.gif'); }
+/* line 932, ../../../../../../../../zenoss/lib/python/zenoss/extjs/src/resources/themes/stylesheets/ext4/default/widgets/_button.scss */
+.x-nbr .x-btn-dialog-small-disabled .x-frame-tl, .x-nbr .x-btn-dialog-small-disabled .x-frame-bl, .x-nbr .x-btn-dialog-small-disabled .x-frame-tr, .x-nbr .x-btn-dialog-small-disabled .x-frame-br, .x-nbr .x-btn-dialog-small-disabled .x-frame-tc, .x-nbr .x-btn-dialog-small-disabled .x-frame-bc {
+  background-image: url('/++resource++extjs/resources/themes/images/default/btn/btn-dialog-small-disabled-corners.gif'); }
+/* line 936, ../../../../../../../../zenoss/lib/python/zenoss/extjs/src/resources/themes/stylesheets/ext4/default/widgets/_button.scss */
+.x-nbr .x-btn-dialog-small-disabled .x-frame-ml, .x-nbr .x-btn-dialog-small-disabled .x-frame-mr {
+  background-image: url('/++resource++extjs/resources/themes/images/default/btn/btn-dialog-small-disabled-sides.gif'); }
+/* line 939, ../../../../../../../../zenoss/lib/python/zenoss/extjs/src/resources/themes/stylesheets/ext4/default/widgets/_button.scss */
+.x-nbr .x-btn-dialog-small-disabled .x-frame-mc {
+  background-color: transparent; }
+
+/* line 961, ../../../../../../../../zenoss/lib/python/zenoss/extjs/src/resources/themes/stylesheets/ext4/default/widgets/_button.scss */
+.x-nlg .x-btn-dialog-small-over {
+  background-repeat: repeat-x;
+  background-image: url('/++resource++extjs/resources/themes/images/default/btn/btn-dialog-small-over-bg.gif'); }
+
+/* line 970, ../../../../../../../../zenoss/lib/python/zenoss/extjs/src/resources/themes/stylesheets/ext4/default/widgets/_button.scss */
+.x-nlg .x-btn-dialog-small-focus {
+  background-repeat: repeat-x;
+  background-image: url('/++resource++extjs/resources/themes/images/default/btn/btn-dialog-small-focus-bg.gif'); }
+
+/* line 980, ../../../../../../../../zenoss/lib/python/zenoss/extjs/src/resources/themes/stylesheets/ext4/default/widgets/_button.scss */
+.x-nlg .x-btn-dialog-small-menu-active, .x-nlg .x-btn-dialog-small-pressed {
+  background-repeat: repeat-x;
+  background-image: url('/++resource++extjs/resources/themes/images/default/btn/btn-dialog-small-pressed-bg.gif'); }
+
+/* line 321, ../sass/styles/widgets/_button.scss */
+.x-btn-dialog-small, .x-btn-dialog-small-disabled, .x-btn-dialog-small-over {
+  background-image: -webkit-gradient(linear, 50% 0%, 50% 100%, color-stop(0%, #ececec), color-stop(100%, #c6c6c6));
+  background-image: -webkit-linear-gradient(top, #ececec, #c6c6c6);
+  background-image: -moz-linear-gradient(top, #ececec, #c6c6c6);
+  background-image: -o-linear-gradient(top, #ececec, #c6c6c6);
+  background-image: -ms-linear-gradient(top, #ececec, #c6c6c6);
+  background-image: linear-gradient(top, #ececec, #c6c6c6); }
+
+/* line 329, ../sass/styles/widgets/_button.scss */
+.x-btn-dialog-small-menu-active, .x-btn-dialog-small-pressed {
+  background-image: -webkit-gradient(linear, 50% 0%, 50% 100%, color-stop(0%, #a0a0a0), color-stop(100%, #ececec));
+  background-image: -webkit-linear-gradient(top, #a0a0a0, #ececec);
+  background-image: -moz-linear-gradient(top, #a0a0a0, #ececec);
+  background-image: -o-linear-gradient(top, #a0a0a0, #ececec);
+  background-image: -ms-linear-gradient(top, #a0a0a0, #ececec);
+  background-image: linear-gradient(top, #a0a0a0, #ececec); }
+
+/* line 342, ../sass/styles/widgets/_button.scss */
+.x-btn-dialog-small span.x-btn-icon {
+  background: transparent none top center no-repeat;
+  background-image: url("/++resource++zenui/img/ext4/icon/icon-sprite.png") ; }
+/* line 347, ../sass/styles/widgets/_button.scss */
+.x-btn-dialog-small span.x-btn-icon.add {
+  background-position: 0 1px; }
+/* line 348, ../sass/styles/widgets/_button.scss */
+.x-btn-dialog-small span.x-btn-icon.delete {
+  background-position: 0 -17px; }
+/* line 349, ../sass/styles/widgets/_button.scss */
+.x-btn-dialog-small span.x-btn-icon.set {
+  background-position: 0 -35px; }
+/* line 350, ../sass/styles/widgets/_button.scss */
+.x-btn-dialog-small span.x-btn-icon.adddevice {
+  background-position: 0 -52px; }
+/* line 351, ../sass/styles/widgets/_button.scss */
+.x-btn-dialog-small span.x-btn-icon.import {
+  background-position: 0 -71px; }
+/* line 352, ../sass/styles/widgets/_button.scss */
+.x-btn-dialog-small span.x-btn-icon.export {
+  background-position: 0 -89px; }
+/* line 353, ../sass/styles/widgets/_button.scss */
+.x-btn-dialog-small span.x-btn-icon.configure {
+  background-position: 0 -107px; }
+/* line 354, ../sass/styles/widgets/_button.scss */
+.x-btn-dialog-small span.x-btn-icon.acknowledge {
+  background-position: 0 -125px; }
+/* line 355, ../sass/styles/widgets/_button.scss */
+.x-btn-dialog-small span.x-btn-icon.suppress {
+  background-position: 0 -143px; }
+/* line 356, ../sass/styles/widgets/_button.scss */
+.x-btn-dialog-small span.x-btn-icon.close {
+  background-position: 0 -161px; }
+/* line 357, ../sass/styles/widgets/_button.scss */
+.x-btn-dialog-small span.x-btn-icon.save {
+  background-position: 0 -179px; }
+/* line 358, ../sass/styles/widgets/_button.scss */
+.x-btn-dialog-small span.x-btn-icon.events {
+  background-position: 0 -197px; }
+/* line 359, ../sass/styles/widgets/_button.scss */
+.x-btn-dialog-small span.x-btn-icon.devprobs {
+  background-position: 0 -215px; }
+/* line 360, ../sass/styles/widgets/_button.scss */
+.x-btn-dialog-small span.x-btn-icon.customize {
+  background-position: 0 -233px; }
+/* line 361, ../sass/styles/widgets/_button.scss */
+.x-btn-dialog-small span.x-btn-icon.newwindow {
+  background-position: 0 -251px; }
+/* line 362, ../sass/styles/widgets/_button.scss */
+.x-btn-dialog-small span.x-btn-icon.export2 {
+  background-position: 0 -269px; }
+/* line 363, ../sass/styles/widgets/_button.scss */
+.x-btn-dialog-small span.x-btn-icon.fullscreen {
+  background-position: 0 -287px; }
+/* line 364, ../sass/styles/widgets/_button.scss */
+.x-btn-dialog-small span.x-btn-icon.dashboard {
+  background-position: 0 -305px; }
+/* line 365, ../sass/styles/widgets/_button.scss */
+.x-btn-dialog-small span.x-btn-icon.watchlist {
+  background-position: 2px -323px; }
+/* line 366, ../sass/styles/widgets/_button.scss */
+.x-btn-dialog-small span.x-btn-icon.slides {
+  background-position: 0 -341px; }
+/* line 367, ../sass/styles/widgets/_button.scss */
+.x-btn-dialog-small span.x-btn-icon.lighttable {
+  background-position: 0 -359px; }
+/* line 368, ../sass/styles/widgets/_button.scss */
+.x-btn-dialog-small span.x-btn-icon.outline {
+  background-position: 0 -377px; }
+/* line 369, ../sass/styles/widgets/_button.scss */
+.x-btn-dialog-small span.x-btn-icon.addslide {
+  background-position: 0 -395px; }
+/* line 371, ../sass/styles/widgets/_button.scss */
+.x-btn-dialog-small span.x-btn-icon.classify {
+  background-position: 0 -1242px; }
+/* line 372, ../sass/styles/widgets/_button.scss */
+.x-btn-dialog-small span.x-btn-icon.reopen {
+  background-position: 0 -1296px; }
+/* line 373, ../sass/styles/widgets/_button.scss */
+.x-btn-dialog-small span.x-btn-icon.share {
+  background-position: 0 -1350px; }
+/* line 374, ../sass/styles/widgets/_button.scss */
+.x-btn-dialog-small span.x-btn-icon.unacknowledge {
+  background-position: 0 -1404px; }
+/* line 375, ../sass/styles/widgets/_button.scss */
+.x-btn-dialog-small span.x-btn-icon.collapse {
+  background-position: 0 -1458px; }
+/* line 376, ../sass/styles/widgets/_button.scss */
+.x-btn-dialog-small span.x-btn-icon.expand {
+  background-position: 0 -1512px; }
+/* line 377, ../sass/styles/widgets/_button.scss */
+.x-btn-dialog-small span.x-btn-icon.refresh {
+  background-position: 0 -1566px; }
+
+/* line 385, ../sass/styles/widgets/_button.scss */
+.x-btn-dialog-small.x-btn-focus span.x-btn-icon.add, .x-btn-dialog-small.x-btn-over span.x-btn-icon.add, .x-btn-dialog-small.x-btn-pressed span.x-btn-icon.add {
+  background-position: 0 -412px; }
+/* line 386, ../sass/styles/widgets/_button.scss */
+.x-btn-dialog-small.x-btn-focus span.x-btn-icon.delete, .x-btn-dialog-small.x-btn-over span.x-btn-icon.delete, .x-btn-dialog-small.x-btn-pressed span.x-btn-icon.delete {
+  background-position: 0 -430px; }
+/* line 387, ../sass/styles/widgets/_button.scss */
+.x-btn-dialog-small.x-btn-focus span.x-btn-icon.set, .x-btn-dialog-small.x-btn-over span.x-btn-icon.set, .x-btn-dialog-small.x-btn-pressed span.x-btn-icon.set {
+  background-position: 0 -448px; }
+/* line 388, ../sass/styles/widgets/_button.scss */
+.x-btn-dialog-small.x-btn-focus span.x-btn-icon.adddevice, .x-btn-dialog-small.x-btn-over span.x-btn-icon.adddevice, .x-btn-dialog-small.x-btn-pressed span.x-btn-icon.adddevice {
+  background-position: 0 -465px; }
+/* line 389, ../sass/styles/widgets/_button.scss */
+.x-btn-dialog-small.x-btn-focus span.x-btn-icon.import, .x-btn-dialog-small.x-btn-over span.x-btn-icon.import, .x-btn-dialog-small.x-btn-pressed span.x-btn-icon.import {
+  background-position: 0 -484px; }
+/* line 390, ../sass/styles/widgets/_button.scss */
+.x-btn-dialog-small.x-btn-focus span.x-btn-icon.export, .x-btn-dialog-small.x-btn-over span.x-btn-icon.export, .x-btn-dialog-small.x-btn-pressed span.x-btn-icon.export {
+  background-position: 0 -502px; }
+/* line 391, ../sass/styles/widgets/_button.scss */
+.x-btn-dialog-small.x-btn-focus span.x-btn-icon.configure, .x-btn-dialog-small.x-btn-over span.x-btn-icon.configure, .x-btn-dialog-small.x-btn-pressed span.x-btn-icon.configure {
+  background-position: 0 -520px; }
+/* line 392, ../sass/styles/widgets/_button.scss */
+.x-btn-dialog-small.x-btn-focus span.x-btn-icon.acknowledge, .x-btn-dialog-small.x-btn-over span.x-btn-icon.acknowledge, .x-btn-dialog-small.x-btn-pressed span.x-btn-icon.acknowledge {
+  background-position: 0 -538px; }
+/* line 393, ../sass/styles/widgets/_button.scss */
+.x-btn-dialog-small.x-btn-focus span.x-btn-icon.suppress, .x-btn-dialog-small.x-btn-over span.x-btn-icon.suppress, .x-btn-dialog-small.x-btn-pressed span.x-btn-icon.suppress {
+  background-position: 0 -556px; }
+/* line 394, ../sass/styles/widgets/_button.scss */
+.x-btn-dialog-small.x-btn-focus span.x-btn-icon.close, .x-btn-dialog-small.x-btn-over span.x-btn-icon.close, .x-btn-dialog-small.x-btn-pressed span.x-btn-icon.close {
+  background-position: 0 -574px; }
+/* line 395, ../sass/styles/widgets/_button.scss */
+.x-btn-dialog-small.x-btn-focus span.x-btn-icon.save, .x-btn-dialog-small.x-btn-over span.x-btn-icon.save, .x-btn-dialog-small.x-btn-pressed span.x-btn-icon.save {
+  background-position: 0 -592px; }
+/* line 396, ../sass/styles/widgets/_button.scss */
+.x-btn-dialog-small.x-btn-focus span.x-btn-icon.events, .x-btn-dialog-small.x-btn-over span.x-btn-icon.events, .x-btn-dialog-small.x-btn-pressed span.x-btn-icon.events {
+  background-position: 0 -610px; }
+/* line 397, ../sass/styles/widgets/_button.scss */
+.x-btn-dialog-small.x-btn-focus span.x-btn-icon.devprobs, .x-btn-dialog-small.x-btn-over span.x-btn-icon.devprobs, .x-btn-dialog-small.x-btn-pressed span.x-btn-icon.devprobs {
+  background-position: 0 -628px; }
+/* line 398, ../sass/styles/widgets/_button.scss */
+.x-btn-dialog-small.x-btn-focus span.x-btn-icon.customize, .x-btn-dialog-small.x-btn-over span.x-btn-icon.customize, .x-btn-dialog-small.x-btn-pressed span.x-btn-icon.customize {
+  background-position: -1px -646px; }
+/* line 399, ../sass/styles/widgets/_button.scss */
+.x-btn-dialog-small.x-btn-focus span.x-btn-icon.newwindow, .x-btn-dialog-small.x-btn-over span.x-btn-icon.newwindow, .x-btn-dialog-small.x-btn-pressed span.x-btn-icon.newwindow {
+  background-position: 0 -664px; }
+/* line 400, ../sass/styles/widgets/_button.scss */
+.x-btn-dialog-small.x-btn-focus span.x-btn-icon.export2, .x-btn-dialog-small.x-btn-over span.x-btn-icon.export2, .x-btn-dialog-small.x-btn-pressed span.x-btn-icon.export2 {
+  background-position: 0 -682px; }
+/* line 401, ../sass/styles/widgets/_button.scss */
+.x-btn-dialog-small.x-btn-focus span.x-btn-icon.fullscreen, .x-btn-dialog-small.x-btn-over span.x-btn-icon.fullscreen, .x-btn-dialog-small.x-btn-pressed span.x-btn-icon.fullscreen {
+  background-position: 0 -700px; }
+/* line 402, ../sass/styles/widgets/_button.scss */
+.x-btn-dialog-small.x-btn-focus span.x-btn-icon.dashboard, .x-btn-dialog-small.x-btn-over span.x-btn-icon.dashboard, .x-btn-dialog-small.x-btn-pressed span.x-btn-icon.dashboard {
+  background-position: 0 -718px; }
+/* line 403, ../sass/styles/widgets/_button.scss */
+.x-btn-dialog-small.x-btn-focus span.x-btn-icon.watchlist, .x-btn-dialog-small.x-btn-over span.x-btn-icon.watchlist, .x-btn-dialog-small.x-btn-pressed span.x-btn-icon.watchlist {
+  background-position: 0 -736px; }
+/* line 404, ../sass/styles/widgets/_button.scss */
+.x-btn-dialog-small.x-btn-focus span.x-btn-icon.slides, .x-btn-dialog-small.x-btn-over span.x-btn-icon.slides, .x-btn-dialog-small.x-btn-pressed span.x-btn-icon.slides {
+  background-position: 0 -754px; }
+/* line 405, ../sass/styles/widgets/_button.scss */
+.x-btn-dialog-small.x-btn-focus span.x-btn-icon.lighttable, .x-btn-dialog-small.x-btn-over span.x-btn-icon.lighttable, .x-btn-dialog-small.x-btn-pressed span.x-btn-icon.lighttable {
+  background-position: 0 -772px; }
+/* line 406, ../sass/styles/widgets/_button.scss */
+.x-btn-dialog-small.x-btn-focus span.x-btn-icon.outline, .x-btn-dialog-small.x-btn-over span.x-btn-icon.outline, .x-btn-dialog-small.x-btn-pressed span.x-btn-icon.outline {
+  background-position: 0 -790px; }
+/* line 407, ../sass/styles/widgets/_button.scss */
+.x-btn-dialog-small.x-btn-focus span.x-btn-icon.addslide, .x-btn-dialog-small.x-btn-over span.x-btn-icon.addslide, .x-btn-dialog-small.x-btn-pressed span.x-btn-icon.addslide {
+  background-position: 0 -808px; }
+/* line 408, ../sass/styles/widgets/_button.scss */
+.x-btn-dialog-small.x-btn-focus span.x-btn-icon.classify, .x-btn-dialog-small.x-btn-over span.x-btn-icon.classify, .x-btn-dialog-small.x-btn-pressed span.x-btn-icon.classify {
+  background-position: 0 -1260px; }
+/* line 409, ../sass/styles/widgets/_button.scss */
+.x-btn-dialog-small.x-btn-focus span.x-btn-icon.reopen, .x-btn-dialog-small.x-btn-over span.x-btn-icon.reopen, .x-btn-dialog-small.x-btn-pressed span.x-btn-icon.reopen {
+  background-position: 0 -1314px; }
+/* line 410, ../sass/styles/widgets/_button.scss */
+.x-btn-dialog-small.x-btn-focus span.x-btn-icon.share, .x-btn-dialog-small.x-btn-over span.x-btn-icon.share, .x-btn-dialog-small.x-btn-pressed span.x-btn-icon.share {
+  background-position: 0 -1368px; }
+/* line 411, ../sass/styles/widgets/_button.scss */
+.x-btn-dialog-small.x-btn-focus span.x-btn-icon.unacknowledge, .x-btn-dialog-small.x-btn-over span.x-btn-icon.unacknowledge, .x-btn-dialog-small.x-btn-pressed span.x-btn-icon.unacknowledge {
+  background-position: 0 -1422px; }
+/* line 412, ../sass/styles/widgets/_button.scss */
+.x-btn-dialog-small.x-btn-focus span.x-btn-icon.collapse, .x-btn-dialog-small.x-btn-over span.x-btn-icon.collapse, .x-btn-dialog-small.x-btn-pressed span.x-btn-icon.collapse {
+  background-position: 0 -1476px; }
+/* line 413, ../sass/styles/widgets/_button.scss */
+.x-btn-dialog-small.x-btn-focus span.x-btn-icon.expand, .x-btn-dialog-small.x-btn-over span.x-btn-icon.expand, .x-btn-dialog-small.x-btn-pressed span.x-btn-icon.expand {
+  background-position: 0 -1530px; }
+/* line 414, ../sass/styles/widgets/_button.scss */
+.x-btn-dialog-small.x-btn-focus span.x-btn-icon.refresh, .x-btn-dialog-small.x-btn-over span.x-btn-icon.refresh, .x-btn-dialog-small.x-btn-pressed span.x-btn-icon.refresh {
+  background-position: 0 -1584px; }
+
+/* line 419, ../sass/styles/widgets/_button.scss */
+.x-btn-dialog-small.x-btn-disabled span.x-btn-icon.add {
+  background-position: 0 -824px; }
+/* line 420, ../sass/styles/widgets/_button.scss */
+.x-btn-dialog-small.x-btn-disabled span.x-btn-icon.delete {
+  background-position: 0 -842px; }
+/* line 421, ../sass/styles/widgets/_button.scss */
+.x-btn-dialog-small.x-btn-disabled span.x-btn-icon.set {
+  background-position: 0 -860px; }
+/* line 422, ../sass/styles/widgets/_button.scss */
+.x-btn-dialog-small.x-btn-disabled span.x-btn-icon.adddevice {
+  background-position: 0 -877px; }
+/* line 423, ../sass/styles/widgets/_button.scss */
+.x-btn-dialog-small.x-btn-disabled span.x-btn-icon.import {
+  background-position: 0 -896px; }
+/* line 424, ../sass/styles/widgets/_button.scss */
+.x-btn-dialog-small.x-btn-disabled span.x-btn-icon.export {
+  background-position: 0 -914px; }
+/* line 425, ../sass/styles/widgets/_button.scss */
+.x-btn-dialog-small.x-btn-disabled span.x-btn-icon.configure {
+  background-position: 0 -932px; }
+/* line 426, ../sass/styles/widgets/_button.scss */
+.x-btn-dialog-small.x-btn-disabled span.x-btn-icon.acknowledge {
+  background-position: 0 -950px; }
+/* line 427, ../sass/styles/widgets/_button.scss */
+.x-btn-dialog-small.x-btn-disabled span.x-btn-icon.suppress {
+  background-position: 0 -968px; }
+/* line 428, ../sass/styles/widgets/_button.scss */
+.x-btn-dialog-small.x-btn-disabled span.x-btn-icon.close {
+  background-position: 0 -986px; }
+/* line 429, ../sass/styles/widgets/_button.scss */
+.x-btn-dialog-small.x-btn-disabled span.x-btn-icon.save {
+  background-position: 0 -1004px; }
+/* line 430, ../sass/styles/widgets/_button.scss */
+.x-btn-dialog-small.x-btn-disabled span.x-btn-icon.events {
+  background-position: 0 -1022px; }
+/* line 431, ../sass/styles/widgets/_button.scss */
+.x-btn-dialog-small.x-btn-disabled span.x-btn-icon.devprobs {
+  background-position: 0 -1040px; }
+/* line 432, ../sass/styles/widgets/_button.scss */
+.x-btn-dialog-small.x-btn-disabled span.x-btn-icon.customize {
+  background-position: -1px -1058px; }
+/* line 433, ../sass/styles/widgets/_button.scss */
+.x-btn-dialog-small.x-btn-disabled span.x-btn-icon.newwindow {
+  background-position: 0 -1076px; }
+/* line 434, ../sass/styles/widgets/_button.scss */
+.x-btn-dialog-small.x-btn-disabled span.x-btn-icon.export2 {
+  background-position: 0 -1094px; }
+/* line 435, ../sass/styles/widgets/_button.scss */
+.x-btn-dialog-small.x-btn-disabled span.x-btn-icon.fullscreen {
+  background-position: 0 -1112px; }
+/* line 436, ../sass/styles/widgets/_button.scss */
+.x-btn-dialog-small.x-btn-disabled span.x-btn-icon.dashboard {
+  background-position: 0 -1130px; }
+/* line 437, ../sass/styles/widgets/_button.scss */
+.x-btn-dialog-small.x-btn-disabled span.x-btn-icon.watchlist {
+  background-position: 0 -1148px; }
+/* line 438, ../sass/styles/widgets/_button.scss */
+.x-btn-dialog-small.x-btn-disabled span.x-btn-icon.slides {
+  background-position: 0 -1166px; }
+/* line 439, ../sass/styles/widgets/_button.scss */
+.x-btn-dialog-small.x-btn-disabled span.x-btn-icon.lighttable {
+  background-position: 0 -1184px; }
+/* line 440, ../sass/styles/widgets/_button.scss */
+.x-btn-dialog-small.x-btn-disabled span.x-btn-icon.outline {
+  background-position: 0 -1202px; }
+/* line 441, ../sass/styles/widgets/_button.scss */
+.x-btn-dialog-small.x-btn-disabled span.x-btn-icon.addslide {
+  background-position: 0 -1220px; }
+/* line 442, ../sass/styles/widgets/_button.scss */
+.x-btn-dialog-small.x-btn-disabled span.x-btn-icon.classify {
+  background-position: 0 -1278px; }
+/* line 443, ../sass/styles/widgets/_button.scss */
+.x-btn-dialog-small.x-btn-disabled span.x-btn-icon.reopen {
+  background-position: 0 -1332px; }
+/* line 444, ../sass/styles/widgets/_button.scss */
+.x-btn-dialog-small.x-btn-disabled span.x-btn-icon.share {
+  background-position: 0 -1386px; }
+/* line 445, ../sass/styles/widgets/_button.scss */
+.x-btn-dialog-small.x-btn-disabled span.x-btn-icon.unacknowledge {
+  background-position: 0 -1440px; }
+/* line 446, ../sass/styles/widgets/_button.scss */
+.x-btn-dialog-small.x-btn-disabled span.x-btn-icon.collapse {
+  background-position: 0 -1494px; }
+/* line 447, ../sass/styles/widgets/_button.scss */
+.x-btn-dialog-small.x-btn-disabled span.x-btn-icon.expand {
+  background-position: 0 -1548px; }
+/* line 448, ../sass/styles/widgets/_button.scss */
+.x-btn-dialog-small.x-btn-disabled span.x-btn-icon.refresh {
+  background-position: 0 -1602px; }
+
+/* line 454, ../sass/styles/widgets/_button.scss */
+.x-btn em {
+  font-style: normal; }
+
+/* line 461, ../sass/styles/widgets/_button.scss */
+.x-nlg .x-btn-dialog-small, .x-nlg .x-btn-dialog-small-disabled, .x-nlg .x-btn-dialog-small-over {
+  background-repeat: repeat-x;
+  background-image: url("/++resource++zenui/img/ext4/btn/btn-dialog-small-over-bg.png") ; }
+/* line 467, ../sass/styles/widgets/_button.scss */
+.x-nlg .x-btn-dialog-small-menu-active, .x-nlg .x-btn-dialog-small-pressed {
+  background-repeat: repeat-x;
+  background-image: url("/++resource++zenui/img/ext4/btn/btn-dialog-small-pressed-bg.png") ; }
+
+/* line 482, ../sass/styles/widgets/_button.scss */
+.x-nbr .x-btn-dialog-small .x-frame-tl, .x-nbr .x-btn-dialog-small .x-frame-bl, .x-nbr .x-btn-dialog-small .x-frame-tr, .x-nbr .x-btn-dialog-small .x-frame-br, .x-nbr .x-btn-dialog-small .x-frame-tc, .x-nbr .x-btn-dialog-small .x-frame-bc, .x-nbr .x-btn-dialog-small-disabled .x-frame-tl, .x-nbr .x-btn-dialog-small-disabled .x-frame-bl, .x-nbr .x-btn-dialog-small-disabled .x-frame-tr, .x-nbr .x-btn-dialog-small-disabled .x-frame-br, .x-nbr .x-btn-dialog-small-disabled .x-frame-tc, .x-nbr .x-btn-dialog-small-disabled .x-frame-bc, .x-nbr .x-btn-dialog-small-over .x-frame-tl, .x-nbr .x-btn-dialog-small-over .x-frame-bl, .x-nbr .x-btn-dialog-small-over .x-frame-tr, .x-nbr .x-btn-dialog-small-over .x-frame-br, .x-nbr .x-btn-dialog-small-over .x-frame-tc, .x-nbr .x-btn-dialog-small-over .x-frame-bc {
+  background-image: url("/++resource++zenui/img/ext4/btn/btn-dialog-small-over-corners.png") ; }
+/* line 486, ../sass/styles/widgets/_button.scss */
+.x-nbr .x-btn-dialog-small .x-frame-ml, .x-nbr .x-btn-dialog-small .x-frame-mr, .x-nbr .x-btn-dialog-small-disabled .x-frame-ml, .x-nbr .x-btn-dialog-small-disabled .x-frame-mr, .x-nbr .x-btn-dialog-small-over .x-frame-ml, .x-nbr .x-btn-dialog-small-over .x-frame-mr {
+  background-image: url("/++resource++zenui/img/ext4/btn/btn-dialog-small-over-sides.png") ; }
+/* line 489, ../sass/styles/widgets/_button.scss */
+.x-nbr .x-btn-dialog-small .x-frame-mc, .x-nbr .x-btn-dialog-small-disabled .x-frame-mc, .x-nbr .x-btn-dialog-small-over .x-frame-mc {
+  background-color: #dfdfdf;
+  background-image: url("/++resource++zenui/img/ext4/btn/btn-dialog-small-over-bg.png") ; }
+/* line 502, ../sass/styles/widgets/_button.scss */
+.x-nbr .x-btn-dialog-small-menu-active .x-frame-tl, .x-nbr .x-btn-dialog-small-menu-active .x-frame-bl, .x-nbr .x-btn-dialog-small-menu-active .x-frame-tr, .x-nbr .x-btn-dialog-small-menu-active .x-frame-br, .x-nbr .x-btn-dialog-small-menu-active .x-frame-tc, .x-nbr .x-btn-dialog-small-menu-active .x-frame-bc, .x-nbr .x-btn-dialog-small-pressed .x-frame-tl, .x-nbr .x-btn-dialog-small-pressed .x-frame-bl, .x-nbr .x-btn-dialog-small-pressed .x-frame-tr, .x-nbr .x-btn-dialog-small-pressed .x-frame-br, .x-nbr .x-btn-dialog-small-pressed .x-frame-tc, .x-nbr .x-btn-dialog-small-pressed .x-frame-bc {
+  background-image: url("/++resource++zenui/img/ext4/btn/btn-dialog-small-pressed-corners.png") ; }
+/* line 506, ../sass/styles/widgets/_button.scss */
+.x-nbr .x-btn-dialog-small-menu-active .x-frame-ml, .x-nbr .x-btn-dialog-small-menu-active .x-frame-mr, .x-nbr .x-btn-dialog-small-pressed .x-frame-ml, .x-nbr .x-btn-dialog-small-pressed .x-frame-mr {
+  background-image: url("/++resource++zenui/img/ext4/btn/btn-dialog-small-pressed-sides.png") ; }
+/* line 509, ../sass/styles/widgets/_button.scss */
+.x-nbr .x-btn-dialog-small-menu-active .x-frame-mc, .x-nbr .x-btn-dialog-small-pressed .x-frame-mc {
+  background-color: #dfdfdf;
+  background-image: url("/++resource++zenui/img/ext4/btn/btn-dialog-small-pressed-bg.png") ; }
+
+/* line 615, ../../../../../../../../zenoss/lib/python/zenoss/extjs/src/resources/themes/stylesheets/ext4/default/widgets/_button.scss */
+.x-btn-default-small {
+  border-color: #5b5b5b; }
+
+/* line 58, ../../../../../../../../zenoss/lib/python/zenoss/extjs/src/resources/themes/stylesheets/ext4/default/mixins/_frame.scss */
+.x-btn-default-small {
+  -moz-border-radius: 3px;
+  -webkit-border-radius: 3px;
+  -o-border-radius: 3px;
+  -ms-border-radius: 3px;
+  -khtml-border-radius: 3px;
+  border-radius: 3px;
+  padding: 2px 2px 2px 2px;
+  border-width: 1px;
+  border-style: solid;
+  background-color: #dfdfdf; }
+
+/* line 91, ../../../../../../../../zenoss/lib/python/zenoss/extjs/src/resources/themes/stylesheets/ext4/default/mixins/_frame.scss */
+.x-nlg .x-btn-default-small-mc {
+  background-color: #dfdfdf; }
+
+/* line 104, ../../../../../../../../zenoss/lib/python/zenoss/extjs/src/resources/themes/stylesheets/ext4/default/mixins/_frame.scss */
+.x-nbr .x-btn-default-small {
+  padding: 0 !important;
+  border-width: 0 !important;
+  -moz-border-radius: 0px;
+  -webkit-border-radius: 0px;
+  -o-border-radius: 0px;
+  -ms-border-radius: 0px;
+  -khtml-border-radius: 0px;
+  border-radius: 0px;
+  background-color: transparent;
+  background-position: 1100303px 1000303px; }
+/* line 147, ../../../../../../../../zenoss/lib/python/zenoss/extjs/src/resources/themes/stylesheets/ext4/default/mixins/_frame.scss */
+.x-nbr .x-btn-default-small-tl, .x-nbr .x-btn-default-small-bl, .x-nbr .x-btn-default-small-tr, .x-nbr .x-btn-default-small-br, .x-nbr .x-btn-default-small-tc, .x-nbr .x-btn-default-small-bc, .x-nbr .x-btn-default-small-ml, .x-nbr .x-btn-default-small-mr {
+  zoom: 1;
+  background-image: url('/++resource++extjs/resources/themes/images/default/btn/btn-default-small-corners.gif'); }
+/* line 168, ../../../../../../../../zenoss/lib/python/zenoss/extjs/src/resources/themes/stylesheets/ext4/default/mixins/_frame.scss */
+.x-nbr .x-btn-default-small-ml, .x-nbr .x-btn-default-small-mr {
+  zoom: 1;
+  background-image: url('/++resource++extjs/resources/themes/images/default/btn/btn-default-small-sides.gif');
+  background-position: 0 0;
+  background-repeat: repeat-y; }
+/* line 200, ../../../../../../../../zenoss/lib/python/zenoss/extjs/src/resources/themes/stylesheets/ext4/default/mixins/_frame.scss */
+.x-nbr .x-btn-default-small-mc {
+  padding: 0 0 0 0; }
+
+/* line 621, ../../../../../../../../zenoss/lib/python/zenoss/extjs/src/resources/themes/stylesheets/ext4/default/widgets/_button.scss */
+.x-btn-default-small .x-btn-inner {
+  font-size: 11px;
+  font-weight: normal;
+  font-family: helvetica, arial, sans-serif;
+  color: #333333;
+  background-repeat: no-repeat;
+  padding: 0 4px; }
+
+/* line 633, ../../../../../../../../zenoss/lib/python/zenoss/extjs/src/resources/themes/stylesheets/ext4/default/widgets/_button.scss */
+.x-btn-default-small-icon button, .x-btn-default-small-icon .x-btn-inner, .x-btn-default-small-noicon button, .x-btn-default-small-noicon .x-btn-inner {
+  height: 18px;
+  line-height: 18px; }
+
+/* line 641, ../../../../../../../../zenoss/lib/python/zenoss/extjs/src/resources/themes/stylesheets/ext4/default/widgets/_button.scss */
+.x-btn-default-small-icon button {
+  padding: 0;
+  width: 18px !important;
+  height: 18px; }
+/* line 647, ../../../../../../../../zenoss/lib/python/zenoss/extjs/src/resources/themes/stylesheets/ext4/default/widgets/_button.scss */
+.x-btn-default-small-icon .x-btn-icon {
+  width: 18px;
+  height: 18px;
+  top: 0;
+  left: 0;
+  bottom: 0;
+  right: 0; }
+
+/* line 658, ../../../../../../../../zenoss/lib/python/zenoss/extjs/src/resources/themes/stylesheets/ext4/default/widgets/_button.scss */
+.x-btn-default-small-icon-text-left button {
+  height: 18px; }
+/* line 661, ../../../../../../../../zenoss/lib/python/zenoss/extjs/src/resources/themes/stylesheets/ext4/default/widgets/_button.scss */
+.x-btn-default-small-icon-text-left .x-btn-inner {
+  height: 18px;
+  line-height: 18px;
+  padding-left: 22px; }
+/* line 667, ../../../../../../../../zenoss/lib/python/zenoss/extjs/src/resources/themes/stylesheets/ext4/default/widgets/_button.scss */
+.x-btn-default-small-icon-text-left .x-btn-icon {
+  width: 18px;
+  height: auto;
+  top: 0;
+  left: 0;
+  bottom: 0;
+  right: auto; }
+/* line 676, ../../../../../../../../zenoss/lib/python/zenoss/extjs/src/resources/themes/stylesheets/ext4/default/widgets/_button.scss */
+.x-ie6 .x-btn-default-small-icon-text-left .x-btn-icon, .x-quirks .x-btn-default-small-icon-text-left .x-btn-icon {
+  height: 18px; }
+
+/* line 683, ../../../../../../../../zenoss/lib/python/zenoss/extjs/src/resources/themes/stylesheets/ext4/default/widgets/_button.scss */
+.x-btn-default-small-icon-text-right button {
+  height: 18px; }
+/* line 686, ../../../../../../../../zenoss/lib/python/zenoss/extjs/src/resources/themes/stylesheets/ext4/default/widgets/_button.scss */
+.x-btn-default-small-icon-text-right .x-btn-inner {
+  height: 18px;
+  line-height: 18px;
+  padding-right: 22px !important; }
+/* line 692, ../../../../../../../../zenoss/lib/python/zenoss/extjs/src/resources/themes/stylesheets/ext4/default/widgets/_button.scss */
+.x-btn-default-small-icon-text-right .x-btn-icon {
+  width: 18px;
+  height: auto;
+  top: 0;
+  left: auto;
+  bottom: 0;
+  right: 0; }
+/* line 701, ../../../../../../../../zenoss/lib/python/zenoss/extjs/src/resources/themes/stylesheets/ext4/default/widgets/_button.scss */
+.x-ie6 .x-btn-default-small-icon-text-right .x-btn-icon, .x-quirks .x-btn-default-small-icon-text-right .x-btn-icon {
+  height: 18px; }
+
+/* line 708, ../../../../../../../../zenoss/lib/python/zenoss/extjs/src/resources/themes/stylesheets/ext4/default/widgets/_button.scss */
+.x-btn-default-small-icon-text-top .x-btn-inner {
+  padding-top: 22px; }
+/* line 712, ../../../../../../../../zenoss/lib/python/zenoss/extjs/src/resources/themes/stylesheets/ext4/default/widgets/_button.scss */
+.x-btn-default-small-icon-text-top .x-btn-icon {
+  width: auto;
+  height: 18px;
+  top: 0;
+  left: 0;
+  bottom: auto;
+  right: 0; }
+/* line 721, ../../../../../../../../zenoss/lib/python/zenoss/extjs/src/resources/themes/stylesheets/ext4/default/widgets/_button.scss */
+.x-ie6 .x-btn-default-small-icon-text-top .x-btn-icon, .x-quirks .x-btn-default-small-icon-text-top .x-btn-icon {
+  width: 18px; }
+
+/* line 728, ../../../../../../../../zenoss/lib/python/zenoss/extjs/src/resources/themes/stylesheets/ext4/default/widgets/_button.scss */
+.x-btn-default-small-icon-text-bottom .x-btn-inner {
+  padding-bottom: 22px; }
+/* line 732, ../../../../../../../../zenoss/lib/python/zenoss/extjs/src/resources/themes/stylesheets/ext4/default/widgets/_button.scss */
+.x-btn-default-small-icon-text-bottom .x-btn-icon {
+  width: auto;
+  height: 18px;
+  top: auto;
+  left: 0;
+  bottom: 0;
+  right: 0; }
+/* line 741, ../../../../../../../../zenoss/lib/python/zenoss/extjs/src/resources/themes/stylesheets/ext4/default/widgets/_button.scss */
+.x-ie6 .x-btn-default-small-icon-text-bottom .x-btn-icon, .x-quirks .x-btn-default-small-icon-text-bottom .x-btn-icon {
+  width: 18px; }
+
+/* line 747, ../../../../../../../../zenoss/lib/python/zenoss/extjs/src/resources/themes/stylesheets/ext4/default/widgets/_button.scss */
+.x-btn-default-small-over {
+  background-image: none;
+  background-color: #dfdfdf;
+  background-image: -webkit-gradient(linear, 50% 0%, 50% 100%, color-stop(0%, #dfdfdf), color-stop(48%, #d9d9d9), color-stop(52%, #c7c7c7), color-stop(100%, #cbcbcb));
+  background-image: -webkit-linear-gradient(top, #dfdfdf, #d9d9d9 48%, #c7c7c7 52%, #cbcbcb);
+  background-image: -moz-linear-gradient(top, #dfdfdf, #d9d9d9 48%, #c7c7c7 52%, #cbcbcb);
+  background-image: -o-linear-gradient(top, #dfdfdf, #d9d9d9 48%, #c7c7c7 52%, #cbcbcb);
+  background-image: -ms-linear-gradient(top, #dfdfdf, #d9d9d9 48%, #c7c7c7 52%, #cbcbcb);
+  background-image: linear-gradient(top, #dfdfdf, #d9d9d9 48%, #c7c7c7 52%, #cbcbcb); }
+
+/* line 771, ../../../../../../../../zenoss/lib/python/zenoss/extjs/src/resources/themes/stylesheets/ext4/default/widgets/_button.scss */
+.x-btn-default-small-focus {
+  background-image: none;
+  background-color: #dfdfdf;
+  background-image: -webkit-gradient(linear, 50% 0%, 50% 100%, color-stop(0%, #dfdfdf), color-stop(48%, #d9d9d9), color-stop(52%, #c7c7c7), color-stop(100%, #cbcbcb));
+  background-image: -webkit-linear-gradient(top, #dfdfdf, #d9d9d9 48%, #c7c7c7 52%, #cbcbcb);
+  background-image: -moz-linear-gradient(top, #dfdfdf, #d9d9d9 48%, #c7c7c7 52%, #cbcbcb);
+  background-image: -o-linear-gradient(top, #dfdfdf, #d9d9d9 48%, #c7c7c7 52%, #cbcbcb);
+  background-image: -ms-linear-gradient(top, #dfdfdf, #d9d9d9 48%, #c7c7c7 52%, #cbcbcb);
+  background-image: linear-gradient(top, #dfdfdf, #d9d9d9 48%, #c7c7c7 52%, #cbcbcb); }
+
+/* line 796, ../../../../../../../../zenoss/lib/python/zenoss/extjs/src/resources/themes/stylesheets/ext4/default/widgets/_button.scss */
+.x-btn-default-small-menu-active, .x-btn-default-small-pressed {
+  background-image: none;
+  background-color: #dfdfdf;
+  background-image: -webkit-gradient(linear, 50% 0%, 50% 100%, color-stop(0%, #dfdfdf), color-stop(48%, #e4e4e4), color-stop(52%, #e4c2c3), color-stop(100%, #e6cbcb));
+  background-image: -webkit-linear-gradient(top, #dfdfdf, #e4e4e4 48%, #e4c2c3 52%, #e6cbcb);
+  background-image: -moz-linear-gradient(top, #dfdfdf, #e4e4e4 48%, #e4c2c3 52%, #e6cbcb);
+  background-image: -o-linear-gradient(top, #dfdfdf, #e4e4e4 48%, #e4c2c3 52%, #e6cbcb);
+  background-image: -ms-linear-gradient(top, #dfdfdf, #e4e4e4 48%, #e4c2c3 52%, #e6cbcb);
+  background-image: linear-gradient(top, #dfdfdf, #e4e4e4 48%, #e4c2c3 52%, #e6cbcb); }
+
+/* line 820, ../../../../../../../../zenoss/lib/python/zenoss/extjs/src/resources/themes/stylesheets/ext4/default/widgets/_button.scss */
+.x-btn-default-small-disabled {
+  border-color: #b4b4b4;
+  background-image: none;
+  background-color: transparent; }
+/* line 828, ../../../../../../../../zenoss/lib/python/zenoss/extjs/src/resources/themes/stylesheets/ext4/default/widgets/_button.scss */
+.x-btn-default-small-disabled .x-btn-inner {
+  color: #333333 !important; }
+
+/* line 845, ../../../../../../../../zenoss/lib/python/zenoss/extjs/src/resources/themes/stylesheets/ext4/default/widgets/_button.scss */
+.x-ie .x-btn-default-small-disabled .x-btn-inner {
+  color: #595959 !important; }
+
+/* line 853, ../../../../../../../../zenoss/lib/python/zenoss/extjs/src/resources/themes/stylesheets/ext4/default/widgets/_button.scss */
+.x-ie6 .x-btn-default-small-disabled .x-btn-inner {
+  color: #8c8c8c !important; }
+
+/* line 868, ../../../../../../../../zenoss/lib/python/zenoss/extjs/src/resources/themes/stylesheets/ext4/default/widgets/_button.scss */
+.x-nbr .x-btn-default-small-over .x-frame-tl, .x-nbr .x-btn-default-small-over .x-frame-bl, .x-nbr .x-btn-default-small-over .x-frame-tr, .x-nbr .x-btn-default-small-over .x-frame-br, .x-nbr .x-btn-default-small-over .x-frame-tc, .x-nbr .x-btn-default-small-over .x-frame-bc {
+  background-image: url('/++resource++extjs/resources/themes/images/default/btn/btn-default-small-over-corners.gif'); }
+/* line 872, ../../../../../../../../zenoss/lib/python/zenoss/extjs/src/resources/themes/stylesheets/ext4/default/widgets/_button.scss */
+.x-nbr .x-btn-default-small-over .x-frame-ml, .x-nbr .x-btn-default-small-over .x-frame-mr {
+  background-image: url('/++resource++extjs/resources/themes/images/default/btn/btn-default-small-over-sides.gif'); }
+/* line 875, ../../../../../../../../zenoss/lib/python/zenoss/extjs/src/resources/themes/stylesheets/ext4/default/widgets/_button.scss */
+.x-nbr .x-btn-default-small-over .x-frame-mc {
+  background-color: #dfdfdf;
+  background-image: url('/++resource++extjs/resources/themes/images/default/btn/btn-default-small-over-bg.gif'); }
+/* line 889, ../../../../../../../../zenoss/lib/python/zenoss/extjs/src/resources/themes/stylesheets/ext4/default/widgets/_button.scss */
+.x-nbr .x-btn-default-small-focus .x-frame-tl, .x-nbr .x-btn-default-small-focus .x-frame-bl, .x-nbr .x-btn-default-small-focus .x-frame-tr, .x-nbr .x-btn-default-small-focus .x-frame-br, .x-nbr .x-btn-default-small-focus .x-frame-tc, .x-nbr .x-btn-default-small-focus .x-frame-bc {
+  background-image: url('/++resource++extjs/resources/themes/images/default/btn/btn-default-small-focus-corners.gif'); }
+/* line 893, ../../../../../../../../zenoss/lib/python/zenoss/extjs/src/resources/themes/stylesheets/ext4/default/widgets/_button.scss */
+.x-nbr .x-btn-default-small-focus .x-frame-ml, .x-nbr .x-btn-default-small-focus .x-frame-mr {
+  background-image: url('/++resource++extjs/resources/themes/images/default/btn/btn-default-small-focus-sides.gif'); }
+/* line 896, ../../../../../../../../zenoss/lib/python/zenoss/extjs/src/resources/themes/stylesheets/ext4/default/widgets/_button.scss */
+.x-nbr .x-btn-default-small-focus .x-frame-mc {
+  background-color: #dfdfdf;
+  background-image: url('/++resource++extjs/resources/themes/images/default/btn/btn-default-small-focus-bg.gif'); }
+/* line 911, ../../../../../../../../zenoss/lib/python/zenoss/extjs/src/resources/themes/stylesheets/ext4/default/widgets/_button.scss */
+.x-nbr .x-btn-default-small-menu-active .x-frame-tl, .x-nbr .x-btn-default-small-menu-active .x-frame-bl, .x-nbr .x-btn-default-small-menu-active .x-frame-tr, .x-nbr .x-btn-default-small-menu-active .x-frame-br, .x-nbr .x-btn-default-small-menu-active .x-frame-tc, .x-nbr .x-btn-default-small-menu-active .x-frame-bc, .x-nbr .x-btn-default-small-pressed .x-frame-tl, .x-nbr .x-btn-default-small-pressed .x-frame-bl, .x-nbr .x-btn-default-small-pressed .x-frame-tr, .x-nbr .x-btn-default-small-pressed .x-frame-br, .x-nbr .x-btn-default-small-pressed .x-frame-tc, .x-nbr .x-btn-default-small-pressed .x-frame-bc {
+  background-image: url('/++resource++extjs/resources/themes/images/default/btn/btn-default-small-pressed-corners.gif'); }
+/* line 915, ../../../../../../../../zenoss/lib/python/zenoss/extjs/src/resources/themes/stylesheets/ext4/default/widgets/_button.scss */
+.x-nbr .x-btn-default-small-menu-active .x-frame-ml, .x-nbr .x-btn-default-small-menu-active .x-frame-mr, .x-nbr .x-btn-default-small-pressed .x-frame-ml, .x-nbr .x-btn-default-small-pressed .x-frame-mr {
+  background-image: url('/++resource++extjs/resources/themes/images/default/btn/btn-default-small-pressed-sides.gif'); }
+/* line 918, ../../../../../../../../zenoss/lib/python/zenoss/extjs/src/resources/themes/stylesheets/ext4/default/widgets/_button.scss */
+.x-nbr .x-btn-default-small-menu-active .x-frame-mc, .x-nbr .x-btn-default-small-pressed .x-frame-mc {
+  background-color: #dfdfdf;
+  background-image: url('/++resource++extjs/resources/themes/images/default/btn/btn-default-small-pressed-bg.gif'); }
+/* line 932, ../../../../../../../../zenoss/lib/python/zenoss/extjs/src/resources/themes/stylesheets/ext4/default/widgets/_button.scss */
+.x-nbr .x-btn-default-small-disabled .x-frame-tl, .x-nbr .x-btn-default-small-disabled .x-frame-bl, .x-nbr .x-btn-default-small-disabled .x-frame-tr, .x-nbr .x-btn-default-small-disabled .x-frame-br, .x-nbr .x-btn-default-small-disabled .x-frame-tc, .x-nbr .x-btn-default-small-disabled .x-frame-bc {
+  background-image: url('/++resource++extjs/resources/themes/images/default/btn/btn-default-small-disabled-corners.gif'); }
+/* line 936, ../../../../../../../../zenoss/lib/python/zenoss/extjs/src/resources/themes/stylesheets/ext4/default/widgets/_button.scss */
+.x-nbr .x-btn-default-small-disabled .x-frame-ml, .x-nbr .x-btn-default-small-disabled .x-frame-mr {
+  background-image: url('/++resource++extjs/resources/themes/images/default/btn/btn-default-small-disabled-sides.gif'); }
+/* line 939, ../../../../../../../../zenoss/lib/python/zenoss/extjs/src/resources/themes/stylesheets/ext4/default/widgets/_button.scss */
+.x-nbr .x-btn-default-small-disabled .x-frame-mc {
+  background-color: transparent; }
+
+/* line 961, ../../../../../../../../zenoss/lib/python/zenoss/extjs/src/resources/themes/stylesheets/ext4/default/widgets/_button.scss */
+.x-nlg .x-btn-default-small-over {
+  background-repeat: repeat-x;
+  background-image: url('/++resource++extjs/resources/themes/images/default/btn/btn-default-small-over-bg.gif'); }
+
+/* line 970, ../../../../../../../../zenoss/lib/python/zenoss/extjs/src/resources/themes/stylesheets/ext4/default/widgets/_button.scss */
+.x-nlg .x-btn-default-small-focus {
+  background-repeat: repeat-x;
+  background-image: url('/++resource++extjs/resources/themes/images/default/btn/btn-default-small-focus-bg.gif'); }
+
+/* line 980, ../../../../../../../../zenoss/lib/python/zenoss/extjs/src/resources/themes/stylesheets/ext4/default/widgets/_button.scss */
+.x-nlg .x-btn-default-small-menu-active, .x-nlg .x-btn-default-small-pressed {
+  background-repeat: repeat-x;
+  background-image: url('/++resource++extjs/resources/themes/images/default/btn/btn-default-small-pressed-bg.gif'); }
+
+/* line 580, ../sass/styles/widgets/_button.scss */
+.x-btn-default-small, .x-btn-default-small-disabled, .x-btn-default-small-over {
+  background-image: -webkit-gradient(linear, 50% 0%, 50% 100%, color-stop(0%, #ececec), color-stop(100%, #c6c6c6));
+  background-image: -webkit-linear-gradient(top, #ececec, #c6c6c6);
+  background-image: -moz-linear-gradient(top, #ececec, #c6c6c6);
+  background-image: -o-linear-gradient(top, #ececec, #c6c6c6);
+  background-image: -ms-linear-gradient(top, #ececec, #c6c6c6);
+  background-image: linear-gradient(top, #ececec, #c6c6c6); }
+
+/* line 588, ../sass/styles/widgets/_button.scss */
+.x-btn-default-small-menu-active, .x-btn-default-small-pressed {
+  background-image: -webkit-gradient(linear, 50% 0%, 50% 100%, color-stop(0%, #a0a0a0), color-stop(100%, #ececec));
+  background-image: -webkit-linear-gradient(top, #a0a0a0, #ececec);
+  background-image: -moz-linear-gradient(top, #a0a0a0, #ececec);
+  background-image: -o-linear-gradient(top, #a0a0a0, #ececec);
+  background-image: -ms-linear-gradient(top, #a0a0a0, #ececec);
+  background-image: linear-gradient(top, #a0a0a0, #ececec); }
+
+/* line 601, ../sass/styles/widgets/_button.scss */
+.x-btn-default-small span.x-btn-icon {
+  background: transparent none top center no-repeat;
+  background-image: url("/++resource++zenui/img/ext4/icon/icon-sprite.png") ; }
+/* line 606, ../sass/styles/widgets/_button.scss */
+.x-btn-default-small span.x-btn-icon.add {
+  background-position: 0 1px; }
+/* line 607, ../sass/styles/widgets/_button.scss */
+.x-btn-default-small span.x-btn-icon.delete {
+  background-position: 0 -17px; }
+/* line 608, ../sass/styles/widgets/_button.scss */
+.x-btn-default-small span.x-btn-icon.set {
+  background-position: 0 -35px; }
+/* line 609, ../sass/styles/widgets/_button.scss */
+.x-btn-default-small span.x-btn-icon.adddevice {
+  background-position: 0 -52px; }
+/* line 610, ../sass/styles/widgets/_button.scss */
+.x-btn-default-small span.x-btn-icon.import {
+  background-position: 0 -71px; }
+/* line 611, ../sass/styles/widgets/_button.scss */
+.x-btn-default-small span.x-btn-icon.export {
+  background-position: 0 -89px; }
+/* line 612, ../sass/styles/widgets/_button.scss */
+.x-btn-default-small span.x-btn-icon.configure {
+  background-position: 0 -107px; }
+/* line 613, ../sass/styles/widgets/_button.scss */
+.x-btn-default-small span.x-btn-icon.acknowledge {
+  background-position: 0 -125px; }
+/* line 614, ../sass/styles/widgets/_button.scss */
+.x-btn-default-small span.x-btn-icon.suppress {
+  background-position: 0 -143px; }
+/* line 615, ../sass/styles/widgets/_button.scss */
+.x-btn-default-small span.x-btn-icon.close {
+  background-position: 0 -161px; }
+/* line 616, ../sass/styles/widgets/_button.scss */
+.x-btn-default-small span.x-btn-icon.save {
+  background-position: 0 -179px; }
+/* line 617, ../sass/styles/widgets/_button.scss */
+.x-btn-default-small span.x-btn-icon.events {
+  background-position: 0 -197px; }
+/* line 618, ../sass/styles/widgets/_button.scss */
+.x-btn-default-small span.x-btn-icon.devprobs {
+  background-position: 0 -215px; }
+/* line 619, ../sass/styles/widgets/_button.scss */
+.x-btn-default-small span.x-btn-icon.customize {
+  background-position: 0 -233px; }
+/* line 620, ../sass/styles/widgets/_button.scss */
+.x-btn-default-small span.x-btn-icon.newwindow {
+  background-position: 0 -251px; }
+/* line 621, ../sass/styles/widgets/_button.scss */
+.x-btn-default-small span.x-btn-icon.export2 {
+  background-position: 0 -269px; }
+/* line 622, ../sass/styles/widgets/_button.scss */
+.x-btn-default-small span.x-btn-icon.fullscreen {
+  background-position: 0 -287px; }
+/* line 623, ../sass/styles/widgets/_button.scss */
+.x-btn-default-small span.x-btn-icon.dashboard {
+  background-position: 0 -305px; }
+/* line 624, ../sass/styles/widgets/_button.scss */
+.x-btn-default-small span.x-btn-icon.watchlist {
+  background-position: 2px -323px; }
+/* line 625, ../sass/styles/widgets/_button.scss */
+.x-btn-default-small span.x-btn-icon.slides {
+  background-position: 0 -341px; }
+/* line 626, ../sass/styles/widgets/_button.scss */
+.x-btn-default-small span.x-btn-icon.lighttable {
+  background-position: 0 -359px; }
+/* line 627, ../sass/styles/widgets/_button.scss */
+.x-btn-default-small span.x-btn-icon.outline {
+  background-position: 0 -377px; }
+/* line 628, ../sass/styles/widgets/_button.scss */
+.x-btn-default-small span.x-btn-icon.addslide {
+  background-position: 0 -395px; }
+/* line 630, ../sass/styles/widgets/_button.scss */
+.x-btn-default-small span.x-btn-icon.classify {
+  background-position: 0 -1242px; }
+/* line 631, ../sass/styles/widgets/_button.scss */
+.x-btn-default-small span.x-btn-icon.reopen {
+  background-position: 0 -1296px; }
+/* line 632, ../sass/styles/widgets/_button.scss */
+.x-btn-default-small span.x-btn-icon.share {
+  background-position: 0 -1350px; }
+/* line 633, ../sass/styles/widgets/_button.scss */
+.x-btn-default-small span.x-btn-icon.unacknowledge {
+  background-position: 0 -1404px; }
+/* line 634, ../sass/styles/widgets/_button.scss */
+.x-btn-default-small span.x-btn-icon.collapse {
+  background-position: 0 -1458px; }
+/* line 635, ../sass/styles/widgets/_button.scss */
+.x-btn-default-small span.x-btn-icon.expand {
+  background-position: 0 -1512px; }
+/* line 636, ../sass/styles/widgets/_button.scss */
+.x-btn-default-small span.x-btn-icon.refresh {
+  background-position: 0 -1566px; }
+
+/* line 644, ../sass/styles/widgets/_button.scss */
+.x-btn-default-small.x-btn-focus span.x-btn-icon.add, .x-btn-default-small.x-btn-over span.x-btn-icon.add, .x-btn-default-small.x-btn-pressed span.x-btn-icon.add {
+  background-position: 0 -412px; }
+/* line 645, ../sass/styles/widgets/_button.scss */
+.x-btn-default-small.x-btn-focus span.x-btn-icon.delete, .x-btn-default-small.x-btn-over span.x-btn-icon.delete, .x-btn-default-small.x-btn-pressed span.x-btn-icon.delete {
+  background-position: 0 -430px; }
+/* line 646, ../sass/styles/widgets/_button.scss */
+.x-btn-default-small.x-btn-focus span.x-btn-icon.set, .x-btn-default-small.x-btn-over span.x-btn-icon.set, .x-btn-default-small.x-btn-pressed span.x-btn-icon.set {
+  background-position: 0 -448px; }
+/* line 647, ../sass/styles/widgets/_button.scss */
+.x-btn-default-small.x-btn-focus span.x-btn-icon.adddevice, .x-btn-default-small.x-btn-over span.x-btn-icon.adddevice, .x-btn-default-small.x-btn-pressed span.x-btn-icon.adddevice {
+  background-position: 0 -465px; }
+/* line 648, ../sass/styles/widgets/_button.scss */
+.x-btn-default-small.x-btn-focus span.x-btn-icon.import, .x-btn-default-small.x-btn-over span.x-btn-icon.import, .x-btn-default-small.x-btn-pressed span.x-btn-icon.import {
+  background-position: 0 -484px; }
+/* line 649, ../sass/styles/widgets/_button.scss */
+.x-btn-default-small.x-btn-focus span.x-btn-icon.export, .x-btn-default-small.x-btn-over span.x-btn-icon.export, .x-btn-default-small.x-btn-pressed span.x-btn-icon.export {
+  background-position: 0 -502px; }
+/* line 650, ../sass/styles/widgets/_button.scss */
+.x-btn-default-small.x-btn-focus span.x-btn-icon.configure, .x-btn-default-small.x-btn-over span.x-btn-icon.configure, .x-btn-default-small.x-btn-pressed span.x-btn-icon.configure {
+  background-position: 0 -520px; }
+/* line 651, ../sass/styles/widgets/_button.scss */
+.x-btn-default-small.x-btn-focus span.x-btn-icon.acknowledge, .x-btn-default-small.x-btn-over span.x-btn-icon.acknowledge, .x-btn-default-small.x-btn-pressed span.x-btn-icon.acknowledge {
+  background-position: 0 -538px; }
+/* line 652, ../sass/styles/widgets/_button.scss */
+.x-btn-default-small.x-btn-focus span.x-btn-icon.suppress, .x-btn-default-small.x-btn-over span.x-btn-icon.suppress, .x-btn-default-small.x-btn-pressed span.x-btn-icon.suppress {
+  background-position: 0 -556px; }
+/* line 653, ../sass/styles/widgets/_button.scss */
+.x-btn-default-small.x-btn-focus span.x-btn-icon.close, .x-btn-default-small.x-btn-over span.x-btn-icon.close, .x-btn-default-small.x-btn-pressed span.x-btn-icon.close {
+  background-position: 0 -574px; }
+/* line 654, ../sass/styles/widgets/_button.scss */
+.x-btn-default-small.x-btn-focus span.x-btn-icon.save, .x-btn-default-small.x-btn-over span.x-btn-icon.save, .x-btn-default-small.x-btn-pressed span.x-btn-icon.save {
+  background-position: 0 -592px; }
+/* line 655, ../sass/styles/widgets/_button.scss */
+.x-btn-default-small.x-btn-focus span.x-btn-icon.events, .x-btn-default-small.x-btn-over span.x-btn-icon.events, .x-btn-default-small.x-btn-pressed span.x-btn-icon.events {
+  background-position: 0 -610px; }
+/* line 656, ../sass/styles/widgets/_button.scss */
+.x-btn-default-small.x-btn-focus span.x-btn-icon.devprobs, .x-btn-default-small.x-btn-over span.x-btn-icon.devprobs, .x-btn-default-small.x-btn-pressed span.x-btn-icon.devprobs {
+  background-position: 0 -628px; }
+/* line 657, ../sass/styles/widgets/_button.scss */
+.x-btn-default-small.x-btn-focus span.x-btn-icon.customize, .x-btn-default-small.x-btn-over span.x-btn-icon.customize, .x-btn-default-small.x-btn-pressed span.x-btn-icon.customize {
+  background-position: -1px -646px; }
+/* line 658, ../sass/styles/widgets/_button.scss */
+.x-btn-default-small.x-btn-focus span.x-btn-icon.newwindow, .x-btn-default-small.x-btn-over span.x-btn-icon.newwindow, .x-btn-default-small.x-btn-pressed span.x-btn-icon.newwindow {
+  background-position: 0 -664px; }
+/* line 659, ../sass/styles/widgets/_button.scss */
+.x-btn-default-small.x-btn-focus span.x-btn-icon.export2, .x-btn-default-small.x-btn-over span.x-btn-icon.export2, .x-btn-default-small.x-btn-pressed span.x-btn-icon.export2 {
+  background-position: 0 -682px; }
+/* line 660, ../sass/styles/widgets/_button.scss */
+.x-btn-default-small.x-btn-focus span.x-btn-icon.fullscreen, .x-btn-default-small.x-btn-over span.x-btn-icon.fullscreen, .x-btn-default-small.x-btn-pressed span.x-btn-icon.fullscreen {
+  background-position: 0 -700px; }
+/* line 661, ../sass/styles/widgets/_button.scss */
+.x-btn-default-small.x-btn-focus span.x-btn-icon.dashboard, .x-btn-default-small.x-btn-over span.x-btn-icon.dashboard, .x-btn-default-small.x-btn-pressed span.x-btn-icon.dashboard {
+  background-position: 0 -718px; }
+/* line 662, ../sass/styles/widgets/_button.scss */
+.x-btn-default-small.x-btn-focus span.x-btn-icon.watchlist, .x-btn-default-small.x-btn-over span.x-btn-icon.watchlist, .x-btn-default-small.x-btn-pressed span.x-btn-icon.watchlist {
+  background-position: 0 -736px; }
+/* line 663, ../sass/styles/widgets/_button.scss */
+.x-btn-default-small.x-btn-focus span.x-btn-icon.slides, .x-btn-default-small.x-btn-over span.x-btn-icon.slides, .x-btn-default-small.x-btn-pressed span.x-btn-icon.slides {
+  background-position: 0 -754px; }
+/* line 664, ../sass/styles/widgets/_button.scss */
+.x-btn-default-small.x-btn-focus span.x-btn-icon.lighttable, .x-btn-default-small.x-btn-over span.x-btn-icon.lighttable, .x-btn-default-small.x-btn-pressed span.x-btn-icon.lighttable {
+  background-position: 0 -772px; }
+/* line 665, ../sass/styles/widgets/_button.scss */
+.x-btn-default-small.x-btn-focus span.x-btn-icon.outline, .x-btn-default-small.x-btn-over span.x-btn-icon.outline, .x-btn-default-small.x-btn-pressed span.x-btn-icon.outline {
+  background-position: 0 -790px; }
+/* line 666, ../sass/styles/widgets/_button.scss */
+.x-btn-default-small.x-btn-focus span.x-btn-icon.addslide, .x-btn-default-small.x-btn-over span.x-btn-icon.addslide, .x-btn-default-small.x-btn-pressed span.x-btn-icon.addslide {
+  background-position: 0 -808px; }
+/* line 667, ../sass/styles/widgets/_button.scss */
+.x-btn-default-small.x-btn-focus span.x-btn-icon.classify, .x-btn-default-small.x-btn-over span.x-btn-icon.classify, .x-btn-default-small.x-btn-pressed span.x-btn-icon.classify {
+  background-position: 0 -1260px; }
+/* line 668, ../sass/styles/widgets/_button.scss */
+.x-btn-default-small.x-btn-focus span.x-btn-icon.reopen, .x-btn-default-small.x-btn-over span.x-btn-icon.reopen, .x-btn-default-small.x-btn-pressed span.x-btn-icon.reopen {
+  background-position: 0 -1314px; }
+/* line 669, ../sass/styles/widgets/_button.scss */
+.x-btn-default-small.x-btn-focus span.x-btn-icon.share, .x-btn-default-small.x-btn-over span.x-btn-icon.share, .x-btn-default-small.x-btn-pressed span.x-btn-icon.share {
+  background-position: 0 -1368px; }
+/* line 670, ../sass/styles/widgets/_button.scss */
+.x-btn-default-small.x-btn-focus span.x-btn-icon.unacknowledge, .x-btn-default-small.x-btn-over span.x-btn-icon.unacknowledge, .x-btn-default-small.x-btn-pressed span.x-btn-icon.unacknowledge {
+  background-position: 0 -1422px; }
+/* line 671, ../sass/styles/widgets/_button.scss */
+.x-btn-default-small.x-btn-focus span.x-btn-icon.collapse, .x-btn-default-small.x-btn-over span.x-btn-icon.collapse, .x-btn-default-small.x-btn-pressed span.x-btn-icon.collapse {
+  background-position: 0 -1476px; }
+/* line 672, ../sass/styles/widgets/_button.scss */
+.x-btn-default-small.x-btn-focus span.x-btn-icon.expand, .x-btn-default-small.x-btn-over span.x-btn-icon.expand, .x-btn-default-small.x-btn-pressed span.x-btn-icon.expand {
+  background-position: 0 -1530px; }
+/* line 673, ../sass/styles/widgets/_button.scss */
+.x-btn-default-small.x-btn-focus span.x-btn-icon.refresh, .x-btn-default-small.x-btn-over span.x-btn-icon.refresh, .x-btn-default-small.x-btn-pressed span.x-btn-icon.refresh {
+  background-position: 0 -1584px; }
+
+/* line 678, ../sass/styles/widgets/_button.scss */
+.x-btn-default-small.x-btn-disabled span.x-btn-icon.add {
+  background-position: 0 -824px; }
+/* line 679, ../sass/styles/widgets/_button.scss */
+.x-btn-default-small.x-btn-disabled span.x-btn-icon.delete {
+  background-position: 0 -842px; }
+/* line 680, ../sass/styles/widgets/_button.scss */
+.x-btn-default-small.x-btn-disabled span.x-btn-icon.set {
+  background-position: 0 -860px; }
+/* line 681, ../sass/styles/widgets/_button.scss */
+.x-btn-default-small.x-btn-disabled span.x-btn-icon.adddevice {
+  background-position: 0 -877px; }
+/* line 682, ../sass/styles/widgets/_button.scss */
+.x-btn-default-small.x-btn-disabled span.x-btn-icon.import {
+  background-position: 0 -896px; }
+/* line 683, ../sass/styles/widgets/_button.scss */
+.x-btn-default-small.x-btn-disabled span.x-btn-icon.export {
+  background-position: 0 -914px; }
+/* line 684, ../sass/styles/widgets/_button.scss */
+.x-btn-default-small.x-btn-disabled span.x-btn-icon.configure {
+  background-position: 0 -932px; }
+/* line 685, ../sass/styles/widgets/_button.scss */
+.x-btn-default-small.x-btn-disabled span.x-btn-icon.acknowledge {
+  background-position: 0 -950px; }
+/* line 686, ../sass/styles/widgets/_button.scss */
+.x-btn-default-small.x-btn-disabled span.x-btn-icon.suppress {
+  background-position: 0 -968px; }
+/* line 687, ../sass/styles/widgets/_button.scss */
+.x-btn-default-small.x-btn-disabled span.x-btn-icon.close {
+  background-position: 0 -986px; }
+/* line 688, ../sass/styles/widgets/_button.scss */
+.x-btn-default-small.x-btn-disabled span.x-btn-icon.save {
+  background-position: 0 -1004px; }
+/* line 689, ../sass/styles/widgets/_button.scss */
+.x-btn-default-small.x-btn-disabled span.x-btn-icon.events {
+  background-position: 0 -1022px; }
+/* line 690, ../sass/styles/widgets/_button.scss */
+.x-btn-default-small.x-btn-disabled span.x-btn-icon.devprobs {
+  background-position: 0 -1040px; }
+/* line 691, ../sass/styles/widgets/_button.scss */
+.x-btn-default-small.x-btn-disabled span.x-btn-icon.customize {
+  background-position: -1px -1058px; }
+/* line 692, ../sass/styles/widgets/_button.scss */
+.x-btn-default-small.x-btn-disabled span.x-btn-icon.newwindow {
+  background-position: 0 -1076px; }
+/* line 693, ../sass/styles/widgets/_button.scss */
+.x-btn-default-small.x-btn-disabled span.x-btn-icon.export2 {
+  background-position: 0 -1094px; }
+/* line 694, ../sass/styles/widgets/_button.scss */
+.x-btn-default-small.x-btn-disabled span.x-btn-icon.fullscreen {
+  background-position: 0 -1112px; }
+/* line 695, ../sass/styles/widgets/_button.scss */
+.x-btn-default-small.x-btn-disabled span.x-btn-icon.dashboard {
+  background-position: 0 -1130px; }
+/* line 696, ../sass/styles/widgets/_button.scss */
+.x-btn-default-small.x-btn-disabled span.x-btn-icon.watchlist {
+  background-position: 0 -1148px; }
+/* line 697, ../sass/styles/widgets/_button.scss */
+.x-btn-default-small.x-btn-disabled span.x-btn-icon.slides {
+  background-position: 0 -1166px; }
+/* line 698, ../sass/styles/widgets/_button.scss */
+.x-btn-default-small.x-btn-disabled span.x-btn-icon.lighttable {
+  background-position: 0 -1184px; }
+/* line 699, ../sass/styles/widgets/_button.scss */
+.x-btn-default-small.x-btn-disabled span.x-btn-icon.outline {
+  background-position: 0 -1202px; }
+/* line 700, ../sass/styles/widgets/_button.scss */
+.x-btn-default-small.x-btn-disabled span.x-btn-icon.addslide {
+  background-position: 0 -1220px; }
+/* line 701, ../sass/styles/widgets/_button.scss */
+.x-btn-default-small.x-btn-disabled span.x-btn-icon.classify {
+  background-position: 0 -1278px; }
+/* line 702, ../sass/styles/widgets/_button.scss */
+.x-btn-default-small.x-btn-disabled span.x-btn-icon.reopen {
+  background-position: 0 -1332px; }
+/* line 703, ../sass/styles/widgets/_button.scss */
+.x-btn-default-small.x-btn-disabled span.x-btn-icon.share {
+  background-position: 0 -1386px; }
+/* line 704, ../sass/styles/widgets/_button.scss */
+.x-btn-default-small.x-btn-disabled span.x-btn-icon.unacknowledge {
+  background-position: 0 -1440px; }
+/* line 705, ../sass/styles/widgets/_button.scss */
+.x-btn-default-small.x-btn-disabled span.x-btn-icon.collapse {
+  background-position: 0 -1494px; }
+/* line 706, ../sass/styles/widgets/_button.scss */
+.x-btn-default-small.x-btn-disabled span.x-btn-icon.expand {
+  background-position: 0 -1548px; }
+/* line 707, ../sass/styles/widgets/_button.scss */
+.x-btn-default-small.x-btn-disabled span.x-btn-icon.refresh {
+  background-position: 0 -1602px; }
+
+/* line 713, ../sass/styles/widgets/_button.scss */
+.x-btn em {
+  font-style: normal; }
+
+/* line 720, ../sass/styles/widgets/_button.scss */
+.x-nlg .x-btn-default-small, .x-nlg .x-btn-default-small-disabled, .x-nlg .x-btn-default-small-over {
+  background-repeat: repeat-x;
+  background-image: url("/++resource++zenui/img/ext4/btn/btn-default-small-over-bg.png") ; }
+/* line 726, ../sass/styles/widgets/_button.scss */
+.x-nlg .x-btn-default-small-menu-active, .x-nlg .x-btn-default-small-pressed {
+  background-repeat: repeat-x;
+  background-image: url("/++resource++zenui/img/ext4/btn/btn-default-small-pressed-bg.png") ; }
+
+/* line 741, ../sass/styles/widgets/_button.scss */
+.x-nbr .x-btn-default-small .x-frame-tl, .x-nbr .x-btn-default-small .x-frame-bl, .x-nbr .x-btn-default-small .x-frame-tr, .x-nbr .x-btn-default-small .x-frame-br, .x-nbr .x-btn-default-small .x-frame-tc, .x-nbr .x-btn-default-small .x-frame-bc, .x-nbr .x-btn-default-small-disabled .x-frame-tl, .x-nbr .x-btn-default-small-disabled .x-frame-bl, .x-nbr .x-btn-default-small-disabled .x-frame-tr, .x-nbr .x-btn-default-small-disabled .x-frame-br, .x-nbr .x-btn-default-small-disabled .x-frame-tc, .x-nbr .x-btn-default-small-disabled .x-frame-bc, .x-nbr .x-btn-default-small-over .x-frame-tl, .x-nbr .x-btn-default-small-over .x-frame-bl, .x-nbr .x-btn-default-small-over .x-frame-tr, .x-nbr .x-btn-default-small-over .x-frame-br, .x-nbr .x-btn-default-small-over .x-frame-tc, .x-nbr .x-btn-default-small-over .x-frame-bc {
+  background-image: url("/++resource++zenui/img/ext4/btn/btn-default-small-over-corners.png") ; }
+/* line 745, ../sass/styles/widgets/_button.scss */
+.x-nbr .x-btn-default-small .x-frame-ml, .x-nbr .x-btn-default-small .x-frame-mr, .x-nbr .x-btn-default-small-disabled .x-frame-ml, .x-nbr .x-btn-default-small-disabled .x-frame-mr, .x-nbr .x-btn-default-small-over .x-frame-ml, .x-nbr .x-btn-default-small-over .x-frame-mr {
+  background-image: url("/++resource++zenui/img/ext4/btn/btn-default-small-over-sides.png") ; }
+/* line 748, ../sass/styles/widgets/_button.scss */
+.x-nbr .x-btn-default-small .x-frame-mc, .x-nbr .x-btn-default-small-disabled .x-frame-mc, .x-nbr .x-btn-default-small-over .x-frame-mc {
+  background-color: #dfdfdf;
+  background-image: url("/++resource++zenui/img/ext4/btn/btn-default-small-over-bg.png") ; }
+/* line 761, ../sass/styles/widgets/_button.scss */
+.x-nbr .x-btn-default-small-menu-active .x-frame-tl, .x-nbr .x-btn-default-small-menu-active .x-frame-bl, .x-nbr .x-btn-default-small-menu-active .x-frame-tr, .x-nbr .x-btn-default-small-menu-active .x-frame-br, .x-nbr .x-btn-default-small-menu-active .x-frame-tc, .x-nbr .x-btn-default-small-menu-active .x-frame-bc, .x-nbr .x-btn-default-small-pressed .x-frame-tl, .x-nbr .x-btn-default-small-pressed .x-frame-bl, .x-nbr .x-btn-default-small-pressed .x-frame-tr, .x-nbr .x-btn-default-small-pressed .x-frame-br, .x-nbr .x-btn-default-small-pressed .x-frame-tc, .x-nbr .x-btn-default-small-pressed .x-frame-bc {
+  background-image: url("/++resource++zenui/img/ext4/btn/btn-default-small-pressed-corners.png") ; }
+/* line 765, ../sass/styles/widgets/_button.scss */
+.x-nbr .x-btn-default-small-menu-active .x-frame-ml, .x-nbr .x-btn-default-small-menu-active .x-frame-mr, .x-nbr .x-btn-default-small-pressed .x-frame-ml, .x-nbr .x-btn-default-small-pressed .x-frame-mr {
+  background-image: url("/++resource++zenui/img/ext4/btn/btn-default-small-pressed-sides.png") ; }
+/* line 768, ../sass/styles/widgets/_button.scss */
+.x-nbr .x-btn-default-small-menu-active .x-frame-mc, .x-nbr .x-btn-default-small-pressed .x-frame-mc {
+  background-color: #dfdfdf;
+  background-image: url("/++resource++zenui/img/ext4/btn/btn-default-small-pressed-bg.png") ; }
+
 /* line 140, ../../../../../../../../zenoss/lib/python/zenoss/extjs/src/resources/themes/stylesheets/ext4/default/widgets/_toolbar.scss */
 .x-toolbar-default {
   border-color: #d9d9d9;
@@ -9991,3 +11149,61 @@ textarea.x-form-field {
 .x-nbr .x-window-default-mc, .x-nbr .x-window-header-default-top-ml, .x-nbr .x-window-header-default-top-mr, .x-nbr .x-window-default-mr, .x-nbr .x-window-default-ml {
   background-image: none;
   background-color: #555555; }
+
+/*
+CORE TRIGGER PAGE STUFF
+*/
+/* line 36, ../sass/xtheme-zenoss.scss */
+.white-background-panel {
+  font-size: 12px;
+  background: none repeat scroll 0 0 #FAFAFA;
+  color: #454545; }
+
+/* line 42, ../sass/xtheme-zenoss.scss */
+.white-background-panel .x-window-header {
+  font-size: 12px; }
+
+/* line 46, ../sass/xtheme-zenoss.scss */
+.white-background-panel .x-window-mc {
+  padding-top: 2px; }
+
+/* line 50, ../sass/xtheme-zenoss.scss */
+.white-background-panel .x-item-disabled * {
+  color: gray !important; }
+
+/* line 54, ../sass/xtheme-zenoss.scss */
+.white-background-panel div.xtb-text {
+  line-height: 21px;
+  font-size: 10pt; }
+
+/* line 59, ../sass/xtheme-zenoss.scss */
+.white-background-panel .x-box-inner {
+  padding-bottom: 15px;
+  padding-top: 20px;
+  left: 0 !important; }
+
+/* line 65, ../sass/xtheme-zenoss.scss */
+.white-background-panel .x-window-body .x-panel-body {
+  background: none repeat scroll 0 0 #FAFAFA;
+  color: #454545; }
+
+/* line 70, ../sass/xtheme-zenoss.scss */
+.white-background-panel .x-form-check-wrap .x-form-field {
+  margin-top: 5px; }
+
+/* line 74, ../sass/xtheme-zenoss.scss */
+.white-background-panel .x-fieldset {
+  padding: 0; }
+
+/* top search button sprite */
+/* line 80, ../sass/xtheme-zenoss.scss */
+#searchbox-container .x-form-trigger {
+  background-image: url("../img/xtheme-zenoss/form/trigger.gif"); }
+/* line 83, ../sass/xtheme-zenoss.scss */
+#searchbox-container .searchfield-black {
+  height: 21px;
+  overflow: hidden; }
+
+/* line 88, ../sass/xtheme-zenoss.scss */
+#footer_bar {
+  border: none !important; }
