@@ -157,7 +157,10 @@
             }
         };
         dialog = new Zenoss.SmartFormDialog(config);
-        dialog.show();
+
+        if (Zenoss.Security.hasPermission('Manage DMD')) {
+            dialog.show();
+        }
     }
 
     /**
@@ -335,7 +338,10 @@
         setContext: function(uid) {
             if (uid == '/zport/dmd/Devices'){
                 this.deleteButton.setDisabled(true);
+            } else {
+                this.deleteButton.setDisabled(Zenoss.Security.doesNotHavePermission('Manage DMD'));
             }
+
             this.uid = uid;
             // load the grid's store
             this.callParent(arguments);
