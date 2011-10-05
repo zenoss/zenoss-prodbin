@@ -49,6 +49,8 @@ class ObjectProtobuf(object):
             if value is None:
                 continue
             try:
+                if isinstance(value, basestring):
+                    value = _safestr(value)
                 setattr(proto, field.name, value)
             except (AttributeError, TypeError):
                 # likely a composite field that we will have to set manually
@@ -68,7 +70,7 @@ class DeviceProtobuf(ObjectProtobuf):
 
     def fill(self, proto):
         self.autoMapFields(proto)
-        proto.title = self.obj.titleOrId()
+        proto.title = _safestr(self.obj.titleOrId())
         return proto
 
 
@@ -85,7 +87,7 @@ class OrganizerProtobuf(ObjectProtobuf):
 
     def fill(self, proto):
         self.autoMapFields(proto)
-        proto.title = self.obj.titleOrId()
+        proto.title = _safestr(self.obj.titleOrId())
         #get path minus first 3 '', 'zport', 'dmd'
         proto.path = '/'.join(self.obj.getPrimaryPath()[3:])
         return proto
@@ -102,7 +104,7 @@ class DeviceComponentProtobuf(ObjectProtobuf):
 
     def fill(self, proto):
         self.autoMapFields(proto)
-        proto.title = self.obj.name()
+        proto.title = _safestr(self.obj.name())
         # use device protobuf to fill out our device property
         device = self.obj.device()
         if device:

@@ -377,6 +377,7 @@ Ext.apply(Zenoss.devices, {
                             layout: 'anchor',
                             items: [{
                                 xtype: 'textfield',
+                                vtype: 'hostnameorIP',
                                 name: 'deviceName',
                                 width:250,
                                 fieldLabel: _t('Name or IP'),

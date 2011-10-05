@@ -1494,10 +1494,20 @@ class DeviceRouter(TreeRouter):
         if not Zuul.checkPermission("Manage Device", organizer):
             raise Unauthorized('Calling AddDevice requires ' +
                                'Manage Device permission on %s' % deviceClass)
-        device = facade.getDeviceByIpAddress(deviceName, collector)
+        
+        if title is None:
+            title = deviceName
+
+        # the device name is used as part of the URL, so any unicode characters
+        # will be stripped before saving. Pre-empt this and make the device name
+        # safe prior to the uniqueness check.
+        safeDeviceName = organizer.prepId(deviceName)
+
+        device = facade.getDeviceByIpAddress(safeDeviceName, collector)
         if device:
             return DirectResponse.fail(deviceUid=device.getPrimaryId(),
                                        msg="Device %s already exists. <a href='%s'>Go to the device</a>" % (deviceName, device.getPrimaryId()))
+
         if isinstance(systemPaths, basestring):
             systemPaths = [systemPaths]
         if isinstance(groupPaths, basestring):

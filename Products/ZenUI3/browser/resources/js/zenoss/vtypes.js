@@ -7,6 +7,7 @@
     var numrange_regex = new RegExp("^(-?[0-9]+)?:?(-?[0-9]+)?$");
     var range_regex = new RegExp("^([^:]*):?([^:]*)$");
     var alpha_num_space = new RegExp(/[a-z_\s\d]/i);
+    var hostname_or_ip_regex = new RegExp(/[a-zA-Z0-9-_.\(\)\/:]/);
 
     /**
      * These are the custom validators defined for
@@ -96,7 +97,13 @@
             return alpha_num_space.test(val);
         },
         alphanumspaceText: _t('Must be an alphanumeric value or a space '),
-        alphanumspaceMask: alpha_num_space
+        alphanumspaceMask: alpha_num_space,
+
+        hostnameorIP: function(val, field) {
+            return hostname_or_ip_regex.test(val);
+        },
+        hostnameorIPText: _t('Must be a valid hostname or IP address '),
+        hostnameorIPMask: hostname_or_ip_regex
     };
 
     Ext.apply(Ext.form.VTypes, vtypes);
