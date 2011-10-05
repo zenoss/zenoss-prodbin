@@ -4,8 +4,6 @@
     xmlns:browser="http://namespaces.zope.org/browser"
     i18n_domain="Products.ZenWidgets">
 
-    <include package="zenoss.extjs"/>
-
     <include package=".browser"/>
     <include file="messaging.zcml"/>
 

@@ -18,6 +18,7 @@
     xmlns:browser="http://namespaces.zope.org/browser"
     xmlns:five="http://namespaces.zope.org/five">
 
+<include package="zenoss.extjs"/>
 
 <include file="backcompat.zcml"/>
 <include file="resources.zcml"/>
