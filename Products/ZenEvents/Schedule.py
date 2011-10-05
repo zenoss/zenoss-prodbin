@@ -10,7 +10,7 @@
 # For complete information please visit: http://www.zenoss.com/oss/
 #
 ###########################################################################
-#! /usr/bin/env python 
+#! /usr/bin/env python
 
 __doc__='''Schedule
 
@@ -18,11 +18,12 @@ Walk through the maintenance schedule.
 
 $Id$
 '''
+
 import time
 import logging
-import transaction
 from twisted.internet import reactor
 
+from ZODB.transact import transact
 from Products.ZenEvents.ZenEventClasses import Status_Update
 from Products.ZenEvents import Event
 
@@ -55,7 +56,7 @@ class Schedule:
 
     def sync(self):
         "Synch with the database"
-        self.dmd._p_jar.sync()    
+        self.dmd._p_jar.sync()
 
     def getWindows(self):
         result = []
@@ -86,14 +87,26 @@ class Schedule:
                     for ar in us.objectValues(spec="ActionRule"):
                         result.extend(w for w in ar.windows() if w.enabled)
         return result
-        
+
     def run(self):
         "Re-read work list from the database"
         self.sync()
         self.workList = self.getWindows()
         self.runEvents()
 
+
+    @transact
     def makeWorkList(self, now, workList):
+        """
+        Returns the list of tuples where 0 is the next time the
+        window should run and the 1 index is the window itself.
+        If there is no next run and the window has started this
+        method ends the windows.
+
+        This method is wrapped in a transact block because there
+        is the chance that we could set the production state on
+        devices if the "end" method is called.
+        """
         work = [(mw.nextEvent(now), mw) for mw in workList]
         work.sort()
         # note that None is less than any number of seconds
@@ -114,7 +127,6 @@ class Schedule:
 
     def runEvents(self):
         "Execute all the maintanance windows at the proper time"
-
         if self.timer and not self.timer.called:
             self.timer.cancel()
 
@@ -122,7 +134,6 @@ class Schedule:
         now = self.now()
         work = self.makeWorkList(now, self.workList)
         self.workList = [mw for t, mw in work]
-
         # fire events that should be done now
         for next, mw in work:
             if next <= now:
@@ -159,14 +170,11 @@ class Schedule:
             wait = max(0, work[0][0] - now)
             self.log.debug("Waiting %f seconds", wait)
             self.timer = self.callLater(wait)
-        self.commit()
-
-    def commit(self):
-        transaction.commit()
 
     def callLater(self, seconds):
         return reactor.callLater(seconds, self.runEvents)
 
+    @transact
     def executeMaintenanceWindow(self, mw, timestamp):
         mw.execute(timestamp)
 
