@@ -87,7 +87,7 @@ def findDataFs():
 
 def getMySqlSettings():
     o, args = parser.parse_args(args=sys.argv[1:])
-    return o.host, o.port, o.db, o.user, o.passwd, o.rootpw, o.socket
+    return o.host, o.port, o.db, o.user, o.passwd, o.adminPassword, o.socket
 
 
 def createMySqlDatabase(host, port, db, user, passwd, root, socket):
@@ -327,6 +327,9 @@ def _print_sane_output(msg):
 
 
 if __name__ == '__main__':
+    parser.add_option('--db-type',
+           dest="dbType", default="mysql",
+           help="database type: eg mysql,postgresql")
     parser.add_option('--host',
            dest="host",default="localhost",
            help="hostname of MySQL object store")
@@ -339,7 +342,9 @@ if __name__ == '__main__':
            help='passwd for MySQL object store')
     parser.add_option('--db', dest='db', default='zodb',
            help='Name of database for MySQL object store')
-    parser.add_option('--rootpw', dest='rootpw',
+    parser.add_option('--admin-user', dest='adminUser', default="root",
+           help='Name of database admin user')
+    parser.add_option('--admin-password', dest='adminPassword',
            help='MySQL root password')
     parser.add_option('--socket', dest='socket', default=None,
            help='unix socket path of the database connection (if localhost)')

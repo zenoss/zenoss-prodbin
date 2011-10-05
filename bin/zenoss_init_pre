@@ -23,14 +23,23 @@
 export OS_USERNAME="**OS_USERNAME**"
 export OS_UID="**OS_UID**"
 export ZENHOME="**ZENHOME**"
-export MYSQLHOST="**MYSQL_HOST**"
-export MYSQLZODB="**MYSQL_ZODB**"
-export MYSQLPORT="**MYSQL_PORT**"
-export MYSQLROOTUSER="**MYSQL_ROOT_USERNAME**"
-export MYSQLROOTPASSWD="**MYSQL_ROOT_PASSWD**"
-export MYSQLUSER="**MYSQL_USERNAME**"
-export MYSQLPASS="**MYSQL_PASSWD**"
-export MYSQLZEPDB="**MYSQL_ZEP**"
+
+export ZODB_HOST="**ZODB_HOST**"
+export ZODB_DB="**ZODB_DB**"
+export ZODB_PORT="**ZODB_PORT**"
+export ZODB_ADMIN_USER="**ZODB_ADMIN_USER**"
+export ZODB_ADMIN_PASSWORDWD="**ZODB_ADMIN_PASSWORD**"
+export ZODB_USER="**ZODB_USER**"
+export ZODB_PASSWORD="**ZODB_PASSWORD**"
+
+export ZEP_HOST="**ZEP_HOST**"
+export ZEP_DB="**ZEP_DB**"
+export ZEP_PORT="**ZEP_PORT**"
+export ZEP_ADMIN_USER="**ZEP_ADMIN_USER**"
+export ZEP_ADMIN_PASSWORDWD="**ZEP_ADMIN_PASSWORD**"
+export ZEP_USER="**ZEP_USER**"
+export ZEP_PASSWORD="**ZEP_PASSWORD**"
+
 export RABBITMQ_HOST="**RABBITMQ_HOST**"
 export RABBITMQ_SSL="**RABBITMQ_SSL**"
 export RABBITMQ_PORT="**RABBITMQ_PORT**"
@@ -56,7 +65,7 @@ mkdir -p ${ZENHOME}/log
 
 # restart external server daemons
 restart_snmpd
-if [ "${MYSQLHOST}" = "localhost" ];then
+if [ "${ZODB_HOST}" = "localhost" ];then
    start_mysql
 fi
 start_rabbitmq

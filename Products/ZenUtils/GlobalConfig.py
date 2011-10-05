@@ -32,6 +32,13 @@ _GLOBAL_CONFIG = ConfigLoader(CONFIG_FILE, GlobalConfig)
 def getGlobalConfiguration():
     return _GLOBAL_CONFIG()
 
+
+def flagToConfig(flag):
+    return flag.trim().lstrip("-").replace("-", "_")
+    
+def configToFlag(option):
+    return "--" + option.strip().replace("_", "-")
+
 def _convertConfigLinesToArguments(parser, lines):
     """
     Converts configuration file lines of the format:
@@ -55,25 +62,30 @@ def _convertConfigLinesToArguments(parser, lines):
     # valid key
     #     an option's string without the leading "--"
     #     can differ from an option's destination
-    validkeys = []
+    validOpts = []
+
     for opt in parser.option_list:
         optstring = opt.get_opt_string()
-        validkey = optstring.lstrip("-")
-        validkeys.append(validkey)
-
+        validOpts.append(optstring)
+    for optGroup in parser.option_groups:
+        for opt in optGroup.option_list:
+            optstring = opt.get_opt_string()
+            validOpts.append(optstring)
+            
     args = []
     for line in lines:
-        if line.get('type', None) == 'option' and line['key'] in validkeys:
-            option = parser.get_option('--' + line['key'])
+        optstring = configToFlag(line['key'])
+        if line.get('type', None) == 'option' and optstring in validOpts:
+            option = parser.get_option(optstring)
             boolean_value = line.get('value', '').lower() in ('true','yes','1')
             if option.action == 'store_true':
                 if boolean_value:
-                    args += ['--%s' % line['key']]
+                    args.append(optstring)
             elif option.action == 'store_false':
                 if not boolean_value:
-                    args += ['--%s' % line['key']]
+                    args.append(optstring)
             else:
-                args += ['--%s' % line['key'], line['value']]
+                args.extend([optstring, line['value'],])
 
     return args
 

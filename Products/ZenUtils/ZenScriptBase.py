@@ -44,31 +44,10 @@ class ZenScriptBase(CmdBase):
 
     def connect(self):
         if not self.app:
-            self.options.port = self.options.port or 3306
-            from relstorage.storage import RelStorage
-            from relstorage.adapters.mysql import MySQLAdapter
-            connectionParams = {
-                'host' : self.options.host,
-                'port' : self.options.port,
-                'user' : self.options.mysqluser,
-                'passwd' : self.options.mysqlpasswd,
-                'db' : self.options.mysqldb,
-            }
-            if getattr(self.options, 'mysqlsocket', None) and self.options.mysqlsocket != 'None':
-                connectionParams['unix_socket'] = self.options.mysqlsocket
-
-            kwargs = {
-                'cache_module_name':'memcache',
-                'keep_history': False,
-            }
-            from relstorage.options import Options
-            adapter = MySQLAdapter(options=Options(**kwargs), **connectionParams)
-
-            if self.options.cacheservers:
-                kwargs['cache_servers'] = self.options.cacheservers
-            self.storage = RelStorage(adapter, **kwargs)
-            from ZODB import DB
-            self.db = DB(self.storage, cache_size=self.options.cachesize)
+            from zope.component import getUtility
+            from ZodbFactory import IZodbFactory
+            connectionFactory = getUtility(IZodbFactory)()
+            self.db, self.storage = connectionFactory.getConnection(self.options)
         self.getDataRoot()
         self.login()
         if getattr(self.dmd, 'propertyTransformers', None) is None:
@@ -156,27 +135,9 @@ class ZenScriptBase(CmdBase):
     def buildOptions(self):
         """basic options setup sub classes can add more options here"""
         CmdBase.buildOptions(self)
-        self.parser.add_option('-R', '--dataroot',
-                    dest="dataroot",
-                    default="/zport/dmd",
-                    help="root object for data load (i.e. /zport/dmd)")
-        self.parser.add_option('--cachesize',
-                    dest="cachesize",default=1000, type='int',
-                    help="in memory cachesize default: 1000")
-        self.parser.add_option('--host',
-                    dest="host",default="localhost",
-                    help="hostname of MySQL object store")
-        self.parser.add_option('--port',
-                    dest="port", type="int", default=3306,
-                    help="port of MySQL object store")
-        self.parser.add_option('--mysqluser', dest='mysqluser', default='zenoss',
-                    help='username for MySQL object store')
-        self.parser.add_option('--mysqlpasswd', dest='mysqlpasswd', default='zenoss',
-                    help='passwd for MySQL object store')
-        self.parser.add_option('--mysqldb', dest='mysqldb', default='zodb',
-                    help='Name of database for MySQL object store')
-        self.parser.add_option('--mysqlsocket', dest='mysqlsocket', default=None,
-                    help='Name of socket file for MySQL server connection')
-        self.parser.add_option('--cacheservers', dest='cacheservers', default="",
-                    help='memcached servers to use for object cache (eg. 127.0.0.1:11211)')
+
+        from zope.component import getUtility
+        from ZodbFactory import IZodbFactory
+        connectionFactory = getUtility(IZodbFactory)()
+        connectionFactory.buildOptions(self.parser)
 

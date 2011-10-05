@@ -17,28 +17,21 @@ class ZeoConn(object):
 
     def __init__(self, host="localhost", port=3306, user="zenoss",
                  passwd="zenoss", db="zodb", unix_socket=None):
-        from relstorage.storage import RelStorage
-        from relstorage.adapters.mysql import MySQLAdapter
-        connectionParams = {}
-        if unix_socket:
-            connectionParams['unix_socket'] = unix_socket
-        kwargs = {
-            'keep_history': False,
+        # set up options in the manner that Connection factory expects
+        options = {
+           "zodb_host": host,
+           "zodb_port": port,
+           "zodb_user": user,
+           "zodb_password": passwd,
+           "zodb_db": db,
+           "zodb_socket": unix_socket,
         }
-        from relstorage.options import Options
-        adapter = MySQLAdapter(
-            host=host,
-            port=port,
-            user=user,
-            passwd=passwd,
-            db=db,
-            options=Options(**kwargs),
-            **connectionParams
-        )
 
-        storage = RelStorage(adapter, **kwargs)
-        from ZODB import DB
-        self.db=DB(storage)
+        from zope.component import getUtility
+        from ZodbFactory import IZodbFactory
+        connectionFactory = getUtility(IZodbFactory)()
+        self.db, self.storage = connectionFactory.getConnection(**self.options.__dict__)
+
         self.app = None
         self.dmd = None
         self.opendb()

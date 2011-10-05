@@ -61,26 +61,7 @@ class zenbuild(CmdBase):
                 help="smtp host")
         self.parser.add_option('--smtpport', dest="smtpport", default=25,
                 help="smtp port")
-        self.parser.add_option('--cachesize',
-                    dest="cachesize",default=1000, type='int',
-                    help="in memory cachesize default: 1000")
-        self.parser.add_option('--host',
-                    dest="host",default="localhost",
-                    help="hostname of MySQL object store")
-        self.parser.add_option('--port',
-                    dest="port", type="int", default=3306,
-                    help="port of MySQL object store")
-        self.parser.add_option('--mysqluser', dest='mysqluser', default='zenoss',
-                    help='username for MySQL object store')
-        self.parser.add_option('--mysqlpasswd', dest='mysqlpasswd', default='zenoss',
-                    help='passwd for MySQL object store')
-        self.parser.add_option('--mysqldb', dest='mysqldb', default='zodb',
-                    help='Name of database for MySQL object store')
-        self.parser.add_option('--mysqlsocket', dest='mysqlsocket', default=None,
-                    help='Name of socket file for MySQL server connection')
-        self.parser.add_option('--cacheservers', dest='cacheservers',
-                    default="127.0.0.1:11211",
-                    help='memcached servers to use for object cache (eg. 127.0.0.1:11211)')
+
         self.parser.add_option('--pagecommand', dest="pagecommand", default="$ZENHOME/bin/zensnpp localhost 444 $RECIPIENT",
                 help="page command")
         # amqp stuff
@@ -95,6 +76,12 @@ class zenbuild(CmdBase):
         self.parser.add_option('--amqppassword', dest="amqppassword", default="zenoss",
                                help="AMQP Password")
 
+        from zope.component import getUtility
+        from Products.ZenUtils.ZodbFactory import IZodbFactory
+        connectionFactory = getUtility(IZodbFactory)()
+        connectionFactory.buildOptions(self.parser)
+
+
     def zodbConnect(self):
         """
         Used to connect to ZODB (without going through the entire ZOPE
@@ -102,35 +89,18 @@ class zenbuild(CmdBase):
         connection to the database to test to see if the database is already
         initialized.
         """
-        self.options.port = self.options.port or 3306
-        from relstorage.storage import RelStorage
-        from relstorage.adapters.mysql import MySQLAdapter
-        connectionParams = {
-            'host' : self.options.host,
-            'port' : self.options.port,
-            'user' : self.options.mysqluser,
-            'passwd' : self.options.mysqlpasswd,
-            'db' : self.options.mysqldb,
-        }
-        if getattr(self.options, 'mysqlsocket', None) and self.options.mysqlsocket != 'None':
-            connectionParams['unix_socket'] = self.options.mysqlsocket
-
-        kwargs = {
-            'keep_history': False,
-        }
-        from relstorage.options import Options
-        adapter = MySQLAdapter(options=Options(**kwargs),**connectionParams)
-        self.storage = RelStorage(adapter, **kwargs)
-        from ZODB import DB
-        self.db = DB(self.storage, cache_size=self.options.cachesize)
+        from zope.component import getUtility
+        from Products.ZenUtils.ZodbFactory import IZodbFactory
+        connectionFactory = getUtility(IZodbFactory)()
+        self.db, self.storage = connectionFactory.getConnection(**self.options.__dict__)
 
     def build(self):
-        mysqlcmd = ['mysql', '-u', self.options.mysqluser]
-        if self.options.mysqlpasswd:
-            mysqlcmd.append('-p%s' % self.options.mysqlpasswd)
+        mysqlcmd = ['mysql', '-u', self.options.zodb_user]
+        if self.options.zodb_password:
+            mysqlcmd.append('-p%s' % self.options.zodb_password)
         mysqlcmd.extend([
-            '-h', self.options.host,
-            '--port', str(self.options.port)
+            '-h', self.options.zodb_host,
+            '--port', str(self.options.zodb_port)
         ])
 
         mysqlcmd = subprocess.list2cmdline(mysqlcmd)
@@ -147,13 +117,13 @@ class zenbuild(CmdBase):
         except OperationalError, e:
             if 'Unknown database' in e[1]:
                 queries = (
-                    'CREATE DATABASE %s;' % self.options.mysqldb,
+                    'CREATE DATABASE %s;' % self.options.zodb_db,
                     "GRANT ALL ON %s.* TO %s@'%s' IDENTIFIED BY '%s';" % (
-                        self.options.mysqldb, self.options.mysqluser,
-                        self.options.host, self.options.mysqlpasswd),
+                        self.options.zodb_db, self.options.zodb_user,
+                        self.options.zodb_host, self.options.zodb_password),
                     "GRANT ALL ON %s.* TO %s@'%%' IDENTIFIED BY '%s';" % (
-                        self.options.mysqldb, self.options.mysqluser,
-                        self.options.mysqlpasswd),
+                        self.options.zodb_db, self.options.zodb_user,
+                        self.options.zodb_password),
                     "FLUSH PRIVILEGES;"
                 )
 
@@ -172,7 +142,8 @@ class zenbuild(CmdBase):
                 self.storage.close()
                 self.storage = None
 
-        if self.options.fromXml:
+        # TODO: remove the port condition, in here for now because there is no SQL dump of postgresql
+        if self.options.fromXml or self.options.zodb_port not in (3306, 13306):
             self.connect()
             from Products.ZenModel.ZentinelPortal import manage_addZentinelPortal
             manage_addZentinelPortal(self.app, self.sitename)
@@ -235,7 +206,7 @@ class zenbuild(CmdBase):
 
         else:
 
-            mysqlcmd += ' %s' % self.options.mysqldb
+            mysqlcmd += ' %s' % self.options.zodb_db
 
             cmd = 'cat $ZENHOME/Products/ZenModel/data/zodb.sql.gz | gzip -c -d | %s' % mysqlcmd
             os.system(cmd)
@@ -244,8 +215,8 @@ class zenbuild(CmdBase):
             # initial connection to the database. We have to expire everything
             # in the cache in order to prevent errors with overlapping
             # transactions from the model which was just imported above.
-            if self.options.cacheservers:
-                self.flush_memcached(self.options.cacheservers.split())
+            if self.options.zodb_cacheservers:
+                self.flush_memcached(self.options.zodb_cacheservers.split())
 
             self.connect()
 
@@ -268,9 +239,9 @@ class zenbuild(CmdBase):
         print "Updating global.conf"
         zenglobalconf = zenPath('bin', 'zenglobalconf')
         cmd = [zenglobalconf, '-u']
-        for opt in ('host', 'port', 'mysqldb', 'mysqluser', 'mysqlpasswd',
+        for opt in ('zodb_host', 'zodb_port', 'zodb_db', 'zodb_user', 'zodb_password',
                     'amqphost', 'amqpport', 'amqpvhost', 'amqpuser',
-                    'amqppassword', 'cacheservers'):
+                    'amqppassword', 'zodb_cacheservers'):
             cmd.append('%s=%s' % (opt, getattr(self.options, opt)))
         subprocess.call(cmd)
 

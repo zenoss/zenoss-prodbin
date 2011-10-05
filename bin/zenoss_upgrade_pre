@@ -23,14 +23,22 @@
 export OS_USERNAME="**OS_USERNAME**"
 export OS_UID="**OS_UID**"
 export ZENHOME="**ZENHOME**"
-export MYSQLHOST="**MYSQL_HOST**"
-export MYSQLZODB="**MYSQL_ZODB**"
-export MYSQLPORT="**MYSQL_PORT**"
-export MYSQLROOTUSER="**MYSQL_ROOT_USERNAME**"
-export MYSQLROOTPASSWD="**MYSQL_ROOT_PASSWD**"
-export MYSQLUSER="**MYSQL_USERNAME**"
-export MYSQLPASS="**MYSQL_PASSWD**"
-export MYSQLZEPDB="**MYSQL_ZEP**"
+export ZODB_HOST="**ZODB_HOST**"
+export ZODB_DB="**ZODB_DB**"
+export ZODB_PORT="**ZODB_PORT**"
+export ZODB_ADMIN_USER="**ZODB_ADMIN_USER**"
+export ZODB_ADMIN_PASSWORDWD="**ZODB_ADMIN_PASSWORD**"
+export ZODB_USER="**ZODB_USER**"
+export ZODB_PASSWORD="**ZODB_PASSWORD**"
+
+export ZEP_HOST="**ZEP_HOST**"
+export ZEP_DB="**ZEP_DB**"
+export ZEP_PORT="**ZEP_PORT**"
+export ZEP_ADMIN_USER="**ZEP_ADMIN_USER**"
+export ZEP_ADMIN_PASSWORDWD="**ZEP_ADMIN_PASSWORD**"
+export ZEP_USER="**ZEP_USER**"
+export ZEP_PASSWORD="**ZEP_PASSWORD**"
+
 export RABBITMQ_HOST="**RABBITMQ_HOST**"
 export RABBITMQ_SSL="**RABBITMQ_SSL**"
 export RABBITMQ_PORT="**RABBITMQ_PORT**"
@@ -78,7 +86,7 @@ shebang
 
 # restart external server daemons
 restart_snmpd
-if [ "${MYSQLHOST}" = "localhost" ];then
+if [ "${ZODB_HOST}" = "localhost" ];then
     start_mysql
 fi
 start_rabbitmq
@@ -92,13 +100,13 @@ create_zep_db
 # Update ZEP configuration files
 update_zep_cfg
 
-MYSQLSOCKET=`mysql --port="${MYSQLPORT}" -h "${MYSQLHOST}" -u "${MYSQLROOTUSER}" --password="${MYSQLROOTPASSWD}" -e "show variables like 'socket'" | grep socket | awk '{print $2}' | head -1`
+ZODB_SOCKET=`mysql --port="${ZODB_PORT}" -h "${ZODB_HOST}" -u "${ZODB_ADMIN_USER}" --password="${ZODB_ADMIN_PASSWORDWD}" -e "show variables like 'socket'" | grep socket | awk '{print $2}' | head -1`
 
 # Move from ZODB to MySQL
 ${ZENHOME}/bin/python ${ZENHOME}/bin/changeObjectStore.py \
-    --host="$MYSQLHOST" --port="$MYSQLPORT" --passwd="$MYSQLPASS" \
-    --user="$MYSQLUSER" --db="$MYSQLZODB" --rootpw="$MYSQLROOTPASSWD" \
-    --socket="$MYSQLSOCKET" \
+    --host="$ZODB_HOST" --port="$ZODB_PORT" --passwd="$ZODB_PASSWORD" \
+    --user="$ZODB_USER" --db="$ZODB_DB" --rootpw="$ZODB_ADMIN_PASSWORDWD" \
+    --socket="$ZODB_SOCKET" \
     2>&1 | egrep -v "For help, use ${ZENHOME}/bin/zeoctl -h|Error: no program specified; use -p or -C"
 
 
