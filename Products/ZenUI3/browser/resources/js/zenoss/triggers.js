@@ -1563,17 +1563,18 @@ Ext.onReady(function () {
                 id: 'trigger_rule',
                 subjects: [
                 Ext.applyIf(
+                    ZFR.DEVICEPRIORITY,
                     {
                     text: _t('Device Priority'),
                     value: 'dev.priority'
-                    },
-                    ZFR.DEVICEPRIORITY
+                    }
                 ),
-                Ext.applyIf({
+                Ext.applyIf(
+                    ZFR.PRODUCTIONSTATE,
+                    {
                     text: _t('Device Production State'),
                     value: 'dev.production_state'
-                    },
-                    ZFR.PRODUCTIONSTATE
+                    }
                 ),{
                     text: _t('Device (Element)'),
                     value: 'elem.name',
@@ -1865,6 +1866,15 @@ Ext.onReady(function () {
                 border: false,
                 closeAction: 'hide',
                 layout: 'fit',
+                listeners: {
+                    hide: function() {
+                        // This makes sure the DOM elements for the clauses are destroyed to prevent
+                        // confusion when the window is reopened (because this is a closeAction:'hide'
+                        // instead of 'destroy'
+                        this.tab_content.rule.destroy();
+                    },
+                    scope: this
+                },
                 items: [
                     {
                         xtype:'form',
@@ -1941,7 +1951,7 @@ Ext.onReady(function () {
                     }
                 ]
             });
-            Zenoss.trigger.EditTriggerDialogue.superclass.constructor.apply(this, arguments);
+            this.callParent([config]);
         },
         loadData: function(data) {
             // set content stuff.

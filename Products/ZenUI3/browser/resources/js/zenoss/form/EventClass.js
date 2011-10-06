@@ -24,7 +24,6 @@
                  throw "You must include the js-snippets viewlet before you use the eventClass control";
              }
              Ext.applyIf(config, {
-                 fieldLabel: _t('Event Class'),
                  name: 'eventClass',
                  typeAhead: true,
                  editable: false,

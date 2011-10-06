@@ -26,9 +26,10 @@
                 idx = realowner.items.indexOf(scope);
                 var clause = realowner.insert(idx + 1, {
                     xtype: 'ruleclause',
-                    builder: scope.builder
+                    nestedRule: scope,
+                    builder: scope.getBuilder()
                 });
-                realowner.doLayout();
+                realowner.doComponentLayout();
                 clause.subject.focus();
             },
             scope: scope
@@ -49,9 +50,10 @@
                 var realowner = scope.ownerCt,
                 idx = realowner.items.indexOf(scope);
                 realowner.insert(idx + 1, {
-                    xtype: 'nestedrule'
+                    xtype: 'nestedrule',
+                    ruleBuilder: scope.getBuilder()
                 });
-                realowner.doLayout();
+                realowner.doComponentLayout();
             },
             scope: scope
         }];
@@ -159,10 +161,11 @@
                     hiddenName: 'doesntmatter',
                     store: [[null,null]],
                     getSubject: function() {
-                        return this.getBuilder().subject_map[this.subject.hiddenField.value];
+                        return this.getBuilder().subject_map[this.subject.getValue()];
                     }.createDelegate(this),
                     listeners: {
-                        valid: function() {
+                        change: function() {
+
                             // Get the associated subject
                             var subject = this.subject.getSubject(),
                                 comparisons = [];
@@ -179,8 +182,9 @@
                             } else {
                                 comparisons = ZF.COMPARISON_STORE;
                             }
+
                             this.comparison.store.loadData(comparisons);
-                            this.comparison.setValue(comparisons[0][0]);
+                            this.comparison.setValue(comparisons[0]);
 
                             this.getBuilder().fireEvent(
                                 'rulechange',
@@ -201,9 +205,9 @@
                     forceSelection: true,
                     triggerAction: 'all',
                     listeners: {
-                        valid: function() {
-                            var cmp = ZF.COMPARISONS[this.comparison.hiddenField.value],
-                                field = this.subject.getSubject().field || cmp.field || {xtype:'textfield'},
+                        change: function() {
+                            var cmp = ZF.COMPARISONS[this.comparison.getValue()],
+                                field = this.subject.getSubject().field || (cmp && cmp.field) || {xtype:'textfield'},
                                 idx = this.items.items.indexOf(this.predicate),
                                 oldvalue = this.predicate.getValue(),
                                 oldxtype = this.predicate.xtype;
@@ -212,7 +216,7 @@
                                 ref: 'predicate',
                                 allowBlank: false,
                                 listeners: {
-                                    valid: function() {
+                                    change: function() {
                                         this.getBuilder().fireEvent(
                                             'rulechange',
                                             this
@@ -224,7 +228,7 @@
                             if (oldvalue && this.predicate.xtype == oldxtype) {
                                 this.predicate.setValue(oldvalue);
                             }
-                            this.doLayout();
+                            this.doComponentLayout();
                             this.getBuilder().fireEvent(
                                 'rulechange',
                                 this
@@ -237,7 +241,7 @@
                     ref: 'predicate',
                     xtype: 'textfield',
                     listeners: {
-                        valid: function() {
+                        change: function() {
                             this.getBuilder().fireEvent(
                                 'rulechange',
                                 this
@@ -250,7 +254,7 @@
             Ext.each(buttons(this), function(btn) {
                 config.items.push(btn);
             });
-            ZF.RuleClause.superclass.constructor.call(this, config);
+            this.callParent([config]);
             var subjects = this.getBuilder().subject_store;
             this.subject.store.loadData(subjects);
             this.subject.setValue(subjects[0][0]);
@@ -259,16 +263,15 @@
             }, this);
         },
         getValue: function() {
-            var field = this.comparison.hiddenField,
+            var comparison = this.comparison.getValue(),
                 sub = this.subject.getValue(),
                 pred = this.predicate.getValue();
-            if (!field || !sub || Ext.isEmpty(pred)) { return; }
-            var cmp = ZF.COMPARISONS[field.value];
+            if (!comparison || !sub || Ext.isEmpty(pred)) { return; }
+            var cmp = ZF.COMPARISONS[comparison];
             var clause = String.format(cmp.tpl, this.getBuilder().prefix + sub, Ext.encode(pred));
             return String.format("({0})", clause);
         },
         setValue: function(expression) {
-
             for (var cmp in comparison_patterns) {
                 if (comparison_patterns.hasOwnProperty(cmp)) {
                     var pat = comparison_patterns[cmp];
@@ -280,14 +283,13 @@
                             value = sorted[1],
                             cleansub = subject.replace(
                                 new RegExp("^"+this.getBuilder().prefix), '');
-                        this.subject.on('valid', function(){
+                        this.subject.on('change', function(){
                             this.comparison.setValue(cmp);
                         }, this, {single:true});
-                        this.comparison.on('valid', function(){
+                        this.comparison.on('change', function(){
                             this.predicate.setValue(Ext.decode(value));
                         }, this, {single:true});
                         this.subject.setValue(cleansub);
-                        this.comparison.setValue(cmp);
                         break;
                     }
                 }
@@ -295,7 +297,7 @@
         },
         getBuilder: function() {
             if (!this.builder) {
-                this.builder = this.nestedRule.ruleBuilder;
+                this.builder = this.nestedRule.ruleBuilder || this.findParentByType('rulebuilder', true);
             }
             return this.builder;
         }
@@ -357,7 +359,7 @@
                         triggerAction: 'all',
                         value: 'all',
                         listeners: {
-                            valid: function() {
+                            change: function() {
                                 this.getBuilder().fireEvent(
                                     'rulechange',
                                     this
@@ -391,7 +393,7 @@
                     items.push(btn);
                 });
             }
-            ZF.NestedRule.superclass.constructor.call(this, config);
+            this.callParent([config]);
         },
         getBuilder: function() {
             if (!this.builder) {
@@ -511,7 +513,6 @@
             config = Ext.applyIf(config||{}, {
                 cls: 'rule-builder',
                 prefix: '',
-                width: 690,
                 items: [{
                     ref: 'rootrule',
                     xtype: 'nestedrule',
@@ -528,7 +529,7 @@
                 this.subject_store.push([subject.value, subject.text || subject.value]);
                 this.subject_map[subject.value] = subject;
             }, this);
-            ZF.RuleBuilder.superclass.constructor.call(this, config);
+            this.callParent([config]);
             this.addEvents('rulechange');
         },
         getValue: function() {
@@ -542,17 +543,20 @@
             return result;
         },
         setValue: function(expression) {
+            console.log(expression, this.rootrule);
+            console.log(this);
             if (!expression) {
                 this.reset();
             } else {
                 this.rootrule.setValue(expression);
             }
-            this.doLayout();
+            this.doComponentLayout();
         },
         reset: function() {
             this.rootrule.clauses.removeAll();
             this.rootrule.clauses.add({
                 xtype: 'ruleclause',
+                nestedRule: this.rootrule,
                 builder: this
             });
         }
