@@ -543,8 +543,6 @@
             return result;
         },
         setValue: function(expression) {
-            console.log(expression, this.rootrule);
-            console.log(this);
             if (!expression) {
                 this.reset();
             } else {

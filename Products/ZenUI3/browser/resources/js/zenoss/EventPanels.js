@@ -14,11 +14,6 @@
 */
 (function(){
     Ext.ns('Zenoss.events');
-
-
-
-
-
     /*
      * Show the dialog that allows one to add an event.
      */
