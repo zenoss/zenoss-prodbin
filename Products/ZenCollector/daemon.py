@@ -255,7 +255,10 @@ class CollectorDaemon(RRDDaemon):
 
         # check for threshold breaches and send events when needed
         for ev in self._thresholds.check(path, now, value):
-            ev['eventKey'] = path.rsplit('/')[-1]
+            parts = [path.rsplit('/')[-1]]
+            if 'eventKey' in ev:
+                parts.append(ev['eventKey'])
+            ev['eventKey'] = '|'.join(parts)
             if threshEventData:
                 ev.update(threshEventData)
             self.sendEvent(ev)
