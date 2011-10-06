@@ -27,6 +27,7 @@ $include-missing-images: true;
 @include zenoss-toolbar;
 @include zenoss-panel;
 @include zenoss-window;
+@include zenoss-load-mask;
 
 
 /*
