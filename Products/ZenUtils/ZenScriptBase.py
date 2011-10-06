@@ -47,7 +47,7 @@ class ZenScriptBase(CmdBase):
             from zope.component import getUtility
             from ZodbFactory import IZodbFactory
             connectionFactory = getUtility(IZodbFactory)()
-            self.db, self.storage = connectionFactory.getConnection(self.options)
+            self.db, self.storage = connectionFactory.getConnection(**self.options.__dict__)
         self.getDataRoot()
         self.login()
         if getattr(self.dmd, 'propertyTransformers', None) is None:
