@@ -386,7 +386,7 @@ windows_device7 cDateTest='2010/02/28'
                 except Exception:
                     devName = device_specs.get('device_specs', 'Unkown Device')
                     msg = "Ignoring device loader issue for %s" % devName
-                    self.reportException(msg, devName, {'specs':str(device_specs)})
+                    self.reportException(msg, devName, specs=str(device_specs))
                     processed['errors'] += 1
                     return
             else:
@@ -419,7 +419,7 @@ windows_device7 cDateTest='2010/02/28'
                 raise
             except Exception, ex:
                 msg = "Modeling error for %s" % devobj.id
-                self.reportException(msg, devobj.id, ex)
+                self.reportException(msg, devobj.id, exception=str(ex))
                 processed['errors'] += 1
             processed['total'] += 1
 
