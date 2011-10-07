@@ -11,7 +11,7 @@
 #
 ###########################################################################
 
-__doc__="""MySqlZodbConnection
+__doc__="""PostgresqlZodbFactory
 """
 
 import optparse
@@ -20,49 +20,31 @@ import os
 from zope.interface import implements
 import ZODB
 import relstorage.storage 
-import relstorage.adapters.mysql
+import relstorage.adapters.postgresql
 import relstorage.options
 
 from ZodbFactory import IZodbFactory
 
 
-class MySqlZodbFactory(object):
+class PostgresqlZodbFactory(object):
     implements(IZodbFactory)
 
     def getConnection(self, **kwargs):
         """Return a ZODB connection."""
         connectionParams = {
             'host': kwargs.get('zodb_host', "localhost"),
-            'port': kwargs.get('zodb_port', 3306),
+            'port': kwargs.get('zodb_port', 5432),
             'user': kwargs.get('zodb_user', 'zenoss'),
             'passwd': kwargs.get('zodb_password', 'zenoss'),
             'db': kwargs.get('zodb_db', 'db'),
         }
-        socket = kwargs.get('zodb_socket', 'None')
-        if socket is None or socket == 'None':
-            # try to auto set ZENDS socket
-            use_zends = os.environ.get("USE_ZENDS", False)
-            if use_zends and use_zends == "1":
-                zends_home = os.environ.get("ZENDSHOME","")
-                zends_socket = zends_home + "/data/zends.sock"
-                if zends_home and os.path.exists(zends_socket):
-                    socket = zends_socket
-        if socket and socket != 'None':
-            connectionParams['unix_socket'] = socket
         kwargs = {
             'cache_module_name':'memcache',
             'keep_history': kwargs.get('zodb_keep_history', False)
         }
-        adapter = relstorage.adapters.mysql.MySQLAdapter(
-             options=relstorage.options.Options(**kwargs), 
-             **connectionParams)
-
-        # rename the poll_interval and cache_servers options to not
-        # have the zodb prefix. 
-        if 'zodb_poll_interval' in kwargs:
-            kwargs['poll_interval'] = kwargs['zodb_poll_interval']
-        if 'zodb_cache_servers' in kwargs:
-            kwargs['cache_servers'] = kwargs['zodb_cache_servers']
+        adapter = relstorage.adapters.postgresql.PostgreSQLAdapter(
+             dsn="dbname=%(host)s port=%(port)s user=%(user)s password=%(passwd)s" % connectionParams,
+             options=relstorage.options.Options(**kwargs))
 
         if 'poll_interval' in kwargs:
             if 'cache_servers' in kwargs:
@@ -83,7 +65,7 @@ class MySqlZodbFactory(object):
     def buildOptions(self, parser):
         """build OptParse options for ZODB connections"""
         group = optparse.OptionGroup(parser, "ZODB Options",
-            "ZODB connection options and MySQL Adaptor options.")
+            "ZODB connection options and PostgreSQL Adaptor options.")
         group.add_option('-R', '--zodb-dataroot',
                     dest="dataroot",
                     default="/zport/dmd",
@@ -93,18 +75,19 @@ class MySqlZodbFactory(object):
                     help="in memory cachesize default: 1000")
         group.add_option('--zodb-host',
                     dest="zodb_host",default="localhost",
-                    help="hostname of the MySQL server for ZODB")
+                    help="hostname of the PostgreSQL server for ZODB")
         group.add_option('--zodb-port',
-                    dest="zodb_port", type="int", default=3306,
-                    help="port of the MySQL server for ZODB")
+                    dest="zodb_port", type="int", default=5432,
+                    help="port of the PostgreSQL server for ZODB")
         group.add_option('--zodb-user', dest='zodb_user', default='zenoss',
-                    help='user of the MySQL server for ZODB')
+                    help='user of the PostgreSQL server for ZODB')
         group.add_option('--zodb-password', dest='zodb_password', default='zenoss',
-                    help='password of the MySQL server for ZODB')
+                    help='password of the PostgreSQL server for ZODB')
         group.add_option('--zodb-db', dest='zodb_db', default='zodb',
-                    help='Name of database for MySQL object store')
+                    help='Name of database for PostgreSQL object store')
+        # TODO: implement passing socket option to postgres adaptor
         group.add_option('--zodb-socket', dest='zodb_socket', default=None,
-                    help='Name of socket file for MySQL server connection if host is localhost')
+                    help='Name of socket file for PostgreSQL server connection if host is localhost')
         group.add_option('--zodb-cacheservers', dest='zodb_cacheservers', default="",
                     help='memcached servers to use for object cache (eg. 127.0.0.1:11211)')
         group.add_option('--zodb-poll-interval', dest='zodb_poll_interval', default=None, type='int',

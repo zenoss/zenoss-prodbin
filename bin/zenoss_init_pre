@@ -19,36 +19,9 @@
 #
 # For complete information please visit: http://www.zenoss.com/oss/
 #############################################################################
-# environment variable
-export OS_USERNAME="**OS_USERNAME**"
-export OS_UID="**OS_UID**"
-export ZENHOME="**ZENHOME**"
 
-export ZODB_HOST="**ZODB_HOST**"
-export ZODB_DB="**ZODB_DB**"
-export ZODB_PORT="**ZODB_PORT**"
-export ZODB_ADMIN_USER="**ZODB_ADMIN_USER**"
-export ZODB_ADMIN_PASSWORDWD="**ZODB_ADMIN_PASSWORD**"
-export ZODB_USER="**ZODB_USER**"
-export ZODB_PASSWORD="**ZODB_PASSWORD**"
-
-export ZEP_HOST="**ZEP_HOST**"
-export ZEP_DB="**ZEP_DB**"
-export ZEP_PORT="**ZEP_PORT**"
-export ZEP_ADMIN_USER="**ZEP_ADMIN_USER**"
-export ZEP_ADMIN_PASSWORDWD="**ZEP_ADMIN_PASSWORD**"
-export ZEP_USER="**ZEP_USER**"
-export ZEP_PASSWORD="**ZEP_PASSWORD**"
-
-export RABBITMQ_HOST="**RABBITMQ_HOST**"
-export RABBITMQ_SSL="**RABBITMQ_SSL**"
-export RABBITMQ_PORT="**RABBITMQ_PORT**"
-export RABBITMQ_VHOST="**RABBITMQ_VHOST**"
-export RABBITMQ_USER="**RABBITMQ_USER**"
-export RABBITMQ_PASS="**RABBITMQ_PASS**"
-export ZOPEPASSWORD="**ZOPE_PASSWD**"
-export ZOPEHOME="**ZOPEHOME**"
-export PYTHON="**PYTHON**"
+# load startup parameters
+. ${ZENHOME}/bin/zenoss_startup_config
 
 # load the installation functions
 . ${ZENHOME}/bin/shared-functions.sh
@@ -76,9 +49,6 @@ update_conf_files
 
 # create the database for ZODB
 create_zodb_db
-
-# grant database permissions
-create_database
 
 # create the ZEP database
 create_zep_db

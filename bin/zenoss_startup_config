@@ -1,0 +1,53 @@
+#! /usr/bin/env bash
+#############################################################################
+# This program is part of Zenoss Core, an open source monitoring platform.
+# Copyright (C) 2007, Zenoss Inc.
+#
+# This program is free software; you can redistribute it and/or modify it
+# under the terms of the GNU General Public License version 2 as published by
+# the Free Software Foundation.
+#
+# For complete information please visit: http://www.zenoss.com/oss/
+#############################################################################
+
+# This script is intended to contain database/application settings required
+# during zenoss startup and upgrade
+#
+# Note: it is run by root
+#
+
+export OS_USERNAME="**OS_USERNAME**"
+export OS_UID="**OS_UID**"
+export ZENHOME="**ZENHOME**"
+
+export ZODB_DB_TYPE="**ZODB_DB_TYPE**"
+export ZODB_HOST="**ZODB_HOST**"
+export ZODB_DB="**ZODB_DB**"
+export ZODB_PORT="**ZODB_PORT**"
+export ZODB_ADMIN_USER="**ZODB_ADMIN_USER**"
+export ZODB_ADMIN_PASSWORDWD="**ZODB_ADMIN_PASSWORD**"
+export ZODB_USER="**ZODB_USER**"
+export ZODB_PASSWORD="**ZODB_PASSWORD**"
+
+export ZODB_DB_TYPE="**ZODB_DB_TYPE**"
+export ZEP_HOST="**ZEP_HOST**"
+export ZEP_DB="**ZEP_DB**"
+export ZEP_PORT="**ZEP_PORT**"
+export ZEP_ADMIN_USER="**ZEP_ADMIN_USER**"
+export ZEP_ADMIN_PASSWORD="**ZEP_ADMIN_PASSWORD**"
+export ZEP_USER="**ZEP_USER**"
+export ZEP_PASSWORD="**ZEP_PASSWORD**"
+
+export RABBITMQ_HOST="**RABBITMQ_HOST**"
+export RABBITMQ_SSL="**RABBITMQ_SSL**"
+export RABBITMQ_PORT="**RABBITMQ_PORT**"
+export RABBITMQ_VHOST="**RABBITMQ_VHOST**"
+export RABBITMQ_USER="**RABBITMQ_USER**"
+export RABBITMQ_PASS="**RABBITMQ_PASS**"
+
+export ZOPEPASSWORD="**ZOPE_PASSWD**"
+export ZOPEHOME="**ZOPEHOME**"
+export PYTHON="**PYTHON**"
+
+
+
