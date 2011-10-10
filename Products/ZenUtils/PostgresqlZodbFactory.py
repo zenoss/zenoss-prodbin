@@ -36,14 +36,14 @@ class PostgresqlZodbFactory(object):
             'port': kwargs.get('zodb_port', 5432),
             'user': kwargs.get('zodb_user', 'zenoss'),
             'passwd': kwargs.get('zodb_password', 'zenoss'),
-            'db': kwargs.get('zodb_db', 'db'),
+            'dbname': kwargs.get('zodb_db', 'zodb'),
         }
         kwargs = {
             'cache_module_name':'memcache',
             'keep_history': kwargs.get('zodb_keep_history', False)
         }
         adapter = relstorage.adapters.postgresql.PostgreSQLAdapter(
-             dsn="dbname=%(host)s port=%(port)s user=%(user)s password=%(passwd)s" % connectionParams,
+             dsn="dbname=%(dbname)s port=%(port)s user=%(user)s password=%(passwd)s" % connectionParams,
              options=relstorage.options.Options(**kwargs))
 
         if 'poll_interval' in kwargs:
