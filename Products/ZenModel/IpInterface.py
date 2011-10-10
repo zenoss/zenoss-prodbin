@@ -534,10 +534,10 @@ class IpInterface(OSComponent, Layer2Linkable):
         Get the current operational state of the interface. Prefer real-time
         value over modeled value.
         """
-        s = self.cacheRRDValue('ifOperStatus', None)
+        s = None
+        s = self.getRRDValue('ifOperStatus', cf="LAST")
         if s is None: s = self.operStatus
         return s
-
 
     def getOperStatusString(self):
         """

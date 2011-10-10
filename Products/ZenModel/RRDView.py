@@ -45,7 +45,7 @@ class RRDView(object):
     """
 
     def getGraphDefUrl(self, graph, drange=None, template=None):
-        """resolve template and graph names to objects 
+        """resolve template and graph names to objects
         and pass to graph performance"""
         if not drange: drange = self.defaultDateRange
         templates = self.getRRDTemplates()
@@ -61,7 +61,7 @@ class RRDView(object):
         objpaq = self.primaryAq()
         perfServer = objpaq.device().getPerformanceServer()
         if perfServer:
-            return perfServer.performanceGraphUrl(objpaq, targetpath, 
+            return perfServer.performanceGraphUrl(objpaq, targetpath,
                                                   template, graph, drange)
 
     def cacheRRDValue(self, dsname, default = "Unknown"):
@@ -85,12 +85,12 @@ class RRDView(object):
 
 
     def getRRDValue(self, dsname, start=None, end=None, function="LAST",
-                    format="%.2lf", extraRpn=""):
+                    format="%.2lf", extraRpn="", cf="AVERAGE"):
         """Return a single rrd value from its file using function.
         """
         dsnames = (dsname,)
         results = self.getRRDValues(
-            dsnames, start, end, function, format, extraRpn)
+            dsnames, start, end, function, format, extraRpn, cf=cf)
         if results and dsname in results:
             return results[dsname]
 
@@ -100,8 +100,8 @@ class RRDView(object):
         for t in self.getRRDTemplates():
             result += t.getRRDDataPoints()
         return result
-        
-        
+
+
     def getRRDDataPoint(self, dpName):
         result = None
         for t in self.getRRDTemplates():
@@ -110,25 +110,25 @@ class RRDView(object):
                     result = dp
                     break
         return result
-    
-    
+
+
     def fetchRRDValues(self, dpnames, cf, resolution, start, end=""):
         paths = []
         for dpname in dpnames:
             paths.append(self.getRRDFileName(dpname))
         return self.device().getPerformanceServer().fetchValues(paths,
             cf, resolution, start, end)
-    
-    
+
+
     def fetchRRDValue(self, dpname, cf, resolution, start, end=""):
         r = self.fetchRRDValues([dpname,], cf, resolution, start, end=end)
         if r is not None:
             return r[0]
         return None
-    
-    
+
+
     def getRRDValues(self, dsnames, start=None, end=None, function="LAST",
-                     format="%.2lf", extraRpn=""):
+                     format="%.2lf", extraRpn="", cf="AVERAGE"):
         """
         Return a dict of key value pairs where dsnames are the keys.
         """
@@ -149,9 +149,9 @@ class RRDView(object):
                 if rpn:
                     rpn = "," + rpn
                 if extraRpn:
-                    rpn = rpn + "," + extraRpn 
-                    
-                gopts.append("DEF:%s_r=%s:ds0:AVERAGE" % (dsname,filename))
+                    rpn = rpn + "," + extraRpn
+
+                gopts.append("DEF:%s_r=%s:ds0:%s" % (dsname,filename,cf))
                 gopts.append("CDEF:%s_c=%s_r%s" % (dsname,dsname,rpn))
                 gopts.append("VDEF:%s=%s_c,%s" % (dsname,dsname,function))
                 gopts.append("PRINT:%s:%s" % (dsname, format))
@@ -172,13 +172,13 @@ class RRDView(object):
                 return float(val)
             return dict(zip(names, map(cvt, vals)))
         except Exception, ex:
-            log.exception(ex)
-        
-        
-    
+            log.exception("Unable to collect RRD Values for %s : %s " % self.getPrimaryId(), ex)
+
+
+
     def getRRDSum(self, points, start=None, end=None, function="LAST"):
         "Return a some of listed datapoints."
-        
+
         try:
             if not start:
                 start = time.time() - self.defaultDateRange
@@ -211,8 +211,8 @@ class RRDView(object):
                 return float(vals[0])
         except Exception, ex:
             log.exception(ex)
-        
-    
+
+
     def getDefaultGraphDefs(self, drange=None):
         """get the default graph list for this object"""
         graphs = []
@@ -226,8 +226,8 @@ class RRDView(object):
                 except ConfigurationError:
                     pass
         return graphs
-        
-        
+
+
     def getGraphDef(self, graphId):
         ''' Fetch a graph by id.  if not found return None
         '''
@@ -236,8 +236,8 @@ class RRDView(object):
                 if g.id == graphId:
                     return g
         return None
-            
-    
+
+
     def getRRDTemplateName(self):
         """Return the target type name of this component.  By default meta_type.
         Override to create custom type selection.

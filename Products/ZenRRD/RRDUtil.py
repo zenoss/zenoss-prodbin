@@ -101,7 +101,7 @@ def fixRRDFilename(filename):
     if not os.path.isfile(EMPTY_RRD):
         import rrdtool
         rrdtool.create(EMPTY_RRD, "--step", '300', 'DS:ds0:GAUGE:900:U:U',
-            'RRA:AVERAGE:0.5:1:1', 'RRA:MAX:0.5:1:1')
+            'RRA:AVERAGE:0.5:1:1', 'RRA:MAX:0.5:1:1', 'RRA:LAST:0.5:1:1')
 
     return EMPTY_RRD
 

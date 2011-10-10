@@ -579,14 +579,15 @@ Ext.define("Zenoss.component.IpInterfacePanel", {
             fields: [
                 {name: 'uid'},
                 {name: 'severity'},
-                {name: 'status'},
                 {name: 'name'},
                 {name: 'description'},
                 {name: 'ipAddressObjs'},
                 {name: 'network'},//, mapping:'network.uid'},
                 {name: 'macaddress'},
                 {name: 'usesMonitorAttribute'},
-                {name: 'ifStatus'},
+                {name: 'operStatus'},
+                {name: 'adminStatus'},
+                {name: 'status'},
                 {name: 'monitor'},
                 {name: 'monitored'},
                 {name: 'locking'},
@@ -632,10 +633,20 @@ Ext.define("Zenoss.component.IpInterfacePanel", {
                 header: _t('MAC Address'),
                 width: 120
             },{
-                id: 'ifStatus',
-                dataIndex: 'ifStatus',
-                header: _t('Status'),
-                renderer: Zenoss.render.ipInterfaceStatus,
+                id: 'status',
+                dataIndex: 'status',
+                header: _t('Monitored'),
+                renderer: Zenoss.render.pingStatus,
+                width: 80
+            },{
+                id: 'operStatus',
+                dataIndex: 'operStatus',
+                header: _t('Operational Status'),
+                width: 110
+            },{
+                id: 'adminStatus',
+                dataIndex: 'adminStatus',
+                header: _t('Admin Status'),
                 width: 80
             },{
                 id: 'monitored',
