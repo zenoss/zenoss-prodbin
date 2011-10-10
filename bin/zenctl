@@ -42,15 +42,9 @@
 # NB: Please keep the ZENHOME='**ZENHOME**' idiom alive in the src.  Tags
 #     of this nature are sed substituted at build time based upon the package type.
 export ZENHOME="**ZENHOME**"
-export RUNUSER="**OS_USERNAME**"
-export SNMPD_CONF="**SNMPD_CONF**"
-export MY_CNF="**MY_CNF**"
-export ZOPE_USERNAME="admin"
-export ZOPE_PASSWORD="**ZOPE_PASSWD**"
-export ZOPE_LISTEN_PORT="8080"
-export PYTHON="**PYTHON**"
-export PYTHONPATH="**ZENHOME**/lib/python"
 export INSTALL_LOG="$ZENHOME/log/install.log"
+. $ZENHOME/bin/zenoss_startup_config
+
 # NB: This crude hack is to add output while preserving return codes
 # Uses the concepts from http://www.travishartwell.net/blog/2006/08/19_2220
 export INSTALL_PIPE="$ZENHOME/log/logging.fifo"
