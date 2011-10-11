@@ -17,6 +17,7 @@
 #
 
 export OS_USERNAME="**OS_USERNAME**"
+export RUNUSER=$OS_USERNAME
 export OS_UID="**OS_UID**"
 export ZENHOME="**ZENHOME**"
 
