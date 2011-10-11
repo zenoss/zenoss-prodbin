@@ -27,6 +27,7 @@ from Products.ZenModel.Device import Device
 from Products.ZenModel.DeviceClass import DeviceClass
 from Products.ZenModel.PerformanceConf import PerformanceConf
 from Products.ZenModel.ZenPack import ZenPack
+from Products.ZenModel.ThresholdClass import ThresholdClass
 
 
 class DeviceProxy(pb.Copyable, pb.RemoteCopy):
@@ -134,6 +135,10 @@ class CollectorConfigService(HubService, ThresholdMixin):
     @onUpdate(Device)
     def deviceUpdated(self, object, event):
         self._notifyAll(object)
+
+    @onUpdate(ThresholdClass)
+    def onUpdateOfThresholdInstance(self, obj, event):
+        self._reconfigureIfNotify(obj)
 
     @onUpdate(None) # Matches all
     def notifyAffectedDevices(self, object, event):
