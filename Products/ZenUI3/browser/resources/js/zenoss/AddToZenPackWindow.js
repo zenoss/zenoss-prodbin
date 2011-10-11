@@ -68,7 +68,8 @@ Ext.define("Zenoss.AddToZenPackWindow", {
                     id: 'zpcombobox'
                 }],
                 buttons: [{
-                    text: _t('Submit'),
+                    text: _t('Submit'), 
+                    xtype: 'DialogButton',  
                     formBind: true,
                     handler: function () {
                         var form;
@@ -87,6 +88,7 @@ Ext.define("Zenoss.AddToZenPackWindow", {
                     }
                 },{
                     text: _t('Cancel'),
+                    xtype: 'DialogButton',
                     handler: function () {
                         Ext.getCmp('addToZenPackWindow').hide();
                     }

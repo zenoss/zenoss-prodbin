@@ -464,7 +464,7 @@ Ext.apply(Zenoss.devices, {
                     }, {
                         xtype: 'panel',
                         border: false,
-                        html: '<a href="#">More...</a>',
+                        html: '<a href="#">More...</a>',                        
                         toggleAttrs: function() {
                             var attrs = Ext.getCmp('add_attrs');
                             if (attrs.collapsed) {
@@ -489,9 +489,10 @@ Ext.apply(Zenoss.devices, {
                         hideCollapseTool: true,
                         hideLabel: true,
                         xtype: 'panel',
+                        preventHeader: true,
                         border: false,
                         layout: 'column',
-                        ref: "moreAttributes",                        
+                        ref: "moreAttributes",
                         listeners: {
                             expand: function(){
                                 win.center();
@@ -864,7 +865,9 @@ var systree = {
     router: REMOTE,
     selectRootOnLoad: false,
     selModel: treesm,
-    listeners: { render: initializeTreeDrop }
+    listeners: { 
+        render: initializeTreeDrop
+    }
 };
 
 var loctree = {

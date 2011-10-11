@@ -255,6 +255,7 @@ Ext.define("Zenoss.AddLocalTemplatesDialog", {
             buttons: [
             {
                 xtype: 'HideDialogButton',
+                ui: 'dialog-dark',                
                 ref: '../submitButton',
                 text: _t('Submit'),
                 handler: function() {
@@ -267,6 +268,7 @@ Ext.define("Zenoss.AddLocalTemplatesDialog", {
                 }
             }, {
                 xtype: 'HideDialogButton',
+                ui: 'dialog-dark',                
                 text: _t('Cancel')
             }]
         });
@@ -301,6 +303,7 @@ Ext.define("Zenoss.BindTemplatesDialog", {
             buttons: [
             {
                 xtype: 'HideDialogButton',
+                ui: 'dialog-dark',                
                 text: _t('Save'),
                 handler: function(){
                     var records, data, templateIds;
@@ -314,6 +317,7 @@ Ext.define("Zenoss.BindTemplatesDialog", {
                 }
             }, {
                 xtype: 'HideDialogButton',
+                ui: 'dialog-dark',                
                 text: _t('Cancel')
             }]
         });
@@ -336,6 +340,7 @@ Ext.define("Zenoss.ResetTemplatesDialog", {
             buttons: [
                 {
                     xtype: 'HideDialogButton',
+                    ui: 'dialog-dark',                    
                     text: _t('Reset Bindings'),
                     handler: function() {
                         if (Zenoss.Security.hasPermission('Manage DMD')) {
@@ -346,6 +351,7 @@ Ext.define("Zenoss.ResetTemplatesDialog", {
                     }
                 }, {
                     xtype: 'HideDialogButton',
+                    ui: 'dialog-dark',                    
                     text: _t('Cancel')
                 }
             ]
@@ -409,6 +415,7 @@ Ext.define("Zenoss.OverrideTemplatesDialog", {
             buttons: [
             {
                 xtype: 'HideDialogButton',
+                ui: 'dialog-dark',                
                 ref: '../submit',
                 disabled: true,
                 text: _t('Submit'),
@@ -424,6 +431,7 @@ Ext.define("Zenoss.OverrideTemplatesDialog", {
                 }
             }, {
                 xtype: 'HideDialogButton',
+                ui: 'dialog-dark',                
                 text: _t('Cancel')
             }]
         });
@@ -484,6 +492,7 @@ Ext.define("Zenoss.removeLocalTemplateDialog", {
             buttons: [
             {
                 xtype: 'HideDialogButton',
+                ui: 'dialog-dark',                
                 ref: '../submit',
                 disabled: true,
                 text: _t('Submit'),
@@ -499,6 +508,7 @@ Ext.define("Zenoss.removeLocalTemplateDialog", {
                 }
             }, {
                 xtype: 'HideDialogButton',
+                ui: 'dialog-dark',                
                 text: _t('Cancel')
             }]
         });

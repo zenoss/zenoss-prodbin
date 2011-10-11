@@ -129,7 +129,7 @@ function destroyWindow(button) {
  * @constructor
  */
 Ext.define("Zenoss.dialog.DialogButton", {
-    ui: 'dialog',
+    ui: 'dialog-dark',
     extend: "Ext.Button",
     alias: ['widget.DialogButton'],
     constructor: function(config) {
@@ -156,7 +156,7 @@ function hideWindow(button){
  * @constructor
  */
 Ext.define("Zenoss.dialog.HideDialogButton", {
-    ui: 'dialog',
+    ui: 'dialog-dark',
     extend: "Ext.button.Button",
     alias: ['widget.HideDialogButton'],
     constructor: function(config) {
@@ -200,11 +200,11 @@ Ext.define("Zenoss.MessageDialog", {
                 } ],
             buttons: [
                 {
-                    xtype: 'HideDialogButton',
+                    xtype: 'HideDialogButton',                    
                     text: _t('OK'),
                     handler: config.okHandler
                 }, {
-                    xtype: 'HideDialogButton',
+                    xtype: 'HideDialogButton',                    
                     text: _t('Cancel'),
                     handler: config.cancelHandler
                 }
@@ -365,7 +365,7 @@ Ext.define("Zenoss.SmartFormDialog", {
                 type: 'submit',
                 ref: 'buttonSubmit'
              }, {
-                xtype: 'DialogButton',
+                xtype: 'DialogButton',         
                 ref: 'buttonCancel',
                 text: _t('Cancel')
             }],

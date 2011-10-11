@@ -16,7 +16,7 @@
     );
 
     .#{$prefix}panel-#{$label} {
-
+       // background-color: $master-panel-background-color;
         .#{$prefix}grid-body {
             padding-top: $extra-search-padding;
             border-width: 0;
@@ -29,7 +29,7 @@
         .#{$prefix}grid-row {
 
             .#{$prefix}grid-cell {
-                background-color: $master-panel-background-color;
+                background:transparent !important;
             }
 
             .#{$prefix}grid-cell-inner {
@@ -38,6 +38,17 @@
                 color: #454545;
             }
         }
+        .#{$prefix}grid-row-over{
+            background-color:#cdcdcd !important;
+        }       
+        .#{$prefix}grid-cell-first {
+         /* This came from prev tree style, but there's nothing to target to apply it
+          color: #6386AE;
+          font-size: 10px;
+          font-weight: bold;
+          text-transform: uppercase;*/
+        }        
+
     }
 
     .#{$prefix}hierarchy-search-panel {

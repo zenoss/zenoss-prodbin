@@ -1,10 +1,9 @@
-//$window-base-color: #555;
 $window-border-radius: 7px;
-$window-border-color: #555;
-$window-inner-border-color: #555;
+$window-border-color: #000;
+$window-inner-border-color: #000;
 $window-header-color: white;
-$window-body-border-color: black;
-$window-body-background-color: #555;
+$window-body-border-color: #000;
+$window-body-background-color: transparent;
 $window-body-color: #fafafa;
-$window-background-color: #555;//transparentize(#000, 0.15);
+$window-background-color:transparentize(#000, 0.15);
 $window-header-font-size: 18px;

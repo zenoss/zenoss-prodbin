@@ -105,7 +105,8 @@ new Zenoss.HideFormDialog({
     }],
     buttons: [
     {
-        xtype: 'HideDialogButton',
+        xtype: 'DialogButton',
+        ui: 'dialog-dark',
         ref: '../submit',
         text: _t('Submit'),
         disabled: true,
@@ -117,7 +118,8 @@ new Zenoss.HideFormDialog({
             addMetricToGraph(datapointUid, graphUid);
         }
     }, {
-        xtype: 'HideDialogButton',
+        xtype: 'DialogButton',
+        ui: 'dialog-dark',        
         text: _t('Cancel')
     }]
 });
@@ -229,13 +231,15 @@ new Zenoss.dialog.BaseWindow({
                 blankText: _t('Name is a required field')
                    }],
             buttons: [{
-                    xtype: 'button',
+                    xtype: 'DialogButton',
                     text: _t('Submit'),
+                    ui: 'dialog-dark',                    
                     formBind: true,
                     handler: saveDataPoint
                 }, {
-                    xtype: 'button',
+                    xtype: 'DialogButton',
                     text: _t('Cancel'),
+                    ui: 'dialog-dark',                    
                     handler: function() {
                         Ext.getCmp('addDataPointDialog').hide();
                     }
@@ -331,13 +335,15 @@ new Zenoss.dialog.BaseWindow({
             }
         }],
         buttons:[{
-            xtype: 'button',
+            xtype: 'DialogButton',
             text: _t('Submit'),
+            ui: 'dialog-dark',            
             formBind: true,
             handler: saveDataSource
         },{
-            xtype: 'button',
+            xtype: 'DialogButton',
             text: _t('Cancel'),
+            ui: 'dialog-dark',            
             handler: function () {
                 Ext.getCmp('addDataSourceDialog').hide();
             }

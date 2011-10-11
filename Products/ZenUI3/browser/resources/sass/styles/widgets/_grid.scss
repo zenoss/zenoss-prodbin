@@ -1,0 +1,29 @@
+@mixin zenoss-grid {
+    .#{$prefix}grid{
+
+        .#{$prefix}column-header{
+          border-left: 0 none;
+          border-right: 1px solid #B4B4B4;
+          border-style: none solid none none;
+          border-width: 0 1px 0 0;
+          font: 11px helvetica,arial,sans-serif;
+          overflow: hidden;
+          padding: 0;
+          height:22px;
+          text-shadow: 0 1px 0 rgba(255, 255, 255, 0.3);
+          background: url("../img/xtheme-zenoss/grid/grid3-hrow.png") repeat-x scroll 0 top #BDBDBD;
+        }
+        .#{$prefix}column-header-over{
+            background:none;
+        }
+        .#{$prefix}column-header-trigger{
+            background-color: #000000;
+            background-image: url("../img/xtheme-zenoss/grid/grid3-hd-btn.gif");
+        }
+        .#{$prefix}grid-header-ct {
+          background-color: #BDBDBD;
+          border:0px !important;
+        }
+    }
+}
+

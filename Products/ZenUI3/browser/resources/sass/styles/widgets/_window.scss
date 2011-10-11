@@ -18,7 +18,9 @@
 
 
     .#{$prefix}window-header {
-
+        .#{$prefix}box-item{
+            top:1px !important;
+        }
         .#{$prefix}tool-close {
             @include zenoss-background-image("window/close-button.png");
         }
@@ -29,7 +31,11 @@
 
 
     }
-
+    .#{$prefix}window{
+        .#{$prefix}toolbar{
+            padding-left:0px;
+        }
+    }
     .#{$prefix}window-body {
         .#{$prefix}panel-body {
             background-color: $window-body-background-color;
@@ -40,10 +46,15 @@
         }        
     }
     
+    
+       /* beat IE back with a stick */
         .#{$prefix}nbr {   
             .#{$prefix}window-#{$ui}{
-                background-color:$window-body-background-color;
+                background-color:transparent;     
             }
+            .#{$prefix}window-header{
+               background-color:#000; 
+            }            
             .#{$prefix}window-#{$ui}-tl,
             .#{$prefix}window-#{$ui}-tr{
                 background:transparent;
@@ -52,25 +63,32 @@
                 background-position: 0 0 !important;
             }
             .#{$prefix}window-header-#{$ui}-tr{
-                background-position: right -13px !important;
+                background-position: right -16px !important;
             }   
             .#{$prefix}window-#{$ui}-bl{
-                background-position: 0 -4px !important;
+                background-position: 0 -8px !important;
             }
             .#{$prefix}window-#{$ui}-br{
-                background-position: right -16px !important;  
+                background-position: right -25px !important;  
             }            
             .#{$prefix}window-header-#{$ui}-top-tc{
                 background-image:none;
                 background:$window-body-background-color;
                 margin:0 5px 0 5px !important;
             }
+            .#{$prefix}window-header-text{
+                padding-bottom:4px;
+                line-height:18px;
+            }            
             .#{$prefix}window-#{$ui}-ml{
                 padding-bottom:20px !important;
             }
             .#{$prefix}window-#{$ui}-bc,            
             .#{$prefix}window-#{$ui}-tc{
-                background:transparent;
+                @include zenoss-background-image("window/bg.png"); 
+                background-position: 0 0;  
+                background-repeat:repeat;
+                margin:0 8px 0 8px;
             }
  
             .#{$prefix}window-header-#{$ui}-tl,
@@ -79,17 +97,25 @@
             .#{$prefix}window-#{$ui}-br{
                 padding:0 !important;
                 @include zenoss-background-image("window/window-#{$ui}-corners.png");
+                overflow:hidden;
             }
-            
+            .#{$prefix}window-#{$ui}-ml{
+                @include zenoss-background-image("window/bg.png"); 
+                background-position: 0 0;   
+                background-repeat:repeat;
+            }
             .#{$prefix}window-#{$ui}-mc,                      
             .#{$prefix}window-header-#{$ui}-top-ml,
             .#{$prefix}window-header-#{$ui}-top-mr,            
-            .#{$prefix}window-#{$ui}-mr,
-            .#{$prefix}window-#{$ui}-ml{
-                    background-image:none;   
-                    background-color: $window-body-background-color; 
-            }          
+            .#{$prefix}window-#{$ui}-mr{
+                background-image:none;   
+                background-color: $window-body-background-color; 
+            }      
+            .#{$prefix}window-#{$ui}-mr{
+                padding-left:10px;
+            }
+            
         
-        }
+        }  
 
 }

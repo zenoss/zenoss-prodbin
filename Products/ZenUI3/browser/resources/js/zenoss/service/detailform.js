@@ -82,7 +82,7 @@ Ext.onReady( function() {
         fieldLabel: _t('Name'),
         name: 'name',
         anchor: '95%',
-        allowBlank: false,
+        allowBlank: false
     };
 
     zsf.descriptionTextField = {
@@ -90,7 +90,7 @@ Ext.onReady( function() {
         id: 'descriptionTextField',
         fieldLabel: _t('Description'),
         anchor: '95%',
-        name: 'description',
+        name: 'description'
     };
 
     zsf.sendStringTextField = {
@@ -98,7 +98,7 @@ Ext.onReady( function() {
         id: 'sendStringTextField',
         fieldLabel: _t('Send String'),
         anchor: '95%',
-        name: 'sendString',
+        name: 'sendString'
     };
 
     zsf.expectRegexTextField = {
@@ -106,7 +106,7 @@ Ext.onReady( function() {
         id: 'expectRegexTextField',
         fieldLabel: _t('Expect Regex'),
         anchor: '95%',
-        name: 'expectRegex',
+        name: 'expectRegex'
     };
 
     zsf.serviceKeysTextField = {
@@ -114,7 +114,7 @@ Ext.onReady( function() {
         id: 'serviceKeysTextField',
         fieldLabel: _t('Service Keys'),
         anchor: '95%',
-        name: 'serviceKeys',
+        name: 'serviceKeys'
     };
 
     zsf.zMonitor = {

@@ -90,6 +90,7 @@
                 ref: '../submitButton',
                 text: _t('Add'),
                 xtype: 'DialogButton',
+                ui: 'dialog-dark',                
                 handler: function(submitButton) {
                     var dialogWindow, basicForm;
                     dialogWindow = submitButton.refOwner;
@@ -99,6 +100,7 @@
             }, {
                 ref: '../cancelButton',
                 text: _t('Cancel'),
+                ui: 'dialog-dark',                
                 xtype: 'DialogButton'
             }],
             items: {

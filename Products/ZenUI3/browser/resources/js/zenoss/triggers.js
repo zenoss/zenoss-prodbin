@@ -100,7 +100,7 @@ Ext.onReady(function () {
                         fieldLabel: _t('Id')
                     }],
                     buttons:[{
-                        xtype: 'button',
+                        xtype: 'DialogButton',                        
                         text: _t('Submit'),
                         ref: '../../submitButton',
                         formBind: true,
@@ -130,7 +130,7 @@ Ext.onReady(function () {
                             me.hide();
                         }
                     },{
-                        xtype: 'button',
+                        xtype: 'DialogButton',                        
                         ref: '../../cancelButton',
                         text: _t('Cancel'),
                         handler: function(button) {
@@ -699,7 +699,7 @@ Ext.onReady(function () {
                             });
                         }
                     },{
-                        xtype: 'DialogButton',
+                        xtype: 'DialogButton',                        
                         ref: 'cancelButton',
                         text: _t('Cancel')
                     }
@@ -738,7 +738,7 @@ Ext.onReady(function () {
                     monitorValid: true,
                     items:[config.tabPanel],
                     buttons:[{
-                        xtype: 'button',
+                        xtype: 'DialogButton',                       
                         text: _t('Submit'),
                         ref: '../../submitButton',
                         formBind: true,
@@ -764,7 +764,7 @@ Ext.onReady(function () {
                             me.hide();
                         }
                     },{
-                        xtype: 'button',
+                        xtype: 'DialogButton',                        
                         ref: '../../cancelButton',
                         text: _t('Cancel'),
                         handler: function(){
@@ -861,7 +861,7 @@ Ext.onReady(function () {
                     ],
                     buttons:[
                         {
-                            xtype: 'button',
+                            xtype: 'DialogButton',                            
                             text: _t('Submit'),
                             ref: '../../submitButton',
                             formBind: true,
@@ -873,7 +873,7 @@ Ext.onReady(function () {
                                 });
                             }
                         },{
-                            xtype: 'button',
+                            xtype: 'DialogButton',                            
                             ref: '../../cancelButton',
                             text: _t('Cancel'),
                             handler: function(button) {
@@ -1903,7 +1903,7 @@ Ext.onReady(function () {
                         ],
                         buttons:[
                             {
-                                xtype: 'button',
+                                xtype: 'DialogButton',                                
                                 text: _t('Submit'),
                                 ref: '../../submitButton',
                                 formBind: true,
@@ -1940,7 +1940,7 @@ Ext.onReady(function () {
                                     });
                                 }
                             },{
-                                xtype: 'button',
+                                xtype: 'DialogButton',                                
                                 ref: '../../cancelButton',
                                 text: _t('Cancel'),
                                 handler: function(button) {

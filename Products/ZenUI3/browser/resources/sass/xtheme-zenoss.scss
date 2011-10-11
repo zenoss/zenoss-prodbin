@@ -27,17 +27,17 @@ $include-missing-images: true;
 @include zenoss-toolbar;
 @include zenoss-panel;
 @include zenoss-window;
-@include zenoss-load-mask;
+@include zenoss-grid;   
 
 
 /*
 CORE TRIGGER PAGE STUFF
-*/
+*/  
 
 .white-background-panel {
     font-size: 12px;
     background : none repeat scroll 0 0 #FAFAFA;
-    color: #454545;
+    color: #454545;  
 }
 
 .white-background-panel .x-window-header {
@@ -88,4 +88,9 @@ CORE TRIGGER PAGE STUFF
 }
 #footer_bar{
     border:none !important;
+}
+
+/* annoying blue bar on the add single device dialog - preventHeader in ext is ignored */
+#add_attrs .x-panel-header-default {
+    display: none;
 }

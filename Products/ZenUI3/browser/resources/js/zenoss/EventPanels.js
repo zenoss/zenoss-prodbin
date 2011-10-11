@@ -81,6 +81,7 @@
                 }],
                 buttons: [{
                     text: _t('Submit'),
+                    xtype: 'DialogButton',
                     formBind: true,
                     handler: function(){
                         var form = Ext.getCmp('addeventform');
@@ -95,6 +96,7 @@
                     }
                 },{
                     text: _t('Cancel'),
+                    xtype: 'DialogButton',                                       
                     handler: function(){
                         addevent.hide();
                     }
@@ -150,6 +152,7 @@
                 },
                 buttons: [{
                     text: _t('Submit'),
+                    xtype: 'DialogButton',
                     id: 'classifyEventFormSubmitButton',
                     disabled: true,
                     handler: function(){
@@ -187,6 +190,7 @@
                     }
                 },{
                     text: _t('Cancel'),
+                    xtype: 'DialogButton',                    
                     handler: function(){
                         win.destroy();
                     }

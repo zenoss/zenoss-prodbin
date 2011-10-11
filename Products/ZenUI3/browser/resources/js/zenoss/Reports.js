@@ -237,6 +237,7 @@ function createAction(typeName, text) {
                 buttons: [{
                     xtype: 'DialogButton',
                     text: _t('Submit'),
+                    ui: 'dialog-dark',
                     handler: function () {
                         var form, newName;
                         form = Ext.getCmp('addForm').getForm();
