@@ -30,7 +30,7 @@ export ZODB_ADMIN_PASSWORD="**ZODB_ADMIN_PASSWORD**"
 export ZODB_USER="**ZODB_USER**"
 export ZODB_PASSWORD="**ZODB_PASSWORD**"
 
-export ZODB_DB_TYPE="**ZODB_DB_TYPE**"
+export ZEP_DB_TYPE="**ZEP_DB_TYPE**"
 export ZEP_HOST="**ZEP_HOST**"
 export ZEP_DB="**ZEP_DB**"
 export ZEP_PORT="**ZEP_PORT**"
