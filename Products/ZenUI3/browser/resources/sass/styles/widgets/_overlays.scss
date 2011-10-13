@@ -1,0 +1,50 @@
+@mixin zenoss-tips {
+    #page-level-help-tip{
+        width:440px !important;
+    }
+    .#{$prefix}tip {
+        background-color:#F8E585 !important;
+        .#{$prefix}tool-close, .#{$prefix}tool-over {
+            @include zenoss-background-image("qtip/close.png");
+        }
+    }
+    
+    // IE FIXES
+    .#{$prefix}nbr{
+        #page-level-help-tip{
+            height:80% !important;
+        }
+        .#{$prefix}tip-mc {
+            background-color:#F8E585;
+        }        
+        .#{$prefix}tip-tl, .#{$prefix}tip-tr, .#{$prefix}tip-tc, .#{$prefix}tip-ml,
+        .#{$prefix}tip-mr, .#{$prefix}tip-bl, .#{$prefix}tip-br, .#{$prefix}tip-bc{
+            @include zenoss-background-image("qtip/tip-sprite.png");
+        }
+        .#{$prefix}tip-tl{
+            background-position:0 0 !important;
+        }
+        .#{$prefix}tip-tr {
+            background-position: right 0px !important; 
+        }
+        .#{$prefix}tip-tc {        
+            background-position: 2px -62px !important;
+        }
+        .#{$prefix}tip-ml {        
+            background-position: 0px -124px !important;
+        }    
+        .#{$prefix}tip-mr {
+            background-position: right -124px !important;
+        }    
+        .#{$prefix}tip-bl {        
+            background-position: 0 -59px !important;
+        }        
+        .#{$prefix}tip-br {      
+            background-position: right -59px !important;
+        }    
+        .#{$prefix}tip-bc {        
+            background-position: 0 -121px !important;
+        }        
+    }
+}
+

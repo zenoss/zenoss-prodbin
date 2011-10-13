@@ -9,7 +9,6 @@ Ext.onReady(function(){
         autoHide: false,
         closable: true,
         draggable: true,
-        width: 440,
         showDelay: 0,
         target: 'page-help',
         title: Ext.get('page-help-title').dom.innerHTML,
@@ -20,21 +19,20 @@ Ext.onReady(function(){
             html: Ext.get('page-help-tip').dom.value
         }],
         listeners: {
+            show: function(){
+                Ext.get('page-level-help-tip').alignTo(toolTip.target, 'tl-tl');
+                var tip = Ext.getCmp('page-level-help-tip');
+                tip.setHeight(Math.min(tip.getHeight(), Ext.getBody().getViewSize().height - 50));
+                Ext.getCmp('page-level-help-content').setHeight(tip.getHeight() - 30);
+                this.target.hide();
+            },        
             hide: function(toolTip) {
                 toolTip.target.show();
             }
         },
-        show: Ext.ToolTip.prototype.show.createSequence(function(){
-           /* What does this do (causes an error)? The tip looks fine without it
-            Ext.fly('page-level-help-tip').alignTo(toolTip.target, 'tr-tr');
-            var content = Ext.fly('page-level-help-content');
-            content.setHeight(Math.min(content.getHeight(), Ext.getBody().getViewSize().height - 100));*/
-            this.target.hide();
-        }),
-        initTarget: function(target) {
+        setTarget: function(target) {
             // override method from ToolTip to monitor click instead of
             // mouseover, mouseout, and mousemove
-            // this isn't working
             var t;
             if((t = Ext.get(target))){
                 if(this.target){
