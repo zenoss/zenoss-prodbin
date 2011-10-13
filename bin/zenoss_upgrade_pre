@@ -66,6 +66,10 @@ if [ "${ZODB_HOST}" = "localhost" ];then
 fi
 start_rabbitmq
 
+# Update AMQP configuration files
+update_amqp_cfg
+configure_amqp
+
 # patch any ZenPack code that isn't compatible with this version of core
 . ${ZENHOME}/bin/zenoss_upgrade_patch_zenpacks.sh
 
@@ -86,10 +90,6 @@ ${ZENHOME}/bin/python ${ZENHOME}/bin/changeObjectStore.py \
 
 # update/migrate zodb
 create_zodb_db
-
-# Update AMQP configuration files
-update_amqp_cfg
-configure_amqp
 
 # migrate the zeo database
 run_zenmigrate

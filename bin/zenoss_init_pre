@@ -47,6 +47,10 @@ start_rabbitmq
 # already exist (we don't want to clobber people's configs)
 update_conf_files
 
+# Update AMQP configuration files
+update_amqp_cfg
+configure_amqp
+
 # create the database for ZODB
 create_zodb_db
 
@@ -63,6 +67,3 @@ run_mkzopeinstance
 fix_zenhome_owner_and_group ${OS_USERNAME}
 run_zenbuild
 
-# Update AMQP configuration files
-update_amqp_cfg
-configure_amqp
