@@ -19,6 +19,7 @@ Ext.onReady(function () {
 var addtozenpack,
     report_panel = new Zenoss.BackCompatPanel({}),
     treesm,
+    REPORT_PERMISSION = 'Manage DMD',
     report_tree;
 
 /*
@@ -42,6 +43,9 @@ function addToZenPack(e) {
 function initializeTreeDrop(tree) {
 
     tree.getView().on('beforedrop', function(element, event, target) {
+        if (Zenoss.security.doesNotHavePermission(REPORT_PERMISSION)) {
+            return false;
+        }
         // should always only be one selection
         var uid = event.records[0].get("uid"),
             targetUid = target.get("uid");
@@ -156,10 +160,12 @@ treesm = new Zenoss.TreeSelectionModel({
             report_panel.setContext(attrs.leaf
                     ? Ext.urlAppend(attrs.uid, 'adapt=false')
                     : '');
-            Ext.getCmp('add-organizer-button').setDisabled(attrs.leaf);
-            Ext.getCmp('add-to-zenpack-button').setDisabled(attrs.leaf);
-            Ext.getCmp('edit-button').setDisabled(!attrs.edit_url);
-            Ext.getCmp('delete-button').setDisabled(!attrs.deletable);
+            if (Zenoss.Security.hasPermission(REPORT_PERMISSION)) {
+                Ext.getCmp('add-organizer-button').setDisabled(attrs.leaf);
+                Ext.getCmp('add-to-zenpack-button').setDisabled(attrs.leaf);
+                Ext.getCmp('edit-button').setDisabled(!attrs.edit_url);
+                Ext.getCmp('delete-button').setDisabled(!attrs.deletable);
+            }
         }
     }
 });
@@ -171,8 +177,8 @@ report_tree = new Zenoss.ReportTreePanel({
     searchField: true,
     rootVisible: false,
     enableDD: true,
-    ddGroup: 'reporttreedd',   
-    bodyStyle: 'background-color:transparent;',     
+    ddGroup: 'reporttreedd',
+    bodyStyle: 'background-color:transparent;',
     directFn: Zenoss.remote.ReportRouter.getTree,
     router: Zenoss.remote.ReportRouter,
     root: {
@@ -193,7 +199,7 @@ report_tree.expandAll();
 
 var treepanel = {
     xtype: 'HierarchyTreePanelSearch',
-    bodyStyle: 'background-color:#d4e0ee;',     
+    bodyStyle: 'background-color:#d4e0ee;',
     items: [report_tree]
 };
 
@@ -222,6 +228,7 @@ function createAction(typeName, text) {
     return new Zenoss.Action({
         text: _t('Add ') + text + '...',
         iconCls: 'add',
+        permission: REPORT_PERMISSION,
         handler: function () {
             var addDialog = new Zenoss.FormDialog({
                 title: _t('Create ') + text,
@@ -256,6 +263,7 @@ function createAction(typeName, text) {
 Ext.getCmp('footer_bar').add({
     id: 'add-organizer-button',
     tooltip: _t('Add report organizer or report'),
+    disabled: Zenoss.Security.doesNotHavePermission(REPORT_PERMISSION),
     iconCls: 'add',
     menu: {
         width: 190, // mousing over longest menu item was changing width
@@ -278,6 +286,7 @@ Zenoss.remote.ReportRouter.getReportTypes({},
 
 Ext.getCmp('footer_bar').add({
     id: 'delete-button',
+    disabled: Zenoss.Security.doesNotHavePermission(REPORT_PERMISSION),
     tooltip: _t('Delete an item'),
     iconCls: 'delete',
     handler: deleteNode
@@ -289,6 +298,7 @@ Ext.getCmp('footer_bar').add({
 
 Ext.getCmp('footer_bar').add({
     id: 'edit-button',
+    disabled: Zenoss.Security.doesNotHavePermission(REPORT_PERMISSION),
     tooltip: _t('Edit a report'),
     iconCls: 'set',
     handler: function() {
@@ -298,6 +308,7 @@ Ext.getCmp('footer_bar').add({
 
 Ext.getCmp('footer_bar').add({
     id: 'add-to-zenpack-button',
+    disabled: Zenoss.Security.doesNotHavePermission(REPORT_PERMISSION),
     tooltip: _t('Add to ZenPack'),
     iconCls: 'adddevice',
     handler: addToZenPack
