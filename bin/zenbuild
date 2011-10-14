@@ -12,5 +12,8 @@
 
 . $ZENHOME/bin/zenfunctions
 
-$PYTHON $ZENHOME/Products/ZenModel/zenbuild.py "$CMD" "$@"
+# sync global.conf params to zope's db config
+$ZENHOME/bin/zenglobalconf -s 
+
+$PYTHON $ZENHOME/Products/ZenModel/zenbuild.py $@
 

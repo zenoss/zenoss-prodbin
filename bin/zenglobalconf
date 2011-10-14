@@ -18,6 +18,9 @@ import re
 import sys
 import tempfile
 
+import Globals
+from Products.ZenUtils.ZodbFactory import IZodbFactoryLookup
+
 # Handles updating or removing settings from $ZENHOME/etc/global.conf. All
 # updates are performed atomically using a temporary file to prevent losing
 # configuration.
@@ -114,9 +117,11 @@ def main():
             help='Removes settings from the configuration file.')
     parser.add_option('-u', '--update', dest='update', action="store_true",
             help='Adds or updates settings in the configuration file.')
+    parser.add_option('-s', '--sync-zope-conf', dest='synczope', action="store_true",
+            help='Syncs the ZODB db conf from global from to zodb_db_main.conf.')
     (options, args) = parser.parse_args(args=sys.argv[1:])
 
-    if len(args) == 0:
+    if len(args) == 0 and options.synczope is False:
         parser.error("required property names not provided")
 
     numcmds = 0
@@ -126,12 +131,35 @@ def main():
         numcmds += 1
     if options.update:
         numcmds += 1
+    if options.synczope:
+        numcmds += 1
     if numcmds == 0:
-        parser.error("Must specify command (-p|-r|-u)")
+        parser.error("Must specify command (-p|-r|-u|-s)")
     if numcmds > 1:
-        parser.error("Only one command can be specified (-p|-r|-u)")
+        parser.error("Only one command can be specified (-p|-r|-u|-s)")
 
-    if options.get:
+    if options.synczope:
+        import Products.ZenossStartup
+        from Products.Five import zcml
+        zcml.load_site()
+        from zope.component import getUtility
+        from Products.ZenUtils.ZodbFactory import IZodbFactoryLookup
+        connectionFactory = getUtility(IZodbFactoryLookup).get()
+        zodbConf = connectionFactory.getZopeZodbConf()
+        import tempfile
+        fconfname = None
+        try:
+            confname = 'zodb_db_main.conf'
+            dirname = zenPath('etc')
+            tconfname = tempfile.NamedTemporaryFile(prefix=confname, dir=dirname, delete=False)
+            tconfname.write(zodbConf)
+            tconfname.close()
+            os.rename(tconfname.name, zenPath('etc', confname))
+        finally:
+            if tconfname is not None and os.path.exists(tconfname.name):
+                os.unlink(tconfname.name)
+        sys.exit(0)
+    elif options.get:
         if len(args) > 1:
             parser.error("Print option only takes one setting name")
         print_setting(args[0])

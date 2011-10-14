@@ -16,35 +16,20 @@
 # Note: it is run by root
 #
 
+function get_var {
+    VAR_NAME=$1
+    OUTPUT=`$ZENHOME/bin/zenglobalconf -p $VAR_NAME`
+    if [ -z $OUTPUT ]; then
+       echo "$VAR_NAME could not be set. Check $ZENHOME/etc/global.conf for value."
+       exit 1
+    fi
+    echo $OUTPUT
+}
+
 export OS_USERNAME="**OS_USERNAME**"
-export RUNUSER=$OS_USERNAME
+export RUNUSER=$OS_USERNAME 
 export OS_UID="**OS_UID**"
 export ZENHOME="**ZENHOME**"
-
-export ZODB_DB_TYPE="**ZODB_DB_TYPE**"
-export ZODB_HOST="**ZODB_HOST**"
-export ZODB_DB="**ZODB_DB**"
-export ZODB_PORT="**ZODB_PORT**"
-export ZODB_ADMIN_USER="**ZODB_ADMIN_USER**"
-export ZODB_ADMIN_PASSWORD="**ZODB_ADMIN_PASSWORD**"
-export ZODB_USER="**ZODB_USER**"
-export ZODB_PASSWORD="**ZODB_PASSWORD**"
-
-export ZEP_DB_TYPE="**ZEP_DB_TYPE**"
-export ZEP_HOST="**ZEP_HOST**"
-export ZEP_DB="**ZEP_DB**"
-export ZEP_PORT="**ZEP_PORT**"
-export ZEP_ADMIN_USER="**ZEP_ADMIN_USER**"
-export ZEP_ADMIN_PASSWORD="**ZEP_ADMIN_PASSWORD**"
-export ZEP_USER="**ZEP_USER**"
-export ZEP_PASSWORD="**ZEP_PASSWORD**"
-
-export RABBITMQ_HOST="**RABBITMQ_HOST**"
-export RABBITMQ_SSL="**RABBITMQ_SSL**"
-export RABBITMQ_PORT="**RABBITMQ_PORT**"
-export RABBITMQ_VHOST="**RABBITMQ_VHOST**"
-export RABBITMQ_USER="**RABBITMQ_USER**"
-export RABBITMQ_PASS="**RABBITMQ_PASS**"
 
 export ZOPEPASSWORD="**ZOPE_PASSWD**"
 export ZOPEHOME="**ZOPEHOME**"
@@ -53,4 +38,33 @@ export ZOPE_LISTEN_PORT="**ZOPE_LISTEN_PORT**"
 export ZOPE_USERNAME="**ZOPE_USERNAME**"
 export PYTHONPATH="**PYTHONPATH**"
 export SNMPD_CONF="**SNMPD_CONF**"
+
+# to change the following startup parameters
+# modify $ZENHOME/etc/global.conf
+
+export ZODB_DB_TYPE=`get_var zodb_db_type`
+export ZODB_HOST="`get_var zodb_host`"
+export ZODB_DB="`get_var zodb_db`"
+export ZODB_PORT="`get_var zodb_port`"
+export ZODB_ADMIN_USER="`get_var zodb_admin_user`"
+export ZODB_ADMIN_PASSWORD="`get_var zodb_admin_password`"
+export ZODB_USER="`get_var zodb_user`"
+export ZODB_PASSWORD="`get_var zodb_password`"
+
+export ZEP_DB_TYPE="`get_var zep_db_type`"
+export ZEP_HOST="`get_var zep_host`"
+export ZEP_DB="`get_var zep_db`"
+export ZEP_PORT="`get_var zep_port`"
+export ZEP_ADMIN_USER="`get_var zep_admin_user`"
+export ZEP_ADMIN_PASSWORD="`get_var zep_admin_password`"
+export ZEP_USER="`get_var zep_user`"
+export ZEP_PASSWORD="`get_var zep_password`"
+
+export RABBITMQ_HOST="`get_var rabbitmq_host`"
+export RABBITMQ_SSL="`get_var rabbitmq_ssl`"
+export RABBITMQ_PORT="`get_var rabbitmq_port`"
+export RABBITMQ_VHOST="`get_var rabbitmq_vhost`"
+export RABBITMQ_USER="`get_var rabbitmq_user`"
+export RABBITMQ_PASS="`get_var rabbitmq_pass`"
+
 

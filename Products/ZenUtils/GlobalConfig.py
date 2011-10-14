@@ -74,8 +74,10 @@ def _convertConfigLinesToArguments(parser, lines):
             
     args = []
     for line in lines:
+        if line.get('type', None) != 'option':
+            continue
         optstring = configToFlag(line['key'])
-        if line.get('type', None) == 'option' and optstring in validOpts:
+        if optstring in validOpts:
             option = parser.get_option(optstring)
             boolean_value = line.get('value', '').lower() in ('true','yes','1')
             if option.action == 'store_true':

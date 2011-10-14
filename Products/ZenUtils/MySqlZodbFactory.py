@@ -25,9 +25,42 @@ import relstorage.options
 
 from ZodbFactory import IZodbFactory
 
+def _getDefaults(options=None):
+    if options is None:
+       o = {}
+    else:
+       o = options
+    settings = {
+        'host': o.get('zodb_host', "localhost"),
+        'port': o.get('zodb_port', 3306),
+        'user': o.get('zodb_user', 'zenoss'),
+        'passwd': o.get('zodb_password', 'zenoss'),
+        'db': o.get('zodb_db', 'zodb'),
+    }
+    if 'zodb_socket' in o:
+        settings['unix_socket'] = o['zodb_socket']
+    return settings
+
+
 
 class MySqlZodbFactory(object):
     implements(IZodbFactory)
+
+    def getZopeZodbConf(self):
+        """Return a zope.conf style zodb config."""
+        settings = _getDefaults()
+        config = []
+        keys = ['host', 'port', 'unix_socket', 'user', 'passwd', 'db']
+        for key in keys:
+            if key in settings:
+                config.append("    %s %s" % (key, settings[key],))
+
+        stanza = "\n".join([
+            "<mysql>",
+            "\n".join(config),
+            "</mysql>\n",
+        ])
+        return stanza
 
     def getConnection(self, **kwargs):
         """Return a ZODB connection."""

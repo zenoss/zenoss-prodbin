@@ -25,25 +25,51 @@ import relstorage.options
 
 from ZodbFactory import IZodbFactory
 
+def _getDefaults(options=None):
+    if options is None:
+       o = {}
+    else:
+       o = options
+    settings = {
+        'host': o.get('zodb_host', "localhost"),
+        'port': o.get('zodb_port', 5432),
+        'user': o.get('zodb_user', 'zenoss'),
+        'password': o.get('zodb_password', 'zenoss'),
+        'dbname': o.get('zodb_db', 'zodb'),
+    }
+    if 'zodb_socket' in o:
+        settings['socket'] = o['zodb_socket']
+    return settings
+
 
 class PostgresqlZodbFactory(object):
     implements(IZodbFactory)
 
+    def getZopeZodbConf(self):
+        """Return a zope.conf style zodb config."""
+        settings = _getDefaults()
+        dsn = []
+        keys = ['host', 'port', 'socket', 'user', 'password', 'dbname']
+        for key in keys:
+            if key in settings:
+                dsn.append("%s=%s" % (key, settings[key],))
+       
+        stanza = "\n".join([ 
+            "<postgresql>",
+            "    dsn %s" % (" ".join(dsn),),
+            "</postgresql>\n",
+        ])
+        return stanza
+
     def getConnection(self, **kwargs):
         """Return a ZODB connection."""
-        connectionParams = {
-            'host': kwargs.get('zodb_host', "localhost"),
-            'port': kwargs.get('zodb_port', 5432),
-            'user': kwargs.get('zodb_user', 'zenoss'),
-            'passwd': kwargs.get('zodb_password', 'zenoss'),
-            'dbname': kwargs.get('zodb_db', 'zodb'),
-        }
+        connectionParams =  _getDefaults(kwargs)
         kwargs = {
             'cache_module_name':'memcache',
             'keep_history': kwargs.get('zodb_keep_history', False)
         }
         adapter = relstorage.adapters.postgresql.PostgreSQLAdapter(
-             dsn="dbname=%(dbname)s port=%(port)s user=%(user)s password=%(passwd)s" % connectionParams,
+             dsn="dbname=%(dbname)s port=%(port)s user=%(user)s password=%(password)s" % connectionParams,
              options=relstorage.options.Options(**kwargs))
 
         if 'poll_interval' in kwargs:

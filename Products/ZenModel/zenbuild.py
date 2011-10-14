@@ -36,7 +36,7 @@ class zenbuild(CmdBase):
     sitename = "zport"
 
     def connect(self):
-        zopeconf = zenPath("etc/zope.conf")
+        zopeconf = zenPath("etc","zope.conf")
         import Zope2
         Zope2.configure(zopeconf)
         self.app = Zope2.app()
@@ -77,8 +77,8 @@ class zenbuild(CmdBase):
                                help="AMQP Password")
 
         from zope.component import getUtility
-        from Products.ZenUtils.ZodbFactory import IZodbFactory
-        connectionFactory = getUtility(IZodbFactory)()
+        from Products.ZenUtils.ZodbFactory import IZodbFactoryLookup
+        connectionFactory = getUtility(IZodbFactoryLookup).get()
         connectionFactory.buildOptions(self.parser)
 
 
@@ -90,11 +90,13 @@ class zenbuild(CmdBase):
         initialized.
         """
         from zope.component import getUtility
-        from Products.ZenUtils.ZodbFactory import IZodbFactory
-        connectionFactory = getUtility(IZodbFactory)()
+        from Products.ZenUtils.ZodbFactory import IZodbFactoryLookup
+        connectionFactory = getUtility(IZodbFactoryLookup).get()
         self.db, self.storage = connectionFactory.getConnection(**self.options.__dict__)
 
     def build(self):
+        self.db = None
+        self.storage = None
         mysqlcmd = ['mysql', '-u', self.options.zodb_user]
         if self.options.zodb_password:
             mysqlcmd.append('-p%s' % self.options.zodb_password)

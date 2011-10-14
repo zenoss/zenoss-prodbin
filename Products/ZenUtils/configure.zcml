@@ -7,14 +7,18 @@
     <include package=".extdirect.zope"/>
     <include package=".guid"/>
 
-    <!--
-    <utility provides=".ZodbFactory.IZodbFactory"
-             component=".MySqlZodbFactory.MySqlZodbFactory"
+    <utility provides=".ZodbFactory.IZodbFactoryLookup"
+             factory=".ZodbFactory.ZodbFactoryLookup"
              />
-
-    -->
+    
     <utility provides=".ZodbFactory.IZodbFactory"
-             component=".PostgresqlZodbFactory.PostgresqlZodbFactory"
+             factory=".MySqlZodbFactory.MySqlZodbFactory"
+             name="mysql"
+             />
+    
+    <utility provides=".ZodbFactory.IZodbFactory"
+             factory=".PostgresqlZodbFactory.PostgresqlZodbFactory"
+             name="postgresql"
              />
 
 </configure>

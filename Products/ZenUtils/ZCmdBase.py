@@ -66,8 +66,8 @@ class ZCmdBase(ZenDaemon):
     def zodbConnect(self):
 
         from zope.component import getUtility
-        from ZodbFactory import IZodbFactory 
-        connectionFactory = getUtility(IZodbFactory)()
+        from ZodbFactory import IZodbFactoryLookup
+        connectionFactory = getUtility(IZodbFactoryLookup).get()
         self.db, self.storage = connectionFactory.getConnection(**self.options.__dict__)
 
     def login(self, name='admin', userfolder=None):
@@ -159,8 +159,8 @@ class ZCmdBase(ZenDaemon):
         """basic options setup sub classes can add more options here"""
         ZenDaemon.buildOptions(self)
 
-        from zope.component import queryUtility
-        from ZodbFactory import IZodbFactory
-        connectionFactory = queryUtility(IZodbFactory)()
+        from zope.component import getUtility
+        from ZodbFactory import IZodbFactoryLookup
+        connectionFactory = getUtility(IZodbFactoryLookup).get()
         connectionFactory.buildOptions(self.parser)
 

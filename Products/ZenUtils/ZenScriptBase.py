@@ -45,8 +45,8 @@ class ZenScriptBase(CmdBase):
     def connect(self):
         if not self.app:
             from zope.component import getUtility
-            from ZodbFactory import IZodbFactory
-            connectionFactory = getUtility(IZodbFactory)()
+            from ZodbFactory import IZodbFactoryLookup
+            connectionFactory = getUtility(IZodbFactoryLookup).get()
             self.db, self.storage = connectionFactory.getConnection(**self.options.__dict__)
         self.getDataRoot()
         self.login()
@@ -137,7 +137,7 @@ class ZenScriptBase(CmdBase):
         CmdBase.buildOptions(self)
 
         from zope.component import getUtility
-        from ZodbFactory import IZodbFactory
-        connectionFactory = getUtility(IZodbFactory)()
+        from ZodbFactory import IZodbFactoryLookup
+        connectionFactory = getUtility(IZodbFactoryLookup).get()
         connectionFactory.buildOptions(self.parser)
 

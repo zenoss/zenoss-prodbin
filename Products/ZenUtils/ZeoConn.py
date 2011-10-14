@@ -28,8 +28,8 @@ class ZeoConn(object):
         }
 
         from zope.component import getUtility
-        from ZodbFactory import IZodbFactory
-        connectionFactory = getUtility(IZodbFactory)()
+        from ZodbFactory import IZodbFactoryLookup
+        connectionFactory = getUtility(IZodbFactoryLookup).get()
         self.db, self.storage = connectionFactory.getConnection(**self.options.__dict__)
 
         self.app = None
