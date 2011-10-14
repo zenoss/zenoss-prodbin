@@ -87,8 +87,13 @@ class HRSWRunMap(SnmpPlugin):
                 continue
             om.parameters = getattr(om, 'parameters', '')
 
-            fullname = (om.procName + ' ' + om.parameters).rstrip()
             for matcher in device.getOSProcessMatchers:
+
+                if matcher['ignoreParameters']:
+                    fullname = om.procName
+                else:
+                    fullname = (om.procName + ' ' + om.parameters).rstrip()
+
                 if not matcher['regex'](fullname):
                     continue
 
