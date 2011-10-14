@@ -24,7 +24,7 @@ from Products.ZenUtils.jsonutils import unjson
 from Products import Zuul
 from Products.ZenModel.Device import Device
 from Products.ZenModel.ZenossSecurity import ZEN_CHANGE_DEVICE_PRODSTATE, ZEN_MANAGE_DMD, \
-    ZEN_ADMIN_DEVICE, ZEN_MANAGE_DEVICE
+    ZEN_ADMIN_DEVICE, ZEN_MANAGE_DEVICE, ZEN_ZPROPERTIES_EDIT
 from Products.Zuul import filterUidsByPermission
 from Products.Zuul.routers import TreeRouter
 from Products.Zuul.interfaces import IInfo
@@ -78,7 +78,7 @@ class DeviceRouter(TreeRouter):
 
         treeNode = facade.getTree(uid)
         if sendUserAction:
-            sendUserAction(ActionTargetType.Location, ActionName.Add, 
+            sendUserAction(ActionTargetType.Location, ActionName.Add,
                            location=uid, description=description,
                            address=address)
         return DirectResponse.succeed("Location added", nodeConfig=Zuul.marshal(treeNode))
@@ -343,7 +343,7 @@ class DeviceRouter(TreeRouter):
         """
         facade = self._getFacade()
         facade.setProductInfo(uid, **data)
-        if sendUserAction: 
+        if sendUserAction:
             sendUserAction(ActionTargetType.Device, 'EditProductInfo', device=uid, **data)
         return DirectResponse()
 
@@ -400,7 +400,7 @@ class DeviceRouter(TreeRouter):
         allKeys = ['name', 'ipAddress', 'productionState', 'events',
                 'ipAddressString', 'serialNumber', 'tagNumber',
                 'hwManufacturer', 'hwModel', 'osModel', 'osManufacturer',
-                'collector', 'priority', 'systems', 'groups', 'location', 
+                'collector', 'priority', 'systems', 'groups', 'location',
                 'pythonClass']
         detailKeys = Device.detailKeys
         usedKeys = keys or allKeys
@@ -517,7 +517,7 @@ class DeviceRouter(TreeRouter):
 
         facade = self._getFacade()
         facade.pushChanges(uids)
-        if sendUserAction: 
+        if sendUserAction:
             for uid in uids:
                 sendUserAction(ActionTargetType.Device, 'PushChanges', device=uid)
         return DirectResponse.succeed('Changes pushed to collectors.')
@@ -1116,7 +1116,7 @@ class DeviceRouter(TreeRouter):
         return DirectResponse(data=Zuul.marshal(data))
 
     @serviceConnectionError
-    @contextRequire('Manage DMD', 'uid')
+    @contextRequire(ZEN_ZPROPERTIES_EDIT, 'uid')
     def setZenProperty(self, uid, zProperty, value):
         """
         Sets the zProperty value
@@ -1172,7 +1172,7 @@ class DeviceRouter(TreeRouter):
         return DirectResponse(data=Zuul.marshal(data), totalCount=len(data))
 
     @serviceConnectionError
-    @contextRequire('Manage DMD', 'uid')
+    @contextRequire(ZEN_ZPROPERTIES_EDIT, 'uid')
     def deleteZenProperty(self, uid, zProperty):
         """
         Removes the local instance of the each property in properties. Note
@@ -1494,7 +1494,7 @@ class DeviceRouter(TreeRouter):
         if not Zuul.checkPermission("Manage Device", organizer):
             raise Unauthorized('Calling AddDevice requires ' +
                                'Manage Device permission on %s' % deviceClass)
-        
+
         if title is None:
             title = deviceName
 
@@ -1579,7 +1579,7 @@ class DeviceRouter(TreeRouter):
         """
         facade = self._getFacade()
         facade.addLocalTemplate(deviceUid, templateId)
-        if sendUserAction: 
+        if sendUserAction:
             sendUserAction(ActionTargetType.Device, 'AddLocalTemplate',
                            device=deviceUid,
                            template=templateId)
@@ -1599,7 +1599,7 @@ class DeviceRouter(TreeRouter):
         """
         facade = self._getFacade()
         facade.removeLocalTemplate(deviceUid, templateUid)
-        if sendUserAction: 
+        if sendUserAction:
             sendUserAction(ActionTargetType.Device, 'RemoveLocalTemplate',
                            device=deviceUid,
                            template=templateUid)

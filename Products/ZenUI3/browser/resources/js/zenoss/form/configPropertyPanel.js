@@ -52,7 +52,7 @@
             mode: 'local'
         },
         'zSnmpCommunity': {
-            xtype: Zenoss.Security.doesNotHavePermission('Manage Device') ? 'password' : 'textfield'
+            xtype: Zenoss.Security.doesNotHavePermission('zProperties Edit') ? 'password' : 'textfield'
         },
         'zEventSeverity': {
             xtype: 'severity'
@@ -161,7 +161,7 @@
         };
         dialog = new Zenoss.SmartFormDialog(config);
 
-        if (Zenoss.Security.hasPermission('Manage DMD')) {
+        if (Zenoss.Security.hasPermission('zProperties Edit')) {
             dialog.show();
         }
     }
@@ -210,7 +210,7 @@
             config = config || {};
 
             Zenoss.Security.onPermissionsChange(function() {
-                this.disableButtons(Zenoss.Security.doesNotHavePermission('Manage DMD'));
+                this.disableButtons(Zenoss.Security.doesNotHavePermission('zProperties Edit'));
             }, this);
 
             Ext.applyIf(config, {
@@ -226,7 +226,7 @@
                     xtype: 'button',
                     iconCls: 'customize',
                     toolTip: _t('Customize'),
-                    disabled: Zenoss.Security.doesNotHavePermission('Manage DMD'),
+                    disabled: Zenoss.Security.doesNotHavePermission('zProperties Edit'),
                     ref: 'customizeButton',
                     handler: function(button) {
                         var grid = button.up("configpropertygrid"),
@@ -245,7 +245,7 @@
                     iconCls: 'refresh',
                         toolTip: _t('Refresh'),
                     ref: '../refreshButton',
-                    disabled: Zenoss.Security.doesNotHavePermission('Manage DMD'),
+                    disabled: Zenoss.Security.doesNotHavePermission('zProperties Edit'),
                     handler: function(button) {
                         var grid = button.up("configpropertygrid");
                         grid.refresh();
@@ -327,7 +327,7 @@
                         flex: 1,
                         width: 180,
                         renderer: function(v, row, record) {
-                            if (Zenoss.Security.doesNotHavePermission("Manage Device") &&
+                            if (Zenoss.Security.doesNotHavePermission("zProperties Edit") &&
                                 record.data.id == 'zSnmpCommunity') {
                                 return "*******";
                             }
@@ -349,7 +349,7 @@
             if (uid == '/zport/dmd/Devices'){
                 this.deleteButton.setDisabled(true);
             } else {
-                this.deleteButton.setDisabled(Zenoss.Security.doesNotHavePermission('Manage DMD'));
+                this.deleteButton.setDisabled(Zenoss.Security.doesNotHavePermission('zProperties Edit'));
             }
 
             this.uid = uid;
