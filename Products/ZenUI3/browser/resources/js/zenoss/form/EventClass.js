@@ -26,7 +26,7 @@
              Ext.applyIf(config, {
                  name: 'eventClass',
                  typeAhead: true,
-                 editable: false,
+                 editable: true,
                  forceSelection: true,
                  autoSelect: true,
                  resizable: true,

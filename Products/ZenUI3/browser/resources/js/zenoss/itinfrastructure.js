@@ -464,7 +464,7 @@ Ext.apply(Zenoss.devices, {
                     }, {
                         xtype: 'panel',
                         border: false,
-                        html: '<a href="#">More...</a>',                        
+                        html: '<a href="#">More...</a>',
                         toggleAttrs: function() {
                             var attrs = Ext.getCmp('add_attrs');
                             if (attrs.collapsed) {
@@ -631,7 +631,7 @@ function updateNavTextWithCount(node) {
 }
 
 
-function getTreeDropWarnings(dropTargetNode, droppedRecords) { 
+function getTreeDropWarnings(dropTargetNode, droppedRecords) {
     // if we're moving a device to a device class whose underlying python class does not match, also warn
     // about the potentially destructive operation.
     var additionalWarnings = [""];
@@ -865,7 +865,7 @@ var systree = {
     router: REMOTE,
     selectRootOnLoad: false,
     selModel: treesm,
-    listeners: { 
+    listeners: {
         render: initializeTreeDrop
     }
 };
@@ -1096,14 +1096,14 @@ var device_grid = Ext.create('Zenoss.DeviceGridPanel', {
                         text: _t('All'),
                         handler: function() {
                             var grid = Ext.getCmp('device_grid');
-                            grid.getSelectionModel().selectRange(0, grid.store.totalLength);
+                            grid.getSelectionModel().selectAll();
                         }
                     },
                     {
                         text: _t('None'),
                         handler: function() {
                             var grid = Ext.getCmp('device_grid');
-                            grid.getSelectionModel().clearSelections();
+                            grid.getSelectionModel().deselectAll();
                         }
                     }
                 ]

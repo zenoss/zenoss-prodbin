@@ -25,14 +25,15 @@
                 store: new Zenoss.DirectStore({
                     directFn: config.directFn,
                     root: config.root || 'data',
-                    fields: config.fields || ['name', 'value']
+                    fields: config.fields || ['name', 'value'],
+                    initialSortColumn: config.initialSortColumn || 'name'
                 }),
                 valueField: 'value',
                 displayField: 'name',
                 forceSelection: true,
                 editable: false,
                 autoSelect: true,
-                selectOnFocus: true,
+                selectOnFocus: false,
                 triggerAction: 'all'
             });
             this.callParent([config]);
@@ -83,6 +84,7 @@
                     directFn: Zenoss.remote.DeviceRouter.getPriorities,
                     root: 'data',
                     autoLoad: false,
+                    initialSortColumn: 'name',
                     fields: ['name', 'value']
                 }),
                 defaultValues: []
@@ -118,6 +120,7 @@
                 store: new Zenoss.DirectStore({
                     directFn: Zenoss.remote.DeviceRouter.getProductionStates,
                     root: 'data',
+                    initialSortColumn: 'name',
                     autoLoad: false,
                     fields: ['name', 'value']
                 }),
@@ -137,6 +140,7 @@
                 root: 'manufacturers',
                 totalProperty: 'totalCount',
                 fields: ['name'],
+                initialSortColumn: 'name',
                 directFn: router.getManufacturerNames
             });
             this.callParent([config]);
@@ -152,6 +156,7 @@
                 root: 'productNames',
                 totalProperty: 'totalCount',
                 fields: ['name'],
+                initialSortColumn: 'name',
                 directFn: router.getOSProductNames
             });
             this.callParent([config]);
@@ -167,6 +172,7 @@
                 root: 'productNames',
                 totalProperty: 'totalCount',
                 fields: ['name'],
+                initialSortColumn: 'name',
                 directFn: router.getHardwareProductNames
             });
             this.callParent([config]);

@@ -117,7 +117,6 @@ new Zenoss.HideFormDialog({
         valueField: 'uid',
         displayField: 'name',
         triggerAction: 'all',
-        selectOnFocus: true,
         forceSelection: true,
         editable: false,
         allowBlank: false,
@@ -154,7 +153,7 @@ new Zenoss.HideFormDialog({
     buttons: [
     {
         xtype: 'HideDialogButton',
-        ui: 'dialog-dark',        
+        ui: 'dialog-dark',
         ref: '../submit',
         text: _t('Submit'),
         disabled: true,
@@ -163,7 +162,7 @@ new Zenoss.HideFormDialog({
         }
     }, {
         xtype: 'HideDialogButton',
-        ui: 'dialog-dark',        
+        ui: 'dialog-dark',
         text: _t('Cancel')
     }]
 
@@ -192,7 +191,6 @@ new Zenoss.HideFormDialog({
         valueField: 'uid',
         displayField: 'name',
         triggerAction: 'all',
-        selectOnFocus: true,
         forceSelection: true,
         editable: false,
         allowBlank: false,
@@ -223,7 +221,7 @@ new Zenoss.HideFormDialog({
     buttons: [
     {
         xtype: 'HideDialogButton',
-        ui: 'dialog-dark',        
+        ui: 'dialog-dark',
         id: 'addThresholdToGraphSubmit',
         text: _t('Submit'),
         disabled: true,
@@ -232,7 +230,7 @@ new Zenoss.HideFormDialog({
         }
     }, {
         xtype: 'HideDialogButton',
-        ui: 'dialog-dark',        
+        ui: 'dialog-dark',
         text: _t('Cancel')
     }]
 
@@ -260,7 +258,6 @@ new Zenoss.HideFormDialog({
         valueField: 'pythonClassName',
         displayField: 'label',
         triggerAction: 'all',
-        selectOnFocus: true,
         forceSelection: true,
         editable: false,
         allowBlank: false,
@@ -273,7 +270,7 @@ new Zenoss.HideFormDialog({
     }],
     buttons: [{
         xtype: 'HideDialogButton',
-        ui: 'dialog-dark',        
+        ui: 'dialog-dark',
         ref: '../_addButton',
         text: _t('Add'),
         handler: function(addButton) {
@@ -290,7 +287,7 @@ new Zenoss.HideFormDialog({
         }
     }, {
         xtype: 'HideDialogButton',
-        ui: 'dialog-dark',        
+        ui: 'dialog-dark',
         ref: '../cancelButton',
         text: _t('Cancel')
     }]
@@ -344,7 +341,7 @@ Ext.create('Zenoss.dialog.BaseWindow', {
     }],
     buttons: [{
         xtype: 'HideDialogButton',
-        ui: 'dialog-dark',        
+        ui: 'dialog-dark',
         text: _t('Submit'),
         handler: function(button, event) {
             var cmp = Ext.getCmp('graphCustomDefinitionDialog'),
@@ -360,7 +357,7 @@ Ext.create('Zenoss.dialog.BaseWindow', {
         }
     }, {
         xtype: 'HideDialogButton',
-        ui: 'dialog-dark',        
+        ui: 'dialog-dark',
         text: _t('Cancel')
     }],
     loadAndShow: function(uid) {
@@ -589,7 +586,7 @@ new Zenoss.HideFitDialog({
     buttons: [
     {
         xtype: 'HideDialogButton',
-        ui: 'dialog-dark',        
+        ui: 'dialog-dark',
         text: _t('Save'),
         handler: function(){
             if (Zenoss.Security.hasPermission('Manage DMD')) {
@@ -601,7 +598,7 @@ new Zenoss.HideFitDialog({
         }
     }, {
         xtype: 'HideDialogButton',
-        ui: 'dialog-dark',        
+        ui: 'dialog-dark',
         text: _t('Cancel')
     }]
 });
@@ -620,7 +617,7 @@ Ext.create('Zenoss.dialog.BaseWindow', {
     padding: 10,
     buttons: [{
         ref: '../submitButton',
-        ui: 'dialog-dark',        
+        ui: 'dialog-dark',
         text: _t('Submit'),
         disabled: Zenoss.Security.doesNotHavePermission('Manage DMD'),
         handler: function(submitButton){
@@ -640,7 +637,7 @@ Ext.create('Zenoss.dialog.BaseWindow', {
         }
     },{
         ref: '../cancelButton',
-        ui: 'dialog-dark',        
+        ui: 'dialog-dark',
         text: 'Cancel',
         handler: function(cancelButton){
             var dialogWindow = cancelButton.refOwner;
@@ -858,8 +855,8 @@ Ext.define("Zenoss.templates.GraphGrid", {
                         ],
                         buttons: [
                             {
-                                xtype: 'DialogButton', 
-                                ui: 'dialog-dark',                                
+                                xtype: 'DialogButton',
+                                ui: 'dialog-dark',
                                 ref: '../submitButton',
                                 text: _t('Submit'),
                                 handler: function() {
@@ -876,7 +873,7 @@ Ext.define("Zenoss.templates.GraphGrid", {
                                 }
                             }, {
                                 xtype: 'DialogButton',
-                                ui: 'dialog-dark',                                
+                                ui: 'dialog-dark',
                                 text: _t('Cancel')
                             }]
                     });

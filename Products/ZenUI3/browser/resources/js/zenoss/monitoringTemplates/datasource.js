@@ -119,7 +119,7 @@ new Zenoss.HideFormDialog({
         }
     }, {
         xtype: 'DialogButton',
-        ui: 'dialog-dark',        
+        ui: 'dialog-dark',
         text: _t('Cancel')
     }]
 });
@@ -233,13 +233,13 @@ new Zenoss.dialog.BaseWindow({
             buttons: [{
                     xtype: 'DialogButton',
                     text: _t('Submit'),
-                    ui: 'dialog-dark',                    
+                    ui: 'dialog-dark',
                     formBind: true,
                     handler: saveDataPoint
                 }, {
                     xtype: 'DialogButton',
                     text: _t('Cancel'),
-                    ui: 'dialog-dark',                    
+                    ui: 'dialog-dark',
                     handler: function() {
                         Ext.getCmp('addDataPointDialog').hide();
                     }
@@ -325,7 +325,6 @@ new Zenoss.dialog.BaseWindow({
             forceSelection: true,
             autoSelect: true,
             value: 'SNMP',
-            selectOnFocus: true,
             triggerAction: 'all',
             store:  {
                 type: 'directcombo',
@@ -337,13 +336,13 @@ new Zenoss.dialog.BaseWindow({
         buttons:[{
             xtype: 'DialogButton',
             text: _t('Submit'),
-            ui: 'dialog-dark',            
+            ui: 'dialog-dark',
             formBind: true,
             handler: saveDataSource
         },{
             xtype: 'DialogButton',
             text: _t('Cancel'),
-            ui: 'dialog-dark',            
+            ui: 'dialog-dark',
             handler: function () {
                 Ext.getCmp('addDataSourceDialog').hide();
             }

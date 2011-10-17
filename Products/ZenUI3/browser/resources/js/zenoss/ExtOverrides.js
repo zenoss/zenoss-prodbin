@@ -16,6 +16,14 @@
     });
 
     /**
+     * In every one of our panels we want border and frame to be false so override it on the base class.
+     **/
+    Ext.override(Ext.panel.Panel, {
+        frame: false,
+        border: false
+    });
+
+    /**
      * Refs were removed when going from Ext3 to 4, we rely heavily on this feature and it is much more
      * concise way of accessing children so we are patching it back in.
      **/
@@ -87,6 +95,8 @@
             }
         }
     };
+
+
 
 
 }());
