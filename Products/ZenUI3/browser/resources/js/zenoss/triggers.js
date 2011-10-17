@@ -86,7 +86,6 @@ Ext.onReady(function () {
                 items:{
                     xtype:'form',
                     ref: 'addForm',
-                    border: false,
                     monitorValid: true,
                     buttonAlign: 'center',
                     labelWidth: 40,
@@ -250,7 +249,6 @@ Ext.onReady(function () {
             this.allowManualEntry = config.allowManualEntry || false;
             Ext.applyIf(config, {
                 ref: 'users_grid',
-                border: false,
                 title: config.title,
                 autoHeight: true,
                 plugins: [
@@ -402,8 +400,6 @@ Ext.onReady(function () {
                 maxHeight: bigWindowHeight-110,
                 width: bigWindowWidth,
                 minWidth: bigWindowWidth,
-                border:false,
-                defaults: {border:false}
             });
             NotificationTabContent.superclass.constructor.apply(this, arguments);
         }
@@ -437,10 +433,8 @@ Ext.onReady(function () {
             padding: panelPadding,
             title: _t('Content'),
             id: 'notification_content',
-            border:false,
             defaults: {
-                padding: 0,
-                border:false
+                padding: 0
             },
             listeners: {
                 render: function() {
@@ -451,8 +445,7 @@ Ext.onReady(function () {
             },
             loadData: function(data) {
                 this.userWrite = data['userWrite'] || false;
-                var panel = {border:false};
-                panel = Ext.applyIf(panel, data.content);
+                var panel = Ext.applyIf(panel, data.content);
                 var comp = Ext.create('Ext.panel.Panel', panel);
                 this.add(comp);
             }
@@ -465,7 +458,6 @@ Ext.onReady(function () {
                 {
                     xtype: 'panel',
                     layout: 'column',
-                    border: false,
                     padding: panelPadding,
                     defaults: {
                         layout: 'anchor',
@@ -556,7 +548,6 @@ Ext.onReady(function () {
             ref: 'recipients_tab',
             items: [{
                 xtype: 'panel',
-                border: false,
                 layout: 'anchor',
                 title: _t('Local Notification Permissions'),
                 items: [
@@ -665,7 +656,6 @@ Ext.onReady(function () {
             items: [{
                 xtype:'form',
                 ref: '../addForm',
-                border: false,
                 monitorValid: true,
                 buttonAlign: 'center',
                 labelWidth: 40,
@@ -718,7 +708,6 @@ Ext.onReady(function () {
             Ext.applyIf(config, {
                 plain: true,
                 cls: 'white-background-panel',
-                border: false,
                 autoScroll: true,
                 constrain: true,
                 modal: true,
@@ -733,7 +722,6 @@ Ext.onReady(function () {
                 items: [{
                     xtype:'form',
                     ref: 'editForm',
-                    border: false,
                     buttonAlign: 'center',
                     monitorValid: true,
                     items:[config.tabPanel],
@@ -794,12 +782,10 @@ Ext.onReady(function () {
                 height: 250,
                 maxWidth: 350,
                 maxHeight: 250,
-                border: false,
                 closeAction: 'hide',
                 items:{
                     xtype:'form',
                     ref: 'editForm',
-                    border: false,
                     buttonAlign: 'center',
                     monitorValid: true,
                     autoWidth: true,
@@ -953,7 +939,6 @@ Ext.onReady(function () {
             Ext.applyIf(config, {
                 autoScroll: true,
                 minHeight: 400, // force IE to show something
-                border: false,
                 region: 'center',
                 title: _t('Notifications'),
                 viewConfig: {
@@ -1289,7 +1274,6 @@ Ext.onReady(function () {
             config = config || {};
             Ext.applyIf(config, {
                 autoScroll: true,
-                border: false,
                 autoHeight: true,
                 viewConfig: {
                     forceFit: true
@@ -1417,8 +1401,7 @@ Ext.onReady(function () {
                 layout:'border',
                 defaults: {
                     collapsible: false,
-                    split: true,
-                    border: false
+                    split: true
                 },
                 items: [config.notificationPanel,{
                     title: _t('Notification Schedules'),
@@ -1517,7 +1500,6 @@ Ext.onReady(function () {
                 width: 275,
                 height: 500,
                 autoScroll: true,
-                border: false,
                 rootVisible: false,
                 selModel: navSelectionModel,
                 layout: 'fit',
@@ -1815,8 +1797,6 @@ Ext.onReady(function () {
         items: [
             {
                 xtype: 'panel',
-                border: false,
-                //layout: 'anchor',
                 title: _t('Local Trigger Permissions'),
                 //padding: 10,
                 items: [
@@ -1865,7 +1845,6 @@ Ext.onReady(function () {
                 height: bigWindowHeight,
                 width: bigWindowWidth+235,
                 boxMaxWidth: bigWindowWidth+235, // for chrome, safari
-                border: false,
                 closeAction: 'hide',
                 layout: 'fit',
                 listeners: {
@@ -1881,7 +1860,6 @@ Ext.onReady(function () {
                     {
                         xtype:'form',
                         ref: 'wrapping_form',
-                        border: false,
                         buttonAlign: 'left',
                         monitorValid: true,
                         items: [
@@ -1894,8 +1872,7 @@ Ext.onReady(function () {
                                     height: bigWindowHeight,
                                     width: bigWindowWidth+225,
                                     autoScroll: true,
-                                    frame: false,
-                                    border: false
+                                    frame: false
                                 },
                                 items: [
                                     trigger_tab_content,

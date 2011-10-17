@@ -75,7 +75,6 @@ Ext.define('Zenoss.inspector.BaseInspector', {
         config = Ext.applyIf(config || {}, {
             defaultType: 'devdetailitem',
             layout: 'anchor',
-            border: false,
             bodyBorder: false,
             items: [],
             titleTpl: '<div class="name">{name}</div>'
@@ -85,7 +84,6 @@ Ext.define('Zenoss.inspector.BaseInspector', {
             {
                 layout: 'hbox',
                 cls: 'inspector-header',
-                defaults: {border: false},
                 ref: 'headerItem',
                 items: [
                     {
@@ -306,7 +304,6 @@ ZI.createWindow = function(uid, xtype, x, y) {
         frame: false,
         constrain: true,
         model: false,
-        border: false,
         layout: 'fit',
         width: 300,
         items: [{

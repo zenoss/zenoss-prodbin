@@ -37,7 +37,6 @@
                 monitorValid: true,
                 defaults: {width: 290},
                 autoHeight: true,
-                border: false,
                 frame: false,
                 labelWidth: 100,
                 items: [{
@@ -123,9 +122,7 @@
                 xtype: 'form',
                 monitorValid: true,
                 autoHeight: true,
-                border: false,
-                frame: false,
-                defaults: {border:false},                
+                frame: false,                
                 items: [{
                     padding: 10,
                     style: {'font-size':'10pt'},
@@ -507,7 +504,6 @@
             });
 
             Ext.applyIf(config, {
-                border: false,
                 ref: 'tbar',
                 listeners: {
                     afterrender: function(){
@@ -1165,7 +1161,6 @@
                 stateId: Zenoss.env.EVENTSGRID_STATEID || 'default_eventsgrid',
                 enableDragDrop: false,
                 stateful: true,
-                border: false,
                 rowSelectorDepth: 5,
                 store: Ext.create('Zenoss.events.Store', {}),
                 appendGlob: true,
@@ -1246,6 +1241,7 @@
     Ext.define("Zenoss.EventGridPanel", {
         extend: "Zenoss.SimpleEventGridPanel",
         alias: ['widget.EventGridPanel'],
+        border:false,
         constructor: function(config) {
             var evtGrid = this;
             Ext.applyIf(config, {

@@ -14,6 +14,13 @@
         inputValue: true,
         uncheckedValue: false
     });
+    
+    /**
+    * Splitter needs to be resized thinner based on the older UI. The default is 5
+    **/
+   Ext.override(Ext.resizer.Splitter, {
+       width: 2
+   });
 
     /**
      * In every one of our panels we want border and frame to be false so override it on the base class.

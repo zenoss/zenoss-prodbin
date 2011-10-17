@@ -208,7 +208,6 @@ Ext.define("Zenoss.component.ComponentDetailNav", {
             autoHeight: true,
             autoScroll: true,
             containerScroll: true,
-            border: false,
             menuIds: []
         });
         ZC.ComponentDetailNav.superclass.constructor.call(this, config);
@@ -279,14 +278,10 @@ Ext.define("Zenoss.component.ComponentPanel", {
         }
         config = Ext.applyIf(config||{}, {
             tbarid: tbarid,
-            border: false,
-            defaults: {border: false},
             layout: 'border',
             items: [{
                 region: 'north',
                 height: 250,
-                defaults: {border: false},
-                border: false,
                 split: true,
                 ref: 'gridcontainer',
                 tbar: tbar,
@@ -296,12 +291,8 @@ Ext.define("Zenoss.component.ComponentPanel", {
                 region: 'center',
                 ref: 'detailcontainer',
                 split: true,
-                defaults: {
-                    border: false
-                },
                 tbar: {
                     cls: 'largetoolbar componenttbar',
-                    border: false,
                     height: 32,
                     items: [{
                         xtype: 'tbtext',
@@ -438,7 +429,6 @@ Ext.define("Zenoss.component.ComponentGridPanel", {
                 fields: config.fields
             });
         config = Ext.applyIf(config||{}, {
-            border: false,
             autoExpandColumn: 'name',
             stripeRows: true,
             bbar: {},

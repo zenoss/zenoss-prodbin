@@ -25,6 +25,50 @@
         background-image: none;
         background-color: #{$panel-header-background-color};
     }
+    
+    .#{$prefix}splitter{
+        background-color:#a5a5a5;
+    }    
+    
+
+    #newTabsPane{
+        background-color: #D4E0EE;
+        height: 100%;
+        left: 0;
+        width: 200px;
+    
+        ul li a {
+          color: #454545;
+          display: block;
+          font-family: helvetica,arial,tahoma,sans-serif;
+          font-size: 12px;
+          line-height: 18px;
+          padding: 1px 3px 1px 18px;
+          text-decoration: none;
+          &:hover{
+            background-color:#eee;
+            color:#454545;
+          }
+        }  
+        ul li.selected a {
+          background-color: #7199C6;
+          color: white;
+        }      
+        li{
+            list-style:none;
+        }
+        ul {
+          margin: 0;
+          padding: 10px 0 0;
+          width: 100%;
+        }
+    }   
+    
+    .innerzentable{
+        .tableheader{
+            padding-left:5px;
+        }
+    }
 
 }
 

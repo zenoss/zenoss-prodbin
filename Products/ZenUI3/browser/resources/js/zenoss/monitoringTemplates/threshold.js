@@ -109,7 +109,6 @@
                 ref: 'formPanel',
                 leftAlign: 'top',
                 monitorValid: true,
-                border: false,
                 paramsAsHash: true,
                 listeners: {
                     clientValidation: function(formPanel, valid) {
@@ -270,7 +269,6 @@
                 }),
                 title: _t('Thresholds'),
                 autoExpandColumn: 'name',
-                border: false,
                 store: Ext.create('Zenoss.thresholds.Store', { }),
                 listeners: listeners,
                 tbar: tbarItems.concat([{

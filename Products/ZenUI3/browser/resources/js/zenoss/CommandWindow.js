@@ -82,7 +82,6 @@ Ext.define("Zenoss.CommandWindow", {
             constrain: true,
             plain: true,
             items: {
-                border: false,
                 id: this.cpanel,
                 xtype: config.panel || 'commandpanel', //default to commandpanel
                 data: this.commandData,

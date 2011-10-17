@@ -299,7 +299,6 @@ MibBrowser = Ext.extend(Ext.Container, {
                 split: true,
                 tbar: {
                     cls: 'largetoolbar componenttbar',
-                    border: false,
                     height: 37,
                     items: [{
                         xtype: 'tbtext',
@@ -353,7 +352,6 @@ MibBrowser = Ext.extend(Ext.Container, {
                                     buttonAlign: 'left',
                                     labelAlign: 'top',
                                     footerStyle: 'padding-left: 0',
-                                    border: false,
                                     id: 'addNodeForm',
                                     items: [{
                                         fieldLabel: _t('ID'),
@@ -677,7 +675,6 @@ function showEditMibDialog(response){
         buttonAlight: 'left',
         items:{
             xtype:'form',
-            border: false,
             ref: 'editForm',
             buttonAlign: 'left',
             monitorValid: true,
@@ -787,13 +784,11 @@ function createLocalMIBAddAction() {
                 buttonAlign: 'left',
                 labelAlign: 'top',
                 footerStyle: 'padding-left: 0',
-                border: false,
                 items: [{
                     xtype: 'panel',
                     width: 270,
                     height: 70,
                     layout: 'anchor',
-                    border: false,
                     html: '<iframe frameborder="0" src="' +  src  + '"></iframe>'
                 }]
             }]
@@ -819,7 +814,6 @@ function createDownloadMIBAddAction() {
                 monitorValid: true,
                 labelAlign: 'top',
                 footerStyle: 'padding-left: 0',
-                border: false,
                 items: [{
                     xtype: 'textfield',
                     name: 'package',

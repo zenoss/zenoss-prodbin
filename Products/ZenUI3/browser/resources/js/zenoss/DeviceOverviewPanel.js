@@ -529,11 +529,7 @@
                 autoScroll: true,
                 bodyCssClass: 'device-overview-panel',
                 padding: '10',
-                border: false,
                 frame: false,
-                defaults: {
-                    border: false
-                },
                 forms: [],
                 listeners: {
                     add: function(me, container) {
@@ -562,7 +558,6 @@
                         id:'deviceoverviewpanel_summary',
                         defaultType: 'displayfield',
                         frame:false,
-                        border:false,
                         items: [{
                             fieldLabel: _t('Uptime'),
                             name: 'uptime'
@@ -587,7 +582,7 @@
                         id:'deviceoverviewpanel_idsummary',
                         defaultType: 'displayfield',
                         frame:false,
-                        border:false,
+                        
                         listeners: {
                             actioncomplete: function(form, action) {
                                 if (action.type=='directsubmit') {
@@ -623,7 +618,7 @@
                         id:'deviceoverviewpanel_descriptionsummary',
                         defaultType: 'textfield',
                         frame:false,
-                        border:false,                        
+                                                
                         items: [{
                             fieldLabel: _t('Rack Slot'),
                             name: 'rackSlot',
@@ -684,7 +679,7 @@
                     id:'deviceoverviewpanel_customsummary',
                     defaultType: 'devformpanel',
                     frame:false,
-                    border:false,                    
+                                        
                     layout: 'hbox',
                     defaults: {
                         bodyStyle: 'background-color:#dfe8f5;',                    
@@ -699,7 +694,7 @@
                         flex: 2,
                         minHeight: 400,
                         frame:false,
-                        border:false,                        
+                                                
                         items: [{
                             xtype: 'clicktoedit',
                             listeners: {
@@ -755,7 +750,7 @@
                         id:'deviceoverviewpanel_snmpsummary',
                         defaultType: 'displayfield',
                         frame:false,
-                        border:false,                        
+                                                
                         flex: 1,
                         bodyStyle: 'background-color:#dfe8f5;',                        
                         minHeight: 400,

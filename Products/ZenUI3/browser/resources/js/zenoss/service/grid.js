@@ -126,7 +126,6 @@
                     }
                 },
                 stateful: true,
-                border: false,
                 columns: zs.columns,
                 rowSelectorDepth: 5,
                 loadMask: true

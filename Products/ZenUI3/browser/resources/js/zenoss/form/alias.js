@@ -74,7 +74,6 @@
              items.push({
                 xtype: 'panel',
                 layout: 'anchor',
-                border: false,
                 html: _t('ID / FORMULA')
              });
              config = config || {};

@@ -66,7 +66,6 @@
             Ext.apply(config, {
                 layout: (Ext.isIE) ? 'form': 'fit',
                 plain: true,
-                border: false,
                 buttonAlign: 'left',
                 autoScroll: true,
                 constrain: true,
@@ -76,7 +75,6 @@
                 autoHeight: autoHeight,
                 items: [{
                     xtype:'form',
-                    border: false,
                     minWidth: 300,
                     ref: 'editForm',
                     labelAlign: 'top',
@@ -84,8 +82,7 @@
                     monitorValid: true,
                     defaults: {
                         xtype: 'textfield',
-                        anchor: '85%',
-                        border: false
+                        anchor: '85%'
                     },
                     listeners: {
                         /**
@@ -173,7 +170,6 @@
                 currentPanel = {
                     xtype:'panel',
                     layout: 'column',
-                    border: false,
                     items: [{
                         layout:'form',
                         border:false,
@@ -215,8 +211,6 @@
                         panel.push({
                             xtype: 'panel',
                             layout: 'anchor',
-
-                            border: false,
                             items: textareas[j]
                         });
                     }

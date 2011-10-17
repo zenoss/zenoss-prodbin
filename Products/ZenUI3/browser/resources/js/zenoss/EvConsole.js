@@ -100,7 +100,6 @@ Ext.onReady(function(){
         stateId: Zenoss.env.EVENTSGRID_STATEID,
         enableDragDrop: false,
         stateful: true,
-        border: false,
         rowSelectorDepth: 5,
         store: console_store, // defined above
         // Zenoss.env.COLUMN_DEFINITIONS comes from the server, and depends on

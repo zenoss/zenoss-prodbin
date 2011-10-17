@@ -56,7 +56,6 @@
                 items: [{
                     layout: 'border',
                     defaults: {
-                        border: false,
                         split: true
                     },
                     items:[{

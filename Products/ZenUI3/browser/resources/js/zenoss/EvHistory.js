@@ -67,7 +67,6 @@ Ext.onReady(function(){
     // Add the toolbar to the container
     var tbar = new Zenoss.LargeToolbar({
             region:'north',
-            border: false,
             items: [{
                 /*
                  * SELECT MENU
@@ -271,7 +270,6 @@ Ext.onReady(function(){
             tags: _managed_objects()
         },
         stateful: true,
-        border: false,
         rowSelectorDepth: 5,
         store: Ext.create('Zenoss.events.Store', { }),
 

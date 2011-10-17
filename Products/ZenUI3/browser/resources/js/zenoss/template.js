@@ -287,12 +287,10 @@ new Zenoss.HideFormDialog({
     items: [
     {
         xtype: 'panel',
-        border: false,
         html: overrideHtml1()
     }, {
         xtype: 'button',
         id: 'learnMore',
-        border: false,
         text: _t('Learn more'),
         handler: function() {
             Ext.getCmp('learnMore').hide();
@@ -301,12 +299,10 @@ new Zenoss.HideFormDialog({
     }, {
         xtype: 'panel',
         id: 'detailedExplanation',
-        border: false,
         html: overrideHtml2(),
         hidden: true
     }, {
         xtype: 'panel',
-        border: false,
         html: '<br/>'
     }, {
         xtype: 'combo',

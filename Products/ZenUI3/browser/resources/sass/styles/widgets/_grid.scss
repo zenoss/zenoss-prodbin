@@ -19,10 +19,14 @@
         .#{$prefix}column-header-trigger{
             background-color: #000000;
             background-image: url("../img/xtheme-zenoss/grid/grid3-hd-btn.gif");
+            height:20px;
+            overflow:hidden;
         }
         .#{$prefix}grid-header-ct {
           background-color: #BDBDBD;
-          border:0px !important;
+        }
+        .#{$prefix}column-header-text{
+            background-position:right 4px !important;
         }
     }
 }

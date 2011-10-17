@@ -122,7 +122,6 @@ Ext.onReady( function() {
         ref: '../../zMonitor',
         title: _t('Enable Monitoring? (zMonitor)'),
         name: 'zMonitor',
-        defaults:{border:false},
         localField: {
             xtype: 'select',
             mode: 'local',
@@ -134,8 +133,7 @@ Ext.onReady( function() {
         xtype: 'zprop',
         ref: '../../zFailSeverity',
         title: _t('Failure Event Severity (zFailSeverity)'),
-        name: 'zFailSeverity',
-        defaults:{border:false},        
+        name: 'zFailSeverity',        
         localField: {
             xtype: 'select',
             mode: 'local',
@@ -145,10 +143,8 @@ Ext.onReady( function() {
 
     zsf.formItems = {
         layout: 'column',
-        border: false,
         defaults: {
             layout: 'anchor',
-            border: false,
             bodyStyle: 'padding: 15px',
             columnWidth: 0.5
         }

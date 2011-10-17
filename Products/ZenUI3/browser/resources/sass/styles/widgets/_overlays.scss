@@ -10,6 +10,10 @@
     }
     
     // IE FIXES
+        .x-ie #page-help{
+            margin-top:5px;
+        }
+
     .#{$prefix}nbr{
         #page-level-help-tip{
             height:80% !important;

@@ -313,7 +313,6 @@ Ext.create('Zenoss.dialog.BaseWindow', {
         xtype:'form',
         ref: 'formPanel',
         labelAlign: 'top',
-        border: false,
         monitorValid: true,
         paramsAsHash: true,
         api: {
@@ -335,7 +334,6 @@ Ext.create('Zenoss.dialog.BaseWindow', {
         },{
             xtype: 'label',
             fieldLabel: _t('Available RRD Variables'),
-            border: false,
             ref: 'rrdVariables'
         }]
     }],
@@ -452,7 +450,6 @@ Ext.define("Zenoss.GraphPointGrid", {
         Ext.applyIf(config, {
             stripeRows: true,
             autoScroll: true,
-            border: false,
             viewConfig: {
                 forcefit: true,
                 plugins: {
@@ -650,7 +647,6 @@ Ext.create('Zenoss.dialog.BaseWindow', {
         autoScroll: true,
         labelAlign: 'top',
         monitorValid: true,
-        border: false,
         paramsAsHash: true,
         api: {
             load: router.getGraphDefinition,

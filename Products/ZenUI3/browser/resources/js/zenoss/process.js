@@ -227,7 +227,6 @@ Ext.define("Zenoss.process.ProcessGrid", {
             flex: 3,
             stateId: 'processNavGridState',
             stateful: true,
-            border: false,
             viewConfig: {
                 plugins: {
                     ptype: 'gridviewdragdrop',
@@ -440,7 +439,6 @@ var zMonitor = {
     ref: '../../zMonitor',
     title: _t('Enable Monitoring? (zMonitor)'),
     name: 'zMonitor',
-    defaults: {border:false},    
     localField: {
         xtype: 'select',
         mode: 'local',
@@ -453,7 +451,6 @@ var zAlertOnRestart = {
     ref: '../../zAlertOnRestart',
     title: _t('Send Event on Restart? (zAlertOnRestart)'),
     name: 'zAlertOnRestart',
-    defaults:{border:false},
     localField: {
         xtype: 'select',
         mode: 'local',
@@ -465,8 +462,7 @@ var zFailSeverity = {
     xtype: 'zprop',
     ref: '../../zFailSeverity',
     title: _t('Failure Event Severity (zFailSeverity)'),
-    name: 'zFailSeverity',
-    defaults:{border:false},        
+    name: 'zFailSeverity',        
     localField: {
         xtype: 'select',
         mode: 'local',  
@@ -490,11 +486,9 @@ var regexFieldSet = {
 // the items that make up the form
 var processFormItems = {
     layout: 'column',
-    border: false,
     defaults: {
         layout: 'anchor', 
         bodyStyle: 'padding: 5px',
-        border:false,
         columnWidth: 0.5
     },
     items: [
@@ -514,7 +508,6 @@ var processFormItems = {
 Ext.getCmp('center_panel').add(
         new Ext.Panel({
             layout: 'border',
-            defaults: {border:false},
             items: [{
                 id: 'master_panel',
                 region: 'west',
@@ -533,7 +526,6 @@ Ext.getCmp('center_panel').add(
                     id: 'processForm',
                     permission: 'Manage DMD',
                     region: 'center',
-                    border:false,
                     items: processFormItems,
                     router: router,
                     listeners: {
@@ -649,7 +641,6 @@ Ext.define("Zenoss.SequenceGrid", {
             stripeRows: true,
             autoScroll: true,
             sortableColumns: false,
-            border: false,
             layout: 'fit',
             store: Ext.create('Zenoss.SequenceStore', {}),
             columns: [

@@ -32,7 +32,6 @@ Ext.define("Zenoss.dialog.BaseWindow", {
         Ext.applyIf(config, {
             //layout: (Ext.isIE) ? 'form': 'fit',
             plain: true,
-            border: false,
             buttonAlign: 'left',
             modal: true,
             constrain: true
@@ -191,7 +190,6 @@ Ext.define("Zenoss.MessageDialog", {
     constructor: function(config) {
         Ext.applyIf(config, {
             layout: 'fit',
-            border: false,
             items: [ {
                 xtype: 'label',
                 id: 'message',
@@ -235,7 +233,6 @@ Ext.define("Zenoss.dialog.SimpleMessageDialog", {
         Ext.applyIf(config, {
             layout: 'fit',
             items: {
-                border: false,
                 html: config.message
             },
             closeAction: 'close'
@@ -256,16 +253,13 @@ Ext.define("Zenoss.FormDialog", {
     extend: "Zenoss.dialog.BaseWindow",
     constructor: function(config) {
         var form = new Ext.form.FormPanel({
-            border: false,
             id: config.formId,
             minWidth: 300,
             ref: 'editForm',
             labelAlign: 'top',
             autoScroll: true,
             defaults: {
-                xtype: 'textfield',
-                //anchor: '85%',
-                border: false
+                xtype: 'textfield'
             },
             items: config.items,
             html: config.html,
@@ -283,7 +277,6 @@ Ext.define("Zenoss.FormDialog", {
             // this may change in future ext/ie version
             //layout: (Ext.isIE) ? 'form': 'fit',
             plain: true,
-            border: false,
             buttonAlign: 'left',
             autoScroll: true,
             width: 375,
@@ -501,7 +494,6 @@ Ext.define("Zenoss.dialog.DialogFormPanel", {
     constructor: function(config) {
         config = config || {};
         Ext.apply(config, {
-            border: false,
             id: 'dynamic-dialog-panel'
         });
         Zenoss.dialog.DialogFormPanel.superclass.constructor.call(this, config);

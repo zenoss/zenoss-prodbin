@@ -363,7 +363,6 @@ var ipAddressGridConfig = {
         xtype: 'instancecardpanel',
         id: 'NetworkDetailCardPanel',
         region: 'center',
-        border: false,
         collapsed: false,
         split: true,
         stripeRows: true,

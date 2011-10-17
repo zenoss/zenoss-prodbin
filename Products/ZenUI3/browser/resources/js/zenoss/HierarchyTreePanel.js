@@ -59,6 +59,8 @@ Ext.define('Zenoss.HierarchyTreePanelSearch', {
         config = {
             cls: 'x-hierarchy-search-panel',
             bodyStyle: 'background-color:#d4e0ee;',
+            border:false,
+            defaults:{border:false},
             items: [{
                 xtype: 'searchfield',
                 id: config.id || Ext.id(),
@@ -194,7 +196,6 @@ Ext.define('Zenoss.HierarchyTreePanel', {
             ui: 'hierarchy',
             frame: false,
             useArrows: true,
-            border: false,
             autoScroll: true,
             relationshipIdentifier: null,
             containerScroll: true,

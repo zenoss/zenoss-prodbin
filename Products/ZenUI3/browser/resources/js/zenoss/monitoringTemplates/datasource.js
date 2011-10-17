@@ -83,8 +83,7 @@ new Zenoss.HideFormDialog({
     items: [
     {
         xtype: 'panel',
-        id: 'addToGraphMetricPanel',
-        border: false
+        id: 'addToGraphMetricPanel'
     }, {
         xtype: 'combo',
         id: 'graphCombo',
@@ -220,7 +219,6 @@ new Zenoss.dialog.BaseWindow({
         },
         items:{
             xtype: 'form',
-            border: false,
             buttonAlign: 'left',
             monitorValid: true,
             items: [{
@@ -306,7 +304,6 @@ new Zenoss.dialog.BaseWindow({
         },
         items:{
             xtype:'form',
-            border: false,
             buttonAlign: 'left',
             monitorValid: true,
             items:[{
@@ -636,7 +633,6 @@ Ext.define("Zenoss.DataSourceTreeGrid", {
 
     constructor: function(config) {
         Ext.applyIf(config, {
-            border: false,
             useArrows: true,
             cls: 'x-tree-noicon',
             rootVisible: false,

@@ -94,7 +94,6 @@ Ext.define("Zenoss.TemplateTreePanel", {
         Ext.applyIf(config, {
             id: treeId,
             rootVisible: false,
-            border: false,
             autoScroll: true,
             containerScroll: true,
             useArrows: true,

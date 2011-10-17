@@ -29,6 +29,7 @@ $include-missing-images: true;
 @include zenoss-window;
 @include zenoss-grid;   
 @include zenoss-tips; 
+@include zenoss-form;
    
 
 /*
@@ -39,7 +40,6 @@ CORE TRIGGER PAGE STUFF
     font-size: 12px;
     background : none repeat scroll 0 0 #FAFAFA;
     color: #454545;  
-    zoom:1;
 }
 
 .white-background-panel .x-window-header {
@@ -96,7 +96,9 @@ CORE TRIGGER PAGE STUFF
 #add_attrs .x-panel-header-default {
     display: none;
 }
-
-.x-ie #page-help{
-    margin-top:5px;
+// this has to be here - IE cascade
+#master_panel-header{
+    background-image: url("../img/ext4/toolbar/blue-header-bg.png") !important;
+    background-repeat:repeat-x;
 }
+

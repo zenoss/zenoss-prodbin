@@ -85,10 +85,6 @@ Ext.define("Zenoss.HorizontalSlidePanel", {
         });
         config = Ext.applyIf(config || {}, {
             cls: 'subselect',
-            border: false,
-            defaults: {
-                border: false
-            },
             layout: 'slide',
             activeItem: 0
         });
@@ -112,20 +108,16 @@ Ext.define("Zenoss.HorizontalSlidePanel", {
             navButton.hide();
             items.push({
                 layout: 'fit',
-                border: false,
-                defaults: {
-                    border: false
-                },
                 tbar: {
-                    border: false,
                     cls: 'subselect-head',
+                    id: 'master_panel-header',
                     height: 37,
                     items: [headerText, '->', navButton]
                 },
                 items:[item],
                 listeners: {
                     render: function(card) {
-                        card.card = card.items.items[0];
+                       card.card = card.items.items[0];
                         card.card.parentCard = card;
                         card.headerText = headerText;
                         card.navButton = navButton;
@@ -320,7 +312,6 @@ Ext.define("Zenoss.SubselectionPanel", {
         Ext.applyIf(config, {
             id: id,
             layout: 'fit',
-            border: false,
             bodyStyle: { 'margin-top' : 10 },
             items: [{
                 xtype:'treepanel',
@@ -342,7 +333,6 @@ Ext.define("Zenoss.SubselectionPanel", {
                     }
                 }),
                 id: 'subselecttreepanel' + id,
-                border: false,
                 rootVisible: false,
                 root : {nodeType: 'node'}
             }]
@@ -439,7 +429,6 @@ Ext.define("Zenoss.DetailNavTreePanel", {
             }),
             id: 'subselecttreepanel' + config.idSuffix,
             ref: 'subselecttreepanel',
-            border: false,
             rootVisible: false,
             iconCls: 'x-tree-noicon',
             root : {nodeType: 'node'}
@@ -513,7 +502,6 @@ Ext.define("Zenoss.DetailNavPanel", {
             id: Ext.id(),
             bodyCssClass: 'detailnav',
             layout: 'fit',
-            border: false,
             bodyStyle: { 'margin-top' : 10 }
         });
         // call second applyIf so config.id is set correctly
@@ -772,7 +760,6 @@ Ext.define("Zenoss.DetailContainer", {
     extend: "Ext.Panel",
     constructor: function(config){
         Ext.applyIf(config, {
-            border: false,
             autoScroll: true,
             listeners: {
                 selectionchange: this.onSelectionChange,

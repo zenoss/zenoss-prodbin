@@ -44,9 +44,7 @@ Ext.define("Zenoss.templates.Container", {
     constructor: function(config) {
         Ext.applyIf(config, {
             layout: 'border',
-            border: false,
             defaults: {
-                border: false,
                 split: true
             },
             items: [{
@@ -64,7 +62,6 @@ Ext.define("Zenoss.templates.Container", {
                 region: 'east',
                 width: '35%',
                 defaults: {
-                    border: false,
                     split: true
                 },
                 items: [{
@@ -128,7 +125,6 @@ Ext.define("Zenoss.templates.MonTemplateTreePanel", {
         // create the model
         Ext.applyIf(config, {
             useArrows: true,
-            border: false,
             cls: 'x-tree-noicon',
             selModel: new Zenoss.MonTemplateSelectionModel({
                 bubbleTarget: config.bubbleTarget
@@ -231,7 +227,6 @@ Ext.define("Zenoss.AddLocalTemplatesDialog", {
             items: [{
                 xtype: 'form',
                 ref: 'formPanel',
-                border: false,
                 monitorValid: true,
                 listeners: {
                     clientvalidation: function(formPanel, valid) {
@@ -385,7 +380,6 @@ Ext.define("Zenoss.OverrideTemplatesDialog", {
             },
             items: [{
                 xtype: 'label',
-                border: false,
                 html: _t('Select the bound template you wish to override.')
             },{
                 xtype: 'combo',
@@ -463,7 +457,6 @@ Ext.define("Zenoss.removeLocalTemplateDialog", {
             },
             items: [{
                 xtype: 'label',
-                border: false,
                 html: _t('Select the locally defined template you wish to remove.')
             },{
                 xtype: 'combo',

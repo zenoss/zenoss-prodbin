@@ -40,7 +40,6 @@ Ext.define("Zenoss.AddToZenPackWindow", {
                 monitorValid: true,
                 defaults: {width: 180},
                 autoHeight: true,
-                border: false,
                 frame: false,
                 labelWidth: 100,
                 labelAlign: 'top',

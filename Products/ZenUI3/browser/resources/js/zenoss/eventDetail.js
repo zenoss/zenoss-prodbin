@@ -194,10 +194,6 @@ Ext.onReady(function() {
         alias: "widget.detailpanel",
         isHistory: false,
         layout: 'border',
-        border: false,
-        defaults: {
-            border: false
-        },
         constructor: function(config){
             this.sections = [];
             this.renderers = {};
@@ -210,12 +206,10 @@ Ext.onReady(function() {
                     layout: 'border',
                     height: 50,
                     cls: 'evdetail_hd',
-                    defaults: {border: false},
                     items: [{
                         region: 'west',
                         width: 77,
                         layout: 'hbox',
-                        defaults: {border: false},
                         items: [{
                             id: 'severity-icon',
                             cls: 'severity-icon'
@@ -232,7 +226,6 @@ Ext.onReady(function() {
                         id: 'evdetail-tools',
                         layout: 'hbox',
                         width: 57,
-                        defaults: {border: false},
                         items: [{
                             id: 'evdetail-popout',
                             cls: 'evdetail-popout'
@@ -253,10 +246,8 @@ Ext.onReady(function() {
                     {
                         id: 'event_detail_properties',
                         frame: false,
-                        border: false,
                         defaults: {
-                            frame: false,
-                            border: false
+                            frame: false
                         },
                         layout: {
                             type: 'fit',
@@ -281,7 +272,6 @@ Ext.onReady(function() {
                     {
                         xtype: 'form',
                         id: 'log-container',
-                        defaults: {border: false},
                         frame: true,
                         layout: {
                             type: 'table',

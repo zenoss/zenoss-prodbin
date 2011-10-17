@@ -365,15 +365,12 @@ Ext.apply(Zenoss.devices, {
                     monitorValid: true,
                     labelAlign: 'top',
                     footerStyle: 'padding-left: 0',
-                    border: false,
                     ref: 'childPanel',
                     items: [{
                         xtype: 'panel',
                         layout: 'column',
-                        border: false,
                         items: [{
                             columnWidth: 0.5,
-                            border: false,
                             layout: 'anchor',
                             items: [{
                                 xtype: 'textfield',
@@ -420,7 +417,6 @@ Ext.apply(Zenoss.devices, {
                         }, {
                             columnWidth: 0.5,
                             layout: 'anchor',
-                            border: false,
                             items: [{
                                 xtype: 'textfield',
                                 name: 'title',
@@ -463,7 +459,6 @@ Ext.apply(Zenoss.devices, {
                         }]
                     }, {
                         xtype: 'panel',
-                        border: false,
                         html: '<a href="#">More...</a>',
                         toggleAttrs: function() {
                             var attrs = Ext.getCmp('add_attrs');
@@ -490,7 +485,6 @@ Ext.apply(Zenoss.devices, {
                         hideLabel: true,
                         xtype: 'panel',
                         preventHeader: true,
-                        border: false,
                         layout: 'column',
                         ref: "moreAttributes",
                         listeners: {
@@ -506,7 +500,6 @@ Ext.apply(Zenoss.devices, {
                         items: [{
                             columnWidth: 0.33,
                             layout: 'anchor',
-                            border: false,
                             items: [{
                                 xtype: 'textfield',
                                 name: 'snmpCommunity',
@@ -536,13 +529,11 @@ Ext.apply(Zenoss.devices, {
                         }, {
                             columnWidth: 0.33,
                             layout: 'anchor',
-                            border: false,
                             items: [hwManufacturers, hwProduct, osManufacturers, osProduct]
                         }, {
                             columnWidth: 0.34,
                             layout: 'anchor',
                             id: 'add-device-organizer-column',
-                            border: false,
                             items: [{
                                 xtype: 'textarea',
                                 name: 'comments',
@@ -1014,6 +1005,7 @@ var device_grid = Ext.create('Zenoss.DeviceGridPanel', {
     ddGroup: 'devicegriddd',
     id: 'device_grid',
     multiSelect: true,
+    
     title: _t('/'),
     viewConfig: {
         plugins: {
@@ -1189,6 +1181,7 @@ function getInfrastructureDeviceColumns() {
 var event_console = Ext.create('Zenoss.EventGridPanel', {
     id: 'events_grid',
     stateId: 'infrastructure_events',
+    
     columns: getInfrastructureDeviceColumns(),
     newwindowBtn: true,
     actionsMenu: false,
@@ -1200,18 +1193,15 @@ var event_console = Ext.create('Zenoss.EventGridPanel', {
 Ext.getCmp('center_panel').add({
     id: 'center_panel_container',
     layout: 'border',
-    defaults: {
-        'border': false
-    },
     items: [{
         xtype: 'horizontalslide',
         id: 'master_panel',
         cls: 'x-zenoss-master-panel',
-        text: _t('Infrastructure'),
         region: 'west',
         split: true,
         width: 275,
         maxWidth: 275,
+        
         items: [{
             id: 'master_panel_details',
             text: _t('Infrastructure'),

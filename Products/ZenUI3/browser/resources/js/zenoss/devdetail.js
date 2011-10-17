@@ -183,7 +183,6 @@ function showMonitoringDialog() {
         bodyStyle: 'padding:8px;padding-top:2px',
         buttonAlign: 'left',
         plain: true,
-        border: false,
         buttons: [{
             text: _t('Submit'),
             handler: function(btn) {
@@ -256,7 +255,6 @@ function showComponentLockingDialog() {
         items: [{
             xtype: 'container',
             frame: false,
-            border: false,
             layout: 'vbox',
             defaults: {
                 xtype: 'checkbox',
@@ -390,8 +388,7 @@ var deviceInformation = {
     layout: 'column',
     title: _t('Device Information'),
     defaults: {
-        columnWidth: 0.5,
-        border: false
+        columnWidth: 0.5
     },
     items: [{
         layout: 'anchor',
@@ -692,9 +689,6 @@ Ext.define('Zenoss.DeviceDetailNav', {
 Ext.getCmp('center_panel').add({
     id: 'center_panel_container',
     layout: 'border',
-    defaults: {
-        'border':false
-    },
     tbar: {
         xtype: 'devdetailbar',
         id: 'devdetailbar',

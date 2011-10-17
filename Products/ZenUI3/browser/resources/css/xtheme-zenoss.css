@@ -10256,6 +10256,11 @@ textarea.x-form-field {
 .x-nlg .x-toolbar-large {
   background-image: url("/++resource++zenui/img/ext4/toolbar/toolbar-large-bg.png") !important; }
 
+/* line 18, ../sass/styles/widgets/_toolbar.scss */
+.subselect-head .x-toolbar-text {
+  font-weight: bold;
+  font-size: 13px; }
+
 /* line 241, ../../../../../../../../zenoss/lib/python/zenoss/extjs/src/resources/themes/stylesheets/ext4/default/widgets/_panel.scss */
 .x-panel-default {
   border-color: #99bce8; }
@@ -10435,6 +10440,46 @@ textarea.x-form-field {
 .x-nlg .x-panel-header-default-top {
   background-image: none;
   background-color: #566d87; }
+
+/* line 29, ../sass/styles/widgets/_panel.scss */
+.x-splitter {
+  background-color: #a5a5a5; }
+
+/* line 34, ../sass/styles/widgets/_panel.scss */
+#newTabsPane {
+  background-color: #D4E0EE;
+  height: 100%;
+  left: 0;
+  width: 200px; }
+/* line 40, ../sass/styles/widgets/_panel.scss */
+#newTabsPane ul li a {
+  color: #454545;
+  display: block;
+  font-family: helvetica,arial,tahoma,sans-serif;
+  font-size: 12px;
+  line-height: 18px;
+  padding: 1px 3px 1px 18px;
+  text-decoration: none; }
+/* line 48, ../sass/styles/widgets/_panel.scss */
+#newTabsPane ul li a:hover {
+  background-color: #eee;
+  color: #454545; }
+/* line 53, ../sass/styles/widgets/_panel.scss */
+#newTabsPane ul li.selected a {
+  background-color: #7199C6;
+  color: white; }
+/* line 57, ../sass/styles/widgets/_panel.scss */
+#newTabsPane li {
+  list-style: none; }
+/* line 60, ../sass/styles/widgets/_panel.scss */
+#newTabsPane ul {
+  margin: 0;
+  padding: 10px 0 0;
+  width: 100%; }
+
+/* line 68, ../sass/styles/widgets/_panel.scss */
+.innerzentable .tableheader {
+  padding-left: 5px; }
 
 /* line 113, ../../../../../../../../zenoss/lib/python/zenoss/extjs/src/resources/themes/stylesheets/ext4/default/widgets/_window.scss */
 .x-window-default {
@@ -10883,71 +10928,129 @@ textarea.x-form-field {
 /* line 19, ../sass/styles/widgets/_grid.scss */
 .x-grid .x-column-header-trigger {
   background-color: #000000;
-  background-image: url("../img/xtheme-zenoss/grid/grid3-hd-btn.gif"); }
-/* line 23, ../sass/styles/widgets/_grid.scss */
+  background-image: url("../img/xtheme-zenoss/grid/grid3-hd-btn.gif");
+  height: 20px;
+  overflow: hidden; }
+/* line 25, ../sass/styles/widgets/_grid.scss */
 .x-grid .x-grid-header-ct {
-  background-color: #BDBDBD;
-  border: 0px !important; }
+  background-color: #BDBDBD; }
+/* line 28, ../sass/styles/widgets/_grid.scss */
+.x-grid .x-column-header-text {
+  background-position: right 4px !important; }
+
+/* line 2, ../sass/styles/widgets/_overlays.scss */
+#page-level-help-tip {
+  width: 440px !important; }
+
+/* line 5, ../sass/styles/widgets/_overlays.scss */
+.x-tip {
+  background-color: #f8e585 !important; }
+/* line 7, ../sass/styles/widgets/_overlays.scss */
+.x-tip .x-tool-close, .x-tip .x-tool-over {
+  background-image: url("/++resource++zenui/img/ext4/qtip/close.png") ; }
+
+/* line 13, ../sass/styles/widgets/_overlays.scss */
+.x-ie #page-help {
+  margin-top: 5px; }
+
+/* line 18, ../sass/styles/widgets/_overlays.scss */
+.x-nbr #page-level-help-tip {
+  height: 80% !important; }
+/* line 21, ../sass/styles/widgets/_overlays.scss */
+.x-nbr .x-tip-mc {
+  background-color: #F8E585; }
+/* line 25, ../sass/styles/widgets/_overlays.scss */
+.x-nbr .x-tip-tl, .x-nbr .x-tip-tr, .x-nbr .x-tip-tc, .x-nbr .x-tip-ml, .x-nbr .x-tip-mr, .x-nbr .x-tip-bl, .x-nbr .x-tip-br, .x-nbr .x-tip-bc {
+  background-image: url("/++resource++zenui/img/ext4/qtip/tip-sprite.png") ; }
+/* line 28, ../sass/styles/widgets/_overlays.scss */
+.x-nbr .x-tip-tl {
+  background-position: 0 0 !important; }
+/* line 31, ../sass/styles/widgets/_overlays.scss */
+.x-nbr .x-tip-tr {
+  background-position: right 0px !important; }
+/* line 34, ../sass/styles/widgets/_overlays.scss */
+.x-nbr .x-tip-tc {
+  background-position: 2px -62px !important; }
+/* line 37, ../sass/styles/widgets/_overlays.scss */
+.x-nbr .x-tip-ml {
+  background-position: 0px -124px !important; }
+/* line 40, ../sass/styles/widgets/_overlays.scss */
+.x-nbr .x-tip-mr {
+  background-position: right -124px !important; }
+/* line 43, ../sass/styles/widgets/_overlays.scss */
+.x-nbr .x-tip-bl {
+  background-position: 0 -59px !important; }
+/* line 46, ../sass/styles/widgets/_overlays.scss */
+.x-nbr .x-tip-br {
+  background-position: right -59px !important; }
+/* line 49, ../sass/styles/widgets/_overlays.scss */
+.x-nbr .x-tip-bc {
+  background-position: 0 -121px !important; }
 
 /*
 CORE TRIGGER PAGE STUFF
 */
-/* line 37, ../sass/xtheme-zenoss.scss */
+/* line 39, ../sass/xtheme-zenoss.scss */
 .white-background-panel {
   font-size: 12px;
   background: none repeat scroll 0 0 #FAFAFA;
   color: #454545; }
 
-/* line 43, ../sass/xtheme-zenoss.scss */
+/* line 45, ../sass/xtheme-zenoss.scss */
 .white-background-panel .x-window-header {
   font-size: 12px; }
 
-/* line 47, ../sass/xtheme-zenoss.scss */
+/* line 49, ../sass/xtheme-zenoss.scss */
 .white-background-panel .x-window-mc {
   padding-top: 2px; }
 
-/* line 51, ../sass/xtheme-zenoss.scss */
+/* line 53, ../sass/xtheme-zenoss.scss */
 .white-background-panel .x-item-disabled * {
   color: gray !important; }
 
-/* line 55, ../sass/xtheme-zenoss.scss */
+/* line 57, ../sass/xtheme-zenoss.scss */
 .white-background-panel div.xtb-text {
   line-height: 21px;
   font-size: 10pt; }
 
-/* line 60, ../sass/xtheme-zenoss.scss */
+/* line 62, ../sass/xtheme-zenoss.scss */
 .white-background-panel .x-box-inner {
   padding-bottom: 15px;
   padding-top: 20px;
   left: 0 !important; }
 
-/* line 66, ../sass/xtheme-zenoss.scss */
+/* line 68, ../sass/xtheme-zenoss.scss */
 .white-background-panel .x-window-body .x-panel-body {
   background: none repeat scroll 0 0 #FAFAFA;
   color: #454545; }
 
-/* line 71, ../sass/xtheme-zenoss.scss */
+/* line 73, ../sass/xtheme-zenoss.scss */
 .white-background-panel .x-form-check-wrap .x-form-field {
   margin-top: 5px; }
 
-/* line 75, ../sass/xtheme-zenoss.scss */
+/* line 77, ../sass/xtheme-zenoss.scss */
 .white-background-panel .x-fieldset {
   padding: 0; }
 
 /* top search button sprite */
-/* line 81, ../sass/xtheme-zenoss.scss */
+/* line 83, ../sass/xtheme-zenoss.scss */
 #searchbox-container .x-form-trigger {
   background-image: url("../img/xtheme-zenoss/form/trigger.gif"); }
-/* line 84, ../sass/xtheme-zenoss.scss */
+/* line 86, ../sass/xtheme-zenoss.scss */
 #searchbox-container .searchfield-black {
   height: 21px;
   overflow: hidden; }
 
-/* line 89, ../sass/xtheme-zenoss.scss */
+/* line 91, ../sass/xtheme-zenoss.scss */
 #footer_bar {
   border: none !important; }
 
 /* annoying blue bar on the add single device dialog - preventHeader in ext is ignored */
-/* line 94, ../sass/xtheme-zenoss.scss */
+/* line 96, ../sass/xtheme-zenoss.scss */
 #add_attrs .x-panel-header-default {
   display: none; }
+
+/* line 100, ../sass/xtheme-zenoss.scss */
+#master_panel-header {
+  background-image: url("../img/ext4/toolbar/blue-header-bg.png") !important;
+  background-repeat: repeat-x; }

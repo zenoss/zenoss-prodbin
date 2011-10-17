@@ -39,7 +39,6 @@ ZF.getGeneratedForm = function(uid, callback, router) {
         callback(Ext.apply({
             xtype:'autoformpanel',
             contextUid: uid,
-            border: false,
             layout: 'column',
             defaults: {
                 layout: 'anchor',

@@ -127,6 +127,8 @@ Ext.define("Zenoss.form.ZProperty", {
         Ext.applyIf(config, {
             hideLabels: true,
             hideBorders: true,
+            border:false,
+            defaults:{border:false},
             items: [
                 this.getLocalRadioConfig(config.localField),
                 this.getAcquiredRadioConfig(),
@@ -196,6 +198,7 @@ Ext.define("Zenoss.form.ZProperty", {
             xtype: 'panel',
             layout: 'column',
             hideBorders: true,
+            border:false,
             defaults: {
                 xtype: 'panel',
                 layout: 'anchor',
