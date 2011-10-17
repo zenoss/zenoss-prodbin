@@ -1,4 +1,3 @@
-<link href="/++resource++zenui/css/zenoss.css" rel="stylesheet"/>
 <div class="tooltip_container">
     <div class="tooltip_title" tal:content="here/id"></div>
     <div class="tooltip_body">
