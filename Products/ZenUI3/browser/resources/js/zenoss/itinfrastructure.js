@@ -105,7 +105,6 @@ var deviceClassCombo = {
         directFn: REMOTE.getDeviceClasses
     }),
     triggerAction: 'all',
-    selectOnFocus: true,
     valueField: 'name',
     displayField: 'name',
     forceSelection: true,
@@ -397,7 +396,6 @@ Ext.apply(Zenoss.devices, {
                                 editable: false,
                                 allowBlank: false,
                                 triggerAction: 'all',
-                                selectOnFocus: true,
                                 listeners: {
                                     'afterrender': function(component) {
                                         var index = component.store.find('name', 'localhost');
