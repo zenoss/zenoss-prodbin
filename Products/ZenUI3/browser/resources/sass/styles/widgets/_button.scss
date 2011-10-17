@@ -620,4 +620,63 @@
         }
     }
 }
+
+
+
+
+
+@mixin zenoss-arrowslide-button {
+   $ui: 'arrowslide-toolbar-small';
+
+    .#{$prefix}btn-#{$ui}{    
+        @include zenoss-background-image("btn/btn-arrowslide.png");     
+        overflow:visible;
+        position:relative;
+        background-repeat:no-repeat;
+        em, button{overflow:visible}
+       .#{$prefix}btn-icon{
+            overflow:visible;
+            position:absolute;
+            top:0;
+            height:24px;
+            width:40px;   
+            @include zenoss-background-image("btn/btn-arrowslide.png");
+            background-repeat:no-repeat;               
+        }    
+        &.toleft{
+            background-position: right 0;
+            margin-right:5px !important;    
+            span{padding:0 6px 0 0;} 
+           .#{$prefix}btn-icon{
+                left:-16px;           
+                background-position:0 -29;            
+           }
+        }
+        &.toright{
+            margin-right:20px !important; 
+            span{padding:0 0 0 6px;}
+           .#{$prefix}btn-icon{
+                right:-40px;           
+                background-position:0 -56;           
+           }            
+        }
+        span{
+            color:#fff;        
+            text-align:center;        
+            font:bold 11px arial, verdana !important;
+            text-transform:uppercase;
+            display:block;
+            height:24px;
+            position:relative;
+            top:5px;
+        }      
+        &.#{$prefix}btn-#{$ui}-over{
+            span{
+                color:#1b579a !important;
+            }
+        }          
+    }
+   
+
+}
   

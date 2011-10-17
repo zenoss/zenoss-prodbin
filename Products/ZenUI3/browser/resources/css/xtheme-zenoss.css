@@ -10214,6 +10214,59 @@ textarea.x-form-field {
   background-color: #dfdfdf;
   background-image: url("/++resource++zenui/img/ext4/btn/btn-default-small-pressed-bg.png") ; }
 
+/* line 631, ../sass/styles/widgets/_button.scss */
+.x-btn-arrowslide-toolbar-small {
+  background-image: url("/++resource++zenui/img/ext4/btn/btn-arrowslide.png") ;
+  overflow: visible;
+  position: relative;
+  background-repeat: no-repeat; }
+/* line 636, ../sass/styles/widgets/_button.scss */
+.x-btn-arrowslide-toolbar-small em, .x-btn-arrowslide-toolbar-small button {
+  overflow: visible; }
+/* line 637, ../sass/styles/widgets/_button.scss */
+.x-btn-arrowslide-toolbar-small .x-btn-icon {
+  overflow: visible;
+  position: absolute;
+  top: 0;
+  height: 24px;
+  width: 40px;
+  background-image: url("/++resource++zenui/img/ext4/btn/btn-arrowslide.png") ;
+  background-repeat: no-repeat; }
+/* line 646, ../sass/styles/widgets/_button.scss */
+.x-btn-arrowslide-toolbar-small.toleft {
+  background-position: right 0;
+  margin-right: 5px !important; }
+/* line 649, ../sass/styles/widgets/_button.scss */
+.x-btn-arrowslide-toolbar-small.toleft span {
+  padding: 0 6px 0 0; }
+/* line 650, ../sass/styles/widgets/_button.scss */
+.x-btn-arrowslide-toolbar-small.toleft .x-btn-icon {
+  left: -16px;
+  background-position: 0 -29; }
+/* line 655, ../sass/styles/widgets/_button.scss */
+.x-btn-arrowslide-toolbar-small.toright {
+  margin-right: 20px !important; }
+/* line 657, ../sass/styles/widgets/_button.scss */
+.x-btn-arrowslide-toolbar-small.toright span {
+  padding: 0 0 0 6px; }
+/* line 658, ../sass/styles/widgets/_button.scss */
+.x-btn-arrowslide-toolbar-small.toright .x-btn-icon {
+  right: -40px;
+  background-position: 0 -56; }
+/* line 663, ../sass/styles/widgets/_button.scss */
+.x-btn-arrowslide-toolbar-small span {
+  color: #fff;
+  text-align: center;
+  font: bold 11px arial, verdana !important;
+  text-transform: uppercase;
+  display: block;
+  height: 24px;
+  position: relative;
+  top: 5px; }
+/* line 674, ../sass/styles/widgets/_button.scss */
+.x-btn-arrowslide-toolbar-small.x-btn-arrowslide-toolbar-small-over span {
+  color: #1b579a !important; }
+
 /* line 140, ../../../../../../../../zenoss/lib/python/zenoss/extjs/src/resources/themes/stylesheets/ext4/default/widgets/_toolbar.scss */
 .x-toolbar-default {
   border-color: #d9d9d9;
@@ -10990,67 +11043,67 @@ textarea.x-form-field {
 /*
 CORE TRIGGER PAGE STUFF
 */
-/* line 39, ../sass/xtheme-zenoss.scss */
+/* line 40, ../sass/xtheme-zenoss.scss */
 .white-background-panel {
   font-size: 12px;
   background: none repeat scroll 0 0 #FAFAFA;
   color: #454545; }
 
-/* line 45, ../sass/xtheme-zenoss.scss */
+/* line 46, ../sass/xtheme-zenoss.scss */
 .white-background-panel .x-window-header {
   font-size: 12px; }
 
-/* line 49, ../sass/xtheme-zenoss.scss */
+/* line 50, ../sass/xtheme-zenoss.scss */
 .white-background-panel .x-window-mc {
   padding-top: 2px; }
 
-/* line 53, ../sass/xtheme-zenoss.scss */
+/* line 54, ../sass/xtheme-zenoss.scss */
 .white-background-panel .x-item-disabled * {
   color: gray !important; }
 
-/* line 57, ../sass/xtheme-zenoss.scss */
+/* line 58, ../sass/xtheme-zenoss.scss */
 .white-background-panel div.xtb-text {
   line-height: 21px;
   font-size: 10pt; }
 
-/* line 62, ../sass/xtheme-zenoss.scss */
+/* line 63, ../sass/xtheme-zenoss.scss */
 .white-background-panel .x-box-inner {
   padding-bottom: 15px;
   padding-top: 20px;
   left: 0 !important; }
 
-/* line 68, ../sass/xtheme-zenoss.scss */
+/* line 69, ../sass/xtheme-zenoss.scss */
 .white-background-panel .x-window-body .x-panel-body {
   background: none repeat scroll 0 0 #FAFAFA;
   color: #454545; }
 
-/* line 73, ../sass/xtheme-zenoss.scss */
+/* line 74, ../sass/xtheme-zenoss.scss */
 .white-background-panel .x-form-check-wrap .x-form-field {
   margin-top: 5px; }
 
-/* line 77, ../sass/xtheme-zenoss.scss */
+/* line 78, ../sass/xtheme-zenoss.scss */
 .white-background-panel .x-fieldset {
   padding: 0; }
 
 /* top search button sprite */
-/* line 83, ../sass/xtheme-zenoss.scss */
+/* line 84, ../sass/xtheme-zenoss.scss */
 #searchbox-container .x-form-trigger {
   background-image: url("../img/xtheme-zenoss/form/trigger.gif"); }
-/* line 86, ../sass/xtheme-zenoss.scss */
+/* line 87, ../sass/xtheme-zenoss.scss */
 #searchbox-container .searchfield-black {
   height: 21px;
   overflow: hidden; }
 
-/* line 91, ../sass/xtheme-zenoss.scss */
+/* line 92, ../sass/xtheme-zenoss.scss */
 #footer_bar {
   border: none !important; }
 
 /* annoying blue bar on the add single device dialog - preventHeader in ext is ignored */
-/* line 96, ../sass/xtheme-zenoss.scss */
+/* line 97, ../sass/xtheme-zenoss.scss */
 #add_attrs .x-panel-header-default {
   display: none; }
 
-/* line 100, ../sass/xtheme-zenoss.scss */
+/* line 101, ../sass/xtheme-zenoss.scss */
 #master_panel-header {
   background-image: url("../img/ext4/toolbar/blue-header-bg.png") !important;
   background-repeat: repeat-x; }

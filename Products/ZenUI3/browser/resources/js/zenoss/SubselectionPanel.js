@@ -98,6 +98,7 @@ Ext.define("Zenoss.HorizontalSlidePanel", {
                 // make the button belong to the owner panel
                 ref: (item.buttonRef || 'navButton'),
                 cls: index ? 'toleft' : 'toright',
+                ui: 'arrowslide',
                 handler: function() {
                     this.layout.setActiveItem(index ? 0 : 1);
 

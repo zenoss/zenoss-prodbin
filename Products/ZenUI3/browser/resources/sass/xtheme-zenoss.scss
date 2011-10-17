@@ -24,6 +24,7 @@ $include-missing-images: true;
 @include zenoss-toolbar-button;
 @include zenoss-dialog-button;
 @include zenoss-default-button;
+@include zenoss-arrowslide-button;
 @include zenoss-toolbar;
 @include zenoss-panel;
 @include zenoss-window;
@@ -86,7 +87,7 @@ CORE TRIGGER PAGE STUFF
     .searchfield-black{
         height:21px;
         overflow:hidden;
-    }  
+    }     
 }
 #footer_bar{
     border:none !important;
