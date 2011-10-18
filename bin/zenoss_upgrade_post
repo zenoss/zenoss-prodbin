@@ -27,5 +27,3 @@
 . ${ZENHOME}/bin/shared-functions.sh
 . ${ZENHOME}/bin/install-functions.sh
 
-# run scripts needed after upgrade
-${ZENHOME}/bin/remove_preupgrade_zenpack.sh
