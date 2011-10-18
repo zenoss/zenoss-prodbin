@@ -1,6 +1,10 @@
 @mixin zenoss-form {
 
     $ui: 'fieldset-default';
+    
+    .#{$prefix}fieldset{
+        border:0 !important;
+    }
 
 
 }

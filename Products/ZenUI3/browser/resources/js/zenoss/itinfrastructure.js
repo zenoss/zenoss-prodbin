@@ -1058,7 +1058,7 @@ var device_grid = Ext.create('Zenoss.DeviceGridPanel', {
             {
                 xtype: 'eventrainbow',
                 id: 'organizer_events',
-                width:210,
+                width:152,
                 listeners: {
                     'render': function(me) {
                         me.getEl().on('click', function(){

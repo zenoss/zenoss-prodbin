@@ -31,6 +31,7 @@ $include-missing-images: true;
 @include zenoss-grid;   
 @include zenoss-tips; 
 @include zenoss-form;
+@include zenoss-menu;
    
 
 /*
@@ -41,45 +42,38 @@ CORE TRIGGER PAGE STUFF
     font-size: 12px;
     background : none repeat scroll 0 0 #FAFAFA;
     color: #454545;  
+    .x-window-header {
+        font-size: 12px;
+    }    
+    .x-window-mc {
+        padding-top: 2px;
+    }
+    .x-item-disabled * {
+        color: gray !important;
+    }
+    .x-window-body .x-panel-body {
+        background : none repeat scroll 0 0 #FAFAFA;
+        color: #454545;
+    }
+    .x-box-inner {
+        padding-bottom: 15px;
+        padding-top: 20px;
+        left: 0 !important;
+    }
+    .x-form-check-wrap .x-form-field {
+        margin-top: 5px;
+    }
+    .x-fieldset {
+        padding: 0;
+    }
+    div.xtb-text {
+        line-height: 21px;
+        font-size: 10pt;
+    }
 }
 
-.white-background-panel .x-window-header {
-    font-size: 12px;
-}
 
-.white-background-panel .x-window-mc {
-    padding-top: 2px;
-}
-
-.white-background-panel .x-item-disabled * {
-    color: gray !important;
-}
-
-.white-background-panel div.xtb-text {
-    line-height: 21px;
-    font-size: 10pt;
-}
-
-.white-background-panel .x-box-inner {
-    padding-bottom: 15px;
-    padding-top: 20px;
-    left: 0 !important;
-}
-
-.white-background-panel .x-window-body .x-panel-body {
-    background : none repeat scroll 0 0 #FAFAFA;
-    color: #454545;
-}
-
-.white-background-panel .x-form-check-wrap .x-form-field {
-    margin-top: 5px;
-}
-
-.white-background-panel .x-fieldset {
-    padding: 0;
-}
-
-/* top search button sprite */
+/* top search button sprite 
 #searchbox-container{ 
     .x-form-trigger {
         background-image: url('../img/xtheme-zenoss/form/trigger.gif');
@@ -88,7 +82,7 @@ CORE TRIGGER PAGE STUFF
         height:21px;
         overflow:hidden;
     }     
-}
+}*/
 #footer_bar{
     border:none !important;
 }
@@ -102,4 +96,16 @@ CORE TRIGGER PAGE STUFF
     background-image: url("../img/ext4/toolbar/blue-header-bg.png") !important;
     background-repeat:repeat-x;
 }
+#master_panel{
+    .x-panel-body-hierarchy{
+        background-color:#D4E0EE !important;
+    }
+}
+
+
+
+
+
+
+
 

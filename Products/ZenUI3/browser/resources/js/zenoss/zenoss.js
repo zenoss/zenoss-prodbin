@@ -493,6 +493,7 @@ Ext.define("Zenoss.RefreshMenuButton", {
             xtype: 'statefulrefreshmenu',
             id: config.stateId || 'evc_refresh',
             trigger: this,
+            width:127,
             items: [{
                 cls: 'refreshevery',
                 text: 'Refresh every',

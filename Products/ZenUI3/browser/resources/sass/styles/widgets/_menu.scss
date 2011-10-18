@@ -1,0 +1,178 @@
+/**
+  * @class Ext.menu.*
+  */
+@mixin zenoss-menu {
+    .#{$prefix}menu-body {
+        @include no-select;
+        background: $menu-background-color !important;
+        padding: $menu-padding;
+    }
+
+    .#{$prefix}menu-icon-separator {
+        position: absolute;
+        top: 0px;
+        left: $menu-item-indent;
+        z-index: 0;
+        border-left: solid 1px $menu-separator-border-color;
+        background-color: $menu-separator-background-color;
+        width: 2px;
+        height: 100%;
+        overflow: hidden;
+    }
+
+    .#{$prefix}menu-plain {
+        .#{$prefix}menu-icon-separator {
+            display: none;
+        }
+    }
+
+    .#{$prefix}menu-focus {
+        display: block;
+        position: absolute;
+        top: -10px;
+        left: -10px;
+        width: 0px;
+        height: 0px;
+    }
+
+    .#{$prefix}menu-item {
+        white-space: nowrap;
+        overflow: hidden;
+        z-index: 1;
+        //height:22px !important;
+    }
+
+    .#{$prefix}menu-item-cmp {
+        margin-bottom: 1px;
+    }
+
+    .#{$prefix}menu-item-link {
+        display: block;
+        padding: 0px $menu-padding 0;
+        margin: 2px;
+        text-decoration: none !important;
+        line-height: 11px;
+        cursor: default;
+    }
+    
+    @if $include-opera {
+        .#{$prefix}opera {
+            // Opera 10.5 absolute positioning of submenu arrow has issues
+            // This will fix it, and not affect newer Operas
+            .#{$prefix}menu-item-link {
+                position: relative;
+            }
+        }
+    }
+
+    .#{$prefix}menu-item-icon {
+        width: 16px;
+        height: 16px;
+        margin: 0px 11px 0px 2px;
+        background: no-repeat center center; 
+    }
+
+    .#{$prefix}menu-item-text {
+        position: relative;
+        color: $menu-text-color;
+        top: -3px;      
+    }
+
+    .#{$prefix}menu-item-checked {
+        .#{$prefix}menu-item-icon {
+            background-image: theme-background-image($theme-name, $menu-icon-checked);
+        }
+        .#{$prefix}menu-group-icon {
+            background-image: theme-background-image($theme-name, $menu-icon-group-checked);
+        }
+    }
+
+    .#{$prefix}menu-item-unchecked {
+        .#{$prefix}menu-item-icon {
+            background-image: theme-background-image($theme-name, $menu-icon-unchecked);
+        }
+        .#{$prefix}menu-group-icon {
+            background-image: none;
+        }
+    }
+
+    .#{$prefix}menu-item-separator {
+        height: 2px;
+        border-top: solid 1px $menu-separator-border-color;
+        background-color: $menu-separator-background-color;
+        margin: $menu-padding 0px;
+        overflow: hidden;
+    }
+
+    .#{$prefix}menu-item-arrow {
+        position: absolute;
+        width: 12px;
+        height: 9px;
+        top: 9px;
+        right: 0px;
+        background: no-repeat center center;
+        background-image: theme-background-image($theme-name, $menu-icon-arrow);
+    }
+
+    .#{$prefix}menu-item-indent {
+        margin-left: $menu-item-indent + $menu-padding + 2px; /* The 2px is the width of the seperator */
+    }
+
+    .#{$prefix}menu-item-active {
+        cursor: pointer;       
+        @include zenoss-background-image($menu-item-active-background-image);
+        overflow:visible;         
+        .#{$prefix}menu-item-link {
+            margin: 1px;
+            border: 1px solid $menu-item-active-border-color;
+            cursor: pointer;
+           // @include border-radius(3px);
+            height:22px !important;    
+        }
+        a{
+            background:transparent !important;
+        }
+    }
+
+    .#{$prefix}menu-item-disabled {
+        @include opacity(.5);
+    }
+        .#{$prefix}ie {
+            .#{$prefix}menu-item-link {
+                //line-height: 11px;
+                padding-bottom: 0 !important;
+            }
+
+            .#{$prefix}menu-item-disabled {
+                .#{$prefix}menu-item-icon {
+                    @include opacity(.5);
+                }
+
+                .#{$prefix}menu-item-text {
+                    // IE opacity/cleartype bug workaround
+                    background-color: $menu-background-color;
+                }
+            }
+            
+            .#{$prefix}strict & {
+                .#{$prefix}menu-icon-separator {
+                    width: 1px;
+                }
+                
+                .#{$prefix}menu-item-separator {
+                    height: 1px;
+                }
+            }
+        }
+        
+        .#{$prefix}ie6,
+        .#{$prefix}ie7,
+        .#{$prefix}quirks .#{$prefix}ie8 {
+            .#{$prefix}menu-item-link {
+                padding-bottom: 0 !important;
+            }
+        }
+    .#{$prefix}menu-date-item {
+        border-color: #99BBE8;
+    }
+}

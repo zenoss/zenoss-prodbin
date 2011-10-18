@@ -7,18 +7,51 @@
             $background-gradient: $toolbar-background-gradient,
             $border-color: $toolbar-border-color
         );
-
         .#{$prefix}nlg {
             .#{$prefix}toolbar-#{$ui} {
                 @include zenoss-background-image("toolbar/toolbar-#{$ui}-bg.png", true);
             }
-        }
+        }         
     }   
+    .largetoolbar{
+        .#{$prefix}btn{
+            top:8px !important;
+        }   
+    }
+    .#{$prefix}toolbar{ 
+        td, span, input, div, select, label {
+          font-size: 11px;
+        }    
+    }    
     .subselect-head{
         .#{$prefix}toolbar-text{
-                font-weight:bold;
-                font-size:13px;
-            }        
+            font-weight:bold;
+            font-size:13px;
+        }        
     } 
-
-}
+    
+    .refreshevery {
+      background-color: #474747;
+      color: white !important;
+      display: block;
+      font-weight: bold;
+      height:18px !important;
+      margin:2px;
+      a{
+        display:block;
+        height:11px;
+        position:relative;
+      }
+      span.x-menu-item-text{    
+        position:absolute;
+        left:3px;
+        top:-2px;
+        color:white !important;
+        height:12px !important
+      }
+    }    
+    
+}    
+    
+    
+    

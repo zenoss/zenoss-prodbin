@@ -450,12 +450,12 @@ div.zenportlet .severity-icon-small.clear, .largetoolbar .severity-icon-small.cl
 
 /* line 303, ../sass/zenoss.scss */
 .tree-template-icon-bound-span {
-  background-position: 0px -95px !important;
+  background-position: 0px -100px !important;
 }
 
 /* line 306, ../sass/zenoss.scss */
 .tree-template-icon-component-span {
-  background-position: 0px -74px !important;
+  background-position: 0px -80px !important;
 }
 
 /* line 309, ../sass/zenoss.scss */

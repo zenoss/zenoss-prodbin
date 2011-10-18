@@ -79,7 +79,7 @@ Ext.define("Zenoss.DeviceDetailBar", {
                 style: 'margin-right: 8px;'
             },'-',{
                 xtype: "eventrainbow",
-                width:275,
+                width:202,
                 ref: 'eventsitem',
                 style: 'padding-top:10px;',
                 id: 'detailrainbow',
