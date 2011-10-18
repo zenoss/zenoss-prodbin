@@ -127,7 +127,10 @@ class GraphReportElement(ZenModelRM):
     def getComponentName(self):
         if self.componentPath:
             try:
-                name = getObjByPath(self.getDevice(), self.componentPath).name
+                dev = self.getDevice()
+                if not dev:
+                    return 'Not Found'
+                name = getObjByPath(dev, self.componentPath).name
                 return callable(name) and name() or name
             except KeyError:
                 return 'Not Found'
