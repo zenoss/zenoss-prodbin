@@ -65,11 +65,12 @@ class ZenDB(object):
                 globalConf = ConfigFile(fp)
                 settings = {}
                 for line in globalConf.parse():
-                    key, val = line.setting
-                    if key.startswith(defaultDb + '_'):
-                        key = key[len(defaultDb)+1:]
-                        if key in self.requiredParams:
-                            settings[key] = val
+                    if line.setting:
+                        key, val = line.setting
+                        if key.startswith(defaultDb + '_'):
+                            key = key[len(defaultDb)+1:]
+                            if key in self.requiredParams:
+                                settings[key] = val
                 return settings
     
     def dumpSql(self, outfile=None):
@@ -131,11 +132,15 @@ class ZenDB(object):
         if cmd:
             p = subprocess.Popen(cmd, env=env,
                                  stdin=subprocess.PIPE if sql else sys.stdin)
-            if sql:
-                p.communicate(sql)
-            rc = p.wait()
-            if rc:
-                raise subprocess.CalledProcessError(rc, cmd)
+            try:
+                if sql:
+                    p.communicate(sql)
+                rc = p.wait()
+                if rc:
+                    raise subprocess.CalledProcessError(rc, cmd)
+            except KeyboardInterrupt:
+                subprocess.call('stty sane', shell=True)
+                p.kill()
 
 if __name__ == '__main__':
     parser = optparse.OptionParser()
