@@ -1,14 +1,9 @@
 #!/bin/bash
 stty -echo
-echo 'MySQL root password: \c'
-read MYSQLPW
+echo 'Postgres admin password: \c'
+read PGPASSWORD
 stty echo
 echo
-if [ -z "$MYSQLPW" ]; then
-    PWOPT=""
-else
-    PWOPT="-p$MYSQLPW"
-fi
 
 . $ZENHOME/bin/zenfunctions
 
@@ -41,5 +36,5 @@ zendump -R /zport/dmd/Monitors --ignore devices --ignore instances -o monitorTem
 echo "Dumping Zenoss OS Process definitions...\c"
 zendump -R /zport/dmd/Processes/Zenoss --ignore instances -o osprocesses.xml
 echo "Dumping SQL...\c"
-mysqldump -u root $PWOPT zodb | gzip -c > zodb.sql.gz
+pg_dump -U postgres zodb | gzip -c > zodb.sql.gz
 echo done

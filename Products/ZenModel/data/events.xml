@@ -1,14 +1,14 @@
 <?xml version="1.0" encoding="ISO-8859-1" ?>
 
 <!--
-    Zenoss RelationshipManager export completed on 2011-09-28 10:15:28.090643
+    Zenoss RelationshipManager export completed on 2011-10-18 11:53:09.266237
 
     Use ImportRM to import this file.
 
     For more information about Zenoss, go to http://www.zenoss.com
  -->
 
-<objects version="[Zenoss, version 4.1.70]" export_date="2011-09-28 10:15:28.090643" zenoss_server="tintin.local" >
+<objects version="[Zenoss, version 4.1.70]" export_date="2011-10-18 11:53:09.266237" zenoss_server="biscuit.local" >
 <object id='/zport/dmd/Events' module='Products.ZenEvents.EventClass' class='EventClass'>
 <property visible="True" type="lines" id="zEventClearClasses" >
 []
@@ -2632,7 +2632,7 @@ HP Gb Server Adapter:  Network Link Down
 <object id='snmp_linkDown' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
 <property type="text" id="transform" mode="w" >
 if_index_str = getattr(evt.details, "ifIndex", None)
-if if_index_str is not None:
+if if_index_str is not None and device is not None:
     if_index = int(if_index_str)
     for interface in device.os.interfaces():
         if interface.ifindex == if_index:
@@ -2655,7 +2655,7 @@ has key for ifIndex for all traps.
 <object id='snmp_linkUp' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
 <property type="text" id="transform" mode="w" >
 if_index_str = getattr(evt.details, "ifIndex", None)
-if if_index_str is not None:
+if if_index_str is not None and device is not None:
     if_index = int(if_index_str)
     for interface in device.os.interfaces():
         if interface.ifindex == if_index:
