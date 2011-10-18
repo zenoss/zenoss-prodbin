@@ -148,8 +148,8 @@
                         },
                         columns: [{
                             dataIndex: 'name',
-                            id: 'name',
                             header: _t('Name'),
+                            width: 80,
                             renderer: function(name, idx, record) {
                                 var uid = record.data.uid;
                                 if (uid){
@@ -159,13 +159,11 @@
                             }
                         },{
                             dataIndex: 'description',
-                            id: 'description',
                             flex: 1,
                             header: _t('Description')
                         },{
                             minWidth: 200,
                             dataIndex: 'definition',
-                            id: 'definition',
                             header: _t('Definition')
                         }]
                     },{

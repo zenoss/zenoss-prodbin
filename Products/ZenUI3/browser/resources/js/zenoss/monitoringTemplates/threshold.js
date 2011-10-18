@@ -90,7 +90,7 @@
                 ref: '../submitButton',
                 text: _t('Add'),
                 xtype: 'DialogButton',
-                ui: 'dialog-dark',                
+                ui: 'dialog-dark',
                 handler: function(submitButton) {
                     var dialogWindow, basicForm;
                     dialogWindow = submitButton.refOwner;
@@ -100,7 +100,7 @@
             }, {
                 ref: '../cancelButton',
                 text: _t('Cancel'),
-                ui: 'dialog-dark',                
+                ui: 'dialog-dark',
                 xtype: 'DialogButton'
             }],
             items: {
@@ -341,8 +341,9 @@
                     }
                 }]),
                 columns: [{
-                    id: 'name',
+                    id: 'thresholdName',
                     dataIndex: 'name',
+                    flex: 1,
                     header: _t('Name')
                 }, {
                     dataIndex: 'type',

@@ -347,32 +347,44 @@ var componentCard = {
                 grid.getSelectionModel().clearSelections();
             }
         }]
-    },'->',{
-        xtype: 'searchfield',
-        id: 'component_searchfield',
-        validateOnBlur: false,
-        emptyText: _t('Type to filter...'),
-        enableKeyEvents: true,
-        filterGrid: function() {
-            var value = this.getValue();
-            if (value.length >= 3 || value.length == 0) {
-                var grid = Ext.getCmp('component_card').componentgrid;
-                grid.filter(this.getValue());
-            }
-        },
-        listeners: {
-            valid: function(field) {
-                if (Zenoss.settings.enableLiveSearch) {
-                    field.filterGrid();
-                }
-            },
-            keypress: function(field, e) {
-                if (e.getKey() === e.ENTER) {
-                    field.filterGrid();
-                }
-            }
+    }, '->', {
+        xtype: 'panel',
+        baseCls: 'no-panel-class',
+        ui: 'none',
+        width: 175,
+        items: [{
+                    xtype: 'searchfield',
+                    id: 'component_searchfield',
+                    validateOnBlur: false,
+                    emptyText: _t('Type to filter...'),
+                    enableKeyEvents: true,
+                    filterGrid: function() {
+                        var value = this.getValue();
+                        if (value.length >= 3 || value.length == 0) {
+                            var grid = Ext.getCmp('component_card').componentgrid;
+                            grid.filter(this.getValue());
+                        }
+                    },
+                    listeners: {
+                        keypress: function(field, e) {
+                            if (e.getKey() === e.ENTER) {
+                                field.filterGrid();
+                            } else {
+                                if (!this.liveSearchTask) {
+                                    this.liveSearchTask = new Ext.util.DelayedTask(function() {
+                                                                                       field.filterGrid();
+                                                                                   });
+                                }
+                                // delay half a second before we filter
+                                this.liveSearchTask.delay(500);
+                            }
+
+                        }
+                    }
+                }]
+
         }
-    }],
+              ],
     listeners: {
         contextchange: function(me, uid, type){
             Ext.getCmp('component_type_label').setText(Zenoss.component.displayName(type)[1]);
@@ -706,19 +718,23 @@ Ext.getCmp('center_panel').add({
     items: [{
         region: 'west',
         split: 'true',
+        ui: 'hierarchy',
         id: 'master_panel',
         width: 275,
         maxWidth: 275,
         autoScroll: true,
         items: {
             xtype: 'detailcontainer',
+            ui: 'hierarchy',
             id: 'detailContainer',
             items: [{
                 xtype: 'devicedetailnav',
+                ui: 'hierarchy',
                 id: 'deviceDetailNav'
             },{
                 xtype: 'montemplatetreepanel',
                 id: 'templateTree',
+                ui: 'hierarchy',
                 detailPanelId: 'detail_card_panel'
 
             }]

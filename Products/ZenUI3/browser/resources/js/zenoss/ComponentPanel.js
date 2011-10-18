@@ -73,18 +73,13 @@ Zenoss.nav.register({
             }
             var btns = tbar.add([
                 '->',
-                {
-                    xtype: 'tbtext',
-                    text: _t('Range:')
-                }, {
+                 {
                     xtype: 'drangeselector',
                     listeners: {
-                        select: function(combo, record, index){
-                            var value = record.data.id,
+                        select: function(combo, records, index){
+                            var value = records[0].data.id,
                                 panel = Ext.getCmp(cardid);
-                            panel.drange = value;
-                            panel.resetSwoopies();
-
+                            panel.setDrange(value);
                         }
                     }
                 },'-', {
@@ -435,6 +430,7 @@ Ext.define("Zenoss.component.ComponentGridPanel", {
             store: new ZC.BaseComponentStore({
                 sortInfo: config.sortInfo,
                 model: modelId,
+                initialSortColumn: config.initialSortColumn || 'name',
                 directFn:config.directFn || Zenoss.remote.DeviceRouter.getComponents
             }),
             columns: [{
@@ -488,7 +484,7 @@ Ext.define("Zenoss.component.ComponentGridPanel", {
     },
     filter: function(name) {
         this.componentName = name;
-        this.view.nonDisruptiveReset();
+        this.refresh();
     },
     setContext: function(uid) {
         this.contextUid = uid;

@@ -393,17 +393,14 @@
                     text: _t('Performance Graphs')
 
                 }, '-', '->', {
-                    xtype: 'tbtext',
-                    text: _t('Range:')
-                }, {
                     xtype: 'drangeselector',
                     ref: '../drange_select',
                     listeners: {
-                        select: function(combo, record, index){
-                            var value = record.data.id,
+                        select: function(combo, records, index){
+                            var value = records[0].data.id,
                                 panel = combo.refOwner;
-                            panel.drange = value;
-                            panel.resetSwoopies();
+
+                            panel.setDrange(value);
                         }
                     }
                 },'-', {
@@ -488,7 +485,7 @@
             if (data.length > 0){
 
                 Ext.each(data, function(graph){
-                    var graphId = "graph_" + ++Ext.Component.AUTO_ID;
+                    var graphId = Ext.id();
                     panel.add(new Zenoss.SwoopyGraph({
                         graphUrl: graph.url,
                         graphTitle: graph.title,
@@ -500,16 +497,26 @@
 
                 });
             }else{
-                el.mask(_t('No Graph Data') );
+                el.mask(_t('No Graph Data') , 'x-mask-msg-noicon');
             }
 
             panel.doLayout();
         },
-        resetSwoopies: function(drange) {
+        setDrange: function(drange) {
             drange = drange || this.drange;
+            this.drange = drange;
             Ext.each(this.getGraphs(), function(g) {
                 g.fireEventsToAll("updateimage", {
-                });
+                    drange: drange,
+                    start: drange,
+                    end: 0
+                }, this);
+            });
+        },
+        resetSwoopies: function() {
+            Ext.each(this.getGraphs(), function(g) {
+                g.fireEventsToAll("updateimage", {
+                }, this);
             });
         },
         getGraphs: function() {
