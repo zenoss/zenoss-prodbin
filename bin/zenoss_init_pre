@@ -48,7 +48,6 @@ start_rabbitmq
 update_conf_files
 
 # Update AMQP configuration files
-update_amqp_cfg
 configure_amqp
 
 # create the database for ZODB

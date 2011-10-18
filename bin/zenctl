@@ -38,12 +38,18 @@
 # zenoss_upgrade_pos
 #
 
+BN=$0
+
 # environment variables
 # NB: Please keep the ZENHOME='**ZENHOME**' idiom alive in the src.  Tags
 #     of this nature are sed substituted at build time based upon the package type.
 export ZENHOME="**ZENHOME**"
 export INSTALL_LOG="$ZENHOME/log/install.log"
-. $ZENHOME/bin/zenoss_startup_config
+. $ZENHOME/bin/zenoss_startup_config  
+if [ "$?" -ne 0 ]; then
+   echo "In $BN, error loading zenoss_startup_config."
+   exit 1 
+fi
 
 # NB: This crude hack is to add output while preserving return codes
 # Uses the concepts from http://www.travishartwell.net/blog/2006/08/19_2220

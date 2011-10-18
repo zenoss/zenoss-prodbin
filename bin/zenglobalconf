@@ -18,8 +18,6 @@ import re
 import sys
 import tempfile
 
-import Globals
-from Products.ZenUtils.ZodbFactory import IZodbFactoryLookup
 
 # Handles updating or removing settings from $ZENHOME/etc/global.conf. All
 # updates are performed atomically using a temporary file to prevent losing
@@ -139,14 +137,16 @@ def main():
         parser.error("Only one command can be specified (-p|-r|-u|-s)")
 
     if options.synczope:
+        # load zcml for the product
+        import Globals
         import Products.ZenossStartup
         from Products.Five import zcml
         zcml.load_site()
+        # look up the utility
         from zope.component import getUtility
         from Products.ZenUtils.ZodbFactory import IZodbFactoryLookup
         connectionFactory = getUtility(IZodbFactoryLookup).get()
         zodbConf = connectionFactory.getZopeZodbConf()
-        import tempfile
         fconfname = None
         try:
             confname = 'zodb_db_main.conf'
