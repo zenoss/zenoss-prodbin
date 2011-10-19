@@ -56,9 +56,6 @@ create_zodb_db
 # create the ZEP database
 create_zep_db
 
-# Update ZEP configuration files
-update_zep_cfg
-
 # set up the zope instance
 run_mkzopeinstance
 

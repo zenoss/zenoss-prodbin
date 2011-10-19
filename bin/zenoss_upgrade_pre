@@ -62,8 +62,10 @@ configure_amqp
 # create the ZEP database
 create_zep_db
 
-# Update ZEP configuration files
-update_zep_cfg
+# TODO: Migrate ZEP database
+
+# Remove previous ZEP configuration settings
+remove_zep_jdbc_config
 
 # Move from ZODB to MySQL
 ${ZENHOME}/bin/python ${ZENHOME}/bin/changeObjectStore.py \
