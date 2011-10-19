@@ -1199,7 +1199,6 @@ Ext.getCmp('center_panel').add({
         split: true,
         width: 275,
         maxWidth: 275,
-        
         items: [{
             id: 'master_panel_details',
             text: _t('Infrastructure'),
@@ -1209,6 +1208,7 @@ Ext.getCmp('center_panel').add({
             items: [treepanel]
         },{
             xtype: 'detailcontainer',
+            id: 'masterDetailNav',
             buttonText: _t('See All'),
             buttonRef: 'seeAll',
             items: [{

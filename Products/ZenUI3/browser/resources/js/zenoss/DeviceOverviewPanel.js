@@ -122,6 +122,7 @@
             buttons: [{
                 text: _t('Save'),
                 ref: '../savebtn',
+                xtype: 'DialogButton',                
                 disabled: Zenoss.Security.doesNotHavePermission('Manage Device'),
                 handler: function(btn){
                     var form = btn.refOwner.editForm.getForm(),
@@ -134,6 +135,7 @@
                 }
             },{
                 text: _t('Cancel'),
+                xtype: 'DialogButton',                
                 handler: function(btn){
                     win.destroy();
                 }
@@ -178,6 +180,7 @@
             buttons: [{
                 text: _t('Save'),
                 ref: '../savebtn',
+                xtype: 'DialogButton',                
                 disabled: Zenoss.Security.doesNotHavePermission('Manage Device'),
                 handler: function(btn) {
                     var vals = btn.refOwner.editForm.getForm().getFieldValues();
@@ -193,6 +196,7 @@
                 }
             }, {
                 text: _t('Cancel'),
+                xtype: 'DialogButton',                
                 handler: function(btn) {
                     win.destroy();
                 }
@@ -315,6 +319,7 @@
             buttons: [{
                 text: _t('Save'),
                 ref: '../savebtn',
+                xtype: 'DialogButton',                
                 disabled: Zenoss.Security.doesNotHavePermission('Manage Device'),
                 handler: function(btn) {
                     Ext.iterate(btn.refOwner.grouplist.groups, function(group, op) {
@@ -340,6 +345,7 @@
                 }
             }, {
                 text: _t('Cancel'),
+                xtype: 'DialogButton',                
                 handler: function(btn) {
                     win.destroy();
                 }
@@ -377,6 +383,7 @@
             buttons: [{
                 text: _t('Save'),
                 ref: '../savebtn',
+                xtype: 'DialogButton',                
                 disabled: Zenoss.Security.doesNotHavePermission('Manage Device'),
                 handler: function(btn) {
                     var vals = btn.refOwner.editForm.getForm().getFieldValues();
@@ -396,6 +403,7 @@
                 }
             }, {
                 text: _t('Cancel'),
+                xtype: 'DialogButton',                
                 handler: function(btn) {
                     win.destroy();
                 }
@@ -423,6 +431,8 @@
         buttonAlign: 'left',
         buttons: [{
             text: _t('Save'),
+            xtype:'button',
+            //ui: 'dialog-dark',
             ref: '../savebtn',
             disabled: true,
             hidden: true,
@@ -431,6 +441,8 @@
             }
         },{
             text: _t('Cancel'),
+            xtype: 'button',
+           // ui: 'dialog-dark',            
             ref: '../cancelbtn',
             disabled: true,
             hidden: true,
@@ -440,7 +452,7 @@
         }],
         cls: 'device-overview-form-wrapper',
         bodyCssClass: 'device-overview-form',
-        style:{'background-color':'#dfe8f5'},
+        style:{'background-color':'#fafafa'},
         listeners: {
             'add': function(me, field, index){
                 if (isField(field)) {
@@ -548,9 +560,9 @@
                         type: 'hbox'
                     },
                     defaults: {
-                        bodyStyle: 'background-color:#dfe8f5;',                    
+                        bodyStyle: 'background-color:#fafafa;',                    
                         minHeight: 350,                        
-                        margin:'0 4 4 0',
+                        margin:'0 10 10 0',
                         flex: 1
                     },
                     defaultType: 'devformpanel',
@@ -682,9 +694,9 @@
                                         
                     layout: 'hbox',
                     defaults: {
-                        bodyStyle: 'background-color:#dfe8f5;',                    
+                        bodyStyle: 'background-color:#fafafa;',                    
                         minHeight: 400,                     
-                        margin:'0 4 4 0'
+                        margin:'0 10 10 0'
                     },
                     layoutConfig: {
                         align: 'stretchmax'
@@ -752,7 +764,7 @@
                         frame:false,
                                                 
                         flex: 1,
-                        bodyStyle: 'background-color:#dfe8f5;',                        
+                        bodyStyle: 'background-color:#fafafa;',                        
                         minHeight: 400,
                         items: [{
                             fieldLabel: _t('SNMP SysName'),

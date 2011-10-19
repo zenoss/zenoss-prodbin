@@ -488,7 +488,7 @@ var processFormItems = {
     layout: 'column',
     defaults: {
         layout: 'anchor', 
-        bodyStyle: 'padding: 5px',
+        bodyStyle: 'padding: 15px',
         columnWidth: 0.5
     },
     items: [

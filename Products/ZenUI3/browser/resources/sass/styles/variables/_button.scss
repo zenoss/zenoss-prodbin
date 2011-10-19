@@ -18,7 +18,11 @@ $button-toolbar-background-color-pressed-stop: $button-toolbar-background-color-
 $button-icon-spacing: 6px;
 $button-small-icon-size: 18px;
 
-
+$button-small-font-weight: 700;
+$button-small-font-weight-over:$button-small-font-weight;
+$button-small-font-weight-focus:$button-small-font-weight;
+$button-small-font-weight-pressed:$button-small-font-weight;
+$button-small-font-weight-disabled:$button-small-font-weight;
 
 
 

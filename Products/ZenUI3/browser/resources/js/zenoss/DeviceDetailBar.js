@@ -64,7 +64,7 @@ Ext.define("Zenoss.DeviceDetailBar", {
     constructor: function(config) {
         config = Ext.applyIf(config || {}, {
             cls: 'largetoolbar devdetailbar',
-            height: 65,
+            height: 55,
             directFn: Zenoss.remote.DeviceRouter.getInfo,
             defaultType: 'devdetailitem',
             items: [{
@@ -81,7 +81,7 @@ Ext.define("Zenoss.DeviceDetailBar", {
                 xtype: "eventrainbow",
                 width:202,
                 ref: 'eventsitem',
-                style: 'padding-top:10px;',
+                style: 'padding-top:6px;',
                 id: 'detailrainbow',
                 label: _t('Events'),
                 listeners: {
@@ -94,17 +94,19 @@ Ext.define("Zenoss.DeviceDetailBar", {
                 count: 4
             },'-',{
                 ref: 'statusitem',
-                width:140,
+                width:98,
                 label: _t('Device Status'),
                 id: 'statusitem'
             },'-',{
                 ref: 'prodstateitem',
-                width:130,
-                label: _t('Production State')
+                width:120,
+                label: _t('Production State'),
+                id: 'prodstateitem'
             },'-',{
                 ref: 'priorityitem',
                 width:100,
-                label: _t('Priority')
+                label: _t('Priority'),
+                id: 'priorityitem'
             }]
         });
         Zenoss.DeviceDetailBar.superclass.constructor.call(this, config);

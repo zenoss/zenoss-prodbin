@@ -55,7 +55,7 @@
        $button-small-icon-size
     );
 
-    // GRADIENTS
+    // GRADIENTS  //
 
 
     .#{$prefix}btn-#{$ui},
@@ -73,6 +73,11 @@
             $button-toolbar-background-color-pressed-start,
             $button-toolbar-background-color-pressed-stop
         )));
+    }
+    .#{$prefix}btn-#{$ui}-over {
+        .#{$prefix}btn-inner{
+            color: #1b579a;
+        }
     }
 
     // ICONS
@@ -277,7 +282,7 @@
         }
     }
 
-    // GRADIENTS
+    // GRADIENTS 
 
 
     .#{$prefix}btn-#{$ui},

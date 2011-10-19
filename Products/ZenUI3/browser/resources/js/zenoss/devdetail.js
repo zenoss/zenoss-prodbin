@@ -629,7 +629,7 @@ Ext.define('Zenoss.DeviceDetailNav', {
                     }
                 }
             }
-            this.fireEvent('componenttreeloaded');
+                this.doLayout();
         }, this);
     },
     filterNav: function(navpanel, config){
@@ -737,7 +737,7 @@ Ext.getCmp('center_panel').add({
             id: 'detailContainer',
             items: [{
                 xtype: 'devicedetailnav',
-                ui: 'hierarchy',
+                ui: 'hierarchy',               
                 id: 'deviceDetailNav'
             },{
                 xtype: 'montemplatetreepanel',

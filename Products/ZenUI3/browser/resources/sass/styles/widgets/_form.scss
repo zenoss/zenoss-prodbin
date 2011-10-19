@@ -3,8 +3,17 @@
     $ui: 'fieldset-default';
     
     .#{$prefix}fieldset{
+        padding-bottom:10px;
         border:0 !important;
     }
+    #regexFieldSet{
+        padding:10px !important;
+    }
+    .#{$prefix}fieldset-header-text{
+        padding-bottom:8px;
+    }
+    
+
 
 
 }

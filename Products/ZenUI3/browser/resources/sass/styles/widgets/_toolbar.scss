@@ -26,7 +26,7 @@
     .subselect-head{
         .#{$prefix}toolbar-text{
             font-weight:bold;
-            font-size:13px;
+            font-size:14px;
         }        
     } 
     
@@ -49,6 +49,16 @@
         color:white !important;
         height:12px !important
       }
+    }    
+    
+
+    .x-ie{
+        #statusitem, #prodstateitem, #priorityitem{
+            .devdetail-labelitem{
+                line-height:8px !important;
+                padding-bottom:3px;
+            }
+        }
     }    
     
 }    

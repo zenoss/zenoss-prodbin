@@ -1,0 +1,16 @@
+/* line 1, ../sass/not_streaming.scss */
+body {
+  background-color: black;
+}
+
+/* line 5, ../sass/not_streaming.scss */
+div.streaming-container {
+  font-family: Monaco,monospace;
+  font-size: 12px;
+  color: #eee;
+}
+/* line 9, ../sass/not_streaming.scss */
+div.streaming-line.odd {
+  color: #acc;
+  padding: 3px 0;
+}

@@ -188,6 +188,7 @@
                         Zenoss.Service.DetailForm.formConfig, {
                             xtype: 'instancecardpanel',
                             ref: 'detailCardPanel',
+                            id: 'detailCardPanel',
                             region: 'south',
                             split: true,
                             height: 300,

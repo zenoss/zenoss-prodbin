@@ -73,7 +73,7 @@ CORE TRIGGER PAGE STUFF
 }
 
 
-/* top search button sprite 
+/* top search button sprite */
 #searchbox-container{ 
     .x-form-trigger {
         background-image: url('../img/xtheme-zenoss/form/trigger.gif');
@@ -82,7 +82,7 @@ CORE TRIGGER PAGE STUFF
         height:21px;
         overflow:hidden;
     }     
-}*/
+}
 #footer_bar{
     border:none !important;
 }
@@ -91,19 +91,69 @@ CORE TRIGGER PAGE STUFF
 #add_attrs .x-panel-header-default {
     display: none;
 }
-// this has to be here - IE cascade
+// items beyond are positioned for IE cascade
+// ---------------------------------------------------- //
 #master_panel-header{
     background-image: url("../img/ext4/toolbar/blue-header-bg.png") !important;
     background-repeat:repeat-x;
 }
+#master_panel_navigation{ 
+    .x-grid-cell, #master_panel_navigation-body{
+        background:transparent;
+    }
+    .x-tree-elbow-end, x-tree-elbow{
+        background-image:none;
+    }
+    background-color:#D4E0EE !important;
+}
 #master_panel{
-    .x-panel-body-hierarchy{
+    #subselecttreepaneldetail_nav-body, .x-panel-body{
+        border: 0 none !important;
+    }
+    #subselecttreepaneldetail_nav .x-grid-cell, .x-panel-body-hierarchy, #templateTree .x-grid-cell{  
         background-color:#D4E0EE !important;
+        border:0 none !important;
+    }
+    .x-panel-body{
+        overflow:visible;
+    }
+}
+#master_panel .#{$prefix}panel-hierarchy, #master_panel #subselecttreepaneldetail_nav, #master_panel_navigation{
+    .#{$prefix}grid-row-over{
+        .#{$prefix}grid-cell, .#{$prefix}grid-cell-inner{
+            background-color:#eee !important;
+        }
     }
 }
 
+#processForm, #serviceForm{
+    .#{$prefix}toolbar-footer{
+        background-color:#F5F9FD;
+        padding:8px !important;
+        border-top:1px solid!important;         
+    }
+    .x-docked-bottom{
+        border-top-width:1px !important;
+        border-color:#808080 !important;
+    }
 
+}
 
+#detailCardPanel, #navGrid, #NetworkDetailCardPanel, #device_grid{
+    .x-panel-body{
+        border:0 none !important;
+    }
+    .x-toolbar-default-docked-bottom{
+       background:transparent !important;
+    }
+
+}
+.livegridinfopanel{
+    text-transform:uppercase;
+    font-size:10px !important;
+    color:#373737 !important;
+    font-weight:bold;
+}
 
 
 

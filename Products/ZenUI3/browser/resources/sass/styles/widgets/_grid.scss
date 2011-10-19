@@ -29,6 +29,10 @@
         .#{$prefix}column-header-text{
             background-position:right 4px !important;
         }
+        .#{$prefix}grid-row-selected .#{$prefix}grid-cell, .#{$prefix}grid-row-selected .#{$prefix}grid-rowwrap-div {
+            background-color: #7199C6 !important;
+            .#{$prefix}grid-cell-inner, .#{$prefix}grid-cell-inner a{color:#fff;}
+        }        
     }
 }
 

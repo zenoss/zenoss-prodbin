@@ -1,0 +1,11 @@
+/* line 2, ../sass/streaming.scss */
+div.streaming-container {
+  font-family: Monaco,monospace;
+  font-size: 12px;
+  color: #eee;
+}
+/* line 6, ../sass/streaming.scss */
+div.streaming-line.odd {
+  color: #acc;
+  padding: 3px 0;
+}

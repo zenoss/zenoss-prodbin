@@ -918,7 +918,9 @@ table.eventrainbow td.clear {
   font-weight: bold;
   color: black;
 }
-
+.devdetailbar .x-toolbar .x-toolbar-text{
+    line-height: 10px;
+}
 /* line 621, ../sass/zenoss.scss */
 .ext-ie .devdetailbar .devdetail-devname {
   margin-top: 0px;
@@ -939,7 +941,7 @@ table.eventrainbow td.clear {
 }
 /* line 634, ../sass/zenoss.scss */
 .devdetailbar .devdetail-devclass {
-  margin-top: -4px;
+  margin-top: -2px;
 }
 
 /* line 637, ../sass/zenoss.scss */
