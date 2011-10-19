@@ -236,18 +236,9 @@ Ext.onReady(function(){
             box.setText(_t('Last updated at ') + dtext);
     }
 
-    // default to show history from last 24 hours
-    var yesterday = new Date();
-    yesterday.setDate(yesterday.getDate() - 1);
-
-
-
     // Show filters by default on history console
     // State restoration occurs after render, so this won't persist if unwanted
     // myView.on('render', function(){myView.showFilters();});
-
-
-
 
     // Selection model
     var console_selection_model = new Zenoss.EventPanelSelectionModel();
@@ -264,14 +255,15 @@ Ext.onReady(function(){
         appendGlob: true,
         defaultFilters: {
             severity: [Zenoss.SEVERITY_CRITICAL, Zenoss.SEVERITY_ERROR, Zenoss.SEVERITY_WARNING, Zenoss.SEVERITY_INFO],
-            eventState: [Zenoss.STATUS_NEW, Zenoss.STATUS_ACKNOWLEDGED],
+            eventState: [Zenoss.STATUS_CLOSED, Zenoss.STATUS_CLEARED, Zenoss.STATUS_AGED],
             // _managed_objects is a global function sent from the server, see ZenUI3/security/security.py
-            lastTime: yesterday,
             tags: _managed_objects()
         },
         stateful: true,
         rowSelectorDepth: 5,
-        store: Ext.create('Zenoss.events.Store', { }),
+        store: Ext.create('Zenoss.events.Store', {
+            directFn: Zenoss.remote.EventsRouter.queryArchive
+        }),
 
         // Zenoss.env.COLUMN_DEFINITIONS comes from the server, and depends on
         // the resultFields associated with the context.

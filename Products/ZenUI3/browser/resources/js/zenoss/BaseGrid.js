@@ -165,7 +165,9 @@
         },
         clearFilters: function() {
             this.eachColumn(function(col) {
-                col.filterField.reset();
+                if (Ext.isDefined(col.filterField)) {
+                    col.filterField.reset();
+                }
             });
         },
         getState: function() {
@@ -212,11 +214,9 @@
 
         getSearchValues: function() {
             var values = {},
-                query,
-                dt,
                 globbing = (this.appendGlob && (Ext.isDefined(globbing) ? globbing : true));
             this.eachColumn(function(col) {
-                var filter = col.filterField, excludeGlobChars = ['*', '"', '?'], query, dt;
+                var filter = col.filterField, excludeGlobChars = ['*', '"', '?'], query;
                 if (filter && filter.xtype != 'component') {
                     if (!Ext.isEmpty(filter.getValue())) {
                         query = filter.getValue();
@@ -224,11 +224,6 @@
                             filter.vtype != 'numrange' && filter.vtype != 'floatrange' &&
                             excludeGlobChars.indexOf(query.charAt(query.length - 1)) === -1) {
                             query += '*';
-                        }
-                        if (filter.xtype == 'datefield') {
-                            dt = new Date(query);
-                            query = dt.format(
-                                Zenoss.date.UniversalSortableDateTime);
                         }
                         values[col.id] = query;
                     }
