@@ -416,7 +416,6 @@ Ext.define("Zenoss.component.ComponentGridPanel", {
             });
         }
 
-
         var modelId = Ext.id(),
             model = Ext.define(modelId, {
                 extend: 'Ext.data.Model',

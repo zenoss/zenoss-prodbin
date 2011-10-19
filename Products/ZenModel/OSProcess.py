@@ -115,7 +115,7 @@ class OSProcess(OSComponent, Commandable, ZenPackable):
             )
          },
         )
-    
+
     security = ClassSecurityInfo()
 
 
@@ -135,7 +135,7 @@ class OSProcess(OSComponent, Commandable, ZenPackable):
         """
         klass = self.getDmdObj(procKey)
         klass.instances.addRelation(self)
-    
+
 
     def getOSProcessClass(self):
         """
@@ -144,7 +144,7 @@ class OSProcess(OSComponent, Commandable, ZenPackable):
         pClass = self.osProcessClass()
         if pClass:
             return pClass.getPrimaryDmdId()
-       
+
 
     def getOSProcessClassLink(self):
         """
@@ -152,7 +152,7 @@ class OSProcess(OSComponent, Commandable, ZenPackable):
         """
         proccl = self.osProcessClass()
         if proccl:
-            if self.checkRemotePerm("View", proccl): 
+            if self.checkRemotePerm("View", proccl):
                 return "<a href='%s'>%s</a>" % (proccl.getPrimaryUrlPath(),
                                                 proccl.getOSProcessClassName())
             else:
@@ -174,7 +174,7 @@ class OSProcess(OSComponent, Commandable, ZenPackable):
 
     def monitored(self):
         """
-        Should this service be monitored or not. Use ServiceClass aq path. 
+        Should this service be monitored or not. Use ServiceClass aq path.
         """
         return self.getAqProperty("zMonitor")
 
@@ -240,7 +240,7 @@ class OSProcess(OSComponent, Commandable, ZenPackable):
         Called by Commandable.doCommand() to ascertain objects on which
         a UserCommand should be executed.
         '''
-        return [self]     
+        return [self]
 
 
     def getUserCommandEnvironment(self):

@@ -713,8 +713,10 @@ Ext.define("Zenoss.DataSourceTreeGrid", {
         this.customizeButton.setDisabled(bool && Zenoss.Security.hasPermission('Manage DMD'));
     },
     setContext: function(uid) {
-        this.uid = uid;
-        this.refresh();
+        if (uid !== this.uid){
+            this.uid = uid;
+            this.refresh();
+        }
     },
     refresh: function(callback, scope) {
         var root = this.getRootNode();

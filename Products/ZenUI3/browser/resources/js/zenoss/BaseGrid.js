@@ -1,5 +1,6 @@
 (function() {
 
+
     /**
      * Base Configuration for direct stores
      * @class Zenoss.DirectStore

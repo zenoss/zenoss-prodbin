@@ -1800,3 +1800,54 @@ class DeviceRouter(TreeRouter):
         data = facade.getModelerPluginDocStrings(uid)
         return DirectResponse.succeed(data=Zuul.marshal(data))
 
+    def addIpRouteEntry(self, uid, dest='', routemask='', nexthopid='', interface='',
+                        routeproto='', routetype='', userCreated=True):
+        """
+        Adds an Ip Route Entry to this device
+        """
+        facade = self._getFacade()
+        data = facade.addIpRouteEntry(uid, dest, routemask, nexthopid, interface,
+                        routeproto, routetype, userCreated)
+        return DirectResponse.succeed(data=Zuul.marshal(data))
+
+    def addIpInterface(self, uid, newId, userCreated=True):
+        """
+        Adds an Ip Interface
+        """
+        facade = self._getFacade()
+        data = facade.addIpInterface(uid, newId, userCreated)
+        return DirectResponse.succeed(data=Zuul.marshal(data))
+
+    def addOSProcess(self, uid, newClassName, userCreated=True):
+        """
+        Adds an os processes
+        """
+        facade = self._getFacade()
+        data = facade.addOSProcess(uid, newClassName, userCreated)
+        return DirectResponse.succeed(data=Zuul.marshal(data))
+
+    def addFileSystem(self, uid, newId, userCreated=True):
+        """
+        Adds an Ip Interface
+        """
+        facade = self._getFacade()
+        data = facade.addFileSystem(uid, newId, userCreated)
+        return DirectResponse.succeed(data=Zuul.marshal(data))
+
+    def addIpService(self, uid, newClassName, protocol, userCreated=True):
+        """
+        Adds an Ip Service
+        """
+        facade = self._getFacade()
+        data = facade.addIpService(uid, newClassName, protocol,  userCreated)
+        return DirectResponse.succeed(data=Zuul.marshal(data))
+
+
+    def addWinService(self, uid, newClassName, userCreated=True):
+        """
+        Adds an Ip Service
+        """
+        facade = self._getFacade()
+        data = facade.addWinService(uid, newClassName, userCreated)
+        return DirectResponse.succeed(data=Zuul.marshal(data))
+

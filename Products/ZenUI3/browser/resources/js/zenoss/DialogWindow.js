@@ -198,11 +198,11 @@ Ext.define("Zenoss.MessageDialog", {
                 } ],
             buttons: [
                 {
-                    xtype: 'HideDialogButton',                    
+                    xtype: 'HideDialogButton',
                     text: _t('OK'),
                     handler: config.okHandler
                 }, {
-                    xtype: 'HideDialogButton',                    
+                    xtype: 'HideDialogButton',
                     text: _t('Cancel'),
                     handler: config.cancelHandler
                 }
@@ -358,7 +358,7 @@ Ext.define("Zenoss.SmartFormDialog", {
                 type: 'submit',
                 ref: 'buttonSubmit'
              }, {
-                xtype: 'DialogButton',         
+                xtype: 'DialogButton',
                 ref: 'buttonCancel',
                 text: _t('Cancel')
             }],
@@ -432,7 +432,7 @@ Ext.define("Zenoss.dialog.DynamicDialog", {
     extend: "BaseDialog",
     initEvents: function(){
         Zenoss.dialog.DynamicDialog.superclass.initEvents.call(this);
-        this.body.getUpdater().on('failure', function(el, response) {
+        this.body.getLoader().on('failure', function(el, response) {
             el.update("Failed to load dialog");
         });
     },

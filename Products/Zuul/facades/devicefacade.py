@@ -614,3 +614,28 @@ class DeviceFacade(TreeFacade):
         obj = self._getObject(uid)
         return obj.getDefaultGraphDefs(drange)
 
+    def addIpRouteEntry(self, uid, dest, routemask, nexthopid, interface,
+                        routeproto, routetype, userCreated):
+        device = self._getObject(uid)
+        device.os.addIpRouteEntry(dest, routemask, nexthopid, interface,
+                        routeproto, routetype, userCreated)
+
+    def addIpInterface(self, uid, newId, userCreated):
+        device = self._getObject(uid)
+        device.os.addIpInterface(newId, userCreated)
+
+    def addOSProcess(self, uid, newClassName, userCreated):
+        device = self._getObject(uid)
+        device.os.addOSProcess(newClassName, userCreated)
+
+    def addFileSystem(self, uid, newId, userCreated):
+        device = self._getObject(uid)
+        device.os.addFileSystem(newId, userCreated)
+
+    def addIpService(self, uid, newClassName, protocol, userCreated):
+        device = self._getObject(uid)
+        device.os.addIpService(newClassName, protocol, userCreated)
+
+    def addWinService(self, uid, newClassName, userCreated):
+        device = self._getObject(uid)
+        device.os.addWinService(newClassName, userCreated)
