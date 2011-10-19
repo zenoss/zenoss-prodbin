@@ -98,11 +98,9 @@ class TemplateFacade(ZuulFacade):
         # it can be any device class that we add the template too
         brains = cat.search(types=[DeviceClass])
         for brain in brains:
-            path = brain.getPath().replace('/zport/dmd/', '')
-            path = path.replace('/'+ brain.id, '')
-            label = "%s in %s" % (brain.name, path)
+            label = brain.getObject().getOrganizerName()
             results.append(dict(uid=brain.getPath(), label=label))
-        return results
+        return sorted(results, key=lambda org: org['label'])
 
     def addTemplate(self, id, targetUid):
         id = prepId(id)

@@ -22,6 +22,7 @@
      var addAliasButton = {
          id: 'add_alias_button',
          xtype: 'button',
+         ui: 'dialog-dark',
          text: 'Add',
          handler: addAliasRow
      },
@@ -45,6 +46,7 @@
                  value: formula
              },{
                  xtype: 'button',
+                 ui: 'dialog-dark',
                  text: 'Delete',
                  width: '10',
                  handler: function() {

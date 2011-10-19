@@ -837,7 +837,7 @@ Ext.define("Zenoss.templates.GraphGrid", {
                         buttonAlign: 'left',
                         autoScroll: true,
                         plain: true,
-                        width: 275,
+                        width: 300,
                         autoHeight: true,
                         modal: true,
                         padding: 10,

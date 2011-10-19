@@ -206,23 +206,26 @@ function showEditTemplateDialog(response) {
     config = {
         submitHandler: handler,
         id: 'editTemplateDialog',
-        height: 300,
+        height: 350,
         title: _t('Edit Template Details'),
         items: [{
             xtype: 'textfield',
             name: 'newId',
+            width: 300,
             fieldLabel: _t('Name'),
             allowBlank: false,
             ref: 'templateName'
         },{
             xtype: 'textfield',
             name: 'targetPythonClass',
+            width: 300,
             fieldLabel: _t('Target Class'),
             allowBlank: true,
             ref: 'targetPythonClass'
         },{
             xtype: 'textarea',
             name: 'description',
+            width: 300,
             fieldLabel: _t('Description'),
             ref: 'description'
         }]
@@ -389,7 +392,7 @@ addTemplateDialogConfig = {
     title: _t('Add Template'),
     id: 'addNewTemplateDialog',
     height: 250,
-    width: 350,
+    width: 450,
     listeners: {
         show: function() {
             var cmp = Ext.getCmp('addNewTemplateDialog');
@@ -407,6 +410,7 @@ addTemplateDialogConfig = {
         xtype: 'combo',
         fieldLabel: _t('Template Path'),
         forceSelection: true,
+        width: 250,
         emptyText: _t('Select a template path...'),
         minChars: 0,
         ref: '../comboBox',

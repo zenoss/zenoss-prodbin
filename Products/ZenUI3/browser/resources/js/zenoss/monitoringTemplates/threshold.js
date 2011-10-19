@@ -118,6 +118,11 @@
                     }
                 },
                 items: [{
+                    name: 'thresholdIdField',
+                    xtype: 'idfield',
+                    fieldLabel: _t('Name'),
+                    allowBlank: false
+                },{
                     name: 'thresholdTypeField',
                     xtype: 'combo',
                     fieldLabel: _t('Type'),
@@ -134,13 +139,7 @@
                         root: 'data',
                         fields: ['type']
                     }
-                }, {
-                    name: 'thresholdIdField',
-                    xtype: 'idfield',
-                    fieldLabel: _t('Name'),
-                    allowBlank: false
-                }
-                       ]
+                }]
             }});
         addThresholdDialog.show();
     }

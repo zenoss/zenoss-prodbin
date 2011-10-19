@@ -331,13 +331,15 @@ new Zenoss.dialog.BaseWindow({
             }
         }],
         buttons:[{
-            xtype: 'DialogButton',
+            xtype: 'button',
+            ui: 'dialog-dark',
             text: _t('Submit'),
             ui: 'dialog-dark',
             formBind: true,
             handler: saveDataSource
         },{
-            xtype: 'DialogButton',
+            xtype: 'button',
+            ui: 'dialog-dark',
             text: _t('Cancel'),
             ui: 'dialog-dark',
             handler: function () {
