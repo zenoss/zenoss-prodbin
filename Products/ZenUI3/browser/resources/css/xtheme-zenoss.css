@@ -10391,14 +10391,29 @@ $menu-icon-unchecked: 'menu/unchecked.gif';
   height: 11px;
   position: relative; }
 /* line 46, ../sass/styles/widgets/_toolbar.scss */
-.refreshevery span.x-menu-item-text {
+.refreshevery span .x-menu-item-text {
   position: absolute;
   left: 3px;
   top: -2px;
   color: white !important;
   height: 12px !important; }
 
-/* line 58, ../sass/styles/widgets/_toolbar.scss */
+/* consolebar overrides */
+/* line 56, ../sass/styles/widgets/_toolbar.scss */
+#NetworkDetailCardPanel .x-btn {
+  top: 3px !important; }
+/* line 59, ../sass/styles/widgets/_toolbar.scss */
+#NetworkDetailCardPanel .largetoolbar {
+  height: 35px !important; }
+/* line 62, ../sass/styles/widgets/_toolbar.scss */
+#NetworkDetailCardPanel .consolebar .x-toolbar-text {
+  color: #383838;
+  font-family: helvetica,sans-serif;
+  font-weight: bold;
+  height: 18px;
+  font-size: 13px; }
+
+/* line 73, ../sass/styles/widgets/_toolbar.scss */
 .x-ie #statusitem .devdetail-labelitem, .x-ie #prodstateitem .devdetail-labelitem, .x-ie #priorityitem .devdetail-labelitem {
   line-height: 8px !important;
   padding-bottom: 3px; }
@@ -11372,7 +11387,7 @@ CORE TRIGGER PAGE STUFF
 #master_panel_navigation .x-grid-cell, #master_panel_navigation #master_panel_navigation-body {
   background: transparent; }
 /* line 104, ../sass/xtheme-zenoss.scss */
-#master_panel_navigation .x-tree-elbow-end, #master_panel_navigation x-tree-elbow {
+#master_panel_navigation .x-tree-elbow-end, #master_panel_navigation .x-tree-elbow {
   background-image: none; }
 
 /* line 110, ../sass/xtheme-zenoss.scss */

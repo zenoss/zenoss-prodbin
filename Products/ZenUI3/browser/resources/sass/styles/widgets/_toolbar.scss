@@ -43,7 +43,7 @@
         height:11px;
         position:relative;
       }
-      span.x-menu-item-text{    
+      span .#{$prefix}menu-item-text{    
         position:absolute;
         left:3px;
         top:-2px;
@@ -51,9 +51,24 @@
         height:12px !important
       }
     }    
-    
+    /* consolebar overrides */
+    #NetworkDetailCardPanel{
+        .#{$prefix}btn{
+            top:3px !important;
+        }
+        .largetoolbar{
+            height:35px !important;
+        }
+        .consolebar .#{$prefix}toolbar-text{
+            color: #383838;
+            font-family: helvetica,sans-serif;
+            font-weight: bold;
+            height: 18px; 
+            font-size:13px;
+        }        
+    }
 
-    .x-ie{
+    .#{$prefix}ie{
         #statusitem, #prodstateitem, #priorityitem{
             .devdetail-labelitem{
                 line-height:8px !important;
