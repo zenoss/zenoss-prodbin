@@ -136,7 +136,6 @@ CORE TRIGGER PAGE STUFF
         border-top-width:1px !important;
         border-color:#808080 !important;
     }
-
 }
 
 #detailCardPanel, #navGrid, #NetworkDetailCardPanel, #device_grid{
@@ -146,13 +145,17 @@ CORE TRIGGER PAGE STUFF
     .x-toolbar-default-docked-bottom{
        background:transparent !important;
     }
-
 }
 .livegridinfopanel{
     text-transform:uppercase;
     font-size:10px !important;
-    color:#373737 !important;
+    color:#222 !important;
     font-weight:bold;
+}
+.x-docked.x-panel-default-collapsed{
+    background-image:none !important;
+    background-color:#A5A5A5;
+    border:0 none;
 }
 
 

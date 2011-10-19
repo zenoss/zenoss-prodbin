@@ -1,6 +1,6 @@
 @mixin zenoss-grid {
     .#{$prefix}grid{
-
+        
         .#{$prefix}column-header{
           border-left: 0 none;
           border-right: 1px solid #B4B4B4;
@@ -29,10 +29,16 @@
         .#{$prefix}column-header-text{
             background-position:right 4px !important;
         }
+ 
         .#{$prefix}grid-row-selected .#{$prefix}grid-cell, .#{$prefix}grid-row-selected .#{$prefix}grid-rowwrap-div {
             background-color: #7199C6 !important;
             .#{$prefix}grid-cell-inner, .#{$prefix}grid-cell-inner a{color:#fff;}
-        }        
+        }          
     }
+    #events_grid{
+       .#{$prefix}grid-row .#{$prefix}grid-cell-inner{
+            font-weight:bold !important;
+       }
+    }    
 }
 

@@ -79,7 +79,7 @@
         alias: ['widget.multiselect-devicepriority'],
         constructor: function(config) {
             config = Ext.apply(config || {}, {
-                text:'...',
+                text:'...',              
                 store: new Zenoss.DirectStore({
                     directFn: Zenoss.remote.DeviceRouter.getPriorities,
                     root: 'data',
@@ -117,6 +117,7 @@
             }
             config = Ext.apply(config || {}, {
                 text:'...',
+                ui:'arrowslide',
                 store: new Zenoss.DirectStore({
                     directFn: Zenoss.remote.DeviceRouter.getProductionStates,
                     root: 'data',

@@ -10365,18 +10365,19 @@ $menu-icon-unchecked: 'menu/unchecked.gif';
 
 /* line 17, ../sass/styles/widgets/_toolbar.scss */
 .largetoolbar .x-btn {
-  top: 8px !important; }
+  top: 8px !important;
+  margin-right: 6px; }
 
-/* line 22, ../sass/styles/widgets/_toolbar.scss */
+/* line 23, ../sass/styles/widgets/_toolbar.scss */
 .x-toolbar td, .x-toolbar span, .x-toolbar input, .x-toolbar div, .x-toolbar select, .x-toolbar label {
   font-size: 11px; }
 
-/* line 27, ../sass/styles/widgets/_toolbar.scss */
+/* line 28, ../sass/styles/widgets/_toolbar.scss */
 .subselect-head .x-toolbar-text {
   font-weight: bold;
-  font-size: 14px; }
+  font-size: 13px; }
 
-/* line 33, ../sass/styles/widgets/_toolbar.scss */
+/* line 34, ../sass/styles/widgets/_toolbar.scss */
 .refreshevery {
   background-color: #474747;
   color: white !important;
@@ -10384,12 +10385,12 @@ $menu-icon-unchecked: 'menu/unchecked.gif';
   font-weight: bold;
   height: 18px !important;
   margin: 2px; }
-/* line 40, ../sass/styles/widgets/_toolbar.scss */
+/* line 41, ../sass/styles/widgets/_toolbar.scss */
 .refreshevery a {
   display: block;
   height: 11px;
   position: relative; }
-/* line 45, ../sass/styles/widgets/_toolbar.scss */
+/* line 46, ../sass/styles/widgets/_toolbar.scss */
 .refreshevery span.x-menu-item-text {
   position: absolute;
   left: 3px;
@@ -10397,7 +10398,7 @@ $menu-icon-unchecked: 'menu/unchecked.gif';
   color: white !important;
   height: 12px !important; }
 
-/* line 57, ../sass/styles/widgets/_toolbar.scss */
+/* line 58, ../sass/styles/widgets/_toolbar.scss */
 .x-ie #statusitem .devdetail-labelitem, .x-ie #prodstateitem .devdetail-labelitem, .x-ie #priorityitem .devdetail-labelitem {
   line-height: 8px !important;
   padding-bottom: 3px; }
@@ -11079,12 +11080,16 @@ $menu-icon-unchecked: 'menu/unchecked.gif';
 /* line 29, ../sass/styles/widgets/_grid.scss */
 .x-grid .x-column-header-text {
   background-position: right 4px !important; }
-/* line 32, ../sass/styles/widgets/_grid.scss */
+/* line 33, ../sass/styles/widgets/_grid.scss */
 .x-grid .x-grid-row-selected .x-grid-cell, .x-grid .x-grid-row-selected .x-grid-rowwrap-div {
   background-color: #7199c6 !important; }
-/* line 34, ../sass/styles/widgets/_grid.scss */
+/* line 35, ../sass/styles/widgets/_grid.scss */
 .x-grid .x-grid-row-selected .x-grid-cell .x-grid-cell-inner, .x-grid .x-grid-row-selected .x-grid-cell .x-grid-cell-inner a, .x-grid .x-grid-row-selected .x-grid-rowwrap-div .x-grid-cell-inner, .x-grid .x-grid-row-selected .x-grid-rowwrap-div .x-grid-cell-inner a {
   color: #fff; }
+
+/* line 39, ../sass/styles/widgets/_grid.scss */
+#events_grid .x-grid-row .x-grid-cell-inner {
+  font-weight: bold !important; }
 
 /* line 2, ../sass/styles/widgets/_overlays.scss */
 #page-level-help-tip {
@@ -11395,16 +11400,22 @@ CORE TRIGGER PAGE STUFF
   border-top-width: 1px !important;
   border-color: gray !important; }
 
-/* line 143, ../sass/xtheme-zenoss.scss */
+/* line 142, ../sass/xtheme-zenoss.scss */
 #detailCardPanel .x-panel-body, #navGrid .x-panel-body, #NetworkDetailCardPanel .x-panel-body, #device_grid .x-panel-body {
   border: 0 none !important; }
-/* line 146, ../sass/xtheme-zenoss.scss */
+/* line 145, ../sass/xtheme-zenoss.scss */
 #detailCardPanel .x-toolbar-default-docked-bottom, #navGrid .x-toolbar-default-docked-bottom, #NetworkDetailCardPanel .x-toolbar-default-docked-bottom, #device_grid .x-toolbar-default-docked-bottom {
   background: transparent !important; }
 
-/* line 151, ../sass/xtheme-zenoss.scss */
+/* line 149, ../sass/xtheme-zenoss.scss */
 .livegridinfopanel {
   text-transform: uppercase;
   font-size: 10px !important;
-  color: #373737 !important;
+  color: #222222 !important;
   font-weight: bold; }
+
+/* line 155, ../sass/xtheme-zenoss.scss */
+.x-docked.x-panel-default-collapsed {
+  background-image: none !important;
+  background-color: #A5A5A5;
+  border: 0 none; }

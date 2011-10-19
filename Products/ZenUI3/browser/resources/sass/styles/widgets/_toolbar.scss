@@ -16,6 +16,7 @@
     .largetoolbar{
         .#{$prefix}btn{
             top:8px !important;
+            margin-right:6px;
         }   
     }
     .#{$prefix}toolbar{ 
@@ -26,7 +27,7 @@
     .subselect-head{
         .#{$prefix}toolbar-text{
             font-weight:bold;
-            font-size:14px;
+            font-size:13px;
         }        
     } 
     

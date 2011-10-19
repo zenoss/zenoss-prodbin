@@ -259,8 +259,7 @@ Ext.define('Zenoss.LargeToolbar',{
             ui: 'large',
             cls: 'largetoolbar',
             height: 45,
-            border: false,
-            style:'border-top:1px solid #b8b8b8;border-bottom:1px solid #949494;'
+            border: false
         });
         Zenoss.LargeToolbar.superclass.constructor.apply(
             this, arguments);
