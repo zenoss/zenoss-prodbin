@@ -202,7 +202,7 @@ COLUMN_CONFIG = {
         },
         width=100,
         renderer='Ext.util.Format.dateRenderer(Zenoss.date.ISO8601Long)',
-        field_definition="{name:'lastTime', type:'date', format: Zenoss.date.ISO8601Long, submitFormat: Zenoss.date.ISO8601Long}"
+        field_definition="{name:'lastTime', type:'date', format: Zenoss.date.ISO8601Long}"
     ),
 
     'count'     : dict(
