@@ -697,7 +697,7 @@ Ext.define("Zenoss.DataSourceTreeGrid", {
             }, {
                 dataIndex: 'enabled',
                 header: 'Enabled',
-                width: 40
+                width: 60
             }, {
                 dataIndex: 'type',
                 header: 'Type',

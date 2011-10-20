@@ -91,491 +91,510 @@
 "></script>
 <script type="text/javascript">
 Ext.onReady(function() {
-	Ext.QuickTips.init();
-	Ext.form.Field.prototype.msgTarget = 'side';
+    Ext.QuickTips.init();
+    /**
+     * In every one of our panels we want border and frame to be false so override it on the base class.
+     **/
+    Ext.override(Ext.panel.Panel, {
+        frame: false,
+        border: false
+    });
+    Ext.form.Field.prototype.msgTarget = 'side';
 
-	Ext.apply(Ext.form.VTypes, {
-		iprangeOrNetwork: function(val, field) {
-			return (val.match(/^(\d+\.){3}\d+\-\d+/) || val.match(/^(\d+\.){3}\d+\/\d+/));
-		},
-		iprangeOrNetworkText: "Please enter a valid IP range or " + "<br/>network with subnet mask.<br/>" + "e.g., 10.1.1.1-50  or 10.1.1.1/24"
-	});
+    Ext.apply(Ext.form.VTypes, {
+        iprangeOrNetwork: function(val, field) {
+            return (val.match(/^(\d+\.){3}\d+\-\d+/) || val.match(/^(\d+\.){3}\d+\/\d+/));
+        },
+        iprangeOrNetworkText: "Please enter a valid IP range or " + "<br/>network with subnet mask.<br/>" + "e.g., 10.1.1.1-50  or 10.1.1.1/24"
+    });
 
-	var closeWindowIfPopup = function(form, action) {
-		var url = action.result.redirect;
-		// opener is defined as the window that opened the popup
-		if (url && action.result.success && ! Ext.isEmpty(opener)) {
-			window.close();
-		}
-	};
+    var closeWindowIfPopup = function(form, action) {
+        // opener is defined as the window that opened the popup
+        if (!Ext.isEmpty(opener)) {
+            window.close();
+        }
+    };
 
-	var netFieldConfig = {
-		inputType: 'text',
-		name: 'network',
-		allowBlank: true,
-		vtype: 'iprangeOrNetwork',
+    var netFieldConfig = {
+        inputType: 'text',
+        name: 'network',
+        allowBlank: true,
+        vtype: 'iprangeOrNetwork',
         anchor: '95%'
-	}
+    }
 
-	var devFieldConfig = {
-		inputType: 'text',
-		name: 'device',
-		allowBlank: true,
-		enableKeyEvents: true,
-		listeners: {
-			'blur': function(ob) {
-				ob.getEl().parent().parent().removeClass('selected_row');
-			},
-			'focus': function(ob) {
-				ob.getEl().parent().parent().addClass('selected_row');
-				idx = Ext.getCmp('devices').items.indexOf(ob) - 1;
-				Ext.getCmp('manual_creds').layout.setActiveItem(idx);
-			},
-			'valid': function(ob) {
-				idx = Ext.getCmp('devices').items.indexOf(ob) - 1;
-				cmp = Ext.getCmp('credstitle_' + idx);
-				if (cmp) cmp.body.update(ob.getValue() + ' Details');
-			}
-		}
-	}
+    var devFieldConfig = {
+        inputType: 'text',
+        name: 'device',
+        allowBlank: true,
+        enableKeyEvents: true,
+        listeners: {
+            'blur': function(ob) {
+                ob.getEl().parent().parent().removeClass('selected_row');
+            },
+            'focus': function(ob) {
+                ob.getEl().parent().parent().addClass('selected_row');
+                idx = Ext.getCmp('devices').items.indexOf(ob) - 1;
+                Ext.getCmp('manual_creds').layout.setActiveItem(idx);
+            },
+            'valid': function(ob) {
+                idx = Ext.getCmp('devices').items.indexOf(ob) - 1;
+                cmp = Ext.getCmp('credstitle_' + idx);
+                if (cmp) cmp.body.update(ob.getValue() + ' Details');
+            }
+        }
+    }
 
-	var autodiscover = {
-		xtype: 'panel',
-		title: 'Autodiscovery',
-		bodyStyle: 'padding:5px 5px 0',
-		id: 'autodiscoverform',
-		frame: false,
-		border: false,
-		layout: 'column',
-		buttonAlign: 'left',
-		listeners: {
-			actioncomplete: {
-				fn: function() {
-					closeWindowIfPopup(arguments);
-				}
-			}
-		},
-		bbar: [{
-			xtype: 'button',
-			text: 'Discover',
-			handler: function() {
-				Ext.getCmp('autodiscoverform').getForm().submit({
-					url: 'auto_add',
-					success: function(form, action) {
-						window.location = action.result.redirect;
-					}
-				});
-			}
-		}],
-		defaults: {
-			columnWidth: 0.5,
-			layout: 'anchor',
-			frame: false,
-			border: false
-		},
-		items: [{
+    var autodiscover = {
+        xtype: 'form',
+        bodyStyle: 'padding:5px 5px 0',
+        id: 'autodiscoverform',
+        frame: false,
+        border: false,
+        layout: 'column',
+        buttonAlign: 'left',
+        listeners: {
+            actioncomplete: {
+                fn: function() {
+                    closeWindowIfPopup(arguments);
+                }
+            }
+        },
+        defaults: {
+            columnWidth: 0.5,
+            layout: 'anchor',
+            frame: false,
+            border: false,
+            maxWidth: 450
+        },
+        items: [{
+            xtype: 'fieldset',
+            id: 'networks',
+            title: 'Networks/Ranges',
+            layout: {
+                type: 'anchor'
+            },
+            bodyStyle: 'padding:0',
+            hideLabels: 'true',
+            defaultType: 'textfield',
+            // Don't autodestroy, so we can remove/add
+            // the button easily
+            autoDestroy: false,
+            items: [{
+                xtype: 'panel',
+                border: false,
+                cls: 'helptext',
+                bodyStyle: 'padding: 5px',
+                html: "Enter one or more networks (such " + "as 10.0.0.0/24) or <" + "br/> IP ranges " + "(such as 10.0.0.1-50)."
+            }, netFieldConfig, {
+                xtype: 'button',
+                id: 'add_button',
+                text: '+',
+                handler: function() {
+                    // Get the fieldset
+                    nets = Ext.getCmp('networks');
+                    // Add a new text field
+                    var field = nets.add(netFieldConfig);
+                    // pop the button and append it so it
+                    // stays on the bottom
+                    nets.add(nets.remove(
+                        Ext.getCmp('add_button')));
+                    // Register the field with the FormPanel
+                    form = Ext.getCmp('autodiscoverform').getForm();
+                    form.add(field);
+                    // Render the new components
+                    nets.doLayout();
+                    field.focus();
+                }
+            }]
+        },{
+            frame: true,
+            border: true,
+            bodyStyle: 'padding: 5px',
+            items: [{
                 xtype: 'fieldset',
-				id: 'networks',
-				title: 'Networks/Ranges',
-				layout: {
-                    type: 'anchor'
-                },
-				bodyStyle: 'padding:0',
-				hideLabels: 'true',
-				defaultType: 'textfield',
-				// Don't autodestroy, so we can remove/add
-				// the button easily
-				autoDestroy: false,
-				items: [{
-					xtype: 'panel',
-					border: false,
-					cls: 'helptext',
-					bodyStyle: 'padding: 5px',
-					html: "Enter one or more networks (such " + "as 10.0.0.0/24) or <" + "br/> IP ranges " + "(such as 10.0.0.1-50)."
-				}, netFieldConfig, {
-                    xtype: 'button',
-					id: 'add_button',
-					text: '+',
-					handler: function() {
-						// Get the fieldset
-						nets = Ext.getCmp('networks');
-						// Add a new text field
-						var field = nets.add(netFieldConfig);
-						// pop the button and append it so it
-						// stays on the bottom
-						nets.add(nets.remove(
-						Ext.getCmp('add_button')));
-						// Register the field with the FormPanel
-						form = Ext.getCmp('autodiscoverform').getForm();
-						form.add(field);
-						// Render the new components
-						nets.doLayout();
-						field.focus();
-					}
-				}]
-		},{
-			frame: true,
-			border: true,
-			bodyStyle: 'padding: 5px',
-			items: [{
-                xtype: 'fieldset',
-				id: 'netauth',
-				layout: 'anchor',
-				borderLeft: true,
-				defaults: {
+                id: 'netauth',
+                layout: 'anchor',
+                borderLeft: true,
+                defaults: {
                     anchor: '95%'
-				},
-				title: 'Authentication',
-				frame: false,
-				border: false,
-				defaultType: 'textfield',
-				items: [{
+                },
+                title: 'Authentication',
+                frame: false,
+                border: false,
+                defaultType: 'textfield',
+                items: [{
                     xtype: 'panel',
-					border: false,
-					cls: 'helptext',
-					style: 'font-size:1em',
-					bodyStyle: 'padding:5px 0',
-					html: "Specify credentials to be used " + "during the discovery process. Zenoss " + "will apply these to each device it " + "discovers."
-				},{
+                    border: false,
+                    cls: 'helptext',
+                    style: 'font-size:1em',
+                    bodyStyle: 'padding:5px 0',
+                    html: "Specify credentials to be used " + "during the discovery process. Zenoss " + "will apply these to each device it " + "discovers."
+                },{
                     xtype: 'panel',
-					border: false,
-					style: 'color:#666;font-weight:bold',
-					bodyStyle: 'padding:5px 0',
-					html: 'Windows'
-				},{
+                    border: false,
+                    style: 'color:#666;font-weight:bold',
+                    bodyStyle: 'padding:5px 0',
+                    html: 'Windows'
+                },{
                     xtype: 'panel',
-					border: false,
-					cls: 'helptext',
-					style: 'font-size:1em;margin-bottom:0',
-					bodyStyle: 'padding-left:2em;padding-bottom:5px',
-					html: "This user must be a member of the " + "Local Administrators group."
-				},{
-					labelStyle: 'padding-left: 20px',
-					fieldLabel: 'Username',
-					name: 'winusername'
-				},{
-					labelStyle: 'padding-left: 20px',
-					fieldLabel: 'Password',
-					inputType: 'password',
-					name: 'winpass'
-				},{
+                    border: false,
+                    cls: 'helptext',
+                    style: 'font-size:1em;margin-bottom:0',
+                    bodyStyle: 'padding-left:2em;padding-bottom:5px',
+                    html: "This user must be a member of the " + "Local Administrators group."
+                },{
+                    labelStyle: 'padding-left: 20px',
+                    fieldLabel: 'Username',
+                    name: 'winusername'
+                },{
+                    labelStyle: 'padding-left: 20px',
+                    fieldLabel: 'Password',
+                    inputType: 'password',
+                    name: 'winpass'
+                },{
                     xtype: 'panel',
-					border: false,
-					style: 'color:#666;font-weight:bold',
-					bodyStyle: 'padding:5px 0',
-					html: 'SSH'
-				},{
-					labelStyle: 'padding-left: 20px',
-					fieldLabel: 'Username',
-					name: 'sshusername'
-				},{
-					labelStyle: 'padding-left: 20px',
-					fieldLabel: 'Password',
-					inputType: 'password',
-					name: 'sshpass'
-				},{
+                    border: false,
+                    style: 'color:#666;font-weight:bold',
+                    bodyStyle: 'padding:5px 0',
+                    html: 'SSH'
+                },{
+                    labelStyle: 'padding-left: 20px',
+                    fieldLabel: 'Username',
+                    name: 'sshusername'
+                },{
+                    labelStyle: 'padding-left: 20px',
+                    fieldLabel: 'Password',
+                    inputType: 'password',
+                    name: 'sshpass'
+                },{
                     xtype: 'panel',
-					border: false,
-					style: 'color:#666;font-weight:bold',
-					bodyStyle: 'padding:5px 0',
-					html: 'SNMP'
-				},{
+                    border: false,
+                    style: 'color:#666;font-weight:bold',
+                    bodyStyle: 'padding:5px 0',
+                    html: 'SNMP'
+                },{
                     xtype: 'panel',
-					border: false,
-					cls: 'helptext',
-					style: 'font-size:1em;margin-bottom:0',
-					bodyStyle: 'padding-left:2em;padding-bottom:5px;',
-					html: "Zenoss will try each of these community" + " strings in turn when connecting to the device."
-				},{
-					xtype: 'textarea',
-					cls: 'dontexpand',
-					labelStyle: 'padding-left: 20px',
-					fieldLabel: 'Community Strings',
-					name: 'snmpcommunities',
-					value: DEFAULT_SNMPCOMMUNITIES
-				}]
-			}]
-		}]
-	};
+                    border: false,
+                    cls: 'helptext',
+                    style: 'font-size:1em;margin-bottom:0',
+                    bodyStyle: 'padding-left:2em;padding-bottom:5px;',
+                    html: "Zenoss will try each of these community" + " strings in turn when connecting to the device."
+                },{
+                    xtype: 'textarea',
+                    cls: 'dontexpand',
+                    labelStyle: 'padding-left: 20px',
+                    fieldLabel: 'Community Strings',
+                    name: 'snmpcommunities',
+                    value: DEFAULT_SNMPCOMMUNITIES
+                }]
+            }]
+        }]
+    };
 
-	var devtype_store = Ext.create('Ext.data.JsonStore', {
-		storeId: 'devtype_store',
-		root: 'types',
-		data: DEVICE_TYPES,
-		fields: ['value', 'description', 'protocol', 'shortdesc']
-	});
+    var devtype_store = Ext.create('Ext.data.JsonStore', {
+        storeId: 'devtype_store',
+        root: 'types',
+        data: DEVICE_TYPES,
+        fields: ['value', 'description', 'protocol', 'shortdesc']
+    });
 
-	var resultTpl = new Ext.XTemplate('<' + 'tpl for=".">', '<' + 'div class="x-combo-list-item blah">' + '<' + 'h3 class="listitem_master"> {description} <' + '/h3><' + 'span class="listitem_detail">' + '{protocol}<' + '/span><' + '/div>', '<' + '/tpl>');
+    var resultTpl = new Ext.XTemplate('<' + 'tpl for=".">', '<' + 'div class="x-combo-list-item blah">' + '<' + 'h3 class="listitem_master"> {description} <' + '/h3><' + 'span class="listitem_detail">' + '{protocol}<' + '/span><' + '/div>', '<' + '/tpl>');
 
-	function add_card() {
-		var container = Ext.getCmp('manual_creds'),
-		index = container.items.length,
-		card = container.add({
-			xtype: 'panel',
-			layout: {
-				type: 'anchor'
-			},
-			frame: false,
-			border: false,
-			labelAlign: 'right',
-			labelWidth: 70,
-			defaults: {
-				anchor: '95%'
-			},
-			items: [{
-				xtype: 'panel',
-				id: 'credstitle_' + index,
-				style: {
-					'font-weight': 'bold',
-					'font-size': '1.3em',
-					'color': '#666',
-					'padding-bottom': '1em'
-				},
-				html: 'Details'
-			},
-			{
-				xtype: 'combo',
-				id: 'combobox_' + index,
-				queryMode: 'local',
-				selectOnFocus: true,
-				value: '/Server/Linux_snmp',
-				fieldLabel: 'Device Type',
-				editable: false,
-				store: devtype_store,
-				valueField: 'value',
-				displayField: 'shortdesc',
-				tpl: resultTpl,
-				listConfig: {
-					itemSelector: 'div.blah'
-				},
-				triggerAction: 'all',
-				forceSelection: true,
-				selectOnFocus: true,
-				listeners: {
-					'select': function(ob) {
-						var type = ob.value.split('_')[1],
-						types = ['ssh', 'snmp', 'win'],
-						container = Ext.getCmp('creds_' + index),
-						selectCard = function() {
-							var idx = types.indexOf(type);
-							container.layout.setActiveItem(idx);
-						}
-						if (Ext.isString(container.layout)) {
-							container.on('afterrender', selectCard);
-						} else {
-							selectCard();
-						}
-					}
-				}
-			},
-			{
-				xtype: 'panel',
-				cls: 'helptext',
-				style: 'font-size: 1em',
-				border: false,
-				html: "If your device type is not listed, use " + "the default selection. You can add devices of " + "different types from the Zenoss dashboard."
-			},
-			{
-				xtype: 'panel',
-				anchor: '100%',
-				layout: 'card',
-				id: 'creds_' + index,
-				items: [{
-					anchor: '100%',
-					xtype: 'fieldset',
-					defaults: {
-						anchor: '95%'
-					},
-					id: 'ssh_' + index,
-					title: 'SSH Credentials',
-					defaultType: 'textfield',
-					items: [{
-						name: 'sshuser_' + index,
-						fieldLabel: 'Username'
-					},
-					{
-						name: 'sshpass_' + index,
-						inputType: 'password',
-						fieldLabel: 'Password'
-					}]
-				},{
-					xtype: 'fieldset',
-					anchor: '100%',
-					defaults: {
-						anchor: '95%'
-					},
-					id: 'snmp_' + index,
-					title: 'SNMP Credentials',
-					items: [{
-						xtype: 'panel',
-						border: false,
-						cls: 'helptext',
-						style: 'font-size:1em;margin-bottom:0',
-						bodyStyle: 'padding-bottom:5px',
-						html: "Zenoss will try each of these community" + " strings in turn when connecting to the device."
-					},
-					{
-						xtype: 'textarea',
-						fieldLabel: 'Community Strings',
-						name: 'snmpcomm_' + index,
-						value: DEFAULT_SNMPCOMMUNITIES
-					}]
-				},
-				{
-					xtype: 'fieldset',
-					id: 'win_' + index,
-					border: false,
-					title: 'Windows Credentials',
-					defaultType: 'textfield',
-					items: [{
-						xtype: 'panel',
-						border: false,
-						cls: 'helptext',
-						style: 'font-size:1em;margin-bottom:0',
-						bodyStyle: 'padding-left:2em;padding-bottom:5px',
-						html: "This user must be a member of the " + "Local Administrators group."
-					},
-					{
-						name: 'winuser_' + index,
-						fieldLabel: 'Username'
-					},
-					{
-						name: 'winpass_' + index,
-						inputType: 'password',
-						fieldLabel: 'Password'
-					}]
-				}]
-			}]
-		});
-		combobox = Ext.getCmp('combobox_' + index);
-		container.doLayout();
-		combobox.setValue('/Server/Linux_snmp');
-		combobox.fireEvent('select', combobox);
-	}
+    function add_card() {
+        var container = Ext.getCmp('manual_creds'),
+        index = container.items.length,
+        card = container.add({
+            xtype: 'panel',
+            layout: {
+                type: 'anchor'
+            },
+            frame: false,
+            border: false,
+            labelAlign: 'right',
+            labelWidth: 70,
+            defaults: {
+                anchor: '95%',
+                border: false
+            },
+            items: [{
+                xtype: 'panel',
+                id: 'credstitle_' + index,
+                style: {
+                    'font-weight': 'bold',
+                    'font-size': '1.3em',
+                    'color': '#666',
+                    'padding-bottom': '1em'
+                },
+                html: 'Details'
+            },
+            {
+                xtype: 'combo',
+                id: 'combobox_' + index,
+                name: 'deviceclass_' + index,
+                queryMode: 'local',
+                selectOnFocus: true,
+                value: '/Server/Linux_snmp',
+                fieldLabel: 'Device Type',
+                editable: false,
+                store: devtype_store,
+                valueField: 'value',
+                displayField: 'shortdesc',
+                tpl: resultTpl,
+                listConfig: {
+                    itemSelector: 'div.blah'
+                },
+                triggerAction: 'all',
+                forceSelection: true,
+                selectOnFocus: true,
+                listeners: {
+                    'select': function(ob) {
+                        var type = ob.value.split('_')[1],
+                        types = ['ssh', 'snmp', 'win'],
+                        container = Ext.getCmp('creds_' + index),
+                        selectCard = function() {
+                            var idx = types.indexOf(type);
+                            container.layout.setActiveItem(idx);
+                        }
+                        if (Ext.isString(container.layout)) {
+                            container.on('afterrender', selectCard);
+                        } else {
+                            selectCard();
+                        }
+                    }
+                }
+            },
+            {
+                xtype: 'panel',
+                cls: 'helptext',
+                style: 'font-size: 1em',
+                border: false,
+                html: "If your device type is not listed, use " + "the default selection. You can add devices of " + "different types from the Zenoss dashboard."
+            },
+            {
+                xtype: 'panel',
+                anchor: '100%',
+                layout: 'card',
+                id: 'creds_' + index,
+                items: [{
+                    anchor: '100%',
+                    xtype: 'fieldset',
+                    defaults: {
+                        anchor: '95%'
+                    },
+                    id: 'ssh_' + index,
+                    title: 'SSH Credentials',
+                    defaultType: 'textfield',
+                    items: [{
+                        name: 'sshuser_' + index,
+                        fieldLabel: 'Username'
+                    },
+                    {
+                        name: 'sshpass_' + index,
+                        inputType: 'password',
+                        fieldLabel: 'Password'
+                    }]
+                },{
+                    xtype: 'fieldset',
+                    anchor: '100%',
+                    defaults: {
+                        anchor: '95%'
+                    },
+                    id: 'snmp_' + index,
+                    title: 'SNMP Credentials',
+                    items: [{
+                        xtype: 'panel',
+                        border: false,
+                        cls: 'helptext',
+                        style: 'font-size:1em;margin-bottom:0',
+                        bodyStyle: 'padding-bottom:5px',
+                        html: "Zenoss will try each of these community" + " strings in turn when connecting to the device."
+                    },
+                    {
+                        xtype: 'textarea',
+                        fieldLabel: 'Community Strings',
+                        name: 'snmpcomm_' + index,
+                        value: DEFAULT_SNMPCOMMUNITIES
+                    }]
+                },
+                {
+                    xtype: 'fieldset',
+                    id: 'win_' + index,
+                    border: false,
+                    title: 'Windows Credentials',
+                    defaultType: 'textfield',
+                    items: [{
+                        xtype: 'panel',
+                        border: false,
+                        cls: 'helptext',
+                        style: 'font-size:1em;margin-bottom:0',
+                        bodyStyle: 'padding-left:2em;padding-bottom:5px',
+                        html: "This user must be a member of the " + "Local Administrators group."
+                    },
+                    {
+                        name: 'winuser_' + index,
+                        fieldLabel: 'Username'
+                    },
+                    {
+                        name: 'winpass_' + index,
+                        inputType: 'password',
+                        fieldLabel: 'Password'
+                    }]
+                }]
+            }]
+        });
+        combobox = Ext.getCmp('combobox_' + index);
+        container.doLayout();
+        combobox.setValue('/Server/Linux_snmp');
+        combobox.fireEvent('select', combobox);
+    }
 
-	function addDeviceRow() {
-		// Get the fieldset
-		devs = Ext.getCmp('devices');
-		// Add a new text field
-		var idx = devs.items.length - 2;
-		config = Ext.apply(devFieldConfig, {
-			name: 'device_' + idx
-		});
-		var field = devs.add(config);
-		// pop the button and append it so it
-		// stays on the bottom
-		devs.add(devs.remove(Ext.getCmp('dev_add_button')));
-		// Register the field with the FormPanel
-		Ext.getCmp('manualdiscoverform', function(mdf) {
-			var form = mdf.getForm();
-			form.add(field);
-			mdf.doComponentLayout();
-		});
-		// Render the new components
-		add_card();
-		field.focus();
-	}
+    function addDeviceRow() {
+        // Get the fieldset
+        devs = Ext.getCmp('devices');
+        // Add a new text field
+        var idx = devs.items.length - 2;
+        config = Ext.apply(devFieldConfig, {
+            name: 'device_' + idx
+        });
+        var field = devs.add(config);
+        // pop the button and append it so it
+        // stays on the bottom
+        devs.add(devs.remove(Ext.getCmp('dev_add_button')));
+        // Register the field with the FormPanel
+        Ext.getCmp('manualdiscoverform', function(mdf) {
+            var form = mdf.getForm();
+            form.add(field);
+            mdf.doComponentLayout();
+        });
+        // Render the new components
+        add_card();
+        field.focus();
+    }
 
-	var manualdiscover = {
-		xtype: 'form',
-		title: 'Manual Add',
-		id: 'manualdiscoverform',
-		layout: {
-			type: 'column'
-		},
-		bbar: [{
-			xtype: 'button',
-			text: 'Submit',
-			handler: function() {
-				Ext.getCmp('manualdiscoverform').getForm().submit({
-					url: 'manual_add',
-					success: function(form, action) {
-						window.location = '/zport/dmd/Dashboard';
-					}
-				});
-			}
-		}],
-		listeners: {
-			actioncomplete: {
-				fn: function() {
-					closeWindowIfPopup(arguments);
-				}
-			}
-		},
-		defaults: {
-			layout: 'anchor',
-			frame: false,
-			border: false,
-			columnWidth: 0.5,
-			flex: 1
-		},
-		items: [{
-			xtype: 'fieldset',
-			id: 'devices',
-			title: 'Hostnames/IP Addresses',
-			layout: {
-				type: 'anchor'
-			},
-			defaultType: 'textfield',
-			autoDestroy: false,
-			defaults: {
-				anchor: '95%'
-			},
-			items: [{
-				xtype: 'panel',
-				cls: 'helptext',
-				border: false,
-				html: 'Enter a hostname or IP address' + ' for each device you want to add.'
-			},
-			{
-				xtype: 'button',
-				anchor: null,
-				id: 'dev_add_button',
-				text: '+',
-				handler: addDeviceRow
-			}]
-		},
-		{
-			layout: 'card',
-			id: 'manual_creds'
-		}]
-	};
+    var manualdiscover = {
+        xtype: 'form',
+        id: 'manualdiscoverform',
+        layout: {
+            type: 'column'
+        },
+        listeners: {
+            actioncomplete: {
+                fn: function() {
+                    closeWindowIfPopup(arguments);
+                }
+            }
+        },
+        defaults: {
+            layout: 'anchor',
+            frame: false,
+            border: false,
+            columnWidth: 0.5,
+            flex: 1,
+            maxWidth: 450
+        },
+        items: [{
+            xtype: 'fieldset',
+            id: 'devices',
+            title: 'Hostnames/IP Addresses',
+            layout: {
+                type: 'anchor'
+            },
+            defaultType: 'textfield',
+            autoDestroy: false,
+            defaults: {
+                anchor: '95%'
+            },
+            items: [{
+                xtype: 'panel',
+                cls: 'helptext',
+                border: false,
+                html: 'Enter a hostname or IP address' + ' for each device you want to add.'
+            },
+            {
+                xtype: 'button',
+                anchor: null,
+                id: 'dev_add_button',
+                text: '+',
+                handler: addDeviceRow
+            }]
+        },
+        {
+            layout: 'card',
+            id: 'manual_creds'
+        }]
+    };
 
-	var tabpanel = Ext.create('Ext.panel.Panel', {
-		autoHeight: true,
-		layout: {
-			type: 'card'
-		},
-		renderTo: 'deviceadd_tabs',
-		items: [manualdiscover, autodiscover],
-		listeners: {
-			afterlayout: {
-				fn: function() {
-					addDeviceRow();
-				},
-				single: true
-			}
-		}
-	});
+    var tabpanel = Ext.create('Ext.panel.Panel', {
+        autoHeight: true,
+        layout: {
+            type: 'card'
+        },
+        renderTo: 'deviceadd_tabs',
+        // dockedItems (bbar) do not work on column layouts in extjs4 (hence the complicated panels)
+        items: [{
+            xtype: 'panel',
+            items: [manualdiscover, {
+                xtype: 'panel',
+                items: [{
+                    xtype: 'button',
+                    text: 'Submit',
+                    handler: function() {
+                        Ext.getCmp('manualdiscoverform').getForm().submit({
+                            url: 'manual_add',
+                            success: function(form, action) {
+                                window.location = '/zport/dmd/Dashboard';
+                            }
+                        });
+                    }
+                }]
+            }]
+        }, {
+            xtype: 'panel',
+            items: [autodiscover, {
+                xtype: 'panel',
+                items: [{
+                    xtype: 'button',
+                    text: 'Submit',
+                    handler: function() {
+                        Ext.getCmp('autodiscoverform').getForm().submit({
+                            url: 'auto_add',
+                            success: function(form, action) {
+                                window.location = '/zport/dmd/Dashboard';
+                            }
+                        });
+                    }
+                }]
+            }]
+        }],
+        listeners: {
+            afterlayout: {
+                fn: function() {
+                    addDeviceRow();
+                },
+                single: true
+            }
+        }
+    });
 
-	// Wire up the radio buttons
-	var manlradio = Ext.get('manualradio');
-	var autoradio = Ext.get('autoradio');
+    // Wire up the radio buttons
+    var manlradio = Ext.get('manualradio');
+    var autoradio = Ext.get('autoradio');
 
-	manlradio.on('change', function() {
-		manlradio.dom.checked = true;
-		tabpanel.getLayout().setActiveItem(0)
-	});
+    manlradio.on('change', function() {
+        manlradio.dom.checked = true;
+        tabpanel.getLayout().setActiveItem(0)
+    });
 
-	autoradio.on('change', function() {
-		autoradio.dom.checked = true;
-		tabpanel.getLayout().setActiveItem(1)
-	});
+    autoradio.on('change', function() {
+        autoradio.dom.checked = true;
+        tabpanel.getLayout().setActiveItem(1)
+    });
 
-	tabpanel.getLayout().setActiveItem(0);
-	tabpanel.getLayout().setActiveItem(1);
-	tabpanel.getLayout().setActiveItem(0);
-	tabpanel.doLayout();
+    tabpanel.getLayout().setActiveItem(0);
+    tabpanel.getLayout().setActiveItem(1);
+    tabpanel.getLayout().setActiveItem(0);
+    tabpanel.doLayout();
 
 });
 

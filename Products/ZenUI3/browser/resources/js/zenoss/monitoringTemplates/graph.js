@@ -818,7 +818,7 @@ Ext.define("Zenoss.templates.GraphGrid", {
                     }
                 }
             }),
-            columns: [{dataIndex: 'name', header: _t('Name'), width: 400}],
+            columns: [{dataIndex: 'name', header: _t('Name'), flex:1, width: 400}],
 
             tbar: [{
                 id: 'addGraphDefinitionButton',

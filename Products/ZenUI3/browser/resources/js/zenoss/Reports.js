@@ -63,21 +63,16 @@ function initializeTreeDrop(tree) {
 }
 
 function insertNewNode(tree, data, organizerNode) {
-    var newNode = tree.getLoader().createNode(data.newNode),
+    var newNode = organizerNode.appendChild(data.newNode),
         firstLeafNode = organizerNode.findChild('leaf', true);
     organizerNode.expand();
-    if (firstLeafNode) {
-        organizerNode.insertBefore(newNode, firstLeafNode);
-    } else {
-        organizerNode.appendChild(newNode);
-    }
-    newNode.select();
-    newNode.expand(true);
-    tree.update(data.tree);
+    report_tree.getSelectionModel().select(newNode);
     return newNode;
 }
 
-Zenoss.ReportTreePanel = Ext.extend(Zenoss.HierarchyTreePanel, {
+
+Ext.define('Zenoss.ReportTreePanel', {
+    extend: 'Zenoss.HierarchyTreePanel',
     addNode: function (nodeType, id) {
         var selNode = this.getSelectionModel().getSelectedNode(),
             parentNode = selNode.leaf ? selNode.parentNode : selNode,
@@ -124,10 +119,10 @@ Zenoss.ReportTreePanel = Ext.extend(Zenoss.HierarchyTreePanel, {
     },
     _deleteSelectedNode: function () {
         var node = this.getSelectionModel().getSelectedNode(),
-                parentNode = node.parentNode,
-                uid = node.data.uid,
-                params = {uid: uid},
-                tree = this;
+            parentNode = node.parentNode,
+            uid = node.data.uid,
+            params = {uid: uid},
+            tree = this;
         function callback(data) {
             if (data.success) {
                 parentNode.select();
@@ -192,7 +187,14 @@ report_tree = new Zenoss.ReportTreePanel({
     listeners: {
         render: initializeTreeDrop
     },
-    dropConfig: { appendOnly: true }
+    dropConfig: { appendOnly: true },
+    extraFields: [{
+        name: 'deletable',
+        type: 'bool'
+    }, {
+        name: 'edit_url',
+        type: 'string'
+    }]
 });
 
 report_tree.expandAll();
