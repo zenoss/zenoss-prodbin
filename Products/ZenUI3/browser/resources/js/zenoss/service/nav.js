@@ -215,6 +215,8 @@
             }
         ));
         Ext.getCmp('center_panel').doLayout();
+        // expand the card panel so it can render the toolbar
+        Ext.getCmp('detailCardPanel').expand();
         fb = Ext.getCmp('footer_bar');
         fb.on('buttonClick', zs.dispatcher);
         var footerHelperOptions = {

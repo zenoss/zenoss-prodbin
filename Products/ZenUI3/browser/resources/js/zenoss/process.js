@@ -462,10 +462,10 @@ var zFailSeverity = {
     xtype: 'zprop',
     ref: '../../zFailSeverity',
     title: _t('Failure Event Severity (zFailSeverity)'),
-    name: 'zFailSeverity',        
+    name: 'zFailSeverity',
     localField: {
         xtype: 'select',
-        mode: 'local',  
+        mode: 'local',
         store: Zenoss.env.SEVERITIES.slice(0, 5)
     }
 };
@@ -487,7 +487,7 @@ var regexFieldSet = {
 var processFormItems = {
     layout: 'column',
     defaults: {
-        layout: 'anchor', 
+        layout: 'anchor',
         bodyStyle: 'padding: 15px',
         columnWidth: 0.5
     },
@@ -690,5 +690,8 @@ Ext.getCmp('footer_bar').query("button[ref='buttonContextMenu']")[0].menu.addIte
         Ext.getCmp('sequenceDialog').show();
     }
 });
+    // expand the detail panel so it can render the toolbar
+    var detailpanel = Ext.getCmp('detailCardPanel');
+    detailpanel.expand();
 
 }); // Ext.onReady

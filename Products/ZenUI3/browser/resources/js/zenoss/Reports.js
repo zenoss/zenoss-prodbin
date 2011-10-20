@@ -119,22 +119,23 @@ Ext.define('Zenoss.ReportTreePanel', {
     },
     _deleteSelectedNode: function () {
         var node = this.getSelectionModel().getSelectedNode(),
+            sm = this.getSelectionModel(),
             parentNode = node.parentNode,
             uid = node.data.uid,
             params = {uid: uid},
             tree = this;
         function callback(data) {
             if (data.success) {
-                parentNode.select();
+                sm.select(parentNode);
                 parentNode.removeChild(node);
                 node.destroy();
-                tree.update(data.tree);
-                // the select() above is insufficient;
-                // the url refers to the deleted node still.
-                parentNode.fireEvent('click', parentNode);
+                this.addHistoryToken(parentNode);
+                this.refresh(function(){
+                    tree.expandAll();
+                });
             }
         }
-        this.router.deleteNode(params, callback);
+        this.router.deleteNode(params, Ext.Function.bind(callback, this));
     },
     editReport: function () {
         window.location = this.getSelectionModel().getSelectedNode().data.edit_url;

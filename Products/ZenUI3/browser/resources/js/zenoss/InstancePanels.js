@@ -114,13 +114,16 @@ Ext.define("Zenoss.SimpleCardPanel", {
 
     constructor: function(config) {
         this.contextUid = null;
+        var me = this;
         Ext.applyIf(config, {
             layout: 'card',
             activeItem: 0,
             height: Math.min(((Ext.getCmp('viewport').getHeight() - 75)/5)+30, 200),
             tbar: {
                 xtype: 'consolebar',
+                centerPanel: 'detail_panel',
                 title: _t('Display: '),
+                hideCollapseTool: true,
                 parentPanel: this,
                 leftItems: [{
                     xtype: 'select',
@@ -131,7 +134,7 @@ Ext.define("Zenoss.SimpleCardPanel", {
                     listeners: {
                         select: function(displaySelect, records) {
                             var index = records[0].index;
-                            displaySelect.up('simplecardpanel').getLayout().setActiveItem(index);
+                            me.layout.setActiveItem(index);
                         }
                     }
                 }]
@@ -148,7 +151,6 @@ Ext.define("Zenoss.SimpleCardPanel", {
         });
         this.callParent(arguments);
     },
-
     setContext: function(uid) {
         // only reload our datastores if we are not collapsed
         this.contextUid = uid;

@@ -17,38 +17,6 @@
 
 Ext.ns('Zenoss');
 
-/**
- * @class Zenoss.ContextCardButtonPanel
- * @extends Zenoss.CardButtonPanel
- * Support context-driven loading
- * @constructor
- */
-Ext.define("Zenoss.ContextCardButtonPanel", {
-    extend:"Zenoss.CardButtonPanel",
-    alias: ['widget.ContextCardButtonPanel'],
-    contextUid: null,
-    initEvents: function() {
-        this.on('cardchange', this.cardChangeHandler, this);
-        Zenoss.CardButtonPanel.superclass.initEvents.call(this);
-    },
-    setContext: function(uid) {
-        var panel;
-        if (this.contextUid!=uid) {
-            this.contextUid = uid;
-            panel = this.layout.activeItem;
-            if (panel.setContext) {
-                panel.setContext(uid);
-            }
-        }
-    },
-    cardChangeHandler: function(panel) {
-        if (panel.setContext) {
-            panel.setContext(this.contextUid);
-        }
-    }
-});
-
-
 
 var oldActiveItem = Ext.layout.CardLayout.prototype.setActiveItem;
 var oldInitEvents = Ext.layout.CardLayout.prototype.initEvents;
@@ -87,27 +55,6 @@ Ext.define("Zenoss.ContextCardPanel", {
 
 });
 
-
-
-Ext.define("Zenoss.ContextCardTabPanel", {
-    extend:"Ext.TabPanel",
-    alias: ['widget.contextcardtabpanel'],
-    contextUid: null,
-    initEvents: function() {
-        Zenoss.ContextCardTabPanel.superclass.initEvents.call(this);
-        this.on('beforetabchange', this.cardChangeHandler, this);
-    },
-    setContext: function(uid) {
-        this.contextUid = uid;
-        this.cardChangeHandler(this, this.layout.activeItem);
-    },
-    cardChangeHandler: function(tabpanel, tab, oldtab) {
-        if (tab!=oldtab && tab.setContext) {
-            tab.setContext.call(tab, this.contextUid);
-        }
-    }
-
-});
 
 
 

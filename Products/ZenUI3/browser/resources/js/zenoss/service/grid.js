@@ -24,17 +24,18 @@
         Ext.getCmp('serviceForm').setContext(dataRecord.data.uid);
         detail = Ext.getCmp('detail_panel');
         panel = detail.detailCardPanel;
-        panel.setContext(dataRecord.data.uid);
+
         if (panel.collapsed) {
             panel.on('expand', function(p){
                 p.setHeight(250).doLayout();
                 Ext.getCmp('detail_panel').doLayout();
+                panel.setContext(dataRecord.data.uid);
             }, this, {single: true});
             panel.expand();
+        } else {
+            panel.setContext(dataRecord.data.uid);
         }
 
-        // detail.detailCardPanel.setHeight(300);
-        // Ext.getCmp('detail_panel').doLayout();
         Ext.getCmp('footer_bar').buttonDelete.setDisabled(false);
         token = Ext.History.getToken();
         if ( ! token ) {
