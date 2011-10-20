@@ -293,6 +293,7 @@ new Zenoss.HideFormDialog({
         html: overrideHtml1()
     }, {
         xtype: 'button',
+        ui:'dialog-dark',
         id: 'learnMore',
         text: _t('Learn more'),
         handler: function() {
@@ -405,9 +406,11 @@ addTemplateDialogConfig = {
         xtype: 'textfield',
         name: 'id',
         fieldLabel: _t('Name'),
+        anchor: '80%',
         allowBlank: false
     }, {
         xtype: 'combo',
+        anchor: '80%',
         fieldLabel: _t('Template Path'),
         forceSelection: true,
         width: 250,

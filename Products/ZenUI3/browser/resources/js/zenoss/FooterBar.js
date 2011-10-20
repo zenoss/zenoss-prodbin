@@ -49,6 +49,7 @@ Zenoss.footerHelper = function(itemName, footerBar, options) {
                 xtype: 'textfield',
                 name: 'id',
                 fieldLabel: _t('Name'),
+                anchor: '80%',
                 allowBlank: false
             }];
         },

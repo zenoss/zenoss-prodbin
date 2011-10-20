@@ -117,5 +117,44 @@
             
         
         }  
+        
+        //#bindTemplatesDialog for targeting the bind template pop-up
+
+    /*
+    CORE TRIGGER PAGE STUFF
+    */  
+    
+    .white-background-panel {
+        font-size: 12px;
+        color: #454545;  
+        .x-window-header {
+            font-size: 12px;
+        }    
+        .x-window-mc {
+            padding-top: 2px;
+        }
+        .x-item-disabled * {
+            color: gray !important;
+        }
+        .x-window-body .x-panel-body {
+            background : none repeat scroll 0 0 #FAFAFA;
+            color: #454545;
+        }
+        .x-box-inner {
+            padding-bottom: 15px;
+            padding-top: 20px;
+            left: 0 !important;
+        }
+        .x-form-check-wrap .x-form-field {
+            margin-top: 5px;
+        }
+        .x-fieldset {
+            padding: 0;
+        }
+        div.xtb-text {
+            line-height: 21px;
+            font-size: 10pt;
+        }
+    }        
 
 }

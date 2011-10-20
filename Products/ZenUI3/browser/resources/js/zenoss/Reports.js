@@ -242,6 +242,7 @@ function createAction(typeName, text) {
                     xtype: 'textfield',
                     fieldLabel: _t('ID'),
                     name: 'name',
+                    anchor:'80%',
                     allowBlank: false
                 }],
                 buttons: [{

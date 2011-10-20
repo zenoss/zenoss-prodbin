@@ -131,6 +131,7 @@ var addNetworkDialogConfig = {
         xtype: 'textfield',
         name: 'id',
         fieldLabel: _t('Network / Subnet mask'),
+        anchor: '80%',
         allowBlank: false
     }]
 };
@@ -491,6 +492,7 @@ var showEditDescriptionDialog = function() {
             xtype: 'textfield',
             id: 'description',
             name: 'description',
+            anchor: '80%',
             fieldLabel: _t('Description'),
             allowBlank: true
             }],

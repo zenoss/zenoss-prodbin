@@ -219,6 +219,7 @@
                 tbar:[
                      {
                         xtype: 'tbtext',
+                        height:30,
                         text: _t('Configuration Properties')
                     },
                     '-',

@@ -87,7 +87,7 @@ Ext.onReady(function () {
                     xtype:'form',
                     ref: 'addForm',
                     monitorValid: true,
-                    buttonAlign: 'center',
+                    buttonAlign: 'left',
                     labelWidth: 40,
                     items:[{
                         xtype: 'textfield',
@@ -414,6 +414,7 @@ Ext.onReady(function () {
                 activeIndex: 0,
                 forceLayout: true,
                 frame: false,
+                style:{'left':'2px'},
                 loadData: function(data) {
                     Ext.each(this.items.items, function(item, index, allitems) {
                         item.loadData(data);
@@ -657,7 +658,7 @@ Ext.onReady(function () {
                 xtype:'form',
                 ref: '../addForm',
                 monitorValid: true,
-                buttonAlign: 'center',
+                buttonAlign: 'left',
                 labelWidth: 40,
                 items:[
                     {
@@ -722,7 +723,7 @@ Ext.onReady(function () {
                 items: [{
                     xtype:'form',
                     ref: 'editForm',
-                    buttonAlign: 'center',
+                    buttonAlign: 'left',
                     monitorValid: true,
                     items:[config.tabPanel],
                     buttons:[{
@@ -786,7 +787,7 @@ Ext.onReady(function () {
                 items:{
                     xtype:'form',
                     ref: 'editForm',
-                    buttonAlign: 'center',
+                    buttonAlign: 'left',
                     monitorValid: true,
                     autoWidth: true,
                     items:[
@@ -1485,7 +1486,7 @@ Ext.onReady(function () {
     });
 
     masterPanelConfig = {
-        id: 'master_panel',
+        id: 'trigger-master_panel',
         region: 'west',
         split: 'true',
         width: 275,
@@ -1493,7 +1494,7 @@ Ext.onReady(function () {
         autoScroll: false,
         items: [
             {
-                id: 'master_panel_navigation',
+                id: 'trigger-master_panel_navigation',
                 xtype: 'treepanel',
                 region: 'west',
                 split: 'true',

@@ -36,7 +36,10 @@
         height: 100%;
         left: 0;
         width: 200px;
-    
+        ul li.selected a {
+          background-color: #7199C6;
+          color: white;
+        }     
         ul li a {
           color: #454545;
           display: block;
@@ -47,13 +50,10 @@
           text-decoration: none;
           &:hover{
             background-color:#eee;
-            color:#454545;
+            color:#454545 !important;
           }
         }  
-        ul li.selected a {
-          background-color: #7199C6;
-          color: white;
-        }      
+     
         li{
             list-style:none;
         }

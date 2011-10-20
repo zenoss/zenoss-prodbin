@@ -20,6 +20,7 @@ var ZF = Ext.ns('Zenoss.form');
 Ext.define("Zenoss.form.IDField", {
     alias: ['widget.idfield'],
     extend: "Ext.form.TextField",
+    anchor:'80%',
     /*
     * Context on which to check for id validity. Defaults to
     * Zenoss.env.PARENT_CONTEXT.

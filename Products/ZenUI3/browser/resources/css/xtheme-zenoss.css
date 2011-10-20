@@ -7297,12 +7297,6 @@ $menu-icon-unchecked: 'menu/unchecked.gif';
   height: 20px;
   font-size: 12px;
   color: #454545; }
-.x-panel-hierarchy .x-grid-cell-first {
-  /* This came from prev tree style, but there's nothing to target to apply it
-   color: #6386AE;
-   font-size: 10px;
-   font-weight: bold;
-   text-transform: uppercase;*/ }
 
 .x-hierarchy-search-panel .x-field-search {
   padding: 6px; }
@@ -7558,6 +7552,9 @@ $menu-icon-unchecked: 'menu/unchecked.gif';
 
 .x-btn-default-toolbar-small-over .x-btn-inner {
   color: #1b579a; }
+
+.collapse, .expand {
+  margin-bottom: 3px; }
 
 .x-btn-default-toolbar-small span.x-btn-icon {
   background: transparent none top center no-repeat;
@@ -8495,24 +8492,6 @@ $menu-icon-unchecked: 'menu/unchecked.gif';
   font-weight: bold;
   font-size: 13px; }
 
-.refreshevery {
-  background-color: #474747;
-  color: white !important;
-  display: block;
-  font-weight: bold;
-  height: 18px !important;
-  margin: 2px; }
-.refreshevery a {
-  display: block;
-  height: 11px;
-  position: relative; }
-.refreshevery span .x-menu-item-text {
-  position: absolute;
-  left: 3px;
-  top: -2px;
-  color: white !important;
-  height: 12px !important; }
-
 /* consolebar overrides */
 #NetworkDetailCardPanel .x-btn {
   top: 3px !important; }
@@ -8529,6 +8508,26 @@ $menu-icon-unchecked: 'menu/unchecked.gif';
 .x-ie #statusitem .devdetail-labelitem, .x-ie #prodstateitem .devdetail-labelitem, .x-ie #priorityitem .devdetail-labelitem {
   line-height: 8px !important;
   padding-bottom: 3px; }
+
+#config_property_panel .x-toolbar-text {
+  padding-top: 6px; }
+
+.refreshevery {
+  background-color: #474747;
+  display: block;
+  font-weight: bold;
+  height: 18px !important;
+  margin: 2px; }
+.refreshevery a {
+  display: block;
+  height: 11px;
+  position: relative; }
+.refreshevery a .x-menu-item-text {
+  position: absolute;
+  left: 3px;
+  top: -2px;
+  color: white !important;
+  height: 12px !important; }
 
 .x-panel-default {
   border-color: #99bce8; }
@@ -8694,6 +8693,9 @@ $menu-icon-unchecked: 'menu/unchecked.gif';
   height: 100%;
   left: 0;
   width: 200px; }
+#newTabsPane ul li.selected a {
+  background-color: #7199C6;
+  color: white; }
 #newTabsPane ul li a {
   color: #454545;
   display: block;
@@ -8704,10 +8706,7 @@ $menu-icon-unchecked: 'menu/unchecked.gif';
   text-decoration: none; }
 #newTabsPane ul li a:hover {
   background-color: #eee;
-  color: #454545; }
-#newTabsPane ul li.selected a {
-  background-color: #7199C6;
-  color: white; }
+  color: #454545 !important; }
 #newTabsPane li {
   list-style: none; }
 #newTabsPane ul {
@@ -9097,6 +9096,33 @@ $menu-icon-unchecked: 'menu/unchecked.gif';
 .x-nbr .x-window-default-mr {
   padding-left: 10px; }
 
+/*
+CORE TRIGGER PAGE STUFF
+*/
+.white-background-panel {
+  font-size: 12px;
+  color: #454545; }
+.white-background-panel .x-window-header {
+  font-size: 12px; }
+.white-background-panel .x-window-mc {
+  padding-top: 2px; }
+.white-background-panel .x-item-disabled * {
+  color: gray !important; }
+.white-background-panel .x-window-body .x-panel-body {
+  background: none repeat scroll 0 0 #FAFAFA;
+  color: #454545; }
+.white-background-panel .x-box-inner {
+  padding-bottom: 15px;
+  padding-top: 20px;
+  left: 0 !important; }
+.white-background-panel .x-form-check-wrap .x-form-field {
+  margin-top: 5px; }
+.white-background-panel .x-fieldset {
+  padding: 0; }
+.white-background-panel div.xtb-text {
+  line-height: 21px;
+  font-size: 10pt; }
+
 .x-grid .x-column-header {
   border-left: 0 none;
   border-right: 1px solid #B4B4B4;
@@ -9340,34 +9366,6 @@ $menu-icon-unchecked: 'menu/unchecked.gif';
 .x-flare .x-flare-debug .x-flare-icon {
   background-position: 0px -80px; }
 
-/*
-CORE TRIGGER PAGE STUFF
-*/
-.white-background-panel {
-  font-size: 12px;
-  background: none repeat scroll 0 0 #FAFAFA;
-  color: #454545; }
-.white-background-panel .x-window-header {
-  font-size: 12px; }
-.white-background-panel .x-window-mc {
-  padding-top: 2px; }
-.white-background-panel .x-item-disabled * {
-  color: gray !important; }
-.white-background-panel .x-window-body .x-panel-body {
-  background: none repeat scroll 0 0 #FAFAFA;
-  color: #454545; }
-.white-background-panel .x-box-inner {
-  padding-bottom: 15px;
-  padding-top: 20px;
-  left: 0 !important; }
-.white-background-panel .x-form-check-wrap .x-form-field {
-  margin-top: 5px; }
-.white-background-panel .x-fieldset {
-  padding: 0; }
-.white-background-panel div.xtb-text {
-  line-height: 21px;
-  font-size: 10pt; }
-
 /* top search button sprite */
 #searchbox-container .x-form-trigger {
   background-image: url("../img/xtheme-zenoss/form/trigger.gif"); }
@@ -9386,12 +9384,15 @@ CORE TRIGGER PAGE STUFF
   background-image: url("../img/ext4/toolbar/blue-header-bg.png") !important;
   background-repeat: repeat-x; }
 
-#master_panel_navigation {
+#trigger-master_panel, #trigger-master_panel-body {
   background-color: #d4e0ee !important; }
-#master_panel_navigation .x-grid-cell, #master_panel_navigation #master_panel_navigation-body {
-  background: transparent; }
-#master_panel_navigation .x-tree-elbow-end, #master_panel_navigation .x-tree-elbow {
-  background-image: none; }
+
+#trigger-master_panel_navigation {
+  background: transparent !important; }
+#trigger-master_panel_navigation .x-grid-cell, #trigger-master_panel_navigation #trigger-master_panel_navigation-body, #trigger-master_panel_navigation .x-grid-header-ct, #trigger-master_panel_navigation .x-column-header, #trigger-master_panel_navigation .x-tree-elbow-end, #trigger-master_panel_navigation .x-tree-elbow {
+  background: transparent;
+  background-image: none;
+  border: 0 none !important; }
 
 #master_panel #subselecttreepaneldetail_nav-body, #master_panel .x-panel-body {
   border: 0 none !important; }
@@ -9401,8 +9402,9 @@ CORE TRIGGER PAGE STUFF
 #master_panel .x-panel-body {
   overflow: visible; }
 
-#master_panel .x-panel-hierarchy .x-grid-row-over .x-grid-cell, #master_panel .x-panel-hierarchy .x-grid-row-over .x-grid-cell-inner, #master_panel #subselecttreepaneldetail_nav .x-grid-row-over .x-grid-cell, #master_panel #subselecttreepaneldetail_nav .x-grid-row-over .x-grid-cell-inner, #master_panel_navigation .x-grid-row-over .x-grid-cell, #master_panel_navigation .x-grid-row-over .x-grid-cell-inner {
-  background-color: #eeeeee !important; }
+#master_panel .x-panel-hierarchy .x-grid-row-over .x-grid-cell, #master_panel .x-panel-hierarchy .x-grid-row-over .x-grid-cell-inner, #master_panel #subselecttreepaneldetail_nav .x-grid-row-over .x-grid-cell, #master_panel #subselecttreepaneldetail_nav .x-grid-row-over .x-grid-cell-inner, #master_panel_navigation .x-grid-row-over .x-grid-cell, #master_panel_navigation .x-grid-row-over .x-grid-cell-inner, #trigger-master_panel .x-grid-row-over .x-grid-cell, #trigger-master_panel .x-grid-row-over .x-grid-cell-inner {
+  background-color: #eeeeee !important;
+  color: #454545; }
 
 #processForm .x-toolbar-footer, #serviceForm .x-toolbar-footer {
   background-color: #F5F9FD;

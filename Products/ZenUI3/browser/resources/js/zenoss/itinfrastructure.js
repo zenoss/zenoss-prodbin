@@ -1293,6 +1293,7 @@ function getOrganizerFields(mode) {
             id: 'id',
             name: 'id',
             fieldLabel: _t('Name'),
+            anchor: '80%',
             allowBlank: false
         });
     }
@@ -1302,6 +1303,7 @@ function getOrganizerFields(mode) {
         id: 'description',
         name: 'description',
         fieldLabel: _t('Description'),
+        anchor: '80%',
         allowBlank: true
     });
 

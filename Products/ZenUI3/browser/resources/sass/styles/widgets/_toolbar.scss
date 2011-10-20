@@ -30,27 +30,7 @@
             font-size:13px;
         }        
     } 
-    
-    .refreshevery {
-      background-color: #474747;
-      color: white !important;
-      display: block;
-      font-weight: bold;
-      height:18px !important;
-      margin:2px;
-      a{
-        display:block;
-        height:11px;
-        position:relative;
-      }
-      span .#{$prefix}menu-item-text{    
-        position:absolute;
-        left:3px;
-        top:-2px;
-        color:white !important;
-        height:12px !important
-      }
-    }    
+   
     /* consolebar overrides */
     #NetworkDetailCardPanel{
         .#{$prefix}btn{
@@ -75,6 +55,31 @@
             }
         }
     }    
+    #config_property_panel{
+        .x-toolbar-text{
+            padding-top:6px;
+        }
+    }
+    
+    .refreshevery {
+        background-color: #474747;
+        display: block;
+        font-weight: bold;
+        height:18px !important;
+        margin:2px;
+        a{
+            display:block;
+            height:11px;
+            position:relative;
+          .#{$prefix}menu-item-text{    
+                position:absolute;
+                left:3px;
+                top:-2px;
+                color:white !important;
+                height:12px !important;
+          }
+        }
+    }     
     
 }    
     

@@ -232,6 +232,7 @@
                 return [{
                     xtype: 'idfield',
                     name: 'id',
+                    anchor: '80%',
                     fieldLabel: _t('Name'),
                     allowBlank: false
                 }];
