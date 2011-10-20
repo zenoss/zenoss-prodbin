@@ -1,14 +1,9 @@
-###########################################################################
-#
-# This program is part of Zenoss Core, an open source monitoring platform.
-# Copyright (C) 2011, Zenoss Inc.
-#
-# This program is free software; you can redistribute it and/or modify it
-# under the terms of the GNU General Public License version 2 or (at your
-# option) any later version as published by the Free Software Foundation.
-#
-# For complete information please visit: http://www.zenoss.com/oss/
-#
-###########################################################################
 
-sendUserAction = None  # Method to act on user actions.
+# TODO: ----- delete this file when all calls are converted. -----
+
+from Products.ZenMessaging.audit import audit
+
+def sendUserAction(actionTargetType, actionName, **kwargs):
+    """Deprecated"""
+    category = '.'.join(('Deprecated', actionTargetType, actionName))
+    audit(category, **kwargs)

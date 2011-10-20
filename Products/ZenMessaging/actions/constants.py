@@ -1,18 +1,8 @@
-###########################################################################
-#
-# This program is part of Zenoss Core, an open source monitoring platform.
-# Copyright (C) 2011, Zenoss Inc.
-#
-# This program is free software; you can redistribute it and/or modify it
-# under the terms of the GNU General Public License version 2 or (at your
-# option) any later version as published by the Free Software Foundation.
-#
-# For complete information please visit: http://www.zenoss.com/oss/
-#
-###########################################################################
+
+# TODO: ----- delete this file when all calls are converted. -----
 
 class ActionTargetType(object):
-    """Helper to hold action target types."""
+    """DEPRECATED"""
 
     Unknown     = 'Unknown'     # use sparingly, for unexpected values.
     ManualEntry = 'ManualEntry'
@@ -56,7 +46,7 @@ class ActionTargetType(object):
 
 
 class ActionName(object):
-    """Holds common action names."""
+    """DEPRECATED"""
 
     # Use whatever terminology the code does.
     Create  = 'Create'
