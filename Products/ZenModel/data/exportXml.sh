@@ -1,16 +1,15 @@
-#!/bin/bash
-stty -echo
-echo 'Postgres admin password: \c'
-read PGPASSWORD
-stty echo
-echo
+#!/usr/bin/env bash
 
 . $ZENHOME/bin/zenfunctions
 
 echo 'Running migrate...'
 zenmigrate
+if [ $? -ne 0 ]; then
+    echo "An error running zenmigrate."
+    exit 1
+fi
 
-echo 'Dumping Menus...\c'
+echo 'Dumping Menus...'
 zendmd >/dev/null 2>&1 <<EOF
 fp = open('menus.xml', 'w')
 fp.write('''<?xml version="1.0"?>
@@ -21,20 +20,72 @@ dmd.zenMenus.exportXml(fp)
 fp.write('</object></objects>\n')
 fp.close()
 EOF
+if [ $? -ne 0 ]; then
+   echo "An error dumping menus."
+   exit 1
+fi
 
-echo 'Dumping Devices...\c'
+echo 'Dumping Devices...'
 zendump -R /zport/dmd/Devices --ignore devices -o devices.xml
-echo 'Dumping Services...\c'
+if [ $? -ne 0 ]; then
+   echo "An error dumping devices."
+   exit 1
+fi
+
+echo 'Dumping Services...'
 zendump -R /zport/dmd/Services --ignore instances -o services.xml
-echo 'Dumping Event Classes...\c'
+if [ $? -ne 0 ]; then
+    echo "An error dumping services."
+    exit 1
+fi
+
+echo 'Dumping Event Classes...'
 zendump -R /zport/dmd/Events -o events.xml
-echo 'Dumping Manufacturers...\c'
+if [ $? -ne 0 ]; then
+    echo "An error dumping classes."
+    exit 1
+fi
+
+echo 'Dumping Manufacturers...'
 zendump -R /zport/dmd/Manufacturers --ignore instances -o manufacturers.xml
-replace "id='/zport/dmd'" "id='/zport/dmd/Manufacturers'" -- manufacturers.xml
-echo "Dumping Collector Templates...\c"
+if [ $? -ne 0 ]; then
+    echo "An error dumping manufacturers."
+    exit 1
+fi
+
+sed -i -e "s/id='\/zport\/dmd'/id='\/zport\/dmd\/Manufacturers'/g" manufacturers.xml
+if [ $? -ne 0 ]; then
+   echo "SED replacement failed."
+   exit 1
+fi
+
+echo "Dumping Collector Templates..."
 zendump -R /zport/dmd/Monitors --ignore devices --ignore instances -o monitorTemplate.xml
-echo "Dumping Zenoss OS Process definitions...\c"
+if [ $? -ne 0 ]; then
+    echo "An error dumping templates."
+    exit 1
+fi
+
+echo "Dumping Zenoss OS Process definitions..."
 zendump -R /zport/dmd/Processes/Zenoss --ignore instances -o osprocesses.xml
-echo "Dumping SQL...\c"
-pg_dump -U postgres zodb | gzip -c > zodb.sql.gz
-echo done
+if [ $? -ne 0 ]; then
+    echo "An error dumping os processes."
+    exit 1
+fi
+
+echo "Dumping SQL..."
+$ZENHOME/Products/ZenUtils/ZenDB.py --usedb=zodb --dump --dumpfile=zodb.sql 
+if [ $? -ne 0 ]; then
+    echo "An error dumping database."
+    rm -rf zodb.sql
+    exit 1
+fi
+
+gzip --force zodb.sql
+if [ $? -ne 0 ]; then
+    echo "An error ziping database dump."
+    rm -rf zodb.sql
+    exit 1
+fi
+
+

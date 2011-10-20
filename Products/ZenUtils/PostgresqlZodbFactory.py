@@ -23,6 +23,8 @@ import relstorage.storage
 import relstorage.adapters.postgresql
 import relstorage.options
 
+import psycopg2 as db_exceptions
+
 from ZodbFactory import IZodbFactory
 
 def _getDefaults(options=None):
@@ -45,6 +47,10 @@ def _getDefaults(options=None):
 class PostgresqlZodbFactory(object):
     implements(IZodbFactory)
 
+    # set db specific here to allow more flexible imports
+    exceptions = db_exceptions
+ 
+ 
     def getZopeZodbConf(self):
         """Return a zope.conf style zodb config."""
         settings = _getDefaults()

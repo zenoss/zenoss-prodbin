@@ -22,6 +22,8 @@ import ZODB
 import relstorage.storage 
 import relstorage.adapters.mysql
 import relstorage.options
+import _mysql_exceptions as db_exceptions
+
 
 from ZodbFactory import IZodbFactory
 
@@ -46,6 +48,9 @@ def _getDefaults(options=None):
 class MySqlZodbFactory(object):
     implements(IZodbFactory)
 
+    # set db specific here to allow more flexible imports
+    exceptions = db_exceptions
+ 
     def getZopeZodbConf(self):
         """Return a zope.conf style zodb config."""
         settings = _getDefaults()

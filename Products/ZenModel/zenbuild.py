@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 ###########################################################################
 #
 # This program is part of Zenoss Core, an open source monitoring platform.
@@ -23,13 +24,13 @@ import os
 import Globals
 import transaction
 import subprocess
+import sys
 
 from Products.ZenUtils.Utils import zenPath
 
 from Products.ZenUtils import Security
 from Products.ZenUtils.CmdBase import CmdBase
 from Products.PluggableAuthService import plugins
-from MySQLdb import OperationalError
 
 class zenbuild(CmdBase):
 
@@ -97,15 +98,6 @@ class zenbuild(CmdBase):
     def build(self):
         self.db = None
         self.storage = None
-        mysqlcmd = ['mysql', '-u', self.options.zodb_user]
-        if self.options.zodb_password:
-            mysqlcmd.append('-p%s' % self.options.zodb_password)
-        mysqlcmd.extend([
-            '-h', self.options.zodb_host,
-            '--port', str(self.options.zodb_port)
-        ])
-
-        mysqlcmd = subprocess.list2cmdline(mysqlcmd)
 
         conn = None
         try:
@@ -116,24 +108,9 @@ class zenbuild(CmdBase):
             if app and getattr(app, self.sitename, None) is not None:
                 print "zport portal object exists; exiting."
                 return
-        except OperationalError, e:
-            if 'Unknown database' in e[1]:
-                queries = (
-                    'CREATE DATABASE %s;' % self.options.zodb_db,
-                    "GRANT ALL ON %s.* TO %s@'%s' IDENTIFIED BY '%s';" % (
-                        self.options.zodb_db, self.options.zodb_user,
-                        self.options.zodb_host, self.options.zodb_password),
-                    "GRANT ALL ON %s.* TO %s@'%%' IDENTIFIED BY '%s';" % (
-                        self.options.zodb_db, self.options.zodb_user,
-                        self.options.zodb_password),
-                    "FLUSH PRIVILEGES;"
-                )
-
-                for query in queries:
-                    cmd = mysqlcmd + ' -e "%s"' % query
-                    os.system(cmd)
-            else:
-                raise
+        except connectionFactory.OperationalError as e:
+            print "zenbuild: Database does not exists."
+            sys.exit(1)
         finally:
             if conn:
                 conn.close()
@@ -145,7 +122,7 @@ class zenbuild(CmdBase):
                 self.storage = None
 
         # TODO: remove the port condition, in here for now because there is no SQL dump of postgresql
-        if self.options.fromXml or self.options.zodb_port not in (3306, 13306):
+        if self.options.fromXml:
             self.connect()
             from Products.ZenModel.ZentinelPortal import manage_addZentinelPortal
             manage_addZentinelPortal(self.app, self.sitename)
@@ -208,10 +185,14 @@ class zenbuild(CmdBase):
 
         else:
 
-            mysqlcmd += ' %s' % self.options.zodb_db
-
-            cmd = 'cat $ZENHOME/Products/ZenModel/data/zodb.sql.gz | gzip -c -d | %s' % mysqlcmd
-            os.system(cmd)
+            cmd = "zcat %s | %s --usedb=zodb" % (
+                 zenPath("Products/ZenModel/data/zodb.sql.gz"),
+                 zenPath("Products/ZenUtils/ZenDB.py"),
+            )
+            returncode = os.system(cmd)
+            if returncode:
+                print >> sys.stderr, "There was a problem creating the database from the sql dump."
+                sys.exit(1)
 
             # Relstorage may have already loaded items into the cache in the
             # initial connection to the database. We have to expire everything
@@ -237,16 +218,6 @@ class zenbuild(CmdBase):
                 evmgr.port = self.options.evtport
             transaction.commit()
 
-        # Update the global conf
-        print "Updating global.conf"
-        zenglobalconf = zenPath('bin', 'zenglobalconf')
-        cmd = [zenglobalconf, '-u']
-        for opt in ('zodb_host', 'zodb_port', 'zodb_db', 'zodb_user', 'zodb_password',
-                    'amqphost', 'amqpport', 'amqpvhost', 'amqpuser',
-                    'amqppassword', 'zodb_cacheservers'):
-            cmd.append('%s=%s' % (opt, getattr(self.options, opt)))
-        subprocess.call(cmd)
-
         # Load reports
         from Products.ZenReports.ReportLoader import ReportLoader
         rl = ReportLoader(noopts=True, app=self.app)
@@ -259,5 +230,5 @@ class zenbuild(CmdBase):
         mc.disconnect_all()
 
 if __name__ == "__main__":
-    zb = zenbuild()
+    zb = zenbuild(args=sys.argv)
     zb.build()

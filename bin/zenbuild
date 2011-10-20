@@ -15,5 +15,10 @@
 # sync global.conf params to zope's db config
 $ZENHOME/bin/zenglobalconf -s 
 
-$PYTHON $ZENHOME/Products/ZenModel/zenbuild.py $@
+
+if [ -z "$CMD" ]; then
+    $PYTHON $ZENHOME/Products/ZenModel/zenbuild.py
+else
+    $PYTHON $ZENHOME/Products/ZenModel/zenbuild.py "$CMD" "$@"
+fi
 

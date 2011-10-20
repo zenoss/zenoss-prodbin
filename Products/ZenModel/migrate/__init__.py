@@ -25,12 +25,10 @@ warnings.filterwarnings('ignore', category=DeprecationWarning)
 import eventdbname
 import evtprops
 import kill_cricket
-import reindex_history
 import hoist_perf_data
 import interfacename_convert
 import processes
 import mibs
-import clearid
 import mwrelations
 import rrdmin
 import winminseverity
@@ -57,7 +55,6 @@ import usercommands
 import rrdcpu
 import changeeventclasses
 import reportserver
-import devicepriority
 import rrdmin2
 #import changeeventaction
 import event_commands
@@ -68,7 +65,6 @@ import maxoids
 import betterstandarderrormessage
 import event_newclasses
 import defaultcommandtimeout
-import eventclassmapping
 import zenuilayer
 #import packs
 import menus
@@ -131,10 +127,8 @@ import removeStatusMonitor
 import maintwindowcatalog
 import devicepathindex
 import twotwoindexing
-import addMonitorColumn
 import networkindexes
 import pagecommand
-import twoTwoMySqlChanges
 import custschemamenuitemrestriction
 import discovernetworkmenuitem
 import fixManufacturersLocation
@@ -158,7 +152,6 @@ import fixPropertyAccess
 import fixOldTemplates_23
 import addSnmpStrictDiscoveryFlag
 import simpleDataPoint_list
-import uuidEventIds
 import addPreferSnmpNamingFlag
 import correctDNSlookupCommands
 import usermsgsportlet

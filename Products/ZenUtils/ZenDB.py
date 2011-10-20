@@ -32,13 +32,19 @@ class ZenDBError(Exception):
 class ZenDB(object):
     requiredParams = ('db_type', 'host', 'port', 'db', 'user', 'password')
     
-    def __init__(self, useDefault=None, dsn=None):
+    def __init__(self, useDefault=None, dsn=None, useAdmin=False):
         if useDefault in ('zep', 'zodb'):
             dbparams = self._getParamsFromGlobalConf(useDefault)
             for setting in dbparams:
                 # only override the dsn settings not already specified
                 if not dsn.get(setting):
-                    dsn[setting] = dbparams[setting]
+                    if setting in ('user', 'password') and useAdmin:
+                        # determine if global.conf specifies admin settings
+                        key = 'admin_' + setting
+                        if key in dbparams:
+                            dsn[setting] = dbparams[key]
+                    else:
+                        dsn[setting] = dbparams[setting]
         
         # check to confirm we have all db params
         for setting in self.requiredParams:
@@ -69,8 +75,7 @@ class ZenDB(object):
                         key, val = line.setting
                         if key.startswith(defaultDb + '_'):
                             key = key[len(defaultDb)+1:]
-                            if key in self.requiredParams:
-                                settings[key] = val
+                            settings[key] = val
                 return settings
     
     def dumpSql(self, outfile=None):
@@ -102,6 +107,10 @@ class ZenDB(object):
                    '--host=%s' % self.dbparams.get('host'),
                    '--port=%s' % self.dbparams.get('port'),
                    '--format=p',
+                   '--no-privileges',
+                   '--no-owner', 
+                   '--create',
+                   '--use-set-session-authorization',
                    self.dbparams.get('db')]
         if cmd:
             rc = subprocess.Popen(cmd, stdout=outfile, env=env).wait()
@@ -147,6 +156,7 @@ if __name__ == '__main__':
     
     # DB connection params
     parser.add_option('--usedb', dest='usedb', help='Use default connection settings (zodb/zep)')
+    parser.add_option('--useadmin', action='store_true', dest='useadmin', help='Use Admin creds from --usedb')
     parser.add_option('--dbtype', dest='dbtype', help='Database Type')
     parser.add_option('--dbhost', dest='dbhost', help='Database Host')
     parser.add_option('--dbport', type='int', dest='dbport', help='Database Port')
@@ -170,14 +180,18 @@ if __name__ == '__main__':
     log.setLevel(loglevel)
     
     try:
-        zdb = ZenDB(useDefault=options.usedb, dsn={
-            'db_type': options.dbtype,
-            'host': options.dbhost,
-            'port': options.dbport,
-            'db': options.dbname,
-            'user': options.dbuser,
-            'password': options.dbpass
-        })
+        zdb = ZenDB(
+            useDefault=options.usedb, 
+            dsn = {
+              'db_type': options.dbtype,
+              'host': options.dbhost,
+              'port': options.dbport,
+              'db': options.dbname,
+              'user': options.dbuser,
+              'password': options.dbpass
+            },
+            useAdmin=options.useadmin,
+        )
         
         if options.dumpdb:
             zdb.dumpSql(options.dumpfile)

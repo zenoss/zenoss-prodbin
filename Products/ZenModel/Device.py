@@ -23,8 +23,6 @@ import socket
 import logging
 log = logging.getLogger("zen.Device")
 
-from _mysql_exceptions import OperationalError
-
 from urllib import quote as urlquote
 from ipaddr import IPAddress
 from Acquisition import aq_base

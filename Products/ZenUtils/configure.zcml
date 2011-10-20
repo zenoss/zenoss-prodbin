@@ -11,11 +11,13 @@
              factory=".ZodbFactory.ZodbFactoryLookup"
              />
     
+    <!--
     <utility provides=".ZodbFactory.IZodbFactory"
              factory=".MySqlZodbFactory.MySqlZodbFactory"
              name="mysql"
              />
-    
+    -->
+
     <utility provides=".ZodbFactory.IZodbFactory"
              factory=".PostgresqlZodbFactory.PostgresqlZodbFactory"
              name="postgresql"

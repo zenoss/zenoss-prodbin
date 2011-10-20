@@ -68,8 +68,9 @@ create_zep_db
 remove_zep_jdbc_config
 
 # Move from ZODB to MySQL
-${ZENHOME}/bin/python ${ZENHOME}/bin/changeObjectStore.py \
-    2>&1 | egrep -v "For help, use ${ZENHOME}/bin/zeoctl -h|Error: no program specified; use -p or -C"
+#TODO: changeObjectStore needs to be ported
+#${ZENHOME}/bin/python ${ZENHOME}/bin/changeObjectStore.py \
+#    2>&1 | egrep -v "For help, use ${ZENHOME}/bin/zeoctl -h|Error: no program specified; use -p or -C"
 
 # update/migrate zodb
 create_zodb_db

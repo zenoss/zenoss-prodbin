@@ -12,11 +12,31 @@
 ###########################################################################
 import sys
 from optparse import OptionValueError, BadOptionError
+import re
+import os.path
 
 from Products.ZenUtils.Utils import zenPath
 from Products.ZenUtils.config import Config, ConfigLoader
 
+
 CONFIG_FILE = zenPath('etc', 'global.conf')
+
+
+_KEYVALUE = re.compile("^[\s ]*(?P<key>[a-z_]+[a-z0-9_]*)[\s]+(?P<value>[^\s#]+)", re.IGNORECASE).search
+
+def globalConfToDict():
+    settings = {}
+    globalConfFile = zenPath('etc','global.conf')
+    if os.path.exists(globalConfFile):
+        with open(globalConfFile, 'r') as f:
+            for line in f.xreadlines():
+                match = _KEYVALUE(line)
+                if match:
+                    value = match.group('value')
+                    if value.isdigit():
+                        value = int(value)
+                    settings[match.group('key')] = value
+    return settings
 
 class GlobalConfig(Config):
     """
