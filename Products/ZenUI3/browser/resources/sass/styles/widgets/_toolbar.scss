@@ -58,16 +58,15 @@
         }
         .largetoolbar{
             height:35px !important;
-        }
-        .consolebar .#{$prefix}toolbar-text{
-            color: #383838;
-            font-family: helvetica,sans-serif;
-            font-weight: bold;
-            height: 18px; 
-            font-size:13px;
-        }        
+        }     
     }
-
+    .consolebar .#{$prefix}toolbar-text{
+        color: #383838;
+        font-family: helvetica,sans-serif;
+        font-weight: bold;
+        height: 18px; 
+        font-size:13px;
+    }   
     .#{$prefix}ie{
         #statusitem, #prodstateitem, #priorityitem{
             .devdetail-labelitem{

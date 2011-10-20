@@ -10,7 +10,7 @@
     }
     
     // IE FIXES
-        .x-ie #page-help{
+        .#{$prefix}ie #page-help{
             margin-top:5px;
         }
 
@@ -52,3 +52,65 @@
     }
 }
 
+
+
+@mixin zenoss-flares {
+
+
+    .#{$prefix}flare {
+        div{
+            background: transparent;
+        }
+        width: 100%;
+        line-height: 30px;
+        color: #282828;
+        font-size: 11px;
+        padding-left: 15px;
+        background: #f6e17b;
+        overflow: hidden;
+        border-top: 1px solid #f0f0f0;
+        border-bottom: 1px solid #949494;
+        .#{$prefix}tool-close {
+            width: 30px;
+            height: 30px;
+            @include zenoss-background-image("flare/flare-sprite.png");
+            background-position: 0 -60px;
+            background-repeat:no-repeat;
+            position:relative;
+            top:-9px !important;
+        }    
+        .#{$prefix}flare-icon {
+            float: left;
+            background: url("../img/xtheme-zenoss/icon/severity-sprite.png");
+            background-position: 0 -100px;
+            background-repeat:no-repeat;      
+            width: 16px;
+            height: 14px;
+            margin-top: 7px;
+            margin-right: 5px;
+        }
+        .#{$prefix}flare-message {
+            float: left;
+        }
+        .#{$prefix}flare-critical .#{$prefix}flare-icon {
+            background-position: 0px  0px;
+        }
+        .#{$prefix}flare-error .#{$prefix}flare-icon {
+            background-position: 0px -20px;
+        }
+        .#{$prefix}flare-warning .#{$prefix}flare-icon {
+            background-position: 0px -40px;
+        }
+        .#{$prefix}flare-info .#{$prefix}flare-icon {
+            background-position: 0px -60px;
+        }      
+        .#{$prefix}flare-success .#{$prefix}flare-icon {
+            background-position: 0 -100px;
+        }  
+        .#{$prefix}flare-debug .#{$prefix}flare-icon {
+            background-position: 0px -80px;
+        }        
+   }
+
+
+}

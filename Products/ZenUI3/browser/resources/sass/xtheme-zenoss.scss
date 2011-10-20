@@ -32,6 +32,7 @@ $include-missing-images: true;
 @include zenoss-tips; 
 @include zenoss-form;
 @include zenoss-menu;
+@include zenoss-flares;
    
 
 /*
@@ -132,31 +133,36 @@ CORE TRIGGER PAGE STUFF
         padding:8px !important;
         border-top:1px solid!important;         
     }
-    .x-docked-bottom{
+    .#{$prefix}docked-bottom{
         border-top-width:1px !important;
         border-color:#808080 !important;
     }
 }
-
 #detailCardPanel, #navGrid, #NetworkDetailCardPanel, #device_grid{
-    .x-panel-body{
+    .#{$prefix}panel-body{
         border:0 none !important;
     }
-    .x-toolbar-default-docked-bottom{
-       background:transparent !important;
+    .#{$prefix}toolbar-default-docked-bottom{
+       background:#fff !important;
     }
 }
+
+.x-docked.x-panel-default-collapsed{
+    background-image:none !important;
+    background-color:#A5A5A5; 
+    border:0 none;
+}  
 .livegridinfopanel{
     text-transform:uppercase;
     font-size:10px !important;
-    color:#222 !important;
-    font-weight:bold;
+    &.#{$prefix}toolbar-text{
+        color:#000 !important;
+        font-weight:bold;
+    }
 }
-.x-docked.x-panel-default-collapsed{
-    background-image:none !important;
-    background-color:#A5A5A5;
-    border:0 none;
-}
+
+
+
 
 
 
