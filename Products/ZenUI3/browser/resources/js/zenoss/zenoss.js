@@ -53,14 +53,15 @@ Ext.namespace('Zenoss.env');
 Ext.QuickTips.init();
 
 
-var PersistentProvider = Ext.extend(Ext.state.Provider, {
+Ext.define('Zenoss.state.PersistentProvider', {
+    extend: 'Ext.state.Provider',
     constructor: function() {
-        PersistentProvider.superclass.constructor.call(this);
+        this.callParent(arguments);
         this.on('statechange', this.save, this);
         this.task = null;
     },
     setState: function(stateString) {
-        state = Ext.decode(stateString);
+        var state = Ext.decode(stateString);
         this.state = Ext.isObject(state) ? state : {};
     },
     // Private
@@ -78,7 +79,7 @@ var PersistentProvider = Ext.extend(Ext.state.Provider, {
         this.onSaveTask.delay(500);
     }
 });
-Ext.state.Manager.setProvider(new PersistentProvider());
+Ext.state.Manager.setProvider(Ext.create('Zenoss.state.PersistentProvider'));
 
 /*
  * Hook up all Ext.Direct requests to the connection error message box.

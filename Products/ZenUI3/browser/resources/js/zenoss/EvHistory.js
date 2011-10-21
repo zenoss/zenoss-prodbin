@@ -107,7 +107,7 @@ Ext.onReady(function(){
                                 isHistory: true,
                                 params: {
                                     fields: Ext.pluck(state.columns, 'id'),
-                                    sort: state.sort.field,
+                                    sort: state.sort.property,
                                     dir: state.sort.direction,
                                     params: grid.getExportParameters()
                                 }
@@ -126,7 +126,7 @@ Ext.onReady(function(){
                                 isHistory: true,
                                 params: {
                                     fields: Ext.pluck(state.columns, 'id'),
-                                    sort: state.sort.field,
+                                    sort: state.sort.property,
                                     dir: state.sort.direction,
                                     params: grid.getExportParameters()
                                 }

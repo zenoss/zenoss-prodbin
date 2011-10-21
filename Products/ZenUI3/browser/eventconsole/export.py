@@ -69,7 +69,7 @@ class EventsExporter(BrowserView):
     def csv(self, response, archive, **params):
         response.setHeader('Content-Type', 'application/vns.ms-excel')
         response.setHeader('Content-Disposition', 'attachment; filename=events.csv')
-        
+
         from csv import writer
         writer = writer(response)
 

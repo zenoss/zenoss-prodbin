@@ -95,11 +95,34 @@
             if (grid.verticalScroller) {
                 grid.verticalScroller.on('bodyscroll', this.scrollFilterField, this);
             }
+
+            grid.on('columnmove', this.onGridColumnMove, this);
+        },
+        /**
+         * Every time a column is moved on the grid destroy and rebuild the filters
+         **/
+        onGridColumnMove: function() {
+            var grid = this.grid;
+            // each column has a reference to its filter remove that first
+            this.eachColumn(function(col){
+                if (Ext.isDefined(col.filterField)) {
+                    col.filterField.destroy();
+                    delete col.filterField;
+                }
+            });
+            // destroy docked item the filters are rendered to
+            Ext.each(grid.getDockedItems(), function(item) {
+                if (item.id == grid.id + 'docked-filter') {
+                    grid.removeDocked(item, true);
+                }
+            });
+
+            // rebuild the filters
+            this.applyTemplate();
         },
         applyTemplate: function() {
             var searchItems = [],
                 defaultFilters = this.defaultFilters;
-
             // set the default params
             this.eachColumn(function(col) {
                 var filterDivId = this.getFilterDivId(col.id);

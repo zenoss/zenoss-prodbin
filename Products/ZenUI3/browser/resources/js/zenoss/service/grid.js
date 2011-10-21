@@ -75,7 +75,7 @@
             config = config || {};
             Ext.applyIf(config, {
                 model: 'Zenoss.Service.Nav.Model',
-                pageSize: 100,
+                pageSize: 200,
                 initialSortColumn: "name",
                 directFn: Zenoss.remote.ServiceRouter.query,
                 root: 'services'

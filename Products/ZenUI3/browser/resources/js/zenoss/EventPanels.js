@@ -95,7 +95,7 @@
                     }
                 },{
                     text: _t('Cancel'),
-                    xtype: 'DialogButton',                                       
+                    xtype: 'DialogButton',
                     handler: function(){
                         addevent.hide();
                     }
@@ -122,7 +122,7 @@
                 xtype: 'form',
                 monitorValid: true,
                 autoHeight: true,
-                frame: false,                
+                frame: false,
                 items: [{
                     padding: 10,
                     style: {'font-size':'10pt'},
@@ -188,7 +188,7 @@
                     }
                 },{
                     text: _t('Cancel'),
-                    xtype: 'DialogButton',                    
+                    xtype: 'DialogButton',
                     handler: function(){
                         win.destroy();
                     }
@@ -575,7 +575,7 @@
                                             params: {
                                                 uid: context,
                                                 fields: Ext.pluck(state.columns, 'id'),
-                                                sort: state.sort.field,
+                                                sort: state.sort.property,
                                                 dir: state.sort.direction,
                                                 params: grid.getExportParameters()
                                             }
@@ -602,7 +602,7 @@
                                             params: {
                                                 uid: context,
                                                 fields: Ext.pluck(state.columns, 'id'),
-                                                sort: state.sort.field,
+                                                sort: state.sort.property,
                                                 dir: state.sort.direction,
                                                 params: grid.getExportParameters()
                                             }
@@ -1113,18 +1113,34 @@
             Ext.state.Manager.clear(this.getItemId());
             this.clearFilters();
             Zenoss.remote.EventsRouter.column_config({}, function(result){
-                var results = [];
+                var results = [],
+                    store = this.getStore(),
+                    grid = this,
+                    filters = this.defaultFilters;
                 Ext.each(result, function(r){
                     results[results.length] = Ext.decode(r);
                 });
-                var cm = new Ext.grid.ColumnModel(results);
-                this.store.sortInfo = this.store.defaultSort;
-                this.reconfigure(this.store, cm);
-                view.fitColumns();
-                view.showLoadMask(true);
-                view.nonDisruptiveReset();
-                this.saveState();
-                this.clearURLState();
+                var columns = results;
+                this.reconfigure(null, columns);
+                this.filterRow.onGridColumnMove();
+
+                // need to resize the filters to be the same size as the column
+                // it is still off a little bit but much better than not doing this
+                this.filterRow.eachFilterColumn(function(col) {
+                    var width = col.getWidth();
+                    if (width) {
+                        col.filterField.setWidth(width - 2);
+                    }
+
+                    // reapply the default filters
+                    if (Ext.isDefined(filters[col.id])) {
+                        col.filterField.setValue(filters[col.id]);
+                        // let the filters know we changed
+                        grid.filterRow.onChange();
+                    }
+                });
+                // resort by default sorter
+                store.sort(store.sorters.get(0));
             }, this);
         },
         updateRows: function(){

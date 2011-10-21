@@ -145,6 +145,7 @@ Ext.define("Zenoss.SimpleCardPanel", {
                 xtype: 'configpropertypanel',
                 id: 'config_property_panel',
                 ref: 'zPropertyEdit',
+                displayFilters: false,
                 viewName: 'zPropertyEdit',
                 listeners: config.zPropertyEditListeners
             }]
