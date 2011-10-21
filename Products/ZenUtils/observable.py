@@ -81,7 +81,7 @@ class IObservable(zope.interface.Interface):
         Notify all registered observers that an attribute has changed value.
         Register observers must be a Python callable and will receive the 
         following keyword arguments:
-            observerable - a reference to the observed object
+            observable - a reference to the observed object
             attrName - the attribute name that has changed
             oldValue - the previous value
             newValue - the new value
@@ -135,5 +135,30 @@ class ObservableMixin(object):
         # override the __setattr__ method so that we can grab the previous
         # value and then notify all of the observers of the change
         oldValue = getattr(self, name, None)
-        super(ObservableMixin, self).__setattr__(name, newValue)
+        self._doSetattr(name, newValue)
         self.notifyAttributeChange(name, oldValue, newValue)
+
+    def _doSetattr(self, name, value):
+        super(ObservableMixin, self).__setattr__(name, value)
+
+
+class ObservableProxy(ObservableMixin):
+
+    reservedNames = ('_observers','_obj','_doSetattr','notifyAttributeChange', 'detachAttributeObserver',
+                     'attachAttributeObserver')
+    
+    def __init__(self, obj):
+        super(ObservableProxy, self).__init__()
+        super(ObservableMixin,self).__setattr__('_obj', obj)
+
+    def __getattribute__(self, name):
+        if name in ObservableProxy.reservedNames:
+            return super(ObservableProxy, self).__getattribute__(name)
+        else:
+            return self._obj.__getattribute__(name)
+
+    def _doSetattr(self, name, value):
+        if name in ObservableProxy.reservedNames:
+            return super(ObservableMixin, self).__setattr__(name, value)
+        else:
+            self._obj.__setattr__(name, value)

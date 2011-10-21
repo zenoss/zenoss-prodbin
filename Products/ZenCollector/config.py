@@ -158,6 +158,7 @@ class ConfigurationLoaderTask(ObservableMixin):
         self._configProxy = frameworkFactory.getConfigurationProxy()
 
         self.devices = []
+        self.startDelay=0
 
     def doTask(self):
         """

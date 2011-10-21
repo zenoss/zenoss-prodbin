@@ -35,6 +35,7 @@ from Products.ZenRRD.RRDDaemon import RRDDaemon
 from Products.ZenRRD import RRDUtil
 from Products.ZenRRD.Thresholds import Thresholds
 from Products.ZenUtils.Utils import importClass, unused
+from Products.ZenUtils.observable import ObservableProxy
 
 log = logging.getLogger("zen.daemon")
 
@@ -100,7 +101,8 @@ class CollectorDaemon(RRDDaemon):
         if not ICollectorPreferences.providedBy(preferences):
             raise TypeError("configuration must provide ICollectorPreferences")
         else:
-            self._prefs = preferences
+            self._prefs = ObservableProxy(preferences)
+            self._prefs.attachAttributeObserver('configCycleInterval', self._rescheduleConfig)
 
         if not ITaskSplitter.providedBy(taskSplitter):
             raise TypeError("taskSplitter must provide ITaskSplitter")
@@ -305,6 +307,17 @@ class CollectorDaemon(RRDDaemon):
         self._scheduler.removeTasksForConfig(CONFIG_LOADER_NAME)
         self._startConfigCycle()
 
+    def _rescheduleConfig(self, observable, attrName, oldValue, newValue, **kwargs):
+        """
+        Delete and re-add the configuration tasks to start on new interval.
+        """
+        if oldValue != newValue:
+            self.log.debug("Changing config task interval from %s to %s minutes" % (oldValue, newValue))
+            self._scheduler.removeTasksForConfig(CONFIG_LOADER_NAME)
+            #values are in minutes, scheduler takes seconds
+            self._startConfigCycle(startDelay=newValue*60)
+
+
     def _taskCompleteCallback(self, taskName):
         # if we're not running a normal daemon cycle then we need to shutdown
         # once all of our pending tasks have completed
@@ -392,13 +405,23 @@ class CollectorDaemon(RRDDaemon):
         self.log.critical("Unrecoverable Error: %s", msg)
         self.stop()
 
-    def _startConfigCycle(self, result=None):
+    def _startConfigCycle(self, result=None, startDelay=0):
         configLoader = self._ConfigurationLoaderTask(CONFIG_LOADER_NAME,
                                                taskConfig=self._prefs)
+        configLoader.startDelay = startDelay
         # Run initial maintenance cycle as soon as possible
         # TODO: should we not run maintenance if running in non-cycle mode?
-        self._scheduler.addTask(configLoader, now=True)
+        self._scheduler.addTask(configLoader)
         return defer.succeed("Configuration loader task started")
+
+
+    def setPropertyItems(self, items):
+        """
+        Override so that preferences are updated
+        """
+        super(CollectorDaemon, self).setPropertyItems(items)
+        self._setCollectorPreferences(dict(items))
+
 
     def _setCollectorPreferences(self, preferenceItems):
         for name, value in preferenceItems.iteritems():
