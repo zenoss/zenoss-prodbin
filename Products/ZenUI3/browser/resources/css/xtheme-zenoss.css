@@ -7553,9 +7553,6 @@ $menu-icon-unchecked: 'menu/unchecked.gif';
 .x-btn-default-toolbar-small-over .x-btn-inner {
   color: #1b579a; }
 
-.collapse, .expand {
-  margin-bottom: 3px; }
-
 .x-btn-default-toolbar-small span.x-btn-icon {
   background: transparent none top center no-repeat;
   background-image: url("/++resource++zenui/img/ext4/icon/icon-sprite.png") ; }
@@ -8529,6 +8526,9 @@ $menu-icon-unchecked: 'menu/unchecked.gif';
   color: white !important;
   height: 12px !important; }
 
+#component_card .x-box-inner .x-btn {
+  top: 0px !important; }
+
 .x-panel-default {
   border-color: #99bce8; }
 
@@ -9046,6 +9046,8 @@ $menu-icon-unchecked: 'menu/unchecked.gif';
 
 .x-window .x-toolbar {
   padding-left: 0px; }
+.x-window .x-form-display-field {
+  color: #fff; }
 
 .x-window-body .x-panel-body {
   background-color: transparent;
@@ -9123,7 +9125,7 @@ CORE TRIGGER PAGE STUFF
   line-height: 21px;
   font-size: 10pt; }
 
-.x-grid .x-column-header {
+.x-grid .x-column-header, #dataSourceTreeGrid .x-column-header {
   border-left: 0 none;
   border-right: 1px solid #B4B4B4;
   border-style: none solid none none;
@@ -9134,25 +9136,29 @@ CORE TRIGGER PAGE STUFF
   height: 22px;
   text-shadow: 0 1px 0 rgba(255, 255, 255, 0.3);
   background: url("../img/xtheme-zenoss/grid/grid3-hrow.png") repeat-x scroll 0 top #bdbdbd; }
-.x-grid .x-column-header-over {
+.x-grid .x-column-header-over, #dataSourceTreeGrid .x-column-header-over {
   background: none; }
-.x-grid .x-column-header-trigger {
+.x-grid .x-column-header-trigger, #dataSourceTreeGrid .x-column-header-trigger {
   background-color: #000000;
   background-image: url("../img/xtheme-zenoss/grid/grid3-hd-btn.gif");
   height: 20px;
   overflow: hidden; }
-.x-grid .x-grid-header-ct {
+.x-grid .x-grid-header-ct, #dataSourceTreeGrid .x-grid-header-ct {
   background-color: #BDBDBD;
   border: 0px !important; }
-.x-grid .x-column-header-text {
+.x-grid .x-column-header-text, #dataSourceTreeGrid .x-column-header-text {
   background-position: right 4px !important; }
-.x-grid .x-grid-row-selected .x-grid-cell, .x-grid .x-grid-row-selected .x-grid-rowwrap-div {
+.x-grid .x-grid-row-selected .x-grid-cell, .x-grid .x-grid-row-selected .x-grid-rowwrap-div, #dataSourceTreeGrid .x-grid-row-selected .x-grid-cell, #dataSourceTreeGrid .x-grid-row-selected .x-grid-rowwrap-div {
   background-color: #7199c6 !important; }
-.x-grid .x-grid-row-selected .x-grid-cell .x-grid-cell-inner, .x-grid .x-grid-row-selected .x-grid-cell .x-grid-cell-inner a, .x-grid .x-grid-row-selected .x-grid-rowwrap-div .x-grid-cell-inner, .x-grid .x-grid-row-selected .x-grid-rowwrap-div .x-grid-cell-inner a {
+.x-grid .x-grid-row-selected .x-grid-cell .x-grid-cell-inner, .x-grid .x-grid-row-selected .x-grid-cell .x-grid-cell-inner a, .x-grid .x-grid-row-selected .x-grid-rowwrap-div .x-grid-cell-inner, .x-grid .x-grid-row-selected .x-grid-rowwrap-div .x-grid-cell-inner a, #dataSourceTreeGrid .x-grid-row-selected .x-grid-cell .x-grid-cell-inner, #dataSourceTreeGrid .x-grid-row-selected .x-grid-cell .x-grid-cell-inner a, #dataSourceTreeGrid .x-grid-row-selected .x-grid-rowwrap-div .x-grid-cell-inner, #dataSourceTreeGrid .x-grid-row-selected .x-grid-rowwrap-div .x-grid-cell-inner a {
   color: #fff; }
 
 #events_grid .x-grid-row .x-grid-cell-inner {
   font-weight: bold !important; }
+
+#dataSourceTreeGrid .x-grid-row .x-grid-cell, #thresholdGrid .x-grid-row .x-grid-cell, #graphGrid .x-grid-row .x-grid-cell {
+  border: 0 none;
+  border-bottom: 1px solid #eeeeee !important; }
 
 #page-level-help-tip {
   width: 440px !important; }
@@ -9430,3 +9436,24 @@ CORE TRIGGER PAGE STUFF
 .livegridinfopanel.x-toolbar-text {
   color: black !important;
   font-weight: bold; }
+
+#evdetail_bd-body {
+  padding-right: 10px; }
+#evdetail_bd-body #log-container {
+  background: #DDE5E9;
+  border-radius: 0; }
+#evdetail_bd-body #log-container #log-container-body {
+  background: transparent; }
+#evdetail_bd-body #event_detail_properties-body .x-panel-body {
+  border: 0 none;
+  color: #7199E6;
+  cursor: pointer;
+  font-size: 13px;
+  text-decoration: none; }
+
+/* ========================== */
+#devdetailbar .x-panel-body-default {
+  border: 0 none; }
+
+.tabletitlecontainer {
+  border: 0 none !important; }

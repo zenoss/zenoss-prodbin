@@ -35,6 +35,9 @@
         .#{$prefix}toolbar{
             padding-left:0px;
         }
+        .#{$prefix}form-display-field{
+            color:#fff;
+        }        
     }
     .#{$prefix}window-body {
         .#{$prefix}panel-body {
@@ -116,7 +119,10 @@
             }
             
         
-        }  
+        }
+        
+        
+
         
         //#bindTemplatesDialog for targeting the bind template pop-up
 

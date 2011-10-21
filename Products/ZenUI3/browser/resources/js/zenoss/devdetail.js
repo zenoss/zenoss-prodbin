@@ -190,6 +190,7 @@ function showMonitoringDialog() {
         buttonAlign: 'left',
         plain: true,
         buttons: [{
+            xtype:'DialogButton',        
             text: _t('Submit'),
             handler: function(btn) {
                 var mon = Ext.getCmp('monitoring-checkbox'),
@@ -203,6 +204,7 @@ function showMonitoringDialog() {
                 });
             }
         },{
+            xtype:'DialogButton',        
             text: _t('Cancel'),
             handler: function(btn){
                 btn.ownerCt.ownerCt.destroy();
@@ -236,6 +238,7 @@ function showComponentLockingDialog() {
         plain: true,
         layout: 'fit',
         buttons: [{
+            xtype:'DialogButton',
             text: _t('Submit'),
             handler: function(btn) {
                 var del = Ext.getCmp('lock-deletion-checkbox'),
@@ -253,6 +256,7 @@ function showComponentLockingDialog() {
                 });
             }
         },{
+            xtype:'DialogButton',
             text: _t('Cancel'),
             handler: function(btn){
                 btn.ownerCt.ownerCt.destroy();

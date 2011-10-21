@@ -1,5 +1,5 @@
 @mixin zenoss-grid {
-    .#{$prefix}grid{
+    .#{$prefix}grid, #dataSourceTreeGrid{
         
         .#{$prefix}column-header{
           border-left: 0 none;
@@ -39,6 +39,12 @@
        .#{$prefix}grid-row .#{$prefix}grid-cell-inner{
             font-weight:bold !important;
        }
-    }    
+    }   
+    #dataSourceTreeGrid, #thresholdGrid, #graphGrid{    
+        .#{$prefix}grid-row{
+            .#{$prefix}grid-cell{border:0 none;
+            border-bottom:1px solid #eeeeee !important;}
+        }
+    }
 }
 

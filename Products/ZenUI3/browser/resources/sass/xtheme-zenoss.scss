@@ -130,8 +130,47 @@ $include-missing-images: true;
     }
 }
 
+#evdetail_bd-body{
+    padding-right:10px;
+    #log-container{
+        background:#DDE5E9;
+        border-radius:0;
+        #log-container-body{
+            background:transparent;
+        }    
+    }   
+    #event_detail_properties-body{
+        .x-panel-body{
+            border:0 none;
+            color: #7199E6;
+            cursor: pointer;
+            font-size: 13px;
+            text-decoration: none;            
+        }
+    } 
+}
 
+/* ========================== */
 
+#devdetailbar{
+    .x-panel-body-default{
+        border: 0 none;
+    }
+}
+.tabletitlecontainer{
+    border: 0 none !important;
+}
+#detail_card_panel{// these cause probs elsewhere, but need to target into some backcompat for this
+    #device_modeler_plugins, .device-overview-form, .device-overview-form-wrapper{
+       // background:#fff !important;
+    }
+    .x-panel-default, .tabletitlecontainer, .x-toolbar{
+       //border: 0 none !important;
+    }
+    .x-panel-body-default{
+       // border-color:#888 !important;
+    }
+}
 
 
 

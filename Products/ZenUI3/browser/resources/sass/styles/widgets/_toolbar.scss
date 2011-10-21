@@ -81,6 +81,12 @@
         }
     }     
     
+    #component_card .#{$prefix}box-inner{
+        .#{$prefix}btn{
+            top:0px !important;
+        }
+    }
+    
 }    
     
     

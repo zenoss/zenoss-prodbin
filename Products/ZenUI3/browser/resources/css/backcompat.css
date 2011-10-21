@@ -284,12 +284,12 @@
   line-height: 1.2em;
   position: absolute;
   top: -18px;
-  right: -2px;
+  right: 3px;
   cursor: pointer;
 }
 
 
-.ext-ie .dialog_container {
+.dialog_container {
   width: 300px;
 }
 
