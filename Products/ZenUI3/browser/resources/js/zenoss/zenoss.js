@@ -766,7 +766,6 @@ Ext.define("Zenoss.ColumnFieldSet", {
  */
 Ext.namespace('Zenoss.util');
 
-
 /*
 * Wrap the Ext.Direct remote call passed in as func so that calls to the
 * wrapped function won't be sent in a batch. If you have an expensive call that
@@ -777,8 +776,12 @@ Ext.namespace('Zenoss.util');
 */
 Zenoss.util.isolatedRequest = function(func) {
     var provider = Ext.Direct.getProvider(func.directCfg.action),
-        combineAndSend = provider.combineAndSend.createDelegate(provider);
-    return func.createInterceptor(combineAndSend).createSequence(combineAndSend);
+        combineAndSend = Ext.bind(provider.combineAndSend, provider),
+        newFn;
+    newFn = Ext.Function.createSequence(Ext.Function.createInterceptor(func, combineAndSend),
+                                combineAndSend);
+    newFn.directCfg = Ext.clone(func.directCfg);
+    return newFn;
 };
 
 

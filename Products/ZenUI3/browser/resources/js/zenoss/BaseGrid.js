@@ -498,7 +498,9 @@
         },
         applyState: function(state) {
             this.callParent([state]);
-            this.filterRow.applyState(state.filters);
+            if (this.displayFilters) {
+                this.filterRow.applyState(state.filters);
+            }
         },
         getFilters: function() {
             return this.filterRow.getSearchValues();

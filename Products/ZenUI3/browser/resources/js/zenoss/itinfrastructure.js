@@ -17,6 +17,7 @@ Ext.onReady(function(){
 
 Ext.ns('Zenoss.devices');
 
+
 // Extensions used on this page
 Ext.ns('Zenoss.extensions');
 var EXTENSIONS_adddevice = Zenoss.extensions.adddevice instanceof Array ?
@@ -27,6 +28,7 @@ var REMOTE = Zenoss.remote.DeviceRouter,
     treesm,
     treeId = 'groups',
     nodeType = 'Organizer';
+
 
 REMOTE.getProductionStates({}, function(d){
     Zenoss.env.PRODUCTION_STATES = d;
@@ -786,8 +788,7 @@ var devtree = {
     loadMask: false,
     id: 'devices',
     searchField: true,
-    // directFn: Zenoss.util.isolatedRequest(treeLoaderFn),
-    directFn: treeLoaderFn,
+    directFn: Zenoss.util.isolatedRequest(treeLoaderFn),
     extraFields: [{name: 'zPythonClass', type: 'string'}],
     allowOrganizerMove: false,
     stateful: treeStateful,
@@ -1003,7 +1004,7 @@ var device_grid = Ext.create('Zenoss.DeviceGridPanel', {
     ddGroup: 'devicegriddd',
     id: 'device_grid',
     multiSelect: true,
-    
+
     title: _t('/'),
     viewConfig: {
         plugins: {
@@ -1179,7 +1180,7 @@ function getInfrastructureDeviceColumns() {
 var event_console = Ext.create('Zenoss.EventGridPanel', {
     id: 'events_grid',
     stateId: 'infrastructure_events',
-    
+
     columns: getInfrastructureDeviceColumns(),
     newwindowBtn: true,
     actionsMenu: false,

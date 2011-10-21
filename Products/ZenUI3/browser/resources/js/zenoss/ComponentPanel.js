@@ -32,8 +32,12 @@ ZC.displayNames = function() {
 }
 
 function componentColumnDefinitions() {
-    var defs = Zenoss.env.COLUMN_DEFINITIONS,
+    var defs = Ext.clone(Zenoss.env.COLUMN_DEFINITIONS),
         bad = ['component', 'device'];
+    // remove the column ids so they don't collide with the device events console's column ids
+    Ext.each(defs, function(d){
+        delete d.id;
+    });
     return  Zenoss.util.filter(defs, function(d){
         return bad.indexOf(d.id)==-1;
     });
