@@ -55,7 +55,7 @@ class FakePacket(object):
     def __init__(self):
         self.fake = True
 
-        
+
 class CaptureReplay(object):
     """
     Base class for packet capture and replay capability.
@@ -178,10 +178,9 @@ class CaptureReplay(object):
         for when we are replaying packets.  This version waits to make
         sure that all of our deferreds have exited before pulling the plug.
         """
-        self.log.debug("Event queue size = %d", len(self.eventQueue))
-        if self.replayed == self.loaded and not self.eventQueue:
+        if self.replayed == self.loaded:
             self.log.info("Loaded and replayed %d packets" % self.replayed)
-            self.stop()
+            reactor.stop()
         else:
             reactor.callLater(1, self.replayStop)
 

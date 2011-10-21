@@ -198,37 +198,45 @@ class TrapTask(BaseTask, CaptureReplay):
 
         # Command-line argument sanity checking
         self.processCaptureReplayOptions()
+        self.session=None
+        self._replayStarted = False
+        if not self.options.replayFilePrefix:
+            trapPort = self._preferences.options.trapport
+            if not self._preferences.options.useFileDescriptor and trapPort < 1024:
+                listen_ip = "ipv6" if ipv6_is_enabled() else "0.0.0.0"
+                # Makes call to zensocket here (does an exec* so it never returns)
+                self._daemon.openPrivilegedPort('--listen', '--proto=udp', '--port=%s:%d' % (listen_ip, trapPort))
+                self.log("Unexpected return from openPrivilegedPort. Exiting.")
+                sys.exit(1)
 
-        trapPort = self._preferences.options.trapport
-        if not self._preferences.options.useFileDescriptor and trapPort < 1024:
-            listen_ip = "ipv6" if ipv6_is_enabled() else "0.0.0.0"
-            # Makes call to zensocket here (does an exec* so it never returns)
-            self._daemon.openPrivilegedPort('--listen', '--proto=udp', '--port=%s:%d' % (listen_ip, trapPort))
-            self.log("Unexpected return from openPrivilegedPort. Exiting.")
-            sys.exit(1)
-
-        # Start listening for SNMP traps
-        self.log.info("Starting to listen on SNMP trap port %s", trapPort)
-        self.session = netsnmp.Session()
-        listening_protocol = "udp6" if ipv6_is_enabled() else "udp"
-        if self._preferences.options.useFileDescriptor is not None:
-            # open port 1162, but then dup fileno onto it
-            listening_address = listening_protocol + ':1162'
-            fileno = int(self._preferences.options.useFileDescriptor)
-        else:
-            listening_address = '%s:%d' % (listening_protocol, trapPort)
-            fileno = -1
-        self._pre_parse_callback = _pre_parse_factory(self._pre_parse)
-        debug = self.log.isEnabledFor(logging.DEBUG)
-        self.session.awaitTraps(listening_address, fileno, self._pre_parse_callback, debug)
-        self.session.callback = self.receiveTrap
-        twistedsnmp.updateReactor()
+            # Start listening for SNMP traps
+            self.log.info("Starting to listen on SNMP trap port %s", trapPort)
+            self.session = netsnmp.Session()
+            listening_protocol = "udp6" if ipv6_is_enabled() else "udp"
+            if self._preferences.options.useFileDescriptor is not None:
+                # open port 1162, but then dup fileno onto it
+                listening_address = listening_protocol + ':1162'
+                fileno = int(self._preferences.options.useFileDescriptor)
+            else:
+                listening_address = '%s:%d' % (listening_protocol, trapPort)
+                fileno = -1
+            self._pre_parse_callback = _pre_parse_factory(self._pre_parse)
+            debug = self.log.isEnabledFor(logging.DEBUG)
+            self.session.awaitTraps(listening_address, fileno, self._pre_parse_callback, debug)
+            self.session.callback = self.receiveTrap
+            twistedsnmp.updateReactor()
 
     def doTask(self):
         """
         This is a wait-around task since we really are called
         asynchronously.
         """
+        if self.options.replayFilePrefix and not self._replayStarted:
+            log.debug("Replay starting...")
+            self._replayStarted=True
+            self.replayAll()
+            log.debug("Replay done...")
+            return
         return defer.succeed("Waiting for SNMP traps...")
 
     def isReplaying(self):
@@ -703,7 +711,8 @@ Maximum processing time for one event was %.5f""" % (
         return display
 
     def cleanup(self):
-        self.session.close()
+        if self.session:
+            self.session.close()
         status = self.displayStatistics()
         self.log.info(status)
 
