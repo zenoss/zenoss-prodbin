@@ -38,9 +38,8 @@ mkdir -p ${ZENHOME}/log
 
 # restart external server daemons
 restart_snmpd
-if [ "${ZODB_HOST}" = "localhost" ];then
-   start_mysql
-fi
+
+# start rabbit
 start_rabbitmq
 
 # copy the etc/*.conf.example files to etc/*.conf if etc/*.conf don't
