@@ -422,11 +422,15 @@ class DataRoot(ZenModelRM, OrderedFolder, Commandable, ZenMenuable):
         """
         from ZODB.POSException import ConflictError
         from Products.ZenEvents.Exceptions import MySQLConnectionError
-        from _mysql_exceptions import MySQLError
+
+        from zope.component import getUtility
+        from ZodbFactory import IZodbFactoryLookup
+        connectionFactory = getUtility(IZodbFactoryLookup).get()
+
         if isinstance(error_value, ConflictError):
             return self.zenoss_conflict_error_message()
         elif isinstance(error_value, MySQLConnectionError) \
-                or isinstance(error_value, MySQLError):
+                or isinstance(error_value, connectionFactory.exceptions.Error):
             return self.zenoss_mysql_error_message(error_value=error_value)
 
         from traceback import format_exception
