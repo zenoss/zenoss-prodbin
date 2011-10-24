@@ -185,7 +185,7 @@ class zenbuild(CmdBase):
 
         else:
 
-            cmd = "zcat %s | %s --usedb=zodb" % (
+            cmd = "gunzip -c  %s | %s --usedb=zodb" % (
                  zenPath("Products/ZenModel/data/zodb.sql.gz"),
                  zenPath("Products/ZenUtils/ZenDB.py"),
             )
