@@ -18,6 +18,7 @@
 
 function get_var {
     VAR_NAME=$1
+
     OUTPUT=`su $RUNUSER -l -c "$ZENHOME/bin/zenglobalconf -p $VAR_NAME"`
     if [ -z "$OUTPUT" ]; then
        echo "$VAR_NAME could not be set. Check $ZENHOME/etc/global.conf for value."
@@ -42,6 +43,11 @@ export SNMPD_CONF="**SNMPD_CONF**"
 if [ ! -d "$ZENHOME" ]; then
     echo "ZENHOME is not set properly: $ZENHOME"
     exit 1
+fi
+
+# global conf must be set before we continue
+if [ ! -f $ZENHOME/etc/global.conf ]; then
+    su $RUNUSER -l -c "cp $ZENHOME/etc/global.conf.example $ZENHOME/etc/global.conf"
 fi
 
 # to change the following startup parameters
