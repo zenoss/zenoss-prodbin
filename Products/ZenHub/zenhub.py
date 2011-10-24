@@ -271,6 +271,7 @@ class ZenHub(ZCmdBase):
         to connect.
         """
         self.workers = []
+        self.workTracker = {}
         self.workList = []
         self.worker_processes=set()
 
@@ -465,6 +466,8 @@ class ZenHub(ZCmdBase):
         """Parcel out a method invocation to an available worker process
         """
         self.log.debug("worklist has %d items", len(self.workList))
+        if self.options.logworkerstats:
+            self._workerStats()
         while self.workList:
             for i, worker in enumerate(self.workers):
                 # linear search is not ideal, but simple enough
@@ -472,18 +475,37 @@ class ZenHub(ZCmdBase):
                     job = self.getJobForWorker(i)
                     if job is None: continue
                     worker.busy = True
-                    def finished(result, finishedWorker):
+                    def finished(result, finishedWorker, wId):
+                        stats = self.workTracker.pop(wId,None)
+                        if stats:
+                            elapsed  = time.time() - stats[1]
+                            self.log.debug("worker %s, work %s finished in %s" % (wId,stats[0], elapsed))
                         finishedWorker.busy = False
                         self.giveWorkToWorkers()
                         return result
                     self.log.debug("Giving %s to worker %d", job[2][2], i)
+                    if self.options.logworkerstats:
+                        jobDesc = "%s:%s.%s" % (job[2][1], job[2][0], job[2][2])
+                        self.workTracker[i] = (jobDesc, time.time())
                     d2 = worker.callRemote('execute', *job[2])
-                    d2.addBoth(finished, worker)
+                    d2.addBoth(finished, worker, i)
                     d2.chainDeferred(job[0])
                     break
             else:
                 self.log.debug("all workers are busy")
                 break
+
+    def _workerStats(self):
+        with open(zenPath('log', 'workerstats'), 'w') as f:
+            now = time.time()
+            for wId in range(len(self.workers)):
+                stat = self.workTracker.get(wId, None)
+                if stat is None:
+                    text = "%s\t[Idle]" % wId
+                else:
+                    elapsed = now - stat[1]
+                    text = "\t".join(map(str,[wId, stat[0], '\t', elapsed]))
+                f.write(text + '\n')
 
     def getJobForWorker(self, workerId):
         if self.options.anyworker:
@@ -511,9 +533,8 @@ class ZenHub(ZCmdBase):
             os.write(fd, "hubport %s\n" % self.options.pbport)
             os.write(fd, "username %s\n" % self.workerUsername)
             os.write(fd, "password %s\n" % self.workerPassword)
-            os.write(fd, "host %s\n" % self.options.host)
             os.write(fd, "logseverity %s\n" % self.options.logseverity)
-            os.write(fd, "cachesize %s\n" % self.options.cachesize)
+            os.write(fd, "cachesize %s\n" % self.options.zodb_cache_size)
         finally:
             os.close(fd)
         # start the worker
@@ -598,6 +619,9 @@ class ZenHub(ZCmdBase):
         self.parser.add_option('--anyworker', dest='anyworker',
             action='store_true', default=False,
             help='Allow any priority job to run on any worker')
+        self.parser.add_option('--logworkerstats', dest='logworkerstats',
+            action='store_true', default=False,
+            help='Log current worker state to $ZENHOME/log/workerstats')
         notify(ParserReadyForOptionsEvent(self.parser))
 
 if __name__ == '__main__':
