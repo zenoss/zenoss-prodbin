@@ -424,7 +424,7 @@ class DataRoot(ZenModelRM, OrderedFolder, Commandable, ZenMenuable):
         from Products.ZenEvents.Exceptions import MySQLConnectionError
 
         from zope.component import getUtility
-        from ZodbFactory import IZodbFactoryLookup
+        from Products.ZenUtils.ZodbFactory import IZodbFactoryLookup
         connectionFactory = getUtility(IZodbFactoryLookup).get()
 
         if isinstance(error_value, ConflictError):
