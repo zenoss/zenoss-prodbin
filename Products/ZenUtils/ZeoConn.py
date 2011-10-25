@@ -15,22 +15,12 @@ from Products.ZenUtils.Utils import set_context
 
 class ZeoConn(object):
 
-    def __init__(self, host="localhost", port=3306, user="zenoss",
-                 passwd="zenoss", db="zodb", unix_socket=None):
-        # set up options in the manner that Connection factory expects
-        options = {
-           "zodb_host": host,
-           "zodb_port": port,
-           "zodb_user": user,
-           "zodb_password": passwd,
-           "zodb_db": db,
-           "zodb_socket": unix_socket,
-        }
-
+    def __init__(self, **kwargs):
+        
         from zope.component import getUtility
         from ZodbFactory import IZodbFactoryLookup
         connectionFactory = getUtility(IZodbFactoryLookup).get()
-        self.db, self.storage = connectionFactory.getConnection(**self.options.__dict__)
+        self.db, self.storage = connectionFactory.getConnection(**kwargs)
 
         self.app = None
         self.dmd = None

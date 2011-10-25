@@ -89,7 +89,7 @@ class TemplateFacadeTest(BaseTestCase):
         """
         Make sure we can always save the threshold (for this case of MinMax)
         """
-        data ={'maxval': '123', 'severity': 'Warning', 'minval': '12',
+        data ={'maxval': '123', 'severity': 3, 'minval': '12',
                'escalateCount': '0', 'enabled': 'on',
                'dsnames': 'sysUpTime_sysUpTime', 'eventClass': '/Perf/Snmp'};
         threshold = self._createDummyThreshold()
@@ -97,7 +97,7 @@ class TemplateFacadeTest(BaseTestCase):
         # the values should match the data above
         self.assertEquals(result.maxval, '123');
         self.assertEquals(result.minval, '12');
-        self.assertEquals(result.severity, 'Warning');
+        self.assertEquals(result.severity, 3);
         self.assertTrue('uptime' in result.dataPoints.lower());
         
     def testCanCreateDataSource(self):
@@ -112,7 +112,7 @@ class TemplateFacadeTest(BaseTestCase):
         """
         Make sure when we edit a datasource the values stay
         """
-        data ={'enabled': True, 'severity': 'Warning', 'eventClass': '/Perf/Snmp'}
+        data ={'enabled': True, 'severity': 3, 'eventClass': '/Perf/Snmp'}
         datasource = self._createDummyDataSource()
         info = self.facade.getDataSourceDetails(datasource.absolute_url_path())
         self.assertTrue(info, "make sure we can create an info from a datasource")

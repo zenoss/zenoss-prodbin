@@ -173,7 +173,6 @@ class ZenossInfo(ZenModelItem, SimpleItem):
         major, minor, micro, releaselevel, serial = sys.version_info
         return Version(name, major, minor, micro)
 
-
     def getMySQLVersion(self):
         """
         This function returns a Version-ready tuple. For use with the Version

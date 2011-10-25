@@ -23,7 +23,12 @@ import os
 import sys
 from time import mktime
 from ConfigParser import ConfigParser, NoOptionError
-from MySQLdb import connect
+try:
+    from MySQLdb import connect
+except ImportError:
+    import pymysql
+    pymysql.install_as_MySQLdb()
+    from MySQLdb import connect
 from MySQLdb.cursors import DictCursor
 from _mysql import escape_string
 from copy import deepcopy
@@ -51,6 +56,12 @@ from Products.ZenModel.DeviceClass import DeviceClass
 from Products.ZenModel.DeviceGroup import DeviceGroup
 from Products.ZenModel.Location import Location
 from Products.ZenModel.System import System
+
+
+#lookup
+from Products.Five import zcml
+import Products.ZenossStartup
+zcml.load_site()
 
 log = logging.getLogger('zen.EventMigrate')
 

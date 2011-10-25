@@ -26,6 +26,13 @@ import re
 import logging
 log = logging.getLogger('zen.testEventMigrate')
 
+#lookup
+import Globals
+from Products.Five import zcml
+import Products.ZenossStartup
+zcml.load_site()
+
+
 class MockChannel(object):
     """
     Mocks out an AMQP channel.
