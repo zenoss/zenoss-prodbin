@@ -81,6 +81,7 @@ class zenbuild(CmdBase):
         from Products.ZenUtils.ZodbFactory import IZodbFactoryLookup
         connectionFactory = getUtility(IZodbFactoryLookup).get()
         connectionFactory.buildOptions(self.parser)
+        self.connectionFactory = connectionFactory
 
 
     def zodbConnect(self):
@@ -108,7 +109,7 @@ class zenbuild(CmdBase):
             if app and getattr(app, self.sitename, None) is not None:
                 print "zport portal object exists; exiting."
                 return
-        except connectionFactory.OperationalError as e:
+        except self.connectionFactory.exceptions.OperationalError as e:
             print "zenbuild: Database does not exists."
             sys.exit(1)
         finally:
