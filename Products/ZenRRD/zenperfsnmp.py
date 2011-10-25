@@ -427,7 +427,7 @@ class SnmpPerformanceCollectionTask(BaseTask):
                 log.info("%s %s", self._devId, summary)
             self._snmpStatusFailures = 0
 
-            if not self._lastErrorMsg:
+            if self._lastErrorMsg:
                 log.info("%s returned back to normal operations",
                          self._devId)
             self._lastErrorMsg = ''
