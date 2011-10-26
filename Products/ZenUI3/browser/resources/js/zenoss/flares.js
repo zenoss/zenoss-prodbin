@@ -5,7 +5,8 @@
      * An invisible layer that contains all the Flares.
      * Must be the highest layer in order for Flares to show up.
      */
-    Zenoss.flares.Container = Ext.extend(Ext.Container, {
+    Ext.define('Zenoss.flares.Container', {
+        extend: 'Ext.Container',
         _layoutDelay: null,
         constructor: function(config) {
             config = Ext.applyIf(config || {}, {
@@ -17,9 +18,9 @@
                 items: []
             });
 
-            Zenoss.flares.Container.superclass.constructor.call(this, config);
+            this.callParent([config]);
         },
-        onRender : function(ct, position) {
+        onRender: function(ct, position) {
             this.el = ct.createChild({
                 cls: this.baseCls + '-layer',
                 children: [{
@@ -72,7 +73,7 @@
      * The UI manager for flares.
      */
     Zenoss.flares.Manager = {
-        container: new Zenoss.flares.Container(),
+        container: Ext.create('Zenoss.flares.Container', {}),
         INFO: 'x-flare-info',
         ERROR: 'x-flare-error',
         WARNING: 'x-flare-warning',
@@ -184,7 +185,8 @@
      *
      * Zenoss.flares.Manager.info('{0} was saved as {1}.', itemName, newItemName);
      */
-    Zenoss.flares.Flare = Ext.extend(Ext.Window, {
+    Ext.define('Zenoss.flares.Flare', {
+        extend: 'Ext.Window',
         _bodyHtml: null,
         _task: null,
         _closing: false,
@@ -237,11 +239,11 @@
                     html: "<div class='x-flare-icon'></div><span class='x-flare-message'>" + this._bodyHtml + "</span>"
                 }
             });
-            Zenoss.flares.Flare.superclass.constructor.call(this, config);
+            this.callParent([config]);
 
         },
         initEvents: function() {
-            Zenoss.flares.Flare.superclass.initEvents.apply(this, arguments);
+            this.callParent(arguments);
 
             if ( this.dismissOnClick ) {
                 this.mon(this.el, 'click', function() { this.hide(); }, this);
@@ -251,7 +253,7 @@
             if ( this.delay ) {
                 this._task = new Ext.util.DelayedTask(this.hide, this);
             }
-            Zenoss.flares.Flare.superclass.initComponent.call(this);
+            this.callParent(arguments);
         },
         /**
          * Make this Flare "stick". It will not fade away and must manually be dismissed by the user.
@@ -296,7 +298,7 @@
     /**
      * Message for Zenoss.messaging.Messenger. This is for back-compat and should not be used directly.
      */
-    Zenoss.messaging.Message = Ext.extend(Object, {
+    Zenoss.messaging.Message = {
         INFO: 0,                // Same as in messaging.py
         WARNING: 1,                // Same as in messaging.py
         CRITICAL: 2,                // Same as in messaging.py
@@ -308,18 +310,19 @@
             });
             Ext.apply(this, config);
         }
-    });
+    };
 
     /**
      * An interface to the old messaging API. This is for back-compat and should not be used directly.
      */
-    Zenoss.messaging.Messenger = Ext.extend(Ext.util.Observable, {
+    Ext.define('Zenoss.messaging.Messenger', {
+        extend: 'Ext.util.Observable',
         constructor: function(config) {
             config = Ext.applyIf(config || {}, {
                 interval: 30000
             });
             Ext.apply(this, config);
-            Zenoss.messaging.Messenger.superclass.constructor.call(this, config);
+            this.callParent([config]);
             this.addEvents('message');
         },
         init: function() {
@@ -357,7 +360,7 @@
         }
     });
 
-    Zenoss.messenger = new Zenoss.messaging.Messenger();
+    Zenoss.messenger = Ext.create('Zenoss.messaging.Messenger', {});
 
     Ext.onReady(function() {
         Zenoss.flares.Manager.container.show();
