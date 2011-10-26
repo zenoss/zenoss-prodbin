@@ -114,18 +114,20 @@
                                     row = grid.getSelectionModel().getSelected();
                                 if (row) {
                                     // show a confirmation
-                                    Ext.Msg.show({
+                                 new Zenoss.dialog.SimpleMessageDialog({
                                         title: _t('Delete Copy'),
-                                        msg: String.format(_t("Are you sure you want to delete the local copy of this template? There is no undo.")),
-                                        buttons: Ext.Msg.OKCANCEL,
-                                        fn: function(btn) {
-                                            if (btn=="ok") {
+                                        message: String.format(_t("Are you sure you want to delete the local copy of this template? There is no undo.")),
+                                        buttons: [{
+                                            xtype: 'DialogButton',
+                                            text: _t('OK'),
+                                            handler: function() {
                                                 deleteLocalCopy(grid, row.data.name);
-                                            } else {
-                                                Ext.Msg.hide();
                                             }
-                                        }
-                                    });
+                                        }, {
+                                            xtype: 'DialogButton',
+                                            text: _t('Cancel')
+                                        }]
+                                    }).show();       
                                 }
                             }
                         }],

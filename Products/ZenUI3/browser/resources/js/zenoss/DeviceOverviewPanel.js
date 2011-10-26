@@ -432,7 +432,6 @@
         buttons: [{
             text: _t('Save'),
             xtype:'button',
-            //ui: 'dialog-dark',
             ref: '../savebtn',
             disabled: true,
             hidden: true,
@@ -441,8 +440,7 @@
             }
         },{
             text: _t('Cancel'),
-            xtype: 'button',
-           // ui: 'dialog-dark',            
+            xtype: 'button',           
             ref: '../cancelbtn',
             disabled: true,
             hidden: true,

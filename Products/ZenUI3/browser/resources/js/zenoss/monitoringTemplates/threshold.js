@@ -90,7 +90,6 @@
                 ref: '../submitButton',
                 text: _t('Add'),
                 xtype: 'DialogButton',
-                ui: 'dialog-dark',
                 handler: function(submitButton) {
                     var dialogWindow, basicForm;
                     dialogWindow = submitButton.refOwner;
@@ -100,7 +99,6 @@
             }, {
                 ref: '../cancelButton',
                 text: _t('Cancel'),
-                ui: 'dialog-dark',
                 xtype: 'DialogButton'
             }],
             items: {
@@ -297,25 +295,27 @@
                         if (row){
                             uid = row.get("uid");
                             // show a confirmation
-                            Ext.Msg.show({
+                     new Zenoss.dialog.SimpleMessageDialog({
                                 title: _t('Delete Threshold'),
-                                msg: String.format(_t("Are you sure you want to delete this threshold? There is no undo.")),
-                                buttons: Ext.Msg.OKCANCEL,
-                                fn: function(btn) {
-                                    if (btn=="ok") {
-                                        params= {
-                                            uid:uid
-                                        };
-                                        router.removeThreshold(params, function(){
-                                            me.refresh();
-                                            me.deleteButton.disable();
-                                            me.editButton.disable();
-                                        });
-                                    } else {
-                                        Ext.Msg.hide();
-                                    }
+                                message: String.format(_t("Are you sure you want to delete this threshold? There is no undo.")),
+                            buttons: [{
+                                xtype: 'DialogButton',
+                                text: _t('OK'),
+                                handler: function() {
+                                    params= {
+                                        uid:uid
+                                    };
+                                    router.removeThreshold(params, function(){
+                                        me.refresh();
+                                        me.deleteButton.disable();
+                                        me.editButton.disable();
+                                    });
                                 }
-                            });
+                            }, {
+                                xtype: 'DialogButton',
+                                text: _t('Cancel')
+                            }]
+                        }).show();      
                         }
                     },
                     listeners: {

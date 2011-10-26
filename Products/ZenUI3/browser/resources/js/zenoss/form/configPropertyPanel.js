@@ -273,25 +273,27 @@
                                 Zenoss.message.info(_t('{0} is not defined locally'), data.id);
                                 return;
                             }
-                            Ext.Msg.show({
-                            title: _t('Delete Local Property'),
-                            msg: String.format(_t("Are you sure you want to delete the local copy of {0}?"), data.id),
-                            buttons: Ext.Msg.OKCANCEL,
-                            fn: function(btn) {
-                                if (btn=="ok") {
-                                    if (grid.uid) {
-                                        router.deleteZenProperty({
-                                            uid: grid.uid,
-                                            zProperty: data.id
-                                        }, function(response){
-                                            grid.refresh();
-                                        });
-                                    }
-                                } else {
-                                    Ext.Msg.hide();
-                                }
+                    new Zenoss.dialog.SimpleMessageDialog({
+                        title: _t('Delete Local Property'),
+                        message: String.format(_t("Are you sure you want to delete the local copy of {0}?"), data.id),                    
+                        buttons: [{
+                            xtype: 'DialogButton',
+                            text: _t('OK'),
+                            handler: function() {
+                                        if (grid.uid) {
+                                            router.deleteZenProperty({
+                                                uid: grid.uid,
+                                                zProperty: data.id
+                                            }, function(response){
+                                                grid.refresh();
+                                            });
+                                        }
                             }
-                        });
+                        }, {
+                            xtype: 'DialogButton',
+                            text: _t('Cancel')
+                        }]
+                    }).show();                                  
                         }
                     }
                 ],

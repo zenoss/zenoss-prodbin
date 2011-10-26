@@ -1042,12 +1042,13 @@ Ext.onReady(function () {
                         if (row){
                             uid = row.data.uid;
                             // show a confirmation
-                            Ext.Msg.show({
+                            new Zenoss.dialog.SimpleMessageDialog({
+                                message: String.format(_t('Are you sure you want to delete the selected {0}?'), row.data.newId),
                                 title: _t('Delete Notification Subscription'),
-                                msg: String.format(_t("Are you sure you wish to delete the notification, {0}?"), row.data.newId),
-                                buttons: Ext.Msg.OKCANCEL,
-                                fn: function(btn) {
-                                    if (btn == "ok") {
+                                buttons: [{
+                                    xtype: 'DialogButton',
+                                    text: _t('OK'),
+                                    handler: function() {                                    
                                         params = {
                                             uid:uid
                                         };
@@ -1059,12 +1060,12 @@ Ext.onReady(function () {
                                             reloadNotificationGrid();
                                         };
                                         router.removeNotification(params, callback);
-
-                                    } else {
-                                        Ext.Msg.hide();
                                     }
-                                }
-                            });
+                                }, {
+                                    xtype: 'DialogButton',
+                                    text: _t('Cancel')
+                                }]
+                            }).show();                            
                         }
                     }
                 },{
@@ -1181,29 +1182,30 @@ Ext.onReady(function () {
                                 row = rows[0];
                                 uuid = row.data.uuid;
                                 // show a confirmation
-                                Ext.Msg.show({
-                                    title: _t('Delete Trigger'),
-                                    msg: String.format(_t("Are you sure you wish to delete the trigger, {0}?"), row.data.name),
-                                    buttons: Ext.Msg.OKCANCEL,
-                                    fn: function(btn) {
-                                        if (btn == "ok") {
-                                            params= {
-                                                uuid:uuid
-                                            };
-                                            callback = function(response){
-                                                // item removed, reload grid.
-                                                me.deleteButton.setDisabled(true);
-                                                me.customizeButton.setDisabled(true);
-                                                reloadTriggersGrid();
-                                                reloadNotificationGrid();
-                                            };
-                                            router.removeTrigger(params, callback);
-
-                                        } else {
-                                            Ext.Msg.hide();
-                                        }
-                                    }
-                                });
+                                 new Zenoss.dialog.SimpleMessageDialog({
+                                        message: String.format(_t('Are you sure you want to delete the selected {0}?'), row.data.name),
+                                        title: _t('Delete Trigger'),
+                                        buttons: [{
+                                            xtype: 'DialogButton',
+                                            text: _t('OK'),
+                                            handler: function() {
+                                                params= {
+                                                    uuid:uuid
+                                                };
+                                                callback = function(response){
+                                                    // item removed, reload grid.
+                                                    me.deleteButton.setDisabled(true);
+                                                    me.customizeButton.setDisabled(true);
+                                                    reloadTriggersGrid();
+                                                    reloadNotificationGrid();
+                                                };
+                                                router.removeTrigger(params, callback);
+                                            }
+                                        }, {
+                                            xtype: 'DialogButton',
+                                            text: _t('Cancel')
+                                        }]
+                                    }).show();                                
                             }
                         }
                     },{
@@ -1340,21 +1342,23 @@ Ext.onReady(function () {
                         if (row){
                             uid = row.data.uid;
                             // show a confirmation
-                            Ext.Msg.show({
+                            new Zenoss.dialog.SimpleMessageDialog({
+                                message: String.format(_t('Are you sure you want to delete the selected {0}?'), row.data.newId),
                                 title: _t('Delete Schedule'),
-                                msg: String.format(_t("Are you sure you wish to delete the schedule, {0}?"), row.data.newId),
-                                buttons: Ext.Msg.OKCANCEL,
-                                fn: function(btn) {
-                                    if (btn == "ok") {
+                                buttons: [{
+                                    xtype: 'DialogButton',
+                                    text: _t('OK'),
+                                    handler: function() {                                    
                                         params = {
                                             uid:uid
                                         };
                                         router.removeWindow(params, reloadScheduleGrid);
-                                    } else {
-                                        Ext.Msg.hide();
                                     }
-                                }
-                            });
+                                }, {
+                                    xtype: 'DialogButton',
+                                    text: _t('Cancel')
+                                }]
+                            }).show();                                
                         }
                     }
                 },{

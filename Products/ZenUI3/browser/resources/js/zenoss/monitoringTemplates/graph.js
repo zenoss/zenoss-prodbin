@@ -852,7 +852,6 @@ Ext.define("Zenoss.templates.GraphGrid", {
                         buttons: [
                             {
                                 xtype: 'DialogButton',
-                                ui: 'dialog-dark',
                                 ref: '../submitButton',
                                 text: _t('Submit'),
                                 handler: function() {
@@ -869,7 +868,6 @@ Ext.define("Zenoss.templates.GraphGrid", {
                                 }
                             }, {
                                 xtype: 'DialogButton',
-                                ui: 'dialog-dark',
                                 text: _t('Cancel')
                             }]
                     });

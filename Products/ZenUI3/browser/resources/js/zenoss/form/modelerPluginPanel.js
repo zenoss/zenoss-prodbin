@@ -85,12 +85,13 @@
                     handler: function(btn) {
                         var panel = me;
                         // show a confirmation
-                        Ext.Msg.show({
+                        new Zenoss.dialog.SimpleMessageDialog({
                             title: _t('Delete zProperty'),
                             msg: _t("Are you sure you want to delete the local copy of zCollectorPlugin?"),
-                            buttons: Ext.Msg.OKCANCEL,
-                            fn: function(btn) {
-                                if (btn=="ok") {
+                            buttons: [{
+                                xtype: 'DialogButton',
+                                text: _t('OK'),
+                                handler: function() {
                                     if (panel.uid) {
                                         router.deleteZenProperty({
                                             uid: panel.uid,
@@ -99,13 +100,12 @@
                                             panel.setContext(panel.uid);
                                         });
                                     }
-                                } else {
-                                    Ext.Msg.hide();
                                 }
-                            }
-                        });
-
-
+                            }, {
+                                xtype: 'DialogButton',
+                                text: _t('Cancel')
+                            }]
+                        }).show();
                     }
                 }],
                 cls: 'device-overview-form-wrapper',

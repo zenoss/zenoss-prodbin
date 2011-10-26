@@ -93,18 +93,20 @@ Ext.Direct.on('event', function(e, provider){
 Ext.Direct.on('event', function(e){
 
     if ( Ext.isDefined(e.result) && e.result && Ext.isDefined(e.result.msg) && e.result.msg.startswith("ObjectNotFoundException") ) {
-        Ext.Msg.show({
-            title: _t('Stale Data Warning'),
-            msg: '<p>' + _t('Another user has edited the information on this page since you loaded it.') + ' ' +
-                _t('Please reload the page.') + '</p>' ,
-            buttons: {yes: _t('Reload Page'), cancel: _t('Dismiss')},
-            minWidth: 300,
-            fn: function(buttonId, text, opt) {
-                if ('yes' == buttonId) {
-                    window.location.reload();
-                }
-            }
-        });
+         new Zenoss.dialog.SimpleMessageDialog({
+                title: _t('Stale Data Warning'),
+                message: _t('Another user has edited the information on this page since you loaded it. Please reload the page.'),
+                buttons: [{
+                    xtype: 'DialogButton',
+                    text: _t('OK'),
+                    handler: function() {
+                        window.location.reload();
+                    }
+                }, {
+                    xtype: 'DialogButton',
+                    text: _t('Cancel')
+                }]
+            }).show();     
         return false;
     }
 });
@@ -131,20 +133,25 @@ Ext.Direct.on('exception', function(e) {
         window.location.reload();
         return;
     }
-    Ext.Msg.show({
+    
+         new Zenoss.dialog.SimpleMessageDialog({
         title: _t('Server Exception'),
-        msg: '<p>' + _t('The server reported the following error:') + '</p>' +
+        message: '<p>' + _t('The server reported the following error:') + '</p>' +
             '<p class="exception-message">' + e.message + '</p>' +
             '<p>' + _t('The system has encountered an error.') + ' ' +
             _t('Please reload the page.') + '</p>' ,
-        buttons: { yes: _t('Reload Page'), cancel: _t('Dismiss') },
-        minWidth: 300,
-        fn: function(buttonId, text, opt) {
-            if ('yes' == buttonId) {
-                window.location.reload();
-            }
-        }
-    });
+                buttons: [{
+                    xtype: 'DialogButton',
+                    text: _t('OK'),
+                    handler: function() {
+                        window.location.reload();
+                    }
+                }, {
+                    xtype: 'DialogButton',
+                    text: _t('Cancel')
+                }]
+            }).show();  
+            
 });
 
 /*
@@ -674,11 +681,7 @@ Ext.define("EventActionManager", {
 
                 // no data due to an error. Handle it.
                 if (!data) {
-                    Ext.Msg.show({
-                        title: _t('Error'),
-                        msg: _t('There was an error handling your request.'),
-                        buttons: Ext.MessageBox.OK
-                    });
+                    new Zenoss.dialog.ErrorDialog({message: _t('There was an error handling your request.')});
                     me.finishAction();
                     return;
                 }

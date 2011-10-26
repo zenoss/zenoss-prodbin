@@ -177,32 +177,36 @@ Ext.onReady(function(){
                         handler: function(){
                             var grid = Ext.getCmp('events_grid'),
                                 link = grid.getPermalink();
-                           Ext.Msg.show({
-                            title: 'Save Configuration',
-                            msg: '<div class="dialog-link">'
+                        new Zenoss.dialog.ErrorDialog({
+                            message: String.format(_t('<div class="dialog-link">'
                                 + 'Drag this link to your bookmark bar '
                                 + '<br/>to return to this configuration later.'
                                 + '<br/><br/><a href="'
                                 + link
-                                + '">Resource Manager: Event Archive</a></div>',
-                            buttons: Ext.Msg.OK
-                            });
+                                + '">Resource Manager: Event Archive</a></div>')),
+                            title: _t('Save Configuration'),
+                            });                                  
                         }
                     },{
                         text: "Restore defaults",
                         handler: function(){
-                            Ext.Msg.show({
-                                title: 'Confirm Restore',
-                                msg: 'Are you sure you want to restore '+
-                                  'the default configuration? All' +
-                                  ' filters, column sizing, and column order '+
-                                  'will be lost.',
-                                buttons: Ext.Msg.OKCANCEL,
-                                fn: function(val){
-                                    if (val=='ok')
+                            new Zenoss.dialog.SimpleMessageDialog({
+                                message: String.format(_t('Are you sure you want to restore '
+                                    + 'the default configuration? All'
+                                    + ' filters, column sizing, and column order '
+                                    + 'will be lost.')),
+                                title: _t('Confirm Restore'),
+                                buttons: [{
+                                    xtype: 'DialogButton',
+                                    text: _t('OK'),
+                                    handler: function() {
                                         Ext.getCmp('events_grid').resetGrid();
-                                }
-                            });
+                                    }
+                                }, {
+                                    xtype: 'DialogButton',
+                                    text: _t('Cancel')
+                                }]
+                            }).show();                        
                         }
                     }]
                 }

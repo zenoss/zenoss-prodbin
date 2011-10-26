@@ -163,6 +163,14 @@
         }
     }        
     
+    .errorbox{
+        .#{$prefix}toolbar .#{$prefix}box-inner{
+            text-align:center;
+        }
+        .#{$prefix}btn{
+            position:static !important;
+        }
+    }       
 
     .errorbox{
         .#{$prefix}toolbar .#{$prefix}box-inner{

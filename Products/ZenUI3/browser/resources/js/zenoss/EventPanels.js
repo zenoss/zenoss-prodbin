@@ -164,11 +164,7 @@
                         });
                         if (!evrows.length) {
                             win.hide();
-                            Ext.Msg.show({
-                                title: 'Error',
-                                msg: _t('No events were selected.'),
-                                buttons: Ext.MessageBox.OK
-                            });
+                                new Zenoss.dialog.ErrorDialog({message: _t('No events were selected.')});                            
                         } else {
                             Zenoss.remote.EventsRouter.classify({
                                 'evclass': cb.getValue(),
@@ -312,18 +308,23 @@
             },{
                 text: "Restore defaults",
                 handler: function(){
-                    Ext.Msg.show({
-                        title: 'Confirm Restore',
-                        msg: 'Are you sure you want to restore '
+                    new Zenoss.dialog.SimpleMessageDialog({
+                        message: String.format(_t('Are you sure you want to restore '
                             + 'the default configuration? All'
                             + ' filters, column sizing, and column order '
-                            + 'will be lost.',
-                        buttons: Ext.Msg.OKCANCEL,
-                        fn: function(val){
-                            if (val=='ok')
+                            + 'will be lost.')),
+                        title: _t('Confirm Restore'),
+                        buttons: [{
+                            xtype: 'DialogButton',
+                            text: _t('OK'),
+                            handler: function() {
                                 Ext.getCmp(gridId).resetGrid();
-                        }
-                    });
+                            }
+                        }, {
+                            xtype: 'DialogButton',
+                            text: _t('Cancel')
+                        }]
+                    }).show();                
                 }
             }];
 
@@ -333,16 +334,15 @@
                     handler: function(){
                         var grid = Ext.getCmp(gridId),
                         link = grid.getPermalink();
-                        Ext.Msg.show({
-                            title: 'Save Configuration',
-                            msg: '<div class="dialog-link">'
+                        new Zenoss.dialog.ErrorDialog({
+                            message: String.format(_t('<div class="dialog-link">'
                                 + 'Drag this link to your bookmark bar '
                                 + '<br/>to return to this configuration later.'
                                 + '<br/><br/><a href="'
                                 + link
-                                + '">Resource Manager: Events</a></div>',
-                            buttons: Ext.Msg.OK
-                        });
+                                + '">Resource Manager: Events</a></div>')),
+                            title: _t('Save Configuration'),
+                            });                           
                     }
                 });
             }

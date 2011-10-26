@@ -326,6 +326,28 @@ var componentCard = {
         iconCls: 'delete',
         disabled: Zenoss.Security.doesNotHavePermission('Manage Device'),
         handler: function() {
+            new Zenoss.dialog.SimpleMessageDialog({
+                message: _t("Are you sure you want to delete these components?"),
+                title: _t('Delete Components'),
+                buttons: [{
+                    xtype: 'DialogButton',
+                    text: _t('OK'),
+                    handler: function() {                                    
+                        REMOTE.deleteComponents(componentGridOptions(), function(){
+                            refreshComponentTreeAndGrid();
+                        });
+                    }
+                }, {
+                    xtype: 'DialogButton',
+                    text: _t('Cancel')
+                }]
+            }).show();      
+       /*     
+            this gives the error:
+            sm.getPendingSelections is not a function
+                    ranges = sm.getPendingSelections(true),
+            so couldn't fully test the dialog replacement. 
+            ---------------------        
             Ext.Msg.show({
                 title: _t('Delete Components'),
                 msg: _t("Are you sure you want to delete these components?"),
@@ -339,7 +361,7 @@ var componentCard = {
                         Ext.Msg.hide();
                     }
                 }
-            });
+            }); */ 
         }
     },{
         text: _t('Select'),
@@ -812,6 +834,7 @@ var editDeviceClass = function(deviceClass, uid) {
             triggerAction: 'all'
         }],
         buttons: [{
+            xtype: 'DialogButton',
             text: _t('Save'),
             ref: '../savebtn',
             disabled: Zenoss.Security.doesNotHavePermission('Manage Device'),
@@ -832,12 +855,20 @@ var editDeviceClass = function(deviceClass, uid) {
                     };
                     if (data.success) {
                         if (data.exports) {
-                            Ext.Msg.show({
+                         new Zenoss.dialog.SimpleMessageDialog({
                                 title: _t('Remodel Required'),
-                                msg: _t("Not all of the configuration could be preserved, so a remodel of the device is required. Performance templates have been reset to the defaults for the device class."),
-                                buttons: Ext.Msg.OK,
-                                fn: moveToNewDevicePage
-                            });
+                                message: _t("Not all of the configuration could be preserved, so a remodel of the device is required. Performance templates have been reset to the defaults for the device class."),
+                                buttons: [{
+                                    xtype: 'DialogButton',
+                                    text: _t('OK'),
+                                    handler: function() {
+                                        moveToNewDevicePage();
+                                    }
+                                }, {
+                                    xtype: 'DialogButton',
+                                    text: _t('Cancel')
+                                }]
+                            }).show();                               
                         }
                         else {
                             moveToNewDevicePage();
@@ -847,6 +878,7 @@ var editDeviceClass = function(deviceClass, uid) {
                 win.destroy();
             }
         }, {
+            xtype: 'DialogButton',
             text: _t('Cancel'),
             handler: function(btn) {
                 win.destroy();
@@ -955,12 +987,14 @@ Ext.getCmp('footer_bar').add([{
                 title: 'Reset/Change IP Address',
                 items: [{
                     xtype: 'textfield',
+                    anchor: '85%',
                     vtype: 'ipaddress',
                     name: 'ip',
                     ref: '../ipaddressfield',
                     fieldLabel: _t('IP Address (blank to use DNS)')
                 }],
                 buttons: [{
+                    xtype:'DialogButton',
                     text: _t('Save'),
                     ref: '../savebtn',
                     handler: function() {
@@ -974,6 +1008,7 @@ Ext.getCmp('footer_bar').add([{
                         });
                     }
                 },{
+                    xtype: 'DialogButton',
                     text: _t('Cancel'),
                     handler: function(){
                         win.destroy();
@@ -988,20 +1023,23 @@ Ext.getCmp('footer_bar').add([{
         text: _t('Push Changes') + '...',
         hidden: Zenoss.Security.doesNotHavePermission('Manage Device'),
         handler: function() {
-            Ext.Msg.show({
-                title: 'Push Changes',
-                msg: _t('Are you sure you want to push changes to the collectors?'),
-                buttons: Ext.Msg.YESNO,
-                fn: function (btnid) {
-                    if (btnid!='yes') {
-                        return;
+            new Zenoss.dialog.SimpleMessageDialog({
+                message: _t("Are you sure you want to push changes to the collectors?"),
+                title: _t('Push Changes'),
+                buttons: [{
+                    xtype: 'DialogButton',
+                    text: _t('OK'),
+                    handler: function() {                                    
+                        REMOTE.pushChanges({
+                            uids: [UID],
+                            hashcheck: null
+                        }, Ext.emptyFn);
                     }
-                    REMOTE.pushChanges({
-                        uids: [UID],
-                        hashcheck: null
-                    }, Ext.emptyFn);
-                }
-            });
+                }, {
+                    xtype: 'DialogButton',
+                    text: _t('Cancel')
+                }]
+            }).show();         
         }
     },{
         xtype: 'menuitem',

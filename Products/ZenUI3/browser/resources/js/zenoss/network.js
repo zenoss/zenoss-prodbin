@@ -447,13 +447,13 @@ function deleteIpAddresses(btn) {
     }
 
     uids = Ext.pluck(Ext.pluck(selections, 'data'), 'uid');
-
-    Ext.Msg.show({
+ new Zenoss.dialog.SimpleMessageDialog({
         title: _t('Delete IP Addresses'),
-        msg: _t("Are you sure you want to delete these IP addresses? Please note that only IP addresses without interfaces can be deleted."),
-        buttons: Ext.Msg.YESNO,
-        fn: function(btn) {
-            if (btn == "yes") {
+        message: _t("Are you sure you want to delete these IP addresses? Please note that only IP addresses without interfaces can be deleted."),
+        buttons: [{
+            xtype: 'DialogButton',
+            text: _t('OK'),
+            handler: function() {
                 router.removeIpAddresses({uids: uids}, function(response){
                     if (response.removedCount) {
                         Zenoss.message.info(_t("Deleted {0} IP addresses."), response.removedCount);
@@ -463,11 +463,12 @@ function deleteIpAddresses(btn) {
                         Zenoss.message.warning(_t("Unable to delete {0} IP addresses."), response.errorCount);
                     }
                 });
-            } else {
-                Ext.Msg.hide();
             }
-        }
-    });
+        }, {
+            xtype: 'DialogButton',
+            text: _t('Cancel')
+        }]
+    }).show();  
 }
 
 

@@ -658,38 +658,39 @@ function initializeTreeDrop(tree) {
             // move devices to the target node
             devids = Ext.pluck(Ext.pluck(e.records, 'data'), 'uid');
             // show the confirmation about devices
-            Ext.Msg.show({
-                title: _t('Move Devices'),
-                msg: String.format(_t("Are you sure you want to move these {0} device(s) to {1}?") + getTreeDropWarnings(targetnode, e.records),
-                                   devids.length, targetnode.data.text.text),
-                buttons: Ext.Msg.OKCANCEL,
-                fn: function(btn) {
-
-                    if (btn =="ok") {
-                        // move the devices
-                        var opts= {
-                            uids: devids,
-                            ranges: [],
-                            target: targetuid
-                        };
-                        REMOTE.moveDevices(opts, function(data){
-                            if(data.success) {
-                                resetGrid();
-                                Ext.History.add(me.id + Ext.History.DELIMITER + targetnode.data.uid.replace(/\//g, '.'));
-                                me.refresh();
-                                if(data.exports) {
-                                    Ext.Msg.show({
-                                        title: _t('Remodel Required'),
-                                        msg: String.format(_t("Not all of the configuration could be preserved, so a remodel of the device(s) is required. Performance templates have been reset to the defaults for the device class.")),
-                                        buttons: Ext.Msg.OK});
+             new Zenoss.dialog.SimpleMessageDialog({
+                    message: String.format(_t("Are you sure you want to move these {0} device(s) to {1}?") + getTreeDropWarnings(targetnode, e.records),devids.length, targetnode.data.text.text),
+                    title: _t('Move Devices'),
+                    buttons: [{
+                        xtype: 'DialogButton',
+                        text: _t('OK'),
+                        handler: function() {
+                            // move the devices
+                            var opts= {
+                                uids: devids,
+                                ranges: [],
+                                target: targetuid
+                            };
+                            REMOTE.moveDevices(opts, function(data){
+                                if(data.success) {
+                                    resetGrid();
+                                    Ext.History.add(me.id + Ext.History.DELIMITER + targetnode.data.uid.replace(/\//g, '.'));
+                                    me.refresh();
+                                    if(data.exports) {
+                                        new Zenoss.dialog.ErrorDialog({
+                                            title: _t('Remodel Required'),
+                                            message: String.format(_t("Not all of the configuration could be preserved, so a remodel of the device(s)" + 
+                                            "is required. Performance templates have been reset to the defaults for the device class."))
+                                        });
+                                    }
                                 }
-                            }
-                        }, me);
-                    }else {
-                        Ext.Msg.hide();
-                    }
-                }
-            });
+                            }, me);
+                        }
+                    }, {
+                        xtype: 'DialogButton',
+                        text: _t('Cancel')
+                    }]
+                }).show();        
             // if we return true a dummy node will be appended to the tree
             return false;
         }else {
@@ -703,32 +704,33 @@ function initializeTreeDrop(tree) {
 
             // show the confirmation about organizers
             // show a confirmation for organizer move
-            Ext.Msg.show({
-                title: _t('Move Organizer'),
-                msg: String.format(_t("Are you sure you want to move {0} to {1}?"), record.get("text").text, targetnode.get("text").text),
-                buttons: Ext.Msg.OKCANCEL,
-                fn: function(btn) {
-                    if (btn=="ok") {
-                        // move the organizer
-                        var params = {
-                            organizerUid: organizerUid,
-                            targetUid: targetuid
-                        };
-                        REMOTE.moveOrganizer(params, function(data){
-                            if(data.success) {
-                                // add the new node to our history
-                                Ext.History.add(me.id + Ext.History.DELIMITER + data.data.uid.replace(/\//g, '.'));
-                                tree.refresh({
-                                    callback: resetGrid
-                                });
-                            }
-                        }, me);
-                    }else {
-                        Ext.msg.hide();
-                    }
-                }
-            });
-
+             new Zenoss.dialog.SimpleMessageDialog({
+                    title: _t('Move Organizer'),
+                    message: String.format(_t("Are you sure you want to move {0} to {1}?"), record.get("text").text, targetnode.get("text").text),
+                    buttons: [{
+                        xtype: 'DialogButton',
+                        text: _t('OK'),
+                        handler: function() {
+                            // move the organizer
+                            var params = {
+                                organizerUid: organizerUid,
+                                targetUid: targetuid
+                            };
+                            REMOTE.moveOrganizer(params, function(data){
+                                if(data.success) {
+                                    // add the new node to our history
+                                    Ext.History.add(me.id + Ext.History.DELIMITER + data.data.uid.replace(/\//g, '.'));
+                                    tree.refresh({
+                                        callback: resetGrid
+                                    });
+                                }
+                            }, me);
+                        }
+                    }, {
+                        xtype: 'DialogButton',
+                        text: _t('Cancel')
+                    }]
+                }).show();              
 
             // Ext shows the node as already moved when we are awaiting the
             // dialog confirmation, so always tell Ext that the move didn't work

@@ -105,7 +105,6 @@ new Zenoss.HideFormDialog({
     buttons: [
     {
         xtype: 'DialogButton',
-        ui: 'dialog-dark',
         ref: '../submit',
         text: _t('Submit'),
         disabled: true,
@@ -118,7 +117,6 @@ new Zenoss.HideFormDialog({
         }
     }, {
         xtype: 'DialogButton',
-        ui: 'dialog-dark',
         text: _t('Cancel')
     }]
 });
@@ -140,7 +138,7 @@ showAddToGraphDialog = function() {
         resetCombo(combo, templateUid);
         Ext.getCmp('addToGraphDialog').submit.disable();
     } else {
-        Ext.Msg.alert('Error', 'You must select a Data Point.');
+        new Zenoss.dialog.ErrorDialog({message: _t('You must select a Data Point.')});
     }
 };
 
@@ -231,13 +229,11 @@ new Zenoss.dialog.BaseWindow({
             buttons: [{
                     xtype: 'DialogButton',
                     text: _t('Submit'),
-                    ui: 'dialog-dark',
                     formBind: true,
                     handler: saveDataPoint
                 }, {
                     xtype: 'DialogButton',
                     text: _t('Cancel'),
-                    ui: 'dialog-dark',
                     handler: function() {
                         Ext.getCmp('addDataPointDialog').hide();
                     }
@@ -258,7 +254,7 @@ function showAddDataPointDialog() {
 
     // make sure they selected a node
     if (!selectedNode) {
-        Ext.Msg.alert(_t('Error'), _t('You must select data source'));
+        new Zenoss.dialog.ErrorDialog({message: _t('You must select data source.')});
         return;
     }
 
@@ -334,14 +330,12 @@ new Zenoss.dialog.BaseWindow({
             xtype: 'button',
             ui: 'dialog-dark',
             text: _t('Submit'),
-            ui: 'dialog-dark',
             formBind: true,
             handler: saveDataSource
         },{
             xtype: 'button',
             ui: 'dialog-dark',
             text: _t('Cancel'),
-            ui: 'dialog-dark',
             handler: function () {
                 Ext.getCmp('addDataSourceDialog').hide();
             }
@@ -358,7 +352,7 @@ function showAddDataSourceDialog() {
 
     // make sure they selected a node
     if (!selectedNode) {
-        Ext.Msg.alert(_t('Error'), _t('You must select a template'));
+        new Zenoss.dialog.ErrorDialog({message: _t('You must select a template.')});    
         return;
     }
     // clear the entries (all of our forms are blank when you load them)
@@ -387,7 +381,7 @@ function showDeleteDataSourceDialog() {
         dialog.show();
         dialog.getComponent('message').update(html);
     }else{
-        Ext.Msg.alert(_t('Error'), _t('You must select a Data Source or Data Point.'));
+        new Zenoss.dialog.ErrorDialog({message: _t('You must select a Data Source or Data Point.')});    
     }
 }
 
@@ -488,7 +482,7 @@ function editDataSourceOrPoint() {
 
     // make sure they selected something
     if (!selectedNode) {
-        Ext.Msg.alert(_t('Error'), _t('You must select a data source or data point.'));
+        new Zenoss.dialog.ErrorDialog({message: _t('You must select a Data Source or Data Point.')});    
         return;
     }
     data = selectedNode.data;

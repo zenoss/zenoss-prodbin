@@ -348,23 +348,20 @@ function disableSendEvent() {
                             iconCls: 'set',
                             permission: 'Change Device',
                             handler: function(){
-                                Ext.Msg.show({
+                                new Zenoss.dialog.SimpleMessageDialog({
+                                    message: String.format(_t('Are you sure you want to reset the IP addresses of these devices to the results of a DNS lookup?')),
                                     title: _t('Reset IP'),
-                                    msg: _t('Are you sure you want to reset the IP addresses of ' +
-                                            'these devices to the results of a DNS lookup?'),
-                                    buttons: Ext.Msg.YESNO,
-                                    fn: function(r){
-                                        switch(r) {
-                                          case 'no':
-                                            break;
-                                          case 'yes':
+                                    buttons: [{
+                                        xtype: 'DialogButton',
+                                        text: _t('OK'),
+                                        handler: function() {
                                             REMOTE.resetIp(fetcher(), saveHandler);
-                                            break;
-                                        default:
-                                            break;
                                         }
-                                    }
-                                });
+                                    }, {
+                                        xtype: 'DialogButton',
+                                        text: _t('Cancel')
+                                    }]
+                                }).show();                                 
                             }
                         }),
                         /*

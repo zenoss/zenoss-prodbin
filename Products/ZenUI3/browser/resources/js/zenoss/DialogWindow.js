@@ -400,6 +400,39 @@ Ext.define("Zenoss.SmartFormDialog", {
 });
 
 
+
+/**
+ * @class Zenoss.dialog.ErrorDialog
+ * @extends BaseDialog
+ * A modal dialog window with Zenoss styling and a fit layout.
+ * @constructor
+ */
+Ext.define("Zenoss.dialog.ErrorDialog", {
+    extend: "BaseDialog",
+    title:_t('Error'),
+    message: null,
+    constructor: function(config) {
+        Ext.applyIf(config, {
+            layout: 'fit',
+            cls:'errorbox',
+            items: [{
+                html: config.message,
+                buttons: [{
+                    xtype: 'DialogButton',
+                    text: _t('OK')
+                }]
+            }],
+            closeAction: 'close'
+        });
+         this.callParent([config]);
+    },
+    initComponent: function(){
+        this.callParent(arguments);
+        this.show();
+    }
+});
+
+
 /**
  * @class Zenoss.HideFitDialog
  * @extends Zenoss.dialog.BaseWindow
