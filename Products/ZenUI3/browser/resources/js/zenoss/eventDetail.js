@@ -33,7 +33,7 @@ Ext.onReady(function() {
      * The header used for the top of the event detail pane.
      * WAS ns.detail_table_template
      */
-    ns.detail_header_template = ['<table>',
+    ns.detail_header_template = ['<table width="100%" id="evdetail_props_table">',
         '<tr><td class="dt">',_t('Resource:'),'</td>',
             '<td>',
                 '<tpl if="device">',
@@ -56,8 +56,8 @@ Ext.onReady(function() {
             '</td>',
         '</tr>',
         '<tr><td class="dt">',_t('Status:'),'</td> <td>{eventState}</td></tr>',
-        '<tr><td class="dt">',_t('Message:'),'</td> <td><pre>{message}</pre></td></tr>',
-    '</table>'];
+        '<tr><td class="dt">',_t('Message:'),'</td> <td>{message}</td></tr>',        
+    '</table><div style="clear:both;"></div>'];
 
     /**
      * The template used for regular event properties.
@@ -209,6 +209,8 @@ Ext.onReady(function() {
                     items: [{
                         region: 'west',
                         width: 77,
+                        height:47,
+                        defaults:{height:47},                       
                         layout: 'hbox',
                         items: [{
                             id: 'severity-icon',
@@ -325,6 +327,7 @@ Ext.onReady(function() {
                     }
                     ]
                 }
+                
             ];
 
             Zenoss.DetailPanel.superclass.constructor.call(this, config);
@@ -377,13 +380,14 @@ Ext.onReady(function() {
                 Location: function(value, sourceData) {
                     return Zenoss.render.LinkFromGridUidGroup(value);
                 }
+                
             };
             Ext.apply(this.renderers, default_renderers);
 
             var eventInfoSection = new ns.Section({
                 id: "evdetail_props",
                 cls: 'evdetail_props',
-                template: ns.detail_header_template,
+                template: ns.detail_header_template,  
                 keys: ['device', 'component', 'eventClass', 'eventState', 'message']
             });
             this.addSection(eventInfoSection);
@@ -433,6 +437,7 @@ Ext.onReady(function() {
             this.addSection(eventDetailsSection);
 
             this.checkCustomizations();
+            
         },
 
         checkCustomizations: function() {
@@ -629,8 +634,8 @@ Ext.onReady(function() {
                 logHtml;
             logHtml = logTemplate.apply(eventData);
             Ext.getCmp('evdetail_log').el.update(logHtml);
+           
         },
-
         bind: function() {
             var close_btn = Ext.getCmp('evdetail_tool_close').getEl(),
                 pop = Ext.getCmp('evdetail-popout').getEl();

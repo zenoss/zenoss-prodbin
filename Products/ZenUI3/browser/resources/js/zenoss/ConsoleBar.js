@@ -37,6 +37,7 @@ Ext.define("Zenoss.ConsoleBar", {
             }]).concat(config.items||[]).concat(['-',{
                 iconCls: 'collapse',
                 ref: 'togglebutton',
+                cls: 'openclose',
                 handler: function() {
                     me.toggleDockedItemPosition();
                 }

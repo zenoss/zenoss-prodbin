@@ -84,7 +84,7 @@
     <input type="radio" id="autoradio" name="tabselect"/> <label for="autoradio">Autodiscover devices</label>
 </div>
 <hr/>
-<div id="deviceadd_tabs"></div>
+<div id="deviceadd_tabs"  class="easyadddevice_shell"></div>
 <script tal:content="string:
     var DEFAULT_SNMPCOMMUNITIES = ${view/default_communities};
     var DEVICE_TYPES = ${view/device_types};
@@ -539,6 +539,7 @@ Ext.onReady(function() {
                 items: [{
                     xtype: 'button',
                     text: 'Submit',
+                    cls:'step2submit',
                     handler: function() {
                         Ext.getCmp('manualdiscoverform').getForm().submit({
                             url: 'manual_add',
@@ -555,7 +556,8 @@ Ext.onReady(function() {
                 xtype: 'panel',
                 items: [{
                     xtype: 'button',
-                    text: 'Submit',
+                    text: 'Submit',   
+                    cls:'step2submit',                    
                     handler: function() {
                         Ext.getCmp('autodiscoverform').getForm().submit({
                             url: 'auto_add',

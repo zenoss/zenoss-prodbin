@@ -1,0 +1,55 @@
+@mixin zenoss-wizards{
+    /* --------------------- quickstart stuff... */
+    .easyadddevice_shell{
+        width:98%;
+        .x-fieldset{
+            background:transparent !important;
+        }
+    }
+    .easyadddevice_shell, #newform{
+        .step2submit{
+            margin:5px;
+            float:right;
+        }
+        .x-fieldset-header-text{
+            font:bold 14px arial;
+            color:#000;
+            padding:0px;
+            text-decoration:underline;
+        }
+        #credstitle_0{ 
+            border-bottom:1px solid #ddd;
+            margin-bottom:8px;
+            padding:3px;
+            .x-panel-body{
+                font-size:14px !important;
+                color:#444 !important;        
+            }
+        }
+        #userfieldset{
+            border-left:1px solid #aaa !important;
+            padding-left:27px;
+        }
+        #manual_creds{
+            padding:5px;
+            border:1px solid #aaa;
+            .x-fieldset-default{
+                margin:0px;
+            }
+        }
+        .helptext{ 
+            .x-panel-body-default{
+                font-size:11px;
+                color:#666 !important;
+                padding:0 8px 8px 15px;
+            }
+        }
+        #creds_0{
+            margin:-10px;
+        }
+        #snmp_0{
+            margin-right:8px !important;    
+        }
+    }
+}
+

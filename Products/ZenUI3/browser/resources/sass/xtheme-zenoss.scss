@@ -25,6 +25,7 @@ $include-missing-images: true;
 @include zenoss-dialog-button;
 @include zenoss-default-button;
 @include zenoss-arrowslide-button;
+@include zenoss-arrow-button;
 @include zenoss-toolbar;
 @include zenoss-panel;
 @include zenoss-window;
@@ -33,6 +34,7 @@ $include-missing-images: true;
 @include zenoss-form;
 @include zenoss-menu;
 @include zenoss-flares;
+@include zenoss-wizards;
    
 
 
@@ -107,7 +109,7 @@ $include-missing-images: true;
         border-color:#808080 !important;
     }
 }
-#detailCardPanel, #navGrid, #NetworkDetailCardPanel, #device_grid{
+#detailCardPanel, #gridCardPanel, #navGrid, #NetworkDetailCardPanel, #device_grid{
     .#{$prefix}panel-body{
         border:0 none !important;
     }
@@ -152,28 +154,20 @@ $include-missing-images: true;
 
 /* ========================== */
 
-#devdetailbar{
-    .x-panel-body-default{
-        border: 0 none;
-    }
-}
 .tabletitlecontainer{
     border: 0 none !important;
 }
-#detail_card_panel{// these cause probs elsewhere, but need to target into some backcompat for this
-    #device_modeler_plugins, .device-overview-form, .device-overview-form-wrapper{
-       // background:#fff !important;
-    }
-    .x-panel-default, .tabletitlecontainer, .x-toolbar{
-       //border: 0 none !important;
-    }
-    .x-panel-body-default{
-       // border-color:#888 !important;
-    }
+.x-panel-body-default{
+    border: 0 none !important;
 }
 
+#device_graphs .graph-panel{
+    height: 260px !important;
+}
 
-
+.largetoolbar .openclose{
+    top:3px !important;
+}
 
 
 

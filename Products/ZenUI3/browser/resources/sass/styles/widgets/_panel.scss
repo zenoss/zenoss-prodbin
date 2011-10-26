@@ -83,5 +83,23 @@
                 display:none !important;
             }  
     }
+    #device_modeler_plugins{
+        .#{$prefix}panel-default-framed, .#{$prefix}panel-body-default-framed{
+            background:#f2f2f2; 
+        }
+
+    }
+    
+    
+
+    #evdetail_props{
+        display:block !important;
+        float:none !important;
+        clear:both;
+        width:480px !important;
+    }
+    #evdetail-sep{left:35px !important;}
+    #evdetail-popout{height:47px !important;}
+    #severity-icon-body, #evdetail-sep-body{height:0px !important}
 }
 

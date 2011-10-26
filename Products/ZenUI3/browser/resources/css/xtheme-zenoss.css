@@ -8442,6 +8442,29 @@ $menu-icon-unchecked: 'menu/unchecked.gif';
 .x-btn-arrowslide-toolbar-small.x-btn-arrowslide-toolbar-small-over span {
   color: #1b579a !important; }
 
+.x-form-itemselector-btn {
+  background-image: none;
+  border: 0 none !important;
+  border-radius: 0;
+  background-color: transparent; }
+.x-form-itemselector-btn .x-btn-icon {
+  background-image: url() !important;
+  background-position: 0 0; }
+.x-form-itemselector-btn .x-form-itemselector-top {
+  background-image: url("/++resource++zenui/img/ext4/icon/top2.gif") !important; }
+.x-form-itemselector-btn .x-form-itemselector-up {
+  background-image: url("/++resource++zenui/img/ext4/icon/up2.gif") !important; }
+.x-form-itemselector-btn .x-form-itemselector-add {
+  background-image: url("/++resource++zenui/img/ext4/icon/right2.gif") !important; }
+.x-form-itemselector-btn .x-form-itemselector-remove {
+  background-image: url("/++resource++zenui/img/ext4/icon/left2.gif") !important; }
+.x-form-itemselector-btn .x-form-itemselector-down {
+  background-image: url("/++resource++zenui/img/ext4/icon/down2.gif") !important; }
+.x-form-itemselector-btn .x-form-itemselector-bottom {
+  background-image: url("/++resource++zenui/img/ext4/icon/bottom2.gif") !important; }
+.x-form-itemselector-btn .x-frame-ml, .x-form-itemselector-btn .x-frame-mc, .x-form-itemselector-btn .x-frame-mr, .x-form-itemselector-btn .x-frame-bl, .x-form-itemselector-btn .x-frame-bc, .x-form-itemselector-btn .x-frame-br, .x-form-itemselector-btn .x-frame-tl, .x-form-itemselector-btn .x-frame-tc, .x-form-itemselector-btn .x-frame-tr {
+  background-image: none !important; }
+
 .x-toolbar-default {
   border-color: #d9d9d9;
   background-image: none;
@@ -8725,6 +8748,24 @@ $menu-icon-unchecked: 'menu/unchecked.gif';
 
 #detail_panel .x-panel-header {
   display: none !important; }
+
+#device_modeler_plugins .x-panel-default-framed, #device_modeler_plugins .x-panel-body-default-framed {
+  background: #f2f2f2; }
+
+#evdetail_props {
+  display: block !important;
+  float: none !important;
+  clear: both;
+  width: 480px !important; }
+
+#evdetail-sep {
+  left: 35px !important; }
+
+#evdetail-popout {
+  height: 47px !important; }
+
+#severity-icon-body, #evdetail-sep-body {
+  height: 0px !important; }
 
 .x-window-default {
   border-color: black;
@@ -9125,6 +9166,11 @@ CORE TRIGGER PAGE STUFF
   line-height: 21px;
   font-size: 10pt; }
 
+.errorbox .x-toolbar .x-box-inner {
+  text-align: center; }
+.errorbox .x-btn {
+  position: static !important; }
+
 .x-grid .x-column-header, #dataSourceTreeGrid .x-column-header {
   border-left: 0 none;
   border-right: 1px solid #B4B4B4;
@@ -9203,6 +9249,25 @@ CORE TRIGGER PAGE STUFF
 
 .x-fieldset-header-text {
   padding-bottom: 8px; }
+
+.x-form-multiselect-body .x-boundlist {
+  border: 1px solid #AABBCC;
+  height: 98% !important; }
+
+.x-window .x-form-itemselector-body .x-panel-header {
+  box-shadow: none;
+  border: none;
+  background: url() transparent;
+  color: #fff; }
+.x-window .x-form-itemselector-body .x-panel-body {
+  color: #000; }
+
+#device_modeler_plugins .x-form-itemselector-body .x-panel-header {
+  box-shadow: none;
+  border: none;
+  background: url() transparent; }
+#device_modeler_plugins .x-form-itemselector-body .x-panel-header .x-panel-header-text {
+  color: #000; }
 
 .x-menu-body {
   -moz-user-select: none;
@@ -9372,6 +9437,44 @@ CORE TRIGGER PAGE STUFF
 .x-flare .x-flare-debug .x-flare-icon {
   background-position: 0px -80px; }
 
+/* --------------------- quickstart stuff... */
+.easyadddevice_shell {
+  width: 98%; }
+.easyadddevice_shell .x-fieldset {
+  background: transparent !important; }
+
+.easyadddevice_shell .step2submit, #newform .step2submit {
+  margin: 5px;
+  float: right; }
+.easyadddevice_shell .x-fieldset-header-text, #newform .x-fieldset-header-text {
+  font: bold 14px arial;
+  color: #000;
+  padding: 0px;
+  text-decoration: underline; }
+.easyadddevice_shell #credstitle_0, #newform #credstitle_0 {
+  border-bottom: 1px solid #ddd;
+  margin-bottom: 8px;
+  padding: 3px; }
+.easyadddevice_shell #credstitle_0 .x-panel-body, #newform #credstitle_0 .x-panel-body {
+  font-size: 14px !important;
+  color: #444444 !important; }
+.easyadddevice_shell #userfieldset, #newform #userfieldset {
+  border-left: 1px solid #aaaaaa !important;
+  padding-left: 27px; }
+.easyadddevice_shell #manual_creds, #newform #manual_creds {
+  padding: 5px;
+  border: 1px solid #aaa; }
+.easyadddevice_shell #manual_creds .x-fieldset-default, #newform #manual_creds .x-fieldset-default {
+  margin: 0px; }
+.easyadddevice_shell .helptext .x-panel-body-default, #newform .helptext .x-panel-body-default {
+  font-size: 11px;
+  color: #666666 !important;
+  padding: 0 8px 8px 15px; }
+.easyadddevice_shell #creds_0, #newform #creds_0 {
+  margin: -10px; }
+.easyadddevice_shell #snmp_0, #newform #snmp_0 {
+  margin-right: 8px !important; }
+
 /* top search button sprite */
 #searchbox-container .x-form-trigger {
   background-image: url("../img/xtheme-zenoss/form/trigger.gif"); }
@@ -9420,9 +9523,9 @@ CORE TRIGGER PAGE STUFF
   border-top-width: 1px !important;
   border-color: gray !important; }
 
-#detailCardPanel .x-panel-body, #navGrid .x-panel-body, #NetworkDetailCardPanel .x-panel-body, #device_grid .x-panel-body {
+#detailCardPanel .x-panel-body, #gridCardPanel .x-panel-body, #navGrid .x-panel-body, #NetworkDetailCardPanel .x-panel-body, #device_grid .x-panel-body {
   border: 0 none !important; }
-#detailCardPanel .x-toolbar-default-docked-bottom, #navGrid .x-toolbar-default-docked-bottom, #NetworkDetailCardPanel .x-toolbar-default-docked-bottom, #device_grid .x-toolbar-default-docked-bottom {
+#detailCardPanel .x-toolbar-default-docked-bottom, #gridCardPanel .x-toolbar-default-docked-bottom, #navGrid .x-toolbar-default-docked-bottom, #NetworkDetailCardPanel .x-toolbar-default-docked-bottom, #device_grid .x-toolbar-default-docked-bottom {
   background: white !important; }
 
 .x-docked.x-panel-default-collapsed {
@@ -9452,8 +9555,14 @@ CORE TRIGGER PAGE STUFF
   text-decoration: none; }
 
 /* ========================== */
-#devdetailbar .x-panel-body-default {
-  border: 0 none; }
-
 .tabletitlecontainer {
   border: 0 none !important; }
+
+.x-panel-body-default {
+  border: 0 none !important; }
+
+#device_graphs .graph-panel {
+  height: 260px !important; }
+
+.largetoolbar .openclose {
+  top: 3px !important; }

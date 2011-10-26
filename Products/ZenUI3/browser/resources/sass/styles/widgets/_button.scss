@@ -259,6 +259,7 @@
             }
         }
     }
+
 }
 
 @mixin zenoss-dialog-button {
@@ -684,4 +685,48 @@
    
 
 }
+
+
+
+@mixin zenoss-arrow-button {
+    .#{$prefix}form-itemselector-btn{
+        background-image:none;
+        border:0 none !important;
+        border-radius:0;
+        background-color:transparent;
+        
+        .x-btn-icon{
+            background-image:url() !important;
+            background-position:0 0;
+        }
+
+        .#{$prefix}form-itemselector-top{
+            @include zenoss-background-image("icon/top2.gif", true);
+        }
+        .#{$prefix}form-itemselector-up{
+            @include zenoss-background-image("icon/up2.gif", true);        
+        }
+        .#{$prefix}form-itemselector-add{
+            @include zenoss-background-image("icon/right2.gif", true);        
+        }
+        .#{$prefix}form-itemselector-remove{
+            @include zenoss-background-image("icon/left2.gif", true);        
+        }
+        .#{$prefix}form-itemselector-down{
+            @include zenoss-background-image("icon/down2.gif", true);        
+        }
+        .#{$prefix}form-itemselector-bottom{
+            @include zenoss-background-image("icon/bottom2.gif", true);        
+        }
+        
+        .#{$prefix}frame-ml, .#{$prefix}frame-mc, .#{$prefix}frame-mr, 
+        .#{$prefix}frame-bl, .#{$prefix}frame-bc, .#{$prefix}frame-br,
+        .#{$prefix}frame-tl, .#{$prefix}frame-tc, .#{$prefix}frame-tr{
+            background-image:none !important;
+        }
+    }
+    
+    
+}
+
   

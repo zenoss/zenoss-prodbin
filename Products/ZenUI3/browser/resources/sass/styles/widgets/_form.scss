@@ -13,7 +13,38 @@
         padding-bottom:8px;
     }
     
-
+    .#{$prefix}form-multiselect-body{  
+        .#{$prefix}boundlist{
+            border:1px solid #AABBCC;
+            height:98% !important;
+        }
+    }
+    
+    .#{$prefix}window{
+        .#{$prefix}form-itemselector-body{
+            .#{$prefix}panel-header{
+                box-shadow:none;
+                border:none;
+                background:url() transparent;
+                color:#fff;
+            }
+            .#{$prefix}panel-body{
+                color:#000;
+            }
+        }    
+    }
+    #device_modeler_plugins{
+        .#{$prefix}form-itemselector-body{
+            .#{$prefix}panel-header{
+                box-shadow:none;
+                border:none;
+                background:url() transparent;
+                .#{$prefix}panel-header-text{
+                    color:#000;
+                }
+            }
+        }     
+    }
 
 
 }
