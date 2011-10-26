@@ -241,8 +241,8 @@ Ext.onReady(function () {
         ]
     });
 
-    Ext.define("Zenoss.triggers.UsersPermissionGrid", {
-        extend:"Ext.grid.Panel",
+    Ext.define('Zenoss.triggers.UsersPermissionGrid', {
+        extend: 'Ext.grid.Panel',
         constructor: function(config) {
             var me = this;
             config = config || {};
@@ -250,6 +250,7 @@ Ext.onReady(function () {
             Ext.applyIf(config, {
                 ref: 'users_grid',
                 title: config.title,
+                height: 200,
                 autoHeight: true,
                 plugins: [
                     Ext.create('Ext.grid.plugin.CellEditing', {
@@ -262,6 +263,9 @@ Ext.onReady(function () {
                         me.addValueFromCombo();
                     }
                 }],
+                viewConfig: {
+                    loadMask: false
+                },
                 tbar: [{
                         xtype: 'combo',
                         ref: 'users_combo',
@@ -302,8 +306,7 @@ Ext.onReady(function () {
                 store: new Ext.data.JsonStore({
                     model: 'Zenoss.triggers.PermissionGridModel',
                     storeId: 'users_combo_store',
-                    autoDestroy: true,
-                    autoLoad: false,
+                    autoLoad: true,
                     data: []
                 }),
                 columns: [
@@ -316,6 +319,7 @@ Ext.onReady(function () {
                         header: config.title,
                         dataIndex: 'label',
                         width: 120,
+                        flex: 1,
                         sortable: true
                     },{
                         header: _t('Write'),
@@ -371,7 +375,7 @@ Ext.onReady(function () {
                         label:label,
                         write:false,
                         manage: false
-                    })
+                    });
                     this.getStore().add(record);
                     this.getView().refresh();
                     this.getTopToolbar().users_combo.clearValue();
@@ -399,7 +403,7 @@ Ext.onReady(function () {
                 height: bigWindowHeight-110,
                 maxHeight: bigWindowHeight-110,
                 width: bigWindowWidth,
-                minWidth: bigWindowWidth,
+                minWidth: bigWindowWidth
             });
             NotificationTabContent.superclass.constructor.apply(this, arguments);
         }
@@ -446,9 +450,7 @@ Ext.onReady(function () {
             },
             loadData: function(data) {
                 this.userWrite = data['userWrite'] || false;
-                var panel = Ext.applyIf(panel, data.content);
-                var comp = Ext.create('Ext.panel.Panel', panel);
-                this.add(comp);
+                this.add(data.content);
             }
         });
 
@@ -984,7 +986,7 @@ Ext.onReady(function () {
                     sortable: true
                 },{
                     dataIndex: 'newId',
-                    header: _t('Id'),
+                    header: _t('ID'),
                     flex: 1,
                     sortable: true
                 },{
