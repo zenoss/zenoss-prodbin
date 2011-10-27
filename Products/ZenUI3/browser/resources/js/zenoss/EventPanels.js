@@ -675,7 +675,6 @@
         mode: 'MULTI',
         initEvents: function(){
             Zenoss.EventPanelSelectionModel.superclass.initEvents.call(this);
-
             this.on('beforerowselect', this.handleBeforeRowSelect, this);
             this.on('rowselect', this.handleRowSelect, this);
             this.on('rowdeselect', this.handleRowDeSelect, this);
@@ -1006,13 +1005,19 @@
                     var stateclass = record.get('eventState')=='New' ?
                         'unacknowledged':'acknowledged';
                     var sev = Zenoss.util.convertSeverity(record.get('severity'));
-                    var rowcolors = me.rowColors ? 'rowcolor rowcolor-' : '';
+                    var rowcolors = me.rowcolors ? '':'rowcolor rowcolor-';
                     var cls = rowcolors + sev + '-' + stateclass + ' ' + stateclass;
                     return cls;
                 }
+                
             });
-
             this.callParent(arguments);
+        },
+        listeners: {
+            'beforerender': function(){
+               this.rowcolors = Ext.state.Manager.get('rowcolor');
+               Ext.getCmp('rowcolors_checkitem').setChecked(this.rowcolors ? false : true);
+            }
         },
         getSelectionParameters: function() {
             var grid = this,

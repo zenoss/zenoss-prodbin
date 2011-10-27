@@ -9162,9 +9162,24 @@ CORE TRIGGER PAGE STUFF
   margin-top: 5px; }
 .white-background-panel .x-fieldset {
   padding: 0; }
+.white-background-panel .x-panel-header {
+  height: 25px; }
+.white-background-panel .x-panel-header .x-panel-header-text-container {
+  top: 1px !important; }
+.white-background-panel .x-panel-header .x-box-inner {
+  height: 15px !important;
+  padding-top: 0 !important;
+  padding-bottom: 0 !important; }
+.white-background-panel .x-field {
+  margin-left: 5px; }
 .white-background-panel div.xtb-text {
   line-height: 21px;
   font-size: 10pt; }
+
+.errorbox .x-toolbar .x-box-inner {
+  text-align: center; }
+.errorbox .x-btn {
+  position: static !important; }
 
 .errorbox .x-toolbar .x-box-inner {
   text-align: center; }
@@ -9198,6 +9213,38 @@ CORE TRIGGER PAGE STUFF
   background-color: #7199c6 !important; }
 .x-grid .x-grid-row-selected .x-grid-cell .x-grid-cell-inner, .x-grid .x-grid-row-selected .x-grid-cell .x-grid-cell-inner a, .x-grid .x-grid-row-selected .x-grid-rowwrap-div .x-grid-cell-inner, .x-grid .x-grid-row-selected .x-grid-rowwrap-div .x-grid-cell-inner a, #dataSourceTreeGrid .x-grid-row-selected .x-grid-cell .x-grid-cell-inner, #dataSourceTreeGrid .x-grid-row-selected .x-grid-cell .x-grid-cell-inner a, #dataSourceTreeGrid .x-grid-row-selected .x-grid-rowwrap-div .x-grid-cell-inner, #dataSourceTreeGrid .x-grid-row-selected .x-grid-rowwrap-div .x-grid-cell-inner a {
   color: #fff; }
+.x-grid .rowcolor, #dataSourceTreeGrid .rowcolor {
+  border-color: #999 #999 #999; }
+.x-grid .x-grid-row-over-rowcolor, .x-grid .x-grid-row-selected-rowcolor, #dataSourceTreeGrid .x-grid-row-over-rowcolor, #dataSourceTreeGrid .x-grid-row-selected-rowcolor {
+  background: #999999 !important; }
+.x-grid .x-grid-row-over-rowcolor .x-grid-cell-inner, #dataSourceTreeGrid .x-grid-row-over-rowcolor .x-grid-cell-inner {
+  color: white; }
+.x-grid .x-grid-row-over-rowcolor .x-grid-cell-inner a, #dataSourceTreeGrid .x-grid-row-over-rowcolor .x-grid-cell-inner a {
+  color: white; }
+.x-grid .x-grid-row.rowcolor-critical-acknowledged td, #dataSourceTreeGrid .x-grid-row.rowcolor-critical-acknowledged td {
+  background-color: #cd7474 !important; }
+.x-grid .x-grid-row.rowcolor-error-acknowledged td, #dataSourceTreeGrid .x-grid-row.rowcolor-error-acknowledged td {
+  background-color: #d69f87 !important; }
+.x-grid .x-grid-row.rowcolor-warning-acknowledged td, #dataSourceTreeGrid .x-grid-row.rowcolor-warning-acknowledged td {
+  background-color: #e0dc95 !important; }
+.x-grid .x-grid-row.rowcolor-info-acknowledged td, #dataSourceTreeGrid .x-grid-row.rowcolor-info-acknowledged td {
+  background-color: #95a5c2 !important; }
+.x-grid .x-grid-row.rowcolor-debug-acknowledged td, #dataSourceTreeGrid .x-grid-row.rowcolor-debug-acknowledged td {
+  background-color: #c8c8c8 !important; }
+.x-grid .x-grid-row.rowcolor-clear-acknowledged td, #dataSourceTreeGrid .x-grid-row.rowcolor-clear-acknowledged td {
+  background-color: #82a77e !important; }
+.x-grid .x-grid-row.rowcolor-critical-unacknowledged td, #dataSourceTreeGrid .x-grid-row.rowcolor-critical-unacknowledged td {
+  background-color: #d53a3a !important; }
+.x-grid .x-grid-row.rowcolor-error-unacknowledged td, #dataSourceTreeGrid .x-grid-row.rowcolor-error-unacknowledged td {
+  background-color: #e5763a !important; }
+.x-grid .x-grid-row.rowcolor-warning-unacknowledged td, #dataSourceTreeGrid .x-grid-row.rowcolor-warning-unacknowledged td {
+  background-color: #e9e458 !important; }
+.x-grid .x-grid-row.rowcolor-info-unacknowledged td, #dataSourceTreeGrid .x-grid-row.rowcolor-info-unacknowledged td {
+  background-color: #5277c6 !important; }
+.x-grid .x-grid-row.rowcolor-debug-unacknowledged td, #dataSourceTreeGrid .x-grid-row.rowcolor-debug-unacknowledged td {
+  background-color: #afafaf !important; }
+.x-grid .x-grid-row.rowcolor-clear-unacknowledged td, #dataSourceTreeGrid .x-grid-row.rowcolor-clear-unacknowledged td {
+  background-color: #488d43 !important; }
 
 #events_grid .x-grid-row .x-grid-cell-inner {
   font-weight: bold !important; }

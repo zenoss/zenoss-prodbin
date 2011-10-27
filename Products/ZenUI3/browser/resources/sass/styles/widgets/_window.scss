@@ -157,6 +157,20 @@
         .#{$prefix}fieldset {
             padding: 0;
         }
+        .#{$prefix}panel-header {
+            height:25px; 
+            .#{$prefix}panel-header-text-container{
+                top:1px !important;
+            }   
+            .#{$prefix}box-inner{
+                height:15px !important;
+                padding-top:0 !important;
+                padding-bottom:0 !important;
+            }
+        }
+        .#{$prefix}field{
+            margin-left:5px;
+        }
         div.xtb-text {
             line-height: 21px;
             font-size: 10pt;
