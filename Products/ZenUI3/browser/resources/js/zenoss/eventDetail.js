@@ -33,7 +33,7 @@ Ext.onReady(function() {
      * The header used for the top of the event detail pane.
      * WAS ns.detail_table_template
      */
-    ns.detail_header_template = ['<table width="100%" id="evdetail_props_table">',
+    ns.detail_header_template = ['<table width="99%" id="evdetail_props_table">',
         '<tr><td class="dt">',_t('Resource:'),'</td>',
             '<td>',
                 '<tpl if="device">',
@@ -56,14 +56,14 @@ Ext.onReady(function() {
             '</td>',
         '</tr>',
         '<tr><td class="dt">',_t('Status:'),'</td> <td>{eventState}</td></tr>',
-        '<tr><td class="dt">',_t('Message:'),'</td> <td>{message}</td></tr>',        
+        '<tr><td class="dt">',_t('Message:'),'</td> <td >{message}</td></tr>',
     '</table><div style="clear:both;"></div>'];
 
     /**
      * The template used for regular event properties.
      * WAS: ns.fullprop_table_template
      */
-    ns.detail_data_template = ['<table class="proptable">',
+    ns.detail_data_template = ['<table class="proptable" width="100%">',
         '<tpl for="properties">',
         '<tr class=\'{[xindex % 2 === 0 ? "even" : "odd"]}\'>',
         '<td class="proptable_key">{key}</td>',
@@ -210,7 +210,7 @@ Ext.onReady(function() {
                         region: 'west',
                         width: 77,
                         height:47,
-                        defaults:{height:47},                       
+                        defaults:{height:47},
                         layout: 'hbox',
                         items: [{
                             id: 'severity-icon',
@@ -311,9 +311,7 @@ Ext.onReady(function() {
                                     function(provider, response){
                                         Ext.getCmp(
                                             'detail-logform-message').setRawValue('');
-                                        Ext.getCmp(config.id).load(
-                                            Ext.getCmp(
-                                                'detail-logform-evid').getValue());
+                                        Ext.getCmp(config.id).refresh();
                                     });
                             }
                         }]
@@ -323,14 +321,17 @@ Ext.onReady(function() {
                     {
                         id: 'evdetail_log',
                         cls: 'log-content',
-                        hidden: false
+                        hidden: false,
+                        autoScroll: true,
+                        height: 200,
+                        width: "100%"
                     }
                     ]
                 }
-                
+
             ];
 
-            Zenoss.DetailPanel.superclass.constructor.call(this, config);
+            this.callParent([config]);
             this.init();
         },
 
@@ -380,14 +381,14 @@ Ext.onReady(function() {
                 Location: function(value, sourceData) {
                     return Zenoss.render.LinkFromGridUidGroup(value);
                 }
-                
+
             };
             Ext.apply(this.renderers, default_renderers);
 
             var eventInfoSection = new ns.Section({
                 id: "evdetail_props",
                 cls: 'evdetail_props',
-                template: ns.detail_header_template,  
+                template: ns.detail_header_template,
                 keys: ['device', 'component', 'eventClass', 'eventState', 'message']
             });
             this.addSection(eventInfoSection);
@@ -396,12 +397,9 @@ Ext.onReady(function() {
                 id: "event_detail_management_section",
                 title: _t("Event Management"),
                 template: ns.detail_data_template,
-                keys: [
-                    'summary', 'message', 'severity', 'component',
-                    'eventClass', 'eventClassKey', 'eventKey', 'dedupid',
-                    'evid', 'eventClassMapping', 'eventState',
-                    'eventGroup', 'priority', 'facility', 'ntevid',
-                    'agent'
+                keys: [ 'agent', 'component', 'dedupid', 'eventClass', 'eventClassKey',
+                        'eventClassMapping', 'eventGroup', 'eventKey', 'eventState', 'evid',
+                        'facility', 'message', 'ntevid', 'priority', 'severity', 'summary'
                 ]
             });
             this.addSection(eventManagementSection);
@@ -411,9 +409,9 @@ Ext.onReady(function() {
                 title: _t('Device State'),
                 template: ns.detail_data_template,
                 keys: [
-                    'device', 'ipAddress', 'prodState', 'monitor',
-                    'DevicePriority', 'Systems', 'DeviceGroups', 'Location',
-                    'DeviceClass'
+                    'DeviceClass', 'DeviceGroups', 'DevicePriority',
+                    'Location', 'Systems', 'device', 'ipAddress',
+                    'monitor', 'prodState'
                 ]
             });
             this.addSection(deviceStateSection);
@@ -423,8 +421,8 @@ Ext.onReady(function() {
                 title: _t('Event Data'),
                 template: ns.detail_data_template,
                 keys: [
-                    'firstTime', 'stateChange', 'lastTime', 'count', 'owner',
-                    'clearid'
+                    'clearid', 'count', 'firstTime', 'lastTime',
+                    'owner', 'stateChange'
                 ]
             });
             this.addSection(eventMetaSection);
@@ -437,7 +435,7 @@ Ext.onReady(function() {
             this.addSection(eventDetailsSection);
 
             this.checkCustomizations();
-            
+
         },
 
         checkCustomizations: function() {
@@ -477,10 +475,7 @@ Ext.onReady(function() {
                 this.getBody().add(section_title_config);
             }
 
-            var should_hide = false;
-            if (section.hasOwnProperty('title')) {
-                should_hide = true;
-            }
+
 
             var content_cls = 'full_event_props';
             if (section.hasOwnProperty('cls')) {
@@ -489,11 +484,11 @@ Ext.onReady(function() {
             var section_content_config = {
                 layout: 'fit',
                 id: section.id,
-                hidden: should_hide,
+                hidden: false,
                 cls: content_cls,
+                // dummy html
                 html: ''
             };
-
             this.getBody().add(section_content_config);
         },
 
@@ -592,7 +587,7 @@ Ext.onReady(function() {
         setSummary: function(summary){
             var panel = Ext.getCmp('evdetail-summary');
             if (panel && panel.el){
-                panel.el.update(summary);
+                panel.update(summary);
             }
         },
 
@@ -626,15 +621,15 @@ Ext.onReady(function() {
                 var cmp = Ext.getCmp(section.id),
                     html;
                 html = section.generateHtml(renderedData, eventData);
-                cmp.el.update(html);
+                cmp.update(html);
             }, this);
 
             // Update Logs
             var logTemplate = new Ext.XTemplate(ns.detail_log_template),
                 logHtml;
             logHtml = logTemplate.apply(eventData);
-            Ext.getCmp('evdetail_log').el.update(logHtml);
-           
+            Ext.getCmp('evdetail_log').update(logHtml);
+            this.doLayout();
         },
         bind: function() {
             var close_btn = Ext.getCmp('evdetail_tool_close').getEl(),
@@ -675,22 +670,20 @@ Ext.onReady(function() {
             window.open(url, evid.replace(/-/g,'_'),
                         "status=1,width=600,height=500,resizable=1");
         },
-
         wipe: function() {
-            Ext.each(this.sections, function(section) {
-                if (section.hasOwnProperty('title')) {
-                    this.hideSection(section.id);
-                }
-            }, this);
+            // hook to perform clean up actions when the panel is closed
         },
-
         load: function(event_id) {
-
+            if (event_id !== this.event_id) {
+                this.event_id = event_id;
+                this.refresh();
+            }
+        },
+        refresh: function() {
             Zenoss.remote.EventsRouter.detail({
-                evid: event_id
+                evid: this.event_id
             }, function(result) {
                 var event = result.event[0];
-                this.wipe();
                 this.update(event);
                 this.bind();
                 this.show();

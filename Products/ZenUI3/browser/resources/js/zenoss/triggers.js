@@ -1048,7 +1048,7 @@ Ext.onReady(function () {
                                 buttons: [{
                                     xtype: 'DialogButton',
                                     text: _t('OK'),
-                                    handler: function() {                                    
+                                    handler: function() {
                                         params = {
                                             uid:uid
                                         };
@@ -1065,7 +1065,7 @@ Ext.onReady(function () {
                                     xtype: 'DialogButton',
                                     text: _t('Cancel')
                                 }]
-                            }).show();                            
+                            }).show();
                         }
                     }
                 },{
@@ -1205,7 +1205,7 @@ Ext.onReady(function () {
                                             xtype: 'DialogButton',
                                             text: _t('Cancel')
                                         }]
-                                    }).show();                                
+                                    }).show();
                             }
                         }
                     },{
@@ -1309,16 +1309,17 @@ Ext.onReady(function () {
                     falseText: _t('No'),
                     dataIndex: 'enabled',
                     header: _t('Enabled'),
+                    width: 60,
                     sortable: true
                 },{
                     dataIndex: 'newId',
-                    header: _t('Id'),
-                    width:200,
+                    header: _t('ID'),
+                    flex: 1,
                     sortable: true
                 },{
                     dataIndex: 'start',
                     header: _t('Start'),
-                    width:200,
+                    width: 200,
                     sortable: true
                 }],
 
@@ -1348,7 +1349,7 @@ Ext.onReady(function () {
                                 buttons: [{
                                     xtype: 'DialogButton',
                                     text: _t('OK'),
-                                    handler: function() {                                    
+                                    handler: function() {
                                         params = {
                                             uid:uid
                                         };
@@ -1358,7 +1359,7 @@ Ext.onReady(function () {
                                     xtype: 'DialogButton',
                                     text: _t('Cancel')
                                 }]
-                            }).show();                                
+                            }).show();
                         }
                     }
                 },{

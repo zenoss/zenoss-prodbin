@@ -184,9 +184,6 @@ Ext.onReady(function(){
     detail_panel.show();
     detail_panel.collapse();
 
-    detail_panel.on('expand', function(ob, state) {
-        toggleEventDetailContent();
-    });
 
     detail_panel.on('collapse', function(ob, state) {
         eventDetailCollapsed();

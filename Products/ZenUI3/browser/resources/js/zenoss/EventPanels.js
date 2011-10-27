@@ -164,7 +164,7 @@
                         });
                         if (!evrows.length) {
                             win.hide();
-                                new Zenoss.dialog.ErrorDialog({message: _t('No events were selected.')});                            
+                                new Zenoss.dialog.ErrorDialog({message: _t('No events were selected.')});
                         } else {
                             Zenoss.remote.EventsRouter.classify({
                                 'evclass': cb.getValue(),
@@ -324,7 +324,7 @@
                             xtype: 'DialogButton',
                             text: _t('Cancel')
                         }]
-                    }).show();                
+                    }).show();
                 }
             }];
 
@@ -341,8 +341,8 @@
                                 + '<br/><br/><a href="'
                                 + link
                                 + '">Resource Manager: Events</a></div>')),
-                            title: _t('Save Configuration'),
-                            });                           
+                            title: _t('Save Configuration')
+                            });
                     }
                 });
             }
