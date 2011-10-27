@@ -25,7 +25,6 @@ from OFS.History import Historical
 from Acquisition import aq_base
 from AccessControl import ClassSecurityInfo
 from ZPublisher.Converters import type_converters
-#from Products.ZCatalog.CatalogAwareness import CatalogAware
 from zope.interface import implements
 from OFS.interfaces import IItem
 

@@ -12,6 +12,7 @@
 ###########################################################################
 
 from Products.Five.browser import BrowserView
+from Products.ZenMessaging.audit import audit
 
 class ManageJobView(BrowserView):
     """
@@ -21,4 +22,6 @@ class ManageJobView(BrowserView):
         self.context.delete()
 
     def interrupt(self):
-        self.context.getJob().interrupt()
+        job = self.context.getJob()
+        job.interrupt()
+        audit('UI.Job.Stop', job.id)

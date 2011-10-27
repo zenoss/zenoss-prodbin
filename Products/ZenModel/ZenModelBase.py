@@ -34,14 +34,14 @@ from Globals import InitializeClass
 from Acquisition import aq_base, aq_chain
 
 from Products.ZenModel.interfaces import IZenDocProvider
-from Products.ZenUtils.Utils import zenpathsplit, zenpathjoin
+from Products.ZenUtils.Utils import zenpathsplit, zenpathjoin, getDisplayType
 from Products.ZenUtils.Utils import createHierarchyObj, getHierarchyObj
 from Products.ZenUtils.Utils import getObjByPath
 
 from Products.ZenUtils.Utils import prepId as globalPrepId, isXmlRpc
 from Products.ZenWidgets import messaging
 from Products.ZenUI3.browser.interfaces import INewPath
-
+from Products.ZenMessaging.audit import audit
 from ZenossSecurity import *
 
 _MARKER = object()
@@ -388,6 +388,10 @@ class ZenModelBase(object):
                 'Properties Saved',
                 SaveMessage()
             )
+
+            audit('UI.Setting.Edit', data_=REQUEST.form,
+                  skipFields_=('redirect', 'zenScreenName', 'zmanage_editProperties'),
+                  maskFields_=('smtpPass'))
             return self.callZenScreen(REQUEST, redirect=redirect)
 
 
@@ -592,7 +596,9 @@ class ZenModelBase(object):
 
         @permission: ZEN_MANAGE_DMD
         """
-        return self.saveZenProperties(iscustprop, REQUEST)
+        redirect = self.saveZenProperties(iscustprop, REQUEST)
+        audit(['UI', getDisplayType(self), 'Edit'], self, data_=REQUEST.form, skipFields_=('zenScreenName', 'saveCustProperties'))
+        return redirect
 
 
     def getObjByPath(self, path):

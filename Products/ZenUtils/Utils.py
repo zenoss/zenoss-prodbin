@@ -301,6 +301,15 @@ def getObjByPath(base, path, restricted=0):
     return obj
 
 
+def getDisplayType(obj):
+    """
+    Get a printable string representing the type of this object
+    """
+    typename = str(getattr(obj, 'meta_type', None) or obj.__class__.__name__) if obj else 'None'
+    #Make sure the initial letter is capitalized. 
+    #Don't use .title or .capitalize, as those will lower-case a camel-cased type
+    return typename[0].capitalize() + typename[1:] if typename else typename
+
 
 def checkClass(myclass, className):
     """

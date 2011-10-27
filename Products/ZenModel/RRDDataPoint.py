@@ -24,15 +24,16 @@ log = logging.getLogger('zen.RRDDatapoint')
 import Globals
 from AccessControl import ClassSecurityInfo, Permissions
 from Products.ZenModel.ZenossSecurity import ZEN_VIEW, ZEN_MANAGE_DMD
-
+from Products.ZenMessaging.audit import audit
 from Products.ZenRelations.RelSchema import *
 from Products.ZenWidgets import messaging
 
 from ZenModelRM import ZenModelRM
 from ZenPackable import ZenPackable
 
-from Products.ZenUtils.Utils import unused
+from Products.ZenUtils.Utils import unused, getDisplayType
 from Products.ZenModel.RRDDataPointAlias import manage_addDataPointAlias
+from Products.Zuul.decorators import deprecated
 
 def manage_addRRDDataPoint(context, id, REQUEST = None):
     """make a RRDDataPoint"""
@@ -218,6 +219,7 @@ class RRDDataPoint(ZenModelRM, ZenPackable):
 
 
     security.declareProtected(ZEN_MANAGE_DMD, 'zmanage_editProperties')
+    @deprecated
     def zmanage_editProperties(self, REQUEST=None, redirect=False):
         """Edit a ZenModel object and return its proper page template
         """
@@ -238,5 +240,7 @@ class RRDDataPoint(ZenModelRM, ZenPackable):
                     msgs[0].capitalize() + msgs[1:]
                 )
                 return self.callZenScreen(REQUEST, False)
+
+            audit(['UI', getDisplayType(self), 'Edit'], data_=REQUEST.form)
 
         return ZenModelRM.zmanage_editProperties(self, REQUEST)

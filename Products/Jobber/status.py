@@ -13,6 +13,8 @@
 from Globals import InitializeClass
 from Products.ZenRelations.RelSchema import *
 from Products.ZenModel.ZenModelRM import ZenModelRM
+from Products.ZenMessaging.audit import audit
+
 import os
 import sys
 import time
@@ -147,7 +149,9 @@ class JobStatus(ZenModelRM):
             os.remove(fn)
         # Remove the job status itself
         parent = self.getPrimaryParent()
+        jobId = self.getJob().id
         parent._delObject(self.id)
+        audit('UI.Job.Delete', jobId)
 
 
 InitializeClass(JobStatus)

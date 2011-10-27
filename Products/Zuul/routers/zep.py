@@ -29,6 +29,7 @@ from Products.Zuul.decorators import require, serviceConnectionError
 from Products.ZenUtils.guid.interfaces import IGlobalIdentifier, IGUIDManager
 from Products.ZenEvents.EventClass import EventClass
 from Products.ZenEvents.events2.proxy import EventProxy
+from Products.ZenMessaging.audit import audit
 from zenoss.protocols.services.zep import EventStatus, EventSeverity, ZepConnectionError
 from zenoss.protocols.protobufs.zep_pb2 import EventSummary
 from zenoss.protocols.protobufutil import ProtobufEnum
@@ -863,7 +864,7 @@ class EventsRouter(DirectRouter):
         for empty_key in empty_keys:
             del values[empty_key]
 
-        # we store default syslog priority and default availibility days on the event manager
+        # we store default syslog priority and default availability days on the event manager
         defaultSyslogPriority = values.pop('default_syslog_priority', None)
         if defaultSyslogPriority is not None:
             self.context.dmd.ZenEventManager.defaultPriority = int(defaultSyslogPriority)
@@ -918,4 +919,5 @@ class EventsRouter(DirectRouter):
            - success: (boolean) True if heartbeats deleted successfully
         """
         self.zep.deleteHeartbeats()
+        audit('UI.Event.ClearHeartbeats', self.context)
         return DirectResponse.succeed()

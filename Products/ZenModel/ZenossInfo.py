@@ -32,6 +32,7 @@ from Products.ZenUtils import Time
 from Products.ZenUtils.Version import *
 from Products.ZenUtils.Utils import zenPath, binPath
 from Products.ZenWidgets import messaging
+from Products.ZenMessaging.audit import audit
 
 from Products.ZenEvents.UpdateCheck import UpdateCheck, parseVersion
 
@@ -552,6 +553,7 @@ class ZenossInfo(ZenModelItem, SimpleItem):
             fh = open(filename, 'w+')
             data = REQUEST.form.get('data')
             fh.write(data)
+            audit('UI.Daemon.EditConfig', daemon)
         finally:
             fh.close()
         return self.callZenScreen(REQUEST, redirect=True)
@@ -747,6 +749,8 @@ class ZenossInfo(ZenModelItem, SimpleItem):
             return
 
         # If we got here things succeeded
+        audit('UI.Daemon.EditConfig', daemon)
+
         config_file_save = configfile + ".save"
         try:
             shutil.copy(configfile, config_file_save)
@@ -773,7 +777,8 @@ class ZenossInfo(ZenModelItem, SimpleItem):
         if action not in legalValues:
             return self.callZenScreen(REQUEST)
         daemonName = REQUEST.form.get('daemon')
-        self.doDaemonAction(daemonName, action)
+        if self.doDaemonAction(daemonName, action):
+            audit(['UI.Daemon', action], daemonName)
         return self.callZenScreen(REQUEST)
     security.declareProtected('Manage DMD','manage_daemonAction')
 
@@ -782,7 +787,7 @@ class ZenossInfo(ZenModelItem, SimpleItem):
         """
         Do the given action (start, stop, restart) or the given daemon.
         Block until the action is completed.
-        No return value.
+        Returns False if an error was encountered, otherwise returns the action taken.
         """
         import time
         import subprocess
@@ -798,6 +803,7 @@ class ZenossInfo(ZenModelItem, SimpleItem):
             log.info('Error from %s: %s (%s)' % (daemonName, output, code))
         if action in ('stop', 'restart'):
             time.sleep(2)
+        return False if code else action
 
 
     def manage_checkVersion(self, optInOut=False, optInOutMetrics=False, REQUEST=None):
