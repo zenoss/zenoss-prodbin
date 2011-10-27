@@ -308,7 +308,32 @@ Ext.apply(Zenoss.devices, {
             var grpText = selnode.data.text.text;
             var win = new Zenoss.dialog.CloseDialog({
                 width: 800,
+                height: 500,
                 autoScroll: true,
+                buttons: [{
+                        xtype: 'DialogButton',
+                        id: 'addsingledevice-submit',
+                        text: _t('Add'),
+                        handler: function(b) {
+                            var form = win.childPanel.getForm();
+                            var opts = form.getValues();
+                            // adjust the system paths and grouppaths
+                            if (opts.systemPaths) {
+                                opts.systemPaths = opts.systemPaths.split(",");
+                            }
+                            if (opts.groupPaths) {
+                                opts.groupPaths = opts.groupPaths.split(",");
+                            }
+                            Zenoss.remote.DeviceRouter.addDevice(opts, function(response) {
+                                if (response.success) {
+                                    Zenoss.message.success(_t('Add Device Job submitted. <a href="/zport/dmd/JobManager/jobs/{0}/viewlog">View Job Log</a>'), response.jobId);
+                                }
+                                else {
+                                    Zenoss.message.error(_t('Error adding device job.'));
+                                }
+                            });
+                        }
+                    }, Zenoss.dialog.CANCEL],
                 title: _t('Add a Single Device'),
                 addOrganizers: function(response){
                     if (Ext.isDefined(response.systems)) {
@@ -358,6 +383,7 @@ Ext.apply(Zenoss.devices, {
                             REMOTE.getSystems({}, panel.addOrganizers.createDelegate(panel));
                             REMOTE.getGroups({}, panel.addOrganizers.createDelegate(panel));
                         }
+
                     }
                 },
                 items: [{
@@ -367,6 +393,12 @@ Ext.apply(Zenoss.devices, {
                     labelAlign: 'top',
                     footerStyle: 'padding-left: 0',
                     ref: 'childPanel',
+                    listeners: {
+                        validitychange: function(form, isValid) {
+                            // enable disable the button based on the form validity
+                            Ext.getCmp('addsingledevice-submit').setDisabled(!isValid);
+                        }
+                    },
                     items: [{
                         xtype: 'panel',
                         layout: 'column',
@@ -464,17 +496,24 @@ Ext.apply(Zenoss.devices, {
                             var attrs = Ext.getCmp('add_attrs');
                             if (attrs.collapsed) {
                                 attrs.expand();
-                                this.body.update('<a href="#">Less</a>');
-                            }
-                            else {
+                            } else {
                                 attrs.collapse();
+                            }
+                            this.updateText();
+                        },
+                        updateText: function() {
+                            var attrs = Ext.getCmp('add_attrs');
+                            if (attrs.collapsed) {
                                 this.body.update('<a href="#">More...</a>');
+                            } else {
+                                this.body.update('<a href="#">Less...</a>');
                             }
                         },
                         listeners: {
-                            'afterrender': function(component) {
+                            afterrender: function(component) {
                                 var el = component.getEl();
                                 el.on('click', this.toggleAttrs, component);
+                                component.updateText();
                             }
                         }
                     }, {
@@ -549,32 +588,8 @@ Ext.apply(Zenoss.devices, {
                                 width: 200
                             }]
                         }]
-                    }],
-                    buttons: [{
-                        xtype: 'DialogButton',
-                        id: 'addsingledevice-submit',
-                        text: _t('Add'),
-                        formBind: true,
-                        handler: function(b) {
-                            var form = b.ownerCt.ownerCt.getForm();
-                            var opts = form.getValues();
-                            // adjust the system paths and grouppaths
-                            if (opts.systemPaths) {
-                                opts.systemPaths = opts.systemPaths.split(",");
-                            }
-                            if (opts.groupPaths) {
-                                opts.groupPaths = opts.groupPaths.split(",");
-                            }
-                            Zenoss.remote.DeviceRouter.addDevice(opts, function(response) {
-                                if (response.success) {
-                                    Zenoss.message.success(_t('Add Device Job submitted. <a href="/zport/dmd/JobManager/jobs/{0}/viewlog">View Job Log</a>'), response.jobId);
-                                }
-                                else {
-                                    Zenoss.message.error(_t('Error adding device job.'));
-                                }
-                            });
-                        }
-                    }, Zenoss.dialog.CANCEL]
+                    }]
+
                 }]
             });
             win.show();
@@ -628,7 +643,7 @@ function getTreeDropWarnings(dropTargetNode, droppedRecords) {
     var additionalWarnings = [""];
     if (dropTargetNode && droppedRecords) {
         var dropTargetClass = dropTargetNode.data.zPythonClass || "Products.ZenModel.Device";
-        var droppedClasses = Ext.Array.map(droppedRecords, function(r){return r.data.pythonClass});
+        var droppedClasses = Ext.Array.map(droppedRecords, function(r){return r.data.pythonClass;});
         if(Ext.Array.some(droppedClasses, function(droppedClass) { return dropTargetClass!=droppedClass;})) {
             additionalWarnings = additionalWarnings.concat(_t("WARNING: This may result in the loss of all components and configuration under these devices."));
         }
@@ -679,7 +694,7 @@ function initializeTreeDrop(tree) {
                                     if(data.exports) {
                                         new Zenoss.dialog.ErrorDialog({
                                             title: _t('Remodel Required'),
-                                            message: String.format(_t("Not all of the configuration could be preserved, so a remodel of the device(s)" + 
+                                            message: String.format(_t("Not all of the configuration could be preserved, so a remodel of the device(s)" +
                                             "is required. Performance templates have been reset to the defaults for the device class."))
                                         });
                                     }
@@ -690,7 +705,7 @@ function initializeTreeDrop(tree) {
                         xtype: 'DialogButton',
                         text: _t('Cancel')
                     }]
-                }).show();        
+                }).show();
             // if we return true a dummy node will be appended to the tree
             return false;
         }else {
@@ -730,7 +745,7 @@ function initializeTreeDrop(tree) {
                         xtype: 'DialogButton',
                         text: _t('Cancel')
                     }]
-                }).show();              
+                }).show();
 
             // Ext shows the node as already moved when we are awaiting the
             // dialog confirmation, so always tell Ext that the move didn't work
