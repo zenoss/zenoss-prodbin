@@ -1097,7 +1097,7 @@ class DeviceRouter(TreeRouter):
         @param uid: unique identifier of an object
         """
         facade = self._getFacade()
-        data = facade.getZenProperties(uid)
+        data = facade.getZenProperties(uid, exclusionList=('zCollectorPlugins',))
         # filter
         if params:
             if isinstance(params, basestring):
@@ -1118,8 +1118,6 @@ class DeviceRouter(TreeRouter):
                 reverse = True
             data = sorted(data,  key=lambda row: row[sort], reverse=reverse)
 
-        # do not show collector plugins property, there is a separate menu item for it
-        data = [row for row in data if row['id'] != 'zCollectorPlugins']
         return DirectResponse(data=Zuul.marshal(data), totalCount=len(data))
 
     @serviceConnectionError

@@ -581,8 +581,10 @@ class ZenPropertyManager(object, PropertyManager):
             returnValue = None
         return returnValue
 
-    def exportZProperties(self):
+    def exportZProperties(self, exclusionList=()):
         """
+        @param exclusionList: list of zproperties we do not want to export
+        @type exclusionList: collection
         For this manager will return the following about each zProperty
         Will return the following about each Zen Property
         - id - identifier
@@ -595,6 +597,8 @@ class ZenPropertyManager(object, PropertyManager):
         """
         props = []
         for zId in self.zenPropertyIds():
+            if zId in exclusionList:
+                continue
             prop = dict(
                     id=zId,
                     islocal=self.hasProperty(zId),

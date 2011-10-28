@@ -560,15 +560,17 @@ class DeviceFacade(TreeFacade):
             docs[plugin.pluginName] = module.__doc__
         return docs
 
-    def getZenProperties(self, uid):
+    def getZenProperties(self, uid, exclusionList=()):
         """
         Returns information about and the value of every zen property.
 
         @type  uid: string
         @param uid: unique identifier of an object
+        @type  exclusionList: Collection
+        @param exclusionList: List of zproperty ids that we do not wish to retrieve
         """
         obj = self._getObject(uid)
-        return obj.exportZProperties()
+        return obj.exportZProperties(exclusionList)
 
     def deleteZenProperty(self, uid, zProperty):
         """
