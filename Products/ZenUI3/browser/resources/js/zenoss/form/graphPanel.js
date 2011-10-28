@@ -125,6 +125,9 @@
             this.graphEl.on('click', this.onGraphClick, this);
             this.graphEl.on('load', function(){
                 var size = this.graphEl.getSize();
+                // set out panel to be the size of the graph
+                // plus a little for the padding
+                this.setWidth(size.width + 10);
                 if (!size.width || !size.height){
                     this.showFailure();
                 } else {
