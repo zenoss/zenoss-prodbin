@@ -1,9 +1,6 @@
 
-# TODO: ----- delete this file when all calls are converted. -----
+# TODO: ----- delete this directory when all calls are converted. -----
 
-from Products.ZenMessaging.audit import audit
-
-def sendUserAction(actionTargetType, actionName, **kwargs):
-    """Deprecated"""
-    category = '.'.join(('Deprecated', actionTargetType, actionName))
-    audit(category, **kwargs)
+def sendUserAction(*args, **kwargs):
+    # gets monkey-patched
+    pass

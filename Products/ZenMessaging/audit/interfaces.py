@@ -24,6 +24,6 @@ class IAuditManager(Interface):
               skipFields_=(),   # Completely ignore fields with these names.
               maskFields_=(),   # Hide values of these field names, such as 'password'.
               oldData_=None,    # Old values in format {name:oldValue}
-              data_=dict(),     # New values in format {name:value}
+              data_=None,       # New values in format {name:value}
               **kwargs):        # New values in format name=value
         pass

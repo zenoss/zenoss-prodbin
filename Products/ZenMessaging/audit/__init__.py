@@ -53,8 +53,41 @@ def getAuditManager():
         return None
 
 
-def audit(*args, **kwargs):
-    """Convenience method."""
-    util = getAuditManager()
-    if util:
-        util.audit(*args, **kwargs)
+# TODO: Use utility when zenpack side is finished.
+#def audit(*args, **kwargs):
+#    """Convenience method."""
+#    util = getAuditManager()
+#    if util:
+#        util.audit(*args, **kwargs)
+
+
+# TODO: delete this temporary code
+def audit(category_,        # 'Source.ObjType.Action' or [source, objType, action, ...]
+          object_=None,     # Target object matching the ObjType.
+          skipFields_=(),   # Completely ignore fields with these names.
+          maskFields_=(),   # Hide values of these field names, such as 'password'.
+          oldData_=None,    # Old values in format {name:oldValue}
+          data_=None,       # New values in format {name:value}
+          **kwargs):
+    """Use the old API for now."""
+    from Products.ZenMessaging.actions import sendUserAction
+
+    # first make one string 'UI.Blah.Foo'
+    if not isinstance(category_, basestring):
+        category_ = '.'.join(category_)
+
+    # separate into type & action
+    categories = category_.split('.')
+    if len(categories) < 3:
+        raise ValueError('Invalid category, should have 3+ pieces.')
+    actionTargetType, actionName = categories[1:3]
+
+    # Just pass them stupidly for now so we can see the results.
+    if data_ is None:
+        data_ = dict()
+    data_.update(kwargs)
+    data_[actionTargetType] = object_
+    data_['skipFields_'] = skipFields_
+    data_['maskFields_'] = maskFields_
+    data_['oldData_'] = oldData_
+    sendUserAction(actionTargetType, actionName, extra=data_)
