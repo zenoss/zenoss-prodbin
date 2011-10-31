@@ -64,6 +64,7 @@ Ext.define('Zenoss.HierarchyTreePanelSearch', {
             items: [{
                 xtype: 'searchfield',
                 id: config.id || Ext.id(),
+                hidden: !Zenoss.settings.enableTreeFilters,
                 cls: 'x-hierarchy-search',
                 enableKeyEvents: true,
                 ref: 'searchfield'

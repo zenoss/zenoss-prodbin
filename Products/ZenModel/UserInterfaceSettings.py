@@ -27,6 +27,7 @@ class UserInterfaceSettings(ZenModelRM):
     _properties = (
         {'id': 'enableLiveSearch', 'type': 'boolean', 'mode': 'w'},
         {'id': 'incrementalTreeLoad', 'type': 'boolean', 'mode': 'w'},
+        {'id': 'enableTreeFilters', 'type': 'bool', 'mode': 'w'},
         {'id': 'deviceGridBufferSize', 'type': 'int', 'mode': 'w'},
         {'id': 'componentGridBufferSize', 'type': 'int', 'mode': 'w'},
         {'id': 'eventConsoleBufferSize', 'type': 'int', 'mode': 'w'},
@@ -36,6 +37,7 @@ class UserInterfaceSettings(ZenModelRM):
     _propertyMetaData = {
         'enableLiveSearch': {'xtype': 'checkbox', 'name': _t('Enable Live Search'), 'defaultValue': False},
         'incrementalTreeLoad': {'xtype': 'checkbox', 'name': _t('Enable Incremental Tree Loading on the Infrastructure Page'), 'defaultValue': True},
+        'enableTreeFilters': {'xtype': 'checkbox', 'name': _t('Enable Tree Filters'), 'defaultValue': True},
         'deviceGridBufferSize': {'xtype': 'numberfield', 'name': _t('Device Grid Buffer Size'), 'defaultValue': 200, 'minValue': 50, 'allowBlank': False},
         'componentGridBufferSize': {'xtype': 'numberfield', 'name': _t('Component Grid Buffer Size'), 'defaultValue': 100, 'minValue': 50, 'allowBlank': False},
         'eventConsoleBufferSize': {'xtype': 'numberfield', 'name': _t('Event Console Buffer Size'), 'defaultValue': 400, 'minValue': 50, 'allowBlank': False},
