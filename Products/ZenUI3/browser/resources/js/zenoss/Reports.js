@@ -43,7 +43,7 @@ function addToZenPack(e) {
 function initializeTreeDrop(tree) {
 
     tree.getView().on('beforedrop', function(element, event, target) {
-        if (Zenoss.security.doesNotHavePermission(REPORT_PERMISSION)) {
+        if (Zenoss.Security.doesNotHavePermission(REPORT_PERMISSION)) {
             return false;
         }
         // should always only be one selection
