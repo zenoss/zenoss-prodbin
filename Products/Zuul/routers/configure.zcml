@@ -15,6 +15,13 @@
     />
 
 <browser:directRouter
+    name="settings_router"
+    for="*"
+    class=".settings.SettingsRouter"
+    namespace="Zenoss.remote"
+    />
+
+<browser:directRouter
     name="evconsole_router"
     for="*"
     class=".zep.EventsRouter"

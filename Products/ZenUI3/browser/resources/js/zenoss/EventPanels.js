@@ -905,7 +905,7 @@
                 model: 'Zenoss.events.Model',
                 initialSortColumn: "firstTime",
                 initialSortDirection: 'DESC',
-                pageSize: 150,
+                pageSize: Zenoss.settings.eventConsoleBufferSize,
                 proxy: {
                     type: 'direct',
                     directFn: config.directFn || Zenoss.remote.EventsRouter.query,
@@ -1009,7 +1009,7 @@
                     var cls = rowcolors + sev + '-' + stateclass + ' ' + stateclass;
                     return cls;
                 }
-                
+
             });
             this.callParent(arguments);
         },

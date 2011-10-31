@@ -94,15 +94,11 @@ class DataRoot(ZenModelRM, OrderedFolder, Commandable, ZenMenuable):
     geomapapikey = ''
     geocache = ''
     version = ""
-    enableLiveSearch = True
     # how we should store our user credentials
     AUTH_TYPE_SESSION = "session"
     AUTH_TYPE_COOKIE = "cookie"
     userAuthType = AUTH_TYPE_SESSION
     pauseHubNotifications = False
-    # Setting applied to the User Interface to determine if we should load the
-    # infrastructure trees all at once or incrementally as expanded
-    incrementalTreeLoad = False
 
     _properties=(
         {'id':'title', 'type': 'string', 'mode':'w'},
@@ -130,8 +126,6 @@ class DataRoot(ZenModelRM, OrderedFolder, Commandable, ZenMenuable):
         {'id':'geomapapikey', 'type': 'string', 'mode':'w'},
         {'id':'userAuthType', 'type': 'string', 'mode':'w'},
         {'id':'geocache', 'type': 'string', 'mode':'w'},
-        {'id':'enableLiveSearch', 'type': 'boolean', 'mode':'w'},
-        {'id':'incrementalTreeLoad', 'type': 'boolean', 'mode':'w'},
         {'id':'pauseHubNotifications', 'type': 'boolean', 'mode':'w'},
         )
 
@@ -205,6 +199,11 @@ class DataRoot(ZenModelRM, OrderedFolder, Commandable, ZenMenuable):
                 { 'id'            : 'eventConfig'
                 , 'name'          : 'Events'
                 , 'action'        : 'eventConfig'
+                , 'permissions'   : ( "Manage DMD", )
+                },
+                { 'id'            : 'userInterfaceConfig'
+                , 'name'          : 'User Interface'
+                , 'action'        : 'userInterfaceConfig'
                 , 'permissions'   : ( "Manage DMD", )
                 },
             )

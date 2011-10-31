@@ -17,7 +17,6 @@ Available at:  /zport/dmd/messaging_router
 """
 from Persistence import PersistentMapping
 from Products.ZenUtils.Ext import DirectRouter
-from Products.ZenUtils.extdirect.router import DirectResponse
 from Products.ZenModel.ZenossSecurity import *
 from Products.ZenWidgets.interfaces import IUserMessages, IBrowserMessages
 from Products.ZenWidgets import messaging
@@ -27,6 +26,7 @@ class MessagingRouter(DirectRouter):
     """
     A JSON/ExtDirect interface to operations on messages
     """
+
     def setBrowserState(self, state):
         """
         Save the browser state for the current user.
@@ -57,7 +57,6 @@ class MessagingRouter(DirectRouter):
             priority=messaging.WARNING
             )
 
-
     def getUserMessages(self):
         """
         Get the queued messages for the logged in user.
@@ -85,3 +84,4 @@ class MessagingRouter(DirectRouter):
         return {
             'messages': result
         }
+

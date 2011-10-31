@@ -207,7 +207,7 @@ Ext.define("Zenoss.DeviceStore", {
         config = config || {};
         Ext.applyIf(config, {
             autoLoad: false,
-            pageSize: 200,
+            pageSize: Zenoss.settings.deviceGridBufferSize,
             model: 'Zenoss.device.DeviceModel',
             initialSortColumn: "name",
             directFn: Zenoss.remote.DeviceRouter.getDevices,
@@ -361,7 +361,7 @@ function disableSendEvent() {
                                         xtype: 'DialogButton',
                                         text: _t('Cancel')
                                     }]
-                                }).show();                                 
+                                }).show();
                             }
                         }),
                         /*

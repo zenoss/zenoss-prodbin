@@ -20,7 +20,7 @@ function popupMapHelp() {
        "http://www.google.com/apis/maps/signup.html<"+"/a>. " +
        "For your Web site URL, use the base URL, <"+"em>including port<"+
        "/em>, "+
-       "that you use to access this Web interface. " + 
+       "that you use to access this Web interface. " +
        "You used "+baseurl+" to access this interface.");
     addElementClass(currentDocument().body, 'yui-skin-sam');
     mySimpleDialog.render(currentDocument().body);
@@ -207,18 +207,8 @@ loader.insert();
             </label>
         </td>
     </tr>
+
     <tr class="odd">
-        <td class="tableheader"><label for="enableLiveSearch">Enable live search?</label></td>
-        <td class="tablevalues" align="left">
-          <input type="hidden" name="enableLiveSearch:bool:default" value="False">
-            <input type="checkbox"
-                   value="True"
-                   name="enableLiveSearch:bool"
-                   id="enableLiveSearch"
-                   tal:attributes="checked request/enableLiveSearch | here/enableLiveSearch">            
-        </td>
-    </tr>
-    <tr class="event">
         <td class="tableheader"></td>
         <td class="tableheader" align="left">
             <input class="tableheader" type="submit" value=" Save "

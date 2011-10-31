@@ -1,0 +1,27 @@
+<tal:block metal:use-macro="here/page_macros/old-new">
+  <tal:block metal:fill-slot="title">User Interface Configuration</tal:block>
+
+  <tal:block metal:fill-slot="head-local">
+  </tal:block>
+
+  <tal:block metal:fill-slot="breadCrumbPane">
+    /<a tal:attributes="
+    href string:${here/absolute_url_path}/${template/id}">User Interface Configuration
+  </a>
+  </tal:block>
+
+  <tal:block metal:fill-slot="contentPane">
+    <tal:block metal:use-macro="here/zenuimacros/macros/zentable-slidingdoors">
+
+      <tal:block metal:fill-slot="title">
+        User Interface Configuration
+      </tal:block>
+      <tal:block metal:fill-slot="body">
+        <script src="/++resource++zenui/js/zenoss/uiconfig.js"></script>
+        <div id="propList"></div>
+        <div id="saveButton"></div>
+      </tal:block>
+    </tal:block>
+  </tal:block>
+</tal:block>
+

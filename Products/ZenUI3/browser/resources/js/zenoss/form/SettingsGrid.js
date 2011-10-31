@@ -29,8 +29,11 @@
             for (i=0; i < itemsConfig.length; i++){
                 prop = itemsConfig[i];
                 prop.fieldLabel = prop.name;
-                if (!prop.value) {
+                if (!Ext.isDefined(prop.value)) {
                     prop.value = prop.defaultValue;
+                }
+                if (prop.xtype == "checkbox") {
+                    prop.checked = prop.value;
                 }
                 prop.ref = prop.id;
                 prop.name = prop.id;

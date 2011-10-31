@@ -206,6 +206,13 @@
     />
 
 <browser:page
+    template="templates/userInterfaceConfig.pt"
+    name="userInterfaceConfig"
+    for="*"
+    permission="zenoss.View"
+    />
+
+<browser:page
     template="../../ZenModel/skins/zenmodel/zenossInfo.pt"
     name="zenossInfo"
     for="*"

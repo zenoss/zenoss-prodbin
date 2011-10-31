@@ -224,3 +224,4 @@ import fixLinkUpDownTransforms
 import migrateWindowCatalog
 import removeModificationsMenuItems
 import ifOperStatusRRDCreateCommand
+import addUserInterfaceSettings

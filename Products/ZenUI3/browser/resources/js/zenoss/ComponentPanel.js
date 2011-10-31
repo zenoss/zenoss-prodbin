@@ -510,7 +510,7 @@ Ext.define("Zenoss.component.BaseComponentStore", {
     extend:"Zenoss.DirectStore",
     constructor: function(config) {
         Ext.applyIf(config, {
-            pageSize: 300,
+            pageSize: Zenoss.settings.componentGridBufferSize,
             directFn: config.directFn
         });
         ZC.BaseComponentStore.superclass.constructor.call(this, config);

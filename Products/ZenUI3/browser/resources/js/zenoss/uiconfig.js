@@ -1,0 +1,45 @@
+/*
+  ###########################################################################
+  #
+  # This program is part of Zenoss Core, an open source monitoring platform.
+  # Copyright (C) 2011, Zenoss Inc.
+  #
+  # This program is free software; you can redistribute it and/or modify it
+  # under the terms of the GNU General Public License version 2 or (at your
+  # option) any later version as published by the Free Software Foundation.
+  #
+  # For complete information please visit: http://www.zenoss.com/oss/
+  #
+  ###########################################################################
+*/
+
+Ext.onReady(function() {
+
+    Ext.ns('Zenoss.settings');
+    var router = Zenoss.remote.SettingsRouter;
+
+
+    function saveConfigValues(results, callback) {
+        var values = results.values;
+
+        router.setUserInterfaceSettings(values, callback);
+    }
+
+    function buildPropertyGrid(response) {
+        var propsGrid,
+            data;
+        data = response.data;
+        propsGrid = new Zenoss.form.SettingsGrid({
+            renderTo: 'propList',
+            width: 500,
+            saveFn: saveConfigValues
+        }, data);
+    }
+
+    function loadProperties() {
+        router.getUserInterfaceSettings({}, buildPropertyGrid);
+    }
+
+    loadProperties();
+
+});
