@@ -130,9 +130,7 @@ Ext.define('Zenoss.ReportTreePanel', {
                 parentNode.removeChild(node);
                 node.destroy();
                 this.addHistoryToken(parentNode);
-                this.refresh(function(){
-                    tree.expandAll();
-                });
+                this.refresh();
             }
         }
         this.router.deleteNode(params, Ext.Function.bind(callback, this));
@@ -175,7 +173,7 @@ report_tree = new Zenoss.ReportTreePanel({
     enableDD: true,
     ddGroup: 'reporttreedd',
     bodyStyle: 'background-color:transparent;',
-    directFn: Zenoss.remote.ReportRouter.getTree,
+    directFn: Zenoss.remote.ReportRouter.asyncGetTree,
     router: Zenoss.remote.ReportRouter,
     root: {
         nodeType: 'async',
@@ -197,8 +195,6 @@ report_tree = new Zenoss.ReportTreePanel({
         type: 'string'
     }]
 });
-
-report_tree.expandAll();
 
 var treepanel = {
     xtype: 'HierarchyTreePanelSearch',
