@@ -190,7 +190,7 @@ function showMonitoringDialog() {
         buttonAlign: 'left',
         plain: true,
         buttons: [{
-            xtype:'DialogButton',        
+            xtype:'DialogButton',
             text: _t('Submit'),
             handler: function(btn) {
                 var mon = Ext.getCmp('monitoring-checkbox'),
@@ -204,7 +204,7 @@ function showMonitoringDialog() {
                 });
             }
         },{
-            xtype:'DialogButton',        
+            xtype:'DialogButton',
             text: _t('Cancel'),
             handler: function(btn){
                 btn.ownerCt.ownerCt.destroy();
@@ -332,7 +332,7 @@ var componentCard = {
                 buttons: [{
                     xtype: 'DialogButton',
                     text: _t('OK'),
-                    handler: function() {                                    
+                    handler: function() {
                         REMOTE.deleteComponents(componentGridOptions(), function(){
                             refreshComponentTreeAndGrid();
                         });
@@ -341,13 +341,13 @@ var componentCard = {
                     xtype: 'DialogButton',
                     text: _t('Cancel')
                 }]
-            }).show();      
-       /*     
+            }).show();
+       /*
             this gives the error:
             sm.getPendingSelections is not a function
                     ranges = sm.getPendingSelections(true),
-            so couldn't fully test the dialog replacement. 
-            ---------------------        
+            so couldn't fully test the dialog replacement.
+            ---------------------
             Ext.Msg.show({
                 title: _t('Delete Components'),
                 msg: _t("Are you sure you want to delete these components?"),
@@ -361,7 +361,7 @@ var componentCard = {
                         Ext.Msg.hide();
                     }
                 }
-            }); */ 
+            }); */
         }
     },{
         text: _t('Select'),
@@ -392,10 +392,8 @@ var componentCard = {
                     enableKeyEvents: true,
                     filterGrid: function() {
                         var value = this.getValue();
-                        if (value.length >= 3 || value.length == 0) {
-                            var grid = Ext.getCmp('component_card').componentgrid;
-                            grid.filter(this.getValue());
-                        }
+                        var grid = Ext.getCmp('component_card').componentgrid;
+                        grid.filter(this.getValue());
                     },
                     listeners: {
                         keypress: function(field, e) {
@@ -763,7 +761,7 @@ Ext.getCmp('center_panel').add({
             id: 'detailContainer',
             items: [{
                 xtype: 'devicedetailnav',
-                ui: 'hierarchy',               
+                ui: 'hierarchy',
                 id: 'deviceDetailNav'
             },{
                 xtype: 'montemplatetreepanel',
@@ -868,7 +866,7 @@ var editDeviceClass = function(deviceClass, uid) {
                                     xtype: 'DialogButton',
                                     text: _t('Cancel')
                                 }]
-                            }).show();                               
+                            }).show();
                         }
                         else {
                             moveToNewDevicePage();
@@ -1029,7 +1027,7 @@ Ext.getCmp('footer_bar').add([{
                 buttons: [{
                     xtype: 'DialogButton',
                     text: _t('OK'),
-                    handler: function() {                                    
+                    handler: function() {
                         REMOTE.pushChanges({
                             uids: [UID],
                             hashcheck: null
@@ -1039,7 +1037,7 @@ Ext.getCmp('footer_bar').add([{
                     xtype: 'DialogButton',
                     text: _t('Cancel')
                 }]
-            }).show();         
+            }).show();
         }
     },{
         xtype: 'menuitem',
