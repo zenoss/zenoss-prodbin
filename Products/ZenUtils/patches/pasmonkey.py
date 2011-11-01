@@ -26,8 +26,7 @@ Related tickets:
 '''
 
 from AccessControl import getSecurityManager
-from Products.ZenMessaging import actions
-from Products.ZenMessaging.actions.constants import ActionTargetType
+from Products.ZenMessaging.audit import audit
 
 # monkey patch PAS to allow inituser files, but check to see if we need to
 # actually apply the patch, first -- support may have been added at some point
@@ -36,6 +35,21 @@ from Products.ZenUtils.Security import _createInitialUser
 pas = PluggableAuthService.PluggableAuthService
 if not hasattr(pas, '_createInitialUser'):
     pas._createInitialUser =  _createInitialUser
+
+# Monkey patch PAS to monitor logouts (credential resets).
+# Have to check the request object to determine when we have an actual
+# logout instead of 'fake' logout (like the logout of the anonymous user)
+_originalResetCredentials = pas.resetCredentials
+def _resetCredentials(self, request, response=None):
+    extra = {}
+    # Maybe not the best way to determine explicit (via url) logout?
+    # (add other tests for other kinds of logouts, e.g. session expiry)
+    pathInfo = request.get("PATH_INFO")
+    if pathInfo == "/zport/dmd/logoutUser":
+        extra["reason"] = "ManualLogout"
+    audit("UI.Authentication.Logout", **extra)
+    _originalResetCredentials(self, request, response)
+pas.resetCredentials = _resetCredentials
 
 # monkey patches for the PAS login form
 from Products.PluggableAuthService.plugins import CookieAuthHelper
@@ -75,14 +89,9 @@ def login(self):
         pas_instance.updateCredentials(request, response, login, password)
 
         # Track the user logging in, or the login failure.
-        if actions.sendUserAction:
-            # NOTE: updateCredentials did enough work to allow the
-            # following line to work.
-            username = getSecurityManager().getUser().getUserName()
-            actions.sendUserAction(
-                ActionTargetType.Login,
-                'Succeed' if username == login else 'Fail',
-                username=login)
+        username = getSecurityManager().getUser().getUserName()
+        audit(("UI.Authentication", "Login" if username == login else "Fail"),
+            username=login)
 
     came_from = request.form.get('came_from') or ''
     if came_from:
