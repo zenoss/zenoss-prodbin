@@ -28,6 +28,7 @@ from Products.ZenModel.DeviceClass import DeviceClass
 from Products.ZenModel.PerformanceConf import PerformanceConf
 from Products.ZenModel.ZenPack import ZenPack
 from Products.ZenModel.ThresholdClass import ThresholdClass
+from Products.ZenUtils.AutoGCObjectReader import gc_cache_every
 
 
 class DeviceProxy(pb.Copyable, pb.RemoteCopy):
@@ -119,56 +120,61 @@ class CollectorConfigService(HubService, ThresholdMixin):
 
     @onUpdate(PerformanceConf)
     def perfConfUpdated(self, object, event):
-        if object.id == self.instance:
-            for listener in self.listeners:
-                listener.callRemote('setPropertyItems', object.propertyItems())
+        with gc_cache_every(1000, db=self.dmd._p_jar._db):
+            if object.id == self.instance:
+                for listener in self.listeners:
+                    listener.callRemote('setPropertyItems', object.propertyItems())
 
     @onUpdate(ZenPack)
     def zenPackUpdated(self, object, event):
-        for listener in self.listeners:
-            try:
-                listener.callRemote('updateThresholdClasses',
-                                    self.remote_getThresholdClasses())
-            except Exception, ex:
-                self.log.warning("Error notifying a listener of new classes")
+        with gc_cache_every(1000, db=self.dmd._p_jar._db):
+            for listener in self.listeners:
+                try:
+                    listener.callRemote('updateThresholdClasses',
+                                        self.remote_getThresholdClasses())
+                except Exception, ex:
+                    self.log.warning("Error notifying a listener of new classes")
 
     @onUpdate(Device)
     def deviceUpdated(self, object, event):
-        self._notifyAll(object)
+        with gc_cache_every(1000, db=self.dmd._p_jar._db):
+            self._notifyAll(object)
 
     @onUpdate(ThresholdClass)
     def onUpdateOfThresholdInstance(self, obj, event):
-        self._reconfigureIfNotify(obj)
+        with gc_cache_every(1000, db=self.dmd._p_jar._db):
+            self._reconfigureIfNotify(obj)
 
     @onUpdate(None) # Matches all
     def notifyAffectedDevices(self, object, event):
         # FIXME: This is horrible
+        with gc_cache_every(1000, db=self.dmd._p_jar._db):
+            if isinstance(object, self._getNotifiableClasses()):
+                self._reconfigureIfNotify(object)
 
-        if isinstance(object, self._getNotifiableClasses()):
-            self._reconfigureIfNotify(object)
-
-        else:
-            if isinstance(object, Device):
-                return
-            # something else... mark the devices as out-of-date
-            while object:
-                # walk up until you hit an organizer or a device
-                if isinstance(object, DeviceClass):
-                    uid = (self.__class__.__name__, self.instance)
-                    self._notifier.notify_subdevices(object, uid, self._notifyAll)
-                    break
-
+            else:
                 if isinstance(object, Device):
-                    self._notifyAll(object)
-                    break
+                    return
+                # something else... mark the devices as out-of-date
+                while object:
+                    # walk up until you hit an organizer or a device
+                    if isinstance(object, DeviceClass):
+                        uid = (self.__class__.__name__, self.instance)
+                        self._notifier.notify_subdevices(object, uid, self._notifyAll)
+                        break
 
-                object = aq_parent(object)
+                    if isinstance(object, Device):
+                        self._notifyAll(object)
+                        break
+
+                    object = aq_parent(object)
 
     @onDelete(Device)
     def deviceDeleted(self, object, event):
-        devid = object.id
-        for listener in self.listeners:
-            listener.callRemote('deleteDevice', devid)
+        with gc_cache_every(1000, db=self.dmd._p_jar._db):
+            devid = object.id
+            for listener in self.listeners:
+                listener.callRemote('deleteDevice', devid)
 
     @translateError
     def remote_getConfigProperties(self):
