@@ -20,7 +20,7 @@ function get_var {
     VAR_NAME=$1
 
     OUTPUT=`su $RUNUSER -l -c "$ZENHOME/bin/zenglobalconf -p $VAR_NAME"`
-    if [ -z "$OUTPUT" ]; then
+    if [ $? != 0 ]; then
        echo "$VAR_NAME could not be set. Check $ZENHOME/etc/global.conf for value."
        exit 1
     fi

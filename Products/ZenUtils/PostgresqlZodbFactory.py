@@ -25,11 +25,12 @@ import relstorage.options
 
 import psycopg2 as db_exceptions
 
+from GlobalConfig import globalConfToDict
 from ZodbFactory import IZodbFactory
 
 def _getDefaults(options=None):
     if options is None:
-       o = {}
+       o = globalConfToDict()
     else:
        o = options
     settings = {
