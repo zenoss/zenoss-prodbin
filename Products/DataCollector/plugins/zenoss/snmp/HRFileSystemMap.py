@@ -41,8 +41,12 @@ class HRFileSystemMap(SnmpPlugin):
          '.5': 'totalBlocks',
          }
 
+    dskTableOid = "1.3.6.1.4.1.2021.9.1"
+    dskTableColumns = {".1": "dskIndex", ".2": "dskPath",}
+
     snmpGetTableMaps = (
         GetTableMap('fsTableOid', '.1.3.6.1.2.1.25.2.3.1', columns),
+        GetTableMap("dskTable", dskTableOid, dskTableColumns),
     )
 
     typemap = {
@@ -69,6 +73,8 @@ class HRFileSystemMap(SnmpPlugin):
             log.error("Unable to get data for %s from fsTableOid"
                           " -- skipping model" % device.id)
             return None
+
+        dskTable = tabledata.get("dskTable")
 
         skipfsnames = getattr(device, 'zFileSystemMapIgnoreNames', None)
         skipfstypes = getattr(device, 'zFileSystemMapIgnoreTypes', None)
@@ -115,6 +121,8 @@ class HRFileSystemMap(SnmpPlugin):
                     fs['mount'], fs['type'])
                 continue
 
+            fs["snmpindex_dct"] = {HRFileSystemMap.dskTableOid: self._getDskIndex(dskTable, fs["mount"])}
+
             om = self.objectMap(fs)
             om.id = self.prepId(om.mount)
             om.title = om.mount
@@ -123,3 +131,11 @@ class HRFileSystemMap(SnmpPlugin):
         return maps
 
 
+    def _getDskIndex(self, dskTable, dskPath):
+        retval = None
+        if dskTable is not None:
+            for dsk in dskTable.values():
+                if dsk.get("dskPath") == dskPath:
+                    retval = dsk.get("dskIndex")
+                    break
+        return retval

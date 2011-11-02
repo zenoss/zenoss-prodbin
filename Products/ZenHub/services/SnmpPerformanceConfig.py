@@ -78,6 +78,21 @@ class SnmpPerformanceConfig(CollectorConfigService):
 
         return include
 
+
+    def _transform_oid(self, oid, comp):
+        """lookup the index"""
+        index = None
+        snmpindex_dct = getattr(comp, "snmpindex_dct", None)
+        if snmpindex_dct is not None:
+            for prefix, index_ in snmpindex_dct.iteritems():
+                if oid.startswith(prefix):
+                    index = index_
+                    break
+        if index is None:
+            index = getattr(comp, "ifindex", comp.snmpindex)
+        return "{0}.{1}".format(oid, index) if index else oid
+
+
     def _getComponentConfig(self, comp, perfServer, oids):
         """
         SNMP components can build up the actual OID based on a base OID and
@@ -92,15 +107,9 @@ class SnmpPerformanceConfig(CollectorConfigService):
                 if not ds.enabled or not ds.oid:
                     continue
 
-                oid = ds.oid
-                snmpindex = getattr(comp, "ifindex", comp.snmpindex)
-                if snmpindex:
-                    oid = "%s.%s" % (oid, snmpindex)
-                oid = oid.strip('.')
-
+                oid = self._transform_oid(ds.oid.strip("."), comp)
                 if not oid:
-                    log.warn("The data source %s OID is blank -- ignoring",
-                             ds.id)
+                    log.warn("The data source %s OID is blank -- ignoring", ds.id)
                     continue
 
                 for dp in ds.getRRDDataPoints():

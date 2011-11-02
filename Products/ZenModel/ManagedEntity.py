@@ -43,6 +43,7 @@ class ManagedEntity(ZenModelRM, DeviceResultInt, EventView, RRDView):
 
     # primary snmpindex for this managed entity
     snmpindex = 0
+    snmpindex_dct = {}
     monitor = True
 
     _properties = (

@@ -187,7 +187,7 @@ class FileSystem(OSComponent):
         totalBlocks = self.getTotalBlocks()
         availBlocks = self.availBlocks()
         if totalBlocks and availBlocks is not None:
-            return int(100.0 * (totalBlocks - availBlocks) / totalBlocks)
+            return round(100.0 * (totalBlocks - availBlocks) / totalBlocks)
         return 'unknown'
 
 
@@ -202,6 +202,11 @@ class FileSystem(OSComponent):
         """
         Return the number of used blocks stored in the filesystem's rrd file
         """
+
+        dskPercent = self.cacheRRDValue("dskPercent")
+        if dskPercent is not None and dskPercent is not "Unknown" and not isnan(dskPercent):
+            return self.getTotalBlocks() * dskPercent / 100.0
+
         blocks = self.cacheRRDValue('usedBlocks', default)
         if blocks is not None and not isnan(blocks):
             return long(blocks)
