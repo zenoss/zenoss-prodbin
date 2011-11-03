@@ -32,8 +32,8 @@ from ZenModelRM import ZenModelRM
 from ZenPackable import ZenPackable
 
 from Products.ZenUtils.Utils import unused, getDisplayType
+from Products.ZenUtils.deprecated import deprecated
 from Products.ZenModel.RRDDataPointAlias import manage_addDataPointAlias
-from Products.Zuul.decorators import deprecated
 
 def manage_addRRDDataPoint(context, id, REQUEST = None):
     """make a RRDDataPoint"""

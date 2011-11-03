@@ -35,6 +35,7 @@ from zenoss.protocols.protobufs.zep_pb2 import EventSummary
 from zenoss.protocols.protobufutil import ProtobufEnum
 from zenoss.protocols.exceptions import NoConsumersException, PublishException
 from json import loads
+from Products.ZenUtils.deprecated import deprecated
 from Products.Zuul.utils import resolve_context
 from Products.Zuul.utils import ZuulMessageFactory as _t
 from Products.ZenUI3.browser.eventconsole.grid import column_config
@@ -697,9 +698,10 @@ class EventsRouter(DirectRouter):
         return DirectResponse.succeed(data=summaryUpdateResponse)
 
     @require('Manage Events')
+    @deprecated
     def unacknowledge(self, *args, **kwargs):
         """
-        @Deprecated Use reopen
+        Deprecated, Use reopen
         """
         return self.reopen(*args, **kwargs)
 

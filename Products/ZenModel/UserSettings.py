@@ -40,7 +40,7 @@ from Products.ZenWidgets import messaging
 from Products.ZenModel.interfaces import IProvidesEmailAddresses, IProvidesPagerAddresses
 from Products.ZenMessaging.actions import sendUserAction
 from Products.ZenMessaging.actions.constants import ActionTargetType, ActionName
-from Products.Zuul.decorators import deprecated
+from Products.ZenUtils.deprecated import deprecated
 
 from ZenossSecurity import *
 from ZenModelRM import ZenModelRM
