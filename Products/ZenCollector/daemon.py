@@ -364,7 +364,7 @@ class CollectorDaemon(RRDDaemon):
             if not self.options.cycle:
                 self._pendingTasks.append(taskName)
 
-    def _updateDeviceConfigs(self, updatedConfigs):
+    def _updateDeviceConfigs(self, updatedConfigs, purgeOmitted):
         """
         Update the device configurations for the devices managed by this
         collector.
@@ -373,14 +373,17 @@ class CollectorDaemon(RRDDaemon):
         """
         self.log.debug("updateDeviceConfigs: updatedConfigs=%s", (map(str, updatedConfigs)))
 
-        deleted = self._devices.copy()
-
         for cfg in updatedConfigs:
-            deleted.discard(cfg.configId)
             self._updateConfig(cfg)
 
+        if purgeOmitted:
+            self._purgeOmittedDevices(cfg.id for cfg in updatedConfigs)
+
+    def _purgeOmittedDevices(self, updatedDevices):
         # remove tasks for the deleted devices
-        for configId in deleted:
+        deletedDevices = [d for d in self._devices if d not in set(updatedDevices)]
+        self.log.debug("purgeOmittedDevices: deletedConfigs=%s", ','.join(map(str, deletedDevices)))
+        for configId in deletedDevices:
             self._deleteDevice(configId)
             
     def _deleteDevice(self, deviceId):

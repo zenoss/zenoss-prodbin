@@ -243,7 +243,7 @@ class ConfigurationLoaderTask(ObservableMixin):
         return defer.maybeDeferred(self._configProxy.getConfigProxies,
                                    self._prefs, devices)
 
-    def _processConfig(self, configs):
+    def _processConfig(self, configs, purgeOmitted=True):
         if self.options.device:
             configs = [cfg for cfg in configs \
                             if cfg.id == self.options.device]
@@ -260,7 +260,7 @@ class ConfigurationLoaderTask(ObservableMixin):
             return defer.succeed(['No device configuration to load'])
 
         self.state = self.STATE_PROCESS_DEVICE_CONFIG
-        self._daemon._updateDeviceConfigs(configs)
+        self._daemon._updateDeviceConfigs(configs, purgeOmitted)
         return configs
 
     def _reportStatistics(self, result):
