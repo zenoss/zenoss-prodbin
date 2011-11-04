@@ -316,11 +316,17 @@ class AsyncQueuePublisher(object):
         self._amqpClient = AMQPFactory(connectionInfo, queueSchema)
 
     @defer.inlineCallbacks
-    def publish(self, exchange, routing_key, message, createQueues=None, mandatory=False, immediate=False):
+    def publish(self, exchange, routing_key, message, createQueues=None,
+                mandatory=False, immediate=False, headers=None,
+                declareExchange=True):
         if createQueues:
             for queue in createQueues:
                 yield self._amqpClient.createQueue(queue)
-        result = yield self._amqpClient.send(exchange, routing_key, message, mandatory=mandatory, immediate=immediate)
+        result = yield self._amqpClient.send(exchange, routing_key, message,
+                                             mandatory=mandatory,
+                                             immediate=immediate,
+                                             headers=headers,
+                                             declareExchange=declareExchange)
         defer.returnValue(result)
 
 
@@ -343,11 +349,15 @@ class BlockingQueuePublisher(object):
         queueSchema = getUtility(IQueueSchema)
         self._client = BlockingPublisher(connectionInfo, queueSchema)
 
-    def publish(self, exchange, routing_key, message, createQueues=None, mandatory=False, immediate=False):
+    def publish(self, exchange, routing_key, message, createQueues=None,
+                mandatory=False, immediate=False, headers=None,
+                declareExchange=True):
         if createQueues:
             for queue in createQueues:
                 self._client.createQueue(queue)
-        self._client.publish(exchange, routing_key, message, mandatory=mandatory, immediate=immediate)
+        self._client.publish(exchange, routing_key, message,
+                             mandatory=mandatory, immediate=immediate,
+                             headers=headers, declareExchange=declareExchange)
 
     @property
     def channel(self):

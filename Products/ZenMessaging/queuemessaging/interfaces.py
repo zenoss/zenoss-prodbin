@@ -17,7 +17,9 @@ class IQueuePublisher(Interface):
     """
     Interface for publishing to a queue
     """
-    def publish(exchange, routing_key, message, createQueues=None, mandatory=False, immediate=False):
+    def publish(exchange, routing_key, message, createQueues=None,
+                mandatory=False, immediate=False, headers=None,
+                declareExchange=True):
         """
         Publishes a message to an exchange. If twisted is running
         this will use the twisted amqp library, otherwise it will
@@ -38,6 +40,12 @@ class IQueuePublisher(Interface):
         @param immediate: If true, will raise NoConsumersException if there are
                           no active consumers for the published event (the event
                           is still sent to the queue).
+        @type  headers: dict
+        @param headers: Headers to use when publishing a message (Useful for
+                        headers exchanges).
+        @type  declareExchange: Boolean.
+        @param declareExchange: Whether to declare the exchange when publishing
+                                the message.
         @raise zenoss.protocols.exceptions.NoRouteException: If mandatory is
                True and the message cannot be sent to a queue (the message is
                lost).
