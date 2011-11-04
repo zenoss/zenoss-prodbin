@@ -423,6 +423,11 @@
             return this.uid;
         },
         refresh: function() {
+            // only refresh if we have a context set
+            if (!this.getContext()) {
+                return;
+            }
+
             var store = this.getStore();
             store.load();
         }
@@ -451,6 +456,11 @@
             this.callParent([config]);
         },
         refresh: function(callback, scope) {
+            // only refresh if a context is set
+            if (!this.getContext()) {
+                return;
+            }
+
             var store = this.getStore();
             store.currentPage = 1;
             store.load({

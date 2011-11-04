@@ -1124,8 +1124,11 @@ var device_grid = Ext.create('Zenoss.DeviceGridPanel', {
                 text: _t('Refresh'),
                 tooltip: _t('Refresh Device List'),
                 handler: function(btn) {
-                    Ext.getCmp('device_grid').refresh();
-                    Ext.getCmp('organizer_events').setContext(Zenoss.env.PARENT_CONTEXT);
+                    var grid = Ext.getCmp('device_grid');
+                    if (grid.isVisible(true)) {
+                        grid.refresh();
+                        Ext.getCmp('organizer_events').setContext(Zenoss.env.PARENT_CONTEXT);
+                    }
                 }
             },
             {
@@ -1197,7 +1200,6 @@ function getInfrastructureDeviceColumns() {
 var event_console = Ext.create('Zenoss.EventGridPanel', {
     id: 'events_grid',
     stateId: 'infrastructure_events',
-
     columns: getInfrastructureDeviceColumns(),
     newwindowBtn: true,
     actionsMenu: false,

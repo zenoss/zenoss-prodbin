@@ -106,7 +106,7 @@ Ext.Direct.on('event', function(e){
                     xtype: 'DialogButton',
                     text: _t('Cancel')
                 }]
-            }).show();     
+            }).show();
         return false;
     }
 });
@@ -133,7 +133,7 @@ Ext.Direct.on('exception', function(e) {
         window.location.reload();
         return;
     }
-    
+
          new Zenoss.dialog.SimpleMessageDialog({
         title: _t('Server Exception'),
         message: '<p>' + _t('The server reported the following error:') + '</p>' +
@@ -150,8 +150,8 @@ Ext.Direct.on('exception', function(e) {
                     xtype: 'DialogButton',
                     text: _t('Cancel')
                 }]
-            }).show();  
-            
+            }).show();
+
 });
 
 /*
@@ -462,24 +462,31 @@ Ext.define("Zenoss.StatefulRefreshMenu", {
     alias: ['widget.statefulrefreshmenu'],
     constructor: function(config) {
         config.stateful = true;
-        config.stateEvents = ['itemclick'];
-        Zenoss.StatefulRefreshMenu.superclass.constructor.apply(this, arguments);
+        config.stateEvents = ['click'];
+        this.callParent([config]);
     },
     getState: function() {
         //returning raw value doesn't work anymore; need to wrap in object/array
         return [this.trigger.interval];
     },
     applyState: function(interval) {
+
         //old cookie value not being in an array and we can't get the value, so
         //default to 60
-        var savedIntveral = interval[0] || 60;
+        var savedInterval = interval[0] || 60;
+        // removing one second as an option
+        // for performance reasons
+        if (savedInterval == 1) {
+            savedInterval = 5;
+        }
+
         var items = this.items.items;
         Ext.each(items, function(item) {
-            if (item.value == savedIntveral)
+            if (item.value == savedInterval)
                 item.setChecked(true);
         }, this);
         this.trigger.on('afterrender', function() {
-            this.trigger.setInterval(savedIntveral);
+            this.trigger.setInterval(savedInterval);
         }, this);
     }
 });
@@ -500,16 +507,11 @@ Ext.define("Zenoss.RefreshMenuButton", {
             xtype: 'statefulrefreshmenu',
             id: config.stateId || 'evc_refresh',
             trigger: this,
-            width:127,
+            width: 127,
             items: [{
                 cls: 'refreshevery',
                 text: 'Refresh every',
                 canActivate: false
-            },{
-                xtype: 'menucheckitem',
-                text: '1 second',
-                value: 1,
-                group: 'refreshgroup'
             },{
                 xtype: 'menucheckitem',
                 text: '5 seconds',
@@ -541,24 +543,32 @@ Ext.define("Zenoss.RefreshMenuButton", {
         Ext.applyIf(config, {
             menu: menu
         });
-        Zenoss.RefreshMenuButton.superclass.constructor.apply(this,
-            arguments);
+        this.callParent([config]);
         this.refreshTask = new Ext.util.DelayedTask(this.poll, this);
-        this.menu.on('itemclick', function(item){
+        this.menu.on('click', function(menu, item){
             this.setInterval(item.value);
         }, this);
-        //60 is the default interval; it matches the checked item above
+        // 60 is the default interval; it matches the checked item above
         this.setInterval(60);
     },
     setInterval: function(interval) {
-        this.interval = interval;
-        this.refreshTask.delay(this.interval*1000);
+        var isValid = false;
+        // make sure what they are setting is a valid option
+        this.menu.items.each(function(item){
+            if (item.value == interval) {
+                isValid = true;
+            }
+        });
+        if (isValid) {
+            this.interval = interval;
+            this.refreshTask.delay(this.interval*1000);
+        }
     },
     poll: function(){
         if (this.interval>0) {
             if ( !this.disabled ) {
                 if (Ext.isDefined(this.pollHandler)){
-                    this.pollHandler()
+                    this.pollHandler();
                 }
                 else{
                     this.handler(this);

@@ -638,10 +638,10 @@
                         iconCls: 'refresh',
                         text: _t('Refresh'),
                         handler: function() {
-                            Ext.getCmp(gridId).refresh();
-                        },
-                        pollHandler: function() {
-                            Ext.getCmp(gridId).refresh();
+                            var grid = Ext.getCmp(gridId);
+                            if (grid.isVisible(true)) {
+                                grid.refresh();
+                            }
                         }
                     },
                     tbarItems
