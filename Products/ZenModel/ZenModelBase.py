@@ -389,7 +389,8 @@ class ZenModelBase(object):
                 SaveMessage()
             )
 
-            audit('UI.Setting.Edit', data_=REQUEST.form,
+            auditType = getDisplayType(self)
+            audit(['UI', 'Setting' if auditType == 'DataRoot' else auditType, 'Edit'], data_=REQUEST.form,
                   skipFields_=('redirect', 'zenScreenName', 'zmanage_editProperties'),
                   maskFields_=('smtpPass'))
             return self.callZenScreen(REQUEST, redirect=redirect)

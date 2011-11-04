@@ -18,8 +18,10 @@ Handles GraphPoints that refer to RRDDataPoints
 
 from GraphPoint import GraphPoint
 from Globals import InitializeClass
+from Products.ZenUtils.deprecated import deprecated
 
 
+@deprecated
 def manage_addThresholdGraphPoint(context, id, REQUEST = None):
     ''' This is here so than zope will let us copy/paste/rename
     graphpoints.
@@ -64,19 +66,6 @@ class ThresholdGraphPoint(GraphPoint):
         return 'Threshold'
 
 
-    # def getMissingDPNames(self):
-    #     ''' Return a list of datapoint names that are used by this threshold
-    #     but not included in any graphpoint.
-    #     '''
-    #     threshClass = self.getThreshClass()
-    #     if threshClass:
-    #         dpNames = [dpName for dpName in threshClass.dsnames
-    #                     if not self.graphDef.isDataPointGraphed(dpName)]
-    #     else:
-    #         dpNames = []
-    #     return dpNames
-    
-        
     def getRelatedGraphPoints(self, context):
         ''' Return a dictionary where keys are the dp names from the
         threshold and values are a DataPointGraphPoint for that dp or

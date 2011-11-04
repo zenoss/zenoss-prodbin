@@ -39,7 +39,7 @@ import os
 import sys
 from sets import Set
 import string
-
+from Products.ZenMessaging.audit import audit
 from Products.ZenUtils.Utils import zenPath, binPath
 from Products.ZenUtils.Utils import extractPostContent
 from Products.ZenUtils.jsonutils import json
@@ -587,6 +587,8 @@ class DataRoot(ZenModelRM, OrderedFolder, Commandable, ZenMenuable):
         Clear the Google Maps cache.
         """
         self.geocache = ''
+        if REQUEST:
+            audit('UI.DataRoot.ClearGeocodeCache')
 
     security.declareProtected(ZEN_COMMON, 'getGeoCache')
     @json
@@ -743,6 +745,9 @@ class DataRoot(ZenModelRM, OrderedFolder, Commandable, ZenMenuable):
         except:
             write('Exception while performing backup.')
             write('type: %s  value: %s' % tuple(sys.exc_info()[:2]))
+        else:
+            if REQUEST:
+                audit('UI.DataRoot.Backup')
         write('')
         if REQUEST and footer:
             REQUEST.RESPONSE.write(footer)
@@ -754,19 +759,21 @@ class DataRoot(ZenModelRM, OrderedFolder, Commandable, ZenMenuable):
         Delete the specified files from $ZENHOME/backups
         """
         backupsDir = zenPath('backups')
-        count = 0
+        removed = ()
         if os.path.isdir(backupsDir):
             for dirPath, dirNames, dirFileNames in os.walk(backupsDir):
                 dirNames[:] = []
                 for fileName in fileNames:
                     if fileName in dirFileNames:
-                        res = os.remove(os.path.join(dirPath, fileName))
+                        toRemove = os.path.join(dirPath, fileName)
+                        res = os.remove(toRemove)
                         if res == 0:
-                            count += 1
+                            removed.append(toRemove)
             if REQUEST:
+                audit('UI.DataRoot.DeleteBackups', removed=removed)
                 messaging.IMessageSender(self).sendToBrowser(
                     'Backups Deleted',
-                    '%s backup files have been deleted.' % count
+                    '%s backup files have been deleted.' % len(removed)
                 )
         else:
             if REQUEST:

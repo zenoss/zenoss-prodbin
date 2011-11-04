@@ -30,8 +30,11 @@ from ZenPackable import ZenPackable
 import logging
 log = logging.getLogger("zen.Device")
 from Acquisition import aq_base
+from Products.ZenUtils.Utils import resequence
+from Products.ZenUtils.deprecated import deprecated
+from Products.ZenMessaging.audit import audit
 
-
+@deprecated
 def manage_addGraphDefinition(context, id, REQUEST = None):
     """
     This is here so that Zope will let us copy/paste/rename graph points.
@@ -68,8 +71,9 @@ class FakeContext:
         return []
 
 class GraphDefinition(ZenModelRM, ZenPackable):
-    '''
-    '''
+    """
+    GraphDefinition defines the global options for a graph.
+    """
     
     meta_type = 'GraphDefinition'
    
@@ -142,8 +146,8 @@ class GraphDefinition(ZenModelRM, ZenPackable):
     ## Basic stuff
 
     def getGraphPoints(self, includeThresholds=True):
-        ''' Return ordered list of graph points
-        '''
+        """ Return ordered list of graph points
+        """
         def cmpGraphPoints(a, b):
             try:
                 a = int(a.sequence)
@@ -161,15 +165,15 @@ class GraphDefinition(ZenModelRM, ZenPackable):
         
         
     def getThresholdGraphPoints(self):
-        ''' Get ordered list of threshold graph points
-        '''
+        """ Get ordered list of threshold graph points
+        """
         gps = [gp for gp in self.getGraphPoints() if gp.isThreshold]
         return gps
 
 
     def isThresholdGraphed(self, threshId):
-        ''' Return true if there is a thresholdgraphpoint with threshId=threshid
-        '''
+        """ Return true if there is a thresholdgraphpoint with threshId=threshid
+        """
         for gp in self.getThresholdGraphPoints():
             if gp.threshId == threshId:
                 return True
@@ -177,9 +181,9 @@ class GraphDefinition(ZenModelRM, ZenPackable):
         
         
     def isDataPointGraphed(self, dpName):
-        ''' Return true if there is at least one graphpoint with a dsName
+        """ Return true if there is at least one graphpoint with a dsName
         equal to dpName.
-        '''
+        """
         from DataPointGraphPoint import DataPointGraphPoint
         for gp in self.getGraphPoints(includeThresholds=False):
             if isinstance(gp, DataPointGraphPoint):
@@ -226,8 +230,8 @@ class GraphDefinition(ZenModelRM, ZenPackable):
         
         
     def getGraphPointsNames(self):
-        ''' Return list of graph point ids
-        '''
+        """ Return list of graph point ids
+        """
         return [gp.id for gp in self.getGraphPoints()]
 
 
@@ -249,9 +253,9 @@ class GraphDefinition(ZenModelRM, ZenPackable):
         
         
     def getGraphPointOptions(self):
-        ''' Used by dialog_addGraphPoint to construct the list of 
+        """ Used by dialog_addGraphPoint to construct the list of 
         available graphpoint types.
-        '''
+        """
         return (('DefGraphPoint', 'DEF'),
                 ('VdefGraphPoint', 'VDEF'),
                 ('CdefGraphPoint', 'CDEF'),
@@ -267,9 +271,9 @@ class GraphDefinition(ZenModelRM, ZenPackable):
         
 
     def createGraphPoint(self, cls, newId):
-        ''' Create the graphpoint with the given id or something similar
+        """ Create the graphpoint with the given id or something similar
         and add to self.graphPoints
-        '''
+        """
         def getUniqueId(container, base):
                 ids = container.objectIds()
                 new = base
@@ -300,12 +304,13 @@ class GraphDefinition(ZenModelRM, ZenPackable):
 
     security.declareProtected(ZEN_MANAGE_DMD, 'manage_addCustomGraphPoint')
     def manage_addCustomGraphPoint(self, new_id, flavor, REQUEST=None):
-        ''' Create a new graphpoint of the given class and id
-        '''
+        """ Create a new graphpoint of the given class and id
+        """
         exec 'import %s' % flavor
         cls = eval('%s.%s' % (flavor, flavor)) 
         gp = self.createGraphPoint(cls, new_id)
         if REQUEST:
+            audit('UI.GraphDefinition.AddGraphPoint', self.id, graphPointType=flavor, graphPoint=gp.id)
             url = '%s/graphPoints/%s' % (self.getPrimaryUrlPath(), gp.id)
             REQUEST['RESPONSE'].redirect(url)
             return self.callZenScreen(REQUEST)
@@ -316,11 +321,11 @@ class GraphDefinition(ZenModelRM, ZenPackable):
     def manage_addDataPointGraphPoints(self, dpNames=None,
                                        includeThresholds=False,
                                        REQUEST=None):
-        ''' Create new graph points
+        """ Create new graph points
         The migrate script graphDefinitions and friends depends on the first
         element in newGps being the DataPointGraphPoint when only one
         name is passed in dpNames.
-        '''
+        """
         if not dpNames:
             if REQUEST:
                 messaging.IMessageSender(self).sendToBrowser(
@@ -341,6 +346,9 @@ class GraphDefinition(ZenModelRM, ZenPackable):
                 for dpName in dpNames:
                     newGps += self.addThresholdsForDataPoint(dpName)
             if REQUEST:
+                for dpName in dpNames:
+                    audit('UI.GraphDefinition.AddGraphPoint', self.id, graphPointType='DataPoint',
+                          graphPoint=dpName, includeThresholds=str(includeThresholds))
                 messaging.IMessageSender(self).sendToBrowser(
                     'Graph Points Added',
                     '%s graph point%s were added.' % (len(newGps),
@@ -351,10 +359,10 @@ class GraphDefinition(ZenModelRM, ZenPackable):
 
 
     def addThresholdsForDataPoint(self, dpName):
-        ''' Make sure that Threshold graph points exist for all thresholds
+        """ Make sure that Threshold graph points exist for all thresholds
         that use the given dpName.
         Return a list of all graphpoints created by this call.
-        '''
+        """
         from ThresholdGraphPoint import ThresholdGraphPoint
         newGps = []
         for thresh in self.rrdTemplate().thresholds():
@@ -369,8 +377,8 @@ class GraphDefinition(ZenModelRM, ZenPackable):
 
     security.declareProtected(ZEN_MANAGE_DMD, 'manage_addThresholdGraphPoints')
     def manage_addThresholdGraphPoints(self, threshNames, REQUEST=None):
-        ''' Create new graph points
-        '''
+        """ Create new threshold graph points
+        """
         from ThresholdGraphPoint import ThresholdGraphPoint
         newGps = []
         for threshName in threshNames:
@@ -379,6 +387,9 @@ class GraphDefinition(ZenModelRM, ZenPackable):
             gp.threshId = threshName
             newGps.append(gp)
         if REQUEST:
+            for threshName in threshNames:
+                audit('UI.GraphDefinition.AddGraphPoint', self.id, graphPointType='Threshold',
+                      graphPoint=threshName)
             messaging.IMessageSender(self).sendToBrowser(
                 'Graph Points Added',
                 '%s graph point%s were added.' % (len(newGps),
@@ -390,8 +401,8 @@ class GraphDefinition(ZenModelRM, ZenPackable):
 
     security.declareProtected(ZEN_MANAGE_DMD, 'manage_deleteGraphPoints')
     def manage_deleteGraphPoints(self, ids=(), REQUEST=None):
-        ''' Deleted given graphpoints
-        '''
+        """ Deleted given graphpoints
+        """
         num = 0
         for id in ids:
             if getattr(self.graphPoints, id, False):
@@ -399,6 +410,8 @@ class GraphDefinition(ZenModelRM, ZenPackable):
                 self.graphPoints._delObject(id)
             self.manage_resequenceGraphPoints()
         if REQUEST:
+            for id in ids:
+                audit('UI.GraphDefinition.DeleteGraphPoint', self.id, graphPoint=id)
             messaging.IMessageSender(self).sendToBrowser(
                 'Graph Points Deleted',
                 '%s graph point%s were deleted.' % (num,
@@ -411,23 +424,24 @@ class GraphDefinition(ZenModelRM, ZenPackable):
     def manage_resequenceGraphPoints(self, seqmap=(), origseq=(), REQUEST=None):
         """Reorder the sequence of the GraphPoints.
         """
-        from Products.ZenUtils.Utils import resequence
-        return resequence(self, self.graphPoints(), 
-                            seqmap, origseq, REQUEST)
+        retval = resequence(self, self.graphPoints(), seqmap, origseq, REQUEST)
+        if REQUEST:
+            audit('UI.GraphDefinition.ResequenceGraphPoints', self.id, sequence=seqmap, oldData_={'sequence':origseq})
+        return retval
 
 
     def getDataPointOptions(self):
-        ''' Return a list of (value, name) tuples for the list of datapoints
+        """ Return a list of (value, name) tuples for the list of datapoints
         which the user selects from to create new graphpoints.
-        '''
+        """
         return [(dp.name(), dp.name()) 
                     for dp in self.rrdTemplate.getRRDDataPoints()]
 
 
     def getThresholdOptions(self):
-        ''' Return a list of (value, name) tuples for the list of thresholds
+        """ Return a list of (value, name) tuples for the list of thresholds
         which the user selects from to create new graphpoints.
-        '''
+        """
         return [(t.id, t.id) for t in self.rrdTemplate.thresholds()] 
 
 
@@ -483,11 +497,11 @@ class GraphDefinition(ZenModelRM, ZenPackable):
 
 
     def getRRDVariables(self, upToPoint=None):
-        ''' Return list of rrd variable names that are defined by DEF, CDEF
+        """ Return list of rrd variable names that are defined by DEF, CDEF
         or VDEF statements in the rrd commands.  If upToPoint is not None then
         only consider statements generated by graphoints where
         sequence < upToPoint
-        '''
+        """
         cmds = self.getFakeGraphCmds(upToPoint=upToPoint)
         names = [line[line.find(':')+1:line.find('=')]
                     for line in cmds.split('\n')
@@ -496,9 +510,9 @@ class GraphDefinition(ZenModelRM, ZenPackable):
 
         
     def getFakeGraphCmds(self, upToPoint=None):
-        ''' Used to display the graph commands (or a reasonable likeness)
+        """ Used to display the graph commands (or a reasonable likeness)
         to the user
-        '''
+        """
         context = FakeContext('Context')
         cmds = self.getGraphCmds(context, context.rrdPath(), upToPoint=upToPoint)
         cmds = '\n'.join(cmds)
@@ -536,8 +550,8 @@ class GraphDefinition(ZenModelRM, ZenPackable):
 
 
     def getDataPointGraphPoints(self, dpName):
-        ''' Return a list of DataPointGraphPoints that use the given dpName
-        '''
+        """ Return a list of DataPointGraphPoints that use the given dpName
+        """
         from DataPointGraphPoint import DataPointGraphPoint
         return [gp for gp in self.graphPoints()
                 if isinstance(gp, DataPointGraphPoint)
@@ -545,9 +559,9 @@ class GraphDefinition(ZenModelRM, ZenPackable):
 
 
     def getUniqueDpNames(self, limit=None):
-        '''
+        """
         Get a list of all unique datapoint names
-        '''
+        """
         from sets import Set
         dpNames = Set()
         for t in self.dmd.Devices.getAllRRDTemplates():
@@ -565,9 +579,9 @@ class GraphDefinition(ZenModelRM, ZenPackable):
 
 
     def getUniqueThresholdNames(self, limit=100):
-        '''
+        """
         Get a list of all unique threshold names
-        '''
+        """
         from sets import Set
         names = Set()
         for t in self.dmd.Devices.getAllRRDTemplates():

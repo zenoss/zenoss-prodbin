@@ -18,8 +18,10 @@ Handles GraphPoints that define an rrd LINE
 
 from GraphPoint import GraphPoint
 from Globals import InitializeClass
+from Products.ZenUtils.deprecated import deprecated
 
 
+@deprecated
 def manage_addLineGraphPoint(context, id, REQUEST = None):
     ''' This is here so than zope will let us copy/paste/rename
     graphpoints.

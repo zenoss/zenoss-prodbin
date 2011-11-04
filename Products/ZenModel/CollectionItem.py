@@ -23,8 +23,9 @@ from AccessControl import ClassSecurityInfo, Permissions
 from Products.ZenRelations.RelSchema import *
 from ZenModelRM import ZenModelRM
 from Products.ZenUtils.Utils import unused
+from Products.ZenUtils.deprecated import deprecated
 
-                                     
+@deprecated
 def manage_addCollectionItem(context, id, deviceId, compPath, sequence,
                                                             REQUEST = None):
     ''' This is here so than zope will let us copy/paste/rename

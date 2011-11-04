@@ -13,18 +13,22 @@
 
 from Globals import InitializeClass
 from AccessControl import ClassSecurityInfo
+from Products.ZenMessaging.audit import audit
+from Products.ZenUtils.deprecated import deprecated
 from ZenModelRM import ZenModelRM
 from Products.ZenRelations.RelSchema import *
 from Products.ZenUtils.Utils import getObjByPath
 from Products.ZenUtils.ZenTales import talesCompile, getEngine
 
 
+@deprecated
 def manage_addGraphReportElement(context, id, REQUEST = None):
     """make a GraphReportElement
     """
     element = GraphReportElement(id)
     context._setObject(element.id, element)
     if REQUEST is not None:
+        audit('UI.Report.AddElement', context, element.id)
         REQUEST['RESPONSE'].redirect(context.absolute_url()+'/manage_main')
 
 

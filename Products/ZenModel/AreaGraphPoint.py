@@ -18,9 +18,10 @@ Handles GraphPoints that define an rrd AREA
 
 from GraphPoint import GraphPoint
 from Globals import InitializeClass
-
+from Products.ZenUtils.deprecated import deprecated
 from Products.ZenUtils.Utils import unused
 
+@deprecated
 def manage_addAreaGraphPoint(context, id, REQUEST = None):
     ''' This is here so than zope will let us copy/paste/rename
     graphpoints.

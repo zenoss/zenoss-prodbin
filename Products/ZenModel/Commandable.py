@@ -10,6 +10,8 @@
 # For complete information please visit: http://www.zenoss.com/oss/
 #
 ###########################################################################
+from Products.ZenMessaging.audit import audit
+from Products.ZenUtils.deprecated import deprecated
 
 __doc__="""Commandable
 
@@ -60,6 +62,7 @@ class Commandable:
             uc.command = cmd
         if REQUEST:
             if uc:
+                audit('UI.Command.Add', newId, action=uc.command, description=uc.description)
                 messaging.IMessageSender(self).sendToBrowser(
                     'Command Added',
                     'User command %s has been created.' % newId
@@ -82,6 +85,8 @@ class Commandable:
         if self.meta_type == 'Device':
             self.setLastChange()
         if REQUEST:
+            for id in ids:
+                audit('UI.Command.Delete', id)
             messaging.IMessageSender(self).sendToBrowser(
                 'Commands Deleted',
                 'User commands %s have been deleted.' % " ".join(ids)
@@ -90,7 +95,7 @@ class Commandable:
 
     security.declareProtected(ZEN_DEFINE_COMMANDS_EDIT,
         'manage_editUserCommand')
-    def manage_editUserCommand(self, commandId, REQUEST=None):
+    def manage_editUserCommand(self, commandId, REQUEST):
         ''' Want to redirect back to management tab after a save
         '''
         command = self.getUserCommand(commandId)
@@ -106,10 +111,12 @@ class Commandable:
                 return REQUEST.RESPONSE.redirect(command.absolute_url_path())
             del REQUEST.form['password']
             command.manage_changeProperties(**REQUEST.form)
+            audit('UI.Command.Edit', commandId, action=REQUEST.form.get('command',''))
         return self.redirectToUserCommands(REQUEST)
 
 
     security.declareProtected(ZEN_RUN_COMMANDS, 'manage_doUserCommand')
+    @deprecated
     def manage_doUserCommand(self, commandId=None, REQUEST=None):
         ''' Execute a UserCommand. If REQUEST then
         wrap output in proper zenoss html page.
@@ -138,6 +145,8 @@ class Commandable:
                 self.write(out, '')
                 self.write(out, '==== %s ====' % target.id)
                 self.doCommandForTarget(command, target, out)
+                #untested, method call cannot be found
+                audit('UI.Command.Invoke', commandId, target=target)
             except:
                 self.write(out,
                     'exception while performing command for %s' % target.id)

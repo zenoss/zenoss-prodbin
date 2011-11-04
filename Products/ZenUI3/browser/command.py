@@ -18,6 +18,7 @@ import subprocess
 import signal
 import time
 from itertools import imap
+from Products.ZenMessaging.audit import audit
 from Products.ZenUI3.browser.streaming import StreamingView, StreamClosed
 from Products.ZenUtils.jsonutils import unjson
 from Products.Zuul import getFacade
@@ -48,6 +49,7 @@ class CommandView(StreamingView):
             self.write('==== %s ====' % target.titleOrId())
             self.write(compiled)
 
+            audit('UI.Command.Invoke', cmd.id, target=target.id)
             p = subprocess.Popen(shlex.split(compiled),
                                  bufsize=1,
                                  stdout=subprocess.PIPE,

@@ -20,8 +20,9 @@ import os
 import os.path
 from ComplexGraphPoint import ComplexGraphPoint
 from Globals import InitializeClass
+from Products.ZenUtils.deprecated import deprecated
 
-
+@deprecated
 def manage_addDataPointGraphPoint(context, id, REQUEST = None):
     ''' This is here so than zope will let us copy/paste/rename
     graphpoints.
@@ -34,23 +35,24 @@ def manage_addDataPointGraphPoint(context, id, REQUEST = None):
 
 class DataPointGraphPoint(ComplexGraphPoint):
     '''
-    '''    
+    '''
     meta_type = 'DataPointGraphPoint'
     
+    # limit:   Maximum permitted value.  Values in excess of this are NaNed.
+    #          Not used if negative
     limit = -1
+
+    # rpn:     Reverse Polish Notation -- applied to the value for this graph point
+    #          See Products/ZenRRD/utils.py (rpneval)
     rpn = ''
+
+    # dpName:  The basename of the rrd file (without extension) that has the data
     dpName = ''
+
+    # cFunc:   The consolidation function used when that datapoint resolution
+    #          exceeds the graph.  See Products/ZenModel/RRDGraph dataSourceSum and
+    #          http://oss.oetiker.ch/rrdtool/doc/rrdgraph_data.en.html
     cFunc = 'AVERAGE'
-
-
-# rpn:     Reverse Polish Notation -- applied to the value for this graph point
-#          See Products/ZenRRD/utils.py (rpneval)
-# dpName:  The basename of the rrd file (without extension) that has the data
-# cFunc:   The consolidation function used when that datapoint resolution
-#          exceeds the graph.  See Products/ZenModel/RRDGraph dataSourceSum and
-#          http://oss.oetiker.ch/rrdtool/doc/rrdgraph_data.en.html
-# limit:   Maximum permitted value.  Values in excess of this are NaNed.
-#          Not used if negative
 
     _properties = ComplexGraphPoint._properties + (
         {'id':'limit', 'type':'long', 'mode':'w'},

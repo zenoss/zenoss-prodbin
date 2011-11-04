@@ -29,7 +29,11 @@ from Products.PageTemplates.PageTemplateFile import PageTemplateFile
 
 from ZenModelRM import ZenModelRM
 from ZenPackable import ZenPackable
+from Products.ZenMessaging.audit import audit
+from Products.ZenUtils.Utils import getDisplayType
+from Products.ZenUtils.deprecated import deprecated
 
+@deprecated
 def manage_addReport(context, id, title = None, text=None,
                     REQUEST = None, submit=None):
     """make a Report"""
@@ -49,6 +53,8 @@ def manage_addReport(context, id, title = None, text=None,
             zpt = Report(id, file, headers.get('content_type'))
 
         context._setObject(id, zpt)
+
+        audit('UI.Report.Add', zpt.id, title=title, text=text, reportType=getDisplayType(zpt), organizer=context)
 
         try:
             u = context.DestinationURL()

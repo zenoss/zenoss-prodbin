@@ -18,14 +18,12 @@ Available at:  /zport/dmd/report_router
 
 import logging
 from itertools import izip_longest
+from Products.ZenMessaging.audit import audit
 from Products.ZenUtils.Ext import DirectRouter, DirectResponse
 from Products.Zuul.decorators import require
 from Products.Zuul.marshalling import Marshaller
 from Products.Zuul.utils import ZuulMessageFactory as _t
 from Products import Zuul
-from Products.ZenMessaging.actions import sendUserAction
-from Products.ZenMessaging.actions.constants import ActionTargetType, ActionName
-
 
 log = logging.getLogger('zen.ReportRouter')
 
@@ -116,16 +114,10 @@ class ReportRouter(DirectRouter):
         facade = self._getFacade()
         if nodeType in reportTypes:
             facade.addReport(nodeType, contextUid, id)
-            if sendUserAction:
-                uid = contextUid + '/' + id
-                sendUserAction(ActionTargetType.Report, ActionName.Add,
-                               report=uid, reporttype=nodeType)
+            audit('UI.Report.Add', contextUid + '/' + id, reporttype=nodeType)
         else:
             facade.addOrganizer(contextUid, id, None)
-            if sendUserAction:
-                uid = contextUid + '/' + id
-                sendUserAction(ActionTargetType.Organizer, ActionName.Add,
-                               organizer=uid)
+            audit('UI.Organizer.Add', contextUid + '/' + id)
 
         return self._getTreeUpdates(contextUid, id)
 
@@ -145,9 +137,7 @@ class ReportRouter(DirectRouter):
             raise Exception('You cannot delete this organizer')
         self._getFacade().deleteNode(uid)
         contextUid = '/'.join(uid.split('/')[:-1])
-        if sendUserAction:
-            sendUserAction(ActionTargetType.Report, ActionName.Delete,
-                           report=uid)
+        audit('UI.Report.Delete', uid)
         return self._getTreeUpdates(contextUid)
 
     def _getTreeUpdates(self, contextUid, newId=None):
@@ -174,9 +164,7 @@ class ReportRouter(DirectRouter):
            - newNode: (dictionary) Object representing the moved node
         """
         self._getFacade().moveNode(uid, target)
-        if sendUserAction:
-            sendUserAction(ActionTargetType.Report, ActionName.Move,
-                           report=uid, target=target)
+        audit('UI.Report.Move', uid, target=target)
         return self._treeMoveUpdates(uid, target)
 
     def _treeMoveUpdates(self, uid, target):

@@ -25,11 +25,13 @@ from Products.ZenUtils.ZenTales import talesEvalStr
 from Products.ZenRelations.RelSchema import ToOne, ToManyCont
 from Products.ZenModel.ZenModelRM import ZenModelRM
 from Products.ZenModel.ZenPackable import ZenPackable
+from Products.ZenUtils.deprecated import deprecated
 
 
 ALIAS_DELIMITER = ','
 EVAL_KEY = '__EVAL:'
 
+@deprecated
 def manage_addDataPointAlias( context, id, formula=None ):
     """
     Add a datapoint alias to the datapoint given

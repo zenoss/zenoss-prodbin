@@ -19,8 +19,9 @@ Handles GraphPoints that define an rrd VDEF
 from Globals import InitializeClass
 
 from Products.ZenModel.RpnGraphPoint import RpnGraphPoint
+from Products.ZenUtils.deprecated import deprecated
 
-
+@deprecated
 def manage_addVdefGraphPoint(context, id, REQUEST = None):
     ''' This is here so than zope will let us copy/paste/rename
     graphpoints.

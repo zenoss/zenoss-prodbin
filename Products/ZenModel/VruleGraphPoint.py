@@ -18,8 +18,10 @@ Handles GraphPoints that define an rrd VRULE
 
 from GraphPoint import GraphPoint
 from Globals import InitializeClass
+from Products.ZenUtils.deprecated import deprecated
 
 
+@deprecated
 def manage_addVruleGraphPoint(context, id, REQUEST = None):
     ''' This is here so than zope will let us copy/paste/rename
     graphpoints.

@@ -421,13 +421,6 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable,
             return templates[0].getDataSourceOptions()
         return []
 
-    # security.declareProtected('Manage DMD', 'manage_resequenceRRDGraphs')
-    # def manage_resequenceRRDGraphs(self, templateId, seqmap=(), origseq=(), REQUEST=None):
-    #     """Reorder the sequecne of the RRDGraphs.
-    #     """
-    #     template = self.getRRDTemplateByName(templateId)
-    #     return template.manage_resequenceRRDGraphs(seqmap, origseq, REQUEST)
-
 
     def sysUpTime(self):
         """

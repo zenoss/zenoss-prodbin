@@ -24,7 +24,9 @@ from Products.ZenRelations.RelSchema import *
 from ZenModelRM import ZenModelRM
 from ZenPackable import ZenPackable
 from Products.ZenWidgets import messaging
+from Products.ZenUtils.deprecated import deprecated
 
+@deprecated
 def manage_addGraphPoint(context, id, REQUEST = None):
     ''' This is here so than zope will let us copy/paste/rename
     graphpoints.

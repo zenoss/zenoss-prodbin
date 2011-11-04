@@ -13,20 +13,25 @@
 
 from Globals import InitializeClass
 from AccessControl import ClassSecurityInfo
+from Products.ZenMessaging.audit import audit
+from Products.ZenUtils.deprecated import deprecated
 from ZenModelRM import ZenModelRM
 from Products.ZenRelations.RelSchema import *
 from GraphReportElement import GraphReportElement
-from Products.ZenUtils.Utils import getObjByPath
+from Products.ZenUtils.Utils import getObjByPath, getDisplayType
 from Products.ZenUtils.ZenTales import talesCompile, getEngine
 from Products.ZenWidgets import messaging
 from DateTime import DateTime
 
+@deprecated
 def manage_addGraphReport(context, id, REQUEST = None):
-    ''' Create a new GraphReport
-    '''
+    """
+    Create a new GraphReport
+    """
     gr = GraphReport(id)
     context._setObject(gr.id, gr)
     if REQUEST is not None:
+        audit('UI.Report.Add', gr.id, reportType=getDisplayType(gr), organizer=context)
         REQUEST['RESPONSE'].redirect(context.absolute_url()+'/manage_main')
 
 
@@ -77,14 +82,15 @@ class GraphReport(ZenModelRM):
 
 
     def getBreadCrumbUrlPath(self):
-        '''
+        """
         Return the url to be used in breadcrumbs for this object.
-        '''
+        """
         return self.getPrimaryUrlPath() + '/editGraphReport'
 
     def getThing(self, deviceId, componentPath):
-        ''' Return either a device or a component, or None if not found
-        '''
+        """
+        Return either a device or a component, or None if not found
+        """
         thing = self.dmd.Devices.findDevice(deviceId)
         if thing and componentPath:
             try:
@@ -95,10 +101,11 @@ class GraphReport(ZenModelRM):
 
 
     security.declareProtected('Manage DMD', 'manage_addGraphElement')
-    def manage_addGraphElement(self, deviceIds='', componentPaths='', 
+    def manage_addGraphElement(self, deviceIds='', componentPaths='',
                             graphIds=(), REQUEST=None):
-        ''' Add a new graph report element
-        '''
+        """
+        Add a new graph report element
+        """
         def GetId(deviceId, componentPath, graphId):
             component = componentPath.split('/')[-1]
             parts = [p for p in (deviceId, component, graphId) if p]
@@ -137,19 +144,25 @@ class GraphReport(ZenModelRM):
                             ge.graphId = graphId
                             ge.sequence = len(self.elements())
                             self.elements._setObject(ge.id, ge)
+                            if REQUEST:
+                                audit('UI.Report.AddGraphElement', self.id, graphelement=ge.id)
             
         if REQUEST:
+
             return self.callZenScreen(REQUEST)
 
 
     security.declareProtected('Manage DMD', 'manage_deleteGraphReportElements')
     def manage_deleteGraphReportElements(self, ids=(), REQUEST=None):
-        ''' Delete elements from this report
-        '''
+        """
+        Delete elements from this report
+        """
         for id in ids:
             self.elements._delObject(id)
         self.manage_resequenceGraphReportElements()
         if REQUEST:
+            for id in ids:
+                audit('UI.Report.DeleteGraphElement', self.id, graphelement=id)
             messaging.IMessageSender(self).sendToBrowser(
                 'Graphs Deleted',
                 '%s graph%s were deleted.' % (len(ids),
@@ -160,18 +173,22 @@ class GraphReport(ZenModelRM):
 
     security.declareProtected('Manage DMD', 
                                     'manage_resequenceGraphReportElements')
-    def manage_resequenceGraphReportElements(self, seqmap=(), origseq=(), 
+    def manage_resequenceGraphReportElements(self, seqmap=(), origseq=(),
                                     REQUEST=None):
         """Reorder the sequecne of the graphs.
         """
         from Products.ZenUtils.Utils import resequence
-        return resequence(self, self.elements(), seqmap, origseq, REQUEST)
+        retval = resequence(self, self.elements(), seqmap, origseq, REQUEST)
+        if REQUEST:
+            audit('UI.Report.ResequenceGraphElements', self.id, sequence=seqmap, oldData_={'sequence':origseq})
+        return retval
     
 
     security.declareProtected('View', 'getComments')
     def getComments(self):
-        ''' Returns tales-evaluated comments
-        '''
+        """
+        Returns tales-evaluated comments
+        """
         compiled = talesCompile('string:' + self.comments)
         e = {'rpt': self, 'report': self, 'now':DateTime()}
         result = compiled(getEngine().getContext(e))
@@ -180,23 +197,9 @@ class GraphReport(ZenModelRM):
         return result
 
 
-    # def getGraphs(self, drange=None):
-    #     """get the default graph list for this object"""
-    #     def cmpGraphs(a, b):
-    #         return cmp(a['sequence'], b['sequence'])
-    #     graphs = []
-    #     for element in self.elements():
-    #         graphs.append({
-    #             'title': element.getDesc(),
-    #             'url': element.getGraphUrl(),
-    #             'sequence': element.sequence,
-    #             })
-    #     graphs.sort(cmpGraphs)
-    #     return graphs
-    
-    
     def getElements(self):
-        """get the ordered elements
+        """
+        get the ordered elements
         """
         def cmpElements(a, b):
             return cmp(a.sequence, b.sequence)

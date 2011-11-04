@@ -27,15 +27,19 @@ from Organizer import Organizer
 from ZenPackable import ZenPackable
 from ZenossSecurity import ZEN_COMMON, ZEN_MANAGE_DMD
 from Products.ZenRelations.RelSchema import *
-from Products.ZenUtils.Utils import unused
+from Products.ZenUtils.Utils import unused, getDisplayType
 from Products.ZenWidgets import messaging
+from Products.ZenMessaging.audit import audit
+from Products.ZenUtils.deprecated import deprecated
 
+@deprecated
 def manage_addReportClass(context, id, title = None, REQUEST = None):
-    """make a device class"""
+    """make a report class"""
     dc = ReportClass(id, title)
     context._setObject(id, dc)
 
     if REQUEST is not None:
+        audit('UI.Organizer.Add', dc.id, title=title, organizer=context)
         messaging.IMessageSender(context).sendToBrowser(
             'Report Organizer Created',
             'Report organizer %s was created.' % id
@@ -108,11 +112,12 @@ class ReportClass(Organizer, ZenPackable):
 
     security.declareProtected(ZEN_MANAGE_DMD, 'manage_addReportClass')
     def manage_addReportClass(self, id, title = None, REQUEST = None):
-        """make a device class"""
+        """make a report class"""
         rClass = self.getReportClass()
         dc = rClass(id, title)
         self._setObject(id, dc)
         if REQUEST:
+            audit('UI.Organizer.Add', dc.id, title=title)
             messaging.IMessageSender(self).sendToBrowser(
                 'Report Organizer Created',
                 'Report organizer %s was created.' % id
@@ -140,6 +145,7 @@ class ReportClass(Organizer, ZenPackable):
 
 
     security.declareProtected('Manage DMD', 'manage_addGraphReport')
+    @deprecated
     def manage_addGraphReport(self, id, REQUEST=None):
         """Add an graph report to this object.
         """
@@ -147,14 +153,15 @@ class ReportClass(Organizer, ZenPackable):
             from Products.ZenModel.GraphReport import GraphReport
             gr = GraphReport(id)
             self._setObject(id, gr)
-        if REQUEST:
-            messaging.IMessageSender(self).sendToBrowser(
-                'Report Created',
-                'Graph report %s was created.' % id
-            )
-            return self.callZenScreen(REQUEST)
+            if REQUEST:
+                audit('UI.Report.Add', gr.id, reportType=getDisplayType(gr))
+                messaging.IMessageSender(self).sendToBrowser(
+                    'Report Created',
+                    'Graph report %s was created.' % id
+                )
+                return self.callZenScreen(REQUEST)
 
-
+    @deprecated
     def moveReports(self, moveTarget, ids=None, REQUEST=None):
         """Move a report from here organizer to moveTarget.
         """

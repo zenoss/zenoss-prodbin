@@ -17,9 +17,11 @@ Created by Marc Irlandez on 2007-04-05.
 """
 
 from AccessControl import ClassSecurityInfo
+from Products.ZenMessaging.audit import audit
 from Products.ZenModel.AdministrativeRole import AdministrativeRole
 from Globals import InitializeClass
 from zope.event import notify
+from Products.ZenUtils.Utils import getDisplayType
 from Products.Zuul.catalog.events import IndexingEvent
 from ZenossSecurity import *
 from Products.ZenWidgets import messaging
@@ -45,6 +47,7 @@ class AdministrativeRoleable:
         notify(IndexingEvent(self))
         if REQUEST:
             if us:
+                audit(['UI', getDisplayType(self), 'AddAdministrativeRole'], self, newId=newId)
                 messaging.IMessageSender(self).sendToBrowser(
                     'Admin Role Added',
                     'The %s administrative role has been added.' % newId
@@ -55,19 +58,28 @@ class AdministrativeRoleable:
         'manage_editAdministrativeRoles')
     def manage_editAdministrativeRoles(self, ids=(), role=(),
                                         level=(), REQUEST=None):
-        """Edit list of admin roles.
+        """
+        Edit list of admin roles.
         """
         if isinstance(ids, basestring):
             ids = [ids]
             role = [role]
             level = [level]
+
+        editedRoles = []
         for i, id in enumerate(ids):
-            ar = self.adminRoles._getOb(id)
-            ar.update(role[i], level[i])
+            roleEdit = (id, role[i], level[i])
+            editedRoles.append(roleEdit)
+            ar = self.adminRoles._getOb(roleEdit[0])
+            ar.update(roleEdit[1], roleEdit[2])
+
         self.setAdminLocalRoles()
         self.index_object()
         notify(IndexingEvent(self))
         if REQUEST:
+            for roleEdit in editedRoles:
+                audit(['UI', getDisplayType(self), 'EditAdministrativeRole'], self,
+                      id=roleEdit[0], role=roleEdit[1], level=roleEdit[2])
             messaging.IMessageSender(self).sendToBrowser(
                 'Admin Roles Updated',
                 ('The following administrative roles have been updated: '
@@ -91,6 +103,8 @@ class AdministrativeRoleable:
         notify(IndexingEvent(self))
         if REQUEST:
             if delids:
+                for userid in delids:
+                    audit(['UI', getDisplayType(self), 'DeleteAdministrativeRole'], self, userid=userid)
                 messaging.IMessageSender(self).sendToBrowser(
                     'Admin Roles Deleted',
                     ('The following administrative roles have been deleted: '

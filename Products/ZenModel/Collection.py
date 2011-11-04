@@ -12,19 +12,20 @@
 ###########################################################################
 
 __doc__="""Collection
-
-Collection is a grouping of devices and components.
+Holds an assortment of devices and/or components on a multi-style report.
 """
-
 
 from Globals import InitializeClass
 from AccessControl import ClassSecurityInfo, Permissions
 from Globals import DTMLFile
 from Products.ZenRelations.RelSchema import *
 from ZenModelRM import ZenModelRM
+from Products.ZenUtils.Utils import resequence
 from Products.ZenWidgets import messaging
+from Products.ZenUtils.deprecated import deprecated
+from Products.ZenMessaging.audit import audit
 
-
+@deprecated
 def manage_addCollection(context, id, REQUEST = None):
     ''' This is here so than zope will let us copy/paste/rename
     Collections.
@@ -38,8 +39,9 @@ addCollection = DTMLFile('dtml/addCollection',globals())
 
 
 class Collection(ZenModelRM):
-    ''' Holds an assortment of devices and/or components.
-    '''
+    """
+    Holds an assortment of devices and/or components on a multi-style report.
+    """
     
     meta_type = 'Collection'
    
@@ -134,6 +136,9 @@ class Collection(ZenModelRM):
                 count += 1
 
         if REQUEST:
+            audit('UI.Collection.AddItem', self.id, itemType=itemType, deviceIds=deviceIds,
+                  componentPaths=componentPaths, deviceClasses=deviceClasses, systems=systems,
+                  groups=groups, locations=locations)
             messaging.IMessageSender(self).sendToBrowser(
                 'Items Added',
                 ' %s item%s added' % (count, count > 1 and 's' or '')
@@ -143,10 +148,14 @@ class Collection(ZenModelRM):
 
     security.declareProtected('Manage DMD', 'manage_deleteCollectionItems')
     def manage_deleteCollectionItems(self, ids=(), REQUEST=None):
-        ''' Delete collection items from this report
-        '''
+        """ Delete collection items from this report
+        """
         for id in ids:
+            deletedItem = self.collection_items._getOb(id)
             self.collection_items._delObject(id)
+            if REQUEST:
+                audit('UI.Collection.DeleteItem', self.id, item=deletedItem.id, contents=deletedItem.getRepresentedItem().id)
+
         self.manage_resequenceCollectionItems()
         if REQUEST:
             count = len(ids)
@@ -162,8 +171,10 @@ class Collection(ZenModelRM):
                                                                 REQUEST=None):
         """Reorder the sequence of the items.
         """
-        from Products.ZenUtils.Utils import resequence
-        return resequence(self, self.collection_items(), seqmap, origseq, REQUEST)
+        retval = resequence(self, self.collection_items(), seqmap, origseq, REQUEST)
+        if REQUEST:
+            audit('UI.Collection.ResequenceItems', self.id, sequence=seqmap, oldData_={'sequence':origseq})
+        return retval
 
 
     security.declareProtected('Manage DMD', 'getItems')

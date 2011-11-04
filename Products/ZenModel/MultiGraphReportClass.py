@@ -11,10 +11,10 @@
 #
 ###########################################################################
 
-__doc__='''MultiGraphReportClass
+__doc__="""MultiGraphReportClass
 
 MultiGraphReportClass contain MultiGraphReports.
-'''
+"""
 
 from AccessControl import ClassSecurityInfo
 from Globals import DTMLFile
@@ -22,14 +22,19 @@ from ReportClass import ReportClass
 from Products.ZenRelations.RelSchema import *
 from Globals import InitializeClass
 from Products.ZenWidgets import messaging
+from Products.ZenMessaging.audit import audit
+from Products.ZenUtils.Utils import getDisplayType
+from Products.ZenUtils.deprecated import deprecated
+from Products.ZenModel.MultiGraphReport import MultiGraphReport
 
-
+@deprecated
 def manage_addMultiGraphReportClass(context, id, title = None, REQUEST = None):
-    ''' Construct a new MultiGraphreportclass
-    '''
+    """ Construct a new MultiGraphreportclass
+    """
     frc = MultiGraphReportClass(id, title)
     context._setObject(id, frc)
     if REQUEST is not None:
+        audit('UI.ReportClass.Add', frc.id, title=title, organizer=context)
         messaging.IMessageSender(self).sendToBrowser(
             'Organizer Created',
             'Report organizer %s was created.' % id
@@ -51,19 +56,19 @@ class MultiGraphReportClass(ReportClass):
     security = ClassSecurityInfo()
     
     def getReportClass(self):
-        ''' Return the class to instantiate for new report classes
-        '''
+        """ Return the class to instantiate for new report classes
+        """
         return MultiGraphReportClass
 
 
     security.declareProtected('Manage DMD', 'manage_addMultiGraphReport')
     def manage_addMultiGraphReport(self, id, REQUEST=None):
-        """Add an MultiGraph report to this object.
+        """Add a MultiGraph report to this object.
         """
-        from Products.ZenModel.MultiGraphReport import MultiGraphReport
         fr = MultiGraphReport(id)
         self._setObject(id, fr)
         if REQUEST:
+            audit('UI.Report.Add', fr.id, reportType=getDisplayType(fr))
             url = '%s/%s/editMultiGraphReport' % (self.getPrimaryUrlPath(), id)
             return REQUEST['RESPONSE'].redirect(url)
         return self._getOb(id)

@@ -12,24 +12,23 @@
 ###########################################################################
 
 import cgi
-
 from Globals import InitializeClass
 from AccessControl import ClassSecurityInfo
-
+from Products.ZenMessaging.audit import audit
 from Products.ZenUtils.ZenTales import talesEval
-from Products.ZenUtils.Utils import convToUnits, zdecode
+from Products.ZenUtils.Utils import convToUnits, zdecode, getDisplayType
 from Products.ZenWidgets import messaging
-
-
-#from Report import Report
+from Products.ZenUtils.deprecated import deprecated
 from ZenModelRM import ZenModelRM
 
+@deprecated
 def manage_addDeviceReport(context, id, title = None, REQUEST = None):
     """Add a DeviceReport
     """
     dc = DeviceReport(id, title)
     context._setObject(id, dc)
     if REQUEST is not None:
+        audit('UI.Report.Add', dc.id, title=title, reportType=getDisplayType(dc), organizer=context)
         messaging.IMessageSender(context).sendToBrowser(
             'Report Created',
             'Device report %s was created.' % id
