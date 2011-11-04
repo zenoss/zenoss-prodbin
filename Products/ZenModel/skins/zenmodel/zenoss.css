@@ -1638,7 +1638,7 @@ th {
 }
 
 table.innerzentable * {
-    position: relative;
+    /*position: relative;*/
     z-index: 1;
 }
 
