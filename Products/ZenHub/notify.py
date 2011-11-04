@@ -71,11 +71,16 @@ class BatchNotifier(object):
     def __init__(self):
         self._current_item = None
         self._queue = collections.deque()
+        self._stopping = False
 
     def notify_subdevices(self, device_class, service_uid, notify_function):
-        LOG.debug("BatchNotifier.notify_subdevices: %r, %s" % (device_class, service_uid))
-        item = self._find_or_create_item(device_class)
-        item.notify_functions[service_uid] = notify_function
+        if not self._stopping:
+            LOG.debug("BatchNotifier.notify_subdevices: %r, %s" % (device_class, service_uid))
+            item = self._find_or_create_item(device_class)
+            item.notify_functions[service_uid] = notify_function
+        else:
+            LOG.debug("notify_subdevices received a call while "
+                      "stopping: %r, %s" % (device_class, service_uid))
 
     def _find_or_create_item(self, device_class):
         device_class_uid = device_class.getPrimaryId()
@@ -136,5 +141,10 @@ class BatchNotifier(object):
     def _errback(self, failure):
         LOG.error("Failure in batch notifier: %s: %s" % (failure.type.__name__, failure.value))
         LOG.debug("BatchNotifier._errback: failure=%s" % failure)
+
+    def stop(self):
+        self._stopping = True
+        return defer.DeferredList([item.d for item in self._queue])
+
 
 BATCH_NOTIFIER = BatchNotifier()
