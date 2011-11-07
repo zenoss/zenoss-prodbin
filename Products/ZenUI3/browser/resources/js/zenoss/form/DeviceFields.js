@@ -37,11 +37,11 @@
                 triggerAction: 'all'
             });
             this.callParent([config]);
-            if (this.autoLoad!==false) {
+            if (this.autoLoad!==false) {// runs when left side is selected
                 this.getStore().load();
             }
-        },
-        getValue: function() {
+        },        
+        getValue: function() { // runs when right combo is switched selected
             return this.callParent(arguments) || this.getRawValue();
         },
         setValue: function(value, doSelect) {
@@ -52,7 +52,7 @@
                 return v.isModel ? v : (this.findRecordByValue(v) || this.findRecordByDisplay(v) || v);
             }, this);
             this.callParent([foundValue, doSelect]);
-            this.forceSelection = orig;
+            this.forceSelection = orig; 
         },
         getStore: function() {
             return this.store;
@@ -65,7 +65,7 @@
         alias: ['widget.PriorityCombo'],
         constructor: function(config) {
             config = Ext.apply(config || {}, {
-                fieldLabel: _t('Priority'),
+                //fieldLabel: _t('Priority'),
                 directFn: Zenoss.remote.DeviceRouter.getPriorities
             });
             this.callParent([config]);
@@ -98,7 +98,7 @@
         alias: ['widget.ProductionStateCombo'],
         constructor: function(config) {
             config = Ext.apply(config || {}, {
-                fieldLabel: _t('Production State'),
+                //fieldLabel: _t('Production State'),
                 directFn: Zenoss.remote.DeviceRouter.getProductionStates
             });
             this.callParent([config]);

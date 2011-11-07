@@ -1550,6 +1550,8 @@ Ext.onReady(function () {
             },{
                 xtype: 'rulebuilder',
                 fieldLabel: _t('Rule'),
+                labelWidth: 96,
+                margin:'0 0 0 5px',
                 name: 'criteria',
                 ref: 'rule',
                 id: 'trigger_rule',
@@ -1923,7 +1925,6 @@ Ext.onReady(function () {
 
                                     config.directFn(params, function(){
                                         reloadTriggersGrid();
-                                        button.refOwner.hide();
                                     });
                                 }
                             },{

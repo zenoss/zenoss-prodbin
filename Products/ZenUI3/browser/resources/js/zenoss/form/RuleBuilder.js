@@ -165,11 +165,10 @@
                     }.createDelegate(this),
                     listeners: {
                         change: function() {
-
                             // Get the associated subject
                             var subject = this.subject.getSubject(),
                                 comparisons = [];
-
+                            this.comparison.reset();
                             // Update comparisons
                             if (subject.comparisons) {
                                 Ext.each(subject.comparisons, function(cmp) {
@@ -185,7 +184,6 @@
 
                             this.comparison.store.loadData(comparisons);
                             this.comparison.setValue(comparisons[0]);
-
                             this.getBuilder().fireEvent(
                                 'rulechange',
                                 this
@@ -205,7 +203,7 @@
                     forceSelection: true,
                     triggerAction: 'all',
                     listeners: {
-                        change: function() {
+                        change: function() { 
                             var cmp = ZF.COMPARISONS[this.comparison.getValue()],
                                 field = this.subject.getSubject().field || (cmp && cmp.field) || {xtype:'textfield'},
                                 idx = this.items.items.indexOf(this.predicate),
@@ -508,7 +506,7 @@
 
     Ext.define("Zenoss.form.rule.RuleBuilder", {
         alias:['widget.rulebuilder'],
-        extend:"Ext.Container",
+        extend:"Ext.form.FieldContainer",
         constructor: function(config) {
             config = Ext.applyIf(config||{}, {
                 cls: 'rule-builder',
@@ -530,7 +528,7 @@
                 this.subject_map[subject.value] = subject;
             }, this);
             this.callParent([config]);
-            this.addEvents('rulechange');
+            this.addEvents('rulechange');            
         },
         getValue: function() {
             var result = this.rootrule.getValue();
@@ -650,8 +648,7 @@
             text: _t('Production state'),
             value: 'productionState',
             field: {
-                xtype: 'ProductionStateCombo',
-                setValue: smarterSetIntValue
+                xtype: 'ProductionStateCombo'
             },
             comparisons: ZF.NUMBERCOMPARISONS
         },
@@ -659,8 +656,7 @@
             text: _t('Device priority'),
             value: 'priority',
             field: {
-                xtype: 'PriorityCombo',
-                setValue: smarterSetIntValue
+                xtype: 'PriorityCombo'
             },
             comparisons: ZF.NUMBERCOMPARISONS
         },
