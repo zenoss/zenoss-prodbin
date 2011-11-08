@@ -80,6 +80,7 @@ Ext.define("Zenoss.CommandWindow", {
             title: config.command || config.title,
             cls: 'streaming-window',
             constrain: true,
+            closable:true,
             plain: true,
             items: {
                 id: this.cpanel,
@@ -91,6 +92,7 @@ Ext.define("Zenoss.CommandWindow", {
             },
             fbar: {
                 buttonAlign: 'left',
+                id:'window_footer_toolbar',
                 items: {
                     xtype: 'checkbox',
                     checked: true,
@@ -137,11 +139,10 @@ Ext.define("Zenoss.CommandWindow", {
             Ext.emptyFn();
         }
         this.task.delay(250);
+        Ext.get('window_footer_toolbar').focus();        
     },
-    closeAndReload: function() {
-        this.on('close', function() {
-            (function() {window.top.location.reload();}).defer(1, this);
-        });
+    closeAndReload: function() { 
+        (function() {window.top.location.reload();}).defer(1, this);
         this.destroy();
     },
     closeAndRedirect: function() {
