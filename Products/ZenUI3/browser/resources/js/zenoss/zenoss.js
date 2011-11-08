@@ -126,15 +126,17 @@ Ext.Direct.on('event', function(e){
         }
     }
 });
-
+var serverExceptionDialog = null;
 Ext.Direct.on('exception', function(e) {
     if (e.message.startswith("Error parsing json response") &&
         e.message.endswith("null")) {
         window.location.reload();
         return;
     }
-
-         new Zenoss.dialog.SimpleMessageDialog({
+    
+    if(serverExceptionDialog) serverExceptionDialog.destroy();  
+    
+    serverExceptionDialog = new Zenoss.dialog.SimpleMessageDialog({
         title: _t('Server Exception'),
         message: '<p>' + _t('The server reported the following error:') + '</p>' +
             '<p class="exception-message">' + e.message + '</p>' +
@@ -142,16 +144,15 @@ Ext.Direct.on('exception', function(e) {
             _t('Please reload the page.') + '</p>' ,
                 buttons: [{
                     xtype: 'DialogButton',
-                    text: _t('OK'),
+                    text: _t('RELOAD'),
                     handler: function() {
                         window.location.reload();
                     }
                 }, {
                     xtype: 'DialogButton',
-                    text: _t('Cancel')
+                    text: _t('DISMISS')
                 }]
-            }).show();
-
+        }).show();
 });
 
 /*
