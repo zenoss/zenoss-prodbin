@@ -129,7 +129,7 @@ function destroyWindow(button) {
  */
 Ext.define("Zenoss.dialog.DialogButton", {
     ui: 'dialog-dark',
-    extend: "Ext.Button",
+    extend: "Ext.button.Button",
     alias: ['widget.DialogButton'],
     constructor: function(config) {
         var h = config.handler;

@@ -8,7 +8,7 @@ var dynamicDialog = Ext.getCmp('dynamic-dialog');
 var oldSubmitHandler = dynamicDialog.submitHandler;
 var newSubmitHandler = function(button, event) {
 
-    var eam = Ext.create({xtype:'EventActionManager'});
+    var eam = Ext.create('EventActionManager');
 
     eam.configure({
         isLargeRequest: function() {
@@ -39,5 +39,6 @@ var newSubmitHandler = function(button, event) {
 };
 // This is pretty dependent on the submit button being the first button,
 // but then again this entire .pt depends on the DynamicForm anyway.
-dynamicDialog.buttons[0].setHandler(newSubmitHandler);
+var elements = dynamicDialog.getToolbars();
+elements[0].items.items[0].setHandler(newSubmitHandler);
 </script>
