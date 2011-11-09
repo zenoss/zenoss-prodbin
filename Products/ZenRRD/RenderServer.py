@@ -412,12 +412,14 @@ class RenderServer(RRDToolItem):
                 if info:
                     last = info['last_update']
                     step = info['step']
-                    v = rrdtool.graph('/dev/null',
-                                      'DEF:x=%s:ds0:AVERAGE' % p,
-                                      'VDEF:v=x,LAST',
-                                      'PRINT:v:%.2lf',
-                                      '--start=%d'%(last-step),
-                                      '--end=%d'%last)
+                    gopts = ['/dev/null',
+                             'DEF:x=%s:ds0:AVERAGE' % p,
+                             'VDEF:v=x,LAST',
+                             'PRINT:v:%.2lf',
+                             '--start=%d'%(last-step),
+                             '--end=%d'%last]
+                    log.debug("RRD currentValue options: %r", (gopts,))
+                    v = rrdtool.graph(*gopts)
                     v = float(v[2][0])
                     if str(v) == 'nan': v = None
                 return v
