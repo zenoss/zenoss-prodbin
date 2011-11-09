@@ -47,7 +47,7 @@ from RRDToolItem import RRDToolItem
 
 from Products.ZenModel.PerformanceConf import performancePath
 
-log = logging.getLogger("RenderServer")
+log = logging.getLogger("zen.RenderServer")
 
 
 def manage_addRenderServer(context, id, REQUEST = None):
@@ -350,6 +350,7 @@ class RenderServer(RRDToolItem):
         daemon = rrd_daemon_running()
         if daemon:
             gopts.insert(0, '--daemon=%s' % daemon)
+        log.debug("RRD summary options: %r", (gopts,))
         try:
             values = rrdtool.graph(*gopts)[2]
         except Exception, ex:
