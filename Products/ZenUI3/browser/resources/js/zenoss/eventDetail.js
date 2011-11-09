@@ -274,7 +274,6 @@ Ext.onReady(function() {
                     {
                         xtype: 'form',
                         id: 'log-container',
-                        frame: true,
                         layout: {
                             type: 'table',
                             columns: 1
