@@ -293,7 +293,7 @@
                 xtype: 'menucheckitem',
                 text: 'Show severity row colors',
                 handler: function(checkitem) {
-                    var checked = !checkitem.checked;
+                    var checked = checkitem.checked;
                     var grid = Ext.getCmp(gridId);
                     grid.toggleRowColors(checked);
                 }
@@ -1005,7 +1005,7 @@
                     var stateclass = record.get('eventState')=='New' ?
                         'unacknowledged':'acknowledged';
                     var sev = Zenoss.util.convertSeverity(record.get('severity'));
-                    var rowcolors = me.rowcolors ? '':'rowcolor rowcolor-';
+                    var rowcolors = me.rowcolors ? 'rowcolor rowcolor-':'';
                     var cls = rowcolors + sev + '-' + stateclass + ' ' + stateclass;
                     return cls;
                 }
@@ -1016,7 +1016,7 @@
         listeners: {
             'beforerender': function(){
                this.rowcolors = Ext.state.Manager.get('rowcolor');
-               Ext.getCmp('rowcolors_checkitem').setChecked(this.rowcolors ? false : true);
+               Ext.getCmp('rowcolors_checkitem').setChecked(this.rowcolors);
             }
         },
         getSelectionParameters: function() {
