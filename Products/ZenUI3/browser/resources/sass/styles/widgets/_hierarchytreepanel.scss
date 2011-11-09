@@ -51,7 +51,7 @@
     }
     
     #deviceDetailNav, #masterDetailNav{
-        .x-tree-icon-leaf{display:none;}
+        .x-tree-icon-leaf{margin-right:5px;}
         #subselecttreepaneldeviceDetailNav-body{background:transparent;}
         .x-grid-cell-inner{font-size:12px;color:#454545;padding-top:2px;}
         .x-grid-row-selected, .x-grid-row-focused{

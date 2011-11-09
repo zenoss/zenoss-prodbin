@@ -7304,7 +7304,7 @@ $menu-icon-unchecked: 'menu/unchecked.gif';
   padding: 6px; }
 
 #deviceDetailNav .x-tree-icon-leaf, #masterDetailNav .x-tree-icon-leaf {
-  display: none; }
+  margin-right: 5px; }
 #deviceDetailNav #subselecttreepaneldeviceDetailNav-body, #masterDetailNav #subselecttreepaneldeviceDetailNav-body {
   background: transparent; }
 #deviceDetailNav .x-grid-cell-inner, #masterDetailNav .x-grid-cell-inner {
