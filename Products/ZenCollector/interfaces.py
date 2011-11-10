@@ -385,7 +385,7 @@ class IDataService(zope.interface.Interface):
     """
 
     def writeRRD(self, path, value, rrdType, rrdCommand=None, cycleTime=None,
-                 min='U', max='U', threshEventData=None):
+                 min='U', max='U', threshEventData=None, timestamp='N'):
         """
         Save the value provided in the command to the RRD file specified in path.
 

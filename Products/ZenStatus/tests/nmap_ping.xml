@@ -1,0 +1,62 @@
+<?xml version="1.0"?>
+<!-- Nmap 5.21 scan initiated Mon Nov  7 08:11:40 2011 as: /usr/bin/nmap -iL /tmp/tmpI5SVaR -sn -PE -n -&#45;traceroute -oX /tmp/tmpI5SVaR.xml -->
+<nmaprun scanner="nmap" args="/usr/bin/nmap -iL /tmp/tmpI5SVaR -sn -PE -n --traceroute -oX /tmp/tmpI5SVaR.xml" start="1320675100" startstr="Mon Nov 7 08:11:40 2011" version="5.21" xmloutputversion="1.03">
+    <verbose level="0" />
+    <debugging level="0" />
+    <host>
+        <status state="down" reason="no-response" />
+        <address addr="10.175.210.231" addrtype="ipv4" />
+    </host>
+    <host>
+        <status state="down" reason="no-response" />
+        <address addr="10.175.210.226" addrtype="ipv4" />
+    </host>
+    <host>
+        <status state="down" reason="no-response" />
+        <address addr="10.175.211.23" addrtype="ipv4" />
+    </host>
+    <host>
+        <status state="down" reason="no-response" />
+        <address addr="10.175.211.222" addrtype="ipv4" />
+    </host>
+    <host>
+        <status state="down" reason="no-response" />
+        <address addr="10.175.211.134" addrtype="ipv4" />
+    </host>
+    <host starttime="1320675100" endtime="1320675101">
+        <status state="up" reason="echo-reply" />
+        <address addr="74.125.159.125" addrtype="ipv4" />
+        <hostnames></hostnames>
+        <trace proto="icmp">
+            <hop ttl="1" ipaddr="10.87.209.1" rtt="0.66" />
+            <hop ttl="2" ipaddr="66.194.163.209" rtt="1.51" />
+            <hop ttl="3" ipaddr="66.192.241.70" rtt="6.63" />
+            <hop ttl="4" ipaddr="72.14.233.67" rtt="6.56" />
+            <hop ttl="5" ipaddr="72.14.237.217" rtt="6.86" />
+            <hop ttl="7" ipaddr="209.85.248.31" rtt="38.68" />
+            <hop ttl="8" ipaddr="209.85.254.2" rtt="41.26" />
+            <hop ttl="9" ipaddr="74.125.159.125" rtt="38.68" />
+        </trace>
+        <times srtt="39186" rttvar="29587" to="157534" />
+    </host>
+    <host starttime="1320675100" endtime="1320675101">
+        <status state="up" reason="echo-reply" />
+        <address addr="74.63.38.26" addrtype="ipv4" />
+        <hostnames></hostnames>
+        <trace proto="icmp">
+            <hop ttl="1" ipaddr="10.87.209.1" rtt="0.66" />
+            <hop ttl="2" ipaddr="66.194.163.209" rtt="1.51" />
+            <hop ttl="3" ipaddr="66.192.250.154" rtt="25.92" />
+            <hop ttl="4" ipaddr="208.122.44.133" rtt="233.37" />
+            <hop ttl="5" ipaddr="208.122.44.202" rtt="47.47" />
+            <hop ttl="6" ipaddr="208.122.44.210" rtt="47.48" />
+            <hop ttl="7" ipaddr="74.63.38.26" rtt="45.74" />
+        </trace>
+        <times srtt="45718" rttvar="14642" to="104286" />
+    </host>
+    <runstats>
+        <finished time="1320675104" timestr="Mon Nov 7 08:11:44 2011" elapsed="3.49" />
+        <hosts up="2" down="5" total="7" />
+        <!-- Nmap done at Mon Nov  7 08:11:44 2011; 7 IP addresses (2 hosts up) scanned in 3.49 seconds -->
+    </runstats>
+</nmaprun>

@@ -1,0 +1,5 @@
+PING 10.12.121.12 (10.12.121.12) 56(84) bytes of data.
+
+--- 10.12.121.12 ping statistics ---
+1 packets transmitted, 0 received, 100% packet loss, time 0ms
+

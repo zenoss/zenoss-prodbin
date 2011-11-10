@@ -5,8 +5,27 @@
     i18n_domain="Products.ZenStatus">
 
     <utility
-        factory=".CorrelatorTask.PingCorrelatorTaskFactory"
-        provides=".interfaces.IPingCorrelatorTaskFactory"
+        factory=".nmap.NmapPingTask.NPingTaskFactory"
+        provides=".interfaces.IPingTaskFactory"
+        name="nmap"
+        />
+
+    <utility
+        factory=".ping.CmdPingTask.CmdPingTaskFactory"
+        provides=".interfaces.IPingTaskFactory"
+        name="ping"
+        />
+
+    <utility
+        factory=".nmap.NmapPingTask.NmapPingCollectionPreferences"
+        provides=".interfaces.IPingCollectionPreferences"
+        name="nmap"
+        />
+
+    <utility
+        factory=".ping.CmdPingTask.CmdPingCollectionPreferences"
+        provides=".interfaces.IPingCollectionPreferences"
+        name="ping"
         />
 
 </configure>

@@ -182,7 +182,7 @@ class RRDUtil:
 
 
     def save(self, path, value, rrdType, rrdCommand=None, cycleTime=None,
-             min='U', max='U', useRRDDaemon=True):
+             min='U', max='U', useRRDDaemon=True, timestamp='N'):
         """
         Save the value provided in the command to the RRD file specified in path.
 
@@ -249,7 +249,7 @@ class RRDUtil:
             except (TypeError, ValueError):
                 return None
         try:
-            rrdtool.update(str(filename), *(daemon_args + ('N:%s' % value,)))
+            rrdtool.update(str(filename), *(daemon_args + ('%s:%s' % (timestamp, value),)))
             log.debug('%s: %r', str(filename), value)
         except rrdtool.error, err:
             # may get update errors when updating too quickly

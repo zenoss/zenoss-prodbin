@@ -75,7 +75,7 @@ class CollectorDaemon(RRDDaemon):
                               IEventService)
 
     def __init__(self, preferences, taskSplitter, 
-                 configurationLister=DUMMY_LISTENER,
+                 configurationListener=DUMMY_LISTENER,
                  initializationCallback=None,
                  stoppingCallback=None):
         """
@@ -109,10 +109,10 @@ class CollectorDaemon(RRDDaemon):
         else:
             self._taskSplitter = taskSplitter
         
-        if not IConfigurationListener.providedBy(configurationLister):
+        if not IConfigurationListener.providedBy(configurationListener):
             raise TypeError(
-                    "configurationLister must provide IConfigurationListener")
-        self._configListener = configurationLister
+                    "configurationListener must provide IConfigurationListener")
+        self._configListener = configurationListener
         self._initializationCallback = initializationCallback
         self._stoppingCallback = stoppingCallback
 
@@ -243,17 +243,20 @@ class CollectorDaemon(RRDDaemon):
                                  FakeRemote())
 
     def writeRRD(self, path, value, rrdType, rrdCommand=None, cycleTime=None,
-                 min='U', max='U', threshEventData=None):
+                 min='U', max='U', threshEventData=None, timestamp='N'):
         now = time.time()
 
         # save the raw data directly to the RRD files
-        value = self._rrd.save(path,
-                               value,
-                               rrdType,
-                               rrdCommand,
-                               cycleTime,
-                               min,
-                               max)
+        value = self._rrd.save(
+            path,
+            value,
+            rrdType,
+            rrdCommand,
+            cycleTime,
+            min,
+            max,
+            timestamp,
+        )
 
         # check for threshold breaches and send events when needed
         for ev in self._thresholds.check(path, now, value):
