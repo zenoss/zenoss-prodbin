@@ -2,6 +2,16 @@
   <tal:block metal:fill-slot="title">Event Configuration</tal:block>
 
   <tal:block metal:fill-slot="head-local">
+  <style>
+    div.zentable-body{
+        border:none;
+    }
+    .device-overview-form-wrapper{
+        padding-bottom:5px;
+    }
+  </style>
+<link rel="stylesheet" type="text/css"
+            href="/++resource++zenui/css/xtheme-zenoss.css" />  
   </tal:block>
 
   <tal:block metal:fill-slot="breadCrumbPane">
@@ -19,7 +29,7 @@
       <tal:block metal:fill-slot="body">
         <script src="/++resource++zenui/js/zenoss/zepconfig.js"></script>
         <div id="propList"></div>
-        <div id="saveButton"></div>
+        <div id="saveButton" style="height:1px"></div>
         <div id="clearHeartbeat"></div>
       </tal:block>
     </tal:block>

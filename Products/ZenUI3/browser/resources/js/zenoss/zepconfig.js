@@ -100,7 +100,7 @@ Ext.onReady(function() {
                 xtype: 'tbspacer',
                 width: 100
             }, {
-                xtype: 'button',
+                xtype: 'FlexButton',
                 text: _t('Clear'),
                 handler: function() {
                     var confirmDialog = new Zenoss.MessageDialog({
