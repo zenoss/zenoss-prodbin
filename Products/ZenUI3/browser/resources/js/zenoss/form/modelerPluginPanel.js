@@ -27,7 +27,7 @@
             Ext.apply(config, {
                 labelAlign: 'top',
                 paramsAsHash: true,
-                frame: true,
+                frame: false,
                 autoScroll: 'y',
                 defaults: {
                     labelStyle: 'font-size: 13px; color: #5a5a5a',

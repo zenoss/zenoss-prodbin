@@ -7324,6 +7324,20 @@ $menu-icon-unchecked: 'menu/unchecked.gif';
   position: relative;
   top: -35px !important; }
 
+#networks .x-tree-icon-leaf, #networks .x-tree-icon-parent, #ipv6networks .x-tree-icon-leaf, #ipv6networks .x-tree-icon-parent, #processTree .x-tree-icon-leaf, #processTree .x-tree-icon-parent, #navTree .x-tree-icon-leaf, #navTree .x-tree-icon-parent, #templateTree .x-tree-icon-leaf, #templateTree .x-tree-icon-parent, #deviceDetailNav .x-tree-icon-leaf, #deviceDetailNav .x-tree-icon-parent {
+  background-image: url();
+  width: 3px;
+  margin: 0 !important; }
+
+#reporttree .x-tree-icon-leaf {
+  background-image: url();
+  width: 3px;
+  margin: 0 !important; }
+
+.tree-severity-icon-small-clear {
+  background-image: url("/++resource++zenui/img/xtheme-zenoss/icon/severity-sprite.png") !important;
+  width: 16px !important; }
+
 .x-field-search .x-form-text {
   border-width: 0;
   background-color: transparent;

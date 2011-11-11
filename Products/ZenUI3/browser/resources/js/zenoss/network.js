@@ -28,7 +28,7 @@ treeConfigs.addAll([{
     id: 'networks',
     root: {
         id: '.zport.dmd.Networks',
-        uid: '/zport/dmd/Networks',
+        uid: '/zport/dmd/Networks', 
         text: null, // Use the name loaded from the remote
         allowDrop: false
     },
@@ -177,6 +177,7 @@ Ext.define("Zenoss.Network.NetworkNavTree", {
         config = Ext.applyIf(config||{}, {
             selModel: treesm
         });
+
         Zenoss.Network.NetworkNavTree.superclass.constructor.call(this, config);
     },
     selectByToken: function(tokenTreePath) {
@@ -188,7 +189,7 @@ Ext.define("Zenoss.Network.NetworkNavTree", {
             var subParts = unescape(tokenTreePath).split('.ipaddresses.');
             var tokenNodeId = subParts[0];
             var node = this.getRootNode().findChild("id", tokenNodeId, true);
-
+            
             if (node) {
                 this.getSelectionModel().select(node);
                 if (node.isExpandable()){

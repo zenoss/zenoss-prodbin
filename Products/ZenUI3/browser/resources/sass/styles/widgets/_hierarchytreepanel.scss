@@ -68,5 +68,24 @@
         position:relative;
         top:-35px !important;
     }
+   
+    #networks, #ipv6networks, #processTree, #navTree, #templateTree, #deviceDetailNav{
+        .x-tree-icon-leaf, .x-tree-icon-parent{
+            background-image:url();
+            width:3px ;
+            margin:0 !important;
+        }
+    } 
+    #reporttree{
+        .x-tree-icon-leaf{
+            background-image:url();
+            width:3px ;
+            margin:0 !important;
+        }        
+    }
+    .tree-severity-icon-small-clear{
+            background-image: url("/++resource++zenui/img/xtheme-zenoss/icon/severity-sprite.png") !important;
+            width:16px !important;
+    }
 
 }
