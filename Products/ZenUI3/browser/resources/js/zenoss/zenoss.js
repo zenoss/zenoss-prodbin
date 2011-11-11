@@ -588,6 +588,31 @@ Ext.define("Zenoss.RefreshMenuButton", {
  * Unless you mimic the existing params structure, you'll need to override
  * isLargeRequest() as well in order to determine whether or not a dialog and
  * progress bar should be shown.
+ *
+ * Example to configure the EventActionManager:
+ *    Zenoss.EventActionManager.configure({
+ *       findParams: function() { ... },
+ *       onFinishAction: function() { ... }
+ *    });
+ *
+ * Examples to execute a router request, once configured:
+ *    Zenoss.EventActionManager.execute(Zenoss.remote.MyRouter.foo);
+ *
+ * Here's how it works. This runs execute() which stores the passed router
+ * method in variable me.action, and stores findParams() result in me.params.
+ * It then calls startAction() which opens a progress dialog for large requests
+ * then calls run(), which actually calls the router method with the params.
+ * When the router finishes it calls requestCallback() with three cases:
+ * error, complete, or incomplete. While incomplete it'll loop by calling run(),
+ * which this time calls Router.nextEventSummaryUpdate() instead of the original
+ * router method. Once complete it calls finishAction() to hide the progress
+ * dialog and call the configured onFinishAction().
+ *
+ * In summary:
+ *    execute() --> startAction() --> open progress dialog, then run() -->
+ *    remote router method on server (with params) --> requestCallback() -->
+ *    [if incomplete then calls run() to keep looping] -->
+ *    finishAction() --> hide progress dialog, then onFinishAction().
  */
 Ext.define("EventActionManager", {
     extend: "Ext.util.Observable",
