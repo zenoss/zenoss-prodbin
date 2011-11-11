@@ -102,6 +102,9 @@ class PingTask(BaseTask):
         self.config = self._device.monitoredIps[0]
         self._iface = self.config.iface
         self._lastErrorMsg = ''
+        
+        # by defautl don't pause after schedule
+        self.pauseOnScheduled = False
 
     def doTask(self):
         """
@@ -112,6 +115,26 @@ class PingTask(BaseTask):
         @rtype: Twisted deferred object
         """
         raise NotImplementedError()
+        
+
+    def _getPauseOnScheduled(self):
+        return self._pauseOnScheduled
+
+    def _setPauseOnScheduled(self, value):
+        self._pauseOnScheduled = value
+
+    pauseOnScheduled = property(fget=_getPauseOnScheduled, fset=_setPauseOnScheduled)
+    """Pause this task after it's been scheduled."""
+
+    def scheduled(self, scheduler):
+        """
+        After the task has been scheduled, set the task in to the PAUSED state.
+        
+        @param scheduler: Collection Framework Scheduler
+        @type scheduler: IScheduler
+        """
+        if self.pauseOnScheduled:
+            scheduler.pauseTasksForConfig(self.configId)
 
     @property
     def trace(self):

@@ -27,31 +27,6 @@ _STATE_TO_STRING_MAP = { True: 'up', False: 'down'}
 _NAN = float('nan')
 
 
-# check nmap version!
-def _checkNmapVersion(minVersion=(5,21)):
-    import subprocess
-    import sys
-    import re
-    nmap = subprocess.Popen(["nmap", "--version"],
-        stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-    stdout, stderr = nmap.communicate()
-    if nmap.returncode:
-        print >> sys.stderr, "problem running nmap!"
-        print >> sys.stderr, "nmap output: %s%s" % (stdout, stderr)
-        sys.exit(nmap.returncode)
-    match = re.search(r"(\d+)(\.\d+){1,2}", stdout)
-    if match is None:
-        print >> sys.stderr, "could not detect nmap version"
-        print >> sys.stderr, "nmap output: %s%s" % (stdout, stderr)
-        sys.exit(nmap.returncode)
-    version = [int(i) for i in match.group(0).split(".")]
-    if tuple(version) < tuple(minVersion):
-        print >> sys.stderr, "detected nmap %r, mininum version %r" % (
-            version, minVersion)
-        sys.exit(1)
-
-_checkNmapVersion()
-
 def parseNmapXml(input):
     """
     Parse the XML output of nmap and return a list PingResults.

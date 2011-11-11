@@ -290,6 +290,14 @@ class IScheduledTask(IObservable):
         so.
         """
         pass
+    
+    def scheduled(self, scheduler):
+        """
+        Called after a task has been scheduled. The scheduler instance is passed
+        so that the scheduled task can manipulate it's (or another
+        task's) schedule.
+        """
+        pass
 
 
 class IScheduledTaskFactory(zope.interface.Interface):

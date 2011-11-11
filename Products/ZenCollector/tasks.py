@@ -42,6 +42,9 @@ class BaseTask(ObservableMixin):
 
     def cleanup(self): # Required by interface
         pass
+    
+    def scheduled(self, scheduler): # Required by interface
+        pass
 
     def _delayNextCheck(self):
         """

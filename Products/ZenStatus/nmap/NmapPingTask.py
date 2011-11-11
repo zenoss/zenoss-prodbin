@@ -70,8 +70,8 @@ class NPingTaskFactory(object):
             self.interval,
             self.config,
         )
-        # schedule so far in to the future it never runs
-        task.interval = 10000000
+        # don't run the tasks, they are used for storing config
+        task.pauseOnScheduled = True
         return task
 
     def reset(self):
@@ -128,13 +128,16 @@ class NmapPingTask(BaseTask):
         args.extend(["-iL", inputFile])  # input file
         args.append("-sn")               # don't port scan the hosts
         args.append("-PE")               # use ICMP echo 
-        args.append("-n")                # don't resolve hosts internally 
-        args.append("--traceroute")      # perform a traceroute along with ping
+        args.append("-n")                # don't resolve hosts internally
         args.append("--privileged")      # assume we can open raw socket
         if outputType == 'xml':
             args.extend(["-oX", '-']) # outputXML to stdout
         else:
             raise ValueError("Unsupported nmap output type: %s" % outputType)
+
+        if self._daemon.options.correlator:
+            args.append("--traceroute")      # perform a traceroute along with ping
+
         return args
 
     def doTask(self):
@@ -170,12 +173,13 @@ class NmapPingTask(BaseTask):
 
             log.debug("wrote temp file %s with input to nmap", tfile.name)
             out, err, exitCode = yield utils.getProcessOutputAndValue(self._nmapBinary, self._getNmapCmd(tfile.name))
-            log.debug("got %d back from nmap", exitCode)
+            log.debug("got exit code %d back from nmap", exitCode)
             if exitCode != 0:
                 tfile.seek(0)
-                log.debug("input file: %s:%s", out, err)
-                log.debug("output file: %s", out)
-                raise Exception("Problem running nmap!")
+                log.debug("input file: %s", tfile.read())
+                log.debug("stdout: %s", out)
+                log.debug("stderr: %s", err)
+                raise NmapExecutionError(exitCode=exitCode)
             log.debug("parsing nmap results")
             results = parseNmapXmlToDict(StringIO(out))
 
@@ -221,4 +225,3 @@ class NmapPingTask(BaseTask):
         see how each task is doing.
         """
         pass
-

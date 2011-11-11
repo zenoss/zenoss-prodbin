@@ -380,6 +380,10 @@ class Scheduler(object):
             startDelay = 0 if now else self._getStartDelay(newTask)
         reactor.callLater(startDelay, d.callback, None)
 
+        # just in case someone does not implement scheduled, lets be careful
+        scheduled = getattr(newTask, 'scheduled', lambda x: None)
+        scheduled(self)
+
     def _getStartDelay(self, task):
         """
         amount of time to delay the start of a task. Prevents bunching up of 

@@ -10,3 +10,9 @@
 # For complete information please visit: http://www.zenoss.com/oss/
 #
 ###########################################################################
+
+class NmapExecutionError(Exception):
+    """
+    NmapExecutionError raised when there was a problem calling nmap.
+    """
+    pass
