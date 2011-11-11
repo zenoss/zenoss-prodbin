@@ -17,10 +17,10 @@
             padding:0px;
             text-decoration:underline;
         }
-        #credstitle_0{ 
-            border-bottom:1px solid #ddd;
-            margin-bottom:8px;
-            padding:3px;
+        .credstitle{ 
+            border-bottom:1px solid #ddd !important;
+            margin-bottom:8px !important;
+            padding:3px !important;
             .x-panel-body{
                 font-size:14px !important;
                 color:#444 !important;        
@@ -44,10 +44,10 @@
                 padding:0 8px 8px 15px;
             }
         }
-        #creds_0{
-            margin:-10px;
+        .creds_base{
+            margin:-10px !important;
         }
-        #snmp_0{
+        .creds_sub{
             margin-right:8px !important;    
         }
     }

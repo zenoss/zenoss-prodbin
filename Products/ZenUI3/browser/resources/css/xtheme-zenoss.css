@@ -9498,11 +9498,11 @@ CORE TRIGGER PAGE STUFF
   color: #000;
   padding: 0px;
   text-decoration: underline; }
-.easyadddevice_shell #credstitle_0, #newform #credstitle_0 {
-  border-bottom: 1px solid #ddd;
-  margin-bottom: 8px;
-  padding: 3px; }
-.easyadddevice_shell #credstitle_0 .x-panel-body, #newform #credstitle_0 .x-panel-body {
+.easyadddevice_shell .credstitle, #newform .credstitle {
+  border-bottom: 1px solid #dddddd !important;
+  margin-bottom: 8px !important;
+  padding: 3px !important; }
+.easyadddevice_shell .credstitle .x-panel-body, #newform .credstitle .x-panel-body {
   font-size: 14px !important;
   color: #444444 !important; }
 .easyadddevice_shell #userfieldset, #newform #userfieldset {
@@ -9517,9 +9517,9 @@ CORE TRIGGER PAGE STUFF
   font-size: 11px;
   color: #666666 !important;
   padding: 0 8px 8px 15px; }
-.easyadddevice_shell #creds_0, #newform #creds_0 {
-  margin: -10px; }
-.easyadddevice_shell #snmp_0, #newform #snmp_0 {
+.easyadddevice_shell .creds_base, #newform .creds_base {
+  margin: -10px !important; }
+.easyadddevice_shell .creds_sub, #newform .creds_sub {
   margin-right: 8px !important; }
 
 /* top search button sprite */

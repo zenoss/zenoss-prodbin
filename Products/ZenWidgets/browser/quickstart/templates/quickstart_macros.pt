@@ -320,6 +320,7 @@ Ext.onReady(function() {
             items: [{
                 xtype: 'panel',
                 id: 'credstitle_' + index,
+                cls: 'credstitle',                
                 style: {
                     'font-weight': 'bold',
                     'font-size': '1.3em',
@@ -376,6 +377,7 @@ Ext.onReady(function() {
                 anchor: '100%',
                 layout: 'card',
                 id: 'creds_' + index,
+                cls: 'creds_base',
                 items: [{
                     anchor: '100%',
                     xtype: 'fieldset',
@@ -383,6 +385,7 @@ Ext.onReady(function() {
                         anchor: '95%'
                     },
                     id: 'ssh_' + index,
+                    cls: 'creds_sub',
                     title: 'SSH Credentials',
                     defaultType: 'textfield',
                     items: [{
@@ -401,6 +404,7 @@ Ext.onReady(function() {
                         anchor: '95%'
                     },
                     id: 'snmp_' + index,
+                    cls: 'creds_sub',                    
                     title: 'SNMP Credentials',
                     items: [{
                         xtype: 'panel',
@@ -420,6 +424,7 @@ Ext.onReady(function() {
                 {
                     xtype: 'fieldset',
                     id: 'win_' + index,
+                    cls: 'creds_sub',                    
                     border: false,
                     title: 'Windows Credentials',
                     defaultType: 'textfield',
