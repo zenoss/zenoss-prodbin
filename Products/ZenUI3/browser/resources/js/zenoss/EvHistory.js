@@ -184,7 +184,7 @@ Ext.onReady(function(){
                                 + '<br/><br/><a href="'
                                 + link
                                 + '">Resource Manager: Event Archive</a></div>')),
-                            title: _t('Save Configuration'),
+                            title: _t('Save Configuration')
                             });                                  
                         }
                     },{
