@@ -87,8 +87,14 @@ class SnmpPerformanceCollectionPreferences(object):
         parser.add_option('--maxbackoffminutes',
                           dest='maxbackoffminutes',
                           default=MAX_BACK_OFF_MINUTES,
-                          help="When a device fails to respond, increase the time to" \
-                               " check on the device until this limit.")
+                          help="Deprecated since 4.1.1. No longer used")
+        
+        parser.add_option('--triespercycle',
+                          dest='triesPerCycle',
+                          default=2,
+                          type='int',
+                          help="How many attempts per cycle should be made to get data for an OID from a "\
+                                "non-responsive device. Minimum of 2")
 
     def postStartup(self):
         pass
@@ -164,12 +170,11 @@ class SnmpPerformanceCollectionTask(BaseTask):
         self._bad_oids = set()
         self._snmpStatusFailures = 0
         self._snmpPort = snmpprotocol.port()
-        self._maxbackoffseconds = self._preferences.options.maxbackoffminutes * 60
+        self.triesPerCycle = max(2, self._preferences.options.triesPerCycle)
 
         self._lastErrorMsg = ''
         self._cycleExceededCount = 0
         self._stoppedTaskCount = 0
-        self._timeoutCount = 0
         self._snmpV3ErrorCount = 0
 
     def _failure(self, reason):
@@ -209,7 +214,6 @@ class SnmpPerformanceCollectionTask(BaseTask):
                                      device=self._devId,
                                      summary=msg,
                                      severity=Event.Error)
-        self._delayNextCheck()
 
         return reason
 
@@ -219,7 +223,7 @@ class SnmpPerformanceCollectionTask(BaseTask):
         """
         # If we want to model things first before doing collection,
         # that code goes here.
-        log.debug("Connected to %s [%s]", self._devId, self._manageIp)
+        log.debug("Connected to %s [%s] using SNMP %s", self._devId, self._manageIp, self._snmpConnInfo.zSnmpVer)
         self._collectedOids.clear()
         return result
 
@@ -236,6 +240,9 @@ class SnmpPerformanceCollectionTask(BaseTask):
     def _untestedOids(self):
         return set(self._oids) - self._bad_oids - self._good_oids
 
+    def _uncollectedOids(self):
+        return set(self._oids) - self._bad_oids - self._collectedOids
+
     @defer.inlineCallbacks
     def _fetchPerf(self):
         """
@@ -251,23 +258,27 @@ class SnmpPerformanceCollectionTask(BaseTask):
         oids_to_test.extend(self._good_oids)
         log.debug('%s [%s] collecting %s oids out of %s', self._devId, self._manageIp, len(oids_to_test), len(self._oids))
         chunk_size = self._maxOidsPerRequest
-        while oids_to_test:
+        maxTries = self.triesPerCycle
+        try_count = 0
+        while oids_to_test and try_count < maxTries:
+            try_count += 1
+            if try_count > 1:
+                log.debug("%s [%s] some oids still uncollected after %s tries, trying again with chunk size %s", self._devId,
+                          self._manageIp, try_count - 1, chunk_size)
             oid_chunks = self.chunk(oids_to_test, chunk_size)
             for oid_chunk in oid_chunks:
                 try:
+                    self._checkTaskTime()
                     log.debug("Fetching OID chunk size %s from %s [%s] - %s", chunk_size, self._devId, self._manageIp, oid_chunk)
                     yield self._fetchPerfChunk(oid_chunk)
                     log.debug("Finished fetchPerfChunk call %s [%s]", self._devId, self._manageIp)
-                    self._checkTaskTime()
                 except error.TimeoutError as e:
-                    raise
-            # can still have untested from an oid chunk that failed to return data, one or more of those may be bad.
-            # run with a smaller chunk size to identify bad oid
-            oids_to_test = list(self._untestedOids())
+                    log.debug("timeout for %s [%s] oids - %s", self._devId, self._manageIp, oid_chunk)
+            # can still have untested oids from a chunk that failed to return data, one or more of those may be bad.
+            # run with a smaller chunk size to identify bad oid. Can also have uncollected good oids because of timeouts
+            oids_to_test = list(self._uncollectedOids())
             chunk_size = 1
-            if oids_to_test:
-                log.debug("%s [%s] some oids still untested, trying again with chunk size %s", self._devId,
-                          self._manageIp, chunk_size)
+    
 
 
     @defer.inlineCallbacks
@@ -370,6 +381,13 @@ class SnmpPerformanceCollectionTask(BaseTask):
                           self._devId, self._manageIp, str(e))
                 self._logOidsNotCollected("task was stopped so as not exceed cycle interval")
 
+            if self._snmpConnInfo.zSnmpVer == 'v3':
+                self._eventService.sendEvent(STATUS_EVENT,
+                                             severity=Event.Clear,
+                                             device=self.configId,
+                                             eventKey='snmp_v3_error',
+                                             summary='SNMP v3 error cleared')
+
             # clear cycle exceeded event
             self._eventService.sendEvent(STATUS_EVENT,
                                          severity=Event.Clear,
@@ -377,20 +395,19 @@ class SnmpPerformanceCollectionTask(BaseTask):
                                          eventKey='interval_exceeded',
                                          summary="Collection run time restored below interval")
             if not self._collectedOids:
-                self._delayNextCheck()
+                #send down event if no oids collected
                 self._eventService.sendEvent(STATUS_EVENT,
                                              severity=Event.Error,
                                              device=self.configId,
-                                             eventKey='no_oids_collected',
-                                             summary='Unable to retrieve any OIDs')
+                                             eventKey='agent_down',
+                                             summary='SNMP agent down - no oids collected')
             else:
-                self._returnToNormalSchedule()
-                # clear unable to retreive any oid event
+                # clear down event
                 self._eventService.sendEvent(STATUS_EVENT,
                                              severity=Event.Clear,
                                              device=self.configId,
-                                             eventKey='no_oids_collected',
-                                             summary='OIDs Collected')
+                                             eventKey='agent_down',
+                                             summary='SNMP agent up')
                 if len(self._collectedOids) == len(set(self._oids) - self._bad_oids):
                     # this should clear failed to collect some oids event
                     self._eventService.sendEvent(STATUS_EVENT,
@@ -401,7 +418,7 @@ class SnmpPerformanceCollectionTask(BaseTask):
                 else:
                     summary = 'Failed to collect some OIDs'
                     if taskStopped:
-                        summary = '%s - task was not able to collect all oids within collection interval' % summary
+                        summary = '%s - was not able to collect all oids within collection interval' % summary
                     self._eventService.sendEvent(STATUS_EVENT,
                                                  severity=Event.Warning,
                                                  device=self.configId,
@@ -420,32 +437,18 @@ class SnmpPerformanceCollectionTask(BaseTask):
                                          eventKey='interval_exceeded',
                                          summary="Scan stopped; Collection time exceeded interval - %s" % str(e))
 
-        except (error.TimeoutError, Snmpv3Error) as e:
-            self._logOidsNotCollected('of timeout')
-            timedOut = True
-            self._delayNextCheck()
-            if isinstance(e, error.TimeoutError):
-                self._timeoutCount += 1
-                summary="SNMP agent down ({0} second timeout)".format(self._snmpConnInfo.zSnmpTimeout)
-            else:
-                self._snmpV3ErrorCount += 1
-                summary = "Cannot connect to SNMP agent on {0._devId}: {1}".format(self, str(e))
+        except Snmpv3Error as e:
+            self._logOidsNotCollected('of %s' % str(e))
+            self._snmpV3ErrorCount += 1
+            summary = "Cannot connect to SNMP agent on {0._devId}: {1}".format(self, str(e))
 
             log.error("{0} on {1}".format(summary, self.configId))
             self._eventService.sendEvent(STATUS_EVENT,
                                          severity=Event.Error,
                                          device=self.configId,
-                                         eventKey='snmp_timeout',
+                                         eventKey='snmp_v3_error',
                                          summary=summary)
         finally:
-            if not timedOut:
-                # clear timeout event
-                self._eventService.sendEvent(STATUS_EVENT,
-                                             severity=Event.Clear,
-                                             device=self.configId,
-                                             eventKey='snmp_timeout',
-                                             summary='SNMP agent up')
-
             self._logTaskOidInfo(previous_bad_oids)
 
     def remove_from_good_oids(self, oids):
@@ -533,7 +536,7 @@ class SnmpPerformanceCollectionTask(BaseTask):
             log.debug("%s: Bad oids detected - %s", self.name, newBadOids)
 
     def _logOidsNotCollected(self, reason):
-        oidsNotCollected = set(self._oids) - self._collectedOids - self._bad_oids
+        oidsNotCollected = self._uncollectedOids()
         if oidsNotCollected:
             log.debug("%s Oids not collected because %s - %s" % (self.name, reason, str(oidsNotCollected)))
 
@@ -565,9 +568,9 @@ class SnmpPerformanceCollectionTask(BaseTask):
         Called by the collector framework scheduler, and allows us to
         see how each task is doing.
         """
-
-        display = "%s Cycles Exceeded: %s; Timeout Count: %s; V3 Error Count: %s; Stopped Task Count: %s\n" % (
-            self.name, self._cycleExceededCount, self._timeoutCount, self._snmpV3ErrorCount, self._stoppedTaskCount)
+        display = "%s using SNMP %s\n" % (self.name, self._snmpConnInfo.zSnmpVer)
+        display += "%s Cycles Exceeded: %s; V3 Error Count: %s; Stopped Task Count: %s\n" % (
+            self.name, self._cycleExceededCount, self._snmpV3ErrorCount, self._stoppedTaskCount)
         display += "%s OIDs configured: %d \n" % (
             self.name, len(self._oids.keys()))
         display += "%s Good OIDs: %d - %s\n" % (
