@@ -23,7 +23,7 @@ from Acquisition import aq_chain
 
 from OSComponent import OSComponent
 from ZenPackable import ZenPackable
-
+from md5 import md5
 
 def manage_addOSProcess(context, newClassName, userCreated, REQUEST=None):
     """
@@ -44,7 +44,6 @@ def manage_addOSProcess(context, newClassName, userCreated, REQUEST=None):
 
 
 def createFromObjectMap(context, objectMap):
-    import md5
     om = objectMap
     device = context.device()
     processes = context.device().getDmdRoot("Processes")
@@ -52,14 +51,17 @@ def createFromObjectMap(context, objectMap):
     fullname = (om.procName + ' ' + om.parameters).rstrip()
     for pc in pcs:
         if pc.match(fullname):
-            id = om.procName
-            parameters = om.parameters.strip()
-            if parameters and not pc.ignoreParameters:
-                parameters = md5.md5(parameters).hexdigest()
-                id += ' ' + parameters
+            id = getProcessIdentifier(om.procName, None if pc.ignoreParameters else om.parameters)
             result = OSProcess(device.prepId(id))
             om.setOSProcessClass = pc.getPrimaryDmdId()
             return result
+
+
+def getProcessIdentifier(name, parameters):
+    """
+    Get a process identifier string from the name and parameters of the process.
+    """
+    return ('%s %s' % (name, md5((parameters or '').strip()).hexdigest())).strip()
 
 
 class OSProcess(OSComponent, Commandable, ZenPackable):
@@ -278,12 +280,8 @@ class OSProcess(OSComponent, Commandable, ZenPackable):
             fullname = (self.procName + ' ' + self.parameters).rstrip()
             if pc.match(fullname):
                 self.setOSProcessClass(pc.getPrimaryDmdId())
-                self.id = om.procName
-                parameters = om.parameters.strip()
-                if parameters and not pc.ignoreParameters:
-                    parameters = md5.md5(parameters).hexdigest()
-                    self.id += ' ' + parameters
-                self.id = self.prepId(id)
+                self.id = self.prepId(getProcessIdentifier(om.procName,
+                                      None if pc.ignoreParameters else om.parameters))
                 return True
         return False
 

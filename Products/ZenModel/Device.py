@@ -2291,11 +2291,7 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable,
             for pc in pcs:
                 if pc.match(fullname):
                     om.setOSProcessClass = pc.getPrimaryDmdId()
-                    id = om.procName
-                    parameters = om.parameters.strip()
-                    if parameters and not pc.ignoreParameters:
-                        parameters = md5.md5(parameters).hexdigest()
-                        id += ' ' + parameters
+                    id = getProcessIdentifier(om.procName, None if pc.ignoreParameters else om.parameters)
                     om.id = self.prepId(id)
                     if id not in procs:
                         procs.add(id)

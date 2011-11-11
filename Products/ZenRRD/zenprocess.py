@@ -22,6 +22,7 @@ import sys
 import re
 from md5 import md5
 from pprint import pformat
+import os.path
 
 import Globals
 
@@ -68,6 +69,9 @@ MEM       = PERFROOT + '.1.1.2.'        # note trailing dot
 
 # Max size for CPU numbers
 WRAP = 0xffffffffL
+
+# Regex to see if a string is all hex digits
+IS_MD5 = re.compile('^[a-f0-9]{32}$')
 
 # Create an implementation of the ICollectorPreferences interface so that the
 # ZenCollector framework can configure itself from our preferences.
@@ -124,6 +128,7 @@ class ZenProcessPreferences(object):
     def postStartup(self):
         pass
 
+
 class DeviceStats:
     def __init__(self, deviceProxy):
         self.config = deviceProxy
@@ -168,12 +173,13 @@ class DeviceStats:
         """
         return self._pidToProcess.values()
 
+
 class ProcessStats:
     def __init__(self, processProxy):
         self._pids={}
         self._config = processProxy
         self.cpu = 0
-        self.digest = ''
+        self.digest = md5('').hexdigest()
         if not self._config.ignoreParameters:
             # The modeler plugin computes the MD5 hash of the args,
             # and then tosses that into the name of the process
@@ -209,10 +215,10 @@ class ProcessStats:
 
         # SNMP agents return a 'flexible' number of characters,
         # so exact matching isn't always reliable.
-        if self._config.ignoreParameters or not args:
+        if self._config.ignoreParameters:
             processName = name
         else:
-            processName = '%s %s' % (name, args)
+            processName = ('%s %s' % (name, args or '')).strip()
 
         # Make the comparison
         result = re.search(self._config.regex, processName) is not None
@@ -483,6 +489,14 @@ class ZenProcessTask(ObservableMixin):
         log.debug("Capturing packet from %s", hostname)
         name = "%s-%s-%d" % (self._preferences.options.captureFilePrefix,
                              hostname, self.captureSerialNum)
+
+        # Don't overwrite previous captures, which will happen if we remodel
+        # and the serial number gets reset to zero
+        while os.path.exists(name):
+            self.captureSerialNum += 1
+            name = "%s-%s-%d" % (self._preferences.options.captureFilePrefix,
+                             hostname, self.captureSerialNum)
+
         try:
             capFile = open(name, "w")
             capFile.write(pformat(data))
@@ -560,35 +574,36 @@ class ZenProcessTask(ObservableMixin):
             self._showProcessList( procs )
         return procs
 
-    def sendMissingProcsEvents(self, afterByConfig):
+    def sendMissingProcsEvents(self, missing):
         # Look for missing processes
-        for procStat in self._deviceStats.processStats:
-            if procStat not in afterByConfig:
-                procConfig = procStat._config
-                ZenProcessTask.MISSING += 1
-                summary = 'Process not running: %s' % procConfig.originalName
-                message = "%s\n Using regex \'%s\' \nAll Processes have stopped since the last model occurred. Last Modification time (%s)" \
+        for procConfig in missing:
+            ZenProcessTask.MISSING += 1
+            summary = 'Process not running: %s' % procConfig.originalName
+            message = "%s\n   Using regex \'%s\' \n   All Processes have stopped since the last model occurred. Last Modification time (%s)" \
                         % (summary,procConfig.regex,self._device.lastmodeltime)
-                self._eventService.sendEvent(self.statusEvent,
+            self._eventService.sendEvent(self.statusEvent,
                                              device=self._devId,
                                              summary=summary,
                                              message=message,
                                              component=procConfig.originalName,
                                              eventKey=procConfig.processClass,
                                              severity=procConfig.severity)
-                log.warning("(%s) %s" % (self._devId,message))
+            log.warning("(%s) %s" % (self._devId, message))
 
     def _sendProcessEvents(self, results):
         (afterByConfig, afterPidToProcessStats,
-                           beforeByConfig, newPids, restarted, deadPids) = results
+         beforeByConfig, newPids, restarted, deadPids, missing) = results
+
         self.sendRestartEvents(afterByConfig, beforeByConfig, restarted)
         self.sendFoundProcsEvents(afterByConfig, restarted)
+
         for pid in newPids:
             log.debug("Found new %s pid %d on %s" % (
             afterPidToProcessStats[pid]._config.originalName, pid,
             self._devId))
         self._deviceStats._pidToProcess = afterPidToProcessStats
-        self.sendMissingProcsEvents(afterByConfig)
+        self.sendMissingProcsEvents(missing)
+
         # Store the total number of each process into an RRD
         pidCounts = dict((p, 0) for p in self._deviceStats.processStats)
         for procStat in self._deviceStats.monitoredProcs:
@@ -604,34 +619,53 @@ class ZenProcessTask(ObservableMixin):
         @parameter procs: array of pid, (name, args) info
         @type procs: list
         """
-        # look for changes in processes
         beforePids = set(self._deviceStats.pids)
-        beforeByConfig = reverseDict(self._deviceStats._pidToProcess)
         afterPidToProcessStats = {}
-        for pid, (name, args) in procs:
+        pStatsWArgsAndSums, pStatsWoArgs = self._splitPStatMatchers()
+        for pid, (name, psargs) in procs:
             pStats = self._deviceStats._pidToProcess.get(pid)
             if pStats:
-                if pStats.match(name, args):
+                # We saw the process before, so there's a good
+                # chance that it's the same.
+                if pStats.match(name, psargs):
+                    # Yep, it's the same process
+                    log.debug("Found process %d on %s, matching %s %s with MD5",
+                              pid, pStats._config.name, name, psargs)
                     afterPidToProcessStats[pid] = pStats
                     continue
-                elif pStats.match(name, args, useMd5Digest=False):
+
+                elif pStats.match(name, psargs, useMd5Digest=False):
                     # In this case, our raw SNMP data from the
                     # remote agent got futzed
+                    # It's the same process. Yay!
+                    log.debug("Found process %d on %s, matching %s %s without MD5",
+                              pid, pStats._config.name, name, psargs)
                     afterPidToProcessStats[pid] = pStats
                     continue
 
             # Search for the first match in our list of regexes
-            for pStats in self._deviceStats.processStats:
-                if pStats.match(name, args):
+            # that have arguments AND an MD5-sum argument matching.
+            # Explicitly *IGNORE* any matchers not modeled by zenmodeler
+            for pStats in pStatsWArgsAndSums:
+                if pStats.match(name, psargs):
                     log.debug("Found process %d on %s",
                               pid, pStats._config.name)
                     afterPidToProcessStats[pid] = pStats
                     break
+            else:
+                # Now look for the first match in our list of regexes
+                # that don't have arguments.
+                for pStats in pStatsWoArgs:
+                    if pStats.match(name, psargs, useMd5Digest=False):
+                        log.debug("Found process %d on %s",
+                                      pid, pStats._config.name)
+                        afterPidToProcessStats[pid] = pStats
+                        break
 
         # If the hashes get trashed by the SNMP agent, try to
         # make sensible guesses.
         missingModeledStats = set(self._deviceStats.processStats) - \
-                              set(self._deviceStats.monitoredProcs)
+                              set(afterPidToProcessStats.values())
         if missingModeledStats:
             log.info("Searching for possible matches for %s", missingModeledStats)
         for pStats in missingModeledStats:
@@ -658,8 +692,34 @@ class ZenProcessTask(ObservableMixin):
                 if pConfig.restart:
                     restarted[procStats] = pConfig
 
+        # Now that we've found all of the stragglers, check to see
+        # what really is missing or not.
+        missing = []
+        for procStat in self._deviceStats.processStats:
+            if procStat not in afterByConfig:
+                missing.append(procStat._config)
+
+        # For historical reasons, return the beforeByConfig
+        beforeByConfig = reverseDict(self._deviceStats._pidToProcess)
+
         return (afterByConfig, afterPidToProcessStats,
-                beforeByConfig, newPids, restarted, deadPids)
+                beforeByConfig, newPids, restarted, deadPids,
+                missing)
+
+    def _splitPStatMatchers(self):
+        pStatsWArgsAndSums = []; pStatsWoArgs = []
+        for pStat in self._deviceStats.processStats:
+            if pStat._config.ignoreParameters:
+                pStatsWoArgs.append(pStat)
+            else:
+                nameList = pStat._config.name.split()
+                if len(nameList) < 2: # (name, md5sum)
+                    nameList = (nameList[0], md5('').hexdigest())
+
+                possibleMd5Sum = nameList[-1].lower()
+                if IS_MD5.match(possibleMd5Sum):
+                    pStatsWArgsAndSums.append(pStat)
+        return pStatsWArgsAndSums, pStatsWoArgs
 
     def _fetchPerf(self, results):
         """
@@ -856,7 +916,7 @@ def mapResultsToDicts(showrawtables, results):
         Helper function to extract SNMP table data.
         """
         pid = int(oid.split('.')[-1])
-        dictionary[pid] = value
+        dictionary[pid] = value.strip()
 
     names, paths, args = {}, {}, {}
     if showrawtables:

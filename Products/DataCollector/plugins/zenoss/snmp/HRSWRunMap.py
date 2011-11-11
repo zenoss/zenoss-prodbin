@@ -19,9 +19,8 @@ Uses the HOST-RESOURCES-MIB OIDs.
 """
 
 import re
-from md5 import md5
-from Products.DataCollector.plugins.CollectorPlugin \
-    import SnmpPlugin, GetTableMap
+from Products.DataCollector.plugins.CollectorPlugin import SnmpPlugin, GetTableMap
+from Products.ZenModel.OSProcess import getProcessIdentifier
 
 HRSWRUNENTRY = '.1.3.6.1.2.1.25.4.2.1'
 
@@ -97,12 +96,9 @@ class HRSWRunMap(SnmpPlugin):
                 if not matcher['regex'](fullname):
                     continue
 
-                om.id = self.prepId(om.procName)
                 om.setOSProcessClass = matcher['getPrimaryDmdId']
-                parameters = om.parameters.strip()
-                if parameters and not matcher['ignoreParameters']:
-                    parameters = md5(parameters).hexdigest()
-                    om.id += ' ' + parameters
+                id = getProcessIdentifier(om.procName, None if matcher['ignoreParameters'] else om.parameters)
+                om.id = self.prepId(id)
 
                 if om.id not in found:
                     found[om.id] = True

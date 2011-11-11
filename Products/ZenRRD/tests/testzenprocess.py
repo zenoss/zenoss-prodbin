@@ -15,7 +15,7 @@ import logging
 log = logging.getLogger('zen.testzenprocess')
 
 import re
-
+from md5 import md5
 from Products.ZenTestCase.BaseTestCase import BaseTestCase
 from Products.ZenRRD.zenprocess import ZenProcessTask
 from Products.ZenUtils.Utils import zenPath
@@ -91,7 +91,8 @@ class TestZenprocess(BaseTestCase):
 
         # Split out the expected stats
         (eprocs, eafterByConfig, eafterPidToProcessStats,
-                ebeforeByConfig, enewPids, erestarted, edeadPids) = expectedStats
+         ebeforeByConfig, enewPids, erestarted, edeadPids,
+         emissing) = expectedStats
 
         procs = task._parseProcessNames(data)
         self.assert_(len(procs) == eprocs,
@@ -100,7 +101,7 @@ class TestZenprocess(BaseTestCase):
 
         results = task._determineProcessStatus(procs)
         (afterByConfig, afterPidToProcessStats,
-                beforeByConfig, newPids, restarted, deadPids) = results
+         beforeByConfig, newPids, restarted, deadPids, missing) = results
 
         self.assert_(len(newPids) == enewPids,
                      "%s: Expected %d new processes, got %d" % (
@@ -108,6 +109,9 @@ class TestZenprocess(BaseTestCase):
         self.assert_(len(restarted) == erestarted,
                      "%s: Expected %d restarted processes, got %d" % (
                        filename, erestarted, len(restarted)))
+        self.assert_(len(missing) == emissing,
+                      "%s: Expected %d missing processes, got %d (%s)" % (
+                       filename, emissing, len(missing), missing))
 
         # Save the results of the run
         task._deviceStats._pidToProcess = afterPidToProcessStats
@@ -117,10 +121,31 @@ class TestZenprocess(BaseTestCase):
 
     def updateProcDefs(self, procDefs, name, ignoreParams, regex):
         procDef = ProcessProxy()
-        procDef.name = name
+        procDef.name = name if len(name.split(' ')) > 1 else name + ' ' + md5('').hexdigest()
         procDef.regex = re.compile(regex)
         procDef.ignoreParameters = ignoreParams
         procDefs[procDef.name] = procDef
+
+    def getProcDefsFromFile(self, procDefFile):
+        """
+        Expects to read a file that's a dump of
+
+        python ProcessConfig.py --device=XX
+
+        The file should be trimmed to remove any headers, and just contain config output
+        """
+        base = zenPath('Products/ZenRRD/tests/zenprocess_data')
+        procDefs = {}
+        name = base + '/' + procDefFile
+        try:
+            for line in open(name).readlines():
+                modeler_match, useArgs, regex = line.rsplit(None, 2)
+                useArgs = True if useArgs.strip() == 'True' else False
+                self.updateProcDefs(procDefs, modeler_match.strip(), useArgs, regex.strip())
+        except Exception, ex:
+            log.warn('Unable to evaluate data file %s because %s',
+                     name, str(ex))
+        return procDefs
 
     def testMingetty(self):
         """
@@ -128,29 +153,24 @@ class TestZenprocess(BaseTestCase):
         """
         procDefs = {}
         self.updateProcDefs(procDefs, 'mingetty', True, '/sbin/mingetty')
-        mingetty = procDefs['mingetty']
+        mingetty = procDefs['mingetty ' + md5('').hexdigest()]
         task = self.makeTask(procDefs)
 
-        expectedStats = (6, 0, 0, 0, 6, 0, 0)
+        expectedStats = (6, 0, 0, 0, 6, 0, 0, 0)
         self.compareTestFile('mingetty-0', task, expectedStats)
 
         # No changes if there are no changes
-        expectedStats = (6, 0, 0, 0, 0, 0, 0)
+        expectedStats = (6, 0, 0, 0, 0, 0, 0, 0)
         self.compareTestFile('mingetty-0', task, expectedStats)
 
         # Note: the restart count is only used if we want to
         #       receive notifications
-        expectedStats = (6, 0, 0, 0, 1, 0, 0)
+        expectedStats = (6, 0, 0, 0, 1, 0, 0, 0)
         self.compareTestFile('mingetty-1', task, expectedStats)
 
         mingetty.restart = True
-        expectedStats = (6, 0, 0, 0, 1, 1, 0)
+        expectedStats = (6, 0, 0, 0, 1, 1, 0, 0)
         self.compareTestFile('mingetty-0', task, expectedStats)
-
-        # Now treat the processes independently
-        mingetty.ignoreParameters = False
-        expectedStats = (6, 0, 0, 0, 1, 1, 0)
-        self.compareTestFile('mingetty-1', task, expectedStats)
 
     def testCase15875part1(self):
         procDefs = {}
@@ -158,12 +178,11 @@ class TestZenprocess(BaseTestCase):
         self.updateProcDefs(procDefs, 'usr_bin_perl', False, '^.*?/usr/bin/perl\s+-w\s+/opt/sysadmin/packages/scooper/bin/scooperd\s+/opt.*')
         self.updateProcDefs(procDefs, 'usr_java_jdk_bin_java', False, '/opt/gsp/')
         self.updateProcDefs(procDefs, 'ntpd', False, '^ntpd')
-        self.updateProcDefs(procDefs, 'ntpd', False, '^ntpd')
         self.updateProcDefs(procDefs, 'perl', False, 'aSecure\.rb|aSecure\.pl')
         self.updateProcDefs(procDefs, 'crond', True, '^crond')
 
         task = self.makeTask(procDefs)
-        expectedStats = (117, 0, 0, 0, 7, 0, 0)
+        expectedStats = (117, 0, 0, 0, 6, 0, 0, 0)
         procs, results = self.compareTestFile('case15875-0', task, expectedStats)
 
     def testCase15875part2(self):
@@ -177,12 +196,12 @@ class TestZenprocess(BaseTestCase):
         self.updateProcDefs(procDefs, 'usr_java_jdk1.6_bin_java 6180cffd001309eeec52efdb5f4ae007', False, '.*?/opt/tomcat-emailservice-')
 
         task = self.makeTask(procDefs)
-        expectedStats = (97, 0, 0, 0, 3, 0, 0)
+        expectedStats = (97, 0, 0, 0, 3, 0, 0, 0)
         procs, results = self.compareTestFile('case15875-1', task, expectedStats)
 
         # Now what happens when the remote agent screws up a bit
         # and *ALMOST* sends us all the stuff?
-        expectedStats = (97, 0, 0, 0, 0, 0, 0)
+        expectedStats = (97, 0, 0, 0, 0, 0, 0, 0)
         procs, results = self.compareTestFile('case15875-2', task, expectedStats)
         deadPids = results[-1]
         
@@ -225,7 +244,7 @@ class TestZenprocess(BaseTestCase):
         self.updateProcDefs(procDefs, 'opt_zenoss_bin_python cbeab9686cc961499879ca1abf83598e', False, '^(?!^.*zenmodeler.*?--now|^.*ZenWebTx.*?|^.*?\/tmp/tmp).*?/opt/zenoss/bin/python /opt/zenoss/|java .*?/opt/zenoss/',)
 
         task = self.makeTask(procDefs)
-        expectedStats = (174, 0, 0, 0, 53, 0, 0)
+        expectedStats = (174, 0, 0, 0, 52, 0, 0, 0)
         procs, results = self.compareTestFile('case15875-3', task, expectedStats)
 
     def testCase15875part4(self):
@@ -240,8 +259,21 @@ class TestZenprocess(BaseTestCase):
         self.updateProcDefs(procDefs, 'crond', True, '^crond')
 
         task = self.makeTask(procDefs)
-        expectedStats = (253, 0, 0, 0, 14, 0, 0)
+        expectedStats = (253, 0, 0, 0, 14, 0, 0, 2)
         procs, results = self.compareTestFile('case15875-4', task, expectedStats)
+
+    def testRemodels(self):
+        procDefs = self.getProcDefsFromFile('remodel_bug-config-0')
+        task = self.makeTask(procDefs)
+        expectedStats = (159, 0, 0, 0, 33, 0, 0, 0)
+        procs, results = self.compareTestFile('remodel_bug-0', task, expectedStats)
+
+        procDefs = self.getProcDefsFromFile('remodel_bug-config-1')
+        expectedStats = (157, 0, 0, 0, 1, 0, 0, 2)
+        config = TaskConfig(procDefs=procDefs)
+        task._deviceStats.update(config)
+        procs, results = self.compareTestFile('remodel_bug-1', task, expectedStats)
+
 
 def test_suite():
     from unittest import TestSuite, makeSuite
