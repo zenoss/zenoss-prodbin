@@ -229,21 +229,29 @@ def hexToMask(hex):
     '255.255.255.255'
     >>> hexToMask("0x00000000")
     '0.0.0.0'
+    >>> hexToMask("0x12300000")
+    '18.48.0.0'
+    >>> hexToMask("0x00000123")
+    '0.0.1.35'
+    >>> hexToMask("0xbadvalue")
+    '255.255.255.255'
+    >>> hexToMask("0x123")
+    '255.255.255.255'
     >>> hexToMask("trash")
     '255.255.255.255'
     """
-    if hex.find('x') < 0:
+    try:
+        hex = hex.lower()
+        if len(hex) != 10 or not hex.startswith('0x'):
+            raise Exception('malformed netmask')
+        int(hex, 16)  # valid hexadecimal?
+    except Exception:
         return "255.255.255.255"
-    
-    hex = list(hex.lower().split('x')[1])
-    octets = []
-    while len(hex) > 0:
-        snippit = list(hex.pop() + hex.pop())
-        snippit.reverse()
-        decimal = int(''.join(snippit), 16)
-        octets.append(str(decimal))
 
-    octets.reverse()
+    octets = []
+    for idx in [2,4,6,8]:
+        decimal = int(hex[idx:idx+2], 16)
+        octets.append(str(decimal))
     return '.'.join(octets)
 
 
