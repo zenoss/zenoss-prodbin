@@ -32,12 +32,22 @@ from Products.ZenCollector.tasks import BaseTask, TaskStates
 from Products.ZenCollector import interfaces
 from Products.ZenCollector.tasks import SimpleTaskFactory
 from Products.ZenUtils.Utils import zenPath
+from Products.ZenEvents import ZenEventClasses 
+from zenoss.protocols.protobufs import zep_pb2 as events
 
 # imports from within ZenStatus
 from Products.ZenStatus import PingTask
 from PingResult import PingResult, parseNmapXmlToDict
 from Products.ZenStatus.PingCollectionPreferences import PingCollectionPreferences
 from Products.ZenStatus.interfaces import IPingTaskFactory
+from Products.ZenStatus import nmap
+
+_NMAP_BINARY = zenPath("bin/nmap")
+
+
+_CLEAR = 0
+_CRITICAL = 5
+_WARNING = 3
 
 class NmapPingCollectionPreferences(PingCollectionPreferences):
     
@@ -118,34 +128,169 @@ class NmapPingTask(BaseTask):
         self._daemon = component.getUtility(ZenCollector.interfaces.ICollector)
         self._dataService = component.queryUtility(ZenCollector.interfaces.IDataService)
         self._eventService = component.queryUtility(ZenCollector.interfaces.IEventService)
-        self._nmapBinary = zenPath("bin/nmap")
         
-    def _getNmapCmd(self, inputFile, outputType="xml"):
+        self._pings = 0
+        self._nmapPresent = False    # assume nmap is not present at startup
+        self._nmapIsSuid = False     # assume nmap is not SUID at startup
+        self.collectorName = self._daemon._prefs.collectorName
+        
+        
+    def _detectNmap(self):
         """
-        Return a list of command line args to nmap based on configured settings.
+        Detect that nmap is present.
+        """
+        # if nmap has already been detected, do not detect it again
+        if self._nmapPresent:
+            return
+        self._nmapPresent = os.path.exists(_NMAP_BINARY)
+        
+        if self._nmapPresent == False:
+            raise nmap.NmapNotFound()
+        self._sendNmapMissing()
+        
+    def _sendNmapMissing(self, isFound):
+        """
+        Send/Clear event to show that nmap is present/missing.
+        """
+        if self._nmapPresent:
+            msg = "nmap was found" 
+            severity = _CLEAR
+        else:
+            msg = "nmap was NOT found at %r " % _NMAP_BINARY
+            severity = _CRITICAL
+        evt = dict(
+            device=self.collectorName,
+            eventClass=ZenEventClasses.Status_Ping,
+            eventGroup='Ping',
+            eventKey="nmap_missing",
+            eventseverity=severity,
+            summary=msg,
+        )
+        self._eventService.sendEvent(evt)
+
+    def _detectNmapIsSuid(self):
+        """
+        Detect that nmap is set SUID
+        """
+        if self._nmapPresent and self._nmapIsSuid == False:
+            # get attributes for nmap binary
+            attribs = os.stat(_NMAP_BINARY)
+            # find out if it is SUID and owned by root
+            self._nmapIsSuid = (attribs.st_uid != 0) and (attribs.st_mode & stat.S_ISUID)
+            if self._nmapIsSuid is False:
+                raise nmap.NmapNotSuid()
+
+    def _sendNmapNotSuid(self):
+        """
+        Send/Clear event to show that nmap is set SUID.
+        """
+        if self._nmapIsSuid:
+            msg = "nmap is set SUID" 
+            severity = _CLEAR
+        else:
+            msg = "nmap is NOT SUID: %s" % _NMAP_BINARY
+            severity = _WARNING
+        evt = dict(
+            device=self.collectorName,
+            eventClass=ZenEventClasses.Status_Ping,
+            eventGroup='Ping',
+            eventKey="nmap_suid",
+            eventseverity=severity,
+            summary=msg,
+        )
+        self._eventService.sendEvent(evt)
+
+    def _nmapExecution(self, ex=None):
+        """
+        Send/Clear event to show that nmap is executed properly.
+        """
+        if ex is None:
+            msg = "nmap executed correctly" 
+            severity = _CLEAR
+        else:
+            msg = "nmap did not execute correctly: %s" % ex
+            severity = _CRITICAL
+        evt = dict(
+            device=self.collectorName,
+            eventClass=ZenEventClasses.Status_Ping,
+            eventGroup='Ping',
+            eventKey="nmap_execution",
+            eventseverity=severity,
+            summary=msg,
+        )
+        self._eventService.sendEvent(evt)
+
+    @defer.inlineCallbacks
+    def _executeNmapCmd(self, inputFileFilename, outputType='xml'):
+        """
+        Execute nmap and return it's output.
         """
         args = []
-        args.extend(["-iL", inputFile])  # input file
+        args.extend(["-iL", inputFileFilename])  # input file
         args.append("-sn")               # don't port scan the hosts
         args.append("-PE")               # use ICMP echo 
         args.append("-n")                # don't resolve hosts internally
         args.append("--privileged")      # assume we can open raw socket
+
+
+        if self._daemon.options.correlator:
+            # traceroute every tracerouteInterval pings
+            tracerouteInterval = self._daemon.options.tracerouteInterval
+            if tracerouteInterval > 0:
+                if self._pings == 0 or (tracerouteInterval % self._pings) == 0:
+                    # perform a traceroute along with ping
+                    args.append("--traceroute")      
+
         if outputType == 'xml':
             args.extend(["-oX", '-']) # outputXML to stdout
         else:
             raise ValueError("Unsupported nmap output type: %s" % outputType)
 
-        if self._daemon.options.correlator:
-            args.append("--traceroute")      # perform a traceroute along with ping
+        # count the number of pings
+        self._pings += 1
+        
+        # execute nmap
+        out, err, exitCode = yield utils.getProcessOutputAndValue(
+            _NMAP_BINARY, args)
 
-        return args
+        log.debug("got exit code %d back from nmap", exitCode)
+        if exitCode != 0:
+            input = open(inputFileFilename).read()
+            log.debug("input file: %s", input)
+            log.debug("stdout: %s", out)
+            log.debug("stderr: %s", err)
+            raise nmap.NmapExecutionError(
+                exitCode=exitCode, stdout=out, stderr=err, args=args)
 
+        try:
+            nmapResults = parseNmapXmlToDict(StringIO(out))
+            defer.returnValue(nmapResults)
+        except nmap.NmapParsingError as e:
+            input = open(inputFileFilename).read()
+            log.debug("input file: %s", input)
+            log.debug("stdout: %s", out)
+            log.debug("stderr: %s", err)
+            raise nmap.NmapExecutionError(
+                exitCode=exitCode, stdout=out, stderr=err, args=args)
+
+    @defer.inlineCallbacks
     def doTask(self):
         """
         BatchPingDevices !
         """
         log.debug('---- BatchPingDevices ----')
-        return self._batchPing()
+        try:
+            self._detectNmap()        # will clear nmap_missing
+            self._detectNmapIsSuid()  # will clear nmap_suid
+            yield self._batchPing()   # will clear nmap_execution
+            
+        except nmap.NmapNotFound:
+            self._sendNmapMissing()
+        except nmap.NmapNotSuid:
+            self._sendNmapNotSuid()
+        except nmap.NmapExecutionError as ex:
+            self._nmapExecution(ex) 
+            
         
     def _getPingTasks(self):
         """
@@ -159,7 +304,10 @@ class NmapPingTask(BaseTask):
         return pingTasks
 
     @defer.inlineCallbacks
-    def _batchPing(self):    
+    def _batchPing(self):
+        """
+        Find the IPs, ping/traceroute, parse, correlate, and send events.
+        """
         # find all devices to Ping
         ipTasks = self._getPingTasks()
         if len(ipTasks) == 0:
@@ -171,17 +319,7 @@ class NmapPingTask(BaseTask):
                 tfile.write("%s\n" % task.config.ip)
             tfile.flush()
 
-            log.debug("wrote temp file %s with input to nmap", tfile.name)
-            out, err, exitCode = yield utils.getProcessOutputAndValue(self._nmapBinary, self._getNmapCmd(tfile.name))
-            log.debug("got exit code %d back from nmap", exitCode)
-            if exitCode != 0:
-                tfile.seek(0)
-                log.debug("input file: %s", tfile.read())
-                log.debug("stdout: %s", out)
-                log.debug("stderr: %s", err)
-                raise NmapExecutionError(exitCode=exitCode)
-            log.debug("parsing nmap results")
-            results = parseNmapXmlToDict(StringIO(out))
+            results = yield self._executeNmapCmd(tfile.name)
 
             # update the states of all the PingTasks without giving time to the reactor!
             # Correlation should be based on the state of the entire result of the ping job.
@@ -200,24 +338,44 @@ class NmapPingTask(BaseTask):
                 else:
                     # defer sending down events to correlate ping downs
                     downTasks[ip] = ipTask
+            
+            self._correlate(downTasks)
+            self._nmapExecution()
 
-            # correlation can be interwoven
-            for currentIp, ipTask in downTasks.iteritems():
-                # walk the hops in the traceroute
-                for hop in ipTask.trace:
-                    # if a hop.ip alog the traceroute is in our list of down ips
-                    # and that hop.ip is not the currentIp then
-                    if hop.ip in downTasks and hop.ip != currentIp:
-                        # we found our root cause!
-                        rootCause = downTasks[hop.ip]
-                        yield ipTask.sendPingDown(rootCause=rootCause)
-                        break
-                else:
-                    # no root cause found
-                    yield ipTask.sendPingDown()
 
-            # TODO: we could go a step further and ping all the ips along the last good
-            # traceroute to give some insight as to where the problem may lie
+    def _correlate(self, downTasks):
+        """
+        Correlate ping down events.
+        
+        This simple correlator will take a list of PingTasks that are in the
+        down state. It loops through the list and the last known trace route
+        for each of the ip's. For every hop in the traceroute (starting from the
+        collector to the ip in question), the hop's ip is searched for in
+        downTasks. If it's found, then this collector was also monitoring the
+        source of the problem.
+        
+        Note: this does not take in to account multiple routes to the ip in
+        question. It uses only the last known traceroute as given by nmap which
+        will not have routing loops and hosts that block icmp.
+        """
+        
+        # for every down ipTask
+        for currentIp, ipTask in downTasks.iteritems():
+            # walk the hops in the traceroute
+            for hop in ipTask.trace:
+                # if a hop.ip alog the traceroute is in our list of down ips
+                # and that hop.ip is not the currentIp then
+                if hop.ip in downTasks and hop.ip != currentIp:
+                    # we found our root cause!
+                    rootCause = downTasks[hop.ip]
+                    ipTask.sendPingDown(rootCause=rootCause)
+                    break
+            else:
+                # no root cause found
+                ipTask.sendPingDown()
+
+        # TODO: we could go a step further and ping all the ips along the last good
+        # traceroute to give some insight as to where the problem may lie
 
     def displayStatistics(self):
         """

@@ -206,7 +206,7 @@ class PingTask(BaseTask):
         if self._pingResult is not None:
             for rrdMeta in self.config.points:
                 name, path, rrdType, rrdCommand, rrdMin, rrdMax = rrdMeta
-                value = getattr(self._pingResult.rtt, name)
+                value = getattr(self._pingResult, name, None)
                 if value is None:
                     log.debug("No datapoint '%s' found on the %s pingTask",
                               name, self)

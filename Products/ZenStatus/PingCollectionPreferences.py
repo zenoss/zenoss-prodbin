@@ -72,6 +72,12 @@ class PingCollectionPreferences(object):
             action="store_false",
             help="Disable the correlator.")
 
+        parser.add_option('--traceroute-interval',
+            dest='tracerouteInterval',
+            default=1,
+            help="Traceroute every N pings; default is 1, traceroute every time" \
+                " a ping is performed.")
+
         # look up possible ping backends
         pingBackends = []
         for pingBackend, _ in zope.component.getUtilitiesFor(

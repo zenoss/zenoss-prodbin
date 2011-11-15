@@ -17,7 +17,6 @@ __doc__ = """zenping
 
 Determines the availability of a IP addresses using ping (ICMP).
 """
-
 import os.path
 import re
 import socket

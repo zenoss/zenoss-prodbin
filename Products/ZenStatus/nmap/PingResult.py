@@ -179,7 +179,7 @@ class PingResult(object):
         return self._rttVariance
 
     @property
-    def stdDeviation(self):
+    def stddev(self):
         """standard deviation of the rtt; nan if host was down"""
         math.sqrt(self._rttVariance)
 

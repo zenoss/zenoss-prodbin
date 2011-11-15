@@ -55,8 +55,10 @@ class PingDataSource(RRDDataSource.RRDDataSource):
         return False
 
     def addDataPoints(self):
-        if not self.datapoints._getOb('rtt', None):
+        if self.datapoints._getOb('rtt', None) is None:
             self.manage_addRRDDataPoint('rtt')
+        if self.datapoints._getOb('stddev', None) is None:
+            self.manage_addRRDDataPoint('stddev')
 
     def zmanage_editProperties(self, REQUEST=None):
         '''validation, etc'''
