@@ -641,7 +641,8 @@ function getTreeDropWarnings(dropTargetNode, droppedRecords) {
     // if we're moving a device to a device class whose underlying python class does not match, also warn
     // about the potentially destructive operation.
     var additionalWarnings = [""];
-    if (dropTargetNode && droppedRecords) {
+    if (dropTargetNode && droppedRecords && dropTargetNode.data && dropTargetNode.data.path &&
+        dropTargetNode.data.path.indexOf('Devices') == 0) {
         var dropTargetClass = dropTargetNode.data.zPythonClass || "Products.ZenModel.Device";
         var droppedClasses = Ext.Array.map(droppedRecords, function(r){return r.data.pythonClass;});
         if(Ext.Array.some(droppedClasses, function(droppedClass) { return dropTargetClass!=droppedClass;})) {
