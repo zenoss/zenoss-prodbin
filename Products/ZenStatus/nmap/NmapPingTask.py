@@ -20,9 +20,12 @@ import logging
 log = logging.getLogger("zen.NmapPingTask")
 import tempfile
 from twisted.internet import utils
+from twisted.internet import task
 from twisted.internet import defer
+from twisted.internet import reactor
 import os.path
 from cStringIO import StringIO
+import stat
 
 import Globals
 from zope import interface
@@ -48,6 +51,9 @@ _NMAP_BINARY = zenPath("bin/nmap")
 _CLEAR = 0
 _CRITICAL = 5
 _WARNING = 3
+
+# amount of IPs/events to process before giving time to the reactor
+_SENDEVENT_YIELD_INTERVAL = 100  # should always be >= 1
 
 class NmapPingCollectionPreferences(PingCollectionPreferences):
     
@@ -148,7 +154,7 @@ class NmapPingTask(BaseTask):
             raise nmap.NmapNotFound()
         self._sendNmapMissing()
         
-    def _sendNmapMissing(self, isFound):
+    def _sendNmapMissing(self):
         """
         Send/Clear event to show that nmap is present/missing.
         """
@@ -176,9 +182,10 @@ class NmapPingTask(BaseTask):
             # get attributes for nmap binary
             attribs = os.stat(_NMAP_BINARY)
             # find out if it is SUID and owned by root
-            self._nmapIsSuid = (attribs.st_uid != 0) and (attribs.st_mode & stat.S_ISUID)
+            self._nmapIsSuid = (attribs.st_uid == 0) and (attribs.st_mode & stat.S_ISUID)
             if self._nmapIsSuid is False:
                 raise nmap.NmapNotSuid()
+        self._sendNmapNotSuid()  # send a clear
 
     def _sendNmapNotSuid(self):
         """
@@ -324,7 +331,9 @@ class NmapPingTask(BaseTask):
             # update the states of all the PingTasks without giving time to the reactor!
             # Correlation should be based on the state of the entire result of the ping job.
             downTasks = {}
+            i = 0
             for taskName, ipTask in ipTasks.iteritems():
+                i += 1
                 ip = ipTask.config.ip
                 if ip in results:
                     result = results[ip]
@@ -338,6 +347,10 @@ class NmapPingTask(BaseTask):
                 else:
                     # defer sending down events to correlate ping downs
                     downTasks[ip] = ipTask
+
+                # give time to reactor to send events if necessary
+                if i % _SENDEVENT_YIELD_INTERVAL:
+                    yield task.deferLater(reactor, 0, lambda x: None)
             
             self._correlate(downTasks)
             self._nmapExecution()
@@ -360,7 +373,9 @@ class NmapPingTask(BaseTask):
         """
         
         # for every down ipTask
+        i = 0
         for currentIp, ipTask in downTasks.iteritems():
+            i += 1
             # walk the hops in the traceroute
             for hop in ipTask.trace:
                 # if a hop.ip alog the traceroute is in our list of down ips
@@ -373,6 +388,10 @@ class NmapPingTask(BaseTask):
             else:
                 # no root cause found
                 ipTask.sendPingDown()
+
+            # give time to reactor to send events if necessary
+            if i % _SENDEVENT_YIELD_INTERVAL:
+                yield task.deferLater(reactor, 0, lambda x: None)
 
         # TODO: we could go a step further and ping all the ips along the last good
         # traceroute to give some insight as to where the problem may lie
