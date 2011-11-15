@@ -32,6 +32,27 @@ from twisted.internet import threads
 IP_DELIM = '..'
 INTERFACE_DELIM = '...'
 
+def _getPreferedIpVersion():
+    """
+    Determine the preferred ip version for DNS resolution.
+    """
+    PREFERRED_IP_KEY = 'preferredipversion'
+    from Products.ZenUtils import GlobalConfig 
+    globalConf = GlobalConfig.getGlobalConfiguration()
+    if PREFERRED_IP_KEY in globalConf:
+        version = globalConf[PREFERRED_IP_KEY]
+        if version == 'ipv4':
+            return socket.AF_INET
+        elif version == 'ipv6':
+            return socket.AF_INET6
+        else:
+            import sys
+            print >> sys.stderr, 'unknown preferredipversion %s in global.conf' % version
+            
+    return None  # use the system default, overrideable in /etc/gai.conf
+
+_PREFERRED_IP_VERSION = _getPreferedIpVersion()
+
 def ipwrap(ip):
     """
     Convert IP addresses to a Zope-friendly format.
@@ -391,7 +412,7 @@ def generateAddrInfos(hostname):
         yield {"ipAddress": addrInfo[-1][0],
                 "ipFamily": addrInfo[0]}
 
-def getHostByName(hostname, preferredIpVersion=None):
+def getHostByName(hostname, preferredIpVersion=_PREFERRED_IP_VERSION):
     """
     Look up an IP based on the name passed in, synchronously. Not using
     socket.gethostbyname() because it does not support IPv6.
