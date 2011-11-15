@@ -249,6 +249,7 @@ Ext.define("Zenoss.DeviceGridPanel", {
             keys = Ext.pluck(visibleColumns, 'dataIndex');
 
         keys.push('ipAddressString');
+        keys.push('pythonClass');
         Ext.apply(options.params, {
             keys: keys
         });
