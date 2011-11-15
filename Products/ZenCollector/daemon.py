@@ -383,9 +383,14 @@ class CollectorDaemon(RRDDaemon):
             self._purgeOmittedDevices(cfg.id for cfg in updatedConfigs)
 
     def _purgeOmittedDevices(self, updatedDevices):
+        """
+        Delete all current devices that are omitted from the list of devices being updated.
+        @param updatedDevices a collection of device ids
+        @type updatedDevices a sequence of strings
+        """
         # remove tasks for the deleted devices
-        deletedDevices = [d for d in self._devices if d not in set(updatedDevices)]
-        self.log.debug("purgeOmittedDevices: deletedConfigs=%s", ','.join(map(str, deletedDevices)))
+        deletedDevices = set(self._devices) - set(updatedDevices)
+        self.log.debug("purgeOmittedDevices: deletedConfigs=%s", ','.join(deletedDevices))
         for configId in deletedDevices:
             self._deleteDevice(configId)
             
