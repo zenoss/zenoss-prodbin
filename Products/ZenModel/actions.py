@@ -28,7 +28,7 @@ from Products.ZenEvents.events2.proxy import EventSummaryProxy
 from Products.Zuul.interfaces.actions import IEmailActionContentInfo, IPageActionContentInfo, ICommandActionContentInfo, ISnmpTrapActionContentInfo
 from Products.Zuul.form.interfaces import IFormBuilder
 
-from Products.ZenModel.interfaces import IAction, IProvidesEmailAddresses, IProvidesPagerAddresses, IProcessSignal
+from Products.ZenModel.interfaces import IAction, IProvidesEmailAddresses, IProvidesPagerAddresses, IProcessSignal, INotificationContextProvider
 from Products.ZenModel.NotificationSubscription import NotificationEventContextWrapper
 from Products.ZenEvents.Event import Event
 from Products.ZenUtils import Utils
@@ -94,6 +94,10 @@ def _signalToContextDict(signal, zopeurl, notification=None, guidManager=None):
     # the event context
     for key, processor in getUtilitiesFor(IProcessSignal):
         data[key] = processor.process(signal)
+
+    # Process INotificationContextProvider
+    for key, contextProvider in getUtilitiesFor(INotificationContextProvider):
+        contextProvider.updateContext(signal, data)
 
     # Add trigger and notification info
     if notification:

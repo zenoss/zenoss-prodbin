@@ -122,6 +122,9 @@ class IProvidesPagerAddresses(Interface):
         pass
 
 class IProcessSignal(Interface):
+    """
+    @deprecated: Use INotificationContextProvider.
+    """
 
     def process(signal):
         """
@@ -129,3 +132,19 @@ class IProcessSignal(Interface):
         @type signal: zenoss.protocols.protobufs.zep_pb2.Signal
         """
         pass
+
+class INotificationContextProvider(Interface):
+    """
+    Hook to allow a ZenPack to provide additional context to a notification.
+    @since 4.1.1
+    """
+
+    def updateContext(signal, context):
+        """
+        @param signal: The signal which triggered the notification.
+        @type signal: zenoss.protocols.protobufs.zep_pb2.Signal
+        @param context: The dictionary of context passed to the underlying
+                        notification.
+        @type context: dict
+        """
+
