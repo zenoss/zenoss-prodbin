@@ -87,5 +87,16 @@
             background-image: url("/++resource++zenui/img/xtheme-zenoss/icon/severity-sprite.png") !important;
             width:16px !important;
     }
-
+    .x-tree-panel{
+        .rootNode{
+            font-weight:bold !important;
+            font-size:10px;
+            font-family:helvetica,arial,sans-serif;
+            text-transform:uppercase;
+            color:#6386AE;
+        }
+        .subNode{
+            font-weight:bold !important;         
+        }
+    }
 }

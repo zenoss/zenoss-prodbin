@@ -210,16 +210,21 @@ Ext.define('Zenoss.HierarchyTreePanel', {
                 xtype: 'treecolumn',
                 flex: 1,
                 dataIndex: 'text',
-                renderer: function(value) {
+                renderer: function(value, l, n) {
                     if (Ext.isString(value)) {
                         return value;
                     }
-                    return Ext.String.format("{0} <span title='{1}'>(" + value.count + ')</span>', value.text, value.description);
+                    var parentNode = n.parentNode;                    
+                    if(parentNode.data.root == true){   
+                        return Ext.String.format("<span class='rootNode'>{0} <span title='{1}'>({2})</span></span>", value.text, value.description, value.count); 
+                    }else{
+                        return Ext.String.format("<span class='subNode'>{0}</span> <span title='{1}'>({2})</span>", value.text, value.description, value.count);
+                    }
+                    
                 }
             }]
 
         });
-
         if (config.router) {
             Ext.applyIf(config, {
                 addNodeFn: config.router.addNode,
@@ -232,7 +237,6 @@ Ext.define('Zenoss.HierarchyTreePanel', {
                 deleteNodeFn: Ext.emptyFn
             });
         }
-
         var root = config.root || {};
         if (config.directFn && !config.loader) {
             var modelId = Ext.String.format('Zenoss.tree.{0}Model', config.id);
@@ -330,9 +334,8 @@ Ext.define('Zenoss.HierarchyTreePanel', {
     },
     initEvents: function() {
         var me = this;
-
         Zenoss.HierarchyTreePanel.superclass.initEvents.call(this);
-
+  
         if (this.selectRootOnLoad && !Ext.History.getToken()) {
             this.getRootNode().on('expand', function() {
                 // The first child is our real root
@@ -353,7 +356,6 @@ Ext.define('Zenoss.HierarchyTreePanel', {
         }
         this.addEvents('filter');
         this.on('click', this.addHistoryToken, this);
-
         this.on({
              beforeexpandnode: function(node) {
                 this.stateHash[node.id] = node.getPath();
@@ -389,7 +391,6 @@ Ext.define('Zenoss.HierarchyTreePanel', {
 
     },
     selectByToken: function(nodeId) {
-
         nodeId = unescape(nodeId);
         var root = this.getRootNode(),
             selNode = Ext.bind(function() {
