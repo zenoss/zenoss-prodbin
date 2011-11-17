@@ -611,7 +611,7 @@ class ZenHub(ZCmdBase):
             default='localhost',
             help='Name of the distributed monitor this hub runs on')
         self.parser.add_option('--workers', dest='workers',
-            type='int', default=0,
+            type='int', default=2,
             help="Number of worker instances to handle requests")
         self.parser.add_option('--prioritize', dest='prioritize',
             action='store_true', default=False,
