@@ -41,13 +41,7 @@ if not hasattr(pas, '_createInitialUser'):
 # logout instead of 'fake' logout (like the logout of the anonymous user)
 _originalResetCredentials = pas.resetCredentials
 def _resetCredentials(self, request, response=None):
-    extra = {}
-    # Maybe not the best way to determine explicit (via url) logout?
-    # (add other tests for other kinds of logouts, e.g. session expiry)
-    pathInfo = request.get("PATH_INFO")
-    if pathInfo == "/zport/dmd/logoutUser":
-        extra["reason"] = "ManualLogout"
-    audit("UI.Authentication.Logout", **extra)
+    audit("UI.Authentication.Logout")
     _originalResetCredentials(self, request, response)
 pas.resetCredentials = _resetCredentials
 
@@ -89,9 +83,22 @@ def login(self):
         pas_instance.updateCredentials(request, response, login, password)
 
         # Track the user logging in, or the login failure.
-        username = getSecurityManager().getUser().getUserName()
-        audit(("UI.Authentication", "Login" if username == login else "Fail"),
-            username=login)
+
+        # This is the user we are now authenticated as - this will be the same as 'login'
+        # if authentication succeeded (and we are not switching to the admin account)
+        authenticatedUser = getSecurityManager().getUser().getUserName()
+
+        ipaddress = getattr(request, '_client_addr', 'Unknown')
+        if authenticatedUser != login or login == 'Anonymous User':
+            if authenticatedUser != 'Anonymous User' and login == 'admin':
+                # no way to tell success from failure when switching to admin
+                audit('UI.Authentication.AttemptAdminLogin', ipaddress=ipaddress)
+            else:
+                # actual failure
+                audit('UI.Authentication.Fail', username=login, ipaddress=ipaddress)
+        else:
+            # success
+            audit('UI.Authentication.Login', ipaddress=ipaddress)
 
     came_from = request.form.get('came_from') or ''
     if came_from:
