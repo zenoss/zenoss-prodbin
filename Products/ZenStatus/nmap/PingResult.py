@@ -63,11 +63,13 @@ class PingResult(object):
         self._timestamp = self._parseTimestamp(hostTree)
         self._address = self._parseAddress(hostTree)
         self._isUp = self._parseState(hostTree)
-        if self._isUp:
+        try:
             self._rtt, self._rttVariance = self._parseTimes(hostTree)
-            self._trace = self._parseTraceroute(hostTree)
-        else:
+        except Exception:
             self._rtt, self._rttVariace = (_NAN, _NAN)
+        try:
+            self._trace = self._parseTraceroute(hostTree)
+        except Exception:
             self._trace = tuple()
     
     def _parseTimestamp(self, hostTree):
@@ -100,9 +102,11 @@ class PingResult(object):
         Extract the address (ip) from the hostTree.
         """
         
-        addressNodes = hostTree.xpath('address')
+        addressNodes = hostTree.xpath("address[@addrtype='ipv4']")
         if len(addressNodes) != 1:
-            raise ValueError("hostTree does not have address node")
+            addressNodes = hostTree.xpath("address[@addrtype='ipv6']")
+            if len(addressNodes) != 1:
+                raise ValueError("hostTree does not have address node")
         addressNode = addressNodes[0]
         address = addressNode.attrib['addr']
         return address

@@ -16,6 +16,7 @@
 __doc__ = """zenping
 
 Determines the availability of a IP addresses using ping (ICMP).
+
 """
 import os.path
 import re
@@ -86,3 +87,5 @@ if __name__ == '__main__':
         stoppingCallback=myPreferences.preShutdown,
     )
     myDaemon.run()
+
+

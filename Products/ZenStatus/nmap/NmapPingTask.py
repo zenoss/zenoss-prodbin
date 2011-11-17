@@ -20,7 +20,7 @@ import logging
 log = logging.getLogger("zen.NmapPingTask")
 import tempfile
 from twisted.internet import utils
-from twisted.internet import task
+from twisted.internet import task as twistedTask
 from twisted.internet import defer
 from twisted.internet import reactor
 import os.path
@@ -350,7 +350,7 @@ class NmapPingTask(BaseTask):
 
                 # give time to reactor to send events if necessary
                 if i % _SENDEVENT_YIELD_INTERVAL:
-                    yield task.deferLater(reactor, 0, lambda x: None)
+                    yield twistedTask.deferLater(reactor, 0, lambda x: None, None)
             
             self._correlate(downTasks)
             self._nmapExecution()
@@ -391,7 +391,7 @@ class NmapPingTask(BaseTask):
 
             # give time to reactor to send events if necessary
             if i % _SENDEVENT_YIELD_INTERVAL:
-                yield task.deferLater(reactor, 0, lambda x: None)
+                yield twistedTask.deferLater(reactor, 0, lambda x: None, None)
 
         # TODO: we could go a step further and ping all the ips along the last good
         # traceroute to give some insight as to where the problem may lie
