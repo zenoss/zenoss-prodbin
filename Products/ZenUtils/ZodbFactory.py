@@ -48,7 +48,7 @@ class ZodbFactoryLookup(object):
         """Return the ZODB connection factory by name or look up in global.conf."""
         if name is None:
             settings = globalConfToDict()
-            name = settings.get('zodb_db_type', 'postgresql')
+            name = settings.get('zodb_db_type', 'mysql')
         connectionFactory = queryUtility(IZodbFactory, name)
         return connectionFactory
 
