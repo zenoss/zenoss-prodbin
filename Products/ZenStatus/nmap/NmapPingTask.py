@@ -318,7 +318,7 @@ class NmapPingTask(BaseTask):
         # find all devices to Ping
         ipTasks = self._getPingTasks()
         if len(ipTasks) == 0:
-            log.info("No ips to ping!")
+            log.debug("No ips to ping!")
             raise StopIteration() # exit this generator
 
         with tempfile.NamedTemporaryFile(prefix='zenping_nmap_') as tfile:
@@ -352,10 +352,10 @@ class NmapPingTask(BaseTask):
                 if i % _SENDEVENT_YIELD_INTERVAL:
                     yield twistedTask.deferLater(reactor, 0, lambda x: None, None)
             
-            self._correlate(downTasks)
+            yield self._correlate(downTasks)
             self._nmapExecution()
 
-
+    @defer.inlineCallbacks
     def _correlate(self, downTasks):
         """
         Correlate ping down events.
