@@ -77,7 +77,7 @@ start() {
     else
         echo starting...
         WRAPPER=$PYTHON
-        if [ "$PRGNAME" = "zenping.py" -o "$PRGNAME" = "zendisc.py" ] ; then
+        if [ "$PRGNAME" = "zendisc.py" ] ; then
            WRAPPER=$PYRAW
         fi
         if [ "$CFGFILE" = "" ]; then
