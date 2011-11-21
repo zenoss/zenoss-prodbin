@@ -1,7 +1,8 @@
 (function(){
     Ext.ns('Zenoss.VTypes');
 
-    var ip_regex = new RegExp("(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)");
+    var ip_regex = new RegExp("^(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$");
+    var ip_with_netmask_regex = new RegExp("^(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)(/[0-9]+)$");
     var hex_regex = new RegExp("^#?([a-f]|[A-F]|[0-9]){3}(([a-f]|[A-F]|[0-9]){3,5})?$");
     var numcmp_regex = new RegExp("^(\>=|\<=|\>|\<|=)?\s*([0-9]+)$");
     var numrange_regex = new RegExp("^(-?[0-9]+)?:?(-?[0-9]+)?$");
@@ -81,6 +82,11 @@
             return ip_regex.test(val);
         },
         ipaddressText: _t('Invalid IP address'),
+
+        ipaddresswithnetmask: function(val, field) {
+            return ip_with_netmask_regex.test(val);
+        },
+        ipaddresswithnetmaskText: _t('You must enter a valid IP address with netmask.'),
 
         /**
          * Hex Number (for colors etc)

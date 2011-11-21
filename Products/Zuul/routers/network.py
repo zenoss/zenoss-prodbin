@@ -18,6 +18,7 @@ Available at:  /zport/dmd/network_router
 
 import logging
 from Products.ZenUtils.Ext import DirectResponse
+from Products.ZenUtils.IpUtil import IpAddressError
 from Products.Zuul.decorators import require
 from Products.Zuul.interfaces import ITreeNode
 from Products.ZenUtils.jsonutils import unjson
@@ -95,8 +96,11 @@ class NetworkRouter(TreeRouter):
                                        network=contextUid, subnet=newSubnet)
                     response = DirectResponse.succeed(newNode=Zuul.marshal(node))
 
+            except IpAddressError as error:
+                response = DirectResponse.exception(error, 'Error adding subnet.')
+
             except Exception as error:
-                log.exception(error)
+                log.exception("Error adding subnet.")
                 response = DirectResponse.exception(error, 'Error adding subnet.')
 
         return response

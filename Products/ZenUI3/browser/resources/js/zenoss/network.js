@@ -130,9 +130,17 @@ var addNetworkDialogConfig = {
     items: [{
         xtype: 'textfield',
         name: 'id',
+        vtype: 'ipaddresswithnetmask',
         fieldLabel: _t('Network / Subnet mask'),
         anchor: '80%',
-        allowBlank: false
+        allowBlank: false,
+        listeners: {
+            validitychange: function(field, isvalid) {
+                var win = field.ownerCt.ownerCt,
+                    btn = win.query("button[ref='buttonSubmit']")[0];
+                btn.setDisabled(!isvalid);
+            }
+        }
     }]
 };
 
