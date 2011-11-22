@@ -52,9 +52,7 @@ class MySqlZodbFactory(object):
     # set db specific here to allow more flexible imports
     exceptions = db_exceptions
  
-    def getZopeZodbConf(self):
-        """Return a zope.conf style zodb config."""
-        settings = _getDefaults()
+    def _getConf(self, settings):
         config = []
         keys = ['host', 'port', 'unix_socket', 'user', 'passwd', 'db']
         for key in keys:
@@ -67,6 +65,17 @@ class MySqlZodbFactory(object):
             "</mysql>\n",
         ])
         return stanza
+
+    def getZopeZodbConf(self):
+        """Return a zope.conf style zodb config."""
+        settings = _getDefaults()
+        return self._getConf(settings)
+
+    def getZopeZodbSessionConf(self):
+        """Return a zope.conf style zodb config."""
+        settings = _getDefaults()
+        settings['db'] += '_session'
+        return self._getConf(settings)
 
     def getConnection(self, **kwargs):
         """Return a ZODB connection."""

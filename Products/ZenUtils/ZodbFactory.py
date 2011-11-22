@@ -58,6 +58,9 @@ class IZodbFactory(Interface):
     def getZopeZodbConf(self):
         """Return a zope.conf style stanza for the zodb connection."""
 
+    def getZopeZodbSessionConf(self):
+        """Return a zope.conf style stanza for the zodb_session connection."""
+
     def getConnection(**kwargs):
         """Return a ZODB connection."""
 

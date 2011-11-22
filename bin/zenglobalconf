@@ -139,12 +139,23 @@ def main():
         from Products.ZenUtils.ZodbFactory import IZodbFactoryLookup
         connectionFactory = getUtility(IZodbFactoryLookup).get()
         zodbConf = connectionFactory.getZopeZodbConf()
+        zodbSessionConf = connectionFactory.getZopeZodbSessionConf()
         tconfname = None
         try:
             confname = 'zodb_db_main.conf'
             dirname = zenPath('etc')
             tconfname = tempfile.NamedTemporaryFile(prefix=confname, dir=dirname, delete=False)
             tconfname.write(zodbConf)
+            tconfname.close()
+            os.rename(tconfname.name, zenPath('etc', confname))
+        finally:
+            if tconfname is not None and os.path.exists(tconfname.name):
+                os.unlink(tconfname.name)
+        try:
+            confname = 'zodb_db_session.conf'
+            dirname = zenPath('etc')
+            tconfname = tempfile.NamedTemporaryFile(prefix=confname, dir=dirname, delete=False)
+            tconfname.write(zodbSessionConf)
             tconfname.close()
             os.rename(tconfname.name, zenPath('etc', confname))
         finally:
