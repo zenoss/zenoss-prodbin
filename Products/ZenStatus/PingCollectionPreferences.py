@@ -63,7 +63,6 @@ class PingCollectionPreferences(object):
         self.pingTries = 2
         self.pingChunk = 75
         self.pingCycleInterval = 60
-        self.maxPingFailures = 2
         
     def buildOptions(self, parser):
         parser.add_option('--disable-correlator',
@@ -74,8 +73,8 @@ class PingCollectionPreferences(object):
 
         parser.add_option('--traceroute-interval',
             dest='tracerouteInterval',
-            default=1,
-            help="Traceroute every N pings; default is 1, traceroute every time" \
+            default=5,
+            help="Traceroute every N ping intervals; default is 5, traceroute every time" \
                 " a ping is performed.")
 
         # look up possible ping backends

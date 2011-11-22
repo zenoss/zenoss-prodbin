@@ -20,6 +20,13 @@ from Globals import InitializeClass
 from AccessControl import ClassSecurityInfo, Permissions
 import Products.ZenModel.RRDDataSource as RRDDataSource
 
+PING_DATAPOINTS = (
+    'rtt_avg',
+    'rtt_min',
+    'rtt_max',
+    'rtt_losspct',
+    'rtt_stddev',
+)
 
 class PingDataSource(RRDDataSource.RRDDataSource):
     
@@ -55,10 +62,9 @@ class PingDataSource(RRDDataSource.RRDDataSource):
         return False
 
     def addDataPoints(self):
-        if self.datapoints._getOb('rtt', None) is None:
-            self.manage_addRRDDataPoint('rtt')
-        if self.datapoints._getOb('stddev', None) is None:
-            self.manage_addRRDDataPoint('stddev')
+        for dp in PING_DATAPOINTS:
+            if self.datapoints._getOb(dp, None) is None:
+                self.manage_addRRDDataPoint(dp)
 
     def zmanage_editProperties(self, REQUEST=None):
         '''validation, etc'''

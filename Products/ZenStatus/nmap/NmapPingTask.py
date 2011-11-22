@@ -26,6 +26,7 @@ from twisted.internet import reactor
 import os.path
 from cStringIO import StringIO
 import stat
+import sys
 
 import Globals
 from zope import interface
@@ -88,6 +89,7 @@ class NPingTaskFactory(object):
         )
         # don't run the tasks, they are used for storing config
         task.pauseOnScheduled = True
+        task.interval = sys.maxint
         return task
 
     def reset(self):
@@ -228,7 +230,7 @@ class NmapPingTask(BaseTask):
         self._eventService.sendEvent(evt)
 
     @defer.inlineCallbacks
-    def _executeNmapCmd(self, inputFileFilename, outputType='xml'):
+    def _executeNmapCmd(self, inputFileFilename, traceroute=False, outputType='xml'):
         """
         Execute nmap and return it's output.
         """
@@ -238,29 +240,27 @@ class NmapPingTask(BaseTask):
         args.append("-PE")               # use ICMP echo 
         args.append("-n")                # don't resolve hosts internally
         args.append("--privileged")      # assume we can open raw socket
-
-
-        if self._daemon.options.correlator:
-            # traceroute every tracerouteInterval pings
-            tracerouteInterval = self._daemon.options.tracerouteInterval
-            if tracerouteInterval > 0:
-                if self._pings == 0 or (tracerouteInterval % self._pings) == 0:
-                    # perform a traceroute along with ping
-                    args.append("--traceroute")      
-
+        
+        # give up on a host after spending too much time on it
+        args.extend(["--host-timeout", "%.1fs" % self._preferences.pingTimeOut])
+        
+        if traceroute:
+            # If tracerouting, don't specify --max-retries so nmap tries at
+            # least twice for every hop.
+            args.append("--traceroute")
+        else:
+            # max-tries
+            args.extend(["--max-retries", "0"])
+        
         if outputType == 'xml':
             args.extend(["-oX", '-']) # outputXML to stdout
         else:
             raise ValueError("Unsupported nmap output type: %s" % outputType)
 
-        # count the number of pings
-        self._pings += 1
-        
         # execute nmap
         out, err, exitCode = yield utils.getProcessOutputAndValue(
             _NMAP_BINARY, args)
 
-        log.debug("got exit code %d back from nmap", exitCode)
         if exitCode != 0:
             input = open(inputFileFilename).read()
             log.debug("input file: %s", input)
@@ -272,11 +272,12 @@ class NmapPingTask(BaseTask):
         try:
             nmapResults = parseNmapXmlToDict(StringIO(out))
             defer.returnValue(nmapResults)
-        except nmap.NmapParsingError as e:
+        except Exception as e:
             input = open(inputFileFilename).read()
             log.debug("input file: %s", input)
             log.debug("stdout: %s", out)
             log.debug("stderr: %s", err)
+            log.exception(e)
             raise nmap.NmapExecutionError(
                 exitCode=exitCode, stdout=out, stderr=err, args=args)
 
@@ -286,10 +287,19 @@ class NmapPingTask(BaseTask):
         BatchPingDevices !
         """
         log.debug('---- BatchPingDevices ----')
+        
+        if self.interval != self._daemon._prefs.pingCycleInterval:
+            log.info("Changing ping interval from %r to %r ",
+                self.interval,
+                self._daemon._prefs.pingCycleInterval,
+            )
+            self.interval = self._daemon._prefs.pingCycleInterval
+        
         try:
             self._detectNmap()        # will clear nmap_missing
             self._detectNmapIsSuid()  # will clear nmap_suid
             yield self._batchPing()   # will clear nmap_execution
+            self._pings += 1
             
         except nmap.NmapNotFound:
             self._sendNmapMissing()
@@ -322,35 +332,52 @@ class NmapPingTask(BaseTask):
             raise StopIteration() # exit this generator
 
         with tempfile.NamedTemporaryFile(prefix='zenping_nmap_') as tfile:
-            for taskName, task in ipTasks.iteritems():
-                tfile.write("%s\n" % task.config.ip)
+            for taskName, ipTask in ipTasks.iteritems():
+                tfile.write("%s\n" % ipTask.config.ip)
+                ipTask.resetPingResult() # clear out previous run's results
             tfile.flush()
 
-            results = yield self._executeNmapCmd(tfile.name)
+            # ping up to self._preferences.pingTries
+            tracerouteInterval = self._daemon.options.tracerouteInterval
+            
+            # determine if traceroute needs to run
+            doTraceroute = False
+            if tracerouteInterval > 0:
+                if self._pings == 0 or (tracerouteInterval % self._pings) == 0:
+                    doTraceroute = True # try to traceroute on next ping
 
-            # update the states of all the PingTasks without giving time to the reactor!
-            # Correlation should be based on the state of the entire result of the ping job.
+            for attempt in range(0, self._daemon._prefs.pingTries):
+
+                results = yield self._executeNmapCmd(tfile.name, doTraceroute)
+                # only do traceroute on the first ping attempt, if at all
+                doTraceroute = False 
+
+                # record the results!
+                for taskName, ipTask in ipTasks.iteritems():
+                    ip = ipTask.config.ip
+                    if ip in results:
+                        result = results[ip]
+                        ipTask.logPingResult(result)
+                    else:
+                        # received no result, log as down
+                        ipTask.logPingResult(PingResult(ip, isUp=False))
+
             downTasks = {}
             i = 0
             for taskName, ipTask in ipTasks.iteritems():
                 i += 1
-                ip = ipTask.config.ip
-                if ip in results:
-                    result = results[ip]
-                    log.debug("%s is %s", result.address, result.getStatusString())
-                    ipTask.logPingResult(result)
-                    if result.isUp:
-                        ipTask.sendPingUp()
-                    else:
-                        # defer sending down events to correlate ping downs
-                        downTasks[ip] = ipTask
+                if ipTask.isUp:
+                    log.debug("%s is up!", ipTask.config.ip)
+                    ipTask.sendPingUp()
+                    ipTask.storeResults()
                 else:
-                    # defer sending down events to correlate ping downs
-                    downTasks[ip] = ipTask
+                    log.debug("%s is down", ipTask.config.ip)
+                    downTasks[ipTask.config.ip] = ipTask
+                    ipTask.storeResults()
 
                 # give time to reactor to send events if necessary
                 if i % _SENDEVENT_YIELD_INTERVAL:
-                    yield twistedTask.deferLater(reactor, 0, lambda x: None, None)
+                    yield twistedTask.deferLater(reactor, 0, lambda: None)
             
             yield self._correlate(downTasks)
             self._nmapExecution()
@@ -391,7 +418,7 @@ class NmapPingTask(BaseTask):
 
             # give time to reactor to send events if necessary
             if i % _SENDEVENT_YIELD_INTERVAL:
-                yield twistedTask.deferLater(reactor, 0, lambda x: None, None)
+                yield twistedTask.deferLater(reactor, 0, lambda: None, )
 
         # TODO: we could go a step further and ping all the ips along the last good
         # traceroute to give some insight as to where the problem may lie

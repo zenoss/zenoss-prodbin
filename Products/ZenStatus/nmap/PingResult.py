@@ -25,7 +25,7 @@ from Products.ZenStatus import interfaces, TraceHop
 
 _STATE_TO_STRING_MAP = { True: 'up', False: 'down'}
 _NAN = float('nan')
-
+_NO_TRACE = tuple()
 
 def parseNmapXml(input):
     """
@@ -34,7 +34,7 @@ def parseNmapXml(input):
     results = []
     parseTree = etree.parse(input)
     for hostTree in parseTree.xpath('/nmaprun/host'):
-        result = PingResult(hostTree)
+        result = PingResult.createNmapResult(hostTree)
         results.append(result)
     return (results)
     
@@ -53,24 +53,36 @@ class PingResult(object):
     Model of an nmap ping/traceroute result.
     """
     interface.implements(interfaces.IPingResult)
-
-    def __init__(self, hostTree):
+    
+    @staticmethod
+    def createNmapResult(hostTree):
         """
         Contruct an PingResult from an XML parse tree for a host entry.
         """
         if getattr(hostTree, 'xpath', None) is None:
             raise ValueError("hostTree must be of lxml.etree.Element type")
-        self._timestamp = self._parseTimestamp(hostTree)
-        self._address = self._parseAddress(hostTree)
-        self._isUp = self._parseState(hostTree)
+        pr = PingResult("unknown")
+        pr._address = pr._parseAddress(hostTree)
+        pr._timestamp = pr._parseTimestamp(hostTree)
+        pr._isUp = pr._parseState(hostTree)
         try:
-            self._rtt, self._rttVariance = self._parseTimes(hostTree)
+            pr._rtt, pr._rttVariance = pr._parseTimes(hostTree)
         except Exception:
-            self._rtt, self._rttVariace = (_NAN, _NAN)
+            pr._rtt, pr._rttVariace = (_NAN, _NAN)
         try:
-            self._trace = self._parseTraceroute(hostTree)
+            pr._trace = self._parseTraceroute(hostTree)
         except Exception:
-            self._trace = tuple()
+            pr._trace = _NO_TRACE
+        return pr
+    
+    def __init__(self, address, timestamp=None, isUp=False,
+                 rtt=_NAN, stddev=_NAN, trace=_NO_TRACE):
+        self._address = address
+        self._timestamp = timestamp
+        self._isUp = isUp
+        self._rtt = rtt
+        self._rttVariance = stddev * stddev
+        self._trace = trace
     
     def _parseTimestamp(self, hostTree):
         """
@@ -191,7 +203,7 @@ if __name__ == '__main__':
     
     import os.path
     nmap_testfile = os.path.dirname(
-        os.path.realpath(__file__)) + '/tests/nmap_ping.xml'
+        os.path.realpath(__file__)) + '/../tests/nmap_ping.xml'
     results = parseNmapXml(nmap_testfile)
     for result in results:
         print result

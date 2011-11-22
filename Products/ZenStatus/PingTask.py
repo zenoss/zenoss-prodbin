@@ -17,6 +17,7 @@ Determines the availability of a IP addresses using ping (ICMP).
 
 """
 
+import math
 import re
 import time
 import logging
@@ -55,6 +56,7 @@ STATUS_EVENT = {
 '    eventGroup' : 'Ping'
 }
 SUPPRESSED = 2
+_NAN = float('nan')
 
 class PingTask(BaseTask):
     interface.implements(IPingTask)
@@ -105,6 +107,7 @@ class PingTask(BaseTask):
         
         # by defautl don't pause after schedule
         self.pauseOnScheduled = False
+        self._rtt =[]
 
     def doTask(self):
         """
@@ -142,21 +145,43 @@ class PingTask(BaseTask):
 
     @property
     def isUp(self):
-        if self._pingResult is None:
+        """
+        Determine if the device is up
+        """
+        return self._calculateState()
+
+    def _calculateState(self):
+        """
+        Calculate if the device is up or down based on current ping statistics.
+        Return None if unknown, False if down, and True if up.
+        """
+
+        # if there is not enough data to calulate return unknown
+        if len(self._rtt) <= 0:
             return None
-        return self._pingResult.isUp
+
+        lostPackets = len([ rtt for rtt in self._rtt if math.isnan(rtt)])        
+        totalPackets = len(self._rtt)
+        receivedPackets = totalPackets - lostPackets
+
+        isUp = receivedPackets > 0
+        return isUp
+
+    def resetPingResult(self):
+        """
+        Clear out current ping statistics.
+        """
+        self._rtt =[]
 
     def logPingResult(self, pingResult):
         """
         Log the PingResult; set ping state, log to rrd.
         """
         if pingResult is None:
-            raise ValueError("pingResult can not be None")     
-        self._pingResult = pingResult
+            raise ValueError("pingResult can not be None")
+        self._rtt.append(pingResult.rtt)
         if pingResult.trace:
             self._trace = pingResult.trace
-        if pingResult.isUp:
-            self._storeResults()
 
     def sendPingEvent(self, msgTpl, severity, rootCause=None):
         """
@@ -199,21 +224,50 @@ class PingTask(BaseTask):
         """
         return self.sendPingEvent(msgTpl, events.SEVERITY_CRITICAL, rootCause)
 
-    def _storeResults(self):
+    def storeResults(self):
         """
         Store the datapoint results asked for by the RRD template.
         """
+        if len(self._rtt) == 0:
+            return
+
+        # strip out NAN's
+        rtts = [ rtt for rtt in self._rtt if math.isnan(rtt) == False ]
+        if rtts:
+            received = len(rtts)
+            pingCount = len(self._rtt)
+            minRtt = min(rtts)
+            maxRtt = max(rtts)
+            avgRtt = sum(rtts) / received
+            varianceRtt = sum([ math.pow(rtt - avgRtt, 2) for rtt in rtts ]) / received
+            stddevRtt =  math.sqrt(varianceRtt)
+            pingLoss = len(rtts) / pingCount * 100.0
+                
+            datapoints = {
+                'rtt' : avgRtt,
+                'rtt_avg' : avgRtt,
+                'rtt_min' : minRtt,
+                'rtt_max' : maxRtt,
+                'rtt_losspct': pingLoss,
+                'rtt_stddev': stddevRtt,
+            }
+        else:
+            pingLoss = 100
+            datapoints = {
+                'rtt_losspct': pingLoss,
+            }
+        
         if self._pingResult is not None:
             for rrdMeta in self.config.points:
                 name, path, rrdType, rrdCommand, rrdMin, rrdMax = rrdMeta
-                value = getattr(self._pingResult, name, None)
-                if value is None:
+                value = datapoints.get(name, None)
+                if value:
+                    self._dataService.writeRRD(
+                        path, value, rrdType,
+                        rrdCommand=rrdCommand,
+                        min=rrdMin, max=rrdMax,
+                    )
+                else:
                     log.debug("No datapoint '%s' found on the %s pingTask",
                               name, self)
-                    continue
-                self._dataService.writeRRD(
-                    path, value, rrdType,
-                    rrdCommand=rrdCommand,
-                    min=rrdMin, max=rrdMax
-                )
 
