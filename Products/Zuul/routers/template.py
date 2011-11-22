@@ -74,7 +74,7 @@ class TemplateRouter(TreeRouter):
 
         """
         facade = self._getFacade()
-        data = facade.getAddTemplateTargets()
+        data = facade.getAddTemplateTargets(query)
         return DirectResponse.succeed(data=data)
 
     @require('Manage DMD')

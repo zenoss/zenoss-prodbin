@@ -417,6 +417,7 @@ addTemplateDialogConfig = {
         width: 250,
         emptyText: _t('Select a template path...'),
         minChars: 0,
+        queryMode: 'remote',
         ref: '../comboBox',
         selectOnFocus: true,
         typeAhead: true,

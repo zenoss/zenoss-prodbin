@@ -15,7 +15,7 @@ import logging
 from itertools import imap
 from Acquisition import aq_parent
 from zope.interface import implements
-from Products.AdvancedQuery import Eq
+from Products.AdvancedQuery import Eq, MatchRegexp
 from Products.ZenUtils.Utils import prepId
 from Products import Zuul
 from Products.Zuul.interfaces import ITemplateFacade, ICatalogTool, ITemplateNode, IRRDDataSourceInfo, \
@@ -89,7 +89,7 @@ class TemplateFacade(ZuulFacade):
         except UncataloguedObjectException:
             pass
 
-    def getAddTemplateTargets(self):
+    def getAddTemplateTargets(self, query=None):
         """
         @returns list of targets for our new template
         """
@@ -98,8 +98,18 @@ class TemplateFacade(ZuulFacade):
         # it can be any device class that we add the template too
         brains = cat.search(types=[DeviceClass])
         for brain in brains:
-            label = brain.getObject().getOrganizerName()
+            # HACK: use the path to get the organizer name so we don't have to wake up the object
+            label = brain.getPath()
+            if label == "/zport/dmd/Devices":
+                label = "/"
+            else:
+                label = label.replace("/zport/dmd/Devices/", "/")
+
             results.append(dict(uid=brain.getPath(), label=label))
+        # the display is organizer name and we do not index it
+        # so filter after the query
+        if query is not None:
+            results = [result for result in results if query.lower() in result['label'].lower()]
         return sorted(results, key=lambda org: org['label'])
 
     def addTemplate(self, id, targetUid):
