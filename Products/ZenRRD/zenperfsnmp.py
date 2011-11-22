@@ -107,8 +107,7 @@ class StopTask(Exception):
     pass
 
 STATUS_EVENT = { 'eventClass' : Status_Snmp,
-                    'component' : 'snmp',
-                    'eventGroup' : 'SnmpTest' }
+                 'eventGroup' : 'SnmpTest' }
 
 class SnmpPerformanceCollectionTask(BaseTask):
     """
