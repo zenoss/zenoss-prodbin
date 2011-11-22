@@ -177,22 +177,31 @@ Ext.define('Zenoss.HierarchyTreePanel', {
     extend: 'Ext.tree.TreePanel',
     alias: ['widget.HierarchyTreePanel'],
     constructor: function(config) {
+        Ext.applyIf(config, {
+            enableDragDrop:true
+        });
         config.listeners = config.listeners || {};
         Ext.applyIf(config.listeners, {
             itemcontextmenu: Zenoss.treeContextMenu,
             scope: this
         });
 
-        config.viewConfig = config.viewConfig || {};
-        Ext.applyIf(config.viewConfig, {
-            loadMask: true,
-            plugins: {
-                ptype: 'treeviewdragdrop',
-                enableDrag: Zenoss.Security.hasPermission('Change Device'),
-                enableDrop: Zenoss.Security.hasPermission('Change Device'),
-                ddGroup: config.ddGroup
-            }
-        });
+        config.viewConfig = config.viewConfig || {}; 
+        if(config.enableDragDrop){
+            Ext.applyIf(config.viewConfig, {
+                loadMask: true,
+                plugins: {
+                    ptype: 'treeviewdragdrop',
+                    enableDrag: Zenoss.Security.hasPermission('Change Device'),
+                    enableDrop: Zenoss.Security.hasPermission('Change Device'),
+                    ddGroup: config.ddGroup
+                }
+            });
+        }else{
+            Ext.applyIf(config.viewConfig, {        
+                loadMask:true
+            });
+        }
         Ext.applyIf(config, {
             ui: 'hierarchy',
             frame: false,

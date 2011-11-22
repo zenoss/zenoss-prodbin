@@ -175,6 +175,7 @@ Ext.getCmp('master_panel').add({
     items:[{
         xtype: 'TemplateTreePanel',
         selModel: selModel,
+        enableDragDrop: false,
         currentView: getCurrentView()
     }]
 });
