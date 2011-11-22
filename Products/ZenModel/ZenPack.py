@@ -15,7 +15,6 @@ __doc__ = """ZenPack
 ZenPacks base definitions
 """
 
-import exceptions
 import string
 import subprocess
 import os
@@ -36,7 +35,7 @@ from Acquisition import aq_parent
 from Products.ZenModel.ZVersion import VERSION as ZENOSS_VERSION
 
 
-class ZenPackException(exceptions.Exception):
+class ZenPackException(Exception):
     pass
 
 class ZenPackNotFoundException(ZenPackException):
@@ -70,20 +69,7 @@ def eliminateDuplicates(objs):
     @rtype: list of objects
     """
 
-    def compare(x, y):
-        """
-        Comparison function based on getPrimaryPath()
-
-        @param x: object
-        @type x: object
-        @param y: object
-        @type y: object
-        @return: cmp-style return code
-        @rtype: numeric
-        """
-        return cmp(x.getPrimaryPath(), y.getPrimaryPath())
-
-    objs.sort(compare)
+    objs.sort(key = lambda x: x.getPrimaryPath())
     result = []
     for obj in objs:
         for alreadyInList in result:
@@ -344,9 +330,7 @@ class ZenPack(ZenModelRM):
                     except ImportError, ex:
                         log.exception("Problem loading migration step %s", path)
         # sort them by version number
-        def versionCmp(migrate1, migrate2):
-            return cmp(migrate1.version, migrate2.version)
-        instances.sort(versionCmp)
+        instances.sort(key = lambda x: x.version)
         # install those that are newer than previous or our pack version
         migrateCutoff = getVersionTupleFromString(self.version)
         if previousVersion:

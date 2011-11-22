@@ -11,12 +11,12 @@
 # For complete information please visit: http://www.zenoss.com/oss/
 #
 ###########################################################################
-__doc__ = """zenhub
+"""zenhub daemon
 
 Provide remote, authenticated, and possibly encrypted two-way
 communications with the Model and Event databases.
-
 """
+
 import Globals
 
 from XmlRpcService import XmlRpcService
@@ -64,13 +64,12 @@ sys.path.insert(0, zenPath('Products', 'DataCollector', 'plugins'))
 import DataMaps
 unused(DataMaps, ObjectMap)
 
-
 XML_RPC_PORT = 8081
 PB_PORT = 8789
 ZENHUB_ZENRENDER = 'zenhubrender'
 
 class AuthXmlRpcService(XmlRpcService):
-    "Provide some level of authentication for XML/RPC calls"
+    """Provide some level of authentication for XML/RPC calls"""
 
     def __init__(self, dmd, checker):
         XmlRpcService.__init__(self, dmd)
@@ -374,7 +373,7 @@ class ZenHub(ZCmdBase):
             kw['component'] = self.name
         try:
             self.zem.sendEvent(Event(**kw))
-        except:
+        except Exception:
             self.log.exception("Unable to send an event")
 
     def loadChecker(self):

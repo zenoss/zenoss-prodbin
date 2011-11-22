@@ -18,11 +18,11 @@ Available at:  /zport/dmd/template_router
 
 from Products import Zuul
 from Products.ZenUtils.Ext import DirectResponse
+from Products.ZenUtils.Utils import getDisplayType
 from Products.Zuul.decorators import require
 from Products.Zuul.form.interfaces import IFormBuilder
 from Products.Zuul.routers import TreeRouter
-from Products.ZenMessaging.actions import sendUserAction
-from Products.ZenMessaging.actions.constants import ActionTargetType, ActionName
+from Products.ZenMessaging.audit import audit
 
 
 class TemplateRouter(TreeRouter):
@@ -92,9 +92,7 @@ class TemplateRouter(TreeRouter):
         """
         facade = self._getFacade()
         templateNode = facade.addTemplate(id, targetUid)
-        if sendUserAction:
-            sendUserAction(ActionTargetType.Template, ActionName.Add,
-                           template=id, deviceclass=targetUid)
+        audit('UI.Template.Add', templateNode, deviceclass=targetUid)
         return DirectResponse.succeed(nodeConfig=Zuul.marshal(templateNode))
 
     @require('Manage DMD')
@@ -110,9 +108,7 @@ class TemplateRouter(TreeRouter):
         facade = self._getFacade()
         facade.deleteTemplate(uid)
         msg = "Deleted node '%s'" % uid
-        if sendUserAction:
-            sendUserAction(ActionTargetType.Template, ActionName.Delete,
-                           template=uid)
+        audit('UI.Template.Delete', uid)
         return DirectResponse.succeed(msg=msg)
 
     @require('View')
@@ -138,9 +134,7 @@ class TemplateRouter(TreeRouter):
         """
         facade = self._getFacade()
         facade.makeLocalRRDTemplate(uid, templateName)
-        if sendUserAction:
-            sendUserAction(ActionTargetType.Template, 'MakeLocal',
-                           template=templateName, target=uid)
+        audit('UI.Template.MakeLocal', templateName, target=uid)
         return DirectResponse.succeed()
 
     @require('Manage DMD')
@@ -153,9 +147,7 @@ class TemplateRouter(TreeRouter):
         """
         facade = self._getFacade()
         facade.removeLocalRRDTemplate(uid, templateName)
-        if sendUserAction:
-            sendUserAction(ActionTargetType.Template, 'RemoveLocal',
-                           template=templateName, target=uid)
+        audit('UI.Template.RemoveLocal', templateName, target=uid)
         return DirectResponse.succeed()
 
     def getThresholds(self, uid, query=''):
@@ -227,9 +219,7 @@ class TemplateRouter(TreeRouter):
         """
         facade = self._getFacade()
         facade.addDataPoint(dataSourceUid, name)
-        if sendUserAction:
-            sendUserAction(ActionTargetType.DataPoint, ActionName.Add,
-                           datapoint=name, datasource=dataSourceUid)
+        audit('UI.DataPoint.Add', name, datasource=dataSourceUid)
         return DirectResponse.succeed()
 
     @require('Manage DMD')
@@ -248,10 +238,8 @@ class TemplateRouter(TreeRouter):
         """
         facade = self._getFacade()
         ds = facade.addDataSource(templateUid, name, type)
-        if sendUserAction:
-            sendUserAction(ActionTargetType.DataSource, ActionName.Add,
-                           datasource=ds.getPrimaryId(), name=name,
-                           dstype=type, template=templateUid)
+        audit('UI.DataSource.Add', ds.getPrimaryId(), name=name, dstype=type,
+              template=templateUid)
         return DirectResponse.succeed()
 
     def getDataSources(self, uid):
@@ -318,55 +306,24 @@ class TemplateRouter(TreeRouter):
         """
         uid = data['uid']
         del data['uid']
-        facade = self._getFacade()
-        if sendUserAction:
-            oldValues,newId = self._rememberOldInfoValues(uid, data)
-        info = facade.setInfo(uid, data)
-        if sendUserAction:
-            self._sendSetInfoAction(uid, data, info, oldValues, newId)
+        obj = self._getFacade()._getObject(uid)
+        oldData = self._getInfoData(obj, data)
+        info = self._getFacade().setInfo(uid, data)
+        newData = self._getInfoData(obj, data)
+        audit(['UI', getDisplayType(obj), 'Edit'], data_=newData, oldData_=oldData,
+              skipFields_=('newId',))  # special case in TemplateFacade.setInfo()
         return DirectResponse.succeed(data=Zuul.marshal(info))
 
-    def _rememberOldInfoValues(self, uid, data):
+    def _getInfoData(self, obj, keys):
         # TODO: generalize this code for all object types, if possible.
-        facade = self._getFacade()
-        obj = facade._getObject(uid)
-        oldInfo = facade._getDataSourceInfoFromObject(obj)
-        oldValues = {}
-        newId = None
-        for key in data.keys():
-            if key == 'newId':
-                if oldInfo.id and data['newId'] and oldInfo.id != data['newId']:
-                    newId = str(data['newId'])  # this entry gets deleted
-            else:
-                val = getattr(oldInfo, key, None)
-                if val is not None:
-                    oldValues[key] = str(val)  # unmutable copy
-        return oldValues,newId
-
-    def _sendSetInfoAction(self, uid, data, info, oldValues, newId):
-        # Determine added, deleted, and changed values.
-        #       Example: min=0, max=100, old_min=-100  [no old_max]
-        # Otherwise we could just do:  sendUserAction(info.meta_type,
-        #       ActionName.Edit, extra={info.meta_type:uid}, **data))
-        type_ = info.meta_type
-        extra = {type_:uid}
-        if newId:
-            extra['newId'] = newId  # old id can be determined from the uid
-        for key in data.keys():
-            newValue = getattr(info, key, None)
-            hasNewValue = (newValue is not None)
-            hasOldValue = (key in oldValues)
-            newValueStr = str(newValue)
-            oldValueStr = oldValues[key] if hasOldValue else None
-            if hasNewValue and hasOldValue:
-                if newValueStr != oldValueStr:
-                    extra[key] = newValueStr
-                    extra['old_'+key] = oldValueStr
-            elif hasNewValue and not hasOldValue:
-                extra[key] = newValueStr
-            elif hasOldValue and not hasNewValue:
-                extra['old_'+key] = oldValueStr
-        sendUserAction(type_, ActionName.Edit, extra=extra)
+        info = self._getFacade()._getDataSourceInfoFromObject(obj)
+        values = {}
+        for key in keys.keys():
+            val = getattr(info, key, None)
+            if val is not None:
+                values[key] = str(val)  # unmutable copy
+        values['id'] = str(info.id)
+        return values
 
     @require('Manage DMD')
     def addThreshold(self, **data):
@@ -390,10 +347,8 @@ class TemplateRouter(TreeRouter):
         dataPoints = data.get('dataPoints', None)
         facade = self._getFacade()
         facade.addThreshold(uid, thresholdType, thresholdId, dataPoints)
-        if sendUserAction:
-            sendUserAction(ActionTargetType.Threshold, ActionName.Add,
-                           thresholdclass=thresholdId, template=uid,
-                           thresholdtype=thresholdType, datapoints=dataPoints)
+        audit('UI.Threshold.Add', thresholdId, template=uid, thresholdtype=thresholdType,
+              datapoints=dataPoints)
         return DirectResponse.succeed()
 
     @require('Manage DMD')
@@ -408,9 +363,7 @@ class TemplateRouter(TreeRouter):
         """
         facade = self._getFacade()
         facade.removeThreshold(uid)
-        if sendUserAction:
-            sendUserAction(ActionTargetType.Threshold, ActionName.Delete,
-                           thresholdclass=uid)
+        audit('UI.Threshold.Delete', uid)
         return DirectResponse.succeed()
 
     def getThresholdTypes(self, query=None):
@@ -472,10 +425,8 @@ class TemplateRouter(TreeRouter):
         """
         facade = self._getFacade()
         facade.addDataPointToGraph(dataPointUid, graphUid, includeThresholds)
-        if sendUserAction:
-            sendUserAction(ActionTargetType.Graph, 'AddDataPoint',
-                           graph=graphUid, datapoint=dataPointUid,
-                           includethresholds=includeThresholds)
+        audit('UI.Graph.AddDataPoint', graphUid, datapoint=dataPointUid,
+              includeThresholds=includeThresholds)
         return DirectResponse.succeed()
 
     def getCopyTargets(self, uid, query=''):
@@ -510,9 +461,7 @@ class TemplateRouter(TreeRouter):
         """
         facade = self._getFacade()
         facade.copyTemplate(uid, targetUid)
-        if sendUserAction:
-            sendUserAction(ActionTargetType.Template, 'Copy',
-                           template=uid, target=targetUid)
+        audit('UI.Template.Copy', uid, target=targetUid)
         return DirectResponse.succeed()
 
     @require('Manage DMD')
@@ -529,10 +478,7 @@ class TemplateRouter(TreeRouter):
         """
         facade = self._getFacade()
         facade.addGraphDefinition(templateUid, graphDefinitionId)
-        if sendUserAction:
-            sendUserAction(ActionTargetType.GraphDefinition, ActionName.Add,
-                           graphdefinition=graphDefinitionId,
-                           template=templateUid)
+        audit('UI.GraphDefinition.Add', graphDefinitionId, template=templateUid)
         return DirectResponse.succeed()
 
     @require('Manage DMD')
@@ -547,9 +493,7 @@ class TemplateRouter(TreeRouter):
         """
         facade = self._getFacade()
         facade.deleteDataSource(uid)
-        if sendUserAction:
-            sendUserAction(ActionTargetType.DataSource, ActionName.Delete,
-                           datasource=uid)
+        audit('UI.DataSource.Delete', uid)
         return DirectResponse.succeed()
 
     @require('Manage DMD')
@@ -564,9 +508,7 @@ class TemplateRouter(TreeRouter):
         """
         facade = self._getFacade()
         facade.deleteDataPoint(uid)
-        if sendUserAction:
-            sendUserAction(ActionTargetType.DataPoint, ActionName.Delete,
-                           datapoint=uid)
+        audit('UI.DataPoint.Delete', uid)
         return DirectResponse.succeed()
 
     @require('Manage DMD')
@@ -581,9 +523,7 @@ class TemplateRouter(TreeRouter):
         """
         facade = self._getFacade()
         facade.deleteGraphDefinition(uid)
-        if sendUserAction:
-            sendUserAction(ActionTargetType.GraphDefinition, ActionName.Delete,
-                           graphdefinition=uid)
+        audit('UI.GraphDefinition.Delete', uid)
         return DirectResponse.succeed()
 
     @require('Manage DMD')
@@ -598,9 +538,7 @@ class TemplateRouter(TreeRouter):
         """
         facade = self._getFacade()
         facade.deleteGraphPoint(uid)
-        if sendUserAction:
-            sendUserAction(ActionTargetType.GraphPoint, ActionName.Remove,
-                           graphpoint=uid)
+        audit('UI.GraphPoint.Remove', uid)
         return DirectResponse.succeed()
 
     def getGraphPoints(self, uid):
@@ -647,9 +585,7 @@ class TemplateRouter(TreeRouter):
         """
         facade = self._getFacade()
         facade.addThresholdToGraph(graphUid, thresholdUid)
-        if sendUserAction:
-            sendUserAction(ActionTargetType.Graph, 'AddThreshold',
-                           graph=graphUid, thresholdclass=thresholdUid)
+        audit('UI.Graph.AddThreshold', graphUid, thresholdclass=thresholdUid)
         return DirectResponse.succeed()
 
     @require('Manage DMD')
@@ -668,9 +604,7 @@ class TemplateRouter(TreeRouter):
         """
         facade = self._getFacade()
         facade.addCustomToGraph(graphUid, customId, customType)
-        if sendUserAction:
-            sendUserAction(ActionTargetType.Graph, 'AddCustomGraphPoint',
-                           custom=customId, graph=graphUid)
+        audit('UI.Graph.AddCustomGraphPoint', graphUid, custom=customId)
         return DirectResponse.succeed()
 
     def getGraphInstructionTypes(self, query=''):
@@ -699,12 +633,9 @@ class TemplateRouter(TreeRouter):
         """
         facade = self._getFacade()
         facade.setGraphPointSequence(uids)
-        if sendUserAction:
-            # TODO: Is it enforced that they're all in the same graph definition?
-            #       If so:  graphdefinition=/blah/uid sequence=[one,two,three]
-            sendUserAction(ActionTargetType.GraphDefinition,
-                           'SetGraphPointSequence',
-                           sequence=uids)
+        # TODO: Is it enforced that they're all in the same graph definition?
+        #       If so:  graphdefinition=/blah/uid sequence=[one,two,three]
+        audit('UI.GraphDefinition.SetGraphPointSequence', sequence=uids)
         return DirectResponse.succeed()
 
     def getGraphDefinition(self, uid):
@@ -743,12 +674,12 @@ class TemplateRouter(TreeRouter):
             except (ValueError, KeyError):
                 x = -1
             data[int_attr] = x
-        if sendUserAction:
-            oldValues,newId = self._rememberOldInfoValues(uid, data)
-        facade = self._getFacade()
-        info = facade.setInfo(uid, data)
-        if sendUserAction:
-            self._sendSetInfoAction(uid, data, info, oldValues, newId)
+        obj = self._getFacade()._getObject(uid)
+        oldData = self._getInfoData(obj, data)
+        info = self._getFacade().setInfo(uid, data)
+        newData = self._getInfoData(obj, data)
+        audit(['UI', getDisplayType(obj), 'Edit'], data_=newData, oldData_=oldData,
+              skipFields_=('newId',))  # special case in TemplateFacade.setInfo()
         return DirectResponse.succeed()
 
     @require('Manage DMD')
@@ -763,10 +694,7 @@ class TemplateRouter(TreeRouter):
         """
         facade = self._getFacade()
         facade._setGraphDefinitionSequence(uids)
-        if sendUserAction:
-            # TODO: Is it enforced that they're all in the same template?
-            #       If so:  template=/blah/uid sequence=[one,two,three]
-            sendUserAction(ActionTargetType.Template,
-                           'SetGraphDefinitionSequence',
-                           sequence=uids)
+        # TODO: Is it enforced that they're all in the same template?
+        #       If so:  template=/blah/uid sequence=[one,two,three]
+        audit('UI.Template,SetGraphDefinitionSequence', sequence=uids)
         return DirectResponse.succeed()

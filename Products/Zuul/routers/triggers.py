@@ -19,8 +19,7 @@ from Products.ZenUtils.Ext import DirectRouter
 from Products.ZenUtils.extdirect.router import DirectResponse
 from Products.Zuul.decorators import serviceConnectionError
 from zenoss.protocols.protobufs.zep_pb2 import RULE_TYPE_JYTHON
-from Products.ZenMessaging.actions import sendUserAction
-from Products.ZenMessaging.actions.constants import ActionTargetType, ActionName
+from Products.ZenMessaging.audit import audit
 
 import logging
 
@@ -45,25 +44,18 @@ class TriggersRouter(DirectRouter):
     @serviceConnectionError
     def addTrigger(self, newId):
         data = self._getFacade().addTrigger(newId)
-        if sendUserAction:
-            sendUserAction(ActionTargetType.Trigger, ActionName.Add,
-                           trigger=newId)
+        audit('UI.Trigger.Add', newId)
         return DirectResponse.succeed(data=data)
 
     @serviceConnectionError
     def removeTrigger(self, uuid):
-
         updated_count = self._getFacade().removeTrigger(uuid)
-
+        audit('UI.Trigger.Remove', uuid)
         msg = "Trigger removed successfully. {count} {noun} {verb} updated.".format(
             count = updated_count,
             noun = 'notification' if updated_count == 1 else 'notifications',
             verb = 'was' if updated_count == 1 else 'were'
         )
-
-        if sendUserAction:
-            sendUserAction(ActionTargetType.Trigger, ActionName.Remove,
-                           trigger=uuid)
         return DirectResponse.succeed(msg=msg, data=None)
 
     @serviceConnectionError
@@ -76,9 +68,7 @@ class TriggersRouter(DirectRouter):
         data['rule']['type'] = RULE_TYPE_JYTHON
         triggerUid = data['uuid']
         response = self._getFacade().updateTrigger(**data)
-        if sendUserAction:
-            sendUserAction(ActionTargetType.Trigger, ActionName.Edit,
-                           trigger=triggerUid, **data)
+        audit('UI.Trigger.Edit', triggerUid, data_=data)
         return DirectResponse.succeed(msg="Trigger updated successfully.", data=response)
 
     @serviceConnectionError
@@ -101,17 +91,13 @@ class TriggersRouter(DirectRouter):
     @serviceConnectionError
     def addNotification(self, newId, action):
         response = self._getFacade().addNotification(newId, action)
-        if sendUserAction:
-            sendUserAction(ActionTargetType.Notification, ActionName.Add,
-                           notification=newId)
+        audit('UI.Notification.Add', newId)
         return DirectResponse.succeed(data=Zuul.marshal(response))
 
     @serviceConnectionError
     def removeNotification(self, uid):
         response = self._getFacade().removeNotification(uid)
-        if sendUserAction:
-            sendUserAction(ActionTargetType.Notification, ActionName.Remove,
-                           notification=uid)
+        audit('UI.Notification.Remove', uid)
         return DirectResponse.succeed(msg="Notification removed successfully.", data=response)
 
     @serviceConnectionError
@@ -130,9 +116,7 @@ class TriggersRouter(DirectRouter):
     def updateNotification(self, **data):
         notificationUid = data['uid']
         response = self._getFacade().updateNotification(**data)
-        if sendUserAction:
-            sendUserAction(ActionTargetType.Notification, ActionName.Edit,
-                           notification=notificationUid, **data)
+        audit('UI.Notification.Edit', notificationUid, data_=data)
         return DirectResponse.succeed(msg="Notification updated successfully.", data=Zuul.marshal(response))
 
     @serviceConnectionError
@@ -149,17 +133,13 @@ class TriggersRouter(DirectRouter):
     @serviceConnectionError
     def addWindow(self, contextUid, newId):
         response = self._getFacade().addWindow(contextUid, newId)
-        if sendUserAction:
-            sendUserAction(ActionTargetType.NotificationWindow, ActionName.Add,
-                           notificationwindow=newId, notification=contextUid)
+        audit('UI.NotificationWindow.Add', newId, notification=contextUid)
         return DirectResponse.succeed(data=Zuul.marshal(response))
 
     @serviceConnectionError
     def removeWindow(self, uid):
         response = self._getFacade().removeWindow(uid)
-        if sendUserAction:
-            sendUserAction(ActionTargetType.NotificationWindow, ActionName.Remove,
-                           notificationwindow=uid)
+        audit('UI.NotificationWindow.Remove', uid)
         return DirectResponse.succeed(data=Zuul.marshal(response))
 
     @serviceConnectionError
@@ -171,7 +151,5 @@ class TriggersRouter(DirectRouter):
     def updateWindow(self, **data):
         windowUid = data['uid']
         response = self._getFacade().updateWindow(data)
-        if sendUserAction:
-            sendUserAction(ActionTargetType.NotificationWindow, ActionName.Edit,
-                           notificationwindow=windowUid, **data)
+        audit('UI.NotificationWindow.Edit', windowUid, data_=data)
         return DirectResponse.succeed(data=Zuul.marshal(response))

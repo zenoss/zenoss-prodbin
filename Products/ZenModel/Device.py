@@ -31,6 +31,7 @@ from AccessControl.PermissionRole import rolesForPermissionOn
 from Products.Zuul.catalog.events import IndexingEvent
 from Products.ZenUtils.Utils import isXmlRpc, unused, getObjectsFromCatalog
 from Products.ZenUtils import Time
+from Products.ZenUtils.deprecated import deprecated
 
 import RRDView
 from Products import Zuul
@@ -52,7 +53,6 @@ from zExceptions import NotFound
 from ZODB.POSException import POSError
 
 
-#from Products.SnmpCollector.SnmpCollector import findSnmpCommunity
 from Products.DataCollector.ApplyDataMap import ApplyDataMap
 
 from Products.ZenRelations.RelSchema import *
@@ -68,7 +68,6 @@ from DeviceHW import DeviceHW
 from ZenStatus import ZenStatus
 from Products.ZenModel.Exceptions import *
 from ZenossSecurity import *
-from Products.ZenUtils.FakeRequest import FakeRequest
 from Products.ZenUtils.Utils import edgesToXML
 from Products.ZenUtils import NetworkTree
 
@@ -79,10 +78,9 @@ from Products.ZenWidgets import messaging
 from Products.ZenEvents.browser.EventPillsAndSummaries import getEventPillME
 from OFS.CopySupport import CopyError # Yuck, a string exception
 from Products.Zuul import getFacade
-from Products.Zuul.utils import allowedRolesAndUsers
+import Products.Zuul.utils
 from Products.ZenUtils.IpUtil import numbip
-from Products.ZenMessaging.actions import sendUserAction
-from Products.ZenMessaging.actions.constants import ActionTargetType, ActionName
+from Products.ZenMessaging.audit import audit
 
 
 def getNetworkRoot(context, performanceMonitor):
@@ -199,14 +197,15 @@ def manage_addDevice(context, id, REQUEST=None):
     serv = Device(id)
     context._setObject(serv.id, serv)
     if REQUEST is not None:
-        messaging.IMessageSender(self).sendToBrowser(
-            'Device Added',
-            'Device %s has been created.' % id
-        )
-        if sendUserAction:
-            uid = context._getOb(serv.id).getPrimaryId()
-            sendUserAction(ActionTargetType.Device, ActionName.Add,
-                           device=uid, deviceclass=context)
+        # TODO: there is no "self"! Fix UI feedback code.
+        #messaging.IMessageSender(self).sendToBrowser(
+        #    'Device Added',
+        #    'Device %s has been created.' % id
+        #)
+
+        # TODO: test this audits correctly. How is this called?
+        #uid = context._getOb(serv.id).getPrimaryId()
+        audit('UI.Device.Add', serv, deviceClass=context)
         REQUEST['RESPONSE'].redirect(context.absolute_url()+'/manage_main')
 
 addDevice = DTMLFile('dtml/addDevice',globals())
@@ -215,7 +214,7 @@ addDevice = DTMLFile('dtml/addDevice',globals())
 class NoNetMask(Exception): pass
 
 class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable,
-            AdministrativeRoleable, ZenMenuable):
+             AdministrativeRoleable, ZenMenuable):
     """
     Device is a base class that represents the idea of a single computer system
     that is made up of software running on hardware. It currently must be IP
@@ -361,10 +360,8 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable,
         """
         self.deviceClass().moveDevices(deviceClassPath, (self.id,))
         device = self.getDmdRoot('Devices').findDevice(self.id)
-        if sendUserAction and REQUEST:
-            sendUserAction(ActionTargetType.Device, 'SetDeviceClass',
-                           device=self.getPrimaryId(),
-                           deviceclass=deviceClassPath)
+        if REQUEST:
+            audit('UI.Device.SetDeviceClass', self, deviceClass=deviceClassPath)
         return device.absolute_url_path()
 
     def getRRDTemplate(self):
@@ -963,9 +960,8 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable,
                 notify(IndexingEvent(self, ('ipAddress',), True))
                 log.info("%s's IP address has been set to %s.",
                          self.id, ip)
-                if sendUserAction and REQUEST:
-                    sendUserAction(ActionTargetType.Device, 'ResetIP',
-                                   device=self.getPrimaryId(), ip=ip)
+                if REQUEST:
+                    audit('UI.Device.ResetIP', self, ip=ip)
 
         return message
 
@@ -1224,12 +1220,10 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable,
         if REQUEST:
             from Products.ZenUtils.Time import SaveMessage
             IMessageSender(self).sendToBrowser("Saved", SaveMessage())
-            if sendUserAction:
-                # TODO: Audit all of the changed values.
-                #       How is this method called to test the output?
-                #       Will the [zProperties] field show password values?
-                sendUserAction(
-                    ActionTargetType.Device, 'Edit', device=self.getPrimaryId())
+            # TODO: Audit all of the changed values.
+            #       How is this method called to test the output?
+            #       Will the [zProperties] field show password values?
+            audit('UI.Device.Edit', self)
             return self.callZenScreen(REQUEST)
 
 
@@ -1310,11 +1304,9 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable,
         for component in self.getDeviceComponents():
             if isinstance(component, ManagedEntity) and self.productionState == component.productionState:
                 notify(IndexingEvent(component.primaryAq(), ('productionState',), True))
-        if sendUserAction and REQUEST:
-            sendUserAction(ActionTargetType.Device, 'EditProductionState',
-                           device=self.getPrimaryId(),
-                           productionState=state,
-                           maintenanceWindowChange=maintWindowChange)
+        if REQUEST:
+            audit('UI.Device.EditProductionState', self, productionState=state,
+                  maintenanceWindowChange=maintWindowChange)
         return ret
 
     security.declareProtected(ZEN_CHANGE_DEVICE, 'setPriority')
@@ -1332,9 +1324,7 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable,
                 "Device priority has been set to %s." % (
                     self.getPriorityString())
             )
-            if sendUserAction:
-                sendUserAction(ActionTargetType.Device, 'EditPriority',
-                               device=self.getPrimaryId(), priority=priority)
+            audit('UI.Device.EditPriority', self, priority=priority)
             return self.callZenScreen(REQUEST)
 
     security.declareProtected(ZEN_CHANGE_DEVICE, 'setLastChange')
@@ -1387,10 +1377,7 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable,
                 'Manufacturer Added',
                 'The %s manufacturer has been created.' % mname
             )
-            if sendUserAction:
-                sendUserAction(ActionTargetType.Device, 'AddManufacturer',
-                               device=self.getPrimaryId(),
-                               manufacturer=mname)
+            audit('UI.Device.AddManufacturer', self, manufacturer=mname)
             return self.callZenScreen(REQUEST)
 
 
@@ -1417,11 +1404,8 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable,
                     'Hardware product has been set to %s.' % newHWProductName
                 )
                 REQUEST['hwProductName'] = newHWProductName
-                if sendUserAction:
-                    sendUserAction(ActionTargetType.Device, 'SetHWProduct',
-                                   device=self.getPrimaryId(),
-                                   manufacturer=hwManufacturer,
-                                   product=newHWProductName)
+                audit('UI.Device.SetHWProduct', self, manufacturer=hwManufacturer,
+                      product=newHWProductName)
             else:
                 messaging.IMessageSender(self).sendToBrowser(
                     'Set Product Failed',
@@ -1451,11 +1435,8 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable,
                     'OS product has been set to %s.' % newOSProductName
                 )
                 REQUEST['osProductName'] = newOSProductName
-                if sendUserAction:
-                    sendUserAction(ActionTargetType.Device, 'SetOSProduct',
-                                   device=self.getPrimaryId(),
-                                   manufacturer=osManufacturer,
-                                   product=newOSProductName)
+                audit('UI.Device.SetOSProduct', self, manufacturer=osManufacturer,
+                      product=newOSProductName)
             else:
                 messaging.IMessageSender(self).sendToBrowser(
                     'Set Product Failed',
@@ -1480,11 +1461,9 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable,
         self.setAdminLocalRoles()
         self.index_object()
         notify(IndexingEvent(self, 'path', False))
-        if sendUserAction and REQUEST:
+        if REQUEST:
             action = 'SetLocation' if locationPath else 'RemoveFromLocation'
-            sendUserAction(ActionTargetType.Device, action,
-                           device=self.getPrimaryId(),
-                           location=locationPath)
+            audit(['UI.Device', action], self, location=locationPath)
 
 
     def addLocation(self, newLocationPath, REQUEST=None):
@@ -1502,10 +1481,7 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable,
                 'Location Added',
                 'Location %s has been created.' % newLocationPath
             )
-            if sendUserAction:
-                sendUserAction(ActionTargetType.Device, 'SetLocation',
-                               device=self.getPrimaryId(),
-                               location=newLocationPath)
+            audit('UI.Device.SetLocation', self, location=newLocationPath)
             return self.callZenScreen(REQUEST)
 
 
@@ -1533,10 +1509,8 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable,
                 'Monitor Changed',
                 'Performance monitor has been set to %s.' % performanceMonitor
             )
-            if sendUserAction:
-                sendUserAction(ActionTargetType.Device, 'SetPerformanceMonitor',
-                               device=self.getPrimaryId(),
-                               performancemonitor=performanceMonitor)
+            audit('UI.Device.SetPerformanceMonitor', self, 
+                  performancemonitor=performanceMonitor)
             return self.callZenScreen(REQUEST)
 
 
@@ -1569,10 +1543,7 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable,
                 'Group Added',
                 'Group %s has been created.' % newDeviceGroupPath
             )
-            if sendUserAction:
-                sendUserAction(ActionTargetType.Device, 'AddToGroup',
-                               device=self.getPrimaryId(),
-                               group=newDeviceGroupPath)
+            audit('UI.Device.AddToGroup', self, group=newDeviceGroupPath)
             return self.callZenScreen(REQUEST)
 
 
@@ -1605,10 +1576,7 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable,
                 'System Added',
                 'System %s has been created.' % newSystemPath
             )
-            if sendUserAction:
-                sendUserAction(ActionTargetType.Device, 'AddToSystem',
-                               device=self.getPrimaryId(),
-                               system=newSystemPath)
+            audit('UI.Device.AddToSystem', self, system=newSystemPath)
             return self.callZenScreen(REQUEST)
 
 
@@ -1790,9 +1758,8 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable,
         perfConf.collectDevice(self, setlog, REQUEST, generateEvents,
                                background, write)
 
-        if sendUserAction and REQUEST:
-            sendUserAction(ActionTargetType.Device, 'Remodel',
-                           device=self.getPrimaryId())
+        if REQUEST:
+            audit('UI.Device.Remodel', self)
         if xmlrpc: return 0
 
 
@@ -1827,12 +1794,8 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable,
         if REQUEST:
             if parent.getId()=='devices':
                 parent = parent.getPrimaryParent()
-            if sendUserAction:
-                sendUserAction(ActionTargetType.Device, ActionName.Delete,
-                               device=self.getPrimaryId(),
-                               deleteStatus=deleteStatus,
-                               deleteHistory=deleteHistory,
-                               deletePerf=deletePerf)
+            audit('UI.Device.Delete', self, deleteStatus=deleteStatus, 
+                  deleteHistory=deleteHistory, deletePerf=deletePerf)
             REQUEST['RESPONSE'].redirect(parent.absolute_url() +
                                             "/deviceOrganizerStatus"
                                             '?message=Device deleted')
@@ -1878,10 +1841,8 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable,
             parent.manage_renameObject(oldId, newId)
             self.renameDeviceInPerformance(oldId, newId)
             self.setLastChange()
-            if sendUserAction and REQUEST:
-                sendUserAction(ActionTargetType.Device, ActionName.Rename,
-                               device=self.getPrimaryId(), old=oldId)
-
+            if REQUEST:
+                audit('UI.Device.Rename', self, oldId=oldId)
             return self.absolute_url_path()
 
         except CopyError, e:
@@ -2056,9 +2017,7 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable,
                 'Changes Pushed',
                 'Changes to %s pushed to collectors.' % self.id
             )
-            if sendUserAction:
-                sendUserAction(ActionTargetType.Device, 'PushChanges',
-                               device=self.getPrimaryId())
+            audit('UI.Device.PushChanges', self)
             return self.callZenScreen(REQUEST)
 
     security.declareProtected(ZEN_EDIT_LOCAL_TEMPLATES, 'bindTemplates')
@@ -2069,9 +2028,8 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable,
         @permission: ZEN_EDIT_LOCAL_TEMPLATES
         """
         result = self.setZenProperty('zDeviceTemplates', ids, REQUEST)
-        if sendUserAction and REQUEST:
-            sendUserAction(ActionTargetType.Device, 'BindTemplates',
-                           device=self.getPrimaryId(), templates=ids)
+        if REQUEST:
+            audit('UI.Device.BindTemplates', self, templates=ids)
         return result
 
     security.declareProtected(ZEN_EDIT_LOCAL_TEMPLATES, 'removeZDeviceTemplates')
@@ -2083,9 +2041,8 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable,
         """
         for id in self.zDeviceTemplates:
             self.removeLocalRRDTemplate(id)
-            if sendUserAction and REQUEST:
-                sendUserAction(ActionTargetType.Device, 'RemoveLocalTemplate',
-                               device=self.getPrimaryId(), template=id)
+            if REQUEST:
+                audit('UI.Device.RemoveLocalTemplate', self, template=id)
         from Products.ZenRelations.ZenPropertyManager import ZenPropertyDoesNotExist
         try:
             return self.deleteZenProperty('zDeviceTemplates', REQUEST)
@@ -2108,9 +2065,7 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable,
                 'Local Template Added',
                 'Added template %s to %s.' % (id, self.id)
             )
-            if sendUserAction:
-                sendUserAction(ActionTargetType.Device, 'AddLocalTemplate',
-                               device=self.getPrimaryId(), template=id)
+            audit('UI.Device.AddLocalTemplate', self, template=id)
             return self.callZenScreen(REQUEST)
 
     def getAvailableTemplates(self):
@@ -2335,9 +2290,7 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable,
         return json(details)
 
     def allowedRolesAndUsers(self):
-        """
-        """
-        return allowedRolesAndUsers(self)
+        return utils.allowedRolesAndUsers(self)
 
     def ipAddressAsInt(self):
         ip = self.getManageIp()

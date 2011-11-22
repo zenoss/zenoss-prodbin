@@ -23,8 +23,7 @@ from Products.Zuul.decorators import require
 from Products.Zuul.interfaces import IInfo
 from Products.Zuul.form.interfaces import IFormBuilder
 from Products import Zuul
-from Products.ZenMessaging.actions import sendUserAction
-from Products.ZenMessaging.actions.constants import ActionTargetType, ActionName
+from Products.ZenMessaging.audit import audit
 
 log = logging.getLogger('zen.MibRouter')
 
@@ -98,16 +97,11 @@ class MibRouter(TreeRouter):
                 maoUid = uid.replace('/zport/dmd', '')
                 self.context.dmd.Mibs.manage_addOrganizer(maoUid)
                 self.context.dmd.restrictedTraverse(uid)
-                if sendUserAction:
-                    sendUserAction(ActionTargetType.Organizer, ActionName.Add,
-                                   organizer=uid)
+                audit('UI.Organizer.Add', uid)
             else:
                 container = self.context.dmd.restrictedTraverse(contextUid)
                 container.manage_addMibModule(id)
-                if sendUserAction:
-                    mibUid = contextUid + '/' + id
-                    sendUserAction(ActionTargetType.Mib, ActionName.Add,
-                                   mib=mibUid)
+                audit('UI.Mib.Add', contextUid + '/' + id)
 
             return DirectResponse.succeed(tree=self.getTree())
         except Exception, e:
@@ -128,9 +122,7 @@ class MibRouter(TreeRouter):
         facade = self._getFacade()
         success, message = facade.addMibPackage(package, organizer)
         if success:
-            if sendUserAction:
-                sendUserAction(ActionTargetType.Mib, 'AddFromPackage',
-                               mibpackage=package, organizer=organizer)
+            audit('UI.Mib.AddFromPackage', mibpackage=package, organizer=organizer)
             return DirectResponse.succeed(jobId=message)
         else:
             return DirectResponse.fail(message)
@@ -150,18 +142,14 @@ class MibRouter(TreeRouter):
         organizer = represented.getParentNode()
         if represented.meta_type == 'MibOrganizer':
             organizer.manage_deleteOrganizer(represented.id)
-            if sendUserAction:
-                sendUserAction(ActionTargetType.Organizer, ActionName.Delete,
-                               organizer=represented.id)
+            audit('UI.Organizer.Delete', represented.id)
         else:
             organizer.removeMibModules(ids=represented.id)
-            if sendUserAction:
-                mibUids = represented.id
-                if isinstance(mibUids, basestring):
-                    mibUids = (mibUids,)
-                for mibUid in mibUids:
-                    sendUserAction(ActionTargetType.Mib, ActionName.Remove,
-                                   mib=mibUid)
+            mibUids = represented.id
+            if isinstance(mibUids, basestring):
+                mibUids = (mibUids,)
+            for mibUid in mibUids:
+                audit('UI.Mib.Remove', mibUid)
         return DirectResponse.succeed(tree=self.getTree())
 
     @require('Manage DMD')
@@ -179,10 +167,8 @@ class MibRouter(TreeRouter):
         """
         parent = self.api.moveMibs(uids, target)
         parent = IInfo(parent)
-        if sendUserAction:
-            for uid in uids:
-                sendUserAction(ActionTargetType.Mib, ActionName.Move,
-                               mib=uid, target=target)
+        for uid in uids:
+            audit('UI.Mib.Move', uid, target=target)
         return DirectResponse.succeed(data=Zuul.marshal(parent))
 
     def getInfo(self, uid, useFieldSets=True):
@@ -221,23 +207,17 @@ class MibRouter(TreeRouter):
         del data['uid']
         facade = self._getFacade()
         info = facade.setInfo(uid, data)
-        if sendUserAction:
-            sendUserAction(ActionTargetType.Mib, ActionName.Edit,
-                           mib=uid, **data)
+        audit('UI.Mib.Edit', uid, data_=data)
         return DirectResponse.succeed(data=Zuul.marshal(info))
 
     def addOidMapping(self, uid, id, oid, nodetype='node'):
         self.api.addOidMapping(uid, id, oid, nodetype)
-        if sendUserAction:
-            sendUserAction(ActionTargetType.Mib, 'AddOidMapping',
-                           mib=uid, id=id, oid=oid, nodetype=nodetype)
+        audit('UI.Mib.AddOidMapping', uid, id=id, oid=oid, nodetype=nodetype)
         return DirectResponse.succeed()
 
     def addTrap(self, uid, id, oid, nodetype='notification'):
         self.api.addTrap(uid, id, oid, nodetype)
-        if sendUserAction:
-            sendUserAction(ActionTargetType.Mib, 'AddTrap',
-                           mib=uid, id=id, oid=oid, nodetype=nodetype)
+        audit('UI.Mib.AddTrap', uid, id=id, oid=oid, nodetype=nodetype)
         return DirectResponse.succeed()
 
     def deleteOidMapping(self, uid):
@@ -245,9 +225,7 @@ class MibRouter(TreeRouter):
             return DirectResponse.fail('"%s" does not appear to refer to an OID Mapping' % uid)
         mibUid, mappingId = uid.split('/nodes/')
         self.api.deleteOidMapping(mibUid, mappingId)
-        if sendUserAction:
-            sendUserAction(ActionTargetType.Mib, 'DeleteOidMapping',
-                           mib=mibUid, mapping=mappingId)
+        audit('UI.Mib.DeleteOidMapping', mibUid, mapping=mappingId)
         return DirectResponse.succeed()
 
     def deleteTrap(self, uid):
@@ -255,9 +233,7 @@ class MibRouter(TreeRouter):
             return DirectResponse.fail('"%s" does not appear to refer to a trap' % uid)
         mibUid, trapId = uid.split('/notifications/')
         self.api.deleteTrap(mibUid, trapId)
-        if sendUserAction:
-            sendUserAction(ActionTargetType.Mib, 'DeleteTrap',
-                           mib=mibUid, trap=trapId)
+        audit('UI.Mib.DeleteTrap', mibUid, trap=trapId)
         return DirectResponse.succeed()
 
     def getOidMappings(self, uid, dir='ASC', sort='name', start=0, page=None, limit=256):

@@ -11,7 +11,10 @@
 #
 ###########################################################################
 
-__doc__="""ZenScriptBase
+"""ZenScriptBase
+
+Scripts with classes who extend ZenScriptBase have a zope instance with a
+dmd root and loaded ZenPacks, like zendmd.
 """
 
 from AccessControl.SecurityManagement import newSecurityManager
@@ -57,7 +60,7 @@ class ZenScriptBase(CmdBase):
 
 
     def login(self, name='admin', userfolder=None):
-        '''Logs in.'''
+        """Logs in."""
         if userfolder is None:
             userfolder = self.app.acl_users
         user = userfolder.getUserById(name)
@@ -68,7 +71,7 @@ class ZenScriptBase(CmdBase):
 
 
     def logout(self):
-        '''Logs out.'''
+        """Logs out."""
         noSecurityManager()
 
 

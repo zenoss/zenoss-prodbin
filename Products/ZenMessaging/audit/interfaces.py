@@ -19,11 +19,11 @@ class IAuditManager(Interface):
     See __init__.py for usage.
     """
     def audit(self,
-              category_,        # 'Source.ObjType.Action' or [source, objType, action, ...]
-              object_=None,     # Target object matching the ObjType.
+              category_,        # 'Source.Kind.Action' or ['Source', 'Kind', 'Action']
+              object_=None,     # Target object of the specified Kind.
+              data_=None,       # New values in format {name:value}
+              oldData_=None,    # Old values in format {name:oldValue}
               skipFields_=(),   # Completely ignore fields with these names.
               maskFields_=(),   # Hide values of these field names, such as 'password'.
-              oldData_=None,    # Old values in format {name:oldValue}
-              data_=None,       # New values in format {name:value}
               **kwargs):        # New values in format name=value
         pass

@@ -21,8 +21,7 @@ from Products.Zuul.routers import TreeRouter
 from Products.Zuul.decorators import require
 from Products.ZenUtils.Ext import DirectResponse
 from Products.ZenUtils.jsonutils import unjson
-from Products.ZenMessaging.actions import sendUserAction
-from Products.ZenMessaging.actions.constants import ActionTargetType, ActionName
+from Products.ZenMessaging.audit import audit
 
 
 class ServiceRouter(TreeRouter):
@@ -75,10 +74,7 @@ class ServiceRouter(TreeRouter):
         else:
             raise Exception('The new service was added, but the system was '
                             'unable to add it to the list.')
-        if sendUserAction:
-            uid = contextUid + '/' + id
-            sendUserAction(ActionTargetType.Service, ActionName.Add,
-                           service=uid)
+        audit('UI.Service.Add', contextUid + '/' + id)
         return DirectResponse(newIndex=newIndex)
 
     def query(self, limit=None, start=None, sort=None, dir=None, params=None,
@@ -192,9 +188,7 @@ class ServiceRouter(TreeRouter):
         if 'serviceKeys' in data and isinstance(data['serviceKeys'], str):
             data['serviceKeys'] = tuple(l.strip() for l in data['serviceKeys'].split(','))
         Zuul.unmarshal(data, service)   # removes data['uid']
-        if sendUserAction:
-            sendUserAction(ActionTargetType.Service, ActionName.Edit,
-                           service=serviceUid, **data)
+        audit('UI.Service.Edit', serviceUid, data_=data)
         return DirectResponse.succeed()
 
     def getInstances(self, uid, start=0, params=None, limit=50, sort='name',
@@ -246,10 +240,8 @@ class ServiceRouter(TreeRouter):
         @return:  Success messsage
         """
         self.api.moveServices(sourceUids, targetUid)
-        if sendUserAction:
-            for uid in sourceUids:
-                sendUserAction(ActionTargetType.Service, ActionName.Move,
-                               service=uid, target=targetUid)
+        for uid in sourceUids:
+            audit('UI.Service.Move', uid, target=targetUid)
         return DirectResponse.succeed()
 
     def getUnmonitoredStartModes(self, uid):

@@ -20,6 +20,7 @@ import logging
 from itertools import islice
 from AccessControl import Unauthorized
 from Products.ZenUtils.Ext import DirectResponse
+from Products.ZenUtils.Utils import getDisplayType
 from Products.ZenUtils.jsonutils import unjson
 from Products import Zuul
 from Products.ZenModel.Device import Device
@@ -456,7 +457,7 @@ class DeviceRouter(TreeRouter):
             tree = self.getTree(target)
 
             # audit example: ('UI.Device.ChangeLocation', deviceUid, location=...)
-            targetType = facade._getObject(targetUid).meta_type
+            targetType = getDisplayType(facade._getObject(targetUid))
             autoRemovalTypes = ('DeviceClass', 'Location')
             action = ('Change' if targetType in autoRemovalTypes else 'AddTo') + targetType
             for uid in uids:
@@ -1038,7 +1039,7 @@ class DeviceRouter(TreeRouter):
                 action = 'RemoveFrom' + organizerType   # Ex: RemoveFromLocation
                 for devuid in uids:
                     # Ex: ('UI.Device.RemoveFromLocation', deviceUid, location=...)
-                    audit(['UI.Device', action], devuid, data_={organizerType:uid})
+                    audit('UI.Device.%s' % action, devuid, data_={organizerType:uid})
             elif action == "delete":
                 facade.deleteDevices(uids,
                                      deleteEvents=deleteEvents,

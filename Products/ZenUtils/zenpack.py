@@ -10,7 +10,7 @@
 # For complete information please visit: http://www.zenoss.com/oss/
 #
 ###########################################################################
-__doc__ = "Manage ZenPacks"
+"""Script to manage ZenPacks."""
 
 import os, sys
 import contextlib
@@ -77,7 +77,7 @@ def RemoveZenPack(dmd, packName, log=None,
 
 
 class ZenPackCmd(ZenScriptBase):
-    "Manage ZenPacks"
+    """Manage ZenPacks"""
 
     def _verifyZepRunning(self):
         zep = getFacade('zep')
@@ -88,7 +88,7 @@ class ZenPackCmd(ZenScriptBase):
             pass
 
     def run(self):
-        "Execute the user's request"
+        """Execute the user's request"""
         if self.args:
             print "Require one of --install, --remove or --list flags."
             self.parser.print_help()
@@ -201,10 +201,10 @@ class ZenPackCmd(ZenScriptBase):
 
 
     def preInstallCheck(self, eggInstall=True):
-        ''' Check that prerequisite zenpacks are installed.
+        """Check that prerequisite zenpacks are installed.
         Return True if no prereqs specified or if they are present.
         False otherwise.
-        '''
+        """
         if eggInstall:
             installedPacks = dict((pack.id, pack.version) \
                              for pack in self.dataroot.ZenPackManager.packs())
@@ -288,7 +288,6 @@ class ZenPackCmd(ZenScriptBase):
 
 
     def install(self, packName):
-        
         zp = None
         try:
             # hide uncatalog error messages since they do not do any harm
@@ -323,7 +322,7 @@ class ZenPackCmd(ZenScriptBase):
         transaction.commit()
 
     def extract(self, fname):
-        "Unpack a ZenPack, and return the name"
+        """Unpack a ZenPack, and return the name"""
         if not os.path.isfile(fname):
             self.stop('Unable to open file "%s"' % fname)
         zf = ZipFile(fname)
@@ -347,9 +346,9 @@ class ZenPackCmd(ZenScriptBase):
         
         
     def copyDir(self, srcDir):
-        '''Copy an unzipped zenpack to the appropriate location.
+        """Copy an unzipped zenpack to the appropriate location.
         Return the name.
-        '''
+        """
         # Normalize srcDir to not end with slash
         if srcDir.endswith('/'):
             srcDir = srcDir[:-1]
@@ -378,9 +377,9 @@ class ZenPackCmd(ZenScriptBase):
 
 
     def linkDir(self, srcDir):
-        '''Symlink the srcDir into Products
+        """Symlink the srcDir into Products
         Return the name.
-        '''
+        """
         # Normalize srcDir to not end with slash
         if srcDir.endswith('/'):
             srcDir = srcDir[:-1]

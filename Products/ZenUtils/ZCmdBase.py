@@ -37,7 +37,7 @@ defaultCacheDir = zenPath('var')
 class DataRootError(Exception):pass
 
 def login(context, name='admin', userfolder=None):
-    '''Logs in.'''
+    """Logs in."""
     if userfolder is None:
         userfolder = context.getPhysicalRoot().acl_users
     user = userfolder.getUserById(name)
@@ -64,19 +64,18 @@ class ZCmdBase(ZenDaemon):
         setDescriptors(self.dmd.propertyTransformers)
 
     def zodbConnect(self):
-
         from zope.component import getUtility
         from ZodbFactory import IZodbFactoryLookup
         connectionFactory = getUtility(IZodbFactoryLookup).get()
         self.db, self.storage = connectionFactory.getConnection(**self.options.__dict__)
 
     def login(self, name='admin', userfolder=None):
-        '''Logs in.'''
+        """Logs in."""
         login(self.dmd, name, userfolder)
 
 
     def logout(self):
-        '''Logs out.'''
+        """Logs out."""
         noSecurityManager()
 
 

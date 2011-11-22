@@ -38,8 +38,7 @@ from Products.ZenUtils import DotNetCommunication
 from Products.ZenUtils.guid.interfaces import IGloballyIdentifiable
 from Products.ZenWidgets import messaging
 from Products.ZenModel.interfaces import IProvidesEmailAddresses, IProvidesPagerAddresses
-from Products.ZenMessaging.actions import sendUserAction
-from Products.ZenMessaging.actions.constants import ActionTargetType, ActionName
+from Products.ZenMessaging.audit import audit
 from Products.ZenUtils.deprecated import deprecated
 
 from ZenossSecurity import *
@@ -244,9 +243,8 @@ class UserSettingsManager(ZenModelRM):
         posted = Utils.extractPostContent(REQUEST)
         if posted:
             user.dashboardState = posted
-            if sendUserAction and REQUEST:
-                sendUserAction(ActionTargetType.Dashboard, ActionName.Edit,
-                               username=userid)
+            if REQUEST:
+                audit('UI.Dashboard.Edit', username=userid)
         return True
 
     def getUserSettingsUrl(self, userid=None):
@@ -301,10 +299,7 @@ class UserSettingsManager(ZenModelRM):
                 'User Added',
                 'User "%s" has been created.' % userid
             )
-            if sendUserAction:
-                # don't send password
-                sendUserAction(ActionTargetType.User, ActionName.Add,
-                               username=userid, roles=roles)
+            audit('UI.User.Add', username=userid, roles=roles)  # don't send password
             return self.callZenScreen(REQUEST)
         else:
             return user
@@ -382,7 +377,7 @@ class UserSettingsManager(ZenModelRM):
                 return self.callZenScreen(REQUEST)
             else:
                 raise ValueError("passwords don't match")
-        if sendUserAction and REQUEST:
+        if REQUEST:
             # TODO: Record all the non-password values.
             #updates = dict((k,v) for k,v in kw.items() if 'password' not in k.lower())
             updates = {}
@@ -401,9 +396,7 @@ class UserSettingsManager(ZenModelRM):
                 'Settings Saved',
                 Time.SaveMessage()
             )
-            if sendUserAction:
-                sendUserAction(ActionTargetType.User, ActionName.Edit,
-                               username=userid, extra=updates)
+            audit('UI.User.Edit', username=userid, data_=updates)
             return self.callZenScreen(REQUEST)
         else:
             return user
@@ -453,10 +446,8 @@ class UserSettingsManager(ZenModelRM):
                 'Users Deleted',
                 "Users were deleted: %s." % (', '.join(userids))
             )
-            if sendUserAction:
-                for userid in userids:
-                    sendUserAction(ActionTargetType.User, ActionName.Delete,
-                                   username=userid)
+            for userid in userids:
+                audit('UI.User.Delete', username=userid)
             return self.callZenScreen(REQUEST)
 
 
@@ -476,9 +467,7 @@ class UserSettingsManager(ZenModelRM):
                 'Group Added',
                 'Group "%s" has been created.' % groupid
             )
-            if sendUserAction:
-                sendUserAction(ActionTargetType.Group, ActionName.Add,
-                               group=groupid)
+            audit('UI.Group.Add', groupid)
             return self.callZenScreen(REQUEST)
 
 
@@ -503,10 +492,8 @@ class UserSettingsManager(ZenModelRM):
                 'Groups Deleted',
                 "Groups were deleted: %s." % (', '.join(groupids))
             )
-            if sendUserAction:
-                for groupid in groupids:
-                    sendUserAction(ActionTargetType.Group, ActionName.Delete,
-                                   group=groupid)
+            for groupid in groupids:
+                audit('UI.Group.Delete', groupid)
             return self.callZenScreen(REQUEST)
 
 
@@ -533,11 +520,9 @@ class UserSettingsManager(ZenModelRM):
                     'Users %s were added to group %s.' % (
                         ', '.join(userids), ', '.join(groupids))
                 )
-            if sendUserAction:
-                for userid in userids:
-                    for groupid in groupids:
-                        sendUserAction(ActionTargetType.User, 'AddToGroup',
-                                       username=userid, group=groupid)
+            for userid in userids:
+                for groupid in groupids:
+                    audit('UI.User.AddToGroup', username=userid, group=groupid)
             return self.callZenScreen(REQUEST)
 
 
@@ -767,10 +752,7 @@ class UserSettings(ZenModelRM):
                 'Password reset',
                 'An email with a new password has been sent.'
             )
-            if sendUserAction:
-                sendUserAction(ActionTargetType.User,
-                               'ResetPassword',
-                               username=self.id)
+            audit('UI.User.ResetPassword', username=self.id)
             loggedInUser = self.REQUEST['AUTHENTICATED_USER']
             # we only want to log out the user if it's *their* password
             # they've changed, not, for example, if the admin user is
@@ -953,9 +935,7 @@ class UserSettings(ZenModelRM):
                 'Settings Saved',
                 Time.SaveMessage()
             )
-            if sendUserAction:
-                sendUserAction(ActionTargetType.User, ActionName.Edit,
-                               username=self.id, extra=updates)
+            audit('UI.User.Edit', username=self.id, data_=updates)
             return self.callZenScreen(REQUEST)
         else:
             return user
@@ -1058,11 +1038,8 @@ class UserSettings(ZenModelRM):
                 ("Administrative Role for %s %s for user %s added" %
                     (type, name, self.id))
             )
-            if sendUserAction:
-                type_ = mobj.meta_type
-                sendUserAction(ActionTargetType.User, 'AddAdministrativeRole',
-                               username=self.id,
-                               extra={type_:mobj.getPrimaryId()})
+            audit('UI.User.AddAdministrativeRole', username=self.id,
+                  data_={mobj.meta_type:mobj.getPrimaryId()})
             return self.callZenScreen(REQUEST)
 
 
@@ -1084,12 +1061,10 @@ class UserSettings(ZenModelRM):
             except ValueError: continue
             mobj = mobj.primaryAq()
             mobj.manage_editAdministrativeRoles(self.id, role[i], level[i])
-            if sendUserAction and REQUEST:
-                type_ = mobj.meta_type
-                sendUserAction(ActionTargetType.User, 'EditAdministrativeRole',
-                               username=self.id,
-                               extra={type_:mobj.getPrimaryId()},
-                               role=role[i], level=level[i])
+            if REQUEST:
+                audit('UI.User.EditAdministrativeRole', username=self.id,
+                      data_={mobj.meta_type:mobj.getPrimaryId()},
+                      role=role[i], level=level[i])
         if REQUEST:
             if ids:
                 messaging.IMessageSender(self).sendToBrowser(
@@ -1110,11 +1085,9 @@ class UserSettings(ZenModelRM):
             if mobj.managedObjectName() not in delids: continue
             mobj = mobj.primaryAq()
             mobj.manage_deleteAdministrativeRole(self.id)
-            if sendUserAction and REQUEST:
-                type_ = mobj.meta_type
-                sendUserAction(ActionTargetType.User, 'DeleteAdministrativeRole',
-                               username=self.id,
-                               extra={type_:mobj.getPrimaryId()})
+            if REQUEST:
+                audit('UI.User.DeleteAdministrativeRole', username=self.id,
+                      data_={mobj.meta_type:mobj.getPrimaryId()})
         if REQUEST:
             if delids:
                 messaging.IMessageSender(self).sendToBrowser(
@@ -1290,10 +1263,8 @@ class GroupSettings(UserSettings):
             userids = [userids]
         for userid in userids:
             self._getG().addPrincipalToGroup( userid, self.id )
-            if sendUserAction and REQUEST:
-                sendUserAction(ActionTargetType.User, 'AddToGroup',
-                               username=userid,
-                               group=self.id)
+            if REQUEST:
+                audit('UI.User.AddToGroup', username=userid, group=self.id)
         if REQUEST:
             messaging.IMessageSender(self).sendToBrowser(
                 'Users Added',
@@ -1311,10 +1282,8 @@ class GroupSettings(UserSettings):
         """
         for userid in userids:
             self.manage_deleteUserFromGroup(userid)
-            if sendUserAction and REQUEST:
-                sendUserAction(ActionTargetType.User, 'RemoveFromGroup',
-                               username=userid,
-                               group=self.id)
+            if REQUEST:
+                audit('UI.User.RemoveFromGroup', username=userid, group=self.id)
         if REQUEST:
             messaging.IMessageSender(self).sendToBrowser(
                 'Users Removed',

@@ -154,7 +154,8 @@ class Collection(ZenModelRM):
             deletedItem = self.collection_items._getOb(id)
             self.collection_items._delObject(id)
             if REQUEST:
-                audit('UI.Collection.DeleteItem', self.id, item=deletedItem.id, contents=deletedItem.getRepresentedItem().id)
+                audit('UI.Collection.DeleteItem', self.id, item=deletedItem.id,
+                      contents=deletedItem.getRepresentedItem().id)
 
         self.manage_resequenceCollectionItems()
         if REQUEST:
@@ -173,7 +174,8 @@ class Collection(ZenModelRM):
         """
         retval = resequence(self, self.collection_items(), seqmap, origseq, REQUEST)
         if REQUEST:
-            audit('UI.Collection.ResequenceItems', self.id, sequence=seqmap, oldData_={'sequence':origseq})
+            audit('UI.Collection.ResequenceItems', self.id, sequence=seqmap,
+                  oldData_={'sequence':origseq})
         return retval
 
 

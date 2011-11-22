@@ -239,6 +239,7 @@ class TemplateFacade(ZuulFacade):
         info = self._getDataSourceInfoFromObject(obj)
 
         # see if we need to rename the object
+        # (if you change this also update TemplateRouter)
         newId = None
         if 'newId' in data:
             newId = data['newId']

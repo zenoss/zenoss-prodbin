@@ -38,12 +38,10 @@ log = logging.getLogger("zen.Utils")
 
 from popen2 import Popen4
 
-from Acquisition import aq_base
+from Acquisition import aq_base, aq_inner, aq_parent
 from zExceptions import NotFound
-from AccessControl import getSecurityManager
-from AccessControl import Unauthorized
+from AccessControl import getSecurityManager, Unauthorized
 from AccessControl.ZopeGuards import guarded_getattr
-from Acquisition import aq_inner, aq_parent
 from ZServer.HTTPServer import zhttp_channel
 
 from Products.ZenUtils.Exceptions import ZenPathError, ZentinelException
@@ -135,7 +133,7 @@ def convToUnits(number=0, divby=1024.0, unitstr="B"):
     units = map(lambda x:x + unitstr, ('','K','M','G','T','P'))
     try:
         numb = float(number)
-    except:
+    except Exception:
         return ''
 
     sign = 1
@@ -163,7 +161,6 @@ def travAndColl(obj, toonerel, collect, collectname):
     @return: list of objects
     @rtype: list
     """
-    #from Acquisition import aq_base
     value = getattr(aq_base(obj), collectname, None)
     if value:
         collect.append(value)
@@ -301,14 +298,54 @@ def getObjByPath(base, path, restricted=0):
     return obj
 
 
+def capitalizeFirstLetter(s):
+    #Don't use .title or .capitalize, as those will lower-case a camel-cased type
+    return s[0].capitalize() + s[1:] if s else s
+
+
 def getDisplayType(obj):
     """
     Get a printable string representing the type of this object
     """
+    # TODO: better implementation, like meta_display_type per class.
     typename = str(getattr(obj, 'meta_type', None) or obj.__class__.__name__) if obj else 'None'
-    #Make sure the initial letter is capitalized. 
-    #Don't use .title or .capitalize, as those will lower-case a camel-cased type
-    return typename[0].capitalize() + typename[1:] if typename else typename
+    return capitalizeFirstLetter(typename)
+
+
+def _getName(obj):
+    return getattr(obj, 'getName', None) or getattr(obj, 'name', None) or \
+           getattr(obj, 'Name', None)
+
+def _getId(obj):
+    return getattr(obj, 'getId', None) or getattr(obj, 'id', None) or \
+           getattr(obj, 'Id', None) or getattr(obj, 'ID', None)
+
+def _getUid(obj):
+    return getattr(obj, 'getPrimaryId', None) or getattr(obj, 'uid', None) \
+           or getattr(obj, 'Uid', None) or getattr(obj, 'UID', None)
+
+def getDisplayName(obj):
+    """
+    Get a printable string representing the name of this object.
+    Always returns something but it may not be pretty.
+    """
+    # TODO: better implementation, like getDisplayName() per class.
+    name = _getName(obj) or _getId(obj) or _getUid(obj)
+    if name is None:
+        return str(obj) #we tried our best
+    return capitalizeFirstLetter(str(name() if callable(name) else name))
+
+
+def getDisplayId(obj):
+    """
+    Get a printable string representing an ID of this object.
+    Always returns something but it may not be pretty.
+    """
+    # TODO: better implementation, like getDisplayId() per class.
+    dispId = _getUid(obj) or _getId(obj) or _getName(obj)
+    if dispId is None:
+        return str(obj) #we tried our best
+    return capitalizeFirstLetter(str(dispId() if callable(dispId) else dispId))
 
 
 def checkClass(myclass, className):
@@ -674,7 +711,7 @@ def sendEmail(emsg, host, port=25, usetls=0, usr='', pwd=''):
         # Need to catch the quit because some servers using TLS throw an
         # EOF error on quit, so the email gets sent over and over
         try: server.quit()
-        except: pass
+        except Exception: pass
     except (smtplib.SMTPException, socket.error, socket.timeout):
         result = (False, '%s - %s' % tuple(sys.exc_info()[:2]))
     else:
@@ -994,7 +1031,7 @@ def zenPath(*args):
     if not os.path.exists(path):
         brPath = os.path.realpath(os.path.join(zenhome, '..', 'common'))
         testPath = sane_pathjoin(brPath, *args)
-        if(os.path.exists(testPath)):
+        if os.path.exists(testPath):
             path = testPath
     return path
 
@@ -1066,14 +1103,14 @@ def extractPostContent(REQUEST):
     @rtype: string
     """
     try:
+        # Firefox
+        return REQUEST._file.read()
+    except Exception:
         try:
-            # Firefox
-            result = REQUEST._file.read()
-        except:
             # IE
-            result = REQUEST.form.keys()[0]
-    except: result = ''
-    return result
+            return REQUEST.form.keys()[0]
+        except Exception:
+            return ''
 
 
 def unused(*args):
@@ -1164,7 +1201,7 @@ def executeCommand(cmd, REQUEST, write=None):
     except ZentinelException, e:
         if xmlrpc: return 1
         log.critical(e)
-    except:
+    except Exception:
         if xmlrpc: return 1
         raise
     else:

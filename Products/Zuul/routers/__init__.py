@@ -17,8 +17,8 @@ Zenoss JSON API
 from Products.ZenUtils.Ext import DirectRouter, DirectResponse
 from Products.Zuul.decorators import require
 from Products.Zuul.marshalling import Marshaller
-from Products.ZenMessaging.actions import sendUserAction
-from Products.ZenMessaging.actions.constants import ActionTargetType, ActionName
+from Products.ZenMessaging.audit import audit
+from Products.ZenUtils.Utils import getDisplayType
 from Products import Zuul
 import logging
 log = logging.getLogger(__name__)
@@ -53,16 +53,11 @@ class TreeRouter(DirectRouter):
             facade = self._getFacade()
             if type.lower() == 'class':
                 uid = facade.addClass(contextUid, id)
-                if sendUserAction:
-                    sendUserAction(ActionTargetType.Class, ActionName.Add,
-                                   extra={'class':uid})
+                audit('UI.Class.Add', uid)
             else:
                 organizer = facade.addOrganizer(contextUid, id, description)
                 uid = organizer.uid
-                if sendUserAction:
-                    meta_type = organizer.meta_type
-                    sendUserAction(meta_type, ActionName.Add,
-                                   extra={meta_type:uid})
+                audit(['UI', getDisplayType(organizer), 'Add'], organizer)
 
             treeNode = facade.getTree(uid)
             result['nodeConfig'] = Zuul.marshal(treeNode)
@@ -90,13 +85,10 @@ class TreeRouter(DirectRouter):
         if not self._canDeleteUid(uid):
             raise Exception('You cannot delete the root node')
         facade = self._getFacade()
-        if sendUserAction:
-            meta_type = facade._getObject(uid).meta_type
+        display_type = getDisplayType(facade._getObject(uid))
         facade.deleteNode(uid)
         msg = "Deleted node '%s'" % uid
-        if sendUserAction:
-            # Example:  UserAction('Organizer', 'Delete', organizer='/...')
-            sendUserAction(meta_type, ActionName.Delete, extra={meta_type:uid})
+        audit(['UI', display_type, 'Delete'], uid)
         return DirectResponse.succeed(msg=msg)
 
     def moveOrganizer(self, targetUid, organizerUid):
@@ -113,12 +105,9 @@ class TreeRouter(DirectRouter):
              - data: (dictionary) Moved organizer
         """
         facade = self._getFacade()
-        if sendUserAction:
-            meta_type = facade._getObject(organizerUid).meta_type
+        display_type = getDisplayType( facade._getObject(organizerUid))
         data = facade.moveOrganizer(targetUid, organizerUid)
-        if sendUserAction:
-            sendUserAction(meta_type, 'Move',
-                           extra={meta_type:data.uid}, old=organizerUid)
+        audit(['UI', display_type, 'Move'], data.uid, old=organizerUid)
         return DirectResponse.succeed(data=Zuul.marshal(data))
 
     def _getFacade(self):

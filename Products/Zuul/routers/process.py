@@ -21,8 +21,7 @@ from Products.Zuul.decorators import require
 from Products.Zuul.routers import TreeRouter
 from Products.ZenUtils.Ext import DirectResponse
 from Products.ZenUtils.jsonutils import unjson
-from Products.ZenMessaging.actions import sendUserAction
-from Products.ZenMessaging.actions.constants import ActionTargetType, ActionName
+from Products.ZenMessaging.audit import audit
 
 
 class ProcessRouter(TreeRouter):
@@ -65,11 +64,9 @@ class ProcessRouter(TreeRouter):
         primaryPath = facade.moveProcess(uid, targetUid)
         id = '.'.join(primaryPath)
         uid = '/'.join(primaryPath)
-        if sendUserAction:
-            # TODO: Common method for all the "move" user actions.
-            #       Be consistent via:  process=old_uid, target=org_uid
-            sendUserAction(ActionTargetType.Process, ActionName.Move,
-                           process=uid, old=old_uid)
+        # TODO: Common method for all the "move" user actions.
+        #       Be consistent via:  process=old_uid, target=org_uid
+        audit('UI.Process.Move', uid, old=old_uid)
         return DirectResponse.succeed(uid=uid, id=id)
 
     def getInfo(self, uid, keys=None):
@@ -107,9 +104,7 @@ class ProcessRouter(TreeRouter):
         facade = self._getFacade()
         processUid = data['uid']
         process = facade.getInfo(processUid)
-        if sendUserAction:
-            sendUserAction(ActionTargetType.Process, ActionName.Edit,
-                           process=processUid, **data)
+        audit('UI.Process.Edit', processUid, data_=data, skipFields_=('uid'))
         return DirectResponse.succeed(data=Zuul.unmarshal(data, process))
 
     def getInstances(self, uid, start=0, params=None, limit=50, sort='name',
@@ -169,9 +164,7 @@ class ProcessRouter(TreeRouter):
         """
         facade = self._getFacade()
         facade.setSequence(uids)
-        if sendUserAction:
-            sendUserAction(ActionTargetType.Process, 'SetSequence',
-                           sequence=uids)
+        audit('UI.Process.SetSequence', sequence=uids)
         return DirectResponse.succeed()
 
 

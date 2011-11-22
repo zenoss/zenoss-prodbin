@@ -22,12 +22,12 @@ from Products.ZenUtils.IpUtil import IpAddressError
 from Products.Zuul.decorators import require
 from Products.Zuul.interfaces import ITreeNode
 from Products.ZenUtils.jsonutils import unjson
+from Products.ZenUtils.Utils import getDisplayType
 from Products import Zuul
 from Products.Zuul.decorators import serviceConnectionError
 from Products.Zuul.routers import TreeRouter
 from Products.ZenModel.IpAddress import IpAddress
-from Products.ZenMessaging.actions import sendUserAction
-from Products.ZenMessaging.actions.constants import ActionTargetType, ActionName
+from Products.ZenMessaging.audit import audit
 
 log = logging.getLogger('zen.NetworkRouter')
 
@@ -56,9 +56,7 @@ class NetworkRouter(TreeRouter):
         """
         jobStatus = self.api.discoverDevices(uid)
         if jobStatus:
-            if sendUserAction:
-                sendUserAction(ActionTargetType.Network, 'DiscoverDevices',
-                               network=uid)
+            audit('UI.Network.DiscoverDevices', uid)
             return DirectResponse.succeed(jobId=jobStatus.id)
         else:
             return DirectResponse.fail()
@@ -91,9 +89,7 @@ class NetworkRouter(TreeRouter):
                 else:
                     newNet = self.api.addSubnet(newSubnet, contextUid)
                     node = ITreeNode(newNet)
-                    if sendUserAction:
-                        sendUserAction(ActionTargetType.Network, 'AddSubnet',
-                                       network=contextUid, subnet=newSubnet)
+                    audit('UI.Network.AddSubnet', contextUid, subnet=newSubnet)
                     response = DirectResponse.succeed(newNode=Zuul.marshal(node))
 
             except IpAddressError as error:
@@ -117,8 +113,7 @@ class NetworkRouter(TreeRouter):
            - tree: (dictionary) An object representing the new network tree
         """
         self.api.deleteSubnet(uid)
-        if sendUserAction:
-            sendUserAction(ActionTargetType.Network, 'DeleteSubnet', subnet=uid)
+        audit('UI.Network.DeleteSubnet', subnet=uid)
         return DirectResponse.succeed(tree=self.getTree())
 
 
@@ -168,9 +163,7 @@ class NetworkRouter(TreeRouter):
         """
         network = self.api.getInfo(data['uid'])
         Zuul.unmarshal(data, network)
-        if sendUserAction:
-            sendUserAction(network.meta_type, ActionName.Edit,
-                           extra={network.meta_type:network}, **data)
+        audit(['UI', getDisplayType(network), 'Edit'], network, data_=data)
         return DirectResponse.succeed()
 
     @serviceConnectionError
@@ -217,9 +210,8 @@ class NetworkRouter(TreeRouter):
         """
         if uids:
             removedCount, errorCount = self.api.removeIpAddresses(uids)
-            if sendUserAction:
-                sendUserAction('IPAddress', ActionName.Remove, ips=uids,
-                                numremoved=removedCount, numerrors=errorCount)
+            audit('UI.IPAddress.Remove', ips=uids, numremoved=removedCount,
+                  numerrors=errorCount)
             return DirectResponse.succeed(removedCount=removedCount,
                                           errorCount=errorCount)
 

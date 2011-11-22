@@ -390,7 +390,8 @@ class ZenModelBase(object):
             )
 
             auditType = getDisplayType(self)
-            audit(['UI', 'Setting' if auditType == 'DataRoot' else auditType, 'Edit'], data_=REQUEST.form,
+            audit(['UI', 'Setting' if auditType == 'DataRoot' else auditType, 'Edit'],
+                  data_=REQUEST.form,
                   skipFields_=('redirect', 'zenScreenName', 'zmanage_editProperties'),
                   maskFields_=('smtpPass'))
             return self.callZenScreen(REQUEST, redirect=redirect)
@@ -598,7 +599,8 @@ class ZenModelBase(object):
         @permission: ZEN_MANAGE_DMD
         """
         redirect = self.saveZenProperties(iscustprop, REQUEST)
-        audit(['UI', getDisplayType(self), 'Edit'], self, data_=REQUEST.form, skipFields_=('zenScreenName', 'saveCustProperties'))
+        audit(['UI', getDisplayType(self), 'Edit'], self, data_=REQUEST.form,
+              skipFields_=('zenScreenName', 'saveCustProperties'))
         return redirect
 
 

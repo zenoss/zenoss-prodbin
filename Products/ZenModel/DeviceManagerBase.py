@@ -12,8 +12,8 @@
 ###########################################################################
 
 from ZenossSecurity import ZEN_VIEW
-from Products.ZenMessaging.actions import sendUserAction
-from Products.ZenMessaging.actions.constants import ActionTargetType, ActionName
+from Products.ZenUtils.Utils import getDisplayType, getDisplayId
+from Products.ZenMessaging.audit import audit
 
 class DeviceManagerBase:
     """
@@ -39,19 +39,14 @@ class DeviceManagerBase:
         if isinstance(deviceNames, basestring): deviceNames = (deviceNames,)
         for devname in deviceNames:
             self.devices._delObject(devname)
-            if sendUserAction and REQUEST:
-                # TODO: replace check with a MetaClass-To-PrettyName method.
+            if REQUEST:
                 if self.meta_type == 'PerformanceConf':
                     actionName = 'RemoveFromCollector'
-                    objType = 'Collector'
                     objId = self.id
                 else:
-                    actionName = ActionName.Remove
-                    objType = self.meta_type
+                    actionName = 'Remove'
                     objId = self.getPrimaryId()
-                sendUserAction(ActionTargetType.Device,
-                               actionName,
-                               device=devname,
-                               extra={objType:objId})
+                objType = getDisplayType(self)
+                audit(['UI.Device', actionName], devname, data_={objType:objId})
         if REQUEST:
             return self()
