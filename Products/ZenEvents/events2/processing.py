@@ -439,14 +439,17 @@ class AddDeviceContextAndTagsPipe(EventProcessorPipe):
         DEVICE_GROUPS_TAG_KEY      : (lambda device: device.groups(), 'DeviceGroups'),
     }
 
-    def _addDeviceOrganizerNames(self, orgs, orgtypename, evtproxy, proxydetailkey, asDelimitedList=False):
+    def _addDeviceOrganizerNames(self, orgs, orgtypename, evtproxy, proxydetailkey, asDelimitedList=False, includeParents=False):
         if orgtypename not in orgs:
             return
 
         orgnames = orgs[orgtypename]
         if orgnames:
             if asDelimitedList:
-                detailOrgnames = orgnames
+                if includeParents:
+                    detailOrgnames = self._includeParentOrganizerNames(orgnames)
+                else:
+                    detailOrgnames = orgnames
                 proxyOrgname = '|' + '|'.join(orgnames)
             else:
                 # just use 0'th  element
@@ -473,8 +476,8 @@ class AddDeviceContextAndTagsPipe(EventProcessorPipe):
         evtproxy = eventContext.eventProxy
         self._addDeviceOrganizerNames(orgs, 'Location', evtproxy, EventProxy.DEVICE_LOCATION_DETAIL_KEY)
         self._addDeviceOrganizerNames(orgs, 'DeviceClass', evtproxy, EventProxy.DEVICE_CLASS_DETAIL_KEY)
-        self._addDeviceOrganizerNames(orgs, 'DeviceGroups', evtproxy, EventProxy.DEVICE_GROUPS_DETAIL_KEY, asDelimitedList=True)
-        self._addDeviceOrganizerNames(orgs, 'Systems', evtproxy, EventProxy.DEVICE_SYSTEMS_DETAIL_KEY, asDelimitedList=True)
+        self._addDeviceOrganizerNames(orgs, 'DeviceGroups', evtproxy, EventProxy.DEVICE_GROUPS_DETAIL_KEY, asDelimitedList=True, includeParents=True)
+        self._addDeviceOrganizerNames(orgs, 'Systems', evtproxy, EventProxy.DEVICE_SYSTEMS_DETAIL_KEY, asDelimitedList=True, includeParents=True)
 
     def _findTypeIdAndElement(self, eventContext, sub_element):
         actor = eventContext.event.actor
@@ -491,6 +494,19 @@ class AddDeviceContextAndTagsPipe(EventProcessorPipe):
         if actor.HasField(uuid_field):
             element = self._manager.getElementByUuid(getattr(actor, uuid_field))
         return type_id, element
+
+    def _includeParentOrganizerNames(self, namelist):
+        """
+        process list of organizer names like ['/A', '/B/C/D'] and return ['/A', '/B', '/B/C', '/B/C/D'] so
+        that parent organizers get included too
+        """
+        nameset = set()
+        for n in namelist:
+            cur = ''
+            for part in n.split('/')[1:]:
+                cur += '/' + part
+                nameset.add(cur)
+        return sorted(nameset)
 
     def __call__(self, eventContext):
         actor = eventContext.event.actor
