@@ -307,7 +307,7 @@ class IpInterfaceWrapper(ComponentWrapper):
 
         return super(IpInterfaceWrapper, self).searchKeywordsForChildren() + (
                self._context.description,
-               ) + tuple(interfaces)
+               ) + tuple(ipAddresses)
 
     def searchExcerpt(self):
         """

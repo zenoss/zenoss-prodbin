@@ -41,7 +41,7 @@ class ifconfig(LinuxCommandPlugin):
     relname = "interfaces"
     modname = "Products.ZenModel.IpInterface"
     deviceProperties = LinuxCommandPlugin.deviceProperties + (
-           'zInterfaceMapIgnoreNames', 'zInterfaceMapIgnoreTypes') 
+           'zInterfaceMapIgnoreNames', 'zInterfaceMapIgnoreTypes')
 
     ifstart = re.compile(r"^(\S+)\s+Link encap:(.+)HWaddr (\S+)"
                          "|^(\S+)\s+Link encap:(.+)")

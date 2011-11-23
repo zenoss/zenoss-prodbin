@@ -67,6 +67,7 @@ Z_PROPERTIES = [
     ('zRouteMapMaxRoutes', 500, 'int'),
     ('zInterfaceMapIgnoreTypes', '', 'string'),
     ('zInterfaceMapIgnoreNames', '', 'string'),
+    ('zInterfaceMapIgnoreDescriptions', '', 'string'),
     ('zFileSystemMapIgnoreTypes', [], 'lines'),
     ('zFileSystemMapIgnoreNames', '', 'string'),
     ('zFileSystemSizeOffset', 1.0, 'float'),

@@ -226,3 +226,4 @@ import removeModificationsMenuItems
 import ifOperStatusRRDCreateCommand
 import addUserInterfaceSettings
 import changeSnmpDefaults
+import addzInterfaceMapIgnoreDescriptions

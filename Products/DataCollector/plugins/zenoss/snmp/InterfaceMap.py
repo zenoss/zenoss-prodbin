@@ -34,7 +34,8 @@ class InterfaceMap(SnmpPlugin):
     modname = "Products.ZenModel.IpInterface"
     deviceProperties = \
                 SnmpPlugin.deviceProperties + ('zInterfaceMapIgnoreNames',
-                                               'zInterfaceMapIgnoreTypes')
+                                               'zInterfaceMapIgnoreTypes',
+                                               'zInterfaceMapIgnoreDescriptions')
 
     # Interface related tables likely to be used in all subclasses.
     baseSnmpGetTableMaps = (
@@ -269,6 +270,12 @@ class InterfaceMap(SnmpPlugin):
             log.debug( "Interface %s type %s matched the zInterfaceMapIgnoreTypes zprop '%s'" % (
                       om.interfaceName, om.type,
                       getattr(device, 'zInterfaceMapIgnoreTypes')))
+            return None
+
+        dontCollectIntDescriptions = getattr(device, 'zInterfaceMapIgnoreDescriptions', None)
+        if dontCollectIntDescriptions and re.search(dontCollectIntDescriptions, om.description):
+            log.debug( "Interface %s description %s matched the zInterfaceMapIgnoreDescriptions zprop '%s'" % (
+                      om.interfaceName, om.description, getattr(device, 'zInterfaceMapIgnoreDescriptions')))
             return None
 
         # Append _64 to interface type if high-capacity counters are supported
