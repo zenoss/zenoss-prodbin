@@ -248,30 +248,33 @@ class DeviceFacade(TreeFacade):
         if isinstance(organizer, basestring):
             organizer = self._getObject(organizer)
         assert isinstance(organizer, DeviceOrganizer)
-        organizername = organizer.getOrganizerName()
         devs = map(self._getObject, uids)
         for dev in devs:
             notify(ObjectRemovedFromOrganizerEvent(dev, organizer))
 
         if isinstance(organizer, DeviceGroup):
             for dev in devs:
-                groups = dev.getDeviceGroupNames()
-                newGroups = self._excludePath(organizername, groups)
-                if newGroups != groups:
-                    dev.setGroups(newGroups)
+                oldGroupNames = dev.getDeviceGroupNames()
+                newGroupNames = self._removeOrganizer(organizer, list(oldGroupNames))
+                if oldGroupNames != newGroupNames:
+                    dev.setGroups(newGroupNames)
+
         elif isinstance(organizer, System):
             for dev in devs:
-                systems = dev.getSystemNames()
-                newSystems = self._excludePath(organizername, systems)
-                if newSystems != systems:
-                    dev.setSystems(newSystems)
+                oldSystemNames = dev.getSystemNames()
+                newSystemNames = self._removeOrganizer(organizer, list(oldSystemNames))
+                if newSystemNames != oldSystemNames:
+                    dev.setSystems(newSystemNames)
+                    
         elif isinstance(organizer, Location):
             for dev in devs:
                 dev.setLocation(None)
 
-    def _excludePath(self, path, paths):
-        """Return all paths not within path"""
-        return [name for name in paths if '%s/' % path  not in '%s/' % name]
+    def _removeOrganizer(self, organizer, items):
+        organizerName = organizer.getOrganizerName()
+        if organizerName in items:
+            items.remove(organizerName)
+        return items
 
     @info
     def getUserCommands(self, uid=None):

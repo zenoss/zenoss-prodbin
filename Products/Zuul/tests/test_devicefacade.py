@@ -57,6 +57,76 @@ class DeviceFacadeTest(ZuulFacadeTestCase):
         deviceBrains = catalog(path='/'.join(organizer.getPhysicalPath()))
         self.assertEqual(len(deviceBrains), 0, " we should not have any devices at this point")
 
+    def test_removeDeviceFromSingleGroup(self):
+        red = self.facade.addOrganizer("/zport/dmd/Groups", 'Red')
+        red_org = self.dmd.unrestrictedTraverse(red.uid)
+
+        orange = self.facade.addOrganizer("/zport/dmd/Groups/Red", 'Orange')
+        orange_org = self.dmd.unrestrictedTraverse(orange.uid)
+
+        yellow = self.facade.addOrganizer("/zport/dmd/Groups/Red/Orange", 'Yellow')
+        yellow_org = self.dmd.unrestrictedTraverse(yellow.uid)
+
+        test_device = self.dmd.Devices.createInstance('testDevice')
+
+        groupNames = []
+        for x in (red_org, orange_org, yellow_org):
+            groupNames.append(x.getOrganizerName())
+
+        test_device.setGroups(groupNames)
+
+        groups = test_device.groups()
+        
+        # verify all our groups are there before removing one
+        self.assertTrue(red_org in groups)
+        self.assertTrue(orange_org in groups)
+        self.assertTrue(yellow_org in groups)
+
+        # remove a group
+        self.facade.removeDevices((test_device.getPrimaryUrlPath(), ), orange_org)
+
+        groups = test_device.groups()
+
+        # verify only the group we removed is gone
+        self.assertTrue(red_org in groups)
+        self.assertTrue(not orange_org in groups)
+        self.assertTrue(yellow_org in groups)
+
+    def test_removeDeviceFromSingleSystem(self):
+        blue = self.facade.addOrganizer("/zport/dmd/Systems", 'Blue')
+        blue_org = self.dmd.unrestrictedTraverse(blue.uid)
+
+        green = self.facade.addOrganizer("/zport/dmd/Systems/Blue", 'Green')
+        green_org = self.dmd.unrestrictedTraverse(green.uid)
+
+        yellow = self.facade.addOrganizer("/zport/dmd/Systems/Blue/Green", 'Yellow')
+        yellow_org = self.dmd.unrestrictedTraverse(yellow.uid)
+
+        test_device = self.dmd.Devices.createInstance('testDevice')
+
+        systemNames = []
+        for x in (blue_org, green_org, yellow_org):
+            systemNames.append(x.getOrganizerName())
+
+        test_device.setSystems(systemNames)
+
+        systems = test_device.systems()
+
+        # verify all our systems are there before removing one
+        self.assertTrue(blue_org in systems)
+        self.assertTrue(green_org in systems)
+        self.assertTrue(yellow_org in systems)
+
+        # remove a system
+        self.facade.removeDevices((test_device.getPrimaryUrlPath(), ), green_org)
+
+        systems = test_device.systems()
+
+        # verify only the group we removed is gone
+        self.assertTrue(blue_org in systems)
+        self.assertTrue(not green_org in systems)
+        self.assertTrue(yellow_org in systems)
+
     def test_setProductionState(self):
         notified = []
         @zope.component.adapter(IIndexingEvent)
