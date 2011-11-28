@@ -18,7 +18,7 @@ Change zSnmpVer, zSnmpTries and zSnmpTimeout
 
 import Migrate
 
-class AddUserInterfaceSettings(Migrate.Step):
+class ChangeSnmpDefaults(Migrate.Step):
     version = Migrate.Version(4, 2, 0)
 
     def cutover(self, dmd):
@@ -31,5 +31,5 @@ class AddUserInterfaceSettings(Migrate.Step):
         if dmd.Devices.zSnmpTimeout == 2.5:
             dmd.Devices._updateProperty('zSnmpTimeout', 1)
 
-AddUserInterfaceSettings()
+ChangeSnmpDefaults()
 
