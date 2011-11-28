@@ -78,7 +78,7 @@ from Products.ZenWidgets import messaging
 from Products.ZenEvents.browser.EventPillsAndSummaries import getEventPillME
 from OFS.CopySupport import CopyError # Yuck, a string exception
 from Products.Zuul import getFacade
-import Products.Zuul.utils
+from Products.Zuul.utils import allowedRolesAndUsers
 from Products.ZenUtils.IpUtil import numbip
 from Products.ZenMessaging.audit import audit
 
@@ -1509,7 +1509,7 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable,
                 'Monitor Changed',
                 'Performance monitor has been set to %s.' % performanceMonitor
             )
-            audit('UI.Device.SetPerformanceMonitor', self, 
+            audit('UI.Device.SetPerformanceMonitor', self,
                   performancemonitor=performanceMonitor)
             return self.callZenScreen(REQUEST)
 
@@ -1794,7 +1794,7 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable,
         if REQUEST:
             if parent.getId()=='devices':
                 parent = parent.getPrimaryParent()
-            audit('UI.Device.Delete', self, deleteStatus=deleteStatus, 
+            audit('UI.Device.Delete', self, deleteStatus=deleteStatus,
                   deleteHistory=deleteHistory, deletePerf=deletePerf)
             REQUEST['RESPONSE'].redirect(parent.absolute_url() +
                                             "/deviceOrganizerStatus"
@@ -2290,7 +2290,7 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable,
         return json(details)
 
     def allowedRolesAndUsers(self):
-        return utils.allowedRolesAndUsers(self)
+        return allowedRolesAndUsers(self)
 
     def ipAddressAsInt(self):
         ip = self.getManageIp()
