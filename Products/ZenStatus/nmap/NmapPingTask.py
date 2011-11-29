@@ -41,6 +41,7 @@ from zenoss.protocols.protobufs import zep_pb2 as events
 
 # imports from within ZenStatus
 from Products.ZenStatus import PingTask
+from Products.ZenStatus.ping import CmdPingTask
 from PingResult import PingResult, parseNmapXmlToDict
 from Products.ZenStatus.PingCollectionPreferences import PingCollectionPreferences
 from Products.ZenStatus.interfaces import IPingTaskFactory
@@ -81,15 +82,27 @@ class NPingTaskFactory(object):
         self.reset()
 
     def build(self):
-        task = PingTask(
-            self.name,
-            self.configId,
-            self.interval,
-            self.config,
-        )
-        # don't run the tasks, they are used for storing config
-        task.pauseOnScheduled = True
-        task.interval = sys.maxint
+        # Task spliter will gurantee every task has exactly one monitoredIp
+        if self.config.monitoredIps[0].ipVersion == 6:
+            # nmap does not support IPV6 ping/traceroute, use CmdPing
+            log.debug("Creating an IPv6 task: %s", self.config.monitoredIps[0].ip)
+            task = CmdPingTask(
+                self.name,
+                self.configId,
+                self.interval,
+                self.config,
+            )
+        else:
+            log.debug("Creating an IPv4 task: %s", self.config.monitoredIps[0].ip)
+            task = PingTask(
+                self.name,
+                self.configId,
+                self.interval,
+                self.config,
+            )
+            # don't run the tasks, they are used for storing config
+            task.pauseOnScheduled = True
+            task.interval = sys.maxint
         return task
 
     def reset(self):
@@ -240,6 +253,7 @@ class NmapPingTask(BaseTask):
         args.append("-PE")               # use ICMP echo 
         args.append("-n")                # don't resolve hosts internally
         args.append("--privileged")      # assume we can open raw socket
+        args.append("--send-ip")         # don't allow ARP responses
         
         # give up on a host after spending too much time on it
         args.extend(["--host-timeout", "%.1fs" % self._preferences.pingTimeOut])
@@ -311,13 +325,14 @@ class NmapPingTask(BaseTask):
         
     def _getPingTasks(self):
         """
-        Iterate the daemons task list and find PingTask tasks
+        Iterate the daemons task list and find PingTask tasks that are IPV4.
         """
         tasks = self._daemon._scheduler._tasks
         pingTasks = {}
         for configName, task in tasks.iteritems():
             if isinstance(task.task, PingTask):
-                pingTasks[configName] = task.task
+                if task.task.config.ipVersion == 4:
+                    pingTasks[configName] = task.task
         return pingTasks
 
     @defer.inlineCallbacks

@@ -134,18 +134,23 @@ class CmdPingTask(ZenStatus.PingTask):
         attempts = 0
         exitCode = -1
         timestamp = None
-        while attempts < maxTries and exitCode != _OK:
+        while attempts < maxTries:
             attempts += 1
             cmd, args = _getPingCmd(ip=self.config.ip, version=self.config.ipVersion, ttl=64, timeout=1.5)
             log.debug("%s %s", cmd, " ".join(args))
             timestamp = time.time()
             out, err, exitCode = yield utils.getProcessOutputAndValue(cmd, args)
+            pingResult = PingResult(self.config.ip, exitCode, out, timestamp)
+            self.logPingResult(pingResult)
+            if not self.config.points and exitCode == 0:
+                # if there are no datapoints to store
+                # and there is at least 1 ping up, then go on
+                break
 
-        pingResult = PingResult(self.config.ip, exitCode, out, timestamp)
-        self.logPingResult(pingResult)
-        if exitCode:
-            self.sendPingDown()
-        else:
+        if self.isUp:
+            log.debug("%s is up!", self.config.ip)
             self.sendPingUp()
-
-
+        else:
+            log.debug("%s is down", self.config.ip)
+            self.sendPingDown()
+        self.storeResults()
