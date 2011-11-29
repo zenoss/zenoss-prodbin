@@ -905,7 +905,8 @@ class SshPerformanceCollectionTask(BaseTask):
         """
         # If the result is a Failure, no exitCode exists
         exitCode = getattr(datasource.result, 'exitCode', -1)
-        if exitCode is None or exitCode != 0:
+        # Don't send if non-zero exit code or no output returned
+        if exitCode is None or exitCode != 0 or not datasource.result.output.strip():
             return
 
         clearEvents = [ev for ev in eventList if ev['severity'] == Clear]
