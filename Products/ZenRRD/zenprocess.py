@@ -652,8 +652,8 @@ class ZenProcessTask(ObservableMixin):
 
         # If the hashes get trashed by the SNMP agent, try to
         # make sensible guesses.
-        missingModeledStats = set(self._deviceStats.processStats) -\
-                              set(afterPidToProcessStats.values())
+        missingModeledStats = sorted(set(self._deviceStats.processStats) -
+                                     set(afterPidToProcessStats.values()), key=lambda x:x._config.name)
         if missingModeledStats:
             log.info("Searching for possible matches for %s", missingModeledStats)
         for pStats in missingModeledStats:
