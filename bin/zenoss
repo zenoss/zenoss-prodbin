@@ -50,11 +50,17 @@ if [ `id -u` -eq 0 ] ; then
 fi
 
 . $ZENHOME/bin/zenfunctions
+
+WEBSERVERCTL=$(${ZENHOME}/bin/zenglobalconf -p webserverctl)
+if [ -z "${WEBSERVERCTL}" ]; then
+    WEBSERVERCTL=zopectl
+fi
+
 C=
 if [ ! -f $ZENHOME/etc/DAEMONS_TXT_ONLY ] ; then
 	C="$C zeneventserver"
 	C="$C zeneventd"
-	C="$C zopectl"
+	C="$C ${WEBSERVERCTL}"
 	C="$C zenhub"
 	C="$C zenjobs"
 	C="$C zenping"
