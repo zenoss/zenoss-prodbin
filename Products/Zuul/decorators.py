@@ -10,7 +10,7 @@
 # For complete information please visit: http://www.zenoss.com/oss/
 #
 ###########################################################################
-
+import functools
 from decorator import decorator
 from AccessControl import Unauthorized
 from Products import Zuul
@@ -72,6 +72,25 @@ def require(permission):
     return wrapped_fn
 
 
+def keyworddecorator(decorator_func):
+    """
+    Turns a function into a well-behaved decorator.
+
+    Requires the signature (func, *args, **kwargs).
+
+    Updates the inner function to look like the decorated version by
+    copying attributes from the one to the other.
+
+    This passes in the arguments in kwargs which
+    the contextRequire decorator requires
+    """
+    def _decorator(func):
+        @functools.wraps(func)
+        def inner(*args, **kwargs):
+            return decorator_func(func, *args, **kwargs)
+        return inner
+    return _decorator
+
 def contextRequire(permission, contextKeywordArgument):
     """
     Decorator that checks if the current user has the permission on a passed in context.
@@ -81,7 +100,7 @@ def contextRequire(permission, contextKeywordArgument):
     in as keyword arguments.  It is mainly used by the routers where this is the
     case.
     """
-    @decorator
+    @keyworddecorator
     def wrapped_fn(f, self, *args, **kwargs):
         context = kwargs[contextKeywordArgument]
         if isinstance(context, basestring):
@@ -91,7 +110,6 @@ def contextRequire(permission, contextKeywordArgument):
             raise Unauthorized('Calling %s requires "%s" permission.' % args)
         return f(self, *args, **kwargs)
     return wrapped_fn
-
 
 @decorator
 def serviceConnectionError(func, *args, **kwargs):
