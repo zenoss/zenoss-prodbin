@@ -112,11 +112,10 @@ class ModelerService(PerformanceConfig):
         adm = ApplyDataMap(self)
         adm.setDeviceClass(device, devclass)
         def inner(map):
-            if adm._applyDataMap(device, map):
-                changed = True
-            else:
-                changed = False
-            return changed
+            def action():
+                return bool(adm._applyDataMap(device, map))
+            return self._do_with_retries(action)
+
         changed = False
         for map in maps:
             result = inner(map)
@@ -128,7 +127,22 @@ class ModelerService(PerformanceConfig):
         device = self.getPerformanceMonitor().findDevice(device)
         device.setSnmpLastCollection()
         from transaction import commit
-        commit()
+        self._do_with_retries(commit)
+
+
+    def _do_with_retries(self, action):
+        from ZODB.POSException import StorageError
+        max_attempts = 3
+        for attempt_num in range(max_attempts):
+            try:
+                return action()
+            except StorageError as e:
+                if attempt_num == max_attempts-1:
+                    msg = "{0}, maximum retries reached".format(e)
+                else:
+                    msg = "{0}, retrying".format(e)
+                log.info(msg)
+
 
     @transact
     @translateError
