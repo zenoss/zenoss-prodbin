@@ -19,6 +19,7 @@ import string
 import subprocess
 import os
 import sys
+import shutil
 
 from Globals import InitializeClass
 from Products.ZenModel.ZenModelRM import ZenModelRM
@@ -819,6 +820,75 @@ registerDirectory("skins", globals())
         else:
             name = 'Products.%s' % self.id
         return name
+
+
+    def installConfFile(self, filename):
+        """
+        Helper to install configuration files under "etc/".
+        Typcially they should not be deleted on uninstall.
+        """
+        filepath = 'etc/' + filename
+        self.installFile(filepath, overwriteIfExists=False)
+        self.installFile(filepath, filepath + '.example', overwriteIfExists=True)
+
+
+    def installBinFile(self, filename):
+        """
+        Helper to install script files under "bin/".
+        Typically they should be deleted on uninstall with removeBinFile().
+        """
+        filepath = 'bin/' + filename
+        self.installFile(filepath, overwriteIfExists=True, symLink=True)
+
+
+    def removeBinFile(self, filename):
+        filepath = 'bin/' + filename
+        self.removeFile(filepath)
+
+
+    def installFile(self, relativePath, relativeDestPath=None,
+                    overwriteIfExists=True, symLink=False):
+        """
+        Install a file from this zenpack to ZENHOME upon installation.
+        By default, relativePath is for the zenpack and its ZENHOME destination.
+        Returns True if installed, False/Exception otherwise.
+
+        Example: self.installFile('etc/myzenpack.data')
+        """
+        srcPath = self.path(relativePath)
+        destPath = zenPath(relativePath) if relativeDestPath is None \
+                                         else zenPath(relativeDestPath)
+
+        if not overwriteIfExists and os.path.lexists(destPath):
+            return False
+        if not os.path.exists(srcPath):
+            raise ZenPackException('Missing source file %s' % srcPath)
+        if os.path.lexists(destPath):
+            os.remove(destPath)
+            # If the file is open for edit in Unix then it'll still exist
+            # until it's closed, which means we can't overwrite it.
+            if os.path.lexists(destPath):
+                raise ZenPackException('Failed to remove file %s' % destPath)
+        if symLink:
+            os.symlink(srcPath, destPath)
+        else:
+            shutil.copy2(srcPath, destPath)
+        if not os.path.lexists(destPath):
+            raise ZenPackException('Failed to write file %s' % destPath)
+        return True
+
+
+    def removeFile(self, relativePath, mustSucceed=False):
+        """
+        Remove a file installed in ZENHOME by this zenpack, if it exists.
+
+        Example: self.removeFile('etc/myzenpack.data')
+        """
+        destPath = zenPath(relativePath)
+        if os.path.lexists(destPath):
+            os.remove(destPath)
+            if mustSucceed and os.path.lexists(destPath):
+                raise ZenPackException('Failed to remove file %s' % destPath)
 
 
     ##########
