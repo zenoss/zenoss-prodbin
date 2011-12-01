@@ -57,3 +57,8 @@ def audit(*args, **kwargs):
     util = getAuditManager()
     if util:
         util.audit(*args, **kwargs)
+
+
+def auditComment(comment, **kwargs):
+    """Convenience method for scripts and zendmd. Don't call from the UI."""
+    audit('Shell.Comment.Log', comment, **kwargs)
