@@ -227,3 +227,4 @@ import ifOperStatusRRDCreateCommand
 import addUserInterfaceSettings
 import changeSnmpDefaults
 import addzInterfaceMapIgnoreDescriptions
+import ifOperStatusEthernetCsmacd64

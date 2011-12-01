@@ -1,14 +1,14 @@
 <?xml version="1.0" encoding="ISO-8859-1" ?>
 
 <!--
-    Zenoss RelationshipManager export completed on 2011-11-18 10:09:16.475490
+    Zenoss RelationshipManager export completed on 2011-11-30 15:04:19.732470
 
     Use ImportRM to import this file.
 
     For more information about Zenoss, go to http://www.zenoss.com
  -->
 
-<objects version="[Zenoss, version 4.1.70]" export_date="2011-11-18 10:09:16.475490" zenoss_server="biscuit.local" >
+<objects version="[Zenoss, version 4.1.70]" export_date="2011-11-30 15:04:19.732470" zenoss_server="dev" >
 <object id='/zport/dmd/Devices' module='Products.ZenModel.DeviceClass' class='DeviceClass'>
 <property type="lines" id="devtypes" mode="w" >
 []
@@ -66,6 +66,8 @@ False
 <property visible="True" type="string" id="zInterfaceMapIgnoreTypes" >
 </property>
 <property visible="True" type="string" id="zInterfaceMapIgnoreNames" >
+</property>
+<property visible="True" type="string" id="zInterfaceMapIgnoreDescriptions" >
 </property>
 <property visible="True" type="lines" id="zFileSystemMapIgnoreTypes" >
 ['other', 'ram', 'virtualMemory', 'removableDisk', 'floppyDisk', 'compactDisk', 'ramDisk', 'flashMemory', 'networkDisk']
@@ -1818,6 +1820,52 @@ True
 </property>
 <property type="string" id="description" mode="w" >
 For packet-oriented interfaces, the number of inbound packets that contained errors preventing them from being deliverable to a higher-layer protocol. For character-oriented or fixed-length interfaces, the number of inbound transmission units that contained errors preventing them from being deliverable to a higher-layer protocol.
+</property>
+</object>
+</tomanycont>
+</object>
+<object id='ifOperStatus' module='Products.ZenModel.BasicDataSource' class='BasicDataSource'>
+<property select_variable="sourcetypes" type="selection" id="sourcetype" mode="w" >
+SNMP
+</property>
+<property type="boolean" id="enabled" mode="w" >
+True
+</property>
+<property type="string" id="eventClass" mode="w" >
+/Cmd/Fail
+</property>
+<property type="int" id="severity" mode="w" >
+3
+</property>
+<property type="int" id="cycletime" mode="w" >
+300
+</property>
+<property type="string" id="oid" mode="w" >
+.1.3.6.1.2.1.2.2.1.8
+</property>
+<property type="boolean" id="usessh" mode="w" >
+False
+</property>
+<property type="string" id="parser" mode="w" >
+Auto
+</property>
+<tomanycont id='datapoints'>
+<object id='ifOperStatus' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint'>
+<property select_variable="rrdtypes" type="selection" id="rrdtype" mode="w" >
+GAUGE
+</property>
+<property type="text" id="createCmd" mode="w" >
+RRA:LAST:0.5:1:600
+RRA:AVERAGE:0.5:1:600
+RRA:AVERAGE:0.5:6:600
+RRA:AVERAGE:0.5:24:600
+RRA:AVERAGE:0.5:288:600
+RRA:MAX:0.5:6:600
+RRA:MAX:0.5:24:600
+RRA:MAX:0.5:288:600
+</property>
+<property type="boolean" id="isrow" mode="w" >
+True
 </property>
 </object>
 </tomanycont>
