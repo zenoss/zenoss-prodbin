@@ -335,7 +335,7 @@ class SnmpPerformanceCollectionTask(BaseTask):
     @defer.inlineCallbacks
     def _processBadOids(self, previous_bad_oids):
         if previous_bad_oids:
-            log.debug("Re-checking %s bad oids", len(previous_bad_oids))
+            log.debug("%s Re-checking %s bad oids", self.name, len(previous_bad_oids))
             oids_to_test = set(previous_bad_oids)
             while oids_to_test:
                 self._checkTaskTime()
@@ -344,7 +344,10 @@ class SnmpPerformanceCollectionTask(BaseTask):
                 self._oidDeque.rotate(1) # move it to the end
                 if oid in oids_to_test: # fetch if we care
                     oids_to_test.remove(oid)
-                    yield self._fetchPerfChunk([oid])
+                    try:
+                        yield self._fetchPerfChunk([oid])
+                    except error.TimeoutError, e:
+                        log.debug('%s timed out re-checking bad oid %s', self.name, oid)
 
     def _sendStatusEvent(self, summary, eventKey=None, severity=Event.Error, details=None):
         if details is None:
