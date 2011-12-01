@@ -30,7 +30,8 @@ def talesEval(express, context, extra=None):
     """Perform a TALES eval on the express using context.
     """
     compiled = talesCompile(express)
-    contextDict = { 'here':context, 
+    contextDict = { 'context':context,
+                    'here':context,
                     'nothing':None,
                     'now': DateTime(),
                     }
