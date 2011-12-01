@@ -9636,3 +9636,10 @@ CORE TRIGGER PAGE STUFF
 
 .largetoolbar .openclose {
   top: 3px !important; }
+
+.x-flare-header {
+  left: auto !important;
+  right: 15px !important;
+  width: 15px !important; }
+.x-flare-header .x-tool {
+  left: 0px !important; }

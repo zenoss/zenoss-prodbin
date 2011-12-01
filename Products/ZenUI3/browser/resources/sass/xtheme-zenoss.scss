@@ -169,5 +169,12 @@ $include-missing-images: true;
     top:3px !important;
 }
 
+// fixing a situation where links in the flares aren't clickable due to the header overlay. 
+.x-flare-header{ 
+    left:auto !important;
+    right:15px !important;
+    width:15px !important;
+    .x-tool{ left:0px !important; }
+ }   
 
 
