@@ -251,7 +251,12 @@ class CollectorConfigService(HubService, ThresholdMixin):
         @return: True if this device should be included for further processing
         @rtype: boolean
         """
-        return device.monitorDevice()
+        try:
+            return device.monitorDevice()
+        except AttributeError as e:
+            self.log.warn("got an attribute exception on device.monitorDevice()")
+            self.log.debug(e)
+        return False
 
     def _filterDevices(self, devices):
         """
@@ -265,14 +270,19 @@ class CollectorConfigService(HubService, ThresholdMixin):
         """
         filteredDevices = []
 
-        for device in devices:
-            device = device.primaryAq() # still black magic to me...
+        for dev in filter(None, devices):
+            try:
+                device = dev.primaryAq() # still black magic to me...
 
-            if self._filterDevice(device):
-                filteredDevices.append(device)
-                self.log.debug("Device %s included by filter", device.id)
-            else:
-                self.log.debug("Device %s excluded by filter", device.id)
+                if self._filterDevice(device):
+                    filteredDevices.append(device)
+                    self.log.debug("Device %s included by filter", device.id)
+                else:
+                    # don't use .id just in case there is something crazy returned
+                    self.log.debug("Device %r excluded by filter", device)
+            except Exception as e:
+                self.log.warn("Got an exception filtering %r", dev)
+                self.log.debug(e)
 
         return filteredDevices
 
