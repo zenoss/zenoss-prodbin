@@ -109,29 +109,33 @@ Ext.define("Zenoss.DeviceDetailBar", {
                 id: 'priorityitem'
             }]
         });
+        this.contextKeys = [
+            'ipAddressString',
+            'deviceClass',
+            'name',
+            'icon',
+            'events',
+            'status',
+            'productionState',
+            'priority'
+        ];
         Zenoss.DeviceDetailBar.superclass.constructor.call(this, config);
     },
     contextCallbacks: [],
-    addDeviceDetailBarItem: function(item, fn) {
+    addDeviceDetailBarItem: function(item, fn, added_keys) {
       this.add('-');
       this.add(item);
       this.on('contextchange', fn, this);
+      for (var i = 0; i < added_keys.length; i++) {
+        this.contextKeys.push(added_keys[i]);
+      }
     },
     refresh: function() {
         this.setContext(this.contextUid);
     },
     setContext: function(uid) {
         this.contextUid = uid;
-        this.directFn({uid:uid, keys: [
-                'ipAddressString',
-                'deviceClass',
-                'name',
-                'icon',
-                'events',
-                'status',
-                'productionState',
-                'priority'
-            ]}, function(result){
+        this.directFn({uid:uid, keys:this.contextKeys}, function(result){
             var ZR = Zenoss.render,
                 data = result.data;
             Zenoss.env.icon = this.iconitem;
