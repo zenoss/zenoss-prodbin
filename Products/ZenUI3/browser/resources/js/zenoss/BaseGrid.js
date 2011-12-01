@@ -351,6 +351,7 @@
     Ext.define('Zenoss.ContextGridPanel', {
         extend: 'Ext.grid.Panel',
         alias: ['widget.contextgridpanel'],
+        selectedNodes: [],
         constructor: function(config) {
             var viewConfig = config.viewConfig || {};
 
@@ -370,6 +371,9 @@
                 viewConfig: viewConfig
             });
             this.callParent([config]);
+            this.getStore().on("load", function(store, records) {
+                      this.applySavedSelection();
+            }, this);               
             // once a uid is set always send that uid
             this.getStore().on('beforeload', function(store, operation) {
                 if (!operation) {
@@ -399,6 +403,25 @@
                 'contextchange'
             );
         },
+        saveSelection: function(){
+            this.selectedNodes = this.getSelectionModel().getSelection(); 
+        },
+        applySavedSelection: function(){
+            var curStore = this.getStore();         
+            var itemsFound = false;
+            this.suspendEvents();
+            for(var i = 0;i < curStore.data.items.length; i++){
+                for(var j = 0;j < this.selectedNodes.length; j++){
+                    if(curStore.data.items[i].getId() == this.selectedNodes[j].getId()){
+                    // select row index by name in case something has been added or removed               
+                        this.getSelectionModel().select(i, true);
+                        itemsFound = true;
+                    }
+                }
+            }   
+            this.resumeEvents();
+            if(itemsFound == true) this.selectedNodes = [];
+        },        
         applyOptions: function(options) {
             // Do nothing in the base implementation
         },
@@ -427,7 +450,7 @@
             if (!this.getContext()) {
                 return;
             }
-
+            this.saveSelection();
             var store = this.getStore();
             store.load();
         }
@@ -460,7 +483,7 @@
             if (!this.getContext()) {
                 return;
             }
-
+            this.saveSelection();
             var store = this.getStore();
             store.currentPage = 1;
             store.load({
