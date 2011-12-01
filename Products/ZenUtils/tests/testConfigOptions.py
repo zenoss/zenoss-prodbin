@@ -35,7 +35,7 @@ class MockCmdBase(CmdBase):
         CmdBase.buildOptions(self)
         
         self.parser.add_option(
-            '--var_logseverity',
+            '--var-logseverity',
             dest='var_logseverity',
             help='var_logseverity',
             default=self.default_options['var_logseverity'],
@@ -43,7 +43,7 @@ class MockCmdBase(CmdBase):
         )
 
         self.parser.add_option(
-            '--var_str',
+            '--var-str',
             dest='var_str',
             help='var_str',
             default=self.default_options['var_str'],
@@ -51,7 +51,7 @@ class MockCmdBase(CmdBase):
         )
 
         self.parser.add_option(
-            '--var_int',
+            '--var-int',
             dest='var_int',
             help='var_int',
             default=self.default_options['var_int'],
@@ -69,14 +69,14 @@ class TestConfigOptions(BaseTestCase):
     # parameter correctly even when given a string (OptParse actually coerces).
     # Testing logseverity because it is a complex custom type and new.
     example_cmds = {
-        'var_str':'cmd_string',
-        'var_int':100001,
-        'var_logseverity':'CRITical',
+        'var-str':'cmd_string',
+        'var-int':100001,
+        'var-logseverity':'CRITical',
     }
     example_conf = {
-        'var_str':'conf_string',
-        'var_int':9444449,
-        'var_logseverity':'10', # debug level
+        'var-str':'conf_string',
+        'var-int':9444449,
+        'var-logseverity':'10', # debug level
     }
     
     def __init__(self, *args, **kwargs):
@@ -118,7 +118,7 @@ class TestConfigOptions(BaseTestCase):
         # test combination of everything
         # remove the 'var_int' param so that a default can be provided.
         partial_conf = dict(self.example_conf)
-        del partial_conf['var_int']
+        del  partial_conf['var-int']
         
         conf_file = tempfile.NamedTemporaryFile()
         with conf_file as f:
@@ -129,7 +129,7 @@ class TestConfigOptions(BaseTestCase):
             # let var_logseverity be from config file
             # let var_int be from defaults
             args = {
-                'var_str':self.example_cmds['var_str'],
+                'var-str':self.example_cmds['var-str'],
                 'configfile': f.name
             }
             args = self._get_args(args)
@@ -140,10 +140,10 @@ class TestConfigOptions(BaseTestCase):
         opts = self.cmd_cmdbase.options
         
         self.assertTrue(hasattr(opts, 'var_str'))
-        self.assertEquals(src['var_str'], opts.var_str)
+        self.assertEquals(src['var-str'], opts.var_str)
         
         self.assertTrue(hasattr(opts, 'var_int'))
-        self.assertEquals(src['var_int'], opts.var_int)
+        self.assertEquals(src['var-int'], opts.var_int)
         
         self.assertTrue(hasattr(opts, 'var_logseverity'))
         self.assertEquals(logging.CRITICAL, opts.var_logseverity)
@@ -153,10 +153,10 @@ class TestConfigOptions(BaseTestCase):
         opts = self.conf_cmdbase.options
 
         self.assertTrue(hasattr(opts, 'var_str'))
-        self.assertEquals(src['var_str'], opts.var_str)
+        self.assertEquals(src['var-str'], opts.var_str)
         
         self.assertTrue(hasattr(opts, 'var_int'))
-        self.assertEquals(src['var_int'], opts.var_int)
+        self.assertEquals(src['var-int'], opts.var_int)
         
         self.assertTrue(hasattr(opts, 'var_logseverity'))
         self.assertEquals(logging.DEBUG, opts.var_logseverity)
@@ -183,7 +183,7 @@ class TestConfigOptions(BaseTestCase):
         """
         opts = self.combined_cmdbase.options
         
-        cmd_str = self.example_cmds['var_str']
+        cmd_str = self.example_cmds['var-str']
         conf_logseverity = logging.DEBUG
         default_int = self.default_cmdbase.default_options['var_int']
         

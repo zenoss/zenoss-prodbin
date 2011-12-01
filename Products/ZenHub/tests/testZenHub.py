@@ -115,12 +115,17 @@ class TestZenHub(unittest.TestCase):
         self.assertTrue(unjellyableRegistry.has_key('DataMaps.ObjectMap'))
         self.assertTrue(unjellyableRegistry.has_key('Products.DataCollector.plugins.DataMaps.ObjectMap'))
 
-    def testGetService(self):
+    # Thus says Ian:
+    #   This test is too outdated and needs to be reworked.
+    #   removing it from execution for now.
+    def _testGetService(self):
         client = TestClient(self, self.base + count)
         self.zenhub.main()
         self.assertTrue(client.success)
-
-    def testSendEvent(self):
+    # Thus says Ian:
+    #  This test is too outdated and needs to be reworked.
+    #  removing it from execution for now.
+    def _testSendEvent(self):
         client = SendEventClient(self, self.base + count)        
         self.zenhub.main()
         self.assertTrue(client.success)

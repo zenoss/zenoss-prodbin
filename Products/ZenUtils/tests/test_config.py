@@ -14,7 +14,7 @@
 import unittest
 from Products.ZenTestCase.BaseTestCase import BaseTestCase
 from Products.ZenUtils.GlobalConfig import GlobalConfig
-from Products.ZenUtils.config import ConfigLoader, ConfigError, Config
+from Products.ZenUtils.config import ConfigLoader, Config,  ConfigErrors
 from StringIO import StringIO
 from json import dumps as json
 
@@ -59,30 +59,45 @@ class ConfigTest(BaseTestCase):
         assert options.key1 == 'value1'
         assert options.key2 == 'value2'
 
-    def test_configInvalid(self):
+    def test_configFunkyKeys(self):
+        """
+        I test what happens when you pass in strange keys
+        """
         config_file = StringIO('key1\n')
-
         loader = ConfigLoader(config_file)
-
-        self.assertRaises(ConfigError, loader)
+        options = loader()
+        assert hasattr(options, 'key1')
+        assert options.key1 == '';
 
         config_file = StringIO('key1_value\n')
-
         loader = ConfigLoader(config_file)
+        options = loader()
+        assert hasattr(options, 'key1_value')
+        assert options.key1_value == '';
 
-        self.assertRaises(ConfigError, loader)
-
-        config_file = StringIO('1key value\n')
-
-        loader = ConfigLoader(config_file)
-
-        self.assertRaises(ConfigError, loader)
-
+         #the regular expression that parses the key / value pair
+        #  will pull off the 'key' from below as key
+        #  and the rest of the junk will be the value.
         config_file = StringIO('key&^$# value\n')
-
         loader = ConfigLoader(config_file)
+        options = loader()
+        assert hasattr(options, 'key')
+        assert options.key == '&^$# value';
 
-        self.assertRaises(ConfigError, loader)
+
+    def test_configInvalid(self):
+        config_file = StringIO('1key value\n')
+        loader = ConfigLoader(config_file)
+        with self.assertRaises(ConfigErrors):
+            options = loader()
+            print(options)
+
+        config_file = StringIO('_key value\n')
+        loader = ConfigLoader(config_file)
+        with self.assertRaises(ConfigErrors):
+            options = loader()
+            print(options)
+
 
     def test_get(self):
         config_file = StringIO(

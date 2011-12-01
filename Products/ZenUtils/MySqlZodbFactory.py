@@ -84,7 +84,7 @@ class MySqlZodbFactory(object):
             'port': kwargs.get('zodb_port', 3306),
             'user': kwargs.get('zodb_user', 'zenoss'),
             'passwd': kwargs.get('zodb_password', 'zenoss'),
-            'db': kwargs.get('zodb_db', 'db'),
+            'db': kwargs.get('zodb_db',  'zodb'),
         }
         socket = kwargs.get('zodb_socket', 'None')
         if socket is None or socket == 'None':

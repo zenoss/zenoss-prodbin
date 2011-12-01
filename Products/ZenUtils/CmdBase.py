@@ -100,7 +100,7 @@ class CmdBase(object):
         import Products.ZenossStartup
         unused(Products.ZenossStartup)
         if not zcml._initialized:
-            import Products.Five, Products.ZenModel, Products.ZenRelations, Products.Zuul
+            import Products.Five, Products.ZenModel, Products.ZenRelations, Products.Zuul ,  Products.ZenUtils
             try:
                 zcml.load_config('meta.zcml', Products.Five)
                 zcml.load_config('indexing.zcml', Products.ZenModel)
