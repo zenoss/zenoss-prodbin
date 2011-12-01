@@ -1315,6 +1315,9 @@
         },
         setContext: function(uid){
             this.directFn({uid:uid, keys:['events']}, function(result){
+                if (Zenoss.env.contextUid && Zenoss.env.contextUid != uid) {
+                    return;
+                }
                 this.updateRainbow(result.data.events);
             }, this);
         },

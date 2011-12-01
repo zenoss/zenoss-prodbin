@@ -155,6 +155,9 @@ treesm = Ext.create('Zenoss.TreeSelectionModel', {
             if (newnodes.length) {
                 var newnode = newnodes[0];
                 var uid = newnode.data.uid;
+                
+                Zenoss.env.contextUid = uid;
+                
                 Zenoss.util.setContext(uid, 'detail_panel', 'organizer_events',
                                        'commands-menu', 'footer_bar');
                 setDeviceButtonsDisabled(true);
@@ -1033,6 +1036,9 @@ var device_grid = Ext.create('Zenoss.DeviceGridPanel', {
     listeners: {
         contextchange: function(grid, uid) {
             REMOTE.getInfo({uid: uid, keys: ['name', 'description', 'address']}, function(result) {
+                if (Zenoss.env.contextUid && Zenoss.env.contextUid != uid) {
+                    return;
+                }
                 var title = result.data.name,
                 qtip,
                 desc = [];
@@ -1150,6 +1156,9 @@ var device_grid = Ext.create('Zenoss.DeviceGridPanel', {
                     var me = Ext.getCmp('commands-menu'),
                         menu = me.menu;
                     REMOTE.getUserCommands({uid:uid}, function(data) {
+                        if (Zenoss.env.contextUid && Zenoss.env.contextUid != uid) {
+                            return;
+                        }
                         menu.removeAll();
                         Ext.each(data, function(d) {
                             menu.add({
