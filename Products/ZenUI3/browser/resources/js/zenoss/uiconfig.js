@@ -34,6 +34,11 @@ Ext.onReady(function() {
             width: 500,
             saveFn: saveConfigValues
         }, data);
+
+        Ext.each(data, function(row){
+            // make sure the tooltip shows up
+            Zenoss.registerTooltipFor(row.id);
+        });
     }
 
     function loadProperties() {

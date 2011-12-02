@@ -19,6 +19,7 @@ from Products.ZenUtils.Ext import DirectRouter
 from Products.ZenUtils.extdirect.router import DirectResponse
 from Products.Zuul.decorators import require
 from Products import Zuul
+from Products.ZenMessaging.audit import audit
 
 
 class SettingsRouter(DirectRouter):
@@ -42,6 +43,11 @@ class SettingsRouter(DirectRouter):
         Accepts key value pair of user interface settings.
         """
         settings = self._getUISettings()
+        oldValues = {}
+        newValues = {}
         for key, value in kwargs.iteritems():
+            oldValues[key] = str(getattr(settings, key, None))
+            newValues[key] = str(value)
             setattr(settings, key, value)
+        audit('UI.InterfaceSettings.Edit', data_=newValues, oldData_=oldValues)
         return DirectResponse.succeed()

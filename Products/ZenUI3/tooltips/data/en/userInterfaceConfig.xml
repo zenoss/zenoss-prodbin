@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<view>
+  <tooltip>
+    <target>enableLiveSearch</target>
+    <anchor>top</anchor>
+
+    <html>Disabling this will require users to press enter on all filter and search boxes.</html>
+  </tooltip>
+
+  <tooltip>
+    <target>incrementalTreeLoad</target>
+    <anchor>top</anchor>
+
+    <html>Enable this option if you have deeply nested trees and any of the device organizer trees seem to take a long time to load.</html>
+  </tooltip>
+
+  <tooltip>
+    <target>enableTreeFilters</target>
+    <anchor>top</anchor>
+
+    <html>Disabling this will remove the ability to filter the left hand side trees on all pages.</html>
+  </tooltip>
+
+  <tooltip>
+    <target>deviceGridBufferSize</target>
+    <anchor>top</anchor>
+
+    <html>This is the number of devices that are prefetched at a time on the device grid. Lower it if your device grid takes a long time to load.</html>
+  </tooltip>
+
+  <tooltip>
+    <target>componentGridBufferSize</target>
+    <anchor>top</anchor>
+    <html>This is the number of component that are prefetched at a time on the device details component grid. Lower it if your component grid takes a long time to load.</html>
+
+  </tooltip>
+
+  <tooltip>
+    <target>eventConsoleBufferSize</target>
+    <anchor>top</anchor>
+
+    <html>This is the number of events prefetched on all event consoles.</html>
+  </tooltip>
+</view>
