@@ -465,17 +465,13 @@ class EventProxy(object):
 
     # Just put everything else in the details
     def __getattr__(self, name):
-        try:
-            if name in self._readOnly:
-                return self._readOnly[name]
+        if name in self._readOnly:
+            return self._readOnly[name]
 
-            try:
-                return self.__dict__['details'][name]
-            except KeyError:
-                raise AttributeError(name)
-        except:
-            log.debug('Could not get key %s', name)
-            raise
+        try:
+            return self.__dict__['details'][name]
+        except KeyError:
+            raise AttributeError(name)
 
     def __setattr__(self, name, value):
         if hasattr(self.__class__, name):
