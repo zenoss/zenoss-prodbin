@@ -74,6 +74,7 @@ remove_zep_jdbc_config
 
 # update/migrate zodb
 create_zodb_db
+create_zodb_session_db
 
 # Upgrade to persistent sessions if necessary
 upgrade_to_persistent_sessions
