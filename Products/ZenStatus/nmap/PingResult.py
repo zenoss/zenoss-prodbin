@@ -64,11 +64,14 @@ class PingResult(object):
         pr = PingResult("unknown")
         pr._address = pr._parseAddress(hostTree)
         pr._timestamp = pr._parseTimestamp(hostTree)
-        pr._isUp = pr._parseState(hostTree)
-        try:
-            pr._rtt, pr._rttVariance = pr._parseTimes(hostTree)
-        except Exception:
-            pr._rtt, pr._rttVariace = (_NAN, _NAN)
+        pr._isUp, reason = pr._parseState(hostTree)
+        if reason == 'localhost-response':
+            pr._rtt, pr._rttVariace = (0, 0)
+        else:
+            try:
+                pr._rtt, pr._rttVariance = pr._parseTimes(hostTree)
+            except Exception:
+                pr._rtt, pr._rttVariace = (_NAN, _NAN)
         try:
             pr._trace = self._parseTraceroute(hostTree)
         except Exception:
@@ -132,11 +135,9 @@ class PingResult(object):
             raise ValueError("hostTree does not have status node")
         statusNode = statusNodes[0]
         state = statusNode.attrib['state']
-        if state == 'up':
-            return True
-        if state == 'down':
-            return False
-        raise ValueError("hostTree/status.state has uknown value %s" % state)
+        isUp = state.lower() == 'up'
+        reason = statusNode.attrib.get('reason', 'unknown')
+        return (isUp, reason)
     
     def _parseTraceroute(self, hostTree):
         """
