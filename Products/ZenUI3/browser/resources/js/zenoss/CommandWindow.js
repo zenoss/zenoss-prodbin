@@ -111,6 +111,7 @@ Ext.define("Zenoss.CommandWindow", {
         this.task = new Ext.util.DelayedTask(this.scrollToBottom, this);
         this.on('render', this.startScrolling, this);
         this.on('afterlayout', function(){this.center();}, this, {single:true});
+        this.on('close', this.stopScrolling, this);
     },
     onRender: function() {
         Zenoss.CommandWindow.superclass.onRender.apply(this, arguments);
@@ -138,10 +139,13 @@ Ext.define("Zenoss.CommandWindow", {
         } catch(e) {
             Ext.emptyFn();
         }
-        this.task.delay(250);
-        Ext.get('window_footer_toolbar').focus();        
+
+        if (Ext.get('window_footer_toolbar')) {
+            Ext.get('window_footer_toolbar').focus();
+            this.task.delay(250);
+        }
     },
-    closeAndReload: function() { 
+    closeAndReload: function() {
         (function() {window.top.location.reload();}).defer(1, this);
         this.destroy();
     },
