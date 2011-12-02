@@ -495,7 +495,7 @@ class ZenHub(ZCmdBase):
                 break
 
     def _workerStats(self):
-        with open(zenPath('log', 'workerstats'), 'w') as f:
+        with open(zenPath('log', '%s_workerstats' % self.options.monitor), 'w') as f:
             now = time.time()
             for wId in range(len(self.workers)):
                 stat = self.workTracker.get(wId, None)

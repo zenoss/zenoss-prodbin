@@ -41,7 +41,7 @@ from zenoss.protocols.protobufs import zep_pb2 as events
 
 # imports from within ZenStatus
 from Products.ZenStatus import PingTask
-from Products.ZenStatus.ping import CmdPingTask
+from Products.ZenStatus.ping.CmdPingTask import CmdPingTask
 from PingResult import PingResult, parseNmapXmlToDict
 from Products.ZenStatus.PingCollectionPreferences import PingCollectionPreferences
 from Products.ZenStatus.interfaces import IPingTaskFactory
