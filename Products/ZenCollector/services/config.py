@@ -206,7 +206,7 @@ class CollectorConfigService(HubService, ThresholdMixin):
         deviceConfigs = []
         for device in devices:
             proxies = self._wrapFunction(self._createDeviceProxies, device)
-            if proxies is not None:
+            if proxies:
                 deviceConfigs.extend(proxies)
 
         self._wrapFunction(self._postCreateDeviceProxy, deviceConfigs)
@@ -308,7 +308,7 @@ class CollectorConfigService(HubService, ThresholdMixin):
             proxies = None
 
         for listener in self.listeners:
-            if proxies is None:
+            if not proxies:
                 deferreds.append(listener.callRemote('deleteDevice', device.id))
             else:
                 for proxy in proxies:
