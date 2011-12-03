@@ -177,7 +177,7 @@ report_tree = new Zenoss.ReportTreePanel({
     router: Zenoss.remote.ReportRouter,
     root: {
         nodeType: 'async',
-        id: '.zport.dmd.Reports',
+        id: 'Reports',
         uid: '/zport/dmd/Reports',
         text: _t('Report Classes'),
         allowDrop: false

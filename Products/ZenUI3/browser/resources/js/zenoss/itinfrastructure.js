@@ -155,9 +155,9 @@ treesm = Ext.create('Zenoss.TreeSelectionModel', {
             if (newnodes.length) {
                 var newnode = newnodes[0];
                 var uid = newnode.data.uid;
-                
+
                 Zenoss.env.contextUid = uid;
-                
+
                 Zenoss.util.setContext(uid, 'detail_panel', 'organizer_events',
                                        'commands-menu', 'footer_bar');
                 setDeviceButtonsDisabled(true);
@@ -800,8 +800,8 @@ function detailSelectByToken(nodeId) {
 
 var treeLoaderFn = REMOTE.getTree, treeStateful = true;
 if (Zenoss.settings.incrementalTreeLoad) {
-    // treeLoaderFn = REMOTE.asyncGetTree;
-    // treeStateful = false;
+    treeLoaderFn = REMOTE.asyncGetTree;
+    treeStateful = false;
 }
 
 var devtree = {

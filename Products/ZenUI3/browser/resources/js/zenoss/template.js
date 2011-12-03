@@ -145,7 +145,7 @@ selectionchangeHandler = function(sm, nodes) {
         // unfortunately because multiple templates exist on device class view we
         // have to track the history differently
         if (getCurrentView() == Zenoss.templates.templateView){
-            // Ext.History.add(treeId + Ext.History.DELIMITER + node.get("uid"));
+            Ext.History.add(treeId + Ext.History.DELIMITER + node.get("uid"));
         }else {
             Ext.History.add(treeId + Ext.History.DELIMITER + node.get("id"));
         }

@@ -19,10 +19,11 @@ Available at:  /zport/dmd/report_router
 import logging
 from itertools import izip_longest
 from Products.ZenMessaging.audit import audit
-from Products.ZenUtils.Ext import DirectRouter, DirectResponse
+from Products.ZenUtils.Ext import DirectResponse
 from Products.Zuul.decorators import require
 from Products.Zuul.marshalling import Marshaller
 from Products.Zuul.utils import ZuulMessageFactory as _t
+from Products.Zuul.routers import TreeRouter
 from Products import Zuul
 
 log = logging.getLogger('zen.ReportRouter')
@@ -46,7 +47,7 @@ essentialReportOrganizers = [
     '/zport/dmd/Reports',
 ]
 
-class ReportRouter(DirectRouter):
+class ReportRouter(TreeRouter):
     """
     A JSON/ExtDirect interface to operations on reports
     """
@@ -56,8 +57,7 @@ class ReportRouter(DirectRouter):
         self.api = Zuul.getFacade('reports')
         self.context = context
         self.request = request
-        self.keys = ('id', 'path', 'uid', 'iconCls', 'text', 'hidden', 'leaf',
-                'deletable', 'edit_url')
+        self.keys = ('deletable', 'edit_url')
         super(ReportRouter, self).__init__(context, request)
 
     def _getFacade(self):
@@ -91,8 +91,7 @@ class ReportRouter(DirectRouter):
                 menuText=menuText)
 
     def asyncGetTree(self, id=None):
-        children = self._getFacade().getTree(id).children
-        return [Marshaller(child).marshal(self.keys) for child in children]
+        return super(ReportRouter, self).asyncGetTree(id, additionalKeys=self.keys)
 
     @require('Manage DMD')
     def addNode(self, nodeType, contextUid, id):

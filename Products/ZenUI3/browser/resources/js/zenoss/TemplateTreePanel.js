@@ -105,7 +105,7 @@ Ext.define("Zenoss.TemplateTreePanel", {
             directFn: directFn,
             nodeName: 'Templates',
             root: {
-                id: '/zport/dmd/Devices',
+                id: 'root',
                 uid: '/zport/dmd/Devices',
                 text: _t('Templates')
             }
@@ -183,41 +183,57 @@ Ext.define("Zenoss.TemplateTreePanel", {
             }
         }
     },
-    // selectByToken: function(uid) {
-    //     if (this.currentView == Zenoss.templates.deviceClassView){
-    //         this.callParent([unescape(uid)]);
-    //     }else{
-    //         this.templateViewSelectByToken(uid);
-    //     }
-    // },
-    templateViewSelectByToken: function(uid) {
-        // called on Ext.History change event (see HistoryManager.js)
-        // convert uid to path and select the path
-        // example uid: '/zport/dmd/Devices/Power/UPS/APC/rrdTemplates/Device'
-        // example path: '/root/Device/Device..Power.UPS.APC'
-        var templateSplit, pathParts, nameParts,
-            templateName, dmdPath, path, deviceName;
-
-        if (uid.search('/rrdTemplates/') != -1) {
-            templateSplit = unescape(uid).split('/rrdTemplates/');
-            pathParts = templateSplit[0].split('/');
-            nameParts = templateSplit[1].split('/');
-            templateName = nameParts[0];
+    selectByToken: function(id) {
+        if (this.currentView == Zenoss.templates.deviceClassView){
+            this.callParent([unescape(id.replace(/\//g, '.'))]);
         }else{
-            // it is a template on a device
-            pathParts = uid.replace('/devices/', '/').split('/');
-            templateName = pathParts.pop();
+            this.templateViewSelectByToken(id);
+        }
+    },
+    addHistoryToken: function(node) {
+        Ext.History.add(this.id + Ext.History.DELIMITER + node.get('uid'));
+    },
+    templateViewSelectByToken: function(uid) {
+        var root = this.getRootNode(),
+            selNode = Ext.bind(function(){
+                // Translates from the History token into the
+                // path for the tree
+                // for example this:
+                //     "/zport/dmd/Devices/rrdTemplates/ethernetCsmacd"
+                // turns into:
+                //     "/root/ethernetCsmacd/ethernetCsmacd..Devices"
+                var templateSplit, pathParts, nameParts,
+                templateName, dmdPath, path, deviceName;
+
+                if (uid.search('/rrdTemplates/') != -1) {
+                    templateSplit = unescape(uid).split('/rrdTemplates/');
+                    pathParts = templateSplit[0].split('/');
+                    nameParts = templateSplit[1].split('/');
+                    templateName = nameParts[0];
+                }else{
+                    // it is a template on a device
+                    pathParts = uid.replace('/devices/', '/').split('/');
+                    templateName = pathParts.pop();
+                }
+
+                if ( pathParts.length === 4 ) {
+                    // Defined at devices, special case, include 'Devices'
+                    dmdPath = 'Devices';
+                } else {
+                    // all the DeviceClass names under Devices separated by dots
+                    dmdPath = pathParts.slice(4).join('.');
+                }
+                path = String.format('/root/{0}/{0}..{1}', templateName, dmdPath);
+                this.selectPath(path);
+            }, this);
+        if (!root.isLoaded()) {
+            // Listen on expand because if we listen on the store's load expand
+            // gets double-called.
+            root.on('expand', selNode, this, {single: true});
+        } else {
+            selNode();
         }
 
-        if ( pathParts.length === 4 ) {
-            // Defined at devices, special case, include 'Devices'
-            dmdPath = 'Devices';
-        } else {
-            // all the DeviceClass names under Devices separated by dots
-            dmdPath = pathParts.slice(4).join('.');
-        }
-        path = String.format('/root/{0}/{0}..{1}', templateName, dmdPath);
-        this.selectPath(path, 'id', this.manualSelect(uid, templateName));
     },
     manualSelect: function(uid, templateName) {
         var theTree = this;

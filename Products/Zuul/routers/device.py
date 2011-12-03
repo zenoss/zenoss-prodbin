@@ -1576,7 +1576,7 @@ class DeviceRouter(TreeRouter):
              - data: ([dictionary]) List of objects representing templates
         """
         facade = self._getFacade()
-        templates = facade.getTemplates(id)
+        templates = facade.getTemplates(id, keys=('id', 'path', 'uid', 'iconCls', 'text', 'hidden', 'leaf'))
         return Zuul.marshal(templates)
 
     @serviceConnectionError

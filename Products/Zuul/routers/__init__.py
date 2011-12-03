@@ -116,7 +116,7 @@ class TreeRouter(DirectRouter):
         """
         raise NotImplementedError("You must implement the _getFacade method")
 
-    def asyncGetTree(self, id=None):
+    def asyncGetTree(self, id=None, additionalKeys=()):
         """
         Server side method for asynchronous tree calls. Retrieves
         the immediate children of the node specified by "id"
@@ -133,7 +133,7 @@ class TreeRouter(DirectRouter):
         facade = self._getFacade()
         currentNode = facade.getTree(id)
         # we want every tree property except the "children" one
-        keys = ('id', 'path', 'uid', 'iconCls', 'text', 'hidden', 'leaf')
+        keys = ('id', 'path', 'uid', 'iconCls', 'text', 'hidden', 'leaf') + additionalKeys
         children = []
         # explicitly marshall the children
         for child in currentNode.children:

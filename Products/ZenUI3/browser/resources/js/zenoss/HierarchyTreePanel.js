@@ -186,7 +186,7 @@ Ext.define('Zenoss.HierarchyTreePanel', {
             scope: this
         });
 
-        config.viewConfig = config.viewConfig || {}; 
+        config.viewConfig = config.viewConfig || {};
         if(config.enableDragDrop){
             Ext.applyIf(config.viewConfig, {
                 loadMask: true,
@@ -198,7 +198,7 @@ Ext.define('Zenoss.HierarchyTreePanel', {
                 }
             });
         }else{
-            Ext.applyIf(config.viewConfig, {        
+            Ext.applyIf(config.viewConfig, {
                 loadMask:true
             });
         }
@@ -213,6 +213,7 @@ Ext.define('Zenoss.HierarchyTreePanel', {
             rootVisible: false,
             rootDepth: config.rootVisible ? 0 : 1,
             allowOrganizerMove: true,
+            pathSeparator: "/",
             hideHeaders: true,
             layout: 'fit',
             columns: [{
@@ -223,13 +224,13 @@ Ext.define('Zenoss.HierarchyTreePanel', {
                     if (Ext.isString(value)) {
                         return value;
                     }
-                    var parentNode = n.parentNode;                    
-                    if(parentNode.data.root == true){   
-                        return Ext.String.format("<span class='rootNode'>{0} <span title='{1}'>({2})</span></span>", value.text, value.description, value.count); 
+                    var parentNode = n.parentNode;
+                    if(parentNode.data.root == true){
+                        return Ext.String.format("<span class='rootNode'>{0} <span title='{1}'>({2})</span></span>", value.text, value.description, value.count);
                     }else{
                         return Ext.String.format("<span class='subNode'>{0}</span> <span title='{1}'>({2})</span>", value.text, value.description, value.count);
                     }
-                    
+
                 }
             }]
 
@@ -253,9 +254,16 @@ Ext.define('Zenoss.HierarchyTreePanel', {
             var model = Ext.define(modelId, {
                 extend: 'Ext.data.Model',
                 treeId: config.id,
-                idProperty: config.idProperty || 'uid',
+                idProperty: config.idProperty || 'id',
                 getOwnerTree: function() {
                     return Ext.getCmp(this.treeId);
+                },
+                /**
+                 * Used by the tree store to determine what
+                 * to send to the server
+                 **/
+                getId: function() {
+                    return this.get("uid");
                 },
                 proxy: {
                     type: 'direct',
@@ -291,7 +299,7 @@ Ext.define('Zenoss.HierarchyTreePanel', {
             config.store = new Ext.create('Ext.data.TreeStore', {
                 model: modelId,
                 nodeParam: 'uid',
-                defaultRootId: root.id,
+                defaultRootId: root.uid,
                 uiProviders: {
                     // 'hierarchy': Zenoss.HierarchyTreeNodeUI
                 }
@@ -344,7 +352,7 @@ Ext.define('Zenoss.HierarchyTreePanel', {
     initEvents: function() {
         var me = this;
         Zenoss.HierarchyTreePanel.superclass.initEvents.call(this);
-  
+
         if (this.selectRootOnLoad && !Ext.History.getToken()) {
             this.getRootNode().on('expand', function() {
                 // The first child is our real root
@@ -406,21 +414,8 @@ Ext.define('Zenoss.HierarchyTreePanel', {
             var sel = this.getSelectionModel().getSelectedNode(),
                 uid, child;
             if (!(sel && nodeId === sel.id)) {
-                if (nodeId.indexOf('/') == -1) {
-                    uid = nodeId.replace(/\./g, '/');
-                }else {
-                    uid = nodeId;
-                }
-                child = root.findChild('uid', uid, true);
-
-                // try the id as well
-                if (Ext.isEmpty(child)) {
-                    child = root.findChild('id', nodeId, true);
-                }
-                if (child) {
-                    this.getSelectionModel().select(child);
-                    this.expandToChild(child);
-                }
+                var path = this.getNodePathById(nodeId);
+                this.selectPath(path);
             }
         }, this);
 
@@ -431,6 +426,33 @@ Ext.define('Zenoss.HierarchyTreePanel', {
         } else {
             selNode();
         }
+    },
+
+    /**
+     * Given a nodeId this returns the full path to the node. By convention
+     * nodeIds are the uid with a "." in place of a "/". So for example on the
+     * infrastructure page this method would recieve ".zport.dmd.Device.Server" and
+     * return "/Devices/.zport.dmd.Devices/.zport.dmd.Devices.Server"
+     *
+     * Override this method if your tree implements a custom path setup
+     **/
+    getNodePathById: function(nodeId) {
+        var depth = this.root.uid.split('/').length - this.rootDepth,
+            parts = nodeId.split('.'),
+            path = [],
+            segment = Ext.Array.splice(parts, 0, depth + 1).join("."),
+            remainingsegments = parts,
+            curpath = this.initialConfig.root.id;
+        // grab the first depth pieces of the id (e.g. .zport.dmd.Devices)
+        path.push(curpath);
+        // each segment of the path will have the previous segment as a piece of it
+        path.push(segment);
+
+        Ext.each(remainingsegments, function(piece) {
+            segment = segment + "." + piece;
+            path.push(segment);
+        });
+        return "/" + path.join(this.pathSeparator);
     },
     /**
      * This takes a node anywhere in the hierarchy and
@@ -458,30 +480,6 @@ Ext.define('Zenoss.HierarchyTreePanel', {
     createDeepLinkPath: function(node) {
         var path = this.id + Ext.History.DELIMITER + node.data.uid.replace(/\//g, '.');
         return path;
-    },
-    getNodePathById: function(nodeId) {
-        var part,
-            depth = this.root.uid.split('/').length - this.rootDepth,
-            parts = nodeId.split('.'),
-            curpath = parts.slice(0, depth).join('.');
-
-        parts = parts.slice(depth);
-
-        var path = [this.getRootNode().data.uid];
-
-        while (part = parts.shift()) {
-            // this adjusts the path for things like "Service.Linux.devices.Dev1"
-            // where "devices" is the relationshipIdentifier"
-            if (this.relationshipIdentifier && part == this.relationshipIdentifier) {
-                curpath = [curpath, part, parts.shift()].join('.');
-            }else {
-                curpath = [curpath, part].join('.');
-            }
-
-            path.push(curpath);
-        }
-
-        return path.join(this.pathSeparator);
     },
     afterRender: function() {
         Zenoss.HierarchyTreePanel.superclass.afterRender.call(this);
