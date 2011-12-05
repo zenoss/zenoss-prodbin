@@ -46,7 +46,7 @@ Ext.onReady(function(){
         layout: 'fit',
         region: 'center'
     },{
-        width: '50%',
+        width: '33%',
         id: 'detail_panel',
         contentEl: 'detail_panel_content',
         region: 'east',

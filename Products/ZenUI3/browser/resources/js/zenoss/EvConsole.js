@@ -193,10 +193,10 @@ Ext.onReady(function(){
     // Detail pane should pop open when double-click on event
     grid.on("itemdblclick", toggleEventDetailContent);
     console_selection_model.on("rowselect", function(){
-        if(detail_panel.isVisible()){
+        if(!detail_panel.collapsed){
             toggleEventDetailContent();
         }
-        });
+    });
 
     // When multiple events are selected, detail pane should blank
     console_selection_model.on('rangeselect', wipeEventDetail);

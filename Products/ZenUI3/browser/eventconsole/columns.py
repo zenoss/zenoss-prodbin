@@ -65,7 +65,7 @@ The definitions for columns may also specify a 'field_definition' column
 that specifies how the field is parsed in the UI. This should be a json
 object string like the following:
 
-    field_definition= "{name:'stateChange', type:'date', format: Zenoss.date.ISO8601Long}"
+    field_definition= "{name:'stateChange', type:'date', dateFormat: Zenoss.date.ISO8601Long}"
 
 """
 COLUMN_CONFIG = {
@@ -190,7 +190,7 @@ COLUMN_CONFIG = {
         },
         width=100,
         renderer='Ext.util.Format.dateRenderer(Zenoss.date.ISO8601Long)',
-        field_definition = "{name:'firstTime',type:'date', format: Zenoss.date.ISO8601Long}"
+        field_definition = "{name:'firstTime',type:'date', dateFormat: Zenoss.date.ISO8601Long}"
     ),
 
     'lastTime'  : dict(
@@ -202,7 +202,7 @@ COLUMN_CONFIG = {
         },
         width=100,
         renderer='Ext.util.Format.dateRenderer(Zenoss.date.ISO8601Long)',
-        field_definition="{name:'lastTime', type:'date', format: Zenoss.date.ISO8601Long}"
+        field_definition="{name:'lastTime', type:'date', dateFormat: Zenoss.date.ISO8601Long}"
     ),
 
     'count'     : dict(
@@ -241,7 +241,7 @@ COLUMN_CONFIG = {
         },
         width=120,
         renderer='Ext.util.Format.dateRenderer(Zenoss.date.ISO8601Long)',
-        field_definition="{name:'stateChange', type:'date', format: Zenoss.date.ISO8601Long}"
+        field_definition="{name:'stateChange', type:'date', dateFormat: Zenoss.date.ISO8601Long}"
     ),
 
     'eventClassKey': dict(
