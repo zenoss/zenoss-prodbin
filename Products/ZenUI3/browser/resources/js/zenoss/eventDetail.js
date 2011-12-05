@@ -242,6 +242,7 @@ Ext.onReady(function() {
                 {
                     id: 'evdetail_bd',
                     region: 'center',
+                    width: "90%",
                     autoScroll: true,
                     cls: 'evdetail_bd',
                     items: [
@@ -274,6 +275,7 @@ Ext.onReady(function() {
                     {
                         xtype: 'form',
                         id: 'log-container',
+                        width: '90%',
                         layout: {
                             type: 'table',
                             columns: 1
@@ -322,8 +324,7 @@ Ext.onReady(function() {
                         cls: 'log-content',
                         hidden: false,
                         autoScroll: true,
-                        height: 200,
-                        width: "100%"
+                        height: 200
                     }
                     ]
                 }

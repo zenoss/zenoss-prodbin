@@ -25,11 +25,11 @@
         background-image: none;
         background-color: #{$panel-header-background-color};
     }
-    
+
     .#{$prefix}splitter{
         background-color:#a5a5a5;
-    }    
-    
+    }
+
 
     #newTabsPane{
         background-color: #D4E0EE;
@@ -39,7 +39,7 @@
         ul li.selected a {
           background-color: #7199C6;
           color: white;
-        }     
+        }
         ul li a {
           color: #454545;
           display: block;
@@ -52,8 +52,8 @@
             background-color:#eee;
             color:#454545 !important;
           }
-        }  
-     
+        }
+
         li{
             list-style:none;
         }
@@ -62,14 +62,14 @@
           padding: 10px 0 0;
           width: 100%;
         }
-    }   
-    
+    }
+
     .innerzentable{
         .tableheader{
             padding-left:5px;
         }
     }
-    
+
     #device_overview{
         .#{$prefix}panel{
             padding-bottom:5px;
@@ -78,19 +78,15 @@
     #dpanelcontainer{
         border-left:2px solid #a5a5a5;
     }
-    #detail_panel{
-            .#{$prefix}panel-header{
-                display:none !important;
-            }  
-    }
+
     #device_modeler_plugins{
         .#{$prefix}panel-default-framed, .#{$prefix}panel-body-default-framed{
-            background:#f2f2f2; 
+            background:#f2f2f2;
         }
 
     }
-    
-    
+
+
 
     #evdetail_props{
         display:block !important;
