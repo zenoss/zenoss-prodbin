@@ -23,6 +23,10 @@ import Globals
 from zope import interface
 from Products.ZenStatus import interfaces, TraceHop
 
+import logging
+from traceback import format_exc
+log = logging.getLogger("zen.nmap")
+
 _STATE_TO_STRING_MAP = { True: 'up', False: 'down'}
 _NAN = float('nan')
 _NO_TRACE = tuple()
@@ -37,7 +41,7 @@ def parseNmapXml(input):
         result = PingResult.createNmapResult(hostTree)
         results.append(result)
     return (results)
-    
+
 def parseNmapXmlToDict(input):
     """
     Parse the XML output of nmap and return a dict of PingResults indexed by IP.
@@ -53,7 +57,7 @@ class PingResult(object):
     Model of an nmap ping/traceroute result.
     """
     interface.implements(interfaces.IPingResult)
-    
+
     @staticmethod
     def createNmapResult(hostTree):
         """
@@ -70,14 +74,18 @@ class PingResult(object):
         else:
             try:
                 pr._rtt, pr._rttVariance = pr._parseTimes(hostTree)
-            except Exception:
+            except Exception as ex:
+                traceback = format_exc()
+                log.debug("Error parsing times %s %s " % (ex, traceback))
                 pr._rtt, pr._rttVariace = (_NAN, _NAN)
         try:
-            pr._trace = self._parseTraceroute(hostTree)
-        except Exception:
+            pr._trace = pr._parseTraceroute(hostTree)
+        except Exception as ex:
+            traceback = format_exc()
+            log.debug("Error parsing trace routes %s %s " % (ex, traceback))
             pr._trace = _NO_TRACE
         return pr
-    
+
     def __init__(self, address, timestamp=None, isUp=False,
                  rtt=_NAN, stddev=_NAN, trace=_NO_TRACE):
         self._address = address
@@ -86,7 +94,7 @@ class PingResult(object):
         self._rtt = rtt
         self._rttVariance = stddev * stddev
         self._trace = trace
-    
+
     def _parseTimestamp(self, hostTree):
         """
         Extract timestamp if it exists.
@@ -96,6 +104,8 @@ class PingResult(object):
             timestamp = int(starttime)
             return timestamp
         except Exception as ex:
+            traceback = format_exc()
+            log.debug("Error parsing timestamp %s %s " % (ex, traceback))
             return None
 
     def _parseTimes(self, hostTree):
@@ -111,12 +121,12 @@ class PingResult(object):
         rttVariance = timesNode.attrib['rttvar']
         rttVariance = float(rttVariance) / 1000.0
         return (rtt, rttVariance)
-        
+
     def _parseAddress(self, hostTree):
         """
         Extract the address (ip) from the hostTree.
         """
-        
+
         addressNodes = hostTree.xpath("address[@addrtype='ipv4']")
         if len(addressNodes) != 1:
             addressNodes = hostTree.xpath("address[@addrtype='ipv6']")
@@ -138,7 +148,7 @@ class PingResult(object):
         isUp = state.lower() == 'up'
         reason = statusNode.attrib.get('reason', 'unknown')
         return (isUp, reason)
-    
+
     def _parseTraceroute(self, hostTree):
         """
         Extract the traceroute hops from hostTree in to a list that
@@ -157,7 +167,7 @@ class PingResult(object):
             rtt = float(hopNode.attrib['rtt'])
             hops.append(TraceHop(ip=ipaddr, rtt=rtt))
         return hops
-    
+
     @property
     def timestamp(self):
         """Timestamp of when ping was returned (seconds since epoch)."""
@@ -167,19 +177,19 @@ class PingResult(object):
     def address(self):
         """Address of the host"""
         return self._address
-    
+
     @property
     def trace(self):
         """traceroute of the host"""
         return tuple(self._trace)
-    
+
     def getStatusString(self):
         """status string: up or down"""
         return _STATE_TO_STRING_MAP[self._isUp]
-    
+
     def __repr__(self):
         return "PingResult [%s, %s]" % (self._address, self.getStatusString())
-        
+
     @property
     def isUp(self):
         """true if host is up, false if host is down"""
@@ -201,7 +211,7 @@ class PingResult(object):
         math.sqrt(self._rttVariance)
 
 if __name__ == '__main__':
-    
+
     import os.path
     nmap_testfile = os.path.dirname(
         os.path.realpath(__file__)) + '/../tests/nmap_ping.xml'
