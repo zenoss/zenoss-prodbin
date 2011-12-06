@@ -169,12 +169,15 @@ $include-missing-images: true;
     top:3px !important;
 }
 
-// fixing a situation where links in the flares aren't clickable due to the header overlay. 
-.x-flare-header{ 
-    left:auto !important;
-    right:15px !important;
-    width:15px !important;
-    .x-tool{ left:0px !important; }
- }   
-
-
+/* cascade level fix */
+.x-grid-row-selected, .x-grid-row-focused{
+     background-color:#7199C6 !important;  
+     .x-grid-cell-inner, span{
+         color:#fff !important;
+    }
+} 
+.x-grid-row-selected.x-grid-row-over{
+     .x-grid-cell-inner, span{
+         color:#222 !important;
+    }
+}

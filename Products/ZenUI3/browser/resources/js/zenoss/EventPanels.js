@@ -1016,7 +1016,7 @@
         listeners: {
             'beforerender': function(){
                this.rowcolors = Ext.state.Manager.get('rowcolor');
-               Ext.getCmp('rowcolors_checkitem').setChecked(this.rowcolors);
+               if(Ext.getCmp("rowcolors_checkitem")) Ext.getCmp('rowcolors_checkitem').setChecked(this.rowcolors);
             }
         },
         getSelectionParameters: function() {

@@ -7298,6 +7298,9 @@ $menu-icon-unchecked: 'menu/unchecked.gif';
   font-size: 12px;
   color: #454545; }
 
+.x-grid-cell {
+  padding-top: 2px !important; }
+
 .x-hierarchy-search-panel .x-field-search {
   padding: 6px; }
 .x-hierarchy-search-panel .searchfield {
@@ -9634,9 +9637,11 @@ CORE TRIGGER PAGE STUFF
 .largetoolbar .openclose {
   top: 3px !important; }
 
-.x-flare-header {
-  left: auto !important;
-  right: 15px !important;
-  width: 15px !important; }
-.x-flare-header .x-tool {
-  left: 0px !important; }
+/* cascade level fix */
+.x-grid-row-selected, .x-grid-row-focused {
+  background-color: #7199c6 !important; }
+.x-grid-row-selected .x-grid-cell-inner, .x-grid-row-selected span, .x-grid-row-focused .x-grid-cell-inner, .x-grid-row-focused span {
+  color: white !important; }
+
+.x-grid-row-selected.x-grid-row-over .x-grid-cell-inner, .x-grid-row-selected.x-grid-row-over span {
+  color: #222222 !important; }

@@ -48,6 +48,49 @@ Ext.define('Zenoss.TreeSelectionModel', {
             return selections[0];
         }
         return null;
+    } ,
+
+    // Overwriting the default onSelectChange method.
+    //
+    // On some of the screens we are using we have mutliple
+    // trees all using the same selection model.  In particular
+    // the Infrastructure/Devices and Infrastructure/Networks.
+    // This was causing the code to get confused trying to look up the index.
+    // So I overwrote the behavior to do a better job of it.
+    onSelectChange: function(record, isSelected, suppressEvent, commitFn) {
+       // this.callParent(record, isSelected, suppressEvent, commitFn);
+         var me      = this,
+            views   = me.views,
+            viewsLn = views.length,
+            store   = me.store,
+            rowIdx  = store.indexOf(record),
+            eventName = isSelected ? 'select' : 'deselect',
+            i = 0;
+
+        if ((suppressEvent || me.fireEvent('before' + eventName, me, record, rowIdx)) !== false &&
+                commitFn() !== false) {
+
+            for (; i < viewsLn; i++) {
+                try{
+                    rowIdx = views[i].indexOf(record);
+                }  catch(e){
+                    // For some reason the lookup is throwing an error
+                    // when it should instead be just returning -1.
+                    rowIdx = -1;
+                }
+                if(rowIdx > -1){
+                if (isSelected) {
+                     views[i].onRowSelect(rowIdx, suppressEvent);
+                } else {
+                    views[i].onRowDeselect(rowIdx, suppressEvent);
+                }
+        }
+            }
+
+            if (!suppressEvent) {
+                me.fireEvent(eventName, me, record, rowIdx);
+            }
+        }
     }
 });
 
@@ -174,7 +217,7 @@ Zenoss.treeContextMenu = function(view, node, item, index, e, opti) {
  * of various pages
  **/
 Ext.define('Zenoss.HierarchyTreePanel', {
-    extend: 'Ext.tree.TreePanel',
+    extend: 'Ext.tree.Panel',
     alias: ['widget.HierarchyTreePanel'],
     constructor: function(config) {
         Ext.applyIf(config, {

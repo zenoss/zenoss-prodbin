@@ -37,7 +37,9 @@
         }       
 
     }
-
+    .#{$prefix}grid-cell {
+        padding-top:2px !important;
+    }
     .#{$prefix}hierarchy-search-panel {
 
         .#{$prefix}field-search {
@@ -63,7 +65,7 @@
         #templateTree-body{padding-top:0px !important;}
         #deviceDetailNav-body{padding-top:6px; margin-top:0px !important;}
     
-    }  
+    }      
     #masterDetailNav{
         position:relative;
         top:-35px !important;
