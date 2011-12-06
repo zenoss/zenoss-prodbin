@@ -29,19 +29,7 @@ ZC.displayName = function(meta_type) {
 
 ZC.displayNames = function() {
     return NM;
-}
-
-function componentColumnDefinitions() {
-    var defs = Ext.clone(Zenoss.env.COLUMN_DEFINITIONS),
-        bad = ['component', 'device'];
-    // remove the column ids so they don't collide with the device events console's column ids
-    Ext.each(defs, function(d){
-        delete d.id;
-    });
-    return  Zenoss.util.filter(defs, function(d){
-        return bad.indexOf(d.id)==-1;
-    });
-}
+};
 
 function render_link(ob) {
     if (ob && ob.uid) {
@@ -143,7 +131,7 @@ Zenoss.nav.register({
                     xtype: 'SimpleEventGridPanel',
                     displayFilters: false,
                     stateId: 'component-event-console',
-                    columns: componentColumnDefinitions()
+                    columns:  Zenoss.env.getColumnDefinitions(['component', 'device'])
                 });
                 var tbar = target.getTopToolbar();
                 if (tbar._btns) {

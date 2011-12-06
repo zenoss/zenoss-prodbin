@@ -974,15 +974,9 @@
     Ext.define("Zenoss.FullEventColumnModel", {
         extend: "Ext.grid.ColumnModel",
         alias: ['widget.FullEventColumnModel'],
-        constructor: function(config){
-            Ext.each(Zenoss.env.COLUMN_DEFINITIONS, function(col){
-                if (Zenoss.events.customColumns[col.dataIndex]) {
-                    Ext.apply(col, Zenoss.events.customColumns[col.dataIndex]);
-                }
-            });
-
+        constructor: function(config) {
             config = Ext.applyIf(config || {}, {
-                columns:Zenoss.env.COLUMN_DEFINITIONS
+                columns: Zenoss.env.getColumnDefinitions()
             });
             Zenoss.FullEventColumnModel.superclass.constructor.call(this, config);
         }

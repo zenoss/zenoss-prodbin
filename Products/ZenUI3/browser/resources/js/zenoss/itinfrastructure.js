@@ -1201,7 +1201,7 @@ function getInfrastructureDeviceColumns() {
         'status',
         'count'
     ];
-    var defs = Zenoss.env.COLUMN_DEFINITIONS;
+    var defs = Zenoss.env.getColumnDefinitions();
     return  Zenoss.util.filter(defs, function(d){
         return Ext.Array.contains(columns, d.id);
     });

@@ -30,13 +30,6 @@ function selectOnRender(n, sm) {
     sm.selectRow(n);
 }
 
-function deviceColumnDefinitions() {
-    var defs = Zenoss.env.COLUMN_DEFINITIONS;
-    return Zenoss.util.filter(defs, function(d){
-        return d.id != "device";
-    });
-}
-
 function refreshComponentTreeAndGrid(compType) {
     var tree = Ext.getCmp('deviceDetailNav').treepanel,
         sm = tree.getSelectionModel(),
@@ -557,7 +550,7 @@ var event_console = Ext.create('Zenoss.EventGridPanel', {
     actionsMenu: false,
     commandsMenu: false,
     store: Ext.create('Zenoss.events.Store', {}),
-    columns: deviceColumnDefinitions()
+    columns: Zenoss.env.getColumnDefinitions(['device'])
 });
 
 var modeler_plugins = Ext.create('Zenoss.form.ModelerPluginPanel', {

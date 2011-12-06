@@ -52,6 +52,26 @@ Ext.namespace('Zenoss.env');
 
 Ext.QuickTips.init();
 
+    /**
+     *
+     * @param except Return all columns except the ones
+     * where id is in this array.
+     */
+Zenoss.env.getColumnDefinitions = function(except) {
+    Ext.each(Zenoss.env.COLUMN_DEFINITIONS, function(col){
+        if (Zenoss.events.customColumns[col.dataIndex]) {
+            Ext.apply(col, Zenoss.events.customColumns[col.dataIndex]);
+        }
+    });
+    if (except) {
+        return Zenoss.util.filter(Zenoss.env.COLUMN_DEFINITIONS, function(d){
+            return except.indexOf(d.id)==-1;
+        });
+    }
+    else {
+        return Zenoss.env.COLUMN_DEFINITIONS;
+    }
+};
 
 Ext.define('Zenoss.state.PersistentProvider', {
     extend: 'Ext.state.Provider',
