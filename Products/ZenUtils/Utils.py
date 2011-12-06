@@ -333,7 +333,7 @@ def getDisplayName(obj):
     name = _getName(obj) or _getId(obj) or _getUid(obj)
     if name is None:
         return str(obj) #we tried our best
-    return capitalizeFirstLetter(str(name() if callable(name) else name))
+    return str(name() if callable(name) else name)
 
 
 def getDisplayId(obj):
@@ -345,7 +345,7 @@ def getDisplayId(obj):
     dispId = _getUid(obj) or _getId(obj) or _getName(obj)
     if dispId is None:
         return str(obj) #we tried our best
-    return capitalizeFirstLetter(str(dispId() if callable(dispId) else dispId))
+    return re.sub(r'^/zport/dmd', '', str(dispId() if callable(dispId) else dispId))
 
 
 def checkClass(myclass, className):

@@ -75,6 +75,7 @@ from AccessControl.SecurityManagement import newSecurityManager
 from AccessControl.SecurityManagement import noSecurityManager
 from Products.ZenUtils.Utils import zenPath, set_context
 from Products.ZenModel.IpNetwork import IpNetworkPrinterFactory
+from Products.ZenMessaging import audit
 
 _CUSTOMSTUFF = []
 
@@ -124,6 +125,7 @@ def _customStuff():
     find  = dmd.Devices.findDevice
     devices = dmd.Devices
     me = find(socket.getfqdn())
+    auditComment = audit.auditComment
     shell_stdout = []
     shell_stderr = []
 
@@ -447,6 +449,7 @@ if __name__=="__main__":
             commit()
         sys.exit(0)
 
+    audit.audit('Shell.Script.Run')
     _banner = ("Welcome to the Zenoss dmd command shell!\n"
              "'dmd' is bound to the DataRoot. 'zhelp()' to get a list of "
              "commands.")
