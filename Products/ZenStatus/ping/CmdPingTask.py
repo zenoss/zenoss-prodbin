@@ -125,6 +125,7 @@ class CmdPingTask(ZenStatus.PingTask):
         @return: A task to ping the device and any of its interfaces.
         @rtype: Twisted deferred object
         """
+        self.resetPingResult()
         return self._pingIp()
 
     @defer.inlineCallbacks
