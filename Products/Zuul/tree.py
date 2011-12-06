@@ -211,9 +211,10 @@ class CatalogTool(object):
             path = path.getPhysicalPath()
         if isinstance(path, tuple):
             path = '/'.join(path)
-        brains = self.catalog(path={'query':path, 'depth':0})
-        if brains:
-            return brains[0]
+        cat = self.catalog._catalog
+        rid = cat.uids[path]
+        brain = cat.__getitem__(rid)
+        return brain
 
     def parents(self, path):
         # Make sure it's actually a path
