@@ -76,6 +76,9 @@ remove_zep_jdbc_config
 create_zodb_db
 create_zodb_session_db
 
+# Patch zopectl and runzope to accept config files
+patch_zopectl_and_runzope
+
 # Upgrade to persistent sessions if necessary
 upgrade_to_persistent_sessions
 
