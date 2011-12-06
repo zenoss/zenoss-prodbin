@@ -420,7 +420,7 @@ div.tinylink-container {
 
 div.portlet-settings {
   background-color: #d4e0ee;
-  margin-top: 0;
+  width:100%;
   border-top: 1px solid #b8b8b8;
   border-bottom: 1px solid #949494;
   border-left: 1px solid #b8b8b8;

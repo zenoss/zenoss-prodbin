@@ -1433,10 +1433,6 @@ div.zenportlet div.resize-handle:hover {
 div.portlet-settings {
     background-color: #ffffe0;
     margin-top: -2px;
-    border: 1px solid black;
-    border-top: medium none;
-    /*padding: 7px 6px;*/
-    position: relative;
 }
 div.portlet-body.yui-dt table {
     width: 100%;
