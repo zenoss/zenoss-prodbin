@@ -347,9 +347,13 @@ class NmapPingTask(BaseTask):
             raise StopIteration() # exit this generator
 
         with tempfile.NamedTemporaryFile(prefix='zenping_nmap_') as tfile:
+            ips = []
             for taskName, ipTask in ipTasks.iteritems():
-                tfile.write("%s\n" % ipTask.config.ip)
+                ips.append(ipTask.config.ip)
                 ipTask.resetPingResult() # clear out previous run's results
+            ips.sort()
+            for ip in ips:
+                tfile.write("%s\n" % ip)
             tfile.flush()
 
             # ping up to self._preferences.pingTries
