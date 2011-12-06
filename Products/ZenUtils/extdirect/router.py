@@ -218,22 +218,23 @@ class DirectProviderDefinition(object):
         self.ns = ns
         self.timeout = timeout
 
-    def _config(self):
-        actions = []
+    def _gen_public_methods(self):
         for name, value in inspect.getmembers(self.routercls):
             if name.startswith("_"):
                 continue
             if inspect.ismethod(value):
+                yield name, value
 
-                ## Update this when extdirect doesn't freak out when you specify
-                ## actual lens (we're passing them all in as a single dict, so
-                ## from the perspective of Ext.Direct they are all len 1)
-                #args = inspect.getargspec(value)[0]
-                #args.remove('self')
-                #arglen = len(args)
-                arglen = 1
+    def _gen_method_infos(self, strategy):
+        for name, method in self._gen_public_methods():
+            method_info = {'name': name}
+            strategy(method_info, method)
+            yield method_info
 
-                actions.append({'name':name, 'len':arglen})
+    def _extdirect_config(self):
+        def strategy(method_info, method):
+            method_info["len"] = 1
+        method_infos = self._gen_method_infos(strategy)
         config = {
             'id': self.routercls.__name__,
             'type': 'remoting',
@@ -241,11 +242,22 @@ class DirectProviderDefinition(object):
             'timeout': self.timeout,
             'enableBuffer': 100,
             'actions': {
-                self.routercls.__name__: actions
+                self.routercls.__name__: list(method_infos)
             }
         }
         if self.ns:
             config['namespace'] = self.ns
+        return config
+
+    def _jsonapi_config(self):
+        def strategy(method_info, method):
+            method_info['args'] = inspect.formatargspec(*inspect.getargspec(method))
+            method_info['doc'] = method.__doc__
+        method_infos = self._gen_method_infos(strategy)
+        config = {"action": self.routercls.__name__,
+                  "url": self.url,
+                  "methods": list(method_infos),
+                 }
         return config
 
     def render(self):
@@ -253,7 +265,14 @@ class DirectProviderDefinition(object):
         Generate and return an Ext.Direct provider definition, wrapped in a
         <script> tag and ready for inclusion in an HTML document.
         """
-        config = self._config()
+        config = self._extdirect_config()
         source = "\nExt.Direct.addProvider(%s);\n" % json(config)
         return source.strip()
 
+    def render_jsonapi(self):
+        """
+        Generate an Ext.Direct provider definition for the python client
+        """
+        config = self._jsonapi_config()
+        source = json(config)
+        return source

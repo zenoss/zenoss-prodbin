@@ -19,4 +19,18 @@
         permission="zope.Public"
         />
 
+    <browser:viewletManager
+        name="jsonapi"
+        provides=".interfaces.IJsonApiJavaScriptManager"
+        class=".javascript.JsonApiJavaScriptManager" 
+        permission="zope.Public"
+        />
+
+    <browser:page
+        name="jsonapi.js"
+        class=".views.JsonApiJsView"
+        for="*"
+        permission="zope.Public"
+        />
+
 </configure>

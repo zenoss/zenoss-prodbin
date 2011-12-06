@@ -23,7 +23,7 @@ except ImportError:
 
 from Products.ZenUtils.extdirect.router import DirectProviderDefinition
 
-from interfaces import IExtDirectJavaScriptManager
+from interfaces import IExtDirectJavaScriptManager, IJsonApiJavaScriptManager
 
 class SourceViewletBase(ViewletBase):
     _source = ""
@@ -47,8 +47,12 @@ def directRouter(_context, name, class_, namespace=None, for_=Interface,
     page(_context, name, permission, for_, layer, class_=class_)
 
     # Make a viewlet class with the appropriate javascript source
-    source = DirectProviderDefinition(class_, name, timeout, namespace).render()
-    viewletclass = JavaScriptSourceViewlet(source)
+    definition = DirectProviderDefinition(class_, name, timeout, namespace)
 
-    viewletDirective(_context, name, 'zope2.Public', for_, layer,
-                     manager=IExtDirectJavaScriptManager, class_=viewletclass)
+    source = definition.render()
+    viewletclass = JavaScriptSourceViewlet(source)
+    viewletDirective(_context, name, 'zope2.Public', for_, layer, manager=IExtDirectJavaScriptManager, class_=viewletclass)
+
+    jsonapi_source = definition.render_jsonapi()
+    jsonapi_viewletclass = JavaScriptSourceViewlet(jsonapi_source)
+    viewletDirective(_context, name, 'zope2.Public', for_, layer, manager=IJsonApiJavaScriptManager, class_=jsonapi_viewletclass)

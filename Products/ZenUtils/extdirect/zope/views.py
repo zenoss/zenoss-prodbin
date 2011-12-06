@@ -21,3 +21,11 @@ class ExtDirectJsView(BrowserView):
         self.request.response.enableHTTPCompression(REQUEST=self.request)
         self.request.response.setHeader('Content-Type', 'text/javascript')
         return self.template()
+
+class JsonApiJsView(BrowserView):
+    template = ViewPageTemplateFile('jsonapi.js.pt')
+
+    def __call__(self, *args, **kwargs):
+        self.request.response.enableHTTPCompression(REQUEST=self.request)
+        self.request.response.setHeader('Content-Type', 'text/javascript')
+        return self.template()
