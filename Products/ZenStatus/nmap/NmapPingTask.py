@@ -259,12 +259,7 @@ class NmapPingTask(BaseTask):
         args.extend(["--host-timeout", "%.1fs" % self._preferences.pingTimeOut])
         
         if traceroute:
-            # If tracerouting, don't specify --max-retries so nmap tries at
-            # least twice for every hop.
             args.append("--traceroute")
-        else:
-            # max-tries
-            args.extend(["--max-retries", "0"])
         
         if outputType == 'xml':
             args.extend(["-oX", '-']) # outputXML to stdout
