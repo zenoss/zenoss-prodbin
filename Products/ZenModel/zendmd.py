@@ -18,6 +18,7 @@ import os.path
 import code
 import atexit
 import logging
+import transaction
 from subprocess import Popen, PIPE
 from optparse import OptionParser
 
@@ -39,8 +40,8 @@ parser.add_option('--script',
 parser.add_option('--commit',
             dest="commit", default=False, action="store_true",
             help="Run commit() at end of script?")
-parser.add_option('-n', '--no-ipython', 
-            dest="use_ipython", default=True, action="store_false", 
+parser.add_option('-n', '--no-ipython',
+            dest="use_ipython", default=True, action="store_false",
             help="Do not embed IPython shell if IPython is found")
 
 opts, args = parser.parse_args()
@@ -49,10 +50,10 @@ readline = rlcompleter = None
 Completer = object
 IPShellEmbed = None
 
-if opts.use_ipython:    
+if opts.use_ipython:
     try:
         import readline
-    
+
         try:
             from IPython.Shell import IPShellEmbed
         except ImportError:
@@ -99,7 +100,7 @@ def _customStuff():
     from transaction import commit
     from pprint import pprint
     from Products.Zuul import getFacade, listFacades
-    
+
     # Connect to the database, set everything up
     app = Zope2.app()
     app = set_context(app)
@@ -447,26 +448,37 @@ if __name__=="__main__":
         if opts.commit:
             from transaction import commit
             commit()
+        else:
+            try:
+                transaction.abort()
+            except:
+                pass
         sys.exit(0)
 
     audit.audit('Shell.Script.Run')
     _banner = ("Welcome to the Zenoss dmd command shell!\n"
              "'dmd' is bound to the DataRoot. 'zhelp()' to get a list of "
              "commands.")
+    try:
+        if IPShellEmbed:
+            sys.argv[1:] = args
+            ipshell = IPShellEmbed(banner=_banner)
+            ipshell(local_ns=vars)
+        else:
+            if readline is not None:
+                _banner = '\n'.join([_banner,
+                                     "Use TAB-TAB to see a list of zendmd related commands.",
+                                     "Tab completion also works for objects -- hit tab after"
+                                     " an object name and '.'", " (eg dmd. + tab-key)."])
 
-    if IPShellEmbed:
-        sys.argv[1:] = args
-        ipshell = IPShellEmbed(banner=_banner)
-        ipshell(local_ns=vars)
-    else:
-        if readline is not None:
-            _banner = '\n'.join( [ _banner,
-                           "Use TAB-TAB to see a list of zendmd related commands.",
-                           "Tab completion also works for objects -- hit tab after"
-                           " an object name and '.'", " (eg dmd. + tab-key)."])
 
-
-        # Start up the console
-        myconsole = HistoryConsole(locals=vars)
-        myconsole.interact(_banner)
+            # Start up the console
+            myconsole = HistoryConsole(locals=vars)
+            myconsole.interact(_banner)
+    finally:
+        # try to abort any open transactions for our two phase commit listeners
+        try:
+            transaction.abort()
+        except:
+            pass
 
