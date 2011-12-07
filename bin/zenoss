@@ -1,10 +1,10 @@
 #!/usr/bin/env bash
 #
 # zenoss        This shell script takes care of starting and stopping zenmon.
-#               
+#
 # chkconfig: 2345 80 30
 # description: Zenoss is a monitoring program written by Zenoss, Inc.
-# 
+#
 
 
 #############################################################################
@@ -40,7 +40,7 @@ fi
 
 if [ `id -u` -eq 0 ] ; then
    USERNAME=`ls -l $ZENHOME/var/Data.fs | awk '{ print $3 }'`
-   if [ "$USERNAME" = "root" -o -z "$USERNAME" ]  ; then 
+   if [ "$USERNAME" = "root" -o -z "$USERNAME" ]  ; then
        echo Unable to determine the right user to run zenoss
        exit 1
    fi
@@ -55,35 +55,39 @@ WEBSERVERCTL=$(${ZENHOME}/bin/zenglobalconf -p webserverctl)
 if [ -z "${WEBSERVERCTL}" ]; then
     WEBSERVERCTL=zopectl
 fi
+CATSERVICE=${ZENHOME}/bin/zencatalogservice
 
 C=
 if [ ! -f $ZENHOME/etc/DAEMONS_TXT_ONLY ] ; then
-	C="$C zeneventserver"
-	C="$C zeneventd"
-	C="$C ${WEBSERVERCTL}"
-	C="$C zenhub"
-	C="$C zenjobs"
-	C="$C zenping"
-	C="$C zensyslog"
-	C="$C zenstatus"
-	C="$C zenactiond"
-	C="$C zentrap"
-	C="$C zenmodeler"
-	#C="$C zenrender"
-	C="$C zenperfsnmp"
-	C="$C zencommand"
-	C="$C zenprocess"
-	C="$C zenrrdcached"
-	#C="$C zenmail"
-	$ZENHOME/bin/python -c 'import pysamba' 2>/dev/null
-	if [ $? -eq 0 ]
-	then
-	    C="$C zenwin"
-	    C="$C zeneventlog"
-	fi
+    if [ -f $CATSERVICE ] ; then
+        C="$C zencatalogservice"
+    fi
+    C="$C zeneventserver"
+    C="$C zeneventd"
+    C="$C ${WEBSERVERCTL}"
+    C="$C zenhub"
+    C="$C zenjobs"
+    C="$C zenping"
+    C="$C zensyslog"
+    C="$C zenstatus"
+    C="$C zenactiond"
+    C="$C zentrap"
+    C="$C zenmodeler"
+    #C="$C zenrender"
+    C="$C zenperfsnmp"
+    C="$C zencommand"
+    C="$C zenprocess"
+    C="$C zenrrdcached"
+    #C="$C zenmail"
+    $ZENHOME/bin/python -c 'import pysamba' 2>/dev/null
+    if [ $? -eq 0 ]
+    then
+        C="$C zenwin"
+        C="$C zeneventlog"
+    fi
 
-	ZPD=`$ZENHOME/bin/zenpackdaemons --list`
-	C="$C $ZPD"
+    ZPD=`$ZENHOME/bin/zenpackdaemons --list`
+    C="$C $ZPD"
 fi
 if [ -f "$ZENHOME/etc/daemons.txt" ]
 then
@@ -114,7 +118,7 @@ issue() {
     for cmd in $CMDS
     do
         echo -n "Daemon: $cmd "
-        
+
         # Special status handling for zeoctl and zopectl because the stock
         # scripts exit with a code of 0 no matter what state they're in.
         if [ $FUNC == "status" -a \( $cmd == "zeoctl" -o $cmd == "zopectl" \) ]
@@ -209,14 +213,14 @@ case "$FUNC" in
         CMDS=`reverse $CMDS`
         issue
         EXITCODE=$?
-	rm -f $ZENHOME/var/.*watchdog-*
+    rm -f $ZENHOME/var/.*watchdog-*
         ;;
   restart)
         CMDS=`reverse $CMDS`
-	FUNC=stop
-	issue
+    FUNC=stop
+    issue
         CMDS=`reverse $CMDS`
-	FUNC=start
+    FUNC=start
         issue
         EXITCODE=$?
         ;;
@@ -225,16 +229,16 @@ case "$FUNC" in
         EXITCODE=$?
         ;;
   xstatus)
-	xissue
-	EXITCODE=$?
-	;;
+    xissue
+    EXITCODE=$?
+    ;;
   list)
-	for i in $CMDS
-	do
-	    echo $i
-	    EXITCODE=0
-	done
-	;;
+    for i in $CMDS
+    do
+        echo $i
+        EXITCODE=0
+    done
+    ;;
   *)
         echo $"Usage: $0 {start|stop|restart|status|xstatus|list}"
         exit 1
