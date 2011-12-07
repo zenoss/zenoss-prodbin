@@ -146,6 +146,44 @@ Ext.Direct.on('event', function(e){
         }
     }
 });
+
+
+/**
+ * Each time there is an ajax request we change the mouse
+ * cursor to a "wait" style to signify that something is going on.
+ *
+ * This is entirely to provide feedback to a user that their
+ * actions had an effect.
+ */
+function openAjaxRequests() {
+    var i = 0, request;
+    for (request in Ext.Ajax.requests) {
+        i++;
+    }
+    return i;
+}
+
+function setCursorStyle(style) {
+    if (document.body) {
+        document.body.style.cursor = style;
+    }
+}
+
+Ext.Ajax.on('beforerequest', function(){
+    setCursorStyle("wait");
+});
+
+function setToDefaultCursorStyle() {
+    // the number of open ajax requests is
+    // what the current number is including this one
+    // that is ending
+    if (openAjaxRequests() <= 1) {
+        setCursorStyle("default");
+    }
+}
+Ext.Ajax.on('requestcomplete', setToDefaultCursorStyle);
+Ext.Ajax.on('requestexception', setToDefaultCursorStyle);
+
 var serverExceptionDialog = null;
 Ext.Direct.on('exception', function(e) {
     if (e.message.startswith("Error parsing json response") &&
@@ -153,9 +191,9 @@ Ext.Direct.on('exception', function(e) {
         window.location.reload();
         return;
     }
-    
-    if(serverExceptionDialog) serverExceptionDialog.destroy();  
-    
+
+    if(serverExceptionDialog) serverExceptionDialog.destroy();
+
     serverExceptionDialog = new Zenoss.dialog.SimpleMessageDialog({
         title: _t('Server Exception'),
         message: '<p>' + _t('The server reported the following error:') + '</p>' +
