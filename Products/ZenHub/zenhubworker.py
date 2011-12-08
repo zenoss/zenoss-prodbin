@@ -78,7 +78,11 @@ class zenhubworker(ZCmdBase, pb.Referenceable):
                 ctor = importClass(name)
             except ImportError:
                 ctor = importClass('Products.ZenHub.services.%s' % name, name)
-            svc = ctor(self.dmd, instance)
+            try:
+                svc = ctor(self.dmd, instance)
+            except AttributeError, ex:
+                self.dmd._p_jar.sync()
+                svc = ctor(self.dmd, instance)
             self.services[name, instance] = svc
             return svc
 
