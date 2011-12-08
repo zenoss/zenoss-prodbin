@@ -20,14 +20,15 @@ from Globals import DTMLFile
 from Globals import InitializeClass
 from Acquisition import aq_base, aq_chain
 from ZPublisher.Converters import type_converters
+from Products.ZenMessaging.audit import audit
 from Products.ZenModel.ZenossSecurity import *
 from AccessControl import ClassSecurityInfo
 from Exceptions import zenmarker
 from Products.ZenWidgets.interfaces import IMessageSender
 from Products.ZenRelations.zPropertyCategory import getzPropertyCategory
-iszprop = re.compile("^z[A-Z]").search
+from Products.ZenUtils.Utils import unused, getDisplayType
 
-from Products.ZenUtils.Utils import unused
+iszprop = re.compile("^z[A-Z]").search
 
 log = logging.getLogger('zen.PropertyManager')
 
@@ -439,10 +440,13 @@ class ZenPropertyManager(object, PropertyManager):
     def saveZenProperties(self, pfilt=iszprop, REQUEST=None):
         """Save all ZenProperties found in the REQUEST.form object.
         """
+        maskFields=[]
         for name, value in REQUEST.form.items():
             if pfilt(name):
-                if self.zenPropIsPassword(name) and self._onlystars(value):
-                    continue
+                if self.zenPropIsPassword(name):
+                    maskFields.append(name)
+                    if self._onlystars(value):
+                        continue
                 if name == 'zCollectorPlugins':
                     if tuple(getattr(self, name, ())) != tuple(value):
                         self.setZenProperty(name, value)
@@ -450,6 +454,8 @@ class ZenPropertyManager(object, PropertyManager):
                     self.setZenProperty(name, value)
 
         if REQUEST:
+            audit(('UI', getDisplayType(self), 'EditProperties'), self, data_=REQUEST.form,
+                    skipFields_=['savezenproperties','zenscreenname'], maskFields_=maskFields)
             IMessageSender(self).sendToBrowser(
                 'Configuration Propeties Updated',
                 'Configuration properties have been updated.'
@@ -473,7 +479,10 @@ class ZenPropertyManager(object, PropertyManager):
                 self._properties=tuple(newProps)
             except ValueError:
                 raise ZenPropertyDoesNotExist()
-        if REQUEST: return self.callZenScreen(REQUEST)
+        if REQUEST:
+            if propname:
+                audit(('UI',getDisplayType(self),'DeleteZProperty'), self, property=propname)
+            return self.callZenScreen(REQUEST)
 
     security.declareProtected(ZEN_ZPROPERTIES_VIEW, 'zenPropertyOptions')
     def zenPropertyOptions(self, propname):

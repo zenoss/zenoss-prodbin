@@ -17,6 +17,8 @@ import re
 import sre_constants
 import logging
 import transaction
+from Products.ZenMessaging.audit import audit
+
 log = logging.getLogger("zen.Events")
 
 from Globals import InitializeClass
@@ -33,7 +35,8 @@ from Products.ZenModel.EventView import EventView
 from Products.ZenModel.ZenPackable import ZenPackable
 from Products.ZenWidgets import messaging
 from Products.ZenUtils.guid.interfaces import IGloballyIdentifiable
-from Products.ZenUtils.Utils import convToUnits, zdecode
+from Products.ZenUtils.Utils import convToUnits, zdecode, getDisplayName
+from Products.ZenUtils.Time import SaveMessage
 from Products import Zuul
 from Products.Zuul.interfaces import IInfo
 
@@ -420,16 +423,31 @@ class EventClassInst(EventClassPropertyMixin, ZenModelRM, EventView,
         for i, map in enumerate(self.sameKey()):
             map.sequence = i
         if REQUEST:
+            audit('UI.EventClassMapping.Resequence', self.id, sequence=seqmap)
             return self.callZenScreen(REQUEST)
 
 
     security.declareProtected('Manage DMD', 'manage_editEventClassInst')
-    def manage_editEventClassInst(self, name="", eventClassKey='',
+    def manage_editEventClassInst(self, name='', eventClassKey='',
                                 regex='', rule='', example='',
                                 transform='',
                                 explanation='', resolution='', REQUEST=None):
-        """Edit a EventClassInst from a web page.
-        """
+        """Edit an EventClassInst from a web page."""
+
+        #save arguments for audit logging
+        values = locals()
+
+        oldValues = {
+            'name':getDisplayName(self),
+            'eventClassKey':self.eventClassKey,
+            'regex':self.regex,
+            'rule':self.rule,
+            'example':self.example,
+            'transform':self.transform,
+            'explanation':self.explanation,
+            'resolution':self.resolution,
+        }
+        
         redirect = self.rename(name)
         if eventClassKey and self.eventClassKey != eventClassKey:
             self.unindex_object()
@@ -443,7 +461,7 @@ class EventClassInst(EventClassPropertyMixin, ZenModelRM, EventView,
         self.explanation = explanation
         self.resolution = resolution
         if REQUEST:
-            from Products.ZenUtils.Time import SaveMessage
+            audit('UI.EventClassMapping.Edit', self, data_=values, oldData_=oldValues, skipFields_=['self','REQUEST'])
             messaging.IMessageSender(self).sendToBrowser(
                 'Saved', SaveMessage())
             return self.callZenScreen(REQUEST, redirect)

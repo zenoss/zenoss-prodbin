@@ -10,7 +10,6 @@
 # For complete information please visit: http://www.zenoss.com/oss/
 #
 ###########################################################################
-
 __doc__ = """Organizer
 Base class for all Zenoss organizers
 """
@@ -22,6 +21,9 @@ from AccessControl import ClassSecurityInfo, getSecurityManager
 from Products.ZenRelations.RelSchema import *
 from Products.ZenUtils.Exceptions import ZentinelException
 from Products.ZenWidgets import messaging
+from Products.ZenMessaging.audit import audit
+from Products.ZenUtils.Utils import getDisplayType, getDisplayName
+from Products.ZenUtils.deprecated import deprecated
 
 from EventView import EventView
 from ZenModelRM import ZenModelRM
@@ -185,24 +187,26 @@ class Organizer(ZenModelRM, EventView):
         if not newPath: return self.callZenScreen(REQUEST)
         try:
             if newPath.startswith("/"):
-                self.createOrganizer(newPath)
+                org = self.createOrganizer(newPath)
             else:
                 org = factory(newPath)
                 self._setObject(org.id, org)
         except ZentinelException, e:
-            if REQUEST: 
+            if REQUEST:
                 messaging.IMessageSender(self).sendToBrowser(
                     'Error', e, priority=messaging.WARNING)
                 return self.callZenScreen(REQUEST)
         if REQUEST:
+            audit(('UI', getDisplayType(org), 'Add'), org)
             messaging.IMessageSender(self).sendToBrowser(
                 'Organizer Added',
-                '%s "%s" was created.' % (self.__class__.__name__, newPath)
+                '%s "%s" was created.' % (getDisplayType(self), newPath)
             )
             return self.callZenScreen(REQUEST)
 
 
     security.declareProtected(ZEN_DELETE, 'manage_deleteOrganizer')
+    @deprecated
     def manage_deleteOrganizer(self, orgname, REQUEST=None):
         """
         Deletes an organizer underneath this organizer
@@ -224,10 +228,11 @@ class Organizer(ZenModelRM, EventView):
                 pass  # we may have already deleted a sub object
         else:
             self._delObject(orgname)
-        if REQUEST: 
+        if REQUEST:
+            audit(('UI', getDisplayType(self), 'Delete'), orgname)
             messaging.IMessageSender(self).sendToBrowser(
                 'Organizer Deleted',
-                '%s "%s" was deleted.' % (self.__class__.__name__, orgname)
+                '%s "%s" was deleted.' % (getDisplayType(self), orgname)
             )
             return self.callZenScreen(REQUEST)
 
@@ -256,9 +261,11 @@ class Organizer(ZenModelRM, EventView):
         if REQUEST:
             plural = ''
             if len(organizerPaths) > 1: plural = 's'
+            for organizerName in organizerPaths:
+                audit(('UI',getDisplayType(self),'Delete'), organizerName)
             messaging.IMessageSender(self).sendToBrowser(
                 'Organizers Deleted',
-                '%s%s %s were deleted.' % (self.__class__.__name__,
+                '%s%s %s were deleted.' % (getDisplayType(self),
                                     plural, ', '.join(organizerPaths))
             )
             return self.callZenScreen(REQUEST)
@@ -306,15 +313,17 @@ class Organizer(ZenModelRM, EventView):
             if movedStuff: 
                 plural = ''
                 if len(organizerPaths) > 1: plural = 's'
+                for organizerName in organizerPaths:
+                    audit(('UI', getDisplayType(self), 'Move'), organizerName, data_={'from':getDisplayName(self), 'to':getDisplayName(target)})
                 messaging.IMessageSender(self).sendToBrowser(
                     'Organizers Moved',
-                    '%s%s %s were moved to %s.' % (self.__class__.__name__,
+                    '%s%s %s were moved to %s.' % (getDisplayType(self),
                                 plural, ', '.join(organizerPaths), moveTarget)
                 )
             else:
                 messaging.IMessageSender(self).sendToBrowser(
                     'Error',
-                    'No %s were moved.' % self.__class__.__name__,
+                    'No %s were moved.' % getDisplayType(self),
                     priority=messaging.WARNING
                 )
             return target.callZenScreen(REQUEST)

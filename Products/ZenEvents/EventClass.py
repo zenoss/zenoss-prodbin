@@ -34,7 +34,8 @@ from Products.ZenEvents.ZenEventClasses import Unknown
 from Products.ZenModel.Organizer import Organizer
 from Products.ZenModel.ZenPackable import ZenPackable
 from Products.ZenUtils.guid.interfaces import IGloballyIdentifiable
-from Products.ZenUtils.Utils import prepId as globalPrepId
+from Products.ZenUtils.Utils import prepId as globalPrepId, getDisplayName
+from Products.ZenMessaging.audit import audit
 
 __pychecker__='no-argsused'
 
@@ -263,6 +264,8 @@ class EventClass(EventClassPropertyMixin, Organizer, ManagedEntity, ZenPackable)
             ecr = EventClassInst(id)
             ecr.sequence = self.nextSequenceNumber(ecr.eventClassKey)
             self.instances._setObject(id, ecr)
+            if REQUEST:
+                audit('UI.EventClassMapping.Add', ecr)
         if REQUEST: return self()
         return self.instances._getOb(id)
 
@@ -274,6 +277,8 @@ class EventClass(EventClassPropertyMixin, Organizer, ManagedEntity, ZenPackable)
         if isinstance(ids, basestring): ids = (ids,)
         for id in ids:
             self.instances._delObject(id)
+            if REQUEST:
+                audit('UI.EventClassMapping.Delete', id)
         if REQUEST: return self()
 
 
@@ -289,6 +294,8 @@ class EventClass(EventClassPropertyMixin, Organizer, ManagedEntity, ZenPackable)
             rec._operation = 1 # moving object state
             self.instances._delObject(id)
             target.instances._setObject(id, rec)
+            if REQUEST:
+                audit('UI.EventClassMapping.Move', id, data_={'from':getDisplayName(self), 'to':getDisplayName(target)})
         if REQUEST:
             REQUEST['RESPONSE'].redirect(target.getPrimaryUrlPath())
 
@@ -319,9 +326,12 @@ class EventClass(EventClassPropertyMixin, Organizer, ManagedEntity, ZenPackable)
 
     security.declareProtected(ZEN_MANAGE_EVENTS, 'manage_editEventClassTransform')
     def manage_editEventClassTransform(self, transform = '', REQUEST=None):
-        "Save the transform"
+        """Save the transform"""
+        oldTransform = self.transform
         self.transform = transform
-        if REQUEST: return self.callZenScreen(REQUEST)
+        if REQUEST:
+            audit('UI.EventClass.EditTransform', self, transform=transform, oldData_={'transform':oldTransform})
+            return self.callZenScreen(REQUEST)
 
     def getEventSeverities(self):
         """Return a list of tuples of severities [('Warning', 3), ...]
