@@ -72,6 +72,8 @@
                     fieldLabel: _t('Event Class'),
                     name: 'evclass',
                     xtype: 'combo',
+                    value: "/Unknown",
+                    allowBlank: false,
                     store: Zenoss.env.EVENT_CLASSES,
                     typeAhead: true,
                     forceSelection: true,
