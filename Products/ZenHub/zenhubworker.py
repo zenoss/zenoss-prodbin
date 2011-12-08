@@ -78,11 +78,7 @@ class zenhubworker(ZCmdBase, pb.Referenceable):
                 ctor = importClass(name)
             except ImportError:
                 ctor = importClass('Products.ZenHub.services.%s' % name, name)
-            try:
-                svc = ctor(self.dmd, instance)
-            except AttributeError, ex:
-                self.dmd._p_jar.sync()
-                svc = ctor(self.dmd, instance)
+            svc = ctor(self.dmd, instance)
             self.services[name, instance] = svc
             return svc
 
@@ -106,6 +102,10 @@ class zenhubworker(ZCmdBase, pb.Referenceable):
         """
         self.log.debug("Servicing %s in %s", method, service)
         now = time.time()
+        try:
+            self.syncdb()
+        except RemoteConflictError, ex:
+            pass
         service = self._getService(service, instance)
         m = getattr(service, 'remote_' + method)
         # now that the service is loaded, we can unpack the arguments
