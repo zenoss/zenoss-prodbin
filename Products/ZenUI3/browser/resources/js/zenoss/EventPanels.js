@@ -1012,6 +1012,8 @@
         listeners: {
             'beforerender': function(){
                this.rowcolors = Ext.state.Manager.get('rowcolor');
+               // Some event consoles (Impact Events) do not use severity config colors
+               // Check and see if it's being used before trying to use it
                if(Ext.getCmp("rowcolors_checkitem")) Ext.getCmp('rowcolors_checkitem').setChecked(this.rowcolors);
             }
         },
