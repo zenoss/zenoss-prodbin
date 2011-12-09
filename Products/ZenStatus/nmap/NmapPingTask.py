@@ -256,7 +256,8 @@ class NmapPingTask(BaseTask):
         args.append("--send-ip")         # don't allow ARP responses
         
         # give up on a host after spending too much time on it
-        args.extend(["--host-timeout", "%.1fs" % self._preferences.pingTimeOut])
+        args.extend(["--initial-rtt-timeout", "%.1fs" % self._preferences.pingTimeOut])
+        args.extend(["--min-rtt-timeout", "%.1fs" % self._preferences.pingTimeOut])
         
         if traceroute:
             args.append("--traceroute")
