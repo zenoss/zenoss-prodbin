@@ -58,7 +58,6 @@ Ext.define('Zenoss.TreeSelectionModel', {
     // This was causing the code to get confused trying to look up the index.
     // So I overwrote the behavior to do a better job of it.
     onSelectChange: function(record, isSelected, suppressEvent, commitFn) {
-       // this.callParent(record, isSelected, suppressEvent, commitFn);
          var me      = this,
             views   = me.views,
             viewsLn = views.length,
@@ -91,7 +90,48 @@ Ext.define('Zenoss.TreeSelectionModel', {
                 me.fireEvent(eventName, me, record, rowIdx);
             }
         }
-    }
+    } ,
+
+        // Override the default on Last Focus Changed
+        // Provide indication of what row was last focused via
+        // the gridview.
+        onLastFocusChanged:function (oldFocused, newFocused, supressFocus) {
+            var views = this.views,
+                viewsLn = views.length,
+                store = this.store,
+                rowIdx,
+                i = 0;
+
+            if (oldFocused) {
+                rowIdx = store.indexOf(oldFocused);
+                if (rowIdx != -1) {
+                    for (; i < viewsLn; i++) {
+                        views[i].onRowFocus(rowIdx, false);
+                    }
+                }
+            }
+
+            if (newFocused) {
+                rowIdx = store.indexOf(newFocused);
+                if (rowIdx != -1) {
+                    // so we know it is in the store, but we actually want to figure out
+                    // which views it is highlighted in
+                    for (i = 0; i < viewsLn; i++) {
+                        var viewRowIdx = -1;
+                        try {
+                            viewRowIdx = views[i].indexOf(record);
+                        } catch (e) {
+                            // For some reason the lookup is throwing an error
+                            // when it should instead be just returning -1.
+                            viewRowIdx = -1;
+                        }
+                        if (viewRowIdx > -1) {
+                            views[i].onRowFocus(rowIdx, true, supressFocus);
+                        }
+                    }
+                }
+            }
+        }
 });
 
 Ext.define('Zenoss.HierarchyTreePanelSearch', {
@@ -212,7 +252,7 @@ Zenoss.treeContextMenu = function(view, node, item, index, e, opti) {
 
 /**
  * @class Zenoss.HierarchyTreePanel
- * @extends Ext.tree.TreePanel
+ * @extends Ext.tree.Panel
  * Base classe for most of the trees that appear on the left hand side
  * of various pages
  **/
