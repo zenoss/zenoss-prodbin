@@ -57,6 +57,7 @@ Ext.define("Zenoss.trigger.TriggerSubscriptions", {
                     typeAhead: true,
                     triggerAction: 'all',
                     lazyRender:true,
+                    width: 505,
                     mode: 'local',
                     store: Ext.create('Zenoss.NonPaginatedStore', {
                         root: 'data',
