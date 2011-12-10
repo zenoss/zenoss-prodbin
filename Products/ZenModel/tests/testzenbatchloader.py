@@ -15,6 +15,7 @@ import os
 import os.path
 import logging
 
+from DateTime import DateTime
 from Products.ZenTestCase.BaseTestCase import BaseTestCase
 from Products.ZenModel.BatchDeviceLoader import BatchDeviceLoader
 
@@ -27,12 +28,9 @@ class FakeOptions:
 
 class Testzenbatchloader(BaseTestCase):
 
-    def setUp(self):
-        BaseTestCase.setUp(self)
+    def afterSetUp(self):
+        BaseTestCase.afterSetUp(self)
 
-        logging.disable(logging.INFO)
-        logging.disable(logging.WARN)
-        logging.disable(logging.ERROR)
         logging.disable(logging.CRITICAL)
 
         self.zloader = BatchDeviceLoader(noopts=1)
@@ -42,6 +40,10 @@ class Testzenbatchloader(BaseTestCase):
 
         self.log = logging.getLogger("zen.BatchDeviceLoader")
         self.zloader.log = self.log
+
+    def beforeTearDown(self):
+        BaseTestCase.afterSetUp(self)
+        logging.disable(logging.NOTSET)
 
     def testSampleConfig(self):
         """
@@ -55,14 +57,14 @@ class Testzenbatchloader(BaseTestCase):
         """
         Verify that we can set custom properties
         """
-        olympics = '2010/02/28'
-        configs = ["device1 cDateTest='%s'" % olympics]
+        olympics = DateTime("2010/02/28")
+        configs = ["device1 cDateTest=%s" % repr(olympics)]
         device_list = self.zloader.parseDevices(configs)
         self.zloader.processDevices(device_list)
 
         dev = self.zloader.dmd.Devices.findDevice('device1')
         self.assert_(dev.cDateTest == olympics)
- 
+
 
 def test_suite():
     from unittest import TestSuite, makeSuite

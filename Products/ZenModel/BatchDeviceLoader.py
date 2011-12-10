@@ -21,12 +21,14 @@ from traceback import format_exc
 import socket
 
 import Globals
+from DateTime import DateTime
 from ZODB.POSException import ConflictError
 from ZODB.transact import transact
 from zope.component import getUtility
 
 from zExceptions import BadRequest
 
+from ZPublisher.Converters import type_converters
 from Products.ZenModel.interfaces import IDeviceLoader
 from Products.ZenUtils.ZCmdBase import ZCmdBase
 from Products.ZenModel.Device import Device
@@ -188,32 +190,47 @@ windows_device7 cDateTest='2010/02/28'
         dev_zprops = dict( device.zenPropertyItems() )
 
         for zprop, value in device_specs.items():
+            self.log.debug( "Evaluating zProperty <%s -> %s> on %s" % (zprop, value, device.id) )
             if not iszprop(zprop):
-               continue
+                self.log.debug( "Evaluating zProperty <%s -> %s> on %s: not iszprop()" % (zprop, value, device.id) )
+                continue
 
             if zprop in dev_zprops:
                 try:
+                    self.log.debug( "Setting zProperty <%s -> %s> on %s (currently set to %s)" % (
+                       zprop, value, device.id, getattr(device, zprop, 'notset')) )
                     device.setZenProperty(zprop, value)
                 except BadRequest:
                     self.log.warn( "Object %s zproperty %s is invalid or duplicate" % (
                        device.titleOrId(), zprop) )
+                except Exception, ex:
+                    self.log.warn( "Object %s zproperty %s not set (%s)" % (
+                       device.titleOrId(), zprop, ex) )
+                self.log.debug( "Set zProperty <%s -> %s> on %s (now set to %s)" % (
+                   zprop, value, device.id, getattr(device, zprop, 'notset')) )
             else:
                 self.log.warn( "The zproperty %s doesn't exist in %s" % (
-                       zprop, device_specs.get('deviceName', device.id)))
+                   zprop, device_specs.get('deviceName', device.id)))
 
     def applyCustProps(self, device, device_specs):
         """
         Custom schema properties
         """
         self.log.debug( "Applying custom schema properties..." )
-        dev_cprops = device.custPropertyIds()
+        dev_cprops = device.custPropertyMap()
 
         for cprop, value in device_specs.items():
             if not iscustprop(cprop):
                continue
 
-            if cprop in dev_cprops:
-                setattr(device, cprop, value)
+            matchProps = [prop for prop in dev_cprops if prop['id'] == cprop]
+            if matchProps:
+                ctype = matchProps[0]['type']
+                if ctype == 'password':
+                    ctype = 'string'
+                if ctype in type_converters and value:
+                    value = type_converters[ctype](value)
+                device.setZenProperty( cprop, value)
             else:
                 self.log.warn( "The cproperty %s doesn't exist in %s" % (
                        cprop, device_specs.get('deviceName', device.id)))
@@ -253,6 +270,7 @@ windows_device7 cDateTest='2010/02/28'
             except BadRequest:
                 pass
 
+    @transact
     def addOrganizer(self, device_specs):
         """
         Add any organizers as required, and apply zproperties to them.
