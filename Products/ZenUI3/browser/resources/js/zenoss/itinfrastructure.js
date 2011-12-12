@@ -1016,7 +1016,7 @@ Ext.define("Zenoss.InfraDetailNav", {
             contentPanel.setContext(this.contextId);
             detailPanel.layout.setActiveItem(node.data.id);
             var orgnode = treesm.getSelectedNode();
-            Ext.History.add([orgnode.getOwnerTree().id, orgnode.get("uid"), node.get("id")].join(Ext.History.DELIMITER));
+            Ext.History.add([orgnode.getOwnerTree().id, orgnode.get("uid").replace(/\//g, '.'), node.get("id")].join(Ext.History.DELIMITER));
         }
     }
 });

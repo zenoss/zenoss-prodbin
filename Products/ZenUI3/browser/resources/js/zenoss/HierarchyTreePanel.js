@@ -561,7 +561,7 @@ Ext.define('Zenoss.HierarchyTreePanel', {
         }
     },
     createDeepLinkPath: function(node) {
-        var path = this.id + Ext.History.DELIMITER + node.data.uid.replace(/\//g, '.');
+        var path = this.id + Ext.History.DELIMITER + node.get("uid").replace(/\//g, '.');
         return path;
     },
     afterRender: function() {
