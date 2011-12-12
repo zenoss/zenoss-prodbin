@@ -79,7 +79,7 @@ Zenoss.nav.register({
                     ref: '../resetBtn',
                     text: _t('Reset'),
                     handler: function(btn) {
-                        Ext.getCmp(cardid).resetSwoopies();
+                        Ext.getCmp(cardid).setDrange();
                     }
                 },'-',{
                     xtype: 'tbtext',

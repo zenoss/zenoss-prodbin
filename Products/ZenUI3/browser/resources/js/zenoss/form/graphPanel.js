@@ -412,7 +412,7 @@
                     text: _t('Reset'),
                     handler: function(btn) {
                         var panel = btn.refOwner;
-                        panel.resetSwoopies();
+                        panel.setDrange();
                     }
                 },'-',{
                     xtype: 'tbtext',
