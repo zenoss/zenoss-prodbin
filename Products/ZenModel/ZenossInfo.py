@@ -381,10 +381,11 @@ class ZenossInfo(ZenModelItem, SimpleItem):
         activeButtons = {'button1': 'Restart', 'button2': 'Stop', 'button2state': True}
         inactiveButtons = {'button1': 'Start', 'button2': 'Stop', 'button2state': False}
         alwaysOnButtons = {'button1': 'Restart', 'button2': 'Stop', 'button2state': False}
+
         for daemon in self._getDaemonList():
             pid = self._getDaemonPID(daemon)
             if pid:
-                if daemon == 'zopectl':
+                if daemon == 'zopectl' or daemon == 'zenwebserver':
                     buttons = alwaysOnButtons
                 else:
                     buttons = activeButtons
@@ -426,7 +427,9 @@ class ZenossInfo(ZenModelItem, SimpleItem):
         """
         For a given daemon name, return its PID from a .pid file.
         """
-        if name == 'zopectl':
+        if name == 'zenwebserver':
+            name = 'nginx'
+        elif name == 'zopectl':
             name = 'Z2'
         elif name == 'zeoctl':
             name = 'ZEO'
@@ -492,11 +495,11 @@ class ZenossInfo(ZenModelItem, SimpleItem):
         Get the last kb kilobytes of a daemon's log file contents.
         """
         maxBytes = 1024 * int(kb)
-        if daemon == 'zopectl':
+        if daemon in ('zopectl', 'zenwebserver'):
             daemon = 'event'
         elif daemon == 'zeoctl':
             daemon = 'zeo'
-        if daemon == 'zopectl':
+        if daemon in ('zopectl', 'zenwebserver'):
             daemon = 'event'
         elif daemon == 'zeoctl':
             daemon = 'zeo'
@@ -514,7 +517,7 @@ class ZenossInfo(ZenModelItem, SimpleItem):
 
 
     def _getConfigFilename(self, daemon):
-        if daemon == 'zopectl':
+        if daemon in ('zopectl', 'zenwebserver'):
             daemon = 'zope'
         elif daemon == 'zeoctl':
             daemon = 'zeo'

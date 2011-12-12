@@ -8,7 +8,7 @@
     ztm here/ZenTableManager;
     objects here/getZenossDaemonStates;
     batch python:ztm.getBatch(tableName, objects);">
-    
+
 <tal:block metal:use-macro="here/zenuimacros/macros/zentable">
 <tal:block metal:fill-slot="zentablecontents">
 <colgroup>
@@ -35,7 +35,7 @@
     <tal:block tal:repeat="daemon batch">
     <tr tal:define="odd repeat/daemon/odd"
         tal:attributes="class python:odd and 'odd' or 'even'">
-        
+
         <td class="tablevalue noselect"
           tal:attributes="title daemon/tooltip" tal:content="daemon/name" />
         <td class="tablevalues" tal:content="daemon/pid" />
@@ -45,12 +45,12 @@
             <a tal:attributes="
                 href string:${url}/viewDaemonConfig?daemon=${daemon/name}&selectedTabName=zenossInfo"
                 style="margin-right: 2em;">
-                view config</a> 
-                <a tal:condition="python:daemon['name'] in [ 'zeoctl', 'zopectl' ]" tal:attributes="
+                view config</a>
+                <a tal:condition="python:daemon['name'] in [ 'zeoctl', 'zopectl', 'zenwebserver' ]" tal:attributes="
                 href string:${url}/editDaemonConfig?daemon=${daemon/name}&selectedTabName=zenossInfo">
                 edit config</a>
 
-                <a tal:condition="python:not daemon['name'] in [ 'zeoctl', 'zopectl' ]" tal:attributes="
+                <a tal:condition="python:not daemon['name'] in [ 'zeoctl', 'zopectl', 'zenwebserver' ]" tal:attributes="
                 href string:${url}/showDaemonXMLConfig?daemon=${daemon/name}&selectedTabName=zenossInfo">
                     edit config</a>
         </td>
@@ -79,7 +79,7 @@
                 tal:attributes="value name;" />
             </tal:block>
             <tal:block condition="not:daemon/buttons/button2state">
-            <input type="submit" disabled="True" 
+            <input type="submit" disabled="True"
                 tal:attributes="value name;" />
             </tal:block>
             </form>
@@ -91,7 +91,7 @@
 </tal:block>
 </tal:block>
 
-</tal:block>        
+</tal:block>
 
 </tal:block>
 </tal:block>
