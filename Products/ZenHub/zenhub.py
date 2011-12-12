@@ -32,7 +32,8 @@ from twisted.internet import reactor, protocol, defer
 from twisted.web import server, xmlrpc
 from zope.event import notify
 from zope.interface import implements
-from zope.component import getUtility
+from zope.component import getUtility, getUtilitiesFor
+from ZODB.POSException import POSKeyError
 
 from Products.DataCollector.Plugins import loadPlugins
 from Products.Five import zcml
@@ -42,9 +43,11 @@ from Products.ZenUtils.DaemonStats import DaemonStats
 from Products.ZenEvents.Event import Event, EventHeartbeat
 from Products.ZenEvents.ZenEventClasses import App_Start
 from Products.ZenMessaging.queuemessaging.interfaces import IEventPublisher
+from Products.ZenRelations.PrimaryPathObjectManager import PrimaryPathObjectManager
+from Products.ZenModel.DeviceComponent import DeviceComponent
 from Products.ZenHub.services.RenderConfig import RenderConfig
 from Products.ZenHub.interfaces import IInvalidationProcessor, IServiceAddedEvent, IHubCreatedEvent, IHubWillBeCreatedEvent
-from Products.ZenHub.interfaces import IParserReadyForOptionsEvent
+from Products.ZenHub.interfaces import IParserReadyForOptionsEvent, IInvalidationFilter
 
 from Products.ZenHub.PBDaemon import RemoteBadMonitor
 pb.setUnjellyableForClass(RemoteBadMonitor, RemoteBadMonitor)
@@ -302,6 +305,7 @@ class ZenHub(ZCmdBase):
                        summary="%s started" % self.name,
                        severity=0)
 
+        self._initialize_invalidation_filters()
         reactor.callLater(5, self.processQueue)
 
         self.rrdStats = self.getRRDStats()
@@ -342,6 +346,40 @@ class ZenHub(ZCmdBase):
         self.totalEvents += 1
         self.totalTime += time.time() - now
 
+    def _initialize_invalidation_filters(self):
+        filters = (f for n, f in getUtilitiesFor(IInvalidationFilter))
+        self._invalidation_filters = []
+        for fltr in sorted(filters, key=lambda f:getattr(f, 'weight', 100)):
+            fltr.initialize(self.dmd)
+            self._invalidation_filters.append(fltr)
+        self.log.debug('Registered %s invalidation filters.' %
+                       len(self._invalidation_filters))
+
+    def _filter_oids(self, oids):
+        app = self.dmd.getPhysicalRoot()
+        i = 0
+        for oid in oids:
+            i += 1
+            try:
+                obj = app._p_jar[oid]
+            except POSKeyError:
+                # State is gone from the database. Send it along.
+                yield oid
+            else:
+                if isinstance(obj, (PrimaryPathObjectManager, DeviceComponent)):
+                    try:
+                        obj = obj.__of__(self.dmd).primaryAq()
+                    except (AttributeError, KeyError):
+                        # It's a delete. This should go through.
+                        yield oid
+                    else:
+                        included = True
+                        for fltr in self._invalidation_filters:
+                            if not fltr.include(obj):
+                                included = False
+                                break
+                        if included:
+                            yield oid
 
     def doProcessQueue(self):
         """
@@ -352,7 +390,7 @@ class ZenHub(ZCmdBase):
         changes_dict = self.storage.poll_invalidations()
         if changes_dict is not None:
             processor = getUtility(IInvalidationProcessor)
-            d = processor.processQueue(changes_dict)
+            d = processor.processQueue(tuple(self._filter_oids(changes_dict)))
             def done(n):
                 if n:
                     self.log.debug('Processed %s oids' % n)

@@ -90,3 +90,19 @@ class IParserReadyForOptionsEvent(Interface):
     """
     parser = Attribute("The option parser")
 
+
+class IInvalidationFilter(Interface):
+    """
+    Filters invalidations before they're pushed to workers.
+    """
+    weight = Attribute("Where this filter should be in the process. Lower is earlier.")
+
+    def initialize(context):
+        """
+        Initialize any state necessary for this filter to function.
+        """
+    def include(obj):
+        """
+        Return a boolean indicating whether this one gets processed.
+        """
+

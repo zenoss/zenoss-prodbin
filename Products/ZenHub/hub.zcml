@@ -21,4 +21,10 @@
     provides=".interfaces.IInvalidationProcessor"
     />
 
+  <utility 
+    factory=".invalidationfilter.DeviceClassInvalidationFilter"
+    provides=".interfaces.IInvalidationFilter"
+    name="DeviceClass"
+    />
+
 </configure>
