@@ -160,6 +160,9 @@
                     triggerAction: 'all',
                     hiddenName: 'doesntmatter',
                     store: [[null,null]],
+                    defaultListConfig: {
+                        maxWidth:200
+                    },                    
                     getSubject: function() {
                         return this.getBuilder().subject_map[this.subject.getValue()];
                     }.createDelegate(this),
@@ -202,6 +205,9 @@
                     value: ZF.COMPARISON_STORE[0][0],
                     forceSelection: true,
                     triggerAction: 'all',
+                    defaultListConfig: {
+                        maxWidth:200
+                    },                    
                     listeners: {
                         change: function() { 
                             var cmp = ZF.COMPARISONS[this.comparison.getValue()],
@@ -356,6 +362,9 @@
                         forceSelection: true,
                         triggerAction: 'all',
                         value: 'all',
+                        defaultListConfig: {
+                            maxWidth:60
+                        },
                         listeners: {
                             change: function() {
                                 this.getBuilder().fireEvent(
@@ -626,6 +635,9 @@
                 typeAhead: false,
                 forceSelection: true,
                 triggerAction: 'all',
+                defaultListConfig: {
+                    maxWidth:200
+                },                
                 store: new Ext.data.ArrayStore({
                     fields: ['name', 'value'],
                     data: [[
@@ -648,7 +660,10 @@
             text: _t('Production state'),
             value: 'productionState',
             field: {
-                xtype: 'ProductionStateCombo'
+                xtype: 'ProductionStateCombo',
+                defaultListConfig: {
+                    maxWidth:200
+                },
             },
             comparisons: ZF.NUMBERCOMPARISONS
         },
@@ -656,7 +671,10 @@
             text: _t('Device priority'),
             value: 'priority',
             field: {
-                xtype: 'PriorityCombo'
+                xtype: 'PriorityCombo',
+                defaultListConfig: {
+                    maxWidth:200
+                }                
             },
             comparisons: ZF.NUMBERCOMPARISONS
         },
@@ -668,6 +686,9 @@
                 xtype: 'combo',
                 setValue: smarterSetValue,
                 mode: 'remote',
+                defaultListConfig: {
+                    maxWidth:200
+                },                
                 store: new Ext.data.DirectStore({
                     directFn: Zenoss.remote.DeviceRouter.getDeviceUuidsByName,
                     root: 'data',
@@ -688,6 +709,9 @@
                 xtype: 'combo',
                 setValue: smarterSetValue,
                 mode: 'remote',
+                defaultListConfig: {
+                    maxWidth:200
+                },                
                 store: new Ext.data.DirectStore({
                     directFn: Zenoss.remote.DeviceRouter.getDeviceUuidsByName,
                     root: 'data',
@@ -708,6 +732,9 @@
                 xtype: 'combo',
                 setValue: smarterSetValue,
                 mode: 'remote',
+                defaultListConfig: {
+                    maxWidth:200
+                },                
                 store: new Ext.data.DirectStore({
                     directFn: Zenoss.remote.DeviceRouter.getDeviceClasses,
                     root: 'deviceClasses',
@@ -733,6 +760,9 @@
                     root: 'systems',
                     fields: ['name']
                 }),
+                defaultListConfig: {
+                    maxWidth:200
+                },                
                 typeAhead: true,
                 valueField: 'name',
                 displayField: 'name',
@@ -748,6 +778,9 @@
                 xtype: 'combo',
                 setValue: smarterSetValue,
                 mode: 'remote',
+                defaultListConfig: {
+                    maxWidth:200
+                },                
                 store: new Ext.data.DirectStore({
                     directFn: Zenoss.remote.DeviceRouter.getGroups,
                     root: 'groups',

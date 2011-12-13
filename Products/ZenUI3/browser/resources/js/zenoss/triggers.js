@@ -137,7 +137,7 @@ Ext.onReady(function () {
                         }
                     }]}
             });
-            Zenoss.trigger.AddDialogue.superclass.constructor.apply(this, arguments);
+            this.callParent(arguments);
         }
     });
 
@@ -1588,7 +1588,7 @@ Ext.onReady(function () {
                         displayField: 'name',
                         typeAhead: false,
                         forceSelection: true,
-                        triggerAction: 'all',
+                        triggerAction: 'all',       
                         store: new Ext.data.ArrayStore({
                             fields: ['name'],
                             data: [[

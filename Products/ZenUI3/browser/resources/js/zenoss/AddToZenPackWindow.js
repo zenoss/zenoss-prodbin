@@ -38,7 +38,7 @@ Ext.define("Zenoss.AddToZenPackWindow", {
                 id: 'addzenpackform',
                 xtype: 'form',
                 monitorValid: true,
-                defaults: {width: 180},
+                defaults: {width: 250},
                 autoHeight: true,
                 frame: false,
                 labelWidth: 100,

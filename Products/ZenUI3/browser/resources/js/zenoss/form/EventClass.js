@@ -31,6 +31,9 @@
                  autoSelect: true,
                  resizable: true,
                  triggerAction: 'all',
+                 defaultListConfig: {
+                    maxWidth:250
+                 },                 
                  mode: 'local',
                  store: Zenoss.env.EVENT_CLASSES
              });
