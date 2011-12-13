@@ -244,7 +244,7 @@ def InstallEggAndZenPack(dmd, eggPath, link=False,
                 nonCriticalErrorEncountered = True
                 if sendEvent:
                     ZPEvent(dmd, 3, ex.message)
-    except:
+    except Exception, e:
         if sendEvent:
             ZPEvent(dmd, 4, 'Error installing ZenPack %s' % eggPath,
                 '%s: %s' % sys.exc_info()[:2])
