@@ -90,6 +90,7 @@ COLUMN_CONFIG = {
         filter={
             'xtype':'multiselectmenu',
             'text':'...',
+            'cls': 'x-btn x-btn-default-toolbar-small',            
             'source':[{
                 'value':STATUS_NEW,
                 'name':'New'
@@ -128,6 +129,7 @@ COLUMN_CONFIG = {
         filter={
             'xtype':'multiselectmenu',
             'text':'...',
+             'cls': 'x-btn x-btn-default-toolbar-small',
             'source': [{
                 'value': SEVERITY_CRITICAL,
                 'name': 'Critical'
@@ -343,6 +345,7 @@ ARCHIVE_COLUMN_CONFIG = copy.deepcopy(COLUMN_CONFIG)
 ARCHIVE_COLUMN_CONFIG['eventState']['filter'] = {
     'xtype':'multiselectmenu',
     'text':'...',
+    'cls': 'x-btn x-btn-default-toolbar-small',    
     'source':[{
         'value':STATUS_CLOSED,
         'name':'Closed',
@@ -360,6 +363,7 @@ ARCHIVE_COLUMN_CONFIG['eventState']['filter'] = {
 ARCHIVE_COLUMN_CONFIG['severity']['filter'] = {
     'xtype':'multiselectmenu',
     'text':'...',
+    'cls': 'x-btn x-btn-default-toolbar-small',    
     'source': [{
         'value': SEVERITY_CRITICAL,
         'name': 'Critical'

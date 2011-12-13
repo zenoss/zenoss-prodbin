@@ -69,7 +69,8 @@
         alias: ['widget.multiselect-devicepriority'],
         constructor: function(config) {
             config = Ext.apply(config || {}, {
-                text:'...',              
+                text:'...',           
+                cls: 'x-btn x-btn-default-toolbar-small',                
                 store: new Zenoss.DirectStore({
                     directFn: Zenoss.remote.DeviceRouter.getPriorities,
                     root: 'data',
@@ -107,7 +108,7 @@
             }
             config = Ext.apply(config || {}, {
                 text:'...',
-                ui:'arrowslide',
+                cls: 'x-btn x-btn-default-toolbar-small',
                 store: new Zenoss.DirectStore({
                     directFn: Zenoss.remote.DeviceRouter.getProductionStates,
                     root: 'data',
@@ -117,7 +118,7 @@
                 }),
                 defaultValues: defaults
             });
-            ZD.ProductionStateMultiselectMenu.superclass.constructor.call(this, config);
+            this.callParent([config]);
         }
     });
 
