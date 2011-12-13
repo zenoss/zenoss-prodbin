@@ -1588,7 +1588,10 @@ Ext.onReady(function () {
                         displayField: 'name',
                         typeAhead: false,
                         forceSelection: true,
-                        triggerAction: 'all',       
+                        triggerAction: 'all',  
+                        defaultListConfig: {
+                            maxWidth:200
+                        },                        
                         store: new Ext.data.ArrayStore({
                             fields: ['name'],
                             data: [[
@@ -1614,6 +1617,9 @@ Ext.onReady(function () {
                         typeAhead: false,
                         forceSelection: true,
                         triggerAction: 'all',
+                        defaultListConfig: {
+                            maxWidth:200
+                        },                        
                         store: new Ext.data.ArrayStore({
                             fields: ['name'],
                             data: [[
@@ -1658,6 +1664,9 @@ Ext.onReady(function () {
                         typeAhead: false,
                         forceSelection: true,
                         triggerAction: 'all',
+                        defaultListConfig: {
+                            maxWidth:200
+                        },                        
                         store: new Ext.data.ArrayStore({
                             fields: ['name', 'value'],
                             data: [[
@@ -1706,6 +1715,9 @@ Ext.onReady(function () {
                         typeAhead: false,
                         forceSelection: true,
                         triggerAction: 'all',
+                        defaultListConfig: {
+                            maxWidth:200
+                        },                        
                         store: new Ext.data.ArrayStore({
                             fields: ['name', 'value'],
                             data: [[
@@ -1733,6 +1745,9 @@ Ext.onReady(function () {
                         typeAhead: false,
                         forceSelection: true,
                         triggerAction: 'all',
+                        defaultListConfig: {
+                            maxWidth:200
+                        },                        
                         store: new Ext.data.ArrayStore({
                             fields: ['name', 'value'],
                             data: [[

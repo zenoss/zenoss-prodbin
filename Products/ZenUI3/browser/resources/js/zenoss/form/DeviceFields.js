@@ -37,22 +37,12 @@
                 triggerAction: 'all'
             });
             this.callParent([config]);
-            if (this.autoLoad!==false) {// runs when left side is selected
+            if (this.autoLoad!==false) {
                 this.getStore().load();
             }
         },        
-        getValue: function() { // runs when right combo is switched selected
+        getValue: function() {
             return this.callParent(arguments) || this.getRawValue();
-        },
-        setValue: function(value, doSelect) {
-            var orig = this.forceSelection;
-            this.forceSelection = false;
-            var foundValue = Ext.Array.from(value);
-            foundValue = Ext.Array.map(foundValue, function(v) {
-                return v.isModel ? v : (this.findRecordByValue(v) || this.findRecordByDisplay(v) || v);
-            }, this);
-            this.callParent([foundValue, doSelect]);
-            this.forceSelection = orig; 
         },
         getStore: function() {
             return this.store;
