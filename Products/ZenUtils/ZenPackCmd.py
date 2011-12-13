@@ -245,10 +245,16 @@ def InstallEggAndZenPack(dmd, eggPath, link=False,
                 if sendEvent:
                     ZPEvent(dmd, 3, ex.message)
     except Exception, e:
+        # Get that exception out there in case it gets blown away by ZPEvent
+        log.exception("Error installing ZenPack %s" % eggPath)
         if sendEvent:
             ZPEvent(dmd, 4, 'Error installing ZenPack %s' % eggPath,
                 '%s: %s' % sys.exc_info()[:2])
-        raise
+        # Don't just raise, because if ZPEvent blew away exception context
+        # it'll be None, which is bad. This manipulates the stack to look like
+        # this is the source of the exception, but we logged it above so no
+        # info is lost.
+        raise e
     if sendEvent:
         zenPackIds = [zp.id for zp in zenPacks]
         if zenPackIds:
