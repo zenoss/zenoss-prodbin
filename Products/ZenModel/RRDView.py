@@ -172,7 +172,7 @@ class RRDView(object):
                 return float(val)
             return dict(zip(names, map(cvt, vals)))
         except Exception, ex:
-            log.exception("Unable to collect RRD Values for %s : %s " % self.getPrimaryId(), ex)
+            log.exception("Unable to collect RRD Values for %s" % self.getPrimaryId())
 
 
 
