@@ -109,7 +109,6 @@ var deviceClassCombo = {
     triggerAction: 'all',
     valueField: 'name',
     displayField: 'name',
-    forceSelection: true,
     editable: false,
     allowBlank: false,
     listeners: {
