@@ -324,13 +324,13 @@ input, textarea, select {
 
 .x-hidden, .x-hide-offsets {
   display: block !important;
-  position: absolute!important;
+  position: absolute !important;
   left: -10000px !important;
   top: -10000px !important; }
 
 .x-hide-nosize {
-  height: 0!important;
-  width: 0!important; }
+  height: 0 !important;
+  width: 0 !important; }
 
 .x-masked-relative {
   position: relative; }
@@ -2263,7 +2263,7 @@ input, textarea, select {
   background: transparent !important;
   border-width: 0 !important; }
 .x-datepicker-month span {
-  color: #fff !important; }
+  color: white !important; }
 .x-datepicker-month .x-btn-split-right {
   background: no-repeat right center !important;
   background-image: url('../img/xtheme-zenoss/button/s-arrow-light.gif');
@@ -2880,7 +2880,7 @@ browsers will do whacky things with it.
   background-repeat: no-repeat; }
 
 .x-grid-cell-selected {
-  background-color: #B8CFEE !important; }
+  background-color: #b8cfee !important; }
 
 .x-nlg .x-grid-cell-special {
   background-repeat: repeat-y;
@@ -7315,7 +7315,7 @@ $menu-icon-unchecked: 'menu/unchecked.gif';
   color: #454545;
   padding-top: 2px; }
 #deviceDetailNav .x-grid-row-selected .x-grid-cell-inner, #deviceDetailNav .x-grid-row-focused .x-grid-cell-inner, #masterDetailNav .x-grid-row-selected .x-grid-cell-inner, #masterDetailNav .x-grid-row-focused .x-grid-cell-inner {
-  background-color: #7199C6 !important;
+  background-color: #7199c6 !important;
   color: #fff; }
 #deviceDetailNav #templateTree-body, #masterDetailNav #templateTree-body {
   padding-top: 0px !important; }
@@ -9233,13 +9233,13 @@ CORE TRIGGER PAGE STUFF
 .x-grid .x-column-header-text, #dataSourceTreeGrid .x-column-header-text {
   background-position: right 4px !important; }
 .x-grid .x-grid-row-selected .x-grid-cell, .x-grid .x-grid-row-selected .x-grid-rowwrap-div, #dataSourceTreeGrid .x-grid-row-selected .x-grid-cell, #dataSourceTreeGrid .x-grid-row-selected .x-grid-rowwrap-div {
-  background-color: #7199C6 !important; }
+  background-color: #7199c6 !important; }
 .x-grid .x-grid-row-selected .x-grid-cell .x-grid-cell-inner, .x-grid .x-grid-row-selected .x-grid-cell .x-grid-cell-inner a, .x-grid .x-grid-row-selected .x-grid-rowwrap-div .x-grid-cell-inner, .x-grid .x-grid-row-selected .x-grid-rowwrap-div .x-grid-cell-inner a, #dataSourceTreeGrid .x-grid-row-selected .x-grid-cell .x-grid-cell-inner, #dataSourceTreeGrid .x-grid-row-selected .x-grid-cell .x-grid-cell-inner a, #dataSourceTreeGrid .x-grid-row-selected .x-grid-rowwrap-div .x-grid-cell-inner, #dataSourceTreeGrid .x-grid-row-selected .x-grid-rowwrap-div .x-grid-cell-inner a {
   color: #fff; }
 .x-grid .rowcolor, #dataSourceTreeGrid .rowcolor {
   border-color: #999 #999 #999; }
 .x-grid .x-grid-row-over-rowcolor, .x-grid .x-grid-row-selected-rowcolor, #dataSourceTreeGrid .x-grid-row-over-rowcolor, #dataSourceTreeGrid .x-grid-row-selected-rowcolor {
-  background: #999 !important; }
+  background: #999999 !important; }
 .x-grid .x-grid-row-over-rowcolor .x-grid-cell-inner, #dataSourceTreeGrid .x-grid-row-over-rowcolor .x-grid-cell-inner {
   color: white; }
 .x-grid .x-grid-row-over-rowcolor .x-grid-cell-inner a, #dataSourceTreeGrid .x-grid-row-over-rowcolor .x-grid-cell-inner a {
@@ -9280,7 +9280,7 @@ CORE TRIGGER PAGE STUFF
   width: 440px !important; }
 
 .x-tip {
-  background-color: #F8E585 !important; }
+  background-color: #f8e585 !important; }
 .x-tip .x-tool-close, .x-tip .x-tool-over {
   background-image: url("/++resource++zenui/img/ext4/qtip/close.png") ; }
 
@@ -9522,14 +9522,14 @@ CORE TRIGGER PAGE STUFF
   padding: 0px;
   text-decoration: underline; }
 .easyadddevice_shell .credstitle, #newform .credstitle {
-  border-bottom: 1px solid #ddd !important;
+  border-bottom: 1px solid #dddddd !important;
   margin-bottom: 8px !important;
   padding: 3px !important; }
 .easyadddevice_shell .credstitle .x-panel-body, #newform .credstitle .x-panel-body {
   font-size: 14px !important;
-  color: #444 !important; }
+  color: #444444 !important; }
 .easyadddevice_shell #userfieldset, #newform #userfieldset {
-  border-left: 1px solid #aaa !important;
+  border-left: 1px solid #aaaaaa !important;
   padding-left: 27px; }
 .easyadddevice_shell #manual_creds, #newform #manual_creds {
   padding: 5px;
@@ -9538,7 +9538,7 @@ CORE TRIGGER PAGE STUFF
   margin: 0px; }
 .easyadddevice_shell .helptext .x-panel-body-default, #newform .helptext .x-panel-body-default {
   font-size: 11px;
-  color: #666 !important;
+  color: #666666 !important;
   padding: 0 8px 8px 15px; }
 .easyadddevice_shell .creds_base, #newform .creds_base {
   margin: -10px !important; }
@@ -9564,7 +9564,7 @@ CORE TRIGGER PAGE STUFF
   background-repeat: repeat-x; }
 
 #trigger-master_panel, #trigger-master_panel-body {
-  background-color: #D4E0EE !important; }
+  background-color: #d4e0ee !important; }
 
 #trigger-master_panel_navigation {
   background: transparent !important; }
@@ -9576,27 +9576,27 @@ CORE TRIGGER PAGE STUFF
 #master_panel #subselecttreepaneldetail_nav-body, #master_panel .x-panel-body {
   border: 0 none !important; }
 #master_panel #subselecttreepaneldetail_nav .x-grid-cell, #master_panel .x-panel-body-hierarchy, #master_panel #templateTree .x-grid-cell {
-  background-color: #D4E0EE !important;
+  background-color: #d4e0ee !important;
   border: 0 none !important; }
 #master_panel .x-panel-body {
   overflow: visible; }
 
 #master_panel .x-panel-hierarchy .x-grid-row-over .x-grid-cell, #master_panel .x-panel-hierarchy .x-grid-row-over .x-grid-cell-inner, #master_panel #subselecttreepaneldetail_nav .x-grid-row-over .x-grid-cell, #master_panel #subselecttreepaneldetail_nav .x-grid-row-over .x-grid-cell-inner, #master_panel_navigation .x-grid-row-over .x-grid-cell, #master_panel_navigation .x-grid-row-over .x-grid-cell-inner, #trigger-master_panel .x-grid-row-over .x-grid-cell, #trigger-master_panel .x-grid-row-over .x-grid-cell-inner {
-  background-color: #eee !important;
+  background-color: #eeeeee !important;
   color: #454545; }
 
 #processForm .x-toolbar-footer, #serviceForm .x-toolbar-footer {
   background-color: #F5F9FD;
   padding: 8px !important;
-  border-top: 1px solid!important; }
+  border-top: 1px solid !important; }
 #processForm .x-docked-bottom, #serviceForm .x-docked-bottom {
   border-top-width: 1px !important;
-  border-color: #808080 !important; }
+  border-color: gray !important; }
 
 #detailCardPanel .x-panel-body, #gridCardPanel .x-panel-body, #navGrid .x-panel-body, #NetworkDetailCardPanel .x-panel-body, #device_grid .x-panel-body {
   border: 0 none !important; }
 #detailCardPanel .x-toolbar-default-docked-bottom, #gridCardPanel .x-toolbar-default-docked-bottom, #navGrid .x-toolbar-default-docked-bottom, #NetworkDetailCardPanel .x-toolbar-default-docked-bottom, #device_grid .x-toolbar-default-docked-bottom {
-  background: #fff !important; }
+  background: white !important; }
 
 .x-docked.x-panel-default-collapsed {
   background-image: none !important;
@@ -9607,7 +9607,7 @@ CORE TRIGGER PAGE STUFF
   text-transform: uppercase;
   font-size: 10px !important; }
 .livegridinfopanel.x-toolbar-text {
-  color: #000 !important;
+  color: black !important;
   font-weight: bold; }
 
 #evdetail_bd-body {
@@ -9645,3 +9645,13 @@ CORE TRIGGER PAGE STUFF
 
 .x-grid-row-selected.x-grid-row-over .x-grid-cell-inner, .x-grid-row-selected.x-grid-row-over span {
   color: #222222 !important; }
+
+.tabletitlecontainer {
+  padding-top: 5px; }
+
+#evdetail_props_table td {
+  white-space: pre-wrap;
+  white-space: -moz-pre-wrap !important;
+  white-space: -pre-wrap;
+  white-space: -o-pre-wrap;
+  word-wrap: break-word; }

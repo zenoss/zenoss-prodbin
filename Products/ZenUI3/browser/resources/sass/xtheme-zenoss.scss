@@ -181,3 +181,13 @@ $include-missing-images: true;
          color:#222 !important;
     }
 }
+.tabletitlecontainer{
+    padding-top:5px;
+}
+#evdetail_props_table td{
+    white-space: pre-wrap; 
+    white-space: -moz-pre-wrap !important;
+    white-space: -pre-wrap;
+    white-space: -o-pre-wrap;
+    word-wrap: break-word;  
+}
