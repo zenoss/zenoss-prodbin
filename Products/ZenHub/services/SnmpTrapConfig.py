@@ -109,24 +109,24 @@ class SnmpTrapConfig(CollectorConfigService):
             self._create_user(device)
 
     @onUpdate(DeviceClass)
-    def deviceClassChanged(self, object, event):
-        self._create_user(object)
+    def deviceClassChanged(self, device, event):
+        self._create_user(device)
 
     @onUpdate(Device)
-    def deviceChanged(self, object, event):
-        self._create_user(object)
+    def deviceChanged(self, device, event):
+        self._create_user(device)
 
     @onUpdate(MibBase)
-    def mibsChanged(self, object, event):
+    def mibsChanged(self, device, event):
         for listener in self.listeners:
             listener.callRemote('notifyConfigChanged')
-        self._procrastinator.doLater()
+        self._procrastinator.doLater(device)
 
     @onDelete(MibBase)
-    def mibsDeleted(self, object, event):
+    def mibsDeleted(self, device, event):
         for listener in self.listeners:
             listener.callRemote('notifyConfigChanged')
-        self._procrastinator.doLater()
+        self._procrastinator.doLater(device)
 
 
 if __name__ == '__main__':
