@@ -697,11 +697,10 @@ def sendEmail(emsg, host, port=25, usetls=0, usr='', pwd=''):
     @rtype: tuple
     """
     import smtplib
-    socket.setdefaulttimeout(DEFAULT_SOCKET_TIMEOUT)
     fromaddr = emsg['From']
     toaddr = map(lambda x: x.strip(), emsg['To'].split(','))
     try:
-        server = smtplib.SMTP(host, port)
+        server = smtplib.SMTP(host, port, timeout=DEFAULT_SOCKET_TIMEOUT)
         if usetls:
             server.ehlo()
             server.starttls()

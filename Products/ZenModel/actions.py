@@ -173,6 +173,9 @@ class IActionBase(object):
 
 
 class TargetableAction(object):
+    
+    shouldExecuteInBatch = False
+
     def setupAction(self, dmd):
         """
         Some actions need to configure themselves with properties from the dmd.
@@ -191,34 +194,52 @@ class TargetableAction(object):
             else:
                 targets.add(recipient['value'])
         return targets
+    
+    def handleExecuteError(self, exception, notification, target):
+        # If there is an error executing this action on a target,
+        # we need to handle it, but we don't want to prevent other
+        # actions from executing on any other targets that may be
+        # about to be acted on.
+        msg = 'Error executing action {notification} on {target}'.format(
+            notification=notification.id,
+            target=target,
+        )
+        log.error(exception)
+        log.error(msg)
+        traceback = format_exc()
+        event = Event(device="localhost",
+                      eventClass="/App/Failed",
+                      summary=msg,
+                      message=traceback,
+                      severity=SEV_WARNING, component="zenactiond")
+        notification.dmd.ZenEventManager.sendEvent(event)
+
+    
+    def executeBatch(self, notification, signal, targets):
+        raise NotImplemented()
+
 
     def execute(self, notification, signal):
         self.setupAction(notification.dmd)
 
         exceptionTargets = []
-        for target in self.getTargets(notification):
+        targets = self.getTargets(notification)
+        if self.shouldExecuteInBatch:
             try:
-                self.executeOnTarget(notification, signal, target)
-                log.debug('Done executing action for target: %s' % target)
+                log.debug("Executing batch action for targets.")
+                self.executeBatch(notification, signal, targets)
             except Exception, e:
-                # If there is an error executing this action on a target,
-                # we need to handle it, but we don't want to prevent other
-                # actions from executing on any other targets that may be
-                # about to be acted on.
-                msg = 'Error executing action {notification} on {target}'.format(
-                    notification=notification.id,
-                    target=target,
-                )
-                log.error(e)
-                log.error(msg)
-                traceback = format_exc()
-                event = Event(device="localhost",
-                              eventClass="/App/Failed",
-                              summary=msg,
-                              message=traceback,
-                              severity=SEV_WARNING, component="zenactiond")
-                notification.dmd.ZenEventManager.sendEvent(event)
-                exceptionTargets.append(target)
+                self.handleExecuteError(e, notification, targets)
+                exceptionTargets.extend(targets)
+        else:
+            log.debug("Executing action serially for targets.")
+            for target in self.getTargets(notification):
+                try:
+                    self.executeOnTarget(notification, signal, target)
+                    log.debug('Done executing action for target: %s' % target)
+                except Exception, e:
+                    self.handleExecuteError(e, notification, target)
+                    exceptionTargets.append(target)
 
         if exceptionTargets:
             raise TargetableActionException(self, notification, exceptionTargets)
@@ -228,7 +249,9 @@ class EmailAction(IActionBase, TargetableAction):
     id = 'email'
     name = 'Email'
     actionContentInfo = IEmailActionContentInfo
-
+    
+    shouldExecuteInBatch = True
+    
     def __init__(self):
         super(EmailAction, self).__init__()
 
@@ -240,10 +263,10 @@ class EmailAction(IActionBase, TargetableAction):
         self.useTls = dmd.smtpUseTLS
         self.user = dmd.smtpUser
         self.password = dmd.smtpPass
-
-    def executeOnTarget(self, notification, signal, target):
-        log.debug('Executing action: Email')
-
+    
+    def executeBatch(self, notification, signal, targets):
+        log.debug("Executing action for targets: %s", targets)
+        
         data = _signalToContextDict(signal, self.options.get('zopeurl'), notification, self.guidManager)
         if signal.clear:
             log.debug('This is a clearing signal.')
@@ -272,7 +295,7 @@ class EmailAction(IActionBase, TargetableAction):
 
         email_message['Subject'] = subject
         email_message['From'] = self.email_from
-        email_message['To'] = target
+        email_message['To'] = ','.join(targets)
         email_message['Date'] = formatdate(None, True)
 
         result, errorMsg = Utils.sendEmail(
@@ -285,12 +308,12 @@ class EmailAction(IActionBase, TargetableAction):
         )
 
         if result:
-            log.debug("Notification '%s' sent email to: %s",
-                     notification.id, target)
+            log.debug("Notification '%s' sent emails to: %s",
+                     notification.id, targets)
         else:
             raise ActionExecutionException(
-                "Notification '%s' failed to send email to %s: %s" %
-                (notification.id, target, errorMsg)
+                "Notification '%s' FAILED to send emails to %s: %s" %
+                (notification.id, targets, errorMsg)
             )
 
     def getActionableTargets(self, target):
