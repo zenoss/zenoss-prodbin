@@ -132,6 +132,7 @@ class Schedule:
         "Execute all the maintanance windows at the proper time"
         if self.timer and not self.timer.called:
             self.timer.cancel()
+            self.timer = None
 
         # sort events by the next occurance of something to do
         now = self.now()
