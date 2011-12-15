@@ -198,7 +198,7 @@ class TestZenprocess(BaseTestCase):
         data = {'.1.3.6.1.2.1.25.4.2.1.2': {'.1.3.6.1.2.1.25.4.2.1.2.1': 'testProcess'},
                 '.1.3.6.1.2.1.25.4.2.1.4': {'.1.3.6.1.2.1.25.4.2.1.4.1': '/fake/path/testProcess'},
                 '.1.3.6.1.2.1.25.4.2.1.5': {'.1.3.6.1.2.1.25.4.2.1.5.1': 'args'}}
-        self.compareTestData(data,task, self.expected(PROCESSES=1))
+        self.compareTestData(data, task, self.expected(PROCESSES=1))
         
         return task
 
@@ -217,7 +217,7 @@ class TestZenprocess(BaseTestCase):
                                             '.1.3.6.1.2.1.25.4.2.1.5.2': '2',
                                             '.1.3.6.1.2.1.25.4.2.1.5.3': '3',
                                             '.1.3.6.1.2.1.25.4.2.1.5.4': '4'}}
-        self.compareTestData(data,task, self.expected(PROCESSES=4))
+        self.compareTestData(data, task, self.expected(PROCESSES=4))
 
     def testProcessCount(self):
         task = self.getSingleProcessTask(ignoreArgs=False)
@@ -235,7 +235,7 @@ class TestZenprocess(BaseTestCase):
                                             '.1.3.6.1.2.1.25.4.2.1.5.3': '3',
                                             '.1.3.6.1.2.1.25.4.2.1.5.4': '4'}}
         # Process count is not dependent on actual matching, just on the SNMP data returned.
-        self.compareTestData(data,task, self.expected(PROCESSES=4))
+        self.compareTestData(data, task, self.expected(PROCESSES=4))
 
     def testMissingNoMatchIgnoreParams(self):
         task = self.getSingleProcessTask(ignoreArgs=True)
@@ -268,6 +268,20 @@ class TestZenprocess(BaseTestCase):
                 '.1.3.6.1.2.1.25.4.2.1.4': {'.1.3.6.1.2.1.25.4.2.1.4.1': '/fake/path/testProcess'},
                 '.1.3.6.1.2.1.25.4.2.1.5': {'.1.3.6.1.2.1.25.4.2.1.5.1': 'args'}}
         self.compareTestData(data, task, self.expected(MISSING=0))
+
+    def testMissingMismatchNameNoArgs(self):
+        procDefs = {}
+        self.updateProcDefs(procDefs, getProcessIdentifier('testProcess1', ''), False, 'testProc')
+        self.updateProcDefs(procDefs, getProcessIdentifier('testProcess2', ''), False, 'testProc')
+        task = self.makeTask(procDefs)
+
+        data = {'.1.3.6.1.2.1.25.4.2.1.2': {'.1.3.6.1.2.1.25.4.2.1.2.1': 'testProcess1',
+                                            '.1.3.6.1.2.1.25.4.2.1.2.2': 'testProcess2'},
+                '.1.3.6.1.2.1.25.4.2.1.4': {'.1.3.6.1.2.1.25.4.2.1.4.1': 'testProcess1',
+                                            '.1.3.6.1.2.1.25.4.2.1.4.2': 'testProcess2'},
+                '.1.3.6.1.2.1.25.4.2.1.5': {'.1.3.6.1.2.1.25.4.2.1.5.1': '',
+                                            '.1.3.6.1.2.1.25.4.2.1.5.2': ''}}
+        self.compareTestData(data, task, self.expected(PROCESSES=2, AFTERBYCONFIG=2, MISSING=0))
 
     def testMissingMismatchPathIgnoreParams(self):
         task = self.getSingleProcessTask(ignoreArgs=True)
@@ -515,7 +529,7 @@ class TestZenprocess(BaseTestCase):
         self.updateProcDefs(procDefs, 'crond', True, '^crond')
 
         task = self.makeTask(procDefs)
-        expectedStats = self.expected(253, 5, 14, 0, 14, 0, 0, 2)
+        expectedStats = self.expected(253, 6, 14, 0, 14, 0, 0, 1)
         self.compareTestFile('case15875-4', task, expectedStats)
 
     def testRemodels(self):

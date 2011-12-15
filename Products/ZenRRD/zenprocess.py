@@ -38,6 +38,7 @@ from Products.ZenEvents import Event
 from Products.ZenEvents.ZenEventClasses import Status_Snmp, Status_OSProcess,\
     Status_Perf
 from Products.ZenUtils.observable import ObservableMixin
+from Products.ZenUtils.Utils import prepId as globalPrepId
 
 # We retrieve our configuration data remotely via a Twisted PerspectiveBroker
 # connection. To do so, we need to import the class that will be used by the
@@ -204,7 +205,7 @@ class ProcessStats:
 
     __repr__ = __str__
 
-    def match(self, name, args, useMd5Digest=True):
+    def match(self, name, args, useName=True, useMd5Digest=True):
         """
         Perform exact comparisons on the process names.
 
@@ -235,6 +236,13 @@ class ProcessStats:
             # Compare this arg list against the digest of this proc
             digest = md5(args).hexdigest()
             if self.digest and digest != self.digest:
+                result = False
+
+        if result and useName:
+            nameOnly = self._config.name.split(' ')[0]
+            cleanName = globalPrepId(name)
+            if not nameOnly in cleanName:
+                log.debug("Discarding match based on name mismatch: %s %s" % (cleanName, nameOnly))
                 result = False
 
         return result
