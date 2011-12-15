@@ -27,7 +27,7 @@ a:link, a:visited {
 }
 
 
-.toggle-managed-splitbar {
+#x-history-frame, #ie_historyFrame, #history-form, .toggle-managed-splitbar {
   display: none !important;
 }
 

@@ -663,7 +663,7 @@
                 xtype: 'ProductionStateCombo',
                 defaultListConfig: {
                     maxWidth:200
-                },
+                }
             },
             comparisons: ZF.NUMBERCOMPARISONS
         },
