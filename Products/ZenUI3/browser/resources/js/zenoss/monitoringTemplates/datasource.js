@@ -86,6 +86,7 @@ new Zenoss.HideFormDialog({
         id: 'addToGraphMetricPanel'
     }, {
         xtype: 'combo',
+        tpl: '<tpl for="."><div ext:qtip="{name}" class="x-combo-list-item">{name}</div></tpl>',
         id: 'graphCombo',
         fieldLabel: _t('Graph'),
         displayField: 'name',
