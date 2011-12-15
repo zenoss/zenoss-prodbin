@@ -15,6 +15,12 @@ from zope.component.interfaces import Interface, IObjectEvent
 from zope.interface import Attribute
 
 
+# "Enum" for return values for IInvalidationFilters.
+FILTER_EXCLUDE = 0
+FILTER_INCLUDE = 1
+FILTER_CONTINUE = 2
+
+
 class IInvalidationEvent(IObjectEvent):
     """
     ZenHub has noticed an invalidation.
@@ -103,6 +109,8 @@ class IInvalidationFilter(Interface):
         """
     def include(obj):
         """
-        Return a boolean indicating whether this one gets processed.
+        Return whether to exclude this device, include it absolutely, or move
+        on to the next filter (L{FILTER_EXCLUDE}, L{FILTER_INCLUDE} or
+        L{FILTER_CONTINUE}).
         """
 

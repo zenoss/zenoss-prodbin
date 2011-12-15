@@ -18,7 +18,7 @@ from zope.interface import implements
 from Products.ZenModel.DeviceClass import DeviceClass
 from Products.Zuul.interfaces import ICatalogTool
 
-from .interfaces import IInvalidationFilter
+from .interfaces import IInvalidationFilter, FILTER_EXCLUDE, FILTER_CONTINUE
 
 log = logging.getLogger('zen.InvalidationFilter')
 
@@ -67,7 +67,7 @@ class DeviceClassInvalidationFilter(object):
     def include(self, obj):
         # Move on if it's not a device class
         if not isinstance(obj, DeviceClass):
-            return True
+            return FILTER_CONTINUE
 
         # Checksum the device class
         current_checksum = self._deviceClassChecksum(obj)
@@ -78,9 +78,9 @@ class DeviceClassInvalidationFilter(object):
         if current_checksum != existing_checksum:
             log.debug('%r has a new checksum! Including.' % obj)
             self.checksum_map[devclass_path] = current_checksum
-            return True
+            return FILTER_CONTINUE
         log.debug('%r checksum unchanged. Skipping.' % obj)
-        return False
+        return FILTER_EXCLUDE
 
 
 

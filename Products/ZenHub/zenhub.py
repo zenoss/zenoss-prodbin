@@ -48,6 +48,7 @@ from Products.ZenModel.DeviceComponent import DeviceComponent
 from Products.ZenHub.services.RenderConfig import RenderConfig
 from Products.ZenHub.interfaces import IInvalidationProcessor, IServiceAddedEvent, IHubCreatedEvent, IHubWillBeCreatedEvent
 from Products.ZenHub.interfaces import IParserReadyForOptionsEvent, IInvalidationFilter
+from Products.ZenHub.interfaces import FILTER_INCLUDE, FILTER_EXCLUDE
 
 from Products.ZenHub.PBDaemon import RemoteBadMonitor
 pb.setUnjellyableForClass(RemoteBadMonitor, RemoteBadMonitor)
@@ -375,8 +376,9 @@ class ZenHub(ZCmdBase):
                     else:
                         included = True
                         for fltr in self._invalidation_filters:
-                            if not fltr.include(obj):
-                                included = False
+                            result = fltr.include(obj)
+                            if result in (FILTER_INCLUDE, FILTER_EXCLUDE):
+                                included = (result == FILTER_INCLUDE)
                                 break
                         if included:
                             yield oid
