@@ -282,44 +282,10 @@ a:link, a:visited {
 }
 
 
-.severity-icon {
-  height: 50px;
-  margin: 0 8px;
-  width: 35px;
-  background: transparent url(/++resource++zenui/img/xtheme-zenoss/icon/severity-sprite-large.png) 100px 100px no-repeat;
-}
-
-.severity-icon.critical {
-  background-position: 0px 0px;
-}
-
-.severity-icon.error {
-  background-position: -44px 0px;
-}
-
-.severity-icon.info {
-  background-position: -88px 0px;
-}
-
-.severity-icon.debug {
-  background-position: -132px 0px;
-}
-
-.severity-icon.clear {
-  background-position: -176px 0px;
-}
-
-.severity-icon.warning {
-  background-position: -220px 0px;
-}
 
 
-.severity-icon-small.critical, .severity-icon-small.error, .severity-icon-small.warning, .severity-icon-small.info, .severity-icon-small.debug, .severity-icon-small.clear {
-  width: 16px;
-  height: 14px;
-  background: transparent url(/++resource++zenui/img/xtheme-zenoss/icon/severity-sprite.png) no-repeat;
-  margin: 0 auto;
-}
+
+
 
 
 .no-events {
@@ -345,30 +311,6 @@ a.eventrainbow {
   background-image: url(/++resource++zenui/img/xtheme-zenoss/icon/severity-sprite-reverse.png);
 }
 
-
-.severity-icon-small.critical {
-  background-position: 0px  0px;
-}
-
-.severity-icon-small.error {
-  background-position: 0px -20px;
-}
-
-.severity-icon-small.warning {
-  background-position: 0px -40px;
-}
-
-.severity-icon-small.info {
-  background-position: 0px -60px;
-}
-
-.severity-icon-small.debug {
-  background-position: 0px -80px;
-}
-
-.severity-icon-small.clear {
-  background-position: 0px -100px;
-}
 
 
 div.zenportlet .severity-icon-small.critical, .largetoolbar .severity-icon-small.critical {
@@ -1385,5 +1327,100 @@ a.z-entity:link, a.z-entity:hover, a.z-entity:visited {
 .multiselect-form-field {
   margin-bottom: 10px;
 }
+/* fall back with no target ID */
+.severity-icon {
+  height: 50px;
+  margin: 0 8px;
+  width: 35px;
+  background: transparent url(/++resource++zenui/img/xtheme-zenoss/icon/severity-sprite-large.png) 100px 100px no-repeat;
+}
+
+.severity-icon.critical {
+  background-position: 0px 0px;
+}
+
+.severity-icon.error {
+  background-position: -44px 0px;
+}
+
+.severity-icon.info {
+  background-position: -88px 0px;
+}
+
+.severity-icon.debug {
+  background-position: -132px 0px;
+}
+
+.severity-icon.clear {
+  background-position: -176px 0px;
+}
+
+.severity-icon.warning {
+  background-position: -220px 0px;
+}
+
+.severity-icon-small.critical, .severity-icon-small.error, .severity-icon-small.warning, .severity-icon-small.info, .severity-icon-small.debug, .severity-icon-small.clear {
+  width: 16px;
+  height: 14px;
+  background: transparent url(/++resource++zenui/img/xtheme-zenoss/icon/severity-sprite.png) no-repeat;
+  margin: 0 auto;
+}
+
+.severity-icon-small.critical {
+  background-position: 0px  0px;
+}
+
+.severity-icon-small.error {
+  background-position: 0px -20px;
+}
+
+.severity-icon-small.warning {
+  background-position: 0px -40px;
+}
+
+.severity-icon-small.info {
+  background-position: 0px -60px;
+}
+
+.severity-icon-small.debug {
+  background-position: 0px -80px;
+}
+
+.severity-icon-small.clear {
+  background-position: 0px -100px;
+}
 
 
+/* positioned here for the cascade */
+#evdetail_hd .severity-icon {
+  height: 50px;
+  margin: 0 8px;
+  width: 35px;
+  background: transparent url(/++resource++zenui/img/xtheme-zenoss/icon/severity-sprite-large.png) 100px 100px no-repeat;
+}
+#evdetail_hd .severity-icon .x-panel-body{
+    background: none !important; /* an IE fix for a blocking bar across the top of the icon */
+}
+#evdetail_hd .severity-icon.critical {
+  background-position: 0px 0px;
+}
+
+#evdetail_hd .severity-icon.error {
+  background-position: -44px 0px;
+}
+
+#evdetail_hd .severity-icon.info {
+  background-position: -88px 0px;
+}
+
+#evdetail_hd .severity-icon.debug {
+  background-position: -132px 0px;
+}
+
+#evdetail_hd .severity-icon.clear {
+  background-position: -176px 0px;
+}
+
+#evdetail_hd .severity-icon.warning {
+  background-position: -220px 0px;
+}
