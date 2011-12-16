@@ -242,10 +242,7 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable,
     comments = ""
     sysedgeLicenseMode = ""
     priority = 3
-    detailKeys =  ('tagNumber', 'serialNumber',
-                  'hwModel', 'hwManufacturer',
-                  'osModel', 'osManufacturer',
-                  'groups', 'systems', 'location')
+
     # Flag indicating whether device is in process of creation
     _temp_device = False
 
@@ -2296,6 +2293,7 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable,
         ip = self.getManageIp()
         if ip:
             ip = ip.partition('/')[0]
-        return str(numbip(ip))
+        if ip:
+            return str(numbip(ip))
 
 InitializeClass(Device)

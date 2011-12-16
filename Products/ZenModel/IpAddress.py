@@ -63,7 +63,6 @@ class IpAddress(ManagedEntity, Layer3Linkable):
     default_catalog = 'ipSearch'
 
     version = 4
-    detailKeys =   ('device', 'interface', 'macAddress', 'interfaceDescription')
 
     _properties = (
         {'id':'netmask', 'type':'string', 'mode':'w', 'setter':'setNetmask'},

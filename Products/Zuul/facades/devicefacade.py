@@ -93,57 +93,6 @@ class DeviceFacade(TreeFacade):
             return mapping.get(sort)
         return sort
 
-    def getDeviceList(self, uid=None, start=0, limit=50, sort='name', dir='ASC',
-                   params=None, hashcheck=None):
-        cat = PermissionedCatalogTool(self._getObject(uid), self.context.dmd.Devices.deviceSearch)
-        reverse = dir=='DESC'
-        qs = []
-        query = None
-        if params:
-            for key, value in params.iteritems():
-                if key == 'name':
-                    qs.append(MatchRegexp('titleOrId', '(?i).*%s.*' % value))
-                elif key == 'ipAddress':
-                    ip = ensureIp(params['ipAddress'])
-                    try:
-                        checkip(ip)
-                    except IpAddressError:
-                        pass
-                    else:
-                        if numbip(ip):
-                            minip, maxip = getSubnetBounds(ip)
-                            qs.append(Between('ipAddressAsInt', str(minip), str(maxip)))
-                elif key == 'deviceClass':
-                    qs.append(MatchRegexp('getDeviceClassPath', '.*%s.*' %
-                                          params['deviceClass']))
-                elif key == 'productionState':
-                    qs.append(Or(*[Eq('getProdState', self.context.convertProdState(state))
-                                 for state in params['productionState']]))
-                else:
-                    qs.append(MatchRegexp(key, '.*%s.*' % value))
-
-        if qs:
-            query = And(*qs)
-        sort = self._convertOrderby(sort)
-        brains = cat.search(start=start,
-                           limit=limit, orderby=sort, reverse=reverse,
-                            query=query, hashcheck=hashcheck)
-
-        details = {}
-        devices = []
-        for brain in brains:
-            details[brain.getPrimaryId] = unjson(brain.details)
-            devices.append(IInfo(brain.getObject()))
-
-        uuids = set(dev.uuid for dev in devices)
-        if uuids:
-            zep = getFacade('zep')
-            severities = zep.getEventSeverities(uuids)
-            for device in devices:
-                device.setEventSeverities(severities[device.uuid])
-
-        return SearchResults(devices, brains.total, brains.hash_), details
-
     def findComponentIndex(self, componentUid, uid=None, meta_type=None,
                            sort='name', dir='ASC', name=None):
         brains = self._componentSearch(uid=uid, meta_type=meta_type, sort=sort,
@@ -265,7 +214,7 @@ class DeviceFacade(TreeFacade):
                 newSystemNames = self._removeOrganizer(organizer, list(oldSystemNames))
                 if newSystemNames != oldSystemNames:
                     dev.setSystems(newSystemNames)
-                    
+
         elif isinstance(organizer, Location):
             for dev in devs:
                 dev.setLocation(None)

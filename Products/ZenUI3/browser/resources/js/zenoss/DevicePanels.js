@@ -27,7 +27,7 @@ function objectRenderer(obj) {
         {
         dataIndex: 'name',
         header: _t('Device'),
-        id: 'titleOrId',
+        id: 'name',
         flex: 1,
         renderer: function(name, row, record) {
             return Zenoss.render.Device(record.data.uid, name);
@@ -43,7 +43,7 @@ function objectRenderer(obj) {
     },{
         dataIndex: 'uid',
         header: _t('Device Class'),
-        id: 'deviceClass',
+        id: 'uid',
         sortable: false,
         width: 120,
         renderer: Zenoss.render.DeviceClass

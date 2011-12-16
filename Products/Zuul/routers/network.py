@@ -189,15 +189,13 @@ class NetworkRouter(TreeRouter):
         """
         if isinstance(params, basestring):
             params = unjson(params)
-        instances, details = self.api.getIpAddresses(uid=uid, start=start, params=params,
+        instances = self.api.getIpAddresses(uid=uid, start=start, params=params,
                                           limit=limit, sort=sort, dir=dir)
-        detailKeys = IpAddress.detailKeys
-        keys = ['name', 'netmask', 'pingstatus',
-                'snmpstatus', 'uid']
+
+        keys = ['name', 'netmask', 'pingstatus', 'snmpstatus', 'uid',
+                'device', 'interface', 'macAddress',
+                'interfaceDescription']
         data = Zuul.marshal(instances.results, keys)
-        for row in data:
-            for key in detailKeys:
-                row[key] = details[row['uid']][key]
         return DirectResponse.succeed(data=data, totalCount=instances.total,
                                       hash=instances.hash_)
 

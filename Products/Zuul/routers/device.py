@@ -389,23 +389,20 @@ class DeviceRouter(TreeRouter):
         if isinstance(params, basestring):
             params = unjson(params)
 
-        devices, details = facade.getDeviceList(uid, start, limit, sort, dir, params)
+        devices = facade.getDevices(uid, start, limit, sort, dir, params)
         allKeys = ['name', 'ipAddress', 'productionState', 'events',
-                'ipAddressString', 'serialNumber', 'tagNumber',
-                'hwManufacturer', 'hwModel', 'osModel', 'osManufacturer',
-                'collector', 'priority', 'systems', 'groups', 'location',
-                'pythonClass']
-        detailKeys = Device.detailKeys
+                   'ipAddressString', 'serialNumber', 'tagNumber',
+                   'hwManufacturer', 'hwModel', 'osModel', 'osManufacturer',
+                   'collector', 'priority', 'systems', 'groups', 'location',
+                   'pythonClass', 'tagNumber', 'serialNumber',
+                   'hwModel', 'hwManufacturer',
+                   'osModel', 'osManufacturer',
+                   'groups', 'systems', 'location']
         usedKeys = keys or allKeys
-        usedKeys = [key for key in usedKeys if not key in detailKeys]
         if not 'uid' in usedKeys:
             usedKeys.append('uid')
 
         data = Zuul.marshal(devices.results, usedKeys)
-        # update rows from the details
-        for row in data:
-            for key in detailKeys:
-                row[key] = details[row['uid']][key]
 
         return DirectResponse(devices=data, totalCount=devices.total,
                               hash=devices.hash_)

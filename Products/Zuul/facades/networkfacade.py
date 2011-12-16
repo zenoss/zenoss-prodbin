@@ -19,7 +19,8 @@ from Products.ZenUtils.Utils import binPath
 from Products.Zuul import getFacade
 from Products.Zuul.facades import TreeFacade
 from Products.Zuul.interfaces import ITreeFacade, INetworkFacade
-from Products.Zuul.interfaces import IInfo
+from Products.Zuul.interfaces import IInfo, ICatalogTool
+from Products.Zuul.utils import unbrain
 from Products.Zuul.tree import SearchResults
 from Products.Zuul.tree import PermissionedCatalogTool
 from zenoss.protocols.protobufs.zep_pb2 import (STATUS_NEW, STATUS_ACKNOWLEDGED, SEVERITY_CRITICAL,
@@ -121,28 +122,16 @@ class NetworkFacade(TreeFacade):
 
     def getIpAddresses(self, limit=0, start=0, sort='ipAddressAsInt', dir='DESC',
               params=None, uid=None, criteria=()):
-
-        catalogSortMap = {
-            'name': 'ipAddressAsInt',
-            'device': 'getDeviceName',
-            'interface': 'getInterfaceName',
-            'macAddress': 'getInterfaceMacAddress',
-            'interfaceDescription': 'getInterfaceDescription'
-            }
-        obj = self._getObject(uid)
-        zcat = getattr(obj, obj.default_catalog)
-
-        cat = PermissionedCatalogTool(obj, zcat)
-        reverse = dir=='DESC'
-        # try to map the sort to our catalog
-        sort = catalogSortMap.get(sort, sort)
-        brains = cat.search(start=start, limit=limit,
-                            orderby=sort, reverse=reverse)
         infos = []
-        details = {}
+        cat = ICatalogTool(self._getObject(uid))
+        reverse = dir=='DESC'
+
+        brains = cat.search("Products.ZenModel.IpAddress.IpAddress",
+                            start=start, limit=limit,
+                            orderby=sort, reverse=reverse)
+
         for brain in brains:
-            details[brain.getPath()] = unjson(brain.details)
-            infos.append(IInfo(brain.getObject()))
+            infos.append(IInfo(unbrain(brain)))
 
         devuuids = set(info.device.uuid for info in infos if info.device)
 
@@ -161,7 +150,7 @@ class NetworkFacade(TreeFacade):
                                                       eventClass=Status_Snmp)
         self._assignSnmpStatuses(infos, snmpSeverities)
 
-        return SearchResults(infos, brains.total, brains.hash_), details
+        return SearchResults(infos, brains.total, brains.hash_)
 
     def discoverDevices(self, uid):
         """

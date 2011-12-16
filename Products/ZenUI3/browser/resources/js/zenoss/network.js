@@ -28,7 +28,7 @@ treeConfigs.addAll([{
     id: 'networks',
     root: {
         id: '.zport.dmd.Networks',
-        uid: '/zport/dmd/Networks', 
+        uid: '/zport/dmd/Networks',
         text: null, // Use the name loaded from the remote
         allowDrop: false
     },
@@ -197,7 +197,7 @@ Ext.define("Zenoss.Network.NetworkNavTree", {
             var subParts = unescape(tokenTreePath).split('.ipaddresses.');
             var tokenNodeId = subParts[0];
             var node = this.getRootNode().findChild("id", tokenNodeId, true);
-            
+
             if (node) {
                 this.getSelectionModel().select(node);
                 if (node.isExpandable()){
@@ -360,6 +360,7 @@ Ext.define("Zenoss.network.IpAddressStore", {
         config = config || {};
         Ext.applyIf(config, {
             model: 'Zenoss.network.IpAddressModel',
+            pageSize: 200,
             initialSortColumn: "name",
             directFn: Zenoss.remote.NetworkRouter.getIpAddresses,
             root: 'data'
@@ -477,7 +478,7 @@ function deleteIpAddresses(btn) {
             xtype: 'DialogButton',
             text: _t('Cancel')
         }]
-    }).show();  
+    }).show();
 }
 
 
