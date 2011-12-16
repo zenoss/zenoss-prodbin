@@ -13,7 +13,6 @@
 from twisted.internet import reactor
 
 import signal
-import multiprocessing
 import time
 import socket
 from datetime import datetime, timedelta
@@ -28,6 +27,7 @@ from Products.ZenMessaging.queuemessaging.interfaces import IQueueConsumerTask
 from Products.ZenUtils.ZCmdBase import ZCmdBase
 from Products.ZenUtils.ZenDaemon import ZenDaemon
 from Products.ZenUtils.guid import guid
+from Products.ZenUtils.Utils import importClass
 from zenoss.protocols.interfaces import IAMQPConnectionInfo, IQueueSchema
 from zenoss.protocols.eventlet.amqp import getProtobufPubSub
 from zenoss.protocols.protobufs.zep_pb2 import ZepRawEvent, Event
@@ -35,7 +35,6 @@ from zenoss.protocols.eventlet.amqp import Publishable
 from zenoss.protocols.jsonformat import from_dict
 from Products.ZenMessaging.queuemessaging.eventlet import BasePubSubMessageTask
 from Products.ZenEvents.events2.processing import *
-from Products.ZenCollector.utils.workers import ProcessWorkers, workersBuildOptions
 from Products.ZenEvents.interfaces import IPreEventPlugin, IPostEventPlugin
 
 import logging
@@ -221,33 +220,6 @@ class EventDWorker(ZCmdBase):
                     self._pubsub.shutdown()
                     self._pubsub = None
 
-    def buildOptions(self):
-        super(EventDWorker, self).buildOptions()
-        self.parser.add_option('--workers',
-                    type="int",
-                    default=2,
-                    help="The number of event processing workers to run "
-                         "(ignored when running in the foreground)")
-
-    def parseOptions(self):
-        """
-        Don't ever allow a worker to be a daemon
-        """
-        super(EventDWorker, self).parseOptions()
-        self.options.daemon = False
-
-
-def run_worker():
-    name = multiprocessing.current_process().name
-    pid = multiprocessing.current_process().pid
-    log.info("Starting: %s (pid %s)" % (name, pid))
-    try:
-        worker = EventDWorker()
-        worker.run()
-    finally:
-        log.debug("Shutting down: %s" % (name,))
-
-
 class ZenEventD(ZenDaemon):
 
     def __init__(self, *args, **kwargs):
@@ -255,36 +227,24 @@ class ZenEventD(ZenDaemon):
         self._heartbeatSender = QueueHeartbeatSender('localhost',
                                                      'zeneventd',
                                                      self.options.maintenancecycle *3)
-        self._workers = ProcessWorkers(self.options.workers, run_worker,
-                                       "Event worker")
         self._maintenanceCycle = MaintenanceCycle(self.options.maintenancecycle,
                                   self._heartbeatSender)
 
     def _shutdown(self, *ignored):
         log.info("Shutting down...")
         self._maintenanceCycle.stop()
-        self._workers.shutdown()
 
     def run(self):
         ProcessEventMessageTask.SYNC_EVERY_EVENT = self.options.syncEveryEvent
 
         if self.options.daemon:
             reactor.addSystemEventTrigger('before', 'shutdown', self._shutdown)
-            self._workers.startWorkers()
             self._maintenanceCycle.start()
-            reactor.run()
-
-        else:
-            EventDWorker().run()
-
-    def _sigUSR1_called(self, signum, frame):
-        log.debug   ('_sigUSR1_called %s' % signum)
-        self._workers.sendSignal(signum)
+        EventDWorker().run()
 
     def buildOptions(self):
         super(ZenEventD, self).buildOptions()
 
-        workersBuildOptions(self.parser, default=2)
         maintenanceBuildOptions(self.parser)
         # Have to add in all the ZCmdBase options because they get passed
         # through to the workers but will be invalid if not allowed here
@@ -319,9 +279,9 @@ class ZenEventD(ZenDaemon):
                     help='Force sync() before processing every event; default is to sync() no more often '
                     'than once every 1/2 second.')
 
-
-
 if __name__ == '__main__':
+    # activate enterprise extended features
+    ZenEventD = importClass('Products.ZenEvents.zeneventd','ZenEventD')
     zed = ZenEventD()
     zed.run()
 
