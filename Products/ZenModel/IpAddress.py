@@ -61,7 +61,6 @@ class IpAddress(ManagedEntity, Layer3Linkable):
     event_key = portal_type = meta_type = 'IpAddress'
 
     default_catalog = 'ipSearch'
-    detailKeys =   ('device', 'interface', 'macAddress', 'interfaceDescription')
 
     version = 4
 
@@ -275,22 +274,6 @@ class IpAddress(ManagedEntity, Layer3Linkable):
         n = self.network()
         if n: return n.getPrimaryId()
         else: return None
-
-    def allowedRolesAndUsers(self):
-        """
-        Returns all the users and groups that
-        have permission for this ip address.
-        Used for indexing.
-        """
-        return allowedRolesAndUsers(self)
-
-    def details(self):
-        dinfo = IInfo(self)
-        fields = self.detailKeys
-        details = dict()
-        for field in fields:
-            details[field] = Zuul.marshal(getattr(dinfo, field), ('name','uid'))
-        return json(details)
 
     def ipAddressAsInt(self):
         ip = self.getIpAddress()

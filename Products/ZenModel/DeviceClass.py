@@ -795,27 +795,6 @@ class DeviceClass(DeviceOrganizer, ZenPackable, TemplateContainer):
         zcat.addColumn('getPrimaryId')
         zcat.addColumn('id')
         zcat.addColumn('path')
-        zcat.addColumn('details')
-
-        # add extra fields to the catalog
-        fieldIndexes = ['getHWSerialNumber', 'getHWTag',
-                'getHWManufacturerName', 'getHWProductClass',
-                'getOSProductName', 'getOSManufacturerName',
-                'getPerformanceServerName', 'ipAddressAsInt',
-                'getProductionStateString', 'getPriorityString',
-                'getLocationName']
-        keywordIndexes = ['getSystemNames', 'getDeviceGroupNames']
-
-        # field indexes
-        for indexName in fieldIndexes:
-            cat.addIndex(indexName, makeCaseInsensitiveFieldIndex(indexName))
-
-        # keyword indexes
-        for indexName in keywordIndexes:
-            cat.addIndex(indexName, makeCaseInsensitiveKeywordIndex(indexName))
-
-        # permissions
-        cat.addIndex('allowedRolesAndUsers', makeCaseSensitiveKeywordIndex('allowedRolesAndUsers'))
 
         # make catalog for device components
         manage_addZCatalog(self, "componentSearch", "componentSearch")

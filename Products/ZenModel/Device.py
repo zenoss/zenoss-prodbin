@@ -78,7 +78,6 @@ from Products.ZenWidgets import messaging
 from Products.ZenEvents.browser.EventPillsAndSummaries import getEventPillME
 from OFS.CopySupport import CopyError # Yuck, a string exception
 from Products.Zuul import getFacade
-from Products.Zuul.utils import allowedRolesAndUsers
 from Products.ZenUtils.IpUtil import numbip
 from Products.ZenMessaging.audit import audit
 
@@ -242,10 +241,6 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable,
     comments = ""
     sysedgeLicenseMode = ""
     priority = 3
-    detailKeys =  ('tagNumber', 'serialNumber',
-                   'hwModel', 'hwManufacturer',
-                   'osModel', 'osManufacturer',
-                   'groups', 'systems', 'location')
 
 
     # Flag indicating whether device is in process of creation
@@ -676,10 +671,6 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable,
         Set the productKey of the device OS.
         """
         self.os.setProductKey(prodKey, manufacturer)
-        self.index_object(idxs=('getOSProductName','getOSManufacturerName'),
-                          noips=True)
-
-
 
     def getHWTag(self):
         """
@@ -696,26 +687,18 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable,
         Set the asset tag of the device hardware.
         """
         self.hw.tag = assettag
-        self.index_object(idxs=('getHWTag',), noips=True)
-
-
 
     def setHWProductKey(self, prodKey, manufacturer=None):
         """
         Set the productKey of the device hardware.
         """
         self.hw.setProductKey(prodKey, manufacturer)
-        self.index_object(idxs=('getHWProductClass','getHWManufacturerName'),
-                          noips=True)
-
-
 
     def setHWSerialNumber(self, number):
         """
         Set the hardware serial number.
         """
         self.hw.serialNumber = number
-        self.index_object(idxs=('getHWSerialNumber',), noips=True)
 
     def getHWSerialNumber(self):
         """
@@ -958,7 +941,7 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable,
 
             else:
                 self.manageIp = ip
-                self.index_object(idxs=('ipAddressAsInt','getDeviceIp'), noips=True)
+                self.index_object(idxs=('getDeviceIp',), noips=True)
                 notify(IndexingEvent(self, ('ipAddress',), True))
                 log.info("%s's IP address has been set to %s.",
                          self.id, ip)
@@ -2281,18 +2264,6 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable,
             return int(result['total'])
 
         return super(Device, self).getStatus(statusclass, **kwargs)
-
-
-    def details(self):
-        dinfo = IInfo(self)
-        fields = self.detailKeys
-        details = dict()
-        for field in fields:
-            details[field] = Zuul.marshal(getattr(dinfo, field), ('name','uid'))
-        return json(details)
-
-    def allowedRolesAndUsers(self):
-        return allowedRolesAndUsers(self)
 
     def ipAddressAsInt(self):
         ip = self.getManageIp()

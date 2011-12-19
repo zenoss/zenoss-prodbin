@@ -69,30 +69,6 @@ class DeviceFacade(TreeFacade):
         if isinstance(obj, Device):
             obj.index_object()
 
-    def _convertOrderby(self, sort):
-        """
-        The sort fields will come in as the properties of the info
-        object, we need to translate them into the index name
-        for the deviceSearch catalog.
-        """
-        mapping = {
-            'name': 'titleOrId',
-            'uid': 'getPhysicalPath',
-            'ipAddress': 'ipAddressAsInt',
-            'productionState': 'getProdState',
-            'serialNumber': 'getHWSerialNumber',
-            'tagNumber': 'getHWTag',
-            'hwManufacturer': 'getHWManufacturerName',
-            'hwModel': 'getHWProductClass',
-            'osManufacturer': 'getOSManufacturerName',
-            'osModel': 'getOSProductName',
-            'collector': 'getPerformanceServerName',
-            'priority': 'getPriorityString'
-            }
-        if mapping.get(sort):
-            return mapping.get(sort)
-        return sort
-
     def findComponentIndex(self, componentUid, uid=None, meta_type=None,
                            sort='name', dir='ASC', name=None):
         brains = self._componentSearch(uid=uid, meta_type=meta_type, sort=sort,
@@ -323,12 +299,12 @@ class DeviceFacade(TreeFacade):
                 return self.context.Devices.findDeviceByIdExact(deviceName)
 
         # find a device with the same ip on the same collector
-        query = And( Eq('getDeviceIp', ipAddress),
-                     Eq('getPerformanceServerName', collector))
+        query = Eq('getDeviceIp', ipAddress)
         cat = self.context.Devices.deviceSearch
         brains = cat.evalAdvancedQuery(query)
-        if len(brains):
-            return brains[0].getObject()
+        for brain in brains:
+            if brain.getObject().getPerformanceServerName() == collector:
+                return brain.getObject()
 
     def addDevice(self, deviceName, deviceClass, title=None, snmpCommunity="",
                   snmpPort=161, model=False, collector='localhost',
