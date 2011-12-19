@@ -61,6 +61,7 @@ class IpAddress(ManagedEntity, Layer3Linkable):
     event_key = portal_type = meta_type = 'IpAddress'
 
     default_catalog = 'ipSearch'
+    detailKeys =   ('device', 'interface', 'macAddress', 'interfaceDescription')
 
     version = 4
 
