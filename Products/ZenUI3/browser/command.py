@@ -1,15 +1,15 @@
-########################################################################### 
-# 
-# This program is part of Zenoss Core, an open source monitoring platform. 
-# Copyright (C) 2010, Zenoss Inc. 
-# 
-# This program is free software; you can redistribute it and/or modify it 
+###########################################################################
+#
+# This program is part of Zenoss Core, an open source monitoring platform.
+# Copyright (C) 2010, Zenoss Inc.
+#
+# This program is free software; you can redistribute it and/or modify it
 # under the terms of the GNU General Public License version 2 or (at your
 # option) any later version as published by the Free Software Foundation.
-# 
-# For complete information please visit: http://www.zenoss.com/oss/ 
-# 
-########################################################################### 
+#
+# For complete information please visit: http://www.zenoss.com/oss/
+#
+###########################################################################
 import os
 import shlex
 import sys
@@ -56,18 +56,18 @@ class CommandView(StreamingView):
                                  stderr=subprocess.STDOUT)
             retcode = None
             while time.time() < end:
-                while True:
-                    line = p.stdout.readline()
-                    if not line:
-                        time.sleep(0.5)
-                    try:
-                        self.write(line)
-                    except StreamClosed:
-                        p.kill()
-                        raise
+                line = p.stdout.readline()
+                if not line:
+                    time.sleep(0.5)
+                try:
+                    self.write(line)
+                except StreamClosed:
+                    p.kill()
+                    raise
                 retcode = p.poll()
                 if retcode is not None:
-                    break
+                    # we are done
+                    return
             else:
                 p.kill()
                 self.write('Command timed out for %s (timeout is %s seconds)'%(
@@ -90,7 +90,7 @@ class BackupView(StreamingView):
             timeout = int(timeoutString)
         except ValueError:
             timeout = 120
-        self.context.zport.dmd.manage_createBackup(includeEvents, 
+        self.context.zport.dmd.manage_createBackup(includeEvents,
                 includeMysqlLogin, timeout, None, self.write)
 
 
@@ -111,7 +111,7 @@ class TestDataSourceView(StreamingView):
             # from the request (so the user can test without saving the datasource)
             for key in data:
                 request[key] = data[key]
-                
+
             self.write("Preparing Command...")
             request['renderTemplate'] = False
             results = self.context.testDataSourceAgainstDevice(
