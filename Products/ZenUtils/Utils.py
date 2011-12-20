@@ -34,6 +34,8 @@ from decimal import Decimal
 from sets import Set
 import asyncore
 import copy
+from decorator import decorator
+from ZODB.POSException import ConflictError
 log = logging.getLogger("zen.Utils")
 
 from popen2 import Popen4
@@ -1663,3 +1665,36 @@ def getDefaultZopeUrl():
     Returns the default Zope URL.
     """
     return 'http://%s:%d' % (socket.getfqdn(), 8080)
+
+
+def swallowExceptions(log, msg=None, showTraceback=True, returnValue=None):
+    """
+    USE THIS CAUTIOUSLY. Don't hide exceptions carelessly.
+
+    Decorator to safely call a method, logging exceptions without raising them.
+
+    Example:
+        @swallowExceptions(myLogger, 'Error while closing files')
+        def closeFilesBeforeExit():
+            ...
+
+    @param log          Which logger to use, or None to not log.
+    @param msg          The error message.
+    @param stacktrace   True to include the stacktrace (the default).
+    @param returnValue  The return value on error.
+    """
+    @decorator
+    def callSafely(func, *args, **kwargs):
+        try:
+            return func(*args, **kwargs)
+        except ConflictError:
+            raise
+        except Exception, e:
+            if log is not None:
+                if showTraceback:
+                    log.exception(msg if msg else str(e))
+                else:
+                    log.warn(msg if msg else str(e))
+            return returnValue
+
+    return callSafely
