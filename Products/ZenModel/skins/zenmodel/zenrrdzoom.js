@@ -292,7 +292,6 @@ Ext.onReady(function(){
     for (graphid in ZenGraphs) {
         if (true) {
             var id = Ext.id();
-            console.log(id);
             var graphinfo = ZenGraphs[graphid];
             var x = new Zenoss.SwoopyGraph({
                 graphUrl: graphinfo[0],
