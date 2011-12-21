@@ -49,36 +49,36 @@ _STRING_PROPERTY_TYPES = ( 'string', 'text', 'password' )
 
 class ImportRM(ZCmdBase, ContentHandler):
     """
-    Wrapper module to interface between Zope and the Python SAX XML library. 
-The xml.sax.parse() calls different routines depending on what it finds. 
+    Wrapper module to interface between Zope and the Python SAX XML library.
+The xml.sax.parse() calls different routines depending on what it finds.
 
-A simple example of a valid XML file can be found in the objects.xml file 
-for a ZenPack. 
+A simple example of a valid XML file can be found in the objects.xml file
+for a ZenPack.
 
- <?xml version="1.0"?> 
- <objects> 
-   <!-- ('', 'zport', 'dmd', 'Devices', 'rrdTemplates', 'HelloWorld') --> 
-   <object id='/zport/dmd/Devices/rrdTemplates/HelloWorld' module='Products.ZenModel.RRDTemplate' class='RRDTemplate'> 
-     <property type="text" id="description" mode="w" > This is the glorious description that shows up when we click on our RRD template </property> 
-   <tomanycont id='datasources'> 
-     <object id='hello' module='Products.ZenModel.BasicDataSource' class='BasicDataSource'> 
-       <property select_variable="sourcetypes" type="selection" id="sourcetype" mode="w" > SNMP </property> 
-       <property type="boolean" id="enabled" mode="w" > True </property> 
-       <property type="string" id="eventClass" mode="w" > /Cmd/Fail </property> 
-       <property type="int" id="severity" mode="w" > 3 </property> 
-       <property type="int" id="cycletime" mode="w" > 300 </property> 
-       <property type="boolean" id="usessh" mode="w" > False </property> 
-     <tomanycont id='datapoints'> 
-       <object id='hello' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint'> 
-           <property select_variable="rrdtypes" type="selection" id="rrdtype" mode="w" > GAUGE </property> 
-           <property type="boolean" id="isrow" mode="w" > True </property> 
-       </object> 
-     </tomanycont> 
-  </object> 
+ <?xml version="1.0"?>
+ <objects>
+   <!-- ('', 'zport', 'dmd', 'Devices', 'rrdTemplates', 'HelloWorld') -->
+   <object id='/zport/dmd/Devices/rrdTemplates/HelloWorld' module='Products.ZenModel.RRDTemplate' class='RRDTemplate'>
+     <property type="text" id="description" mode="w" > This is the glorious description that shows up when we click on our RRD template </property>
+   <tomanycont id='datasources'>
+     <object id='hello' module='Products.ZenModel.BasicDataSource' class='BasicDataSource'>
+       <property select_variable="sourcetypes" type="selection" id="sourcetype" mode="w" > SNMP </property>
+       <property type="boolean" id="enabled" mode="w" > True </property>
+       <property type="string" id="eventClass" mode="w" > /Cmd/Fail </property>
+       <property type="int" id="severity" mode="w" > 3 </property>
+       <property type="int" id="cycletime" mode="w" > 300 </property>
+       <property type="boolean" id="usessh" mode="w" > False </property>
+     <tomanycont id='datapoints'>
+       <object id='hello' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint'>
+           <property select_variable="rrdtypes" type="selection" id="rrdtype" mode="w" > GAUGE </property>
+           <property type="boolean" id="isrow" mode="w" > True </property>
+       </object>
+     </tomanycont>
+  </object>
 
- <!--    snip  --> 
+ <!--    snip  -->
 
- </objects> 
+ </objects>
     """
     rootpath = ''
     skipobj = 0
@@ -86,7 +86,7 @@ for a ZenPack.
     def __init__(self, noopts=0, app=None, keeproot=False):
         """
         Initializer
-        
+
         @param noopts: don't use sys.argv for command-line options
         @type noopts: boolean
         @param app: app
@@ -100,7 +100,7 @@ for a ZenPack.
     def context(self):
         """
         Return the bottom object in the stack
-        
+
         @return:
         @rtype: object
         """
@@ -109,7 +109,7 @@ for a ZenPack.
     def cleanattrs(self, attrs):
         """
         Convert all attributes to string values
-        
+
         @param attrs: (key,val) pairs
         @type attrs: list
         @return: same list, but with all values as strings
@@ -124,7 +124,7 @@ for a ZenPack.
         """
         Function called when the parser finds the starting element
         in the XML file.
-        
+
         @param name: name of the element
         @type name: string
         @param attrs: list of (key, value) tuples
@@ -138,7 +138,7 @@ for a ZenPack.
 
         self.log.debug('tag %s, context %s, line %s'  % (
              name, self.context().id, self._locator.getLineNumber() ))
-        
+
         if name == 'object':
             if attrs.get('class') == 'Device':
                 devId = attrs['id'].split('/')[-1]
@@ -192,8 +192,8 @@ for a ZenPack.
             self.curattrs = attrs
         elif name in ignoredElements:
             pass
-        else: 
-            self.log.warning( "Ignoring an unknown XML element type: %s" % name ) 
+        else:
+            self.log.warning( "Ignoring an unknown XML element type: %s" % name )
 
     def endElement(self, name):
         """
@@ -246,16 +246,16 @@ for a ZenPack.
 
         elif name in ignoredElements:
             pass
-        else: 
-            self.log.warning( "Ignoring an unknown XML element type: %s" % name ) 
+        else:
+            self.log.warning( "Ignoring an unknown XML element type: %s" % name )
 
     def characters(self, chars):
         """
-        Called by xml.sax.parse() with data found in an element 
-        eg <object>my characters stuff</object> 
+        Called by xml.sax.parse() with data found in an element
+        eg <object>my characters stuff</object>
 
-        Note that this can be called character by character. 
-        
+        Note that this can be called character by character.
+
         @param chars: chars
         @type chars: string
         """
@@ -264,7 +264,7 @@ for a ZenPack.
     def createObject(self, attrs):
         """
         Create an object and set it into its container
-        
+
         @param attrs: attrs
         @type attrs: string
         @return: newly created object
@@ -333,7 +333,7 @@ for a ZenPack.
     def setProperty(self, obj, attrs, value):
         """
         Set the value of a property on an object.
-        
+
         @param obj: obj
         @type obj: string
         @param attrs: attrs
@@ -385,9 +385,8 @@ for a ZenPack.
             try:
                 value = eval(value)
             except NameError:
-                self.log.critical('Error trying to evaluate %s at line %s',
+                self.log.warn('Error trying to evaluate %s at line %s',
                                   value, linenum)
-                raise
             except SyntaxError:
                 self.log.debug("Non-fatal SyntaxError at line %s while eval'ing '%s'" % (
                      linenum, value) )
@@ -402,7 +401,7 @@ for a ZenPack.
         """
         Build list of links to form after all objects have been created
         make sure that we don't add other side of a bidirectional relation
-        
+
         @param rel: relationship object
         @type rel: relation object
         @param objid: objid
@@ -457,14 +456,14 @@ for a ZenPack.
         This method can be used to load data for the root of Zenoss (default
         behavior) or it can be used to operate on a specific point in the
         Zenoss hierarchy (ZODB).
-        
+
         Upon loading the XML file to be processed, the content of the XML file
         is handled by the methods in this class when called by xml.sax.parse().
 
-        Reads from a file if xmlfile is specified, otherwise reads 
-        from the command-line option --infile.  If no files are found from 
-        any of these places, read from standard input. 
-        
+        Reads from a file if xmlfile is specified, otherwise reads
+        from the command-line option --infile.  If no files are found from
+        any of these places, read from standard input.
+
         @param xmlfile: Name of XML file to load, or file-like object
         @type xmlfile: string or file-like object
         """
