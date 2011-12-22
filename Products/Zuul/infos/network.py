@@ -19,7 +19,6 @@ from Products.ZenModel.IpNetwork import IpNetwork
 from Products.ZenModel.IpAddress import IpAddress
 from Products.Zuul import getFacade
 from Products.Zuul.interfaces import IIpNetworkInfo, IIpAddressInfo, IIpNetworkNode
-from Products.Zuul.interfaces import ICatalogTool
 from Products.Zuul.infos import InfoBase, BulkLoadMixin
 from Products.Zuul.decorators import info
 from Products.Zuul.utils import getZPropertyInfo, setZPropertyInfo

@@ -16,7 +16,7 @@ from itertools import imap, chain
 from zope.component import adapts
 from zope.interface import implements
 from Products.Zuul.tree import TreeNode
-from Products.Zuul.interfaces import IReportClassNode, IReportNode, ICatalogTool
+from Products.Zuul.interfaces import IReportClassNode, IReportNode
 from Products.ZenModel.ReportClass import ReportClass
 from Products.ZenModel.ZenModelRM import ZenModelRM
 from Products.Zuul.routers.report import essentialReportOrganizers

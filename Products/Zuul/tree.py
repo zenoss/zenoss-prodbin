@@ -292,7 +292,7 @@ class CatalogTool(object):
 
     def search(self, types=(), start=0, limit=None, orderby=None,
                reverse=False, paths=(), depth=None, query=None,
-               hashcheck=None, filterPermissions=True):
+               hashcheck=None, filterPermissions=True, uses_count=True):
 
         # if orderby is not an index then _queryCatalog, then query results
         # will be unbrained and sorted

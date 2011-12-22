@@ -120,7 +120,9 @@ class Manager(object):
                 results = ICatalogTool(catalog).search(cls,
                                                        query=Or(Eq('id', id),
                                                                 Eq('name', id)),
-                                                       filterPermissions=False)
+                                                       filterPermissions=False,
+                                                       limit=1,
+                                                       uses_count=False)
 
                 if results.total:
                     return results.results.next().uuid

@@ -58,7 +58,9 @@ def _lookupUuid(catalog, cls, identifier):
     """function to retrieve uuid given an object's catalog, type, and identifier"""
     results = ICatalogTool(catalog).search(cls,
                                            query=Or(Eq('id', identifier),
-                                                    Eq('name', identifier)))
+                                                    Eq('name', identifier)),
+                                           limit=1,
+                                           uses_count=False)
     if results.total:
         return results.results.next().uuid
 

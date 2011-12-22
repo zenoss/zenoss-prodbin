@@ -18,7 +18,7 @@ from Products.Zuul.tree import TreeNode
 from Products.Zuul.infos import InfoBase
 from Products.Zuul.interfaces import IServiceInfo, IIpServiceClassInfo
 from Products.Zuul.interfaces import IServiceOrganizerNode, IWinServiceClassInfo
-from Products.Zuul.interfaces import ICatalogTool, IServiceOrganizerInfo
+from Products.Zuul.interfaces import IServiceOrganizerInfo
 from Products.ZenModel.ServiceClass import ServiceClass
 from Products.ZenModel.IpServiceClass import IpServiceClass
 from Products.ZenModel.WinServiceClass import WinServiceClass
