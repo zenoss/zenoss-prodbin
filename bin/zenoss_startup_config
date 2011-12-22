@@ -28,10 +28,10 @@ function get_var {
 }
 
 export OS_USERNAME="**OS_USERNAME**"
-export RUNUSER=$OS_USERNAME 
+export RUNUSER=$OS_USERNAME
 export OS_UID="**OS_UID**"
 export ZENHOME="**ZENHOME**"
- 
+
 export ZOPEPASSWORD="**ZOPE_PASSWD**"
 export ZOPEHOME="**ZOPEHOME**"
 export PYTHON="**PYTHON**"
@@ -39,7 +39,7 @@ export ZOPE_LISTEN_PORT="**ZOPE_LISTEN_PORT**"
 export ZOPE_USERNAME="**ZOPE_USERNAME**"
 export PYTHONPATH="**PYTHONPATH**"
 export SNMPD_CONF="**SNMPD_CONF**"
- 
+
 if [ ! -d "$ZENHOME" ]; then
     echo "ZENHOME is not set properly: $ZENHOME"
     exit 1
@@ -76,6 +76,6 @@ export RABBITMQ_SSL="`get_var amqpusessl`"
 export RABBITMQ_PORT="`get_var amqpport`"
 export RABBITMQ_VHOST="`get_var amqpvhost`"
 export RABBITMQ_USER="`get_var amqpuser`"
-export RABBITMQ_PASS="`get_var amqppass`"
+export RABBITMQ_PASS="`get_var amqppassword`"
 
 

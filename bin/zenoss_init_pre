@@ -49,6 +49,9 @@ update_conf_files
 # Update AMQP configuration files
 configure_amqp
 
+# create the zodb session database
+create_zodb_session_db
+
 # create the database for ZODB
 create_zodb_db
 
