@@ -29,10 +29,12 @@ from Products.ZenModel.ZenossSecurity import ZEN_CHANGE_DEVICE_PRODSTATE, ZEN_MA
 from Products.Zuul import filterUidsByPermission
 from Products.Zuul.routers import TreeRouter
 from Products.Zuul.interfaces import IInfo
+from Products.Zuul.catalog.events import IndexingEvent
 from Products.Zuul.form.interfaces import IFormBuilder
 from Products.Zuul.decorators import require, contextRequire, serviceConnectionError
 from Products.ZenUtils.guid.interfaces import IGlobalIdentifier
 from Products.ZenMessaging.audit import audit
+from zope.event import notify
 
 
 log = logging.getLogger('zen.Zuul')
@@ -745,7 +747,7 @@ class DeviceRouter(TreeRouter):
                 info = facade.getInfo(uid)
                 oldPriority = info.priority
                 info.priority = priority
-                info._object.index_object(idxs=('getPriorityString',))
+                notify(IndexingEvent(info._object))
                 audit('UI.Device.EditPriority', uid,
                       priority=info.priority,
                       oldData_={'priority':oldPriority})
@@ -793,7 +795,7 @@ class DeviceRouter(TreeRouter):
             for uid in uids:
                 info = facade.getInfo(uid)
                 info.collector = collector
-                info._object.index_object(idxs=('getPerformanceServerName',))
+                notify(IndexingEvent(info._object))
                 audit('UI.Device.ChangeCollector', uid, collector=collector)
             return DirectResponse('Changed collector to %s for %s devices.' %
                                   (collector, len(uids)))
