@@ -243,6 +243,7 @@ class ConfigurationLoaderTask(ObservableMixin):
         return defer.maybeDeferred(self._configProxy.getConfigProxies,
                                    self._prefs, devices)
 
+    @defer.inlineCallbacks
     def _processConfig(self, configs, purgeOmitted=True):
         if self.options.device:
             configs = [cfg for cfg in configs \
@@ -257,11 +258,11 @@ class ConfigurationLoaderTask(ObservableMixin):
             # device explicitly ignored by zenhub service.
             if not self.options.cycle:
                 self._daemon.stop()
-            return defer.succeed(['No device configuration to load'])
+            defer.returnValue(['No device configuration to load'])
 
         self.state = self.STATE_PROCESS_DEVICE_CONFIG
-        self._daemon._updateDeviceConfigs(configs, purgeOmitted)
-        return configs
+        yield self._daemon._updateDeviceConfigs(configs, purgeOmitted)
+        defer.returnValue(configs)
 
     def _reportStatistics(self, result):
         """

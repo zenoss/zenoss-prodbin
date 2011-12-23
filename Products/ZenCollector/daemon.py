@@ -17,7 +17,7 @@ import logging
 
 import zope.interface
 
-from twisted.internet import defer, reactor
+from twisted.internet import defer, reactor, task
 from twisted.python.failure import Failure
 
 from Products.ZenCollector.interfaces import ICollector,\
@@ -367,6 +367,7 @@ class CollectorDaemon(RRDDaemon):
             if not self.options.cycle:
                 self._pendingTasks.append(taskName)
 
+    @defer.inlineCallbacks
     def _updateDeviceConfigs(self, updatedConfigs, purgeOmitted):
         """
         Update the device configurations for the devices managed by this
@@ -378,6 +379,8 @@ class CollectorDaemon(RRDDaemon):
 
         for cfg in updatedConfigs:
             self._updateConfig(cfg)
+            # yield time to reactor so other things can happen
+            yield task.deferLater(reactor, 0, lambda: None)
 
         if purgeOmitted:
             self._purgeOmittedDevices(cfg.id for cfg in updatedConfigs)
