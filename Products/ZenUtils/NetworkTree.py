@@ -122,8 +122,7 @@ class NetworkLink(ILink):
     pointb = None
 
     def __hash__(self):
-        eps = [x.id for x in self.getEndpoints()]
-        eps.sort()
+        eps = sorted(x.id for x in self.getEndpoints())
         return hash(':'.join(eps))
 
     def setEndpoints(self, pointa, pointb):

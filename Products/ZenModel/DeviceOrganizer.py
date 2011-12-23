@@ -221,6 +221,8 @@ class DeviceOrganizer(Organizer, DeviceManagerBase, Commandable, ZenMenuable,
         """Build a device list for set methods"""
         if isinstance(deviceNames, basestring):
             deviceNames = [deviceNames]
+        if deviceNames is not None:
+            deviceNames = set(deviceNames)
         return [d.primaryAq() for d in self.getSubDevices()
                 if deviceNames is None or d.id in deviceNames
                 or d.getPrimaryId() in deviceNames]
@@ -229,9 +231,8 @@ class DeviceOrganizer(Organizer, DeviceManagerBase, Commandable, ZenMenuable,
     def deviceClassMoveTargets(self):
         """Return list of all organizers excluding our self."""
         targets = filter(lambda x: x != self.getOrganizerName(),
-            self.dmd.Devices.getOrganizerNames())
-        targets.sort(lambda x,y: cmp(x.lower(), y.lower()))
-        return targets
+                            self.dmd.Devices.getOrganizerNames())
+        return sorted(targets, key=lambda x: x.lower())
 
 
     def moveDevicesToClass(self, moveTarget, deviceNames=None, REQUEST=None):

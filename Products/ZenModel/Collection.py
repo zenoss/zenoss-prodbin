@@ -14,6 +14,7 @@
 __doc__="""Collection
 Holds an assortment of devices and/or components on a multi-style report.
 """
+import sys
 
 from Globals import InitializeClass
 from AccessControl import ClassSecurityInfo, Permissions
@@ -183,16 +184,12 @@ class Collection(ZenModelRM):
     def getItems(self):
         ''' Return an ordered list of CollectionItems
         '''
-        import sys
-        def cmpItems(a, b):
-            try: a = int(a.sequence)
-            except ValueError: a = sys.maxint
-            try: b = int(b.sequence)
-            except ValueError: b = sys.maxint
-            return cmp(a, b)
-        items =  self.collection_items()[:]
-        items.sort(cmpItems)
-        return items
+        def itemKey(a):
+            try:
+                return int(a.sequence)
+            except ValueError:
+                return sys.maxint
+        return sorted(self.collection_items(), key=itemKey)
         
 
     def getNumItems(self):

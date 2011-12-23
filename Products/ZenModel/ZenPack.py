@@ -508,8 +508,7 @@ class ZenPack(ZenModelRM):
 
     def manage_deletePackable(self, packables=(), REQUEST=None):
         "Delete objects from this ZenPack"
-        from sets import Set
-        packables = Set(packables)
+        packables = set(packables)
         for obj in self.packables():
             if obj.getPrimaryUrlPath() in packables:
                 self.packables.removeRelation(obj)

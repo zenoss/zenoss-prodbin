@@ -435,19 +435,14 @@ class SshUserAuth(userauth.SSHUserAuthClient):
 
             self.authenticatedWith.append(self.lastAuth)
 
-        # Straight from the nasty Twisted code
-        def _(x, y):
+        # Adapted from the nasty Twisted code
+        def continueKey(x):
             try:
-                i1 = self.preferredOrder.index(x)
+                return self.preferredOrder.index(x)
             except ValueError:
-                return 1
-            try:
-                i2 = self.preferredOrder.index(y)
-            except ValueError:
-                return -1
-            return cmp(i1, i2)
-
-        canContinue.sort(_)
+                return sys.maxint
+        canContinue.sort(key=continueKey)
+        
         log.debug( 'Sorted list of authentication methods: %s' % canContinue)
         for method in canContinue:
             if method not in self.authenticatedWith:

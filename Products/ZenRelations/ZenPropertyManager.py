@@ -359,12 +359,7 @@ class ZenPropertyManager(object, PropertyManager):
         else:
             if self.id == self.dmdRootName: return []
             rootnode = aq_base(self)
-        props = []
-        for prop in rootnode.propertyIds():
-            if not pfilt(prop): continue
-            props.append(prop)
-        props.sort()
-        return props
+        return sorted(prop for prop in rootnode.propertyIds() if pfilt(prop))
 
     security.declareProtected(ZEN_ZPROPERTIES_VIEW, 'zenPropertyItems')
     def zenPropertyItems(self):
@@ -376,11 +371,9 @@ class ZenPropertyManager(object, PropertyManager):
     def zenPropertyMap(self, pfilt=iszprop):
         """Return property mapping of device tree properties."""
         rootnode = self.getZenRootNode()
-        pmap = []
-        for pdict in rootnode.propertyMap():
-            if pfilt(pdict['id']): pmap.append(pdict)
-        pmap.sort(lambda x, y: cmp(x['id'], y['id']))
-        return pmap
+        return sorted((pdict for pdict in rootnode.propertyMap()
+                         if pfilt(pdict['id'])),
+                        key=lambda x : x['id'])
 
     security.declareProtected(ZEN_ZPROPERTIES_VIEW, 'zenPropertyString')
     def zenPropertyString(self, id):

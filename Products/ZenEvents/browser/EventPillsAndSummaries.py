@@ -66,6 +66,29 @@ class SingleObjectEventSummary(ObjectsEventSummary):
         return [self]
 
 
+def _getPillSortKey(pill,
+    _severities = ('critical', 'error', 'warning'),
+    _getseverity = re.compile(r'<td class="severity-icon-small\s+(' +
+                              r'critical|error|warning' +
+                              r') "\s+title="(\d+) out of (\d+) acknowledged">', 
+                           re.S|re.I|re.M).search
+    ):
+    """
+    Internal method for converting pill class to an integer severity sort key.
+    Use default arguments _getseverity and _severities to store runtime constants.
+    """
+    try:
+        reMatch = _getseverity(pill.lower())
+        if reMatch:
+            sev, numacked, numtotal = reMatch.group(1, 2, 3)
+            index = _severities.index(sev)
+            index += 0.5 if numacked != '0' else 0
+            return (index, -int(numtotal))
+    except Exception:
+        pass
+        
+    return (5,0)
+
 def getObjectsEventSummary(zem, objects, prodState=None, REQUEST=None):
     """
     Return an HTML link and event pill for each object passed as a JSON
@@ -73,36 +96,24 @@ def getObjectsEventSummary(zem, objects, prodState=None, REQUEST=None):
 
     @param objects: The objects for which to create links and pills.
     @type objects: list
-    @return: A JSON-formatted string representation of the columns and rows
-        of the table
-    @rtype: string
+    @return: dict containing 'columns' and 'data' entries
+    @rtype: dict
     """
-    mydict = {'columns':[], 'data':[]}
-    mydict['columns'] = ['Object', 'Events']
-    getcolor = re.compile(r'class=\"evpill-(.*?)\"', re.S|re.I|re.M).search
-    colors = ('red','orange','yellow','blue','grey','green')
-    def pillcompare(a,b):
-        a, b = map(lambda x:getcolor(x[1]), (a, b))
-        def getindex(x):
-            try:
-                color = x.groups()[0]
-                smallcolor = x.groups()[0].replace('-acked','')
-                isacked = 'acked' in color
-                index = colors.index(x.groups()[0].replace('-acked',''))
-                if isacked: index += .5
-                return index
-            except: return 5
-        a, b = map(getindex, (a, b))
-        return cmp(a, b)
+    ret = {'columns':['Object', 'Events'], 'data':[]}
+
+    # build list of device-pill-pillsortkey tuples
     devdata = []
     for obj in objects:
         alink = obj.getPrettyLink()
         pill = getEventPillME(obj, showGreen=True, prodState=prodState)
         if isinstance(pill, (list, tuple)): pill = pill[0]
-        devdata.append([alink, pill])
-    devdata.sort(pillcompare)
-    mydict['data'] = [{'Object':x[0],'Events':x[1]} for x in devdata]
-    return mydict
+        devdata.append((alink, pill, _getPillSortKey(pill)))
+    devdata.sort(key=lambda x:x[-1])
+
+    # save object-pill data to return dict
+    ret['data'] = [{'Object':x[0],'Events':x[1]} for x in devdata]
+
+    return ret
 
 
 def getDashboardObjectsEventSummary(zem, objects, REQUEST=None):

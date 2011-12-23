@@ -83,8 +83,8 @@ class ReportClass(Organizer, ZenPackable):
         kids = [o for o in self.objectValues() if isinstance(o, ReportClass)]
         if checkPerm:
             kids = [kid for kid in kids if self.checkRemotePerm("View", kid)]
-        if sort: kids.sort(lambda x,y: cmp(x.primarySortKey(), 
-                                           y.primarySortKey()))
+        if sort: 
+            kids.sort(key=lambda x: x.primarySortKey())
         return kids
 
 
@@ -98,9 +98,8 @@ class ReportClass(Organizer, ZenPackable):
     def countChildren(self, spec=None):
         """Return a count of all our contained children."""
         unused(spec)
-        count = len(self.childIds())
-        for child in self.children():
-            count += child.countChildren()
+        count = len(self.children())
+        count += sum(child.countChildren() for child in self.children())
         return count
 
 
@@ -128,19 +127,15 @@ class ReportClass(Organizer, ZenPackable):
     def reports(self):
         """Return list of report instances.
         """
-        reports = []
-        for r in self.objectValues(
-            spec=('Report','DeviceReport','GraphReport','MultiGraphReport')):
-            if self.checkRemotePerm('View', r):
-                reports.append(r)
-        return reports
+        reportspec = ('Report','DeviceReport','GraphReport','MultiGraphReport')
+        return [r for r in self.objectValues(spec=reportspec)
+                    if self.checkRemotePerm('View', r)]
 
 
     def countReports(self):
         """Return a count of all our contained children."""
         count = len(self.reports())
-        for child in self.children():
-            count += child.countReports()
+        count += sum(child.countReports() for child in self.children())
         return count
 
 

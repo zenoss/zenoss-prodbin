@@ -14,8 +14,6 @@ import os, sys
 if __name__ == '__main__':
     execfile(os.path.join(sys.path[0], 'framework.py'))
 
-from sets import Set
-
 from ZenModelBaseTest import ZenModelBaseTest
 from Products.ZenModel.ZDeviceLoader import BaseDeviceLoader
 
@@ -69,13 +67,13 @@ class TestDeviceLoader(ZenModelBaseTest):
         self.assertEquals( device.getPriority(), devProps['priority'] )
         self.assertEquals( device.location(), self.dmd.Locations.getOrganizer( 
                                                 devProps[ 'locationPath' ] ) )
-        varGroups = Set( device.groups() )
-        controlGroups = Set( [ self.dmd.Groups.getOrganizer( path ) for path in 
-                                                devProps[ 'groupPaths' ] ] )
+        varGroups = set( device.groups() )
+        controlGroups = set( self.dmd.Groups.getOrganizer( path ) for path in 
+                                                devProps[ 'groupPaths' ] )
         self.assertEquals( varGroups, controlGroups  )
-        varSystems = Set( device.systems() )
-        controlSystems = Set( [ self.dmd.Systems.getOrganizer( path ) for path in 
-                                                devProps[ 'systemPaths' ] ] )
+        varSystems = set( device.systems() )
+        controlSystems = set( self.dmd.Systems.getOrganizer( path ) for path in 
+                                                devProps[ 'systemPaths' ] )
         self.assertEquals( varSystems, controlSystems  )
                            
                 

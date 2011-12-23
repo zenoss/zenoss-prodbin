@@ -347,12 +347,8 @@ class CatalogTool(object):
                 savedValues[key] = value
             return value
 
-        def compareValues(left, right):
-            return cmp( getValue(left), getValue(right) )
-
-        allObjects = [unbrain(brain) for brain in queryResults]
-        allObjects.sort(cmp=compareValues, reverse=reverse)
-        return allObjects
+        return sorted((unbrain(brain) for brain in queryResults),
+                        key=getValue, reverse=reverse)
 
 
 class PermissionedCatalogTool(CatalogTool):

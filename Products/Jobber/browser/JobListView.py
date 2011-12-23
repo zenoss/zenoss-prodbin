@@ -88,9 +88,7 @@ class JobListView(BrowserView):
                 if duration: d['duration'] = readable_time(duration)
                 result['jobs'].append(d)
                 result['total'] += 1
-        def cmpjobs(a, b):
-            return int(b['starttime']) - int(a['starttime'])
-        result['jobs'].sort(cmpjobs)
+        result['jobs'].sort(key=lambda x: -int(x['starttime']))
         return result
 
 

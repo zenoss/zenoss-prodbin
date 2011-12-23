@@ -102,18 +102,13 @@ class MonitorClass(ZenModelRM, Folder, TemplateContainer):
     def getPerformanceMonitorNames(self):
         """return a list of all performance monitor names"""
         perfServer = self.getDmdRoot("Monitors").Performance
-        cnames = perfServer.objectIds(spec=('PerformanceConf'))
-        cnames.sort()
-        return cnames
-            
+        return sorted(perfServer.objectIds(spec=('PerformanceConf')))
+
 
     def objectSubValues(self):
         """get contained objects that are sub classes of sub_class"""
-        retdata = []
-        for obj in self.objectValues():
-            if checkClass(obj.__class__, self.sub_class):
-                retdata.append(obj)
-        return retdata
+        return [obj for obj in self.objectValues()
+                    if checkClass(obj.__class__, self.sub_class)]
 
 
     def manage_removeMonitor(self, ids = None, submon = "", REQUEST=None):

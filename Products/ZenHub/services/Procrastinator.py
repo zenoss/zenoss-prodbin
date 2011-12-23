@@ -11,7 +11,6 @@
 #
 ###########################################################################
 
-from sets import Set
 from twisted.internet import reactor, defer
 
 class Procrastinate(object):
@@ -22,13 +21,13 @@ class Procrastinate(object):
 
     def __init__(self, cback):
         self.cback = cback
-        self.devices = Set()
+        self.devices = set()
         self.timer = None
         self._stopping = False
         self._stopping_deferred = defer.Deferred()
 
     def clear(self):
-        self.devices = Set()
+        self.devices = set()
 
     def doLater(self, device = None):
         if not self._stopping:

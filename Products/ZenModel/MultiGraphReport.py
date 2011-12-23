@@ -130,11 +130,7 @@ class MultiGraphReport(ZenModelRM):
     def getGraphGroups(self):
         """get the ordered groups
         """
-        def cmpGroups(a, b):
-            return cmp(a.sequence, b.sequence)
-        groups = [g for g in self.graphGroups()]
-        groups.sort(cmpGroups)
-        return groups
+        return sorted(self.graphGroups(), key=lambda a: a.sequence)
 
     ### Collections
 
@@ -142,11 +138,7 @@ class MultiGraphReport(ZenModelRM):
     def getCollections(self):
         """ Return an alpha ordered list of available collections
         """
-        def cmpCollections(a, b):
-            return cmp(a.id, b.id)
-        collections = self.collections()[:]
-        collections.sort(cmpCollections)
-        return collections
+        return sorted(self.collections(), key=lambda a: a.id)
         
 
     security.declareProtected('Manage DMD', 'manage_addCollection')
@@ -186,15 +178,12 @@ class MultiGraphReport(ZenModelRM):
     def getGraphDefs(self):
         """ Return an ordered list of the graph definitions
         """
-        def cmpGraphDefs(a, b):
-            try: a = int(a.sequence)
-            except ValueError: a = sys.maxint
-            try: b = int(b.sequence)
-            except ValueError: b = sys.maxint
-            return cmp(a, b)
-        graphDefs =  self.graphDefs()[:]
-        graphDefs.sort(cmpGraphDefs)
-        return graphDefs
+        def graphDefSortKey(a):
+            try:
+                return int(a.sequence)
+            except ValueError:
+                return sys.maxint
+        return sorted(self.graphDefs(), key=graphDefSortKey)
 
 
     def getGraphDef(self, graphDefId):

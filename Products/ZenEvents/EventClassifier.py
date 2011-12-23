@@ -25,7 +25,6 @@ is a dictionary with the words as keys and a tuple of classids as values.
 
 import copy
 from os import path
-from sets import Set
 from threading import Lock
 
 from Products.ZenUtils.Exceptions import ZentinelException

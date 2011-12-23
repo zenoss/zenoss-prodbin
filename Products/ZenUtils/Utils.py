@@ -31,7 +31,6 @@ import warnings
 import math
 import contextlib
 from decimal import Decimal
-from sets import Set
 import asyncore
 import copy
 from decorator import decorator
@@ -846,13 +845,13 @@ def cmpClassNames(obj, classnames):
     @return: result of the comparison
     @rtype: boolean
     """
-    finalnames = Set()
+    finalnames = set()
     x = [obj.__class__]
     while x:
         thisclass = x.pop()
         x.extend(thisclass.__bases__)
         finalnames.add(thisclass.__name__)
-    return bool( Set(classnames).intersection(finalnames) )
+    return bool( set(classnames).intersection(finalnames) )
 
 
 def resequence(context, objects, seqmap, origseq, REQUEST):
@@ -883,18 +882,7 @@ def resequence(context, objects, seqmap, origseq, REQUEST):
         if origseq:
             for oldSeq, newSeq in zip(origseq, seqmap):
                 orig[oldSeq].sequence = newSeq
-    def sort(x):
-        """
-        @param x: unordered sequence items
-        @type x: list
-        @return: ordered sequence items
-        @rtype: list
-        """
-        x = list(x)
-        x.sort(lambda a, b: cmp(a.sequence, b.sequence))
-        return x
-
-    for i, obj in enumerate(sort(objects)):
+    for i, obj in enumerate(sorted(objects, key=lambda a: a.sequence)):
         obj.sequence = i
 
     if REQUEST:
@@ -1231,6 +1219,18 @@ def ipsort(a, b):
     a, b = map(lambda x:x.rsplit("/")[0], (a, b))
     return cmp(*map(socket.inet_aton, (a, b)))
 
+def ipsortKey(a):
+    """
+    Key function to replace cmp version of ipsort
+    @param a: IP address
+    @type a: string
+    @return: result of socket.inet_aton(a.ip)
+    @rtype: int
+    """
+    if not a:
+        a = "0.0.0.0"
+    a = a.rsplit('/')[0]
+    return socket.inet_aton(a)
 
 def unsigned(v):
     """

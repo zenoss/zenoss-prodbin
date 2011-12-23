@@ -117,10 +117,9 @@ class OSProcessOrganizer(Organizer, Commandable, ZenPackable):
     def getSubOSProcessClassesSorted(self):
         '''Return list of the process classes sorted by sequence.
         '''
-        def cmpProc(a, b):
-            return cmp(a.sequence, b.sequence)
-        procs = list(self.getSubOSProcessClassesGen())
-        procs.sort(cmpProc)
+        procs = sorted(self.getSubOSProcessClassesGen(),
+                    key=lambda a: a.sequence)
+        # reset sequence numbers to 0-n
         for i, p in enumerate(procs):
             p.sequence = i
         return procs

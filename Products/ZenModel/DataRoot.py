@@ -37,7 +37,6 @@ from Commandable import Commandable
 import socket
 import os
 import sys
-from sets import Set
 import string
 from Products.ZenMessaging.audit import audit
 from Products.ZenUtils.Utils import zenPath, binPath
@@ -562,10 +561,8 @@ class DataRoot(ZenModelRM, OrderedFolder, Commandable, ZenMenuable):
         """
         if len(id) > 128:
             return 'ZenPack names can not be longer than 128 characters.'
-        allowed = Set(list(string.ascii_letters)
-                        + list(string.digits)
-                        + ['_'])
-        attempted = Set(list(id))
+        allowed = set(string.ascii_letters + string.digits + '_')
+        attempted = set(id)
         if not attempted.issubset(allowed):
             return 'Only letters, digits and underscores are allowed' + \
                     ' in ZenPack names.'

@@ -117,9 +117,8 @@ class ZPLObject(ZenPackLoader):
             return
         from Products.ZenRelations.Exceptions import ObjectNotFound
         dmd = app.zport.dmd
-        objs = pack.packables()
-        objs.sort(lambda x, y: cmp(x.getPrimaryPath(), y.getPrimaryPath()))
-        objs.reverse()
+        objs = sorted(pack.packables(), key=lambda x: x.getPrimaryPath,
+                        reverse=True)
         for obj in objs:
             path = obj.getPrimaryPath()
             path, id = path[:-1], path[-1]

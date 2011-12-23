@@ -149,28 +149,28 @@ class UserSettingsManager(ZenModelRM):
         """
         # This code used to filter out the admin user.
         # See ticket #1615 for why it no longer does.
-        users = self.objectValues(spec="UserSettings")
-        users.sort(lambda a,b:cmp(a.id, b.id))
-        return users
+        return sorted(self.objectValues(spec="UserSettings"),
+                    key=lambda a: a.id)
 
     def getAllGroupSettings(self):
-        """Return list user settings objects.
+        """Return list group settings objects.
         """
-        groups = self.objectValues(spec="GroupSettings")
-        groups.sort(lambda a,b:cmp(a.id, b.id))
-        return groups
+        return sorted(self.objectValues(spec="GroupSettings"),
+                    key=lambda a: a.id)
 
     def getAllUserSettingsNames(self, filtNames=()):
         """Return list of all zenoss usernames.
         """
-        filt = lambda x: x not in filtNames
-        return [ u.id for u in self.getAllUserSettings() if filt(u.id) ]
+        filtNames = set(filtNames)
+        return [ u.id for u in self.getAllUserSettings() 
+                    if u.id not in filtNames ]
 
     def getAllGroupSettingsNames(self, filtNames=()):
-        """Return list of all zenoss usernames.
+        """Return list of all zenoss groupnames.
         """
-        filt = lambda x: x not in filtNames
-        return [ g.id for g in self.getAllGroupSettings() if filt(g.id) ]
+        filtNames = set(filtNames)
+        return [ g.id for g in self.getAllGroupSettings() 
+                    if g.id not in filtNames ]
 
     def getUsers(self):
         """Return list of Users wrapped in their settings folder.
@@ -837,7 +837,6 @@ class UserSettings(ZenModelRM):
         #updates = dict((k,v) for k,v in kw.items() if 'password' not in k.lower())
         updates = {}
         if roles != origRoles and self.isManager():
-            from sets import Set as set
             # get roles to remove and then remove them
             removeRoles = list(set(origRoles).difference(set(roles)))
             for role in removeRoles:
@@ -857,11 +856,6 @@ class UserSettings(ZenModelRM):
         origGroups = groupManager.getGroupsForPrincipal(user)
         # if there's a change, then we need to update
         if groups != origGroups and self.isManager():
-            # can we use the built-in set?
-            try:
-                set()
-            except NameError:
-                from sets import Set as set
             # get groups to remove and then remove them
             removeGroups = set(origGroups).difference(set(groups))
             for groupid in removeGroups:

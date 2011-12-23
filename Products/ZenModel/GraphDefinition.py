@@ -17,7 +17,6 @@ GraphDefinition defines the global options for a graph.
 """
 
 import sys
-from sets import Set
 import string
 
 from Products.ZenRelations.RelSchema import *
@@ -148,20 +147,14 @@ class GraphDefinition(ZenModelRM, ZenPackable):
     def getGraphPoints(self, includeThresholds=True):
         """ Return ordered list of graph points
         """
-        def cmpGraphPoints(a, b):
+        gps = (gp for gp in self.graphPoints()
+                if includeThresholds or not gp.isThreshold)
+        def graphPointKey(a):
             try:
-                a = int(a.sequence)
+                return int(a.sequence)
             except ValueError:
-                a = sys.maxint
-            try:
-                b = int(b.sequence)
-            except ValueError:
-                b = sys.maxint
-            return cmp(a, b)
-        gps =  [gp for gp in self.graphPoints()
-                if includeThresholds or not gp.isThreshold]
-        gps.sort(cmpGraphPoints)
-        return gps
+                return sys.maxint
+        return sorted(gps, key=graphPointKey)
         
         
     def getThresholdGraphPoints(self):
@@ -174,10 +167,8 @@ class GraphDefinition(ZenModelRM, ZenPackable):
     def isThresholdGraphed(self, threshId):
         """ Return true if there is a thresholdgraphpoint with threshId=threshid
         """
-        for gp in self.getThresholdGraphPoints():
-            if gp.threshId == threshId:
-                return True
-        return False
+        return any(gp.threshId == threshId 
+                        for gp in self.getThresholdGraphPoints())
         
         
     def isDataPointGraphed(self, dpName):
@@ -185,12 +176,8 @@ class GraphDefinition(ZenModelRM, ZenPackable):
         equal to dpName.
         """
         from DataPointGraphPoint import DataPointGraphPoint
-        for gp in self.getGraphPoints(includeThresholds=False):
-            if isinstance(gp, DataPointGraphPoint):
-                if gp.dpName == dpName:
-                    return True
-        return False
-        
+        return any(isinstance(gp, DataPointGraphPoint) and gp.dpName == dpName
+                        for gp in self.getGraphPoints(includeThresholds=False))
 
     ## GUI Support
 
@@ -215,10 +202,8 @@ class GraphDefinition(ZenModelRM, ZenPackable):
         # http://oss.oetiker.ch/rrdtool/doc/rrdgraph_data.en.html
         if len(id) > 200:
             return 'GraphPoint names can not be longer than 200 characters.'
-        allowed = Set(list(string.ascii_letters)
-                        + list(string.digits)
-                        + ['_'])
-        attempted = Set(list(id))
+        allowed = set(string.ascii_letters + string.digits + '_')
+        attempted = set(id)
         if not attempted.issubset(allowed):
             return 'Only letters, digits and underscores are allowed' + \
                     ' in GraphPoint names.'
@@ -275,7 +260,7 @@ class GraphDefinition(ZenModelRM, ZenPackable):
         and add to self.graphPoints
         """
         def getUniqueId(container, base):
-                ids = container.objectIds()
+                ids = set(container.objectIds())
                 new = base
                 i = 2
                 while new in ids:
@@ -482,14 +467,12 @@ class GraphDefinition(ZenModelRM, ZenPackable):
             except (KeyError, NameError), e:
                 cmds.append('COMMENT: UNKNOWN VALUE IN GRAPHPOINT '
                         '%s\: %s' % (gp.id, str(e)))
-        if self.custom and includeSetup \
-            and not upToPoint:
+        if self.custom and includeSetup and not upToPoint:
             try:
                 res = talesEval("string:"+str(self.custom), context)
             except (KeyError, NameError), e:
                 res = 'COMMENT:UNKNOWN VALUE IN CUSTOM COMMANDS\: %s' % str(e)
-            res = [l for l in res.split('\n') if l.strip()]
-            cmds.extend(res)
+            cmds.extend(l for l in res.split('\n') if l.strip())
             #if self.hasSummary:
             #    cmds = self.addSummary(cmds)
 
@@ -562,8 +545,8 @@ class GraphDefinition(ZenModelRM, ZenPackable):
         """
         Get a list of all unique datapoint names
         """
-        from sets import Set
-        dpNames = Set()
+        dpNames = set()
+        limitReached = False
         for t in self.dmd.Devices.getAllRRDTemplates():
             for ds in t.datasources():
                 # If we have a broken datasource (likely from a missing zenpack)
@@ -571,29 +554,31 @@ class GraphDefinition(ZenModelRM, ZenPackable):
                 if hasattr(ds, 'datapoints'):
                     for dp in ds.datapoints():
                         dpNames.add(dp.name())
-            if limit and len(dpNames) >= limit:
+                        if limit and len(dpNames) >= limit:
+                            limitReached = True
+                            break
+                if limitReached:
+                    break
+            if limitReached:
                 break
-        dpNames = list(dpNames)
-        dpNames.sort()
-        return dpNames
+        return sorted(dpNames)
 
 
     def getUniqueThresholdNames(self, limit=100):
         """
         Get a list of all unique threshold names
         """
-        from sets import Set
-        names = Set()
+        names = set()
+        limitReached = False
         for t in self.dmd.Devices.getAllRRDTemplates():
             for thresh in t.thresholds():
                 names.add(thresh.id)
                 if len(names) >= limit:
+                    limitReached = True
                     break
-            if len(names) >= limit:
+            if limitReached:
                 break
-        names = list(names)
-        names.sort()
-        return names
+        return sorted(names)
 
 
 InitializeClass(GraphDefinition)

@@ -137,12 +137,11 @@ class ServiceOrganizer(Organizer, Commandable, ZenPackable):
     def getSubClassesSorted(self):
         '''Return list of the process classes sorted by sequence.
         '''
-        def cmpProc(a, b):
-            return cmp(a.sequence, b.sequence)
-        procs = list(self.getSubClassesGen())
+        procs = sorted(self.getSubClassesGen(),
+                    key=lambda a: a.sequence)
+        # reset sequence numbers to 0-n
         for i, p in enumerate(procs):
             p.sequence = i
-        procs.sort(cmpProc)
         return procs
 
 

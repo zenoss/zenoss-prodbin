@@ -14,7 +14,7 @@
 from Products.Five.browser import BrowserView
 from Products.ZenModel.DeviceOrganizer import DeviceOrganizer
 from Products.ZenUtils.jsonutils import json
-from Products.ZenUtils.Utils import formreq, unused, ipsort
+from Products.ZenUtils.Utils import formreq, unused, ipsortKey
 from Products.AdvancedQuery import MatchRegexp, Or, Eq, In
 from Products.ZenUtils.FakeRequest import FakeRequest
 from Products.ZenWidgets import messaging
@@ -85,8 +85,8 @@ class DeviceList(BrowserView):
                                          orderdir)
         obs = [x.getObject() for x in devicelist]
         if orderby=='getDeviceIp':
-            obs.sort(lambda a,b:ipsort(a.getDeviceIp(), b.getDeviceIp()))
-        if orderdir=='desc': obs.reverse()
+            obs.sort(key=lambda a:ipsortKey(a.getDeviceIp()),
+                        reverse=(orderdir=='desc'))
         results = [ob.getDataForJSON(minSeverity=2) + ['odd'] for ob in obs]
         return results, totalCount
 

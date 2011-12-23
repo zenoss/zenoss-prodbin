@@ -201,11 +201,7 @@ class GraphReport(ZenModelRM):
         """
         get the ordered elements
         """
-        def cmpElements(a, b):
-            return cmp(a.sequence, b.sequence)
-        elements = [e for e in self.elements()]
-        elements.sort(cmpElements)
-        return elements
+        return sorted(self.elements(), key=lambda a: a.sequence)
 
 
 InitializeClass(GraphReport)

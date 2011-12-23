@@ -272,12 +272,10 @@ class OSProcess(OSComponent, Commandable, ZenPackable):
 
     def filterAutomaticCreation(self):
         # get the processes defined in Zenoss
-        processes = self.getDmdRoot("Processes")
-        pcs = list(processes.getSubOSProcessClassesGen())
-        pcs.sort(lambda a, b: cmp(a.sequence,b.sequence))
+        pcs = sorted(self.getDmdRoot("Processes").getSubOSProcessClassesGen(), key=lambda a: a.sequence)
 
+        fullname = (self.procName + ' ' + self.parameters).rstrip()
         for pc in pcs:
-            fullname = (self.procName + ' ' + self.parameters).rstrip()
             if pc.match(fullname):
                 self.setOSProcessClass(pc.getPrimaryDmdId())
                 self.id = self.prepId(getProcessIdentifier(om.procName,

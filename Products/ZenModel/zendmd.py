@@ -142,9 +142,9 @@ def _customStuff():
         noSecurityManager()
 
     def zhelp():
-        cmds = filter(lambda x: not x.startswith("_"), _CUSTOMSTUFF)
-        cmds.sort()
-        for cmd in cmds: print cmd
+        cmds = sorted(filter(lambda x: not x.startswith("_"), _CUSTOMSTUFF))
+        for cmd in cmds:
+            print cmd
 
     def grepdir(obj, regex=""):
         if regex:
@@ -182,8 +182,7 @@ def _customStuff():
         portaldir = set(dir(dmd))
         objdir = set(dir(obj))
         appdir = set(dir(app))
-        result = list(objdir - portaldir - appdir)
-        result.sort()
+        result = sorted(objdir - portaldir - appdir)
         pprint(result)
 
     def history(start=None, end=None, lines=30,

@@ -45,8 +45,7 @@ class HtmlGenerator(object):
         """
         self.of = open(os.path.join(self.outdir, "index.html"),"w")
         self.writeHeader()
-        keys = self._classnames.keys()
-        keys.sort()
+        keys = sorted(self._classnames.keys())
         self.writeTableHeader("Classes", ("ClassName", ))
         for clsname in keys:
             filepath = self._classnames[clsname]

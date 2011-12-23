@@ -14,7 +14,6 @@
 import os
 from random import random
 from datetime import datetime
-from sets import Set as set
 
 from OFS.Folder import Folder
 from Products.PluggableAuthService import plugins

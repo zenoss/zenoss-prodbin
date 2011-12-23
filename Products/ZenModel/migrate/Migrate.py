@@ -124,9 +124,7 @@ class Migration(ZenScriptBase):
     def __init__(self, noopts=0):
         ZenScriptBase.__init__(self, noopts=noopts, connect=False)
         self.connect()
-        self.allSteps = allSteps[:]
-        self.allSteps.sort(lambda x,y: cmp(x.name(), y.name()))
-        self.allSteps.sort()
+        self.allSteps = sorted(allSteps, key=lambda x: x.name())
 
         # Log output to a file
         # self.setupLogging() does *NOT* do what we want.

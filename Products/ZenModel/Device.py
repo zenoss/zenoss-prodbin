@@ -1976,9 +1976,7 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable,
         """
         if propname == 'zCollectorPlugins':
             from Products.DataCollector.Plugins import loadPlugins
-            names = [ldr.pluginName for ldr in loadPlugins(self.dmd)]
-            names.sort()
-            return names
+            return sorted(ldr.pluginName for ldr in loadPlugins(self.dmd))
         if propname == 'zCommandProtocol':
             return ['ssh', 'telnet']
         if propname == 'zSnmpVer':
@@ -2061,13 +2059,13 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable,
         templates = self.objectValues('RRDTemplate')
         # Any templates available to the class that aren't overridden locally
         # are also available
-        templates += [t for t in self.deviceClass().getRRDTemplates()
-                        if t.id not in [r.id for r in templates]]
-        def cmpTemplates(a, b):
-            return cmp(a.id.lower(), b.id.lower())
-        templates.sort(cmpTemplates)
-        return [ t for t in templates
-            if isinstance(self, t.getTargetPythonClass()) ]
+        device_template_ids = set(t.id for t in templates)
+        templates.extend(t for t in self.deviceClass().getRRDTemplates()
+                                            if t.id not in device_template_ids)
+
+        # filter before sorting
+        templates = filter(lambda t: isinstance(self, t.getTargetPythonClass()), templates)
+        return sorted(templates, key=lambda x: x.id.lower())
 
 
     security.declareProtected(ZEN_VIEW, 'getLinks')
@@ -2183,65 +2181,6 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable,
         if self.manageIpVersion() == 6:
             return "traceroute6"
         return "traceroute"
-
-    def updateProcesses(self, relmaps):
-        "Uses ProcessClasses to create processes to monitor"
-
-        from Products.DataCollector.ApplyDataMap import ApplyDataMap
-
-        processes = self.getDmdRoot("Processes")
-        pcs = list(processes.getSubOSProcessClassesGen())
-        log.debug("zenoss processes: %s" % pcs)
-        pcs.sort(lambda a, b: cmp(a.sequence,b.sequence))
-
-        #some debug output
-        procs = Set()
-        if log.isEnabledFor(10):
-            log.debug("=== snmp process information received ===")
-            for p in scanResults:
-                log.debug("process: %s" % p)
-            log.debug("=== processes stored/defined in Zenoss ===")
-            for p in pcs:
-                log.debug("%s\t%s" % (p.id, p.regex))
-
-        procs = Set()
-
-        #get the processes defined in Zenoss
-        processes = self.getDmdRoot("Processes")
-        pcs = list(processes.getSubOSProcessClassesGen())
-        log.debug("zenoss processes: %s" % pcs)
-        pcs.sort(lambda a, b: cmp(a.sequence,b.sequence))
-
-        #some debug output
-        if log.isEnabledFor(10):
-            log.debug("=== snmp process information received ===")
-            for p in scanResults:
-                log.debug("process: %s" % p)
-
-            log.debug("=== processes stored/defined in Zenoss ===")
-            for p in pcs:
-                log.debug("%s\t%s" % (p.id, p.regex))
-
-        maps = []
-        for om in relmap.maps:
-            om = ObjectMap(proc)
-            fullname = (om.procName + " " + om.parameters).rstrip()
-            log.debug("current process: %s" % fullname)
-
-            for pc in pcs:
-                if pc.match(fullname):
-                    om.setOSProcessClass = pc.getPrimaryDmdId()
-                    id = getProcessIdentifier(om.procName, None if pc.ignoreParameters else om.parameters)
-                    om.id = self.prepId(id)
-                    if id not in procs:
-                        procs.add(id)
-                        log.debug("adding %s" % fullname)
-                        maps.append(om)
-                    break
-        relmap.maps = maps
-
-        adm = ApplyDataMap()
-        return adm._applyDataMap(self, relmap)
 
     def getStatus(self, statusclass=None, **kwargs):
         """

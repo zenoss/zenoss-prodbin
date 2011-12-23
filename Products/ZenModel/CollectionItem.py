@@ -149,7 +149,8 @@ class CollectionItem(ZenModelRM):
             stuff = thing.getSubDevices(lambda d: d.monitorDevice())
         else:
             stuff = [ dev for dev in thing.devices() if dev.monitorDevice() ]
-        stuff.sort(lambda x, y: cmp(x.primarySortKey(), y.primarySortKey()))
+        if len(stuff) > 1:
+            stuff.sort(key=lambda x: x.primarySortKey())
         return stuff
 
 

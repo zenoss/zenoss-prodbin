@@ -16,7 +16,6 @@ __doc__="""utils
 RRD utility functions
 """
 
-from sets import Set
 from Acquisition import aq_chain
 
 from Exceptions import RRDObjectNotFound, TooManyArgs
@@ -127,7 +126,7 @@ def templateNames(context):
     @return: names of the templates
     @rtype: set of strings
     """
-    names = Set()
+    names = set()
     for obj in aq_chain(context):
         rrdconfig = getattr(obj, 'rrdconfig', None)
         if rrdconfig:
@@ -328,9 +327,11 @@ class rpnStack(object):
         self.process(1, lambda x: abs(x))
 
     def sort(self):
+        # uses None returned by sort to do in-place sort
         self.dynamicProcess(lambda a: a.sort() or a)
 
     def rev(self):
+        # uses None returned by reverse to do in-place reverse
         self.dynamicProcess(lambda a: a.reverse() or a)
 
     def avg(self):

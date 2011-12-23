@@ -171,8 +171,8 @@ class EventClass(EventClassPropertyMixin, Organizer, ManagedEntity, ZenPackable)
         """
         cat = self._getCatalog()
         matches = cat({'eventClassKey': evClassKey})
-        insts = [ self.getObjByPath(b.getPrimaryId) for b in matches ]
-        insts.sort(lambda x,y: cmp(x.sequence, y.sequence))
+        insts = sorted((self.getObjByPath(b.getPrimaryId) for b in matches),
+                       key=lambda x: x.sequence)
         if evClassKey != "defaultmapping":
             insts.extend(self.find("defaultmapping"))
         return insts

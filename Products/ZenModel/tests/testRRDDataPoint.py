@@ -55,14 +55,13 @@ class TestRRDDataPoint(ZenModelBaseTest):
                    ( 'alias0_2', 'form0_2' ) : ('ds2', 'dp1'),
                    ( 'alias0_3', 'form0_3' ) : ('ds2', 'dp1'  )
                    }
-        from sets import Set
-        aliasNames = Set( [ af[0] for af in aliasMap.keys() ] )
+        aliasNames = set( af[0] for af in aliasMap.keys() )
         addAliases( template, aliasMap )
 
         dp = template.datasources.ds2.datapoints.dp1
         self.assert_( len( dp.aliases() ) == 3 )
         vAliasNames = dp.getAliasNames()
-        vAliasNames = Set( vAliasNames )
+        vAliasNames = set( vAliasNames )
         
         self.assert_( aliasNames == vAliasNames )
         

@@ -45,9 +45,8 @@ class DeviceNames(BrowserView):
         brains = catalog.evalAdvancedQuery(query)
 
         # TODO: Add titleOrId to the catalog's metadata.
-        deviceIds = [b.getObject().titleOrId() for b in brains]
-        deviceIds.sort(lambda x, y: cmp(x.lower(), y.lower()))
-        return deviceIds
+        return  sorted((b.getObject().titleOrId() for b in brains),
+                        key=lambda x: x.lower())
 
 
 class ComponentPaths(BrowserView):
@@ -79,9 +78,7 @@ class ComponentPaths(BrowserView):
                     if callable(name):
                         name = name()
                     paths.add((comp.getPrimaryId(), name))
-        paths = list(paths)
-        paths.sort(lambda x,y: cmp(x[1], y[1]))
-        return paths
+        return sorted(paths, key=lambda x: x[1])
 
 
 class GraphIds(BrowserView):
@@ -120,9 +117,7 @@ class GraphIds(BrowserView):
                     for t in thing.getRRDTemplates():
                         for g in t.getGraphDefs():
                             graphIds.add(g.id)
-        graphIds = list(graphIds)
-        graphIds.sort()
-        return graphIds
+        return sorted(graphIds)
 
 
 class ServiceList(BrowserView):
@@ -161,9 +156,8 @@ class EventClassNames(BrowserView):
         @rtype: "['/path/1', '/path/2', ...]"
         """
         orgs = self.context.dmd.Events.getSubOrganizers()
-        paths = ['/'.join(x.getPrimaryPath()) for x in orgs]
-        paths = [p.replace('/zport/dmd','') for p in paths]
-        return paths
+        paths = ('/'.join(x.getPrimaryPath()) for x in orgs)
+        return [p.replace('/zport/dmd','') for p in paths]
 
 
 class OrganizerNames(BrowserView):

@@ -403,8 +403,7 @@ class MinMaxThresholdInstance(ThresholdInstance):
 
 
     def getNames(self, relatedGps):
-        names = list(set(x.split('_', 1)[1] for x in self.dataPointNames))
-        names.sort()
+        names = sorted(set(x.split('_', 1)[1] for x in self.dataPointNames))
         return ', '.join(names)
 
     def setPower(self, number):

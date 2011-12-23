@@ -79,7 +79,7 @@ class BaseTask(ObservableMixin):
         """
         Break lst into n-sized chunks
         """
-        return [lst[i:i+n] for i in range(0, len(lst), n)]
+        return [lst[i:i+n] for i in xrange(0, len(lst), n)]
 
 
 class NullTaskSplitter(object):

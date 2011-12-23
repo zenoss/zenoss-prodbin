@@ -125,8 +125,8 @@ class Organizer(ZenModelRM, EventView):
         kids = self.objectValues(spec=spec)
         if checkPerm:
             kids = [ kid for kid in kids if self.checkRemotePerm(ZEN_VIEW, kid)]
-        if sort: kids.sort(lambda x,y: cmp(x.primarySortKey(), 
-                                           y.primarySortKey()))
+        if sort: 
+            kids.sort(key=lambda x: x.primarySortKey())
         return kids
 
 
@@ -281,9 +281,8 @@ class Organizer(ZenModelRM, EventView):
         @todo: We should be using either deviceMoveTargets or childMoveTargets
         """
         targets = filter(lambda x: x != self.getOrganizerName(),
-            self.getDmdRoot(self.dmdRootName).getOrganizerNames())
-        targets.sort(lambda x,y: cmp(x.lower(), y.lower()))
-        return targets
+                self.getDmdRoot(self.dmdRootName).getOrganizerNames())
+        return sorted(targets, key=lambda x: x.lower())
 
 
     def moveOrganizer(self, moveTarget, organizerPaths=None, REQUEST=None):
@@ -404,7 +403,7 @@ class Organizer(ZenModelRM, EventView):
             groupNames.extend(subgroup.getOrganizerNames())
         if self.id == self.dmdRootName: 
             if addblank: groupNames.append("")
-        groupNames.sort(lambda x,y: cmp(x.lower(), y.lower()))
+        groupNames.sort(key=lambda x: x.lower())
         return groupNames
 
 

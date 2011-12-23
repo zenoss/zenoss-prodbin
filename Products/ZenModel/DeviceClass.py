@@ -145,7 +145,7 @@ class DeviceClass(DeviceOrganizer, ZenPackable, TemplateContainer):
             org = dclass.getOrganizer(orgname)
             if issubclass(org.getPythonDeviceClass(), pyclass):
                 dcnames.append(orgname)
-        dcnames.sort(lambda a, b: cmp(a.lower(), b.lower()))
+        dcnames.sort(key=lambda a: a.lower())
         return dcnames
 
     deviceMoveTargets = getPeerDeviceClassNames
@@ -575,13 +575,10 @@ class DeviceClass(DeviceOrganizer, ZenPackable, TemplateContainer):
         """
         Returns all available templates
         """
-        def cmpTemplates(a, b):
-            return cmp(a.id.lower(), b.id.lower())
-        templates = self.getRRDTemplates()
-        templates.sort(cmpTemplates)
         pdc = self.getPythonDeviceClass()
-        return [ t for t in templates
-            if issubclass(pdc, t.getTargetPythonClass()) ]
+        templates = filter(lambda t: issubclass(pdc, t.getTargetPythonClass()),
+                            self.getRRDTemplates())
+        return sorted(templates, key=lambda a: a.id.lower())
 
 
     def bindTemplates(self, ids=(), REQUEST=None):
@@ -847,9 +844,7 @@ class DeviceClass(DeviceOrganizer, ZenPackable, TemplateContainer):
         """
         if propname == 'zCollectorPlugins':
             from Products.DataCollector.Plugins import loadPlugins
-            names = [ldr.pluginName for ldr in loadPlugins(self.dmd)]
-            names.sort()
-            return names
+            return sorted(ldr.pluginName for ldr in loadPlugins(self.dmd))
         if propname == 'zCommandProtocol':
             return ['ssh', 'telnet']
         if propname == 'zSnmpVer':

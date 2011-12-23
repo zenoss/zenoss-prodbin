@@ -169,15 +169,12 @@ class RRDTemplate(ZenModelRM, ZenPackable):
     def getGraphDefs(self):
         ''' Return an ordered list of the graph definitions
         '''
-        def cmpGraphDefs(a, b):
-            try: a = int(a.sequence)
-            except ValueError: a = sys.maxint
-            try: b = int(b.sequence)
-            except ValueError: b = sys.maxint
-            return cmp(a, b)
-        graphDefs =  [g for g in self.graphDefs()]
-        graphDefs.sort(cmpGraphDefs)
-        return graphDefs
+        def graphDefSortKey(a):
+            try:
+                return int(a.sequence)
+            except ValueError:
+                return sys.maxint
+        return sorted(self.graphDefs(), key=graphDefSortKey)
 
 
     def getRRDPath(self):

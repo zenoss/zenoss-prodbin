@@ -226,11 +226,8 @@ class Commandable:
             if getattr(aq_base(obj), 'userCommands', None):
                 for c in obj.userCommands():
                     commands[c.id] = c
-        def cmpCommands(a, b):
-            return cmp(a.getId(), b.getId())
         if not asDict:
-            commands = commands.values()
-            commands.sort(cmpCommands)
+            commands = sorted(commands.itervalues(), key=lambda cmd: cmd.getId())
         return commands
 
 
