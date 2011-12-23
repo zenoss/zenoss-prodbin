@@ -80,11 +80,6 @@ class ZenPackManager(ZenModelRM):
                 , 'action'        : '../joblist'
                 , 'permissions'   : ( "Manage DMD", )
                 },
-                #{ 'id'            : 'menus'
-                #, 'name'          : 'Menus'
-                #, 'action'        : '../editMenus'
-                #, 'permissions'   : ( "Manage DMD", )
-                #},
                 { 'id'            : 'portlets'
                 , 'name'          : 'Portlets'
                 , 'action'        : '../editPortletPerms'
@@ -108,6 +103,11 @@ class ZenPackManager(ZenModelRM):
                 { 'id'            : 'eventConfig'
                 , 'name'          : 'Events'
                 , 'action'        : 'eventConfig'
+                , 'permissions'   : ( "Manage DMD", )
+                },
+                { 'id'            : 'userInterfaceConfig'
+                , 'name'          : 'User Interface'
+                , 'action'        : '../userInterfaceConfig'
                 , 'permissions'   : ( "Manage DMD", )
                 },
             )

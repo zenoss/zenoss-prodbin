@@ -109,11 +109,6 @@ class UserSettingsManager(ZenModelRM):
                 , 'action'        : '../joblist'
                 , 'permissions'   : ( "Manage DMD", )
                 },
-                #{ 'id'            : 'menus'
-                #, 'name'          : 'Menus'
-                #, 'action'        : '../editMenus'
-                #, 'permissions'   : ( ZEN_MANAGE_DMD, )
-                #},
                 { 'id'            : 'portlets'
                 , 'name'          : 'Portlets'
                 , 'action'        : '../editPortletPerms'
@@ -137,6 +132,11 @@ class UserSettingsManager(ZenModelRM):
                 { 'id'            : 'eventConfig'
                 , 'name'          : 'Events'
                 , 'action'        : 'eventConfig'
+                , 'permissions'   : ( "Manage DMD", )
+                },
+                { 'id'            : 'userInterfaceConfig'
+                , 'name'          : 'User Interface'
+                , 'action'        : '../userInterfaceConfig'
                 , 'permissions'   : ( "Manage DMD", )
                 },
            )

@@ -86,11 +86,6 @@ class ZenossInfo(ZenModelItem, SimpleItem):
                 , 'action'        : '../dmd/joblist'
                 , 'permissions'   : ( "Manage DMD", )
                 },
-                #{ 'id'            : 'menus'
-                #, 'name'          : 'Menus'
-                #, 'action'        : '../dmd/editMenus'
-                #, 'permissions'   : ( "Manage DMD", )
-                #},
                 { 'id'            : 'portlets'
                 , 'name'          : 'Portlets'
                 , 'action'        : '../dmd/editPortletPerms'
@@ -114,6 +109,11 @@ class ZenossInfo(ZenModelItem, SimpleItem):
                 { 'id'            : 'eventConfig'
                 , 'name'          : 'Events'
                 , 'action'        : 'eventConfig'
+                , 'permissions'   : ( "Manage DMD", )
+                },
+                { 'id'            : 'userInterfaceConfig'
+                , 'name'          : 'User Interface'
+                , 'action'        : '../dmd/userInterfaceConfig'
                 , 'permissions'   : ( "Manage DMD", )
                 },
            )
