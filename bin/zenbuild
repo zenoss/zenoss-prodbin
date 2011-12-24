@@ -13,8 +13,8 @@
 . $ZENHOME/bin/zenfunctions
 
 if [ "${USE_ZENDS}" = "1" ];then
-    $ZENHOME/bin/zenglobalconf -u zodb_socket=$ZENDSHOME/data/zends.sock
-    $ZENHOME/bin/zenglobalconf -u zep_port=13306
+    $ZENHOME/bin/zenglobalconf -u zodb-socket=$ZENDSHOME/data/zends.sock
+    $ZENHOME/bin/zenglobalconf -u zep-port=13306
 fi
 
 # sync global.conf params to zope's db config

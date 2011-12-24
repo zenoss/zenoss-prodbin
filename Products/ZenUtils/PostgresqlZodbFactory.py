@@ -1,7 +1,7 @@
 ###########################################################################
 #
 # This program is part of Zenoss Core, an open source monitoring platform.
-# Copyright (C) 2007, Zenoss Inc.
+# Copyright (C) 2011, Zenoss Inc.
 #
 # This program is free software; you can redistribute it and/or modify it
 # under the terms of the GNU General Public License version 2 or (at your
@@ -14,9 +14,10 @@
 __doc__="""PostgresqlZodbFactory
 """
 
+import logging
+log = logging.getLogger("zen.PostgresqlZodbFactory")
+
 import optparse
-import sys
-import os
 from zope.interface import implements
 import ZODB
 import relstorage.storage 
@@ -79,32 +80,40 @@ class PostgresqlZodbFactory(object):
              dsn="dbname=%(dbname)s port=%(port)s user=%(user)s password=%(password)s" % connectionParams,
              options=relstorage.options.Options(**kwargs))
 
+        # rename the poll_interval and cache_servers options to not
+        # have the zodb prefix.
+        if 'zodb_poll_interval' in kwargs:
+            kwargs['poll_interval'] = kwargs['zodb_poll_interval']
+        if 'zodb_cacheservers' in kwargs:
+            kwargs['cache_servers'] = kwargs['zodb_cacheservers']
+
         if 'poll_interval' in kwargs:
+            poll_interval = kwargs['poll_interval']
             if 'cache_servers' in kwargs:
-                if self.options.pollinterval is None:
-                    self.log.info("Using default poll-interval of 60 seconds because "
-                        "cache-servers was set.")
+                if poll_interval is None:
+                    log.info("Using default poll-interval of 60 seconds because "
+                             "cache-servers was set.")
                     kwargs['poll_interval'] = 60
                 else:
-                    kwargs['poll_interval'] = self.options.pollinterval
+                    kwargs['poll_interval'] = poll_interval
             else:
-                self.log.warn("poll-interval of %r is being ignored because "
-                    "cache-servers was not set." % self.options.pollinterval)
+                log.warn("poll-interval of %r is being ignored because "
+                         "cache-servers was not set." % poll_interval)
         storage = relstorage.storage.RelStorage(adapter, **kwargs)
-        cache_size = kwargs.get('cache_size', 1000)
+        cache_size = kwargs.get('zodb_cachesize', 1000)
         db = ZODB.DB(storage, cache_size=cache_size)
-        return (db, storage)
+        return db, storage
 
     def buildOptions(self, parser):
         """build OptParse options for ZODB connections"""
         group = optparse.OptionGroup(parser, "ZODB Options",
-            "ZODB connection options and PostgreSQL Adaptor options.")
+            "ZODB connection options and PostgreSQL Adapter options.")
         group.add_option('-R', '--zodb-dataroot',
                     dest="dataroot",
                     default="/zport/dmd",
                     help="root object for data load (i.e. /zport/dmd)")
         group.add_option('--zodb-cachesize',
-                    dest="zodb_cache_size",default=1000, type='int',
+                    dest="zodb_cachesize",default=1000, type='int',
                     help="in memory cachesize default: 1000")
         group.add_option('--zodb-host',
                     dest="zodb_host",default="localhost",
@@ -118,7 +127,7 @@ class PostgresqlZodbFactory(object):
                     help='password of the PostgreSQL server for ZODB')
         group.add_option('--zodb-db', dest='zodb_db', default='zodb',
                     help='Name of database for PostgreSQL object store')
-        # TODO: implement passing socket option to postgres adaptor
+        # TODO: implement passing socket option to PostgreSQL adapter
         group.add_option('--zodb-socket', dest='zodb_socket', default=None,
                     help='Name of socket file for PostgreSQL server connection if host is localhost')
         group.add_option('--zodb-cacheservers', dest='zodb_cacheservers', default="",

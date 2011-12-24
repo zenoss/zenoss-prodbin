@@ -35,6 +35,9 @@ confirm_jre
 # already exist (we don't want to clobber people's configs)
 update_conf_files
 
+# Upgrade < 4.2 config files to 4.2 syntax
+upgrade_conf_options_42
+
 # version 2.1.1 and below used the system python, but in 2.1.70 we
 # started shipping our own.  replace the old scripts with references
 # to the new python

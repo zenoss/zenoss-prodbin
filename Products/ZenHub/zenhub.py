@@ -573,7 +573,7 @@ class ZenHub(ZCmdBase):
             os.write(fd, "username %s\n" % self.workerUsername)
             os.write(fd, "password %s\n" % self.workerPassword)
             os.write(fd, "logseverity %s\n" % self.options.logseverity)
-            os.write(fd, "cachesize %s\n" % self.options.zodb_cache_size)
+            os.write(fd, "zodb-cachesize %s\n" % self.options.zodb_cachesize)
         finally:
             os.close(fd)
         # start the worker

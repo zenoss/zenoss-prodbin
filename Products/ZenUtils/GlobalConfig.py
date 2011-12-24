@@ -10,12 +10,14 @@
 # For complete information please visit: http://www.zenoss.com/oss/
 #
 ###########################################################################
+import logging
+log = logging.getLogger('zen.GlobalConfig')
 import sys
 from optparse import OptionValueError, BadOptionError
 import re
 import os.path
 
-from Products.ZenUtils.Utils import zenPath
+from Products.ZenUtils.Utils import zenPath, getAllParserOptionsGen
 from Products.ZenUtils.config import Config, ConfigLoader
 
 
@@ -82,15 +84,7 @@ def _convertConfigLinesToArguments(parser, lines):
     # valid key
     #     an option's string without the leading "--"
     #     can differ from an option's destination
-    validOpts = []
-
-    for opt in parser.option_list:
-        optstring = opt.get_opt_string()
-        validOpts.append(optstring)
-    for optGroup in parser.option_groups:
-        for opt in optGroup.option_list:
-            optstring = opt.get_opt_string()
-            validOpts.append(optstring)
+    validOpts = set((opt.get_opt_string() for opt in getAllParserOptionsGen(parser)))
             
     args = []
     for line in lines:
@@ -108,6 +102,8 @@ def _convertConfigLinesToArguments(parser, lines):
                     args.append(optstring)
             else:
                 args.extend([optstring, line['value'],])
+        else:
+            log.debug("Unknown option: %s", optstring)
 
     return args
 

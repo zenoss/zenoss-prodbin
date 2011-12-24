@@ -94,7 +94,7 @@ class ZepFacade(ZuulFacade):
     def __init__(self, context):
         super(ZepFacade, self).__init__(context)
         config = getGlobalConfiguration()
-        zep_url = config.get('zep_uri', 'http://localhost:8084')
+        zep_url = config.get('zep-uri', 'http://localhost:8084')
         schema = getUtility(IQueueSchema)
         self.client = ZepServiceClient(zep_url, schema)
         self.configClient = ZepConfigClient(zep_url, schema)
@@ -736,7 +736,7 @@ class ZepDetailsInfo:
     def __init__(self):
         config = getGlobalConfiguration()
         schema = getUtility(IQueueSchema)
-        zep_url = config.get('zep_uri', 'http://localhost:8084')
+        zep_url = config.get('zep-uri', 'http://localhost:8084')
         self._configClient = ZepConfigClient(zep_url, schema)
         self._initialized = False
 

@@ -1,7 +1,7 @@
 ###########################################################################
 #
 # This program is part of Zenoss Core, an open source monitoring platform.
-# Copyright (C) 2007, Zenoss Inc.
+# Copyright (C) 2011, Zenoss Inc.
 #
 # This program is free software; you can redistribute it and/or modify it
 # under the terms of the GNU General Public License version 2 or (at your
@@ -21,7 +21,7 @@ from zope.interface import implements
 from zope.component import queryUtility 
 
 class IZodbFactoryLookup(Interface):
-    def get(self, name=None):
+    def get(name=None):
         """Return the a ZODB connection Factory by name or look up in global.conf."""
 
 
@@ -55,15 +55,15 @@ class ZodbFactoryLookup(object):
 
 class IZodbFactory(Interface):
 
-    def getZopeZodbConf(self):
+    def getZopeZodbConf():
         """Return a zope.conf style stanza for the zodb connection."""
 
-    def getZopeZodbSessionConf(self):
+    def getZopeZodbSessionConf():
         """Return a zope.conf style stanza for the zodb_session connection."""
 
     def getConnection(**kwargs):
         """Return a ZODB connection."""
 
-    def buildOptions(self, parser):
+    def buildOptions(parser):
         """basic command line options associated with zodb connections"""
 

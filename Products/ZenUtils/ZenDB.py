@@ -30,7 +30,7 @@ class ZenDBError(Exception):
         return repr('ZenDBError: %s' % self.msg)
 
 class ZenDB(object):
-    requiredParams = ('db_type', 'host', 'port', 'db', 'user', 'password')
+    requiredParams = ('db-type', 'host', 'port', 'db', 'user', 'password')
     
     def __init__(self, useDefault=None, dsn=None, useAdmin=False):
         if useDefault in ('zep', 'zodb'):
@@ -40,7 +40,7 @@ class ZenDB(object):
                 if not dsn.get(setting):
                     if setting in ('user', 'password') and useAdmin:
                         # determine if global.conf specifies admin settings
-                        key = 'admin_' + setting
+                        key = 'admin-' + setting
                         if key in dbparams:
                             dsn[setting] = dbparams[key]
                     else:
@@ -52,7 +52,7 @@ class ZenDB(object):
                 raise ZenDBError('Missing a required DB connection setting '
                                  '(%s), and cannot continue. ' % setting)
         
-        self.dbtype = dsn.pop('db_type')
+        self.dbtype = dsn.pop('db-type')
         if self.dbtype not in ('mysql', 'postgresql'):
             raise ZenDBError('%s is not a valid database type.' % self.dbtype)
         log.debug('db type: %s' % self.dbtype)
@@ -73,7 +73,7 @@ class ZenDB(object):
                 for line in globalConf.parse():
                     if line.setting:
                         key, val = line.setting
-                        if key.startswith(defaultDb + '_'):
+                        if key.startswith(defaultDb + '-'):
                             key = key[len(defaultDb)+1:]
                             settings[key] = val
                 return settings
@@ -183,7 +183,7 @@ if __name__ == '__main__':
         zdb = ZenDB(
             useDefault=options.usedb, 
             dsn = {
-              'db_type': options.dbtype,
+              'db-type': options.dbtype,
               'host': options.dbhost,
               'port': options.dbport,
               'db': options.dbname,

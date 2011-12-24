@@ -246,34 +246,10 @@ class ZenEventD(ZenDaemon):
         super(ZenEventD, self).buildOptions()
 
         maintenanceBuildOptions(self.parser)
-        # Have to add in all the ZCmdBase options because they get passed
-        # through to the workers but will be invalid if not allowed here
-        self.parser.add_option('-R', '--dataroot',
-                    dest="dataroot",
-                    default="/zport/dmd",
-                    help="root object for data load (i.e. /zport/dmd)")
-        self.parser.add_option('--cachesize',
-                    dest="cachesize",default=1000, type='int',
-                    help="in memory cachesize default: 1000")
-        self.parser.add_option('--host',
-                    dest="host",default="localhost",
-                    help="hostname of MySQL object store")
-        self.parser.add_option('--port',
-                    dest="port", type="int", default=3306,
-                    help="port of MySQL object store")
-        self.parser.add_option('--mysqluser', dest='mysqluser', default='zenoss',
-                    help='username for MySQL object store')
-        self.parser.add_option('--mysqlpasswd', dest='mysqlpasswd', default='zenoss',
-                    help='passwd for MySQL object store')
-        self.parser.add_option('--mysqldb', dest='mysqldb', default='zodb',
-                    help='Name of database for MySQL object store')
-        self.parser.add_option('--mysqlsocket', dest='mysqlsocket', default=None,
-                    help='Name of socket file for MySQL server connection')
-        self.parser.add_option('--cacheservers', dest='cacheservers', default="",
-                    help='memcached servers to use for object cache (eg. 127.0.0.1:11211)')
-        self.parser.add_option('--poll-interval', dest='pollinterval', default=None, type='int',
-                    help='Defer polling the database for the specified maximum time interval, in seconds.'
-                    ' This will default to 60 only if --cacheservers is set.')
+        from zope.component import getUtility
+        from Products.ZenUtils.ZodbFactory import IZodbFactoryLookup
+        connectionFactory = getUtility(IZodbFactoryLookup).get()
+        connectionFactory.buildOptions(self.parser)
         self.parser.add_option('--synceveryevent', dest='syncEveryEvent',
                     action="store_true", default=False,
                     help='Force sync() before processing every event; default is to sync() no more often '

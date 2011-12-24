@@ -34,6 +34,7 @@ from decimal import Decimal
 import asyncore
 import copy
 from decorator import decorator
+from itertools import chain
 from ZODB.POSException import ConflictError
 log = logging.getLogger("zen.Utils")
 
@@ -1678,10 +1679,10 @@ def swallowExceptions(log, msg=None, showTraceback=True, returnValue=None):
         def closeFilesBeforeExit():
             ...
 
-    @param log          Which logger to use, or None to not log.
-    @param msg          The error message.
-    @param stacktrace   True to include the stacktrace (the default).
-    @param returnValue  The return value on error.
+    @param log           Which logger to use, or None to not log.
+    @param msg           The error message.
+    @param showTraceback True to include the stacktrace (the default).
+    @param returnValue   The return value on error.
     """
     @decorator
     def callSafely(func, *args, **kwargs):
@@ -1698,3 +1699,16 @@ def swallowExceptions(log, msg=None, showTraceback=True, returnValue=None):
             return returnValue
 
     return callSafely
+
+def getAllParserOptionsGen(parser):
+    """
+    Returns a generator of all valid options for the optparse.OptionParser.
+
+    @param parser The parser to retrieve options for.
+    @type parser  optparse.OptionParser
+    @return       A generator returning all options for the parser.
+    @rtype        generator of optparse.Option
+    """
+    for optContainer in chain((parser,), parser.option_groups):
+        for option in optContainer.option_list:
+            yield option

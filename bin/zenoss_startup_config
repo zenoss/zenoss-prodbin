@@ -53,23 +53,23 @@ fi
 # to change the following startup parameters
 # modify $ZENHOME/etc/global.conf
 
-export ZODB_DB_TYPE=`get_var zodb_db_type`
-export ZODB_HOST="`get_var zodb_host`"
-export ZODB_DB="`get_var zodb_db`"
-export ZODB_PORT="`get_var zodb_port`"
-export ZODB_ADMIN_USER="`get_var zodb_admin_user`"
-export ZODB_ADMIN_PASSWORD="`get_var zodb_admin_password`"
-export ZODB_USER="`get_var zodb_user`"
-export ZODB_PASSWORD="`get_var zodb_password`"
+export ZODB_DB_TYPE=`get_var zodb-db-type`
+export ZODB_HOST="`get_var zodb-host`"
+export ZODB_DB="`get_var zodb-db`"
+export ZODB_PORT="`get_var zodb-port`"
+export ZODB_ADMIN_USER="`get_var zodb-admin-user`"
+export ZODB_ADMIN_PASSWORD="`get_var zodb-admin-password`"
+export ZODB_USER="`get_var zodb-user`"
+export ZODB_PASSWORD="`get_var zodb-password`"
 
-export ZEP_DB_TYPE="`get_var zep_db_type`"
-export ZEP_HOST="`get_var zep_host`"
-export ZEP_DB="`get_var zep_db`"
-export ZEP_PORT="`get_var zep_port`"
-export ZEP_ADMIN_USER="`get_var zep_admin_user`"
-export ZEP_ADMIN_PASSWORD="`get_var zep_admin_password`"
-export ZEP_USER="`get_var zep_user`"
-export ZEP_PASSWORD="`get_var zep_password`"
+export ZEP_DB_TYPE="`get_var zep-db-type`"
+export ZEP_HOST="`get_var zep-host`"
+export ZEP_DB="`get_var zep-db`"
+export ZEP_PORT="`get_var zep-port`"
+export ZEP_ADMIN_USER="`get_var zep-admin-user`"
+export ZEP_ADMIN_PASSWORD="`get_var zep-admin-password`"
+export ZEP_USER="`get_var zep-user`"
+export ZEP_PASSWORD="`get_var zep-password`"
 
 export RABBITMQ_HOST="`get_var amqphost`"
 export RABBITMQ_SSL="`get_var amqpusessl`"

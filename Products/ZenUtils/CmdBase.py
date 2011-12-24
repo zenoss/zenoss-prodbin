@@ -35,7 +35,7 @@ from urllib import quote
 # See http://dev.zenoss.org/trac/ticket/3146 for details
 from Products.ZenUtils.PkgResources import pkg_resources
 
-from Products.ZenUtils.Utils import unused, load_config_override, zenPath
+from Products.ZenUtils.Utils import unused, load_config_override, zenPath, getAllParserOptionsGen
 from Products.ZenUtils.GlobalConfig import _convertConfigLinesToArguments, applyGlobalConfToParser
 unused(pkg_resources)
 
@@ -517,7 +517,7 @@ be seen on the display.
         #     entries, rather than the command line options.
         #
         import re
-        for opt in parser.option_list:
+        for opt in getAllParserOptionsGen(parser):
                 if opt.help is SUPPRESS_HELP:
                         continue
 
@@ -623,7 +623,7 @@ be seen on the display.
         #     entries, rather than the command line options.
         #
         import re
-        for opt in parser.option_list:
+        for opt in getAllParserOptionsGen(parser):
                 if opt.help is SUPPRESS_HELP:
                         continue
 
@@ -724,7 +724,7 @@ be seen on the display.
         #     entries, rather than the command line options.
         #
         import re
-        for opt in parser.option_list:
+        for opt in getAllParserOptionsGen(parser):
                 if opt.help is SUPPRESS_HELP:
                         continue
 
