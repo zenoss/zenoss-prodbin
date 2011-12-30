@@ -29,14 +29,8 @@ var REMOTE = Zenoss.remote.DeviceRouter,
     treeId = 'groups',
     nodeType = 'Organizer';
 
-
-REMOTE.getProductionStates({}, function(d){
-    Zenoss.env.PRODUCTION_STATES = d;
-});
-
-REMOTE.getPriorities({}, function(d){
-    Zenoss.env.PRIORITIES = d;
-});
+Zenoss.env.initProductionStates();
+Zenoss.env.initPriorities();
 
 REMOTE.getCollectors({}, function(d){
     var collectors = [];
@@ -174,14 +168,26 @@ treesm = Ext.create('Zenoss.TreeSelectionModel', {
     }
 });
 
-function gridOptions() {
+function selectedUids() {
     var grid = Ext.getCmp('device_grid'),
     sm = grid.getSelectionModel(),
     rows = sm.getSelections(),
     pluck = Ext.pluck,
-    uids = pluck(pluck(rows, 'data'), 'uid'),
+    uids = pluck(pluck(rows, 'data'), 'uid');
+    return uids
+}
+
+function gridUidSelections() {
+    return {
+        uids: selectedUids(),
+        hashcheck: null
+    };
+}
+
+function gridOptions() {
+    var grid = Ext.getCmp('device_grid'),
     opts = Ext.apply(grid.filterRow.getSearchValues(), {
-        uids: uids,
+        uids: selectedUids(),
         // FIXME: Actually implement hashcheck
         hashcheck: null
     });
@@ -1140,7 +1146,7 @@ var device_grid = Ext.create('Zenoss.DeviceGridPanel', {
             {
                 id: 'actions-menu',
                 xtype: 'deviceactionmenu',
-                deviceFetcher: gridOptions,
+                deviceFetcher: gridUidSelections,
                 saveHandler: function(){
                     resetGrid();
                     // show any errors

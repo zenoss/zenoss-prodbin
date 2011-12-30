@@ -150,8 +150,8 @@ Ext.define("Zenoss.DeviceDetailBar", {
             this.eventsitem.updateRainbow(data.events);
             this.statusitem.setText(
                 ZR.pingStatusLarge(data.status));
-            this.prodstateitem.setText(data.productionState);
-            this.priorityitem.setText(data.priority);
+            this.prodstateitem.setText(Zenoss.env.PRODUCTION_STATES_MAP[data.productionState]);
+            this.priorityitem.setText(Zenoss.env.PRIORITIES_MAP[data.priority]);
             this.fireEvent('contextchange', this, data);
         }, this);
     }

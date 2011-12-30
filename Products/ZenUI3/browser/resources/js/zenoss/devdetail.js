@@ -18,13 +18,8 @@ Ext.onReady(function(){
 var REMOTE = Zenoss.remote.DeviceRouter,
     UID = Zenoss.env.device_uid;
 
-REMOTE.getProductionStates({}, function(d){
-    Zenoss.env.PRODUCTION_STATES = d;
-});
-
-REMOTE.getPriorities({}, function(d){
-    Zenoss.env.PRIORITIES = d;
-});
+Zenoss.env.initProductionStates();
+Zenoss.env.initPriorities();
 
 function selectOnRender(n, sm) {
     sm.selectRow(n);

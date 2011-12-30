@@ -217,8 +217,12 @@ class DeviceInfo(InfoBase, HasEventsInfoMixin):
             addr_string = None
         return addr_string
 
-    def getProductionState(self):
+    @property
+    def productionStateLabel(self):
         return self._object.convertProdState(self._object.productionState)
+
+    def getProductionState(self):
+        return "%d" % self._object.productionState
 
     def setProductionState(self, prodState):
         return getFacade('device').setProductionState(self.uid, prodState)
@@ -226,12 +230,16 @@ class DeviceInfo(InfoBase, HasEventsInfoMixin):
     productionState = property(getProductionState, setProductionState)
 
     def getPriority(self):
-        return self._object.convertPriority(self._object.priority)
+        return "%d" % self._object.priority
 
     def setPriority(self, priority):
         self._object.setPriority(priority)
 
     priority = property(getPriority, setPriority)
+
+    @property
+    def priorityLabel(self):
+        return self._object.convertPriority(self._object.priority)
 
     def getCollectorName(self):
         return self._object.getPerformanceServerName()

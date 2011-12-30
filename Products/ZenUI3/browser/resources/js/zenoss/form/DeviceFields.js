@@ -104,7 +104,7 @@
         constructor: function(config) {
             var defaults = [];
             if (Ext.isDefined(Zenoss.env.PRODUCTION_STATES)) {
-                defaults = Ext.pluck(Zenoss.env.PRODUCTION_STATES.data, 'value');
+                defaults = Ext.pluck(Zenoss.env.PRODUCTION_STATES, 'value');
             }
             config = Ext.apply(config || {}, {
                 text:'...',

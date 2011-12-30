@@ -73,6 +73,40 @@ Zenoss.env.getColumnDefinitions = function(except) {
     }
 };
 
+Zenoss.env.initProductionStates= function(){
+    var REMOTE = Zenoss.remote.DeviceRouter;
+    REMOTE.getProductionStates({}, function(d){
+        if (!Zenoss.env.PRODUCTION_STATES ) {
+            Zenoss.env.PRODUCTION_STATES = [];
+            Zenoss.env.PRODUCTION_STATES_MAP = {};
+            if (d.success) {
+                Ext.each(d.data, function(item) {
+                            Zenoss.env.PRODUCTION_STATES.push(item);
+                            Zenoss.env.PRODUCTION_STATES_MAP[item.value] = item.name;
+                        }
+                );
+            }
+        }
+    });
+};
+
+Zenoss.env.initPriorities = function(){
+    var REMOTE = Zenoss.remote.DeviceRouter;
+    REMOTE.getPriorities({}, function(d) {
+        if (!Zenoss.env.PRIORITIES) {
+            Zenoss.env.PRIORITIES = [];
+            Zenoss.env.PRIORITIES_MAP = {};
+            if (d.success) {
+                Ext.each(d.data, function(item) {
+                            Zenoss.env.PRIORITIES.push(item);
+                            Zenoss.env.PRIORITIES_MAP[item.value] = item.name;
+                        }
+                );
+            }
+        }
+    });
+};
+
 Ext.define('Zenoss.state.PersistentProvider', {
     extend: 'Ext.state.Provider',
     constructor: function() {

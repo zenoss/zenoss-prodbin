@@ -54,7 +54,11 @@ function objectRenderer(obj) {
         filter: {
             xtype: 'multiselect-prodstate'
         },
-        header: _t('Production State')
+        header: _t('Production State'),
+        renderer: function(value) {
+            return Zenoss.env.PRODUCTION_STATES_MAP[value];
+        }
+
     },{
         id: 'getHWSerialNumber',
         dataIndex: 'serialNumber',
@@ -106,7 +110,11 @@ function objectRenderer(obj) {
         dataIndex: 'priority',
         width: 100,
         hidden: true,
-        header: _t('Priority')
+        filter: false,
+        header: _t('Priority'),
+        renderer: function(value) {
+            return Zenoss.env.PRIORITIES_MAP[value];
+        }
     },{
         id: 'getSystemNames',
         dataIndex: 'systems',

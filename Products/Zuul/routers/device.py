@@ -745,14 +745,14 @@ class DeviceRouter(TreeRouter):
         try:
             for uid in uids:
                 info = facade.getInfo(uid)
-                oldPriority = info.priority
+                oldPriorityLabel = info.priorityLabel
                 info.priority = priority
                 notify(IndexingEvent(info._object))
                 audit('UI.Device.EditPriority', uid,
-                      priority=info.priority,
-                      oldData_={'priority':oldPriority})
+                      priority=info.priorityLabel,
+                      oldData_={'priority':oldPriorityLabel})
             return DirectResponse('Set %s devices to %s priority.' % (
-                len(uids), info.priority))
+                len(uids), info.priorityLabel))
         except Exception, e:
             log.exception(e)
             return DirectResponse.exception(e, 'Failed to change priority.')
