@@ -185,7 +185,11 @@ class CollectorDaemon(RRDDaemon):
                                 type='int',
                                 default=defaultMax,
                                 help='Max number of tasks to run at once, default %default')
-
+        self.parser.add_option('--logTaskStats',
+                               dest='logTaskStats',
+                               type='int',
+                               default=0,
+                               help='How often to logs statistics of current tasks, value in seconds; very verbose')
         frameworkFactory = zope.component.queryUtility(IFrameworkFactory)
         if hasattr(frameworkFactory, 'getFrameworkBuildOptions'):
             # During upgrades we'll be missing this option
@@ -471,6 +475,10 @@ class CollectorDaemon(RRDDaemon):
         if not self.options.cycle:
             self._maintenanceCycle()
             return
+        if self.options.logTaskStats > 0:
+            log.debug("Starting Task Stat logging")
+            loop = task.LoopingCall(self._displayStatistics, verbose=True)
+            loop.start(self.options.logTaskStats, now=False)
         interval = self._prefs.cycleInterval
         self.log.debug("Initializing maintenance Cycle")
         maintenanceCycle = MaintenanceCycle(interval, self, self._maintenanceCycle)
