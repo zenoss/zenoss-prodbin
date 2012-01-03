@@ -161,7 +161,7 @@ $include-missing-images: true;
     border: 0 none !important;
 }
 
-#device_graphs .graph-panel{
+#device_graphs .graph-panel{  
     height: 260px !important;
 }
 
@@ -191,3 +191,11 @@ $include-missing-images: true;
     white-space: -o-pre-wrap;
     word-wrap: break-word;  
 }
+
+// fixing a situation where links in the flares arent clickable due to the header overlay.  
+.x-flare-header{  
+	    left:auto !important; 
+	    right:15px !important; 
+	    width:15px !important; 
+	    .x-tool{ left:0px !important; } 
+}   
