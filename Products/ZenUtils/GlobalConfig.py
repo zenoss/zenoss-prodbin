@@ -24,7 +24,7 @@ from Products.ZenUtils.config import Config, ConfigLoader
 CONFIG_FILE = zenPath('etc', 'global.conf')
 
 
-_KEYVALUE = re.compile("^[\s ]*(?P<key>[a-z_]+[a-z0-9_]*)[\s]+(?P<value>[^\s#]+)", re.IGNORECASE).search
+_KEYVALUE = re.compile("^[\s ]*(?P<key>[a-z_]+[a-z0-9_-]*)[\s]+(?P<value>[^\s#]+)", re.IGNORECASE).search
 
 def globalConfToDict():
     settings = {}

@@ -35,14 +35,14 @@ def _getDefaults(options=None):
     else:
        o = options
     settings = {
-        'host': o.get('zodb_host', "localhost"),
-        'port': o.get('zodb_port', 5432),
-        'user': o.get('zodb_user', 'zenoss'),
-        'password': o.get('zodb_password', 'zenoss'),
-        'dbname': o.get('zodb_db', 'zodb'),
+        'host': o.get('zodb-host', "localhost"),
+        'port': o.get('zodb-port', 5432),
+        'user': o.get('zodb-user', 'zenoss'),
+        'password': o.get('zodb-password', 'zenoss'),
+        'dbname': o.get('zodb-db', 'zodb'),
     }
-    if 'zodb_socket' in o:
-        settings['socket'] = o['zodb_socket']
+    if 'zodb-socket' in o:
+        settings['socket'] = o['zodb-socket']
     return settings
 
 

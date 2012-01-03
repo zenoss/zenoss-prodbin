@@ -13,9 +13,7 @@
 
 __doc__="""ZodbConnection
 """
-import re
-import os.path
-from Products.ZenUtils.Utils import zenPath
+from Products.ZenUtils.GlobalConfig import globalConfToDict
 from zope.interface import Interface
 from zope.interface import implements
 from zope.component import queryUtility 
@@ -24,23 +22,6 @@ class IZodbFactoryLookup(Interface):
     def get(name=None):
         """Return the a ZODB connection Factory by name or look up in global.conf."""
 
-
-_KEYVALUE = re.compile("^[\s ]*(?P<key>[a-z_]+[a-z0-9_]*)[\s]+(?P<value>[^\s#]+)", re.IGNORECASE).search
-
-def globalConfToDict():
-    settings = {}
-    globalConfFile = zenPath('etc','global.conf')
-    if os.path.exists(globalConfFile):
-        with open(globalConfFile, 'r') as f:
-            for line in f.xreadlines():
-                match = _KEYVALUE(line)
-                if match:
-                    value = match.group('value')
-                    if value.isdigit():
-                        value = int(value)
-                    settings[match.group('key')] = value
-    return settings
-
 class ZodbFactoryLookup(object):
     implements(IZodbFactoryLookup)
 
@@ -48,7 +29,7 @@ class ZodbFactoryLookup(object):
         """Return the ZODB connection factory by name or look up in global.conf."""
         if name is None:
             settings = globalConfToDict()
-            name = settings.get('zodb_db_type', 'mysql')
+            name = settings.get('zodb-db-type', 'mysql')
         connectionFactory = queryUtility(IZodbFactory, name)
         return connectionFactory
 

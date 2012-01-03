@@ -36,14 +36,14 @@ def _getDefaults(options=None):
     else:
        o = options
     settings = {
-        'host': o.get('zodb_host', "localhost"),
-        'port': o.get('zodb_port', 3306),
-        'user': o.get('zodb_user', 'zenoss'),
-        'passwd': o.get('zodb_password', 'zenoss'),
-        'db': o.get('zodb_db', 'zodb'),
+        'host': o.get('zodb-host', "localhost"),
+        'port': o.get('zodb-port', 3306),
+        'user': o.get('zodb-user', 'zenoss'),
+        'passwd': o.get('zodb-password', 'zenoss'),
+        'db': o.get('zodb-db', 'zodb'),
     }
-    if 'zodb_socket' in o:
-        settings['unix_socket'] = o['zodb_socket']
+    if 'zodb-socket' in o:
+        settings['unix_socket'] = o['zodb-socket']
     return settings
 
 
@@ -88,16 +88,16 @@ class MySqlZodbFactory(object):
             'passwd': kwargs.get('zodb_password', 'zenoss'),
             'db': kwargs.get('zodb_db',  'zodb'),
         }
-        socket = kwargs.get('zodb_socket', 'None')
-        if socket is None or socket == 'None':
+        socket = kwargs.get('zodb_socket')
+        if not socket:
             # try to auto set ZENDS socket
             use_zends = os.environ.get("USE_ZENDS", False)
             if use_zends and use_zends == "1":
-                zends_home = os.environ.get("ZENDSHOME","")
-                zends_socket = zends_home + "/data/zends.sock"
+                zends_home = os.environ.get("ZENDSHOME", "")
+                zends_socket = os.path.join(zends_home, "data", "zends.sock")
                 if zends_home and os.path.exists(zends_socket):
                     socket = zends_socket
-        if socket and socket != 'None':
+        if socket:
             connectionParams['unix_socket'] = socket
         kwargs = {
             'cache_module_name':'memcache',
