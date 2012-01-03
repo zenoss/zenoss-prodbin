@@ -409,6 +409,21 @@ class DeviceRouter(TreeRouter):
         return DirectResponse(devices=data, totalCount=devices.total,
                               hash=devices.hash_)
 
+    def renameDevice(self, uid, newId):
+        """
+        Set the device specified by the uid,"uid" to have the
+        the id "newId"
+        This will raise an exception if it fails.
+
+        @type  uid: string
+        @param uid: The unique id of the device we are renaming
+        @type  newId: string
+        @param newId: string of the new id
+        """
+        facade = self._getFacade()
+        newUid = facade.renameDevice(uid, newId)
+        return DirectResponse.succeed(uid=newUid)
+
     def moveDevices(self, uids, target, hashcheck=None, ranges=(), uid=None,
                     params=None, sort='name', dir='ASC'):
         """
@@ -1782,4 +1797,5 @@ class DeviceRouter(TreeRouter):
         facade = self._getFacade()
         data = facade.addWinService(uid, newClassName, userCreated)
         return DirectResponse.succeed(data=Zuul.marshal(data))
+
 

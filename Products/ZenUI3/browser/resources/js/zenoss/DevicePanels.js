@@ -269,15 +269,6 @@ Ext.define("Zenoss.DeviceGridPanel", {
  * Device Actions
  *
  */
-function disableSendEvent() {
-    var cbs = Ext.getCmp('lockingchecks').getValue(),
-        sendEvent = Ext.getCmp('send-event-checkbox');
-
-    if (cbs.sendEvent){
-        delete cbs.sendEvent;
-    }
-    sendEvent.setDisabled(Ext.isEmpty(cbs));
-}
     /**
      * Drop down of action items that you can use against
      * a device. The two required parameters are
@@ -311,45 +302,14 @@ function disableSendEvent() {
                             iconCls: 'lock',
                             permission: 'Change Device',
                             handler: function() {
-                                var win = new Zenoss.FormDialog({
-                                    title: _t('Lock Devices'),
-                                    modal: true,
-                                    width: 310,
-                                    height: 220,
-                                    items: [{
-                                        xtype: 'checkboxgroup',
-                                        id: 'lockingchecks',
-                                        columns: 1,
-                                        style: 'margin: 0 auto',
-                                        items: [{
-                                            name: 'updates',
-                                            id: 'lock-updates-checkbox',
-                                            boxLabel: _t('Lock from updates'),
-                                            handler: disableSendEvent
-                                        },{
-                                            name: 'deletion',
-                                            id: 'lock-deletion-checkbox',
-                                            boxLabel: _t('Lock from deletion'),
-                                            handler: disableSendEvent
-                                        },{
-                                            name: 'sendEvent',
-                                            id: 'send-event-checkbox',
-                                            boxLabel: _t('Send an event when an action is blocked'),
-                                            disabled: true
-                                        }]
-                                    }],
-                                    buttons: [{
-                                        xtype: 'DialogButton',
-                                        text: _t('Lock'),
-                                        handler: function() {
-                                            var cbs = Ext.getCmp('lockingchecks').getValue(),
-                                            opts = fetcher();
-                                            REMOTE.lockDevices(opts, saveHandler);
-                                        }
-                                    }, Zenoss.dialog.CANCEL
-                                             ]
-                                });
-                                win.show();
+                                Ext.create('Zenoss.dialog.LockForm', {
+                                    applyOptions: function(values) {
+                                        Ext.applyIf(values, fetcher());
+                                    },
+                                    submitFn: function(values) {
+                                        REMOTE.lockDevices(values, saveHandler);
+                                    }
+                                }).show();
                             }
                         }),
                         new Zenoss.Action({

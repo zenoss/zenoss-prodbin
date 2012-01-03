@@ -58,14 +58,6 @@ Zenoss.env.componentReloader = function(compType) {
     };
 };
 
-/*
-Zenoss.ComponentNodeUI = Ext.extend(Zenoss.HierarchyTreeNodeUI, {
-    renderElements: function(n, a, targetNode, bulkRender) {
-        a.text.text = Zenoss.component.displayName(a.text.text)[1]; // [1] is plural
-        Zenoss.ComponentNodeUI.superclass.renderElements.apply(this, arguments);
-    }
-});
-*/
 
 Zenoss.nav.register({
     Device: [{
@@ -157,13 +149,12 @@ function componentGridOptions() {
     var grid = Ext.getCmp('component_card').componentgrid,
         sm = grid.getSelectionModel(),
         rows = sm.getSelections(),
-        ranges = sm.getPendingSelections(true),
         pluck = Ext.pluck,
         uids = pluck(pluck(rows, 'data'), 'uid'),
         name = Ext.getCmp('component_searchfield').getValue();
     return {
         uids: uids,
-        ranges: ranges,
+        ranges: [],
         name: name,
         hashcheck: grid.lastHash
     };
@@ -212,84 +203,17 @@ function showMonitoringDialog() {
 }
 
 function showComponentLockingDialog() {
-    function disableSendEvent() {
-        var del = Ext.getCmp('lock-deletion-checkbox'),
-            sendEvent = Ext.getCmp('send-event-checkbox');
-        sendEvent.setDisabled(!del.getValue());
-    }
-    var win = new Ext.Window({
-        height: 150,
-        width: 300,
-        title: _t('Locking'),
-        bodyStyle: 'padding:8px;padding-top:2px',
-        buttonAlign: 'left',
-        plain: true,
-        layout: 'fit',
-        buttons: [{
-            xtype:'DialogButton',
-            text: _t('Submit'),
-            handler: function(btn) {
-                var del = Ext.getCmp('lock-deletion-checkbox'),
-                    upd = Ext.getCmp('lock-updates-checkbox'),
-                    send = Ext.getCmp('send-event-checkbox'),
-                    opts = {
-                        deletion: del.getValue(),
-                        updates: upd.getValue(),
-                        sendEvent: send.getValue()
-                    };
-                Ext.apply(opts, componentGridOptions());
-                btn.ownerCt.ownerCt.destroy();
-                REMOTE.lockComponents(opts, function(r){
-                    refreshComponentTreeAndGrid();
-                });
-            }
-        },{
-            xtype:'DialogButton',
-            text: _t('Cancel'),
-            handler: function(btn){
-                btn.ownerCt.ownerCt.destroy();
-            }
-        }],
-        items: [{
-            xtype: 'container',
-            frame: false,
-            layout: 'vbox',
-            defaults: {
-                xtype: 'checkbox',
-                flex: 1,
-                align: 'stretch'
-            },
-            id: 'lockingchecks',
-            items: [{
-                name: 'updates',
-                submitValue: false,
-                id: 'lock-updates-checkbox',
-                boxLabel: _t('Lock from updates'),
-                handler: disableSendEvent.createInterceptor(function(){
-                    var del = Ext.getCmp('lock-deletion-checkbox');
-                    if (this.getValue()) {
-                        del.setValue(true);
-                        del.disable();
-                    } else {
-                        del.enable();
-                    }
-                })
-            },{
-                name: 'deletion',
-                submitValue: false,
-                id: 'lock-deletion-checkbox',
-                boxLabel: _t('Lock from deletion'),
-                handler: disableSendEvent
-            },{
-                name: 'sendEventWhenBlocked',
-                id: 'send-event-checkbox',
-                boxLabel: _t('Send an event when an action is blocked'),
-                disabled: true
-            }]
-        }]
-    });
-    win.show();
-    win.doLayout();
+    Ext.create('Zenoss.dialog.LockForm', {
+        applyOptions: function(values) {
+            Ext.apply(values, componentGridOptions());
+        },
+        submitFn: function(values) {
+            REMOTE.lockComponents(values, function(response) {
+                var grid = Ext.getCmp('component_card').componentgrid;
+                grid.refresh();
+            });
+        }
+    }).show();
 }
 
 var componentCard = {
@@ -875,6 +799,9 @@ var editDeviceClass = function(deviceClass, uid) {
     win.show();
     win.doLayout();
 };
+
+
+
 function addComponentHandler(item) {
     var win = Ext.create('Zenoss.component.add.' + item.dialogId, {
         componentType: item.dialogId,
@@ -1053,6 +980,49 @@ Ext.getCmp('footer_bar').add([{
             pieces.pop();
             pieces.pop();
             editDeviceClass(pieces.join("/"), uid);
+        }
+    }, {
+        xtype: 'menuitem',
+        text: _t('Rename Device') + '...',
+        hidden: Zenoss.Security.doesNotHavePermission('Manage Device'),
+        handler: function() {
+            Ext.create('Zenoss.form.RenameDevice', {
+                uid: Zenoss.env.device_uid
+            }).show();
+        }
+
+    },{
+        xtype: 'menuitem',
+        text: _t('Delete Device') + '...',
+        hidden: Zenoss.Security.doesNotHavePermission('Manage Device'),
+        handler: function() {
+            Ext.create('Zenoss.form.DeleteDevice', {
+                uid: Zenoss.env.device_uid
+            }).show();
+        }
+
+    },{
+        xtype: 'menuitem',
+        text: _t('Locking') + '...',
+        hidden: Zenoss.Security.doesNotHavePermission('Manage Device'),
+        handler: function() {
+            REMOTE.getInfo({
+                uid: Zenoss.env.device_uid,
+                keys: ['locking']
+            }, function(result){
+                if (result.success) {
+                    var locking = result.data.locking;
+                    Ext.create('Zenoss.dialog.LockForm', {
+                        applyOptions: function(values) {
+                            values.uids = [Zenoss.env.device_uid];
+                            values.hashcheck = 1;
+                        },
+                        updatesChecked: locking.updates,
+                        deletionChecked: locking.deletion,
+                        sendEventChecked: locking.events
+                    }).show();
+                }
+            });
         }
     }]
 },{

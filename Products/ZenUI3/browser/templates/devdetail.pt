@@ -23,6 +23,7 @@
     Zenoss.env.device_uid = decodeURI("${context/absolute_url_path}");
 '></script>
 
+<script src="/++resource++zenui/js/zenoss/DeviceDialogs.js"></script>
 <script src="/++resource++zenui/js/zenoss/ComponentDialogs.js"></script>
 <script src="/++resource++zenui/js/zenoss/devdetail.js"></script>
 

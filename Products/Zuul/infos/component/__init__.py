@@ -15,13 +15,13 @@ from zope.interface import implements
 from zope.component import adapts
 
 from Products.Zuul.interfaces import IComponentInfo, IComponent
-from Products.Zuul.infos import InfoBase, ProxyProperty, HasEventsInfoMixin
+from Products.Zuul.infos import InfoBase, ProxyProperty, HasEventsInfoMixin, LockableMixin
 from Products.Zuul.form.builder import FormBuilder
 from Products.Zuul.decorators import info
 from Products.Zuul.utils import safe_hasattr as hasattr
 
 
-class ComponentInfo(InfoBase, HasEventsInfoMixin):
+class ComponentInfo(InfoBase, HasEventsInfoMixin, LockableMixin):
     implements(IComponentInfo)
     adapts(IComponent)
 
@@ -29,13 +29,6 @@ class ComponentInfo(InfoBase, HasEventsInfoMixin):
     @info
     def device(self):
         return self._object.device()
-
-    @property
-    def locking(self):
-        return {
-            'updates': self._object.isLockedFromUpdates(),
-            'deletion': self._object.isLockedFromDeletion(),
-            'events': self._object.sendEventWhenBlocked()}
 
     @property
     def usesMonitorAttribute(self):

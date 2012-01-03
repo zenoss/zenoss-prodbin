@@ -109,6 +109,17 @@ class InfoBase(object):
     def __repr__(self):
         return '<%s Info "%s">' % (self._object.__class__.__name__, self.id)
 
+
+class LockableMixin(object):
+
+    @property
+    def locking(self):
+        return {
+            'updates': self._object.isLockedFromUpdates(),
+            'deletion': self._object.isLockedFromDeletion(),
+            'events': self._object.sendEventWhenBlocked()}
+
+
 class HasUuidInfoMixin(object):
     @property
     def uuid(self):

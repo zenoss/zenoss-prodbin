@@ -19,7 +19,7 @@ from Products.Zuul.tree import TreeNode
 from Products.Zuul.interfaces import IDeviceOrganizerNode
 from Products.Zuul.interfaces import IDeviceOrganizerInfo
 from Products.Zuul.interfaces import IDeviceInfo, IDevice
-from Products.Zuul.infos import InfoBase, HasEventsInfoMixin, ProxyProperty
+from Products.Zuul.infos import InfoBase, HasEventsInfoMixin, ProxyProperty, LockableMixin
 from Products.Zuul import getFacade, info
 from Products.Zuul.marshalling import TreeNodeMarshaller
 from Products.ZenUtils.guid.interfaces import IGlobalIdentifier
@@ -177,7 +177,7 @@ class DeviceOrganizerTreeNodeMarshaller(TreeNodeMarshaller):
         return self._marshalNode(keys, node or self.root, iconCls=iconCls)
 
 
-class DeviceInfo(InfoBase, HasEventsInfoMixin):
+class DeviceInfo(InfoBase, HasEventsInfoMixin, LockableMixin):
     implements(IDeviceInfo)
     adapts(IDevice)
 
