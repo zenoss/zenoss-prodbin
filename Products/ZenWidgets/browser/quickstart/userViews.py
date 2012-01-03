@@ -11,10 +11,11 @@
 #
 ###########################################################################
 
-import transaction
+import logging
+log = logging.getLogger("zen.widgets.userviews")
+
 from Products.Five.browser import BrowserView
 from Products.Five.browser.pagetemplatefile import ZopeTwoPageTemplateFile
-from Products.ZenWidgets import messaging
 from Products.ZenUtils import Ext
 from Products.CMFCore.utils import getToolByName
 
@@ -48,8 +49,9 @@ class CreateUserView(BrowserView):
             admin.manage_editUserSettings(password=adminPassword,
                                           sndpassword=adminPassword,
                                           oldpassword='zenoss')
-        except:
-            response.error('admin-pass',
+        except Exception:
+            log.exception("Failed to set admin password")
+            response.error('admin-password1',
                        "There was a problem setting the admin password.")
 
         if not zenUsers.checkValidId(userName) == True:
