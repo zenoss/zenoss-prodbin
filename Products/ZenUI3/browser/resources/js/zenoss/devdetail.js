@@ -650,7 +650,25 @@ Ext.getCmp('center_panel').add({
         id: 'devdetailbar',
         listeners: {
             render: function(me) {
+                // refresh once every minute
+                var delay = 60 * 1000, eventsGrid;
                 me.setContext(UID);
+                me.refreshTask = new Ext.util.DelayedTask(function() {
+                    this.refresh();
+                    this.refreshTask.delay(delay);
+                }, me);
+                me.refreshTask.delay(delay);
+
+                // hook ourselves up to the device events if possible so that the
+                // event rainbow is exactly in sync with the grid
+                eventsGrid = Ext.getCmp('device_events');
+                if (eventsGrid) {
+                    eventsGrid.on('eventgridrefresh', function(){
+                        this.refresh();
+                        this.refreshTask.delay(delay);
+                    }, me);
+                }
+
             },
             contextchange: function(bar, data) {
                 Zenoss.env.deviceUUID = data.uuid;

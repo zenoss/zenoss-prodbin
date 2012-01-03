@@ -1210,6 +1210,16 @@
             window.open(url, evid.replace(/-/g,'_'),
                         "status=1,width=600,height=500,resizable=1");
         },
+        initComponent: function() {
+            this.callParent(arguments);
+
+            /**
+             * @event eventgridrefresh
+             * Fires when the events grid is refreshed.
+             * @param {Zenoss.SimpleEventGridPanel} this The gridpanel.
+             */
+            this.addEvents('eventgridrefresh');
+        },
         /**
          *Since on a regular event console you can not choose which columns
          * are present we are overriding the default implementation of getState
@@ -1225,6 +1235,10 @@
                 return !col.hidden;
             });
             return val;
+        },
+        refresh: function() {
+            this.callParent(arguments);
+            this.fireEvent('eventgridrefresh', this);
         }
     }); // SimpleEventGridPanel
 
@@ -1273,6 +1287,7 @@
             });
             Zenoss.EventGridPanel.superclass.constructor.call(this, config);
         },
+
         onRowDblClick: function(view, record, e) {
             var evid = record.get('evid'),
                 combo = Ext.getCmp('history_combo'),

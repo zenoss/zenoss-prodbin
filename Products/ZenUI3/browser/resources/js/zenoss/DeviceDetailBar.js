@@ -85,7 +85,7 @@ Ext.define("Zenoss.DeviceDetailBar", {
                 id: 'detailrainbow',
                 label: _t('Events'),
                 listeners: {
-                    'render': function(me) {
+                    render: function(me) {
                         me.getEl().on('click', function(){
                             Ext.History.add('#deviceDetailNav:device_events');
                         });
