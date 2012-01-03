@@ -1,6 +1,6 @@
 <h2>Create a new ZenPack:</h2>
 <span id="errmsg" style="color:red;"></span>
-<div style="width:295px;">
+<div style="width:280px;">
 <table>
     <tr>
         <td colspan="2">
@@ -12,7 +12,7 @@
             the ZenPack.  The last package name usually identifies the function 
             of 
             the ZenPack.  Examples:
-            <ul>
+            <ul style="margin:3px 0 0 12px">
                 <li>ZenPacks.WidgetCorp.WidgetWatcher</li>
                 <li>ZenPacks.JohnDoe.networking.RouterGraphs</li>
             </ul>
