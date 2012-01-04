@@ -865,11 +865,20 @@ def RemoveZenPack(dmd, packName, filesOnly=False, skipDepsCheck=False,
                     shutil.rmtree(eggDir)
         cleanupSkins(dmd)
         transaction.commit()
-    except:
+    except ZenPackDependentsException, ex:
+        log.error(ex)
+    except Exception, ex:
+        # Get that exception out there in case it gets blown away by ZPEvent
+        log.exception("Error removing ZenPack %s" % packName)
         if sendEvent:
             ZPEvent(dmd, 4, 'Error removing ZenPack %s' % packName,
                 '%s: %s' % sys.exc_info()[:2])
-        raise
+
+        # Don't just raise, because if ZPEvent blew away exception context
+        # it'll be None, which is bad. This manipulates the stack to look like
+        # this is the source of the exception, but we logged it above so no
+        # info is lost.
+        raise ex
     if sendEvent:
         ZPEvent(dmd, 2, 'Removed ZenPack %s' % packName)
 
