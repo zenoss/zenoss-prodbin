@@ -1424,3 +1424,22 @@ a.z-entity:link, a.z-entity:hover, a.z-entity:visited {
 #evdetail_hd .severity-icon.warning {
   background-position: -220px 0px;
 }
+
+/* fixes problems on the perf graphs */
+#PerformanceGraphs .x-panel-default, #PerformanceGraphs .x-panel-body{
+    height:auto !important;
+}
+#PerformanceGraphs .x-panel-body{
+    position:relative;
+    background:transparent !important;
+    padding-bottom:26px;
+    top:26px !important; 
+    z-index:1 !important;
+}
+#PerformanceGraphs .x-toolbar .x-box-inner{
+    z-index:1100 !important;
+}
+#PerformanceGraphs .x-toolbar{
+    position:absolute;
+    margin-right:3px !important;
+}
