@@ -99,7 +99,8 @@ Ext.onReady(function () {
                         fieldLabel: _t('Id')
                     }],
                     buttons:[{
-                        xtype: 'DialogButton',
+                        xtype: 'button',
+                        ui: 'dialog-dark',
                         text: _t('Submit'),
                         ref: '../../submitButton',
                         formBind: true,
@@ -129,7 +130,8 @@ Ext.onReady(function () {
                             me.hide();
                         }
                     },{
-                        xtype: 'DialogButton',
+                        xtype: 'button',
+                        ui: 'dialog-dark',
                         ref: '../../cancelButton',
                         text: _t('Cancel'),
                         handler: function(button) {
