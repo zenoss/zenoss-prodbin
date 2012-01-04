@@ -42,7 +42,7 @@ class Testzenbatchloader(BaseTestCase):
         self.zloader.log = self.log
 
     def beforeTearDown(self):
-        BaseTestCase.afterSetUp(self)
+        BaseTestCase.beforeTearDown(self)
         logging.disable(logging.NOTSET)
 
     def testSampleConfig(self):

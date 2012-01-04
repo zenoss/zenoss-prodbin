@@ -50,18 +50,6 @@ class TestIpAddress(ZenModelBaseTest):
         self.addr.setNetmask(8)
         self.assert_(self.addr.getIpAddress() == '1.2.3.4/8')
 
-    def testIpAddressCatalog(self):
-        """
-        Makes sure that when we add an ip address to the interface we
-        can find the ip address from the catalog by searching for the device name
-        """
-        deviceid = "testdev"
-        cat = PermissionedCatalogTool(self.dmd.Networks, self.dmd.Networks.ipSearch)
-
-        results = cat.search(query=Eq('getDeviceName', deviceid))
-        self.assertEqual(results.total, 1)
-
-
 #    def testSetIpAddress(self):
 #        self.addr.setIpAddress('2.3.4.5/16')
 #        self.assert_(self.addr.getIpAddress() == '2.3.4.5/16')
