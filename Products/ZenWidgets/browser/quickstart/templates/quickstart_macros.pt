@@ -462,6 +462,9 @@ Ext.onReady(function() {
         config = Ext.apply(devFieldConfig, {
             name: 'device_' + idx
         });
+        // this line will only allow around 8 adds before it throws the error
+        // that 'events' prop is undefined. If the combo box is never selected on the right
+        // then this isn't a problem. Strange bug.
         var field = devs.add(config);
         // pop the button and append it so it
         // stays on the bottom
