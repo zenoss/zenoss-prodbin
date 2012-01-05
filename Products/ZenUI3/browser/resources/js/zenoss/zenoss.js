@@ -218,14 +218,26 @@ function setToDefaultCursorStyle() {
 Ext.Ajax.on('requestcomplete', setToDefaultCursorStyle);
 Ext.Ajax.on('requestexception', setToDefaultCursorStyle);
 
+
+Zenoss.env.unloading=false;
+
+Ext.EventManager.on(window, 'beforeunload', function() {
+    Zenoss.env.unloading=true;
+});
+
+
 var serverExceptionDialog = null;
 Ext.Direct.on('exception', function(e) {
+    if (Zenoss.env.unloading === true){
+        return;
+    }
+
     if (e.message.startswith("Error parsing json response") &&
         e.message.endswith("null")) {
         window.location.reload();
         return;
     }
-
+    
     if(serverExceptionDialog) serverExceptionDialog.destroy();
 
     serverExceptionDialog = new Zenoss.dialog.SimpleMessageDialog({
