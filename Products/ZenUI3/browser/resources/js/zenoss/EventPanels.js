@@ -190,8 +190,7 @@
                     handler: function(){
                         win.destroy();
                     }
-                }
-                         ]
+                }]
             }]
 
             });
@@ -1011,18 +1010,21 @@
         },
         listeners: {
             'beforerender': function(){
-               this.rowcolors = Ext.state.Manager.get('rowcolor');
-               // Some event consoles (Impact Events) do not use severity config colors
-               // Check and see if it's being used before trying to use it
-               if(Ext.getCmp("rowcolors_checkitem")) Ext.getCmp('rowcolors_checkitem').setChecked(this.rowcolors);
+                this.rowcolors = Ext.state.Manager.get('rowcolor');
+                // Some event consoles (Impact Events) do not use severity
+                // config colors.  Check and see if it's being used before
+                // trying to use it.
+                var rowcolorsCheckItem = Ext.getCmp('rowcolors_checkitem');
+                if (rowcolorsCheckItem)
+                    rowcolorsCheckItem.setChecked(this.rowcolors);
             }
         },
         getSelectionParameters: function() {
             var grid = this,
-            sm = grid.getSelectionModel(),
-            //ranges = sm.getPendingSelections(true),
-            evids = [],  // Event IDs selected
-            sels = sm.getSelections();  // UI records selected
+                sm = grid.getSelectionModel(),
+                //ranges = sm.getPendingSelections(true),
+                evids = [],  // Event IDs selected
+                sels = sm.getSelections();  // UI records selected
 
             var selectedAll = (sm.selectState == 'All');
             if (selectedAll) {

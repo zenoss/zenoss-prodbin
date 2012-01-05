@@ -33,7 +33,6 @@ function objectRenderer(obj) {
             return Zenoss.render.Device(record.data.uid, name);
         }
     },{
-        id: 'ipAddress',
         width: 100,
         dataIndex: 'ipAddress',
         header: _t('IP Address'),

@@ -298,10 +298,10 @@
     /**
      * Message for Zenoss.messaging.Messenger. This is for back-compat and should not be used directly.
      */
-    Zenoss.messaging.Message = {
-        INFO: 0,                // Same as in messaging.py
-        WARNING: 1,                // Same as in messaging.py
-        CRITICAL: 2,                // Same as in messaging.py
+    Ext.define('Zenoss.messaging.Message',  {
+        INFO: 0,        // Same as in messaging.py
+        WARNING: 1,     // Same as in messaging.py
+        CRITICAL: 2,    // Same as in messaging.py
         constructor: function(config) {
             config = Ext.applyIf(config || {}, {
                 body: '',
@@ -310,7 +310,7 @@
             });
             Ext.apply(this, config);
         }
-    };
+    });
 
     /**
      * An interface to the old messaging API. This is for back-compat and should not be used directly.
