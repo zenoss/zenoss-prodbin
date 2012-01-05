@@ -1425,8 +1425,7 @@ a.z-entity:link, a.z-entity:hover, a.z-entity:visited {
   background-position: -220px 0px;
 }
 
-/* fixes problems on the perf graphs */
-#PerformanceGraphs .x-panel-default, #PerformanceGraphs .x-panel-body{
+#PerformanceGraphs .x-panel-default, #PerformanceGraphs .x-panel-body, #evdetail_props{
     height:auto !important;
 }
 #PerformanceGraphs .x-panel-body{
